@@ -95,6 +95,7 @@ export interface CachedLatin1Batch {
   readonly b0: number;
   readonly bMid: number;
   readonly bEnd: number;
+  readonly rawBuf: Buffer;
   readonly text: string;
   readonly ends: Int32Array;
   readonly maxLineLen: number;
@@ -104,18 +105,10 @@ export interface CachedLatin1Batch {
 const latin1BatchCache = new WeakMap<Uint8Array, CachedLatin1Batch>();
 let lastLatin1Batch: CachedLatin1Batch | undefined;
 
-function matchesLatin1Bytes(chunk: Uint8Array, text: string): boolean {
-  for (let index = 0; index < chunk.byteLength; index++) {
-    if (chunk[index] !== text.charCodeAt(index)) return false;
-  }
-  return true;
-}
-
 export function getCachedLatin1Batch(chunk: Uint8Array): CachedLatin1Batch | undefined {
   const cLen = chunk.byteLength;
   if (cLen < 256) return undefined;
   let cached = latin1BatchCache.get(chunk);
-  const fromWeakMap = cached !== undefined;
   if (!cached && lastLatin1Batch !== undefined && lastLatin1Batch.byteLength === cLen) {
     cached = lastLatin1Batch;
   }
@@ -125,9 +118,10 @@ export function getCachedLatin1Batch(chunk: Uint8Array): CachedLatin1Batch | und
     cached.b0 !== chunk[0] ||
     cached.bMid !== chunk[cLen >> 1] ||
     cached.bEnd !== chunk[cLen - 1] ||
-    !matchesLatin1Bytes(chunk, cached.text)
+    !cached.rawBuf.equals(chunk)
   ) {
-    const cText = Buffer.isBuffer(chunk) ? chunk.toString("latin1") : Buffer.from(chunk.buffer, chunk.byteOffset, cLen).toString("latin1");
+    const rawBuf = Buffer.from(chunk);
+    const cText = rawBuf.toString("latin1");
     let cStart = 0;
     let cEnd: number;
     let cEndsCount = 0;
@@ -151,6 +145,7 @@ export function getCachedLatin1Batch(chunk: Uint8Array): CachedLatin1Batch | und
       b0: chunk[0]!,
       bMid: chunk[cLen >> 1]!,
       bEnd: chunk[cLen - 1]!,
+      rawBuf,
       text: cText,
       ends,
       maxLineLen,

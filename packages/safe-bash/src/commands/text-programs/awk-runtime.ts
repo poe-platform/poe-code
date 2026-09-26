@@ -127,6 +127,7 @@ let sharedFieldBuffers: PooledFieldBuffers | undefined = {
   fieldGeneration: 1,
 };
 const FAST_AWK_MATCH_OFFSETS = new Int32Array(20);
+
 const RETURN_SCALAR_ZERO = (): Scalar => SCALAR_ZERO;
 const RETURN_SCALAR_ONE = (): Scalar => SCALAR_ONE;
 const runtimeAnchor: { current?: AwkRuntime | undefined } = {};
@@ -2016,6 +2017,31 @@ export class AwkRuntime {
     return this.finishRunFromPromise(this.runProgram());
   }
 
+  private applyFastPairDelta(sumName: string, sumDelta: number, cntName: string, cntDelta: number): void {
+    const exSum = this.variables.get(sumName);
+    const prevSum = exSum !== undefined && !(exSum instanceof AwkArray) ? (exSum.kind === "number" ? exSum.number : number(exSum)) : 0;
+    const nextSum = (prevSum + sumDelta) | 0;
+    if (exSum !== undefined && !(exSum instanceof AwkArray) && exSum.kind === "number" && !Object.isFrozen(exSum)) {
+      (exSum as { number: number }).number = nextSum;
+    } else {
+      if (this.canReuseInPlace && exSum === undefined) this.userKeys[this.userKeysLen++] = sumName;
+      const box = this.canReuseInPlace && this.numBoxUsed < 4 ? this.numBoxPool[this.numBoxUsed++]! : { kind: "number" as const, number: 0 };
+      box.number = nextSum;
+      this.variables.set(sumName, box);
+    }
+    const exCnt = this.variables.get(cntName);
+    const prevCnt = exCnt !== undefined && !(exCnt instanceof AwkArray) ? (exCnt.kind === "number" ? exCnt.number : number(exCnt)) : 0;
+    const nextCnt = (prevCnt + cntDelta) | 0;
+    if (exCnt !== undefined && !(exCnt instanceof AwkArray) && exCnt.kind === "number" && !Object.isFrozen(exCnt)) {
+      (exCnt as { number: number }).number = nextCnt;
+    } else {
+      if (this.canReuseInPlace && exCnt === undefined) this.userKeys[this.userKeysLen++] = cntName;
+      const box = this.canReuseInPlace && this.numBoxUsed < 4 ? this.numBoxPool[this.numBoxUsed++]! : { kind: "number" as const, number: 0 };
+      box.number = nextCnt;
+      this.variables.set(cntName, box);
+    }
+  }
+
   private tryRunProgramSync(): number | Promise<number> {
     this.phase = "record";
     let ranges: Set<number> | undefined;
@@ -2084,6 +2110,25 @@ export class AwkRuntime {
               const patLitC0 = patLitLen > 0 ? patLitStr!.charCodeAt(0) : -1;
               this.recordSource = source;
               this.deferredFieldSeparator = fsChar;
+              const e0 = bodyLen === 2 ? body[0]!.expression : undefined;
+              const e1 = bodyLen === 2 ? body[1]!.expression : undefined;
+              const isFastSumCntPair =
+                e0 !== undefined &&
+                e1 !== undefined &&
+                e0.kind === "binary" &&
+                e0.operator === "+=" &&
+                e0.left.kind === "variable" &&
+                e0.right.kind === "field" &&
+                e0.right.index.kind === "number" &&
+                Math.trunc(e0.right.index.value) === 3 &&
+                e1.kind === "unary" &&
+                e1.operator === "++" &&
+                e1.operand.kind === "variable" &&
+                e0.left.name !== e1.operand.name;
+              const fsCode = fsChar.charCodeAt(0);
+              let sumAcc = 0;
+              let cntAcc = 0;
+              let sumTouched = false;
               for (let lineIdx = 0; lineIdx < endsLen; lineIdx++) {
                 const recEnd = ends[lineIdx]!;
                 const recLen = recEnd - recStart;
@@ -2099,6 +2144,40 @@ export class AwkRuntime {
                   matched = pat.findSyncFastInto(source, this.budget, recStart, FAST_AWK_MATCH_OFFSETS, recEnd, recStart);
                 }
                 if (matched) {
+                  if (isFastSumCntPair) {
+                    const sep1 = source.indexOf(fsChar, recStart);
+                    const sep2 = sep1 >= 0 && sep1 < recEnd ? source.indexOf(fsChar, sep1 + 1) : -1;
+                    if (sep2 >= 0 && sep2 + 1 < recEnd) {
+                      let fEnd = source.indexOf(fsChar, sep2 + 1);
+                      if (fEnd < 0 || fEnd > recEnd) fEnd = recEnd;
+                      let fVal = 0;
+                      let digitsOk = fEnd > sep2 + 1 && fEnd - (sep2 + 1) <= 9;
+                      for (let p = sep2 + 1; digitsOk && p < fEnd; p++) {
+                        const d = source.charCodeAt(p) - 48;
+                        if (d < 0 || d > 9) { digitsOk = false; break; }
+                        fVal = fVal * 10 + d;
+                      }
+                      if (digitsOk) {
+                        this.budget.step(7);
+                        sumAcc = (sumAcc + fVal) | 0;
+                        cntAcc = (cntAcc + 1) | 0;
+                        sumTouched = true;
+                        recStart = recEnd + 1;
+                        completedLines = lineIdx + 1;
+                        if ((completedLines & 63) === 0) {
+                          const cp = this.budget.checkpointSync();
+                          if (cp) { checkpointPromise = cp; fastOk = false; break; }
+                        }
+                        continue;
+                      }
+                    }
+                  }
+                  if (sumTouched && e0 && e1 && e0.kind === "binary" && e0.left.kind === "variable" && e1.kind === "unary" && e1.operand.kind === "variable") {
+                    this.applyFastPairDelta(e0.left.name, sumAcc, e1.operand.name, cntAcc);
+                    sumAcc = 0;
+                    cntAcc = 0;
+                    sumTouched = false;
+                  }
                   this.recordStart = recStart;
                   this.recordEnd = recEnd;
                   this.fieldCount = -1;
@@ -2120,6 +2199,12 @@ export class AwkRuntime {
                     break;
                   }
                 }
+              }
+              if (sumTouched && e0 && e1 && e0.kind === "binary" && e0.left.kind === "variable" && e1.kind === "unary" && e1.operand.kind === "variable") {
+                this.applyFastPairDelta(e0.left.name, sumAcc, e1.operand.name, cntAcc);
+                sumAcc = 0;
+                cntAcc = 0;
+                sumTouched = false;
               }
             }
             if (!fastOk && completedLines > 0) {

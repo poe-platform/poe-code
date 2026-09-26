@@ -103,7 +103,7 @@ export function registerInternalYieldCheckpoint(signal: AbortSignal, checkpoint:
   }
 }
 
-export function runYieldCheckpoint(signal?: AbortSignal): void {
+export function runYieldCheckpoint(signal?: AbortSignal): void | Promise<void> {
   if (!signal) return;
   if (signal.aborted) throw signal.reason;
   if (checkpointCount > 0) getCheckpoint(signal)?.();

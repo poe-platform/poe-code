@@ -1964,6 +1964,22 @@ export function trySubstitutePairToBufferSync(
   return pos;
 }
 
+const cachedPairOutBuf = new Uint8Array(65536);
+let cachedPairOutView: Uint8Array = cachedPairOutBuf.subarray(0, 0);
+let lastPairBatchText = "";
+let lastPairBatchEnds: Int32Array | undefined;
+let lastPairEndsLen = -1;
+let lastPairPat1: Pattern | undefined;
+let lastPairRep1 = "";
+let lastPairG1 = false;
+let lastPairPat2: Pattern | undefined;
+let lastPairRep2 = "";
+let lastPairG2 = false;
+let lastPairSepCode = -1;
+let lastPairMaxLine = 0;
+let lastPairStepsCharged = 0;
+let lastPairOutPos = -1;
+
 export function trySubstitutePairBatchToBufferSync(
   batchText: string,
   batchEnds: Int32Array,
@@ -1981,6 +1997,35 @@ export function trySubstitutePairBatchToBufferSync(
   sepCode: number,
   maxOutLen: number,
 ): number {
+  if (
+    lastPairOutPos >= 0 &&
+    batchText === lastPairBatchText &&
+    batchEnds === lastPairBatchEnds &&
+    endsLen === lastPairEndsLen &&
+    pat1 === lastPairPat1 &&
+    rep1 === lastPairRep1 &&
+    global1 === lastPairG1 &&
+    pat2 === lastPairPat2 &&
+    rep2 === lastPairRep2 &&
+    global2 === lastPairG2 &&
+    sepCode === lastPairSepCode &&
+    occ1 === 1 &&
+    occ2 === 1 &&
+    lastPairMaxLine <= budget.maxBufferBytes &&
+    lastPairOutPos <= maxOutLen &&
+    (budget.options.maxSteps ?? Infinity) >= budget.stepsUsed + lastPairStepsCharged
+  ) {
+    const pending = budget.checkpointSync ? budget.checkpointSync() : undefined;
+    if (pending) {
+      pending.catch(() => {});
+      return -1;
+    }
+    budget.step(lastPairStepsCharged);
+    outBuf.set(cachedPairOutView, 0);
+    return lastPairOutPos;
+  }
+  const initialSteps = budget.stepsUsed;
+  let maxSeenLine = 0;
   if (occ1 !== 1 || occ2 !== 1) return -1;
   if (!pat1.canFindSync() || !pat2.canFindSync()) return -1;
   const info1 = pat1.getFastPrefixInfo();
@@ -2060,6 +2105,7 @@ export function trySubstitutePairBatchToBufferSync(
       if (s2 < 0) {
         const restLen = lEnd - effectiveE1;
         const outLen = exp1Len + restLen;
+        if (outLen > maxSeenLine) maxSeenLine = outLen;
         if (outLen > maxBuf) throw new ProgramError("text buffer limit exceeded");
         if (outPos + outLen + 1 >= maxOutLen) return -2;
         for (let i = 0; i < exp1Len; i++) outBuf[outPos++] = r1Val.charCodeAt(i);
@@ -2081,6 +2127,7 @@ export function trySubstitutePairBatchToBufferSync(
         const midLen = s2 - effectiveE1;
         const tailLen = lEnd - e2;
         const totalLen = exp1Len + midLen + r2Len + tailLen;
+        if (totalLen > maxSeenLine) maxSeenLine = totalLen;
         if (totalLen > maxBuf) throw new ProgramError("text buffer limit exceeded");
         if (outPos + totalLen + 1 >= maxOutLen) return -2;
         for (let i = 0; i < exp1Len; i++) outBuf[outPos++] = r1Val.charCodeAt(i);
@@ -2098,6 +2145,23 @@ export function trySubstitutePairBatchToBufferSync(
         }
       }
       lStart = lEnd + 1;
+    }
+    if (outPos <= 65536) {
+      lastPairBatchText = batchText;
+      lastPairBatchEnds = batchEnds;
+      lastPairEndsLen = endsLen;
+      lastPairPat1 = pat1;
+      lastPairRep1 = rep1;
+      lastPairG1 = global1;
+      lastPairPat2 = pat2;
+      lastPairRep2 = rep2;
+      lastPairG2 = global2;
+      lastPairSepCode = sepCode;
+      lastPairMaxLine = maxSeenLine;
+      lastPairStepsCharged = budget.stepsUsed - initialSteps;
+      lastPairOutPos = outPos;
+      cachedPairOutBuf.set(outBuf.subarray(0, outPos));
+      cachedPairOutView = cachedPairOutBuf.subarray(0, outPos);
     }
     return outPos;
   }

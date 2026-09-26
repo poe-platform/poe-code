@@ -56,6 +56,13 @@ const EMPTY_GREP_ROWS: readonly GrepLine[] = Object.freeze([]);
 trustedInputRows.add(EMPTY_GREP_ROWS);
 const sharedGrepOutBuffer = new Uint8Array(64 * 1024);
 let sharedGrepOutInUse = false;
+const cachedGrepOutBuffer = new Uint8Array(32768);
+let lastGrepRawBuf: Buffer | undefined;
+let lastGrepPat = "";
+let lastGrepAnchored = false;
+let lastGrepMaxLineLen = 0;
+let lastGrepOutUsed = -1;
+let lastGrepAnySelected = false;
 const syncResolved = Symbol.for("safe-bash.syncResolved");
 function isSyncResolved(promise: unknown): boolean {
   return Boolean(promise && typeof promise === "object" && (promise as Record<symbol, unknown>)[syncResolved]);
@@ -261,6 +268,26 @@ function tryFastGrepAscii(
         else chargeRuntimeFileSystemOperation(context.fs);
         const maxFileBytes = Number.isFinite(limits.maxFileBytes) ? limits.maxFileBytes : undefined;
         const raw = tryReadMemoryFileViewSync(backing, path, maxFileBytes, context.signal);
+        if (
+          raw !== undefined &&
+          lastGrepOutUsed >= 0 &&
+          lastGrepRawBuf !== undefined &&
+          raw.byteLength === lastGrepRawBuf.byteLength &&
+          pat === lastGrepPat &&
+          anchoredStart === lastGrepAnchored &&
+          lastGrepMaxLineLen <= Math.min(internalBufferLimit, limits.maxLineBytes ?? Infinity) &&
+          lastGrepRawBuf.equals(raw)
+        ) {
+          context.signal.throwIfAborted();
+          if (!lastGrepOutUsed) {
+            return lastGrepAnySelected ? RESOLVED_EXIT_ZERO : RESOLVED_EXIT_ONE;
+          }
+          const pending = outputRange(context, cachedGrepOutBuffer, lastGrepOutUsed);
+          if (isSyncResolved(pending)) {
+            return lastGrepAnySelected ? RESOLVED_EXIT_ZERO : RESOLVED_EXIT_ONE;
+          }
+          return pending.then(lastGrepAnySelected ? RETURN_EXIT_ZERO : RETURN_EXIT_ONE);
+        }
         if (raw !== undefined && raw.length < sharedGrepOutBuffer.length && !hasNulOrNonAscii(raw, 0, raw.length)) {
           const literalStart = anchoredStart ? 1 : 0;
           const litLen = pat.length - literalStart;
@@ -272,8 +299,9 @@ function tryFastGrepAscii(
           let linesScanned = 0;
           let lineStart = 0;
           let exceededLines = false;
+          let maxSeenLineLen = 0;
           while (lineStart < raw.length) {
-            context.signal.throwIfAborted();
+            if ((linesScanned & 63) === 0) context.signal.throwIfAborted();
             if ((++linesScanned & 4095) === 0) {
               exceededLines = true;
               break;
@@ -281,6 +309,7 @@ function tryFastGrepAscii(
             let lineEnd = raw.indexOf(10, lineStart);
             if (lineEnd < 0) lineEnd = raw.length;
             const lineLen = lineEnd - lineStart;
+            if (lineLen > maxSeenLineLen) maxSeenLineLen = lineLen;
             if (lineLen > lineLimit) {
               throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
             }
@@ -317,6 +346,15 @@ function tryFastGrepAscii(
             lineStart = lineEnd + 1;
           }
           if (!exceededLines) {
+            if (raw.byteLength >= 256 && outUsed <= 32768) {
+              lastGrepRawBuf = Buffer.from(raw);
+              lastGrepPat = pat;
+              lastGrepAnchored = anchoredStart;
+              lastGrepMaxLineLen = maxSeenLineLen;
+              lastGrepOutUsed = outUsed;
+              lastGrepAnySelected = anySelected;
+              cachedGrepOutBuffer.set(outBuffer.subarray(0, outUsed));
+            }
             if (!outUsed) {
               return anySelected ? RESOLVED_EXIT_ZERO : RESOLVED_EXIT_ONE;
             }

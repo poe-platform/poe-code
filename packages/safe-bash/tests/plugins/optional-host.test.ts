@@ -15,6 +15,8 @@ import { Decimal, numberText } from "../../src/commands/structured/numbers.js";
 import { Shell } from "../../src/shell/shell.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import { portableTrapExtension } from "../../src/shell/trap.js";
+import { jobsExtension } from "../../src/shell/extensions/jobs/index.js";
+import { signalName } from "../../src/commands/timeout/signal.js";
 import type * as Host from "../../src/optional-host.js";
 import type * as Extensions from "../../src/shell/extensions.js";
 import type * as Input from "../../src/shell/input.js";
@@ -50,9 +52,9 @@ for (const profile of [
   assert.equal(Object.hasOwn(manifest.exports, profile.key.replace("optional-host", "optional")), false);
 });
 
-test("optional host re-exports exactly sixteen canonical helpers and twenty canonical types", async () => {
+test("optional host re-exports exactly eighteen canonical helpers and twenty canonical types", async () => {
   const host = await import("../../src/optional-host.js");
-  const expected = { codeOf, compareCopyIdentity, compareObservedEntries, output, pathOf, EreLedger, EreSyntaxError, EreUnsupportedError, EreProfileLimitError, compileEre, prepareUtf8EreSubject, parseTomlDocument, YqLedger, Decimal, numberText, portableTrapExtension };
+  const expected = { codeOf, compareCopyIdentity, compareObservedEntries, output, pathOf, EreLedger, EreSyntaxError, EreUnsupportedError, EreProfileLimitError, compileEre, prepareUtf8EreSubject, parseTomlDocument, YqLedger, Decimal, numberText, portableTrapExtension, jobsExtension, signalName };
   assert.deepEqual(Object.keys(host).sort(), Object.keys(expected).sort());
   for (const name of Object.keys(expected) as (keyof typeof expected)[]) {
     assert.equal(host[name], expected[name], name);

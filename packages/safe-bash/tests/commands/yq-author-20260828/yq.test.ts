@@ -664,11 +664,13 @@ for (const quote of ["", "'", '"']) test(`supplementary Unicode charges code poi
   const scalar = "😀".repeat(257);
   const input = `${quote}${scalar}${quote}`;
   const session = createYqQuerySession({ signal: new AbortController().signal });
-  const charge = session.ownedWork.charge.bind(session.ownedWork);
+  const work = session.ownedWork as Required<typeof session.ownedWork>;
+  assert.equal(typeof work.chargeSync, "function");
+  const charge = work.chargeSync.bind(work);
   const charges: number[] = [];
-  context.mock.method(session.ownedWork, "charge", async (units = 1) => {
+  context.mock.method(work, "chargeSync", (units = 1) => {
     charges.push(units);
-    await charge(units);
+    return charge(units);
   });
   try {
     const values = [];

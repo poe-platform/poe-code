@@ -163,7 +163,8 @@ class OwnedWork implements YqOwnedWork {
       this.assertOpen();
       if (this.#state.pending === checkpointWidth) {
         try {
-          { const _p = this.#budget.tickSync(); if (_p) await _p; }
+          // Owned checkpoints also observe cancellation queued in a microtask.
+          await this.#budget.tickSync();
         } catch (failure) {
           throwSignal(this.#signal);
           throw failure;

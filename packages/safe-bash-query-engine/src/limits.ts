@@ -46,8 +46,8 @@ export function resolveJqLimits(options: Partial<JqLimits> = {}): JqLimits {
 }
 export class Budget {
   private steps = 0;
-  private nextYield = 1024;
   private lastYield = monotonicNow() | 0;
+  private lastYieldSteps = 0;
   private readonly unlimitedSteps: boolean;
   private readonly maxStepsSmi: number;
   private aborted = false;
@@ -76,9 +76,6 @@ export class Budget {
     this.maxCollectionSizeSmi = limits.maxCollectionSize <= 0x3fffffff ? (limits.maxCollectionSize | 0) : 0x3fffffff;
     this.unlimitedValueCheck = limits.maxValueBytes === Infinity && limits.maxDepth === Infinity && limits.maxCollectionSize === Infinity;
     this.bindSignal(signal);
-    if (!hasYieldCheckpoint(signal)) {
-      this.nextYield = 65536;
-    }
   }
   private bindSignal(signal: AbortSignal): void {
     this.aborted = Boolean(signal?.aborted);
@@ -97,11 +94,10 @@ export class Budget {
     (this as unknown as { signal: AbortSignal }).signal = signal;
     this.bindSignal(signal);
     this.steps = 0;
+    this.lastYieldSteps = 0;
     if (hasYieldCheckpoint(signal)) {
-      this.nextYield = 1024;
       this.lastYield = monotonicNow() | 0;
     } else {
-      this.nextYield = 65536;
       this.lastYield = -1;
     }
     this.inputBytes = 0;
@@ -123,59 +119,38 @@ export class Budget {
   get currentSteps(): number { return this.steps; }
   restoreSteps(steps: number): void { this.steps = steps; }
   needsYield(): boolean {
-    if (this.steps < this.nextYield) return false;
-    const stride = hasYieldCheckpoint(this.signal) ? 1024 : 65536;
-    const now = monotonicNow() | 0;
-    if (this.lastYield < 0) {
-      this.lastYield = now;
-      runYieldCheckpoint(this.signal);
-      this.nextYield = this.steps + stride;
-      return false;
+    if (hasYieldCheckpoint(this.signal)) {
+      const now = monotonicNow() | 0;
+      if (this.lastYield < 0) this.lastYield = now;
+      return this.steps - this.lastYieldSteps >= 1024 || ((now - this.lastYield) | 0) >= 25;
     }
-    if (((now - this.lastYield) | 0) < 25) {
-      runYieldCheckpoint(this.signal);
-      this.nextYield = this.steps + stride;
-      return false;
-    }
-    return true;
+    // Even fast finite workloads must eventually let host timers run.
+    return this.steps - this.lastYieldSteps >= 65536;
   }
   ensureFreshWindow(): Promise<void> | undefined {
-    const stride = hasYieldCheckpoint(this.signal) ? 1024 : 65536;
     const now = monotonicNow() | 0;
     if (this.lastYield < 0 || ((now - this.lastYield) | 0) < 15) {
       if (this.lastYield < 0) this.lastYield = now;
       runYieldCheckpoint(this.signal);
-      this.nextYield = this.steps + stride;
       return undefined;
     }
     return this.yieldTickSync();
   }
   tickSync(count = 1): Promise<void> | undefined {
     this.step(count);
-    if (this.steps >= this.nextYield) {
-      const stride = hasYieldCheckpoint(this.signal) ? 1024 : 65536;
-      const now = monotonicNow() | 0;
-      if (this.lastYield < 0) {
-        this.lastYield = now;
-        runYieldCheckpoint(this.signal);
-        this.nextYield = this.steps + stride;
-        return undefined;
-      }
-      if (((now - this.lastYield) | 0) < 25) {
-        runYieldCheckpoint(this.signal);
-        this.nextYield = this.steps + stride;
-        return undefined;
-      }
+    // Hosts may register a checkpoint after this budget was constructed/reset.
+    if (hasYieldCheckpoint(this.signal))
+      return this.needsYield() ? this.yieldTickSync() : undefined;
+    if (this.steps - this.lastYieldSteps >= 65536) {
       return this.yieldTickSync();
     }
     return undefined;
   }
   private yieldTickSync(): Promise<void> {
-    this.lastYield = monotonicNow() | 0;
     return yieldTurn(this.signal).then(() => {
       this.signal.throwIfAborted();
-      this.nextYield = this.steps + (hasYieldCheckpoint(this.signal) ? 1024 : 65536);
       this.lastYield = monotonicNow() | 0;
+      this.lastYieldSteps = this.steps;
     });
   }
   tick(count = 1): Promise<void> | undefined {

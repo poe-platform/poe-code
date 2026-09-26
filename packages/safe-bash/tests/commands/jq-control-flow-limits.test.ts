@@ -213,9 +213,9 @@ for (const source of ["reduce range(100) as $item (0; .+$item)", "foreach range(
     const controller = new AbortController();
     const reason = new Error("cancel");
     const { budget, iterator } = evaluation(source, null, {}, controller.signal);
-    const tick = budget.tick.bind(budget);
+    const tick = budget.tickSync.bind(budget);
     let ticks = 0;
-    budget.tick = async () => { if (++ticks === 30) controller.abort(reason); await tick(); };
+    budget.tickSync = () => { if (++ticks === 30) controller.abort(reason); return tick(); };
     await assert.rejects(drain(iterator), error => error === reason);
   });
 }
@@ -393,7 +393,7 @@ test("jq sort work: already admitted checkpoints do not charge again", async con
   budget.step();
   await budget.tick(0);
   await budget.tick(0);
-  await assert.rejects(budget.tick(), error => error instanceof JqLimitError);
+  await assert.rejects(async () => budget.tick(), error => error instanceof JqLimitError);
 });
 
 for (const reason of [false, null, new JqError("comparison cancellation")]) {

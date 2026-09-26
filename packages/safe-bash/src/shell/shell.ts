@@ -580,11 +580,9 @@ export class Shell implements PluginHost {
         }
         const cwd = options.cwd !== undefined ? resolvePath("/", options.cwd) : (this.#options.cwd ?? "/");
         const variables = Object.create(null) as Record<string, string>;
-        let exported: Set<string>;
+        let exported: Set<string> | undefined;
         if (!this.#hasInitialEnv && options.env === undefined) {
           variables.PWD = cwd;
-          exported = new Set();
-          exported.add("PWD");
         } else {
           Object.assign(variables, this.#options.env, options.env, { PWD: cwd });
           if (options.env !== undefined) {

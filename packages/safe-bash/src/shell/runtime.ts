@@ -1666,7 +1666,7 @@ class FastShellCommandContext {
   declare descriptors: ReadonlyMap<number, Descriptor> | undefined;
   declare command: string;
   declare args: readonly string[];
-  declare env: Record<string, string>;
+  declare private _env: Record<string, string> | undefined;
   declare cwd: string;
   declare signal: AbortSignal;
   declare onInternalError: CommandContext["onInternalError"];
@@ -1698,7 +1698,7 @@ class FastShellCommandContext {
     name: string,
     args: readonly string[],
     argumentValues: CommandArguments | undefined,
-    env: Record<string, string>,
+    env: Record<string, string> | undefined,
     signalIsScoped: boolean,
   ) {
     const directContext = FAST_DIRECT_CONTEXT_COMMANDS.has(name) || (name === "find" && !args.includes("-exec") && !args.includes("-ok"));
@@ -1720,7 +1720,7 @@ class FastShellCommandContext {
     this.command = name;
     this.args = args;
     this._argumentValues = argumentValues;
-    this.env = env;
+    if (env !== undefined) this._env = env;
     this.cwd = state.cwd;
     this.signal = runtime.commandSignal;
     if (runtime.budget.onInternalError !== undefined) this.onInternalError = runtime.budget.onInternalError;
@@ -1752,6 +1752,7 @@ class FastShellCommandContext {
   static {
     Object.assign(FastShellCommandContext.prototype, {
       _self: undefined,
+      _env: undefined,
       _scopedSignal: undefined,
       _contextFs: undefined,
       _cachedPredicates: undefined,
@@ -1823,6 +1824,36 @@ class FastShellCommandContext {
 
   set stderr(value: ByteSink) {
     this._stderr = value;
+  }
+
+  get env(): Record<string, string> {
+    const self = this._self ?? this;
+    if (!self._env) {
+      const state = self._state;
+      const raw = (stateMonitor(state)?.raw ?? state) as State & { _exported?: Set<string> };
+      const built = Object.create(null) as Record<string, string>;
+      if (raw._exported === undefined && "_exported" in raw) {
+        const pwd = raw.variables.PWD;
+        if (pwd !== undefined) built.PWD = pwd;
+      } else {
+        for (const key of raw.exported) {
+          const value = raw.variables[key];
+          if (value !== undefined) built[key] = value;
+        }
+      }
+      if (raw.exportedFunctions) {
+        for (const key of raw.exportedFunctions) {
+          const body = raw.functions.get(key);
+          if (body) built[`BASH_FUNC_${key}%%`] = functionDisplay(key, body).slice(key.length + 1).trimEnd();
+        }
+      }
+      self._env = built;
+    }
+    return self._env;
+  }
+
+  set env(value: Record<string, string>) {
+    (this._self ?? this)._env = value;
   }
 
   get fs(): FileSystem {
@@ -4862,19 +4893,8 @@ export class Runtime {
       if (rawState.variables._ !== undefined) delete rawState.variables._;
       rawState.lastArgument = lastArg;
       if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
-      const env = Object.create(null) as Record<string, string>;
-      for (const key of rawState.exported) {
-        const value = rawState.variables[key];
-        if (value !== undefined) env[key] = value;
-      }
-      if (rawState.exportedFunctions) {
-        for (const key of rawState.exportedFunctions) {
-          const body = rawState.functions.get(key);
-          if (body) env[`BASH_FUNC_${key}%%`] = functionDisplay(key, body).slice(key.length + 1).trimEnd();
-        }
-      }
       const scope = io[invocationScope];
-      const context = new FastShellCommandContext(this, rawState, io, scope, w0Plain, args, undefined, env, this._isMemoryBackingFs);
+      const context = new FastShellCommandContext(this, rawState, io, scope, w0Plain, args, undefined, undefined, this._isMemoryBackingFs);
       if (redirectSink) {
         context.stdout = redirectSink;
         if (io.descriptors) {
@@ -4994,11 +5014,6 @@ export class Runtime {
     const n = pipeline.commands.length;
     const release = this.budget.reservePipelineStages(n);
     this.budget.commands += n;
-    const sharedEnv = Object.create(null) as Record<string, string>;
-    for (const key of rawState.exported) {
-      const value = rawState.variables[key];
-      if (value !== undefined) sharedEnv[key] = value;
-    }
     const pipes = new Array<ReturnType<typeof createBytePipe>>(n - 1);
     for (let i = 0; i < n - 1; i++) {
       pipes[i] = createBytePipe({ highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal });
@@ -5046,7 +5061,7 @@ export class Runtime {
         const stageStdout = outgoing
           ? new BudgetedPipeStageSink(this.budget, writable!, stageSignal, undefined, index, controllers[index]!)
           : signalSink(io.stdout, stageSignal);
-        const context = new FastShellCommandContext(this, rawState, io, scope, firstName, stageArgs, undefined, sharedEnv, true);
+        const context = new FastShellCommandContext(this, rawState, io, scope, firstName, stageArgs, undefined, undefined, true);
         context.stdin = input;
         if (incoming) context.stdinIsDefault = false;
         context.stdout = stageStdout;
@@ -5256,12 +5271,89 @@ export class Runtime {
         (w0Plain === "printf" ? def.execute !== printfCommand.execute : !defaultEchoExecutors.has(def.execute)) ||
         command.words.length > this.budget.limits.maxExpansionFields ||
         !this.isPureArgWord(r0.target, rawState) ||
-        !command.words.every(w => this.isPureArgWord(w, rawState))
+        !this.arePureArgWords(command.words, rawState)
       ) {
         return undefined;
       }
       if (rawState.extensions && !rawState.extensions.eventDepth) {
         publishCommandSpelling(rawState, commandSpelling(command));
+      }
+      type CachedConstEchoRedirect = {
+        arg0: string;
+        targetPath: string;
+        dirPrefix: string | undefined;
+        fileName: string | undefined;
+        encoded: Uint8Array;
+        append: boolean;
+      };
+      let cachedConst = (command as { _cachedConstEchoRedirect?: CachedConstEchoRedirect | null })._cachedConstEchoRedirect;
+      if (cachedConst === undefined && w0Plain === "echo" && command.words.length === 2) {
+        const w1 = command.words[1]!;
+        const p1 = w1.parts.length === 1 ? w1.parts[0]! : undefined;
+        const pt = r0.target.parts.length === 1 ? r0.target.parts[0]! : undefined;
+        if (
+          p1?.kind === "text" && !p1.byteValue && !p1.value.startsWith("-") && !p1.value.includes("\0") &&
+          (!p1.value.includes("{") && !p1.value.startsWith("~") && !hasGlobOrEscape(p1.value, true)) &&
+          pt?.kind === "text" && !pt.byteValue && pt.value.startsWith("/") && !pt.value.includes("\0") &&
+          (!pt.value.includes("{") && !hasGlobOrEscape(pt.value, true)) &&
+          isCleanAbsolutePath(pt.value) && pt.value !== "/dev" && !pt.value.startsWith("/dev/")
+        ) {
+          const lastSlash = pt.value.lastIndexOf("/");
+          let dirPrefix: string | undefined;
+          let fileName: string | undefined;
+          if (lastSlash >= 1) {
+            dirPrefix = pt.value.slice(0, lastSlash + 1);
+            fileName = pt.value.slice(lastSlash + 1);
+          }
+          cachedConst = {
+            arg0: p1.value,
+            targetPath: pt.value,
+            dirPrefix,
+            fileName,
+            encoded: fastSharedTextEncoder.encode(`${p1.value}\n`),
+            append: r0.operator === ">>",
+          };
+          (command as { _cachedConstEchoRedirect?: CachedConstEchoRedirect | null })._cachedConstEchoRedirect = cachedConst;
+        } else {
+          cachedConst = null;
+          (command as { _cachedConstEchoRedirect?: CachedConstEchoRedirect | null })._cachedConstEchoRedirect = null;
+        }
+      }
+      if (cachedConst) {
+        const byteLength = cachedConst.encoded.byteLength;
+        if (byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) return undefined;
+        if (!this.budget.canFileSystemOperation()) return undefined;
+        const mode = 0o666 & ~(rawState.umask ?? 0o022);
+        try {
+          const wrote = cachedConst.dirPrefix !== undefined && cachedConst.fileName !== undefined
+            ? (tryWriteMemoryFileInDirSync(this.backingFs, cachedConst.dirPrefix, cachedConst.fileName, cachedConst.encoded, cachedConst.append, mode, this.commandSignal) ||
+               tryWriteMemoryFileSync(this.backingFs, cachedConst.targetPath, cachedConst.encoded, cachedConst.append, mode, this.commandSignal))
+            : tryWriteMemoryFileSync(this.backingFs, cachedConst.targetPath, cachedConst.encoded, cachedConst.append, mode, this.commandSignal);
+          if (!wrote) return undefined;
+        } catch {
+          this.signal.throwIfAborted();
+          return undefined;
+        }
+        const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+        this.budget.tick();
+        this.budget.fileSystemOperation();
+        this.budget.bytes += byteLength;
+        rawState.substitutionStatus = 0;
+        if (rawState.variables._ !== undefined) delete rawState.variables._;
+        rawState.lastArgument = cachedConst.arg0;
+        if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+        if (!existing) {
+          monitor.lazyPipeStatus = singleStatusZero;
+          monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+        } else {
+          elem0!.text.shellValue = "0";
+          store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+        }
+        const finalStatus = pipeline.negate ? 1 : 0;
+        rawState.status = finalStatus;
+        monitor.epoch = restEpoch;
+        if (store) store.epoch = restEpoch;
+        return finalStatus;
       }
       let targetVal: ShellValue | undefined;
       let formatted: string | undefined;
@@ -5432,7 +5524,7 @@ export class Runtime {
       const w0Plain = command.words[0]!.plain;
       if (
         (w0Plain === "echo" || w0Plain === "printf") &&
-        !rawState.functions.has(w0Plain) &&
+        !hasShellFunction(rawState, w0Plain) &&
         !rawState.extensions?.builtins.has(w0Plain) &&
         (!io.descriptors || io.descriptors.get(1)?.output === io.stdout)
       ) {
@@ -5448,7 +5540,7 @@ export class Runtime {
           def &&
           (w0Plain === "printf" ? def.execute === printfCommand.execute : defaultEchoExecutors.has(def.execute)) &&
           command.words.length <= this.budget.limits.maxExpansionFields &&
-          command.words.every(w => this.isPureArgWord(w, rawState)) &&
+          this.arePureArgWords(command.words, rawState) &&
           (canMutatePipeStatus || elem0!.text.shellValue === "0") &&
           (!pipeline.negate || ignored || !rawState.errexit)
         ) {
@@ -5537,7 +5629,7 @@ export class Runtime {
       const w0Plain = command.words[0]!.plain;
       if (
         (w0Plain === "[" || w0Plain === "test") &&
-        !rawState.functions.has(w0Plain) &&
+        !hasShellFunction(rawState, w0Plain) &&
         !rawState.extensions?.builtins.has(w0Plain)
       ) {
         const cmd = this.commands.get(w0Plain);
@@ -5595,12 +5687,12 @@ export class Runtime {
         this.canFastMemoryRedirect &&
         // A later operand can retry the whole command; scoped admission owns finite budgets.
         this.budget.limits.maxFileSystemOperations === Infinity &&
-        !rawState.functions.has(w0Plain) &&
+        !hasShellFunction(rawState, w0Plain) &&
         !rawState.extensions?.builtins.has(w0Plain) &&
         (canMutatePipeStatus || elem0!.text.shellValue === "0") &&
         (!pipeline.negate || ignored || !rawState.errexit) &&
         command.words.length <= this.budget.limits.maxExpansionFields &&
-        command.words.every(w => this.isPureArgWord(w, rawState))
+        this.arePureArgWords(command.words, rawState)
       ) {
         const w1Plain = command.words[1]!.plain;
         const isMkdir = w0Plain === "mkdir" && w1Plain === "-p";
@@ -5799,7 +5891,7 @@ export class Runtime {
             (r0.operator !== ">" && r0.operator !== ">>") ||
             rawState.noclobber ||
             w0Plain !== "echo" ||
-            rawState.functions.has("echo") ||
+            hasShellFunction(rawState, "echo") ||
             rawState.extensions?.builtins.has("echo") ||
             !def ||
             !defaultEchoExecutors.has(def.execute) ||
@@ -5942,30 +6034,14 @@ export class Runtime {
     return undefined;
   }
 
-  private trySyncLoop(
+  private buildSyncLoopBody(
     command: Extract<Command, { kind: "arithmetic-for" | "for" }>,
-    pipeline: Pipeline,
-    rawState: State,
-    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
-    store: ReturnType<typeof arrayStore>,
-    existing: ReturnType<NonNullable<ReturnType<typeof arrayStore>>["get"]>,
-    elem0: { text: { shellValue: ShellValue } } | undefined,
-    canMutatePipeStatus: boolean,
     io: IO,
-    diagnosticLine: number,
-  ): number | undefined {
-    if (
-      command.redirects.length !== 0 ||
-      pipeline.negate ||
-      !canMutatePipeStatus ||
-      rawState.errexit ||
-      rawState.nounset ||
-      rawState.readonlyVariables?.size ||
-      rawState.extensions?.checkpoints.length ||
-      hasYieldCheckpoint(this.signal) ||
-      !this.canSyncLoopBody(command.body, rawState)
-    ) {
-      return undefined;
+  ): { steps: SyncLoopStep[]; redirectCount: number } {
+    const canCache = !io.diagnosticCommandLines && !io.diagnosticOffset;
+    if (canCache) {
+      const cached = (command as { _cachedSyncLoopBody?: { steps: SyncLoopStep[]; redirectCount: number } })._cachedSyncLoopBody;
+      if (cached) return cached;
     }
     const bodyAssignments: SyncLoopStep[] = [];
     let redirectCount = 0;
@@ -6007,7 +6083,6 @@ export class Runtime {
         }
       }
     }
-    if (bodyAssignments.length > 30) return undefined;
     for (let b = 0; b + 1 < bodyAssignments.length; b++) {
       const curr = bodyAssignments[b]!;
       const next = bodyAssignments[b + 1]!;
@@ -6024,12 +6099,66 @@ export class Runtime {
         b++;
       }
     }
+    const res = { steps: bodyAssignments, redirectCount };
+    if (canCache) {
+      (command as { _cachedSyncLoopBody?: { steps: SyncLoopStep[]; redirectCount: number } })._cachedSyncLoopBody = res;
+    }
+    return res;
+  }
+
+  private trySyncLoop(
+    command: Extract<Command, { kind: "arithmetic-for" | "for" }>,
+    pipeline: Pipeline,
+    rawState: State,
+    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
+    store: ReturnType<typeof arrayStore>,
+    existing: ReturnType<NonNullable<ReturnType<typeof arrayStore>>["get"]>,
+    elem0: { text: { shellValue: ShellValue } } | undefined,
+    canMutatePipeStatus: boolean,
+    io: IO,
+    diagnosticLine: number,
+  ): number | undefined {
+    if (
+      command.redirects.length !== 0 ||
+      pipeline.negate ||
+      !canMutatePipeStatus ||
+      rawState.errexit ||
+      rawState.nounset ||
+      rawState.readonlyVariables?.size ||
+      rawState.extensions?.checkpoints.length ||
+      hasYieldCheckpoint(this.signal) ||
+      !this.canSyncLoopBody(command.body, rawState)
+    ) {
+      return undefined;
+    }
+    const { steps: bodyAssignments, redirectCount } = this.buildSyncLoopBody(command, io);
+    if (bodyAssignments.length > 30) return undefined;
     const touched = sharedSyncLoopTouched;
     touched.clear();
     let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
     let lastArg = "";
     const mode = 0o666 & ~(rawState.umask ?? 0o022);
     if (command.kind === "arithmetic-for") {
+      type CachedArithPlan = {
+        e0: ArithmeticProgram;
+        e1: ArithmeticProgram;
+        e2: ArithmeticProgram;
+        iterations: number;
+        inductionName: string;
+        startVal: number;
+        limitVal: number;
+        isLe: boolean;
+        arithNamesList: string[];
+        intSteps: (IntLoopStep | undefined)[];
+        allIntStepsReady: boolean;
+        hasSubIntStep: boolean;
+        hasDeferredSteps: boolean;
+        deferredMask: number;
+        touchedIntNamesList: string[];
+      };
+      let plan = (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan;
+      if (plan === null) return undefined;
+      if (plan === undefined) {
       const e0 = command.expressions[0];
       const e1 = command.expressions[1];
       const e2 = command.expressions[2];
@@ -6049,31 +6178,35 @@ export class Runtime {
         e1.tree.right.value < 0n ||
         e1.tree.right.value > 1500n ||
         e2.tree?.kind !== "unary" || e2.tree.operator !== "++" ||
-        e2.tree.operand.kind !== "name" || e2.tree.operand.name !== e0.tree.left.name ||
-        (this.budget.commands + 1600) >= this.budget.limits.maxCommands ||
-        (this.budget.iterations + 1600) >= this.budget.limits.maxLoopIterations ||
-        (redirectCount > 0 && (this.budget.fileSystemOperations + 1600 * redirectCount) >= this.budget.limits.maxFileSystemOperations)
+        e2.tree.operand.kind !== "name" || e2.tree.operand.name !== e0.tree.left.name
       ) {
+        (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan = null;
         return undefined;
       }
       const iterations = Math.max(0, Number(e1.tree.right.value - e0.tree.right.value) + (e1.tree.operator === "<=" ? 1 : 0));
-      if (iterations * bodyAssignments.length > 1600) return undefined;
-      // Synchronous admission must prove progress. Arithmetic values can mutate
-      // the induction variable indirectly through another variable's contents.
+      if (iterations * bodyAssignments.length > 1600) {
+        (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan = null;
+        return undefined;
+      }
       const inductionName = e0.tree.left.name;
       const arithNames = sharedSyncLoopArithNames;
       arithNames.clear();
-      const intSteps = sharedSyncLoopIntSteps;
-      intSteps.length = bodyAssignments.length;
+      const intSteps = new Array<IntLoopStep | undefined>(bodyAssignments.length);
+      let hasSubIntStep = false;
       for (let b = 0; b < bodyAssignments.length; b++) {
         intSteps[b] = undefined;
         const step = bodyAssignments[b]!;
-        if (step.name === inductionName) return undefined;
+        if (step.name === inductionName) {
+          (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan = null;
+          return undefined;
+        }
         if (step.targetWord?.parts.some(part => part.kind !== "text" && part.kind !== "variable")) {
+          (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan = null;
           return undefined;
         }
         const intStep = this.extractIntLoopStep(step, rawState);
         if (intStep) {
+          if (intStep.isSub) hasSubIntStep = true;
           for (let v = 0; v < intStep.compiled.varNames.length; v++) arithNames.add(intStep.compiled.varNames[v]!);
           intSteps[b] = intStep;
           continue;
@@ -6083,30 +6216,18 @@ export class Runtime {
             const part = step.value.parts[i]!;
             if (part.kind === "text" || part.kind === "variable") continue;
             if (part.kind === "arithmetic") {
-              if (!collectPureReadOnlySmiNames(part.expression, arithNames)) return undefined;
+              if (!collectPureReadOnlySmiNames(part.expression, arithNames)) {
+                (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan = null;
+                return undefined;
+              }
               continue;
             }
+            (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan = null;
             return undefined;
           }
         }
       }
-      if (arithNames.size > 0) {
-        for (const refName of arithNames) {
-          if (refName === inductionName) continue;
-          const initial = rawState.variables[refName];
-          if (initial !== undefined && initial !== "" && !/^-?[0-9]+$/.test(initial)) return undefined;
-          for (let b = 0; b < bodyAssignments.length; b++) {
-            const step = bodyAssignments[b]!;
-            if (
-              step.name === refName &&
-              !intSteps[b] &&
-              (!step.value || !step.value.parts.some(p => p.kind === "arithmetic") || step.value.parts.some(p => p.kind !== "arithmetic" && (p.kind !== "text" || p.value !== "")))
-            ) {
-              return undefined;
-            }
-          }
-        }
-      }
+      const arithNamesList = [...arithNames];
       let hasDeferredSteps = false;
       let deferredMask = 0;
       for (let b = 0; b < bodyAssignments.length; b++) {
@@ -6143,6 +6264,64 @@ export class Runtime {
           }
         }
       }
+      let allIntStepsReady = true;
+      const touchedSet = new Set<string>([inductionName]);
+      for (let b = 0; b < bodyAssignments.length; b++) {
+        if (deferredMask & (1 << b)) continue;
+        if (!intSteps[b]) {
+          allIntStepsReady = false;
+        } else {
+          touchedSet.add(intSteps[b]!.name);
+        }
+      }
+      plan = {
+        e0,
+        e1,
+        e2,
+        iterations,
+        inductionName,
+        startVal: Number(e0.tree.right.value) | 0,
+        limitVal: Number(e1.tree.right.value) | 0,
+        isLe: e1.tree.operator === "<=",
+        arithNamesList,
+        intSteps,
+        allIntStepsReady,
+        hasSubIntStep,
+        hasDeferredSteps,
+        deferredMask,
+        touchedIntNamesList: [...touchedSet],
+      };
+      (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan = plan;
+      }
+      if (
+        (this.budget.commands + 1600) >= this.budget.limits.maxCommands ||
+        (this.budget.iterations + 1600) >= this.budget.limits.maxLoopIterations ||
+        (redirectCount > 0 && (this.budget.fileSystemOperations + 1600 * redirectCount) >= this.budget.limits.maxFileSystemOperations)
+      ) {
+        return undefined;
+      }
+      const {
+        e0, e1, e2, iterations, inductionName, startVal, limitVal, isLe,
+        arithNamesList, intSteps, allIntStepsReady, hasSubIntStep, hasDeferredSteps, deferredMask, touchedIntNamesList,
+      } = plan;
+      if (arithNamesList.length > 0) {
+        for (let a = 0; a < arithNamesList.length; a++) {
+          const refName = arithNamesList[a]!;
+          if (refName === inductionName) continue;
+          const initial = rawState.variables[refName];
+          if (initial !== undefined && initial !== "" && !/^-?[0-9]+$/.test(initial)) return undefined;
+          for (let b = 0; b < bodyAssignments.length; b++) {
+            const step = bodyAssignments[b]!;
+            if (
+              step.name === refName &&
+              !intSteps[b] &&
+              (!step.value || !step.value.parts.some(p => p.kind === "arithmetic") || step.value.parts.some(p => p.kind !== "arithmetic" && (p.kind !== "text" || p.value !== "")))
+            ) {
+              return undefined;
+            }
+          }
+        }
+      }
       monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets);
       this.budget.tick();
       rawState.loopDepth++;
@@ -6150,10 +6329,13 @@ export class Runtime {
       const prevTouched = this._syncArithTouched;
       this._syncArithRawWriteOnly = true;
       this._syncArithTouched = touched;
+      let usedFastIntPath = false;
       try {
         let lastInductionVal: string | undefined;
         const intBudgetSnapshot = this.budget.parsing.snapshot();
         let canUseIntRegisters =
+          allIntStepsReady &&
+          (!hasSubIntStep || (this.middleware.length === 0 && rawState.depth < this.budget.maxSubstitutionDepthSmi)) &&
           !this.budget.hasCpuLimit &&
           this.budget.maxExpansionFieldsSmi >= 1 &&
           this.budget.maxExpansionBytesSmi >= 32 &&
@@ -6161,8 +6343,9 @@ export class Runtime {
           inductionName !== "LINENO" &&
           inductionName !== "_" &&
           inductionName !== "FUNCNAME";
-        if (canUseIntRegisters && arithNames.size > 0) {
-          for (const refName of arithNames) {
+        if (canUseIntRegisters && arithNamesList.length > 0) {
+          for (let a = 0; a < arithNamesList.length; a++) {
+            const refName = arithNamesList[a]!;
             if (
               store?.get(refName) ||
               refName === "LINENO" ||
@@ -6175,20 +6358,12 @@ export class Runtime {
             }
           }
         }
-        if (canUseIntRegisters) {
-          for (let b = 0; b < bodyAssignments.length; b++) {
-            if (deferredMask & (1 << b)) continue;
-            if (!intSteps[b]) {
-              canUseIntRegisters = false;
-              break;
-            }
-          }
-        }
         const regNames = sharedSyncLoopRegNames;
         regNames.length = 0;
         if (canUseIntRegisters) {
           regNames.push(inductionName);
-          for (const refName of arithNames) {
+          for (let a = 0; a < arithNamesList.length; a++) {
+            const refName = arithNamesList[a]!;
             if (refName === inductionName) continue;
             const parsed = fastSafeInt(rawState.variables[refName], this.budget.parsing);
             if (parsed === undefined) {
@@ -6222,13 +6397,6 @@ export class Runtime {
           }
         }
         if (canUseIntRegisters) {
-          const startVal = Number(e0.tree.right.value) | 0;
-          const limitVal = Number(e1.tree.right.value) | 0;
-          const isLe = e1.tree.operator === "<=";
-          touched.add(inductionName);
-          for (let b = 0; b < bodyAssignments.length; b++) {
-            if (!(deferredMask & (1 << b))) touched.add(intSteps[b]!.name);
-          }
           lastCmd = bodyAssignments[bodyAssignments.length - 1]?.cmd;
           const { ok, lastInductionInt, subBytes, subCount } = runIntArithForLoop(
             startVal,
@@ -6242,6 +6410,7 @@ export class Runtime {
           if (!ok) {
             canUseIntRegisters = false;
           } else {
+            usedFastIntPath = true;
             this.budget.parsing.admit(limitVal < 0 ? 4 : 2);
             this.budget.iterations += iterations + 1;
             this.budget.commands += iterations * bodyAssignments.length + subCount;
@@ -6295,11 +6464,31 @@ export class Runtime {
         this._syncArithRawWriteOnly = prevRawWrite;
         this._syncArithTouched = prevTouched;
         rawState.loopDepth--;
-        for (const varName of touched) {
-          const finalVal = rawState.variables[varName];
-          if (finalVal !== undefined) {
-            monitor.publishStringVariable(varName, finalVal);
-            if (rawState.allexport) monitor.proxy.exported.add(varName);
+        if (usedFastIntPath) {
+          for (let t = 0; t < touchedIntNamesList.length; t++) {
+            const varName = touchedIntNamesList[t]!;
+            const finalVal = rawState.variables[varName];
+            if (finalVal !== undefined) {
+              monitor.publishStringVariable(varName, finalVal);
+              if (rawState.allexport) monitor.proxy.exported.add(varName);
+            }
+          }
+          if (touched.size > 0) {
+            for (const varName of touched) {
+              const finalVal = rawState.variables[varName];
+              if (finalVal !== undefined) {
+                monitor.publishStringVariable(varName, finalVal);
+                if (rawState.allexport) monitor.proxy.exported.add(varName);
+              }
+            }
+          }
+        } else {
+          for (const varName of touched) {
+            const finalVal = rawState.variables[varName];
+            if (finalVal !== undefined) {
+              monitor.publishStringVariable(varName, finalVal);
+              if (rawState.allexport) monitor.proxy.exported.add(varName);
+            }
           }
         }
         if (lastCmd) {
@@ -6307,7 +6496,7 @@ export class Runtime {
             publishCommandSpelling(rawState, commandSpelling(lastCmd));
           }
           rawState.substitutionStatus = 0;
-          if (rawState.variables._ !== undefined && !touched.has("_")) delete rawState.variables._;
+          if (rawState.variables._ !== undefined && !touched.has("_") && !(usedFastIntPath && touchedIntNamesList.includes("_"))) delete rawState.variables._;
           rawState.lastArgument = lastArg;
           if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
           if (!existing) {
@@ -6465,11 +6654,19 @@ export class Runtime {
       this._syncArithRawWriteOnly = prevRawWrite;
       this._syncArithTouched = prevTouched;
       rawState.loopDepth--;
-      for (const varName of touched) {
-        const finalVal = rawState.variables[varName];
+      if (touched.size === 1) {
+        const finalVal = rawState.variables[command.name];
         if (finalVal !== undefined) {
-          monitor.publishStringVariable(varName, finalVal);
-          if (rawState.allexport) monitor.proxy.exported.add(varName);
+          monitor.publishStringVariable(command.name, finalVal);
+          if (rawState.allexport) monitor.proxy.exported.add(command.name);
+        }
+      } else {
+        for (const varName of touched) {
+          const finalVal = rawState.variables[varName];
+          if (finalVal !== undefined) {
+            monitor.publishStringVariable(varName, finalVal);
+            if (rawState.allexport) monitor.proxy.exported.add(varName);
+          }
         }
       }
       if (lastCmd) {
@@ -12788,6 +12985,13 @@ export class Runtime {
     return out;
   }
 
+  private arePureArgWords(words: readonly Word[], rawState: State): boolean {
+    for (let i = 0; i < words.length; i++) {
+      if (!this.isPureArgWord(words[i]!, rawState)) return false;
+    }
+    return true;
+  }
+
   private isPureArgWord(word: Word, rawState: State): boolean {
     if (word.parts.length === 0) return false;
     for (let i = 0; i < word.parts.length; i++) {
@@ -13679,9 +13883,7 @@ export class RootShellState implements State {
   declare extensions: ShellExtensionState | undefined;
   declare cwd: string;
   declare variables: Record<string, string>;
-  declare exported: Set<string>;
   declare _functions: Map<string, Command> | undefined;
-  declare positional: string[];
   declare getopts: GetoptsBinding | undefined;
   declare directoryStack: { entries: string[]; bytes: number } | undefined;
   declare dotglob: boolean;
@@ -13691,22 +13893,55 @@ export class RootShellState implements State {
   declare depth: number;
   declare loopDepth: number;
   declare functionDepth: number;
-  declare locals: Map<string, SavedVariable>[];
+  declare _exported: Set<string> | undefined;
+  declare _positional: string[] | undefined;
+  declare _locals: Map<string, SavedVariable>[] | undefined;
   declare pipefail: boolean;
   declare profile: "bash";
 
   constructor(
     cwd: string,
     variables: Record<string, string>,
-    exported: Set<string>,
+    exported: Set<string> | undefined,
     extensions: ShellExtensionState | undefined,
   ) {
     this.cwd = cwd;
     this.variables = variables;
-    this.exported = exported;
+    if (exported !== undefined) this._exported = exported;
     this.extensions = extensions;
-    this.positional = [];
-    this.locals = [];
+  }
+
+  get exported(): Set<string> {
+    const raw = stateMonitor(this)?.raw as RootShellState | undefined;
+    const target = raw ?? this;
+    if (target._exported === undefined) {
+      const set = new Set<string>();
+      set.add("PWD");
+      target._exported = set;
+    }
+    return target._exported;
+  }
+  set exported(value: Set<string>) {
+    const raw = stateMonitor(this)?.raw as RootShellState | undefined;
+    (raw ?? this)._exported = value;
+  }
+
+  get positional(): string[] {
+    const raw = stateMonitor(this)?.raw as RootShellState | undefined;
+    return (raw ?? this)._positional ??= [];
+  }
+  set positional(value: string[]) {
+    const raw = stateMonitor(this)?.raw as RootShellState | undefined;
+    (raw ?? this)._positional = value;
+  }
+
+  get locals(): Map<string, SavedVariable>[] {
+    const raw = stateMonitor(this)?.raw as RootShellState | undefined;
+    return (raw ?? this)._locals ??= [];
+  }
+  set locals(value: Map<string, SavedVariable>[]) {
+    const raw = stateMonitor(this)?.raw as RootShellState | undefined;
+    (raw ?? this)._locals = value;
   }
 
   get functions(): Map<string, Command> {
@@ -13724,7 +13959,9 @@ Object.assign(RootShellState.prototype, {
   extensions: undefined,
   cwd: "/",
   variables: undefined,
-  exported: undefined,
+  _exported: undefined,
+  _positional: undefined,
+  _locals: undefined,
   _functions: undefined,
   getopts: undefined,
   directoryStack: undefined,

@@ -16,10 +16,14 @@ export function pipelineStatusTarget(state: State): PipelineStatusTarget {
   const raw = monitor ? monitor.raw : state;
   if (Object.hasOwn(raw.variables, name)) return "scalar";
   if (raw.readonlyVariables?.has(name)) return "readonly-absent";
-  for (let index = raw.locals.length - 1; index >= 0; index--) {
-    if (raw.locals[index]!.has(name)) return "local-tombstone";
+  const rawLocals = (raw as { _locals?: Map<string, unknown>[] })._locals ?? ("_locals" in raw ? undefined : raw.locals);
+  if (rawLocals) {
+    for (let index = rawLocals.length - 1; index >= 0; index--) {
+      if (rawLocals[index]!.has(name)) return "local-tombstone";
+    }
   }
-  if (raw.exported.has(name)) return "exported-absent";
+  const rawExported = (raw as { _exported?: Set<string> })._exported ?? ("_exported" in raw ? undefined : raw.exported);
+  if (rawExported ? rawExported.has(name) : false) return "exported-absent";
   return "absent";
 }
 

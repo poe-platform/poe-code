@@ -942,6 +942,8 @@ export interface FastIntStepDesc {
   readonly isSub: boolean;
   readonly extraNewlineByte: number;
 }
+const sharedSavedLoopIntRegs = new Int32Array(32);
+const sharedIntLoopResult = { ok: false, lastInductionInt: undefined as number | undefined, subBytes: 0, subCount: 0 };
 
 export function runIntArithForLoop(
   startVal: number,
@@ -952,7 +954,7 @@ export function runIntArithForLoop(
   intSteps: readonly (FastIntStepDesc | undefined)[],
   parseBudget: ParseBudget,
 ): { ok: boolean; lastInductionInt: number | undefined; subBytes: number; subCount: number } {
-  const savedRegs = sharedLoopIntRegs.slice();
+  sharedSavedLoopIntRegs.set(sharedLoopIntRegs);
   const savedBudget = parseBudget.snapshot();
   let iVal = startVal | 0;
   sharedLoopIntRegs[0] = iVal;
@@ -969,9 +971,13 @@ export function runIntArithForLoop(
       const intStep = intSteps[b]!;
       const res = evalCompiledSmi(intStep.compiled, intStep.varRegMap);
       if ((res | 0) !== res && !Number.isSafeInteger(res)) {
-        sharedLoopIntRegs.set(savedRegs);
+        sharedLoopIntRegs.set(sharedSavedLoopIntRegs);
         parseBudget.restore(savedBudget);
-        return { ok: false, lastInductionInt: undefined, subBytes: 0, subCount: 0 };
+        sharedIntLoopResult.ok = false;
+        sharedIntLoopResult.lastInductionInt = undefined;
+        sharedIntLoopResult.subBytes = 0;
+        sharedIntLoopResult.subCount = 0;
+        return sharedIntLoopResult;
       }
       totalAdmitUnits += _lastCompiledSmiAdmitUnits;
       sharedLoopIntRegs[intStep.targetReg] = res;
@@ -988,7 +994,11 @@ export function runIntArithForLoop(
     sharedLoopIntRegs[0] = iVal;
   }
   parseBudget.admit(totalAdmitUnits);
-  return { ok: true, lastInductionInt, subBytes, subCount };
+  sharedIntLoopResult.ok = true;
+  sharedIntLoopResult.lastInductionInt = lastInductionInt;
+  sharedIntLoopResult.subBytes = subBytes;
+  sharedIntLoopResult.subCount = subCount;
+  return sharedIntLoopResult;
 }
 
 export function runIntForLoop(
@@ -997,7 +1007,7 @@ export function runIntForLoop(
   intSteps: readonly (FastIntStepDesc | undefined)[],
   parseBudget: ParseBudget,
 ): { ok: boolean; subBytes: number; subCount: number } {
-  const savedRegs = sharedLoopIntRegs.slice();
+  sharedSavedLoopIntRegs.set(sharedLoopIntRegs);
   const savedBudget = parseBudget.snapshot();
   let subBytes = 0;
   let subCount = 0;
@@ -1026,18 +1036,24 @@ export function runIntForLoop(
       iVal = fastSafeInt(word, parseBudget);
     }
     if (iVal === undefined) {
-      sharedLoopIntRegs.set(savedRegs);
+      sharedLoopIntRegs.set(sharedSavedLoopIntRegs);
       parseBudget.restore(savedBudget);
-      return { ok: false, subBytes: 0, subCount: 0 };
+      sharedIntLoopResult.ok = false;
+      sharedIntLoopResult.subBytes = 0;
+      sharedIntLoopResult.subCount = 0;
+      return sharedIntLoopResult;
     }
     sharedLoopIntRegs[0] = iVal | 0;
     for (let b = 0; b < stepCount; b++) {
       const intStep = intSteps[b]!;
       const res = evalCompiledSmi(intStep.compiled, intStep.varRegMap);
       if ((res | 0) !== res && !Number.isSafeInteger(res)) {
-        sharedLoopIntRegs.set(savedRegs);
+        sharedLoopIntRegs.set(sharedSavedLoopIntRegs);
         parseBudget.restore(savedBudget);
-        return { ok: false, subBytes: 0, subCount: 0 };
+        sharedIntLoopResult.ok = false;
+        sharedIntLoopResult.subBytes = 0;
+        sharedIntLoopResult.subCount = 0;
+        return sharedIntLoopResult;
       }
       totalAdmitUnits = (totalAdmitUnits + _lastCompiledSmiAdmitUnits) | 0;
       sharedLoopIntRegs[intStep.targetReg] = res;
@@ -1051,5 +1067,8 @@ export function runIntForLoop(
     }
   }
   parseBudget.admit(totalAdmitUnits);
-  return { ok: true, subBytes, subCount };
+  sharedIntLoopResult.ok = true;
+  sharedIntLoopResult.subBytes = subBytes;
+  sharedIntLoopResult.subCount = subCount;
+  return sharedIntLoopResult;
 }

@@ -11,7 +11,7 @@ async function execute(request) {
   const signal = new AbortController().signal;
   const context = {
     limits: request.limits, signal,
-    budget: new api.DocumentBudget(request.documentLimits, signal),
+    budget: new api.DocumentBudget(request.documentLimits, signal, async () => {}),
     encoding: { order: "input", compression: "store" },
     stdout: { async write(bytes) { memory.appendFileSync("/output", bytes); } },
   };

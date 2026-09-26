@@ -8,7 +8,7 @@
   "imports": {
     "#safe-fs-native-seek": {
       "types": "./src/native/loader.d.ts",
-      "workerd": null,
+      "workerd": "./src/node/native-seek-unavailable.ts",
       "browser": null,
       "default": "./dist/native/fs-seek/loader.mjs"
     },

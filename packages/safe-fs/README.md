@@ -25,6 +25,14 @@ console.log(await fs.readFile("note.txt", "utf8"));
 
 Output: `hello`, then `hello world`. Nothing touches the host filesystem. Raw adapters exchange `Uint8Array` values; the Node bridge adds strings, encodings, `Buffer` results, and stat predicates. Its `cwd` is the relative-path base and, by default, the confinement boundary. Set an explicit `root` to use a different boundary, for example `{ cwd: "/work", root: "/" }` to address a complete provider namespace. The bridge supports `unlink` when the provider offers atomic file removal; unsupported methods fail without host fallback. `createHostFileSystem()` provides trusted, unrestricted native host access when a rooted adapter is not desired.
 
+Under the `workerd` export condition, `@poe-platform/safe-fs/fs/real` reads the
+native request-local filesystem, including retained `/tmp` file bytes.
+The restricted profile refuses generic descriptors, permission/timestamp
+changes, exact creation modes, and owned staging; it promises neither atomic
+rename nor inode/version identity from placeholder native metadata. Retained
+reads remain available, with native seek reporting `ENOTSUP`. Ordinary browser
+bundles cannot import this backend. Node keeps its POSIX host profile.
+
 For host storage, use `await createRealFileSystem({ root: "/absolute/existing/directory" })` instead. The root must already exist; virtual `/` maps to that directory. ZIP creation and updates can use this adapter's private owned staging in an isolated host tree. Unzip extraction requires atomic ancestry verification, currently supported by MemoryFileSystem; the real adapter and mount views refuse it. Its `trustedOwnedStaging` capability checks original entries before publication and cleanup, and preserves foreign staging children. It does not advertise atomic conditional mutations: keep external writers and other in-flight writes away from the tree during these operations. Read the safety boundary below before exposing it to untrusted code.
 
 To create new outputs with Safe Bash's `dos2unix`, `unix2dos`, or compression commands, host adapters need atomic no-replace publication. Supply `createRealFileSystem({ root, renameNoReplace })` only when that callback binds a qualified native primitive such as Linux `renameat2` with `RENAME_NOREPLACE`. It receives resolved absolute host paths and an optional signal in its third argument. Existing destinations must reject `EEXIST` atomically; existence checks followed by rename and copy/delete are insufficient. Without this binding the adapter explicitly refuses those operations. See the [no-replace contract](src/contracts/filesystem.md#atomic-no-replace-rename).
@@ -108,7 +116,7 @@ See the [staging contract](src/contracts/filesystem.md#atomic-owned-staging).
 | Backend or wrapper | Use it for |
 | --- | --- |
 | `createMemoryFileSystem()` | Isolated, nonpersistent storage with links, permissions, timestamps, and streams; each path resolution admits at most 65,536 cumulative UTF-16 code units across the input and followed symlink targets, rejecting excess with `ENAMETOOLONG` before component allocation |
-| `createRealFileSystem({ root })` | An existing host directory, with virtual paths rooted inside it; Node only |
+| `createRealFileSystem({ root })` | An existing host directory, with virtual paths rooted inside it; Node or qualified Workerd operations |
 | `new S3FileSystem({ transport, bucket, … })` | Bucket/prefix storage through an explicitly supplied transport; Node only |
 | `new WebDavFileSystem({ baseUrl, fetch, … })` | A WebDAV namespace through an explicitly supplied Fetch implementation |
 | `createReadOnlyFileSystem(filesystem)` | Rejecting writes through one view of an existing filesystem |

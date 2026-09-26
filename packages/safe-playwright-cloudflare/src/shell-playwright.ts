@@ -41,11 +41,12 @@ export function createCloudflarePlaywrightAdapter(
 		): Promise<BrowserStorageState | undefined>;
 	},
   runtime?: BrowserCodeRuntime,
-  limits: { maxStorageBytes?: number; artifactFileSystem?: FileSystem } = {},
+  limits: { maxStorageBytes?: number; artifactFileSystem?: FileSystem; traceCapture?: "live" | "archive" } = {},
 ): PlaywrightAdapter {
   if (limits.maxStorageBytes !== undefined && limits.maxStorageBytes !== Infinity && (!Number.isSafeInteger(limits.maxStorageBytes) || limits.maxStorageBytes < 1)) throw new TypeError('Invalid Cloudflare storage byte limit');
 	const maxStorageBytes = limits.maxStorageBytes ?? Infinity;
  const artifactFileSystem = limits.artifactFileSystem;
+  if (limits.traceCapture !== undefined && limits.traceCapture !== "live" && limits.traceCapture !== "archive") throw new TypeError("Invalid Cloudflare trace capture mode");
 	const adapter = createPlaywrightAdapter({
 		chromium: {
 			headed: false,
@@ -63,7 +64,7 @@ export function createCloudflarePlaywrightAdapter(
           captureSnapshotReferences: captureBrowserSnapshotReferences,
 					browser: publicBrowser(resource.browser, resource.prepareSnapshots),
 					captureArtifact: (produce, options) => captureBrowserArtifact(produce, options, artifactFileSystem),
-					captureTrace: (context, options) => captureBrowserTrace(context, options, artifactFileSystem),
+					...(limits.traceCapture === "archive" ? {} : { captureTrace: (context, options) => captureBrowserTrace(context, options, artifactFileSystem) }),
 					async captureDownload() {
 						// Cloudflare's download APIs read a Worker-local path, while the
 						// file lives in remote Chromium. CDP exposes no file-byte stream.

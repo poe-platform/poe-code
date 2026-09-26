@@ -3,6 +3,7 @@ import { readFile, lstat } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
+import { verifySafeFsWorkerd } from './verify-safe-fs-workerd.mjs';
 
 const consumer = process.argv[2];
 if (!consumer) throw new Error('Usage: node scripts/verify-safe-cloudflare.mjs <installed-consumer-directory>');
@@ -26,6 +27,7 @@ assert.ok((await text(resolve(directory, 'browser-codegen.generated.js'))).inclu
 const attribution = resolve(installed, 'third-party/safe-playwright-cloudflare/third-party/playwright');
 assert.ok((await text(resolve(attribution, 'LICENSE'))).includes('Apache License'));
 assert.ok((await text(resolve(attribution, 'NOTICE'))).includes('Microsoft Corporation'));
+await verifySafeFsWorkerd(consumer);
 const root = fileURLToPath(new URL('../', import.meta.url));
 const child = spawn('npm', ['run', 'test:native', '--workspace=@poe-code/safe-playwright-cloudflare'], {
   cwd: root, stdio: 'inherit', env: { ...process.env, SAFE_PLAYWRIGHT_INSTALLED_ROOT: installed },

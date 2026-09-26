@@ -20,6 +20,7 @@ const systemErrnos = (() => {
 const negotiating = new AsyncLocalStorage<boolean>();
 
 export const platform = Object.freeze({
+  nativeFileSystem: Object.freeze({ open: true, permissions: true, timestamps: true, conditionalChmod: true, trustedOwnedStaging: true, atomicRename: true }),
   maxCollectionBytes: Infinity,
   errno(code: string): PlatformErrno {
     const errno = systemErrnos.get(code === "EOPNOTSUPP" ? "ENOTSUP" : code);

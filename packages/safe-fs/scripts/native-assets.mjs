@@ -119,7 +119,7 @@ export async function readNativeRegistry({ rootDir, files = filesystem }) {
 
 export function nativeImportMapping(registry, prefix = "") {
   const directory = path.posix.join(prefix, registry.directory);
-  return { types: `./${directory}/loader.d.ts`, workerd: null, browser: null, default: `./${directory}/loader.mjs` };
+  return { types: `./${directory}/loader.d.ts`, workerd: `./${path.posix.join(prefix, "node/native-seek-unavailable.js")}`, browser: null, default: `./${directory}/loader.mjs` };
 }
 
 async function sourceInputs(rootDir, registry, files) {

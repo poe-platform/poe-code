@@ -610,6 +610,63 @@ function optionalLeftovers() {
   return { volume, data, excluded, options: { rootDir: "/repo", version: "0.1.0", files, bundle } };
 }
 
+it("resolves packaged real filesystem declarations for Workers while retaining browser restrictions", async () => {
+  const { volume, options } = optionalLeftovers();
+  const exports = {
+    ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
+    "./node": { types: "./dist/node/index.d.ts", import: "./dist/node/index.js" },
+    "./fs/real": { types: "./dist/fs/real/index.d.ts", import: "./dist/fs/real/index.js" },
+    "./fs/s3": { types: "./dist/fs/s3/index.d.ts", import: "./dist/fs/s3/index.js" },
+    "./fs/s3/http": { types: "./dist/fs/s3/http/index.d.ts", import: "./dist/fs/s3/http/index.js" },
+  };
+  volume.writeFileSync("/repo/packages/safe-fs/package.json", JSON.stringify({ name: "@poe-code/safe-fs", exports }));
+  for (const target of [...Object.values(exports).flatMap(value => Object.values(value)),
+    "./dist/node-unavailable.d.ts", "./dist/node-host.d.ts", "./dist/node-host.js",
+    "./dist/platform/node.d.ts", "./dist/platform/node.js", "./dist/platform/browser.d.ts", "./dist/platform/browser.js"]) {
+    const filename = "/repo/packages/safe-fs/" + target.slice(2);
+    volume.mkdirSync(path.dirname(filename), { recursive: true });
+    volume.writeFileSync(filename, target.includes("/fs/real/") ? 'import "#safe-fs-platform"; export {};\n' : "export {};\n");
+  }
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  const manifest = JSON.parse(volume.readFileSync("/output/safe-fs/package.json", "utf8").toString());
+  expect(manifest.exports["./fs/real"]).toEqual({
+    types: { workerd: "./dist/safe-fs/fs/real/index.d.ts", browser: "./dist/safe-fs/node-unavailable.d.ts", default: "./dist/safe-fs/fs/real/index.d.ts" },
+    workerd: "./dist/safe-fs/fs/real/index.js", browser: null, import: "./dist/safe-fs/fs/real/index.js",
+  });
+  expect(Object.keys(manifest.exports["./fs/real"])).toEqual(["types", "workerd", "browser", "import"]);
+  expect(Object.keys(manifest.exports["./fs/real"].types)).toEqual(["workerd", "browser", "default"]);
+  expect(manifest.imports["#safe-fs-platform"]).toEqual({
+    types: { workerd: "./dist/safe-fs/platform/browser.d.ts", browser: "./dist/safe-fs/platform/browser.d.ts", default: "./dist/safe-fs/platform/node.d.ts" },
+    workerd: "./dist/safe-fs/platform/browser.js", browser: "./dist/safe-fs/platform/browser.js", default: "./dist/safe-fs/platform/node.js",
+  });
+  for (const entry of ["./node", "./fs/s3", "./fs/s3/http"]) {
+    expect(manifest.exports[entry].workerd).toBeUndefined();
+    expect(manifest.exports[entry].types.workerd).toBeUndefined();
+    expect(manifest.exports[entry].browser).toBeNull();
+  }
+  volume.mkdirSync("/consumer/node_modules/@poe-platform", { recursive: true });
+  const packedPath = (filename: string) => filename.replace("/consumer/node_modules/@poe-platform/safe-fs", "/output/safe-fs");
+  const host: ts.ModuleResolutionHost = {
+    fileExists: filename => volume.existsSync(packedPath(filename)),
+    readFile: filename => volume.existsSync(packedPath(filename)) ? volume.readFileSync(packedPath(filename), "utf8").toString() : undefined,
+    directoryExists: filename => volume.existsSync(packedPath(filename)) && volume.statSync(packedPath(filename)).isDirectory(),
+    getCurrentDirectory: () => "/consumer", realpath: filename => filename,
+  };
+  const resolve = (customConditions: string[]) => ts.resolveModuleName("@poe-platform/safe-fs/fs/real", "/consumer/main.mts", {
+    module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler, customConditions,
+  }, host).resolvedModule?.resolvedFileName;
+  expect(resolve(["workerd", "worker", "browser"])).toBe("/consumer/node_modules/@poe-platform/safe-fs/dist/safe-fs/fs/real/index.d.ts");
+  expect(resolve(["browser"])).toBe("/consumer/node_modules/@poe-platform/safe-fs/dist/safe-fs/node-unavailable.d.ts");
+  expect(resolve([])).toBe("/consumer/node_modules/@poe-platform/safe-fs/dist/safe-fs/fs/real/index.d.ts");
+  const platform = (customConditions: string[]) => ts.resolveModuleName("#safe-fs-platform", "/consumer/node_modules/@poe-platform/safe-fs/dist/safe-fs/fs/real/index.d.ts", {
+    module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler, customConditions,
+  }, host).resolvedModule?.resolvedFileName;
+  for (const conditions of [["workerd"], ["workerd", "worker", "browser"], ["browser"]]) {
+    expect(platform(conditions)).toBe("/consumer/node_modules/@poe-platform/safe-fs/dist/safe-fs/platform/browser.d.ts");
+  }
+  expect(platform([])).toBe("/consumer/node_modules/@poe-platform/safe-fs/dist/safe-fs/platform/node.d.ts");
+});
+
 it('preserves companion references to conditional public contracts in the same published package', async () => {
   const { volume, options } = optionalLeftovers();
   const directory = '/repo/packages/mcp-companion';

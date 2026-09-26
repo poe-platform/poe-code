@@ -60,7 +60,7 @@ describe("native build assets", () => {
       sha256: createHash("sha256").update(setup.binary).digest("hex") }]);
     const manifest = JSON.parse(await setup.files.readFile("/repo/packages/safe-fs/dist/package.json", "utf8"));
     expect(manifest.imports["#safe-fs-platform"]).toEqual({ default: "./platform/node.js" });
-    expect(manifest.imports[registry.specifier]).toEqual({ types: "./native/fs-seek/loader.d.ts", workerd: null,
+    expect(manifest.imports[registry.specifier]).toEqual({ types: "./native/fs-seek/loader.d.ts", workerd: "./node/native-seek-unavailable.js",
       browser: null, default: "./native/fs-seek/loader.mjs" });
     const invocation = setup.compile.mock.calls.find(([, args]) => args.includes("-o"))!;
     expect(invocation[0]).toBe("/usr/bin/cc");

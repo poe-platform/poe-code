@@ -1,4 +1,4 @@
-import type { FileSystem } from "@poe-code/safe-fs/core";
+import type { FileStat, FileSystem } from "@poe-code/safe-fs/core";
 import {
 	PlaywrightResourceLimitError,
 	type PlaywrightTraceCapture
@@ -74,6 +74,13 @@ function tracePaths(native: NativeTracing): NativeTracePaths {
 	return paths;
 }
 
+function hasTraceIdentity(stat: FileStat): boolean {
+  return (typeof stat.identityScope === "symbol" || typeof stat.identityScope === "object" && stat.identityScope !== null)
+    && typeof stat.dev === "number" && Number.isSafeInteger(stat.dev) && stat.dev >= 0
+    && typeof stat.ino === "number" && Number.isSafeInteger(stat.ino) && stat.ino >= 0
+    && (stat.identityScope !== Symbol.for("virtual-bash.fs.native") || stat.ino > 0);
+}
+
 async function readTraceFile(options: {
 	path: string;
 	signal: AbortSignal;
@@ -84,12 +91,14 @@ async function readTraceFile(options: {
 	signal.throwIfAborted();
 	const metadata = await fs.lstat(path, { signal });
 	if (metadata.type !== "file") throw new Error("Native trace must be a regular file");
+  if (!hasTraceIdentity(metadata)) throw new Error("Native trace file identity unavailable");
 	if (metadata.size > remaining)
 		throw new PlaywrightResourceLimitError("Browser trace byte limit exceeded");
 	if (!fs.openReadFile) throw new Error("Native trace retained reads unavailable");
 	const file = await fs.openReadFile(path, { signal });
 	try {
 		const current = await file.stat({ signal });
+    if (!hasTraceIdentity(current)) throw new Error("Native trace file identity unavailable");
 		if (
 			current.type !== "file" ||
 			current.identityScope !== metadata.identityScope ||

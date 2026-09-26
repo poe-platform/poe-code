@@ -1,3 +1,4 @@
+import { platform } from "#safe-fs-platform";
 import { snapshotStagingCreation } from "../staging-cleanup.js";
 import { snapshotConditionalChmod } from "../conditional-chmod.js";
 import { runStagingGuard, snapshotDirectoryAncestry } from "../staging-ancestry.js";
@@ -7,6 +8,7 @@ import * as native from "node:fs/promises";
 import { dirname, basename, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { nativeAllocatedBytes } from "./allocation.js";
 import { openFileDescriptor } from "../descriptor.js";
+import { compareIdentity } from "../mount/identity.js";
 import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
 import { finishCleanup } from "../../contracts/cleanup.js";
 import { callNativeSeekEnd, loadNativeSeekBinding } from "../../node/native-seek.js";
@@ -67,11 +69,11 @@ function fileStat(stats: Stats | BigIntStats): FileStat {
     mtimeMs: "mtimeNs" in stats ? Number(stats.mtimeNs / 1_000_000n) + Number(stats.mtimeNs % 1_000_000n) / 1e6 : stats.mtimeMs,
     ctimeMs: "ctimeNs" in stats ? Number(stats.ctimeNs / 1_000_000n) + Number(stats.ctimeNs % 1_000_000n) / 1e6 : stats.ctimeMs,
     birthtimeMs: "birthtimeNs" in stats ? Number(stats.birthtimeNs / 1_000_000n) + Number(stats.birthtimeNs % 1_000_000n) / 1e6 : stats.birthtimeMs, ino, dev,
-    ...(Number.isSafeInteger(dev) && dev >= 0 && Number.isSafeInteger(ino) && ino >= 0
+    ...(Number.isSafeInteger(dev) && dev >= 0 && Number.isSafeInteger(ino) && ino > 0
       ? { identityScope: Symbol.for("virtual-bash.fs.native") } : {}),
     nlink: Number(stats.nlink), uid: Number(stats.uid), gid: Number(stats.gid),
   };
-  if ("ctimeNs" in stats && !stats.isDirectory()) Object.defineProperty(snapshot, "opaqueVersion", { value: `${stats.ctimeNs}:${stats.mtimeNs}`, enumerable: true });
+  if (snapshot.identityScope !== undefined && "ctimeNs" in stats && (stats.ctimeNs !== 0n || stats.mtimeNs !== 0n) && !stats.isDirectory()) Object.defineProperty(snapshot, "opaqueVersion", { value: `${stats.ctimeNs}:${stats.mtimeNs}`, enumerable: true });
   return snapshot;
 }
 
@@ -135,14 +137,13 @@ function nativeError(error: unknown): FsError {
  */
 export class RealFileSystem implements FileSystem {
   readonly capabilities: FileSystemCapabilities = Object.freeze({
-    read: true, stat: true, readdir: true, realpath: true, access: true, open: true,
+    read: true, stat: true, readdir: true, realpath: true, access: true,
     write: true, append: true, exclusiveCreate: true, explicitDirectories: true, implicitDirectories: false,
     mkdir: true, recursiveMkdir: true, remove: true, removeDirectory: true, recursiveRemove: true,
     rename: true, atomicRenameNoReplace: false, copy: true, exclusiveCopy: true, readlink: true, truncate: true,
     streamingAppend: true, randomAccessWrite: true,
-    readOnly: false, symlinks: true, hardlinks: true, permissions: true,
-    conditionalChmod: true,
-    timestamps: true, atomicRename: true, streamingRead: true, streamingWrite: true, retainedRead: true, retainedResize: true, trustedOwnedStaging: true,
+    readOnly: false, symlinks: true, hardlinks: true, streamingRead: true, streamingWrite: true, retainedRead: true, retainedResize: true,
+    ...platform.nativeFileSystem,
   });
 
   private readonly configuredRoot: string;
@@ -161,6 +162,7 @@ export class RealFileSystem implements FileSystem {
     this.configuredRoot = root;
     this.renameNoReplace = typeof options === "string" ? undefined : options.renameNoReplace;
     if (this.renameNoReplace !== undefined) {
+      if (!platform.nativeFileSystem.atomicRename) throw new FsError("ENOTSUP", { syscall: "root", message: "atomic rename is unavailable on this host" });
       if (typeof this.renameNoReplace !== "function") throw new FsError("EINVAL", { syscall: "root", message: "renameNoReplace must be a function" });
       this.capabilities = Object.freeze({ ...this.capabilities, atomicRenameNoReplace: true });
     }
@@ -310,9 +312,12 @@ export class RealFileSystem implements FileSystem {
   }
 
   private expectStaging(path: string, expected: FileStat | null, identityOnly = false): FileStat | null {
+    if (!platform.nativeFileSystem.trustedOwnedStaging) throw new FsError("ENOTSUP");
     if (expected && (expected.identityScope !== Symbol.for("virtual-bash.fs.native")
       || expected.dev === undefined || expected.ino === undefined || !identityOnly && expected.opaqueVersion === undefined)) throw new FsError("ENOTSUP");
     const current = this.stagingSnapshot(path);
+    if (expected && current && (current.identityScope !== Symbol.for("virtual-bash.fs.native")
+      || current.dev === undefined || current.ino === undefined || !identityOnly && current.opaqueVersion === undefined)) throw new FsError("ENOTSUP");
     if (expected === null ? current !== null : !current || current.dev !== expected.dev || current.ino !== expected.ino || current.type !== expected.type
       || !identityOnly && (current.opaqueVersion !== expected.opaqueVersion || current.size !== expected.size || current.mode !== expected.mode || current.nlink !== expected.nlink)) throw new FsError("EAGAIN");
     if (immediate.realpathSync(dirname(path)) !== dirname(path)) throw new FsError("EAGAIN");
@@ -498,6 +503,7 @@ export class RealFileSystem implements FileSystem {
   }
 
   open(path: string, options: OpenFileOptions): Promise<FileDescriptor> {
+    if (!platform.nativeFileSystem.open) return this.operation("open", path, options, async () => { throw new FsError("ENOTSUP"); });
     return openFileDescriptor<{ handle: native.FileHandle | undefined }>(path, options, {
       noFollow: true, positionedRead: true, positionedWrite: true, truncate: true, synchronization: "storage",
     }, async admitted => {
@@ -628,7 +634,7 @@ export class RealFileSystem implements FileSystem {
   async mkdir(path: string, options: MkdirOptions = {}): Promise<void> {
     return this.operation("mkdir", path, options, async () => {
       if (options.mode !== undefined) integer(options.mode);
-      if (options.exactMode && options.recursive) throw new FsError("ENOTSUP");
+      if (options.exactMode && (!platform.nativeFileSystem.permissions || options.recursive)) throw new FsError("ENOTSUP");
       const target = await this.path(path, {
         ...options,
         missing: "final", followFinal: !!options.recursive, deferTrailingSeparator: true,
@@ -703,7 +709,11 @@ export class RealFileSystem implements FileSystem {
         try { target = await native.lstat(to, { bigint: true }); }
         catch (error) { if (nativeError(error).code !== "ENOENT") throw error; }
         if (target && options.exclusive) throw new FsError("EEXIST");
-        if (target && origin.isFile() && origin.dev === target.dev && origin.ino === target.ino) throw new FsError("EINVAL");
+        if (target && origin.isFile()) {
+          const identity = compareIdentity(fileStat(origin), fileStat(target));
+          if (identity === "same") throw new FsError("EINVAL");
+          if (identity === "unknown") throw new FsError("ENOTSUP");
+        }
         if (!target) flags |= constants.COPYFILE_EXCL;
       }
       options.signal?.throwIfAborted();
@@ -769,6 +779,7 @@ export class RealFileSystem implements FileSystem {
 
   async chmod(path: string, mode: number, options: ChmodOptions = {}): Promise<void> {
     return this.operation("chmod", path, options, async () => {
+      if (!platform.nativeFileSystem.permissions) throw new FsError("ENOTSUP");
       integer(mode);
       const conditional = snapshotConditionalChmod(path, options);
       if (conditional) {
@@ -798,6 +809,7 @@ export class RealFileSystem implements FileSystem {
 
   async utimes(path: string, atimeMs: number, mtimeMs: number, options: FsOptions = {}): Promise<void> {
     return this.operation("utimes", path, options, async () => {
+      if (!platform.nativeFileSystem.timestamps) throw new FsError("ENOTSUP");
       if (!Number.isFinite(atimeMs) || !Number.isFinite(mtimeMs)
         || Math.abs(atimeMs) > 8.64e15 || Math.abs(mtimeMs) > 8.64e15) throw new FsError("EINVAL");
       const target = await this.path(path, options);

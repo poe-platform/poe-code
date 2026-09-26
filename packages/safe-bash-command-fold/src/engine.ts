@@ -41,9 +41,14 @@ export function createFoldEngine(options: FoldOptions, locale: string, configura
   // One byte offset identifies the last candidate; no per-glyph retained objects.
   let lastBlank = 0, peakRetained = 0;
   let emitted: Uint8Array[] = [];
+  let aborted = Boolean(signal?.aborted);
+  const pollSignal = Boolean(signal && typeof signal.addEventListener !== "function");
+  if (signal && !aborted && !pollSignal) {
+    signal.addEventListener("abort", () => { aborted = true; }, { once: true });
+  }
   const check = (amount = 1): void => {
     if (closed) throw new FoldError('CLOSED', 'Fold engine is closed');
-    if (signal?.aborted) throw new FoldError('CANCELLED', 'Fold invocation cancelled');
+    if (aborted || (pollSignal && signal!.aborted)) throw new FoldError('CANCELLED', 'Fold invocation cancelled');
     if (amount > work - steps) throw new FoldError('LIMIT', 'Algorithm work limit exceeded');
     steps += amount;
   };

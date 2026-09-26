@@ -441,7 +441,7 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           "pdf-ast": exports,
         };
         const packages = {
-          pandoc: { "@poe-code/office-package": "*", citeproc: "2.4.63", entities: "^6.0.1", fengari: "^0.1.5", "jpeg-js": "^0.4.4", "jsonc-parser": "^3.3.1", parse5: "7.3.0", saxes: "6.0.0", yaml: "2.9.0", "@poe-code/pdf": "0.0.1", "@poe-code/pdf-ast": "*", pptx: "*" },
+          pandoc: { "@poe-code/office-package": "*", citeproc: "2.4.63", entities: "^6.0.1", fengari: "^0.1.5", "jpeg-js": "^0.4.4", "jsonc-parser": "^3.3.1", parse5: "7.3.0", saxes: "6.0.0", yaml: "2.9.0", "@poe-code/pdf": "0.0.1", "@poe-code/pdf-ast": "*", pptx: "*", docx: "*", "safe-bash-command-ssconvert": "*" },
           pdf: { "pdf-lib": "1.17.1", "@pdf-lib/fontkit": "1.1.1", pako: "3.0.1" },
           "pdf-ast": { pako: "3.0.1" },
         };

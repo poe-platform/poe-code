@@ -155,6 +155,7 @@ interface MkvTrackInfo {
   trackType: number; // 1 = video, 2 = audio, 17 = subtitle
   codecId: string;
   codecPrivate?: Uint8Array;
+  defaultDurationNs?: number;
   width?: number;
   height?: number;
   sampleRate?: number;

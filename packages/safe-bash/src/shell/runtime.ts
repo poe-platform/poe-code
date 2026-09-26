@@ -949,28 +949,26 @@ export class Capture implements ByteSink {
     return bytes;
   }
 
-  takeUtf8String(decoder: { decode(input?: Uint8Array): string }): string {
+  takeUtf8Output(): string | Uint8Array {
     if (this.length === 0) return "";
     if (this._scratchLen > 0 && this._scratch4k && !this._chunks && !this._first) {
       const len = this._scratchLen;
       const buf = this._scratch4k;
       this._scratchLen = 0;
       this.length = 0;
+      for (let i = 0; i < len; i++) {
+        // The scratch buffer is reused by subsequent executions. Retain owned
+        // bytes before decoding any output that cannot round-trip as ASCII.
+        if (buf[i]! >= 0x80) return new Uint8Array(buf.subarray(0, len));
+      }
       if (len <= 64) {
-        let ascii = true;
-        for (let i = 0; i < len; i++) {
-          if (buf[i]! >= 0x80) { ascii = false; break; }
-        }
-        if (ascii) {
-          let s = "";
-          for (let i = 0; i < len; i++) s += String.fromCharCode(buf[i]!);
-          return s;
-        }
+        let s = "";
+        for (let i = 0; i < len; i++) s += String.fromCharCode(buf[i]!);
+        return s;
       }
       return buf.toString("utf8", 0, len);
     }
-    const bytes = this.takeBytes();
-    return bytes.byteLength === 0 ? "" : decoder.decode(bytes);
+    return this.takeBytes();
   }
 
   resetEmpty(): void {

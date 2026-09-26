@@ -2,12 +2,56 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { basicCommands } from "../../src/commands/basic.js";
 import { standardCommands } from "../../src/commands/index.js";
+import { textProgramCommands } from "../../src/commands/text-programs/index.js";
 import { createCommandArguments, getCommandArguments } from "../../src/contracts/command.js";
 import { shellValueFromBytes } from "../../src/contracts/value.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/shell.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import { setup } from "./helpers.js";
+
+for (const size of [5, 128, 65540]) test(`warm shell preserves binary output and retained results: ${size} bytes`, async () => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(standardCommands()).use(textProgramCommands());
+  const bytes = new Uint8Array(size).fill(65);
+  bytes.set([128, 255, 254]);
+  bytes[size - 1] = 10;
+  await fs.writeFile("/data.bin", bytes);
+  try {
+    await shell.exec("true");
+    await Promise.resolve();
+    await Promise.resolve();
+    await shell.exec("");
+    const stdout = await shell.exec("awk '{print}' /data.bin");
+    const stderr = await shell.exec("awk '{print}' /data.bin >&2");
+    assert.equal(stdout.exitCode, 0);
+    assert.equal(stderr.exitCode, 0);
+    assert.equal(stdout.stdout, new TextDecoder().decode(bytes));
+    assert.equal(stderr.stderr, new TextDecoder().decode(bytes));
+    await shell.exec("printf overwrite; printf overwrite >&2");
+    assert.deepEqual(new Uint8Array(stdout.stdoutBytes), bytes);
+    assert.deepEqual(new Uint8Array(stderr.stderrBytes), bytes);
+  } finally { await shell.dispose(); }
+});
+
+for (const [format, bytes] of [
+  ["ASCII\\000\\n", Uint8Array.of(65, 83, 67, 73, 73, 0, 10)],
+  ["\\357\\273\\277\\303\\251\\000", Uint8Array.of(239, 187, 191, 195, 169, 0)],
+] as const) test(`warm shell preserves ASCII and valid UTF-8 output: ${format}`, async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  try {
+    await shell.exec("true");
+    await Promise.resolve();
+    await Promise.resolve();
+    await shell.exec("");
+    const result = await shell.exec(`printf '${format}'; printf '${format}' >&2`);
+    const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
+    assert.equal(result.stdout, decoder.decode(bytes));
+    assert.equal(result.stderr, decoder.decode(bytes));
+    assert.deepEqual(new Uint8Array(result.stdoutBytes), bytes);
+    assert.deepEqual(new Uint8Array(result.stderrBytes), bytes);
+  } finally { await shell.dispose(); }
+});
 
 test("plugin file commands receive admitted string paths for byte-valued arguments", async () => {
   const fs = new MemoryFileSystem();

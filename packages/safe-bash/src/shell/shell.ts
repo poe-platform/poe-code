@@ -39,9 +39,11 @@ class FastShellResult implements ShellResult {
   readonly exitCode: number;
   private _stdoutBytes: Uint8Array | undefined = undefined;
   private _stderrBytes: Uint8Array | undefined = undefined;
-  constructor(stdout: string, stderr: string, exitCode: number) {
-    this.stdout = stdout;
-    this.stderr = stderr;
+  constructor(stdout: string | Uint8Array, stderr: string | Uint8Array, exitCode: number) {
+    this.stdout = typeof stdout === "string" ? stdout : sharedUtf8Decoder.decode(stdout);
+    this.stderr = typeof stderr === "string" ? stderr : sharedUtf8Decoder.decode(stderr);
+    if (typeof stdout !== "string") this._stdoutBytes = stdout;
+    if (typeof stderr !== "string") this._stderrBytes = stderr;
     this.exitCode = exitCode;
   }
   get stdoutBytes(): Uint8Array {
@@ -579,13 +581,13 @@ export class Shell implements PluginHost {
       scope.clearActiveBudget();
       scope.clearActiveStdin();
       void stdin.close();
-      const stdoutStr = stdout.takeUtf8String(sharedUtf8Decoder);
-      const stderrStr = stderr.takeUtf8String(sharedUtf8Decoder);
+      const stdoutOutput = stdout.takeUtf8Output();
+      const stderrOutput = stderr.takeUtf8Output();
       budget.close();
       owner.closeSync();
       void scope.close();
       cancellationState.close();
-      const fastResult = new FastShellResult(stdoutStr, stderrStr, exitCode);
+      const fastResult = new FastShellResult(stdoutOutput, stderrOutput, exitCode);
       if (_execAnchor[10] === undefined) {
         _execAnchor[10] = ensureStateMonitor(currentState, budget, scope);
       }

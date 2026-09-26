@@ -48,7 +48,7 @@ for (const flags of [[], ["-C0"]]) for (const options of limits) {
 }
 
 for (const flags of [[], ["-C3"]]) {
-  test(`format cancellation during normalized comparison ${flags[0] ?? "normal"}`, async (t) => {
+  for (const origin of ["checkpoint", "host"]) test(`format cancellation during normalized comparison ${flags[0] ?? "normal"}/${origin}`, async t => {
     const controller = new AbortController();
     const reason = new Error("format cancellation sentinel");
     let writes = 0;
@@ -59,15 +59,19 @@ for (const flags of [[], ["-C3"]]) {
     // short retained reads stay below the work threshold; normalization crosses it.
     let now = 0, checkpoints = 0;
     t.mock.method(performance, "now", () => now += 10);
-    registerYieldCheckpoint(controller.signal, () => {
+    if (origin === "checkpoint") registerYieldCheckpoint(controller.signal, () => {
       checkpoints++;
       controller.abort(reason);
     });
-    await assert.rejects(run("diff", [...flags, "-w", "old", "new"], {
-      fs, signal: controller.signal, stdout: { async write() { writes++; } },
-    }), error => error === reason);
-    assert.equal(checkpoints, 1);
-    assert.equal(writes, 0);
+    // The host variant additionally requires a real event-loop turn.
+    const cancellation = origin === "host" ? setImmediate(() => controller.abort(reason)) : undefined;
+    try {
+      await assert.rejects(run("diff", [...flags, "-w", "old", "new"], {
+        fs, signal: controller.signal, stdout: { async write() { writes++; } },
+      }), error => error === reason);
+      assert.equal(checkpoints, origin === "checkpoint" ? 1 : 0);
+      assert.equal(writes, 0);
+    } finally { if (cancellation) clearImmediate(cancellation); }
   });
 
   test(`format cancellation interrupts blocked stdout ${flags[0] ?? "normal"}`, { timeout: 2000 }, async () => {

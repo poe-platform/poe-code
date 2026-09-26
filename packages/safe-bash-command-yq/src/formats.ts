@@ -26,7 +26,7 @@ async function properties(text: string, work: NativeWork): Promise<Value> {
     const end = newline < 0 ? text.length : newline;
     const line = text.slice(offset, end).trim();
     offset = end + 1;
-    await work.tick(line.length + 1);
+    { const t = work.tick(line.length + 1); if (t) await t; }
     if (!line || line.startsWith("#") || line.startsWith(";") || line.startsWith("!")) continue;
     let equal = line.indexOf("=");
     if (equal < 0) equal = line.indexOf(":");
@@ -38,7 +38,7 @@ async function properties(text: string, work: NativeWork): Promise<Value> {
     work.depth(depth);
     if (1 + 2 * depth > work.limits.maxParserNodes) throw new MikeError("yq limit exceeded: maxParserNodes");
     for (let index = 0; index < key.length; index++) {
-      await work.tick();
+      { const t = work.tick(); if (t) await t; }
       if (key[index] !== ".") continue;
       work.depth(++depth);
       if (1 + 2 * depth > work.limits.maxParserNodes) throw new MikeError("yq limit exceeded: maxParserNodes");
@@ -46,7 +46,7 @@ async function properties(text: string, work: NativeWork): Promise<Value> {
     let target = result;
     let start = 0;
     while (true) {
-      await work.tick();
+      { const t = work.tick(); if (t) await t; }
       const dot = key.indexOf(".", start);
       const component = key.slice(start, dot < 0 ? key.length : dot);
       if (dot < 0) {
@@ -70,7 +70,7 @@ async function table(text: string, delimiter: string, yaml: YamlModule, work: Na
   let row: string[] = [], field = "", quoted = false, closed = false;
   const cell = () => { if (Buffer.byteLength(field) > work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes"); row.push(field); field = ""; closed = false; };
   for (let index = 0; index < text.length; index++) {
-    await work.tick();
+    { const t = work.tick(); if (t) await t; }
     const char = text[index]!;
     if (quoted) {
       if (char === '"') { if (text[index + 1] === '"') { field += '"'; index++; } else { quoted = false; closed = true; } }
@@ -86,7 +86,7 @@ async function table(text: string, delimiter: string, yaml: YamlModule, work: Na
   const headers = rows.shift() ?? [];
   const result: Value[] = [];
   for (const cells of rows) {
-    await work.tick();
+    { const t = work.tick(); if (t) await t; }
     if (cells.length !== headers.length) throw new MikeError("wrong number of fields");
     const item: { [key: string]: Value } = Object.create(null);
     for (let index = 0; index < cells.length; index++) {
@@ -99,7 +99,7 @@ async function table(text: string, delimiter: string, yaml: YamlModule, work: Na
 }
 
 async function xmlValue(element: XmlElement, work: NativeWork, depth = 0): Promise<Value> {
-  await work.tick(); work.depth(depth);
+  { const t = work.tick(); if (t) await t; } work.depth(depth);
   const result: { [key: string]: Value } = Object.create(null);
   for (const attribute of element.attributes) result[`+@${attribute.name}`] = attribute.value;
   for (const child of element.children) {
@@ -128,10 +128,10 @@ export async function decodeFormat(text: string, filename: string, fileIndex: nu
     else if (format === "xml") {
       const parser = parseXmlSteps(text, { maxDepth: work.limits.maxDepth, maxNodes: work.limits.maxParserNodes, maxTextLength: work.limits.maxScalarBytes });
       let step = parser.next();
-      while (!step.done) { await work.tick(step.value); step = parser.next(); }
+      while (!step.done) { { const t = work.tick(step.value); if (t) await t; } step = parser.next(); }
       value = { [step.value.name]: await xmlValue(step.value, work) };
     } else if (format === "toml") {
-      const parsed = await parseTomlDocument(text, { charge: units => work.tick(units), assertOpen: () => work.assertOpen() }, new YqLedger(), Buffer.byteLength(text));
+      const parsed = await parseTomlDocument(text, { charge: async units => { const t = work.tick(units); if (t) await t; }, assertOpen: () => work.assertOpen() }, new YqLedger(), Buffer.byteLength(text));
       const convert = (item: unknown): Value => {
         if (item instanceof Decimal) return Number(numberText(item));
         if (Array.isArray(item)) return item.map(convert);
@@ -144,7 +144,7 @@ export async function decodeFormat(text: string, filename: string, fileIndex: nu
       value = Object.create(null) as { [key: string]: Value };
       let section = value;
       for (const source of text.split("\n")) {
-        await work.tick(source.length + 1);
+        { const t = work.tick(source.length + 1); if (t) await t; }
         const line = source.trim();
         if (!line || line.startsWith("#") || line.startsWith(";") || line.startsWith("!")) continue;
         if (line.startsWith("[") && line.endsWith("]")) { const name = line.slice(1, -1); section = Object.create(null) as { [key: string]: Value }; value[name] = section; continue; }
@@ -174,10 +174,10 @@ export async function encodeFormat(candidate: Candidate, format: MikeFormat, yam
     const headers = mapping(value[0] ?? null) ? Object.keys(value[0] as object) : undefined;
     const row = (cells: Value[]) => { append(cells.map(item => { const text = primitive(item); return text.includes(delimiter) || text.includes('"') || text.includes("\n") || text.includes("\r") ? '"' + text.split('"').join('""') + '"' : text; }).join(delimiter) + "\n"); };
     if (headers) row(headers);
-    for (const item of value) { await work.tick(); if (headers && mapping(item)) row(headers.map(key => item[key] ?? null)); else if (Array.isArray(item)) row(item); else throw new MikeError("CSV/TSV rows must be arrays or maps"); }
+    for (const item of value) { { const t = work.tick(); if (t) await t; } if (headers && mapping(item)) row(headers.map(key => item[key] ?? null)); else if (Array.isArray(item)) row(item); else throw new MikeError("CSV/TSV rows must be arrays or maps"); }
   } else if (format === "lua") {
     const write = async (item: Value, depth: number): Promise<void> => {
-      await work.tick(); work.depth(depth);
+      { const t = work.tick(); if (t) await t; } work.depth(depth);
       if (item === null) { append("nil"); return; }
       if (typeof item !== "object") { append(JSON.stringify(item)); return; }
       append("{\n");
@@ -188,7 +188,7 @@ export async function encodeFormat(candidate: Candidate, format: MikeFormat, yam
   } else if (format === "xml") {
     const escape = (text: string) => text.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;").split('"').join("&quot;");
     const write = async (name: string, item: Value, depth: number): Promise<void> => {
-      await work.tick(); work.depth(depth);
+      { const t = work.tick(); if (t) await t; } work.depth(depth);
       if (!name || Array.from(name).some(char => " <>/\t\r\n=\"'".includes(char))) throw new MikeError("invalid XML element name");
       if (Array.isArray(item)) { for (const child of item) await write(name, child, depth); return; }
       append(`<${name}`);
@@ -209,14 +209,14 @@ export async function encodeFormat(candidate: Candidate, format: MikeFormat, yam
     if (!mapping(value)) throw new MikeError(`${format} encoding requires a map`);
     const flattened: [string, Value][] = [];
     const flatten = async (item: Value, path: string[], depth: number): Promise<void> => {
-      await work.tick(); work.depth(depth);
+      { const t = work.tick(); if (t) await t; } work.depth(depth);
       if (item !== null && typeof item === "object") { for (const [key, child] of Object.entries(item)) await flatten(child, [...path, key], depth + 1); }
       else flattened.push([path.join(format === "shell" ? "_" : "."), item]);
     };
     if (format === "toml" || format === "ini") {
       const tomlKey = (key: string) => key && Array.from(key).every(char => char >= "a" && char <= "z" || char >= "A" && char <= "Z" || char >= "0" && char <= "9" || "_-".includes(char)) ? key : JSON.stringify(key);
       const tomlValue = async (item: Value, depth: number): Promise<string> => {
-        await work.tick(); work.depth(depth);
+        { const t = work.tick(); if (t) await t; } work.depth(depth);
         if (item === null) throw new MikeError("TOML cannot encode null");
         if (Array.isArray(item)) {
           const items: string[] = [];
@@ -231,7 +231,7 @@ export async function encodeFormat(candidate: Candidate, format: MikeFormat, yam
         return JSON.stringify(item);
       };
       const write = async (item: { [key: string]: Value }, path: string[], depth: number): Promise<void> => {
-        await work.tick(); work.depth(depth);
+        { const t = work.tick(); if (t) await t; } work.depth(depth);
         const leaves = Object.entries(item).filter(([, child]) => !mapping(child));
         const width = Math.max(0, ...leaves.map(([key]) => key.length));
         if (path.length) append(`[${path.map(key => format === "toml" ? tomlKey(key) : key).join(".")}]\n`);

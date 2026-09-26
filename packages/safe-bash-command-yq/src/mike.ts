@@ -20,7 +20,7 @@ async function encodeNodeInfo(candidate: Candidate, yaml: YamlModule, work: Nati
     value: yaml.isScalar(node) ? String(node.value ?? "") : yaml.isAlias(node) ? node.source : "",
     line: location?.line ?? 0, column: location?.column ?? 0,
   };
-  await work.tick();
+  { const t = work.tick(); if (t) await t; }
   work.node(17);
   return yaml.stringify(info, { singleQuote: true }) + "\n";
 }
@@ -97,7 +97,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
     if (options.inplace) { original = await captureInPlace(pathOf(context, operands[0]!), work); }
     const print = async (candidates: Candidate[]) => {
       for (const candidate of candidates) {
-        await work.tick();
+        { const t = work.tick(); if (t) await t; }
         // Computed nodes have yq's default output origin, while projections keep their source origin.
         const origin = candidate.isDerived ? { fileIndex: 0, documentIndex: 0 } : candidate.document;
         const separator = !splitProgram && previous && (previous.fileIndex !== origin.fileIndex || previous.documentIndex !== origin.documentIndex) && output === "yaml" && !options.noDoc ? "---\n" : "";
@@ -163,7 +163,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
           const firstEnd = text.indexOf("\n");
           let end = firstEnd >= 0 && text.slice(0, firstEnd).trimEnd() === "---" ? firstEnd + 1 : 0;
           while (end < text.length) {
-            await work.tick();
+            { const t = work.tick(); if (t) await t; }
             const newline = text.indexOf("\n", end);
             const lineEnd = newline < 0 ? text.length : newline;
             const line = text.slice(end, lineEnd).trimEnd();

@@ -32,7 +32,7 @@ export async function encodeNative(candidate: Candidate, options: EncodeOptions,
   if (options.unwrap && yaml.isScalar(candidate.node)) return `${candidate.node.source ?? primitive(candidate.node)}\n`;
   if (options.format === "json") {
     const write = async (current: Candidate, depth: number): Promise<void> => {
-      await work.tick(); work.depth(depth);
+      { const t = work.tick(); if (t) await t; } work.depth(depth);
       const base = dereference(current, yaml, work);
       const node = base.node;
       if (yaml.isScalar(node)) {
@@ -76,7 +76,7 @@ export async function encodeNative(candidate: Candidate, options: EncodeOptions,
   let projected = 0;
   while (pending.length) {
     const { node, depth } = pending.pop()!;
-    await work.tick();
+    { const t = work.tick(); if (t) await t; }
     projected += 32 + depth * Math.max(options.indent, 2) + 6 * Buffer.byteLength(node.comment ?? "") + 6 * Buffer.byteLength(node.commentBefore ?? "");
     if (yaml.isScalar(node)) projected += 6 * Buffer.byteLength(String(node.value));
     else if (yaml.isMap(node)) for (const pair of node.items) {
@@ -102,7 +102,7 @@ export async function encodeNative(candidate: Candidate, options: EncodeOptions,
   const formatting: Node[] = [doc.contents];
   while (formatting.length) {
     const node = formatting.pop()!;
-    await work.tick();
+    { const t = work.tick(); if (t) await t; }
     if (work.implicitTags.has(node) && node.tag?.startsWith("tag:yaml.org,2002:")) delete node.tag;
     if (options.prettyPrint) {
       if (yaml.isScalar(node)) node.type = "PLAIN";

@@ -11,7 +11,7 @@ export async function recordHeadComments(node: Node, prefix: readonly CST.Token[
     let lineStart = true;
     let skipNewline = false;
     for (const token of tokens) {
-      await work.tick();
+      { const t = work.tick(); if (t) await t; }
       if (token.type === "comment" && lineStart) parts.push(token.source);
       else if (token.type === "newline") {
         if (parts.length && !skipNewline) parts.push("\n");
@@ -35,7 +35,7 @@ export async function recordHeadComments(node: Node, prefix: readonly CST.Token[
       const newline = input.indexOf("\n", offset);
       const end = newline < 0 ? input.length : newline + 1;
       const line = remainder + input.slice(offset, end);
-      await work.tick(line.length + 1);
+      { const t = work.tick(line.length + 1); if (t) await t; }
       offset = end;
       remainder = "";
       const content = line.endsWith("\r\n") ? line.slice(0, -2) : line.endsWith("\n") ? line.slice(0, -1) : line;
@@ -52,7 +52,7 @@ export async function recordHeadComments(node: Node, prefix: readonly CST.Token[
     head = normalize(text.endsWith("\n") ? text.slice(0, -1) : text);
   } else head = await comments(prefix);
   const visit = async (current: Node, leading: string, documentRoot = false): Promise<void> => {
-    await work.tick();
+    { const t = work.tick(); if (t) await t; }
     const token = current.srcToken;
     const block = token?.type === "block-map" || token?.type === "block-seq";
     if (leading && (!block || documentRoot)) work.headComments.set(current, leading);

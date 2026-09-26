@@ -40,7 +40,7 @@ export class Evaluator {
   constructor(readonly yaml: YamlModule, readonly work: NativeWork, readonly mergeSpec = false) {}
 
   async match(first: string, pattern: string): Promise<boolean> {
-    await this.work.tick(first.length + pattern.length);
+    { const t = this.work.tick(first.length + pattern.length); if (t) await t; }
     const name = Buffer.from(first);
     const glob = Buffer.from(pattern);
     let nameIndex = 0;
@@ -48,7 +48,7 @@ export class Evaluator {
     let restartPattern = 0;
     let restartName = 0;
     while (patternIndex < glob.length || nameIndex < name.length) {
-      await this.work.tick();
+      { const t = this.work.tick(); if (t) await t; }
       if (patternIndex < glob.length) {
         const character = glob[patternIndex];
         if (character === 42) { restartPattern = patternIndex; restartName = nameIndex + 1; patternIndex++; continue; }
@@ -79,7 +79,7 @@ export class Evaluator {
     if (base.node.commentBefore !== undefined) result.commentBefore = base.node.commentBefore;
     if (base.node.comment !== undefined) result.comment = base.node.comment;
     for (let index = 0; index < base.node.items.length; index++) {
-      await this.work.tick();
+      { const t = this.work.tick(); if (t) await t; }
       const item = base.node.items[index]!;
       const key = yaml.isMap(base.node) ? (item as Pair).key as Node : scalar(yaml, this.work, BigInt(index));
       const member = yaml.isMap(base.node) ? (item as Pair).value as Node : item as Node;
@@ -107,7 +107,7 @@ export class Evaluator {
     if (base.node.commentBefore !== undefined) result.commentBefore = base.node.commentBefore;
     if (base.node.comment !== undefined) result.comment = base.node.comment;
     for (const item of base.node.items) {
-      await this.work.tick();
+      { const t = this.work.tick(); if (t) await t; }
       if (!yaml.isNode(item)) throw new MikeError("from_entries expects key/value entries");
       const entry = dereference(this.child(item, base), yaml, this.work);
       const fields = await this.entries(entry);
@@ -126,7 +126,7 @@ export class Evaluator {
     const result = await cloneNode(base.node, yaml, this.work) as YAMLSeq | YAMLMap;
     const members: { item: Node | Pair; keys: Node[] }[] = [];
     for (const item of result.items) {
-      await this.work.tick();
+      { const t = this.work.tick(); if (t) await t; }
       const candidate = this.child(yaml.isMap(result) ? (item as Pair).value as Node : item as Node, base);
       const keys = await this.run(expression, [candidate], false, depth + 1);
       this.work.node(keys.length);
@@ -134,7 +134,7 @@ export class Evaluator {
     }
     const compare = async (first: typeof members[number], second: typeof members[number]): Promise<number> => {
       for (let index = 0; index < Math.min(first.keys.length, second.keys.length); index++) {
-        await this.work.tick();
+        { const t = this.work.tick(); if (t) await t; }
         const leftNode = first.keys[index]!;
         const rightNode = second.keys[index]!;
         const left = yaml.isScalar(leftNode) ? value(leftNode, yaml) : "";
@@ -151,7 +151,7 @@ export class Evaluator {
         } else {
           const leftText = yaml.isScalar(leftNode) ? scalarText(leftNode, yaml) : "";
           const rightText = yaml.isScalar(rightNode) ? scalarText(rightNode, yaml) : "";
-          await this.work.tick(leftText.length + rightText.length);
+          { const t = this.work.tick(leftText.length + rightText.length); if (t) await t; }
           const compared = Buffer.compare(Buffer.from(leftText), Buffer.from(rightText));
           if (compared) return compared;
         }
@@ -168,10 +168,10 @@ export class Evaluator {
         let left = start;
         let right = middle;
         while (left < middle || right < end) {
-          await this.work.tick();
+          { const t = this.work.tick(); if (t) await t; }
           merged.push(right >= end || left < middle && await compare(members[left]!, members[right]!) <= 0 ? members[left++]! : members[right++]!);
         }
-        for (let index = 0; index < merged.length; index++) { await this.work.tick(); members[start + index] = merged[index]!; }
+        for (let index = 0; index < merged.length; index++) { { const t = this.work.tick(); if (t) await t; } members[start + index] = merged[index]!; }
       }
     }
     if (yaml.isMap(result)) result.items = members.map(member => member.item as Pair);
@@ -181,7 +181,7 @@ export class Evaluator {
 
   async sameKey(left: Node, right: Node, depth: number): Promise<boolean> {
     this.work.depth(depth);
-    await this.work.tick();
+    { const t = this.work.tick(); if (t) await t; }
     if (nodeTag(left, this.yaml) !== nodeTag(right, this.yaml)) return false;
     if (this.yaml.isScalar(left) && this.yaml.isScalar(right)) return left.value === right.value;
     if (this.yaml.isSeq(left) && this.yaml.isSeq(right)) {
@@ -216,7 +216,7 @@ export class Evaluator {
 
   async explode(input: Candidate, depth = 0, active = new Set<Node>()): Promise<Node> {
     this.work.depth(depth);
-    await this.work.tick();
+    { const t = this.work.tick(); if (t) await t; }
     const base = dereference(input, this.yaml, this.work);
     if (active.has(base.node)) throw new MikeError("cyclic YAML alias");
     active.add(base.node);
@@ -252,14 +252,14 @@ export class Evaluator {
           const merge = async (pair: Pair) => {
             const sources = this.yaml.isSeq(pair.value) ? pair.value.items : [pair.value];
             for (const source of sources) {
-              await this.work.tick();
+              { const t = this.work.tick(); if (t) await t; }
               if (!this.yaml.isMap(source)) throw new MikeError("merge requires a map or sequence of maps");
               for (const incoming of source.items) await add(incoming, !this.mergeSpec);
             }
           };
           if (this.mergeSpec) for (const pair of node.items) if (isMerge(pair)) await merge(pair);
           for (const pair of node.items) {
-            await this.work.tick();
+            { const t = this.work.tick(); if (t) await t; }
             if (!isMerge(pair)) await add(pair, true);
             else if (!this.mergeSpec) { await this.warnMerge(); await merge(pair); }
           }
@@ -277,7 +277,7 @@ export class Evaluator {
 
   async entries(input: Candidate, depth = 0): Promise<Map<string, Candidate>> {
     this.work.depth(depth);
-    await this.work.tick();
+    { const t = this.work.tick(); if (t) await t; }
     const base = dereference(input, this.yaml, this.work);
     const entries = new Map<string, Candidate>();
     if (!this.yaml.isMap(base.node)) return entries;
@@ -289,16 +289,16 @@ export class Evaluator {
       for (let index = 0; index < values.length; index++) {
         const selected = values[this.mergeSpec ? values.length - 1 - index : index];
         if (!this.yaml.isNode(selected)) continue;
-        for (const [key, child] of await this.entries({ ...source, node: selected }, depth + 1)) { await this.work.tick(); entries.set(key, child); }
+        for (const [key, child] of await this.entries({ ...source, node: selected }, depth + 1)) { { const t = this.work.tick(); if (t) await t; } entries.set(key, child); }
       }
     };
     if (this.mergeSpec) for (let index = node.items.length - 1; index >= 0; index--) {
       const pair = node.items[index]!;
-      await this.work.tick();
+      { const t = this.work.tick(); if (t) await t; }
       if (isMerge(pair.key) && this.yaml.isNode(pair.value)) await merge(pair.value);
     }
     for (const [slot, pair] of node.items.entries()) {
-      await this.work.tick();
+      { const t = this.work.tick(); if (t) await t; }
       if (isMerge(pair.key)) {
         if (!this.mergeSpec) {
           await this.warnMerge();
@@ -319,7 +319,7 @@ export class Evaluator {
     const node = base.node;
     if (this.yaml.isMap(node)) {
       if (key === "<<") for (let slot = node.items.length - 1; slot >= 0; slot--) {
-        await this.work.tick();
+        { const t = this.work.tick(); if (t) await t; }
         const pair = node.items[slot]!;
         if (this.yaml.isScalar(pair.key) && String(pair.key.value) === String(key)) return [this.child(pair.value as Node, base, node, slot)];
       }
@@ -347,7 +347,7 @@ export class Evaluator {
         if (!create) return [this.child(scalar(this.yaml, this.work, null), base)];
         if (index >= this.work.limits.maxNodes) throw new MikeError("yq limit exceeded: maxNodes");
         if (!node.items.length) node.flow = false;
-        while (node.items.length <= index) { node.items.push(scalar(this.yaml, this.work, null)); await this.work.tick(); }
+        while (node.items.length <= index) { node.items.push(scalar(this.yaml, this.work, null)); { const t = this.work.tick(); if (t) await t; } }
       }
       return [index < node.items.length ? this.child(node.items[index] as Node, base, node, index) : this.child(scalar(this.yaml, this.work, null), base)];
     }
@@ -358,7 +358,7 @@ export class Evaluator {
   }
 
   async binary(operator: string, left: Node, right: Node): Promise<Node> {
-    await this.work.tick();
+    { const t = this.work.tick(); if (t) await t; }
     const yaml = this.yaml;
     if (operator === "+" && nodeTag(left, yaml) === "!!null") return cloneNode(right, yaml, this.work);
     if ((operator === "*" || operator === "+") && yaml.isMap(left) && yaml.isMap(right)) {
@@ -426,7 +426,7 @@ export class Evaluator {
 
   async run(expression: Expression, inputs: Candidate[], create = false, depth = 0, omitMissing = false): Promise<Candidate[]> {
     this.work.depth(depth);
-    await this.work.tick();
+    { const t = this.work.tick(); if (t) await t; }
     const next = (body: Expression, values = inputs, writable = create, readOnly = omitMissing) => this.run(body, values, writable, depth + 1, readOnly);
     const yaml = this.yaml;
     if (expression.kind === "identity") return inputs;
@@ -462,13 +462,13 @@ export class Evaluator {
         };
         if (yaml.isScalar(base.node) && typeof base.node.value === "string") {
           let length = 0;
-          for (const character of base.node.value) { await this.work.tick(character.length); length++; }
+          for (const character of base.node.value) { { const t = this.work.tick(character.length); if (t) await t; } length++; }
           const first = clamp(start, length);
           const last = clamp(end, length);
           const selected: string[] = [];
           let position = 0;
           for (const character of base.node.value) {
-            await this.work.tick(character.length);
+            { const t = this.work.tick(character.length); if (t) await t; }
             if (position >= first && position < last) selected.push(character);
             position++;
           }
@@ -477,8 +477,8 @@ export class Evaluator {
           output.push(this.child(node, base));
         } else {
           const members: Node[] = [];
-          if (yaml.isSeq(base.node)) for (const member of base.node.items) { await this.work.tick(); members.push(member as Node); }
-          else if (yaml.isMap(base.node)) for (const pair of base.node.items) { await this.work.tick(); members.push(pair.key as Node, pair.value as Node); }
+          if (yaml.isSeq(base.node)) for (const member of base.node.items) { { const t = this.work.tick(); if (t) await t; } members.push(member as Node); }
+          else if (yaml.isMap(base.node)) for (const pair of base.node.items) { { const t = this.work.tick(); if (t) await t; } members.push(pair.key as Node, pair.value as Node); }
           this.work.node();
           const node = new yaml.YAMLSeq();
           if (base.node.tag || !yaml.isSeq(base.node)) node.tag = base.node.tag ?? `tag:yaml.org,2002:${nodeTag(base.node, yaml).slice(2)}`;
@@ -611,7 +611,7 @@ export class Evaluator {
         const node = new yaml.YAMLSeq();
         let candidate = input;
         while (candidate.ancestry) {
-          await this.work.tick();
+          { const t = this.work.tick(); if (t) await t; }
           const { parent, key } = candidate.ancestry;
           node.items.push(typeof key === "number" ? scalar(yaml, this.work, BigInt(key)) : await cloneNode(key, yaml, this.work));
           candidate = parent;
@@ -635,7 +635,7 @@ export class Evaluator {
       if (name === "reverse") {
         if (!yaml.isSeq(base.node)) throw new MikeError(`cannot reverse ${nodeTag(base.node, yaml)}, can only reverse arrays`);
         const node = await cloneNode(base.node, yaml, this.work) as YAMLSeq;
-        await this.work.tick(node.items.length);
+        { const t = this.work.tick(node.items.length); if (t) await t; }
         node.items.reverse();
         output.push(this.child(node, input)); continue;
       }
@@ -664,11 +664,11 @@ export class Evaluator {
           const node = await cloneNode(base.node, yaml, this.work) as YAMLMap | YAMLSeq;
           node.items = [];
           for (const key of keys.node.items) {
-            await this.work.tick();
+            { const t = this.work.tick(); if (t) await t; }
             const requested = value(key as Node, yaml);
             if (yaml.isMap(base.node) && yaml.isMap(node)) {
               for (const pair of base.node.items) {
-                await this.work.tick();
+                { const t = this.work.tick(); if (t) await t; }
                 if (yaml.isScalar(pair.key) && value(pair.key, yaml) === requested) node.items.push(new yaml.Pair(await cloneNode(pair.key, yaml, this.work), await cloneNode(pair.value as Node, yaml, this.work)));
               }
             } else if (yaml.isSeq(base.node) && yaml.isSeq(node)) {
@@ -683,10 +683,10 @@ export class Evaluator {
       if (name === "upcase" || name === "downcase") {
         const text = value(base.node, yaml);
         if (typeof text !== "string") throw new MikeError(`${name} only supports strings`);
-        await this.work.tick(text.length);
+        { const t = this.work.tick(text.length); if (t) await t; }
         const characters: string[] = [];
         for (const character of text) {
-          await this.work.tick(character.length);
+          { const t = this.work.tick(character.length); if (t) await t; }
           const converted = name === "upcase" ? character.toUpperCase() : character === "İ" ? "i" : character.toLowerCase();
           characters.push([...converted].length === 1 ? converted : character);
         }
@@ -706,14 +706,14 @@ export class Evaluator {
       if (name === "del") {
         const slots = new Map<YAMLMap | YAMLSeq, Set<number>>();
         for (const candidate of await next(expression.args[0]!, [input], false)) {
-          await this.work.tick();
+          { const t = this.work.tick(); if (t) await t; }
           if (!candidate.parent || candidate.slot === undefined) continue;
           let selected = slots.get(candidate.parent);
           if (!selected) { selected = new Set(); slots.set(candidate.parent, selected); }
           selected.add(candidate.slot);
         }
         for (const [parent, selected] of slots) for (const slot of [...selected].sort((left, right) => right - left)) {
-          await this.work.tick();
+          { const t = this.work.tick(); if (t) await t; }
           parent.items.splice(slot, 1);
         }
         output.push(input); continue;
@@ -730,20 +730,20 @@ export class Evaluator {
       if (name === "test" || name === "split") {
         if (nodeTag(base.node, yaml) !== "!!str") throw new MikeError(`cannot ${name} ${nodeTag(base.node, yaml)}, can only ${name} strings`);
         const text = String(value(base.node, yaml));
-        await this.work.tick(text.length);
+        { const t = this.work.tick(text.length); if (t) await t; }
         {
           for (const argument of await next(expression.args[0]!, [input], false)) {
             if (nodeTag(argument.node, yaml) !== "!!str") throw new MikeError(`${name} requires a string argument`);
             const pattern = String(value(argument.node, yaml));
-            await this.work.tick(pattern.length);
+            { const t = this.work.tick(pattern.length); if (t) await t; }
             if (name === "split") {
               const node = new yaml.YAMLSeq(); this.work.node();
               if (!pattern) {
-                for (const part of text) { await this.work.tick(); node.items.push(scalar(yaml, this.work, part)); }
+                for (const part of text) { { const t = this.work.tick(); if (t) await t; } node.items.push(scalar(yaml, this.work, part)); }
               } else {
                 let start = 0;
                 while (true) {
-                  await this.work.tick();
+                  { const t = this.work.tick(); if (t) await t; }
                   const end = text.indexOf(pattern, start);
                   node.items.push(scalar(yaml, this.work, text.slice(start, end < 0 ? text.length : end)));
                   if (end < 0) break;
@@ -770,7 +770,7 @@ export class Evaluator {
                 this.work.assertOpen();
                 if (error instanceof EreSyntaxError || error instanceof EreUnsupportedError || error instanceof EreProfileLimitError) throw new MikeError(error.message);
                 throw error;
-              } finally { await this.work.tick(ledger.usage.work - before); }
+              } finally { { const t = this.work.tick(ledger.usage.work - before); if (t) await t; } }
             }
           }
           continue;
@@ -786,7 +786,7 @@ export class Evaluator {
         let length = yaml.isCollection(base.node) ? base.node.items.length : 0;
         if (yaml.isScalar(base.node) && nodeTag(base.node, yaml) !== "!!null") {
           const text = scalarText(base.node, yaml);
-          await this.work.tick(text.length);
+          { const t = this.work.tick(text.length); if (t) await t; }
           length = Buffer.byteLength(text);
         }
         result = BigInt(length);

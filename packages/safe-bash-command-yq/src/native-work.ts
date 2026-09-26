@@ -36,6 +36,7 @@ export class NativeWork {
   readonly #pending = new Set<Promise<unknown>>();
   #closing: Promise<void> | undefined;
   #open = true;
+  #aborted = false;
   #steps = 0;
   #yieldAt = 1024;
   #input = 0;
@@ -46,26 +47,28 @@ export class NativeWork {
 
   constructor(readonly context: CommandContext, readonly limits: MikeLimits) {
     context.registerCleanup?.(() => this.close());
-    const abort = () => this.controller.abort(context.signal.reason);
+    const abort = () => { this.#aborted = true; this.controller.abort(context.signal.reason); };
+    this.signal.addEventListener("abort", () => { this.#aborted = true; }, { once: true });
     if (context.signal.aborted) abort();
     else context.signal.addEventListener("abort", abort, { once: true });
     this.#cleanup.push(() => { context.signal.removeEventListener("abort", abort); });
   }
 
   assertOpen(): void {
-    this.context.signal.throwIfAborted();
-    this.signal.throwIfAborted();
+    if (this.#aborted) {
+      this.context.signal.throwIfAborted();
+      this.signal.throwIfAborted();
+    }
     if (!this.#open) throw new MikeError("yq invocation is closed");
   }
 
-  async tick(units = 1): Promise<void> {
+  tick(units = 1): void | Promise<void> {
     this.assertOpen();
     this.#steps += units;
     if (!Number.isSafeInteger(this.#steps) || this.#steps > this.limits.maxSteps) throw new MikeError("yq limit exceeded: maxSteps");
     if (this.#steps >= this.#yieldAt) {
       this.#yieldAt = this.#steps + 1024;
-      await yieldTurn(this.signal);
-      this.assertOpen();
+      return yieldTurn(this.signal).then(() => { this.assertOpen(); });
     }
   }
 
@@ -137,11 +140,11 @@ export class NativeWork {
       if (!(next.value instanceof Uint8Array)) throw new TypeError("Byte sources must yield Uint8Array chunks");
       this.input(next.value.byteLength);
       if (next.value.byteLength) { const copy = new Uint8Array(next.value); chunks.push(copy); size += copy.length; }
-      await this.tick();
+      { const t = this.tick(); if (t) await t; }
     }
     const result = new Uint8Array(size);
     let offset = 0;
-    for (const chunk of chunks) { result.set(chunk, offset); offset += chunk.length; await this.tick(); }
+    for (const chunk of chunks) { result.set(chunk, offset); offset += chunk.length; { const t = this.tick(); if (t) await t; } }
     return result;
   }
 

@@ -74,7 +74,7 @@ export async function inspectNode(node: Node, yaml: YamlModule, work: NativeWork
     const current = pending.pop()!;
     work.depth(current.depth);
     if (++count > work.limits.maxParserNodes) throw new MikeError("yq limit exceeded: maxParserNodes");
-    await work.tick();
+    { const t = work.tick(); if (t) await t; }
     if (allocate) work.node();
     if (yaml.isScalar(current.node)) {
       if (typeof current.node.value === "string" && Buffer.byteLength(current.node.value) > work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
@@ -96,7 +96,7 @@ export async function cloneNode(node: Node, yaml: YamlModule, work: NativeWork):
   const pending = [{ original: node, cloned }];
   while (pending.length) {
     const current = pending.pop()!;
-    await work.tick();
+    { const t = work.tick(); if (t) await t; }
     if (work.implicitTags.has(current.original)) work.implicitTags.add(current.cloned);
     const position = work.positions.get(current.original);
     if (position) work.positions.set(current.cloned, position);
@@ -146,7 +146,7 @@ async function admitCst(token: unknown, work: NativeWork): Promise<void> {
   while (pending.length) {
     const { value, depth } = pending.pop()!;
     if (!value || typeof value !== "object") continue;
-    await work.tick();
+    { const t = work.tick(); if (t) await t; }
     if (Array.isArray(value)) { for (const child of value) pending.push({ value: child, depth }); continue; }
     const item = value as Record<string, unknown>;
     const collection = item.type === "block-map" || item.type === "block-seq" || item.type === "flow-collection";
@@ -173,12 +173,12 @@ async function decodeJsonDocument(source: string, filename: string, yaml: YamlMo
     work.node();
   };
   const fail = (context?: string): never => { throw new MikeError(`bad file '${filename}': ${context ? `json: ${context} unexpected end of JSON input` : "invalid JSON input"}`); };
-  const skip = async () => { while (offset < source.length && " \t\r\n".includes(source[offset]!)) { offset++; await work.tick(); } };
+  const skip = async () => { while (offset < source.length && " \t\r\n".includes(source[offset]!)) { offset++; { const t = work.tick(); if (t) await t; } } };
   const string = async (): Promise<string> => {
     const start = offset++;
     let escaped = false;
     while (offset < source.length) {
-      await work.tick();
+      { const t = work.tick(); if (t) await t; }
       const character = source[offset++]!;
       if (!escaped && character === '"') {
         let value: string;
@@ -192,7 +192,7 @@ async function decodeJsonDocument(source: string, filename: string, yaml: YamlMo
     return fail();
   };
   const parse = async (depth: number, context = "null"): Promise<Node> => {
-    await skip(); await work.tick(); work.depth(depth);
+    await skip(); { const t = work.tick(); if (t) await t; } work.depth(depth);
     const character = source[offset];
     if (character === undefined) return fail(context === "value of object" ? "object of object" : context);
     admit();
@@ -232,7 +232,7 @@ async function decodeJsonDocument(source: string, filename: string, yaml: YamlMo
     if (character === '"') return new yaml.Scalar(await string());
     if (character === "}" || character === "]" || character === ",") return fail(context);
     const start = offset;
-    while (offset < source.length && !' \t\r\n,]}"'.includes(source[offset]!)) { offset++; await work.tick(); }
+    while (offset < source.length && !' \t\r\n,]}"'.includes(source[offset]!)) { offset++; { const t = work.tick(); if (t) await t; } }
     let value: unknown;
     try { value = JSON.parse(source.slice(start, offset)); } catch { return fail(); }
     if (value !== null && typeof value !== "number" && typeof value !== "boolean") return fail();
@@ -270,7 +270,7 @@ async function adaptQuotedIndent(text: string, filename: string, yaml: YamlModul
     const quote = text[start];
     let escaped = false;
     for (let index = start + 1; index < limit; index++) {
-      await work.tick();
+      { const t = work.tick(); if (t) await t; }
       if (index - start > work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
       const character = text[index];
       if (character === "\n") {
@@ -300,7 +300,7 @@ async function adaptQuotedIndent(text: string, filename: string, yaml: YamlModul
     const incomplete = offset + 4096 < text.length;
     await work.tick(Math.min(4096, text.length - offset) + 1);
     for (const lexeme of lexer.lex(text.slice(offset, offset + 4096), incomplete)) {
-      await work.tick();
+      { const t = work.tick(); if (t) await t; }
       if (lexeme === yaml.CST.DOCUMENT || lexeme === yaml.CST.FLOW_END || lexeme === yaml.CST.SCALAR) continue;
       const start = sourceOffset;
       sourceOffset += lexeme.length;
@@ -314,12 +314,12 @@ async function adaptQuotedIndent(text: string, filename: string, yaml: YamlModul
       quotedUntil = end;
       const lineStart = text.lastIndexOf("\n", start) + 1;
       let indentation = 0;
-      while (text[lineStart + indentation] === " ") { indentation++; await work.tick(); }
+      while (text[lineStart + indentation] === " ") { indentation++; { const t = work.tick(); if (t) await t; } }
       for (let index = start; index < end; index++) {
-        await work.tick();
+        { const t = work.tick(); if (t) await t; }
         if (text[index] !== "\n") continue;
         let spaces = 0;
-        while (text[index + 1 + spaces] === " ") { spaces++; await work.tick(); }
+        while (text[index + 1 + spaces] === " ") { spaces++; { const t = work.tick(); if (t) await t; } }
         if (spaces > indentation) continue;
         const length = indentation + 1 - spaces;
         if (length > work.limits.maxInputBytes - size) throw new MikeError("yq limit exceeded: maxInputBytes");
@@ -336,7 +336,7 @@ async function adaptQuotedIndent(text: string, filename: string, yaml: YamlModul
   let copied = 0;
   let inserted = 0;
   for (const addition of additions) {
-    await work.tick(addition.length + 1);
+    { const t = work.tick(addition.length + 1); if (t) await t; }
     chunks.push(text.slice(copied, addition.offset), " ".repeat(addition.length));
     insertions.push({ offset: addition.offset + inserted, length: addition.length });
     copied = addition.offset;
@@ -378,7 +378,7 @@ export async function decodeDocuments(text: string, filename: string, fileIndex:
       } else if (message === "Missing , or : between flow sequence items") message = `while parsing a flow sequence at <unknown position>: line ${start.line}: did not find expected ',' or ']'`;
       else if (error.code === "MULTILINE_IMPLICIT_KEY") {
         let colon = error.pos[1];
-        while (text[colon] === " " || text[colon] === "\t") { colon++; await work.tick(); }
+        while (text[colon] === " " || text[colon] === "\t") { colon++; { const t = work.tick(); if (t) await t; } }
         const location = position(colon);
         message = `line ${location.line}, column ${location.column}: mapping values are not allowed in this context`;
       }
@@ -392,10 +392,10 @@ export async function decodeDocuments(text: string, filename: string, fileIndex:
     const anchors = new Set<string>();
     const pending: Node[] = [doc.contents];
     while (pending.length) {
-      await work.tick();
+      { const t = work.tick(); if (t) await t; }
       const node = pending.pop()!;
       if (work.capturePositions && node.range && format === "yaml") {
-        await work.tick(node.range[0] + 1);
+        { const t = work.tick(node.range[0] + 1); if (t) await t; }
         let offset = node.range[0];
         if ("anchor" in node && node.anchor) {
           const anchorOffset = text.lastIndexOf(`&${node.anchor}`, offset);
@@ -437,7 +437,7 @@ export async function decodeDocuments(text: string, filename: string, fileIndex:
       await accept(doc);
     };
     for (let index = 0; index < text.length; index++) {
-      if ((index & 255) === 0) await work.tick(256);
+      if ((index & 255) === 0) { const t = work.tick(256); if (t) await t; }
       const character = text[index]!;
       if (quoted) { if (escaped) escaped = false; else if (character === "\\") escaped = true; else if (character === '"') { quoted = false; if (depth === 0) await acceptJson(index + 1); } }
       else if (character === '"') quoted = true;
@@ -459,7 +459,7 @@ export async function decodeDocuments(text: string, filename: string, fileIndex:
       if (/^(?:---|\.\.\.)(?:[ \t\r\n]|$)/u.test(line)) documentBytes = 0;
       documentBytes += Buffer.byteLength(line);
       if (documentBytes > work.limits.maxDocumentBytes) throw new MikeError("yq limit exceeded: maxDocumentBytes");
-      await work.tick(line.length + 1);
+      { const t = work.tick(line.length + 1); if (t) await t; }
       offset = end;
     }
   };
@@ -483,7 +483,7 @@ export async function decodeDocuments(text: string, filename: string, fileIndex:
     const incomplete = offset + 4096 < text.length;
     for (const lexeme of lexer.lex(text.slice(offset, offset + 4096), incomplete)) {
       if (Buffer.byteLength(lexeme) > work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
-      await work.tick();
+      { const t = work.tick(); if (t) await t; }
       work.depth(parser.stack.length);
       for (const item of parser.next(lexeme)) await token(item);
     }

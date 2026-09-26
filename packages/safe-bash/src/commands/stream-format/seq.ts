@@ -140,7 +140,7 @@ async function floatingSequence(first: number, increment: number, last: number, 
   const incrementCoefficient = incrementDecimal.coefficient * 10n ** BigInt(scale - incrementDecimal.scale);
   let previous = "";
   for (let index = 0;; index++) {
-    await session.step();
+    { const s = session.step(); if (s) await s; }
     const current = index ? Number(fixed(firstCoefficient + BigInt(index) * incrementCoefficient, scale, scale)) : first;
     if (!Number.isFinite(current)) break;
     const outside = increment > 0 ? current > last : current < last;
@@ -160,19 +160,19 @@ async function parseFormat(text: string, session: Session): Promise<Format> {
   session.check(Buffer.byteLength(text), session.limits.maxRecordBytes, "format");
   let literal = "", result: Format | undefined;
   for (let offset = 0; offset < text.length; offset++) {
-    if ((offset & 127) === 0) await session.step();
+    if ((offset & 127) === 0) { const s = session.step(); if (s) await s; }
     if (text[offset] !== "%") { literal += text[offset]; continue; }
     if (text[offset + 1] === "%") { literal += "%"; offset++; continue; }
     if (result) throw new UsageError(`format '${text}' has too many % directives`);
     let cursor = offset + 1;
     let flags = "";
     while (cursor < text.length && "-+ #0".includes(text[cursor]!)) {
-      if ((cursor & 127) === 0) await session.step();
+      if ((cursor & 127) === 0) { const s = session.step(); if (s) await s; }
       flags += text[cursor++]!;
     }
     let widthDigits = "";
     while (cursor < text.length && text[cursor]! >= "0" && text[cursor]! <= "9") {
-      if ((cursor & 127) === 0) await session.step();
+      if ((cursor & 127) === 0) { const s = session.step(); if (s) await s; }
       widthDigits += text[cursor++]!;
     }
     let precisionDigits: string | undefined;
@@ -180,7 +180,7 @@ async function parseFormat(text: string, session: Session): Promise<Format> {
       cursor++;
       precisionDigits = "";
       while (cursor < text.length && text[cursor]! >= "0" && text[cursor]! <= "9") {
-        if ((cursor & 127) === 0) await session.step();
+        if ((cursor & 127) === 0) { const s = session.step(); if (s) await s; }
         precisionDigits += text[cursor++]!;
       }
     }
@@ -259,7 +259,7 @@ export function createSeqCommand(limits: StreamFormatLimits): CommandDefinition 
     }
     let written = false;
     while (step > 0n ? current <= finish : current >= finish) {
-      await session.step();
+      { const s = session.step(); if (s) await s; }
       let text = (!written && first.negativeZero ? "-" : "") + fixed(current, scale, precision);
       if (equalWidth) text = text.startsWith("-") ? "-" + text.slice(1).padStart(width - 1, "0") : text.padStart(width, "0");
       session.check(Buffer.byteLength(text), limits.maxRecordBytes, "record");

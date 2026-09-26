@@ -82,8 +82,10 @@ export class Session {
     this.outputBytes += bytes.length;
     const width = Math.min(16384, this.limits.maxChunkBytes);
     for (let offset = 0; offset < bytes.length; offset += width) {
-      await this.step();
-      await writeBytes(this.context.stdout, new Uint8Array(bytes.subarray(offset, offset + width)), this.signal);
+      const s = this.step();
+      if (s) await s;
+      const chunk = offset === 0 && bytes.length <= width ? bytes : new Uint8Array(bytes.subarray(offset, offset + width));
+      await writeBytes(this.context.stdout, chunk, this.signal);
     }
   }
 
@@ -112,7 +114,7 @@ export class Session {
           const stat = await session.context.fs.stat(path, { signal });
           signal.throwIfAborted();
           if (stat.type === "directory") throw new FsError("EISDIR", { path });
-          await session.step();
+          { const s = session.step(); if (s) await s; }
           const capabilities = await session.context.fs.capabilitiesFor?.(path, { signal }) ?? session.context.fs.capabilities;
           signal.throwIfAborted();
           if (session.context.fs.readStream && capabilities.streamingRead !== false) yield* session.context.fs.readStream(path, { signal });
@@ -121,7 +123,7 @@ export class Session {
       })();
       reader = readBytes(source, signal);
       while (true) {
-        await this.step();
+        { const s = this.step(); if (s) await s; }
         let item: IteratorResult<Uint8Array>;
         try { item = await reader.next(); }
         catch (error) { this.signal.throwIfAborted(); throw new InputFailure(error); }

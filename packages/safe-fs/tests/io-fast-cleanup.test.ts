@@ -65,6 +65,29 @@ for (const sync of [false, true]) test(`byte reads serialize synchronous produce
   assert.deepEqual(trace, ["first entered", "first returned", "second"]);
 });
 
+test("a reentrant return waits for the active producer read before closing it", async () => {
+  const entered = gate();
+  const pendingRead = gate();
+  let closing!: Promise<IteratorResult<Uint8Array>>;
+  let closes = 0;
+  const reader = readBytes({ [Symbol.asyncIterator]: () => ({
+    async next() {
+      closing = reader.return("closed");
+      entered.release();
+      await pendingRead.promise;
+      return { done: false, value: Uint8Array.of(1) };
+    },
+    async return() { closes++; return { done: true, value: undefined }; },
+  }) });
+  const reading = reader.next();
+  await entered.promise;
+  try { assert.equal(closes, 0); }
+  finally { pendingRead.release(); }
+  assert.deepEqual(await reading, { done: false, value: Uint8Array.of(1) });
+  assert.deepEqual(await closing, { done: true, value: "closed" });
+  assert.equal(closes, 1);
+});
+
 test("overlapping byte-reader returns both drain one cleanup and preserve their values", async () => {
   const started = gate();
   const cleanup = gate();

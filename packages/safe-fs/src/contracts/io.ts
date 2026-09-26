@@ -176,10 +176,8 @@ class ReadBytesGenerator {
   declare nativeAbort: boolean;
   declare finished: boolean;
   declare closing: Promise<void> | undefined;
-  declare turn: Promise<unknown> | undefined;
+  declare turn: Promise<void> | undefined;
   declare readingSync: boolean;
-  declare _runningDirect: boolean;
-  declare _queued: number;
   declare syncFailure: { reason: unknown } | undefined;
 
   constructor(source: ByteSource, signal?: AbortSignal) {
@@ -191,8 +189,6 @@ class ReadBytesGenerator {
     this.closing = undefined;
     this.turn = undefined;
     this.readingSync = false;
-    this._runningDirect = false;
-    this._queued = 0;
     this.syncFailure = undefined;
   }
 
@@ -206,17 +202,18 @@ class ReadBytesGenerator {
 
   _schedule<Result>(action: () => Promise<Result>): Promise<Result> {
     const previous = this.turn;
-    this._queued++;
+    let release!: () => void;
+    const reserved = new Promise<void>(resolve => { release = resolve; });
+    // Reserve before invoking producer code, which can synchronously reenter us.
+    this.turn = reserved;
     const result = previous
-      ? previous.then(noop, noop).then(action)
+      ? previous.then(action)
       : this.readingSync
         ? Promise.resolve().then(action)
         : action();
-    this.turn = result;
     const finish = (): void => {
-      if (--this._queued === 0 && this.turn === result) {
-        this.turn = undefined;
-      }
+      if (this.turn === reserved) this.turn = undefined;
+      release();
     };
     void result.then(finish, finish);
     return result;
@@ -282,36 +279,28 @@ class ReadBytesGenerator {
   }
 
   async _runNext(): Promise<IteratorResult<Uint8Array>> {
+    if (this.finished) return DONE_RESULT;
     try {
-      if (this.finished) return DONE_RESULT;
-      try {
-        if (this.syncFailure) {
-          const { reason } = this.syncFailure;
-          this.syncFailure = undefined;
-          throw reason;
-        }
-        const it = this._ensureIterator();
-        const signal = this.abortSignal;
-        signal?.throwIfAborted();
-        const syncResult = typeof it.tryNextSync === "function" ? it.tryNextSync() : undefined;
-        const result = syncResult ?? (this.nativeAbort ? await it.next() : await abortable(() => it.next(), signal));
-        signal?.throwIfAborted();
-        if (result.done) {
-          this.finished = true;
-          return DONE_RESULT;
-        }
-        if (!(result.value instanceof Uint8Array)) throw new TypeError("Byte sources must yield Uint8Array chunks");
-        return result;
-      } catch (error) {
-        await this._cleanupIterator(true);
-        throw error;
+      if (this.syncFailure) {
+        const { reason } = this.syncFailure;
+        this.syncFailure = undefined;
+        throw reason;
       }
-    } finally {
-      if (this._runningDirect) {
-        this._runningDirect = false;
-      } else if (this._queued === 0) {
-        this.turn = undefined;
+      const it = this._ensureIterator();
+      const signal = this.abortSignal;
+      signal?.throwIfAborted();
+      const syncResult = typeof it.tryNextSync === "function" ? it.tryNextSync() : undefined;
+      const result = syncResult ?? (this.nativeAbort ? await it.next() : await abortable(() => it.next(), signal));
+      signal?.throwIfAborted();
+      if (result.done) {
+        this.finished = true;
+        return DONE_RESULT;
       }
+      if (!(result.value instanceof Uint8Array)) throw new TypeError("Byte sources must yield Uint8Array chunks");
+      return result;
+    } catch (error) {
+      await this._cleanupIterator(true);
+      throw error;
     }
   }
 
@@ -321,15 +310,6 @@ class ReadBytesGenerator {
       const syncResult = this.tryNextSync();
       if (syncResult !== undefined) {
         return syncResult.done ? RESOLVED_DONE : Promise.resolve(syncResult);
-      }
-      if (!this.syncFailure) {
-        this._runningDirect = true;
-        const p = this._runNext();
-        if (this._runningDirect) {
-          this._runningDirect = false;
-          this.turn = p;
-        }
-        return p;
       }
     }
     return this._schedule(() => this._runNext());

@@ -1,3 +1,4 @@
+import {defaultLimits} from "./execution.js";
 import { expect, it } from "vitest";
 import { PDFDocument } from "pdf-lib";
 import { convert, writeDocument, createFormatRegistry, createPandocCommand } from "./index.js";
@@ -69,7 +70,7 @@ it("validates PDF options and font count before lazy resource acquisition", asyn
   const input = {chunks: (async function* () {acquired = true; yield new Uint8Array();})()};
   await expect(writeDocument(document, {to: "pdf", pdfFonts: [input]}, {limits: {fonts: 0}})).rejects.toMatchObject({code: "E_LIMIT"});
   expect(acquired).toBe(false);
-  const excess = Array.from({length: 9}, () => ({chunks: (async function* () {acquired = true; yield new Uint8Array();})()}));
+  const excess = Array.from({length: defaultLimits.fonts + 1}, () => ({chunks: (async function* () {acquired = true; yield new Uint8Array();})()}));
   await expect(writeDocument(document, {to: "pdf", pdfFonts: excess}, {})).rejects.toMatchObject({code: "E_LIMIT"});
   expect(acquired).toBe(false);
   await expect(writeDocument(document, {to: "pdf", pdfPage: {width: 10, height: 10, margin: 20}}, {})).rejects.toMatchObject({code: "E_OPTION"});

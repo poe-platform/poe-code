@@ -502,7 +502,6 @@ class PooledRgFastRunner {
 }
 
 let pooledRgFastRunner: PooledRgFastRunner | undefined;
-let rgFastSyncWarmed = false;
 export function clearRgFastRunnerPool(): void { pooledRgFastRunner = undefined; }
 
 function tryExecuteRgFastSync(

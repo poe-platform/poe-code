@@ -119,7 +119,7 @@ test("file and hunk budgets apply across complete invocations", async () => {
 });
 
 test("invalid configuration reports usage failure before mutation", async () => {
-  for (const value of [0, -1, NaN, -Infinity, 0.5]) {
+  for (const value of [0, -1, NaN, -Infinity, 0.5, Number.MAX_SAFE_INTEGER + 1]) {
     const result = await run("patch", [], { files: { target: "old\n" }, input: replacement, options: { maxWork: value } });
     assert.equal(result.exitCode, 2);
     assert.equal(await contents(result.fs, "target"), "old\n");

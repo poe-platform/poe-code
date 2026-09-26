@@ -79,6 +79,8 @@ and the source entry point was exercised directly through `Shell.use`.
   line prefixes.
 - `-e` / `--ed`, `-n` / `--rcs`, and `-D NAME` / `--ifdef=NAME` emit edit
   scripts or conditional text. `-d` / `--minimal` uses the bounded LCS algorithm.
+  Ed scripts treat incomplete final lines as newline-terminated, report each
+  affected input on stderr, and return status 2 while preserving the script.
   `-D` rejects directory operands, as GNU diff does.
   `-p` and `-F PATTERN` annotate context headers with preceding function lines.
   `-l` / `--paginate` formats output with the virtual `pr` command.
@@ -406,8 +408,8 @@ participates in cancellation checkpoints. Exclusion limits are checked before
 patterns are compiled; exceeding a limit returns exit 2 without partial stdout.
 
 Omitted limits are unlimited. Each explicit setting is independent and must be
-a positive safe integer or `Infinity`. Diagnostic messages have a separate
-fixed bound below 4096 bytes, even when an invalid argument is very large.
+a positive safe integer or `Infinity` for an unlimited quota. Diagnostic messages
+have a separate fixed bound below 4096 bytes, even when an invalid argument is very large.
 Mixed patch formats share one invocation's file, hunk, line, and work budgets;
 normal/context conversion also shares a cumulative byte cap of
 `2 * maxInputBytes + 16,384` rather than resetting it per section.

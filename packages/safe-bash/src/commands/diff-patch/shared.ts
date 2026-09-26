@@ -1,6 +1,6 @@
 import { PublicDiagnostic, publicDiagnosticMessage } from "../../diagnostics.js";
 import { writeDiagnostic } from "../../escaping.js";
-import { yieldTurn } from "../../contracts/yield.js";
+import { monotonicNow, yieldTurn } from "../../contracts/yield.js";
 import {
   collectBytes, isFsError, readBytes,
   type ByteSource, type CommandContext, type CommandDefinition, type FileStat,
@@ -32,6 +32,7 @@ export class Budget {
   private lines = 0;
   private work = 0;
   private nextYield = 4096;
+  private nextYieldTime = monotonicNow() + 8;
   private files = 0;
   private hunks = 0;
 
@@ -65,7 +66,11 @@ export class Budget {
     this.context.signal.throwIfAborted();
     if (this.work >= this.nextYield) {
       this.nextYield = this.work + 4096;
-      return yieldTurn(this.context.signal);
+      const now = monotonicNow();
+      if (now >= this.nextYieldTime) {
+        this.nextYieldTime = now + 8;
+        return yieldTurn(this.context.signal);
+      }
     }
   }
 

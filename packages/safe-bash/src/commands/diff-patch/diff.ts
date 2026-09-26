@@ -54,13 +54,31 @@ async function edits(oldLines: string[], newLines: string[], oldKeys: string[], 
   if (oldCount && newCount && cells > budget.limits.maxMatrixCells) throw new ToolError("diff matrix cell limit exceeded");
   const width = newCount + 1;
   const matrix = oldCount && newCount ? new Uint32Array(cells) : undefined;
+  const ids = new Map<string, number>();
+  const intern = async (keys: string[], count: number) => {
+    const result = new Uint32Array(count);
+    for (let index = 0; index < count; index++) {
+      const key = keys[prefix + index]!;
+      budget.step(1 + key.length);
+      let id = ids.get(key);
+      if (id === undefined) { id = ids.size; ids.set(key, id); }
+      result[index] = id;
+      const checkpoint = budget.checkpoint();
+      if (checkpoint) await checkpoint;
+    }
+    return result;
+  };
+  const oldIds = matrix ? await intern(oldKeys, oldCount) : undefined;
+  const newIds = matrix ? await intern(newKeys, newCount) : undefined;
   if (matrix) for (let oldIndex = oldCount - 1; oldIndex >= 0; oldIndex--) {
     for (let newIndex = newCount - 1; newIndex >= 0; newIndex--) {
       const position = oldIndex * width + newIndex;
-      matrix[position] = budget.equal(oldKeys[prefix + oldIndex], newKeys[prefix + newIndex])
+      budget.step();
+      matrix[position] = oldIds![oldIndex] === newIds![newIndex]
         ? 1 + matrix[position + width + 1]!
         : Math.max(matrix[position + width]!, matrix[position + 1]!);
-      { const c = budget.checkpoint(); if (c) await c; }
+      const checkpoint = budget.checkpoint();
+      if (checkpoint) await checkpoint;
     }
   }
   const result: Edit[] = oldLines.slice(0, prefix).map((line, index) => ({ kind: " ", line, newLine: newLines[index]! }));
@@ -290,6 +308,14 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const newBytes = await read(right, rightStat);
     const label = (name: string) => encoding === "latin1" ? Buffer.from(name).toString("latin1") : name;
     const reportSame = () => { if (options.reportSame) append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} are identical\n`); };
+    if (options.format === "ed") {
+      for (const [path, text] of [[left, oldBytes], [right, newBytes]] as const) {
+        if (text && !text.endsWith("\n")) {
+          await writeDiagnostic(context.stderr, `diff: ${path}: No newline at end of file\n\n`, context.signal);
+          trouble = true;
+        }
+      }
+    }
     // Detect binary data before decoding; invalid UTF-8 without NUL is byte text.
     if (!options.text && oldBytes === newBytes && (options.format !== "side" && options.format !== "ifdef" || oldBytes.includes("\0"))) { reportSame(); continue; }
     if (!options.text && (oldBytes.includes("\0") || newBytes.includes("\0"))) {
@@ -312,12 +338,24 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       oldText = oldText.replaceAll("\r\n", "\n");
       newText = newText.replaceAll("\r\n", "\n");
     }
+    if (options.format === "ed") {
+      if (oldText && !oldText.endsWith("\n")) oldText += "\n";
+      if (newText && !newText.endsWith("\n")) newText += "\n";
+    }
     if (oldText === newText && options.format !== "side" && options.format !== "ifdef") { reportSame(); continue; }
     const oldLines = budget.split(oldText);
     const newLines = budget.split(newText);
     const oldKeys = await comparisonLines(oldLines, options, budget);
     const newKeys = await comparisonLines(newLines, options, budget);
     const same = oldText === newText || await equivalent(oldKeys, newKeys, budget);
+    if (same && options.format !== "side" && options.format !== "ifdef") { reportSame(); continue; }
+    if (options.brief && !options.ignoreBlank && options.ignorePatterns.length === 0) {
+      if (!same) {
+        different = true;
+        append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} differ\n`);
+      } else reportSame();
+      continue;
+    }
     const changes = await edits(oldLines, newLines, oldKeys, newKeys, budget);
     if (!same) await ignoreChanges(changes, options, budget);
     const changed = changes.some(edit => edit.kind !== " " && !edit.ignored);

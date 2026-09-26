@@ -176,7 +176,6 @@ export async function script(changes: readonly Edit[], format: "ed" | "rcs", bud
       if (group.old.length) append(`d${group.position + 1} ${group.old.length}\n`);
       if (group.next.length) append(`a${group.position + group.old.length} ${group.next.length}\n${group.next.join("")}`);
     } else {
-      if (group.old.some(line => !line.endsWith("\n")) || group.next.some(line => !line.endsWith("\n"))) throw new ToolError("No newline at end of file");
       const start = group.position + 1, end = group.position + group.old.length;
       const range = group.old.length > 1 ? `${start},${end}` : `${start}`;
       append(`${group.old.length ? range : group.position}${group.old.length ? group.next.length ? "c" : "d" : "a"}\n`);

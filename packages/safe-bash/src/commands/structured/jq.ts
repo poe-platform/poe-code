@@ -173,9 +173,6 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
     sharedFastInUse = false;
   }
 }
-let _lastJqAnchor1: unknown;
-let _lastJqAnchor2: unknown;
-let _lastJqAnchor3: unknown;
 
 interface Options {
   stream: boolean;
@@ -868,9 +865,6 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
     options.files.length = 0;
     interpreter.releaseScratch();
     (budget as unknown as { signal: AbortSignal }).signal = NEVER_ABORTED_SIGNAL;
-    _lastJqAnchor1 = budget;
-    _lastJqAnchor2 = options;
-    _lastJqAnchor3 = interpreter;
     return { exitCode: options.exitStatus && lastTruth === undefined && status === 0 ? 4 : status };
   } catch (error) {
     if (diagnosticWriteFailed) throw error;

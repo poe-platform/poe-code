@@ -88,9 +88,7 @@ interface WarmedInvocation {
   currentState: State;
   runtime: Runtime;
 }
-const _execAnchor: unknown[] = new Array(13);
 let warmSyncExecJitWarmed = false;
-export let _lastExecAnchor: unknown = _execAnchor;
 interface CachedParsedUnit {
   readonly offset: number;
   readonly unit: ReturnType<typeof parseShellUnit>;
@@ -345,7 +343,6 @@ export class Shell implements PluginHost {
   #singleActiveBudget: Budget | undefined;
   #singleActiveOwner: RootInvocationCancellationOwner | undefined;
   #active: Set<{ scope: InvocationScope; budget: Budget; owner: RootInvocationCancellationOwner }> | undefined;
-  #lastInvocation: unknown;
   #warmedInvocation: WarmedInvocation | undefined;
 
   constructor(options?: ShellOptions) {
@@ -542,7 +539,7 @@ export class Shell implements PluginHost {
   ): Promise<ShellResult> {
     const warm = this.#warmedInvocation!;
     this.#warmedInvocation = undefined;
-    const { budget, scope, cancellationState, owner, admission, boundary, stdout, stderr, stdin, io, currentState, runtime } = warm;
+    const { budget, scope, cancellationState, owner, stdout, stderr, stdin, io, currentState, runtime } = warm;
     try {
       if (typeof source !== "string") throw new TypeError("Shell source must be a string");
       const sourceByteLen = Buffer.byteLength(source);
@@ -589,24 +586,7 @@ export class Shell implements PluginHost {
       void scope.close();
       cancellationState.close();
       const fastResult = new FastShellResult(stdoutOutput, stderrOutput, exitCode);
-      if (_execAnchor[10] === undefined) {
-        _execAnchor[10] = ensureStateMonitor(currentState, budget, scope);
-      }
       runtime.releaseAnchorResources();
-      if (source.length > 0) {
-        _execAnchor[0] = budget;
-        _execAnchor[1] = scope;
-        _execAnchor[2] = cancellationState;
-        _execAnchor[3] = owner;
-        _execAnchor[4] = admission;
-        _execAnchor[5] = boundary;
-        _execAnchor[6] = stdout;
-        _execAnchor[7] = stderr;
-        _execAnchor[8] = io;
-        _execAnchor[9] = currentState;
-        _execAnchor[11] = runtime;
-        _execAnchor[12] = fastResult;
-      }
       return Promise.resolve(fastResult);
     } catch (error) {
       return this.#failWarmAsync(warm, error);
@@ -1135,24 +1115,7 @@ export class Shell implements PluginHost {
         exitCode,
       };
       if (runtime && state && this.#warmedInvocation?.budget !== budget) {
-        if (_execAnchor[10] === undefined) {
-          _execAnchor[10] = ensureStateMonitor(state, budget, scope);
-        }
         runtime.releaseAnchorResources();
-        if (source.length > 0) {
-          _execAnchor[0] = budget;
-          _execAnchor[1] = scope;
-          _execAnchor[2] = cancellationState;
-          _execAnchor[3] = owner;
-          _execAnchor[4] = admission;
-          _execAnchor[5] = cancellation;
-          _execAnchor[6] = stdout;
-          _execAnchor[7] = stderr;
-          _execAnchor[8] = io;
-          _execAnchor[9] = state;
-          _execAnchor[11] = runtime;
-          _execAnchor[12] = fastResult;
-        }
       }
       return fastResult;
     }
@@ -1165,12 +1128,7 @@ export class Shell implements PluginHost {
       state: capturedState,
     };
     if (runtime && state) {
-      const monitor = ensureStateMonitor(state, budget, scope);
       runtime.releaseAnchorResources();
-      this.#lastInvocation = [budget, scope, cancellationState, owner, admission, cancellation, stdout, stderr, stdin, io, state, monitor, runtime, result];
-      if (source.length > 0) {
-        _lastExecAnchor = this.#lastInvocation;
-      }
     }
     await options.onState?.(capturedState, result);
     await afterExecHook?.(capturedState, result);
@@ -1180,7 +1138,6 @@ export class Shell implements PluginHost {
   dispose(): Promise<void> {
     if (this.#disposal) return this.#disposal;
     this.#disposed = true;
-    this.#lastInvocation = undefined;
     this.#clearWarmedInvocation();
     const active = this.#active
       ? [...this.#active]

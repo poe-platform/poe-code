@@ -20,6 +20,7 @@ function createTestVfs(initialFiles: Record<string, Uint8Array | string> = {}) {
   return {
     store,
     fs: {
+      async mkdir() {},
       async readFile(path: string) {
         const key = path.startsWith("/") ? path : `/${path}`;
         const val = store.get(key);

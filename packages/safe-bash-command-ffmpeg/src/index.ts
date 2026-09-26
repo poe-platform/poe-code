@@ -1360,6 +1360,7 @@ interface InputSpec {
   readonly durationSeconds?: number | undefined;
   readonly streamLoop?: number | undefined;
   readonly fps?: number | undefined;
+  readonly startNumber?: number | undefined;
 }
 
 export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): CommandDefinition {
@@ -1417,6 +1418,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingDuration: number | undefined;
       let pendingLoop: number | undefined;
       let pendingFps: number | undefined;
+      let pendingStartNumber: number | undefined;
+      let outputStartNumber: number | undefined;
 
       let outputFormat: string | undefined;
       let outputSs: number | undefined;
@@ -1464,8 +1467,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           hlsSegmentFilename = args[++i];
         } else if (arg === "-hls_segment_type") {
           hlsSegmentType = args[++i];
-        } else if (arg === "-hls_list_size" || arg === "-hls_flags" || arg === "-map_metadata" || arg === "-map_chapters" || arg === "-start_number") {
+        } else if (arg === "-hls_list_size" || arg === "-hls_flags" || arg === "-map_metadata" || arg === "-map_chapters") {
           i++;
+        } else if (arg === "-start_number") {
+          const val = Number(args[++i]);
+          if (!Number.isSafeInteger(val) || val < 0) {
+            await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid start_number\n"), context.signal);
+            return { exitCode: 1 };
+          }
+          if (args.slice(i + 1).includes("-i")) pendingStartNumber = val;
+          else outputStartNumber = val;
         } else if (arg === "-ar") {
           audioRate = parseInt(args[++i] ?? "0", 10) || undefined;
         } else if (arg === "-ac") {
@@ -1520,7 +1531,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             endSeconds: pendingTo,
             durationSeconds: pendingDuration,
             streamLoop: pendingLoop,
-            fps: pendingFps
+            fps: pendingFps,
+            startNumber: pendingStartNumber
           });
           pendingFormat = undefined;
           pendingSs = undefined;
@@ -1528,6 +1540,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           pendingDuration = undefined;
           pendingLoop = undefined;
           pendingFps = undefined;
+          pendingStartNumber = undefined;
         } else if (arg === "-c" || arg === "-codec") {
           const val = args[++i];
           videoCodec = val;
@@ -1620,7 +1633,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               encodeUtf8(`File '${outputTarget}' already exists. Exiting.\n`),
               context.signal
             );
-            return { exitCode: 0 };
+            return { exitCode: 1 };
           } catch {
             // File does not exist, proceed
           }
@@ -1629,13 +1642,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const loadSingleDocument = async (
           filePath: string,
           explicitFormat?: string,
-          fpsHint?: number
+          fpsHint?: number,
+          input?: InputSpec
         ): Promise<MediaDocument> => {
           if (explicitFormat === "lavfi") {
             if (features.lavfiSources === false) {
               throw new Error("lavfi synthetic sources are disabled by consumer feature configuration");
             }
-            return parseLavfiSource(filePath, budget, outputDuration);
+            return parseLavfiSource(filePath, budget, input?.durationSeconds !== undefined
+              ? (input.startSeconds ?? 0) + input.durationSeconds
+              : input?.endSeconds ?? (outputDuration !== undefined
+                ? (input?.startSeconds ?? 0) + (outputSs ?? 0) + outputDuration
+                : outputTo !== undefined ? (input?.startSeconds ?? 0) + outputTo : undefined));
           }
 
           if (/\.m3u8?$/i.test(filePath) || explicitFormat === "hls") {
@@ -1680,14 +1698,23 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           if (/%0?\d*d/.test(filePath)) {
             const frames: MediaVideoFrame[] = [];
             const fps = fpsHint ?? 25;
-            for (let idx = 0; idx < 1000; idx++) {
+            for (let idx = input?.startNumber ?? 0; ; idx++) {
+              budget.checkCpu();
+              context.signal.throwIfAborted();
               const formatted = filePath.replace(/%0?(\d*)d/, (_, widthDigits: string) => {
                 const padLen = parseInt(widthDigits || "0", 10) || 0;
                 return String(idx).padStart(padLen, "0");
               });
               const resolved = resolvePath(context.cwd, formatted);
+              let imgBytes: Uint8Array;
               try {
-                const imgBytes = await context.fs.readFile(resolved, { signal: context.signal });
+                imgBytes = await context.fs.readFile(resolved, { signal: context.signal });
+              } catch (error) {
+                if ((error as { code?: string }).code !== "ENOENT") throw error;
+                if (idx === 0 && input?.startNumber === undefined) continue;
+                break;
+              }
+              {
                 const decoded = decodeImage(imgBytes);
                 budget.recordFrame(decoded.width, decoded.height);
                 frames.push({
@@ -1698,9 +1725,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   durationSeconds: 1 / fps,
                   keyframe: true
                 });
-              } catch {
-                if (idx === 0) continue; // try starting at 1 if 0 doesn't exist
-                break;
               }
             }
             if (frames.length === 0) {
@@ -1811,7 +1835,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         // Load all inputs and apply per-input slicing / looping
         const loadedDocs: MediaDocument[] = [];
         for (const inp of inputs) {
-          let doc = await loadSingleDocument(inp.path, inp.format, inp.fps);
+          let doc = await loadSingleDocument(inp.path, inp.format, inp.fps, inp);
           if (
             inp.startSeconds !== undefined ||
             inp.endSeconds !== undefined ||
@@ -2322,18 +2346,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const padLen = parseInt(widthDigits || "0", 10) || 0;
               return String(sIdx).padStart(padLen, "0");
             });
-            const fullSegPath = resolvePath(outDir, formattedSeg);
+            const fullSegPath = resolvePath(hlsSegmentFilename === undefined ? outDir : context.cwd, formattedSeg);
             const relSegName = fullSegPath.startsWith(outDir === "/" ? "/" : `${outDir}/`)
               ? fullSegPath.slice(outDir === "/" ? 1 : outDir.length + 1)
               : formattedSeg;
 
             budget.checkOutputBytes(segBytes.byteLength);
+            await context.fs.mkdir(fullSegPath.slice(0, fullSegPath.lastIndexOf("/")) || "/", { recursive: true, signal: context.signal });
             await context.fs.writeFile(fullSegPath, segBytes, { signal: context.signal });
             playlistLines.push(`#EXTINF:${actualDur.toFixed(6)},`, relSegName);
           }
 
           playlistLines.push("#EXT-X-ENDLIST", "");
           const m3u8Bytes = encodeUtf8(playlistLines.join("\n"));
+          await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
           await context.fs.writeFile(outResolved, m3u8Bytes, { signal: context.signal });
           options.onMetrics?.(budget.getStats());
           return { exitCode: 0 };
@@ -2360,7 +2386,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const f = frames[idx]!;
             const fileName = outputTarget.replace(/%0?(\d*)d/, (_, widthDigits: string) => {
               const padLen = parseInt(widthDigits || "0", 10) || 0;
-              return String(idx + 1).padStart(padLen, "0");
+              return String(idx + (outputStartNumber ?? 1)).padStart(padLen, "0");
             });
             const fullOutPath = resolvePath(context.cwd, fileName);
             const encoded = encodeImage(makeRgbaImg(f.width, f.height, f.data), {

@@ -84,15 +84,17 @@ describe("real safe-bash browser kernel", () => {
     expect(engine.bash).toBe(resolve(root, "packages/safe-bash/dist"));
     expect(engine.filesystem).toBe(resolve(root, "packages/safe-fs/dist/core.js"));
     expect(inputs.some(input => input.includes("safe-bash-engine"))).toBe(false);
+    expect(inputs.filter(input => input.startsWith("packages/safe-bash-contracts/src/"))).toEqual([]);
+    expect(inputs).toContain("packages/safe-bash-contracts/dist/command.js");
   });
 
-  it("includes the current predicate nesting refusal in the browser engine", async () => {
+  it("evaluates predicates beyond the former nesting limit in the browser engine", async () => {
     const { shell } = await fixture();
     try {
       const source = `test ${"\\( ".repeat(257)}value ${"\\) ".repeat(257)}`;
       const result = await shell.exec(source);
-      expect(result.exitCode).toBe(2);
-      expect(result.stderr).toBe("test: expression nesting exceeds 256\n");
+      expect(result.exitCode).toBe(0);
+      expect(result.stderr).toBe("");
     } finally {
       await shell.dispose();
     }
@@ -474,7 +476,7 @@ describe("real safe-bash browser kernel", () => {
     }
   });
 
-  it("caps buffered commands at 2 MiB while admitting the exact boundary", async () => {
+  it("keeps command buffers unlimited within the configured browser input budget", async () => {
     const { fs, shell } = await fixture();
     const limit = 2 * 1024 * 1024;
     const bytes = new Uint8Array(limit).fill(120);
@@ -482,13 +484,13 @@ describe("real safe-bash browser kernel", () => {
     try {
       await fs.writeFile("/home/boundary.txt", bytes);
       const boundary = await shell.exec("sort -o sorted.txt boundary.txt");
-      expect(boundary.exitCode).toBe(0);
+      expect(boundary).toMatchObject({ exitCode: 0, stderr: "" });
       expect((await fs.stat("/home/sorted.txt")).size).toBe(limit);
       await fs.writeFile("/home/oversized.txt", new Uint8Array(limit + 1).fill(120));
       const oversized = await shell.exec("sort -o overflow.txt oversized.txt");
-      expect(oversized.exitCode).toBe(2);
-      expect(oversized.stderr).toContain("buffer limit exceeded");
-      await expect(fs.stat("/home/overflow.txt")).rejects.toThrow();
+      expect(oversized.exitCode).toBe(0);
+      expect(oversized.stderr).toBe("");
+      expect((await fs.stat("/home/overflow.txt")).size).toBe(limit + 2);
     } finally {
       await shell.dispose();
     }

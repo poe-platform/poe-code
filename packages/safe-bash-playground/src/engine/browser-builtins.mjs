@@ -6,6 +6,14 @@ export class Buffer extends PortableBuffer {
     return Object.setPrototypeOf(PortableBuffer.from(...args), Buffer.prototype);
   }
 
+  copy(target, ...args) {
+    const source = PortableBuffer.from(this.buffer, this.byteOffset, this.byteLength);
+    const destination = ArrayBuffer.isView(target)
+      ? PortableBuffer.from(target.buffer, target.byteOffset, target.byteLength)
+      : target;
+    return PortableBuffer.prototype.copy.call(source, destination, ...args);
+  }
+
   indexOf(value, ...args) {
     return super.indexOf(value instanceof Uint8Array ? PortableBuffer.from(value) : value, ...args);
   }

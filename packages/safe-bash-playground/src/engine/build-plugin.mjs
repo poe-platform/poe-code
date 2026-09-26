@@ -5,7 +5,6 @@ import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { instrumentRootState } from "./root-state-adapter.mjs";
-import { limitCommandBuffers } from "./buffer-limit-adapter.mjs";
 import { selectBrowserWorker } from "./worker-source-adapter.mjs";
 
 const directory = dirname(fileURLToPath(import.meta.url));
@@ -52,7 +51,6 @@ export async function buildBrowserEngine(options = {}) {
   const sources = {};
   const inputs = new Set();
   const adapters = new Map([
-    [resolve(bash, "commands/internal.js"), { transform: limitCommandBuffers }],
     [resolve(bash, "shell/shell.js"), { transform: instrumentRootState }],
     [resolve(bash, "commands/regex-execution/client.js"), { transform: selectBrowserWorker, identity: "regex" }],
     [resolve(bash, "commands/regex-execution/ere/transport/owner.js"), { transform: selectBrowserWorker, identity: "ere" }]
@@ -102,6 +100,8 @@ export async function buildBrowserEngine(options = {}) {
     write: false,
     platform: "browser",
     target: "es2022",
+    // Compiled workspaces must share runtime identities without source-only TS aliases.
+    tsconfigRaw: { compilerOptions: { paths: {} } },
     minify: options.minify ?? false,
     metafile: true,
     inject: [resolve(directory, "platform.ts")]

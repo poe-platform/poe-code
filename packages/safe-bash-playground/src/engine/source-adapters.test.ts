@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { limitCommandBuffers } from "./buffer-limit-adapter.mjs";
 import { instrumentRootState } from "./root-state-adapter.mjs";
 import { selectBrowserWorker } from "./worker-source-adapter.mjs";
 
@@ -16,26 +15,6 @@ describe("pinned browser source adapters", () => {
       "structure changed"
     );
   });
-  it("refuses a missing or changed command buffer binding", () => {
-    expect(() => limitCommandBuffers("export const other = 32 * 1024 * 1024;")).toThrow(
-      "structure changed"
-    );
-    expect(() => limitCommandBuffers("export const bufferLimit = 16 * 1024 * 1024;")).toThrow(
-      "initializer changed"
-    );
-  });
-
-  it("changes the actual lexical buffer binding rather than only its export", async () => {
-    const code = limitCommandBuffers(
-      "export const bufferLimit = 32 * 1024 * 1024; export function current() { return bufferLimit; }"
-    );
-    const adapted = await import(
-      /* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(code).toString("base64")}`
-    );
-    expect(adapted.bufferLimit).toBe(2 * 1024 * 1024);
-    expect(adapted.current()).toBe(adapted.bufferLimit);
-  });
-
   it("refuses shell inputs without the single expected root state", () => {
     expect(() => instrumentRootState("export class Shell {};")).toThrow("structure changed");
     expect(() =>
@@ -157,5 +136,109 @@ describe("pinned browser source adapters", () => {
       'let currentState = new RootShellState(cwd, variables, exported, extensions); const state = { cwd };',
       'const nested = () => { let currentState = new RootShellState(cwd, variables, exported, extensions); };',
     ]) expect(() => instrumentRootState(`class Shell { async #execute(options) { ${body} } }`)).toThrow("structure changed");
+  });
+
+  it.each([false, true])("observes reused and newly constructed roots through shared execution: fail=%s", async (fail) => {
+    const code = instrumentRootState(`
+      class RootShellState {
+        constructor(cwd, variables, exported, extensions) {
+          Object.assign(this, { cwd, variables, exported, extensions });
+        }
+      }
+      export class Shell {
+        run(options, reuse) {
+          const warm = reuse ? { currentState: new RootShellState("/warm", { retained: "value" }, new Set(), { definitions: ["read"] }), runtime: {} } : undefined;
+          return this.#execute(options, warm);
+        }
+        async #execute(options, warm) {
+          let state = warm?.currentState;
+          let runtime = warm?.runtime;
+          try {
+            let currentState;
+            if (warm) {
+              currentState = warm.currentState;
+              runtime = warm.runtime;
+            } else {
+              const cwd = "/", variables = { retained: "value" }, exported = new Set();
+              currentState = new RootShellState(cwd, variables, exported, { definitions: ["read"] });
+              state = currentState;
+              currentState = new Proxy(currentState, {});
+              state = currentState;
+              currentState.cwd = "/restored";
+              runtime = {};
+            }
+            currentState.cwd = "/next";
+            options.onState?.(state);
+            if (options.fail) throw new Error("execution failed");
+            return { state, runtime };
+          } finally { options.cleaned = true; }
+        }
+      }`);
+    const { Shell } = await import(/* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
+    for (const reuse of [false, true]) {
+      const roots: unknown[] = [], paths: string[] = [], sessions: unknown[] = [];
+      const options = { fail, cleaned: false, onRootState: (value: unknown) => roots.push(value),
+        onCwd: (value: string) => paths.push(value), onState: (value: unknown) => sessions.push(value) };
+      const result = new Shell().run(options, reuse);
+      if (fail) await expect(result).rejects.toThrow("execution failed");
+      else expect((await result).state).toBe(sessions[0]);
+      expect(options.cleaned).toBe(true);
+      expect(roots).toEqual([{ cwd: "/next" }]);
+      expect(Object.isFrozen(roots[0])).toBe(true);
+      expect(paths).toEqual(reuse ? ["/next"] : ["/restored", "/next"]);
+      expect(sessions[0]).toMatchObject({ variables: { retained: "value" }, extensions: { definitions: ["read"] } });
+    }
+  });
+
+  it("preserves initialization failure without reporting an uninitialized root", async () => {
+    const code = instrumentRootState(`export class Shell {
+      run(options) { return this.#execute(options); }
+      async #execute(options, warm) {
+        let state = warm?.currentState;
+        let runtime = warm?.runtime;
+        try {
+          let currentState;
+          if (warm) {
+            currentState = warm.currentState;
+            runtime = warm.runtime;
+          } else {
+            throw new Error("initialization failed");
+            currentState = new RootShellState(cwd, variables, exported, extensions);
+            state = currentState;
+          }
+          return { state, runtime };
+        } finally { options.cleaned = true; }
+      }
+    }`);
+    const { Shell } = await import(/* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
+    const roots: unknown[] = [];
+    const options = { cleaned: false, onRootState: (value: unknown) => roots.push(value) };
+    await expect(new Shell().run(options)).rejects.toThrow("initialization failed");
+    expect(options.cleaned).toBe(true);
+    expect(roots).toEqual([]);
+  });
+
+  it("rejects changed or ambiguous warm root selection", () => {
+    const body = `let currentState;
+      if (warm) {
+        currentState = warm.currentState;
+        runtime = warm.runtime;
+      } else {
+        currentState = new RootShellState(cwd, variables, exported, extensions);
+        state = currentState;
+      }`;
+    for (const changed of [
+      body.replace("let currentState;", ""),
+      body.replace("let currentState;", "let currentState = other;"),
+      body.replace("if (warm)", "if (other)"),
+      body.replace("warm.currentState", "warm.other"),
+      body.replace("runtime = warm.runtime;", "runtime = other;"),
+      body.replace("new RootShellState(cwd,", "new RootShellState(other,"),
+      body.replace("state = currentState;", "state = other;"),
+      body.replace("state = currentState;", "state = currentState; currentState = new RootShellState(cwd, variables, exported, extensions);"),
+      body.replace("state = currentState;", "state = currentState; if (other) { currentState = new RootShellState(cwd, variables, exported, extensions); }"),
+      `${body} const state = { cwd };`,
+      `const nested = () => { ${body} };`,
+    ]) expect(() => instrumentRootState(`class Shell { async #execute(options) { ${changed} } }`)).toThrow("structure changed");
   });
 });

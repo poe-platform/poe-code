@@ -85,7 +85,6 @@ executable runtimes. This subset is not fully Bash-compatible.
 | Engine budget              | Limit  |
 | -------------------------- | ------ |
 | Captured output            | 64 KiB |
-| Internal command buffer    | 2 MiB  |
 | Commands per execution     | 1,000  |
 | Loop iterations            | 1,000  |
 | Command-substitution depth | 16     |

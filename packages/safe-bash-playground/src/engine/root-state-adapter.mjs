@@ -80,21 +80,59 @@ export function instrumentRootState(source) {
         && initializer.arguments?.length === 4
         && ["cwd", "variables", "exported"].every((name, index) =>
           ts.isIdentifier(initializer.arguments[index]) && initializer.arguments[index].text === name);
+      const assignedValue = (statement, name) => {
+        if (!statement || !ts.isExpressionStatement(statement)) return undefined;
+        const expression = statement.expression;
+        return ts.isBinaryExpression(expression) && expression.operatorToken.kind === ts.SyntaxKind.EqualsToken
+          && ts.isIdentifier(expression.left) && expression.left.text === name ? expression.right : undefined;
+      };
+      const isWarmProperty = (expression, name) => expression && ts.isPropertyAccessExpression(expression)
+        && !expression.questionDotToken && ts.isIdentifier(expression.expression)
+        && expression.expression.text === "warm" && expression.name.text === name;
+      const warmRootSelection = (statement) => {
+        const block = statement.parent;
+        if (!ts.isBlock(block)) return undefined;
+        const selection = block.statements[block.statements.indexOf(statement) + 1];
+        if (!selection || !ts.isIfStatement(selection) || !ts.isIdentifier(selection.expression)
+          || selection.expression.text !== "warm" || !ts.isBlock(selection.thenStatement)
+          || !selection.elseStatement || !ts.isBlock(selection.elseStatement)) return undefined;
+        const reused = selection.thenStatement.statements;
+        if (reused.length !== 2 || !isWarmProperty(assignedValue(reused[0], "currentState"), "currentState")
+          || !isWarmProperty(assignedValue(reused[1], "runtime"), "runtime")) return undefined;
+        const constructed = selection.elseStatement.statements;
+        let roots = 0;
+        const countRoots = (child) => {
+          if (ts.isFunctionLike(child) || ts.isClassLike(child)) return;
+          if (isConstructedRoot(assignedValue(child, "currentState"))) roots++;
+          ts.forEachChild(child, countRoots);
+        };
+        countRoots(selection.elseStatement);
+        const constructedIndex = constructed.findIndex(child => isConstructedRoot(assignedValue(child, "currentState")));
+        if (roots !== 1 || constructedIndex < 0) return undefined;
+        const published = assignedValue(constructed[constructedIndex + 1], "state");
+        if (!published || !ts.isIdentifier(published) || published.text !== "currentState") return undefined;
+        return { name: "currentState", selection, constructedIndex };
+      };
       const rootStateBinding = (statement) => {
         if (ts.isVariableStatement(statement)) {
           const declarations = statement.declarationList.declarations;
           if (declarations.length !== 1) return undefined;
           const declaration = declarations[0];
           if (!ts.isIdentifier(declaration.name)) return undefined;
-          if (declaration.name.text === "state" && hasCwd(declaration.initializer)) return "state";
-          if (declaration.name.text === "currentState" && isConstructedRoot(declaration.initializer)) return "currentState";
+          if (declaration.name.text === "state" && hasCwd(declaration.initializer)) return { name: "state" };
+          if (declaration.name.text === "currentState") {
+            if (isConstructedRoot(declaration.initializer)) return { name: "currentState" };
+            if (!declaration.initializer
+              && (statement.declarationList.flags & ts.NodeFlags.BlockScoped) === ts.NodeFlags.Let)
+              return warmRootSelection(statement);
+          }
           return undefined;
         }
         if (!assignedRootBinding || !ts.isExpressionStatement(statement)) return undefined;
         const expression = statement.expression;
         return ts.isBinaryExpression(expression) && expression.operatorToken.kind === ts.SyntaxKind.EqualsToken
           && ts.isIdentifier(expression.left) && expression.left.text === "state" && hasCwd(expression.right)
-          ? "state" : undefined;
+          ? { name: "state" } : undefined;
       };
       const visitBody = (node) => {
         if (ts.isFunctionLike(node) || ts.isClassLike(node)) return node;
@@ -102,7 +140,36 @@ export function instrumentRootState(source) {
           const index = node.statements.findIndex(statement => rootStateBinding(statement) !== undefined);
           if (index >= 0) {
             adapted++;
-            const { notify, observe } = observation(rootStateBinding(node.statements[index]));
+            const binding = rootStateBinding(node.statements[index]);
+            const { notify, observe } = observation(binding.name);
+            if (binding.selection) {
+              const selection = binding.selection;
+              const reused = selection.thenStatement;
+              const constructed = selection.elseStatement;
+              const coldIndex = binding.constructedIndex + 1;
+              const observedSelection = factory.updateIfStatement(
+                selection,
+                selection.expression,
+                factory.updateBlock(reused, [reused.statements[0], ...observe, ...reused.statements.slice(1)]),
+                factory.updateBlock(constructed, [
+                  ...constructed.statements.slice(0, coldIndex),
+                  ...observation(binding.name).observe,
+                  ...constructed.statements.slice(coldIndex)
+                ])
+              );
+              return factory.updateBlock(node, [
+                ...node.statements.slice(0, index + 1),
+                factory.createTryStatement(
+                  factory.createBlock([observedSelection, ...node.statements.slice(index + 2)], true),
+                  undefined,
+                  factory.createBlock([factory.createIfStatement(
+                    factory.createBinaryExpression(factory.createIdentifier(binding.name), ts.SyntaxKind.ExclamationEqualsEqualsToken,
+                      factory.createIdentifier("undefined")),
+                    notify
+                  )], true)
+                )
+              ]);
+            }
             return factory.updateBlock(node, [
               ...node.statements.slice(0, index + 1),
               ...observe,

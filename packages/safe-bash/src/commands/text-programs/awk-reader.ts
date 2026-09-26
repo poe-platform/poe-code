@@ -32,8 +32,10 @@ export class Reader {
   private closed = false;
   private closing?: Promise<void> | undefined;
   private isPooledMemory = false;
+  private signal: AbortSignal;
 
   constructor(source: ByteSource | undefined, private budget: Budget, private retention: Pick<AwkRetention, "admit" | "replace" | "release">) {
+    this.signal = budget.context.signal;
     this.iterator = source === undefined
       ? RELEASED_READER_ITERATOR
       : typeof (source as { tryNextSync?: unknown }).tryNextSync === "function"
@@ -46,6 +48,7 @@ export class Reader {
     if (reader !== undefined) {
       pooledMemoryReader.value = undefined;
       reader.budget = budget;
+      reader.signal = budget.context.signal;
       reader.retention = retention;
       reader.iterator = RELEASED_READER_ITERATOR;
       reader.blocksLen = 0;
@@ -122,7 +125,7 @@ export class Reader {
       }
       const next = syncIter.tryNextSync();
       if (next === undefined) return false;
-      this.budget.context.signal.throwIfAborted();
+      this.signal.throwIfAborted();
       if (next.done) { this.ended = true; return true; }
       if (next.value.byteLength === 0) continue;
       this.retain(next.value);
@@ -138,7 +141,7 @@ export class Reader {
       this.blocks[lastIdx] = Buffer.from(this.blocks[lastIdx]!);
     }
     const next = await this.iterator.next();
-    this.budget.context.signal.throwIfAborted();
+    this.signal.throwIfAborted();
     if (this.closed) return;
     if (next.done) { this.ended = true; return; }
     this.retain(next.value);
@@ -233,7 +236,7 @@ export class Reader {
   }
 
   readSync(separator: string): string | undefined | Promise<string | undefined> {
-    if (this.budget.context.signal.aborted) this.budget.context.signal.throwIfAborted();
+    if (this.signal.aborted) this.signal.throwIfAborted();
     if (separator.length > 1) throw new ProgramError("RS must be one byte or empty for paragraph records");
     if (separator.length === 1 && !this.closed && this.head < this.blocksLen) {
       const headBlock = this.blocks[this.head]!;
@@ -250,7 +253,7 @@ export class Reader {
   }
 
   readSliceSync(separator: string, out: { source: string; start: number; end: number }): boolean {
-    if (this.budget.context.signal.aborted) this.budget.context.signal.throwIfAborted();
+    if (this.signal.aborted) this.signal.throwIfAborted();
     if (separator.length === 1 && !this.closed) {
       if (this.head >= this.blocksLen && !this.ended) {
         this.tryFillSync();
@@ -297,7 +300,8 @@ export class Reader {
     return false;
   }
   async read(separator: string): Promise<string | undefined> {
-    this.budget.context.signal.throwIfAborted();
+    this.signal.throwIfAborted();
+    if (this.closed) return undefined;
     if (separator.length > 1) throw new ProgramError("RS must be one byte or empty for paragraph records");
     if (separator.length === 1 && !this.closed && this.head < this.blocksLen) {
       const headBlock = this.blocks[this.head]!;
@@ -317,14 +321,15 @@ export class Reader {
           if (this.ended) return undefined;
           await this.fill();
         }
+        if (this.closed) return undefined;
         const pendingCheck = this.budget.checkpointSync();
         if (pendingCheck) await pendingCheck;
       }
     }
     const state: Scan = { block: this.head, offset: this.offset, bytes: 0, newline: -1, paragraphEnd: -1 };
     while (true) {
-      this.budget.step();
       if (this.closed) return undefined;
+      this.budget.step();
       const found = this.scan(separator, state);
       if (found) return this.finish(found.length, found.consumed);
       if (state.block === this.blocksLen) {
@@ -336,6 +341,7 @@ export class Reader {
         }
         await this.fill();
       }
+      if (this.closed) return undefined;
       const pendingCheck = this.budget.checkpointSync();
       if (pendingCheck) await pendingCheck;
     }

@@ -156,6 +156,12 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [] } 
     plugins: [{
       name: "portable-shell-capabilities",
       setup(builder) {
+        builder.onResolve({ filter: /^safe-bash-contracts(?:\/|$)/ }, args => {
+          const external = builder.initialOptions.external ?? [];
+          if (external.includes("safe-bash-contracts") || external.includes(args.path)) return { path: args.path, external: true };
+          const subpath = args.path === "safe-bash-contracts" ? "index" : args.path.slice("safe-bash-contracts/".length);
+          return { path: path.join(rootDir, "packages/safe-bash-contracts/src", subpath + ".ts") };
+        });
         builder.onResolve({ filter: /platform\.js$/ }, args =>
           path.resolve(args.resolveDir, args.path) === path.join(directory, "src/commands/network/platform.js")
             ? { path: path.join(directory, "browser/network.mjs") }

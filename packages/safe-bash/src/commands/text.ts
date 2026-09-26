@@ -1,6 +1,6 @@
 import { PublicDiagnostic } from "../diagnostics.js";
 import { FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
-import { assertInputRequirements, bufferLimit, codeOf, concatenate, define, diagnostic, encoder, input, integer, lines, options, output, pathOf, requireOperands, RESOLVED_EXIT_ZERO, UsageError, value } from "./internal.js";
+import { RETURN_EXIT_ONE, RETURN_EXIT_TWO, RETURN_EXIT_ZERO, assertInputRequirements, bufferLimit, codeOf, concatenate, define, diagnostic, encoder, input, integer, lines, options, output, outputRange, pathOf, requireOperands, RESOLVED_EXIT_ZERO, UsageError, value } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { inputRequirements, textOutputRequirements } from "./portable-requirements.js";
 import { hasYieldCheckpoint, runYieldCheckpoint, yieldTurn } from "../contracts/yield.js";
@@ -1941,7 +1941,7 @@ export function textCommands(): CommandDefinition[] {
           try {
             res1 = srcIter.tryNextSync();
           } catch (error) {
-            return diagnostic(context, error).then(() => ({ exitCode: 2 }));
+            return diagnostic(context, error).then(RETURN_EXIT_TWO);
           }
           if (res1 !== undefined) {
             if (res1.done) return RESOLVED_EXIT_ZERO;
@@ -1950,7 +1950,7 @@ export function textCommands(): CommandDefinition[] {
             try {
               res2 = srcIter.tryNextSync();
             } catch (error) {
-              return diagnostic(context, error).then(() => ({ exitCode: 2 }));
+              return diagnostic(context, error).then(RETURN_EXIT_TWO);
             }
             if (
               res2 !== undefined &&
@@ -2013,7 +2013,7 @@ export function textCommands(): CommandDefinition[] {
                   src = dst;
                   dst = tmp;
                 }
-                const outBuf = sharedSortOutScratch.subarray(0, firstChunk.length);
+                const outBuf = sharedSortOutScratch;
                 let used = 0;
                 for (let i = 0; i < count; i++) {
                   const idx = src[i]!;
@@ -2022,15 +2022,9 @@ export function textCommands(): CommandDefinition[] {
                   for (let p = s; p < e; p++) outBuf[used++] = firstChunk[p]!;
                   outBuf[used++] = 10;
                 }
-                const syncSink = !(context.stdout as { isPipeStage?: boolean }).isPipeStage
-                  ? (context.stdout as { writeSync?: (chunk: Uint8Array) => boolean })
-                  : undefined;
-                if (typeof syncSink?.writeSync === "function" && syncSink.writeSync(outBuf) !== false) {
-                  return RESOLVED_EXIT_ZERO;
-                }
-                const p = output(context, outBuf);
+                const p = outputRange(context, outBuf, used);
                 if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
-                return p.then(() => ({ exitCode: 0 }));
+                return p.then(RETURN_EXIT_ZERO);
               }
             }
             return executeSortFastContinueAsync(context, direction, srcIter, firstChunk, res2);
@@ -2075,7 +2069,7 @@ export function textCommands(): CommandDefinition[] {
             try {
               res1 = srcIter.tryNextSync();
             } catch (error) {
-              return diagnostic(context, error).then(() => ({ exitCode: 1 }));
+              return diagnostic(context, error).then(RETURN_EXIT_ONE);
             }
             if (res1 !== undefined) {
               if (res1.done) return RESOLVED_EXIT_ZERO;
@@ -2084,7 +2078,7 @@ export function textCommands(): CommandDefinition[] {
               try {
                 res2 = srcIter.tryNextSync();
               } catch (error) {
-                return diagnostic(context, error).then(() => ({ exitCode: 1 }));
+                return diagnostic(context, error).then(RETURN_EXIT_ONE);
               }
               if (res2 !== undefined && res2.done && chunk.length <= 65536) {
                 const outBuf = sharedUniqOutBuffer;
@@ -2143,17 +2137,9 @@ export function textCommands(): CommandDefinition[] {
                 }
                 if (fits && (prevStart < 0 || emitFast())) {
                   if (outUsed === 0) return RESOLVED_EXIT_ZERO;
-                  const isPipeStage = Boolean((context.stdout as { isPipeStage?: boolean }).isPipeStage);
-                  const syncSink = !isPipeStage
-                    ? (context.stdout as { writeSync?: (chunk: Uint8Array) => boolean })
-                    : undefined;
-                  if (typeof syncSink?.writeSync === "function" && syncSink.writeSync(outBuf.subarray(0, outUsed)) !== false) {
-                    return RESOLVED_EXIT_ZERO;
-                  }
-                  const bytes = isPipeStage ? outBuf.subarray(0, outUsed) : outBuf.slice(0, outUsed);
-                  const p = output(context, bytes);
+                  const p = outputRange(context, outBuf, outUsed);
                   if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
-                  return p.then(() => ({ exitCode: 0 }));
+                  return p.then(RETURN_EXIT_ZERO);
                 }
               }
               return executeUniqGeneral(context, (async function* () {
@@ -2184,20 +2170,30 @@ export function textCommands(): CommandDefinition[] {
             if (a.length >= 2 && a.charCodeAt(0) === 45) {
               const opt = a.charCodeAt(1);
               if (opt === 100) {
-                const val = a.length > 2 ? a.slice(2) : args[++i];
-                if (val === undefined || val.length !== 1 || val.charCodeAt(0) >= 128) {
-                  canFast = false;
-                  break;
+                if (a.length > 2) {
+                  if (a.length !== 3 || a.charCodeAt(2) >= 128) {
+                    canFast = false;
+                    break;
+                  }
+                  sepByte = a.charCodeAt(2);
+                } else {
+                  const val = args[++i];
+                  if (val === undefined || val.length !== 1 || val.charCodeAt(0) >= 128) {
+                    canFast = false;
+                    break;
+                  }
+                  sepByte = val.charCodeAt(0);
                 }
-                sepByte = val.charCodeAt(0);
               } else if (opt === 102) {
-                const val = a.length > 2 ? a.slice(2) : args[++i];
-                if (!val || targetField > 0) {
+                const inline = a.length > 2;
+                const val = inline ? a : args[++i];
+                const startJ = inline ? 2 : 0;
+                if (!val || val.length <= startJ || targetField > 0) {
                   canFast = false;
                   break;
                 }
                 let num = 0;
-                for (let j = 0; j < val.length; j++) {
+                for (let j = startJ; j < val.length; j++) {
                   const c = val.charCodeAt(j) - 48;
                   if (c < 0 || c > 9 || num > 100000) {
                     num = 0;
@@ -2233,7 +2229,7 @@ export function textCommands(): CommandDefinition[] {
               try {
                 res1 = srcIter.tryNextSync();
               } catch (error) {
-                return diagnostic(context, error).then(() => ({ exitCode: 1 }));
+                return diagnostic(context, error).then(RETURN_EXIT_ONE);
               }
               if (res1 !== undefined) {
                 if (res1.done) return RESOLVED_EXIT_ZERO;
@@ -2242,7 +2238,7 @@ export function textCommands(): CommandDefinition[] {
                 try {
                   res2 = srcIter.tryNextSync();
                 } catch (error) {
-                  return diagnostic(context, error).then(() => ({ exitCode: 1 }));
+                  return diagnostic(context, error).then(RETURN_EXIT_ONE);
                 }
                 if (res2 !== undefined && res2.done && chunk.length < sharedCutOutBuffer.length) {
                   const outBuf = sharedCutOutBuffer;
@@ -2282,17 +2278,9 @@ export function textCommands(): CommandDefinition[] {
                     start = offset + 1;
                   }
                   if (outUsed === 0) return RESOLVED_EXIT_ZERO;
-                  const isPipeStage = Boolean((context.stdout as { isPipeStage?: boolean }).isPipeStage);
-                  const syncSink = !isPipeStage
-                    ? (context.stdout as { writeSync?: (chunk: Uint8Array) => boolean })
-                    : undefined;
-                  if (typeof syncSink?.writeSync === "function" && syncSink.writeSync(outBuf.subarray(0, outUsed)) !== false) {
-                    return RESOLVED_EXIT_ZERO;
-                  }
-                  const bytes = isPipeStage ? outBuf.subarray(0, outUsed) : outBuf.slice(0, outUsed);
-                  const p = output(context, bytes);
+                  const p = outputRange(context, outBuf, outUsed);
                   if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
-                  return p.then(() => ({ exitCode: 0 }));
+                  return p.then(RETURN_EXIT_ZERO);
                 }
                 return executeCutFastAsync(context, operand, sepByte, targetField, req, srcIter, chunk, res2);
               }

@@ -830,6 +830,7 @@ export class Shell implements PluginHost {
     if (scope.hasFailures) throwCleanupFailures(scope.failures);
     if (!warmSyncExecJitWarmed && source === "" && this.#warmedInvocation) {
       warmSyncExecJitWarmed = true;
+      for (let w = 0; w < 24; w++) { globalThis.process?.memoryUsage?.(); performance.now(); }
       for (let w = 0; w < 16; w++) {
         await this.exec(":", EMPTY_EXEC_OPTIONS);
         await this.#execAsync("", EMPTY_EXEC_OPTIONS);

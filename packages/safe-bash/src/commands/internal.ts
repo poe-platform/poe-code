@@ -147,6 +147,27 @@ export function codeOf(error: unknown): string | undefined {
   return error instanceof Error && "code" in error ? String(error.code) : undefined;
 }
 
+const EXIT_ZERO_RESULT = { exitCode: 0 };
+const EXIT_ONE_RESULT = { exitCode: 1 };
+const EXIT_TWO_RESULT = { exitCode: 2 };
+export const RETURN_EXIT_ZERO = (): { exitCode: number } => EXIT_ZERO_RESULT;
+export const RETURN_EXIT_ONE = (): { exitCode: number } => EXIT_ONE_RESULT;
+export const RETURN_EXIT_TWO = (): { exitCode: number } => EXIT_TWO_RESULT;
+
+export function outputRange(context: CommandContext, src: Uint8Array, len: number): Promise<void> {
+  context.signal.throwIfAborted();
+  const stdout = context.stdout as { isPipeStage?: boolean; writeRangeSync?: (src: Uint8Array, len: number) => boolean; writeSync?: (chunk: Uint8Array) => boolean };
+  if (!stdout.isPipeStage) {
+    if (typeof stdout.writeRangeSync === "function" && stdout.writeRangeSync(src, len) !== false) {
+      return resolvedVoid;
+    }
+    if (typeof stdout.writeSync === "function" && stdout.writeSync(src.subarray(0, len)) !== false) {
+      return resolvedVoid;
+    }
+  }
+  return writeBytes(context.stdout, stdout.isPipeStage ? src.subarray(0, len) : src.slice(0, len), context.signal);
+}
+
 export function output(context: CommandContext, text: string | Uint8Array): Promise<void> {
   context.signal.throwIfAborted();
   const stdout = context.stdout as { isPipeStage?: boolean; writeSync?: (chunk: Uint8Array) => boolean; writeRangeSync?: (src: Uint8Array, len: number) => boolean };
@@ -179,6 +200,27 @@ export async function diagnostic(context: CommandContext, error: unknown): Promi
   await writeDiagnostic(context.stderr, `${context.command}: ${publicDiagnosticMessage(error, context.onInternalError)}\n`, context.signal);
 }
 
+function finishDefineInfoAsync(
+  infoPromise: Promise<CommandResult | undefined>,
+  handler: CommandHandler,
+  context: CommandContext,
+  failureCode: number,
+  usageFailureCode: number,
+): Promise<CommandResult> {
+  return infoPromise.then(
+    info => info ?? handler(context),
+  ).catch(error => handleDefineError(context, error, failureCode, usageFailureCode));
+}
+
+function finishDefineResAsync(
+  res: CommandResult | Promise<CommandResult>,
+  context: CommandContext,
+  failureCode: number,
+  usageFailureCode: number,
+): Promise<CommandResult> {
+  return Promise.resolve(res).catch(error => handleDefineError(context, error, failureCode, usageFailureCode));
+}
+
 export function define(name: string, handler: CommandHandler, failureCode = 1, usageFailureCode = 2): CommandDefinition {
   const definition: CommandDefinition = {
     name,
@@ -187,9 +229,7 @@ export function define(name: string, handler: CommandHandler, failureCode = 1, u
         context.signal.throwIfAborted();
         const infoPromise = gnuInformation(name, context);
         if (infoPromise) {
-          return infoPromise.then(
-            info => info ?? handler(context),
-          ).catch(error => handleDefineError(context, error, failureCode, usageFailureCode));
+          return finishDefineInfoAsync(infoPromise, handler, context, failureCode, usageFailureCode);
         }
         const res = handler(context);
         if (
@@ -199,7 +239,7 @@ export function define(name: string, handler: CommandHandler, failureCode = 1, u
         ) {
           return res as Promise<CommandResult>;
         }
-        return Promise.resolve(res).catch(error => handleDefineError(context, error, failureCode, usageFailureCode));
+        return finishDefineResAsync(res, context, failureCode, usageFailureCode);
       } catch (error) {
         return handleDefineError(context, error, failureCode, usageFailureCode);
       }
@@ -244,6 +284,10 @@ export function input(context: CommandContext, name = "-"): ByteSource {
       return context.fs.readStream(resolvedPath, { signal: context.signal });
     }
   }
+  return inputFileSlow(context, name);
+}
+
+function inputFileSlow(context: CommandContext, name: string): ByteSource {
   return readBytes({ [Symbol.asyncIterator]() {
     context.signal.throwIfAborted();
     const resolvedPath = pathOf(context, name);

@@ -5,7 +5,7 @@ import { chargeRuntimeFileSystemOperation, getRuntimeBackingFileSystem } from ".
 import { EreLedger } from "../regex-execution/ere/limits.js";
 import { validateUtf8 } from "../regex-execution/utf8.js";
 import { FsError, type ByteSource, type CommandDefinition } from "../../contracts/index.js";
-import { bufferLimit as internalBufferLimit, diagnostic, encoder, input, integer, lines, options as parseOptions, output, pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO, UsageError, value, type Line } from "../internal.js";
+import { RETURN_EXIT_ONE, RETURN_EXIT_TWO, RETURN_EXIT_ZERO, bufferLimit as internalBufferLimit, diagnostic, encoder, input, integer, lines, options as parseOptions, output, outputRange, pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO, UsageError, value, type Line } from "../internal.js";
 import { RecordBuffer } from "../record-buffer.js";
 import { RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
 import { inProcessRegexProviders, trustedInputRows, type GrepDescriptor } from "../regex-execution/protocol.js";
@@ -13,6 +13,8 @@ import { prepareErgonomicRegex, type ErgonomicVmMatcher } from "./ergonomic-rege
 import { SearchError } from "./options.js";
 import { grepRequirements, requiredFileInput } from "./requirements.js";
 import { grepFiles } from "./grep-files.js";
+
+const SINGLE_FILE_OPERAND: readonly string[] = ["file"];
 
 export interface GrepLimits {
   readonly maxPatterns?: number | undefined;
@@ -254,7 +256,7 @@ function tryFastGrepAscii(
       !Object.prototype.hasOwnProperty.call(backing, "readFile")
     ) {
       try {
-        assertCommandRequirements(context, grepRequirements, ["file"], fastBacking?.capabilities);
+        assertCommandRequirements(context, grepRequirements, SINGLE_FILE_OPERAND, fastBacking?.capabilities);
         if (fastBacking !== undefined) (context as unknown as { _chargeFastFsOp(): void })._chargeFastFsOp();
         else chargeRuntimeFileSystemOperation(context.fs);
         const maxFileBytes = Number.isFinite(limits.maxFileBytes) ? limits.maxFileBytes : undefined;
@@ -318,25 +320,17 @@ function tryFastGrepAscii(
             if (!outUsed) {
               return anySelected ? RESOLVED_EXIT_ZERO : RESOLVED_EXIT_ONE;
             }
-            const isPipeStage = Boolean((context.stdout as { isPipeStage?: boolean }).isPipeStage);
-            const syncSink = !isPipeStage
-              ? (context.stdout as { writeSync?: (chunk: Uint8Array) => boolean })
-              : undefined;
-            if (typeof syncSink?.writeSync === "function" && syncSink.writeSync(outBuffer.subarray(0, outUsed)) !== false) {
-              return anySelected ? RESOLVED_EXIT_ZERO : RESOLVED_EXIT_ONE;
-            }
-            const bytes = isPipeStage ? outBuffer.subarray(0, outUsed) : outBuffer.slice(0, outUsed);
-            const pending = output(context, bytes);
+            const pending = outputRange(context, outBuffer, outUsed);
             if (isSyncResolved(pending)) {
               return anySelected ? RESOLVED_EXIT_ZERO : RESOLVED_EXIT_ONE;
             }
-            return pending.then(() => ({ exitCode: anySelected ? 0 : 1 }));
+            return pending.then(anySelected ? RETURN_EXIT_ZERO : RETURN_EXIT_ONE);
           }
         }
       } catch (error) {
         context.signal.throwIfAborted();
         if (error instanceof RegexExecutionError) return Promise.reject(error);
-        return diagnostic(context, error).then(() => ({ exitCode: 2 }));
+        return diagnostic(context, error).then(RETURN_EXIT_TWO);
       }
     }
   }
@@ -1049,9 +1043,19 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
           }
         }
       }
-      return withRegexSession(context, executor, session =>
-        executeGrepWithSession(context, session, limits, maxPatternCount, bufferLimit),
-      );
+      return executeGrepSlow(context, executor, limits, maxPatternCount, bufferLimit);
     },
   }];
+}
+
+function executeGrepSlow(
+  context: Parameters<CommandDefinition["execute"]>[0],
+  executor: RegexExecutor,
+  limits: GrepLimits,
+  maxPatternCount: number,
+  bufferLimit: number,
+): Promise<{ exitCode: number }> {
+  return withRegexSession(context, executor, session =>
+    executeGrepWithSession(context, session, limits, maxPatternCount, bufferLimit),
+  );
 }

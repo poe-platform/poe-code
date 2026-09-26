@@ -406,12 +406,9 @@ test("strip-components uses original names for selectors/excludes, including ./"
 
 test("PAX global/local precedence, deletion and embedded newline", async () => {
   const { fs, shell } = await fixture();
-  const writeStream = fs.writeStream!.bind(fs);
-  const utimes = fs.utimes!.bind(fs);
-  fs.writeStream = async (path, bytes, options) => {
-    await writeStream(path, bytes, options);
-    if (path === "/out/original") await utimes(path, 1_600_000_006_250, 1_600_000_007_125, options);
-  };
+  const create = fs.createStagedFile!.bind(fs);
+  fs.createStagedFile = (path, name, content, options) => create(path, name, content,
+    { atimeMs: 1_600_000_006_250, mtimeMs: 1_600_000_007_125, ...options });
   try {
     const bytes = archive(
       member("global", record("mtime", "1700000100.125"), "g"),
@@ -529,7 +526,12 @@ for (const delay of [true, false]) test(`directory restoration ${delay ? "waits 
   const { fs } = await fixture();
   const restored: string[] = [];
   const filesystem = wrapped(fs, {
-    chmod: async (path, mode, options) => { restored.push(path); await fs.chmod!(path, mode, options); },
+    publishStagedFile: async (staging, path, options) => { await fs.publishStagedFile!(staging, path, options); restored.push(path); },
+    prepareDirectory: async (path, options) => {
+      const stat = await fs.prepareDirectory!(path, options);
+      if (options.expected !== null) restored.push(path);
+      return stat;
+    },
   });
   const { shell } = await fixture({}, filesystem);
   try {

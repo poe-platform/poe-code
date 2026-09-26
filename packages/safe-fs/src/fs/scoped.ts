@@ -295,7 +295,18 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
               controls.signal?.throwIfAborted();
               return backendCleanup.remove(controls);
             }, () => backendCleanup.close());
-            return Object.freeze({ ...staging, cleanup });
+            const backendWriter = staging.writer;
+            const writer = backendWriter && Object.freeze({
+              write: async (bytes: Uint8Array, settings: FsOptions = {}) => {
+                const controls = resizeOptions(settings); admit(controls);
+                await backendWriter.write(bytes, controls);
+              },
+              finish: async (settings: FsOptions = {}) => {
+                const controls = resizeOptions(settings); admit(controls);
+                return backendWriter.finish(controls);
+              },
+            });
+            return Object.freeze({ ...staging, cleanup, ...(writer ? { writer } : {}) });
           } catch (error) {
             await finishCleanup(() => backendCleanup.close(), true);
             throw error;

@@ -1296,6 +1296,17 @@ still releases the handle, and close drains an admitted removal. Scope charges
 cleanup exactly once without checking the ambient scope signal; a separately
 supplied cleanup signal is honored. Neither cancellation after completed
 creation nor cancellation after completed removal discards its acknowledgment.
+
+`retainedStagingWrite: true` additionally offers `writer` on regular-file staging
+created with retained cleanup. Await each `writer.write(bytes, options?)` before
+reusing its input: it appends an owned copy, enforces backend allocation limits,
+and rejects changed staging entries. `writer.finish(options?)` restores the
+creation metadata, seals further writes, and returns the final file stat to use
+in the publication receipt. Cleanup owns the writer's lifetime; removing or
+closing cleanup stops new writes immediately. Its expected revision advances
+only after owned writes, so foreign edits still prevent cleanup. Scoped views
+charge each write and finish and retain ambient cancellation. Memory supports
+this facet; Mount currently declines it and retains buffered staging.
 Device views support cleanup for admitted backing entries, not virtual devices.
 Quota, read-only, restricted extraction, and Real views do not advertise retained
 staging cleanup.

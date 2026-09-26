@@ -147,42 +147,43 @@ test("D05 required tombstones reject before member body/effects and cannot resur
   assert.deepEqual(Buffer.from(await reintroduced.fs.readFile("/out/safe")), fileData);
 });
 
-test("D06 paired timestamp restoration preserves deleted counterparts with fresh stat and propagates failure", async () => {
+test("D06 staged timestamp restoration preserves deleted counterparts and propagates finalization failure", async () => {
   const cases = [
-    { records: [record("mtime", ""), record("atime", localText)], expected: [{ path: "/out/safe", atime: localTime, mtime: normalMtime }], stat: true },
-    { records: [record("mtime", globalText), record("atime", "")], expected: [{ path: "/out/safe", atime: normalAtime, mtime: globalTime }], stat: true },
-    { records: [record("mtime", ""), record("atime", "")], expected: [], stat: false },
-    { records: [record("mtime", globalText)], expected: [{ path: "/out/safe", atime: globalTime, mtime: globalTime }], stat: false },
+    { records: [record("mtime", ""), record("atime", localText)], expected: [{ path: "/out/safe", atime: localTime, mtime: normalMtime }] },
+    { records: [record("mtime", globalText), record("atime", "")], expected: [{ path: "/out/safe", atime: normalAtime, mtime: globalTime }] },
+    { records: [record("mtime", ""), record("atime", "")], expected: [] },
+    { records: [record("mtime", globalText)], expected: [{ path: "/out/safe", atime: globalTime, mtime: globalTime }] },
   ];
   for (const vector of cases) {
     const { fs, state, observe } = await backend();
     success(await run(fs, masked(...vector.records)));
     assert.deepEqual(state.times, vector.expected);
-    if (vector.stat) assert.ok(state.postWriteStats.includes("/out/safe"));
+    assert.equal(state.finalizations, 1);
     const result = await observe("/out/safe");
     assert.equal(result.atimeMs, vector.expected[0]?.atime ?? normalAtime);
     assert.equal(result.mtimeMs, vector.expected[0]?.mtime ?? normalMtime);
   }
   const failed = await backend();
-  failed.state.statError = new Error("independent post-write observation refused");
+  failed.state.finishError = new Error("independent staged finalization refused");
   const reported: unknown[] = [];
   const result = await run(failed.fs, masked(record("mtime", ""), record("atime", localText)), undefined, {}, undefined, error => { reported.push(error); });
   assert.equal(result.exitCode, 2);
   assert.equal(result.stderr, "tar: internal error\n");
   assert.equal(reported.length, 1);
-  assert.equal(reported[0], failed.state.statError);
-  assert.equal(failed.state.publications, 1);
+  assert.equal(reported[0], failed.state.finishError);
+  assert.equal(failed.state.publications, 0);
   assert.deepEqual(failed.state.times, []);
-  assert.equal((await failed.observe("/out/safe")).mtimeMs, normalMtime);
+  assert.deepEqual(await failed.fs.readdir("/out"), []);
   const cancelled = await backend();
   const controller = new AbortController();
   const reason = new Error("independent timestamp observation abort");
-  cancelled.state.abortOnStat = { controller, reason };
+  cancelled.state.abortOnFinish = { controller, reason };
   const cancelledReports: unknown[] = [];
   await assert.rejects(run(cancelled.fs, masked(record("mtime", ""), record("atime", localText)), undefined, {}, controller.signal, error => { cancelledReports.push(error); }), error => error === reason);
   assert.deepEqual(cancelledReports, []);
-  assert.equal(cancelled.state.publications, 1);
+  assert.equal(cancelled.state.publications, 0);
   assert.deepEqual(cancelled.state.times, []);
+  assert.deepEqual(await cancelled.fs.readdir("/out"), []);
 });
 
 test("D07 deletion/overrides never bypass structural framing, strict PAX grammar or byte/path limits", async () => {

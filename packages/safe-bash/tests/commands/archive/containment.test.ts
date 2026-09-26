@@ -30,12 +30,12 @@ test("tar refuses a parent symlink swap after lstat", async () => {
 });
 
 for (const [name, bytes, method] of [
-  ["directory creation", archive(member("sub/dir", undefined, "5")), "mkdir"],
-  ["symlink creation", archive(member("sub/link", undefined, "2", "file")), "symlink"],
+  ["directory creation", archive(member("sub/dir", undefined, "5")), "prepareDirectory"],
+  ["symlink creation", archive(member("sub/link", undefined, "2", "file")), "createStagedFile"],
   ["hardlink destination", archive(member("file", Buffer.from("payload")), member("sub/link", undefined, "1", "file")), "link"],
-  ["file removal", archive(member("sub/file", Buffer.from("payload"))), "rm"],
-  ["permissions", archive(member("sub/file", Buffer.from("payload"))), "chmod"],
-  ["timestamps", archive(member("sub/file", Buffer.from("payload"))), "utimes"],
+  ["file replacement", archive(member("sub/file", Buffer.from("payload"))), "publishStagedFile"],
+  ["directory permissions", archive(member("sub/", undefined, "5")), "prepareDirectory"],
+  ["file timestamps", archive(member("sub/file", Buffer.from("payload"))), "createStagedFile"],
 ] as const) {
   test(`tar retains containment during ${name}`, async () => {
     const { fs, shell } = await fixture();
@@ -46,7 +46,7 @@ for (const [name, bytes, method] of [
     await fs.chmod!("/private/file", 0o400);
     await fs.utimes!("/private/file", 1_000, 2_000);
     const privateStat = await fs.stat("/private/file");
-    if (method === "rm") await fs.writeFile("/out/sub/file", Buffer.from("old"));
+    if (method === "publishStagedFile") await fs.writeFile("/out/sub/file", Buffer.from("old"));
     await fs.writeFile("/work/archive", bytes);
     let swapped = false;
     const race = (target: typeof fs) => new Proxy(target, { get(target, property) {
@@ -54,8 +54,8 @@ for (const [name, bytes, method] of [
       if (typeof value !== "function") return value;
       if (property !== method) return value.bind(target);
       return async (...args: unknown[]) => {
-        const path = args[property === "link" || property === "symlink" ? 1 : 0] as string;
-        if (path.startsWith("/out/sub/") && !swapped) {
+        const path = args[property === "link" || property === "publishStagedFile" ? 1 : 0] as string;
+        if ((path === "/out/sub" || path.startsWith("/out/sub/")) && !swapped) {
           swapped = true;
           await fs.rename("/out/sub", "/parked");
           await fs.symlink!("../private", "/out/sub");
@@ -96,7 +96,7 @@ test("tar refuses backends without atomic containment but still supports listing
   await shell.dispose();
 });
 
-test("tar's writeFile/appendFile fallback retains containment", async () => {
+test("tar's staged extraction retains containment without streamingWrite", async () => {
   const { fs, shell } = await fixture();
   await fs.mkdir("/out/sub");
   await fs.mkdir("/private");
@@ -107,11 +107,11 @@ test("tar's writeFile/appendFile fallback retains containment", async () => {
       const confined = await fs.confineExtraction!(roots, options);
       return wrapped(confined, {
         capabilities: { ...confined.capabilities, streamingWrite: false },
-        async appendFile(path, bytes, settings) {
+        async publishStagedFile(staging, path, settings) {
           swapped = true;
           await fs.rename("/out/sub", "/parked");
           await fs.symlink!("../private", "/out/sub");
-          return confined.appendFile(path, bytes, settings);
+          return confined.publishStagedFile!(staging, path, settings);
         },
       });
     },
@@ -120,6 +120,7 @@ test("tar's writeFile/appendFile fallback retains containment", async () => {
   assert.equal(swapped, true, result.stderr);
   assert.notEqual(result.exitCode, 0);
   assert.deepEqual(await fs.readdir("/private"), []);
-  assert.equal((await fs.readFile("/parked/file")).length, 0);
+  await assert.rejects(fs.lstat("/parked/file"), { code: "ENOENT" });
+  assert.deepEqual(await fs.readdir("/parked"), []);
   await shell.dispose();
 });

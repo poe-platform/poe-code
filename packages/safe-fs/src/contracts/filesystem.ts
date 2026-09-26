@@ -83,6 +83,7 @@ export interface FileSystemCapabilities {
   readonly atomicFileStaging?: boolean;
   /** Creates a cleanup handle bound to owned staging entries, independent of ancestor paths. */
   readonly retainedStagingCleanup?: boolean;
+  readonly retainedStagingWrite?: boolean;
   /** Atomically verifies every supplied root-to-parent directory identity at publication. */
   readonly atomicStagingAncestry?: boolean;
   /** Prepares directory guards that validate without yielding or mutating state. */
@@ -281,6 +282,13 @@ export interface FileStaging {
   readonly directory: FileStagingEntry;
   readonly file: FileStagingEntry;
   readonly cleanup?: FileStagingCleanup;
+  /** Available for retained regular-file staging on qualified backends. Writes
+   * append to the owned entry; finish seals it and returns its publication stat.
+   * Cleanup owns the lifetime and checks the last successfully written revision. */
+  readonly writer?: {
+    write(bytes: Uint8Array, options?: FsOptions): Promise<void>;
+    finish(options?: FsOptions): Promise<FileStat>;
+  };
 }
 
 export type StagedFileContent =

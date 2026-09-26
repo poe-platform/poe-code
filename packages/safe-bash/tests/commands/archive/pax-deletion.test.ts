@@ -13,21 +13,26 @@ const extended = (type: "x" | "g", ...pairs: [string, string][]) => member("meta
 
 async function observed() {
   const fs = createMemoryFileSystem();
-  const originalTimes = fs.utimes!.bind(fs);
-  const originalWrite = fs.writeStream!.bind(fs);
-  const originalMkdir = fs.mkdir.bind(fs);
+  const originalCreate = fs.createStagedFile!.bind(fs);
+  const originalPublish = fs.publishStagedFile!.bind(fs);
+  const originalPrepare = fs.prepareDirectory!.bind(fs);
   const calls: { path: string; atime: number; mtime: number }[] = [];
-  fs.writeStream = async (path, bytes, options) => {
-    await originalWrite(path, bytes, options);
-    await originalTimes(path, createdAtime, createdMtime, options);
+  const times = new Map<string, { atime: number; mtime: number }>();
+  fs.createStagedFile = async (path, name, content, options) => {
+    const staging = await originalCreate(path, name, content, { atimeMs: createdAtime, mtimeMs: createdMtime, ...options });
+    if (options.atimeMs !== undefined || options.mtimeMs !== undefined)
+      times.set(staging.file.path, { atime: options.atimeMs ?? createdAtime, mtime: options.mtimeMs ?? createdMtime });
+    return staging;
   };
-  fs.mkdir = async (path, options) => {
-    await originalMkdir(path, options);
-    await originalTimes(path, createdAtime, createdMtime, options);
+  fs.publishStagedFile = async (staging, path, options) => {
+    await originalPublish(staging, path, options);
+    const time = times.get(staging.file.path);
+    if (time) calls.push({ path, ...time });
   };
-  fs.utimes = async (path, atime, mtime, options) => {
-    calls.push({ path, atime, mtime });
-    await originalTimes(path, atime, mtime, options);
+  fs.prepareDirectory = async (path, options) => {
+    const stat = await originalPrepare(path, options.expected === null ? { atimeMs: createdAtime, mtimeMs: createdMtime, ...options } : options);
+    if (options.atimeMs !== undefined || options.mtimeMs !== undefined) calls.push({ path, atime: stat.atimeMs, mtime: stat.mtimeMs });
+    return stat;
   };
   return { ...await fixture({}, fs), calls };
 }
@@ -184,9 +189,8 @@ test("D09 paired timestamp restoration preserves the missing counterpart and pro
       assert.deepEqual(calls, atime === createdAtime && mtime === createdMtime ? [] : [{ path: "/out/file", atime, mtime }]);
     } finally { await shell.dispose(); }
   }
-  for (const stage of ["stat", "utimes"]) for (const abort of [false, true]) {
+  for (const stage of ["createStagedFile", "publishStagedFile"] as const) for (const abort of [false, true]) {
     const { fs, shell } = await observed();
-    const originalStat = fs.stat.bind(fs);
     const controller = new AbortController();
     const reason = new Error("deleted-time cancellation");
     const failure = new Error("deleted-time observation denied");
@@ -196,11 +200,7 @@ test("D09 paired timestamp restoration preserves the missing counterpart and pro
       throw failure;
     };
     try {
-      if (stage === "stat") fs.stat = async (path, options) => {
-        if (path === "/out/file") deny();
-        return originalStat(path, options);
-      };
-      else fs.utimes = async () => deny();
+      fs[stage] = async () => deny();
       const execution = direct(["xf", "-", "-C", "/out"], fs, { signal: controller.signal, onInternalError(error) { reported.push(error); }, stdin: source(archive(extended("x", ["mtime", ""], ["atime", String(localTime)]), member("file", data), member("later", data))) });
       if (abort) await assert.rejects(execution, error => error === reason);
       else {
@@ -211,7 +211,8 @@ test("D09 paired timestamp restoration preserves the missing counterpart and pro
         assert.equal(reported[0], failure);
       }
       if (abort) assert.deepEqual(reported, []);
-      assert.deepEqual(await fs.readFile("/out/file"), data);
+      await assert.rejects(fs.lstat("/out/file"), { code: "ENOENT" });
+      assert.deepEqual(await fs.readdir("/out"), []);
       await assert.rejects(fs.lstat("/out/later"), { code: "ENOENT" });
     } finally { await shell.dispose(); }
   }

@@ -395,7 +395,7 @@ export class MemoryFileSystem implements FileSystem {
       permissions: true,
       timestamps: true,
       atomicRename: true,
-      atomicFileStaging: true, retainedStagingCleanup: true, atomicStagingAncestry: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicEntryRemovalReceipt: true, atomicTreeRemoval: true,
+      atomicFileStaging: true, retainedStagingCleanup: true, retainedStagingWrite: true, atomicStagingAncestry: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicEntryRemovalReceipt: true, atomicTreeRemoval: true,
       synchronousDirectoryValidation: true, synchronousStagingResolution: true, guardedStagingPublication: true,
       atomicDirectoryMetadata: true,
       streamingRead: true,
@@ -500,7 +500,7 @@ export class MemoryFileSystem implements FileSystem {
       retained.set("/", this.root);
     }
     const capabilities = this.capabilities;
-    const allowed = new Set(["mkdir", "rm", "rmdir", "rename", "symlink", "link", "chmod", "utimes", "writeFile", "appendFile", "writeStream", "writeFileConditional", "removeFileConditional", "prepareDirectory", "createStagedFile", "publishStagedFile", "removeStagedFile"]);
+    const allowed = new Set(["mkdir", "rm", "rmdir", "rename", "symlink", "link", "chmod", "utimes", "writeFile", "appendFile", "writeStream", "writeFileConditional", "removeFileConditional", "removeEntryConditional", "prepareDirectory", "createStagedFile", "publishStagedFile", "removeStagedFile"]);
     const reads = new Set(["access", "capabilitiesFor", "compareEntry", "lstat", "stat", "readFile", "readStream", "readdir", "readlink", "realpath"]);
     const check = (path: string, followFinal: boolean): void => {
       if (!roots.some(root => root === "/" || path === root || path.startsWith(`${root}/`))) this.fail("EPERM", "confineExtraction", path);
@@ -538,6 +538,20 @@ export class MemoryFileSystem implements FileSystem {
               if (this.resolve(path, "writeStream").node !== node) this.fail("EPERM", "writeStream", path);
             } } satisfies ConfinedWriteOptions;
           }
+          if (property === "createStagedFile") return (Reflect.apply(value, target, args) as Promise<FileStaging>).then(staging => {
+            const writer = staging.writer;
+            if (!writer) return staging;
+            return Object.freeze({ ...staging, writer: Object.freeze({
+              write: async (bytes: Uint8Array, controls: FsOptions = {}) => {
+                controls.signal?.throwIfAborted(); check(staging.file.path, true);
+                await writer.write(bytes, controls);
+              },
+              finish: async (controls: FsOptions = {}) => {
+                controls.signal?.throwIfAborted(); check(staging.file.path, true);
+                return writer.finish(controls);
+              },
+            }) });
+          });
           return Reflect.apply(value, target, args);
         };
       },
@@ -1532,15 +1546,18 @@ export class MemoryFileSystem implements FileSystem {
     if (!options.retainCleanup) return staging;
     // Reservations above include these references before either entry is exposed.
     location.parent.references++; directory.references++; file.references++;
-    return Object.freeze({ ...staging, cleanup: this.retainStagingCleanup(staging, location.parent, directory, file, location.name, name) });
+    return Object.freeze({ ...staging, ...this.retainStagingCleanup(staging, location.parent, directory, file, location.name, name) });
   }
 
   private retainStagingCleanup(staging: FileStaging, parent: DirectoryNode, directory: DirectoryNode,
-    file: FileNode | SymlinkNode, directoryName: string, fileName: string): FileStagingCleanup {
+    file: FileNode | SymlinkNode, directoryName: string, fileName: string): Pick<FileStaging, "cleanup" | "writer"> {
     // Clear this state on release, so keeping the closed handle does not keep
     // detached nodes alive outside the Memory ledger.
     let retained: { parent: DirectoryNode; directory: DirectoryNode; file: FileNode | SymlinkNode } | undefined = { parent, directory, file };
-    return createStagingCleanup(staging.directory.path, options => {
+    let expected = staging.file.stat;
+    let writing = true;
+    const receipt = (): FileStaging => ({ ...staging, file: { ...staging.file, stat: expected } });
+    const ownedCleanup = createStagingCleanup(staging.directory.path, options => {
       options.signal?.throwIfAborted();
       const state = retained!;
       if (state.parent.nlink === 0 || state.parent.entries.get(directoryName) !== state.directory) this.fail("EAGAIN", "removeStagedFile", staging.directory.path);
@@ -1549,7 +1566,7 @@ export class MemoryFileSystem implements FileSystem {
       if ((state.directory.mode & 0o777) !== 0o700) this.fail("EAGAIN", "removeStagedFile", staging.directory.path);
       const child = state.directory.entries.get(fileName);
       if (child && child !== state.file) this.fail("EAGAIN", "removeStagedFile", staging.file.path);
-      this.removeStagingLocations(staging, {
+      this.removeStagingLocations(receipt(), {
         node: state.directory, parent: state.parent, name: directoryName, path: staging.directory.path,
       }, { node: child, parent: state.directory, name: fileName, path: staging.file.path });
     }, () => {
@@ -1559,6 +1576,39 @@ export class MemoryFileSystem implements FileSystem {
       this.releaseReference(state.directory, staging.directory.path);
       this.releaseReference(state.parent, staging.parent.path);
     });
+    const cleanup: FileStagingCleanup = Object.freeze({
+      remove: (options?: FsOptions) => { writing = false; return ownedCleanup.remove(options); },
+      close: () => { writing = false; return ownedCleanup.close(); },
+    });
+    if (file.type !== "file") return { cleanup };
+    const inspect = (options: FsOptions): FileNode => {
+      options.signal?.throwIfAborted();
+      if (!retained || !writing) this.fail("EBADF", "stagedWrite", staging.file.path);
+      const location = this.stagingLocations(receipt());
+      if (location.file.node !== retained.file) this.fail("EAGAIN", "stagedWrite", staging.file.path);
+      this.expectEntry(retained.file, expected, staging.file.path);
+      this.permission(retained.parent, 3, "stagedWrite", staging.parent.path);
+      this.permission(retained.directory, 3, "stagedWrite", staging.directory.path);
+      return retained.file as FileNode;
+    };
+    return { cleanup, writer: Object.freeze({
+      write: async (bytes: Uint8Array, options: FsOptions = {}) => {
+        const node = inspect(options);
+        if (!(bytes instanceof Uint8Array)) throw new TypeError("Staged writes require Uint8Array data");
+        this.writeAt(node, bytes, node.byteLength, "stagedWrite", staging.file.path);
+        expected = Object.freeze(this.snapshot(node));
+      },
+      finish: async (options: FsOptions = {}) => {
+        const node = inspect(options);
+        this.changed(node);
+        // changed updates modification time; archive creation metadata is final.
+        node.atimeMs = staging.file.stat.atimeMs;
+        node.mtimeMs = staging.file.stat.mtimeMs;
+        writing = false;
+        expected = Object.freeze(this.snapshot(node));
+        return expected;
+      },
+    }) };
   }
 
   async prepareDirectoryAncestry(ancestors: readonly FileStagingEntry[], options: FsOptions = {}): Promise<() => true> {

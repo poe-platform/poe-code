@@ -77,9 +77,8 @@ test("B02 explicit 64 MiB entry limit rejects plus one while uncapped defaults a
     await fs.writeFile("/output/data", Buffer.from("old destination"));
     const original = await fs.stat("/output/data");
     let publications = 0;
-    const writeStream = fs.writeStream!;
-    const publish = writeStream.bind(fs);
-    fs.writeStream = async (path, body, options) => { publications++; await publish(path, body, options); };
+    const publish = fs.publishStagedFile!.bind(fs);
+    fs.publishStagedFile = async (...args) => { await publish(...args); publications++; };
     const bytes = declaredHeader("data", 67_108_864 + Number(over));
     const failure = new Error("independent boundary control reached body read");
     const reported: unknown[] = [];
@@ -103,16 +102,15 @@ test("B02 explicit 64 MiB entry limit rejects plus one while uncapped defaults a
     assert.equal(pulls, overLimit ? 1 : 2);
     await deadline(closed.promise);
     assert.equal(returns, 1);
-    assert.equal(publications, overLimit ? 0 : 1);
-    if (overLimit) {
-      fs.writeStream = writeStream;
+    assert.equal(publications, 0);
+    {
       const retained = await fs.stat("/output/data");
       assert.deepEqual(retained, original);
       assert.equal(retained.identityScope, original.identityScope);
       assert.equal(retained.dev, original.dev);
       assert.equal(retained.ino, original.ino);
     }
-    assert.deepEqual(Buffer.from(await fs.readFile("/output/data")), overLimit ? Buffer.from("old destination") : Buffer.alloc(0));
+    assert.deepEqual(Buffer.from(await fs.readFile("/output/data")), Buffer.from("old destination"));
     assert.deepEqual(await names(fs), ["data"]);
     await sentinel(fs);
     console.log(JSON.stringify({ maxEntryBytes, over, declaredBytes: 67_108_864 + Number(over), headerBytes: bytes.length, fixtureSha256: digest(bytes), pulls, returns, publications, ...result }));
@@ -131,15 +129,15 @@ test("B03 small gzip amplification obeys expanded-byte budget and a valid full-s
       { limits: { maxArchiveBytes, chunkSize: 512 } });
     if (maxArchiveBytes === plain.length) success(result);
     else { assert.equal(result.exitCode, 2); assert.match(result.stderr, /archive byte limit/); }
-    const expected: Buffer = maxArchiveBytes === plain.length ? payload : payload.subarray(0, 2048 - 512);
-    assert.deepEqual(Buffer.from(await fs.readFile("/output/data")), expected);
-    assert.deepEqual(await names(fs), ["data"]);
+    if (maxArchiveBytes === plain.length) assert.deepEqual(Buffer.from(await fs.readFile("/output/data")), payload);
+    else await absent(fs, "/output/data");
+    assert.deepEqual(await names(fs), maxArchiveBytes === plain.length ? ["data"] : []);
     await sentinel(fs);
-    console.log(JSON.stringify({ compressedBytes: compressed.length, expandedBytes: plain.length, maxArchiveBytes, retainedBytes: expected.length, fixtureSha256: digest(compressed), ...result }));
+    console.log(JSON.stringify({ compressedBytes: compressed.length, expandedBytes: plain.length, maxArchiveBytes, retainedBytes: maxArchiveBytes === plain.length ? payload.length : 0, fixtureSha256: digest(compressed), ...result }));
   }
 });
 
-test("B04 late body, padding and gated gzip trailer failures retain exact partial effects", { timeout: 15000 }, async () => {
+test("B04 late body, padding and gated gzip trailer failures retain exact committed-member effects", { timeout: 15000 }, async () => {
   const first = Buffer.from("accepted first file");
   const current = pattern(29);
   const prefix = Buffer.concat([member({ name: "directory", type: "5" }), member({ name: "first", data: first })]);
@@ -149,13 +147,14 @@ test("B04 late body, padding and gated gzip trailer failures retain exact partia
     const fs = await fixture();
     await fs.writeFile("/output/keep", Buffer.from("keep"));
     await fs.writeFile("/output/current", Buffer.from("replaced"));
+    const original = await fs.stat("/output/current");
     const controller = new AbortController();
     const published = gate();
     const release = gate();
     const inputClosed = gate();
     const timer = setTimeout(() => controller.abort(new Error("late-effects deadline")), 5000);
-    const write = fs.writeStream!.bind(fs);
-    fs.writeStream = async (path, input, options) => { await write(path, input, options); if (path === "/output/later") published.resolve(); };
+    const publish = fs.publishStagedFile!.bind(fs);
+    fs.publishStagedFile = async (staging, path, options) => { await publish(staging, path, options); if (path === "/output/later") published.resolve(); };
     const compressed = gzipSync(full);
     compressed[compressed.length - 8] = compressed[compressed.length - 8]! ^ 1;
     const input = kind === "gzip trailer" ? (async function* () {
@@ -179,8 +178,9 @@ test("B04 late body, padding and gated gzip trailer failures retain exact partia
       if (kind === "valid") success(result);
       else { assert.equal(result.exitCode, 2); assert.match(result.stderr, kind === "gzip trailer" ? /data check|length check|checksum|gzip/iu : /truncated archive/); }
       assert.deepEqual(Buffer.from(await fs.readFile("/output/first")), first);
-      assert.deepEqual(Buffer.from(await fs.readFile("/output/current")), kind === "body" ? current.subarray(0, 7) : current);
-      assert.equal((await fs.stat("/output/current")).mode & 0o777, kind === "body" ? 0o600 : 0o640);
+      if (kind === "body") assert.deepEqual(await fs.stat("/output/current"), original);
+      else assert.equal((await fs.stat("/output/current")).mode & 0o777, 0o640);
+      assert.deepEqual(Buffer.from(await fs.readFile("/output/current")), kind === "body" ? Buffer.from("replaced") : current);
       assert.equal((await fs.stat("/output/directory")).mode & 0o777, kind === "valid" ? 0o755 : 0o700);
       assert.equal(Buffer.from(await fs.readFile("/output/keep")).toString(), "keep");
       const laterPublished = kind === "valid" || kind === "gzip trailer";
@@ -188,7 +188,7 @@ test("B04 late body, padding and gated gzip trailer failures retain exact partia
       if (laterPublished) assert.equal(Buffer.from(await fs.readFile("/output/later")).toString(), "later");
       else await absent(fs, "/output/later");
       await sentinel(fs);
-      console.log(JSON.stringify({ kind, retainedBytes: kind === "body" ? 7 : current.length, directoryMode: kind === "valid" ? "0755" : "0700", ...result }));
+      console.log(JSON.stringify({ kind, retainedBytes: kind === "body" ? original.size : current.length, directoryMode: kind === "valid" ? "0755" : "0700", ...result }));
     } finally {
       release.resolve();
       controller.abort(new Error("late-effects cleanup"));
@@ -241,40 +241,50 @@ test("B05 blocked compressed extraction bounds source pulls, resumes, or aborts 
         finally { returnClosed.resolve(); }
       },
     }; } };
-    const write = fs.writeStream!.bind(fs);
-    fs.writeStream = async (path, body, options) => {
-      if (path !== "/output/data") return write(path, body, options);
-      writerSignal = options?.signal;
-      assert.ok(writerSignal);
-      try {
-        await fs.writeFile(path, Buffer.alloc(0), options);
-        for await (const chunk of body) {
-          if (committed === 0) {
-            assert.ok(chunk.length >= 7);
-            await fs.appendFile(path, chunk.subarray(0, 7), { signal: writerSignal });
-            committed = 7; writes++;
-            entered.resolve();
-            await waitForRelease(release.promise, writerSignal);
-            await fs.appendFile(path, chunk.subarray(7), { signal: writerSignal });
-            committed += chunk.length - 7; writes++;
-          } else {
-            await fs.appendFile(path, chunk, { signal: writerSignal });
-            committed += chunk.length; writes++;
-          }
-        }
-      } catch (error) { writerReason = error; throw error; }
-      finally { writerClosed.resolve(); }
+    const create = fs.createStagedFile!.bind(fs);
+    let stagedPath: string | undefined;
+    fs.createStagedFile = async (...args) => {
+      // Admission must precede consuming the member body. This catches a
+      // collectBytes-before-staging regression even without a writer facet.
+      if (stagedPath === undefined) assert.ok(sourceBytes <= maximumBlockedSourceBytes, `source read-ahead ${sourceBytes} exceeds fixed ${maximumBlockedSourceBytes}`);
+      const staging = await create(...args);
+      if (stagedPath !== undefined) return staging;
+      stagedPath = staging.file.path;
+      const writer = staging.writer;
+      assert.ok(writer, "extraction requires a retained staged writer");
+      return { ...staging, writer: {
+        async write(chunk, options) {
+          writerSignal = options?.signal;
+          assert.ok(writerSignal);
+          try {
+            if (committed === 0) {
+              assert.ok(chunk.length >= 7);
+              await writer.write(chunk.subarray(0, 7), options);
+              committed = 7; writes++;
+              entered.resolve();
+              await waitForRelease(release.promise, writerSignal);
+              await writer.write(chunk.subarray(7), options);
+              committed += chunk.length - 7; writes++;
+            } else {
+              await writer.write(chunk, options);
+              committed += chunk.length; writes++;
+            }
+          } catch (error) { writerReason = error; writerClosed.resolve(); throw error; }
+        },
+        async finish(options) { try { return await writer.finish(options); } finally { writerClosed.resolve(); } },
+      } };
     };
     const running = tar(fs, ["-xzf", "-", "-C", "/output"], { stdin: input, signal: controller.signal }, { limits: { chunkSize: 512 } });
     void running.catch(() => {});
     try {
-      await deadline(entered.promise);
+      await deadline(Promise.race([entered.promise, running.then(result => { success(result); throw new Error("writer was not entered"); })]));
       await delay(30);
       const blockedPulls = pulls;
       const blockedBytes = sourceBytes;
       assert.equal(committed, 7);
       assert.equal(writes, 1);
-      assert.deepEqual(Buffer.from(await fs.readFile("/output/data")), payload.subarray(0, 7));
+      await absent(fs, "/output/data");
+      assert.deepEqual(Buffer.from(await fs.readFile(stagedPath!)), payload.subarray(0, 7));
       assert.ok(blockedBytes <= maximumBlockedSourceBytes, `source read-ahead ${blockedBytes} exceeds fixed ${maximumBlockedSourceBytes}`);
       assert.ok(blockedPulls <= maximumBlockedSourceBytes / sourceChunkBytes);
       await absent(fs, "/output/later");
@@ -290,8 +300,8 @@ test("B05 blocked compressed extraction bounds source pulls, resumes, or aborts 
         assert.equal(writes, 1);
         assert.equal(sourceBytes, blockedBytes);
         assert.equal(pulls, blockedPulls);
-        assert.deepEqual(Buffer.from(await fs.readFile("/output/data")), payload.subarray(0, 7));
-        assert.deepEqual(await names(fs), ["data"]);
+        await absent(fs, "/output/data");
+        assert.deepEqual(await names(fs), []);
       } else {
         release.resolve();
         success(await deadline(running));
@@ -311,7 +321,7 @@ test("B05 blocked compressed extraction bounds source pulls, resumes, or aborts 
       release.resolve();
       clearTimeout(timer);
       await deadline(Promise.allSettled([running]));
-      await deadline(Promise.all([sourceClosed.promise, writerClosed.promise]));
+      await deadline(sourceClosed.promise);
     }
   }
 });

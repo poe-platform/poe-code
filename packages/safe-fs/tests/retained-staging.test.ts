@@ -11,6 +11,89 @@ import { FsError, type FileSystem, type StagedFileContent } from "../src/contrac
 
 const data = new Uint8Array([1, 2, 3]);
 const foreign = new Uint8Array([9]);
+
+test("retained staged writes copy bytes, seal metadata and refund owned allocation", async () => {
+  const fs = createMemoryFileSystem({ maxRetainedBytes: 4096, maxFileBytes: 128 });
+  await fs.mkdir("/work");
+  const ledger = Reflect.get(fs, "ledger");
+  const usage = () => [Reflect.get(ledger, "retainedBytes"), Reflect.get(ledger, "metadataUnits")];
+  const before = usage();
+  const staging = await fs.createStagedFile!("/work/.stage", "file", { type: "file", data: new Uint8Array() }, {
+    parent: await fs.lstat("/work"), retainCleanup: true, mode: 0o444, atimeMs: 1000, mtimeMs: 2000,
+  });
+  const writer = staging.writer!;
+  assert.ok(writer);
+  const bytes = Uint8Array.of(1, 2, 3);
+  await writer.write(bytes);
+  bytes.fill(9);
+  assert.deepEqual(await fs.readFile(staging.file.path), data);
+  const stat = await writer.finish();
+  assert.equal(stat.mode & 0o777, 0o444);
+  assert.equal(stat.atimeMs, 1000);
+  assert.equal(stat.mtimeMs, 2000);
+  await assert.rejects(writer.write(data), { code: "EBADF" });
+  await assert.rejects(writer.finish(), { code: "EBADF" });
+  await staging.cleanup!.remove();
+  assert.deepEqual(usage(), before);
+  assert.deepEqual(await fs.readdir("/work"), []);
+});
+
+for (const end of ["remove", "close"] as const) test(`retained staged writes reject immediately after cleanup ${end}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  const { staged, cleanup } = await stage(fs);
+  const ending = cleanup[end]();
+  await assert.rejects(staged.writer!.write(data), { code: "EBADF" });
+  await assert.rejects(staged.writer!.finish(), { code: "EBADF" });
+  await ending;
+  if (end === "close") await fs.removeStagedFile!(staged);
+});
+
+test("retained staged writes refuse foreign revisions without deleting them", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  const { staged, cleanup } = await stage(fs);
+  await staged.writer!.write(data);
+  await fs.appendFile(staged.file.path, foreign);
+  await assert.rejects(staged.writer!.write(data), { code: "EAGAIN" });
+  await assert.rejects(staged.writer!.finish(), { code: "EAGAIN" });
+  await assert.rejects(cleanup.remove(), { code: "EAGAIN" });
+  assert.deepEqual(await fs.readFile(staged.file.path), new Uint8Array([...data, ...data, ...foreign]));
+});
+
+test("retained staged writes honor cancellation and scope operation charging", async () => {
+  const memory = createMemoryFileSystem();
+  await memory.mkdir("/work");
+  const controller = new AbortController();
+  let charges = 0, cleanupCharges = 0;
+  const fs = scopeFileSystem(memory, () => { charges++; }, controller.signal, () => { cleanupCharges++; });
+  const { staged, cleanup } = await stage(fs);
+  const before = charges;
+  await staged.writer!.write(data);
+  assert.equal(charges, before + 1);
+  const reason = new Error("stop staged writes");
+  controller.abort(reason);
+  await assert.rejects(staged.writer!.write(foreign), error => error === reason);
+  await assert.rejects(staged.writer!.finish(), error => error === reason);
+  assert.deepEqual(await memory.readFile(staged.file.path), new Uint8Array([...data, ...data]));
+  await cleanup.remove();
+  assert.equal(cleanupCharges, 1);
+  assert.deepEqual(await memory.readdir("/work"), []);
+});
+
+test("retained staged writes preserve confined ancestry and retained cleanup after relocation", async () => {
+  const memory = createMemoryFileSystem();
+  await memory.mkdir("/work");
+  const fs = await memory.confineExtraction!(["/work"]);
+  const { staged, cleanup } = await stage(fs);
+  await staged.writer!.write(data);
+  await memory.rename("/work", "/held");
+  await memory.mkdir("/work");
+  await assert.rejects(staged.writer!.write(foreign), { code: "EAGAIN" });
+  await cleanup.remove();
+  assert.deepEqual(await memory.readdir("/held"), []);
+  assert.deepEqual(await memory.readdir("/work"), []);
+});
 function view(base: FileSystem, methods: Partial<FileSystem>): FileSystem {
   return new Proxy(base, { get(target, key) {
     const owner = key in methods ? methods : target;

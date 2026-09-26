@@ -47,6 +47,10 @@ async function fixture(mode: "disabled" | "absent", readOnly = false, beforeQuer
         writes.push(args[0]);
         return target[property](...args);
       };
+      if (property === "publishStagedFile" && target.publishStagedFile) return async (...args: Parameters<NonNullable<FileSystem["publishStagedFile"]>>) => {
+        writes.push(args[1]);
+        return target.publishStagedFile!(...args);
+      };
       if (property === "confineExtraction" && target.confineExtraction) return async (...args: Parameters<NonNullable<FileSystem["confineExtraction"]>>) =>
         wrap(await target.confineExtraction!(...args));
       const value: unknown = Reflect.get(target, property);

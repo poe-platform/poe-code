@@ -62,9 +62,14 @@ async function parents(context: CommandContext, root: string, path: string, crea
 
 async function removeExisting(context: CommandContext, path: string, stat: FileStat | undefined): Promise<void> {
   if (!stat) return;
-  if (!context.fs.removeFileConditional) fail("extraction requires conditional entry removal");
   const parent = await context.fs.lstat(dirname(path), { signal: context.signal });
-  await context.fs.removeFileConditional(path, { signal: context.signal, expected: stat, parent });
+  if (stat.type === "file") {
+    if (!context.fs.removeFileConditional) fail("extraction requires conditional file removal");
+    await context.fs.removeFileConditional(path, { signal: context.signal, expected: stat, parent });
+  } else {
+    if (!context.fs.removeEntryConditional) fail("extraction requires conditional entry removal");
+    await context.fs.removeEntryConditional(path, { signal: context.signal, expected: stat, parent });
+  }
 }
 
 async function checkSymlinkTarget(context: CommandContext, root: string, path: string, target: string, budget: Budget): Promise<void> {
@@ -146,7 +151,8 @@ async function stageEntry(context: CommandContext, path: string, source: ByteSou
   let failure: { reason: unknown } | undefined;
   try {
     const maximum = Math.min(budget.limits.maxEntryBytes, budget.limits.maxBufferedFileBytes);
-    const data = entry.type === "2" ? undefined : await collectBytes(source, { signal, ...(Number.isFinite(maximum) ? { maxBytes: maximum } : {}) });
+    const streaming = entry.type !== "2" && capabilities.retainedStagingWrite === true && capabilities.retainedStagingCleanup === true;
+    const data = entry.type === "2" ? undefined : streaming ? new Uint8Array() : await collectBytes(source, { signal, ...(Number.isFinite(maximum) ? { maxBytes: maximum } : {}) });
     for (let attempt = 0; attempt < budget.limits.maxMembers; attempt++) {
       const temporary = resolvePath(dirname(path), `.tar-${++stagingSerial}`);
       checkPath(`${temporary}/entry`, budget.limits);
@@ -167,6 +173,19 @@ async function stageEntry(context: CommandContext, path: string, source: ByteSou
       }
     }
     if (!staging) fail("temporary file attempt limit exceeded");
+    if (streaming) {
+      const writer = staging.writer;
+      if (!writer) fail("filesystem did not return a retained staged writer");
+      let written = 0;
+      for await (const bytes of source) {
+        signal.throwIfAborted();
+        if (bytes.byteLength > maximum - written) fail("entry byte limit exceeded");
+        await writer.write(bytes, { signal });
+        written += bytes.byteLength;
+      }
+      const stat = await writer.finish({ signal });
+      staging = { ...staging, file: { ...staging.file, stat } };
+    }
     await fs.publishStagedFile(staging, path, { signal, parent, destination: existing ?? null, ancestors });
   } catch (reason) { failure = { reason }; }
   try { await cleanup(); }

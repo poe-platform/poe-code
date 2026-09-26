@@ -210,8 +210,8 @@ unsupported and produce failure. No option or archive data executes code.
 - Created headers record numeric UID/GID when provided, ordinary/special permission
   bits, mtime, and (PAX) atime. Missing creation UID/GID become zero; no owner names are
   invented. There is no FS ownership API: extraction does **not** chown, restore
-  owner/group names, ctime/birthtime, ACLs, or xattrs. Supported `chmod`/`utimes`
-  restore ordinary `0777` permission bits and atime/mtime; setuid/setgid/sticky
+  owner/group names, ctime/birthtime, ACLs, or xattrs. Staged-file and conditional
+  directory metadata restore ordinary `0777` permission bits and atime/mtime; setuid/setgid/sticky
   bits are not restored. Symlink and hardlink metadata is not independently
   reapplied. Backend capability flags/methods govern restoration. Unsupported
   metadata is not represented as preserved. Timestamp precision remains that
@@ -220,10 +220,9 @@ unsupported and produce failure. No option or archive data executes code.
   not invented zero values. Deleted mtime is not restored: normal backend
   creation/write (or existing-directory) state remains. Absent atime retains the
   historical atime-from-mtime fallback; explicitly deleted atime suppresses it.
-  If just one timestamp is requested, a fresh post-write/post-chmod stat supplies
-  the other for paired `utimes`; stat/utimes errors and cancellation propagate.
-  This is non-atomic best-effort preservation, not an omission primitive, lease
-  or pathname-race guarantee. Neither requested time means no `utimes` call.
+  Omitted timestamps retain staging creation values or existing directory state.
+  Streaming finalization restores these values before publication; finalization
+  errors and cancellation prevent publication of the current file.
   Verbose listing otherwise uses numeric IDs/seconds, not
   byte-for-byte GNU date/locale formatting.
 - Directory metadata is deferred until successful archive validation, children
@@ -273,11 +272,11 @@ producer cannot be detected by this command.
 
 **There is no whole-archive transaction or rollback.** Accepted earlier
 members remain after late checksum failure, truncation, gzip CRC failure,
-unsupported entries, output errors, or cancellation. The current member and
-new parents can remain partial; replacing an existing leaf can remove its old
-version before the new body is complete. Named archive output can likewise be
-partial on failure. Directory metadata may not yet have been restored.
-Tests check these effects, rather than claiming atomic publication.
+unsupported entries, output errors, or cancellation. A truncated file body
+leaves an existing regular-file destination unchanged. New parents and already
+completed members remain; replacing a different entry type can remove it before
+the new member completes. Named archive output can likewise be partial on
+failure. Directory metadata may not yet have been restored.
 
 Source type/identity/size/mtime/ctime are checked around file reads; short/long
 reads and observed changes fail. This is not a snapshot, file lease, ABA
@@ -460,7 +459,9 @@ artifact at handoff. A **different independent verifier still must follow**.
 
 Regular files and symlinks use owned atomic staging with ancestor identity
 checks; directory creation, replacement, and metadata use conditional operations.
-Staging buffers each file within `maxEntryBytes` and `maxBufferedFileBytes`.
+Memory staging awaits writes to a retained private file, keeping source
+backpressure while respecting `maxEntryBytes` and `maxBufferedFileBytes`.
+Backends without retained staged writes buffer each file within those limits.
 Truncated file payloads are never published. Named archive input uses retained
 reads when supported, allowing a confined host to copy read-only mounted input
 to a separate writable destination without holding a streaming namespace lease.

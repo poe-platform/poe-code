@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createTarCommand } from "../../../../src/commands/archive/index.js";
 import type { ArchiveCommandsOptions } from "../../../../src/commands/archive/index.js";
 import { createMemoryFileSystem } from "../../../../src/fs/memory/index.js";
-import type { ByteSource, FileSystem, FsOptions, InternalErrorHandler } from "../../../../src/contracts/index.js";
+import type { ByteSource, FileSystem, InternalErrorHandler } from "../../../../src/contracts/index.js";
 export { archive, checksum, fileData, member, record } from "../pax-independent/fixtures.js";
 
 export const normalAtime = 1_555_000_000_123;
@@ -16,36 +16,40 @@ export async function backend() {
   await fs.mkdir("/outside");
   await fs.writeFile("/outside/sentinel", Buffer.from("outside unchanged"));
   const observe = fs.stat.bind(fs);
-  const write = fs.writeStream!.bind(fs);
-  const setTimes = fs.utimes!.bind(fs);
+  const create = fs.createStagedFile!.bind(fs);
+  const publish = fs.publishStagedFile!.bind(fs);
   const state: {
     publications: number;
     times: { path: string; atime: number; mtime: number }[];
-    postWriteStats: string[];
-    statError?: Error;
-    abortOnStat?: { controller: AbortController; reason: Error };
-  } = { publications: 0, times: [], postWriteStats: [] };
-  const written = new Set<string>();
-  fs.writeStream = async (path, bytes, options) => {
+    finalizations: number;
+    finishError?: Error;
+    abortOnFinish?: { controller: AbortController; reason: Error };
+  } = { publications: 0, times: [], finalizations: 0 };
+  const times = new Map<string, { atime: number; mtime: number }>();
+  fs.createStagedFile = async (path, name, content, options) => {
+    const staging = await create(path, name, content, { atimeMs: normalAtime, mtimeMs: normalMtime, ...options });
+    if (options.atimeMs !== undefined || options.mtimeMs !== undefined)
+      times.set(staging.file.path, { atime: options.atimeMs ?? normalAtime, mtime: options.mtimeMs ?? normalMtime });
+    const writer = staging.writer;
+    if (!writer) return staging;
+    return { ...staging, writer: {
+      write: writer.write.bind(writer),
+      async finish(settings) {
+        state.finalizations++;
+        if (state.finishError) throw state.finishError;
+        if (state.abortOnFinish) {
+          state.abortOnFinish.controller.abort(state.abortOnFinish.reason);
+          throw state.abortOnFinish.reason;
+        }
+        return writer.finish(settings);
+      },
+    } };
+  };
+  fs.publishStagedFile = async (staging, path, options) => {
+    await publish(staging, path, options);
     state.publications++;
-    await write(path, bytes, options);
-    await setTimes(path, normalAtime, normalMtime, options);
-    written.add(path);
-  };
-  fs.stat = async (path, options?: FsOptions) => {
-    if (written.has(path)) {
-      state.postWriteStats.push(path);
-      if (state.statError) throw state.statError;
-      if (state.abortOnStat) {
-        state.abortOnStat.controller.abort(state.abortOnStat.reason);
-        throw state.abortOnStat.reason;
-      }
-    }
-    return observe(path, options);
-  };
-  fs.utimes = async (path, atime, mtime, options) => {
-    state.times.push({ path, atime, mtime });
-    await setTimes(path, atime, mtime, options);
+    const time = times.get(staging.file.path);
+    if (time) state.times.push({ path, ...time });
   };
   return { fs, state, observe };
 }

@@ -79,9 +79,14 @@ export class MemoryLedger {
 }
 
 export class MemoryAllocation {
-  private references = 1;
+  declare private references: number;
+  declare readonly data: Uint8Array;
+  declare private readonly ledger: MemoryLedger;
 
-  constructor(readonly data: Uint8Array, private readonly ledger: MemoryLedger) {}
+  constructor(data: Uint8Array, ledger: MemoryLedger) {
+    this.data = data;
+    this.ledger = ledger;
+  }
 
   retain(): void {
     this.references++;
@@ -101,3 +106,6 @@ export class MemoryAllocation {
     this.data.fill(0);
   }
 }
+Object.assign(MemoryAllocation.prototype, {
+  references: 1,
+});

@@ -46,27 +46,27 @@ interface FileNode extends Metadata {
 }
 
 class MemoryFileNode implements FileNode {
-  readonly type = "file" as const;
-  revision = 0;
-  mode: number;
-  ino: number;
-  nlink = 1;
-  atimeMs: number;
-  mtimeMs: number;
-  ctimeMs: number;
-  birthtimeMs: number;
-  references = 0;
-  byteLength: number;
-  view: Uint8Array | undefined;
-  allocation: MemoryAllocation;
+  declare readonly type: "file";
+  declare revision: number;
+  declare mode: number;
+  declare ino: number;
+  declare nlink: number;
+  declare atimeMs: number;
+  declare mtimeMs: number;
+  declare ctimeMs: number;
+  declare birthtimeMs: number;
+  declare references: number;
+  declare byteLength: number;
+  declare view: Uint8Array | undefined;
+  declare allocation: MemoryAllocation;
 
   constructor(mode: number, ino: number, now: number, byteLength: number, allocation: MemoryAllocation, view?: Uint8Array) {
     this.mode = mode;
     this.ino = ino;
-    this.atimeMs = now as unknown as number;
-    this.mtimeMs = now as unknown as number;
-    this.ctimeMs = now as unknown as number;
-    this.birthtimeMs = now as unknown as number;
+    this.atimeMs = now;
+    this.mtimeMs = now;
+    this.ctimeMs = now;
+    this.birthtimeMs = now;
     this.byteLength = byteLength;
     this.allocation = allocation;
     this.view = view;
@@ -81,6 +81,17 @@ class MemoryFileNode implements FileNode {
     this.byteLength = value.byteLength;
   }
 }
+Object.assign(MemoryFileNode.prototype, {
+  type: "file",
+  revision: 0,
+  nlink: 1,
+  references: 0,
+});
+
+const EMPTY_ALLOC_BYTES = new Uint8Array(0);
+const SMALL_ALLOC_SLAB_SIZE = 8192;
+let smallAllocSlab = new Uint8Array(SMALL_ALLOC_SLAB_SIZE);
+let smallAllocOffset = 0;
 
 interface DirectoryNode extends Metadata {
   type: "directory";
@@ -916,11 +927,23 @@ export class MemoryFileSystem implements FileSystem {
   private allocate(length: number, syscall: string, path: string): MemoryAllocation {
     this.ledger.fileSize(length, syscall, path);
     this.ledger.reserve(length, 0, syscall, path);
+    if (length === 0) {
+      return new MemoryAllocation(EMPTY_ALLOC_BYTES, this.ledger);
+    }
     const allocations = memoryCaches.get(this.ledger)!.allocations;
     if (length === 64 && allocations.length > 0) {
       const pooled = allocations.pop()!;
       pooled.reuse();
       return pooled;
+    }
+    if (length > 0 && length <= 64) {
+      if (smallAllocOffset + length > SMALL_ALLOC_SLAB_SIZE) {
+        smallAllocSlab = new Uint8Array(SMALL_ALLOC_SLAB_SIZE);
+        smallAllocOffset = 0;
+      }
+      const slice = smallAllocSlab.subarray(smallAllocOffset, smallAllocOffset + length);
+      smallAllocOffset += length;
+      return new MemoryAllocation(slice, this.ledger);
     }
     try {
       return new MemoryAllocation(new Uint8Array(length), this.ledger);
@@ -1167,11 +1190,7 @@ export class MemoryFileSystem implements FileSystem {
       return;
     }
     if (!current) {
-      const capacity = length > 0 && length <= 64 && this.ledger.canPreallocate64(nameBytes)
-        ? 64
-        : length > 64 && append
-        ? Math.min(length, this.ledger.limits.maxFileBytes, this.ledger.availableBytes - nameBytes)
-        : length;
+      const capacity = length;
       const allocation = this.allocate(capacity, syscall, path);
       try {
         allocation.data.set(data);
@@ -1179,7 +1198,7 @@ export class MemoryFileSystem implements FileSystem {
         try {
           const now = Date.now();
           const fileMode = typeModes.file | mode;
-          const view = capacity === length ? allocation.data : undefined;
+          const view = allocation.data;
           let node = cache.files.pop();
           if (node) {
             node.mode = fileMode;
@@ -1306,11 +1325,7 @@ export class MemoryFileSystem implements FileSystem {
         return;
       }
       if (!current) {
-        const capacity = length > 0 && length <= 64 && this.ledger.canPreallocate64(nameBytes)
-          ? 64
-          : length > 64 && append
-          ? Math.min(length, this.ledger.limits.maxFileBytes, this.ledger.availableBytes - nameBytes)
-          : length;
+        const capacity = length;
         const allocation = this.allocate(capacity, syscall, name);
         try {
           allocation.data.set(data);
@@ -1318,7 +1333,7 @@ export class MemoryFileSystem implements FileSystem {
           try {
             const now = Date.now();
             const fileMode = typeModes.file | mode;
-            const view = capacity === length ? allocation.data : undefined;
+            const view = allocation.data;
             let node = cache.files.pop();
             if (node) {
               node.mode = fileMode;

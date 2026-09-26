@@ -442,9 +442,17 @@
       "cases": 6,
       "paths": [
         "compiled poe-code/ssconvert SDK",
-        "compiled runCommand"
+        "compiled runCommand",
+        "compiled @poe-platform/safe-bash Shell"
       ],
-      "output": "All original pxlib fixtures retain exact CSV values and existing v4 codepage warnings; borrowed inputs unchanged."
+      "output": "All original pxlib fixtures retain exact CSV values and existing v4 codepage warnings; borrowed inputs unchanged.",
+      "postDecryptionFailure": {
+        "exitCode": 1,
+        "diagnostic": "ssconvert database cells limit exceeded",
+        "targetPreserved": true,
+        "inputPreserved": true
+      },
+      "build": "Maintained @poe-platform/safe-bash build and postbuild passed after correcting Pandoc dependency admission; 417 build tests and scoped lint passed."
     }
   }
 }

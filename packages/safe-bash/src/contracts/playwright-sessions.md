@@ -62,6 +62,18 @@ provider and explicit caller configuration. Any application-specific network
 policy must come from that host's documented requirements, not from the presence
 of arbitrary browser JavaScript or an isolated code runner.
 
+Both `createPlaywrightController` and `createPlaywrightCli` expose host-only
+`renewSession({ name, context }): boolean`. It synchronously renews the configured
+idle deadline only when the alias retains that exact context object and is open,
+healthy, and unexpired. Missing, acquiring, closing, closed, failed, replaced, or
+disposed sessions return `false`; renewal never allocates, restores, checkpoints,
+or calls the browser. Disabled idle expiry stays disabled. Hosts remain responsible
+for authenticating activity and renewing any independent owner or provider leases.
+While native command work pauses idle expiry, `inspectSessions()` still reports
+the retained session even past its previous deadline. Renewal preserves that pause
+without arming an expiry timer; command completion establishes the final deadline.
+Renewal is in-memory activity metadata, not a persistence acknowledgement.
+
 Private CDP target/session capacity counts active identities. Only native target
 destruction or session detach confirmations release that identity's capacity.
 Bounded recent retirement tombstones suppress late messages; active private

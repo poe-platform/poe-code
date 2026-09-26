@@ -123,7 +123,7 @@ export function createPlaywrightCli(options: PlaywrightCliOptions = {}) {
     },
     dispose: controller.dispose,
   };
-  return { plugin, dispose: controller.dispose, restoreSession: controller.restoreSession, inspectSessions: controller.inspectSessions, inspectRecovery: controller.inspectRecovery };
+  return { plugin, dispose: controller.dispose, restoreSession: controller.restoreSession, renewSession: controller.renewSession, inspectSessions: controller.inspectSessions, inspectRecovery: controller.inspectRecovery };
 }
 
 export * from '../../playwright/index.js';

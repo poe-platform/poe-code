@@ -44,6 +44,10 @@ export interface PlaywrightControllerOptions {
   readonly billing?: never;
 }
 export type PlaywrightSessionState = 'acquiring' | 'open' | 'closing' | 'closed';
+export interface PlaywrightSessionRenewOptions {
+  readonly name: string;
+  readonly context: PlaywrightContext;
+}
 export interface PlaywrightSessionRestoreOptions {
   readonly recovery?: 'saved-storage';
   readonly name: string;
@@ -383,7 +387,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     (session.expiryTimer as unknown as { unref?(): void }).unref?.();
   };
   const inspectSessions = (): readonly PlaywrightSessionCheckpoint[] => Object.freeze([...sessions.values()]
-    .filter(session => session.state === 'open' && (session.expiresAt === undefined || session.expiresAt > Date.now()))
+    .filter(session => session.state === 'open' && (session.idlePaused || session.expiresAt === undefined || session.expiresAt > Date.now()))
     .map(session => Object.freeze({ name: session.name, context: session.lease!.context,
       ...(session.page === undefined ? {} : { selectedPage: session.page }),
       ...(session.expiresAt === undefined ? {} : { expiresAt: session.expiresAt }),
@@ -391,6 +395,18 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       ...(session.contextOptions === undefined ? {} : { contextOptions: structuredClone(session.contextOptions) }),
       ...(session.configuration === undefined ? {} : { configuration: structuredClone(session.configuration) }),
     })));
+  const renewSession = (request: PlaywrightSessionRenewOptions): boolean => {
+    const session = sessions.get(request.name);
+    const now = Date.now();
+    if (lifetime.signal.aborted || session?.state !== 'open' || session.releasing || session.failure
+      || session.lease?.context !== request.context
+      || !session.idlePaused && session.expiresAt !== undefined && session.expiresAt <= now) return false;
+    if (session.idleTimeoutMs) {
+      session.expiresAt = now + session.idleTimeoutMs;
+      if (!session.idlePaused) scheduleExpiry(session);
+    }
+    return true;
+  };
   const inspectRecovery = async (request: { readonly name: string; readonly signal?: AbortSignal }): Promise<PlaywrightRecoveryResult> => {
     validatePlaywrightSessionName(request.name);
     const signal = request.signal ? AbortSignal.any([request.signal, lifetime.signal]) : lifetime.signal;
@@ -1390,6 +1406,6 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     lifetime.abort(new Error('Playwright controller is disposed'));
     return disposal;
   };
-  return { run, dispose, restoreSession: (request: PlaywrightSessionRestoreOptions) => restoreSession(request), inspectSessions, inspectRecovery };
+  return { run, dispose, restoreSession: (request: PlaywrightSessionRestoreOptions) => restoreSession(request), renewSession, inspectSessions, inspectRecovery };
 }
 import { PlaywrightResourceLimitError, PlaywrightSnapshotLimitError, isPlaywrightResourceLimitError } from './resource-limit.js';

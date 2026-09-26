@@ -566,6 +566,8 @@ for subsequent invocations with the same `PLAYWRIGHT_CLI_SESSION` default,
 including an authenticated agent ID different from the target name. Explicit
 `-s=NAME` overrides selection; `detach` retains the browser, while `close` retires it. See the
 [host capability contract](src/contracts/playwright-sessions.md#persistence).
+Hosts accepting direct browser activity can call `renewSession({ name, context })`
+to renew that exact retained session's idle deadline without browser commands.
 Browser snapshots have no byte limit, including automatic snapshots after
 navigation. Legacy `maxSnapshotBytes` settings are ignored.
 `playwright-cli --help` and `playwright-cli show --help` report dashboard

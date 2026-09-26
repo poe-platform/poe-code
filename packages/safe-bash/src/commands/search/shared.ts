@@ -108,7 +108,9 @@ export class Limits {
   }
   async flush(): Promise<void> {
     if (this.outPos > 0 && this.outBuf) {
-      const slice = this.outBuf.subarray(0, this.outPos);
+      const slice = this.usingSharedBuf
+        ? this.outBuf.slice(0, this.outPos)
+        : this.outBuf.subarray(0, this.outPos);
       this.outPos = 0;
       try {
         await this.write(slice);
@@ -371,6 +373,7 @@ function findDualDelimiter(chunk: Uint8Array, start: number, delimiter: number, 
   return -1;
 }
 
+/** Pool reuse is only safe when the caller consumes every line without suspending. */
 export function trySyncLineBatches(
   source: Uint8Array,
   limits: Limits,

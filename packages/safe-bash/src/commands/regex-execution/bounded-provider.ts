@@ -11,7 +11,7 @@ import { executeBoundedGlobs } from "./bounded-glob.js";
 import type { EreFragment, EreProgram } from "./ere/types.js";
 import type { BoundedRegexProvider, RegexWorker, RegexWorkerRequest } from "./provider.js";
 import { ExprMatchError, exprMatchCeilings, inProcessRegexProviders,
-  inProcessRegexWorkers, reusableBatchRows, trustedInputRows, trustedWorkerReplies, trustedWorkerRequests, type BreSearchDescriptor, type BreSearchReply, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GlobDescriptor, type GrepDescriptor, type Match, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
+  inProcessRegexWorkers, trustedInputRows, trustedWorkerReplies, trustedWorkerRequests, type BreSearchDescriptor, type BreSearchReply, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GlobDescriptor, type GrepDescriptor, type Match, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
 
 export interface BoundedRegexProviderOptions {
   readonly maxWorkers?: number;
@@ -58,8 +58,6 @@ const byteBuffer = Object.getOwnPropertyDescriptor(typedArrayPrototype, "buffer"
 const emptyFloat64 = new Float64Array(0);
 const emptyFloat64Results: readonly Float64Array[] = [];
 const emptyMatchRow: Match[] = [];
-const reusableDirectMatchesPool: Match[] = new Array(128).fill(emptyMatchRow);
-const reusableDirectMatchesByLength: Match[][][] = Array.from({ length: 129 }, (_, k) => reusableDirectMatchesPool.slice(0, k) as unknown as Match[][]);
 const reusableTrustedReply: { id: number; results: readonly Float64Array[]; directMatches: Match[][] } = {
   id: 0,
   results: emptyFloat64Results,
@@ -692,12 +690,11 @@ function tryExecuteEreSync(input: OwnedRequest, signal: AbortSignal, fold: boole
   if (rows.length === 0) {
     signal.throwIfAborted();
     reusableTrustedReply.id = input.id;
-    reusableTrustedReply.directMatches = reusableDirectMatchesByLength[0]!;
+    reusableTrustedReply.directMatches = [];
     return reusableTrustedReply;
   }
-  const directMatches: Match[][] = reusableBatchRows.has(rows) && rows.length <= 128
-    ? reusableDirectMatchesByLength[rows.length]!
-    : new Array(rows.length);
+  // Consumers may retain these results across awaits or subsequent requests.
+  const directMatches: Match[][] = new Array(rows.length);
   let matchCount = 0;
   const maxMatches = input.limits.maxTotalMatches === Infinity && input.limits.maxResultBytes === Infinity
     ? 0x3fffffff
@@ -882,9 +879,8 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
   runYieldCheckpoint(signal);
   const programs = lastLiteralCache.programs;
   ledger.charge("allocationUnits", 3, signal);
-  const directMatches: Match[][] = reusableBatchRows.has(rows) && rows.length <= 128
-    ? reusableDirectMatchesByLength[rows.length]!
-    : new Array(rows.length);
+  // Consumers may retain these results across awaits or subsequent requests.
+  const directMatches: Match[][] = new Array(rows.length);
   let matchCount = 0;
   let batchWork = 0;
   const maxMatches = input.limits.maxTotalMatches === Infinity && input.limits.maxResultBytes === Infinity

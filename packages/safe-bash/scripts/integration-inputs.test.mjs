@@ -18,6 +18,12 @@ import { assertAdmittedInputPath, assertLiteralInputPath, readIntegrationTypeInp
 
 const owner = "fixture producer";
 
+test("multi-tenant search and text regressions remain in active discovery", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/search/tenant-isolation.test.ts"));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/search/batch-ownership.test.ts"));
+});
+
 test("command resource limit regressions remain in active test discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/optional-resource-limits.test.ts"));

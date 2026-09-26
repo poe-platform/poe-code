@@ -113,7 +113,7 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
   const binaryOutput = selectedOutput && args.mode === "lines" && binary === "binary";
   const needAll = args.replacement !== undefined || args.onlyMatching || args.mode === "json" || args.mode === "matches" || args.stats === true;
   const batchSize = () => Number.isFinite(args.maxCount) || args.quiet && args.mode !== "json" || args.mode === "with" || args.mode === "without" || binaryOutput && state.binaryOffset !== null ? 1 : 128;
-  const syncBatches = source instanceof Uint8Array ? trySyncLineBatches(source, limits, state, binary, args.nullData, batchSize, needAll, args.crlf, args.before === 0) : undefined;
+  const syncBatches = source instanceof Uint8Array ? trySyncLineBatches(source, limits, state, binary, args.nullData, batchSize, needAll, args.crlf) : undefined;
   let syncIdx = 0;
   let asyncIter: AsyncIterator<Line[]> | undefined;
   let failure: { reason: unknown } | undefined;

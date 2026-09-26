@@ -198,7 +198,7 @@ export async function* lineRecordBatches(context: CommandContext, files: readonl
         pending = budget.check(pending ? pending + text.slice(start) : text.slice(start));
       }
       if (endsCount > 0) {
-        yield { text, firstLinePrefix, ends: sharedBatchEnds.subarray(0, endsCount), trailingText: undefined, file, fileIndex };
+        yield { text, firstLinePrefix, ends: sharedBatchEnds.slice(0, endsCount), trailingText: undefined, file, fileIndex };
       }
     }
     } finally {

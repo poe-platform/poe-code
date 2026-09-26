@@ -15,10 +15,18 @@ import { Volume } from "memfs";
 import * as api from "./index.js";
 import { ModelStore } from "./model-store.js";
 import { archiveSettings } from "./archive.js";
+async function executeRequest(request) {
+${body}
+}
 console.log("ready");
 for await (const data of createInterface({ input: createReadStream(null, { fd: 3 }) })) {
 const request = JSON.parse(data);
-${body}
+if (request.cleanup === true) {
+  globalThis.gc();
+  console.log(JSON.stringify({ cleaned: true }));
+  continue;
+}
+await executeRequest(request);
 }`,
       resolveDir: fileURLToPath(new URL("../../src/", import.meta.url)),
       loader: "js"
@@ -32,7 +40,7 @@ ${body}
   });
   const script = result.outputFiles[0]!.text;
   return async () => {
-    const child = spawn(process.execPath, ["--input-type=module"], { stdio: ["pipe", "pipe", "pipe", "pipe"] });
+    const child = spawn(process.execPath, ["--expose-gc", "--input-type=module"], { stdio: ["pipe", "pipe", "pipe", "pipe"] });
     const input = child.stdio[3] as Writable;
     const replies = createInterface({ input: child.stdout })[Symbol.asyncIterator]();
     let stderr = "";

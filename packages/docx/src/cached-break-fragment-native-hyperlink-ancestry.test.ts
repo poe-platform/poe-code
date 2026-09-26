@@ -1,5 +1,5 @@
 import { Volume } from "memfs";
-import { afterAll, beforeAll, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, expect, it } from "vitest";
 import * as api from "./index.js";
 import { archiveSettings, type DocumentArchive } from "./archive.js";
 import { ModelStore } from "./model-store.js";
@@ -16,6 +16,10 @@ beforeAll(async () => {
 });
 afterAll(async () => {
   await native?.dispose();
+});
+// Retire each request's deep native graph before the next case.
+afterEach(async () => {
+  if (native) expect(JSON.parse(await native.run({ cleanup: true }, new AbortController().signal))).toEqual({ cleaned: true });
 });
 
 for (const strict of [false, true]) for (const depth of [32, 4096, 8192])

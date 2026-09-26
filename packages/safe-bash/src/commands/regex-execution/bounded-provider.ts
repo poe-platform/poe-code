@@ -631,6 +631,7 @@ interface EreCacheEntry {
   readonly patternBytes: number;
   readonly states: number;
   readonly allocationUnits: number;
+  singleMatchByEnd?: [Match][];
 }
 let lastEreCache: EreCacheEntry | undefined;
 
@@ -656,7 +657,11 @@ function tryExecuteEreSync(input: OwnedRequest, signal: AbortSignal, fold: boole
     const rLen = typeof r.searchEnd === "number" ? r.searchEnd - r.start! : r.bytes.length;
     estimatedWork += rLen * 6 + 8;
   }
-  if (ledger.workAllowanceUntilCheckpoint(signal) < estimatedWork) return undefined;
+  if (ledger.workAllowanceUntilCheckpoint(signal) < estimatedWork) {
+    if (estimatedWork > 32768 || !ledger.advanceSyncCheckpointIfNoExternalYield?.(signal) || ledger.workAllowanceUntilCheckpoint(signal) < Math.min(estimatedWork, 16384)) {
+      return undefined;
+    }
+  }
   ledger.charge("work", lastEreCache.work, signal);
   ledger.charge("patternBytes", lastEreCache.patternBytes, signal);
   ledger.charge("states", lastEreCache.states, signal);
@@ -678,6 +683,9 @@ function tryExecuteEreSync(input: OwnedRequest, signal: AbortSignal, fold: boole
   const leftmostFirst = selected.kind === "rg";
   const word = selected.word;
   for (let r = 0; r < rows.length; r++) {
+    if (ledger.workAllowanceUntilCheckpoint(signal) < 256) {
+      ledger.advanceSyncCheckpointIfNoExternalYield?.(signal);
+    }
     const row = rows[r]! as Row & { chunk?: Uint8Array; start?: number; searchEnd?: number };
     const hasRange = row.chunk !== undefined && typeof row.start === "number" && typeof row.searchEnd === "number";
     const buf = hasRange ? row.chunk! : row.bytes;
@@ -698,7 +706,12 @@ function tryExecuteEreSync(input: OwnedRequest, signal: AbortSignal, fold: boole
     if (bestSpan) {
       if (matchCount >= maxMatches) fail("limit", "total match or result byte limit exceeded");
       matchCount++;
-      directMatches[r] = [{ start: bestSpan.start, end: bestSpan.end }];
+      if (bestSpan.start === 0 && bestSpan.end < 128) {
+        const byEnd = lastEreCache.singleMatchByEnd ??= [];
+        directMatches[r] = byEnd[bestSpan.end] ??= [bestSpan];
+      } else {
+        directMatches[r] = [{ start: bestSpan.start, end: bestSpan.end }];
+      }
     } else {
       directMatches[r] = emptyMatchRow;
     }
@@ -745,30 +758,36 @@ function getPrevalidatedEreLimits(limits: Required<BoundedRegexProviderOptions>,
   return fixed ? cachedFixedEreLimits : cachedRegexEreLimits;
 }
 
-function literalStartRangeSync(program: LiteralProgram, buf: Uint8Array, rStart: number, rEnd: number, whole: boolean, word: boolean, ledger: EreLedger, signal: AbortSignal): number | undefined {
+let lastRangeSyncWork = 0;
+
+function literalStartRangeSync(program: LiteralProgram, buf: Uint8Array, rStart: number, rEnd: number, whole: boolean, word: boolean): number | undefined {
   const { bytes, fallback } = program;
   const patLen = bytes.length;
   const subLen = rEnd - rStart;
   if (program.insensitive || patLen === 0) return undefined;
-  ledger.chargeWork(1, signal);
-  if (whole && patLen !== subLen || patLen > subLen) return -1;
+  let work = 1;
+  if (whole && patLen !== subLen || patLen > subLen) {
+    lastRangeSyncWork = work;
+    return -1;
+  }
   const firstByte = bytes[0]!;
   for (let index = rStart, prefix = 0; index < rEnd;) {
     if (prefix === 0) {
       let scan = index;
       while (scan < rEnd && buf[scan] !== firstByte) scan++;
       if (scan > index) {
-        ledger.chargeWork(scan - index, signal);
+        work += scan - index;
         index = scan;
         if (index >= rEnd) break;
       }
     }
-    ledger.chargeWork(1, signal);
+    work += 1;
     if (buf[index] === bytes[prefix]) {
       index++;
       if (++prefix === patLen) {
         const matchAbs = index - prefix;
         if (!word || !isAsciiWord(matchAbs > rStart ? buf[matchAbs - 1]! : -1) && !isAsciiWord(index < rEnd ? buf[index]! : -1)) {
+          lastRangeSyncWork = work;
           return matchAbs - rStart;
         }
         prefix = fallback[prefix - 1]!;
@@ -779,6 +798,7 @@ function literalStartRangeSync(program: LiteralProgram, buf: Uint8Array, rStart:
       index++;
     }
   }
+  lastRangeSyncWork = work;
   return -1;
 }
 
@@ -844,6 +864,7 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
     ? reusableDirectMatchesByLength[rows.length]!
     : new Array(rows.length);
   let matchCount = 0;
+  let batchWork = 0;
   const maxMatches = input.limits.maxTotalMatches === Infinity && input.limits.maxResultBytes === Infinity
     ? 0x3fffffff
     : Math.min(input.limits.maxTotalMatches, Math.floor(input.limits.maxResultBytes / 16));
@@ -861,30 +882,39 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
         if (b === 0 || b >= 0x80) { ascii = false; break; }
       }
       if (!ascii) {
+        if (batchWork > 0) { ledger.chargeWork(batchWork, signal); batchWork = 0; }
         const pendingUtf8 = validateUtf8(row.bytes, ledger, signal);
         if (pendingUtf8) return undefined;
         if ((selected.word || fold) && row.bytes.some(byte => byte >= 128)) fail("unsupported", "rg word matching and case folding support ASCII subjects only");
       } else {
-        ledger.chargeWork(rLen, signal);
+        batchWork += rLen;
       }
     } else {
-      ledger.chargeWork(rLen, signal);
+      batchWork += rLen;
     }
     let start = -1;
     let end = -1;
     let matchedProg: LiteralProgram | undefined;
     for (let p = 0; p < programs.length; p++) {
       const program = programs[p]!;
-      const candidate = hasRange && !program.insensitive && program.bytes.length > 0
-        ? literalStartRangeSync(program, buf, rStart, rEnd, selected.whole, selected.word, ledger, signal)
-        : literalStart(program, row.bytes, selected.whole, selected.word, ledger, signal);
+      let candidate: number | Promise<number> | undefined;
+      if (hasRange && !program.insensitive && program.bytes.length > 0) {
+        candidate = literalStartRangeSync(program, buf, rStart, rEnd, selected.whole, selected.word);
+        if (candidate !== undefined) batchWork += lastRangeSyncWork;
+      } else {
+        if (batchWork > 0) { ledger.chargeWork(batchWork, signal); batchWork = 0; }
+        candidate = literalStart(program, row.bytes, selected.whole, selected.word, ledger, signal);
+      }
       if (typeof candidate !== "number") return undefined;
       if (candidate < 0) continue;
       if (start < 0 || candidate < start) { start = candidate; end = start + program.bytes.length; matchedProg = program; }
       if (selected.kind === "grep") break;
     }
     if (start >= 0) {
-      if (matchCount >= maxMatches) fail("limit", "total match or result byte limit exceeded");
+      if (matchCount >= maxMatches) {
+        if (batchWork > 0) { ledger.chargeWork(batchWork, signal); batchWork = 0; }
+        fail("limit", "total match or result byte limit exceeded");
+      }
       matchCount++;
       directMatches[r] = start < 128 && matchedProg?.singleMatchByStart
         ? (matchedProg.singleMatchByStart[start] ??= [{ start, end }])
@@ -893,7 +923,8 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
       directMatches[r] = emptyMatchRow;
     }
   }
-  signal.throwIfAborted();
+  if (batchWork > 0) ledger.chargeWork(batchWork, signal);
+  else signal.throwIfAborted();
   reusableTrustedReply.id = input.id;
   reusableTrustedReply.directMatches = directMatches;
   return reusableTrustedReply;

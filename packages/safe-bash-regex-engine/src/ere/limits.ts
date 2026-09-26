@@ -146,6 +146,14 @@ export class EreLedger {
     return min > 0 ? min : 0;
   }
 
+  advanceSyncCheckpointIfNoExternalYield(signal?: AbortSignal): boolean {
+    if (hasYieldCheckpoint(signal)) return false;
+    if (signal?.aborted) throw signal.reason;
+    if (this.poison) throw this.poison;
+    this.lastYield = this.uWork;
+    return true;
+  }
+
   admitInput(resource: "patternBytes" | "subjectBytes", length: number, signal?: AbortSignal): void {
     this.check(signal);
     integer(length);

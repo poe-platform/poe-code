@@ -217,6 +217,122 @@ export async function bindConditionalMutation<Result>(
   }
 }
 
+const STREAM_DONE_RESULT: IteratorResult<Uint8Array> = Object.freeze({ done: true, value: undefined });
+const STREAM_RESOLVED_DONE: Promise<IteratorResult<Uint8Array>> = Promise.resolve(STREAM_DONE_RESULT);
+
+class MemoryReadStream implements ByteSource, AsyncIterableIterator<Uint8Array> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  declare readonly fs: any;
+  declare readonly path: string;
+  declare readonly options: ReadStreamOptions;
+  declare readonly abortSignal: AbortSignal | undefined;
+  declare initialized: boolean;
+  declare finished: boolean;
+  declare offset: number;
+  declare end: number;
+  declare chunkSize: number;
+  declare node: FileNode | undefined;
+  declare allocation: FileNode["allocation"] | undefined;
+  declare data: Uint8Array | undefined;
+
+  constructor(fs: MemoryFileSystem, path: string, options: ReadStreamOptions) {
+    this.fs = fs;
+    this.path = path;
+    this.options = options;
+    this.abortSignal = options.signal;
+    this.initialized = false;
+    this.finished = false;
+    this.offset = 0;
+    this.end = 0;
+    this.chunkSize = preferredIoBlockSize;
+    this.node = undefined;
+    this.allocation = undefined;
+    this.data = undefined;
+  }
+
+  [Symbol.asyncIterator](): this {
+    if (this.initialized || this.finished) {
+      return new MemoryReadStream(this.fs, this.path, this.options) as this;
+    }
+    return this;
+  }
+
+  _release(): void {
+    if (this.finished) return;
+    this.finished = true;
+    if (this.allocation) {
+      this.allocation.release();
+      this.allocation = undefined;
+    }
+    if (this.node) {
+      const releasedNode = this.node;
+      this.node = undefined;
+      this.fs.releaseReference(releasedNode, this.path);
+    }
+    this.data = undefined;
+  }
+
+  tryNextSync(): IteratorResult<Uint8Array> {
+    if (this.finished) return STREAM_DONE_RESULT;
+    try {
+      const options = this.options;
+      options.signal?.throwIfAborted();
+      if (!this.initialized) {
+        this.initialized = true;
+        const fs = this.fs;
+        const path = this.path;
+        const start = options.start ?? 0;
+        const chunkSize = options.chunkSize ?? preferredIoBlockSize;
+        this.chunkSize = chunkSize;
+        fs.integer(start, "readStream", path);
+        fs.integer(chunkSize, "readStream", path);
+        if (chunkSize === 0) fs.fail("EINVAL", "readStream", path);
+        if (options.endExclusive !== undefined) {
+          fs.integer(options.endExclusive, "readStream", path);
+          if (options.endExclusive < start) fs.fail("EINVAL", "readStream", path);
+        }
+        const target = fs.file(path, "readStream");
+        fs.permission(target, 4, "readStream", path);
+        fs.ledger.reserve(path.length * 2, 1, "readStream", path);
+        target.references++;
+        this.node = target;
+        this.allocation = target.allocation;
+        target.allocation.retain();
+        const data = target.data;
+        this.data = data;
+        this.offset = start;
+        this.end = Math.min(options.endExclusive ?? data.byteLength, data.byteLength);
+        target.atimeMs = Date.now();
+      }
+      if (this.offset < this.end) {
+        const nextEnd = Math.min(this.offset + this.chunkSize, this.end);
+        const chunk = this.data!.slice(this.offset, nextEnd);
+        this.offset = nextEnd;
+        return { done: false, value: chunk };
+      }
+      this._release();
+      return STREAM_DONE_RESULT;
+    } catch (error) {
+      this._release();
+      throw error;
+    }
+  }
+
+  next(): Promise<IteratorResult<Uint8Array>> {
+    try {
+      const res = this.tryNextSync();
+      return res.done ? STREAM_RESOLVED_DONE : Promise.resolve(res);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+
+  return(): Promise<IteratorResult<Uint8Array>> {
+    this._release();
+    return STREAM_RESOLVED_DONE;
+  }
+}
+
 export class MemoryFileSystem implements FileSystem {
   capabilitiesFor?: NonNullable<FileSystem["capabilitiesFor"]>;
   readonly capabilities: FileSystemCapabilities = ((filesystem: MemoryFileSystem) => {
@@ -2012,88 +2128,7 @@ export class MemoryFileSystem implements FileSystem {
   }
 
   readStream(path: string, options: ReadStreamOptions = {}): ByteSource {
-    return {
-      [Symbol.asyncIterator]: (): AsyncIterableIterator<Uint8Array> & {
-        tryNextSync(): IteratorResult<Uint8Array>;
-        abortSignal?: AbortSignal | undefined;
-      } => {
-        let initialized = false;
-        let finished = false;
-        let offset = 0;
-        let end = 0;
-        let chunkSize = preferredIoBlockSize;
-        let node: FileNode | undefined;
-        let allocation: FileNode["allocation"] | undefined;
-        let data: Uint8Array | undefined;
-        const release = (): void => {
-          if (finished) return;
-          finished = true;
-          if (allocation) {
-            allocation.release();
-            allocation = undefined;
-          }
-          if (node) {
-            const releasedNode = node;
-            node = undefined;
-            this.releaseReference(releasedNode, path);
-          }
-          data = undefined;
-        };
-        const step = (): IteratorResult<Uint8Array> => {
-          if (finished) return { done: true, value: undefined };
-          try {
-            options.signal?.throwIfAborted();
-            if (!initialized) {
-              initialized = true;
-              const start = options.start ?? 0;
-              chunkSize = options.chunkSize ?? preferredIoBlockSize;
-              this.integer(start, "readStream", path);
-              this.integer(chunkSize, "readStream", path);
-              if (chunkSize === 0) this.fail("EINVAL", "readStream", path);
-              if (options.endExclusive !== undefined) {
-                this.integer(options.endExclusive, "readStream", path);
-                if (options.endExclusive < start) this.fail("EINVAL", "readStream", path);
-              }
-              const target = this.file(path, "readStream");
-              this.permission(target, 4, "readStream", path);
-              this.ledger.reserve(path.length * 2, 1, "readStream", path);
-              target.references++;
-              node = target;
-              allocation = target.allocation;
-              allocation.retain();
-              data = target.data;
-              offset = start;
-              end = Math.min(options.endExclusive ?? data.byteLength, data.byteLength);
-              target.atimeMs = Date.now();
-            }
-            if (offset < end) {
-              const nextEnd = Math.min(offset + chunkSize, end);
-              const chunk = data!.slice(offset, nextEnd);
-              offset = nextEnd;
-              return { done: false, value: chunk };
-            }
-            release();
-            return { done: true, value: undefined };
-          } catch (error) {
-            release();
-            throw error;
-          }
-        };
-        return {
-          abortSignal: options.signal,
-          [Symbol.asyncIterator]() { return this; },
-          tryNextSync: step,
-          next() {
-            try { return Promise.resolve(step()); }
-            catch (error) { return Promise.reject(error); }
-          },
-          return() {
-            release();
-            return Promise.resolve({ done: true, value: undefined });
-          },
-        };
-      },
-    };
+    return new MemoryReadStream(this, path, options);
   }
 
   async writeStream(path: string, source: ByteSource, options: WriteFileOptions = {}): Promise<void> {

@@ -733,7 +733,19 @@ export class AwkRuntime {
           }
           return this.evaluateBinarySlow(expression);
         }
-        if (operator === "in" || operator === "~" || operator === "!~") {
+        if (operator === "~" || operator === "!~") {
+          if (expression.right.kind === "regex") {
+            const left = this.scalarExpression(expression.left);
+            if (!(left instanceof Promise)) {
+              const matched = expression.right.pattern.tryTestSync(this.asText(left), this.budget);
+              if (!(matched instanceof Promise)) {
+                return numeric((operator === "~" ? matched : !matched) ? 1 : 0);
+              }
+            }
+          }
+          return this.evaluateBinarySlow(expression);
+        }
+        if (operator === "in") {
           return this.evaluateBinarySlow(expression);
         }
         const left = this.scalarExpression(expression.left);
@@ -748,9 +760,12 @@ export class AwkRuntime {
     }
   }
 
-  private async evaluateRegexMatch(pattern: Pattern): Promise<Scalar> {
-    const m = await pattern.find(this.record, this.budget);
-    return numeric(m ? 1 : 0);
+  private evaluateRegexMatch(pattern: Pattern): Scalar | Promise<Scalar> {
+    const matched = this.rawRecord !== undefined
+      ? pattern.tryTestSync(this.rawRecord, this.budget, 0, this.rawRecord.length)
+      : pattern.tryTestSync(this.recordSource, this.budget, this.recordStart, this.recordEnd);
+    if (matched instanceof Promise) return matched.then(m => numeric(m ? 1 : 0));
+    return numeric(matched ? 1 : 0);
   }
 
   private async evaluateFieldAsync(idxPromise: Promise<Scalar>): Promise<Scalar> {

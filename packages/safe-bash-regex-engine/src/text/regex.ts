@@ -881,14 +881,20 @@ export class Pattern {
     return { start: found, end: found + len, groups };
   }
 
-  tryTestSync(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>): boolean | Promise<boolean> {
+  tryTestSync(
+    text: string,
+    budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>,
+    textStart = 0,
+    textEnd = text.length,
+  ): boolean | Promise<boolean> {
     if (this.canFindSync()) {
       const initialCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
       if (!initialCheck) {
-        return this.findSyncFastInto(text, budget, 0, FAST_MATCH_OFFSETS);
+        return this.findSyncFastInto(text, budget, textStart, FAST_MATCH_OFFSETS, textEnd, textStart);
       }
     }
-    const found = this.tryFindSync(text, budget, 0);
+    const sub = textStart === 0 && textEnd === text.length ? text : text.slice(textStart, textEnd);
+    const found = this.tryFindSync(sub, budget, 0);
     if (found instanceof Promise) return found.then(res => res !== undefined);
     return found !== undefined;
   }
@@ -1500,7 +1506,7 @@ export function trySubstituteSync(
         out = appendReplacementFromOffsetsSync(out, replacement, text, matchStart, matchEnd, group1Start, group1End, budget, budget.maxBufferBytes, syntax);
         consumed = matchEnd;
         count++;
-        if (!global) break;
+        if (!global || pattern.getFastPrefixInfo()?.anchoredStart) break;
       }
       previousEnd = matchEnd;
       search = matchEnd === matchStart ? matchEnd + 1 : matchEnd;
@@ -1658,7 +1664,7 @@ export function trySubstitutePairSync(
   occ2: number,
   budget: Budget,
 ): { text: string; substituted: boolean } | undefined | Promise<undefined> {
-  if (occ1 !== 1 || occ2 !== 1 || global1 || text.length > 4096) return undefined;
+  if (occ1 !== 1 || occ2 !== 1 || text.length > 4096) return undefined;
   if (!pat1.canFindSync() || !pat2.canFindSync()) return undefined;
   const info1 = pat1.getFastPrefixInfo();
   const info2 = pat2.getFastPrefixInfo();
@@ -1667,26 +1673,45 @@ export function trySubstitutePairSync(
   const sr2 = getSimpleReplacement(rep2, "sed");
   if (!sr1 || !sr2) return undefined;
   budget.step();
-  if (!pat1.findSyncFastInto(text, budget, 0, PAIR_OFFSETS_1)) return undefined;
-  const e1 = PAIR_OFFSETS_1[1]!;
-  if (e1 === 0) return undefined;
-  const exp1 = expandSimpleFromOffsets(sr1, text, 0, e1, PAIR_OFFSETS_1[2]!, PAIR_OFFSETS_1[3]!, budget);
-  const firstChar2 = info2.prefix.charCodeAt(0);
-  for (let i = 0; i < exp1.length; i++) {
-    if (exp1.charCodeAt(i) === firstChar2) return undefined;
+  let effectiveE1 = 0;
+  let exp1 = "";
+  let effectiveExp1Len = 0;
+  let matched1 = false;
+  if (pat1.findSyncFastInto(text, budget, 0, PAIR_OFFSETS_1)) {
+    const e1 = PAIR_OFFSETS_1[1]!;
+    if (e1 === 0) return undefined;
+    matched1 = true;
+    exp1 = expandSimpleFromOffsets(sr1, text, 0, e1, PAIR_OFFSETS_1[2]!, PAIR_OFFSETS_1[3]!, budget);
+    let commonSuffix = 0;
+    const maxSuffix = Math.min(exp1.length, e1);
+    while (commonSuffix < maxSuffix && exp1.charCodeAt(exp1.length - 1 - commonSuffix) === text.charCodeAt(e1 - 1 - commonSuffix)) {
+      commonSuffix++;
+    }
+    effectiveExp1Len = exp1.length - commonSuffix;
+    effectiveE1 = e1 - commonSuffix;
+    const firstChar2 = info2.prefix.charCodeAt(0);
+    for (let i = 0; i < effectiveExp1Len; i++) {
+      if (exp1.charCodeAt(i) === firstChar2) return undefined;
+    }
   }
   budget.step();
-  if (!pat2.findSyncFastInto(text, budget, e1, PAIR_OFFSETS_2)) {
-    const outLen = exp1.length + (text.length - e1);
+  if (!pat2.findSyncFastInto(text, budget, effectiveE1, PAIR_OFFSETS_2)) {
+    if (!matched1) {
+      SYNC_PAIR_RESULT.text = budget.check(text);
+      SYNC_PAIR_RESULT.substituted = false;
+      return SYNC_PAIR_RESULT;
+    }
+    const outLen = effectiveExp1Len + (text.length - effectiveE1);
     if (outLen > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
-    budget.step(text.length - e1 + 1);
-    SYNC_PAIR_RESULT.text = e1 < text.length ? exp1 + text.slice(e1) : exp1;
+    budget.step(text.length - effectiveE1 + 1);
+    const expPrefix = effectiveExp1Len === exp1.length ? exp1 : exp1.slice(0, effectiveExp1Len);
+    SYNC_PAIR_RESULT.text = effectiveE1 < text.length ? expPrefix + text.slice(effectiveE1) : expPrefix;
     SYNC_PAIR_RESULT.substituted = true;
     return SYNC_PAIR_RESULT;
   }
   const s2 = PAIR_OFFSETS_2[0]!;
   const e2 = PAIR_OFFSETS_2[1]!;
-  if (s2 < e1 || e2 === s2) return undefined;
+  if (s2 < effectiveE1 || e2 === s2) return undefined;
   const g2s = PAIR_OFFSETS_2[2]!;
   const g2e = PAIR_OFFSETS_2[3]!;
   if (global2 && e2 <= text.length) {
@@ -1694,14 +1719,15 @@ export function trySubstitutePairSync(
     if (pat2.findSyncFastInto(text, budget, e2, PAIR_OFFSETS_1)) return undefined;
   }
   const exp2 = expandSimpleFromOffsets(sr2, text, s2, e2, g2s, g2e, budget);
-  const midLen = s2 - e1;
+  const midLen = s2 - effectiveE1;
   const tailLen = text.length - e2;
-  const totalLen = exp1.length + midLen + exp2.length + tailLen;
+  const totalLen = effectiveExp1Len + midLen + exp2.length + tailLen;
   if (totalLen > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
   budget.step(midLen + tailLen + 2);
-  const mid = midLen > 0 ? text.slice(e1, s2) : "";
+  const expPrefix = effectiveExp1Len === 0 ? "" : effectiveExp1Len === exp1.length ? exp1 : exp1.slice(0, effectiveExp1Len);
+  const mid = midLen > 0 ? text.slice(effectiveE1, s2) : "";
   const tail = tailLen > 0 ? text.slice(e2) : "";
-  SYNC_PAIR_RESULT.text = exp1 + mid + exp2 + tail;
+  SYNC_PAIR_RESULT.text = expPrefix + mid + exp2 + tail;
   SYNC_PAIR_RESULT.substituted = true;
   return SYNC_PAIR_RESULT;
 }
@@ -1724,7 +1750,7 @@ export function trySubstitutePairToBufferSync(
   lineEnd = text.length,
 ): number | Promise<-1> {
   const lineLen = lineEnd - lineStart;
-  if (occ1 !== 1 || occ2 !== 1 || global1 || lineLen > 4096) return -1;
+  if (occ1 !== 1 || occ2 !== 1 || lineLen > 4096) return -1;
   if (!pat1.canFindSync() || !pat2.canFindSync()) return -1;
   const info1 = pat1.getFastPrefixInfo();
   const info2 = pat2.getFastPrefixInfo();
@@ -1733,29 +1759,40 @@ export function trySubstitutePairToBufferSync(
   const sr2 = getSimpleReplacement(rep2, "sed");
   if (!sr1 || !sr2) return -1;
   budget.step();
-  if (!pat1.findSyncFastInto(text, budget, lineStart, PAIR_OFFSETS_1, lineEnd, lineStart)) return -1;
-  const e1 = PAIR_OFFSETS_1[1]!;
-  if (e1 === lineStart) return -1;
-  const exp1 = expandSimpleFromOffsets(sr1, text, lineStart, e1, PAIR_OFFSETS_1[2]!, PAIR_OFFSETS_1[3]!, budget);
-  const firstChar2 = info2.prefix.charCodeAt(0);
-  for (let i = 0; i < exp1.length; i++) {
-    if (exp1.charCodeAt(i) === firstChar2) return -1;
+  let effectiveE1 = lineStart;
+  let exp1 = "";
+  let effectiveExp1Len = 0;
+  if (pat1.findSyncFastInto(text, budget, lineStart, PAIR_OFFSETS_1, lineEnd, lineStart)) {
+    const e1 = PAIR_OFFSETS_1[1]!;
+    if (e1 === lineStart) return -1;
+    exp1 = expandSimpleFromOffsets(sr1, text, lineStart, e1, PAIR_OFFSETS_1[2]!, PAIR_OFFSETS_1[3]!, budget);
+    let commonSuffix = 0;
+    const maxSuffix = Math.min(exp1.length, e1 - lineStart);
+    while (commonSuffix < maxSuffix && exp1.charCodeAt(exp1.length - 1 - commonSuffix) === text.charCodeAt(e1 - 1 - commonSuffix)) {
+      commonSuffix++;
+    }
+    effectiveExp1Len = exp1.length - commonSuffix;
+    effectiveE1 = e1 - commonSuffix;
+    const firstChar2 = info2.prefix.charCodeAt(0);
+    for (let i = 0; i < effectiveExp1Len; i++) {
+      if (exp1.charCodeAt(i) === firstChar2) return -1;
+    }
   }
   budget.step();
-  if (!pat2.findSyncFastInto(text, budget, e1, PAIR_OFFSETS_2, lineEnd, lineStart)) {
-    const outLen = exp1.length + (lineEnd - e1);
+  if (!pat2.findSyncFastInto(text, budget, effectiveE1, PAIR_OFFSETS_2, lineEnd, lineStart)) {
+    const outLen = effectiveExp1Len + (lineEnd - effectiveE1);
     if (outLen > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
     if (outPos + outLen + 1 > outBuf.length) return -1;
-    budget.step(lineEnd - e1 + 1);
+    budget.step(lineEnd - effectiveE1 + 1);
     let pos = outPos;
-    for (let i = 0; i < exp1.length; i++) outBuf[pos++] = exp1.charCodeAt(i);
-    for (let i = e1; i < lineEnd; i++) outBuf[pos++] = text.charCodeAt(i);
+    for (let i = 0; i < effectiveExp1Len; i++) outBuf[pos++] = exp1.charCodeAt(i);
+    for (let i = effectiveE1; i < lineEnd; i++) outBuf[pos++] = text.charCodeAt(i);
     outBuf[pos++] = sepCode;
     return pos;
   }
   const s2 = PAIR_OFFSETS_2[0]!;
   const e2 = PAIR_OFFSETS_2[1]!;
-  if (s2 < e1 || e2 === s2) return -1;
+  if (s2 < effectiveE1 || e2 === s2) return -1;
   const g2s = PAIR_OFFSETS_2[2]!;
   const g2e = PAIR_OFFSETS_2[3]!;
   if (global2 && e2 <= lineEnd) {
@@ -1763,15 +1800,15 @@ export function trySubstitutePairToBufferSync(
     if (pat2.findSyncFastInto(text, budget, e2, PAIR_OFFSETS_1, lineEnd, lineStart)) return -1;
   }
   const exp2 = expandSimpleFromOffsets(sr2, text, s2, e2, g2s, g2e, budget);
-  const midLen = s2 - e1;
+  const midLen = s2 - effectiveE1;
   const tailLen = lineEnd - e2;
-  const totalLen = exp1.length + midLen + exp2.length + tailLen;
+  const totalLen = effectiveExp1Len + midLen + exp2.length + tailLen;
   if (totalLen > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
   if (outPos + totalLen + 1 > outBuf.length) return -1;
   budget.step(midLen + tailLen + 2);
   let pos = outPos;
-  for (let i = 0; i < exp1.length; i++) outBuf[pos++] = exp1.charCodeAt(i);
-  for (let i = e1; i < s2; i++) outBuf[pos++] = text.charCodeAt(i);
+  for (let i = 0; i < effectiveExp1Len; i++) outBuf[pos++] = exp1.charCodeAt(i);
+  for (let i = effectiveE1; i < s2; i++) outBuf[pos++] = text.charCodeAt(i);
   for (let i = 0; i < exp2.length; i++) outBuf[pos++] = exp2.charCodeAt(i);
   for (let i = e2; i < lineEnd; i++) outBuf[pos++] = text.charCodeAt(i);
   outBuf[pos++] = sepCode;

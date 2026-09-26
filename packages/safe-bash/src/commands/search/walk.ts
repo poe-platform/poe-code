@@ -377,16 +377,19 @@ export class Walker {
     ancestors.set(canonical, label || ".");
     try {
     const canFastMemReaddir = memDirEntries !== undefined && uniformCanonical && (this.uniformReaddirAdmitted ??= (this.context.fs.capabilities.readdir !== false && backing.capabilities.readdir !== false));
-    const admittedSync = canFastMemReaddir && (!this.args.ignore || (!memDirEntries.has(".git") && !memDirEntries.has(".gitignore") && !memDirEntries.has(".ignore") && !memDirEntries.has(".rgignore")))
-      ? (() => {
-          if (this.args.ignore && !this.uniformIgnoreAdmitted) {
-            assertCommandRequirements(this.context, searchRequirements, ["metadata", "ignore-file"]);
-            this.uniformIgnoreAdmitted = true;
-          }
-          return { repository, rules: rules as IgnoreRule[] };
-        })()
-      : undefined;
-    const admitted = admittedSync ?? (this.args.ignore ? await this.load(path, rules, repository) : undefined);
+    let localRules: IgnoreRule[] | undefined;
+    let localRepository = repository;
+    if (canFastMemReaddir && (!this.args.ignore || (!memDirEntries.has(".git") && !memDirEntries.has(".gitignore") && !memDirEntries.has(".ignore") && !memDirEntries.has(".rgignore")))) {
+      if (this.args.ignore && !this.uniformIgnoreAdmitted) {
+        assertCommandRequirements(this.context, searchRequirements, ["metadata", "ignore-file"]);
+        this.uniformIgnoreAdmitted = true;
+      }
+      localRules = rules as IgnoreRule[];
+    } else if (this.args.ignore) {
+      const loaded = await this.load(path, rules, repository);
+      localRules = loaded.rules;
+      localRepository = loaded.repository;
+    }
     const maxEntries = this.limits.maxFiles - this.limits.files;
     let entries: DirectoryEntry[] | undefined;
     let fastNames: string[] | undefined;
@@ -412,24 +415,40 @@ export class Walker {
       } catch (error) {
         this.context.signal.throwIfAborted();
         if (Number.isFinite(maxEntries) && error instanceof FsError && error.code === "EFBIG" && error.syscall === "readdir") {
-          if (!admitted) await this.load(path, rules, repository);
+          if (!localRules) await this.load(path, rules, repository);
           throw new SearchError("filesystem entry limit exceeded");
         }
         throw error;
       }
       this.context.signal.throwIfAborted();
       if (entries.length > maxEntries) {
-        if (!admitted) await this.load(path, rules, repository, entries);
+        if (!localRules) await this.load(path, rules, repository, entries);
         throw new SearchError("filesystem entry limit exceeded");
       }
       entries.sort((left, right) => compareEntryNames(left.name, right.name));
     }
-    const local = admitted ?? await this.load(path, rules, repository, entries);
+    if (!localRules) {
+      const loaded = await this.load(path, rules, repository, entries);
+      localRules = loaded.rules;
+      localRepository = loaded.repository;
+    }
     const totalEntries = fastSortedKeys ? memDirEntries!.size : fastNames ? fastNames.length : entries!.length;
-    const keyIter = fastSortedKeys ? memDirEntries!.keys() : undefined;
+    const entryIter = fastSortedKeys ? memDirEntries!.entries() : undefined;
     for (let entryIdx = 0; entryIdx < totalEntries; entryIdx++) {
-      const entryName = keyIter ? keyIter.next().value! : fastNames ? fastNames[entryIdx]! : entries![entryIdx]!.name;
-      const entryType = (fastSortedKeys || fastNames) ? memDirEntries!.get(entryName)!.type : entries![entryIdx]!.type;
+      let entryName: string;
+      let entryType: DirectoryEntry["type"];
+      if (entryIter) {
+        const pair = entryIter.next().value!;
+        entryName = pair[0];
+        entryType = pair[1].type;
+      } else if (fastNames) {
+        entryName = fastNames[entryIdx]!;
+        entryType = memDirEntries!.get(entryName)!.type;
+      } else {
+        const entry = entries![entryIdx]!;
+        entryName = entry.name;
+        entryType = entry.type;
+      }
       const tickPending = this.limits.tick();
       if (tickPending) await tickPending;
       if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
@@ -448,12 +467,12 @@ export class Walker {
           }
         }
         const isDir = type === "directory";
-        const accepted = (this.globs.length === 0 && local.rules.length === 0 && (isDir || this.typeGlobs.length === 0))
+        const accepted = (this.globs.length === 0 && localRules.length === 0 && (isDir || this.typeGlobs.length === 0))
           ? (this.args.hidden || !entryName.startsWith("."))
-          : await this.accepted(child, entryName, isDir, local.rules);
+          : await this.accepted(child, entryName, isDir, localRules);
         if (!accepted) continue;
         if (isDir) {
-          if (!await this.walkDirectory(child, display, depth + 1, ancestors, local.rules, local.repository, onTarget)) return false;
+          if (!await this.walkDirectory(child, display, depth + 1, ancestors, localRules, localRepository, onTarget)) return false;
         } else if (type === "file") {
           if (Number.isFinite(this.args.maxFileSize)) {
             await assertPathRequirements(this.context, searchRequirements, ["metadata"], [child]);
@@ -473,6 +492,168 @@ export class Walker {
     return true;
     } finally {
       ancestors.delete(canonical);
+    }
+  }
+
+  private async finishWalkEntriesAsync(
+    backing: NonNullable<ReturnType<typeof getRuntimeBackingFileSystem>>,
+    path: string,
+    cleanPath: string,
+    cleanLabel: string,
+    depth: number,
+    ancestors: Map<string, string>,
+    rules: readonly IgnoreRule[],
+    repository: boolean,
+    onTarget: (target: FileTarget) => boolean | Promise<boolean>,
+    iter: IterableIterator<[string, { type: DirectoryEntry["type"] }]>,
+    pendingStep: Promise<boolean>,
+  ): Promise<boolean> {
+    try {
+      if (!(await pendingStep)) return false;
+      for (const [entryName, entryObj] of iter) {
+        const tickPending = this.limits.tick();
+        if (tickPending) await tickPending;
+        if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
+        if (!this.args.hidden && entryName.startsWith(".")) continue;
+        const entryType = entryObj.type;
+        const child = `${cleanPath}/${entryName}`;
+        const display = cleanLabel ? `${cleanLabel}/${entryName}` : entryName;
+        if (entryType === "directory") {
+          const sub = this.tryWalkDirectorySync(backing, child, display, depth + 1, ancestors, rules, repository, onTarget);
+          if (!(sub instanceof Promise ? await sub : sub)) return false;
+        } else if (entryType === "file") {
+          const t = this.reusableTarget;
+          t.path = child;
+          t.label = display;
+          t.explicit = false;
+          t.recursive = true;
+          t.canonicalPath = child;
+          const res = onTarget(t);
+          if (!(res instanceof Promise ? await res : res)) return false;
+        }
+      }
+      return true;
+    } finally {
+      ancestors.delete(path);
+    }
+  }
+
+  private tryWalkDirectorySync(
+    backing: NonNullable<ReturnType<typeof getRuntimeBackingFileSystem>>,
+    path: string,
+    label: string,
+    depth: number,
+    ancestors: Map<string, string>,
+    rules: readonly IgnoreRule[],
+    repository: boolean,
+    onTarget: (target: FileTarget) => boolean | Promise<boolean>,
+  ): boolean | Promise<boolean> {
+    if (depth > this.args.maxDepth) return true;
+    if (
+      path === "/dev" ||
+      path.startsWith("/dev/") ||
+      this.globs.length !== 0 ||
+      rules.length !== 0 ||
+      this.typeGlobs.length !== 0 ||
+      Number.isFinite(this.args.maxFileSize)
+    ) {
+      return this.walkDirectory(path, label, depth, ancestors, rules, repository, onTarget);
+    }
+    if (!this.uniformDirAdmitted) {
+      assertCommandRequirements(this.context, searchRequirements, ["directory"]);
+      this.uniformDirAdmitted = true;
+    } else {
+      this.context.signal.throwIfAborted();
+    }
+    if (!(this.uniformCanonicalAdmitted ??= (this.context.fs.capabilities.realpath !== false && backing.capabilities.realpath !== false && (assertCommandRequirements(this.context, searchRequirements, ["canonical"]), true)))) {
+      return this.walkDirectory(path, label, depth, ancestors, rules, repository, onTarget);
+    }
+    if (!(this.uniformReaddirAdmitted ??= (this.context.fs.capabilities.readdir !== false && backing.capabilities.readdir !== false))) {
+      return this.walkDirectory(path, label, depth, ancestors, rules, repository, onTarget);
+    }
+    const memDirEntries = tryGetMemoryDirectoryEntryNamesSync(backing, path);
+    if (
+      !memDirEntries ||
+      (this.args.ignore && (memDirEntries.has(".git") || memDirEntries.has(".gitignore") || memDirEntries.has(".ignore") || memDirEntries.has(".rgignore"))) ||
+      memDirEntries.size > this.limits.maxFiles - this.limits.files ||
+      ancestors.has(path)
+    ) {
+      return this.walkDirectory(path, label, depth, ancestors, rules, repository, onTarget);
+    }
+    let prevKey = "";
+    for (const k of memDirEntries.keys()) {
+      if (prevKey > k) {
+        return this.walkDirectory(path, label, depth, ancestors, rules, repository, onTarget);
+      }
+      prevKey = k;
+    }
+    if (this.args.ignore && !this.uniformIgnoreAdmitted) {
+      assertCommandRequirements(this.context, searchRequirements, ["metadata", "ignore-file"]);
+      this.uniformIgnoreAdmitted = true;
+    }
+    ancestors.set(path, label || ".");
+    const cleanPath = path.endsWith("/") ? path.slice(0, -1) : path;
+    const cleanLabel = label && label.endsWith("/") ? label.slice(0, -1) : label;
+    let cleanedUp = false;
+    const iter = memDirEntries.entries();
+    try {
+      for (const [entryName, entryObj] of iter) {
+        const tickPending = this.limits.tick();
+        if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
+        if (!this.args.hidden && entryName.startsWith(".")) {
+          if (tickPending) {
+            cleanedUp = true;
+            return this.finishWalkEntriesAsync(backing, path, cleanPath, cleanLabel, depth, ancestors, rules, repository, onTarget, iter, tickPending.then(() => true));
+          }
+          continue;
+        }
+        const entryType = entryObj.type;
+        const child = `${cleanPath}/${entryName}`;
+        const display = cleanLabel ? `${cleanLabel}/${entryName}` : entryName;
+        if (tickPending) {
+          cleanedUp = true;
+          const stepPromise = tickPending.then(() => {
+            if (entryType === "directory") {
+              return this.tryWalkDirectorySync(backing, child, display, depth + 1, ancestors, rules, repository, onTarget);
+            }
+            if (entryType === "file") {
+              const t = this.reusableTarget;
+              t.path = child;
+              t.label = display;
+              t.explicit = false;
+              t.recursive = true;
+              t.canonicalPath = child;
+              return onTarget(t);
+            }
+            return true;
+          });
+          return this.finishWalkEntriesAsync(backing, path, cleanPath, cleanLabel, depth, ancestors, rules, repository, onTarget, iter, stepPromise);
+        }
+        if (entryType === "directory") {
+          const sub = this.tryWalkDirectorySync(backing, child, display, depth + 1, ancestors, rules, repository, onTarget);
+          if (sub instanceof Promise) {
+            cleanedUp = true;
+            return this.finishWalkEntriesAsync(backing, path, cleanPath, cleanLabel, depth, ancestors, rules, repository, onTarget, iter, sub);
+          }
+          if (!sub) return false;
+        } else if (entryType === "file") {
+          const t = this.reusableTarget;
+          t.path = child;
+          t.label = display;
+          t.explicit = false;
+          t.recursive = true;
+          t.canonicalPath = child;
+          const res = onTarget(t);
+          if (res instanceof Promise) {
+            cleanedUp = true;
+            return this.finishWalkEntriesAsync(backing, path, cleanPath, cleanLabel, depth, ancestors, rules, repository, onTarget, iter, res);
+          }
+          if (!res) return false;
+        }
+      }
+      return true;
+    } finally {
+      if (!cleanedUp) ancestors.delete(path);
     }
   }
   async walkTargets(paths: readonly string[], implicit: boolean, onTarget: (target: FileTarget) => boolean | Promise<boolean>): Promise<void> {
@@ -505,7 +686,11 @@ export class Walker {
             parent = dirname(parent);
           }
         }
-        if (!await this.walkDirectory(path, implicit ? "" : operand, 0, new Map(), inherited.rules, inherited.repository, onTarget)) return;
+        const backing = getRuntimeBackingFileSystem(this.context.fs) as (NonNullable<ReturnType<typeof getRuntimeBackingFileSystem>> & { symlinkCount?: number }) | undefined;
+        if (backing && backing.capabilitiesFor === undefined && backing.symlinkCount === 0) {
+          const syncWalk = this.tryWalkDirectorySync(backing, path, implicit ? "" : operand, 0, new Map(), inherited.rules, inherited.repository, onTarget);
+          if (!(syncWalk instanceof Promise ? await syncWalk : syncWalk)) return;
+        } else if (!await this.walkDirectory(path, implicit ? "" : operand, 0, new Map(), inherited.rules, inherited.repository, onTarget)) return;
       } catch (error) { this.context.signal.throwIfAborted(); if (error instanceof SearchError || error instanceof RegexExecutionError) throw error; await this.report(error); }
     }
   }

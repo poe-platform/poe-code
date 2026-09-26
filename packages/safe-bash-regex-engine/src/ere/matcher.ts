@@ -27,6 +27,60 @@ const sequenceNullNextTasks = new WeakMap<EreNode, Task>();
 const SINGLE_NULL_CAPTURES: readonly (EreSpan | null)[] = Object.freeze([null]);
 const SINGLE_NULL_HISTORIES: readonly (History | null)[] = Object.freeze([null]);
 
+interface FastEreLiteralSeq {
+  readonly anchoredStart: boolean;
+  readonly anchoredEnd: boolean;
+  readonly codes: Uint8Array;
+  readonly insensitive: boolean;
+  readonly spanAtZero: EreSpan;
+}
+const fastLiteralSeqs = new WeakMap<EreNode, FastEreLiteralSeq | null>();
+
+function getFastEreLiteralSeq(root: EreNode): FastEreLiteralSeq | null {
+  const existing = fastLiteralSeqs.get(root);
+  if (existing !== undefined) return existing;
+  let anchoredStart = false;
+  let anchoredEnd = false;
+  let insensitive = false;
+  const bytes: number[] = [];
+  if (root.kind === "literal") {
+    insensitive = root.insensitive;
+    bytes.push(insensitive ? foldAscii(root.code) : root.code);
+  } else if (root.kind === "sequence") {
+    const children = root.children;
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i]!;
+      if (child.kind === "start") {
+        if (i !== 0) { fastLiteralSeqs.set(root, null); return null; }
+        anchoredStart = true;
+      } else if (child.kind === "end") {
+        if (i !== children.length - 1) { fastLiteralSeqs.set(root, null); return null; }
+        anchoredEnd = true;
+      } else if (child.kind === "literal") {
+        if (bytes.length === 0) insensitive = child.insensitive;
+        else if (insensitive !== child.insensitive) { fastLiteralSeqs.set(root, null); return null; }
+        bytes.push(insensitive ? foldAscii(child.code) : child.code);
+      } else {
+        fastLiteralSeqs.set(root, null);
+        return null;
+      }
+    }
+  } else {
+    fastLiteralSeqs.set(root, null);
+    return null;
+  }
+  const codes = Uint8Array.from(bytes);
+  const created: FastEreLiteralSeq = {
+    anchoredStart,
+    anchoredEnd,
+    codes,
+    insensitive,
+    spanAtZero: Object.freeze({ start: 0, end: codes.length }),
+  };
+  fastLiteralSeqs.set(root, created);
+  return created;
+}
+
 function getSequenceNullNextTask(node: Extract<EreNode, { readonly children: readonly EreNode[] }>): Task {
   let cached = sequenceNullNextTasks.get(node);
   if (!cached) {
@@ -75,6 +129,43 @@ export function tryMatchEreAsciiRangeSync(
   ledger.charge("allocationUnits", rLen * 11 + 16, signal);
   ledger.chargeWork(rLen * 4 + 4, signal);
   ledger.charge("allocationUnits", 7, signal);
+  const fastSeq = getFastEreLiteralSeq(root);
+  if (fastSeq !== null) {
+    const { anchoredStart, anchoredEnd, codes, insensitive, spanAtZero } = fastSeq;
+    const patLen = codes.length;
+    if (rLen < patLen || (anchoredStart && anchoredEnd && rLen !== patLen)) {
+      ledger.chargeWork(1, signal);
+      return undefined;
+    }
+    if (anchoredStart) {
+      ledger.chargeWork(1 + patLen, signal);
+      if (!insensitive) {
+        for (let i = 0; i < patLen; i++) {
+          if (buf[rStart + i] !== codes[i]) return undefined;
+        }
+      } else {
+        for (let i = 0; i < patLen; i++) {
+          if (foldAscii(buf[rStart + i]!) !== codes[i]) return undefined;
+        }
+      }
+      if (word && patLen > 0 && patLen < rLen && isAsciiWord(buf[rStart + patLen]!)) return undefined;
+      return spanAtZero;
+    }
+    if (anchoredEnd && !word) {
+      const start = rLen - patLen;
+      ledger.chargeWork(1 + patLen, signal);
+      if (!insensitive) {
+        for (let i = 0; i < patLen; i++) {
+          if (buf[rStart + start + i] !== codes[i]) return undefined;
+        }
+      } else {
+        for (let i = 0; i < patLen; i++) {
+          if (foldAscii(buf[rStart + start + i]!) !== codes[i]) return undefined;
+        }
+      }
+      return start === 0 ? spanAtZero : { start, end: rLen };
+    }
+  }
   let secondLitCode = -1;
   let rootSeqLen = 0;
   if (root.kind === "sequence" && root.children.length >= 2) {
@@ -94,7 +185,8 @@ export function tryMatchEreAsciiRangeSync(
   const rootTask: Task = root.kind === "sequence"
     ? getSequenceNullNextTask(root)
     : { kind: "node", node: root, next: null };
-  for (let start = 0; start <= rLen; start++) {
+  const maxStart = (root.kind === "start" || (root.kind === "sequence" && root.children[0]?.kind === "start")) ? 0 : rLen;
+  for (let start = 0; start <= maxStart; start++) {
     if (initial) {
       ledger.chargeWork(1, signal);
       const firstCode = start < rLen ? buf[rStart + start]! : -1;

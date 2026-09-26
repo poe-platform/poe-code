@@ -793,6 +793,7 @@ export interface State {
   errexit?: boolean;
   nounset?: boolean;
   isolated?: boolean;
+  _readOnlyStage?: boolean | undefined;
   redirectAssignments?: ReadonlyMap<string, ShellValue>;
   lastArgument?: string;
   functionNames?: string[];
@@ -831,7 +832,7 @@ interface IO {
     readonly target: Command | Pipeline;
     readonly frame: PreparedDescriptorFrame;
     io?: IO;
-    beforeExit?(status: number, io: IO): Promise<void> | void;
+    publicationNegate?: boolean | undefined;
     published?: number;
     completed?: boolean;
   } | undefined;
@@ -6116,11 +6117,21 @@ export class Runtime {
             try {
               let exitCode: number;
               try {
-                const child = tryCloneStateSync(state) ?? await cloneState(state, this.signal);
+                const rawStateForChild = stateMonitor(state)?.raw ?? state;
+                const child: State = runtime.isPureExternalStageCommand(command, rawStateForChild)
+                  ? {
+                      ...rawStateForChild,
+                      extensions: forkExtensions(state.extensions, "pipeline"),
+                      isolated: true,
+                      _readOnlyStage: true,
+                    }
+                  : (tryCloneStateSync(state) ?? await cloneState(state, this.signal));
                 preparedChild = child;
-                child.extensions = undefined;
-                child.extensions = forkExtensions(state.extensions, "pipeline");
-                child.isolated = true;
+                if (!child._readOnlyStage) {
+                  child.extensions = undefined;
+                  child.extensions = forkExtensions(state.extensions, "pipeline");
+                  child.isolated = true;
+                }
                 const inherited = isolateIO(io, references);
                 const childIO: IO = {
                   ...inherited,
@@ -6309,11 +6320,73 @@ export class Runtime {
     }
   }
 
-  private publishStatus(state: State, statuses: readonly number[], io: IO): Promise<void> | void {
+  isPureExternalStageCommand(command: Command, rawState: State): boolean {
+    if (
+      command.kind !== "simple" ||
+      command.redirects.length > 0 ||
+      command.words.length === 0 ||
+      rawState.externalInvocation ||
+      this.middleware.length > 0 ||
+      hasActiveExtensions(rawState)
+    ) {
+      return false;
+    }
+    const firstName = command.words[0]!.plain;
+    if (
+      firstName === undefined ||
+      !FAST_DIRECT_CONTEXT_COMMANDS.has(firstName) ||
+      rawState.functions.has(firstName) ||
+      rawState.extensions?.builtins.has(firstName)
+    ) {
+      return false;
+    }
+    for (let i = 0; i < command.words.length; i++) {
+      const word = command.words[i]!;
+      if (word.parts.length === 0) return false;
+      for (let j = 0; j < word.parts.length; j++) {
+        const part = word.parts[j]!;
+        if (part.kind !== "text" || part.byteValue) return false;
+        if (!part.quoted && (part.value.includes("{") || (j === 0 && part.value.startsWith("~")) || hasGlobOrEscape(part.value, !!rawState.extglob))) {
+          return false;
+        }
+      }
+    }
+    const extDef = this.getExternalCommand(firstName);
+    return extDef !== undefined && !customRegisteredCommands.has(extDef.execute) && !customRegisteredRegistries.has(this.commands);
+  }
+
+  private publishStatus(state: State, statuses: readonly number[], io: IO, terminal?: IO["terminal"]): Promise<void> | void {
     this.signal.throwIfAborted();
     try { throwCleanupFailures(io[invocationScope].failures); }
     catch (error) { throw new NounsetDiagnosticFailure(error); }
+    if (state._readOnlyStage || (state.isolated === true && terminal && !hasActiveExtensions(state))) {
+      return;
+    }
     return publishPipelineStatus(trackState(state, this.budget, io[invocationScope]), statuses, this.signal, io[invocationScope]);
+  }
+
+  private runTerminalBeforeExit(
+    command: Command,
+    state: State,
+    terminal: NonNullable<IO["terminal"]>,
+    status: number,
+    completionIO: IO,
+  ): Promise<void> | void {
+    const publishes = command.kind === "simple" || command.kind === "subshell" || command.kind === "arithmetic" || command.kind === "conditional";
+    if (!publishes) return;
+    const reported = terminal.publicationNegate && (command.kind === "conditional" || command.kind === "arithmetic") ? Number(status === 0) : status;
+    const statuses = reported === 0 ? singleStatusZero : reported === 1 ? singleStatusOne : [reported];
+    const publishing = this.publishStatus(state, statuses, completionIO, terminal);
+    if (!publishing && (status === 0 || (!state.errexit && !hasActiveExtensions(state)) || completionIO.execution?.ignoreErrexit)) {
+      this.signal.throwIfAborted();
+      terminal.published = status;
+      return;
+    }
+    return (async () => {
+      if (publishing) await publishing;
+      terminal.published = status;
+      await this.errexit(status, state, completionIO);
+    })();
   }
 
   async command(command: Command, state: State, io: IO, fileShortcut = false, publicationNegate = false): Promise<number> {
@@ -6332,23 +6405,7 @@ export class Runtime {
     }
     const publishes = command.kind === "simple" || command.kind === "subshell" || command.kind === "arithmetic" || command.kind === "conditional";
     const terminal = io.terminal?.target === command ? io.terminal : undefined;
-    if (terminal) terminal.beforeExit = (status, completionIO): Promise<void> | void => {
-      if (publishes) {
-        const reported = publicationNegate && (command.kind === "conditional" || command.kind === "arithmetic") ? Number(status === 0) : status;
-        const statuses = reported === 0 ? singleStatusZero : reported === 1 ? singleStatusOne : [reported];
-        const publishing = this.publishStatus(state, statuses, completionIO);
-        if (!publishing && (status === 0 || (!state.errexit && !hasActiveExtensions(state)) || completionIO.execution?.ignoreErrexit)) {
-          this.signal.throwIfAborted();
-          terminal.published = status;
-          return;
-        }
-        return (async () => {
-          if (publishing) await publishing;
-          terminal.published = status;
-          await this.errexit(status, state, completionIO);
-        })();
-      }
-    };
+    if (terminal && publicationNegate) terminal.publicationNegate = true;
     const scope = io[invocationScope];
     let status: number;
     scope.enterWork();
@@ -6367,7 +6424,7 @@ export class Runtime {
       const reported = publicationNegate && (command.kind === "conditional" || command.kind === "arithmetic") ? Number(status === 0) : status;
       if (terminal?.published !== status) {
         const statuses = reported === 0 ? singleStatusZero : reported === 1 ? singleStatusOne : [reported];
-        const publishing = this.publishStatus(state, statuses, io);
+        const publishing = this.publishStatus(state, statuses, io, terminal);
         if (publishing) await publishing;
       }
       if (!terminal?.completed && status !== 0) await this.errexit(status, state, io);
@@ -6377,7 +6434,7 @@ export class Runtime {
 
   async executeCommand(command: Command, state: State, originalIO: IO, fileShortcut = false): Promise<number> {
     const terminal = originalIO.terminal?.target === command ? originalIO.terminal : undefined;
-    state = trackState(state, this.budget, originalIO[invocationScope]);
+    if (!state._readOnlyStage) state = trackState(state, this.budget, originalIO[invocationScope]);
     if (originalIO.asyncDefaultInput) {
       if (!originalIO.descriptors?.get(0)?.closed && !command.redirects.some(redirect => redirect.descriptor === 0)) {
         const descriptors = new Map(originalIO.descriptors);
@@ -6612,7 +6669,7 @@ export class Runtime {
         if (compoundResult.diagnosticFailure) diagnosticFailure = compoundResult.diagnosticFailure;
       }
       if (terminal) {
-        const before = terminal.beforeExit?.(status, terminal.io ?? io);
+        const before = this.runTerminalBeforeExit(command, state, terminal, status, terminal.io ?? io);
         if (before) await before;
         if (!this.tryFinishShellSync(state)) {
           status = await this.finishShell(state, terminal.io ?? io, status);
@@ -7524,7 +7581,7 @@ export class Runtime {
             await terminal.frame.reconcile(originalIO.descriptors!);
           }
           const rawState = stateMonitor(state)?.raw ?? state;
-          if (rawState.variables._ !== undefined) delete rawState.variables._;
+          if (!state._readOnlyStage && rawState.variables._ !== undefined) delete rawState.variables._;
           rawState.lastArgument = words.length > 0 ? words[words.length - 1]! : "";
           state.lastArgument = rawState.lastArgument;
           if (!words.length) return state.substitutionStatus;

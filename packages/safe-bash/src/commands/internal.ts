@@ -5,6 +5,7 @@ import { writeDiagnostic } from "../escaping.js";
 import { inputRequirements } from "./portable-requirements.js";
 import { RecordBuffer } from "./record-buffer.js";
 import { gnuInformation } from "./gnu-information.js";
+import { getRuntimeBackingFileSystem } from "../fs/creation-mask.js";
 import {
   FsError, readBytes, toByteSource, writeBytes,
   type ByteSource, type CommandContext, type CommandDefinition, type CommandHandler,
@@ -164,11 +165,26 @@ export function input(context: CommandContext, name = "-"): ByteSource {
   }
   return readBytes({ [Symbol.asyncIterator]() {
     context.signal.throwIfAborted();
-    if (!context.fs.capabilitiesFor && context.fs.readStream && context.fs.capabilities.streamingRead !== false) {
+    const resolvedPath = pathOf(context, name);
+    const backing = getRuntimeBackingFileSystem(context.fs);
+    const skipCapsFor = !context.fs.capabilitiesFor || (
+      backing?.capabilitiesFor === undefined &&
+      resolvedPath !== "/dev" &&
+      !resolvedPath.startsWith("/dev/")
+    );
+    if (skipCapsFor && context.fs.readStream && context.fs.capabilities.streamingRead !== false) {
       assertCommandRequirements(context, inputRequirements, FILE_REQUIREMENT_MODES);
+      if (
+        backing !== undefined &&
+        backing.capabilitiesFor === undefined &&
+        Object.getPrototypeOf(backing)?.constructor?.name === "MemoryFileSystem" &&
+        !Object.prototype.hasOwnProperty.call(backing, "readStream")
+      ) {
+        return context.fs.readStream(resolvedPath, { signal: context.signal })[Symbol.asyncIterator]();
+      }
       let iterator: AsyncIterator<Uint8Array> & { tryNextSync?: () => IteratorResult<Uint8Array> | undefined };
       try {
-        iterator = context.fs.readStream(pathOf(context, name), { signal: context.signal })[Symbol.asyncIterator]();
+        iterator = context.fs.readStream(resolvedPath, { signal: context.signal })[Symbol.asyncIterator]();
         if (context.signal.aborted) {
           void Promise.resolve().then(() => iterator.return?.()).catch(() => {});
           context.signal.throwIfAborted();
@@ -251,6 +267,16 @@ export function assertInputRequirements(context: CommandContext, names: readonly
   }
   assertCommandRequirements(context, inputRequirements, hasFile ? FILE_REQUIREMENT_MODES : STDIN_REQUIREMENT_MODES);
   if (!hasFile || !context.fs.capabilitiesFor) return;
+  if (getRuntimeBackingFileSystem(context.fs)?.capabilitiesFor === undefined) {
+    let hasDev = false;
+    for (let i = 0; i < names.length; i++) {
+      const name = names[i]!;
+      if (name === "-") continue;
+      const p = pathOf(context, name);
+      if (p === "/dev" || p.startsWith("/dev/")) { hasDev = true; break; }
+    }
+    if (!hasDev) return;
+  }
   return assertInputRequirementsAsync(context, names);
 }
 

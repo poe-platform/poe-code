@@ -34,7 +34,7 @@ export async function cell(text: string, budget: ColumnBudget): Promise<Cell> {
   let width = 0, start = 0, offset = 0;
   const parts: string[] = [];
   for (const character of text) {
-    await budget.step();
+    { const s = budget.step(); if (s) await s; }
     validateScalar(character, true);
     const size = character === "\t" ? 8 - width % 8 : widthOf(character.codePointAt(0)!);
     budget.check(size, budget.columnLimits.maxWidth - width, "display width");
@@ -48,8 +48,10 @@ export async function cell(text: string, budget: ColumnBudget): Promise<Cell> {
   return { text: parts.length ? [...parts, text.slice(start)].join("") : text, width };
 }
 
+const utf8FatalDecoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+
 export function decode(bytes: Uint8Array): string {
-  try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes); }
+  try { return utf8FatalDecoder.decode(bytes); }
   catch { throw new FsError("EINVAL", { message: "invalid UTF-8 input" }); }
 }
 
@@ -64,7 +66,7 @@ export async function fields(text: string, separator: Set<string> | undefined, b
     result.push(text.slice(start, end));
   };
   for (const character of text) {
-    await budget.step();
+    { const s = budget.step(); if (s) await s; }
     if (columnLimit && result.length + 1 === columnLimit && (separator || !whitespace(character))) {
       start = offset;
       append(text.length);

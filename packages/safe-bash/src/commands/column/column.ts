@@ -6,13 +6,13 @@ import { configuredTable } from "./layout.js";
 
 async function fillOutput(rows: readonly Cell[][], options: ParsedOptions, budget: ColumnBudget): Promise<void> {
   let maximum = 0;
-  for (const row of rows) { await budget.step(); maximum = Math.max(maximum, row[0]!.width); }
+  for (const row of rows) { { const s = budget.step(); if (s) await s; } maximum = Math.max(maximum, row[0]!.width); }
   const stride = (Math.floor(maximum / 8) + 1) * 8;
   const columns = Math.max(1, Math.min(rows.length, Math.floor(options.width / stride)));
   const height = Math.ceil(rows.length / columns);
   for (let rowIndex = 0; rowIndex < height; rowIndex++) {
     for (let columnIndex = 0; columnIndex < columns; columnIndex++) {
-      await budget.step();
+      { const s = budget.step(); if (s) await s; }
       const index = options.across ? rowIndex * columns + columnIndex : columnIndex * height + rowIndex;
       if (index >= rows.length) break;
       const entry = rows[index]![0]!;
@@ -65,8 +65,8 @@ export function createColumnCommand(options: ColumnCommandsOptions = {}): Comman
           const isColumnNamed = (index: number): boolean => parsed.definitions.length
             ? Boolean(parsed.definitions[index]?.named && parsed.definitions[index]?.name)
             : index < parsed.names.length;
-          for (const character of parsed.outputSeparator) { await budget.step(); validateScalar(character); }
-          if (parsed.separator) for (const character of parsed.separator) { await budget.step(); validateScalar(character, true); }
+          for (const character of parsed.outputSeparator) { { const s = budget.step(); if (s) await s; } validateScalar(character); }
+          if (parsed.separator) for (const character of parsed.separator) { { const s = budget.step(); if (s) await s; } validateScalar(character, true); }
           const rows: Cell[][] = [], widths: number[] = [];
           // Only unconditional separators provide a safe output lower bound;
           // hidden/reordered and JSON tables remain bounded by retention caps.
@@ -75,7 +75,7 @@ export function createColumnCommand(options: ColumnCommandsOptions = {}): Comman
             ? Buffer.byteLength(parsed.outputSeparator) : undefined;
           let rowCount = 0, cellCount = 0, exitCode = 0;
           for (const file of parsed.files) {
-            await budget.step();
+            { const s = budget.step(); if (s) await s; }
             let reader;
             try { reader = await inputs.open(file); }
             catch (error) {
@@ -90,12 +90,12 @@ export function createColumnCommand(options: ColumnCommandsOptions = {}): Comman
               const bytes = await reader.next();
               if (bytes === undefined) break;
               budget.check(++rowCount, limits.maxRows, "rows");
-              await budget.work(bytes.length);
+              { const w = budget.work(bytes.length); if (w) await w; }
               const text = decode(bytes);
               let empty = !text.length;
               if (parsed.keepEmpty && !empty) {
                 empty = true;
-                for (const character of text) { await budget.step(); if (!whitespace(character)) { empty = false; break; } }
+                for (const character of text) { { const s = budget.step(); if (s) await s; } if (!whitespace(character)) { empty = false; break; } }
               }
               if (empty) {
                 if (parsed.keepEmpty) {
@@ -116,7 +116,7 @@ export function createColumnCommand(options: ColumnCommandsOptions = {}): Comman
               }
               if (!parsed.table) {
                 let blank = true;
-                for (const character of text) { await budget.step(); if (character !== " " && character !== "\t") blank = false; }
+                for (const character of text) { { const s = budget.step(); if (s) await s; } if (character !== " " && character !== "\t") blank = false; }
                 if (blank) continue;
               }
               budget.check(values.length, limits.maxCells - cellCount, "cells");

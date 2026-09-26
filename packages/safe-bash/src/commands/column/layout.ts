@@ -5,7 +5,7 @@ import { jsonOutput, tableOutput } from "./table.js";
 
 async function selected(list: string, count: number, names: readonly string[], budget: ColumnBudget, flags?: readonly Set<string>[], named?: readonly boolean[], groups = true): Promise<number[]> {
   if (!list) return [];
-  await budget.work(count + names.length);
+  { const w = budget.work(count + names.length); if (w) await w; }
   if (groups && list === "0") return Array.from({ length: count }, (_, index) => index);
   const nameIndices = new Map<string, number>();
   for (let index = 0; index < names.length; index++) if (!nameIndices.has(names[index]!)) nameIndices.set(names[index]!, index);
@@ -23,9 +23,9 @@ async function selected(list: string, count: number, names: readonly string[], b
     return index;
   };
   for (const value of list.split(",")) {
-    await budget.step();
+    { const s = budget.step(); if (s) await s; }
     if (groups && value === "-") {
-      await budget.work(count);
+      { const w = budget.work(count); if (w) await w; }
       for (let index = 0; index < count; index++) if (!(named?.[index] ?? index < names.length)) result.add(index);
     } else {
       const dash = value.indexOf("-", 1);
@@ -46,10 +46,10 @@ async function fitWidths(rows: readonly Cell[][], columns: readonly number[], wi
   for (const index of columns) {
     total += widths[index]!;
     let sum = 0, maximum = 0;
-    for (const row of rows) { await budget.step(); const width = row[index]?.width ?? 0; sum += width; maximum = Math.max(maximum, width); }
+    for (const row of rows) { { const s = budget.step(); if (s) await s; } const width = row[index]?.width ?? 0; sum += width; maximum = Math.max(maximum, width); }
     const average = Math.floor(sum / rows.length);
     let squareSum = 0;
-    for (const row of rows) { await budget.step(); squareSum += ((row[index]?.width ?? 0) - average) ** 2; }
+    for (const row of rows) { { const s = budget.step(); if (s) await s; } squareSum += ((row[index]?.width ?? 0) - average) ** 2; }
     const deviation = rows.length > 1 ? Math.sqrt(squareSum / (rows.length - 1)) : 0;
     statistics.set(index, { average, deviation, maximum });
   }
@@ -65,7 +65,7 @@ async function fitWidths(rows: readonly Cell[][], columns: readonly number[], wi
   for (let stage = 0; total > options.width && stage <= 6;) {
     const before = total;
     for (let position = 0; position < sorted.length && total > options.width; position++) {
-      await budget.step();
+      { const s = budget.step(); if (s) await s; }
       const index = sorted[position]!, width = widths[index]!, min = minima[index]!;
       if (!width || width <= min) continue;
       const stat = statistics.get(index)!, extreme = flags[index]!.has("noextreme");
@@ -91,7 +91,7 @@ async function fitWidths(rows: readonly Cell[][], columns: readonly number[], wi
   }
   if (total < options.width) {
     for (const index of sorted) {
-      await budget.step();
+      { const s = budget.step(); if (s) await s; }
       if (!flags[index]!.has("noextreme") || !widths[index]) continue;
       const maximum = statistics.get(index)!.maximum;
       const add = maximum ? Math.min(options.width - total, maximum - widths[index]!) : options.width - total;
@@ -114,7 +114,7 @@ async function fragments(entry: Cell | undefined, width: number, wrap: boolean, 
   const result: Cell[] = [];
   let start = 0, offset = 0, used = 0;
   for (const character of entry.text) {
-    await budget.step();
+    { const s = budget.step(); if (s) await s; }
     const size = widthOf(character.codePointAt(0)!);
     if (used + size > width && offset > start) {
       result.push({ text: entry.text.slice(start, offset), width: used });
@@ -131,7 +131,7 @@ async function fragments(entry: Cell | undefined, width: number, wrap: boolean, 
 export async function configuredTable(rows: readonly Cell[][], naturalWidths: readonly number[], options: ParsedOptions, budget: ColumnBudget, remainingCells: number): Promise<void> {
   if (!rows.length) return;
   const count = Math.max(naturalWidths.length, options.names.length);
-  await budget.work(count);
+  { const w = budget.work(count); if (w) await w; }
   const flags = Array.from({ length: count }, () => new Set<string>());
   const named = Array.from({ length: count }, (_, index) => options.definitions.length ? options.definitions[index]?.named ?? false : index < options.names.length);
   for (let index = 0; index < options.definitions.length; index++) {
@@ -176,7 +176,7 @@ export async function configuredTable(rows: readonly Cell[][], naturalWidths: re
   const separatorWidth = (await cell(options.outputSeparator, budget)).width;
   let lines = 0, nextHeader = 0;
   const emit = async (row: readonly Cell[]): Promise<void> => {
-    await budget.work(columns.length);
+    { const w = budget.work(columns.length); if (w) await w; }
     const pieces: Cell[][] = [];
     let height = 1;
     for (const index of columns) {
@@ -187,7 +187,7 @@ export async function configuredTable(rows: readonly Cell[][], naturalWidths: re
     for (let line = 0; line < height; line++) {
       let indent = 0;
       for (let position = 0; position < columns.length; position++) {
-        await budget.step();
+        { const s = budget.step(); if (s) await s; }
         const index = columns[position]!, entry = pieces[position]![line];
         const width = widths[index] ?? 0, right = flags[index]!.has("right"), last = position + 1 === columns.length;
         const gap = Math.max(0, width - (entry?.width ?? 0));

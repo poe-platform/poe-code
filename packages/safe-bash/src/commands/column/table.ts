@@ -3,16 +3,16 @@ import { ColumnBudget } from "./internal.js";
 
 export async function jsonOutput(rows: readonly Cell[][], names: readonly string[], tableName: string, budget: ColumnBudget, columns: readonly number[] = names.map((_, index) => index)): Promise<void> {
   const lower = (value: string): string => Array.from(value, character => character >= "A" && character <= "Z" ? character.toLowerCase() : character).join("");
-  await budget.work(names.length);
+  { const w = budget.work(names.length); if (w) await w; }
   const keys = columns.map(index => JSON.stringify(lower(names[index] ?? "")));
   await budget.text(`{\n   ${JSON.stringify(lower(tableName))}: [\n`);
   for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
-    await budget.step();
+    { const s = budget.step(); if (s) await s; }
     const row = rows[rowIndex]!;
     await budget.text(rowIndex ? "{\n" : "      {\n");
     if (!keys.length) await budget.text("\n");
     for (let index = 0; index < keys.length; index++) {
-      await budget.step();
+      { const s = budget.step(); if (s) await s; }
       const entry = row[columns[index]!];
       const value = entry?.text ? JSON.stringify(entry.text) : "null";
       await budget.text(`         ${keys[index]}: ${value}${index + 1 < keys.length ? "," : ""}\n`);
@@ -29,13 +29,13 @@ class TailPadding {
   private constructor(readonly widths: readonly number[], readonly separator: string, readonly separatorSize: number) {}
 
   static async create(widths: readonly number[], separator: string, budget: ColumnBudget): Promise<TailPadding> {
-    await budget.work(widths.length);
+    { const w = budget.work(widths.length); if (w) await w; }
     const padding = new TailPadding(widths, separator, Buffer.byteLength(separator));
     const last = widths.length - 1;
     padding.sizes[last] = 0;
     padding.next[last] = last;
     for (let index = last - 1; index >= 0; index--) {
-      await budget.step();
+      { const s = budget.step(); if (s) await s; }
       const size = widths[index]! + padding.separatorSize;
       padding.sizes[index] = Math.min(budget.columnLimits.maxOutputBytes + 1, size + padding.sizes[index + 1]!);
       padding.next[index] = size ? index : padding.next[index + 1]!;
@@ -50,7 +50,7 @@ class TailPadding {
     const size = start ? gap + this.separatorSize + this.sizes[start]! : this.sizes[0]!;
     if (!size) return;
     budget.checkOutput(size);
-    await budget.work(size);
+    { const w = budget.work(size); if (w) await w; }
     this.separatorBytes ??= Buffer.from(this.separator);
     let buffer = new Uint8Array(Math.min(size, ColumnBudget.outputChunkBytes)), used = 0;
     const flush = async (): Promise<void> => {

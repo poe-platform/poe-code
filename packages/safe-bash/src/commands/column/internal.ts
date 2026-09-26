@@ -28,7 +28,7 @@ export function diagnostics(context: CommandContext, maximum: number): (error: u
 export class ColumnBudget extends Budget {
   static readonly outputChunkBytes = 8192;
   private workUsed = 0;
-  private untilYield = 128;
+  private untilYield = 2048;
   private emittedBytes = 0;
   private retainedBytes = 0;
   private projectedBytes = 0;
@@ -40,7 +40,7 @@ export class ColumnBudget extends Budget {
       throw new FsError("EFBIG", { message: `column ${label} limit exceeded` });
     }
   }
-  override async step(): Promise<void> { await this.work(1); }
+  override step(): void | Promise<void> { return this.work(1); }
   retain(length: number): void {
     // Charge strings, worst-case tab expansion, and field/cell bookkeeping
     // before slicing input or constructing display cells. This is a logical
@@ -53,16 +53,16 @@ export class ColumnBudget extends Budget {
     this.check(size, this.columnLimits.maxOutputBytes - this.projectedBytes, "output projection");
     this.projectedBytes += size;
   }
-  async work(amount: number): Promise<void> {
+  work(amount: number): void | Promise<void> {
     this.context.signal.throwIfAborted();
     this.check(amount, this.columnLimits.maxSteps - this.workUsed, "work");
     this.workUsed += amount;
     this.untilYield -= amount;
-    if (this.untilYield <= 0) {
-      this.untilYield = 128;
-      await yieldTurn();
-    }
-    this.context.signal.throwIfAborted();
+    if (this.untilYield > 0) return;
+    this.untilYield = 2048;
+    return yieldTurn().then(() => {
+      this.context.signal.throwIfAborted();
+    });
   }
   async text(value: string): Promise<void> {
     this.check(value.length, this.columnLimits.maxOutputBytes - this.emittedBytes, "output");
@@ -84,7 +84,7 @@ export class ColumnBudget extends Budget {
   }
   async padding(size: number, character = " "): Promise<void> {
     this.checkOutput(size);
-    await this.work(size);
+    { const w = this.work(size); if (w) await w; }
     for (let remaining = size; remaining > 0; remaining -= ColumnBudget.outputChunkBytes) {
       await this.text(character.repeat(Math.min(remaining, ColumnBudget.outputChunkBytes)));
     }

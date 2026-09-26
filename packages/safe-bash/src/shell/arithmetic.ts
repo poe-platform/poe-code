@@ -886,7 +886,9 @@ export function compilePureSmiProgram(program: ArithmeticProgram, namesOut: Set<
   return compiled;
 }
 
-export function evalCompiledSmi(compiled: CompiledSmiExpr, varRegMap: Int32Array, budget: ParseBudget): number {
+let _lastCompiledSmiAdmitUnits = 0;
+
+export function evalCompiledSmi(compiled: CompiledSmiExpr, varRegMap: Int32Array, budget?: ParseBudget): number {
   const ops = compiled.ops;
   const args = compiled.args;
   const len = ops.length;
@@ -898,7 +900,7 @@ export function evalCompiledSmi(compiled: CompiledSmiExpr, varRegMap: Int32Array
       sharedRpnStack[sp++] = args[pc]!;
     } else if (op === 1) {
       const val = sharedLoopIntRegs[varRegMap[args[pc]!]!]!;
-      admitUnits += val < 0 ? 4 : 2;
+      admitUnits = (admitUnits + (val < 0 ? 4 : 2)) | 0;
       sharedRpnStack[sp++] = val;
     } else if (op <= 4) {
       const v = sharedRpnStack[sp - 1]!;
@@ -923,11 +925,12 @@ export function evalCompiledSmi(compiled: CompiledSmiExpr, varRegMap: Int32Array
       }
       // Checking each intermediate preserves exactness even when a later operation
       // would bring an overflowing value back into the Number range.
-      if (!Number.isSafeInteger(res)) return NaN;
+      if ((res | 0) !== res && !Number.isSafeInteger(res)) return NaN;
       sharedRpnStack[sp - 1] = res;
     }
   }
-  budget.admit(admitUnits);
+  _lastCompiledSmiAdmitUnits = admitUnits;
+  if (budget !== undefined) budget.admit(admitUnits);
   return sharedRpnStack[0]!;
 }
 
@@ -957,18 +960,20 @@ export function runIntArithForLoop(
   let lastInductionInt: number | undefined;
   let subBytes = 0;
   let subCount = 0;
+  let totalAdmitUnits = 0;
   while (isLe ? iVal <= limitVal : iVal < limitVal) {
-    parseBudget.admit(iVal < 0 ? 4 : 2);
+    totalAdmitUnits += iVal < 0 ? 4 : 2;
     lastInductionInt = iVal;
     for (let b = 0; b < stepCount; b++) {
       if (deferredMask & (1 << b)) continue;
       const intStep = intSteps[b]!;
-      const res = evalCompiledSmi(intStep.compiled, intStep.varRegMap, parseBudget);
-      if (!Number.isSafeInteger(res)) {
+      const res = evalCompiledSmi(intStep.compiled, intStep.varRegMap);
+      if ((res | 0) !== res && !Number.isSafeInteger(res)) {
         sharedLoopIntRegs.set(savedRegs);
         parseBudget.restore(savedBudget);
         return { ok: false, lastInductionInt: undefined, subBytes: 0, subCount: 0 };
       }
+      totalAdmitUnits += _lastCompiledSmiAdmitUnits;
       sharedLoopIntRegs[intStep.targetReg] = res;
       if (intStep.isSub) {
         let abs = res < 0 ? -res : res;
@@ -978,10 +983,11 @@ export function runIntArithForLoop(
         subCount = subCount + 1;
       }
     }
-    parseBudget.admit(iVal < 0 ? 4 : 2);
+    totalAdmitUnits += iVal < 0 ? 4 : 2;
     iVal = (iVal + 1) | 0;
     sharedLoopIntRegs[0] = iVal;
   }
+  parseBudget.admit(totalAdmitUnits);
   return { ok: true, lastInductionInt, subBytes, subCount };
 }
 
@@ -995,8 +1001,30 @@ export function runIntForLoop(
   const savedBudget = parseBudget.snapshot();
   let subBytes = 0;
   let subCount = 0;
+  let totalAdmitUnits = 0;
   for (let idx = 0; idx < words.length; idx++) {
-    const iVal = fastSafeInt(words[idx]!, parseBudget);
+    const word = words[idx]!;
+    let iVal: number | undefined;
+    const wLen = word.length;
+    if (wLen >= 1 && wLen <= 8) {
+      const c0 = word.charCodeAt(0);
+      if (c0 >= 49 && c0 <= 57) {
+        let num = c0 - 48;
+        let valid = true;
+        for (let k = 1; k < wLen; k++) {
+          const ck = word.charCodeAt(k);
+          if (ck < 48 || ck > 57) { valid = false; break; }
+          num = (num * 10 + (ck - 48)) | 0;
+        }
+        if (valid) {
+          iVal = num;
+          totalAdmitUnits = (totalAdmitUnits + 2) | 0;
+        }
+      }
+    }
+    if (iVal === undefined) {
+      iVal = fastSafeInt(word, parseBudget);
+    }
     if (iVal === undefined) {
       sharedLoopIntRegs.set(savedRegs);
       parseBudget.restore(savedBudget);
@@ -1005,12 +1033,13 @@ export function runIntForLoop(
     sharedLoopIntRegs[0] = iVal | 0;
     for (let b = 0; b < stepCount; b++) {
       const intStep = intSteps[b]!;
-      const res = evalCompiledSmi(intStep.compiled, intStep.varRegMap, parseBudget);
-      if (!Number.isSafeInteger(res)) {
+      const res = evalCompiledSmi(intStep.compiled, intStep.varRegMap);
+      if ((res | 0) !== res && !Number.isSafeInteger(res)) {
         sharedLoopIntRegs.set(savedRegs);
         parseBudget.restore(savedBudget);
         return { ok: false, subBytes: 0, subCount: 0 };
       }
+      totalAdmitUnits = (totalAdmitUnits + _lastCompiledSmiAdmitUnits) | 0;
       sharedLoopIntRegs[intStep.targetReg] = res;
       if (intStep.isSub) {
         let abs = res < 0 ? -res : res;
@@ -1021,5 +1050,6 @@ export function runIntForLoop(
       }
     }
   }
+  parseBudget.admit(totalAdmitUnits);
   return { ok: true, subBytes, subCount };
 }

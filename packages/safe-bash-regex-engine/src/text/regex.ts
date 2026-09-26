@@ -892,6 +892,7 @@ export class Pattern {
       if (!initialCheck) {
         return this.findSyncFastInto(text, budget, textStart, FAST_MATCH_OFFSETS, textEnd, textStart);
       }
+      return initialCheck.then(() => this.findSyncFastInto(text, budget, textStart, FAST_MATCH_OFFSETS, textEnd, textStart));
     }
     const sub = textStart === 0 && textEnd === text.length ? text : text.slice(textStart, textEnd);
     const found = this.tryFindSync(sub, budget, 0);

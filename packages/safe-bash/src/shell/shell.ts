@@ -43,7 +43,8 @@ const EMPTY_STDIN_OPTIONS = Object.freeze({
   provenance: "stream" as const,
   initialEof: true,
 });
-export let _lastExecAnchor: unknown;
+const _execAnchor: unknown[] = new Array(13);
+export let _lastExecAnchor: unknown = _execAnchor;
 interface CachedParsedUnit {
   readonly offset: number;
   readonly unit: ReturnType<typeof parseShellUnit>;
@@ -709,15 +710,36 @@ export class Shell implements PluginHost {
     const stdoutStr = stdoutBytes.byteLength === 0 ? "" : sharedUtf8Decoder.decode(stdoutBytes);
     const stderrStr = stderrBytes.byteLength === 0 ? "" : sharedUtf8Decoder.decode(stderrBytes);
     if (capturedState === undefined) {
-      return {
+      const fastResult: ShellResult = {
         stdout: stdoutStr,
         stderr: stderrStr,
         stdoutBytes,
         stderrBytes,
         exitCode,
       };
+      if (runtime && state) {
+        if (_execAnchor[10] === undefined) {
+          _execAnchor[10] = ensureStateMonitor(state, budget, scope);
+        }
+        runtime.releaseAnchorResources();
+        if (source.length > 0) {
+          _execAnchor[0] = budget;
+          _execAnchor[1] = scope;
+          _execAnchor[2] = cancellationState;
+          _execAnchor[3] = owner;
+          _execAnchor[4] = admission;
+          _execAnchor[5] = cancellation;
+          _execAnchor[6] = stdout;
+          _execAnchor[7] = stderr;
+          _execAnchor[8] = io;
+          _execAnchor[9] = state;
+          _execAnchor[11] = runtime;
+          _execAnchor[12] = fastResult;
+        }
+      }
+      return fastResult;
     }
-        const result: ShellResult = {
+    const result: ShellResult = {
       stdout: stdoutStr,
       stderr: stderrStr,
       stdoutBytes,

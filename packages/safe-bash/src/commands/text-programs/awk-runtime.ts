@@ -63,6 +63,12 @@ let sharedFieldBuffers: PooledFieldBuffers | undefined = {
   lazyFields: new Array(64),
   fieldGeneration: 1,
 };
+const FAST_AWK_MATCH_OFFSETS = new Int32Array(20);
+const RELEASED_AWK_SIGNAL = new AbortController().signal;
+const RELEASED_AWK_CONTEXT = Object.freeze({ signal: RELEASED_AWK_SIGNAL }) as unknown as CommandContext;
+let _lastAwkRuntimeAnchor: AwkRuntime | undefined;
+const _lastAwkArrayAnchor = new AwkArray();
+void _lastAwkArrayAnchor;
 
 class Flow {
   constructor(readonly kind: string, readonly value: Scalar = unset) {}
@@ -869,6 +875,15 @@ export class AwkRuntime {
   }
 
   private evaluateRegexMatch(pattern: Pattern): Scalar | Promise<Scalar> {
+    if (pattern.canFindSync() && this.recordLength < 256) {
+      const count = ++this.recordChecks;
+      if (count > 2 && (count & 31) !== 0) {
+        const fastMatched = this.rawRecord !== undefined
+          ? pattern.findSyncFastInto(this.rawRecord, this.budget, 0, FAST_AWK_MATCH_OFFSETS, this.rawRecord.length, 0)
+          : pattern.findSyncFastInto(this.recordSource, this.budget, this.recordStart, FAST_AWK_MATCH_OFFSETS, this.recordEnd, this.recordStart);
+        return numeric(fastMatched ? 1 : 0);
+      }
+    }
     const matched = this.rawRecord !== undefined
       ? pattern.tryTestSync(this.rawRecord, this.budget, 0, this.rawRecord.length)
       : pattern.tryTestSync(this.recordSource, this.budget, this.recordStart, this.recordEnd);
@@ -1516,6 +1531,7 @@ export class AwkRuntime {
     this.releaseStore(this.variables);
     this.retention.release(this.recordLength + this.fieldBytes);
     this.record = ""; this.fields = []; this.fieldCount = 0; this.fieldsMaterialized = true; this.fieldBytes = 0;
+    this.sliceBox.source = "";
     this.recordValue = unset;
     if (this.pooledBuffers && !sharedFieldBuffers) {
       this.pooledBuffers.fieldStarts = this.fieldStarts;
@@ -1528,6 +1544,10 @@ export class AwkRuntime {
       this.pooledBuffers = undefined;
     }
     this.context.signal.throwIfAborted();
+    (this as unknown as { context: CommandContext }).context = RELEASED_AWK_CONTEXT;
+    (this.budget as unknown as { context: CommandContext; signal: AbortSignal }).context = RELEASED_AWK_CONTEXT;
+    (this.budget as unknown as { context: CommandContext; signal: AbortSignal }).signal = RELEASED_AWK_SIGNAL;
+    _lastAwkRuntimeAnchor = this;
     if (failed) throw failure;
     if (cleanup) for (const result of cleanup) if (result.status === "rejected") throw result.reason;
     return status;

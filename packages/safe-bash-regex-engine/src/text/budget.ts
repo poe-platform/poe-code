@@ -1,5 +1,5 @@
 import { PublicDiagnostic } from "safe-bash-contracts/public-diagnostic";
-import { monotonicNow, yieldTurn } from "safe-bash-contracts/yield";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import type { CommandContext } from "safe-bash-contracts";
 
 const validatedTextProgramOptions = new WeakSet<TextProgramOptions>();
@@ -27,7 +27,7 @@ export class Budget {
   private readonly unlimited: boolean;
   private readonly signal: AbortSignal;
   private checkpoints = 0;
-  private lastYield = monotonicNow();
+  private lastYield = 0;
   constructor(readonly context: CommandContext, readonly options: TextProgramOptions) {
     const rem = options.maxSteps ?? Infinity;
     this.unlimited = rem === Infinity;
@@ -67,7 +67,13 @@ export class Budget {
   checkpointSync(): Promise<void> | undefined {
     if (this.signal.aborted) this.signal.throwIfAborted();
     const count = ++this.checkpoints;
-    if ((count & 255) === 0 || monotonicNow() - this.lastYield >= 25) {
+    if ((count & 255) === 0) {
+      const now = monotonicNow();
+      if (this.lastYield === 0) this.lastYield = now;
+      if (!hasYieldCheckpoint(this.signal) && now - this.lastYield < 25) {
+        runYieldCheckpoint(this.signal);
+        return undefined;
+      }
       return this.yieldCheckpointAsync();
     }
     return undefined;

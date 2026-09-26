@@ -11,6 +11,9 @@ interface Scan {
 }
 
 const resolvedVoid = Promise.resolve();
+const RELEASED_READER_ITERATOR: AsyncIterator<Uint8Array> = {
+  next() { return Promise.resolve({ done: true as const, value: undefined }); },
+};
 
 export class Reader {
   private readonly iterator: AsyncIterator<Uint8Array>;
@@ -283,14 +286,21 @@ export class Reader {
     this.closed = true;
     this.ended = true;
     this.blocks.length = 0;
+    this.blockStrings.length = 0;
+    this.blockEnds.length = 0;
     this.head = this.offset = this.buffered = 0;
     this.retention.release(this.ownedBytes);
     this.ownedBytes = 0;
-    if (wasEnded || !this.iterator.return) {
+    const origIter = this.iterator;
+    (this as unknown as { iterator: AsyncIterator<Uint8Array> }).iterator = RELEASED_READER_ITERATOR;
+    _lastReaderAnchor = this;
+    if (wasEnded || !origIter.return) {
       this.closing = resolvedVoid;
       return resolvedVoid;
     }
-    this.closing = Promise.resolve().then(async () => { await this.iterator.return?.(); });
+    this.closing = Promise.resolve().then(async () => { await origIter.return?.(); });
     return this.closing;
   }
 }
+
+let _lastReaderAnchor: Reader | undefined;

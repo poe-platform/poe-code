@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { CommandContext } from "../../src/contracts/index.js";
-import { registerYieldCheckpoint } from "../../src/contracts/yield.js";
+import { registerInternalYieldCheckpoint, registerYieldCheckpoint } from "../../src/contracts/yield.js";
 import { Session, settings as streamSettings } from "../../src/commands/stream-format/shared.js";
 import { Budget as TableBudget, settings as tableSettings } from "../../src/commands/table-text/internal.js";
 import { ColumnBudget } from "../../src/commands/column/internal.js";
@@ -39,5 +39,17 @@ for (const [name, factory] of factories) {
     await checkpointTick();
     assert.equal(checkpoints, 1);
     assert.equal(turns, 2);
+  });
+}
+
+for (const [name, factory] of factories.filter(([name]) => name === "column" || name === "hexdump")) {
+  test(`${name} observes cancellation from an internal checkpoint before a timed turn`, async t => {
+    t.mock.method(performance, "now", () => 0);
+    const controller = new AbortController();
+    const stopped = new Error("internal checkpoint stopped command");
+    registerInternalYieldCheckpoint(controller.signal, () => controller.abort(stopped));
+    const context = { args: [], signal: controller.signal, stdout: { async write() {} } } as unknown as CommandContext;
+    const tick = factory(context);
+    await assert.rejects(Promise.resolve().then(tick), error => error === stopped);
   });
 }

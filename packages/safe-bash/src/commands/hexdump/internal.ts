@@ -97,6 +97,7 @@ export class Budget {
     this.checkpoint = this.work;
     if (!hasYieldCheckpoint(this.callerSignal) && monotonicNow() - this.lastYield < 25) {
       runYieldCheckpoint(this.callerSignal);
+      this.assertOpen();
       return;
     }
     return yieldTurn(this.callerSignal).then(() => {

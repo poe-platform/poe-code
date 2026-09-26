@@ -623,9 +623,7 @@
     "safe-bash-command-xz": "*",
     "safe-bash-compression-engine": "*",
     "safe-bash-command-column": "*",
-    "safe-bash-table-text-engine": "*",
-    "@poe-code/mp4-ast": "*",
-    "safe-bash-command-ffmpeg": "*"
+    "safe-bash-table-text-engine": "*"
   },
   "repository": {
     "type": "git",

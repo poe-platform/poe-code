@@ -720,7 +720,6 @@ export class Shell implements PluginHost {
       if (_execAnchor[10] === undefined) {
         _execAnchor[10] = ensureStateMonitor(currentState, budget, scope);
       }
-      runtime.releaseAnchorResources();
       if (source.length > 0) {
         _execAnchor[0] = budget;
         _execAnchor[1] = scope;
@@ -1145,7 +1144,10 @@ export class Shell implements PluginHost {
           admission.maxDepth,
           undefined,
           filesystem,
+          true,
         );
+        // Finalizers run after child scopes and cooperative cleanup, including cancellation.
+        scope.registerFinalizer(runtime.releaseAnchorResources.bind(runtime));
         }
         exitCode = 0;
         while (true) {
@@ -1244,22 +1246,22 @@ export class Shell implements PluginHost {
           runtime,
         };
       } else {
-      scope.clearActiveBudget();
-      scope.clearActiveStdin();
-      unregisterStdin?.();
-      if (budget.hasExecutionCleanup) {
-        const cleanupDrain = budget.executionCleanup.drain();
-        if (!isSyncResolved(cleanupDrain)) await cleanupDrain;
-      }
-      const activeStdin = stdin;
-      stdin = undefined;
-      if (activeStdin) {
-        const closedStdin = activeStdin.close();
-        if (!isSyncResolved(closedStdin)) {
-          if (failed) await closedStdin.catch(() => {});
-          else await closedStdin;
+        scope.clearActiveBudget();
+        scope.clearActiveStdin();
+        unregisterStdin?.();
+        if (budget.hasExecutionCleanup) {
+          const cleanupDrain = budget.executionCleanup.drain();
+          if (!isSyncResolved(cleanupDrain)) await cleanupDrain;
         }
-      }
+        const activeStdin = stdin;
+        stdin = undefined;
+        if (activeStdin) {
+          const closedStdin = activeStdin.close();
+          if (!isSyncResolved(closedStdin)) {
+            if (failed) await closedStdin.catch(() => {});
+            else await closedStdin;
+          }
+        }
       }
     }
     if (budget.hasExecutionCleanup) throwCleanupFailures(budget.executionCleanup.failures);
@@ -1280,9 +1282,6 @@ export class Shell implements PluginHost {
         stderrBytes,
         exitCode,
       };
-      if (runtime && state && this.#warmedInvocation?.budget !== budget) {
-        runtime.releaseAnchorResources();
-      }
       return fastResult;
     }
     const result: ShellResult = {
@@ -1293,9 +1292,6 @@ export class Shell implements PluginHost {
       exitCode,
       state: capturedState,
     };
-    if (runtime && state) {
-      runtime.releaseAnchorResources();
-    }
     await options.onState?.(capturedState, result);
     await afterExecHook?.(capturedState, result);
     return result;

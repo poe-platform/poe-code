@@ -3395,7 +3395,7 @@ export class Runtime {
   private _syncPendingEvalResume: { script: Script; listIndex: number; pipelineIndex: number } | undefined;
   declare private _syncArithRefs: ArithmeticReferences | undefined;
   private _syncReadOnlyArithRefs: ArithmeticReferences | undefined;
-  constructor( fs: FileSystem, commands: CommandRegistry, middleware: readonly Middleware[], budget: Budget, signal: AbortSignal = budget.signal, fileWrites: Map<string, Promise<void>> | undefined = undefined, outputFiles: Map<string, OutputFile> | undefined = undefined, commandSignal: AbortSignal = signal, cancellation: CancellationBoundary, cancellationState: RuntimeCancellationState, cancellationOwner: CancellationAdmissionOwner | undefined, cancellationDepth: number, cancellationMaxDepth: number, outcomeFrame: RuntimeOutcomeFrame | undefined = undefined, inputProfile: Pick<FileSystem, "readStream" | "capabilities"> = fs, ) {
+  constructor( fs: FileSystem, commands: CommandRegistry, middleware: readonly Middleware[], budget: Budget, signal: AbortSignal = budget.signal, fileWrites: Map<string, Promise<void>> | undefined = undefined, outputFiles: Map<string, OutputFile> | undefined = undefined, commandSignal: AbortSignal = signal, cancellation: CancellationBoundary, cancellationState: RuntimeCancellationState, cancellationOwner: CancellationAdmissionOwner | undefined, cancellationDepth: number, cancellationMaxDepth: number, outcomeFrame: RuntimeOutcomeFrame | undefined = undefined, inputProfile: Pick<FileSystem, "readStream" | "capabilities"> = fs, private readonly reuseDefaultContextFs = false, ) {
     this.commands = commands;
     this.middleware = middleware;
     this.budget = budget;
@@ -3463,8 +3463,11 @@ export class Runtime {
     return this._fs;
   }
   private getContextFsFor(umask: number, sig: AbortSignal): FileSystem {
-    if (this._contextFs && this._contextFsMask === umask && this._contextFsSignal === sig) return this._contextFs;
-    if (umask === 0o022 && !this._contextFs && this._isMemoryBackingFs) {
+    if (this._contextFs && this._contextFsMask === umask && this._contextFsSignal === sig) {
+      return this._contextFs;
+    }
+    // Retarget only root invocation views; command and child scopes must stay closed.
+    if (this.reuseDefaultContextFs && sig === this.signal && umask === 0o022 && !this._contextFs && this._isMemoryBackingFs) {
       const entry = reusableDefaultContextFsBySourceFs.get(this.sourceFs);
       if (entry && (entry.inUseBy === undefined || entry.inUseBy === this)) {
         if (retargetScopedFileSystem(entry.scoped, this.budget.chargeFs, sig, this.budget.cleanupChargeFs, this.budget.limits.maxPathnameComponents)) {

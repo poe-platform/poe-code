@@ -992,6 +992,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/shell/sync-completion-regressions.test.ts"));
   assert.ok(files.includes("tests/shell/opaque-errors.test.ts"));
   assert.ok(files.includes("tests/shell/filesystem-budget.test.ts"));
+  assert.ok(files.includes("tests/shell/reusable-context-fs.test.ts"));
   assert.ok(files.includes("tests/shell/path-lookup-budget.test.ts"));
   assert.ok(files.includes("tests/shell/pattern-admission.test.ts"));
   assert.ok(files.includes("tests/shell/pattern-boundaries.test.ts"));

@@ -1,4 +1,5 @@
-import { createHash } from "node:crypto";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { bytesToHex } from "@noble/hashes/utils.js";
 
 import { assertSnapshotInactive } from "./interp/running-state.js";
 import { deepCopyToSandbox } from "./interp/values.js";
@@ -47,7 +48,7 @@ export function inspectSnapshotMigration(snapshot: SafeJSSnapshot, options: { so
   validateSnapshotMigration(snapshot.migration, sourceHash);
   const replay = validateMigrationJournal(sourceHash, snapshot.replay, snapshot.hostCalls);
   return {
-    checkpointDigest: createHash("sha256").update(canonicalData(snapshot)).digest("hex"),
+    checkpointDigest: bytesToHex(sha256(new TextEncoder().encode(canonicalData(snapshot)))),
     sourceHash,
     executionSemantics: snapshot.executionSemantics,
     calls: replay.calls,

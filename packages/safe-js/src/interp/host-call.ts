@@ -1,4 +1,5 @@
-import { createHash, randomUUID } from "node:crypto";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { bytesToHex } from "@noble/hashes/utils.js";
 import { activePromiseTracker, observeSandboxPromise } from "./promise-tracker.js";
 import { promiseReplayContext } from "./promise-replay.js";
 import { importedPromiseSnapshots } from "./promise-state.js";
@@ -244,7 +245,7 @@ export class HostCallJournal {
           compilation,
           reachableSchedulingIds
         );
-        const restoredRunId = replayRecords[0]?.runId ?? records[0]?.runId ?? randomUUID();
+        const restoredRunId = replayRecords[0]?.runId ?? records[0]?.runId ?? globalThis.crypto.randomUUID();
         validateRestoredRecords(records, restoredRunId, sourceHash);
         for (const record of records) {
           const replayRecord = replayRecords[readCallOrdinal(record) - 1];
@@ -272,7 +273,7 @@ export class HostCallJournal {
           }
         }
       }
-      this.runId = records[0]?.runId ?? randomUUID();
+      this.runId = records[0]?.runId ?? globalThis.crypto.randomUUID();
       this.records = records.map((record) => ({
         ...record,
         ...(record.functions === undefined ? {} : { functions: [...record.functions] }),
@@ -1336,7 +1337,7 @@ function callIdentityMatches(
 }
 
 export function digestHostCallArguments(args: readonly unknown[], sharedArguments?:SharedArrayBuffer[]): string {
-  return createHash("sha256").update(stableStringify(args,sharedArguments)).digest("hex");
+  return bytesToHex(sha256(new TextEncoder().encode(stableStringify(args,sharedArguments))));
 }
 
 function validateProof(record: HostCallRecord, proof: HostCallResumeProof): void {

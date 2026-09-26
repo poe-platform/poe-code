@@ -1,5 +1,3 @@
-import { randomInt } from "node:crypto";
-
 import { createSeededRandom } from "./interp/globals/math.js";
 import type { SafeJSSnapshot } from "./restore.js";
 import type { RunRandom } from "./run.js";
@@ -31,6 +29,6 @@ export function createReplayableRandom(
       ? (saved.initialState ?? saved.seed)
       : (saved.resumeState ?? saved.state);
   }
-  const generator = createSeededRandom(initialState ?? randomInt(4_294_967_296));
+  const generator = createSeededRandom(initialState ?? globalThis.crypto.getRandomValues(new Uint32Array(1))[0]!);
   return { seed: saved?.seed ?? generator.snapshot(), ...generator };
 }

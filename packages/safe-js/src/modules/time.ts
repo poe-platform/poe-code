@@ -1,5 +1,3 @@
-import { webcrypto as crypto } from "node:crypto";
-
 import { createSeededRandom } from "../interp/globals/math.js";
 
 export type TimeModuleOptions = {
@@ -63,7 +61,7 @@ export function makeTimeModule(options: TimeModuleOptions = {}): {
     random,
     now,
     sleep,
-    uuid: hasDeterministicRandom ? () => createRandomUuid(random) : () => crypto.randomUUID()
+    uuid: hasDeterministicRandom ? () => createRandomUuid(random) : () => globalThis.crypto.randomUUID()
   };
 }
 

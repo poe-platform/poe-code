@@ -1,13 +1,22 @@
-import { webcrypto as crypto } from "node:crypto";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { run } from "../run.js";
 import { makeTimeModule } from "./time.js";
 
+const crypto = globalThis.crypto;
+
 describe("makeTimeModule", () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it("uses the active Web Crypto capability rather than a Node crypto import", () => {
+    const randomUUID = vi.fn(() => "123e4567-e89b-42d3-a456-426614174000");
+    vi.stubGlobal("crypto", { randomUUID });
+    expect(makeTimeModule().uuid()).toBe("123e4567-e89b-42d3-a456-426614174000");
+    expect(randomUUID).toHaveBeenCalledTimes(1);
   });
 
   it("uses host time and uuid generation", () => {

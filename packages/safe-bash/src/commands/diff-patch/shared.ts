@@ -61,11 +61,11 @@ export class Budget {
     if (this.work > this.limits.maxWork) throw new ToolError("work limit exceeded");
   }
 
-  async checkpoint(): Promise<void> {
+  checkpoint(): void | Promise<void> {
     this.context.signal.throwIfAborted();
     if (this.work >= this.nextYield) {
       this.nextYield = this.work + 4096;
-      await yieldTurn(this.context.signal);
+      return yieldTurn(this.context.signal);
     }
   }
 
@@ -79,9 +79,11 @@ export class Budget {
     if (++this.hunks > this.limits.maxHunks) throw new ToolError("hunk limit exceeded");
   }
 
+  private static readonly utf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+
   text(bytes: Uint8Array): string {
     if (bytes.includes(0)) throw new ToolError("binary input is unsupported (NUL byte)");
-    try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes); }
+    try { return Budget.utf8Decoder.decode(bytes); }
     catch { throw new ToolError("binary input is unsupported (invalid UTF-8)"); }
   }
 
@@ -143,7 +145,7 @@ export class Budget {
       let position = 0;
       while (position < stat.size) {
         this.step();
-        await this.checkpoint();
+        { const c = this.checkpoint(); if (c) await c; }
         const size = Math.min(65536, stat.size - position);
         const chunk = await handle.read(position, size, { signal });
         if (!chunk.length || chunk.length > size) throw new ToolError("diff input changed while reading");
@@ -162,7 +164,7 @@ export class Budget {
   private async *chunks(source: ByteSource): ByteSource {
     for await (const chunk of readBytes(source, this.context.signal)) {
       this.step();
-      await this.checkpoint();
+      { const c = this.checkpoint(); if (c) await c; }
       yield chunk;
     }
   }
@@ -203,7 +205,7 @@ export async function inspect(budget: Budget, path: string, symlinks: "reject" |
   let current = "";
   for (let index = -1; index < parts.length; index++) {
     budget.step();
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
     if (index >= 0) current += `/${parts[index]!}`;
     let stat: FileStat;
     try { stat = await host(context, () => context.fs.lstat(current || "/", { signal: context.signal })); }

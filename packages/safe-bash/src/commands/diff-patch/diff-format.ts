@@ -21,7 +21,7 @@ export async function normal(changes: readonly Edit[], budget: Budget, append: (
   let newPosition = 0;
   while (scan < changes.length) {
     budget.step();
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
     if (changes[scan]!.kind === " ") {
       oldPosition++;
       newPosition++;
@@ -35,7 +35,7 @@ export async function normal(changes: readonly Edit[], budget: Budget, append: (
       if (changes[scan++]!.kind === "-") oldCount++;
       else newCount++;
       budget.step();
-      await budget.checkpoint();
+      { const c = budget.checkpoint(); if (c) await c; }
     }
     budget.hunk();
     if (changes[start]!.ignored) { oldPosition += oldCount; newPosition += newCount; continue; }
@@ -46,7 +46,7 @@ export async function normal(changes: readonly Edit[], budget: Budget, append: (
         const edit = changes[index]!;
         if (edit.kind === kind) append(outputLine(kind === "-" ? "< " : "> ", edit.line, options, kind === "-" ? 31 : 32));
         budget.step();
-        await budget.checkpoint();
+        { const c = budget.checkpoint(); if (c) await c; }
       }
     }
     oldPosition += oldCount;
@@ -62,7 +62,7 @@ async function contextSide(changes: readonly Edit[], start: number, end: number,
   let scan = start;
   while (scan < end) {
     budget.step();
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
     if (changes[scan]!.kind === " ") {
       const edit = changes[scan++]!;
       append(outputLine("  ", kind === "+" ? edit.newLine ?? edit.line : edit.line, options, kind === "-" ? 31 : 32));
@@ -75,13 +75,13 @@ async function contextSide(changes: readonly Edit[], start: number, end: number,
       if (changes[groupEnd++]!.kind === "-") removed = true;
       else added = true;
       budget.step();
-      await budget.checkpoint();
+      { const c = budget.checkpoint(); if (c) await c; }
     }
     while (scan < groupEnd) {
       const edit = changes[scan++]!;
       if (edit.kind === kind) append(outputLine(removed && added ? "! " : `${kind} `, edit.line, options, kind === "-" ? 31 : 32));
       budget.step();
-      await budget.checkpoint();
+      { const c = budget.checkpoint(); if (c) await c; }
     }
   }
 }
@@ -98,7 +98,7 @@ export async function contextual(changes: readonly Edit[], format: "unified" | "
     while (changed < changes.length && changes[changed]!.kind === " ") {
       changed++;
       budget.step();
-      await budget.checkpoint();
+      { const c = budget.checkpoint(); if (c) await c; }
     }
     if (changed === changes.length) break;
     const start = Math.max(0, changed - context);
@@ -113,7 +113,7 @@ export async function contextual(changes: readonly Edit[], format: "unified" | "
       }
       end++;
       budget.step();
-      await budget.checkpoint();
+      { const c = budget.checkpoint(); if (c) await c; }
     }
     end = Math.min(changes.length, lastChange + context + 1);
     // Splitting at an ignored block can leave shared context in both hunks.
@@ -122,13 +122,13 @@ export async function contextual(changes: readonly Edit[], format: "unified" | "
       if (edit.kind !== "+") oldPosition--;
       if (edit.kind !== "-") newPosition--;
       budget.step();
-      await budget.checkpoint();
+      { const c = budget.checkpoint(); if (c) await c; }
     }
     while (scan < start) {
       if (changes[scan]!.kind !== "+") oldPosition++;
       if (changes[scan++]!.kind !== "-") newPosition++;
       budget.step();
-      await budget.checkpoint();
+      { const c = budget.checkpoint(); if (c) await c; }
     }
     let oldCount = 0;
     let newCount = 0;
@@ -141,7 +141,7 @@ export async function contextual(changes: readonly Edit[], format: "unified" | "
       if (kind === "-") removed = true;
       if (kind === "+") added = true;
       budget.step();
-      await budget.checkpoint();
+      { const c = budget.checkpoint(); if (c) await c; }
     }
     if (!changes.slice(start, end).some(edit => edit.kind !== " " && !edit.ignored)) {
       oldPosition += oldCount;
@@ -157,7 +157,7 @@ export async function contextual(changes: readonly Edit[], format: "unified" | "
         const edit = changes[index]!;
         append(outputLine(edit.kind, edit.line, options, edit.kind === " " ? undefined : edit.kind === "-" ? 31 : 32));
         budget.step();
-        await budget.checkpoint();
+        { const c = budget.checkpoint(); if (c) await c; }
       }
     } else {
       append(`***************${functionLine ? ` ${functionLine}` : ""}\n` + colorText(`*** ${range(oldPosition, oldCount)} ****\n`, 36, options));

@@ -15,7 +15,7 @@ async function comparisonLines(lines: string[], options: DiffFlags, budget: Budg
   const result: string[] = [];
   for (const line of lines) {
     budget.step(1 + line.length);
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
     let body = line.endsWith("\n") ? line.slice(0, -1) : line;
     if (options.ignoreTabs) body = expandTabs(body);
     if (whitespace !== "exact") body = body.replace(/[ \t\v\f\r]+/gu, whitespace === "all" ? "" : " ");
@@ -31,7 +31,7 @@ async function equivalent(oldKeys: string[], newKeys: string[], budget: Budget):
   if (oldKeys.length !== newKeys.length) return false;
   for (let index = 0; index < oldKeys.length; index++) {
     if (!budget.equal(oldKeys[index], newKeys[index])) return false;
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
   }
   return true;
 }
@@ -40,13 +40,13 @@ async function edits(oldLines: string[], newLines: string[], oldKeys: string[], 
   let prefix = 0;
   while (prefix < Math.min(oldLines.length, newLines.length) && budget.equal(oldKeys[prefix], newKeys[prefix])) {
     prefix++;
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
   }
   let suffix = 0;
   while (suffix < Math.min(oldLines.length, newLines.length) - prefix
     && budget.equal(oldKeys[oldLines.length - suffix - 1], newKeys[newLines.length - suffix - 1])) {
     suffix++;
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
   }
   const oldCount = oldLines.length - prefix - suffix;
   const newCount = newLines.length - prefix - suffix;
@@ -60,7 +60,7 @@ async function edits(oldLines: string[], newLines: string[], oldKeys: string[], 
       matrix[position] = budget.equal(oldKeys[prefix + oldIndex], newKeys[prefix + newIndex])
         ? 1 + matrix[position + width + 1]!
         : Math.max(matrix[position + width]!, matrix[position + 1]!);
-      await budget.checkpoint();
+      { const c = budget.checkpoint(); if (c) await c; }
     }
   }
   const result: Edit[] = oldLines.slice(0, prefix).map((line, index) => ({ kind: " ", line, newLine: newLines[index]! }));
@@ -73,12 +73,12 @@ async function edits(oldLines: string[], newLines: string[], oldKeys: string[], 
     } else if (oldIndex < oldCount && (newIndex === newCount || matrix![oldIndex * width + newIndex + width]! >= matrix![oldIndex * width + newIndex + 1]!)) {
       result.push({ kind: "-", line: oldLines[prefix + oldIndex++]! });
     } else result.push({ kind: "+", line: newLines[prefix + newIndex++]! });
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
   }
   for (let index = 0; index < suffix; index++) {
     result.push({ kind: " ", line: oldLines[oldLines.length - suffix + index]!, newLine: newLines[newLines.length - suffix + index]! });
     budget.step();
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
   }
   return result;
 }
@@ -88,7 +88,7 @@ async function exclusionPatterns(options: DiffFlags, budget: Budget): Promise<Pa
   let patternBytes = 0;
   const append = async (source: string, ignoreCase: boolean, start = 0, end = source.length) => {
     budget.step(1 + end - start);
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
     if (exclusions.length >= budget.limits.maxExcludePatterns) throw new ToolError("exclusion pattern count limit exceeded");
     // UTF-16 length is a lower bound on UTF-8 bytes; admit the slice before allocating it.
     const remaining = budget.limits.maxExcludePatternBytes - patternBytes;
@@ -108,7 +108,7 @@ async function exclusionPatterns(options: DiffFlags, budget: Budget): Promise<Pa
       const newline = contents.indexOf("\n", start);
       const end = newline < 0 ? contents.length : newline;
       if (end > start) await append(contents, ignoreCase, start, end);
-      else { budget.step(); await budget.checkpoint(); }
+      else { budget.step(); { const c = budget.checkpoint(); if (c) await c; } }
       start = end + 1;
     }
   }
@@ -152,7 +152,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     encoding = "utf8";
     inspectionFailed = false;
     budget.file();
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
     const pair = pending.pop()!;
     let left = pair.left;
     let right = pair.right;
@@ -331,7 +331,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
         for (let index = position - 1; index >= 0; index--) {
           for (const pattern of options.functions) if (await pattern.find(oldLines[index]!, budget)) return oldLines[index]!.replace(/\n$/u, "").slice(0, 40);
           budget.step();
-          await budget.checkpoint();
+          { const c = budget.checkpoint(); if (c) await c; }
         }
         return "";
       } : undefined);
@@ -419,7 +419,7 @@ async function ignoreChanges(changes: Edit[], options: DiffFlags, budget: Budget
   let scan = 0;
   while (scan < changes.length) {
     budget.step();
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
     if (changes[scan]!.kind === " ") { scan++; continue; }
     const start = scan;
     let ignored = true;
@@ -430,7 +430,7 @@ async function ignoreChanges(changes: Edit[], options: DiffFlags, budget: Budget
       for (const pattern of options.ignorePatterns) if (await pattern.find(body, budget)) { matches = true; break; }
       ignored &&= matches;
       budget.step(1 + body.length);
-      await budget.checkpoint();
+      { const c = budget.checkpoint(); if (c) await c; }
     }
     if (ignored) for (let index = start; index < scan; index++) changes[index] = { ...changes[index]!, ignored: true };
   }

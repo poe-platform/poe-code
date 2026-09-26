@@ -6,7 +6,7 @@ async function normalizeTransport(text: string, budget: Budget): Promise<string>
   while (position < text.length) {
     const end = text.indexOf("\n", position);
     budget.step(1 + end - position);
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
     if (end <= position || text[end - 1] !== "\r") return text;
     lines.push(text.slice(position, end - 1), "\n");
     if (lines.length / 2 > budget.limits.maxLines) throw new ToolError("transport line limit exceeded");
@@ -24,7 +24,7 @@ export async function unwrapPatch(text: string, budget: Budget): Promise<string>
   if (mail) {
     while (position < text.length) {
       budget.step();
-      await budget.checkpoint();
+      { const c = budget.checkpoint(); if (c) await c; }
       const end = text.indexOf("\n", position);
       const line = text.slice(position, end);
       if (/^(?:--- |\*\*\* |diff |\d+(?:,\d+)?[acd]\d)/u.test(line)) break;

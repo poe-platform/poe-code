@@ -57,7 +57,7 @@ export async function authorizePaths(patches: readonly FilePatch[], options: Pat
   const result: AuthorizedPatch[] = [];
   for (const patch of patches) {
     budget.step();
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
     if (patch.unlocated) {
       result.push({ patch, oldName: undefined, newName: undefined, indexName: undefined, candidates: [] });
       continue;
@@ -114,12 +114,12 @@ export async function backupName(path: string, budget: Budget, options: BackupOp
   let maximum = "0";
   for (const entry of entries) {
     budget.file();
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
     if (!entry.name || /[/\0]/u.test(entry.name) || entry.name === "." || entry.name === "..") throw new ToolError("unsafe directory entry in backup directory");
     if (!entry.name.startsWith(prefix) || !entry.name.endsWith("~")) continue;
     const version = entry.name.slice(prefix.length, -1);
     budget.step(version.length);
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
     if (!/^[1-9]\d*$/u.test(version)) continue;
     if (version.length > maximum.length || version.length === maximum.length && version > maximum) maximum = version;
   }
@@ -149,7 +149,7 @@ function rank(name: string): readonly number[] {
 
 export async function candidateStat(path: string, budget: Budget): Promise<FileStat | undefined> {
   budget.step();
-  await budget.checkpoint();
+  { const c = budget.checkpoint(); if (c) await c; }
   try { return await host(budget.context, () => budget.context.fs.stat(path, { signal: budget.context.signal })); }
   catch (error) { if (isFsError(error, "ENOENT") || isFsError(error, "ENOTDIR") || isFsError(error, "ELOOP")) return undefined; throw error; }
 }
@@ -198,7 +198,7 @@ export async function ensureParents(path: string, budget: Budget): Promise<void>
   }
   for (const parent of missing.reverse()) {
     budget.step();
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
     await inspect(budget, parent);
     await host(budget.context, () => budget.context.fs.mkdir(parent, { signal: budget.context.signal }));
   }
@@ -207,7 +207,7 @@ export async function ensureParents(path: string, budget: Budget): Promise<void>
 export async function pruneDirectories(parents: ReadonlySet<string>, budget: Budget): Promise<void> {
   for (const parent of [...parents].sort((left, right) => right.split("/").length - left.split("/").length)) {
     budget.step();
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
     const stat = await inspect(budget, parent);
     budget.context.signal.throwIfAborted();
     if (!stat) continue;

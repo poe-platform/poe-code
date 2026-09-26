@@ -29,7 +29,7 @@ export async function rejectText(patch: FilePatch, outcomes: readonly HunkOutcom
   for (const outcome of outcomes) {
     if (!outcome.failed) continue;
     budget.step();
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
     const { hunk, outputOffset } = outcome;
     if (!context) {
       add(`@@ -${unifiedRange(hunk.oldStart, hunk.oldCount, outputOffset)} +${unifiedRange(hunk.newStart, hunk.newCount, outputOffset)} @@${hunk.section ?? ""}\n`);
@@ -40,7 +40,7 @@ export async function rejectText(patch: FilePatch, outcomes: readonly HunkOutcom
       };
       for (const line of hunk.lines) {
         budget.step();
-        await budget.checkpoint();
+        { const c = budget.checkpoint(); if (c) await c; }
         if (line.kind === " ") { flush(); add(` ${line.text}`); }
         else group.push(line);
       }
@@ -60,7 +60,7 @@ export async function rejectText(patch: FilePatch, outcomes: readonly HunkOutcom
       };
       for (const line of hunk.lines) {
         budget.step();
-        await budget.checkpoint();
+        { const c = budget.checkpoint(); if (c) await c; }
         if (line.kind === " ") { flush(); oldLines.push(`  ${line.text}`); newLines.push(`  ${line.text}`); }
         else group.push(line);
       }

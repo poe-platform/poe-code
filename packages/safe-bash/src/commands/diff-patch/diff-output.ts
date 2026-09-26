@@ -117,7 +117,7 @@ export async function sideBySide(changes: readonly Edit[], options: DisplayOptio
   let scan = 0;
   while (scan < changes.length) {
     budget.step();
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
     const edit = changes[scan]!;
     if (edit.kind === " " || edit.ignored) {
       const old: string[] = [], next: string[] = [];
@@ -126,12 +126,12 @@ export async function sideBySide(changes: readonly Edit[], options: DisplayOptio
         if (item.kind !== "+") old.push(item.line);
         if (item.kind !== "-") next.push(item.newLine ?? item.line);
         budget.step(1 + item.line.length);
-        await budget.checkpoint();
+        { const c = budget.checkpoint(); if (c) await c; }
       }
       for (let index = 0; index < Math.max(old.length, next.length); index++) {
         row(old[index], next[index], old[index] === undefined ? ")" : next[index] === undefined ? "(" : " ");
         budget.step();
-        await budget.checkpoint();
+        { const c = budget.checkpoint(); if (c) await c; }
       }
       continue;
     }
@@ -141,13 +141,13 @@ export async function sideBySide(changes: readonly Edit[], options: DisplayOptio
       const item = changes[scan++]!;
       (item.kind === "-" ? old : next).push(item.line);
       budget.step();
-      await budget.checkpoint();
+      { const c = budget.checkpoint(); if (c) await c; }
     }
     for (let index = 0; index < Math.max(old.length, next.length); index++) {
       const left = old[index], right = next[index];
       row(left, right, left === undefined ? ">" : right === undefined ? "<" : !left.endsWith("\n") && right.endsWith("\n") ? "\\" : left.endsWith("\n") && !right.endsWith("\n") ? "/" : "|");
       budget.step(1 + (left?.length ?? 0) + (right?.length ?? 0));
-      await budget.checkpoint();
+      { const c = budget.checkpoint(); if (c) await c; }
     }
   }
 }
@@ -157,7 +157,7 @@ export async function script(changes: readonly Edit[], format: "ed" | "rcs", bud
   let scan = 0, position = 0;
   while (scan < changes.length) {
     budget.step();
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
     if (changes[scan]!.kind === " ") { position++; scan++; continue; }
     const group = { position, old: [] as string[], next: [] as string[] };
     while (scan < changes.length && changes[scan]!.kind !== " ") {
@@ -165,7 +165,7 @@ export async function script(changes: readonly Edit[], format: "ed" | "rcs", bud
       (edit.kind === "-" ? group.old : group.next).push(edit.line);
       if (edit.kind === "-") position++;
       budget.step();
-      await budget.checkpoint();
+      { const c = budget.checkpoint(); if (c) await c; }
     }
     budget.hunk();
     if (!changes[scan - 1]!.ignored) groups.push(group);
@@ -189,13 +189,13 @@ export async function script(changes: readonly Edit[], format: "ed" | "rcs", bud
             if (inserted < group.next.length) append("a\n");
           } else append(line);
           budget.step(1 + line.length);
-          await budget.checkpoint();
+          { const c = budget.checkpoint(); if (c) await c; }
         }
         if (group.next.at(-1) !== ".\n") append(".\n");
       }
     }
     budget.step();
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
   }
 }
 
@@ -203,14 +203,14 @@ export async function ifdef(changes: readonly Edit[], symbol: string, budget: Bu
   let scan = 0;
   while (scan < changes.length) {
     budget.step();
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
     if (changes[scan]!.kind === " ") { append(changes[scan++]!.line); continue; }
     const old: string[] = [], next: string[] = [];
     while (scan < changes.length && changes[scan]!.kind !== " ") {
       const edit = changes[scan++]!;
       (edit.kind === "-" ? old : next).push(edit.line);
       budget.step();
-      await budget.checkpoint();
+      { const c = budget.checkpoint(); if (c) await c; }
     }
     budget.hunk();
     if (changes[scan - 1]!.ignored) { append(old.join("")); continue; }

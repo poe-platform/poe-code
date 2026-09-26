@@ -46,7 +46,7 @@ async function parseUnifiedReader(cursor: UnifiedCursor, budget: Budget, single:
   let pendingMetadata = false;
   while (index < physical.length) {
     budget.step();
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
     const line = physical[index]!;
     if (line === "") { index++; continue; }
     if (/^diff (?:--git |-[^ ]+ )/u.test(line) || /^index [0-9a-f]+\.\.[0-9a-f]+(?: 100(?:644|755))?$/u.test(line)
@@ -85,7 +85,7 @@ async function parseUnifiedReader(cursor: UnifiedCursor, budget: Budget, single:
       let changed = false;
       while (oldRead < oldCount || newRead < newCount) {
         budget.step();
-        await budget.checkpoint();
+        { const c = budget.checkpoint(); if (c) await c; }
         const body = physical[index++];
         const kind = body === "" ? " " : body?.[0];
         if (body === undefined || (kind !== " " && kind !== "+" && kind !== "-")) throw new ToolError("truncated or malformed hunk body");
@@ -171,7 +171,7 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
     const context = Math.max(leading, trailing);
     const matches = async (position: number, prefixFuzz: number, suffixFuzz: number) => {
       budget.step();
-      await budget.checkpoint();
+      { const c = budget.checkpoint(); if (c) await c; }
       if (position < 0 || position > source.length - hunk.oldCount + suffixFuzz) return false;
       for (let lineIndex = 0; lineIndex < oldLines.length; lineIndex++) {
         if (lineIndex < prefixFuzz || lineIndex >= oldLines.length - suffixFuzz) continue;
@@ -181,7 +181,7 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
         if (ignoreWhitespace) budget.step(actual.length + expectedLine.length);
         if (!budget.equal(ignoreWhitespace ? actual.replace(/[ \t]+(?=\r?\n|$)/gu, "").replace(/[ \t]+/gu, " ") : actual,
           ignoreWhitespace ? expectedLine.replace(/[ \t]+(?=\r?\n|$)/gu, "").replace(/[ \t]+/gu, " ") : expectedLine)) return false;
-        await budget.checkpoint();
+        { const c = budget.checkpoint(); if (c) await c; }
       }
       if (position < cursor) misordered = true;
       return true;
@@ -242,7 +242,7 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
         && local[local.length - suffix - 1] === incoming[incoming.length - suffix - 1]
         && local[local.length - suffix - 1] === base[base.length - suffix - 1]) suffix++;
       budget.step(local.join("").length + incoming.join("").length + base.join("").length);
-      await budget.checkpoint();
+      { const c = budget.checkpoint(); if (c) await c; }
       for (const line of local.slice(0, prefix)) append(line);
       const mergeStart = result.length + 1;
       // An already applied hunk is a clean merge, not a reversal.
@@ -302,7 +302,7 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
       if (++resultBytes > budget.limits.maxOutputBytes) throw new ToolError("output byte limit exceeded");
       result[index] += "\n";
     }
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
   }
   const text = result.join("");
   budget.output(text);

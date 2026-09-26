@@ -13,7 +13,7 @@ class Reader {
   peek(): string | undefined { return this.lines[this.index]; }
   async take(): Promise<string> {
     this.budget.step();
-    await this.budget.checkpoint();
+    { const c = this.budget.checkpoint(); if (c) await c; }
     const line = this.lines[this.index++];
     if (line === undefined) throw new ToolError("truncated patch");
     return line;
@@ -145,14 +145,14 @@ async function context(reader: Reader): Promise<string> {
           oldChanged ||= line.kind === "!";
           output.push(encoded({ kind: "-", text: line.text }));
           reader.budget.step();
-          await reader.budget.checkpoint();
+          { const c = reader.budget.checkpoint(); if (c) await c; }
         }
         while (newIndex < newLines.length && newLines[newIndex]!.kind !== " ") {
           const line = newLines[newIndex++]!;
           newChanged ||= line.kind === "!";
           output.push(encoded({ kind: "+", text: line.text }));
           reader.budget.step();
-          await reader.budget.checkpoint();
+          { const c = reader.budget.checkpoint(); if (c) await c; }
         }
         if (oldChanged !== newChanged) throw new ToolError("unpaired changed context group");
         if (oldIndex < oldLines.length || newIndex < newLines.length) {

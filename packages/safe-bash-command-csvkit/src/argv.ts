@@ -10,7 +10,7 @@ export class OwnedArguments {
   readonly byteLength: number;
   constructor(input: readonly Uint8Array[], limits: ArgumentLimits) {
     for (const limit of [limits.maxArguments, limits.maxArgumentBytes]) {
-      if (!Number.isSafeInteger(limit) || limit < 0) throw new RangeError("invalid argv limit");
+      if ((limit !== Infinity && !Number.isSafeInteger(limit)) || limit < 0) throw new RangeError("invalid argv limit");
     }
     if (input.length > limits.maxArguments) throw new RangeError("argv count limit exceeded");
     const admitted: Uint8Array[] = [];

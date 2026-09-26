@@ -37,8 +37,8 @@ successful file delivery. With the public MemoryFileSystem plugin, `pandoc -f
 commonmark -t html5 input.md -o output.html` succeeds (shell-cases.json).
 Shell redirection is available but lacks the command's atomic publication guarantee.
  Root SDK `runBash` accepts `pandoc: {limits}`;
-absence keeps conversion disabled. CLI accepts `--pandoc` with bounded defaults;
-SDK hosts can lower limits. CLI verification status is in the QA results.
+absence keeps conversion disabled. CLI accepts `--pandoc` with resource budgets disabled by default;
+SDK hosts can configure finite limits. CLI verification status is in the QA results.
 
 ## Format and extension matrix
 
@@ -112,48 +112,48 @@ writeDocument expose the same engine boundaries. Diagnostics are separate from
 serialized output; errors carry stable codes. Plugin options are limits and
 replace (false by default); runBash does not expose replacement.
 
-## All hard ceilings
+## Optional resource budgets
 
-`context.limits` or plugin limits may only lower these nonnegative integer values.
-Unknown keys and raised limits fail. Units are bytes for byte budgets, depth for
+`context.limits` or plugin limits accept nonnegative safe integers or `Infinity`.
+All defaults are `Infinity` (disabled). Unknown keys and invalid values fail. Units are bytes for byte budgets, depth for
 nesting, work units for work and layoutWork, and counts otherwise. text and
 field text count decoded UTF-16 units. These limits are not a process sandbox.
 
-| Limit | Ceiling |
+| Limit | Default |
 | --- | --- |
-| inputBytes | 33,554,432 |
-| outputBytes | 67,108,864 |
-| resourceBytes | 67,108,864 |
-| retainedBytes | 134,217,728 |
-| text | 33,554,432 |
-| nodes | 100,000 |
-| depth | 128 |
-| attributes | 100,000 |
-| tableCells | 100,000 |
-| tableFieldText | 1,048,576 |
-| tableRows | 10,000 |
-| tableColumns | 1,024 |
-| resources | 1,024 |
-| diagnostics | 1,024 |
-| references | 100,000 |
-| entities | 100,000 |
-| entityBytes | 8,388,608 |
-| work | 1,000,000 |
-| compressedBytes | 33,554,432 |
-| expandedBytes | 67,108,864 |
-| parts | 4,096 |
-| xmlDepth | 128 |
-| xmlNodes | 100,000 |
-| binaryBytes | 16,777,216 |
-| macros | 10,000 |
-| includes | 256 |
-| directives | 10,000 |
-| fonts | 64 |
-| glyphs | 1,000,000 |
-| pages | 1,000 |
-| objects | 100,000 |
-| images | 1,024 |
-| layoutWork | 1,000,000 |
+| inputBytes | Infinity |
+| outputBytes | Infinity |
+| resourceBytes | Infinity |
+| retainedBytes | Infinity |
+| text | Infinity |
+| nodes | Infinity |
+| depth | Infinity |
+| attributes | Infinity |
+| tableCells | Infinity |
+| tableFieldText | Infinity |
+| tableRows | Infinity |
+| tableColumns | Infinity |
+| resources | Infinity |
+| diagnostics | Infinity |
+| references | Infinity |
+| entities | Infinity |
+| entityBytes | Infinity |
+| work | Infinity |
+| compressedBytes | Infinity |
+| expandedBytes | Infinity |
+| parts | Infinity |
+| xmlDepth | Infinity |
+| xmlNodes | Infinity |
+| binaryBytes | Infinity |
+| macros | Infinity |
+| includes | Infinity |
+| directives | Infinity |
+| fonts | Infinity |
+| glyphs | Infinity |
+| pages | Infinity |
+| objects | Infinity |
+| images | Infinity |
+| layoutWork | Infinity |
 
 ## Loss and Office gates
 
@@ -181,7 +181,7 @@ operation. Sibling Office editing evidence must be assessed separately.
 
 ## Source and oracle identity
 
-Product source is packages/pandoc plus the thin safe-bash adapter. Original QA
+Product source is packages/safe-bash-command-pandoc plus the thin safe-bash adapter. Original QA
 source is qa-typescript/original.html and original.jpg; manifest records profile
 reductions and rejections. No native oracle runs in product or unit runtime.
 Existing conformance references: CommonMark 0.31.2, GFM 0.29, Pandoc 3.8.3

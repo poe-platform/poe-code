@@ -410,3 +410,25 @@ test("pandoc default plugin profile executes local Lua filters, citeproc flags, 
     await shell.dispose();
   }
 });
+
+test("pandoc omits disabled filesystem read budgets and preserves finite ones", async () => {
+  for (const inputBytes of [Infinity, 100]) {
+    const volume = new MemoryFileSystem();
+    await volume.writeFile("/input.md", new TextEncoder().encode("Hello"));
+    const read = volume.readFile.bind(volume);
+    const budgets: (number | undefined)[] = [];
+    volume.readFile = async (path, options) => {
+      budgets.push(options?.maxBytes);
+      assert.notEqual(options?.maxBytes, Infinity);
+      return read(path, options);
+    };
+    const shell = new Shell({ fs: volume }).use(pandocCommands({ limits: { inputBytes } }));
+    try {
+      const result = await shell.exec("pandoc -f commonmark -t plain /input.md");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "Hello\n");
+      assert.ok(budgets.length > 0);
+      assert.equal(budgets[0], Number.isFinite(inputBytes) ? inputBytes : undefined);
+    } finally { await shell.dispose(); }
+  }
+});

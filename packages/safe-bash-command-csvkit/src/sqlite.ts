@@ -76,8 +76,8 @@ export function createSqliteDatabaseProvider(settings: SQLiteOptions): SQLiteDat
   const { capi: c, wasm } = sqlite;
   if (c.sqlite3_libversion() !== '3.50.4') throw new CsvkitBlocked('SQLite runtime must be 3.50.4');
   if (c.sqlite3_sourceid() !== '2025-07-30 19:33:53 4d8adfb30e03f9cf27f800a2c1ba3c48fb4ca1b08b0f5ed59a4d5ecbf45e20a3') throw new CsvkitBlocked('SQLite source revision does not match reference');
-  const limits = Object.freeze({ maxWork: 10_000_000, maxSqlBytes: 1_000_000, maxValueBytes: 16_000_000, maxResultRows: 100_000, ...settings.limits });
-  for (const [name, value] of Object.entries(limits)) if (!Number.isSafeInteger(value) || value < 1) throw new TypeError(`SQLite ${name} must be a positive safe integer`);
+  const limits = Object.freeze({ maxWork: Infinity, maxSqlBytes: Infinity, maxValueBytes: Infinity, maxResultRows: Infinity, ...settings.limits });
+  for (const [name, value] of Object.entries(limits)) if ((value !== Infinity && !Number.isSafeInteger(value)) || value < 0) throw new TypeError(`SQLite ${name} must be a nonnegative safe integer or Infinity`);
   const vfs = installSqliteVfs(sqlite, settings.vfs, clock, random);
   const profile = 'sqlite-wasm-3.50.4-cpython-legacy';
   const sessions = new Set<DatabaseSession>();
@@ -157,8 +157,8 @@ export function createSqliteDatabaseProvider(settings: SQLiteOptions): SQLiteDat
             throw error;
           }
         };
-        c.sqlite3_limit(pointer, c.SQLITE_LIMIT_LENGTH, limits.maxValueBytes);
-        c.sqlite3_limit(pointer, c.SQLITE_LIMIT_SQL_LENGTH, limits.maxSqlBytes);
+        if (Number.isFinite(limits.maxValueBytes)) c.sqlite3_limit(pointer, c.SQLITE_LIMIT_LENGTH, limits.maxValueBytes);
+        if (Number.isFinite(limits.maxSqlBytes)) c.sqlite3_limit(pointer, c.SQLITE_LIMIT_SQL_LENGTH, limits.maxSqlBytes);
         c.sqlite3_progress_handler(pointer, 100, () => {
           work += 100;
           if (activeSignal.aborted) return 1;

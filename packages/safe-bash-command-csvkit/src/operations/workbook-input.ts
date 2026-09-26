@@ -43,7 +43,7 @@ export class WorkbookInput {
         const codec = createZipCodec(undefined, { zip64: true });
         const limits = {
           maxArchiveBytes: l.maxInputBytes, maxEntryBytes: l.maxInflatedBytes, maxTotalBytes: l.maxInflatedBytes,
-          maxMembers: l.maxArchiveMembers, maxPathBytes: l.maxInputBytes, maxDepth: 256,
+          maxMembers: l.maxArchiveMembers, maxPathBytes: l.maxInputBytes, maxDepth: l.maxNestingDepth,
           maxPaxBytes: l.maxInputBytes, maxTextBytes: l.maxInflatedBytes, chunkSize: 65536
         };
         const zip = await codec.readZipArchive(bytes, limits, r.context.signal);

@@ -55,7 +55,7 @@ failure remains observable.
 
 ## SDK
 
-`poe-code/csvkit` and the private `@poe-code/csvkit` workspace expose:
+`poe-code/csvkit` and the private `safe-bash-command-csvkit` workspace expose:
 
 - `execute(command, context): Promise<number>` for original owned byte argv.
 - `run(request: CsvkitRequest, invocation: InvocationContext): Promise<number>`
@@ -147,33 +147,34 @@ variables or credential discovery are introduced by this draft.
 
 ## Resource limits
 
-All SDK limits are required finite nonnegative safe integers. Plugin overrides
-merge with these defaults. Host bounds are distinct from source csvkit flags and
+Every default resource limit is `Infinity` (disabled). SDK limits accept
+nonnegative safe integers or explicit `Infinity`. Plugin overrides merge with
+these defaults. Host bounds are distinct from source csvkit flags and
 produce explicit bounded-profile divergences.
 
 | Limit | Default | Scope |
 | --- | ---: | --- |
-| maxArguments | 4096 | Argv count and SDK scalar-setting admission |
-| maxArgumentBytes | 1048576 | Owned argv and SDK string/bigint admission |
-| maxInputBytes | 16777216 | Invocation input including compressed source |
-| maxOutputBytes | 33554432 | Combined stdout/stderr admission |
-| maxRetainedBytes | 134217728 | Accounted retained storage; not total JS heap or arbitrary provider allocation |
-| maxCodepoints | 16777216 | Decoded text admission |
-| maxRows | 100000 | Cumulative record admission |
-| maxColumns | 10000 | Column admission |
-| maxFieldCharacters | 1048576 | Host field bound, distinct from --maxfieldsize |
-| maxWork | 100000000 | Accounted engine work |
-| maxRegexWork | 1000000 | Accounted regex work |
-| maxDecimalDigits | 10000 | Decimal digit admission |
-| maxDecimalExponent | 10000 | Decimal exponent admission |
-| maxArchiveMembers | 10000 | Accounted archive-member admission |
-| maxInflatedBytes | 33554432 | Decoder output admission |
-| maxDatabaseResultRows | 100000 | Query result-row admission |
-| maxInterpreterWork | 1000000 | Cooperatively accounted guest work |
-| maxNestingDepth | 100 | SDK graph/JSON nesting admission; container root depth zero |
+| maxArguments | Infinity | Argv count and SDK scalar-setting admission |
+| maxArgumentBytes | Infinity | Owned argv and SDK string/bigint admission |
+| maxInputBytes | Infinity | Invocation input including compressed source |
+| maxOutputBytes | Infinity | Combined stdout/stderr admission |
+| maxRetainedBytes | Infinity | Accounted retained storage; not total JS heap or arbitrary provider allocation |
+| maxCodepoints | Infinity | Decoded text admission |
+| maxRows | Infinity | Cumulative record admission |
+| maxColumns | Infinity | Column admission |
+| maxFieldCharacters | Infinity | Host field bound, distinct from --maxfieldsize |
+| maxWork | Infinity | Accounted engine work |
+| maxRegexWork | Infinity | Accounted regex work |
+| maxDecimalDigits | Infinity | Decimal digit admission |
+| maxDecimalExponent | Infinity | Decimal exponent admission |
+| maxArchiveMembers | Infinity | Accounted archive-member admission |
+| maxInflatedBytes | Infinity | Decoder output admission |
+| maxDatabaseResultRows | Infinity | Query result-row admission |
+| maxInterpreterWork | Infinity | Cooperatively accounted guest work |
+| maxNestingDepth | Infinity | SDK graph/JSON nesting admission; container root depth zero |
 
 Increasing a host limit does not qualify formerly refused semantics. Qualified
-SDK/JSON depth restrictions, third-party workbook allocations, broader resource
+Third-party workbook allocations, broader resource
 bounds and opaque host execution remain explicit limitations. Interpreter guests
 must consume their supplied work budget; it cannot forcibly preempt host code.
 

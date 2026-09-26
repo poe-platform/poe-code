@@ -118,7 +118,7 @@ it("admits sparse occupancy and refuses overlarge span multiplication before wri
     [[attr, 0, [], [[attr, [cell(rs, cs)]], ...Array.from({ length: 7 }, (): Row => [attr, []])]]], [attr, []]] }], metadata: {}, resources: [] });
   expect((await writeDocument(table(8, 1), { to: "json" }, { yield: immediate })).kind).toBe("text");
   const publish = vi.fn(immediate);
-  await expect(writeDocument(table(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER), { to: "html" }, { output: { publish }, yield: immediate }))
+  await expect(writeDocument(table(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER), { to: "html" }, { output: { publish }, yield: immediate, limits: { tableCells: 100000 } }))
     .rejects.toMatchObject({ code: "E_LIMIT" });
   expect(publish).not.toHaveBeenCalled();
 });

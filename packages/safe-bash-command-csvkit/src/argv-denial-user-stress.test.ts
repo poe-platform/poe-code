@@ -5,9 +5,11 @@ import type { CsvkitContext } from "./contracts.js";
 import { utf8Codec } from "./codecs/utf8.js";
 import { defaultLimits, execute } from "./engine.js";
 
+const limits = { ...defaultLimits, maxArguments: 2, maxArgumentBytes: 2 };
+
 for (const [length, byteLength, diagnostic] of [
-  [defaultLimits.maxArguments + 1, 0, "argv count limit exceeded"],
-  [1, defaultLimits.maxArgumentBytes + 1, "argv byte limit exceeded"]
+  [limits.maxArguments + 1, 0, "argv count limit exceeded"],
+  [1, limits.maxArgumentBytes + 1, "argv byte limit exceeded"]
 ] as const) test(`custom argv metadata ${diagnostic} is denied before payload access`, async () => {
   const argv = {
     length, byteLength,
@@ -15,7 +17,7 @@ for (const [length, byteLength, diagnostic] of [
   } as unknown as OwnedArguments;
   let stdout = "", stderr = "";
   const context: CsvkitContext = {
-    argv, cwd: "/", limits: defaultLimits, signal: new AbortController().signal,
+    argv, cwd: "/", limits, signal: new AbortController().signal,
     fs: {
       async readFile() { assert.fail("denied argv must not acquire input"); },
       async writeFile() { assert.fail("denied argv must not produce file effects"); }

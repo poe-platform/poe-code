@@ -29,7 +29,6 @@ export class SettingsAdmission {
     if (value !== null && typeof value === "object") {
       if (this.#seen.has(value)) return;
       if (depth > this.limits.maxNestingDepth) throw new CsvkitBlocked("SDK settings nesting budget exceeded");
-      if (depth > 256) throw new CsvkitBlocked("SDK settings nesting beyond qualified depth 256");
       this.#retain(64);
       this.#seen.add(value);
       if (value instanceof ArrayBuffer || ArrayBuffer.isView(value)) {
@@ -85,8 +84,10 @@ export class SettingsAdmission {
       const allowance = Math.min(this.limits.maxArgumentBytes - this.#argumentBytes,
         Math.floor((this.limits.maxRetainedBytes - this.retainedBytes) / 2));
       if (allowance < 1) throw new CsvkitBlocked("SDK argument byte budget exceeded");
-      const bits = BigInt(Math.ceil(allowance * Math.log2(10)));
-      if (value >> bits !== 0n && value >> bits !== -1n) throw new CsvkitBlocked("SDK argument byte budget exceeded");
+      if (Number.isFinite(allowance)) {
+        const bits = BigInt(Math.ceil(allowance * Math.log2(10)));
+        if (value >> bits !== 0n && value >> bits !== -1n) throw new CsvkitBlocked("SDK argument byte budget exceeded");
+      }
       const text = value.toString();
       this.#argumentBytes += text.length;
       if (this.#argumentBytes > this.limits.maxArgumentBytes) throw new CsvkitBlocked("SDK argument byte budget exceeded");

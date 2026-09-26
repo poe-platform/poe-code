@@ -64,7 +64,7 @@ it("preserves captions, colspecs, all sections and cell order with bounded gener
 });
 it("bounds huge sparse coordinates and generated rowspan/colspan normalization", () => {
   const huge = table(1, [row(cell("sparse", Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER))]);
-  expect(() => normalizeDocument(huge)).toThrow("AST budget exceeded");
+  expect(() => normalizeDocument(huge, { tableCells: 100000 })).toThrow("AST budget exceeded");
   for(let seed = 1; seed <= 30; seed++) {
     const width = seed % 5 + 2;
     const split = seed % (width - 1) + 1;

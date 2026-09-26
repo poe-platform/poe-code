@@ -8,41 +8,41 @@ import type {
   Operation
 } from "./types.js";
 
-/** Finite hard ceilings; callers may only lower them. No ambient environment settings. */
+/** Resource budgets are opt-in. No ambient environment settings. */
 export const defaultLimits: Limits = Object.freeze({
-  inputBytes: 32 * 1024 * 1024,
-  outputBytes: 64 * 1024 * 1024,
-  resourceBytes: 64 * 1024 * 1024,
-  retainedBytes: 128 * 1024 * 1024,
-  text: 32 * 1024 * 1024,
-  nodes: 100_000,
-  depth: 128,
-  attributes: 100_000,
-  tableCells: 100_000,
-  tableFieldText: 1024 * 1024,
-  tableRows: 10_000,
-  tableColumns: 1_024,
-  resources: 1_024,
-  diagnostics: 1_024,
-  references: 100_000,
-  entities: 100_000,
-  entityBytes: 8 * 1024 * 1024,
-  work: 1_000_000,
-  compressedBytes: 32 * 1024 * 1024,
-  expandedBytes: 64 * 1024 * 1024,
-  parts: 4_096,
-  xmlDepth: 128,
-  xmlNodes: 100_000,
-  binaryBytes: 16 * 1024 * 1024,
-  macros: 10_000,
-  includes: 256,
-  directives: 10_000,
-  fonts: 64,
-  glyphs: 1_000_000,
-  pages: 1_000,
-  objects: 100_000,
-  images: 1_024,
-  layoutWork: 1_000_000
+  inputBytes: Infinity,
+  outputBytes: Infinity,
+  resourceBytes: Infinity,
+  retainedBytes: Infinity,
+  text: Infinity,
+  nodes: Infinity,
+  depth: Infinity,
+  attributes: Infinity,
+  tableCells: Infinity,
+  tableFieldText: Infinity,
+  tableRows: Infinity,
+  tableColumns: Infinity,
+  resources: Infinity,
+  diagnostics: Infinity,
+  references: Infinity,
+  entities: Infinity,
+  entityBytes: Infinity,
+  work: Infinity,
+  compressedBytes: Infinity,
+  expandedBytes: Infinity,
+  parts: Infinity,
+  xmlDepth: Infinity,
+  xmlNodes: Infinity,
+  binaryBytes: Infinity,
+  macros: Infinity,
+  includes: Infinity,
+  directives: Infinity,
+  fonts: Infinity,
+  glyphs: Infinity,
+  pages: Infinity,
+  objects: Infinity,
+  images: Infinity,
+  layoutWork: Infinity
 });
 
 type Chunks = AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
@@ -83,9 +83,8 @@ export class ExecutionContext implements AdapterContext {
     for (const [key, value] of Object.entries(context.limits ?? {})) {
       if (
         !Object.hasOwn(limits, key) ||
-        !Number.isSafeInteger(value) ||
-        value < 0 ||
-        value > limits[key as keyof Limits]
+        (value !== Infinity && !Number.isSafeInteger(value)) ||
+        value < 0
       )
         this.fail("E_OPTION", `Invalid limit: ${key}`);
       limits[key as keyof Limits] = value;

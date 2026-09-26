@@ -167,7 +167,7 @@ describe("original byte-oriented RTF document reader", () => {
   it("rejects unsupported table merges and picture encodings without projecting text", async () => {
     await expect(read(String.raw`{\rtf1\trowd\clmgf\cellx1000\intbl visible\cell\row}`)).rejects.toMatchObject({code: "E_CAPABILITY"});
     await expect(read(String.raw`{\rtf1{\pict\dibitmap0 0000}}`)).rejects.toMatchObject({code: "E_CAPABILITY"});
-    await expect(read(String.raw`{\rtf1{\pict\pngblip\picw100000\pich100000 89504e470d0a1a0a}}`)).rejects.toMatchObject({code: "E_LIMIT"});
+    await expect(read(String.raw`{\rtf1{\pict\pngblip\picw100000\pich100000 89504e470d0a1a0a}}`, {limits: {layoutWork: 1000000}})).rejects.toMatchObject({code: "E_LIMIT"});
   });
   it.each([String.raw`{\rtf1{\fonttbl{\f0\fnil{\*\fontemb\bin1 x}Serif;}}visible}`, String.raw`{\rtf1{\fonttbl{\f0\unsupported Serif;}}visible}`])("rejects embedded fonts and unknown font controls: %s", async source => {
     await expect(read(source)).rejects.toMatchObject({code: "E_CAPABILITY"});

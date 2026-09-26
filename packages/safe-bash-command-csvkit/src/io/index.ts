@@ -56,7 +56,7 @@ export class LazyInput {
 
   async sniffSample(limit: number, maxCharacters: number, profile: SniffStreamProfile = defaultSniffStreamProfile): Promise<string> {
     this.assertOpen();
-    if (!Number.isSafeInteger(limit) || limit < -1 || !Number.isSafeInteger(maxCharacters) || maxCharacters < 0)
+    if (!Number.isSafeInteger(limit) || limit < -1 || (maxCharacters !== Infinity && !Number.isSafeInteger(maxCharacters)) || maxCharacters < 0)
       throw new CsvkitBlocked("invalid sniff sample limits");
     if (limit === 0) return "";
     if (this.borrowed && limit > 0) {

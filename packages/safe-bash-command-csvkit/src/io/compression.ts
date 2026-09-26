@@ -25,7 +25,7 @@ export function createGzipCompressionProvider(codec: GzipCodec): CompressionProv
   return Object.freeze({ extensions: Object.freeze([".gz"]),
     async *decode(source: ByteSource, signal: AbortSignal, limits: Pick<CsvkitLimits, "maxArchiveMembers"> = defaultLimits): ByteSource {
       signal.throwIfAborted();
-      if (!Number.isSafeInteger(limits.maxArchiveMembers) || limits.maxArchiveMembers < 0)
+      if ((limits.maxArchiveMembers !== Infinity && !Number.isSafeInteger(limits.maxArchiveMembers)) || limits.maxArchiveMembers < 0)
         throw new RangeError("invalid gzip member limit");
       let members = 0;
       let sourceFailed = false, sourceFailure: unknown;

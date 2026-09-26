@@ -300,12 +300,12 @@ test("SDK bigint arguments cannot bypass a zero byte allowance", async () => {
   assert.deepEqual(f.result(), { stdout: "", stderr: "csvkit: unsupported or unqualified: SDK argument byte budget exceeded\n" });
 });
 
-test("SDK nesting beyond its clone qualification is a named divergence, never a stack overflow", async () => {
+test("explicit SDK nesting budget is enforced before cloning", async () => {
   let nested: unknown = true;
   for (let index = 0; index < 5000; index++) nested = { child: nested };
-  const f = fixture("", [], { limits: { ...defaultLimits, maxNestingDepth: 10000, maxArguments: 20000 } });
+  const f = fixture("", [], { limits: { ...defaultLimits, maxNestingDepth: 256, maxArguments: 20000 } });
   assert.equal(await run({ command: "sql2csv", settings: { engine_option: [["nested", nested]] } }, f.context), 78);
-  assert.deepEqual(f.result(), { stdout: "", stderr: "csvkit: unsupported or unqualified: SDK settings nesting beyond qualified depth 256\n" });
+  assert.deepEqual(f.result(), { stdout: "", stderr: "csvkit: unsupported or unqualified: SDK settings nesting budget exceeded\n" });
 });
 test("JSON indentation is admitted before constructing multiplied output", async () => {
   const f = fixture("a,b,c\nx,y,z\n", ["--stream", "-I", "-y0", "-i1000"], { limits: { ...defaultLimits, maxRetainedBytes: 1024 } });

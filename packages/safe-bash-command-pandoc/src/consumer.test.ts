@@ -3,7 +3,6 @@ import {
   convert,
   readDocument,
   writeDocument,
-  PandocError,
   formatCapabilities
 } from "safe-bash-command-pandoc";
 import type { ConversionContext, Document, ConversionOptions, InputSource } from "safe-bash-command-pandoc";
@@ -317,11 +316,12 @@ describe("public conversion seam (original adapters, no format conformance claim
     ).rejects.toMatchObject({ code: "E_LIMIT" });
     expect(publish).not.toHaveBeenCalled();
   });
-  it("rejects raised ceilings and aborted operations before callbacks", async () => {
+  it("accepts raised limits and rejects aborted operations before callbacks", async () => {
     const ctx = context();
     await expect(
       convert([], options, { ...ctx, limits: { inputBytes: 33 * 1024 * 1024 } })
-    ).rejects.toBeInstanceOf(PandocError);
+    ).resolves.toMatchObject({ kind: "text" });
+    vi.clearAllMocks();
     const controller = new AbortController();
     controller.abort();
     await expect(convert([], options, { ...ctx, signal: controller.signal })).rejects.toMatchObject(

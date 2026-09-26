@@ -14,13 +14,13 @@ export type { CsvkitRequest } from './sdk-settings.js';
 export type InvocationContext = Omit<CsvkitContext, "argv">;
 
 export const defaultLimits: CsvkitLimits = Object.freeze({
-  maxArguments: 4096, maxArgumentBytes: 1024 * 1024,
-  maxInputBytes: 16 * 1024 * 1024, maxOutputBytes: 32 * 1024 * 1024,
-  maxRetainedBytes: 128 * 1024 * 1024, maxCodepoints: 16 * 1024 * 1024,
-  maxRows: 100000, maxColumns: 10000, maxFieldCharacters: 1024 * 1024,
-  maxWork: 100000000, maxRegexWork: 1000000, maxDecimalDigits: 10000,
-  maxDecimalExponent: 10000, maxArchiveMembers: 10000, maxInflatedBytes: 32 * 1024 * 1024,
-  maxDatabaseResultRows: 100000, maxInterpreterWork: 1000000, maxNestingDepth: 100
+  maxArguments: Infinity, maxArgumentBytes: Infinity,
+  maxInputBytes: Infinity, maxOutputBytes: Infinity,
+  maxRetainedBytes: Infinity, maxCodepoints: Infinity,
+  maxRows: Infinity, maxColumns: Infinity, maxFieldCharacters: Infinity,
+  maxWork: Infinity, maxRegexWork: Infinity, maxDecimalDigits: Infinity,
+  maxDecimalExponent: Infinity, maxArchiveMembers: Infinity, maxInflatedBytes: Infinity,
+  maxDatabaseResultRows: Infinity, maxInterpreterWork: Infinity, maxNestingDepth: Infinity
 });
 
 function admitted(context: InvocationContext): InvocationContext {
@@ -29,7 +29,7 @@ function admitted(context: InvocationContext): InvocationContext {
   for (const name of Object.keys(defaultLimits)) {
     const key = name as keyof CsvkitLimits;
     const limit = context.limits[key];
-    if (!Number.isSafeInteger(limit) || limit < 0) throw new RangeError(`invalid csvkit limit ${name}`);
+    if ((limit !== Infinity && !Number.isSafeInteger(limit)) || limit < 0) throw new RangeError(`invalid csvkit limit ${name}`);
     limits[key] = limit;
   }
   return Object.freeze({ ...context,

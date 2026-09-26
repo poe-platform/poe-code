@@ -202,21 +202,20 @@ function* normalization(
   reserve: (key: keyof AstLimits, units: number) => void
 ): Generator<void, Document> {
   const ceilings = {
-    depth: 128,
-    nodes: 100_000,
-    text: 32 * 1024 * 1024,
-    attributes: 100_000,
-    tableCells: 100_000,
-    references: 100_000,
-    resourceBytes: 64 * 1024 * 1024
+    depth: Infinity,
+    nodes: Infinity,
+    text: Infinity,
+    attributes: Infinity,
+    tableCells: Infinity,
+    references: Infinity,
+    resourceBytes: Infinity
   };
   const limits: AstLimits = { ...ceilings, ...options };
   for (const [k, n] of Object.entries(limits))
     if (
       !Object.hasOwn(ceilings, k) ||
-      !Number.isSafeInteger(n) ||
-      n < 0 ||
-      n > Object.getOwnPropertyDescriptor(ceilings, k)?.value
+      (n !== Infinity && !Number.isSafeInteger(n)) ||
+      n < 0
     )
       fail(`$.limits.${k}`);
   let nodes = 0,

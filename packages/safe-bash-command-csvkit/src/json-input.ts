@@ -60,7 +60,6 @@ export function decodeJson(text: string, runtime: Runtime): JsonInput {
   };
   const value = (depth: number): JsonInput => {
     runtime.step(); white();
-    if (depth > 256) throw new CsvkitBlocked("JSON nesting beyond qualified depth 256");
     const char = text[position];
     if (char === '"') return string();
     if (char === "[" || char === "{") {
@@ -134,7 +133,7 @@ export function jsonNumberText(number: JsonNumber, runtime: Runtime): string {
   const [mantissa, exponent = "0"] = token.slice(negative ? 1 : 0).toLowerCase().split("e");
   const [integer, fraction = ""] = mantissa!.split(".");
   const explicit = BigInt(exponent);
-  if (explicit > BigInt(runtime.context.limits.maxDecimalExponent) || explicit < -BigInt(runtime.context.limits.maxDecimalExponent)) throw new CsvkitBlocked("JSON decimal exponent budget exceeded");
+  if (Number.isFinite(runtime.context.limits.maxDecimalExponent) && (explicit > BigInt(runtime.context.limits.maxDecimalExponent) || explicit < -BigInt(runtime.context.limits.maxDecimalExponent))) throw new CsvkitBlocked("JSON decimal exponent budget exceeded");
   let digits = integer! + fraction;
   let first = 0;
   while (first < digits.length - 1 && digits[first] === "0") { runtime.step(); first++; }

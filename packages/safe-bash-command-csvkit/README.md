@@ -32,3 +32,6 @@ encoding, environment settings and limits. Safe Bash provides an opt-in
 `csvkitCommands` plugin using the same SDK.
 
 This workspace is private and is distributed through the `poe-code` SDK subpath.
+
+Resource budgets are opt-in: every `defaultLimits` value is `Infinity`. Supply finite
+nonnegative integer limits to enforce budgets; explicit `Infinity` disables a budget.

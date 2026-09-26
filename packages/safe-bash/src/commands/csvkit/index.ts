@@ -81,7 +81,10 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions): readonly C
               catch (failure) { settings.signal.throwIfAborted(); if (isFsError(failure)) return false; throw failure; }
             },
             listDirectory: async (path, settings) => (await context.fs.readdir(path, settings)).map(entry => entry.name),
-            readFile: async (path, settings) => account(await context.fs.readFile(path, { ...settings, maxBytes: Math.min(settings.maxBytes ?? limits.maxInputBytes, limits.maxInputBytes) })),
+            readFile: async (path, settings) => {
+              const maxBytes = Math.min(settings.maxBytes ?? limits.maxInputBytes, limits.maxInputBytes);
+              return account(await context.fs.readFile(path, Number.isFinite(maxBytes) ? { ...settings, maxBytes } : { signal: settings.signal }));
+            },
             ...(context.fs.readStream === undefined ? {} : {
               readStream(path: string, settings: { readonly signal: AbortSignal }) {
                 return { [Symbol.asyncIterator]() {

@@ -284,8 +284,9 @@ it("preserves document language and direction through conversion", async () => {
   );
   expect(write.mock.calls[0]?.[0]).toMatchObject({ language: "ar", direction: "rtl" });
 });
-it("rejects raised AST ceilings", () => {
-  expect(() => normalizeDocument(empty, { depth: 1000000 })).toThrow("$.limits.depth");
+it("accepts raised and disabled AST limits", () => {
+  expect(normalizeDocument(empty, { depth: 1000000 })).toEqual(empty);
+  expect(normalizeDocument(empty, { depth: Infinity })).toEqual(empty);
 });
 it("bounds metadata key text", () => {
   expect(() =>
@@ -298,7 +299,7 @@ it("bounds metadata key text", () => {
 it("rejects deep nesting and malformed note metadata", () => {
   let node: unknown = { t: "Str", c: "x" };
   for (let i = 0; i < 130; i++) node = { t: "Emph", c: [node] };
-  expect(() => normalizeDocument({ ...empty, blocks: [{ t: "Para", c: [node] }] })).toThrow(
+  expect(() => normalizeDocument({ ...empty, blocks: [{ t: "Para", c: [node] }] }, { depth: 128 })).toThrow(
     "AST budget exceeded"
   );
   expect(() =>

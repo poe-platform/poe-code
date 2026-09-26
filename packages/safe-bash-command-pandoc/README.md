@@ -201,7 +201,8 @@ Scripts run in a fresh VM with conversion instruction checks;
 script bytes and returned text share the conversion budgets. Use trusted scripts
 only: VM allocations are not isolated or bounded by the SDK retained-byte limit.
 
-`limits` can lower the exported `defaultLimits` ceilings: `inputBytes`,
+`limits` configures optional resource budgets. Every exported `defaultLimits` value
+is `Infinity` (disabled), and explicit `Infinity` is accepted: `inputBytes`,
 `resourceBytes`, `outputBytes`, `nodes`, `depth`, `work`, `retainedBytes`, `text`,
 `attributes`, `tableCells`, `tableFieldText`, `tableRows`, `tableColumns`,
 `resources`, `diagnostics`, `references`, `entities`, `entityBytes`,

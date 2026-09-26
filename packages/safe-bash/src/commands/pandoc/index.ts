@@ -90,7 +90,8 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
         cwd: context.cwd,
         stdin: context.stdinIsDefault ? [] : context.stdin,
         readFile: async (path: string, _signal: AbortSignal, remainingBytes?: number) => (stdout ?? invocation).acquire(async () => {
-          const bytes = await context.fs.readFile(pathOf(context, path), {signal: readSignal, maxBytes: Math.min(maxBytes, remainingBytes ?? maxBytes)});
+          const bound = Math.min(maxBytes, remainingBytes ?? maxBytes);
+          const bytes = await context.fs.readFile(pathOf(context, path), Number.isFinite(bound) ? {signal: readSignal, maxBytes: bound} : {signal: readSignal});
           total += bytes.byteLength;
           context.inputBudget?.check(total);
           return bytes;
@@ -171,7 +172,8 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
       const resourceFiles = {
         lstat: (path: string) => owner.acquire(() => context.fs.lstat(path, {signal}), () => {}),
         readFile: (path: string, supplied?: {maxBytes?: number}) => owner.acquire(async () => {
-          const bytes = await context.fs.readFile(path, {signal, maxBytes: Math.min(supplied?.maxBytes ?? defaultLimits.resourceBytes, maxBytes)});
+          const bound = Math.min(supplied?.maxBytes ?? defaultLimits.resourceBytes, maxBytes);
+          const bytes = await context.fs.readFile(path, Number.isFinite(bound) ? {signal, maxBytes: bound} : {signal});
           total += bytes.byteLength;
           context.inputBudget?.check(total);
           return bytes;

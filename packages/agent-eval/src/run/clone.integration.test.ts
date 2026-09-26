@@ -60,7 +60,7 @@ async function createFixtureRepo(root: string): Promise<FixtureRepo> {
 
 async function copyFixtureRepo(root: string): Promise<FixtureRepo> {
   const bareRepo = path.join(root, "fixture.git");
-  await cp(fixtureTemplate.bareRepo, bareRepo, { recursive: true });
+  await execFileAsync("git", ["clone", "--quiet", "--bare", "--shared", fixtureTemplate.bareRepo, bareRepo]);
   return { ...fixtureTemplate, bareRepo };
 }
 

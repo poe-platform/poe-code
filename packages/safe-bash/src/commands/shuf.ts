@@ -408,6 +408,7 @@ class Random {
   private number = 0;
   private maximum = 0;
   private bytes: Uint8Array = new Uint8Array();
+  private readonly prngBytes = new Uint8Array(4);
   private offset = 0;
   private consumed = 0;
   private state: Uint32Array | undefined;
@@ -419,37 +420,75 @@ class Random {
     }
   }
 
-  private async byte(): Promise<number> {
+  private byteSync(): number | Promise<number> {
     this.signal.throwIfAborted();
     if (++this.consumed > 4 * 1024 * 1024) throw new PublicDiagnostic("random byte limit exceeded");
     if (this.offset === this.bytes.length) {
       if (this.input) {
-        const bytes = await this.input.next();
-        if (!bytes) throw new ShufDiagnostic(`${quote(this.name!, false, this.unicode)}: end of file`);
-        this.bytes = bytes;
-      } else {
-        const state = this.state!;
-        const product = Math.imul(state[1]!, 5);
-        const result = Math.imul((product << 7) | (product >>> 25), 9) >>> 0;
-        const shifted = state[1]! << 9;
-        state[2] = state[2]! ^ state[0]!;
-        state[3] = state[3]! ^ state[1]!;
-        state[1] = state[1]! ^ state[2]!;
-        state[0] = state[0]! ^ state[3]!;
-        state[2] = state[2]! ^ shifted;
-        state[3] = (state[3]! << 11) | (state[3]! >>> 21);
-        this.bytes = Uint8Array.of(result & 255, (result >>> 8) & 255, (result >>> 16) & 255, result >>> 24);
+        return this.input.next().then(bytes => {
+          if (!bytes) throw new ShufDiagnostic(`${quote(this.name!, false, this.unicode)}: end of file`);
+          this.bytes = bytes;
+          this.offset = 1;
+          return bytes[0]!;
+        });
       }
+      const state = this.state!;
+      const product = Math.imul(state[1]!, 5);
+      const result = Math.imul((product << 7) | (product >>> 25), 9) >>> 0;
+      const shifted = state[1]! << 9;
+      state[2] = state[2]! ^ state[0]!;
+      state[3] = state[3]! ^ state[1]!;
+      state[1] = state[1]! ^ state[2]!;
+      state[0] = state[0]! ^ state[3]!;
+      state[2] = state[2]! ^ shifted;
+      state[3] = (state[3]! << 11) | (state[3]! >>> 21);
+      this.prngBytes[0] = result & 255;
+      this.prngBytes[1] = (result >>> 8) & 255;
+      this.prngBytes[2] = (result >>> 16) & 255;
+      this.prngBytes[3] = result >>> 24;
+      this.bytes = this.prngBytes;
       this.offset = 0;
     }
     return this.bytes[this.offset++]!;
   }
 
-  async choose(choices: number): Promise<number> {
+  choose(choices: number): number | Promise<number> {
     const target = choices - 1;
-    for (let attempt = 0; attempt < 4096; attempt++) {
+    for (let attempt = 0; attempt < 255; attempt++) {
+      while (this.maximum < target) {
+        const b = this.byteSync();
+        if (typeof b !== "number") return this.chooseAsync(choices, target, attempt, b);
+        this.number = this.number * 256 + b;
+        this.maximum = this.maximum * 256 + 255;
+      }
+      if (this.maximum === target) { const result = this.number; this.number = this.maximum = 0; return result; }
+      const excess = this.maximum - target;
+      const unusable = excess % choices;
+      const reduced = this.number % choices;
+      if (this.number <= this.maximum - unusable) {
+        this.number = Math.floor(this.number / choices);
+        this.maximum = Math.floor(excess / choices);
+        return reduced;
+      }
+      this.number = reduced;
+      this.maximum = unusable - 1;
+    }
+    return this.chooseAsync(choices, target, 255);
+  }
+
+  private async chooseAsync(choices: number, target: number, startAttempt: number, pendingByte?: Promise<number>): Promise<number> {
+    if (pendingByte !== undefined) {
+      const b = await pendingByte;
+      this.number = this.number * 256 + b;
+      this.maximum = this.maximum * 256 + 255;
+    }
+    for (let attempt = startAttempt; attempt < 4096; attempt++) {
       if (attempt % 256 === 255) await yieldTurn(this.signal);
-      while (this.maximum < target) { this.number = this.number * 256 + await this.byte(); this.maximum = this.maximum * 256 + 255; }
+      while (this.maximum < target) {
+        const b = this.byteSync();
+        this.number = this.number * 256 + (typeof b === "number" ? b : await b);
+        this.maximum = this.maximum * 256 + 255;
+      }
       if (this.maximum === target) { const result = this.number; this.number = this.maximum = 0; return result; }
       const excess = this.maximum - target;
       const unusable = excess % choices;
@@ -499,7 +538,7 @@ async function permutation(random: Random, count: number, length: number, signal
     if (index % 65536 === 65535) await yieldTurn(signal);
   }
   for (let index = 0; index < count; index++) {
-    const selected = index + await random.choose(length - index);
+    const c = random.choose(length - index); const selected = index + (typeof c === "number" ? c : await c);
     if (sparse && index === selected) indices[index] = index;
     else {
       const previous = indices[index]!;
@@ -563,7 +602,7 @@ export function shufCommand(): CommandDefinition {
             if (lines.length === count) {
               let seen = count;
               while (true) {
-                const selected = await random.choose(seen + 1);
+                const c = random.choose(seen + 1); const selected = typeof c === "number" ? c : await c;
                 const item = await iterator.next();
                 if (item.done) break;
                 if (selected < count) lines[selected] = item.value;
@@ -576,12 +615,15 @@ export function shufCommand(): CommandDefinition {
         await input?.close();
         const indices = settings.repeat ? undefined : await permutation(random, count, length, signal);
         let outputBytes = 0;
+        const encoder = new TextEncoder();
+        const sepStr = String.fromCharCode(settings.separator);
         const generated: ByteSource = { async *[Symbol.asyncIterator]() {
           if (settings.repeat && count > 0 && length === 0) throw new ShufDiagnostic("no lines to repeat");
           for (let index = 0; index < count; index++) {
             signal.throwIfAborted();
-            const selected = settings.repeat ? await random.choose(length) : indices![index]!;
-            const line = settings.range ? new TextEncoder().encode(String(settings.range.low + BigInt(selected)) + String.fromCharCode(settings.separator)) : lines[selected]!;
+            const c = settings.repeat ? random.choose(length) : indices![index]!;
+            const selected = typeof c === "number" ? c : await c;
+            const line = settings.range ? encoder.encode(String(settings.range.low + BigInt(selected)) + sepStr) : lines[selected]!;
             outputBytes += line.length;
             if (outputBytes > bufferLimit) throw new PublicDiagnostic("output byte limit exceeded");
             yield line;

@@ -43,7 +43,7 @@ export async function unsigned(text: string, option: string, budget: Budget): Pr
     if (digit < 0 || digit > 9) invalid();
     value = value * 10n + BigInt(digit);
     if (value > unsignedMax) invalid();
-    if ((offset & 1023) === 0) await budget.checkpoint();
+    if ((offset & 1023) === 0) { const c = budget.checkpoint(); if (c) await c; }
   }
   return value;
 }
@@ -175,7 +175,7 @@ export async function parseArguments(args: readonly string[], cwd: string, budge
         budget.add("maxSelectorNodes", 1); budget.hold(8);
         indices.push(await unsigned(text.slice(begin, offset), "-I/--indices", budget)); begin = offset + 1;
       }
-      if ((offset & 1023) === 0) await budget.checkpoint();
+      if ((offset & 1023) === 0) { const c = budget.checkpoint(); if (c) await c; }
     }
     await boundedSort(indices, 8, budget, (left, right) => { budget.work(8); return left < right ? -1 : left > right ? 1 : 0; });
     let count = 0;

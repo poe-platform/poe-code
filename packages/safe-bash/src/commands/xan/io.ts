@@ -107,7 +107,7 @@ export class InputScope {
       this.budget.bound("maxChunkBytes", chunk.length);
       this.budget.add("maxInputBytes", chunk.length);
       this.budget.bound("maxSelectorBytes", bytes.length + chunk.length);
-      for (const byte of chunk) { await bytes.push(byte); await this.budget.checkpoint(); }
+      for (const byte of chunk) { { const p = bytes.push(byte); if (p) await p; } { const c = this.budget.checkpoint(); if (c) await c; } }
     }
     this.budget.hold(bytes.length * 2);
     const textBytes = bytes.length * 2;
@@ -173,7 +173,7 @@ export function managedOutput(source: ByteSource, scope: InputScope, budget: Bud
       iterator ??= source[Symbol.asyncIterator]();
       const next = await iterator.next();
       if (!next.done) for (let offset = 0; offset < next.value.length; offset += 4096) {
-        budget.work(Math.min(4096, next.value.length - offset)); await budget.checkpoint();
+        budget.work(Math.min(4096, next.value.length - offset)); { const c = budget.checkpoint(); if (c) await c; }
       }
       return next;
     },
@@ -205,7 +205,7 @@ export async function publish(context: CommandContext, destination: Destination 
         const copy = new Uint8Array(chunk.length);
         for (let offset = 0; offset < chunk.length; offset += 4096) {
           const fragment = chunk.subarray(offset, offset + 4096);
-          budget.work(fragment.length); copy.set(fragment, offset); await budget.checkpoint();
+          budget.work(fragment.length); copy.set(fragment, offset); { const c = budget.checkpoint(); if (c) await c; }
         }
         parts.push(copy); size += chunk.length; admitted = true;
       } finally { if (!admitted) budget.release(chunk.length + 32); }
@@ -215,7 +215,7 @@ export async function publish(context: CommandContext, destination: Destination 
     for (const part of parts) {
       for (let begin = 0; begin < part.length; begin += 4096) {
         const fragment = part.subarray(begin, begin + 4096);
-        budget.work(fragment.length); result.set(fragment, offset); offset += fragment.length; await budget.checkpoint();
+        budget.work(fragment.length); result.set(fragment, offset); offset += fragment.length; { const c = budget.checkpoint(); if (c) await c; }
       }
     }
     await observe(() => context.fs.writeFile(destination.path, result!, options), operation.signal);

@@ -17,14 +17,14 @@ export async function boundedSort<Value>(values: Value[], entryBytes: number, bu
           budget.work();
           if (left < middle && (right === end || await compare(source[left]!, source[right]!) <= 0)) target[index] = source[left++]!;
           else target[index] = source[right++]!;
-          if ((index & 1023) === 0) await budget.checkpoint();
+          if ((index & 1023) === 0) { const c = budget.checkpoint(); if (c) await c; }
         }
       }
       [source, target] = [target, source];
     }
     if (source !== values) for (let index = 0; index < values.length; index++) {
       budget.work(); values[index] = source[index]!;
-      if ((index & 1023) === 0) await budget.checkpoint();
+      if ((index & 1023) === 0) { const c = budget.checkpoint(); if (c) await c; }
     }
   } finally { budget.release(values.length * entryBytes); }
 }

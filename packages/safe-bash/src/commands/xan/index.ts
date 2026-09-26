@@ -67,7 +67,7 @@ async function execute(context: CommandContext, limits: XanLimits): Promise<Comm
             budget.work(incoming);
             size += incoming;
             budget.bound("maxOutputBytes", size + (budget.totals.get("maxOutputBytes") ?? 0));
-            await budget.checkpoint();
+            { const c = budget.checkpoint(); if (c) await c; }
           }
         }
         if (size <= limits.maxOutputBytes - (budget.totals.get("maxOutputBytes") ?? 0)) {
@@ -77,7 +77,7 @@ async function execute(context: CommandContext, limits: XanLimits): Promise<Comm
             for (const character of part) {
               const encoded = await budget.encode(escapeText(character, "diagnostic"));
               try {
-                budget.work(encoded.length); bytes.set(encoded, offset); offset += encoded.length; await budget.checkpoint();
+                budget.work(encoded.length); bytes.set(encoded, offset); offset += encoded.length; { const c = budget.checkpoint(); if (c) await c; }
               } finally { budget.release(encoded.length); }
             }
           }

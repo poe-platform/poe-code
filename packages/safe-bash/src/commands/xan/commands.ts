@@ -134,11 +134,11 @@ async function sanitize(text: string, budget: Budget): Promise<string> {
     const part = code === 173 || (code < 32 && !whitespace(code)) ? "" : code === 10 ? "\\n" : code === 13 ? "\\r" : code === 9 ? "\\t" : code === 12 ? "\\f" : text[offset]!;
     budget.hold(part.length * 2); budget.work(part.length); segment += part; normalizedLength += part.length;
     if (segment.length >= 4096) { budget.hold(32); parts.push(segment); segment = ""; }
-    if ((offset & 1023) === 0) await budget.checkpoint();
+    if ((offset & 1023) === 0) { const c = budget.checkpoint(); if (c) await c; }
   }
   if (segment) { budget.hold(32); parts.push(segment); }
   budget.hold(normalizedLength * 2);
-  for (let offset = 0; offset < normalizedLength; offset += 4096) { budget.work(Math.min(4096, normalizedLength - offset)); await budget.checkpoint(); }
+  for (let offset = 0; offset < normalizedLength; offset += 4096) { budget.work(Math.min(4096, normalizedLength - offset)); { const c = budget.checkpoint(); if (c) await c; } }
   text = parts.join("");
   budget.release(normalizedLength * 2 + parts.length * 32);
   parts.length = 0;
@@ -153,7 +153,7 @@ async function sanitize(text: string, budget: Budget): Promise<string> {
     if (offset < start || offset >= end) part = "·".repeat(code < 128 ? 1 : code < 2048 ? 2 : 3);
     else part = text[offset]!;
     budget.hold(part.length * 2); budget.work(part.length); result += part;
-    if ((offset & 1023) === 0) await budget.checkpoint();
+    if ((offset & 1023) === 0) { const c = budget.checkpoint(); if (c) await c; }
   }
   budget.release(normalizedLength * 2);
   return result;
@@ -170,7 +170,7 @@ async function decodeHeader(bytes: Uint8Array, field: number, budget: Budget): P
     }
     if (!width) throw new XanError(`CSV parse error: record 0 (line 1, field: ${field}, byte: 0): invalid utf-8: invalid UTF-8 in field ${field} near byte index ${offset}`);
     offset += width;
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
   }
   const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
   const metadata = Math.ceil(bytes.length / 4096) * 32;
@@ -182,10 +182,10 @@ async function decodeHeader(bytes: Uint8Array, field: number, budget: Budget): P
       const fragment = bytes.subarray(offset, offset + 4096);
       budget.work(fragment.length);
       const part = decoder.decode(fragment, { stream: offset + 4096 < bytes.length });
-      parts.push(part); length += part.length; await budget.checkpoint();
+      parts.push(part); length += part.length; { const c = budget.checkpoint(); if (c) await c; }
     }
     budget.hold(length * 2);
-    for (let offset = 0; offset < length; offset += 2048) { budget.work(Math.min(2048, length - offset) * 2); await budget.checkpoint(); }
+    for (let offset = 0; offset < length; offset += 2048) { budget.work(Math.min(2048, length - offset) * 2); { const c = budget.checkpoint(); if (c) await c; } }
     return parts.join("");
   } finally { budget.release(bytes.length * 2 + metadata); }
 }
@@ -252,7 +252,7 @@ async function* headerOutput(args: Arguments, headers: Header[], budget: Budget,
         budget.hold(counts.size * 32);
         const divergent = [...counts.values()].filter(value => value.count < headers.length);
         await boundedSort(divergent, 32, budget, async (left, right) => {
-          for (let offset = 0; offset < Math.min(left.bytes.length, right.bytes.length); offset++) { budget.work(); const difference = left.bytes[offset]! - right.bytes[offset]!; if (difference) return difference; if ((offset & 1023) === 0) await budget.checkpoint(); }
+          for (let offset = 0; offset < Math.min(left.bytes.length, right.bytes.length); offset++) { budget.work(); const difference = left.bytes[offset]! - right.bytes[offset]!; if (difference) return difference; if ((offset & 1023) === 0) { const c = budget.checkpoint(); if (c) await c; } }
           return left.bytes.length - right.bytes.length;
         });
         yield* emitted(await writer.text("\nAll files don't have the same headers!\nDiverging headers: "), budget);
@@ -321,7 +321,7 @@ async function condition(expression: string | undefined, headers: RecordRow | un
       budget.hold(left.length * 2);
       try {
         let value = '';
-        for (let offset = 0; offset < left.length; offset++) { budget.work(); value += String.fromCharCode(left[offset]!); if ((offset & 1023) === 0) await budget.checkpoint(); }
+        for (let offset = 0; offset < left.length; offset++) { budget.work(); value += String.fromCharCode(left[offset]!); if ((offset & 1023) === 0) { const c = budget.checkpoint(); if (c) await c; } }
         const number = Number(value);
         if (!value.trim() || !Number.isFinite(number)) throw new XanError('condition requires a numeric cell');
         order = number < Number(text) ? -1 : number > Number(text) ? 1 : 0;
@@ -330,7 +330,7 @@ async function condition(expression: string | undefined, headers: RecordRow | un
       for (let offset = 0; offset < Math.min(left.length, right.length); offset++) {
         budget.work();
         if (left[offset] !== right[offset]) { order = left[offset]! < right[offset]! ? -1 : 1; break; }
-        if ((offset & 1023) === 0) await budget.checkpoint();
+        if ((offset & 1023) === 0) { const c = budget.checkpoint(); if (c) await c; }
       }
       if (!order) order = left.length < right.length ? -1 : left.length > right.length ? 1 : 0;
     }

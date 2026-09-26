@@ -1,7 +1,8 @@
-import { createNodeRegexProvider } from "../../src/node.js";
+import { createNodeRegexProvider } from "../../src/commands/regex-execution/client.js";
 import { CommandRegistry, toByteSource, type ByteSource, type CommandContext, type CommandDefinition, type CommandHandler, type FileSystem } from "../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
-import { standardCommands } from "../../src/commands/index.js";
+
+let standardCommandsPromise: Promise<typeof import("../../src/commands/index.js")> | undefined;
 
 export async function fixture(files: Record<string, string | Uint8Array> = {}): Promise<MemoryFileSystem> {
   const fs = new MemoryFileSystem();
@@ -29,7 +30,7 @@ export async function run(command: string, args: readonly string[] = [], options
   const fs = options.fs ?? await fixture();
   const registry = new CommandRegistry();
   if (options.commands) for (const command of options.commands) registry.register(command);
-  else await standardCommands({ regexExecutor: createNodeRegexProvider(), ...(options.execute ? { execute: options.execute } : {}) }).setup({ commands: registry, use() {}, registerFileSystem() {} });
+  else { const { standardCommands } = await (standardCommandsPromise ??= import("../../src/commands/index.js")); await standardCommands({ regexExecutor: createNodeRegexProvider(), ...(options.execute ? { execute: options.execute } : {}) }).setup({ commands: registry, use() {}, registerFileSystem() {} }); }
   const stdout: Uint8Array[] = [];
   const stderr: Uint8Array[] = [];
   const context: CommandContext = {

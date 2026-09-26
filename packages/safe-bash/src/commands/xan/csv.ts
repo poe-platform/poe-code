@@ -24,10 +24,20 @@ export class Scanner {
     this.closePromise ??= (async () => { if (!this.finished) await this.iterator.return?.(); this.chunk = new Uint8Array(0); })();
     return this.closePromise;
   }
-  private async nextByte(): Promise<number | undefined> {
-    this.signal.throwIfAborted();
+  private nextByte(): number | undefined | Promise<number | undefined> {
+    if (this.budget.aborted) this.signal.throwIfAborted();
     if (this.endByte !== undefined && BigInt(this.absolute) >= this.endByte) return undefined;
     if (this.prefix.length) return this.prefix.shift()!;
+    if (this.cursor < this.chunk.length) {
+      this.absolute++;
+      this.budget.work();
+      const c = this.budget.checkpoint();
+      const b = this.chunk[this.cursor++]!;
+      return c ? c.then(() => b) : b;
+    }
+    return this.nextByteAsync();
+  }
+  private async nextByteAsync(): Promise<number | undefined> {
     while (this.cursor === this.chunk.length) {
       this.budget.check();
       const next = await this.iterator.next();
@@ -39,7 +49,8 @@ export class Scanner {
       this.chunk = next.value;
     }
     this.absolute++;
-    this.budget.work(); await this.budget.checkpoint();
+    this.budget.work();
+    const c = this.budget.checkpoint(); if (c) await c;
     return this.chunk[this.cursor++];
   }
   async position(start: bigint, end?: bigint): Promise<void> {
@@ -53,7 +64,7 @@ export class Scanner {
       while (true) {
         const byte = await this.nextByte();
         if (byte === undefined) break;
-        await bytes.push(byte);
+        { const p = bytes.push(byte); if (p) await p; }
         if (bytes.length === 4096) { this.budget.add("maxOutputBytes", bytes.length); yield bytes.view(); bytes.free(); }
       }
       if (bytes.length) { this.budget.add("maxOutputBytes", bytes.length); yield bytes.view(); }
@@ -73,8 +84,9 @@ export class Scanner {
       } else if (first !== undefined) this.prefix = [first];
     }
     const cells: Cell[] = [];
-    let raw = new Bytes(this.budget);
-    let decoded = new Bytes(this.budget);
+    const countOnly = this.dialect === "count";
+    let raw = countOnly ? undefined! : new Bytes(this.budget);
+    let decoded = countOnly ? undefined! : new Bytes(this.budget);
     let state: "start" | "plain" | "quoted" | "closed" = "start";
     const quoted = (): boolean => state === "quoted";
     let active = false;
@@ -85,18 +97,21 @@ export class Scanner {
     let offset = this.absolute - this.prefix.length;
     let faithful = true;
     let rowHeld = false;
-    const countOnly = this.dialect === "count";
-    const account = async (byte: number, separator = false): Promise<void> => {
+    const account = (byte: number, separator = false): void | Promise<void> => {
       this.budget.bound("maxRecordBytes", ++recordBytes);
       if (!separator) this.budget.bound("maxCellBytes", ++cellBytes);
-      if (!countOnly && !separator) await raw.push(byte);
+      if (!countOnly && !separator) return raw.push(byte);
     };
     const cell = (): void => {
       this.budget.bound("maxColumns", ++width);
-      if (!countOnly) { this.budget.hold(32); cells.push({ decoded, raw, faithful }); }
-      raw = new Bytes(this.budget); decoded = new Bytes(this.budget); cellBytes = 0; state = "start"; faithful = true;
+      if (!countOnly) {
+        this.budget.hold(32); cells.push({ decoded, raw, faithful });
+        raw = new Bytes(this.budget); decoded = new Bytes(this.budget);
+      }
+      cellBytes = 0; state = "start"; faithful = true;
     };
-    const content = async (byte: number): Promise<void> => {
+    const chain = (a: void | Promise<void>, b: () => void | Promise<void>): void | Promise<void> => a ? a.then(b) : b();
+    const content = (byte: number): void | Promise<void> => {
       if (!active) {
         this.budget.add("maxRecords", 1); this.count++;
         this.budget.bound("maxColumns", 1); this.budget.hold(32); rowHeld = true;
@@ -104,29 +119,37 @@ export class Scanner {
       active = true;
       if (byte === this.delimiter && state !== "quoted") this.budget.bound("maxColumns", width + 2);
       if (countOnly) {
-        if (byte === 34) { await account(byte); state = state === "quoted" ? "plain" : "quoted"; }
-        else if (byte === this.delimiter && state !== "quoted") { await account(byte, true); cell(); }
-        else { await account(byte); if (state !== "quoted") state = "plain"; }
-        return;
+        if (byte === 34) { const p = account(byte); state = state === "quoted" ? "plain" : "quoted"; return p; }
+        if (byte === this.delimiter && state !== "quoted") { const p = account(byte, true); return p ? p.then(cell) : cell(); }
+        const p = account(byte); if (state !== "quoted") state = "plain"; return p;
       }
       if (state === "quoted") {
-        await account(byte);
-        if (byte === 34) state = "closed";
-        else await decoded.push(byte);
-      } else if (state === "closed" && byte === 34) {
-        await account(byte); await decoded.push(byte); state = "quoted";
-      } else if (byte === this.delimiter) { await account(byte, true); cell(); }
-      else if (byte === 34 && state === "start") { await account(byte); state = "quoted"; }
-      else {
-        if (this.dialect !== "headers" && (byte === 34 || state === "closed")) throw new XanError("unsupported malformed CSV quoting");
-        await account(byte); await decoded.push(byte); state = "plain";
+        const p = account(byte);
+        if (byte === 34) { state = "closed"; return p; }
+        return chain(p, () => decoded.push(byte));
       }
+      if (state === "closed" && byte === 34) {
+        state = "quoted";
+        return chain(account(byte), () => decoded.push(byte));
+      }
+      if (byte === this.delimiter) {
+        const p = account(byte, true);
+        return p ? p.then(cell) : cell();
+      }
+      if (byte === 34 && state === "start") {
+        state = "quoted";
+        return account(byte);
+      }
+      if (this.dialect !== "headers" && (byte === 34 || state === "closed")) throw new XanError("unsupported malformed CSV quoting");
+      state = "plain";
+      return chain(account(byte), () => decoded.push(byte));
     };
     try {
       while (true) {
-        const byte = await this.nextByte();
+        const nb = this.nextByte();
+        const byte = typeof nb === "number" || nb === undefined ? nb : await nb;
         if (byte === undefined) {
-          if (pendingCR && this.dialect !== "slice") await content(13);
+          if (pendingCR && this.dialect !== "slice") { const p = content(13); if (p) await p; }
           if (!active) return undefined;
           if (quoted()) faithful = false;
           cell(); break;
@@ -135,14 +158,15 @@ export class Scanner {
         if (pendingCR) {
           pendingCR = false;
           if (byte === 10) { cell(); break; }
-          await content(13);
+          const p = content(13); if (p) await p;
         }
         if (!quoted()) {
           if (!active && (byte === 10 || byte === 13)) { offset = this.absolute; continue; }
           if (byte === 10 || (byte === 13 && this.dialect === "headers")) { if (byte === 13) this.skipLF = true; cell(); break; }
           if (byte === 13) { pendingCR = true; continue; }
         }
-        await content(byte);
+        const p = content(byte);
+        if (p) await p;
       }
       let released = false;
       rowHeld = false;
@@ -155,6 +179,6 @@ export class Scanner {
     } catch (error) {
       for (const value of cells) { value.decoded.free(); value.raw.free(); this.budget.release(32); }
       throw error;
-    } finally { raw.free(); decoded.free(); if (rowHeld) this.budget.release(32); }
+    } finally { if (!countOnly) { raw.free(); decoded.free(); } if (rowHeld) this.budget.release(32); }
   }
 }

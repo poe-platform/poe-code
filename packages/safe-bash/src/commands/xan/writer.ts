@@ -40,7 +40,7 @@ export class Writer {
           if (byte === this.delimiter || byte === 10 || byte === 13 || byte === 34) quote = true;
           if (byte === 34) quotes++;
           if (byte === 13) cr = true;
-          if ((offset & 1023) === 0) await this.budget.checkpoint();
+          if ((offset & 1023) === 0) { const c = this.budget.checkpoint(); if (c) await c; }
         }
         const raw = field.raw !== undefined && !cr && !(bom && field.raw[0] !== 34) && !(fields.length === 1 && field.raw.length === 0);
         const bytes = raw ? field.raw! : field.bytes;
@@ -61,7 +61,7 @@ export class Writer {
             const byte = plan.bytes[offset]!;
             this.budget.work(); result[cursor++] = byte;
             if (!plan.raw && plan.quote && byte === 34) { this.budget.work(); result[cursor++] = byte; }
-            if ((offset & 1023) === 0) await this.budget.checkpoint();
+            if ((offset & 1023) === 0) { const c = this.budget.checkpoint(); if (c) await c; }
           }
           if (!plan.raw && plan.quote) { this.budget.work(); result[cursor++] = 34; }
         }

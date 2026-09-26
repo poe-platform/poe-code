@@ -14,7 +14,7 @@ export async function parseColumnExpression(text: string, budget: Budget): Promi
     const code = name.charCodeAt(offset);
     const letter = (code >= 65 && code <= 90) || (code >= 97 && code <= 122) || code === 95;
     if (!letter && !(offset > 0 && code >= 48 && code <= 57)) throw new XanError("unsupported in bounded CSV profile: expression syntax");
-    if ((offset & 1023) === 0) await budget.checkpoint();
+    if ((offset & 1023) === 0) { const c = budget.checkpoint(); if (c) await c; }
   }
   return parseSelection(name, budget);
 }
@@ -55,12 +55,12 @@ export async function parseSelection(text: string, budget: Budget): Promise<Sele
           closed = true; break;
         }
         offset++;
-        if ((offset & 1023) === 0) await budget.checkpoint();
+        if ((offset & 1023) === 0) { const c = budget.checkpoint(); if (c) await c; }
       }
       if (!closed) throw new XanError('Unclosed quote, missing closing ".');
       if (offset < text.length && !["[", ":", ","].includes(text[offset]!)) invalid();
     } else {
-      while (offset < text.length && ![",", ":", "["].includes(text[offset]!)) { budget.work(); offset++; if ((offset & 1023) === 0) await budget.checkpoint(); }
+      while (offset < text.length && ![",", ":", "["].includes(text[offset]!)) { budget.work(); offset++; if ((offset & 1023) === 0) { const c = budget.checkpoint(); if (c) await c; } }
       budget.hold((offset - begin) * 2); name = text.slice(begin, offset);
       if (!name && text[offset] !== "[") invalid();
     }
@@ -68,7 +68,7 @@ export async function parseSelection(text: string, budget: Budget): Promise<Sele
     if (text[offset] === "[") {
       node();
       const start = ++offset;
-      while (offset < text.length && text[offset] !== "]") { budget.work(); offset++; if ((offset & 1023) === 0) await budget.checkpoint(); }
+      while (offset < text.length && text[offset] !== "]") { budget.work(); offset++; if ((offset & 1023) === 0) { const c = budget.checkpoint(); if (c) await c; } }
       if (offset === text.length) throw new XanError("Unclosed index bracket, missing closing ].");
       budget.hold((offset - start) * 2);
       occurrence = signed(text.slice(start, offset));
@@ -84,7 +84,7 @@ export async function parseSelection(text: string, budget: Budget): Promise<Sele
     if (text[offset] === ",") invalid();
     if (text[offset] === "*") {
       const begin = ++offset;
-      while (offset < text.length && ![",", ":", "["].includes(text[offset]!)) { budget.work(); offset++; if ((offset & 1023) === 0) await budget.checkpoint(); }
+      while (offset < text.length && ![",", ":", "["].includes(text[offset]!)) { budget.work(); offset++; if ((offset & 1023) === 0) { const c = budget.checkpoint(); if (c) await c; } }
       if (offset < text.length && text[offset] !== ",") invalid();
       if (offset === begin) clauses.push({ kind: "all" });
       else { budget.hold((offset - begin) * 2); const suffix = text.slice(begin, offset); clauses.push({ kind: "suffix", text: suffix, bytes: await budget.encode(suffix) }); }
@@ -115,7 +115,7 @@ async function matches(cell: Uint8Array, needle: Uint8Array, kind: "one" | "pref
   for (let offset = 0; offset < needle.length; offset++) {
     budget.work();
     if (cell[start + offset] !== needle[offset]) return false;
-    if ((offset & 1023) === 0) await budget.checkpoint();
+    if ((offset & 1023) === 0) { const c = budget.checkpoint(); if (c) await c; }
   }
   return true;
 }
@@ -148,14 +148,14 @@ export async function resolveSelection(selection: Selection, cells: readonly Uin
     throw new XanError("selector occurrence resolution failed");
   };
   for (const clause of selection.clauses) {
-    if (clause.kind === "all") { for (let index = 0; index < cells.length; index++) { append(index); if ((index & 1023) === 0) await budget.checkpoint(); } }
+    if (clause.kind === "all") { for (let index = 0; index < cells.length; index++) { append(index); if ((index & 1023) === 0) { const c = budget.checkpoint(); if (c) await c; } } }
     else if (clause.kind === "one") append(await resolve(clause.endpoint));
     else if (clause.kind === "range") {
       if (!cells.length && !clause.start && !clause.end) continue;
       const start = clause.start ? await resolve(clause.start) : 0;
       const end = clause.end ? await resolve(clause.end) : cells.length - 1;
       const direction = start <= end ? 1 : -1;
-      for (let index = start; ; index += direction) { append(index); if (index === end) break; if ((positions.length & 1023) === 0) await budget.checkpoint(); }
+      for (let index = start; ; index += direction) { append(index); if (index === end) break; if ((positions.length & 1023) === 0) { const c = budget.checkpoint(); if (c) await c; } }
     } else {
       if (noHeaders) throw new XanError("named selector requires headers (not -n)");
       const before = positions.length;
@@ -171,7 +171,7 @@ export async function resolveSelection(selection: Selection, cells: readonly Uin
   const seen = new Uint8Array(cells.length);
   for (const index of positions) { budget.work(); seen[index] = 1; }
   budget.release(positions.length * 8); positions.length = 0;
-  for (let index = 0; index < cells.length; index++) { budget.work(); if (!seen[index]) append(index); if ((index & 1023) === 0) await budget.checkpoint(); }
+  for (let index = 0; index < cells.length; index++) { budget.work(); if (!seen[index]) append(index); if ((index & 1023) === 0) { const c = budget.checkpoint(); if (c) await c; } }
   budget.release(seen.length);
   return positions;
 }

@@ -798,8 +798,8 @@ function* arithmeticEvaluation(program: ArithmeticProgram, references: Arithmeti
     formatArithmeticError(program, error);
   }
 }
-export const sharedLoopIntRegs = new Int32Array(32);
-const sharedRpnStack = new Int32Array(32);
+export const sharedLoopIntRegs = new Float64Array(32);
+const sharedRpnStack = new Float64Array(32);
 
 export interface CompiledSmiExpr {
   readonly ops: Int32Array;
@@ -890,24 +890,6 @@ export function evalCompiledSmi(compiled: CompiledSmiExpr, varRegMap: Int32Array
   const ops = compiled.ops;
   const args = compiled.args;
   const len = ops.length;
-  if (len === 3 && ops[0] === 1 && ops[1] === 0 && ops[2] === 7) {
-    const v0 = sharedLoopIntRegs[varRegMap[args[0]!]!]!;
-    budget.admit(v0 < 0 ? 4 : 2);
-    return Math.imul(v0, args[1]!) | 0;
-  }
-  if (len === 3 && ops[0] === 1 && ops[1] === 1 && ops[2] === 5) {
-    const v0 = sharedLoopIntRegs[varRegMap[args[0]!]!]!;
-    const v1 = sharedLoopIntRegs[varRegMap[args[1]!]!]!;
-    budget.admit((v0 < 0 ? 4 : 2) + (v1 < 0 ? 4 : 2));
-    return (v0 + v1) | 0;
-  }
-  if (len === 9 && ops[0] === 1 && ops[1] === 1 && ops[2] === 0 && ops[3] === 7 && ops[4] === 5 && ops[5] === 1 && ops[6] === 0 && ops[7] === 9 && ops[8] === 6) {
-    const v0 = sharedLoopIntRegs[varRegMap[args[0]!]!]!;
-    const v1 = sharedLoopIntRegs[varRegMap[args[1]!]!]!;
-    const v2 = sharedLoopIntRegs[varRegMap[args[5]!]!]!;
-    budget.admit((v0 < 0 ? 4 : 2) + (v1 < 0 ? 4 : 2) + (v2 < 0 ? 4 : 2));
-    return ((v0 + Math.imul(v1, args[2]!)) - (v2 % args[6]!)) | 0;
-  }
   let sp = 0;
   let admitUnits = 0;
   for (let pc = 0; pc < len; pc++) {
@@ -920,18 +902,18 @@ export function evalCompiledSmi(compiled: CompiledSmiExpr, varRegMap: Int32Array
       sharedRpnStack[sp++] = val;
     } else if (op <= 4) {
       const v = sharedRpnStack[sp - 1]!;
-      sharedRpnStack[sp - 1] = op === 2 ? v : op === 3 ? (-v) | 0 : (v === 0 ? 1 : 0);
+      sharedRpnStack[sp - 1] = op === 2 ? v : op === 3 ? -v : (v === 0 ? 1 : 0);
     } else {
       sp--;
       const r = sharedRpnStack[sp]!;
       const l = sharedRpnStack[sp - 1]!;
       let res = 0;
       switch (op) {
-        case 5: res = (l + r) | 0; break;
-        case 6: res = (l - r) | 0; break;
-        case 7: res = Math.imul(l, r) | 0; break;
-        case 8: res = (l / r) | 0; break;
-        case 9: res = (l % r) | 0; break;
+        case 5: res = l + r; break;
+        case 6: res = l - r; break;
+        case 7: res = l * r; break;
+        case 8: res = Math.trunc(l / r); break;
+        case 9: res = l % r; break;
         case 10: res = l < r ? 1 : 0; break;
         case 11: res = l <= r ? 1 : 0; break;
         case 12: res = l > r ? 1 : 0; break;
@@ -939,6 +921,9 @@ export function evalCompiledSmi(compiled: CompiledSmiExpr, varRegMap: Int32Array
         case 14: res = l === r ? 1 : 0; break;
         case 15: res = l !== r ? 1 : 0; break;
       }
+      // Checking each intermediate preserves exactness even when a later operation
+      // would bring an overflowing value back into the Number range.
+      if (!Number.isSafeInteger(res)) return NaN;
       sharedRpnStack[sp - 1] = res;
     }
   }
@@ -963,7 +948,9 @@ export function runIntArithForLoop(
   deferredMask: number,
   intSteps: readonly (FastIntStepDesc | undefined)[],
   parseBudget: ParseBudget,
-): { lastInductionInt: number | undefined; subBytes: number; subCount: number } {
+): { ok: boolean; lastInductionInt: number | undefined; subBytes: number; subCount: number } {
+  const savedRegs = sharedLoopIntRegs.slice();
+  const savedBudget = parseBudget.snapshot();
   let iVal = startVal | 0;
   sharedLoopIntRegs[0] = iVal;
   parseBudget.admit(0);
@@ -977,20 +964,25 @@ export function runIntArithForLoop(
       if (deferredMask & (1 << b)) continue;
       const intStep = intSteps[b]!;
       const res = evalCompiledSmi(intStep.compiled, intStep.varRegMap, parseBudget);
+      if (!Number.isSafeInteger(res)) {
+        sharedLoopIntRegs.set(savedRegs);
+        parseBudget.restore(savedBudget);
+        return { ok: false, lastInductionInt: undefined, subBytes: 0, subCount: 0 };
+      }
       sharedLoopIntRegs[intStep.targetReg] = res;
       if (intStep.isSub) {
         let abs = res < 0 ? -res : res;
         let digits = res < 0 ? 2 : 1;
-        while (abs >= 10) { abs = (abs / 10) | 0; digits++; }
-        subBytes = (subBytes + digits + intStep.extraNewlineByte) | 0;
-        subCount = (subCount + 1) | 0;
+        while (abs >= 10) { abs = Math.trunc(abs / 10); digits++; }
+        subBytes = subBytes + digits + intStep.extraNewlineByte;
+        subCount = subCount + 1;
       }
     }
     parseBudget.admit(iVal < 0 ? 4 : 2);
     iVal = (iVal + 1) | 0;
     sharedLoopIntRegs[0] = iVal;
   }
-  return { lastInductionInt, subBytes, subCount };
+  return { ok: true, lastInductionInt, subBytes, subCount };
 }
 
 export function runIntForLoop(
@@ -999,22 +991,33 @@ export function runIntForLoop(
   intSteps: readonly (FastIntStepDesc | undefined)[],
   parseBudget: ParseBudget,
 ): { ok: boolean; subBytes: number; subCount: number } {
+  const savedRegs = sharedLoopIntRegs.slice();
+  const savedBudget = parseBudget.snapshot();
   let subBytes = 0;
   let subCount = 0;
   for (let idx = 0; idx < words.length; idx++) {
     const iVal = fastSafeInt(words[idx]!, parseBudget);
-    if (iVal === undefined) return { ok: false, subBytes: 0, subCount: 0 };
+    if (iVal === undefined) {
+      sharedLoopIntRegs.set(savedRegs);
+      parseBudget.restore(savedBudget);
+      return { ok: false, subBytes: 0, subCount: 0 };
+    }
     sharedLoopIntRegs[0] = iVal | 0;
     for (let b = 0; b < stepCount; b++) {
       const intStep = intSteps[b]!;
       const res = evalCompiledSmi(intStep.compiled, intStep.varRegMap, parseBudget);
+      if (!Number.isSafeInteger(res)) {
+        sharedLoopIntRegs.set(savedRegs);
+        parseBudget.restore(savedBudget);
+        return { ok: false, subBytes: 0, subCount: 0 };
+      }
       sharedLoopIntRegs[intStep.targetReg] = res;
       if (intStep.isSub) {
         let abs = res < 0 ? -res : res;
         let digits = res < 0 ? 2 : 1;
-        while (abs >= 10) { abs = (abs / 10) | 0; digits++; }
-        subBytes = (subBytes + digits + intStep.extraNewlineByte) | 0;
-        subCount = (subCount + 1) | 0;
+        while (abs >= 10) { abs = Math.trunc(abs / 10); digits++; }
+        subBytes = subBytes + digits + intStep.extraNewlineByte;
+        subCount = subCount + 1;
       }
     }
   }

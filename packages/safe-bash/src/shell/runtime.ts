@@ -5963,6 +5963,7 @@ export class Runtime {
       this._syncArithTouched = touched;
       try {
         let lastInductionVal: string | undefined;
+        const intBudgetSnapshot = this.budget.parsing.snapshot();
         let canUseIntRegisters =
           !this.budget.hasCpuLimit &&
           this.budget.maxExpansionFieldsSmi >= 1 &&
@@ -6040,7 +6041,7 @@ export class Runtime {
             if (!(deferredMask & (1 << b))) touched.add(intSteps[b]!.name);
           }
           lastCmd = bodyAssignments[bodyAssignments.length - 1]?.cmd;
-          const { lastInductionInt, subBytes, subCount } = runIntArithForLoop(
+          const { ok, lastInductionInt, subBytes, subCount } = runIntArithForLoop(
             startVal,
             limitVal,
             isLe,
@@ -6049,27 +6050,33 @@ export class Runtime {
             intSteps,
             this.budget.parsing,
           );
-          this.budget.parsing.admit(limitVal < 0 ? 4 : 2);
-          this.budget.iterations += iterations + 1;
-          this.budget.commands += iterations * bodyAssignments.length + subCount;
-          if (subCount > 0) {
-            const nextBytes = this.budget.bytes + subBytes;
-            if (nextBytes > this.budget.maxOutputBytesSmi && subBytes > this.budget.limits.maxOutputBytes - this.budget.bytes) {
-              this.budget.fail("maxOutputBytes");
+          if (!ok) {
+            canUseIntRegisters = false;
+          } else {
+            this.budget.parsing.admit(limitVal < 0 ? 4 : 2);
+            this.budget.iterations += iterations + 1;
+            this.budget.commands += iterations * bodyAssignments.length + subCount;
+            if (subCount > 0) {
+              const nextBytes = this.budget.bytes + subBytes;
+              if (nextBytes > this.budget.maxOutputBytesSmi && subBytes > this.budget.limits.maxOutputBytes - this.budget.bytes) {
+                this.budget.fail("maxOutputBytes");
+              }
+              this.budget.bytes = nextBytes;
+              rawState.substitutionStatus = 0;
+              rawState.status = 0;
             }
-            this.budget.bytes = nextBytes;
-            rawState.substitutionStatus = 0;
-            rawState.status = 0;
+            runYieldCheckpoint(this.signal);
+            for (let r = 0; r < regNames.length; r++) {
+              rawState.variables[regNames[r]!] = intToStr(sharedLoopIntRegs[r]!);
+            }
+            regNames.length = 0;
+            if (hasDeferredSteps && lastInductionInt !== undefined) {
+              lastInductionVal = intToStr(lastInductionInt);
+            }
           }
-          runYieldCheckpoint(this.signal);
-          for (let r = 0; r < regNames.length; r++) {
-            rawState.variables[regNames[r]!] = intToStr(sharedLoopIntRegs[r]!);
-          }
-          regNames.length = 0;
-          if (hasDeferredSteps && lastInductionInt !== undefined) {
-            lastInductionVal = intToStr(lastInductionInt);
-          }
-        } else {
+        }
+        if (!canUseIntRegisters) {
+          this.budget.parsing.restore(intBudgetSnapshot);
           regNames.length = 0;
           const fb = this.runSyncArithForFallback(
             e0, e1, e2, inductionName, hasDeferredSteps, deferredMask,
@@ -6168,6 +6175,7 @@ export class Runtime {
     try {
       const arithNames = sharedSyncLoopArithNames;
       arithNames.clear();
+      const intBudgetSnapshot = this.budget.parsing.snapshot();
       let canUseIntRegisters =
         !this.budget.hasCpuLimit &&
         this.budget.maxExpansionFieldsSmi >= 1 &&
@@ -6257,6 +6265,7 @@ export class Runtime {
         }
       }
       if (!canUseIntRegisters) {
+        this.budget.parsing.restore(intBudgetSnapshot);
         regNames.length = 0;
         const fb = this.runSyncForFallback(
           command.name, fastLoopWords, bodyAssignments, rawState, io, monitor, touched, mode,

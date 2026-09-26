@@ -153,7 +153,7 @@ jobs:
           sudo apt-get install --yes zsh
           test -x /bin/zsh
       - name: Verify OP native tests before the full unit gate
-        run: npm run test:unit --workspace=@poe-platform/op
+        run: npm run test:unit --workspace=safe-bash-command-op
       - name: Run fresh unit and native checks
         run: npm run test:ci:fresh
   unit-cached:

@@ -415,7 +415,7 @@ export class Pattern {
           offset++;
           return { type: "backreference", index };
         }
-        if (reference !== undefined && "bByY<>".includes(reference)) {
+        if (reference !== undefined && "bByY<>".includes(reference) && !(dialect === "awk" && reference === "b")) {
           offset++;
           if (dialect === "awk" && reference === "b") {
             return { type: "alternate", nodes: [{ type: "boundary", boundary: "word" }, characterNode("\b")] };

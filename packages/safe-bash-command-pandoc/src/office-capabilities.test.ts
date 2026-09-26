@@ -1,3 +1,5 @@
+// Load the lazy Office dependency during collection, outside conversion timeouts.
+import "docx";
 import {expect, it} from "vitest";
 import {createXlsxWriter, type CapabilityContext} from "safe-bash-command-ssconvert";
 import {convert, createFormatRegistry, createPandocCommand, readDocument} from "./index.js";

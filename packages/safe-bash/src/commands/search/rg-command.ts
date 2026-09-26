@@ -525,11 +525,14 @@ function tryExecuteRgFastSync(
   const runner = pooledRgFastRunner ??= new PooledRgFastRunner();
   if (runner.inUse) return undefined;
   runner.inUse = true;
+  let committing = false;
+  let pendingFlush = false;
   try {
     context.signal.throwIfAborted();
     if ((executor as unknown as { disposed?: boolean }).disposed) return undefined;
     const limits = runner.limits;
     limits.resetForRun(context, options);
+    limits.speculative = true;
     const args = parse(context.args, runner.args);
     if (
       args.help ||
@@ -582,19 +585,22 @@ function tryExecuteRgFastSync(
       limits.flushSyncOrAsync();
       return undefined;
     }
+    committing = true;
+    const result = runner.found ? RESOLVED_EXIT_ZERO : RESOLVED_EXIT_ONE;
     const flushRes = limits.flushSyncOrAsync();
-    if (flushRes !== undefined) {
-      return undefined;
-    }
-    return (args.quiet && runner.found) || runner.found ? RESOLVED_EXIT_ZERO : RESOLVED_EXIT_ONE;
-  } catch {
+    if (flushRes === undefined) return result;
+    pendingFlush = true;
+    return flushRes.then(() => result).finally(() => { runner.inUse = false; });
+  } catch (error) {
+    if (committing) throw error;
     runner.limits.outPos = 0;
     runner.limits.flushSyncOrAsync();
     return undefined;
   } finally {
+    runner.limits.speculative = false;
     runner.context = DUMMY_CONTEXT;
     runner.fastReadBacking = undefined;
-    runner.inUse = false;
+    runner.inUse = pendingFlush;
   }
 }
 

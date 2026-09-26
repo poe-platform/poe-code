@@ -35,6 +35,7 @@ export class Limits {
   private outBuf: Uint8Array | null = null;
   private usingSharedBuf = false;
   outPos = 0;
+  speculative = false;
   constructor(public context: CommandContext, options: SearchOptions) {
     this.hasExtYield = hasYieldCheckpoint(context.signal);
     this.maxOutputBytes = options.maxOutputBytes ?? Infinity;
@@ -391,6 +392,9 @@ export class Limits {
     return this.output(`${filename ? label + (nullPath ? "\0" : ":") : ""}${amount}\n`);
   }
   async output(value: string | Uint8Array): Promise<void> {
+    // A Promise signals the synchronous caller to retry. Do not start an async
+    // write or retain work against the pooled runner during a speculative run.
+    if (this.speculative) return;
     if (typeof value === "string") {
       const len = value.length;
       let ascii = true;

@@ -865,7 +865,13 @@ function runSedPairBatchLoopSync(
     );
     if (typeof nextPos !== "number" || nextPos < 0) return -1;
     budget.step(3);
-    if (((idx + 1) & 31) === 0 && budget.checkpointSync()) return -1;
+    if (((idx + 1) & 31) === 0) {
+      const pending = budget.checkpointSync();
+      if (pending) {
+        pending.catch(() => {});
+        return -1;
+      }
+    }
     stdoutLen = nextPos;
     if (stdoutLen >= STDOUT_FLUSH) return -2;
   }
@@ -923,8 +929,11 @@ function tryExecutePairFastSync(
   if (!cachedBatch || cachedBatch.lastLineStart !== cachedBatch.text.length || cachedBatch.maxLineLen > budget.maxBufferBytes) {
     return undefined;
   }
-  if (budget.checkpointSync()) return undefined;
-  (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
+  const pending = budget.checkpointSync();
+  if (pending) {
+    pending.catch(() => {});
+    return undefined;
+  }
   budget.step();
   let usingSharedStdoutBuf = false;
   let stdoutBuf: Buffer;
@@ -936,7 +945,6 @@ function tryExecutePairFastSync(
   } else {
     stdoutBuf = Buffer.allocUnsafe(STDOUT_CAP);
   }
-  let stdoutLen = 0;
   const batchText = cachedBatch.text;
   const batchEnds = cachedBatch.ends;
   const endsLen = batchEnds.length;
@@ -947,43 +955,13 @@ function tryExecutePairFastSync(
   const o2 = inst1.occurrence ?? 1;
   const r2 = inst1.replacement!;
   try {
-    if (endsLen * 64 < STDOUT_FLUSH) {
-      const fastLen = runSedPairBatchLoopSync(
-        batchText, batchEnds, endsLen, expr0, r1, g1, o1, expr1, r2, g2, o2, budget, stdoutBuf,
-      );
-      if (fastLen >= 0) {
-        if (fastLen > 0) {
-          context.signal.throwIfAborted();
-          if (typeof stdoutSync.writeRangeSync === "function") {
-            stdoutSync.writeRangeSync(stdoutBuf, fastLen);
-          } else {
-            stdoutSync.writeSync(new Uint8Array(stdoutBuf.buffer, stdoutBuf.byteOffset, fastLen));
-          }
-        }
-        return 0;
-      }
-      if (fastLen === -1) return undefined;
-    }
-    for (let idx = 0; idx < endsLen; idx++) {
-      const lStart = idx === 0 ? 0 : batchEnds[idx - 1]! + 1;
-      const lEnd = batchEnds[idx]!;
-      const nextPos = trySubstitutePairToBufferSync(
-        batchText, expr0, r1, g1, o1, expr1, r2, g2, o2, budget, stdoutBuf, stdoutLen, 10, lStart, lEnd,
-      );
-      if (typeof nextPos !== "number" || nextPos < 0) return undefined;
-      budget.step(3);
-      if (((idx + 1) & 31) === 0 && budget.checkpointSync()) return undefined;
-      stdoutLen = nextPos;
-      if (stdoutLen >= STDOUT_FLUSH) {
-        context.signal.throwIfAborted();
-        if (typeof stdoutSync.writeRangeSync === "function") {
-          stdoutSync.writeRangeSync(stdoutBuf, stdoutLen);
-        } else {
-          stdoutSync.writeSync(new Uint8Array(stdoutBuf.buffer, stdoutBuf.byteOffset, stdoutLen));
-        }
-        stdoutLen = 0;
-      }
-    }
+    // Keep the attempt private until every line succeeds. Larger results use
+    // the streaming executor without publishing a prefix that it would replay.
+    const stdoutLen = runSedPairBatchLoopSync(
+      batchText, batchEnds, endsLen, expr0, r1, g1, o1, expr1, r2, g2, o2, budget, stdoutBuf,
+    );
+    if (stdoutLen < 0) return undefined;
+    (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
     if (stdoutLen > 0) {
       context.signal.throwIfAborted();
       if (typeof stdoutSync.writeRangeSync === "function") {
@@ -991,7 +969,6 @@ function tryExecutePairFastSync(
       } else {
         stdoutSync.writeSync(new Uint8Array(stdoutBuf.buffer, stdoutBuf.byteOffset, stdoutLen));
       }
-      stdoutLen = 0;
     }
     return 0;
   } finally {

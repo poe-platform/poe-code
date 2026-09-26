@@ -139,6 +139,7 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
   sharedFastJqLimits = limits;
   sharedFastJqOutPos = 0;
   sharedFastJqAborted = false;
+  let committing = false;
   try {
     context.signal.throwIfAborted();
     budget.collection(3);
@@ -148,18 +149,20 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
     budget.inputLocation.complete = false;
     const ok = tryProcessFlatJsonChunkSync(rawBytes, budget, sharedFastJqOnValue);
     if (!ok || sharedFastJqAborted) return undefined;
+    (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
     const len = sharedFastJqOutPos;
     if (len > 0) {
       sharedFastJqOutPos = 0;
       context.signal.throwIfAborted();
+      committing = true;
       const wrote = typeof syncSink.writeRangeSync === "function"
         ? syncSink.writeRangeSync(outBuf, len)
         : syncSink.writeSync(outBuf.subarray(0, len));
       if (!wrote) return undefined;
     }
-    (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
     return RESOLVED_EXIT_ZERO;
-  } catch {
+  } catch (error) {
+    if (committing) throw error;
     return undefined;
   } finally {
     interpreter.releaseScratch();

@@ -12,14 +12,15 @@ function budget(maxBufferBytes = 64, signal = new AbortController().signal): Bud
 }
 
 function source(chunks: Uint8Array[], close?: () => Promise<void>) {
-  let pulls = 0, returns = 0;
+  let pulls = 0, returns = 0, acquisitions = 0;
   const stream: ByteSource = { [Symbol.asyncIterator]() {
+    acquisitions++;
     return {
       async next() { const chunk = chunks[pulls++]; return chunk === undefined ? { done: true, value: undefined } : { done: false, value: chunk }; },
       async return() { returns++; await close?.(); return { done: true, value: undefined }; },
     };
   } };
-  return { stream, pulls: () => pulls, returns: () => returns };
+  return { stream, pulls: () => pulls, returns: () => returns, acquisitions: () => acquisitions };
 }
 
 test("awk readers share retained capacity and admit before copying rejected bytes", async context => {
@@ -181,15 +182,19 @@ for (const reason of [false, null, 0, ""]) {
     const caller = new AbortController(), retention = new AwkRetention(8, caller.signal);
     const input = source([Buffer.from("a\ntail")]);
     const reader = new Reader(input.stream, budget(64, caller.signal), retention);
+    const preAbortedBudget = budget(64, caller.signal);
     assert.equal(await reader.read("\n"), "a");
     caller.abort(reason);
     await assert.rejects(reader.read("\n"), error => Object.is(error, reason));
     await reader.close();
     assert.equal(retention.retainedBytes, 0); assert.equal(input.pulls(), 1); assert.equal(input.returns(), 1);
+    assert.throws(() => budget(64, caller.signal), error => Object.is(error, reason));
     const untouched = source([Buffer.from("x")]);
-    const preAborted = new Reader(untouched.stream, budget(64, caller.signal), retention);
+    const preAborted = new Reader(untouched.stream, preAbortedBudget, retention);
     await assert.rejects(preAborted.read("too long"), error => Object.is(error, reason));
-    await preAborted.close(); assert.equal(untouched.pulls(), 0);
+    await preAborted.close();
+    assert.equal(untouched.acquisitions(), 0); assert.equal(untouched.pulls(), 0); assert.equal(untouched.returns(), 0);
+    assert.equal(retention.retainedBytes, 0);
   });
 }
 

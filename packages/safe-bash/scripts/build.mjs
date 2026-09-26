@@ -374,7 +374,7 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           assert.equal(manifest.devDependencies["safe-bash-command-ssconvert"], "*", "ssconvert SDK build dependency must be the local workspace");
           const exported = peer.exports?.["./ssconvert"];
           assert.equal(exported?.types, "./packages/safe-bash-command-ssconvert/dist/index.d.ts", "canonical public ssconvert declaration entry");
-          assert.equal(exported?.import, "./packages/safe-bash-command-ssconvert/dist/index.js", "canonical public ssconvert runtime entry");
+          assert.equal(exported?.import, "./dist/ssconvert/index.js", "canonical public ssconvert runtime entry");
           peerPaths["poe-code/ssconvert"] = [resolve(peerRoot, exported.types)];
           peerPaths["safe-bash-command-ssconvert"] = [resolve(peerRoot, exported.types)];
           toolRoots.push(join(peerRoot, "packages/safe-bash-command-ssconvert/dist"));
@@ -383,7 +383,7 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           assert.equal(manifest.devDependencies["safe-bash-command-csvkit"], "*", "CSV SDK build dependency must be the local workspace");
           const exported = peer.exports?.["./csvkit"];
           assert.equal(exported?.types, "./packages/safe-bash-command-csvkit/dist/index.d.ts", "canonical public CSV declaration entry");
-          assert.equal(exported?.import, "./packages/safe-bash-command-csvkit/dist/index.js", "canonical public CSV runtime entry");
+          assert.equal(exported?.import, "./dist/csvkit/index.js", "canonical public CSV runtime entry");
           peerPaths["poe-code/csvkit"] = [resolve(peerRoot, exported.types)];
           peerPaths["safe-bash-command-csvkit"] = [resolve(peerRoot, exported.types)];
           toolRoots.push(join(peerRoot, "packages/safe-bash-command-csvkit/dist"));

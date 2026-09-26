@@ -457,3 +457,10 @@ author runs. The runner adds a 120-second outer subprocess watchdog to the
 strict unhandled rejection handling. Final counts, source hashes, build/typecheck
 results and historical author failures are recorded in the owned validation
 artifact at handoff. A **different independent verifier still must follow**.
+
+Regular files and symlinks use owned atomic staging with ancestor identity
+checks; directory creation, replacement, and metadata use conditional operations.
+Staging buffers each file within `maxEntryBytes` and `maxBufferedFileBytes`.
+Truncated file payloads are never published. Named archive input uses retained
+reads when supported, allowing a confined host to copy read-only mounted input
+to a separate writable destination without holding a streaming namespace lease.

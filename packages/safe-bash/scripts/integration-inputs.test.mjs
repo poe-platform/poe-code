@@ -483,6 +483,7 @@ function assertSource7Discovery(files) {
     "tests/integrations/safejs/published-replay.test.ts",
   ];
   for (const path of [
+    "tests/commands/archive/extraction-staging.test.ts",
     "tests/commands/archive/options.test.ts",
     "tests/commands/metadata/chmod-minus.test.ts",
     "tests/commands/archive/records-display.test.ts",

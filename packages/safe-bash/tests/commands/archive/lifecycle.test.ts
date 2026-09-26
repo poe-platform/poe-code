@@ -60,8 +60,8 @@ for (const toStdout of [false, true]) test(`blocked extractor ${toStdout ? "stdo
   const input: ByteSource = { async *[Symbol.asyncIterator]() { try {
     for (let offset = 0; offset < bytes.length; offset += 1024) { produced++; yield bytes.subarray(offset, offset + 1024); }
   } finally { closed.resolve(); } } };
-  const adapter = wrapped(fs, { async writeStream(_path, content, options) {
-    for await (const ignoredChunk of content) { entered.resolve(); await pause(options!.signal!); }
+  const adapter = wrapped(fs, { async publishStagedFile(_staging, _path, options) {
+    entered.resolve(); await pause(options.signal!);
   } });
   const reason = new Error("cancel extraction write");
   const checked = assert.rejects(direct([toStdout ? "xOf" : "xf", "-", "-C", "/out"], adapter, {
@@ -69,7 +69,7 @@ for (const toStdout of [false, true]) test(`blocked extractor ${toStdout ? "stdo
     ...(toStdout ? { stdout: { async write() { entered.resolve(); await pause(controller.signal); } } } : {}),
   }), error => error === reason);
   await settle(entered.promise); await new Promise(resolve => setTimeout(resolve, 15));
-  assert.equal(produced, 1);
+  assert.equal(produced, toStdout ? 1 : Math.ceil((bytes.length - 1024) / 1024));
   controller.abort(reason); await settle(checked); await settle(closed.promise);
 });
 

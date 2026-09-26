@@ -112,13 +112,13 @@ test("link targets with internal parents cannot be activated by a later symlink 
   } finally { await shell.dispose(); }
 });
 
-test("truncated extraction leaves only the received partial payload and fails", async () => {
+test("truncated extraction publishes no partial payload and fails", async () => {
   const { fs, shell } = await fixture();
   try {
     const bytes = member("partial", binary).subarray(0, 512 + 77);
     const result = await shell.exec("tar xf - -C /out", { stdin: bytes });
     assert.equal(result.exitCode, 2, result.stderr);
-    assert.deepEqual(await fs.readFile("/out/partial"), binary.subarray(0, 77));
+    await assert.rejects(fs.lstat("/out/partial"), { code: "ENOENT" });
   } finally { await shell.dispose(); }
 });
 

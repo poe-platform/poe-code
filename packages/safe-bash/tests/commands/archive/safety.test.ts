@@ -305,20 +305,17 @@ for (const [name, type, target] of [["directory", "5", ""], ["symlink", "2", "..
   });
 }
 
-test("metadata restoration refuses a final symlink swapped before chmod", async () => {
+test("staged publication refuses a final symlink swapped before publication", async () => {
   const { fs, shell } = await fixture();
   await shell.dispose();
   await fs.writeFile("/private", binary, { mode: 0o600 });
-  fs.capabilitiesFor = async (path) => {
-    if (path === "/out/file" && (await fs.readdir("/out")).length) {
-      await fs.rm(path);
-      await fs.symlink!("/private", path);
-    }
-    return fs.capabilities;
-  };
+  const view = wrapped(fs, { async publishStagedFile(staging, path, options) {
+    await fs.symlink!("/private", path);
+    return fs.publishStagedFile!(staging, path, options);
+  } });
   const input = source(archive(member("file", binary)));
   const before = await fs.stat("/private");
-  const result = await direct(["xf", "-", "-C", "/out"], fs, { stdin: input });
+  const result = await direct(["xf", "-", "-C", "/out"], view, { stdin: input });
   assert.equal(result.exitCode, 2, result.stderr);
   const after = await fs.stat("/private");
   assert.equal(after.mode, before.mode);

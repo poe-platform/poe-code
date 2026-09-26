@@ -1,10 +1,26 @@
-import { dirname, isPathWithin, resolvePath, writeBytes, type ByteSource, type CommandContext, type FileStat } from "../../contracts/index.js";
+import { retainFileSystemCleanup, dirname, isPathWithin, resolvePath } from "@poe-code/safe-fs/core";
+import { collectBytes, writeBytes, type FileStaging, type FileStagingEntry, type ByteSource, type CommandContext, type FileStat } from "../../contracts/index.js";
 import { applyPax, numberField, parseHeader, parsePax, type ReadEntry } from "./format.js";
-import { Budget, checkPath, display, fail, hasIdentity, maybeStat, operation, publish, sameIdentity, text, vfsPath } from "./internal.js";
+import { Budget, checkPath, display, fail, fileSource, type ArchiveLimits, hasIdentity, maybeStat, operation, sameIdentity, text, vfsPath } from "./internal.js";
 import { Exclusions, type TarOptions } from "./options.js";
 import { Reader } from "./stream.js";
 import { TransformedNames } from "./transform.js";
 import { quoteName } from "./listing.js";
+
+export async function* extractionInput(context: CommandContext, path: string, limits: ArchiveLimits): ByteSource {
+  const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
+  if (!context.fs.openReadFile || capabilities.retainedRead !== true) { yield* fileSource(context, path, limits); return; }
+  const handle = await context.fs.openReadFile(path, { signal: context.signal });
+  try {
+    let position = 0;
+    while (true) {
+      const bytes = await handle.read(position, limits.chunkSize, { signal: context.signal });
+      if (!bytes.length) break;
+      position += bytes.length;
+      yield bytes;
+    }
+  } finally { await handle.close(); }
+}
 
 function relativeName(name: string, strip: number): string | undefined {
   if (name.includes("\0")) fail("NUL in member name");
@@ -35,17 +51,20 @@ async function parents(context: CommandContext, root: string, path: string, crea
     if (!component) continue;
     parent = resolvePath(parent, component);
     const stat = await maybeStat(context, parent);
-    if (!stat && create) await operation(context, () => context.fs.mkdir(parent, { signal: context.signal, mode: 0o700 }));
+    if (!stat && create) {
+      if (!context.fs.prepareDirectory) fail("extraction requires conditional directory creation");
+      const identity = await context.fs.lstat(dirname(parent), { signal: context.signal });
+      await context.fs.prepareDirectory(parent, { signal: context.signal, parent: identity, expected: null, mode: 0o700 });
+    }
     else if ((!stat && !allowMissing) || (stat && stat.type !== "directory")) fail(`unsafe non-directory or symlink ancestor: ${display(parent)}`);
   }
 }
 
 async function removeExisting(context: CommandContext, path: string, stat: FileStat | undefined): Promise<void> {
   if (!stat) return;
-  if (stat.type === "directory") {
-    if (!context.fs.rmdir) fail("filesystem does not support safe empty-directory replacement");
-    await operation(context, () => context.fs.rmdir!(path, { signal: context.signal }));
-  } else await operation(context, () => context.fs.rm(path, { signal: context.signal }));
+  if (!context.fs.removeFileConditional) fail("extraction requires conditional entry removal");
+  const parent = await context.fs.lstat(dirname(path), { signal: context.signal });
+  await context.fs.removeFileConditional(path, { signal: context.signal, expected: stat, parent });
 }
 
 async function checkSymlinkTarget(context: CommandContext, root: string, path: string, target: string, budget: Budget): Promise<void> {
@@ -90,19 +109,72 @@ async function checkSymlinkTarget(context: CommandContext, root: string, path: s
 }
 
 async function metadata(context: CommandContext, path: string, entry: ReadEntry, options: TarOptions): Promise<void> {
-  const capabilities = await operation(context, () => context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities);
-  if (options.metadata.permissions === true && (!context.fs.chmod || capabilities.permissions === false)) fail("filesystem does not support restoring archive permissions");
-  if (context.fs.chmod && capabilities.permissions !== false) {
-    await operation(context, () => context.fs.chmod!(path, entry.mode & (options.metadata.permissions === false ? 0o755 : 0o777), { signal: context.signal }));
+  const { fs, signal } = context;
+  const capabilities = await fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities;
+  if (options.metadata.permissions === true && capabilities.permissions === false) fail("filesystem does not support restoring archive permissions");
+  if (!fs.prepareDirectory) fail("extraction requires conditional metadata");
+  const expected = await fs.lstat(path, { signal });
+  const parent = await fs.lstat(dirname(path), { signal });
+  await fs.prepareDirectory(path, { signal, expected, parent,
+    ...(capabilities.permissions === false ? {} : { mode: entry.mode & (options.metadata.permissions === false ? 0o755 : 0o777) }),
+    ...(options.metadata.touch || capabilities.timestamps === false ? {} : {
+      ...(entry.atime === undefined && (entry.atimeDeleted || entry.mtime === undefined) ? {} : { atimeMs: (entry.atime ?? entry.mtime!) * 1000 }),
+      ...(entry.mtime === undefined ? {} : { mtimeMs: entry.mtime * 1000 }),
+    }),
+  });
+}
+
+let stagingSerial = 0;
+async function stageEntry(context: CommandContext, path: string, source: ByteSource, existing: FileStat | undefined, entry: ReadEntry, options: TarOptions, budget: Budget): Promise<void> {
+  const { fs, signal } = context;
+  const capabilities = await fs.capabilitiesFor?.(path, { signal, create: true, stagingAncestry: true }) ?? fs.capabilities;
+  if ((capabilities.atomicFileStaging !== true && capabilities.trustedOwnedStaging !== true) || capabilities.atomicStagingAncestry !== true || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile) fail("extraction requires atomic staging and ancestry verification");
+  const ancestors: FileStagingEntry[] = [];
+  let current = "/";
+  for (const component of ["", ...dirname(path).split("/").filter(Boolean)]) {
+    if (component) current = resolvePath(current, component);
+    const stat = await fs.lstat(current, { signal });
+    if (stat.type !== "directory") fail("unsafe extraction ancestor");
+    ancestors.push({ path: current, stat });
   }
-  if (!options.metadata.touch && context.fs.utimes && capabilities.timestamps !== false) {
-    const atime = entry.atime ?? (entry.atimeDeleted ? undefined : entry.mtime);
-    const mtime = entry.mtime;
-    if (atime === undefined && mtime === undefined) return;
-    const current = atime === undefined || mtime === undefined
-      ? await operation(context, () => context.fs.stat(path, { signal: context.signal })) : undefined;
-    await operation(context, () => context.fs.utimes!(path, atime === undefined ? current!.atimeMs : atime * 1000, mtime === undefined ? current!.mtimeMs : mtime * 1000, { signal: context.signal }));
+  const parent = ancestors.at(-1)!.stat;
+  let staging: FileStaging | undefined;
+  const cleanup = retainFileSystemCleanup(fs, async view => {
+    if (staging?.cleanup) await staging.cleanup.remove();
+    else if (staging) await view.removeStagedFile!(staging);
+  }, { maxOperations: Math.min(4096, budget.limits.maxDepth + 3) });
+  let failure: { reason: unknown } | undefined;
+  try {
+    const maximum = Math.min(budget.limits.maxEntryBytes, budget.limits.maxBufferedFileBytes);
+    const data = entry.type === "2" ? undefined : await collectBytes(source, { signal, ...(Number.isFinite(maximum) ? { maxBytes: maximum } : {}) });
+    for (let attempt = 0; attempt < budget.limits.maxMembers; attempt++) {
+      const temporary = resolvePath(dirname(path), `.tar-${++stagingSerial}`);
+      checkPath(`${temporary}/entry`, budget.limits);
+      if (temporary === path) continue;
+      try {
+        staging = await fs.createStagedFile(temporary, "entry", entry.type === "2" ? { type: "symlink", target: entry.linkname } : { type: "file", data: data! }, {
+          signal, parent, ...(capabilities.retainedStagingCleanup === true ? { retainCleanup: true } : {}),
+          ...(entry.type === "2" || capabilities.permissions === false ? {} : { mode: entry.mode & (options.metadata.permissions === false ? 0o755 : 0o777) }),
+          ...(entry.type === "2" || options.metadata.touch || capabilities.timestamps === false ? {} : {
+            ...(entry.atime === undefined && (entry.atimeDeleted || entry.mtime === undefined) ? {} : { atimeMs: (entry.atime ?? entry.mtime!) * 1000 }),
+            ...(entry.mtime === undefined ? {} : { mtimeMs: entry.mtime * 1000 }),
+          }),
+        });
+        break;
+      } catch (error) {
+        signal.throwIfAborted();
+        if (typeof error !== "object" || error === null || !("code" in error) || error.code !== "EEXIST") throw error;
+      }
+    }
+    if (!staging) fail("temporary file attempt limit exceeded");
+    await fs.publishStagedFile(staging, path, { signal, parent, destination: existing ?? null, ancestors });
+  } catch (reason) { failure = { reason }; }
+  try { await cleanup(); }
+  catch (reason) {
+    if (failure) throw new AggregateError([failure.reason, reason], "tar publication and cleanup failed");
+    throw reason;
   }
+  if (failure) throw failure.reason;
 }
 
 function verbose(entry: ReadEntry, options: TarOptions): string {
@@ -326,7 +398,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
       await parents(context, root, path, true);
       if (options.metadata.permissions === true && entry.type !== "2" && entry.type !== "1") {
         const capabilities = await operation(context, () => context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities);
-        if (!context.fs.chmod || capabilities.permissions === false) fail("filesystem does not support restoring archive permissions");
+        if (!context.fs.prepareDirectory || capabilities.permissions === false) fail("filesystem does not support restoring archive permissions");
       }
       const existing = await maybeStat(context, path);
       if (archivePath && (path === archivePath || (existing && archiveStat && sameIdentity(existing, archiveStat)))) fail("entry would overwrite the input archive");
@@ -340,9 +412,9 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
       }
       if (existing?.type === "file" && archiveStat && (!hasIdentity(existing) || !hasIdentity(archiveStat))) fail("cannot replace an existing file with unknown input-archive/destination backing identity");
       if (entry.type === "2") {
-        await removeExisting(context, path, existing);
+        if (existing && existing.type !== "file") await removeExisting(context, path, existing);
         published.delete(path); directories.delete(path);
-        await operation(context, () => context.fs.symlink!(entry.linkname, path, { signal: context.signal }));
+        await stageEntry(context, path, reader.body(0), existing?.type === "file" ? existing : undefined, entry, options, budget);
       } else if (entry.type === "1") {
         await removeExisting(context, path, existing);
         published.delete(path); directories.delete(path);
@@ -351,15 +423,16 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
       } else if (entry.type === "5") {
         if (existing?.type !== "directory") {
           await removeExisting(context, path, existing);
-          await operation(context, () => context.fs.mkdir(path, { signal: context.signal, mode: 0o700 }));
+          if (!context.fs.prepareDirectory) fail("extraction requires conditional directory creation");
+          const parent = await context.fs.lstat(dirname(path), { signal: context.signal });
+          await context.fs.prepareDirectory(path, { signal: context.signal, expected: null, parent, mode: 0o700 });
         }
         published.delete(path);
         directories.set(path, { root, entry });
       } else {
-        await removeExisting(context, path, existing);
+        if (existing && existing.type !== "file") await removeExisting(context, path, existing);
         published.delete(path); directories.delete(path);
-        await publish(context, path, reader.body(entry.size));
-        await metadata(context, path, entry, options);
+        await stageEntry(context, path, reader.body(entry.size), existing?.type === "file" ? existing : undefined, entry, options, budget);
         published.set(path, await operation(context, () => context.fs.lstat(path, { signal: context.signal })));
       }
       await reader.padding(entry.size);

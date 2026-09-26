@@ -2,8 +2,8 @@ import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition, type VirtualShellPlugin } from "../../contracts/index.js";
 import { escapeText } from "../../escaping.js";
 import { createArchive, manifest } from "./create.js";
-import { readArchive } from "./extract.js";
-import { Budget, bounded, display, fail, fileSource, invocationLimits, maybeStat, operation, publish, sameIdentity, settings, vfsPath, type ArchiveCommandsOptions } from "./internal.js";
+import { extractionInput, readArchive } from "./extract.js";
+import { Budget, bounded, display, fail, invocationLimits, maybeStat, operation, publish, sameIdentity, settings, vfsPath, type ArchiveCommandsOptions } from "./internal.js";
 import { parseOptions } from "./options.js";
 import { compareArchive, mutateArchive } from "./modes.js";
 import { autodetected, compressed, recorded } from "./stream.js";
@@ -117,7 +117,7 @@ Examples: tar cf archive.tar file; tar tf archive.tar; tar xf archive.tar -C dir
           for await (const chunk of readBytes(source, signal)) await writeBytes(context.stdout, chunk, signal);
         }
       } else {
-        let source = bounded(parsed.archive === "-" ? context.stdin : fileSource(context, vfsPath(context.cwd, parsed.archive), limits), limits.maxArchiveBytes, signal, limits.chunkSize);
+        let source = bounded(parsed.archive === "-" ? context.stdin : extractionInput(context, vfsPath(context.cwd, parsed.archive), limits), limits.maxArchiveBytes, signal, limits.chunkSize);
         source = parsed.compression ? compressed(source, true, signal, limits, parsed.compression) : autodetected(source, signal, limits);
         await readArchive(context, source, parsed, budget);
       }

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createMemoryFileSystem, FsError, type FileSystem, type FileSystemCapabilities, type WriteFileOptions } from "../../../src/index.js";
+import { createMemoryFileSystem, FsError, type FileSystem, type FileSystemCapabilities, type CreateStagedFileOptions, type WriteFileOptions } from "../../../src/index.js";
 import { binary, fixture, wrapped } from "./helpers.js";
 
 const profiles = [
@@ -18,6 +18,7 @@ for (const streaming of [true, false]) for (const profile of profiles) {
     const { permissions: ignoredPermissions, ...baseCapabilities } = base.capabilities;
     const capabilities: FileSystemCapabilities = { ...baseCapabilities, ...(profile.global === undefined ? {} : { permissions: profile.global }), streamingWrite: streaming };
     const writes: WriteFileOptions[] = [];
+    const stages: CreateStagedFileOptions[] = [];
     const admission = (options: WriteFileOptions | undefined) => {
       assert.ok(options);
       writes.push(options);
@@ -25,6 +26,7 @@ for (const streaming of [true, false]) for (const profile of profiles) {
     };
     const overrides: Partial<FileSystem> = {
       capabilities,
+      async createStagedFile(path, name, content, options) { stages.push(options); return base.createStagedFile!(path, name, content, options); },
       ...(profile.scoped ? { capabilitiesFor: async () => ({ ...baseCapabilities, ...(profile.path === undefined ? {} : { permissions: profile.path }), streamingWrite: streaming }) } : {}),
       writeFile: async (path, bytes, options) => { admission(options); await base.writeFile(path, bytes, options); },
       ...(streaming ? { writeStream: async (path, bytes, options) => { admission(options); await base.writeStream(path, bytes, options); } } : {}),
@@ -46,10 +48,10 @@ for (const streaming of [true, false]) for (const profile of profiles) {
       assert.ok(writes[0]!.signal instanceof AbortSignal);
       const extracted = await shell.exec("tar -xf /photos.tar -C /out");
       assert.equal(extracted.exitCode, 0, extracted.stderr);
-      assert.equal(writes.length, 2);
-      assert.equal(writes[1]!.mode, profile.expected);
-      assert.equal(Object.hasOwn(writes[1]!, "mode"), profile.expected !== undefined);
-      assert.equal(writes[1]!.flag, "wx");
+      assert.equal(writes.length, 1);
+      assert.equal(stages.length, 1);
+      assert.equal(stages[0]!.mode, profile.expected === undefined ? undefined : 0o666);
+      assert.equal(Object.hasOwn(stages[0]!, "mode"), profile.expected !== undefined);
       assert.deepEqual(await base.readFile("/out/image.bin"), binary);
     } finally {
       await shell.dispose();

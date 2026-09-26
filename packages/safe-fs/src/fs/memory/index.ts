@@ -499,8 +499,8 @@ export class MemoryFileSystem implements FileSystem {
       }
       retained.set("/", this.root);
     }
-    const capabilities = Object.freeze({ ...this.capabilities, retainedStagingCleanup: false });
-    const allowed = new Set(["mkdir", "rm", "rmdir", "rename", "symlink", "link", "chmod", "utimes", "writeFile", "appendFile", "writeStream", "writeFileConditional", "removeFileConditional"]);
+    const capabilities = this.capabilities;
+    const allowed = new Set(["mkdir", "rm", "rmdir", "rename", "symlink", "link", "chmod", "utimes", "writeFile", "appendFile", "writeStream", "writeFileConditional", "removeFileConditional", "prepareDirectory", "createStagedFile", "publishStagedFile", "removeStagedFile"]);
     const reads = new Set(["access", "capabilitiesFor", "compareEntry", "lstat", "stat", "readFile", "readStream", "readdir", "readlink", "realpath"]);
     const check = (path: string, followFinal: boolean): void => {
       if (!roots.some(root => root === "/" || path === root || path.startsWith(`${root}/`))) this.fail("EPERM", "confineExtraction", path);
@@ -526,7 +526,7 @@ export class MemoryFileSystem implements FileSystem {
           if (!allowed.has(String(property))) throw new FsError("ENOTSUP", { syscall: String(property) });
           // Stock mutations resolve and commit synchronously. Streamed writes
           // repeat the boundary and file-binding check at each backend mutation.
-          const paths = property === "symlink" ? [args[1]] : property === "link" || property === "rename" ? args.slice(0, 2) : [args[0]];
+          const paths = property === "publishStagedFile" ? [args[1], (args[0] as FileStaging).directory.path] : property === "removeStagedFile" ? [(args[0] as FileStaging).directory.path] : property === "symlink" ? [args[1]] : property === "link" || property === "rename" ? args.slice(0, 2) : [args[0]];
           for (const path of paths) {
             if (typeof path !== "string") throw new FsError("EINVAL");
             check(path, ["chmod", "utimes", "appendFile", "writeFile", "writeStream", "writeFileConditional", "link"].includes(String(property)));
@@ -1524,6 +1524,7 @@ export class MemoryFileSystem implements FileSystem {
       directory.entries.set(name, file);
       location.parent.entries.set(location.name, directory);
       if (file.type === "file") this.totalBytes += file.data.byteLength;
+      else this.symlinkCount++;
     } catch (error) { allocation?.release(); this.ledger.release(retained + cleanupBytes, 4 + cleanupUnits); throw error; }
     this.changed(location.parent);
     const receipt = (path: string, node: MemoryNode) => Object.freeze({ path, stat: Object.freeze(this.snapshot(node)) });

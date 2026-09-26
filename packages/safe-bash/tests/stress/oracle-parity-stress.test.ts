@@ -94,3 +94,34 @@ printf "%s-%s-%s\n" "$c" "$b" "$a"`,
     assert.equal(sbRes.stdout, hostOut, `bash oracle mismatch on script:\n${script}`);
   }
 });
+
+test("stress & parity: sed/awk ergonomic regexes, uniq chunked buffering, base64/xxd/od pipelines, and fd modifiers", async () => {
+  const fs = createMemoryFileSystem();
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  await fs.mkdir("/repo/src/utils", { recursive: true });
+  const enc = new TextEncoder();
+  await fs.writeFile("/repo/src/utils/Readme.MD", enc.encode("header\n"));
+  await fs.writeFile("/repo/src/utils/helper.ts", enc.encode("export const x = 1;\n"));
+
+  const fdRes = await shell.exec("fd -C /repo --path-separator :: '(?i)^readme\\.md$'");
+  assert.equal(fdRes.exitCode, 0, fdRes.stderr);
+  assert.equal(fdRes.stdout, "src::utils::Readme.MD\n");
+
+  const sedAwkRes = await shell.exec(
+    "printf 'id_10:  500\nid_20: 1500\nignore_me\n' | sed -E 's/\\b(?:id)_(\\d+):\\s+(\\d+)\\b/KEY=\\1 VAL=\\2/g' | awk '/\\bKEY=\\d+\\s+VAL=\\d+\\b/ { print $1, $2 }'"
+  );
+  assert.equal(sedAwkRes.exitCode, 0, sedAwkRes.stderr);
+  assert.equal(sedAwkRes.stdout, "KEY=10 VAL=500\nKEY=20 VAL=1500\n");
+
+  // 2,000-line uniq -c + base64 + xxd round-trip
+  const lines: string[] = [];
+  for (let i = 0; i < 2000; i++) {
+    lines.push(`group_${Math.floor(i / 4)}`);
+  }
+  await fs.writeFile("/repo/groups.txt", enc.encode(lines.join("\n") + "\n"));
+  const pipeRes = await shell.exec(
+    "uniq -c /repo/groups.txt | base64 -w 76 | base64 -d | xxd -p | xxd -r -p | wc -l"
+  );
+  assert.equal(pipeRes.exitCode, 0, pipeRes.stderr);
+  assert.equal(pipeRes.stdout.trim(), "500");
+});

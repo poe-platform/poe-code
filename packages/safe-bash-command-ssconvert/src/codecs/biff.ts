@@ -16,6 +16,7 @@ import { writeCfb } from "./biff-write-binary.js";
 import { writeBiffStream } from "./biff-write.js";
 import { readBiffProperties, biffPropertyFormats } from "./biff-properties.js";
 import { writeBiffProperties } from "./biff-properties-write.js";
+import { appendBiffAncillaryStreams } from "./biff-encrypted-properties-write.js";
 import type { Codec } from "./types.js";
 
 export function createBiffWriter(profile: 7 | 8 | "dsf"): NonNullable<Codec["write"]> {
@@ -27,17 +28,20 @@ export function createBiffWriter(profile: 7 | 8 | "dsf"): NonNullable<Codec["wri
       if (!encrypted || profile !== 8 && encrypted.algorithm !== "xor") throw new SsconvertError("invalid-request", "Invalid Excel BIFF encryption profile");
     }
     const properties = await writeBiffProperties(book, context);
-    const source = properties.handledMetadata.size ? { ...book,
-      unsupportedRecords: (book.unsupportedRecords ?? []).filter(record => !properties.handledMetadata.has(record)) } : book;
+    const propertyStreams = new Map(properties.streams), handledMetadata = new Set(properties.handledMetadata);
     const streams = new Map<string, Uint8Array>();
     try {
+      if (encrypted?.algorithm === "rc4-cryptoapi" && encrypted.encryptedProperties)
+        appendBiffAncillaryStreams(book, propertyStreams, handledMetadata, context);
+      const source = handledMetadata.size ? { ...book,
+        unsupportedRecords: (book.unsupportedRecords ?? []).filter(record => !handledMetadata.has(record)) } : book;
       if (profile === 7 || profile === "dsf") streams.set("Book", await writeBiffStream(source, 7, profile === "dsf", context,
         encrypted ? createBiffEncryptionHeader(encrypted, 7) : undefined));
       if (profile === 8 || profile === "dsf") {
         const stream = await writeBiffStream(source, 8, profile === "dsf", context, encrypted ? createBiffEncryptionHeader(encrypted) : undefined);
         streams.set("Workbook", stream);
         if (encrypted && encrypted.algorithm !== "xor") {
-          const container = await encryptBiffStream(stream, context, encrypted, properties.streams);
+          const container = await encryptBiffStream(stream, context, encrypted, propertyStreams);
           if (container) streams.set("encryption", container);
         }
       }
@@ -48,12 +52,12 @@ export function createBiffWriter(profile: 7 | 8 | "dsf"): NonNullable<Codec["wri
         view.setUint16(0, 0xfffe, true); view.setUint32(24, 1, true); view.setUint32(44, 48, true); view.setUint32(48, 8, true);
         for (let i = 0; i < 16; i++) placeholder[28 + i] = parseInt(biffPropertyFormats.document.slice(i * 2, i * 2 + 2), 16);
         streams.set("\u0005DocumentSummaryInformation", placeholder);
-      } else for (const [name, bytes] of properties.streams) streams.set(name, bytes);
+      } else for (const [name, bytes] of propertyStreams) streams.set(name, bytes);
       return writeCfb(streams, context);
     } finally {
       if (encrypted) {
         for (const stream of streams.values()) stream.fill(0);
-        for (const stream of properties.streams.values()) stream.fill(0);
+        for (const stream of propertyStreams.values()) stream.fill(0);
       }
     }
   };

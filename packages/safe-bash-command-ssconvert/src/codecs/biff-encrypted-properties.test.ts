@@ -4,7 +4,8 @@ import { createBiffWriter, readBiff } from "./biff.js";
 import { readCfb, readBiffRecords } from "./biff-binary.js";
 import { writeCfb } from "./biff-write-binary.js";
 import { decryptBiffPropertyContainer } from "./biff-encrypted-properties.js";
-import { prepareBiffPropertyContainer } from "./biff-encrypted-properties-write.js";
+import { appendBiffAncillaryStreams, prepareBiffPropertyContainer } from "./biff-encrypted-properties-write.js";
+import type { UnsupportedRecord } from "../workbook.js";
 import { rc4Stream } from "./biff-encryption.js";
 import { sha1 } from "@noble/hashes/legacy.js";
 import { sha256 } from "@noble/hashes/sha2.js";
@@ -149,6 +150,45 @@ it("retains an unknown decrypted ancillary stream with an explicit diagnostic", 
   expect(result.unsupportedRecords).toContainEqual({ source: "biff", kind: "encrypted-ancillary", disposition: "retained",
     data: { stream: "Ancillary", bytes: "01020304" } });
   expect(warnings).toEqual([expect.stringContaining("Ancillary")]);
+  const exportedWarnings: string[] = [];
+  const output = await createBiffWriter(8)(result, ["encryption=rc4-cryptoapi-128-properties"],
+    { ...secret, async diagnostic(d) { exportedWarnings.push(d.message); } });
+  expect(exportedWarnings).toEqual([]);
+  expect((await readBiff(output, secret)).unsupportedRecords).toContainEqual(result.unsupportedRecords![0]);
+  expect(Buffer.from(readCfb(output, context).get("encryption")!).toString("hex"))
+    .toBe("1a6a8128a01ef55d1768822c176a8128801ef55d91345f12e886d53bc94ac4f8738dd73f12b83decbdd06ad17a74866f73835e56");
+  exportedWarnings.length = 0;
+  await createBiffWriter(8)(result, ["encryption=rc4-cryptoapi-128"],
+    { ...secret, async diagnostic(d) { exportedWarnings.push(d.message); } });
+  expect(exportedWarnings).toEqual(["Unsupported Excel BIFF export metadata: encrypted-ancillary"]);
+});
+
+it.each(["duplicate", "property", "invalid-hex", "odd-hex", "output", "text"])(
+  "refuses ambiguous or inadmissible ancillary %s before password acquisition", async mode => {
+    const records: UnsupportedRecord[] = [{ source: "biff", kind: "encrypted-ancillary", disposition: "retained",
+      data: { stream: mode === "property" ? "\u0005summaryinformation" : "Ancillary",
+        bytes: mode === "invalid-hex" ? "0g" : mode === "odd-hex" ? "1" : "fF800100" } }];
+    if (mode === "duplicate") records.push({ ...records[0]!, data: { stream: "ANCILLARY", bytes: "02" } });
+    const read = vi.fn(secret.password.read);
+    await expect(createBiffWriter(8)({ ...book, unsupportedRecords: records }, ["encryption=rc4-cryptoapi-128-properties"],
+      { ...secret, password: { read }, limits: { ...context.limits,
+        ...(mode === "output" ? { outputBytes: 3 } : {}), ...(mode === "text" ? { workbookTextBytes: 1 } : {}) }
+      })).rejects.toThrow();
+    expect(read).not.toHaveBeenCalled();
+  });
+
+it("owns decoded ancillary payloads and leaves unrecognized retained metadata diagnosed", async () => {
+  const cleanups: (() => void | Promise<void>)[] = [], streams = new Map<string, Uint8Array>(), handled = new Set<UnsupportedRecord>();
+  const record = { source: "biff", kind: "encrypted-ancillary", disposition: "retained", data: { stream: "A", bytes: "Ff0080" } } as const;
+  appendBiffAncillaryStreams({ ...book, unsupportedRecords: [record] }, streams, handled,
+    { ...context, own(cleanup) { cleanups.push(cleanup); } });
+  expect(streams.get("A")).toEqual(new Uint8Array([255, 0, 128])); expect(handled.has(record)).toBe(true);
+  for (const cleanup of cleanups) await cleanup();
+  expect(streams.get("A")).toEqual(new Uint8Array(3)); expect(record.data.bytes).toBe("Ff0080");
+  const warnings: string[] = [];
+  await createBiffWriter(8)({ ...book, unsupportedRecords: [{ ...record, data: { ...record.data, unknown: true } }] },
+    ["encryption=rc4-cryptoapi-128-properties"], { ...secret, async diagnostic(d) { warnings.push(d.message); } });
+  expect(warnings).toEqual(["Unsupported Excel BIFF export metadata: encrypted-ancillary"]);
 });
 
 // A small clear framing control isolates descriptor admission from the cipher.

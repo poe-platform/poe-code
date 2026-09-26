@@ -1634,7 +1634,7 @@ export class AwkRuntime {
         return undefined;
       }
       const ofmt = this.varText("OFMT");
-      if (this.stdoutBuffer.length === 0 && !this.suppressStdout) {
+      if (this.stdoutBuffer.length === 0) {
         const stdoutSink = this.context.stdout as { isPipeStage?: boolean; writeRangeSync?: (src: Uint8Array, len: number) => boolean } | undefined;
         if (stdoutSink && !stdoutSink.isPipeStage && typeof stdoutSink.writeRangeSync === "function" && ofs.length <= 8 && ors.length <= 8) {
           let pos = 0;
@@ -1661,7 +1661,7 @@ export class AwkRuntime {
           if (fastPrintOk) {
             for (let j = 0; j < ors.length; j++) sharedFastPrintBuf[pos++] = ors.charCodeAt(j) & 0xff;
             this.context.signal.throwIfAborted();
-            if (stdoutSink.writeRangeSync(sharedFastPrintBuf, pos) !== false) {
+            if (this.suppressStdout || stdoutSink.writeRangeSync(sharedFastPrintBuf, pos) !== false) {
               return undefined;
             }
           }
@@ -1840,15 +1840,26 @@ export class AwkRuntime {
 
   private finishSyncCleanup(status: number): number {
     if (this.canReuseInPlace && this.frames.length === 0 && !this.environInitialized && this.arrays.size === 1) {
-      for (let i = 0; i < this.userKeysLen; i++) {
-        const k = this.userKeys[i]!;
-        const v = this.variables.get(k);
-        if (v !== undefined) {
-          if (v !== unset) this.retention.release(textSize(v));
-          this.variables.delete(k);
+      if (this.userKeysLen <= 16) {
+        for (let i = 0; i < this.userKeysLen; i++) {
+          const k = this.userKeys[i]!;
+          const v = this.variables.get(k);
+          if (v !== undefined && v !== unset) {
+            this.retention.release(textSize(v));
+            this.variables.set(k, unset);
+          }
         }
+      } else {
+        for (let i = 0; i < this.userKeysLen; i++) {
+          const k = this.userKeys[i]!;
+          const v = this.variables.get(k);
+          if (v !== undefined) {
+            if (v !== unset) this.retention.release(textSize(v));
+            this.variables.delete(k);
+          }
+        }
+        this.userKeysLen = 0;
       }
-      this.userKeysLen = 0;
       for (let i = 0; i < DEFAULT_VARIABLES.length; i++) {
         const pair = DEFAULT_VARIABLES[i]!;
         const k = pair[0];
@@ -2067,21 +2078,33 @@ export class AwkRuntime {
             }
             let checkpointPromise: Promise<void> | undefined;
             if (fastOk) {
+              const patLit = pat !== undefined ? pat.getLiteralMatchInfo() : undefined;
+              const patLitStr = patLit !== undefined && patLit.anchoredStart && !patLit.anchoredEnd ? patLit.value : undefined;
+              const patLitLen = patLitStr !== undefined ? patLitStr.length : 0;
+              const patLitC0 = patLitLen > 0 ? patLitStr!.charCodeAt(0) : -1;
+              this.recordSource = source;
+              this.deferredFieldSeparator = fsChar;
               for (let lineIdx = 0; lineIdx < endsLen; lineIdx++) {
                 const recEnd = ends[lineIdx]!;
                 const recLen = recEnd - recStart;
                 if (recLen >= 64) { fastOk = false; break; }
                 this.budget.step(2 + recLen);
-                this.recordSource = source;
-                this.recordStart = recStart;
-                this.recordEnd = recEnd;
-                this.fieldCount = -1;
-                this.deferredFieldSeparator = fsChar;
-                this.fieldsMaterialized = false;
-                this.fieldGeneration = (this.fieldGeneration + 1) | 0 || 1;
-                this.recordValue = undefined;
-                const matched = pat === undefined || pat.findSyncFastInto(source, this.budget, recStart, FAST_AWK_MATCH_OFFSETS, recEnd, recStart);
+                let matched: boolean;
+                if (pat === undefined) {
+                  matched = true;
+                } else if (patLitStr !== undefined) {
+                  this.budget.step();
+                  matched = recLen >= patLitLen && (patLitLen === 0 || (source.charCodeAt(recStart) === patLitC0 && (patLitLen === 1 || source.startsWith(patLitStr, recStart))));
+                } else {
+                  matched = pat.findSyncFastInto(source, this.budget, recStart, FAST_AWK_MATCH_OFFSETS, recEnd, recStart);
+                }
                 if (matched) {
+                  this.recordStart = recStart;
+                  this.recordEnd = recEnd;
+                  this.fieldCount = -1;
+                  this.fieldsMaterialized = false;
+                  this.fieldGeneration = (this.fieldGeneration + 1) | 0 || 1;
+                  this.recordValue = undefined;
                   this.budget.step(1 + bodyLen);
                   for (let s = 0; s < bodyLen; s++) {
                     this.tryFastExpressionStatement(body[s]!.expression);

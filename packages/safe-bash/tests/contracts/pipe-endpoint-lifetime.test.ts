@@ -238,16 +238,22 @@ test("observation deadlines and revision inputs reject malformed values", async 
 });
 
 test("pending observation count is bounded and cancellation releases every slot", async () => {
-  const pipe = createBytePipe();
+  const pipe = createBytePipe({ maxObservationWaiters: 64 });
   assert.ok(pipe.endpoints);
   const { read, write } = pipe.endpoints;
   const controllers = Array.from({ length: 64 }, () => new AbortController());
   const waits = controllers.map(controller => assert.rejects(read.waitForChange(read.probe().revision, { timeoutMs: 1000, signal: controller.signal }), error => error === false));
-  await assert.rejects(read.waitForChange(read.probe().revision, { timeoutMs: 1000 }), RangeError);
-  for (const controller of controllers) controller.abort(false);
-  await Promise.all(waits);
-  assert.equal(await read.waitForChange(read.probe().revision, { timeoutMs: 0 }), undefined);
-  await Promise.all([read.close(), write.close()]);
+  const settled = Promise.allSettled(waits);
+  try {
+    await assert.rejects(read.waitForChange(read.probe().revision, { timeoutMs: 1000 }), RangeError);
+    for (const controller of controllers) controller.abort(false);
+    await Promise.all(waits);
+    assert.equal(await read.waitForChange(read.probe().revision, { timeoutMs: 0 }), undefined);
+  } finally {
+    for (const controller of controllers) controller.abort(false);
+    await settled;
+    await Promise.all([read.close(), write.close()]);
+  }
 });
 
 test("legacy iterator return still fails the legacy pipe while endpoint borrow return does not", async () => {

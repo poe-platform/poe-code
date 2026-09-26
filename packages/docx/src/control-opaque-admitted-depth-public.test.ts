@@ -1,9 +1,12 @@
-import { spawn } from "node:child_process";
+import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { Volume } from "memfs";
-import { expect, it } from "vitest";
+import { afterEach, expect, it } from "vitest";
 import { writeArchive } from "./index.js";
 import { textContext, textFixture } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
+
+let native: ChildProcessWithoutNullStreams | undefined;
+afterEach(() => { if (native?.exitCode === null && native.signalCode === null) native.kill(); });
 
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
 for (const route of ["sdk", "sdk-batch", "cli", "cli-batch"])
@@ -19,14 +22,15 @@ it(`native opaque control fill rejects atomically at depth${depth}; strict=${str
   await writeArchive({ comment: new Uint8Array(), members: [...parts].map(([name, bytes]) => ({ name, bytes, directory: false, modified: new Date("1980-01-01T00:00:00Z") })) }, { async write(bytes) { memory.appendFileSync("/input", bytes); } }, { order: "input", compression: "store" }, { ...textContext, limits });
   const input = new Uint8Array(memory.readFileSync("/input") as Buffer);
   const script = `import assert from 'node:assert/strict';import {Volume} from 'memfs';import * as api from 'docx';
-let data='';for await(const bytes of process.stdin)data+=bytes;const request=JSON.parse(data),input=new Uint8Array(Buffer.from(request.input,'base64')),saved=input.slice(),signal=new AbortController().signal,documentLimits={xmlDepth:8192},budget=()=>new api.DocumentBudget(documentLimits,signal),memory=Volume.fromJSON({'/output':''}),context={limits:request.limits,signal,budget:budget(),encoding:{order:'input',compression:'store'},stdout:{async write(bytes){memory.appendFileSync('/output',bytes);}}},ops={version:1,operations:[{operation:'controls.set',arguments:{all:true,text:'Shore'}}]};
+let data='';for await(const bytes of process.stdin)data+=bytes;const request=JSON.parse(data),input=new Uint8Array(Buffer.from(request.input,'base64')),saved=input.slice(),signal=new AbortController().signal,documentLimits={xmlDepth:8192},budget=()=>new api.DocumentBudget(documentLimits,signal,async()=>{}),memory=Volume.fromJSON({'/output':''}),context={limits:request.limits,signal,budget:budget(),encoding:{order:'input',compression:'store'},stdout:{async write(bytes){memory.appendFileSync('/output',bytes);}}},ops={version:1,operations:[{operation:'controls.set',arguments:{all:true,text:'Shore'}}]};
 const observed=await api.inspectDocumentControls(input,{}, {limits:request.limits,signal,budget:budget()});assert.deepEqual(observed.items.map(item=>item.value),['Coast','Coast']);let errorCode=null,errorStack=null;
 try{if(request.route==='sdk')await api.editDocumentControls(input,{all:true,text:'Shore',output:'-'},context);else if(request.route==='sdk-batch')await api.executeDocumentBatch(input,ops,{output:'-'},context);else{const {Shell,MemoryFileSystem}=await import('@poe-platform/safe-bash');const {docxCommands}=await import('@poe-platform/safe-bash/commands/docx');const fs=new MemoryFileSystem();await fs.writeFile('/input',input);await fs.writeFile('/output',new TextEncoder().encode('Retained destination'));const shell=new Shell({fs}).use(docxCommands({engine:api.createDocxInspectionCommandEngine({limits:request.limits,documentLimits})}));try{const command=request.route==='cli'?'docx controls set /input --all --text Shore --output /output --force --json':'docx batch /input --ops-json '+JSON.stringify(JSON.stringify(ops))+' --output /output --force --json';const result=await shell.exec(command);assert.deepEqual(await fs.readFile('/input'),saved);assert.equal(new TextDecoder().decode(await fs.readFile('/output')),'Retained destination');if(result.exitCode!==0){const envelope=JSON.parse(result.stdout);assert.equal(envelope.affected,0);errorCode=envelope.errors[0].code;}}finally{await shell.dispose();}}}catch(error){errorCode=error.code??null;errorStack=error.stack;}assert.deepEqual(input,saved);assert.equal(memory.statSync('/output').size,0);console.log(JSON.stringify({errorCode,errorStack,exactSourceDestinationAndZeroPublication:true,observedValues:observed.items.map(item=>item.value)}));`;
   const result = await new Promise<string>((resolve, reject) => {
-    const child = spawn(process.execPath, ["--input-type=module", "-e", script], { stdio: ["pipe", "pipe", "pipe"] });
+    const child = native = spawn(process.execPath, ["--input-type=module", "-e", script], { stdio: ["pipe", "pipe", "pipe"] });
     let stdout = "", stderr = "";
     child.stdout.on("data", bytes => { stdout += String(bytes); }); child.stderr.on("data", bytes => { stderr += String(bytes); });
-    child.on("error", reject); child.on("close", status => { if (status !== 0) reject(new Error(stderr)); else resolve(stdout); });
+    child.on("error", reject);
+    child.stdin.on("error", reject); child.on("close", status => { if (status !== 0) reject(new Error(stderr)); else resolve(stdout); });
     child.stdin.end(JSON.stringify({ input: Buffer.from(input).toString("base64"), limits, route }));
   });
   const response = JSON.parse(result) as { errorCode: string | null; errorStack: string | null };

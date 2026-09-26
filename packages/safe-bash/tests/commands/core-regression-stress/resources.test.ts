@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import test from "node:test";
 import { FsError, type ByteSource } from "../../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { SortRecordBudget } from "../../../src/commands/sort-admission.js";
 import { chunks, execute } from "./helpers.js";
 
 for (const name of ["wc", "cksum", "sort"]) test(`${name}: abort blocked stdin and observe late rejection`, async () => {
@@ -38,14 +39,16 @@ test("sort: owned output chunks survive awaited backpressure without aliasing", 
   assert.equal(Buffer.concat(retained).toString(), input.trimEnd().split("\n").sort().join("\n") + "\n");
 });
 
-test("sort: buffer failure must not publish partial replacement", async () => {
-  const original = Buffer.alloc(32 * 1024 * 1024 + 1, 97);
-  const fs = createMemoryFileSystem({ maxFileBytes: original.length });
+test("sort: configured record admission failure must not publish partial replacement", async context => {
+  const budget = new SortRecordBudget(Infinity, 3);
+  context.mock.method(SortRecordBudget.prototype, "admit", budget.admit.bind(budget));
+  const original = Buffer.from("b\na\n");
+  const fs = createMemoryFileSystem();
   await fs.mkdir("/work");
   await fs.writeFile("/work/input", original);
   const result = await execute("sort", ["-o", "input", "input"], { fs });
   assert.notEqual(result.exitCode, 0);
-  assert.match(result.stderr.toString(), /EFBIG/u);
+  assert.equal(result.stderr.toString(), "sort: EFBIG: sort buffer limit exceeded\n");
   const actual = await fs.readFile("/work/input");
   assert.equal(actual.length, original.length);
   assert.equal(createHash("sha256").update(actual).digest("hex"), createHash("sha256").update(original).digest("hex"));

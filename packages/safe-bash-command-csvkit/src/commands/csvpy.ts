@@ -461,7 +461,7 @@ export async function executeCsvpy(runtime: Runtime): Promise<number> {
         const dialect: CsvDialect = {
           delimiter: o.tabs ? "\t" : String(o.delimiter ?? ","), quotechar: String(o.quotechar ?? '"'),
           quoting: Number(o.quoting ?? 0), doublequote: o.doublequote !== false,
-          skipinitialspace: Boolean(o.skipinitialspace), fieldLimit: Number(o.field_size_limit ?? 131072),
+          skipinitialspace: Boolean(o.skipinitialspace), fieldLimit: Number(o.field_size_limit ?? Infinity),
           fieldBudget: runtime.context.limits.maxFieldCharacters,
           ...(o.escapechar === null || o.escapechar === undefined ? {} : { escapechar: String(o.escapechar) })
         };

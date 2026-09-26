@@ -223,8 +223,9 @@ async function sameContent(operation: Operation, source: string, sourceStat: Fil
     if (!await settings.securityContext.matches(source, destination, context)) return false;
   }
   try {
-    const left = await context.fs.readFile(source, { signal: context.signal, maxBytes: maxFileBytes });
-    const right = await context.fs.readFile(destination, { signal: context.signal, maxBytes: maxFileBytes });
+    const readOptions = { signal: context.signal, ...(maxFileBytes === Infinity ? {} : { maxBytes: maxFileBytes }) };
+    const left = await context.fs.readFile(source, readOptions);
+    const right = await context.fs.readFile(destination, readOptions);
     context.signal.throwIfAborted();
     return left.length === right.length && left.every((value, index) => value === right[index]);
   } catch (error) { context.signal.throwIfAborted(); if (codeOf(error) === "EFBIG") throw error; return false; }
@@ -312,7 +313,7 @@ async function installFile(operation: Operation, sourceDisplay: string, destinat
         }
       })();
     } else chunks = context.fs.readStream && capabilities.streamingRead !== false ? context.fs.readStream(source, fsOptions)
-      : (async function* () { yield await context.fs.readFile(source, { ...fsOptions, maxBytes: maxFileBytes }); })();
+      : (async function* () { yield await context.fs.readFile(source, { ...fsOptions, ...(maxFileBytes === Infinity ? {} : { maxBytes: maxFileBytes }) }); })();
     iterator = chunks[Symbol.asyncIterator]();
     let size = 0, untilYield = 65536;
     const guarded: ByteSource = { [Symbol.asyncIterator]: () => ({ next: () => iterator!.next(), return: returnSource }) };
@@ -409,8 +410,8 @@ async function installFile(operation: Operation, sourceDisplay: string, destinat
 }
 
 export function createInstallCommand(options: InstallCommandsOptions = {}): CommandDefinition {
-  const settings = { ...options }, maxFileBytes = settings.maxFileBytes ?? 32 * 1024 * 1024;
-  if (!Number.isSafeInteger(maxFileBytes) || maxFileBytes < 0) throw new TypeError("maxFileBytes must be a nonnegative safe integer");
+  const settings = { ...options }, maxFileBytes = settings.maxFileBytes ?? Infinity;
+  if (maxFileBytes !== Infinity && (!Number.isSafeInteger(maxFileBytes) || maxFileBytes < 0)) throw new TypeError("maxFileBytes must be a nonnegative safe integer or Infinity");
   return { name: "install", runtimeIdentity: commandRuntimeIdentity, filesystemRequirements: [
     { id: "file", description: "Install file contents with modes", capabilities: ["read", "stat", "write", "exclusiveCreate", "permissions"], mutates: true },
     { id: "directory", description: "Create installation directories", capabilities: ["stat", "mkdir", "permissions"], mutates: true },

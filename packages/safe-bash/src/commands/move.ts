@@ -58,10 +58,9 @@ function acceptRemovalReceipt(expected: FileStat, receipt: void | FileStat, path
 export class MoveBudget {
   private steps = 0;
   constructor(readonly signal: AbortSignal) {}
-  get remaining(): number { return 100_000 - this.steps; }
   async step(): Promise<void> {
     this.signal.throwIfAborted();
-    if (++this.steps > 100_000) throw new FsError("EFBIG", { message: "cross-device move entry limit exceeded" });
+    this.steps++;
     if (this.steps % 128 === 0) await yieldTurn();
     this.signal.throwIfAborted();
   }
@@ -144,7 +143,6 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
   }
   const visit = async (origin: string, destination: string, stat: FileStat, existing: FileStat | undefined, depth: number): Promise<void> => {
     await budget.step();
-    if (depth > 128) throw new FsError("EFBIG", { message: "cross-device move depth limit exceeded" });
     if (existing) {
       const identity = depth === 0 ? rootIdentity : await compare(origin, destination, stat, existing);
       if (identity === "same") throw new FsError("EINVAL", { path: origin, dest: destination, message: "move source and destination are aliases" });
@@ -165,8 +163,7 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
       ? await prepareMoveStaging(context, origin, stat, destination, existing, budget) : undefined;
     plan.push({ source: origin, target: destination, stat, parent, targetStat: existing, link, staging });
     if (stat.type === "directory") {
-      const entries = await context.fs.readdir(origin, { signal: context.signal, maxEntries: budget.remaining });
-      if (entries.length > budget.remaining) throw new FsError("EFBIG", { message: "cross-device move entry limit exceeded" });
+      const entries = await context.fs.readdir(origin, { signal: context.signal });
       for (const entry of entries.sort((left, right) => left.name < right.name ? -1 : left.name > right.name ? 1 : 0)) {
         const child = joinPath(origin, entry.name), childTarget = joinPath(destination, entry.name);
         await visit(child, childTarget, await context.fs.lstat(child, { signal: context.signal }), await optionalStat(context, childTarget), depth + 1);

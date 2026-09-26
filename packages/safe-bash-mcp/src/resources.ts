@@ -15,7 +15,7 @@ export type RemoteMcpResourceResult = Awaited<ReturnType<McpClient["listResource
   | Awaited<ReturnType<McpClient["listResourceTemplates"]>> | Awaited<ReturnType<McpClient["readResource"]>>;
 
 export function snapshotRemoteMcpResourceRequest(request: RemoteMcpResourceRequest, maxInputBytes: number): RemoteMcpResourceRequest {
-  if (!isJsonValue(request) || request === null || Array.isArray(request) || typeof request !== "object")
+  if (!isJsonValue(request, { maxNodes: Infinity, maxDepth: Infinity }) || request === null || Array.isArray(request) || typeof request !== "object")
     throw new Error("Invalid remote MCP resource request");
   const operation = request.operation;
   if (operation !== "list" && operation !== "templates" && operation !== "read") throw new Error("Unknown remote MCP resource operation");

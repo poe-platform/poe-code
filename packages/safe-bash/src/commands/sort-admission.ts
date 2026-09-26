@@ -6,13 +6,15 @@ export class SortRecordBudget {
   #records = 0;
   #bytes = 0;
 
+  constructor(readonly maxRecords = Infinity, readonly maxBytes = bufferLimit) {}
+
   canAdmitChunk(chunkLength: number): boolean {
-    return this.#records + chunkLength <= 100_000 && chunkLength <= bufferLimit - this.#bytes;
+    return this.#records + chunkLength <= this.maxRecords && chunkLength <= this.maxBytes - this.#bytes;
   }
 
   admit(byteLength: number): void {
     const bytes = byteLength + 1;
-    if (this.#records >= 100_000 || bytes > bufferLimit - this.#bytes) {
+    if (this.#records >= this.maxRecords || bytes > this.maxBytes - this.#bytes) {
       throw new FsError("EFBIG", { message: "sort buffer limit exceeded" });
     }
     this.#records++;

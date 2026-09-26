@@ -68,7 +68,7 @@ function clean(from: number): void {
 
 test("defaults are active-request policy, not prototype cumulative caps", () => {
   assert.ok(Object.values(defaults).every(value => value === Infinity));
-  for (const options of [{ requestTimeoutMs: 0 }, { startupTimeoutMs: 2147483648 }, { maxWorkers: -1 }, { maxQueuedRequests: -1 }, { maxQueuedBytes: NaN }, { idleTimeoutMs: Infinity }]) assert.throws(() => new RegexExecutor(options), RangeError);
+  for (const options of [{ requestTimeoutMs: 0 }, { startupTimeoutMs: 2147483648 }, { maxWorkers: -1 }, { maxQueuedRequests: -1 }, { maxQueuedBytes: NaN }, { idleTimeoutMs: -Infinity }]) assert.throws(() => new RegexExecutor(options), RangeError);
 });
 
 test("preabort creates no worker or listener", () => {

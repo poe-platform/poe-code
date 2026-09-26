@@ -29,9 +29,7 @@ function fixedWidth(node: Node): number | undefined {
 export function compilePythonSearch(pattern: string, step: () => void, maxWork: number, retain: (bytes: number) => void): (text: string) => boolean {
   retain(64 + pattern.length * 8);
   const chars = Array.from(pattern);
-  if (chars.length > 256) throw new CsvkitBlocked("Python regex pattern length outside qualified subset");
   let index = 0;
-  let nesting = 0;
   let insensitive = false;
   let dotall = false;
   let multiline = false;
@@ -98,7 +96,6 @@ export function compilePythonSearch(pattern: string, step: () => void, maxWork: 
     if (value === "^") return { kind: "anchor", test: (text, position) => position === 0 || (multiline && text[position - 1] === "\n") };
     if (value === "$") return { kind: "anchor", test: (text, position) => position === text.length || (text[position] === "\n" && (multiline || position === text.length - 1)) };
     if (value === "(") {
-      if (++nesting > 64) throw new CsvkitBlocked("Python regex parser nesting budget exceeded");
       let assertion: { negative: boolean; behind: boolean } | undefined;
       if (chars[index] === "?") {
         const modifier = chars[index + 1];
@@ -111,7 +108,6 @@ export function compilePythonSearch(pattern: string, step: () => void, maxWork: 
       }
       const node = expression();
       if (chars[index++] !== ")") return unsupported();
-      nesting--;
       if (assertion) {
         const behind = assertion.behind ? fixedWidth(node) : undefined;
         if (assertion.behind && behind === undefined) return unsupported();
@@ -193,27 +189,25 @@ export function compilePythonSearch(pattern: string, step: () => void, maxWork: 
   if (index !== chars.length) unsupported();
   let work = 0;
   const tick = (): void => { step(); if (++work > maxWork) throw new CsvkitBlocked("Python regex work budget exceeded"); };
-  function* evaluate(node: Node, text: readonly string[], position: number, depth = 0): Generator<number> {
+  function* evaluate(node: Node, text: readonly string[], position: number): Generator<number> {
     tick();
-    if (depth > 256) throw new CsvkitBlocked("Python regex nesting budget exceeded");
     if (node.kind === "char") { if (position < text.length && node.test(text[position]!)) yield position + 1; }
     else if (node.kind === "anchor") { if (node.test(text, position)) yield position; }
     else if (node.kind === "assertion") {
       const start = node.behind === undefined ? position : position - node.behind;
       let matched = false;
-      if (start >= 0) for (const end of evaluate(node.node, text, start, depth + 1)) {
+      if (start >= 0) for (const end of evaluate(node.node, text, start)) {
         if (node.behind === undefined || end === position) { matched = true; break; }
       }
       if (matched !== node.negative) yield position;
     }
-    else if (node.kind === "alternative") { for (const child of node.nodes) yield* evaluate(child, text, position, depth + 1); }
+    else if (node.kind === "alternative") { for (const child of node.nodes) yield* evaluate(child, text, position); }
     else if (node.kind === "sequence") {
       const nodes = node.nodes;
       function* sequence(index: number, offset: number): Generator<number> {
         tick();
-        if (index > 256) throw new CsvkitBlocked("Python regex sequence budget exceeded");
         if (index === nodes.length) yield offset;
-        else for (const next of evaluate(nodes[index]!, text, offset, depth + 1)) yield* sequence(index + 1, next);
+        else for (const next of evaluate(nodes[index]!, text, offset)) yield* sequence(index + 1, next);
       }
       yield* sequence(0, position);
     } else {
@@ -222,7 +216,7 @@ export function compilePythonSearch(pattern: string, step: () => void, maxWork: 
         tick();
         if (count >= node.min) yield* positions;
         const next = new Set<number>();
-        for (const offset of positions) for (const end of evaluate(node.node, text, offset, depth + 1)) {
+        for (const offset of positions) for (const end of evaluate(node.node, text, offset)) {
           if (end !== offset || count < node.min) next.add(end);
         }
         positions = next;

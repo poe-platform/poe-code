@@ -37,14 +37,6 @@ async function run(command: string, args: string[], options: { stdin?: string; c
   return { ...result, stdout: Buffer.concat(stdout).toString(), stderr: Buffer.concat(stderr).toString() };
 }
 
-const finiteDefaults: Record<string, Record<string, number>> = {
-  xml: {
-    maxInputBytes: 8_388_608, maxOutputBytes: 8_388_608, maxSourceBytes: 65_536,
-    maxDepth: 64, maxNodes: 10_000, maxAttributes: 10_000,
-    maxAttributesPerElement: 128, maxNamespaces: 256, maxSteps: 1_000_000, maxResults: 100_000,
-  },
-};
-
 for (const [name, resolve] of Object.entries({ tree, du, column, table, inspection, format, file, pr, html,
   jq: (options: { limits?: object }) => resolveJqLimits(options.limits),
   xml: (options: { limits?: object }) => resolveXmlQueryLimits(options.limits),
@@ -53,12 +45,11 @@ for (const [name, resolve] of Object.entries({ tree, du, column, table, inspecti
 })) {
   test(`${name} budgets retain documented defaults and independent overrides`, () => {
     const defaults = resolve({});
-    assert.deepEqual(Object.fromEntries(Object.entries(defaults).filter(([, value]) => value !== Infinity)), finiteDefaults[name] ?? {});
     for (const [key, value] of Object.entries(defaults)) {
-      assert.equal(value, finiteDefaults[name]?.[key] ?? Infinity, key);
+      assert.equal(value, Infinity, key);
       const configured = resolve({ limits: { [key]: 123_456_789 } });
       assert.equal(configured[key as keyof typeof configured], 123_456_789, key);
-      for (const [other, amount] of Object.entries(configured)) if (other !== key) assert.equal(amount, finiteDefaults[name]?.[other] ?? Infinity, other);
+      for (const [other, amount] of Object.entries(configured)) if (other !== key) assert.equal(amount, Infinity, other);
     }
   });
 }

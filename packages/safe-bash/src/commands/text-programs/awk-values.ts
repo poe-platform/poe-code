@@ -189,7 +189,6 @@ function preciseFloat(value: number, precision: number, conversion: string, alte
 }
 
 // Bound synchronous parsing even for literal validation, which has no runtime budget.
-const maxFormatLength = 64 * 1024;
 
 function scanFormat(format: string, offset: number) {
   let cursor = offset + 1;
@@ -213,7 +212,6 @@ function scanFormat(format: string, offset: number) {
 }
 
 export function validateFormat(format: string): void {
-  if (format.length > maxFormatLength) throw new ProgramError("format length limit exceeded");
   for (let offset = 0; offset < format.length;) {
     if (format[offset] !== "%") { offset++; continue; }
     if (format[offset + 1] === "%") { offset += 2; continue; }
@@ -224,7 +222,6 @@ export function validateFormat(format: string): void {
 }
 
 export function formatted(format: string, values: readonly Scalar[], text: (value: Scalar) => string, budget?: Budget): string {
-  if (format.length > maxFormatLength) throw new ProgramError("format length limit exceeded");
   budget?.step(format.length);
   let result = "";
   let argument = 0;

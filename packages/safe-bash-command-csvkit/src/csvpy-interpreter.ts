@@ -84,7 +84,8 @@ export function createCsvpyInterpreter(options: CsvpyInterpreterOptions): Interp
         library.set("csv", csvModule);
         library.set("POSSIBLE_DELIMITERS", guest.list([",", "\t", ";", " ", ":", "|"].map(value => guest.value(value))));
         library.set("FieldSizeLimitError", exceptions.get("FieldSizeLimitError")!);
-        library.set("_field_limit", guest.value(BigInt(Number(input.settings.field_size_limit ?? 131072))));
+        const fieldLimit = Number(input.settings.field_size_limit ?? Infinity);
+        library.set("_field_limit", guest.value(Number.isFinite(fieldLimit) ? BigInt(fieldLimit) : fieldLimit));
         requireOk(guest.exec(readerLibrary, { globals: library }));
         requireOk(guest.exec("def reader(*args,**kwargs):return Reader(*args,**kwargs)", { globals: library }));
         const agate = guest.createNamespace();
@@ -131,7 +132,7 @@ export function createCsvpyInterpreter(options: CsvpyInterpreterOptions): Interp
                 const parsed = Number(failure.message.slice(start, end));
                 if (Number.isSafeInteger(parsed) && parsed > 0) lineNumber = parsed;
               }
-              const message = fieldError ? `field larger than field limit (${input.settings.field_size_limit ?? 131072})` : separator < 0 ? failure.message : failure.message.slice(separator + 2);
+              const message = fieldError ? `field larger than field limit (${fieldLimit})` : separator < 0 ? failure.message : failure.message.slice(separator + 2);
               return guest.list([guest.value(fieldError ? "field-error" : failure.message.startsWith("ValueError:") ? "value-error" : "error"), guest.value(message), guest.value(BigInt(lineNumber))]);
             }
           }));

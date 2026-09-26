@@ -195,7 +195,7 @@ for (const route of routes) {
     } finally { await setup.shell.dispose(); }
   });
 
-  for (const invalid of [-1, 0.5, Number.NaN, Number.POSITIVE_INFINITY, Number.MAX_SAFE_INTEGER + 1, null, "2", false]) {
+  for (const invalid of [-1, 0.5, Number.NaN, Number.NEGATIVE_INFINITY, Number.MAX_SAFE_INTEGER + 1, null, "2", false]) {
     test(`tee target admission: ${route.name} rejects invalid host limit ${String(invalid)}`, async () => {
       const setup = await fixture([]);
       try {
@@ -206,7 +206,7 @@ for (const route of routes) {
   }
 
   test(`tee target admission: ${route.name} accepts negative zero and maximum safe host limits`, async () => {
-    for (const limit of [-0, Number.MAX_SAFE_INTEGER]) {
+    for (const limit of [-0, Number.MAX_SAFE_INTEGER, Infinity]) {
       const setup = await fixture([]);
       try { install(setup.shell, route, limit); assert.equal((await setup.shell.exec("tee", { stdin: "A" })).stdout, "A"); }
       finally { await setup.shell.dispose(); }
@@ -214,8 +214,8 @@ for (const route of routes) {
   });
 }
 
-for (const [count, limit, expectedCode, expectedOpens] of [[64, undefined, 1, 64], [65, undefined, 2, 0], [65, 65, 1, 65]] as const) {
-  test(`tee target admission: default 64 boundary and explicit override (${count}, ${String(limit)})`, async () => {
+for (const [count, limit, expectedCode, expectedOpens] of [[64, undefined, 1, 64], [65, undefined, 1, 65], [65, 64, 2, 0], [65, Infinity, 1, 65]] as const) {
+  test(`tee target admission: no default quota and explicit override (${count}, ${String(limit)})`, async () => {
     const setup = await fixture(Array<string>(count).fill("/kept"), { rejectOpens: true });
     try {
       setup.shell.use(standardCommands(limit === undefined ? {} : { maxTeeTargets: limit }));

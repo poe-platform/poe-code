@@ -228,12 +228,12 @@ test("sort human numeric reads before replacing memory output and retains input 
 });
 
 test("sort human numeric retains record admission before retaining payloads", async testContext => {
-  const original = SortRecordBudget.prototype.admit;
+  const budget = new SortRecordBudget(Infinity, 2);
+  const admit = budget.admit.bind(budget);
   let admissions = 0;
-  testContext.mock.method(SortRecordBudget.prototype, "admit", function (this: SortRecordBudget, size: number) {
+  testContext.mock.method(SortRecordBudget.prototype, "admit", function (size: number) {
     admissions++;
-    if (admissions === 1) original.call(this, 32 * 1024 * 1024 - 2);
-    original.call(this, size);
+    admit(size);
   });
   const result = await run("sort", ["-h"], { stdin: "1M\n2G\n" });
   assert.equal(result.exitCode, 2);

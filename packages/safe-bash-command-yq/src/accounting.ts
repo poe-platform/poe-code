@@ -9,18 +9,18 @@ export const yqCaps = Object.freeze({
   maxVfsOperandPathBytes: Infinity,
   maxInputBytes: Infinity,
   maxDocumentBytes: Infinity,
-  maxValueBytes: 8 * 1024 * 1024,
+  maxValueBytes: Infinity,
   maxScalarBytes: Infinity,
   maxQuerySourceBytes: Infinity,
   maxDepth: Infinity,
   maxAstDepth: Infinity,
-  maxSteps: 1_000_000,
+  maxSteps: Infinity,
   maxResults: Infinity,
   maxCollectionSize: Infinity,
   maxDocuments: Infinity,
   maxAnchorsPerDocument: Infinity,
-  maxAliasReferences: 1024,
-  maxDocumentNodes: 16_384,
+  maxAliasReferences: Infinity,
+  maxDocumentNodes: Infinity,
   maxOutputBytes: Infinity,
   diagnosticReserveBytes: Infinity,
   stdoutCapBytes: Infinity,
@@ -43,8 +43,8 @@ export function resolveYqLimits(overrides: Partial<YqLimits> = {}): Readonly<YqL
     maxSteps: yqCaps.maxSteps,
   };
   for (const [key, value] of Object.entries(overrides)) {
-    if (!Object.hasOwn(limits, key) || !Number.isSafeInteger(value) || value < 0) {
-      throw new TypeError("yq limits must be nonnegative safe integers with supported names");
+    if (!Object.hasOwn(limits, key) || value !== Infinity && (!Number.isSafeInteger(value) || value < 0)) {
+      throw new TypeError("yq limits must be nonnegative safe integers or Infinity with supported names");
     }
     Object.assign(limits, { [key]: value });
   }

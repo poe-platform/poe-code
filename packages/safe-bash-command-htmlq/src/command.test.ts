@@ -71,6 +71,36 @@ function fixture(argv: readonly string[], input = "<p>X</p>") {
     text: () => output.map((b) => new TextDecoder().decode(b)).join("")
   };
 }
+test("htmlq permits depth beyond its former default and accepts explicit Infinity", async () => {
+  const input = "<div>".repeat(257) + "<p>value</p>" + "</div>".repeat(257);
+  for (const limits of [undefined, { depth: Infinity }, { depth: 256 }]) {
+    const sample = fixture(["-t", "p"], input);
+    const result = await createHtmlqCommand(limits ? { limits } : {}).execute(sample.context);
+    assert.equal(result.exitCode, limits?.depth === 256 ? 1 : 0);
+    if (result.exitCode === 0) assert.equal(sample.text(), "value\n");
+  }
+});
+
+test("htmlq buffered file reads omit unlimited bounds and preserve finite input admission", async () => {
+  for (const inputBytes of [undefined, Infinity, 2]) {
+    const sample = fixture(["-t", "p", "-f", "in"]);
+    const bounds: (number | undefined)[] = [];
+    const fs = { ...sample.context.fs, readStream: undefined,
+      async readFile(path: string, options?: { maxBytes?: number }) {
+        bounds.push(options?.maxBytes);
+        assert.ok(options?.maxBytes === undefined || Number.isSafeInteger(options.maxBytes));
+        const bytes = sample.files.get(path)!;
+        if (options?.maxBytes !== undefined && bytes.length > options.maxBytes) throw new FsError("EFBIG");
+        return bytes.slice();
+      },
+    };
+    const result = await htmlq({ ...sample.context, fs }, { limits: inputBytes === undefined ? {} : { inputBytes } });
+    assert.equal(result.exitCode, inputBytes === 2 ? 1 : 0);
+    assert.deepEqual(bounds, [inputBytes === 2 ? 2 : undefined]);
+    assert.equal(sample.text(), inputBytes === 2 ? "" : "X\n");
+  }
+});
+
 test("help and version flags succeed through CLI and SDK without input or VFS access", async () => {
   const unavailable = {
     [Symbol.asyncIterator](): AsyncIterator<Uint8Array> {
@@ -201,8 +231,8 @@ test("closed sinks and cleanup failures are observed", async () => {
   assert.equal((await createHtmlqCommand().execute(invalid.context)).exitCode, 2);
   assert.equal(invalid.text(), "");
 });
-test("limits only lower ceilings; cancellation releases pending source once", async () => {
-  assert.throws(() => createHtmlqCommand({ limits: { inputBytes: Number.MAX_SAFE_INTEGER } }));
+test("limits accept larger ceilings; cancellation releases pending source once", async () => {
+  assert.doesNotThrow(() => createHtmlqCommand({ limits: { inputBytes: Number.MAX_SAFE_INTEGER } }));
   const f = fixture(["p"]),
     controller = new AbortController();
   let returned = 0;

@@ -54,10 +54,10 @@ it("rejects cyclic retained metadata without overflowing the JavaScript stack", 
   const data: { name: string; children: unknown[] } = { name: "Style", children: [] }; data.children.push(data);
   expect(() => metadataNode(data as never)).toThrowError(/cyclic XLSX metadata/);
 });
-it("bounds retained metadata depth and traversal work", () => {
+it("accepts deep retained metadata while preserving traversal work limits", () => {
   let data: { name: string; children: unknown[] } = { name: "Style", children: [] };
   for (let i = 0; i < 130; i++) data = { name: "Style", children: [data] };
-  expect(() => metadataNode(data as never)).toThrowError(/metadata depth limit/);
+  expect(metadataNode(data as never)?.name).toBe("Style");
   const xml = createXlsxXml({ ...context, limits: { ...context.limits, workbookWork: 1 } });
   expect(() => metadataNode({ name: "Style", attributes: { x: "long" }, children: [] }, xml.charge))
     .toThrowError(/work limit/);

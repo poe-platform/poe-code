@@ -126,7 +126,7 @@ test("mv: all directory publications precede cleanup; a later copy failure keeps
   assert.equal(await bytes(base, "/target/second"), null);
 });
 
-test("mv: depth budget rejects before any publication or recursive cleanup", async () => {
+test("mv: deep traversal metadata failure rejects before any publication or recursive cleanup", async () => {
   const base = createMemoryFileSystem();
   await base.mkdir("/source");
   let leaf = "/source";
@@ -135,13 +135,17 @@ test("mv: depth budget rejects before any publication or recursive cleanup", asy
   const mutations: string[] = [];
   const fs = view(base, {
     rename: async () => { throw new FsError("EXDEV"); },
+    lstat: async (path, options) => {
+      if (path === leaf) throw new FsError("EACCES");
+      return base.lstat(path, options);
+    },
     mkdir: async path => { mutations.push(path); },
     rm: async path => { mutations.push(path); },
     rmdir: async path => { mutations.push(path); },
   });
   const result = await command("mv", ["/source", "/target"], fs);
   assert.equal(result.exitCode, 1);
-  assert.match(result.stderr, /EFBIG.*depth limit/u);
+  assert.match(result.stderr, /EACCES/u);
   assert.deepEqual(mutations, []);
   assert.deepEqual(await bytes(base, `${leaf}/data`), payload);
 });
@@ -216,13 +220,13 @@ test("cp -P: unscoped source still copies to a missing destination exclusively",
   await unchanged(base);
 });
 
-test("mv: entry budget rejects before content acquisition or publication", async () => {
+test("mv: missing listed entry rejects before content acquisition or publication", async () => {
   const base = createMemoryFileSystem();
   await base.mkdir("/source");
   let reads = 0, writes = 0;
   const fs = view(base, {
     rename: async () => { throw new FsError("EXDEV"); },
-    readdir: async () => Array.from({ length: 100_001 }, (_, index) => ({ name: `entry-${index}`, type: "file" as const })),
+    readdir: async () => [{ name: "missing", type: "file" as const }],
     openReadFile: async (path, controls) => { reads++; return base.openReadFile!(path, controls); },
     readFile: async () => { reads++; return payload; },
     writeStream: async () => { writes++; },
@@ -234,7 +238,7 @@ test("mv: entry budget rejects before content acquisition or publication", async
   });
   const result = await command("mv", ["/source", "/target"], fs);
   assert.equal(result.exitCode, 1);
-  assert.match(result.stderr, /EFBIG.*entry limit/u);
+  assert.match(result.stderr, /ENOENT/u);
   assert.equal(reads, 0);
   assert.equal(writes, 0);
   assert.equal((await base.lstat("/source")).type, "directory");

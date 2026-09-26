@@ -42,7 +42,7 @@ for (const [name, create] of routes) {
   });
 
   test(`directory admission validates ${name} configuration`, async () => {
-    for (const maxDirectoryEntries of [-1, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+    for (const maxDirectoryEntries of [-1, 0.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1]) {
       await assert.rejects(async () => {
         const shell = create(createMemoryFileSystem(), { maxDirectoryEntries });
         try { await shell.exec("ls /"); }
@@ -52,20 +52,22 @@ for (const [name, create] of routes) {
   });
 }
 
-test("directory admission defaults to 10000 and keeps zero valid", async context => {
+test("directory admission defaults to unlimited, accepts explicit Infinity and keeps zero valid", async context => {
   const fs = createMemoryFileSystem();
   await fs.mkdir("/empty");
   const read = fs.readdir.bind(fs);
   const limits: unknown[] = [];
   fs.readdir = async (path, options) => { limits.push(Reflect.get(options ?? {}, "maxEntries")); return read(path); };
   const defaults = new Shell({ fs }).use(standardCommands());
+  const unlimited = new Shell({ fs }).use(standardCommands({ maxDirectoryEntries: Infinity }));
   const zero = new Shell({ fs }).use(standardCommands({ maxDirectoryEntries: 0 }));
-  context.after(async () => { await defaults.dispose(); await zero.dispose(); });
+  context.after(async () => { await defaults.dispose(); await unlimited.dispose(); await zero.dispose(); });
   assert.equal((await defaults.exec("ls /")).exitCode, 0);
+  assert.equal((await unlimited.exec("ls /")).exitCode, 0);
   assert.equal((await zero.exec("ls -a /empty")).stdout, ".\n..\n");
   await fs.writeFile("/empty/a", new Uint8Array());
   assert.equal((await zero.exec("ls /empty")).exitCode, 1);
-  assert.deepEqual(limits, [10000, 0, 0]);
+  assert.deepEqual(limits, [undefined, undefined, 0, 0]);
 });
 
 test("directory admission rejects before materializing a custom host result", async context => {

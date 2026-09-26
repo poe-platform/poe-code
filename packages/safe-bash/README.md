@@ -609,10 +609,15 @@ invocation ceilings. Per-execution family overrides merge with the shell's
 profile, and non-Worker hosts can configure larger limits. `replace` applies
 across the entire bundle.
 Text, search, structured queries, directory inspection, table/stream tools,
-time/environment commands, metadata, `which`, `getopt`, `factor`, and `tsort`
+time/environment commands, metadata, diff/patch, LLM providers, `yes`, `less`,
+`sponge`, `bc`, `htmlq`, `which`, `getopt`, `factor`, and `tsort`
 have unlimited resource budgets by default. Set individual family limits to opt
 in; setting one limit leaves the others unlimited. Explicit `Infinity` also
-disables a limit. Stream chunk sizes control batching independently of these quotas.
+disables a limit. `xargs -s Infinity` and `--max-chars=Infinity` explicitly remove
+the command-size quota. Stream chunk sizes and polling intervals control execution
+independently of these quotas. `diff -u /dev/null FILE` and its reverse produce
+creation/deletion patches; top-level readable character and FIFO inputs are
+read to EOF. Regular files retain identity-checked reads.
 
 The package root exports `createBoundedRegexProvider`, `BoundedRegexProvider`,
 and `BoundedRegexProviderOptions`. `agentCommands()` uses this provider by default;

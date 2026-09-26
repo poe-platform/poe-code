@@ -11,6 +11,21 @@ import {
   wkhtmltopdfLimits,
 } from "./index.js";
 
+test("the built-in renderer admits more than the former implicit page ceiling", async t => {
+  const doc = PdfDocument.create();
+  t.mock.method(PdfDocument, "create", () => doc);
+  const page = doc.addPage({ width: 595, height: 842 });
+  const addPage = t.mock.method(doc, "addPage", () => page);
+  t.mock.method(doc, "save", () => new TextEncoder().encode("%PDF-test"));
+  const result = await runWkhtmltopdf({
+    args: ["--copies", "4097", "-", "-"], fs: new MemoryFileSystem(), cwd: "/",
+    signal: new AbortController().signal, stdin: toByteSource("<html><body></body></html>"),
+    stdout: { async write() {} }, stderr: { async write() {} }
+  });
+  assert.equal(result.exitCode, 0);
+  assert.equal(addPage.mock.callCount(), 4097);
+});
+
 test("createPdfAstRenderer converts multi-section HTML with tables, lists, links, images, and furniture into a valid multi-page PDF", async () => {
   const fs = new MemoryFileSystem();
   const samplePng = encodePng({

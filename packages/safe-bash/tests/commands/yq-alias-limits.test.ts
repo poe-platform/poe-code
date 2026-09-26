@@ -31,12 +31,13 @@ test("work reservation rejects an alias clone before committing the projection",
   } finally { await session.close(); }
 });
 
-test("host limits are finite, validated and captured independently", () => {
-  for (const value of [Infinity, NaN, -1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+test("host limits are optional, validated and captured independently", () => {
+  for (const value of [-Infinity, NaN, -1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
     assert.throws(() => createYqCommand({ limits: { maxSteps: value } }), TypeError);
   }
   assert.throws(() => createYqCommand({ limits: { unknown: 1 } } as never), TypeError);
   assert.doesNotThrow(() => createYqCommand({ limits: { maxAliasReferences: 0 } }));
+  assert.doesNotThrow(() => createYqCommand({ limits: { maxSteps: Infinity } }));
 });
 
 async function run(input: string, options: YqCommandsOptions = {}) {
@@ -52,10 +53,10 @@ async function run(input: string, options: YqCommandsOptions = {}) {
   return { exitCode: result.exitCode, stdout: Buffer.concat(stdout).toString(), stderr: Buffer.concat(stderr).toString() };
 }
 
-test("unselected doubling aliases are rejected by the default expansion budget", async () => {
+test("unselected doubling aliases are rejected by an explicit expansion budget", async () => {
   const lines = ['selected: ok', 'a0: &a0 [x, x]'];
   for (let level = 1; level <= 14; level++) lines.push(`a${level}: &a${level} [*a${level - 1}, *a${level - 1}]`);
-  const result = await run(lines.join("\n"));
+  const result = await run(lines.join("\n"), { limits: { maxDocumentNodes: 16_384 } });
   assert.equal(result.exitCode, 5);
   assert.equal(result.stdout, "");
   assert.match(result.stderr, /LIMIT_MAX_DOCUMENT_NODES/);

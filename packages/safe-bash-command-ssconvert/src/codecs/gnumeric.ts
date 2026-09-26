@@ -113,8 +113,8 @@ async function document(bytes: Uint8Array, context: CapabilityContext): Promise<
       // The declaration is validated by the XML parser after decoding its bytes.
       const at = text.indexOf(declared, encodingAt + 8); text = text.slice(0, at) + "UTF-8" + text.slice(at + declared.length);
     } else text = new TextDecoder(encoding, { fatal: true }).decode(plain);
-    const parser = parseXmlSteps(text, { expectedEncoding: encoding, maxDepth: context.limits.xmlDepth ?? 128,
-      maxNodes: context.limits.workbookNodes ?? 100000, maxAttributes: context.limits.workbookNodes ?? 100000,
+    const parser = parseXmlSteps(text, { expectedEncoding: encoding, maxDepth: context.limits.xmlDepth ?? Infinity,
+      maxNodes: context.limits.workbookNodes ?? Infinity, maxAttributes: context.limits.workbookNodes ?? Infinity,
       maxTextLength: context.limits.workbookTextBytes ?? context.limits.inputBytes });
     let step = parser.next(); let work = 0;
     while (!step.done) {
@@ -445,7 +445,7 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
   let expandedAxes = 0;
   const admitAxes = (count: number) => {
     context.signal.throwIfAborted();
-    if (count > (context.limits.workbookNodes ?? 100000) - expandedAxes) limit("axis nodes");
+    if (count > (context.limits.workbookNodes ?? Infinity) - expandedAxes) limit("axis nodes");
     expandedAxes += count;
   };
   const tick = () => { context.signal.throwIfAborted(); if (++work > (context.limits.workbookWork ?? context.limits.inputBytes + context.limits.cells * 32)) limit("XML relationship work"); };
@@ -570,6 +570,7 @@ class XmlWriter {
   constructor(private readonly maximum: number, private readonly context: CapabilityContext) {}
   element(name: string, attrs: Readonly<Record<string, string | number>> = {}, text = "", nested = "", depth = 0, explicitContent = false): string {
     this.context.signal.throwIfAborted();
+    if (depth > (this.context.limits.xmlDepth ?? Infinity)) limit("XML depth");
     if (++this.work > (this.context.limits.workbookWork ?? this.context.limits.inputBytes + this.context.limits.cells * 32)) limit("XML serialization work");
     if (text.length > this.maximum - this.length) limit("output bytes");
     const indent = "  ".repeat(depth); let attributes = "";
@@ -650,7 +651,6 @@ function validateRecordName(name: string): void {
   } catch { invalid("invalid XML record name"); }
 }
 function emitRecord(value: ImportedValue | undefined, depth: number, writer: XmlWriter): string {
-  if (depth > 128) limit("XML depth");
   const node = object(value); if (!node || typeof node.name !== "string" || typeof node.namespace !== "string") return "";
   const attrs: Record<string, string> = {};
   const qualify = (name: string, ns: string): string => {
@@ -707,7 +707,7 @@ function valueText(value: CellValue, context: CapabilityContext): string {
 export function clipboardStyleRecords(sheet: Sheet, range: import("../workbook.js").CellRange, context: CapabilityContext): readonly UnsupportedRecord[] {
   const styleNode = (style: Readonly<Record<string, ImportedValue>> | undefined, format: string | undefined, reset = false) => {
     const xml = `<Root xmlns:gnm="${namespace}">` + importedStyle(style, format, new XmlWriter(context.limits.outputBytes, context), reset, 0) + "</Root>";
-    const parser = parseXmlSteps(xml, { maxNodes: context.limits.workbookNodes ?? 100000, maxTextLength: context.limits.workbookTextBytes ?? context.limits.inputBytes });
+    const parser = parseXmlSteps(xml, { maxNodes: context.limits.workbookNodes ?? Infinity, maxTextLength: context.limits.workbookTextBytes ?? context.limits.inputBytes });
     let step = parser.next(); while (!step.done) { context.signal.throwIfAborted(); step = parser.next(); }
     return record(step.value.children[0]!, true);
   };
@@ -902,7 +902,7 @@ export async function writeGnumeric(book: Workbook, _options: readonly string[],
 }
 
 export async function writeCompressedGnumeric(book: Workbook, options: readonly string[], context: CapabilityContext): Promise<Uint8Array> {
-  const maximum = (context.limits.workbookTextBytes ?? context.limits.inputBytes) * 8 + (context.limits.workbookNodes ?? 100000) * 256;
+  const maximum = (context.limits.workbookTextBytes ?? context.limits.inputBytes) * 8 + (context.limits.workbookNodes ?? Infinity) * 256;
   if (maximum !== Infinity && !Number.isSafeInteger(maximum)) limit("XML serialization bytes");
   const bytes = await writeGnumeric(book, options, { ...context, limits: { ...context.limits, outputBytes: maximum } });
   const compressed = await transform(bytes, true, context.limits.outputBytes, context);

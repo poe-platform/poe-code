@@ -1,13 +1,13 @@
 import { FsError, type CommandContext, type DirectoryEntry } from "../contracts/index.js";
 import { yieldTurn } from "../contracts/yield.js";
 
-export function createDirectoryReader(maxEntries = 10000) {
-  if (!Number.isSafeInteger(maxEntries) || maxEntries < 0) {
-    throw new RangeError("maxDirectoryEntries must be a nonnegative safe integer");
+export function createDirectoryReader(maxEntries = Infinity) {
+  if (maxEntries !== Infinity && (!Number.isSafeInteger(maxEntries) || maxEntries < 0)) {
+    throw new RangeError("maxDirectoryEntries must be a nonnegative safe integer or Infinity");
   }
   return async (context: CommandContext, path: string, ordered = false): Promise<DirectoryEntry[]> => {
     context.signal.throwIfAborted();
-    const entries = await context.fs.readdir(path, { signal: context.signal, maxEntries });
+    const entries = await context.fs.readdir(path, { signal: context.signal, ...(maxEntries === Infinity ? {} : { maxEntries }) });
     context.signal.throwIfAborted();
     if (entries.length > maxEntries) {
       throw new FsError("EFBIG", { syscall: "readdir", path, message: "directory entry limit exceeded" });

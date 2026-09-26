@@ -61,10 +61,10 @@ for (const args of [["input"], ["-e", "one"], ["-i", "5-5"]]) test(`shuf zero co
   assert.equal(result.exitCode, 0);
   assert.equal(result.stdout.length, 0);
 });
-for (const count of ["18446744073709551615", "18446744073709551616"]) test(`shuf treats explicit huge count as bounded: ${count}`, async () => {
+for (const count of ["18446744073709551615", "18446744073709551616"]) test(`shuf accepts an explicit huge count: ${count}`, async () => {
   const result = await shuffle(["-r", "-n", count, "-e"]);
   assert.equal(result.exitCode, 1);
-  assert.equal(result.stderr.toString(), "shuf: output line limit exceeded\n");
+  assert.equal(result.stderr.toString(), "shuf: no lines to repeat\n");
   assert.equal((await shuffle(["-r", "-n", count, "-n1", "-e", "one"])).stdout.toString(), "one\n");
 });
 
@@ -86,10 +86,10 @@ test("shuf matches historical byte snapshots with explicit modern GNU overrides 
   }
 });
 
-test("shuf admits actual UTF-8 argument bytes before materializing argv", async () => {
+test("shuf accepts UTF-8 argument bytes beyond 65536", async () => {
   const result = await shuffle(["-e", "€".repeat(22000)]);
-  assert.equal(result.exitCode, 1);
-  assert.equal(result.stderr.toString(), "shuf: argument limit exceeded\n");
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stdout.toString(), "€".repeat(22000) + "\n");
 });
 
 test("shuf admits raw argv by its owned bytes, not replacement-character display size", async () => {
@@ -163,24 +163,43 @@ for (const reason of [false, 0, "", null]) test(`shuf preserves falsey cancellat
   assert.equal(closed,1);
 });
 
-test("shuf bounds range, output count, and unbounded repetition without opening input", async () => {
-  for (const args of [["-r"],["-r","-n1048577"],["-i0-1048576"],["-i1-18446744073709551615","-n1"],["-i1-18446744073709551615","-r","-n1"]]) {
-    let reads=0;
-    const result = await shuffle(args,"",{stdin:{async *[Symbol.asyncIterator]() {reads++;yield Buffer.from("a");}}});
-    assert.equal(result.exitCode,1); assert.equal(reads,0);
+test("shuf samples large ranges without allocating the full cardinality", async () => {
+  for (const args of [["-i0-1048576", "-n1"], ["-i1-18446744073709551615", "-n1"], ["-i1-18446744073709551615", "-r", "-n1"]]) {
+    const { fs } = fixture({ rng: Buffer.alloc(32) });
+    const result = await shuffle([...args, "--random-source=rng"], "", { fs });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.equal(result.stdout.toString(), args[0] === "-i0-1048576" ? "0\n" : "1\n");
   }
 });
 
-test("shuf detects oversized and empty producer input and retires once", async () => {
-  for(const oversized of [true,false]) {
-    let closed=0;
-    const result=await shuffle([],"",{stdin:{[Symbol.asyncIterator]() {return {
-      async next() {return {done:false,value:new Uint8Array(oversized ? 32*1024*1024+1 : 0)};},
-      async return() {closed++; return {done:true,value:undefined};},
-    };}}});
-    assert.equal(result.exitCode,1); assert.equal(closed,1);
-    assert.equal(result.stderr.toString(),oversized ? "shuf: byte command input limit exceeded\n" : "shuf: empty input chunk limit exceeded\n");
-  }
+test("shuf accepts more than 4096 empty producer chunks and retires once", async () => {
+  let closed = 0;
+  const result = await shuffle([], "", { stdin: { async *[Symbol.asyncIterator]() {
+    try {
+      for (let index = 0; index < 4097; index++) yield new Uint8Array();
+      yield Buffer.from("a\n");
+    } finally { closed++; }
+  } } });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stdout.toString(), "a\n");
+  assert.equal(closed, 1);
+});
+
+test("shuf writes complete output through a buffered-only filesystem", async () => {
+  const { fs, volume } = fixture();
+  Object.defineProperty(fs, "writeStream", { value: undefined });
+  const result = await shuffle(["-e", "a", "-o", "result"], "", { fs });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(volume.readFileSync("/work/result", "utf8"), "a\n");
+});
+
+test("shuf keeps sampling after more than 4096 rejected random draws", async () => {
+  const entropy = new Uint8Array(4098).fill(255);
+  entropy[4097] = 0;
+  const { fs } = fixture({ rng: entropy });
+  const result = await shuffle(["-i0-2", "-n1", "--random-source=rng"], "", { fs });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stdout.toString(), "0\n");
 });
 
 test("shuf opens the random source before reservoir reads, while zero-count file bypass skips it", async () => {

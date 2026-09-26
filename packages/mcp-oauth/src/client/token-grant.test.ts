@@ -43,9 +43,10 @@ it("rejects cyclic imported JSON", () => {
   expect(() => parseOAuthTokenGrant({ ...raw, extension: cyclic })).toThrow("Invalid OAuth token grant");
 });
 it("accepts large and deep JSON extensions without changing the grant", () => {
-  let deep: unknown = null;
-  for (let index = 0; index < 20_000; index++) deep = { deep };
-  for (const extension of [deep, "x".repeat(65_536)]) expect(parseOAuthTokenGrant({ ...raw, extension })).toEqual(parseOAuthTokenGrant(raw));
+  const large = "x".repeat(65_536);
+  let deep: unknown = null, deepLarge: unknown = large;
+  for (let index = 0; index < 20_000; index++) { deep = { deep }; deepLarge = { deep: deepLarge }; }
+  for (const extension of [deep, large, deepLarge]) expect(parseOAuthTokenGrant({ ...raw, extension })).toEqual(parseOAuthTokenGrant(raw));
 });
 it("permits explicit unlimited expiry while validating supplied relative data", () => {
   expect(parseOAuthTokenGrant(raw, { expiresAt: null })).toMatchObject({ expiresAt: null });

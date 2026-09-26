@@ -152,12 +152,15 @@ it("does not collide generated cell styles with original ODF style names", async
   expect(round.sheets[0]!.cells[1]!.format).toBe("0.00");
 });
 
-it("bounds style metadata depth and work before serialization", () => {
+it("accepts deep style metadata and enforces explicit depth and work limits", () => {
   const book: Workbook = { sheets: [{ id: "S", name: "S", cells: [] }] };
   let deep: ImportedValue = { name: "Font", text: "Sans" };
   for (let i = 0; i < 130; i++) deep = { name: "Style", children: [deep] };
   const styles = createOdfStyles(createOdfXml(context, true), true, book, context);
-  expect(() => styles.register({ style: { gnumeric: deep } })).toThrow("style metadata depth limit");
+  expect(() => styles.register({ style: { gnumeric: deep } })).not.toThrow();
+  const depthBounded = { ...context, limits: { ...context.limits, xmlDepth: 128 } };
+  expect(() => createOdfStyles(createOdfXml(depthBounded, true), true, book, depthBounded)
+    .register({ style: { gnumeric: deep } })).toThrow("style metadata depth limit");
   const bounded = { ...context, limits: { ...context.limits, workbookWork: 50 } };
   expect(() => createOdfStyles(createOdfXml(bounded, true), true, book, bounded).register({ style: {
     gnumeric: { name: "Style", children: [{ name: "Font", text: "a".repeat(100) }] }

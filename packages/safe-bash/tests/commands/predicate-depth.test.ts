@@ -26,11 +26,11 @@ for (const command of ["test", "["]) {
       assert.equal(result.stderr, "");
     });
 
-    test(`${command} refuses level 257 of ${kind} as a usage error`, async () => {
+    test(`${command} accepts level 257 of ${kind}`, async () => {
       const result = await run(command, [...expression(257), ...suffix]);
-      assert.equal(result.exitCode, 2);
+      assert.equal(result.exitCode, kind === "negation" ? 1 : 0);
       assert.equal(result.stdout, "");
-      assert.equal(result.stderr, `${command}: expression nesting exceeds 256\n`);
+      assert.equal(result.stderr, "");
     });
   }
 
@@ -63,10 +63,10 @@ for (const command of ["test", "["]) {
     const skipped = await run(command, ["value", "-o", ...parentheses(256, ["-f", "file"]), ...suffix], { fs });
     assert.equal(skipped.exitCode, 0);
     assert.equal(skipped.stderr, "");
-    const refused = await run(command, [...parentheses(257, ["-f", "file"]), ...suffix], { fs });
-    assert.equal(refused.exitCode, 2);
-    assert.equal(refused.stderr, `${command}: expression nesting exceeds 256\n`);
-    assert.equal(probes, 3);
+    const deeper = await run(command, [...parentheses(257, ["-f", "file"]), ...suffix], { fs });
+    assert.equal(deeper.exitCode, 0);
+    assert.equal(deeper.stderr, "");
+    assert.equal(probes, 4);
     assert.equal(new TextDecoder().decode(await fs.readFile("/work/file")), "data");
   });
 
@@ -75,8 +75,8 @@ for (const command of ["test", "["]) {
     try {
       const result = await shell.exec(`${command} ${"\\( ".repeat(3000)}value${" \\)".repeat(3000)}${suffix.length ? " ]" : ""}; echo rc=$?`);
       assert.equal(result.exitCode, 0);
-      assert.equal(result.stdout, "rc=2\n");
-      assert.equal(result.stderr, `${command}: expression nesting exceeds 256\n`);
+      assert.equal(result.stdout, "rc=0\n");
+      assert.equal(result.stderr, "");
     } finally { await shell.dispose(); }
   });
 }

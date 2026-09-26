@@ -50,8 +50,8 @@ async function document(bytes: Uint8Array, context: CapabilityContext, probe = f
       // The declaration is validated by the XML parser after decoding its bytes.
       const at = text.indexOf(declared, encodingAt + 8); text = text.slice(0, at) + "UTF-8" + text.slice(at + declared.length);
     } else text = new TextDecoder(encoding, { fatal: true }).decode(bytes);
-    const parser = parseXmlSteps(text, { expectedEncoding: encoding, maxDepth: context.limits.xmlDepth ?? 128,
-      maxNodes: context.limits.workbookNodes ?? 100000, maxAttributes: context.limits.workbookNodes ?? 100000,
+    const parser = parseXmlSteps(text, { expectedEncoding: encoding, maxDepth: context.limits.xmlDepth ?? Infinity,
+      maxNodes: context.limits.workbookNodes ?? Infinity, maxAttributes: context.limits.workbookNodes ?? Infinity,
       maxTextLength: context.limits.workbookTextBytes ?? context.limits.inputBytes,
       ...(probe ? { onElement(node) { matched = node.localName === "Workbook" && node.namespace.includes("schemas-microsoft-com:office:spreadsheet"); throw rootFound; } } : {}) });
     let step = parser.next(), work = 0;
@@ -197,14 +197,15 @@ export async function readSpreadsheetML(bytes: Uint8Array, context: CapabilityCo
     const position = node ? positions.get(node)?.[end ? "end" : "start"] ?? -1 : Infinity;
     while (elementWarnings[emitted] && elementWarnings[emitted]!.position <= position) {
       context.signal.throwIfAborted();
-      await context.diagnostic?.({ code: "spreadsheetml-unknown-element", severity: "warning", message: elementWarnings[emitted++]!.message });
+      const message = elementWarnings[emitted++]!.message;
+      await context.diagnostic?.({ code: "spreadsheetml-unknown-element", severity: "warning", message });
       context.signal.throwIfAborted();
     }
   }
   const styles = new Map<string, Style>(); let defaultStyle: Style = {};
   const sheets: Sheet[] = [], names: NamedExpression[] = [], properties: Style = {};
   let totalCells = 0, work = 0;
-  function charge() { context.signal.throwIfAborted(); if (++work > (context.limits.workbookWork ?? 10000000)) limit("work"); }
+  function charge() { context.signal.throwIfAborted(); if (++work > (context.limits.workbookWork ?? Infinity)) limit("work"); }
   async function warning(message: string, sheet?: string, row = -1, column = -1) {
     if (sheet !== undefined) message = `${sheet}${row >= 0 && column >= 0 ? "!" + formatA1(row, column) : ""} : ${message}`;
     await context.diagnostic?.({ code: "spreadsheetml-content", severity: "warning", message: message + "\n" });
@@ -231,7 +232,7 @@ export async function readSpreadsheetML(bytes: Uint8Array, context: CapabilityCo
   async function formula(source: string, sheet: string, row: number, column: number, warningColumn = column): Promise<FormulaDocument | undefined> {
     if (!source.startsWith("=")) { await warning(`Invalid formula '${source}' does not begin with '='`, sheet || undefined, row, warningColumn); return undefined; }
     const parsed = parseExpression("=" + source.slice(1).trimStart(), { grammar, position: { sheet, row, column }, signal: context.signal,
-      maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? 100000 });
+      maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? Infinity });
     if (!parsed.ok) { await warning(`'${source.slice(1)}' ${parsed.diagnostic.message}`, sheet || undefined, row, warningColumn); return undefined; }
     if (sheet && !await knownReferences(parsed.document.root, source, { sheet, row, column: warningColumn })) return undefined;
     return parsed.document;
@@ -361,7 +362,7 @@ export async function readSpreadsheetML(bytes: Uint8Array, context: CapabilityCo
         const col = axis;
         const index = await numeric(col, "Index", colIndex + 1, true, name); if (index > 0) colIndex = index - 1;
         const span = Math.max(1, await numeric(col, "Span", 0, true, name) + 1), width = await numeric(col, "Width", -1, false, name), style = styles.get(attr(col, "StyleID") ?? "");
-        if (span > (context.limits.workbookNodes ?? 100000) - columns.size) limit("axis nodes");
+        if (span > (context.limits.workbookNodes ?? Infinity) - columns.size) limit("axis nodes");
         for (let i = 0; i < span; i++) { charge(); if (colIndex + i >= 16384) limit("column coordinates"); columns.set(colIndex + i, { ...columns.get(colIndex + i), index: colIndex + i, ...(width > 0 ? { sizePoints: width } : {}), ...(bool(attr(col, "Hidden")) ? { hidden: true } : {}), ...(style ? { style } : {}) }); }
         if (style) styleRegions.push(styleRegion({ startRow: 0, startColumn: colIndex, endRow: 1048575, endColumn: colIndex + span - 1 }, style));
         colIndex += span;
@@ -373,7 +374,7 @@ export async function readSpreadsheetML(bytes: Uint8Array, context: CapabilityCo
         const span = Math.max(1, await numeric(row, "Span", 1, true, name)), height = await numeric(row, "Height", -1, false, name), declaredRowStyle = styles.get(attr(row, "StyleID") ?? "");
         const rowStyle = declaredRowStyle ?? rows.get(rowIndex)?.style as Style | undefined;
         if (rowIndex + span > 1048576) limit("row coordinates");
-        if (span > (context.limits.workbookNodes ?? 100000) - rows.size) limit("axis nodes");
+        if (span > (context.limits.workbookNodes ?? Infinity) - rows.size) limit("axis nodes");
         if (height >= 0 || bool(attr(row, "Hidden")) || declaredRowStyle) for (let i = 0; i < span; i++) { charge(); rows.set(rowIndex + i, { ...rows.get(rowIndex + i), index: rowIndex + i, ...(height >= 0 ? { sizePoints: height } : {}), ...(bool(attr(row, "Hidden")) ? { hidden: true } : {}), ...(declaredRowStyle ? { style: declaredRowStyle } : {}) }); }
         if (declaredRowStyle) styleRegions.push(styleRegion({ startRow: rowIndex, startColumn: 0, endRow: rowIndex + span - 1, endColumn: 16383 }, declaredRowStyle));
         for (const node of children(row, "Cell")) {

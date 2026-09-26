@@ -11,7 +11,7 @@ export function createOdfStyles(xml: ReturnType<typeof createOdfXml>, extended: 
     xml.charge(typeof value === "string" ? value.length : 1);
     if (value === null || typeof value !== "object") return;
     if (active.has(value)) throw new SsconvertError("invalid-request", "Invalid cyclic OpenDocument style metadata");
-    if (depth > 128) throw new SsconvertError("resource-limit", "ssconvert OpenDocument style metadata depth limit exceeded");
+    if (depth > (context.limits.xmlDepth ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert OpenDocument style metadata depth limit exceeded");
     active.add(value);
     try {
       if (Array.isArray(value)) for (const child of value) admitMetadata(child, active, depth + 1);

@@ -13,8 +13,8 @@ export interface ByteInputOptions {
 export function resolveInputLimit(options: ByteInputOptions): number {
   const maxInputBytes = options.limits?.maxInputBytes;
   if (maxInputBytes === undefined) return Infinity;
-  if (!Number.isSafeInteger(maxInputBytes) || maxInputBytes < 0) {
-    throw new RangeError("maxInputBytes must be a nonnegative safe integer");
+  if (maxInputBytes !== Infinity && (!Number.isSafeInteger(maxInputBytes) || maxInputBytes < 0)) {
+    throw new RangeError("maxInputBytes must be a nonnegative safe integer or Infinity");
   }
   return maxInputBytes;
 }

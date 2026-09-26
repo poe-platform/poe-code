@@ -170,10 +170,14 @@ test("repeated writes reuse stable bounded storage instead of retaining output h
 test("factories validate options, snapshot limits, freeze definitions and preserve opt-in", () => {
   for (const invalid of [null, [], 1, "x", true]) assert.throws(() => createYesCommand(invalid as never), TypeError);
   for (const key of ["maxRecordBytes", "chunkBytes"] as const) {
-    for (const value of [0, -1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER]) {
+    for (const value of [0, -1, 1.5, NaN, -Infinity]) {
       assert.throws(() => createYesCommand({ [key]: value }), RangeError);
     }
     assert.throws(() => createYesCommand({ [key]: "3" } as never), TypeError);
+  }
+  for (const value of [Infinity, Number.MAX_SAFE_INTEGER]) {
+    assert.doesNotThrow(() => createYesCommand({ maxRecordBytes: value }));
+    assert.throws(() => createYesCommand({ chunkBytes: value }), RangeError);
   }
   assert.throws(() => yesCommands({ replace: 1 } as never), TypeError);
   const commands = createYesCommands();
@@ -191,6 +195,12 @@ test("factories validate options, snapshot limits, freeze definitions and preser
   assert.equal(registry.get("yes"), original);
   yesCommands({ replace: true }).setup(host);
   assert.notEqual(registry.get("yes"), original);
+});
+
+test("yes accepts records larger than one MiB by default", async () => {
+  const argument = "x".repeat(1024 * 1024 + 1);
+  const result = await prefix(createYesCommand(), [argument], argument.length + 1);
+  assert.equal(Buffer.from(result.bytes).toString(), argument + "\n");
 });
 
 test("backpressure permits only one in-flight write and keeps its bytes stable", async () => {

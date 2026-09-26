@@ -10,8 +10,9 @@ export interface LlmProviderLimits {
 }
 
 export function providerLimits(input: Partial<LlmProviderLimits> = {}): LlmProviderLimits {
-  const limits = { maxRequestBytes: 64 * 1024 * 1024, maxResponseBytes: 64 * 1024 * 1024, maxEventBytes: 1024 * 1024, maxPolls: 120, pollIntervalMs: 1000, ...input };
+  const limits = { maxRequestBytes: Infinity, maxResponseBytes: Infinity, maxEventBytes: Infinity, maxPolls: Infinity, pollIntervalMs: 1000, ...input };
   for (const [name, value] of Object.entries(limits)) {
+    if (name !== "pollIntervalMs" && value === Infinity) continue;
     if (!Number.isSafeInteger(value) || value < (name === "maxPolls" || name === "pollIntervalMs" ? 0 : 1)) throw new RangeError(`Invalid provider limit: ${name}`);
   }
   return Object.freeze(limits);
@@ -51,9 +52,7 @@ export function multipart(options: Record<string, unknown>, files: readonly { fi
     }
     return false;
   };
-  let attempts = 0;
   while (entries.some(([, value]) => value.includes(boundary)) || files.some(file => contains(file.bytes, encoder.encode(boundary)))) {
-    if (attempts++ === 32) throw new RangeError("Provider multipart boundary collision limit exceeded");
     boundary += "x";
   }
   for (const [name, value] of entries) parts.push(encoder.encode(`--${boundary}\r\nContent-Disposition: form-data; name="${name}"\r\n\r\n${value}\r\n`));

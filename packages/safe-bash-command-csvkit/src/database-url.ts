@@ -34,7 +34,6 @@ function unquote(text: string, plus = false): string {
 }
 
 export function parseDatabaseUrl(raw: string): DatabaseUrl {
-  if (raw.length > 1024 * 1024) throw new CsvkitBlocked('database URL budget exceeded');
   const separator = raw.indexOf('://');
   const drivername = raw.slice(0, separator);
   if (separator > 0 && [...drivername].some(char => char.codePointAt(0)! > 127)) throw new CsvkitBlocked('Unicode database driver name grammar');

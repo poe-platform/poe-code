@@ -1,4 +1,3 @@
-import { CsvkitBlocked } from "../errors.js";
 import { stripWhitespace } from "../python-text.js";
 import { decimalZeroes } from "../unicode-profile.js";
 
@@ -29,7 +28,6 @@ export class Decimal {
     text = ascii;
     const special = /^([+-]?)(Infinity|Inf|sNaN|NaN)(\d*)$/i.exec(text);
     if (special) {
-      if (special[3]!.length > 10000) throw new CsvkitBlocked("Decimal admission budget exceeded");
       const name = special[2]!.toLowerCase();
       if (name.startsWith("inf") && special[3]) throw new DecimalTrap("InvalidOperation");
       return new Decimal(special[1] === "-", 0n, 0, name.startsWith("inf") ? "Infinity" : name === "snan" ? "sNaN" : "NaN", special[3]!.replace(/^0+/, ""));
@@ -39,7 +37,7 @@ export class Decimal {
     const fraction = match[3] ?? match[4] ?? "";
     const digits = (match[2] ?? "") + fraction;
     const exponent = BigInt(match[5] ?? "0") - BigInt(fraction.length);
-    if (digits.length > 10000 || exponent < -10000n || exponent > 10000n) throw new CsvkitBlocked("Decimal admission budget exceeded");
+    if (!Number.isSafeInteger(Number(exponent))) throw new DecimalTrap("InvalidOperation");
     return new Decimal(match[1] === "-", BigInt(digits), Number(exponent));
   }
 
@@ -56,7 +54,7 @@ export class Decimal {
       if (digits > precision) { coefficient /= 10n; exponent++; }
     }
     if (exponent + coefficient.toString().length - 1 > 999999) throw new DecimalTrap("Overflow");
-    if (Math.abs(exponent) > 20000) throw new CsvkitBlocked("Decimal arithmetic exponent budget exceeded");
+    if (!Number.isSafeInteger(exponent)) throw new DecimalTrap("InvalidOperation");
     return new Decimal(negative, coefficient, exponent);
   }
 

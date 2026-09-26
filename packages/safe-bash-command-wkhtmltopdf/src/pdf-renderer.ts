@@ -791,7 +791,7 @@ export function createPdfAstRenderer(): StaticRenderer {
           pageOffset: job.global.pageOffset,
           limits: {
             maxObjects: limits.parse.maxObjects,
-            maxPhysicalPages: 4096,
+            maxPhysicalPages: Infinity,
             maxWork: limits.resources.maxWork,
           },
           signal,

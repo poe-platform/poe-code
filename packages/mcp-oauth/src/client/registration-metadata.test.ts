@@ -139,6 +139,17 @@ it("preserves large and deeply nested provider metadata", () => {
   expect(parseOAuthClientRegistration(value)).toEqual(value);
 });
 
+it("copies large and deeply nested provider metadata without implicit resource limits", () => {
+  const large = "😀".repeat(16_384);
+  let nested: unknown = large;
+  for (let depth = 0; depth < 20_000; depth++) nested = { nested };
+  const supplied = { ...registration, extension: nested };
+  let result: unknown = parseOAuthClientRegistration(supplied).extension;
+  expect(result === nested).toBe(false);
+  for (let depth = 0; depth < 20_000; depth++) result = (result as { nested: unknown }).nested;
+  expect(result).toBe(large);
+});
+
 it("does not invoke accessors or expose their errors while copying imported metadata", () => {
   const getter = vi.fn(() => { throw new Error("private-marker"); });
   const supplied = { ...registration };

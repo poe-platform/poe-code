@@ -8,7 +8,6 @@ import { variablePresence } from "./variable-presence.js";
 
 type Predicate = () => Promise<boolean>;
 
-const maxExpressionDepth = 256;
 const unary = new Set(["-n", "-z", "-e", "-a", "-f", "-d", "-c", "-L", "-h", "-s", "-r", "-w", "-x", "-b", "-p", "-S", "-u", "-g", "-k", "-O", "-G", "-t", "-v", "-o", "-R", "-N"]);
 const binary = new Set(["=", "==", "!=", "<", ">", "-eq", "-ne", "-lt", "-le", "-gt", "-ge", "-nt", "-ot", "-ef"]);
 const numeric = new Set(["-eq", "-ne", "-lt", "-le", "-gt", "-ge"]);
@@ -166,28 +165,19 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
       if (!/^[ \t]*[+-]?[0-9]+[ \t]*$/u.test(text)) throw new UsageError(`integer expression expected: '${text}'`);
       return BigInt(text.trim());
     };
-    const primary = (depth: number): Predicate => {
+    const primary = (): Predicate => {
       const token = args[offset++];
       if (token === undefined) throw new UsageError("argument expected");
       // A short group treats operator-looking strings as operands by argc.
       if (args.length > 3 && token === "(" && args[offset + 1] === ")") {
-        if (depth >= maxExpressionDepth) throw new UsageError(`expression nesting exceeds ${maxExpressionDepth}`);
         const value = Boolean(args[offset]);
         offset += 2;
         return async () => value;
       }
       if (token === "(" && args[offset] === "!" && args[offset + 2] === ")") {
-        if (depth >= maxExpressionDepth) throw new UsageError(`expression nesting exceeds ${maxExpressionDepth}`);
         const value = !args[offset + 1];
         offset += 3;
         return async () => value;
-      }
-      if ((token === "!" || token === "(") && !(binary.has(args[offset] ?? "") && !binary.has(args[offset + 1] ?? ""))) {
-        if (depth >= maxExpressionDepth) throw new UsageError(`expression nesting exceeds ${maxExpressionDepth}`);
-        if (token === "!") { const inner = primary(depth + 1); return async () => !await inner(); }
-        const inner = disjunction(depth + 1);
-        if (args[offset++] !== ")") throw new UsageError("missing ')'");
-        return inner;
       }
       const leftLength = token === "-l" && numeric.has(args[offset + 1] ?? "");
       const left = leftLength ? args[offset++]! : token;
@@ -262,29 +252,68 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
       }
       return async () => token !== "";
     };
-    const conjunction = (depth: number): Predicate => {
-      let predicate = primary(depth);
-      while (args[offset] === "-a") {
+    type Expression = { kind: "atom"; evaluate: Predicate } | { kind: "not"; inner: Expression }
+      | { kind: "or"; groups: Expression[][] };
+    type Frame = { groups: Expression[][]; negate: boolean; pendingNot: boolean };
+    const frames: Frame[] = [{ groups: [[]], negate: false, pendingNot: false }];
+    let expecting = true;
+    while (true) {
+      context.signal.throwIfAborted();
+      const frame = frames[frames.length - 1]!;
+      const token = args[offset];
+      if (expecting) {
+        const shortGroup = token === "(" && (args.length > 3 && args[offset + 2] === ")"
+          || args[offset + 1] === "!" && args[offset + 3] === ")");
+        if (!shortGroup && (token === "!" || token === "(")
+          && !(binary.has(args[offset + 1] ?? "") && !binary.has(args[offset + 2] ?? ""))) {
+          offset++;
+          if (token === "!") frame.pendingNot = !frame.pendingNot;
+          else {
+            frames.push({ groups: [[]], negate: frame.pendingNot, pendingNot: false });
+            frame.pendingNot = false;
+          }
+          continue;
+        }
+        let expression: Expression = { kind: "atom", evaluate: primary() };
+        if (frame.pendingNot) expression = { kind: "not", inner: expression };
+        frame.pendingNot = false;
+        frame.groups[frame.groups.length - 1]!.push(expression);
+        expecting = false;
+      } else if (token === "-a" || token === "-o") {
         offset++;
-        const left = predicate;
-        const right = primary(depth);
-        predicate = async () => await left() && await right();
-      }
-      return predicate;
-    };
-    const disjunction = (depth: number): Predicate => {
-      let predicate = conjunction(depth);
-      while (args[offset] === "-o") {
-        offset++;
-        const left = predicate;
-        const right = conjunction(depth);
-        predicate = async () => await left() || await right();
-      }
-      return predicate;
-    };
-    const evaluate = disjunction(0);
+        if (token === "-o") frame.groups.push([]);
+        expecting = true;
+      } else if (frames.length > 1) {
+        if (args[offset++] !== ")") throw new UsageError("missing ')'");
+        frames.pop();
+        let expression: Expression = frame.groups.length === 1 && frame.groups[0]!.length === 1
+          ? frame.groups[0]![0]! : { kind: "or", groups: frame.groups };
+        if (frame.negate) expression = { kind: "not", inner: expression };
+        const parent = frames[frames.length - 1]!;
+        parent.groups[parent.groups.length - 1]!.push(expression);
+      } else break;
+    }
     if (offset !== args.length) throw new UsageError(`unexpected argument '${args[offset]}'`);
-    return { exitCode: await evaluate() !== negate ? 0 : 1 };
+    type Evaluation = { expression: Expression; group: number; term: number };
+    const pending: Evaluation[] = [{ expression: { kind: "or", groups: frames[0]!.groups }, group: 0, term: 0 }];
+    let result = false;
+    while (pending.length) {
+      context.signal.throwIfAborted();
+      const current = pending[pending.length - 1]!;
+      const expression = current.expression;
+      if (expression.kind === "atom") { result = await expression.evaluate(); pending.pop(); }
+      else if (expression.kind === "not") {
+        if (current.term++) { result = !result; pending.pop(); }
+        else pending.push({ expression: expression.inner, group: 0, term: 0 });
+      } else {
+        const group = expression.groups[current.group]!;
+        if (current.term > 0 && !result) { current.group++; current.term = 0; }
+        else if (current.term === group.length) { result = true; pending.pop(); continue; }
+        if (current.group === expression.groups.length) { result = false; pending.pop(); }
+        else pending.push({ expression: expression.groups[current.group]![current.term++]!, group: 0, term: 0 });
+      }
+    }
+    return { exitCode: result !== negate ? 0 : 1 };
   })).map(command => {
     defaultPredicateExecutors.add(command.execute);
     return { ...command, filesystemRequirements: predicateRequirements };

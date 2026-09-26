@@ -82,13 +82,13 @@ async function warning(message: string, context: CapabilityContext, code = "odf-
 }
 function bounds(context: CapabilityContext): ZipLimits {
   return { maxArchiveBytes: Math.min(context.limits.inputBytes, context.limits.compressedBytes ?? context.limits.inputBytes), maxEntryBytes: Math.min(context.limits.inputBytes, context.limits.inflatedBytes ?? context.limits.inputBytes),
-    maxTotalBytes: Math.min(context.limits.inputBytes, context.limits.inflatedBytes ?? context.limits.inputBytes), maxMembers: context.limits.zipEntries ?? context.limits.workbookNodes ?? 100000,
-    maxPathBytes: 4096, maxDepth: context.limits.xmlDepth ?? 128, maxPaxBytes: context.limits.inputBytes,
+    maxTotalBytes: Math.min(context.limits.inputBytes, context.limits.inflatedBytes ?? context.limits.inputBytes), maxMembers: context.limits.zipEntries ?? context.limits.workbookNodes ?? Infinity,
+    maxPathBytes: Infinity, maxDepth: context.limits.xmlDepth ?? Infinity, maxPaxBytes: context.limits.inputBytes,
     maxTextBytes: context.limits.workbookTextBytes ?? context.limits.inputBytes, chunkSize: 16384 };
 }
 function packageEntries(members: readonly ZipEntry[], context: CapabilityContext) {
   for (const entry of members) {
-    if (entry.size > (context.limits.zipRatio ?? 1000) * Math.max(1, entry.data.length)) limit("ZIP ratio");
+    if (entry.size > (context.limits.zipRatio ?? Infinity) * Math.max(1, entry.data.length)) limit("ZIP ratio");
   }
   const entries = new Map(members.filter(e => !e.directory).map(e => [e.name, e]));
   for (const entry of entries.values()) if (entry.symlink || entry.name.startsWith("/") || entry.name.includes("\\")
@@ -105,7 +105,7 @@ async function openPackage(bytes: Uint8Array, context: CapabilityContext) {
   let decoded = 0, nodes = 0, textBytes = 0, work = 0;
   function charge(amount = 1) {
     context.signal.throwIfAborted();
-    if (amount > (context.limits.workbookWork ?? 10000000) - work) limit("work"); work += amount;
+    if (amount > (context.limits.workbookWork ?? Infinity) - work) limit("work"); work += amount;
   }
   const buffers = new Map<string, Uint8Array>();
   async function read(name: string) {
@@ -130,8 +130,8 @@ async function openPackage(bytes: Uint8Array, context: CapabilityContext) {
     if (bytes.length > (context.limits.workbookTextBytes ?? limits.maxTotalBytes) - textBytes) limit("XML text");
     textBytes += bytes.length;
     const parser = parseXmlSteps(new TextDecoder(encoding, { fatal: true }).decode(bytes), { expectedEncoding: encoding,
-      retainContent: true, maxDepth: context.limits.xmlDepth ?? 128, maxNodes: (context.limits.workbookNodes ?? 100000) - nodes,
-      maxAttributes: context.limits.workbookNodes ?? 100000, maxTextLength: limits.maxTextBytes,
+      retainContent: true, maxDepth: context.limits.xmlDepth ?? Infinity, maxNodes: (context.limits.workbookNodes ?? Infinity) - nodes,
+      maxAttributes: context.limits.workbookNodes ?? Infinity, maxTextLength: limits.maxTextBytes,
       onElement() { nodes++; charge(); } });
     let step = parser.next(), ticks = 0;
     while (!step.done) {
@@ -287,7 +287,7 @@ async function formula(source: string, legacy: boolean, position: { sheet: strin
   else if (!legacy && source.startsWith("msoxl:")) { grammar = { ...gnumericGrammar, leftAssociativePower: true }; source = source.slice(6); }
   if (source === "=") return undefined;
   const parsed = parseExpression(source, { grammar, position, signal: context.signal,
-    maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? 100000 });
+    maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? Infinity });
   if (!parsed.ok) {
     await warning(`${position.sheet}!${formatA1(position.row, position.column)} : Unable to parse '${source}'\n`, context);
     return undefined;
@@ -381,7 +381,7 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
       const columnDefaults: { start: number; end: number; name: string }[] = [];
       const sheetStyle = styles.resolve(attr(node, "style-name"), "table");
       function retain(n: XmlElement, extra: Readonly<Record<string, ImportedValue>> = {}) {
-        if (++metadata > (context.limits.workbookNodes ?? 100000)) limit("metadata"); records.push(record(n, extra));
+        if (++metadata > (context.limits.workbookNodes ?? Infinity)) limit("metadata"); records.push(record(n, extra));
       }
       async function axes(parent: XmlElement, axis: "row" | "column", level = 0): Promise<void> {
         for (const n of parent.children) {
@@ -398,7 +398,7 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
           const size = styles.axisSize(attr(n, "style-name"), axis);
           const hidden = attr(n, "visibility") !== undefined && attr(n, "visibility") !== "visible";
           if (size !== undefined || hidden || level || axisStyle) {
-            if (count > (context.limits.workbookNodes ?? 100000) - metadata) limit("axis metadata");
+            if (count > (context.limits.workbookNodes ?? Infinity) - metadata) limit("axis metadata");
             for (let i = 0; i < count; i++) {
               pkg.charge(); metadata++;
               if (i > 0 && i % 1024 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); pkg.charge(); }
@@ -423,14 +423,14 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
             const formulaAttribute = c.attributes.findIndex(a => a.localName === "formula" && table.includes(a.namespace));
             if (expression && errorFlag >= 0 && errorFlag < formulaAttribute) {
               const parsed = parseExpression(expression, { position: { sheet: id, row, column: cellColumn }, signal: context.signal,
-                maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? 100000 });
+                maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? Infinity });
               if (parsed.ok && parsed.document.root.kind === "literal" && parsed.document.root.value.kind === "error") {
                 value = parsed.document.root.value; expression = undefined; restoredError = true;
               }
             }
             const errorFormula = source === "=" || source === "of:=" || source === "oooc:=";
             if (source && !expression && !errorFormula && !restoredError) {
-              if (++metadata > (context.limits.workbookNodes ?? 100000)) limit("metadata");
+              if (++metadata > (context.limits.workbookNodes ?? Infinity)) limit("metadata");
               records.push({ source: "Gnumeric_OpenCalc:openoffice", kind: "unparsed-formula", disposition: "retained",
                 data: { row, column: cellColumn, formula: source, rows: count, columns: repeat } });
             }
@@ -487,7 +487,7 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
       }
       await axes(node, "column"); await axes(node, "row");
       const translatedMetadata = [...odfSheetMetadata(node, pkg.charge, styleRoots), ...odfDatabaseRanges(spreadsheet, name, pkg.charge)];
-      if (translatedMetadata.length > (context.limits.workbookNodes ?? 100000) - metadata) limit("metadata");
+      if (translatedMetadata.length > (context.limits.workbookNodes ?? Infinity) - metadata) limit("metadata");
       metadata += translatedMetadata.length; records.push(...translatedMetadata);
       if (groups.length) {
         const positions = new Map(cells.map((c, i) => [`${c.row}:${c.column}`, i]));
@@ -534,7 +534,7 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
         const parsedBase = base ? parseExpression("=[" + base + "]", { grammar: odfGrammar,
           position: { sheet: initialSheet, row: 0, column: 0 }, signal: context.signal,
           maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes,
-          maximumNodes: context.limits.workbookNodes ?? 100000 }) : undefined;
+          maximumNodes: context.limits.workbookNodes ?? Infinity }) : undefined;
         const endpoint = parsedBase?.ok && parsedBase.document.root.kind === "reference" && !parsedBase.document.root.last
           ? parsedBase.document.root.first : undefined;
         const position = { sheet: endpoint?.sheet ?? initialSheet, row: endpoint?.row?.value ?? 0, column: endpoint?.column?.value ?? 0 };
@@ -650,7 +650,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
       xml.charge(source.length);
       const parsed = parseExpression(source, { grammar: gnumericGrammar, position: { sheet: sheet.id, row, column }, workbook: book,
         signal: context.signal, maximumLength: context.limits.workbookTextBytes ?? context.limits.outputBytes,
-        maximumNodes: context.limits.workbookNodes ?? 100000 });
+        maximumNodes: context.limits.workbookNodes ?? Infinity });
       if (!parsed.ok) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: invalid OpenDocument formula");
       const aliases: Record<string,string> = { ...odfGrammar.functionExportAliases, ...odfWriterFunctionNames };
       function visit(node: FormulaNode) {

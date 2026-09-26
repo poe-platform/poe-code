@@ -98,7 +98,7 @@ function configurationData(value: unknown, options: ConfigurationOptions): unkno
     if (new TextEncoder().encode(value).byteLength > limit) throw new Error("MCP configuration byte limit exceeded");
     value = parseArgumentJson(value);
   }
-  if (!isJsonValue(value, { maxNodes: limit })) throw new Error("MCP configuration must contain only JSON data within the configuration byte limit and depth limit");
+  if (!isJsonValue(value, { maxNodes: limit, maxDepth: Infinity })) throw new Error("MCP configuration must contain only JSON data within the configuration byte limit");
   if (new TextEncoder().encode(JSON.stringify(value)).byteLength > limit) throw new Error("MCP configuration byte limit exceeded");
   return structuredClone(value);
 }

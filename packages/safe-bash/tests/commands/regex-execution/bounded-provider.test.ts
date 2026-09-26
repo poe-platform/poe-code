@@ -498,8 +498,8 @@ test("unsupported expr syntax uses the protocol's explicit unsupported reply", a
   } finally { await session.close(); await executor.dispose(); }
 });
 
-test("budget options are finite positive bounded integers and unknown options are rejected", () => {
-  for (const options of [{ maxInputBytes: Infinity }, { maxWorkers: 0 }, { maxRows: 1.5 }, { typo: 1 }]) {
+test("budget options reject invalid quotas and unknown options", () => {
+  for (const options of [{ maxInputBytes: -Infinity }, { maxWorkers: 0 }, { maxRows: 1.5 }, { typo: 1 }]) {
     assert.throws(() => createBoundedRegexProvider(options), /option|limit/);
   }
 });

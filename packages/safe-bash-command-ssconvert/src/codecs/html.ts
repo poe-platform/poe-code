@@ -94,13 +94,13 @@ async function document(bytes: Uint8Array, context: CapabilityContext): Promise<
   let nodes = 0, textSize = 0, work = 0;
   function admit(size = 0) {
     context.signal.throwIfAborted();
-    if (++nodes > (context.limits.workbookNodes ?? 100000)) limit("nodes");
+    if (++nodes > (context.limits.workbookNodes ?? Infinity)) limit("nodes");
     if ((textSize += size) > (context.limits.workbookTextBytes ?? context.limits.inputBytes)) limit("text bytes");
   }
   function open(name: string, attributes: Record<string, string> = {}) {
     while (stack.length > 1 && htmlAutoClose[stack.at(-1)!.name]?.includes(name)) stack.pop();
     admit(Object.values(attributes).reduce((sum, v) => sum + v.length, 0));
-    if (stack.length > 256) limit("depth");
+    if (stack.length > (context.limits.xmlDepth ?? Infinity)) limit("depth");
     const node: Node = { name, text: "", attributes, children: [] };
     stack.at(-1)!.children.push(node);
     if (!voidTags.has(name)) stack.push(node);
@@ -429,7 +429,7 @@ export function createHtmlWriter(profile: HtmlExportProfile): NonNullable<import
       for (let row = startRow; row <= endRow; row++) {
         put("<tr>\n");
         for (let column = startColumn; column <= endColumn; column++) {
-          tick(); if (++nodes > (context.limits.workbookNodes ?? 100000)) limit("export nodes");
+          tick(); if (++nodes > (context.limits.workbookNodes ?? Infinity)) limit("export nodes");
           let merge: Range | undefined;
           for (const candidate of sheet.merges ?? []) { tick(); if (row >= candidate.startRow && row <= candidate.endRow && column >= candidate.startColumn && column <= candidate.endColumn) { merge = candidate; break; } }
           if (merge && (row !== merge.startRow || column !== merge.startColumn)) continue;

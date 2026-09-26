@@ -51,7 +51,7 @@ async function fixture(overrides: Partial<Record<keyof FileSystem, unknown>> = {
     return typeof member === "function" ? member.bind(target) : member;
   } });
   const shell = new Shell({ fs }).use(agentCommands());
-  return { shell, memory };
+  return { shell, memory, fs };
 }
 
 function streams(left: ByteSource, right: ByteSource): Partial<FileSystem> {
@@ -189,9 +189,9 @@ for (const reason of [false, 0, "", null]) {
 }
 
 for (const mode of ["disabled", "missing", "denied"] as const) {
-  test(`cmp ${mode} path streaming honors admission and never reads without a finite cap`, async () => {
+  test(`cmp ${mode} path streaming honors admission and omits an unlimited read bound`, async () => {
     let streamCalls = 0;
-    const reads: number[] = [];
+    const reads: (number | undefined)[] = [];
     const { shell } = await fixture({
       async capabilitiesFor(path: string) {
         assert.ok(path === "/left" || path === "/right");
@@ -201,8 +201,8 @@ for (const mode of ["disabled", "missing", "denied"] as const) {
       async readFile(_path: string, options: { maxBytes?: number; signal?: AbortSignal }) {
         assert.notEqual(mode, "denied", "disabled read capability called");
         assert.ok(options.signal);
-        assert.ok(Number.isSafeInteger(options.maxBytes) && options.maxBytes! > 0 && options.maxBytes! <= 32 * 1024 * 1024);
-        reads.push(options.maxBytes!);
+        assert.equal(options.maxBytes, undefined);
+        reads.push(options.maxBytes);
         return Uint8Array.of(0x80, 0, 0xff);
       },
     });
@@ -268,7 +268,7 @@ test("cmp output budget rejection closes both inputs without consuming later chu
   } finally { release.resolve(); await running.catch(() => {}); await shell.dispose(); }
 });
 
-test("cmp refuses an oversized incoming chunk before copying and closes its producer", async () => {
+test("cmp accepts an incoming chunk beyond 32 MiB and closes its producer after the requested prefix", async () => {
   const oversized = new Uint8Array(32 * 1024 * 1024 + 1);
   let closed = false;
   const source: ByteSource = { async *[Symbol.asyncIterator]() { try { yield oversized; assert.fail("read beyond over-budget chunk"); } finally { closed = true; } } };
@@ -286,10 +286,10 @@ test("cmp refuses an oversized incoming chunk before copying and closes its prod
     return nativeSlice.call(this, start, end);
   };
   try {
-    const result = await shell.exec("cmp /left /right");
-    assert.equal(result.exitCode, 2, result.stderr);
+    const result = await shell.exec("cmp -n1 /left /right");
+    assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(closed, true);
-    assert.equal(copies, 0);
+    assert.ok(copies > 0);
   } finally { globalThis.Uint8Array = NativeUint8Array; NativeUint8Array.prototype.slice = nativeSlice; await shell.dispose(); }
 });
 
@@ -309,7 +309,7 @@ test("cmp never retries a partially consumed failed stream as a buffered read", 
   } finally { await shell.dispose(); }
 });
 
-test("cmp yields during zero-byte pulls so queued cancellation runs before the finite producer cutoff", async () => {
+test("cmp yields during zero-byte pulls so queued cancellation runs", async () => {
   const controller = new AbortController();
   const reason = new Error("empty-chunk task-turn cancellation");
   let handle: ReturnType<typeof setImmediate> | undefined;
@@ -335,18 +335,50 @@ test("cmp yields during zero-byte pulls so queued cancellation runs before the f
   } finally { clearImmediate(handle); controller.abort(reason); await shell.dispose(); }
 });
 
-test("cmp shares its 32 MiB input admission across both operands", async () => {
+test("cmp accepts more than 32 MiB across both operands", async () => {
   const chunk = new Uint8Array(16 * 1024 * 1024 + 1);
   const closed: string[] = [];
   const source = (name: string): ByteSource => ({ async *[Symbol.asyncIterator]() {
-    try { yield chunk; assert.fail("read after aggregate input rejection"); }
+    try { yield chunk; assert.fail("read beyond requested prefix"); }
     finally { closed.push(name); }
   } });
   const { shell } = await fixture(streams(source("left"), source("right")));
   try {
-    const result = await shell.exec("cmp /left /right");
-    assert.equal(result.exitCode, 2, result.stderr);
+    const result = await shell.exec("cmp -n1 /left /right");
+    assert.equal(result.exitCode, 0, result.stderr);
     assert.deepEqual(closed.sort(), ["left", "right"]);
+  } finally { await shell.dispose(); }
+});
+
+for (const options of ["-s ".repeat(4097), `-${"s".repeat(65_537)} `]) {
+  test(`cmp accepts valid options beyond the old argument ${options.startsWith("-s ") ? "count" : "byte"} cap`, async () => {
+    const { shell } = await fixture();
+    try {
+      const result = await shell.exec(`cmp ${options}/left /right`);
+      assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "", ""]);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("cmp accepts a finite producer with more than 65536 empty chunks", async () => {
+  let closed = false;
+  const source: ByteSource = { async *[Symbol.asyncIterator]() {
+    try {
+      for (let index = 0; index < 65_537; index++) yield new Uint8Array();
+      yield Uint8Array.of(42);
+    } finally { closed = true; }
+  } };
+  const right = producer([Uint8Array.of(42)]);
+  const { shell, fs } = await fixture(streams(source, right.source));
+  try {
+    const result = await cmpCommand().execute({
+      command: "cmp", args: ["/left", "/right"], cwd: "/", env: {}, fs,
+      signal: new AbortController().signal, stdin: source,
+      stdout: { async write() { assert.fail("equal inputs must not produce stdout"); } },
+      stderr: { async write() { assert.fail("empty input chunks must not cause a diagnostic"); } },
+    });
+    assert.equal(result.exitCode, 0);
+    assert.equal(closed, true);
   } finally { await shell.dispose(); }
 });
 

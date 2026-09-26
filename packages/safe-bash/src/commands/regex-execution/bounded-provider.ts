@@ -100,7 +100,7 @@ function options(input: BoundedRegexProviderOptions): Required<BoundedRegexProvi
   for (const key of keys) {
     if (!Object.hasOwn(input, key)) continue;
     const value = input[key];
-    if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 1) throw new RangeError(`bounded regex option ${key} is outside its limit`);
+    if (value !== Infinity && (typeof value !== "number" || !Number.isSafeInteger(value) || value < 1)) throw new RangeError(`bounded regex option ${key} is outside its limit`);
     result[key] = value;
   }
   return Object.freeze(result);

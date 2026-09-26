@@ -100,7 +100,7 @@ function* parseCsv(dialect: CsvDialect, step: () => void, preserveNewlines = fal
     if (cells.length >= (dialect.columnBudget ?? Infinity)) throw new CsvkitBlocked("column budget exceeded");
     length++;
     if (length > (dialect.fieldBudget ?? Infinity)) throw new CsvkitBlocked("field character budget exceeded");
-    if (length > (dialect.fieldLimit ?? 131072)) throw new CsvkitDiagnostic(`FieldSizeLimitError: CSV contains a field longer than the maximum length of ${dialect.fieldLimit ?? 131072} characters on line ${physicalLine?.() ?? line}. Try raising the maximum with the field_size_limit parameter, or try setting quoting=csv.QUOTE_NONE.`);
+    if (length > (dialect.fieldLimit ?? Infinity)) throw new CsvkitDiagnostic(`FieldSizeLimitError: CSV contains a field longer than the maximum length of ${dialect.fieldLimit} characters on line ${physicalLine?.() ?? line}. Try raising the maximum with the field_size_limit parameter, or try setting quoting=csv.QUOTE_NONE.`);
     field += char;
   };
   const finish = () => {

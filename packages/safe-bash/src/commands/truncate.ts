@@ -4,7 +4,7 @@ import { createOutputOperation } from "../contracts/output.js";
 import { shellValueByteLength } from "../contracts/value.js";
 import { yieldTurn } from "../contracts/yield.js";
 import { PublicDiagnostic, publicDiagnosticMessage } from "../diagnostics.js";
-import { bufferLimit, pathOf } from "./internal.js";
+import { pathOf } from "./internal.js";
 import { settings as metadataSettings, type MetadataCommandsOptions } from "./metadata/internal.js";
 
 const signedMaximum = (1n << 63n) - 1n;
@@ -328,8 +328,8 @@ export function truncateCommand(options: MetadataCommandsOptions = {}): CommandD
     const umask = configuredUmask ?? Reflect.get(context.fs, creationUmask);
     return 0o666 & ~(typeof umask === "number" ? umask : configured.umask);
   };
-  const argumentLimit = Math.min(65536, configured.limits.maxArgumentBytes);
-  const outputMaximum = Math.min(bufferLimit, configured.limits.maxOutputBytes);
+  const argumentLimit = configured.limits.maxArgumentBytes;
+  const outputMaximum = configured.limits.maxOutputBytes;
   return { name: "truncate", filesystemRequirements: [{ id: "resize", description: "Resize writable VFS entries through retained handles or atomic operations", capabilities: [], anyOf: [["retainedResize"], ["atomicResize"]], mutates: true }], async execute(context) {
     context.signal.throwIfAborted();
     const root = createOutputOperation({ signal: context.signal, registerCleanup(cleanup) {

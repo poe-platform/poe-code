@@ -33,32 +33,25 @@ test("find printf preserves byte-valued format arguments through the real shell"
   } finally { await shell.dispose(); }
 });
 
-test("find printf admits all format bytes before traversing even when actions do not match", async () => {
+test("find printf accepts large combined formats even when actions do not match", async () => {
   const result = await run("find", ["missing", "-false", "-printf", "a".repeat(32768), "-printf", "b".repeat(32769)]);
-  assert.equal(result.exitCode, 2);
-  assert.match(result.stderr, /format byte limit/u);
-  assert.doesNotMatch(result.stderr, /ENOENT/u);
+  assert.equal(result.exitCode, 1);
+  assert.doesNotMatch(result.stderr, /format byte limit/u);
+  assert.match(result.stderr, /ENOENT/u);
 });
 
-test("find printf refuses an oversized string before UTF-8 byte-length scanning", async t => {
+test("find printf accepts a format larger than 65536 bytes", async () => {
   const { context } = await run("find", [".", "-maxdepth", "0"]);
   const oversized = "x".repeat(65537);
-  const byteLength = Buffer.byteLength;
-  const scan = t.mock.method(Buffer, "byteLength", (...args: Parameters<typeof Buffer.byteLength>) => {
-    if (args[0] === oversized) throw new Error("unadmitted UTF-8 scan");
-    return byteLength(...args);
-  });
-  try {
-    await assert.rejects(compileFindFormat(oversized, new FindFormatBudget(context)), /format byte limit/u);
-  } finally { scan.mock.restore(); }
+  assert.equal(typeof await compileFindFormat(oversized, new FindFormatBudget(context)), "function");
 });
 
-test("find printf total output exhaustion is terminal rather than repeated per remaining root", async () => {
+test("find printf output can exceed 8 MiB across multiple roots", async () => {
   const fs = await fixture({ file: "" });
   const result = await run("find", [...Array<string>(140).fill("file"), "-printf", "x".repeat(65536)], { fs });
-  assert.equal(result.exitCode, 1);
-  assert.equal(result.stdoutBytes.length, 8 * 1024 * 1024);
-  assert.equal(result.stderr.split("output limit exceeded").length - 1, 1);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdoutBytes.length, 140 * 65536);
+  assert.equal(result.stderr, "");
 });
 
 for (const reason of [false, { cancelled: "format" }]) test(`find printf yields during a long format and retains ${String(reason)} cancellation`, async () => {

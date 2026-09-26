@@ -51,7 +51,7 @@ export async function encryptOdfParts(parts: ReadonlyMap<string, Uint8Array>, co
     // Admit key derivation, input compression and cipher work together.
     xml.charge((authenticated ? argon2.m * argon2.t * 1024 : iterations * Math.ceil(profile.keyBytes / 20) * 128) + bytes.length * 8 + 128);
   }
-  const maxBytes = Math.min(4096, context.limits.inputBytes);
+  const maxBytes = context.limits.inputBytes;
   let secret: string | Uint8Array | undefined;
   context.signal.throwIfAborted();
   try {

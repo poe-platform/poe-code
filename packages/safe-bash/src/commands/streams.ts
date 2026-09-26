@@ -516,7 +516,7 @@ async function executeHeadTailSlow(
     return { exitCode };
 }
 
-function headTail(name: "head" | "tail", maxTailFollowHandles = 64): CommandDefinition {
+function headTail(name: "head" | "tail", maxTailFollowHandles = Infinity): CommandDefinition {
   return define(name, context => {
     if (name === "head") {
       const a = context.args;
@@ -665,12 +665,12 @@ function characterSet(specification: string, repeatLength?: number, translatingS
   return { bytes: result, caseOffsets, endsWithClass };
 }
 
-export function streamCommands(maxTeeTargets = 64, maxTailFollowHandles = 64): CommandDefinition[] {
-  if (!Number.isSafeInteger(maxTeeTargets) || maxTeeTargets < 0) {
-    throw new RangeError("maxTeeTargets must be a nonnegative safe integer");
+export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = Infinity): CommandDefinition[] {
+  if (maxTeeTargets !== Infinity && (!Number.isSafeInteger(maxTeeTargets) || maxTeeTargets < 0)) {
+    throw new RangeError("maxTeeTargets must be a nonnegative safe integer or Infinity");
   }
-  if (!Number.isSafeInteger(maxTailFollowHandles) || maxTailFollowHandles < 0) {
-    throw new RangeError("maxTailFollowHandles must be a nonnegative safe integer");
+  if (maxTailFollowHandles !== Infinity && (!Number.isSafeInteger(maxTailFollowHandles) || maxTailFollowHandles < 0)) {
+    throw new RangeError("maxTailFollowHandles must be a nonnegative safe integer or Infinity");
   }
   return [
     define("cat", executeCatGeneral),

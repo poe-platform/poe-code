@@ -177,8 +177,8 @@ Place execution settings before the tool name:
 connection setup; `--max-response-bytes` selects the HTTP response budget.
 Both retain configured host ceilings.
 `--max-input-bytes` and `--max-output-bytes` can tighten the corresponding host
-ceilings. All four accept positive integers, separated or with `=`, and repeated
-settings fail before connecting. Flags after the tool name belong to its schema;
+ceilings. All four accept positive integers, separated or with `=`; byte limits
+also accept `Infinity`. Repeated settings fail before connecting. Flags after the tool name belong to its schema;
 for example a tool field named `timeoutMs` keeps its own `--timeout-ms` flag.
 Execution settings also work before `--` when selecting a literal tool name.
 Use inline flags such as `--query=--help` for literal values beginning with
@@ -481,7 +481,8 @@ anchored before network waits, using original payload `issuedAt` milliseconds
 when supplied. Old token, timing and header environment values are never read.
 The SDK returns only `{ name, url, imported: true }`. Import and reset summaries retain the original validated identity even if a host hook changes its configuration argument. Default complete-operation
 and lock limits are 30 seconds (`requestTimeoutMs` and `timeoutMs`). Input defaults
-to `Infinity` (`maxImportBytes`), with token/DCR JSON separately bounded to 64 KiB.
+to `Infinity` (`maxImportBytes`), including token and DCR metadata. Nesting has no
+implicit depth ceiling; configured byte limits still bound the complete payload.
 Malformed JSON diagnostics never quote input. Host-owned persistence requires
 `binding.oauth.importSession(server, session, { signal, timeoutMs })`; that hook
 owns atomic client/grant installation and durable stale-import suppression. Cancellation settles the caller while continuing to observe host completion. Host persistence can still finish afterward; an already completed write is retained. The hook must observe the supplied signal to stop its own work.

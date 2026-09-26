@@ -6,8 +6,6 @@ import { acceptsMimeType, sniffMimeType } from "./mime.js";
 import type { LlmCommandsOptions, LlmRequest } from "./types.js";
 import { createLlmService, type LlmService } from "./service.js";
 
-const maxBytes = 64 * 1024 * 1024;
-
 interface Arguments {
   model?: string;
   system?: string;
@@ -79,7 +77,7 @@ async function execute(context: CommandContext, service: LlmService) {
   const step = async (): Promise<void> => {
     signal.throwIfAborted();
     if (closed) throw new Error("LLM invocation is closed");
-    if (++work > 1_000_000) throw new Error("LLM work limit exceeded");
+    work++;
     if (work % 256 === 0) await yieldTurn(signal);
   };
   let writing = false;
@@ -99,8 +97,7 @@ async function execute(context: CommandContext, service: LlmService) {
     }
   };
   let inputBytes = 0;
-  let argumentBytes = 0;
-  const inputLimit = Math.min(maxBytes, context.inputBudget?.maxBytes ?? maxBytes);
+  const inputLimit = context.inputBudget?.maxBytes ?? Infinity;
   const checkInput = (size: number): void => {
     context.inputBudget?.check(inputBytes + size);
     if (size > inputLimit - inputBytes) throw new FsError("EFBIG", { message: "llm input byte limit exceeded" });
@@ -114,8 +111,6 @@ async function execute(context: CommandContext, service: LlmService) {
     const argumentText = (index: number): string => {
       const bytes = argumentsValue.bytes(index);
       if (!bytes) throw new Error("Missing option argument");
-      if (bytes.byteLength > maxBytes - argumentBytes) throw new Error("LLM argument byte limit exceeded");
-      argumentBytes += bytes.byteLength;
       return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
     };
     if (argumentsValue.args.length === 1 && ["--help", "-h"].includes(argumentsValue.args[0]!)) {
@@ -162,7 +157,9 @@ async function execute(context: CommandContext, service: LlmService) {
       const path = pathOf(context, attachment.path);
       const stat = await interrupted(() => context.fs.stat(path, { signal }), signal);
       checkInput(stat.size);
-      const bytes = await interrupted(() => context.fs.readFile(path, { signal, maxBytes: inputLimit - inputBytes }), signal);
+      const bytes = await interrupted(() => context.fs.readFile(path, { signal,
+        ...(inputLimit === Infinity ? {} : { maxBytes: inputLimit - inputBytes }),
+      }), signal);
       signal.throwIfAborted();
       if (!(bytes instanceof Uint8Array)) throw new TypeError("Attachment read must return Uint8Array");
       admitInput(bytes.byteLength);

@@ -65,7 +65,7 @@ async function digestPayload(value: unknown): Promise<string> {
 
 function snapshotRegistry(value: unknown, limit: number): Record<string, unknown> | undefined {
   if (value === undefined) return undefined;
-  if (value === null || typeof value !== "object" || Array.isArray(value) || !isJsonValue(value, { maxNodes: limit }))
+  if (value === null || typeof value !== "object" || Array.isArray(value) || !isJsonValue(value, { maxNodes: limit, maxDepth: Infinity }))
     throw new Error("MCP schema registry must contain only bounded JSON documents");
   if (new TextEncoder().encode(JSON.stringify(value)).byteLength > limit) throw new Error("MCP artifact byte limit exceeded");
   const registry = JSON.parse(canonicalJson(value)) as Record<string, unknown>;
@@ -154,7 +154,7 @@ export async function parseRemoteMcpArtifact(value: unknown, options: ArtifactOp
     if (new TextEncoder().encode(value).byteLength > limit) throw new Error("MCP artifact byte limit exceeded");
     value = parseArgumentJson(value);
   }
-  if (!isJsonValue(value, { maxNodes: limit }) || new TextEncoder().encode(JSON.stringify(value)).byteLength > limit)
+  if (!isJsonValue(value, { maxNodes: limit, maxDepth: Infinity }) || new TextEncoder().encode(JSON.stringify(value)).byteLength > limit)
     throw new Error("MCP artifact byte limit or JSON data limit exceeded");
   const validation = artifactValidator.validate(value);
   if (!validation.ok) throw new Error(`Invalid MCP artifact: ${formatIssues(validation.issues)}`);

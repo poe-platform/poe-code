@@ -147,7 +147,7 @@ for (const algorithm of ["sha512", "sha384", "sha224", "sha256"]) {
 }
 
 test("input limits are validated eagerly through direct, family, and aggregate factories", () => {
-  for (const maxInputBytes of [-1, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+  for (const maxInputBytes of [-1, 0.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1]) {
     assert.throws(() => createEncodingCommands({ limits: { maxInputBytes } }), RangeError);
     assert.throws(() => createChecksumCommands({ limits: { maxInputBytes } }), RangeError);
     assert.throws(() => createByteCommands({ encoding: { limits: { maxInputBytes } } }), RangeError);

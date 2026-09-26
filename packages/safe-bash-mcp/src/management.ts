@@ -326,7 +326,7 @@ export function createRemoteMcpManagementCommand(
             if (file !== undefined && file !== "-") {
               const path = resolvePath(context.cwd, file);
               source = context.fs.readStream === undefined
-                ? toByteSource(await context.fs.readFile(path, { signal, maxBytes: maxImportBytes }))
+                ? toByteSource(await context.fs.readFile(path, { signal, ...(maxImportBytes === Infinity ? {} : { maxBytes: maxImportBytes }) }))
                 : context.fs.readStream(path, { signal });
             }
             const bytes = await collectBytes(source, { signal, maxBytes: maxImportBytes });

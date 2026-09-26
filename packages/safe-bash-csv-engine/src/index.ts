@@ -22,18 +22,18 @@ export interface CsvLimits {
   argumentBytes: number;
 }
 export const defaultCsvLimits: Readonly<CsvLimits> = Object.freeze({
-  inputBytes: 16 * 1024 * 1024,
-  decodedBytes: 32 * 1024 * 1024,
-  retainedBytes: 64 * 1024 * 1024,
-  outputBytes: 32 * 1024 * 1024,
-  work: 16 * 1024 * 1024,
-  fieldBytes: 1024 * 1024,
-  cells: 100_000,
-  scannedCells: 100_000,
-  patternBytes: 4096,
-  setEntries: 10_000,
-  setBytes: 1024 * 1024,
-  argumentBytes: 64 * 1024
+  inputBytes: Infinity,
+  decodedBytes: Infinity,
+  retainedBytes: Infinity,
+  outputBytes: Infinity,
+  work: Infinity,
+  fieldBytes: Infinity,
+  cells: Infinity,
+  scannedCells: Infinity,
+  patternBytes: Infinity,
+  setEntries: Infinity,
+  setBytes: Infinity,
+  argumentBytes: Infinity
 });
 export class CsvBudget {
   private disposed = false;
@@ -62,7 +62,7 @@ export class CsvBudget {
   ) {
     this.limits = Object.freeze({ ...defaultCsvLimits, ...limits });
     for (const value of Object.values(this.limits))
-      if (!Number.isSafeInteger(value) || value < 0)
+      if (value !== Infinity && (!Number.isSafeInteger(value) || value < 0))
         throw new CsvError("ARGUMENT", "CSV limits must be nonnegative safe integers");
   }
   charge(key: keyof CsvLimits, amount: number): void {

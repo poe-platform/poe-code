@@ -1,7 +1,6 @@
 import { FsError, getCommandArguments, writeBytes, type ByteSource, type CommandContext, type CommandDefinition, type FileReadHandle, type FileStat } from "../contracts/index.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { createOutputOperation, type OutputOperation } from "../contracts/output.js";
-import { shellValueByteLength } from "../contracts/value.js";
 import { yieldTurn } from "../contracts/yield.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { ByteInputBudget } from "./bytes/input-budget.js";
@@ -9,7 +8,6 @@ import { bufferLimit, diagnostic, pathOf } from "./internal.js";
 import { textOutputRequirements } from "./portable-requirements.js";
 import { RecordBuffer } from "./record-buffer.js";
 
-const maximumLines = 1024 * 1024;
 const reservoirThreshold = 8 * 1024 * 1024;
 const unsignedMaximum = (1n << 64n) - 1n;
 
@@ -192,12 +190,7 @@ interface Settings {
 
 function parse(context: CommandContext): Settings {
   const unicode = unicodeLocale(context);
-  if (context.args.length > 4096) throw new PublicDiagnostic("argument limit exceeded");
-  let total = 0;
-  for (const argument of context.args) { total += context.argumentValues === undefined ? Buffer.byteLength(argument) : argument.length; if (total > 65536) throw new PublicDiagnostic("argument limit exceeded"); }
   const carrier = getCommandArguments(context);
-  total = 0;
-  for (const value of carrier.values) { total += shellValueByteLength(value); if (total > 65536) throw new PublicDiagnostic("argument limit exceeded"); }
   const args = context.args.map((_argument, index) => Array.from(carrier.bytes(index)!, byte => String.fromCharCode(byte)).join(""));
   const settings: Settings = { echo: false, repeat: false, separator: 10, count: unsignedMaximum, hasCount: false, operands: [] };
   const long: Readonly<Record<string, string>> = { echo: "e", "input-range": "i", "head-count": "n", output: "o", "random-source": "random", repeat: "r", "zero-terminated": "z", help: "help", version: "version" };
@@ -289,7 +282,6 @@ class Input {
   private retired: Promise<void> | undefined;
   private controller = new AbortController();
   readonly signal: AbortSignal;
-  private empty = 0;
   private chunks = 0;
 
   constructor(private context: CommandContext, operation: OutputOperation, private budget: ByteInputBudget, private label: string) {
@@ -342,7 +334,7 @@ class Input {
             source = context.fs.readStream(path, { signal, chunkSize: 65536 });
           } else {
             if (capabilities.read === false) throw new FsError("ENOTSUP");
-            source = { async *[Symbol.asyncIterator]() { yield await context.fs.readFile(path, { signal, maxBytes: bufferLimit }); } };
+            source = { async *[Symbol.asyncIterator]() { yield await context.fs.readFile(path, { signal }); } };
           }
         } catch (error) { signal.throwIfAborted(); throw ioError(error, quote(name, true, unicodeLocale(context))); }
       }
@@ -378,8 +370,7 @@ class Input {
         const owned = new Uint8Array(item.value);
         this.position += owned.length;
         if (++this.chunks % 256 === 0) await yieldTurn(this.signal);
-        if (owned.length) { this.empty = 0; return owned; }
-        if (++this.empty > 4096) throw new PublicDiagnostic("empty input chunk limit exceeded");
+        if (owned.length) return owned;
       }
     })();
     this.pending = pending;
@@ -405,12 +396,11 @@ class Input {
 }
 
 class Random {
-  private number = 0;
-  private maximum = 0;
+  private number = 0n;
+  private maximum = 0n;
   private bytes: Uint8Array = new Uint8Array();
   private readonly prngBytes = new Uint8Array(4);
   private offset = 0;
-  private consumed = 0;
   private state: Uint32Array | undefined;
 
   constructor(private input: Input | undefined, private name: string | undefined, private signal: AbortSignal, private unicode: boolean, needsRandom: boolean) {
@@ -422,7 +412,6 @@ class Random {
 
   private byteSync(): number | Promise<number> {
     this.signal.throwIfAborted();
-    if (++this.consumed > 4 * 1024 * 1024) throw new PublicDiagnostic("random byte limit exceeded");
     if (this.offset === this.bytes.length) {
       if (this.input) {
         return this.input.next().then(bytes => {
@@ -452,62 +441,60 @@ class Random {
     return this.bytes[this.offset++]!;
   }
 
-  choose(choices: number): number | Promise<number> {
-    const target = choices - 1;
+  choose(choices: bigint): bigint | Promise<bigint> {
+    const target = choices - 1n;
     for (let attempt = 0; attempt < 255; attempt++) {
       while (this.maximum < target) {
         const b = this.byteSync();
         if (typeof b !== "number") return this.chooseAsync(choices, target, attempt, b);
-        this.number = this.number * 256 + b;
-        this.maximum = this.maximum * 256 + 255;
+        this.number = this.number * 256n + BigInt(b);
+        this.maximum = this.maximum * 256n + 255n;
       }
-      if (this.maximum === target) { const result = this.number; this.number = this.maximum = 0; return result; }
+      if (this.maximum === target) { const result = this.number; this.number = this.maximum = 0n; return result; }
       const excess = this.maximum - target;
       const unusable = excess % choices;
       const reduced = this.number % choices;
       if (this.number <= this.maximum - unusable) {
-        this.number = Math.floor(this.number / choices);
-        this.maximum = Math.floor(excess / choices);
+        this.number /= choices;
+        this.maximum = excess / choices;
         return reduced;
       }
       this.number = reduced;
-      this.maximum = unusable - 1;
+      this.maximum = unusable - 1n;
     }
     return this.chooseAsync(choices, target, 255);
   }
 
-  private async chooseAsync(choices: number, target: number, startAttempt: number, pendingByte?: Promise<number>): Promise<number> {
+  private async chooseAsync(choices: bigint, target: bigint, startAttempt: number, pendingByte?: Promise<number>): Promise<bigint> {
     if (pendingByte !== undefined) {
       const b = await pendingByte;
-      this.number = this.number * 256 + b;
-      this.maximum = this.maximum * 256 + 255;
+      this.number = this.number * 256n + BigInt(b);
+      this.maximum = this.maximum * 256n + 255n;
     }
-    for (let attempt = startAttempt; attempt < 4096; attempt++) {
+    for (let attempt = startAttempt; ; attempt++) {
       if (attempt % 256 === 255) await yieldTurn(this.signal);
       while (this.maximum < target) {
         const b = this.byteSync();
-        this.number = this.number * 256 + (typeof b === "number" ? b : await b);
-        this.maximum = this.maximum * 256 + 255;
+        this.number = this.number * 256n + BigInt(typeof b === "number" ? b : await b);
+        this.maximum = this.maximum * 256n + 255n;
       }
-      if (this.maximum === target) { const result = this.number; this.number = this.maximum = 0; return result; }
+      if (this.maximum === target) { const result = this.number; this.number = this.maximum = 0n; return result; }
       const excess = this.maximum - target;
       const unusable = excess % choices;
       const reduced = this.number % choices;
       if (this.number <= this.maximum - unusable) {
-        this.number = Math.floor(this.number / choices);
-        this.maximum = Math.floor(excess / choices);
+        this.number /= choices;
+        this.maximum = excess / choices;
         return reduced;
       }
       this.number = reduced;
-      this.maximum = unusable - 1;
+      this.maximum = unusable - 1n;
     }
-    throw new PublicDiagnostic("random selection work limit exceeded");
   }
 }
 
 async function* records(input: Input, separator: number): AsyncGenerator<Uint8Array> {
   const pending = new RecordBuffer(bufferLimit);
-  let recordCount = 0;
   try {
     while (true) {
       const bytes = await input.next();
@@ -516,35 +503,44 @@ async function* records(input: Input, separator: number): AsyncGenerator<Uint8Ar
       for (let offset = 0; offset < bytes.length; offset++) {
         if (offset % 65536 === 65535) await yieldTurn(input.signal);
         if (bytes[offset] !== separator) continue;
-        if (++recordCount > maximumLines) throw new PublicDiagnostic("input line limit exceeded");
         yield pending.finish(undefined, bytes, start, offset + 1);
         start = offset + 1;
       }
       pending.append(bytes, start);
     }
     if (pending.size) {
-      if (++recordCount > maximumLines) throw new PublicDiagnostic("input line limit exceeded");
       yield pending.finish(undefined, Uint8Array.of(separator));
     }
   } finally { pending.clear(); }
 }
 
-async function permutation(random: Random, count: number, length: number, signal: AbortSignal): Promise<Uint32Array> {
+async function permutation(random: Random, count: number, length: bigint, signal: AbortSignal): Promise<Uint32Array | bigint[]> {
   if (count === 0) return new Uint32Array();
-  const sparse = count > 1 && length >= 128 * 1024 && Math.floor(length / count) >= 32;
-  const indices = new Uint32Array(length);
-  for (let index = 0; index < length; index++) {
+  if (length > 0xffffffffn || length >= 128n * 1024n && length / BigInt(count) >= 32n) {
+    const swaps = new Map<bigint, bigint>();
+    const indices: bigint[] = [];
+    for (let index = 0n; index < BigInt(count); index++) {
+      const choice = random.choose(length - index);
+      const selected = index + (typeof choice === "bigint" ? choice : await choice);
+      // GNU's sparse shuffle uses an identity entry when the draw stays in place.
+      indices.push(selected === index ? index : swaps.get(selected) ?? selected);
+      swaps.set(selected, swaps.get(index) ?? index);
+      swaps.delete(index);
+      if (index % 1024n === 1023n) await yieldTurn(signal);
+    }
+    return indices;
+  }
+  const indices = new Uint32Array(Number(length));
+  for (let index = 0; index < indices.length; index++) {
     indices[index] = index;
     if (index % 65536 === 65535) await yieldTurn(signal);
   }
   for (let index = 0; index < count; index++) {
-    const c = random.choose(length - index); const selected = index + (typeof c === "number" ? c : await c);
-    if (sparse && index === selected) indices[index] = index;
-    else {
-      const previous = indices[index]!;
-      indices[index] = indices[selected]!;
-      indices[selected] = previous;
-    }
+    const choice = random.choose(length - BigInt(index));
+    const selected = index + Number(typeof choice === "bigint" ? choice : await choice);
+    const previous = indices[index]!;
+    indices[index] = indices[selected]!;
+    indices[selected] = previous;
     if (index % 1024 === 1023) await yieldTurn(signal);
   }
   return indices.subarray(0, count);
@@ -563,12 +559,9 @@ export function shufCommand(): CommandDefinition {
         operation = settings.output === undefined || settings.information ? root.child(context.stdout) : root;
         const signal = operation.signal;
         if (settings.information) {
-          await writeBytes(operation.output, new TextEncoder().encode(settings.information === "version" ? "shuf (virtual-bash)\n" : "Usage: shuf [OPTION]... [FILE]\n  or: shuf -e [OPTION]... [ARG]...\n  or: shuf -i LO-HI [OPTION]...\n  -e, --echo                 shuffle arguments\n  -i, --input-range=LO-HI    shuffle an inclusive range\n  -n, --head-count=COUNT     output at most COUNT records\n  -o, --output=FILE          write to a VFS file\n      --random-source=FILE   read random bytes from a VFS file\n  -r, --repeat               sample with replacement (requires -n)\n  -z, --zero-terminated      delimit records with NUL\n      --help                 display help\n      --version              display virtual command identity\n"), signal);
+          await writeBytes(operation.output, new TextEncoder().encode(settings.information === "version" ? "shuf (virtual-bash)\n" : "Usage: shuf [OPTION]... [FILE]\n  or: shuf -e [OPTION]... [ARG]...\n  or: shuf -i LO-HI [OPTION]...\n  -e, --echo                 shuffle arguments\n  -i, --input-range=LO-HI    shuffle an inclusive range\n  -n, --head-count=COUNT     output at most COUNT records\n  -o, --output=FILE          write to a VFS file\n      --random-source=FILE   read random bytes from a VFS file\n  -r, --repeat               sample with replacement (until canceled without -n)\n  -z, --zero-terminated      delimit records with NUL\n      --help                 display help\n      --version              display virtual command identity\n"), signal);
           return { exitCode: 0 };
         }
-        if (settings.repeat && !settings.hasCount) throw new PublicDiagnostic("repeat requires a bounded head count (-n)");
-        if (settings.count !== 0n && settings.range && settings.range.length > BigInt(maximumLines)) throw new PublicDiagnostic("input range limit exceeded");
-        if (settings.repeat && settings.count > BigInt(maximumLines)) throw new PublicDiagnostic("output line limit exceeded");
         const budget = new ByteInputBudget(bufferLimit);
         let input: Input | undefined;
         let reservoir = false;
@@ -581,16 +574,15 @@ export function shufCommand(): CommandDefinition {
           reservoir = !settings.repeat && settings.count !== unsignedMaximum && (settings.count === 0n || !input.seekable || input.stat!.size - input.position > reservoirThreshold);
           if (!reservoir) for await (const line of records(input, settings.separator)) lines.push(line);
         }
-        let length = settings.range ? Number(settings.range.length) : lines.length;
-        let count = Number(settings.count > BigInt(maximumLines) ? BigInt(maximumLines) : settings.count);
-        if (!settings.repeat && !reservoir) count = Math.min(count, length);
-        const needsRandom = settings.repeat || count > 0 && (reservoir || length > 0);
+        let length = settings.range ? settings.range.length : BigInt(lines.length);
+        let count = Number(!settings.repeat && !reservoir && settings.count > length ? length : settings.count);
+        const needsRandom = settings.repeat || count > 0 && (reservoir || length > 0n);
         let randomInput: Input | undefined;
         if (settings.random !== undefined && needsRandom) {
           randomInput = new Input(context, operation, new ByteInputBudget(bufferLimit), `${quote(settings.random, false, unicode)}: read error`);
           await randomInput.open(settings.random);
         }
-        const random = new Random(randomInput, settings.random, signal, unicode, reservoir && count > 0 || settings.repeat || count > 0 && length > 1);
+        const random = new Random(randomInput, settings.random, signal, unicode, reservoir && count > 0 || settings.repeat || count > 0 && length > 1n);
         if (reservoir && count > 0) {
           const iterator = records(input!, settings.separator);
           try {
@@ -602,7 +594,8 @@ export function shufCommand(): CommandDefinition {
             if (lines.length === count) {
               let seen = count;
               while (true) {
-                const c = random.choose(seen + 1); const selected = typeof c === "number" ? c : await c;
+                const choice = random.choose(BigInt(seen + 1));
+                const selected = Number(typeof choice === "bigint" ? choice : await choice);
                 const item = await iterator.next();
                 if (item.done) break;
                 if (selected < count) lines[selected] = item.value;
@@ -611,23 +604,20 @@ export function shufCommand(): CommandDefinition {
             }
           } finally { await iterator.return(undefined); }
         }
-        if (reservoir) { length = lines.length; count = length; }
+        if (reservoir) { length = BigInt(lines.length); count = lines.length; }
         await input?.close();
         const indices = settings.repeat ? undefined : await permutation(random, count, length, signal);
-        let outputBytes = 0;
         const encoder = new TextEncoder();
         const sepStr = String.fromCharCode(settings.separator);
         const generated: ByteSource = { async *[Symbol.asyncIterator]() {
-          if (settings.repeat && count > 0 && length === 0) throw new ShufDiagnostic("no lines to repeat");
-          for (let index = 0; index < count; index++) {
+          if (settings.repeat && count > 0 && length === 0n) throw new ShufDiagnostic("no lines to repeat");
+          for (let index = 0n; settings.repeat ? !settings.hasCount || index < settings.count : index < BigInt(count); index++) {
             signal.throwIfAborted();
-            const c = settings.repeat ? random.choose(length) : indices![index]!;
-            const selected = typeof c === "number" ? c : await c;
-            const line = settings.range ? encoder.encode(String(settings.range.low + BigInt(selected)) + sepStr) : lines[selected]!;
-            outputBytes += line.length;
-            if (outputBytes > bufferLimit) throw new PublicDiagnostic("output byte limit exceeded");
+            const choice = settings.repeat ? random.choose(length) : indices![Number(index)]!;
+            const selected = typeof choice === "number" || typeof choice === "bigint" ? choice : await choice;
+            const line = settings.range ? encoder.encode(String(settings.range.low + BigInt(selected)) + sepStr) : lines[Number(selected)]!;
             yield line;
-            if (index % 1024 === 1023) await yieldTurn(signal);
+            if (index % 1024n === 1023n) await yieldTurn(signal);
           }
         } };
         if (settings.output === undefined) {
@@ -644,7 +634,8 @@ export function shufCommand(): CommandDefinition {
               else {
                 await context.fs.writeFile(path, new Uint8Array(), { signal });
                 const parts: Uint8Array[] = [];
-                for await (const bytes of generated) parts.push(bytes);
+                let outputBytes = 0;
+                for await (const bytes of generated) { parts.push(bytes); outputBytes += bytes.length; }
                 const bytes = new Uint8Array(outputBytes);
                 let offset = 0;
                 for (const part of parts) { bytes.set(part, offset); offset += part.length; }

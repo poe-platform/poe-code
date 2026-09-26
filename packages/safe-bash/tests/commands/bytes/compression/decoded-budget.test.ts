@@ -64,8 +64,8 @@ test("decoded budget covers stdout, passthrough, file staging and cumulative ope
 });
 
 
-test("decoded host budgets reject unbounded values and accept exact/zero boundaries", async () => {
-  for (const maxDecodedBytes of [Infinity, NaN, -1, 1.5]) {
+test("decoded host budgets reject invalid values and accept exact/zero boundaries", async () => {
+  for (const maxDecodedBytes of [-Infinity, NaN, -1, 1.5]) {
     assert.throws(() => createCompressionCommands({ maxDecodedBytes }), RangeError);
   }
   for (const maxDecodedBytes of [0, 1024]) {

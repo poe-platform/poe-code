@@ -24,7 +24,7 @@ test("encoding and checksum inputs honor explicit cumulative and zero quotas", a
   }, /input limit exceeded/);
 });
 
-for (const maxInputBytes of [-1, Infinity, NaN, 1.5]) {
+for (const maxInputBytes of [-1, -Infinity, NaN, 1.5]) {
   test(`explicit byte input quota must be a nonnegative safe integer: ${maxInputBytes}`, () => {
     assert.throws(() => resolveInputLimit({ limits: { maxInputBytes } }), /nonnegative safe integer/);
   });

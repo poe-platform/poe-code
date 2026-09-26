@@ -105,7 +105,9 @@ export class Runtime {
       else {
         const resolved = virtualPath(this.context.cwd, path);
         const raw = this.context.fs.readStream ? this.context.fs.readStream(resolved, { signal: this.context.signal }) :
-          (async function* (context: Omit<CsvkitContext, "argv">, maxBytes: number) { yield await context.fs.readFile(resolved, { signal: context.signal, maxBytes }); })(this.context, this.context.limits.maxInputBytes - this.#input);
+          (async function* (context: Omit<CsvkitContext, "argv">, maxBytes: number) { yield await context.fs.readFile(resolved, {
+            signal: context.signal, ...(maxBytes === Infinity ? {} : { maxBytes })
+          }); })(this.context, this.context.limits.maxInputBytes - this.#input);
         source = this.#read(raw);
         const extension = pathExtension(path);
         if (commonText && [".gz", ".bz2", ".xz", ".zst"].includes(extension)) {
@@ -126,8 +128,9 @@ export class Runtime {
    * The caller chooses whether a missing path is a literal argument or an error. */
   async readFileBytes(path: string): Promise<Uint8Array> {
     this.step();
+    const maxBytes = this.context.limits.maxInputBytes - this.#input;
     const bytes = await this.context.fs.readFile(virtualPath(this.context.cwd, path), {
-      signal: this.context.signal, maxBytes: this.context.limits.maxInputBytes - this.#input
+      signal: this.context.signal, ...(maxBytes === Infinity ? {} : { maxBytes })
     });
     this.step();
     this.#input += bytes.byteLength;
@@ -168,7 +171,7 @@ export class Runtime {
     if (limit === -1 || limit > 0) {
       for (let count = 0; count < skipped; count++) if (await file.nextLine(false) === null) break;
       skipped = 0;
-      const sample = await file.sniffSample(limit, this.context.sniffing?.maxSampleCharacters ?? 65536, this.context.sniffing?.stream);
+      const sample = await file.sniffSample(limit, this.context.sniffing?.maxSampleCharacters ?? Infinity, this.context.sniffing?.stream);
       const detected = sniff(sample, this.step);
       if (detected) inferred = detected;
       else if (!this.context.sniffing?.suppressWarnings && !this.#sniffWarning) {
@@ -183,7 +186,7 @@ export class Runtime {
       delimiter: options.tabs ? "\t" : String(options.delimiter || inferred.delimiter || ","),
       quotechar: String(options.quotechar ?? inferred.quotechar ?? '"'), quoting: Number(options.quoting ?? 0),
       doublequote: options.doublequote !== false, skipinitialspace: Boolean(options.skipinitialspace),
-      fieldLimit: Number(options.field_size_limit ?? 131072),
+      fieldLimit: Number(options.field_size_limit ?? Infinity),
       fieldBudget: this.context.limits.maxFieldCharacters,
       columnBudget: this.context.limits.maxColumns,
       ...(options.escapechar === null || options.escapechar === undefined ? {} : { escapechar: String(options.escapechar) })

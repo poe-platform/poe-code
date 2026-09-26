@@ -89,7 +89,7 @@ export async function run(request: CsvkitRequest, supplied: InvocationContext): 
       } else if (action.action === "_StoreTrueAction" || action.action === "_StoreFalseAction") {
         if (typeof incoming !== "boolean") throw new TypeError(`SDK setting ${key} must be boolean`);
       } else if (action.type === "builtins.int") {
-        if (typeof incoming !== "bigint" && (typeof incoming !== "number" || !Number.isSafeInteger(incoming))) throw new TypeError(`SDK setting ${key} must be an integer`);
+        if (!(key === "field_size_limit" && incoming === Infinity) && typeof incoming !== "bigint" && (typeof incoming !== "number" || !Number.isSafeInteger(incoming))) throw new TypeError(`SDK setting ${key} must be an integer`);
       } else if (typeof incoming !== "string") throw new TypeError(`SDK setting ${key} must be text`);
       if (action.choices && !action.choices.includes(incoming as string | number)) throw new TypeError(`SDK setting ${key} has an invalid choice`);
       admission.admit(incoming);

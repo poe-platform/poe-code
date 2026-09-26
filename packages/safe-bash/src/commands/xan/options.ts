@@ -23,7 +23,7 @@ export function validateOptions(options: XanCommandsOptions = {}): { limits: Xan
     if (typeof key !== "string" || !Object.hasOwn(defaultLimits, key)) throw new TypeError(`Unknown xan limit: ${String(key)}`);
     const name = key as keyof XanLimits;
     const value = supplied![name];
-    if (typeof value !== "number" || !Number.isSafeInteger(value) || value <= 0) throw new RangeError(`Invalid xan limit: ${name}`);
+    if (value !== Infinity && (typeof value !== "number" || !Number.isSafeInteger(value) || value <= 0)) throw new RangeError(`Invalid xan limit: ${name}`);
     limits[name] = value;
   }
   return { limits: Object.freeze(limits), replace: options.replace ?? false };

@@ -1,9 +1,11 @@
 # YAML and TOML queries
 
-Safe Bash includes a bounded YAML/TOML query profile and an optional Mike-yq
+Safe Bash includes a YAML/TOML query profile and an optional Mike-yq
 profile with document, comment, alias and in-place editing support. Both execute
-against the shell's virtual filesystem and retain their existing byte and work
-limits. The optional profile requires the optional `yaml@2.9.0` peer.
+against the shell's virtual filesystem. Resource quotas default to `Infinity`;
+configure finite byte, work, node, alias or depth limits when needed. Explicit
+`Infinity` disables an individual quota. The optional profile requires the
+optional `yaml@2.9.0` peer.
 
 ```ts
 import { Shell, createMemoryFileSystem, standardCommands } from "@poe-platform/safe-bash";

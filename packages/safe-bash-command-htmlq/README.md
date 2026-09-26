@@ -35,7 +35,7 @@ await shell.dispose();
 | `detachHtmlNode(node, options)` | Repair parent/sibling links and invalidate original-source serialization |
 
 Engine and source-only calls require explicit `limits` and `signal`; command
-calls use the context signal and bounded host ceilings. SDK calls accept
+calls use the context signal and optional resource limits. SDK calls accept
 `selector`, `filename`, `output`, `base`, `detectBase`, `text`, `ignoreWhitespace`,
 `pretty`, `attributes`, `removeNodes`, `help` and `version`, or `argv`; combining both forms fails.
 Omitted SDK operands use context argv; specifying typed options uses the same
@@ -124,9 +124,9 @@ over explicit base; an invalid first base falls back to explicit base. `////`
 hrefs lose all leading slashes; invalid joins substitute the base. URLs remain
 inert data, including javascript URLs, and are never fetched or sanitized.
 
-Command limits only lower fixed host ceilings: 16 MiB input, 32 MiB decoded
-UTF-16/output, 128 MiB allocation admission, 262144 nodes/attributes, 256 depth,
-1 MiB token storage and 268435456 work units. The result includes cumulative
+Command limits default to `Infinity`. Set finite input, decoded, retained,
+node, attribute, depth, token, work or output limits as needed; explicit
+`Infinity` disables that quota. The result includes cumulative
 accounting; depth/token values are high-water bounds. Allocation accounting is
 conservative cumulative admission, not a measurement of live heap bytes.
 Standalone engine calls own separate budgets; one behavior/command invocation

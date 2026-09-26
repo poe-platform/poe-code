@@ -37,7 +37,7 @@ export function createOdfXml(context: CapabilityContext, extended: boolean) {
     "xmlns:loext": odfEncryptionNamespace };
   function charge(amount = 1) {
     context.signal.throwIfAborted();
-    if (!Number.isSafeInteger(amount) || amount < 0 || amount > (context.limits.workbookWork ?? 10000000) - work)
+    if (!Number.isSafeInteger(amount) || amount < 0 || amount > (context.limits.workbookWork ?? Infinity) - work)
       throw new SsconvertError("resource-limit", "ssconvert OpenDocument work limit exceeded");
     work += amount;
   }
@@ -61,7 +61,7 @@ export function createOdfXml(context: CapabilityContext, extended: boolean) {
     return result;
   }
   function element(tag: string, attributes: OdfAttributes = {}, content = "") {
-    charge(); if (++nodes > (context.limits.workbookNodes ?? 100000))
+    charge(); if (++nodes > (context.limits.workbookNodes ?? Infinity))
       throw new SsconvertError("resource-limit", "ssconvert OpenDocument XML nodes limit exceeded");
     name(tag); let result = "<" + tag;
     for (const [key, value] of Object.entries(attributes)) if (value !== undefined) {
@@ -90,7 +90,7 @@ export function createOdfXml(context: CapabilityContext, extended: boolean) {
   const active = new Set<object>();
   function retained(value: ImportedValue | undefined, depth = 0): string {
     charge(); const v = odfObject(value); if (!v || typeof v.name !== "string" || typeof v.namespace !== "string") return "";
-    if (depth > 128) throw new SsconvertError("resource-limit", "ssconvert OpenDocument metadata depth limit exceeded");
+    if (depth > (context.limits.xmlDepth ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert OpenDocument metadata depth limit exceeded");
     if (active.has(v)) throw new SsconvertError("invalid-request", "Invalid cyclic OpenDocument metadata");
     const prefix = Object.entries(odfNamespaces).find(([, uri]) => uri === v.namespace)?.[0];
     if (!prefix || !extended && ["gnm", "calcext"].includes(prefix)) return "";

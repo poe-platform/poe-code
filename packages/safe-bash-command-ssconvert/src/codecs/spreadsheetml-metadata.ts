@@ -17,11 +17,11 @@ export function readSpreadsheetMLMetadata(worksheet: XmlElement, sheet: string, 
   function charge() {
     context.signal.throwIfAborted();
     chargeWorkbookWork?.();
-    if (++work > (context.limits.workbookWork ?? 10000000)) throw new SsconvertError("resource-limit", "ssconvert SpreadsheetML metadata work limit exceeded");
+    if (++work > (context.limits.workbookWork ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert SpreadsheetML metadata work limit exceeded");
   }
   function range(source: string): Range | undefined {
     charge(); const parsed = parseExpression("=" + source, { grammar: { ...excelGrammar, address: "r1c1" }, position: { sheet, row: 0, column: 0 }, signal: context.signal,
-      maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? 100000 });
+      maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? Infinity });
     if (!parsed.ok || parsed.document.root.kind !== "reference") return undefined;
     const first = parsed.document.root.first, last = parsed.document.root.last ?? first;
     const value = { startRow: first.row?.value ?? 0, startColumn: first.column?.value ?? 0,

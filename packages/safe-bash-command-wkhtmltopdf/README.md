@@ -1,6 +1,6 @@
 # wkhtmltopdf command and SDK
 
-Use the opt-in HTML-to-PDF invocation parser and bounded byte adapter through
+Use the opt-in HTML-to-PDF invocation parser and byte adapter through
 `@poe-platform/safe-bash/commands/wkhtmltopdf`. The built-in PDF AST renderer converts static HTML by default.
 Supply `renderer` to override it with a trusted first-party static renderer.
 This workspace is private, has no external runtime dependencies, and is bundled
@@ -8,7 +8,7 @@ with its declarations into the Safe Bash artifact. Do not install it separately.
 
 | API | Use |
 | --- | --- |
-| `wkhtmltopdfCommands({ limits, renderer?, replace? })` | Register with `shell.use(...)`; omitted options use bounded defaults |
+| `wkhtmltopdfCommands({ limits, renderer?, replace? })` | Register with `shell.use(...)`; omitted resource limits use `Infinity` |
 | `createWkhtmltopdfCommand(options)`, `wkhtmltopdfCommand` | Configured or default command definition |
 | `runWkhtmltopdf(context, options)` | Same arguments, cancellation and destinations as the CLI |
 | `parseInvocation(argv, options)`, `tokenizeBatchLine(line, options)` | Bounded parsing without I/O or shell evaluation |
@@ -75,15 +75,16 @@ short numeric operands reject. The adapter deliberately accepts conventional `--
 
 | Default bound | Value |
 | --- | ---: |
-| Arguments / UTF-8 argument bytes / objects per job | 1,024 / 65,536 / 64 |
-| Parser work per job | 1,048,576 |
-| Resource input / decoded / retained bytes | 16 MiB / 16 MiB / 32 MiB |
-| Resource work / count | 67,108,864 / 128 |
-| PDF output bytes / chunks across jobs | 16 MiB / 65,536 |
-| Batch jobs | 128 |
+| Arguments / UTF-8 argument bytes / objects per job | `Infinity` |
+| Parser work per job | `Infinity` |
+| Resource input / decoded / retained bytes | `Infinity` |
+| Resource work / count | `Infinity` |
+| PDF output bytes / chunks across jobs | `Infinity` |
+| Batch jobs | `Infinity` |
 
-Limits must be positive safe integers. Work and retained-byte accounting are
-explicit ledgers, not CPU or heap measurements. PDF bytes stage in bounded memory
+Limits accept positive safe integers or `Infinity`; omitted limits are unlimited.
+The built-in renderer has no additional page ceiling. Work and retained-byte accounting are
+explicit ledgers, not CPU or heap measurements. PDF bytes stage in memory under the selected limits
 before publication. VFS file reads require bounded handles; file publication
 requires conditional writes, distinct canonical identities and no final symlink.
 Shell redirects may truncate files before command rejection.

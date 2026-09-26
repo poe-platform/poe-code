@@ -48,10 +48,9 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, replaceme
       trailingBlank = blank && !quote && !escaped;
       if (replacement && blank && !quote && !escaped) {
         if (active) pendingBlanks.push(byte);
-        if (current.length + pendingBlanks.length > 131072) throw new UsageError("argument exceeds 128 KiB limit");
         continue;
       }
-      if (pendingBlanks.length) { current.push(...pendingBlanks); pendingBlanks.length = 0; }
+      if (pendingBlanks.length) { for (const byte of pendingBlanks) current.push(byte); pendingBlanks.length = 0; }
       if (escaped) { current.push(byte); active = true; escaped = false; }
       else if (quote) {
         if (byte === 10) throw new UsageError("unmatched quote in input");
@@ -63,7 +62,6 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, replaceme
         if (active) { yield Uint8Array.from(current); current.length = 0; active = false; }
       } else if (replacement && !active && blank) continue;
       else { current.push(byte); active = true; }
-      if (current.length > 131072) throw new UsageError("argument exceeds 128 KiB limit");
     }
   }
   if (quote || escaped) throw new UsageError(quote ? "unmatched quote in input" : "trailing backslash in input");
@@ -72,8 +70,8 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, replaceme
 
 export function executionCommands(execute: CommandHandler, configuration: ExecutionCommandsOptions = {}): CommandDefinition[] {
   const configured = configuration.maxParallelProcesses;
-  const maxParallelProcesses = configured === undefined ? 4 : configured;
-  if (!Number.isSafeInteger(maxParallelProcesses) || maxParallelProcesses < 1) throw new RangeError("maxParallelProcesses must be a positive safe integer");
+  const maxParallelProcesses = configured === undefined ? Infinity : configured;
+  if (maxParallelProcesses !== Infinity && (!Number.isSafeInteger(maxParallelProcesses) || maxParallelProcesses < 1)) throw new RangeError("maxParallelProcesses must be a positive safe integer or Infinity");
   return [
     define("env", async context => {
       const argumentValues = getCommandArguments(context);
@@ -195,7 +193,6 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       let replacementPattern: Uint8Array | undefined;
       if (batching === "I" && replacementOrigin) {
         const { index, offset } = replacementOrigin;
-        if (shellValueByteLength(argumentValues.values[index]!) - offset > 131072) throw new UsageError("replacement string exceeds 128 KiB limit");
         replacementPattern = argumentValues.bytes(index)!.subarray(offset);
       }
       const maxLines = batching === "L" ? integer(value(parsed, "L")!, 1) : undefined;
@@ -203,8 +200,8 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       const childInput = argumentFile === undefined ? emptyInput() : context.stdin;
       const childInputIsDefault = argumentFile === undefined ? true : context.stdinIsDefault;
       const maxArgs = replacement === undefined ? integer(batching === "n" ? value(parsed, "n")! : (maxLines === undefined ? "5000" : String(Number.MAX_SAFE_INTEGER)), 1) : 1;
-      const maxBytes = integer(value(parsed, "s") ?? "131072", 1);
-      if (maxBytes > 131072) throw new UsageError("command size limit cannot exceed 128 KiB");
+      const size = value(parsed, "s");
+      const maxBytes = size === undefined || size === "Infinity" ? Infinity : integer(size, 1);
       let delimiter = parsed.flags.has("0") ? "\0" : undefined;
       const suppliedDelimiter = value(parsed, "d");
       if (suppliedDelimiter !== undefined) {

@@ -36,6 +36,28 @@ import { createSplitCommands } from "../../src/commands/split/index.js";
 import { createCmpCommand } from "../../src/commands/cmp/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { toByteSource, type CommandContext, type CommandDefinition } from "../../src/contracts/index.js";
+import { commandLimits as safeJsLimits } from "../../src/commands/safejs/options.js";
+import { validateOptions as xanOptions } from "../../src/commands/xan/options.js";
+import { providerLimits } from "../../src/commands/llm/providers/shared.js";
+import { resolveInputLimit } from "../../src/commands/bytes/input-budget.js";
+import { createDirectoryReader } from "../../src/commands/directory-admission.js";
+import { streamCommands } from "../../src/commands/streams.js";
+import { executionCommands } from "../../src/commands/execution.js";
+import { policy as regexPolicy } from "../../src/commands/regex-execution/protocol.js";
+import { bufferLimit, input as fileInput } from "../../src/commands/internal.js";
+import { cmpCommand } from "../../src/commands/cmp.js";
+import { SortRecordBudget } from "../../src/commands/sort-admission.js";
+import { createYesCommand } from "../../src/commands/yes/index.js";
+import { createCompressionCommands } from "../../src/commands/bytes/compression/index.js";
+import { createInstallCommand } from "../../src/commands/install/index.js";
+import { createBoundedRegexProvider } from "../../src/commands/regex-execution/bounded-provider.js";
+import { parsePrintfDirective } from "../../src/commands/printf-format.js";
+import { formatted, validateFormat } from "../../src/commands/text-programs/awk-values.js";
+import { predicateCommands } from "../../src/commands/predicates.js";
+import { FindFormatBudget, compileFindFormat } from "../../src/commands/find-format.js";
+import { findCommands } from "../../src/commands/find.js";
+import { shufCommand } from "../../src/commands/shuf.js";
+import { createXzCommands } from "safe-bash-command-xz";
 
 const families = [
   ["time-env", (options: TimeEnvCommandsOptions) => timeEnvSettings(options).limits],
@@ -75,6 +97,135 @@ test("network and shuf accept explicit Infinity in their public limit configurat
   assert.deepEqual(shufSettings({ maxInputBytes: Infinity, maxSampleSize: Infinity }), {
     maxInputBytes: Infinity, maxSampleSize: Infinity,
   });
+});
+
+for (const [name, settings] of [
+  ["SafeJS", safeJsLimits], ["xan", (limits: Record<string, number>) => xanOptions({ limits }).limits],
+  ["regex execution", regexPolicy],
+] as const) test(`${name}: explicit Infinity is equivalent to omitted quotas`, () => {
+  const defaults = settings({});
+  const unlimited = Object.fromEntries(Object.keys(defaults).map(key => [key, Infinity]));
+  assert.deepEqual(settings(unlimited), defaults);
+  for (const key of Object.keys(defaults)) {
+    for (const value of [-Infinity, NaN, -1, 1.5]) assert.throws(() => settings({ [key]: value }), RangeError);
+  }
+});
+
+test("LLM provider quotas default to Infinity and accept finite overrides", () => {
+  const defaults = providerLimits();
+  for (const key of ["maxRequestBytes", "maxResponseBytes", "maxEventBytes", "maxPolls"] as const) {
+    assert.equal(defaults[key], Infinity, key);
+    assert.equal(providerLimits({ [key]: Infinity })[key], Infinity);
+    assert.equal(providerLimits({ [key]: 8 })[key], 8);
+    for (const value of [-Infinity, NaN, -1, 1.5]) assert.throws(() => providerLimits({ [key]: value }), RangeError);
+  }
+  assert.equal(defaults.pollIntervalMs, 1000);
+});
+
+for (const [name, create] of [
+  ["byte input", () => resolveInputLimit({ limits: { maxInputBytes: Infinity } })],
+  ["directory", () => createDirectoryReader(Infinity)],
+  ["streams", () => streamCommands(Infinity, Infinity)],
+  ["execution", () => executionCommands(() => ({ exitCode: 0 }), { maxParallelProcesses: Infinity })],
+  ["yes", () => createYesCommand({ maxRecordBytes: Infinity })],
+  ["compression", () => createCompressionCommands({ maxDecodedBytes: Infinity })],
+  ["xz", () => createXzCommands({ maxDecodedBytes: Infinity })],
+  ["install", () => createInstallCommand({ maxFileBytes: Infinity })],
+] as const) test(`${name} accepts explicit Infinity`, () => { assert.doesNotThrow(create); });
+
+test("bounded regex accepts explicit Infinity", () => {
+  const limits = Object.fromEntries(["maxWorkers", "maxPatterns", "maxPatternBytes", "maxRows", "maxInputBytes", "maxResultBytes", "maxWork", "maxAllocationUnits", "maxStates", "maxMatchesPerLine", "maxTotalMatches"].map(key => [key, Infinity]));
+  assert.doesNotThrow(() => createBoundedRegexProvider(limits));
+});
+
+test("printf formats are not subject to hidden length caps", async () => {
+  const format = "%" + "0".repeat(16_385) + "s";
+  assert.equal((await parsePrintfDirective(format, 0, new AbortController().signal)).end, format.length);
+});
+
+test("awk formats are not subject to hidden length caps", () => {
+  const literal = "x".repeat(65_537);
+  assert.doesNotThrow(() => validateFormat(literal));
+  assert.equal(formatted(literal, [], () => ""), literal);
+});
+
+test("test accepts nesting beyond the former 256-group cap", async () => {
+  const command = predicateCommands().find(command => command.name === "test")!;
+  const result = await run(command, [...Array<string>(300).fill("("), "present", ...Array<string>(300).fill(")")]);
+  assert.deepEqual(result, { exitCode: 0, stdout: "", stderr: "" });
+});
+
+test("find printf accepts more than 65536 format bytes", async () => {
+  const text = "x".repeat(65_537);
+  const result = await run({ name: "find", async execute(context) {
+    const format = await compileFindFormat(text, new FindFormatBudget(context));
+    await format({ display: "/", root: "/", relative: "", depth: 0, stat: await context.fs.stat("/") });
+    return { exitCode: 0 };
+  } }, []);
+  assert.equal(result.stdout, text);
+});
+
+test("directory reads omit infinite adapter bounds and enforce explicit entry limits", async () => {
+  const entries = Array.from({ length: 10_001 }, (_, index) => ({ name: String(index), type: "file" as const }));
+  await run({ name: "find", async execute(context) {
+    context.fs.readdir = async (_path, options) => {
+      assert.equal(options?.maxEntries, undefined);
+      return entries;
+    };
+    assert.equal((await createDirectoryReader()(context, "/")).length, entries.length);
+    context.fs.readdir = async () => entries;
+    await assert.rejects(createDirectoryReader(10_000)(context, "/"), { code: "EFBIG" });
+    return { exitCode: 0 };
+  } }, []);
+});
+
+test("find pattern matching has no implicit million-step quota", async () => {
+  const fs = new MemoryFileSystem();
+  const name = "a".repeat(200);
+  await fs.writeFile("/" + name, new Uint8Array());
+  const command = findCommands(() => ({ exitCode: 0 }))[0]!;
+  assert.deepEqual(await run(command, [...Array<string>(150).fill("/" + name), "-name", "*" + "a".repeat(100) + "b"], "", { fs }), { exitCode: 0, stdout: "", stderr: "" });
+});
+
+test("xargs accepts a long input argument and explicit finite or infinite command sizes", async () => {
+  const argument = "x".repeat(131_073);
+  for (const flags of [[], ["-s", "262144"], ["-s", "Infinity"], ["--max-chars=Infinity"], ["-I", "{}"]]) {
+    const calls: string[][] = [];
+    const command = executionCommands(context => { calls.push([...context.args]); return { exitCode: 0 }; }).find(command => command.name === "xargs")!;
+    const result = await run(command, [...flags, "capture", ...(flags[0] === "-I" ? ["{}"] : [])], argument + "\n");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(calls, [[argument]]);
+  }
+});
+
+test("standard shuf accepts argument counts and bytes beyond its former caps", async () => {
+  const result = await run(shufCommand(), ["-e", "-n0", ...Array<string>(4097).fill("x"), "x".repeat(65_537)]);
+  assert.deepEqual(result, { exitCode: 0, stdout: "", stderr: "" });
+});
+
+test("shared buffering and sort record admission have no implicit byte or record quotas", () => {
+  assert.equal(bufferLimit, Infinity);
+  const budget = new SortRecordBudget();
+  assert.equal(budget.canAdmitChunk(32 * 1024 * 1024 + 1), true);
+  assert.doesNotThrow(() => {
+    budget.admit(32 * 1024 * 1024 + 1);
+    for (let index = 0; index < 100_001; index++) budget.admit(0);
+  });
+});
+
+test("shared input and standard cmp omit infinite read bounds on buffered adapters", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/left", Buffer.from("same"));
+  await fs.writeFile("/right", Buffer.from("same"));
+  Object.defineProperty(fs, "readStream", { value: undefined });
+  Object.defineProperty(fs, "openReadFile", { value: undefined });
+  const read = fs.readFile.bind(fs);
+  fs.readFile = (path, options) => { assert.equal(options?.maxBytes, undefined); return read(path, options); };
+  assert.deepEqual(await run({ name: "cat", async execute(context) {
+    for await (const bytes of fileInput(context, "/left")) await context.stdout.write(bytes);
+    return { exitCode: 0 };
+  } }, [], "", { fs }), { exitCode: 0, stdout: "same", stderr: "" });
+  assert.deepEqual(await run(cmpCommand(), ["/left", "/right"], "", { fs }), { exitCode: 0, stdout: "", stderr: "" });
 });
 
 async function run(command: CommandDefinition, args: readonly string[], input = "", overrides: Partial<CommandContext> = {}) {

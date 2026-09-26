@@ -70,8 +70,9 @@ for (const entry of [
   { args: [], cap: undefined, expected: 1 },
   { args: ["-P1"], cap: undefined, expected: 1 },
   { args: ["-P2"], cap: undefined, expected: 2 },
-  { args: ["-P0"], cap: undefined, expected: 4 },
-  { args: ["-P9"], cap: undefined, expected: 4 },
+  { args: ["-P0"], cap: undefined, expected: 6 },
+  { args: ["-P9"], cap: undefined, expected: 6 },
+  { args: ["-P0"], cap: Infinity, expected: 6 },
   { args: ["--max-procs=9"], cap: 2, expected: 2 },
   { args: ["-P", "0"], cap: 2, expected: 2 },
 ]) test(`xargs capacity ${entry.args.join(" ") || "default"}, cap ${entry.cap ?? "default"}`, async () => {
@@ -103,8 +104,10 @@ for (const entry of [
     for (let turn = 0; turn < 50; turn++) await Promise.resolve();
     assert.equal(pulls, entry.expected, "full slots must stop input pulls");
     releases[0]!.resolve();
-    await until(() => starts.length === entry.expected + 1 || run.settled);
-    assert.equal(starts.length, entry.expected + 1);
+    if (entry.expected < 6) {
+      await until(() => starts.length === entry.expected + 1 || run.settled);
+      assert.equal(starts.length, entry.expected + 1);
+    }
   } finally {
     for (const release of releases) release.resolve();
     await run.completion.catch(() => {});
@@ -114,7 +117,7 @@ for (const entry of [
   assert.equal(starts.length, 6);
 });
 
-for (const cap of [0, -1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1, null, "2"]) {
+for (const cap of [0, -1, 1.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1, null, "2"]) {
   for (const [name, factory] of [["standard", createStandardCommands], ["agent", createAgentCommands], ["browser", createDefaultCommands]] as const) {
     test(`${name} rejects invalid execution cap ${String(cap)}`, () => {
       assert.throws(() => factory({ execution: { maxParallelProcesses: cap as number } }), /maxParallelProcesses/u);

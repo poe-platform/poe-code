@@ -56,10 +56,10 @@ export type PagerOptions = LessCommandsOptions;
 
 export function settings(options: LessCommandsOptions = {}): LessLimits {
   const limits: LessLimits = {
-    maxInputBytes: options.limits?.maxInputBytes ?? options.maxInputBytes ?? 64 * 1024 * 1024,
+    maxInputBytes: options.limits?.maxInputBytes ?? options.maxInputBytes ?? Infinity,
   };
   for (const [name, value] of Object.entries(limits)) {
-    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid less limit: ${name}`);
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`Invalid less limit: ${name}`);
   }
   return Object.freeze(limits);
 }

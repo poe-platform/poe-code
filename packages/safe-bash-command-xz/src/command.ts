@@ -10,8 +10,8 @@ import { inspectXz, listingRatio, listingChecks, humanListing, type XzListing } 
 
 export function createXzCommands(config: CompressionCommandOptions = {}): readonly CommandDefinition[] {
   const maxDecodedBytes = config.maxDecodedBytes;
-  if (maxDecodedBytes !== undefined && (!Number.isSafeInteger(maxDecodedBytes) || maxDecodedBytes < 0)) {
-    throw new RangeError("maxDecodedBytes must be a nonnegative safe integer");
+  if (maxDecodedBytes !== undefined && maxDecodedBytes !== Infinity && (!Number.isSafeInteger(maxDecodedBytes) || maxDecodedBytes < 0)) {
+    throw new RangeError("maxDecodedBytes must be a nonnegative safe integer or Infinity");
   }
   return xzProfile.names.map<CommandDefinition>(name => ({ name, async execute(context) {
     context.signal.throwIfAborted();

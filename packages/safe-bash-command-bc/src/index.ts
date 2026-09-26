@@ -76,13 +76,13 @@ export type BcOptions = BcCommandsOptions;
 
 export function settings(options: BcCommandsOptions = {}): BcLimits {
   const limits: BcLimits = {
-    maxInputBytes: options.limits?.maxInputBytes ?? options.maxInputBytes ?? 8 * 1024 * 1024,
-    maxOutputBytes: options.limits?.maxOutputBytes ?? options.maxOutputBytes ?? 16 * 1024 * 1024,
-    maxSteps: options.limits?.maxSteps ?? options.maxSteps ?? 250_000,
-    maxScale: options.limits?.maxScale ?? options.maxScale ?? 2_000,
+    maxInputBytes: options.limits?.maxInputBytes ?? options.maxInputBytes ?? Infinity,
+    maxOutputBytes: options.limits?.maxOutputBytes ?? options.maxOutputBytes ?? Infinity,
+    maxSteps: options.limits?.maxSteps ?? options.maxSteps ?? Infinity,
+    maxScale: options.limits?.maxScale ?? options.maxScale ?? Infinity,
   };
   for (const [name, value] of Object.entries(limits)) {
-    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid bc limit: ${name}`);
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`Invalid bc limit: ${name}`);
   }
   return Object.freeze(limits);
 }

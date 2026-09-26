@@ -157,7 +157,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           if (path !== "/dev" && !path.startsWith("/dev/")) {
             const match = getCachedFindPattern(context.args[2]!, context.args[1] === "-iname");
             const memDirEntries = match !== undefined ? tryGetMemoryDirectoryEntryNamesSync(backing, path) : undefined;
-            if (match !== undefined && memDirEntries !== undefined && memDirEntries.size <= (maxDirectoryEntries ?? 10000)) {
+            if (match !== undefined && memDirEntries !== undefined && memDirEntries.size <= (maxDirectoryEntries ?? Infinity)) {
               const keyBase = findKeyScratchTop;
               const keyEnd = stageAndSortFindKeys(memDirEntries, keyBase, match);
               if (findKeyAllFiles) {
@@ -384,7 +384,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         }
         const ignoreCase = token === "-iname" || token === "-ipath" || token === "-iwholename";
         const work = {
-          remaining: 1_000_000,
+          remaining: Infinity,
           signal: context.signal,
           exhausted(): never { throw new UsageError(`pattern work limit exceeded for '${operand}'`); },
         };
@@ -574,7 +574,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
     };
     const canSkipChildStat = !needsStat && !explicitAction && follow !== "-L";
     const backing = getRuntimeBackingFileSystem(context.fs);
-    const maxEntriesLimit = maxDirectoryEntries ?? 10000;
+    const maxEntriesLimit = maxDirectoryEntries ?? Infinity;
     let uniformDirAdmitted = false;
     const scratchChildEntry: Entry = { path: "", display: "", name: "", stat: SYNTHETIC_FILE_STAT, symlink: false, depth: 0, root: "", relative: "", prune: false };
     const visit = async (display: string, depth: number, ancestors: ReadonlySet<string>, root: string, relative: string, knownName?: string, knownType?: FileStat["type"]): Promise<void> => {
@@ -582,7 +582,6 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
       context.signal.throwIfAborted();
       const path = pathOf(context, display);
       try {
-        if (depth > 1024) throw new FsError("ELOOP", { path, message: "find depth limit exceeded (1024)" });
         const memDirEntries = canSkipChildStat && backing !== undefined && backing.capabilitiesFor === undefined
           && context.fs.capabilities.readOnly !== true && context.fs.capabilities.readdir !== false && context.fs.capabilities.realpath !== false
           && path !== "/dev" && !path.startsWith("/dev/")
@@ -709,7 +708,6 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           if (fp) await fp;
         }
       } catch (error) {
-        if (formatBudget.exhausted) throw error;
         const fp = flushPrintBuffer();
         if (fp) await fp;
         await diagnostic(context, error);

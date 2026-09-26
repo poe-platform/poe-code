@@ -12,10 +12,11 @@ function fixture(name = "catalog", maxInputBytes?: number, policy: Pick<RemoteMc
     ? { resource, authorization_servers: [issuer] }
     : { issuer, authorization_endpoint: `${issuer}/authorize`, token_endpoint: `${issuer}/token`, response_types_supported: ["code"], code_challenge_methods_supported: ["S256"] }));
   const importSession = vi.fn(async (_server: unknown, _session: StoredOAuthSession, _options: unknown) => {});
-  const shell = new Shell({ fs, commands: new CommandRegistry([createRemoteMcpManagementCommand([
+  const command = createRemoteMcpManagementCommand([
     { name, url: resource, tools: [], auth: { type: "oauth", clientMode: "dynamic" } }
-  ], { maxInputBytes, credentialImport: { ...policy, fetch, binding: { env: {}, oauth: { now: () => 10_000, importSession } } } })]) });
-  return { fs, fetch, importSession, shell };
+  ], { maxInputBytes, credentialImport: { ...policy, fetch, binding: { env: {}, oauth: { now: () => 10_000, importSession } } } });
+  const shell = new Shell({ fs, commands: new CommandRegistry([command]) });
+  return { fs, fetch, importSession, shell, command };
 }
 it("imports bounded redirected virtual stdin with a public JSON summary", async () => {
   const f = fixture(); await f.fs.writeFile("/credentials.json", new TextEncoder().encode(JSON.stringify(payload)));
@@ -35,6 +36,25 @@ it.each(["/credentials.json", "./credentials.json", "/credentials.json/"])("impo
     expect(read.mock.calls[0][0]).toBe("/credentials.json");
     expect(result.exitCode).toBe(0); expect(result.stdout).toBe("Imported OAuth credentials for catalog.\n");
     expect(result.stderr).toBe(""); expect(f.importSession).toHaveBeenCalledOnce();
+  } finally { await f.shell.dispose(); }
+});
+it.each([undefined, Infinity, 100])("imports files without streaming reads under the selected byte limit: %s", async maxInputBytes => {
+  const f = fixture("catalog", maxInputBytes);
+  await f.fs.writeFile("/credentials.json", new TextEncoder().encode(JSON.stringify(payload)));
+  Object.defineProperty(f.fs, "readStream", { value: undefined, configurable: true });
+  let stdout = "", stderr = "";
+  try {
+    const result = await f.command.execute({ command: "mcp", args: ["import", "catalog", "--file", "/credentials.json"],
+      fs: f.fs, cwd: "/", env: {}, signal: new AbortController().signal, stdin: { async *[Symbol.asyncIterator]() {} },
+      stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+      stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
+    expect(result.exitCode, stderr).toBe(maxInputBytes === 100 ? 1 : 0);
+    if (maxInputBytes === 100) {
+      expect(f.fetch).not.toHaveBeenCalled(); expect(f.importSession).not.toHaveBeenCalled();
+    } else {
+      expect(stdout).toBe("Imported OAuth credentials for catalog.\n");
+      expect(stderr).toBe(""); expect(f.importSession).toHaveBeenCalledOnce();
+    }
   } finally { await f.shell.dispose(); }
 });
 it("supports literal dash names and a complete-operation timeout override", async () => {

@@ -123,11 +123,11 @@ export async function decryptOdfEntries(manifest: XmlElement, entries: ReadonlyM
     if (authenticated) {
       if (!lanes || lanes >= 2 ** 24 || memory < 8 * lanes || memory >= 2 ** 32 || iterations >= 2 ** 32)
         invalid("invalid Argon2 parameters");
-      if (arenaBytes >= 2 ** 32 || arenaBytes > (context.limits.encryptionMemoryBytes ?? 64 * 1024 * 1024))
+      if (arenaBytes >= 2 ** 32 || arenaBytes > (context.limits.encryptionMemoryBytes ?? Infinity))
         throw new SsconvertError("resource-limit", "ssconvert OpenDocument encryption memory limit exceeded");
     }
     const size = integer(attribute(entry, "size"));
-    if (size > maximumEntryBytes || size > (context.limits.zipRatio ?? 1000) * member.size)
+    if (size > maximumEntryBytes || size > (context.limits.zipRatio ?? Infinity) * member.size)
       throw new SsconvertError("resource-limit", "ssconvert OpenDocument decrypted entry limit exceeded");
     total += size + member.size;
     if (!Number.isSafeInteger(total) || total > remainingBytes)
@@ -161,7 +161,7 @@ export async function decryptOdfEntries(manifest: XmlElement, entries: ReadonlyM
   context.own(() => { for (const bytes of result.values()) bytes.fill(0); });
   const firstCipher = profiles[0]!.cipher;
   const packageCipher = profiles.every(profile => profile.cipher === firstCipher) ? firstCipher : "mixed";
-  const maxBytes = Math.min(4096, context.limits.inputBytes);
+  const maxBytes = context.limits.inputBytes;
   context.signal.throwIfAborted();
   let secret: string | Uint8Array | undefined;
   try {

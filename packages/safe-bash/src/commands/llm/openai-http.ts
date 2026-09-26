@@ -17,7 +17,7 @@ export function openAiAbortable<Value>(pending: PromiseLike<Value>, signal: Abor
   });
 }
 
-export async function* openAiBytes(source: ByteSource, signal: AbortSignal, limit = 64 * 1024 * 1024): ByteSource {
+export async function* openAiBytes(source: ByteSource, signal: AbortSignal, limit = Infinity): ByteSource {
   signal.throwIfAborted();
   const iterator = source[Symbol.asyncIterator]();
   let failed = false, finished = false;
@@ -44,7 +44,7 @@ export async function* openAiBytes(source: ByteSource, signal: AbortSignal, limi
   }
 }
 
-export async function openAiJson(response: HttpResponse, signal: AbortSignal, maxBytes = 64 * 1024 * 1024): Promise<Record<string, unknown>> {
+export async function openAiJson(response: HttpResponse, signal: AbortSignal, maxBytes = Infinity): Promise<Record<string, unknown>> {
   const decoder = new TextDecoder("utf-8", { fatal: true });
   let text = "", length = 0;
   for await (const chunk of openAiBytes(response.body, signal, maxBytes)) {
@@ -103,7 +103,7 @@ export async function* openAiResponse(transport: HttpTransport, input: HttpReque
     const response = await openAiAbortable(pending, input.signal);
     if (!Number.isInteger(response.status) || response.status < 200 || response.status >= 300) {
       let detail: string | undefined;
-      try { detail = openAiError((await openAiJson(response, input.signal, Math.min(64 * 1024, maxResponseBytes))).error); }
+      try { detail = openAiError((await openAiJson(response, input.signal, maxResponseBytes)).error); }
       catch { input.signal.throwIfAborted(); }
       throw new Error(`OpenAI HTTP ${response.status}${detail ? `: ${detail}` : ""}`);
     }

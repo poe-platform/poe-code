@@ -8,7 +8,6 @@ import { inputRequirements } from "./portable-requirements.js";
 import { compareCopyIdentity, compareObservedEntries } from "./copy-identity.js";
 
 const blockBytes = 4096;
-const maxEmptyChunks = 65536;
 
 const maxCount = 18446744073709551616n;
 
@@ -61,11 +60,8 @@ function parse(context: CommandContext): CmpOptions {
   const long: Readonly<Record<string, string>> = { "print-bytes": "b", "print-chars": "c", "ignore-initial": "i", verbose: "l", bytes: "n", silent: "s", quiet: "s", version: "v", help: "help" };
   const operands: string[] = [];
   const argumentsWithBytes = getCommandArguments(context);
-  let size = 0;
   const args = context.args.map((_argument, index) => {
     const bytes = argumentsWithBytes.bytes(index)!;
-    size += bytes.length;
-    if (size > 65536) throw new UsageError("argument limit exceeded");
     return Array.from(bytes, byte => String.fromCharCode(byte)).join("");
   });
   let ended = false;
@@ -199,7 +195,7 @@ class Cursor {
   private readonly operations = new Set<Promise<unknown>>();
 
   constructor(readonly name: string, private readonly context: CommandContext, private readonly budget: ByteInputBudget,
-    private readonly signal: AbortSignal, private readonly chargeChunk: (size: number) => Promise<void>) {}
+    private readonly signal: AbortSignal, private readonly chargeChunk: () => Promise<void>) {}
 
   async open(limit: number, skip: bigint): Promise<void> {
     this.signal.throwIfAborted();
@@ -277,7 +273,7 @@ class Cursor {
         const context = this.context;
         const signal = this.signal;
         this.source = () => ({ async *[Symbol.asyncIterator]() {
-          yield await context.fs.readFile(path, { signal, maxBytes: bufferLimit });
+          yield await context.fs.readFile(path, { signal });
         } });
       }
     }
@@ -325,7 +321,7 @@ class Cursor {
       this.requestBytes = Math.min(blockBytes, this.skip || remaining);
       const item = await this.reader!.next();
       if (item.done) return false;
-      await this.chargeChunk(item.value.length);
+      await this.chargeChunk();
       this.bytes = new Uint8Array(item.value);
       this.offset = Math.min(this.skip, this.bytes.length);
       this.skip -= this.offset;
@@ -373,9 +369,7 @@ async function compare(context: CommandContext, parsed: CmpOptions): Promise<num
   const signal = AbortSignal.any([context.signal, controller.signal]);
   const budget = new ByteInputBudget(bufferLimit);
   let chunks = 0;
-  let emptyChunks = 0;
-  const chargeChunk = async (size: number): Promise<void> => {
-    if (size === 0 && ++emptyChunks > maxEmptyChunks) throw new FsError("EFBIG", { message: "cmp empty input chunk limit exceeded" });
+  const chargeChunk = async (): Promise<void> => {
     if (++chunks % 64 === 0) await yieldTurn(signal);
   };
   const cursors = names.map(name => new Cursor(name, context, budget, signal, chargeChunk));
@@ -473,14 +467,9 @@ export function cmpCommand(): CommandDefinition {
     context.signal.throwIfAborted();
     let silent = false;
     try {
-      let argumentBytes = 0;
-      for (const argument of context.args) {
-        argumentBytes += argument.length;
-        if (argumentBytes > 65536 || context.args.length > 4096) throw new UsageError("argument limit exceeded");
-      }
       const parsed = parse(context);
       if (parsed.information) {
-        await output(context, parsed.information === "version" ? "cmp (virtual-bash)\n" : "Usage: cmp [OPTION]... FILE1 [FILE2 [SKIP1 [SKIP2]]]\nCompare bytes in the virtual filesystem; omitted FILE2 or '-' reads stdin.\n  -s, --silent, --quiet  report status only\n  -l, --verbose         list differing bytes in octal\n  -b, -c, --print-bytes  also display byte characters\n  -i, --ignore-initial=SKIP[:SKIP2]  skip initial bytes\n  -n, --bytes=LIMIT     compare at most LIMIT bytes\n  --help, -v, --version show virtual-bash command information\nInput is bounded to 32 MiB per invocation; empty-chunk and argument limits apply.\n");
+        await output(context, parsed.information === "version" ? "cmp (virtual-bash)\n" : "Usage: cmp [OPTION]... FILE1 [FILE2 [SKIP1 [SKIP2]]]\nCompare bytes in the virtual filesystem; omitted FILE2 or '-' reads stdin.\n  -s, --silent, --quiet  report status only\n  -l, --verbose         list differing bytes in octal\n  -b, -c, --print-bytes  also display byte characters\n  -i, --ignore-initial=SKIP[:SKIP2]  skip initial bytes\n  -n, --bytes=LIMIT     compare at most LIMIT bytes\n  --help, -v, --version show virtual-bash command information\n");
         return { exitCode: 0 };
       }
       silent = parsed.silent;

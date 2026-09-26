@@ -226,13 +226,13 @@ original host receiver. The parser accepts
 `token_type`, `scope`, `expires_in` (seconds), `expires_at` (epoch seconds), and
 `expiresAt` (epoch milliseconds). Numeric absolute expiry wins over relative
 lifetime; the options timestamp wins over response timestamps. The optional
-`now` clock anchors a new import. JSON is bounded to 64 KiB/64 levels; malformed
+`now` clock anchors a new import. JSON has no implicit byte or depth ceiling; malformed
 credentials, scope, timing, accessors and non-JSON metadata are rejected without
 quoting the input. The parser makes no network or storage requests.
 For named native persistence, `createResourceBoundOAuthStores(authStore,
 namespace, identity).importSession(session, { signal, timeoutMs })` explicitly
 replaces the bound grant and original client in one locked document. It takes
-an owned, bounded session snapshot before waiting; validates resource/issuer
+an owned session snapshot before waiting; validates resource/issuer
 binding; marks full registrations as caller-owned; and retires previous clients.
 Its durable marker suppresses stale automatic environment imports after tokens
 are cleared. Like reset, explicit import can recover a corrupt old document
@@ -243,8 +243,8 @@ with `parseOAuthClientRegistration`). Dynamic clients infer their original ID
 and secret from that response and reuse it without registering another app.
 Explicit ID/secret values must agree with the imported response. Sessions and
 native registration stores retain arrays, issuance/expiry timestamps and JSON
-provider metadata. Registration input is copied, bounded to 64 KiB and 64
-levels, and rejects invalid standard field types and non-JSON extensions.
+provider metadata. Registration input is copied without an implicit byte or depth
+ceiling and rejects invalid standard field types and non-JSON extensions.
 An optional registration `issuer` must match discovery and the persisted
 authorization server exactly. Contradictory metadata fails without activating
 or redeeming the grant. `client_secret_expires_at` uses Unix epoch seconds;

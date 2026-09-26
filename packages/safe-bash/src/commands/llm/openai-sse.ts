@@ -31,7 +31,7 @@ async function* events(source: ByteSource, signal: AbortSignal, limit: number, r
   throw new Error("OpenAI chat stream ended before [DONE]");
 }
 
-export async function* openAiChat(source: ByteSource, signal: AbortSignal, limit = 1024 * 1024, responseLimit = 64 * 1024 * 1024): AsyncIterable<string> {
+export async function* openAiChat(source: ByteSource, signal: AbortSignal, limit = Infinity, responseLimit = Infinity): AsyncIterable<string> {
   for await (const data of events(source, signal, limit, responseLimit)) {
     signal.throwIfAborted();
     if (data.trim() === "[DONE]") return;

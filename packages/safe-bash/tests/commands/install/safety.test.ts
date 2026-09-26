@@ -9,6 +9,20 @@ import { ShellLimitError } from "../../../src/shell/types.js";
 
 type FileDescriptor = Awaited<ReturnType<NonNullable<FileSystem["open"]>>>;
 
+for (const maxFileBytes of [undefined, Infinity, 5]) test(`buffered input and compare preserve install behavior with limit ${String(maxFileBytes)}`, async () => {
+  const fs = await seed();
+  const host = wrapped(fs, { open: undefined, readStream: undefined });
+  const options = maxFileBytes === undefined ? {} : { maxFileBytes };
+  const installed = await run(["source", "target"], host, options);
+  assert.equal(installed.exitCode, 0, installed.stderr);
+  assert.deepEqual(await fs.readFile("/target"), await fs.readFile("/source"));
+  const before = await fs.stat("/target");
+  const compared = await run(["-Cv", "source", "target"], host, options);
+  assert.equal(compared.exitCode, 0, compared.stderr);
+  assert.equal(compared.stdout, "");
+  assert.equal((await fs.stat("/target")).ino, before.ino);
+});
+
 for (const buffered of [false, true]) for (const action of ["scoped-abort", "shell-abort", "return-abort", "budget", "success"] as const) {
   test(`strip failure retains bounded removal authority: buffered=${buffered}, ${action}`, async () => {
     const fs = await seed();

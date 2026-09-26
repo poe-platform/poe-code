@@ -99,8 +99,8 @@ export class HtmlBudget {
       "work",
       "outputBytes"
     ] as const)
-      if (!Number.isSafeInteger(this.limits[name]) || this.limits[name] < 0)
-        throw new HtmlError("E_LIMIT", "Expected nonnegative safe integer limits", 0, name);
+      if (this.limits[name] !== Infinity && (!Number.isSafeInteger(this.limits[name]) || this.limits[name] < 0))
+        throw new HtmlError("E_LIMIT", "Expected nonnegative safe integer limits or Infinity", 0, name);
     this.check();
   }
   check(): void {

@@ -55,10 +55,10 @@ export type SpongeOptions = SpongeCommandsOptions;
 
 export function settings(options: SpongeCommandsOptions = {}): SpongeLimits {
   const limits: SpongeLimits = {
-    maxBufferedBytes: options.limits?.maxBufferedBytes ?? options.maxBufferedBytes ?? 64 * 1024 * 1024,
+    maxBufferedBytes: options.limits?.maxBufferedBytes ?? options.maxBufferedBytes ?? Infinity,
   };
   for (const [name, value] of Object.entries(limits)) {
-    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid sponge limit: ${name}`);
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`Invalid sponge limit: ${name}`);
   }
   return Object.freeze(limits);
 }

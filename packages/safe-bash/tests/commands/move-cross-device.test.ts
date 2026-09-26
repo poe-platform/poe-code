@@ -209,10 +209,20 @@ test("identity downgrade after publication does not authorize source deletion", 
   assert.equal(await contents(left, "/source"), "payload");
 });
 
-test("move planning budget is cumulative and preserves its caller signal", async () => {
+test("move planning has no default entry quota and preserves its caller signal", async () => {
   const controller = new AbortController(), budget = new MoveBudget(controller.signal);
-  for (let index = 0; index < 100_000; index++) await budget.step();
-  assert.equal(budget.remaining, 0); await assert.rejects(budget.step(), { code: "EFBIG" });
-  const reason = new Error("stop exhausted move"); controller.abort(reason);
+  for (let index = 0; index < 100_001; index++) await budget.step();
+  const reason = new Error("stop move"); controller.abort(reason);
   await assert.rejects(budget.step(), error => error === reason);
+});
+
+test("cross-device move traverses beyond 128 directories", async () => {
+  const { fs, left, right } = await pair();
+  const path = "/tree" + "/d".repeat(130);
+  await left.mkdir(path, { recursive: true });
+  await left.writeFile(path + "/file", Buffer.from("deep"));
+  const result = await run("mv", ["/left/tree", "/right/tree"], { fs, cwd: "/" });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(await contents(right, path + "/file"), "deep");
+  await assert.rejects(left.lstat("/tree"), { code: "ENOENT" });
 });

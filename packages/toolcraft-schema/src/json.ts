@@ -33,7 +33,7 @@ export function isJsonValue(value: unknown, options: JsonValueValidationOptions 
   const maxNodes = options.maxNodes ?? 10_000;
   const maxDepth = options.maxDepth ?? 64;
   if (maxNodes !== Infinity && (!Number.isSafeInteger(maxNodes) || maxNodes < 1)) throw new Error("maxNodes must be a positive safe integer");
-  if (maxDepth !== Infinity && (!Number.isSafeInteger(maxDepth) || maxDepth < 0)) throw new Error("maxDepth must be a nonnegative safe integer");
+  if (maxDepth !== Infinity && (!Number.isSafeInteger(maxDepth) || maxDepth < 0)) throw new Error("maxDepth must be a nonnegative safe integer or Infinity");
   const ancestors = new Set<object>();
   const stack: { owner: object; children: Generator<PropertyDescriptor | undefined>; depth: number }[] = [];
   function* properties(item: object): Generator<PropertyDescriptor | undefined> {
@@ -66,7 +66,7 @@ export function isJsonValue(value: unknown, options: JsonValueValidationOptions 
           }
           hookOwner = Object.getPrototypeOf(hookOwner) as object | null;
         }
-        if (Array.isArray(item) && item.length > maxNodes) return false;
+        if (Array.isArray(item) && item.length > maxNodes - nodes) return false;
         ancestors.add(item);
         stack.push({ owner: item, children: properties(item), depth });
       }

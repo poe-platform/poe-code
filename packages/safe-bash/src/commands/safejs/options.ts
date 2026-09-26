@@ -14,7 +14,7 @@ const unlimitedLimits: Readonly<SafeJsCommandLimits> = Object.freeze({
 export function commandLimits(options: Partial<SafeJsCommandLimits> = {}): SafeJsCommandLimits {
   for (const [name, value] of Object.entries(options)) {
     if (!Object.hasOwn(unlimitedLimits, name)) throw new TypeError(`Unknown SafeJS limit: ${name}`);
-    if (!Number.isSafeInteger(value) || value < (name === "timeoutMs" ? 1 : 0)) throw new RangeError(`Invalid SafeJS limit: ${name}`);
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < (name === "timeoutMs" ? 1 : 0))) throw new RangeError(`Invalid SafeJS limit: ${name}`);
   }
   return Object.freeze({ ...unlimitedLimits, ...options });
 }

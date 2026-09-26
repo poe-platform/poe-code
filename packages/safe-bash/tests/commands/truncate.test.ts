@@ -256,9 +256,11 @@ test("truncate configured raw argument byte boundary is exact", async () => {
   assert.equal(Buffer.from(result.stderrHex, "hex").toString(), "truncate: cannot open ''$'\\377\\377' for writing: No such file or directory\n");
 });
 
-test("truncate configured argument limit cannot raise the hard byte ceiling", async () => {
-  const result = await resize(["-s1", "x".repeat(65534)], {}, { limits: { maxArgumentBytes: 100000 } });
-  assert.equal(Buffer.from(result.stderrHex, "hex").toString(), "truncate: argument limit exceeded\n");
+test("truncate configured argument limit can exceed 65536 bytes", async () => {
+  const setup = fixture();
+  const path = "x".repeat(65534);
+  const result = await resize(["-s1", path], { fs: setup.fs }, { limits: { maxArgumentBytes: 100000 } });
+  assert.equal(result.exitCode, 0, Buffer.from(result.stderrHex, "hex").toString());
 });
 
 for (const spare of [0, 1]) test(`truncate configured aggregate output counts stdout before diagnostic: spare=${spare}`, async () => {
@@ -302,12 +304,12 @@ for (const limits of [undefined, { maxOutputBytes: Infinity }]) test(`truncate u
   assert.equal(result.stderrHex, Buffer.from(`truncate: ${detail}\n`).toString("hex"));
 });
 
-test("truncate configured output budget cannot raise the fixed hard ceiling", async () => {
+test("truncate configured output budget can exceed 32 MiB", async () => {
   const setup = fixture();
   setup.fs.stat = async () => { throw new PublicDiagnostic("x".repeat(32 * 1024 * 1024)); };
   const result = await resize(["-r", "reference", "new"], { fs: setup.fs }, { limits: { maxOutputBytes: 64 * 1024 * 1024 } });
   assert.equal(result.exitCode, 1);
-  assert.equal(result.stderrHex, "");
+  assert.equal(Buffer.from(result.stderrHex, "hex").toString(), "truncate: " + "x".repeat(32 * 1024 * 1024) + "\n");
 });
 
 interface ParserCase {

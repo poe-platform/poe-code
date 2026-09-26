@@ -6,6 +6,8 @@ import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell, cloudflareWorkerLimits } from "../../../src/shell/index.js";
 import { createOpenAiProvider, type OpenAiModel } from "../../../src/commands/llm/openai.js";
 import { openAiChat } from "../../../src/commands/llm/openai-sse.js";
+import { openAiBytes } from "../../../src/commands/llm/openai-http.js";
+import { multipart, type LlmProviderLimits } from "../../../src/commands/llm/providers/shared.js";
 import type { LlmRequest } from "../../../src/commands/llm/types.js";
 import type { HttpRequest, HttpResponse, HttpTransport } from "../../../src/commands/network/types.js";
 
@@ -36,7 +38,7 @@ test("OpenAI admits aggregate image bytes before decoding and uses bounded decod
     assert.ok(largest <= 8192, `Worker shell decode allocation: ${largest}`);
     largest = 0;
     const tooLarge = response({ data: [{ b64_json: Buffer.alloc(3 * 1024 * 1024).toString("base64") }, { b64_json: Buffer.alloc(1024 * 1024 + 1).toString("base64") }] });
-    await assert.rejects(collect(provider(fake(tooLarge).transport).complete(request({ model: "custom-image" }))), /limit/);
+    await assert.rejects(collect(provider(fake(tooLarge).transport, { maxResponseBytes: 4 * 1024 * 1024 }).complete(request({ model: "custom-image" }))), /limit/);
     assert.equal(largest, 0);
     assert.equal(tooLarge.disposed, 1);
   } finally { globalThis.atob = original; }
@@ -48,7 +50,7 @@ test("OpenAI stops oversized image JSON before decoding and validates later slab
   reply.body = (async function* () {
     for (let index = 0; index < 200; index++) { reads++; yield new Uint8Array(64 * 1024).fill(32); }
   })();
-  await assert.rejects(collect(provider(fake(reply).transport).complete(request({ model: "custom-image" }))), /limit/);
+  await assert.rejects(collect(provider(fake(reply).transport, { maxResponseBytes: 6 * 1024 * 1024 }).complete(request({ model: "custom-image" }))), /limit/);
   assert.equal(reads, 97);
   assert.equal(reply.disposed, 1);
   for (const invalid of ["AAAA".repeat(2048) + "AB==", "AA==" + "AAAA".repeat(2048)]) {
@@ -100,9 +102,25 @@ async function wireBody(input: HttpRequest): Promise<Response> {
   return new Response(new Blob(chunks), { headers: new Headers(input.headers.map(([name, value]): [string, string] => [name, value])) });
 }
 
-function provider(transport: HttpTransport) {
-  return createOpenAiProvider({ transport, apiKey: "test-secret", models });
+function provider(transport: HttpTransport, limits?: Partial<LlmProviderLimits>) {
+  return createOpenAiProvider({ transport, apiKey: "test-secret", models, ...(limits ? { limits } : {}) });
 }
+
+test("OpenAI default image, SSE and byte streams exceed the former quotas", async () => {
+  const payload = Buffer.alloc(5 * 1024 * 1024, 123);
+  const reply = response({ data: [{ b64_json: payload.toString("base64") }] });
+  assert.deepEqual(Buffer.concat(await collect(provider(fake(reply).transport).complete(request({ model: "custom-image" }))) as Uint8Array[]), payload);
+  const text = "x".repeat(1024 * 1024 + 1);
+  assert.deepEqual(await collect(openAiChat(bytes(encoder.encode("data: " + JSON.stringify({ choices: [{ delta: { content: text } }] }) + "\n\ndata: [DONE]\n\n")), request().signal)), [text]);
+  const chunk = new Uint8Array(1024 * 1024);
+  let total = 0;
+  for await (const item of openAiBytes({ async *[Symbol.asyncIterator]() { for (let index = 0; index < 65; index++) yield chunk; } }, request().signal)) total += item.length;
+  assert.equal(total, 65 * 1024 * 1024);
+});
+
+test("LLM multipart boundary selection has no collision-attempt quota", () => {
+  assert.doesNotThrow(() => multipart({ text: "safe-bash-llm-boundary" + "x".repeat(40) }, [], Infinity));
+});
 
 test("OpenAI routes arbitrary configured models and streams split UTF-8 SSE deltas", async () => {
   const reply = response("");
@@ -235,7 +253,7 @@ for (const margin of [-1, 0, 1]) {
 }
 
 for (const maxResponseBytes of [undefined, 64 * 1024, 128 * 1024]) {
-  test(`OpenAI HTTP errors retain the 64 KiB diagnostic ceiling with response budget ${maxResponseBytes ?? "default"}`, async () => {
+  test(`OpenAI HTTP errors honor response budget ${maxResponseBytes ?? "default"} without a hidden diagnostic ceiling`, async () => {
     const reply = response("", 500);
     let consumed = 0, closed = false;
     reply.body = (async function* () {
@@ -249,7 +267,7 @@ for (const maxResponseBytes of [undefined, 64 * 1024, 128 * 1024]) {
     const configured = createOpenAiProvider({ transport: fake(reply).transport, apiKey: "test-secret", models,
       limits: maxResponseBytes === undefined ? {} : { maxResponseBytes } });
     await assert.rejects(collect(configured.complete(request())), { message: "OpenAI HTTP 500" });
-    assert.equal(consumed, 65 * 1024, "stop at the first chunk exceeding the smaller diagnostic ceiling");
+    assert.equal(consumed, Math.min(128 * 1024, (maxResponseBytes ?? Infinity) + 1024));
     assert.equal(closed, true);
     assert.equal(reply.disposed, 1);
   });
@@ -646,7 +664,7 @@ test("OpenAI SSE parser bounds unterminated event data before reading ahead", as
     readAhead = true;
     yield encoder.encode("data: [DONE]\n\n");
   })();
-  await assert.rejects(collect(provider(fake(reply).transport).complete(request())), /SSE event exceeds buffer limit/);
+  await assert.rejects(collect(provider(fake(reply).transport, { maxEventBytes: 1024 * 1024 }).complete(request())), /SSE event exceeds buffer limit/);
   assert.equal(readAhead, false);
   assert.equal(reply.disposed, 1);
 });

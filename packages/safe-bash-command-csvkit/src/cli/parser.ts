@@ -134,6 +134,7 @@ export async function parseArguments(command: string, input: readonly Uint8Array
   let escapingFailure = false;
   const convert = async (action: ArgumentDescriptor, text: string): Promise<unknown | ParseResult> => {
     if (action.type === "builtins.int") {
+      if (action.dest === "field_size_limit" && text === "Infinity") return Infinity;
       const value = integer(text);
       if (value === undefined) return error(`argument ${label(action)}: invalid int value: ${repr(text)}`);
       if (action.choices && !action.choices.includes(value as number)) {

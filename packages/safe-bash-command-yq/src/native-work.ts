@@ -17,7 +17,7 @@ export function limitsFor(options: Partial<MikeLimits> = {}): MikeLimits {
   if (!options || typeof options !== "object" || Array.isArray(options)) throw new TypeError("invalid yq limits");
   const limits: { -readonly [Key in keyof MikeLimits]: number } = { ...mikeLimits };
   for (const [name, value] of Object.entries(options)) {
-    if (!Object.hasOwn(limits, name) || !Number.isSafeInteger(value) || value < 1) {
+    if (!Object.hasOwn(limits, name) || value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) {
       throw new TypeError(`invalid yq limit: ${name}`);
     }
     limits[name as keyof MikeLimits] = value;

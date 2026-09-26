@@ -55,8 +55,6 @@ function base64(bytes: Uint8Array): string {
 
 // Keep image JSON and decoded output within a Worker-sized budget even when
 // the general provider response allowance is larger (e.g. video downloads).
-const maxImageBytes = 4 * 1024 * 1024;
-const maxImageResponseBytes = 6 * 1024 * 1024;
 
 function imageSize(value: unknown): number {
   if (typeof value !== "string" || value.length === 0) throw new Error("OpenAI image response has no b64_json");
@@ -167,7 +165,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
         if (values.stream === true) throw new TypeError("Image event streaming is not supported by this reference provider");
         const body = editing ? multipart({ ...values, ...request.options }, request.attachments.map(file => ({ ...file, field: "image[]" })), limits.maxRequestBytes) : jsonBody(values, limits.maxRequestBytes);
         for await (const response of send(editing ? "/images/edits" : "/images/generations", "POST", body)) {
-          const value = await openAiJson(response, request.signal, Math.min(limits.maxResponseBytes, maxImageResponseBytes));
+          const value = await openAiJson(response, request.signal, limits.maxResponseBytes);
           if (value.error != null) throw new Error(`OpenAI: ${openAiError(value.error) ?? "image generation failed"}`);
           if (!Array.isArray(value.data) || value.data.length === 0) throw new Error("OpenAI image response has no images");
           let size = 0;
@@ -176,7 +174,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
             request.signal.throwIfAborted();
             if (!openAiRecord(item)) throw new Error("OpenAI image response contains a malformed image");
             size += imageSize(item.b64_json);
-            if (size > Math.min(maxImageBytes, limits.maxResponseBytes)) throw new RangeError("Provider image byte limit exceeded");
+            if (size > limits.maxResponseBytes) throw new RangeError("Provider image byte limit exceeded");
             images.push(item.b64_json as string);
           }
           // Validate every slab before publishing any output, including padding

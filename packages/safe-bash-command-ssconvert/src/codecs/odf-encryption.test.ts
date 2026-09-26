@@ -123,7 +123,7 @@ it("passes a frozen explicit ODF request and accepts raw UTF8 without changing h
   const read = vi.fn(async (request: Parameters<NonNullable<CapabilityContext["password"]>["read"]>[0]) => {
     expect(Object.isFrozen(request)).toBe(true);
     expect(request).toMatchObject({ format: "odf", algorithm: "aes-cbc", revision: "1.2", encoding: "utf8",
-      maxBytes: 4096, inputFilename: "/encrypted.ods", signal: context.signal });
+      maxBytes: context.limits.inputBytes, inputFilename: "/encrypted.ods", signal: context.signal });
     return secret;
   });
   expect((await readOdf(await fixture(), { ...context, password: { read }, inputFilename: "/encrypted.ods" })).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 42 });
@@ -151,7 +151,8 @@ it.each([
   ["wrong part", manifest.replace('full-path="content.xml"', 'full-path="missing.xml"'), "io"]
 ] as const)("admits %s before accessing host secrets", async (_, declaration, code) => {
   const read = vi.fn(async () => "owned-odf-reference");
-  await expect(readOdf(await fixture(declaration), { ...context, password: { read } })).rejects.toMatchObject({ code });
+  await expect(readOdf(await fixture(declaration), { ...context,
+    limits: { ...context.limits, workbookWork: 10000000 }, password: { read } })).rejects.toMatchObject({ code });
   expect(read).not.toHaveBeenCalled();
 });
 it("rejects truncated ciphertext before accessing host secrets", async () => {
@@ -165,7 +166,7 @@ it("checks ciphertext corruption before exposing plaintext", async () => {
     code: "io", message: "E Invalid OpenDocument: encrypted content could not be verified" });
 });
 it.each([new Uint8Array([255]), "x".repeat(4097), new Uint8Array(4097)])("rejects invalid or excessive UTF8 secret", async (secret) => {
-  await expect(readOdf(await fixture(), { ...context, password: { read: async () => secret } })).rejects.toMatchObject({ code: "unsupported-feature" });
+  await expect(readOdf(await fixture(), { ...context, limits: { ...context.limits, inputBytes: 4096 }, password: { read: async () => secret } })).rejects.toMatchObject({ code: "unsupported-feature" });
 });
 it("observes cancellation immediately after secret acquisition", async () => {
   const controller = new AbortController(), read = vi.fn(async () => { controller.abort(); return "owned-odf-reference"; });

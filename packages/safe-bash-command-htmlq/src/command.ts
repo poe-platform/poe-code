@@ -34,22 +34,22 @@ export interface HtmlqResult {
   readonly accounting: HtmlAccounting;
 }
 const defaultLimits: HtmlLimits = Object.freeze({
-  inputBytes: 16_777_216,
-  decodedBytes: 33_554_432,
-  retainedBytes: 134_217_728,
-  nodes: 262_144,
-  attributes: 262_144,
-  depth: 256,
-  tokenBytes: 1_048_576,
-  work: 268_435_456,
-  outputBytes: 33_554_432
+  inputBytes: Infinity,
+  decodedBytes: Infinity,
+  retainedBytes: Infinity,
+  nodes: Infinity,
+  attributes: Infinity,
+  depth: Infinity,
+  tokenBytes: Infinity,
+  work: Infinity,
+  outputBytes: Infinity
 });
 function admittedLimits(overrides: Partial<HtmlLimits> = {}): HtmlLimits {
   const limits = { ...defaultLimits, ...overrides };
   for (const name of Object.keys(defaultLimits) as (keyof HtmlLimits)[]) {
     const value = limits[name];
-    if (!Number.isSafeInteger(value) || value < 0 || value > defaultLimits[name])
-      throw new HtmlError("E_LIMIT", "Limit overrides may only lower host ceilings", 0, name);
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 0))
+      throw new HtmlError("E_LIMIT", "Limits must be nonnegative safe integers or Infinity", 0, name);
   }
   return Object.freeze(limits);
 }
@@ -202,9 +202,10 @@ export async function htmlq(
         else {
           // Input belongs to the invocation, independently of stdout's consumer.
           // Await cooperative VFS work here so task/cleanup settlement covers it.
+          const maxBytes = Math.min(options.limits.inputBytes, options.limits.retainedBytes);
           const resource = await context.fs.readFile(path, {
             signal: options.signal,
-            maxBytes: Math.min(options.limits.inputBytes, options.limits.retainedBytes)
+            ...(maxBytes === Infinity ? {} : { maxBytes })
           });
           budget.charge("retainedBytes", resource.length);
           source = (async function* () {

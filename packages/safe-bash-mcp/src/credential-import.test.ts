@@ -38,6 +38,19 @@ it.each([undefined, Infinity])("imports raw tokens and complete original DCR met
     requestedScope: "read", tokens: { accessToken: "private-access", refreshToken: "private-refresh", expiresAt: 3_610_000 } });
   expect(await f.stores.clientStore.load(issuer)).toEqual(session?.client);
 });
+it.each([undefined, Infinity])("imports credential metadata deeper than the former implicit ceiling with byte budget %s", async maxImportBytes => {
+  let metadata: unknown = { tenant: "one" };
+  for (let depth = 0; depth < 300; depth++) metadata = { nested: metadata };
+  const f = fixture(), imported = { ...payload, clientInfo: { ...payload.clientInfo, provider_metadata: metadata } };
+  const importSession = vi.fn(async (_server: unknown, _session: StoredOAuthSession) => {});
+  await expect(sdk.importRemoteMcpAuthentication(dynamic, imported, {
+    binding: { env: {}, oauth: { importSession } }, fetch: f.fetch, maxImportBytes
+  })).resolves.toEqual({ name: "catalog", url: resource, imported: true });
+  expect(importSession.mock.calls[0]![1].client?.registration?.provider_metadata).toEqual(metadata);
+  await expect(sdk.importRemoteMcpAuthentication(dynamic, imported, {
+    binding: f.binding, fetch: f.fetch, maxImportBytes: 10
+  })).rejects.toThrow("Invalid OAuth credential import payload");
+});
 it("anchors expiry before asynchronous discovery and preserves delayed issuance", async () => {
   const f = fixture(); let now = 10_000;
   const base = f.fetch.getMockImplementation()!;

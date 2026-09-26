@@ -13,7 +13,7 @@ export async function fixedConversion(runtime: Runtime): Promise<number> {
     }
     const schema = runtime.input(String(runtime.options.schema));
     const records = readCsvStream(schema.lines(), {
-      fieldLimit: Number(runtime.options.field_size_limit ?? 131072), fieldBudget: runtime.context.limits.maxFieldCharacters
+      fieldLimit: Number(runtime.options.field_size_limit ?? Infinity), fieldBudget: runtime.context.limits.maxFieldCharacters
     }, runtime.step);
     const first = await records.next();
     if (first.done) throw new CsvkitDiagnostic("StopIteration: ");

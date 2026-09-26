@@ -48,11 +48,12 @@ function select(context: CommandContext): Selection {
 
 export function createYesCommand(options: YesCommandOptions = {}): CommandDefinition {
   if (options === null || typeof options !== "object" || Array.isArray(options)) throw new TypeError("Yes options must be an object");
-  const { maxRecordBytes = 1024 * 1024, chunkBytes = 16384 } = options;
+  const { maxRecordBytes = Infinity, chunkBytes = 16384 } = options;
   for (const [name, value] of Object.entries({ maxRecordBytes, chunkBytes })) {
     if (typeof value !== "number") throw new TypeError(`Yes ${name} must be a number`);
-    if (!Number.isSafeInteger(value) || value < 1 || value > 16 * 1024 * 1024) {
-      throw new RangeError(`Yes ${name} must be an integer from 1 to 16777216`);
+    if (name === "maxRecordBytes" && value === Infinity) continue;
+    if (!Number.isSafeInteger(value) || value < 1 || name === "chunkBytes" && value > 16 * 1024 * 1024) {
+      throw new RangeError(`Yes ${name} must be a positive safe integer${name === "chunkBytes" ? " up to 16777216" : " or Infinity"}`);
     }
   }
   return Object.freeze({

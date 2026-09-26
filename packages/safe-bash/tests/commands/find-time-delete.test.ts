@@ -397,20 +397,21 @@ test("find -delete preserves the existing directory-entry cap", async context =>
   assert.deepEqual((await fs.readdir("/work/tree")).map(entry => entry.name), ["first", "second"]);
 });
 
-test("find -delete preserves the 1024 depth ceiling without recursively removing unvisited descendants", async context => {
+test("find -delete visits beyond depth 1024 and uses only empty-directory removal", async context => {
   const fs = await fixture();
   const directory = await fs.lstat("/work");
   let deepest = 0;
   let removals = 0;
   context.mock.method(fs, "lstat", async (path: string) => { deepest = Math.max(deepest, path.split("/").length - 3); return directory; });
   context.mock.method(fs, "realpath", async (path: string) => path);
-  context.mock.method(fs, "readdir", async () => [{ name: "child", type: "directory" as const }]);
+  context.mock.method(fs, "readdir", async (path: string) => path.split("/").length - 3 >= 1025 ? [] : [{ name: "child", type: "directory" as const }]);
   context.mock.method(fs, "rmdir", async () => { removals++; throw new FsError("ENOTEMPTY"); });
   const result = await run("find", ["tree", "-delete"], { fs });
   assert.equal(result.exitCode, 1);
-  assert.match(result.stderr, /find depth limit exceeded \(1024\)/u);
-  assert.equal(deepest, 1024);
-  assert.equal(removals, 1025);
+  assert.match(result.stderr, /ENOTEMPTY/u);
+  assert.doesNotMatch(result.stderr, /depth limit/u);
+  assert.equal(deepest, 1025);
+  assert.equal(removals, 1026);
 });
 
 test("find treats -delete and -depth inside predicate/exec operands as literal values", async () => {

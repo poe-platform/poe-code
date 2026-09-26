@@ -20,7 +20,7 @@ export function createXlsxXml(context: CapabilityContext) {
   const names = new Set<string>();
   function charge(amount = 1): void {
     context.signal.throwIfAborted();
-    if (amount > (context.limits.workbookWork ?? 10000000) - work)
+    if (amount > (context.limits.workbookWork ?? Infinity) - work)
       throw new SsconvertError("resource-limit", "ssconvert XLSX work limit exceeded");
     work += amount;
   }
@@ -41,7 +41,7 @@ export function createXlsxXml(context: CapabilityContext) {
   }
   const element: ElementWriter = (name, attributes = {}, content = "") => {
     charge();
-    if (++nodes > (context.limits.workbookNodes ?? 100000)) throw new SsconvertError("resource-limit", "ssconvert XLSX XML nodes limit exceeded");
+    if (++nodes > (context.limits.workbookNodes ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert XLSX XML nodes limit exceeded");
     validateName(name);
     if (content.length > context.limits.outputBytes)
       throw new SsconvertError("resource-limit", "ssconvert XLSX output bytes limit exceeded");
@@ -63,9 +63,8 @@ export interface MetadataNode { readonly name: string; readonly namespace: strin
 /** The workbook stores both parsed Gnumeric attribute arrays and OOXML attribute maps. */
 export function metadataNode(value: ImportedValue | undefined, charge?: (amount?: number) => void): MetadataNode | undefined {
   const active = new Set<object>();
-  function visit(value: ImportedValue | undefined, depth: number): MetadataNode | undefined {
+  function visit(value: ImportedValue | undefined): MetadataNode | undefined {
     charge?.();
-    if (depth > 128) throw new SsconvertError("resource-limit", "ssconvert XLSX metadata depth limit exceeded");
     if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
     if (active.has(value)) throw new SsconvertError("invalid-request", "Invalid cyclic XLSX metadata");
     const source = value as Readonly<Record<string, ImportedValue>>;
@@ -90,10 +89,10 @@ export function metadataNode(value: ImportedValue | undefined, charge?: (amount?
       }
       return { name: source.name, namespace: typeof source.namespace === "string" ? source.namespace : "",
         attributes, text: typeof source.text === "string" ? source.text : "",
-        children: Array.isArray(source.children) ? source.children.flatMap(value => { const child = visit(value, depth + 1); return child ? [child] : []; }) : [] };
+        children: Array.isArray(source.children) ? source.children.flatMap(value => { const child = visit(value); return child ? [child] : []; }) : [] };
     } finally { active.delete(value); }
   }
-  return visit(value, 0);
+  return visit(value);
 }
 export function writeRichString(value: string, runs: readonly RichTextRun[] | undefined, xml: ElementWriter, charge?: (amount?: number) => void): string {
   charge?.(value.length);

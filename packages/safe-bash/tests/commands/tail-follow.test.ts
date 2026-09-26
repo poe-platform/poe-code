@@ -132,7 +132,7 @@ test("named reservation preflight includes the F candidate and precedes filesyst
   assert.equal(opened, 0);
 });
 
-for (const cap of [-1, 1.5, Infinity, NaN, Number.MAX_SAFE_INTEGER + 1]) test(`invalid follow cap ${String(cap)}`, () => {
+for (const cap of [-1, 1.5, -Infinity, NaN, Number.MAX_SAFE_INTEGER + 1]) test(`invalid follow cap ${String(cap)}`, () => {
   assert.throws(() => streamCommands(64, cap), /maxTailFollowHandles/u);
 });
 
@@ -487,7 +487,7 @@ test("late acquired handles and closing comparison slots remain owned until rele
   assert.equal(clock.timers.size, 0);
 });
 
-test("default cap is 64 and duplicate operands reserve independent slots before opening", async () => {
+test("configured cap of 64 reserves independent slots for duplicate operands before opening", async () => {
   const fs = await fixture();
   let opened = 0;
   const bound = composition(fs, async (...args) => { opened++; return fs.openReadFile!(...args); });

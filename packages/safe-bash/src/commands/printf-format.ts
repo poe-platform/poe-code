@@ -9,14 +9,11 @@ interface PrintfDirective {
   readonly specifier: string;
 }
 
-// Bound work per directive, including repeated flags and leading zeroes.
-const maxDirectiveLength = 16 * 1024;
-
+// Scan cooperatively, including repeated flags and leading zeroes.
 export async function parsePrintfDirective(format: string | Uint8Array, start: number, signal: AbortSignal): Promise<PrintfDirective> {
   signal.throwIfAborted();
   let offset = start + 1;
   const character = (): string => {
-    if (offset - start >= maxDirectiveLength) throw new UsageError("format directive length limit exceeded");
     return typeof format === "string" ? format.charAt(offset) : offset < format.length ? String.fromCharCode(format[offset]!) : "";
   };
   let flags = "";

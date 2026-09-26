@@ -46,15 +46,15 @@ function decimal(text: string, options: InferenceOptions, step: () => void): str
   if (/^[+-]?(inf(inity)?)$/i.test(ascii)) return ascii.startsWith("-") ? "-Infinity" : "Infinity";
   const nan = /^[+-]?nan(\d*)$/i.exec(ascii);
   if (nan) {
-    if (nan[1]!.length > (options.maxDecimalDigits ?? 10000)) throw new CsvkitBlocked("Decimal admission budget exceeded");
+    if (nan[1]!.length > (options.maxDecimalDigits ?? Infinity)) throw new CsvkitBlocked("Decimal admission budget exceeded");
     return (ascii.startsWith("-") ? "-" : "") + "NaN" + nan[1]!.slice(-28).replace(/^0+/, "");
   }
   if (/^[+-]?snan\d*$/i.test(ascii)) throw new CastError();
   const match = /^([+-]?)(?:(\d+)(?:\.(\d*))?|\.(\d+))(?:[eE]([+-]?\d+))?$/.exec(ascii);
   if (!match) throw new CastError();
   const fraction = match[3] ?? match[4] ?? "";
-  if ((match[2]?.length ?? 0) + fraction.length > (options.maxDecimalDigits ?? 10000) ||
-      Math.abs(Number(match[5] ?? 0)) > (options.maxDecimalExponent ?? 10000)) throw new CsvkitBlocked("Decimal admission budget exceeded");
+  if ((match[2]?.length ?? 0) + fraction.length > (options.maxDecimalDigits ?? Infinity) ||
+      Math.abs(Number(match[5] ?? 0)) > (options.maxDecimalExponent ?? Infinity)) throw new CsvkitBlocked("Decimal admission budget exceeded");
   return Decimal.parse(ascii).multiply(Decimal.parse("1")).toString();
 }
 

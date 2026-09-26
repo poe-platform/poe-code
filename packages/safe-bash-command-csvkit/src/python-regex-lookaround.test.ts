@@ -29,8 +29,8 @@ test("variable-width lookbehind remains an explicit diagnostic blocker", () => {
   }
 });
 
-test("parser nesting is refused before overflowing the JavaScript stack", () => {
-  assert.throws(() => search("(".repeat(100) + "a" + ")".repeat(100)), CsvkitBlocked);
+test("parser nesting has no implicit resource ceiling", () => {
+  assert.equal(search("(".repeat(100) + "a" + ")".repeat(100))("a"), true);
 });
 
 test("assertion transitions preserve the cancellation reason and work ceiling", () => {

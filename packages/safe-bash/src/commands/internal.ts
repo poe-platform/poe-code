@@ -44,7 +44,7 @@ async function handleDefineError(
 
 export const encoder = new TextEncoder();
 export const decoder = new TextDecoder();
-export const bufferLimit = 32 * 1024 * 1024;
+export const bufferLimit = Infinity;
 export const builtInDirectContextExecutors = new WeakSet<CommandHandler>();
 
 export { UsageError } from "safe-bash-contracts/diagnostics";
@@ -368,7 +368,7 @@ async function* fileInputSource(context: CommandContext, name: string, stream?: 
     if (capabilities.read === false) throw new FsError("ENOTSUP", { syscall: "readFile", path });
     yield* readBytes({
       async *[Symbol.asyncIterator]() {
-        const bytes = await context.fs.readFile(path, { signal: context.signal, maxBytes: bufferLimit });
+        const bytes = await context.fs.readFile(path, { signal: context.signal });
         context.signal.throwIfAborted();
         if (bytes.byteLength > bufferLimit) throw new FsError("EFBIG", { syscall: "readFile", path });
         yield bytes;

@@ -15,7 +15,7 @@ async function abortable<Result>(operation: () => PromiseLike<Result>, signal: A
   }
 }
 
-export async function* streamElevenLabs(transport: HttpTransport, request: HttpRequest, limit = 64 * 1024 * 1024): AsyncGenerator<Uint8Array> {
+export async function* streamElevenLabs(transport: HttpTransport, request: HttpRequest, limit = Infinity): AsyncGenerator<Uint8Array> {
   const { signal } = request;
   signal.throwIfAborted();
   let iterator: AsyncIterator<Uint8Array> | undefined;

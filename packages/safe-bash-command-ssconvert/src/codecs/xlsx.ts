@@ -116,8 +116,8 @@ function sharedStringIndex(source: string): number | undefined {
 }
 function zipLimits(context: CapabilityContext): ZipLimits {
   return { maxArchiveBytes: Math.min(context.limits.inputBytes, context.limits.compressedBytes ?? context.limits.inputBytes), maxEntryBytes: Math.min(context.limits.inputBytes, context.limits.inflatedBytes ?? context.limits.inputBytes),
-    maxTotalBytes: Math.min(context.limits.inputBytes, context.limits.inflatedBytes ?? context.limits.inputBytes), maxMembers: context.limits.zipEntries ?? context.limits.workbookNodes ?? 100000,
-    maxPathBytes: 4096, maxDepth: context.limits.xmlDepth ?? 128, maxPaxBytes: context.limits.inputBytes,
+    maxTotalBytes: Math.min(context.limits.inputBytes, context.limits.inflatedBytes ?? context.limits.inputBytes), maxMembers: context.limits.zipEntries ?? context.limits.workbookNodes ?? Infinity,
+    maxPathBytes: Infinity, maxDepth: context.limits.xmlDepth ?? Infinity, maxPaxBytes: context.limits.inputBytes,
     maxTextBytes: context.limits.workbookTextBytes ?? context.limits.inputBytes, chunkSize: 16384 };
 }
 function path(base: string, target: string): string {
@@ -141,7 +141,7 @@ async function openPackage(bytes: Uint8Array, context: CapabilityContext) {
   const bounds = zipLimits(context); const zip = createZipCodec(undefined, { rejectDuplicateNames: true, zip64: true });
   const archive = await zip.readZipArchive(bytes, bounds, context.signal);
   for (const entry of archive.entries) {
-    if (entry.size > (context.limits.zipRatio ?? 1000) * Math.max(1, entry.data.length)) limit("ZIP ratio");
+    if (entry.size > (context.limits.zipRatio ?? Infinity) * Math.max(1, entry.data.length)) limit("ZIP ratio");
   }
   const entries = new Map<string, ZipEntry>();
   for (const entry of archive.entries) {
@@ -151,7 +151,7 @@ async function openPackage(bytes: Uint8Array, context: CapabilityContext) {
   }
   let decodedBytes = 0, nodes = 0, textBytes = 0;
   let packageWork = 0;
-  const maximumWork = context.limits.workbookWork ?? 10000000;
+  const maximumWork = context.limits.workbookWork ?? Infinity;
   function charge(amount: number): void {
     context.signal.throwIfAborted();
     if (amount > maximumWork - packageWork) limit("work"); packageWork += amount;
@@ -174,9 +174,9 @@ async function openPackage(bytes: Uint8Array, context: CapabilityContext) {
     const text = new TextDecoder(encoding, { fatal: true }).decode(plain);
     textBytes += plain.length;
     if (textBytes > (context.limits.workbookTextBytes ?? bounds.maxTotalBytes)) limit("XML text");
-    const parser = parseXmlSteps(text, { expectedEncoding: encoding, maxDepth: context.limits.xmlDepth ?? 128,
-      maxNodes: (context.limits.workbookNodes ?? 100000) - nodes,
-      maxAttributes: context.limits.workbookNodes ?? 100000, maxTextLength: bounds.maxTextBytes,
+    const parser = parseXmlSteps(text, { expectedEncoding: encoding, maxDepth: context.limits.xmlDepth ?? Infinity,
+      maxNodes: (context.limits.workbookNodes ?? Infinity) - nodes,
+      maxAttributes: context.limits.workbookNodes ?? Infinity, maxTextLength: bounds.maxTextBytes,
       onElement() { nodes++; charge(1); } });
     let step = parser.next(), parserWork = 0;
     while (!step.done) {
@@ -241,7 +241,7 @@ function record(node: XmlElement, source: string): UnsupportedRecord {
 }
 function formula(source: string, sheet: string, row: number, column: number, context: CapabilityContext, arrayStringLiterals = false): string {
   const parsed = parseExpression("=" + source, { grammar: excelGrammar, position: { sheet, row, column }, arrayStringLiterals, signal: context.signal,
-    maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? 100000 });
+    maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? Infinity });
   if (!parsed.ok) return "=" + source;
   let simpleSheets = true;
   visitFormula(parsed.document.root, node => {
@@ -370,7 +370,7 @@ export async function readXlsx(bytes: Uint8Array, context: CapabilityContext): P
       for (const node of children(child(source, "cols"), "col")) {
         const min = integer(attr(node, "min")), max = integer(attr(node, "max"));
         if (min < 1 || max < min || max > 16384) invalid("invalid column span");
-        if (max - min + 1 > (context.limits.workbookNodes ?? 100000) - columns.length) limit("column metadata");
+        if (max - min + 1 > (context.limits.workbookNodes ?? Infinity) - columns.length) limit("column metadata");
         opc.charge(max - min + 1);
         for (let index = min - 1; index < max; index++) columns.push({ index, hidden: boolean(attr(node, "hidden")),
           outlineLevel: integer(attr(node, "outlineLevel")), collapsed: boolean(attr(node, "collapsed")),
@@ -794,7 +794,7 @@ function exportXlsxFormula(source: string, sheet: Sheet, row: number, column: nu
   const position = { sheet: sheet.id, row, column };
   const parsed = parseExpression(source.startsWith("=") ? source : "=" + source, { grammar: gnumericGrammar, position, arrayStringLiterals,
     signal: context.signal, maximumLength: context.limits.workbookTextBytes ?? context.limits.outputBytes,
-    maximumNodes: context.limits.workbookNodes ?? 100000 });
+    maximumNodes: context.limits.workbookNodes ?? Infinity });
   if (!parsed.ok) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: unparsed XLSX formula");
   const result = serializeExpression(parsed.document, excelGrammar, false, true);
   return result.startsWith("=") ? result.slice(1) : result;

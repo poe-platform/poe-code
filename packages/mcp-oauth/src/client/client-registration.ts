@@ -4,7 +4,7 @@ import { loopbackTarget } from "./loopback-authorization.js";
 import { normalizeOAuthScope } from "./scope.js";
 import { normalizeOAuthTokenEndpointAuthMethod } from "./token-auth-method.js";
 
-/** Validate and copy a bounded JSON DCR response without quoting credential input. */
+/** Validate and copy a JSON DCR response without quoting credential input. */
 export function parseOAuthClientRegistration(value: unknown): OAuthClientRegistration {
   const invalid = () => new Error("Invalid OAuth client registration metadata");
   const result = copyBoundedOAuthJson(value, "Invalid OAuth client registration metadata");

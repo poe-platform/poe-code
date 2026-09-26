@@ -28,6 +28,15 @@ function bindings() {
   });
   return { secret, borrowed, read, entropy, context: { ...base, password: { read }, entropy: { read: entropy } } };
 }
+it("round-trips ODF passwords beyond the former implicit byte ceiling", async () => {
+  const binding = bindings(), password = "p".repeat(4097);
+  const read = vi.fn(async (_request: Parameters<PasswordCapability["read"]>[0]) => password), context = { ...binding.context, password: { read } };
+  const bytes = await createOdfWriter("strict")(book, ["encryption=odf12-aes128-cbc"], context);
+  expect((await readOdf(bytes, context)).sheets[0]!.cells[0]!.value).toEqual(book.sheets[0]!.cells[0]!.value);
+  expect(read).toHaveBeenCalledTimes(2);
+  for (const [request] of read.mock.calls)
+    expect(request.maxBytes).toBe(context.limits.inputBytes);
+});
 async function unpack(bytes: Uint8Array) {
   const zip = createZipCodec(), archive = await zip.readZipArchive(bytes, zipLimits, base.signal);
   const parts = new Map<string, Uint8Array>();
@@ -95,7 +104,7 @@ describe.each([128, 192, 256])("ODF AES-%i encrypted export", bits => {
   });
   it.each([undefined, "\ud800", new Uint8Array([255]), new Uint8Array(4097)])("refuses unavailable or invalid output secrets", async secret => {
     const b = bindings();
-    await expect(createOdfWriter("extended")(book, options, { ...b.context, password: { read: async () => secret } })).rejects.toMatchObject({ code: "unsupported-feature" });
+    await expect(createOdfWriter("extended")(book, options, { ...b.context, limits: { ...b.context.limits, inputBytes: 4096 }, password: { read: async () => secret } })).rejects.toMatchObject({ code: "unsupported-feature" });
     expect(b.entropy).not.toHaveBeenCalled();
   });
   it.each([undefined, new Uint8Array(1), new Uint8Array(49)])("refuses declined or incorrectly sized entropy", async bytes => {

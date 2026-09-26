@@ -105,14 +105,14 @@ test("review: attachment snapshots survive an adapter reusing its read buffer", 
 });
 
 test("review: duplicate attachment paths are admitted cumulatively rather than deduplicated", async () => {
-  const run = await fixture(async function* () { yield "ok"; }, { args: ["--at", "/same", "image/png", "--at", "/same", "image/png"], attachmentTypes: ["image/*"], stdin: toByteSource("🦊") });
+  const run = await fixture(async function* () { yield "ok"; }, { args: ["--at", "/same", "image/png", "--at", "/same", "image/png"], attachmentTypes: ["image/*"], stdin: toByteSource("🦊"),
+    context: { inputBudget: { maxBytes: 10, check(total) { assert.ok(total <= 10); } } },
+  });
   const limits: (number | undefined)[] = [];
   await run.fs.writeFile("/same", new Uint8Array(3));
   run.fs.readFile = async (_path, options) => { limits.push(options?.maxBytes); return new Uint8Array(3); };
   assert.equal((await run.execute()).exitCode, 0);
-  assert.equal(limits.length, 2);
-  assert.ok(typeof limits[0] === "number");
-  assert.equal(limits[1], limits[0] - 3);
+  assert.deepEqual(limits, [6, 3]);
   assert.equal(run.requests[0]?.attachments.length, 2);
 });
 

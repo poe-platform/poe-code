@@ -10,8 +10,8 @@ import { CompressedDataError } from "./errors.js";
 
 export function createCompressionCommands(config: CompressionCommandOptions = {}): readonly CommandDefinition[] {
   const maxDecodedBytes = config.maxDecodedBytes;
-  if (maxDecodedBytes !== undefined && (!Number.isSafeInteger(maxDecodedBytes) || maxDecodedBytes < 0)) {
-    throw new RangeError("maxDecodedBytes must be a nonnegative safe integer");
+  if (maxDecodedBytes !== undefined && maxDecodedBytes !== Infinity && (!Number.isSafeInteger(maxDecodedBytes) || maxDecodedBytes < 0)) {
+    throw new RangeError("maxDecodedBytes must be a nonnegative safe integer or Infinity");
   }
   const commands = profiles.flatMap(profile => profile.names).map((name) => define(name, async (context) => {
     const options = parseOptions(name, context.args);

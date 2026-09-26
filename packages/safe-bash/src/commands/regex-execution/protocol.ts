@@ -262,7 +262,7 @@ export function policy(options: RegexExecutionOptions): Required<RegexExecutionO
   for (const key of Object.keys(defaults) as (keyof RegexExecutionOptions)[]) {
     const minimum = key === "maxQueuedRequests" || key === "maxQueuedBytes" ? 0 : 1;
     if (!Object.hasOwn(options, key)) continue;
-    if (!Number.isSafeInteger(result[key]) || result[key] < minimum) throw new RangeError(`regex ${key} must be a safe integer >= ${minimum}`);
+    if (result[key] !== Infinity && (!Number.isSafeInteger(result[key]) || result[key] < minimum)) throw new RangeError(`regex ${key} must be a safe integer >= ${minimum} or Infinity`);
   }
   for (const key of ["requestTimeoutMs", "startupTimeoutMs", "idleTimeoutMs"] as const) {
     if (result[key] !== Infinity && result[key] > 2147483647) throw new RangeError(`regex ${key} exceeds the Node timer range`);

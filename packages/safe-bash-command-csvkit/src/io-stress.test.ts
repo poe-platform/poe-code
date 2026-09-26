@@ -7,6 +7,7 @@ import type { CsvkitContext } from "./contracts.js";
 import { LazyInput } from "./io/index.js";
 import { Runtime } from "./runtime.js";
 import { csvcut } from "./commands/csvcut.js";
+import { MemoryFileSystem } from "@poe-code/safe-fs";
 import ioReference from "../../../docs/csvkit/io-reference.json" with { type: "json" };
 
 function fixture(argv: readonly string[], overrides: Partial<CsvkitContext> = {}) {
@@ -26,6 +27,28 @@ function fixture(argv: readonly string[], overrides: Partial<CsvkitContext> = {}
   };
   return { context, cleanups, result: () => ({ stdout, stderr }) };
 }
+
+test.each([false, true])("IO stress: unlimited file reads support finite-only filesystem APIs (side input=%s)", async sideInput => {
+  for (const maximum of [undefined, Infinity, 4]) {
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/data.csv", new TextEncoder().encode("a\n"));
+    const f = fixture([], { fs: { readFile: fs.readFile.bind(fs), writeFile: fs.writeFile.bind(fs) },
+      limits: { ...defaultLimits, ...(maximum === undefined ? {} : { maxInputBytes: maximum }) } });
+    const runtime = new Runtime(f.context, csvcut, {});
+    const read = async () => {
+      if (sideInput) return new TextDecoder().decode(await runtime.readFileBytes("/data.csv"));
+      let text = "";
+      for await (const bytes of runtime.bytes("/data.csv")) text += new TextDecoder().decode(bytes);
+      return text;
+    };
+    try {
+      assert.equal(await read(), "a\n");
+      assert.equal(await read(), "a\n");
+      if (maximum === 4) await assert.rejects(read());
+      else assert.equal(await read(), "a\n");
+    } finally { await runtime.close(); }
+  }
+});
 
 test("IO stress: positional file opening stays lazy through help and parser errors", async () => {
   for (const argv of [["missing.csv", "--help"], ["missing.csv", "--unknown"]]) {

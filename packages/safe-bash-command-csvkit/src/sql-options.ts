@@ -1,4 +1,4 @@
-import { CsvkitBlocked, CsvkitWorkBudgetError } from "./errors.js";
+import { CsvkitBlocked } from "./errors.js";
 import { PythonException } from "./diagnostics/index.js";
 
 function blocked(): never { throw new CsvkitBlocked("SQL option literal syntax or native diagnostic profile"); }
@@ -253,7 +253,6 @@ function literal(source: string, step: () => void): unknown {
   };
   const atom = (depth: number): unknown => {
     step();
-    if (depth > 100) blocked();
     space(); const char = source[position];
     if (char === '[' || char === '{' || char === '(') {
       position++; const end = char === '[' ? ']' : char === '{' ? '}' : ')';
@@ -378,8 +377,7 @@ function literal(source: string, step: () => void): unknown {
  * option-name record retains JavaScript property enumeration semantics.
  */
 export function sqlOptions(pairs: readonly (readonly [string, unknown])[], step?: () => void): Readonly<Record<string, unknown>> {
-  let work = 0;
-  const consume = step ?? (() => { if (++work > 100_000) throw new CsvkitWorkBudgetError(); });
+  const consume = step ?? (() => {});
   const output: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
   for (const [key, raw] of pairs) {
     consume();

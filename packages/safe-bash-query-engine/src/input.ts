@@ -1111,7 +1111,7 @@ export function tryWriteCompactSync(
           vStr = (v | 0) === v && v >= 0 && v <= 1024 && (v !== 0 || 1 / v > 0)
             ? SMALL_DECIMALS[v]!.text
             : Object.is(v, -0) ? "-0" : String(v);
-        } else if (isNumber(v) && typeof v === "object" && Number.isFinite(v.double)) {
+        } else if (v instanceof Decimal && v.isFinite) {
           vStr = v.text;
         } else if (typeof v === "boolean") {
           vStr = v ? "true" : "false";
@@ -1159,7 +1159,7 @@ export function tryWriteCompactSync(
         vStr = (v | 0) === v && v >= 0 && v <= 1024 && (v !== 0 || 1 / v > 0)
           ? SMALL_DECIMALS[v]!.text
           : Object.is(v, -0) ? "-0" : String(v);
-      } else if (isNumber(v) && typeof v === "object" && Number.isFinite(v.double)) {
+      } else if (v instanceof Decimal && v.isFinite) {
         vStr = v.text;
       } else if (typeof v === "boolean") {
         vStr = v ? "true" : "false";
@@ -1207,7 +1207,7 @@ export function tryStringifyCompactSync(
     let vStr: string;
     if (typeof v === "number" && Number.isFinite(v)) {
       vStr = Object.is(v, -0) ? "-0" : String(v);
-    } else if (isNumber(v) && typeof v === "object" && Number.isFinite(v.double)) {
+    } else if (v instanceof Decimal && v.isFinite) {
       vStr = v.text;
     } else if (typeof v === "boolean") {
       vStr = v ? "true" : "false";
@@ -1250,7 +1250,7 @@ export async function stringify(value: Json, budget: Budget, format: boolean | J
       let vStr: string;
       if (typeof v === "number" && Number.isFinite(v)) {
         vStr = Object.is(v, -0) ? "-0" : String(v);
-      } else if (isNumber(v) && typeof v === "object" && Number.isFinite(v.double)) {
+      } else if (v instanceof Decimal && v.isFinite) {
         vStr = v.text;
       } else if (typeof v === "boolean") {
         vStr = v ? "true" : "false";

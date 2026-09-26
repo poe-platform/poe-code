@@ -120,7 +120,7 @@ export function hasRegisteredYieldCheckpoint(signal?: AbortSignal): boolean {
 export function inheritYieldCheckpoint(parent: AbortSignal, child: AbortSignal): void {
   if (checkpointCount === 0) return;
   const checkpoint = getCheckpoint(parent);
-  if (checkpoint) {
+  if (checkpoint && getCheckpoint(child) !== checkpoint) {
     setCheckpoint(child, checkpoint);
     checkpointCount++;
   }

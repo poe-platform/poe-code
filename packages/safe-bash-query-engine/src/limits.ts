@@ -47,7 +47,7 @@ export function resolveJqLimits(options: Partial<JqLimits> = {}): JqLimits {
 export class Budget {
   private steps = 0;
   private nextYield = 1024;
-  private lastYield = monotonicNow();
+  private lastYield = monotonicNow() | 0;
   private readonly unlimitedSteps: boolean;
   private readonly maxStepsSmi: number;
   readonly maxInputBytesSmi: number;
@@ -77,8 +77,13 @@ export class Budget {
   resetForRun(signal: AbortSignal): void {
     (this as unknown as { signal: AbortSignal }).signal = signal;
     this.steps = 0;
-    this.nextYield = 1024;
-    this.lastYield = monotonicNow();
+    if (hasYieldCheckpoint(signal)) {
+      this.nextYield = 1024;
+      this.lastYield = monotonicNow() | 0;
+    } else {
+      this.nextYield = 65536;
+      this.lastYield = -1;
+    }
     this.inputBytes = 0;
     this.outputBytes = 0;
     this.results = 0;
@@ -96,43 +101,60 @@ export class Budget {
   restoreSteps(steps: number): void { this.steps = steps; }
   needsYield(): boolean {
     if (this.steps < this.nextYield) return false;
-    const now = monotonicNow();
-    if (!hasYieldCheckpoint(this.signal) && now - this.lastYield < 25) {
-      runYieldCheckpoint(this.signal);
-      this.nextYield = this.steps + 1024;
-      return false;
+    if (!hasYieldCheckpoint(this.signal)) {
+      const now = monotonicNow() | 0;
+      if (this.lastYield < 0) {
+        this.lastYield = now;
+        runYieldCheckpoint(this.signal);
+        this.nextYield = this.steps + 65536;
+        return false;
+      }
+      if (((now - this.lastYield) | 0) < 25) {
+        runYieldCheckpoint(this.signal);
+        this.nextYield = this.steps + 65536;
+        return false;
+      }
     }
     return true;
   }
   tickSync(count = 1): Promise<void> | undefined {
     this.step(count);
     if (this.steps >= this.nextYield) {
-      const now = monotonicNow();
-      if (!hasYieldCheckpoint(this.signal) && now - this.lastYield < 25) {
-        runYieldCheckpoint(this.signal);
-        this.nextYield = this.steps + 1024;
-        return undefined;
+      if (!hasYieldCheckpoint(this.signal)) {
+        const now = monotonicNow() | 0;
+        if (this.lastYield < 0) {
+          this.lastYield = now;
+          runYieldCheckpoint(this.signal);
+          this.nextYield = this.steps + 65536;
+          return undefined;
+        }
+        if (((now - this.lastYield) | 0) < 25) {
+          runYieldCheckpoint(this.signal);
+          this.nextYield = this.steps + 65536;
+          return undefined;
+        }
       }
       return this.yieldTickSync();
     }
     return undefined;
   }
   private yieldTickSync(): Promise<void> {
-    this.lastYield = monotonicNow();
+    this.lastYield = monotonicNow() | 0;
     return yieldTurn(this.signal).then(() => {
       this.signal.throwIfAborted();
       this.nextYield = this.steps + 1024;
-      this.lastYield = monotonicNow();
+      this.lastYield = monotonicNow() | 0;
     });
   }
   async tick(count = 1): Promise<void> {
     this.step(count);
-    const now = monotonicNow();
-    if (this.steps >= this.nextYield || now - this.lastYield >= 25) {
+    const now = monotonicNow() | 0;
+    if (this.lastYield < 0) this.lastYield = now;
+    if (this.steps >= this.nextYield || ((now - this.lastYield) | 0) >= 25) {
       await yieldTurn(this.signal);
       this.signal.throwIfAborted();
       this.nextYield = this.steps + 1024;
-      this.lastYield = monotonicNow();
+      this.lastYield = monotonicNow() | 0;
     }
   }
   collection(size: number): void {

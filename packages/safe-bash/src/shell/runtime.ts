@@ -1879,7 +1879,7 @@ class FastShellCommandContext {
     this._argumentValues = argumentValues;
     this._env = env;
     this.cwd = state.cwd;
-    this.signal = toNativeAbortSignal(runtime.commandSignal);
+    this.signal = runtime.commandSignal;
     this.onInternalError = runtime.budget.onInternalError;
     this.argv0 = io.argv0;
     this.capabilities = io.capabilities;
@@ -1938,7 +1938,7 @@ class FastShellCommandContext {
     this.command = name;
     this.args = args;
     this.cwd = state.cwd;
-    this.signal = toNativeAbortSignal(signal);
+    this.signal = signal;
     this.onInternalError = runtime.budget.onInternalError;
     this.argv0 = io.argv0;
     this.capabilities = io.capabilities;
@@ -5259,6 +5259,7 @@ export class Runtime {
         !externalDef ||
         !builtInDirectContextExecutors.has(externalDef.execute) ||
         customRegisteredCommands.has(externalDef.execute) ||
+        customRegisteredRegistries.has(this.commands) ||
         command.words.length > this.budget.maxExpansionFieldsSmi ||
         (this.budget.commands + 1 > this.budget.maxCommandsSmi && this.budget.commands + 1 > this.budget.limits.maxCommands)
       ) {
@@ -5812,6 +5813,7 @@ export class Runtime {
           context = new FastShellCommandContext(this, rawState, io, scope, firstName, stageArgs, undefined, undefined, true);
         }
         context.resetDirectStage(this, rawState, io, scope, firstName, stageArgs, inputSource, isFirst, stageStdout, this.signal);
+        if (!isFirst) sharedSyncPipeReader.abortSignal = context.signal;
         scope.enterWork();
         this.budget.beginPathLookupSuspension();
         let resPromise: CommandResult | Promise<CommandResult>;

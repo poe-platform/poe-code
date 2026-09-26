@@ -1,7 +1,9 @@
 import type { Budget } from "./limits.js";
 
 export class Decimal {
+  readonly isFinite: boolean;
   constructor(readonly digits: string, readonly exponent: number, readonly negative: boolean, readonly text: string, readonly double: number) {
+    this.isFinite = Number.isFinite(double);
     Object.freeze(this);
   }
 }

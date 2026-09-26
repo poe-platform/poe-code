@@ -546,7 +546,11 @@
     "!dist/shell/extensions/trap",
     "!dist/shell/extensions/mapfile",
     "!dist/shell/extensions/read",
-    "!dist/opt-in"
+    "!dist/opt-in",
+    "!dist/commands/op/op.test.js",
+    "!dist/commands/op/op.test.js.map",
+    "!dist/commands/op/op.test.d.ts",
+    "!dist/commands/op/op.test.d.ts.map"
   ],
   "scripts": {
     "benchmark": "node --import tsx benchmarks/run.ts",

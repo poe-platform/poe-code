@@ -50,6 +50,12 @@ it("imports root SummaryInformation strings instead of discarding the stream", a
   expect(book.unsupportedRecords).toBeUndefined();
 });
 
+it("resolves property stream names with CFB's case-insensitive identity", async () => {
+  const bytes = propertySet([{ kind: 0, values: [[2, concat(u32(31), string("Title", true))]] }]);
+  const book = await readBiff(workbook([[summary.toUpperCase(), bytes]]), context);
+  expect(book.properties).toEqual({ "dc:title": "Title" });
+});
+
 it("uses each section's codepage and dictionary for custom scalar values", async () => {
   const double = concat(u32(5), new Uint8Array(8)); new DataView(double.buffer).setFloat64(4, 2.5, true);
   const bytes = propertySet([{ kind: 1, values: [[1, u32(2, 1252)], [15, concat(u32(30, 5), new Uint8Array([67, 97, 102, 233, 0]))]] },

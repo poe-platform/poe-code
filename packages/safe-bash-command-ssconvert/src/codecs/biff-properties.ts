@@ -45,8 +45,13 @@ export async function readBiffProperties(streams: ReadonlyMap<string, Uint8Array
     } else value = biffDecode(bytes, codepage);
     return { value: accountText(value), end: width === 2 ? Math.ceil(end / 4) * 4 : end };
   };
-  for (const streamName of ["\u0005SummaryInformation", "\u0005DocumentSummaryInformation"]) {
-    const bytes = streams.get(streamName); if (!bytes) continue;
+  for (const target of ["\u0005SummaryInformation", "\u0005DocumentSummaryInformation"]) {
+    let streamName = target, bytes = streams.get(target);
+    if (!bytes) for (const [name, data] of streams) {
+      accountWork(1);
+      if (name.toUpperCase() === target.toUpperCase()) { streamName = name; bytes = data; break; }
+    }
+    if (!bytes) continue;
     accountWork(bytes.length);
     const file = new Binary(bytes); file.check(0, 28);
     if (file.u16(0) !== 0xfffe || file.u16(2) > 1) invalidBiff("invalid property-set header");

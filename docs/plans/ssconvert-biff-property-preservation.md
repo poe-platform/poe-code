@@ -41,7 +41,9 @@ document model. A native save therefore cannot certify opaque byte retention.
 Encrypted ancillary streams remain a separate implementation requirement. Keep
 the existing refusal until their cryptographic path is implemented and verified.
 
-Current scope: new imports carry source identities. Legacy retained records without
-those identities still warn. New dictionary names outside the original codepage
-and edits that expose an opaque duplicate remain explicitly diagnosed. These
-limitations and native application qualification remain open.
+Current scope: new imports carry source identities. Legacy snapshots preserve
+opaque bytes and recover edits when the available original streams establish
+ownership. Document-only legacy snapshots preserve unchanged values; missing
+earlier-stream ownership keeps ambiguous edits diagnosed. New dictionary names
+outside the original codepage and edits that expose an opaque duplicate also
+remain diagnosed. These limitations and native qualification remain open.

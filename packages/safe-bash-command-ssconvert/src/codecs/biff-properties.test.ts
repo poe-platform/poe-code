@@ -1,5 +1,6 @@
 import { expect, it } from "vitest";
 import type { CapabilityContext } from "../contracts.js";
+import type { ImportedValue } from "../workbook.js";
 import { createBiffWriter, readBiff } from "./biff.js";
 import { readCfb } from "./biff-binary.js";
 import { writeCfb } from "./biff-write-binary.js";
@@ -51,11 +52,14 @@ function storedValues(bytes: Uint8Array, sectionIndex = 0): Map<number, Uint8Arr
   return new Map(pointers.map(({ id, at }, i) => [id, bytes.slice(start + at, start + (pointers[i + 1]?.at ?? size))]));
 }
 
-it.each(["edit", "delete"])("preserves opaque property bytes while applying a modeled %s", async operation => {
+it.each([["edit", false], ["delete", false], ["edit", true], ["delete", true]])(
+  "preserves opaque property bytes while applying a modeled %s (legacy snapshot: %s)", async (operation, legacy) => {
   const blob = u32(65, 4, 0x78563412);
   const bytes = propertySet([{ kind: 0, values: [[1, u32(2, 1252)], [2, concat(u32(31), string("Title", true))], [200, blob]] }]);
   const imported = await readBiff(workbook([[summary, bytes]]), context), warnings: string[] = [];
-  const output = await createBiffWriter(8)({ ...imported, sheets: [{ id: "S", name: "S", cells: [] }],
+  const unsupportedRecords = (imported.unsupportedRecords ?? []).map(record => legacy ? { ...record,
+    data: Object.fromEntries(Object.entries(record.data as Record<string, ImportedValue>).filter(([key]) => key !== "modeled")) } : record);
+  const output = await createBiffWriter(8)({ ...imported, unsupportedRecords, sheets: [{ id: "S", name: "S", cells: [] }],
     properties: operation === "edit" ? { "dc:title": "日本語" } : {} }, [],
   { ...context, async diagnostic(d) { warnings.push(d.message); } });
   const properties = readCfb(output, context).get(summary);
@@ -65,6 +69,36 @@ it.each(["edit", "delete"])("preserves opaque property bytes while applying a mo
   expect(storedValues(properties!).has(2)).toBe(operation === "edit");
   expect((await readBiff(output, context)).properties ?? {}).toEqual(operation === "edit" ? { "dc:title": "日本語" } : {});
   expect(warnings).toEqual([]);
+});
+
+it("retains an unchanged legacy custom stream without requiring missing source identities", async () => {
+  const blob = u32(65, 4, 0x78563412);
+  const bytes = propertySet([{ kind: 2, values: [[1, u32(2, 65001)],
+    [0, concat(u32(2, 2), string("Count"), u32(3), string("Opaque"))], [2, u32(3, 7)], [3, blob]] }]);
+  const imported = await readBiff(workbook([[document, bytes]]), context), warnings: string[] = [];
+  const output = await createBiffWriter(8)({ ...imported, sheets: [{ id: "S", name: "S", cells: [] }],
+    unsupportedRecords: [{ source: "biff", kind: "ole-properties", disposition: "retained",
+      data: { stream: document, bytes: [...bytes].map(byte => byte.toString(16).padStart(2, "0")).join("") } }] }, [],
+    { ...context, async diagnostic(d) { warnings.push(d.message); } });
+  const result = storedValues(readCfb(output, context).get(document)!);
+  expect(result.get(2)).toEqual(u32(3, 7)); expect(result.get(3)).toEqual(blob);
+  expect(warnings).toEqual([]);
+});
+
+it.each([true, false])("uses earlier-stream evidence for a legacy custom edit (summary present: %s)", async summaryPresent => {
+  const first = propertySet([{ kind: 0, values: [[200, u32(65, 4, 0x78563412)]] }]);
+  const second = propertySet([{ kind: 2, values: [[1, u32(2, 65001)],
+    [0, concat(u32(2, 2), string("Count"), u32(3), string("Opaque"))], [2, u32(3, 7)], [3, u32(65, 4, 0x78563412)]] }]);
+  const snapshots: [string, Uint8Array][] = [...summaryPresent ? [[summary, first] as [string, Uint8Array]] : [], [document, second]];
+  const warnings: string[] = [];
+  const output = await createBiffWriter(8)({ sheets: [{ id: "S", name: "S", cells: [] }], properties: { Count: 9 },
+    unsupportedRecords: snapshots.map(([stream, bytes]) => ({ source: "biff", kind: "ole-properties", disposition: "retained",
+      data: { stream, bytes: [...bytes].map(byte => byte.toString(16).padStart(2, "0")).join("") } })) }, [],
+    { ...context, async diagnostic(d) { warnings.push(d.message); } });
+  const result = storedValues(readCfb(output, context).get(document)!);
+  expect(result.get(2)).toEqual(u32(3, summaryPresent ? 9 : 7));
+  expect(result.get(3)).toEqual(u32(65, 4, 0x78563412));
+  expect(warnings).toEqual(summaryPresent ? [] : [expect.stringContaining("opaque name collision")]);
 });
 
 it("retains an unknown section and original sub-millisecond timestamp during another field edit", async () => {

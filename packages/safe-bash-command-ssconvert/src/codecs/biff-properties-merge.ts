@@ -9,7 +9,7 @@ import { readBiffPropertySections, readBiffPropertyValues } from "./biff-propert
 
 interface Section { guid: string; offset: number; bytes: Uint8Array; values?: Map<number, Binary>; }
 interface Property { stream: string; section: number; id: number; key: string; value: ImportedValue; }
-interface Snapshot { record: UnsupportedRecord; bytes: Uint8Array; modeled: ImportedValue[]; }
+interface Snapshot { record: UnsupportedRecord; bytes: Uint8Array; modeled: ImportedValue[] | undefined; }
 
 /** Rebuild offsets around original opaque spans. Never transcode their codepage. */
 export async function mergeBiffProperties(book: Workbook, streams: Map<string, Uint8Array>, handled: Set<UnsupportedRecord>,
@@ -38,7 +38,7 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
     const object = data as Readonly<Record<string, ImportedValue>>;
     charge(Object.keys(object).length);
     if (Object.keys(object).some(key => !["stream", "bytes", "modeled"].includes(key)) || typeof object.stream !== "string" ||
-      typeof object.bytes !== "string" || !Array.isArray(object.modeled)) continue;
+      typeof object.bytes !== "string" || object.modeled !== undefined && !Array.isArray(object.modeled)) continue;
     charge(object.stream.length + object.bytes.length);
     const name = canonical(object.stream); if (!name) continue;
     if (snapshots.has(name)) { duplicates.add(name); continue; }
@@ -114,7 +114,20 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
   };
   for (const [name, snapshot] of snapshots) {
     const seen = new Set<string>();
-    for (const entry of snapshot.modeled) {
+    let modeled = snapshot.modeled;
+    if (!modeled) {
+      modeled = [];
+      // SummaryInformation is read first. A legacy document-only snapshot lacks
+      // that earlier stream's ownership decisions: infer only unchanged values.
+      for (const property of original.values()) {
+        charge(1); if (property.stream !== name) continue;
+        if (name === "\u0005SummaryInformation" || snapshots.has("\u0005SummaryInformation") ||
+          Object.hasOwn(book.properties ?? {}, property.key) && same(property.value, book.properties?.[property.key])) {
+          admit(1); modeled.push([property.section, property.id, property.key]);
+        }
+      }
+    }
+    for (const entry of modeled) {
       admit(1);
       if (!Array.isArray(entry) || entry.length !== 3 || typeof entry[0] !== "number" || typeof entry[1] !== "number" || typeof entry[2] !== "string")
         invalidBiff("invalid retained property identity");

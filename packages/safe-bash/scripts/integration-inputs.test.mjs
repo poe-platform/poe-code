@@ -412,8 +412,8 @@ test("optional scripting leaves stay outside the default build and package expor
   assert.equal(metadata.peerDependencies.yaml, "2.9.0");
   assert.equal(metadata.peerDependenciesMeta.yaml.optional, true);
   assert.deepEqual(metadata.exports["./jobs"], {
-    types: "./dist/shell/extensions/jobs/index.d.ts",
-    import: "./dist/shell/extensions/jobs/index.js",
+    types: "./dist/jobs.d.ts",
+    import: "./dist/jobs.js",
   });
   for (const path of ["src/shell/extensions/jobs/index.ts", "src/shell/extensions/jobs/state.ts"]) {
     assert.equal(configuration.exclude.includes(path), false, "core Shell requires jobs sources");

@@ -9,6 +9,28 @@ import { ShellInput } from "../../src/shell/input.js";
 import { Budget, defaultLimits, Runtime } from "../../src/shell/runtime.js";
 import { setup } from "./helpers.js";
 
+test("prewarmed mkdir preserves existing descendants and directory identity", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/existing/nested", { recursive: true });
+  const contents = new TextEncoder().encode("keep this file\n");
+  await fs.writeFile("/existing/nested/input", contents);
+  await fs.chmod("/existing", 0o750);
+  const before = await fs.stat("/existing");
+  const shell = new Shell({ fs }).use(agentCommands());
+  try {
+    await shell.exec(":");
+    await shell.exec("");
+    const result = await shell.exec("mkdir -p /existing");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+    assert.deepEqual(await fs.readFile("/existing/nested/input"), contents);
+    const after = await fs.stat("/existing");
+    assert.equal(after.ino, before.ino);
+    assert.equal(after.mode, before.mode);
+  } finally { await shell.dispose(); }
+});
+
 for (const [title, source] of [
   ["prewarmed shell executes an asynchronous search once", "rg --json warm-once /warm-json"],
   ["prewarmed shell executes an asynchronous final unit once", ":\nrg --json warm-once /warm-json"],

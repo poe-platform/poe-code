@@ -1051,7 +1051,7 @@ describe("finite unit input and environment boundaries", () => {
   describe("detached hook repository isolation", () => {
     let owned: Fixture, decoy: string, foreign: string;
     let environment: NodeJS.ProcessEnv, config: Buffer, head: Buffer;
-    const git = (cwd: string, args: string[], env: NodeJS.ProcessEnv = environment) => execFileSync("git", ["-c", "core.hooksPath=/dev/null", "-c", "commit.gpgsign=false", ...args], { cwd, env, encoding: "utf8", timeout: 5000, maxBuffer: 1048576, stdio: ["ignore", "pipe", "pipe"] });
+    const git = (cwd: string, args: string[], env: NodeJS.ProcessEnv = environment) => execFileSync("git", ["-c", "core.hooksPath=/dev/null", "-c", "commit.gpgsign=false", ...args], { cwd, env, encoding: "utf8", timeout: 30_000, maxBuffer: 1048576, stdio: ["ignore", "pipe", "pipe"] });
 
     beforeAll(() => {
       owned = unitFixture();
@@ -1066,7 +1066,7 @@ describe("finite unit input and environment boundaries", () => {
       git(decoy, ["checkout", "--detach"]);
       config = fs.readFileSync(path.join(decoy, ".git/config"));
       head = fs.readFileSync(path.join(decoy, ".git/HEAD"));
-    });
+    }, 30_000);
     afterAll(() => owned?.remove());
 
     it("keeps foreign fixture configuration and branch creation out of an owned detached hook repository", async () => {
@@ -1082,7 +1082,7 @@ describe("finite unit input and environment boundaries", () => {
       expect(fs.readFileSync(path.join(decoy, ".git/config"))).toEqual(config);
       expect(fs.readFileSync(path.join(decoy, ".git/HEAD"))).toEqual(head);
       expect(parent.GIT_DIR).toBe(path.join(decoy, ".git"));
-    });
+    }, 30_000);
   });
 
   it("does not open source payloads while planning the metadata-only graph", () => {

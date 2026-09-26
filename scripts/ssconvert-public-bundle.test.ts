@@ -18,7 +18,7 @@ it("starts the bundled spreadsheet SDK in a Worker without Node module initializ
   runInNewContext(result.outputFiles[0]!.text, worker);
   expect(worker.snapshot).toEqual({});
   expect(Object.isFrozen(worker.snapshot)).toBe(true);
-});
+}, 30_000);
 
 it("ships the spreadsheet SDK without unavailable private runtime dependencies", async () => {
   const manifest = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));

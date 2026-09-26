@@ -24,3 +24,22 @@ test("regex accepts budgets whose checkpoints complete synchronously", async () 
   assert.equal(match?.start, 1);
   assert.ok(checkpoints > 0);
 });
+
+for (const yields of [false, true]) test(`regex supports a cooperatively yielding budget: ${yields}`, async () => {
+  const stopped = new Error("cancelled");
+  let aborted = false;
+  const budget = {
+    step() {},
+    checkpoint() {
+      if (aborted) throw stopped;
+      if (yields) return Promise.resolve();
+    },
+    maxBufferBytes: 4096,
+  };
+  const pattern = new Pattern("a+", true);
+  await pattern.prepare(budget);
+  const match = await pattern.tryFindSync("baa", budget);
+  assert.deepEqual([match?.start, match?.end, match?.groups[0]], [1, 3, "aa"]);
+  aborted = true;
+  await assert.rejects(pattern.find("baa", budget), error => error === stopped);
+});

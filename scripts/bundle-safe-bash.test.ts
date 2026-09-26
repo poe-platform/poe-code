@@ -505,7 +505,7 @@ beforeAll(async () => {
     absWorkingDir: root,
     entryPoints: [path.join(root, "packages/safe-fs/src/core.ts")],
     bundle: true, write: false, platform: "browser", conditions: ["workerd", "worker", "browser"],
-    format: "cjs", target: "es2022",
+    format: "cjs", target: "es2022", minify: true,
   });
 });
 

@@ -6,11 +6,11 @@ export async function trimText(text: string, budget: Budget): Promise<string> {
   let start = 0, end = text.length;
   while (start < end && htmlSpace(text[start])) {
     budget.work(1);
-    if (++start % 4096 === 0) await budget.checkpoint();
+    if (++start % 4096 === 0) { const c = budget.checkpoint(); if (c) await c; }
   }
   while (end > start && htmlSpace(text[end - 1])) {
     budget.work(1);
-    if (--end % 4096 === 0) await budget.checkpoint();
+    if (--end % 4096 === 0) { const c = budget.checkpoint(); if (c) await c; }
   }
   budget.work(2);
   if (start === 0 && end === text.length) return text;
@@ -35,8 +35,8 @@ export async function normalizeText(text: string, budget: Budget, mode: "space" 
         result.append("\n");
       } else result.append(mode === "inline" && character === "\n" ? " " : character);
     }
-    if (offset % 4096 <= 1) await budget.checkpoint();
+    if (offset % 4096 <= 1) { const c = budget.checkpoint(); if (c) await c; }
   }
-  await budget.checkpoint();
+  { const c = budget.checkpoint(); if (c) await c; }
   return result.finish();
 }

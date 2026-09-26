@@ -32,7 +32,7 @@ export async function admitAscii(text: string, ledger: EreLedger, signal?: Abort
     ledger.charge("work", 1, signal);
     const code = text.charCodeAt(offset);
     if (code === 0 || code > 127) throw new EreUnsupportedError("only non-NUL ASCII in the C/POSIX profile", offset);
-    await ledger.checkpoint(signal);
+    { const c = ledger.checkpoint(signal); if (c) await c; }
   }
 }
 
@@ -46,7 +46,7 @@ async function flatten(input: string | readonly EreFragment[], ledger: EreLedger
   for (const fragment of input) {
     if (typeof fragment.text !== "string" || typeof fragment.literal !== "boolean") throw new TypeError("invalid ERE fragment");
     ledger.charge("work", 1, signal);
-    await ledger.checkpoint(signal);
+    { const c = ledger.checkpoint(signal); if (c) await c; }
     ledger.admitInput("patternBytes", fragment.text.length, signal);
     await admitAscii(fragment.text, ledger, signal);
     if (fragment.text.length > ledger.limits.patternBytes - size) ledger.admitInput("patternBytes", ledger.limits.patternBytes + 1, signal);
@@ -59,11 +59,11 @@ async function flatten(input: string | readonly EreFragment[], ledger: EreLedger
   for (const fragment of input) {
     for (let offset = 0; offset < fragment.text.length; offset++) {
       ledger.charge("work", 1, signal);
-      await ledger.checkpoint(signal);
+      { const c = ledger.checkpoint(signal); if (c) await c; }
       quoted.push(fragment.literal);
     }
     output.push(fragment.text);
-    await ledger.checkpoint(signal);
+    { const c = ledger.checkpoint(signal); if (c) await c; }
   }
   return { pattern: output.join(""), quoted: Object.freeze(quoted) };
 }
@@ -92,7 +92,7 @@ class Parser {
     }
     if (alternatives.length === 1) return alternatives[0]!;
     this.ledger.charge("work", alternatives.length * 2, this.signal);
-    await this.ledger.checkpoint(this.signal);
+    { const c = this.ledger.checkpoint(this.signal); if (c) await c; }
     return this.node(() => ({ kind: "alternative", children: Object.freeze(alternatives), nullable: alternatives.some(value => value.nullable), captured: alternatives.some(value => value.captured) }));
   }
 
@@ -101,7 +101,7 @@ class Parser {
     const children: EreNode[] = [];
     while (this.offset < this.pattern.length && !this.at("|") && !this.at(")")) {
       this.ledger.charge("work", 1, this.signal);
-      await this.ledger.checkpoint(this.signal);
+      { const c = this.ledger.checkpoint(this.signal); if (c) await c; }
       let child = await this.atom();
       const operator = this.quoted?.[this.offset] ? undefined : this.pattern[this.offset];
       if (operator === "*" || operator === "+" || operator === "?" || operator === "{") {
@@ -131,7 +131,7 @@ class Parser {
     if (children.length === 0) return this.node(() => ({ kind: "empty", nullable: true, captured: false }));
     if (children.length === 1) return children[0]!;
     this.ledger.charge("work", children.length * 2, this.signal);
-    await this.ledger.checkpoint(this.signal);
+    { const c = this.ledger.checkpoint(this.signal); if (c) await c; }
     return this.node(() => ({ kind: "sequence", children: Object.freeze(children), nullable: children.every(value => value.nullable), captured: children.some(value => value.captured) }));
   }
 
@@ -140,7 +140,7 @@ class Parser {
     let value = 0;
     while (!this.quoted?.[this.offset] && this.pattern[this.offset] !== undefined && this.pattern[this.offset]! >= "0" && this.pattern[this.offset]! <= "9") {
       this.ledger.charge("work", 1, this.signal);
-      await this.ledger.checkpoint(this.signal);
+      { const c = this.ledger.checkpoint(this.signal); if (c) await c; }
       value = value * 10 + this.pattern.charCodeAt(this.offset++) - 48;
       if (!Number.isSafeInteger(value)) throw new EreUnsupportedError("interval count is not a safe integer", begin);
     }
@@ -182,17 +182,17 @@ class Parser {
     let first = true;
     while (this.offset < this.pattern.length) {
       this.ledger.charge("work", 1, this.signal);
-      await this.ledger.checkpoint(this.signal);
+      { const c = this.ledger.checkpoint(this.signal); if (c) await c; }
       if (this.at("]") && !first) {
         this.offset++;
         if (this.insensitive) for (let upper = 65; upper <= 90; upper++) {
           this.ledger.charge("work", 1, this.signal);
-          await this.ledger.checkpoint(this.signal);
+          { const c = this.ledger.checkpoint(this.signal); if (c) await c; }
           if (members[upper] || members[upper + 32]) members[upper] = members[upper + 32] = true;
         }
         if (negate) for (let code = 1; code < 128; code++) {
           this.ledger.charge("work", 1, this.signal);
-          await this.ledger.checkpoint(this.signal);
+          { const c = this.ledger.checkpoint(this.signal); if (c) await c; }
           members[code] = !members[code];
         }
         return this.node(() => ({ kind: "set", members: Object.freeze(members), nonAscii: negate, nullable: false, captured: false }));
@@ -208,7 +208,7 @@ class Parser {
         let name = "";
         while (this.offset < this.pattern.length && !this.at(":")) {
           this.ledger.charge("work", 1, this.signal);
-          await this.ledger.checkpoint(this.signal);
+          { const c = this.ledger.checkpoint(this.signal); if (c) await c; }
           if (name.length >= 6) throw new EreSyntaxError("unknown character class", classBegin);
           name += this.pattern[this.offset++];
         }
@@ -216,7 +216,7 @@ class Parser {
         this.offset += 2;
         for (let code = 1; code < 128; code++) {
           this.ledger.charge("work", 1, this.signal);
-          await this.ledger.checkpoint(this.signal);
+          { const c = this.ledger.checkpoint(this.signal); if (c) await c; }
           if (classMember(name, code)) members[code] = true;
         }
         if (this.at("-") && !this.at("]", this.offset + 1)) throw new EreSyntaxError("class cannot be a range endpoint", this.offset);
@@ -230,7 +230,7 @@ class Parser {
           if (lower > upper) throw new EreSyntaxError("descending range", this.offset - 3);
           for (let code = lower; code <= upper; code++) {
             this.ledger.charge("work", 1, this.signal);
-            await this.ledger.checkpoint(this.signal);
+            { const c = this.ledger.checkpoint(this.signal); if (c) await c; }
             members[code] = true;
           }
         } else members[lower] = true;

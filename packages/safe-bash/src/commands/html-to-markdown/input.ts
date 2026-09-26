@@ -79,9 +79,9 @@ export class Inputs {
       const owned = new Uint8Array(chunk);
       for (let offset = 0; offset < owned.length; offset += 4096) {
         await parser.feed(decoder.decode(owned.subarray(offset, offset + 4096), { stream: true }));
-        await this.budget.checkpoint();
+        { const c = this.budget.checkpoint(); if (c) await c; }
       }
-      await this.budget.checkpoint();
+      { const c = this.budget.checkpoint(); if (c) await c; }
     }
     await parser.feed(decoder.decode());
     this.context.signal.throwIfAborted();

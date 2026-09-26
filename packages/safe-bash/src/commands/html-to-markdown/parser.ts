@@ -91,26 +91,26 @@ export class Parser {
     if (match[1]) { this.pop(name); return; }
     const tail = match[3]!, attributes = new Map<string, string>();
     let lastContent = tail.length - 1;
-    while (lastContent >= 0 && /\s/u.test(tail[lastContent]!)) { this.budget.work(1); lastContent--; await this.budget.checkpoint(); }
+    while (lastContent >= 0 && /\s/u.test(tail[lastContent]!)) { this.budget.work(1); lastContent--; { const c = this.budget.checkpoint(); if (c) await c; } }
     let position = 0, count = 0, selfClosing = false;
     while (position < tail.length) {
       this.budget.work(1);
-      while (/\s/u.test(tail[position] ?? "") && position < tail.length) { this.budget.work(1); position++; await this.budget.checkpoint(); }
+      while (/\s/u.test(tail[position] ?? "") && position < tail.length) { this.budget.work(1); position++; { const c = this.budget.checkpoint(); if (c) await c; } }
       if (position === tail.length) break;
       if (tail[position] === "/" && position === lastContent) { selfClosing = true; break; }
       this.budget.check(++count, this.budget.limits.maxAttributes, "attributes");
       const start = position;
-      while (position < tail.length && !/[\s=/>]/u.test(tail[position]!)) { this.budget.work(1); position++; await this.budget.checkpoint(); }
+      while (position < tail.length && !/[\s=/>]/u.test(tail[position]!)) { this.budget.work(1); position++; { const c = this.budget.checkpoint(); if (c) await c; } }
       if (position === start) { position++; continue; }
       const key = tail.slice(start, position).toLowerCase();
-      while (position < tail.length && /\s/u.test(tail[position]!)) { this.budget.work(1); position++; await this.budget.checkpoint(); }
+      while (position < tail.length && /\s/u.test(tail[position]!)) { this.budget.work(1); position++; { const c = this.budget.checkpoint(); if (c) await c; } }
       let value = "";
       if (tail[position] === "=") {
         position++;
-        while (position < tail.length && /\s/u.test(tail[position]!)) { this.budget.work(1); position++; await this.budget.checkpoint(); }
+        while (position < tail.length && /\s/u.test(tail[position]!)) { this.budget.work(1); position++; { const c = this.budget.checkpoint(); if (c) await c; } }
         const quote = tail[position] === '"' || tail[position] === "'" ? tail[position++]! : "";
         const startValue = position;
-        while (position < tail.length && (quote ? tail[position] !== quote : !/\s/u.test(tail[position]!))) { this.budget.work(1); position++; await this.budget.checkpoint(); }
+        while (position < tail.length && (quote ? tail[position] !== quote : !/\s/u.test(tail[position]!))) { this.budget.work(1); position++; { const c = this.budget.checkpoint(); if (c) await c; } }
         value = tail.slice(startValue, position);
         if (quote && tail[position] === quote) position++;
       }

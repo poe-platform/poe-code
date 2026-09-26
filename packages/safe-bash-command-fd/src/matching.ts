@@ -26,7 +26,7 @@ export function createFdMatcher(context: CommandContext, options: FdCommandOptio
       globs.set(key, program);
     }
     for (let end = path.length; end >= 0;) {
-      await ledger.checkpoint(signal);
+      { const c = ledger.checkpoint(signal); if (c) await c; }
       if (end !== path.length || !source.endsWith('/') || directory) {
         const subject = await prepareUtf8EreSubject(sharedEncoder.encode(path.slice(0, end)), ledger, signal);
         if (await subject(program)(0)) return true;

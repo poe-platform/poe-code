@@ -13,7 +13,7 @@ export class Budget {
   constructor(readonly context: CommandContext, readonly limits: HtmlToMarkdownLimits) {}
 
   check(amount: number, remaining: number, name: string): void {
-    this.context.signal.throwIfAborted();
+    if (this.context.signal.aborted) this.context.signal.throwIfAborted();
     if (!Number.isSafeInteger(amount) || amount < 0 || amount > remaining) {
       throw new FsError("EFBIG", { message: `html-to-markdown ${name} limit exceeded` });
     }
@@ -25,14 +25,17 @@ export class Budget {
     this.sinceYield += amount;
   }
 
-  async checkpoint(): Promise<void> {
-    this.context.signal.throwIfAborted();
+  checkpoint(): void | Promise<void> {
+    if (this.context.signal.aborted) this.context.signal.throwIfAborted();
     if (this.sinceYield >= 4096) {
       this.sinceYield = 0;
-      try { await yieldTurn(this.context.signal); }
-      catch (error) { this.context.signal.throwIfAborted(); throw error; }
+      return yieldTurn(this.context.signal).then(() => {
+        if (this.context.signal.aborted) this.context.signal.throwIfAborted();
+      }, error => {
+        if (this.context.signal.aborted) this.context.signal.throwIfAborted();
+        throw error;
+      });
     }
-    this.context.signal.throwIfAborted();
   }
 
   add(kind: "input" | "tokens" | "nodes" | "cells", amount = 1): void {
@@ -53,7 +56,7 @@ export class Budget {
       this.work(end - offset);
       await writeBytes(this.context.stdout, Buffer.from(text.slice(offset, end)), this.context.signal);
       offset = end;
-      await this.checkpoint();
+      { const c = this.checkpoint(); if (c) await c; }
     }
   }
 }

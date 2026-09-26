@@ -26,7 +26,7 @@ export class Renderer {
         }
         start = offset + 1;
       }
-      await this.budget.checkpoint();
+      { const c = this.budget.checkpoint(); if (c) await c; }
     }
     return "";
   }
@@ -35,20 +35,20 @@ export class Renderer {
     for (const character of text) {
       this.budget.work(1);
       if (character !== " ") return true;
-      await this.budget.checkpoint();
+      { const c = this.budget.checkpoint(); if (c) await c; }
     }
     return false;
   }
 
   private async onlyWhitespace(children: readonly HtmlNode[]): Promise<boolean> {
     for (const child of children) {
-      this.budget.work(1); await this.budget.checkpoint();
+      this.budget.work(1); { const c = this.budget.checkpoint(); if (c) await c; }
       if (child.tag !== "text") return false;
       let whitespace = this.whitespace.get(child);
       if (whitespace === undefined) {
         whitespace = true;
         for (const character of child.text!) {
-          this.budget.work(1); await this.budget.checkpoint();
+          this.budget.work(1); { const c = this.budget.checkpoint(); if (c) await c; }
           if (!htmlSpace(character)) { whitespace = false; break; }
         }
         this.budget.work(1); this.whitespace.set(child, whitespace);
@@ -60,7 +60,7 @@ export class Renderer {
 
   private async hasRawContent(node: HtmlNode): Promise<boolean> {
     for (const child of node.children) {
-      this.budget.work(1); await this.budget.checkpoint();
+      this.budget.work(1); { const c = this.budget.checkpoint(); if (c) await c; }
       if (child.tag === "text" ? Boolean(child.text) : child.tag === "br" || await this.hasRawContent(child)) return true;
     }
     return false;
@@ -73,7 +73,7 @@ export class Renderer {
     this.budget.work(1);
     const result: HtmlNode[] = [];
     const append = async (child: HtmlNode, target = result): Promise<void> => {
-      this.budget.work(1); await this.budget.checkpoint();
+      this.budget.work(1); { const c = this.budget.checkpoint(); if (c) await c; }
       const style = format(child.tag);
       const previous = target.at(-1);
       if (style && previous && format(previous.tag) === style) {
@@ -81,7 +81,7 @@ export class Renderer {
       } else target.push(child);
     };
     const visit = async (child: HtmlNode): Promise<void> => {
-      this.budget.work(1); await this.budget.checkpoint();
+      this.budget.work(1); { const c = this.budget.checkpoint(); if (c) await c; }
       if (child.tag === "text" && !child.text) return;
       if (child.tag === "code" && !await this.hasRawContent(child)) return;
       if (child.tag === "a" || child.tag === "img") {
@@ -124,7 +124,7 @@ export class Renderer {
     if (!node || !format(node.tag)) return false;
     const edge = async (parent: HtmlNode): Promise<string | undefined> => {
       for (let step = 0; step < parent.children.length; step++) {
-        this.budget.work(1); await this.budget.checkpoint();
+        this.budget.work(1); { const c = this.budget.checkpoint(); if (c) await c; }
         const child = parent.children[ending ? parent.children.length - 1 - step : step]!;
         if (child.tag === "text") {
           if (child.text) return ending ? Array.from(child.text.slice(-2)).at(-1) : String.fromCodePoint(child.text.codePointAt(0)!);
@@ -141,7 +141,7 @@ export class Renderer {
   private async raw(node: HtmlNode, maximum: number): Promise<string> {
     const result = new Builder(this.budget, maximum);
     for (const child of node.children) {
-      this.budget.work(1); await this.budget.checkpoint();
+      this.budget.work(1); { const c = this.budget.checkpoint(); if (c) await c; }
       if (child.tag === "text") result.append(child.text!);
       else if (child.tag === "br") result.append("\n");
       else result.append(await this.raw(child, maximum));
@@ -155,7 +155,7 @@ export class Renderer {
       this.budget.work(1);
       current = text[offset] === "`" ? current + 1 : 0;
       longest = Math.max(longest, current);
-      if (offset % 4096 === 0) await this.budget.checkpoint();
+      if (offset % 4096 === 0) { const c = this.budget.checkpoint(); if (c) await c; }
     }
     const size = Math.max(minimum, longest + 1);
     this.budget.check(size, this.budget.limits.maxOutputBytes - this.budget.output, "code fence");
@@ -170,7 +170,7 @@ export class Renderer {
     const separate = async (index: number, ending: boolean): Promise<boolean> => format(children[index]?.tag ?? "") === "strong" && alternate(index) || await this.punctuationBoundary(children[index], ending);
     for (let index = 0; index < children.length; index++) {
       const child = children[index]!;
-      this.budget.work(1); await this.budget.checkpoint();
+      this.budget.work(1); { const c = this.budget.checkpoint(); if (c) await c; }
       const block = blockTags.has(child.tag);
       if (block) result.separate();
       const edges: readonly [boolean, boolean] = [await separate(index - 1, true), await separate(index + 1, false)];
@@ -189,7 +189,7 @@ export class Renderer {
     const start = node.attributes.get("start") ?? "1";
     let ordinal = /^\d{1,9}$/u.test(start) ? Math.max(1, Number(start)) : 1;
     for (const child of node.children) {
-      this.budget.work(1); await this.budget.checkpoint();
+      this.budget.work(1); { const c = this.budget.checkpoint(); if (c) await c; }
       if (child.tag !== "li") {
         const extra = await this.trim(await this.node(child, maximum));
         if (extra) { result.append(extra); result.append("\n"); }
@@ -201,7 +201,7 @@ export class Renderer {
       const parts = content.split("\n");
       result.append(marker); result.append(parts[0] ?? "");
       for (const part of parts.slice(1)) {
-        this.budget.work(1); await this.budget.checkpoint();
+        this.budget.work(1); { const c = this.budget.checkpoint(); if (c) await c; }
         result.append("\n");
         if (part) { result.append(" ".repeat(marker.length)); result.append(part); }
       }
@@ -214,7 +214,7 @@ export class Renderer {
     const rows: HtmlNode[][] = [];
     const extra = new Builder(this.budget, maximum);
     const visit = async (entry: HtmlNode): Promise<void> => {
-      this.budget.work(1); await this.budget.checkpoint();
+      this.budget.work(1); { const c = this.budget.checkpoint(); if (c) await c; }
       if (entry.tag === "tr") {
         const cells: HtmlNode[] = [];
         for (const child of entry.children) {
@@ -249,7 +249,7 @@ export class Renderer {
           this.budget.work(1);
           escaped.append(character === "|" && backslashes % 2 === 0 ? "\\|" : character);
           backslashes = character === "\\" ? backslashes + 1 : 0;
-          await this.budget.checkpoint();
+          { const c = this.budget.checkpoint(); if (c) await c; }
         }
         result.append(escaped.finish());
       }
@@ -257,7 +257,7 @@ export class Renderer {
     };
     if (header) await renderRow(rows[0]!); else await renderRow([]);
     result.append("|");
-    for (let index = 0; index < width; index++) { this.budget.work(1); result.append(" --- |"); await this.budget.checkpoint(); }
+    for (let index = 0; index < width; index++) { this.budget.work(1); result.append(" --- |"); { const c = this.budget.checkpoint(); if (c) await c; } }
     result.append("\n");
     for (const row of rows.slice(header ? 1 : 0)) await renderRow(row);
     return result.finish().replace(/\n$/u, "");
@@ -310,7 +310,7 @@ export class Renderer {
     } else if (node.tag === "blockquote") {
       const parts = (await this.trim(content)).split("\n");
       for (let index = 0; index < parts.length; index++) {
-        this.budget.work(1); await this.budget.checkpoint();
+        this.budget.work(1); { const c = this.budget.checkpoint(); if (c) await c; }
         if (index) result.append("\n");
         result.append(parts[index] ? "> " : ">"); result.append(parts[index]!);
       }

@@ -30,7 +30,7 @@ export async function entities(text: string, budget: Budget): Promise<string> {
       const character = String.fromCodePoint(text.codePointAt(offset)!);
       result.append(character); offset += character.length;
     }
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
   }
   return result.finish();
 }
@@ -45,7 +45,7 @@ export async function escapeText(text: string, budget: Budget, maximum?: number,
     else if ((edges[0] && offset === 0 || edges[1] && offset + character.length === text.length) && !htmlSpace(character)) result.append(`&#${scalar};`);
     else result.append("\\`*_{}[]<>!|#+-&~=".includes(character) || ".)".includes(character) && (offset === 0 ? precedingDigit : /[0-9]/u.test(text[offset - 1]!)) ? "\\" + character : character);
     offset += character.length;
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
   }
   return result.finish();
 }
@@ -64,15 +64,15 @@ export async function destination(value: string | undefined, image: boolean, bud
     } else if (reference === "start" && character === "#") reference = "numeric";
     else if (reference === "start" && /[A-Za-z]/u.test(character)) reference = "named";
     else if (reference !== "named" || !/[A-Za-z0-9]/u.test(character)) reference = character === "&" ? "start" : "none";
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
   }
-  while (first < last && value[first] === " ") { budget.work(1); first++; await budget.checkpoint(); }
-  while (last > first && value[last - 1] === " ") { budget.work(1); last--; await budget.checkpoint(); }
+  while (first < last && value[first] === " ") { budget.work(1); first++; { const c = budget.checkpoint(); if (c) await c; } }
+  while (last > first && value[last - 1] === " ") { budget.work(1); last--; { const c = budget.checkpoint(); if (c) await c; } }
   budget.work(last - first);
   const text = value.slice(first, last);
   if (!text || text.startsWith("//")) return undefined;
   let boundary = 0;
-  while (boundary < text.length && !"/?#".includes(text[boundary]!)) { budget.work(1); boundary++; await budget.checkpoint(); }
+  while (boundary < text.length && !"/?#".includes(text[boundary]!)) { budget.work(1); boundary++; { const c = budget.checkpoint(); if (c) await c; } }
   budget.work(boundary);
   const prefix = text.slice(0, boundary);
   if (prefix.includes(":")) {
@@ -88,7 +88,7 @@ export async function destination(value: string | undefined, image: boolean, bud
   for (const character of text) {
     budget.work(1);
     result.append(/[ <>"'`()\[\]{}|]/u.test(character) ? encodeURIComponent(character).replaceAll("'", "%27").replaceAll("(", "%28").replaceAll(")", "%29") : character);
-    await budget.checkpoint();
+    { const c = budget.checkpoint(); if (c) await c; }
   }
   return result.finish();
 }

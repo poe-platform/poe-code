@@ -6,6 +6,12 @@ on:
         required: false
         type: string
         default: ""
+  workflow_dispatch:
+    inputs:
+      ref:
+        required: false
+        type: string
+        default: ""
 jobs:
   test:
     runs-on: ubuntu-latest

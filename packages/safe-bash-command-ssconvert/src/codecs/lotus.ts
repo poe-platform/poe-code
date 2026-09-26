@@ -16,6 +16,8 @@ export function probeLotus(bytes: Uint8Array, context: CapabilityContext): boole
   context.signal.throwIfAborted();
   if (bytes.length < 6) return false;
   const b = new Binary(bytes), length = b.u16(2), version = b.u16(4);
+  if (b.u16(0) === 0 && version === 0x1000)
+    return length === 26 && bytes.length >= 8 && b.u16(6) === 4;
   return (b.u16(0) === 0 || b.u16(0) === 0xff) &&
     ([0x404, 0x405, 0x406].includes(version) ? length === 2 : [0x1002, 0x1003, 0x1004, 0x1005].includes(version) && length >= 19);
 }
@@ -122,7 +124,7 @@ function lotusExternalVariable(name: string): string | undefined {
 async function lotusFormula(bytes: Uint8Array, version: number, group: number, row: number, column: number,
   sheetIndex: number, sheetName: (index: number) => string, context: CapabilityContext,
   consumeOperation: () => void, functions: typeof lotusFunctions = lotusFunctions, names?: ReadonlyMap<string, LotusNamedRange>, legacyRowBits?: 11 | 13): Promise<string> {
-  const b = new Binary(bytes), stack: string[] = [], modern = version >= 0x1002;
+  const b = new Binary(bytes), stack: string[] = [], modern = version === 0x1000 || version >= 0x1002;
   let at = 0;
   const pop = async () => {
     if (stack.length) return stack.pop()!;
@@ -250,7 +252,10 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
     text => lmbcs(text, 1, context));
   if (bytes.length < 6 || b.u16(0) !== 0 || b.u16(2) < 2) throw new SsconvertError("io", "Error while reading lotus workbook.");
   const version = b.u16(4), modern = ![0x404, 0x405, 0x406].includes(version);
-  if (![0x404, 0x405, 0x406, 0x1002, 0x1003, 0x1004, 0x1005].includes(version))
+  // LibreOffice ImportLotus::Bof/ScanVersion qualify WK3's 26-byte, subtype-4 BOF.
+  if (version === 0x1000 && (b.u16(2) !== 26 || bytes.length < 8 || b.u16(6) !== 4))
+    throw new SsconvertError("unsupported-feature", "Unsupported WK3 header.");
+  if (![0x404, 0x405, 0x406, 0x1000, 0x1002, 0x1003, 0x1004, 0x1005].includes(version))
     await context.diagnostic?.({ code: "lotus", severity: "warning", message: `Unexpected version ${version.toString(16)}` });
   context.signal.throwIfAborted();
   let at = 0, group = 1, active = -1, nameIndex = 0, count = 0, outside = false, work = 0;

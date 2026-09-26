@@ -850,6 +850,26 @@
       "validation": "Seven of twelve original in-memory assertions failed before correction. All 163 tests in eleven Lotus files pass after correction, as do maintained package lint/types and the four-workspace selected build. Recalculation explicitly forces refresh of the fixture's stale cached zero.",
       "publicReadback": "Compiled SDK import and public command --recalc XLSX export/readback preserve =A1 and value 42 for both BOF versions, exit 0, empty stderr, 4074 bytes each. Fixtures and outputs remain in memory.",
       "remaining": "BOF 0x0405 and Lotus Works keep their prior decoder; libwps's documented row-width uncertainty remains relevant. Modern range flag packing, relative sheets and independent application readback remain open. No Lotus family closure."
+    },
+    "lotusWk3Admission": {
+      "status": "implemented for BOF 0x1000, subtype 4, length 26; broader qualification open",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/lotus/lotimpop.cxx",
+          "sha256": "3dc571015c984668df55735d88261e3b45a57b7c89c447700be91680713f6f6f",
+          "lines": "57-86,153-177,239-309",
+          "finding": "ImportLotus::Bof admits WK3 0x1000/subtype 4 and WK4 0x1002; Formulacell skips the ten-byte cache and selects SetWK3. Userrange and Smallnumcell share the existing modern layouts."
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/lotus/lotread.cxx",
+          "sha256": "d440d3d5c68a0b8bb41c37ebc6faef64ded44e1a76defa34f33ca55e55ac8bcf",
+          "lines": "75-157",
+          "finding": "WK3/WK4 share user-range, numeric and formula record dispatch. The separate ScanVersion source pinned under lotusLegacyReferenceOffsets checks the exact WK3 BOF length 26."
+        }
+      ],
+      "validation": "Four admission/decoding assertions failed before correction. All 167 tests in twelve Lotus files pass; maintained package lint/types and selected build pass. Wrong subtype/length remain refused.",
+      "publicReadback": "A 133-byte in-memory WK3 fixture autodetects through the compiled SDK and converts through the public --recalc command to 4087-byte XLSX. Readback preserves values 7/8/8 and both =(A1+1) formulas; exit 0, empty stderr.",
+      "remaining": "Wider WK3 formatting, charset and companion records, relative sheets, range flag packing and independent application qualification remain open. No Lotus family closure."
     }
   },
   "cases": [

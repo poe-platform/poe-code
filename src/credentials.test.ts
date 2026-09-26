@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import * as credentials from "./credentials.js";
 
 describe("credentials package entrypoint", () => {
   it("publishes a focused credentials subpath", () => {
@@ -13,9 +14,7 @@ describe("credentials package entrypoint", () => {
     });
   });
 
-  it("exposes the credential helpers without the application entrypoint", async () => {
-    const credentials = await import("./credentials.js");
-
+  it("exposes the credential helpers without the application entrypoint", () => {
     expect(credentials).toMatchObject({
       ensurePoeApiKeyEnv: expect.any(Function),
       fetchPoeAuthIdentity: expect.any(Function),

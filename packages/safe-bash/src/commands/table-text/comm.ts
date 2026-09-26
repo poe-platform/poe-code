@@ -34,7 +34,7 @@ export function createCommCommand(options: TableTextCommandsOptions = {}): Comma
       const previous: (Uint8Array | undefined)[] = [undefined, undefined];
       const totals = [0n, 0n, 0n];
       while (rows[0] !== undefined || rows[1] !== undefined) {
-        await budget.step();
+        const step = budget.step(); if (step) await step;
         const comparison = rows[0] === undefined ? 1 : rows[1] === undefined ? -1 : compare(rows[0], rows[1]);
         const column = comparison < 0 ? 0 : comparison > 0 ? 1 : 2;
         totals[column] = totals[column]! + 1n;
@@ -48,8 +48,7 @@ export function createCommCommand(options: TableTextCommandsOptions = {}): Comma
         for (let index = 0; index < 2; index++) {
           if ((index === 0 && comparison > 0) || (index === 1 && comparison < 0)) continue;
           const next = await readers[index]!.next();
-          if (next === undefined) await order.check(previous[index], rows[index], index + 1);
-          else await order.check(rows[index], next, index + 1);
+          const oc = next === undefined ? order.check(previous[index], rows[index], index + 1) : order.check(rows[index], next, index + 1); if (oc) await oc;
           previous[index] = rows[index]; rows[index] = next;
         }
       }

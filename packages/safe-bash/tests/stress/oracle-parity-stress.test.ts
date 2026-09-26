@@ -124,4 +124,20 @@ test("stress & parity: sed/awk ergonomic regexes, uniq chunked buffering, base64
   );
   assert.equal(pipeRes.exitCode, 0, pipeRes.stderr);
   assert.equal(pipeRes.stdout.trim(), "500");
+
+  // 2,000-row join + comm + paste + expand/unexpand pipeline
+  const leftRows: string[] = [];
+  const rightRows: string[] = [];
+  for (let i = 0; i < 2000; i++) {
+    const k = `k${String(i).padStart(4, "0")}`;
+    leftRows.push(`${k} left_${i}`);
+    if (i % 2 === 0) rightRows.push(`${k} right_${i}`);
+  }
+  await fs.writeFile("/repo/left.txt", enc.encode(leftRows.join("\n") + "\n"));
+  await fs.writeFile("/repo/right.txt", enc.encode(rightRows.join("\n") + "\n"));
+  const tableRes = await shell.exec(
+    "join /repo/left.txt /repo/right.txt | paste - - | expand -t 4 | unexpand -a | wc -l"
+  );
+  assert.equal(tableRes.exitCode, 0, tableRes.stderr);
+  assert.equal(tableRes.stdout.trim(), "500");
 });

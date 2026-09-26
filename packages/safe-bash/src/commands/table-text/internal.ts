@@ -76,11 +76,13 @@ export class Budget {
   check(value: number | bigint, maximum: number, label: string): void {
     if (value > maximum) throw new FsError("EFBIG", { message: `table-text ${label} limit exceeded` });
   }
-  async step(): Promise<void> {
+  step(): void | Promise<void> {
     this.context.signal.throwIfAborted();
     this.check(++this.steps, this.limits.maxSteps, "step");
-    if (this.steps % 128 === 0) await yieldTurn();
-    this.context.signal.throwIfAborted();
+    if (this.steps % 1024 !== 0) return;
+    return yieldTurn().then(() => {
+      this.context.signal.throwIfAborted();
+    });
   }
   input(size: number): void {
     this.check(size, this.limits.maxChunkBytes, "chunk");
@@ -91,9 +93,39 @@ export class Budget {
     this.check(BigInt(this.outputBytes) + size, this.limits.maxOutputBytes, "output");
   }
   async output(parts: readonly Uint8Array[]): Promise<void> {
-    await this.step();
-    this.outputBytes += parts.reduce((size, part) => size + part.length, 0);
+    const step = this.step();
+    if (step) await step;
+    let totalLen = 0;
+    let nonEmptyCount = 0;
+    let singlePart: Uint8Array | undefined;
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i]!;
+      if (part.length) {
+        totalLen += part.length;
+        nonEmptyCount++;
+        singlePart = part;
+      }
+    }
+    this.outputBytes += totalLen;
     this.check(this.outputBytes, this.limits.maxOutputBytes, "output");
+    if (totalLen === 0) return;
+    if (nonEmptyCount === 1) {
+      await writeBytes(this.context.stdout, singlePart!, this.context.signal);
+      return;
+    }
+    if (totalLen <= 16384) {
+      const combined = new Uint8Array(totalLen);
+      let offset = 0;
+      for (let i = 0; i < parts.length; i++) {
+        const part = parts[i]!;
+        if (part.length) {
+          combined.set(part, offset);
+          offset += part.length;
+        }
+      }
+      await writeBytes(this.context.stdout, combined, this.context.signal);
+      return;
+    }
     for (const part of parts) if (part.length) await writeBytes(this.context.stdout, part, this.context.signal);
   }
 }
@@ -108,10 +140,11 @@ export class RecordReader {
     this.iterator = readBytes(source, signal);
   }
   async next(): Promise<Uint8Array | undefined> {
-    const parts: Uint8Array[] = [];
+    let parts: Uint8Array[] | undefined;
     let size = 0;
     while (!this.done) {
-      await this.budget.step();
+      const step = this.budget.step();
+      if (step) await step;
       if (this.offset === this.chunk.length) {
         const result = await this.iterator.next();
         if (result.done) { this.done = true; this.chunk = empty; break; }
@@ -125,11 +158,16 @@ export class RecordReader {
       const fragment = this.chunk.subarray(this.offset, stop);
       size += fragment.length;
       this.budget.check(size, this.budget.limits.maxRecordBytes, "record");
-      if (fragment.length) parts.push(fragment);
       this.offset = stop + (end < 0 ? 0 : 1);
-      if (end >= 0) return Buffer.concat(parts, size);
+      if (end >= 0) {
+        if (!parts) return fragment;
+        if (fragment.length) parts.push(fragment);
+        return Buffer.concat(parts, size);
+      }
+      if (fragment.length) (parts ??= []).push(fragment);
     }
-    return size ? Buffer.concat(parts, size) : undefined;
+    if (!size || !parts) return undefined;
+    return parts.length === 1 ? parts[0]! : Buffer.concat(parts, size);
   }
   async closeOperand(name: string): Promise<void> {
     this.budget.context.signal.throwIfAborted();
@@ -195,13 +233,13 @@ export class OrderCheck {
   failed = false;
   private warned = new Set<number>();
   constructor(readonly mode: OrderMode, readonly context: CommandContext) {}
-  async check(previous: Uint8Array | undefined, next: Uint8Array | undefined, file: number, fold = false): Promise<void> {
+  check(previous: Uint8Array | undefined, next: Uint8Array | undefined, file: number, fold = false): void | Promise<void> {
     if (this.mode === "none" || (this.mode === "default" && !this.unpaired) || this.warned.has(file)) return;
     if (previous && next && compare(previous, next, fold) > 0) {
       const message = `file ${file} is not in sorted order`;
       if (this.mode === "check") fail(message);
       this.warned.add(file); this.failed = true;
-      await diagnostic(this.context, new PublicDiagnostic(message));
+      return diagnostic(this.context, new PublicDiagnostic(message));
     }
   }
   async finish(): Promise<void> {

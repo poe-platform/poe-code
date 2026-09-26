@@ -168,7 +168,7 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
         const bytes = await readers[file]!.next();
         if (bytes === undefined) return undefined;
         const fields = split(bytes, options, budget), key = fields[options.fields[file]!] ?? empty;
-        if (!reset) await order.check(previous[file], key, file + 1, options.fold);
+        if (!reset) { const oc = order.check(previous[file], key, file + 1, options.fold); if (oc) await oc; }
         previous[file] = key;
         return { bytes, fields, key };
       };
@@ -179,7 +179,7 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
         const key = (left ?? right)?.key ?? empty;
         if (Array.isArray(options.format)) {
           for (const field of options.format) {
-            await budget.step();
+            { const step = budget.step(); if (step) await step; }
             fields.push(field.file === 0 ? key : pair[field.file - 1]?.fields[field.index] ?? empty);
           }
         } else {
@@ -187,14 +187,14 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
           for (let file = 0; file < 2; file++) {
             const count = options.format === "auto" ? counts[file]! : pair[file]?.fields.length ?? 0;
             for (let index = 0; index < count; index++) {
-              await budget.step();
+              { const step = budget.step(); if (step) await step; }
               if (index !== options.fields[file]) fields.push(pair[file]?.fields[index] ?? empty);
             }
           }
         }
         const parts: Uint8Array[] = [];
         for (let index = 0; index < fields.length; index++) {
-          await budget.step();
+          { const step = budget.step(); if (step) await step; }
           if (index) parts.push(delimiter);
           parts.push(fields[index]!.length ? fields[index]! : options.replacement);
         }
@@ -208,7 +208,7 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
         for (let file = 0; file < 2; file++) if (rows[file]) rows[file] = await next(file, true);
       }
       while (rows[0] && rows[1]) {
-        await budget.step();
+        { const step = budget.step(); if (step) await step; }
         const comparison = compare(rows[0].key, rows[1].key, options.fold);
         if (comparison !== 0) {
           const file = comparison < 0 ? 0 : 1;

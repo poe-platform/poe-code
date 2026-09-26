@@ -673,133 +673,7 @@ export function streamCommands(maxTeeTargets = 64, maxTailFollowHandles = 64): C
     throw new RangeError("maxTailFollowHandles must be a nonnegative safe integer");
   }
   return [
-    define("cat", async context => {
-      const parsed = options(context.args, "nbsvETAute", { help: false, number: "n", "number-nonblank": "b", "squeeze-blank": "s", "show-ends": "E", "show-tabs": "T", "show-nonprinting": "v", "show-all": "A" });
-      if (parsed.flags.has("help")) {
-        await output(context, `Usage: cat [OPTION]... [FILE]...
-Concatenate FILEs to standard output. With no FILE, or FILE -, read standard input.
-
-  -n, --number             Number all output lines
-  -b, --number-nonblank    Number nonempty output lines (overrides -n)
-  -s, --squeeze-blank      Suppress repeated empty output lines
-  -E, --show-ends          Display $ at each line end
-  -T, --show-tabs          Display TAB characters as ^I
-  -v, --show-nonprinting   Display nonprinting characters
-  -A, --show-all           Equivalent to -vET
-  -e                      Equivalent to -vE
-  -t                      Equivalent to -vT
-  -u                      Accepted for compatibility; ignored
-      --help              Display this help and exit
-      --                  End options; remaining arguments are filenames
-`);
-        return { exitCode: 0 };
-      }
-      const reqPromise = assertInputRequirements(context, parsed.operands);
-      if (reqPromise) await reqPromise;
-      if (parsed.flags.has("A")) for (const flag of ["v", "E", "T"]) parsed.flags.add(flag);
-      if (parsed.flags.has("e")) { parsed.flags.add("v"); parsed.flags.add("E"); }
-      if (parsed.flags.has("t")) { parsed.flags.add("v"); parsed.flags.add("T"); }
-      const caller = context;
-      const needOperation = parsed.operands.length > 0 && !parsed.operands.includes("-") && (
-        Boolean(context.stdout.ownedOutput) ||
-        !(parsed.flags.size === 0 || (parsed.flags.size === 1 && parsed.flags.has("u")))
-      );
-      const operation = needOperation ? createOutputOperation(context, context.stdout) : undefined;
-      if (operation) context = Object.assign(Object.create(context), { signal: operation.signal, stdout: operation.output });
-      try {
-        const state = { exitCode: 0 };
-        if (parsed.flags.size === 0 || (parsed.flags.size === 1 && parsed.flags.has("u"))) {
-          for (const name of parsed.operands.length ? parsed.operands : ["-"]) {
-            try {
-              const iter = input(context, name)[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
-                tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
-              };
-              if (typeof iter.tryNextSync === "function") {
-                let done = false;
-                try {
-                  while (true) {
-                    const syncRes = iter.tryNextSync();
-                    if (syncRes !== undefined) {
-                      if (syncRes.done) { done = true; break; }
-                      const p = output(context, syncRes.value);
-                      if (!isSyncResolved(p)) await p;
-                      continue;
-                    }
-                    const asyncRes = await iter.next();
-                    if (asyncRes.done) { done = true; break; }
-                    const p = output(context, asyncRes.value);
-                    if (!isSyncResolved(p)) await p;
-                  }
-                } finally {
-                  if (!done) await iter.return?.();
-                }
-              } else {
-                for await (const chunk of { [Symbol.asyncIterator]: () => iter }) {
-                  const p = output(context, chunk);
-                  if (!isSyncResolved(p)) await p;
-                }
-              }
-            } catch (error) {
-              await diagnostic(context, error);
-              state.exitCode = 1;
-            }
-          }
-          return state;
-        }
-        const source = combinedInput(context, parsed.operands, state);
-        operation?.registerCleanup(async () => { await source[Symbol.asyncIterator]().return?.(); });
-        if (![...parsed.flags].some(flag => flag !== "u")) {
-          for await (const chunk of source) await output(context, chunk);
-          return state;
-        }
-        let lineStart = true;
-        let blankCount = 0;
-        let number = 1;
-        let pendingCr = false;
-        const showEndsOnlyCr = parsed.flags.has("E") && !parsed.flags.has("v");
-        for await (const chunk of source) {
-          const transformed: number[] = [];
-          const append = (text: string) => { for (const byte of encoder.encode(text)) transformed.push(byte); };
-          for (const byte of chunk) {
-            if (pendingCr) {
-              pendingCr = false;
-              if (byte === 10) append("^M");
-              else transformed.push(13);
-            }
-            if (lineStart && byte === 10 && parsed.flags.has("s") && blankCount > 0) continue;
-            if (lineStart && (parsed.flags.has("b") ? byte !== 10 : parsed.flags.has("n"))) append(`${String(number++).padStart(6)}\t`);
-            if (byte === 10) {
-              if (parsed.flags.has("E")) transformed.push(36);
-              transformed.push(10);
-              blankCount = lineStart ? blankCount + 1 : 0;
-              lineStart = true;
-            } else {
-              lineStart = false; blankCount = 0;
-              if (byte === 13 && showEndsOnlyCr) {
-                pendingCr = true;
-              } else if (byte === 9) {
-                if (parsed.flags.has("T")) append("^I");
-                else transformed.push(byte);
-              } else if (parsed.flags.has("v")) {
-                let visible = byte;
-                if (visible >= 128) { append("M-"); visible -= 128; }
-                if (visible < 32) append(`^${String.fromCharCode(visible + 64)}`);
-                else if (visible === 127) append("^?");
-                else transformed.push(visible);
-              } else transformed.push(byte);
-            }
-            if (transformed.length >= 8192) { await output(context, Uint8Array.from(transformed)); transformed.length = 0; }
-          }
-          if (transformed.length) await output(context, Uint8Array.from(transformed));
-        }
-        if (pendingCr) await output(context, Uint8Array.of(13));
-        return state;
-      } catch (error) {
-        caller.signal.throwIfAborted();
-        if (operation?.signal.aborted && operation.signal.reason instanceof FsError && operation.signal.reason.code === "EPIPE") return { exitCode: 141 };
-        throw error;
-      } finally { await operation?.close(); }
-    }),
+    define("cat", executeCatGeneral),
     headTail("head"), headTail("tail", maxTailFollowHandles),
     define("wc", context => {
       if (context.args.length === 1 && (context.args[0] === "-l" || context.args[0] === "-c")) {
@@ -1157,5 +1031,173 @@ async function executeTrAsync(
           else await iter.return?.();
         }
       }
-      return { exitCode: 0 };
+  return { exitCode: 0 };
+}
+
+async function executeCatGeneral(context: CommandContext): Promise<{ exitCode: number }> {
+  const parsed = options(context.args, "nbsvETAute", { help: false, number: "n", "number-nonblank": "b", "squeeze-blank": "s", "show-ends": "E", "show-tabs": "T", "show-nonprinting": "v", "show-all": "A" });
+  if (parsed.flags.has("help")) {
+    await output(context, `Usage: cat [OPTION]... [FILE]...
+Concatenate FILEs to standard output. With no FILE, or FILE -, read standard input.
+
+  -n, --number             Number all output lines
+  -b, --number-nonblank    Number nonempty output lines (overrides -n)
+  -s, --squeeze-blank      Suppress repeated empty output lines
+  -E, --show-ends          Display $ at each line end
+  -T, --show-tabs          Display TAB characters as ^I
+  -v, --show-nonprinting   Display nonprinting characters
+  -A, --show-all           Equivalent to -vET
+  -e                      Equivalent to -vE
+  -t                      Equivalent to -vT
+  -u                      Accepted for compatibility; ignored
+      --help              Display this help and exit
+      --                  End options; remaining arguments are filenames
+`);
+    return { exitCode: 0 };
+  }
+  const reqPromise = assertInputRequirements(context, parsed.operands);
+  if (reqPromise) await reqPromise;
+  if (parsed.flags.has("A")) for (const flag of ["v", "E", "T"]) parsed.flags.add(flag);
+  if (parsed.flags.has("e")) { parsed.flags.add("v"); parsed.flags.add("E"); }
+  if (parsed.flags.has("t")) { parsed.flags.add("v"); parsed.flags.add("T"); }
+  const caller = context;
+  const needOperation = parsed.operands.length > 0 && !parsed.operands.includes("-") && (
+    Boolean(context.stdout.ownedOutput) ||
+    !(parsed.flags.size === 0 || (parsed.flags.size === 1 && parsed.flags.has("u")))
+  );
+  const operation = needOperation ? createOutputOperation(context, context.stdout) : undefined;
+  if (operation) context = Object.assign(Object.create(context), { signal: operation.signal, stdout: operation.output });
+  try {
+    const state = { exitCode: 0 };
+    if (parsed.flags.size === 0 || (parsed.flags.size === 1 && parsed.flags.has("u"))) {
+      for (const name of parsed.operands.length ? parsed.operands : ["-"]) {
+        try {
+          const iter = input(context, name)[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
+            tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
+          };
+          if (typeof iter.tryNextSync === "function") {
+            let done = false;
+            try {
+              while (true) {
+                const syncRes = iter.tryNextSync();
+                if (syncRes !== undefined) {
+                  if (syncRes.done) { done = true; break; }
+                  const p = output(context, syncRes.value);
+                  if (!isSyncResolved(p)) await p;
+                  continue;
+                }
+                const asyncRes = await iter.next();
+                if (asyncRes.done) { done = true; break; }
+                const p = output(context, asyncRes.value);
+                if (!isSyncResolved(p)) await p;
+              }
+            } finally {
+              if (!done) await iter.return?.();
+            }
+          } else {
+            for await (const chunk of { [Symbol.asyncIterator]: () => iter }) {
+              const p = output(context, chunk);
+              if (!isSyncResolved(p)) await p;
+            }
+          }
+        } catch (error) {
+          await diagnostic(context, error);
+          state.exitCode = 1;
+        }
+      }
+      return state;
+    }
+    const source = combinedInput(context, parsed.operands, state);
+    operation?.registerCleanup(async () => { await source[Symbol.asyncIterator]().return?.(); });
+    if (![...parsed.flags].some(flag => flag !== "u")) {
+      for await (const chunk of source) await output(context, chunk);
+      return state;
+    }
+    let lineStart = true;
+    let blankCount = 0;
+    let number = 1;
+    let pendingCr = false;
+    const flagS = parsed.flags.has("s");
+    const flagB = parsed.flags.has("b");
+    const flagN = parsed.flags.has("n");
+    const flagE = parsed.flags.has("E");
+    const flagT = parsed.flags.has("T");
+    const flagV = parsed.flags.has("v");
+    const showEndsOnlyCr = flagE && !flagV;
+    const outBuf = new Uint8Array(16384);
+    let outUsed = 0;
+    for await (const chunk of source) {
+      for (let i = 0; i < chunk.length; i++) {
+        const byte = chunk[i]!;
+        if (pendingCr) {
+          pendingCr = false;
+          if (byte === 10) {
+            outBuf[outUsed++] = 94;
+            outBuf[outUsed++] = 77;
+          } else {
+            outBuf[outUsed++] = 13;
+          }
+        }
+        if (lineStart && byte === 10 && flagS && blankCount > 0) continue;
+        if (lineStart && (flagB ? byte !== 10 : flagN)) {
+          const digits = String(number++);
+          const pad = 6 - digits.length;
+          for (let k = 0; k < pad; k++) outBuf[outUsed++] = 32;
+          for (let k = 0; k < digits.length; k++) outBuf[outUsed++] = digits.charCodeAt(k);
+          outBuf[outUsed++] = 9;
+        }
+        if (byte === 10) {
+          if (flagE) outBuf[outUsed++] = 36;
+          outBuf[outUsed++] = 10;
+          blankCount = lineStart ? blankCount + 1 : 0;
+          lineStart = true;
+        } else {
+          lineStart = false;
+          blankCount = 0;
+          if (byte === 13 && showEndsOnlyCr) {
+            pendingCr = true;
+          } else if (byte === 9) {
+            if (flagT) {
+              outBuf[outUsed++] = 94;
+              outBuf[outUsed++] = 73;
+            } else {
+              outBuf[outUsed++] = byte;
+            }
+          } else if (flagV) {
+            let visible = byte;
+            if (visible >= 128) {
+              outBuf[outUsed++] = 77;
+              outBuf[outUsed++] = 45;
+              visible -= 128;
+            }
+            if (visible < 32) {
+              outBuf[outUsed++] = 94;
+              outBuf[outUsed++] = visible + 64;
+            } else if (visible === 127) {
+              outBuf[outUsed++] = 94;
+              outBuf[outUsed++] = 63;
+            } else {
+              outBuf[outUsed++] = visible;
+            }
+          } else {
+            outBuf[outUsed++] = byte;
+          }
+        }
+        if (outUsed >= 8192) {
+          await output(context, outBuf.slice(0, outUsed));
+          outUsed = 0;
+        }
+      }
+      if (outUsed > 0) {
+        await output(context, outBuf.slice(0, outUsed));
+        outUsed = 0;
+      }
+    }
+    if (pendingCr) await output(context, Uint8Array.of(13));
+    return state;
+  } catch (error) {
+    caller.signal.throwIfAborted();
+    if (operation?.signal.aborted && operation.signal.reason instanceof FsError && operation.signal.reason.code === "EPIPE") return { exitCode: 141 };
+    throw error;
+  } finally { await operation?.close(); }
 }

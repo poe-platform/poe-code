@@ -120,7 +120,7 @@ test("stress & parity: sed/awk ergonomic regexes, uniq chunked buffering, base64
   }
   await fs.writeFile("/repo/groups.txt", enc.encode(lines.join("\n") + "\n"));
   const pipeRes = await shell.exec(
-    "uniq -c /repo/groups.txt | base64 -w 76 | base64 -d | xxd -p | xxd -r -p | wc -l"
+    "cat -n /repo/groups.txt | cut -f2 | uniq -c | base64 -w 76 | base64 -d | xxd -p | xxd -r -p | wc -l"
   );
   assert.equal(pipeRes.exitCode, 0, pipeRes.stderr);
   assert.equal(pipeRes.stdout.trim(), "500");

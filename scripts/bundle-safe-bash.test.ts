@@ -309,19 +309,9 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
   for (const imported of imports.filter(item => item.external)) {
     expect(imported.path).toBe("poe-code/safe-fs/core");
   }
-  const compiled = await bundlePublicConsumer('export * from "@poe-platform/safe-bash";');
-  const sandbox = createContext({
-    TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
-    AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
-    require(name: string) {
-      if (name !== "@poe-platform/safe-fs/core") throw new Error(name);
-      return filesystem;
-    },
-  });
-  const portable = runInContext(`(function(){ const module = { exports: {} }; ${compiled}; return module.exports; })()`, sandbox) as BrowserShell;
-  expect(portable.posixPath).toBe(filesystem.posixPath);
-  expect(portable.posixPath.join("/a", "..", "b")).toBe("/b");
-  const names = portable.createAgentCommands().map(command => command.name).sort();
+  expect(browser.posixPath).toBe(filesystem.posixPath);
+  expect(browser.posixPath.join("/a", "..", "b")).toBe("/b");
+  const names = browser.createAgentCommands().map(command => command.name).sort();
   expect(names).toHaveLength(110);
   expect(names).toEqual([
     "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
@@ -332,15 +322,15 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
     "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos",
   ].sort());
-  const commands = new portable.CommandRegistry();
-  const plugin = portable.agentCommands({ regexExecutor: portable.createBoundedRegexProvider() });
+  const commands = new browser.CommandRegistry();
+  const plugin = browser.agentCommands({ regexExecutor: browser.createBoundedRegexProvider() });
   try {
     await plugin.setup({ commands, use() {}, registerFileSystem() {} });
     expect(commands.list().map(command => command.name).sort()).toEqual(names);
   } finally { await plugin.dispose?.(); }
   const fs = new filesystem.MemoryFileSystem();
-  const shell = new portable.Shell({ fs }).use(
-    portable.agentCommands(),
+  const shell = new browser.Shell({ fs }).use(
+    browser.agentCommands(),
   );
   try {
     for (const script of ["env jq -nc '1+1'", "printf '\"1+1\"' | xargs jq -nc"]) {

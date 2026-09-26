@@ -1,7 +1,7 @@
 # BIFF CryptoAPI encrypted properties
 
-Status: bounded container import implemented; export and independent application
-qualification remain pending under hey-boss #1748.
+Status: bounded container import and explicit export implemented; unknown ancillary
+reexport and native application qualification remain pending under hey-boss #1748.
 
 LibreOffice's property loader reads ordinary property streams without the BIFF
 decrypter. Apache POI revision `942d95d85b15d0dfdb3bc9ba1b4f273f277757c8`
@@ -40,5 +40,8 @@ in `docs/ssconvert/gap-resolution.json`.
 
 Import now accepts the admitted encrypted container. Missing containers, malformed
 layouts, plaintext collisions and wrong passwords remain refused. Explicit
-encrypted-property export is not yet implemented; workbook-only encryption keeps
-its existing plaintext-property behavior.
+`encryption=rc4-cryptoapi-<bits>-properties` export uses the same password and entropy
+request as Workbook encryption. It emits the source-defined container and empty
+plaintext document-summary placeholder. Workbook-only encryption keeps its
+existing plaintext-property behavior. Unknown ancillary reexport is next; current
+exports still diagnose its loss.

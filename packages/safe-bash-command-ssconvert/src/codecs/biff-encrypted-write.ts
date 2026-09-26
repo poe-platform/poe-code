@@ -1,14 +1,15 @@
 import { md5, sha1 } from "@noble/hashes/legacy.js";
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import { rc4Stream } from "./biff-encryption.js";
+import { prepareBiffPropertyContainer } from "./biff-encrypted-properties-write.js";
 
 export type BiffEncryptionProfile = { readonly algorithm: "xor" } | { readonly algorithm: "rc4" } |
-  { readonly algorithm: "rc4-cryptoapi"; readonly keyBits: number };
+  { readonly algorithm: "rc4-cryptoapi"; readonly keyBits: number; readonly encryptedProperties?: boolean };
 export const biffEncryptionProfiles: ReadonlyMap<string, BiffEncryptionProfile> = new Map<string, BiffEncryptionProfile>([
   ["xor", { algorithm: "xor" }],
   ["rc4", { algorithm: "rc4" }],
-  ...[40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128].map(bits =>
-    [`rc4-cryptoapi-${bits}`, { algorithm: "rc4-cryptoapi", keyBits: bits }] as const)
+  ...[false, true].flatMap(encryptedProperties => [40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128].map(bits =>
+    [`rc4-cryptoapi-${bits}${encryptedProperties ? "-properties" : ""}`, { algorithm: "rc4-cryptoapi", keyBits: bits, encryptedProperties }] as const))
 ]);
 export const biffLegacyEncryptionOptions = [...biffEncryptionProfiles]
   .filter(([, profile]) => profile.algorithm === "xor").map(([name]) => name);
@@ -22,8 +23,9 @@ export function createBiffEncryptionHeader(profile: BiffEncryptionProfile, revis
   const headerSize = 32 + (provider.length + 1) * 2, bytes = new Uint8Array(14 + headerSize + 60);
   const view = new DataView(bytes.buffer);
   view.setUint16(0, 1, true); view.setUint16(2, 4, true); view.setUint16(4, 2, true);
-  // fCryptoAPI and fDocProps: workbook data is encrypted, no ancillary streams.
-  view.setUint32(6, 12, true); view.setUint32(10, headerSize, true); view.setUint32(14, 12, true);
+  // fDocProps is zero when ancillary property streams are encrypted.
+  const flags = profile.encryptedProperties ? 4 : 12;
+  view.setUint32(6, flags, true); view.setUint32(10, headerSize, true); view.setUint32(14, flags, true);
   view.setUint32(22, 0x6801, true); view.setUint32(26, 0x8004, true);
   view.setUint32(30, profile.keyBits, true); view.setUint32(34, 1, true);
   for (let i = 0; i < provider.length; i++) view.setUint16(46 + i * 2, provider.charCodeAt(i), true);
@@ -38,16 +40,23 @@ function unsupported(message: string): never {
 /** Encrypt an owned BIFF8 stream with its FILEPASS slot already included in all
  * offsets. MS-OFFCRYPTO 2.3.5/2.3.6 and MS-XLS 2.2.10: unauthenticated RC4. */
 export async function encryptBiffStream(bytes: Uint8Array, context: CapabilityContext,
-  profile: Exclude<BiffEncryptionProfile, { readonly algorithm: "xor" }> = { algorithm: "rc4" }): Promise<void> {
+  profile: Exclude<BiffEncryptionProfile, { readonly algorithm: "xor" }> = { algorithm: "rc4" },
+  properties: ReadonlyMap<string, Uint8Array> = new Map()): Promise<Uint8Array | undefined> {
   context.signal.throwIfAborted();
   if (!context.password || !context.entropy) unsupported("export requires password and cryptographic entropy capabilities");
   // Admit the maximum password/KDF, verifier and every absolute-position block
   // before calling either host capability or allocating cryptographic material.
   const cryptoapi = profile.algorithm === "rc4-cryptoapi", hash = cryptoapi ? sha1 : md5;
   const keyBits = profile.algorithm === "rc4-cryptoapi" ? profile.keyBits : 128, hashLength = cryptoapi ? 20 : 16;
-  const work = 1280 + 16 + hashLength + bytes.length + Math.ceil(bytes.length / 1024) * (64 + 256 + 1024);
-  if (work > (context.limits.workbookWork ?? context.limits.inputBytes * 8))
-    throw new SsconvertError("resource-limit", "ssconvert BIFF encryption work limit exceeded");
+  let work = 0;
+  const charge = (amount: number) => {
+    context.signal.throwIfAborted(); work += amount;
+    if (work > (context.limits.workbookWork ?? context.limits.inputBytes * 8))
+      throw new SsconvertError("resource-limit", "ssconvert BIFF encryption work limit exceeded");
+  };
+  charge(1280 + 16 + hashLength + bytes.length + Math.ceil(bytes.length / 1024) * (64 + 256 + 1024));
+  const encryptProperties = profile.algorithm === "rc4-cryptoapi" && profile.encryptedProperties
+    ? prepareBiffPropertyContainer(properties, context, charge) : undefined;
   let secret: string | Uint8Array | undefined;
   try {
     secret = await context.password.read(Object.freeze({ purpose: "encrypt", format: "biff", algorithm: profile.algorithm,
@@ -114,6 +123,7 @@ export async function encryptBiffStream(bytes: Uint8Array, context: CapabilityCo
       }
       at = end;
     }
+    return encryptProperties?.(keyStream);
   } finally {
     password.fill(0); entropy?.fill(0); initial?.fill(0); base?.fill(0); material.fill(0);
     keyInput.fill(0); stream?.fill(0); verifierHash?.fill(0);

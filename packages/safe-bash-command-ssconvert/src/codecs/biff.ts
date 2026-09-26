@@ -14,7 +14,7 @@ import { biffOpcodes } from "./biff-source.js";
 import { biffNode as node, biffMetadataOpcodes, readBiffMetadata } from "./biff-metadata.js";
 import { writeCfb } from "./biff-write-binary.js";
 import { writeBiffStream } from "./biff-write.js";
-import { readBiffProperties } from "./biff-properties.js";
+import { readBiffProperties, biffPropertyFormats } from "./biff-properties.js";
 import { writeBiffProperties } from "./biff-properties-write.js";
 import type { Codec } from "./types.js";
 
@@ -36,12 +36,26 @@ export function createBiffWriter(profile: 7 | 8 | "dsf"): NonNullable<Codec["wri
       if (profile === 8 || profile === "dsf") {
         const stream = await writeBiffStream(source, 8, profile === "dsf", context, encrypted ? createBiffEncryptionHeader(encrypted) : undefined);
         streams.set("Workbook", stream);
-        if (encrypted && encrypted.algorithm !== "xor") await encryptBiffStream(stream, context, encrypted);
+        if (encrypted && encrypted.algorithm !== "xor") {
+          const container = await encryptBiffStream(stream, context, encrypted, properties.streams);
+          if (container) streams.set("encryption", container);
+        }
       }
       if (encrypted?.algorithm === "xor") await encryptBiffXorStreams([...streams.values()], profile === 7 ? 7 : 8, context);
-      for (const [name, bytes] of properties.streams) streams.set(name, bytes);
+      if (streams.has("encryption")) {
+        // POIDocument.writeProperties keeps only an empty document-summary set outside encryption.
+        const placeholder = new Uint8Array(56), view = new DataView(placeholder.buffer);
+        view.setUint16(0, 0xfffe, true); view.setUint32(24, 1, true); view.setUint32(44, 48, true); view.setUint32(48, 8, true);
+        for (let i = 0; i < 16; i++) placeholder[28 + i] = parseInt(biffPropertyFormats.document.slice(i * 2, i * 2 + 2), 16);
+        streams.set("\u0005DocumentSummaryInformation", placeholder);
+      } else for (const [name, bytes] of properties.streams) streams.set(name, bytes);
       return writeCfb(streams, context);
-    } finally { if (encrypted) for (const stream of streams.values()) stream.fill(0); }
+    } finally {
+      if (encrypted) {
+        for (const stream of streams.values()) stream.fill(0);
+        for (const stream of properties.streams.values()) stream.fill(0);
+      }
+    }
   };
 }
 

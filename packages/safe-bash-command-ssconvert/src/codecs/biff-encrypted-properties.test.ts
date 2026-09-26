@@ -4,6 +4,12 @@ import { createBiffWriter, readBiff } from "./biff.js";
 import { readCfb, readBiffRecords } from "./biff-binary.js";
 import { writeCfb } from "./biff-write-binary.js";
 import { decryptBiffPropertyContainer } from "./biff-encrypted-properties.js";
+import { prepareBiffPropertyContainer } from "./biff-encrypted-properties-write.js";
+import { rc4Stream } from "./biff-encryption.js";
+import { sha1 } from "@noble/hashes/legacy.js";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { encryptBiffStream, createBiffEncryptionHeader } from "./biff-encrypted-write.js";
+import { writeBiffStream } from "./biff-write.js";
 
 const context: CapabilityContext = { signal: new AbortController().signal, own() {},
   environment: { env: {}, locale: "C", timezone: "UTC" },
@@ -29,6 +35,78 @@ it("imports the independently encrypted title and custom property with one passw
   expect(result.properties).toEqual({ "dc:title": "Hidden", Note: "Secret note" });
   expect(read).toHaveBeenCalledTimes(1);
   expect(bytes).toEqual(original);
+});
+
+it("exports encrypted property sets with one password and entropy request", async () => {
+  const read = vi.fn(secret.password.read), entropy = vi.fn(secret.entropy.read);
+  const imported = await readBiff(await fixture(), secret);
+  const bytes = await createBiffWriter(8)(imported, ["encryption=rc4-cryptoapi-128-properties"],
+    { ...context, password: { read }, entropy: { read: entropy } });
+  const streams = readCfb(bytes, context), pass = readBiffRecords(streams.get("Workbook")!, context).find(r => r.opcode === 0x2f)!.data;
+  expect([pass.u32(6), pass.u32(14)]).toEqual([4, 4]);
+  expect(streams.has("\u0005SummaryInformation")).toBe(false);
+  expect(streams.get("\u0005DocumentSummaryInformation")?.length).toBe(56);
+  expect(streams.has("encryption")).toBe(true);
+  expect(Buffer.from(bytes).includes(Buffer.from("Hidden"))).toBe(false);
+  expect(Buffer.from(bytes).includes(Buffer.from("Secret note"))).toBe(false);
+  expect(read).toHaveBeenCalledTimes(1); expect(entropy).toHaveBeenCalledTimes(1);
+  expect((await readBiff(bytes, secret)).properties).toEqual(imported.properties);
+  const edited = await createBiffWriter(8)({ ...imported, properties: { ...imported.properties, "dc:title": "Edited" } },
+    ["encryption=rc4-cryptoapi-128-properties"], secret);
+  expect((await readBiff(edited, secret)).properties).toEqual({ "dc:title": "Edited", Note: "Secret note" });
+});
+
+it("matches an independently OpenSSL-encrypted ancillary payload, descriptor and header", () => {
+  const plain = new Uint8Array([1, 2, 3, 4]);
+  const encrypt = prepareBiffPropertyContainer(new Map([["Ancillary", plain]]), context, () => {});
+  const keyStream = (block: number, length: number) => {
+    const material = new Uint8Array(24);
+    material.set(Buffer.from("5d4bee2484b8180c7fee9306de2dda19d623e25f", "hex"));
+    new DataView(material.buffer).setUint32(20, block, true);
+    return rc4Stream(sha1(material).subarray(0, 16), length, context);
+  };
+  const result = encrypt(keyStream);
+  // OpenSSL RC4, same salt/password as the import vector, payload block 0 (POI export ordering).
+  expect(Buffer.from(result).toString("hex")).toBe("1a6a8128a01ef55d1768822c176a8128801ef55d91345f12e886d53bc94ac4f8738dd73f12b83decbdd06ad17a74866f73835e56");
+  expect(plain).toEqual(new Uint8Array([1, 2, 3, 4]));
+  const long = prepareBiffPropertyContainer(new Map([["A1", Uint8Array.from({ length: 3000 }, (_, i) => i % 251)]]), context, () => {})(keyStream);
+  // Independent OpenSSL digest also guards against accidental 1024-byte payload rekeying.
+  expect(Buffer.from(sha256(long)).toString("hex")).toBe("3b2bbb11e722baacdc23478c7879b955faddda83dfd2d381153dffbdd02e3d66");
+});
+
+it("owns exported containers and clears cipher buffers if disposed during encryption", async () => {
+  const cleanups: (() => void | Promise<void>)[] = [], keys: Uint8Array[] = [];
+  const configured = { ...context, own(cleanup: () => void | Promise<void>) { cleanups.push(cleanup); } };
+  const encrypt = prepareBiffPropertyContainer(new Map([["A", new Uint8Array([1, 2, 3])]]), configured, () => {});
+  const bytes = encrypt((_block, length) => { const key = new Uint8Array(length); keys.push(key); return key; });
+  expect(bytes.some(Boolean)).toBe(true);
+  for (const cleanup of cleanups) await cleanup();
+  expect(bytes.some(Boolean)).toBe(false);
+  const disposed = prepareBiffPropertyContainer(new Map([["B", new Uint8Array([4])]]), configured, () => {});
+  expect(() => disposed((_block, length) => {
+    void cleanups.at(-1)!(); const key = new Uint8Array(length).fill(7); keys.push(key); return key;
+  })).toThrow("disposed");
+  expect(keys.every(key => key.every(byte => byte === 0))).toBe(true);
+});
+
+it("rejects disposal while awaiting export entropy", async () => {
+  const cleanups: (() => void | Promise<void>)[] = [];
+  await expect(createBiffWriter(8)({ ...book, properties: { "dc:title": "Hidden" } },
+    ["encryption=rc4-cryptoapi-128-properties"], { ...secret, own(cleanup) { cleanups.push(cleanup); },
+      entropy: { async read() { for (const cleanup of cleanups) await cleanup(); return secret.entropy.read(); } }
+    })).rejects.toThrow("disposed");
+});
+
+it.each(["output", "work", "text", "nodes", "name", "duplicate"])("admits encrypted property %s before secret acquisition", async limit => {
+  const profile = { algorithm: "rc4-cryptoapi", keyBits: 128, encryptedProperties: true } as const;
+  const stream = await writeBiffStream(book, 8, false, context, createBiffEncryptionHeader(profile));
+  const read = vi.fn(secret.password.read), properties = new Map([[limit === "name" ? "Bad\ud800" : "Ancillary", new Uint8Array(5000)]]);
+  if (limit === "duplicate") properties.set("ancillary", new Uint8Array());
+  const limits = { ...context.limits, ...(limit === "output" ? { outputBytes: 5000 } : {}),
+    ...(limit === "work" ? { workbookWork: 10000 } : {}), ...(limit === "text" ? { workbookTextBytes: 1 } : {}),
+    ...(limit === "nodes" ? { workbookNodes: 0 } : {}) };
+  await expect(encryptBiffStream(stream, { ...secret, limits, password: { read } }, profile, properties)).rejects.toThrow();
+  expect(read).not.toHaveBeenCalled();
 });
 
 it("rejects a truncated encrypted container before requesting a password", async () => {

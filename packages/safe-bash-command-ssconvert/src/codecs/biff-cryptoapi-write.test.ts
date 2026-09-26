@@ -41,7 +41,8 @@ it.each(keySizes)("exports the specified CryptoAPI header and multi-block BIFF d
 
 it("exposes exactly the specified CryptoAPI key sizes through the provider", () => {
   const codec = createRegistry([]).select("write", "Gnumeric_Excel:excel_biff8")!;
-  expect(codec.exportOptionRules?.encryption).toEqual({ kind: "enum", values: ["xor", "rc4", ...keySizes.map(bits => `rc4-cryptoapi-${bits}`)] });
+  expect(codec.exportOptionRules?.encryption).toEqual({ kind: "enum", values: ["xor", "rc4",
+    ...["", "-properties"].flatMap(suffix => keySizes.map(bits => `rc4-cryptoapi-${bits}${suffix}`))] });
 });
 
 it.each([
@@ -60,7 +61,8 @@ it.each([
   expect(Buffer.concat([header.bytes.subarray(at + 20, at + 36), header.bytes.subarray(at + 40)]).toString("hex")).toBe(expected);
 });
 
-it.each([40, 128])("publishes %i-bit CryptoAPI through the public command and preserves targets on refusal", async bits => {
+it.each([[40, ""], [128, ""], [40, "-properties"], [128, "-properties"]] as const)(
+  "publishes %i-bit CryptoAPI%s through the public command and preserves targets on refusal", async (bits, suffix) => {
   for (const mode of ["success", "password", "entropy", "same-random-halves", "work", "output", "cancel"]) {
     const fs = Volume.fromJSON({ "/in.csv": "42\n", "/out.xls": "untouched" }), controller = new AbortController();
     const errors: string[] = [], random = Uint8Array.from({ length: 32 }, (_, i) => i + 1);
@@ -74,7 +76,7 @@ it.each([40, 128])("publishes %i-bit CryptoAPI through the public command and pr
       limits: { ...context.limits, ...(mode === "work" ? { workbookWork: 0 } : {}), ...(mode === "output" ? { outputBytes: 2048 } : {}) }, password, entropy,
       filesystem: { async read(path) { return [new Uint8Array(fs.readFileSync(path) as Uint8Array)]; }, async write(path, bytes) { fs.writeFileSync(path, bytes); } } });
     try {
-      const command = runCommand(["-T", "Gnumeric_Excel:excel_biff8", "-O", `encryption=rc4-cryptoapi-${bits}`, "/in.csv", "/out.xls"], engine,
+      const command = runCommand(["-T", "Gnumeric_Excel:excel_biff8", "-O", `encryption=rc4-cryptoapi-${bits}${suffix}`, "/in.csv", "/out.xls"], engine,
         { signal: controller.signal, stdout: { async write() {} }, stderr: { async write(bytes) { errors.push(new TextDecoder().decode(bytes)); } } });
       if (mode === "cancel") await expect(command).rejects.toMatchObject({ name: "AbortError" });
       else expect((await command).exitCode).toBe(mode === "success" ? 0 : 1);

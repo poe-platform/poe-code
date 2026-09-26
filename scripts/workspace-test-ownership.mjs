@@ -3,6 +3,26 @@ import path from "node:path";
 import { parse } from "shell-quote";
 import ts from "typescript";
 
+function nodeTestPatterns(tokens) {
+  if (tokens[0] !== "node") return undefined;
+  let index = 1;
+  if (tokens[index] === "--import" && tokens[index + 1] === "tsx") index += 2;
+  if (tokens[index++] !== "--test") return undefined;
+  if (typeof tokens[index] === "string" && tokens[index].startsWith("--test-concurrency=")) {
+    const value = tokens[index++].slice("--test-concurrency=".length);
+    const concurrency = Number(value);
+    if (!Number.isSafeInteger(concurrency) || concurrency < 1 || String(concurrency) !== value) return undefined;
+  }
+  const patterns = tokens.slice(index).map(token => typeof token === "string" ? token
+    : token?.op === "glob" && !token.pattern.includes("**") ? token.pattern : undefined);
+  if (!patterns.length || patterns.some(pattern => typeof pattern !== "string"
+    || path.isAbsolute(pattern) || pattern.startsWith("-") || pattern.startsWith("~")
+    || ["!", "?", "[", "]", "{", "}", "(", ")", "\\", "$"].some(character => pattern.includes(character))
+    || pattern.split("/").some(segment => !segment || segment === "." || segment === "..")
+    || ![".ts", ".mts", ".cts", ".js", ".mjs", ".cjs"].some(extension => pattern.endsWith(extension)))) return undefined;
+  return patterns;
+}
+
 export function workspaceTestExclusions(root, fileSystem = fs) {
   return workspaceUnitSelections(root, fileSystem).flatMap(selection => selection.exclusions);
 }
@@ -19,21 +39,14 @@ export function workspaceUnitSelections(root, fileSystem = fs) {
     if (typeof script !== "string") continue;
     const tokens = parse(script, () => undefined);
     if (tokens[0] === "node") {
-      let index = 1;
-      if (tokens[index] === "--import" && tokens[index + 1] === "tsx") index += 2;
-      if (tokens[index++] !== "--test") continue;
-      if (typeof tokens[index] === "string" && tokens[index].startsWith("--test-concurrency=")) {
-        const value = tokens[index++].slice("--test-concurrency=".length);
-        const concurrency = Number(value);
-        if (!Number.isSafeInteger(concurrency) || concurrency < 1 || String(concurrency) !== value) continue;
+      const phases = [[]];
+      for (const token of tokens) {
+        if (token?.op === "&&") phases.push([]);
+        else phases.at(-1).push(token);
       }
-      const patterns = tokens.slice(index).map(token => typeof token === "string" ? token
-        : token?.op === "glob" && !token.pattern.includes("**") ? token.pattern : undefined);
-      if (!patterns.length || patterns.some(pattern => typeof pattern !== "string"
-        || path.isAbsolute(pattern) || pattern.startsWith("-") || pattern.startsWith("~")
-        || ["!", "?", "[", "]", "{", "}", "(", ")", "\\", "$"].some(character => pattern.includes(character))
-        || pattern.split("/").some(segment => !segment || segment === "." || segment === "..")
-        || ![".ts", ".mts", ".cts", ".js", ".mjs", ".cjs"].some(extension => pattern.endsWith(extension)))) continue;
+      const phasePatterns = phases.map(nodeTestPatterns);
+      if (phasePatterns.some(patterns => patterns === undefined)) continue;
+      const patterns = phasePatterns.flat();
       selections.push({
         path: prefix.slice(0, -1), selectors: [], exclusions: patterns.map(pattern => prefix + pattern),
         passWithNoTests: false,

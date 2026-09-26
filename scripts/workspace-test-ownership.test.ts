@@ -34,6 +34,11 @@ describe("workspace test ownership", () => {
     expect(workspaceTestExclusions("/repo", fixture("node --test src/**/*.test.ts"))).toEqual([]);
   });
 
+  it("derives ownership from chained Node test phases", () => {
+    expect(workspaceTestExclusions("/repo", fixture("node --test scripts/*.test.mjs && node --import tsx --test src/*.test.ts")))
+      .toEqual(["packages/example/scripts/*.test.mjs", "packages/example/src/*.test.ts"]);
+  });
+
   it.each([
     "node --test src/*.test.ts scripts/*.test.mjs",
     "node --import tsx --test src/*.test.ts scripts/*.test.mjs",

@@ -153,19 +153,21 @@ class Invocation {
     validatePath(lookup);
     this.check();
     if (display.endsWith("/") || display.endsWith("/.") || display.endsWith("/..")) return false;
-    try {
-      this.check();
-      const stat = await this.context.fs.stat(lookup, { signal: this.context.signal });
-      this.check();
-      if (stat.type !== "file") return false;
-      this.check();
-      await this.context.fs.access(lookup, ACCESS_MODES.X_OK, { signal: this.context.signal });
-      this.check();
-    } catch (error) {
-      this.check();
-      if (isFsError(error) && misses.has(error.code)) return false;
-      const description = isFsError(error) ? descriptions[error.code] : "filesystem operation failed";
-      throw new Diagnostic(`which: ${display}: ${description}\n`);
+    if (!this.context.commandDiscovery?.isExecutable(lookup)) {
+      try {
+        this.check();
+        const stat = await this.context.fs.stat(lookup, { signal: this.context.signal });
+        this.check();
+        if (stat.type !== "file") return false;
+        this.check();
+        await this.context.fs.access(lookup, ACCESS_MODES.X_OK, { signal: this.context.signal });
+        this.check();
+      } catch (error) {
+        this.check();
+        if (isFsError(error) && misses.has(error.code)) return false;
+        const description = isFsError(error) ? descriptions[error.code] : "filesystem operation failed";
+        throw new Diagnostic(`which: ${display}: ${description}\n`);
+      }
     }
     this.check();
     if (!this.quiet) {
@@ -182,7 +184,7 @@ class Invocation {
     this.check();
     const { args } = this.context;
     if (args.length > this.limits.maxArguments) this.limit("maxArguments");
-    const path = this.context.env.PATH;
+    const path = this.context.env.PATH ?? this.context.commandDiscovery?.defaultPath;
     this.cwd = this.context.cwd;
     let argumentBytes = 0;
     for (const argument of args) {

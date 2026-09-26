@@ -1989,6 +1989,13 @@ class FastShellCommandContext {
   set fs(replacement: FileSystem) {
     (this._self ?? this)._contextFs = replacement;
   }
+  get commandDiscovery(): NonNullable<CommandContext["commandDiscovery"]> {
+    const self = this._self ?? this;
+    return {
+      defaultPath: self._state.pathUnset ? undefined : defaultCommandPath,
+      isExecutable: path => self._runtime.virtualExecutable(path) !== undefined,
+    };
+  }
   get shellPredicates(): NonNullable<CommandContext["shellPredicates"]> {
     const self = this._self ?? this;
     if (!self._cachedPredicates) self._cachedPredicates = self._runtime.createShellPredicatesForFast(self._state, self._io);
@@ -2036,7 +2043,7 @@ function isFastDirectCommand(name: string, words: readonly Word[]): boolean {
   }
   return true;
 }
-const fastShellCommandAccessors = ["xpgEcho", "signal", "env", "fs", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues", "stdinInput", "stdoutFile"].map( key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const, );
+const fastShellCommandAccessors = ["xpgEcho", "signal", "env", "fs", "commandDiscovery", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues", "stdinInput", "stdoutFile"].map( key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const, );
 function cloneRawState(raw: State, hasLocals: boolean): State {
   const variables = Object.assign(Object.create(null) as Record<string, string>, raw.variables);
   const exported = raw.exported.size ? new Set(raw.exported) : new Set<string>();
@@ -20168,7 +20175,12 @@ export class Runtime {
         if (totalBytes > this.budget.limits.maxInputBytes) this.budget.fail("maxInputBytes");
       }, });
     const context: ShellCommandContext = {
-      ...publicIO, ...{ xpgEcho: !!state.xpg_echo, shellStartedAt: state.shellStartedAt ??= Date.now() }, command: name, args: argumentValues.args, ...(allStrings ? {} : { argumentValues }), env, cwd: state.cwd, get shellPredicates(): NonNullable<CommandContext["shellPredicates"]> { return getShellPredicates(); }, set shellPredicates(replacement: NonNullable<CommandContext["shellPredicates"]>) { cachedPredicates = replacement; }, get fs() { return getContextFs(); }, set fs(replacement: FileSystem) { contextFs = replacement; }, signal: toNativeAbortSignal(this.commandSignal), executionScope: this.budget.executionScope, onInternalError: this.budget.onInternalError, get inputBudget(): NonNullable<CommandContext["inputBudget"]> { return getInputBudget(); }, set inputBudget(replacement: NonNullable<CommandContext["inputBudget"]>) { cachedInputBudget = replacement; }, registerCleanup: (cleanup) => { scope.register(cleanup); }, invoke: (name, args, options) => {
+      ...publicIO, ...{ xpgEcho: !!state.xpg_echo, shellStartedAt: state.shellStartedAt ??= Date.now() }, command: name, args: argumentValues.args, ...(allStrings ? {} : { argumentValues }), env, cwd: state.cwd,
+      commandDiscovery: {
+        defaultPath: state.pathUnset ? undefined : defaultCommandPath,
+        isExecutable: path => this.virtualExecutable(path) !== undefined,
+      },
+      get shellPredicates(): NonNullable<CommandContext["shellPredicates"]> { return getShellPredicates(); }, set shellPredicates(replacement: NonNullable<CommandContext["shellPredicates"]>) { cachedPredicates = replacement; }, get fs() { return getContextFs(); }, set fs(replacement: FileSystem) { contextFs = replacement; }, signal: toNativeAbortSignal(this.commandSignal), executionScope: this.budget.executionScope, onInternalError: this.budget.onInternalError, get inputBudget(): NonNullable<CommandContext["inputBudget"]> { return getInputBudget(); }, set inputBudget(replacement: NonNullable<CommandContext["inputBudget"]>) { cachedInputBudget = replacement; }, registerCleanup: (cleanup) => { scope.register(cleanup); }, invoke: (name, args, options) => {
         const invRuntime = new Runtime( this.sourceFs, this.commands, this.middleware, this.budget, this.signal, this.fileWrites, this.outputFiles, this.commandSignal, this.cancellation, this.cancellationState, this.cancellationOwner, this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile, );
         const invocation = invRuntime.invoke(name, args, options, context, state, scope);
         void invocation.catch(() => undefined);
@@ -20492,14 +20504,17 @@ export class Runtime {
             return { exitCode: builtin };
           }
         }
-        const definition = this.commands.get(context.command);
+        const virtualName = context.command.includes("/") ? this.virtualExecutable(pathOf(state, context.command)) : undefined;
+        const definition = this.commands.get(virtualName ?? context.command);
         if (context.command === "printf" && definition?.execute === printfCommand.execute && context.args[0]?.startsWith("-v")) {
           ensureRuntimeContext();
           return { exitCode: await this.printfVariable(context, state, assignments) };
         }
         if (!definition) {
           ensureRuntimeContext();
-          if (context.command === "bash" || context.command === "sh") return { exitCode: await this.interpreter(context, state, io) };
+          if (context.command === "bash" || context.command === "sh" || virtualName === "bash" || virtualName === "sh") {
+            return { exitCode: await this.interpreter(virtualName ? this.virtualExecutionContext(context, virtualName) : context, state, io) };
+          }
           if (context.command.includes("/") || !defaultPath && state.variables.PATH === undefined && state.pathUnset) return { exitCode: await this.scriptFile(context, state, io, context.command, context.args, true) };
           const [target] = await this.searchPaths(context.command, state, false, false, defaultPath);
           if (target !== undefined) return { exitCode: await this.scriptFile(context, state, io, target, context.args, true) };
@@ -20516,7 +20531,7 @@ export class Runtime {
             ...Object.getOwnPropertyDescriptors(forwarded), externalInvocation: { value: true, configurable: true }, }) as ShellCommandContext
           : forwarded;
         try {
-          const raw = definition.execute(executionContext);
+          const raw = definition.execute(virtualName ? this.virtualExecutionContext(executionContext, virtualName) : executionContext);
           const observed = this.observeRuntimeReturn(raw, runtimeFrame);
           return await interruptible(observed, this.signal);
         } finally {
@@ -20555,6 +20570,26 @@ export class Runtime {
       allocation.close();
     }
   }
+  private virtualExecutionContext(context: ShellCommandContext, name: string): ShellCommandContext {
+    const normalized = Object.create(Object.getPrototypeOf(context), {
+      ...Object.getOwnPropertyDescriptors(context),
+      ...Object.getOwnPropertyDescriptors({ command: name, argv0: context.argv0 ?? context.command }),
+    }) as ShellCommandContext;
+    const workerState = workerRuntimeContexts.get(context);
+    if (workerState) workerRuntimeContexts.set(normalized, workerState);
+    return normalized;
+  }
+
+  virtualExecutable(path: string): string | undefined {
+    if (path.endsWith("/") || path.endsWith("/.") || path.endsWith("/..")) return undefined;
+    path = resolvePath("/", path);
+    const slash = path.lastIndexOf("/");
+    const directory = path.slice(0, slash);
+    if (directory !== "/bin" && directory !== "/usr/bin") return undefined;
+    const name = path.slice(slash + 1);
+    return this.commands.has(name) || name === "bash" || name === "sh" ? name : undefined;
+  }
+
   internalDiscovery(name: string, state: State, bypassFunctions = false): Discovery[] {
     const matches: Discovery[] = [];
     if (!bypassFunctions && state.functions.has(name)) matches.push({ kind: "function", name });
@@ -20665,6 +20700,8 @@ export class Runtime {
       let matches = forcePath || all && mode === "path" ? [] : this.internalDiscovery(name, state, skipFunctions);
       if (!forcePath && !(all && mode === "path") && shellKeywords.has(name)) matches.unshift({ kind: "keyword", name });
       if (!all) matches = matches.slice(0, 1);
+      if (mode === "path" && (matches[0]?.kind === "command" && !shellBuiltinNames.has(name)
+        || matches[0]?.kind === "interpreter")) matches = [];
       if (all || !matches.length) {
         const paths = await this.searchPaths(name, state, all, true, defaultPath);
         matches.push(...paths.map(path => {
@@ -20700,8 +20737,13 @@ export class Runtime {
     if (!name) return [];
     let denied: CommandFailure | undefined;
     const matches: string[] = [];
-    for (const target of pathTargets(name, defaultPath ? defaultCommandPath : state.variables.PATH, this.budget.limits, this.signal, limit => this.budget.fail(limit))) {
+    for (const target of pathTargets(name, defaultPath ? defaultCommandPath : state.variables.PATH ?? (state.pathUnset ? undefined : defaultCommandPath), this.budget.limits, this.signal, limit => this.budget.fail(limit))) {
       const resolved = pathOf(state, target);
+      if (this.virtualExecutable(resolved) !== undefined) {
+        matches.push(target);
+        if (!all) return matches;
+        continue;
+      }
       try {
         const options = { signal: this.signal };
         if (!await interruptible(this.budget.pathLookup.isFile(this.fs, resolved, this.signal), this.signal)) continue;

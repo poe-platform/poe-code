@@ -10,8 +10,10 @@ replaces only the permission/order/probe/error portions described there. Their
 historical pre-release status text remains unchanged. The author received explicit
 implementation authorization after the independent preimplementation freeze.
 
-Lookup uses only invocation PATH/cwd and literal virtual paths. A candidate must
-pass followed `stat` as a regular file, then the same VFS's `access(X_OK)`.
+Lookup uses invocation PATH/cwd and literal virtual paths. Shell-hosted invocations
+also discover registered executables under `/bin` and `/usr/bin`, using the shell's
+default search path when PATH was never set. Filesystem candidates must pass
+followed `stat` as a regular file, then the same VFS's `access(X_OK)`.
 Readonly wrappers are not excluded; mode bits are not an alternative authority.
 Absent PATH silently misses even slash operands. Leading bundled/repeated `-a`
 and `-s`, `--`, and stop-at-first-operand parsing follow the sealed virtual profile.

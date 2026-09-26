@@ -813,7 +813,7 @@ There are no package-specific runtime environment switches. Supply these through
 | Variables | Effect |
 | --- | --- |
 | `HOME`, `CDPATH`, `PWD`, `OLDPWD` | Home expansion, directory search, current and previous directory. The shell maintains `PWD`/`OLDPWD` on directory changes. |
-| `PATH` | Virtual script lookup and `which`; never a host executable search. |
+| `PATH` | Virtual executable lookup for `which`, `type -p`, and `type -P`. Registered commands resolve under `/bin` and `/usr/bin`; the default search path is `/bin:/usr/bin` when PATH has never been set. Returned paths can be invoked directly. |
 | `IFS` | Field splitting and `read`; defaults to space, tab, and newline. |
 | `LC_ALL`, `LC_CTYPE`, `LC_COLLATE`, `LANG` | Character and collation behavior where supported; locale support varies by command. |
 | `TMPDIR` | `mktemp` directory; defaults to `/tmp`, created in a writable VFS when needed. Explicit directories must exist. |

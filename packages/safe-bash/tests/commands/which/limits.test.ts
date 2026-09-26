@@ -153,3 +153,18 @@ test("explicit boundaries admit exact values and bound repeated scan work", asyn
   assert.equal((await run(["/p"], { limits }, { fs, env: { PATH: "a".repeat(65537) } })).stderr, "which: maxPathEnvBytes limit exceeded\n");
   assert.equal((await run(["p"], { limits }, { fs, cwd: `/${"v".repeat(16384)}` })).stderr, "which: maxPathBytes limit exceeded\n");
 });
+
+test("virtual executable discovery retains probe and output limits", async () => {
+  const commandDiscovery = { defaultPath: "/bin:/usr/bin", isExecutable: () => true };
+  const overrides = { env: {}, commandDiscovery };
+  const found = await run(["tool"], { limits: { maxProbes: 1, maxOutputBytes: 10 } }, overrides);
+  assert.equal(found.exitCode, 0);
+  assert.equal(found.stdout, "/bin/tool\n");
+  const probes = await run(["-a", "tool"], { limits: { maxProbes: 1 } }, overrides);
+  assert.equal(probes.exitCode, 1);
+  assert.match(probes.stderr, /maxProbes limit exceeded/);
+  const output = await run(["tool"], { limits: { maxOutputBytes: 9 } }, overrides);
+  assert.equal(output.exitCode, 1);
+  assert.equal(output.stdout, "");
+  assert.match(output.stderr, /maxOutputBytes limit exceeded/);
+});

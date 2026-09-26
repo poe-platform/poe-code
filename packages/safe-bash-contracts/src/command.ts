@@ -263,6 +263,12 @@ export interface InvocationCapabilities {
 }
 
 export interface CommandContext {
+  /** Virtual executables supplied by the shell, independent of filesystem entries. */
+  readonly commandDiscovery?: {
+    readonly defaultPath?: string | undefined;
+    isExecutable(path: string): boolean;
+  };
+
   /** Zeroth argument identity; command remains the name used for lookup. */
   readonly argv0?: string | undefined;
   /** Live caller state; omitted by hosts that cannot answer shell predicates. */

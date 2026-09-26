@@ -792,6 +792,8 @@ function assertSource7Discovery(files) {
     "tests/shell/declare.test.ts",
     "tests/shell/umask.test.ts",
     "tests/shell/command-portable-path.test.ts",
+    "tests/shell/registered-command-paths.test.ts",
+    "tests/shell/virtual-executable-invocation.test.ts",
     "tests/shell/byte-values.test.ts",
     "tests/shell/conditional-predicates.test.ts",
     "tests/shell/read-count.test.ts",

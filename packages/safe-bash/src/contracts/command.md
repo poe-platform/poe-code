@@ -19,6 +19,14 @@ contracts. This check does not weaken argument ownership, use a global brand, or
 make arbitrary host JavaScript safe. Manually executed custom command contexts
 still require their host to supply truthful capabilities and resource limits.
 
+`CommandContext.commandDiscovery` optionally describes virtual executables supplied
+by the host. `isExecutable(path)` answers whether an absolute virtual path names
+a registered command or shell interpreter. `defaultPath` supplies the search path
+when the invocation environment omits PATH; it is absent after an explicit unset.
+Shell hosts expose registered executables under `/bin` and `/usr/bin`. `which`
+checks this capability before probing the filesystem, with the same invocation
+limits. Direct command hosts may omit it and retain filesystem-only lookup.
+
 ## Explicit local optional build
 
 From the repository root, first run the maintained `npm run build`, then

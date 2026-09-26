@@ -48,11 +48,11 @@ function isFastCleanAbsPath(path: string): boolean {
   return true;
 }
 
-export function resolvePath(cwd: string, ...paths: string[]): string;
-export function resolvePath(cwd: string, path0?: string): string {
+export function resolvePath(cwd: string, ...paths: string[]): string {
   validatePath(cwd);
   if (!cwd.startsWith("/")) throw new FsError("EINVAL", { syscall: "resolve", path: cwd, message: "cwd must be absolute" });
-  const argLen = arguments.length;
+  const argLen = paths.length + 1;
+  const path0 = paths[0];
   if (argLen === 1) {
     if (isFastCleanAbsPath(cwd)) return cwd;
   } else if (argLen === 2 && typeof path0 === "string") {
@@ -65,7 +65,7 @@ export function resolvePath(cwd: string, path0?: string): string {
   }
   const components: string[] = [];
   for (let a = 0; a < argLen; a++) {
-    const path = arguments[a] as string;
+    const path = a === 0 ? cwd : paths[a - 1]!;
     if (a > 0) validatePath(path);
     if (path.startsWith("/")) components.length = 0;
     for (const component of path.split("/")) {

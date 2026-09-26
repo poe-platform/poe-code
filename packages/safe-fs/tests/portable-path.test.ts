@@ -16,6 +16,17 @@ describe("portable virtual-path primitives", () => {
     for (const first of pieces)
       for (const second of pieces) expect(resolvePath("/cwd", first, second)).toBe(posix.resolve("/cwd", first, second));
   });
+  it("normalizes cwd without operands and resets on later absolute operands", () => {
+    for (const cwd of ["/", "/base/sub", "//base/../root/"])
+      expect(resolvePath(cwd)).toBe(posix.resolve(cwd));
+    expect(resolvePath("/base", "one", "..", "/reset", "two", ".", "three")).toBe("/reset/two/three");
+  });
+  it("validates every operand even when a later absolute path resets it", () => {
+    for (const invalid of [undefined, null, 1, "bad\0path"]) {
+      expect(() => resolvePath("/base", invalid as string)).toThrowError(expect.objectContaining({ code: "EINVAL" }));
+      expect(() => resolvePath("/base", "one", invalid as string, "/reset")).toThrowError(expect.objectContaining({ code: "EINVAL" }));
+    }
+  });
   it("matches relative paths after virtual normalization", () => {
     for (const from of pieces)
       for (const to of paths) expect(relativePath(from, to)).toBe(posix.relative(posix.resolve("/", from), posix.resolve("/", to)));

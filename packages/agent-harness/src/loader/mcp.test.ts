@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
 import { dump, makeMcpModule } from "@poe-code/safe-js";
 
@@ -9,16 +9,20 @@ vi.mock("node:fs/promises", async () => {
 
 const { runHarnessPair } = await import("./run.js");
 
-describe("managed MCP through the harness loader", () => {
-  beforeEach(() => vol.reset());
+describe.each(["2026-07-28", "2025-11-25"])("managed MCP through the harness loader (%s)", (version) => {
+  let result: Awaited<ReturnType<typeof runHarnessPair>>;
+  let options: Parameters<typeof runHarnessPair>[1];
+  let methods: string[];
+  let count: number;
 
-  it.each(["2026-07-28", "2025-11-25"])("rebinds named methods without reconnecting or repeating completed tools (%s)", async (version) => {
+  beforeEach(async () => {
+    vol.reset();
     vol.fromJSON({
       "/repo/test.md": "---\nkind: test\nversion: 1\n---\n",
       "/repo/test.ajs":
         'import {server,client} from "mcp"; export default async(frontmatter)=>{const docs=await client(server("docs")); return await docs.tool("echo",{value:7});};'
     });
-    const methods: string[] = [];
+    methods = [];
     const fetch = async (_input: string | URL, init?: RequestInit) => {
       if (init?.method === "GET") return new Response(null, { status: 405 });
       if (init?.method === "DELETE") {
@@ -51,23 +55,33 @@ describe("managed MCP through the harness loader", () => {
         headers: { "content-type": "application/json", "mcp-session-id": "test" }
       });
     };
-    const options = {
+    options = {
       modulesFor: () => ({
         mcp: makeMcpModule({ servers: { docs: { url: "https://example.test/mcp" } }, fetch })
       }),
       snapshotPath: "/repo/snapshot.json"
     };
-    let result = await runHarnessPair("/repo/test.md", options);
+    result = await runHarnessPair("/repo/test.md", options);
     expect(result).toMatchObject({ ok: true, returnValue: { content: [{ text: "7" }] } });
     expect(methods).toContain("server/discover");
     expect(methods.includes("initialize")).toBe(version !== "2026-07-28");
     expect(methods.at(-1)).toBe(version === "2026-07-28" ? "tools/call" : "close");
-    const count = methods.length;
-    for (let generation = 0; generation < 2; generation++) {
-      vol.writeFileSync(options.snapshotPath, await dump(result));
-      result = await runHarnessPair("/repo/test.md", options);
-      expect(result).toMatchObject({ ok: true, returnValue: { content: [{ text: "7" }] } });
-    }
+    count = methods.length;
+  }, 5000);
+
+  it("rebinds named methods without reconnecting or repeating completed tools", async () => {
+    vol.writeFileSync(options.snapshotPath!, await dump(result));
+    result = await runHarnessPair("/repo/test.md", options);
+    expect(result).toMatchObject({ ok: true, returnValue: { content: [{ text: "7" }] } });
     expect(methods).toHaveLength(count);
   });
+
+  afterEach(async () => {
+    try {
+      vol.writeFileSync(options.snapshotPath!, await dump(result));
+      result = await runHarnessPair("/repo/test.md", options);
+      expect(result).toMatchObject({ ok: true, returnValue: { content: [{ text: "7" }] } });
+      expect(methods).toHaveLength(count);
+    } finally { result = undefined!; options = undefined!; methods = []; vol.reset(); }
+  }, 5000);
 });

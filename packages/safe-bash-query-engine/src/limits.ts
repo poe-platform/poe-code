@@ -124,15 +124,17 @@ export class Budget {
   }
   get currentSteps(): number { return this.steps; }
   restoreSteps(steps: number): void { this.steps = steps; }
-  needsYield(): boolean {
-    if (hasYieldCheckpoint(this.signal)) {
+  needsYield(checkTime = false): boolean {
+    const checkpoint = hasYieldCheckpoint(this.signal);
+    if (checkTime || checkpoint) {
       const now = monotonicNow();
       if (this.yieldTimes[0]! < 0) this.yieldTimes[0] = now;
-      return this.steps - this.lastYieldSteps >= 1024 || now - this.yieldTimes[0]! >= 25;
+      if (now - this.yieldTimes[0]! >= 25) return true;
+      if (checkpoint) return this.steps - this.lastYieldSteps >= 1024;
     }
     // Even fast finite workloads must eventually let host timers run.
     if (this.steps - this.lastYieldSteps >= 65536) {
-      if (this.yieldTimes[0]! >= 0 && this.steps < 524288 && monotonicNow() - this.yieldTimes[0]! < 20) {
+      if (!checkTime && this.yieldTimes[0]! >= 0 && this.steps < 524288 && monotonicNow() - this.yieldTimes[0]! < 20) {
         this.lastYieldSteps = this.steps;
         return false;
       }
@@ -151,12 +153,8 @@ export class Budget {
   }
   tickSync(count = 1): Promise<void> | undefined {
     this.step(count);
-    // Hosts may register a checkpoint after this budget was constructed/reset.
-    if (hasYieldCheckpoint(this.signal))
-      return this.needsYield() ? this.yieldTickSync() : undefined;
-    if (this.steps - this.lastYieldSteps >= 65536) {
-      return this.yieldTickSync();
-    }
+    // Charged ticks retain their work bound even inside the fast polling window.
+    if (this.steps - this.lastYieldSteps >= 65536 || this.needsYield(count === 0)) return this.yieldTickSync();
     return undefined;
   }
   private yieldTickSync(): Promise<void> {
@@ -166,8 +164,9 @@ export class Budget {
       this.lastYieldSteps = this.steps;
     });
   }
-  tick(count = 1): Promise<void> | undefined {
-    return this.tickSync(count);
+  async tick(count = 1): Promise<void> {
+    this.step(count);
+    if (this.needsYield(true)) await this.yieldTickSync();
   }
   collection(size: number): void {
     if (size > this.maxCollectionSizeSmi && size > this.limits.maxCollectionSize) throw new JqLimitError("maxCollectionSize");

@@ -33,7 +33,7 @@ export function stringCompareMaybeSync(left: string, right: string, budget: Budg
   let rightOffset = 0;
   let points = 0;
   while (leftOffset < left.length && rightOffset < right.length) {
-    if ((points++ & 31) === 0 && budget.needsYield()) return stringCompare(left, right, budget);
+    if ((points++ & 31) === 0 && budget.needsYield(true)) return stringCompare(left, right, budget);
     const leftPoint = left.codePointAt(leftOffset)!;
     const rightPoint = right.codePointAt(rightOffset)!;
     if (leftPoint !== rightPoint) return leftPoint < rightPoint ? -1 : 1;

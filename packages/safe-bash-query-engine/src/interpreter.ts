@@ -577,13 +577,13 @@ export class Interpreter {
         for await (const initial of this.run(ast.init, input)) {
           let accumulator = initial;
           for await (const value of this.run(ast.source, sourceInput)) {
-            { const _p = this.budget.tickSync(); if (_p) await _p; }
+            await this.budget.tick();
             const scope = Object.create(Interpreter.prototype) as Interpreter;
             Object.assign(scope, this, { frame: { name: ast.name, value, parent: this.frame, depth } });
             const previous = accumulator;
             accumulator = null;
             for await (const updated of scope.run(ast.update, previous)) {
-              { const _p = this.budget.tickSync(); if (_p) await _p; }
+              await this.budget.tick();
               accumulator = updated;
               if (ast.kind === "foreach") {
                 if (ast.extract) yield* scope.run(ast.extract, updated);

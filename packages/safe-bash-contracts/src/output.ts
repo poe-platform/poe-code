@@ -115,7 +115,7 @@ export function createOutputOperation(context: Pick<CommandContext, "signal" | "
   return {
     signal,
     output: {
-      ...(destination[outputFailure] ? { [outputFailure]: destination[outputFailure] } : {}),
+      ...(destination[outputFailure] ? { [outputFailure]: destination[outputFailure].bind(destination) } : {}),
       async write(chunk) {
         assertOpen();
         if (!capability) return writeBytes(destination, chunk, signal);

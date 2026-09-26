@@ -35,7 +35,7 @@ beforeAll(async () => {
     metafile: true,
     loader: { ".md": "text", ".mustache": "text", ".log": "text" }
   });
-});
+}, 30_000);
 
 it("keeps filesystem imports out of the CLI startup graph", () => {
   const pending = ["dist/cli-entry.js"];

@@ -38,7 +38,8 @@ const sharedMonitorDescriptor: PropertyDescriptor = { value: undefined, writable
 type OverlayMap = Map<string, { superseded?: boolean }> & { [overlayNext]?: OverlayMap };
 
 class ArraySessionImpl implements Session {
-  declare readonly values: ValueArena;
+  declare private _values: ValueArena | undefined;
+  declare private readonly _budget: { readonly values?: ValueArena; readonly hasValues?: boolean };
   declare private _ledger: ArrayLedger | undefined;
   declare readonly maxExpansionBytes: number;
   declare readonly maxExpansionFields: number;
@@ -51,20 +52,26 @@ class ArraySessionImpl implements Session {
   declare guestOwner: ArrayOwner | undefined;
 
   constructor(
-    values: ValueArena,
+    budget: { readonly values?: ValueArena; readonly hasValues?: boolean },
     maxExpansionBytes: number,
     maxExpansionFields: number,
     internal: ArrayLedger,
     scope: InvocationScope,
     ledger?: ArrayLedger,
+    values?: ValueArena,
   ) {
-    this.values = values;
+    this._budget = budget;
+    if (values !== undefined) this._values = values;
     this.maxExpansionBytes = maxExpansionBytes;
     this.maxExpansionFields = maxExpansionFields;
     if (ledger !== undefined) this._ledger = ledger;
     this.internal = internal;
     this.scope = scope;
     this.firstMonitor = undefined;
+  }
+
+  get values(): ValueArena {
+    return this._values ??= this._budget.values ?? new ValueArena(this.maxExpansionBytes, this.maxExpansionFields, () => this.scope.assertOpen());
   }
 
   get ledger(): ArrayLedger {
@@ -76,7 +83,7 @@ class ArraySessionImpl implements Session {
   }
 
   forkForScope(scope: InvocationScope): Session {
-    const forked = new ArraySessionImpl(this.values, this.maxExpansionBytes, this.maxExpansionFields, this.internal, scope, this.ledger);
+    const forked = new ArraySessionImpl(this._budget, this.maxExpansionBytes, this.maxExpansionFields, this.internal, scope, this.ledger, this.values);
     forked.monitors = new Set();
     return forked;
   }
@@ -90,14 +97,16 @@ class ArraySessionImpl implements Session {
       this.firstMonitor = undefined;
       first.closeValues();
     }
+    const hasArena = this._values !== undefined || this._budget.hasValues !== false;
     if (this.owner) {
       const closed = this.owner.close();
-      if (!isSyncResolved(closed)) return closed.finally(() => this.values.close());
+      if (!isSyncResolved(closed)) return closed.finally(() => { if (hasArena) this.values.close(); });
     }
-    this.values.close();
+    if (hasArena) this.values.close();
   }
 }
 Object.assign(ArraySessionImpl.prototype, {
+  _values: undefined,
   _ledger: undefined,
   monitors: undefined,
   owner: undefined,
@@ -106,13 +115,12 @@ Object.assign(ArraySessionImpl.prototype, {
 });
 
 function createSession(
-  budget: { readonly values?: ValueArena; readonly limits: { readonly maxExpansionBytes: number; readonly maxExpansionFields: number; readonly maxCommands?: number } },
+  budget: { readonly values?: ValueArena; readonly hasValues?: boolean; readonly limits: { readonly maxExpansionBytes: number; readonly maxExpansionFields: number; readonly maxCommands?: number } },
   scope: InvocationScope,
 ): Session {
   while (scope.parent) scope = scope.parent;
-  const values = budget.values ?? new ValueArena(budget.limits.maxExpansionBytes, budget.limits.maxExpansionFields, () => scope.assertOpen());
   const session = new ArraySessionImpl(
-    values,
+    budget,
     budget.limits.maxExpansionBytes,
     budget.limits.maxExpansionFields,
     ArrayLedger.createInternal(budget.limits.maxCommands ?? 10_000),

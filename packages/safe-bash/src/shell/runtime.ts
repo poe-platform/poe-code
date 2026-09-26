@@ -410,7 +410,7 @@ export class Budget {
   declare private _pathLookup: PathLookup | undefined;
   declare private _pathLookupSuspensions: number;
   declare readonly parsing: ParseBudget;
-  declare readonly values: ValueArena;
+  declare private _values: ValueArena | undefined;
   declare private _executionCleanup: ExecutionCleanup | undefined;
   declare commands: number;
   declare iterations: number;
@@ -420,7 +420,7 @@ export class Budget {
   declare globstarStates: number;
   declare readonly controller: ManagedControlController;
   declare readonly signal: AbortSignal;
-  declare readonly yieldCheckpoint: () => void;
+  declare private _yieldCheckpoint: (() => void) | undefined;
   declare private _chargeFs: (() => void) | undefined;
   declare private _cleanupChargeFs: (() => void) | undefined;
   declare private _wallClockTimer: ReturnType<typeof setTimeout> | true | undefined;
@@ -450,7 +450,6 @@ export class Budget {
     this.bytes = 0;
     this.sourceBytes = 0;
     this.controller = createManagedControlController();
-    this.yieldCheckpoint = () => { this.cpuCheckpoint(); };
     this._chargeFs = undefined;
     this._wallClockDeadline = Date.now() + limits.maxWallClockMs;
     this._pipelineStages = 0;
@@ -469,8 +468,19 @@ export class Budget {
     this.signal = signal ? combineManagedSignals(signal, this.controller.signal) : this.controller.signal;
     if (signal) inheritYieldCheckpoint(signal, this.signal);
     this.parsing = new ParseBudget(limits.maxParseUnits === Infinity ? undefined : limits.maxParseUnits, this.signal, this);
-    this.values = new ValueArena(limits.maxExpansionBytes, limits.maxExpansionFields, this);
     if (limits.maxWallClockMs !== Infinity) this._armWallClock();
+  }
+
+  get yieldCheckpoint(): () => void {
+    return this._yieldCheckpoint ??= () => { this.cpuCheckpoint(); };
+  }
+
+  get values(): ValueArena {
+    return this._values ??= new ValueArena(this.limits.maxExpansionBytes, this.limits.maxExpansionFields, this);
+  }
+
+  get hasValues(): boolean {
+    return this._values !== undefined;
   }
 
   get chargeFs(): () => void {
@@ -741,6 +751,8 @@ export class Budget {
 }
 Object.assign(Budget.prototype, {
   onInternalError: undefined,
+  _yieldCheckpoint: undefined,
+  _values: undefined,
   _executionScope: undefined,
   _pathLookup: undefined,
   _pathLookupSuspensions: 0,

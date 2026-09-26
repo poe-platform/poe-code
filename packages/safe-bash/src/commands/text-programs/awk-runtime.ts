@@ -2,7 +2,7 @@ import { FsError, writeBytes, type CommandContext } from "../../contracts/index.
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
 import type { AwkProgram, Expression, Statement } from "./awk-syntax.js";
 import { decodeString } from "./awk-syntax.js";
-import { AwkArray, compare, formatted, inputValue, inputValueFromSlice, number, numeric, scalar, string, text, truth, unset, type Scalar, type Value } from "./awk-values.js";
+import { AwkArray, SCALAR_ONE, SCALAR_ZERO, compare, formatted, inputValue, inputValueFromSlice, number, numeric, scalar, string, text, truth, unset, type Scalar, type Value } from "./awk-values.js";
 import { Pattern, substitute } from "./regex.js";
 import { Budget, ProgramError, byteString, bytes, input, virtualPath, write } from "./shared.js";
 import { AwkRetention } from "./awk-retention.js";
@@ -64,6 +64,8 @@ let sharedFieldBuffers: PooledFieldBuffers | undefined = {
   fieldGeneration: 1,
 };
 const FAST_AWK_MATCH_OFFSETS = new Int32Array(20);
+const RETURN_SCALAR_ZERO = (): Scalar => SCALAR_ZERO;
+const RETURN_SCALAR_ONE = (): Scalar => SCALAR_ONE;
 const RELEASED_AWK_SIGNAL = new AbortController().signal;
 const RELEASED_AWK_CONTEXT = Object.freeze({ signal: RELEASED_AWK_SIGNAL }) as unknown as CommandContext;
 const runtimeAnchor: { current?: AwkRuntime } = {};
@@ -918,19 +920,21 @@ export class AwkRuntime {
 
   private evaluateRegexMatch(pattern: Pattern): Scalar | Promise<Scalar> {
     if (pattern.canFindSync() && this.recordLength < 256) {
+      const fastMatched = this.rawRecord !== undefined
+        ? pattern.findSyncFastInto(this.rawRecord, this.budget, 0, FAST_AWK_MATCH_OFFSETS, this.rawRecord.length, 0)
+        : pattern.findSyncFastInto(this.recordSource, this.budget, this.recordStart, FAST_AWK_MATCH_OFFSETS, this.recordEnd, this.recordStart);
       const count = ++this.recordChecks;
-      if (count > 2 && (count & 31) !== 0) {
-        const fastMatched = this.rawRecord !== undefined
-          ? pattern.findSyncFastInto(this.rawRecord, this.budget, 0, FAST_AWK_MATCH_OFFSETS, this.rawRecord.length, 0)
-          : pattern.findSyncFastInto(this.recordSource, this.budget, this.recordStart, FAST_AWK_MATCH_OFFSETS, this.recordEnd, this.recordStart);
-        return numeric(fastMatched ? 1 : 0);
+      if (count <= 2 || (count & 31) === 0) {
+        const p = this.budget.checkpointSync();
+        if (p) return p.then(fastMatched ? RETURN_SCALAR_ONE : RETURN_SCALAR_ZERO);
       }
+      return fastMatched ? SCALAR_ONE : SCALAR_ZERO;
     }
     const matched = this.rawRecord !== undefined
       ? pattern.tryTestSync(this.rawRecord, this.budget, 0, this.rawRecord.length)
       : pattern.tryTestSync(this.recordSource, this.budget, this.recordStart, this.recordEnd);
-    if (matched instanceof Promise) return matched.then(m => numeric(m ? 1 : 0));
-    return numeric(matched ? 1 : 0);
+    if (matched instanceof Promise) return matched.then(m => (m ? SCALAR_ONE : SCALAR_ZERO));
+    return matched ? SCALAR_ONE : SCALAR_ZERO;
   }
 
   private async evaluateFieldAsync(idxPromise: Promise<Scalar>): Promise<Scalar> {

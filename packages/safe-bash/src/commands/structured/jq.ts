@@ -1,4 +1,6 @@
 import { FsError, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { tryResolveMemoryDevicePath } from "@poe-code/safe-fs/core";
+import { getRuntimeBackingFileSystem } from "../../fs/creation-mask.js";
 import { pathOf } from "../internal.js";
 import { joinPath } from "../../contracts/path.js";
 import { escapeText, writeDiagnostic } from "../../escaping.js";
@@ -327,7 +329,12 @@ async function* inputSources(context: CommandContext, options: Pick<Options, "fi
       const absolute = pathOf(context, file);
       const remaining = budget.limits.maxInputBytes - budget.inputBytes;
       await budget.tick();
-      const capabilities = context.fs.capabilitiesFor
+      const backing = getRuntimeBackingFileSystem(context.fs);
+      const needsCapabilitiesFor = Boolean(
+        context.fs.capabilitiesFor &&
+          (backing === undefined || backing.capabilitiesFor !== undefined || tryResolveMemoryDevicePath(backing, absolute) === undefined),
+      );
+      const capabilities = needsCapabilitiesFor
         ? await interruptible(() => context.fs.capabilitiesFor!(absolute, { signal: context.signal }), context.signal)
         : context.fs.capabilities;
       context.signal.throwIfAborted();
@@ -375,11 +382,33 @@ function inputs(
   if (options.rawInput) {
     return rawValues(inputSources(context, options, budget, convert), budget, options.slurp);
   }
-  let source: ByteSource;
+  let source: ByteSource | undefined;
   if (!options.files.length && !convert) {
     budget.inputLocation = { name: "<stdin>", line: 0, complete: false };
     source = context.stdin;
-  } else {
+  } else if (!convert && options.files.length === 1 && options.files[0] !== "-") {
+    const file = options.files[0]!;
+    const absolute = pathOf(context, file);
+    const backing = getRuntimeBackingFileSystem(context.fs);
+    if (
+      backing !== undefined &&
+      backing.capabilitiesFor === undefined &&
+      absolute !== "/dev" &&
+      !absolute.startsWith("/dev/") &&
+      context.fs.readStream &&
+      context.fs.capabilities.streamingRead !== false &&
+      Object.getPrototypeOf(backing)?.constructor?.name === "MemoryFileSystem" &&
+      !Object.prototype.hasOwnProperty.call(backing, "readStream")
+    ) {
+      const tickPromise = budget.tickSync();
+      if (!tickPromise) {
+        context.signal.throwIfAborted();
+        budget.inputLocation = { name: file, line: 0, complete: false };
+        source = context.fs.readStream(absolute, { signal: context.signal });
+      }
+    }
+  }
+  if (source === undefined) {
     async function* joined(): ByteSource {
       for await (const s of inputSources(context, options, budget, convert)) yield* readBytes(s, context.signal);
     }

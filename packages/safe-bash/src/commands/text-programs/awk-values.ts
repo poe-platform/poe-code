@@ -10,11 +10,13 @@ export const unset: Scalar = Object.freeze({ kind: "unset" });
 const SMALL_NUMERICS: readonly Scalar[] = Array.from({ length: 4098 }, (_, i) => Object.freeze({ kind: "number" as const, number: i - 1 }));
 const SMALL_NUMERIC_STRINGS: readonly Scalar[] = Array.from({ length: 4096 }, (_, i) => Object.freeze({ kind: "numeric" as const, text: String(i), number: i }));
 const EMPTY_STRING_SCALAR: Scalar = Object.freeze({ kind: "string", text: "" });
+export const SCALAR_ZERO: Scalar = SMALL_NUMERICS[1]!;
+export const SCALAR_ONE: Scalar = SMALL_NUMERICS[2]!;
 const INPUT_STRING_CACHE_KEYS = new Array<string>(64);
 const INPUT_STRING_CACHE_VALS = new Array<Scalar>(64);
 
 export const numeric = (n: number): Scalar =>
-  (n | 0) === n && n >= -1 && n <= 4096 && (n !== 0 || 1 / n > 0)
+  (n | 0) === n && n >= -1 && n <= 4096 && (n !== 0 || !Object.is(n, -0))
     ? SMALL_NUMERICS[n + 1]!
     : { kind: "number", number: n };
 export const string = (text: string): Scalar => (text.length === 0 ? EMPTY_STRING_SCALAR : { kind: "string", text });

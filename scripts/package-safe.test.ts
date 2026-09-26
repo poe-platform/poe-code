@@ -1748,6 +1748,26 @@ for (const [specifier, target, failure] of [
   await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow(failure);
 });
 
+it("keeps canonical private owners external in the packed browser recipe", async () => {
+  const { options } = optionalLeftovers();
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  const browser = options.bundle.mock.calls.map(([settings]) => settings as BuildOptions)
+    .find(settings => settings.platform === "browser")!;
+  const specifiers = [
+    "safe-bash-contracts/command", "safe-bash-command-op",
+    "safe-bash-command-pandoc/lua-filters", "safe-bash-command-pandoc/citeproc-filters",
+  ];
+  const result = await build({
+    ...browser, absWorkingDir: process.cwd(), entryPoints: undefined, outdir: undefined,
+    sourcemap: false, splitting: false, inject: [], plugins: [],
+    stdin: { contents: specifiers.map(specifier => `export * from ${JSON.stringify(specifier)};`).join("\n"), resolveDir: process.cwd() },
+  });
+  expect(Object.keys(result.metafile!.inputs)).toEqual(["<stdin>"]);
+  expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual(
+    specifiers.map(path => ({ path, kind: "import-statement", external: true })),
+  );
+});
+
 
 it.each(["@poe-code/safe-fs/core", "poe-code/safe-fs/core", "@poe-platform/safe-fs/core"])("keeps browser filesystem import %s canonical instead of embedding a private constructor", async specifier => {
   const { options } = optionalLeftovers();

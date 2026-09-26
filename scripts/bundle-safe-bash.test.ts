@@ -254,8 +254,8 @@ it.each(["verifyTruncateCommands", "verifyCsplitCommands", "verifyPrCommands", "
 let splitBrowserBuild: BuildResult;
 
 beforeAll(async () => {
-  const options = resolveBrowserShellBuild(root);
   const manifest = JSON.parse(await readFile(path.join(root, "packages/safe-bash/package.json"), "utf8"));
+  const options = resolveBrowserShellBuild(root, { external: Object.keys(manifest.poeCode.integration.privateWorkspaces) });
   splitBrowserBuild = await build({
     ...options,
     sourcemap: false,
@@ -264,7 +264,6 @@ beforeAll(async () => {
       "core.browser": options.entryPoints["core.browser"],
       "commands/mdq/index.browser": options.entryPoints["commands/mdq/index.browser"],
     },
-    external: [...options.external, ...Object.keys(manifest.poeCode.integration.privateWorkspaces)],
   });
 });
 
@@ -274,6 +273,8 @@ it("preserves private mdq exports when the browser root and command entry share 
   const result = splitBrowserBuild;
   const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
   expect(imports.some(item => item.external && item.path === "safe-bash-command-mdq")).toBe(true);
+  expect(imports.some(item => item.external && item.path === "safe-bash-contracts/command")).toBe(true);
+  expect(Object.keys(result.metafile!.inputs).some(input => input.startsWith("packages/safe-bash-contracts/"))).toBe(false);
   expect(result.outputFiles!.some(output => output.path.endsWith("/commands/mdq/index.browser.js"))).toBe(true);
   const split = new Volume();
   for (const output of result.outputFiles!) {
@@ -343,6 +344,25 @@ it("shares one source contract owner across the browser shell and private comman
   const contracts = Object.keys(portableBuild.metafile!.inputs).filter(input => input.startsWith(prefix));
   expect(contracts).toContain(prefix + "src/command.ts");
   expect([...new Set(contracts.map(input => input.slice(prefix.length).split("/")[0]))]).toEqual(["src"]);
+});
+
+it("preserves explicitly external private owners before applying browser source aliases", async () => {
+  const external = ["safe-bash-contracts", "safe-bash-command-op", "safe-bash-command-pandoc"];
+  const options = resolveBrowserShellBuild(root, { alias: { "safe-bash-contracts/command": "/unowned/command.ts" }, external });
+  const result = await build({
+    ...options, entryPoints: undefined, outdir: undefined, splitting: false, sourcemap: false, inject: [],
+    stdin: { contents: [
+      'export { commandRuntimeIdentity } from "safe-bash-contracts/command";',
+      'export * from "safe-bash-command-op";',
+      'export * from "safe-bash-command-pandoc/lua-filters";',
+    ].join("\n"), resolveDir: root },
+  });
+  expect(Object.keys(result.metafile!.inputs)).toEqual(["<stdin>"]);
+  expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([
+    { path: "safe-bash-contracts/command", kind: "import-statement", external: true },
+    { path: "safe-bash-command-op", kind: "import-statement", external: true },
+    { path: "safe-bash-command-pandoc/lua-filters", kind: "import-statement", external: true },
+  ]);
 });
 
 it("bundles the complete portable preset with one owned-argument identity", async () => {

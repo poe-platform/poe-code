@@ -1,6 +1,18 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-const createSecretStoreMock = vi.hoisted(() => vi.fn());
+import { getPoeApiKey, ensurePoeApiKeyEnv, getPoeAuthIdentity, fetchPoeAuthIdentity } from "./credentials.js";
+import { ApiError, AuthenticationError } from "../cli/errors.js";
+
+const { createSecretStoreMock, store } = vi.hoisted(() => ({
+  createSecretStoreMock: vi.fn(),
+  store: {
+    get: vi.fn<() => Promise<string | null>>(),
+    set: vi.fn<() => Promise<void>>(),
+    delete: vi.fn<() => Promise<void>>()
+  }
+}));
+
+vi.mock("auth-store", () => ({ createSecretStore: createSecretStoreMock }));
 
 vi.mock("ts-morph", () => {
   throw new Error("Runtime credentials must not load the schema compiler");
@@ -8,20 +20,10 @@ vi.mock("ts-morph", () => {
 
 describe("getPoeApiKey", () => {
   let originalEnv: NodeJS.ProcessEnv;
-  const store = {
-    get: vi.fn<() => Promise<string | null>>(),
-    set: vi.fn<() => Promise<void>>(),
-    delete: vi.fn<() => Promise<void>>()
-  };
 
   beforeEach(() => {
     originalEnv = { ...process.env };
     delete process.env.POE_API_KEY;
-
-    vi.resetModules();
-    vi.doMock("auth-store", () => ({
-      createSecretStore: createSecretStoreMock
-    }));
 
     createSecretStoreMock.mockReset();
     store.get.mockReset();
@@ -41,7 +43,6 @@ describe("getPoeApiKey", () => {
   it("returns POE_API_KEY from environment variable when set", async () => {
     process.env.POE_API_KEY = "env-api-key-123";
 
-    const { getPoeApiKey } = await import("./credentials.js");
     const result = await getPoeApiKey();
     expect(result).toBe("env-api-key-123");
     expect(createSecretStoreMock).not.toHaveBeenCalled();
@@ -50,7 +51,6 @@ describe("getPoeApiKey", () => {
   it("trims whitespace from environment variable", async () => {
     process.env.POE_API_KEY = "  trimmed-key  ";
 
-    const { getPoeApiKey } = await import("./credentials.js");
     const result = await getPoeApiKey();
     expect(result).toBe("trimmed-key");
     expect(createSecretStoreMock).not.toHaveBeenCalled();
@@ -59,7 +59,6 @@ describe("getPoeApiKey", () => {
   it("leaves an exported key untouched when ensuring POE_API_KEY", async () => {
     process.env.POE_API_KEY = "  env-key  ";
 
-    const { ensurePoeApiKeyEnv } = await import("./credentials.js");
     await ensurePoeApiKeyEnv();
 
     expect(process.env.POE_API_KEY).toBe("  env-key  ");
@@ -70,7 +69,6 @@ describe("getPoeApiKey", () => {
     delete process.env.POE_API_KEY;
     store.get.mockResolvedValue("auth-store-key");
 
-    const { getPoeApiKey } = await import("./credentials.js");
     const result = await getPoeApiKey();
 
     expect(result).toBe("auth-store-key");
@@ -86,7 +84,6 @@ describe("getPoeApiKey", () => {
     store.get.mockResolvedValue("auth-store-key");
 
     try {
-      const { getPoeApiKey } = await import("./credentials.js");
       await expect(getPoeApiKey()).resolves.toBe("auth-store-key");
     } finally {
       delete (Object.prototype as { POE_API_KEY?: string }).POE_API_KEY;
@@ -97,7 +94,6 @@ describe("getPoeApiKey", () => {
     delete process.env.POE_API_KEY;
     store.get.mockResolvedValue("  auth-store-key  ");
 
-    const { ensurePoeApiKeyEnv } = await import("./credentials.js");
     await ensurePoeApiKeyEnv();
 
     expect(process.env.POE_API_KEY).toBe("auth-store-key");
@@ -109,7 +105,6 @@ describe("getPoeApiKey", () => {
     process.env.POE_API_KEY = "";
     store.get.mockResolvedValue("fallback-key");
 
-    const { getPoeApiKey } = await import("./credentials.js");
     const result = await getPoeApiKey();
 
     expect(result).toBe("fallback-key");
@@ -121,7 +116,6 @@ describe("getPoeApiKey", () => {
     process.env.POE_API_KEY = "   ";
     store.get.mockResolvedValue("fallback-key");
 
-    const { getPoeApiKey } = await import("./credentials.js");
     const result = await getPoeApiKey();
 
     expect(result).toBe("fallback-key");
@@ -133,7 +127,6 @@ describe("getPoeApiKey", () => {
     delete process.env.POE_API_KEY;
     store.get.mockResolvedValue(null);
 
-    const { getPoeApiKey } = await import("./credentials.js");
     await expect(getPoeApiKey()).rejects.toThrow(
       "No API key found. Set POE_API_KEY or run 'poe-code login'."
     );
@@ -144,9 +137,6 @@ describe("getPoeApiKey", () => {
   it("throws a typed user-facing AuthenticationError when no key is found", async () => {
     delete process.env.POE_API_KEY;
     store.get.mockResolvedValue(null);
-
-    const { getPoeApiKey } = await import("./credentials.js");
-    const { AuthenticationError } = await import("../cli/errors.js");
 
     await expect(getPoeApiKey()).rejects.toBeInstanceOf(AuthenticationError);
     await expect(getPoeApiKey()).rejects.toMatchObject({
@@ -168,7 +158,6 @@ describe("getPoeApiKey", () => {
       })
     }));
 
-    const { getPoeAuthIdentity } = await import("./credentials.js");
     const identity = await getPoeAuthIdentity({ apiKey: "direct-key", httpClient });
 
     expect(identity).toEqual({
@@ -202,7 +191,6 @@ describe("getPoeApiKey", () => {
       })
     }));
 
-    const { getPoeAuthIdentity } = await import("./credentials.js");
     await getPoeAuthIdentity({ httpClient });
 
     expect(httpClient).toHaveBeenCalledWith(
@@ -220,8 +208,6 @@ describe("getPoeApiKey", () => {
       status: 401,
       json: async () => ({})
     }));
-
-    const { fetchPoeAuthIdentity } = await import("./credentials.js");
 
     await expect(
       fetchPoeAuthIdentity({ apiKey: "bad-key", httpClient })
@@ -244,8 +230,6 @@ describe("getPoeApiKey", () => {
         profile_picture: 123
       })
     }));
-
-    const { fetchPoeAuthIdentity } = await import("./credentials.js");
 
     await expect(
       fetchPoeAuthIdentity({ apiKey: "test-key", httpClient })

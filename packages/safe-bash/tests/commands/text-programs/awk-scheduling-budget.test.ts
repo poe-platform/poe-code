@@ -30,11 +30,11 @@ test("AWK retains the ordinary 20,001-row workload at the consumer step budget",
   assert.equal(result.stdout.toString(), Array.from({ length: 20_001 }, (_, i) => `- button "Item${i}" [ref=e${i}]\n`).join("") + "- [Snapshot](.playwright-cli/expected.yml)\n");
 });
 
-test("disposal of active AWK drains execution and preserves its rejection", async () => {
+test("disposal of active AWK drains execution and preserves its rejection", { timeout: 5000 }, async () => {
   const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createTextProgramCommands()) });
   let started!: () => void;
   const ready = new Promise<void>(resolve => { started = resolve; });
-  const execution = shell.exec(`awk 'BEGIN { print "started"; while (1) i++; print "complete" }'`, { stdout: { async write() { started(); } } });
+  const execution = shell.exec(`awk 'BEGIN { print "started" > "/dev/stderr"; while (1) i++; print "complete" }'`, { stderr: { async write() { started(); } } });
   const outcome = Promise.allSettled([execution]);
   await ready;
   await shell.dispose();

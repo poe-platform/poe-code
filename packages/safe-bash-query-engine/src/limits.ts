@@ -47,7 +47,7 @@ export function resolveJqLimits(options: Partial<JqLimits> = {}): JqLimits {
 export class Budget {
   private steps = 0;
   private nextYield = 1024;
-  private lastYield = 0;
+  private lastYield = monotonicNow();
   private readonly unlimitedSteps: boolean;
   private readonly maxStepsSmi: number;
   readonly maxInputBytesSmi: number;
@@ -85,7 +85,6 @@ export class Budget {
   needsYield(): boolean {
     if (this.steps < this.nextYield) return false;
     const now = monotonicNow();
-    if (this.lastYield === 0) this.lastYield = now;
     if (!hasYieldCheckpoint(this.signal) && now - this.lastYield < 25) {
       runYieldCheckpoint(this.signal);
       this.nextYield = this.steps + 1024;
@@ -97,7 +96,6 @@ export class Budget {
     this.step(count);
     if (this.steps >= this.nextYield) {
       const now = monotonicNow();
-      if (this.lastYield === 0) this.lastYield = now;
       if (!hasYieldCheckpoint(this.signal) && now - this.lastYield < 25) {
         runYieldCheckpoint(this.signal);
         this.nextYield = this.steps + 1024;
@@ -117,7 +115,7 @@ export class Budget {
   }
   async tick(count = 1): Promise<void> {
     this.step(count);
-    const now = this.lastYield === 0 ? (this.lastYield = monotonicNow()) : monotonicNow();
+    const now = monotonicNow();
     if (this.steps >= this.nextYield || now - this.lastYield >= 25) {
       await yieldTurn(this.signal);
       this.signal.throwIfAborted();

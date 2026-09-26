@@ -3,7 +3,17 @@ import { monotonicNow, yieldTurn } from "safe-bash-contracts/yield";
 import type { CommandContext } from "safe-bash-contracts";
 
 const validatedTextProgramOptions = new WeakSet<TextProgramOptions>();
-const DUMMY_ABORT_SIGNAL = new AbortController().signal;
+// Unused pooled budgets retain no request-owned resources. This inert sentinel
+// is replaced by the caller's native signal before a budget performs any work.
+const DUMMY_ABORT_SIGNAL = Object.freeze({
+  aborted: false,
+  reason: undefined,
+  onabort: null,
+  throwIfAborted(): void {},
+  addEventListener(): void {},
+  removeEventListener(): void {},
+  dispatchEvent(): boolean { return true; },
+}) as unknown as AbortSignal;
 const DUMMY_COMMAND_CONTEXT = { signal: DUMMY_ABORT_SIGNAL } as unknown as CommandContext;
 let pooledBudgetA: Budget | undefined;
 let pooledBudgetB: Budget | undefined;

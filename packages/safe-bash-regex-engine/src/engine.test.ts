@@ -1,8 +1,31 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Pattern } from "./text/regex.js";
-import { ProgramError } from "./text/budget.js";
+import { Budget, ProgramError } from "./text/budget.js";
 import { PublicDiagnostic } from "safe-bash-contracts/public-diagnostic";
+import type { CommandContext } from "safe-bash-contracts";
+
+test("pooled text budgets replace retired callers and preserve limits and cancellation", () => {
+  const budgets = new Set<Budget>();
+  for (let index = 0; index < 6; index++) {
+    const controller = new AbortController();
+    const context = { signal: controller.signal } as CommandContext;
+    const reason = new Error(`caller ${index}`);
+    const budget = Budget.acquire(context, { maxSteps: 1 });
+    budgets.add(budget);
+    try {
+      assert.equal(budget.context, context);
+      AbortSignal.prototype.throwIfAborted.call(budget.context.signal);
+      budget.step();
+      assert.throws(() => budget.step(), ProgramError);
+      controller.abort(reason);
+      assert.throws(() => budget.checkpointSync(), error => error === reason);
+    } finally { Budget.release(budget); }
+    assert.notEqual(budget.context, context);
+    assert.notEqual(budget.context.signal, controller.signal);
+  }
+  assert.ok(budgets.size < 6, "released budgets are reused");
+});
 
 test("query regex preserves named captures without host regex execution", async () => {
   const pattern = new Pattern("(?<part>a+)", true, false, "jq");

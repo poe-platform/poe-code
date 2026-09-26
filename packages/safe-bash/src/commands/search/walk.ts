@@ -1,6 +1,6 @@
 import { tryGetMemoryDirectoryEntryNamesSync } from "@poe-code/safe-fs/core";
 import { assertCommandRequirements, dirname, FsError, isPathWithin, relativePath, resolvePath, type CommandContext, type DirectoryEntry, type FileStat } from "../../contracts/index.js";
-import { getRuntimeBackingFileSystem } from "../../fs/creation-mask.js";
+import { chargeRuntimeFileSystemOperation, getRuntimeBackingFileSystem } from "../../fs/creation-mask.js";
 import { RegexExecutionError, type RegexSession } from "../regex-execution/portable.js";
 import { Glob, ignoreRules, matchGlobs, type IgnoreRule } from "./glob.js";
 import { SearchError, type Arguments } from "./options.js";
@@ -240,6 +240,7 @@ export class Walker {
           this.uniformIgnoreAdmitted = true;
         }
         if (checkMemDirEntries(memDirEntries, this.args.follow)) {
+          chargeRuntimeFileSystemOperation(this.context.fs);
           ancestors.set(path, label || ".");
           const pathPrefix = path.endsWith("/") ? path : `${path}/`;
           const labelPrefix = label === path ? pathPrefix : (label ? (label.endsWith("/") ? label : `${label}/`) : "");

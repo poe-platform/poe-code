@@ -13,6 +13,11 @@ export function getRuntimeBackingFileSystem(fs: FileSystem): FileSystem | undefi
   return runtimeBackingFileSystems.get(fs);
 }
 
+export function chargeRuntimeFileSystemOperation(fs: FileSystem): void {
+  const backing = runtimeBackingFileSystems.get(fs) ?? fs;
+  (backing as { _activeRuntimeBudget?: { fileSystemOperation(): void } })._activeRuntimeBudget?.fileSystemOperation();
+}
+
 const syncResolved = Symbol.for("safe-bash.syncResolved");
 const resolvedVoid: Promise<void> = Object.defineProperty(Promise.resolve(), syncResolved, { value: true });
 

@@ -1,10 +1,14 @@
+import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
+import { assertCommandRequirements } from "../../contracts/command-requirements.js";
+import { hasYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
+import { chargeRuntimeFileSystemOperation, getRuntimeBackingFileSystem } from "../../fs/creation-mask.js";
 import { EreLedger } from "../regex-execution/ere/limits.js";
 import { validateUtf8 } from "../regex-execution/utf8.js";
 import { FsError, type ByteSource, type CommandDefinition } from "../../contracts/index.js";
 import { bufferLimit as internalBufferLimit, diagnostic, encoder, input, integer, lines, options as parseOptions, output, pathOf, UsageError, value, type Line } from "../internal.js";
 import { RecordBuffer } from "../record-buffer.js";
 import { RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
-import { trustedInputRows, type GrepDescriptor } from "../regex-execution/protocol.js";
+import { inProcessRegexProviders, trustedInputRows, type GrepDescriptor } from "../regex-execution/protocol.js";
 import { prepareErgonomicRegex, type ErgonomicVmMatcher } from "./ergonomic-regex.js";
 import { SearchError } from "./options.js";
 import { grepRequirements, requiredFileInput } from "./requirements.js";
@@ -194,6 +198,219 @@ async function forEachGrepLineBatch(
       else await iter.return?.();
     }
     pending?.clear();
+  }
+}
+
+function isSimpleAsciiLiteralChar(c: number): boolean {
+  if (c < 32 || c > 126) return false;
+  switch (c) {
+    case 36: // $
+    case 40: // (
+    case 41: // )
+    case 42: // *
+    case 43: // +
+    case 46: // .
+    case 63: // ?
+    case 91: // [
+    case 92: // \
+    case 93: // ]
+    case 94: // ^
+    case 123: // {
+    case 124: // |
+    case 125: // }
+      return false;
+    default:
+      return true;
+  }
+}
+
+function hasNulOrNonAscii(buf: Uint8Array, start: number, end: number): boolean {
+  for (let i = start; i < end; i++) {
+    const b = buf[i]!;
+    if (b === 0 || b >= 128) return true;
+  }
+  return false;
+}
+
+async function tryFastGrepAscii(
+  context: Parameters<CommandDefinition["execute"]>[0],
+  limits: GrepLimits,
+  pat: string,
+  fileArg: string | undefined,
+  anchoredStart: boolean,
+): Promise<{ exitCode: number }> {
+  const literalStart = anchoredStart ? 1 : 0;
+  const litLen = pat.length - literalStart;
+  const firstByte = pat.charCodeAt(literalStart);
+  const ownsSharedOut = !sharedGrepOutInUse;
+  if (ownsSharedOut) sharedGrepOutInUse = true;
+  const outBuffer = ownsSharedOut ? sharedGrepOutBuffer : new Uint8Array(64 * 1024);
+  let outUsed = 0;
+  let anySelected = false;
+  let subjectLedger: EreLedger | undefined;
+  let linesScanned = 0;
+  const flush = (): Promise<void> | undefined => {
+    if (!outUsed) return;
+    const bytes = outBuffer.slice(0, outUsed);
+    outUsed = 0;
+    const pending = output(context, bytes);
+    return isSyncResolved(pending) ? undefined : pending;
+  };
+  try {
+    if (fileArg !== undefined && fileArg !== "-") {
+      const path = pathOf(context, fileArg);
+      const backing = getRuntimeBackingFileSystem(context.fs) ?? context.fs;
+      if (
+        backing !== undefined &&
+        backing.capabilitiesFor === undefined &&
+        path !== "/dev" &&
+        !path.startsWith("/dev/") &&
+        context.fs.capabilities.streamingRead !== false &&
+        context.fs.capabilities.read !== false &&
+        Object.getPrototypeOf(backing)?.constructor?.name === "MemoryFileSystem" &&
+        !Object.prototype.hasOwnProperty.call(backing, "readStream") &&
+        !Object.prototype.hasOwnProperty.call(backing, "readFile")
+      ) {
+        assertCommandRequirements(context, grepRequirements, ["file"]);
+        chargeRuntimeFileSystemOperation(context.fs);
+        const maxFileBytes = Number.isFinite(limits.maxFileBytes) ? limits.maxFileBytes : undefined;
+        const raw = tryReadMemoryFileViewSync(backing, path, maxFileBytes, context.signal);
+        if (raw !== undefined) {
+          const lineLimit = Math.min(internalBufferLimit, limits.maxLineBytes ?? Infinity);
+          let lineStart = 0;
+          while (lineStart < raw.length) {
+            context.signal.throwIfAborted();
+            if ((++linesScanned & 4095) === 0) await yieldTurn(context.signal);
+            let lineEnd = raw.indexOf(10, lineStart);
+            if (lineEnd < 0) lineEnd = raw.length;
+            const lineLen = lineEnd - lineStart;
+            if (lineLen > lineLimit) {
+              throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
+            }
+            if (hasNulOrNonAscii(raw, lineStart, lineEnd)) {
+              subjectLedger ??= new EreLedger({ maxExpansionBytes: Infinity, maxExpansionFields: Infinity });
+              await validateUtf8(raw.subarray(lineStart, lineEnd), subjectLedger, context.signal);
+            }
+            const maxPos = lineEnd - litLen;
+            let matched = false;
+            if (anchoredStart) {
+              if (lineStart <= maxPos && raw[lineStart] === firstByte) {
+                let equal = true;
+                for (let offset = 1; equal && offset < litLen; offset++) {
+                  equal = raw[lineStart + offset] === pat.charCodeAt(literalStart + offset);
+                }
+                matched = equal;
+              }
+            } else {
+              let pos = lineStart;
+              while (pos <= maxPos) {
+                const index = raw.indexOf(firstByte, pos);
+                if (index < 0 || index > maxPos) break;
+                let equal = true;
+                for (let offset = 1; equal && offset < litLen; offset++) {
+                  equal = raw[index + offset] === pat.charCodeAt(literalStart + offset);
+                }
+                if (equal) { matched = true; break; }
+                pos = index + 1;
+              }
+            }
+            if (matched) {
+              anySelected = true;
+              if (outUsed + lineLen + 1 > outBuffer.length) {
+                const pending = flush();
+                if (pending) await pending;
+              }
+              if (lineLen + 1 > outBuffer.length) {
+                await output(context, raw.subarray(lineStart, lineEnd));
+                await output(context, NEWLINE_BYTES);
+              } else {
+                for (let i = lineStart; i < lineEnd; i++) {
+                  outBuffer[outUsed++] = raw[i]!;
+                }
+                outBuffer[outUsed++] = 10;
+              }
+            }
+            lineStart = lineEnd + 1;
+          }
+          const pending = flush();
+          if (pending) await pending;
+          return { exitCode: anySelected ? 0 : 1 };
+        }
+      }
+    }
+    const source = fileArg === undefined || fileArg === "-"
+      ? input(context)
+      : requiredFileInput(context, grepRequirements, "file", fileArg, limits.maxFileBytes ?? Infinity);
+    await forEachGrepLineBatch(source, 10, limits.maxLineBytes ?? Infinity, () => 128, false, async (batch, endOfChunk) => {
+      for (let b = 0; b < batch.length; b++) {
+        context.signal.throwIfAborted();
+        if ((++linesScanned & 4095) === 0) await yieldTurn(context.signal);
+        const line = batch[b]!;
+        const chunk = line.chunk ?? line.bytes;
+        const lStart = line.chunk ? line.start! : 0;
+        const lEnd = line.chunk ? line.searchEnd! : chunk.length;
+        const lineLen = lEnd - lStart;
+        if (hasNulOrNonAscii(chunk, lStart, lEnd)) {
+          subjectLedger ??= new EreLedger({ maxExpansionBytes: Infinity, maxExpansionFields: Infinity });
+          await validateUtf8(chunk.subarray(lStart, lEnd), subjectLedger, context.signal);
+        }
+        const maxPos = lEnd - litLen;
+        let matched = false;
+        if (anchoredStart) {
+          if (lStart <= maxPos && chunk[lStart] === firstByte) {
+            let equal = true;
+            for (let offset = 1; equal && offset < litLen; offset++) {
+              equal = chunk[lStart + offset] === pat.charCodeAt(literalStart + offset);
+            }
+            matched = equal;
+          }
+        } else {
+          let pos = lStart;
+          while (pos <= maxPos) {
+            const index = chunk.indexOf(firstByte, pos);
+            if (index < 0 || index > maxPos) break;
+            let equal = true;
+            for (let offset = 1; equal && offset < litLen; offset++) {
+              equal = chunk[index + offset] === pat.charCodeAt(literalStart + offset);
+            }
+            if (equal) { matched = true; break; }
+            pos = index + 1;
+          }
+        }
+        if (!matched) continue;
+        anySelected = true;
+        if (outUsed + lineLen + 1 > outBuffer.length) {
+          const pending = flush();
+          if (pending) await pending;
+        }
+        if (lineLen + 1 > outBuffer.length) {
+          await output(context, chunk.subarray(lStart, lEnd));
+          await output(context, NEWLINE_BYTES);
+        } else {
+          for (let i = lStart; i < lEnd; i++) {
+            outBuffer[outUsed++] = chunk[i]!;
+          }
+          outBuffer[outUsed++] = 10;
+        }
+      }
+      if (endOfChunk || outUsed >= 8192) {
+        const pending = flush();
+        if (pending) await pending;
+      }
+      return true;
+    });
+    const pending = flush();
+    if (pending) await pending;
+    return { exitCode: anySelected ? 0 : 1 };
+  } catch (error) {
+    const pending = flush();
+    if (pending) await pending;
+    context.signal.throwIfAborted();
+    if (error instanceof RegexExecutionError) throw error;
+    await diagnostic(context, error);
+    return { exitCode: 2 };
+  } finally {
+    if (ownsSharedOut) sharedGrepOutInUse = false;
   }
 }
 
@@ -685,10 +902,41 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
   }
   const maxPatternCount = limits.maxPatterns ?? Infinity;
   const bufferLimit = limits.maxPatternBytes ?? Infinity;
+  const canFastAscii = inProcessRegexProviders.has(executor.provider);
   return [{
     name: "grep",
     filesystemRequirements: grepRequirements,
     execute: context => withRegexSession(context, executor, session => {
+      const args = context.args;
+      if (
+        canFastAscii &&
+        (args.length === 1 || args.length === 2) &&
+        !hasYieldCheckpoint(context.signal) &&
+        maxPatternCount >= 1
+      ) {
+        const pat = args[0]!;
+        const fileArg = args[1];
+        if (
+          pat.length >= 1 &&
+          pat.length <= 64 &&
+          pat.length <= bufferLimit &&
+          pat.charCodeAt(0) !== 45 &&
+          (fileArg === undefined || fileArg === "-" || fileArg.charCodeAt(0) !== 45)
+        ) {
+          const anchoredStart = pat.length >= 2 && pat.charCodeAt(0) === 94;
+          const literalStart = anchoredStart ? 1 : 0;
+          let simpleAscii = true;
+          for (let i = literalStart; i < pat.length; i++) {
+            if (!isSimpleAsciiLiteralChar(pat.charCodeAt(i))) {
+              simpleAscii = false;
+              break;
+            }
+          }
+          if (simpleAscii) {
+            return tryFastGrepAscii(context, limits, pat, fileArg, anchoredStart);
+          }
+        }
+      }
       return executeGrepWithSession(context, session, limits, maxPatternCount, bufferLimit);
     }),
   }];

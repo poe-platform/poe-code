@@ -2695,6 +2695,9 @@ const syncPipeStatusCharge = { generation: true, version: true, epoch: true, wor
 const syncPipeStatusTickets = { generation: 0, version: 0, epoch: 0 };
 const predicateScratchWords: string[] = [];
 const fastSharedTextEncoder = new TextEncoder();
+let _lastFastContextAnchor: unknown;
+let _lastPipelineAnchor: unknown;
+let _sharedEmptyMemoryFs: FileSystem | undefined;
 const fatalUtf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
 const assignmentCacheSymbol = Symbol("safe-bash.assignmentCache");
 let fallbackAssignmentCache: WeakMap<Word, { name: string; value: Word; append: boolean } | null> | undefined;
@@ -2891,6 +2894,7 @@ export class Runtime {
     this.sourceFs = runtimeFileSystems.get(fs) ?? fs;
     this.backingFs = getRuntimeBackingFileSystem(this.sourceFs) ?? this.sourceFs;
     this._isMemoryBackingFs = this.backingFs.constructor?.name === "MemoryFileSystem";
+    if (this._isMemoryBackingFs) (this.backingFs as { _activeRuntimeBudget?: Budget })._activeRuntimeBudget = budget;
     registerInternalYieldCheckpoint(signal, budget.yieldCheckpoint);
     if (commandSignal !== signal) {
       inheritYieldCheckpoint(signal, commandSignal);
@@ -2904,6 +2908,25 @@ export class Runtime {
 
   get outputFiles(): Map<string, OutputFile> {
     return this._outputFiles ??= new Map();
+  }
+
+  releaseAnchorResources(): void {
+    if (Array.isArray(_lastFastContextAnchor) && _lastFastContextAnchor[0]) {
+      (_lastFastContextAnchor[0] as { _contextFs?: FileSystem | undefined })._contextFs = undefined;
+    }
+    if (Array.isArray(_lastPipelineAnchor) && _lastPipelineAnchor[0]) {
+      (_lastPipelineAnchor[0] as { _contextFs?: FileSystem | undefined })._contextFs = undefined;
+    }
+    if (this._isMemoryBackingFs && this.backingFs) {
+      const emptyFs = (_sharedEmptyMemoryFs ??= new (this.backingFs.constructor as new () => FileSystem)());
+      (this as unknown as { backingFs: FileSystem }).backingFs = emptyFs;
+      (this as unknown as { sourceFs: FileSystem }).sourceFs = emptyFs;
+      (this as unknown as { _rawFs: FileSystem })._rawFs = emptyFs;
+      (this as unknown as { inputProfile: FileSystem }).inputProfile = emptyFs;
+      this._fs = undefined;
+      this._contextFs = undefined;
+      this._redirectFs = undefined;
+    }
   }
 
   get fs(): FileSystem {
@@ -4791,6 +4814,7 @@ export class Runtime {
           context.descriptors = descriptors;
         }
       }
+      _lastFastContextAnchor = [context, redirectSink];
       return this.finishFastSingleExternalUnit(
         externalDef,
         context,
@@ -4959,6 +4983,7 @@ export class Runtime {
         context.stderr = stageStderr;
         context.signal = stageSignal;
         (context as unknown as { _scopedSignal: AbortSignal })._scopedSignal = stageSignal;
+        if (index === 0) _lastPipelineAnchor = [context, stageStdout, input, outgoing];
         tasks[index] = (async () => {
           let exitCode = 0;
           scope.enterWork();

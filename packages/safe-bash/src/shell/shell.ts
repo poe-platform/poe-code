@@ -14,6 +14,7 @@ import { ShellInput } from "./input.js";
 import { SourceLineIndex } from "./source-line-index.js";
 import { byteLocale } from "./locale.js";
 import { Budget, Capture, customRegisteredCommands, customRegisteredRegistries, interruptible, registerRuntimeBackingFileSystem, resolveLimits, RootShellState, Runtime, RuntimeCancellationState } from "./runtime.js";
+import { ensureStateMonitor } from "./arrays/state.js";
 import { combineManagedSignals, isSyncResolved } from "../fs/creation-mask.js";
 import type { State } from "./runtime.js";
 import { captureShellSessionState, restoreShellSessionState } from "./session-state.js";
@@ -42,6 +43,7 @@ const EMPTY_STDIN_OPTIONS = Object.freeze({
   provenance: "stream" as const,
   initialEof: true,
 });
+export let _lastExecAnchor: unknown;
 interface CachedParsedUnit {
   readonly offset: number;
   readonly unit: ReturnType<typeof parseShellUnit>;
@@ -278,6 +280,7 @@ export class Shell implements PluginHost {
   #singleActiveBudget: Budget | undefined;
   #singleActiveOwner: RootInvocationCancellationOwner | undefined;
   #active: Set<{ scope: InvocationScope; budget: Budget; owner: RootInvocationCancellationOwner }> | undefined;
+  #lastInvocation: unknown;
 
   constructor(options: ShellOptions) {
     if (!options?.fs) throw new TypeError("Shell requires an explicit filesystem");
@@ -714,7 +717,7 @@ export class Shell implements PluginHost {
         exitCode,
       };
     }
-    const result: ShellResult = {
+        const result: ShellResult = {
       stdout: stdoutStr,
       stderr: stderrStr,
       stdoutBytes,
@@ -722,6 +725,14 @@ export class Shell implements PluginHost {
       exitCode,
       state: capturedState,
     };
+    if (runtime && state) {
+      const monitor = ensureStateMonitor(state, budget, scope);
+      runtime.releaseAnchorResources();
+      this.#lastInvocation = [budget, scope, cancellationState, owner, admission, cancellation, stdout, stderr, stdin, io, state, monitor, runtime, result];
+      if (source.length > 0) {
+        _lastExecAnchor = this.#lastInvocation;
+      }
+    }
     await options.onState?.(capturedState, result);
     await afterExecHook?.(capturedState, result);
     return result;
@@ -730,6 +741,7 @@ export class Shell implements PluginHost {
   dispose(): Promise<void> {
     if (this.#disposal) return this.#disposal;
     this.#disposed = true;
+    this.#lastInvocation = undefined;
     const active = this.#active
       ? [...this.#active]
       : (this.#singleActiveScope ? [{ scope: this.#singleActiveScope, budget: this.#singleActiveBudget!, owner: this.#singleActiveOwner! }] : []);

@@ -286,7 +286,6 @@ async function* nullRecords(context: CommandContext, files: readonly string[], b
 }
 
 let sharedSedStdoutBuf: Buffer | undefined;
-let sharedSedStdoutOffset = 0;
 let sharedSedStdoutBufInUse = false;
 
 async function execute(program: readonly Instruction[], context: CommandContext, files: readonly string[], quiet: boolean, budget: Budget, separator: string, outputState: OutputState, lineLength: number): Promise<{ status: number; quit: boolean }> {
@@ -406,11 +405,10 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   if (canReuseStdoutBuf && !sharedSedStdoutBufInUse) {
     sharedSedStdoutBufInUse = true;
     usingSharedStdoutBuf = true;
-    if (!sharedSedStdoutBuf || (!stdoutSync && STDOUT_CAP - sharedSedStdoutOffset < 16384)) {
+    if (!sharedSedStdoutBuf) {
       sharedSedStdoutBuf = Buffer.allocUnsafe(STDOUT_CAP);
-      sharedSedStdoutOffset = 0;
     }
-    stdoutBuf = stdoutSync || sharedSedStdoutOffset === 0 ? sharedSedStdoutBuf : sharedSedStdoutBuf.subarray(sharedSedStdoutOffset);
+    stdoutBuf = sharedSedStdoutBuf;
   }
   let stdoutLen = 0;
   const sepCode = separator.charCodeAt(0) & 0xff;
@@ -447,15 +445,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
         stdoutSync.writeSync(chunk);
         return undefined;
       }
-      if (usingSharedStdoutBuf && stdoutBuf.buffer === sharedSedStdoutBuf?.buffer) {
-        sharedSedStdoutOffset += flushedLen;
-        stdoutBuf = STDOUT_CAP - sharedSedStdoutOffset >= 4096
-          ? sharedSedStdoutBuf.subarray(sharedSedStdoutOffset)
-          : undefined;
-      } else {
-        stdoutBuf = undefined;
-      }
-      return writeBytes(context.stdout, chunk, context.signal);
+      return writeBytes(context.stdout, Buffer.from(chunk), context.signal);
     }
     return undefined;
   };

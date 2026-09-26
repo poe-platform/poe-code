@@ -40,10 +40,17 @@ it.each([
   { encoded: [0x14, 0xf6, 0xe0], text: "\ue000" },
   { encoded: [0x14, 0xe0, 0x01], text: "\ue001" },
   { encoded: [0x14, 0xd8, 0x3d, 0x14, 0xf6, 0xde], text: "😀" },
-  { encoded: [0x14, 0x20, 0xac], text: "€" }
-])("decodes LMBCS Unicode compatibility bytes in labels and formulas %#", async ({ encoded, text }) => {
+  { encoded: [0x14, 0x20, 0xac], text: "€" },
+  { encoded: [0x0f, 0x20], text: "\u0000" },
+  { encoded: [0x0f, 0x21], text: "\u0001" },
+  { encoded: [0x0f, 0x80], text: "\u0080" },
+  { encoded: [0x0f, 0x9f], text: "\u009f" },
+  { encoded: [0x19], text: "\u0019" },
+  { encoded: [0x09], text: "\t" }
+])("decodes LMBCS code units in labels and formulas %#", async ({ encoded, text }) => {
   // ICU GetUniFromLMBCSUni swaps F6/xx to xx/00; other code units, including
   // private-use characters and surrogate pairs, retain their UTF-16 values.
+  // Group 0F encodes C0/C1 values; 19 and tab are literal single-byte controls.
   const warnings: string[] = [];
   const bytes = Uint8Array.from([
     ...record(0, [2, 16, 4, 0, ...Array<number>(22).fill(0)]),

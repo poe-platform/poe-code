@@ -31,9 +31,14 @@ async function lmbcs(bytes: Uint8Array, group: number, context: CapabilityContex
     context.signal.throwIfAborted();
     const c = bytes[at++]!;
     if (!c) break;
-    if ([1, 2, 3, 4, 5, 6, 8, 11, 15].includes(c)) {
+    if ([1, 2, 3, 4, 5, 6, 8, 11].includes(c)) {
       if (at >= bytes.length) break;
       const uc = mapped(c, bytes[at++]!); if (uc) text += String.fromCodePoint(uc);
+    } else if (c === 0x0f) {
+      if (at >= bytes.length) break;
+      const control = bytes[at++]!;
+      // ICU's control group offsets C0 values, but preserves C1 values.
+      if (control >= 0x20) text += String.fromCharCode(control < 0x80 ? control - 0x20 : control);
     } else if (c === 0x14) {
       if (at + 1 >= bytes.length) break;
       const high = bytes[at++]!, low = bytes[at++]!;
@@ -62,7 +67,7 @@ async function lmbcs(bytes: Uint8Array, group: number, context: CapabilityContex
     } else if ([21, 22, 23].includes(c)) {
       if (at + 1 >= bytes.length) break;
       await warn(`Unhandled character 0x${(c * 65536 + bytes[at++]! * 256 + bytes[at++]!).toString(16).padStart(6, "0")}`);
-    } else if (c >= 24 && c <= 31) at++;
+    } else if (c >= 24 && c <= 31 && c !== 0x19) at++;
     else if (c < 128) text += String.fromCharCode(c);
     else if (lmbcsGroups[group]) { const uc = mapped(group, c); if (uc) text += String.fromCodePoint(uc); }
     else await warn(`Unhandled character set 0x${group.toString(16)}`);

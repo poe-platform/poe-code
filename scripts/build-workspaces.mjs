@@ -521,20 +521,28 @@ async function executeStages(plan, { environment, spawn, host, concurrency = 1, 
         try { EventEmitter.prototype.removeListener.call(started, eventName, observer); } catch (error) { remember(context, error); failure(); }
       }
       if (started.pid) {
-        const exists = () => {
-          try { host.kill(-started.pid, 0); return true; } catch (error) {
-            if (error?.code === "ESRCH") return false;
-            if (error?.code === "EPERM") process.stderr.write(`Workspace group inspection refused for ${stage.name}: parent PID ${process.pid}, child PID ${started.pid}, process group ${started.pid}\n`);
-            throw error;
+        let groupAbsent = false;
+        const exists = async () => {
+          if (groupAbsent) return false;
+          for (let attempt = 0; ; attempt++) {
+            try { host.kill(-started.pid, 0); return true; } catch (error) {
+              if (error?.code === "ESRCH") { groupAbsent = true; return false; }
+              if (error?.code === "EPERM" && attempt < 40) {
+                await new Promise(resolve => setTimeout(resolve, 25));
+                continue;
+              }
+              if (error?.code === "EPERM") process.stderr.write(`Workspace group inspection refused for ${stage.name}: parent PID ${process.pid}, child PID ${started.pid}, process group ${started.pid}\n`);
+              throw error;
+            }
           }
         };
         try {
           for (const value of ["SIGTERM", "SIGKILL"]) {
-            if (!exists()) break;
+            if (!await exists()) break;
             signal(started.pid, value);
-            for (let attempt = 0; attempt < 40 && exists(); attempt++) await new Promise(resolve => setTimeout(resolve, 25));
+            for (let attempt = 0; attempt < 40 && await exists(); attempt++) await new Promise(resolve => setTimeout(resolve, 25));
           }
-          assert.ok(!exists(), "Workspace process group did not exit");
+          assert.ok(!await exists(), "Workspace process group did not exit");
         } catch (error) { remember(context, error); failure(); }
       }
       if (!context.errors.length && !context.stopped) {

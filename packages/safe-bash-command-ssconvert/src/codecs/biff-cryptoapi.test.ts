@@ -61,7 +61,7 @@ it("uses declared algorithms without resolving CSP names on the host", async () 
   const book = await readBiff(input, context);
   expect(book.sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 42 });
 });
-it("refuses unsupported crypto parameters, encrypted ancillary properties and wrong passwords", async () => {
+it("refuses unsupported crypto parameters, missing ancillary containers and wrong passwords", async () => {
   const header = readBiffRecords(bytes(fixtures[0]!.inputHex), context).find(r => r.opcode === 0x2f)!;
   const at = 14 + header.data.u32(10);
   for (const [offset, value] of [[22, 0x660e], [26, 0x8003], [30, 39], [30, 136], [34, 2]]) {

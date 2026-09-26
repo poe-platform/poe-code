@@ -107,7 +107,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
   if (!records[0] || !bofOpcodes.has(records[0].opcode)) invalidBiff("missing BOF");
   const override = biffOverrideCodepage(encoding);
   let codepage = override ?? 1252, ver = revision(records[0]), dateSystem: "1900" | "1904" = "1900";
-  await decryptBiffRecords(records, ver, context);
+  const decryptedProperties = await decryptBiffRecords(records, ver, context, streams);
   let calculationMode: "automatic" | "manual" = "automatic", maximum = 100, tolerance = 0.001, iterationEnabled = false;
   let cellCount = 0, textBytes = 0, metadataBytes = 0, formulaWork = 0;
   const boundSheets: BoundSheet[] = [], sheets: PendingSheet[] = [], unsupported: UnsupportedRecord[] = [];
@@ -665,7 +665,17 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       ...(formulaGroups.length ? { formulaGroups } : {}),
       ...(sheet.unsupportedRecords.length ? { unsupportedRecords: sheet.unsupportedRecords } : {}) });
   }
-  const properties = streams ? await readBiffProperties(streams, context, accountText, accountFormulaWork, unsupported) : {};
+  const propertyStreams = decryptedProperties ?? streams;
+  for (const [name, bytes] of decryptedProperties ?? []) {
+    if (["\u0005SUMMARYINFORMATION", "\u0005DOCUMENTSUMMARYINFORMATION"].includes(name.toUpperCase())) continue;
+    accountFormulaWork(bytes.length * 2); metadataBytes += bytes.length * 2;
+    if (metadataBytes > (context.limits.workbookTextBytes ?? context.limits.inputBytes * 2))
+      throw new SsconvertError("resource-limit", "ssconvert BIFF metadata byte limit exceeded");
+    unsupported.push({ source: "biff", kind: "encrypted-ancillary", disposition: "retained",
+      data: { stream: accountText(name), bytes: accountText(Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("")) } });
+    await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: `BIFF encrypted ancillary stream ${name} retained without interpretation` });
+  }
+  const properties = propertyStreams ? await readBiffProperties(propertyStreams, context, accountText, accountFormulaWork, unsupported) : {};
   return { sheets: resultSheets, dateSystem, calculationMode, iteration: { enabled: iterationEnabled, maximum, tolerance },
     ...(Object.keys(properties).length ? { properties } : {}),
     ...(activeSheet === undefined ? {} : { activeSheet }),

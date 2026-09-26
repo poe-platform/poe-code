@@ -1,6 +1,7 @@
 # BIFF CryptoAPI encrypted properties
 
-Status: source investigation complete; implementation pending under hey-boss #1748.
+Status: bounded container import implemented; export and independent application
+qualification remain pending under hey-boss #1748.
 
 LibreOffice's property loader reads ordinary property streams without the BIFF
 decrypter. Apache POI revision `942d95d85b15d0dfdb3bc9ba1b4f273f277757c8`
@@ -37,6 +38,7 @@ in `docs/ssconvert/gap-resolution.json`.
    concise evidence. The broader encryption family remains open until its full
    acceptance evidence is present.
 
-Keep the current encrypted-ancillary refusal until the implementation is wired
-through import/export and verified. Source discovery alone does not justify
-removing it.
+Import now accepts the admitted encrypted container. Missing containers, malformed
+layouts, plaintext collisions and wrong passwords remain refused. Explicit
+encrypted-property export is not yet implemented; workbook-only encryption keeps
+its existing plaintext-property behavior.

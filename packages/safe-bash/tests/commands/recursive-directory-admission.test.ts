@@ -51,25 +51,47 @@ test("diff admits matching directory names once", async () => {
   assert.deepEqual(caps, [2, 2]);
 });
 
-test("cross-device move leaves traversal uncapped and observes cancellation", async () => {
-  const fs = await fixture({ "sub/a": "x" });
-  const { context } = await run("true", [], { fs });
-  const read = fs.readdir.bind(fs);
+test("cross-device move traverses directories without a default quota", async () => {
+  const fs = await fixture({ "sub/a": "x", "sub/nested/b": "y" });
   const controller = new AbortController();
-  const budget = new MoveBudget(controller.signal);
-  const caps: (number | undefined)[] = [];
+  const { context } = await run("true", [], { fs, signal: controller.signal });
+  const read = fs.readdir.bind(fs);
+  const budget = new MoveBudget(context.signal);
+  const paths: string[] = [];
   fs.readdir = async (path, options) => {
     assert.equal(options?.maxEntries, undefined);
-    caps.push(options?.maxEntries);
+    assert.equal(options?.signal, context.signal);
+    paths.push(path);
     return read(path, options);
   };
   assert.equal(await moveAcrossDevices(context, "/work/sub", "/work/dest", false, budget), true);
-  assert.deepEqual(caps, [undefined]);
-  assert.equal(Buffer.from(await fs.readFile("/work/dest/a")).toString(), "x");
+  assert.deepEqual(paths, ["/work/sub", "/work/sub/nested"]);
+  assert.deepEqual(await fs.readFile("/work/dest/a"), new TextEncoder().encode("x"));
+  assert.deepEqual(await fs.readFile("/work/dest/nested/b"), new TextEncoder().encode("y"));
   await assert.rejects(fs.lstat("/work/sub"), { code: "ENOENT" });
   const reason = new Error("cancelled traversal");
   controller.abort(reason);
   await assert.rejects(budget.step(), error => error === reason);
+});
+
+test("cross-device move cancels directory traversal before publication", async () => {
+  const fs = await fixture({ "sub/nested/a": "x" });
+  const controller = new AbortController();
+  const { context } = await run("true", [], { fs, signal: controller.signal });
+  const read = fs.readdir.bind(fs);
+  const reason = new Error("stop directory traversal");
+  const paths: string[] = [];
+  fs.readdir = async (path, options) => {
+    assert.equal(options?.signal, controller.signal);
+    paths.push(path);
+    const entries = await read(path, options);
+    controller.abort(reason);
+    return entries;
+  };
+  await assert.rejects(moveAcrossDevices(context, "/work/sub", "/work/dest", false, new MoveBudget(controller.signal)), error => error === reason);
+  assert.deepEqual(paths, ["/work/sub"]);
+  assert.deepEqual(await fs.readFile("/work/sub/nested/a"), new TextEncoder().encode("x"));
+  await assert.rejects(fs.lstat("/work/dest"), { code: "ENOENT" });
 });
 
 for (const route of routes.filter(route => route.name !== "diff")) {

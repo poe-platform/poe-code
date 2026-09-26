@@ -25,6 +25,42 @@ export interface ByteSink {
   };
 }
 
+/** Invocation-owned, bounded output staging. Callers await writes and flush before retiring their output. */
+export function createBufferedOutput(sink: ByteSink, signal: AbortSignal, capacity = 16_384): ByteSink & { flush(): Promise<void> } {
+  if (!Number.isSafeInteger(capacity) || capacity < 1) throw new RangeError("Invalid output buffer capacity");
+  let buffer: Uint8Array | undefined;
+  let size = 0;
+  let failure: { reason: unknown } | undefined;
+  const check = (): void => {
+    signal.throwIfAborted();
+    if (failure) throw failure.reason;
+  };
+  const flush = async (): Promise<void> => {
+    check();
+    if (!size) return;
+    sink.ownedOutput?.consumerClosed.throwIfAborted();
+    const bytes = buffer!.slice(0, size);
+    size = 0;
+    try { await writeBytes(sink, bytes, signal); }
+    catch (reason) { failure = { reason }; throw reason; }
+  };
+  return {
+    async write(bytes) {
+      check();
+      if (bytes.length) sink.ownedOutput?.consumerClosed.throwIfAborted();
+      for (let offset = 0; offset < bytes.length;) {
+        buffer ??= new Uint8Array(capacity);
+        const count = Math.min(capacity - size, bytes.length - offset);
+        buffer.set(bytes.subarray(offset, offset + count), size);
+        size += count;
+        offset += count;
+        if (size === capacity) await flush();
+      }
+    },
+    flush,
+  };
+}
+
 export interface BytePipe {
   readonly readable: ByteSource;
   readonly writable: ByteSink;

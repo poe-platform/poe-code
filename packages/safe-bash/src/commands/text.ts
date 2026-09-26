@@ -1,5 +1,5 @@
 import { PublicDiagnostic } from "../diagnostics.js";
-import { FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
+import { createBufferedOutput, FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
 import { RETURN_EXIT_ONE, RETURN_EXIT_TWO, RETURN_EXIT_ZERO, assertInputRequirements, bufferLimit, codeOf, concatenate, define, diagnostic, encoder, input, integer, lines, options, output, outputRange, pathOf, requireOperands, RESOLVED_EXIT_ZERO, UsageError, value } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { inputRequirements, textOutputRequirements } from "./portable-requirements.js";
@@ -959,7 +959,12 @@ async function keyBytes(line: Uint8Array, key: SortKey, separator: number | unde
 }
 
 async function emitRecords(context: CommandContext, records: ByteSource, destination?: string): Promise<void> {
-  if (destination === undefined) { for await (const bytes of records) await output(context, bytes); return; }
+  if (destination === undefined) {
+    const buffered = createBufferedOutput(context.stdout, context.signal);
+    try { for await (const bytes of records) await buffered.write(bytes); }
+    finally { if (!context.signal.aborted) await buffered.flush(); }
+    return;
+  }
   await admitTextOutput(context, destination);
   const capabilities = await context.fs.capabilitiesFor?.(pathOf(context, destination), { signal: context.signal }) ?? context.fs.capabilities;
   if (context.fs.writeStream && capabilities.streamingWrite !== false) await context.fs.writeStream(pathOf(context, destination), records, { signal: context.signal });

@@ -149,6 +149,7 @@ export function createColumnCommand(options: ColumnCommandsOptions = {}): Comman
           else if (rows.length) await fillOutput(rows, parsed, budget);
           result = { exitCode };
         }
+        await inputs?.budget.flushOutput();
       } catch (error) {
         failed = true;
         context.signal.throwIfAborted();

@@ -1,5 +1,5 @@
-import { hasYieldCheckpoint, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
-import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
+import { createBufferedOutput, FsError, readBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { diagnostic, pathOf } from "../internal.js";
 import { gnuInformation } from "../gnu-information.js";
 
@@ -40,6 +40,8 @@ export class Session {
   private outputBytes = 0;
   private steps = 0;
   private untilYield = 4096;
+  private lastYield = monotonicNow();
+  readonly buffered: ReturnType<typeof createBufferedOutput>;
   private signalAborted = false;
   private readonly pollSignal: boolean;
   private stdin: AsyncIterator<Uint8Array> | undefined;
@@ -49,6 +51,8 @@ export class Session {
 
   constructor(readonly context: CommandContext, readonly limits: StreamInspectionLimits) {
     this.signal = AbortSignal.any([context.signal, this.controller.signal]);
+    inheritYieldCheckpoint(context.signal, this.signal);
+    this.buffered = createBufferedOutput(context.stdout, this.signal, Math.min(16384, limits.maxChunkBytes));
     this.pollSignal = Object.prototype.hasOwnProperty.call(context.signal, "aborted");
     if (this.signal.aborted) {
       this.signalAborted = true;
@@ -69,8 +73,13 @@ export class Session {
     this.untilYield -= count;
     if (this.untilYield <= 0) {
       this.untilYield = 4096;
-      if (hasYieldCheckpoint(this.signal)) return runYieldCheckpoint(this.signal);
-      return yieldTurn().then(() => {
+      if (!hasYieldCheckpoint(this.signal) && monotonicNow() - this.lastYield < 25) {
+        runYieldCheckpoint(this.signal);
+        this.signal.throwIfAborted();
+        return;
+      }
+      return yieldTurn(this.signal).then(() => {
+        this.lastYield = monotonicNow();
         this.signal.throwIfAborted();
       });
     }
@@ -81,8 +90,9 @@ export class Session {
     this.outputBytes += bytes.length;
     const width = Math.min(16384, this.limits.maxChunkBytes);
     for (let offset = 0; offset < bytes.length; offset += width) {
-      await this.step();
-      await writeBytes(this.context.stdout, new Uint8Array(bytes.subarray(offset, offset + width)), this.signal);
+      const step = this.step();
+      if (step) await step;
+      await this.buffered.write(bytes.subarray(offset, offset + width));
     }
   }
 
@@ -120,6 +130,7 @@ export class Session {
       while (true) {
         await this.step();
         let item: IteratorResult<Uint8Array>;
+        await this.buffered.flush();
         try { item = await reader.next(); }
         catch (error) { this.signal.throwIfAborted(); throw new InputFailure(error); }
         if (item.done) break;
@@ -166,7 +177,8 @@ export function command(name: string, limits: StreamInspectionLimits, run: (sess
         if (info) return info;
       }
       session = new Session(context, limits);
-      await run(session);
+      try { await run(session); }
+      finally { if (!session.signal.aborted) await session.buffered.flush(); }
       context.signal.throwIfAborted();
       return { exitCode: session.failed ? 1 : 0 };
     } catch (error) {

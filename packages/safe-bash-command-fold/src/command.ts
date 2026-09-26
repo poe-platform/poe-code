@@ -165,16 +165,15 @@ async function executeFold(context: CommandContext, configuration: FoldCommandOp
       const engOut = (engine as unknown as { outputBytes?: () => number })?.outputBytes?.() ?? engine!.accounting().outputBytes;
       if (engOut > limits.outputBytes - diagnostics) throw new FoldError('LIMIT', 'Output byte limit exceeded');
       if (chunks.length === 0) return;
+      let size = 0;
+      for (const bytes of chunks) size += bytes.length;
+      if (!size) return;
+      retain(engine!.accounting().retainedBytes + size * (chunks.length === 1 ? 1 : 2));
       if (chunks.length === 1) { await writeBytes(stdout!.output, chunks[0]!, signal); return; }
-      let total = 0;
-      for (let i = 0; i < chunks.length; i++) total += chunks[i]!.byteLength;
-      const combined = new Uint8Array(total);
-      let pos = 0;
-      for (let i = 0; i < chunks.length; i++) {
-        const c = chunks[i]!;
-        combined.set(c, pos);
-        pos += c.byteLength;
-      }
+      chargeWork(size);
+      const combined = new Uint8Array(size);
+      let offset = 0;
+      for (const bytes of chunks) { combined.set(bytes, offset); offset += bytes.length; }
       await writeBytes(stdout!.output, combined, signal);
     };
     const fileError = async (file: string, error: unknown): Promise<void> => {

@@ -1,6 +1,6 @@
 import { getCommandArguments, type CommandContext } from "../../contracts/index.js";
 import { shellValueByteLength, shellValueBytes } from "../../contracts/value.js";
-import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { PublicDiagnostic } from "../../diagnostics.js";
 
 export interface PrLimits {
@@ -105,7 +105,6 @@ export function fileQuote(value: string): string {
 export class Budget {
   private work = 0;
   private checkpoint = 0;
-  private checkpointCount = 0;
   private lastYield = monotonicNow();
   private retained = 0;
   private input = 0;
@@ -116,6 +115,7 @@ export class Budget {
   private signalAborted: boolean;
   private readonly pollSignal: boolean;
   constructor(readonly context: CommandContext, readonly limits: PrLimits, readonly signal: AbortSignal) {
+    inheritYieldCheckpoint(context.signal, signal);
     this.signalAborted = signal.aborted;
     this.pollSignal = Object.prototype.hasOwnProperty.call(signal, "aborted");
     if (!this.signalAborted && !this.pollSignal) {
@@ -137,15 +137,15 @@ export class Budget {
     this.assertSignalOpen();
     if (this.work - this.checkpoint < 4096) return;
     this.checkpoint = this.work;
-    const count = ++this.checkpointCount;
-    const now = monotonicNow();
-    if (count === 1 || now - this.lastYield >= 16 || hasYieldCheckpoint(this.signal)) {
-      this.lastYield = now;
-      return yieldTurn(this.signal).then(() => {
-        this.lastYield = monotonicNow();
-      });
+    if (!hasYieldCheckpoint(this.signal) && monotonicNow() - this.lastYield < 25) {
+      runYieldCheckpoint(this.signal);
+      this.assertSignalOpen();
+      return;
     }
-    return runYieldCheckpoint(this.signal);
+    return yieldTurn(this.signal).then(() => {
+      this.lastYield = monotonicNow();
+      this.assertSignalOpen();
+    });
   }
   retain(amount: number): void {
     this.check(this.retained + amount, this.limits.maxBufferedBytes, "buffered bytes");

@@ -1,5 +1,5 @@
 import { publicDiagnosticMessage } from "../../diagnostics.js";
-import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { escapeText } from "../../escaping.js";
 import { FsError, writeBytes, type ByteSource, type CommandContext, type FileSystem, type ReadStreamOptions } from "../../contracts/index.js";
 import { Budget, Inputs, type RecordReader } from "../table-text/internal.js";
@@ -29,8 +29,6 @@ export class ColumnBudget extends Budget {
   static readonly outputChunkBytes = 8192;
   private workUsed = 0;
   private untilYield = 2048;
-  private lastYield = monotonicNow();
-  private yieldedOnce = false;
   private emittedBytes = 0;
   private retainedBytes = 0;
   private projectedBytes = 0;
@@ -68,11 +66,11 @@ export class ColumnBudget extends Budget {
     this.untilYield -= amount;
     if (this.untilYield > 0) return;
     this.untilYield = 2048;
-    runYieldCheckpoint(this.context.signal);
-    const now = monotonicNow();
-    if (this.yieldedOnce && now - this.lastYield < 16 && !hasYieldCheckpoint(this.context.signal)) return;
-    this.yieldedOnce = true;
-    this.lastYield = now;
+    if (!hasYieldCheckpoint(this.context.signal) && monotonicNow() - this.lastYield < 25) {
+      runYieldCheckpoint(this.context.signal);
+      this.context.signal.throwIfAborted();
+      return;
+    }
     return yieldTurn(this.context.signal).then(() => {
       this.lastYield = monotonicNow();
       this.context.signal.throwIfAborted();
@@ -150,6 +148,7 @@ export class ColumnInputs {
 
   constructor(context: CommandContext, limits: ColumnLimits) {
     this.signal = AbortSignal.any([context.signal, this.controller.signal]);
+    inheritYieldCheckpoint(context.signal, this.signal);
     const fs = new Proxy(context.fs, { get: (target, key) => {
       if (key === "stat") return (path: string) => cancellable(() => target.stat(path, { signal: this.signal }), this.signal);
       if (key === "readStream") return target.readStream ? (path: string, options?: ReadStreamOptions) => {

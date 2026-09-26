@@ -286,6 +286,8 @@ for (const action of ["accept", "cancel", "reject"] as const) {
     const fs = await fixture({ input: "fixture" });
     const events: string[] = [];
     const window = Buffer.alloc(9).subarray(3, 6);
+    let finalized!: () => void;
+    const finalization = new Promise<void>(resolve => { finalized = resolve; });
     fs.readStream = async function* () {
       try {
         for (const payload of [[65, 66, 67], [68, 69, 70]]) {
@@ -294,7 +296,7 @@ for (const action of ["accept", "cancel", "reject"] as const) {
           yield window;
           events.push("next");
         }
-      } finally { window.fill(0); events.push("finally"); }
+      } finally { window.fill(0); events.push("finally"); finalized(); }
     };
     let enter!: () => void;
     let release!: () => void;
@@ -329,6 +331,9 @@ for (const action of ["accept", "cancel", "reject"] as const) {
       assert.equal(result.stderr, action === "accept" ? "" : "head: EIO: sink stopped\n");
       if (action === "accept") assert.deepEqual([...result.stdoutBytes], [65, 66, 67, 68]);
     }
+    // This injected source has no registered cooperative cleanup. Cancellation
+    // schedules its return; observe that return before asserting finalization.
+    await finalization;
     assert.deepEqual(events, action === "accept"
       ? ["yield:65", "next", "yield:68", "next", "finally"]
       : ["yield:65", "finally"]);

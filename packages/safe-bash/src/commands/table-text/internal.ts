@@ -70,8 +70,7 @@ export class Budget {
   private inputBytes = 0;
   private outputBytes = 0;
   steps = 0;
-  private stepYields = 0;
-  private lastStepYield = monotonicNow();
+  protected lastYield = monotonicNow();
   private signalAborted: boolean;
   private readonly pollBaseSignal: boolean;
   constructor(readonly context: CommandContext, readonly limits: TableTextLimits, outputChunkBytes = 16384) {
@@ -90,16 +89,15 @@ export class Budget {
     if (this.pollBaseSignal ? this.context.signal.aborted : this.signalAborted) this.context.signal.throwIfAborted();
     this.check(++this.steps, this.limits.maxSteps, "step");
     if (this.steps % 1024 !== 0) return;
-    const count = ++this.stepYields;
-    const now = monotonicNow();
-    if (count === 1 || (count & 63) === 0 || now - this.lastStepYield >= 16 || hasYieldCheckpoint(this.context.signal)) {
-      this.lastStepYield = now;
-      return yieldTurn(this.context.signal).then(() => {
-        this.lastStepYield = monotonicNow();
-        this.context.signal.throwIfAborted();
-      });
+    if (!hasYieldCheckpoint(this.context.signal) && monotonicNow() - this.lastYield < 25) {
+      runYieldCheckpoint(this.context.signal);
+      this.context.signal.throwIfAborted();
+      return;
     }
-    runYieldCheckpoint(this.context.signal);
+    return yieldTurn(this.context.signal).then(() => {
+      this.lastYield = monotonicNow();
+      this.context.signal.throwIfAborted();
+    });
   }
   input(size: number): void {
     this.check(size, this.limits.maxChunkBytes, "chunk");

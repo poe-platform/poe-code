@@ -1,5 +1,5 @@
 import { FsError, readBytes, type ByteSource } from "../../contracts/index.js";
-import { yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, yieldTurn } from "../../contracts/yield.js";
 import { Diagnostic } from "./args.js";
 
 export function virtualPath(cwd: string, name: string): string {
@@ -56,6 +56,7 @@ export async function* records(source: ByteSource, delimiter: number, limit: num
   let pending = new Uint8Array(Math.min(256, limit));
   let used = 0;
   let scanned = 0;
+  let lastYield = monotonicNow();
   for await (const chunk of source) {
     let start = 0;
     while (start < chunk.length) {
@@ -82,7 +83,9 @@ export async function* records(source: ByteSource, delimiter: number, limit: num
           used = 0;
         }
       }
-      if (++scanned % 8192 === 0) await yieldTurn(signal);
+      if (++scanned % 1024 === 0 && (hasYieldCheckpoint(signal) || monotonicNow() - lastYield >= 25)) {
+        await yieldTurn(signal); lastYield = monotonicNow();
+      }
     }
   }
   if (used) {

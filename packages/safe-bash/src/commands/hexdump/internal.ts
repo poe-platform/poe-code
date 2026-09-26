@@ -1,6 +1,6 @@
 import { getCommandArguments, type CommandContext } from "../../contracts/index.js";
 import { shellValueByteLength, shellValueBytes } from "../../contracts/value.js";
-import { monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { PublicDiagnostic } from "../../diagnostics.js";
 
 export interface HexdumpLimits {
@@ -60,7 +60,6 @@ export class Budget {
   private work = 0;
   private checkpoint = 0;
   private lastYield = monotonicNow();
-  private yieldedOnce = false;
   private retained = 0;
   private input = 0;
   private output = 0;
@@ -96,12 +95,10 @@ export class Budget {
     this.assertOpen();
     if (this.work - this.checkpoint < 4096) return;
     this.checkpoint = this.work;
-    runYieldCheckpoint(this.callerSignal);
-    this.assertOpen();
-    const now = monotonicNow();
-    if (this.yieldedOnce && now - this.lastYield < 16) return;
-    this.yieldedOnce = true;
-    this.lastYield = now;
+    if (!hasYieldCheckpoint(this.callerSignal) && monotonicNow() - this.lastYield < 25) {
+      runYieldCheckpoint(this.callerSignal);
+      return;
+    }
     return yieldTurn(this.callerSignal).then(() => {
       this.lastYield = monotonicNow();
       this.assertOpen();

@@ -1,9 +1,9 @@
 import {
-  commandRuntimeIdentity, getCommandArguments, isFsError, toByteSource, writeBytes,
+  commandRuntimeIdentity, createBufferedOutput, getCommandArguments, isFsError, toByteSource, writeBytes,
   type ByteSource, type CommandContext, type CommandDefinition,
 } from "../../contracts/index.js";
 import { openFileOutput, type FileOutput } from "../../contracts/filesystem-output.js";
-import { yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, yieldTurn } from "../../contracts/yield.js";
 import { countMax, Diagnostic, fileQuote, parse, quote } from "./args.js";
 import { ownedBytes, records, virtualPath } from "./input.js";
 import { settings, type ShufCommandsOptions } from "./options.js";
@@ -26,6 +26,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
     runtimeIdentity: commandRuntimeIdentity,
     description: "Write a random permutation of input records",
     async execute(context: CommandContext) {
+      let lastYield = monotonicNow();
       let random: RandomIntegers | undefined;
       let output: FileOutput | undefined;
       let source: AsyncGenerator<Uint8Array> | undefined;
@@ -33,6 +34,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
       let openingInput: Promise<void> | undefined;
       const inputController = new AbortController();
       const inputSignal = AbortSignal.any([context.signal, inputController.signal]);
+      inheritYieldCheckpoint(context.signal, inputSignal);
       let diagnostic = "read error";
       let openingRootOutput = false;
       let cleanup: Promise<void> | undefined;
@@ -145,7 +147,9 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
                 lines[index] = next.value;
               }
               seen++;
-              if (seen % 1024n === 0n) await yieldTurn(context.signal);
+              if (seen % 1024n === 0n && (hasYieldCheckpoint(context.signal) || monotonicNow() - lastYield >= 25)) {
+                await yieldTurn(context.signal); lastYield = monotonicNow();
+              }
             }
           }
           size = BigInt(lines.length);
@@ -165,7 +169,9 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
             permutation.push(swaps.get(chosen) ?? chosen);
             swaps.set(chosen, swaps.get(index) ?? index);
             swaps.delete(index);
-            if (index % 1024n === 1023n) await yieldTurn(context.signal);
+            if (index % 1024n === 1023n && (hasYieldCheckpoint(context.signal) || monotonicNow() - lastYield >= 25)) {
+              await yieldTurn(context.signal); lastYield = monotonicNow();
+            }
           }
         }
         if (parsed.output !== undefined) {
@@ -175,7 +181,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
           openingRootOutput = false;
         }
         if (parsed.repeat && parsed.count > 0n && size === 0n) throw new Diagnostic("shuf: no lines to repeat\n");
-        const sink = output?.sink ?? context.stdout;
+        const sink = createBufferedOutput(output?.sink ?? context.stdout, context.signal);
         for (let index = 0n; index < ahead; index++) {
           context.signal.throwIfAborted();
           diagnostic = parsed.random === undefined ? "getrandom" : `${quote(parsed.random)}: read error`;
@@ -192,9 +198,12 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
           }
           const line = parsed.range ? encoder.encode(`${parsed.range.low + chosen}${parsed.delimiter === 0 ? "\0" : "\n"}`) : lines[Number(chosen)]!;
           diagnostic = "write error";
-          await writeBytes(sink, line, context.signal);
-          if (index % 256n === 255n) await yieldTurn(context.signal);
+          await sink.write(line);
+          if (index % 256n === 255n && (hasYieldCheckpoint(context.signal) || monotonicNow() - lastYield >= 25)) {
+            await yieldTurn(context.signal); lastYield = monotonicNow();
+          }
         }
+        await sink.flush();
         if (output) await output.finish();
         context.signal.throwIfAborted();
         return { exitCode: 0 };

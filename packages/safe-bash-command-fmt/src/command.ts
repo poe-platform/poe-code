@@ -2,7 +2,7 @@ import { commandRuntimeIdentity, CommandArgumentIdentityError, FsError, getComma
 import { isAbsolutePath, validatePath } from '@poe-code/safe-fs/core';
 import { assertCommandRequirements } from 'safe-bash-contracts/command-requirements';
 import { createOutputOperation, type OutputOperation } from 'safe-bash-contracts/output';
-import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn as contractYieldTurn } from 'safe-bash-contracts/yield';
+import { hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn as contractYieldTurn } from 'safe-bash-contracts/yield';
 import { FmtError, defaultFmtLimits, validateFmtLimits, type FmtLimits, type FmtProfile } from './contracts.js';
 import { parseFmtArguments } from './arguments.js';
 import { createFmtEngine, type FmtEngine } from './engine.js';
@@ -156,6 +156,7 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
     context.signal.throwIfAborted();
     const controller = new AbortController();
     const local = { ...context, signal: AbortSignal.any([context.signal, controller.signal]) };
+    inheritYieldCheckpoint(context.signal, local.signal);
     const limits: FmtLimits = { ...defaultFmtLimits, ...configuration.limits };
     let sdkArguments: readonly Uint8Array[] | undefined;
     let argumentFailure: { error: unknown } | undefined;
@@ -214,12 +215,10 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
         let emptyChunks = 0;
         let chunks = 0;
         let checkpoints = 0;
-        let yieldCount = 0;
         let lastYield = monotonicNow();
         const maybeYield = async (signal: AbortSignal): Promise<void> => {
-          const count = ++yieldCount;
           const now = monotonicNow();
-          if (count === 1 || now - lastYield >= 16 || hasYieldCheckpoint(signal)) {
+          if (now - lastYield >= 25 || hasYieldCheckpoint(signal)) {
             lastYield = now;
             await contractYieldTurn(signal);
             lastYield = monotonicNow();

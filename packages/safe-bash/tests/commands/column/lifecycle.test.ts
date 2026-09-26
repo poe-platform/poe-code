@@ -118,7 +118,7 @@ test("sink writes are awaited, owned, and sequential", async () => {
   await entered.promise;
   await new Promise<void>(resolve => setImmediate(resolve));
   assert.equal(calls, 1);
-  assert.equal(Buffer.from(received[0]!).toString(), "a");
+  assert.equal(Buffer.from(received[0]!).toString(), "a     b\nlong  z\n");
   release.resolve();
   assert.equal((await pending).exitCode, 0);
   assert.equal(Buffer.concat(received).toString(), "a     b\nlong  z\n");

@@ -51,7 +51,6 @@ export class LineEndingError extends PublicDiagnostic {
 export class Budget {
   private work = 0;
   private quantum = 0;
-  private checkpointCount = 0;
   private lastYield = monotonicNow();
   private memory = 0;
   private input = 0;
@@ -87,17 +86,15 @@ export class Budget {
     this.quantum += amount;
     if (this.quantum < 1024) return;
     this.quantum = 0;
-    const count = ++this.checkpointCount;
-    const now = monotonicNow();
-    if (count === 1 || now - this.lastYield >= 16 || hasYieldCheckpoint(this.caller)) {
-      this.lastYield = now;
-      return yieldTurn(this.caller).then(() => {
-        this.lastYield = monotonicNow();
-        this.assertOpen();
-      });
+    if (!hasYieldCheckpoint(this.caller) && monotonicNow() - this.lastYield < 25) {
+      runYieldCheckpoint(this.caller);
+      this.assertOpen();
+      return;
     }
-    runYieldCheckpoint(this.caller);
-    this.assertOpen();
+    return yieldTurn(this.caller).then(() => {
+      this.lastYield = monotonicNow();
+      this.assertOpen();
+    });
   }
   async arguments(): Promise<string[]> {
     const args = this.context.args;

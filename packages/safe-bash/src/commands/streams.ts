@@ -1,7 +1,7 @@
 import { hasYieldCheckpoint } from "../contracts/yield.js";
 const SMALL_WC_COUNT_LINES: readonly string[] = Array.from({ length: 129 }, (_, i) => `${i}\n`);
 const SINGLE_STDIN_OPERAND: readonly string[] = ["-"];
-import { createOutputOperation, FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
+import { createBufferedOutput, createOutputOperation, FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
 import { openFileOutput, type FileOutput } from "../contracts/filesystem-output.js";
 import { outputFailure } from "../contracts/io.js";
 import { assertCommandRequirements, type CommandFileSystemRequirement } from "../contracts/command-requirements.js";
@@ -371,6 +371,8 @@ async function prefix(context: CommandContext, source: ByteSource, count: number
 
 async function suffix(context: CommandContext, source: ByteSource, count: number, bytes: boolean, omit: boolean, delimiter: number): Promise<void> {
   if (!bytes) {
+    const buffered = createBufferedOutput(context.stdout, context.signal);
+    try {
     const delimiterByte = Uint8Array.of(delimiter);
     let pendingLines: { bytes: Uint8Array; terminated: boolean }[] = [];
     let start = 0;
@@ -393,7 +395,7 @@ async function suffix(context: CommandContext, source: ByteSource, count: number
         while (pendingLines.length - start > count) {
           const first = pendingLines[start++]!;
           size -= first.bytes.length + (first.terminated ? 1 : 0);
-          await output(context, first.terminated ? concatenate([first.bytes, delimiterByte]) : first.bytes);
+          await buffered.write(first.terminated ? concatenate([first.bytes, delimiterByte]) : first.bytes);
         }
         if (size > bufferLimit) throw new FsError("EFBIG", { message: "tail buffer limit exceeded" });
         if (start > 1024) { pendingLines = pendingLines.slice(start); start = 0; }
@@ -409,6 +411,7 @@ async function suffix(context: CommandContext, source: ByteSource, count: number
           lineStart = offset + 1;
         }
         if (lineStart < chunk.length) pending.append(chunk, lineStart);
+        if (omit) await buffered.flush();
       }
       if (pending.size) {
         context.signal.throwIfAborted();
@@ -445,6 +448,7 @@ async function suffix(context: CommandContext, source: ByteSource, count: number
       }
     }
     return;
+    } finally { if (!context.signal.aborted) await buffered.flush(); }
   }
   let pending: Uint8Array[] = [];
   let start = 0;

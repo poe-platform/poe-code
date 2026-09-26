@@ -284,13 +284,15 @@ test("repeat cancellation preserves a completed file write", async () => {
   const reason = new Error("stop output file");
   const fs = createMemoryFileSystem();
   const append = fs.appendFile.bind(fs);
+  let completed = new Uint8Array();
   fs.appendFile = async (path, bytes, options) => {
     await append(path, bytes, options);
-    if (bytes.length) controller.abort(reason);
+    if (bytes.length) { completed = bytes.slice(); controller.abort(reason); }
   };
   Object.defineProperty(fs, "writeStream", { value: undefined });
   await assert.rejects(run(["-re", "x", "-o/result"], undefined, undefined, { fs, signal: controller.signal }), error => error === reason);
-  assert.equal(Buffer.from(await fs.readFile("/result")).toString(), "x\n");
+  assert.ok(completed.length > 0);
+  assert.deepEqual(await fs.readFile("/result"), completed);
 });
 
 test("Shell closes an infinite upstream repeat when the downstream consumer finishes", { timeout: 1500 }, async () => {
@@ -301,7 +303,7 @@ test("Shell closes an infinite upstream repeat when the downstream consumer fini
     name: "take",
     async execute(context) {
       for await (const chunk of context.stdin) {
-        await context.stdout.write(chunk);
+        await context.stdout.write(chunk.subarray(0, chunk.indexOf(10) + 1));
         break;
       }
       return { exitCode: 0 };

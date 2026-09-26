@@ -3,6 +3,7 @@ import type { CapabilityContext } from "../contracts.js";
 import type { Workbook } from "../workbook.js";
 import { createBiffWriter, readBiff } from "./biff.js";
 import { readCfb } from "./biff-binary.js";
+import { readGnumeric, writeGnumeric } from "./gnumeric.js";
 
 const context: CapabilityContext = { signal: new AbortController().signal, own() {},
   environment: { env: {}, locale: "C", timezone: "UTC" },
@@ -93,4 +94,44 @@ it("retains plaintext properties beside an encrypted workbook without claiming a
   const bytes = await createBiffWriter(8)(book, ["encryption=rc4-cryptoapi-128"], encrypted);
   expect(new TextDecoder().decode(readCfb(bytes, context).get(summary))).toContain("Résumé 🧮");
   expect((await readBiff(bytes, encrypted)).properties).toEqual(book.properties);
+});
+
+it.each([7, 8, "dsf"] as const)("does not report represented XML metadata as lost in BIFF %s", async profile => {
+  const imported = await readGnumeric(await writeGnumeric(book, [], context), context), before = structuredClone(imported);
+  const warnings: string[] = [];
+  const bytes = await createBiffWriter(profile)(imported, [], { ...context, async diagnostic(d) { warnings.push(d.message); } });
+  expect(warnings).toEqual([]);
+  expect((await readBiff(bytes, context)).properties).toEqual(book.properties);
+  expect(imported).toEqual(before);
+});
+
+it("reports an unrepresentable property once without a duplicate wrapper warning", async () => {
+  const imported = await readGnumeric(await writeGnumeric({ ...book, properties: { "dc:keywords": ["alpha, beta"] } }, [], context), context);
+  const warnings: string[] = [];
+  await createBiffWriter(8)(imported, [], { ...context, async diagnostic(d) { warnings.push(d.message); } });
+  expect(warnings).toEqual(["Unsupported Excel BIFF document property: dc:keywords"]);
+});
+
+it("does not clear a record already marked as dropped", async () => {
+  const imported = await readGnumeric(await writeGnumeric(book, [], context), context);
+  const warnings: string[] = [];
+  await createBiffWriter(8)({ ...imported, unsupportedRecords: imported.unsupportedRecords!.map(record => ({ ...record, disposition: "dropped" })) }, [],
+    { ...context, async diagnostic(d) { warnings.push(d.message); } });
+  expect(warnings).toContain("Unsupported Excel BIFF export metadata: document-meta");
+});
+
+it.each([
+  '<meta:unknown>opaque</meta:unknown>',
+  'opaque text',
+  '<dc:title>duplicate title</dc:title>',
+  '<meta:user-defined meta:name="dc:keywords" meta:value-type="string">override</meta:user-defined>',
+  '<dc:title xmlns:x="urn:unknown" x:extra="opaque">duplicate title</dc:title>',
+  '<meta:user-defined xmlns:x="urn:unknown" x:name="hidden" meta:name="Count" meta:value-type="float">9</meta:user-defined>',
+  '<meta:user-defined meta:name="CustomDate" meta:value-type="date">2024-02-29</meta:user-defined>'
+])("keeps a loss warning for unrepresented wrapper content: %s", async extra => {
+  const xml = new TextDecoder().decode(await writeGnumeric(book, [], context));
+  const imported = await readGnumeric(new TextEncoder().encode(xml.replace("</office:meta>", extra + "</office:meta>")), context);
+  const warnings: string[] = [];
+  await createBiffWriter(8)(imported, [], { ...context, async diagnostic(d) { warnings.push(d.message); } });
+  expect(warnings).toContain("Unsupported Excel BIFF export metadata: document-meta");
 });

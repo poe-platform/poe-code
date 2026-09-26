@@ -657,7 +657,7 @@
       ],
       "productEvidence": "At 5124a5a714, biff.ts workbookBytes (82) selects only Workbook/Book from readCfb; readBiff does not populate Workbook.properties, and writeBiff emits only workbook streams. biff-encryption.ts:96 refuses CryptoAPI flags without bit 8 (ancillary properties encrypted). These are separate metadata preservation and encryption gaps.",
       "nativeTrace": "excimp8.cxx:418 calls sfx2::LoadOlePropertySet on the root storage. docinf.cxx:49 reads SummaryInformation title/subject/author/comments/timestamps and DocumentSummaryInformation named custom properties. oleprops.cxx:1094 opens each property stream directly; this path does not supply the BIFF decrypter and is not an encrypted-property implementation recipe.",
-      "next": "Reconcile generic metadata loss bookkeeping with successfully exported properties, then preserve unsupported property records across edits. Independently qualify native application readback and resolve encrypted ancillary streams; do not remove their refusal before implementation.",
+      "next": "Preserve unsupported property records across edits using the pinned source layout. Independently qualify native application readback and resolve encrypted ancillary streams; do not remove their refusal before implementation.",
       "containerPrerequisite": {
         "change": "CFB output now admits more than two root-owned streams, chains every directory sector and writes a balanced red-black directory tree. Optional node/work and output-byte admission remains explicit; original one/two-stream layouts remain stable.",
         "evidence": "Seven failing memory cases reproduced the cap. Final 53-file BIFF cohort passes 1174 tests, including independent directory order, cycle, color/black-height and exact stream-value checks for 3/4/7/8/15/16 streams. Maintained package lint/types/public consumers and selected four-workspace build pass.",
@@ -691,8 +691,12 @@
           "matchedCells": 3,
           "mismatches": "All three custom true values read as false. SheetJS xlsx.mjs:6419 calls parsebool, whose :6575 implementation recognizes only 1. Independent CFB decoding confirms our stored ffff0000 matches LibreOffice output; this is not counted as a boolean application pass."
         },
-        "cli": "Executed compiled public createEngine/runCommand over Gnumeric XML with an embedded-comma keyword. Conversion publishes a BIFF workbook and emits the property loss warning; inspected terminal screenshot. A second generic document-meta retention warning remains and requires separate reconciliation.",
-        "remaining": "Unknown raw property sections/types and sub-millisecond timestamp bytes are retained on import but not yet merged back into edited exports. Generic retained document-meta wrappers can still cause redundant export warnings. Native application readback, encrypted ancillary metadata and wider property profiles remain open."
+        "cli": "Executed compiled public createEngine/runCommand over Gnumeric XML with an embedded-comma keyword. Conversion publishes a BIFF workbook and emits exactly the property loss warning; inspected terminal screenshot after metadata-warning reconciliation.",
+        "remaining": "Unknown raw property sections/types and sub-millisecond timestamp bytes are retained on import but not yet merged back into edited exports. Native application readback, encrypted ancillary metadata and wider property profiles remain open.",
+        "metadataWarnings": {
+          "change": "Suppress the generic retained Gnumeric document-meta loss report only when every namespace-aware field has an exported value or a specific property diagnostic. Keep the original workbook record unchanged. Unknown fields, attributes, namespaces, parent text, custom types, duplicate keys and dropped records retain their warning.",
+          "validation": "Four original failures reproduced redundant warnings across BIFF7/8/DSF and unrepresentable keywords. The broader BIFF cohort passed 55 files / 1221 tests before the final dropped-record guard. That guard reproduced a failure, then the final 25-case writer suite, maintained package lint/types and selected four-workspace build passed. Inspected the actual CLI screenshot showing one property warning and successful workbook publication."
+        }
       }
     }
   },

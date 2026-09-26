@@ -17,7 +17,9 @@ source captures and logs under `out`; remove them after recording compact eviden
    count that reader mismatch as a pass.
 4. Run the actual ssconvert CLI formatter against Gnumeric XML containing a keyword
    with an embedded comma. Inspect a terminal screenshot of its explicit export-loss
-   warning and confirm the conversion still publishes a valid workbook.
+   warning and confirm the conversion still publishes a valid workbook. Confirm exactly
+   one specific warning appears; unknown wrapper content and records already marked
+   as dropped must still produce their generic metadata-loss warning.
 5. Cross-read fresh exports with LibreOffice and Gnumeric when the native runtimes are
    available. Check saved properties independently of worksheet values. Native GUI
    access and screenshots must be executed before claiming application qualification.

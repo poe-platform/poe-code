@@ -1,9 +1,69 @@
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
-import type { ImportedValue, Workbook } from "../workbook.js";
+import type { ImportedValue, UnsupportedRecord, Workbook } from "../workbook.js";
 import { biffPropertyFields, biffPropertyFormats, isBiffKeywordSpace } from "./biff-properties.js";
 
 const fieldByName = new Map([...biffPropertyFields].flatMap(([guid, fields]) => [...fields].map(([id, name]) => [name, { guid, id }] as const)));
 const maximumFileTime = 0xffffffffffffffffn;
+
+/** Only discard a generic loss report when every XML field has been handled.
+ * Keep the original record on the caller's workbook, including unknown content. */
+function handledPropertyRecord(record: UnsupportedRecord, keys: ReadonlySet<string>, charge: (amount: number) => void): boolean {
+  if (record.disposition !== "retained" || record.source !== "Gnumeric_XmlIO:sax" || record.kind !== "document-meta") return false;
+  const office = "urn:oasis:names:tc:opendocument:xmlns:office:1.0", meta = "urn:oasis:names:tc:opendocument:xmlns:meta:1.0";
+  type Node = { name: string; namespace: string; text: string; attributes: ImportedValue[]; children: ImportedValue[] };
+  const node = (value: ImportedValue | undefined): Node | undefined => {
+    charge(1);
+    if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+    const data = value as Readonly<Record<string, ImportedValue>>;
+    for (const key in data) if (Object.hasOwn(data, key)) { charge(1); if (!["name", "namespace", "text", "attributes", "children"].includes(key)) return undefined; }
+    if (typeof data.name !== "string" || typeof data.namespace !== "string" || typeof data.text !== "string" ||
+      !Array.isArray(data.attributes) || !Array.isArray(data.children)) return undefined;
+    charge(data.name.length + data.namespace.length + data.text.length + data.attributes.length + data.children.length);
+    return data as Node;
+  };
+  const attributes = (n: Node, namespace: string, allowed: readonly string[]): Map<string, string> | undefined => {
+    const result = new Map<string, string>();
+    for (const value of n.attributes) {
+      charge(1);
+      if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+      const attr = value as Readonly<Record<string, ImportedValue>>;
+      for (const key in attr) if (Object.hasOwn(attr, key)) { charge(1); if (!["name", "namespace", "value"].includes(key)) return undefined; }
+      if (typeof attr.name !== "string" || attr.namespace !== namespace || typeof attr.value !== "string" ||
+        !allowed.includes(attr.name) || result.has(attr.name)) return undefined;
+      charge(attr.name.length + namespace.length + attr.value.length); result.set(attr.name, attr.value);
+    }
+    return result;
+  };
+  const whitespace = (text: string) => { for (const char of text) if (![" ", "\t", "\r", "\n"].includes(char)) return false; return true; };
+  const root = node(record.data);
+  if (!root || root.name !== "document-meta" || root.namespace !== office || !whitespace(root.text) || root.children.length !== 1) return false;
+  const rootAttrs = attributes(root, office, ["version"]);
+  if (!rootAttrs || rootAttrs.has("version") && !["1.0", "1.1", "1.2", "1.3"].includes(rootAttrs.get("version")!)) return false;
+  const content = node(root.children[0]);
+  if (!content || content.name !== "meta" || content.namespace !== office || !whitespace(content.text) || content.attributes.length) return false;
+  const seen = new Map<string, boolean>();
+  for (const value of content.children) {
+    const field = node(value); if (!field || field.children.length) return false;
+    let key: string | undefined;
+    if (field.namespace === meta && field.name === "user-defined") {
+      const attrs = attributes(field, meta, ["name", "value-type", "type"]);
+      if (!attrs?.has("name") || attrs.has("type") && attrs.has("value-type")) return false;
+      const type = attrs.get("value-type") ?? attrs.get("type") ?? "string";
+      if (!["string", "float", "boolean"].includes(type) || type === "boolean" && !["true", "false"].includes(field.text) ||
+        type === "float" && (!field.text.trim() || !Number.isFinite(Number(field.text)))) return false;
+      key = attrs.get("name");
+    } else {
+      if (field.attributes.length) return false;
+      key = field.namespace === meta ? field.name === "keyword" ? "dc:keywords" : "meta:" + field.name :
+        field.namespace === "http://purl.org/dc/elements/1.1/" ? "dc:" + field.name : undefined;
+      if (key === undefined || !fieldByName.has(key)) return false;
+    }
+    const keyword = field.namespace === meta && field.name === "keyword";
+    if (key === undefined || !keys.has(key) || seen.has(key) && !(keyword && seen.get(key))) return false;
+    seen.set(key, keyword);
+  }
+  return true;
+}
 
 function durationTicks(text: string): bigint | undefined {
   if (!text.startsWith("P")) return undefined;
@@ -34,8 +94,11 @@ function durationTicks(text: string): bigint | undefined {
 }
 
 /** Matches oleprops.cxx's UTF-8 codepage, untyped dictionary and aligned values. */
-export async function writeBiffProperties(book: Workbook, context: CapabilityContext): Promise<ReadonlyMap<string, Uint8Array>> {
+export async function writeBiffProperties(book: Workbook, context: CapabilityContext): Promise<{
+  streams: ReadonlyMap<string, Uint8Array>; handledMetadata: ReadonlySet<UnsupportedRecord>;
+}> {
   const streams = new Map<string, Uint8Array>(), sections = new Map<string, Map<number, Uint8Array>>();
+  const handledKeys = new Set<string>();
   let work = 0, textBytes = 0, nodes = 0, payloadBytes = 0;
   const charge = (amount: number) => {
     context.signal.throwIfAborted(); work += amount;
@@ -118,6 +181,7 @@ export async function writeBiffProperties(book: Workbook, context: CapabilityCon
     charge(1); if (++nodes > (context.limits.workbookNodes ?? context.limits.outputBytes))
       throw new SsconvertError("resource-limit", "ssconvert BIFF property node limit exceeded");
     const field = fieldByName.get(key);
+    handledKeys.add(key);
     let source = book.properties[key]!;
     if (key === "dc:keywords" && Array.isArray(source)) {
       charge(source.length);
@@ -143,7 +207,11 @@ export async function writeBiffProperties(book: Workbook, context: CapabilityCon
     if (payloadBytes > context.limits.outputBytes) throw new SsconvertError("resource-limit", "ssconvert BIFF property output bytes limit exceeded");
     const properties = sections.get(guid) ?? new Map<number, Uint8Array>(); properties.set(id, value); sections.set(guid, properties);
   }
-  if (!sections.size) return streams;
+  const handledMetadata = new Set<UnsupportedRecord>();
+  for (const record of book.unsupportedRecords ?? []) {
+    charge(1); if (handledPropertyRecord(record, handledKeys, charge)) handledMetadata.add(record);
+  }
+  if (!sections.size) return { streams, handledMetadata };
   if (names.length) {
     const dictionary = allocate(4 + names.reduce((size, name) => size + 4 + name.bytes.length, 0)), view = new DataView(dictionary.buffer);
     view.setUint32(0, names.length, true); let at = 4;
@@ -178,5 +246,5 @@ export async function writeBiffProperties(book: Workbook, context: CapabilityCon
     }
     streams.set(name, bytes);
   }
-  return streams;
+  return { streams, handledMetadata };
 }

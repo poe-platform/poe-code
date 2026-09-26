@@ -27,17 +27,19 @@ export function createBiffWriter(profile: 7 | 8 | "dsf"): NonNullable<Codec["wri
       if (!encrypted || profile !== 8 && encrypted.algorithm !== "xor") throw new SsconvertError("invalid-request", "Invalid Excel BIFF encryption profile");
     }
     const properties = await writeBiffProperties(book, context);
+    const source = properties.handledMetadata.size ? { ...book,
+      unsupportedRecords: (book.unsupportedRecords ?? []).filter(record => !properties.handledMetadata.has(record)) } : book;
     const streams = new Map<string, Uint8Array>();
     try {
-      if (profile === 7 || profile === "dsf") streams.set("Book", await writeBiffStream(book, 7, profile === "dsf", context,
+      if (profile === 7 || profile === "dsf") streams.set("Book", await writeBiffStream(source, 7, profile === "dsf", context,
         encrypted ? createBiffEncryptionHeader(encrypted, 7) : undefined));
       if (profile === 8 || profile === "dsf") {
-        const stream = await writeBiffStream(book, 8, profile === "dsf", context, encrypted ? createBiffEncryptionHeader(encrypted) : undefined);
+        const stream = await writeBiffStream(source, 8, profile === "dsf", context, encrypted ? createBiffEncryptionHeader(encrypted) : undefined);
         streams.set("Workbook", stream);
         if (encrypted && encrypted.algorithm !== "xor") await encryptBiffStream(stream, context, encrypted);
       }
       if (encrypted?.algorithm === "xor") await encryptBiffXorStreams([...streams.values()], profile === 7 ? 7 : 8, context);
-      for (const [name, bytes] of properties) streams.set(name, bytes);
+      for (const [name, bytes] of properties.streams) streams.set(name, bytes);
       return writeCfb(streams, context);
     } finally { if (encrypted) for (const stream of streams.values()) stream.fill(0); }
   };

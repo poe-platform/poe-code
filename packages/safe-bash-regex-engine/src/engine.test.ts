@@ -5,6 +5,29 @@ import { Budget, ProgramError } from "./text/budget.js";
 import { PublicDiagnostic } from "safe-bash-contracts/public-diagnostic";
 import type { CommandContext } from "safe-bash-contracts";
 
+for (const pooled of [false, true]) {
+  for (const startedAt of [100.75, 2 ** 31 - 10, 2 ** 31 + 10, 2 ** 32 + 10]) {
+    test(`text budget honors elapsed checkpoints with pooled=${pooled}, clock=${startedAt}`, async t => {
+      let now = startedAt;
+      t.mock.method(performance, "now", () => now);
+      const context = { signal: new AbortController().signal } as CommandContext;
+      // A third acquisition exercises a previously released pooled budget.
+      for (let invocation = 0; invocation < (pooled ? 3 : 1); invocation++) {
+        now = startedAt;
+        const budget = pooled ? Budget.acquire(context, {}) : new Budget(context, {});
+        try {
+          now = startedAt + 24.75;
+          assert.equal(budget.checkpointSync(), undefined);
+          now = startedAt + 25;
+          const pending = budget.checkpointSync();
+          assert.ok(pending instanceof Promise);
+          await pending;
+        } finally { Budget.release(budget); }
+      }
+    });
+  }
+}
+
 test("pooled text budgets replace retired callers and preserve limits and cancellation", () => {
   const budgets = new Set<Budget>();
   for (let index = 0; index < 6; index++) {

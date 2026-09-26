@@ -2,6 +2,7 @@ import type {CapabilityContext} from "safe-bash-command-ssconvert";
 import type {Block, Row} from "./ast-types.js";
 import type {ReaderCapability} from "./types.js";
 import {PandocError} from "./errors.js";
+import {literalInlines} from "./literal-inlines.js";
 const attr = ["", [], []] as const;
 export const xlsxReader: ReaderCapability = {format: "xlsx", async read(input, ctx) {
   const l = ctx.limits;
@@ -11,13 +12,18 @@ export const xlsxReader: ReaderCapability = {format: "xlsx", async read(input, c
       compressedBytes: l.compressedBytes, inflatedBytes: Math.min(l.expandedBytes, l.retainedBytes), zipEntries: l.parts,
       xmlDepth: l.xmlDepth, workbookNodes: l.xmlNodes, workbookTextBytes: l.text, workbookWork: l.work}};
   try {
-    const {readXlsx} = await import("safe-bash-command-ssconvert");
+    if (input.bytes.length < 22) throw new PandocError("E_PARSE", "read", "Truncated XLSX archive", "xlsx");
+    const {readXlsx, recalculateWorkbook} = await import("safe-bash-command-ssconvert");
     ctx.checkpoint();
-    const workbook = await readXlsx(input.bytes, context);
+    const workbook = recalculateWorkbook(await readXlsx(input.bytes, context), context, {force: false, ignoreCalculationMode: true});
     const blocks: Block[] = [];
+    let nodes = 0;
     for (const sheet of workbook.sheets) {
       await ctx.cooperate();
-      blocks.push({t: "Header", c: [1, attr, [{t: "Str", c: sheet.name}]]});
+      ctx.bound("nodes", ++nodes);
+      const title = await literalInlines(sheet.name, ctx, nodes);
+      nodes += title.length;
+      blocks.push({t: "Header", c: [1, attr, title]});
       if (!sheet.cells.length) continue;
       let height = 0, width = 0;
       for (const cell of sheet.cells) {ctx.checkpoint(); height = Math.max(height, cell.row + 1); width = Math.max(width, cell.column + 1);}
@@ -33,11 +39,16 @@ export const xlsxReader: ReaderCapability = {format: "xlsx", async read(input, c
           const value = cell?.cachedResult ?? cell?.value;
           const text = cell?.displayedText ?? (value && value.kind !== "blank" ? String(value.value) : "");
           ctx.bound("tableFieldText", text.length);
-          row.push([attr, "AlignDefault", 1, 1, text ? [{t: "Plain", c: [{t: "Str", c: text}]}] : []]);
+          const inlines = await literalInlines(text, ctx, nodes);
+          nodes += inlines.length;
+          if (inlines.length) ctx.bound("nodes", ++nodes);
+          row.push([attr, "AlignDefault", 1, 1, inlines.length ? [{t: "Plain", c: inlines}] : []]);
         }
         rows.push([attr, row]);
       }
-      blocks.push({t: "Table", c: [attr, [null, []], Array.from({length: width}, () => ["AlignDefault", {t: "ColWidthDefault"}]), [attr, []], [[attr, 0, [], rows]], [attr, []]]});
+      ctx.bound("nodes", ++nodes);
+      const head = rows.shift()!;
+      blocks.push({t: "Table", c: [attr, [null, []], Array.from({length: width}, () => ["AlignDefault", {t: "ColWidthDefault"}]), [attr, [head]], [[attr, 0, [], rows]], [attr, []]]});
     }
     return {blocks, metadata: {}, resources: []};
   } catch (error) {

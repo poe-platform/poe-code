@@ -1995,7 +1995,7 @@ async function executePdftk(context: CommandContext): Promise<{ exitCode: number
       }
     };
 
-    if (argv.some(t => t === "-" || t.endsWith("=-"))) {
+    if (argv.some((t, i) => (t === "-" || t.endsWith("=-")) && argv[i - 1]?.toLowerCase() !== "output")) {
       const chunks: Uint8Array[] = [];
       let total = 0;
       for await (const chunk of readBytes(context.stdin, invocation.signal)) {

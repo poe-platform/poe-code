@@ -1352,7 +1352,17 @@ export async function pdftohtml(context: CommandContext): Promise<{ exitCode: nu
       }
     };
 
-    if (argv.includes("-")) {
+    let inputOperand: string | undefined;
+    for (let i = 0; i < argv.length; i++) {
+      const arg = argv[i]!;
+      if (["-f", "-l", "-zoom", "-fmt", "-enc", "-upw", "-opw"].includes(arg)) {
+        i++;
+      } else if (arg === "-" || !arg.startsWith("-")) {
+        inputOperand = arg;
+        break;
+      }
+    }
+    if (inputOperand === "-") {
       const chunks: Uint8Array[] = [];
       let total = 0;
       for await (const chunk of readBytes(context.stdin, invocation.signal)) {

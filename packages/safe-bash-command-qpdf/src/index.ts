@@ -4,7 +4,7 @@ import {
   type CommandContext,
   type CommandDefinition
 } from "safe-bash-contracts/command";
-import { writeBytes } from "safe-bash-contracts/io";
+import { readBytes, writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import {
@@ -616,7 +616,8 @@ function collectNumberTreeDicts(
 
 export async function runQpdfCli(
   argv: readonly string[],
-  files: Map<string, Uint8Array>
+  files: Map<string, Uint8Array>,
+  readStdin?: () => Promise<void>
 ): Promise<QpdfCliResult> {
   let check = false;
   let showNpages = false;
@@ -690,7 +691,7 @@ export async function runQpdfCli(
     }
     if (arg === "--check") {
       check = true;
-    } else if (arg === "--show-npages") {
+    } else if (arg === "--show-npages" || arg === "--npages") {
       showNpages = true;
     } else if (arg === "--show-pages") {
       showPages = true;
@@ -979,13 +980,15 @@ export async function runQpdfCli(
         i++;
       }
       encryptConfig = cfg;
-    } else if (!arg.startsWith("-")) {
+    } else if (!arg.startsWith("-") || arg === "-") {
       positional.push(arg);
     }
   }
 
   const inputFile = emptyInput ? undefined : positional[0];
   const outputFile = emptyInput ? positional[0] : positional[1];
+
+  if (inputFile === "-" && readStdin) await readStdin();
 
   const loadBytes = (filePath: string): Uint8Array | undefined => {
     if (filePath === "." && inputFile) return files.get(inputFile);
@@ -2395,6 +2398,25 @@ export async function qpdf(context: CommandContext): Promise<{ exitCode: number 
       }
     };
 
+    // qpdf argument files contain one argument per line, resolved from the cwd.
+    for (let i = 0; i < argv.length; i++) {
+      const token = argv[i]!;
+      if (!token.startsWith("@")) continue;
+      const path = token.slice(1);
+      let bytes: Uint8Array;
+      try {
+        bytes = await context.fs.readFile(resolveVfsPath(path), { signal: invocation.signal });
+      } catch {
+        await writeBytes(context.stderr, new TextEncoder().encode(`qpdf: cannot open ${path}\n`), invocation.signal);
+        return { exitCode: 2 };
+      }
+      chargeBytes(bytes.byteLength);
+      const args = new TextDecoder().decode(bytes).split("\n").map(line => line.endsWith("\r") ? line.slice(0, -1) : line).filter(line => line.length > 0);
+      argv.splice(i, 1, ...args);
+      // Argument-file contents are arguments, not recursively expanded files.
+      i += args.length - 1;
+    }
+
     for (const token of argv) {
       let candidate = token;
       if (
@@ -2446,7 +2468,23 @@ export async function qpdf(context: CommandContext): Promise<{ exitCode: number 
     }
 
     const existingSnap = new Map(vfsFiles);
-    const res = await runQpdfCli(argv, vfsFiles);
+    const res = await runQpdfCli(argv, vfsFiles, async () => {
+      const chunks: Uint8Array[] = [];
+      let total = 0;
+      for await (const chunk of readBytes(context.stdin, invocation.signal)) {
+        chargeBytes(chunk.byteLength);
+        chunks.push(chunk);
+        total += chunk.byteLength;
+      }
+      const bytes = new Uint8Array(total);
+      let offset = 0;
+      for (const chunk of chunks) {
+        bytes.set(chunk, offset);
+        offset += chunk.byteLength;
+      }
+      vfsFiles.set("-", bytes);
+      existingSnap.set("-", bytes);
+    });
 
     if (res.stderr) {
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);

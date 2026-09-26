@@ -1,13 +1,13 @@
 # `@poe-platform/safe-bash/commands/qpdf`
 
-Inspect, check, encrypt, decrypt, merge, split, rotate, and transform PDFs at the COS and page-tree level inside `safe-bash` virtual shells or directly from TypeScript.
+Inspect, check, encrypt, decrypt, merge, split, rotate, and transform PDFs at the COS and page-tree level inside `safe-bash` virtual shells or directly from TypeScript. Use `-` as the input to read a PDF from stdin or as the output to write a PDF to stdout. `qpdf @args.txt` reads one argument per line and resolves referenced files from the shell working directory.
 
 ## Features
 
 | Capability | CLI Flag | Description |
 | --- | --- | --- |
 | Structural Check | `--check` | Validates COS xref/trailer/object graph and reports version & repair status. |
-| Page & Object Inspection | `--show-npages`, `--show-xref`, `--show-object=<n>`, `--json` | Inspects page count, xref table, individual COS objects, or QPDF v1/v2 JSON. |
+| Page & Object Inspection | `--show-npages` / `--npages`, `--show-xref`, `--show-object=<n>`, `--json` | Inspects page count, xref table, individual COS objects, or QPDF v1/v2 JSON. |
 | Encryption & Predicates | `--encrypt ... --`, `--decrypt`, `--show-encryption`, `--is-encrypted`, `--requires-password` | Encrypts/decrypts PDFs and evaluates encryption status codes (`0`, `2`, `3`). |
 | Page Selection & Merge | `--empty --pages fileA.pdf 1-3,r1 fileB.pdf 1-5:odd -- out.pdf` | Supports `rN`/`z`, descending ranges, `x` exclusions, and `:odd`/`:even` positional filters. |
 | Page Splitting | `--split-pages[=n]` | Splits multi-page PDFs into numbered single-page or N-page files. |

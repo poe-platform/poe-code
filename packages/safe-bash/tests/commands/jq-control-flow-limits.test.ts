@@ -96,6 +96,51 @@ test("single-file input observes yielding cancellation without an unhandled reje
   await new Promise<void>(resolve => setImmediate(resolve));
 });
 
+for (const reason of [false, null]) test(`cold flat-file parsing retains cooperative cancellation: ${reason}`, async context => {
+  context.mock.method(performance, "now", () => 0);
+  const fs = createMemoryFileSystem();
+  registerRuntimeBackingFileSystem(fs, fs);
+  await fs.writeFile("/flat.json", Buffer.from('{"enabled":true,"name":"kept"}\n'));
+  const controller = new AbortController();
+  let checkpoints = 0;
+  let writes = 0;
+  registerYieldCheckpoint(controller.signal, () => { checkpoints++; controller.abort(reason); });
+  const commandContext = {
+    command: "jq", args: ["-c", " ".repeat(reason === false ? 1703 : 1704) + "select(.enabled) | {name}", "/flat.json"],
+    stdin: toByteSource(""), cwd: "/", env: {}, fs, _fastMemoryBackingFs: fs,
+    signal: controller.signal,
+    stdout: { writeSync() { writes++; return true; }, async write() { writes++; } },
+    stderr: { async write() { writes++; } },
+  };
+  await assert.rejects(Promise.resolve().then(() => jqCommand().execute(commandContext)), error => error === reason);
+  assert.equal(checkpoints, 1);
+  assert.equal(writes, 0);
+  await new Promise<void>(resolve => setImmediate(resolve));
+});
+
+test("eligible cold flat select/project retains synchronous execution", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/flat.json", Buffer.from('{"enabled":true,"name":"kept"}\n{"enabled":false,"name":"omitted"}\n'));
+  const bytes: Uint8Array[] = [];
+  let syncWrites = 0;
+  let chargedReads = 0;
+  const commandContext = {
+    command: "jq", args: ["-c", "select(.enabled == true) | {label: .name}", "/flat.json"],
+    stdin: toByteSource(""), cwd: "/", env: {}, fs, _fastMemoryBackingFs: fs,
+    _chargeFastFsOp() { chargedReads++; }, signal: new AbortController().signal,
+    stdout: {
+      writeSync(chunk: Uint8Array) { syncWrites++; bytes.push(Buffer.from(chunk)); return true; },
+      async write() { assert.fail("eligible flat input should complete synchronously"); },
+    },
+    stderr: { async write() { assert.fail("unexpected diagnostic"); } },
+  };
+  const pending = jqCommand().execute(commandContext);
+  assert.equal(syncWrites, 1);
+  assert.equal((await pending).exitCode, 0);
+  assert.equal(chargedReads, 1);
+  assert.equal(Buffer.concat(bytes).toString(), '{"label":"kept"}\n');
+});
+
 test("nested lexical lookups charge the same budget without cloning CLI variables", async () => {
   class Variables extends Map<string, Json> {
     override [Symbol.iterator](): MapIterator<[string, Json]> { throw new Error("variables cloned"); }

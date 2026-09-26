@@ -166,17 +166,7 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
   const file = args[2]!;
   if (source.startsWith("-") || file.startsWith("-") || file === "-" || source.includes("$")) return undefined;
   let cachedAst = jqAstCache.get(source);
-  if (!cachedAst) {
-    if (limits.maxSourceBytes < source.length * 4 || limits.maxAstDepth < 256 || limits.maxSteps < 1000) return undefined;
-    try {
-      const parseBudget = sharedFastBudget ?? (sharedFastBudget = new Budget(limits, context.signal));
-      parseBudget.resetForRun(context.signal);
-      cachedAst = parse(source, EMPTY_VARS_MAP, parseBudget);
-      if (jqAstCache.size < 64) jqAstCache.set(source, cachedAst);
-    } catch {
-      return undefined;
-    }
-  }
+  if (!cachedAst && (limits.maxSourceBytes < source.length * 4 || limits.maxAstDepth < 256 || limits.maxSteps < 1000)) return undefined;
   const syncSink = typeof (context.stdout as { writeSync?: unknown }).writeSync === "function"
     ? (context.stdout as unknown as { writeSync(chunk: Uint8Array): boolean; writeRangeSync?(src: Uint8Array, len: number): boolean })
     : undefined;
@@ -216,6 +206,13 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
   } else {
     budget.resetForRun(context.signal);
   }
+  // Parse only after eligibility, retaining its work in this invocation's budget.
+  // A declined synchronous attempt must not populate the slow route's AST cache.
+  if (!cachedAst) {
+    try { cachedAst = parse(source, EMPTY_VARS_MAP, budget); }
+    catch { return undefined; }
+  }
+  if (budget.needsYield()) return undefined;
   let interpreter = sharedFastInterpreter;
   if (!interpreter) {
     interpreter = sharedFastInterpreter = new Interpreter(budget, EMPTY_VARS_MAP);
@@ -259,6 +256,7 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
         : syncSink.writeSync(outBuf.subarray(0, len));
       if (!wrote) return undefined;
     }
+    if (jqAstCache.size < 64) jqAstCache.set(source, cachedAst);
     return RESOLVED_EXIT_ZERO;
   } catch (error) {
     if (committing) throw error;

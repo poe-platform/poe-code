@@ -27,6 +27,7 @@ export function pathExtension(path: string): string {
 export class LazyInput {
   #iterator: AsyncIterator<string> | undefined;
   #pending = "";
+  #cursor = 0;
   #byteIterator: AsyncIterator<Uint8Array> | undefined;
   #bytePrefix: Uint8Array[] = [];
   #byteDone = false;
@@ -95,6 +96,7 @@ export class LazyInput {
     }
     let scanned = 0, count = 0;
     while (true) {
+      if (this.#cursor > 0) { this.#pending = this.#pending.slice(this.#cursor); this.#cursor = 0; }
       while (scanned < this.#pending.length) {
         const value = this.#pending.codePointAt(scanned)!;
         if (value >= 0xd800 && value <= 0xdbff && scanned + 1 === this.#pending.length && !this.#done) break;
@@ -132,7 +134,7 @@ export class LazyInput {
       if (text.length) this.#readStarted = true;
       this.retain(text.length * 2);
       this.admit(text);
-      if (this.borrowed) { yield text; continue; }
+      if (this.borrowed || (!cr && !text.includes("\r"))) { yield text; continue; }
       let normalized = "";
       for (const char of text) {
         if (cr && char === "\n") { cr = false; continue; }
@@ -154,23 +156,24 @@ export class LazyInput {
   }
 
   async nextLine(stripNul = !this.borrowed): Promise<string | null> {
-    scan: while (true) {
+    while (true) {
       this.signal.throwIfAborted();
       if (this.#closing) throw new CsvkitDiagnostic("ValueError: I/O operation on closed file.");
-      for (let index = 0; index < this.#pending.length; index++) {
-        const char = this.#pending[index];
-        if (char !== "\n" && (this.borrowed || char !== "\r")) continue;
-        if (char === "\r" && index + 1 === this.#pending.length && !this.#done) { await this.#fill(); continue scan; }
-        const end = index + (char === "\r" && this.#pending[index + 1] === "\n" ? 2 : 1);
-        const line = this.#pending.slice(0, end);
-        this.#pending = this.#pending.slice(end);
-        return stripNul ? line.split("\0").join("") : line;
+      const nl = this.#pending.indexOf("\n", this.#cursor);
+      if (nl >= 0) {
+        const end = nl + 1;
+        const line = this.#pending.slice(this.#cursor, end);
+        this.#cursor = end;
+        if (this.#cursor === this.#pending.length) { this.#pending = ""; this.#cursor = 0; }
+        else if (this.#cursor >= 65536) { this.#pending = this.#pending.slice(this.#cursor); this.#cursor = 0; }
+        return stripNul && line.includes("\0") ? line.replaceAll("\0", "") : line;
       }
       if (this.#done) {
-        if (!this.#pending) return null;
-        const line = this.#pending; this.#pending = "";
-        return stripNul ? line.split("\0").join("") : line;
+        if (this.#cursor >= this.#pending.length) { this.#pending = ""; this.#cursor = 0; return null; }
+        const line = this.#pending.slice(this.#cursor); this.#pending = ""; this.#cursor = 0;
+        return stripNul && line.includes("\0") ? line.replaceAll("\0", "") : line;
       }
+      if (this.#cursor > 0) { this.#pending = this.#pending.slice(this.#cursor); this.#cursor = 0; }
       await this.#fill();
     }
   }
@@ -180,7 +183,8 @@ export class LazyInput {
     if (this.#closing) throw new CsvkitDiagnostic("ValueError: I/O operation on closed file.");
     for (let count = 0; count < skipped; count++) if (await this.nextLine(false) === null) break;
     while (!this.#done) await this.#fill();
-    const text = this.#pending; this.#pending = "";
+    const text = this.#cursor > 0 ? this.#pending.slice(this.#cursor) : this.#pending;
+    this.#pending = ""; this.#cursor = 0;
     return text;
   }
 
@@ -190,7 +194,7 @@ export class LazyInput {
   }
 
   readonly close = (): Promise<void> => this.#closing ??= Promise.resolve().then(async () => {
-    this.#pending = "";
+    this.#pending = ""; this.#cursor = 0;
     await this.#iterator?.return?.();
     if (!this.#iterator) await this.#byteIterator?.return?.();
     this.#bytePrefix = [];

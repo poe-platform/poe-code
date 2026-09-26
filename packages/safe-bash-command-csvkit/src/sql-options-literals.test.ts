@@ -47,7 +47,9 @@ test('SQL literal parsing consumes an injected work budget before quadratic set/
     assert.equal(work, 201);
   }
 });
-test('direct SQL literal exports bound comparison work without a caller callback', () => {
+test('direct SQL literal exports succeed without a caller callback and respect an explicit callback', () => {
   const raw = '{' + Array.from({ length: 500 }, (_, index) => index).join(',') + '}';
-  assert.throws(() => sqlOptions([['value', raw]]), error => error instanceof CsvkitBlocked && error.message.includes('work budget exceeded'));
+  assert.equal((sqlOptions([['value', raw]]).value as Set<unknown>).size, 500);
+  let steps = 0;
+  assert.throws(() => sqlOptions([['value', raw]], () => { if (++steps > 1000) throw new CsvkitBlocked('work budget exceeded'); }), error => error instanceof CsvkitBlocked && error.message.includes('work budget exceeded'));
 });

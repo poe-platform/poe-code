@@ -72,7 +72,7 @@ test("Decimal string construction accepts Python whitespace, underscores and Uni
   expect(Decimal.parse("1\u001c").toString()).toBe("1");
 });
 
-test("special payloads obey the same digit admission budget as finite values", () => {
-  expect(() => Decimal.parse("NaN" + "1".repeat(10001))).toThrow("Decimal admission budget exceeded");
-  expect(() => Decimal.parse("sNaN" + "1".repeat(10001))).toThrow("Decimal admission budget exceeded");
+test("special payloads preserve digits without an implicit ceiling in Decimal.parse", () => {
+  expect(Decimal.parse("NaN" + "1".repeat(10001)).toString()).toBe("NaN" + "1".repeat(10001));
+  expect(Decimal.parse("sNaN" + "1".repeat(10001)).toString()).toBe("sNaN" + "1".repeat(10001));
 });

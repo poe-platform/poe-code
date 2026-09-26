@@ -11,6 +11,8 @@ export { virtualPath } from "./io/index.js";
 
 export type Settings = Readonly<Record<string, unknown>>;
 
+const sharedTextEncoder = new TextEncoder();
+
 /** One invocation owns counters, admitted iterators and output backpressure. */
 export class Runtime {
   /** Side input/destinations belong to the invocation independently of stdout. */
@@ -25,14 +27,21 @@ export class Runtime {
   #writtenRows = 0;
   #sniffWarning = false;
   #closed = false;
+  #aborted = false;
+  readonly #pollSignal: boolean;
   readonly #iterators = new Map<AsyncIterator<Uint8Array>, () => Promise<void>>();
   #closing: Promise<void> | undefined;
   #stdinBytes: AsyncIterator<Uint8Array> | undefined;
   #stdinText: LazyInput | undefined;
   readonly #files = new Set<LazyInput>();
-  readonly #abort = (): void => { void this.close().catch(() => {}); };
+  readonly #abort = (): void => { this.#aborted = true; void this.close().catch(() => {}); };
   constructor(readonly context: Omit<CsvkitContext, "argv">, readonly descriptor: CommandDescriptor, readonly options: Settings, readonly matchFiles?: MatchFileScope) {
     context.registerCleanup(this.close, "invocation");
+    this.#pollSignal = Boolean(
+      context.signal &&
+        (typeof context.signal.addEventListener !== "function" ||
+          Object.prototype.hasOwnProperty.call(context.signal, "aborted")),
+    );
     if (context.signal.aborted) this.#abort();
     else context.signal.addEventListener("abort", this.#abort, { once: true });
   }
@@ -45,7 +54,10 @@ export class Runtime {
     });
   };
   readonly step = (): void => {
-    this.context.signal.throwIfAborted();
+    if (this.#aborted || (this.#pollSignal && this.context.signal.aborted)) {
+      this.#aborted = true;
+      this.context.signal.throwIfAborted();
+    }
     if (this.#closed) throw new CsvkitBlocked("invocation already closed");
     if (++this.#work > this.context.limits.maxWork) throw new CsvkitWorkBudgetError();
   };
@@ -155,6 +167,13 @@ export class Runtime {
     const resolved = resolveCodec(this.context.codecs, encoding);
     const file = new LazyInput(path && path !== "-" ? path : "<stdin>", () => this.bytes(path, true), resolved.codec, resolved.encoding,
       this.context.signal, size => this.retain(size), text => {
+        if (text.length === 0) return;
+        if (this.context.limits.maxCodepoints === Infinity && this.context.limits.maxWork === Infinity) {
+          this.step();
+          this.#work += text.length - 1;
+          this.#codepoints += text.length;
+          return;
+        }
         for (const ignoredChar of text) { this.step(); if (++this.#codepoints > this.context.limits.maxCodepoints) throw new CsvkitBlocked("codepoint budget exceeded"); }
       }, !path || path === "-");
     this.#files.add(file);
@@ -234,8 +253,17 @@ export class Runtime {
     this.#output += size;
   }
   async write(text: string, channel: "stdout" | "stderr" = "stdout"): Promise<void> {
+    if (this.context.limits.maxOutputBytes === Infinity && this.context.limits.maxWork === Infinity) {
+      this.step();
+      this.#work += text.length;
+      const bytes = sharedTextEncoder.encode(text);
+      this.#output += bytes.byteLength;
+      await this.context[channel].write(bytes);
+      this.step();
+      return;
+    }
     this.#admitOutput(text);
-    const bytes = new TextEncoder().encode(text);
+    const bytes = sharedTextEncoder.encode(text);
     await this.context[channel].write(bytes);
     this.step();
   }
@@ -244,7 +272,7 @@ export class Runtime {
     const destination = virtualPath(this.context.cwd, path);
     const encode = (text: string): Uint8Array => {
       this.#admitOutput(text);
-      return new TextEncoder().encode(text);
+      return sharedTextEncoder.encode(text);
     };
     if (!this.context.fs.openWriteFile) {
       let text = '';
@@ -258,7 +286,7 @@ export class Runtime {
           precedingHighSurrogate = last >= 0xd800 && last <= 0xdbff;
         }
       }
-      try { await this.context.fs.writeFile(destination, new TextEncoder().encode(text), { signal: this.context.signal }); }
+      try { await this.context.fs.writeFile(destination, sharedTextEncoder.encode(text), { signal: this.context.signal }); }
       catch (failure) { this.context.signal.throwIfAborted(); throw fileException(failure, path); }
       this.step(); return;
     }
@@ -312,9 +340,32 @@ export class Runtime {
       this.retain(codeUnits * 2);
       this.#output += bytes;
     } });
-    await this.context.stdout.write(new TextEncoder().encode(text));
+    await this.context.stdout.write(sharedTextEncoder.encode(text));
     this.step();
     this.#writtenRows++;
+  }
+  async rows(rowList: Iterable<readonly CsvWriteCell[]>, dialect: CsvDialect = {}, lineNumbers = Boolean(this.options.line_numbers)): Promise<void> {
+    let buf = "";
+    for (const cells of rowList) {
+      this.step();
+      if (cells.length + (lineNumbers ? 1 : 0) > this.context.limits.maxColumns) throw new CsvkitBlocked("output column budget exceeded");
+      const numbered = lineNumbers ? [this.#writtenRows === 0 ? "line_number" : this.#writtenRows, ...cells] : cells;
+      const text = writeCsvRow(numbered, dialect, true, { step: this.step, admit: (bytes, codeUnits) => {
+        if (!Number.isSafeInteger(bytes) || bytes > this.context.limits.maxOutputBytes - this.#output) throw new CsvkitOutputBudgetError();
+        this.retain(codeUnits * 2);
+        this.#output += bytes;
+      } });
+      this.step();
+      this.#writtenRows++;
+      buf += text;
+      if (buf.length >= 32768) {
+        await this.context.stdout.write(sharedTextEncoder.encode(buf));
+        buf = "";
+      }
+    }
+    if (buf.length > 0) {
+      await this.context.stdout.write(sharedTextEncoder.encode(buf));
+    }
   }
   error(message: string): never { throw new CsvkitDiagnostic(this.descriptor.usage + this.descriptor.name + ": error: " + message, 2); }
   async prompt(): Promise<void> {

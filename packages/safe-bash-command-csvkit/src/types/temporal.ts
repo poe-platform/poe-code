@@ -210,30 +210,50 @@ export function temporalDate(type: "Date" | "DateTime", text: string, options: T
   } catch (error) { if (error instanceof TemporalCastError) { if (!format && !p && type === "Date" && nlpAbsent === undefined) nlpAbsent = true; failure(); } throw error; }
 }
 
+const DURATION_UNITS = ["(?:w|wks?|weeks?)", "(?:d|dys?|days?)", "(?:h|hrs?|hours?)", "(?:m|mins?|minutes?)", "(?:s|secs?|seconds?)"];
+const DURATION_NAMED = DURATION_UNITS.map((unit, index) => `(?:([\\d.]+)\\s*${unit}${index === 4 ? "" : "\\s*(?:[,/]\\s*)?"})?`).join("\\s*");
+const DURATION_PATTERNS = [
+  new RegExp(`^\\s*${DURATION_NAMED}\\s*$`, "i"),
+  /^(\d{1,2}):(\d{2}(?:\.\d+)?)$/,
+  new RegExp(`^(?:([\\d.]+)\\s*${DURATION_UNITS[0]}\\s*(?:[,/]\\s*)?)?\\s*(?:([\\d.]+)\\s*${DURATION_UNITS[1]}\\s*(?:[,/]\\s*)?)?\\s*(\\d+):(\\d{2}):(\\d{2}(?:\\.\\d+)?)$`, "i"),
+  /^(\d+):(\d{2}):(\d{2}):(\d{2}(?:\.\d+)?)$/,
+  /^:(\d{2}(?:\.\d+)?)$/,
+] as const;
+const DURATION_MULTIPLIERS = [604800, 86400, 3600, 60, 1] as const;
+
 /** Frozen pytimeparse grammar; numeric expressions intentionally preserve its sign quirk. */
 export function duration(text: string, step: () => void): { kind: "timedelta"; microseconds: bigint } {
   step();
-  let normalized = "";
-  for (const char of text) {
-    step();
-    const code = char.codePointAt(0)!;
-    const zero = decimalZeroes.find(start => code >= start && code < start + 10);
-    normalized += zero !== undefined ? String(code - zero) : integerWhitespace.includes(code) || code >= 0x1c && code <= 0x1f ? " " : char === "ſ" ? "s" : char === "İ" || char === "ı" ? "i" : char === "K" ? "k" : char;
+  let allAscii = true;
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i);
+    if (c < 0x20 || c >= 0x7f) { allAscii = false; break; }
+  }
+  let normalized: string;
+  if (allAscii) {
+    for (let i = 0; i < text.length; i++) step();
+    normalized = text;
+  } else {
+    normalized = "";
+    for (const char of text) {
+      step();
+      const code = char.codePointAt(0)!;
+      const zero = decimalZeroes.find(start => code >= start && code < start + 10);
+      normalized += zero !== undefined ? String(code - zero) : integerWhitespace.includes(code) || code >= 0x1c && code <= 0x1f ? " " : char === "ſ" ? "s" : char === "İ" || char === "ı" ? "i" : char === "K" ? "k" : char;
+    }
   }
   const sign = normalized[0] === "-" ? -1 : 1;
   const unsigned = stripWhitespace(["-", "+", "|"].includes(normalized[0] ?? "") ? normalized.slice(1) : normalized);
-  const units = ["(?:w|wks?|weeks?)", "(?:d|dys?|days?)", "(?:h|hrs?|hours?)", "(?:m|mins?|minutes?)", "(?:s|secs?|seconds?)"];
-  const named = units.map((unit, index) => `(?:([\\d.]+)\\s*${unit}${index === 4 ? "" : "\\s*(?:[,/]\\s*)?"})?`).join("\\s*");
-  const patterns = [new RegExp(`^\\s*${named}\\s*$`, "i"), /^(\d{1,2}):(\d{2}(?:\.\d+)?)$/, new RegExp(`^(?:([\\d.]+)\\s*${units[0]}\\s*(?:[,/]\\s*)?)?\\s*(?:([\\d.]+)\\s*${units[1]}\\s*(?:[,/]\\s*)?)?\\s*(\\d+):(\\d{2}):(\\d{2}(?:\\.\\d+)?)$`, "i"), /^(\d+):(\d{2}):(\d{2}):(\d{2}(?:\.\d+)?)$/, /^:(\d{2}(?:\.\d+)?)$/];
   let fields: (string | undefined)[] | undefined;
-  for (const [index, pattern] of patterns.entries()) {
+  for (let index = 0; index < DURATION_PATTERNS.length; index++) {
+    const pattern = DURATION_PATTERNS[index]!;
     step(); const m = pattern.exec(unsigned);
     if (!m || !m.slice(1).some(Boolean)) continue;
     fields = index === 0 || index === 2 ? m.slice(1) : index === 1 ? [undefined, undefined, undefined, m[1], m[2]] : index === 3 ? [undefined, ...m.slice(1)] : [undefined, undefined, undefined, undefined, m[1]];
     break;
   }
   if (!fields) throw new TemporalCastError(`Can not parse value "${text}" to as timedelta.`);
-  const multipliers = [604800, 86400, 3600, 60, 1];
+  const multipliers = DURATION_MULTIPLIERS;
   for (const field of fields) if (field && !/^\d+(?:\.\d*)?$|^\.\d+$/.test(field)) throw new CsvkitDiagnostic(`ValueError: could not convert string to float: ${repr(field)}`);
   const integers = fields.every(value => !value || /^\d+$/.test(value));
   let micros: bigint;

@@ -30,6 +30,11 @@ export function upperText(value: string, step: () => void): string {
 }
 
 export function stripWhitespace(value: string): string {
+  const len = value.length;
+  if (len === 0) return "";
+  const c0 = value.charCodeAt(0);
+  const cLast = value.charCodeAt(len - 1);
+  if (c0 > 0x20 && c0 < 0x7f && cLast > 0x20 && cLast < 0x7f) return value;
   const chars = Array.from(value);
   const whitespace = (char: string): boolean => {
     const code = char.codePointAt(0)!;
@@ -59,6 +64,14 @@ const lowerMap = new Map(lowerMappings);
 
 /** CPython's frozen Unicode lowercase, including contextual Greek final sigma. */
 export function lowerText(value: string): string {
+  let ascii = true;
+  let hasUpper = false;
+  for (let i = 0; i < value.length; i++) {
+    const c = value.charCodeAt(i);
+    if (c >= 0x80) { ascii = false; break; }
+    if (c >= 65 && c <= 90) hasUpper = true;
+  }
+  if (ascii) return hasUpper ? value.toLowerCase() : value;
   const chars = Array.from(value);
   const within = (code: number, ranges: readonly (readonly [number, number])[]): boolean => {
     let lo = 0; let hi = ranges.length;

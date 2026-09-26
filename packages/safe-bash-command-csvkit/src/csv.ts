@@ -84,8 +84,13 @@ function dialectCharacters(dialect: CsvDialect): { delimiter: string; quote: str
   return { delimiter, quote, escape };
 }
 
+interface CsvStateMachine {
+  feed(char: string | null | undefined): CsvRecord<CsvCell> | undefined;
+  readonly done: boolean;
+}
+
 /** CPython's non-strict CSV state machine over universally normalized text. */
-function* parseCsv(dialect: CsvDialect, step: () => void, preserveNewlines = false, physicalLine?: () => number, admitRow: () => void = () => {}): Generator<CsvRecord<CsvCell> | undefined, void, string | null | undefined> {
+function createCsvParser(dialect: CsvDialect, step: () => void, preserveNewlines = false, physicalLine?: () => number, admitRow: () => void = () => {}): CsvStateMachine {
   const { delimiter, quote, escape } = dialectCharacters(dialect);
   let state: "start" | "plain" | "quoted" | "after" | "escaped" | "quotedEscape" | "escapedNewline" = "start";
   let field = "";
@@ -96,6 +101,7 @@ function* parseCsv(dialect: CsvDialect, step: () => void, preserveNewlines = fal
   let active = false;
   let previousCR = false;
   let rowStarted = false;
+  let finished = false;
   const append = (char: string) => {
     if (cells.length >= (dialect.columnBudget ?? Infinity)) throw new CsvkitBlocked("column budget exceeded");
     length++;
@@ -111,74 +117,81 @@ function* parseCsv(dialect: CsvDialect, step: () => void, preserveNewlines = fal
     field = ""; length = 0; state = "start"; wasQuoted = false;
   };
   let lastChar = "";
-  while (true) {
-    let char = yield undefined;
-    if (char === null) break;
-    if (char === undefined) {
-      if (!rowStarted) { admitRow(); rowStarted = true; }
-      previousCR = false;
-      if (state === "escaped" || state === "quotedEscape") {
-        append("\n");
-        state = state === "escaped" ? "plain" : "quoted";
-        continue;
+  return {
+    get done() { return finished; },
+    feed(char: string | null | undefined): CsvRecord<CsvCell> | undefined {
+      if (finished) return undefined;
+      if (char === null) {
+        finished = true;
+        if (active) {
+          if (state === "escaped" || state === "quotedEscape") append("\n");
+          finish();
+          const rec = { cells, line: physicalLine?.() ?? line - (lastChar === "\n" || lastChar === "\r" ? 1 : 0) };
+          cells = [];
+          return rec;
+        }
+        return undefined;
       }
-      // CPython's AFTER_ESCAPED_CRNL also ignores later empty iterator items.
-      if (state === "escapedNewline") continue;
-      if (state === "quoted") continue;
-      if (active || cells.length || field) finish();
-      yield { cells, line: physicalLine?.() ?? line };
-      cells = []; state = "start"; active = false; rowStarted = false;
-      continue;
-    }
-    lastChar = char;
-    step();
-    const pairedLF = previousCR && char === "\n";
-    if (pairedLF && !preserveNewlines) { previousCR = false; continue; }
-    if (!rowStarted) { admitRow(); rowStarted = true; }
-    previousCR = char === "\r";
-    if (previousCR && !preserveNewlines) char = "\n";
-    const wasActive = active;
-    active = true;
-    if (state === "escaped" || state === "quotedEscape") {
-      append(char);
-      state = state === "escaped" ? char === "\n" || char === "\r" ? "escapedNewline" : "plain" : "quoted";
-    } else if (state === "quoted") {
-      if (char === escape) state = "quotedEscape";
-      else if (char === quote) state = dialect.doublequote === false ? "plain" : "after";
-      else append(char);
-    } else if (state === "after" && char === quote) { append(char); state = "quoted"; }
-    else if (char === "\n" || char === "\r") {
-      if (wasActive || cells.length || field) finish();
-      yield { cells, line: physicalLine?.() ?? line };
-      cells = []; state = "start"; active = false; rowStarted = false;
-    } else if (state === "start" && char === " " && dialect.skipinitialspace) { /* skip only ASCII spaces */ }
-    else if (char === delimiter) finish();
-    else if (state === "after") { append(char); state = "plain"; }
-    else if (char === escape) state = "escaped";
-    else if (state === "start" && char === quote && dialect.quoting !== 3) { state = "quoted"; wasQuoted = true; }
-    // Ordinary text does not leave AFTER_ESCAPED_CRNL: its next iterator
-    // boundary remains a continuation until a separator or escape changes state.
-    else { append(char); if (state !== "escapedNewline") state = "plain"; }
-    if ((char === "\n" || char === "\r") && !pairedLF) line++;
-  }
-  if (active) {
-    if (state === "escaped" || state === "quotedEscape") append("\n");
-    finish();
-    yield { cells, line: physicalLine?.() ?? line - (lastChar === "\n" || lastChar === "\r" ? 1 : 0) };
-  }
+      if (char === undefined) {
+        if (!rowStarted) { admitRow(); rowStarted = true; }
+        previousCR = false;
+        if (state === "escaped" || state === "quotedEscape") {
+          append("\n");
+          state = state === "escaped" ? "plain" : "quoted";
+          return undefined;
+        }
+        // CPython's AFTER_ESCAPED_CRNL also ignores later empty iterator items.
+        if (state === "escapedNewline") return undefined;
+        if (state === "quoted") return undefined;
+        if (active || cells.length || field) finish();
+        const rec = { cells, line: physicalLine?.() ?? line };
+        cells = []; state = "start"; active = false; rowStarted = false;
+        return rec;
+      }
+      lastChar = char;
+      step();
+      const pairedLF = previousCR && char === "\n";
+      if (pairedLF && !preserveNewlines) { previousCR = false; return undefined; }
+      if (!rowStarted) { admitRow(); rowStarted = true; }
+      previousCR = char === "\r";
+      if (previousCR && !preserveNewlines) char = "\n";
+      const wasActive = active;
+      active = true;
+      let emitted: CsvRecord<CsvCell> | undefined;
+      if (state === "escaped" || state === "quotedEscape") {
+        append(char);
+        state = state === "escaped" ? char === "\n" || char === "\r" ? "escapedNewline" : "plain" : "quoted";
+      } else if (state === "quoted") {
+        if (char === escape) state = "quotedEscape";
+        else if (char === quote) state = dialect.doublequote === false ? "plain" : "after";
+        else append(char);
+      } else if (state === "after" && char === quote) { append(char); state = "quoted"; }
+      else if (char === "\n" || char === "\r") {
+        if (wasActive || cells.length || field) finish();
+        emitted = { cells, line: physicalLine?.() ?? line };
+        cells = []; state = "start"; active = false; rowStarted = false;
+      } else if (state === "start" && char === " " && dialect.skipinitialspace) { /* skip only ASCII spaces */ }
+      else if (char === delimiter) finish();
+      else if (state === "after") { append(char); state = "plain"; }
+      else if (char === escape) state = "escaped";
+      else if (state === "start" && char === quote && dialect.quoting !== 3) { state = "quoted"; wasQuoted = true; }
+      else { append(char); if (state !== "escapedNewline") state = "plain"; }
+      if ((char === "\n" || char === "\r") && !pairedLF) line++;
+      return emitted;
+    },
+  };
 }
 
 export function readCsv(text: string, dialect?: CsvDialect & { quoting?: 0 | 1 | 3 }, step?: () => void): Generator<CsvRecord>;
 export function readCsv(text: string, dialect: CsvDialect, step?: () => void): Generator<CsvRecord<CsvCell>>;
 export function* readCsv(text: string, dialect: CsvDialect = {}, step: () => void = () => {}): Generator<CsvRecord<CsvCell>> {
-  const parser = parseCsv(dialect, step);
-  parser.next();
+  const parser = createCsvParser(dialect, step);
   for (const char of text) {
-    let next = parser.next(char);
-    while (!next.done && next.value) { yield next.value; next = parser.next(null); }
+    const next = parser.feed(char);
+    if (next) yield next;
   }
-  const end = parser.next(null);
-  if (!end.done && end.value) yield end.value;
+  const end = parser.feed(null);
+  if (end) yield end;
 }
 
 /** Interactive readers discard the failing physical line and allow another next().
@@ -188,8 +201,7 @@ export function readCsvRecoverable(text: string, dialect: CsvDialect, step: () =
   let lineEnd = 0;
   let line = 0;
   let done = false;
-  let parser = parseCsv(dialect, step, true, () => line);
-  parser.next();
+  let parser = createCsvParser(dialect, step, true, () => line);
   return {
     next(): IteratorResult<CsvRecord<CsvCell>> {
       if (done) return { done: true, value: undefined };
@@ -204,28 +216,25 @@ export function readCsvRecoverable(text: string, dialect: CsvDialect, step: () =
           }
           const char = String.fromCodePoint(text.codePointAt(offset)!);
           offset += char.length;
-          const next = parser.next(char);
-          if (!next.done && next.value) {
+          const next = parser.feed(char);
+          if (next) {
             offset = lineEnd;
-            parser.next(null);
-            return { done: false, value: next.value };
+            return { done: false, value: next };
           }
         }
         done = true;
-        const end = parser.next(null);
-        return !end.done && end.value ? { done: false, value: end.value } : { done: true, value: undefined };
+        const end = parser.feed(null);
+        return end ? { done: false, value: end } : { done: true, value: undefined };
       } catch (failure) {
         if (failure instanceof CsvkitDiagnostic && !(failure instanceof CsvkitBlocked)) {
           offset = lineEnd;
-          parser = parseCsv(dialect, step, true, () => line);
-          parser.next();
+          parser = createCsvParser(dialect, step, true, () => line);
         } else done = true;
         throw failure;
       }
     },
     return() {
       done = true;
-      parser.return();
       return { done: true, value: undefined };
     }
   };
@@ -238,8 +247,7 @@ export function readCsvStream(lines: AsyncIterable<string>, dialect?: CsvDialect
 export function readCsvStream(lines: AsyncIterable<string>, dialect: CsvDialect, step?: () => void, admitRow?: () => void): AsyncGenerator<CsvRecord<CsvCell>>;
 export async function* readCsvStream(lines: AsyncIterable<string>, dialect: CsvDialect = {}, step: () => void = () => {}, admitRow: () => void = () => {}): AsyncGenerator<CsvRecord<CsvCell>> {
   let physicalLine = 0;
-  const parser = parseCsv(dialect, step, true, () => physicalLine, admitRow);
-  parser.next();
+  const parser = createCsvParser(dialect, step, true, () => physicalLine, admitRow);
   try {
     for await (const text of lines) {
       physicalLine++;
@@ -247,27 +255,25 @@ export async function* readCsvStream(lines: AsyncIterable<string>, dialect: CsvD
       let completed = false;
       for (const char of text) {
         offset += char.length;
-        const next = parser.next(char);
-        if (!next.done && next.value) {
+        const next = parser.feed(char);
+        if (next) {
           for (const trailing of text.slice(offset)) if (trailing !== "\n" && trailing !== "\r")
             throw new CsvkitDiagnostic("Error: new-line character seen in unquoted field - do you need to open the file with newline=''?");
-          yield next.value;
-          parser.next(null);
+          yield next;
           completed = true;
           break;
         }
       }
       if (!completed) {
-        const boundary = parser.next(undefined);
-        if (!boundary.done && boundary.value) {
-          yield boundary.value;
-          parser.next(null);
+        const boundary = parser.feed(undefined);
+        if (boundary) {
+          yield boundary;
         }
       }
     }
-    const end = parser.next(null);
-    if (!end.done && end.value) yield end.value;
-  } finally { parser.return(); }
+    const end = parser.feed(null);
+    if (end) yield end;
+  } finally { /* no-op */ }
 }
 
 /** Canonical Python str values supplied by typed engines, without JS precision loss. */

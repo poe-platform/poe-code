@@ -33,16 +33,32 @@ export function columnTypeOrder(options: InferenceOptions): readonly ColumnType[
 
 export class CastError extends Error {}
 
+const DEFAULT_NULL_SET: ReadonlySet<string> = new Set(["", "na", "n/a", "none", "null", "."]);
+const CURRENCY_SYMBOLS = ["؋", "$", "ƒ", "៛", "¥", "₡", "₱", "£", "€", "¢", "﷼", "₪", "₩", "₭", "₮", "₦", "฿", "₤", "₫"] as const;
+const BOOLEAN_TRUE_SET: ReadonlySet<string> = new Set(["yes", "y", "true", "t", "1"]);
+const BOOLEAN_FALSE_SET: ReadonlySet<string> = new Set(["no", "n", "false", "f", "0"]);
+
 /** Decimal multiplication by one under the frozen precision-28 half-even context. */
 function decimal(text: string, options: InferenceOptions, step: () => void): string {
-  let ascii = "";
-  for (const char of text) {
-    step();
-    const code = char.codePointAt(0)!;
-    const zero = decimalZeroes.find(start => code >= start && code < start + 10);
-    ascii += zero === undefined ? char : String(code - zero);
+  let allAscii = true;
+  for (let i = 0; i < text.length; i++) {
+    if (text.charCodeAt(i) >= 0x80) { allAscii = false; break; }
   }
-  ascii = stripWhitespace(ascii).replaceAll("_", "");
+  let ascii: string;
+  if (allAscii) {
+    for (let i = 0; i < text.length; i++) step();
+    ascii = stripWhitespace(text);
+    if (ascii.includes("_")) ascii = ascii.replaceAll("_", "");
+  } else {
+    ascii = "";
+    for (const char of text) {
+      step();
+      const code = char.codePointAt(0)!;
+      const zero = decimalZeroes.find(start => code >= start && code < start + 10);
+      ascii += zero === undefined ? char : String(code - zero);
+    }
+    ascii = stripWhitespace(ascii).replaceAll("_", "");
+  }
   if (/^[+-]?(inf(inity)?)$/i.test(ascii)) return ascii.startsWith("-") ? "-Infinity" : "Infinity";
   const nan = /^[+-]?nan(\d*)$/i.exec(ascii);
   if (nan) {
@@ -55,21 +71,32 @@ function decimal(text: string, options: InferenceOptions, step: () => void): str
   const fraction = match[3] ?? match[4] ?? "";
   if ((match[2]?.length ?? 0) + fraction.length > (options.maxDecimalDigits ?? Infinity) ||
       Math.abs(Number(match[5] ?? 0)) > (options.maxDecimalExponent ?? Infinity)) throw new CsvkitBlocked("Decimal admission budget exceeded");
+  if (
+    match[2] !== undefined &&
+    fraction.length === 0 &&
+    match[5] === undefined &&
+    !ascii.includes(".") &&
+    match[2].length <= 27 &&
+    (match[2].length === 1 || match[2].charCodeAt(0) !== 48)
+  ) {
+    if (match[2] === "0") return match[1] === "-" ? "-0" : "0";
+    return (match[1] === "-" ? "-" : "") + match[2];
+  }
   return Decimal.parse(ascii).multiply(Decimal.parse("1")).toString();
 }
 
 export function castValue(type: ColumnType, value: string | null, options: InferenceOptions, step: () => void = () => {}): TableValue {
   step();
   if (value === null) return null;
-  const nulls = options.blanks ? [] : ["", "na", "n/a", "none", "null", "."];
-  const isNull = (text: string): boolean => [...nulls, ...(options.nullValues ?? [])].some(item => lowerText(item) === lowerText(text));
   let text = stripWhitespace(value);
-  if (type === "Boolean") text = stripWhitespace(value.replaceAll(",", ""));
-  if (isNull(text)) return null;
+  if (type === "Boolean" && value.includes(",")) text = stripWhitespace(value.replaceAll(",", ""));
+  const lowered = lowerText(text);
+  if (!options.blanks && DEFAULT_NULL_SET.has(lowered)) return null;
+  if (options.nullValues && options.nullValues.length > 0 && options.nullValues.some(item => lowerText(item) === lowered)) return null;
   if (type === "Text") return value;
   if (type === "Boolean") {
-    if (["yes", "y", "true", "t", "1"].includes(lowerText(text))) return true;
-    if (["no", "n", "false", "f", "0"].includes(lowerText(text))) return false;
+    if (BOOLEAN_TRUE_SET.has(lowered)) return true;
+    if (BOOLEAN_FALSE_SET.has(lowered)) return false;
     throw new CastError(`Can not convert value ${text} to bool.`);
   }
   // csvkit's --locale configures Number only; Date/DateTime constructors use
@@ -83,14 +110,21 @@ export function castValue(type: ColumnType, value: string | null, options: Infer
   const locale = numberLocale ?? "en_US";
   const symbols = separators[locale as keyof typeof separators];
   if (!symbols) throw new CsvkitBlocked(`Agate Number locale ${locale}`);
-  text = text.replace(/^%+|%+$/g, "");
+  if (text.startsWith("%") || text.endsWith("%")) text = text.replace(/^%+|%+$/g, "");
   const negative = text.startsWith("-");
   if (negative) text = text.slice(1);
-  for (const symbol of ["؋", "$", "ƒ", "៛", "¥", "₡", "₱", "£", "€", "¢", "﷼", "₪", "₩", "₭", "₮", "₦", "฿", "₤", "₫"]) {
-    while (text.startsWith(symbol)) { step(); text = text.slice(symbol.length); }
-    while (text.endsWith(symbol)) { step(); text = text.slice(0, -symbol.length); }
+  if (text.length > 0) {
+    const fCode = text.charCodeAt(0);
+    const lCode = text.charCodeAt(text.length - 1);
+    if (fCode < 48 || fCode > 57 || lCode < 48 || lCode > 57) {
+      for (const symbol of CURRENCY_SYMBOLS) {
+        while (text.startsWith(symbol)) { step(); text = text.slice(symbol.length); }
+        while (text.endsWith(symbol)) { step(); text = text.slice(0, -symbol.length); }
+      }
+    }
   }
-  text = text.replaceAll(symbols.group, "").replaceAll(symbols.decimal, ".");
+  if (text.includes(symbols.group)) text = text.replaceAll(symbols.group, "");
+  if (symbols.decimal !== "." && text.includes(symbols.decimal)) text = text.replaceAll(symbols.decimal, ".");
   if (options.noLeadingZeroes && text.length > 1 && text[0] === "0" && text[1] !== ".") throw new CastError(`Can not parse value "${text}" as Decimal without leading zeroes`);
   try {
     let value = decimal(text, options, step);

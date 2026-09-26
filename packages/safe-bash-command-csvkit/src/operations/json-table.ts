@@ -24,24 +24,84 @@ export function floatText(value: number): string {
 
 /** Preserve Python's spacing and insertion order, including numeric object keys. */
 export async function emit(value: JsonValue, runtime: Runtime, indent: number | null, depth = 0): Promise<void> {
-  runtime.step();
-  if (typeof value === "number") { await runtime.write(floatText(value)); return; }
-  if (value === null || (typeof value === "string" || typeof value === "boolean")) { await runtime.write(JSON.stringify(value)); return; }
-  if ("token" in value) { await runtime.write(value.token); return; }
-  const object = value instanceof Map;
-  const entries: readonly (readonly [string | null, JsonValue])[] = object
-    ? [...value.entries()]
-    : (value as readonly JsonValue[]).map(item => [null, item] as const);
-  runtime.retain(entries.length * 32);
-  await runtime.write(object ? "{" : "[");
-  for (const [index, [key, child]] of entries.entries()) {
-    if (index) await runtime.write(indent === null ? ", " : ",");
-    if (indent !== null) await runtime.write("\n" + " ".repeat(indent * (depth + 1)));
-    if (key !== null) await runtime.write(JSON.stringify(key) + ": ");
-    await emit(child, runtime, indent, depth + 1);
-  }
-  if (entries.length && indent !== null) await runtime.write("\n" + " ".repeat(indent * depth));
-  await runtime.write(object ? "}" : "]");
+  let buf = "";
+  const flushIfNeeded = async (): Promise<void> => {
+    if (buf.length >= 32768) {
+      const out = buf;
+      buf = "";
+      await runtime.write(out);
+    }
+  };
+  const visitSync = (cur: JsonValue, d: number): void => {
+    runtime.step();
+    if (typeof cur === "number") { buf += floatText(cur); return; }
+    if (cur === null || typeof cur === "string" || typeof cur === "boolean") { buf += JSON.stringify(cur); return; }
+    if ("token" in cur) { buf += cur.token; return; }
+    if (cur instanceof Map) {
+      runtime.retain(cur.size * 32);
+      buf += "{";
+      let index = 0;
+      const childPad = indent !== null ? "\n" + " ".repeat(indent * (d + 1)) : "";
+      for (const [key, child] of cur.entries()) {
+        if (index++) buf += indent === null ? ", " : ",";
+        if (indent !== null) buf += childPad;
+        buf += JSON.stringify(key) + ": ";
+        visitSync(child, d + 1);
+      }
+      if (cur.size && indent !== null) buf += "\n" + " ".repeat(indent * d);
+      buf += "}";
+      return;
+    }
+    const arr = cur as readonly JsonValue[];
+    runtime.retain(arr.length * 32);
+    buf += "[";
+    const childPad = indent !== null ? "\n" + " ".repeat(indent * (d + 1)) : "";
+    for (let index = 0; index < arr.length; index++) {
+      if (index) buf += indent === null ? ", " : ",";
+      if (indent !== null) buf += childPad;
+      visitSync(arr[index]!, d + 1);
+    }
+    if (arr.length && indent !== null) buf += "\n" + " ".repeat(indent * d);
+    buf += "]";
+  };
+  const visitAsync = async (cur: JsonValue, d: number): Promise<void> => {
+    if (cur instanceof Map) {
+      runtime.step();
+      runtime.retain(cur.size * 32);
+      buf += "{";
+      let index = 0;
+      const childPad = indent !== null ? "\n" + " ".repeat(indent * (d + 1)) : "";
+      for (const [key, child] of cur.entries()) {
+        if (index++) buf += indent === null ? ", " : ",";
+        if (indent !== null) buf += childPad;
+        buf += JSON.stringify(key) + ": ";
+        visitSync(child, d + 1);
+        if (buf.length >= 32768) await flushIfNeeded();
+      }
+      if (cur.size && indent !== null) buf += "\n" + " ".repeat(indent * d);
+      buf += "}";
+      return;
+    }
+    if (Array.isArray(cur)) {
+      const arr = cur as readonly JsonValue[];
+      runtime.step();
+      runtime.retain(arr.length * 32);
+      buf += "[";
+      const childPad = indent !== null ? "\n" + " ".repeat(indent * (d + 1)) : "";
+      for (let index = 0; index < arr.length; index++) {
+        if (index) buf += indent === null ? ", " : ",";
+        if (indent !== null) buf += childPad;
+        visitSync(arr[index]!, d + 1);
+        if (buf.length >= 32768) await flushIfNeeded();
+      }
+      if (arr.length && indent !== null) buf += "\n" + " ".repeat(indent * d);
+      buf += "]";
+      return;
+    }
+    visitSync(cur, d);
+  };
+  await visitAsync(value, depth);
+  if (buf.length > 0) await runtime.write(buf);
 }
 
 export async function jsonTable(runtime: Runtime, indent: number | null): Promise<number> {

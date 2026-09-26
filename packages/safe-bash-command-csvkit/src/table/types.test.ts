@@ -10,7 +10,8 @@ test("Number multiplication retains only the last precision-28 quiet NaN payload
 
 test("Number casting admits NaN payload digits before precision truncation", () => {
   expect(() => inferTable(["a"], [["NaN12345"]], { numberTextOnly: true, maxDecimalDigits: 4 })).toThrow("Decimal admission budget exceeded");
-  expect(() => inferTable(["a"], [["NaN" + "1".repeat(10001)]], { numberTextOnly: true })).toThrow("Decimal admission budget exceeded");
+  expect(() => inferTable(["a"], [["NaN" + "1".repeat(10001)]], { numberTextOnly: true, maxDecimalDigits: 10000 })).toThrow("Decimal admission budget exceeded");
+  expect(inferTable(["a"], [["NaN" + "1".repeat(10001)]], { numberTextOnly: true }).rows).toEqual([[{ kind: "decimal", value: "NaN" + "1".repeat(28) }]]);
 });
 
 test("quiet NaN keeps the Decimal operand sign after Agate strips its outer minus", () => {

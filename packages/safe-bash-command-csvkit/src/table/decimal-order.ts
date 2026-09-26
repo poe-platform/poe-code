@@ -2,6 +2,23 @@ import { CsvkitBlocked } from "../errors.js";
 
 /** Compare canonical Decimal strings without binary floats or exponent-sized allocations. */
 export function compareDecimals(left: string, right: string, step: () => void): number {
+  const l0 = left.charCodeAt(0);
+  const r0 = right.charCodeAt(0);
+  if (
+    l0 >= 49 && l0 <= 57 &&
+    r0 >= 49 && r0 <= 57 &&
+    !left.includes(".") && !left.includes("E") &&
+    !right.includes(".") && !right.includes("E")
+  ) {
+    if (left === right) return 0;
+    if (left.length !== right.length) return left.length < right.length ? -1 : 1;
+    for (let index = 0; index < left.length; index++) {
+      step();
+      const diff = left.charCodeAt(index) - right.charCodeAt(index);
+      if (diff !== 0) return diff < 0 ? -1 : 1;
+    }
+    return 0;
+  }
   if (left.includes("NaN") || right.includes("NaN")) throw new CsvkitBlocked("Decimal NaN ordering traps");
   if (left === right) return 0;
   if (left === "Infinity" || right === "-Infinity") return 1;

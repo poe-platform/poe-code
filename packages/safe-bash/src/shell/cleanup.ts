@@ -1,5 +1,5 @@
 import type { InvocationCleanup } from "../contracts/command.js";
-import { abortManagedController, registerManagedAbortSignal } from "../fs/creation-mask.js";
+import { abortManagedController, createManagedControlController, type ManagedControlController } from "../fs/creation-mask.js";
 
 export const invocationScope = Symbol("invocation cleanup scope");
 const invocationClosedError = new Error("Invocation is closed");
@@ -28,7 +28,7 @@ export class InvocationScope {
   declare private _arraySession: { closeSession(): void | Promise<void> } | undefined;
   declare private _activeWork: number;
   declare private _workWaiters: (() => void)[] | undefined;
-  declare private _controller: AbortController | undefined;
+  declare private _controller: ManagedControlController | undefined;
   declare private _closed: boolean;
   declare private _drain: Promise<void> | undefined;
   declare private _closingSync: boolean;
@@ -151,8 +151,7 @@ export class InvocationScope {
 
   get signal(): AbortSignal {
     if (!this._controller) {
-      const ctrl = new AbortController();
-      registerManagedAbortSignal(ctrl.signal);
+      const ctrl = createManagedControlController();
       this._controller = ctrl;
       if (this._closed) abortManagedController(ctrl, invocationClosedError);
     }
@@ -295,6 +294,28 @@ export class InvocationScope {
       ...(this._activeWork > 0 ? [new Promise<void>(resolve => (this._workWaiters ??= []).push(resolve))] : []),
       ...(this._children ? [...this._children].map(child => child.drainWork()) : []),
     ]);
+  }
+
+  canFastWarmClose(): boolean {
+    return (
+      !this._singleSealCallback &&
+      !this._finalizers?.length &&
+      !this._singleCallback &&
+      !this._callbacks?.size &&
+      !this._firstChildOwner &&
+      !this._childOwners?.size &&
+      !this._children?.size &&
+      this._activeWork === 0 &&
+      !this._controller &&
+      !(this._arraySession as { owner?: unknown; monitors?: Set<unknown> } | undefined)?.owner &&
+      !(this._arraySession as { owner?: unknown; monitors?: Set<unknown> } | undefined)?.monitors?.size
+    );
+  }
+
+  closeWarmSync(): void {
+    this._closed = true;
+    this._owner = undefined;
+    this._drain = resolvedVoid;
   }
 
   private _seal(): void {

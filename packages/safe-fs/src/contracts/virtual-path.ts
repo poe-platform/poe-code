@@ -48,21 +48,8 @@ function isFastCleanAbsPath(path: string): boolean {
   return true;
 }
 
-export function resolvePath(cwd: string, ...paths: string[]): string {
-  validatePath(cwd);
-  if (!cwd.startsWith("/")) throw new FsError("EINVAL", { syscall: "resolve", path: cwd, message: "cwd must be absolute" });
+function resolvePathSlow(cwd: string, paths: readonly string[]): string {
   const argLen = paths.length + 1;
-  const path0 = paths[0];
-  if (argLen === 1) {
-    if (isFastCleanAbsPath(cwd)) return cwd;
-  } else if (argLen === 2 && typeof path0 === "string") {
-    validatePath(path0);
-    if (isFastCleanAbsPath(path0)) return path0;
-    if (isFastCleanAbsPath(cwd) && path0.length > 0 && path0.charCodeAt(0) !== 47 && !path0.includes("/")) {
-      if (path0 === ".") return cwd;
-      if (path0 !== "..") return cwd === "/" ? `/${path0}` : `${cwd}/${path0}`;
-    }
-  }
   const components: string[] = [];
   for (let a = 0; a < argLen; a++) {
     const path = a === 0 ? cwd : paths[a - 1]!;
@@ -77,8 +64,34 @@ export function resolvePath(cwd: string, ...paths: string[]): string {
   return `/${components.join("/")}`;
 }
 
+export function resolvePath2(cwd: string, path0: string): string {
+  validatePath(cwd);
+  if (cwd.charCodeAt(0) !== 47) throw new FsError("EINVAL", { syscall: "resolve", path: cwd, message: "cwd must be absolute" });
+  validatePath(path0);
+  if (isFastCleanAbsPath(path0)) return path0;
+  if (isFastCleanAbsPath(cwd) && path0.length > 0 && path0.charCodeAt(0) !== 47 && !path0.includes("/")) {
+    if (path0 === ".") return cwd;
+    if (path0 !== "..") return cwd === "/" ? `/${path0}` : `${cwd}/${path0}`;
+  }
+  return resolvePathSlow(cwd, [path0]);
+}
+
+export function resolvePath(cwd: string, ...paths: string[]): string {
+  validatePath(cwd);
+  if (!cwd.startsWith("/")) throw new FsError("EINVAL", { syscall: "resolve", path: cwd, message: "cwd must be absolute" });
+  const argLen = paths.length + 1;
+  if (argLen === 1) {
+    if (isFastCleanAbsPath(cwd)) return cwd;
+    return resolvePathSlow(cwd, paths);
+  }
+  if (argLen === 2) {
+    return resolvePath2(cwd, paths[0]!);
+  }
+  return resolvePathSlow(cwd, paths);
+}
+
 export function normalizePath(path: string, cwd = "/"): string {
-  return resolvePath(cwd, path);
+  return resolvePath2(cwd, path);
 }
 
 export function dirname(path: string): string {

@@ -101,6 +101,15 @@ export function awkCommand(options: TextProgramOptions = {}): CommandDefinition 
     }
     const fastRes = tryExecuteAwkFastSync(context, options, false);
     if (fastRes !== undefined) return fastRes;
+    return executeAwkSlow(context, options);
+  });
+}
+
+function executeAwkSlow(
+  context: Parameters<CommandDefinition["execute"]>[0],
+  options: TextProgramOptions,
+): number | Promise<number> {
+  {
     const budget = new Budget(context, options);
     const programs: string[] = [];
     const assignments: string[] = [];
@@ -302,5 +311,5 @@ export function awkCommand(options: TextProgramOptions = {}): CommandDefinition 
     const remainingArgs = index >= context.args.length ? EMPTY_ARGS : context.args.slice(index);
     return new AwkRuntime(program, context, budget, new AwkRetention(options.maxRetainedBytes ?? Infinity, context.signal), remainingArgs, assignments, separator, operandAssignments, ordchr, observer).run();
     })();
-  });
+  }
 }

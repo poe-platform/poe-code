@@ -732,7 +732,9 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
           if (typeof stdinFast.tryCountLinesOrBytesSync === "function" && !context.signal.aborted) {
             const byteLen = stdinFast.rawLen ?? 0;
             try {
-              context.inputBudget?.check(byteLen);
+              const fastCheck = (context as { _checkFastInputBytes?: (b: number) => void })._checkFastInputBytes;
+              if (fastCheck) fastCheck.call(context, byteLen);
+              else context.inputBudget?.check(byteLen);
               const count = stdinFast.tryCountLinesOrBytesSync(countLines);
               const text = count >= 0 && count <= 128 ? SMALL_WC_COUNT_LINES[count]! : `${count}\n`;
               const p = output(context, text);
@@ -744,161 +746,7 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
           }
         }
       }
-      return (async () => {
-      if (context.args.length === 1 && (context.args[0] === "-l" || context.args[0] === "-c")) {
-        const countLines = context.args[0] === "-l";
-        const req = assertInputRequirements(context, ["-"]);
-        if (req) await req;
-        let count = 0;
-        let inputBytes = 0;
-        try {
-          const iter = input(context, "-")[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
-            tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
-            syncReturn?: () => void;
-          };
-          let done = false;
-          try {
-            while (true) {
-              let chunk: Uint8Array;
-              const syncRes = typeof iter.tryNextSync === "function" ? iter.tryNextSync() : undefined;
-              if (syncRes !== undefined) {
-                if (syncRes.done) { done = true; break; }
-                chunk = syncRes.value;
-              } else {
-                const asyncRes = await iter.next();
-                if (asyncRes.done) { done = true; break; }
-                chunk = asyncRes.value;
-              }
-              context.signal.throwIfAborted();
-              inputBytes += chunk.byteLength;
-              context.inputBudget?.check(inputBytes);
-              if (countLines) {
-                for (let pos = chunk.indexOf(10); pos !== -1; pos = chunk.indexOf(10, pos + 1)) count++;
-              } else {
-                count += chunk.length;
-              }
-            }
-          } finally {
-            if (!done) {
-              if (typeof iter.syncReturn === "function") iter.syncReturn();
-              else await iter.return?.();
-            }
-          }
-          const p = output(context, `${count}\n`);
-          if (!isSyncResolved(p)) await p;
-          return { exitCode: 0 };
-        } catch (error) {
-          await diagnostic(context, error);
-          return { exitCode: 1 };
-        }
-      }
-      const parsed = options(context.args, "lwcmL", { lines: "l", words: "w", bytes: "c", chars: "m", "max-line-length": "L", total: "total:" });
-      const totalMode = value(parsed, "total") ?? "auto";
-      if (!["auto", "always", "only", "never"].includes(totalMode)) throw new UsageError(`invalid argument '${totalMode}' for '--total'`);
-      if (!["l", "w", "m", "c", "L"].some(flag => parsed.flags.has(flag))) for (const flag of ["l", "w", "c"]) parsed.flags.add(flag);
-      const selected = ["l", "w", "m", "c", "L"].filter(flag => parsed.flags.has(flag));
-      const names = parsed.operands.length ? parsed.operands : ["-"];
-      const req = assertInputRequirements(context, names);
-      if (req) await req;
-      const totals: Record<string, number> = { l: 0, w: 0, m: 0, c: 0, L: 0 };
-      const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C.UTF-8";
-      const singleByte = locale === "C" || locale === "POSIX";
-      const posix = Object.hasOwn(context.env, "POSIXLY_CORRECT");
-      let width = 1;
-      if (totalMode !== "only" && (names.length > 1 || selected.length > 1)) {
-        let totalSize = 0n;
-        for (const name of names) {
-          if (name === "-") { width = Math.max(width, 7); continue; }
-          assertCommandRequirements(context, countRequirements, ["width"]);
-          try {
-            const stat = await context.fs.stat(pathOf(context, name), { signal: context.signal });
-            if (stat.type !== "file") width = Math.max(width, 7);
-            else if (Number.isSafeInteger(stat.size) && stat.size >= 0) totalSize += BigInt(stat.size);
-          } catch { context.signal.throwIfAborted(); }
-        }
-        width = Math.max(width, totalSize.toString().length);
-      }
-      let exitCode = 0;
-      const print = async (counts: Record<string, number>, name?: string) => {
-        const p = output(context, selected.map(flag => String(counts[flag]).padStart(width)).join(" ") + (name === undefined ? "" : ` ${name}`) + "\n");
-        if (!isSyncResolved(p)) await p;
-      };
-      for (const name of names) {
-        const counts: Record<string, number> = { l: 0, w: 0, m: 0, c: 0, L: 0 };
-        let columns = 0;
-        const lineWidth = (point: number) => {
-          if (point === 10 || point === 13 || point === 12) {
-            counts.L = Math.max(counts.L!, columns);
-            columns = 0;
-          } else if (point === 9) columns += 8 - columns % 8;
-          else columns += singleByte ? Number(point >= 32 && point < 127) : wcDisplayWidth(point);
-        };
-        let inWord = false;
-        const word = (whitespace: boolean, printable: boolean) => {
-          if (whitespace) inWord = false;
-          else if (printable) {
-            if (!inWord) counts.w!++;
-            inWord = true;
-          }
-        };
-        const needsText = parsed.flags.has("w") || parsed.flags.has("m") || parsed.flags.has("L");
-        const needsLines = parsed.flags.has("l");
-        const utf8 = (needsText && !singleByte) ? wcUtf8(point => {
-          if (point !== undefined) counts.m!++;
-          word(point !== undefined && wcSpace(point, posix), point !== undefined && point >= 32 && !(point >= 127 && point < 160));
-          if (parsed.flags.has("L") && point !== undefined) lineWidth(point);
-        }) : undefined;
-        try {
-          const iter = input(context, name)[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
-            tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
-            syncReturn?: () => void;
-          };
-          const canTrySync = typeof iter.tryNextSync === "function";
-          let done = false;
-          try {
-          while (true) {
-            let step = canTrySync ? iter.tryNextSync!() : undefined;
-            if (step === undefined) step = await iter.next();
-            if (step.done) { done = true; break; }
-            const chunk = step.value;
-            context.signal.throwIfAborted();
-            counts.c! += chunk.length;
-            context.inputBudget?.check(counts.c!);
-            if (!needsText) {
-              if (needsLines) {
-                for (let pos = chunk.indexOf(10); pos !== -1; pos = chunk.indexOf(10, pos + 1)) counts.l!++;
-              }
-              continue;
-            }
-            for (const byte of chunk) {
-              if (byte === 10) counts.l!++;
-              if (singleByte) word(byte === 32 || byte >= 9 && byte <= 13, byte >= 32 && byte < 127);
-              if (singleByte && parsed.flags.has("L")) lineWidth(byte);
-            }
-            if (singleByte) counts.m! += chunk.length;
-            else utf8!.write(chunk);
-          }
-          } finally {
-            if (!done) {
-              if (typeof iter.syncReturn === "function") iter.syncReturn();
-              else await iter.return?.();
-            }
-          }
-          if (needsText && !singleByte) utf8!.finish();
-          counts.L = Math.max(counts.L!, columns);
-          for (const field of ["l", "w", "m", "c"]) totals[field]! += counts[field]!;
-          totals.L = Math.max(totals.L!, counts.L!);
-          if (totalMode !== "only") await print(counts, parsed.operands.length ? name : undefined);
-        } catch (error) {
-          await diagnostic(context, error);
-          if (totalMode !== "only" && error instanceof FsError && error.code === "EISDIR") await print(counts, parsed.operands.length ? name : undefined);
-          exitCode = 1;
-        }
-      }
-      if (totalMode === "only") await print(totals);
-      else if (totalMode === "always" || (totalMode === "auto" && names.length > 1)) await print(totals, "total");
-      return { exitCode };
-      })();
+      return executeWcSlow(context);
     }),
     define("tee", async context => {
       const args: string[] = [];
@@ -1257,4 +1105,161 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
     if (operation?.signal.aborted && operation.signal.reason instanceof FsError && operation.signal.reason.code === "EPIPE") return { exitCode: 141 };
     throw error;
   } finally { await operation?.close(); }
+}
+
+async function executeWcSlow(context: Parameters<CommandDefinition["execute"]>[0]) {
+
+      if (context.args.length === 1 && (context.args[0] === "-l" || context.args[0] === "-c")) {
+        const countLines = context.args[0] === "-l";
+        const req = assertInputRequirements(context, ["-"]);
+        if (req) await req;
+        let count = 0;
+        let inputBytes = 0;
+        try {
+          const iter = input(context, "-")[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
+            tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
+            syncReturn?: () => void;
+          };
+          let done = false;
+          try {
+            while (true) {
+              let chunk: Uint8Array;
+              const syncRes = typeof iter.tryNextSync === "function" ? iter.tryNextSync() : undefined;
+              if (syncRes !== undefined) {
+                if (syncRes.done) { done = true; break; }
+                chunk = syncRes.value;
+              } else {
+                const asyncRes = await iter.next();
+                if (asyncRes.done) { done = true; break; }
+                chunk = asyncRes.value;
+              }
+              context.signal.throwIfAborted();
+              inputBytes += chunk.byteLength;
+              context.inputBudget?.check(inputBytes);
+              if (countLines) {
+                for (let pos = chunk.indexOf(10); pos !== -1; pos = chunk.indexOf(10, pos + 1)) count++;
+              } else {
+                count += chunk.length;
+              }
+            }
+          } finally {
+            if (!done) {
+              if (typeof iter.syncReturn === "function") iter.syncReturn();
+              else await iter.return?.();
+            }
+          }
+          const p = output(context, `${count}\n`);
+          if (!isSyncResolved(p)) await p;
+          return { exitCode: 0 };
+        } catch (error) {
+          await diagnostic(context, error);
+          return { exitCode: 1 };
+        }
+      }
+      const parsed = options(context.args, "lwcmL", { lines: "l", words: "w", bytes: "c", chars: "m", "max-line-length": "L", total: "total:" });
+      const totalMode = value(parsed, "total") ?? "auto";
+      if (!["auto", "always", "only", "never"].includes(totalMode)) throw new UsageError(`invalid argument '${totalMode}' for '--total'`);
+      if (!["l", "w", "m", "c", "L"].some(flag => parsed.flags.has(flag))) for (const flag of ["l", "w", "c"]) parsed.flags.add(flag);
+      const selected = ["l", "w", "m", "c", "L"].filter(flag => parsed.flags.has(flag));
+      const names = parsed.operands.length ? parsed.operands : ["-"];
+      const req = assertInputRequirements(context, names);
+      if (req) await req;
+      const totals: Record<string, number> = { l: 0, w: 0, m: 0, c: 0, L: 0 };
+      const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C.UTF-8";
+      const singleByte = locale === "C" || locale === "POSIX";
+      const posix = Object.hasOwn(context.env, "POSIXLY_CORRECT");
+      let width = 1;
+      if (totalMode !== "only" && (names.length > 1 || selected.length > 1)) {
+        let totalSize = 0n;
+        for (const name of names) {
+          if (name === "-") { width = Math.max(width, 7); continue; }
+          assertCommandRequirements(context, countRequirements, ["width"]);
+          try {
+            const stat = await context.fs.stat(pathOf(context, name), { signal: context.signal });
+            if (stat.type !== "file") width = Math.max(width, 7);
+            else if (Number.isSafeInteger(stat.size) && stat.size >= 0) totalSize += BigInt(stat.size);
+          } catch { context.signal.throwIfAborted(); }
+        }
+        width = Math.max(width, totalSize.toString().length);
+      }
+      let exitCode = 0;
+      const print = async (counts: Record<string, number>, name?: string) => {
+        const p = output(context, selected.map(flag => String(counts[flag]).padStart(width)).join(" ") + (name === undefined ? "" : ` ${name}`) + "\n");
+        if (!isSyncResolved(p)) await p;
+      };
+      for (const name of names) {
+        const counts: Record<string, number> = { l: 0, w: 0, m: 0, c: 0, L: 0 };
+        let columns = 0;
+        const lineWidth = (point: number) => {
+          if (point === 10 || point === 13 || point === 12) {
+            counts.L = Math.max(counts.L!, columns);
+            columns = 0;
+          } else if (point === 9) columns += 8 - columns % 8;
+          else columns += singleByte ? Number(point >= 32 && point < 127) : wcDisplayWidth(point);
+        };
+        let inWord = false;
+        const word = (whitespace: boolean, printable: boolean) => {
+          if (whitespace) inWord = false;
+          else if (printable) {
+            if (!inWord) counts.w!++;
+            inWord = true;
+          }
+        };
+        const needsText = parsed.flags.has("w") || parsed.flags.has("m") || parsed.flags.has("L");
+        const needsLines = parsed.flags.has("l");
+        const utf8 = (needsText && !singleByte) ? wcUtf8(point => {
+          if (point !== undefined) counts.m!++;
+          word(point !== undefined && wcSpace(point, posix), point !== undefined && point >= 32 && !(point >= 127 && point < 160));
+          if (parsed.flags.has("L") && point !== undefined) lineWidth(point);
+        }) : undefined;
+        try {
+          const iter = input(context, name)[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
+            tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
+            syncReturn?: () => void;
+          };
+          const canTrySync = typeof iter.tryNextSync === "function";
+          let done = false;
+          try {
+          while (true) {
+            let step = canTrySync ? iter.tryNextSync!() : undefined;
+            if (step === undefined) step = await iter.next();
+            if (step.done) { done = true; break; }
+            const chunk = step.value;
+            context.signal.throwIfAborted();
+            counts.c! += chunk.length;
+            context.inputBudget?.check(counts.c!);
+            if (!needsText) {
+              if (needsLines) {
+                for (let pos = chunk.indexOf(10); pos !== -1; pos = chunk.indexOf(10, pos + 1)) counts.l!++;
+              }
+              continue;
+            }
+            for (const byte of chunk) {
+              if (byte === 10) counts.l!++;
+              if (singleByte) word(byte === 32 || byte >= 9 && byte <= 13, byte >= 32 && byte < 127);
+              if (singleByte && parsed.flags.has("L")) lineWidth(byte);
+            }
+            if (singleByte) counts.m! += chunk.length;
+            else utf8!.write(chunk);
+          }
+          } finally {
+            if (!done) {
+              if (typeof iter.syncReturn === "function") iter.syncReturn();
+              else await iter.return?.();
+            }
+          }
+          if (needsText && !singleByte) utf8!.finish();
+          counts.L = Math.max(counts.L!, columns);
+          for (const field of ["l", "w", "m", "c"]) totals[field]! += counts[field]!;
+          totals.L = Math.max(totals.L!, counts.L!);
+          if (totalMode !== "only") await print(counts, parsed.operands.length ? name : undefined);
+        } catch (error) {
+          await diagnostic(context, error);
+          if (totalMode !== "only" && error instanceof FsError && error.code === "EISDIR") await print(counts, parsed.operands.length ? name : undefined);
+          exitCode = 1;
+        }
+      }
+      if (totalMode === "only") await print(totals);
+      else if (totalMode === "always" || (totalMode === "auto" && names.length > 1)) await print(totals, "total");
+  return { exitCode };
 }

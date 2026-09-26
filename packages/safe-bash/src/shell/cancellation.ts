@@ -698,12 +698,11 @@ function closeLink(state: LinkState): CancellationCloseResult {
     return state.closeResult = { failures: (state.failures ??= []) };
   }
   state.closed = true;
-  const hasUnmanagedDetacher = (state.firstDetacher !== undefined && !state.firstDetacher.managed)
-    || (state.signalDetachers !== undefined && state.signalDetachers.some(d => !d.managed));
-  if (state.notifying > 0 || hasUnmanagedDetacher) {
+  if (state.notifying > 0) {
     state.closeResult = { failures: (state.failures ??= []) };
+  } else {
+    finalizeClose(state);
   }
-  if (state.notifying === 0) finalizeClose(state);
   return state.closeResult!;
 }
 

@@ -282,9 +282,6 @@ export class AwkRuntime {
     this.stdoutBuffer = "";
     this.numBoxUsed = 0;
     this.variables.set("FS", separator !== undefined ? string(separator) : DEFAULT_VARIABLES[0]![1]);
-    if (separator !== undefined && separator.length > 0) {
-      retention.admit(0, separator.length);
-    }
     this.variables.set("ARGC", numeric(args.length + 1));
     const argv = this.pooledArgv!;
     const argvAlloc = this.pooledArgvAlloc!;
@@ -304,7 +301,7 @@ export class AwkRuntime {
       this.entries--;
     }
     this.lastArgvLen = args.length;
-    retention.admit(0, argvBytes);
+    retention.admit(0, 12 + (separator !== undefined ? separator.length : 1) + argvBytes);
     argvAlloc.bytes = argvBytes;
   }
   private ensureEnviron(): void {
@@ -1748,11 +1745,12 @@ export class AwkRuntime {
       for (let i = 0; i < this.userKeysLen; i++) {
         const k = this.userKeys[i]!;
         const v = this.variables.get(k);
-        if (v !== undefined && v !== unset) {
-          this.retention.release(textSize(v));
-          this.variables.set(k, unset);
+        if (v !== undefined) {
+          if (v !== unset) this.retention.release(textSize(v));
+          this.variables.delete(k);
         }
       }
+      this.userKeysLen = 0;
       for (let i = 0; i < DEFAULT_VARIABLES.length; i++) {
         const pair = DEFAULT_VARIABLES[i]!;
         const k = pair[0];
@@ -1764,11 +1762,24 @@ export class AwkRuntime {
         }
       }
       const argvAlloc = this.pooledArgvAlloc!;
-      this.retention.release(argvAlloc.bytes);
+      this.retention.release(13 + argvAlloc.bytes);
       argvAlloc.bytes = 0;
+      this.lazyFields.fill(unset, 0, Math.min(64, this.lazyFields.length));
+      this.fieldGeneration = (this.fieldGeneration + 1) | 0 || 1;
+      if (this.regexes && this.regexes.size > 0) this.regexes.clear();
     } else {
       this.canReuseInPlace = false;
       this.releaseStore(this.variables);
+      if (this.pooledBuffers && !sharedFieldBuffers) {
+        this.pooledBuffers.fieldStarts = this.fieldStarts;
+        this.pooledBuffers.fieldEnds = this.fieldEnds;
+        this.pooledBuffers.lazyFieldGen = this.lazyFieldGen;
+        this.pooledBuffers.lazyFields = this.lazyFields;
+        this.pooledBuffers.fieldGeneration = this.fieldGeneration + 1;
+        this.lazyFields.fill(unset, 0, Math.min(64, this.lazyFields.length));
+        sharedFieldBuffers = this.pooledBuffers;
+        this.pooledBuffers = undefined;
+      }
     }
     this.retention.release(this.recordLength + this.fieldBytes);
     this.record = "";
@@ -1776,16 +1787,6 @@ export class AwkRuntime {
     this.fieldCount = 0; this.fieldsMaterialized = true; this.fieldBytes = 0;
     this.sliceBox.source = "";
     this.recordValue = unset;
-    if (this.pooledBuffers && !sharedFieldBuffers) {
-      this.pooledBuffers.fieldStarts = this.fieldStarts;
-      this.pooledBuffers.fieldEnds = this.fieldEnds;
-      this.pooledBuffers.lazyFieldGen = this.lazyFieldGen;
-      this.pooledBuffers.lazyFields = this.lazyFields;
-      this.pooledBuffers.fieldGeneration = this.fieldGeneration + 1;
-      this.lazyFields.fill(unset, 0, Math.min(64, this.lazyFields.length));
-      sharedFieldBuffers = this.pooledBuffers;
-      this.pooledBuffers = undefined;
-    }
     this.context.signal.throwIfAborted();
     (this as unknown as { context: CommandContext }).context = RELEASED_AWK_CONTEXT;
     (this.budget as unknown as { context: CommandContext; signal: AbortSignal }).context = RELEASED_AWK_CONTEXT;
@@ -1819,7 +1820,12 @@ export class AwkRuntime {
                 }
                 }
               }
-              this.syncSpecialVars();
+              if (this.inspection) this.syncSpecialVars();
+              else {
+                this.nrDirty = false;
+                this.fnrDirty = false;
+                this.nfDirty = false;
+              }
               return this.finishSyncCleanup(progRes);
             }
           }

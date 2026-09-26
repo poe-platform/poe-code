@@ -53,7 +53,14 @@ function globalCapabilities(filesystem: FileSystem): FileSystemCapabilities {
       if (key === "copy" || key === "exclusiveCopy") return undefined;
       let declared = filesystem.capabilities[key];
       if (key === "atomicEntryRemovalReceipt") declared = ownedMutationCapabilities(filesystem).atomicEntryRemovalReceipt;
-      if (declared === true && optional[key]?.some(method => typeof filesystem[method] !== "function")) declared = false;
+      if (declared === true) {
+        const req = optional[key];
+        if (req) {
+          for (let i = 0; i < req.length; i++) {
+            if (typeof filesystem[req[i]!] !== "function") { declared = false; break; }
+          }
+        }
+      }
       if (key === "retainedResize" && filesystem.capabilities.readOnly === true) declared = false;
       if (key === "descriptorWriteStream" && filesystem.capabilities.streamingWrite === false) declared = false;
       return declared === deviceCapabilities[key] ? declared : undefined;

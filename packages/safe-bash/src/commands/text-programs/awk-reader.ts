@@ -357,10 +357,10 @@ export class Reader {
     this.ownedBytes = 0;
     const origIter = this.iterator;
     this.iterator = RELEASED_READER_ITERATOR;
-    this.budget = undefined!;
-    this.retention = undefined!;
     if (this.isPooledMemory && pooledMemoryReader === undefined) {
       this.isPooledMemory = false;
+      this.budget = undefined!;
+      this.retention = undefined!;
       pooledMemoryReader = this;
     }
     if (wasEnded || !origIter.return) {
@@ -387,10 +387,10 @@ export class Reader {
     this.ownedBytes = 0;
     const origIter = this.iterator;
     this.iterator = RELEASED_READER_ITERATOR;
-    this.budget = undefined!;
-    this.retention = undefined!;
     if (this.isPooledMemory && pooledMemoryReader === undefined) {
       this.isPooledMemory = false;
+      this.budget = undefined!;
+      this.retention = undefined!;
       pooledMemoryReader = this;
     }
     if (wasEnded || !origIter.return) {

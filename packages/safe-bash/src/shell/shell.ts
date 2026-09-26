@@ -16,6 +16,7 @@ function utf8ByteLength(str: string): number {
   return bytes;
 }
 import { clearAwkReaderPool } from "../commands/text-programs/awk-reader.js";
+import { clearRgFastRunnerPool } from "../commands/search/rg-command.js";
 import { writeDiagnostic } from "../escaping.js";
 import { createDeviceFileSystem } from "@poe-code/safe-fs/core";
 import { CommandRegistry, resolvePath, toByteSource } from "../contracts/index.js";
@@ -51,17 +52,20 @@ const sharedUtf8Decoder = new TextDecoder("utf-8", { ignoreBOM: true });
 const sharedUtf8Encoder = new TextEncoder();
 const EMPTY_SHELL_BYTES = new Uint8Array(0);
 
+let _cachedFastResultStdout = "\0";
+let _cachedFastResultPromise: Promise<ShellResult> | undefined;
+
 class FastShellResult implements ShellResult {
-  readonly stdout: string;
-  readonly stderr: string;
-  readonly exitCode: number;
-  private _stdoutBytes: Uint8Array | undefined = undefined;
-  private _stderrBytes: Uint8Array | undefined = undefined;
+  declare readonly stdout: string;
+  declare readonly stderr: string;
+  declare readonly exitCode: number;
+  declare private _stdoutBytes: Uint8Array | undefined;
+  declare private _stderrBytes: Uint8Array | undefined;
   constructor(stdout: string | Uint8Array, stderr: string | Uint8Array, exitCode: number) {
     this.stdout = typeof stdout === "string" ? stdout : sharedUtf8Decoder.decode(stdout);
     this.stderr = typeof stderr === "string" ? stderr : sharedUtf8Decoder.decode(stderr);
-    if (typeof stdout !== "string") this._stdoutBytes = stdout;
-    if (typeof stderr !== "string") this._stderrBytes = stderr;
+    this._stdoutBytes = typeof stdout !== "string" ? stdout : undefined;
+    this._stderrBytes = typeof stderr !== "string" ? stderr : undefined;
     this.exitCode = exitCode;
   }
   get stdoutBytes(): Uint8Array {
@@ -227,6 +231,11 @@ class RootInvocationCancellationOwner implements CancellationOwnerSubscriber {
     this._resolveCapture = undefined;
     this._observedOrigin = undefined;
     this._queuedOrigin = false;
+  }
+
+  closeWarmSync(): void {
+    this._finished = true;
+    this._admissionOpen = false;
   }
 
   closeSync(): void {
@@ -601,10 +610,14 @@ export class Shell implements PluginHost {
       const stdoutOutput = stdout.takeUtf8Output();
       const stderrOutput = stderr.takeUtf8Output();
       budget.close();
-      owner.closeSync();
-      void scope.close();
+      if (scope.canFastWarmClose()) {
+        owner.closeWarmSync();
+        scope.closeWarmSync();
+      } else {
+        owner.closeSync();
+        void scope.close();
+      }
       cancellationState.close();
-      const fastResult = new FastShellResult(stdoutOutput, stderrOutput, exitCode);
       if (_execAnchor[10] === undefined) {
         _execAnchor[10] = ensureStateMonitor(currentState, budget, scope);
       }
@@ -622,7 +635,15 @@ export class Shell implements PluginHost {
         _execAnchor[9] = currentState;
         _execAnchor[11] = runtime;
       }
-      return Promise.resolve(fastResult);
+      if (exitCode === 0 && stderrOutput === "" && typeof stdoutOutput === "string") {
+        if (stdoutOutput === _cachedFastResultStdout && _cachedFastResultPromise !== undefined) {
+          return _cachedFastResultPromise;
+        }
+        _cachedFastResultStdout = stdoutOutput;
+        _cachedFastResultPromise = Promise.resolve(new FastShellResult(stdoutOutput, "", 0));
+        return _cachedFastResultPromise;
+      }
+      return Promise.resolve(new FastShellResult(stdoutOutput, stderrOutput, exitCode));
     } catch (error) {
       return this.#failWarmAsync(warm, error);
     }
@@ -1100,6 +1121,7 @@ export class Shell implements PluginHost {
         monitor.values.prewarm();
         stdout.enableScratchBuffer();
         stderr.enableScratchBuffer();
+        void runtime.canFastMemoryRedirect;
         this.#warmedInvocation = {
           budget,
           scope,
@@ -1176,8 +1198,11 @@ export class Shell implements PluginHost {
     if (this.#disposal) return this.#disposal;
     this.#disposed = true;
     _execAnchor.fill(undefined);
+    _cachedFastResultStdout = "\0";
+    _cachedFastResultPromise = undefined;
     Runtime.clearStaticPools();
     clearAwkReaderPool();
+    clearRgFastRunnerPool();
     this.#clearWarmedInvocation();
     const active = this.#active
       ? [...this.#active]

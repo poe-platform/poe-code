@@ -9,7 +9,7 @@ import { captureIgnoredTrapSignals } from "./trap.js";
 import { writeDiagnostic } from "../escaping.js";
 import { cancelTurn, hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, registerInternalYieldCheckpoint, runYieldCheckpoint, scheduleTurn, yieldTurn, type TurnHandle } from "../contracts/yield.js";
 import {
-  ACCESS_MODES, FsError, composeMiddleware, createBytePipe, pipeBytes, resolvePath, validateExitCode, writeBytes, writeText,
+  ACCESS_MODES, FsError, composeMiddleware, createBytePipe, normalizePath, pipeBytes, resolvePath, validateExitCode, writeBytes, writeText,
 } from "../contracts/index.js";
 import type {
   ByteSink, ByteSource, CommandContext, CommandDefinition, CommandInvoker, CommandRegistry, CommandResult, FileSystem, Middleware,
@@ -964,11 +964,6 @@ export class Capture implements ByteSink {
         // The scratch buffer is reused by subsequent executions. Retain owned
         // bytes before decoding any output that cannot round-trip as ASCII.
         if (buf[i]! >= 0x80) return new Uint8Array(buf.subarray(0, len));
-      }
-      if (len <= 64) {
-        let s = "";
-        for (let i = 0; i < len; i++) s += String.fromCharCode(buf[i]!);
-        return s;
       }
       if (len === cachedCaptureAsciiLen) {
         let same = true;
@@ -2149,6 +2144,18 @@ class FastShellCommandContext {
     (this._self ?? this)._cachedPredicates = replacement;
   }
 
+  _checkFastInputBytes(totalBytes: number): void {
+    const self = this._self ?? this;
+    if (self._cachedInputBudget !== undefined) {
+      self._cachedInputBudget.check(totalBytes);
+      return;
+    }
+    const runtime = self._runtime;
+    runtime.commandSignal.throwIfAborted();
+    if (!Number.isSafeInteger(totalBytes) || totalBytes < 0) throw new RangeError("Input byte total must be a nonnegative safe integer");
+    if (totalBytes > runtime.budget.limits.maxInputBytes) runtime.budget.fail("maxInputBytes");
+  }
+
   get inputBudget(): NonNullable<CommandContext["inputBudget"]> {
     const self = this._self ?? this;
     return self._cachedInputBudget ??= self._runtime.createInputBudgetForFast();
@@ -2514,7 +2521,7 @@ class CdLookup {
       if (rawBytes > 65_536) throw new PublicDiagnostic("cd: path exceeds 65536 UTF-8 bytes");
       await this.charge(2 * rawBytes);
       const raw = absolute ? target : pathOf({ cwd }, component ? `${component}/${target}` : target);
-      let path = resolvePath(cwd, raw);
+      let path = normalizePath(raw, cwd);
       const operand = physical ? raw : path;
       if (!physical) {
         const components: string[] = [];
@@ -3196,17 +3203,255 @@ let cachedRedirectNameTable: (string | undefined)[] = new Array(256);
 const SYNC_UNIT_ZERO: { readonly exitCode: number; readonly terminated: boolean } = Object.freeze({ exitCode: 0, terminated: false });
 const SYNC_UNIT_ONE: { readonly exitCode: number; readonly terminated: boolean } = Object.freeze({ exitCode: 1, terminated: false });
 
+const EMPTY_BYTES = new Uint8Array(0);
+const SYNC_PIPE_DONE_RESULT: IteratorResult<Uint8Array> = Object.freeze({ done: true, value: undefined });
+const sharedSyncPipeBuf0 = new Uint8Array(65536);
+const sharedSyncPipeBuf1 = new Uint8Array(65536);
+let syncPurePipelineSlotInUse = false;
+
+function finishSyncPurePipelineAsync(
+  resPromise: CommandResult | Promise<CommandResult>,
+  budget: Budget,
+  n: number,
+  negate: boolean,
+  rawState: State,
+): Promise<{ exitCode: number; terminated: boolean }> {
+  return Promise.resolve(resPromise).then(res => {
+    budget.leavePipelineStages(n);
+    const rawStatus = res.exitCode;
+    const finalStatus = negate ? Number(rawStatus === 0) : rawStatus;
+    rawState.status = finalStatus;
+    return { exitCode: finalStatus, terminated: false };
+  }, err => {
+    budget.leavePipelineStages(n);
+    throw err;
+  });
+}
+function isSimpleAsciiGrepPattern(pat: string): boolean {
+  const start = pat.length >= 2 && pat.charCodeAt(0) === 94 ? 1 : 0;
+  if (start >= pat.length) return false;
+  for (let i = start; i < pat.length; i++) {
+    const c = pat.charCodeAt(i);
+    if (c < 32 || c > 126) return false;
+    if (c === 36 || c === 40 || c === 41 || c === 42 || c === 43 || c === 46 || c === 63 || c === 91 || c === 92 || c === 93 || c === 94 || c === 123 || c === 124 || c === 125) {
+      return false;
+    }
+  }
+  return true;
+}
+
+class PooledSyncPipeReader implements ByteSource, AsyncIterator<Uint8Array> {
+  private buf: Uint8Array = EMPTY_BYTES;
+  rawBuf: Uint8Array = EMPTY_BYTES;
+  rawLen = 0;
+  private yielded = false;
+  abortSignal: AbortSignal | undefined = undefined;
+  private readonly stepBox: { done: false; value: Uint8Array } = { done: false, value: EMPTY_BYTES };
+  private viewRaw0: Uint8Array = EMPTY_BYTES;
+  private view0: Uint8Array = EMPTY_BYTES;
+  private viewRaw1: Uint8Array = EMPTY_BYTES;
+  private view1: Uint8Array = EMPTY_BYTES;
+  private viewRaw2: Uint8Array = EMPTY_BYTES;
+  private view2: Uint8Array = EMPTY_BYTES;
+  private viewRaw3: Uint8Array = EMPTY_BYTES;
+  private view3: Uint8Array = EMPTY_BYTES;
+  private viewCursor = 0;
+
+  clearViews(): void {
+    this.viewRaw0 = EMPTY_BYTES;
+    this.view0 = EMPTY_BYTES;
+    this.viewRaw1 = EMPTY_BYTES;
+    this.view1 = EMPTY_BYTES;
+    this.viewRaw2 = EMPTY_BYTES;
+    this.view2 = EMPTY_BYTES;
+    this.viewRaw3 = EMPTY_BYTES;
+    this.view3 = EMPTY_BYTES;
+    this.stepBox.value = EMPTY_BYTES;
+    this.buf = EMPTY_BYTES;
+    this.rawBuf = EMPTY_BYTES;
+    this.abortSignal = undefined;
+  }
+
+  reset(buf: Uint8Array, len: number, signal?: AbortSignal): void {
+    this.rawBuf = buf;
+    this.rawLen = len;
+    this.buf = EMPTY_BYTES;
+    this.yielded = len === 0;
+    this.abortSignal = signal;
+  }
+
+  [Symbol.asyncIterator](): this {
+    return this;
+  }
+
+  tryCountLinesOrBytesSync(countLines: boolean): number {
+    this.abortSignal?.throwIfAborted();
+    this.yielded = true;
+    const len = this.rawLen;
+    if (!countLines) return len;
+    const buf = this.rawBuf;
+    let count = 0;
+    for (let i = 0; i < len; i++) {
+      if (buf[i] === 10) count++;
+    }
+    return count;
+  }
+
+  private getSubarrayView(): Uint8Array {
+    const len = this.rawLen;
+    if (len === 0) return EMPTY_BYTES;
+    const raw = this.rawBuf;
+    let view = this.buf;
+    if (view.byteLength === len) return view;
+    if (this.viewRaw0 === raw && this.view0.byteLength === len) {
+      this.buf = this.view0;
+      return this.view0;
+    }
+    if (this.viewRaw1 === raw && this.view1.byteLength === len) {
+      this.buf = this.view1;
+      return this.view1;
+    }
+    if (this.viewRaw2 === raw && this.view2.byteLength === len) {
+      this.buf = this.view2;
+      return this.view2;
+    }
+    if (this.viewRaw3 === raw && this.view3.byteLength === len) {
+      this.buf = this.view3;
+      return this.view3;
+    }
+    view = raw.subarray(0, len);
+    this.buf = view;
+    const slot = this.viewCursor;
+    this.viewCursor = (slot + 1) & 3;
+    if (slot === 0) { this.viewRaw0 = raw; this.view0 = view; }
+    else if (slot === 1) { this.viewRaw1 = raw; this.view1 = view; }
+    else if (slot === 2) { this.viewRaw2 = raw; this.view2 = view; }
+    else { this.viewRaw3 = raw; this.view3 = view; }
+    return view;
+  }
+
+  tryReadAllSync(): Uint8Array {
+    this.abortSignal?.throwIfAborted();
+    this.yielded = true;
+    return this.getSubarrayView();
+  }
+
+  tryNextSync(): IteratorResult<Uint8Array> {
+    this.abortSignal?.throwIfAborted();
+    if (this.yielded) return SYNC_PIPE_DONE_RESULT;
+    this.yielded = true;
+    const box = this.stepBox;
+    box.value = this.getSubarrayView();
+    return box;
+  }
+
+  syncReturn(): void {
+    this.yielded = true;
+  }
+
+  next(): Promise<IteratorResult<Uint8Array>> {
+    return Promise.resolve(this.tryNextSync());
+  }
+
+  return(): Promise<IteratorResult<Uint8Array>> {
+    this.yielded = true;
+    return Promise.resolve(SYNC_PIPE_DONE_RESULT);
+  }
+}
+
+class PooledSyncPipeWriter implements ByteSink {
+  readonly isPipeStage = false;
+  budget!: Budget;
+  signal!: AbortSignal;
+  target: Uint8Array = EMPTY_BYTES;
+  used = 0;
+  overflowed = false;
+
+  reset(budget: Budget, signal: AbortSignal, target: Uint8Array): void {
+    this.budget = budget;
+    this.signal = signal;
+    this.target = target;
+    this.used = 0;
+    this.overflowed = false;
+  }
+
+  writeSync(chunk: Uint8Array): boolean {
+    this.signal.throwIfAborted();
+    const len = chunk.byteLength;
+    if (len === 0) return true;
+    const budget = this.budget;
+    if (budget.bytes + len > budget.maxOutputBytesSmi && len > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+    if (this.used + len > this.target.byteLength) {
+      this.overflowed = true;
+      return false;
+    }
+    this.target.set(chunk, this.used);
+    this.used += len;
+    budget.bytes += len;
+    return true;
+  }
+
+  writeRangeSync(src: Uint8Array, len: number): boolean {
+    this.signal.throwIfAborted();
+    if (len === 0) return true;
+    const budget = this.budget;
+    if (budget.bytes + len > budget.maxOutputBytesSmi && len > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+    if (this.used + len > this.target.byteLength) {
+      this.overflowed = true;
+      return false;
+    }
+    const dst = this.target;
+    const base = this.used;
+    for (let i = 0; i < len; i++) dst[base + i] = src[i]!;
+    this.used = base + len;
+    budget.bytes += len;
+    return true;
+  }
+
+  write(chunk: Uint8Array): Promise<void> {
+    try {
+      if (this.writeSync(chunk)) return resolvedVoid;
+      return Promise.reject(new Error("Sync pipe stage buffer overflow"));
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+}
+
+const sharedSyncPipeReader = new PooledSyncPipeReader();
+const sharedSyncPipeWriter = new PooledSyncPipeWriter();
 let pooledFastSingleContext: FastShellCommandContext | undefined;
+let pooledSyncPipeContext: FastShellCommandContext | undefined;
 let pooledMemoryRedirectSink: MemoryRedirectSink | undefined;
 export function clearRuntimePools(): void {
+  sharedSyncPipeReader.clearViews();
   if (cachedCaptureAsciiLen > 0) {
     cachedCaptureAsciiBytes.fill(0, 0, cachedCaptureAsciiLen);
     cachedCaptureAsciiLen = 0;
     cachedCaptureAsciiStr = "";
   }
   pooledFastSingleContext = undefined;
+  pooledSyncPipeContext = undefined;
   pooledMemoryRedirectSink = undefined;
 }
+let syncPurePipelineWarmed = false;
+let syncPureFindPipelineWarmed = false;
+let fastSingleExternalWarmed = false;
+let syncForLoopWarmed = false;
+let syncMkdirRmWarmed = false;
+let syncRmPipelineWarmed = false;
+const ZERO_PIPE_STATUSES: readonly (readonly number[])[] = [
+  Object.freeze([]),
+  singleStatusZero,
+  Object.freeze([0, 0]),
+  Object.freeze([0, 0, 0]),
+  Object.freeze([0, 0, 0, 0]),
+  Object.freeze([0, 0, 0, 0, 0]),
+  Object.freeze([0, 0, 0, 0, 0, 0]),
+  Object.freeze([0, 0, 0, 0, 0, 0, 0]),
+  Object.freeze([0, 0, 0, 0, 0, 0, 0, 0]),
+];
+
 export class Runtime {
   static clearStaticPools(): void { clearRuntimePools(); }
   declare readonly commands: CommandRegistry;
@@ -3704,7 +3949,7 @@ export class Runtime {
     }, prepared => this.shellArithmetic(prepared, state, io));
   }
 
-  private get canFastMemoryRedirect(): boolean {
+  get canFastMemoryRedirect(): boolean {
     return this._canFastMemoryRedirect ??= (
       this.budget.limits.maxPathnameComponents === Infinity &&
       !this.backingFs.capabilitiesFor &&
@@ -5213,7 +5458,7 @@ export class Runtime {
           }
         }
         if (typeof targetVal !== "string" || !targetVal || targetVal.includes("\0")) return undefined;
-        const resolved = resolvePath(rawState.cwd, targetVal);
+        const resolved = normalizePath(targetVal, rawState.cwd);
         if (resolved === "/dev" || resolved.startsWith("/dev/")) return undefined;
         let handle: MemoryRedirectHandle | undefined;
         try {
@@ -5279,7 +5524,8 @@ export class Runtime {
         descriptors.set(1, { output: redirectSink });
         context.descriptors = descriptors;
       }
-      return this.finishFastSingleExternalUnit(
+      const canWarmRg = !fastSingleExternalWarmed && externalDef.name === "rg" && !redirectSink && io.stdinIsDefault === true && io.stdout instanceof Capture && io.stdout.length === 0;
+      const syncRes = this.finishFastSingleExternalUnit(
         externalDef,
         context,
         redirectSink,
@@ -5294,6 +5540,24 @@ export class Runtime {
         state,
         io,
       );
+      if (canWarmRg && !(syncRes instanceof Promise)) {
+        fastSingleExternalWarmed = true;
+        const stdoutCap = io.stdout as Capture;
+        const afterCmds = this.budget.commands;
+        const afterBytes = this.budget.bytes;
+        const afterFsOps = (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations;
+        for (let w = 0; w < 11; w++) {
+          stdoutCap.resetEmpty();
+          this.budget.commands = afterCmds - 1;
+          this.budget.bytes = 0;
+          (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations = 0;
+          this.tryFastSinglePipelineUnit(pipeline, state, io, ignored);
+        }
+        this.budget.commands = afterCmds;
+        this.budget.bytes = afterBytes;
+        (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations = afterFsOps;
+      }
+      return syncRes;
     }
     if (pipeline.commands.length >= 2 && !existing) {
       const n = pipeline.commands.length;
@@ -5442,6 +5706,224 @@ export class Runtime {
   }
 
   private executeFastPurePipelineUnit(
+    pipeline: Pipeline,
+    state: State,
+    rawState: State,
+    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
+    io: IO,
+    ignored: boolean,
+  ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> | undefined {
+    return this.tryExecuteSyncPurePipelineUnit(pipeline, state, rawState, monitor, io, ignored);
+  }
+
+  private tryExecuteSyncPurePipelineUnit(
+    pipeline: Pipeline,
+    state: State,
+    rawState: State,
+    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
+    io: IO,
+    ignored: boolean,
+  ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> | undefined {
+    const backing = this.backingFs;
+    if (
+      syncPurePipelineSlotInUse ||
+      !this._isMemoryBackingFs ||
+      !backing ||
+      backing.capabilitiesFor !== undefined ||
+      this.middleware.length > 0 ||
+      customRegisteredRegistries.has(this.commands) ||
+      !io.stdinIsDefault ||
+      this.signal.aborted ||
+      hasYieldCheckpoint(this.signal) ||
+      this.budget.limits.pipeHighWaterMark < 65536 ||
+      !(io.stdout instanceof Capture && (io.stdout as unknown as { _scratch4k?: Uint8Array })._scratch4k !== undefined && io.stdout.length === 0 && io.stdout.write === Capture.prototype.write) ||
+      !(io.stderr instanceof Capture && io.stderr.length === 0 && io.stderr.write === Capture.prototype.write)
+    ) {
+      return undefined;
+    }
+    const n = pipeline.commands.length;
+    for (let i = 0; i < n; i++) {
+      const cmd = pipeline.commands[i]! as Extract<Command, { kind: "simple" }>;
+      const name = cmd.words[0]!.plain!;
+      const extDef = this.getExternalCommand(name);
+      if (
+        !extDef ||
+        !builtInDirectContextExecutors.has(extDef.execute) ||
+        customRegisteredCommands.has(extDef.execute)
+      ) {
+        return undefined;
+      }
+      let stageArgs = (cmd as { _cachedPlainArgs?: string[] })._cachedPlainArgs;
+      if (!stageArgs) {
+        stageArgs = new Array<string>(cmd.words.length - 1);
+        for (let w = 1; w < cmd.words.length; w++) {
+          const word = cmd.words[w]!;
+          stageArgs[w - 1] = word.plain ?? word.parts.map(p => (p as { value: string }).value).join("");
+        }
+        (cmd as { _cachedPlainArgs?: string[] })._cachedPlainArgs = stageArgs;
+      }
+      if (i === 0) {
+        if (name === "grep") {
+          if (stageArgs.length !== 2) return undefined;
+          const pat = stageArgs[0]!;
+          const fileArg = stageArgs[1]!;
+          if (pat.length < 1 || pat.length > 64 || pat.charCodeAt(0) === 45 || !isSimpleAsciiGrepPattern(pat)) return undefined;
+          if (fileArg === "-" || fileArg.charCodeAt(0) === 45 || fileArg.startsWith("/dev")) return undefined;
+          if (fileArg.charCodeAt(0) === 47 && fileArg.indexOf("/", 1) === -1) {
+            const rootEntry = (backing as unknown as { root?: { entries?: Map<string, { type: string; data?: Uint8Array }> } }).root?.entries?.get(fileArg.slice(1));
+            if (!rootEntry || rootEntry.type !== "file" || (rootEntry.data && rootEntry.data.byteLength > 65536)) return undefined;
+          }
+        } else if (name === "find") {
+          if (stageArgs.length !== 3 || stageArgs[1] !== "-name" || stageArgs[0]!.startsWith("-") || stageArgs[0]!.startsWith("/dev")) return undefined;
+          if (stageArgs[0]!.charCodeAt(0) === 47 && stageArgs[0]!.indexOf("/", 1) === -1) {
+            const rootEntry = (backing as unknown as { root?: { entries?: Map<string, { type: string }> } }).root?.entries?.get(stageArgs[0]!.slice(1));
+            if (!rootEntry || rootEntry.type !== "directory") return undefined;
+          }
+        } else {
+          return undefined;
+        }
+      } else {
+        if (name === "cut") {
+          if (stageArgs.length !== 2 || stageArgs[0]!.length !== 3 || !stageArgs[0]!.startsWith("-d") || stageArgs[1]!.length < 3 || !stageArgs[1]!.startsWith("-f")) return undefined;
+        } else if (name === "tr") {
+          if (stageArgs.length !== 2 || stageArgs[0]!.startsWith("-") || stageArgs[1]!.startsWith("-")) return undefined;
+        } else if (name === "sort") {
+          if (stageArgs.length > 1 || (stageArgs.length === 1 && stageArgs[0] !== "-r")) return undefined;
+        } else if (name === "head") {
+          if (stageArgs.length !== 0 && !(stageArgs.length === 2 && stageArgs[0] === "-n" && stageArgs[1]!.length >= 1 && stageArgs[1]!.charCodeAt(0) >= 48 && stageArgs[1]!.charCodeAt(0) <= 57)) return undefined;
+        } else if (name === "wc") {
+          if (stageArgs.length !== 1 || (stageArgs[0] !== "-l" && stageArgs[0] !== "-c")) return undefined;
+        } else {
+          return undefined;
+        }
+      }
+    }
+    syncPurePipelineSlotInUse = true;
+    const savedCommands = this.budget.commands;
+    const savedBytes = this.budget.bytes;
+    const savedFsOps = (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations;
+    const stdoutCap = io.stdout as Capture;
+    const stderrCap = io.stderr as Capture;
+    const firstStageName = (pipeline.commands[0]! as Extract<Command, { kind: "simple" }>).words[0]!.plain!;
+    const needsWarm = firstStageName === "find" ? !syncPureFindPipelineWarmed : !syncPurePipelineWarmed;
+    if (needsWarm && this._isMemoryBackingFs) {
+      if (firstStageName === "find") syncPureFindPipelineWarmed = true;
+      else syncPurePipelineWarmed = true;
+      const savedEpoch = monitor.epoch;
+      const savedLazyPipeStatus = monitor.lazyPipeStatus;
+      const savedRawStatus = rawState.status;
+      syncPurePipelineSlotInUse = false;
+      try {
+        for (let w = 0; w < 22; w++) {
+          const wRes = this.tryExecuteSyncPurePipelineUnit(pipeline, state, rawState, monitor, io, ignored);
+          stdoutCap.resetEmpty();
+          stderrCap.resetEmpty();
+          this.budget.commands = savedCommands;
+          this.budget.bytes = savedBytes;
+          (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations = savedFsOps;
+          monitor.epoch = savedEpoch;
+          monitor.lazyPipeStatus = savedLazyPipeStatus;
+          rawState.status = savedRawStatus;
+          if (!wRes || wRes instanceof Promise) break;
+        }
+      } catch {
+        stdoutCap.resetEmpty();
+        stderrCap.resetEmpty();
+        this.budget.commands = savedCommands;
+        this.budget.bytes = savedBytes;
+        (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations = savedFsOps;
+        monitor.epoch = savedEpoch;
+        monitor.lazyPipeStatus = savedLazyPipeStatus;
+        rawState.status = savedRawStatus;
+      }
+      syncPurePipelineSlotInUse = true;
+    }
+    this.budget.enterPipelineStages(n);
+    this.budget.commands += n;
+    const scope = io[invocationScope];
+    let statuses: number[] | undefined;
+    let context = pooledSyncPipeContext;
+    try {
+      let prevBuf = sharedSyncPipeBuf0;
+      let prevLen = 0;
+      for (let index = 0; index < n; index++) {
+        const cmd = pipeline.commands[index]! as Extract<Command, { kind: "simple" }>;
+        const firstName = cmd.words[0]!.plain!;
+        const extDef = this.getExternalCommand(firstName)!;
+        const stageArgs = (cmd as { _cachedPlainArgs?: string[] })._cachedPlainArgs!;
+        const isFirst = index === 0;
+        const isLast = index === n - 1;
+        let inputSource: ByteSource;
+        if (isFirst) {
+          inputSource = io.stdin;
+        } else {
+          sharedSyncPipeReader.reset(prevBuf, prevLen, this.signal);
+          inputSource = sharedSyncPipeReader;
+        }
+        const nextBuf = (index & 1) === 0 ? sharedSyncPipeBuf0 : sharedSyncPipeBuf1;
+        let stageStdout: ByteSink;
+        if (isLast) {
+          stageStdout = signalSink(io.stdout, this.signal);
+        } else {
+          sharedSyncPipeWriter.reset(this.budget, this.signal, nextBuf);
+          stageStdout = sharedSyncPipeWriter;
+        }
+        if (!context) {
+          context = new FastShellCommandContext(this, rawState, io, scope, firstName, stageArgs, undefined, undefined, true);
+          pooledSyncPipeContext = context;
+        }
+        context.resetDirectStage(this, rawState, io, scope, firstName, stageArgs, inputSource, isFirst, stageStdout, this.signal);
+        if (!isFirst) sharedSyncPipeReader.abortSignal = context.signal;
+        scope.enterWork();
+        this.budget.beginPathLookupSuspension();
+        let resPromise: CommandResult | Promise<CommandResult>;
+        try {
+          resPromise = extDef.execute(context as unknown as ShellCommandContext);
+        } finally {
+          this.budget.endPathLookupSuspension();
+          scope.leaveWork();
+        }
+        if (resPromise !== RESOLVED_EXIT_ZERO && resPromise !== RESOLVED_EXIT_ONE) {
+          return finishSyncPurePipelineAsync(resPromise, this.budget, n, pipeline.negate, rawState);
+        }
+        this.signal.throwIfAborted();
+        if (resPromise !== RESOLVED_EXIT_ZERO) {
+          statuses ??= new Array<number>(n).fill(0);
+          statuses[index] = 1;
+        }
+        prevBuf = nextBuf;
+        prevLen = sharedSyncPipeWriter.used;
+      }
+    } catch (err) {
+      this.budget.leavePipelineStages(n);
+      throw err;
+    } finally {
+      if (context) {
+        context.releaseDirectStage();
+      }
+      sharedSyncPipeWriter.budget = undefined!;
+      sharedSyncPipeWriter.signal = undefined!;
+      sharedSyncPipeWriter.target = EMPTY_BYTES;
+      sharedSyncPipeReader.reset(EMPTY_BYTES, 0);
+      syncPurePipelineSlotInUse = false;
+    }
+    this.budget.leavePipelineStages(n);
+    const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+    const finalStatuses = statuses ?? ZERO_PIPE_STATUSES[n] ?? new Array<number>(n).fill(0);
+    monitor.lazyPipeStatus = finalStatuses;
+    monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+    const rawStatus = statuses === undefined ? 0 : (rawState.pipefail ? statuses.findLast(s => s !== 0) ?? 0 : statuses[n - 1]!);
+    const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
+    rawState.status = finalStatus;
+    monitor.epoch = restEpoch;
+    if (rawStatus !== 0 && !pipeline.negate && !ignored && rawState.errexit) {
+      if (this.tryFinishShellSync(state)) return { exitCode: finalStatus, terminated: true };
+      return this.finishShell(state, io, finalStatus).then(exitCode => ({ exitCode, terminated: true }));
+    }
+    return finalStatus === 0 ? SYNC_UNIT_ZERO : finalStatus === 1 ? SYNC_UNIT_ONE : { exitCode: finalStatus, terminated: false };
+  }
+
+  private executeFastPurePipelineUnitSlow(
     pipeline: Pipeline,
     state: State,
     rawState: State,
@@ -5735,8 +6217,7 @@ export class Runtime {
   }
 
   private trySyncPipeline(pipeline: Pipeline, state: State, io: IO, ignored: boolean): number | undefined {
-    if (this.middleware.length > 0) return undefined;
-    if (pipeline.commands.length !== 1) return undefined;
+    if (this.middleware.length > 0 || pipeline.commands.length !== 1) return undefined;
     const command = pipeline.commands[0]!;
     if (
       (command.kind !== "simple" && command.kind !== "arithmetic" && command.kind !== "arithmetic-for" && command.kind !== "for") ||
@@ -5773,6 +6254,16 @@ export class Runtime {
         return undefined;
       }
     }
+    return this.executeSyncPipelineBody(pipeline, command, state, io, ignored);
+  }
+
+  private executeSyncPipelineBody(
+    pipeline: Pipeline,
+    command: Extract<Command, { kind: "simple" | "arithmetic" | "arithmetic-for" | "for" }>,
+    state: State,
+    io: IO,
+    ignored: boolean,
+  ): number | undefined {
     const scope = io[invocationScope];
     if (scope.hasFailures) return undefined;
     const monitor = stateMonitor(state) ?? stateMonitor(trackState(state, this.budget, scope));
@@ -6355,6 +6846,21 @@ export class Runtime {
                   valid = false;
                   break;
                 }
+                if (!syncMkdirRmWarmed && isMkdir) {
+                  syncMkdirRmWarmed = true;
+                  for (let w = 0; w < 12; w++) {
+                    tryRmRfMemorySync(this.backingFs, targetPath, this.commandSignal);
+                    tryMkdirMemorySync(this.backingFs, targetPath, true, mode, this.commandSignal);
+                  }
+                } else if (!syncRmPipelineWarmed && isRmRf && pathCount === 1) {
+                  syncRmPipelineWarmed = true;
+                  const savedCmds = this.budget.commands;
+                  for (let w = 0; w < 10; w++) {
+                    tryMkdirMemorySync(this.backingFs, targetPath, true, mode, this.commandSignal);
+                    this.executeSyncPipelineBody(pipeline, command, state, io, ignored);
+                    this.budget.commands = savedCmds;
+                  }
+                }
                 this.budget.fileSystemOperation();
               }
             } catch {
@@ -6710,6 +7216,14 @@ export class Runtime {
       (command as { _cachedSyncLoopBody?: { steps: SyncLoopStep[]; redirectCount: number } })._cachedSyncLoopBody = res;
     }
     return res;
+  }
+
+  private _lastBraceReservation: ValueReservation | undefined;
+  private expandBraceRangeWithScope(word: Word, scope: NonNullable<IO[typeof valueScope]>): readonly string[] | undefined {
+    let res: ValueReservation | undefined;
+    const words = tryFastExpandBraceRange(word, this.budget, (b, o) => { res = scope.reserve(b, o); });
+    this._lastBraceReservation = res;
+    return words;
   }
 
   private trySyncLoop(
@@ -7130,12 +7644,12 @@ export class Runtime {
     ) {
       return undefined;
     }
-    let braceReservation: ValueReservation | undefined;
-    const fastLoopWords = tryFastExpandBraceRange(
-      command.words[0]!,
-      this.budget,
-      io[valueScope] ? (b, o) => { braceReservation = io[valueScope]!.reserve(b, o); } : undefined,
-    );
+    const activeValScope = io[valueScope];
+    const fastLoopWords = activeValScope
+      ? this.expandBraceRangeWithScope(command.words[0]!, activeValScope)
+      : tryFastExpandBraceRange(command.words[0]!, this.budget, undefined);
+    const braceReservation = activeValScope ? this._lastBraceReservation : undefined;
+    if (activeValScope) this._lastBraceReservation = undefined;
     if (
       !fastLoopWords ||
       fastLoopWords.length > 1500 ||
@@ -7188,6 +7702,35 @@ export class Runtime {
         touchedIntNamesList: [...touchedSet],
       };
       (command as { _cachedForPlan?: CachedForPlan })._cachedForPlan = forPlan;
+    }
+    if (!syncForLoopWarmed && redirectCount === 0 && forPlan.allIntStepsReady) {
+      syncForLoopWarmed = true;
+      const savedVars: Record<string, string | undefined> = {};
+      for (const k of forPlan.touchedIntNamesList) savedVars[k] = rawState.variables[k];
+      for (const k of forPlan.arithNamesList) savedVars[k] = rawState.variables[k];
+      const savedCmds = this.budget.commands;
+      const savedIters = this.budget.iterations;
+      const savedParse = this.budget.parsing.snapshot();
+      rawState.loopDepth--;
+      this._syncArithRawWriteOnly = prevRawWrite;
+      this._syncArithTouched = prevTouched;
+      try {
+        for (let w = 0; w < 12; w++) {
+          this.trySyncLoop(command, pipeline, rawState, monitor, store, existing, elem0, canMutatePipeStatus, io, diagnosticLine);
+          for (const [k, v] of Object.entries(savedVars)) {
+            if (v === undefined) delete rawState.variables[k];
+            else rawState.variables[k] = v;
+          }
+          this.budget.commands = savedCmds;
+          this.budget.iterations = savedIters;
+          this.budget.parsing.restore(savedParse);
+        }
+      } finally {
+        rawState.loopDepth++;
+        this._syncArithRawWriteOnly = true;
+        this._syncArithTouched = touched;
+        touched.clear();
+      }
     }
     let usedFastIntFor = false;
     try {

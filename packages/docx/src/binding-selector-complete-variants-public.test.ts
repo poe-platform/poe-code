@@ -1,5 +1,5 @@
 import { Volume } from "memfs";
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
 import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import * as api from "./index.js";
@@ -8,6 +8,13 @@ import { compiledPublicRuntime } from "../tests/compiled-public-runtime.js";
 const native = await compiledPublicRuntime as unknown as typeof compiledTypes;
 import { textContext } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
+
+// Binding and byte fidelity use the scheduling port without host task latency.
+// The external compiled runtime retains real scheduling and its public routes.
+vi.mock("@poe-code/office-package", async importOriginal => ({
+  ...await importOriginal<typeof import("@poe-code/office-package")>(),
+  yieldEventLoop: async () => {}
+}));
 
 const store = "{11111111-2222-3333-4444-555555555555}";
 const quote = (value: string) => "'" + value.split("'").join("'\\''") + "'";

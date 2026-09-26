@@ -21,6 +21,8 @@ export function probeLotus(bytes: Uint8Array, context: CapabilityContext): boole
   return (b.u16(0) === 0 || b.u16(0) === 0xff) &&
     ([0x404, 0x405, 0x406].includes(version) ? length === 2 : [0x1002, 0x1003, 0x1004, 0x1005].includes(version) && length >= 19);
 }
+const lmbcsDoubleByteCodepages: Readonly<Record<number, number>> = { 0x10: 932, 0x11: 949, 0x12: 950, 0x13: 936 };
+
 async function lmbcs(bytes: Uint8Array, group: number, context: CapabilityContext): Promise<string> {
   let text = "";
   const warn = async (message: string) => context.diagnostic?.({ code: "lotus", severity: "warning", message });
@@ -37,19 +39,27 @@ async function lmbcs(bytes: Uint8Array, group: number, context: CapabilityContex
       const high = bytes[at++]!, low = bytes[at++]!;
       // ICU GetUniFromLMBCSUni: F6/xx encodes xx/00 without a NUL byte.
       text += String.fromCharCode(high === 0xf6 ? low * 256 : high * 256 + low);
-    } else if (c === 0x12 || c >= 128 && group === 0x12) {
-      const start = c === 0x12 ? at : at - 1;
-      if (start + 1 >= bytes.length) break;
-      const lead = bytes[start]!, trail = bytes[start + 1]!;
-      at = start + 2;
-      if (lead > 0x80 && lead !== 0xff && trail) {
-        const character = biffDbcsTables[950]?.double[lead]?.[trail];
-        if (character !== undefined && character !== "\uffff") text += character;
+    } else if (lmbcsDoubleByteCodepages[c] !== undefined || c >= 128 && lmbcsDoubleByteCodepages[group] !== undefined) {
+      const explicit = lmbcsDoubleByteCodepages[c] !== undefined;
+      const table = biffDbcsTables[lmbcsDoubleByteCodepages[explicit ? c : group]!]!;
+      let character: string | undefined;
+      if (explicit) {
+        if (at + 1 >= bytes.length) break;
+        const lead = bytes[at++]!, trail = bytes[at++]!;
+        // ICU doubles the group prefix to introduce a single-byte character.
+        character = lead === c ? table.single[trail] : table.double[lead]?.[trail];
+      } else {
+        const trails = table.double[c];
+        if (trails) {
+          if (at >= bytes.length) break;
+          character = trails[bytes[at++]!];
+        } else character = table.single[c];
       }
+      if (character !== undefined && character !== "\uffff") text += character;
     } else if ([7, 12, 14].includes(c)) {
       if (at >= bytes.length) break;
       await warn(`Unhandled character 0x${(c * 256 + bytes[at++]!).toString(16).padStart(4, "0")}`);
-    } else if ([16, 17, 19, 21, 22, 23].includes(c)) {
+    } else if ([21, 22, 23].includes(c)) {
       if (at + 1 >= bytes.length) break;
       await warn(`Unhandled character 0x${(c * 65536 + bytes[at++]! * 256 + bytes[at++]!).toString(16).padStart(6, "0")}`);
     } else if (c >= 24 && c <= 31) at++;

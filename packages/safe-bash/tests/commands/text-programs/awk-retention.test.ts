@@ -226,16 +226,16 @@ test("awk split replacement admits the entire new array before clearing the old 
 });
 
 for (const [name, program, expected] of [
-  ["overwrite/delete/clear", 'BEGIN { a["k"]="12345678"; print 1; a["k"]="x"; print 2; delete a["k"]; print 3; a["j"]="z"; delete a; print 4 }', [26, 19, 17, 17]],
-  ["array aliases", 'function f(x,y) { x["j"]="z"; print 1 } BEGIN { a["k"]="xx"; f(a,a); print 2; delete a; print 3 }', [22, 22, 17]],
-  ["scalar parameter slots", 'function f(x) { print 1 } BEGIN { v="abcd"; f(v); print 2 }', [25, 21]],
-  ["nested local array owners", 'function g(y) { y["j"]="z" } function f(x) { x["k"]="12"; g(x); print 1 } BEGIN { f(); print 2 }', [22, 17]],
+  ["overwrite/delete/clear", 'BEGIN { a["k"]="12345678"; print 1 > "/dev/stderr"; a["k"]="x"; print 2 > "/dev/stderr"; delete a["k"]; print 3 > "/dev/stderr"; a["j"]="z"; delete a; print 4 > "/dev/stderr" }', [26, 19, 17, 17]],
+  ["array aliases", 'function f(x,y) { x["j"]="z"; print 1 > "/dev/stderr" } BEGIN { a["k"]="xx"; f(a,a); print 2 > "/dev/stderr"; delete a; print 3 > "/dev/stderr" }', [22, 22, 17]],
+  ["scalar parameter slots", 'function f(x) { print 1 > "/dev/stderr" } BEGIN { v="abcd"; f(v); print 2 > "/dev/stderr" }', [25, 21]],
+  ["nested local array owners", 'function g(y) { y["j"]="z" } function f(x) { x["k"]="12"; g(x); print 1 > "/dev/stderr" } BEGIN { f(); print 2 > "/dev/stderr" }', [22, 17]],
 ] as const) {
   test(`awk releases retired ${name} without recounting or double-charging aliases`, async () => {
     const { context } = invocation(program);
     const retention = new AwkRetention(32);
     const observed: number[] = [];
-    const inspection = { ...context, stdout: { async write() { observed.push(retention.retainedBytes); } } };
+    const inspection = { ...context, stderr: { async write() { observed.push(retention.retainedBytes); } } };
     const runtime = new AwkRuntime(new AwkParser(program).parse(), inspection, new Budget(inspection, {}), retention, [], []);
     assert.equal(await runtime.run(), 0);
     assert.deepEqual(observed, expected);
@@ -256,8 +256,8 @@ test("awk failed frame initialization releases earlier scalar and borrowed array
 test("awk EOF input names remain charged until close and output names release on close", async () => {
   for (const input of [true, false]) {
     const program = input
-      ? 'BEGIN { getline x < "/input"; getline x < "/input"; print 1; close("/input"); print 2; getline x < "/other"; print 3 }'
-      : 'BEGIN { print "x" > "/first"; print "y" > "/first"; print 1; close("/first"); print 2; print "z" > "/other"; print 3 }';
+      ? 'BEGIN { getline x < "/input"; getline x < "/input"; print 1 > "/dev/stderr"; close("/input"); print 2 > "/dev/stderr"; getline x < "/other"; print 3 > "/dev/stderr" }'
+      : 'BEGIN { print "x" > "/first"; print "y" > "/first"; print 1 > "/dev/stderr"; close("/first"); print 2 > "/dev/stderr"; print "z" > "/other"; print 3 > "/dev/stderr" }';
     const { context } = invocation(program);
     let opens = 0, appends = 0;
     context.fs.readStream = async function* () { opens++; yield new Uint8Array(); };
@@ -265,7 +265,7 @@ test("awk EOF input names remain charged until close and output names release on
     context.fs.appendFile = async () => { appends++; };
     const retention = new AwkRetention(23);
     const observed: number[] = [];
-    const inspection = { ...context, stdout: { async write() { observed.push(retention.retainedBytes); } } };
+    const inspection = { ...context, stderr: { async write() { observed.push(retention.retainedBytes); } } };
     const runtime = new AwkRuntime(new AwkParser(program).parse(), inspection, new Budget(inspection, {}), retention, [], []);
     assert.equal(await runtime.run(), 0);
     assert.deepEqual(observed, [23, 17, 23]);
@@ -354,7 +354,7 @@ test("awk current aggregate preserves small maxBufferBytes and isolates repeated
 });
 
 test("awk terminal main close releases blocks before END without waiting ahead of named cleanup", async () => {
-  const program = '{ getline a < "/named"; exit } END { print length(a); getline b < "/named"; print b }';
+  const program = '{ getline a < "/named"; exit } END { print length(a) > "/dev/stderr"; getline b < "/named"; print b > "/dev/stderr" }';
   const { context } = invocation(program);
   let mainStarted!: () => void, releaseMain!: () => void;
   const entered = new Promise<void>(resolve => { mainStarted = resolve; });
@@ -383,7 +383,7 @@ test("awk terminal main close releases blocks before END without waiting ahead o
   const observed: [string, number][] = [];
   const configured = {
     ...context, stdin: source(true),
-    stdout: { async write(chunk: Uint8Array) { observed.push([Buffer.from(chunk).toString(), retention.retainedBytes]); } },
+    stderr: { async write(chunk: Uint8Array) { observed.push([Buffer.from(chunk).toString(), retention.retainedBytes]); } },
   };
   const runtime = new AwkRuntime(new AwkParser(program).parse(), configured, new Budget(configured, {}), retention, [], []);
   const work = runtime.run();

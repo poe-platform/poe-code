@@ -76,11 +76,13 @@ for (const kind of ["definitions", "plugin"] as const) {
     const commands = new browser.CommandRegistry(kind === "definitions" ? createAgentCommands(options) : []);
     if (kind === "plugin") await agentCommands(options).setup({ commands, use() {}, registerFileSystem() {} });
     for (const command of ["grep", "egrep", "fgrep", "expr", "rg"]) {
+      // Exercise executor-backed routes; bare grep literals can bypass the pool.
+      const args = command === "expr" ? ["a", ":", "a"] : ["-e", "a"];
       await assert.rejects(async () => commands.get(command)!.execute({
-        command, args: ["a"], stdin: browser.toByteSource("a\n"),
+        command, args, stdin: browser.toByteSource("a\n"),
         stdout: { async write() {} }, stderr: { async write() {} },
         fs: new browser.MemoryFileSystem(), cwd: "/", env: {}, signal: new AbortController().signal,
-      }), error => error === stopped);
+      }), error => error === stopped, `${command} must reach its configured executor`);
     }
     assert.equal(opened.length, 5);
     const [grep, egrep, fgrep, expr, search] = opened;

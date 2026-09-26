@@ -1,4 +1,5 @@
 import { FsError, toByteSource, type ByteSource, type CommandDefinition } from "../../contracts/index.js";
+import { hasYieldCheckpoint } from "../../contracts/yield.js";
 import { bufferLimit as internalBufferLimit, diagnostic, encoder, input, integer, lines, options as parseOptions, output, UsageError, value, type Line } from "../internal.js";
 import { RecordBuffer } from "../record-buffer.js";
 import { RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
@@ -196,14 +197,216 @@ async function forEachGrepLineBatch(
   }
 }
 
-export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits = {}): CommandDefinition[] {
-  for (const [key, value] of Object.entries(limits)) {
-    if (key === "ergonomicRegex") continue;
-    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError("grep limits must be positive safe integers");
+function isSimpleAsciiLiteralChar(c: number): boolean {
+  if (c < 32 || c > 126) return false;
+  switch (c) {
+    case 36: // $
+    case 40: // (
+    case 41: // )
+    case 42: // *
+    case 43: // +
+    case 46: // .
+    case 63: // ?
+    case 91: // [
+    case 92: // \
+    case 93: // ]
+    case 94: // ^
+    case 123: // {
+    case 124: // |
+    case 125: // }
+      return false;
+    default:
+      return true;
   }
-  const maxPatternCount = limits.maxPatterns ?? Infinity;
-  const bufferLimit = limits.maxPatternBytes ?? Infinity;
-  return [{ name: "grep", filesystemRequirements: grepRequirements, execute: context => withRegexSession(context, executor, async session => {
+}
+
+async function tryFastGrepAscii(
+  context: Parameters<CommandDefinition["execute"]>[0],
+  executor: RegexExecutor,
+  limits: GrepLimits,
+  pat: string,
+  fileArg: string | undefined,
+  anchoredStart: boolean,
+): Promise<{ exitCode: number }> {
+  const session = executor.open(context.signal);
+  session.closeSync();
+  const literalStart = anchoredStart ? 1 : 0;
+  const litLen = pat.length - literalStart;
+  const firstByte = pat.charCodeAt(literalStart);
+  const lineLimit = Math.min(internalBufferLimit, limits.maxLineBytes ?? Infinity);
+  const ownsSharedOut = !sharedGrepOutInUse;
+  if (ownsSharedOut) sharedGrepOutInUse = true;
+  const outBuffer = ownsSharedOut ? sharedGrepOutBuffer : new Uint8Array(64 * 1024);
+  let outUsed = 0;
+  let anySelected = false;
+  try {
+    const source = fileArg === undefined || fileArg === "-"
+      ? input(context)
+      : requiredFileInput(context, grepRequirements, "file", fileArg, limits.maxFileBytes ?? Infinity);
+    const iter = source[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
+      tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
+    };
+    let leftover: Uint8Array | undefined;
+    while (true) {
+      const syncStep = iter.tryNextSync?.();
+      const step = syncStep !== undefined ? syncStep : await iter.next();
+      if (step.done) break;
+      let chunk = step.value;
+      if (chunk.length === 0) continue;
+      if (leftover && leftover.length > 0) {
+        const combined = new Uint8Array(leftover.length + chunk.length);
+        combined.set(leftover, 0);
+        combined.set(chunk, leftover.length);
+        chunk = combined;
+        leftover = undefined;
+      }
+      let start = 0;
+      while (start < chunk.length) {
+        const offset = chunk.indexOf(10, start);
+        if (offset < 0) break;
+        context.signal.throwIfAborted();
+        const lineLen = offset - start;
+        if (lineLen > lineLimit) {
+          throw new FsError("EFBIG", { message: `record length exceeds ${lineLimit} bytes` });
+        }
+        let matched = false;
+        if (lineLen >= litLen) {
+          if (anchoredStart) {
+            if (chunk[start] === firstByte) {
+              matched = true;
+              for (let k = 1; k < litLen; k++) {
+                if (chunk[start + k] !== pat.charCodeAt(literalStart + k)) {
+                  matched = false;
+                  break;
+                }
+              }
+            }
+          } else {
+            const maxPos = offset - litLen;
+            let pos = start;
+            while (pos <= maxPos) {
+              const idx = chunk.indexOf(firstByte, pos);
+              if (idx < 0 || idx > maxPos) break;
+              let ok = true;
+              for (let k = 1; k < litLen; k++) {
+                if (chunk[idx + k] !== pat.charCodeAt(literalStart + k)) {
+                  ok = false;
+                  break;
+                }
+              }
+              if (ok) {
+                matched = true;
+                break;
+              }
+              pos = idx + 1;
+            }
+          }
+        }
+        if (matched) {
+          anySelected = true;
+          if (outUsed + lineLen + 1 > outBuffer.length) {
+            if (outUsed > 0) {
+              const p = output(context, outBuffer.slice(0, outUsed));
+              if (!isSyncResolved(p)) await p;
+              outUsed = 0;
+            }
+          }
+          if (lineLen + 1 > outBuffer.length) {
+            const p1 = output(context, chunk.subarray(start, offset + 1));
+            if (!isSyncResolved(p1)) await p1;
+          } else {
+            for (let k = start; k <= offset; k++) outBuffer[outUsed++] = chunk[k]!;
+          }
+        }
+        start = offset + 1;
+      }
+      if (start < chunk.length) {
+        if (chunk.length - start > lineLimit) {
+          throw new FsError("EFBIG", { message: `record length exceeds ${lineLimit} bytes` });
+        }
+        leftover = chunk.slice(start);
+      }
+    }
+    if (leftover && leftover.length > 0) {
+      context.signal.throwIfAborted();
+      const lineLen = leftover.length;
+      if (lineLen > lineLimit) {
+        throw new FsError("EFBIG", { message: `record length exceeds ${lineLimit} bytes` });
+      }
+      let matched = false;
+      if (lineLen >= litLen) {
+        if (anchoredStart) {
+          if (leftover[0] === firstByte) {
+            matched = true;
+            for (let k = 1; k < litLen; k++) {
+              if (leftover[k] !== pat.charCodeAt(literalStart + k)) {
+                matched = false;
+                break;
+              }
+            }
+          }
+        } else {
+          const maxPos = lineLen - litLen;
+          let pos = 0;
+          while (pos <= maxPos) {
+            const idx = leftover.indexOf(firstByte, pos);
+            if (idx < 0 || idx > maxPos) break;
+            let ok = true;
+            for (let k = 1; k < litLen; k++) {
+              if (leftover[idx + k] !== pat.charCodeAt(literalStart + k)) {
+                ok = false;
+                break;
+              }
+            }
+            if (ok) {
+              matched = true;
+              break;
+            }
+            pos = idx + 1;
+          }
+        }
+      }
+      if (matched) {
+        anySelected = true;
+        if (outUsed + lineLen + 1 > outBuffer.length && outUsed > 0) {
+          const p = output(context, outBuffer.slice(0, outUsed));
+          if (!isSyncResolved(p)) await p;
+          outUsed = 0;
+        }
+        if (lineLen + 1 > outBuffer.length) {
+          const p1 = output(context, leftover);
+          if (!isSyncResolved(p1)) await p1;
+          const p2 = output(context, NEWLINE_BYTES);
+          if (!isSyncResolved(p2)) await p2;
+        } else {
+          for (let k = 0; k < lineLen; k++) outBuffer[outUsed++] = leftover[k]!;
+          outBuffer[outUsed++] = 10;
+        }
+      }
+    }
+    if (outUsed > 0) {
+      const view = ownsSharedOut ? outBuffer.slice(0, outUsed) : outBuffer.subarray(0, outUsed);
+      const p = output(context, view);
+      if (!isSyncResolved(p)) await p;
+    }
+    return { exitCode: anySelected ? 0 : 1 };
+  } catch (error) {
+    context.signal.throwIfAborted();
+    if (error instanceof RegexExecutionError) throw error;
+    await diagnostic(context, error);
+    return { exitCode: 2 };
+  } finally {
+    if (ownsSharedOut) sharedGrepOutInUse = false;
+  }
+}
+
+async function executeGrepWithSession(
+  context: Parameters<CommandDefinition["execute"]>[0],
+  session: Parameters<Parameters<typeof withRegexSession>[2]>[0],
+  limits: GrepLimits,
+  maxPatternCount: number,
+  bufferLimit: number,
+): Promise<{ exitCode: number }> {
     try {
       let afterContext = 0;
       let beforeContext = 0;
@@ -298,8 +501,8 @@ Print lines matching PATTERN. With no FILE, or FILE -, read standard input.
   -D, --devices=ACTION     Read or skip special files
       --include=GLOB      Search matching basenames
       --exclude=GLOB      Skip matching basenames
-      --exclude-from=FILE Read exclusion globs from FILE
       --exclude-dir=GLOB  Skip matching directories
+      --exclude-from=FILE Read exclusion globs from FILE
       --no-group-separator Suppress separators between context groups
       --no-ignore-case    Use case-sensitive matching
       --line-buffered     Accepted; output writes are already awaited
@@ -665,5 +868,51 @@ inspect the resulting state before repeating the action.
       await diagnostic(context, error);
       return { exitCode: 2 };
     }
-  }) }];
+}
+
+export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits = {}): CommandDefinition[] {
+  for (const [key, value] of Object.entries(limits)) {
+    if (key === "ergonomicRegex") continue;
+    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError("grep limits must be positive safe integers");
+  }
+  const maxPatternCount = limits.maxPatterns ?? Infinity;
+  const bufferLimit = limits.maxPatternBytes ?? Infinity;
+  return [{
+    name: "grep",
+    filesystemRequirements: grepRequirements,
+    execute: context => {
+      const args = context.args;
+      if (
+        (args.length === 1 || args.length === 2) &&
+        !hasYieldCheckpoint(context.signal) &&
+        maxPatternCount >= 1
+      ) {
+        const pat = args[0]!;
+        const fileArg = args[1];
+        if (
+          pat.length >= 1 &&
+          pat.length <= 64 &&
+          pat.length <= bufferLimit &&
+          pat.charCodeAt(0) !== 45 &&
+          (fileArg === undefined || fileArg === "-" || fileArg.charCodeAt(0) !== 45)
+        ) {
+          const anchoredStart = pat.length >= 2 && pat.charCodeAt(0) === 94;
+          const literalStart = anchoredStart ? 1 : 0;
+          let simpleAscii = true;
+          for (let i = literalStart; i < pat.length; i++) {
+            if (!isSimpleAsciiLiteralChar(pat.charCodeAt(i))) {
+              simpleAscii = false;
+              break;
+            }
+          }
+          if (simpleAscii) {
+            return tryFastGrepAscii(context, executor, limits, pat, fileArg, anchoredStart);
+          }
+        }
+      }
+      return withRegexSession(context, executor, session =>
+        executeGrepWithSession(context, session, limits, maxPatternCount, bufferLimit),
+      );
+    },
+  }];
 }

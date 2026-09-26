@@ -46,16 +46,73 @@ function trySearchFileSync(
     totals.searches++;
     return false;
   }
+  const binary = args.binary === "text" ? "text" : args.binary === "binary" || target.explicit ? "binary" : "skip";
+  const needAll = args.replacement !== undefined || args.onlyMatching || args.mode === "matches";
+  const hasExtYield = hasYieldCheckpoint(context.signal);
+  const lit = matcher.literalAsciiBytes;
+  if (
+    lit !== undefined &&
+    !args.invert &&
+    !needAll &&
+    !args.nullData &&
+    !args.crlf &&
+    binary === "skip" &&
+    args.maxCount === Infinity &&
+    !hasExtYield &&
+    view.length <= limits.maxLineBytes &&
+    view.indexOf(0) === -1
+  ) {
+    const firstByte = lit[0]!;
+    const litLen = lit.length;
+    const maxPos = view.length - litLen;
+    let matchedLines = 0;
+    let pos = 0;
+    while (pos <= maxPos) {
+      const idx = view.indexOf(firstByte, pos);
+      if (idx < 0 || idx > maxPos) break;
+      let ok = true;
+      for (let k = 1; k < litLen; k++) {
+        if (view[idx + k] !== lit[k]) {
+          ok = false;
+          break;
+        }
+      }
+      if (ok) {
+        matchedLines++;
+        if (args.quiet || args.mode === "with" || args.mode === "without") break;
+        const nl = view.indexOf(10, idx + litLen);
+        if (nl < 0) break;
+        pos = nl + 1;
+      } else {
+        pos = idx + 1;
+      }
+    }
+    const matched = matchedLines > 0;
+    const found = args.mode === "without" ? !matched : matched;
+    totals.searches++;
+    if (matched) totals.searches_with_match++;
+    totals.bytes_searched += view.length;
+    totals.matched_lines += matchedLines;
+    totals.matches += matchedLines;
+    if (!args.quiet) {
+      if ((args.mode === "with" || args.mode === "without") && found) {
+        const p = printer.filenameSyncOrAsync(target.label);
+        if (p) return resolveToBoolean(p, found);
+      }
+      if (args.mode === "count" && (matched || args.includeZero)) {
+        const p = printer.countSyncOrAsync(target.label, matchedLines, filename);
+        if (p) return resolveToBoolean(p, found);
+      }
+    }
+    return found;
+  }
   sharedReadState.bytesRead = 0;
   sharedReadState.bytesSearched = 0;
   sharedReadState.binaryOffset = null;
   sharedReadState.skipped = false;
-  const binary = args.binary === "text" ? "text" : args.binary === "binary" || target.explicit ? "binary" : "skip";
-  const needAll = args.replacement !== undefined || args.onlyMatching || args.mode === "matches";
   const batchSizeFn = Number.isFinite(args.maxCount) || args.quiet || args.mode === "with" || args.mode === "without" ? BATCH_SIZE_1 : BATCH_SIZE_128;
   const syncBatches = trySyncLineBatches(view, limits, sharedReadState, binary, args.nullData, batchSizeFn, needAll, args.crlf, true);
   if (syncBatches === undefined) return undefined;
-  const hasExtYield = hasYieldCheckpoint(context.signal);
   const maxCountSmi = Number.isFinite(args.maxCount) ? (args.maxCount | 0) : 0x3fffffff;
   let pendingTick: Promise<void> | undefined;
   let matchedLines = 0;
@@ -429,7 +486,7 @@ Unicode selection and extended regex syntax require a configured executor.
           const walker = new Walker(context, args, limits, report, session);
           await walker.validate();
           const matcher = new Matcher(args.mode === "files" ? [] : await patterns(context, args, limits), args, session, options.regexExecutor === undefined);
-          if (args.mode !== "files") {
+          if (args.mode !== "files" && matcher.literalAsciiBytes === undefined) {
             const initBatch = matcher.batchSync(EMPTY_RG_LINES);
             if (initBatch instanceof Promise) await initBatch;
           }

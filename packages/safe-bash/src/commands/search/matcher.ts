@@ -5,11 +5,68 @@ import { SearchError, type Arguments } from "./options.js";
 
 export type { Match } from "../regex-execution/protocol.js";
 
+function isSimpleRgLiteralChar(c: number): boolean {
+  if (c < 32 || c > 126) return false;
+  switch (c) {
+    case 36: // $
+    case 40: // (
+    case 41: // )
+    case 42: // *
+    case 43: // +
+    case 46: // .
+    case 63: // ?
+    case 91: // [
+    case 92: // \
+    case 93: // ]
+    case 94: // ^
+    case 123: // {
+    case 124: // |
+    case 125: // }
+      return false;
+    default:
+      return true;
+  }
+}
+
 export class Matcher {
   private readonly descriptor: SearchDescriptor;
   private readonly vm: ErgonomicVmMatcher | undefined;
   readonly crossLine: boolean;
+  readonly literalAsciiBytes: Uint8Array | undefined;
   constructor(patterns: readonly string[], args: Arguments, private readonly session: RegexSession, ergonomic = true) {
+    let literalAscii: Uint8Array | undefined;
+    if (
+      patterns.length === 1 &&
+      args.case === "sensitive" &&
+      !args.whole &&
+      !args.word &&
+      !args.nullData &&
+      !args.multiline
+    ) {
+      const pat = patterns[0]!;
+      if (pat.length >= 1 && pat.length <= 64) {
+        let ok = true;
+        for (let i = 0; i < pat.length; i++) {
+          const c = pat.charCodeAt(i);
+          if (args.fixed ? (c < 32 || c > 126 || c === 10 || c === 13) : !isSimpleRgLiteralChar(c)) {
+            ok = false;
+            break;
+          }
+        }
+        if (ok) {
+          const bytes = new Uint8Array(pat.length);
+          for (let i = 0; i < pat.length; i++) bytes[i] = pat.charCodeAt(i);
+          literalAscii = bytes;
+        }
+      }
+    }
+    this.literalAsciiBytes = literalAscii;
+    if (literalAscii !== undefined) {
+      this.vm = undefined;
+      this.crossLine = false;
+      this.descriptor = { kind: "rg", patterns, fixed: true, case: "sensitive", whole: false, word: false, nullData: false };
+      return;
+    }
     const prepared = ergonomic
       ? prepareErgonomicRegex(patterns, {
           kind: "rg",

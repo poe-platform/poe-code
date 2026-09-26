@@ -7,6 +7,7 @@ import { searchCommands } from "../../src/commands/search/index.js";
 import { Capture } from "../../src/shell/runtime.js";
 import { jqCommand } from "../../src/commands/structured/jq.js";
 import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
+import { rgCommand } from "../../src/commands/search/rg.js";
 
 for (const scenario of ["late multiple matches", "checkpoint", "late long line"]) {
   test(`sed emits each line once after ${scenario}`, async () => {
@@ -46,6 +47,95 @@ for (const mode of ["--files", "-c", "-l", "--files-without-match"]) {
     } finally { await shell.dispose(); }
   });
 }
+
+test("rg fallback publishes each byte once through an ordinary capture sink", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/dir");
+  const names = Array.from({ length: 1100 }, (_, i) => `/dir/file_${String(i).padStart(4, "0")}_${"a".repeat(50)}.txt`);
+  for (const name of names) await fs.writeFile(name, new Uint8Array());
+  class ObservedCapture extends Capture {
+    publishedBytes = 0;
+    override writeSync(chunk: Uint8Array): boolean {
+      this.publishedBytes += chunk.byteLength;
+      return super.writeSync(chunk);
+    }
+    override writeRangeSync(chunk: Uint8Array, length: number): boolean {
+      this.publishedBytes += length;
+      return super.writeRangeSync(chunk, length);
+    }
+  }
+  const stdout = new ObservedCapture();
+  stdout.enableScratchBuffer();
+  const result = await rgCommand().execute({
+    command: "rg", args: ["--files", "/dir"], fs, cwd: "/", env: {},
+    signal: new AbortController().signal, stdin: { async *[Symbol.asyncIterator]() {} },
+    stdout, stderr: new Capture(),
+    ...{ _fastMemoryBackingFs: fs, _hasInfiniteFsOpsLimit: true },
+  });
+  const expected = names.join("\n") + "\n";
+  assert.equal(result.exitCode, 0);
+  assert.equal(new TextDecoder().decode(stdout.bytes()), expected);
+  assert.equal(stdout.publishedBytes, Buffer.byteLength(expected));
+});
+
+test("warmed rg fallback charges its output once against the shell limit", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/dir");
+  const names = Array.from({ length: 1100 }, (_, i) => `/dir/file_${String(i).padStart(4, "0")}_${"a".repeat(50)}.txt`);
+  for (const name of names) await fs.writeFile(name, new Uint8Array());
+  const shell = new Shell({ fs, limits: { maxOutputBytes: 100000 } }).use(searchCommands());
+  try {
+    await shell.exec("");
+    const result = await shell.exec("rg --files /dir");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, names.join("\n") + "\n");
+  } finally { await shell.dispose(); }
+});
+
+test("rg pending flush owns its private buffer until the sink completes", async () => {
+  const fs = new MemoryFileSystem();
+  for (const directory of ["/hold", "/first", "/other"]) await fs.mkdir(directory);
+  for (const file of ["/hold/wait", "/first/alpha", "/other/omega"]) await fs.writeFile(file, new Uint8Array());
+  class SuspendedCapture extends Capture {
+    admit!: () => void;
+    release!: () => void;
+    admitted = new Promise<void>(resolve => { this.admit = resolve; });
+    released = new Promise<void>(resolve => { this.release = resolve; });
+    override writeRangeSync(): boolean { return false; }
+    override async write(chunk: Uint8Array): Promise<void> {
+      this.admit();
+      await this.released;
+      await super.write(chunk);
+    }
+  }
+  const holder = new SuspendedCapture();
+  const first = new SuspendedCapture();
+  const other = new Capture();
+  first.enableScratchBuffer();
+  other.enableScratchBuffer();
+  const execute = (path: string, stdout: Capture) => rgCommand().execute({
+    command: "rg", args: ["--files", path], fs, cwd: "/", env: {},
+    signal: new AbortController().signal, stdin: { async *[Symbol.asyncIterator]() {} },
+    stdout, stderr: new Capture(),
+    ...{ _fastMemoryBackingFs: fs, _hasInfiniteFsOpsLimit: true },
+  });
+  const pending = [execute("/hold/wait", holder)];
+  try {
+    await holder.admitted;
+    pending.push(execute("/first", first));
+    await first.admitted;
+    const result = await execute("/other", other);
+    assert.equal(result.exitCode, 0);
+    assert.equal(new TextDecoder().decode(other.bytes()), "/other/omega\n");
+    first.release();
+    await pending[1];
+    assert.equal(new TextDecoder().decode(first.bytes()), "/first/alpha\n");
+  } finally {
+    first.release();
+    holder.release();
+    await Promise.all(pending);
+  }
+});
 
 test("jq emits no output when its file operation exceeds the shell budget", async t => {
   const fs = new MemoryFileSystem();

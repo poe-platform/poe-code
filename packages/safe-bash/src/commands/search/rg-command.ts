@@ -473,36 +473,54 @@ class PooledRgFastRunner {
   fastReadBacking: ReturnType<typeof getRuntimeBackingFileSystem> = undefined;
   found = false;
   abortedToSlow = false;
+  readonly release = (): void => {
+    this.limits.outPos = 0;
+    this.limits.flushSyncOrAsync();
+    this.limits.speculative = false;
+    this.limits.resetForRun(DUMMY_CONTEXT, {});
+    this.args.reset();
+    this.args.patterns.length = 0;
+    this.args.paths.length = 0;
+    this.walker.resetForRun(DUMMY_CONTEXT, this.args, this.limits, DUMMY_REPORT, DUMMY_SESSION);
+    this.printer.resetForRun(this.args, this.limits);
+    this.matcher.resetForRun(EMPTY_PATTERNS, this.args, DUMMY_SESSION, true, true);
+    this.context = DUMMY_CONTEXT;
+    this.fastReadBacking = undefined;
+    this.inUse = false;
+  };
   readonly boundOnTarget = (target: FileTarget): boolean => {
-    const args = this.args;
-    if (args.mode === "files") {
-      this.found = true;
-      if (!args.quiet) {
-        const fRes = target.entryName !== undefined && target._label === undefined
-          ? this.printer.filenamePartsSyncOrAsync(target.dirLabel!, target.entryName)
-          : this.printer.filenameSyncOrAsync(target.label);
-        if (fRes) {
-          this.abortedToSlow = true;
-          return false;
+    try {
+      const args = this.args;
+      if (args.mode === "files") {
+        this.found = true;
+        if (!args.quiet) {
+          const fRes = target.entryName !== undefined && target._label === undefined
+            ? this.printer.filenamePartsSyncOrAsync(target.dirLabel!, target.entryName)
+            : this.printer.filenameSyncOrAsync(target.label);
+          if (fRes) {
+            this.abortedToSlow = true;
+            return false;
+          }
+          return true;
         }
+        return false;
+      }
+      const showFilename = args.filename ?? target.recursive;
+      const syncOut = trySearchFileSync(this.context, args, this.limits, this.matcher, this.printer, target, showFilename, this.totals, this.fastReadBacking);
+      if (typeof syncOut === "boolean") {
+        this.found ||= syncOut;
+        if (!args.stats && args.quiet && this.found && args.mode !== "json") return false;
         return true;
       }
+      this.abortedToSlow = true;
       return false;
+    } finally {
+      target.memoryView = undefined;
     }
-    const showFilename = args.filename ?? target.recursive;
-    const syncOut = trySearchFileSync(this.context, args, this.limits, this.matcher, this.printer, target, showFilename, this.totals, this.fastReadBacking);
-    if (typeof syncOut === "boolean") {
-      this.found ||= syncOut;
-      if (!args.stats && args.quiet && this.found && args.mode !== "json") return false;
-      return true;
-    }
-    this.abortedToSlow = true;
-    return false;
   };
 }
 
 let pooledRgFastRunner: PooledRgFastRunner | undefined;
-let rgFastSyncWarmed = false;
 export function clearRgFastRunnerPool(): void { pooledRgFastRunner = undefined; }
 
 function tryExecuteRgFastSync(
@@ -525,9 +543,7 @@ function tryExecuteRgFastSync(
     options.maxFileBytes !== undefined ||
     options.maxLineBytes !== undefined ||
     !(context.stdout as unknown as { _scratch4k?: Uint8Array })._scratch4k ||
-    typeof (context.stdout as { writeRangeSync?: unknown }).writeRangeSync !== "function" ||
-    "mock" in ((context.stdout as unknown as { writeRangeSync: object }).writeRangeSync) ||
-    "mock" in (context.stdout.write as unknown as object)
+    typeof (context.stdout as { writeRangeSync?: unknown }).writeRangeSync !== "function"
   ) {
     return undefined;
   }
@@ -535,11 +551,13 @@ function tryExecuteRgFastSync(
   if (runner.inUse) return undefined;
   runner.inUse = true;
   let committing = false;
+  let pendingFlush = false;
   try {
     context.signal.throwIfAborted();
     if ((executor as unknown as { disposed?: boolean }).disposed) return undefined;
     const limits = runner.limits;
     limits.resetForRun(context, options);
+    limits.speculative = true;
     const args = parse(context.args, runner.args);
     if (
       args.help ||
@@ -586,39 +604,21 @@ function tryExecuteRgFastSync(
     runner.fastReadBacking = fastMem;
     runner.found = false;
     runner.abortedToSlow = false;
-    const stdoutCap = context.stdout as { _scratchLen?: number; length?: number };
-    const initScratchLen = stdoutCap._scratchLen ?? 0;
-    const initLen = stdoutCap.length ?? 0;
-    committing = true;
     const walkRes = runner.walker.walkTargetsSyncOrAsync(selPaths, selImplicit, runner.boundOnTarget, true);
     if (runner.abortedToSlow || walkRes !== undefined) {
-      if (stdoutCap._scratchLen !== undefined) stdoutCap._scratchLen = initScratchLen;
-      (stdoutCap as { _first?: unknown; _chunks?: unknown })._first = undefined;
-      (stdoutCap as { _first?: unknown; _chunks?: unknown })._chunks = undefined;
-      if (stdoutCap.length !== undefined) stdoutCap.length = initLen;
-      limits.outPos = 0;
       return undefined;
     }
+    committing = true;
     const result = runner.found ? RESOLVED_EXIT_ZERO : RESOLVED_EXIT_ONE;
     const flushRes = limits.flushSyncOrAsync();
     if (flushRes === undefined) return result;
-    return flushRes.then(() => result);
+    pendingFlush = true;
+    return flushRes.then(() => result).finally(runner.release);
   } catch (error) {
-    if (!committing) {
-      runner.limits.outPos = 0;
-      runner.limits.flushSyncOrAsync();
-      return undefined;
-    }
+    if (!committing) return undefined;
     throw error;
   } finally {
-    runner.limits.resetForRun(DUMMY_CONTEXT, {});
-    runner.walker.resetForRun(DUMMY_CONTEXT, runner.args, runner.limits, DUMMY_REPORT, DUMMY_SESSION);
-    runner.printer.resetForRun(runner.args, runner.limits);
-    runner.args.reset();
-    runner.matcher.resetForRun(EMPTY_PATTERNS, runner.args, DUMMY_SESSION, true, true);
-    runner.context = DUMMY_CONTEXT;
-    runner.fastReadBacking = undefined;
-    runner.inUse = false;
+    if (!pendingFlush) runner.release();
   }
 }
 

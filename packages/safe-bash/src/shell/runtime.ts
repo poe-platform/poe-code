@@ -7468,6 +7468,7 @@ export class Runtime {
 
   private tryFastMemoryOutputRedirect(redirect: Redirect, state: State, io: IO, line: number): IO | undefined {
     if (
+      this.budget.limits.maxRedirects < 1 ||
       redirect.document ||
       redirect.descriptor !== 1 ||
       (redirect.operator !== ">" && redirect.operator !== ">>" && !(redirect.operator === ">|" && state.noclobber)) ||

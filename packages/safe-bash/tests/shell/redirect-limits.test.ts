@@ -4,6 +4,7 @@ import { cloudflareWorkerLimits, ShellLimitError, type ShellLimits } from "../..
 import { setup } from "./helpers.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { createMountFileSystem } from "poe-code/safe-fs/core";
+import { streamCommands } from "../../src/commands/streams.js";
 
 function fixture(t: TestContext, limits: ShellLimits = {}) {
   const instance = setup({ limits });
@@ -17,6 +18,20 @@ test("zero redirect capacity permits commands and ordinary pipelines but rejects
   const { shell } = fixture(t, { maxRedirects: 0 });
   assert.equal((await shell.exec(":; { :; }; (:); : | :")).exitCode, 0);
   await assert.rejects(shell.exec(": 3<&0"), redirectLimit);
+});
+
+test("zero redirect capacity rejects memory output before truncating or creating files", async t => {
+  const { shell, fs, commands } = fixture(t, { maxRedirects: 0 });
+  const wc = streamCommands().find(command => command.name === "wc");
+  assert.ok(wc);
+  commands.register(wc);
+  const original = new TextEncoder().encode("preserved output\n");
+  await fs.writeFile("/existing", original);
+
+  await assert.rejects(shell.exec("wc -l > /existing"), redirectLimit);
+  assert.deepEqual(await fs.readFile("/existing"), original);
+  await assert.rejects(shell.exec("wc -l > /created"), redirectLimit);
+  await assert.rejects(fs.stat("/created"), { code: "ENOENT" });
 });
 
 test("exact redirect capacity counts operations even when the descriptor and target repeat", async t => {

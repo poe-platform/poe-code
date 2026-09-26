@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+// Command initialization is outside the invocation allocation measurements.
+import "../../src/commands/index.js";
 import { lines } from "../../src/commands/internal.js";
 import { RecordBuffer } from "../../src/commands/record-buffer.js";
 import { SortRecordBudget } from "../../src/commands/sort-admission.js";
@@ -162,7 +164,7 @@ test("sort retains eight one-byte fragments without per-fragment owned copies", 
   const commands = textCommands();
   await withAllocations(async allocations => {
     const result = await run("sort", [], { stdin: reusedBytes(), commands });
-    assert.equal(result.exitCode, 0);
+    assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stdout, "ABCDEFGH\n");
     assert.equal(allocations.filter(length => length === 1).length, 0);
   });

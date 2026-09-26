@@ -986,6 +986,32 @@ async function emitRecords(context: CommandContext, records: ByteSource, destina
   }
 }
 
+async function readOwnedSortInput(
+  source: AsyncIterator<Uint8Array> & { tryNextSync?: () => IteratorResult<Uint8Array> | undefined },
+  signal: AbortSignal,
+  firstChunk?: Uint8Array,
+  secondResult?: IteratorResult<Uint8Array>,
+): Promise<Uint8Array | undefined> {
+  const buffered = new RecordBuffer(bufferLimit);
+  try {
+    signal.throwIfAborted();
+    if (firstChunk) buffered.append(firstChunk);
+    if (secondResult && !secondResult.done) buffered.append(secondResult.value);
+    while (!secondResult?.done) {
+      signal.throwIfAborted();
+      const result = source.tryNextSync?.() ?? await source.next();
+      if (result.done) break;
+      buffered.append(result.value);
+    }
+    return buffered.size === 0 ? undefined : buffered.finish();
+  } catch (error) {
+    try { await source.return?.(); } catch { /* Preserve the input failure. */ }
+    throw error;
+  } finally {
+    buffered.clear();
+  }
+}
+
 async function collectSortRecords(
   source: ByteSource, delimiter: number, budget: SortRecordBudget, signal: AbortSignal,
   accept: (bytes: Uint8Array) => boolean | void | Promise<boolean | void>,
@@ -1119,17 +1145,11 @@ async function executeSortGeneral(
         ));
       if (canFastIndexSort) {
         let firstChunk: Uint8Array | undefined;
-        const pendingInput = new RecordBuffer(bufferLimit);
         try {
-          for await (const ch of input(context, parsed.operands[0] ?? "-")) {
-            pendingInput.append(ch);
-          }
-          if (pendingInput.size) firstChunk = pendingInput.finish();
+          firstChunk = await readOwnedSortInput(input(context, parsed.operands[0] ?? "-")[Symbol.asyncIterator](), context.signal);
         } catch (error) {
           await diagnostic(context, error);
           return { exitCode: 2 };
-        } finally {
-          pendingInput.clear();
         }
         if (!firstChunk) return { exitCode: 0 };
         if (
@@ -2232,8 +2252,14 @@ export function textCommands(): CommandDefinition[] {
           }
           if (res1 !== undefined) {
             if (res1.done) return RESOLVED_EXIT_ZERO;
-            const rawFirst = res1.value;
-            const firstChunkLen = rawFirst.length;
+            let rawFirst: Uint8Array;
+            let firstChunkLen: number;
+            try {
+              rawFirst = res1.value;
+              firstChunkLen = rawFirst.length;
+            } catch (error) {
+              return diagnostic(context, error).then(RETURN_EXIT_TWO);
+            }
             if (
               lastSortOutUsed >= 0 &&
               firstChunkLen >= 256 &&
@@ -2362,6 +2388,8 @@ export function textCommands(): CommandDefinition[] {
               // The fallback can suspend; retain only this invocation's admitted bytes.
               if (usedSortInScratch) firstChunk = firstChunk.slice(0, firstChunkLen);
               return executeSortFastContinueAsync(context, direction, srcIter, firstChunk, res2);
+            } catch (error) {
+              return diagnostic(context, error).then(RETURN_EXIT_TWO);
             } finally {
               if (usedSortInScratch) sharedSortInUse = false;
             }
@@ -2726,22 +2754,11 @@ async function executeSortFastContinueAsync(
   initialSecondRes: IteratorResult<Uint8Array> | undefined,
 ): Promise<{ exitCode: number }> {
         let firstChunk: Uint8Array | undefined;
-        const pendingInput = new RecordBuffer(bufferLimit);
         try {
-          if (initialFirstChunk) pendingInput.append(initialFirstChunk);
-          if (initialSecondRes && !initialSecondRes.done) pendingInput.append(initialSecondRes.value);
-          while (!initialSecondRes?.done) {
-            const syncRes = srcIter.tryNextSync?.();
-            const res = syncRes !== undefined ? syncRes : await srcIter.next();
-            if (res.done) break;
-            pendingInput.append(res.value);
-          }
-          if (pendingInput.size) firstChunk = pendingInput.finish();
+          firstChunk = await readOwnedSortInput(srcIter, context.signal, initialFirstChunk, initialSecondRes);
         } catch (error) {
           await diagnostic(context, error);
           return { exitCode: 2 };
-        } finally {
-          pendingInput.clear();
         }
         if (!firstChunk) return { exitCode: 0 };
         if (

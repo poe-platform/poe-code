@@ -697,6 +697,13 @@
           "change": "Suppress the generic retained Gnumeric document-meta loss report only when every namespace-aware field has an exported value or a specific property diagnostic. Keep the original workbook record unchanged. Unknown fields, attributes, namespaces, parent text, custom types, duplicate keys and dropped records retain their warning.",
           "validation": "Four original failures reproduced redundant warnings across BIFF7/8/DSF and unrepresentable keywords. The broader BIFF cohort passed 55 files / 1221 tests before the final dropped-record guard. That guard reproduced a failure, then the final 25-case writer suite, maintained package lint/types and selected four-workspace build passed. Inspected the actual CLI screenshot showing one property warning and successful workbook publication."
         }
+      },
+      "opaquePreservation": {
+        "nativeRead": "oleprops.cxx:1037-1073 constructs only I4, R8, BOOL, STRING8, STRING16, FILETIME and DATE objects. Unsupported types have no object and are omitted from maPropMap. The BLOB loader at :649 and thumbnail loader at :601 are explicitly unimplemented.",
+        "nativeSave": "docinf.cxx:208 and :249 create fresh property sets from XDocumentProperties; this save path does not merge raw imported streams. oleprops.cxx:1000-1023 changes section encoding to UTF-8 and rewrites decoded dependent values. These routines cannot establish opaque-value preservation.",
+        "layout": "oleprops.cxx:943-997 reads section-relative property positions, processing codepage before dictionary; :686-710 dictionary names use the section encoding. :1076 writes relative positions; :1160-1225 writes absolute section positions. Preserve the original codepage beside opaque values; new VT_LPWSTR scalar strings are independent of it.",
+        "implementation": "Use a bounded shared property-layout parser and preserve opaque spans/sections while reconciling modeled edits and deletions. Track exactly which section/property supplied each decoded key, keeping collisions opaque. Preserve raw unchanged timestamps below millisecond precision. Strictly round-trip any new custom dictionary names in the original codepage; do not use the escaping text encoder as proof of representability.",
+        "status": "Source investigation complete for this preservation design; raw merge implementation and independent byte-level edit verification remain open. Native save/readback alone cannot prove opaque retention."
       }
     }
   },

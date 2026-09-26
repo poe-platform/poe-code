@@ -862,7 +862,7 @@ function tryExecutePairFastSync(
   const expr1 = inst1.pattern;
   if (inst0.replacementGroupCount! > expr0.groupCount || inst1.replacementGroupCount! > expr1.groupCount) return undefined;
   const stdoutSync = typeof (context.stdout as { writeSync?: unknown }).writeSync === "function"
-    ? (context.stdout as unknown as { writeSync(chunk: Uint8Array): boolean })
+    ? (context.stdout as unknown as { writeSync(chunk: Uint8Array): boolean; writeRangeSync?(src: Uint8Array, len: number): boolean })
     : undefined;
   if (!stdoutSync) return undefined;
   const fastMem = (context as {
@@ -928,13 +928,21 @@ function tryExecutePairFastSync(
       stdoutLen = nextPos;
       if (stdoutLen >= STDOUT_FLUSH) {
         context.signal.throwIfAborted();
-        stdoutSync.writeSync(new Uint8Array(stdoutBuf.buffer, stdoutBuf.byteOffset, stdoutLen));
+        if (typeof stdoutSync.writeRangeSync === "function") {
+          stdoutSync.writeRangeSync(stdoutBuf, stdoutLen);
+        } else {
+          stdoutSync.writeSync(new Uint8Array(stdoutBuf.buffer, stdoutBuf.byteOffset, stdoutLen));
+        }
         stdoutLen = 0;
       }
     }
     if (stdoutLen > 0) {
       context.signal.throwIfAborted();
-      stdoutSync.writeSync(new Uint8Array(stdoutBuf.buffer, stdoutBuf.byteOffset, stdoutLen));
+      if (typeof stdoutSync.writeRangeSync === "function") {
+        stdoutSync.writeRangeSync(stdoutBuf, stdoutLen);
+      } else {
+        stdoutSync.writeSync(new Uint8Array(stdoutBuf.buffer, stdoutBuf.byteOffset, stdoutLen));
+      }
       stdoutLen = 0;
     }
     return 0;

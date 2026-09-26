@@ -112,9 +112,9 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   readonly [Symbol.toStringTag] = "Map";
 
   private _hash(k: string): number {
-    let h = 2166136261;
+    let h = 5381;
     for (let i = 0; i < k.length; i++) {
-      h = Math.imul(h ^ k.charCodeAt(i), 16777619);
+      h = (((h & 0x1fffff) * 33) ^ k.charCodeAt(i)) & 0x3fffffff;
     }
     return h & this._mask;
   }
@@ -153,9 +153,9 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
       const k = oldKeys[i]!;
       newKeys[writeIdx] = k;
       newVals[writeIdx] = v;
-      let h = 2166136261;
+      let h = 5381;
       for (let c = 0; c < k.length; c++) {
-        h = Math.imul(h ^ k.charCodeAt(c), 16777619);
+        h = (((h & 0x1fffff) * 33) ^ k.charCodeAt(c)) & 0x3fffffff;
       }
       let slot = h & newMask;
       while (newTable[slot]! !== -1) {
@@ -281,20 +281,31 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   }
 }
 
-const sharedAllocationPool: MemoryAllocation[] = [];
-const sharedFileNodePool: MemoryFileNode[] = [];
-const sharedDirectoryNodePool: MemoryDirectoryNode[] = [];
-const sharedRemovedScratch: MemoryNode[] = [];
+const SHARED_POOL_CAPACITY = 256;
+const SHARED_DIR_POOL_CAPACITY = 64;
+const sharedAllocationPool: MemoryAllocation[] = new Array<MemoryAllocation>(SHARED_POOL_CAPACITY).fill(DUMMY_POOL_ALLOCATION);
+let sharedAllocationPoolLen = 0;
+const sharedFileNodePool: MemoryFileNode[] = new Array<MemoryFileNode>(SHARED_POOL_CAPACITY).fill(DUMMY_POOL_FILE_NODE);
+let sharedFileNodePoolLen = 0;
+const sharedDirectoryNodePool: MemoryDirectoryNode[] = new Array<MemoryDirectoryNode>(SHARED_DIR_POOL_CAPACITY);
+let sharedDirectoryNodePoolLen = 0;
+const sharedRemovedScratch: MemoryNode[] = new Array<MemoryNode>(SHARED_POOL_CAPACITY).fill(DUMMY_POOL_FILE_NODE);
+let sharedRemovedLen = 0;
 let sharedRemovedKeyChars = 0;
 let sharedRemovedKeyEntries = 0;
 function collectRemovedChild(child: MemoryNode, name: string): void {
-  sharedRemovedScratch.push(child);
+  if (sharedRemovedLen < sharedRemovedScratch.length) {
+    sharedRemovedScratch[sharedRemovedLen++] = child;
+  } else {
+    sharedRemovedScratch.push(child);
+    sharedRemovedLen++;
+  }
   sharedRemovedKeyChars += name.length;
   sharedRemovedKeyEntries++;
 }
 
 function replenishSharedMemoryPools(): void {
-  while (sharedAllocationPool.length < 112) {
+  while (sharedAllocationPoolLen < 112) {
     if (smallAllocOffset + 64 > SMALL_ALLOC_SLAB_SIZE) {
       smallAllocSlab = new Uint8Array(SMALL_ALLOC_SLAB_SIZE);
       smallAllocOffset = 0;
@@ -304,13 +315,13 @@ function replenishSharedMemoryPools(): void {
     DUMMY_POOL_LEDGER.reserve(64, 0, "init", "/");
     const alloc = new MemoryAllocation(slice, DUMMY_POOL_LEDGER);
     alloc.release();
-    sharedAllocationPool.push(alloc);
+    sharedAllocationPool[sharedAllocationPoolLen++] = alloc;
   }
-  while (sharedFileNodePool.length < 112) {
-    sharedFileNodePool.push(new MemoryFileNode(0, 0, fastWriteCachedNow, 0, DUMMY_POOL_ALLOCATION, undefined));
+  while (sharedFileNodePoolLen < 112) {
+    sharedFileNodePool[sharedFileNodePoolLen++] = new MemoryFileNode(0, 0, fastWriteCachedNow, 0, DUMMY_POOL_ALLOCATION, undefined);
   }
-  while (sharedDirectoryNodePool.length < 16) {
-    sharedDirectoryNodePool.push(new MemoryDirectoryNode(0, 0, fastWriteCachedNow));
+  while (sharedDirectoryNodePoolLen < 16) {
+    sharedDirectoryNodePool[sharedDirectoryNodePoolLen++] = new MemoryDirectoryNode(0, 0, fastWriteCachedNow);
   }
 }
 
@@ -413,6 +424,9 @@ class MemoryCache {
 const typeModes = { file: 0o100000, directory: 0o040000, symlink: 0o120000 } as const;
 const emptyResolveOptions: ResolveOptions = Object.freeze({});
 const noFollowResolveOptions: ResolveOptions = Object.freeze({ followFinal: false });
+const sharedMkdirResolveOptions: ResolveOptions = { createDirectories: 0o777 };
+const sharedAllowMissingNoFollowOptions: ResolveOptions = Object.freeze({ allowMissing: true, followFinal: false });
+const sharedFastLocation: Location = { node: undefined, parent: DUMMY_POOL_DIR_NODE, name: "", path: "" };
 const resolvedVoid = Promise.resolve();
 const preferredIoBlockSize = 64 * 1024;
 const ext4HtreeEof64 = (1n << 63n) - 1n;
@@ -797,11 +811,16 @@ export class MemoryFileSystem implements FileSystem {
     };
   }
 
-  private directory(mode: number): DirectoryNode {
-    const now = Date.now();
+  private directory(mode: number, now = Date.now()): DirectoryNode {
     const fullMode = typeModes.directory | mode;
     const ino = this.nextInode++;
-    const pooled = sharedDirectoryNodePool.pop() ?? memoryCaches.get(this.ledger)?.directories.pop();
+    let pooled: MemoryDirectoryNode | undefined;
+    if (sharedDirectoryNodePoolLen > 0) {
+      pooled = sharedDirectoryNodePool[--sharedDirectoryNodePoolLen]!;
+      sharedDirectoryNodePool[sharedDirectoryNodePoolLen] = DUMMY_POOL_DIR_NODE;
+    } else {
+      pooled = memoryCaches.get(this.ledger)?.directories.pop();
+    }
     if (pooled) {
       pooled.mode = fullMode;
       pooled.ino = ino;
@@ -819,13 +838,13 @@ export class MemoryFileSystem implements FileSystem {
     return new MemoryDirectoryNode(fullMode, ino, now);
   }
 
-  private addDirectoryNode(parent: DirectoryNode, name: string, mode: number, syscall: string, path: string): DirectoryNode {
+  private addDirectoryNode(parent: DirectoryNode, name: string, mode: number, syscall: string, path: string, now = Date.now()): DirectoryNode {
     const bytes = name.length * 2;
     this.ledger.reserve(bytes, 2, syscall, path);
     try {
-      const node = this.directory(mode);
+      const node = this.directory(mode, now);
       parent.entries.set(name, node);
-      this.changed(parent);
+      this.changed(parent, now);
       return node;
     } catch (error) {
       this.ledger.release(bytes, 2);
@@ -868,14 +887,14 @@ export class MemoryFileSystem implements FileSystem {
       alloc.release();
       if (alloc.isReleased64()) {
         alloc.detachLedger(DUMMY_POOL_LEDGER);
-        if (this.ledger.hasInfiniteRetained && this.ledger.limits.maxFileBytes === Infinity && sharedAllocationPool.length < 128) {
-          sharedAllocationPool.push(alloc);
+        if (this.ledger.hasInfiniteRetained && this.ledger.limits.maxFileBytes === Infinity && sharedAllocationPoolLen < SHARED_POOL_CAPACITY) {
+          sharedAllocationPool[sharedAllocationPoolLen++] = alloc;
         } else if (cache.allocations.length < 128) {
           cache.allocations.push(alloc);
         }
       }
-      if (sharedFileNodePool.length < 128) {
-        sharedFileNodePool.push(node);
+      if (sharedFileNodePoolLen < SHARED_POOL_CAPACITY) {
+        sharedFileNodePool[sharedFileNodePoolLen++] = node;
       } else if (cache.files.length < 128) {
         cache.files.push(node);
       }
@@ -887,8 +906,8 @@ export class MemoryFileSystem implements FileSystem {
         cache.lastFastDirNode = undefined;
       }
       if (node.entries.size === 0) {
-        if (sharedDirectoryNodePool.length < 32) {
-          sharedDirectoryNodePool.push(node);
+        if (sharedDirectoryNodePoolLen < SHARED_DIR_POOL_CAPACITY) {
+          sharedDirectoryNodePool[sharedDirectoryNodePoolLen++] = node;
         } else if (cache.directories.length < 32) {
           cache.directories.push(node);
         }
@@ -1231,10 +1250,13 @@ export class MemoryFileSystem implements FileSystem {
       return new MemoryAllocation(EMPTY_ALLOC_BYTES, this.ledger);
     }
     if (length === 64) {
-      const pooled =
-        (this.ledger.hasInfiniteRetained && this.ledger.limits.maxFileBytes === Infinity
-          ? sharedAllocationPool.pop()
-          : undefined) ?? memoryCaches.get(this.ledger)!.allocations.pop();
+      let pooled: MemoryAllocation | undefined;
+      if (this.ledger.hasInfiniteRetained && this.ledger.limits.maxFileBytes === Infinity && sharedAllocationPoolLen > 0) {
+        pooled = sharedAllocationPool[--sharedAllocationPoolLen]!;
+        sharedAllocationPool[sharedAllocationPoolLen] = DUMMY_POOL_ALLOCATION;
+      } else {
+        pooled = memoryCaches.get(this.ledger)!.allocations.pop();
+      }
       if (pooled) {
         pooled.reuse(this.ledger);
         return pooled;
@@ -1347,7 +1369,13 @@ export class MemoryFileSystem implements FileSystem {
           const now = Date.now();
           const fileMode = typeModes.file | target.mode;
           const view = capacity === length ? allocation.data : undefined;
-          const pooled = sharedFileNodePool.pop() ?? memoryCaches.get(this.ledger)!.files.pop();
+          let pooled: MemoryFileNode | undefined;
+          if (sharedFileNodePoolLen > 0) {
+            pooled = sharedFileNodePool[--sharedFileNodePoolLen]!;
+            sharedFileNodePool[sharedFileNodePoolLen] = DUMMY_POOL_FILE_NODE;
+          } else {
+            pooled = memoryCaches.get(this.ledger)!.files.pop();
+          }
           if (pooled) {
             pooled.mode = fileMode;
             pooled.ino = this.nextInode++;
@@ -1511,7 +1539,13 @@ export class MemoryFileSystem implements FileSystem {
           const now = Date.now();
           const fileMode = typeModes.file | mode;
           const view = capacity === length ? allocation.data : undefined;
-          let node = sharedFileNodePool.pop() ?? cache.files.pop();
+          let node: MemoryFileNode | undefined;
+          if (sharedFileNodePoolLen > 0) {
+            node = sharedFileNodePool[--sharedFileNodePoolLen]!;
+            sharedFileNodePool[sharedFileNodePoolLen] = DUMMY_POOL_FILE_NODE;
+          } else {
+            node = cache.files.pop();
+          }
           if (node) {
             node.mode = fileMode;
             node.ino = this.nextInode++;
@@ -1643,10 +1677,16 @@ export class MemoryFileSystem implements FileSystem {
           allocation.data.set(data);
           this.ledger.reserve(nameBytes, 2, syscall, name);
           try {
-            const now = ((++fastWriteNowTick & 15) === 0) ? (fastWriteCachedNow = Date.now()) : fastWriteCachedNow;
+            const now = fastWriteCachedNow;
             const fileMode = typeModes.file | mode;
             const view = capacity === length ? allocation.data : undefined;
-            let node = sharedFileNodePool.pop() ?? cache.files.pop();
+            let node: MemoryFileNode | undefined;
+            if (sharedFileNodePoolLen > 0) {
+              node = sharedFileNodePool[--sharedFileNodePoolLen]!;
+              sharedFileNodePool[sharedFileNodePoolLen] = DUMMY_POOL_FILE_NODE;
+            } else {
+              node = cache.files.pop();
+            }
             if (node) {
               node.mode = fileMode;
               node.ino = this.nextInode++;
@@ -2166,7 +2206,7 @@ export class MemoryFileSystem implements FileSystem {
     }
   }
 
-  private removeLocation(location: Location, path: string, syscall: string, recursive: boolean): void {
+  private removeLocation(location: Location, path: string, syscall: string, recursive: boolean, now = Date.now()): void {
     const node = location.node!;
     if (this.terminalDot(path)) this.fail("EINVAL", syscall, path);
     if (node === this.root) this.fail("EBUSY", syscall, path);
@@ -2175,12 +2215,12 @@ export class MemoryFileSystem implements FileSystem {
     const cache = memoryCaches.get(this.ledger)!;
     cache.clearWrites();
     const removed = sharedRemovedScratch;
-    removed.length = 0;
-    removed.push(node);
+    sharedRemovedLen = 1;
+    removed[0] = node;
     sharedRemovedKeyChars = 0;
     sharedRemovedKeyEntries = 0;
     try {
-      for (let index = 0; index < removed.length; index++) {
+      for (let index = 0; index < sharedRemovedLen; index++) {
         const entry = removed[index]!;
         if (entry.type === "directory" && entry.entries.size > 0) {
           this.permission(entry, 7, syscall, path);
@@ -2189,9 +2229,10 @@ export class MemoryFileSystem implements FileSystem {
       }
       location.parent.entries.delete(location.name);
       this.ledger.release((location.name.length + sharedRemovedKeyChars) * 2, 1 + sharedRemovedKeyEntries);
-      const now = Date.now();
-      for (let i = 0; i < removed.length; i++) {
+      const totalRemoved = sharedRemovedLen;
+      for (let i = 0; i < totalRemoved; i++) {
         const entry = removed[i]!;
+        removed[i] = DUMMY_POOL_FILE_NODE;
         if (entry.type === "directory") {
           entry.entries.clear();
         }
@@ -2203,9 +2244,10 @@ export class MemoryFileSystem implements FileSystem {
         this.releaseNode(entry);
       }
     } finally {
-      removed.length = 0;
+      for (let i = 0; i < sharedRemovedLen; i++) removed[i] = DUMMY_POOL_FILE_NODE;
+      sharedRemovedLen = 0;
     }
-    this.changed(location.parent);
+    this.changed(location.parent, now);
   }
 
   unlink(path: string, options: FsOptions = {}): Promise<void> {
@@ -2822,13 +2864,26 @@ export function tryReadMemoryFileViewSync(filesystem: FileSystem, path: string, 
 
 export function tryGetMemoryDirectoryEntryNamesSync(filesystem: FileSystem, path: string): ReadonlyMap<string, { readonly type: "file" | "directory" | "symlink" }> | undefined {
   const mem = filesystem as MemoryFileSystem;
-  if (!ownedStores.has(mem) || mem.symlinkCount !== 0 || !isStockMemoryMethods(mem, readFileFastMethodNames, false)) return undefined;
+  const owner = ownedStores.get(mem);
+  if (!owner || mem.symlinkCount !== 0 || !isStockMemoryMethods(mem, readFileFastMethodNames, false)) return undefined;
   const root: DirectoryNode = (mem as unknown as { root: DirectoryNode }).root;
   if (path === "/") {
     if (((root.mode >> 6) & 4) !== 4) return undefined;
     return root.entries;
   }
   if (!isCleanAbsolutePath(path) || path === "/dev" || path.startsWith("/dev/")) return undefined;
+  const cache = memoryCaches.get(owner.ledger);
+  const fastDir = cache?.lastFastDirNode;
+  const fastPrefix = cache?.lastFastDirPrefix;
+  if (
+    fastDir !== undefined &&
+    fastDir.nlink !== 0 &&
+    ((fastDir.mode >> 6) & 4) === 4 &&
+    fastPrefix !== undefined &&
+    (fastPrefix === path || (fastPrefix.length === path.length + 1 && fastPrefix.charCodeAt(path.length) === 47 && fastPrefix.startsWith(path)))
+  ) {
+    return fastDir.entries;
+  }
   let current: DirectoryNode = root;
   let start = 1;
   while (true) {
@@ -2895,14 +2950,30 @@ export function tryMkdirMemorySync(
   signal?.throwIfAborted();
   const validMode = (mem as unknown as { mode: (m: number | undefined, f: number, s: string, p: string) => number }).mode(mode, 0o777, "mkdir", path);
   if (recursive) {
-    const node = (mem as unknown as { resolve: (p: string, s: string, o: ResolveOptions) => Location }).resolve(path, "mkdir", { createDirectories: validMode }).node!;
-    if (node.type !== "directory") (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail("EEXIST", "mkdir", path);
+    let current: DirectoryNode = owner.root;
+    let start = 1;
+    while (true) {
+      (mem as unknown as { permission: (n: MemoryNode, m: number, s: string, p: string) => void }).permission(current, 1, "mkdir", path);
+      const slash = path.indexOf("/", start);
+      const seg = slash === -1 ? path.slice(start) : path.slice(start, slash);
+      if (exceedsComponentByteLimit(seg)) (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail("ENAMETOOLONG", "mkdir", path);
+      let next = current.entries.get(seg);
+      if (!next) {
+        (mem as unknown as { permission: (n: MemoryNode, m: number, s: string, p: string) => void }).permission(current, 3, "mkdir", path);
+        next = (mem as unknown as { addDirectoryNode: (p: DirectoryNode, n: string, m: number, s: string, pt: string, now: number) => DirectoryNode }).addDirectoryNode(current, seg, validMode, "mkdir", path, fastWriteCachedNow);
+      } else if (next.type !== "directory") {
+        (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail(slash === -1 ? "EEXIST" : "ENOTDIR", "mkdir", path);
+      }
+      if (slash === -1) break;
+      current = next as DirectoryNode;
+      start = slash + 1;
+    }
     return true;
   }
-  const location = (mem as unknown as { resolve: (p: string, s: string, o: ResolveOptions) => Location }).resolve(path, "mkdir", { allowMissing: true, followFinal: false });
+  const location = (mem as unknown as { resolve: (p: string, s: string, o: ResolveOptions) => Location }).resolve(path, "mkdir", sharedAllowMissingNoFollowOptions);
   if (location.node) (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail("EEXIST", "mkdir", path);
   (mem as unknown as { permission: (n: MemoryNode, m: number, s: string, p: string) => void }).permission(location.parent, 3, "mkdir", path);
-  (mem as unknown as { addDirectoryNode: (p: DirectoryNode, n: string, m: number, s: string, pt: string) => DirectoryNode }).addDirectoryNode(location.parent, location.name, validMode, "mkdir", path);
+  (mem as unknown as { addDirectoryNode: (p: DirectoryNode, n: string, m: number, s: string, pt: string, now: number) => DirectoryNode }).addDirectoryNode(location.parent, location.name, validMode, "mkdir", path, fastWriteCachedNow);
   return true;
 }
 
@@ -2926,14 +2997,40 @@ export function tryRmRfMemorySync(
     return false;
   }
   signal?.throwIfAborted();
-  let location: Location;
-  try {
-    location = (mem as unknown as { resolve: (p: string, s: string, o: ResolveOptions) => Location }).resolve(path, "rm", noFollowResolveOptions);
-  } catch (error) {
-    if (error instanceof FsError && error.code === "ENOENT") return true;
-    throw error;
+  let current: DirectoryNode = owner.root;
+  let start = 1;
+  let targetNode: MemoryNode | undefined;
+  let targetName = "";
+  while (true) {
+    (mem as unknown as { permission: (n: MemoryNode, m: number, s: string, p: string) => void }).permission(current, 1, "rm", path);
+    const slash = path.indexOf("/", start);
+    if (slash === -1) {
+      targetName = path.slice(start);
+      if (exceedsComponentByteLimit(targetName)) (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail("ENAMETOOLONG", "rm", path);
+      targetNode = current.entries.get(targetName);
+      if (!targetNode) return true;
+      break;
+    }
+    const seg = path.slice(start, slash);
+    if (exceedsComponentByteLimit(seg)) (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail("ENAMETOOLONG", "rm", path);
+    const next = current.entries.get(seg);
+    if (!next) return true;
+    if (next.type !== "directory") (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail("ENOTDIR", "rm", path);
+    current = next as DirectoryNode;
+    start = slash + 1;
   }
-  (mem as unknown as { removeLocation: (l: Location, p: string, s: string, r: boolean) => void }).removeLocation(location, path, "rm", true);
+  sharedFastLocation.node = targetNode;
+  sharedFastLocation.parent = current;
+  sharedFastLocation.name = targetName;
+  sharedFastLocation.path = path;
+  try {
+    (mem as unknown as { removeLocation: (l: Location, p: string, s: string, r: boolean, now: number) => void }).removeLocation(sharedFastLocation, path, "rm", true, fastWriteCachedNow);
+  } finally {
+    sharedFastLocation.node = undefined;
+    sharedFastLocation.parent = DUMMY_POOL_DIR_NODE;
+    sharedFastLocation.name = "";
+    sharedFastLocation.path = "";
+  }
   return true;
 }
 

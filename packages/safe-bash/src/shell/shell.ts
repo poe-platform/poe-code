@@ -31,6 +31,26 @@ import type {
 const EMPTY_CAPTURED_EXTENSIONS = captureShellExtensions([]);
 const sharedUtf8Decoder = new TextDecoder("utf-8", { ignoreBOM: true });
 const sharedUtf8Encoder = new TextEncoder();
+const EMPTY_SHELL_BYTES = new Uint8Array(0);
+
+class FastShellResult implements ShellResult {
+  readonly stdout: string;
+  readonly stderr: string;
+  readonly exitCode: number;
+  private _stdoutBytes: Uint8Array | undefined = undefined;
+  private _stderrBytes: Uint8Array | undefined = undefined;
+  constructor(stdout: string, stderr: string, exitCode: number) {
+    this.stdout = stdout;
+    this.stderr = stderr;
+    this.exitCode = exitCode;
+  }
+  get stdoutBytes(): Uint8Array {
+    return this._stdoutBytes ??= (this.stdout.length === 0 ? EMPTY_SHELL_BYTES : sharedUtf8Encoder.encode(this.stdout));
+  }
+  get stderrBytes(): Uint8Array {
+    return this._stderrBytes ??= (this.stderr.length === 0 ? EMPTY_SHELL_BYTES : sharedUtf8Encoder.encode(this.stderr));
+  }
+}
 const SHARED_EMPTY_DONE = Promise.resolve({ done: true as const, value: undefined });
 const SHARED_EMPTY_ITERATOR: AsyncIterableIterator<Uint8Array> = {
   next() { return SHARED_EMPTY_DONE; },
@@ -524,7 +544,10 @@ export class Shell implements PluginHost {
           const savedParse = warm.budget.parsing.snapshot();
           try {
             const parseState: ParseUnitState = { lineIndex: undefined, lineIndexUnits: 0, currentCachedUnit: undefined };
-            getOrParseUnitFromCache(source, 0, false, sourceCache, parseState, warm.budget, undefined);
+            let curUnit = getOrParseUnitFromCache(source, 0, false, sourceCache, parseState, warm.budget, undefined);
+            while (curUnit.next < source.length) {
+              curUnit = getOrParseUnitFromCache(source, curUnit.next, false, sourceCache, parseState, warm.budget, undefined);
+            }
             warm.budget.parsing.restore(savedParse);
             const parsedFirst = sourceCache.first0;
             if (parsedFirst && (!parsedFirst.unit.script.warnings || parsedFirst.unit.script.warnings.length === 0)) {
@@ -557,7 +580,7 @@ export class Shell implements PluginHost {
       budget.signal.throwIfAborted();
       budget.parsing.admit(firstCached.unitsCharged);
       if (isFirstParse && isIdempotentWarmUnit(firstCached.unit, source.length, budget)) {
-        const warmIters = firstCached.unit.script.lists[0]!.pipelines[0]!.commands.length >= 2 ? 12 : 4;
+        const warmIters = 12;
         for (let w = 0; w < warmIters; w++) {
           const r = runtime.runUnit(firstCached.unit.script, currentState, io);
           if (r instanceof Promise) break;
@@ -572,6 +595,20 @@ export class Shell implements PluginHost {
       let unit = firstCached.unit;
       let exitCode = 0;
       while (true) {
+        if (isFirstParse && unit !== firstCached.unit && unit.next >= source.length && isIdempotentWarmUnit(unit, source.length, budget)) {
+          const savedCmds = budget.commands;
+          const savedBytes = budget.bytes;
+          const savedFsOps = (budget as unknown as { _fileSystemOperations: number })._fileSystemOperations;
+          for (let w = 0; w < 12; w++) {
+            const r = runtime.runUnit(unit.script, currentState, io);
+            if (r instanceof Promise) break;
+            budget.commands = savedCmds;
+            budget.bytes = savedBytes;
+            (budget as unknown as { _fileSystemOperations: number })._fileSystemOperations = savedFsOps;
+            stdout.resetEmpty();
+            stderr.resetEmpty();
+          }
+        }
         if (unit.script.lists.length) {
           const unitResult = runtime.runUnit(unit.script, currentState, io);
           if (unitResult instanceof Promise) {
@@ -600,21 +637,13 @@ export class Shell implements PluginHost {
       scope.clearActiveBudget();
       scope.clearActiveStdin();
       void stdin.close();
-      const stdoutBytes = stdout.takeBytes();
-      const stderrBytes = stderr.takeBytes();
-      const stdoutStr = stdoutBytes.byteLength === 0 ? "" : sharedUtf8Decoder.decode(stdoutBytes);
-      const stderrStr = stderrBytes.byteLength === 0 ? "" : sharedUtf8Decoder.decode(stderrBytes);
+      const stdoutStr = stdout.takeUtf8String(sharedUtf8Decoder);
+      const stderrStr = stderr.takeUtf8String(sharedUtf8Decoder);
       budget.close();
       owner.closeSync();
       void scope.close();
       cancellationState.close();
-      const fastResult: ShellResult = {
-        stdout: stdoutStr,
-        stderr: stderrStr,
-        stdoutBytes,
-        stderrBytes,
-        exitCode,
-      };
+      const fastResult = new FastShellResult(stdoutStr, stderrStr, exitCode);
       if (_execAnchor[10] === undefined) {
         _execAnchor[10] = ensureStateMonitor(currentState, budget, scope);
       }
@@ -1100,6 +1129,8 @@ export class Shell implements PluginHost {
         const monitor = ensureStateMonitor(state, budget, scope);
         void monitor.proxy.variables;
         monitor.values.prewarm();
+        stdout.enableScratchBuffer();
+        stderr.enableScratchBuffer();
         this.#warmedInvocation = {
           budget,
           scope,

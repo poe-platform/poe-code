@@ -782,6 +782,8 @@ const EMPTY_CAPTURE_BYTES = new Uint8Array(0);
 export class Capture implements ByteSink {
   declare private _chunks: Uint8Array[] | undefined;
   declare private _first: Uint8Array | undefined;
+  declare private _scratch4k: Buffer | undefined;
+  declare private _scratchLen: number;
   declare length: number;
   declare private _tail: Uint8Array | undefined;
   declare private _tailLength: number;
@@ -794,11 +796,19 @@ export class Capture implements ByteSink {
     if (signal !== undefined) this.signal = signal;
   }
 
+  enableScratchBuffer(): void {
+    this._scratch4k ??= Buffer.allocUnsafeSlow(65536);
+  }
+
   get self(): ByteSink {
     return this;
   }
 
   get chunks(): Uint8Array[] {
+    if (this._scratchLen > 0 && this._scratch4k) {
+      this._first = this._scratch4k.slice(0, this._scratchLen);
+      this._scratchLen = 0;
+    }
     if (!this._chunks) {
       this._chunks = this._first ? [this._first] : [];
       this._first = undefined;
@@ -811,14 +821,51 @@ export class Capture implements ByteSink {
       this.signal!.throwIfAborted();
       if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
       const budget = this.budget;
-      if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+      if (budget.bytes + chunk.byteLength > budget.maxOutputBytesSmi && chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
       budget.bytes += chunk.byteLength;
     }
     return this.writeRawSync(chunk);
   }
 
+  writeRangeSync(src: Uint8Array, len: number): boolean {
+    if (this.budget !== undefined) {
+      this.signal!.throwIfAborted();
+      const budget = this.budget;
+      if (budget.bytes + len > budget.maxOutputBytesSmi && len > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+      budget.bytes += len;
+    }
+    if (len === 0) return true;
+    if (this._scratch4k && !this._chunks && !this._first && this._scratchLen + len <= 65536) {
+      const dst = this._scratch4k;
+      const base = this._scratchLen;
+      if (len <= 64) {
+        for (let i = 0; i < len; i++) dst[base + i] = src[i]!;
+      } else if (typeof (src as Buffer).copy === "function") {
+        (src as Buffer).copy(dst, base, 0, len);
+      } else {
+        for (let i = 0; i < len; i++) dst[base + i] = src[i]!;
+      }
+      this._scratchLen = base + len;
+      this.length = base + len;
+      return true;
+    }
+    return this.writeRawSync(src.subarray(0, len));
+  }
+
   writeRawSync(chunk: Uint8Array): boolean {
     if (!chunk.byteLength) return true;
+    if (this._scratch4k && !this._chunks && !this._first) {
+      if (this._scratchLen + chunk.byteLength <= 65536) {
+        this._scratch4k.set(chunk, this._scratchLen);
+        this._scratchLen += chunk.byteLength;
+        this.length = this._scratchLen;
+        return true;
+      }
+      if (this._scratchLen > 0) {
+        this._first = this._scratch4k.slice(0, this._scratchLen);
+        this._scratchLen = 0;
+      }
+    }
     if (!this._chunks && !this._first && chunk.byteLength <= 4096) {
       this._first = new Uint8Array(chunk);
       this.length = chunk.byteLength;
@@ -862,6 +909,9 @@ export class Capture implements ByteSink {
 
   bytes(): Uint8Array {
     if (this.length === 0) return EMPTY_CAPTURE_BYTES;
+    if (this._scratchLen > 0 && this._scratch4k && !this._chunks && !this._first) {
+      return this._scratch4k.slice(0, this._scratchLen);
+    }
     if (this._first && !this._chunks) return new Uint8Array(this._first);
     const bytes = new Uint8Array(this.length);
     let offset = 0;
@@ -876,6 +926,12 @@ export class Capture implements ByteSink {
 
   takeBytes(): Uint8Array {
     if (this.length === 0) return EMPTY_CAPTURE_BYTES;
+    if (this._scratchLen > 0 && this._scratch4k && !this._chunks && !this._first) {
+      const bytes = this._scratch4k.slice(0, this._scratchLen);
+      this._scratchLen = 0;
+      this.length = 0;
+      return bytes;
+    }
     if (this._first && !this._chunks) {
       const first = this._first;
       this._first = undefined;
@@ -893,9 +949,34 @@ export class Capture implements ByteSink {
     return bytes;
   }
 
+  takeUtf8String(decoder: { decode(input?: Uint8Array): string }): string {
+    if (this.length === 0) return "";
+    if (this._scratchLen > 0 && this._scratch4k && !this._chunks && !this._first) {
+      const len = this._scratchLen;
+      const buf = this._scratch4k;
+      this._scratchLen = 0;
+      this.length = 0;
+      if (len <= 64) {
+        let ascii = true;
+        for (let i = 0; i < len; i++) {
+          if (buf[i]! >= 0x80) { ascii = false; break; }
+        }
+        if (ascii) {
+          let s = "";
+          for (let i = 0; i < len; i++) s += String.fromCharCode(buf[i]!);
+          return s;
+        }
+      }
+      return buf.toString("utf8", 0, len);
+    }
+    const bytes = this.takeBytes();
+    return bytes.byteLength === 0 ? "" : decoder.decode(bytes);
+  }
+
   resetEmpty(): void {
     if (this._chunks) this._chunks.length = 0;
     this._first = undefined;
+    this._scratchLen = 0;
     this.length = 0;
     this._tail = undefined;
     this._tailLength = 0;
@@ -904,6 +985,8 @@ export class Capture implements ByteSink {
 Object.assign(Capture.prototype, {
   _chunks: undefined,
   _first: undefined,
+  _scratch4k: undefined,
+  _scratchLen: 0,
   length: 0,
   _tail: undefined,
   _tailLength: 0,
@@ -1305,10 +1388,19 @@ class BudgetedSyncSink implements ByteSink {
     if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
     if (this.target.budget === this.budget) return this.target.writeSync(chunk);
     const budget = this.budget;
-    if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+    if (budget.bytes + chunk.byteLength > budget.maxOutputBytesSmi && chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
     budget.bytes += chunk.byteLength;
     this.target.writeRawSync(chunk);
     return true;
+  }
+
+  writeRangeSync(src: Uint8Array, len: number): boolean {
+    this.signal.throwIfAborted();
+    if (this.target.budget === this.budget) return this.target.writeRangeSync(src, len);
+    const budget = this.budget;
+    if (budget.bytes + len > budget.maxOutputBytesSmi && len > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+    budget.bytes += len;
+    return this.target.writeRangeSync(src, len);
   }
 
   write(chunk: Uint8Array): Promise<void> {
@@ -1364,7 +1456,7 @@ class MemoryRedirectSink implements ByteSink {
     this.signal.throwIfAborted();
     if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
     const budget = this.budget;
-    if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+    if (budget.bytes + chunk.byteLength > budget.maxOutputBytesSmi && chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
     if (chunk.byteLength > 0) {
       try {
         this.handle.writeSync(chunk, this.signal);
@@ -2937,6 +3029,7 @@ function getRuntimeMuscleMemoryCommand(name: string): CommandDefinition | undefi
   return defaultRuntimeMuscleMemoryMap.get(name);
 }
 const fastSubScratchArgs: string[] = [];
+const fastMkdirRmPaths: string[] = new Array<string>(32).fill("");
 const fastRedirectScratchBytes = new Uint8Array(8192);
 const fastRedirectScratchViews: Uint8Array[] = Array.from({ length: 129 }, (_, len) => fastRedirectScratchBytes.subarray(0, len));
 
@@ -3116,13 +3209,30 @@ class PooledSyncPipeWriter implements ByteSink {
     const len = chunk.byteLength;
     if (len === 0) return true;
     const budget = this.budget;
-    if (len > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+    if (budget.bytes + len > budget.maxOutputBytesSmi && len > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
     if (this.used + len > this.target.byteLength) {
       this.overflowed = true;
       return false;
     }
     this.target.set(chunk, this.used);
     this.used += len;
+    budget.bytes += len;
+    return true;
+  }
+
+  writeRangeSync(src: Uint8Array, len: number): boolean {
+    this.signal.throwIfAborted();
+    if (len === 0) return true;
+    const budget = this.budget;
+    if (budget.bytes + len > budget.maxOutputBytesSmi && len > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+    if (this.used + len > this.target.byteLength) {
+      this.overflowed = true;
+      return false;
+    }
+    const dst = this.target;
+    const base = this.used;
+    for (let i = 0; i < len; i++) dst[base + i] = src[i]!;
+    this.used = base + len;
     budget.bytes += len;
     return true;
   }
@@ -5996,7 +6106,7 @@ export class Runtime {
       }
       if (cachedConst) {
         const byteLength = cachedConst.encoded.byteLength;
-        if (byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) return undefined;
+        if (this.budget.bytes + byteLength > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) return undefined;
         if (!this.budget.canFileSystemOperation()) return undefined;
         const mode = 0o666 & ~(rawState.umask ?? 0o022);
         try {
@@ -6084,7 +6194,7 @@ export class Runtime {
       if (path.startsWith("/dev/") || path === "/dev") return undefined;
       const encoded = preEncoded ?? encodeRedirectTextToScratch(formatted!);
       const byteLength = encoded.byteLength;
-      if (byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) return undefined;
+      if (this.budget.bytes + byteLength > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) return undefined;
       if (!this.budget.canFileSystemOperation()) return undefined;
       const mode = 0o666 & ~(rawState.umask ?? 0o022);
       try {
@@ -6262,7 +6372,7 @@ export class Runtime {
           if (formatted !== undefined) {
             const encoded = encodeRedirectTextToScratch(formatted);
             const byteLength = encoded.byteLength;
-            if (byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes) {
+            if (this.budget.bytes + byteLength <= this.budget.maxOutputBytesSmi || byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes) {
               const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
               this.budget.tick();
               if (fastSyncSink) {
@@ -6379,7 +6489,7 @@ export class Runtime {
           (isMkdir ? defaultMkdirExecutors.has(def.execute) && (umask & 0o300) === 0 : defaultRmExecutors.has(def.execute)) &&
           this.budget.fileSystemOperations + (command.words.length - 2) <= this.budget.limits.maxFileSystemOperations
         ) {
-          fastSubScratchArgs.length = 0;
+          let pathCount = 0;
           let lastArg = w1Plain!;
           let valid = true;
           try {
@@ -6407,16 +6517,17 @@ export class Runtime {
                 valid = false;
                 break;
               }
-              fastSubScratchArgs.push(path);
+              fastMkdirRmPaths[pathCount++] = path;
             }
           } catch {
             valid = false;
           }
-          if (valid && fastSubScratchArgs.length > 0) {
+          if (valid && pathCount > 0) {
             const mode = 0o777 & ~umask;
             try {
-              for (let i = 0; i < fastSubScratchArgs.length; i++) {
-                const targetPath = fastSubScratchArgs[i]!;
+              for (let i = 0; i < pathCount; i++) {
+                const targetPath = fastMkdirRmPaths[i]!;
+                fastMkdirRmPaths[i] = "";
                 const ok = isMkdir
                   ? tryMkdirMemorySync(this.backingFs, targetPath, true, mode, this.commandSignal)
                   : tryRmRfMemorySync(this.backingFs, targetPath, this.commandSignal);
@@ -6427,12 +6538,12 @@ export class Runtime {
                 this.budget.fileSystemOperation();
               }
             } catch {
-              fastSubScratchArgs.length = 0;
+              for (let i = 0; i < pathCount; i++) fastMkdirRmPaths[i] = "";
               this.signal.throwIfAborted();
               return undefined;
             }
           }
-          fastSubScratchArgs.length = 0;
+          for (let i = 0; i < pathCount; i++) fastMkdirRmPaths[i] = "";
           if (valid) {
             if (rawState.extensions && !rawState.extensions.eventDepth) {
               publishCommandSpelling(rawState, commandSpelling(command));

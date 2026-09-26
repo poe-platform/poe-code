@@ -17,16 +17,18 @@ const SYNTHETIC_FILE_STAT: FileStat = Object.freeze({ type: "file", size: 0, mod
 const SYNTHETIC_DIR_STAT: FileStat = Object.freeze({ type: "directory", size: 0, mode: 0o755, mtimeMs: 0, atimeMs: 0, ctimeMs: 0 });
 const SYNTHETIC_SYMLINK_STAT: FileStat = Object.freeze({ type: "symlink", size: 0, mode: 0o777, mtimeMs: 0, atimeMs: 0, ctimeMs: 0 });
 const SYNTHETIC_CHAR_STAT: FileStat = Object.freeze({ type: "character", size: 0, mode: 0o666, mtimeMs: 0, atimeMs: 0, ctimeMs: 0 });
-const cachedFindPatterns = new Map<string, (text: string) => boolean>();
+const FIND_DIR_REQUIREMENTS = Object.freeze(["directory"]);
+const cachedFindPatternsCS = new Map<string, (text: string) => boolean>();
+const cachedFindPatternsCI = new Map<string, (text: string) => boolean>();
 function getCachedFindPattern(pattern: string, caseInsensitive: boolean): ((text: string) => boolean) | undefined {
   for (let i = 0; i < pattern.length; i++) {
     const c = pattern.charCodeAt(i);
     if (c === 91 || c === 92 || c === 93) return undefined;
   }
-  const key = caseInsensitive ? `i:${pattern}` : `s:${pattern}`;
-  let fn = cachedFindPatterns.get(key);
+  const map = caseInsensitive ? cachedFindPatternsCI : cachedFindPatternsCS;
+  let fn = map.get(pattern);
   if (!fn) {
-    if (cachedFindPatterns.size >= 64) cachedFindPatterns.clear();
+    if (map.size >= 64) map.clear();
     const star = pattern.indexOf("*");
     if (!caseInsensitive && pattern.indexOf("?") === -1 && star !== -1 && pattern.indexOf("*", star + 1) === -1) {
       const prefix = pattern.slice(0, star);
@@ -46,20 +48,31 @@ function getCachedFindPattern(pattern: string, caseInsensitive: boolean): ((text
       const rx = new RegExp(rxSrc, caseInsensitive ? "si" : "s");
       fn = (text: string) => rx.test(text);
     }
-    cachedFindPatterns.set(key, fn);
+    map.set(pattern, fn);
   }
   return fn;
 }
-const sharedFindPrintBuf = Buffer.allocUnsafe(8192);
+const sharedFindPrintBuf = new Uint8Array(8192);
+function writeUtf8(buf: Uint8Array, pos: number, s: string): number {
+  const len = s.length;
+  for (let i = 0; i < len; i++) {
+    const c = s.charCodeAt(i);
+    if (c >= 0x80) return Buffer.from(buf.buffer, buf.byteOffset, buf.byteLength).write(s, pos, "utf8");
+    buf[pos + i] = c;
+  }
+  return len;
+}
 let sharedFindPrintBufInUse = false;
 const findKeyScratch: string[] = new Array(256).fill("");
 let findKeyScratchTop = 0;
 let findKeySorted = true;
 let findKeyAllFiles = true;
 let findKeyPrev = "";
+let findKeyCurrentMatch: ((text: string) => boolean) | undefined;
 const SHELLSORT_GAPS = [701, 301, 132, 57, 23, 10, 4, 1];
 function collectFindKey(v: { readonly type?: string }, k: string): void {
   if (v.type !== "file") findKeyAllFiles = false;
+  if (findKeyCurrentMatch !== undefined && !findKeyCurrentMatch(k)) return;
   if (findKeyPrev > k) findKeySorted = false;
   findKeyPrev = k;
   if (findKeyScratchTop === findKeyScratch.length) findKeyScratch.push(k);
@@ -82,12 +95,14 @@ function sortFindKeyRange(start: number, end: number): void {
     }
   }
 }
-function stageAndSortFindKeys(map: ReadonlyMap<string, unknown>, baseOffset: number): number {
+function stageAndSortFindKeys(map: ReadonlyMap<string, unknown>, baseOffset: number, match?: (text: string) => boolean): number {
   findKeyScratchTop = baseOffset;
   findKeySorted = true;
   findKeyAllFiles = true;
   findKeyPrev = "";
+  findKeyCurrentMatch = match;
   map.forEach(collectFindKey as (v: unknown, k: string) => void);
+  findKeyCurrentMatch = undefined;
   if (!findKeySorted) {
     sortFindKeyRange(baseOffset, findKeyScratchTop);
   }
@@ -124,10 +139,10 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
             const memDirEntries = match !== undefined ? tryGetMemoryDirectoryEntryNamesSync(backing, path) : undefined;
             if (match !== undefined && memDirEntries !== undefined && memDirEntries.size <= (maxDirectoryEntries ?? 10000)) {
               const keyBase = findKeyScratchTop;
-              const keyEnd = stageAndSortFindKeys(memDirEntries, keyBase);
+              const keyEnd = stageAndSortFindKeys(memDirEntries, keyBase, match);
               if (findKeyAllFiles) {
                 try {
-                  assertCommandRequirements(context, filesystemCommandRequirements.ls, ["directory"], backing.capabilities);
+                  assertCommandRequirements(context, filesystemCommandRequirements.ls, FIND_DIR_REQUIREMENTS, backing.capabilities);
                   if (fastBacking !== undefined) (context as unknown as { _chargeFastFsOp(): void })._chargeFastFsOp();
                   let parent = rootDisplay;
                   while (parent.endsWith("/") && parent.length > 1) parent = parent.slice(0, -1);
@@ -138,31 +153,36 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
                   let overflow = false;
                   if (match(rootName)) {
                     const escRoot = escapeText(rootDisplay, "display");
-                    if (escRoot.length * 3 + 1 <= sharedFindPrintBuf.length) {
-                      printPos += sharedFindPrintBuf.write(escRoot, printPos, "utf8");
+                    if (escRoot.length + 1 <= sharedFindPrintBuf.length) {
+                      for (let c = 0; c < escRoot.length; c++) sharedFindPrintBuf[printPos++] = escRoot.charCodeAt(c);
                       sharedFindPrintBuf[printPos++] = 10;
                     } else {
                       overflow = true;
                     }
                   }
                   if (!overflow) {
+                    const pLen = escapedParent.length;
                     for (let i = keyBase; i < keyEnd; i++) {
                       const childName = findKeyScratch[i]!;
-                      if (match(childName)) {
-                        const escChild = escapeText(childName, "display");
-                        if (printPos + (escapedParent.length + escChild.length) * 3 + 2 > sharedFindPrintBuf.length) {
-                          overflow = true;
-                          break;
-                        }
-                        printPos += sharedFindPrintBuf.write(escapedParent, printPos, "utf8");
-                        sharedFindPrintBuf[printPos++] = 47;
-                        printPos += sharedFindPrintBuf.write(escChild, printPos, "utf8");
-                        sharedFindPrintBuf[printPos++] = 10;
+                      const escChild = escapeText(childName, "display");
+                      const cLen = escChild.length;
+                      if (printPos + pLen + cLen + 2 > sharedFindPrintBuf.length) {
+                        overflow = true;
+                        break;
                       }
+                      for (let c = 0; c < pLen; c++) sharedFindPrintBuf[printPos++] = escapedParent.charCodeAt(c);
+                      sharedFindPrintBuf[printPos++] = 47;
+                      for (let c = 0; c < cLen; c++) sharedFindPrintBuf[printPos++] = escChild.charCodeAt(c);
+                      sharedFindPrintBuf[printPos++] = 10;
                     }
                   }
                   if (!overflow) {
                     if (printPos === 0) {
+                      sharedFindPrintBufInUse = false;
+                      return RESOLVED_EXIT_ZERO;
+                    }
+                    const stdoutSink = context.stdout as { isPipeStage?: boolean; writeRangeSync?: (src: Uint8Array, len: number) => boolean };
+                    if (!stdoutSink.isPipeStage && typeof stdoutSink.writeRangeSync === "function" && stdoutSink.writeRangeSync(sharedFindPrintBuf, printPos) !== false) {
                       sharedFindPrintBufInUse = false;
                       return RESOLVED_EXIT_ZERO;
                     }
@@ -506,15 +526,15 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         if (!isSyncResolved(p)) await p;
         return;
       }
-      printPos += printBuf.write(escaped, printPos, "utf8");
+      printPos += writeUtf8(printBuf, printPos, escaped);
       printBuf[printPos++] = 10;
     };
     const appendPrintChild = (escapedParent: string, escapedChild: string): Promise<void> | void => {
       const maxNeed = (escapedParent.length + escapedChild.length) * 3 + 2;
       if (printPos + maxNeed <= printBuf.length) {
-        printPos += printBuf.write(escapedParent, printPos, "utf8");
+        printPos += writeUtf8(printBuf, printPos, escapedParent);
         printBuf[printPos++] = 47;
-        printPos += printBuf.write(escapedChild, printPos, "utf8");
+        printPos += writeUtf8(printBuf, printPos, escapedChild);
         printBuf[printPos++] = 10;
         return;
       }
@@ -526,9 +546,9 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           if (!isSyncResolved(p)) await p;
           return;
         }
-        printPos += printBuf.write(escapedParent, printPos, "utf8");
+        printPos += writeUtf8(printBuf, printPos, escapedParent);
         printBuf[printPos++] = 47;
-        printPos += printBuf.write(escapedChild, printPos, "utf8");
+        printPos += writeUtf8(printBuf, printPos, escapedChild);
         printBuf[printPos++] = 10;
       })();
     };

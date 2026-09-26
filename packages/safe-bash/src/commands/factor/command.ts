@@ -6,7 +6,7 @@ import { factorRecord, parseNumber } from "./factor.js";
 
 export function createFactorCommand(options: FactorCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
-  return { name: "factor", description: "Print prime factors of bounded nonnegative integers", async execute(context) {
+  return { name: "factor", description: "Print prime factors of nonnegative integers", async execute(context) {
     const output = createOutputOperation(context, context.stdout);
     const budget = new Budget(context, limits, output.signal);
     let lifecycle: Lifecycle | undefined;

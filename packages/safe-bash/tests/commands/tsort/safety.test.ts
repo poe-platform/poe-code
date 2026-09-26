@@ -35,7 +35,7 @@ test("factories expose one command and preserve explicit replacement", async () 
 
 for (const limit of ["maxArguments", "maxArgumentBytes", "maxInputBytes", "maxTokenBytes", "maxTokens", "maxNodes", "maxEdges", "maxBufferedBytes", "maxOutputBytes", "maxDiagnosticBytes", "maxWork", "maxEmptyChunks"] as const satisfies readonly (keyof TsortLimits)[]) {
   test(`invalid ${limit} rejected at factory construction`, () => {
-    for (const value of [0, -1, NaN, Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => createTsortCommand({ limits: { [limit]: value } }), RangeError);
+    for (const value of [0, -1, NaN, -Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => createTsortCommand({ limits: { [limit]: value } }), RangeError);
   });
 }
 

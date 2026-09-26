@@ -9,7 +9,7 @@ export function limitsFor(overrides: Partial<NetworkLimits> = {}): NetworkLimits
   const result = { ...defaultNetworkLimits, ...overrides };
   for (const [name, value] of Object.entries(overrides)) {
     const minimum = name === "maxRedirects" || name === "maxRetries" ? 0 : 1;
-    if (!Number.isSafeInteger(value) || value < minimum) {
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < minimum)) {
       throw new RangeError(`Invalid network limit: ${name}`);
     }
   }

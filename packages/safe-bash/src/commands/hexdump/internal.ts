@@ -30,7 +30,7 @@ export function settings(options: HexdumpCommandsOptions): HexdumpLimits {
     maxEmptyChunks: Infinity, ...options.limits,
   };
   for (const [name, value] of Object.entries(options.limits ?? {})) {
-    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid hexdump limit: ${name}`);
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`Invalid hexdump limit: ${name}`);
   }
   return Object.freeze(limits);
 }

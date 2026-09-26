@@ -145,6 +145,14 @@ export class RecordWriter {
     this.lifecycle.assertOpen();
     budget.outputRoom(this.used + record.length);
     budget.charge(record.length);
+    if (record.length > 512) {
+      await this.finish();
+      this.used = 0;
+      budget.retain(record.length);
+      try { await this.lifecycle.write(bytes(record)); }
+      finally { budget.retain(-record.length); }
+      return;
+    }
     for (let offset = 0; offset < record.length; offset++) this.buffer[this.used++] = record.charCodeAt(offset);
     if (this.used >= 512) {
       let end = 512;

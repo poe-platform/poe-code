@@ -18,6 +18,11 @@ import { assertAdmittedInputPath, assertLiteralInputPath, readIntegrationTypeInp
 
 const owner = "fixture producer";
 
+test("command resource limit regressions remain in active test discovery", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/optional-resource-limits.test.ts"));
+});
+
 test("extracted XZ and codec tests remain owned by their private workspaces", () => {
   const root = fileURLToPath(new URL("../../../", import.meta.url));
   for (const [workspace, names] of [

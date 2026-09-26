@@ -71,7 +71,7 @@ for (const [settings, args, label] of limits) test(`bounded ${label} ${JSON.stri
 });
 
 test("factory limit validation and long input preflight", async () => {
-  for (const value of [0, -1, NaN, Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+  for (const value of [0, -1, NaN, -Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
     assert.throws(() => createExprCommand({ limits: { maxSteps: value } }), RangeError);
   }
   assert.doesNotThrow(() => createExprCommand({ limits: { maxDepth: 257 } }));

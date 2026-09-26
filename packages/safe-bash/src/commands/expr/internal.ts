@@ -38,7 +38,7 @@ export function settings(options: ExprCommandsOptions): ExprLimits {
     maxRegexDepth: Infinity, maxRegexStates: Infinity, maxRegexAllocatedUnits: Infinity, ...options.limits,
   };
   for (const [name, value] of Object.entries(limits)) {
-    if (Object.hasOwn(options.limits ?? {}, name) && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`Invalid expr limit: ${name}`);
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`Invalid expr limit: ${name}`);
   }
   return Object.freeze(limits);
 }

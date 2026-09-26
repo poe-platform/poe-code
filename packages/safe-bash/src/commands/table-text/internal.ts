@@ -29,7 +29,7 @@ export function settings(options: TableTextCommandsOptions): TableTextLimits {
   const limits: TableTextLimits = {
     maxInputBytes: Infinity, maxOutputBytes: Infinity,
     maxRecordBytes: Infinity, maxChunkBytes: Infinity,
-    maxGroupBytes: 8 * 1024 * 1024, maxGroupRecords: 4096,
+    maxGroupBytes: Infinity, maxGroupRecords: Infinity,
     maxFields: Infinity, maxFiles: Infinity, maxSteps: Infinity, maxArgumentBytes: Infinity,
     ...options.limits,
   };

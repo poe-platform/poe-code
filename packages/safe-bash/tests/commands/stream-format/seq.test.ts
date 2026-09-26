@@ -43,8 +43,8 @@ test("seq output, digit, step and argument budgets fail boundedly", async () => 
   }
 });
 
-test("seq rejects short operands with excessive exponents by default", async () => {
-  const instance = shell();
+test("seq rejects short operands beyond the configured exponent limit", async () => {
+  const instance = shell({ limits: { maxNumericDigits: 1024 } });
   try {
     for (const script of ["seq 1e-2000000", "seq 0x1p-2000000", "seq 1e2000000", "seq 0x1p2000000", "seq -f %.2000000f 1", "seq 1e-1025", "seq 0.1e-1024"]) {
       const result = await instance.exec(script);
@@ -55,7 +55,7 @@ test("seq rejects short operands with excessive exponents by default", async () 
   } finally { await instance.dispose(); }
 });
 
-test("seq admits the default exponent boundary and explicit larger numeric budgets", async () => {
+test("seq admits omitted and explicitly configured numeric budgets", async () => {
   for (const [limits, script] of [
     [undefined, "seq 1e-1024"],
     [{ maxNumericDigits: 2048 }, "seq 1e-2048"],

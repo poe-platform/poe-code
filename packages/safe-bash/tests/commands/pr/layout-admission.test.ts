@@ -7,8 +7,8 @@ import { prCommands } from "../../../src/commands/pr/index.js";
 for (const [flags, diagnostic] of [
   ["-250000 -w500000", "columns limit exceeded"],
   ["-w500000", "page width limit exceeded"],
-] as const) test(`default layout bounds reject tiny input: ${flags}`, async () => {
-  const shell = new Shell({ fs: new MemoryFileSystem(), limits: { maxOutputBytes: 1024 } }).use(prCommands());
+] as const) test(`configured layout bounds reject tiny input: ${flags}`, async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), limits: { maxOutputBytes: 1024 } }).use(prCommands({ limits: { maxColumns: 256, maxPageWidth: 16_384 } }));
   try {
     const result = await shell.exec(`pr ${flags}`, { stdin: "a\n" });
     assert.equal(result.exitCode, 1);
@@ -30,8 +30,8 @@ test("page output is admitted before constructing header padding", async () => {
   } finally { String.prototype.repeat = original; await shell.dispose(); }
 });
 
-test("default buffer budget still bounds explicitly widened layouts", async () => {
-  const shell = new Shell({ fs: new MemoryFileSystem() }).use(prCommands({ limits: { maxPageWidth: Infinity } }));
+test("configured buffer budget still bounds explicitly widened layouts", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(prCommands({ limits: { maxPageWidth: Infinity, maxBufferedBytes: 8 * 1024 * 1024 } }));
   try {
     const result = await shell.exec("pr -w5000000", { stdin: "a\n" });
     assert.equal(result.exitCode, 1);

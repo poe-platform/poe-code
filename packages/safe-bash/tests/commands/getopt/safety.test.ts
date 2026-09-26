@@ -49,7 +49,7 @@ test("actual saved script can eval quoted re-emission without losing bytes", asy
 
 for (const limit of ["maxArguments", "maxArgumentBytes", "maxInputBytes", "maxSchemaBytes", "maxLongOptions", "maxBufferedBytes", "maxOutputBytes", "maxDiagnosticBytes", "maxWork"] as const satisfies readonly (keyof GetoptLimits)[]) {
   test(`invalid ${limit} rejected at construction`, () => {
-    for (const value of [0, -1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => createGetoptCommand({ limits: { [limit]: value } }), RangeError);
+    for (const value of [0, -1, 1.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => createGetoptCommand({ limits: { [limit]: value } }), RangeError);
   });
 }
 

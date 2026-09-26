@@ -37,16 +37,16 @@ test("public factories register exactly one factor and preserve replacement poli
 
 for (const limit of ["maxValue", "maxArguments", "maxArgumentBytes", "maxInputBytes", "maxTokenBytes", "maxNumbers", "maxBufferedBytes", "maxOutputBytes", "maxDiagnosticBytes", "maxWork", "maxEmptyChunks"] as const satisfies readonly (keyof FactorLimits)[]) {
   test(`invalid ${limit} rejected at factory construction`, () => {
-    for (const value of [0, -1, NaN, Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => createFactorCommand({ limits: { [limit]: value } }), RangeError);
+    for (const value of [0, -1, NaN, -Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => createFactorCommand({ limits: { [limit]: value } }), RangeError);
   });
 }
 
-test("configured magnitude cannot expand beyond uint32", () => {
-  assert.throws(() => createFactorCommand({ limits: { maxValue: 4_294_967_296 } }), RangeError);
+test("configured magnitude can expand beyond uint32", () => {
+  assert.doesNotThrow(() => createFactorCommand({ limits: { maxValue: 4_294_967_296 } }));
 });
 
 test("cap boundary is explicit and later valid numbers still print", async () => {
-  assert.deepEqual(await run(["4294967295", "4294967296", "12"]), {
+  assert.deepEqual(await run(["4294967295", "4294967296", "12"], "", { limits: { maxValue: 4_294_967_295 } }), {
     exitCode: 1, stdout: "4294967295: 3 5 17 257 65537\n12: 2 2 3\n",
     stderr: "factor: '4294967296' exceeds supported maximum 4294967295\n",
   });

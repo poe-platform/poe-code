@@ -147,8 +147,8 @@ printable scalars only. No ANSI sequence recognition or unbounded regexp occurs.
 ## Bounds and scheduling
 
 Limits accept positive safe integers or `Infinity`. Invalid configuration throws
-at factory creation. Row, cell, field, width and retention defaults are finite,
-including when column is registered in a Worker shell.
+at factory creation. All resource limits are unlimited by default, including
+when column is registered in a Worker shell. Set individual limits to opt in.
 
 | Limit | Default | Scope |
 | --- | ---: | --- |
@@ -157,14 +157,14 @@ including when column is registered in a Worker shell.
 | `maxDiagnosticBytes` | unlimited | Cumulative stderr diagnostic bytes; independent of stdout. |
 | `maxRecordBytes` | unlimited | Per LF-delimited record, excluding LF. |
 | `maxChunkBytes` | unlimited | Each producer chunk, also fallback `readFile` cap. |
-| `maxRows` | 10,000 | All input records, including ignored blank records. |
-| `maxCells` | 50,000 | Cumulative retained cells, including explicit empty fields. |
-| `maxFields` | 1,000 | Fields per table row, checked before field allocation. |
+| `maxRows` | unlimited | All input records, including ignored blank records. |
+| `maxCells` | unlimited | Cumulative retained cells, including explicit empty fields. |
+| `maxFields` | unlimited | Fields per table row, checked before field allocation. |
 | `maxFiles` | unlimited | Operand count, including repeated `-` and failed opens. |
 | `maxSteps` | unlimited | Shared reader/layout/scan work budget, not a separate budget per file. |
 | `maxArgumentBytes` | unlimited | Sum of argv UTF-8 bytes; argv count also capped at this value. |
-| `maxWidth` | 65,536 | Each cell's expanded display width and requested fill width. |
-| `maxRetainedBytes` | 8 MiB | Logical retention charge: 64 bytes per field plus 16 per UTF-16 code unit, covering cell bookkeeping and tab expansion before allocation. |
+| `maxWidth` | unlimited | Each cell's expanded display width and requested fill width. |
+| `maxRetainedBytes` | unlimited | Logical retention charge: 64 bytes per field plus 16 per UTF-16 code unit, covering cell bookkeeping and tab expansion before allocation. |
 
 Plain text tables also admit a cumulative output lower bound (row newlines and
 UTF-8 separator bytes) before field slices and cell objects are allocated.

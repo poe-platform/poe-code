@@ -24,7 +24,7 @@ for (const [limits, subject, pattern, diagnostic] of [
 
 test("malformed regex policy limits are rejected at factory creation", () => {
   for (const key of ["maxRegexPatternBytes", "maxRegexNodes", "maxRegexDepth", "maxRegexStates", "maxRegexAllocatedUnits"] as const) {
-    for (const value of [0, -1, NaN, Infinity]) {
+    for (const value of [0, -1, NaN, -Infinity]) {
       assert.throws(() => createExprCommand({ limits: { [key]: value } as Partial<ExprLimits> }), RangeError);
     }
   }

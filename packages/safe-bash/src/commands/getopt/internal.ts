@@ -22,13 +22,13 @@ export interface GetoptCommandsOptions {
 
 export function settings(options: GetoptCommandsOptions): GetoptLimits {
   const limits: GetoptLimits = {
-    maxArguments: 4096, maxArgumentBytes: 65_536, maxInputBytes: 1_048_576,
-    maxSchemaBytes: 65_536, maxLongOptions: 4096, maxBufferedBytes: 4_194_304,
-    maxOutputBytes: 8_388_608, maxDiagnosticBytes: 65_536, maxWork: 8_388_608,
+    maxArguments: Infinity, maxArgumentBytes: Infinity, maxInputBytes: Infinity,
+    maxSchemaBytes: Infinity, maxLongOptions: Infinity, maxBufferedBytes: Infinity,
+    maxOutputBytes: Infinity, maxDiagnosticBytes: Infinity, maxWork: Infinity,
     ...options.limits,
   };
   for (const [name, value] of Object.entries(limits)) {
-    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid getopt limit: ${name}`);
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`Invalid getopt limit: ${name}`);
   }
   return Object.freeze(limits);
 }

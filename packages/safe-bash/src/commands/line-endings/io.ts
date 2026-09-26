@@ -117,7 +117,7 @@ export class Reader {
         const streaming = capabilities.streamingRead !== false;
         this.life.assertOpen();
         if (readStream && streaming) {
-          source = Reflect.apply(readStream, fs, [path, { signal, chunkSize: limits.chunkSize }]);
+          source = Reflect.apply(readStream, fs, [path, { signal, chunkSize: limits.chunkSize === Infinity ? 16_384 : limits.chunkSize }]);
           acquisitionAborted = signal.aborted || this.life.admission.closed;
         } else {
           const maximum = Math.min(limits.maxInputBytes, Math.floor(limits.maxBufferedBytes / 3));
@@ -180,7 +180,8 @@ export class Writer {
   private buffer: Uint8Array;
   private used = 0;
   constructor(readonly life: Lifecycle, readonly publish: (bytes: Uint8Array) => Promise<void>) {
-    const size = Math.min(life.budget.limits.chunkSize, life.budget.limits.maxBufferedBytes);
+    const { chunkSize, maxBufferedBytes } = life.budget.limits;
+    const size = Math.min(chunkSize === Infinity ? 16_384 : chunkSize, maxBufferedBytes);
     life.budget.retain(size);
     this.buffer = new Uint8Array(size);
     life.cleanup(async () => { this.release(); });

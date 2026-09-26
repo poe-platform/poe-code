@@ -171,7 +171,7 @@ test("date rejects invalid clocks and bounded format expansion without writing s
     assert.equal(result.exitCode, 1); assert.equal(result.stdout, "");
   }
   let writes = 0;
-  await assert.rejects(run("date", ["-d@0", "+%999999999Y"], {}, { stdout: { async write() { writes++; } } }), { code: "EFBIG" });
+  await assert.rejects(run("date", ["-d@0", "+%999999999Y"], { limits: { maxFormatWidth: 4096 } }, { stdout: { async write() { writes++; } } }), { code: "EFBIG" });
   await assert.rejects(run("date", ["-d@0", "+%F"], { limits: { maxOutputBytes: 4 } }), { code: "EFBIG" });
   assert.equal(writes, 0);
 });

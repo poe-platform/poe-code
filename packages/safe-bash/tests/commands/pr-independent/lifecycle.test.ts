@@ -13,9 +13,9 @@ function deferred() {
   return { promise, resolve };
 }
 
-test("pr whole-file fallback supports finite defaults and explicit byte caps", async () => {
+test("pr whole-file fallback supports unlimited defaults and explicit byte caps", async () => {
   for (const [limits, maximum, admitted] of [
-    [{}, 4 * 1024 * 1024, true],
+    [{}, undefined, true],
     [{ maxBufferedBytes: Infinity }, undefined, true],
     [{ maxInputBytes: 2 }, 2, true],
     [{ maxBufferedBytes: 128 }, 64, true],
@@ -56,7 +56,7 @@ for (const reason of [false, 0, "", null, "dispose"] as const) {
     let reads = 0, completed = false, settled = false, disposed = false;
     let operationSignal: AbortSignal | undefined;
     fs.readFile = async (path, options) => {
-      assert.equal(options?.maxBytes, 4 * 1024 * 1024);
+      assert.equal(options?.maxBytes, undefined);
       reads++;
       operationSignal = options?.signal;
       entered.resolve();

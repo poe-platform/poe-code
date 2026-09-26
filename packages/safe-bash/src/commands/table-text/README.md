@@ -42,7 +42,7 @@ Optional limits (each command invocation owns its budget):
 | --- | ---: |
 | maxInputBytes / maxOutputBytes | Unlimited |
 | maxRecordBytes / maxChunkBytes | Unlimited |
-| maxGroupBytes / maxGroupRecords | 8 MiB / 4,096 |
+| maxGroupBytes / maxGroupRecords | Unlimited |
 | maxFields / maxFiles | Unlimited |
 | maxSteps / maxArgumentBytes | Unlimited |
 

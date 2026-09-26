@@ -12,7 +12,8 @@ for (const fixture of [...nativeCases, ...extraNativeCases]) test(`${fixture.qua
     : undefined;
   const qualification = exponentQualification ?? fixture.qualification;
   const { factorCommands } = await import("../../../src/commands/factor/index.js");
-  const shell = new Shell({ fs: new MemoryFileSystem(), env: { LC_ALL: "C", ...fixture.env } }).use(factorCommands());
+  // Retain the captured uint32 profile as an explicit opt-in magnitude limit.
+  const shell = new Shell({ fs: new MemoryFileSystem(), env: { LC_ALL: "C", ...fixture.env } }).use(factorCommands({ limits: { maxValue: 4_294_967_295 } }));
   try {
     const args = fixture.args.map(argument => `'${argument.split("'").join("'\\''")}'`);
     const result = await shell.exec(`factor ${args.join(" ")}`, { stdin: Buffer.from(fixture.inputBase64, "base64") });

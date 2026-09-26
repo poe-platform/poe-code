@@ -135,7 +135,7 @@ test("Math.random is never used", async () => {
 
 test("resource limits are validated, bounded and configurable", async () => {
   assert.throws(() => createShufCommand({ maxSampleSize: 0 }), RangeError);
-  assert.throws(() => createShufCommand({ maxInputBytes: Infinity }), RangeError);
+  assert.doesNotThrow(() => createShufCommand({ maxInputBytes: Infinity }));
   const capture: Uint8Array[] = [];
   const context: CommandContext = {
     command: "shuf", args: ["-i0-18446744073709551614"], cwd: "/", env: {},

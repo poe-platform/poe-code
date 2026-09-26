@@ -181,7 +181,7 @@ test("stat missing fields fail rather than becoming zero; mutation capability do
 test("stat limits, invalid options and cancellation have nonzero/abort outcomes", async () => {
   const fs = await fixture();
   for (const args of [["-q", "file"], ["-c"], ["-c", "%", "file"], ["-c", "%10000000n", "file"]]) {
-    const result = await runMetadata("stat", args, fs);
+    const result = await runMetadata("stat", args, fs, { limits: { maxOutputBytes: 1024 * 1024 } });
     assert.equal(result.exitCode, 1);
     assert.equal(result.stdout, "");
   }

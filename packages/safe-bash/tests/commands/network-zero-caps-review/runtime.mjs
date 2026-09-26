@@ -21,7 +21,7 @@ export async function runSuite(root, network, { baseline = false, select = () =>
       if (name === 'maxTimeMs') values.push(['timeout-ceiling', 2147483647], ['timeout-over', 2147483648]);
       for (const [label, value] of values) {
         await check(`validator/${factory}/${name}/${label}`, () => {
-          const accepted = Number.isSafeInteger(value) && value >= (count && !baseline ? 0 : 1)
+          const accepted = !baseline && value === Infinity || Number.isSafeInteger(value) && value >= (count && !baseline ? 0 : 1)
             && (!baseline || name !== 'maxTimeMs' || value <= 2147483647);
           let calls = 0;
           const operation = () => network[factory]({ limits: { [name]: value },

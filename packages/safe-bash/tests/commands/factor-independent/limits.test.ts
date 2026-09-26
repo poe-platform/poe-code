@@ -26,7 +26,7 @@ test("intentional lowered magnitude cap still admits zero and canonical one", as
 
 test("intentional uint32 cap is distinct from syntax errors and NUL suffix accounting", async () => {
   const stdin = toByteSource("0004294967296\0x 4294967296x\0ignored 12");
-  assert.deepEqual(await run([], {}, { stdin }), {
+  assert.deepEqual(await run([], { maxValue: 4_294_967_295 }, { stdin }), {
     status: 1, stdout: "12: 2 2 3\n",
     stderr: "factor: '0004294967296' exceeds supported maximum 4294967295\nfactor: '4294967296x' is not a valid positive integer\n",
   });

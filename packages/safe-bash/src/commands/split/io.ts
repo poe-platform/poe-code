@@ -58,7 +58,7 @@ export class Cursor {
         const path = pathOf(context, input);
         const capabilities = await interruptible(() => Promise.resolve(context.fs.capabilitiesFor?.(path, { signal }) ?? context.fs.capabilities), signal);
         if (context.fs.readStream && capabilities.streamingRead !== false) {
-          yield* readBytes(context.fs.readStream(path, { signal, chunkSize: limits.maxChunkBytes }), signal);
+          yield* readBytes(context.fs.readStream(path, { signal, chunkSize: limits.maxChunkBytes === Infinity ? 64 * 1024 : limits.maxChunkBytes }), signal);
         } else {
           const maxBytes = Math.min(limits.maxInputBytes, limits.maxBufferBytes);
           const bytes = await interruptible(() => context.fs.readFile(path, { signal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) }), signal);

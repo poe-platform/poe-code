@@ -164,7 +164,7 @@ function construct(limits: Partial<NetworkLimits>): void {
 
 test("count constructors accept zero, negative zero, one, defaults and exact safe maximum", () => {
   construct({});
-  for (const value of [0, -0, 1, Number.MAX_SAFE_INTEGER]) {
+  for (const value of [0, -0, 1, Number.MAX_SAFE_INTEGER, Infinity]) {
     construct({ maxRedirects: value }); construct({ maxRetries: value });
     construct({ maxRedirects: value, maxRetries: value });
   }
@@ -173,7 +173,7 @@ test("count constructors accept zero, negative zero, one, defaults and exact saf
   assert.ok(Object.isFrozen(defaultNetworkLimits));
 });
 
-const invalid = [-1, 0.5, NaN, Infinity, -Infinity, Number.MAX_SAFE_INTEGER + 1, "0", null, undefined, true, false];
+const invalid = [-1, 0.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1, "0", null, undefined, true, false];
 for (const name of ["maxRedirects", "maxRetries"] as const) {
   for (const value of invalid) test(`${name} rejects ${String(value)} (${typeof value}) through direct and plugin APIs`, () => {
     const options = { authorize: () => true, limits: { [name]: value } as Partial<NetworkLimits> };

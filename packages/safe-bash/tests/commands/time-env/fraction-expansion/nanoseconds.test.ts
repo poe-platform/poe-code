@@ -48,7 +48,7 @@ for (const format of ["%1000000000N", "%_1000000000N", "%01000000000N", "%#^1000
 test("unpadded huge explicit width allocates only significant digits but respects width admission", async () => {
   const result = await run("date", ["-d@0.123", "+%-1000000000N"], { limits: { maxFormatWidth: Number.MAX_SAFE_INTEGER, maxOutputBytes: 4 } });
   assert.equal(result.exitCode, 0); assert.equal(result.stdout, "123\n");
-  await assert.rejects(run("date", ["-d@0.123", "+%-4097N"]), { code: "EFBIG" });
+  await assert.rejects(run("date", ["-d@0.123", "+%-4097N"], { limits: { maxFormatWidth: 4096 } }), { code: "EFBIG" });
 });
 test("fraction budget includes preceding UTF8 bytes, every field and the newline", async () => {
   const args = ["-d@0.123", "+雪%3N|%6N"];
@@ -63,6 +63,6 @@ test("fraction modifiers and argument quotas still reject without partial public
     const result = await run("date", ["-d@0", "+prefix" + format]);
     assert.equal(result.exitCode, 1); assert.equal(result.stdout, "");
   }
-  await assert.rejects(run("date", ["-d@0", "+%" + "9".repeat(100) + "N"]), { code: "EFBIG" });
+  await assert.rejects(run("date", ["-d@0", "+%" + "9".repeat(100) + "N"], { limits: { maxFormatWidth: 4096 } }), { code: "EFBIG" });
   await assert.rejects(run("date", ["-d@0", "+%3N"], { limits: { maxArgumentBytes: 7 } }), { code: "EFBIG" });
 });

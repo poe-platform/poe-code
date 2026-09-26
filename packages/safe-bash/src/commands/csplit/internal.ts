@@ -65,7 +65,7 @@ export function settings(options: CsplitCommandsOptions): CsplitLimits {
     ...options.limits,
   };
   for (const [name, value] of Object.entries(options.limits ?? {})) {
-    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid csplit limit: ${name}`);
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`Invalid csplit limit: ${name}`);
   }
   return Object.freeze(limits);
 }

@@ -42,7 +42,7 @@ export function settings(options: LineEndingCommandsOptions): LineEndingLimits {
     maxEmptyChunks: Infinity, maxPathBytes: Infinity, maxDepth: Infinity, maxTempAttempts: Infinity, chunkSize: 16_384,
     ...options.limits,
   };
-  for (const [name, value] of Object.entries(options.limits ?? {})) if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid line-ending limit: ${name}`);
+  for (const [name, value] of Object.entries(options.limits ?? {})) if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`Invalid line-ending limit: ${name}`);
   return Object.freeze(limits);
 }
 export class LineEndingError extends PublicDiagnostic {

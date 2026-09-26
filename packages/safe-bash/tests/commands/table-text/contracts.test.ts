@@ -184,7 +184,7 @@ test("join rejects tiny duplicate records before consuming an unbounded group", 
     try { for (; reads < 10000; reads++) yield Buffer.from("a\n"); }
     finally { closed = true; }
   })();
-  const result = await runTable(fixture("join", ["-", "right"], { right: "a\n" }), {}, { stdin });
+  const result = await runTable(fixture("join", ["-", "right"], { right: "a\n" }), { limits: { maxGroupRecords: 4096 } }, { stdin });
   assert.equal(result.exitCode, 1);
   assert.match(result.stderr, /join group record limit/u);
   assert.ok(reads < 10000);
@@ -192,10 +192,10 @@ test("join rejects tiny duplicate records before consuming an unbounded group", 
   assert.equal(result.stdoutHex, "");
 });
 
-test("join defaults bound retained duplicate bytes", async () => {
+test("join explicitly bounds retained duplicate bytes", async () => {
   const result = await runTable(fixture("join", ["left", "right"], {
     left: (`a ${"x".repeat(1024 * 1024)}\n`).repeat(9), right: "a y\n",
-  }));
+  }), { limits: { maxGroupBytes: 8 * 1024 * 1024 } });
   assert.equal(result.exitCode, 1);
   assert.match(result.stderr, /join group byte limit/u);
   assert.equal(result.stdoutHex, "");

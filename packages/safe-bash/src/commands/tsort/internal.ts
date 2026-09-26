@@ -25,13 +25,13 @@ export interface TsortCommandsOptions {
 
 export function settings(options: TsortCommandsOptions): TsortLimits {
   const limits: TsortLimits = {
-    maxArguments: 4096, maxArgumentBytes: 65_536, maxInputBytes: 33_554_432,
-    maxTokenBytes: 1_048_576, maxTokens: 2_097_152, maxNodes: 131_072,
-    maxEdges: 1_048_576, maxBufferedBytes: 33_554_432, maxOutputBytes: 67_108_864,
-    maxDiagnosticBytes: 65_536, maxWork: 134_217_728, maxEmptyChunks: 4096, ...options.limits,
+    maxArguments: Infinity, maxArgumentBytes: Infinity, maxInputBytes: Infinity,
+    maxTokenBytes: Infinity, maxTokens: Infinity, maxNodes: Infinity,
+    maxEdges: Infinity, maxBufferedBytes: Infinity, maxOutputBytes: Infinity,
+    maxDiagnosticBytes: Infinity, maxWork: Infinity, maxEmptyChunks: Infinity, ...options.limits,
   };
   for (const [name, value] of Object.entries(limits)) {
-    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid tsort limit: ${name}`);
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`Invalid tsort limit: ${name}`);
   }
   return Object.freeze(limits);
 }

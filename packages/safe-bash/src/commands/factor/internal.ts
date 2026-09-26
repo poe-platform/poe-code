@@ -4,7 +4,7 @@ import { yieldTurn } from "../../contracts/yield.js";
 import { PublicDiagnostic } from "../../diagnostics.js";
 
 export interface FactorLimits {
-  readonly maxValue: number;
+  readonly maxValue: number | bigint;
   readonly maxArguments: number;
   readonly maxArgumentBytes: number;
   readonly maxInputBytes: number;
@@ -24,15 +24,15 @@ export interface FactorCommandsOptions {
 
 export function settings(options: FactorCommandsOptions): FactorLimits {
   const limits: FactorLimits = {
-    maxValue: 4_294_967_295, maxArguments: 4096, maxArgumentBytes: 65_536,
-    maxInputBytes: 16_777_216, maxTokenBytes: 65_536, maxNumbers: 65_536,
-    maxBufferedBytes: 4_194_304, maxOutputBytes: 16_777_216,
-    maxDiagnosticBytes: 65_536, maxWork: 8_388_608, maxEmptyChunks: 4096, ...options.limits,
+    maxValue: Infinity, maxArguments: Infinity, maxArgumentBytes: Infinity,
+    maxInputBytes: Infinity, maxTokenBytes: Infinity, maxNumbers: Infinity,
+    maxBufferedBytes: Infinity, maxOutputBytes: Infinity,
+    maxDiagnosticBytes: Infinity, maxWork: Infinity, maxEmptyChunks: Infinity, ...options.limits,
   };
   for (const [name, value] of Object.entries(limits)) {
-    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid factor limit: ${name}`);
+    if (name === "maxValue" && typeof value === "bigint" && value > 0n) continue;
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`Invalid factor limit: ${name}`);
   }
-  if (limits.maxValue > 4_294_967_295) throw new RangeError("factor maxValue cannot exceed 4294967295");
   return Object.freeze(limits);
 }
 

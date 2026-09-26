@@ -117,8 +117,10 @@ namespace or parent-symlink race guarantee beyond the filesystem adapter is
 claimed. Directory mode support/exclusive creation must be real backend behavior,
 not merely a capability label.
 
-Limits: 100,000 visited entries, depth 128, 1 MiB stdout, 64 KiB argument bytes,
-128 temporary-name attempts; each can be configured under `{ limits }`.
+Visited entries, traversal depth, stdout bytes, argument bytes, and temporary-name
+attempts are unlimited by default (`Infinity`). Configure each under `{ limits }`;
+finite limits must be positive safe integers, with zero also allowed for depth.
+Explicit `Infinity` disables an individual limit.
 Forward cancellation to every filesystem operation and await output writes.
 
 Primary research: GNU Coreutils manual sections for these utilities and the

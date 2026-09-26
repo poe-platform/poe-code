@@ -11,11 +11,11 @@ const keys: readonly (keyof WhichLimits)[] = [
 
 test("exact defaults; all keys reject invalid values and unknown keys", () => {
   assert.deepEqual(settings({}), {
-    maxArguments: 4096, maxArgumentBytes: 65536, maxPathEnvBytes: 65536, maxPathComponents: 4096,
-    maxPathBytes: 16384, maxProbes: 65536, maxOutputBytes: 8388608,
+    maxArguments: Infinity, maxArgumentBytes: Infinity, maxPathEnvBytes: Infinity, maxPathComponents: Infinity,
+    maxPathBytes: Infinity, maxProbes: Infinity, maxOutputBytes: Infinity,
   });
   for (const key of keys) {
-    for (const value of [0, -1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1, "1", null, undefined, true, 1n]) {
+    for (const value of [0, -1, 1.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1, "1", null, undefined, true, 1n]) {
       assert.throws(() => Reflect.apply(createWhichCommand, undefined, [{ limits: { [key]: value } }]), {
         name: "RangeError", message: `Invalid which limit: ${key}`,
       });
@@ -142,13 +142,14 @@ test("UTF-8 replacement encoding, cumulative LF bytes and quiet zero-output allo
   assert.equal((await run(["-as", "p"], { limits: { maxOutputBytes: 1 } }, { fs })).exitCode, 0);
 });
 
-test("default boundaries are not small hidden ceilings; repeated scan work remains bounded", async () => {
+test("explicit boundaries admit exact values and bound repeated scan work", async () => {
   const { fs } = controlled();
+  const limits = { maxArgumentBytes: 65536, maxArguments: 4096, maxPathComponents: 4096, maxPathEnvBytes: 65536, maxPathBytes: 16384 };
   const longFlags = `-${"s".repeat(65534)}`;
-  assert.equal((await run([longFlags, "p"], {}, { fs })).exitCode, 0);
-  assert.equal((await run([`${longFlags}s`, "p"], {}, { fs })).stderr, "which: maxArgumentBytes limit exceeded\n");
-  assert.equal((await run(Array.from({ length: 4097 }, () => ""), {}, { fs })).stderr, "which: maxArguments limit exceeded\n");
-  assert.equal((await run(["p"], {}, { fs, env: { PATH: ":".repeat(4096) } })).stderr, "which: maxPathComponents limit exceeded\n");
-  assert.equal((await run(["/p"], {}, { fs, env: { PATH: "a".repeat(65537) } })).stderr, "which: maxPathEnvBytes limit exceeded\n");
-  assert.equal((await run(["p"], {}, { fs, cwd: `/${"v".repeat(16384)}` })).stderr, "which: maxPathBytes limit exceeded\n");
+  assert.equal((await run([longFlags, "p"], { limits }, { fs })).exitCode, 0);
+  assert.equal((await run([`${longFlags}s`, "p"], { limits }, { fs })).stderr, "which: maxArgumentBytes limit exceeded\n");
+  assert.equal((await run(Array.from({ length: 4097 }, () => ""), { limits }, { fs })).stderr, "which: maxArguments limit exceeded\n");
+  assert.equal((await run(["p"], { limits }, { fs, env: { PATH: ":".repeat(4096) } })).stderr, "which: maxPathComponents limit exceeded\n");
+  assert.equal((await run(["/p"], { limits }, { fs, env: { PATH: "a".repeat(65537) } })).stderr, "which: maxPathEnvBytes limit exceeded\n");
+  assert.equal((await run(["p"], { limits }, { fs, cwd: `/${"v".repeat(16384)}` })).stderr, "which: maxPathBytes limit exceeded\n");
 });

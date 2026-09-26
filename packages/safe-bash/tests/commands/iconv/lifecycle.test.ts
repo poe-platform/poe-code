@@ -31,7 +31,7 @@ test("factories and actual Shell VFS redirection preserve raw bytes", async () =
 });
 
 for (const limit of ["maxArguments", "maxArgumentBytes", "maxInputBytes", "maxBufferedBytes", "maxOutputBytes", "maxDiagnosticBytes", "maxWork", "maxChunks", "maxEmptyChunks"] as const satisfies readonly (keyof IconvLimits)[]) test(`invalid ${limit} rejected`, () => {
-  for (const value of [0, -1, Infinity, NaN, 0.5, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => createIconvCommand({ limits: { [limit]: value } }), RangeError);
+  for (const value of [0, -1, -Infinity, NaN, 0.5, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => createIconvCommand({ limits: { [limit]: value } }), RangeError);
 });
 
 test("actual Shell owned output drains before cancellation settles", async () => {

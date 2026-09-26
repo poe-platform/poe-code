@@ -27,9 +27,9 @@ export function settings(options: ColumnCommandsOptions): ColumnLimits {
     maxInputBytes: Infinity, maxOutputBytes: Infinity,
     maxDiagnosticBytes: Infinity,
     maxRecordBytes: Infinity, maxChunkBytes: Infinity,
-    maxRows: 10_000, maxCells: 50_000, maxFields: 1_000, maxFiles: Infinity,
-    maxSteps: Infinity, maxArgumentBytes: Infinity, maxWidth: 65_536,
-    maxRetainedBytes: 8 * 1024 * 1024,
+    maxRows: Infinity, maxCells: Infinity, maxFields: Infinity, maxFiles: Infinity,
+    maxSteps: Infinity, maxArgumentBytes: Infinity, maxWidth: Infinity,
+    maxRetainedBytes: Infinity,
     ...options.limits,
   };
   for (const [name, value] of Object.entries(limits)) {

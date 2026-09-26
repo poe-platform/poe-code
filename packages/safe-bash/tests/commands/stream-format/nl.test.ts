@@ -118,8 +118,8 @@ for (const reason of [false, Object.freeze({ cancelled: "nl match" })]) test(`nl
   } finally { if (abort) clearImmediate(abort); await instance.dispose(); }
 });
 
-test("nl refuses oversized default number fields before constructing padding", async () => {
-  const instance = shell();
+test("nl refuses oversized configured number fields before constructing padding", async () => {
+  const instance = shell({ limits: { maxRecordBytes: 1024 } });
   try {
     const result = await instance.exec("nl -w16000000", { stdin: "x\n" });
     assert.equal(result.exitCode, 1);
@@ -150,11 +150,13 @@ for (const format of ["ln", "rn", "rz"]) test(`nl streams ${format} padding in b
 
 test("nl rejects a wide field under a tiny shared stdout quota", async () => {
   const instance = shell();
+  let written = 0;
   try {
-    const result = await instance.exec("nl -w16000000", { stdin: "x\n", limits: { maxOutputBytes: 1024 } });
-    assert.equal(result.exitCode, 1);
-    assert.equal(result.stdout, "");
-    assert.match(result.stderr, /number field limit/);
+    await assert.rejects(instance.exec("nl -w16000000", {
+      stdin: "x\n", limits: { maxOutputBytes: 1024 },
+      stdout: { async write(bytes) { written += bytes.length; } },
+    }), { name: "ShellLimitError", limit: "maxOutputBytes" });
+    assert.equal(written, 0);
   } finally { await instance.dispose(); }
 });
 

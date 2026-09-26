@@ -44,7 +44,7 @@ export function settings(options: ApplyPatchCommandsOptions): ApplyPatchLimits {
     for (const [name, value] of Object.entries(options.limits)) {
       if (!Object.hasOwn(maxima, name)) throw new TypeError(`Unknown apply_patch limit: ${name}`);
       const key = name as keyof ApplyPatchLimits;
-      if (!Number.isSafeInteger(value) || value < (key === "maxDiagnosticBytes" ? 32 : 1)) {
+      if (value !== Infinity && (!Number.isSafeInteger(value) || value < (key === "maxDiagnosticBytes" ? 32 : 1))) {
         throw new RangeError(`apply_patch ${key} must be a positive safe integer`);
       }
       limits[key] = value;

@@ -29,9 +29,9 @@ not a published-release claim, final independent packed verification, or an
 extension of the native semantic coverage below.
 
 `StreamFormatCommandsOptions.limits` accepts partial `StreamFormatLimits`.
-Records default to a 1 MiB limit. `maxNumericDigits` defaults to 1,024, bounding
-`seq` operands, exponents and format precision before large integer allocation.
-Other resource limits are unlimited when omitted.
+All resource limits are unlimited when omitted (`Infinity`), including record bytes
+and numeric digits. Set `maxNumericDigits` to bound `seq` operands, exponents,
+and format precision before large integer allocation.
 Explicit limits must be positive safe integers or `Infinity`; selecting one preserves
 the defaults for the others. Number fields are checked before allocation and padding
 is emitted in chunks of at most 16 KiB. The surrounding Shell still applies its

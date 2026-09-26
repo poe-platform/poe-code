@@ -32,10 +32,11 @@ Callbacks must be asynchronously scheduled; injected host hooks are trusted,
 not sandboxed or universally preemptible. Default sleep uses `performance.now`
 and ordinary cancellable Node timers, not the injectable wall clock.
 
-Default invocation limits:4096 arguments,65536 argument bytes,1MiB stdout,
-10000 own environment properties,4096 format width. Limit violations propagate
-typed EFBIG; invalid factory limits throw. Arguments and generated stdout are
-bounded before publication. Family limits do not replace shared shell budgets.
+Invocation limits are disabled by default (`Infinity`). Set individual `limits`
+for argument count/bytes, stdout bytes, environment properties, or format width
+to positive safe integers to opt in; explicit `Infinity` disables a limit.
+Limit violations propagate typed EFBIG; invalid factory limits throw. Configured
+limits are checked before publication. Family limits do not replace shared shell budgets.
 Output uses awaited `writeBytes`, owned <=16384-byte chunks and the caller signal;
 sink errors/budget failures propagate unchanged. Only `date -f -` consumes
 stdin; these commands do not mutate command.env, cwd or filesystem contents.

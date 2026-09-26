@@ -16,10 +16,10 @@ Readonly wrappers are not excluded; mode bits are not an alternative authority.
 Absent PATH silently misses even slash operands. Leading bundled/repeated `-a`
 and `-s`, `--`, and stop-at-first-operand parsing follow the sealed virtual profile.
 
-Each invocation applies all seven configured logical admission limits. Default
-values are 4096 arguments, 65536 aggregate argument bytes, 65536 PATH bytes,
-4096 PATH components, 16384 bytes per cwd/display/lookup, 65536 logical probes,
-and 8388608 stdout bytes including LF. Terminal stderr has a separate allowance
+Each invocation applies the configured logical admission limits. Argument count,
+argument bytes, PATH bytes/components, path bytes, logical probes, and stdout bytes
+are unlimited by default (`Infinity`). Set individual positive safe integer limits
+to opt in, or explicit `Infinity` to disable them. Terminal stderr has a separate allowance
 of `maxPathBytes + 256`. Unknown limit keys and invalid values throw RangeError
 at factory construction. Limits do not bound RSS or backend-internal RPCs.
 

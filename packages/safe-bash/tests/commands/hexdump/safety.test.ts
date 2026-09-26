@@ -30,7 +30,7 @@ test("factories and plugin expose both aliases, with atomic collision preflight"
 
 for (const limit of ["maxArguments", "maxArgumentBytes", "maxInputBytes", "maxBufferedBytes", "maxOutputBytes", "maxDiagnosticBytes", "maxFormats", "maxWork", "maxEmptyChunks"] as const satisfies readonly (keyof HexdumpLimits)[]) {
   test(`invalid ${limit} rejected before execution`, () => {
-    for (const value of [0, -1, NaN, Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => createHexdumpCommand({ limits: { [limit]: value } }), RangeError);
+    for (const value of [0, -1, NaN, -Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => createHexdumpCommand({ limits: { [limit]: value } }), RangeError);
   });
 }
 

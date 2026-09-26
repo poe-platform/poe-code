@@ -170,7 +170,7 @@ test("family limits are snapshotted and validated before invocation", async t =>
   archive.maxArchiveBytes = 2048;
   assert.match((await shell.exec("unzip -t /input.zip")).stderr, /archive byte limit exceeded/);
   assert.equal(observed.opened, 0);
-  for (const invalid of [0, -1, NaN, Infinity, 1.5]) {
+  for (const invalid of [0, -1, NaN, -Infinity, 1.5]) {
     const limits = { commandLimits: { archive: { maxArchiveBytes: invalid } } };
     assert.throws(() => new Shell({ fs, limits }), RangeError);
     await assert.rejects(shell.exec(":", { limits }), RangeError);

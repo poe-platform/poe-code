@@ -33,10 +33,10 @@ export interface Settings {
 }
 
 export function settings(options: TimeEnvCommandsOptions): Settings {
-  const limits: TimeEnvLimits = { maxArguments: 4096, maxArgumentBytes: 65536, maxOutputBytes: 1024 * 1024,
-    maxEnvironmentEntries: 10000, maxFormatWidth: 4096, ...options.limits };
+  const limits: TimeEnvLimits = { maxArguments: Infinity, maxArgumentBytes: Infinity, maxOutputBytes: Infinity,
+    maxEnvironmentEntries: Infinity, maxFormatWidth: Infinity, ...options.limits };
   for (const [name, value] of Object.entries(limits)) {
-    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid time-env limit: ${name}`);
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`Invalid time-env limit: ${name}`);
   }
   const maxTimerMilliseconds = options.maxTimerMilliseconds ?? 2147483647;
   if (!Number.isInteger(maxTimerMilliseconds) || maxTimerMilliseconds < 1 || maxTimerMilliseconds > 2147483647) {

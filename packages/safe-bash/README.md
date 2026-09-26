@@ -205,6 +205,8 @@ The last `-i` or `-n` wins; `-f` does not disable confirmation.
 fields the backend does not expose. `-c` / `--format` and `--printf` override
 terse output. Filesystem terse output (`-ft`) remains unsupported.
 `factor --exponents 72` prints `72: 2^3 3^2`; without operands, it reads numbers from stdin.
+Integers are exact beyond JavaScript's safe-integer range. `factor.limits.maxValue`
+accepts a positive safe integer, a positive `bigint`, or `Infinity` (the default).
 `zstd`, `unzstd`, and `zstdcat` accept `-q` / `--quiet`, including combined
 short options such as `-qc`. Repeating quiet suppresses processing errors on
 stderr while preserving failure exit codes and validation.
@@ -606,9 +608,11 @@ are separate from shell counters; `limits.commandLimits.archive` supplies
 invocation ceilings. Per-execution family overrides merge with the shell's
 profile, and non-Worker hosts can configure larger limits. `replace` applies
 across the entire bundle.
-Text, search, structured queries, directory inspection, and table/stream tools
+Text, search, structured queries, directory inspection, table/stream tools,
+time/environment commands, metadata, `which`, `getopt`, `factor`, and `tsort`
 have unlimited resource budgets by default. Set individual family limits to opt
-in; setting one limit leaves the others unlimited, without an implicit ceiling.
+in; setting one limit leaves the others unlimited. Explicit `Infinity` also
+disables a limit. Stream chunk sizes control batching independently of these quotas.
 
 The package root exports `createBoundedRegexProvider`, `BoundedRegexProvider`,
 and `BoundedRegexProviderOptions`. `agentCommands()` uses this provider by default;

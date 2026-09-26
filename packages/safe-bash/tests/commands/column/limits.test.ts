@@ -159,8 +159,8 @@ test("tiny empty fields are rejected before output or cell materialization", asy
   assert.match(result.stderr, /output projection/);
 });
 
-test("hidden fields still consume finite retention", async () => {
-  const result = await run(["-t", "-s,", "-H", "1"], ",".repeat(1100));
+test("hidden fields still count toward configured field limits", async () => {
+  const result = await run(["-t", "-s,", "-H", "1"], ",".repeat(1100), { limits: { maxFields: 1000 } });
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
   assert.match(result.stderr, /fields per row/);
@@ -168,7 +168,7 @@ test("hidden fields still consume finite retention", async () => {
 
 test("Worker shell rejects tiny fields at column admission before stdout rejection", async () => {
   const instance = new Shell({ fs: createMemoryFileSystem(), limits: { ...cloudflareWorkerLimits, maxOutputBytes: 1024 } })
-    .use(columnCommands());
+    .use(columnCommands({ limits: { maxFields: 1000 } }));
   try {
     const result = await instance.exec("column -t -s,", { stdin: ",".repeat(125_000) });
     assert.equal(result.exitCode, 1);

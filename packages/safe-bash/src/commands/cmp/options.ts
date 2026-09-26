@@ -172,7 +172,7 @@ export function parseArguments(args: readonly string[], posix: boolean): CmpArgu
 export function limitsFor(options: CmpCommandsOptions): CmpLimits {
   const limits = { maxChunkBytes: Infinity, maxFallbackBytes: Infinity, ...options.limits };
   for (const [name, value] of Object.entries(options.limits ?? {})) {
-    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`cmp ${name} must be a positive safe integer`);
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`cmp ${name} must be a positive safe integer or Infinity`);
   }
   return Object.freeze(limits);
 }

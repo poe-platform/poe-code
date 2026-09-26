@@ -91,7 +91,7 @@ test("invalid new options and bounded number-mode input fail without output", as
 });
 
 test("bounded settings reject invalid options without registry work", () => {
-  for (const value of [0, -1, NaN, Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+  for (const value of [0, -1, NaN, -Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
     assert.throws(() => createSplitCommands({ limits: { maxFiles: value } }), RangeError);
   }
   assert.deepEqual(createSplitCommands().map(command => command.name), ["split"]);

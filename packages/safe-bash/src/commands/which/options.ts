@@ -14,13 +14,13 @@ export interface WhichCommandsOptions {
 }
 
 const DEFAULT_LIMITS: WhichLimits = Object.freeze({
-  maxArguments: 4096,
-  maxArgumentBytes: 65536,
-  maxPathEnvBytes: 65536,
-  maxPathComponents: 4096,
-  maxPathBytes: 16384,
-  maxProbes: 65536,
-  maxOutputBytes: 8388608,
+  maxArguments: Infinity,
+  maxArgumentBytes: Infinity,
+  maxPathEnvBytes: Infinity,
+  maxPathComponents: Infinity,
+  maxPathBytes: Infinity,
+  maxProbes: Infinity,
+  maxOutputBytes: Infinity,
 });
 
 export function settings(options: WhichCommandsOptions): WhichLimits {
@@ -29,8 +29,8 @@ export function settings(options: WhichCommandsOptions): WhichLimits {
   }
   const limits = { ...DEFAULT_LIMITS, ...options.limits };
   for (const [key, value] of Object.entries(limits)) {
-    if (!Number.isSafeInteger(value) || value < 1
-      || (key === "maxPathBytes" && value > Number.MAX_SAFE_INTEGER - 256)) {
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1
+      || (key === "maxPathBytes" && value > Number.MAX_SAFE_INTEGER - 256))) {
       throw new RangeError(`Invalid which limit: ${key}`);
     }
   }

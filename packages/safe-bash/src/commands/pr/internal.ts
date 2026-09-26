@@ -29,9 +29,9 @@ export interface PrCommandsOptions {
 
 export function settings(options: PrCommandsOptions): PrLimits {
   const limits: PrLimits = {
-    maxArguments: Infinity, maxArgumentBytes: Infinity, maxFiles: Infinity, maxColumns: 256,
-    maxPageLines: Infinity, maxPageWidth: 16_384, maxPages: Infinity,
-    maxInputBytes: Infinity, maxBufferedBytes: 8 * 1024 * 1024,
+    maxArguments: Infinity, maxArgumentBytes: Infinity, maxFiles: Infinity, maxColumns: Infinity,
+    maxPageLines: Infinity, maxPageWidth: Infinity, maxPages: Infinity,
+    maxInputBytes: Infinity, maxBufferedBytes: Infinity,
     maxLineBytes: Infinity, maxLines: Infinity, maxOutputBytes: Infinity,
     maxDiagnosticBytes: Infinity, maxWork: Infinity, maxEmptyChunks: Infinity, ...options.limits,
   };

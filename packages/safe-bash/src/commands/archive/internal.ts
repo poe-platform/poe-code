@@ -65,8 +65,11 @@ export const DEFAULT_ARCHIVE_LIMITS: Readonly<ArchiveLimits> = Object.freeze({
 export function settings(options: ArchiveCommandsOptions): ArchiveLimits {
   const limits = { ...DEFAULT_ARCHIVE_LIMITS, ...options.limits };
   for (const [key, value] of Object.entries(options.limits ?? {})) {
-    if (!Object.hasOwn(DEFAULT_ARCHIVE_LIMITS, key) || !Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid archive limit: ${key}`);
+    if (!Object.hasOwn(DEFAULT_ARCHIVE_LIMITS, key) || (value !== Infinity && (!Number.isSafeInteger(value) || value < 1))) {
+      throw new RangeError(`Invalid archive limit: ${key}`);
+    }
   }
+  if (limits.chunkSize === Infinity) limits.chunkSize = DEFAULT_ARCHIVE_LIMITS.chunkSize;
   if (limits.chunkSize < 512 || limits.chunkSize > 1024 * 1024) throw new RangeError("Archive chunkSize must be between 512 and 1048576");
   return Object.freeze(limits);
 }

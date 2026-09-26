@@ -25,7 +25,8 @@ for (const [family, resolve] of [
           if (other !== name) assert.equal(budget, Reflect.get(omitted, other), other);
         }
       }
-      for (const invalid of [0, -1, NaN, Infinity, 1.5]) {
+      assert.equal(Reflect.get(resolve({ limits: { [name]: Infinity } }), name), Infinity);
+      for (const invalid of [0, -1, NaN, -Infinity, 1.5]) {
         assert.throws(() => resolve({ limits: { [name]: invalid } }));
       }
     }
@@ -36,7 +37,7 @@ test("shuf: sample and input quotas are independent", () => {
   assert.deepEqual(shuf({}), { maxInputBytes: Infinity, maxSampleSize: Infinity });
   assert.deepEqual(shuf({ maxSampleSize: 2 }), { maxInputBytes: Infinity, maxSampleSize: 2 });
   assert.deepEqual(shuf({ maxInputBytes: Number.MAX_SAFE_INTEGER }), { maxInputBytes: Number.MAX_SAFE_INTEGER, maxSampleSize: Infinity });
-  assert.throws(() => shuf({ maxInputBytes: Infinity }), RangeError);
+  assert.deepEqual(shuf({ maxInputBytes: Infinity }), { maxInputBytes: Infinity, maxSampleSize: Infinity });
 });
 
 import { createArchiveCommands } from "../../src/commands/archive/index.js";

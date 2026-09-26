@@ -23,7 +23,7 @@ export function settings(options: SplitCommandsOptions): SplitLimits {
     ...options.limits,
   };
   for (const [name, value] of Object.entries(options.limits ?? {})) {
-    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid split limit: ${name}`);
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`Invalid split limit: ${name}`);
   }
   return limits;
 }

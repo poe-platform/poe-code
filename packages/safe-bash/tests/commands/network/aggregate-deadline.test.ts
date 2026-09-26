@@ -79,7 +79,7 @@ test("deadline write-out preserves preclosed stdout EPIPE after required file ou
   time.advance(1_000);
 });
 
-for (const invalid of [0, -1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+for (const invalid of [0, -1, 1.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1]) {
   test(`aggregate rejects invalid host limit ${invalid}`, () => {
     assert.throws(() => createCurlCommand({ authorize: () => true, limits: limits(invalid) }), RangeError);
   });

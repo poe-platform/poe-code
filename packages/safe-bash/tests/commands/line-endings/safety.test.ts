@@ -57,7 +57,7 @@ test("four factories expose both commands without default replacement", async ()
 });
 
 for (const key of ["maxArguments", "maxArgumentBytes", "maxInputBytes", "maxOutputBytes", "maxBufferedBytes", "maxDiagnosticBytes", "maxFiles", "maxWork", "maxEmptyChunks", "maxPathBytes", "maxDepth", "maxTempAttempts", "chunkSize"] as const satisfies readonly (keyof LineEndingLimits)[]) {
-  test(`invalid ${key} rejected`, () => { for (const value of [0, -1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => createDos2unixCommand({ limits: { [key]: value } }), RangeError); });
+  test(`invalid ${key} rejected`, () => { for (const value of [0, -1, 1.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => createDos2unixCommand({ limits: { [key]: value } }), RangeError); });
 }
 for (const [args, input, limits, label] of [
   [["-q", "-b"], "", { maxArguments: 1 }, "argument count"],

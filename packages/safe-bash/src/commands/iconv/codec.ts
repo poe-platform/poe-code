@@ -78,7 +78,7 @@ export async function convert(input: Uint8Array, options: Parsed, state: Convers
     await flush(); batchCount = 1; suppressed = false; targetSuppressed = false; firstTargetBatch = false;
   };
   const append = (bytes: readonly number[], transliterated = false): void | Promise<void> => {
-    let recursiveBom = transliterated && firstTargetBatch && options.to === "utf16";
+    const recursiveBom = transliterated && firstTargetBatch && options.to === "utf16";
     if (buffer.length - used < bytes.length + (recursiveBom ? 2 : 0)) {
       return flushFullOutput().then(() => {
         buffer.set(bytes, used); used += bytes.length;

@@ -13,14 +13,15 @@ for (const [expression, expected] of [
   });
 }
 
-test("awk decodes hex strings and octal, hex, and backspace regex escapes", async () => {
+test("awk distinguishes literal backspace classes from word boundaries while decoding escapes", async () => {
   const result = await runVirtual("awk", { args: [String.raw`BEGIN {
     print "\x41\x42", "\x4aZ", "\x41" ~ /\101/, "a b" ~ /a\040b/
-    print "a\bb" ~ /a\bb/, "abb" ~ /a\bb/, "A" ~ /[\101]/, "B" ~ /\x42/
+    print "a\bb" ~ /a[\b]b/, "abb" ~ /a[\b]b/, "A" ~ /[\101]/, "B" ~ /\x42/
     print "A" ~ "\\101", "a b" ~ "a\\040b"
+    print "a b" ~ /\bb\b/, "ab" ~ /\bb\b/
   }`] });
   assert.equal(result.exitCode, 0, result.stderr.toString());
-  assert.equal(result.stdout.toString(), "AB JZ 1 1\n1 0 1 1\n1 1\n");
+  assert.equal(result.stdout.toString(), "AB JZ 1 1\n1 0 1 1\n1 1\n1 0\n");
 });
 
 for (const options of [["-F", String.raw`\x2c`], [String.raw`-F\x2c`], ["-v", String.raw`FS=\x2c`]]) {

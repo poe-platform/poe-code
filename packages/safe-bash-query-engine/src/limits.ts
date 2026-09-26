@@ -74,6 +74,18 @@ export class Budget {
     this.maxCollectionSizeSmi = limits.maxCollectionSize <= 0x3fffffff ? (limits.maxCollectionSize | 0) : 0x3fffffff;
     this.unlimitedValueCheck = limits.maxValueBytes === Infinity && limits.maxDepth === Infinity && limits.maxCollectionSize === Infinity;
   }
+  resetForRun(signal: AbortSignal): void {
+    (this as unknown as { signal: AbortSignal }).signal = signal;
+    this.steps = 0;
+    this.nextYield = 1024;
+    this.lastYield = monotonicNow();
+    this.inputBytes = 0;
+    this.outputBytes = 0;
+    this.results = 0;
+    this.inputLocation.name = "<unknown>";
+    this.inputLocation.line = 0;
+    this.inputLocation.complete = true;
+  }
   step(count = 1): void {
     if (this.signal.aborted) this.signal.throwIfAborted();
     const next = this.steps + count;

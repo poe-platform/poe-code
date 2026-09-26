@@ -10,6 +10,7 @@ import { Walker, type FileTarget } from "./walk.js";
 import { RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
 import { inProcessRegexProviders } from "../regex-execution/protocol.js";
 import { assertPathRequirements, requiredFileInput, searchRequirements } from "./requirements.js";
+import { RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO } from "../internal.js";
 
 const EMPTY_RG_LINES: readonly Line[] = Object.freeze([]);
 const defaultLimitsTick = Limits.prototype.tick;
@@ -41,8 +42,12 @@ function trySearchFileSync(
   if (!target.canonicalPath || !backing) {
     return undefined;
   }
-  context.signal.throwIfAborted();
-  chargeRuntimeFileSystemOperation(context.fs);
+  const fastCharge = (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp;
+  if (fastCharge) fastCharge.call(context);
+  else {
+    context.signal.throwIfAborted();
+    chargeRuntimeFileSystemOperation(context.fs);
+  }
   const maxBytes = Number.isFinite(limits.maxFileBytes) ? limits.maxFileBytes : undefined;
   const view = target.memoryView ?? tryReadMemoryFileViewSync(backing, target.canonicalPath, maxBytes, context.signal);
   if (view === undefined) return undefined;
@@ -396,12 +401,153 @@ export function createRgCommand(executor: RegexExecutor, options: SearchOptions 
     name: "rg",
     filesystemRequirements: searchRequirements,
     description: "Search virtual files or stdin with recursive filtering and structured results",
-    async execute(context) {
-      return withRegexSession(context, executor, async session => {
+    execute(context) {
+      return withRegexSession(context, executor, session => {
         let args: Arguments | undefined;
         let limits: Limits | undefined;
         let failed = false;
         let found = false;
+        try {
+          limits = new Limits(context, options);
+          args = parse(context.args);
+          if (
+            !args.help &&
+            !args.version &&
+            !(args.mode !== "files" && args.patternFiles.includes("-") && args.paths.includes("-")) &&
+            args.patternFiles.length === 0 &&
+            args.mode !== "json" &&
+            !args.stats
+          ) {
+            const selection = selectInput(context, args, options);
+            const report = async (error: unknown) => {
+              context.signal.throwIfAborted();
+              failed = true;
+              await limits!.flush();
+              if (args!.messages) await diagnostic(context, error);
+            };
+            const walker = new Walker(context, args, limits, report, session);
+            if (!walker.needsValidation()) {
+              let activePatterns: readonly string[];
+              if (args.mode === "files") {
+                activePatterns = [];
+              } else {
+                let bytes = 0;
+                for (let i = 0; i < args.patterns.length; i++) {
+                  bytes += Buffer.byteLength(args.patterns[i]!);
+                  if (bytes > limits.maxPatternBytes) throw new SearchError("pattern byte limit exceeded");
+                }
+                activePatterns = args.patterns;
+              }
+              const matcher = new Matcher(activePatterns, args, session, options.regexExecutor === undefined && inProcessRegexProviders.has(executor.provider));
+              const initBatch = args.mode !== "files" && matcher.literalAsciiBytes === undefined ? matcher.batchSync(EMPTY_RG_LINES) : undefined;
+              if (!(initBatch instanceof Promise)) {
+                if (args.mode !== "files" && args.maxCount === 0) return RESOLVED_EXIT_ONE;
+                const printer = new Printer(args, limits);
+                const totals = stats();
+                const multiPaths = selection.paths.length > 1;
+                const fastMem = (context as { _fastMemoryBackingFs?: ReturnType<typeof getRuntimeBackingFileSystem> })._fastMemoryBackingFs;
+                let fastReadState: 0 | 1 | -1 = fastMem && fastMem.capabilitiesFor === undefined && fastMem.capabilities.read !== false ? 1 : 0;
+                let fastReadBacking: ReturnType<typeof getRuntimeBackingFileSystem> = fastReadState === 1 ? fastMem : undefined;
+                let runTargetSlow: ((target: FileTarget, showFilename: boolean) => Promise<boolean>) | undefined;
+                const getRunTargetSlow = () => (runTargetSlow ??= async (target: FileTarget, showFilename: boolean): Promise<boolean> => {
+                  const snapshotTarget: FileTarget = { path: target.path, label: target.label, explicit: target.explicit, recursive: target.recursive, ...(target.canonicalPath !== undefined ? { canonicalPath: target.canonicalPath } : {}) };
+                  try {
+                    const result = await searchFile(context, args!, limits!, matcher, printer, snapshotTarget, context.stdin, showFilename);
+                    found ||= result.found;
+                    totals.searches += result.stats.searches;
+                    totals.searches_with_match += result.stats.searches_with_match;
+                    totals.bytes_searched += result.stats.bytes_searched;
+                    totals.bytes_printed += result.stats.bytes_printed;
+                    totals.matched_lines += result.stats.matched_lines;
+                    totals.matches += result.stats.matches;
+                    if (!args!.stats && args!.quiet && found && args!.mode !== "json") return false;
+                  } catch (error) { if (error instanceof SearchError || error instanceof RegexExecutionError) throw error; await report(error); }
+                  return true;
+                });
+                const walkRes = walker.walkTargetsSyncOrAsync(selection.paths, selection.implicit, target => {
+                  if (args!.mode === "files") {
+                    found = true;
+                    if (!args!.quiet) {
+                      const fRes = printer.filenameSyncOrAsync(target.label);
+                      return fRes ? fRes.then(() => true) : true;
+                    }
+                    return false;
+                  }
+                  const showFilename = args!.filename ?? (target.recursive || multiPaths);
+                  try {
+                    if (fastReadState === 0 && target.canonicalPath) {
+                      const b = getRuntimeBackingFileSystem(context.fs);
+                      if (!b || b.capabilitiesFor !== undefined || context.fs.capabilities.read === false || b.capabilities.read === false) {
+                        fastReadState = -1;
+                      } else {
+                        assertCommandRequirements(context, searchRequirements, ["file"]);
+                        fastReadBacking = b;
+                        fastReadState = 1;
+                      }
+                    }
+                    const syncOut = fastReadState === 1 ? trySearchFileSync(context, args!, limits!, matcher, printer, target, showFilename, totals, fastReadBacking) : undefined;
+                    if (typeof syncOut === "boolean") {
+                      found ||= syncOut;
+                      if (!args!.stats && args!.quiet && found && args!.mode !== "json") return false;
+                      return true;
+                    }
+                    if (syncOut instanceof Promise) {
+                      return syncOut.then(f => {
+                        if (f === undefined) return getRunTargetSlow()(target, showFilename);
+                        found ||= f;
+                        return !(!args!.stats && args!.quiet && found && args!.mode !== "json");
+                      }, async error => {
+                        if (error instanceof SearchError || error instanceof RegexExecutionError) throw error;
+                        await report(error);
+                        return true;
+                      });
+                    }
+                  } catch (error) {
+                    if (error instanceof SearchError || error instanceof RegexExecutionError) throw error;
+                    return report(error).then(() => true);
+                  }
+                  return getRunTargetSlow()(target, showFilename);
+                });
+                if (walkRes === undefined) {
+                  const flushRes = limits.flushSyncOrAsync();
+                  if (flushRes === undefined && !failed) {
+                    return (args.quiet && found) || found ? RESOLVED_EXIT_ZERO : RESOLVED_EXIT_ONE;
+                  }
+                  return (async () => {
+                    if (flushRes) await flushRes;
+                    return { exitCode: args!.quiet && found ? 0 : failed ? 2 : found ? 0 : 1 };
+                  })().catch(async error => {
+                    context.signal.throwIfAborted();
+                    if (error instanceof OutputClosed) return { exitCode: 0 };
+                    try { await limits?.flush(); } catch (flushErr) { if (flushErr instanceof OutputClosed) return { exitCode: 0 }; }
+                    if (args?.messages !== false) await diagnostic(context, error);
+                    return { exitCode: 2 };
+                  });
+                }
+                return (async () => {
+                  await walkRes;
+                  await limits!.flush();
+                  return { exitCode: args!.quiet && found ? 0 : failed ? 2 : found ? 0 : 1 };
+                })().catch(async error => {
+                  context.signal.throwIfAborted();
+                  if (error instanceof OutputClosed) return { exitCode: 0 };
+                  try { await limits?.flush(); } catch (flushErr) { if (flushErr instanceof OutputClosed) return { exitCode: 0 }; }
+                  if (args?.messages !== false) await diagnostic(context, error);
+                  return { exitCode: 2 };
+                });
+              }
+            }
+          }
+        } catch (syncError) {
+          return (async () => {
+            context.signal.throwIfAborted();
+            if (syncError instanceof OutputClosed) return { exitCode: 0 };
+            try { await limits?.flush(); } catch (flushErr) { if (flushErr instanceof OutputClosed) return { exitCode: 0 }; }
+            if (args?.messages !== false) await diagnostic(context, syncError);
+            return { exitCode: 2 };
+          })();
+        }
+        return (async () => {
         try {
           limits = new Limits(context, options);
           args = parse(context.args);
@@ -588,6 +734,7 @@ Unicode selection and extended regex syntax require a configured executor.
           if (args?.messages !== false) await diagnostic(context, error);
           return { exitCode: 2 };
         }
+        })();
       });
     },
   };

@@ -1,5 +1,6 @@
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { writeDiagnostic } from "../../escaping.js";
+import { isSyncResolved } from "../../fs/creation-mask.js";
 import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { reusableBatchRows, trustedInputRows } from "../regex-execution/protocol.js";
 import { readBytes, writeBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
@@ -120,6 +121,36 @@ export class Limits {
     } else {
       this.releaseOutBuf();
     }
+  }
+  flushSyncOrAsync(): Promise<void> | undefined {
+    if (this.outPos > 0 && this.outBuf) {
+      const syncSink = this.context.stdout as { writeSync?: (chunk: Uint8Array) => boolean };
+      if (typeof syncSink.writeSync === "function") {
+        const len = this.outPos;
+        this.outPos = 0;
+        try {
+          (this._signal ?? this.context.signal).throwIfAborted();
+          if (syncSink.writeSync(this.outBuf.subarray(0, len))) {
+            this.releaseOutBuf();
+            return undefined;
+          }
+        } catch (error) {
+          this.releaseOutBuf();
+          this.context.signal.throwIfAborted();
+          if ((error as { code?: string }).code === "EPIPE") {
+            const closed = new OutputClosed("stdout closed");
+            this.stopped?.abort(closed);
+            throw closed;
+          }
+          throw error;
+        }
+        this.outPos = len;
+      }
+      const p = this.flush();
+      return isSyncResolved(p) ? undefined : p;
+    }
+    this.releaseOutBuf();
+    return undefined;
   }
   outputSyncOrAsync(value: string | Uint8Array): Promise<void> | undefined {
     if (typeof value === "string") {

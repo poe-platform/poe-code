@@ -1,8 +1,9 @@
+import type { FileSystem } from "@poe-code/safe-fs";
 import type { CommandContext } from "../../contracts/command.js";
 import { FsError } from "../../contracts/errors.js";
 import { readBytes, type ByteSource } from "../../contracts/io.js";
 import { assertCommandRequirements, type CommandFileSystemRequirement } from "../../contracts/command-requirements.js";
-import { tryResolveMemoryDevicePath } from "@poe-code/safe-fs/core";
+import { tryReadMemoryFileViewSync, tryResolveMemoryDevicePath } from "@poe-code/safe-fs/core";
 import { getRuntimeBackingFileSystem } from "../../fs/creation-mask.js";
 import { pathOf } from "../internal.js";
 import { inputRequirements } from "../portable-requirements.js";
@@ -60,10 +61,67 @@ export async function assertPathRequirements(
   }
 }
 
+const SYNC_DONE_RESULT: IteratorResult<Uint8Array> = Object.freeze({ value: undefined, done: true });
+const RESOLVED_DONE_RESULT: Promise<IteratorResult<Uint8Array>> = Promise.resolve(SYNC_DONE_RESULT);
+
+export function createSyncSingleChunkByteSource(bytes: Uint8Array, signal: AbortSignal): ByteSource {
+  let consumed = false;
+  return {
+    [Symbol.asyncIterator]() {
+      return this as unknown as AsyncIterator<Uint8Array>;
+    },
+    tryNextSync(): IteratorResult<Uint8Array> {
+      signal.throwIfAborted();
+      if (consumed) return SYNC_DONE_RESULT;
+      consumed = true;
+      return bytes.byteLength > 0 ? { value: bytes, done: false } : SYNC_DONE_RESULT;
+    },
+    next(): Promise<IteratorResult<Uint8Array>> {
+      try {
+        signal.throwIfAborted();
+        if (consumed) return RESOLVED_DONE_RESULT;
+        consumed = true;
+        return bytes.byteLength > 0 ? Promise.resolve({ value: bytes, done: false }) : RESOLVED_DONE_RESULT;
+      } catch (err) {
+        return Promise.reject(err);
+      }
+    },
+    return(): Promise<IteratorResult<Uint8Array>> {
+      consumed = true;
+      return RESOLVED_DONE_RESULT;
+    },
+  } as unknown as ByteSource;
+}
+
 export function requiredFileInput(
   context: CommandContext, requirements: readonly CommandFileSystemRequirement[], mode: string, file: string, maxBytes: number,
 ): ByteSource {
   if (maxBytes === Infinity) {
+    const fastMemFs = (context as {
+      _fastMemoryBackingFs?: FileSystem;
+      _chargeFastFsOp?: () => void;
+      _cachedInputBudget?: unknown;
+    })._fastMemoryBackingFs;
+    if (
+      fastMemFs !== undefined &&
+      fastMemFs.capabilitiesFor === undefined &&
+      (context as { _cachedInputBudget?: unknown })._cachedInputBudget === undefined &&
+      !Object.prototype.hasOwnProperty.call(fastMemFs, "readStream") &&
+      !Object.prototype.hasOwnProperty.call(fastMemFs, "readFile")
+    ) {
+      const path = pathOf(context, file);
+      if (path !== "/dev" && !path.startsWith("/dev/")) {
+        try {
+          const bytes = tryReadMemoryFileViewSync(fastMemFs, path, undefined, context.signal);
+          if (bytes !== undefined) {
+            (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
+            return createSyncSingleChunkByteSource(bytes, context.signal);
+          }
+        } catch {
+          // Fall through to normal path so errors are reported via the stream consumer.
+        }
+      }
+    }
     const path = pathOf(context, file);
     const backing = getRuntimeBackingFileSystem(context.fs);
     if (

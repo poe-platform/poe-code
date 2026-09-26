@@ -301,6 +301,28 @@ export class Reader {
     this.closing = Promise.resolve().then(async () => { await origIter.return?.(); });
     return this.closing;
   }
+
+  closeSyncOrAsync(): Promise<void> | undefined {
+    if (this.closing) return this.closing === resolvedVoid ? undefined : this.closing;
+    const wasEnded = this.ended;
+    this.closed = true;
+    this.ended = true;
+    this.blocks.length = 0;
+    this.blockStrings.length = 0;
+    this.blockEnds.length = 0;
+    this.head = this.offset = this.buffered = 0;
+    this.retention.release(this.ownedBytes);
+    this.ownedBytes = 0;
+    const origIter = this.iterator;
+    (this as unknown as { iterator: AsyncIterator<Uint8Array> }).iterator = RELEASED_READER_ITERATOR;
+    readerAnchor.current = this;
+    if (wasEnded || !origIter.return) {
+      this.closing = resolvedVoid;
+      return undefined;
+    }
+    this.closing = Promise.resolve().then(async () => { await origIter.return?.(); });
+    return this.closing;
+  }
 }
 
 const readerAnchor: { current?: Reader } = {};

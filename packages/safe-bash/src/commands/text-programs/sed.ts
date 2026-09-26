@@ -1,8 +1,11 @@
+import type { FileSystem } from "@poe-code/safe-fs";
+import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
 import { FsError, writeBytes, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
 import { Pattern, substitute, trySubstituteSync, trySubstitutePairSync, trySubstitutePairToBufferSync } from "./regex.js";
-import { Budget, ProgramError, byteString, bytes, command, input, lineRecordBatches, readProgram, virtualPath, write, type LineRecordBatch, type RecordLine, type TextProgramOptions } from "./shared.js";
+import { Budget, ProgramError, byteString, bytes, command, getCachedLatin1Batch, input, lineRecordBatches, readProgram, virtualPath, write, type LineRecordBatch, type RecordLine, type TextProgramOptions } from "./shared.js";
 import { assertPathRequirements, requiredFileInput, sedRequirements } from "../search/requirements.js";
+import { pathOf } from "../internal.js";
 import { editInPlace, prepareInPlace } from "./inplace.js";
 
 type Address = { kind: "number"; number: number } | { kind: "step"; first: number; step: number } | { kind: "plus"; count: number } | { kind: "tilde"; count: number } | { kind: "last" } | { kind: "regex"; pattern: Pattern | undefined };
@@ -285,6 +288,8 @@ async function* nullRecords(context: CommandContext, files: readonly string[], b
   }
 }
 
+const STDOUT_CAP = 65536;
+const STDOUT_FLUSH = 60000;
 let sharedSedStdoutBuf: Buffer | undefined;
 let sharedSedStdoutBufInUse = false;
 
@@ -836,9 +841,132 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   }
 }
 
+function tryExecutePairFastSync(
+  program: readonly Instruction[],
+  context: CommandContext,
+  file: string,
+  quiet: boolean,
+  budget: Budget,
+  separator: string,
+): number | undefined {
+  if (program.length !== 2 || quiet || separator !== "\n" || file === "-") return undefined;
+  const inst0 = program[0]!;
+  const inst1 = program[1]!;
+  if (
+    inst0.kind !== "s" || inst0.first || inst0.second || inst0.negate || inst0.print || inst0.file || !inst0.pattern ||
+    inst1.kind !== "s" || inst1.first || inst1.second || inst1.negate || inst1.print || inst1.file || !inst1.pattern
+  ) {
+    return undefined;
+  }
+  const expr0 = inst0.pattern;
+  const expr1 = inst1.pattern;
+  if (inst0.replacementGroupCount! > expr0.groupCount || inst1.replacementGroupCount! > expr1.groupCount) return undefined;
+  const stdoutSync = typeof (context.stdout as { writeSync?: unknown }).writeSync === "function"
+    ? (context.stdout as unknown as { writeSync(chunk: Uint8Array): boolean })
+    : undefined;
+  if (!stdoutSync) return undefined;
+  const fastMem = (context as {
+    _fastMemoryBackingFs?: FileSystem;
+    _chargeFastFsOp?: () => void;
+    _cachedInputBudget?: unknown;
+  })._fastMemoryBackingFs;
+  if (
+    !fastMem ||
+    fastMem.capabilitiesFor !== undefined ||
+    (context as { _cachedInputBudget?: unknown })._cachedInputBudget !== undefined ||
+    Object.prototype.hasOwnProperty.call(fastMem, "readStream") ||
+    Object.prototype.hasOwnProperty.call(fastMem, "readFile")
+  ) {
+    return undefined;
+  }
+  const path = pathOf(context, file);
+  if (path === "/dev" || path.startsWith("/dev/")) return undefined;
+  let rawBytes: Uint8Array | undefined;
+  try {
+    rawBytes = tryReadMemoryFileViewSync(fastMem, path, undefined, context.signal);
+  } catch {
+    return undefined;
+  }
+  if (!rawBytes || rawBytes.byteLength < 256) return undefined;
+  const cachedBatch = getCachedLatin1Batch(rawBytes);
+  if (!cachedBatch || cachedBatch.lastLineStart !== cachedBatch.text.length || cachedBatch.maxLineLen > budget.maxBufferBytes) {
+    return undefined;
+  }
+  if (budget.checkpointSync()) return undefined;
+  (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
+  budget.step();
+  let usingSharedStdoutBuf = false;
+  let stdoutBuf: Buffer;
+  if (!sharedSedStdoutBufInUse) {
+    sharedSedStdoutBufInUse = true;
+    usingSharedStdoutBuf = true;
+    if (!sharedSedStdoutBuf) sharedSedStdoutBuf = Buffer.allocUnsafe(STDOUT_CAP);
+    stdoutBuf = sharedSedStdoutBuf;
+  } else {
+    stdoutBuf = Buffer.allocUnsafe(STDOUT_CAP);
+  }
+  let stdoutLen = 0;
+  const batchText = cachedBatch.text;
+  const batchEnds = cachedBatch.ends;
+  const endsLen = batchEnds.length;
+  const g1 = inst0.global ?? false;
+  const o1 = inst0.occurrence ?? 1;
+  const r1 = inst0.replacement!;
+  const g2 = inst1.global ?? false;
+  const o2 = inst1.occurrence ?? 1;
+  const r2 = inst1.replacement!;
+  try {
+    for (let idx = 0; idx < endsLen; idx++) {
+      const lStart = idx === 0 ? 0 : batchEnds[idx - 1]! + 1;
+      const lEnd = batchEnds[idx]!;
+      const nextPos = trySubstitutePairToBufferSync(
+        batchText, expr0, r1, g1, o1, expr1, r2, g2, o2, budget, stdoutBuf, stdoutLen, 10, lStart, lEnd,
+      );
+      if (typeof nextPos !== "number" || nextPos < 0) return undefined;
+      budget.step(3);
+      if (((idx + 1) & 31) === 0 && budget.checkpointSync()) return undefined;
+      stdoutLen = nextPos;
+      if (stdoutLen >= STDOUT_FLUSH) {
+        context.signal.throwIfAborted();
+        stdoutSync.writeSync(new Uint8Array(stdoutBuf.buffer, stdoutBuf.byteOffset, stdoutLen));
+        stdoutLen = 0;
+      }
+    }
+    if (stdoutLen > 0) {
+      context.signal.throwIfAborted();
+      stdoutSync.writeSync(new Uint8Array(stdoutBuf.buffer, stdoutBuf.byteOffset, stdoutLen));
+      stdoutLen = 0;
+    }
+    return 0;
+  } finally {
+    if (usingSharedStdoutBuf) sharedSedStdoutBufInUse = false;
+  }
+}
+
 export function sedCommand(options: TextProgramOptions = {}): CommandDefinition {
-  const definition = command("sed", async context => {
+  const definition = command("sed", context => {
     const maxProgramInstructions = options.maxProgramInstructions === undefined ? Infinity : options.maxProgramInstructions;
+    if (
+      maxProgramInstructions === Infinity &&
+      context.args.length === 2 &&
+      !context.args[0]!.startsWith("-") &&
+      context.args[0] !== "-" &&
+      !context.args[1]!.startsWith("-") &&
+      context.args[1] !== "-"
+    ) {
+      const rawProg = context.args[0]!;
+      const sourceText = byteString(rawProg);
+      const quiet = sourceText.startsWith("#n");
+      const cacheKey = sourceText.length <= 8192 ? `0:\n:Infinity:${sourceText}` : "";
+      const cached = cacheKey ? sedProgramCache.get(cacheKey) : undefined;
+      if (cached && cached.outputFiles.length === 0 && cached.readFiles.length === 0) {
+        const budget = new Budget(context, options);
+        if (cached.steps > 0) budget.step(cached.steps);
+        const syncStatus = tryExecutePairFastSync(cached.program, context, context.args[1]!, quiet, budget, "\n");
+        if (syncStatus !== undefined) return syncStatus;
+      }
+    }
+    return (async () => {
     if ((maxProgramInstructions !== Infinity && !Number.isSafeInteger(maxProgramInstructions)) || maxProgramInstructions < 1) throw new ProgramError("maxProgramInstructions must be a positive safe integer");
     const budget = new Budget(context, options);
     const sources: string[] = [];
@@ -974,6 +1102,7 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       return 0;
     }
     return (await execute(program, context, files, quiet, budget, separator, outputState, lineLength)).status;
+    })();
   });
   return { ...definition, filesystemRequirements: sedRequirements };
 }

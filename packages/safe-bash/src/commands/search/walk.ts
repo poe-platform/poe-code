@@ -686,6 +686,53 @@ export class Walker {
       syncWalkBufferTop = baseOffset;
     }
   }
+  walkTargetsSyncOrAsync(
+    paths: readonly string[],
+    implicit: boolean,
+    onTarget: (target: FileTarget) => boolean | Promise<boolean>,
+  ): Promise<void> | undefined {
+    if (paths.length === 1 && paths[0] !== "-") {
+      const fastMem = (this.context as {
+        _fastMemoryBackingFs?: NonNullable<ReturnType<typeof getRuntimeBackingFileSystem>> & { symlinkCount?: number };
+      })._fastMemoryBackingFs;
+      if (
+        fastMem !== undefined &&
+        fastMem.capabilitiesFor === undefined &&
+        fastMem.symlinkCount === 0 &&
+        this.explicitRules === EMPTY_IGNORE_RULES &&
+        fastMem.capabilities.stat !== false &&
+        fastMem.capabilities.read !== false &&
+        fastMem.capabilities.readdir !== false &&
+        fastMem.capabilities.realpath !== false
+      ) {
+        const operand = paths[0]!;
+        const path = pathFor(this.context, operand);
+        if (path !== "/dev" && !path.startsWith("/dev/") && tryGetMemoryDirectoryEntryNamesSync(fastMem, path) !== undefined) {
+          const parent = dirname(resolvePath("/", path));
+          const rootEntries = parent === "/" ? tryGetMemoryDirectoryEntryNamesSync(fastMem, "/") : undefined;
+          if (
+            rootEntries !== undefined &&
+            !rootEntries.has(".git") &&
+            (!this.args.ignore || (!rootEntries.has(".gitignore") && !rootEntries.has(".ignore") && !rootEntries.has(".rgignore")))
+          ) {
+            this.context.signal.throwIfAborted();
+            const tickPending = this.limits.tick();
+            if (!tickPending) {
+              if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
+              this.uniformDirAdmitted = true;
+              this.uniformCanonicalAdmitted = true;
+              this.uniformReaddirAdmitted = true;
+              this.uniformIgnoreAdmitted = true;
+              this.syncWalkNow = Date.now();
+              const syncWalk = this.tryWalkDirectorySync(fastMem, path, implicit ? "" : operand, 0, EMPTY_IGNORE_RULES, false, onTarget);
+              return syncWalk instanceof Promise ? syncWalk.then(() => undefined) : undefined;
+            }
+          }
+        }
+      }
+    }
+    return this.walkTargets(paths, implicit, onTarget);
+  }
   async walkTargets(paths: readonly string[], implicit: boolean, onTarget: (target: FileTarget) => boolean | Promise<boolean>): Promise<void> {
     const backing = getRuntimeBackingFileSystem(this.context.fs) as (NonNullable<ReturnType<typeof getRuntimeBackingFileSystem>> & { symlinkCount?: number }) | undefined;
     const uniformBacking = backing !== undefined && backing.capabilitiesFor === undefined ? backing : undefined;

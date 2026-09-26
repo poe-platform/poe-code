@@ -700,8 +700,12 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
       if (parsed.flags.has("e")) { parsed.flags.add("v"); parsed.flags.add("E"); }
       if (parsed.flags.has("t")) { parsed.flags.add("v"); parsed.flags.add("T"); }
       const caller = context;
-      const operation = parsed.operands.length && !parsed.operands.includes("-") ? createOutputOperation(context, context.stdout) : undefined;
-      if (operation) context = { ...context, signal: operation.signal, stdout: operation.output };
+      const needOperation = parsed.operands.length > 0 && !parsed.operands.includes("-") && (
+        Boolean(context.stdout.ownedOutput) ||
+        !(parsed.flags.size === 0 || (parsed.flags.size === 1 && parsed.flags.has("u")))
+      );
+      const operation = needOperation ? createOutputOperation(context, context.stdout) : undefined;
+      if (operation) context = Object.assign(Object.create(context), { signal: operation.signal, stdout: operation.output });
       try {
         const state = { exitCode: 0 };
         if (parsed.flags.size === 0 || (parsed.flags.size === 1 && parsed.flags.has("u"))) {

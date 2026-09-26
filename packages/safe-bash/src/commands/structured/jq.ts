@@ -1,11 +1,13 @@
+import type { FileSystem } from "@poe-code/safe-fs";
 import { FsError, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
-import { tryResolveMemoryDevicePath } from "@poe-code/safe-fs/core";
+import { tryReadMemoryFileViewSync, tryResolveMemoryDevicePath } from "@poe-code/safe-fs/core";
 import { getRuntimeBackingFileSystem } from "../../fs/creation-mask.js";
-import { pathOf } from "../internal.js";
+import { pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO } from "../internal.js";
+import { createSyncSingleChunkByteSource } from "../search/requirements.js";
 import { joinPath } from "../../contracts/path.js";
 import { escapeText, writeDiagnostic } from "../../escaping.js";
 import { Budget, copyObject, interruptible, JqHalt, JqError, JqLimitError, object, put, resolveJqLimits, truth, wellFormed, type InputLocation, type JqLimits, type Json, type StructuredCommandsOptions } from "./limits.js";
-import { jsonValues, parseJson, rawValues, stringify, tryStringifyCompactSync, tryWriteCompactSync, type JsonFormat } from "./input.js";
+import { jsonValues, parseJson, rawValues, stringify, tryProcessFlatJsonChunkSync, tryStringifyCompactSync, tryWriteCompactSync, type JsonFormat } from "./input.js";
 import { Interpreter } from "./interpreter.js";
 import { moduleProgram, parse, type Ast } from "./parser.js";
 import { sortObjectKeys } from "./values.js";
@@ -17,9 +19,144 @@ const JQ_LONG_FLAGS: Readonly<Record<string, string>> = {
   "--ascii-output": "a", "--color-output": "C", "--monochrome-output": "M",
 };
 const jqAstCache = new Map<string, Ast>();
-const OUT_BUF_SIZE = 16 * 1024;
+const NEVER_ABORTED_SIGNAL = Object.freeze({
+  aborted: false,
+  reason: undefined,
+  onabort: null,
+  throwIfAborted(): void {},
+  addEventListener(): void {},
+  removeEventListener(): void {},
+  dispatchEvent(): boolean { return true; },
+}) as unknown as AbortSignal;
+const OUT_BUF_SIZE = 64 * 1024;
 let sharedJqOutBuf: Uint8Array | null = null;
 let sharedJqOutBufInUse = false;
+const EMPTY_VARS_MAP: ReadonlyMap<string, Json> = new Map();
+let sharedFastBudget: Budget | undefined;
+let sharedFastInterpreter: Interpreter | undefined;
+let sharedFastInUse = false;
+
+function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promise<{ exitCode: number }> | undefined {
+  if (sharedFastInUse || sharedJqOutBufInUse) return undefined;
+  const args = context.args;
+  if (args.length !== 3 || args[0] !== "-c") return undefined;
+  const source = args[1]!;
+  const file = args[2]!;
+  if (source.startsWith("-") || file.startsWith("-") || file === "-" || source.includes("$")) return undefined;
+  const cachedAst = jqAstCache.get(source);
+  if (!cachedAst) return undefined;
+  const syncSink = typeof (context.stdout as { writeSync?: unknown }).writeSync === "function"
+    ? (context.stdout as unknown as { writeSync(chunk: Uint8Array): boolean })
+    : undefined;
+  if (!syncSink) return undefined;
+  const fastMemFs = (context as {
+    _fastMemoryBackingFs?: FileSystem;
+    _chargeFastFsOp?: () => void;
+    _cachedInputBudget?: unknown;
+  })._fastMemoryBackingFs;
+  if (
+    !fastMemFs ||
+    fastMemFs.capabilitiesFor !== undefined ||
+    (context as { _cachedInputBudget?: unknown })._cachedInputBudget !== undefined ||
+    Object.prototype.hasOwnProperty.call(fastMemFs, "readStream") ||
+    Object.prototype.hasOwnProperty.call(fastMemFs, "readFile")
+  ) {
+    return undefined;
+  }
+  const absolute = pathOf(context, file);
+  if (absolute === "/dev" || absolute.startsWith("/dev/")) return undefined;
+  let rawBytes: Uint8Array | undefined;
+  try {
+    rawBytes = tryReadMemoryFileViewSync(fastMemFs, absolute, undefined, context.signal);
+  } catch {
+    return undefined;
+  }
+  if (!rawBytes || rawBytes.byteLength === 0 || rawBytes[0] !== 123 || rawBytes[rawBytes.byteLength - 1] !== 10) {
+    return undefined;
+  }
+  const argBytes = 2 + Buffer.byteLength(source) + Buffer.byteLength(file);
+  if (argBytes + rawBytes.byteLength > limits.maxInputBytes) return undefined;
+  let budget = sharedFastBudget;
+  if (!budget || budget.limits !== limits) {
+    budget = sharedFastBudget = new Budget(limits, context.signal);
+  } else {
+    budget.resetForRun(context.signal);
+  }
+  let interpreter = sharedFastInterpreter;
+  if (!interpreter) {
+    interpreter = sharedFastInterpreter = new Interpreter(budget, EMPTY_VARS_MAP);
+  } else {
+    interpreter.resetForRun(budget, EMPTY_VARS_MAP);
+  }
+  if (interpreter.run !== DEFAULT_INTERPRETER_RUN) return undefined;
+  const outBuf = (sharedJqOutBuf ??= new Uint8Array(OUT_BUF_SIZE));
+  let outPos = 0;
+  sharedFastInUse = true;
+  sharedJqOutBufInUse = true;
+  try {
+    context.signal.throwIfAborted();
+    budget.collection(3);
+    budget.text(source);
+    budget.inputLocation.name = file;
+    budget.inputLocation.line = 0;
+    budget.inputLocation.complete = false;
+    const flushSync = (): boolean => {
+      if (outPos > 0) {
+        const view = outBuf.subarray(0, outPos);
+        outPos = 0;
+        context.signal.throwIfAborted();
+        if (!syncSink.writeSync(view)) return false;
+      }
+      return true;
+    };
+    let abortedToSlow = false;
+    const onValue = (input: Json): Promise<void> | void => {
+      const syncResults = interpreter.tryRunSync(cachedAst, input);
+      if (syncResults === undefined) {
+        abortedToSlow = true;
+        return Promise.resolve();
+      }
+      for (let i = 0; i < syncResults.length; i++) {
+        const result = syncResults[i]!;
+        if (budget.needsYield() || (budget.results + 1 > budget.maxResultsSmi && budget.results + 1 > limits.maxResults)) {
+          abortedToSlow = true;
+          return Promise.resolve();
+        }
+        const remSmi = budget.maxOutputBytesSmi - budget.outputBytes;
+        const maxChunkSmi = remSmi > 1
+          ? remSmi - 1
+          : (limits.maxOutputBytes === Infinity ? 0x3fffffff : Math.max(0, limits.maxOutputBytes - budget.outputBytes - 1));
+        const newPos = tryWriteCompactSync(result, budget, outBuf, outPos, "\n", maxChunkSmi, interpreter.getScratchKeys(result));
+        if (newPos < 0) {
+          abortedToSlow = true;
+          return Promise.resolve();
+        }
+        const chunkLen = newPos - outPos;
+        if (chunkLen > remSmi && chunkLen > limits.maxOutputBytes - budget.outputBytes) {
+          abortedToSlow = true;
+          return Promise.resolve();
+        }
+        budget.results++;
+        budget.outputBytes += chunkLen;
+        outPos = newPos;
+      }
+      interpreter.releaseScratch();
+      return undefined;
+    };
+    const ok = tryProcessFlatJsonChunkSync(rawBytes, budget, onValue);
+    if (!ok || abortedToSlow) return undefined;
+    if (!flushSync()) return undefined;
+    (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
+    return RESOLVED_EXIT_ZERO;
+  } catch {
+    return undefined;
+  } finally {
+    interpreter.releaseScratch();
+    (budget as unknown as { signal: AbortSignal }).signal = NEVER_ABORTED_SIGNAL;
+    sharedJqOutBufInUse = false;
+    sharedFastInUse = false;
+  }
+}
 let _lastJqAnchor1: unknown;
 let _lastJqAnchor2: unknown;
 let _lastJqAnchor3: unknown;
@@ -388,6 +525,39 @@ function inputs(
   } else if (!convert && options.files.length === 1 && options.files[0] !== "-") {
     const file = options.files[0]!;
     const absolute = pathOf(context, file);
+    const fastMemFs = (context as {
+      _fastMemoryBackingFs?: FileSystem;
+      _chargeFastFsOp?: () => void;
+      _cachedInputBudget?: unknown;
+    })._fastMemoryBackingFs;
+    if (
+      fastMemFs !== undefined &&
+      fastMemFs.capabilitiesFor === undefined &&
+      (context as { _cachedInputBudget?: unknown })._cachedInputBudget === undefined &&
+      absolute !== "/dev" &&
+      !absolute.startsWith("/dev/") &&
+      !Object.prototype.hasOwnProperty.call(fastMemFs, "readStream") &&
+      !Object.prototype.hasOwnProperty.call(fastMemFs, "readFile")
+    ) {
+      try {
+        const rawBytes = tryReadMemoryFileViewSync(fastMemFs, absolute, undefined, context.signal);
+        if (rawBytes !== undefined) {
+          const tickPromise = budget.tickSync();
+          if (tickPromise) {
+            return (async function* () {
+              await tickPromise;
+              yield* inputs(context, options, budget, convert, onValue, onChunkEnd, hasPendingDiagnostics);
+            })();
+          }
+          (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
+          budget.inputLocation = { name: file, line: 0, complete: false };
+          source = createSyncSingleChunkByteSource(rawBytes, context.signal);
+        }
+      } catch {
+        // Fall through to normal path so errors are reported via the stream consumer.
+      }
+    }
+    if (source === undefined) {
     const backing = getRuntimeBackingFileSystem(context.fs);
     if (
       backing !== undefined &&
@@ -410,6 +580,7 @@ function inputs(
       budget.inputLocation = { name: file, line: 0, complete: false };
       source = context.fs.readStream(absolute, { signal: context.signal });
     }
+    }
   }
   if (source === undefined) {
     async function* joined(): ByteSource {
@@ -430,7 +601,14 @@ function inputs(
     },
   });
 }
-export async function executeJq(context: CommandContext, limits: JqLimits, convert?: FilterInput): Promise<{ exitCode: number }> {
+export function executeJq(context: CommandContext, limits: JqLimits, convert?: FilterInput): Promise<{ exitCode: number }> {
+  if (!convert) {
+    const fastRes = tryExecuteJqFastSync(context, limits);
+    if (fastRes !== undefined) return fastRes;
+  }
+  return executeJqAsync(context, limits, convert);
+}
+async function executeJqAsync(context: CommandContext, limits: JqLimits, convert?: FilterInput): Promise<{ exitCode: number }> {
   const budget = new Budget(limits, context.signal);
   context.signal.throwIfAborted();
   const diagnostics: { location: InputLocation; message: string }[] = [];
@@ -673,7 +851,7 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
     options.variables.clear();
     options.files.length = 0;
     interpreter.releaseScratch();
-    (budget as unknown as { signal: AbortSignal }).signal = new AbortController().signal;
+    (budget as unknown as { signal: AbortSignal }).signal = NEVER_ABORTED_SIGNAL;
     _lastJqAnchor1 = budget;
     _lastJqAnchor2 = options;
     _lastJqAnchor3 = interpreter;

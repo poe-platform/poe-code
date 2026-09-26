@@ -1727,8 +1727,8 @@ class FastShellCommandContext {
     if (!directContext) {
       const { [invocationScope]: _scope, [valueScope]: _allocation, [declarationArrays]: _arrays, argumentValues: _arguments, ...publicIO } = io as IO & { argumentValues?: unknown };
       Object.defineProperties(this, Object.getOwnPropertyDescriptors(publicIO));
-      this._self = this;
     }
+    this._self = this;
     this._runtime = runtime;
     this._state = state;
     this._io = io;
@@ -1862,11 +1862,12 @@ class FastShellCommandContext {
   }
 
   get stderr(): ByteSink {
-    return this._stderr ??= (this._scopedSignal ? signalSink(this._io.stderr, this._scopedSignal) : this._io.stderr);
+    const self = this._self ?? this;
+    return self._stderr ??= (self._scopedSignal ? signalSink(self._io.stderr, self._scopedSignal) : self._io.stderr);
   }
 
   set stderr(value: ByteSink) {
-    this._stderr = value;
+    (this._self ?? this)._stderr = value;
   }
 
   get env(): Record<string, string> {
@@ -2764,13 +2765,22 @@ const mapfileCallbackStates = new WeakSet<State>();
 const runtimeFileSystems = new WeakMap<FileSystem, FileSystem>();
 const reusableDefaultContextFsBySourceFs = new WeakMap<FileSystem, { scoped: FileSystem; inUseBy: Runtime | undefined }>();
 const noopFsCharge = (): void => {};
+const NEVER_ABORTED_SIGNAL = Object.freeze({
+  aborted: false,
+  reason: undefined,
+  onabort: null,
+  throwIfAborted(): void {},
+  addEventListener(): void {},
+  removeEventListener(): void {},
+  dispatchEvent(): boolean { return true; },
+}) as unknown as AbortSignal;
 
 export function warmDefaultRuntimeContextFs(sourceFs: FileSystem, backingFs: FileSystem): void {
   if (reusableDefaultContextFsBySourceFs.has(sourceFs)) return;
   const created = scopeFileSystem(
     creationFileSystem(sourceFs, 0o022),
     noopFsCharge,
-    new AbortController().signal,
+    NEVER_ABORTED_SIGNAL,
     noopFsCharge,
     { maxPathComponents: 256 },
   );
@@ -3038,7 +3048,7 @@ export class Runtime {
   releaseAnchorResources(): void {
     const reusableEntry = reusableDefaultContextFsBySourceFs.get(this.sourceFs);
     if (reusableEntry && reusableEntry.inUseBy === this) {
-      retargetScopedFileSystem(reusableEntry.scoped, noopFsCharge, new AbortController().signal, noopFsCharge, 256);
+      retargetScopedFileSystem(reusableEntry.scoped, noopFsCharge, NEVER_ABORTED_SIGNAL, noopFsCharge, 256);
       reusableEntry.inUseBy = undefined;
     }
     if (Array.isArray(_lastFastContextAnchor) && _lastFastContextAnchor[0]) {
@@ -4976,7 +4986,7 @@ export class Runtime {
     return undefined;
   }
 
-  private async finishFastSingleExternalUnit(
+  private finishFastSingleExternalUnit(
     definition: NonNullable<ReturnType<CommandRegistry["get"]>>,
     context: FastShellCommandContext,
     redirectSink: MemoryRedirectSink | undefined,
@@ -4990,18 +5000,73 @@ export class Runtime {
     store: typeof monitor.store,
     state: State,
     io: IO,
-  ): Promise<{ exitCode: number; terminated: boolean }> {
+  ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> {
     const scope = io[invocationScope];
     const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
-    let rawStatus = 0;
     scope.enterWork();
     this.budget.beginPathLookupSuspension();
+    let raw: CommandResult | Promise<CommandResult> | undefined;
     try {
       scope.assertOpen();
-      const raw = definition.execute(context as unknown as ShellCommandContext);
+      raw = definition.execute(context as unknown as ShellCommandContext);
+      if (!this.budget._hasExternalSignal && (raw === RESOLVED_EXIT_ZERO || raw === RESOLVED_EXIT_ONE)) {
+        this.signal.throwIfAborted();
+        if (redirectSink?.failedError !== undefined) throw redirectSink.failedError;
+        const rawStatus = raw === RESOLVED_EXIT_ZERO ? 0 : 1;
+        this.budget.endPathLookupSuspension();
+        scope.leaveWork();
+        redirectSink?.handle.close();
+        if (!existing) {
+          monitor.lazyPipeStatus = rawStatus === 0 ? singleStatusZero : singleStatusOne;
+          monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+        } else {
+          elem0!.text.shellValue = String(rawStatus);
+          store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+        }
+        const finalStatus = negate ? Number(rawStatus === 0) : rawStatus;
+        rawState.status = finalStatus;
+        monitor.epoch = restEpoch;
+        if (store) store.epoch = restEpoch;
+        if (finalStatus !== 0 && !ignored && rawState.errexit) {
+          if (this.tryFinishShellSync(state)) return { exitCode: finalStatus, terminated: true };
+          return this.finishShell(state, io, finalStatus).then(exitCode => ({ exitCode, terminated: true }));
+        }
+        return finalStatus === 0 ? SYNC_UNIT_ZERO : SYNC_UNIT_ONE;
+      }
+    } catch (error) {
+      return this.finishFastSingleExternalUnitAsync(
+        undefined, error, true, redirectSink, diagnosticLine, negate, ignored, monitor, rawState, existing, elem0, store, state, io, scope, restEpoch,
+      );
+    }
+    return this.finishFastSingleExternalUnitAsync(
+      raw, undefined, false, redirectSink, diagnosticLine, negate, ignored, monitor, rawState, existing, elem0, store, state, io, scope, restEpoch,
+    );
+  }
+
+  private async finishFastSingleExternalUnitAsync(
+    raw: CommandResult | Promise<CommandResult> | undefined,
+    initialError: unknown,
+    hasInitialError: boolean,
+    redirectSink: MemoryRedirectSink | undefined,
+    diagnosticLine: number,
+    negate: boolean,
+    ignored: boolean,
+    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
+    rawState: State,
+    existing: ReturnType<NonNullable<typeof monitor.store>["get"]>,
+    elem0: IndexedBinding["values"] extends Map<number, infer E> ? E | undefined : never,
+    store: typeof monitor.store,
+    state: State,
+    io: IO,
+    scope: InvocationScope,
+    restEpoch: number,
+  ): Promise<{ exitCode: number; terminated: boolean }> {
+    let rawStatus = 0;
+    try {
+      if (hasInitialError) throw initialError;
       const res = this.budget._hasExternalSignal
-        ? await interruptible(Promise.resolve(raw), this.signal)
-        : await raw;
+        ? await interruptible(Promise.resolve(raw!), this.signal)
+        : await raw!;
       this.signal.throwIfAborted();
       if (redirectSink?.failedError !== undefined) throw redirectSink.failedError;
       rawStatus = validateExitCode(res.exitCode);

@@ -3,6 +3,7 @@ import { writeDiagnostic } from "../../escaping.js";
 import { Budget, ProgramError } from "safe-bash-regex-engine/text/budget";
 export { Budget, ProgramError, type TextProgramOptions } from "safe-bash-regex-engine/text/budget";
 import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO } from "../internal.js";
 import { inputRequirements } from "../portable-requirements.js";
 import { requiredFileInput } from "../search/requirements.js";
 
@@ -210,16 +211,30 @@ export async function* lineRecordBatches(context: CommandContext, files: readonl
   }
 }
 
-export function command(name: string, run: (context: CommandContext) => Promise<number>): CommandDefinition {
+export function command(name: string, run: (context: CommandContext) => number | Promise<number>): CommandDefinition {
   return {
     name,
-    async execute(context) {
+    execute(context) {
       context.signal.throwIfAborted();
-      try { return { exitCode: await run(context) }; }
-      catch (error) {
-        context.signal.throwIfAborted();
-        await writeDiagnostic(context.stderr, `${name}: ${publicDiagnosticMessage(error, context.onInternalError)}\n`, context.signal);
-        return { exitCode: error instanceof ProgramError ? 2 : 1 };
+      try {
+        const res = run(context);
+        if (typeof res === "number") {
+          return res === 0 ? RESOLVED_EXIT_ZERO : res === 1 ? RESOLVED_EXIT_ONE : Promise.resolve({ exitCode: res });
+        }
+        return res.then(
+          exitCode => ({ exitCode }),
+          async error => {
+            context.signal.throwIfAborted();
+            await writeDiagnostic(context.stderr, `${name}: ${publicDiagnosticMessage(error, context.onInternalError)}\n`, context.signal);
+            return { exitCode: error instanceof ProgramError ? 2 : 1 };
+          },
+        );
+      } catch (error) {
+        return (async () => {
+          context.signal.throwIfAborted();
+          await writeDiagnostic(context.stderr, `${name}: ${publicDiagnosticMessage(error, context.onInternalError)}\n`, context.signal);
+          return { exitCode: error instanceof ProgramError ? 2 : 1 };
+        })();
       }
     },
   };

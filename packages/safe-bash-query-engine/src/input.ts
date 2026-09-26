@@ -635,6 +635,71 @@ export interface JsonInputOptions {
   readonly onChunkEnd?: () => Promise<void> | void;
   readonly hasPendingDiagnostics?: () => boolean;
 }
+let sharedFlatParser: JsonParser | undefined;
+let sharedFlatParserInUse = false;
+
+export function tryProcessFlatJsonChunkSync(
+  rawChunk: Uint8Array,
+  budget: Budget,
+  onValue: (value: Json) => Promise<void> | void,
+  onChunkEnd?: () => Promise<void> | void,
+  hasPendingDiagnostics?: () => boolean,
+): boolean {
+  if (sharedFlatParserInUse || budget.tickSync()) return false;
+  if (rawChunk.byteLength === 0) return true;
+  if (rawChunk[0] !== 123 || rawChunk[rawChunk.byteLength - 1] !== 10) return false;
+  const totalAfter = budget.inputBytes + rawChunk.byteLength;
+  if (totalAfter > budget.maxInputBytesSmi && totalAfter > budget.limits.maxInputBytes) return false;
+  // Pre-verify all lines are flat objects <= 16384 bytes before mutating state
+  let checkOffset = 0;
+  while (checkOffset < rawChunk.length) {
+    const nl = rawChunk.indexOf(10, checkOffset);
+    if (nl < 0 || nl + 1 > checkOffset + 16384 || rawChunk[checkOffset] !== 123 || rawChunk[nl - 1] !== 125) {
+      return false;
+    }
+    checkOffset = nl + 1;
+  }
+  const parser = sharedFlatParser ??= new JsonParser(budget, false);
+  (parser as unknown as { budget: Budget }).budget = budget;
+  parser.releaseReusable();
+  sharedFlatParserInUse = true;
+  try {
+    budget.inputBytes = totalAfter;
+    let scanned = 0;
+    let chunkOffset = 0;
+    while (chunkOffset < rawChunk.length) {
+      if (budget.inputLocation.complete) {
+        if (hasPendingDiagnostics?.()) budget.inputLocation = { ...budget.inputLocation, complete: false };
+        else budget.inputLocation.complete = false;
+      }
+      const newline = rawChunk.indexOf(10, chunkOffset);
+      const segEnd = newline + 1;
+      budget.step((segEnd - chunkOffset + 1023) >> 10);
+      if (budget.tickSync()) return false;
+      budget.inputLocation.line++;
+      budget.inputLocation.complete = true;
+      const fastObj = parser.tryParseFlatLine(rawChunk, chunkOffset, newline);
+      if (fastObj === undefined) return false;
+      scanned += segEnd - chunkOffset;
+      if (scanned >= 1024) {
+        scanned &= 1023;
+        if (budget.tickSync()) return false;
+      }
+      const pending = onValue(fastObj);
+      if (pending) return false;
+      parser.releaseReusable();
+      if (budget.needsYield()) return false;
+      chunkOffset = segEnd;
+    }
+    const flushPending = onChunkEnd?.();
+    if (flushPending) return false;
+    return true;
+  } finally {
+    (parser as unknown as { budget: Budget | undefined }).budget = undefined;
+    sharedFlatParserInUse = false;
+  }
+}
+
 export async function* jsonValues(source: ByteSource, budget: Budget, options: JsonInputOptions = {}): AsyncGenerator<Json> {
   let parser = new JsonParser(budget, options.stream);
   let active = !options.sequence;
@@ -654,7 +719,9 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
   let line = 1;
   let column = 0;
   let nulTail: string | undefined;
-  const iter = readBytes(source, budget.signal)[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
+  const iter = (typeof (source as { tryNextSync?: unknown }).tryNextSync === "function"
+    ? (source as unknown as AsyncIterator<Uint8Array>)
+    : readBytes(source, budget.signal)[Symbol.asyncIterator]()) as AsyncIterator<Uint8Array> & {
     tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
   };
   let done = false;

@@ -45,6 +45,14 @@ export class Interpreter {
   private readonly scratchKeys: string[] = [];
   private scratchInUse = false;
   constructor(readonly budget: Budget, readonly variables: ReadonlyMap<string, Json>, private readonly frame?: Frame) {}
+  resetForRun(budget: Budget, variables: ReadonlyMap<string, Json>): void {
+    (this as unknown as { budget: Budget }).budget = budget;
+    (this as unknown as { variables: ReadonlyMap<string, Json> }).variables = variables;
+    this._filters?.clear();
+    this._labels?.clear();
+    this.labelSequence.next = 0;
+    this.scratchInUse = false;
+  }
   releaseScratch(): void {
     this.scratchInUse = false;
   }

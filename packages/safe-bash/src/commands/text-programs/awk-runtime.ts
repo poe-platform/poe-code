@@ -1,3 +1,4 @@
+import { isSyncResolved } from "../../fs/creation-mask.js";
 import { FsError, writeBytes, type CommandContext } from "../../contracts/index.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
 import type { AwkProgram, Expression, Statement } from "./awk-syntax.js";
@@ -67,6 +68,16 @@ const FAST_AWK_MATCH_OFFSETS = new Int32Array(20);
 const RETURN_SCALAR_ZERO = (): Scalar => SCALAR_ZERO;
 const RETURN_SCALAR_ONE = (): Scalar => SCALAR_ONE;
 const runtimeAnchor: { current?: AwkRuntime } = {};
+const RELEASED_AWK_SIGNAL = Object.freeze({
+  aborted: false,
+  reason: undefined,
+  onabort: null,
+  throwIfAborted(): void {},
+  addEventListener(): void {},
+  removeEventListener(): void {},
+  dispatchEvent(): boolean { return true; },
+}) as unknown as AbortSignal;
+const RELEASED_AWK_CONTEXT = Object.freeze({ signal: RELEASED_AWK_SIGNAL }) as unknown as CommandContext;
 const _lastAwkArrayAnchor = new AwkArray();
 void _lastAwkArrayAnchor;
 
@@ -1250,7 +1261,8 @@ export class AwkRuntime {
     if (this.stdoutBuffer.length === 0) return undefined;
     const chunk = this.stdoutBuffer;
     this.stdoutBuffer = "";
-    return write(this.context, chunk);
+    const p = write(this.context, chunk);
+    return isSyncResolved(p) ? undefined : p;
   }
 
   private executeSync(statement: Statement): void | Promise<void> {
@@ -1544,7 +1556,341 @@ export class AwkRuntime {
     }
   }
 
+  private finishSyncCleanup(status: number): number {
+    this.releaseStore(this.variables);
+    this.retention.release(this.recordLength + this.fieldBytes);
+    this.record = ""; this.fields = []; this.fieldCount = 0; this.fieldsMaterialized = true; this.fieldBytes = 0;
+    this.sliceBox.source = "";
+    this.recordValue = unset;
+    if (this.pooledBuffers && !sharedFieldBuffers) {
+      this.pooledBuffers.fieldStarts = this.fieldStarts;
+      this.pooledBuffers.fieldEnds = this.fieldEnds;
+      this.pooledBuffers.lazyFieldGen = this.lazyFieldGen;
+      this.pooledBuffers.lazyFields = this.lazyFields;
+      this.pooledBuffers.fieldGeneration = this.fieldGeneration + 1;
+      this.lazyFields.fill(unset, 0, Math.min(64, this.lazyFields.length));
+      sharedFieldBuffers = this.pooledBuffers;
+      this.pooledBuffers = undefined;
+    }
+    this.context.signal.throwIfAborted();
+    (this as unknown as { context: CommandContext }).context = RELEASED_AWK_CONTEXT;
+    (this.budget as unknown as { context: CommandContext; signal: AbortSignal }).context = RELEASED_AWK_CONTEXT;
+    (this.budget as unknown as { context: CommandContext; signal: AbortSignal }).signal = RELEASED_AWK_SIGNAL;
+    (this.retention as unknown as { signal: AbortSignal }).signal = RELEASED_AWK_SIGNAL;
+    runtimeAnchor.current = this;
+    return status;
+  }
+
+  runSyncOrAsync(): number | Promise<number> {
+    if (!this.inspection && this.program.begin.length === 0) {
+      try {
+        const progRes = this.tryRunProgramSync();
+        if (typeof progRes === "number") {
+          if (!this.inputs || this.inputs.size === 0) {
+            if (!this.outputs || this.outputs.size === 0) {
+              if (this.mainReader) {
+                const pendingClose = this.mainReader.closeSyncOrAsync();
+                this.mainReader = undefined;
+                if (pendingClose) {
+                  return this.finishRunAfterSyncProgram(progRes, pendingClose);
+                }
+              }
+              if (this.stdoutBuffer.length > 0) {
+                const flushPending = this.flushStdout();
+                if (flushPending) {
+                  return this.finishRunAfterFlush(progRes, flushPending);
+                }
+              }
+              this.syncSpecialVars();
+              return this.finishSyncCleanup(progRes);
+            }
+          }
+          return this.finishRunAfterSyncProgram(progRes, undefined);
+        }
+        return this.finishRunFromPromise(progRes);
+      } catch (error) {
+        return this.finishRunFromPromise(Promise.reject(error));
+      }
+    }
+    return this.run();
+  }
+
+  private async finishRunAfterFlush(status: number, flushPending: Promise<void>): Promise<number> {
+    let failed = false;
+    let failure: unknown;
+    try {
+      await flushPending;
+      this.syncSpecialVars();
+    } catch (error) {
+      failed = true;
+      failure = error;
+    }
+    const res = this.finishSyncCleanup(status);
+    if (failed) throw failure;
+    return res;
+  }
+
+  private async finishRunAfterSyncProgram(status: number, pendingClose: Promise<void> | undefined): Promise<number> {
+    return this.finishRunFromPromise(
+      pendingClose ? pendingClose.then(() => status) : Promise.resolve(status),
+    );
+  }
+
+  private async finishRunFromPromise(programPromise: Promise<number>): Promise<number> {
+    let status = 0, failed = false;
+    let failure: unknown;
+    try {
+      status = await programPromise;
+      if (this.stdoutBuffer.length > 0) await this.flushStdout();
+      this.syncSpecialVars();
+      await this.inspection?.publish(this.variables);
+    }
+    catch (error) { failed = true; failure = error; }
+    if (this.stdoutBuffer.length > 0) {
+      try { await this.flushStdout(); }
+      catch (error) { if (!failed) { failed = true; failure = error; } }
+    }
+    let cleanup: PromiseSettledResult<void>[] | undefined;
+    if (this.mainReader && (!this.inputs || this.inputs.size === 0)) {
+      const pendingClose = this.mainReader.closeSyncOrAsync();
+      this.mainReader = undefined;
+      if (pendingClose) {
+        try { await pendingClose; }
+        catch (error) { if (!failed) { failed = true; failure = error; } }
+      }
+    } else if (this.mainReader || (this.inputs && this.inputs.size > 0)) {
+      const readers = [...this.mainReader ? [this.mainReader] : [], ...this.inputs ? this.inputs.values() : []];
+      this.mainReader = undefined;
+      if (this.inputs) {
+        for (const name of this.inputs.keys()) this.retention.release(Buffer.byteLength(name, "utf8"));
+        this.inputs.clear();
+      }
+      cleanup = await Promise.allSettled(readers.map(async reader => { await reader.close(); }));
+    }
+    if (this.outputs && this.outputs.size > 0) {
+      for (const name of this.outputs) this.retention.release(Buffer.byteLength(name, "utf8"));
+      this.outputs.clear();
+    }
+    const res = this.finishSyncCleanup(status);
+    if (failed) throw failure;
+    if (cleanup) for (const result of cleanup) if (result.status === "rejected") throw result.reason;
+    return res;
+  }
+
   async run(): Promise<number> {
+    return this.finishRunFromPromise(this.runProgram());
+  }
+
+  private tryRunProgramSync(): number | Promise<number> {
+    this.phase = "record";
+    let ranges: Set<number> | undefined;
+    if (this.program.rules.length || this.program.end.length) {
+      if (!this.mainReader) {
+        this.tryOpenNextMainReaderSync();
+      }
+      while (true) {
+        this.budget.step();
+        if (this.mainReader && this.mainReader.readSliceSync(this.varText("RS"), this.sliceBox)) {
+          this.incrementCounter("NR");
+          this.incrementCounter("FNR");
+          const setRecPromise = this.setRecordSliceSync(this.sliceBox.source, this.sliceBox.start, this.sliceBox.end);
+          if (setRecPromise instanceof Promise) {
+            return this.continueProgramAsyncAfterRecord(setRecPromise, ranges, 0);
+          }
+        } else if (this.mainReader && this.mainReader.isEnded && this.argument >= number(this.getScalar("ARGC"))) {
+          const closePending = this.mainReader.closeSyncOrAsync();
+          this.mainReader = undefined;
+          if (closePending) {
+            return closePending.then(() => this.runEndPhaseSyncOrAsync(0));
+          }
+          break;
+        } else {
+          return this.continueProgramSlowAsync(ranges);
+        }
+        try {
+          for (let index = 0; index < this.program.rules.length; index++) {
+            const rule = this.program.rules[index]!;
+            let selected = !rule.pattern || (ranges !== undefined && ranges.has(index));
+            if (!selected) {
+              const patVal = this.scalarExpression(rule.pattern!);
+              if (patVal instanceof Promise) {
+                return this.continueProgramAsyncAtRule(patVal, ranges, index, "pattern");
+              }
+              selected = truth(patVal);
+            }
+            if (!selected) continue;
+            if (rule.end) {
+              const endVal = this.scalarExpression(rule.end);
+              if (endVal instanceof Promise) {
+                return this.continueProgramAsyncAtRule(endVal, ranges, index, "end");
+              }
+              if (truth(endVal)) ranges?.delete(index);
+              else (ranges ??= new Set<number>()).add(index);
+            }
+            const execRes = this.executeSync(rule.action);
+            if (execRes instanceof Promise) {
+              return this.continueProgramAsyncAtRule(execRes, ranges, index, "action");
+            }
+          }
+        } catch (error) {
+          if (!(error instanceof Flow)) throw error;
+          if (error.kind === "exit") { this.exit(error); break; }
+          if (error.kind === "nextfile") {
+            const closePending = this.mainReader?.closeSyncOrAsync();
+            this.mainReader = undefined;
+            if (closePending) return closePending.then(() => this.continueProgramSlowAsync(ranges));
+          } else if (error.kind !== "next") throw error;
+        }
+      }
+    }
+    if (this.mainReader && !hasMainGetline(this.program.end) && ![...this.program.functions.values()].some(hasMainGetline)) {
+      void this.mainReader.close().catch(() => undefined);
+    }
+    return this.runEndPhaseSyncOrAsync(0);
+  }
+
+  private runEndPhaseSyncOrAsync(startIdx: number): number | Promise<number> {
+    this.phase = "END";
+    try {
+      for (let i = startIdx; i < this.program.end.length; i++) {
+        const endRes = this.executeSync(this.program.end[i]!);
+        if (endRes instanceof Promise) {
+          return this.continueEndPhaseAsync(endRes, i + 1);
+        }
+      }
+    } catch (error) {
+      if (error instanceof Flow && error.kind === "exit") this.exit(error);
+      else throw error;
+    }
+    return this.status;
+  }
+
+  private async continueEndPhaseAsync(pending: Promise<void>, nextIdx: number): Promise<number> {
+    try {
+      await pending;
+      for (let i = nextIdx; i < this.program.end.length; i++) {
+        await this.execute(this.program.end[i]!);
+      }
+    } catch (error) {
+      if (error instanceof Flow && error.kind === "exit") this.exit(error);
+      else throw error;
+    }
+    return this.status;
+  }
+
+  private async continueProgramAsyncAfterRecord(pending: Promise<void>, ranges: Set<number> | undefined, startRule: number): Promise<number> {
+    await pending;
+    return this.continueProgramAsyncRulesAndLoop(ranges, startRule);
+  }
+
+  private async continueProgramAsyncAtRule(pending: Promise<unknown>, ranges: Set<number> | undefined, ruleIdx: number, step: "pattern" | "end" | "action"): Promise<number> {
+    const rule = this.program.rules[ruleIdx]!;
+    try {
+      if (step === "pattern") {
+        if (truth((await pending) as Scalar)) {
+          if (rule.end) {
+            const endVal = this.scalarExpression(rule.end);
+            if (truth(endVal instanceof Promise ? await endVal : endVal)) ranges?.delete(ruleIdx);
+            else (ranges ??= new Set<number>()).add(ruleIdx);
+          }
+          const execRes = this.executeSync(rule.action);
+          if (execRes instanceof Promise) await execRes;
+        }
+      } else if (step === "end") {
+        if (truth((await pending) as Scalar)) ranges?.delete(ruleIdx);
+        else (ranges ??= new Set<number>()).add(ruleIdx);
+        const execRes = this.executeSync(rule.action);
+        if (execRes instanceof Promise) await execRes;
+      } else {
+        await pending;
+      }
+    } catch (error) {
+      if (!(error instanceof Flow)) throw error;
+      if (error.kind === "exit") { this.exit(error); return this.runEndPhaseSyncOrAsync(0); }
+      if (error.kind === "nextfile") { await this.mainReader?.close(); this.mainReader = undefined; return this.continueProgramSlowAsync(ranges); }
+      if (error.kind !== "next") throw error;
+      return this.continueProgramSlowAsync(ranges);
+    }
+    return this.continueProgramAsyncRulesAndLoop(ranges, ruleIdx + 1);
+  }
+
+  private async continueProgramAsyncRulesAndLoop(ranges: Set<number> | undefined, startRule: number): Promise<number> {
+    try {
+      for (let index = startRule; index < this.program.rules.length; index++) {
+        const rule = this.program.rules[index]!;
+        let selected = !rule.pattern || (ranges !== undefined && ranges.has(index));
+        if (!selected) {
+          const patVal = this.scalarExpression(rule.pattern!);
+          selected = truth(patVal instanceof Promise ? await patVal : patVal);
+        }
+        if (!selected) continue;
+        if (rule.end) {
+          const endVal = this.scalarExpression(rule.end);
+          if (truth(endVal instanceof Promise ? await endVal : endVal)) ranges?.delete(index);
+          else (ranges ??= new Set<number>()).add(index);
+        }
+        const execRes = this.executeSync(rule.action);
+        if (execRes instanceof Promise) await execRes;
+      }
+    } catch (error) {
+      if (!(error instanceof Flow)) throw error;
+      if (error.kind === "exit") { this.exit(error); return this.runEndPhaseSyncOrAsync(0); }
+      if (error.kind === "nextfile") { await this.mainReader?.close(); this.mainReader = undefined; }
+      else if (error.kind !== "next") throw error;
+    }
+    return this.continueProgramSlowAsync(ranges);
+  }
+
+  private async continueProgramSlowAsync(ranges: Set<number> | undefined): Promise<number> {
+    while (true) {
+      this.budget.step();
+      if (this.mainReader && this.mainReader.readSliceSync(this.varText("RS"), this.sliceBox)) {
+        this.incrementCounter("NR");
+        this.incrementCounter("FNR");
+        const setRecPromise = this.setRecordSliceSync(this.sliceBox.source, this.sliceBox.start, this.sliceBox.end);
+        if (setRecPromise instanceof Promise) await setRecPromise;
+      } else if (this.mainReader && this.mainReader.isEnded && this.argument >= number(this.getScalar("ARGC"))) {
+        void this.mainReader.close();
+        this.mainReader = undefined;
+        break;
+      } else {
+        const recOrPromise = this.readMainRecordSync();
+        const record = recOrPromise instanceof Promise ? await recOrPromise : recOrPromise;
+        if (record === undefined) break;
+        const setRecPromise = this.setRecordSync(record);
+        if (setRecPromise instanceof Promise) await setRecPromise;
+      }
+      try {
+        for (let index = 0; index < this.program.rules.length; index++) {
+          const rule = this.program.rules[index]!;
+          let selected = !rule.pattern || (ranges !== undefined && ranges.has(index));
+          if (!selected) {
+            const patVal = this.scalarExpression(rule.pattern!);
+            selected = truth(patVal instanceof Promise ? await patVal : patVal);
+          }
+          if (!selected) continue;
+          if (rule.end) {
+            const endVal = this.scalarExpression(rule.end);
+            if (truth(endVal instanceof Promise ? await endVal : endVal)) ranges?.delete(index);
+            else (ranges ??= new Set<number>()).add(index);
+          }
+          const execRes = this.executeSync(rule.action);
+          if (execRes instanceof Promise) await execRes;
+        }
+      } catch (error) {
+        if (!(error instanceof Flow)) throw error;
+        if (error.kind === "exit") { this.exit(error); break; }
+        if (error.kind === "nextfile") { await this.mainReader?.close(); this.mainReader = undefined; }
+        else if (error.kind !== "next") throw error;
+      }
+    }
+    if (this.mainReader && !hasMainGetline(this.program.end) && ![...this.program.functions.values()].some(hasMainGetline)) {
+      void this.mainReader.close().catch(() => undefined);
+    }
+    return this.runEndPhaseSyncOrAsync(0);
+  }
+
+  private async _unusedOldRun(): Promise<number> {
     let status = 0, failed = false;
     let failure: unknown;
     try {
@@ -1559,7 +1905,14 @@ export class AwkRuntime {
       catch (error) { if (!failed) { failed = true; failure = error; } }
     }
     let cleanup: PromiseSettledResult<void>[] | undefined;
-    if (this.mainReader || (this.inputs && this.inputs.size > 0)) {
+    if (this.mainReader && (!this.inputs || this.inputs.size === 0)) {
+      const pendingClose = this.mainReader.closeSyncOrAsync();
+      this.mainReader = undefined;
+      if (pendingClose) {
+        try { await pendingClose; }
+        catch (error) { if (!failed) { failed = true; failure = error; } }
+      }
+    } else if (this.mainReader || (this.inputs && this.inputs.size > 0)) {
       const readers = [...this.mainReader ? [this.mainReader] : [], ...this.inputs ? this.inputs.values() : []];
       this.mainReader = undefined;
       if (this.inputs) {
@@ -1588,12 +1941,9 @@ export class AwkRuntime {
       this.pooledBuffers = undefined;
     }
     this.context.signal.throwIfAborted();
-    // Workers require native signals to be created inside the current request.
-    const releasedSignal = new AbortController().signal;
-    const releasedContext = Object.freeze({ signal: releasedSignal }) as unknown as CommandContext;
-    (this as unknown as { context: CommandContext }).context = releasedContext;
-    (this.budget as unknown as { context: CommandContext; signal: AbortSignal }).context = releasedContext;
-    (this.budget as unknown as { context: CommandContext; signal: AbortSignal }).signal = releasedSignal;
+    (this as unknown as { context: CommandContext }).context = RELEASED_AWK_CONTEXT;
+    (this.budget as unknown as { context: CommandContext; signal: AbortSignal }).context = RELEASED_AWK_CONTEXT;
+    (this.budget as unknown as { context: CommandContext; signal: AbortSignal }).signal = RELEASED_AWK_SIGNAL;
     runtimeAnchor.current = this;
     if (failed) throw failure;
     if (cleanup) for (const result of cleanup) if (result.status === "rejected") throw result.reason;

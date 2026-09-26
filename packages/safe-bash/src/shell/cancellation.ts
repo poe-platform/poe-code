@@ -93,20 +93,29 @@ interface SignalDetacher {
   active: boolean;
   readonly managed: boolean;
   readonly signal: AbortSignal;
-  readonly listener: () => void;
+  readonly listener: (() => void) | undefined;
+  onAbort(): void;
 }
 
 class SignalDetacherImpl implements SignalDetacher {
   declare active: boolean;
   declare readonly managed: boolean;
   declare readonly signal: AbortSignal;
-  declare readonly listener: () => void;
+  declare readonly state: LinkState;
+  declare readonly origin: CancellationOrigin;
+  declare readonly listener: (() => void) | undefined;
 
-  constructor(managed: boolean, signal: AbortSignal, listener: () => void) {
+  constructor(managed: boolean, signal: AbortSignal, state: LinkState, origin: CancellationOrigin, listener?: () => void) {
     this.active = true;
     this.managed = managed;
     this.signal = signal;
+    this.state = state;
+    this.origin = origin;
     this.listener = listener;
+  }
+
+  onAbort(): void {
+    publish(this.state, this.origin);
   }
 }
 
@@ -453,11 +462,11 @@ function removeSignalListener(detacher: SignalDetacher): { readonly error: unkno
   if (!detacher.active) return undefined;
   detacher.active = false;
   if (detacher.managed) {
-    removeAbortSignalWaiter(detacher.signal, detacher.listener);
+    removeAbortSignalWaiter(detacher.signal, detacher.listener ?? detacher);
     return undefined;
   }
   try {
-    detacher.signal.removeEventListener("abort", detacher.listener);
+    detacher.signal.removeEventListener("abort", detacher.listener!);
     return undefined;
   } catch (error) {
     return { error };
@@ -467,13 +476,13 @@ function removeSignalListener(detacher: SignalDetacher): { readonly error: unkno
 function attachOrigin(state: LinkState, origin: CancellationOrigin): void {
   if (signalAborted(origin.signal)) return;
   ensureCapacity(state);
-  const listener = () => publish(state, origin);
   let detacher: SignalDetacher;
   if (isManagedAbortSignal(origin.signal)) {
-    addAbortSignalWaiter(origin.signal, listener);
-    detacher = new SignalDetacherImpl(true, origin.signal, listener);
+    detacher = new SignalDetacherImpl(true, origin.signal, state, origin);
+    addAbortSignalWaiter(origin.signal, detacher);
   } else {
-    detacher = new SignalDetacherImpl(false, origin.signal, listener);
+    const listener = () => publish(state, origin);
+    detacher = new SignalDetacherImpl(false, origin.signal, state, origin, listener);
     try {
       origin.signal.addEventListener("abort", listener, { once: true });
     } catch (error) {

@@ -225,6 +225,12 @@ const fallbackBudgetedSinks = new WeakMap<ByteSink, { budget: Budget; write: Byt
 const fallbackSyncSinks = new WeakMap<ByteSink, (chunk: Uint8Array) => void>();
 const budgetedSinks = {
   get(sink: ByteSink) {
+    if (
+      (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) ||
+      (sink instanceof BudgetedPipeStageSink && sink.write === BudgetedPipeStageSink.prototype.write)
+    ) {
+      return sink;
+    }
     const entry = (sink as unknown as Record<symbol, BudgetedSinkEntry | undefined>)[budgetedSinkSymbol];
     return entry?.self === sink ? entry : fallbackBudgetedSinks.get(sink);
   },
@@ -235,6 +241,12 @@ const budgetedSinks = {
 };
 const syncSinks = {
   get(sink: ByteSink) {
+    if (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) {
+      return (chunk: Uint8Array) => sink.writeSync(chunk);
+    }
+    if (sink instanceof Capture && sink.write === Capture.prototype.write) {
+      return (chunk: Uint8Array) => sink.writeSync(chunk);
+    }
     const entry = (sink as unknown as Record<symbol, SyncSinkEntry | undefined>)[syncSinkSymbol];
     return entry?.self === sink ? entry.fn : fallbackSyncSinks.get(sink);
   },
@@ -548,6 +560,12 @@ export class Budget {
   }
 
   sink(sink: ByteSink, signal = this.signal): ByteSink {
+    if (sink instanceof Capture && sink.write === Capture.prototype.write) {
+      return new BudgetedSyncSink(this, sink, signal);
+    }
+    if (sink instanceof BudgetedSyncSink && sink.budget === this && sink.write === BudgetedSyncSink.prototype.write) {
+      return sink.signal === signal ? sink : new BudgetedSyncSink(this, sink.target, signal, sink.file);
+    }
     const ownership = budgetedSinks.get(sink);
     if (ownership?.budget === this && ownership.write === sink.write) return signalSink(sink, signal);
     return this.createBudgetedSink(sink, signal, ownership);
@@ -645,10 +663,6 @@ export class Capture implements ByteSink {
   length = 0;
   private _tail: Uint8Array | undefined;
   private _tailLength = 0;
-
-  constructor() {
-    syncSinks.set(this, chunk => this.writeSync(chunk));
-  }
 
   writeSync(chunk: Uint8Array): void {
     if (!chunk.byteLength) return;
@@ -1078,7 +1092,157 @@ class PipelineClosed extends Error {
 }
 const SHARED_PIPELINE_CLOSED = new PipelineClosed();
 
+class BudgetedSyncSink implements ByteSink {
+  declare readonly self: ByteSink;
+  declare readonly budget: Budget;
+  declare readonly target: Capture;
+  declare readonly signal: AbortSignal;
+  declare file?: NonNullable<CommandContext["stdoutFile"]>;
+
+  constructor(budget: Budget, target: Capture, signal: AbortSignal, file?: NonNullable<CommandContext["stdoutFile"]>) {
+    this.self = this;
+    this.budget = budget;
+    this.target = target;
+    this.signal = signal;
+    if (file !== undefined) this.file = file;
+  }
+
+  writeSync(chunk: Uint8Array): void {
+    this.signal.throwIfAborted();
+    if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+    const budget = this.budget;
+    if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+    budget.bytes += chunk.byteLength;
+    this.target.writeSync(chunk);
+  }
+
+  write(chunk: Uint8Array): Promise<void> {
+    try {
+      this.writeSync(chunk);
+      return resolvedVoid;
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+}
+
+class BudgetedPipeStageOwnedSink {
+  declare readonly parent: BudgetedPipeStageSink;
+  constructor(parent: BudgetedPipeStageSink) {
+    this.parent = parent;
+  }
+  get consumerClosed(): AbortSignal {
+    return this.parent.writable.ownedOutput!.consumerClosed;
+  }
+  write(chunk: Uint8Array): Promise<void> {
+    return this.parent.writeOwned(chunk);
+  }
+}
+
+class BudgetedPipeStageSink implements ByteSink {
+  declare readonly self: ByteSink;
+  declare readonly budget: Budget;
+  declare readonly writable: ByteSink;
+  declare readonly signal: AbortSignal;
+  declare readonly written: Set<number>;
+  declare readonly index: number;
+  declare readonly controller: { readonly signal: AbortSignal; abort(reason?: unknown): void };
+  declare ownedOutput?: NonNullable<ByteSink["ownedOutput"]>;
+  declare file?: NonNullable<CommandContext["stdoutFile"]>;
+
+  constructor(
+    budget: Budget,
+    writable: ByteSink,
+    signal: AbortSignal,
+    written: Set<number>,
+    index: number,
+    controller: { readonly signal: AbortSignal; abort(reason?: unknown): void },
+  ) {
+    this.self = this;
+    this.budget = budget;
+    this.writable = writable;
+    this.signal = signal;
+    this.written = written;
+    this.index = index;
+    this.controller = controller;
+    if (writable.ownedOutput) this.ownedOutput = new BudgetedPipeStageOwnedSink(this);
+    const failOutput = writable[outputFailure];
+    if (failOutput) (this as unknown as Record<symbol, unknown>)[outputFailure] = failOutput.bind(writable);
+  }
+
+  writeOwned(chunk: Uint8Array): Promise<void> {
+    try {
+      const signal = this.signal;
+      signal.throwIfAborted();
+      if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+      const budget = this.budget;
+      if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+      const capability = this.writable.ownedOutput!;
+      const write = capability.write;
+      signal.throwIfAborted();
+      if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+      budget.bytes += chunk.byteLength;
+      const res = Reflect.apply(write, capability, [chunk]);
+      if (isSyncResolved(res)) return resolvedVoid;
+      return Promise.resolve(res).then(
+        () => undefined,
+        (error: unknown) => { signal.throwIfAborted(); throw error; },
+      );
+    } catch (error) {
+      return Promise.reject(this.signal.aborted ? this.signal.reason : error);
+    }
+  }
+
+  write(chunk: Uint8Array): Promise<void> {
+    try {
+      const signal = this.signal;
+      signal.throwIfAborted();
+      if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+      const budget = this.budget;
+      if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+      budget.bytes += chunk.byteLength;
+      let res: Promise<void>;
+      try {
+        res = this.writable.write(chunk);
+      } catch (error) {
+        if (errorCode(error) === "EPIPE") {
+          const closed = SHARED_PIPELINE_CLOSED;
+          abortManagedController(this.controller, closed);
+          return Promise.reject(closed);
+        }
+        return Promise.reject(error);
+      }
+      if (isSyncResolved(res)) {
+        if (chunk.byteLength) this.written.add(this.index);
+        signal.throwIfAborted();
+        return resolvedVoid;
+      }
+      const handled = res.then(
+        () => { if (chunk.byteLength) this.written.add(this.index); },
+        (error) => {
+          if (errorCode(error) === "EPIPE") {
+            const closed = SHARED_PIPELINE_CLOSED;
+            abortManagedController(this.controller, closed);
+            throw closed;
+          }
+          throw error;
+        },
+      );
+      return interruptible(handled, signal);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+}
+
+function pollIncomingPipe(this: { incoming: { readiness(): "ready" | "eof" | "blocked" | "unknown" } }): "ready" | "eof" | "blocked" | "unknown" {
+  return this.incoming.readiness();
+}
+
 function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
+  if (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) {
+    return sink.signal === signal ? sink : new BudgetedSyncSink(sink.budget, sink.target, signal, sink.file);
+  }
   const ownership = budgetedSinks.get(sink);
   const owned = ownership?.write === sink.write ? ownership : undefined;
   const write = owned ? owned.write.bind(sink) : (chunk: Uint8Array) => sink.write(chunk);
@@ -4443,10 +4607,15 @@ export class Runtime {
         !rawState.extensions?.builtins.has(w0Plain) &&
         (!io.descriptors || io.descriptors.get(1)?.output === io.stdout)
       ) {
-        const syncOut = syncSinks.get(io.stdout);
-        const def = syncOut ? this.commands.get(w0Plain) : undefined;
+        const fastSyncSink =
+          (io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) ||
+          (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write)
+            ? io.stdout
+            : undefined;
+        const syncOut = fastSyncSink ? undefined : syncSinks.get(io.stdout);
+        const def = (fastSyncSink || syncOut) ? this.commands.get(w0Plain) : undefined;
         if (
-          syncOut &&
+          (fastSyncSink || syncOut) &&
           def &&
           (w0Plain === "printf" ? def.execute === printfCommand.execute : defaultEchoExecutors.has(def.execute)) &&
           command.words.length <= this.budget.limits.maxExpansionFields &&
@@ -4501,10 +4670,20 @@ export class Runtime {
               const owner = monitor.internalOwner();
               const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
               this.budget.tick();
-              if (budgetedSinks.get(io.stdout)?.budget !== this.budget) {
-                this.budget.bytes += byteLength;
+              if (fastSyncSink) {
+                if (fastSyncSink instanceof Capture || fastSyncSink.budget !== this.budget) {
+                  this.budget.bytes += byteLength;
+                  if (fastSyncSink instanceof Capture) fastSyncSink.writeSync(encoded);
+                  else fastSyncSink.target.writeSync(encoded);
+                } else {
+                  fastSyncSink.writeSync(encoded);
+                }
+              } else {
+                if (budgetedSinks.get(io.stdout)?.budget !== this.budget) {
+                  this.budget.bytes += byteLength;
+                }
+                syncOut!(encoded);
               }
-              syncOut(encoded);
               rawState.substitutionStatus = 0;
               if (rawState.variables._ !== undefined) delete rawState.variables._;
               rawState.lastArgument = lastArg;
@@ -5923,38 +6102,12 @@ export class Runtime {
           const readReference = reading && references.open(reading, this.budget);
           const writeReference = writing && references.open(writing, this.budget);
           const input = (cleanupInput = incoming
-            ? new ShellInput(reading?.readable ?? incoming.readable, this.budget, signal, { provenance: "stream", poll: () => incoming.readiness() }, true)
+            ? new ShellInput(reading?.readable ?? incoming.readable, this.budget, signal, { provenance: "stream", poll: pollIncomingPipe, incoming } as unknown as ConstructorParameters<typeof ShellInput>[3], true)
             : new ShellInput(io.stdin, this.budget, signal, undefined, true));
           const writable = writing?.writable ?? outgoing?.writable;
-          const failOutput = writable?.[outputFailure]?.bind(writable);
-          const pipeOutput: ByteSink | undefined = outgoing && { ...(failOutput ? { [outputFailure]: failOutput } : {}), ownedOutput: writable!.ownedOutput!, write: (chunk) => {
-            try {
-              const res = writable!.write(chunk);
-              if (isSyncResolved(res)) {
-                if (chunk.byteLength) written.add(index);
-                return resolvedVoid;
-              }
-              return res.then(
-                () => { if (chunk.byteLength) written.add(index); },
-                (error) => {
-                  if (errorCode(error) === "EPIPE") {
-                    const closed = SHARED_PIPELINE_CLOSED;
-                    abortManagedController(controllers[index]!, closed);
-                    throw closed;
-                  }
-                  throw error;
-                },
-              );
-            } catch (error) {
-              if (errorCode(error) === "EPIPE") {
-                const closed = SHARED_PIPELINE_CLOSED;
-                abortManagedController(controllers[index]!, closed);
-                return Promise.reject(closed);
-              }
-              return Promise.reject(error);
-            }
-          } };
-          const executeStage = async (): Promise<CommandResult> => {
+          stageOwnsCleanup = true;
+          let stageResult: CommandResult;
+          {
             let preparedChild: State | undefined;
             let preparationFailed = false;
             let started = false;
@@ -5974,7 +6127,7 @@ export class Runtime {
                   stdin: input,
                   ...(incoming ? { asyncDefaultInput: undefined } : {}),
                   ...(incoming ? { stdinIsDefault: false } : {}),
-                  stdout: pipeOutput ? this.budget.sink(pipeOutput, signal) : signalSink(io.stdout, signal),
+                  stdout: outgoing ? new BudgetedPipeStageSink(this.budget, writable!, signal, written, index, controllers[index]!) : signalSink(io.stdout, signal),
                   stderr: signalSink(io.stderr, signal),
                   terminal: { target: command, frame: descriptorFrame },
                 };
@@ -5991,32 +6144,7 @@ export class Runtime {
                   await installation;
                   signal.throwIfAborted();
                 }
-                const runStageWork = async (): Promise<number> => {
-                  let stageOutcome: CapturedCancellationOutcome<number>;
-                  try {
-                    let stageStatus = await runtime.runCommandIsolated(command, child, childIO);
-                    if (!runtime.tryFinishShellSync(child)) {
-                      stageStatus = await runtime.finishShell(child, childIO, stageStatus);
-                    }
-                    stageOutcome = { kind: "return", value: stageStatus };
-                  } catch (reason) {
-                    if (reason instanceof ExtensionCheckpointFailure) checkpointFailure = reason;
-                    stageOutcome = { kind: "throw", reason };
-                  }
-                  try {
-                    if (!runtime.releaseExtensionsSyncIfEmpty(child)) {
-                      await runtime.releaseExtensions(child);
-                    }
-                  } catch (cleanup) {
-                    if (checkpointFailure) io[invocationScope].failures.push(cleanup);
-                    else stageOutcome = { kind: "throw", reason: cleanup };
-                  } finally {
-                    stateMonitor(child)?.closeValues();
-                  }
-                  if (stageOutcome.kind === "throw") throw stageOutcome.reason;
-                  return stageOutcome.value;
-                };
-                const work = runStageWork();
+                const work = runtime.runPipelineStageWork(command, child, childIO, io, reason => { checkpointFailure = reason; });
                 preparedChild = undefined;
                 started = true;
                 retain(work);
@@ -6079,10 +6207,9 @@ export class Runtime {
               }
             }
             if (outcome.kind === "throw") throw outcome.reason;
-            return outcome.value;
-          };
-          stageOwnsCleanup = true;
-          captured = { kind: "return", value: await executeStage() };
+            stageResult = outcome.value;
+          }
+          captured = { kind: "return", value: stageResult };
           } catch (reason) {
             rejectPreparation?.(reason);
             if (!stageOwnsCleanup) {
@@ -6136,6 +6263,43 @@ export class Runtime {
       throw error;
     }
   }
+
+  async runPipelineStageWork(
+    command: Command,
+    child: State,
+    childIO: IO,
+    io: IO,
+    onCheckpointFailure: (reason: ExtensionCheckpointFailure) => void,
+  ): Promise<number> {
+    let stageOutcome: CapturedCancellationOutcome<number>;
+    let hadCheckpointFailure = false;
+    try {
+      let stageStatus = await this.runCommandIsolated(command, child, childIO);
+      if (!this.tryFinishShellSync(child)) {
+        stageStatus = await this.finishShell(child, childIO, stageStatus);
+      }
+      stageOutcome = { kind: "return", value: stageStatus };
+    } catch (reason) {
+      if (reason instanceof ExtensionCheckpointFailure) {
+        hadCheckpointFailure = true;
+        onCheckpointFailure(reason);
+      }
+      stageOutcome = { kind: "throw", reason };
+    }
+    try {
+      if (!this.releaseExtensionsSyncIfEmpty(child)) {
+        await this.releaseExtensions(child);
+      }
+    } catch (cleanup) {
+      if (hadCheckpointFailure) io[invocationScope].failures.push(cleanup);
+      else stageOutcome = { kind: "throw", reason: cleanup };
+    } finally {
+      stateMonitor(child)?.closeValues();
+    }
+    if (stageOutcome.kind === "throw") throw stageOutcome.reason;
+    return stageOutcome.value;
+  }
+
 
   async errexit(status: number, state: State, io: IO): Promise<void> {
     this.signal.throwIfAborted();

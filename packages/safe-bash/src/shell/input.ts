@@ -2,7 +2,7 @@ import { FsError, toByteSource } from "../contracts/index.js";
 import type { ByteSource, CommandInput, FileReadHandle, FileStat, FileSystem, FileSystemCapabilities, InvocationCleanup } from "../contracts/index.js";
 import { hasRegisteredYieldCheckpoint } from "../contracts/yield.js";
 import { monotonicNow, yieldTurn } from "../contracts/yield.js";
-import { addAbortSignalWaiter, interruptible, removeAbortSignalWaiter } from "../fs/creation-mask.js";
+import { addAbortSignalWaiter, interruptible, removeAbortSignalWaiter, type AbortSignalWaiter } from "../fs/creation-mask.js";
 import type { Budget } from "./runtime.js";
 import { concatShellValues, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ShellValue, ValueAllocation, ValueReservation } from "../contracts/value.js";
@@ -513,6 +513,69 @@ class InputDeadline {
   };
 }
 
+class ViewReadWaiter {
+  declare readonly cursor: InputCursor;
+  declare readonly signal: AbortSignal;
+  declare readonly view: ShellInput;
+  declare readonly resolve: (value: IteratorResult<Uint8Array>) => void;
+  declare readonly reject: (reason: unknown) => void;
+  declare settled: boolean;
+
+  constructor(
+    cursor: InputCursor,
+    signal: AbortSignal,
+    view: ShellInput,
+    resolve: (value: IteratorResult<Uint8Array>) => void,
+    reject: (reason: unknown) => void,
+  ) {
+    this.cursor = cursor;
+    this.signal = signal;
+    this.view = view;
+    this.resolve = resolve;
+    this.reject = reject;
+    this.settled = false;
+  }
+
+  onAbort(reason: unknown): void {
+    if (this.settled) return;
+    this.settled = true;
+    removeAbortSignalWaiter(this.signal, this);
+    this.view._removeCloseWaiter(this);
+    this.cursor._finishConsumer();
+    this.reject(reason);
+  }
+
+  onFulfilled(result: IteratorResult<Uint8Array>): void {
+    if (this.settled) return;
+    this.settled = true;
+    removeAbortSignalWaiter(this.signal, this);
+    this.view._removeCloseWaiter(this);
+    const cursor = this.cursor;
+    if (this.signal.aborted) { cursor._finishConsumer(); this.reject(this.signal.reason); return; }
+    if (this.view._isViewClosed()) { cursor._finishConsumer(); this.reject(shellInputViewClosedError); return; }
+    cursor._clearActiveRead(result.done);
+    if (result.done) {
+      cursor._finishConsumer();
+      this.resolve(doneResult);
+      return;
+    }
+    cursor.position += result.value.byteLength;
+    const value = cursor.ownsChunks ? result.value : new Uint8Array(result.value);
+    cursor._finishConsumer();
+    this.resolve({ done: false, value });
+  }
+
+  onRejected(error: unknown): void {
+    if (this.settled) return;
+    this.settled = true;
+    removeAbortSignalWaiter(this.signal, this);
+    this.view._removeCloseWaiter(this);
+    if (!this.signal.aborted) this.cursor._markReadFailed();
+    this.cursor._finishConsumer();
+    this.reject(error);
+  }
+}
+
 class InputCursor {
   declare private _identity: object | undefined;
   declare private readonly _iterator: AsyncIterator<Uint8Array>;
@@ -654,6 +717,28 @@ class InputCursor {
     return new InputDeadline(this._clock, timeoutMs, signal);
   }
 
+  _finishConsumer(): void {
+    this._consumers--;
+    if (this._consumers === 0) this._turn = resolvedVoid;
+    const notify = this._turnRelease;
+    if (notify) {
+      this._turnRelease = undefined;
+      notify();
+    }
+  }
+
+  _clearActiveRead(ended?: boolean): void {
+    this._read = undefined;
+    this._readResult = undefined;
+    if (ended) this._ended = true;
+  }
+
+  _markReadFailed(): void {
+    this._read = undefined;
+    this._readFailed = true;
+    this._closed = true;
+  }
+
   async consume<Value>(signal: AbortSignal, operation: () => Promise<Value>, interrupted?: (error: unknown) => Promise<Value>): Promise<Value> {
     if (signal.aborted && interrupted) return interrupted(signal.reason);
     signal.throwIfAborted();
@@ -663,13 +748,7 @@ class InputCursor {
         if (this._eof === "retryable") this._ended = false;
         return await operation();
       } finally {
-        this._consumers--;
-        if (this._consumers === 0) this._turn = resolvedVoid;
-        const notify = this._turnRelease;
-        if (notify) {
-          this._turnRelease = undefined;
-          notify();
-        }
+        this._finishConsumer();
       }
     }
     if (this._turn === resolvedVoid) {
@@ -839,56 +918,12 @@ class InputCursor {
     }
     const readPromise = this._read;
     return new Promise<IteratorResult<Uint8Array>>((resolve, reject) => {
-      let settled = false;
-      const finishConsumer = (): void => {
-        this._consumers--;
-        if (this._consumers === 0) this._turn = resolvedVoid;
-        const notify = this._turnRelease;
-        if (notify) {
-          this._turnRelease = undefined;
-          notify();
-        }
-      };
-      const onCancel = (reason: unknown): void => {
-        if (settled) return;
-        settled = true;
-        removeAbortSignalWaiter(signal, onCancel);
-        view._removeCloseWaiter(onCancel);
-        finishConsumer();
-        reject(reason);
-      };
-      addAbortSignalWaiter(signal, onCancel);
-      view._addCloseWaiter(onCancel);
+      const waiter = new ViewReadWaiter(this, signal, view, resolve, reject);
+      addAbortSignalWaiter(signal, waiter);
+      view._addCloseWaiter(waiter);
       readPromise.then(
-        result => {
-          if (settled) return;
-          settled = true;
-          removeAbortSignalWaiter(signal, onCancel);
-          view._removeCloseWaiter(onCancel);
-          if (signal.aborted) { finishConsumer(); reject(signal.reason); return; }
-          if (view._isViewClosed()) { finishConsumer(); reject(shellInputViewClosedError); return; }
-          this._read = undefined;
-          this._readResult = undefined;
-          if (result.done) {
-            this._ended = true;
-            finishConsumer();
-            resolve(doneResult);
-            return;
-          }
-          this.position += result.value.byteLength;
-          const value = this.ownsChunks ? result.value : new Uint8Array(result.value);
-          finishConsumer();
-          resolve({ done: false, value });
-        },
-        error => {
-          if (settled) return;
-          settled = true;
-          removeAbortSignalWaiter(signal, onCancel);
-          view._removeCloseWaiter(onCancel);
-          if (!signal.aborted) { this._read = undefined; this._readFailed = true; this._closed = true; }
-          finishConsumer();
-          reject(error);
-        },
+        result => waiter.onFulfilled(result),
+        error => waiter.onRejected(error),
       );
     });
   }
@@ -1017,8 +1052,8 @@ export class ShellInput implements ByteSource, CommandInput {
   declare private _signal: AbortSignal | undefined;
   declare private _viewClosed: boolean;
   declare private readonly _signalIncludesBudget: boolean;
-  declare private _closeWaiter: ((reason: unknown) => void) | undefined;
-  declare private _closeWaiters: Set<(reason: unknown) => void> | undefined;
+  declare private _closeWaiter: AbortSignalWaiter | undefined;
+  declare private _closeWaiters: Set<AbortSignalWaiter> | undefined;
   declare private readonly _cleanupSignal: AbortSignal;
   declare private _reads: Set<() => Promise<void>> | undefined;
   declare readonly stat?: FileStat;
@@ -1089,12 +1124,12 @@ export class ShellInput implements ByteSource, CommandInput {
     return this._viewClosed;
   }
 
-  _addCloseWaiter(waiter: (reason: unknown) => void): void {
+  _addCloseWaiter(waiter: AbortSignalWaiter): void {
     if (!this._closeWaiter) this._closeWaiter = waiter;
     else (this._closeWaiters ??= new Set()).add(waiter);
   }
 
-  _removeCloseWaiter(waiter: (reason: unknown) => void): void {
+  _removeCloseWaiter(waiter: AbortSignalWaiter): void {
     if (this._closeWaiter === waiter) this._closeWaiter = undefined;
     else this._closeWaiters?.delete(waiter);
   }
@@ -1225,13 +1260,12 @@ export class ShellInput implements ByteSource, CommandInput {
     return undefined;
   }
 
+  get abortSignal(): AbortSignal | undefined {
+    return !this._signal && this._signalIncludesBudget ? this._cleanupSignal : undefined;
+  }
+
   [Symbol.asyncIterator](): AsyncIterableIterator<Uint8Array> {
-    return {
-      next: () => this.next(),
-      tryNextSync: () => this.tryNextSync(),
-      abortSignal: !this._signal && this._signalIncludesBudget ? this._cleanupSignal : undefined,
-      [Symbol.asyncIterator]() { return this; },
-    } as AsyncIterableIterator<Uint8Array>;
+    return this as unknown as AsyncIterableIterator<Uint8Array>;
   }
 
   sourceLine(): Promise<Uint8Array | undefined> {
@@ -1662,10 +1696,14 @@ export class ShellInput implements ByteSource, CommandInput {
       if (this._closeWaiter) {
         const waiter = this._closeWaiter;
         this._closeWaiter = undefined;
-        waiter(shellInputViewClosedError);
+        if (typeof waiter === "function") waiter(shellInputViewClosedError);
+        else waiter.onAbort(shellInputViewClosedError);
       }
       if (this._closeWaiters?.size) {
-        for (const reject of this._closeWaiters) reject(shellInputViewClosedError);
+        for (const reject of this._closeWaiters) {
+          if (typeof reject === "function") reject(shellInputViewClosedError);
+          else reject.onAbort(shellInputViewClosedError);
+        }
         this._closeWaiters.clear();
       }
       const readsSize = this._reads?.size ?? 0;

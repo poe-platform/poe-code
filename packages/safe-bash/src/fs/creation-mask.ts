@@ -29,7 +29,7 @@ export interface ManagedControlController {
   abort(reason?: unknown): void;
 }
 
-type AbortSignalWaiter = (reason: unknown) => void;
+export type AbortSignalWaiter = ((reason: unknown) => void) | { onAbort(reason: unknown): void };
 // Pipe, output, descriptor, and yield adapters share this singleton-or-Set protocol.
 type AbortSignalWaiterStore = AbortSignalWaiter | Set<AbortSignalWaiter> | undefined;
 
@@ -145,20 +145,34 @@ AbortSignal.any = function any(signals: Iterable<AbortSignal>): AbortSignal {
   );
 };
 
+class CombinedSignalWaiter {
+  declare readonly primary: AbortSignal;
+  declare readonly secondary: AbortSignal;
+  declare readonly tertiary: AbortSignal | undefined;
+  declare readonly combined: ManagedControlSignalImpl;
+  constructor(primary: AbortSignal, secondary: AbortSignal, tertiary: AbortSignal | undefined, combined: ManagedControlSignalImpl) {
+    this.primary = primary;
+    this.secondary = secondary;
+    this.tertiary = tertiary;
+    this.combined = combined;
+  }
+  onAbort(reason: unknown): void {
+    removeAbortSignalWaiter(this.primary, this);
+    removeAbortSignalWaiter(this.secondary, this);
+    if (this.tertiary) removeAbortSignalWaiter(this.tertiary, this);
+    this.combined.abort(reason);
+  }
+}
+
 export function combineManagedSignals(primary: AbortSignal, secondary: AbortSignal, tertiary?: AbortSignal): AbortSignal {
   if (primary.aborted) return primary;
   if (secondary.aborted) return secondary;
   if (tertiary?.aborted) return tertiary;
   const combined = new ManagedControlSignalImpl();
-  const onAbort = (reason: unknown) => {
-    removeAbortSignalWaiter(primary, onAbort);
-    removeAbortSignalWaiter(secondary, onAbort);
-    if (tertiary) removeAbortSignalWaiter(tertiary, onAbort);
-    combined.abort(reason);
-  };
-  addAbortSignalWaiter(primary, onAbort);
-  addAbortSignalWaiter(secondary, onAbort);
-  if (tertiary) addAbortSignalWaiter(tertiary, onAbort);
+  const waiter = new CombinedSignalWaiter(primary, secondary, tertiary, combined);
+  addAbortSignalWaiter(primary, waiter);
+  addAbortSignalWaiter(secondary, waiter);
+  if (tertiary) addAbortSignalWaiter(tertiary, waiter);
   return combined.signal;
 }
 
@@ -190,10 +204,19 @@ export function notifyAbortSignalWaiters(signal: AbortSignal, reason: unknown): 
     current(reason);
     return;
   }
+  if ("onAbort" in current) {
+    record[managedWaitersSymbol] = undefined;
+    current.onAbort(reason);
+    return;
+  }
   if (current.size > 0) {
     const pending = [...current];
     current.clear();
-    for (let i = 0; i < pending.length; i++) pending[i]!(reason);
+    for (let i = 0; i < pending.length; i++) {
+      const w = pending[i]!;
+      if (typeof w === "function") w(reason);
+      else w.onAbort(reason);
+    }
   }
 }
 
@@ -222,11 +245,15 @@ export function addAbortSignalWaiter(signal: AbortSignal, waiter: AbortSignalWai
       const reason = signal.reason;
       const pending = [...set];
       set.clear();
-      for (let i = 0; i < pending.length; i++) pending[i]!(reason);
+      for (let i = 0; i < pending.length; i++) {
+        const w = pending[i]!;
+        if (typeof w === "function") w(reason);
+        else w.onAbort(reason);
+      }
     }, { once: true });
     return;
   }
-  if (typeof current === "function") {
+  if (typeof current === "function" || "onAbort" in current) {
     if (current !== waiter) {
       const set = new Set<AbortSignalWaiter>();
       set.add(current);
@@ -242,7 +269,7 @@ export function removeAbortSignalWaiter(signal: AbortSignal, waiter: AbortSignal
   const record = signal as unknown as Record<symbol, AbortSignalWaiterStore>;
   const current = record[managedWaitersSymbol];
   if (!current) return;
-  if (typeof current === "function") {
+  if (typeof current === "function" || "onAbort" in current) {
     if (current === waiter) record[managedWaitersSymbol] = undefined;
     return;
   }

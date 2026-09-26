@@ -447,6 +447,38 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       const mask: unknown = Reflect.get(context.fs, creationUmask);
       const umask = typeof mask === "number" ? mask : 0o022;
       const directoryMode = mode === undefined ? undefined : modeChange(mode, umask)({ type: "directory", mode: 0o777 & ~umask });
+      if (
+        parsed.operands.length === 1 &&
+        !parsed.flags.has("v") &&
+        directoryMode === undefined &&
+        (umask & 0o300) === 0 &&
+        !context.fs.capabilitiesFor
+      ) {
+        const backingMem = getRuntimeBackingFileSystem(context.fs) as { symlinkCount?: number } | undefined;
+        const caps = context.fs.capabilities;
+        if (
+          backingMem !== undefined &&
+          backingMem.symlinkCount === 0 &&
+          !caps.readOnly &&
+          caps.implicitDirectories !== true &&
+          Object.getPrototypeOf(backingMem)?.constructor?.name === "MemoryFileSystem" &&
+          !Object.prototype.hasOwnProperty.call(backingMem, "mkdir") &&
+          !Object.prototype.hasOwnProperty.call(backingMem, "lstat") &&
+          !Object.prototype.hasOwnProperty.call(backingMem, "stat")
+        ) {
+          const operand = parsed.operands[0]!;
+          const path = pathOf(context, operand);
+          const recursive = parsed.flags.has("p");
+          try {
+            await admitFilesystemModes(context, "mkdir", [recursive ? "parents" : "directory"], [path]);
+            await context.fs.mkdir(path, { recursive, ...(caps.permissions !== false ? { mode: 0o777 & ~umask } : {}), signal: context.signal });
+            return { exitCode: 0 };
+          } catch (error) {
+            await diagnostic(context, error);
+            return { exitCode: 1 };
+          }
+        }
+      }
       const createDirectory = async (operand: string, preflight: boolean): Promise<void> => {
         const path = pathOf(context, operand);
         const recursive = parsed.flags.has("p");
@@ -757,6 +789,36 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       if (force) parsed.flags.add("f"); else parsed.flags.delete("f");
       if (!parsed.flags.has("f")) requireOperands(parsed.operands);
       const recursive = parsed.flags.has("r") || parsed.flags.has("R");
+      const backingMem = getRuntimeBackingFileSystem(context.fs) as { symlinkCount?: number } | undefined;
+      const caps = context.fs.capabilities;
+      const fastStockMemory =
+        interactive === "never" &&
+        backingMem !== undefined &&
+        backingMem.symlinkCount === 0 &&
+        caps.remove === true &&
+        caps.recursiveRemove === true &&
+        caps.removeDirectory === true &&
+        !caps.readOnly &&
+        Object.getPrototypeOf(backingMem)?.constructor?.name === "MemoryFileSystem" &&
+        !Object.prototype.hasOwnProperty.call(backingMem, "lstat") &&
+        !Object.prototype.hasOwnProperty.call(backingMem, "stat") &&
+        !Object.prototype.hasOwnProperty.call(backingMem, "realpath") &&
+        !Object.prototype.hasOwnProperty.call(backingMem, "rm") &&
+        !Object.prototype.hasOwnProperty.call(backingMem, "rmdir");
+      if (fastStockMemory && parsed.operands.length === 1 && !parsed.flags.has("v") && (recursive || !parsed.flags.has("d"))) {
+        const operand = parsed.operands[0]!;
+        const path = pathOf(context, operand);
+        if (path !== "/" && !operand.endsWith(".") && !operand.endsWith("/")) {
+          try {
+            await admitFilesystemModes(context, "rm", [recursive ? "recursive" : "file"], [path]);
+            await context.fs.rm(path, { recursive, force: parsed.flags.has("f"), signal: context.signal });
+            return { exitCode: 0 };
+          } catch (error) {
+            await diagnostic(context, error);
+            return { exitCode: 1 };
+          }
+        }
+      }
       let answers: AsyncGenerator<{ bytes: Uint8Array }> | undefined;
       const confirm = async (question: string): Promise<boolean> => {
         answers ??= lines(readBytes(context.stdin, context.signal));
@@ -768,22 +830,6 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       try {
         if (interactive === "once" && (recursive || parsed.operands.length > 3)
           && !await confirm(`remove ${parsed.operands.length} argument${parsed.operands.length === 1 ? "" : "s"}${recursive ? " recursively" : ""}`)) return { exitCode: 0 };
-        const backingMem = getRuntimeBackingFileSystem(context.fs) as { symlinkCount?: number } | undefined;
-        const caps = context.fs.capabilities;
-        const fastStockMemory =
-          interactive === "never" &&
-          backingMem !== undefined &&
-          backingMem.symlinkCount === 0 &&
-          caps.remove === true &&
-          caps.recursiveRemove === true &&
-          caps.removeDirectory === true &&
-          !caps.readOnly &&
-          Object.getPrototypeOf(backingMem)?.constructor?.name === "MemoryFileSystem" &&
-          !Object.prototype.hasOwnProperty.call(backingMem, "lstat") &&
-          !Object.prototype.hasOwnProperty.call(backingMem, "stat") &&
-          !Object.prototype.hasOwnProperty.call(backingMem, "realpath") &&
-          !Object.prototype.hasOwnProperty.call(backingMem, "rm") &&
-          !Object.prototype.hasOwnProperty.call(backingMem, "rmdir");
         if (!fastStockMemory) {
         await preflightOperands(context, parsed.operands, async operand => {
           const path = pathOf(context, operand);

@@ -165,6 +165,24 @@ test("raw decoder and slurp cooperatively cancel without EOF", { timeout: 3000 }
   }
 });
 
+test("raw decoder checkpoints preserve complete and malformed UTF-8 groups", async () => {
+  for (const flags of ["-Rr", "-Rsr"]) {
+    for (const [prefixLength, suffix, decoded] of [
+      [65535, [0xe2, 0x82, 0xac], "€"],
+      [65535, [0xed, 0xa0, 0x80], "�"],
+      [65532, [0xe2, 0x82, 0xac, 0x80, 0x80], "€��"],
+    ] as const) {
+      const prefix = "a".repeat(prefixLength);
+      const input = Buffer.concat([Buffer.from(prefix), Buffer.from(suffix)]);
+      const result = await execute([flags, "."], toByteSource(input), { limits: { maxSteps: 1000000, maxOutputBytes: 128 * 1024 } });
+      assert.equal(result.status, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.ok(result.stdout.startsWith(prefix));
+      assert.equal(result.stdout.slice(prefix.length), decoded + "\n");
+    }
+  }
+});
+
 test("raw downstream EPIPE propagates and closes the iterator", async () => {
   let closed = false;
   async function* source() { try { yield Buffer.from("first\nsecond\n"); } finally { closed = true; } }

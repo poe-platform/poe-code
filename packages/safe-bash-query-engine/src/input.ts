@@ -1,4 +1,5 @@
 import { readBytes, type ByteSource } from "safe-bash-contracts";
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { Budget, hasCustomKeyOrder, JqError, JqLimitError, object, objectKeyIterator, objectSize, put, scalarJson, type Json } from "./limits.js";
 import { Decimal, numericToken, isNumber, SMALL_DECIMALS } from "./numbers.js";
 
@@ -918,6 +919,22 @@ export async function* rawValues(sources: AsyncIterable<ByteSource>, budget: Bud
     if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
     buffer += text;
   };
+  const appendDecoded = async (raw: string): Promise<void> => {
+    for (let offset = 0; offset < raw.length;) {
+      const limit = Math.min(raw.length, offset + 65536);
+      let end = limit, lead = limit;
+      // Keep a possible UTF-8 sequence together, including malformed sequences
+      // that jq replaces as one unit rather than one replacement per byte.
+      while (lead < raw.length && lead > limit - 3 && lead > offset &&
+        raw.charCodeAt(lead) >= 0x80 && raw.charCodeAt(lead) <= 0xbf) lead--;
+      const first = raw.charCodeAt(lead);
+      const width = first >= 0xc2 && first <= 0xdf ? 2 : first >= 0xe0 && first <= 0xef ? 3 : first >= 0xf0 && first <= 0xf4 ? 4 : 1;
+      if (width > 1 && lead + width > limit) end = lead;
+      if (raw.length > 65536) await yieldTurn(budget.signal);
+      append(decodeUtf8(raw.slice(offset, end), budget));
+      offset = end;
+    }
+  };
   for await (const source of sources) {
     let pending = "";
     for await (const chunk of readChunks(source, budget)) {
@@ -925,12 +942,12 @@ export async function* rawValues(sources: AsyncIterable<ByteSource>, budget: Bud
       pending += Buffer.from(chunk).toString("latin1");
       if (pending.length + bytes - (!slurp && pending.endsWith("\n") ? 1 : 0) > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
       if (pending.endsWith("\n")) {
-        append(decodeUtf8(slurp ? pending : pending.slice(0, -1), budget));
+        await appendDecoded(slurp ? pending : pending.slice(0, -1));
         pending = "";
         if (!slurp) { budget.value(buffer); yield buffer; buffer = ""; bytes = 2; }
       }
     }
-    append(decodeUtf8(pending, budget));
+    await appendDecoded(pending);
   }
   if (slurp || buffer) { budget.value(buffer); yield buffer; }
 }

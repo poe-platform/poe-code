@@ -157,7 +157,8 @@ test("path validation does not collapse symlink-sensitive components", async (co
 test("invalid values and flags reject without data loss", async (context) => {
   const { overlay } = await fixture(context);
   await overlay.writeFile("/file", encode("value"));
-  for (const maxBytes of [-1, NaN, Infinity, 0.5]) await assert.rejects(overlay.readFile("/file", { maxBytes }), errno("EINVAL"));
+  for (const maxBytes of [-1, NaN, 0.5]) await assert.rejects(overlay.readFile("/file", { maxBytes }), errno("EINVAL"));
+  assert.equal(decode(await overlay.readFile("/file", { maxBytes: Infinity })), "value");
   for (const mode of [-1, NaN, 0o10000, 0.5]) await assert.rejects(overlay.writeFile("/file", encode("bad"), { mode }), errno("EINVAL"));
   await assert.rejects(overlay.writeFile("/file", encode("bad"), { flag: "invalid" as "w" }), errno("EINVAL"));
   await assert.rejects(overlay.writeFile("/file", "bad" as unknown as Uint8Array), TypeError);

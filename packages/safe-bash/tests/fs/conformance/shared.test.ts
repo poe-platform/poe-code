@@ -202,7 +202,7 @@ const checks: Record<string, Check> = {
   },
   "malformed read limits reject EINVAL": async (fs) => {
     await fs.writeFile("/file", binary);
-    for (const maxBytes of [-1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+    for (const maxBytes of [-1, 1.5, NaN, Number.MAX_SAFE_INTEGER + 1]) {
       await assert.rejects(fs.readFile("/file", { maxBytes }), errno("EINVAL"));
     }
   },
@@ -235,6 +235,15 @@ const checks: Record<string, Check> = {
 };
 
 for (const adapter of adapters) {
+  test(`${adapter.name}: explicit unlimited reads retain the current provider contract`, async (context) => {
+    const { fs } = await adapter.create(context);
+    await fs.writeFile("/file", binary);
+    if (adapter.name === "s3" || adapter.name === "webdav") {
+      assert.deepEqual(await fs.readFile("/file", { maxBytes: Infinity }), binary);
+    } else {
+      await assert.rejects(fs.readFile("/file", { maxBytes: Infinity }), errno("EINVAL"));
+    }
+  });
   for (const [name, check] of Object.entries(checks)) {
     test(`${adapter.name}: shared ${name}`, { timeout: 20000 }, async (context) => {
       const { fs } = await adapter.create(context);

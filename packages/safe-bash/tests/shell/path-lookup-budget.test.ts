@@ -297,7 +297,7 @@ test("PATH cache bounds entries and bytes without resetting the filesystem ledge
 
 test("which retains its own component limit and shares the shell filesystem ledger", async context => {
   const { fs, commands, shell } = fixture(context);
-  commands.register(createWhichCommand());
+  commands.register(createWhichCommand({ limits: { maxPathComponents: 4096 } }));
   const stat = context.mock.method(fs, "stat");
   await assert.rejects(shell.exec("which missing", { limits: { maxFileSystemOperations: 1 } }), limitIs("maxFileSystemOperations"));
   assert.equal(stat.mock.callCount(), 1);

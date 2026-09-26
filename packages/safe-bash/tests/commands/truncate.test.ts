@@ -194,7 +194,7 @@ test("truncate configured default umask applies only to creation", async () => {
 
 test("truncate configured settings reject invalid metadata options synchronously", () => {
   for (const options of [{ umask: -1 }, { umask: 0o1000 }, { umask: 0.5 },
-    { limits: { maxEntries: 0 } }, { limits: { maxOutputBytes: Infinity } },
+    { limits: { maxEntries: 0 } }, { limits: { maxOutputBytes: -Infinity } },
     { limits: { maxArgumentBytes: NaN } }, { limits: { maxDepth: -1 } },
     { limits: { maxAttempts: 0 } }]) assert.throws(() => truncateCommand(options), RangeError);
 });
@@ -285,12 +285,21 @@ test("truncate configured output cap includes earlier ordinary and outer diagnos
   assert.equal(opens, 2);
 });
 
-test("truncate configured default output cap is one MiB without diagnostic truncation", async () => {
+test("truncate configured output cap rejects whole diagnostics above one MiB", async () => {
   const setup = fixture();
   setup.fs.stat = async () => { throw new PublicDiagnostic("x".repeat(1024 * 1024)); };
-  const result = await resize(["-r", "reference", "new"], { fs: setup.fs });
+  const result = await resize(["-r", "reference", "new"], { fs: setup.fs }, { limits: { maxOutputBytes: 1024 * 1024 } });
   assert.equal(result.exitCode, 1);
   assert.equal(result.stderrHex, "");
+});
+
+for (const limits of [undefined, { maxOutputBytes: Infinity }]) test(`truncate unlimited output preserves a whole diagnostic above one MiB: ${limits ? "explicit" : "default"}`, async () => {
+  const setup = fixture();
+  const detail = "x".repeat(1024 * 1024);
+  setup.fs.stat = async () => { throw new PublicDiagnostic(detail); };
+  const result = await resize(["-r", "reference", "new"], { fs: setup.fs }, limits ? { limits } : {});
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stderrHex, Buffer.from(`truncate: ${detail}\n`).toString("hex"));
 });
 
 test("truncate configured output budget cannot raise the fixed hard ceiling", async () => {

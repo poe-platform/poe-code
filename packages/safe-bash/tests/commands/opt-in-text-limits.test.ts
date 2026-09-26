@@ -38,10 +38,6 @@ async function run(command: string, args: string[], options: { stdin?: string; c
 }
 
 const finiteDefaults: Record<string, Record<string, number>> = {
-  column: { maxRows: 10_000, maxCells: 50_000, maxFields: 1_000, maxWidth: 65_536, maxRetainedBytes: 8_388_608 },
-  table: { maxGroupBytes: 8_388_608, maxGroupRecords: 4096 },
-  format: { maxRecordBytes: 1_048_576, maxNumericDigits: 1024 },
-  pr: { maxColumns: 256, maxPageWidth: 16_384, maxBufferedBytes: 8_388_608 },
   xml: {
     maxInputBytes: 8_388_608, maxOutputBytes: 8_388_608, maxSourceBytes: 65_536,
     maxDepth: 64, maxNodes: 10_000, maxAttributes: 10_000,

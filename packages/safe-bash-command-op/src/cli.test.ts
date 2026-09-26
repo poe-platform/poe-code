@@ -843,3 +843,13 @@ test("document metadata omits content but document get preserves the exact body"
   const output = renderOpOutput(document, { resource: "document", action: "get", args: ["doc"], flags: {} });
   assert.deepEqual(output, document.content);
 });
+
+test("JSON input has no implicit byte ceiling", async () => {
+  const run = fixture(["item", "create"]);
+  run.context.stdin = (async function* () {
+    yield new Uint8Array(16 * 1024 * 1024 + 1).fill(32);
+    yield new TextEncoder().encode('{"title":"Large"}');
+  })();
+  assert.equal((await run.command.execute(run.context)).exitCode, 0, Buffer.concat(run.errors).toString());
+  assert.deepEqual((run.requests[0] as { input: unknown }).input, { title: "Large" });
+});

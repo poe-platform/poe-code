@@ -280,8 +280,7 @@ Other root APIs include `parseSecretReference`, `renderOpOutput`,
 `parseOpFileMode`, `createOpTextCodec`, `selectOpGlobalFlags`,
 `selectOpBackendContext` and the item/document/secret/environment handler factories.
 `createDocumentHandlers(backend, { maxBytes? })` and prepared source acquisition
-default to `Infinity`. Explicit finite document limits remain available. Common
-non-document stdin retains its existing separate bound. Internal handler-preparation helpers are not public package exports.
+default to `Infinity`. Explicit finite document limits remain available. JSON input and item-template stdin also have no implicit byte ceiling. Internal handler-preparation helpers are not public package exports.
 
 ## Verification and remaining scope
 

@@ -206,7 +206,6 @@ async function readInput(context: OpCommandContext, encoding: unknown): Promise<
   for await (const chunk of context.stdin) {
     context.signal.throwIfAborted();
     length += chunk.byteLength;
-    if (length > 16 * 1024 * 1024) throw new Error("stdin exceeds 16 MiB");
     chunks.push(Uint8Array.from(chunk));
   }
   if (length === 0) return { input: undefined, chunks };

@@ -28,12 +28,9 @@ async function stdinText(context: OpCommandContext, encoding: unknown): Promise<
   const decoder = createOpTextCodec(encoding).decoder({ fatal: true });
   const iterator = context.stdin[Symbol.asyncIterator]();
   let source = "";
-  let length = 0;
   while (true) {
     const next = await cancellable(context.signal, () => iterator.next());
     if (next.done) break;
-    length += next.value.byteLength;
-    if (length > 16 * 1024 * 1024) throw new Error("Item template stdin exceeds 16 MiB");
     source += decoder.decode(next.value, { stream: true });
   }
   return (source + decoder.decode()).trim();

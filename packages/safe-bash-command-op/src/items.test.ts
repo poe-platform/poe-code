@@ -207,3 +207,13 @@ test("a later attachment failure does not persist or output a partially loaded i
   assert.deepEqual(run.reads, ["first.bin", "missing.bin"]);
   assert.equal(run.output(), "");
 });
+
+test("stdin item templates have no implicit byte ceiling", async () => {
+  const run = fixture(["item", "create", "-", "--vault", "Private"]);
+  run.context.stdin = (async function* () {
+    yield new Uint8Array(16 * 1024 * 1024 + 1).fill(32);
+    yield encoder.encode('{"title":"Large","category":"LOGIN"}');
+  })();
+  assert.equal((await createOp({ backend: run.backend }).execute(run.context)).exitCode, 0, run.errors());
+  assert.ok(run.backend.snapshot().items?.some(item => item.title === "Large"));
+});

@@ -227,7 +227,6 @@ const budgetedSinks = {
   get(sink: ByteSink) {
     if (
       (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) ||
-      (sink instanceof MemoryRedirectSink && sink.write === MemoryRedirectSink.prototype.write) ||
       (sink instanceof BudgetedPipeStageSink && sink.write === BudgetedPipeStageSink.prototype.write)
     ) {
       return sink;
@@ -243,9 +242,6 @@ const budgetedSinks = {
 const syncSinks = {
   get(sink: ByteSink) {
     if (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) {
-      return (chunk: Uint8Array) => sink.writeSync(chunk);
-    }
-    if (sink instanceof MemoryRedirectSink && sink.write === MemoryRedirectSink.prototype.write) {
       return (chunk: Uint8Array) => sink.writeSync(chunk);
     }
     if (sink instanceof Capture && sink.write === Capture.prototype.write) {
@@ -1219,62 +1215,6 @@ class BudgetedSyncSink implements ByteSink {
   }
 }
 
-const EMPTY_REDIRECT_BYTES = new Uint8Array(0);
-
-class MemoryRedirectSink implements ByteSink {
-  declare readonly self: ByteSink;
-  declare readonly budget: Budget;
-  declare readonly backingFs: FileSystem;
-  declare readonly path: string;
-  declare readonly mode: number;
-  declare readonly signal: AbortSignal;
-  declare append: boolean;
-  declare file: NonNullable<CommandContext["stdoutFile"]>;
-
-  constructor(
-    budget: Budget,
-    backingFs: FileSystem,
-    path: string,
-    append: boolean,
-    mode: number,
-    signal: AbortSignal,
-    file?: NonNullable<CommandContext["stdoutFile"]>,
-  ) {
-    this.self = this;
-    this.budget = budget;
-    this.backingFs = backingFs;
-    this.path = path;
-    this.append = append;
-    this.mode = mode;
-    this.signal = signal;
-    this.file = file ?? Object.freeze({ path });
-  }
-
-  writeSync(chunk: Uint8Array): boolean {
-    this.signal.throwIfAborted();
-    if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
-    const budget = this.budget;
-    if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
-    if (chunk.byteLength > 0) {
-      if (!tryWriteMemoryFileSync(this.backingFs, this.path, chunk, this.append, this.mode, this.signal)) {
-        throw new FsError("EIO", { path: this.path, syscall: "write" });
-      }
-      budget.bytes += chunk.byteLength;
-      this.append = true;
-    }
-    return true;
-  }
-
-  write(chunk: Uint8Array): Promise<void> {
-    try {
-      this.writeSync(chunk);
-      return resolvedVoid;
-    } catch (error) {
-      return Promise.reject(error);
-    }
-  }
-}
-
 class BudgetedPipeStageOwnedSink {
   declare readonly parent: BudgetedPipeStageSink;
   constructor(parent: BudgetedPipeStageSink) {
@@ -1392,9 +1332,6 @@ function pollIncomingPipe(this: { incoming: { readiness(): "ready" | "eof" | "bl
 function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
   if (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) {
     return sink.signal === signal ? sink : new BudgetedSyncSink(sink.budget, sink.target, signal, sink.file);
-  }
-  if (sink instanceof MemoryRedirectSink && sink.write === MemoryRedirectSink.prototype.write) {
-    return sink.signal === signal ? sink : new MemoryRedirectSink(sink.budget, sink.backingFs, sink.path, sink.append, sink.mode, signal, sink.file);
   }
   const ownership = budgetedSinks.get(sink);
   const owned = ownership?.write === sink.write ? ownership : undefined;
@@ -3176,6 +3113,7 @@ export class Runtime {
 
   private get canFastMemoryRedirect(): boolean {
     return this._canFastMemoryRedirect ??= (
+      this.budget.limits.maxPathnameComponents === Infinity &&
       !this.backingFs.capabilitiesFor &&
       this.sourceFs.capabilities.open === true &&
       this.sourceFs.capabilities.preferStreamingRedirection !== true &&
@@ -7466,44 +7404,6 @@ export class Runtime {
     }
   }
 
-  private tryFastMemoryOutputRedirect(redirect: Redirect, state: State, io: IO, line: number): IO | undefined {
-    if (
-      this.budget.limits.maxRedirects < 1 ||
-      redirect.document ||
-      redirect.descriptor !== 1 ||
-      (redirect.operator !== ">" && redirect.operator !== ">>" && !(redirect.operator === ">|" && state.noclobber)) ||
-      (redirect.operator === ">" && state.noclobber) ||
-      !this._isMemoryBackingFs ||
-      (this.backingFs as { capabilitiesFor?: unknown }).capabilitiesFor !== undefined ||
-      !this.budget.canFileSystemOperation() ||
-      !this.isPureArgWord(redirect.target, state)
-    ) {
-      return undefined;
-    }
-    let targetVal: ShellValue | undefined;
-    try {
-      targetVal = this.fastValueWord(redirect.target, state, io, true, false, false, true, undefined, line);
-    } catch {
-      return undefined;
-    }
-    if (typeof targetVal !== "string" || targetVal.length === 0 || targetVal.includes("\0")) return undefined;
-    const path = pathOf(state, targetVal);
-    if (path.startsWith("/dev/") || path === "/dev") return undefined;
-    const append = redirect.operator === ">>";
-    const mode = 0o666 & ~(state.umask ?? 0o022);
-    try {
-      if (!tryWriteMemoryFileSync(this.backingFs, path, EMPTY_REDIRECT_BYTES, append, mode, this.commandSignal)) {
-        return undefined;
-      }
-    } catch {
-      this.signal.throwIfAborted();
-      return undefined;
-    }
-    this.budget.fileSystemOperation();
-    const output = new MemoryRedirectSink(this.budget, this.backingFs, path, append, mode, this.commandSignal);
-    return { ...io, stdout: output };
-  }
-
   async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number): Promise<IO> {
     this.signal.throwIfAborted();
     if (redirects.length > this.budget.limits.maxRedirects) this.budget.fail("maxRedirects");
@@ -8052,17 +7952,7 @@ export class Runtime {
           }
           } finally { try { await copyOwner?.close(); } finally { holding?.release(); stateMonitor(redirectState)?.closeValues(); } }
         }
-      } else io = (
-        !inlineInput &&
-        !fileShortcut &&
-        command.redirects.length === 1 &&
-        words.length > 0 &&
-        FAST_DIRECT_CONTEXT_COMMANDS.has(words[0]!) &&
-        !functionCommand &&
-        !state.extensions?.builtins.has(words[0]!)
-          ? this.tryFastMemoryOutputRedirect(command.redirects[0]!, state, io, command.line ?? 1)
-          : undefined
-      ) ?? await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput, !words.length || shellBuiltinNames.has(words[0]!) || !!state.extensions?.builtins.has(words[0]!) || functionCommand, fileShortcut, command.line ?? 1);
+      } else io = await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput, !words.length || shellBuiltinNames.has(words[0]!) || !!state.extensions?.builtins.has(words[0]!) || functionCommand, fileShortcut, command.line ?? 1);
       if (terminal) {
         terminal.io = io;
         await terminal.frame.reconcile(io.descriptors!);

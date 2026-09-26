@@ -4,6 +4,7 @@ import { CommandRegistry, writeText } from "../../src/contracts/index.js";
 import { standardCommands } from "../../src/commands/index.js";
 import { Shell, ShellLimitError } from "../../src/shell/index.js";
 import { fixture } from "./helpers.js";
+import { textProgramCommands } from "../../src/commands/text-programs/index.js";
 
 test("standard tools compose in a filtering, transforming, sorting and tee pipeline", async () => {
   const fs = await fixture();
@@ -69,4 +70,26 @@ test("recursive tool invocation shares shell command limits", async () => {
   const fs = await fixture();
   const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands());
   await assert.rejects(shell.exec("printf 'one two three' | xargs -n 1 echo", { limits: { maxCommands: 3 } }), error => error instanceof ShellLimitError);
+});
+
+test("sed pipeline output remains owned across buffer flushes before the consumer reads", async t => {
+  const input = "alpha beta\n".repeat(7000);
+  const fs = await fixture({ input });
+  let complete!: () => void;
+  const completed = new Promise<void>(resolve => { complete = resolve; });
+  const commands = new CommandRegistry([{ name: "delayed", async execute(context) {
+    await completed;
+    for await (const chunk of context.stdin) await context.stdout.write(chunk);
+    return { exitCode: 0 };
+  } }]);
+  const shell = new Shell({ fs, commands, cwd: "/work", limits: { pipeHighWaterMark: 128 * 1024 } })
+    .use(standardCommands()).use(textProgramCommands());
+  t.after(() => shell.dispose());
+  shell.use(async (context, next) => {
+    if (context.command !== "sed") return next();
+    try { return await next(); } finally { complete(); }
+  });
+  const result = await shell.exec("sed 's/a/A/g' input | delayed");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, input.replaceAll("a", "A"));
 });

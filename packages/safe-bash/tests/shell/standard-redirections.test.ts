@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { setup } from "./helpers.js";
+import { standardCommands } from "../../src/commands/index.js";
+import { textProgramCommands } from "../../src/commands/text-programs/index.js";
 
 for (const [name, source, expected] of [
   ["implicit both output", 'both >& out; pass < out', 'out\nerr\n'],
@@ -51,3 +53,39 @@ test("readwrite redirection drains short descriptor writes", async () => {
     assert.equal(result.exitCode, 0);
   } finally { await shell.dispose(); }
 });
+
+for (const extraRedirect of ["", " 2>/dev/null"]) {
+  for (const [source, expected] of [
+    ['sed -e "w /out" -e "s/longer-first-line/short/" /input', "short\n-first-line\n"],
+    ['awk \'{ print "from-file-longer-text" >> "/out"; print "short" }\' /input', "short\nile-longer-text\n"],
+  ]) {
+    test(`output redirect preserves trailing bytes written independently: ${source}${extraRedirect}`, async t => {
+      const { shell, fs } = setup();
+      t.after(() => shell.dispose());
+      shell.use(standardCommands()).use(textProgramCommands());
+      await fs.writeFile("/input", new TextEncoder().encode("longer-first-line\n"));
+      const result = await shell.exec(`${source} > /out${extraRedirect}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "");
+      assert.equal(new TextDecoder().decode(await fs.readFile("/out")), expected);
+    });
+  }
+}
+
+for (const operator of [">", ">>"]) {
+  test(`output redirect ${operator} retains its opened file after a rename`, async t => {
+    const { shell, fs, commands } = setup();
+    t.after(() => shell.dispose());
+    await fs.writeFile("/out", new TextEncoder().encode("before\n"));
+    commands.register({ name: "sed", async execute(context) {
+      await context.fs.rename("/out", "/moved");
+      await context.fs.writeFile("/out", new TextEncoder().encode("replacement\n"));
+      await context.stdout.write(new TextEncoder().encode("after\n"));
+      return { exitCode: 0 };
+    } });
+    const result = await shell.exec(`sed ${operator} /out`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/moved")), operator === ">>" ? "before\nafter\n" : "after\n");
+    assert.equal(new TextDecoder().decode(await fs.readFile("/out")), "replacement\n");
+  });
+}

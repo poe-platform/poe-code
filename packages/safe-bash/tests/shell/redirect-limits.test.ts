@@ -5,6 +5,8 @@ import { setup } from "./helpers.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { createMountFileSystem } from "poe-code/safe-fs/core";
 import { streamCommands } from "../../src/commands/streams.js";
+import { standardCommands } from "../../src/commands/index.js";
+import { textProgramCommands } from "../../src/commands/text-programs/index.js";
 
 function fixture(t: TestContext, limits: ShellLimits = {}) {
   const instance = setup({ limits });
@@ -13,6 +15,33 @@ function fixture(t: TestContext, limits: ShellLimits = {}) {
 }
 
 const redirectLimit = (error: unknown): boolean => error instanceof ShellLimitError && error.limit === "maxRedirects";
+
+for (const source of [
+  "echo hello > /a/b/c/out",
+  "printf hello >> /a/b/c/out",
+  'sed "s/hello/world/" /input > /a/b/c/out',
+  "awk '{ print }' /input >> /a/b/c/out",
+  "for ((i=0; i<2; i++)); do echo hello > /a/b/c/out$i; done",
+  "for ((i=0; i<2; i++)); do printf hello >> /a/b/c/out$i; done",
+]) {
+  test(`pathname component admission precedes optimized redirect effects: ${source}`, async t => {
+    const { shell, fs } = fixture(t, { maxPathnameComponents: 2 });
+    shell.use(standardCommands()).use(textProgramCommands());
+    await fs.mkdir("/a/b/c", { recursive: true });
+    await fs.writeFile("/input", new TextEncoder().encode("hello\n"));
+    for (const path of ["/a/b/c/out", "/a/b/c/out0", "/a/b/c/out1"]) {
+      await fs.writeFile(path, new TextEncoder().encode("preserved\n"));
+    }
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /ENAMETOOLONG/u);
+    for (const path of ["/a/b/c/out", "/a/b/c/out0", "/a/b/c/out1"]) {
+      assert.equal(new TextDecoder().decode(await fs.readFile(path)), "preserved\n");
+    }
+    assert.equal((await shell.exec("echo admitted > /a/out")).exitCode, 0);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/a/out")), "admitted\n");
+  });
+}
 
 test("zero redirect capacity permits commands and ordinary pipelines but rejects one redirect", async t => {
   const { shell } = fixture(t, { maxRedirects: 0 });

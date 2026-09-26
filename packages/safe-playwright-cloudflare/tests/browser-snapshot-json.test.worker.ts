@@ -10,6 +10,7 @@ import type { PlaywrightSnapshotJSONNode, PlaywrightLease } from "@poe-platform/
 import { captureBrowserSnapshotJSON } from "../src/browser-snapshot-json";
 import { collectRendererCoverage } from "./browser-native-coverage.worker";
 import { createCloudflarePlaywrightAdapter } from "../src/index";
+import { failureText } from "./browser-native-failure";
 
 function flatten(nodes: readonly PlaywrightSnapshotJSONNode[]) {
 	const result = [...nodes];
@@ -62,6 +63,7 @@ export default {
 			});
 			let output = "";
 			const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write(text) { output += text; } });
+			const failures: unknown[] = [];
 			try {
 				await run(["open"]);
 				assert.ok(lease);
@@ -98,12 +100,15 @@ export default {
 				await page.setContent("<button>Recovered</button>");
 				await run(["snapshot", "--json"]);
 				assert.equal(acquisitions, 1);
-				return Response.json({ ok: true });
 			} catch (error) {
-				return Response.json({ error: String(error) }, { status: 500 });
+				failures.push(error);
 			} finally {
-				await controller.dispose();
+				try { await controller.dispose(); }
+				catch (error) { failures.push(error); }
 			}
+			return failures.length
+				? Response.json({ error: failureText(new AggregateError(failures, "Snapshot operation or disposal failed")) }, { status: 500 })
+				: Response.json({ ok: true });
 		}
 		if (["/public-frames", "/public-unlimited", "/public-identities"].includes(new URL(request.url).pathname)) {
 			const lease = await createCloudflarePlaywrightAdapter(

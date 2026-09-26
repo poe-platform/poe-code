@@ -1273,7 +1273,7 @@ test("op build dependency capture rejects added files and symlinks before payloa
 });
 
 test("snapshot binds generated op output without excluding its directory or accepting drift", () => {
-  const path = "packages/op/dist/index.d.ts";
+  const path = "packages/safe-bash-command-op/dist/index.d.ts";
   const fixture = syntheticDist([["package.json", "committed"], [path, "built"]]);
   const committed = new Map([["package.json", Buffer.from("committed")]]);
   const generated = [{ path, sha256: digest("built") }];
@@ -1282,7 +1282,7 @@ test("snapshot binds generated op output without excluding its directory or acce
   fixture.records.get(path).bytes = Buffer.from("drift");
   assert.throws(check, /snapshot input changed/);
   fixture.records.get(path).bytes = Buffer.from("built");
-  fixture.records.set("packages/op/dist/unbound.js", { kind: "file", bytes: Buffer.from("extra") });
+  fixture.records.set("packages/safe-bash-command-op/dist/unbound.js", { kind: "file", bytes: Buffer.from("extra") });
   assert.throws(check, /snapshot contains missing or new committed inputs/);
 });
 
@@ -1606,12 +1606,12 @@ async function withRepository(change, run, { localTypes = false } = {}) {
       "node_modules/@poe-platform/safe-bash": { resolved: packagePrefix, link: true },
       "node_modules/poe-code": { resolved: "", link: true },
     } };
-    const op = { name: "@poe-platform/op", private: true, type: "module", exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } } };
-    put("packages/op/package.json", JSON.stringify(op));
-    put("packages/op/tsconfig.json", readRegularInput(resolve(authority, "../op"), "tsconfig.json", 300000));
-    put("packages/op/src/index.ts", "export interface SyntheticOpBackend { name: string }\n");
-    lock.packages["packages/op"] = { name: op.name };
-    lock.packages["node_modules/@poe-platform/op"] = { resolved: "packages/op", link: true };
+    const op = { name: "safe-bash-command-op", private: true, type: "module", exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } } };
+    put("packages/safe-bash-command-op/package.json", JSON.stringify(op));
+    put("packages/safe-bash-command-op/tsconfig.json", readRegularInput(resolve(authority, "../safe-bash-command-op"), "tsconfig.json", 300000));
+    put("packages/safe-bash-command-op/src/index.ts", "export interface SyntheticOpBackend { name: string }\n");
+    lock.packages["packages/safe-bash-command-op"] = { name: op.name };
+    lock.packages["node_modules/safe-bash-command-op"] = { resolved: "packages/safe-bash-command-op", link: true };
     const sourceLock = JSON.parse(readRegularInput(resolve(authority, "../.."), "package-lock.json", 16 * 1024 * 1024));
     for (const name of ["@noble/hashes", "pako"]) lock.packages[`node_modules/${name}`] = structuredClone(sourceLock.packages[`node_modules/${name}`]);
     for (const identity of Object.values(resolveTools().identities)) lock.packages[relative(resolve(authority, "../.."), identity.root)] = { version: identity.version };
@@ -1976,10 +1976,10 @@ for (const [profile, localTypes] of [["packed-root", false], ["checkout-root", f
     assert.ok(build);
     assert.deepEqual(build.args, ["scripts/build.mjs"]);
     assert.ok(report.blobReads.includes(`${packagePrefix}/scripts/build.mjs`));
-    assert.ok(report.blobReads.includes("packages/op/src/index.ts"));
-    assert.ok(report.archivePaths.includes("packages/op/tsconfig.json"));
+    assert.ok(report.blobReads.includes("packages/safe-bash-command-op/src/index.ts"));
+    assert.ok(report.archivePaths.includes("packages/safe-bash-command-op/tsconfig.json"));
     assert.ok(report.steps.find(step => step.label === "isolated committed op compiler build"));
-    assert.ok(report.op.emitted.some(entry => entry.path === "packages/op/dist/index.d.ts"));
+    assert.ok(report.op.emitted.some(entry => entry.path === "packages/safe-bash-command-op/dist/index.d.ts"));
     assert.ok(report.archivePaths.includes(`${packagePrefix}/scripts/build.mjs`));
     assert.ok(report.blobReads.includes(`${packagePrefix}/scripts/generate-native-storage-sources.mjs`));
     assert.ok(report.archivePaths.includes(`${packagePrefix}/scripts/generate-native-storage-sources.mjs`));
@@ -2000,12 +2000,12 @@ for (const [profile, localTypes] of [["packed-root", false], ["checkout-root", f
 
 for (const defect of ["config", "source-symlink", "source-case-alias", "workspace-link"]) test(`committed op prerequisite rejects ${defect} before build`, async () => {
   await withRepository(fixture => {
-    if (defect === "config") fixture.put("packages/op/tsconfig.json", '{"extends":"../../outside.json"}');
-    if (defect === "source-case-alias") fixture.indexEntries.push({ path: "packages/op/src/Index.ts", bytes: "export {};\n" });
-    if (defect === "workspace-link") fixture.lock.packages["node_modules/@poe-platform/op"].resolved = "packages/other";
+    if (defect === "config") fixture.put("packages/safe-bash-command-op/tsconfig.json", '{"extends":"../../outside.json"}');
+    if (defect === "source-case-alias") fixture.indexEntries.push({ path: "packages/safe-bash-command-op/src/Index.ts", bytes: "export {};\n" });
+    if (defect === "workspace-link") fixture.lock.packages["node_modules/safe-bash-command-op"].resolved = "packages/other";
     if (defect === "source-symlink") {
-      rmSync(join(fixture.repository, "packages/op/src/index.ts"));
-      symlinkSync("../../other.ts", join(fixture.repository, "packages/op/src/index.ts"));
+      rmSync(join(fixture.repository, "packages/safe-bash-command-op/src/index.ts"));
+      symlinkSync("../../other.ts", join(fixture.repository, "packages/safe-bash-command-op/src/index.ts"));
     }
   }, fixture => {
     assert.throws(() => inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output), defect === "config" ? /op compiler config/ : defect === "workspace-link" ? /op workspace link/ : defect === "source-case-alias" ? /case alias of committed op source/ : /not a regular committed input/);
@@ -2015,15 +2015,15 @@ for (const defect of ["config", "source-symlink", "source-case-alias", "workspac
 
 test("committed private op source is built and bundled into the packed runtime", { timeout: 180000 }, async () => {
   await withRepository(fixture => {
-    fixture.put("packages/op/src/index.ts", 'import { createTextEncoder } from "@kayahr/text-encoding/no-encodings"; export const opMarker = createTextEncoder("utf-8").encode("captured");\n');
-    fixture.put(`${packagePrefix}/src/commands/op/index.ts`, 'export { opMarker } from "@poe-platform/op";\n');
+    fixture.put("packages/safe-bash-command-op/src/index.ts", 'import { createTextEncoder } from "@kayahr/text-encoding/no-encodings"; export const opMarker = createTextEncoder("utf-8").encode("captured");\n');
+    fixture.put(`${packagePrefix}/src/commands/op/index.ts`, 'export { opMarker } from "safe-bash-command-op";\n');
     const index = `${packagePrefix}/src/index.ts`;
     fixture.put(index, readFileSync(join(fixture.repository, index), "utf8") + 'export { opMarker } from "./commands/op/index.js";\n');
     const sourceLock = JSON.parse(readRegularInput(resolve(authority, "../.."), "package-lock.json", 16 * 1024 * 1024));
-    const op = JSON.parse(readFileSync(join(fixture.repository, "packages/op/package.json"), "utf8"));
-    op.dependencies = structuredClone(sourceLock.packages["packages/op"].dependencies);
-    fixture.put("packages/op/package.json", JSON.stringify(op));
-    fixture.lock.packages["packages/op"].dependencies = structuredClone(op.dependencies);
+    const op = JSON.parse(readFileSync(join(fixture.repository, "packages/safe-bash-command-op/package.json"), "utf8"));
+    op.dependencies = structuredClone(sourceLock.packages["packages/safe-bash-command-op"].dependencies);
+    fixture.put("packages/safe-bash-command-op/package.json", JSON.stringify(op));
+    fixture.lock.packages["packages/safe-bash-command-op"].dependencies = structuredClone(op.dependencies);
     for (const name of [...Object.keys(op.dependencies), "esbuild", `@esbuild/${process.platform}-${process.arch}`]) fixture.lock.packages[`node_modules/${name}`] = structuredClone(sourceLock.packages[`node_modules/${name}`]);
   }, async fixture => {
     const report = await verifyCommittedExports({ repository: fixture.repository });

@@ -1,5 +1,5 @@
 import { deriveItemFieldReferences, parseSecretReference } from "./references.js";
-import { opCrypto } from "#op-crypto";
+import { opCrypto } from "./crypto.js";
 import { generateOtp } from "./otp.js";
 import { createAccountScope, executeAdmittedAdminRequest } from "./admin.js";
 import { beginAuthentication, validateAuthentication } from "./auth.js";

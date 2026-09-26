@@ -589,7 +589,7 @@
     "typescript": "5.9",
     "@poe-code/safe-fs": "*",
     "pptx": "*",
-    "@poe-platform/op": "*",
+    "safe-bash-command-op": "*",
     "@poe-code/pandoc": "*",
     "@poe-code/safe-playwright": "*",
     "safe-bash-contracts": "*",
@@ -1020,6 +1020,19 @@
           },
           "devDependencies": {},
           "publicAlias": "poe-code/ssconvert"
+        },
+        "safe-bash-command-op": {
+          "version": "0.0.1",
+          "dependencies": {
+            "@kayahr/text-encoding": "^2.2.0"
+          },
+          "devDependencies": {
+            "@types/node": "^25.2.2",
+            "memfs": "4.56.10",
+            "tsx": ">=4.21.0",
+            "typescript": "^5.9.3"
+          },
+          "portable": true
         }
       }
     }

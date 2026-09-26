@@ -1,4 +1,4 @@
-import { opCrypto } from "#op-crypto";
+import { opCrypto } from "./crypto.js";
 
 function decodeBase32(value: string): Uint8Array<ArrayBuffer> {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";

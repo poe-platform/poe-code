@@ -196,3 +196,24 @@ test("public document output refuses an existing file unless force is explicit",
   assert.deepEqual(run.fs.readFileSync("/saved"), Buffer.from(bytes));
   assert.equal(run.output.length, 0);
 });
+
+for (const maxBytes of [undefined, Infinity]) {
+  test(`documents accept payloads above 16 MiB with maxBytes=${maxBytes}`, async () => {
+    const bytes = new Uint8Array(16 * 1024 * 1024 + 1);
+    for (const source of ["stdin", "file", "download"]) {
+      const run = fixture(source === "download" ? ["document", "get", "doc"] : ["document", "create", source === "file" ? "/large" : "-"], bytes, maxBytes);
+      run.context.readFile = async () => bytes;
+      run.context.stdin = (async function* () { yield bytes; })();
+      assert.equal((await run.command.execute(run.context)).exitCode, 0);
+      if (source === "download") assert.equal(run.output[0]!.byteLength, bytes.byteLength);
+      else assert.equal((run.requests[0]!.input as { content: Uint8Array }).content.byteLength, bytes.byteLength);
+    }
+  });
+}
+
+test("document limits reject invalid values", () => {
+  const backend: OpBackend = { async execute() {} };
+  for (const maxBytes of [-1, NaN, 0.5, -Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+    assert.throws(() => createDocumentHandlers(backend, { maxBytes }), /maxBytes/);
+  }
+});

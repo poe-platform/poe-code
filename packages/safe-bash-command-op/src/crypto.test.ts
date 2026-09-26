@@ -50,13 +50,13 @@ test("Node OTP matches RFC 6238 without global crypto", async () => {
   });
 });
 
-test("browser crypto exports the host native provider and fails closed when absent", async () => {
+test("portable crypto exports the host native provider and fails closed when absent", async () => {
   await withGlobalCrypto(webcrypto, async () => {
-    const module = await import(new URL("./crypto-browser.js?available", import.meta.url).href);
+    const module = await import(new URL("./crypto.js?available", import.meta.url).href);
     assert.equal(module.opCrypto, webcrypto);
   });
   await withGlobalCrypto(undefined, async () => {
-    await assert.rejects(import(new URL("./crypto-browser.js?unavailable", import.meta.url).href), { message: "Secure Web Crypto is required for op" });
+    await assert.rejects(import(new URL("./crypto.js?unavailable", import.meta.url).href), { message: "Secure Web Crypto is required for op" });
     assert.equal(globalThis.crypto, undefined);
   });
 });

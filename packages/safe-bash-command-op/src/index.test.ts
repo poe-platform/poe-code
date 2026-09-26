@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createOp, createObjectBackend, type OpCommandContext, type OpConfirmOverwrite, type OpSelectPlugin } from "./index.js";
-import type { OpConfirmOverwrite as NodeConfirmOverwrite } from "./node-host.js";
 
 test("root entry point exposes the plugin selection capability contract", async () => {
   const callback: OpSelectPlugin = (candidates, context) => {
@@ -13,10 +12,9 @@ test("root entry point exposes the plugin selection capability contract", async 
   assert.equal(await context.selectPlugin!([{ id: "aws", name: "AWS" }], { signal: context.signal, accountId: null }), "aws");
 });
 
-test("root and Node entry points expose the same overwrite confirmation contract", async () => {
+test("root entry point exposes the overwrite confirmation contract", async () => {
   const rootCallback: OpConfirmOverwrite = (intent, context) => intent.path === "/synthetic/output" && !context.signal.aborted;
-  const nodeCallback: NodeConfirmOverwrite = rootCallback;
-  const roundtrip: OpConfirmOverwrite = nodeCallback;
+  const roundtrip: OpConfirmOverwrite = rootCallback;
   assert.equal(await roundtrip({ path: "/synthetic/output" }, { signal: new AbortController().signal }), true);
 });
 

@@ -524,7 +524,7 @@
     "@poe-code/user-error": "*",
     "@poe-code/workspace-resolver": "*",
     "@poe-code/worktree": "*",
-    "@poe-platform/op": "*",
+    "safe-bash-command-op": "*",
     "@types/mustache": "^4.2.6",
     "@types/node": "^25.2.2",
     "@types/semver": "^7.7.1",

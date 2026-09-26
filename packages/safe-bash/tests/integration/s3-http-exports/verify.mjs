@@ -47,7 +47,7 @@ export function assertSnapshotInputs(snapshotRoot, committedFiles, { peer, gener
   }
   for (const { path, sha256 } of generated) {
     assertLiteralInputPath(path);
-    assert.ok(path.startsWith("packages/op/dist/"), "generated prerequisite must remain inside op dist");
+    assert.ok(path.startsWith("packages/safe-bash-command-op/dist/"), "generated prerequisite must remain inside op dist");
     assert.ok(!expected.has(path), `generated prerequisite conflicts with source: ${path}`);
     expected.set(path, sha256);
   }
@@ -411,12 +411,12 @@ export async function verifyCommittedExports({ repository = actualRepository, re
         opToolTrees.push({ root: destination, files });
         for (const { path, sha256 } of files) opTools.set(`node_modules/${name}/${path}`, sha256);
       }
-      report.op = { inputs: [...candidate.files.keys()].filter(path => path.startsWith("packages/op/")), tools: Object.fromEntries(opTools) };
+      report.op = { inputs: [...candidate.files.keys()].filter(path => path.startsWith("packages/safe-bash-command-op/")), tools: Object.fromEntries(opTools) };
     }
     run("TypeScript version", process.execPath, [compiler, "--version"], snapshot);
     if (candidate.opManifest) {
-      run("isolated committed op compiler build", process.execPath, [compiler, "-p", "tsconfig.json"], join(snapshotRoot, "packages/op"));
-      opGenerated = readDistInventory(join(snapshotRoot, "packages/op")).map(({ path, sha256 }) => ({ path: `packages/op/${path}`, sha256 }));
+      run("isolated committed op compiler build", process.execPath, [compiler, "-p", "tsconfig.json"], join(snapshotRoot, "packages/safe-bash-command-op"));
+      opGenerated = readDistInventory(join(snapshotRoot, "packages/safe-bash-command-op")).map(({ path, sha256 }) => ({ path: `packages/safe-bash-command-op/${path}`, sha256 }));
       report.op.emitted = opGenerated;
     }
     run("committed output guard", process.execPath, [join(snapshotRoot, "scripts/guard-package-dist.mjs")], snapshot);
@@ -431,7 +431,7 @@ export async function verifyCommittedExports({ repository = actualRepository, re
       run("isolated committed op runtime bundle", binary, [join(snapshot, "src/commands/op/index.ts"), "--bundle", "--platform=node", "--target=es2022", "--format=esm", "--sourcemap", "--external:poe-code/*",
         ...[...canonicalAliases].map(([workspace, specifier]) => `--alias:${workspace}=${specifier}`),
         ...Object.keys(manifest.poeCode?.integration?.privateWorkspaces ?? {}).map(name => `--external:${name}`),
-        `--alias:@poe-platform/op=${join(snapshotRoot, "packages/op/src/index.ts")}`, `--outfile=${join(snapshot, "dist/commands/op/index.js")}`, `--metafile=${metafile}`], snapshot);
+        `--alias:safe-bash-command-op=${join(snapshotRoot, "packages/safe-bash-command-op/src/index.ts")}`, `--outfile=${join(snapshot, "dist/commands/op/index.js")}`, `--metafile=${metafile}`], snapshot);
       const metadata = JSON.parse(readRegularInput(tempRoot, "op-bundle.json", 1024 * 1024));
       const generated = new Map(opGenerated.map(({ path, sha256 }) => [path, sha256]));
       for (const input of Object.keys(metadata.inputs)) {

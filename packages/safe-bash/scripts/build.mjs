@@ -462,17 +462,17 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           }
         }
       }
-      if (manifest.devDependencies?.["@poe-platform/op"] !== undefined) {
+      if (manifest.devDependencies?.["safe-bash-command-op"] !== undefined) {
         assert.equal(manifest.private, true, "op build dependency is internal only");
-        assert.equal(manifest.devDependencies["@poe-platform/op"], "*", "op build dependency must be the local workspace");
-        const opRoot = resolve(root, "../op");
+        assert.equal(manifest.devDependencies["safe-bash-command-op"], "*", "op build dependency must be the local workspace");
+        const opRoot = resolve(root, "../safe-bash-command-op");
         peerMetadata.add(join(opRoot, "package.json"));
         const op = JSON.parse(read(join(opRoot, "package.json")));
-        assert.equal(op.name, "@poe-platform/op", "internal op package identity");
+        assert.equal(op.name, "safe-bash-command-op", "internal op package identity");
         assert.equal(op.private, true, "op implementation must remain private");
         assert.equal(op.exports?.["."]?.types, "./dist/index.d.ts", "internal op declaration entry");
         toolRoots.push(join(opRoot, "dist"));
-        peerPaths = { ...peerPaths, "@poe-platform/op": [join(opRoot, "dist/index.d.ts")] };
+        peerPaths = { ...peerPaths, "safe-bash-command-op": [join(opRoot, "dist/index.d.ts")] };
       }
       if (peerPaths) {
         for (const [name, declarations] of Object.entries(peerPaths)) {
@@ -668,14 +668,14 @@ export async function buildPackage({ root = packageRoot, args = [], profile = "d
       return { status: 1, rootNames: parsed.fileNames, emittedFiles: [], ...inputs.bindings() };
     }
   }
-  const opEntry = peerPaths?.["@poe-platform/op"]?.[0];
+  const opEntry = peerPaths?.["safe-bash-command-op"]?.[0];
   const opDeclarations = opEntry ? dirname(opEntry) : undefined;
   const localOpDeclarations = join(root, "dist/internal/op");
   const declarationImports = context => source => {
     const outputFile = join(parsed.options.declarationDir ?? parsed.options.outDir, relative(parsed.options.rootDir, source.fileName));
     let target = relative(dirname(outputFile), join(localOpDeclarations, "index.js")).split(sep).join("/");
     if (!target.startsWith(".")) target = "./" + target;
-    const rewrite = literal => opEntry && literal && ts.isStringLiteral(literal) && literal.text === "@poe-platform/op"
+    const rewrite = literal => opEntry && literal && ts.isStringLiteral(literal) && literal.text === "safe-bash-command-op"
       ? context.factory.createStringLiteral(target) : literal;
     const visit = node => {
       if (ts.isImportDeclaration(node)) return context.factory.updateImportDeclaration(node, node.modifiers, node.importClause, rewrite(node.moduleSpecifier), node.attributes);

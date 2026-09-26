@@ -1,5 +1,5 @@
 import { createAccountScope, externalCommands } from "./admin.js";
-import { opCrypto } from "#op-crypto";
+import { opCrypto } from "./crypto.js";
 import { inspectAuthentication, sameData } from "./auth.js";
 import { parseSecretReference } from "./references.js";
 import { parseObjectSelectors } from "./selectors.js";

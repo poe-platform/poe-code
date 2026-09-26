@@ -145,7 +145,7 @@ export default defineConfig({
       // These workspaces own unit suites and separate opt-in native/public/Worker routes.
       "packages/media-cli/**",
       "packages/remote-execution/**",
-      "packages/op/src/*.test.ts",
+      "packages/safe-bash-command-op/src/*.test.ts",
       "packages/safe-bash-command-wkhtmltopdf/src/*.test.ts",
       "packages/safe-bash-command-exiftool/src/*.test.ts",
       "packages/safe-bash-command-mmdc/src/*.test.ts",

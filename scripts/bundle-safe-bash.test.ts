@@ -251,7 +251,7 @@ it("bundles the opt-in op plugin with browser crypto and no Node implementation"
   const result = await build(resolveBrowserOpBuild(root));
   expect(result.outputFiles!.some(output => output.path.endsWith("/commands/op/index.browser.js"))).toBe(true);
   const inputs = Object.keys(result.metafile!.inputs);
-  expect(inputs).toContain("packages/op/src/crypto-browser.ts");
+  expect(inputs).toContain("packages/safe-bash-command-op/src/crypto.ts");
   expect(inputs.some(input => input.endsWith("crypto-node.ts") || input.endsWith("node-host.ts"))).toBe(false);
   const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
   expect([...new Set(imports.filter(item => item.external).map(item => item.path))]).toEqual(["poe-code/safe-fs/core"]);

@@ -202,3 +202,15 @@ test("document stdin is consumed once and remains binary through prepared execut
   assert.deepEqual((seen[0]!.input as { content: Uint8Array }).content, new Uint8Array([0, 255, 1]));
   assert.equal(streams, 1);
 });
+
+test("prepared files and stdin have no default byte ceiling", async () => {
+  const bytes = new Uint8Array(16 * 1024 * 1024 + 1);
+  const source = context({ readFile: async () => bytes, stdin: { async *[Symbol.asyncIterator]() { yield bytes; } } });
+  const prepared = createSourceSnapshot(source);
+  await prepared.file("large");
+  await prepared.input();
+  assert.equal((await prepared.context.readFile!("large")).byteLength, bytes.byteLength);
+  for await (const chunk of prepared.context.stdin) assert.equal(chunk.byteLength, bytes.byteLength);
+  const bounded = createSourceSnapshot(source, 2);
+  await assert.rejects(bounded.file("large"), /byte limit/);
+});

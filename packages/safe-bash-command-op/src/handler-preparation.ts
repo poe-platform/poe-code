@@ -53,7 +53,7 @@ async function acquire<Value>(signal: AbortSignal, operation: () => Promise<Valu
   }
 }
 
-export function createSourceSnapshot(source: OpCommandContext, maxBytes = 16 * 1024 * 1024) {
+export function createSourceSnapshot(source: OpCommandContext, maxBytes = Infinity) {
   const signal = source.signal;
   const readFile = source.readFile?.bind(source);
   const stdin = source.stdin;

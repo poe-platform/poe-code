@@ -7,7 +7,7 @@ from `poe-code/safe-bash/commands/op` with `shell.use(...)`, like other optional
 tools. The same subpath exports `createObjectBackend` and `createOpCommand`
 (the composed shell `CommandDefinition`). There is no automatic registration,
 native fallback, credential discovery or native config integration.
-`packages/op` is now a private internal workspace, not a separate public npm
+`packages/safe-bash-command-op` is now a private internal workspace, not a separate public npm
 install/release target. Earlier standalone install, bin, publication and
 no-safe-bash-integration statements are historical and superseded.
 
@@ -17,35 +17,21 @@ policy and resolved object-binding requirements are preserved. Peirce reports
 minimal public import/example. Peirce reports production frozen: 850 op tests,
 seven crypto tests, 10 plugin tests and lint/types/build/whitespace checks pass.
 The document handler now leaves omitted vault selection to the backend contract.
-Core `#op-crypto` selects Node `node:crypto` Web Crypto or browser/workerd global
-Web Crypto, failing closed when required browser primitives are absent. Actual
-Node 18.18 source-loader checks without global crypto pass construction, IDs,
-password generation and OTP. Planck reports seven browser checks and all 17
-package-policy rules passing, superseding the earlier unresolved internal
-import/global-crypto failures. Final integrated evidence is now inspected in
-`out/op-root-final/VERIFICATION.md`: fresh maintained build, prebuilt smoke,
-NodeNext/Bundler declarations, types/lint, workflow lint, all 17 policy rules
-and isolated installed Node 18.18 proof pass. That consumer has no separately
-resolvable op package or global crypto; IDs, password generation, independent
-OTP, pipelines, denial and resolved approval pass. Root units finish with
-11,528 passing tests and one skipped, not a rerun of all workspace unit tasks.
-The README example was independently executed unchanged in the installed
-consumer, returning `alice\n` with exit zero. Archive SHA-256 was independently
-checked: `212749e9cd1ab218d7f571eba51fd264c4e95511deeb7810ab999600c18dd205`.
-The public screenshot remains checkout evidence; installed proof is separate.
-Local integration is verified; full native parity, commit, push and release
-are not claimed. Older provisional packaging notes below are superseded.
+The private `safe-bash-command-op` implementation uses standard Web Crypto
+(`globalThis.crypto`) in Node 22+, browsers and Workers. The standalone Node host
+has been removed; filesystem access and command invocation use the injected Safe
+Bash capabilities. Document and prepared-source byte limits default to `Infinity`;
+explicit finite document limits remain enforced.
 
 ## Current scope clarification: object seeds and recordings
 
-The user authorized the package README; `packages/op/README.md` now exists.
+The user authorized the package README; `packages/safe-bash-command-op/README.md` now exists.
 Before the plugin packaging transition, `npm run lint:packages -- --json` passed: 72 packages, 17 rules,
 zero violations and no skips. All five owned documentation files pass whitespace
 checks. This is not fresh artifact, native-parity or release verification.
 Earlier missing-README/permission and native-config-mapping gates below are
 historical and superseded, not current requirements. No native 1Password config
-integration is wanted: use `createObjectBackend(seed)` or Node's explicit
-`OP_BACKEND_FILE` / trusted `OP_BACKEND_MODULE`. Built-in storage ignores
+integration is wanted: use `createObjectBackend(seed)` or an explicitly injected custom backend. Built-in storage ignores
 `--config`/`OP_CONFIG_DIR`; custom backends receive parsed interface metadata.
 No backend means failure, not home/config discovery. Home-directory lookup is
 plugin scope metadata only. No additional adapter API or native storage mapping
@@ -83,7 +69,7 @@ Existing checkpoints/artifact hashes below retain their original dates and
 scope; they do not prove the new README or default-vault changes were packaged.
 
 
-`packages/op` implements the private op engine behind the explicitly registered
+`packages/safe-bash-command-op` implements the private op engine behind the explicitly registered
 safe-bash command plugin, with pluggable backends. The compatibility target is
 1Password CLI 2.39.0; the implementation is independent of 1Password.
 
@@ -124,7 +110,7 @@ Registration is explicit; duplicate command registration fails without
 `replace: true`. The allow callback above is only for synthetic demonstration.
 
 File operations use cwd-relative VFS paths and capability checks, not native
-filesystem discovery. Reads are bounded to 16 MiB; writes need permissions and
+filesystem discovery. Reads have no default byte ceiling; writes need permissions and
 exclusive-create support, default mode 0600, and overwrite needs stat/chmod
 with a regular-file target. Nested invocation stays in the virtual shell with
 its stdin, cancellation and replacement environment; no host process/native op
@@ -132,14 +118,14 @@ fallback is introduced. The adapter does not supply parent-environment
 `restoreEnvironment` or automatic Node crypto.
 
 No 1Password config is needed. Seed objects and vault references are documented
-in [the internal workspace guide](../packages/op/README.md). The following
+in [the internal workspace guide](../packages/safe-bash-command-op/README.md). The following
 low-level SDK/Node contracts are internal implementation references, not
 instructions to install a standalone package or command.
 
 ## SDK and custom backends
 
 ```ts
-import { createOp, createObjectBackend } from "@poe-platform/op";
+import { createOp, createObjectBackend } from "safe-bash-command-op";
 
 const backend = createObjectBackend({
   vaults: [{ id: "development", name: "Development" }],
@@ -186,9 +172,7 @@ provider-name branches in the dispatcher.
 
 Object-backend options are `vaults`, `items`, `documents`, `accounts`, `resources`
 for additional named collections, `adminHooks` for host-dependent operations,
-`authentication`, `clock`, and `ssh` with `generate` and `transform` callbacks. The Node adapter supplies
-SSH generation and key-format conversion; portable hosts can inject their own.
-The Node subpath also exports `generateSshKey` and `transformSshKey`.
+`authentication`, `clock`, and `ssh` with `generate` and `transform` callbacks. Hosts inject SSH generation and key-format conversion capabilities.
 `resources["item template"]` supplies additional category schemas. The verified
 built-in schema is Login; other upstream category schemas are not invented when
 unavailable. This remains a gap against the full upstream template catalog.
@@ -221,7 +205,7 @@ for cancelling any external effects they start.
 `authorizeResolution`, `approveResolved`, `handlers`, `version`, and `channel`
 (`stable` by default, or `beta`). `handlers` can replace
 command handlers by canonical command path. These are trusted host extensions.
-`createDocumentHandlers` additionally accepts `maxBytes` (default 16 MiB).
+`createDocumentHandlers` additionally accepts `maxBytes` (default `Infinity`; finite nonnegative safe integers are supported).
 
 ## Managed authentication
 
@@ -254,7 +238,7 @@ Sessions associated through `user` cannot access a suspended user account.
 Suspension invalidates that user's sessions, including pending local operations;
 reactivation does not restore the old credentials. Arbitrary `identity` payloads
 are not interpreted as user associations.
-The command context and Node host accept an `OpAuthenticationContext` through
+The command context accepts an `OpAuthenticationContext` through
 `authentication: { terminalId?, integration? }`. `integration` is the trusted
 host's `"manual"` or `"app"` mode; neither stored sessions nor plugin session
 metadata infer the mode or authentication terminal identity. The common CLI/SDK
@@ -655,10 +639,9 @@ validator must provide the consistency guarantees appropriate to its backend.
 Preparation and manifest-access failures use sanitized policy errors, including
 synchronous exceptions and throwing metadata getters.
 No OS inode pinning, executable-content identity, cross-process file revision
-proof, or distributed atomicity is promised. `OP_BACKEND_FILE` therefore fails
-closed for resolved `ask`; direct execution and explicit literal approval remain
-available without acquiring the stronger guarantee. Use a binding-capable
-`OP_BACKEND_MODULE` or in-memory object backend for the implemented resolved path.
+proof, or distributed atomicity is promised. Persistent custom backends must provide their own revision guarantees. Use a
+binding-capable injected backend or the in-memory object backend for resolved
+approval.
 
 The supported cooperative object-backend binding gate is verified: 756/756
 maintained package tests pass with zero skips, along with lint/test typecheck,
@@ -827,7 +810,7 @@ the object backend's internal preparation without an approval callback; this is
 not resolved host approval. Literal approval keeps its weaker contract.
 Hook-backed operations and file-backed resolved mode remain unsupported.
 
-This is an injected SDK/Node host capability, not an automatic CLI TTY chooser.
+This is an injected SDK host capability, not an automatic CLI TTY chooser.
 No environment variable, new native flag, UI dependency or `plugin init`
 implementation is added. The standalone executable has no implicit chooser.
 The final 756-test checkpoint and fresh installed root/Node SDK checks verify
@@ -870,59 +853,14 @@ and overwrite policy. File-producing commands default to mode `0600` and require
 arguments, the replacement environment, and optional wrapped output sinks.
 All external work must honor the context's cancellation signal.
 
-The Node adapter is available as `@poe-platform/op/node`. `runOpCli` accepts
-optional dependencies for filesystem methods, process spawning, module loading,
-working directory, environment, stdin/stdout/stderr, cancellation, and version.
-`NodeHostDependencies` also accepts `authorize`, `approve`, `approvalMode`,
-`authorizeResolution`, and `approveResolved`, alongside `authentication`,
-`pluginScope`, `confirmPluginClear`, and `selectPlugin`. The host must explicitly arrange trusted
-module/bootstrap loading; dependency injection does not sandbox a module.
-Dependency injection supports offline tests and controlled embedding. The
-portable root export does not import Node process or filesystem modules.
-
-`NodeHostDependencies.confirmOverwrite?: OpConfirmOverwrite` optionally confirms
-replacement of a nonempty output file. The callback type is defined in
-`host-contracts.ts` and exported from both `@poe-platform/op` and
-`@poe-platform/op/node`:
-
-```ts
-type OpConfirmOverwrite = (
-  intent: Readonly<{ path: string }>,
-  context: Readonly<{ signal: AbortSignal }>,
-) => boolean | Promise<boolean>;
-```
-
-The callback receives the resolved destination path, not output data. Only
-explicit `true` permits replacement. Absent callback, false, rejection or
-cancellation fails closed; the host must map EOF to refusal. Consent precedes
-mode changes, truncation and writes on an existing nonempty file. The Node host
-retains the opened file handle across confirmation rather than reopening a
-possibly replaced path. Late consent after cancellation does not permit writing.
-`--force` skips this confirmation only, never command authorization. Empty files
-do not require this callback. No native flags, template-stdin consumption or
-automatic TTY prompt are added; hosts own any UI and its input source.
-
-Ptolemy reports 113 scoped tests plus lint/typecheck passing, including preservation
-of bytes/mode on refusal and cancellation, path replacement and truncation before
-shorter output. The root/Node public type exports are present, with compile
-red/green verification reported. Frozen 756-test maintained checks and fresh
-installed CLI/root/Node SDK checks pass. Manual host and standalone CLI checks pass: shorter approved
-output is saved with mode `0600`; deny/throw/reject/missing callback exit 1 and
-preserve old bytes and mode `0640`. Force skips confirmation but not policy;
-standalone CLI without a callback refuses a nonempty file. No file contents
-appear in stdout, diagnostics or callback intent. Allow/deny screenshots were
-independently inspected; evidence is in `out/op-overwrite-manual-host.log` and
-`out/op-overwrite-manual-cli.log`. These results do not prove native prompt
-text/defaults, authenticated native success or atomic host effects generally.
+The standalone Node adapter has been removed. Use the registered Safe Bash
+plugin for VFS files and nested virtual commands; arbitrary host effects remain
+explicit injected capabilities. The portable root has no Node built-in imports.
 
 ## Environment configuration
 
 | Variable | Meaning |
 | --- | --- |
-| `OP_BACKEND_MODULE` | Explicit module exporting the backend and optional policy callbacks. Mutually exclusive with `OP_BACKEND_FILE`. |
-| `OP_BACKEND_FILE` | Explicit persistent object-store JSON file. Resolved `ask` is unsupported without persistent revision guarantees; direct/literal paths remain available. |
-| `OP_COMPATIBILITY_CHANNEL` | Node adapter compatibility channel: `stable` or `beta`. |
-| `OP_PLUGIN_SESSION_ID` | Explicit terminal identity for plugin defaults; a Node dependency override takes precedence. |
 | `OP_ACCOUNT` | Default account selector; explicit CLI flag takes precedence. |
 | `OP_BIOMETRIC_UNLOCK_ENABLED` | Common CLI/SDK override: exact `true` selects app integration, exact `false` selects manual. Omitted uses trusted `authentication.integration`, otherwise manual. Invalid values fail before policy. |
 | `OP_CACHE` | Default parsed cache flag; backend determines caching behavior. |
@@ -934,17 +872,16 @@ text/defaults, authenticated native success or atomic host effects generally.
 | `OP_INCLUDE_ARCHIVE` | Include archived objects where the command supports it. |
 | `OP_RUN_NO_MASKING` | Default run output-masking override. |
 
-The Node adapter supplies its process environment to child execution unless
-replaced by a restoration operation. The portable SDK only sees the environment
+The portable SDK sees the environment
 explicitly supplied by its host. Cache, configuration, sessions, and debug flags
 are not promises of vendor daemon, authentication, or filesystem behavior.
 
 ## Verification and release
 
 ```sh
-npm run test:unit --workspace=@poe-platform/op
-npm run lint --workspace=@poe-platform/op
-npm run build:workspaces -- --workspace=@poe-platform/op
+npm run test:unit --workspace=safe-bash-command-op
+npm run lint --workspace=safe-bash-command-op
+npm run build:workspaces -- --workspace=safe-bash-command-op
 npm run lint:workflows
 ```
 

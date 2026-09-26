@@ -861,38 +861,38 @@ test("guarded compiler resolves the public peer declaration without admitting pe
 
 test("guarded compiler admits only declared private op types, not its source or runtime", async () => {
   const owned = fixture({
-    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", private: true, type: "module", devDependencies: { "@poe-platform/op": "*" } }),
-    "../op/package.json": JSON.stringify({ name: "@poe-platform/op", private: true, type: "module", exports: { ".": { types: "./dist/index.d.ts" } } }),
-    "../op/dist/index.d.ts": 'export interface Backend { name: string; }',
-    "../op/dist/index.js": 'RUNTIME MUST NOT BE READ',
-    "../op/src/index.ts": 'SOURCE MUST NOT BE READ',
-    "src/index.ts": 'import type { Backend } from "@poe-platform/op"; export const backend: Backend = { name: "fixture" };'
+    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", private: true, type: "module", devDependencies: { "safe-bash-command-op": "*" } }),
+    "../safe-bash-command-op/package.json": JSON.stringify({ name: "safe-bash-command-op", private: true, type: "module", exports: { ".": { types: "./dist/index.d.ts" } } }),
+    "../safe-bash-command-op/dist/index.d.ts": 'export interface Backend { name: string; }',
+    "../safe-bash-command-op/dist/index.js": 'RUNTIME MUST NOT BE READ',
+    "../safe-bash-command-op/src/index.ts": 'SOURCE MUST NOT BE READ',
+    "src/index.ts": 'import type { Backend } from "safe-bash-command-op"; export const backend: Backend = { name: "fixture" };'
   });
   const result = await owned.run();
   assert.equal(result.status, 0, owned.output.join(""));
-  assert.ok(owned.reads.includes("/owned/op/dist/index.d.ts"));
-  assert.ok(!owned.reads.some(path => path.startsWith("/owned/op/src/") || path.endsWith("/op/dist/index.js")));
+  assert.ok(owned.reads.includes("/owned/safe-bash-command-op/dist/index.d.ts"));
+  assert.ok(!owned.reads.some(path => path.startsWith("/owned/safe-bash-command-op/src/") || path.endsWith("/safe-bash-command-op/dist/index.js")));
   noHeldReads(owned);
 });
 
 for (const nested of [false, true]) test(`guarded compiler carries private op declaration closure inside portable dist (nested declarations: ${nested})`, async () => {
   const owned = fixture({
-    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", private: true, type: "module", devDependencies: { "@poe-platform/op": "*" } }),
-    "../op/package.json": JSON.stringify({ name: "@poe-platform/op", private: true, type: "module", exports: { ".": { types: "./dist/index.d.ts" } } }),
-    "../op/dist/index.d.ts": 'export type { Backend } from "./types.js";',
-    "../op/dist/types.d.ts": 'export interface Backend { name: string; }',
-    "../op/dist/unreferenced.d.ts": 'UNREFERENCED SENTINEL',
-    "src/commands/op/index.ts": 'export type { Backend } from "@poe-platform/op"; export type Options = import("@poe-platform/op").Backend;',
+    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", private: true, type: "module", devDependencies: { "safe-bash-command-op": "*" } }),
+    "../safe-bash-command-op/package.json": JSON.stringify({ name: "safe-bash-command-op", private: true, type: "module", exports: { ".": { types: "./dist/index.d.ts" } } }),
+    "../safe-bash-command-op/dist/index.d.ts": 'export type { Backend } from "./types.js";',
+    "../safe-bash-command-op/dist/types.d.ts": 'export interface Backend { name: string; }',
+    "../safe-bash-command-op/dist/unreferenced.d.ts": 'UNREFERENCED SENTINEL',
+    "src/commands/op/index.ts": 'export type { Backend } from "safe-bash-command-op"; export type Options = import("safe-bash-command-op").Backend;',
   }, nested ? { declarationDir: root + "/dist/types" } : {});
   const result = await owned.run();
   assert.equal(result.status, 0, owned.output.join(""));
   const declarationDirectory = nested ? "/dist/types" : "/dist";
   const output = owned.memory.readFileSync(root + declarationDirectory + "/commands/op/index.d.ts", "utf8");
   assert.ok(output.includes(nested ? '"../../../internal/op/index.js"' : '"../../internal/op/index.js"'), output);
-  assert.ok(!output.includes("@poe-platform/op"), output);
+  assert.ok(!output.includes("safe-bash-command-op"), output);
   assert.equal(owned.memory.readFileSync(root + "/dist/internal/op/index.d.ts", "utf8"), 'export type { Backend } from "./types.js";');
   assert.equal(owned.memory.readFileSync(root + "/dist/internal/op/types.d.ts", "utf8"), 'export interface Backend { name: string; }');
-  assert.ok(!owned.reads.includes("/owned/op/dist/unreferenced.d.ts"));
+  assert.ok(!owned.reads.includes("/owned/safe-bash-command-op/dist/unreferenced.d.ts"));
   assert.ok(!owned.memory.existsSync(root + "/dist/internal/op/unreferenced.d.ts"));
   const relocated = createFsFromVolume(new Volume());
   for (const path of result.emittedFiles.filter(path => path.endsWith(".d.ts"))) {
@@ -914,17 +914,17 @@ for (const nested of [false, true]) test(`guarded compiler carries private op de
 });
 
 for (const defect of ["name", "private", "types"]) test(`guarded compiler rejects untrusted op declaration metadata: ${defect}`, async () => {
-  const op = { name: "@poe-platform/op", private: true, exports: { ".": { types: "./dist/index.d.ts" } } };
+  const op = { name: "safe-bash-command-op", private: true, exports: { ".": { types: "./dist/index.d.ts" } } };
   if (defect === "name") op.name = "other";
   if (defect === "private") op.private = false;
   if (defect === "types") op.exports["."].types = "./src/index.ts";
   const owned = fixture({
-    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", private: true, type: "module", devDependencies: { "@poe-platform/op": "*" } }),
-    "../op/package.json": JSON.stringify(op),
-    "../op/src/index.ts": "SOURCE MUST NOT BE READ"
+    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", private: true, type: "module", devDependencies: { "safe-bash-command-op": "*" } }),
+    "../safe-bash-command-op/package.json": JSON.stringify(op),
+    "../safe-bash-command-op/src/index.ts": "SOURCE MUST NOT BE READ"
   });
   await assert.rejects(owned.run(), /internal op|remain private/);
-  assert.ok(!owned.reads.some(path => path.startsWith("/owned/op/src/")));
+  assert.ok(!owned.reads.some(path => path.startsWith("/owned/safe-bash-command-op/src/")));
 });
 
 function checkoutPeerFixture(optionalYaml = false) {

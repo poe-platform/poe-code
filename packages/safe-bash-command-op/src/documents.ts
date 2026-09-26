@@ -47,8 +47,8 @@ function readable(bytes: Uint8Array): boolean {
 }
 
 export function createDocumentHandlers(backend: OpBackend, options: OpDocumentHandlerOptions = {}): NonNullable<OpCommandOptions["handlers"]> {
-  const maxBytes = options.maxBytes ?? 16 * 1024 * 1024;
-  if (!Number.isSafeInteger(maxBytes) || maxBytes < 0) throw new Error("maxBytes must be a nonnegative safe integer");
+  const maxBytes = options.maxBytes ?? Infinity;
+  if (maxBytes !== Infinity && (!Number.isSafeInteger(maxBytes) || maxBytes < 0)) throw new Error("maxBytes must be a nonnegative safe integer or Infinity");
   const handlers: Record<string, NonNullable<OpCommandOptions["handlers"]>[string]> = {};
   for (const action of ["create", "edit"] as const) {
     const mutation = async (request: OpBackendRequest, context: OpCommandContext): Promise<OpBackendRequest> => {

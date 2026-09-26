@@ -66,12 +66,12 @@ describe("workspace dependency completeness", () => {
     });
   });
   it("keeps op node:test files out of Vitest while retaining their maintained workspace task", () => {
-    expect(rootUnitConfig.test?.exclude).toContain("packages/op/src/*.test.ts");
+    expect(rootUnitConfig.test?.exclude).toContain("packages/safe-bash-command-op/src/*.test.ts");
     const plan = createWorkspaceTestPlan(ROOT);
-    expect(plan.testStages.filter(stage => stage.name === "@poe-platform/op")).toEqual([
-      { id: "@poe-platform/op#test:unit", name: "@poe-platform/op", path: "packages/op", event: "test:unit" }
+    expect(plan.testStages.filter(stage => stage.name === "safe-bash-command-op")).toEqual([
+      { id: "safe-bash-command-op#test:unit", name: "safe-bash-command-op", path: "packages/safe-bash-command-op", event: "test:unit" }
     ]);
-    expect(readJson(path.join(PACKAGES_DIR, "op", "package.json"))).toMatchObject({
+    expect(readJson(path.join(PACKAGES_DIR, "safe-bash-command-op", "package.json"))).toMatchObject({
       scripts: { "test:unit": "node --import tsx --test src/*.test.ts" }
     });
   });

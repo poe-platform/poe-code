@@ -272,7 +272,7 @@ export async function captureOpBuildInputs(root: string, io: CensusReader & { ls
     bytes.set(path, value);
   }
   const manifest = JSON.parse(bytes.get("package.json")!.toString());
-  assert.equal(manifest.name, "@poe-platform/op");
+  assert.equal(manifest.name, "safe-bash-command-op");
   assert.equal(manifest.private, true);
   return { files: Object.fromEntries([...bytes].map(([path, value]) => [path, digest(value)])), bytes };
 }
@@ -320,7 +320,7 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
       for (const [path, bytes] of captureSharedArchiveSources(integrationRoot)) rootInputs.set(path, bytes);
     }
     if (expected) assertCommittedInputs(captured, expected, rootInputs);
-    const opRoot = resolve(repository, "../op");
+    const opRoot = resolve(repository, "../safe-bash-command-op");
     const opInputs = await captureOpBuildInputs(opRoot);
     const opManifest = JSON.parse(opInputs.bytes.get("package.json")!.toString());
     const rootLock = JSON.parse(rootInputs.get("package-lock.json")!.toString());
@@ -333,7 +333,7 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
       assert.deepEqual(rootLock.packages[`node_modules/${metadata.name}`], { resolved: prefix, link: true });
     }
     assert.equal(manifest.devDependencies?.[opManifest.name], "*");
-    assert.deepEqual(rootLock.packages["packages/op"].dependencies, opManifest.dependencies);
+    assert.deepEqual(rootLock.packages["packages/safe-bash-command-op"].dependencies, opManifest.dependencies);
     const opDependencyInputs: { source: string; hashes: Hashes }[] = [];
     for (const name of Object.keys(opManifest.dependencies)) {
       const source = join(integrationRoot, "node_modules", name);
@@ -349,7 +349,7 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
       opDependencyInputs.push({ source, hashes });
     }
     for (const [path, bytes] of opInputs.bytes) {
-      const destination = join(outer, "packages/op", path);
+      const destination = join(outer, "packages/safe-bash-command-op", path);
       await mkdir(dirname(destination), { recursive: true });
       await writeFile(destination, bytes, { flag: "wx" });
     }
@@ -394,11 +394,11 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
       await copyRegularTools(tool.source, destination);
     }
     const opBuild = spawnSync(process.execPath, [join(snapshot, "node_modules/typescript/bin/tsc"), "-p", "tsconfig.json", "--typeRoots", join(snapshot, "node_modules/@types")], {
-      cwd: join(outer, "packages/op"), encoding: "utf8", timeout: 45000, killSignal: "SIGKILL", maxBuffer: 2 * 1024 * 1024,
+      cwd: join(outer, "packages/safe-bash-command-op"), encoding: "utf8", timeout: 45000, killSignal: "SIGKILL", maxBuffer: 2 * 1024 * 1024,
     });
     assert.equal(opBuild.error, undefined, opBuild.error?.message);
     assert.equal(opBuild.status, 0, opBuild.stdout + opBuild.stderr);
-    const opEmitted = await census(join(outer, "packages/op/dist"));
+    const opEmitted = await census(join(outer, "packages/safe-bash-command-op/dist"));
     for (const name of ["esbuild", `@esbuild/${process.platform}-${process.arch}`]) {
       const source = join(integrationRoot, "node_modules", name);
       const metadata = JSON.parse(await readFile(join(source, "package.json"), "utf8"));
@@ -421,7 +421,7 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
     // The root build bundles this private command; the public probe must never admit private runtime imports.
     const opBundle = spawnSync(join(outer, "node_modules", `@esbuild/${process.platform}-${process.arch}/bin/esbuild`), [join(snapshot, "src/commands/op/index.ts"),
       "--bundle", "--platform=node", "--target=es2022", "--format=esm", "--sourcemap", "--external:poe-code/*",
-      `--alias:@poe-platform/op=${join(outer, "packages/op/src/index.ts")}`, `--outfile=${join(snapshot, "dist/commands/op/index.js")}`], {
+      `--alias:safe-bash-command-op=${join(outer, "packages/safe-bash-command-op/src/index.ts")}`, `--outfile=${join(snapshot, "dist/commands/op/index.js")}`], {
       cwd: snapshot, encoding: "utf8", timeout: 45000, killSignal: "SIGKILL", maxBuffer: 2 * 1024 * 1024,
       env: { ...process.env, ESBUILD_BINARY_PATH: join(outer, "node_modules", `@esbuild/${process.platform}-${process.arch}/bin/esbuild`) },
     });
@@ -463,8 +463,8 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
     const verify = async (): Promise<void> => {
       await assertInputsUnchanged(repository, captured.files);
       assert.deepEqual((await captureOpBuildInputs(opRoot)).files, opInputs.files, "Op source changed after capture");
-      assert.deepEqual((await captureOpBuildInputs(join(outer, "packages/op"))).files, opInputs.files, "Copied op source changed after capture");
-      assert.deepEqual(await census(join(outer, "packages/op/dist")), opEmitted, "Built op declarations changed after capture");
+      assert.deepEqual((await captureOpBuildInputs(join(outer, "packages/safe-bash-command-op"))).files, opInputs.files, "Copied op source changed after capture");
+      assert.deepEqual(await census(join(outer, "packages/safe-bash-command-op/dist")), opEmitted, "Built op declarations changed after capture");
       assert.deepEqual(await census(join(outer, "node_modules")), opTools, "Op runtime inputs changed after capture");
       for (const dependency of opDependencyInputs) assert.deepEqual(await census(dependency.source), dependency.hashes, "Op dependency changed after capture");
       assert.deepEqual((await captureInputs(snapshot)).files, captured.files, "Captured source was changed after build");

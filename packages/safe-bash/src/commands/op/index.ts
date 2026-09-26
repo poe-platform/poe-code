@@ -1,8 +1,8 @@
-import { createOp, type OpCommandContext, type OpCommandOptions } from "@poe-platform/op";
+import { createOp, type OpCommandContext, type OpCommandOptions } from "safe-bash-command-op";
 import { readBytes, resolvePath, type CommandDefinition, type VirtualShellPlugin } from "../../contracts/index.js";
 
-export { createObjectBackend } from "@poe-platform/op";
-export type { OpBackend, OpObjectBackendOptions, OpBackendRequest, OpResolvedApproval } from "@poe-platform/op";
+export { createObjectBackend } from "safe-bash-command-op";
+export type { OpBackend, OpObjectBackendOptions, OpBackendRequest, OpResolvedApproval } from "safe-bash-command-op";
 
 export interface OpCommandsOptions extends OpCommandOptions {
   readonly replace?: boolean;
@@ -39,7 +39,7 @@ export function createOpCommand(options: OpCommandsOptions): CommandDefinition {
           const resolved = resolvePath(cwd, path);
           const capabilities = fs.capabilitiesFor ? await fs.capabilitiesFor(resolved, { signal }) : fs.capabilities;
           if (capabilities.read !== true) throw new Error("op requires VFS read capability");
-          const bytes = await fs.readFile(resolved, { signal, maxBytes: 16 * 1024 * 1024 });
+          const bytes = await fs.readFile(resolved, { signal });
           signal.throwIfAborted();
           return Uint8Array.from(bytes);
         },

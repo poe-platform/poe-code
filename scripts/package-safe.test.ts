@@ -1369,14 +1369,14 @@ it("prepares scoped browser and private command runtimes without root sandbox bu
   for (const name of ["op", "pandoc", "office-package"]) {
     volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
     volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify({
-      name: name === "op" ? "@poe-platform/op" : `@poe-code/${name}`, private: true,
+      name: name === "op" ? "safe-bash-command-op" : `@poe-code/${name}`, private: true,
       exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
     }));
     volume.writeFileSync(`/repo/packages/${name}/dist/index.d.ts`, "export {};\n");
   }
   volume.writeFileSync("/repo/packages/office-package/dist/index.js", "export const codec = 1;\n");
   for (const name of ["op", "pandoc"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${name}/index.js`,
-    `export * from "${name === "op" ? "@poe-platform/op" : "@poe-code/pandoc"}";`);
+    `export * from "${name === "op" ? "safe-bash-command-op" : "@poe-code/pandoc"}";`);
   volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", 'export { codec } from "@poe-code/office-package";');
   const bundle = vi.fn(async (settings: { outfile?: string; outdir?: string; entryPoints: Record<string, string> | string[] }) => {
     const targets = settings.outfile ? [settings.outfile] : Object.keys(settings.entryPoints).map(name => `${settings.outdir}/${name}.js`);

@@ -86,7 +86,7 @@ test("public snapshot census drains admitted reads before reporting exact failur
 
 test("op snapshot inputs bind source and metadata without borrowing shared dist", async () => {
   const fs = createFsFromVolume(Volume.fromJSON({
-    "/op/package.json": JSON.stringify({ name: "@poe-platform/op", private: true }),
+    "/op/package.json": JSON.stringify({ name: "safe-bash-command-op", private: true }),
     "/op/tsconfig.json": "{}", "/op/src/index.ts": "export const value = 1;",
     "/op/dist/index.d.ts": "STALE SHARED OUTPUT",
   }));

@@ -99,7 +99,7 @@ export function bindWorkspacePrerequisites(repository, candidate, fileSystem = {
     const metadata = JSON.parse(bytes);
     assertLiteralInputPath(metadata.name);
     assert.ok(metadata.name.startsWith("@") ? metadata.name.split("/").length === 2 : !metadata.name.includes("/"), "workspace prerequisite package name");
-    if (["@poe-platform/safe-bash", "@poe-platform/op", sharedName].includes(metadata.name)) continue;
+    if (["@poe-platform/safe-bash", "safe-bash-command-op", sharedName].includes(metadata.name)) continue;
     const declaredAssets = candidate.manifest?.poeCode?.integration?.privateWorkspaces?.[metadata.name]?.assets ?? [];
     assert.ok(Array.isArray(declaredAssets), "workspace prerequisite asset list");
     const assets = declaredAssets.map(asset => {
@@ -634,7 +634,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
   const admit = (path, maximum = 16 * 1024 * 1024) => {
     assertLiteralInputPath(path);
     if (path.startsWith(`${packagePrefix}/`)) assertAdmittedInputPath(path.slice(packagePrefix.length + 1), boundaries);
-    else assert.ok(workspaceMetadataPaths.has(path) || ["package.json", "package-lock.json", "scripts/guard-package-dist.mjs", ...sharedPaths, "packages/op/package.json", "packages/op/tsconfig.json", "packages/pandoc/package.json", "packages/pdf/package.json"].includes(path) || path.startsWith("packages/op/src/"), `unadmitted root archive path: ${path}`);
+    else assert.ok(workspaceMetadataPaths.has(path) || ["package.json", "package-lock.json", "scripts/guard-package-dist.mjs", ...sharedPaths, "packages/safe-bash-command-op/package.json", "packages/safe-bash-command-op/tsconfig.json", "packages/pandoc/package.json", "packages/pdf/package.json"].includes(path) || path.startsWith("packages/safe-bash-command-op/src/"), `unadmitted root archive path: ${path}`);
     const entry = tree.get(path);
     assert.ok(entry, `missing committed input: ${path}`);
     assert.ok(entry.type === "blob" && ["100644", "100755"].includes(entry.mode), `not a regular committed input: ${path}`);
@@ -657,16 +657,16 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
       assert.ok(sharedPaths.includes(path), "unreviewed shared archive source: " + path);
     }
   }
-  const hasOp = tree.has("packages/op/package.json");
+  const hasOp = tree.has("packages/safe-bash-command-op/package.json");
   if (hasOp) {
-    admit("packages/op/package.json", 300000);
-    admit("packages/op/tsconfig.json", 300000);
+    admit("packages/safe-bash-command-op/package.json", 300000);
+    admit("packages/safe-bash-command-op/tsconfig.json", 300000);
   }
   const bootstrapCount = admitted.size;
   if (hasOp) {
     const foldedOp = new Set();
     for (const path of tree.keys()) {
-      if (!path.startsWith("packages/op/src/")) continue;
+      if (!path.startsWith("packages/safe-bash-command-op/src/")) continue;
       assert.ok(!foldedOp.has(path.toLowerCase()), `case alias of committed op source: ${path}`);
       foldedOp.add(path.toLowerCase());
       admit(path);
@@ -776,17 +776,17 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
         }
       }
       if (Object.hasOwn(dependencies, sharedName)) sharedSourceInputs({ files: bootstrap, lock });
-      if (manifest.devDependencies?.["@poe-platform/op"] !== undefined) {
-        assert.equal(manifest.devDependencies["@poe-platform/op"], "*");
+      if (manifest.devDependencies?.["safe-bash-command-op"] !== undefined) {
+        assert.equal(manifest.devDependencies["safe-bash-command-op"], "*");
         assert.ok(hasOp, "missing committed op build prerequisite");
-        opManifest = JSON.parse(bootstrap.get("packages/op/package.json"));
-        assert.equal(opManifest.name, "@poe-platform/op");
+        opManifest = JSON.parse(bootstrap.get("packages/safe-bash-command-op/package.json"));
+        assert.equal(opManifest.name, "safe-bash-command-op");
         assert.equal(opManifest.private, true);
         assert.equal(opManifest.exports?.["."]?.types, "./dist/index.d.ts");
-        assert.deepEqual(lock.packages["packages/op"]?.dependencies ?? {}, opManifest.dependencies ?? {}, "op dependency workspace lock drift");
-        assert.deepEqual(lock.packages["node_modules/@poe-platform/op"], { resolved: "packages/op", link: true }, "op workspace link drift");
-        assert.ok(bootstrap.get("packages/op/tsconfig.json").equals(readRegularInput(resolve(authority, "../op"), "tsconfig.json", 300000)), "committed op compiler config differs from reviewed authority");
-        assert.ok(admitted.has("packages/op/src/index.ts"), "missing committed op source entrypoint");
+        assert.deepEqual(lock.packages["packages/safe-bash-command-op"]?.dependencies ?? {}, opManifest.dependencies ?? {}, "op dependency workspace lock drift");
+        assert.deepEqual(lock.packages["node_modules/safe-bash-command-op"], { resolved: "packages/safe-bash-command-op", link: true }, "op workspace link drift");
+        assert.ok(bootstrap.get("packages/safe-bash-command-op/tsconfig.json").equals(readRegularInput(resolve(authority, "../safe-bash-command-op"), "tsconfig.json", 300000)), "committed op compiler config differs from reviewed authority");
+        assert.ok(admitted.has("packages/safe-bash-command-op/src/index.ts"), "missing committed op source entrypoint");
       } else assert.equal(hasOp, false, "unrequested op workspace archive");
       workspaceMetadata = captureWorkspaceMetadata(manifest, lock, paths => {
         const missing = paths.filter(path => !bootstrap.has(path));

@@ -2,7 +2,7 @@
 
 Private internal workspace supporting the explicit virtual-shell plugin exported
 by `poe-code/safe-bash/commands/op`. It is not a separately installed or
-published `@poe-platform/op` product and does not register an OS `op` executable.
+published `safe-bash-command-op` product and does not register an OS `op` executable.
 The compatibility target is 1Password CLI 2.39.0, not a claim of full parity.
 
 ## Use with safe-bash
@@ -67,7 +67,7 @@ Objects/snapshots are plaintext, not an encrypted vault or native account config
 
 Files resolve against the virtual shell's current directory and supplied VFS,
 not implicit Node filesystem access. Reads require VFS read permission and are
-bounded to 16 MiB. Writes require write, permissions and exclusive-create
+unlimited by default (explicit document handler limits remain available). Writes require write, permissions and exclusive-create
 capabilities, default to mode `0600`, and initially use exclusive creation.
 Explicit overwrite additionally requires stat/chmod and a regular file; this
 adapter supplies no automatic overwrite prompt or OS identity/atomicity promise.
@@ -91,16 +91,14 @@ child execution and emitted shell-source restoration remain distinct paths.
 
 The remaining SDK/Node sections document internal workspace interfaces for
 maintainers, not additional public installation entrypoints. The portable SDK
-does not discover Node files or start processes; the separate internal Node host
-is not used by `opCommands`. Core secure randomness/OTP use conditional
-`#op-crypto`: Node selects `node:crypto` Web Crypto, while browser/workerd selects
-the host's `globalThis.crypto`. Missing required secure browser primitives fail
-closed at module initialization; there is no weak randomness fallback.
+uses injected filesystem and invocation capabilities through Safe Bash. Secure
+randomness and OTP use standard `globalThis.crypto` in Node 22+, browsers and
+Cloudflare Workers. No standalone OS executable or Node host is shipped.
 
 ## SDK
 
 ```ts
-import { createObjectBackend, createOp } from "@poe-platform/op";
+import { createObjectBackend, createOp } from "safe-bash-command-op";
 
 const backend = createObjectBackend({
   vaults: [{ id: "demo-vault", name: "Demo" }],
@@ -218,61 +216,20 @@ sensitive fields unless revealed; JSON and selected-value output may disclose
 them. Run masking is best effort across streams, not prevention of a child's
 transformed output or network transmission.
 
-## Internal Node host configuration
-
-`runOpCli(args, dependencies?)`, from `@poe-platform/op/node`, returns an exit
-code. The Node subpath also exports `generateSshKey` and `transformSshKey`.
-The complete `NodeHostDependencies` option groups are:
-
-| Options | Meaning/default |
-| --- | --- |
-| `authorize`, `approve`, `authorizeResolution`, `approveResolved`, `approvalMode` | Policy configuration described above. Mode has no environment or module-export override. |
-| `fs` | Inject `readFile`, `writeFile`, `rename`, `unlink`, `open` and optional `constants`; defaults to Node filesystem APIs. |
-| `spawn`, `loadModule` | Process/module capabilities; defaults to Node process spawning and module import. |
-| `cwd`, `version` | Working directory and version override; defaults to process cwd and package version. |
-| `env`, `stdin`, `stdout`, `stderr` | Explicit environment/streams; defaults to process values. Undefined environment entries are omitted. |
-| `signal` | Cancellation; when absent the adapter handles SIGINT/SIGTERM. |
-| `authentication` | Trusted terminal/integration context. |
-| `pluginScope` | Optional `cwd`, `home`, `terminalSession`; missing paths use host cwd/OS home. This does not discover credentials. |
-| `confirmPluginClear` | Approves selected default IDs/scopes, excluding credential payloads. |
-| `selectPlugin` | Metadata-only chooser for `plugin inspect` without an operand. |
-| `confirmOverwrite` | Optional nonempty-output confirmation. No bundled TTY prompt. |
-
-Root-exported `OpSelectPlugin` takes frozen ID/name candidates and
-`{ signal, accountId }`, returning an exact offered ID or `undefined` to cancel,
-directly or via a promise. Built-in availability and account-scoped custom
-candidates are separate from configuration. Explicit operands bypass selection;
-singletons are never auto-selected. Resolved selection runs after the discovery
-grant, pins the target/generation and does not repeat during execution. Direct
-allow may select internally. Unconfigured inspection fails explicitly.
-
-`OpConfirmOverwrite`, exported from root and Node, accepts frozen `{ path }`
-and `{ signal }` and returns boolean or a promise. Only `true` grants replacement;
-missing callback, false, error or cancellation refuses. Consent precedes
-mode/truncate/write on an existing nonempty file. The opened handle is retained
-across confirmation. Force skips this confirmation only, not policy. Callbacks
-receive no output contents and must not consume template stdin for UI input.
-File modes default to `0600`; accepted uint32 octal modes pass unchanged to
-injected hosts, without a guarantee of native OS interpretation.
-
 ## Environment variables and inherited flags
 
 Command flags and their environment defaults apply inside the virtual shell.
 `OP_BACKEND_FILE`, `OP_BACKEND_MODULE`, `OP_COMPATIBILITY_CHANNEL` and
-`OP_PLUGIN_SESSION_ID` are internal Node-host bootstrap settings, not plugin
+`OP_PLUGIN_SESSION_ID` are unsupported legacy Node-host bootstrap settings, not plugin
 backend selection. The plugin takes its backend/channel/scope through options;
 setting these variables does not grant native host access.
 
-SDK execution reads the supplied `env`; Node defaults to the process environment.
+SDK execution reads the supplied `env`.
 Explicit flags override associated environment defaults. Variables are not an
 automatic credential-discovery mechanism.
 
 | Variable | Behavior |
 | --- | --- |
-| `OP_BACKEND_FILE` | Explicit plaintext seed/snapshot path; mutually exclusive with module configuration. |
-| `OP_BACKEND_MODULE` | Explicit trusted backend module path/URL. |
-| `OP_COMPATIBILITY_CHANNEL` | `stable` default or `beta`; invalid values reject. |
-| `OP_PLUGIN_SESSION_ID` | Plugin terminal identity unless overridden by `pluginScope.terminalSession`. |
 | `OP_ACCOUNT` | Default account selector for `--account`. |
 | `OP_SESSION` | Explicit backend session token default for `--session`; do not log it. |
 | `OP_BIOMETRIC_UNLOCK_ENABLED` | Exact `true` selects app mode, `false` manual, absent uses trusted/manual mode. Other values reject before policy. |
@@ -322,18 +279,18 @@ shell options or the entire shell state. Captured values are plaintext.
 Other root APIs include `parseSecretReference`, `renderOpOutput`,
 `parseOpFileMode`, `createOpTextCodec`, `selectOpGlobalFlags`,
 `selectOpBackendContext` and the item/document/secret/environment handler factories.
-`createDocumentHandlers(backend, { maxBytes? })` defaults to 16 MiB. Common stdin
-and prepared source acquisition are also bounded; no unlimited-input guarantee
-is made. Internal handler-preparation helpers are not public package exports.
+`createDocumentHandlers(backend, { maxBytes? })` and prepared source acquisition
+default to `Infinity`. Explicit finite document limits remain available. Common
+non-document stdin retains its existing separate bound. Internal handler-preparation helpers are not public package exports.
 
 ## Verification and remaining scope
 
 From the repository root:
 
 ```sh
-npm run test:unit --workspace=@poe-platform/op
-npm run lint --workspace=@poe-platform/op
-npm run build:workspaces -- --workspace=@poe-platform/op
+npm run test:unit --workspace=safe-bash-command-op
+npm run lint --workspace=safe-bash-command-op
+npm run build:workspaces -- --workspace=safe-bash-command-op
 npm run lint:packages -- --json
 ```
 

@@ -82,7 +82,7 @@ passed again. Final repository `npm run lint` passed, including type and workflo
 recorded below; no successful full-suite claim is implied by focused checks.
 
 One broad run overlapped a workspace rebuild and observed missing
-`packages/op/dist/encoding.js`. This is invalid concurrent verification; rerun
+`packages/safe-bash-command-op/dist/encoding.js`. This is invalid concurrent verification; rerun
 the affected 15-case scan-boundaries file after the build completes, preserving
 its assertions: all 15 passed without failures/skips.
 

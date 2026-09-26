@@ -189,3 +189,17 @@ test("nested virtual invocations inherit cwd, stdin bytes and stderr without cha
   assert.equal(result.stderr, "diagnostic");
   assert.equal((await shell.exec("checkenv")).exitCode, 0);
 });
+
+test("op file uploads have no implicit 16 MiB ceiling", async () => {
+  const fs = createMemoryFileSystem();
+  const bytes = new Uint8Array(16 * 1024 * 1024 + 1);
+  await fs.writeFile("/large", bytes);
+  let size = 0;
+  const shell = new Shell({ fs });
+  shell.use(opCommands({ backend: { async execute(request) { size = (request.input as { content: Uint8Array }).content.byteLength; return { id: "large" }; } } }));
+  try {
+    const result = await shell.exec("op document create /large");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(size, bytes.byteLength);
+  } finally { await shell.dispose(); }
+});

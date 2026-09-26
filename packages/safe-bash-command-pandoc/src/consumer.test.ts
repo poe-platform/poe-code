@@ -324,7 +324,7 @@ describe("public conversion seam (original adapters, no format conformance claim
     vi.clearAllMocks();
     await expect(
       convert([], options, { ...ctx, limits: { inputBytes: -1 } })
-    ).rejects.toBeInstanceOf(PandocError);
+    ).rejects.toMatchObject({ code: "E_OPTION" });
     const controller = new AbortController();
     controller.abort();
     await expect(convert([], options, { ...ctx, signal: controller.signal })).rejects.toMatchObject(

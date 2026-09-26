@@ -124,31 +124,28 @@ export class Budget {
   restoreSteps(steps: number): void { this.steps = steps; }
   needsYield(): boolean {
     if (this.steps < this.nextYield) return false;
-    if (!hasYieldCheckpoint(this.signal)) {
-      const now = monotonicNow() | 0;
-      if (this.lastYield < 0) {
-        this.lastYield = now;
-        runYieldCheckpoint(this.signal);
-        this.nextYield = this.steps + 65536;
-        return false;
-      }
-      if (((now - this.lastYield) | 0) < 25) {
-        runYieldCheckpoint(this.signal);
-        this.nextYield = this.steps + 65536;
-        return false;
-      }
+    const stride = hasYieldCheckpoint(this.signal) ? 1024 : 65536;
+    const now = monotonicNow() | 0;
+    if (this.lastYield < 0) {
+      this.lastYield = now;
+      runYieldCheckpoint(this.signal);
+      this.nextYield = this.steps + stride;
+      return false;
+    }
+    if (((now - this.lastYield) | 0) < 25) {
+      runYieldCheckpoint(this.signal);
+      this.nextYield = this.steps + stride;
+      return false;
     }
     return true;
   }
   ensureFreshWindow(): Promise<void> | undefined {
-    if (hasYieldCheckpoint(this.signal)) {
-      if (this.steps >= this.nextYield) return this.yieldTickSync();
-      return undefined;
-    }
+    const stride = hasYieldCheckpoint(this.signal) ? 1024 : 65536;
     const now = monotonicNow() | 0;
     if (this.lastYield < 0 || ((now - this.lastYield) | 0) < 15) {
       if (this.lastYield < 0) this.lastYield = now;
-      this.nextYield = this.steps + 65536;
+      runYieldCheckpoint(this.signal);
+      this.nextYield = this.steps + stride;
       return undefined;
     }
     return this.yieldTickSync();
@@ -156,19 +153,18 @@ export class Budget {
   tickSync(count = 1): Promise<void> | undefined {
     this.step(count);
     if (this.steps >= this.nextYield) {
-      if (!hasYieldCheckpoint(this.signal)) {
-        const now = monotonicNow() | 0;
-        if (this.lastYield < 0) {
-          this.lastYield = now;
-          runYieldCheckpoint(this.signal);
-          this.nextYield = this.steps + 65536;
-          return undefined;
-        }
-        if (((now - this.lastYield) | 0) < 25) {
-          runYieldCheckpoint(this.signal);
-          this.nextYield = this.steps + 65536;
-          return undefined;
-        }
+      const stride = hasYieldCheckpoint(this.signal) ? 1024 : 65536;
+      const now = monotonicNow() | 0;
+      if (this.lastYield < 0) {
+        this.lastYield = now;
+        runYieldCheckpoint(this.signal);
+        this.nextYield = this.steps + stride;
+        return undefined;
+      }
+      if (((now - this.lastYield) | 0) < 25) {
+        runYieldCheckpoint(this.signal);
+        this.nextYield = this.steps + stride;
+        return undefined;
       }
       return this.yieldTickSync();
     }

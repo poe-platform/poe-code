@@ -78,13 +78,20 @@ class RawDocumentFramer {
         }
         this.#finishLine(this.#offset - 1);
       }
-      if (!this.#markerComment && (this.#line.length <= 8 || /^(?:---|\.\.\.)[ \t]+#/u.test(this.#line))) {
-        this.#line += String.fromCharCode(byte);
+      if (this.#lineCouldBeMarker) {
+        if (this.#line.length === 0 && byte !== 0x2d && byte !== 0x2e && byte !== 0x0d && byte !== 0x0a) {
+          this.#line = String.fromCharCode(byte);
+          this.#lineCouldBeMarker = false;
+        } else {
+          if (!this.#markerComment && (this.#line.length <= 8 || /^(?:---|\.\.\.)[ \t]+#/u.test(this.#line))) {
+            this.#line += String.fromCharCode(byte);
+          }
+          if (/^(?:---|\.\.\.)[ \t]+#/u.test(this.#line)) this.#markerComment = true;
+          const candidate = this.#line.replace(/[\r\n]+$/u, "");
+          this.#lineCouldBeMarker = /^(?:-{0,3}|\.{0,3})$/u.test(candidate)
+            || /^(?:---|\.\.\.)(?:[ \t]*|[ \t]+#.*)$/u.test(candidate);
+        }
       }
-      if (/^(?:---|\.\.\.)[ \t]+#/u.test(this.#line)) this.#markerComment = true;
-      const candidate = this.#line.replace(/[\r\n]+$/u, "");
-      this.#lineCouldBeMarker = /^(?:-{0,3}|\.{0,3})$/u.test(candidate)
-        || /^(?:---|\.\.\.)(?:[ \t]*|[ \t]+#.*)$/u.test(candidate);
       if (!this.#lineCouldBeMarker && this.#lineBytes > yqCaps.maxDocumentBytes - this.#frameBytes) {
         throw new YqError("limit", "LIMIT_MAX_DOCUMENT_BYTES", 5);
       }

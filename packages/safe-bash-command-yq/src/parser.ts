@@ -549,8 +549,17 @@ class FlowParser {
     return node;
   }
 
-  async #node(keyMode = false): Promise<ParsedNode> {
+  #node(keyMode = false): ParsedNode | Promise<ParsedNode> {
     this.#space();
+    const c0 = this.source[this.#position];
+    if (c0 !== "!" && c0 !== "&" && c0 !== "*" && c0 !== undefined) {
+      if (c0 === '"' || c0 === "'") return this.#quoted();
+      if (c0 !== "[" && c0 !== "{") return this.#plain(keyMode);
+    }
+    return this.#nodeSlow(keyMode);
+  }
+
+  async #nodeSlow(keyMode = false): Promise<ParsedNode> {
     let tag: string | undefined;
     let anchor: string | undefined;
     while (true) {
@@ -584,13 +593,14 @@ class FlowParser {
     const character = this.source[this.#position];
     if (character === "[") parsed = await this.#sequence();
     else if (character === "{") parsed = await this.#mapping();
-    else if (character === '"' || character === "'") parsed = await this.#quoted();
+    else if (character === '"' || character === "'") { const q = this.#quoted(); parsed = q instanceof Promise ? await q : q; }
     else if (character === "*") parsed = await this.#alias();
     else if (character === undefined && tag !== undefined) {
-      await this.composer.scalar("", null);
+      const s = this.composer.scalar("", null);
+      if (s) await s;
       parsed = { value: null, style: "plain", raw: "" };
-    } else parsed = await this.#plain(keyMode);
-    parsed = await this.composer.applyTag(parsed, tag);
+    } else { const p = this.#plain(keyMode); parsed = p instanceof Promise ? await p : p; }
+    parsed = this.composer.applyTag(parsed, tag);
     if (record) this.composer.completeAnchor(record, parsed.value);
     return { ...parsed, ...(tag === undefined ? {} : { explicitTag: tag }) };
   }
@@ -599,7 +609,7 @@ class FlowParser {
     this.composer.enterCollection();
     try {
       this.#position++;
-      await this.composer.node();
+      { const n = this.composer.node(); if (n) await n; }
       this.composer.collection();
       const result: Json[] = [];
       this.#space();
@@ -611,15 +621,17 @@ class FlowParser {
         this.composer.member(result.length + 1);
         this.composer.member(1);
         const start = this.#position;
-        let value = await this.#node();
+        const v0 = this.#node();
+        let value = v0 instanceof Promise ? await v0 : v0;
         this.#space();
         if (this.source[this.#position] === ":") {
           if (this.source.slice(start, this.#position).includes("\n")) throw syntax(this.line, this.#position + 1);
           this.#position++;
           this.composer.enterCollection();
           try {
-            const mapped = await this.#node();
-            await this.composer.node();
+            const m0 = this.#node();
+            const mapped = m0 instanceof Promise ? await m0 : m0;
+            { const n = this.composer.node(); if (n) await n; }
             this.composer.collection();
             const pair = object();
             this.composer.mappingEntry(pair, value, mapped.value, true, true);
@@ -647,7 +659,7 @@ class FlowParser {
     this.composer.enterCollection();
     try {
       this.#position++;
-      await this.composer.node();
+      { const n = this.composer.node(); if (n) await n; }
       this.composer.collection();
       const result = object();
       let members = 0;
@@ -658,11 +670,13 @@ class FlowParser {
       }
       while (true) {
         this.composer.member(++members);
-        const key = await this.#node(true);
+        const k0 = this.#node(true);
+        const key = k0 instanceof Promise ? await k0 : k0;
         this.#space();
         if (this.source[this.#position] !== ":") throw syntax(this.line, this.#position + 1);
         this.#position++;
-        const value = await this.#node();
+        const v0 = this.#node();
+        const value = v0 instanceof Promise ? await v0 : v0;
         this.composer.mappingEntry(result, key, value.value, true, true);
         this.#space();
         if (this.source[this.#position] === "}") {
@@ -680,7 +694,7 @@ class FlowParser {
     } finally { this.composer.leaveCollection(); }
   }
 
-  async #quoted(): Promise<ParsedNode> {
+  #quoted(): ParsedNode | Promise<ParsedNode> {
     const quote = this.source[this.#position]!;
     const start = this.#position++;
     let escaped = false;
@@ -700,8 +714,10 @@ class FlowParser {
     this.composer.admitScalar(projectedBytes);
     const raw = this.source.slice(start, this.#position);
     const value = quote === '"' ? decodeDouble(raw) : decodeSingle(raw);
-    await this.composer.scalar(value, value, true);
-    return { value, style: quote === '"' ? "double" : "single" };
+    const style = quote === '"' ? "double" : "single";
+    const s = this.composer.scalar(value, value, true);
+    if (s) return s.then(() => ({ value, style }));
+    return { value, style };
   }
 
   async #alias(): Promise<ParsedNode> {
@@ -711,7 +727,7 @@ class FlowParser {
     return { value: await this.composer.alias(match[1]!) };
   }
 
-  async #plain(keyMode: boolean): Promise<ParsedNode> {
+  #plain(keyMode: boolean): ParsedNode | Promise<ParsedNode> {
     const start = this.#position;
     let depth = 0;
     while (this.#position < this.source.length) {
@@ -731,7 +747,8 @@ class FlowParser {
     const raw = this.source.slice(start, this.#position).trim().replace(/\r?\n[ \t]*/gu, " ");
     if (raw.length === 0) throw syntax(this.line, start + 1);
     const value = scalarFromPlain(raw);
-    await this.composer.scalar(typeof value === "string" ? value : raw, value, true);
+    const s = this.composer.scalar(typeof value === "string" ? value : raw, value, true);
+    if (s) return s.then(() => ({ value, style: "plain", raw }));
     return { value, style: "plain", raw };
   }
 
@@ -759,10 +776,12 @@ class Composer {
     this.#futureAnchors = new Set(futureAnchors);
   }
 
-  async node(): Promise<void> {
-    await this.work.charge(1);
+  node(): Promise<void> | undefined {
+    const _p = this.work.chargeSync ? this.work.chargeSync(1) : this.work.charge(1);
+    if (_p) return _p.then(() => { this.work.assertOpen(); this.ledger.admitNode(); });
     this.work.assertOpen();
     this.ledger.admitNode();
+    return undefined;
   }
 
   enterCollection(): void {
@@ -779,8 +798,31 @@ class Composer {
     this.ledger.admitScalar(bytes);
   }
 
-  async scalar(text: string, value: Json = text, admitted = false): Promise<void> {
-    await this.node();
+  scalar(text: string, value: Json = text, admitted = false): Promise<void> | undefined {
+    if (text.length <= 256 && this.work.chargeSync) {
+      let ascii = true;
+      for (let i = 0; i < text.length; i++) {
+        if (text.charCodeAt(i) >= 0x80) { ascii = false; break; }
+      }
+      if (ascii) {
+        const totalUnits = 1 + text.length + (text.length > 0 ? 1 : 0);
+        const _p = this.work.chargeSync(totalUnits);
+        if (_p === undefined) {
+          this.work.assertOpen();
+          this.ledger.admitNode();
+          if (!admitted) this.ledger.admitScalar(text.length);
+          this.ledger.admitValueBytes(compactScalarBytes(value));
+          return undefined;
+        }
+      }
+    }
+    return this.#scalarSlow(text, value, admitted);
+  }
+
+  async #scalarSlow(text: string, value: Json = text, admitted = false): Promise<void> {
+    { const _p = this.work.chargeSync ? this.work.chargeSync(1) : this.work.charge(1); if (_p) await _p; }
+    this.work.assertOpen();
+    this.ledger.admitNode();
     const bytes = Buffer.byteLength(text);
     if (!admitted) this.ledger.admitScalar(bytes);
     let codePoints = 0;
@@ -788,14 +830,14 @@ class Composer {
       void unused;
       codePoints++;
       if (codePoints === 256) {
-        await this.work.charge(codePoints);
+        { const _p = this.work.chargeSync ? this.work.chargeSync(codePoints) : this.work.charge(codePoints); if (_p) await _p; }
         this.work.assertOpen();
         codePoints = 0;
       }
     }
-    if (codePoints > 0) await this.work.charge(codePoints);
+    if (codePoints > 0) { const _p = this.work.chargeSync ? this.work.chargeSync(codePoints) : this.work.charge(codePoints); if (_p) await _p; }
     this.work.assertOpen();
-    if (bytes > 0) await this.work.charge(Math.ceil(bytes / 1024));
+    if (bytes > 0) { const _p = this.work.chargeSync ? this.work.chargeSync(Math.ceil(bytes / 1024)) : this.work.charge(Math.ceil(bytes / 1024)); if (_p) await _p; }
     this.work.assertOpen();
     this.ledger.admitValueBytes(compactScalarBytes(value));
   }
@@ -814,7 +856,15 @@ class Composer {
     if (implicit && countCodePoints(key.value) > 1024) throw syntax();
     if (key.style === "plain" && key.explicitTag === undefined && key.value === "<<") throw schema("SCHEMA_PLAIN_MERGE_KEY");
     if (Object.hasOwn(target, key.value)) throw schema("SCHEMA_DUPLICATE_KEY");
-    if (!memberAdmitted) this.member(objectKeys(target).length + 1);
+    if (!memberAdmitted) {
+      if (yqCaps.maxCollectionSize === Infinity) {
+        let hasExisting = false;
+        for (const k in target) { if (Object.hasOwn(target, k)) { hasExisting = true; break; } }
+        if (hasExisting) this.ledger.admitValueBytes(1);
+      } else {
+        this.member(objectKeys(target).length + 1);
+      }
+    }
     this.ledger.admitValueBytes(1);
     put(target, key.value, value);
   }
@@ -839,7 +889,7 @@ class Composer {
     return copyAlias(record.value, this.ledger, this.work);
   }
 
-  async applyTag(node: ParsedNode, tag?: string): Promise<ParsedNode> {
+  applyTag(node: ParsedNode, tag?: string): ParsedNode {
     if (tag === undefined) return node;
     const collection = Array.isArray(node.value) ? "seq" : node.value !== null && typeof node.value === "object" && !(node.value instanceof Decimal) ? "map" : "scalar";
     if (tag === "map" || tag === "seq") {

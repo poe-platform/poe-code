@@ -46,6 +46,7 @@ export interface YqPrepaidWork {
 
 export interface YqOwnedWork {
   charge(units?: number): Promise<void>;
+  chargeSync?(units?: number): Promise<void> | undefined;
   admitInputBytes(bytes: number): void;
   admitOutputBytes(bytes: number): void;
   admitResult(): void;
@@ -118,6 +119,8 @@ interface OwnedState {
   terminal: boolean;
 }
 
+const RESOLVED_VOID: Promise<void> = Promise.resolve();
+
 class OwnedWork implements YqOwnedWork {
   readonly #budget: Budget;
   readonly #signal: AbortSignal;
@@ -135,8 +138,20 @@ class OwnedWork implements YqOwnedWork {
     if (!this.#state.accepting || this.#state.terminal) throw new Error("yq query session is closed");
   }
 
-  async charge(units = 1): Promise<void> {
+  chargeSync(units = 1): Promise<void> | undefined {
+    if ((units | 0) === units && units > 0 && !this.#state.activeReservation && this.#state.pending + units <= checkpointWidth) {
+      this.assertOpen();
+      this.#budget.step(units);
+      this.#state.pending += units;
+      return undefined;
+    }
     return this.#track(this.#charge(units));
+  }
+
+  charge(units = 1): Promise<void> {
+    const p = this.chargeSync(units);
+    if (p) return p;
+    return RESOLVED_VOID;
   }
 
   async #charge(units = 1): Promise<void> {
@@ -194,7 +209,7 @@ class OwnedWork implements YqOwnedWork {
         ancestors.delete(item.value);
         continue;
       }
-      await this.charge(1);
+      { const _p = this.chargeSync(1); if (_p) await _p; }
       this.assertOpen();
       if (item.depth > this.#budget.limits.maxDepth) throw new JqLimitError("maxDepth");
       const current = item.value;
@@ -307,7 +322,7 @@ class OwnedWork implements YqOwnedWork {
     };
     const ancestors = new Set<object>();
     const encode = async (current: unknown, depth: number): Promise<void> => {
-      await this.charge(1);
+      { const _p = this.chargeSync(1); if (_p) await _p; }
       this.assertOpen();
       if (depth > this.#budget.limits.maxDepth) throw new JqLimitError("maxDepth");
       if (current === null || typeof current === "boolean") {
@@ -463,17 +478,17 @@ class OwnedWork implements YqOwnedWork {
       payloadBytes += Buffer.byteLength(character);
       codePoints++;
       if (codePoints === 256) {
-        await this.charge(codePoints);
+        { const _p = this.chargeSync(codePoints); if (_p) await _p; }
         this.assertOpen();
         codePoints = 0;
       }
     }
     if (codePoints > 0) {
-      await this.charge(codePoints);
+      { const _p = this.chargeSync(codePoints); if (_p) await _p; }
       this.assertOpen();
     }
     if (payloadBytes > 0) {
-      await this.charge(Math.ceil(payloadBytes / 1024));
+      { const _p = this.chargeSync(Math.ceil(payloadBytes / 1024)); if (_p) await _p; }
       this.assertOpen();
     }
     return encodedBytes;

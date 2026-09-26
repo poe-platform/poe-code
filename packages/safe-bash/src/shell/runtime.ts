@@ -1323,10 +1323,10 @@ class BudgetedSyncSink implements ByteSink {
 
 class MemoryRedirectSink implements ByteSink {
   declare readonly self: ByteSink;
-  declare readonly budget: Budget;
-  declare readonly handle: MemoryRedirectHandle;
-  declare readonly path: string;
-  declare readonly signal: AbortSignal;
+  declare budget: Budget;
+  declare handle: MemoryRedirectHandle;
+  declare path: string;
+  declare signal: AbortSignal;
   declare file: NonNullable<CommandContext["stdoutFile"]>;
   declare failedError: unknown;
 
@@ -1343,6 +1343,21 @@ class MemoryRedirectSink implements ByteSink {
     this.path = path;
     this.signal = signal;
     this.file = file ?? Object.freeze({ path });
+  }
+
+  reset(
+    budget: Budget,
+    handle: MemoryRedirectHandle,
+    path: string,
+    signal: AbortSignal,
+    file: NonNullable<CommandContext["stdoutFile"]>,
+  ): void {
+    this.budget = budget;
+    this.handle = handle;
+    this.path = path;
+    this.signal = signal;
+    this.file = file;
+    this.failedError = undefined;
   }
 
   writeSync(chunk: Uint8Array): boolean {
@@ -3124,6 +3139,19 @@ class PooledSyncPipeWriter implements ByteSink {
 
 const sharedSyncPipeReader = new PooledSyncPipeReader();
 const sharedSyncPipeWriter = new PooledSyncPipeWriter();
+let pooledFastSingleContext: FastShellCommandContext | undefined;
+let pooledMemoryRedirectSink: MemoryRedirectSink | undefined;
+const ZERO_PIPE_STATUSES: readonly (readonly number[])[] = [
+  Object.freeze([]),
+  singleStatusZero,
+  Object.freeze([0, 0]),
+  Object.freeze([0, 0, 0]),
+  Object.freeze([0, 0, 0, 0]),
+  Object.freeze([0, 0, 0, 0, 0]),
+  Object.freeze([0, 0, 0, 0, 0, 0]),
+  Object.freeze([0, 0, 0, 0, 0, 0, 0]),
+  Object.freeze([0, 0, 0, 0, 0, 0, 0, 0]),
+];
 
 export class Runtime {
   declare readonly commands: CommandRegistry;
@@ -5060,26 +5088,40 @@ export class Runtime {
         }
       }
       const diagnosticLine = io.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0);
-      const args = new Array<string>(command.words.length - 1);
-      let lastArg = w0Plain;
-      try {
-        for (let i = 1; i < command.words.length; i++) {
-          const v = this.fastValueWord(command.words[i]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
-          if (typeof v !== "string") return undefined;
-          args[i - 1] = v;
-          lastArg = v;
+      let args = (command as { _cachedConstArgs?: string[] })._cachedConstArgs;
+      let lastArg: string;
+      if (args !== undefined) {
+        lastArg = args.length > 0 ? args[args.length - 1]! : w0Plain;
+      } else {
+        args = new Array<string>(command.words.length - 1);
+        lastArg = w0Plain;
+        let allPlain = true;
+        try {
+          for (let i = 1; i < command.words.length; i++) {
+            const w = command.words[i]!;
+            if (w.plain === undefined) allPlain = false;
+            const v = this.fastValueWord(w, rawState, io, true, false, false, true, undefined, diagnosticLine);
+            if (typeof v !== "string") return undefined;
+            args[i - 1] = v;
+            lastArg = v;
+          }
+        } catch {
+          return undefined;
         }
-      } catch {
-        return undefined;
+        if (allPlain) {
+          (command as { _cachedConstArgs?: string[] })._cachedConstArgs = args;
+        }
       }
       let redirectSink: MemoryRedirectSink | undefined;
       if (command.redirects.length === 1) {
         const r0 = command.redirects[0]!;
-        let targetVal: ShellValue | undefined;
-        try {
-          targetVal = this.fastValueWord(r0.target, rawState, io, true, false, false, true, undefined, diagnosticLine);
-        } catch {
-          return undefined;
+        let targetVal: ShellValue | undefined = r0.target.plain;
+        if (targetVal === undefined) {
+          try {
+            targetVal = this.fastValueWord(r0.target, rawState, io, true, false, false, true, undefined, diagnosticLine);
+          } catch {
+            return undefined;
+          }
         }
         if (typeof targetVal !== "string" || !targetVal || targetVal.includes("\0")) return undefined;
         const resolved = resolvePath(rawState.cwd, targetVal);
@@ -5098,7 +5140,18 @@ export class Runtime {
         }
         if (!handle) return undefined;
         this.budget.fileSystemOperation();
-        redirectSink = new MemoryRedirectSink(this.budget, handle, resolved, this.commandSignal);
+        let cachedFile = (r0 as { _cachedRedirectFile?: { path: string } })._cachedRedirectFile;
+        if (!cachedFile || cachedFile.path !== resolved) {
+          cachedFile = Object.freeze({ path: resolved });
+          (r0 as { _cachedRedirectFile?: { path: string } })._cachedRedirectFile = cachedFile;
+        }
+        if (pooledMemoryRedirectSink) {
+          redirectSink = pooledMemoryRedirectSink;
+          pooledMemoryRedirectSink = undefined;
+          redirectSink.reset(this.budget, handle, resolved, this.commandSignal, cachedFile);
+        } else {
+          redirectSink = new MemoryRedirectSink(this.budget, handle, resolved, this.commandSignal, cachedFile);
+        }
       }
       if (rawState.extensions && !rawState.extensions.eventDepth) {
         publishCommandSpelling(rawState, commandSpelling(command));
@@ -5109,16 +5162,34 @@ export class Runtime {
       rawState.lastArgument = lastArg;
       if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
       const scope = io[invocationScope];
-      const context = new FastShellCommandContext(this, rawState, io, scope, w0Plain, args, undefined, undefined, this._isMemoryBackingFs);
-      if (redirectSink) {
-        context.stdout = redirectSink;
-        if (io.descriptors) {
-          const descriptors = new Map(io.descriptors);
-          descriptors.set(1, { output: redirectSink });
-          context.descriptors = descriptors;
+      let context: FastShellCommandContext;
+      if (pooledFastSingleContext) {
+        context = pooledFastSingleContext;
+        pooledFastSingleContext = undefined;
+        context.resetDirectStage(
+          this,
+          rawState,
+          io,
+          scope,
+          w0Plain,
+          args,
+          io.stdin,
+          io.stdinIsDefault === true,
+          redirectSink ?? io.stdout,
+          this.commandSignal,
+        );
+        if (!this._isMemoryBackingFs) {
+          (context as unknown as { _scopedSignal: AbortSignal | undefined })._scopedSignal = undefined;
         }
+      } else {
+        context = new FastShellCommandContext(this, rawState, io, scope, w0Plain, args, undefined, undefined, this._isMemoryBackingFs);
+        if (redirectSink) context.stdout = redirectSink;
       }
-      _lastFastContextAnchor = [context, redirectSink];
+      if (redirectSink && io.descriptors) {
+        const descriptors = new Map(io.descriptors);
+        descriptors.set(1, { output: redirectSink });
+        context.descriptors = descriptors;
+      }
       return this.finishFastSingleExternalUnit(
         externalDef,
         context,
@@ -5179,6 +5250,20 @@ export class Runtime {
         this.budget.endPathLookupSuspension();
         scope.leaveWork();
         redirectSink?.handle.close();
+        (context as unknown as { _runtime: unknown; _state: unknown; _io: unknown; _scope: unknown; _contextFs: unknown; stdin: unknown; stdout: unknown })._runtime = undefined;
+        (context as unknown as { _state: unknown })._state = undefined;
+        (context as unknown as { _io: unknown })._io = undefined;
+        (context as unknown as { _scope: unknown })._scope = undefined;
+        (context as unknown as { _contextFs: unknown })._contextFs = undefined;
+        (context as unknown as { stdin: unknown }).stdin = undefined;
+        (context as unknown as { stdout: unknown }).stdout = undefined;
+        pooledFastSingleContext = context;
+        if (redirectSink) {
+          redirectSink.budget = undefined!;
+          redirectSink.handle = undefined!;
+          redirectSink.signal = undefined!;
+          pooledMemoryRedirectSink = redirectSink;
+        }
         if (!existing) {
           monitor.lazyPipeStatus = rawStatus === 0 ? singleStatusZero : singleStatusOne;
           monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
@@ -5482,7 +5567,7 @@ export class Runtime {
     this.budget.enterPipelineStages(n);
     this.budget.commands += n;
     const scope = io[invocationScope];
-    const statuses = new Array<number>(n);
+    let statuses: number[] | undefined;
     const stdoutCap = io.stdout as Capture;
     const stderrCap = io.stderr as Capture;
     let context = pooledSyncPipeContext;
@@ -5547,7 +5632,10 @@ export class Runtime {
           return undefined;
         }
         this.signal.throwIfAborted();
-        statuses[index] = resPromise === RESOLVED_EXIT_ZERO ? 0 : 1;
+        if (resPromise !== RESOLVED_EXIT_ZERO) {
+          statuses ??= new Array<number>(n).fill(0);
+          statuses[index] = 1;
+        }
         prevBuf = nextBuf;
         prevLen = sharedSyncPipeWriter.used;
       }
@@ -5581,9 +5669,10 @@ export class Runtime {
     }
     this.budget.leavePipelineStages(n);
     const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
-    monitor.lazyPipeStatus = statuses;
+    const finalStatuses = statuses ?? ZERO_PIPE_STATUSES[n] ?? new Array<number>(n).fill(0);
+    monitor.lazyPipeStatus = finalStatuses;
     monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
-    const rawStatus = rawState.pipefail ? statuses.findLast(s => s !== 0) ?? 0 : statuses[n - 1]!;
+    const rawStatus = statuses === undefined ? 0 : (rawState.pipefail ? statuses.findLast(s => s !== 0) ?? 0 : statuses[n - 1]!);
     const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
     rawState.status = finalStatus;
     monitor.epoch = restEpoch;

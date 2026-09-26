@@ -370,6 +370,16 @@ export class ValueStore {
     this._scope?._reopen();
   }
 
+  prewarm(): void {
+    if (!this._strings) {
+      const m = new Map<string, string>();
+      for (let i = 0; i < 6; i++) m.set(String(i), "");
+      for (let i = 0; i < 6; i++) m.delete(String(i));
+      this._strings = m;
+    }
+    this._stringRecord ??= this.arena.allocate(0, 0);
+  }
+
   get(name: string, text: string): ShellValue { return this._values?.get(name)?.value ?? this._strings?.get(name) ?? text; }
 
   publishString(name: string, value: string, rawVariables: Record<string, string | undefined>): void {

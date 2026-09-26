@@ -577,7 +577,7 @@
   ],
   "scripts": {
     "benchmark": "node --import tsx benchmarks/run.ts",
-    "build": "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs",
+    "build": "node ../../scripts/guard-package-dist.mjs && rm -rf dist/opt-in && node scripts/integration-inputs.mjs && node scripts/build.mjs",
     "build:optional": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.optional.json",
     "typecheck": "node scripts/typecheck.mjs",
     "typecheck:all": "node scripts/typecheck.mjs --build",
@@ -956,7 +956,8 @@
           "devDependencies": {
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*"
-          }
+          },
+          "portable": true
         },
         "safe-bash-command-sponge": {
           "version": "0.0.1",
@@ -964,7 +965,8 @@
           "devDependencies": {
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*"
-          }
+          },
+          "portable": true
         },
         "safe-bash-command-fd": {
           "version": "0.0.1",
@@ -973,7 +975,8 @@
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*",
             "safe-bash-regex-engine": "*"
-          }
+          },
+          "portable": true
         },
         "safe-bash-command-less": {
           "version": "0.0.1",
@@ -981,7 +984,8 @@
           "devDependencies": {
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*"
-          }
+          },
+          "portable": true
         },
         "safe-bash-command-xxd": {
           "version": "0.0.1",
@@ -989,7 +993,8 @@
           "devDependencies": {
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*"
-          }
+          },
+          "portable": true
         },
         "safe-bash-command-od": {
           "version": "0.0.1",
@@ -997,7 +1002,8 @@
           "devDependencies": {
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*"
-          }
+          },
+          "portable": true
         },
         "safe-bash-command-ffmpeg": {
           "version": "0.0.1",

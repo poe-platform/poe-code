@@ -445,6 +445,11 @@ export async function verifyFactorCommands(entry = defaultEntry) {
   try {
     if (entry.createFactorCommand().name !== "factor") throw new Error("Public factor factory is missing");
     if (entry.createFactorCommand !== createSubpathFactorCommand || entry.createFactorCommands !== createSubpathFactorCommands || entry.factorCommands !== subpathFactorCommands) throw new Error("Factor subpath factory identity differs");
+    const defaultShell = new entry.Shell({ fs: filesystem, cwd: "/factor-work", env: { LC_ALL: "C", TZ: "UTC" } }).use(entry.agentCommands());
+    try {
+      const unbounded = await defaultShell.exec("sh args.sh 4294967296 12");
+      if (unbounded.exitCode !== 0 || unbounded.stdout !== `4294967296:${" 2".repeat(32)}\n12: 2 2 3\n` || unbounded.stderr !== "") throw new Error(`Public factor unbounded default failed: ${JSON.stringify(unbounded)}`);
+    } finally { await defaultShell.dispose(); }
     for (const [name, script, input, status, stdout, stderr] of cases) {
       await filesystem.writeFile(`/factor-work/${name}`, encoder.encode(input));
       const result = await shell.exec(script);

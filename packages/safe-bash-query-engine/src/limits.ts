@@ -46,7 +46,7 @@ export function resolveJqLimits(options: Partial<JqLimits> = {}): JqLimits {
 }
 export class Budget {
   private steps = 0;
-  private lastYield = monotonicNow() | 0;
+  private lastYield = monotonicNow();
   private lastYieldSteps = 0;
   private readonly unlimitedSteps: boolean;
   private readonly maxStepsSmi: number;
@@ -95,11 +95,7 @@ export class Budget {
     this.bindSignal(signal);
     this.steps = 0;
     this.lastYieldSteps = 0;
-    if (hasYieldCheckpoint(signal)) {
-      this.lastYield = monotonicNow() | 0;
-    } else {
-      this.lastYield = -1;
-    }
+    this.lastYield = monotonicNow();
     this.inputBytes = 0;
     this.outputBytes = 0;
     this.results = 0;
@@ -120,17 +116,15 @@ export class Budget {
   restoreSteps(steps: number): void { this.steps = steps; }
   needsYield(): boolean {
     if (hasYieldCheckpoint(this.signal)) {
-      const now = monotonicNow() | 0;
-      if (this.lastYield < 0) this.lastYield = now;
-      return this.steps - this.lastYieldSteps >= 1024 || ((now - this.lastYield) | 0) >= 25;
+      const now = monotonicNow();
+      return this.steps - this.lastYieldSteps >= 1024 || now - this.lastYield >= 25;
     }
     // Even fast finite workloads must eventually let host timers run.
     return this.steps - this.lastYieldSteps >= 65536;
   }
   ensureFreshWindow(): Promise<void> | undefined {
-    const now = monotonicNow() | 0;
-    if (this.lastYield < 0 || ((now - this.lastYield) | 0) < 15) {
-      if (this.lastYield < 0) this.lastYield = now;
+    const now = monotonicNow();
+    if (now - this.lastYield < 15) {
       runYieldCheckpoint(this.signal);
       return undefined;
     }
@@ -149,7 +143,7 @@ export class Budget {
   private yieldTickSync(): Promise<void> {
     return yieldTurn(this.signal).then(() => {
       this.signal.throwIfAborted();
-      this.lastYield = monotonicNow() | 0;
+      this.lastYield = monotonicNow();
       this.lastYieldSteps = this.steps;
     });
   }

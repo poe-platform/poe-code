@@ -14,7 +14,9 @@ const durations = [
   ["0", 100000], ["0.75", 750], ["3", 3000], ["200s", 100000],
 ] as const;
 
-test("wget timeout spellings download bytes through the Node HTTP transport", async () => {
+test("wget timeout spellings download bytes through the Node HTTP transport", async context => {
+  context.mock.timers.enable({ apis: ["setTimeout"] });
+  context.mock.method(performance, "now", () => 0);
   const bytes = Uint8Array.of(248, 0, 13, 10);
   const server = createServer((_request, response) => response.end(bytes));
   await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));

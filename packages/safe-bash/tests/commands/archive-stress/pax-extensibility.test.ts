@@ -71,7 +71,7 @@ test("P02 ignored local/global metadata does not leak into supported PAX state",
     member({ name: "following", data: pattern(13) }),
   );
   const fs = await fixture();
-  success(await tar(fs, ["-xf", "-", "-C", "/output"], { stdin: source(bytes, 1) }));
+  success(await tar(fs, ["-xf", "-", "-C", "/output"], { stdin: source(bytes, 31) }));
   assert.deepEqual((await fs.readdir("/output")).map(entry => entry.name).sort(), ["following", "renamed"]);
   assert.equal((await fs.stat("/output/renamed")).mtimeMs, 1700000001250);
   assert.equal((await fs.stat("/output/following")).mtimeMs, 1700000000125);

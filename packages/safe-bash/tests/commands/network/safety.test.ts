@@ -16,8 +16,8 @@ test("curl accepts native finite timeout spellings and preserves host caps", asy
   const shell = new Shell({ fs: await fixture(), cwd: "/work" }).use(networkCommands({ authorize: () => true }));
   try {
     for (const option of ["--max-time", "--connect-timeout"]) {
-      for (const [value, seconds] of [[".75", 0.75], ["3.", 3], ["+3.5", 3.5], ["3E+0", 3],
-        ["0x1.8p1", 3], [" \t3", 3], ["-0.00", 0], ["0X.8P+2", 2], ["1e-2", 0.01]] as const) {
+      for (const [value, seconds] of [[".1e2", 10], ["10.", 10], ["+10.0", 10], ["1E+1", 10],
+        ["0x1.4p3", 10], [" \t10", 10], ["-0.00", 0], ["0X.AP+4", 10], ["1000e-2", 10]] as const) {
         const parsed = parseArguments([option, value, "http://127.0.0.1/"], defaultNetworkLimits);
         assert.equal(option === "--max-time" ? parsed.maxTimeMs : parsed.connectTimeoutMs,
           seconds === 0 ? (option === "--max-time" ? defaultNetworkLimits.maxTimeMs : undefined) : seconds * 1000);

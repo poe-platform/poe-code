@@ -32,7 +32,7 @@ it.each([0, -1, 1.5, NaN])("rejects invalid node budgets %s", maxNodes => {
   expect(() => isJsonValue(1, { maxNodes })).toThrow("maxNodes");
 });
 
-it.each([-1, 1.5, 257, Infinity, NaN])("rejects invalid depth budgets %s", maxDepth => {
+it.each([-1, 1.5, NaN])("rejects invalid depth budgets %s", maxDepth => {
   expect(() => isJsonValue(1, { maxDepth })).toThrow("maxDepth");
 });
 
@@ -48,3 +48,13 @@ it("retains cycle, prototype, getter and serialization-hook guards under an expa
 });
 
 it("accepts an unlimited node budget", () => { expect(isJsonValue([1, 2], { maxNodes: Infinity })).toBe(true); });
+
+it("validates unlimited depth without exhausting the call stack and still rejects cycles", () => {
+  const root: Record<string, unknown> = {};
+  let leaf = root;
+  for (let depth = 0; depth < 20_000; depth++) leaf = leaf.nested = {};
+  expect(isJsonValue(root, { maxNodes: Infinity, maxDepth: Infinity })).toBe(true);
+  expect(isJsonValue(root, { maxNodes: Infinity, maxDepth: 19_999 })).toBe(false);
+  leaf.cycle = root;
+  expect(isJsonValue(root, { maxNodes: Infinity, maxDepth: Infinity })).toBe(false);
+});

@@ -122,18 +122,21 @@ it("does not use another cached client's grant when importing a full registratio
 
 it.each([
   { extension: undefined }, { extension: Infinity }, { extension: () => "secret" },
-  { extension: new Date(0) }, { extension: "😀".repeat(16_384) }
-])("rejects non-JSON or oversized registration extensions: %#", invalid => {
+  { extension: new Date(0) }
+])("rejects non-JSON registration extensions: %#", invalid => {
   expect(() => parseOAuthClientRegistration({ ...registration, ...invalid })).toThrow("OAuth client registration");
 });
 
-it("bounds cyclic and deeply nested provider metadata without leaking input", () => {
+it("rejects cyclic provider metadata without leaking input", () => {
   const cyclic: Record<string, unknown> = { marker: "private-marker" }; cyclic.self = cyclic;
+  expect(() => parseOAuthClientRegistration({ ...registration, extension: cyclic })).toThrow("OAuth client registration");
+});
+
+it("preserves large and deeply nested provider metadata", () => {
   let nested: unknown = "private-marker";
-  for (let depth = 0; depth < 70; depth++) nested = { nested };
-  for (const extension of [cyclic, nested]) {
-    expect(() => parseOAuthClientRegistration({ ...registration, extension })).toThrow("OAuth client registration");
-  }
+  for (let depth = 0; depth < 80; depth++) nested = { nested };
+  const value = { ...registration, nested, extension: "😀".repeat(16_384) };
+  expect(parseOAuthClientRegistration(value)).toEqual(value);
 });
 
 it("does not invoke accessors or expose their errors while copying imported metadata", () => {

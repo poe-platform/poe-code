@@ -25,8 +25,8 @@ it.each([
   { refresh_token: false }, { refresh_token: "" }, { scope: "secret\nvalue" },
   { expires_in: -1 }, { expires_in: 0.1 }, { expires_in: Number.MAX_SAFE_INTEGER },
   { expiresAt: "5" }, { expiresAt: Infinity }, { expires_at: "5" }, { expires_at: Infinity }, { expires_at: Number.MAX_SAFE_INTEGER },
-  { extension: () => "secret" }, { extension: new Date() }, { extension: "x".repeat(65_536) }
-])("rejects malformed or oversized input without exposing credentials: %#", change => {
+  { extension: () => "secret" }, { extension: new Date() }
+])("rejects malformed input without exposing credentials: %#", change => {
   expect(() => parseOAuthTokenGrant({ ...raw, ...change })).toThrow("Invalid OAuth token grant");
 });
 it.each([{ expiresAt: NaN }, { expiresAt: -8_640_000_000_000_001 }, { issuedAt: NaN }, { issuedAt: 8_640_000_000_000_001 }])("rejects malformed external expiry options: %#", options => {
@@ -38,11 +38,14 @@ it("does not run credential accessors or custom serialization", () => {
   expect(() => parseOAuthTokenGrant(input)).toThrow("Invalid OAuth token grant");
   expect(touched).toBe(false);
 });
-it("bounds cyclic and excessively deep imported JSON", () => {
+it("rejects cyclic imported JSON", () => {
   const cyclic: Record<string, unknown> = {}; cyclic.self = cyclic;
+  expect(() => parseOAuthTokenGrant({ ...raw, extension: cyclic })).toThrow("Invalid OAuth token grant");
+});
+it("accepts large and deep JSON extensions without changing the grant", () => {
   let deep: unknown = null;
-  for (let index = 0; index < 70; index++) deep = { deep };
-  for (const extension of [cyclic, deep]) expect(() => parseOAuthTokenGrant({ ...raw, extension })).toThrow("Invalid OAuth token grant");
+  for (let index = 0; index < 20_000; index++) deep = { deep };
+  for (const extension of [deep, "x".repeat(65_536)]) expect(parseOAuthTokenGrant({ ...raw, extension })).toEqual(parseOAuthTokenGrant(raw));
 });
 it("permits explicit unlimited expiry while validating supplied relative data", () => {
   expect(parseOAuthTokenGrant(raw, { expiresAt: null })).toMatchObject({ expiresAt: null });

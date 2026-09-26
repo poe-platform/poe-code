@@ -33,47 +33,57 @@ export function isJsonValue(value: unknown, options: JsonValueValidationOptions 
   const maxNodes = options.maxNodes ?? 10_000;
   const maxDepth = options.maxDepth ?? 64;
   if (maxNodes !== Infinity && (!Number.isSafeInteger(maxNodes) || maxNodes < 1)) throw new Error("maxNodes must be a positive safe integer");
-  if (!Number.isSafeInteger(maxDepth) || maxDepth < 0 || maxDepth > 256) throw new Error("maxDepth must be an integer between 0 and 256");
+  if (maxDepth !== Infinity && (!Number.isSafeInteger(maxDepth) || maxDepth < 0)) throw new Error("maxDepth must be a nonnegative safe integer");
   const ancestors = new Set<object>();
-  let nodes = 0;
-  const visit = (item: unknown, depth: number): boolean => {
-    if (++nodes > maxNodes || depth > maxDepth) return false;
-    if (item === null || typeof item === "string" || typeof item === "boolean") return true;
-    if (typeof item === "number") return Number.isFinite(item);
-    if (typeof item !== "object" || ancestors.has(item)) return false;
-    if (!Array.isArray(item) && Object.getPrototypeOf(item) !== Object.prototype &&
-        Object.getPrototypeOf(item) !== null) return false;
-    let hookOwner: object | null = item;
-    let prototypeDepth = 0;
-    while (hookOwner !== null) {
-      if (++prototypeDepth > 64) return false;
-      const serializationHook = Object.getOwnPropertyDescriptor(hookOwner, "toJSON");
-      if (serializationHook !== undefined) {
-        if (!("value" in serializationHook) || typeof serializationHook.value === "function") return false;
-        break;
-      }
-      hookOwner = Object.getPrototypeOf(hookOwner) as object | null;
-    }
-    ancestors.add(item);
-    let valid = true;
+  const stack: { owner: object; children: Generator<PropertyDescriptor | undefined>; depth: number }[] = [];
+  function* properties(item: object): Generator<PropertyDescriptor | undefined> {
     if (Array.isArray(item)) {
-      if (item.length > maxNodes) valid = false;
-      else for (let index = 0; index < item.length; index++) {
-        const property = Object.getOwnPropertyDescriptor(item, String(index));
-        if (property === undefined || !("value" in property) || !visit(property.value, depth + 1)) {
-          valid = false;
-          break;
-        }
-      }
+      for (let index = 0; index < item.length; index++) yield Object.getOwnPropertyDescriptor(item, String(index));
     } else for (const key in item) {
       const property = Object.getOwnPropertyDescriptor(item, key);
-      if (property !== undefined && (!("value" in property) || !visit(property.value, depth + 1))) {
-        valid = false;
-        break;
+      if (property !== undefined) yield property;
+    }
+  }
+  let nodes = 0;
+  let item = value, depth = 0;
+  while (true) {
+    if (++nodes > maxNodes || depth > maxDepth) return false;
+    if (item !== null && typeof item !== "string" && typeof item !== "boolean") {
+      if (typeof item === "number") {
+        if (!Number.isFinite(item)) return false;
+      } else {
+        if (typeof item !== "object" || ancestors.has(item)) return false;
+        if (!Array.isArray(item) && Object.getPrototypeOf(item) !== Object.prototype &&
+            Object.getPrototypeOf(item) !== null) return false;
+        let hookOwner: object | null = item;
+        let prototypeDepth = 0;
+        while (hookOwner !== null) {
+          if (++prototypeDepth > 64) return false;
+          const serializationHook = Object.getOwnPropertyDescriptor(hookOwner, "toJSON");
+          if (serializationHook !== undefined) {
+            if (!("value" in serializationHook) || typeof serializationHook.value === "function") return false;
+            break;
+          }
+          hookOwner = Object.getPrototypeOf(hookOwner) as object | null;
+        }
+        if (Array.isArray(item) && item.length > maxNodes) return false;
+        ancestors.add(item);
+        stack.push({ owner: item, children: properties(item), depth });
       }
     }
-    ancestors.delete(item);
-    return valid;
-  };
-  return visit(value, 0);
+    let next: IteratorResult<PropertyDescriptor | undefined> | undefined;
+    while (stack.length) {
+      const frame = stack[stack.length - 1];
+      next = frame.children.next();
+      if (!next.done) {
+        if (next.value === undefined || !("value" in next.value)) return false;
+        item = next.value.value;
+        depth = frame.depth + 1;
+        break;
+      }
+      ancestors.delete(frame.owner);
+      stack.pop();
+    }
+    if (!stack.length) return true;
+  }
 }

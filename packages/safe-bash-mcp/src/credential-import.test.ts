@@ -12,6 +12,14 @@ const resource = "https://resource.example/mcp", issuer = "https://auth.example"
 const payload = { tokens: { access_token: "private-access", refresh_token: "private-refresh", token_type: "Bearer", expires_in: 3600, scope: "read" },
   clientInfo: { client_id: "original", client_secret: "private-secret", token_endpoint_auth_method: "client_secret_post", redirect_uris: ["http://localhost:49152/callback"], provider_metadata: { tenant: "one" } } };
 const dynamic = sdk.initRemoteMcpConfiguration([{ name: "catalog", url: resource, tools: [], auth: { type: "oauth", clientMode: "dynamic", scope: "read" } }]).configuration.servers[0];
+it.each([undefined, Infinity])("preserves credential metadata deeper than 64 levels with budget %s", async maxImportBytes => {
+  const f = fixture();
+  let metadata: unknown = "retained";
+  for (let depth = 0; depth < 80; depth++) metadata = { nested: metadata };
+  const value = { ...payload, clientInfo: { ...payload.clientInfo, provider_metadata: metadata } };
+  await sdk.importRemoteMcpAuthentication(dynamic, value, { binding: f.binding, fetch: f.fetch, maxImportBytes });
+  expect((await f.stores.sessionStore.load(resource))?.client.registration?.provider_metadata).toEqual(metadata);
+});
 function fixture() {
   const fs = createFsFromVolume(new Volume()).promises;
   const authStore = { backend: "file" as const, fileStore: { fs, filePath: "/home/test/import.enc", salt: "fixture", getMachineIdentity: () => ({ hostname: "host", username: "user" }) } };

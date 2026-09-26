@@ -55,7 +55,7 @@ export async function importRemoteMcpAuthentication(
       if (new TextEncoder().encode(payload).byteLength > maxBytes) throw new Error("Limit");
       payload = parseArgumentJson(payload);
     }
-    if (!isJsonValue(payload, { maxNodes: maxBytes, maxDepth: 64 }) || new TextEncoder().encode(JSON.stringify(payload)).byteLength > maxBytes ||
+    if (!isJsonValue(payload, { maxNodes: maxBytes, maxDepth: Infinity }) || new TextEncoder().encode(JSON.stringify(payload)).byteLength > maxBytes ||
       typeof payload !== "object" || payload === null || Array.isArray(payload)) throw new Error("Invalid JSON");
     input = structuredClone(payload) as Record<string, unknown>;
     if (!Object.hasOwn(input, "tokens") || Object.keys(input).some(key => !["tokens", "clientInfo", "issuedAt", "issuer"].includes(key)) ||

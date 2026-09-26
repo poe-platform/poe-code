@@ -44,7 +44,6 @@ for (const failedRead of [false, true]) test(`closed byte readers do not replay 
   assert.deepEqual(await reader.return("later"), { done: true, value: "later" });
   assert.equal(closes, 1);
 });
-
 for (const sync of [false, true]) test(`byte reads serialize synchronous producer reentry with sync=${sync}`, async () => {
   const trace: string[] = [];
   let nested!: Promise<IteratorResult<Uint8Array>>;
@@ -65,27 +64,42 @@ for (const sync of [false, true]) test(`byte reads serialize synchronous produce
   assert.deepEqual(trace, ["first entered", "first returned", "second"]);
 });
 
-test("a reentrant return waits for the active producer read before closing it", async () => {
-  const entered = gate();
-  const pendingRead = gate();
-  let closing!: Promise<IteratorResult<Uint8Array>>;
-  let closes = 0;
+for (const sync of [false, true]) test(`byte reads preserve FIFO through iterator factory reentry with sync=${sync}`, async () => {
+  const trace: string[] = [];
+  let nested!: Promise<IteratorResult<Uint8Array>>;
+  let pulls = 0;
+  const pull = (): IteratorResult<Uint8Array> => {
+    trace.push(`pull ${++pulls}`);
+    return pulls === 1 ? { done: false, value: Uint8Array.of(1) } : { done: true, value: undefined };
+  };
+  const reader = readBytes({ [Symbol.asyncIterator]() {
+    trace.push("factory entered");
+    nested = reader.next();
+    trace.push("factory returned");
+    return { ...(sync ? { tryNextSync: pull } : {}), next: async () => pull() };
+  } });
+  assert.deepEqual(await reader.next(), { done: false, value: Uint8Array.of(1) });
+  assert.deepEqual(await nested, { done: true, value: undefined });
+  assert.deepEqual(trace, ["factory entered", "factory returned", "pull 1", "pull 2"]);
+});
+
+test("byte reads preserve FIFO when a reentrant synchronous probe declines", async () => {
+  let nested!: Promise<IteratorResult<Uint8Array>>;
+  let probes = 0;
+  let pulls = 0;
   const reader = readBytes({ [Symbol.asyncIterator]: () => ({
-    async next() {
-      closing = reader.return("closed");
-      entered.release();
-      await pendingRead.promise;
-      return { done: false, value: Uint8Array.of(1) };
+    tryNextSync() {
+      if (++probes === 2) nested = reader.next();
+      return undefined;
     },
-    async return() { closes++; return { done: true, value: undefined }; },
-  }) });
-  const reading = reader.next();
-  await entered.promise;
-  try { assert.equal(closes, 0); }
-  finally { pendingRead.release(); }
-  assert.deepEqual(await reading, { done: false, value: Uint8Array.of(1) });
-  assert.deepEqual(await closing, { done: true, value: "closed" });
-  assert.equal(closes, 1);
+    async next() {
+      return ++pulls === 1 ? { done: false, value: Uint8Array.of(1) } : { done: true, value: undefined };
+    },
+  }) }) as AsyncGenerator<Uint8Array> & { tryNextSync(): IteratorResult<Uint8Array> | undefined };
+  assert.equal(reader.tryNextSync(), undefined);
+  assert.deepEqual(await reader.next(), { done: false, value: Uint8Array.of(1) });
+  assert.deepEqual(await nested, { done: true, value: undefined });
+  assert.equal(pulls, 2);
 });
 
 test("overlapping byte-reader returns both drain one cleanup and preserve their values", async () => {
@@ -155,4 +169,27 @@ test("byte-reader next calls serialize while successful synchronous reads remain
   }) }) as AsyncGenerator<Uint8Array> & { tryNextSync(): IteratorResult<Uint8Array> | undefined };
   assert.deepEqual(fast.tryNextSync(), { done: false, value: Uint8Array.of(2) });
   assert.deepEqual(fast.tryNextSync(), { done: true, value: undefined });
+});
+
+test("a reentrant return waits for the active producer read before closing it", async () => {
+  const entered = gate();
+  const pendingRead = gate();
+  let closing!: Promise<IteratorResult<Uint8Array>>;
+  let closes = 0;
+  const reader = readBytes({ [Symbol.asyncIterator]: () => ({
+    async next() {
+      closing = reader.return("closed");
+      entered.release();
+      await pendingRead.promise;
+      return { done: false, value: Uint8Array.of(1) };
+    },
+    async return() { closes++; return { done: true, value: undefined }; },
+  }) });
+  const reading = reader.next();
+  await entered.promise;
+  try { assert.equal(closes, 0); }
+  finally { pendingRead.release(); }
+  assert.deepEqual(await reading, { done: false, value: Uint8Array.of(1) });
+  assert.deepEqual(await closing, { done: true, value: "closed" });
+  assert.equal(closes, 1);
 });

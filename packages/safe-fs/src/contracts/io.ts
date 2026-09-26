@@ -176,7 +176,7 @@ class ReadBytesGenerator {
   declare nativeAbort: boolean;
   declare finished: boolean;
   declare closing: Promise<void> | undefined;
-  declare turn: Promise<void> | undefined;
+  declare turn: Promise<unknown> | undefined;
   declare readingSync: boolean;
   declare syncFailure: { reason: unknown } | undefined;
 
@@ -204,7 +204,7 @@ class ReadBytesGenerator {
     const previous = this.turn;
     let release!: () => void;
     const reserved = new Promise<void>(resolve => { release = resolve; });
-    // Reserve before invoking producer code, which can synchronously reenter us.
+    // Reserve before calling a producer, which may synchronously reenter us.
     this.turn = reserved;
     const result = previous
       ? previous.then(action)
@@ -305,13 +305,7 @@ class ReadBytesGenerator {
   }
 
   next(): Promise<IteratorResult<Uint8Array>> {
-    if (!this.turn && !this.readingSync && !this.syncFailure) {
-      if (this.finished && !this.closing) return RESOLVED_DONE;
-      const syncResult = this.tryNextSync();
-      if (syncResult !== undefined) {
-        return syncResult.done ? RESOLVED_DONE : Promise.resolve(syncResult);
-      }
-    }
+    if (this.finished && !this.turn && !this.readingSync && !this.syncFailure && !this.closing) return RESOLVED_DONE;
     return this._schedule(() => this._runNext());
   }
 

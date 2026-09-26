@@ -72,14 +72,30 @@ export const htmlqBaseline = Object.freeze({
 });
 export type HtmlAccounting = Readonly<Record<keyof HtmlLimits, number>>;
 interface Ledger {
-  counts: Partial<Record<keyof HtmlLimits, number>>;
-  peaks: Partial<Record<keyof HtmlLimits, number>>;
+  counts: Record<keyof HtmlLimits, number>;
+  peaks: Record<keyof HtmlLimits, number>;
+  aborted: boolean;
+  pollSignal: boolean;
+}
+function createLedger(signal: AbortSignal): Ledger {
+  const aborted = Boolean(signal?.aborted);
+  const pollSignal = Boolean(signal && (typeof signal.addEventListener !== "function" || Object.prototype.hasOwnProperty.call(signal, "aborted")));
+  const ledger: Ledger = {
+    counts: { inputBytes: 0, decodedBytes: 0, retainedBytes: 0, nodes: 0, attributes: 0, depth: 0, tokenBytes: 0, work: 0, outputBytes: 0 },
+    peaks: { inputBytes: 0, decodedBytes: 0, retainedBytes: 0, nodes: 0, attributes: 0, depth: 0, tokenBytes: 0, work: 0, outputBytes: 0 },
+    aborted,
+    pollSignal
+  };
+  if (signal && !aborted && !pollSignal) {
+    signal.addEventListener("abort", () => { ledger.aborted = true; }, { once: true });
+  }
+  return ledger;
 }
 const invocationCounts = new WeakMap<HtmlOptions, Ledger>();
 /** Own one cumulative accounting ledger for an invocation. */
 export function invocationOptions(options: HtmlOptions): HtmlOptions {
   const owned = { signal: options.signal, limits: { ...options.limits } };
-  invocationCounts.set(owned, { counts: {}, peaks: {} });
+  invocationCounts.set(owned, createLedger(options.signal));
   return owned;
 }
 export class HtmlBudget {
@@ -87,7 +103,12 @@ export class HtmlBudget {
   private ledger: Ledger;
   constructor(readonly options: HtmlOptions) {
     this.limits = { ...options.limits };
-    this.ledger = invocationCounts.get(options) ?? { counts: {}, peaks: {} };
+    let ledger = invocationCounts.get(options);
+    if (!ledger) {
+      ledger = createLedger(options.signal);
+      invocationCounts.set(options, ledger);
+    }
+    this.ledger = ledger;
     for (const name of [
       "inputBytes",
       "decodedBytes",
@@ -104,17 +125,17 @@ export class HtmlBudget {
     this.check();
   }
   check(): void {
-    if (this.options.signal.aborted)
+    if (this.ledger.aborted || (this.ledger.pollSignal && this.options.signal.aborted))
       throw new HtmlError("E_CANCELLED", "HTML invocation cancelled");
   }
   bound(resource: keyof HtmlLimits, amount: number): void {
     this.check();
     if (!Number.isSafeInteger(amount) || amount < 0 || amount > this.limits[resource])
       throw new HtmlError("E_LIMIT", `HTML ${resource} limit exceeded`, 0, resource);
-    this.ledger.peaks[resource] = Math.max(this.ledger.peaks[resource] ?? 0, amount);
+    if (amount > this.ledger.peaks[resource]) this.ledger.peaks[resource] = amount;
   }
   remaining(resource: keyof HtmlLimits): number {
-    return this.limits[resource] - (this.ledger.counts[resource] ?? 0);
+    return this.limits[resource] - this.ledger.counts[resource];
   }
   snapshot(): HtmlAccounting {
     return Object.freeze(
@@ -127,7 +148,7 @@ export class HtmlBudget {
     ) as HtmlAccounting;
   }
   charge(resource: keyof HtmlLimits, amount: number): void {
-    const n = (this.ledger.counts[resource] ?? 0) + amount;
+    const n = this.ledger.counts[resource] + amount;
     this.bound(resource, n);
     this.ledger.counts[resource] = n;
   }

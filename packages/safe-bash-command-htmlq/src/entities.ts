@@ -4,17 +4,24 @@ const windows1252 = [
   8217, 8220, 8221, 8226, 8211, 8212, 732, 8482, 353, 8250, 339, 157, 382, 376
 ];
 export function asciiLower(s: string): string {
-  let result = "";
-  for (const c of s) {
-    const n = c.charCodeAt(0);
-    result += n >= 65 && n <= 90 ? String.fromCharCode(n + 32) : c;
+  for (let i = 0; i < s.length; i++) {
+    const n = s.charCodeAt(i);
+    if (n >= 65 && n <= 90) {
+      let result = s.slice(0, i) + String.fromCharCode(n + 32);
+      for (let j = i + 1; j < s.length; j++) {
+        const c = s.charCodeAt(j);
+        result += c >= 65 && c <= 90 ? String.fromCharCode(c + 32) : s[j];
+      }
+      return result;
+    }
   }
-  return result;
+  return s;
 }
 export function htmlSpace(c: string): boolean {
   return c === " " || c === "\t" || c === "\n" || c === "\r" || c === "\f";
 }
 export function decodeEntities(source: string, attribute: boolean): string {
+  if (!source.includes("&")) return source;
   let out = "";
   for (let i = 0; i < source.length; i++) {
     if (source[i] !== "&") {

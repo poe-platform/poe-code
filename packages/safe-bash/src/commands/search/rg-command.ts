@@ -620,7 +620,8 @@ export function createRgCommand(executor: RegexExecutor, options: SearchOptions 
             !(args.mode !== "files" && args.patternFiles.includes("-") && args.paths.includes("-")) &&
             args.patternFiles.length === 0 &&
             args.mode !== "json" &&
-            !args.stats
+            !args.stats &&
+            inProcessRegexProviders.has(executor.provider)
           ) {
             const selection = selectInput(context, args, options);
             const report = async (error: unknown) => {

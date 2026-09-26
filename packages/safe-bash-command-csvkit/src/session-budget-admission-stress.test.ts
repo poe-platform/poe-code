@@ -5,7 +5,8 @@ import type { CsvkitWritableFile } from "./contracts.js";
 import { defaultLimits, run } from "./engine.js";
 import { csvcut } from "./commands/csvcut.js";
 import { Runtime } from "./runtime.js";
-import { CsvkitOutputBudgetError } from "./errors.js";
+import { CsvkitDiagnostic, CsvkitOutputBudgetError, CsvkitWorkBudgetError } from "./errors.js";
+import { emit, type JsonValue } from "./operations/json-table.js";
 import { readCsvStream, type CsvDialect } from "./csv.js";
 import { utf8Codec } from "./codecs/utf8.js";
 
@@ -25,6 +26,94 @@ function fixture(overrides: Partial<InvocationContext> = {}) {
   };
   return { runtime: new Runtime(context, csvcut, {}), output, errors, cleanups };
 }
+
+test("JSON serialization waits for opening-container backpressure before visiting children and batches the payload", async () => {
+  let release!: () => void;
+  const barrier = new Promise<void>(resolve => { release = resolve; });
+  let entered!: () => void;
+  const started = new Promise<void>(resolve => { entered = resolve; });
+  const writes: string[] = [];
+  let childReads = 0;
+  const values: JsonValue[] = ["first", "second"];
+  Object.defineProperty(values, 0, { get() { childReads++; return "first"; } });
+  const f = fixture({ stdout: { async write(bytes) {
+    writes.push(new TextDecoder().decode(bytes));
+    if (writes.length === 1) { entered(); await barrier; }
+  } } });
+  const operation = emit(values, f.runtime, null);
+  try {
+    await started;
+    assert.equal(childReads, 0);
+    assert.deepEqual(writes, ["["]);
+    release();
+    await operation;
+    assert.deepEqual(writes, ["[", '"first", "second"]']);
+  } finally { release(); await operation; await f.runtime.close(); }
+});
+
+test("batched rows preserve admitted prefix before output-budget refusal", async () => {
+  const f = fixture({ limits: { ...defaultLimits, maxOutputBytes: 3 } });
+  try {
+    await assert.rejects(f.runtime.rows([["ok"], ["denied"]]), CsvkitOutputBudgetError);
+    assert.equal(Buffer.concat(f.output).toString(), "ok\n");
+    await assert.rejects(f.runtime.write("x"), CsvkitOutputBudgetError);
+  } finally { await f.runtime.close(); }
+});
+
+test("batched rows preserve admitted prefix before later serialization refusal", async () => {
+  const f = fixture();
+  try {
+    await assert.rejects(f.runtime.rows([["ok"], ["a,b"]], { quoting: 3 }), /need to escape/);
+    assert.equal(Buffer.concat(f.output).toString(), "ok\n");
+  } finally { await f.runtime.close(); }
+});
+
+test("batched rows retain the original work-budget failure after publishing admitted rows", async () => {
+  const f = fixture({ limits: { ...defaultLimits, maxWork: 20 } });
+  let original: unknown;
+  function* rows() {
+    yield ["ok"];
+    try {
+      // Producing the next row can exhaust work after an earlier row was admitted.
+      for (let index = 0; index < 100; index++) f.runtime.step();
+    } catch (error) { original = error; throw error; }
+  }
+  try {
+    await assert.rejects(f.runtime.rows(rows()), error => error === original && error instanceof CsvkitWorkBudgetError);
+    assert.equal(Buffer.concat(f.output).toString(), "ok\n");
+  } finally { await f.runtime.close(); }
+});
+
+for (const reason of [false, null, new CsvkitDiagnostic("sink refused")]) test(`batched rows never retry a rejected sink: ${String(reason)}`, async () => {
+  let writes = 0;
+  let advances = 0;
+  const f = fixture({ stdout: { async write() { writes++; throw reason; } } });
+  function* rows() {
+    advances++;
+    yield ["x".repeat(32768)];
+    advances++;
+    yield ["must not read"];
+  }
+  try {
+    await assert.rejects(f.runtime.rows(rows()), error => error === reason);
+    assert.equal(writes, 1);
+    assert.equal(advances, 1);
+  } finally { await f.runtime.close(); }
+});
+
+for (const reason of [false, null]) for (const end of ["next row", "done"]) test(`batched rows do not flush buffered data after cancellation: ${reason}, ${end}`, async () => {
+  const controller = new AbortController();
+  const f = fixture({ signal: controller.signal });
+  function* rows() {
+    yield ["buffered"];
+    controller.abort(reason);
+    if (end === "next row") yield ["never serialized"];
+  }
+  try {
+    await assert.rejects(f.runtime.rows(rows()), error => error === reason);
+    assert.deepEqual(f.output, []);
+  } finally { await f.runtime.close(); }
+});
 
 test("row admission denies before CR normalization allocates a split array", async () => {
   const f = fixture({ limits: { ...defaultLimits, maxOutputBytes: 0 } });

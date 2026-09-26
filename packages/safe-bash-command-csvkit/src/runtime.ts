@@ -53,12 +53,15 @@ export class Runtime {
       if (failures.length) throw new CsvkitCleanupError(failures, "CSV stream cleanup failed");
     });
   };
-  readonly step = (): void => {
+  #assertOpen(): void {
     if (this.#aborted || (this.#pollSignal && this.context.signal.aborted)) {
       this.#aborted = true;
       this.context.signal.throwIfAborted();
     }
     if (this.#closed) throw new CsvkitBlocked("invocation already closed");
+  }
+  readonly step = (): void => {
+    this.#assertOpen();
     if (++this.#work > this.context.limits.maxWork) throw new CsvkitWorkBudgetError();
   };
   retain(bytes: number): void {
@@ -346,26 +349,36 @@ export class Runtime {
   }
   async rows(rowList: Iterable<readonly CsvWriteCell[]>, dialect: CsvDialect = {}, lineNumbers = Boolean(this.options.line_numbers)): Promise<void> {
     let buf = "";
-    for (const cells of rowList) {
-      this.step();
-      if (cells.length + (lineNumbers ? 1 : 0) > this.context.limits.maxColumns) throw new CsvkitBlocked("output column budget exceeded");
-      const numbered = lineNumbers ? [this.#writtenRows === 0 ? "line_number" : this.#writtenRows, ...cells] : cells;
-      const text = writeCsvRow(numbered, dialect, true, { step: this.step, admit: (bytes, codeUnits) => {
-        if (!Number.isSafeInteger(bytes) || bytes > this.context.limits.maxOutputBytes - this.#output) throw new CsvkitOutputBudgetError();
-        this.retain(codeUnits * 2);
-        this.#output += bytes;
-      } });
-      this.step();
-      this.#writtenRows++;
-      buf += text;
-      if (buf.length >= 32768) {
-        await this.context.stdout.write(sharedTextEncoder.encode(buf));
-        buf = "";
+    const flush = async (): Promise<void> => {
+      this.#assertOpen();
+      if (!buf.length) return;
+      const text = buf;
+      buf = "";
+      await this.context.stdout.write(sharedTextEncoder.encode(text));
+      this.#assertOpen();
+    };
+    try {
+      for (const cells of rowList) {
+        this.step();
+        if (cells.length + (lineNumbers ? 1 : 0) > this.context.limits.maxColumns) throw new CsvkitBlocked("output column budget exceeded");
+        const numbered = lineNumbers ? [this.#writtenRows === 0 ? "line_number" : this.#writtenRows, ...cells] : cells;
+        const text = writeCsvRow(numbered, dialect, true, { step: this.step, admit: (bytes, codeUnits) => {
+          if (!Number.isSafeInteger(bytes) || bytes > this.context.limits.maxOutputBytes - this.#output) throw new CsvkitOutputBudgetError();
+          this.retain(codeUnits * 2);
+          this.#output += bytes;
+        } });
+        this.step();
+        this.#writtenRows++;
+        buf += text;
+        if (buf.length >= 32768) await flush();
       }
+    } catch (error) {
+      // These bytes passed row admission already. Preserve them on a later
+      // diagnostic, but never publish after cancellation or retry a failed sink.
+      if (error instanceof CsvkitDiagnostic && !this.#closed && !this.context.signal.aborted) await flush();
+      throw error;
     }
-    if (buf.length > 0) {
-      await this.context.stdout.write(sharedTextEncoder.encode(buf));
-    }
+    await flush();
   }
   error(message: string): never { throw new CsvkitDiagnostic(this.descriptor.usage + this.descriptor.name + ": error: " + message, 2); }
   async prompt(): Promise<void> {

@@ -24,6 +24,29 @@ export function floatText(value: number): string {
 
 /** Preserve Python's spacing and insertion order, including numeric object keys. */
 export async function emit(value: JsonValue, runtime: Runtime, indent: number | null, depth = 0): Promise<void> {
+  // Finite limits admit each token before publication, retaining the accepted
+  // prefix if a later token is refused. Unlimited payloads remain batched below.
+  if (runtime.context.limits.maxOutputBytes !== Infinity || runtime.context.limits.maxWork !== Infinity) {
+    runtime.step();
+    if (typeof value === "number") { await runtime.write(floatText(value)); return; }
+    if (value === null || typeof value === "string" || typeof value === "boolean") { await runtime.write(JSON.stringify(value)); return; }
+    if ("token" in value) { await runtime.write(value.token); return; }
+    const object = value instanceof Map;
+    const size = object ? value.size : (value as readonly JsonValue[]).length;
+    runtime.retain(size * 32);
+    await runtime.write(object ? "{" : "[");
+    let index = 0;
+    const entries = object ? value.entries() : (value as readonly JsonValue[]).entries();
+    for (const [key, child] of entries) {
+      if (index++) await runtime.write(indent === null ? ", " : ",");
+      if (indent !== null) await runtime.write("\n" + " ".repeat(indent * (depth + 1)));
+      if (object) await runtime.write(JSON.stringify(key) + ": ");
+      await emit(child, runtime, indent, depth + 1);
+    }
+    if (size && indent !== null) await runtime.write("\n" + " ".repeat(indent * depth));
+    await runtime.write(object ? "}" : "]");
+    return;
+  }
   let buf = "";
   const flushIfNeeded = async (): Promise<void> => {
     if (buf.length >= 32768) {
@@ -68,7 +91,7 @@ export async function emit(value: JsonValue, runtime: Runtime, indent: number | 
     if (cur instanceof Map) {
       runtime.step();
       runtime.retain(cur.size * 32);
-      buf += "{";
+      await runtime.write("{");
       let index = 0;
       const childPad = indent !== null ? "\n" + " ".repeat(indent * (d + 1)) : "";
       for (const [key, child] of cur.entries()) {
@@ -86,7 +109,7 @@ export async function emit(value: JsonValue, runtime: Runtime, indent: number | 
       const arr = cur as readonly JsonValue[];
       runtime.step();
       runtime.retain(arr.length * 32);
-      buf += "[";
+      await runtime.write("[");
       const childPad = indent !== null ? "\n" + " ".repeat(indent * (d + 1)) : "";
       for (let index = 0; index < arr.length; index++) {
         if (index) buf += indent === null ? ", " : ",";

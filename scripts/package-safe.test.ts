@@ -1514,6 +1514,9 @@ it('ships xmllint and its shared XML engine through the established XML export',
   expect(read('safe-bash-command-xmllint/index.js')).toContain('"../safe-bash-xml-engine/limits.js"');
   expect(read('safe-bash-command-xmllint/index.d.ts')).toContain('"../safe-bash-xml-engine/limits.js"');
   const consumer = await import('data:text/javascript;base64,' + Buffer.from(read('safe-bash-xml-engine/limits.js')).toString('base64'));
-  expect(consumer.resolveXmlQueryLimits().maxNodes).toBe(10_000);
+  expect(consumer.resolveXmlQueryLimits().maxNodes).toBe(Infinity);
+  expect(consumer.resolveXmlQueryLimits({}).maxNodes).toBe(Infinity);
+  expect(consumer.resolveXmlQueryLimits({ maxNodes: Infinity }).maxNodes).toBe(Infinity);
+  expect(consumer.resolveXmlQueryLimits({ maxNodes: 10_000 }).maxNodes).toBe(10_000);
   expect(() => consumer.resolveXmlQueryLimits({ maxNodes: 0 })).toThrow(RangeError);
 });

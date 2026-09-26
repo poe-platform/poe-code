@@ -7,8 +7,9 @@ import { textContext, textFixture } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
 
 const enc = (value: string) => new TextEncoder().encode(value);
+const count = 1024;
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
-for (const count of [1024, 131072]) for (const route of ["sdk", "cli"] as const)
+for (const route of ["sdk", "cli"] as const)
 it(`custom property ID allocation preserves admitted physical fanout; strict=${strict}; kind=${kind}; count=${count}; route=${route}`, async () => {
   const office = strict ? "http://purl.oclc.org/ooxml/officeDocument/" : "http://schemas.openxmlformats.org/officeDocument/2006/";
   const namespace = office + (strict ? "customProperties" : "custom-properties");

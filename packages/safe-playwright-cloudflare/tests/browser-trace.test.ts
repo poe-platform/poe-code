@@ -13,6 +13,7 @@ import {
 	writeFile,
 } from "node:fs/promises";
 import { RealFileSystem } from "@poe-code/safe-fs/fs/real";
+import type { FileStat } from "@poe-code/safe-fs/core";
 import { captureBrowserTrace } from "../src/browser-trace";
 const fs = new RealFileSystem({ root: "/" });
 
@@ -154,3 +155,34 @@ describe("native browser trace transport", () => {
 		}
 	});
 });
+
+for (const metadataMode of ["absent", "placeholder"] as const) {
+  for (const side of ["both", "retained"] as const) {
+    test(`live trace rejects ${metadataMode} ${side} identity without reading substituted bytes`, async () => {
+      const f = await fixture();
+      const filesystem = new RealFileSystem({ root: "/" });
+      const hideIdentity = (stat: FileStat): FileStat => {
+        const { identityScope: ignoredScope, ino: ignoredIno, dev: ignoredDev, ...metadata } = stat;
+        return metadataMode === "absent" ? metadata : { ...metadata, identityScope: Symbol.for("virtual-bash.fs.native"), ino: 0, dev: 0 };
+      };
+      const read = vi.fn();
+      const close = vi.fn();
+      if (side === "both") vi.spyOn(filesystem, "lstat").mockImplementation(async (path, options) => hideIdentity(await fs.lstat(path, options)));
+      vi.spyOn(filesystem, "openReadFile").mockImplementation(async (path, options) => {
+        const handle = await fs.openReadFile(path, options);
+        return {
+          ...handle,
+          stat: async options => hideIdentity(await handle.stat(options)),
+          read: async (...args) => { read(); return handle.read(...args); },
+          close: async () => { close(); await handle.close(); },
+        };
+      });
+      try {
+        await expect(captureBrowserTrace(f.context, { signal: new AbortController().signal, maxBytes: 1024 }, filesystem))
+          .rejects.toThrow("identity unavailable");
+        expect(read).not.toHaveBeenCalled();
+        if (side === "retained") expect(close).toHaveBeenCalledOnce();
+      } finally { await f.cleanup(); }
+    });
+  }
+}

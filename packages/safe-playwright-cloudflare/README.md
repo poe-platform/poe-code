@@ -58,12 +58,26 @@ An optional second argument supplies `loadState(session, signal)`. Explicit
 The fourth argument optionally bounds storage restoration bytes; omitted limits
 and explicit `Infinity` are unlimited. It also accepts `artifactFileSystem`, a
 safe-fs `FileSystem` supplied by the host that accesses the **same Worker-local
-`/tmp` files** written by the pinned Playwright provider. PDF and trace capture
-require this binding and retained reads (`openReadFile`); without it they report
-an unavailable filesystem. A separate memory filesystem cannot read native
-Playwright output. Capture performs all I/O through safe-fs and never imports a
-Node filesystem implementation. The pinned Cloudflare provider still requires
-its documented `nodejs_compat` support.
+`/tmp` files** written by the pinned Playwright provider. Trace capture requires
+this binding and retained reads (`openReadFile`); without it tracing reports an
+unavailable filesystem. Screenshots and PDFs return provider bytes directly.
+A separate memory filesystem cannot read native Playwright output. Capture
+performs its file I/O through safe-fs. The pinned Cloudflare provider still
+requires its documented `nodejs_compat` support.
+
+The fourth argument also accepts `traceCapture: "archive"`. This explicitly
+selects the standard CLI's `tracing-start` / `tracing-stop` ZIP artifact flow,
+without per-command live trace files. Omission or `"live"` preserves live
+capture, which requires authoritative pathname and retained-file identity.
+Workerd native files expose placeholder identity, so supply
+`artifactFileSystem: new RealFileSystem({ root: "/" })` from
+`@poe-platform/safe-fs/fs/real` and explicitly choose `"archive"` there.
+Archive capture awaits the trusted provider in a private temporary directory,
+reads the completed file through one retained handle, and always removes the
+directory. It bounds the compressed output bytes; it does not bound the native
+producer's recording memory or provide the live raw-file byte limit.
+The host must preserve the request-owned provider/filesystem lifetime through
+production and capture; native `/tmp` is not cross-request storage.
 Portable profile byte, tab, and traversal limits are independently optional and default to unlimited; `Infinity` is also accepted. Explicit positive finite limits remain enforced. Storage structure and provider limits still apply.
 
 The trusted storage control channel has no default frame-byte, pending-command,

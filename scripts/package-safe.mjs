@@ -403,7 +403,11 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
         let target = value;
         if (name === "safe-fs") {
           if (key === "." || key === "./contracts") target = { types: { browser: "./dist/core.d.ts", default: value.types }, browser: "./dist/core.js", import: value.import };
-          if (["./node", "./fs/real", "./fs/s3", "./fs/s3/http"].includes(key)) target = { types: { browser: "./dist/node-unavailable.d.ts", default: key === "./node" ? "./dist/node-host.d.ts" : value.types }, browser: null, import: key === "./node" ? "./dist/node-host.js" : value.import };
+          if (["./node", "./fs/s3", "./fs/s3/http"].includes(key)) target = { types: { browser: "./dist/node-unavailable.d.ts", default: key === "./node" ? "./dist/node-host.d.ts" : value.types }, browser: null, import: key === "./node" ? "./dist/node-host.js" : value.import };
+          if (key === "./fs/real") target = {
+            types: { workerd: value.types, browser: "./dist/node-unavailable.d.ts", default: value.types },
+            workerd: value.import, browser: null, import: value.import,
+          };
         }
         exports[key] = enqueueExport(workspaceTarget(target));
       }
@@ -584,7 +588,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       manifest.peerDependencies = Object.fromEntries(companionPeers);
       manifest.peerDependenciesMeta = Object.fromEntries([...companionPeers.keys()].map(peer => [peer, { optional: true }]));
     }
-    if (name === "safe-fs") manifest.imports = { "#safe-fs-platform": { types: { browser: "./dist/safe-fs/platform/browser.d.ts", default: "./dist/safe-fs/platform/node.d.ts" }, browser: "./dist/safe-fs/platform/browser.js", default: "./dist/safe-fs/platform/node.js" } };
+    if (name === "safe-fs") manifest.imports = { "#safe-fs-platform": { types: { workerd: "./dist/safe-fs/platform/browser.d.ts", browser: "./dist/safe-fs/platform/browser.d.ts", default: "./dist/safe-fs/platform/node.d.ts" }, workerd: "./dist/safe-fs/platform/browser.js", browser: "./dist/safe-fs/platform/browser.js", default: "./dist/safe-fs/platform/node.js" } };
     if (name === "safe-fs" && nativeAssets) manifest.imports[nativeAssets.registry.specifier] = nativeImportMapping(nativeAssets.registry,
       artifactPath(rootDir, path.join(rootDir, "packages/safe-fs/dist")));
     if (name === "safe-js") {

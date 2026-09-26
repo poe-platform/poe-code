@@ -8,7 +8,53 @@ import { Limits, pathFor } from "./shared.js";
 import { assertPathRequirements, searchRequirements } from "./requirements.js";
 import { defaultFileTypes } from "./file-types.js";
 
-export interface FileTarget { path: string; label: string; explicit: boolean; recursive: boolean; canonicalPath?: string | undefined; memoryView?: Uint8Array | undefined }
+export interface FileTarget {
+  path: string;
+  label: string;
+  explicit: boolean;
+  recursive: boolean;
+  canonicalPath?: string | undefined;
+  memoryView?: Uint8Array | undefined;
+  dirLabel?: string | undefined;
+  entryName?: string | undefined;
+  _label?: string | undefined;
+  _hasCanonical?: boolean | undefined;
+}
+
+class ReusableFileTarget implements FileTarget {
+  _path: string | undefined = "";
+  _label: string | undefined = "";
+  _canonicalPath: string | undefined;
+  _hasCanonical = false;
+  dirPath = "";
+  dirLabel = "";
+  entryName: string | undefined;
+  explicit = false;
+  recursive = true;
+  memoryView: Uint8Array | undefined;
+
+  get path(): string {
+    return this._path ??= `${this.dirPath}/${this.entryName!}`;
+  }
+  set path(v: string) {
+    this._path = v;
+    this.entryName = undefined;
+  }
+  get label(): string {
+    return this._label ??= (this.dirLabel === this.dirPath ? this.path : (this.dirLabel ? `${this.dirLabel}/${this.entryName!}` : this.entryName!));
+  }
+  set label(v: string) {
+    this._label = v;
+  }
+  get canonicalPath(): string | undefined {
+    if (this._canonicalPath !== undefined) return this._canonicalPath;
+    return this._hasCanonical ? this.path : undefined;
+  }
+  set canonicalPath(v: string | undefined) {
+    this._canonicalPath = v;
+    this._hasCanonical = v !== undefined;
+  }
+}
 const EMPTY_IGNORE_RULES: IgnoreRule[] = [];
 const EMPTY_GLOBS: { glob: Glob; include: boolean }[] = [];
 
@@ -64,10 +110,10 @@ function compareEntryNames(left: string, right: string): number {
 }
 
 export class Walker {
-  private readonly globs: { glob: Glob; include: boolean }[];
-  private readonly hasPositive: boolean;
+  private globs!: { glob: Glob; include: boolean }[];
+  private hasPositive!: boolean;
   private typeGlobs: { glob: Glob; include: boolean }[] = EMPTY_GLOBS;
-  private readonly hasPositiveType: boolean;
+  private hasPositiveType!: boolean;
   private cache: Map<string, { rules: IgnoreRule[]; repository: boolean; root: boolean }> | undefined;
   private explicitRules: IgnoreRule[] = EMPTY_IGNORE_RULES;
   private uniformDirAdmitted = false;
@@ -75,12 +121,28 @@ export class Walker {
   private uniformReaddirAdmitted: boolean | undefined;
   private uniformIgnoreAdmitted = false;
   private syncWalkNow = 0;
-  constructor(private readonly context: CommandContext, private readonly args: Arguments, private readonly limits: Limits, private readonly report: (error: unknown) => Promise<void>, private readonly session: RegexSession) {
+  constructor(private context: CommandContext, private args: Arguments, private limits: Limits, private report: (error: unknown) => Promise<void>, private session: RegexSession) {
+    this.resetForRun(context, args, limits, report, session);
+  }
+  resetForRun(context: CommandContext, args: Arguments, limits: Limits, report: (error: unknown) => Promise<void>, session: RegexSession): void {
+    this.context = context;
+    this.args = args;
+    this.limits = limits;
+    this.report = report;
+    this.session = session;
     this.globs = args.globs.length
       ? args.globs.map(({ source, insensitive }) => ({ glob: new Glob(source.startsWith("!") ? source.slice(1) : source, insensitive), include: !source.startsWith("!") }))
       : EMPTY_GLOBS;
-    this.hasPositive = this.globs.some(rule => rule.include);
-    this.hasPositiveType = args.types.some(rule => rule.include);
+    this.hasPositive = this.globs.length > 0 && this.globs.some(rule => rule.include);
+    this.hasPositiveType = args.types.length > 0 && args.types.some(rule => rule.include);
+    this.typeGlobs = EMPTY_GLOBS;
+    this.cache = undefined;
+    this.explicitRules = EMPTY_IGNORE_RULES;
+    this.uniformDirAdmitted = false;
+    this.uniformCanonicalAdmitted = undefined;
+    this.uniformReaddirAdmitted = undefined;
+    this.uniformIgnoreAdmitted = false;
+    this.syncWalkNow = 0;
   }
   needsValidation(): boolean {
     return this.globs.length > 0 || this.args.types.length > 0 || (this.args.ignoreFiles && this.args.ignorePaths.length > 0);
@@ -214,7 +276,7 @@ export class Walker {
     if (include !== undefined) return include;
     return this.args.hidden || !name.startsWith(".");
   }
-  private readonly reusableTarget: FileTarget = { path: "", label: "", explicit: false, recursive: true, canonicalPath: undefined };
+  private readonly reusableTarget = new ReusableFileTarget();
   private walkDirectory(path: string, label: string, depth: number, ancestors: Map<string, string>, rules: readonly IgnoreRule[], repository: boolean, onTarget: (target: FileTarget) => boolean | Promise<boolean>): boolean | Promise<boolean> {
     if (depth >= this.args.maxDepth) return true;
     const backing = getRuntimeBackingFileSystem(this.context.fs);
@@ -571,7 +633,8 @@ export class Walker {
     rules: readonly IgnoreRule[],
     repository: boolean,
     onTarget: (target: FileTarget) => boolean | Promise<boolean>,
-  ): boolean | Promise<boolean> {
+    syncOnly = false,
+  ): boolean | Promise<boolean> | null {
     if (depth > this.args.maxDepth) return true;
     if (
       path === "/dev" ||
@@ -581,6 +644,7 @@ export class Walker {
       this.typeGlobs.length !== 0 ||
       Number.isFinite(this.args.maxFileSize)
     ) {
+      if (syncOnly) return null;
       return this.walkDirectory(path, label, depth, new Map(), rules, repository, onTarget);
     }
     if (!this.uniformDirAdmitted) {
@@ -590,9 +654,11 @@ export class Walker {
       this.context.signal.throwIfAborted();
     }
     if (!(this.uniformCanonicalAdmitted ??= (this.context.fs.capabilities.realpath !== false && backing.capabilities.realpath !== false && (assertCommandRequirements(this.context, searchRequirements, ["canonical"]), true)))) {
+      if (syncOnly) return null;
       return this.walkDirectory(path, label, depth, new Map(), rules, repository, onTarget);
     }
     if (!(this.uniformReaddirAdmitted ??= (this.context.fs.capabilities.readdir !== false && backing.capabilities.readdir !== false))) {
+      if (syncOnly) return null;
       return this.walkDirectory(path, label, depth, new Map(), rules, repository, onTarget);
     }
     const memDirEntries = tryGetMemoryDirectoryEntryNamesSync(backing, path);
@@ -601,11 +667,13 @@ export class Walker {
       (this.args.ignore && (memDirEntries.has(".git") || memDirEntries.has(".gitignore") || memDirEntries.has(".ignore") || memDirEntries.has(".rgignore"))) ||
       memDirEntries.size > this.limits.maxFiles - this.limits.files
     ) {
+      if (syncOnly) return null;
       return this.walkDirectory(path, label, depth, new Map(), rules, repository, onTarget);
     }
     const baseOffset = syncWalkBufferTop;
     const endOffset = checkAndStageMemDirEntries(memDirEntries, baseOffset);
     if (endOffset < 0) {
+      if (syncOnly) return null;
       return this.walkDirectory(path, label, depth, new Map(), rules, repository, onTarget);
     }
     if (this.args.ignore && !this.uniformIgnoreAdmitted) {
@@ -623,17 +691,19 @@ export class Walker {
         if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
         if (!this.args.hidden && entryName.startsWith(".")) {
           if (tickPending) {
+            if (syncOnly) return null;
             return this.finishWalkEntriesAsync(backing, cleanPath, cleanLabel, depth, rules, repository, onTarget, memDirEntries, entryIdx + 1, tickPending.then(() => true));
           }
           continue;
         }
         const entryType = entryObj.type;
-        const child = `${cleanPath}/${entryName}`;
-        const display = samePrefix ? child : (cleanLabel ? `${cleanLabel}/${entryName}` : entryName);
         if (tickPending) {
+          if (syncOnly) return null;
+          const child = `${cleanPath}/${entryName}`;
+          const display = samePrefix ? child : (cleanLabel ? `${cleanLabel}/${entryName}` : entryName);
           const stepPromise = tickPending.then(() => {
             if (entryType === "directory") {
-              return this.tryWalkDirectorySync(backing, child, display, depth + 1, rules, repository, onTarget);
+              return this.tryWalkDirectorySync(backing, child, display, depth + 1, rules, repository, onTarget) as boolean | Promise<boolean>;
             }
             if (entryType === "file") {
               const t = this.reusableTarget;
@@ -649,18 +719,25 @@ export class Walker {
           return this.finishWalkEntriesAsync(backing, cleanPath, cleanLabel, depth, rules, repository, onTarget, memDirEntries, entryIdx + 1, stepPromise);
         }
         if (entryType === "directory") {
-          const sub = this.tryWalkDirectorySync(backing, child, display, depth + 1, rules, repository, onTarget);
+          const child = `${cleanPath}/${entryName}`;
+          const display = samePrefix ? child : (cleanLabel ? `${cleanLabel}/${entryName}` : entryName);
+          const sub = this.tryWalkDirectorySync(backing, child, display, depth + 1, rules, repository, onTarget, syncOnly);
+          if (sub === null) return null;
           if (sub instanceof Promise) {
             return this.finishWalkEntriesAsync(backing, cleanPath, cleanLabel, depth, rules, repository, onTarget, memDirEntries, entryIdx + 1, sub);
           }
           if (!sub) return false;
         } else if (entryType === "file") {
           const t = this.reusableTarget;
-          t.path = child;
-          t.label = display;
+          t.dirPath = cleanPath;
+          t.dirLabel = cleanLabel;
+          t.entryName = entryName;
+          t._path = undefined;
+          t._label = undefined;
+          t._canonicalPath = undefined;
+          t._hasCanonical = true;
           t.explicit = false;
           t.recursive = true;
-          t.canonicalPath = child;
           if (
             entryObj.data !== undefined &&
             entryObj.mode !== undefined &&
@@ -690,7 +767,8 @@ export class Walker {
     paths: readonly string[],
     implicit: boolean,
     onTarget: (target: FileTarget) => boolean | Promise<boolean>,
-  ): Promise<void> | undefined {
+    syncOnly = false,
+  ): Promise<void> | null | undefined {
     if (paths.length === 1 && paths[0] !== "-") {
       const fastMem = (this.context as {
         _fastMemoryBackingFs?: NonNullable<ReturnType<typeof getRuntimeBackingFileSystem>> & { symlinkCount?: number };
@@ -724,13 +802,15 @@ export class Walker {
               this.uniformReaddirAdmitted = true;
               this.uniformIgnoreAdmitted = true;
               this.syncWalkNow = Date.now();
-              const syncWalk = this.tryWalkDirectorySync(fastMem, path, implicit ? "" : operand, 0, EMPTY_IGNORE_RULES, false, onTarget);
+              const syncWalk = this.tryWalkDirectorySync(fastMem, path, implicit ? "" : operand, 0, EMPTY_IGNORE_RULES, false, onTarget, syncOnly);
+              if (syncWalk === null) return null;
               return syncWalk instanceof Promise ? syncWalk.then(() => undefined) : undefined;
             }
           }
         }
       }
     }
+    if (syncOnly) return null;
     return this.walkTargets(paths, implicit, onTarget);
   }
   async walkTargets(paths: readonly string[], implicit: boolean, onTarget: (target: FileTarget) => boolean | Promise<boolean>): Promise<void> {

@@ -14,16 +14,29 @@ export class Printer {
   private lastFile: string | undefined;
   private lastLine = 0;
   private headings: Set<string> | undefined;
-  constructor(readonly args: Arguments, readonly limits: Limits) {}
+  constructor(public args: Arguments, public limits: Limits) {}
+  resetForRun(args: Arguments, limits: Limits): void {
+    this.args = args;
+    this.limits = limits;
+    this.lastFile = undefined;
+    this.lastLine = 0;
+    this.headings = undefined;
+  }
   async event(type: string, value: unknown): Promise<void> {
     const ordered = (input: unknown): unknown => input && typeof input === "object" && !Array.isArray(input)
       ? Object.fromEntries(Object.entries(input).sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0).map(([key, item]) => [key, ordered(item)])) : input;
     await this.limits.output(`${JSON.stringify(type === "summary" ? ordered({ type, data: value }) : { type, data: value })}\n`);
   }
   filenameSyncOrAsync(label: string): Promise<void> | undefined { return this.limits.outputFilenameSyncOrAsync(label, this.args.nullPath); }
+  filenamePartsSyncOrAsync(dirLabel: string, entryName: string): Promise<void> | undefined {
+    return this.limits.outputFilenamePartsSyncOrAsync(dirLabel, entryName, this.args.nullPath);
+  }
   async filename(label: string): Promise<void> { await this.filenameSyncOrAsync(label); }
   countSyncOrAsync(label: string, amount: number, filename: boolean): Promise<void> | undefined {
     return this.limits.outputCountSyncOrAsync(label, amount, filename, this.args.nullPath);
+  }
+  countPartsSyncOrAsync(dirLabel: string, entryName: string, amount: number, filename: boolean): Promise<void> | undefined {
+    return this.limits.outputCountPartsSyncOrAsync(dirLabel, entryName, amount, filename, this.args.nullPath);
   }
   async count(label: string, amount: number, filename: boolean): Promise<void> {
     await this.countSyncOrAsync(label, amount, filename);

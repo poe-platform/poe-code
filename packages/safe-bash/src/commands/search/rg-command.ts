@@ -3,7 +3,7 @@ import { assertCommandRequirements, collectBytes, type ByteSource, type CommandC
 import { hasYieldCheckpoint } from "../../contracts/yield.js";
 import { chargeRuntimeFileSystemOperation, getRuntimeBackingFileSystem } from "../../fs/creation-mask.js";
 import { Matcher, type Match } from "./matcher.js";
-import { parse, SearchError, type Arguments, type SearchOptions } from "./options.js";
+import { parse, ParsedArguments, SearchError, type Arguments, type SearchOptions } from "./options.js";
 import { data, elapsed, Printer, stats, type Stats } from "./output.js";
 import { diagnostic, Limits, lineBatches, trySyncLineBatches, OutputClosed, pathFor, type Line, type ReadState } from "./shared.js";
 import { Walker, type FileTarget } from "./walk.js";
@@ -13,6 +13,9 @@ import { assertPathRequirements, requiredFileInput, searchRequirements } from ".
 import { RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO } from "../internal.js";
 
 const EMPTY_RG_LINES: readonly Line[] = Object.freeze([]);
+const EMPTY_PATTERNS: readonly string[] = Object.freeze([]);
+const DEFAULT_CWD_PATHS: readonly string[] = Object.freeze(["."]);
+const DEFAULT_STDIN_PATHS: readonly string[] = Object.freeze(["-"]);
 const defaultLimitsTick = Limits.prototype.tick;
 const sharedReadState: ReadState = { bytesRead: 0, bytesSearched: 0, binaryOffset: null, skipped: false };
 const BATCH_SIZE_1: () => number = () => 1;
@@ -37,9 +40,10 @@ function trySearchFileSync(
   if (Limits.prototype.tick !== defaultLimitsTick) return undefined;
   if (args.mode === "json" || matcher.crossLine) return undefined;
   const selectedOutput = !args.quiet && args.mode === "lines";
-  if (selectedOutput || args.before > 0 || args.after > 0 || target.path === "-") return undefined;
-  const backing = target.canonicalPath ? admittedBacking : undefined;
-  if (!target.canonicalPath || !backing) {
+  if (selectedOutput || args.before > 0 || args.after > 0 || (target.entryName === undefined && target.path === "-")) return undefined;
+  const hasCanonical = target._hasCanonical || Boolean(target.canonicalPath);
+  const backing = hasCanonical ? admittedBacking : undefined;
+  if (!hasCanonical || !backing) {
     return undefined;
   }
   const fastCharge = (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp;
@@ -49,7 +53,7 @@ function trySearchFileSync(
     chargeRuntimeFileSystemOperation(context.fs);
   }
   const maxBytes = Number.isFinite(limits.maxFileBytes) ? limits.maxFileBytes : undefined;
-  const view = target.memoryView ?? tryReadMemoryFileViewSync(backing, target.canonicalPath, maxBytes, context.signal);
+  const view = target.memoryView ?? tryReadMemoryFileViewSync(backing, target.canonicalPath!, maxBytes, context.signal);
   if (view === undefined) return undefined;
   if (args.maxCount === 0) {
     totals.searches++;
@@ -110,11 +114,15 @@ function trySearchFileSync(
     totals.matches += matchesCount;
     if (!args.quiet) {
       if ((args.mode === "with" || args.mode === "without") && found) {
-        const p = printer.filenameSyncOrAsync(target.label);
+        const p = target.entryName !== undefined && target._label === undefined
+          ? printer.filenamePartsSyncOrAsync(target.dirLabel!, target.entryName)
+          : printer.filenameSyncOrAsync(target.label);
         if (p) return resolveToBoolean(p, found);
       }
       if (args.mode === "count" && (matched || args.includeZero)) {
-        const p = printer.countSyncOrAsync(target.label, matchedLines, filename);
+        const p = target.entryName !== undefined && target._label === undefined
+          ? printer.countPartsSyncOrAsync(target.dirLabel!, target.entryName, matchedLines, filename)
+          : printer.countSyncOrAsync(target.label, matchedLines, filename);
         if (p) return resolveToBoolean(p, found);
       }
     }
@@ -171,12 +179,16 @@ function trySearchFileSync(
   totals.matches += matchesCount;
   if (!args.quiet) {
     if ((args.mode === "with" || args.mode === "without") && found) {
-      const p = printer.filenameSyncOrAsync(target.label);
+      const p = target.entryName !== undefined && target._label === undefined
+        ? printer.filenamePartsSyncOrAsync(target.dirLabel!, target.entryName)
+        : printer.filenameSyncOrAsync(target.label);
       if (p) return resolveToBoolean(pendingTick ? Promise.all([pendingTick, p]) : p, found);
     }
     if ((args.mode === "count" || args.mode === "matches") && (matched || args.includeZero) && !sharedReadState.skipped) {
       const amount = !args.invert && (args.mode === "matches" || args.onlyMatching) ? matchesCount : matchedLines;
-      const p = printer.countSyncOrAsync(target.label, amount, filename);
+      const p = target.entryName !== undefined && target._label === undefined
+        ? printer.countPartsSyncOrAsync(target.dirLabel!, target.entryName, amount, filename)
+        : printer.countSyncOrAsync(target.label, amount, filename);
       if (p) return resolveToBoolean(pendingTick ? Promise.all([pendingTick, p]) : p, found);
     }
   }
@@ -396,12 +408,166 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
   return { found, stats: totals };
 }
 
+const dummyController = new AbortController();
+const DUMMY_CONTEXT: CommandContext = {
+  stdin: { async *[Symbol.asyncIterator]() {} },
+  stdout: { async write() {} },
+  stderr: { async write() {} },
+  fs: {} as CommandContext["fs"],
+  cwd: "/",
+  env: {},
+  args: [],
+  command: "rg",
+  signal: dummyController.signal,
+};
+const DUMMY_SESSION = {} as import("../regex-execution/portable.js").RegexSession;
+const DUMMY_REPORT = async () => {};
+
+class PooledRgFastRunner {
+  inUse = false;
+  readonly args = new ParsedArguments();
+  readonly limits = new Limits(DUMMY_CONTEXT, {});
+  readonly matcher = new Matcher(EMPTY_PATTERNS, this.args, DUMMY_SESSION, true, true);
+  readonly walker = new Walker(DUMMY_CONTEXT, this.args, this.limits, DUMMY_REPORT, DUMMY_SESSION);
+  readonly printer = new Printer(this.args, this.limits);
+  readonly totals: Stats = stats();
+  context: CommandContext = DUMMY_CONTEXT;
+  fastReadBacking: ReturnType<typeof getRuntimeBackingFileSystem> = undefined;
+  found = false;
+  abortedToSlow = false;
+  readonly boundOnTarget = (target: FileTarget): boolean => {
+    const args = this.args;
+    if (args.mode === "files") {
+      this.found = true;
+      if (!args.quiet) {
+        const fRes = target.entryName !== undefined && target._label === undefined
+          ? this.printer.filenamePartsSyncOrAsync(target.dirLabel!, target.entryName)
+          : this.printer.filenameSyncOrAsync(target.label);
+        if (fRes) {
+          this.abortedToSlow = true;
+          return false;
+        }
+        return true;
+      }
+      return false;
+    }
+    const showFilename = args.filename ?? target.recursive;
+    const syncOut = trySearchFileSync(this.context, args, this.limits, this.matcher, this.printer, target, showFilename, this.totals, this.fastReadBacking);
+    if (typeof syncOut === "boolean") {
+      this.found ||= syncOut;
+      if (!args.stats && args.quiet && this.found && args.mode !== "json") return false;
+      return true;
+    }
+    this.abortedToSlow = true;
+    return false;
+  };
+}
+
+let pooledRgFastRunner: PooledRgFastRunner | undefined;
+
+function tryExecuteRgFastSync(
+  context: CommandContext,
+  executor: RegexExecutor,
+  options: SearchOptions,
+): Promise< import("../../contracts/index.js").CommandResult > | undefined {
+  if (Limits.prototype.tick !== defaultLimitsTick || hasYieldCheckpoint(context.signal)) return undefined;
+  const fastMem = (context as { _fastMemoryBackingFs?: NonNullable<ReturnType<typeof getRuntimeBackingFileSystem>> & { symlinkCount?: number } })._fastMemoryBackingFs;
+  if (
+    !fastMem ||
+    !(context as { _hasInfiniteFsOpsLimit?: boolean })._hasInfiniteFsOpsLimit ||
+    fastMem.capabilitiesFor !== undefined ||
+    fastMem.symlinkCount !== 0 ||
+    fastMem.capabilities.stat === false ||
+    fastMem.capabilities.read === false ||
+    fastMem.capabilities.readdir === false ||
+    fastMem.capabilities.realpath === false
+  ) {
+    return undefined;
+  }
+  const runner = pooledRgFastRunner ??= new PooledRgFastRunner();
+  if (runner.inUse) return undefined;
+  runner.inUse = true;
+  try {
+    context.signal.throwIfAborted();
+    if ((executor as unknown as { disposed?: boolean }).disposed) return undefined;
+    const limits = runner.limits;
+    limits.resetForRun(context, options);
+    const args = parse(context.args, runner.args);
+    if (
+      args.help ||
+      args.version ||
+      args.patternFiles.length !== 0 ||
+      args.mode === "json" ||
+      (!args.quiet && args.mode === "lines") ||
+      args.before > 0 ||
+      args.after > 0 ||
+      args.stats ||
+      args.globs.length !== 0 ||
+      args.types.length !== 0 ||
+      (args.ignoreFiles && args.ignorePaths.length !== 0)
+    ) {
+      return undefined;
+    }
+    const selPaths = args.paths.length
+      ? args.paths
+      : (args.mode === "files" || options.defaultInput === "cwd"
+        ? DEFAULT_CWD_PATHS
+        : (options.defaultInput === "stdin" || context.stdinIsDefault === false ? DEFAULT_STDIN_PATHS : DEFAULT_CWD_PATHS));
+    if (selPaths.length !== 1 || selPaths[0] === "-") return undefined;
+    const selImplicit = args.paths.length === 0 && selPaths === DEFAULT_CWD_PATHS;
+    if (args.mode !== "files") {
+      if (args.patterns.length !== 1 || options.regexExecutor !== undefined || !inProcessRegexProviders.has(executor.provider)) {
+        return undefined;
+      }
+      const pat = args.patterns[0]!;
+      if (Buffer.byteLength(pat) > limits.maxPatternBytes) return undefined;
+      runner.matcher.resetForRun(args.patterns, args, DUMMY_SESSION, true, true);
+      if (runner.matcher.literalAsciiBytes === undefined) return undefined;
+      if (args.maxCount === 0) return RESOLVED_EXIT_ONE;
+    }
+    runner.walker.resetForRun(context, args, limits, DUMMY_REPORT, DUMMY_SESSION);
+    runner.printer.resetForRun(args, limits);
+    const totals = runner.totals;
+    totals.searches = 0;
+    totals.searches_with_match = 0;
+    totals.bytes_searched = 0;
+    totals.bytes_printed = 0;
+    totals.matched_lines = 0;
+    totals.matches = 0;
+    runner.context = context;
+    runner.fastReadBacking = fastMem;
+    runner.found = false;
+    runner.abortedToSlow = false;
+    const walkRes = runner.walker.walkTargetsSyncOrAsync(selPaths, selImplicit, runner.boundOnTarget, true);
+    if (runner.abortedToSlow || walkRes !== undefined) {
+      limits.outPos = 0;
+      limits.flushSyncOrAsync();
+      return undefined;
+    }
+    const flushRes = limits.flushSyncOrAsync();
+    if (flushRes !== undefined) {
+      return undefined;
+    }
+    return (args.quiet && runner.found) || runner.found ? RESOLVED_EXIT_ZERO : RESOLVED_EXIT_ONE;
+  } catch {
+    runner.limits.outPos = 0;
+    runner.limits.flushSyncOrAsync();
+    return undefined;
+  } finally {
+    runner.context = DUMMY_CONTEXT;
+    runner.fastReadBacking = undefined;
+    runner.inUse = false;
+  }
+}
+
 export function createRgCommand(executor: RegexExecutor, options: SearchOptions = {}): CommandDefinition {
   return {
     name: "rg",
     filesystemRequirements: searchRequirements,
     description: "Search virtual files or stdin with recursive filtering and structured results",
     execute(context) {
+      const fastSync = tryExecuteRgFastSync(context, executor, options);
+      if (fastSync !== undefined) return fastSync;
       return withRegexSession(context, executor, session => {
         let args: Arguments | undefined;
         let limits: Limits | undefined;
@@ -439,8 +605,7 @@ export function createRgCommand(executor: RegexExecutor, options: SearchOptions 
                 activePatterns = args.patterns;
               }
               const matcher = new Matcher(activePatterns, args, session, options.regexExecutor === undefined && inProcessRegexProviders.has(executor.provider));
-              const initBatch = args.mode !== "files" && matcher.literalAsciiBytes === undefined ? matcher.batchSync(EMPTY_RG_LINES) : undefined;
-              if (!(initBatch instanceof Promise)) {
+              if (args.mode === "files" || matcher.literalAsciiBytes !== undefined) {
                 if (args.mode !== "files" && args.maxCount === 0) return RESOLVED_EXIT_ONE;
                 const printer = new Printer(args, limits);
                 const totals = stats();

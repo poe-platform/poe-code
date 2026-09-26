@@ -18,8 +18,8 @@ export interface SearchOptions {
 export class SearchError extends PublicDiagnostic {}
 
 export interface Arguments {
-  help?: boolean;
-  version?: "short" | "long";
+  help?: boolean | undefined;
+  version?: "short" | "long" | undefined;
   patterns: string[];
   patternFiles: string[];
   paths: string[];
@@ -33,10 +33,10 @@ export interface Arguments {
   lineNumber: boolean;
   column: boolean;
   byteOffset: boolean;
-  filename?: boolean;
+  filename?: boolean | undefined;
   onlyMatching: boolean;
   quiet: boolean;
-  stats?: boolean;
+  stats?: boolean | undefined;
   hidden: boolean;
   follow: boolean;
   ignore: boolean;
@@ -59,10 +59,10 @@ export interface Arguments {
   maxCount: number;
   maxDepth: number;
   maxFileSize: number;
-  replacement?: string;
+  replacement?: string | undefined;
   trim: boolean;
-  multiline?: boolean;
-  multilineDotall?: boolean;
+  multiline?: boolean | undefined;
+  multilineDotall?: boolean | undefined;
   globs: { source: string; insensitive: boolean }[];
   types: { name: string; include: boolean }[];
 }
@@ -84,9 +84,9 @@ const EMPTY_STRINGS: string[] = [];
 const EMPTY_GLOB_RULES: { source: string; insensitive: boolean }[] = [];
 const EMPTY_TYPE_RULES: { name: string; include: boolean }[] = [];
 
-class ParsedArguments implements Arguments {
-  declare help?: boolean;
-  declare version?: "short" | "long";
+export class ParsedArguments implements Arguments {
+  declare help?: boolean | undefined;
+  declare version?: "short" | "long" | undefined;
   patterns: string[] = [];
   declare patternFiles: string[];
   paths: string[] = [];
@@ -100,9 +100,10 @@ class ParsedArguments implements Arguments {
   declare lineNumber: boolean;
   declare column: boolean;
   declare byteOffset: boolean;
-  declare filename?: boolean;
+  declare filename?: boolean | undefined;
   declare onlyMatching: boolean;
   declare quiet: boolean;
+  declare stats?: boolean | undefined;
   declare hidden: boolean;
   declare follow: boolean;
   declare ignore: boolean;
@@ -125,12 +126,61 @@ class ParsedArguments implements Arguments {
   declare maxCount: number;
   declare maxDepth: number;
   declare maxFileSize: number;
-  declare replacement?: string;
+  declare replacement?: string | undefined;
   declare trim: boolean;
-  declare multiline?: boolean;
-  declare multilineDotall?: boolean;
+  declare multiline?: boolean | undefined;
+  declare multilineDotall?: boolean | undefined;
   declare globs: { source: string; insensitive: boolean }[];
   declare types: { name: string; include: boolean }[];
+  reset(): void {
+    this.help = undefined;
+    this.version = undefined;
+    this.patterns.length = 0;
+    this.patternFiles = EMPTY_STRINGS;
+    this.paths.length = 0;
+    this.explicitPatterns = false;
+    this.mode = "lines";
+    this.case = "sensitive";
+    this.fixed = false;
+    this.invert = false;
+    this.word = false;
+    this.whole = false;
+    this.lineNumber = false;
+    this.column = false;
+    this.byteOffset = false;
+    this.filename = undefined;
+    this.onlyMatching = false;
+    this.quiet = false;
+    this.stats = undefined;
+    this.hidden = false;
+    this.follow = false;
+    this.ignore = true;
+    this.ignoreVcs = true;
+    this.ignoreDot = true;
+    this.ignoreParent = true;
+    this.ignoreFiles = true;
+    this.ignorePaths = EMPTY_STRINGS;
+    this.requireGit = true;
+    this.binary = "auto";
+    this.nullPath = false;
+    this.nullData = false;
+    this.crlf = false;
+    this.includeZero = false;
+    this.messages = true;
+    this.heading = false;
+    this.before = 0;
+    this.after = 0;
+    this.separator = "--";
+    this.maxCount = Infinity;
+    this.maxDepth = Infinity;
+    this.maxFileSize = Infinity;
+    this.replacement = undefined;
+    this.trim = false;
+    this.multiline = false;
+    this.multilineDotall = false;
+    this.globs = EMPTY_GLOB_RULES;
+    this.types = EMPTY_TYPE_RULES;
+  }
   static {
     Object.assign(ParsedArguments.prototype, {
       patternFiles: EMPTY_STRINGS,
@@ -177,9 +227,15 @@ class ParsedArguments implements Arguments {
   }
 }
 
-export function parse(args: readonly string[]): Arguments {
-  const result: Arguments = new ParsedArguments();
-  const operands: string[] = [];
+export function parse(args: readonly string[], target?: ParsedArguments): Arguments {
+  let result: ParsedArguments;
+  if (target) {
+    target.reset();
+    result = target;
+  } else {
+    result = new ParsedArguments();
+  }
+  const operands = result.paths;
   let unrestricted = 0;
   let explicitLineNumber = false;
   let ended = false;
@@ -195,17 +251,20 @@ export function parse(args: readonly string[]): Arguments {
       : (long ? [equals < 0 ? argument.slice(2) : argument.slice(2, equals)] : [...argument.slice(1)]);
     const flagsLen = singleShort !== undefined ? 1 : flags!.length;
     let inline = long && equals >= 0 ? argument.slice(equals + 1) : undefined;
-    for (let position = 0; position < flagsLen; position++) {
-      const flag = singleShort !== undefined ? singleShort : flags![position]!;
-      let tookValue = false;
-      const value = () => {
-        tookValue = true;
-        if (inline !== undefined) { const output = inline; inline = undefined; return output; }
-        if (!long && position + 1 < flagsLen) { const output = flags!.slice(position + 1).join(""); position = flagsLen; return output; }
-        const output = args[++index];
-        if (output === undefined) throw new SearchError(`${long ? "--" : "-"}${flag} requires a value`);
-        return output;
-      };
+    let position = 0;
+    let flag = "";
+    let tookValue = false;
+    const value = (): string => {
+      tookValue = true;
+      if (inline !== undefined) { const output = inline; inline = undefined; return output; }
+      if (!long && position + 1 < flagsLen) { const output = flags!.slice(position + 1).join(""); position = flagsLen; return output; }
+      const output = args[++index];
+      if (output === undefined) throw new SearchError(`${long ? "--" : "-"}${flag} requires a value`);
+      return output;
+    };
+    for (; position < flagsLen; position++) {
+      flag = singleShort !== undefined ? singleShort : flags![position]!;
+      tookValue = false;
       switch (flag) {
         case "h": case "help": result.help = true; break;
         case "V": result.version = "short"; break;
@@ -311,6 +370,5 @@ export function parse(args: readonly string[]): Arguments {
     result.patterns.push(pattern);
   }
   if (!explicitLineNumber) result.lineNumber = result.column;
-  result.paths = operands;
   return result;
 }

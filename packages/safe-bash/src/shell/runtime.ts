@@ -1816,6 +1816,10 @@ class FastShellCommandContext {
     self._runtime.budget.fileSystemOperation();
   }
 
+  get _hasInfiniteFsOpsLimit(): boolean {
+    return (this._self ?? this)._runtime.budget.limits.maxFileSystemOperations === Infinity;
+  }
+
   get argumentValues(): CommandArguments | undefined {
     return (this._self ?? this)._argumentValues;
   }

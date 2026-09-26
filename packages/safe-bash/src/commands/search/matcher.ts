@@ -28,12 +28,34 @@ function isSimpleRgLiteralChar(c: number): boolean {
   }
 }
 
+const sharedLiteralBuf = new Uint8Array(64);
+const DUMMY_LITERAL_DESCRIPTOR: SearchDescriptor = Object.freeze({
+  kind: "rg",
+  patterns: Object.freeze([]),
+  fixed: true,
+  case: "sensitive",
+  whole: false,
+  word: false,
+  nullData: false,
+});
+
 export class Matcher {
-  private readonly descriptor: SearchDescriptor;
-  private readonly vm: ErgonomicVmMatcher | undefined;
-  readonly crossLine: boolean;
-  readonly literalAsciiBytes: Uint8Array | undefined;
-  constructor(patterns: readonly string[], args: Arguments, private readonly session: RegexSession, ergonomic = true) {
+  private descriptor!: SearchDescriptor;
+  private vm: ErgonomicVmMatcher | undefined;
+  crossLine!: boolean;
+  literalAsciiBytes: Uint8Array | undefined;
+  constructor(patterns: readonly string[], args: Arguments, private session: RegexSession, ergonomic = true, useSharedLiteralBuf = false) {
+    this.resetForRun(patterns, args, session, ergonomic, useSharedLiteralBuf);
+  }
+  resetForRun(patterns: readonly string[], args: Arguments, session: RegexSession, ergonomic = true, useSharedLiteralBuf = false): void {
+    this.session = session;
+    if (patterns.length === 0) {
+      this.literalAsciiBytes = undefined;
+      this.vm = undefined;
+      this.crossLine = false;
+      this.descriptor = DUMMY_LITERAL_DESCRIPTOR;
+      return;
+    }
     let literalAscii: Uint8Array | undefined;
     if (
       ergonomic &&
@@ -55,7 +77,7 @@ export class Matcher {
           }
         }
         if (ok) {
-          const bytes = new Uint8Array(pat.length);
+          const bytes = useSharedLiteralBuf ? sharedLiteralBuf.subarray(0, pat.length) : new Uint8Array(pat.length);
           for (let i = 0; i < pat.length; i++) bytes[i] = pat.charCodeAt(i);
           literalAscii = bytes;
         }
@@ -65,7 +87,9 @@ export class Matcher {
     if (literalAscii !== undefined) {
       this.vm = undefined;
       this.crossLine = false;
-      this.descriptor = { kind: "rg", patterns, fixed: true, case: "sensitive", whole: false, word: false, nullData: false };
+      this.descriptor = useSharedLiteralBuf
+        ? DUMMY_LITERAL_DESCRIPTOR
+        : { kind: "rg", patterns, fixed: true, case: "sensitive", whole: false, word: false, nullData: false };
       return;
     }
     const prepared = ergonomic

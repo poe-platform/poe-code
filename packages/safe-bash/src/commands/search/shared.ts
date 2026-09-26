@@ -20,22 +20,47 @@ const sharedOutBuf = new Uint8Array(OUT_BUFFER_SIZE);
 let sharedOutBufInUse = false;
 
 export class Limits {
-  readonly maxOutputBytes: number;
-  readonly maxLineBytes: number;
-  readonly maxFileBytes: number;
-  readonly maxFiles: number;
-  readonly maxPatternBytes: number;
+  maxOutputBytes: number;
+  maxLineBytes: number;
+  maxFileBytes: number;
+  maxFiles: number;
+  maxPatternBytes: number;
   outputBytes = 0;
   files = 0;
   private ticks = 0;
-  private readonly hasExtYield: boolean;
+  private hasExtYield: boolean;
   private lastYieldMs = monotonicNow();
   private stopped: AbortController | undefined;
   private _signal: AbortSignal | undefined;
   private outBuf: Uint8Array | null = null;
   private usingSharedBuf = false;
   outPos = 0;
-  constructor(readonly context: CommandContext, options: SearchOptions) {
+  constructor(public context: CommandContext, options: SearchOptions) {
+    this.hasExtYield = hasYieldCheckpoint(context.signal);
+    this.maxOutputBytes = options.maxOutputBytes ?? Infinity;
+    this.maxLineBytes = options.maxLineBytes ?? Infinity;
+    this.maxFileBytes = options.maxFileBytes ?? Infinity;
+    this.maxFiles = options.maxFiles ?? Infinity;
+    this.maxPatternBytes = options.maxPatternBytes ?? Infinity;
+    if (
+      (this.maxOutputBytes !== Infinity && !Number.isSafeInteger(this.maxOutputBytes)) || this.maxOutputBytes < 1 ||
+      (this.maxLineBytes !== Infinity && !Number.isSafeInteger(this.maxLineBytes)) || this.maxLineBytes < 1 ||
+      (this.maxFileBytes !== Infinity && !Number.isSafeInteger(this.maxFileBytes)) || this.maxFileBytes < 1 ||
+      (this.maxFiles !== Infinity && !Number.isSafeInteger(this.maxFiles)) || this.maxFiles < 1 ||
+      (this.maxPatternBytes !== Infinity && !Number.isSafeInteger(this.maxPatternBytes)) || this.maxPatternBytes < 1
+    ) {
+      throw new SearchError("search limits must be positive safe integers");
+    }
+  }
+  resetForRun(context: CommandContext, options: SearchOptions): void {
+    this.context = context;
+    this.outputBytes = 0;
+    this.files = 0;
+    this.ticks = 0;
+    this.lastYieldMs = 0;
+    this.stopped = undefined;
+    this._signal = undefined;
+    this.outPos = 0;
     this.hasExtYield = hasYieldCheckpoint(context.signal);
     this.maxOutputBytes = options.maxOutputBytes ?? Infinity;
     this.maxLineBytes = options.maxLineBytes ?? Infinity;
@@ -88,6 +113,10 @@ export class Limits {
     }
     if ((++this.ticks & 2047) === 0) {
       const now = monotonicNow();
+      if (this.lastYieldMs === 0) {
+        this.lastYieldMs = now;
+        return undefined;
+      }
       if (now - this.lastYieldMs >= 25) {
         this.lastYieldMs = now;
         return yieldTurn(this.context.signal);
@@ -198,6 +227,106 @@ export class Limits {
       }
     }
     return this.output(label + (nullPath ? "\0" : "\n"));
+  }
+  outputFilenamePartsSyncOrAsync(dirLabel: string, entryName: string, nullPath: boolean): Promise<void> | undefined {
+    const dirLen = dirLabel.length;
+    const entryLen = entryName.length;
+    const labelLen = (dirLen > 0 ? dirLen + 1 : 0) + entryLen;
+    const totalLen = labelLen + 1;
+    if (totalLen <= OUT_BUFFER_SIZE) {
+      const buf = this.ensureOutBuf();
+      const pos = this.outPos;
+      if (pos + totalLen <= OUT_BUFFER_SIZE) {
+        let ascii = true;
+        let dst = pos;
+        if (dirLen > 0) {
+          for (let i = 0; i < dirLen; i++) {
+            const c = dirLabel.charCodeAt(i);
+            if (c >= 0x80) { ascii = false; break; }
+            buf[dst + i] = c;
+          }
+          dst += dirLen;
+          buf[dst++] = 47;
+        }
+        if (ascii) {
+          for (let i = 0; i < entryLen; i++) {
+            const c = entryName.charCodeAt(i);
+            if (c >= 0x80) { ascii = false; break; }
+            buf[dst + i] = c;
+          }
+          dst += entryLen;
+        }
+        if (ascii) {
+          if (this.outputBytes + totalLen > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
+          buf[dst] = nullPath ? 0 : 10;
+          this.outPos = pos + totalLen;
+          this.outputBytes += totalLen;
+          return undefined;
+        }
+      }
+    }
+    return this.outputFilenameSyncOrAsync(dirLen > 0 ? `${dirLabel}/${entryName}` : entryName, nullPath);
+  }
+  outputCountPartsSyncOrAsync(dirLabel: string, entryName: string, amount: number, filename: boolean, nullPath: boolean): Promise<void> | undefined {
+    if (!filename) return this.outputCountSyncOrAsync("", amount, false, nullPath);
+    if (amount >= 0 && amount < 1000000000) {
+      const dirLen = dirLabel.length;
+      const entryLen = entryName.length;
+      const labelLen = (dirLen > 0 ? dirLen + 1 : 0) + entryLen;
+      let digits = 1;
+      if (amount >= 10) {
+        if (amount < 100) digits = 2;
+        else if (amount < 1000) digits = 3;
+        else if (amount < 10000) digits = 4;
+        else if (amount < 100000) digits = 5;
+        else if (amount < 1000000) digits = 6;
+        else if (amount < 10000000) digits = 7;
+        else if (amount < 100000000) digits = 8;
+        else digits = 9;
+      }
+      const totalLen = labelLen + 1 + digits + 1;
+      if (totalLen <= OUT_BUFFER_SIZE) {
+        const buf = this.ensureOutBuf();
+        const pos = this.outPos;
+        if (pos + totalLen <= OUT_BUFFER_SIZE) {
+          let ascii = true;
+          let dst = pos;
+          if (dirLen > 0) {
+            for (let i = 0; i < dirLen; i++) {
+              const c = dirLabel.charCodeAt(i);
+              if (c >= 0x80) { ascii = false; break; }
+              buf[dst + i] = c;
+            }
+            dst += dirLen;
+            buf[dst++] = 47;
+          }
+          if (ascii) {
+            for (let i = 0; i < entryLen; i++) {
+              const c = entryName.charCodeAt(i);
+              if (c >= 0x80) { ascii = false; break; }
+              buf[dst + i] = c;
+            }
+            dst += entryLen;
+            buf[dst++] = nullPath ? 0 : 58;
+          }
+          if (ascii) {
+            if (this.outputBytes + totalLen > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
+            let v = amount | 0;
+            const dEnd = dst + digits;
+            buf[dEnd] = 10;
+            for (let d = dEnd - 1; d >= dst; d--) {
+              const q = (v / 10) | 0;
+              buf[d] = 48 + (v - q * 10);
+              v = q;
+            }
+            this.outPos = pos + totalLen;
+            this.outputBytes += totalLen;
+            return undefined;
+          }
+        }
+      }
+    }
+    return this.outputCountSyncOrAsync(dirLabel ? `${dirLabel}/${entryName}` : entryName, amount, true, nullPath);
   }
   outputCountSyncOrAsync(label: string, amount: number, filename: boolean, nullPath: boolean): Promise<void> | undefined {
     if (amount >= 0 && amount < 1000000000) {

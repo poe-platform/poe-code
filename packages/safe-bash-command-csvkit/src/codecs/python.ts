@@ -54,7 +54,7 @@ interface EncodingDescriptor {
 
 function createCodec(descriptor: EncodingDescriptor): CodecProvider {
   const decodeStream = async function* (source: ByteSource, _encoding: string, signal: AbortSignal): AsyncGenerator<string> {
-    let decoder: TextDecoder | undefined;
+    let decoder: InstanceType<typeof TextDecoder> | undefined;
     for await (const frame of decodeFrames(source, signal)) {
       signal.throwIfAborted();
       if (descriptor.width === 1) {

@@ -25,7 +25,7 @@ export type RtfEvent =
   | {kind:'skipped'; destination:string; offset:number};
 interface FontDeclaration {
   id:number; name:string; page:number | undefined; charset:number | undefined;
-  decoder?:TextDecoder; activePage?:number; fallback:number; high?:number; ended:boolean;
+  decoder?:InstanceType<typeof TextDecoder>; activePage?:number; fallback:number; high?:number; ended:boolean;
 }
 interface State {
   uc:number; page:number; font:number | undefined; destination:string; skip:boolean; starred:boolean;
@@ -41,8 +41,8 @@ export async function* extractRtf(source: AsyncIterable<Uint8Array>, options: Un
   let colorIndex = 0, color: {red?:number;green?:number;blue?:number} = {};
   let defaultFont:number | undefined;
   let retainedDeclarations = 0;
-  let decoder: TextDecoder | undefined, activePage:number | undefined, fallback = 0, high:number | undefined, lastSpace = false;
-  const codec = (page:number, offset:number): TextDecoder => {
+  let decoder: InstanceType<typeof TextDecoder> | undefined, activePage:number | undefined, fallback = 0, high:number | undefined, lastSpace = false;
+  const codec = (page:number, offset:number): InstanceType<typeof TextDecoder> => {
     const label = codecLabels[page];
     if (!label) throw new UnrtfError('E_CODEC', `Code page ${page} is unavailable`, offset);
     try { return new TextDecoder(label, {fatal:true, ignoreBOM:true}); }

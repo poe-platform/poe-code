@@ -1890,7 +1890,7 @@ function cloneRawState(raw: State, hasLocals: boolean): State {
       variables,
       exported,
       _functions: hasFunctions ? new Map(raw.functions) : undefined,
-      positional: raw.positional.length > 0 ? [...raw.positional] : EMPTY_POSITIONALS,
+      positional: [...raw.positional],
       directoryStack: raw.directoryStack
         ? {
             entries: raw.directoryStack.entries.length ? [...raw.directoryStack.entries] : [],
@@ -1899,7 +1899,7 @@ function cloneRawState(raw: State, hasLocals: boolean): State {
         : undefined,
       locals: hasLocals
         ? raw.locals.map((scope) => new Map([...scope].map(([name, saved]) => [name, { ...saved, ...(saved.getopts ? { getopts: { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) } } : {}) }])))
-        : EMPTY_LOCALS,
+        : [],
     },
   );
   if (raw.exportedFunctions) cloned.exportedFunctions = new Set(raw.exportedFunctions);
@@ -9096,7 +9096,7 @@ export class Runtime {
           const locals = new Map<string, SavedVariable>();
           try {
             getoptsRestoration = stateMonitor(state)?.restoration();
-            const stack = state.locals === EMPTY_LOCALS ? (state.locals = []) : state.locals;
+            const stack = state.locals;
             const argumentsCopy = [...context.args];
             const monitor = stateMonitor(state);
             const preparedLocals = frameOwner ? monitor!.prepareCollection(locals, "locals") : locals;
@@ -13557,9 +13557,6 @@ Object.assign(Runtime.prototype, {
   _syncArithTouched: undefined,
   _syncArithRefs: undefined,
 });
-const EMPTY_POSITIONALS: string[] = [];
-const EMPTY_LOCALS: Map<string, SavedVariable>[] = [];
-
 export class RootShellState implements State {
   declare umask: number;
   declare extensions: ShellExtensionState | undefined;
@@ -13591,6 +13588,8 @@ export class RootShellState implements State {
     this.variables = variables;
     this.exported = exported;
     this.extensions = extensions;
+    this.positional = [];
+    this.locals = [];
   }
 
   get functions(): Map<string, Command> {
@@ -13608,7 +13607,6 @@ Object.assign(RootShellState.prototype, {
   variables: undefined,
   exported: undefined,
   _functions: undefined,
-  positional: EMPTY_POSITIONALS,
   getopts: undefined,
   directoryStack: undefined,
   dotglob: false,
@@ -13618,7 +13616,6 @@ Object.assign(RootShellState.prototype, {
   depth: 0,
   loopDepth: 0,
   functionDepth: 0,
-  locals: EMPTY_LOCALS,
   pipefail: false,
   profile: "bash",
 });

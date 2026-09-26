@@ -525,6 +525,7 @@ function assertSource7Discovery(files) {
     "tests/plugins/optional-host.test.ts",
     "tests/shell/standard-redirections.test.ts",
     "tests/shell/value-state.test.ts",
+    "tests/shell/concurrent-local-scopes.test.ts",
     "tests/shell/env-split-host.test.ts",
     "tests/shell/array-ifs-empty-fields.test.ts",
     "tests/shell/declare.test.ts",

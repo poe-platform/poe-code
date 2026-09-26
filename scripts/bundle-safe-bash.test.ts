@@ -1,6 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createContext, runInContext } from "node:vm";
+import { createContext, runInContext, Script } from "node:vm";
 import { readFile } from "node:fs/promises";
 import { createFsFromVolume, Volume } from "memfs";
 import { build, context, type BuildContext, type BuildResult } from "esbuild";
@@ -66,7 +66,7 @@ it("exposes portable command plugins and media factories to browser consumers", 
     expect(await shell.exec("csvcut -c2", { stdin: "a,b\nx,y\n" })).toMatchObject({ exitCode: 0, stdout: "b\ny\n", stderr: "" });
     expect(await shell.exec("magick -size 2x3 xc:red /image.png")).toMatchObject({ exitCode: 0, stderr: "" });
     expect(await shell.exec("sips -z 4 5 /image.png; sips -1 -g pixelWidth -g pixelHeight /image.png")).toMatchObject({ exitCode: 0, stdout: expect.stringContaining("/image.png|pixelWidth: 5|pixelHeight: 4|"), stderr: "" });
-    expect(await shell.exec("ssconvert --version")).toMatchObject({ exitCode: 0, stderr: expect.stringContaining("ssconvert") });
+    expect(await shell.exec("ssconvert --version")).toMatchObject({ exitCode: 0, stdout: expect.stringContaining("ssconvert version"), stderr: "" });
   } finally { await shell.dispose(); }
 });
 
@@ -76,6 +76,19 @@ it("shares the browser runtime through the public core subpath", () => {
 
 let consumerBuild: BuildContext;
 let consumerSource = "";
+let publicEntries: Record<string, unknown> | undefined;
+let browserRuntime: Script;
+
+function createConsumerContext(globals: Record<string, unknown>) {
+  const sandbox = createContext({ ...globals, canonical: filesystem });
+  const { publicEntries: entries } = browserRuntime.runInContext(sandbox) as { publicEntries: Record<string, unknown> };
+  sandbox.require = (name: string) => {
+    if (name === "@poe-platform/safe-fs/core") return filesystem;
+    if (Object.hasOwn(entries, name)) return entries[name];
+    throw new Error(`Unexpected browser consumer import: ${name}`);
+  };
+  return sandbox;
+}
 
 beforeAll(async () => {
   const directory = path.join(root, "packages/safe-bash");
@@ -91,6 +104,10 @@ beforeAll(async () => {
         builder.onResolve({ filter: /^poe-code\/safe-fs\/core$/ }, () => ({ path: "@poe-platform/safe-fs/core", external: true }));
         builder.onResolve({ filter: /^public-consumer$/ }, () => ({ path: "public-consumer", namespace: "consumer" }));
         builder.onLoad({ filter: /.*/, namespace: "consumer" }, () => ({ contents: consumerSource, resolveDir: root }));
+        // Link and compile the complete entry graph once. Each workflow gets
+        // its own VM with the real modules and browser globals in the same realm.
+        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/.*)?$/ }, args =>
+          publicEntries && Object.hasOwn(publicEntries, args.path) ? { path: args.path, external: true } : undefined);
         builder.onResolve({ filter: /^@poe-platform\/safe-bash\/core$/ }, () => ({
           path: path.resolve(directory, manifest.exports["./core"].browser),
           namespace: "built-shell",
@@ -121,14 +138,10 @@ async function bundlePublicConsumer(contents: string) {
 let browserProbeBundle: string;
 
 function createBrowserProbes(): typeof import("./fixtures/safe-packages-browser-probes.mjs") {
-  const sandbox = createContext({
+  const sandbox = createConsumerContext({
     TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
     AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
     URL, FormData, Blob, Response, btoa, atob,
-    require(name: string) {
-      if (name !== "@poe-platform/safe-fs/core") throw new Error(name);
-      return filesystem;
-    },
   });
   return runInContext(`(function(){ const module = { exports: {} }; ${browserProbeBundle}; return module.exports; })()`, sandbox);
 }
@@ -167,13 +180,9 @@ it("shares disown state across default, public, and optional-host browser jobs",
       return results;
     }
   `);
-  const sandbox = createContext({
+  const sandbox = createConsumerContext({
     TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
     AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
-    require(name: string) {
-      if (name !== "@poe-platform/safe-fs/core") throw new Error(name);
-      return filesystem;
-    },
   });
   const consumer = runInContext(`(function(){ const module = { exports: {} }; ${compiled}; return module.exports; })()`, sandbox);
   expect(consumer.sameJobsExtension).toBe(true);
@@ -437,11 +446,17 @@ beforeAll(() => {
 });
 
 beforeAll(async () => {
+  const routes = ["core", "jobs", "optional-host", "commands/node", ...new Set(commandFactories.map(([command]) => `commands/${command}`))];
   browserConsumerSource = await bundlePublicConsumer(`
     export * from "@poe-platform/safe-bash";
     import * as root from "@poe-platform/safe-bash";
     import * as core from "@poe-platform/safe-bash/core";
     export const coreIdentity = Object.keys(core).every(name => root[name] === core[name]);
+    ${routes.map((route, index) => `import * as entry${index} from "@poe-platform/safe-bash/${route}";`).join("\n")}
+    export const publicEntries = {
+      "@poe-platform/safe-bash": root,
+      ${routes.map((route, index) => `"@poe-platform/safe-bash/${route}": entry${index}`).join(",")}
+    };
     ${commandFactories.map(([command, factory], index) => `
       import { ${factory} as root${index} } from "@poe-platform/safe-bash";
       import { ${factory} as leaf${index} } from "@poe-platform/safe-bash/commands/${command}";
@@ -452,18 +467,20 @@ beforeAll(async () => {
 
 beforeAll(() => {
   const sandbox = createContext({
-    TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
+    TextEncoder, TextDecoder, TypeError, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
     AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
     URL, FormData, Blob, Response, btoa, atob,
   });
   expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof setImmediate", sandbox)).toBe("undefined:undefined:undefined");
   filesystem = runInContext(`(function(){ const module = { exports: {} }; ${filesystemBuild.outputFiles![0]!.text}; return module.exports; })()`, sandbox) as CoreFs;
   sandbox.canonical = filesystem;
-  browser = runInContext(`(function(){ const module = { exports: {} }; const require = name => { if (name !== "@poe-platform/safe-fs/core") throw new Error(name); return canonical; }; ${browserConsumerSource}; return module.exports; })()`, sandbox) as BrowserShell;
+  browserRuntime = new Script(`(function(){ const module = { exports: {} }; const require = name => { if (name !== "@poe-platform/safe-fs/core") throw new Error(name); return canonical; }; ${browserConsumerSource}; return module.exports; })()`);
+  browser = browserRuntime.runInContext(sandbox) as BrowserShell;
   browserRealm = sandbox;
   sandbox.browser = browser;
   factoryIdentity = (browser as BrowserShell & { factoryIdentity: boolean[] }).factoryIdentity;
   coreIdentity = (browser as BrowserShell & { coreIdentity: boolean }).coreIdentity;
+  publicEntries = (browser as BrowserShell & { publicEntries: Record<string, unknown> }).publicEntries;
   expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof setImmediate + ':' + typeof require", sandbox)).toBe("function:undefined:undefined:undefined");
   expect(runInContext("Buffer.from('é').toString('hex')", sandbox)).toBe("c3a9");
   expect(runInContext("Buffer.prototype.utf8Slice.call(new Uint8Array([195, 169]), 0, 2)", sandbox)).toBe("é");
@@ -476,13 +493,9 @@ beforeAll(async () => {
 
 beforeAll(async () => {
   const consumer = await bundlePublicConsumer(await readFile(path.join(root, "scripts/fixtures/safe-packages-mixed-entry-runtime.mjs"), "utf8"));
-  const sandbox = createContext({
+  const sandbox = createConsumerContext({
     TextEncoder, TextDecoder, TypeError, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
     AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
-    require(name: string) {
-      if (name !== "@poe-platform/safe-fs/core") throw new Error(name);
-      return filesystem;
-    },
   });
   mixedConsumer = runInContext(`(function(){ const module = { exports: {} }; ${consumer}; return module.exports; })()`, sandbox);
 });

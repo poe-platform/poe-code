@@ -6,7 +6,7 @@ import { resolveBrowserShellBuild, resolvePrivateCommandBuild } from "./bundle-s
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createFsFromVolume, Volume } from "memfs";
 import ts from "typescript";
-import { build, transform, type BuildOptions, type Plugin } from "esbuild";
+import { build, type BuildOptions, type Plugin } from "esbuild";
 import { packageSafeLibraries, parsePackageSafeArguments, rewriteModuleSpecifiers } from "./package-safe.mjs";
 
 const bashManifest = JSON.parse(readFileSync(new URL("../packages/safe-bash/package.json", import.meta.url), "utf8"));
@@ -477,7 +477,7 @@ it.each([false, true])("admits asset-only contract owners against the full priva
     volume.rmSync("/repo/packages/safe-bash/dist", { recursive: true });
     volume.mkdirSync("/repo/packages/safe-bash/dist", { recursive: true });
     for (const filename of ["index.d.ts", "core.d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/${filename}`, "export {};\n");
-    const modules: Promise<void>[] = [];
+    const privateEntries: Record<string, string> = {};
     for (const name of privatePackages) {
       const directory = path.join(repository, "packages", name);
       const pkg = JSON.parse(readFileSync(path.join(directory, "package.json"), "utf8"));
@@ -500,32 +500,33 @@ it.each([false, true])("admits asset-only contract owners against the full priva
         volume.mkdirSync(path.dirname(`/repo/packages/${name}/dist/${filename}`), { recursive: true });
         const distJs = path.join(directory, "dist", `${filename.slice(0, -3)}.js`);
         if (existsSync(distJs)) volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.js`, readFileSync(distJs, "utf8"));
-        else {
-          modules.push(transform(source, { loader: "ts", format: "esm", target: "es2022" }).then(({ code }) => {
-            volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.js`, code);
-          }));
-        }
+        privateEntries[`${name}/dist/${filename.slice(0, -3)}`] = path.join(directory, "src", filename);
         const distDts = path.join(directory, "dist", `${filename.slice(0, -3)}.d.ts`);
         const dtsText = getCachedDeclaration(distDts, source, compilerOptions);
         volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.d.ts`, dtsText);
       }
     }
-    await Promise.all(modules);
+    const portable = resolveBrowserShellBuild(repository, { external: ["safe-bash-contracts", "@poe-platform/safe-fs"] });
+    const [privateBuild, buffer, shell, fs] = await Promise.all([
+      build({ entryPoints: privateEntries, outdir: "/repo/packages",
+        bundle: false, write: false, format: "esm", target: "es2022" }),
+      build({ entryPoints: [path.join(repository, "packages/safe-bash/browser/buffer.mjs")],
+        bundle: true, write: false, platform: "browser", format: "esm", target: "es2022" }),
+      build({ ...portable, splitting: false, sourcemap: false, minify: true,
+        entryPoints: undefined,
+        stdin: { contents: 'export { Shell } from "./src/shell/shell.ts"; export * from "safe-bash-contracts/command"; export * from "safe-bash-contracts/errors";', resolveDir: path.join(repository, "packages/safe-bash") },
+        outdir: "/repo/packages/safe-bash/dist",
+      }),
+      build({ entryPoints: [path.join(repository, "packages/safe-fs/src/core.ts")],
+        bundle: true, write: false, platform: "browser", format: "esm", target: "es2022" }),
+    ]);
+    for (const output of privateBuild.outputFiles!) if (!volume.existsSync(output.path)) volume.writeFileSync(output.path, output.contents);
     volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
     volume.mkdirSync("/repo/packages/safe-bash/browser", { recursive: true });
-    const buffer = await build({ entryPoints: [path.join(repository, "packages/safe-bash/browser/buffer.mjs")], bundle: true, write: false, platform: "browser", format: "esm", target: "es2022" });
     volume.writeFileSync("/repo/packages/safe-bash/browser/buffer.mjs", buffer.outputFiles[0]!.contents);
-    const portable = resolveBrowserShellBuild(repository, { external: ["safe-bash-contracts", "@poe-platform/safe-fs"] });
-    const shell = await build({ ...portable, splitting: false, sourcemap: false, minify: true,
-      entryPoints: undefined,
-      stdin: { contents: 'export { Shell } from "./src/shell/shell.ts"; export * from "safe-bash-contracts/command"; export * from "safe-bash-contracts/errors";', resolveDir: path.join(repository, "packages/safe-bash") },
-      outdir: "/repo/packages/safe-bash/dist",
-    });
     volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", shell.outputFiles[0]!.contents);
     // Both public routes share this fixture's Shell; package its source graph once.
     volume.writeFileSync("/repo/packages/safe-bash/dist/core.browser.js", 'export * from "./index.js";');
-    const fs = await build({ entryPoints: [path.join(repository, "packages/safe-fs/src/core.ts")], bundle: true,
-      write: false, platform: "browser", format: "esm", target: "es2022" });
     const fsManifest = JSON.parse(volume.readFileSync("/repo/packages/safe-fs/package.json", "utf8").toString());
     fsManifest.exports["./core"] = { types: "./dist/core.d.ts", import: "./dist/core.js" };
     volume.writeFileSync("/repo/packages/safe-fs/package.json", JSON.stringify(fsManifest));
@@ -585,7 +586,7 @@ it.each([false, true])("admits asset-only contract owners against the full priva
         expect(settings.alias).not.toHaveProperty("safe-bash-contracts");
       }
       if (settings.outdir !== "/repo/packages") return options.bundle(settings);
-      return build({ ...settings, plugins: [plugin] });
+      return build({ ...settings, sourcemap: false, minifyWhitespace: true, plugins: [plugin] });
     } });
     // Remove every workspace before resolving the consumer's public imports.
     volume.rmSync("/repo", { recursive: true });
@@ -1064,6 +1065,11 @@ describe("scoped safe package artifacts", () => {
     for (const [name, entries] of [
       ["safe-bash-command-fold", ["index"]],
       ["safe-bash-command-dos2unix", ["index"]],
+      ["safe-bash-compression-engine", [
+        "index", "bounded-codec", "codec-loader", "codec", "crc", "errors", "file-operation", "files",
+        "gunzip", "internal", "operand", "options", "stream", "zstd-decode",
+        "native/bz2", "native/types", "native/xz", "native/zstd",
+      ]],
       ["safe-bash-line-ending-engine", ["index", "internal", "io", "stage", "convert", "encoding", "info"]],
       ["safe-bash-xml-engine", ["document", "evaluate", "io", "limits", "query"]],
     ] as const) {

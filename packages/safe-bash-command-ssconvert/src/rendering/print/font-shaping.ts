@@ -3,6 +3,7 @@ import {SsconvertError, type CapabilityContext} from "../../contracts.js";
 import {harfbuzzBase64} from "./harfbuzz/data.js";
 
 // The native surface used here is also available in Node without DOM globals.
+// Loading DOM libraries here changes Node consumers' global fetch declarations.
 // Keep exports unknown until the function/Memory checks below admit them.
 export interface FontShapingWebAssembly {
   readonly Memory: abstract new (...args: never[]) => { readonly buffer: ArrayBuffer; grow(pages: number): number };

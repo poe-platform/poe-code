@@ -57,7 +57,7 @@ describe(`${route} inventories inert modern comment metadata at admitted depth $
   });
   afterEach(async () => {
     try {
-      const { input, limits, memory, files, context } = prepared;
+      const { input, memory, files, context } = prepared;
       if (route.startsWith("native-")) expect(await execute({ phase: "verify" })).toEqual({ ok: true });
       if (route === "sdk" && capacity === "sufficient") expect(data).toBeDefined();
       if (data) {

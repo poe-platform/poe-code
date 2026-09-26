@@ -69,24 +69,28 @@ export async function decryptParadoxBlocks(bytes: Uint8Array, header: number, bl
   if (bytes.length + payload > (context.limits.workbookWork ?? context.limits.inputBytes * 8))
     throw new SsconvertError("resource-limit", "ssconvert Paradox decryption work limit exceeded");
   // Admit header copy and all physical payload work before allocating owned bytes.
-  const decoded = new Uint8Array(bytes);
-  let chunks = 0;
-  for (let start = header, number = 1; start < bytes.length; start += blockSize, number++) {
-    for (let chunk = 0; chunk < blockSize / 256; chunk++) {
-      context.signal.throwIfAborted();
-      const offset = start + chunk * 256;
-      for (let x = 0; x < 256; x++) {
-        const y = (c[x]! - number) & 255;
-        decoded[offset + x] = bytes[offset + y]! ^ a[(x + key) & 255]! ^
-          b[(y + (key >>> 8)) & 255]! ^ c[(y + chunk) & 255]!;
-      }
-      if (++chunks % 128 === 0) {
-        await new Promise<void>(resolve => setTimeout(resolve, 0));
+  let owned: Uint8Array | undefined;
+  context.own(() => { owned?.fill(0); owned = undefined; });
+  const decoded = owned = new Uint8Array(bytes);
+  try {
+    let chunks = 0;
+    for (let start = header, number = 1; start < bytes.length; start += blockSize, number++) {
+      for (let chunk = 0; chunk < blockSize / 256; chunk++) {
         context.signal.throwIfAborted();
+        const offset = start + chunk * 256;
+        for (let x = 0; x < 256; x++) {
+          const y = (c[x]! - number) & 255;
+          decoded[offset + x] = bytes[offset + y]! ^ a[(x + key) & 255]! ^
+            b[(y + (key >>> 8)) & 255]! ^ c[(y + chunk) & 255]!;
+        }
+        if (++chunks % 128 === 0) {
+          await new Promise<void>(resolve => setTimeout(resolve, 0));
+          context.signal.throwIfAborted();
+        }
       }
     }
-  }
-  return decoded;
+    return decoded;
+  } catch (error) { decoded.fill(0); throw error; }
 }
 
 /** pxlib px_encrypt_chunk: the same permutation and tables as the reader.

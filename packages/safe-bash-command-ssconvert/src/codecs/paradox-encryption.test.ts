@@ -1,4 +1,4 @@
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import proof from "../../../../docs/ssconvert/paradox-encryption-gap-proof.json" with { type: "json" };
 import { Volume } from "memfs";
 import { createEngine } from "../engine.js";
@@ -33,6 +33,65 @@ it("enforces the combined header-copy and physical-payload work limit", async ()
   await expect(decryptParadoxBlocks(input, 512, 1024, 1, { ...context,
     limits: { ...context.limits, workbookWork: input.length + 1024 - 1 } })).rejects.toThrow("decryption work limit");
   expect(input).toEqual(bytes(proof.cases[0]!.inputHex));
+});
+it("owns decrypted bytes until disposal without clearing borrowed input", async () => {
+  const input = bytes(proof.cases[0]!.inputHex), original = input.slice();
+  const cleanups: (() => void | Promise<void>)[] = [];
+  const output = await decryptParadoxBlocks(input, 512, 1024, proof.cases[0]!.key,
+    { ...context, own(cleanup) { cleanups.push(cleanup); } });
+  expect(output.some(value => value !== 0)).toBe(true);
+  expect(cleanups).toHaveLength(1);
+  for (const cleanup of cleanups) await cleanup();
+  expect(output.every(value => value === 0)).toBe(true);
+  expect(input).toEqual(original);
+});
+
+it("clears partial plaintext before propagating an in-flight abort", async () => {
+  const input = bytes(proof.cases[0]!.inputHex), original = input.slice(), reason = new Error("stop decryption");
+  let checks = 0;
+  const signal = { throwIfAborted() { if (++checks === 3) throw reason; } } as AbortSignal;
+  const fill = vi.spyOn(Uint8Array.prototype, "fill");
+  try {
+    await expect(decryptParadoxBlocks(input, 512, 1024, proof.cases[0]!.key, { ...context, signal }))
+      .rejects.toBe(reason);
+    expect(fill).toHaveBeenCalledWith(0);
+    const cleared = fill.mock.instances.filter((value): value is Uint8Array => value instanceof Uint8Array && value.length === input.length);
+    expect(cleared).toHaveLength(1);
+    expect(cleared[0]).not.toBe(input);
+    expect(cleared[0]!.every(value => value === 0)).toBe(true);
+    expect(input).toEqual(original);
+  } finally { fill.mockRestore(); }
+});
+
+it("preserves abort identity when invocation cleanup runs during a decryption yield", async () => {
+  const fixture = proof.cases.find(c => c.blockSize === 32768)!, input = bytes(fixture.inputHex), original = input.slice();
+  const controller = new AbortController(), reason = new Error("dispose in flight");
+  let cleanup: () => void | Promise<void> = () => {};
+  const timer = setTimeout(() => { controller.abort(reason); void cleanup(); }, 0);
+  try {
+    await expect(decryptParadoxBlocks(input, 512, fixture.blockSize, fixture.key,
+      { ...context, signal: controller.signal, own(value) { cleanup = value; } })).rejects.toBe(reason);
+    expect(input).toEqual(original);
+  } finally { clearTimeout(timer); await cleanup(); }
+});
+
+it.each([false, true])("clears public conversion plaintext after cell-limit failure=%s", async fail => {
+  const input = bytes(proof.cases[0]!.inputHex), original = input.slice();
+  const engine = createEngine({ codecs: [], environment: context.environment,
+    limits: { ...context.limits, cells: fail ? 1 : 100 } });
+  const fill = vi.spyOn(Uint8Array.prototype, "fill");
+  try {
+    const output: Uint8Array[] = [];
+    const operation = engine.convert({ input: { kind: "stream", source: [input], filename: "/input.db" },
+      destination: { kind: "stream", sink: { async write(value) { output.push(value.slice()); } } },
+      exportType: "Gnumeric_stf:stf_csv" }, { signal: context.signal });
+    if (fail) await expect(operation).rejects.toThrow("database cells limit");
+    else { await operation; expect(Buffer.concat(output).toString()).toBe('"Value,S,2"\n42\n'); }
+    const cleared = fill.mock.instances.filter((value): value is Uint8Array => value instanceof Uint8Array && value.length === input.length && value !== input);
+    expect(cleared.length).toBeGreaterThan(0);
+    expect(cleared.every(value => value.every(byte => byte === 0))).toBe(true);
+    expect(input).toEqual(original);
+  } finally { fill.mockRestore(); await engine.dispose(); }
 });
 it("cancels inside a large encrypted block without mutating borrowed input", async () => {
   const fixture = proof.cases.find(c => c.blockSize === 32768)!, input = bytes(fixture.inputHex), original = input.slice();

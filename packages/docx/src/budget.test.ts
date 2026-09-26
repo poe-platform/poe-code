@@ -58,6 +58,23 @@ it("admits exact resource boundaries and rejects one more without changing count
   expect(() => budget.table(Number.MAX_SAFE_INTEGER, 2)).toThrow(ResourceLimitError);
 });
 
+it("preserves large safe integer reservations through shared and per-document budgets", () => {
+  const budget = new DocumentBudget({ work: Number.MAX_SAFE_INTEGER });
+  const large = 2 ** 32;
+  budget.charge("work", large);
+  budget.lower({}).charge("work", large + 1);
+  expect(budget.usage.work).toBe(large * 2 + 1);
+  budget.charge("work", Number.MAX_SAFE_INTEGER - budget.usage.work);
+  expect(() => budget.charge("work", 1)).toThrow(ResourceLimitError);
+  expect(budget.usage.work).toBe(Number.MAX_SAFE_INTEGER);
+  const documents = new DocumentBudget({ compressedInput: large });
+  documents.document().charge("compressedInput", large);
+  const second = documents.document();
+  second.charge("compressedInput", large);
+  expect(() => second.charge("compressedInput", 1)).toThrow(ResourceLimitError);
+  expect(documents.usage.compressedInput).toBe(large * 2);
+});
+
 it("accounts archive inputs cumulatively before allocation", async () => {
   const { bytes: input } = await createDocumentFixture("garden");
   const budget = new DocumentBudget({ retainedBytes: 4 * 1024 * 1024 });

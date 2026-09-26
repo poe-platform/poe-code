@@ -36,7 +36,7 @@ for (const [command, args] of [
           },
           stderr: { async write() {} },
         });
-        if (failure === "abort") await assert.rejects(execution, error => error === signal.reason);
+        if (failure === "abort") await assert.rejects(Promise.resolve(execution), error => error === signal.reason);
         else assert.equal((await execution).exitCode, 1);
         assert.equal(reads, 1);
         assert.equal(closed, 1);
@@ -76,7 +76,7 @@ for (const command of ["find", "tr"] as const) {
           },
         };
         const execution = definition.execute({ ...context, stdout: failingStdout });
-        if (failure === "abort") await assert.rejects(execution, error => error === controller.signal.reason);
+        if (failure === "abort") await assert.rejects(Promise.resolve(execution), error => error === controller.signal.reason);
         else assert.equal((await execution).exitCode, 1);
         assert.ok(borrowed);
         assert.equal(borrowed.buffer.byteLength, command === "find" ? 8192 : 65536, "failure must exercise a shared-buffer write");

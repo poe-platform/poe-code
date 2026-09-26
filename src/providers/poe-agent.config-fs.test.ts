@@ -20,6 +20,7 @@ vi.mock("@poe-code/poe-agent", async (importOriginal) => {
 });
 
 const { spawnPoeAgentWithAcp } = await import("./poe-agent.js");
+await import("@poe-code/poe-agent");
 
 const homeDir = "/home/test";
 

@@ -66,14 +66,16 @@ for (const command of ["find", "tr"] as const) {
           stderr: { async write() {} },
         };
         let borrowed: Uint8Array | undefined;
-        const execution = definition.execute({ ...context, stdout: {
-          ...(failure === "throw" ? { writeSync(bytes: Uint8Array): boolean { borrowed = bytes; throw new Error("EPIPE"); } } : {}),
-          write(bytes) {
+        const failingStdout = {
+          ...(failure === "throw" ? { writeSync(bytes: Uint8Array): boolean { borrowed = bytes; throw new Error("EPIPE"); } } : { isPipeStage: true }),
+          write(bytes: Uint8Array) {
             borrowed = bytes;
             if (failure === "throw") throw new Error("EPIPE");
             if (failure === "abort") { controller.abort(new Error("cancelled")); return new Promise<void>(() => {}); }
             return Promise.reject(new Error("EPIPE"));
-          } } });
+          },
+        };
+        const execution = definition.execute({ ...context, stdout: failingStdout });
         if (failure === "abort") await assert.rejects(execution, error => error === controller.signal.reason);
         else assert.equal((await execution).exitCode, 1);
         assert.ok(borrowed);

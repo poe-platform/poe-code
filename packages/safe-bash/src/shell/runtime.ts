@@ -528,6 +528,8 @@ export class Budget {
         return;
       }
       this._wallClockTimer = true;
+      // The shared timer retains its single budget owner until retirement.
+      // eslint-disable-next-line @typescript-eslint/no-this-alias
       if (singleWallClockBudget === undefined) singleWallClockBudget = this;
       else extraWallClockBudgets.push(this);
       if (sharedWallClockTimer === undefined || deadline < sharedWallClockTimerDeadline) {

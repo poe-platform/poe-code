@@ -193,3 +193,20 @@ test("a reentrant return waits for the active producer read before closing it", 
   assert.deepEqual(await closing, { done: true, value: "closed" });
   assert.equal(closes, 1);
 });
+
+test("cancelled byte-reader return starts producer cleanup before returning its promise", async () => {
+  const controller = new AbortController();
+  const cleanup = gate();
+  let started = false;
+  const reader = readBytes({ [Symbol.asyncIterator]: () => ({
+    next: async () => ({ done: false, value: Uint8Array.of(1) }),
+    async return() { started = true; await cleanup.promise; return { done: true, value: undefined }; },
+  }) }, controller.signal);
+  await reader.next();
+  controller.abort(false);
+  const closing = reader.return(undefined);
+  try {
+    assert.equal(started, true);
+    assert.deepEqual(await closing, { done: true, value: undefined });
+  } finally { cleanup.release(); }
+});

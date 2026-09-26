@@ -251,7 +251,7 @@ class ReadBytesGenerator {
     if (!this.finished && this.iterator?.return) {
       this.finished = true;
       const it = this.iterator;
-      const cleanup = Promise.resolve().then(() => it.return!());
+      const cleanup = new Promise<IteratorResult<Uint8Array>>(resolve => { resolve(it.return!()); });
       if (signal?.aborted) void cleanup.catch(noop);
       else this.closing = abortable(() => cleanup, signal).then(noop);
     } else {

@@ -15,6 +15,7 @@ import {
   type VirtualShellPlugin,
 } from "safe-bash-contracts";
 import { shellValueByteLength } from "safe-bash-contracts/value";
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { createYqQuerySession, YqValueFailure, type YqQuerySession } from "safe-bash-query-engine/query-core";
 import { interruptible, JqError, JqLimitError, wellFormed, type Json } from "safe-bash-query-engine/limits";
 import { YqLedger, yqCaps, resolveYqLimits, type YqLimits } from "./accounting.js";
@@ -381,6 +382,7 @@ async function collectSource(
   const chunks: Uint8Array[] = [];
   const framer = inputFormat === "yaml" ? new RawDocumentFramer() : undefined;
   let size = 0;
+  let chunksSinceYield = 0;
   while (true) {
     let next: IteratorResult<Uint8Array>;
     try {
@@ -394,6 +396,10 @@ async function collectSource(
     if (next.done) break;
     const chunk = next.value;
     await session.ownedWork.charge(1);
+    if (++chunksSinceYield === 1024) {
+      await yieldTurn(context.signal);
+      chunksSinceYield = 0;
+    }
     owner.assertOpen(context.signal);
     if (chunk.byteLength === 0) continue;
     session.ownedWork.admitInputBytes(chunk.byteLength);

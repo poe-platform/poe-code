@@ -74,7 +74,7 @@ const { createDatabaseFunctions } = await import("poe-code/ssconvert");
 const databaseConfig: EngineConfig = { ...config, runtimeFunctions: createDatabaseFunctions(databaseQuery) };
 void databaseConfig;
 
-const unicodeVersion: PythonUnicodeVersion = "15.0.0";
+const unicodeVersion: PythonUnicodeVersion = "15.1.0";
 const pythonConfig: EngineConfig = { ...config, runtimeFunctions: createPythonSampleFunctions({ unicodeVersion }) };
 if (rootPythonFunctions !== createPythonSampleFunctions || !pythonConfig.runtimeFunctions?.PY_CAPWORDS)
   throw new Error("Invalid public Python Unicode profile consumer");

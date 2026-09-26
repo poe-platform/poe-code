@@ -210,7 +210,7 @@
       "remaining": "Other named styles, raw metadata diagnostics, rendered appearance, broader application qualification and release publication remain open. No family is closed."
     },
     "pythonUnicodeProfiles": {
-      "scope": "createPythonSampleFunctions({ unicodeVersion: \"15.0.0\" | \"16.0.0\" }) selects frozen casing/context and printable-character rules for PY_CAPWORDS and PY_PRINTF. pythonSampleFunctions retains the Unicode 16 default. SDK and Shell share the binding; no Python interpreter or ambient module loading is added.",
+      "scope": "createPythonSampleFunctions({ unicodeVersion: \"15.0.0\" | \"15.1.0\" | \"16.0.0\" }) selects frozen casing/context and printable-character rules for PY_CAPWORDS and PY_PRINTF. pythonSampleFunctions retains the Unicode 16 default. SDK and Shell share the binding; no Python interpreter or ambient module loading is added.",
       "source": "CPython 3.12.13 / Unicode 15.0.0 and CPython 3.14.7 / Unicode 16.0.0. Full-domain public string-property extraction matches the Python 3.12 C API over all 1,114,112 code points. The override has 27 title and 27 lowercase identities, 52 cased removals, 43 case-ignorable removals and one addition, and 5812 newly nonprintable code points under Unicode 15. Whitespace is unchanged.",
       "dataSha256": "cfaa04eb0329bf3d770e72b396a267e47d1a5e434b1da6d534584c7fe12e6d27",
       "reproduction": "All 139 retained native Unicode 15 CAPWORDS differences reproduce against the previous Unicode 16-only binding. A NUL control initially used UNICHAR(0), which produces an empty string; it was corrected to supply an actual embedded NUL. The first Shell probe passed text instead of Uint8Array to the filesystem and was corrected without a product change.",
@@ -301,6 +301,10 @@
         "csvNote": "CSV import consumes one leading apostrophe as a text-entry marker, matching native Gnumeric 1.12.61. Complete emitted CSV hashes match independent CPython/Node/Shell receipts without normalization; only re-import expectations apply that native rule to 187 rows per profile.",
         "lifecycle": "Worker terminated and object URL revoked; Playwright reports no remaining workers. Console has zero warnings/errors. All seven observed requests are owned localhost assets or the worker blob. Screenshot inspected.",
         "probeCorrection": "The first re-import comparison incorrectly expected leading apostrophes to remain. Four native controls established the actual contract before correcting the check. The first browser session closed; its process was confirmed gone before starting a fresh session and completing all checks."
+      },
+      "unicode151": {
+        "evidence": "docs/ssconvert/python-unicode151-profile.json",
+        "summary": "CPython 3.13 Unicode 15.1 selection adds 627 printable characters in three ranges. Full-domain extraction establishes unchanged title/lower/cased/ignorable/whitespace versus 15.0. All 2548 scalar fields match independent native Python through compiled SDK and Shell; defaults and 15.0 stay unchanged. Full activated Linux loader qualification remains open."
       }
     },
     "databaseValueFormats": {
@@ -632,7 +636,7 @@
     {
       "id": "python-capwords-unicode",
       "status": "open",
-      "currentFinding": "Explicit frozen Unicode 15/16 selection covers the 139 recorded version differences while retaining Unicode 16 by default. Compiled SDK/Shell and Chrome page/module-worker profiles match independent CPython casing/context cases; typed split errors, NUL, malformed-host and resource boundaries remain covered. Exact activated optional runtime profiles, packed/installed-package requalification and wider diagnostics remain open. Native malformed-UTF8 crashes retain a portable refusal."
+      "currentFinding": "Explicit frozen Unicode 15.0/15.1/16.0 selection covers the 139 recorded version differences while retaining Unicode 16 by default. Compiled SDK/Shell profiles match independent CPython casing/context cases; Chrome page/module-worker evidence covers 15.0/16.0 only; typed split errors, NUL, malformed-host and resource boundaries remain covered. Exact activated optional runtime profiles, packed/installed-package requalification and wider diagnostics remain open. Native malformed-UTF8 crashes retain a portable refusal."
     },
     {
       "id": "database-functions",

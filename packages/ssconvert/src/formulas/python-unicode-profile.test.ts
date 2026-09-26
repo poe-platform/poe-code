@@ -29,11 +29,30 @@ it.each([
   expect(calculate(`=PY_PRINTF("%s","${source}")`, supplied)).toEqual({ kind: "string", value: source });
 });
 
-it.each(["15.0.0", "16.0.0"] as const)("retains errors, NUL handling, budgets and binding snapshots for %s", unicodeVersion => {
+it.each([
+  ["\u2ffc", "'\\u2ffc'"], ["\u2fff", "'\\u2fff'"], ["\u31ef", "'\\u31ef'"],
+  ["\u{2ebf0}", "'\\U0002ebf0'"], ["\u{2ee5d}", "'\\U0002ee5d'"]
+])("admits the Unicode 15.1 printable addition %s without changing 15.0", (source, escaped) => {
+  const supplied = { ...context, runtimeFunctions: createPythonSampleFunctions({ unicodeVersion: "15.1.0" }) };
+  const older = { ...context, runtimeFunctions: createPythonSampleFunctions({ unicodeVersion: "15.0.0" }) };
+  expect(calculate(`=PY_PRINTF("%r","${source}")`, supplied)).toEqual({ kind: "string", value: `'${source}'` });
+  expect(calculate(`=PY_PRINTF("%r","${source}")`, older)).toEqual({ kind: "string", value: escaped });
+  expect(calculate(`=PY_PRINTF("%a","${source}")`, supplied)).toEqual({ kind: "string", value: escaped });
+});
+
+it("keeps Unicode 16 additions and unassigned neighbors outside the 15.1 profile", () => {
+  const supplied = { ...context, runtimeFunctions: createPythonSampleFunctions({ unicodeVersion: "15.1.0" }) };
+  for (const [source, expected] of [["\u1c89", "'\\u1c89'"], ["\u{2ebef}", "'\\U0002ebef'"], ["\u{2ee5e}", "'\\U0002ee5e'"]])
+    expect(calculate(`=PY_PRINTF("%r","${source}")`, supplied)).toEqual({ kind: "string", value: expected });
+  expect(calculate('=PY_CAPWORDS("\u1c8a")', supplied)).toEqual({ kind: "string", value: "\u1c8a" });
+  expect(calculate('=PY_CAPWORDS("\u1c8a")')).toEqual({ kind: "string", value: "\u1c89" });
+});
+
+it.each(["15.0.0", "15.1.0", "16.0.0"] as const)("retains errors, NUL handling, budgets and binding snapshots for %s", unicodeVersion => {
   const options = { unicodeVersion };
   const supplied = { ...context, runtimeFunctions: createPythonSampleFunctions(options) };
-  options.unicodeVersion = unicodeVersion === "15.0.0" ? "16.0.0" : "15.0.0";
-  expect(calculate('=PY_CAPWORDS(UNICHAR(411))', supplied)).toEqual({ kind: "string", value: unicodeVersion === "15.0.0" ? "ƛ" : "Ƛ" });
+  options.unicodeVersion = unicodeVersion !== "16.0.0" ? "16.0.0" : "15.0.0";
+  expect(calculate('=PY_CAPWORDS(UNICHAR(411))', supplied)).toEqual({ kind: "string", value: unicodeVersion !== "16.0.0" ? "ƛ" : "Ƛ" });
   expect(calculate('=PY_CAPWORDS("HELLO\0WORLD")', supplied)).toEqual({ kind: "string", value: "Hello" });
   expect(calculate('=PY_CAPWORDS(NA())', supplied)).toEqual({ kind: "error", value: "#N/A" });
   expect(calculate('=PY_BITAND(3,1)', supplied)).toEqual({ kind: "number", value: 1 });

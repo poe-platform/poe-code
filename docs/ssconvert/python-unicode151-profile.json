@@ -1,0 +1,92 @@
+{
+  "issue": 2144,
+  "date": "2026-09-26",
+  "status": "qualified-properties-and-public-sdk-shell",
+  "retainedLinuxProfile": {
+    "profileId": "gnumeric-1.12.61-optional-python-samples",
+    "sourceRevision": "1cf283b45086601463059d863cbb73cf54e37a34",
+    "workflowRun": 35869837124,
+    "artifactId": 10755265947,
+    "identitySha256": "b1aabef0adc3ba4640d9d2c466663bf4f26fee91c4cbd824f86b5137bfa16fa8",
+    "optionalProfileSha256": "f585eaea65c17346d5d634916310caf1506bb13d1322f491ba82d8e589a78dfb",
+    "binarySha256": "1e05f849beba0397bbaae2a504ec65e44fd1d21b1106edd7b54b47db61b828c1"
+  },
+  "nativeLoader": {
+    "library": "/usr/lib/aarch64-linux-gnu/libpython3.13.so.1.0",
+    "packageVersion": "3.13.5-2+deb13u5",
+    "sha256": "9ced58098c0f510668f0de4ffe594ad4cc1c97eb82cd9c4a4d99745bcdb7a7a9"
+  },
+  "propertyExtraction": {
+    "reference": "CPython 3.12.13 / Unicode 15.0.0, macOS arm64 Homebrew",
+    "candidate": "CPython 3.13.6 / Unicode 15.1.0, macOS arm64 python-build-standalone via uv",
+    "points": 1114112,
+    "method": "For every code point from 0 through 0x10ffff, compare complete str.title and str.lower mappings, cased = islower or isupper or istitle, str.isprintable, str.isspace and contextual case-ignorable. For cased characters derive ignorable from (space + char + capital sigma).lower ending in nonfinal sigma; otherwise use (A + capital sigma + char + A).lower having nonfinal sigma at index 1. This derivation exactly matches the CPython 3.12 private C API over the entire domain. The standalone 3.13 runtime hides its private casing/ignorable symbols, so its extraction uses public properties.",
+    "identical": [
+      "title",
+      "lower",
+      "cased",
+      "case-ignorable",
+      "whitespace"
+    ],
+    "printableAdded": 627,
+    "printableRemoved": 0,
+    "addedRanges": [
+      [
+        "U+2FFC",
+        "U+2FFF"
+      ],
+      [
+        "U+31EF",
+        "U+31EF"
+      ],
+      [
+        "U+2EBF0",
+        "U+2EE5D"
+      ]
+    ],
+    "referenceSnapshotSha256": "28d6c20b9c51c12e3fcb6588e7a491484981884992bcdd636e1699f15dc20a4a",
+    "candidateSnapshotSha256": "c3054520d814f0ca4ecc2a46c1139060279ffd38b805d811517aa0d679c4a0c3"
+  },
+  "publicComparison": {
+    "rows": 637,
+    "scalarResults": 2548,
+    "cases": "All 627 additions plus U+019B, U+1C89, U+1C8A, U+2FFB, U+3000, U+31EE, U+31F0, U+10D50, U+2EBEF and U+2EE5E; each checks percent r, percent a, PY_CAPWORDS(A + capital sigma + char + A) and percent s.",
+    "expected": "Independent native CPython 3.13.6 percent formatting and string.capwords",
+    "inputSha256": "e1a79b116310b7f6a9c31c8bfbc0e00510683cbc312fa2f4e5c83c46452c77f9",
+    "nativeCsvSha256": "be75ac8b0d018af82ede1bac5b696b1d157b4dc905959499a22a9f3c957e9a38",
+    "sdkAndShellCsvSha256": "e98d5475b66d8e826baa67a015658441ec9e00a5d3f3bdac474d89f5d1ef847b",
+    "sdkAndShellBytes": 26687,
+    "nativeCsvBytes": 26683,
+    "result": "Zero scalar mismatches. SDK and Shell CSV bytes are identical. Native CSV serialization differs only by quotes around two whitespace-containing fields in the U+3000 row. SDK diagnostics and Shell stdout/stderr are empty; Shell input bytes unchanged.",
+    "configuration": {
+      "codecs": [],
+      "unicodeVersion": "15.1.0",
+      "environment": {
+        "env": {},
+        "locale": "C",
+        "timezone": "UTC"
+      },
+      "limits": {
+        "inputBytes": 1000000,
+        "outputBytes": 1000000,
+        "cells": 10000,
+        "sheets": 4,
+        "operations": 10000,
+        "workbookWork": 50000000
+      }
+    },
+    "command": "ssconvert --recalc -T Gnumeric_stf:stf_csv /input.gnumeric /output.csv"
+  },
+  "regression": "TDD red: seven selected regressions failed on unsupported 15.1; two selected cases passed and 23978 were filtered. Covers printable boundaries, unassigned neighbors, Unicode 16 negative controls, profile snapshot, typed errors, NUL and budgets.",
+  "visual": {
+    "command": "npm run screenshot -- --output out/ssconvert-unicode151.png node out/ssconvert-unicode151-screenshot.mjs",
+    "sha256": "e220bef8e8054640cd457c617e7af631cbf675944abe696a2a49d24b99344862",
+    "result": "Actual compiled opt-in Shell invoked for all three profiles. Zero exits and empty stderr. Layout, ASCII escapes and Latin text readable. Terminal font lacks U+2FFC and U+1C89 glyphs; screenshot does not establish glyph fidelity."
+  },
+  "remaining": "This property qualification uses macOS CPython 3.13.6, not execution of the retained Debian 3.13.5 loader. Full activated-plugin behavior, browser/worker 15.1, packed/installed consumers and publication remain separate. No broad ssconvert family is closed.",
+  "validation": {
+    "workspaceTests": "420 files, 23987 tests passed; required root posttest and two lint stress checks passed",
+    "lint": "Workspace lint, source/test typechecks and root/scoped public-consumer typechecks passed",
+    "build": "Maintained selected @poe-code/ssconvert workspace build passed"
+  }
+}

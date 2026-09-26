@@ -89,9 +89,9 @@ function setup(context: TestContext, options: {
 }
 
 const foreground = [
-  { name: "subshell", source: "(:)", point: "child-job-install", children: 1 },
-  { name: "aggregate pipeline", source: ": | :", point: "child-job-install", children: 2 },
-  { name: "dollar-parenthesis", source: "value=$(:)", point: "source-input-read", children: 1 },
+  { name: "subshell", source: "(:)", point: "child-job-install", children: 1, emptyCopies: 0 },
+  { name: "aggregate pipeline", source: ": | :", point: "child-job-install", children: 2, emptyCopies: 2 },
+  { name: "dollar-parenthesis", source: "value=$(:)", point: "source-input-read", children: 1, emptyCopies: 1 },
 ] as const;
 
 test("colon does not dispatch a foreground checkpoint or clone a child", async context => {
@@ -105,7 +105,7 @@ test("colon does not dispatch a foreground checkpoint or clone a child", async c
 
 for (const scenario of foreground) test(`${scenario.name}: one parent checkpoint at the admitted boundary`, async context => {
   const { shell, observed } = setup(context);
-  const result = await bounded(shell.exec(scenario.source), scenario.name);
+  const result = await bounded(shell.exec(`retained=$'\\xff'; ${scenario.source}`), scenario.name);
   assert.equal(result.exitCode, 0);
   assert.equal(result.stdout, "");
   assert.equal(result.stderr, "");
@@ -147,7 +147,7 @@ for (const withPositionals of [false, true]) test(`the four forms need neither a
   context.after(async () => { if (owner.shell) await bounded(owner.shell.dispose(), "plain shell disposal"); });
   const plain = new Shell({ fs: createMemoryFileSystem() });
   owner.shell = plain;
-  for (const scenario of [{ source: ":", children: 0 }, ...foreground]) {
+  for (const scenario of [{ source: ":", children: 0, emptyCopies: 0 }, ...foreground]) {
     const source = withPositionals ? `set -- retained; ${scenario.source.replaceAll(":", 'case "$1" in retained) : ;; *) exit 42 ;; esac')}` : scenario.source;
     const baseline: ShellResult = await bounded(plain.exec(source), "plain execution");
     observed.events.length = 0;
@@ -162,8 +162,8 @@ for (const withPositionals of [false, true]) test(`the four forms need neither a
     assert.deepEqual(result, baseline);
     assert.equal(observed.forks, scenario.children);
     assert.equal(observed.childRuns, scenario.children);
-    // Positional stores are cloned only after a positional value materializes them.
-    assert.equal(observed.copies.length, (withPositionals ? 2 : 1) * scenario.children);
+    // Empty subshell snapshots need no value stores; retained positionals do.
+    assert.equal(observed.copies.length, withPositionals ? 2 * scenario.children : scenario.emptyCopies);
     assert.ok(observed.copies.every(copy => observed.closed.has(copy)));
     assert.deepEqual(observed.callbacks, []);
   }
@@ -205,7 +205,7 @@ for (const scenario of foreground) {
       acquired = true;
       throw reason;
     } });
-    const outcome = await bounded(shell.exec(scenario.source).then(
+    const outcome = await bounded(shell.exec(`retained=$'\\xff'; ${scenario.source}`).then(
       () => ({ rejected: false, reason: undefined as unknown }),
       failure => ({ rejected: true, reason: failure as unknown }),
     ), "checkpoint rejection");

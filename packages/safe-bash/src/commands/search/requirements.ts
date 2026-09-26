@@ -60,7 +60,30 @@ export async function assertPathRequirements(
   }
 }
 
-export async function* requiredFileInput(
+export function requiredFileInput(
+  context: CommandContext, requirements: readonly CommandFileSystemRequirement[], mode: string, file: string, maxBytes: number,
+): ByteSource {
+  if (maxBytes === Infinity) {
+    const path = pathOf(context, file);
+    const backing = getRuntimeBackingFileSystem(context.fs);
+    if (
+      backing !== undefined &&
+      backing.capabilitiesFor === undefined &&
+      path !== "/dev" &&
+      !path.startsWith("/dev/") &&
+      context.fs.readStream &&
+      context.fs.capabilities.streamingRead !== false &&
+      Object.getPrototypeOf(backing)?.constructor?.name === "MemoryFileSystem" &&
+      !Object.prototype.hasOwnProperty.call(backing, "readStream")
+    ) {
+      assertCommandRequirements(context, requirements, [mode]);
+      return context.fs.readStream(path, { signal: context.signal });
+    }
+  }
+  return requiredFileInputSlow(context, requirements, mode, file, maxBytes);
+}
+
+async function* requiredFileInputSlow(
   context: CommandContext, requirements: readonly CommandFileSystemRequirement[], mode: string, file: string, maxBytes: number,
 ): ByteSource {
   assertCommandRequirements(context, requirements, [mode]);

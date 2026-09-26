@@ -43,10 +43,31 @@ const EMPTY_STDIN_OPTIONS = Object.freeze({
   initialEof: true,
 });
 interface CachedParsedUnit {
+  readonly offset: number;
   readonly unit: ReturnType<typeof parseShellUnit>;
   readonly unitsCharged: number;
+  readonly locale: boolean;
+  nextCached?: CachedParsedUnit | undefined;
 }
-const parsedUnitCache = new Map<string, CachedParsedUnit>();
+interface SourceParseCache {
+  first0?: CachedParsedUnit | undefined;
+  first1?: CachedParsedUnit | undefined;
+  byOffset0?: Map<number, CachedParsedUnit> | undefined;
+  byOffset1?: Map<number, CachedParsedUnit> | undefined;
+}
+const parsedSourceCache = new Map<string, SourceParseCache>();
+function getSourceParseCache(source: string): SourceParseCache {
+  let entry = parsedSourceCache.get(source);
+  if (!entry) {
+    if (parsedSourceCache.size >= 64) {
+      const oldest = parsedSourceCache.keys().next().value;
+      if (oldest !== undefined) parsedSourceCache.delete(oldest);
+    }
+    entry = {};
+    parsedSourceCache.set(source, entry);
+  }
+  return entry;
+}
 
 class RootInvocationCancellationOwner {
   declare readonly scope: InvocationScope;
@@ -386,12 +407,27 @@ export class Shell implements PluginHost {
           ? byteLocale(this.#options.env ?? {})
           : (this.#options.env === undefined ? byteLocale(options.env) : byteLocale({ ...this.#options.env, ...options.env }));
         const canCacheParse = extensions === EMPTY_CAPTURED_EXTENSIONS && source.length <= 16384;
+        const sourceCache = canCacheParse ? getSourceParseCache(source) : undefined;
         let lineIndex: SourceLineIndex | undefined;
         let lineIndexUnits = 0;
+        let currentCachedUnit: CachedParsedUnit | undefined;
         const getOrParseUnit = (offset: number, unitLocale: boolean): ReturnType<typeof parseShellUnit> => {
-          const cacheKey = canCacheParse ? `${unitLocale ? 1 : 0}:${offset}:${source}` : undefined;
-          const cached = cacheKey !== undefined ? parsedUnitCache.get(cacheKey) : undefined;
+          let cached: CachedParsedUnit | undefined;
+          if (sourceCache !== undefined) {
+            if (offset === 0) {
+              cached = unitLocale ? sourceCache.first1 : sourceCache.first0;
+            } else if (currentCachedUnit && currentCachedUnit.locale === unitLocale && currentCachedUnit.nextCached?.offset === offset) {
+              cached = currentCachedUnit.nextCached;
+            } else {
+              const map = unitLocale ? sourceCache.byOffset1 : sourceCache.byOffset0;
+              cached = map?.get(offset);
+            }
+          }
           if (cached) {
+            if (currentCachedUnit && currentCachedUnit.locale === unitLocale && currentCachedUnit.unit.next === offset) {
+              currentCachedUnit.nextCached = cached;
+            }
+            currentCachedUnit = cached;
             budget.parsing.admit(cached.unitsCharged);
             return cached.unit;
           }
@@ -404,12 +440,21 @@ export class Shell implements PluginHost {
           const parsed = parseShellUnit(source, offset, unitLocale, budget.parsing, lineIndex, undefined, false, extensions.syntax);
           const parseUnits = budget.parsing.admittedUnits - beforeParse;
           const unitsCharged = (offset === 0 ? lineIndexUnits : 0) + parseUnits;
-          if (cacheKey !== undefined && (!parsed.script.warnings || parsed.script.warnings.length === 0)) {
-            if (parsedUnitCache.size >= 128) {
-              const oldest = parsedUnitCache.keys().next().value;
-              if (oldest !== undefined) parsedUnitCache.delete(oldest);
+          if (sourceCache !== undefined && (!parsed.script.warnings || parsed.script.warnings.length === 0)) {
+            const created: CachedParsedUnit = { offset, unit: parsed, unitsCharged, locale: unitLocale };
+            if (offset === 0) {
+              if (unitLocale) sourceCache.first1 = created;
+              else sourceCache.first0 = created;
+            } else {
+              const map = unitLocale ? (sourceCache.byOffset1 ??= new Map()) : (sourceCache.byOffset0 ??= new Map());
+              if (map.size < 512) map.set(offset, created);
             }
-            parsedUnitCache.set(cacheKey, { unit: parsed, unitsCharged });
+            if (currentCachedUnit && currentCachedUnit.locale === unitLocale && currentCachedUnit.unit.next === offset) {
+              currentCachedUnit.nextCached = created;
+            }
+            currentCachedUnit = created;
+          } else {
+            currentCachedUnit = undefined;
           }
           return parsed;
         };
@@ -514,7 +559,15 @@ export class Shell implements PluginHost {
           }
           if (unit.next >= source.length) break;
           budget.signal.throwIfAborted();
-          unit = getOrParseUnit(unit.next, byteLocale(state.variables));
+          const vars = state.variables;
+          const nextLocale = (vars.LC_ALL || vars.LC_CTYPE || vars.LANG) ? byteLocale(vars) : true;
+          if (currentCachedUnit && currentCachedUnit.locale === nextLocale && currentCachedUnit.nextCached !== undefined) {
+            currentCachedUnit = currentCachedUnit.nextCached;
+            budget.parsing.admit(currentCachedUnit.unitsCharged);
+            unit = currentCachedUnit.unit;
+          } else {
+            unit = getOrParseUnit(unit.next, nextLocale);
+          }
         }
       } catch (error) {
         if (!(error instanceof ShellSyntaxError)) throw error;

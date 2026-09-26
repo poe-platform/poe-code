@@ -118,27 +118,29 @@ export function tryMatchEreAsciiRangeSync(
   signal: AbortSignal | undefined,
   leftmostFirst = false,
   word = false,
+  skipPerRowLedgerCharge = false,
 ): EreSpan | undefined | null {
   if (program.groups !== 0) return null;
   const root = resolveEreProgramUnchecked(program);
   const initial = root.nullable ? undefined : initialCharacters.get(root);
   if (!root.nullable && !initial) return null;
   const rLen = rEnd - rStart;
-  ledger.check(signal);
-  ledger.admitInput("subjectBytes", rLen, signal);
-  ledger.charge("allocationUnits", rLen * 11 + 16, signal);
-  ledger.chargeWork(rLen * 4 + 4, signal);
-  ledger.charge("allocationUnits", 7, signal);
+  if (!skipPerRowLedgerCharge) {
+    ledger.check(signal);
+    ledger.admitInput("subjectBytes", rLen, signal);
+    ledger.charge("allocationUnits", rLen * 11 + 23, signal);
+    ledger.chargeWork(rLen * 4 + 4, signal);
+  }
   const fastSeq = getFastEreLiteralSeq(root);
   if (fastSeq !== null) {
     const { anchoredStart, anchoredEnd, codes, insensitive, spanAtZero } = fastSeq;
     const patLen = codes.length;
     if (rLen < patLen || (anchoredStart && anchoredEnd && rLen !== patLen)) {
-      ledger.chargeWork(1, signal);
+      if (!skipPerRowLedgerCharge) ledger.chargeWork(1, signal);
       return undefined;
     }
     if (anchoredStart) {
-      ledger.chargeWork(1 + patLen, signal);
+      if (!skipPerRowLedgerCharge) ledger.chargeWork(1 + patLen, signal);
       if (!insensitive) {
         for (let i = 0; i < patLen; i++) {
           if (buf[rStart + i] !== codes[i]) return undefined;
@@ -153,7 +155,7 @@ export function tryMatchEreAsciiRangeSync(
     }
     if (anchoredEnd && !word) {
       const start = rLen - patLen;
-      ledger.chargeWork(1 + patLen, signal);
+      if (!skipPerRowLedgerCharge) ledger.chargeWork(1 + patLen, signal);
       if (!insensitive) {
         for (let i = 0; i < patLen; i++) {
           if (buf[rStart + start + i] !== codes[i]) return undefined;
@@ -166,6 +168,20 @@ export function tryMatchEreAsciiRangeSync(
       return start === 0 ? spanAtZero : { start, end: rLen };
     }
   }
+  return tryMatchEreAsciiRangeNfaSync(root, initial, buf, rStart, rLen, ledger, signal, leftmostFirst, word);
+}
+
+function tryMatchEreAsciiRangeNfaSync(
+  root: EreNode,
+  initial: readonly boolean[] | undefined,
+  buf: Uint8Array,
+  rStart: number,
+  rLen: number,
+  ledger: EreLedger,
+  signal: AbortSignal | undefined,
+  leftmostFirst: boolean,
+  word: boolean,
+): EreSpan | undefined | null {
   let secondLitCode = -1;
   let rootSeqLen = 0;
   if (root.kind === "sequence" && root.children.length >= 2) {

@@ -626,6 +626,12 @@ interface CachedLiteralPrograms {
 let lastLiteralCache: CachedLiteralPrograms | undefined;
 interface EreCacheEntry {
   readonly key: string;
+  readonly kind: SelectionDescriptor["kind"];
+  readonly fold: boolean;
+  readonly nullData: boolean;
+  readonly bre: boolean;
+  readonly whole: boolean;
+  readonly pattern0: string;
   readonly programs: readonly EreProgram[];
   readonly work: number;
   readonly patternBytes: number;
@@ -642,30 +648,46 @@ function ereCacheKeyFor(selected: SelectionDescriptor, fold: boolean): string | 
 
 function tryExecuteEreSync(input: OwnedRequest, signal: AbortSignal, fold: boolean): Reply | undefined {
   const { descriptor: selected, rows, ledger } = input;
-  for (let i = 0; i < rows.length; i++) {
-    if (rows[i]!.all) return undefined;
+  if (selected.patterns.length !== 1) return undefined;
+  const pattern0 = selected.patterns[0]!;
+  if (
+    lastEreCache === undefined ||
+    lastEreCache.kind !== selected.kind ||
+    lastEreCache.fold !== fold ||
+    lastEreCache.nullData !== (selected.kind === "rg" && selected.nullData) ||
+    lastEreCache.bre !== (selected.kind === "grep" && !selected.extended) ||
+    lastEreCache.whole !== selected.whole ||
+    lastEreCache.pattern0 !== pattern0
+  ) {
+    return undefined;
   }
-  const cacheKey = ereCacheKeyFor(selected, fold);
-  if (cacheKey === undefined || lastEreCache?.key !== cacheKey) return undefined;
   const programs = lastEreCache.programs;
   for (let p = 0; p < programs.length; p++) {
     if (programs[p]!.groups !== 0) return undefined;
   }
-  let estimatedWork = lastEreCache.work + 256;
+  const patLen = pattern0.length;
+  let maxSubjectLen = 0;
+  let batchWork = 0;
+  let batchAllocUnits = 0;
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i]! as Row & { start?: number; searchEnd?: number };
+    if (r.all) return undefined;
     const rLen = typeof r.searchEnd === "number" ? r.searchEnd - r.start! : r.bytes.length;
-    estimatedWork += rLen * 6 + 8;
+    if (rLen > maxSubjectLen) maxSubjectLen = rLen;
+    batchWork += rLen * 4 + 5 + patLen;
+    batchAllocUnits += rLen * 11 + 23;
   }
+  const estimatedWork = lastEreCache.work + batchWork + 256;
   if (ledger.workAllowanceUntilCheckpoint(signal) < estimatedWork) {
     if (estimatedWork > 32768 || !ledger.advanceSyncCheckpointIfNoExternalYield?.(signal) || ledger.workAllowanceUntilCheckpoint(signal) < Math.min(estimatedWork, 16384)) {
       return undefined;
     }
   }
-  ledger.charge("work", lastEreCache.work, signal);
+  ledger.admitInput("subjectBytes", maxSubjectLen, signal);
+  ledger.charge("work", lastEreCache.work + batchWork, signal);
   ledger.charge("patternBytes", lastEreCache.patternBytes, signal);
   ledger.charge("states", lastEreCache.states, signal);
-  ledger.charge("allocationUnits", lastEreCache.allocationUnits + 3, signal);
+  ledger.charge("allocationUnits", lastEreCache.allocationUnits + 3 + batchAllocUnits, signal);
   runYieldCheckpoint(signal);
   if (rows.length === 0) {
     signal.throwIfAborted();
@@ -697,7 +719,7 @@ function tryExecuteEreSync(input: OwnedRequest, signal: AbortSignal, fold: boole
     }
     let bestSpan: { readonly start: number; readonly end: number } | undefined;
     for (let p = 0; p < programs.length; p++) {
-      const candidate = tryMatchEreAsciiRangeSync(programs[p]!, buf, rStart, rEnd, ledger, signal, leftmostFirst, word);
+      const candidate = tryMatchEreAsciiRangeSync(programs[p]!, buf, rStart, rEnd, ledger, signal, leftmostFirst, word, true);
       if (candidate === null) return undefined;
       if (!candidate) continue;
       if (selected.kind === "grep") { bestSpan = candidate; break; }
@@ -1146,6 +1168,12 @@ async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply>
     }
     lastEreCache = {
       key: ereKey,
+      kind: selected.kind,
+      fold,
+      nullData: selected.kind === "rg" && selected.nullData,
+      bre: selected.kind === "grep" && !selected.extended,
+      whole: selected.whole,
+      pattern0: selected.patterns[0]!,
       programs,
       work: snapAfterEre.work - snapBeforeEre.work,
       patternBytes: snapAfterEre.patternBytes - snapBeforeEre.patternBytes,

@@ -8,10 +8,16 @@ const namespace = "http://schemas.microsoft.com/office/word/2018/wordml/cex";
 console.log(JSON.stringify({ ready: true }));
 for await (const raw of createInterface({ input: process.stdin })) {
   const request = JSON.parse(raw) as {
+    cleanup?: boolean;
     input: string; limits: NonNullable<api.ArchiveContext["limits"]>;
     route: "native-sdk" | "native-cli"; depth: number;
     capacity: "sufficient" | "insufficient";
   };
+  if (request.cleanup) {
+    globalThis.gc!();
+    console.log(JSON.stringify({ cleaned: true }));
+    continue;
+  }
   const input = new Uint8Array(Buffer.from(request.input, "base64"));
   const signal = new AbortController().signal;
   const budget = new api.DocumentBudget({ xmlDepth: 8192,

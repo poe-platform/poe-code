@@ -1,5 +1,5 @@
 import { Volume } from "memfs";
-import { expect, it } from "vitest";
+import { afterEach, expect, it } from "vitest";
 import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
 import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import * as api from "./index.js";
@@ -7,7 +7,8 @@ import { textFixture, textContext, w } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
 import { useNativeProcess } from "../tests/native-process.js";
 
-const execute = useNativeProcess(["--import", "tsx", "packages/docx/tests/fixtures/comment-extension-native.ts"]);
+const execute = useNativeProcess(["--expose-gc", "--import", "tsx", "packages/docx/tests/fixtures/comment-extension-native.ts"]);
+afterEach(async () => { expect(await execute({ cleanup: true })).toEqual({ cleaned: true }); });
 
 const namespace = "http://schemas.microsoft.com/office/word/2018/wordml/cex";
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)

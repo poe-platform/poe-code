@@ -226,3 +226,28 @@ it("uses a real Node turn without timer latency and retains typed cancellation",
     await expect(cancelled).rejects.toMatchObject({ code: "cancelled" });
   } finally { timer.mockRestore(); }
 });
+
+
+it("yields once per large charged checkpoint and shares the remaining work quantum", async () => {
+  const turn = vi.fn(async () => {});
+  const budget = new DocumentBudget({ work: 129 * 4096 + 1 }, new AbortController().signal, turn);
+  await budget.checkpoint(128 * 4096 + 17);
+  expect(turn).toHaveBeenCalledTimes(1);
+  expect(budget.usage.work).toBe(128 * 4096 + 17);
+  await budget.lower({}).checkpoint(4096 - 18);
+  expect(turn).toHaveBeenCalledTimes(1);
+  await budget.document().checkpoint(1);
+  expect(turn).toHaveBeenCalledTimes(2);
+  expect(budget.usage.work).toBe(129 * 4096);
+  await expect(budget.checkpoint(2)).rejects.toThrow(ResourceLimitError);
+  expect(turn).toHaveBeenCalledTimes(2);
+});
+
+it("checks cancellation after a large charged checkpoint without replaying empty turns", async () => {
+  const controller = new AbortController();
+  const turn = vi.fn(async () => { controller.abort(); });
+  const budget = new DocumentBudget({}, controller.signal, turn);
+  await expect(budget.checkpoint(128 * 4096)).rejects.toMatchObject({ code: "cancelled" });
+  expect(budget.usage.work).toBe(128 * 4096);
+  expect(turn).toHaveBeenCalledTimes(1);
+});

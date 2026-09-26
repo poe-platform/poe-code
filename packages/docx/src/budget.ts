@@ -163,10 +163,9 @@ export class DocumentBudget {
   }
 
   async #yieldReservedWork(): Promise<void> {
-    while (this.#cooperation.work >= 4096) {
-      this.#cooperation.work -= 4096;
-      await this.#turn(this.signal);
-      this.check("work", 0);
-    }
+    // Large reservations do not split work across otherwise empty task turns.
+    this.#cooperation.work %= 4096;
+    await this.#turn(this.signal);
+    this.check("work", 0);
   }
 }

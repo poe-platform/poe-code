@@ -28,6 +28,8 @@ test("rg help describes the default ASCII case and word profile", async () => {
 
 for (const [command, input, output, code = 0] of [
   ["rg alpha -", "alpha\nbeta\n", "alpha\n"],
+  ["rg --heading --with-filename -A1 hit -", "hit\nafter\nomitted\nomitted2\nhit\nafter2\n", "<stdin>\nhit\nafter\n--\nhit\nafter2\n"],
+  ["rg --heading --with-filename -C1 hit -", "hit\nafter\nomitted\nomitted2\nhit\nafter2\n", "<stdin>\nhit\nafter\n--\nomitted2\nhit\nafter2\n"],
   ["rg 'a.ph[ab]+' -", "alpha\nalphaa\nbeta\n", "alpha\nalphaa\n"],
   ["rg -x '(alpha|beta)' -", "alpha\nbeta\nalphaa\n", "alpha\nbeta\n"],
   ["rg -n -v '^alpha$' -", "alpha\nbeta\n", "2:beta\n"],

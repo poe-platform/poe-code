@@ -39,13 +39,11 @@ export class Printer {
       });
       return;
     }
-    if (this.args.heading && filename) {
+    if (this.args.heading && filename && !this.headings?.has(label)) {
       const headings = (this.headings ??= new Set<string>());
-      if (!headings.has(label)) {
-        if (headings.size) await this.limits.output("\n");
-        await this.limits.output(label + (this.args.nullPath ? "\0" : "\n"));
-        headings.add(label);
-      }
+      if (headings.size) await this.limits.output("\n");
+      await this.limits.output(label + (this.args.nullPath ? "\0" : "\n"));
+      headings.add(label);
     } else if ((this.args.before || this.args.after) && this.lastFile !== undefined && (this.lastFile !== label || line.number > this.lastLine + 1) && this.args.separator !== undefined) {
       await this.limits.output(this.args.separator + "\n");
     }

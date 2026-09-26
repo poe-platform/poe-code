@@ -313,7 +313,7 @@ export class Walker {
     if (depth >= this.args.maxDepth) return true;
     const backing = getRuntimeBackingFileSystem(this.context.fs);
     const uniformNonDevPath = backing !== undefined && backing.capabilitiesFor === undefined && path !== "/dev" && !path.startsWith("/dev/");
-    if (uniformNonDevPath && this.globs.length === 0 && rules.length === 0 && this.typeGlobs.length === 0 && !Boolean(this.args.hasFiniteMaxFileSize)) {
+    if (uniformNonDevPath && this.globs.length === 0 && rules.length === 0 && this.typeGlobs.length === 0 && !this.args.hasFiniteMaxFileSize) {
       if (!this.uniformDirAdmitted) {
         assertCommandRequirements(this.context, searchRequirements, ["directory"]);
         this.uniformDirAdmitted = true;

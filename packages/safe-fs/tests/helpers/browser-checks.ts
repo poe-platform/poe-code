@@ -30,6 +30,25 @@ export async function runBrowserChecks(): Promise<string[]> {
   check("no exposed policy tables", [...Object.values(platform), ...Object.values(comparisonContext)].every(value => !(value instanceof Map) && !(value instanceof WeakMap)));
   check("policy replacement refused", !Reflect.set(platform, "errno", () => 0) && !Reflect.set(comparisonContext, "active", () => false));
 
+  const writingMemory = new core.MemoryFileSystem();
+  const descriptor = await writingMemory.open("/descriptor", { access: "write", creation: "exclusive" });
+  try {
+    await descriptor.write(new Uint8Array(48).fill(11), null);
+    await descriptor.write(new Uint8Array(40).fill(22), null);
+  } finally { await descriptor.close(); }
+  const grown = await writingMemory.readFile("/descriptor");
+  check("descriptor growth preserves bytes without Node globals", grown.length === 88 &&
+    grown.every((value, index) => value === (index < 48 ? 11 : 22)));
+  const redirect = core.tryOpenMemoryRedirectHandleSync(writingMemory, "/redirect", false, 0o644);
+  if (!redirect) throw new Error("memory redirect handle was not admitted");
+  try {
+    const source = Uint8Array.of(99, 1, 2, 3, 4, 88).subarray(1, 5);
+    redirect.writeRangeSync(source, 3);
+    redirect.writeRangeSync(Uint8Array.of(5, 6, 7), 2);
+  } finally { redirect.close(); }
+  const partial = await writingMemory.readFile("/redirect");
+  check("partial redirect writes preserve view bounds without Node globals", partial.join(",") === "1,2,3,5,6");
+
   const budgetMemory = new core.MemoryFileSystem();
   await budgetMemory.writeFile("/file", Uint8Array.of(7));
   const budgetFailure = new Error("scoped operation limit");

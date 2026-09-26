@@ -29,6 +29,8 @@ for (const condition of ["browser", "workerd"]) describe(`${condition}-selected 
     runInContext(output.outputFiles[0]!.text, context);
     const checks = await runInContext("safeFsBrowserChecks.runBrowserChecks()", context) as string[];
     expect(checks).toContain("one constructor graph");
+    expect(checks).toContain("descriptor growth preserves bytes without Node globals");
+    expect(checks).toContain("partial redirect writes preserve view bounds without Node globals");
     expect(checks).toContain("discarded-options callback refused");
     expect(checks).toContain("scoped browser operations retain their budget");
     expect(checks).toContain("unscoped transport calls have no inherited budget");

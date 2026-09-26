@@ -86,6 +86,7 @@ export class AwkRuntime {
   private fieldStarts: Int32Array;
   private fieldEnds: Int32Array;
   private fieldCount = 0;
+  private deferredFieldSeparator = " ";
   private fieldsMaterialized = true;
   private fieldGeneration: number;
   private lazyFieldGen: Int32Array;
@@ -431,7 +432,7 @@ export class AwkRuntime {
     const recStart = this.recordStart;
     const recEnd = this.recordEnd;
     const recLen = recEnd - recStart;
-    const separator = this.varText("FS");
+    const separator = this.deferredFieldSeparator;
     let count = 0;
     let fieldBytes = 0;
     const starts = this.fieldStarts;
@@ -480,6 +481,7 @@ export class AwkRuntime {
         this.recordEnd = recEnd;
         this.fieldBytes = 0;
         this.fieldCount = -1;
+        this.deferredFieldSeparator = separator;
         this.fieldsMaterialized = false;
         this.fieldGeneration = (this.fieldGeneration + 1) | 0 || 1;
         this.recordValue = undefined;
@@ -761,24 +763,6 @@ export class AwkRuntime {
             const previous = operator === "=" ? unset : scalar(this.get(name));
             const rightVal = this.scalarExpression(expression.right);
             if (!(rightVal instanceof Promise)) {
-              if (
-                operator !== "=" &&
-                previous.kind === "number" &&
-                (previous.number < -1 || previous.number > 4096) &&
-                name !== "NF" &&
-                name !== "NR" &&
-                name !== "FNR" &&
-                name !== "FS" &&
-                name !== "RS" &&
-                name !== "CONVFMT"
-              ) {
-                const nextNum = this.arithmetic(operator[0]!, previous.number, number(rightVal));
-                if (nextNum < -1 || nextNum > 4096) {
-                  if (this.budget.context.signal.aborted) this.budget.context.signal.throwIfAborted();
-                  (previous as { number: number }).number = nextNum;
-                  return previous;
-                }
-              }
               const value = operator === "=" ? rightVal : numeric(this.arithmetic(operator[0]!, number(previous), number(rightVal)));
               this.set(name, value);
               return value;
@@ -796,14 +780,6 @@ export class AwkRuntime {
               const previous = scalar(current!);
               const rightVal = this.scalarExpression(expression.right);
               if (!(rightVal instanceof Promise)) {
-                if (operator !== "=" && current !== undefined && current.kind === "number" && (current.number < -1 || current.number > 4096)) {
-                  const nextNum = this.arithmetic(operator[0]!, current.number, number(rightVal));
-                  if (nextNum < -1 || nextNum > 4096) {
-                    if (this.budget.context.signal.aborted) this.budget.context.signal.throwIfAborted();
-                    (current as { number: number }).number = nextNum;
-                    return current;
-                  }
-                }
                 const value = operator === "=" ? rightVal : numeric(this.arithmetic(operator[0]!, number(previous), number(rightVal)));
                 this.arraySet(array, k, value);
                 return value;

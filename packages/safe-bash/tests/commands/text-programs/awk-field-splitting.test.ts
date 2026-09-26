@@ -5,6 +5,39 @@ import { standardCommands } from "../../../src/commands/index.js";
 import { textProgramCommands } from "../../../src/commands/text-programs/index.js";
 import { makeFileSystem, runVirtual } from "./helpers.js";
 
+for (const nextFS of [":", "[ :]+", ""]) {
+  test(`awk deferred fields use record-read FS after changing FS to ${JSON.stringify(nextFS)}`, async () => {
+    const result = await runVirtual("awk", {
+      args: [`{ FS = "${nextFS}"; print $1, NF }`], stdin: "a b:c\n",
+    });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.equal(result.stdout.toString(), "a 2\n");
+  });
+}
+
+test("awk captures each record's separator and applies changed FS to the next record", async () => {
+  const result = await runVirtual("awk", {
+    args: ['BEGIN { FS=":" } { FS="[ :]+"; print $1, NF }'], stdin: "a:b c\nd:e f\n",
+  });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stdout.toString(), "a 2\nd 3\n");
+});
+
+for (const program of [
+  "x=5000; y=x; x+=10; print x,y",
+  "a[1]=5000; a[2]=a[1]; a[1]+=10; print a[1],a[2]",
+  "x=5000; a[1]=x; x+=10; print x,a[1]",
+  "a[1]=5000; x=a[1]; a[1]+=10; print a[1],x",
+  "x=-5000; y=x; x-=10; print -x,-y",
+  "x=1.5; y=x; x*=3340; print x,y*10000/3",
+]) {
+  test(`awk numeric assignments preserve aliases: ${program}`, async () => {
+    const result = await runVirtual("awk", { args: [`BEGIN { ${program} }`] });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.equal(result.stdout.toString(), "5010 5000\n");
+  });
+}
+
 for (const control of ["\r", "\v", "\f"]) {
   test(`awk default FS preserves ${JSON.stringify(control)} inside and at field boundaries`, async () => {
     const record = ` \t${control}a${control}b${control}\tc${control} \t`;

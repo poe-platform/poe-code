@@ -25,6 +25,7 @@ async function connectToServerScript(source: string): Promise<{
     env: { ...process.env },
   });
   const client = new McpClient({
+    protocolVersion: "2026-07-28",
     clientInfo: {
       name: "typed-output-workflow-test",
       version: "1.0.0",
@@ -235,5 +236,5 @@ describe("MCP typed output real stdio workflows", () => {
     } finally {
       await cleanup();
     }
-  });
+  }, 30_000);
 });

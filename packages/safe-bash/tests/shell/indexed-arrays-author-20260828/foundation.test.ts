@@ -7,7 +7,7 @@ import { ArrayLedger, ArrayOwner } from "../../../src/shell/arrays/ledger.js";
 import { BindingStore } from "../../../src/shell/arrays/bindings.js";
 import { arrayStore, requireArrays, snapshotState, stateMonitor, trackState } from "../../../src/shell/arrays/state.js";
 import { InvocationScope } from "../../../src/shell/cleanup.js";
-import { Runtime, type State } from "../../../src/shell/runtime.js";
+import { RootShellState, Runtime, type State } from "../../../src/shell/runtime.js";
 import { ShellLimitError } from "../../../src/shell/types.js";
 
 let publicExecs = 0;
@@ -224,6 +224,28 @@ test("foundation: internal invoke keeps arrays unless explicit scalar env shadow
     assert.equal(result.stderr, "");
     assert.equal(result.stdout, "<outer><tail><shadow><outer><tail>");
   } finally { await instance.dispose(); }
+});
+
+test("private state: lazy function reads preserve epoch while function mutations invalidate snapshots", { timeout: 2000 }, async () => {
+  const scope = new InvocationScope();
+  const raw = new RootShellState("/", Object.assign(Object.create(null) as Record<string, string>, { long: "x".repeat(300) }), new Set(), undefined);
+  const state = trackState(raw, { limits: { maxExpansionBytes: 10000, maxExpansionFields: 1000 } }, scope);
+  try {
+    requireArrays(state);
+    const before = stateMonitor(state)!.epoch;
+    assert.equal(raw._functions, undefined);
+    assert.equal(state.functions.size, 0);
+    assert.equal(state.functions, state.functions);
+    assert.equal(stateMonitor(state)!.epoch, before);
+    const pending = snapshotState(state, () => ({ ...state, variables: { ...state.variables } }), new AbortController().signal);
+    state.functions.set("fn", { kind: "simple", words: [], redirects: [] });
+    assert.notEqual(stateMonitor(state)!.epoch, before);
+    await assert.rejects(pending, /stale state snapshot/u);
+    const populatedEpoch = stateMonitor(state)!.epoch;
+    state.functions = new Map();
+    assert.notEqual(stateMonitor(state)!.epoch, populatedEpoch);
+  } finally { await scope.close(); }
+  assert.deepEqual(scope.failures, []);
 });
 
 test("private state: whole-state epoch rejects interleaved dotglob snapshot", { timeout: 2000 }, async () => {

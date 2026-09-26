@@ -13594,7 +13594,9 @@ export class RootShellState implements State {
   }
 
   get functions(): Map<string, Command> {
-    return this._functions ??= new Map();
+    // Materializing an empty map is a read; guest mutations still use the state proxy.
+    const raw = stateMonitor(this)?.raw as RootShellState | undefined;
+    return (raw ?? this)._functions ??= new Map();
   }
   set functions(value: Map<string, Command>) {
     this._functions = value;

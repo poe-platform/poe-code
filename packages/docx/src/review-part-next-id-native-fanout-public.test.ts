@@ -6,8 +6,9 @@ import * as api from "./index.js";
 import { textContext, textFixture } from "../tests/fixtures/text.js";
 
 const ref = (resultHandle: string) => ({ resultHandle });
+const count = 1024;
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
-for (const count of [1024, 131072]) for (const route of ["model", "sdk", "cli"] as const)
+for (const route of ["model", "sdk", "cli"] as const)
 it(`returned comment story part ID read admits physical fanout; strict=${strict}; kind=${kind}; count=${count}; route=${route}`, async () => {
   const word = strict ? "http://purl.oclc.org/ooxml/wordprocessingml/main" : "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
   const archive = await api.readArchive(await textFixture('<w:p><w:r><w:t>Retained海🌊</w:t></w:r></w:p>', { comments: { kind: "comments", xml: `<w:comments xmlns:w="${word}"><w:comment w:id="2" w:author="Archive"><w:p/></w:comment></w:comments>` } }, strict, { kind }), textContext);

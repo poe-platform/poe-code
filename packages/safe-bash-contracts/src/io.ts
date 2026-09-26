@@ -65,12 +65,13 @@ export interface PipeWriteEndpoint extends PipeEndpoint {
 
 export interface BytePipeOptions {
   readonly highWaterMark?: number;
+  /** Maximum pending endpoint observations across both ends; defaults to Infinity. */
+  readonly maxObservationWaiters?: number;
   readonly signal?: AbortSignal;
 }
 
 const defaultAbortController = AbortController;
 const defaultAbortControllerAbort = AbortController.prototype.abort;
-const maximumObservationWaiters = 64;
 const SYNC_DONE_RESULT: IteratorResult<Uint8Array> = { done: true, value: undefined };
 const RESOLVED_DONE_RESULT: Promise<IteratorResult<Uint8Array>> = Promise.resolve(SYNC_DONE_RESULT);
 
@@ -310,6 +311,7 @@ Object.assign(PipeWriteEndpointImpl.prototype, {
 
 class BytePipeImpl implements BytePipe {
   declare readonly highWaterMark: number;
+  declare readonly maxObservationWaiters: number;
   declare readonly signal: AbortSignal | undefined;
   declare readonly managedSignal: boolean;
   declare firstChunk: Uint8Array | undefined;
@@ -348,6 +350,11 @@ class BytePipeImpl implements BytePipe {
       throw new RangeError("highWaterMark must be a positive safe integer");
     }
     this.highWaterMark = highWaterMark;
+    const maxObservationWaiters = options.maxObservationWaiters ?? Infinity;
+    if (maxObservationWaiters !== Infinity && (!Number.isSafeInteger(maxObservationWaiters) || maxObservationWaiters < 0)) {
+      throw new RangeError("maxObservationWaiters must be a non-negative safe integer or Infinity");
+    }
+    this.maxObservationWaiters = maxObservationWaiters;
     const signal = options.signal;
     if (signal !== undefined) {
       this.signal = signal;
@@ -592,7 +599,7 @@ class BytePipeImpl implements BytePipe {
       }
       if (previous !== this.revision) return Promise.resolve(this._probe(endpoint));
       if (!timeoutMs) return Promise.resolve(undefined);
-      if ((this.observers?.size ?? 0) >= maximumObservationWaiters) {
+      if ((this.observers?.size ?? 0) >= this.maxObservationWaiters) {
         throw new RangeError("Too many pending pipe endpoint observations");
       }
       return new Promise((resolve, reject) => {

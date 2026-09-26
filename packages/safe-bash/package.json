@@ -491,6 +491,14 @@
       "types": "./dist/commands/less/index.d.ts",
       "import": "./dist/commands/less/index.js"
     },
+    "./commands/xxd": {
+      "types": "./dist/commands/xxd/index.d.ts",
+      "import": "./dist/commands/xxd/index.js"
+    },
+    "./commands/od": {
+      "types": "./dist/commands/od/index.d.ts",
+      "import": "./dist/commands/od/index.js"
+    },
     "./commands/ffmpeg": {
       "types": "./dist/commands/ffmpeg/index.d.ts",
       "import": "./dist/commands/ffmpeg/index.js"
@@ -634,6 +642,8 @@
     "safe-bash-command-sponge": "*",
     "safe-bash-command-fd": "*",
     "safe-bash-command-less": "*",
+    "safe-bash-command-xxd": "*",
+    "safe-bash-command-od": "*",
     "safe-bash-command-ffmpeg": "*",
     "safe-bash-compression-engine": "*",
     "safe-bash-command-xz": "*",
@@ -966,6 +976,22 @@
           }
         },
         "safe-bash-command-less": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          }
+        },
+        "safe-bash-command-xxd": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          }
+        },
+        "safe-bash-command-od": {
           "version": "0.0.1",
           "dependencies": {},
           "devDependencies": {

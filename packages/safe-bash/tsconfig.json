@@ -127,6 +127,9 @@
       "safe-bash-command-mmdc": [
         "../safe-bash-command-mmdc/src/index.ts"
       ],
+      "safe-bash-command-od": [
+        "../safe-bash-command-od/src/index.ts"
+      ],
       "safe-bash-command-op": [
         "../safe-bash-command-op/src/index.ts"
       ],
@@ -171,6 +174,9 @@
       ],
       "safe-bash-command-xmllint": [
         "../safe-bash-command-xmllint/src/index.ts"
+      ],
+      "safe-bash-command-xxd": [
+        "../safe-bash-command-xxd/src/index.ts"
       ],
       "safe-bash-command-xz": [
         "../safe-bash-command-xz/src/index.ts"
@@ -238,6 +244,9 @@
       "safe-bash-command-mmdc/*": [
         "../safe-bash-command-mmdc/src/*"
       ],
+      "safe-bash-command-od/*": [
+        "../safe-bash-command-od/src/*"
+      ],
       "safe-bash-command-op/*": [
         "../safe-bash-command-op/src/*"
       ],
@@ -282,6 +291,9 @@
       ],
       "safe-bash-command-xmllint/*": [
         "../safe-bash-command-xmllint/src/*"
+      ],
+      "safe-bash-command-xxd/*": [
+        "../safe-bash-command-xxd/src/*"
       ],
       "safe-bash-command-xz/*": [
         "../safe-bash-command-xz/src/*"

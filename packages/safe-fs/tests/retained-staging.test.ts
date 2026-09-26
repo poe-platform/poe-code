@@ -287,12 +287,22 @@ test("retained cleanup preserves a successfully removed receipt after caller can
   assert.deepEqual(await memory.readdir("/work"), []);
 });
 
-test("restricted extraction view does not advertise retained staging creation", async () => {
+test("restricted extraction view supports retained staging within its roots", async () => {
   const memory = createMemoryFileSystem(); await memory.mkdir("/work");
+  await memory.mkdir("/outside");
   const fs = await memory.confineExtraction(["/work"]);
-  assert.equal(fs.capabilities.retainedStagingCleanup, false);
-  await assert.rejects(stage(fs), { code: "ENOTSUP" });
+  assert.equal(fs.capabilities.retainedStagingCleanup, true);
+  await assert.rejects(stage(fs, "/outside/.stage"), { code: "EPERM" });
+  const { staged, cleanup } = await stage(fs);
+  try {
+    const parent = await memory.lstat("/outside");
+    await assert.rejects(async () => fs.publishStagedFile!(staged, "/outside/output", {
+      parent, destination: null,
+    }), { code: "EPERM" });
+    await cleanup.remove();
+  } finally { await cleanup.close(); }
   assert.deepEqual(await memory.readdir("/work"), []);
+  assert.deepEqual(await memory.readdir("/outside"), []);
 });
 
 test("retained cleanup includes path and data bytes in pre-creation capacity", async () => {

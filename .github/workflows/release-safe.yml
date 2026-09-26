@@ -1,6 +1,12 @@
 name: Release scoped safe packages
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish verified scoped packages (main only); false runs validation only
+        type: boolean
+        required: true
+        default: false
 concurrency:
   queue: max
   group: release-safe
@@ -14,6 +20,11 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.next }}
     steps:
+      - name: Reject publication outside main
+        if: ${{ inputs.publish && github.ref != 'refs/heads/main' }}
+        run: |
+          echo "::error::Scoped package publication is allowed only from main"
+          exit 1
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
@@ -143,13 +154,17 @@ jobs:
           cd "$GITHUB_WORKSPACE"
           node scripts/verify-safe-cloudflare.mjs "$CLOUDFLARE_CONSUMER"
       - name: Publish SafeFS with provenance
+        if: ${{ inputs.publish && github.ref == 'refs/heads/main' }}
         run: npm publish "$RUNNER_TEMP/safe-npm/safe-fs" --provenance --access public
       - name: Publish SafeJS with provenance
+        if: ${{ inputs.publish && github.ref == 'refs/heads/main' }}
         run: npm publish "$RUNNER_TEMP/safe-npm/safe-js" --provenance --access public
       - name: Publish Safe Bash with provenance
+        if: ${{ inputs.publish && github.ref == 'refs/heads/main' }}
         run: npm publish "$RUNNER_TEMP/safe-npm/safe-bash" --provenance --access public
   verify-publication:
     needs: publish
+    if: ${{ inputs.publish && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

@@ -1,8 +1,18 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import ts from "typescript";
 import { instrumentRootState } from "./root-state-adapter.mjs";
 import { selectBrowserWorker } from "./worker-source-adapter.mjs";
 
 describe("pinned browser source adapters", () => {
+  it("adapts the actual current shell source", () => {
+    const source = readFileSync(new URL("../../../safe-bash/src/shell/shell.ts", import.meta.url), "utf8");
+    const compiled = ts.transpileModule(source, {
+      compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext }
+    }).outputText;
+    expect(() => instrumentRootState(compiled)).not.toThrow();
+  });
+
   it("replaces the worker URL without changing ownership options", () => {
     const adapted = selectBrowserWorker(
       'new Worker(new URL("./worker.js", import.meta.url), { workerData: { version: 1 } });',
@@ -218,6 +228,62 @@ describe("pinned browser source adapters", () => {
     expect(roots).toEqual([]);
   });
 
+  it.each([false, true])("observes the reused root with current callbacks after all cleanup: fail=%s", async (fail) => {
+    const code = instrumentRootState(`
+      class RootShellState {
+        constructor(cwd, variables, exported, extensions) {
+          Object.assign(this, { cwd, variables, exported, extensions });
+        }
+      }
+      export class Shell {
+        warm;
+        run(options) { return this.#execute(options, this.warm); }
+        async #execute(options, warm) {
+          let state = warm?.currentState;
+          let runtime = warm?.runtime;
+          try {
+            let currentState;
+            if (warm) {
+              currentState = warm.currentState;
+              runtime = warm.runtime;
+            } else {
+              const cwd = "/", variables = {}, exported = new Set();
+              currentState = new RootShellState(cwd, variables, exported, {});
+              state = currentState;
+              runtime = {};
+            }
+            this.warm = { currentState, runtime };
+            currentState.cwd = options.cwd;
+            if (options.fail) throw new Error("execution failed");
+          } finally {
+            await Promise.resolve();
+            state.cwd += "/finished";
+            options.events?.push("cleanup");
+          }
+          await options.onState?.(state);
+          return state;
+        }
+      }`);
+    const { Shell } = await import(/* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
+    const shell = new Shell();
+    const earlier: unknown[] = [], current: unknown[] = [];
+    await shell.run({ cwd: "/first", onCwd: (cwd: string) => earlier.push(cwd), onRootState: (root: unknown) => earlier.push(root) });
+    expect(earlier).toEqual(["/first", "/first/finished", { cwd: "/first/finished" }]);
+    await shell.run({ cwd: "/unobserved" });
+    expect(earlier).toHaveLength(3);
+    const result = shell.run({
+      cwd: "/current", fail, events: current,
+      onCwd: (cwd: string) => current.push(cwd),
+      onRootState: (root: unknown) => current.push(root),
+      onState: async () => { await Promise.resolve(); current.push("native"); }
+    });
+    if (fail) await expect(result).rejects.toThrow("execution failed");
+    else await result;
+    expect(current).toEqual(["/current", "/current/finished", "cleanup", ...(!fail ? ["native"] : []), { cwd: "/current/finished" }]);
+    expect(earlier).toHaveLength(3);
+    expect(Object.getOwnPropertyDescriptor(shell.warm.currentState, "cwd")).toMatchObject({ value: "/current/finished", writable: true });
+  });
+
   it("rejects changed or ambiguous warm root selection", () => {
     const body = `let currentState;
       if (warm) {
@@ -240,5 +306,22 @@ describe("pinned browser source adapters", () => {
       `${body} const state = { cwd };`,
       `const nested = () => { ${body} };`,
     ]) expect(() => instrumentRootState(`class Shell { async #execute(options) { ${changed} } }`)).toThrow("structure changed");
+  });
+
+  it("refuses changed or ambiguous warm dispatch boundaries", () => {
+    for (const dispatch of [
+      "exec(source, changed) { return this.#execAsync(source, changed); }",
+      "exec(source, options) { return this.#execAsync(options, source); }",
+      "exec(source, options) { return other(source, options); }",
+      "exec(source, options) { return this.#execAsync(source, options); } exec() {}",
+      ""
+    ]) {
+      expect(() => instrumentRootState(`class Shell {
+        ${dispatch}
+        #execAsync() {}
+        #execWarmSyncOrFallback() {}
+        async #execute(options) { const cwd = "/"; const state = { cwd }; return state; }
+      }`)).toThrow("dispatch structure changed");
+    }
   });
 });

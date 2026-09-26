@@ -370,6 +370,77 @@ describe("real safe-bash browser kernel", () => {
     }
   });
 
+  it.each([
+    { name: "synchronous builtin", source: ":" },
+    { name: "asynchronous cd", source: "cd /" },
+    { name: "EXIT trap", source: "trap 'cd /' EXIT; cd /home/sub" },
+    { name: "early exit", source: "cd /home/sub; exit 7" },
+    { name: "uncached source", source: `${" ".repeat(16385)}cd /` }
+  ])("observes current callbacks across fresh and warmed execution: $name", async ({ source }) => {
+    const fs = kernel.createMemoryFileSystem();
+    await fs.mkdir("/home/sub", { recursive: true });
+    const shell = new kernel.Shell({ fs, cwd: "/home" });
+    const earlier: unknown[] = [];
+    try {
+      const freshRoots: unknown[] = [], freshPaths: string[] = [];
+      const fresh = await shell.exec(source, {
+        onRootState: (state) => freshRoots.push(state), onCwd: (cwd) => freshPaths.push(cwd)
+      });
+      await shell.exec("", {
+        onRootState: (state) => earlier.push(state), onCwd: (cwd) => earlier.push(cwd)
+      });
+      const roots: unknown[] = [], paths: string[] = [];
+      const warmed = await shell.exec(source, {
+        onRootState: (state) => roots.push(state), onCwd: (cwd) => paths.push(cwd)
+      });
+      expect(warmed).toMatchObject({ exitCode: fresh.exitCode, stdout: fresh.stdout, stderr: fresh.stderr });
+      expect(roots).toEqual(freshRoots);
+      expect(roots).toHaveLength(1);
+      expect(Object.isFrozen(roots[0])).toBe(true);
+      expect(paths).toEqual(freshPaths);
+      expect(earlier).toEqual([{ cwd: "/home" }]);
+      await shell.exec("", { onCwd: (cwd) => earlier.push(cwd) });
+      await shell.exec("cd /");
+      expect(earlier).toEqual([{ cwd: "/home" }]);
+    } finally {
+      await shell.dispose();
+    }
+  });
+
+  it("reports final root state after EXIT traps and awaited native callbacks", async () => {
+    const { fs, shell } = await fixture();
+    await fs.mkdir("/home/sub");
+    const events: unknown[] = [];
+    try {
+      const result = await shell.exec("trap 'cd /' EXIT; cd sub", {
+        onCwd: (cwd) => events.push(cwd),
+        onRootState: (state) => events.push(state),
+        onState: async () => { await Promise.resolve(); events.push("native"); },
+        hooks: { afterExec: async () => { await Promise.resolve(); events.push("hook"); } }
+      });
+      expect(result.exitCode).toBe(0);
+      expect(result.state?.cwd).toBe("/");
+      expect(events).toEqual(["/home/sub", "/", "native", "hook", { cwd: "/" }]);
+    } finally {
+      await shell.dispose();
+    }
+  });
+
+  it.each(["onCwd", "onRootState"] as const)("observes warmed calls with only %s", async (observer) => {
+    const fs = kernel.createMemoryFileSystem();
+    await fs.mkdir("/home");
+    const shell = new kernel.Shell({ fs, cwd: "/home" });
+    const events: unknown[] = [];
+    try {
+      await shell.exec("");
+      const result = await shell.exec("cd /", { [observer]: (value: unknown) => events.push(value) });
+      expect(result.exitCode).toBe(0);
+      expect(events).toEqual(observer === "onCwd" ? ["/"] : [{ cwd: "/" }]);
+    } finally {
+      await shell.dispose();
+    }
+  });
+
   it("observes cwd after restoring a session with tracked arrays", async () => {
     const { fs, shell } = await fixture();
     await fs.mkdir("/home/sub");

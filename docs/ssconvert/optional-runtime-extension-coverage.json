@@ -631,7 +631,7 @@
       },
       "configuration": "literal profile env HOME/XDG directories; fresh empty settings and exact enabledPluginIds; no ambient user plugins",
       "dependencies": "base captured dependency identities plus optional dependency build/install identities; missing optional identities block qualification",
-      "status": "defined; exact isolated activation and differential capture unresolved",
+      "status": "native activation verified; functional parity and remaining capability qualification unresolved",
       "nativeFallback": false,
       "enabledPluginIds": [
         "GOffice_plot_barcol",
@@ -734,7 +734,38 @@
         "--without-gda"
       ],
       "activationProtocol": "Install only enumerated source plugins; explicitly enable enumerated plugin IDs in isolated settings; confirm runtime inventory exactly before formula/format QA. GOffice IDs retain base captured plugin versions. Dependency/config/activation capture missing means unresolved.",
-      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required"
+      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required",
+      "activationEvidence": {
+        "auditedAt": "2026-09-26",
+        "workflowRun": "https://github.com/poe-platform/poe-code/actions/runs/35846837435",
+        "artifactId": 10743499585,
+        "sourceRevision": "1153f1d43f9fc366bd22cc5696d1e6cac5afb3e0",
+        "identitySha256": "2168a1fca07ba54cf1eb61b532ef2f74354accdc0d26a4efff288bc74cb76bfc",
+        "referenceProfileSha256": "f5767a61ed1356d95600370135bf3afce808c17aabc0c633d881e14578a8347e",
+        "capturedOptionalManifestSha256": "f585eaea65c17346d5d634916310caf1506bb13d1322f491ba82d8e589a78dfb",
+        "profileComparison": "Both manifest hashes authenticate against the workflow source commit. The complete selected profile descriptor was unchanged at ef451e74a460ef18fedd2d9630db6a1280929c87 before this audit update.",
+        "binarySha256": "1e05f849beba0397bbaae2a504ec65e44fd1d21b1106edd7b54b47db61b828c1",
+        "expectedPlugins": 48,
+        "observedPlugins": 48,
+        "activePlugins": 48,
+        "exactIdSet": true,
+        "enumeration": {
+          "plugins": {
+            "exitCode": 0,
+            "stderrBytes": 0,
+            "stdoutSha256": "084307d198b06e5af8369c3c9552b52273bf8f51a97ca46d83a31c4292710ad9",
+            "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "functions": {
+            "exitCode": 0,
+            "stderrBytes": 0,
+            "stdoutSha256": "fd5b1bdd40c79bde5c87706b91915b77266258207db98e9b0b0e884913d2380e",
+            "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        "libraryHashesMatchingFrozenReference": 70,
+        "limits": "Activation observation only; lazy service loading, functional parity and current-candidate qualification remain separate. System dependency matches do not equate rebuilt Gnumeric/GOffice or the host kernel to frozen binaries."
+      }
     },
     {
       "id": "gnumeric-1.12.61-optional-python-samples",
@@ -762,7 +793,7 @@
       },
       "configuration": "literal profile env HOME/XDG directories; fresh empty settings and exact enabledPluginIds; no ambient user plugins",
       "dependencies": "base captured dependency identities plus optional dependency build/install identities; missing optional identities block qualification",
-      "status": "defined; exact isolated activation and differential capture unresolved",
+      "status": "native activation verified; functional parity and remaining capability qualification unresolved",
       "nativeFallback": false,
       "enabledPluginIds": [
         "GOffice_plot_barcol",
@@ -865,7 +896,38 @@
         "--without-gda"
       ],
       "activationProtocol": "Install only enumerated source plugins; explicitly enable enumerated plugin IDs in isolated settings; confirm runtime inventory exactly before formula/format QA. GOffice IDs retain base captured plugin versions. Dependency/config/activation capture missing means unresolved.",
-      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required"
+      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required",
+      "activationEvidence": {
+        "auditedAt": "2026-09-26",
+        "workflowRun": "https://github.com/poe-platform/poe-code/actions/runs/35869837124",
+        "artifactId": 10755265947,
+        "sourceRevision": "1cf283b45086601463059d863cbb73cf54e37a34",
+        "identitySha256": "b1aabef0adc3ba4640d9d2c466663bf4f26fee91c4cbd824f86b5137bfa16fa8",
+        "referenceProfileSha256": "f5767a61ed1356d95600370135bf3afce808c17aabc0c633d881e14578a8347e",
+        "capturedOptionalManifestSha256": "f585eaea65c17346d5d634916310caf1506bb13d1322f491ba82d8e589a78dfb",
+        "profileComparison": "Both manifest hashes authenticate against the workflow source commit. The complete selected profile descriptor was unchanged at ef451e74a460ef18fedd2d9630db6a1280929c87 before this audit update.",
+        "binarySha256": "1e05f849beba0397bbaae2a504ec65e44fd1d21b1106edd7b54b47db61b828c1",
+        "expectedPlugins": 48,
+        "observedPlugins": 48,
+        "activePlugins": 48,
+        "exactIdSet": true,
+        "enumeration": {
+          "plugins": {
+            "exitCode": 0,
+            "stderrBytes": 0,
+            "stdoutSha256": "47bdd413f06fbda406ba0af3c2b11f115740ba8358dd1f7dbb9971806c75c857",
+            "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "functions": {
+            "exitCode": 0,
+            "stderrBytes": 0,
+            "stdoutSha256": "8b1efa59292a38d979b426d68efd9de067298198d6fe7084e3f343b121ff0036",
+            "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        "libraryHashesMatchingFrozenReference": 70,
+        "limits": "Activation observation only; lazy service loading, functional parity and current-candidate qualification remain separate. System dependency matches do not equate rebuilt Gnumeric/GOffice or the host kernel to frozen binaries."
+      }
     },
     {
       "id": "gnumeric-1.12.61-optional-python-glossary",
@@ -893,7 +955,7 @@
       },
       "configuration": "literal profile env HOME/XDG directories; fresh empty settings and exact enabledPluginIds; no ambient user plugins",
       "dependencies": "base captured dependency identities plus optional dependency build/install identities; missing optional identities block qualification",
-      "status": "defined; exact isolated activation and differential capture unresolved",
+      "status": "native activation verified; functional parity and remaining capability qualification unresolved",
       "nativeFallback": false,
       "enabledPluginIds": [
         "GOffice_plot_barcol",
@@ -996,7 +1058,38 @@
         "--without-gda"
       ],
       "activationProtocol": "Install only enumerated source plugins; explicitly enable enumerated plugin IDs in isolated settings; confirm runtime inventory exactly before formula/format QA. GOffice IDs retain base captured plugin versions. Dependency/config/activation capture missing means unresolved.",
-      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required"
+      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required",
+      "activationEvidence": {
+        "auditedAt": "2026-09-26",
+        "workflowRun": "https://github.com/poe-platform/poe-code/actions/runs/35843698948",
+        "artifactId": 10742093755,
+        "sourceRevision": "e6a7d682ac588d884d36124093da5185282e1d7b",
+        "identitySha256": "8ecc6c889aacccd7071933eefad83a26e4ee2072537a16572c464428e0db0df1",
+        "referenceProfileSha256": "f5767a61ed1356d95600370135bf3afce808c17aabc0c633d881e14578a8347e",
+        "capturedOptionalManifestSha256": "f585eaea65c17346d5d634916310caf1506bb13d1322f491ba82d8e589a78dfb",
+        "profileComparison": "Both manifest hashes authenticate against the workflow source commit. The complete selected profile descriptor was unchanged at ef451e74a460ef18fedd2d9630db6a1280929c87 before this audit update.",
+        "binarySha256": "1e05f849beba0397bbaae2a504ec65e44fd1d21b1106edd7b54b47db61b828c1",
+        "expectedPlugins": 48,
+        "observedPlugins": 48,
+        "activePlugins": 48,
+        "exactIdSet": true,
+        "enumeration": {
+          "plugins": {
+            "exitCode": 0,
+            "stderrBytes": 0,
+            "stdoutSha256": "821dc24541b215a68d75fec6d91be5cdd60f6ef2204783f9b08c8f684897d08d",
+            "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "functions": {
+            "exitCode": 0,
+            "stderrBytes": 0,
+            "stdoutSha256": "5413a3c190f9fe997aa5797eb56809675880ba4cb4271ebb40594b1422c6ed00",
+            "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        "libraryHashesMatchingFrozenReference": 70,
+        "limits": "Activation observation only; lazy service loading, functional parity and current-candidate qualification remain separate. System dependency matches do not equate rebuilt Gnumeric/GOffice or the host kernel to frozen binaries."
+      }
     },
     {
       "id": "gnumeric-1.12.61-optional-gda",
@@ -1023,7 +1116,7 @@
       },
       "configuration": "literal profile env HOME/XDG directories; fresh empty settings and exact enabledPluginIds; no ambient user plugins",
       "dependencies": "base captured dependency identities plus optional dependency build/install identities; missing optional identities block qualification",
-      "status": "defined; exact isolated activation and differential capture unresolved",
+      "status": "native activation observed with cleanup diagnostic; functional profile qualification unresolved",
       "nativeFallback": false,
       "enabledPluginIds": [
         "GOffice_plot_barcol",
@@ -1124,7 +1217,39 @@
         "--with-gda"
       ],
       "activationProtocol": "Install only enumerated source plugins; explicitly enable enumerated plugin IDs in isolated settings; confirm runtime inventory exactly before formula/format QA. GOffice IDs retain base captured plugin versions. Dependency/config/activation capture missing means unresolved.",
-      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required"
+      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required",
+      "activationEvidence": {
+        "auditedAt": "2026-09-26",
+        "workflowRun": "https://github.com/poe-platform/poe-code/actions/runs/35845404375",
+        "artifactId": 10743731411,
+        "sourceRevision": "cfac51b021bb946d87a86e3dedfbc213c1f45884",
+        "identitySha256": "0efb252c71a5e1fee1bb3ba602fb06b29f4050923b3c090f0ccfd9088771492b",
+        "referenceProfileSha256": "f5767a61ed1356d95600370135bf3afce808c17aabc0c633d881e14578a8347e",
+        "capturedOptionalManifestSha256": "f585eaea65c17346d5d634916310caf1506bb13d1322f491ba82d8e589a78dfb",
+        "profileComparison": "Both manifest hashes authenticate against the workflow source commit. The complete selected profile descriptor was unchanged at ef451e74a460ef18fedd2d9630db6a1280929c87 before this audit update.",
+        "binarySha256": "1e05f849beba0397bbaae2a504ec65e44fd1d21b1106edd7b54b47db61b828c1",
+        "expectedPlugins": 47,
+        "observedPlugins": 47,
+        "activePlugins": 47,
+        "exactIdSet": true,
+        "enumeration": {
+          "plugins": {
+            "exitCode": 0,
+            "stderrBytes": 122,
+            "stdoutSha256": "69e2e9b4b548bf99f1ab05f6b24c078451a8c7fe79914c7614739620cbc74472",
+            "stderrSha256": "6d2970bf7868589429394bc89dd99a99a09cfdbc843d84363f8ed73a5bda0dfe"
+          },
+          "functions": {
+            "exitCode": 0,
+            "stderrBytes": 122,
+            "stdoutSha256": "d24301429ae72c689e8390591c7bf8f6b482b0a15ccec414caa5eeee0232bcbb",
+            "stderrSha256": "1e437cd86c600de7fa25a40176ea81b58df1f9c04741ae70cda182e5afafe30a"
+          }
+        },
+        "libraryHashesMatchingFrozenReference": 70,
+        "limits": "Activation observation only; lazy service loading, functional parity and current-candidate qualification remain separate. System dependency matches do not equate rebuilt Gnumeric/GOffice or the host kernel to frozen binaries.",
+        "diagnostic": "Both enumeration commands exit 0 with all 47 plugins active, but GLib reports g_hash_table_destroy: assertion 'hash_table != NULL' failed. This is not a clean lifecycle pass."
+      }
     },
     {
       "id": "gnumeric-1.12.61-optional-gnomedb-ui",
@@ -1151,7 +1276,7 @@
       },
       "configuration": "literal profile env HOME/XDG directories; fresh empty settings and exact enabledPluginIds; no ambient user plugins",
       "dependencies": "base captured dependency identities plus optional dependency build/install identities; missing optional identities block qualification",
-      "status": "defined; exact isolated activation and differential capture unresolved",
+      "status": "native activation failed: installed ui.xml missing; profile qualification blocked",
       "nativeFallback": false,
       "enabledPluginIds": [
         "GOffice_plot_barcol",
@@ -1252,7 +1377,39 @@
         "--with-gda"
       ],
       "activationProtocol": "Install only enumerated source plugins; explicitly enable enumerated plugin IDs in isolated settings; confirm runtime inventory exactly before formula/format QA. GOffice IDs retain base captured plugin versions. Dependency/config/activation capture missing means unresolved.",
-      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required"
+      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required",
+      "activationEvidence": {
+        "auditedAt": "2026-09-26",
+        "workflowRun": "https://github.com/poe-platform/poe-code/actions/runs/35846129784",
+        "artifactId": 10743956775,
+        "sourceRevision": "0992dc29cb9f2820dffd08977a43fdbaae2b3715",
+        "identitySha256": "db8d8be40ffd35ebc077382407e4bbf4442a2bdc33bb6c39ae1ae523d113cd6c",
+        "referenceProfileSha256": "f5767a61ed1356d95600370135bf3afce808c17aabc0c633d881e14578a8347e",
+        "capturedOptionalManifestSha256": "f585eaea65c17346d5d634916310caf1506bb13d1322f491ba82d8e589a78dfb",
+        "profileComparison": "Both manifest hashes authenticate against the workflow source commit. The complete selected profile descriptor was unchanged at ef451e74a460ef18fedd2d9630db6a1280929c87 before this audit update.",
+        "binarySha256": "1e05f849beba0397bbaae2a504ec65e44fd1d21b1106edd7b54b47db61b828c1",
+        "expectedPlugins": 47,
+        "observedPlugins": 47,
+        "activePlugins": 46,
+        "exactIdSet": true,
+        "enumeration": {
+          "plugins": {
+            "exitCode": 1,
+            "stderrBytes": 594,
+            "stdoutSha256": "25e54e1483bd0a9d187b05c82991f52390d83bec6544b8f1c9496a4eab7c257b",
+            "stderrSha256": "68bd61be214c2a8e36ae309068daa6e3d8670b1f841a615e794cd2693abbfe85"
+          },
+          "functions": {
+            "exitCode": 1,
+            "stderrBytes": 594,
+            "stdoutSha256": "30228bf1ec0eb9ce15a407c5349a23d9d556da3558e989a3353c521ef8189a8f",
+            "stderrSha256": "68bd61be214c2a8e36ae309068daa6e3d8670b1f841a615e794cd2693abbfe85"
+          }
+        },
+        "libraryHashesMatchingFrozenReference": 70,
+        "limits": "Activation observation only; lazy service loading, functional parity and current-candidate qualification remain separate. System dependency matches do not equate rebuilt Gnumeric/GOffice or the host kernel to frozen binaries.",
+        "diagnostic": "GNOME-DB cannot activate its UI service because /opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/gnome-db/ui.xml is absent. Both enumeration commands exit 1; 46 of 47 declared plugins are active."
+      }
     },
     {
       "id": "gnumeric-1.12.61-optional-sample-datasource",
@@ -1279,7 +1436,7 @@
       },
       "configuration": "literal profile env HOME/XDG directories; fresh empty settings and exact enabledPluginIds; no ambient user plugins",
       "dependencies": "base captured dependency identities plus optional dependency build/install identities; missing optional identities block qualification",
-      "status": "defined; exact isolated activation and differential capture unresolved",
+      "status": "native activation verified; functional parity and remaining capability qualification unresolved",
       "nativeFallback": false,
       "enabledPluginIds": [
         "GOffice_plot_barcol",
@@ -1380,7 +1537,38 @@
         "--without-gda"
       ],
       "activationProtocol": "Install only enumerated source plugins; explicitly enable enumerated plugin IDs in isolated settings; confirm runtime inventory exactly before formula/format QA. GOffice IDs retain base captured plugin versions. Dependency/config/activation capture missing means unresolved.",
-      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required"
+      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required",
+      "activationEvidence": {
+        "auditedAt": "2026-09-26",
+        "workflowRun": "https://github.com/poe-platform/poe-code/actions/runs/35854681190",
+        "artifactId": 10747460139,
+        "sourceRevision": "3ad7b8ae68c4912f2a4e529d26561cb6a073de3d",
+        "identitySha256": "8a776ba5fc04b5b67181fe36b5cd75e17fd29629ca3a91e8371d62a455ded26f",
+        "referenceProfileSha256": "f5767a61ed1356d95600370135bf3afce808c17aabc0c633d881e14578a8347e",
+        "capturedOptionalManifestSha256": "f585eaea65c17346d5d634916310caf1506bb13d1322f491ba82d8e589a78dfb",
+        "profileComparison": "Both manifest hashes authenticate against the workflow source commit. The complete selected profile descriptor was unchanged at ef451e74a460ef18fedd2d9630db6a1280929c87 before this audit update.",
+        "binarySha256": "1e05f849beba0397bbaae2a504ec65e44fd1d21b1106edd7b54b47db61b828c1",
+        "expectedPlugins": 47,
+        "observedPlugins": 47,
+        "activePlugins": 47,
+        "exactIdSet": true,
+        "enumeration": {
+          "plugins": {
+            "exitCode": 0,
+            "stderrBytes": 0,
+            "stdoutSha256": "9fd91469e1ca54448023abe79b19d746d2095eadcac629f3b5990ca8179734b7",
+            "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "functions": {
+            "exitCode": 0,
+            "stderrBytes": 0,
+            "stdoutSha256": "1cab6cf14608d76c0cf20096bad4a0f0e4482f1439f3c46e240948dfe12665c4",
+            "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        "libraryHashesMatchingFrozenReference": 70,
+        "limits": "Activation observation only; lazy service loading, functional parity and current-candidate qualification remain separate. System dependency matches do not equate rebuilt Gnumeric/GOffice or the host kernel to frozen binaries."
+      }
     },
     {
       "id": "gnumeric-1.12.61-optional-excel-formats",
@@ -1407,7 +1595,7 @@
       },
       "configuration": "literal profile env HOME/XDG directories; fresh empty settings and exact enabledPluginIds; no ambient user plugins",
       "dependencies": "base captured dependency identities plus optional dependency build/install identities; missing optional identities block qualification",
-      "status": "defined; exact isolated activation and differential capture unresolved",
+      "status": "native activation verified; functional parity and remaining capability qualification unresolved",
       "nativeFallback": false,
       "enabledPluginIds": [
         "GOffice_plot_barcol",
@@ -1506,7 +1694,38 @@
         "--without-gda"
       ],
       "activationProtocol": "Install only enumerated source plugins; explicitly enable enumerated plugin IDs in isolated settings; confirm runtime inventory exactly before formula/format QA. GOffice IDs retain base captured plugin versions. Dependency/config/activation capture missing means unresolved.",
-      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required"
+      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required",
+      "activationEvidence": {
+        "auditedAt": "2026-09-26",
+        "workflowRun": "https://github.com/poe-platform/poe-code/actions/runs/35843702059",
+        "artifactId": 10742402223,
+        "sourceRevision": "e6a7d682ac588d884d36124093da5185282e1d7b",
+        "identitySha256": "7ef1e26f7906fbf771f68eb964ecdc89541028ecbec07b050b23ca9d4481096b",
+        "referenceProfileSha256": "f5767a61ed1356d95600370135bf3afce808c17aabc0c633d881e14578a8347e",
+        "capturedOptionalManifestSha256": "f585eaea65c17346d5d634916310caf1506bb13d1322f491ba82d8e589a78dfb",
+        "profileComparison": "Both manifest hashes authenticate against the workflow source commit. The complete selected profile descriptor was unchanged at ef451e74a460ef18fedd2d9630db6a1280929c87 before this audit update.",
+        "binarySha256": "1e05f849beba0397bbaae2a504ec65e44fd1d21b1106edd7b54b47db61b828c1",
+        "expectedPlugins": 46,
+        "observedPlugins": 46,
+        "activePlugins": 46,
+        "exactIdSet": true,
+        "enumeration": {
+          "plugins": {
+            "exitCode": 0,
+            "stderrBytes": 0,
+            "stdoutSha256": "639946e35c4ec8b63e6af34f46fbed0e5a1ac4ea4f3487258689fdd6aef7484b",
+            "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "functions": {
+            "exitCode": 0,
+            "stderrBytes": 0,
+            "stdoutSha256": "30228bf1ec0eb9ce15a407c5349a23d9d556da3558e989a3353c521ef8189a8f",
+            "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        "libraryHashesMatchingFrozenReference": 70,
+        "limits": "Activation observation only; lazy service loading, functional parity and current-candidate qualification remain separate. System dependency matches do not equate rebuilt Gnumeric/GOffice or the host kernel to frozen binaries."
+      }
     }
   ],
   "capabilities": [

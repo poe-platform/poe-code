@@ -612,7 +612,7 @@
     {
       "id": "optional-profiles",
       "status": "open",
-      "currentFinding": "The base optional-none Linux ARM64 profile has verified exact activation of all 46 declared plugins; 70 of 72 linked library binaries match the frozen reference and two were rebuilt. Functional qualification of all eight environments and fourteen capability obligations remains open. Availability or registration alone is not a pass; the scoped activation receipt is in optional-runtime-extension-coverage.json."
+      "currentFinding": "Retained Linux ARM64 receipts authenticate all eight declared activation profiles. Six enumerate their exact plugin sets cleanly; GDA activates with a GLib cleanup diagnostic, and GNOME-DB activates only 46/47 plugins because ui.xml is missing. Functional qualification of all eight environments and fourteen capability obligations remains open. Registration is not parity; source/receipt hashes and distinct outcomes are recorded in optional-runtime-extension-coverage.json."
     },
     {
       "id": "public-packed-artifacts",

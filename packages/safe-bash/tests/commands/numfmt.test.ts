@@ -293,8 +293,7 @@ test("numfmt bounds oversized input chunks before copying", async () => {
   assert.equal(returns, 1);
 });
 
-test("numfmt bounds actual padding output and infinite empty producers", async () => {
-  assert.equal((await format(["--padding=33554433", "1"])).exitCode, 1);
+test("numfmt bounds infinite empty producers", async () => {
   let chunks = 0;
   const result = await format([], { async *[Symbol.asyncIterator]() { while (true) { chunks++; yield new Uint8Array(); } } });
   assert.equal(result.exitCode, 1);
@@ -347,7 +346,7 @@ test("numfmt no-Buffer plain argv and owned byte carriers retain portable admiss
   const results: { exitCode: number; stdout: string; stderr: string }[] = [];
   try {
     Reflect.set(globalThis, "Buffer", undefined);
-    for (const args of [["--to=si", "1000"], ["--suffix=é", "1000é"], ["--padding=33554433", "1"], ["1".repeat(65537)], ["é".repeat(32769)]]) {
+    for (const args of [["--to=si", "1000"], ["--suffix=é", "1000é"], ["--padding=16", "1"], ["1".repeat(65537)], ["é".repeat(32769)]]) {
       for (const raw of [false, true]) {
         const carrier = raw ? createCommandArguments(args.map(argument => shellValueFromBytes(encoder.encode(argument)))) : undefined;
         let stdout = "";
@@ -364,67 +363,72 @@ test("numfmt no-Buffer plain argv and owned byte carriers retain portable admiss
   assert.deepEqual(results, [
     ...Array.from({ length: 2 }, () => ({ exitCode: 0, stdout: "1.0k\n", stderr: "" })),
     ...Array.from({ length: 2 }, () => ({ exitCode: 0, stdout: "1000é\n", stderr: "" })),
-    ...Array.from({ length: 2 }, () => ({ exitCode: 1, stdout: "", stderr: "numfmt: numfmt output limit exceeded\n" })),
+    ...Array.from({ length: 2 }, () => ({ exitCode: 0, stdout: "               1\n", stderr: "" })),
     ...Array.from({ length: 4 }, () => ({ exitCode: 1, stdout: "", stderr: "numfmt: argument limit exceeded\n" })),
   ]);
 });
 
-const outputLimitDiagnostic = "numfmt: numfmt output limit exceeded\n";
-const preparationDiagnostic = "numfmt: failed to prepare value '1.000000' for printing\n";
-for (const profile of [
-  { name: "full stderr direct", gap: 0, last: "x", tail: "", status: 1 },
-  { name: "full stderr public", gap: 0, last: "x", tail: "", status: 1, public: true },
-  { name: "full ordinary warnings without a reserved diagnostic margin", gap: 0, tail: "", status: 0 },
-  { name: "PublicDiagnostic one byte over remaining space", gap: outputLimitDiagnostic.length - 1, last: "x".repeat(128), tail: "", status: 1 },
-  { name: "PublicDiagnostic exactly fits remaining space", gap: outputLimitDiagnostic.length, last: "x".repeat(128), tail: outputLimitDiagnostic, status: 1 },
-  { name: "NumfmtDiagnostic with full stderr", gap: 0, last: "1", format: true, tail: "", status: 1 },
-  { name: "NumfmtDiagnostic one byte over remaining space", gap: preparationDiagnostic.length - 1, last: "1", format: true, tail: "", status: 1 },
-  { name: "NumfmtDiagnostic exactly fits remaining space", gap: preparationDiagnostic.length, last: "1", format: true, tail: preparationDiagnostic, status: 1 },
-  { name: "UTF-8 outer diagnostic bytes without Buffer", gap: new TextEncoder().encode(`é${outputLimitDiagnostic}`).length - 1, last: "x".repeat(128), command: "énumfmt", noBuffer: true, tail: "", status: 1 },
-]) test(`numfmt fixed real output cap: ${profile.name}`, async () => {
-  const maximum = 32 * 1024 * 1024;
-  const recordSize = 1024 * 1024;
-  const lastContentBytes = maximum - profile.gap - 7 * (4 * recordSize + 27) - 27;
-  const escapedBytes = Math.floor(lastContentBytes / 4);
-  const asciiBytes = lastContentBytes % 4;
-  const prefixStdout = 7 * (recordSize + 1) + escapedBytes + asciiBytes + 1;
-  let reads = 0, returns = 0, stdoutBytes = 0, stderrBytes = 0;
-  let tail = "";
-  const decoder = new TextDecoder();
-  const stdin: ByteSource = { async *[Symbol.asyncIterator]() {
+
+for (const noBuffer of [false, true]) {
+  for (const gap of [0, 1]) test(`numfmt caller diagnostic cap: portable=${noBuffer}, gap=${gap}`, async () => {
+    const encoder = new TextEncoder();
+    const warning = encoder.encode("numfmt: invalid number: 'x'\n");
+    const maximum = warning.length * 2 - gap;
+    const failure = new Error("caller diagnostic quota");
+    let reads = 0, returns = 0, stderrBytes = 0, stdoutBytes = 0;
+    const stdin: ByteSource = { async *[Symbol.asyncIterator]() {
+      try {
+        for (let index = 0; index < 4; index++) { reads++; yield encoder.encode("x\n"); }
+      } finally { returns++; }
+    } };
+    const stdout = { async write(chunk: Uint8Array) { stdoutBytes += chunk.length; } };
+    const stderr = { async write(chunk: Uint8Array) {
+      if (chunk.length > maximum - stderrBytes) throw failure;
+      stderrBytes += chunk.length;
+    } };
+    const fs = new MemoryFileSystem();
+    const saved = globalThis.Buffer;
+    let caught: unknown;
     try {
-      for (let index = 0; index < 8; index++) {
-        const length = index < 7 ? recordSize : escapedBytes + asciiBytes;
-        const bytes = new Uint8Array(length + 1).fill(255);
-        if (index === 7) bytes.fill(120, escapedBytes, length);
-        bytes[length] = 10;
-        reads++;
-        yield bytes;
-      }
-      if (profile.last !== undefined) { reads++; yield new TextEncoder().encode(`${profile.last}\n`); }
-    } finally { returns++; }
+      if (noBuffer) Reflect.set(globalThis, "Buffer", undefined);
+      try {
+        await numfmtCommand().execute({ command: "numfmt", args: ["--invalid=warn"], cwd: "/", env: { LC_ALL: "C" }, fs, stdin, stdout, stderr, signal: new AbortController().signal });
+      } catch (error) { caught = error; }
+    } finally { Reflect.set(globalThis, "Buffer", saved); }
+    assert.equal(caught, failure);
+    const accepted = gap === 0 ? 2 : 1;
+    assert.equal(stderrBytes, accepted * warning.length);
+    assert.ok(stderrBytes <= maximum);
+    assert.equal(stdoutBytes, accepted * 2);
+    assert.equal(reads, accepted + 1);
+    assert.equal(returns, 1);
+  });
+}
+
+for (const publicShell of [false, true]) test(`numfmt default output exceeds the former cap: public=${publicShell}`, async () => {
+  const record = new Uint8Array(65537).fill(120);
+  record[65536] = 10;
+  const encoder = new TextEncoder();
+  const diagnosticLength = encoder.encode(`numfmt: invalid number: '${"x".repeat(65536)}'\n`).length;
+  let stdoutBytes = 0, stderrBytes = 0, returns = 0;
+  const stdin: ByteSource = { async *[Symbol.asyncIterator]() {
+    try { for (let index = 0; index < 512; index++) yield record; }
+    finally { returns++; }
   } };
-  const stdout = { async write(bytes: Uint8Array) { stdoutBytes += bytes.length; } };
-  const stderr = { async write(bytes: Uint8Array) { stderrBytes += bytes.length; tail = (tail + decoder.decode(bytes.subarray(Math.max(0, bytes.length - 128)))).slice(-128); } };
-  const args = ["--invalid=warn", ...(profile.format ? ["--format=%0128f"] : [])];
+  const stdout = { async write(chunk: Uint8Array) { stdoutBytes += chunk.length; } };
+  const stderr = { async write(chunk: Uint8Array) { stderrBytes += chunk.length; } };
   const fs = new MemoryFileSystem();
-  const saved = globalThis.Buffer;
-  let shell: Shell | undefined;
-  let result: { exitCode: number };
+  const shell = publicShell ? new Shell({ fs, commands: new CommandRegistry([numfmtCommand()]), env: { LC_ALL: "C" } }) : undefined;
   try {
-    if (profile.noBuffer) Reflect.set(globalThis, "Buffer", undefined);
-    if (profile.public) {
-      shell = new Shell({ fs, commands: new CommandRegistry([numfmtCommand()]), env: { LC_ALL: "C" }, limits: { maxInputBytes: 64 * 1024 * 1024, maxOutputBytes: 96 * 1024 * 1024, maxCpuMs: 30000, maxWallClockMs: 30000 } });
-      result = await shell.exec("numfmt --invalid=warn", { stdin, stdout, stderr });
-    } else result = await numfmtCommand().execute({ command: profile.command ?? "numfmt", args, cwd: "/", env: { LC_ALL: "C" }, fs, stdin, stdout, stderr, signal: new AbortController().signal });
-  } finally { Reflect.set(globalThis, "Buffer", saved); await shell?.dispose(); }
-  assert.equal(result.exitCode, profile.status);
-  assert.equal(stderrBytes, maximum - profile.gap + new TextEncoder().encode(profile.tail).length);
-  assert.ok(stderrBytes <= maximum);
-  assert.equal(stdoutBytes, prefixStdout);
-  assert.equal(reads, profile.last === undefined ? 8 : 9);
-  assert.equal(returns, 1);
-  assert.ok(profile.tail ? tail.endsWith(profile.tail) : tail.endsWith(`${"x".repeat(asciiBytes)}'\n`));
+    const result = shell ? await shell.exec("numfmt --invalid=warn", { stdin, stdout, stderr })
+      : await numfmtCommand().execute({ command: "numfmt", args: ["--invalid=warn"], cwd: "/", env: { LC_ALL: "C" }, fs, stdin, stdout, stderr, signal: new AbortController().signal });
+    assert.equal(result.exitCode, 0);
+    assert.equal(stdoutBytes, record.length * 512);
+    assert.equal(stderrBytes, diagnosticLength * 512);
+    assert.ok(stdoutBytes > 32 * 1024 * 1024);
+    assert.ok(stderrBytes > 32 * 1024 * 1024);
+    assert.equal(returns, 1);
+  } finally { await shell?.dispose(); }
 });
 
 for (const reason of [false, 0, "", null, undefined, NaN, new PublicDiagnostic("numfmt output limit exceeded")]) test(`numfmt outer diagnostic keeps sink failure identity: ${String(reason)}`, async () => {

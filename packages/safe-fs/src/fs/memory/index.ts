@@ -474,7 +474,8 @@ const ext4HtreeEof64 = (1n << 63n) - 1n;
 const extractionStreamGuard = Symbol("extractionStreamGuard");
 type ConfinedWriteOptions = WriteFileOptions & { readonly [extractionStreamGuard]?: (node: FileNode) => void };
 const ownedStats = new WeakMap<FileStat, { filesystem: FileSystem; path: string; root: DirectoryNode }>();
-const ownedStores = new WeakMap<FileSystem, { root: DirectoryNode; ledger: MemoryLedger; capabilities: FileSystem["capabilities"]; intact: () => boolean }>();
+type OwnedStore = { root: DirectoryNode; ledger: MemoryLedger; capabilities: FileSystem["capabilities"]; intact: () => boolean };
+const ownedStores = new WeakMap<FileSystem, OwnedStore>();
 // Ensure V8 uses Tagged representation for timestamp fields so all 4 fields share one HeapNumber pointer.
 {
   const dummyAlloc = new MemoryAllocation(new Uint8Array(0), new MemoryLedger(normalizeMemoryFileSystemLimits({})));
@@ -692,6 +693,8 @@ export class MemoryFileSystem implements FileSystem {
   private readonly identityScope = Symbol();
   private nextInode = 1;
   private readonly ledger: MemoryLedger;
+  private readonly _cache: MemoryCache;
+  readonly _owner: OwnedStore;
   private readonly root: DirectoryNode;
   private totalBytes = 0;
   symlinkCount = 0;
@@ -701,16 +704,20 @@ export class MemoryFileSystem implements FileSystem {
     if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes) {
       replenishSharedMemoryPools();
     }
-    memoryCaches.set(this.ledger, new MemoryCache());
+    const cache = new MemoryCache();
+    this._cache = cache;
+    memoryCaches.set(this.ledger, cache);
     this.ledger.reserve(0, 1, "mkdir", "/");
     this.root = this.directory(0o755);
     const root = this.root;
-    ownedStores.set(this, {
+    const owner: OwnedStore = {
       root,
       ledger: this.ledger,
       capabilities: this.capabilities,
       intact: () => this.root === root,
-    });
+    };
+    this._owner = owner;
+    ownedStores.set(this, owner);
     registerMemoryAtomicView(this, {
       stat: (path) => {
         this.validatePath(path, "overlayAtomicView");
@@ -1690,7 +1697,7 @@ export class MemoryFileSystem implements FileSystem {
   }
 
   writeMemoryFileInDirFast(dirPrefix: string, name: string, data: Uint8Array, append: boolean, mode: number): void {
-    const cache = memoryCaches.get(this.ledger)!;
+    const cache = this._cache;
     const syscall = append ? "appendFile" : "writeFile";
     try {
       if (
@@ -3029,21 +3036,35 @@ export function tryResolveMemoryDevicePath(filesystem: FileSystem, path: string,
   }
 }
 
+const cachedMethodValuesMap = new WeakMap<readonly string[], unknown[]>();
+function getExpectedMethodValues(names: readonly string[]): unknown[] {
+  let vals = cachedMethodValuesMap.get(names);
+  if (!vals) {
+    vals = names.map(name => memoryImplementation[name]?.value);
+    cachedMethodValuesMap.set(names, vals);
+  }
+  return vals;
+}
+const hasOwn = Object.prototype.hasOwnProperty;
+
 function isStockMemoryMethods(mem: MemoryFileSystem, names: readonly string[], checkRootAccessor = true): boolean {
-  const owner = ownedStores.get(mem);
-  if (!owner || Object.getPrototypeOf(mem) !== MemoryFileSystem.prototype) return false;
+  const owner = mem?._owner ?? ownedStores.get(mem);
+  if (!owner || Object.getPrototypeOf(mem) !== MemoryFileSystem.prototype || ownedStores.get(mem) !== owner) return false;
   if (checkRootAccessor) {
     const rootDesc = Object.getOwnPropertyDescriptor(mem, "root");
     if (!rootDesc || !("value" in rootDesc) || rootDesc.value !== owner.root) return false;
   } else if ((mem as unknown as { root: unknown }).root !== owner.root) {
     return false;
   }
+  const vals = getExpectedMethodValues(names);
+  const proto = MemoryFileSystem.prototype as unknown as Record<string, unknown>;
   for (let i = 0; i < names.length; i++) {
     const name = names[i]!;
-    if (Object.prototype.hasOwnProperty.call(mem, name)) {
+    const expected = vals[i];
+    if (hasOwn.call(mem, name)) {
       const descriptor = Object.getOwnPropertyDescriptor(mem, name);
-      if (!descriptor || !("value" in descriptor) || descriptor.value !== memoryImplementation[name]?.value) return false;
-    } else if ((MemoryFileSystem.prototype as unknown as Record<string, unknown>)[name] !== memoryImplementation[name]?.value) {
+      if (!descriptor || !("value" in descriptor) || descriptor.value !== expected) return false;
+    } else if (proto[name] !== expected) {
       return false;
     }
   }

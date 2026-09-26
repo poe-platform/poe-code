@@ -3468,6 +3468,7 @@ export function clearRuntimePools(): void {
   pooledSyncPipeContext = undefined;
   pooledMemoryRedirectSink = undefined;
 }
+function noopVoid(): void {}
 let syncPurePipelineWarmed = false;
 let syncPureFindPipelineWarmed = false;
 const warmedFastSingleCommands = new Set<string>();
@@ -5273,6 +5274,127 @@ export class Runtime {
     }
   }
 
+  tryRunFastConstEchoBatch<T extends { unit: { script: Script; next: number }; nextCached?: T | undefined; locale: boolean; unitsCharged: number }>(
+    firstCachedUnit: T,
+    sourceLength: number,
+    state: State,
+    io: IO,
+  ): T | undefined {
+    const firstCc = (firstCachedUnit.unit.script as { _fastConstEcho?: { arg0: string; targetPath: string; dirPrefix: string; fileName: string; encoded: Uint8Array; append: boolean } })._fastConstEcho;
+    if (!firstCc || state.noexec) return undefined;
+    if (
+      this.middleware.length > 0 ||
+      io.terminal !== undefined ||
+      io.asyncDefaultInput !== undefined ||
+      io.admittedHandles !== undefined ||
+      (this._fileWrites !== undefined && this._fileWrites.size > 0) ||
+      !this._isMemoryBackingFs ||
+      !this.backingFs ||
+      !this.budget.canRedirect1 ||
+      !this.budget.hasInfiniteFsOps ||
+      (io.descriptors &&
+        (io.descriptors.size > 3 ||
+          io.descriptors.get(0)?.closed ||
+          io.descriptors.get(1)?.closed ||
+          io.descriptors.get(2)?.closed))
+    ) {
+      return undefined;
+    }
+    const monitor = ensureStateMonitor(state, this.budget, io[invocationScope]);
+    const rawState = monitor.raw;
+    if (
+      !this.tryStartExtensionsSync(state) ||
+      hasActiveExtensions(rawState) ||
+      rawState.externalInvocation ||
+      rawState.variableAttributes?.size ||
+      guestArrays(state) ||
+      rawState.noclobber ||
+      rawState.readonlyVariables?.has("PIPESTATUS") ||
+      hasShellFunction(rawState, "echo") ||
+      rawState.extensions?.builtins.has("echo")
+    ) {
+      return undefined;
+    }
+    const def = this.commands.get("echo");
+    if (!def || !defaultEchoExecutors.has(def.execute)) return undefined;
+    const store = monitor.store;
+    const existing = store?.get("PIPESTATUS");
+    const psTarget = existing ? "indexed" : pipelineStatusTarget(rawState);
+    if ((psTarget !== "indexed" && psTarget !== "absent") || store?.watches.has("PIPESTATUS") || monitor.hasOverlay("PIPESTATUS")) return undefined;
+    if (existing && (existing.associative || existing.values.size !== 1 || existing.maximum !== 0)) return undefined;
+    const elem0 = existing?.values.get(0);
+    if (existing && (!elem0 || elem0.text.bytes !== 1 || existing.references !== 1 || elem0.text.references !== 1)) return undefined;
+    const byteLength0 = firstCc.encoded.byteLength;
+    if (
+      (this.budget.bytes + byteLength0 > this.budget.maxOutputBytesSmi && byteLength0 > this.budget.limits.maxOutputBytes - this.budget.bytes) ||
+      !this.budget.canFileSystemOperation() ||
+      (this.budget.commands + 1 > this.budget.maxCommandsSmi && this.budget.commands + 1 > this.budget.limits.maxCommands)
+    ) {
+      return undefined;
+    }
+    const mode = 0o666 & ~(rawState.umask ?? 0o022);
+    try {
+      if (!tryWriteMemoryFileInDirSync(this.backingFs, firstCc.dirPrefix, firstCc.fileName, firstCc.encoded, firstCc.append, mode, this.commandSignal)) {
+        return undefined;
+      }
+    } catch {
+      this.signal.throwIfAborted();
+      return undefined;
+    }
+    this.budget.tick();
+    this.budget.fileSystemOperation();
+    this.budget.bytes += byteLength0;
+    let lastArg = firstCc.arg0;
+    let count = 1;
+    let cur = firstCachedUnit;
+    const vars = rawState.variables;
+    const curLocale = (vars.LC_ALL || vars.LC_CTYPE || vars.LANG) ? byteLocale(vars) : false;
+    const mem = this.backingFs as unknown as { symlinkCount: number; writeMemoryFileInDirFast(d: string, n: string, data: Uint8Array, a: boolean, m: number): void };
+    while (cur.unit.next < sourceLength && mem.symlinkCount === 0 && !this.signal.aborted) {
+      const next = cur.nextCached;
+      if (!next || next.locale !== curLocale || (next.unit.script.warnings && next.unit.script.warnings.length > 0)) break;
+      const nextCc = (next.unit.script as { _fastConstEcho?: typeof firstCc })._fastConstEcho;
+      if (!nextCc) break;
+      const bLen = nextCc.encoded.byteLength;
+      if (
+        this.budget.bytes + bLen > this.budget.maxOutputBytesSmi ||
+        (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations + 1 > this.budget.maxFileSystemOperationsSmi ||
+        this.budget.commands + 1 > this.budget.maxCommandsSmi
+      ) {
+        break;
+      }
+      this.budget.parsing.admit(next.unitsCharged);
+      try {
+        mem.writeMemoryFileInDirFast(nextCc.dirPrefix, nextCc.fileName, nextCc.encoded, nextCc.append, mode);
+      } catch {
+        this.signal.throwIfAborted();
+        break;
+      }
+      this.budget.commands++;
+      (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations++;
+      this.budget.bytes += bLen;
+      lastArg = nextCc.arg0;
+      count++;
+      cur = next;
+    }
+    const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+    rawState.substitutionStatus = 0;
+    if (rawState.variables._ !== undefined) delete rawState.variables._;
+    rawState.lastArgument = lastArg;
+    if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+    if (!existing) {
+      monitor.lazyPipeStatus = singleStatusZero;
+      monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+    } else {
+      elem0!.text.shellValue = "0";
+      store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+    }
+    rawState.status = 0;
+    monitor.epoch = restEpoch;
+    if (store) store.epoch = restEpoch;
+    return cur;
+  }
+
   runUnit(script: Script, state: State, io: IO): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> {
     if (state.noexec) return SYNC_UNIT_ZERO;
     const monitor = ensureStateMonitor(state, this.budget, io[invocationScope]);
@@ -5292,7 +5414,15 @@ export class Runtime {
             const pipeline = list.pipelines[index]!;
             const ignored = ignoreErrexit || index < list.pipelines.length - 1 || pipeline.negate;
             const syncStatus = this.trySyncPipeline(pipeline, state, io, ignored);
-            if (syncStatus !== undefined) continue;
+            if (syncStatus !== undefined) {
+              if (script.lists.length === 1 && list.pipelines.length === 1 && !pipeline.negate && pipeline.commands.length === 1) {
+                const cc = (pipeline.commands[0]! as { _cachedConstEchoRedirect?: { arg0: string; targetPath: string; dirPrefix: string | undefined; fileName: string | undefined; encoded: Uint8Array; append: boolean } | null })._cachedConstEchoRedirect;
+                if (cc && cc.dirPrefix !== undefined && cc.fileName !== undefined) {
+                  (script as { _fastConstEcho?: typeof cc })._fastConstEcho = cc;
+                }
+              }
+              continue;
+            }
             const fastUnit = this.tryFastSinglePipelineUnit(pipeline, state, io, Boolean(ignored));
             if (fastUnit !== undefined) {
               if (!(fastUnit instanceof Promise)) {
@@ -5583,32 +5713,8 @@ export class Runtime {
         state,
         io,
       );
-      warmedFastSingleCommands.add(externalDef.name);
-      if (canWarmFastSingle && !(syncRes instanceof Promise) && performance.now() - this.budget.startMs < 1) {
-        const stdoutCap = !redirectSink ? (io.stdout as Capture) : undefined;
-        const savedStdout = stdoutCap ? stdoutCap.toBytes().slice() : undefined;
-        const afterCmds = this.budget.commands;
-        const afterBytes = this.budget.bytes;
-        const afterFsOps = (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations;
-        for (let w = 0; w < 15; w++) {
-          if (performance.now() - this.budget.startMs > 4) break;
-          if (stdoutCap) stdoutCap.resetEmpty();
-          this.budget.commands = afterCmds - 1;
-          this.budget.bytes = 0;
-          (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations = 0;
-          const wRes = this.tryFastSinglePipelineUnit(pipeline, state, io, ignored);
-          if (wRes instanceof Promise) {
-            wRes.catch(() => {});
-            break;
-          }
-        }
-        if (stdoutCap && savedStdout) {
-          stdoutCap.resetEmpty();
-          stdoutCap.writeRangeSync(savedStdout, savedStdout.length);
-        }
-        this.budget.commands = afterCmds;
-        this.budget.bytes = afterBytes;
-        (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations = afterFsOps;
+      if (canWarmFastSingle && !(syncRes instanceof Promise)) {
+        this.warmFastSingleUnit(externalDef.name, pipeline, state, io, ignored, redirectSink !== undefined);
       }
       return syncRes;
     }
@@ -5624,6 +5730,82 @@ export class Runtime {
       return this.executeFastPurePipelineUnit(pipeline, state, rawState, monitor, io, ignored || pipeline.negate);
     }
     return undefined;
+  }
+
+  private warmFastSingleUnit(name: string, pipeline: Pipeline, state: State, io: IO, ignored: boolean, hasRedirect: boolean): void {
+    warmedFastSingleCommands.add(name);
+    const stdoutCap = !hasRedirect ? (io.stdout as Capture) : undefined;
+    const afterCmds = this.budget.commands;
+    const afterBytes = this.budget.bytes;
+    const afterFsOps = (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations;
+    const warmStart = performance.now();
+    for (let w = 0; w < 15; w++) {
+      if (performance.now() - warmStart > 25) break;
+      if (stdoutCap) stdoutCap.resetEmpty();
+      this.budget.commands = afterCmds - 1;
+      this.budget.bytes = 0;
+      (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations = 0;
+      const wRes = this.tryFastSinglePipelineUnit(pipeline, state, io, ignored);
+      if (wRes instanceof Promise) {
+        wRes.catch(noopVoid);
+        break;
+      }
+    }
+    this.budget.commands = afterCmds;
+    this.budget.bytes = afterBytes;
+    (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations = afterFsOps;
+  }
+
+  private warmSyncPurePipelineUnit(
+    firstStageName: string,
+    pipeline: Pipeline,
+    state: State,
+    rawState: State,
+    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
+    io: IO,
+    ignored: boolean,
+    stdoutCap: Capture,
+    stderrCap: Capture,
+    savedCommands: number,
+    savedBytes: number,
+    savedFsOps: number,
+  ): void {
+    if (firstStageName === "find") syncPureFindPipelineWarmed = true;
+    else syncPurePipelineWarmed = true;
+    const savedEpoch = monitor.epoch;
+    const savedLazyPipeStatus = monitor.lazyPipeStatus;
+    const savedRawStatus = rawState.status;
+    syncPurePipelineSlotInUse = false;
+    try {
+      const warmStart = performance.now();
+      for (let w = 0; w < 22; w++) {
+        if (performance.now() - warmStart > 25) break;
+        const wRes = this.tryExecuteSyncPurePipelineUnit(pipeline, state, rawState, monitor, io, ignored);
+        stdoutCap.resetEmpty();
+        stderrCap.resetEmpty();
+        this.budget.commands = savedCommands;
+        this.budget.bytes = savedBytes;
+        (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations = savedFsOps;
+        monitor.epoch = savedEpoch;
+        monitor.lazyPipeStatus = savedLazyPipeStatus;
+        rawState.status = savedRawStatus;
+        if (!wRes) break;
+        if (wRes instanceof Promise) {
+          wRes.catch(noopVoid);
+          break;
+        }
+      }
+    } catch {
+      stdoutCap.resetEmpty();
+      stderrCap.resetEmpty();
+      this.budget.commands = savedCommands;
+      this.budget.bytes = savedBytes;
+      (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations = savedFsOps;
+      monitor.epoch = savedEpoch;
+      monitor.lazyPipeStatus = savedLazyPipeStatus;
+      rawState.status = savedRawStatus;
+    }
+    syncPurePipelineSlotInUse = true;
   }
 
   private finishFastSingleExternalUnit(
@@ -5861,42 +6043,8 @@ export class Runtime {
     const stderrCap = io.stderr as Capture;
     const firstStageName = (pipeline.commands[0]! as Extract<Command, { kind: "simple" }>).words[0]!.plain!;
     const needsWarm = firstStageName === "find" ? !syncPureFindPipelineWarmed : !syncPurePipelineWarmed;
-    if (needsWarm && this._isMemoryBackingFs && performance.now() - this.budget.startMs < 1) {
-      if (firstStageName === "find") syncPureFindPipelineWarmed = true;
-      else syncPurePipelineWarmed = true;
-      const savedEpoch = monitor.epoch;
-      const savedLazyPipeStatus = monitor.lazyPipeStatus;
-      const savedRawStatus = rawState.status;
-      syncPurePipelineSlotInUse = false;
-      try {
-        for (let w = 0; w < 22; w++) {
-          if (performance.now() - this.budget.startMs > 4) break;
-          const wRes = this.tryExecuteSyncPurePipelineUnit(pipeline, state, rawState, monitor, io, ignored);
-          stdoutCap.resetEmpty();
-          stderrCap.resetEmpty();
-          this.budget.commands = savedCommands;
-          this.budget.bytes = savedBytes;
-          (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations = savedFsOps;
-          monitor.epoch = savedEpoch;
-          monitor.lazyPipeStatus = savedLazyPipeStatus;
-          rawState.status = savedRawStatus;
-          if (!wRes) break;
-          if (wRes instanceof Promise) {
-            wRes.catch(() => {});
-            break;
-          }
-        }
-      } catch {
-        stdoutCap.resetEmpty();
-        stderrCap.resetEmpty();
-        this.budget.commands = savedCommands;
-        this.budget.bytes = savedBytes;
-        (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations = savedFsOps;
-        monitor.epoch = savedEpoch;
-        monitor.lazyPipeStatus = savedLazyPipeStatus;
-        rawState.status = savedRawStatus;
-      }
-      syncPurePipelineSlotInUse = true;
+    if (needsWarm && this._isMemoryBackingFs) {
+      this.warmSyncPurePipelineUnit(firstStageName, pipeline, state, rawState, monitor, io, ignored, stdoutCap, stderrCap, savedCommands, savedBytes, savedFsOps);
     }
     this.budget.enterPipelineStages(n);
     this.budget.commands += n;
@@ -6908,18 +7056,20 @@ export class Runtime {
                   valid = false;
                   break;
                 }
-                if (!syncMkdirRmWarmed && isMkdir && performance.now() - this.budget.startMs < 1) {
+                if (!syncMkdirRmWarmed && isMkdir) {
                   syncMkdirRmWarmed = true;
+                  const warmStart = performance.now();
                   for (let w = 0; w < 12; w++) {
-                    if (performance.now() - this.budget.startMs > 4) break;
+                    if (performance.now() - warmStart > 45) break;
                     tryRmRfMemorySync(this.backingFs, targetPath, this.commandSignal);
                     tryMkdirMemorySync(this.backingFs, targetPath, true, mode, this.commandSignal);
                   }
-                } else if (!syncRmPipelineWarmed && isRmRf && pathCount === 1 && performance.now() - this.budget.startMs < 1) {
+                } else if (!syncRmPipelineWarmed && isRmRf && pathCount === 1) {
                   syncRmPipelineWarmed = true;
                   const savedCmds = this.budget.commands;
+                  const warmStart = performance.now();
                   for (let w = 0; w < 10; w++) {
-                    if (performance.now() - this.budget.startMs > 4) break;
+                    if (performance.now() - warmStart > 45) break;
                     tryMkdirMemorySync(this.backingFs, targetPath, true, mode, this.commandSignal);
                     this.executeSyncPipelineBody(pipeline, command, state, io, ignored);
                     this.budget.commands = savedCmds;
@@ -7908,7 +8058,7 @@ export class Runtime {
       };
       (command as { _cachedForPlan?: CachedForPlan })._cachedForPlan = forPlan;
     }
-    if (!syncForLoopWarmed && redirectCount === 0 && forPlan.allIntStepsReady && performance.now() - this.budget.startMs < 1) {
+    if (!syncForLoopWarmed && redirectCount === 0 && forPlan.allIntStepsReady) {
       syncForLoopWarmed = true;
       const savedVars: Record<string, string | undefined> = {};
       for (const k of forPlan.touchedIntNamesList) savedVars[k] = rawState.variables[k];
@@ -7920,8 +8070,9 @@ export class Runtime {
       this._syncArithRawWriteOnly = prevRawWrite;
       this._syncArithTouched = prevTouched;
       try {
-        for (let w = 0; w < 12; w++) {
-          if (performance.now() - this.budget.startMs > 4) break;
+        const warmStart = performance.now();
+                  for (let w = 0; w < 12; w++) {
+          if (performance.now() - warmStart > 45) break;
           this.trySyncLoop(command, pipeline, rawState, monitor, store, existing, elem0, canMutatePipeStatus, io, diagnosticLine);
           for (const [k, v] of Object.entries(savedVars)) {
             if (v === undefined) delete rawState.variables[k];

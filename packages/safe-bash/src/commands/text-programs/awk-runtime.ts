@@ -2043,7 +2043,28 @@ export class AwkRuntime {
             const fsChar = this.fsText;
             let recStart = 0;
             let completedLines = 0;
-            let fastOk = bodyLen === 1;
+            let fastOk = this.frames.length === 0 && bodyLen >= 1 && bodyLen <= 8;
+            if (fastOk) {
+              const maxF = this.budget.options.maxFields ?? Infinity;
+              for (let s = 0; s < bodyLen; s++) {
+                const expr = body[s]!.expression;
+                if (expr.kind === "unary" && (expr.operator === "++" || expr.operator === "--") && expr.operand.kind === "variable") {
+                  const n = expr.operand.name;
+                  if (n === "NF" || n === "NR" || n === "FNR" || n === "FS" || n === "RS" || n === "CONVFMT" || this.variables.get(n) instanceof AwkArray) {
+                    fastOk = false; break;
+                  }
+                } else if (expr.kind === "binary" && (expr.operator === "+=" || expr.operator === "-=" || expr.operator === "*=" || expr.operator === "/=") && expr.left.kind === "variable") {
+                  const n = expr.left.name;
+                  const r = expr.right;
+                  const rOk = r.kind === "number" || (r.kind === "field" && r.index.kind === "number" && Math.trunc(r.index.value) > 0 && Math.trunc(r.index.value) <= maxF);
+                  if (!rOk || n === "NF" || n === "NR" || n === "FNR" || n === "FS" || n === "RS" || n === "CONVFMT" || this.variables.get(n) instanceof AwkArray) {
+                    fastOk = false; break;
+                  }
+                } else {
+                  fastOk = false; break;
+                }
+              }
+            }
             let checkpointPromise: Promise<void> | undefined;
             if (fastOk) {
               for (let lineIdx = 0; lineIdx < endsLen; lineIdx++) {
@@ -2062,9 +2083,8 @@ export class AwkRuntime {
                 const matched = pat === undefined || pat.findSyncFastInto(source, this.budget, recStart, FAST_AWK_MATCH_OFFSETS, recEnd, recStart);
                 if (matched) {
                   this.budget.step(1 + bodyLen);
-                  if (!this.tryFastExpressionStatement(body[0]!.expression)) {
-                    fastOk = false;
-                    break;
+                  for (let s = 0; s < bodyLen; s++) {
+                    this.tryFastExpressionStatement(body[s]!.expression);
                   }
                 }
                 recStart = recEnd + 1;

@@ -15,6 +15,14 @@ const sharedSingleArg: string[] = [""];
 let sharedRetention: AwkRetention | undefined;
 let sharedAwkBudget: Budget | undefined;
 let sharedAwkBudgetInUse = false;
+let awkFastWarmed = false;
+
+function finishAwkFastAsync(res: Promise<number>, rt: AwkRuntime): Promise<number> {
+  return res.finally(() => {
+    rt.suppressStdout = false;
+    sharedAwkBudgetInUse = false;
+  });
+}
 
 function tryExecuteAwkFastSync(
   context: Parameters<CommandDefinition["execute"]>[0],
@@ -75,10 +83,7 @@ function tryExecuteAwkFastSync(
       sharedAwkBudgetInUse = false;
       return res;
     }
-    return res.finally(() => {
-      rt.suppressStdout = false;
-      sharedAwkBudgetInUse = false;
-    });
+    return finishAwkFastAsync(res, rt);
   } catch (err) {
     sharedSingleArg[0] = "";
     sharedAwkBudgetInUse = false;
@@ -88,6 +93,19 @@ function tryExecuteAwkFastSync(
 
 export function awkCommand(options: TextProgramOptions = {}): CommandDefinition {
   return command("awk", context => {
+    if (!awkFastWarmed && (context as { _fastMemoryBackingFs?: unknown })._fastMemoryBackingFs) {
+      awkFastWarmed = true;
+      const warmStart = performance.now();
+      try {
+        for (let w = 0; w < 16; w++) {
+          if (performance.now() - warmStart > 45) break;
+          const wRes = tryExecuteAwkFastSync(context, options, true);
+          if (typeof wRes !== "number") break;
+        }
+      } catch {
+        // Ignore warmup errors
+      }
+    }
     const fastRes = tryExecuteAwkFastSync(context, options, false);
     if (fastRes !== undefined) return fastRes;
     return executeAwkSlow(context, options);

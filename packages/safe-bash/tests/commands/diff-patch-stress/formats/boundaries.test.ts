@@ -3,6 +3,7 @@ import test from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
 import { diffPatchCommands, type DiffPatchOptions } from "../../../../src/commands/diff-patch/index.js";
 import { Shell } from "../../../../src/shell/index.js";
+import { registerYieldCheckpoint } from "../../../../src/contracts/yield.js";
 import { contents, filesystem, labels, run } from "./helpers.js";
 
 for (const context of [0, 1, 2, 3]) for (let gap = 0; gap <= 8; gap++) {
@@ -47,20 +48,26 @@ for (const flags of [[], ["-C0"]]) for (const options of limits) {
 }
 
 for (const flags of [[], ["-C3"]]) {
-  test(`format cancellation during normalized comparison ${flags[0] ?? "normal"}`, async () => {
+  test(`format cancellation during normalized comparison ${flags[0] ?? "normal"}`, async (t) => {
     const controller = new AbortController();
     const reason = new Error("format cancellation sentinel");
     let writes = 0;
     const old = Array.from({ length: 400 }, (_, index) => `old-${index} \t value\n`).join("");
     const next = Array.from({ length: 400 }, (_, index) => `new-${index}  value\n`).join("");
     const fs = await filesystem({ old, new: next });
-    const timer = setTimeout(() => controller.abort(reason), 1);
-    try {
-      await assert.rejects(run("diff", [...flags, "-w", "old", "new"], {
-        fs, signal: controller.signal, stdout: { async write() { writes++; } },
-      }), error => error === reason);
-      assert.equal(writes, 0);
-    } finally { clearTimeout(timer); }
+    // Make the first work checkpoint due regardless of host/JIT speed. These
+    // short retained reads stay below the work threshold; normalization crosses it.
+    let now = 0, checkpoints = 0;
+    t.mock.method(performance, "now", () => now += 10);
+    registerYieldCheckpoint(controller.signal, () => {
+      checkpoints++;
+      controller.abort(reason);
+    });
+    await assert.rejects(run("diff", [...flags, "-w", "old", "new"], {
+      fs, signal: controller.signal, stdout: { async write() { writes++; } },
+    }), error => error === reason);
+    assert.equal(checkpoints, 1);
+    assert.equal(writes, 0);
   });
 
   test(`format cancellation interrupts blocked stdout ${flags[0] ?? "normal"}`, { timeout: 2000 }, async () => {

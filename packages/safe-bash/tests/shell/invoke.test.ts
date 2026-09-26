@@ -79,6 +79,75 @@ for (const middleware of [false, true]) {
   }
 }
 
+for (const pipeline of [false, true]) test(`built-in host filesystem signal is native: pipeline=${pipeline}`, async () => {
+  const base = new MemoryFileSystem();
+  const errors: unknown[] = [];
+  let calls = 0;
+  const fs = new Proxy(base, { get(target, key) {
+    if (key === "mkdir") return async (...args: Parameters<MemoryFileSystem["mkdir"]>) => {
+      const [path, options] = args;
+      calls++;
+      try {
+        assert.ok(options?.signal);
+        AbortSignal.prototype.throwIfAborted.call(options.signal);
+        const reader = new Response("mkdir").body!.pipeThrough(new TextDecoderStream(), { signal: options.signal }).getReader();
+        assert.deepEqual(await reader.read(), { value: "mkdir", done: false });
+        assert.equal((await reader.read()).done, true);
+      } catch (error) { errors.push(error); throw error; }
+      return target.mkdir(path, options);
+    };
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const shell = new Shell({ fs }).use(agentCommands());
+  try {
+    const result = await shell.exec(pipeline ? "mkdir /native-dir | head -n 1" : "mkdir /native-dir");
+    assert.ok(calls > 0);
+    assert.deepEqual(errors, []);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal((await base.stat("/native-dir")).type, "directory");
+  } finally { await shell.dispose(); }
+});
+
+for (const pipeline of [false, true]) test(`built-in host filesystem cancellation retains the caller reason: pipeline=${pipeline}`, { timeout: 2000 }, async () => {
+  const base = new MemoryFileSystem();
+  const controller = new AbortController();
+  const reason = new Error("cancel native filesystem work");
+  let enter!: () => void;
+  const entered = new Promise<void>(resolve => { enter = resolve; });
+  let publicSignal: AbortSignal | undefined;
+  let abortEvent: Event | undefined;
+  const fs = new Proxy(base, { get(target, key) {
+    if (key === "mkdir") return async (...args: Parameters<MemoryFileSystem["mkdir"]>) => {
+      publicSignal = args[1]?.signal;
+      assert.ok(publicSignal);
+      AbortSignal.prototype.throwIfAborted.call(publicSignal);
+      await new Promise<void>((_resolve, reject) => {
+        publicSignal!.addEventListener("abort", event => {
+          abortEvent = event;
+          reject(publicSignal!.reason);
+        }, { once: true });
+        enter();
+      });
+    };
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const shell = new Shell({ fs }).use(agentCommands());
+  try {
+    const execution = shell.exec(pipeline ? "mkdir /native-dir | head -n 1" : "mkdir /native-dir", { signal: controller.signal });
+    const outcome = assert.rejects(execution, error => error === reason);
+    void outcome.catch(() => undefined);
+    await Promise.race([entered, execution.then(() => assert.fail("host work did not start"))]);
+    controller.abort(reason);
+    await outcome;
+    assert.equal(publicSignal?.aborted, true);
+    assert.equal(publicSignal?.reason, reason);
+    assert.equal(abortEvent?.target, publicSignal);
+    await assert.rejects(base.stat("/native-dir"), { code: "ENOENT" });
+  } finally { controller.abort(reason); await shell.dispose(); }
+});
+
 test("plugin command contexts retain own enumerable capabilities through object spread", async () => {
   const fs = new MemoryFileSystem();
   const shell = new Shell({ fs });

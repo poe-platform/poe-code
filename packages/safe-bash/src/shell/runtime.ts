@@ -5553,7 +5553,7 @@ export class Runtime {
         context.stdin = input;
         if (incoming) context.stdinIsDefault = false;
         context.stdout = stageStdout;
-        context.signal = stageSignal;
+        context.signal = toNativeAbortSignal(stageSignal);
         (context as unknown as { _scopedSignal: AbortSignal })._scopedSignal = stageSignal;
         if (index === 0) _lastPipelineAnchor = [context, stageStdout, input, outgoing];
         if (asyncTasks === undefined) {

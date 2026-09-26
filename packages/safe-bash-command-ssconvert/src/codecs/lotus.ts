@@ -230,8 +230,6 @@ async function lotusFormula(bytes: Uint8Array, version: number, group: number, r
         if (args < 0) { if (at >= bytes.length) break; args = b.u8(at++); }
       }
       const operands: string[] = []; for (let i = 0; i < args; i++) operands.unshift(await pop());
-      if ([0x38, 0x39, 0x3a].includes(op)) operands.push(`-(${operands.shift()!})`);
-      if (op === 0x59) operands.reverse();
       let subtract = 0;
       if (functions === lotusFunctions) {
         // LibreOffice LotusToSc::DoFunc translates Lotus's zero-based positions.
@@ -249,7 +247,35 @@ async function lotusFormula(bytes: Uint8Array, version: number, group: number, r
             break;
           case "STRING": operands.push("TRUE()"); break;
           case "YEAR": subtract = 1900; break;
+          case "PMT": case "PV": case "FV":
+            operands.push(`-(${operands.shift()!})`);
+            break;
+          case "IRR": operands.reverse(); break;
+          case "RATE":
+            if (operands.length === 3) {
+              const [fv, pv, nper] = operands;
+              operands.splice(0, 3, nper!, "0", `-(${pv})`, fv!);
+            }
+            break;
+          case "TERM":
+            name = "NPER";
+            if (operands.length === 3) {
+              const [pmt, rate, fv] = operands;
+              operands.splice(0, 3, rate!, `-(${pmt})`, "0", fv!);
+            }
+            break;
+          case "CTERM":
+            name = "NPER";
+            if (operands.length === 3) {
+              const [rate, fv, pv] = operands;
+              operands.splice(0, 3, rate!, "0", `-(${pv})`, fv!);
+            }
+            break;
         }
+      } else {
+        // Preserve existing Works behavior pending its own source qualification.
+        if ([0x38, 0x39, 0x3a].includes(op)) operands.push(`-(${operands.shift()!})`);
+        if (op === 0x59) operands.reverse();
       }
       const expression = `${name}(${operands.join(",")})`;
       stack.push(subtract ? `(${expression}-${subtract})` : expression);

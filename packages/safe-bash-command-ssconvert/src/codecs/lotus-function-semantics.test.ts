@@ -43,8 +43,14 @@ for (const [version, named] of [[0x404, false], [0x1000, false], [0x1002, true]]
     { name: "REPLACE", opcode: 106, args: ["abcd", 0, 2, "X"], formula: '=REPLACE("abcd",(0+1),2,"X")', value: "Xcd" },
     { name: "FIND", opcode: 76, args: ["b", "abc", 0], formula: '=(FIND("b","abc",(0+1))-1)', value: 1 },
     { name: "STRING", opcode: 72, args: [1234, 2], formula: '=FIXED(1234,2,TRUE())', value: "1234.00" },
+    { name: "PMT", opcode: 56, args: [100, 0, 10], formula: '=PMT(0,10,-(100))', value: 10 },
+    { name: "PV", opcode: 57, args: [10, 0, 10], formula: '=PV(0,10,-(10))', value: 100 },
+    { name: "FV", opcode: 58, args: [10, 0, 10], formula: '=FV(0,10,-(10))', value: 100 },
+    { name: "RATE", opcode: 116, args: [200, 100, 1], formula: '=RATE(1,0,-(100),200)', value: 1 },
+    { name: "TERM", opcode: 117, args: [10, 0, 100], formula: '=NPER(0,-(10),0,100)', value: 10 },
+    { name: "CTERM", opcode: 118, args: [1, 200, 100], formula: '=NPER(1,0,-(100),200)', value: 1 },
   ])(`imports Lotus $name argument conventions (version ${version}, named ${named})`, async item => {
-    // LibreOffice LotusToSc::DoFunc adjusts zero-based indices and disables FIXED grouping.
+    // LibreOffice DoFunc and Gnumeric wk1_fin_func define these operand conversions.
     const tokens = item.args.flatMap(arg => typeof arg === "number"
       ? [5, ...word(version >= 0x1000 ? arg * 2 : arg)]
       : [6, ...Array.from(arg, c => c.charCodeAt(0)), 0]);
@@ -54,6 +60,20 @@ for (const [version, named] of [[0x404, false], [0x1000, false], [0x1002, true]]
     const book = await readLotus(formulaFixture(version, tokens), context);
     expect(book.sheets[0]!.cells[0]!.formula).toBe(item.formula);
     const result = recalculateWorkbook(book, context, true);
-    expect(result.sheets[0]!.cells[0]!.value).toEqual({ kind: typeof item.value === "number" ? "number" : "string", value: item.value });
+    expect(result.sheets[0]!.cells[0]!.value).toEqual(typeof item.value === "number"
+      ? { kind: "number", value: expect.closeTo(item.value, 12) } : { kind: "string", value: item.value });
   });
 }
+
+it.each([false, true])("imports Lotus IRR guess/range order (named %s)", async named => {
+  const name = Array.from("@<<@123>>IRR(", c => c.charCodeAt(0));
+  const tokens = [5, ...word(2), 2, 0, ...word(1), 0, 0, ...word(2), 0, 0,
+    ...(named ? [0x7a, 2, ...word(name.length), ...name] : [89]), 3];
+  const initial = formulaFixture(0x1002, tokens);
+  const cells = [-100, 200].flatMap((value, index) => record(25,
+    [...word(index + 1), 0, 0, ...Array<number>(10).fill(0), 5, ...word(Math.abs(value) * 2), ...(value < 0 ? [14] : []), 3]));
+  const book = await readLotus(Uint8Array.from([...initial.subarray(0, -4), ...cells, ...record(1)]), context);
+  expect(book.sheets[0]!.cells[0]!.formula).toBe("=IRR($A$2:$A$3,1)");
+  expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value)
+    .toEqual({ kind: "number", value: expect.closeTo(1, 12) });
+});

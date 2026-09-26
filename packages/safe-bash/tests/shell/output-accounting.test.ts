@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { Shell, ShellLimitError, agentCommands, createMemoryFileSystem, writeText } from "../../src/index.js";
+import { CommandRegistry, Shell, ShellLimitError, agentCommands, createMemoryFileSystem, createStandardCommands, writeText } from "../../src/index.js";
 import type { CommandContext } from "../../src/contracts/index.js";
 
 function setup() {
@@ -12,6 +12,20 @@ function setup() {
   return { shell, calls };
 }
 const limitError = (error: unknown) => error instanceof ShellLimitError && error.limit === "maxOutputBytes";
+
+for (const channel of ["stdout", "stderr"] as const) test(`root external ${channel} charges capture and delivery once`, async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry(createStandardCommands()) });
+  context.after(() => shell.dispose());
+  let delivered = "";
+  const sink = { async write(chunk: Uint8Array) { delivered += Buffer.from(chunk).toString(); } };
+  const source = `printf 1234${channel === "stderr" ? " >&2" : ""}`;
+  const result = await shell.exec(source, { limits: { maxOutputBytes: 4 }, [channel]: sink });
+  assert.equal(result[channel], "1234");
+  assert.equal(delivered, "1234");
+  delivered = "";
+  await assert.rejects(shell.exec(source, { limits: { maxOutputBytes: 3 }, [channel]: sink }), limitError);
+  assert.equal(delivered, "");
+});
 
 for (const [source, required] of [["printf 1234", 4], ["env -i printf 1234", 4], ["bridge", 4], ["outer", 4], ["env -i printf 1234 | cat", 8]] as const) {
   for (const allowed of [true, false]) test(`actual command ${source} limit ${required - (allowed ? 0 : 1)}`, async () => {

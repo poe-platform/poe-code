@@ -479,8 +479,8 @@ export class Shell implements PluginHost {
     budget.source(Buffer.byteLength(source));
     budget.signal.throwIfAborted();
     scope.setActiveBudget(budget);
-    const stdout = new Capture(budget, budget.signal);
-    const stderr = new Capture(budget, budget.signal);
+    const stdout = new Capture(options.stdout === undefined ? budget : undefined, budget.signal);
+    const stderr = new Capture(options.stderr === undefined ? budget : undefined, budget.signal);
     let stdin: ShellInput | undefined;
     let unregisterStdin: (() => void) | undefined;
     if (options.stdin !== undefined && typeof options.stdin !== "string" && !(options.stdin instanceof Uint8Array)) {

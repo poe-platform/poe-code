@@ -368,7 +368,7 @@ test("Shell cat reads required-method-only catalog and persisted-memory mounts",
     assert.equal(result.stdout, "buffered\npersisted\n");
     for (const read of [inputRead, memoryRead]) {
       assert.equal(read.mock.callCount(), 1);
-      assert.equal(read.mock.calls[0]!.arguments[1]?.maxBytes, bufferLimit);
+      assert.equal(read.mock.calls[0]!.arguments[1]?.maxBytes, undefined);
       assert.ok(read.mock.calls[0]!.arguments[1]?.signal instanceof AbortSignal);
     }
     const denied = await shell.exec("printf changed > /inputs/note");
@@ -490,7 +490,7 @@ test("input can still fall back on a producer ENOTSUP after an empty chunk", asy
 test("buffered fallback preserves canonical read errors and the mounted path", async (suite) => {
   const backend = await bufferedBackend();
   const read = suite.mock.method(backend, "readFile", async (_path: string, options?: ReadFileOptions) => {
-    assert.equal(options?.maxBytes, bufferLimit);
+    assert.equal(options?.maxBytes, undefined);
     throw new FsError("EFBIG", { syscall: "readFile", path: "/note" });
   });
   const fs = createMountFileSystem({ root: new MemoryFileSystem(), mounts: { "/data": backend } });
@@ -499,10 +499,12 @@ test("buffered fallback preserves canonical read errors and the mounted path", a
   assert.equal(read.mock.callCount(), 1);
 });
 
-test("buffered input rejects an oversized result before yielding it", async (suite) => {
+test("buffered input leaves finite admission to its caller", async (suite) => {
   const fs = await bufferedBackend();
-  suite.mock.method(fs, "readFile", async () => new Uint8Array(bufferLimit + 1));
-  await assert.rejects(input(context(fs), "/note")[Symbol.asyncIterator]().next(), { code: "EFBIG" });
+  const bytes = Uint8Array.of(1, 2, 3, 4, 5, 6, 7, 8, 9);
+  suite.mock.method(fs, "readFile", async () => bytes);
+  assert.deepEqual(await collectBytes(input(context(fs), "/note"), {}), bytes);
+  await assert.rejects(fileInput(fs, "/note", 8, new AbortController().signal), { code: "EFBIG" });
 });
 
 test("Shell output limits still apply to buffered mounted input", async (suite) => {

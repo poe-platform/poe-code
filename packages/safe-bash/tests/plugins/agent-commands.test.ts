@@ -75,10 +75,11 @@ for (const configured of regexConfigurations) {
 
 test("agent regex capabilities still reject invalid explicit limits", () => {
   const invalid: NonNullable<AgentCommandsOptions["regex"]>[] = [{ requestTimeoutMs: 0 }, { startupTimeoutMs: 2147483648 },
-    { maxWorkers: -1 }, { maxQueuedRequests: -1 }, { maxQueuedBytes: NaN }, { idleTimeoutMs: Infinity }];
+    { maxWorkers: -1 }, { maxQueuedRequests: -1 }, { maxQueuedBytes: NaN }, { idleTimeoutMs: -Infinity }];
   for (const regex of invalid) {
     assert.throws(() => agentCommands({ regex }), RangeError);
   }
+  assert.doesNotThrow(() => agentCommands({ regex: { idleTimeoutMs: Infinity } }));
 });
 
 test("default fold counting flags use the last requested mode in UTF-8", async t => {

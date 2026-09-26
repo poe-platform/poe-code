@@ -3,10 +3,11 @@ import { EventEmitter } from "node:events";
 import test from "node:test";
 import { toByteSource, type ByteSource, type CommandContext } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { bufferLimit } from "../../../src/commands/internal.js";
 import { RegexExecutor } from "../../../src/commands/regex-execution/portable.js";
 import type { RegexWorkerRequest } from "../../../src/commands/regex-execution/provider.js";
 import { createGrepCommands, type GrepLimits } from "../../../src/commands/search/grep.js";
+
+const patternByteLimit = 32 * 1024 * 1024;
 
 async function run(args: readonly string[], overrides: Partial<CommandContext> = {}, limits: GrepLimits = {}) {
   const messages: RegexWorkerRequest[] = [];
@@ -32,7 +33,7 @@ async function run(args: readonly string[], overrides: Partial<CommandContext> =
     stderr: { async write(bytes) { errors.push(bytes.slice()); } }, ...overrides,
   };
   try {
-    const result = await createGrepCommands(executor, { maxPatterns: 1024, maxPatternBytes: bufferLimit, ...limits })[0]!.execute(context);
+    const result = await createGrepCommands(executor, { maxPatterns: 1024, maxPatternBytes: patternByteLimit, ...limits })[0]!.execute(context);
     return { code: result.exitCode, stderr: Buffer.concat(errors).toString(), messages, created: workers.length };
   } finally {
     await executor.dispose();
@@ -168,7 +169,7 @@ test("grep owns retained fragments from a reused pattern input buffer", { timeou
 
 test("grep cumulatively rejects oversized pattern bytes before dispatch", { timeout: 5000 }, async () => {
   let closed = false;
-  const oversized = new Uint8Array(bufferLimit);
+  const oversized = new Uint8Array(patternByteLimit);
   const stdin: ByteSource = (async function* () { try { yield oversized; } finally { closed = true; } })();
   const result = await run(["-e", "é", "-f", "-"], { stdin });
   assert.equal(result.code, 2);
@@ -197,12 +198,12 @@ for (const excess of [0, 1]) test(`grep cumulative UTF-8 byte boundary plus ${ex
     assert.equal(result.stderr, "");
     const patterns = (result.messages[0]!.descriptor as { patterns: readonly string[] }).patterns;
     assert.equal(patterns.length, 1024);
-    assert.equal(patterns.reduce((total, pattern) => total + pattern.length, 0) + 1022, bufferLimit);
+    assert.equal(patterns.reduce((total, pattern) => total + pattern.length, 0) + 1022, patternByteLimit);
   }
 });
 
 test("grep rejects oversized UTF-8 argv before reading pattern files", { timeout: 5000 }, async () => {
-  const result = await run(["-e", "é".repeat(bufferLimit / 2 + 1), "-f", "/must-not-open"]);
+  const result = await run(["-e", "é".repeat(patternByteLimit / 2 + 1), "-f", "/must-not-open"]);
   assert.equal(result.code, 2);
   assert.match(result.stderr, /pattern byte limit exceeded/u);
   assert.equal(result.created, 0);

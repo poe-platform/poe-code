@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { bufferLimit, lines } from "../../src/commands/internal.js";
+import { lines } from "../../src/commands/internal.js";
 import { RecordBuffer } from "../../src/commands/record-buffer.js";
 import { SortRecordBudget } from "../../src/commands/sort-admission.js";
 import { FsError, type ByteSource } from "../../src/contracts/index.js";
@@ -309,12 +309,13 @@ for (const args of [[], ["-c"]]) {
   ]) {
     test(`sort ${args.join(" ")} retains delimiter admission: ${specimen.name} (synthetic prior charge)`, async context => {
       const admit = SortRecordBudget.prototype.admit;
+      const bounded = new SortRecordBudget(Infinity, 8);
       const admitted: number[] = [];
       let calls = 0;
       let closed = false;
       let reads = 0;
       context.mock.method(SortRecordBudget.prototype, "admit", function(this: SortRecordBudget, size: number) {
-        admit.call(this, calls++ === 0 ? bufferLimit - 2 : size);
+        admit.call(bounded, calls++ === 0 ? 6 : size);
         admitted.push(size);
       });
       async function* source(): ByteSource {

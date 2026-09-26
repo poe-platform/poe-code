@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { FsError, type ByteSource } from "../../src/contracts/index.js";
-import { bufferLimit, collect, lines } from "../../src/commands/internal.js";
+import { collect, lines } from "../../src/commands/internal.js";
 
 function borrowed(kind: "Buffer" | "Uint8Array", payloads: readonly number[][], events: string[]): ByteSource {
   const backing = kind === "Buffer" ? Buffer.alloc(12, 0x7e) : new Uint8Array(12).fill(0x7e);
@@ -99,19 +99,23 @@ test("collect and lines propagate source failure without changing the error", as
   assert.equal(finalized, 2);
 });
 
-test("lines preserves the existing byte limit at the exact boundary and overflow", async () => {
-  const bytes = Buffer.alloc(bufferLimit, 65);
+test("lines preserves caller admission at the exact boundary and overflow", async () => {
+  const maximum = 8;
+  const bytes = Buffer.alloc(maximum, 65);
+  const admit = (size: number) => {
+    if (size > maximum) throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
+  };
   let finalized = 0;
   async function* source(extra: number): ByteSource {
     try { yield bytes; yield Buffer.from([extra]); }
     finally { finalized++; }
   }
   const records = [];
-  for await (const line of lines(source(10))) records.push(line);
+  for await (const line of lines(source(10), 10, admit)) records.push(line);
   assert.equal(records.length, 1);
   assert.equal(records[0]!.terminated, true);
   assert.deepEqual(records[0]!.bytes, new Uint8Array(bytes));
-  await assert.rejects(async () => { for await (const line of lines(source(65))) assert.fail(String(line)); }, error => {
+  await assert.rejects(async () => { for await (const line of lines(source(65), 10, admit)) assert.fail(String(line)); }, error => {
     assert.ok(error instanceof FsError);
     assert.equal(error.code, "EFBIG");
     assert.equal(error.message, "EFBIG: line buffer limit exceeded");
@@ -119,4 +123,8 @@ test("lines preserves the existing byte limit at the exact boundary and overflow
   });
   assert.equal(finalized, 2);
   assert.equal(bytes.every(byte => byte === 65), true);
+  const unlimited = [];
+  for await (const line of lines(source(65))) unlimited.push(line);
+  assert.deepEqual(unlimited, [{ bytes: new Uint8Array(maximum + 1).fill(65), terminated: false }]);
+  assert.equal(finalized, 3);
 });

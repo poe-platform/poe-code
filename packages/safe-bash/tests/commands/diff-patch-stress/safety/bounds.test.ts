@@ -67,7 +67,7 @@ test("repeated headers hit the section budget before any target read", async () 
   await assertBytes(backing, "target", "old\n");
 });
 
-for (const invalid of [0, -1, 1.5, Number.POSITIVE_INFINITY, Number.NaN, Number.MAX_SAFE_INTEGER + 1]) {
+for (const invalid of [0, -1, 1.5, Number.NEGATIVE_INFINITY, Number.NaN, Number.MAX_SAFE_INTEGER + 1]) {
   test(`invalid configured limit ${String(invalid)} has no filesystem effects`, async () => {
     const backing = await memory();
     for (const option of ["maxInputBytes", "maxOutputBytes", "maxLines", "maxFiles", "maxHunks", "maxWork", "maxMatrixCells"] as const) {
@@ -78,6 +78,18 @@ for (const invalid of [0, -1, 1.5, Number.POSITIVE_INFINITY, Number.NaN, Number.
     }
   });
 }
+
+test("explicit unlimited patch limits preserve the ordinary replacement", async () => {
+  const backing = await memory({ target: "old\n" });
+  const observed = instrument(backing);
+  const result = await invoke(observed.fs, "patch", { input: replacement(), options: {
+    maxInputBytes: Infinity, maxOutputBytes: Infinity, maxLines: Infinity, maxFiles: Infinity,
+    maxHunks: Infinity, maxWork: Infinity, maxMatrixCells: Infinity,
+  } });
+  assert.equal(result.exitCode, 0, result.stderr);
+  await assertBytes(backing, "target", "new\n");
+  assert.deepEqual([...new Set(observed.mutations().map(call => call.path))], [`${cwd}/target`]);
+});
 
 test("atomic extension bounded work-limit sweep covers preflight, partial-commit and success states", { timeout: 10000 }, async () => {
   const states = new Set<string>();

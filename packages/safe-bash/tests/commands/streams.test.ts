@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { agentCommands, FsError, Shell, standardCommands, type ByteSource, type FileSystem, type WriteFileOptions } from "../../src/index.js";
-import { bufferLimit } from "../../src/commands/internal.js";
+import { agentCommands, FsError, Shell, ShellLimitError, standardCommands, type ByteSource, type FileSystem, type WriteFileOptions } from "../../src/index.js";
 import { streamCommands } from "../../src/commands/streams.js";
 import { chunks, fixture, run } from "./helpers.js";
 
@@ -152,18 +151,24 @@ for (const kind of ["Buffer", "Uint8Array"] as const) {
   }
 }
 
-test("tail preserves its retained byte limit and finalizes the source", async () => {
-  const bytes = Buffer.alloc(bufferLimit + 1, 65);
+test("tail preserves explicit shell output admission and finalizes the source", async () => {
+  const bytes = Buffer.alloc(9, 65);
   let finalized = false;
   const stdin = (async function* () {
     try { yield bytes; }
     finally { assert.equal(bytes.every(byte => byte === 65), true); finalized = true; }
   })();
-  const result = await run("tail", ["-c", String(bufferLimit + 1)], { stdin });
-  assert.equal(result.exitCode, 1);
-  assert.equal(result.stdout, "");
-  assert.equal(result.stderr, "tail: EFBIG: tail buffer limit exceeded\n");
+  const shell = new Shell({ fs: await fixture(), limits: { maxOutputBytes: 8 } }).use(standardCommands());
+  const written: Uint8Array[] = [];
+  try {
+    await assert.rejects(shell.exec("tail -c 9", { stdin, stdout: { async write(chunk) { written.push(chunk.slice()); } } }),
+      error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
+  } finally { await shell.dispose(); }
+  assert.deepEqual(written, []);
   assert.equal(finalized, true);
+  const unlimited = await run("tail", ["-c", "9"], { stdin: bytes });
+  assert.equal(unlimited.exitCode, 0, unlimited.stderr);
+  assert.deepEqual(unlimited.stdoutBytes, bytes);
 });
 
 for (const action of ["accept", "cancel", "reject"] as const) {

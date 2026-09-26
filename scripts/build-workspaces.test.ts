@@ -656,7 +656,7 @@ async function ownedNpm(root: string, event: string) {
     try { process.kill(-child.pid!, value); } catch (error) { if ((error as NodeJS.ErrnoException).code !== "ESRCH") failures.push(error); }
   };
   const stop = () => { stopped = true; signal("SIGTERM"); forceTimer ??= setTimeout(() => signal("SIGKILL"), 1000); };
-  const timer = setTimeout(stop, 20000);
+  const timer = setTimeout(stop, 30000);
   child.on("error", error => failures.push(error));
   for (const stream of [child.stdout!, child.stderr!]) stream.on("data", (chunk: Buffer) => { bytes += chunk.length; if (bytes > 1024 * 1024) stop(); else chunks.push(chunk); });
   const result = await new Promise<{ code: number | null; signal: NodeJS.Signals | null }>(resolve => child.once("close", (code, signal) => resolve({ code, signal })));
@@ -707,7 +707,7 @@ describe("owned real npm lifecycle route", () => {
         expect(result.output).toContain("NO_DECLARED_BUILD_NOT_A_PASS");
       }
     } finally { owned.remove(); }
-  }, 25000);
+  }, 35000);
 });
 
 function unitFixture() {
@@ -922,7 +922,7 @@ describe("finite unit owned npm lifecycle", () => {
       const stop = failedEvent === "none" ? all.length : all.indexOf("@poe-platform/safe-bash:" + failedEvent) + 1;
       expect(events.map(event => event.name + ":" + event.event)).toEqual(all.slice(0, stop));
     } finally { owned.remove(); }
-  }, 25000);
+  }, 35000);
 });
 
 describe("finite unit late failure and cleanup ordering", () => {

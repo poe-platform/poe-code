@@ -994,6 +994,34 @@ export function subscribeCancellation(
   return addSubscriber(state, callback);
 }
 
+export interface CancellationOwnerSubscriber {
+  readonly kind: "callback";
+  active: boolean;
+  callback(origin: CancellationOrigin): void;
+}
+
+export function subscribeCancellationOwner(
+  boundary: CancellationBoundary,
+  subscriber: CancellationOwnerSubscriber,
+): void {
+  const state = boundary[boundaryState];
+  if (state.kind === "borrow") throw new TypeError("Borrowed cancellation boundaries cannot own subscriptions");
+  if (state.closed) throw state.closedReason;
+  ensureCapacity(state);
+  subscriber.active = true;
+  state.resourcesUsed++;
+  insertSubscriberEntry(state, subscriber);
+}
+
+export function unsubscribeCancellationOwner(
+  boundary: CancellationBoundary,
+  subscriber: CancellationOwnerSubscriber,
+): void {
+  const state = boundary[boundaryState];
+  if (state.kind === "borrow") return;
+  deactivateSubscriber(state, subscriber, true);
+}
+
 export function admitCancellationSubscriptionCapacity(boundary: CancellationBoundary): void {
   const state = boundary[boundaryState];
   if (state.kind === "borrow") throw new TypeError("Borrowed cancellation boundaries cannot own subscriptions");

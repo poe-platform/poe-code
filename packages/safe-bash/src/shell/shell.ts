@@ -21,10 +21,10 @@ import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellExecOptions, ShellOptions, ShellResult, ShellSession, ShellSessionState } from "./types.js";
 import { InvocationScope, invocationScope, throwCleanupFailures } from "./cleanup.js";
 import {
-  createRootCancellationLink, selectRuntimeCancellationOutcome, subscribeCancellation,
+  createRootCancellationLink, selectRuntimeCancellationOutcome, subscribeCancellationOwner, unsubscribeCancellationOwner,
 } from "./cancellation.js";
 import type {
-  CancellationBoundary, CancellationOrigin, CancellationSelection, CapturedCancellationOutcome,
+  CancellationBoundary, CancellationOrigin, CancellationOwnerSubscriber, CancellationSelection, CapturedCancellationOutcome,
 } from "./cancellation.js";
 
 const EMPTY_CAPTURED_EXTENSIONS = captureShellExtensions([]);
@@ -69,7 +69,71 @@ function getSourceParseCache(source: string): SourceParseCache {
   return entry;
 }
 
-class RootInvocationCancellationOwner {
+interface ParseUnitState {
+  lineIndex: SourceLineIndex | undefined;
+  lineIndexUnits: number;
+  currentCachedUnit: CachedParsedUnit | undefined;
+}
+
+function getOrParseUnitFromCache(
+  source: string,
+  offset: number,
+  unitLocale: boolean,
+  sourceCache: SourceParseCache | undefined,
+  parseState: ParseUnitState,
+  budget: Budget,
+  syntax: ReturnType<typeof captureShellExtensions>["syntax"],
+): ReturnType<typeof parseShellUnit> {
+  let cached: CachedParsedUnit | undefined;
+  if (sourceCache !== undefined) {
+    if (offset === 0) {
+      cached = unitLocale ? sourceCache.first1 : sourceCache.first0;
+    } else if (parseState.currentCachedUnit && parseState.currentCachedUnit.locale === unitLocale && parseState.currentCachedUnit.nextCached?.offset === offset) {
+      cached = parseState.currentCachedUnit.nextCached;
+    } else {
+      const map = unitLocale ? sourceCache.byOffset1 : sourceCache.byOffset0;
+      cached = map?.get(offset);
+    }
+  }
+  if (cached) {
+    if (parseState.currentCachedUnit && parseState.currentCachedUnit.locale === unitLocale && parseState.currentCachedUnit.unit.next === offset) {
+      parseState.currentCachedUnit.nextCached = cached;
+    }
+    parseState.currentCachedUnit = cached;
+    budget.parsing.admit(cached.unitsCharged);
+    return cached.unit;
+  }
+  const beforeLineIdx = budget.parsing.admittedUnits;
+  if (!parseState.lineIndex) {
+    parseState.lineIndex = new SourceLineIndex(source, budget.parsing);
+    parseState.lineIndexUnits = budget.parsing.admittedUnits - beforeLineIdx;
+  }
+  const beforeParse = budget.parsing.admittedUnits;
+  const parsed = parseShellUnit(source, offset, unitLocale, budget.parsing, parseState.lineIndex, undefined, false, syntax);
+  const parseUnits = budget.parsing.admittedUnits - beforeParse;
+  const unitsCharged = (offset === 0 ? parseState.lineIndexUnits : 0) + parseUnits;
+  if (sourceCache !== undefined && (!parsed.script.warnings || parsed.script.warnings.length === 0)) {
+    const created: CachedParsedUnit = { offset, unit: parsed, unitsCharged, locale: unitLocale };
+    if (offset === 0) {
+      if (unitLocale) sourceCache.first1 = created;
+      else sourceCache.first0 = created;
+    } else {
+      const map = unitLocale ? (sourceCache.byOffset1 ??= new Map()) : (sourceCache.byOffset0 ??= new Map());
+      if (map.size < 512) map.set(offset, created);
+    }
+    if (parseState.currentCachedUnit && parseState.currentCachedUnit.locale === unitLocale && parseState.currentCachedUnit.unit.next === offset) {
+      parseState.currentCachedUnit.nextCached = created;
+    }
+    parseState.currentCachedUnit = created;
+  } else {
+    parseState.currentCachedUnit = undefined;
+  }
+  return parsed;
+}
+
+class RootInvocationCancellationOwner implements CancellationOwnerSubscriber {
+  declare readonly kind: "callback";
+  declare active: boolean;
   declare readonly scope: InvocationScope;
   declare private _finalized: Promise<void> | undefined;
   declare private _resolveFinalized: (() => void) | undefined;
@@ -80,22 +144,10 @@ class RootInvocationCancellationOwner {
   declare private _rawPromise: Promise<any> | undefined;
   declare private _settled: boolean;
   declare private _queuedOrigin: boolean;
-  declare private _detach: (() => void) | undefined;
   declare private _finished: boolean;
 
   constructor(scope: InvocationScope) {
     this.scope = scope;
-    this._finalized = undefined;
-    this._resolveFinalized = undefined;
-    this._admissionOpen = true;
-    this._boundary = undefined;
-    this._observedOrigin = undefined;
-    this._resolveCapture = undefined;
-    this._rawPromise = undefined;
-    this._settled = false;
-    this._queuedOrigin = false;
-    this._detach = undefined;
-    this._finished = false;
     scope.setOwner(this);
   }
 
@@ -111,14 +163,14 @@ class RootInvocationCancellationOwner {
   activate(boundary: CancellationBoundary): void {
     if (!this._admissionOpen) throw new Error("Root cancellation admission is closed");
     this._boundary = boundary;
-    this._detach = subscribeCancellation(boundary, origin => { this._onCancellation(origin); });
+    subscribeCancellationOwner(boundary, this);
   }
 
   assertAdmissionOpen(): void {
     if (!this._admissionOpen) throw new Error("Root cancellation admission is closed");
   }
 
-  private _onCancellation(origin: CancellationOrigin): void {
+  callback(origin: CancellationOrigin): void {
     if (!this._resolveCapture || this._settled || this._queuedOrigin) return;
     this._queuedOrigin = true;
     queueMicrotask(() => {
@@ -132,23 +184,29 @@ class RootInvocationCancellationOwner {
     });
   }
 
+  private _settleReturn(value: unknown): void {
+    if (this._settled) return;
+    this._settled = true;
+    const resolve = this._resolveCapture;
+    this._resolveCapture = undefined;
+    resolve?.({ kind: "return", value });
+  }
+
+  private _settleThrow(reason: unknown): void {
+    if (this._settled) return;
+    this._settled = true;
+    const resolve = this._resolveCapture;
+    this._resolveCapture = undefined;
+    resolve?.({ kind: "throw", reason });
+  }
+
   capture<Value>(raw: Promise<Value>): Promise<CapturedCancellationOutcome<Value>> {
     this._rawPromise = raw;
     return new Promise(resolve => {
       this._resolveCapture = resolve;
       void raw.then(
-        value => {
-          if (this._settled) return;
-          this._settled = true;
-          this._resolveCapture = undefined;
-          resolve({ kind: "return", value });
-        },
-        reason => {
-          if (this._settled) return;
-          this._settled = true;
-          this._resolveCapture = undefined;
-          resolve({ kind: "throw", reason });
-        },
+        value => { this._settleReturn(value); },
+        reason => { this._settleThrow(reason); },
       );
       if (this._settled) void raw.catch(() => undefined);
     });
@@ -159,14 +217,29 @@ class RootInvocationCancellationOwner {
     this._finished = true;
     this._admissionOpen = false;
     try {
-      try { this._detach?.(); } catch (error) { this.scope.failures.push(error); }
-      this._detach = undefined;
+      if (this._boundary && this.active) {
+        try { unsubscribeCancellationOwner(this._boundary, this); } catch (error) { this.scope.failures.push(error); }
+      }
       const close = this._boundary!.close();
       if (close.failures.length > 0) this.scope.failures.push(...close.failures);
       return selectRuntimeCancellationOutcome(this._boundary!, captured, this._observedOrigin);
     } finally { this._resolveFinalized?.(); }
   }
 }
+Object.assign(RootInvocationCancellationOwner.prototype, {
+  kind: "callback",
+  active: false,
+  _finalized: undefined,
+  _resolveFinalized: undefined,
+  _admissionOpen: true,
+  _boundary: undefined,
+  _observedOrigin: undefined,
+  _resolveCapture: undefined,
+  _rawPromise: undefined,
+  _settled: false,
+  _queuedOrigin: false,
+  _finished: false,
+});
 
 function createInvocationSink(budget: Budget, capture: Capture, external?: ByteSink): ByteSink {
   if (external === undefined) return budget.sink(capture);
@@ -199,7 +272,12 @@ export class Shell implements PluginHost {
   #defaultIoCapabilities: Readonly<Record<string, unknown>> | undefined;
   #defaultRuntimeFs: ShellOptions["fs"] | undefined;
   #hasCustomCommands = false;
-  readonly #active = new Set<{ scope: InvocationScope; budget: Budget; owner: RootInvocationCancellationOwner }>();
+  #hasInitialEnv = false;
+  #initialLocale = true;
+  #singleActiveScope: InvocationScope | undefined;
+  #singleActiveBudget: Budget | undefined;
+  #singleActiveOwner: RootInvocationCancellationOwner | undefined;
+  #active: Set<{ scope: InvocationScope; budget: Budget; owner: RootInvocationCancellationOwner }> | undefined;
 
   constructor(options: ShellOptions) {
     if (!options?.fs) throw new TypeError("Shell requires an explicit filesystem");
@@ -215,6 +293,7 @@ export class Shell implements PluginHost {
     if (options.env) {
       for (const [name, value] of Object.entries(options.env)) {
         if (name.includes("\0") || name.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid environment entry");
+        this.#hasInitialEnv = true;
       }
     }
     const resolvedLimits = resolveLimits(options.limits);
@@ -225,6 +304,7 @@ export class Shell implements PluginHost {
       extensions.push(jobsExtension());
     }
     this.#options = { ...options, extensions, cwd: resolvePath("/", options.cwd ?? "/"), env: { ...options.env }, limits: { ...options.limits, ...(commandLimits === undefined ? {} : { commandLimits }) } };
+    this.#initialLocale = byteLocale(this.#options.env ?? {});
     this.commands = commands;
   }
 
@@ -332,8 +412,24 @@ export class Shell implements PluginHost {
       cancellationState.close();
       throw error;
     }
-    const active = { scope, budget, owner };
-    this.#active.add(active);
+    let activeEntry: { scope: InvocationScope; budget: Budget; owner: RootInvocationCancellationOwner } | undefined;
+    if (!this.#singleActiveScope && !this.#active) {
+      this.#singleActiveScope = scope;
+      this.#singleActiveBudget = budget;
+      this.#singleActiveOwner = owner;
+    } else {
+      if (!this.#active) {
+        this.#active = new Set();
+        if (this.#singleActiveScope) {
+          this.#active.add({ scope: this.#singleActiveScope, budget: this.#singleActiveBudget!, owner: this.#singleActiveOwner! });
+          this.#singleActiveScope = undefined;
+          this.#singleActiveBudget = undefined;
+          this.#singleActiveOwner = undefined;
+        }
+      }
+      activeEntry = { scope, budget, owner };
+      this.#active.add(activeEntry);
+    }
     let captured: CapturedCancellationOutcome<ShellResult>;
     try {
       captured = await owner.capture(this.#execute(source, options, scope, budget, boundary, cancellationState, owner, admission));
@@ -350,7 +446,13 @@ export class Shell implements PluginHost {
     }
     const selection = owner.finish(captured);
     cancellationState.close();
-    this.#active.delete(active);
+    if (activeEntry) {
+      this.#active!.delete(activeEntry);
+    } else if (this.#singleActiveScope === scope) {
+      this.#singleActiveScope = undefined;
+      this.#singleActiveBudget = undefined;
+      this.#singleActiveOwner = undefined;
+    }
     if (selection.outcome.kind === "throw") throw selection.outcome.reason;
     if (scope.hasFailures) throwCleanupFailures(scope.failures);
     return selection.outcome.value;
@@ -404,61 +506,23 @@ export class Shell implements PluginHost {
           ? EMPTY_CAPTURED_EXTENSIONS
           : captureShellExtensions(rawExtensions);
         const locale = options.env === undefined
-          ? byteLocale(this.#options.env ?? {})
-          : (this.#options.env === undefined ? byteLocale(options.env) : byteLocale({ ...this.#options.env, ...options.env }));
+          ? this.#initialLocale
+          : (!this.#hasInitialEnv ? byteLocale(options.env) : byteLocale({ ...this.#options.env, ...options.env }));
         const canCacheParse = extensions === EMPTY_CAPTURED_EXTENSIONS && source.length <= 16384;
         const sourceCache = canCacheParse ? getSourceParseCache(source) : undefined;
-        let lineIndex: SourceLineIndex | undefined;
-        let lineIndexUnits = 0;
-        let currentCachedUnit: CachedParsedUnit | undefined;
-        const getOrParseUnit = (offset: number, unitLocale: boolean): ReturnType<typeof parseShellUnit> => {
-          let cached: CachedParsedUnit | undefined;
-          if (sourceCache !== undefined) {
-            if (offset === 0) {
-              cached = unitLocale ? sourceCache.first1 : sourceCache.first0;
-            } else if (currentCachedUnit && currentCachedUnit.locale === unitLocale && currentCachedUnit.nextCached?.offset === offset) {
-              cached = currentCachedUnit.nextCached;
-            } else {
-              const map = unitLocale ? sourceCache.byOffset1 : sourceCache.byOffset0;
-              cached = map?.get(offset);
-            }
-          }
-          if (cached) {
-            if (currentCachedUnit && currentCachedUnit.locale === unitLocale && currentCachedUnit.unit.next === offset) {
-              currentCachedUnit.nextCached = cached;
-            }
-            currentCachedUnit = cached;
-            budget.parsing.admit(cached.unitsCharged);
-            return cached.unit;
-          }
-          const beforeLineIdx = budget.parsing.admittedUnits;
-          if (!lineIndex) {
-            lineIndex = new SourceLineIndex(source, budget.parsing);
-            lineIndexUnits = budget.parsing.admittedUnits - beforeLineIdx;
-          }
-          const beforeParse = budget.parsing.admittedUnits;
-          const parsed = parseShellUnit(source, offset, unitLocale, budget.parsing, lineIndex, undefined, false, extensions.syntax);
-          const parseUnits = budget.parsing.admittedUnits - beforeParse;
-          const unitsCharged = (offset === 0 ? lineIndexUnits : 0) + parseUnits;
-          if (sourceCache !== undefined && (!parsed.script.warnings || parsed.script.warnings.length === 0)) {
-            const created: CachedParsedUnit = { offset, unit: parsed, unitsCharged, locale: unitLocale };
-            if (offset === 0) {
-              if (unitLocale) sourceCache.first1 = created;
-              else sourceCache.first0 = created;
-            } else {
-              const map = unitLocale ? (sourceCache.byOffset1 ??= new Map()) : (sourceCache.byOffset0 ??= new Map());
-              if (map.size < 512) map.set(offset, created);
-            }
-            if (currentCachedUnit && currentCachedUnit.locale === unitLocale && currentCachedUnit.unit.next === offset) {
-              currentCachedUnit.nextCached = created;
-            }
-            currentCachedUnit = created;
-          } else {
-            currentCachedUnit = undefined;
-          }
-          return parsed;
-        };
-        let unit = getOrParseUnit(0, locale);
+        let parseState: ParseUnitState | undefined;
+        let currentCachedUnit: CachedParsedUnit | undefined = sourceCache !== undefined
+          ? (locale ? sourceCache.first1 : sourceCache.first0)
+          : undefined;
+        let unit: ReturnType<typeof parseShellUnit>;
+        if (currentCachedUnit) {
+          budget.parsing.admit(currentCachedUnit.unitsCharged);
+          unit = currentCachedUnit.unit;
+        } else {
+          parseState = { lineIndex: undefined, lineIndexUnits: 0, currentCachedUnit: undefined };
+          unit = getOrParseUnitFromCache(source, 0, locale, sourceCache, parseState, budget, extensions.syntax);
+          currentCachedUnit = parseState.currentCachedUnit;
+        }
         if (options.stdin === undefined || typeof options.stdin === "string" || options.stdin instanceof Uint8Array) {
           const value = options.stdin ?? "";
           const needsCopy = extensions !== EMPTY_CAPTURED_EXTENSIONS || this.#hasCustomCommands || this.#middleware.length > 0;
@@ -484,13 +548,20 @@ export class Shell implements PluginHost {
           ? (this.#defaultIoCapabilities ??= Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) }))
           : Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) });
         const cwd = options.cwd !== undefined ? resolvePath("/", options.cwd) : (this.#options.cwd ?? "/");
-        const variables = Object.assign(Object.create(null) as Record<string, string>, this.#options.env, options.env, { PWD: cwd });
-        if (options.env !== undefined) {
-          for (const [name, value] of Object.entries(options.env)) {
-            if (name.includes("\0") || name.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid environment entry");
+        const variables = Object.create(null) as Record<string, string>;
+        let exported: Set<string>;
+        if (!this.#hasInitialEnv && options.env === undefined) {
+          variables.PWD = cwd;
+          exported = new Set(["PWD"]);
+        } else {
+          Object.assign(variables, this.#options.env, options.env, { PWD: cwd });
+          if (options.env !== undefined) {
+            for (const [name, value] of Object.entries(options.env)) {
+              if (name.includes("\0") || name.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid environment entry");
+            }
           }
+          exported = new Set(Object.keys(variables));
         }
-        const exported = new Set(Object.keys(variables));
         variables.OPTIND = "1";
         variables.OPTERR = "1";
         state = {
@@ -566,7 +637,10 @@ export class Shell implements PluginHost {
             budget.parsing.admit(currentCachedUnit.unitsCharged);
             unit = currentCachedUnit.unit;
           } else {
-            unit = getOrParseUnit(unit.next, nextLocale);
+            parseState ??= { lineIndex: undefined, lineIndexUnits: 0, currentCachedUnit };
+            parseState.currentCachedUnit = currentCachedUnit;
+            unit = getOrParseUnitFromCache(source, unit.next, nextLocale, sourceCache, parseState, budget, extensions.syntax);
+            currentCachedUnit = parseState.currentCachedUnit;
           }
         }
       } catch (error) {
@@ -635,7 +709,9 @@ export class Shell implements PluginHost {
   dispose(): Promise<void> {
     if (this.#disposal) return this.#disposal;
     this.#disposed = true;
-    const active = [...this.#active];
+    const active = this.#active
+      ? [...this.#active]
+      : (this.#singleActiveScope ? [{ scope: this.#singleActiveScope, budget: this.#singleActiveBudget!, owner: this.#singleActiveOwner! }] : []);
     const drains: Promise<void>[] = [];
     this.#disposal = Promise.resolve().then(() => this.#dispose(active, drains));
     for (const { scope, budget } of active) {

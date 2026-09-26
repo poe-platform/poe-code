@@ -20,6 +20,8 @@ export class InvocationScope {
   declare private _callbacks: Map<number, InvocationCleanup> | undefined;
   declare private _finalizers: (() => void | Promise<void>)[] | undefined;
   declare private _owner: { closeAdmission(): void } | undefined;
+  declare private _firstChildOwner: { _onScopeClose(): Promise<void> | undefined } | undefined;
+  declare private _childOwners: Set<{ _onScopeClose(): Promise<void> | undefined }> | undefined;
   declare private _activeBudget: { abort(reason: unknown): void } | undefined;
   declare private _activeStdin: { close(): unknown } | undefined;
   declare private _arraySession: { closeSession(): void | Promise<void> } | undefined;
@@ -58,6 +60,30 @@ export class InvocationScope {
   setOwner(owner: { closeAdmission(): void }): void {
     this.assertOpen();
     this._owner = owner;
+  }
+
+  addChildOwner(owner: { _onScopeClose(): Promise<void> | undefined }): void {
+    this.assertOpen();
+    if (!this._firstChildOwner && (!this._childOwners || this._childOwners.size === 0)) {
+      this._firstChildOwner = owner;
+      return;
+    }
+    if (!this._childOwners) {
+      this._childOwners = new Set();
+      if (this._firstChildOwner) {
+        this._childOwners.add(this._firstChildOwner);
+        this._firstChildOwner = undefined;
+      }
+    }
+    this._childOwners.add(owner);
+  }
+
+  removeChildOwner(owner: { _onScopeClose(): Promise<void> | undefined }): void {
+    if (this._firstChildOwner === owner) {
+      this._firstChildOwner = undefined;
+    } else {
+      this._childOwners?.delete(owner);
+    }
   }
 
   setActiveBudget(budget: { abort(reason: unknown): void }): void {
@@ -231,7 +257,7 @@ export class InvocationScope {
       return this._drain;
     }
     if (!this._drain) {
-      if (!this._finalizers?.length && !this._singleCallback && !this._callbacks?.size && !this._children?.size && this._activeWork === 0) {
+      if (!this._finalizers?.length && !this._singleCallback && !this._callbacks?.size && !this._firstChildOwner && !this._childOwners?.size && !this._children?.size && this._activeWork === 0) {
         this._seal();
         const inlineAsync = this._notifyInlineFinalizers();
         if (!inlineAsync) {
@@ -247,7 +273,7 @@ export class InvocationScope {
       }
       this._closingSync = true;
       this._seal();
-      if (!this._callbacks?.size && !this._children?.size && this._activeWork === 0) {
+      if (!this._callbacks?.size && !this._firstChildOwner && !this._childOwners?.size && !this._children?.size && this._activeWork === 0) {
         let singleCbAsync: Promise<unknown> | undefined;
         if (this._singleCallback) {
           const cb = this._singleCallback;
@@ -304,10 +330,14 @@ export class InvocationScope {
         this._closingSync = false;
         const callbacks = this._callbacks ? [...this._callbacks.values()] : [];
         this._callbacks?.clear();
+        const childOwners = this._childOwners ? [...this._childOwners] : (this._firstChildOwner ? [this._firstChildOwner] : []);
+        this._firstChildOwner = undefined;
+        this._childOwners?.clear();
         const done = Promise.resolve().then(async () => {
           try {
             await Promise.all([
               ...(singleCbAsync ? [singleCbAsync] : []),
+              ...childOwners.map((co) => this.cleanup(() => co._onScopeClose())),
               ...callbacks.map((cleanup) => this.cleanup(cleanup)),
               ...(this._children ? [...this._children].map((child) => child.close()) : []),
               ...(this._activeWork > 0 ? [new Promise<void>(resolve => (this._workWaiters ??= []).push(resolve))] : []),
@@ -342,9 +372,13 @@ export class InvocationScope {
         ...(this._callbacks ? [...this._callbacks.values()] : []),
       ];
       this._callbacks?.clear();
+      const childOwners = this._childOwners ? [...this._childOwners] : (this._firstChildOwner ? [this._firstChildOwner] : []);
+      this._firstChildOwner = undefined;
+      this._childOwners?.clear();
       const done = Promise.resolve().then(async () => {
         try {
           await Promise.all([
+            ...childOwners.map((co) => this.cleanup(() => co._onScopeClose())),
             ...callbacks.map((cleanup) => this.cleanup(cleanup)),
             ...(this._children ? [...this._children].map((child) => child.close()) : []),
             ...(this._activeWork > 0 ? [new Promise<void>(resolve => (this._workWaiters ??= []).push(resolve))] : []),
@@ -382,6 +416,8 @@ Object.assign(InvocationScope.prototype, {
   _regCount: 0,
   _callbacks: undefined,
   _finalizers: undefined,
+  _firstChildOwner: undefined,
+  _childOwners: undefined,
   _activeStdin: undefined,
   _activeWork: 0,
   _workWaiters: undefined,

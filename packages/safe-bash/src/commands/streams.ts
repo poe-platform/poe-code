@@ -27,7 +27,15 @@ interface TrCompiledConfig {
   readonly squeezed: Uint8Array;
 }
 const trConfigCache = new Map<string, TrCompiledConfig>();
+let lastTrArg0: string | undefined;
+let lastTrArg1: string | undefined;
+let lastTrConfig: TrCompiledConfig | undefined;
+const STDIN_REQUIREMENT_MODES = ["stdin"] as const;
+
 function compileTrConfig(args: readonly string[]): TrCompiledConfig {
+  if (args.length === 2 && args[0] === lastTrArg0 && args[1] === lastTrArg1 && lastTrConfig !== undefined) {
+    return lastTrConfig;
+  }
   const cacheKey = args.length <= 4 ? args.join("\0") : undefined;
   if (cacheKey !== undefined) {
     const cached = trConfigCache.get(cacheKey);
@@ -71,6 +79,11 @@ function compileTrConfig(args: readonly string[]): TrCompiledConfig {
     if (trConfigCache.size >= 32) trConfigCache.clear();
     trConfigCache.set(cacheKey, config);
   }
+  if (args.length === 2) {
+    lastTrArg0 = args[0];
+    lastTrArg1 = args[1];
+    lastTrConfig = config;
+  }
   return config;
 }
 
@@ -104,6 +117,10 @@ async function prefix(context: CommandContext, source: ByteSource, count: number
     syncReturn?: () => void;
   };
   const canTrySync = typeof iter.tryNextSync === "function";
+  const syncSink = !(context.stdout as { isPipeStage?: boolean }).isPipeStage
+    ? (context.stdout as { writeSync?: (chunk: Uint8Array) => boolean })
+    : undefined;
+  const canWriteSync = typeof syncSink?.writeSync === "function";
   let done = false;
   try {
     while (true) {
@@ -121,13 +138,19 @@ async function prefix(context: CommandContext, source: ByteSource, count: number
       }
       if (skip) {
         if (!remaining && offset < chunk.length) {
-          const p = output(context, chunk.subarray(offset));
-          if (!isSyncResolved(p)) await p;
+          const slice = chunk.subarray(offset);
+          if (!canWriteSync || syncSink!.writeSync!(slice) === false) {
+            const p = output(context, slice);
+            if (!isSyncResolved(p)) await p;
+          }
         }
       } else {
         if (offset) {
-          const p = output(context, chunk.subarray(0, offset));
-          if (!isSyncResolved(p)) await p;
+          const slice = chunk.subarray(0, offset);
+          if (!canWriteSync || syncSink!.writeSync!(slice) === false) {
+            const p = output(context, slice);
+            if (!isSyncResolved(p)) await p;
+          }
         }
         if (!remaining) return;
       }
@@ -314,8 +337,11 @@ function headTailCount(amount: string): number {
   return Number(count);
 }
 
-function headTail(name: "head" | "tail", maxTailFollowHandles = 64): CommandDefinition {
-  return define(name, async context => {
+async function executeHeadTailSlow(
+  name: "head" | "tail",
+  maxTailFollowHandles: number,
+  context: CommandContext,
+): Promise<{ exitCode: number }> {
     const args = headTailArguments(name, context.args);
     const follow = name === "tail" ? parseTailFollow(args) : undefined;
     let lastMode = "n" as "n" | "c";
@@ -362,6 +388,46 @@ function headTail(name: "head" | "tail", maxTailFollowHandles = 64): CommandDefi
       } catch (error) { await diagnostic(context, error); exitCode = 1; }
     }
     return { exitCode };
+}
+
+function headTail(name: "head" | "tail", maxTailFollowHandles = 64): CommandDefinition {
+  return define(name, async context => {
+    if (name === "head") {
+      const a = context.args;
+      let fastCount = -1;
+      if (a.length === 0) {
+        fastCount = 10;
+      } else if (a.length === 2 && a[0] === "-n" && a[1]!.length > 0 && a[1]!.length <= 8) {
+        const s = a[1]!;
+        let n = 0;
+        for (let i = 0; i < s.length; i++) {
+          const d = s.charCodeAt(i) - 48;
+          if (d < 0 || d > 9) { n = -1; break; }
+          n = n * 10 + d;
+        }
+        fastCount = n;
+      } else if (a.length === 1 && a[0]!.startsWith("-n") && a[0]!.length > 2 && a[0]!.length <= 10) {
+        const s = a[0]!;
+        let n = 0;
+        for (let i = 2; i < s.length; i++) {
+          const d = s.charCodeAt(i) - 48;
+          if (d < 0 || d > 9) { n = -1; break; }
+          n = n * 10 + d;
+        }
+        fastCount = n;
+      }
+      if (fastCount >= 0) {
+        assertCommandRequirements(context, inspectedInputRequirements, STDIN_REQUIREMENT_MODES);
+        try {
+          await prefix(context, input(context, "-"), fastCount, false, false, 10);
+          return { exitCode: 0 };
+        } catch (error) {
+          await diagnostic(context, error);
+          return { exitCode: 1 };
+        }
+      }
+    }
+    return executeHeadTailSlow(name, maxTailFollowHandles, context);
   });
 }
 

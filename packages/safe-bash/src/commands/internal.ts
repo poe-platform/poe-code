@@ -161,7 +161,26 @@ export async function eachOperand(
 
 export function input(context: CommandContext, name = "-"): ByteSource {
   if (name === "-") {
+    if (!context.signal.aborted && (context.stdin as { readonly abortSignal?: AbortSignal }).abortSignal === context.signal) {
+      return context.stdin;
+    }
     return readBytes(context.stdin, context.signal);
+  }
+  const backing = getRuntimeBackingFileSystem(context.fs);
+  if (
+    !context.signal.aborted &&
+    backing !== undefined &&
+    backing.capabilitiesFor === undefined &&
+    context.fs.readStream &&
+    context.fs.capabilities.streamingRead !== false &&
+    context.fs.capabilities.read !== false &&
+    Object.getPrototypeOf(backing)?.constructor?.name === "MemoryFileSystem" &&
+    !Object.prototype.hasOwnProperty.call(backing, "readStream")
+  ) {
+    const resolvedPath = pathOf(context, name);
+    if (resolvedPath !== "/dev" && !resolvedPath.startsWith("/dev/")) {
+      return context.fs.readStream(resolvedPath, { signal: context.signal });
+    }
   }
   return readBytes({ [Symbol.asyncIterator]() {
     context.signal.throwIfAborted();

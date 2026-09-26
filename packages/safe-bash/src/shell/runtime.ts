@@ -57,11 +57,11 @@ import { pathOf, UsageError } from "../commands/internal.js";
 import { cloneGetoptsState, createGetoptsInput, createGetoptsState, GetoptsError, getoptsInputAllocationSize, scanGetopts, withGetoptsIndex } from "./getopts.js";
 import type { GetoptsState } from "./getopts.js";
 import {
-  activateChildCancellation, admitCancellationSubscriptionCapacity, prepareChildCancellation, selectRuntimeCancellationOutcome, subscribeCancellation,
+  activateChildCancellation, admitCancellationSubscriptionCapacity, prepareChildCancellation, selectRuntimeCancellationOutcome, subscribeCancellationOwner, unsubscribeCancellationOwner,
 } from "./cancellation.js";
 import type {
   CancellationAdmissionSnapshot, CancellationBoundary, CancellationControlOriginInput, CancellationOrigin,
-  CancellationReport, CancellationSelection, CapturedCancellationOutcome, PreparedChildCancellation,
+  CancellationOwnerSubscriber, CancellationReport, CancellationSelection, CapturedCancellationOutcome, PreparedChildCancellation,
 } from "./cancellation.js";
 import { variablePresence } from "../commands/variable-presence.js";
 import { getArrayAssignment, getArraySelector, copyArraySelector, numericIndex, literalIndex, stringIndex, isQuoteMarker, prefixNameQuoteGroups, setArraySelector } from "./arrays/syntax.js";
@@ -358,6 +358,46 @@ class ExecutionCleanup {
   }
 }
 
+const defaultSetTimeout = setTimeout;
+const defaultDateNow = Date.now;
+let singleWallClockBudget: Budget | undefined;
+const extraWallClockBudgets: Budget[] = [];
+let sharedWallClockTimer: ReturnType<typeof setTimeout> | undefined;
+let sharedWallClockTimerDeadline = 0;
+
+function tickSharedWallClockBudgets(): void {
+  sharedWallClockTimer = undefined;
+  sharedWallClockTimerDeadline = 0;
+  const now = defaultDateNow();
+  let minDeadline = Infinity;
+  if (singleWallClockBudget !== undefined) {
+    const d = singleWallClockBudget._checkSharedWallClock(now);
+    if (d <= 0) {
+      singleWallClockBudget = extraWallClockBudgets.pop();
+    } else if (d < minDeadline) {
+      minDeadline = d;
+    }
+  }
+  for (let i = extraWallClockBudgets.length - 1; i >= 0; i--) {
+    const b = extraWallClockBudgets[i]!;
+    const d = b._checkSharedWallClock(now);
+    if (d <= 0) {
+      extraWallClockBudgets.splice(i, 1);
+    } else if (d < minDeadline) {
+      minDeadline = d;
+    }
+  }
+  if (singleWallClockBudget === undefined && extraWallClockBudgets.length > 0) {
+    singleWallClockBudget = extraWallClockBudgets.pop();
+  }
+  if (minDeadline !== Infinity) {
+    const delay = Math.min(Math.max(1, minDeadline - now), 2_147_483_647);
+    sharedWallClockTimerDeadline = now + delay;
+    sharedWallClockTimer = defaultSetTimeout(tickSharedWallClockBudgets, delay);
+    (sharedWallClockTimer as ReturnType<typeof setTimeout> & { unref?: () => void }).unref?.();
+  }
+}
+
 export class Budget {
   declare readonly limits: ResolvedShellLimits;
   declare readonly onInternalError: InternalErrorHandler | undefined;
@@ -379,7 +419,7 @@ export class Budget {
   declare readonly yieldCheckpoint: () => void;
   declare private _chargeFs: (() => void) | undefined;
   declare private _cleanupChargeFs: (() => void) | undefined;
-  declare private _wallClockTimer: ReturnType<typeof setTimeout> | undefined;
+  declare private _wallClockTimer: ReturnType<typeof setTimeout> | true | undefined;
   declare private _wallClockDeadline: number;
   declare private _pipelineStages: number;
   declare private _fileSystemOperations: number;
@@ -473,6 +513,30 @@ export class Budget {
   }
 
   private _armWallClock(): void {
+    if (
+      this._wallClockTimer === undefined &&
+      setTimeout === defaultSetTimeout &&
+      Date.now === defaultDateNow &&
+      this.limits.maxWallClockMs >= 100
+    ) {
+      const deadline = this._wallClockDeadline;
+      const now = defaultDateNow();
+      if (deadline <= now) {
+        this.abort(new ShellLimitError("maxWallClockMs"));
+        return;
+      }
+      this._wallClockTimer = true;
+      if (singleWallClockBudget === undefined) singleWallClockBudget = this;
+      else extraWallClockBudgets.push(this);
+      if (sharedWallClockTimer === undefined || deadline < sharedWallClockTimerDeadline) {
+        if (sharedWallClockTimer !== undefined) clearTimeout(sharedWallClockTimer);
+        const delay = Math.min(deadline - now, 2_147_483_647);
+        sharedWallClockTimerDeadline = now + delay;
+        sharedWallClockTimer = defaultSetTimeout(tickSharedWallClockBudgets, delay);
+        (sharedWallClockTimer as ReturnType<typeof setTimeout> & { unref?: () => void }).unref?.();
+      }
+      return;
+    }
     const remaining = this._wallClockDeadline - Date.now();
     if (remaining <= 0) {
       this.abort(new ShellLimitError("maxWallClockMs"));
@@ -483,8 +547,26 @@ export class Budget {
     timer.unref?.();
   }
 
+  _checkSharedWallClock(now: number): number {
+    if (this._wallClockDeadline <= now) {
+      this._wallClockTimer = undefined;
+      this.abort(new ShellLimitError("maxWallClockMs"));
+      return 0;
+    }
+    return this._wallClockDeadline;
+  }
+
   close(): void {
-    if (this._wallClockTimer !== undefined) clearTimeout(this._wallClockTimer);
+    if (this._wallClockTimer === true) {
+      if (singleWallClockBudget === this) {
+        singleWallClockBudget = extraWallClockBudgets.pop();
+      } else {
+        const idx = extraWallClockBudgets.indexOf(this);
+        if (idx >= 0) extraWallClockBudgets.splice(idx, 1);
+      }
+    } else if (this._wallClockTimer !== undefined) {
+      clearTimeout(this._wallClockTimer);
+    }
     this._wallClockTimer = undefined;
   }
 
@@ -668,12 +750,12 @@ export class Capture implements ByteSink {
   private _tail: Uint8Array | undefined;
   private _tailLength = 0;
 
-  writeSync(chunk: Uint8Array): void {
-    if (!chunk.byteLength) return;
+  writeSync(chunk: Uint8Array): boolean {
+    if (!chunk.byteLength) return true;
     if (this.chunks.length === 0 && chunk.byteLength <= 4096) {
       this.chunks.push(new Uint8Array(chunk));
       this.length = chunk.byteLength;
-      return;
+      return true;
     }
     if (!this._tail && this.chunks.length === 1 && this.chunks[0]!.byteLength < 4096) {
       const first = this.chunks[0]!;
@@ -698,6 +780,7 @@ export class Capture implements ByteSink {
       this.chunks[this.chunks.length - 1] = this._tail.subarray(0, this._tailLength);
     }
     this.length += chunk.byteLength;
+    return true;
   }
 
   write(chunk: Uint8Array): Promise<void> {
@@ -1116,13 +1199,14 @@ class BudgetedSyncSink implements ByteSink {
     if (file !== undefined) this.file = file;
   }
 
-  writeSync(chunk: Uint8Array): void {
+  writeSync(chunk: Uint8Array): boolean {
     this.signal.throwIfAborted();
     if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
     const budget = this.budget;
     if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
     budget.bytes += chunk.byteLength;
     this.target.writeSync(chunk);
+    return true;
   }
 
   write(chunk: Uint8Array): Promise<void> {
@@ -1166,7 +1250,7 @@ class MemoryRedirectSink implements ByteSink {
     this.file = file ?? Object.freeze({ path });
   }
 
-  writeSync(chunk: Uint8Array): void {
+  writeSync(chunk: Uint8Array): boolean {
     this.signal.throwIfAborted();
     if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
     const budget = this.budget;
@@ -1178,6 +1262,7 @@ class MemoryRedirectSink implements ByteSink {
       budget.bytes += chunk.byteLength;
       this.append = true;
     }
+    return true;
   }
 
   write(chunk: Uint8Array): Promise<void> {
@@ -2279,38 +2364,47 @@ interface CancellationAdmissionOwner {
   assertAdmissionOpen(): void;
 }
 
-class InvocationCancellationOwner implements CancellationAdmissionOwner {
-  private readonly _failures: unknown[];
-  private readonly _outcomes: RuntimeCancellationState;
-  private readonly _publicPromise: Promise<CommandResult> | undefined;
-  private readonly _retireCleanup: () => void;
-  private _finalizedPromise: Promise<void> | undefined;
-  private _resolveFinalized: (() => void) | undefined;
-  private _completed = false;
-  private _admissionOpen = true;
-  private _boundary: CancellationBoundary | undefined;
-  private _boundaryClosed = false;
-  private _record: InvokeOutcomeRecord | undefined;
-  private _observedOrigin: CancellationOrigin | undefined;
-  private _captureCancellation: ((origin: CancellationOrigin) => void) | undefined;
-  private _detach: (() => void) | undefined;
-  private _finish: Promise<CancellationSelection<CommandResult>> | undefined;
+class InvocationCancellationOwner implements CancellationAdmissionOwner, CancellationOwnerSubscriber {
+  declare readonly kind: "callback";
+  declare active: boolean;
+  declare private readonly _parent: InvocationScope;
+  declare readonly prepared: PreparedChildCancellation;
+  declare private readonly _outcomes: RuntimeCancellationState;
+  declare private readonly _publicPromise: Promise<CommandResult> | undefined;
+  declare private _finalizedPromise: Promise<void> | undefined;
+  declare private _resolveFinalized: (() => void) | undefined;
+  declare private _completed: boolean;
+  declare private _admissionOpen: boolean;
+  declare private _boundary: CancellationBoundary | undefined;
+  declare private _boundaryClosed: boolean;
+  declare private _record: InvokeOutcomeRecord | undefined;
+  declare private _observedOrigin: CancellationOrigin | undefined;
+  declare private _resolveCapture: ((captured: CapturedCancellationOutcome<CommandResult>) => void) | undefined;
+  declare private _rawPromise: Promise<CommandResult> | undefined;
+  declare private _outcomeFrame: RuntimeOutcomeFrame | undefined;
+  declare private _settled: boolean;
+  declare private _queuedOrigin: boolean;
+  declare private _finish: Promise<CancellationSelection<CommandResult>> | undefined;
 
   constructor(
     parent: InvocationScope,
-    readonly prepared: PreparedChildCancellation,
+    prepared: PreparedChildCancellation,
     outcomes: RuntimeCancellationState,
     publicPromise?: Promise<CommandResult>,
   ) {
-    this._failures = parent.failures;
+    this._parent = parent;
+    this.prepared = prepared;
     this._outcomes = outcomes;
     this._publicPromise = publicPromise;
-    this._retireCleanup = parent.register(async () => {
-      this.requestClose();
-      if (!this._completed) {
-        await (this._finalizedPromise ??= new Promise<void>(resolve => { this._resolveFinalized = resolve; }));
-      }
-    });
+    parent.addChildOwner(this);
+  }
+
+  _onScopeClose(): Promise<void> | undefined {
+    this.requestClose();
+    if (!this._completed) {
+      return (this._finalizedPromise ??= new Promise<void>(resolve => { this._resolveFinalized = resolve; }));
+    }
+    return undefined;
   }
 
   assertAdmissionOpen(): void {
@@ -2325,7 +2419,7 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner {
     this._boundary = boundary;
     try {
       if (subscribe) {
-        this._detach = subscribeCancellation(boundary, origin => { this._captureCancellation?.(origin); });
+        subscribeCancellationOwner(boundary, this);
       } else {
         admitCancellationSubscriptionCapacity(boundary);
       }
@@ -2337,39 +2431,62 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner {
     }
   }
 
+  callback(origin: CancellationOrigin): void {
+    if (!this._resolveCapture || this._settled || this._queuedOrigin) return;
+    this._queuedOrigin = true;
+    queueMicrotask(() => {
+      if (this._settled) return;
+      this._settled = true;
+      this._observedOrigin = origin;
+      const resolve = this._resolveCapture;
+      this._resolveCapture = undefined;
+      this._outcomeFrame = undefined;
+      resolve?.({ kind: "throw", reason: origin.signal.reason });
+      void this._rawPromise?.catch(() => undefined);
+    });
+  }
+
+  private _settleReturn(value: CommandResult): void {
+    if (this._settled) return;
+    this._settled = true;
+    const resolve = this._resolveCapture;
+    this._resolveCapture = undefined;
+    this._outcomeFrame = undefined;
+    resolve?.({ kind: "return", value });
+  }
+
+  private _settleThrow(reason: unknown): void {
+    if (this._settled) return;
+    this._settled = true;
+    const resolve = this._resolveCapture;
+    const frame = this._outcomeFrame;
+    this._resolveCapture = undefined;
+    this._outcomeFrame = undefined;
+    resolve?.(frame?.report && Object.is(frame.report.origin.signal.reason, reason)
+      ? { kind: "throw", reason, report: frame.report }
+      : { kind: "throw", reason });
+  }
+
   capture(
     execute: () => Promise<CommandResult>,
     frame: RuntimeOutcomeFrame,
   ): Promise<CapturedCancellationOutcome<CommandResult>> {
+    this._outcomeFrame = frame;
+    let raw: Promise<CommandResult>;
+    try { raw = Promise.resolve(execute()); }
+    catch (reason) {
+      this._settled = true;
+      this._outcomeFrame = undefined;
+      return Promise.resolve({ kind: "throw", reason });
+    }
+    this._rawPromise = raw;
     return new Promise(resolve => {
-      let settled = false;
-      let raw: Promise<CommandResult> | undefined;
-      let queuedOrigin = false;
-      const settle = (captured: CapturedCancellationOutcome<CommandResult>): void => {
-        if (settled) return;
-        settled = true;
-        this._captureCancellation = undefined;
-        resolve(captured);
-      };
-      this._captureCancellation = origin => {
-        if (settled || queuedOrigin) return;
-        queuedOrigin = true;
-        queueMicrotask(() => {
-          if (settled) return;
-          this._observedOrigin = origin;
-          settle({ kind: "throw", reason: origin.signal.reason });
-          void raw?.catch(() => undefined);
-        });
-      };
-      try { raw = Promise.resolve(execute()); }
-      catch (reason) { settle({ kind: "throw", reason }); return; }
+      this._resolveCapture = resolve;
       void raw.then(
-        value => settle({ kind: "return", value }),
-        reason => settle(frame.report && Object.is(frame.report.origin.signal.reason, reason)
-          ? { kind: "throw", reason, report: frame.report }
-          : { kind: "throw", reason }),
+        value => { this._settleReturn(value); },
+        reason => { this._settleThrow(reason); },
       );
-      if (settled) void raw.catch(() => undefined);
+      if (this._settled) void raw.catch(() => undefined);
     });
   }
 
@@ -2388,7 +2505,7 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner {
     } finally {
       this._completed = true;
       this._resolveFinalized?.();
-      this._retireCleanup();
+      this._parent.removeChildOwner(this);
     }
   }
 
@@ -2400,7 +2517,7 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner {
       this._closeBoundary();
       this._completed = true;
       this._resolveFinalized?.();
-      this._retireCleanup();
+      this._parent.removeChildOwner(this);
     }
   }
 
@@ -2415,19 +2532,38 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner {
     } finally {
       this._completed = true;
       this._resolveFinalized?.();
-      this._retireCleanup();
+      this._parent.removeChildOwner(this);
     }
   }
 
   private _closeBoundary(): void {
     if (!this._boundary || this._boundaryClosed) return;
     this._boundaryClosed = true;
-    try { this._detach?.(); } catch (error) { this._failures.push(error); }
-    this._detach = undefined;
+    if (this.active) {
+      try { unsubscribeCancellationOwner(this._boundary, this); } catch (error) { this._parent.failures.push(error); }
+    }
     const result = this._boundary.close();
-    if (result.failures.length > 0) this._failures.push(...result.failures);
+    if (result.failures.length > 0) this._parent.failures.push(...result.failures);
   }
 }
+Object.assign(InvocationCancellationOwner.prototype, {
+  kind: "callback",
+  active: false,
+  _finalizedPromise: undefined,
+  _resolveFinalized: undefined,
+  _completed: false,
+  _admissionOpen: true,
+  _boundary: undefined,
+  _boundaryClosed: false,
+  _record: undefined,
+  _observedOrigin: undefined,
+  _resolveCapture: undefined,
+  _rawPromise: undefined,
+  _outcomeFrame: undefined,
+  _settled: false,
+  _queuedOrigin: false,
+  _finish: undefined,
+});
 
 const mapfileCallbackStates = new WeakSet<State>();
 const runtimeFileSystems = new WeakMap<FileSystem, FileSystem>();
@@ -6163,12 +6299,17 @@ export class Runtime {
           let cleanupInput: ShellInput | undefined;
           let stageOwnsCleanup = false;
           try {
-          const references = (cleanupRefs = new PipeDescriptorFrame(io[invocationScope]));
-          const descriptorFrame = (cleanupDescFrame = new PreparedDescriptorFrame(references, this.budget));
+          const rawStateForChild = stateMonitor(state)?.raw ?? state;
+          const isPureStage =
+            !terminal &&
+            !(io.descriptors && (io.descriptors.size > 3 || io.descriptors.get(0)?.closed || io.descriptors.get(1)?.closed || io.descriptors.get(2)?.closed)) &&
+            runtime.isPureExternalStageCommand(command, rawStateForChild);
+          const references = isPureStage ? undefined : (cleanupRefs = new PipeDescriptorFrame(io[invocationScope]));
+          const descriptorFrame = isPureStage ? undefined : (cleanupDescFrame = new PreparedDescriptorFrame(references!, this.budget));
           const reading = incoming?.endpoints?.read;
           const writing = outgoing?.endpoints?.write;
-          const readReference = reading && references.open(reading, this.budget);
-          const writeReference = writing && references.open(writing, this.budget);
+          const readReference = reading && references ? references.open(reading, this.budget) : undefined;
+          const writeReference = writing && references ? references.open(writing, this.budget) : undefined;
           const input = (cleanupInput = incoming
             ? new ShellInput(reading?.readable ?? incoming.readable, this.budget, signal, { provenance: "stream", poll: pollIncomingPipe, incoming } as unknown as ConstructorParameters<typeof ShellInput>[3], true)
             : new ShellInput(io.stdin, this.budget, signal, undefined, true));
@@ -6184,8 +6325,7 @@ export class Runtime {
             try {
               let exitCode: number;
               try {
-                const rawStateForChild = stateMonitor(state)?.raw ?? state;
-                const child: State = runtime.isPureExternalStageCommand(command, rawStateForChild)
+                const child: State = isPureStage || runtime.isPureExternalStageCommand(command, rawStateForChild)
                   ? {
                       ...rawStateForChild,
                       extensions: forkExtensions(state.extensions, "pipeline"),
@@ -6199,22 +6339,36 @@ export class Runtime {
                   child.extensions = forkExtensions(state.extensions, "pipeline");
                   child.isolated = true;
                 }
-                const inherited = isolateIO(io, references);
-                const childIO: IO = {
-                  ...inherited,
-                  stdin: input,
-                  ...(incoming ? { asyncDefaultInput: undefined } : {}),
-                  ...(incoming ? { stdinIsDefault: false } : {}),
-                  stdout: outgoing ? new BudgetedPipeStageSink(this.budget, writable!, signal, written, index, controllers[index]!) : signalSink(io.stdout, signal),
-                  stderr: signalSink(io.stderr, signal),
-                  terminal: { target: command, frame: descriptorFrame },
-                };
-                const descriptors = inherited.descriptors as Map<number, Descriptor>;
-                descriptors.set(0, incoming ? { input, stdinIsDefault: false, ...(readReference ? { pipe: readReference } : {}) } : { ...descriptors.get(0), input });
-                descriptors.set(1, outgoing ? { output: childIO.stdout, ...(writeReference ? { pipe: writeReference } : {}) } : { ...descriptors.get(1), output: childIO.stdout });
-                descriptors.set(2, { ...descriptors.get(2), output: childIO.stderr });
-                childIO.descriptors = descriptors;
-                descriptorFrame.acquire(descriptors);
+                let childIO: IO;
+                if (isPureStage) {
+                  childIO = {
+                    ...io,
+                    nameExpansionContext: undefined,
+                    descriptors: undefined,
+                    terminal: undefined,
+                    stdin: input,
+                    ...(incoming ? { asyncDefaultInput: undefined, stdinIsDefault: false } : {}),
+                    stdout: outgoing ? new BudgetedPipeStageSink(this.budget, writable!, signal, written, index, controllers[index]!) : signalSink(io.stdout, signal),
+                    stderr: signalSink(io.stderr, signal),
+                  } as unknown as IO;
+                } else {
+                  const inherited = isolateIO(io, references!);
+                  childIO = {
+                    ...inherited,
+                    stdin: input,
+                    ...(incoming ? { asyncDefaultInput: undefined } : {}),
+                    ...(incoming ? { stdinIsDefault: false } : {}),
+                    stdout: outgoing ? new BudgetedPipeStageSink(this.budget, writable!, signal, written, index, controllers[index]!) : signalSink(io.stdout, signal),
+                    stderr: signalSink(io.stderr, signal),
+                    terminal: { target: command, frame: descriptorFrame! },
+                  };
+                  const descriptors = inherited.descriptors as Map<number, Descriptor>;
+                  descriptors.set(0, incoming ? { input, stdinIsDefault: false, ...(readReference ? { pipe: readReference } : {}) } : { ...descriptors.get(0), input });
+                  descriptors.set(1, outgoing ? { output: childIO.stdout, ...(writeReference ? { pipe: writeReference } : {}) } : { ...descriptors.get(1), output: childIO.stdout });
+                  descriptors.set(2, { ...descriptors.get(2), output: childIO.stderr });
+                  childIO.descriptors = descriptors;
+                  descriptorFrame!.acquire(descriptors);
+                }
                 admit();
                 acceptPreparation?.();
                 if (retireBaseline) await retireBaseline;
@@ -6265,14 +6419,31 @@ export class Runtime {
                 try { await closedInput.catch((error: unknown) => { if (!(error instanceof PipelineClosed)) throw error; }); }
                 catch (reason) { cleanupFailures.push(reason); }
               }
-              if (!descriptorFrame.closeSyncIfIdle()) {
-                try { await descriptorFrame.close(); }
-                catch (reason) { cleanupFailures.push(reason); }
-              }
-              const closedRefs = references.close();
-              if (!isSyncResolved(closedRefs)) {
-                try { await closedRefs; }
-                catch (reason) { cleanupFailures.push(reason); }
+              if (isPureStage) {
+                if (reading) {
+                  const closedRead = reading.close();
+                  if (!isSyncResolved(closedRead)) {
+                    try { await closedRead; }
+                    catch (reason) { cleanupFailures.push(reason); }
+                  }
+                }
+                if (writing) {
+                  const closedWrite = writing.close();
+                  if (!isSyncResolved(closedWrite)) {
+                    try { await closedWrite; }
+                    catch (reason) { cleanupFailures.push(reason); }
+                  }
+                }
+              } else {
+                if (!descriptorFrame!.closeSyncIfIdle()) {
+                  try { await descriptorFrame!.close(); }
+                  catch (reason) { cleanupFailures.push(reason); }
+                }
+                const closedRefs = references!.close();
+                if (!isSyncResolved(closedRefs)) {
+                  try { await closedRefs; }
+                  catch (reason) { cleanupFailures.push(reason); }
+                }
               }
               if (outgoing && !writing) {
                 const closedOut = outgoing.close();

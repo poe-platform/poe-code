@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
-import { fileURLToPath } from "node:url";
+import manifest from "../package.json" with { type: "json" };
+import { nativeModule, nativeModuleLoader } from "./fixtures/native-module.js";
 import { afterAll, beforeAll, expect, onTestFinished } from "vitest";
 import type { ArchiveLimits } from "../src/archive.js";
 import type { DocumentLimits } from "../src/budget.js";
@@ -23,7 +24,8 @@ interface NativeResponse {
 }
 
 /** One native main thread per matrix; the fixture owns fresh state per request. */
-export function nativeRepeatTemplate<Request = NativeRequest>(fixture = new URL("./fixtures/repeat-template-native.mjs", import.meta.url)): (request: Request) => Promise<NativeResponse & { readonly receipt: { readonly drained: boolean } }> {
+export async function nativeRepeatTemplate<Request = NativeRequest>(fixture = new URL("./fixtures/repeat-template-native.mjs", import.meta.url)): Promise<(request: Request) => Promise<NativeResponse & { readonly receipt: { readonly drained: boolean } }>> {
+  const source = await nativeModule(fixture, [manifest.name]);
   let child: ReturnType<typeof spawn>;
   let closed: Promise<{ code: number | null; signal: NodeJS.Signals | null }>;
   let pending: { id: number; resolve: (value: NativeResponse) => void; reject: (error: Error) => void } | undefined;
@@ -41,8 +43,8 @@ export function nativeRepeatTemplate<Request = NativeRequest>(fixture = new URL(
   }
 
   beforeAll(async () => {
-    child = spawn(process.execPath, [...(fixture.pathname.endsWith(".ts") ? ["--import", "tsx"] : []), fileURLToPath(fixture)], {
-      stdio: ["ignore", "pipe", "pipe", "ipc"],
+    child = spawn(process.execPath, ["--input-type=module", "-e", nativeModuleLoader], {
+      stdio: ["pipe", "pipe", "pipe", "ipc"],
     });
     let resolveReady!: () => void;
     const startup = new Promise<void>((resolve, reject) => { resolveReady = resolve; rejectReady = reject; });
@@ -69,6 +71,8 @@ export function nativeRepeatTemplate<Request = NativeRequest>(fixture = new URL(
       } else failNative(new Error("Duplicate, mismatched or unexpected native response"));
     });
     const timer = setTimeout(() => { failNative(new Error("Native child did not become ready")); }, 5000);
+    child.stdin!.on("error", failNative);
+    child.stdin!.end(JSON.stringify(source) + "\n");
     try { await startup; }
     catch (error) { failNative(error as Error); await closed; throw error; }
     finally { clearTimeout(timer); }

@@ -1,10 +1,10 @@
-import { commands, execute, OwnedArguments, defaultLimits, virtualPath, CsvkitCleanupError, type CsvkitContext, type CsvkitLimits } from "safe-bash-command-csvkit";
+import { utf8Codec, commands, execute, OwnedArguments, defaultLimits, virtualPath, CsvkitCleanupError, type CsvkitContext, type CsvkitLimits } from "safe-bash-command-csvkit";
 import { createOutputOperation, getCommandArguments, type CommandDefinition, type VirtualShellPlugin } from "../../contracts/index.js";
 import { writeFileOutput, openFileOutput } from "../../contracts/filesystem-output.js";
 import { FsError, isFsError } from "../../contracts/errors.js";
 import { shellValueByteLength } from "../../contracts/value.js";
 
-/** Hosts bind locale, codecs, clock and terminal explicitly; no ambient I/O or drivers. */
+/** Portable defaults; hosts may inject codecs, locale, clock and terminal. */
 export interface CsvkitCommandsOptions extends Pick<CsvkitContext, "codecs" | "locale" | "clock" | "terminal"> {
   readonly compression?: CsvkitContext["compression"];
   readonly databases?: CsvkitContext["databases"];
@@ -18,17 +18,20 @@ export interface CsvkitCommandsOptions extends Pick<CsvkitContext, "codecs" | "l
   readonly replace?: boolean;
 }
 
-export function createCsvkitCommands(options: CsvkitCommandsOptions): readonly CommandDefinition[] {
-  if (!options || !Array.isArray(options.codecs) || !options.locale || !options.clock || !options.terminal)
-    throw new TypeError("csvkit requires explicit codec, locale, clock and terminal bindings");
+export function createCsvkitCommands(options: Partial<CsvkitCommandsOptions> = {}): readonly CommandDefinition[] {
   if (options.replace !== undefined && typeof options.replace !== "boolean") throw new TypeError("csvkit replace must be boolean");
   const limits = Object.freeze({ ...defaultLimits, ...options.limits });
-  const codecs = Object.freeze([...options.codecs]);
+  const codecs = Object.freeze([...(options.codecs ?? [utf8Codec])]);
   const compression = Object.freeze([...(options.compression ?? [])]);
   const databases = Object.freeze([...(options.databases ?? [])]);
   const sqlDialects = Object.freeze([...(options.sqlDialects ?? [])]);
-  const locale = options.locale, clock = options.clock, interpreter = options.interpreter, openMatchFile = options.openMatchFile;
-  const terminal = Object.freeze({ ...options.terminal });
+  const locale = options.locale ?? {
+    profile: "C", timezone: "UTC",
+    formatNumber() { throw new Error("csvkit: locale number formatting requires an explicit binding"); }
+  };
+  const clock = options.clock ?? { now: () => 0 };
+  const interpreter = options.interpreter, openMatchFile = options.openMatchFile;
+  const terminal = Object.freeze({ stdinIsTTY: false, stdoutIsTTY: false, stderrIsTTY: false, columns: 80, lines: 24, ...options.terminal });
   const sniffing = options.sniffing === undefined ? undefined : Object.freeze({
     ...options.sniffing,
     ...(options.sniffing.warning === undefined ? {} : { warning: Object.freeze({ ...options.sniffing.warning }) })
@@ -37,6 +40,7 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions): readonly C
   const probeInputOpen = options.probeInputOpen;
   return Object.freeze(commands.map<CommandDefinition>(descriptor => ({
     name: descriptor.name,
+    ...(descriptor.name === "csvcut" || descriptor.name === "csvgrep" ? { fallback: true } : {}),
     description: `csvkit 2.2.0 ${descriptor.name}; compatibility gaps return status 78`,
     async execute(context) {
       // Parser and named-file diagnostics can use stderr without acquiring stdout.
@@ -227,11 +231,11 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions): readonly C
 }
 
 /** Explicit opt-in, with all-name collision preflight before any registration. */
-export function csvkitCommands(options: CsvkitCommandsOptions): VirtualShellPlugin {
+export function csvkitCommands(options: Partial<CsvkitCommandsOptions> = {}): VirtualShellPlugin {
   const definitions = createCsvkitCommands(options);
   const replace = options.replace ?? false;
   return { name: "csvkit-commands", setup(host) {
-    if (!replace) for (const definition of definitions) if (host.commands.has(definition.name)) throw new Error(`Command already registered: ${definition.name}`);
+    if (!replace) for (const definition of definitions) if (host.commands.has(definition.name) && !(definition.fallback && !host.commands.get(definition.name)?.fallback)) throw new Error(`Command already registered: ${definition.name}`);
     for (const definition of definitions) host.commands.register(definition, { replace });
   } };
 }

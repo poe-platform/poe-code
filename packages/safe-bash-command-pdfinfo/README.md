@@ -20,6 +20,8 @@ Inspect PDF document metadata, page geometry, boxes, encryption permissions, for
 | PDF Merging (`pdfunite`) | `pdfunite a.pdf b.pdf out.pdf` | Merges multiple PDF documents into a single PDF. |
 | PDF Splitting (`pdfseparate`) | `pdfseparate -f 1 -l 2 in.pdf page-%d.pdf` | Splits selected pages into individual PDF files using a `%d` pattern. |
 
+`pdfinfoCommands()` registers `pdfinfo`, `pdfunite`, `pdfseparate`, `pdffonts` and `pdfdetach`. Register `pdfimagesCommands()` and `pdftoppmCommands()` from their dedicated command subpaths for image extraction and rendering (`pdftoppm` / `pdftocairo`). Direct factories and CLI runners remain available.
+
 ## Quick Start
 
 ```ts

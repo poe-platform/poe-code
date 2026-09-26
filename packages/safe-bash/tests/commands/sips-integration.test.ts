@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { Shell, createMemoryFileSystem } from "../../src/index.js";
 import { sipsCommands } from "../../src/commands/sips/index.js";
-import { pdfinfoCommands } from "../../src/commands/pdfinfo/index.js";
+import { pdftoppmCommands } from "../../src/commands/pdftoppm/index.js";
+import { imagemagickCommands } from "../../src/commands/imagemagick/index.js";
 import { sharp } from "@poe-code/image-ast";
 import { PdfDocument, rgb } from "@poe-code/pdf-ast";
 
@@ -11,7 +12,8 @@ describe("safe-bash sips & identify integration", () => {
     const fs = createMemoryFileSystem();
     const shell = new Shell({ fs })
       .use(sipsCommands())
-      .use(pdfinfoCommands());
+      .use(imagemagickCommands())
+      .use(pdftoppmCommands());
 
     const inputPng = await sharp({
       create: { width: 120, height: 80, channels: 4, background: "#336699ff" }

@@ -639,6 +639,7 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
 
     const shell = new Shell({ fs: vfs })
       .use(pdfinfoCommands({ replace: true }))
+      .use(pdftoppmPlugin())
       .use(pdftkPlugin({ replace: true }));
 
     // 1. Attach readme.txt via pdftk attach_files

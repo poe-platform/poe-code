@@ -105,7 +105,13 @@ capabilities do not authorize host file opening.
 
 ## Configuration and environment
 
-CsvkitCommandsOptions requires `codecs`, `locale`, `clock` and `terminal`.
+`csvkitCommands()` and `createCsvkitCommands()` accept optional bindings.
+Defaults are UTF-8 codecs, C/UTC locale, a deterministic epoch clock and a
+non-interactive 80-column, 24-line terminal. Inject `locale` for number
+formatting and `clock` for time-sensitive inference. `CsvkitCommandsOptions`
+describes a complete explicit binding; the factories accept its partial form.
+The suite supplies fallback `csvcut` and `csvgrep` commands; their dedicated
+plugins take precedence in either registration order.
 Optional `compression`, `databases` and `sqlDialects` default to empty provider
 lists; interpreter, openMatchFile, sniffing, columnWarnings and probeInputOpen
 are absent unless supplied. The plugin derives a named-input open probe from

@@ -2929,9 +2929,6 @@ export const pdftocairoCommand: CommandDefinition = createPdftocairoCommand();
 
 export function pdfinfoCommands(options: PdfinfoCommandOptions = {}): VirtualShellPlugin {
   const command = createPdfinfoCommand(options);
-  const ppmCmd = createPdftoppmCommand(options);
-  const cairoCmd = createPdftocairoCommand(options);
-  const imgCmd = createPdfimagesCommand(options);
   const uniteCmd = createPdfuniteCommand(options);
   const sepCmd = createPdfseparateCommand(options);
   const fontsCmd = createPdffontsCommand(options);
@@ -2941,9 +2938,6 @@ export function pdfinfoCommands(options: PdfinfoCommandOptions = {}): VirtualShe
     name: "pdfinfo",
     setup(host) {
       host.commands.register(command, { replace });
-      host.commands.register(ppmCmd, { replace });
-      host.commands.register(cairoCmd, { replace });
-      host.commands.register(imgCmd, { replace });
       host.commands.register(uniteCmd, { replace });
       host.commands.register(sepCmd, { replace });
       host.commands.register(fontsCmd, { replace });

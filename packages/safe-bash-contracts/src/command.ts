@@ -309,6 +309,8 @@ export const commandRuntimeIdentity: object = Object.freeze({});
 export interface CommandDefinition {
   readonly name: string;
   readonly runtimeIdentity?: object;
+  /** A suite-provided default that yields to a dedicated command definition. */
+  readonly fallback?: boolean;
   readonly description?: string;
   readonly filesystemRequirements?: readonly CommandFileSystemRequirement[];
   readonly execute: CommandHandler;
@@ -336,8 +338,10 @@ export class CommandRegistry {
     if (runtimeIdentity !== undefined && runtimeIdentity !== commandRuntimeIdentity) {
       throw new TypeError("Command requires its matching shell runtime; do not mix source and compiled runtime modules");
     }
-    if (this.#commands.has(name) && !options.replace) {
-      throw new Error(`Command already registered: ${name}`);
+    const existing = this.#commands.get(name);
+    if (existing && !options.replace) {
+      if (command.fallback && !existing.fallback) return this;
+      if (command.fallback || !existing.fallback) throw new Error(`Command already registered: ${name}`);
     }
     this.#commands.set(name, Object.freeze({ ...metadata, name, execute, ...(runtimeIdentity === undefined ? {} : { runtimeIdentity }) }));
     return this;

@@ -29,7 +29,7 @@ SQLite engine options remain unsupported.
 
 See the [usage guide](../../docs/csvkit/usage-draft.md) for command registration,
 encoding, environment settings and limits. Safe Bash provides an opt-in
-`csvkitCommands` plugin using the same SDK.
+`csvkitCommands(options = {})` plugin using the same SDK. Its portable defaults are UTF-8 codecs, C/UTC locale, a deterministic epoch clock, and a non-interactive 80-column, 24-line terminal. Inject bindings for additional encodings, locale number formatting, or a live clock. Its `csvcut` and `csvgrep` registrations yield to the dedicated plugins in either installation order; standalone registration still supplies all fourteen commands. Explicit `replace: true` overrides existing definitions.
 
 This workspace is private and is distributed through the `poe-code` SDK subpath.
 

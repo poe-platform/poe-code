@@ -1238,13 +1238,11 @@ export const identifyCommand: CommandDefinition = createIdentifyCommand();
 
 export function sipsPlugin(options: SipsCommandOptions = {}): VirtualShellPlugin {
   const sips = createSipsCommand(options);
-  const identify = createIdentifyCommand(options);
   const replace = options.replace ?? false;
   return {
     name: "sips",
     setup(host) {
       host.commands.register(sips, { replace });
-      host.commands.register(identify, { replace });
     }
   };
 }

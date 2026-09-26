@@ -1181,7 +1181,7 @@ async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply>
 }
 
 class CooperativeWorker implements RegexWorker {
-  readonly controller = new AbortController();
+  private controller: AbortController | undefined;
   readonly listeners = new Map<WorkerEvent, Set<Listener>>();
   private singleMessageListener: ((message: unknown) => void) | undefined;
   readonly tasks = new Set<Promise<void>>();
@@ -1223,6 +1223,8 @@ class CooperativeWorker implements RegexWorker {
   postMessage(input: RegexWorkerRequest): void {
     if (this.closing) throw new Error("bounded regex worker is closed");
     if (this.busy) throw new Error("bounded regex worker is busy");
+    const controller = new AbortController();
+    const signal = controller.signal;
     const isTrusted = trustedWorkerRequests.has(input);
     let id: number;
     let operation: unknown;
@@ -1243,7 +1245,7 @@ class CooperativeWorker implements RegexWorker {
     let failure: string | undefined;
     let category: ExprMatchError["category"] = "unsupported";
     try {
-      owned = expression ? admitExpr(input, this.limits, this.controller.signal) : admit(input, this.limits, this.controller.signal);
+      owned = expression ? admitExpr(input, this.limits, signal) : admit(input, this.limits, signal);
     }
     catch (error) {
       if (!(error instanceof ExprMatchError || error instanceof PublicDiagnostic || error instanceof EreSyntaxError || error instanceof EreUnsupportedError || error instanceof EreProfileLimitError || error instanceof EreUsageUnknownError)) throw error;
@@ -1254,8 +1256,8 @@ class CooperativeWorker implements RegexWorker {
     // Public worker requests retain the wire protocol's owned span arrays.
     if (isTrusted && owned && !("subject" in owned) && owned.descriptor.kind !== "glob") {
       try {
-        this.controller.signal.throwIfAborted();
-        const syncReply = tryExecuteSync(owned as OwnedRequest, this.controller.signal);
+        signal.throwIfAborted();
+        const syncReply = tryExecuteSync(owned as OwnedRequest, signal);
         if (syncReply !== undefined) {
           owned = undefined;
           if (!this.closing) this.emit(syncReply);
@@ -1271,7 +1273,7 @@ class CooperativeWorker implements RegexWorker {
       }
       // Re-admit with fresh ledger if tryExecuteSync partially charged before bailing out
       try {
-        owned = admit(input, this.limits, this.controller.signal, false);
+        owned = admit(input, this.limits, signal, false);
       } catch (error) {
         if (error instanceof ExprMatchError || error instanceof PublicDiagnostic || error instanceof EreSyntaxError || error instanceof EreUnsupportedError || error instanceof EreProfileLimitError || error instanceof EreUsageUnknownError) {
           failure = error.message.slice(0, 512);
@@ -1279,10 +1281,11 @@ class CooperativeWorker implements RegexWorker {
         } else throw error;
       }
     }
-    this.scheduleAsyncTask(id, operation, expression, owned, failure, category);
+    this.scheduleAsyncTask(controller, id, operation, expression, owned, failure, category);
   }
 
   private scheduleAsyncTask(
+    controller: AbortController,
     id: number,
     operation: unknown,
     expression: boolean,
@@ -1291,19 +1294,22 @@ class CooperativeWorker implements RegexWorker {
     category: ExprMatchError["category"],
   ): void {
     this.busy = true;
+    this.controller = controller;
+    const signal = controller.signal;
     const task = Promise.resolve().then(async () => {
       let reply: Reply | ExprMatchReply | BreSearchReply;
       try {
-        this.controller.signal.throwIfAborted();
-        reply = owned ? "subject" in owned ? await executeExpr(owned, this.controller.signal)
-          : owned.descriptor.kind === "glob" ? await executeBoundedGlobs(owned as OwnedGlobRequest, this.controller.signal)
-          : await execute(owned as OwnedRequest, this.controller.signal) : { id, error: failure! };
+        signal.throwIfAborted();
+        reply = owned ? "subject" in owned ? await executeExpr(owned, signal)
+          : owned.descriptor.kind === "glob" ? await executeBoundedGlobs(owned as OwnedGlobRequest, signal)
+          : await execute(owned as OwnedRequest, signal) : { id, error: failure! };
         if (owned && !("subject" in owned) && !("error" in reply)) {
           trustedWorkerReplies.add(reply);
         }
       } catch (error) {
         if (!(error instanceof ExprMatchError || error instanceof PublicDiagnostic || error instanceof EreSyntaxError || error instanceof EreUnsupportedError || error instanceof EreProfileLimitError || error instanceof EreUsageUnknownError)) {
           owned = undefined;
+          this.controller = undefined;
           this.busy = false;
           for (const listener of this.listeners.get("error") ?? []) (listener as (reason: unknown) => void)(error);
           return;
@@ -1312,8 +1318,9 @@ class CooperativeWorker implements RegexWorker {
         reply = { id, error: error.message.slice(0, 512) };
       }
       if (expression && "error" in reply) reply = { id, operation: operation === "bre-search" ? "bre-search" : "expr-match", category, error: reply.error };
-      // Clear request-owned payloads before notifying the consumer or allowing reuse.
+      // Release request-owned data and cancellation before notifying consumers or allowing reuse.
       owned = undefined;
+      this.controller = undefined;
       this.busy = false;
       if (!this.closing) this.emit(reply);
     });
@@ -1328,7 +1335,7 @@ class CooperativeWorker implements RegexWorker {
         this.tasks.clear();
         this.release();
       });
-      this.controller.abort(new Error("bounded regex worker terminated"));
+      this.controller?.abort(new Error("bounded regex worker terminated"));
     }
     return this.closing;
   }

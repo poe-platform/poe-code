@@ -1366,10 +1366,12 @@ it("prepares scoped browser and private command runtimes without root sandbox bu
   volume.writeFileSync("/repo/package.json", JSON.stringify({ license: "MIT", exports: {} }));
   const browserTargets = Object.keys(volume.toJSON()).filter(filename => filename.endsWith(".browser.js"));
   for (const filename of browserTargets) volume.unlinkSync(filename);
-  for (const name of ["op", "pandoc", "office-package"]) {
+  for (const name of ["safe-bash-command-op", "pandoc", "office-package"]) {
+    const profile = name === "safe-bash-command-op" ? bashManifest.poeCode.integration.privateWorkspaces[name] : undefined;
     volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
     volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify({
-      name: name === "op" ? "safe-bash-command-op" : `@poe-code/${name}`, private: true,
+      name: profile ? name : `@poe-code/${name}`, private: true,
+      ...(profile ? { type: "module", version: profile.version, dependencies: profile.dependencies, devDependencies: profile.devDependencies } : {}),
       exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
     }));
     volume.writeFileSync(`/repo/packages/${name}/dist/index.d.ts`, "export {};\n");

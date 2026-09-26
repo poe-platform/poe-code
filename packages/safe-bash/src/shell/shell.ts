@@ -43,6 +43,28 @@ const EMPTY_STDIN_OPTIONS = Object.freeze({
   provenance: "stream" as const,
   initialEof: true,
 });
+const EMPTY_STDOUT_BYTES = new Uint8Array(0);
+const EMPTY_EXEC_RESULT: ShellResult = {
+  stdout: "",
+  stderr: "",
+  stdoutBytes: EMPTY_STDOUT_BYTES,
+  stderrBytes: EMPTY_STDOUT_BYTES,
+  exitCode: 0,
+};
+interface WarmedInvocation {
+  budget: Budget;
+  scope: InvocationScope;
+  cancellationState: RuntimeCancellationState;
+  owner: RootInvocationCancellationOwner;
+  admission: ReturnType<typeof Runtime.rootCancellationAdmission>;
+  boundary: CancellationBoundary;
+  stdout: Capture;
+  stderr: Capture;
+  stdin: ShellInput;
+  io: { -readonly [K in keyof Parameters<Runtime["runUnit"]>[2]]: Parameters<Runtime["runUnit"]>[2][K] };
+  currentState: State;
+  runtime: Runtime;
+}
 const _execAnchor: unknown[] = new Array(13);
 export let _lastExecAnchor: unknown = _execAnchor;
 interface CachedParsedUnit {
@@ -156,6 +178,14 @@ class RootInvocationCancellationOwner implements CancellationOwnerSubscriber {
 
   closeAdmission(): void {
     this._admissionOpen = false;
+  }
+
+  resetForReuse(): void {
+    this._settled = false;
+    this._rawPromise = undefined;
+    this._resolveCapture = undefined;
+    this._observedOrigin = undefined;
+    this._queuedOrigin = false;
   }
 
   get finalized(): Promise<void> {
@@ -282,6 +312,7 @@ export class Shell implements PluginHost {
   #singleActiveOwner: RootInvocationCancellationOwner | undefined;
   #active: Set<{ scope: InvocationScope; budget: Budget; owner: RootInvocationCancellationOwner }> | undefined;
   #lastInvocation: unknown;
+  #warmedInvocation: WarmedInvocation | undefined;
 
   constructor(options: ShellOptions) {
     if (!options?.fs) throw new TypeError("Shell requires an explicit filesystem");
@@ -314,6 +345,7 @@ export class Shell implements PluginHost {
 
   use(middleware: Middleware | VirtualShellPlugin): this {
     if (this.#disposed) throw new Error("Shell is disposed");
+    this.#clearWarmedInvocation();
     this.#install(middleware);
     return this;
   }
@@ -393,28 +425,77 @@ export class Shell implements PluginHost {
     };
   }
 
+  #clearWarmedInvocation(): void {
+    const warm = this.#warmedInvocation;
+    if (!warm) return;
+    this.#warmedInvocation = undefined;
+    void warm.stdin.close();
+    warm.budget.close();
+    void warm.scope.close();
+    warm.cancellationState.close();
+  }
+
+  #isDefaultExecOptions(options: ShellExecOptions, currentScope?: InvocationScope): boolean {
+    return (
+      options.signal === undefined &&
+      options.limits === undefined &&
+      options.onInternalError === undefined &&
+      options.stdin === undefined &&
+      options.stdout === undefined &&
+      options.stderr === undefined &&
+      options.env === undefined &&
+      options.cwd === undefined &&
+      options.state === undefined &&
+      options.onState === undefined &&
+      options.hooks === undefined &&
+      options.capabilities === undefined &&
+      options.admittedHandles === undefined &&
+      options.processSignals === undefined &&
+      options.fs === undefined &&
+      !this.#hasCustomCommands &&
+      this.#middleware.length === 0 &&
+      (!this.#options.extensions || this.#options.extensions.length === 0) &&
+      this.#options.hooks === undefined &&
+      !this.#hasInitialEnv &&
+      isSyncResolved(this.#ready) &&
+      (!this.#singleActiveScope || this.#singleActiveScope === currentScope) &&
+      !this.#active
+    );
+  }
+
   async exec(source: string, options: ShellExecOptions = {}): Promise<ShellResult> {
     if (this.#disposed) throw new Error("Shell is disposed");
     if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");
     warnIfHostProcessEnv(options.env);
+    let warm: WarmedInvocation | undefined;
+    if (this.#warmedInvocation) {
+      if (this.#isDefaultExecOptions(options)) {
+        warm = this.#warmedInvocation;
+        this.#warmedInvocation = undefined;
+      } else {
+        this.#clearWarmedInvocation();
+      }
+    }
     const limits = options.limits === undefined ? this.#resolvedLimits : resolveLimits(this.#options.limits, options.limits);
-    const budget = new Budget(limits, options.signal, options.onInternalError ?? this.#options.onInternalError);
-    const scope = new InvocationScope(options.signal);
-    const cancellationState = new RuntimeCancellationState();
-    const owner = new RootInvocationCancellationOwner(scope);
-    const admission = Runtime.rootCancellationAdmission(budget);
-    const boundary = createRootCancellationLink({
+    const budget = warm ? warm.budget : new Budget(limits, options.signal, options.onInternalError ?? this.#options.onInternalError);
+    const scope = warm ? warm.scope : new InvocationScope(options.signal);
+    const cancellationState = warm ? warm.cancellationState : new RuntimeCancellationState();
+    const owner = warm ? warm.owner : new RootInvocationCancellationOwner(scope);
+    const admission = warm ? warm.admission : Runtime.rootCancellationAdmission(budget);
+    const boundary = warm ? warm.boundary : createRootCancellationLink({
       admission,
       callerSignal: options.signal,
       budgetControlSignal: budget.controller.signal,
       nativeDeliverySignal: this.#hasCustomCommands || this.#middleware.length > 0 || options.signal !== undefined,
     });
-    try { owner.activate(boundary); }
-    catch (error) {
-      scope.failures.push(...boundary.close().failures);
-      await scope.close();
-      cancellationState.close();
-      throw error;
+    if (!warm) {
+      try { owner.activate(boundary); }
+      catch (error) {
+        scope.failures.push(...boundary.close().failures);
+        await scope.close();
+        cancellationState.close();
+        throw error;
+      }
     }
     let activeEntry: { scope: InvocationScope; budget: Budget; owner: RootInvocationCancellationOwner } | undefined;
     if (!this.#singleActiveScope && !this.#active) {
@@ -436,20 +517,26 @@ export class Shell implements PluginHost {
     }
     let captured: CapturedCancellationOutcome<ShellResult>;
     try {
-      captured = await owner.capture(this.#execute(source, options, scope, budget, boundary, cancellationState, owner, admission));
+      captured = await owner.capture(this.#execute(source, options, scope, budget, boundary, cancellationState, owner, admission, warm));
       if (captured.kind === "throw" && budget.hasExecutionCleanup) budget.executionCleanup.abort(captured.reason);
     } finally {
-      if (budget.hasExecutionCleanup) {
-        const cleanupDrain = budget.executionCleanup.drain();
-        if (!isSyncResolved(cleanupDrain)) await cleanupDrain;
-        if (budget.executionCleanup.failures.length > 0) scope.failures.push(...budget.executionCleanup.failures);
+      if (this.#warmedInvocation?.budget !== budget) {
+        if (budget.hasExecutionCleanup) {
+          const cleanupDrain = budget.executionCleanup.drain();
+          if (!isSyncResolved(cleanupDrain)) await cleanupDrain;
+          if (budget.executionCleanup.failures.length > 0) scope.failures.push(...budget.executionCleanup.failures);
+        }
+        budget.close();
+        const scopeClose = scope.close();
+        if (!isSyncResolved(scopeClose)) await scopeClose;
       }
-      budget.close();
-      const scopeClose = scope.close();
-      if (!isSyncResolved(scopeClose)) await scopeClose;
     }
-    const selection = owner.finish(captured);
-    cancellationState.close();
+    const selection = this.#warmedInvocation?.budget === budget
+      ? (owner.resetForReuse(), { outcome: captured })
+      : owner.finish(captured);
+    if (this.#warmedInvocation?.budget !== budget) {
+      cancellationState.close();
+    }
     if (activeEntry) {
       this.#active!.delete(activeEntry);
     } else if (this.#singleActiveScope === scope) {
@@ -477,15 +564,16 @@ export class Shell implements PluginHost {
     cancellationState: RuntimeCancellationState,
     owner: RootInvocationCancellationOwner,
     admission: ReturnType<typeof Runtime.rootCancellationAdmission>,
+    warm?: WarmedInvocation,
   ): Promise<ShellResult> {
     if (typeof source !== "string") throw new TypeError("Shell source must be a string");
     if (Buffer.byteLength(source) > budget.limits.maxSourceBytes) throw new ShellLimitError("maxSourceBytes");
     budget.source(Buffer.byteLength(source));
     budget.signal.throwIfAborted();
-    scope.setActiveBudget(budget);
-    const stdout = new Capture(options.stdout === undefined ? budget : undefined, budget.signal);
-    const stderr = new Capture(options.stderr === undefined ? budget : undefined, budget.signal);
-    let stdin: ShellInput | undefined;
+    if (!warm) scope.setActiveBudget(budget);
+    const stdout = warm ? warm.stdout : new Capture(options.stdout === undefined ? budget : undefined, budget.signal);
+    const stderr = warm ? warm.stderr : new Capture(options.stderr === undefined ? budget : undefined, budget.signal);
+    let stdin: ShellInput | undefined = warm?.stdin;
     let unregisterStdin: (() => void) | undefined;
     if (options.stdin !== undefined && typeof options.stdin !== "string" && !(options.stdin instanceof Uint8Array)) {
       unregisterStdin = scope.register(async () => {
@@ -499,7 +587,7 @@ export class Shell implements PluginHost {
       : options.capabilities === undefined && options.limits === undefined
         ? (this.#defaultIoCapabilities ??= Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) }))
         : Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) });
-    const io: { -readonly [K in keyof Parameters<Runtime["runUnit"]>[2]]: Parameters<Runtime["runUnit"]>[2][K] } = {
+    const io: { -readonly [K in keyof Parameters<Runtime["runUnit"]>[2]]: Parameters<Runtime["runUnit"]>[2][K] } = warm ? warm.io : {
       capabilities: initialCapabilities,
       [invocationScope]: scope,
       stdin: SHARED_EMPTY_SOURCE,
@@ -510,8 +598,8 @@ export class Shell implements PluginHost {
     if (options.admittedHandles !== undefined) io.admittedHandles = options.admittedHandles;
     if (options.processSignals !== undefined) io.processSignals = options.processSignals;
     let exitCode: number;
-    let runtime: Runtime | undefined;
-    let state: State | undefined;
+    let runtime: Runtime | undefined = warm?.runtime;
+    let state: State | undefined = warm?.currentState;
     let failed = false;
     try {
       try {
@@ -537,6 +625,11 @@ export class Shell implements PluginHost {
           unit = getOrParseUnitFromCache(source, 0, locale, sourceCache, parseState, budget, extensions.syntax);
           currentCachedUnit = parseState.currentCachedUnit;
         }
+        let currentState: State;
+        if (warm) {
+          currentState = warm.currentState;
+          runtime = warm.runtime;
+        } else {
         if (options.stdin === undefined || typeof options.stdin === "string" || options.stdin instanceof Uint8Array) {
           const value = options.stdin ?? "";
           const needsCopy = extensions !== EMPTY_CAPTURED_EXTENSIONS || this.#hasCustomCommands || this.#middleware.length > 0;
@@ -577,7 +670,7 @@ export class Shell implements PluginHost {
         }
         variables.OPTIND = "1";
         variables.OPTERR = "1";
-        let currentState: State = new RootShellState(
+        currentState = new RootShellState(
           cwd,
           variables,
           exported,
@@ -629,6 +722,7 @@ export class Shell implements PluginHost {
           undefined,
           filesystem,
         );
+        }
         exitCode = 0;
         while (true) {
           if (unit.script.warnings) {
@@ -681,6 +775,36 @@ export class Shell implements PluginHost {
       throw error;
     }
     finally {
+      if (
+        source === "" &&
+        !warm &&
+        !failed &&
+        !this.#warmedInvocation &&
+        !budget.hasExecutionCleanup &&
+        !scope.hasFailures &&
+        !budget.signal.aborted &&
+        stdin &&
+        runtime &&
+        state &&
+        this.#isDefaultExecOptions(options, scope)
+      ) {
+        if (state.extensions) state.extensions.exiting = false;
+        ensureStateMonitor(state, budget, scope);
+        this.#warmedInvocation = {
+          budget,
+          scope,
+          cancellationState,
+          owner,
+          admission,
+          boundary: cancellation,
+          stdout,
+          stderr,
+          stdin,
+          io,
+          currentState: state,
+          runtime,
+        };
+      } else {
       scope.clearActiveBudget();
       scope.clearActiveStdin();
       unregisterStdin?.();
@@ -696,6 +820,7 @@ export class Shell implements PluginHost {
           if (failed) await closedStdin.catch(() => {});
           else await closedStdin;
         }
+      }
       }
     }
     if (budget.hasExecutionCleanup) throwCleanupFailures(budget.executionCleanup.failures);
@@ -716,7 +841,7 @@ export class Shell implements PluginHost {
         stderrBytes,
         exitCode,
       };
-      if (runtime && state) {
+      if (runtime && state && this.#warmedInvocation?.budget !== budget) {
         if (_execAnchor[10] === undefined) {
           _execAnchor[10] = ensureStateMonitor(state, budget, scope);
         }
@@ -763,6 +888,7 @@ export class Shell implements PluginHost {
     if (this.#disposal) return this.#disposal;
     this.#disposed = true;
     this.#lastInvocation = undefined;
+    this.#clearWarmedInvocation();
     const active = this.#active
       ? [...this.#active]
       : (this.#singleActiveScope ? [{ scope: this.#singleActiveScope, budget: this.#singleActiveBudget!, owner: this.#singleActiveOwner! }] : []);

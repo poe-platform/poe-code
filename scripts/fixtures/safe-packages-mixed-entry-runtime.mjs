@@ -632,10 +632,11 @@ export async function verifyHexdumpCommands(entry = defaultEntry) {
   await filesystem.mkdir("/hexdump-work");
   await filesystem.writeFile("/hexdump-work/saved.sh", source);
   await filesystem.writeFile("/hexdump-work/input.bin", input);
-  const shell = new entry.Shell({ fs: filesystem, cwd: "/hexdump-work", env: { LC_ALL: "C" } }).use(entry.agentCommands());
+  const internalErrors = [];
+  const shell = new entry.Shell({ fs: filesystem, cwd: "/hexdump-work", env: { LC_ALL: "C" }, onInternalError: error => { internalErrors.push(String(error?.stack ?? error)); } }).use(entry.agentCommands());
   try {
     const result = await shell.exec("sh saved.sh input.bin");
-    if (result.exitCode !== 0 || result.stdoutBytes.length !== 0 || result.stderrBytes.length !== 0) throw new Error(`Public hexdump saved workflow failed: ${JSON.stringify(result)}`);
+    if (result.exitCode !== 0 || result.stdoutBytes.length !== 0 || result.stderrBytes.length !== 0) throw new Error(`Public hexdump saved workflow failed: ${JSON.stringify({ result, internalErrors })}`);
     for (const [name, bytes] of [["canonical.txt", expected], ["alias.txt", expected], ["input.bin", input], ["saved.sh", source]]) {
       const actual = await filesystem.readFile(`/hexdump-work/${name}`);
       if (actual.length !== bytes.length || actual.some((value, index) => value !== bytes[index])) throw new Error(`Public hexdump ${name} bytes differ`);

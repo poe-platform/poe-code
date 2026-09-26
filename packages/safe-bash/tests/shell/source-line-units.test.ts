@@ -55,6 +55,17 @@ test("#614 execution units share one lazy source index", async context => {
   assert.ok(matches > 0 && matches <= 8, `indexed ${matches} newlines for an eight-newline source`);
 });
 
+test("default locale remains stable across successive units and cached executions", async context => {
+  const { shell } = setup();
+  context.after(() => shell.dispose());
+  const source = "args $'\\u00e9'\nargs $'\\u00e9'";
+  for (const run of ["cold", "warm"]) {
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, '["é"]["é"]', run);
+  }
+});
+
 test("#614 successive units retain locale changes and earlier effects", async context => {
   const { shell, fs } = setup();
   context.after(() => shell.dispose());

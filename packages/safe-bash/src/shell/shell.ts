@@ -631,7 +631,7 @@ export class Shell implements PluginHost {
           if (unit.next >= source.length) break;
           budget.signal.throwIfAborted();
           const vars = state.variables;
-          const nextLocale = (vars.LC_ALL || vars.LC_CTYPE || vars.LANG) ? byteLocale(vars) : true;
+          const nextLocale = (vars.LC_ALL || vars.LC_CTYPE || vars.LANG) ? byteLocale(vars) : false;
           if (currentCachedUnit && currentCachedUnit.locale === nextLocale && currentCachedUnit.nextCached !== undefined) {
             currentCachedUnit = currentCachedUnit.nextCached;
             budget.parsing.admit(currentCachedUnit.unitsCharged);

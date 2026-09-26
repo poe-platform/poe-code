@@ -25,10 +25,13 @@ export class FileInformation {
     const byte = input.byte;
     let dos = 0, unix = 0, mac = 0, previous = -1, last = "noeol", binary = false;
     for (;;) {
-      let current = await byte();
+      const b1 = byte();
+      let current = typeof b1 === "number" ? b1 : await b1;
       if (current === -1) break;
       if (encoding !== "bytes") {
-        const trail = await byte(); if (trail === -1) break;
+        const b2 = byte();
+        const trail = typeof b2 === "number" ? b2 : await b2;
+        if (trail === -1) break;
         current = encoding === "le" ? current + trail * 256 : current * 256 + trail;
       }
       if (current < 32 && ![9, 10, 12, 13].includes(current)) binary = true;

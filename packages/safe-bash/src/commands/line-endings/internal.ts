@@ -71,11 +71,13 @@ export class Budget {
     else { this.check(this.output + amount, this.limits.maxOutputBytes, "output bytes"); this.output += amount; }
   }
   file(): void { this.check(++this.files, this.limits.maxFiles, "file count"); }
-  async step(amount = 1): Promise<void> {
+  step(amount = 1): void | Promise<void> {
     this.assertOpen();
     this.check(this.work + amount, this.limits.maxWork, "work"); this.work += amount;
     this.quantum += amount;
-    if (this.quantum >= 1024) { this.quantum = 0; await yieldTurn(this.caller); this.assertOpen(); }
+    if (this.quantum < 1024) return;
+    this.quantum = 0;
+    return yieldTurn(this.caller).then(() => { this.assertOpen(); });
   }
   async arguments(): Promise<string[]> {
     const args = this.context.args;
@@ -101,7 +103,7 @@ export class Budget {
     }
     for (const argument of snapshot) {
       for (let index = 0; index < argument.length; index++) {
-        await this.step();
+        { const s = this.step(); if (s) await s; }
         const unit = argument.charCodeAt(index);
         if (unit >= 0xd800 && unit <= 0xdbff) {
           const next = argument.charCodeAt(++index);
@@ -118,7 +120,7 @@ export class Budget {
     }
     const result: string[] = [];
     for (const value of values) {
-      await this.step(shellValueByteLength(value));
+      { const s = this.step(shellValueByteLength(value)); if (s) await s; }
       let text: string;
       try { text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(shellValueBytes(value)); }
       catch { throw new LineEndingError("arguments must be valid UTF-8 paths"); }

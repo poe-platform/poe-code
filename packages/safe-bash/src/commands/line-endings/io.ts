@@ -26,7 +26,7 @@ export class Lifecycle {
   cleanup(action: () => Promise<void>): void { this.assertOpen(); this.cleanups.push(action); }
   async operation<Value>(action: () => Value | Promise<Value>): Promise<Value> {
     this.assertOpen();
-    const pending = Promise.resolve().then(async () => { await this.budget.step(); this.assertOpen(); return action(); });
+    const pending = Promise.resolve().then(async () => { { const s = this.budget.step(); if (s) await s; } this.assertOpen(); return action(); });
     this.pending.add(pending);
     try { const value = await pending; this.assertOpen(); return value; }
     finally { this.pending.delete(pending); }
@@ -143,8 +143,16 @@ export class Reader {
       this.iterator = Reflect.apply(factory, source, []);
     });
   }
-  async get(): Promise<number> {
-    await this.life.budget.step();
+  get(): number | Promise<number> {
+    const step = this.life.budget.step();
+    if (!step && this.offset < this.chunk.length) {
+      this.life.assertOpen();
+      return this.chunk[this.offset++]!;
+    }
+    return this.getSlow(step);
+  }
+  private async getSlow(step: void | Promise<void>): Promise<number> {
+    if (step) await step;
     this.life.assertOpen();
     while (this.offset === this.chunk.length) {
       if (this.ended) return -1;
@@ -187,12 +195,16 @@ export class Writer {
     life.cleanup(async () => { this.release(); });
   }
   release(): void { this.life.budget.retain(-this.buffer.length); this.buffer = new Uint8Array(); this.used = 0; }
-  async put(byte: number): Promise<void> {
-    await this.life.budget.step();
+  put(byte: number): void | Promise<void> {
+    const step = this.life.budget.step();
+    if (step) return step.then(() => this.putAfterStep(byte));
+    return this.putAfterStep(byte);
+  }
+  private putAfterStep(byte: number): void | Promise<void> {
     this.life.assertOpen();
     this.life.budget.emitted(1);
     this.buffer[this.used++] = byte;
-    if (this.used === this.buffer.length) await this.flush();
+    if (this.used === this.buffer.length) return this.flush();
   }
   async flush(): Promise<void> {
     this.life.assertOpen();

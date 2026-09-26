@@ -31,17 +31,31 @@ export async function convert(direction: Direction, reader: Reader, writer: Writ
   }
   const byte = input.byte;
   let pushed = -1;
-  const unit = async (): Promise<number> => {
+  const unit = (): number | Promise<number> => {
     if (pushed !== -1) { const value = pushed; pushed = -1; return value; }
-    const lead = await byte();
-    if (lead === -1 || !wide) return lead;
-    const trail = await byte();
-    return trail === -1 ? -1 : bom === "le" ? lead + trail * 256 : lead * 256 + trail;
+    const lead = byte();
+    if (typeof lead === "number") {
+      if (lead === -1 || !wide) return lead;
+      const trail = byte();
+      if (typeof trail === "number") return trail === -1 ? -1 : bom === "le" ? lead + trail * 256 : lead * 256 + trail;
+      return trail.then(t => t === -1 ? -1 : bom === "le" ? lead + t * 256 : lead * 256 + t);
+    }
+    return lead.then(async l => {
+      if (l === -1 || !wide) return l;
+      const trail = await byte();
+      return trail === -1 ? -1 : bom === "le" ? l + trail * 256 : l * 256 + trail;
+    });
   };
   let line = 1;
   const result: { kind: ConversionResult["kind"] } = { kind: "ok" };
-  const put = async (value: number): Promise<boolean> => {
-    if (!wide) { await writer.put(options.sevenBit && bom === "bytes" && value >= 128 ? 32 : value); return true; }
+  const put = (value: number): boolean | Promise<boolean> => {
+    if (!wide) {
+      const p = writer.put(options.sevenBit && bom === "bytes" && value >= 128 ? 32 : value);
+      return p ? p.then(() => true) : true;
+    }
+    return putWide(value);
+  };
+  const putWide = async (value: number): Promise<boolean> => {
     if (options.keepUtf16) {
       await writer.put(bom === "le" ? value & 255 : value >> 8);
       await writer.put(bom === "le" ? value >> 8 : value & 255);
@@ -70,7 +84,8 @@ export async function convert(direction: Direction, reader: Reader, writer: Writ
   let previous = 0;
   let last = -1, converted = 0;
   for (;;) {
-    const current = await unit();
+    const u = unit();
+    const current = typeof u === "number" ? u : await u;
     if (current === -1) break;
     last = current;
     if (!options.force && current < 32 && current !== 9 && current !== 10 && current !== 12 && current !== 13) {
@@ -80,19 +95,25 @@ export async function convert(direction: Direction, reader: Reader, writer: Writ
     }
     if (direction === "dos2unix") {
       if (current === 13) {
-        pushed = await unit();
-        if (pushed !== 10) { if (!await put(13)) break; }
-        else { converted++; last = 10; if (options.newline && !await put(10)) break; }
+        const u2 = unit();
+        pushed = typeof u2 === "number" ? u2 : await u2;
+        if (pushed !== 10) { const ok = put(13); if (!(typeof ok === "boolean" ? ok : await ok)) break; }
+        else { converted++; last = 10; if (options.newline) { const ok = put(10); if (!(typeof ok === "boolean" ? ok : await ok)) break; } }
       } else {
         if (current === 10) line++;
-        if (!await put(current)) break;
+        const ok = put(current);
+        if (!(typeof ok === "boolean" ? ok : await ok)) break;
       }
     } else {
-      if (current === 10 && previous !== 13) { converted++; if (!await put(13)) break; }
+      if (current === 10 && previous !== 13) { converted++; const ok = put(13); if (!(typeof ok === "boolean" ? ok : await ok)) break; }
       if (current === 10) line++;
-      if (!await put(current)) break;
+      const ok = put(current);
+      if (!(typeof ok === "boolean" ? ok : await ok)) break;
       if (options.newline && current === 10) {
-        if (!await put(13) || !await put(10)) break;
+        const ok1 = put(13);
+        if (!(typeof ok1 === "boolean" ? ok1 : await ok1)) break;
+        const ok2 = put(10);
+        if (!(typeof ok2 === "boolean" ? ok2 : await ok2)) break;
       }
       previous = current;
     }

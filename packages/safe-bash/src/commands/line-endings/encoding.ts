@@ -3,7 +3,7 @@ import { Reader } from "./io.js";
 export type Encoding = "bytes" | "le" | "be" | "utf8" | "gb";
 export const encodingLabels: Record<Encoding, string> = { bytes: "no_bom", le: "UTF-16LE", be: "UTF-16BE", utf8: "UTF-8", gb: "GB18030" };
 
-export async function readEncoding(reader: Reader): Promise<{ bom: Encoding; byte: () => Promise<number>; error: boolean }> {
+export async function readEncoding(reader: Reader): Promise<{ bom: Encoding; byte: () => number | Promise<number>; error: boolean }> {
   const prefix: number[] = [];
   let bom: Encoding = "bytes", error = false;
   const first = await reader.get();
@@ -31,5 +31,5 @@ export async function readEncoding(reader: Reader): Promise<{ bom: Encoding; byt
     }
   }
   let offset = 0;
-  return { bom, error, byte: async () => offset < prefix.length ? prefix[offset++]! : await reader.get() };
+  return { bom, error, byte: () => offset < prefix.length ? prefix[offset++]! : reader.get() };
 }

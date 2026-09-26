@@ -712,7 +712,6 @@ const sharedSortEnds = new Int32Array(4096);
 const sharedSortIndices = new Int32Array(4096);
 const sharedSortScratchIndices = new Int32Array(4096);
 const sharedSortKeyNums = new Int32Array(4096);
-const sharedSortInScratch = new Uint8Array(65536);
 const sharedSortOutScratch = new Uint8Array(65536);
 const SORT_LONG_OPTIONS = Object.freeze({
   "human-numeric-sort": "h",
@@ -1091,32 +1090,20 @@ async function executeSortGeneral(
         ));
       if (canFastIndexSort) {
         let firstChunk: Uint8Array | undefined;
-        let moreChunks: Uint8Array[] | undefined;
-        let totalChunkBytes = 0;
+        const pendingInput = new RecordBuffer(bufferLimit);
         try {
           for await (const ch of input(context, "-")) {
-            if (ch.length === 0) continue;
-            totalChunkBytes += ch.length;
-            if (!firstChunk) firstChunk = ch;
-            else (moreChunks ??= [firstChunk]).push(ch);
+            pendingInput.append(ch);
           }
+          if (pendingInput.size) firstChunk = pendingInput.finish();
         } catch (error) {
           await diagnostic(context, error);
           return { exitCode: 2 };
+        } finally {
+          pendingInput.clear();
         }
         if (!firstChunk) return { exitCode: 0 };
-        if (moreChunks && totalChunkBytes <= 65536) {
-          let pos = 0;
-          for (let i = 0; i < moreChunks.length; i++) {
-            const c = moreChunks[i]!;
-            sharedSortInScratch.set(c, pos);
-            pos += c.length;
-          }
-          firstChunk = sharedSortInScratch.subarray(0, totalChunkBytes);
-          moreChunks = undefined;
-        }
         if (
-          !moreChunks &&
           firstChunk.length <= 65536 &&
           firstChunk[firstChunk.length - 1] === delimiter &&
           recordBudget.canAdmitChunk(firstChunk.length)
@@ -1202,11 +1189,8 @@ async function executeSortGeneral(
             await output(context, outBuf);
             return { exitCode: 0 };
           }
-          if (firstChunk.buffer === sharedSortInScratch.buffer) {
-            firstChunk = new Uint8Array(firstChunk);
-          }
         }
-        preReadChunks = moreChunks ?? [firstChunk];
+        preReadChunks = [firstChunk];
       }
       let compareNumeric = async (left: Uint8Array, right: Uint8Array, human: boolean) => compareNumericValues(await parseNumeric(left, work, human), await parseNumeric(right, work, human), work);
       const isUnkeyedNumericFast = !keys.length && (parsed.flags.has("n") || parsed.flags.has("h")) && !["b", "f", "c", "d", "i"].some(flag => parsed.flags.has(flag));
@@ -1945,7 +1929,7 @@ export function textCommands(): CommandDefinition[] {
           }
           if (res1 !== undefined) {
             if (res1.done) return RESOLVED_EXIT_ZERO;
-            const firstChunk = res1.value;
+            const firstChunk = new Uint8Array(res1.value);
             let res2: IteratorResult<Uint8Array> | undefined;
             try {
               res2 = srcIter.tryNextSync();
@@ -2315,42 +2299,26 @@ async function executeSortFastContinueAsync(
   initialFirstChunk: Uint8Array | undefined,
   initialSecondRes: IteratorResult<Uint8Array> | undefined,
 ): Promise<{ exitCode: number }> {
-        let firstChunk: Uint8Array | undefined = initialFirstChunk && initialFirstChunk.length > 0 ? initialFirstChunk : undefined;
-        let moreChunks: Uint8Array[] | undefined;
-        let totalChunkBytes = firstChunk ? firstChunk.length : 0;
-        if (initialSecondRes && !initialSecondRes.done && initialSecondRes.value.length > 0) {
-          totalChunkBytes += initialSecondRes.value.length;
-          if (!firstChunk) firstChunk = initialSecondRes.value;
-          else moreChunks = [firstChunk, initialSecondRes.value];
-        }
+        let firstChunk: Uint8Array | undefined;
+        const pendingInput = new RecordBuffer(bufferLimit);
         try {
+          if (initialFirstChunk) pendingInput.append(initialFirstChunk);
+          if (initialSecondRes && !initialSecondRes.done) pendingInput.append(initialSecondRes.value);
           while (!initialSecondRes?.done) {
             const syncRes = srcIter.tryNextSync?.();
             const res = syncRes !== undefined ? syncRes : await srcIter.next();
             if (res.done) break;
-            const ch = res.value;
-            if (ch.length === 0) continue;
-            totalChunkBytes += ch.length;
-            if (!firstChunk) firstChunk = ch;
-            else (moreChunks ??= [firstChunk]).push(ch);
+            pendingInput.append(res.value);
           }
+          if (pendingInput.size) firstChunk = pendingInput.finish();
         } catch (error) {
           await diagnostic(context, error);
           return { exitCode: 2 };
+        } finally {
+          pendingInput.clear();
         }
         if (!firstChunk) return { exitCode: 0 };
-        if (moreChunks && totalChunkBytes <= 65536) {
-          let pos = 0;
-          for (let i = 0; i < moreChunks.length; i++) {
-            const c = moreChunks[i]!;
-            sharedSortInScratch.set(c, pos);
-            pos += c.length;
-          }
-          firstChunk = sharedSortInScratch.subarray(0, totalChunkBytes);
-          moreChunks = undefined;
-        }
         if (
-          !moreChunks &&
           firstChunk.length <= 65536 &&
           firstChunk[firstChunk.length - 1] === 10
         ) {
@@ -2426,11 +2394,8 @@ async function executeSortFastContinueAsync(
             await output(context, outBuf);
             return { exitCode: 0 };
           }
-          if (firstChunk.buffer === sharedSortInScratch.buffer) {
-            firstChunk = new Uint8Array(firstChunk);
-          }
         }
-        return executeSortGeneral(context, moreChunks ?? [firstChunk]);
+        return executeSortGeneral(context, [firstChunk]);
 }
 
 async function executeCutFastAsync(

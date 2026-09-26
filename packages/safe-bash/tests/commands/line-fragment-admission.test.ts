@@ -3,6 +3,7 @@ import test from "node:test";
 import { lines } from "../../src/commands/internal.js";
 import { RecordBuffer } from "../../src/commands/record-buffer.js";
 import { SortRecordBudget } from "../../src/commands/sort-admission.js";
+import { textCommands } from "../../src/commands/text.js";
 import { FsError, type ByteSource } from "../../src/contracts/index.js";
 import { run } from "./helpers.js";
 
@@ -43,18 +44,28 @@ test("lines retains eight one-byte fragments in one owned segment", async () => 
 });
 
 test("sort retains eight one-byte fragments without per-fragment owned copies", async () => {
+  const commands = textCommands();
   await withAllocations(async allocations => {
-    const result = await run("sort", [], { stdin: reusedBytes() });
+    const result = await run("sort", [], { stdin: reusedBytes(), commands });
     assert.equal(result.exitCode, 0);
     assert.equal(result.stdout, "ABCDEFGH\n");
     assert.equal(allocations.filter(length => length === 1).length, 0);
   });
 });
 
+for (const args of [[], ["-r"], ["-s"], ["-k1,1n"]]) {
+  test(`sort ${args.join(" ")} snapshots each borrowed input fragment before advancing`, async () => {
+    const result = await run("sort", args, { stdin: reusedBytes(), commands: textCommands() });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "ABCDEFGH\n");
+  });
+}
+
 for (const count of [8, 16]) {
   for (const command of ["lines", "sort", "sort -c"] as const) {
     test(`${command} directly finalizes ${count} complete short records without scratch segments`, async () => {
       const input = Buffer.from("a\n".repeat(count));
+      const commands = textCommands();
       await withAllocations(async allocations => {
         let inputAllocations: number[] | undefined;
         async function* source(): ByteSource {
@@ -73,7 +84,7 @@ for (const count of [8, 16]) {
             assert.equal(record.terminated, true);
           }
         } else {
-          const result = await run("sort", command === "sort -c" ? ["-c"] : [], { stdin: source() });
+          const result = await run("sort", command === "sort -c" ? ["-c"] : [], { stdin: source(), commands });
           assert.equal(result.exitCode, 0, result.stderr);
           assert.equal(result.stdout, command === "sort" ? "a\n".repeat(count) : "");
         }

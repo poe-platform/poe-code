@@ -20,7 +20,6 @@ const jqAstCache = new Map<string, Ast>();
 const OUT_BUF_SIZE = 16 * 1024;
 let sharedJqOutBuf: Uint8Array | null = null;
 let sharedJqOutBufInUse = false;
-const RELEASED_JQ_SIGNAL = new AbortController().signal;
 let _lastJqAnchor1: unknown;
 let _lastJqAnchor2: unknown;
 let _lastJqAnchor3: unknown;
@@ -670,7 +669,7 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
     options.variables.clear();
     options.files.length = 0;
     interpreter.releaseScratch();
-    (budget as unknown as { signal: AbortSignal }).signal = RELEASED_JQ_SIGNAL;
+    (budget as unknown as { signal: AbortSignal }).signal = new AbortController().signal;
     _lastJqAnchor1 = budget;
     _lastJqAnchor2 = options;
     _lastJqAnchor3 = interpreter;

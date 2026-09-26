@@ -2733,14 +2733,13 @@ const mapfileCallbackStates = new WeakSet<State>();
 const runtimeFileSystems = new WeakMap<FileSystem, FileSystem>();
 const reusableDefaultContextFsBySourceFs = new WeakMap<FileSystem, { scoped: FileSystem; inUseBy: Runtime | undefined }>();
 const noopFsCharge = (): void => {};
-const NEVER_ABORTED_SIGNAL = new AbortController().signal;
 
 export function warmDefaultRuntimeContextFs(sourceFs: FileSystem, backingFs: FileSystem): void {
   if (reusableDefaultContextFsBySourceFs.has(sourceFs)) return;
   const created = scopeFileSystem(
     creationFileSystem(sourceFs, 0o022),
     noopFsCharge,
-    NEVER_ABORTED_SIGNAL,
+    new AbortController().signal,
     noopFsCharge,
     { maxPathComponents: 256 },
   );
@@ -3008,7 +3007,7 @@ export class Runtime {
   releaseAnchorResources(): void {
     const reusableEntry = reusableDefaultContextFsBySourceFs.get(this.sourceFs);
     if (reusableEntry && reusableEntry.inUseBy === this) {
-      retargetScopedFileSystem(reusableEntry.scoped, noopFsCharge, NEVER_ABORTED_SIGNAL, noopFsCharge, 256);
+      retargetScopedFileSystem(reusableEntry.scoped, noopFsCharge, new AbortController().signal, noopFsCharge, 256);
       reusableEntry.inUseBy = undefined;
     }
     if (Array.isArray(_lastFastContextAnchor) && _lastFastContextAnchor[0]) {

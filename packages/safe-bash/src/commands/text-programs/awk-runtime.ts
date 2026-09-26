@@ -66,8 +66,6 @@ let sharedFieldBuffers: PooledFieldBuffers | undefined = {
 const FAST_AWK_MATCH_OFFSETS = new Int32Array(20);
 const RETURN_SCALAR_ZERO = (): Scalar => SCALAR_ZERO;
 const RETURN_SCALAR_ONE = (): Scalar => SCALAR_ONE;
-const RELEASED_AWK_SIGNAL = new AbortController().signal;
-const RELEASED_AWK_CONTEXT = Object.freeze({ signal: RELEASED_AWK_SIGNAL }) as unknown as CommandContext;
 const runtimeAnchor: { current?: AwkRuntime } = {};
 const _lastAwkArrayAnchor = new AwkArray();
 void _lastAwkArrayAnchor;
@@ -1590,9 +1588,12 @@ export class AwkRuntime {
       this.pooledBuffers = undefined;
     }
     this.context.signal.throwIfAborted();
-    (this as unknown as { context: CommandContext }).context = RELEASED_AWK_CONTEXT;
-    (this.budget as unknown as { context: CommandContext; signal: AbortSignal }).context = RELEASED_AWK_CONTEXT;
-    (this.budget as unknown as { context: CommandContext; signal: AbortSignal }).signal = RELEASED_AWK_SIGNAL;
+    // Workers require native signals to be created inside the current request.
+    const releasedSignal = new AbortController().signal;
+    const releasedContext = Object.freeze({ signal: releasedSignal }) as unknown as CommandContext;
+    (this as unknown as { context: CommandContext }).context = releasedContext;
+    (this.budget as unknown as { context: CommandContext; signal: AbortSignal }).context = releasedContext;
+    (this.budget as unknown as { context: CommandContext; signal: AbortSignal }).signal = releasedSignal;
     runtimeAnchor.current = this;
     if (failed) throw failure;
     if (cleanup) for (const result of cleanup) if (result.status === "rejected") throw result.reason;

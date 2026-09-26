@@ -408,7 +408,16 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
   return { found, stats: totals };
 }
 
-const dummyController = new AbortController();
+// Module initialization and pooled cleanup cannot allocate request-scoped host resources.
+const DUMMY_SIGNAL = Object.freeze({
+  aborted: false,
+  reason: undefined,
+  onabort: null,
+  throwIfAborted(): void {},
+  addEventListener(): void {},
+  removeEventListener(): void {},
+  dispatchEvent(): boolean { return true; },
+}) as unknown as AbortSignal;
 const DUMMY_CONTEXT: CommandContext = {
   stdin: { async *[Symbol.asyncIterator]() {} },
   stdout: { async write() {} },
@@ -418,7 +427,7 @@ const DUMMY_CONTEXT: CommandContext = {
   env: {},
   args: [],
   command: "rg",
-  signal: dummyController.signal,
+  signal: DUMMY_SIGNAL,
 };
 const DUMMY_SESSION = {} as import("../regex-execution/portable.js").RegexSession;
 const DUMMY_REPORT = async () => {};

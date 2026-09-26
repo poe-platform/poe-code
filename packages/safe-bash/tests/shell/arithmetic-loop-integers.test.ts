@@ -3,6 +3,7 @@ import test from "node:test";
 import { setup } from "./helpers.js";
 import { compilePureSmiProgram, prepareArithmetic, runIntArithForLoop, runIntForLoop, sharedLoopIntRegs } from "../../src/shell/arithmetic.js";
 import { ParseBudget } from "../../src/shell/parse-budget.js";
+import { ShellLimitError } from "../../src/shell/types.js";
 
 for (const header of ["for ((i=0;i<100;i++))", "for i in {1..100}"]) {
   for (const [initial, expression, expected] of [
@@ -31,7 +32,7 @@ test("word-loop fallback preserves registers and parse allowance", () => {
   sharedLoopIntRegs[1] = 7;
   const saved = sharedLoopIntRegs.slice();
   const allowance = budget.snapshot();
-  const result = runIntForLoop(["1", "100000000"], 1, [{ name: "s", compiled, varRegMap: new Int32Array([0, 1]), targetReg: 1, isSub: false, extraNewlineByte: 0 }], budget);
+  const result = runIntForLoop(["1", "100000000"], 1, [{ name: "s", compiled, varRegMap: [0, 1], targetReg: 1, isSub: false, extraNewlineByte: 0 }], budget);
   assert.equal(result.ok, false);
   assert.deepEqual(sharedLoopIntRegs, saved);
   assert.equal(budget.snapshot(), allowance);
@@ -52,7 +53,7 @@ for (const route of ["arithmetic", "words"]) test(`${route} numeric bailout rest
   sharedLoopIntRegs.fill(0);
   sharedLoopIntRegs[1] = 1;
   const saved = sharedLoopIntRegs.slice();
-  const steps = [{ name: "s", compiled, varRegMap: new Int32Array([1]), targetReg: 1, isSub: false, extraNewlineByte: 0 }];
+  const steps = [{ name: "s", compiled, varRegMap: [1], targetReg: 1, isSub: false, extraNewlineByte: 0 }];
   const result = route === "arithmetic"
     ? runIntArithForLoop(0, 60, false, 1, 0, steps, budget)
     : runIntForLoop(Array.from({ length: 60 }, (_, i) => String(i)), 1, steps, budget);
@@ -62,14 +63,37 @@ for (const route of ["arithmetic", "words"]) test(`${route} numeric bailout rest
   assert.equal(budget.snapshot(), 0);
 });
 
-for (const route of ["arithmetic", "words"]) test(`${route} substitution counts wide integer output bytes`, () => {
-  const compiled = compilePureSmiProgram(prepareArithmetic("60000 * 60000"), new Set())!;
+for (const route of ["arithmetic", "words"]) for (const wide of [false, true]) test(`${route} substitution accounting or exact bailout: wide=${wide}`, () => {
+  const compiled = compilePureSmiProgram(prepareArithmetic(wide ? "60000 * 60000" : "60000 * 6000"), new Set())!;
   const budget = new ParseBudget(1000);
-  const steps = [{ name: "s", compiled, varRegMap: new Int32Array(), targetReg: 1, isSub: true, extraNewlineByte: 1 }];
+  const saved = sharedLoopIntRegs.slice();
+  const allowance = budget.snapshot();
+  const steps = [{ name: "s", compiled, varRegMap: [], targetReg: 1, isSub: true, extraNewlineByte: 1 }];
   const result = route === "arithmetic"
     ? runIntArithForLoop(0, 2, false, 1, 0, steps, budget)
     : runIntForLoop(["1", "2"], 1, steps, budget);
-  assert.equal(result.ok, true);
-  assert.equal(result.subBytes, 22);
-  assert.equal(result.subCount, 2);
+  assert.equal(result.ok, !wide);
+  if (wide) {
+    assert.deepEqual(sharedLoopIntRegs, saved);
+    assert.equal(budget.snapshot(), allowance);
+  } else {
+    assert.equal(result.subBytes, 20);
+    assert.equal(result.subCount, 2);
+  }
 });
+
+for (const header of ["for ((i=0;i<2;i++))", "for i in 1 2"]) {
+  for (const maxOutputBytes of [32, 33]) test(`wide substitution output budget: ${header}, bytes=${maxOutputBytes}`, async () => {
+    const { shell } = setup({ limits: { maxOutputBytes } });
+    try {
+      const execution = shell.exec(`${header}; do s=$(say $((60000 * 60000))); done; say "$s"`);
+      if (maxOutputBytes === 32) await assert.rejects(execution, ShellLimitError);
+      else {
+        const result = await execution;
+        assert.equal(result.stdout, "3600000000\n");
+        assert.equal(result.stderr, "");
+        assert.equal(result.exitCode, 0);
+      }
+    } finally { await shell.dispose(); }
+  });
+}

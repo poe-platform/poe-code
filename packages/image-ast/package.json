@@ -10,6 +10,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./portable": {
+      "types": "./dist/portable.d.ts",
+      "import": "./dist/portable.js"
     }
   },
   "files": [
@@ -17,7 +21,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js",
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js && esbuild src/portable.ts --bundle --platform=browser --format=esm --target=es2022 --outfile=dist/portable.js",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "lint": "eslint src && npm run typecheck",
     "test": "cd ../.. && vitest run packages/image-ast",

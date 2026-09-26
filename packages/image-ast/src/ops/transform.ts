@@ -1,4 +1,3 @@
-import fs from "node:fs";
 import type {
   BlendMode,
   ChannelStats,
@@ -433,7 +432,8 @@ function blendChannel(s: number, d: number, mode: BlendMode): number {
 
 export function compositeImage(
   base: RgbaImage,
-  layers: readonly CompositeLayer[]
+  layers: readonly CompositeLayer[],
+  readFile?: (path: string) => Uint8Array
 ): RgbaImage {
   const out = new Uint8Array(base.data);
   const baseW = base.width;
@@ -462,9 +462,12 @@ export function compositeImage(
         : {})
     };
     if (typeof layer.input === "string") {
+      if (!layer.input.trimStart().startsWith("<") && !readFile) {
+        throw new Error("Composite file inputs require an explicit readFile capability");
+      }
       const strBytes = layer.input.trimStart().startsWith("<")
         ? new TextEncoder().encode(layer.input)
-        : new Uint8Array(fs.readFileSync(layer.input));
+        : readFile!(layer.input);
       overlay = decodeImage(strBytes, layerOpts);
     } else if (layer.input instanceof Uint8Array || ArrayBuffer.isView(layer.input) || layer.input instanceof ArrayBuffer) {
       const bufBytes =

@@ -713,7 +713,7 @@ export class SharpInstance extends Duplex {
           img = extendImage(img, node);
           break;
         case "composite":
-          img = compositeImage(img, node.layers);
+          img = compositeImage(img, node.layers, path => new Uint8Array(fs.readFileSync(path)));
           break;
         case "grayscale":
           img = grayscaleImage(img);

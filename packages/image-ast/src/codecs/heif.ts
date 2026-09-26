@@ -1,4 +1,4 @@
-import { deflateSync, inflateSync } from "node:zlib";
+import { deflate, inflate } from "pako";
 import type { ColorSpace, ImageMetadata, RgbaImage } from "../ast.js";
 import { buildExifApp1Segment, parseExifBuffer } from "./exif.js";
 import { decodeJpegImage, isJpegBytes } from "./jpeg.js";
@@ -437,7 +437,7 @@ export function encodeHeifImage(
   exifItemPayload.set(exifApp1, 4);
 
   // 2. Build lossless compressed RGBA pixel payload for mdat
-  const compressedPixels = deflateSync(img.data, { level: 6 });
+  const compressedPixels = deflate(img.data, { level: 6 });
   const primaryPayload = new Uint8Array(POE_PIXEL_MAGIC.length + compressedPixels.length);
   primaryPayload.set(POE_PIXEL_MAGIC, 0);
   primaryPayload.set(compressedPixels, POE_PIXEL_MAGIC.length);
@@ -641,7 +641,7 @@ export function decodeHeifImage(bytes: Uint8Array): RgbaImage {
   if (magicIdx >= 0) {
     const compressedStart = magicIdx + POE_PIXEL_MAGIC.length;
     try {
-      const raw = new Uint8Array(inflateSync(bytes.subarray(compressedStart)));
+      const raw = new Uint8Array(inflate(bytes.subarray(compressedStart)));
       if (raw.length >= meta.width * meta.height * 4) {
         return {
           width: meta.width,

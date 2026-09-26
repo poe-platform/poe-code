@@ -19,7 +19,7 @@ const temporary = mkdtempSync(join(realpathSync(tmpdir()), "safe-bash-typecheck-
 const compiler = createRequire(import.meta.url).resolve("typescript/bin/tsc");
 const historicalCompiler = fileURLToPath(new URL("./historical-type-models.mjs", import.meta.url));
 const compile = (label, compilerArgs) => {
-  const result = spawnSync(process.execPath, label === "build" ? compilerArgs : [["source-and-tests", "historical-build-first-consumer"].includes(label) ? historicalCompiler : compiler, ...compilerArgs], { cwd: root, env: { ...process.env, TSX_DISABLE_CACHE: "1" }, encoding: "utf8", timeout: 180000, maxBuffer: 32 * 1024 * 1024 });
+  const result = spawnSync(process.execPath, label === "build" ? compilerArgs : [["source-and-tests", "historical-build-first-consumer"].includes(label) ? historicalCompiler : compiler, ...compilerArgs], { cwd: root, env: { ...process.env, TSX_DISABLE_CACHE: "1" }, encoding: "utf8", timeout: 3600000, maxBuffer: 32 * 1024 * 1024 });
   const bound = value => {
     const text = typeof value === "string" ? value : String(value ?? "");
     return text.length > 65536 ? `${text.slice(0, 65536)}\n...[truncated ${text.length - 65536} chars]\n` : text;

@@ -694,3 +694,25 @@ test("abnormal compiler termination records phase diagnostics before failing", (
     assert.equal(stderr.length, 1);
   }
 });
+
+
+test("incremental source checks retain diagnostics, invalidate edits, and revalidate historical inputs", () => {
+  const specimen = fixture();
+  addStandardLibrary(specimen.fileSystem);
+  const incrementalFile = "/package/cache/source.tsbuildinfo";
+  specimen.baseHost.writeFile = (path, text) => {
+    specimen.fileSystem.mkdirSync(dirname(path), { recursive: true });
+    specimen.fileSystem.writeFileSync(path, text);
+  };
+  const first = checkHistoricalSources(root, { ...specimen, boundaries, incrementalFile });
+  assert.ok(first.diagnostics.some(diagnostic => diagnostic.code === 2322));
+  assert.ok(specimen.fileSystem.existsSync(incrementalFile));
+  const warm = checkHistoricalSources(root, { ...specimen, boundaries, incrementalFile });
+  assert.deepEqual(warm.diagnostics.map(diagnostic => diagnostic.code), first.diagnostics.map(diagnostic => diagnostic.code));
+  specimen.fileSystem.writeFileSync(join(root, "tests/check.ts"), 'export const correct: string = "owned";\n');
+  const updated = checkHistoricalSources(root, { ...specimen, boundaries, incrementalFile });
+  assert.equal(updated.diagnostics.some(diagnostic => [2322, 7006].includes(diagnostic.code)), false);
+  const caller = historicalTypeModelDefinitions[0].callers[0];
+  specimen.fileSystem.writeFileSync(join(root, caller.path), "export const changed = true;");
+  assert.throws(() => checkHistoricalSources(root, { ...specimen, boundaries, incrementalFile }), /historical|bytes|sha256/);
+});

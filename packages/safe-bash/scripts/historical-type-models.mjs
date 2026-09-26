@@ -180,7 +180,7 @@ export function createHistoricalCompilerHost(options, admission, baseHost = ts.c
 
 const buildFirstConfig = "tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json";
 
-export function checkHistoricalSources(root, { fileSystem = fs, system = ts.sys, baseHost, boundaries = loadBoundaries(root, fileSystem), config = "tsconfig.json" } = {}) {
+export function checkHistoricalSources(root, { fileSystem = fs, system = ts.sys, baseHost, boundaries = loadBoundaries(root, fileSystem), config = "tsconfig.json", incrementalFile } = {}) {
   root = resolve(root);
   assert.ok(["tsconfig.json", buildFirstConfig].includes(config), "historical checker requires an exact maintained configuration");
   const admission = admitHistoricalTypeModels(root, fileSystem, boundaries);
@@ -214,9 +214,10 @@ export function checkHistoricalSources(root, { fileSystem = fs, system = ts.sys,
       return declaration.endsWith(".ts") ? `${declaration.slice(0, -3)}.d.ts` : declaration;
     }),
   ]));
-  const compilerOptions = parsed.options.paths ? { ...parsed.options, paths: { ...dependencyPaths,
+  const parsedOptions = incrementalFile ? { ...parsed.options, incremental: true, tsBuildInfoFile: incrementalFile } : parsed.options;
+  const compilerOptions = parsed.options.paths ? { ...parsedOptions, paths: { ...dependencyPaths,
     ...Object.fromEntries(Object.entries(engineAliases).filter(([specifier]) => Object.hasOwn(parsed.options.paths, specifier))),
-  } } : parsed.options;
+  } } : parsedOptions;
   const host = createHistoricalCompilerHost(compilerOptions, admission, baseHost);
   const filesystemRoot = resolve(root, "../safe-fs");
   const sourceCore = join(filesystemRoot, "src/core.ts");
@@ -240,14 +241,28 @@ export function checkHistoricalSources(root, { fileSystem = fs, system = ts.sys,
       } };
     });
   }
-  const program = ts.createProgram({
+  if (incrementalFile) {
+    const getSourceFile = host.getSourceFile;
+    host.getSourceFile = (...args) => {
+      const source = getSourceFile(...args);
+      if (source) source.version = createHash("sha256").update(source.text).digest("hex");
+      return source;
+    };
+  }
+  const compilation = (incrementalFile ? ts.createIncrementalProgram : ts.createProgram)({
     rootNames: parsed.fileNames,
     options: compilerOptions,
     projectReferences: parsed.projectReferences,
     configFileParsingDiagnostics: parsed.errors,
     host,
   });
-  const diagnostics = [...configDiagnostics, ...ts.getPreEmitDiagnostics(program)];
+  const program = incrementalFile ? compilation.getProgram() : compilation;
+  const diagnostics = [...configDiagnostics, ...(incrementalFile ? [
+    ...program.getOptionsDiagnostics(), ...program.getSyntacticDiagnostics(), ...program.getGlobalDiagnostics(),
+    ...compilation.getSemanticDiagnostics(),
+    ...(compilerOptions.declaration ? program.getDeclarationDiagnostics() : []),
+  ] : ts.getPreEmitDiagnostics(program))];
+  if (incrementalFile) compilation.emit();
   return { status: diagnostics.length === 0 ? 0 : 1, program, diagnostics };
 }
 
@@ -257,7 +272,9 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     assert.ok(JSON.stringify(args) === JSON.stringify(["--noEmit"]) ||
       JSON.stringify(args) === JSON.stringify(["--noEmit", "-p", buildFirstConfig]), "historical checker accepts only maintained source or build-first configurations");
     const root = fileURLToPath(new URL("../", import.meta.url));
-    const result = checkHistoricalSources(root, { config: args[2] ?? "tsconfig.json" });
+    const config = args[2] ?? "tsconfig.json";
+    const cacheVersion = createHash("sha256").update(ts.version).update(fs.readFileSync(fileURLToPath(import.meta.url))).update(config).digest("hex");
+    const result = checkHistoricalSources(root, { config, incrementalFile: join(root, "../../.turbo/types", `safe-bash-${cacheVersion}.tsbuildinfo`) });
     process.stdout.write(ts.formatDiagnostics(result.diagnostics, {
       getCanonicalFileName: path => path,
       getCurrentDirectory: () => root,

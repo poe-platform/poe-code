@@ -720,6 +720,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
           .flatMap(name => ["js", "js.map", "d.ts", "d.ts.map"].map(extension => `!dist/commands/yq/${name}.${extension}`)),
         "!dist/fs/devices", "!dist/shell/extensions/arrays", "!dist/shell/extensions/trap",
         "!dist/shell/extensions/mapfile", "!dist/shell/extensions/read", "!dist/opt-in",
+        ...["js", "js.map", "d.ts", "d.ts.map"].map(extension => `!dist/commands/op/op.test.${extension}`),
       ], "committed dist packaging contract drift");
       assertArchiveDependencyContract(manifest);
       for (const key of ["prepare", "prepublish", "prepublishOnly", "prepack", "postpack", "preinstall", "install", "postinstall", "prebuild"]) assert.ok(!Object.hasOwn(manifest.scripts, key), `unapproved package lifecycle: ${key}`);

@@ -121,7 +121,7 @@ function lotusExternalVariable(name: string): string | undefined {
 
 async function lotusFormula(bytes: Uint8Array, version: number, group: number, row: number, column: number,
   sheetIndex: number, sheetName: (index: number) => string, context: CapabilityContext,
-  consumeOperation: () => void, functions: typeof lotusFunctions = lotusFunctions, names?: ReadonlyMap<string, LotusNamedRange>): Promise<string> {
+  consumeOperation: () => void, functions: typeof lotusFunctions = lotusFunctions, names?: ReadonlyMap<string, LotusNamedRange>, legacyRowBits?: 11 | 13): Promise<string> {
   const b = new Binary(bytes), stack: string[] = [], modern = version >= 0x1002;
   let at = 0;
   const pop = async () => {
@@ -135,6 +135,12 @@ async function lotusFormula(bytes: Uint8Array, version: number, group: number, r
   };
   const oldRef = (p: number) => {
     const c = b.u16(p), r = b.u16(p + 2), cr = !!(c & 32768), rr = !!(r & 32768);
+    if (legacyRowBits !== undefined) {
+      // LibreOffice LotusRelToScRel: signed offsets, with version-specific rows.
+      const shift = 32 - legacyRowBits;
+      return ref(rr ? (r << shift >> shift) + row : r & (legacyRowBits === 11 ? 0x7ff : 0x3fff),
+        cr ? (c << 24 >> 24) + column : c & 0xff, rr, cr);
+    }
     return ref((r & 4095) * (rr && r & 4096 ? -1 : 1) + (rr ? row : 0),
       (c & 4095) % 256 * (cr && c & 4096 ? -1 : 1) + (cr ? column : 0), rr, cr);
   };
@@ -534,7 +540,9 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
       if (id === 15) value = { kind: "string", value: await lmbcs(data.bytes.subarray(6), group, context) };
       if (id === 16) {
         const n = data.u16(13); if (15 + n > length) continue;
-        formula = await lotusFormula(data.bytes.subarray(15, 15 + n), version, group, row, column, index, i => sheet(i).name, context, consumeOperation);
+        // ScanVersion qualifies these Lotus layouts, but not Works or 0x0405.
+        const legacyRowBits = version === 0x404 ? 11 : version === 0x406 ? 13 : undefined;
+        formula = await lotusFormula(data.bytes.subarray(15, 15 + n), version, group, row, column, index, i => sheet(i).name, context, consumeOperation, lotusFunctions, undefined, legacyRowBits);
         if ((data.u16(11) & 0x7ff8) === 0x7ff0) {
           value = { kind: "error", value: "#VALUE!" };
           if (at + 4 <= bytes.length && b.u16(at) === 0x33) {

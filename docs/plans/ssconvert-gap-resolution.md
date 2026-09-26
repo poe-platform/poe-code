@@ -303,12 +303,23 @@ copy semantics. Compiled SDK import and command XLSX export/readback both retain
 `=($C$2+D3)` with empty stderr; the output is 4,056 bytes. This does not establish
 native application readback.
 
-Continue investigating legacy offsets and sheet-relative references from original
-format records. LibreOffice sign-extends legacy offsets; Gnumeric uses
-sign/magnitude arithmetic, and libwps documents uncertainty about older row
-widths. LibreOffice shifts modern range endpoint flags by three bits, whereas
-libwps shifts by four. Do not infer a universal legacy or range layout from one
-implementation, or count those unresolved differences as completed support.
+LibreOffice's `ScanVersion` binds BOF `0x0404` and `0x0406` to distinct legacy
+decoders: signed eight-bit column offsets, signed eleven/thirteen-bit row
+offsets, and eleven/fourteen-bit absolute rows. The importer now follows those
+two profiles; seven failing assertions reproduced invalid backward references,
+wrong sign boundaries and truncated absolute rows. All 163 tests in eleven Lotus
+suites pass, plus package lint/types and the selected build. Compiled SDK import
+and public command XLSX export/readback preserve `=A1` and recalculate it to 42
+for both profiles, with empty stderr and 4,074-byte outputs. See
+`reference.lotusLegacyReferenceOffsets` for pinned source evidence.
+
+Continue investigating BOF `0x0405`, Lotus Works and sheet-relative references
+from original format records. LibreOffice does not admit `0x0405` in this
+dispatch; libwps documents uncertainty about older row widths and SheetJS uses
+a different fourteen-bit rule. Those profiles retain their prior decoding.
+LibreOffice shifts modern range endpoint flags by three bits, whereas libwps
+shifts by four. Independent application qualification remains open; source
+agreement on one record profile does not settle the others.
 
 Native format qualification uses the authenticated Gnumeric 1.12.61 source with GLib 2.90.0, goffice 0.10.62, GTK 3.24.52 and libgsf 1.14.59 on macOS arm64; it is distinct from the Linux numeric profile. Source-derived GSettings schemas correct a failed Homebrew library-discovery probe without modifying native source. A disposable public-API driver supplies test passwords through stdin, recalculates both sheets and saves Gnumeric XML. Three plaintext controls, 12 XOR exports (BIFF7/8 and DSF primary streams; 1/8/14/15-byte passwords) and four standard-RC4 exports (empty, ASCII, Unicode and 15 UTF-16 units) preserve all expected cells, including 10,800/16,200-character strings, formulas, booleans and errors. Both formulas recalculate to 42; 13 applicable wrong-password controls refuse with no output. Gnumeric refuses all 12 CryptoAPI profiles and the tested standard-RC4 lengths 16/27/28/31/32/255; its source's one-byte password-bit-length field explains the 15/16 boundary. These native limits do not narrow product support. The ledger binds executable/library/driver hashes and the 37-input aggregate (sorted basename, NUL, binary SHA-256 digest). Other native applications, platforms, ancillary streams and optional-language profiles remain open.
 

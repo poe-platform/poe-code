@@ -823,7 +823,33 @@
       ],
       "finding": "Modern direct references carry flags per token, with bit 0 for columns and bit 1 for rows. Corrected swapped axes and reuse of the first token flag byte. Five focused controls: three reproduced failures and two unchanged controls; all 151 tests in ten Lotus suites pass.",
       "publicReadback": "Compiled SDK import and public command XLSX export/readback retain =($C$2+D3), with exit 0, empty stderr and 4056 output bytes. In-memory fixture; no generated binary retained.",
-      "remaining": "Legacy sign/width disagreement, three-bit versus four-bit second range endpoint flags, relative sheet identity and independent application qualification remain open."
+      "remaining": "Legacy profiles 0x0404/0x0406 are addressed in lotusLegacyReferenceOffsets. BOF 0x0405/Works, three-bit versus four-bit second range endpoint flags, relative sheet identity and independent application qualification remain open."
+    },
+    "lotusLegacyReferenceOffsets": {
+      "status": "implemented for BOF 0x0404 and 0x0406; other profiles and application qualification open",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/lotus/filter.cxx",
+          "sha256": "a4e77dbdcc9e0463adc682e7952fe58b8a565ba2da6790e47488db7bae43ee3b",
+          "lines": "132-160",
+          "finding": "ScanVersion maps 0x0404 to eWK_1 and 0x0406 to eWK_2; 0x0405 is not admitted."
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/lotus/lotform.cxx",
+          "sha256": "1a6b859a76fe0ac7d7485b0b298996125a19ecfc4b170fcbeccd9ca0a00b2794",
+          "lines": "247-318",
+          "finding": "LotusRelToScRel sign-extends eight-bit column offsets, eleven-bit eWK_1 and thirteen-bit eWK_2 row offsets; absolute rows use eleven/fourteen bits."
+        },
+        {
+          "url": "https://raw.githubusercontent.com/SheetJS/sheetjs/515d1c6f2e1d3ca422ee9198b177cfd926434936/bits/41_lotus.js",
+          "sha256": "3d5461d8c5deedcbd489901604e561dc27c7a2ec23e2de0af04ab40fd103206b",
+          "lines": "394-399,500-513",
+          "finding": "wk1_parse_rc uses a fourteen-bit subtraction rule without per-version dispatch; this does not settle the other legacy profiles."
+        }
+      ],
+      "validation": "Seven of twelve original in-memory assertions failed before correction. All 163 tests in eleven Lotus files pass after correction, as do maintained package lint/types and the four-workspace selected build. Recalculation explicitly forces refresh of the fixture's stale cached zero.",
+      "publicReadback": "Compiled SDK import and public command --recalc XLSX export/readback preserve =A1 and value 42 for both BOF versions, exit 0, empty stderr, 4074 bytes each. Fixtures and outputs remain in memory.",
+      "remaining": "BOF 0x0405 and Lotus Works keep their prior decoder; libwps's documented row-width uncertainty remains relevant. Modern range flag packing, relative sheets and independent application readback remain open. No Lotus family closure."
     }
   },
   "cases": [

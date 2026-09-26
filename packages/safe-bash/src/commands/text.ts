@@ -1915,7 +1915,13 @@ export function textCommands(): CommandDefinition[] {
       const skipCharacters = integer(value(parsed, "s") ?? "0");
       const width = value(parsed, "w") === undefined ? Infinity : integer(value(parsed, "w")!);
       const delimiter = parsed.flags.has("z") ? 0 : 10;
+      const ignoreCase = parsed.flags.has("i");
+      const hasCount = parsed.flags.has("c");
+      const onlyRepeated = parsed.flags.has("d");
+      const onlyUnique = parsed.flags.has("u");
+      const identityKey = skipFields === 0 && skipCharacters === 0 && width === Infinity && !ignoreCase;
       const key = (bytes: Uint8Array) => {
+        if (identityKey) return bytes;
         let offset = 0;
         for (let field = 0; field < skipFields; field++) {
           while (offset < bytes.length && (bytes[offset] === 32 || bytes[offset] === 9)) offset++;
@@ -1923,7 +1929,7 @@ export function textCommands(): CommandDefinition[] {
         }
         offset += skipCharacters;
         const result = bytes.subarray(offset, width === Infinity ? undefined : offset + width);
-        return parsed.flags.has("i") ? fold(result) : result;
+        return ignoreCase ? fold(result) : result;
       };
       const records = (async function* (): ByteSource {
         let previous: Uint8Array | undefined;
@@ -1932,34 +1938,95 @@ export function textCommands(): CommandDefinition[] {
         let emittedGroup = false;
         const expanded = allRepeated || groupMethod !== undefined;
         const method = groupMethod ?? repeatedMethod;
-        const selected = () => (!parsed.flags.has("d") || count > 1) && (!parsed.flags.has("u") || count === 1);
-        const record = () => concatenate([...(parsed.flags.has("c") ? [encoder.encode(`${String(count).padStart(7)} `)] : []), previous!, Uint8Array.of(delimiter)]);
-        for await (const line of lines(input(context, parsed.operands[0]), delimiter)) {
-          context.signal.throwIfAborted();
-          const currentKey = key(line.bytes);
-          if (previousKey && compareBytes(previousKey, currentKey) === 0) {
-            count++;
-            if (expanded && !parsed.flags.has("u")) {
-              if (allRepeated && count === 2) {
-                if (method === "prepend" || (method === "separate" && emittedGroup)) yield Uint8Array.of(delimiter);
-                yield record();
-                emittedGroup = true;
-              }
-              yield concatenate([line.bytes, Uint8Array.of(delimiter)]);
+        const selected = () => (!onlyRepeated || count > 1) && (!onlyUnique || count === 1);
+        const outCap = 65536;
+        let outBuf = new Uint8Array(outCap);
+        let outUsed = 0;
+        const flushChunks: Uint8Array[] = [];
+        const writeBytes = (bytes: Uint8Array) => {
+          let offset = 0;
+          while (offset < bytes.length) {
+            const avail = outBuf.length - outUsed;
+            const take = Math.min(avail, bytes.length - offset);
+            outBuf.set(bytes.subarray(offset, offset + take), outUsed);
+            outUsed += take;
+            offset += take;
+            if (outUsed === outBuf.length) {
+              flushChunks.push(outBuf);
+              outBuf = new Uint8Array(outCap);
+              outUsed = 0;
             }
           }
-          else {
-            if (!expanded && previous !== undefined && selected()) yield record();
-            previous = line.bytes; previousKey = currentKey; count = 1;
+        };
+        const writeByte = (b: number) => {
+          outBuf[outUsed++] = b;
+          if (outUsed === outBuf.length) {
+            flushChunks.push(outBuf);
+            outBuf = new Uint8Array(outCap);
+            outUsed = 0;
+          }
+        };
+        const emitLine = (lineBytes: Uint8Array) => {
+          if (hasCount) writeBytes(encoder.encode(`${String(count).padStart(7)} `));
+          writeBytes(lineBytes);
+          writeByte(delimiter);
+        };
+        const processLine = (lineBytes: Uint8Array) => {
+          context.signal.throwIfAborted();
+          const currentKey = key(lineBytes);
+          if (previousKey && compareBytes(previousKey, currentKey) === 0) {
+            count++;
+            if (expanded && !onlyUnique) {
+              if (allRepeated && count === 2) {
+                if (method === "prepend" || (method === "separate" && emittedGroup)) writeByte(delimiter);
+                emitLine(previous!);
+                emittedGroup = true;
+              }
+              writeBytes(lineBytes);
+              writeByte(delimiter);
+            }
+          } else {
+            if (!expanded && previous !== undefined && selected()) emitLine(previous);
+            previous = lineBytes;
+            previousKey = currentKey;
+            count = 1;
             if (groupMethod !== undefined) {
-              if (method === "prepend" || method === "both" || emittedGroup) yield Uint8Array.of(delimiter);
-              yield record();
+              if (method === "prepend" || method === "both" || emittedGroup) writeByte(delimiter);
+              emitLine(previous);
               emittedGroup = true;
             }
           }
+        };
+        const pending = new RecordBuffer(bufferLimit);
+        try {
+          for await (const chunk of input(context, parsed.operands[0])) {
+            let start = 0;
+            while (start < chunk.length) {
+              const offset = chunk.indexOf(delimiter, start);
+              if (offset < 0) break;
+              const lineBytes = pending.size === 0 ? chunk.subarray(start, offset) : pending.finish(undefined, chunk, start, offset);
+              if (lineBytes.length > bufferLimit) throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
+              processLine(lineBytes);
+              while (flushChunks.length) yield flushChunks.shift()!;
+              start = offset + 1;
+            }
+            if (previous && pending.size === 0 && previous.buffer === chunk.buffer) {
+              previous = previous.slice();
+              if (identityKey) previousKey = previous;
+            }
+            pending.append(chunk, start);
+          }
+          if (pending.size) {
+            processLine(pending.finish(undefined));
+            while (flushChunks.length) yield flushChunks.shift()!;
+          }
+        } finally {
+          pending.clear();
         }
-        if (!expanded && previous !== undefined && selected()) yield record();
-        if (emittedGroup && (method === "append" || method === "both")) yield Uint8Array.of(delimiter);
+        if (!expanded && previous !== undefined && selected()) emitLine(previous);
+        if (emittedGroup && (method === "append" || method === "both")) writeByte(delimiter);
+        while (flushChunks.length) yield flushChunks.shift()!;
+        if (outUsed > 0) yield outBuf.subarray(0, outUsed);
       })();
       await emitRecords(context, records, parsed.operands[1]);
       return { exitCode: 0 };

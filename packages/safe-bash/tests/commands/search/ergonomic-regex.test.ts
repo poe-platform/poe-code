@@ -121,3 +121,34 @@ test("grep supports BRE escapes (\\|, \\+, \\?, \\(, \\), \\{m,n\\}) and shortha
     await shell.dispose();
   }
 });
+
+test("sed and awk support ergonomic shorthand classes (\\d, \\w, \\s) and non-capturing groups (?:...)", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
+  try {
+    const sedRes = await shell.exec("sed -E 's/(?:item|sku)_(\\w+):\\s*(\\d+)/\\1=\\2/g'", {
+      stdin: "item_alpha: 42 and sku_beta:  99\n",
+    });
+    assert.equal(sedRes.exitCode, 0, sedRes.stderr);
+    assert.equal(sedRes.stdout, "alpha=42 and beta=99\n");
+
+    const awkRes = await shell.exec("awk '/^(?:ERR|WARN)\\s+\\d+\\s+\\w+/ { print $2, $3 }'", {
+      stdin: "INFO 100 ok\nERR 503 timeout\nWARN  429 throttled\n",
+    });
+    assert.equal(awkRes.exitCode, 0, awkRes.stderr);
+    assert.equal(awkRes.stdout, "503 timeout\n429 throttled\n");
+
+    const sedWordBoundary = await shell.exec("sed -E 's/\\bfoo\\b/BAR/g; s/\\<cat\\>/DOG/g'", {
+      stdin: "foo foobar barfoo cat catfish\n",
+    });
+    assert.equal(sedWordBoundary.exitCode, 0, sedWordBoundary.stderr);
+    assert.equal(sedWordBoundary.stdout, "BAR foobar barfoo DOG catfish\n");
+
+    const awkWordBoundary = await shell.exec("awk '/\\btarget\\b/ { print $1 }'", {
+      stdin: "hit target now\nskip target_2 now\n",
+    });
+    assert.equal(awkWordBoundary.exitCode, 0, awkWordBoundary.stderr);
+    assert.equal(awkWordBoundary.stdout, "hit\n");
+  } finally {
+    await shell.dispose();
+  }
+});

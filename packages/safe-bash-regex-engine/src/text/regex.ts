@@ -1,7 +1,25 @@
 import { Budget, ProgramError } from "./budget.js";
 import { ReplacementBuffer } from "./replacement-buffer.js";
 
+type BoundaryKind = "word" | "nonWord" | "wordStart" | "wordEnd";
+
+function isWordChar(ch: string | undefined): boolean {
+  if (ch === undefined) return false;
+  const code = ch.charCodeAt(0);
+  return (code >= 48 && code <= 57) || (code >= 65 && code <= 90) || (code >= 97 && code <= 122) || code === 95;
+}
+
+function matchesBoundary(boundary: BoundaryKind, text: string, position: number): boolean {
+  const prevWord = position > 0 && isWordChar(text[position - 1]);
+  const nextWord = position < text.length && isWordChar(text[position]);
+  if (boundary === "word") return prevWord !== nextWord;
+  if (boundary === "nonWord") return prevWord === nextWord;
+  if (boundary === "wordStart") return !prevWord && nextWord;
+  return prevWord && !nextWord;
+}
+
 type Node = { type: "empty" | "begin" | "end" }
+  | { type: "boundary"; boundary: BoundaryKind }
   | { type: "backreference"; index: number }
   | { type: "assertion"; node: Node; positive: boolean; behind: boolean }
   | { type: "character"; literal?: string; accepts: (character: string) => boolean }
@@ -12,6 +30,7 @@ type Node = { type: "empty" | "begin" | "end" }
 type Instruction = { kind: "character"; literal?: string; accepts: (character: string) => boolean }
   | { kind: "backreference"; index: number; ignoreCase: boolean }
   | { kind: "assertion"; first: number; next: number; positive: boolean; behind: boolean }
+  | { kind: "boundary"; boundary: BoundaryKind }
   | { kind: "begin" | "end" | "match" }
   | { kind: "save"; slot: number; clear?: readonly number[] }
   | { kind: "jump"; target: number }
@@ -355,7 +374,10 @@ export class Pattern {
         let name: string | undefined;
         let capturing = true;
         let assertion: { positive: boolean; behind: boolean } | undefined;
-        if (dialect === "jq" && source[offset] === "?") {
+        if (source[offset] === "?" && source[offset + 1] === ":") {
+          offset += 2;
+          capturing = false;
+        } else if (dialect === "jq" && source[offset] === "?") {
           offset++;
           if (source[offset] === ":") { offset++; capturing = false; }
           else if (source[offset] === "=" || source[offset] === "!") {
@@ -387,7 +409,14 @@ export class Pattern {
           offset++;
           return { type: "backreference", index };
         }
-        if (dialect === "jq" && reference !== undefined && "dDsSwW".includes(reference)) {
+        if (reference !== undefined && "bByY<>".includes(reference)) {
+          offset++;
+          const boundary: BoundaryKind = (reference === "b" || reference === "y") ? "word"
+            : (reference === "B" || reference === "Y") ? "nonWord"
+            : reference === "<" ? "wordStart" : "wordEnd";
+          return { type: "boundary", boundary };
+        }
+        if ((dialect === "jq" || dialect === "sed" || dialect === "awk") && reference !== undefined && "dDsSwW".includes(reference)) {
           offset++;
           const alphabet = reference.toLowerCase();
           return { type: "character", accepts: character => {
@@ -469,6 +498,7 @@ export class Pattern {
         return;
       }
       if (node.type === "begin" || node.type === "end") { emit({ kind: node.type }); return; }
+      if (node.type === "boundary") { emit({ kind: "boundary", boundary: node.boundary }); return; }
       if (node.type === "sequence") { for (const child of node.nodes) yield* compile(child); return; }
       if (node.type === "group") {
         const clear: number[] = [];
@@ -657,6 +687,7 @@ export class Pattern {
         else if (instruction.kind === "split") { push(instruction.second); push(instruction.first); }
         else if (instruction.kind === "save") { const saved = [...captures]; if (instruction.clear) for (const slot of instruction.clear) delete saved[slot]; saved[instruction.slot] = position; push(state.pc + 1, position, saved); }
         else if (instruction.kind === "begin") { if (position === 0) push(state.pc + 1); }
+        else if (instruction.kind === "boundary") { if (matchesBoundary(instruction.boundary, text, position)) push(state.pc + 1); }
         else if (instruction.kind === "end") { if (position === text.length || position === text.length - 1 && text[position] === "\n") push(state.pc + 1); }
         else if (instruction.kind === "character") {
           const code = text.codePointAt(position);
@@ -934,7 +965,11 @@ export class Pattern {
         if (idx < 0) break;
         const pos = idx + prefix.length;
         let cursor = pos;
-        while (cursor < text.length && accepts(text[cursor]!)) cursor++;
+        while (cursor < text.length) {
+          const code = text.charCodeAt(cursor);
+          if (code < 128 ? ascii[code] === 0 : !accepts(text[cursor]!)) break;
+          cursor++;
+        }
         if (cursor - pos >= minimum && (!anchoredEnd || cursor === text.length)) {
           found = idx;
           matchEnd = cursor;
@@ -1165,6 +1200,8 @@ export class Pattern {
               const copied = work(Math.max(thread.captures.length, instruction.slot + 1));
               if (copied) await copied;
               enqueue(position, thread.pc + 1, thread.start, thread.captures, instruction.slot, instruction.clear);
+            } else if (instruction.kind === "boundary") {
+              if (matchesBoundary(instruction.boundary, text, position)) enqueue(position, thread.pc + 1, thread.start, thread.captures);
             } else if (instruction.kind === "begin" ? position === 0 : position === text.length) enqueue(position, thread.pc + 1, thread.start, thread.captures);
           } finally { storage.release(thread.bytes); }
         }

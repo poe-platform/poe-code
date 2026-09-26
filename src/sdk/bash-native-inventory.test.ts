@@ -52,3 +52,14 @@ it.each(commands)('preserves %s SDK argv and executable heredocs through the aut
       Array.from(new TextEncoder().encode(value))).concat([[255]]),
   });
 });
+
+beforeAll(async () => {
+  const requests: unknown[] = [];
+  const initialized = await runBash({ source: ':', fs: new MemoryFileSystem(), media: {
+    service: 'https://media.test', authToken: 'fixture', buildDigest: fixtureDigest,
+    resource: { namespaceId: 'work', logicalRoot: '/', rights: ['read', 'write'], grantId: 'host-issued', profile: 'live' },
+    fetch: createTransport({ observe(request) { requests.push(request); } }),
+  } });
+  expect(initialized.exitCode).toBe(0);
+  expect(requests).toEqual([]);
+});

@@ -361,8 +361,7 @@ class ExecutionCleanup {
 
 const defaultSetTimeout = setTimeout;
 const defaultDateNow = Date.now;
-let singleWallClockBudget: Budget | undefined;
-const extraWallClockBudgets: Budget[] = [];
+const sharedWallClockBudgets: { primary: Budget | undefined; extra: Budget[] } = { primary: undefined, extra: [] };
 let sharedWallClockTimer: ReturnType<typeof setTimeout> | undefined;
 let sharedWallClockTimerDeadline = 0;
 
@@ -371,26 +370,26 @@ function tickSharedWallClockBudgets(): void {
   sharedWallClockTimerDeadline = 0;
   const now = defaultDateNow();
   let minDeadline = Infinity;
-  while (singleWallClockBudget !== undefined) {
-    const d = singleWallClockBudget._checkSharedWallClock(now);
+  while (sharedWallClockBudgets.primary !== undefined) {
+    const d = sharedWallClockBudgets.primary._checkSharedWallClock(now);
     if (d <= 0) {
-      singleWallClockBudget = extraWallClockBudgets.pop();
+      sharedWallClockBudgets.primary = sharedWallClockBudgets.extra.pop();
     } else {
       minDeadline = d;
       break;
     }
   }
-  for (let i = extraWallClockBudgets.length - 1; i >= 0; i--) {
-    const b = extraWallClockBudgets[i]!;
+  for (let i = sharedWallClockBudgets.extra.length - 1; i >= 0; i--) {
+    const b = sharedWallClockBudgets.extra[i]!;
     const d = b._checkSharedWallClock(now);
     if (d <= 0) {
-      extraWallClockBudgets.splice(i, 1);
+      sharedWallClockBudgets.extra.splice(i, 1);
     } else if (d < minDeadline) {
       minDeadline = d;
     }
   }
-  if (singleWallClockBudget === undefined && extraWallClockBudgets.length > 0) {
-    singleWallClockBudget = extraWallClockBudgets.pop();
+  if (sharedWallClockBudgets.primary === undefined && sharedWallClockBudgets.extra.length > 0) {
+    sharedWallClockBudgets.primary = sharedWallClockBudgets.extra.pop();
   }
   if (minDeadline !== Infinity) {
     const delay = Math.min(Math.max(1, minDeadline - now), 2_147_483_647);
@@ -529,9 +528,8 @@ export class Budget {
       }
       this._wallClockTimer = true;
       // The shared timer retains its single budget owner until retirement.
-      // eslint-disable-next-line @typescript-eslint/no-this-alias
-      if (singleWallClockBudget === undefined) singleWallClockBudget = this;
-      else extraWallClockBudgets.push(this);
+      if (sharedWallClockBudgets.primary === undefined) sharedWallClockBudgets.primary = this;
+      else sharedWallClockBudgets.extra.push(this);
       if (sharedWallClockTimer === undefined || deadline < sharedWallClockTimerDeadline) {
         if (sharedWallClockTimer !== undefined) clearTimeout(sharedWallClockTimer);
         const delay = Math.min(deadline - now, 2_147_483_647);
@@ -562,11 +560,11 @@ export class Budget {
 
   close(): void {
     if (this._wallClockTimer === true) {
-      if (singleWallClockBudget === this) {
-        singleWallClockBudget = extraWallClockBudgets.pop();
+      if (sharedWallClockBudgets.primary === this) {
+        sharedWallClockBudgets.primary = sharedWallClockBudgets.extra.pop();
       } else {
-        const idx = extraWallClockBudgets.indexOf(this);
-        if (idx >= 0) extraWallClockBudgets.splice(idx, 1);
+        const idx = sharedWallClockBudgets.extra.indexOf(this);
+        if (idx >= 0) sharedWallClockBudgets.extra.splice(idx, 1);
       }
     } else if (this._wallClockTimer !== undefined) {
       clearTimeout(this._wallClockTimer);

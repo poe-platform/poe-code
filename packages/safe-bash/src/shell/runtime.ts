@@ -1888,7 +1888,7 @@ class FastShellCommandContext {
     this._argumentValues = argumentValues;
     this._env = env;
     this.cwd = state.cwd;
-    this.signal = runtime.commandSignal;
+    this.signal = toNativeAbortSignal(runtime.commandSignal);
     this.onInternalError = runtime.budget.onInternalError;
     this.argv0 = io.argv0;
     this.capabilities = io.capabilities;
@@ -1947,7 +1947,7 @@ class FastShellCommandContext {
     this.command = name;
     this.args = args;
     this.cwd = state.cwd;
-    this.signal = signal;
+    this.signal = toNativeAbortSignal(signal);
     this.onInternalError = runtime.budget.onInternalError;
     this.argv0 = io.argv0;
     this.capabilities = io.capabilities;

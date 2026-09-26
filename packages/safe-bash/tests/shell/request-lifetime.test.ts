@@ -6,8 +6,8 @@ import { structuredCommands } from "../../src/commands/structured/index.js";
 import { textProgramCommands } from "../../src/commands/text-programs/index.js";
 import { standardCommands } from "../../src/commands/index.js";
 
-for (const source of ["mkdir /d1 | head -n 1", "find / -size 0 | sed s/a/b/", "rm -rf /d1 | head -n 1"]) {
-  test(`pipeline host filesystem receives native signals: ${source}`, async () => {
+for (const source of ["mkdir /d1", "find / -size 0", "rm -rf /d1", "mkdir /d1 | head -n 1", "find / -size 0 | sed s/a/b/", "rm -rf /d1 | head -n 1"]) {
+  test(`host filesystem receives native signals: ${source}`, async () => {
     const backing = createMemoryFileSystem();
     let checked = 0;
     const fs = new Proxy(backing, {

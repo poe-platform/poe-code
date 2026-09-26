@@ -1,22 +1,23 @@
 import assert from "node:assert/strict";
 import { Volume } from "memfs";
-import { Document, DocumentBudget, extractDocumentText, applyStyleModelBatch, createDocxInspectionCommandEngine, replaceDocumentText } from "../../src/index.js";
+import { Document, DocumentBudget, extractDocumentText, applyStyleModelBatch, createDocxInspectionCommandEngine, replaceDocumentText } from "docx";
 import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
 import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import { readPackage } from "../assertions.js";
-import { textFixture, textContext } from "./text.js";
+import type { ArchiveLimits } from "../../src/archive.js";
 
-const strict = process.argv[2] === "strict", depth = 4096;
+async function execute(strict: boolean, route?: string, action?: string, supplied?: { input: string; limits: ArchiveLimits }) {
+const depth = 4096;
 const text = "Isolated 日本 עברית ẹ́ 🌊 𠀀";
-const body = `<w:p xmlns:f="urn:original:isolated-deep-carrier" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="f" mc:ProcessContent="f:p">${"<f:p>".repeat(depth)}<w:r><w:rPr><w:rtl/></w:rPr><w:t>${text}</w:t></w:r>${"</f:p>".repeat(depth)}</w:p>`;
-const input = await textFixture(body, {}, strict), memory = Volume.fromJSON({ "/input": Buffer.from(input) });
+const input = supplied ? new Uint8Array(Buffer.from(supplied.input, "base64")) : await (await import("./deep-carrier-input.js")).deepCarrierInput(strict);
+const textContext = { signal: new AbortController().signal, limits: supplied?.limits ?? (await import("./text.js")).textContext.limits };
+const memory = Volume.fromJSON({ "/input": Buffer.from(input) });
 const result = await extractDocumentText(new Uint8Array(memory.readFileSync("/input") as Buffer), {
   ...textContext, budget: new DocumentBudget({ xmlDepth: depth + 8 }, textContext.signal)
 });
 assert.equal(result.text, text);
 assert.ok(result.segments.some(segment => segment.text === text && segment.formatting.rtl === true));
 assert.deepEqual(new Uint8Array(memory.readFileSync("/input") as Buffer), input);
-const route = process.argv[3], action = process.argv[4];
 if (route) {
   const context = () => ({ ...textContext, budget: new DocumentBudget({ xmlDepth: depth + 8, retainedBytes: 4294967296, work: 4294967296 }, textContext.signal) });
   const ref = (resultHandle: string, index?: number) => ({ resultHandle, ...(index === undefined ? {} : { index }) });
@@ -68,4 +69,32 @@ if (route) {
   assert.equal(memory.readFileSync("/destination", "utf8"), "Retain destination");
   assert.deepEqual(new Uint8Array(memory.readFileSync("/input") as Buffer), input);
 }
-console.log(JSON.stringify({ strict, depth, xmlDepth: depth + 8, exactTextAndReadPurity: true, ...(route ? { route, action, exactPublicationAndRetention: true } : {}) }));
+return { strict, depth, xmlDepth: depth + 8, exactTextAndReadPurity: true, ...(route ? { route, action, exactPublicationAndRetention: true } : {}) };
+}
+
+if (!process.send) console.log(JSON.stringify(await execute(process.argv[2] === "strict", process.argv[3], process.argv[4])));
+else {
+  let lastId = 0, busy = false, stopping = false;
+  process.on("message", async (request: { type: string; id: number; strict: boolean; route?: string; action?: string; input: string; limits: ArchiveLimits }) => {
+    try {
+      if (busy || stopping) throw Error("Overlapping native requests");
+      if (request.type === "shutdown" && request.id === lastId) {
+        stopping = true;
+        process.send!({ type: "closed", id: lastId }, error => { if (error) throw error; process.disconnect!(); });
+        return;
+      }
+      if (request.type !== "execute" || request.id !== lastId + 1) throw Error("Unexpected native request");
+      lastId = request.id;
+      busy = true;
+      const result = await execute(request.strict, request.route, request.action, request);
+      busy = false;
+      process.send!({ type: "result", id: lastId, ok: true, result }, error => { if (error) throw error; });
+    } catch (error) {
+      console.error(error);
+      process.exitCode = 1;
+      process.disconnect!();
+    }
+  });
+  process.on("disconnect", () => { if (!stopping) process.exitCode = 1; });
+  process.send({ type: "ready" }, error => { if (error) throw error; });
+}

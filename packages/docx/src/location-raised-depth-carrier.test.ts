@@ -1,12 +1,14 @@
 import { Volume } from "memfs";
-import { execFile } from "node:child_process";
-import { fileURLToPath } from "node:url";
-import { promisify } from "node:util";
 import { expect, it } from "vitest";
 import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
 import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import { Document, DocumentBudget, applyStyleModelBatch, createDocxInspectionCommandEngine, extractDocumentText, decodeLocation } from "./index.js";
 import { textFixture, textContext } from "../tests/fixtures/text.js";
+import { nativeRepeatTemplate } from "../tests/native-repeat-template.js";
+import { deepCarrierInput } from "../tests/fixtures/deep-carrier-input.js";
+type CarrierRequest = { strict: boolean; route?: string; action?: string; input: string; limits: typeof textContext.limits };
+const executeCarrier = nativeRepeatTemplate<CarrierRequest>(new URL("../tests/fixtures/deep-carrier-worker.ts", import.meta.url));
+const executeBox = nativeRepeatTemplate<CarrierRequest>(new URL("../tests/fixtures/deep-box-carrier-worker.ts", import.meta.url));
 
 for (const strict of [false, true]) for (const route of ["sdk", "cli"] as const)
 it(`reads original admitted native carrier paths beyond the default depth; strict=${strict}; route=${route}`, async () => {
@@ -70,15 +72,17 @@ it(`projects original deep process content iteratively within its trusted ceilin
 
 for (const strict of [false, true])
 it(`reads original deep carriers in an isolated public Node process; strict=${strict}`, async () => {
-  const { stdout } = await promisify(execFile)(process.execPath, ["--import", "tsx", fileURLToPath(new URL("../tests/fixtures/deep-carrier-worker.ts", import.meta.url)), strict ? "strict" : "transitional"]);
-  expect(JSON.parse(stdout)).toEqual({ strict, depth: 4096, xmlDepth: 4104, exactTextAndReadPurity: true });
+  const response = await executeCarrier({ strict, input: Buffer.from(await deepCarrierInput(strict)).toString("base64"), limits: textContext.limits });
+  expect(response.ok).toBe(true);
+  expect(response.result).toEqual({ strict, depth: 4096, xmlDepth: 4104, exactTextAndReadPurity: true });
 });
 
 for (const strict of [false, true]) for (const route of ["native", "typed", "cli", "replace", "cli-replace"])
 for (const action of route.includes("replace") ? ["edit", "dry"] : ["read", "edit", "dry"])
 it(`retains original isolated deep carrier publication semantics; strict=${strict}; route=${route}; action=${action}`, async () => {
-  const { stdout } = await promisify(execFile)(process.execPath, ["--import", "tsx", fileURLToPath(new URL("../tests/fixtures/deep-carrier-worker.ts", import.meta.url)), strict ? "strict" : "transitional", route, action]);
-  expect(JSON.parse(stdout)).toEqual({ strict, depth: 4096, xmlDepth: 4104, exactTextAndReadPurity: true, route, action, exactPublicationAndRetention: true });
+  const response = await executeCarrier({ strict, route, action, input: Buffer.from(await deepCarrierInput(strict)).toString("base64"), limits: textContext.limits });
+  expect(response.ok).toBe(true);
+  expect(response.result).toEqual({ strict, depth: 4096, xmlDepth: 4104, exactTextAndReadPurity: true, route, action, exactPublicationAndRetention: true });
 });
 
 for (const strict of [false, true]) for (const route of ["native", "sdk", "typed", "cli"])
@@ -117,6 +121,7 @@ it(`honors an explicit exact depth boundary; strict=${strict}; route=${route}; d
 
 for (const strict of [false, true]) for (const route of ["sdk", "cli"]) for (const action of ["read", "edit", "dry"])
 it(`honors original deep native text-box story semantics; strict=${strict}; route=${route}; action=${action}`, async () => {
-  const { stdout } = await promisify(execFile)(process.execPath, ["--import", "tsx", fileURLToPath(new URL("../tests/fixtures/deep-box-carrier-worker.ts", import.meta.url)), strict ? "strict" : "transitional", route, action]);
-  expect(JSON.parse(stdout)).toEqual({ strict, depth: 4096, route, action, exactStoryIsolationAndRetention: true });
+  const response = await executeBox({ strict, route, action, input: Buffer.from(await deepCarrierInput(strict, true)).toString("base64"), limits: textContext.limits });
+  expect(response.ok).toBe(true);
+  expect(response.result).toEqual({ strict, depth: 4096, route, action, exactStoryIsolationAndRetention: true });
 });

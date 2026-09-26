@@ -92,7 +92,7 @@ it.each(["regexSourceLength", "regexCompileAllocations"] as const)(
       -1,
       1.5,
       NaN,
-      Infinity,
+      -Infinity,
       "8192"
     ])
       expect(() => new Budget({ [name]: value } as never)).toThrow(RangeError);

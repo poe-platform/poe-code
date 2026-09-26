@@ -472,7 +472,7 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
     if (littleEndian && group && !Number.isInteger(Math.log2(group))) {
       throw new UsageError("number of octets per group must be a power of 2 with -e");
     }
-    const skip = validatedOption(parsed, "s", numeric, 0);
+    const skip = validatedOption(parsed, "s", text => numeric(text.startsWith("+") && text.length > 1 ? text.slice(1) : text), 0);
     const count = validatedOption(parsed, "l", numeric, Infinity);
     const displacement = validatedOption(parsed, "o", numeric, 0);
     if (reverse && ["s", "l", "o", "d"].some(flag => parsed.flags.has(flag))) {

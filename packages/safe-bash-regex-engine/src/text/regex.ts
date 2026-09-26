@@ -120,6 +120,10 @@ function extendedSource(source: string): string {
 
 export interface Match { readonly start: number; readonly end: number; readonly groups: readonly (string | undefined)[] }
 
+type PatternBudget = Pick<Budget, "step" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">> & {
+  checkpoint(): void | Promise<void>;
+};
+
 type ChainStep =
   | { readonly kind: "literal"; value: string; readonly group: number }
   | { readonly kind: "char"; readonly accepts: (candidate: string) => boolean; readonly ascii: Uint8Array; readonly group: number }
@@ -259,7 +263,7 @@ function matchChainAt(
 
 class NfaStorage {
   private used = 0;
-  constructor(private readonly budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>) {}
+  constructor(private readonly budget: PatternBudget) {}
   reserve(bytes: number): void {
     this.budget.step(0);
     if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > this.budget.maxBufferBytes - this.used) {
@@ -474,7 +478,7 @@ export class Pattern {
     this.parsed = { root, counts };
   }
 
-  async prepare(budget: Pick<Budget, "step" | "checkpoint"> & Partial<Pick<Budget, "checkpointSync">>): Promise<void> {
+  async prepare(budget: Pick<PatternBudget, "step" | "checkpoint" | "checkpointSync">): Promise<void> {
     if (!this.parsed) return;
     const { root, counts } = this.parsed;
     budget.step(counts.get(root)! + 1);
@@ -643,7 +647,7 @@ export class Pattern {
     this.parsed = undefined;
   }
 
-  private async findJq(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>, from: number,
+  private async findJq(text: string, budget: PatternBudget, from: number,
     options: { pc: number; exact?: boolean; end?: number; captures?: number[] } = { pc: 0 }): Promise<{ match: Match; captures: number[] } | undefined> {
     // Prioritized traversal gives jq's leftmost-first (rather than POSIX longest) match.
     for (let start = from; start <= (options.end ?? text.length) && (!options.exact || start === from); start += (text.codePointAt(start) ?? 0) > 0xffff ? 2 : 1) {
@@ -840,7 +844,7 @@ export class Pattern {
   private findAfterCheck(
     check: Promise<void>,
     text: string,
-    budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>,
+    budget: PatternBudget,
     from: number,
   ): Promise<Match | undefined> {
     return check.then(() => this.find(text, budget, from));
@@ -860,7 +864,7 @@ export class Pattern {
     });
   }
 
-  tryFindSync(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>, from = 0): Match | undefined | Promise<Match | undefined> {
+  tryFindSync(text: string, budget: PatternBudget, from = 0): Match | undefined | Promise<Match | undefined> {
     if (this.code.length && this.chainMatch && this.dialect !== "jq") {
       const initialCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
       if (initialCheck) return this.findAfterCheck(initialCheck, text, budget, from);
@@ -914,7 +918,7 @@ export class Pattern {
 
   tryTestSync(
     text: string,
-    budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>,
+    budget: PatternBudget,
     textStart = 0,
     textEnd = text.length,
   ): boolean | Promise<boolean> {
@@ -933,7 +937,7 @@ export class Pattern {
 
   private execSimpleRepeat(
     text: string,
-    budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>,
+    budget: PatternBudget,
     from: number,
   ): Match | undefined | Promise<Match | undefined> {
     const { prefix, anchoredStart, anchoredEnd, captured, minimum, accepts, ascii } = this.simpleRepeatMatch!;
@@ -1003,7 +1007,7 @@ export class Pattern {
     return { start: found, end: matchEnd, groups };
   }
 
-  async find(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>, from = 0): Promise<Match | undefined> {
+  async find(text: string, budget: PatternBudget, from = 0): Promise<Match | undefined> {
     if (!this.code.length) await this.prepare(budget);
     if (this.dialect === "jq") return (await this.findJq(text, budget, from))?.match;
     if (this.simpleRepeatMatch) {
@@ -1042,7 +1046,7 @@ export class Pattern {
       return { start: found, end: found + len, groups };
     }
     let units = 0;
-    const work = (count = 1): Promise<void> | undefined => {
+    const work = (count = 1): void | Promise<void> => {
       budget.step(count);
       units += count;
       if (units < 64) return undefined;

@@ -7,12 +7,22 @@ import {
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import sharp, {
+import {
+  computeImageStats,
+  decodeImage,
+  encodeImage,
+  extendImage,
+  extractImage,
+  flipImage,
+  flopImage,
   parseColor,
+  readImageMetadata,
+  resizeImage,
+  rotateImage,
   type ImageFormat,
   type ImageMetadata,
-  type SharpInstance
-} from "@poe-code/image-ast";
+  type RgbaImage
+} from "@poe-code/image-ast/portable";
 
 export interface SipsCommandOptions {
   readonly replace?: boolean;
@@ -165,16 +175,16 @@ function normalizeTargetFormat(fmt: string): ImageFormat | undefined {
   return undefined;
 }
 
-async function applySipsOddCanvasCropOrPad(
-  inst: SharpInstance,
+function applySipsOddCanvasCropOrPad(
+  image: RgbaImage,
   curW: number,
   curH: number,
   dstW: number,
   dstH: number,
   padColorInput: { readonly r: number; readonly g: number; readonly b: number; readonly alpha?: number } | string
-): Promise<SharpInstance> {
-  const rawObj = await inst.raw().toBuffer({ resolveWithObject: true });
-  const ch = rawObj.info.channels as 1 | 2 | 3 | 4;
+): RgbaImage {
+  const rawObj = encodeImage(image.channels === 2 ? { ...image, space: "srgb", channels: 4 } : image, { format: "raw" });
+  const ch = rawObj.channels as 1 | 2 | 3 | 4;
   const src = rawObj.data;
   const pad = parseColor(padColorInput, ch === 4 || ch === 2 ? 0 : 255);
   const bg = [pad.r, pad.g, pad.b, pad.a];
@@ -212,7 +222,7 @@ async function applySipsOddCanvasCropOrPad(
       }
     }
   }
-  return sharp(out, { raw: { width: dstW, height: dstH, channels: ch } });
+  return decodeImage(out, { raw: { width: dstW, height: dstH, channels: ch } });
 }
 
 export async function runSipsCli(
@@ -548,8 +558,7 @@ export async function runSipsCli(
       for (const [k, v] of customSetProps) {
         mergedProps.set(k, v);
       }
-      let inst: SharpInstance = sharp(inBytes);
-      let meta = await inst.metadata();
+      let meta = readImageMetadata(inBytes);
       let curW = meta.width;
       let curH = meta.height;
       const origW = meta.width;
@@ -558,23 +567,23 @@ export async function runSipsCli(
         padColor ?? (meta.hasAlpha ? { r: 0, g: 0, b: 0, alpha: 0 } : "000000");
 
       if (hasMutation) {
+        let image = decodeImage(inBytes);
+        let resizeInput: RgbaImage | undefined;
         for (const act of effectiveActions) {
           if (act.kind === "rotate") {
-            inst = sharp(
-              await inst.rotate(act.degrees, { background: effectivePadColor }).toBuffer()
-            );
-            meta = await inst.metadata();
+            const rotated = encodeImage(rotateImage(image, act.degrees, parseColor(effectivePadColor)), {}).data;
+            image = decodeImage(rotated);
+            resizeInput = undefined;
+            meta = readImageMetadata(rotated);
             curW = meta.width;
             curH = meta.height;
           } else if (act.kind === "flip") {
-            inst = sharp(
-              await (act.direction === "horizontal" ? inst.flop() : inst.flip()).toBuffer()
-            );
+            image = decodeImage(encodeImage(act.direction === "horizontal" ? flopImage(image) : flipImage(image), {}).data);
+            resizeInput = undefined;
           } else if (act.kind === "resampleMax") {
             const scale = act.maxDim / Math.max(origW, origH, 1);
             const nw = Math.max(1, Math.round(curW * scale));
             const nh = Math.max(1, Math.round(curH * scale));
-            inst = inst.resize(nw, nh, { fit: "fill" });
             curW = nw;
             curH = nh;
           } else if (act.kind === "resampleHW") {
@@ -582,21 +591,18 @@ export async function runSipsCli(
             const scaleY = act.height / Math.max(1, origH);
             const nw = Math.max(1, Math.round(curW * scaleX));
             const nh = Math.max(1, Math.round(curH * scaleY));
-            inst = inst.resize(nw, nh, { fit: "fill" });
             curW = nw;
             curH = nh;
           } else if (act.kind === "resampleW") {
             const scale = act.width / Math.max(1, origW);
             const nw = Math.max(1, Math.round(curW * scale));
             const nh = Math.max(1, Math.round(curH * scale));
-            inst = inst.resize(nw, nh, { fit: "fill" });
             curW = nw;
             curH = nh;
           } else if (act.kind === "resampleH") {
             const scale = act.height / Math.max(1, origH);
             const nw = Math.max(1, Math.round(curW * scale));
             const nh = Math.max(1, Math.round(curH * scale));
-            inst = inst.resize(nw, nh, { fit: "fill" });
             curW = nw;
             curH = nh;
           } else if (act.kind === "crop") {
@@ -605,8 +611,8 @@ export async function runSipsCli(
               cropOffsetY === undefined &&
               ((act.width - curW) % 2 !== 0 || (act.height - curH) % 2 !== 0)
             ) {
-              inst = await applySipsOddCanvasCropOrPad(
-                inst,
+              image = applySipsOddCanvasCropOrPad(
+                image,
                 curW,
                 curH,
                 act.width,
@@ -615,6 +621,7 @@ export async function runSipsCli(
               );
               curW = act.width;
               curH = act.height;
+              resizeInput = undefined;
               continue;
             }
             if (cropOffsetX !== undefined || cropOffsetY !== undefined) {
@@ -626,23 +633,25 @@ export async function runSipsCli(
               const srcBottom = Math.max(srcTop + 1, Math.min(curH, oy + act.height));
               const cw = srcRight - srcLeft;
               const ch = srcBottom - srcTop;
-              inst = inst.extract({ left: srcLeft, top: srcTop, width: cw, height: ch });
+              image = extractImage(image, { left: srcLeft, top: srcTop, width: cw, height: ch });
               const padLeft = Math.max(0, srcLeft - ox);
               const padTop = Math.max(0, srcTop - oy);
               const padRight = Math.max(0, act.width - cw - padLeft);
               const padBottom = Math.max(0, act.height - ch - padTop);
               if (padLeft > 0 || padTop > 0 || padRight > 0 || padBottom > 0) {
-                inst = inst.extend({
+                image = extendImage(image, {
                   top: padTop,
                   bottom: padBottom,
                   left: padLeft,
                   right: padRight,
-                  background: effectivePadColor
+                  background: parseColor(effectivePadColor),
+                  extendWith: "background"
                 });
               }
               curW = act.width;
               curH = act.height;
-              inst = sharp(await inst.toBuffer());
+              image = decodeImage(encodeImage(image, {}).data);
+              resizeInput = undefined;
               continue;
             }
             const cw = Math.min(curW, act.width);
@@ -655,7 +664,7 @@ export async function runSipsCli(
               cropOffsetY !== undefined
                 ? Math.max(0, Math.min(curH - ch, cropOffsetY))
                 : Math.max(0, Math.floor((curH - ch) / 2));
-            inst = inst.extract({ left, top, width: cw, height: ch });
+            image = extractImage(image, { left, top, width: cw, height: ch });
             curW = cw;
             curH = ch;
             if (act.width > curW || act.height > curH) {
@@ -665,21 +674,23 @@ export async function runSipsCli(
               const padRight = padX - padLeft;
               const padTop = Math.floor(padY / 2);
               const padBottom = padY - padTop;
-              inst = inst.extend({
+              image = extendImage(image, {
                 top: padTop,
                 bottom: padBottom,
                 left: padLeft,
                 right: padRight,
-                background: effectivePadColor
+                background: parseColor(effectivePadColor),
+                extendWith: "background"
               });
               curW = act.width;
               curH = act.height;
             }
-            inst = sharp(await inst.toBuffer());
+            image = decodeImage(encodeImage(image, {}).data);
+            resizeInput = undefined;
           } else if (act.kind === "pad") {
             if ((act.width - curW) % 2 !== 0 || (act.height - curH) % 2 !== 0) {
-              inst = await applySipsOddCanvasCropOrPad(
-                inst,
+              image = applySipsOddCanvasCropOrPad(
+                image,
                 curW,
                 curH,
                 act.width,
@@ -688,6 +699,7 @@ export async function runSipsCli(
               );
               curW = act.width;
               curH = act.height;
+              resizeInput = undefined;
               continue;
             }
             if (act.width < curW || act.height < curH) {
@@ -695,7 +707,7 @@ export async function runSipsCli(
               const ch = Math.min(curH, act.height);
               const left = Math.max(0, Math.floor((curW - cw) / 2));
               const top = Math.max(0, Math.floor((curH - ch) / 2));
-              inst = inst.extract({ left, top, width: cw, height: ch });
+              image = extractImage(image, { left, top, width: cw, height: ch });
               curW = cw;
               curH = ch;
             }
@@ -705,28 +717,37 @@ export async function runSipsCli(
             const right = padX - left;
             const top = Math.floor(padY / 2);
             const bottom = padY - top;
-            inst = inst.extend({
+            image = extendImage(image, {
               top,
               bottom,
               left,
               right,
-              background: effectivePadColor
+              background: parseColor(effectivePadColor),
+              extendWith: "background"
             });
             curW = act.width;
             curH = act.height;
-            inst = sharp(await inst.toBuffer());
+            image = decodeImage(encodeImage(image, {}).data);
+            resizeInput = undefined;
           }
-        }
-
-        if (targetDpi !== undefined) {
-          inst = inst.withMetadata({ density: targetDpi });
+          if (isResample(act.kind)) {
+            // Repeated resample flags replace the pending resize until the next
+            // crop, pad, rotation or flip materializes the image.
+            resizeInput ??= image;
+            image = resizeImage(resizeInput, {
+              width: curW, height: curH, fit: "fill", position: "centre", kernel: "lanczos3",
+              background: parseColor(), withoutEnlargement: false, withoutReduction: false
+            });
+          }
         }
 
         const outFmt =
           targetFormat ?? (meta.format === "pdf" || meta.format === "svg" ? "png" : meta.format);
         const quality = resolveQualityOption(formatOptionsStr);
-        inst = inst.toFormat(outFmt, { quality });
-        const outBytes = await inst.toBuffer();
+        const outBytes = encodeImage(image, {
+          format: outFmt, ...(quality === undefined ? {} : { quality }),
+          ...(targetDpi === undefined ? {} : { density: targetDpi })
+        }).data;
 
         let finalOutPath = inPath;
         if (outTarget) {
@@ -762,7 +783,7 @@ export async function runSipsCli(
           SIPS_BUFFER_PROPS.set(outBytes, mergedProps);
           SIPS_CONTENT_PROPS.set(await imageFingerprint(outBytes), mergedProps);
         }
-        meta = await sharp(outBytes).metadata();
+        meta = readImageMetadata(outBytes);
 
         if (getProperties.length === 0) {
           outLines.push(inPath);
@@ -1100,15 +1121,15 @@ export async function runIdentifyCli(
       continue;
     }
     try {
-      const inst = sharp(bytes, pageIdx !== undefined ? { page: pageIdx } : undefined);
-      const meta = await inst.metadata();
+      const inputOptions = pageIdx !== undefined ? { page: pageIdx } : undefined;
+      const meta = readImageMetadata(bytes, inputOptions);
       const bitDepth = meta.depth === "ushort" ? "16" : meta.depth === "bit" ? "1" : "8";
       const spaceLabel = meta.space === "b-w" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";
 
       if (customFormat !== undefined) {
         outParts.push(formatIdentifyCustom(customFormat, baseInPath, meta, bytes.byteLength));
       } else if (verbose) {
-        const stats = await inst.stats();
+        const stats = computeImageStats(decodeImage(bytes, inputOptions));
         outParts.push(
           `Image: ${inPath}\n` +
             `  Format: ${meta.format.toUpperCase()}\n` +

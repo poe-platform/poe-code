@@ -2,7 +2,7 @@
 
 Run shell scripts and command-line tools in your application against an explicit filesystem, without launching a host shell.
 
-Import `ffmpegCommands` from `@poe-platform/safe-bash/commands/ffmpeg` and register
+Import `ffmpegCommands` from `@poe-platform/safe-bash` and register
 it with `shell.use(ffmpegCommands())` for in-memory media conversion and probing.
 Pass `cloudflareWorkerLimits()` explicitly to bound media work in Workers.
 
@@ -292,6 +292,10 @@ see the [query syntax, flags and limits](../safe-bash-command-mdq/README.md).
 ### Opt-in commands and storage
 
 These plugins are separate from `agentCommands()`; pass them to `shell.use(...)`.
+Portable plugins for media, PDFs, spreadsheets and text are available from both
+`@poe-platform/safe-bash` and `@poe-platform/safe-bash/core`, with the same factories
+and option types. The `/commands/...` subpaths remain available for command-specific
+SDKs and helpers. Both main entry points share the portable `posixPath` API.
 
 `mikeYqCommands()` from `/commands/yq` enables bounded Mike-style format
 conversion: `yq -p csv -o json . records.csv` reads a table, and

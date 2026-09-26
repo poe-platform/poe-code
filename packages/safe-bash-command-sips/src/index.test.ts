@@ -12,6 +12,29 @@ async function makeSamplePng(width = 800, height = 600): Promise<Uint8Array> {
 }
 
 describe("safe-bash-command-sips (sips & identify)", () => {
+  it("preserves pixel order and input bytes across combined rotation and flip", async () => {
+    const pixels = Uint8Array.from([
+      255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 0, 255,
+      255, 0, 255, 255, 0, 255, 255, 255, 64, 32, 16, 255, 128, 64, 32, 255
+    ]);
+    const input = await sharp(pixels, { raw: { width: 4, height: 2, channels: 4 } }).png().toBuffer();
+    const original = Uint8Array.from(input);
+    const files = new Map<string, Uint8Array>([["/input.png", input]]);
+    expect(await runSipsCli(["-r", "90", "-f", "horizontal", "/input.png", "--out", "/output.png"], files))
+      .toEqual({ exitCode: 0, stdout: "/input.png\n  /output.png\n", stderr: "" });
+    const output = await sharp(files.get("/output.png")!).raw().toBuffer({ resolveWithObject: true });
+    expect(output.info).toMatchObject({ width: 2, height: 4, channels: 4 });
+    expect(Array.from(output.data)).toEqual([7, 3, 6, 2, 5, 1, 4, 0].flatMap(index => Array.from(pixels.subarray(index * 4, index * 4 + 4))));
+    expect(Uint8Array.from(files.get("/input.png")!)).toEqual(original);
+  });
+
+  it("applies repeated resize flags to the same input until another operation commits it", async () => {
+    const input = await makeSamplePng(4, 2);
+    const files = new Map<string, Uint8Array>([["/input.png", input]]);
+    expect((await runSipsCli(["--resampleWidth", "2", "--resampleWidth", "6", "/input.png"], files)).exitCode).toBe(0);
+    expect(await sharp(files.get("/input.png")!).metadata()).toMatchObject({ width: 3, height: 2, density: 144 });
+  });
+
   it("queries image properties with sips -g pixelWidth -g pixelHeight -g format", async () => {
     const png = await makeSamplePng(800, 600);
     const files = new Map<string, Uint8Array>([["/workspace/hero.png", png]]);

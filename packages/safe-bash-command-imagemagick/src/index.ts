@@ -7,10 +7,11 @@ import {
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import sharp, {
+import {
   applyExifOrientation,
   blurImage,
   compositeImage,
+  computeImageStats,
   decodeImage,
   dilateImage,
   encodeImage,
@@ -47,7 +48,7 @@ import sharp, {
   type ResizeKernel,
   type RgbaColor,
   type RgbaImage
-} from "@poe-code/image-ast";
+} from "@poe-code/image-ast/portable";
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   aliceblue: [240, 248, 255, 255],
@@ -3436,15 +3437,15 @@ export async function runIdentifyCli(
       continue;
     }
     try {
-      const inst = sharp(bytes, pageIdx !== undefined ? { page: pageIdx } : undefined);
-      const meta = await inst.metadata();
+      const inputOptions = pageIdx !== undefined ? { page: pageIdx } : undefined;
+      const meta = readImageMetadata(bytes, inputOptions);
       const bitDepth = meta.depth === "ushort" ? "16" : meta.depth === "bit" ? "1" : "8";
       const spaceLabel = meta.space === "b-w" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";
 
       if (customFormat !== undefined) {
         outParts.push(formatIdentifyCustom(customFormat, baseInPath, meta, bytes.byteLength, bytes));
       } else if (verbose) {
-        const stats = await inst.stats();
+        const stats = computeImageStats(decodeImage(bytes, inputOptions));
         outParts.push(
           `Image: ${inPath}\n` +
             `  Format: ${meta.format.toUpperCase()}\n` +

@@ -2,9 +2,52 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import * as root from "../../src/index.js";
+import * as core from "../../src/core.js";
+import { posixPath } from "@poe-code/safe-fs/core";
 import * as readonly from "../../src/fs/readonly/index.js";
 import * as mount from "../../src/fs/mount/index.js";
 import * as overlay from "../../src/fs/overlay/index.js";
+
+test("root and core share the portable filesystem path API", () => {
+  assert.equal(root.posixPath, posixPath);
+  assert.equal(core.posixPath, posixPath);
+  assert.equal(root.posixPath.join("/work", "..", "input.csv"), "/input.csv");
+});
+
+test("the public core subpath resolves to the core entry point", () => {
+  assert.equal(import.meta.resolve("@poe-platform/safe-bash/core"), new URL("../../dist/core.js", import.meta.url).href);
+});
+
+for (const [pluginName, commandName] of [
+  ["ffmpegCommands", "ffmpeg"], ["htmlqCommands", "htmlq"],
+  ["csvcutCommands", "csvcut"], ["csvgrepCommands", "csvgrep"],
+  ["pdfinfoCommands", "pdfinfo"], ["pdftotextCommands", "pdftotext"],
+  ["pdfimagesCommands", "pdfimages"], ["pdftoppmCommands", "pdftoppm"],
+  ["pdftkCommands", "pdftk"], ["qpdfCommands", "qpdf"],
+  ["sipsCommands", "sips"], ["imagemagickCommands", "magick"],
+  ["exiftoolCommands", "exiftool"], ["sofficeCommands", "soffice"],
+  ["unrtfCommands", "unrtf"], ["wkhtmltopdfCommands", "wkhtmltopdf"],
+  ["mmdcCommands", "mmdc"], ["diff3Commands", "diff3"],
+  ["fmtCommands", "fmt"], ["foldCommands", "fold"],
+] as const) {
+  test(`root and core expose a usable ${pluginName} plugin`, async () => {
+    const configure = core[pluginName];
+    assert.equal(typeof configure, "function");
+    assert.equal(root[pluginName], configure);
+    const commands = new core.CommandRegistry();
+    await configure().setup({ commands, use() {}, registerFileSystem() {} });
+    assert.equal(typeof commands.get(commandName)?.execute, "function");
+  });
+}
+
+test("root and core share media factories and the spreadsheet plugin", () => {
+  for (const name of ["createFfmpegCommand", "createFfprobeCommand", "createFfmpegCommands", "createSsconvertCommand", "ssconvertCommands"] as const) {
+    assert.equal(typeof core[name], "function", name);
+    assert.equal(root[name], core[name], name);
+  }
+  assert.equal(core.createFfmpegCommand().name, "ffmpeg");
+  assert.equal(core.createFfprobeCommand().name, "ffprobe");
+});
 
 test("root exposes delivered wrapper constructors and package subpaths", async () => {
   const manifest = JSON.parse(await readFile(new URL("../../package.json", import.meta.url), "utf8"));

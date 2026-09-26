@@ -3,8 +3,8 @@ import { fileURLToPath } from "node:url";
 import { createContext, runInContext } from "node:vm";
 import { readFile } from "node:fs/promises";
 import { createFsFromVolume, Volume } from "memfs";
-import { build, type BuildResult } from "esbuild";
-import { beforeAll, expect, it } from "vitest";
+import { build, context, type BuildContext, type BuildResult } from "esbuild";
+import { afterAll, beforeAll, expect, it } from "vitest";
 import { resolveBrowserOpBuild, resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import { publishBundleOutputs } from "./publish-bundle.mjs";
 
@@ -14,7 +14,8 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 let portableBuild: BuildResult;
 let filesystemBuild: BuildResult;
 let browserFixtureBuild: BuildResult;
-const artifacts = new Volume();
+let referenceLlmConsumer: { run(): Promise<Record<string, unknown>> };
+const artifacts = new Map<string, string>();
 
 it("publishes the op entry and live compression chunks in one browser output graph", async () => {
   const options = resolveBrowserShellBuild(root);
@@ -41,18 +42,59 @@ it("exposes the complete default shell under browser conditions without Node bui
   expect(result.outputFiles!.some(output => output.path.endsWith("/core.browser.js"))).toBe(true);
 });
 
-async function bundlePublicConsumer(contents: string) {
+it("exposes portable command plugins and media factories to browser consumers", async () => {
+  for (const name of [
+    "ffmpegCommands", "htmlqCommands", "csvcutCommands", "csvgrepCommands",
+    "pdfinfoCommands", "pdftotextCommands", "pdfimagesCommands", "pdftoppmCommands",
+    "pdftkCommands", "qpdfCommands", "sipsCommands", "imagemagickCommands",
+    "exiftoolCommands", "sofficeCommands", "unrtfCommands", "wkhtmltopdfCommands",
+    "mmdcCommands", "diff3Commands", "fmtCommands", "foldCommands", "ssconvertCommands",
+    "createFfmpegCommand", "createFfprobeCommand", "createSsconvertCommand",
+  ] as const) expect(typeof browser[name], name).toBe("function");
+
+  const shell = new browser.Shell({ fs: browser.createMemoryFileSystem() })
+    .use(browser.ffmpegCommands())
+    .use(browser.htmlqCommands())
+    .use(browser.csvcutCommands())
+    .use(browser.imagemagickCommands())
+    .use(browser.sipsCommands({ replace: true }))
+    .use(browser.ssconvertCommands({ codecs: [], environment: { env: {}, locale: "C", timezone: "UTC" },
+        limits: { inputBytes: 1024, outputBytes: 1024, cells: 100, sheets: 1, operations: 1000 } }));
+  try {
+    expect(await shell.exec("ffprobe -version")).toMatchObject({ exitCode: 0, stdout: expect.stringContaining("ffmpeg version"), stderr: "" });
+    expect(await shell.exec("htmlq --text p", { stdin: "<p>portable</p>" })).toMatchObject({ exitCode: 0, stdout: "portable\n", stderr: "" });
+    expect(await shell.exec("csvcut -c2", { stdin: "a,b\nx,y\n" })).toMatchObject({ exitCode: 0, stdout: "b\ny\n", stderr: "" });
+    expect(await shell.exec("magick -size 2x3 xc:red /image.png")).toMatchObject({ exitCode: 0, stderr: "" });
+    expect(await shell.exec("sips -z 4 5 /image.png; sips -1 -g pixelWidth -g pixelHeight /image.png")).toMatchObject({ exitCode: 0, stdout: expect.stringContaining("/image.png|pixelWidth: 5|pixelHeight: 4|"), stderr: "" });
+    expect(await shell.exec("ssconvert --version")).toMatchObject({ exitCode: 0, stderr: expect.stringContaining("ssconvert") });
+  } finally { await shell.dispose(); }
+});
+
+it("shares the browser runtime through the public core subpath", () => {
+  expect(coreIdentity).toBe(true);
+});
+
+let consumerBuild: BuildContext;
+let consumerSource = "";
+
+beforeAll(async () => {
   const directory = path.join(root, "packages/safe-bash");
   const manifest = JSON.parse(await readFile(path.join(directory, "package.json"), "utf8"));
-  const consumer = await build({
-    stdin: { contents, resolveDir: root },
-    bundle: true, write: false, platform: "browser", conditions: ["workerd", "worker", "browser"], format: "cjs", target: "es2022",
+  consumerBuild = await context({
+    entryPoints: ["public-consumer"],
+    bundle: true, write: false, minifyWhitespace: true, platform: "browser", conditions: ["workerd", "worker", "browser"], format: "cjs", target: "es2022",
     external: ["@poe-platform/safe-fs/core"],
     alias: { "poe-code/safe-fs/core": "@poe-platform/safe-fs/core" },
     plugins: [{
       name: "public-built-shell-entries",
       setup(builder) {
         builder.onResolve({ filter: /^poe-code\/safe-fs\/core$/ }, () => ({ path: "@poe-platform/safe-fs/core", external: true }));
+        builder.onResolve({ filter: /^public-consumer$/ }, () => ({ path: "public-consumer", namespace: "consumer" }));
+        builder.onLoad({ filter: /.*/, namespace: "consumer" }, () => ({ contents: consumerSource, resolveDir: root }));
+        builder.onResolve({ filter: /^@poe-platform\/safe-bash\/core$/ }, () => ({
+          path: path.resolve(directory, manifest.exports["./core"].browser),
+          namespace: "built-shell",
+        }));
         builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/(?:jobs|optional-host)|\/commands\/(?:xml|yq|network|node|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings|mdq|llm(?:\/providers)?))?$/ }, args => ({
           path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
           namespace: "built-shell",
@@ -61,14 +103,19 @@ async function bundlePublicConsumer(contents: string) {
           path: path.resolve(path.dirname(args.importer), args.path), namespace: "built-shell",
         }));
         builder.onLoad({ filter: /.*/, namespace: "built-shell" }, args => ({
-          contents: args.path.endsWith(".wasm")
-            ? `export default new WebAssembly.Module(Uint8Array.from(${JSON.stringify([...artifacts.readFileSync(args.path) as Uint8Array])}));`
-            : artifacts.readFileSync(args.path, "utf8").toString(), loader: "js",
+          contents: artifacts.get(args.path), loader: "js",
         }));
       },
     }],
   });
-  return consumer.outputFiles![0]!.text;
+});
+
+afterAll(async () => { await consumerBuild?.dispose(); });
+
+async function bundlePublicConsumer(contents: string) {
+  consumerSource = contents;
+  const result = await consumerBuild.rebuild();
+  return result.outputFiles![0]!.text;
 }
 
 let browserProbeBundle: string;
@@ -88,6 +135,7 @@ function createBrowserProbes(): typeof import("./fixtures/safe-packages-browser-
 
 const commandFactories = [["node", "nodeCommands"], ["node", "createNodeCommands"], ["node", "createNodeCommand"], ["xml", "createXmlCommands"], ["yq", "createYqCommands"], ["network", "createNetworkCommands"], ["llm", "createLlmCommands"], ["llm", "llmCommands"], ["llm", "createOpenAiProvider"], ["llm", "createElevenLabsProvider"], ["csplit", "createCsplitCommands"], ["pr", "createPrCommands"], ["tsort", "createTsortCommands"], ["factor", "createFactorCommands"], ["getopt", "createGetoptCommands"], ["hexdump", "createHexdumpCommands"], ["iconv", "createIconvCommands"], ["line-endings", "createDos2unixCommand"], ["line-endings", "createUnix2dosCommand"], ["line-endings", "createLineEndingCommands"], ["line-endings", "lineEndingCommands"], ["mdq", "createMdqCommand"], ["mdq", "createMdqCommands"], ["mdq", "mdqCommands"], ["mdq", "mdq"]];
 let factoryIdentity: boolean[];
+let coreIdentity: boolean;
 
 it.each(commandFactories.map(([command, factory], index) => [command, factory, index] as const))("shares the public %s command factory across portable root and subpath entries", async (command, _factory, index) => {
   const manifest = JSON.parse(await readFile(path.join(root, "packages/safe-bash/package.json"), "utf8"));
@@ -194,17 +242,27 @@ it.each(["verifyTruncateCommands", "verifyCsplitCommands", "verifyPrCommands", "
   await mixedConsumer[verify](mixedConsumer.defaultEntry);
 });
 
-it("preserves private mdq exports when the browser root and command entry share canonical packages", async () => {
+let splitBrowserBuild: BuildResult;
+
+beforeAll(async () => {
   const options = resolveBrowserShellBuild(root);
   const manifest = JSON.parse(await readFile(path.join(root, "packages/safe-bash/package.json"), "utf8"));
-  const result = await build({
+  splitBrowserBuild = await build({
     ...options,
+    sourcemap: false,
+    minifyWhitespace: true,
     entryPoints: {
       "core.browser": options.entryPoints["core.browser"],
       "commands/mdq/index.browser": options.entryPoints["commands/mdq/index.browser"],
     },
     external: [...options.external, ...Object.keys(manifest.poeCode.integration.privateWorkspaces)],
   });
+});
+
+it("preserves private mdq exports when the browser root and command entry share canonical packages", async () => {
+  const options = resolveBrowserShellBuild(root);
+  const manifest = JSON.parse(await readFile(path.join(root, "packages/safe-bash/package.json"), "utf8"));
+  const result = splitBrowserBuild;
   const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
   expect(imports.some(item => item.external && item.path === "safe-bash-command-mdq")).toBe(true);
   expect(result.outputFiles!.some(output => output.path.endsWith("/commands/mdq/index.browser.js"))).toBe(true);
@@ -355,6 +413,7 @@ type CoreFs = typeof import("../packages/safe-fs/src/core.js");
 let browser: BrowserShell;
 let browserRealm: ReturnType<typeof createContext>;
 let filesystem: CoreFs;
+let browserConsumerSource: string;
 
 beforeAll(async () => {
   filesystemBuild = await build({
@@ -371,20 +430,27 @@ beforeAll(async () => {
 
 beforeAll(() => {
   for (const output of portableBuild.outputFiles!) {
-    artifacts.mkdirSync(path.dirname(output.path), { recursive: true });
-    artifacts.writeFileSync(output.path, output.contents);
+    artifacts.set(output.path, output.path.endsWith(".wasm")
+      ? `export default new WebAssembly.Module(Uint8Array.from(${JSON.stringify([...output.contents])}));`
+      : output.text);
   }
 });
 
 beforeAll(async () => {
-  const compiled = await bundlePublicConsumer(`
+  browserConsumerSource = await bundlePublicConsumer(`
     export * from "@poe-platform/safe-bash";
+    import * as root from "@poe-platform/safe-bash";
+    import * as core from "@poe-platform/safe-bash/core";
+    export const coreIdentity = Object.keys(core).every(name => root[name] === core[name]);
     ${commandFactories.map(([command, factory], index) => `
       import { ${factory} as root${index} } from "@poe-platform/safe-bash";
       import { ${factory} as leaf${index} } from "@poe-platform/safe-bash/commands/${command}";
     `).join("\n")}
     export const factoryIdentity = [${commandFactories.map((_, index) => `root${index} === leaf${index}`).join(",")}];
   `);
+});
+
+beforeAll(() => {
   const sandbox = createContext({
     TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
     AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
@@ -393,10 +459,11 @@ beforeAll(async () => {
   expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof setImmediate", sandbox)).toBe("undefined:undefined:undefined");
   filesystem = runInContext(`(function(){ const module = { exports: {} }; ${filesystemBuild.outputFiles![0]!.text}; return module.exports; })()`, sandbox) as CoreFs;
   sandbox.canonical = filesystem;
-  browser = runInContext(`(function(){ const module = { exports: {} }; const require = name => { if (name !== "@poe-platform/safe-fs/core") throw new Error(name); return canonical; }; ${compiled}; return module.exports; })()`, sandbox) as BrowserShell;
+  browser = runInContext(`(function(){ const module = { exports: {} }; const require = name => { if (name !== "@poe-platform/safe-fs/core") throw new Error(name); return canonical; }; ${browserConsumerSource}; return module.exports; })()`, sandbox) as BrowserShell;
   browserRealm = sandbox;
   sandbox.browser = browser;
   factoryIdentity = (browser as BrowserShell & { factoryIdentity: boolean[] }).factoryIdentity;
+  coreIdentity = (browser as BrowserShell & { coreIdentity: boolean }).coreIdentity;
   expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof setImmediate + ':' + typeof require", sandbox)).toBe("function:undefined:undefined:undefined");
   expect(runInContext("Buffer.from('é').toString('hex')", sandbox)).toBe("c3a9");
   expect(runInContext("Buffer.prototype.utf8Slice.call(new Uint8Array([195, 169]), 0, 2)", sandbox)).toBe("é");
@@ -425,7 +492,7 @@ beforeAll(async () => {
   const manifest = JSON.parse(await readFile(path.join(directory, "package.json"), "utf8"));
   browserFixtureBuild = await build({
     entryPoints: [path.join(root, "scripts/fixtures/safe-packages-browser.mjs")],
-    bundle: true, write: false, metafile: true, platform: "browser",
+    bundle: true, write: false, minifyWhitespace: true, metafile: true, platform: "browser",
     conditions: ["workerd", "worker", "browser"], format: "esm", target: "es2022",
     plugins: [{
       name: "maintained-browser-fixture-entries",

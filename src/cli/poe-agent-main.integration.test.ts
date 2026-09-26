@@ -1,6 +1,6 @@
 import path from "node:path";
 import { createFsFromVolume, Volume } from "memfs";
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { ProviderResolutionError } from "@poe-code/poe-agent";
 import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config/core";
 import { createPoeAgentProgram, normalizePoeAgentArgv } from "./poe-agent-main.js";
@@ -65,6 +65,10 @@ async function runProgram(
 }
 
 describe("poe-agent CLI integration", () => {
+  beforeAll(async () => {
+    await import("../providers/poe-agent.js");
+  }, 30_000);
+
   it("surfaces ProviderResolutionError details for an unknown --model", async () => {
     const execution = runProgram(["--model", "nonexistent-model", "Test prompt"], {
       agent: {

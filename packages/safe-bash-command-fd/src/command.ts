@@ -72,11 +72,21 @@ export function createFdCommandWithMatcher(scope: FdMatchingScope, options: FdCo
 async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher, maximum: number,maxIgnoreFileBytes: number,maxDepth: number,execute?: CommandHandler): Promise<CommandResult> {
   const signal=context.signal, fs=context.fs, io={signal};
   const sizes=a.sizes.map(sizeFilter), now=Date.now(), within=a.within===undefined ? -Infinity : timestamp(a.within,now), before=a.before===undefined ? Infinity : timestamp(a.before,now);
+  const hasCapabilitiesFor = typeof fs.capabilitiesFor === "function";
+  const checkedModes = new Set<string>();
   const admit=async(path: string,modes: readonly string[]) => {
-    assertCommandRequirements(context,requirements,modes);
-    const capabilities=await fs.capabilitiesFor?.(path,io);
-    signal.throwIfAborted();
-    if (capabilities) assertCommandRequirements(context,requirements,modes,capabilities);
+    const key = modes.length === 1 ? modes[0]! : modes.join(",");
+    if (!checkedModes.has(key)) {
+      assertCommandRequirements(context,requirements,modes);
+      checkedModes.add(key);
+    }
+    if (hasCapabilitiesFor) {
+      const capabilities=await fs.capabilitiesFor!(path,io);
+      signal.throwIfAborted();
+      if (capabilities) assertCommandRequirements(context,requirements,modes,capabilities);
+    } else {
+      signal.throwIfAborted();
+    }
   };
   const matches: string[]=[]; let visited=0, found=0, failed=false, executionFailed=false;
   let emitPending = "";
@@ -107,11 +117,12 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
     const result=context.invoke ? await context.invoke(command[0]!,command.slice(1),{stdin:(async function*(){})(),stdinIsDefault:true,signal}) : execute ? await execute({...context,command:command[0]!,args:command.slice(1),stdin:(async function*(){})()}) : (()=>{throw new Error('command invocation is unavailable');})();
     executionFailed ||= result.exitCode!==0;
   };
-  const load=async (dir: string, inherited: Rule[]): Promise<Rule[]> => {
+  const load=async (dir: string, inherited: Rule[], present?: ReadonlySet<string>): Promise<Rule[]> => {
     if (!a.ignore) return inherited;
     const rules=[...inherited];
     for (const [name,priority] of [['.gitignore',0],['.ignore',1],['.fdignore',2]] as const) {
       if (name==='.gitignore' && !a.ignoreVcs) continue;
+      if (present && !present.has(name)) continue;
       const path=posixPath.join(dir,name);
       try {
         await admit(path,['ignore']);
@@ -147,12 +158,13 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
     if (ancestors.has(canonical)) throw new Error(`filesystem loop at '${label}'`);
     ancestors.add(canonical);
     try {
-      const local=await load(dir,rules);
       const entries=await fs.readdir(dir,{signal,...(Number.isFinite(maximum) ? {maxEntries:maximum-visited} : {})});
+      const present = depth > 0 ? new Set(entries.map(e => e.name)) : undefined;
+      const local=await load(dir,rules,present);
       entries.sort((l,r)=>l.name<r.name ? -1 : l.name>r.name ? 1 : 0);
       for (const entry of entries) {
         signal.throwIfAborted(); if (++visited>maximum) throw new Error('filesystem entry limit exceeded');
-        if ((visited&255)===0) { await new Promise<void>(resolve=>setTimeout(resolve,0)); signal.throwIfAborted(); }
+        if ((visited&1023)===0) { await new Promise<void>(resolve=>setTimeout(resolve,0)); signal.throwIfAborted(); }
         const path=posixPath.join(dir,entry.name), display=label ? label+(label.endsWith('/') ? '' : '/')+entry.name : entry.name;
         try {
         await admit(path,['metadata']);

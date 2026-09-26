@@ -5,6 +5,7 @@ import { Budget } from "../../../src/commands/text-programs/shared.js";
 import { runVirtual } from "./helpers.js";
 
 for (const [name, rows, program, expected] of [
+  ["print fallback evaluates arguments once", "a\n", '{ x = 0; print x++, -1; print x }', "0 -1\n1\n"],
   ["large stdout executes once", Array(600).fill("row:123456789012345678901234567890").join("\n") + "\n", '{ print $2 }', "123456789012345678901234567890\n".repeat(600)],
   ["long record fallback preserves sums", [...Array(50).fill("a:10"), "d:10:" + "x".repeat(70)].join("\n") + "\n", '{ sum += $2 } END { print sum }', "510\n"],
   ["unsupported second statement executes once", "a:10\n".repeat(60), '{ count++; total += $2 + 1 } END { print count, total }', "60 660\n"],

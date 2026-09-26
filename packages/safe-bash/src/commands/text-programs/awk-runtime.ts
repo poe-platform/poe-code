@@ -34,40 +34,6 @@ function isOperandAssignment(text: string): boolean {
   return true;
 }
 
-const sharedFastPrintBuf = new Uint8Array(256);
-function writePositiveIntAscii(buf: Uint8Array, pos: number, num: number): number {
-  if (num === 0) {
-    buf[pos] = 48;
-    return (pos + 1) | 0;
-  }
-  let temp = num | 0;
-  let end = pos | 0;
-  while (temp > 0) {
-    let q = (temp >>> 1) + (temp >>> 2);
-    q = q + (q >>> 4);
-    q = q + (q >>> 8);
-    q = q + (q >>> 16);
-    q = q >>> 3;
-    let r = temp - (((q << 2) + q) << 1);
-    if (r >= 10) {
-      q = (q + 1) | 0;
-      r = (r - 10) | 0;
-    }
-    buf[end++] = (48 + r) | 0;
-    temp = q;
-  }
-  let lo = pos | 0;
-  let hi = (end - 1) | 0;
-  while (lo < hi) {
-    const t = buf[lo]!;
-    buf[lo] = buf[hi]!;
-    buf[hi] = t;
-    lo = (lo + 1) | 0;
-    hi = (hi - 1) | 0;
-  }
-  return end;
-}
-
 function ownScalar(value: Scalar): Scalar {
   if (value.kind === "string" || value.kind === "numeric") {
     if (value.text.length < 13 && Object.isFrozen(value)) return value;
@@ -1422,39 +1388,6 @@ export class AwkRuntime {
         return undefined;
       }
       const ofmt = this.varText("OFMT");
-      if (this.stdoutBuffer.length === 0) {
-        const stdoutSink = this.context.stdout as { isPipeStage?: boolean; writeRangeSync?: (src: Uint8Array, len: number) => boolean } | undefined;
-        if (stdoutSink && !stdoutSink.isPipeStage && typeof stdoutSink.writeRangeSync === "function" && ofs.length <= 8 && ors.length <= 8) {
-          let pos = 0;
-          let fastPrintOk = true;
-          for (let i = 0; i < args.length; i++) {
-            if (i > 0) {
-              for (let j = 0; j < ofs.length; j++) sharedFastPrintBuf[pos++] = ofs.charCodeAt(j) & 0xff;
-            }
-            const argExpr = args[i]!;
-            const v = this.scalarExpression(argExpr);
-            if (v instanceof Promise) { fastPrintOk = false; break; }
-            if (v.kind === "number" && (v.number | 0) === v.number && v.number >= 0 && pos + 24 < 256) {
-              this.budget.step(0);
-              const nextPos = writePositiveIntAscii(sharedFastPrintBuf, pos, v.number);
-              this.budget.step(nextPos - pos);
-              pos = nextPos;
-            } else if ((v.kind === "string" || v.kind === "numeric") && pos + v.text.length + 16 < 256) {
-              for (let j = 0; j < v.text.length; j++) sharedFastPrintBuf[pos++] = v.text.charCodeAt(j) & 0xff;
-            } else {
-              fastPrintOk = false;
-              break;
-            }
-          }
-          if (fastPrintOk) {
-            for (let j = 0; j < ors.length; j++) sharedFastPrintBuf[pos++] = ors.charCodeAt(j) & 0xff;
-            this.context.signal.throwIfAborted();
-            if (this.suppressStdout || stdoutSink.writeRangeSync(sharedFastPrintBuf, pos) !== false) {
-              return undefined;
-            }
-          }
-        }
-      }
       let acc = "";
       for (let i = 0; i < args.length; i++) {
         const v = this.scalarExpression(args[i]!);
@@ -2135,7 +2068,7 @@ export class AwkRuntime {
       { const cp = this.budget.checkpointSync(); if (cp) { cp.catch(() => {}); return false; } }
       const argIdx = this.argument++;
       const argKey = argIdx < SMALL_ARG_KEYS.length ? SMALL_ARG_KEYS[argIdx]! : String(argIdx);
-      const next = this.asText((this.pooledArgv ?? this.array("ARGV")).entries.get(argKey) ?? unset);
+      const next = this.asText(this.array("ARGV").entries.get(argKey) ?? unset);
       if (!next) continue;
       if (this.operandAssignments && isOperandAssignment(next)) {
         this.assignment(next);

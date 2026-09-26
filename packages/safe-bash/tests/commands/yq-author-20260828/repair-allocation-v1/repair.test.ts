@@ -84,7 +84,7 @@ test("WRK-07 scalar projection/admission precedes scalar construction", async ()
 
 test("WRK-13 prospective collection member admission precedes child parsing", async () => {
   const text = await source("safe-bash-command-yq/src/parser.ts");
-  ordered(text, "this.composer.member(result.length + 1)", "let value = await this.#node()" );
+  ordered(text, "this.composer.member(result.length + 1)", "const v0 = this.#node()" );
   ordered(text, "this.composer.member(result.length + 1)", "item = next && indentation(next.text) > indent");
 });
 

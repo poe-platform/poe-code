@@ -75,7 +75,7 @@ it(`comment Drawing inspects admitted inert native extensions without main-host 
   }
   else { expect(result).toMatchObject({ code: "missing-selection" }); if (route === "model" || route === "sdk") expect(result.expectedType).toBe(true); else expect(result).toMatchObject({ zeroEffects: true, destinationRetained: true }); }
   if (route === "cli") expect(result.sourceRetained).toBe(true);
-  expect(memory.readFileSync("/input")).toEqual(Buffer.from(input));
+  expect((memory.readFileSync("/input") as Buffer).equals(Buffer.from(input))).toBe(true);
 });
 
 });

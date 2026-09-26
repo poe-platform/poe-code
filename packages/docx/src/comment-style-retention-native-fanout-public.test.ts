@@ -15,7 +15,7 @@ it(`rich comment style creation retains admitted ignored physical fanout; strict
   const styles = `<w:styles xmlns:w="${word}" xmlns:f="urn:original:comment-style-fanout" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="f"><w:style w:type="paragraph" w:styleId="Normal" w:default="1"><w:name w:val="Normal"/></w:style>${opaque}<!--retain--><?audit exact?></w:styles>`;
   const archive = await api.readArchive(await textFixture('<w:p><w:r><w:t>Retained海🌊</w:t></w:r></w:p>', { styles: { kind: "styles", xml: `<w:styles xmlns:w="${word}"><w:style w:type="paragraph" w:styleId="Normal" w:default="1"><w:name w:val="Normal"/></w:style></w:styles>` } }, strict, { kind }), textContext);
   const limits = { ...textContext.limits, maxArchiveBytes: 4194304, maxEntryBytes: 2097152, maxTotalBytes: 4194304, maxRetainedBytes: 2147483648 }, documentLimits = { retainedBytes: 2147483648, work: 2147483648 }, signal = new AbortController().signal;
-  const context = { ...textContext, limits, signal, budget: new api.DocumentBudget(documentLimits, signal), timestamp: new Date("2026-03-04T05:06:07Z"), encoding: { order: "input", compression: "store" } as const };
+  const context = { ...textContext, limits, signal, budget: new api.DocumentBudget(documentLimits, signal, async () => {}), timestamp: new Date("2026-03-04T05:06:07Z"), encoding: { order: "input", compression: "store" } as const };
   const memory = Volume.fromJSON({ "/input": "", "/output": "" });
   await api.writeArchive({ ...archive, members: archive.members.map(member => member.name === "word/styles.xml" ? { ...member, bytes: new TextEncoder().encode(styles) } : member) }, { async write(bytes) { memory.appendFileSync("/input", bytes); } }, context.encoding, context);
   const input = new Uint8Array(memory.readFileSync("/input") as Buffer), before = readPackage(input, limits), operations = [
@@ -41,7 +41,7 @@ it(`rich comment style creation retains admitted ignored physical fanout; strict
   const output = new Uint8Array(memory.readFileSync("/output") as Buffer), after = readPackage(output, limits);
   expect(new TextDecoder().decode(after.get("word/styles.xml")!)).toContain(opaque + "<!--retain--><?audit exact?>");
   for (const [name, bytes] of before) if (!["[Content_Types].xml", "word/styles.xml", "word/_rels/document.xml.rels"].includes(name)) expect(after.get(name), name).toEqual(bytes);
-  const document = await api.Document(output, { ...context, budget: new api.DocumentBudget(documentLimits, signal) }), comment = document.comments.get(0)!;
+  const document = await api.Document(output, { ...context, budget: new api.DocumentBudget(documentLimits, signal, async () => {}) }), comment = document.comments.get(0)!;
   expect(comment.text).toBe("Fresh海🌊"); expect(comment.author).toBe("Archive"); expect(comment.initials).toBe("AR"); expect(comment.timestamp?.toISOString()).toBe("2026-03-04T05:06:07.000Z");
   expect(comment.paragraphs[0]!.style?.equals(document.styles.at("Comment Text"))).toBe(true);
   expect(comment.paragraphs[0]!.runs[0]!.style?.equals(document.styles.at("Comment Reference"))).toBe(true);

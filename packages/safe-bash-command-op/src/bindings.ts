@@ -63,7 +63,7 @@ interface Binding {
   pluginScope: OpBackendContext["pluginScope"];
   steps: Step[];
   cancelled: boolean;
-  staged?: Map<string, OpObject[]>;
+  staged?: Map<string, OpObject[]> | undefined;
   queue: Promise<void>;
   abort: () => void;
 }
@@ -127,7 +127,10 @@ export function createBindingManager(source: Map<string, OpObject[]>, policy: Op
     async prepareBinding(requests: readonly OpBackendRequest[], context: OpBindingPrepareContext): Promise<OpPreparedBinding> {
       context.signal.throwIfAborted();
       if (context.binding || requests.length > 1024) throw new Error("Invalid binding plan");
-      context = Object.freeze({ ...context, authentication: structuredClone(context.authentication), pluginScope: structuredClone(context.pluginScope) });
+      context = Object.freeze({ ...context,
+        ...(context.authentication === undefined ? {} : { authentication: structuredClone(context.authentication) }),
+        ...(context.pluginScope === undefined ? {} : { pluginScope: structuredClone(context.pluginScope) }),
+      });
       const preparedGeneration = generation;
       const now = clock.now();
       const expiresAt = context.expiresAt ?? now + 60_000;

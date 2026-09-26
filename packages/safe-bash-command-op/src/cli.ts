@@ -12,12 +12,12 @@ export { createOpTextCodec } from "./encoding.js";
 import { opCommandCatalog, opGlobalFlags, opRootFlags, type OpCatalogCommand, type OpFlagDefinition } from "./catalog.js";
 
 export interface OpOutputSink {
-  isTTY?: boolean;
+  isTTY?: boolean | undefined;
   write(data: Uint8Array): Promise<void>;
 }
 
 export interface OpFileWriteOptions {
-  mode?: number;
+  mode?: number | undefined;
   overwrite?: boolean;
 }
 
@@ -38,7 +38,7 @@ export interface OpCommandContext {
     stdout?: OpOutputSink;
     stderr?: OpOutputSink;
   }) => Promise<{ exitCode: number }>;
-  readFile?: (path: string) => Promise<Uint8Array>;
+  readFile?: ((path: string) => Promise<Uint8Array>) | undefined;
   /** Publishes bytes and optionally returns the destination in the host's declared path namespace. */
   writeFile?: (path: string, data: Uint8Array, options?: OpFileWriteOptions) => Promise<void | string>;
 }
@@ -128,8 +128,9 @@ function scanCommand(argv: readonly string[], channel: "stable" | "beta", resolv
         for (const candidate of candidates) {
           for (const [name, definition] of Object.entries(commandFlags(candidate, channel, path.length === 0))) {
             const previous = available[name];
+            const alias = previous?.alias ?? definition.alias;
             available[name] = { ...definition,
-              alias: previous?.alias ?? definition.alias,
+              ...(alias === undefined ? {} : { alias }),
               longAliases: [...new Set([...(previous?.longAliases ?? []), ...(definition.longAliases ?? [])])],
             };
           }
@@ -342,7 +343,7 @@ function approvalManifest(request: OpBackendRequest, requests: readonly OpBacken
     optionNames: Object.keys(request.flags).sort(),
     mutation: { requested: mutations.length > 0, propertyNames, assignmentNames,
       ...(requests.some(entry => Array.isArray(entry.input)) ? { batchSize: inputs.length } : {}) },
-    output: file ? { kind: "file", destination: file.path } : { kind: effects.some(effect => effect.kind === "stdout") ? "stdout" : "none" },
+    output: file ? { kind: "file", destination: file.path! } : { kind: effects.some(effect => effect.kind === "stdout") ? "stdout" : "none" },
     ...(child ? { child: { executable: child.command!, argv: Array.from({ length: child.argumentCount! }, () => "[redacted]"), environmentNames: [...child.environmentNames!] } } : {}),
   };
   return freezeJson(manifest) as OpResolvedApproval;

@@ -18,7 +18,7 @@ export function createCompletionHandler(channel: "stable" | "beta" = "stable") {
   if (channel !== "stable" && channel !== "beta") throw new Error("Invalid completion channel");
   return async (request: OpBackendRequest, context: OpCommandContext): Promise<{ exitCode: number }> => {
     const shell = request.args[0];
-    if (request.args.length !== 1 || !["bash", "zsh", "fish", "powershell"].includes(shell)) {
+    if (request.args.length !== 1 || shell === undefined || !["bash", "zsh", "fish", "powershell"].includes(shell)) {
       throw new Error("completion requires one shell: bash, zsh, fish, or powershell");
     }
     context.signal.throwIfAborted();

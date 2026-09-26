@@ -601,7 +601,7 @@ const declarations: readonly NodeDeclaration[] = [
 ];
 
 export const opCatalogNodes: readonly OpCatalogCommand[] = Object.freeze(declarations.map(declaration => {
-  const { flags: names = "", flagOverrides = {}, path: name, ...metadata } = declaration;
+  const { flags: names = "", flagOverrides = {}, path: name, args, ...metadata } = declaration;
   const path = name ? name.split(" ") : [];
   const group = declarations.some(child => name ? child.path.startsWith(name + " ") : child.path !== "");
   const flags = Object.fromEntries(names.split(" ").filter(Boolean).map(flag => {
@@ -618,7 +618,7 @@ export const opCatalogNodes: readonly OpCatalogCommand[] = Object.freeze(declara
     synopsis: metadata.synopsis ?? (group ? "[command] [flags]" : "[flags]"),
     helpGroup: metadata.helpGroup ?? "commands",
     helpOrder: metadata.helpOrder ?? 0,
-    ...(metadata.args ? { args: Object.freeze({ ...metadata.args }) } : {}),
+    ...(args ? { args: Object.freeze({ ...args }) } : {}),
   });
 }));
 

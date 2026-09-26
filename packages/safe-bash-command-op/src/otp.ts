@@ -48,7 +48,7 @@ export async function generateOtp(value: string, now = Date.now()): Promise<stri
   try {
     const key = await opCrypto.subtle.importKey("raw", rawKey, { name: "HMAC", hash: hashes[algorithm] }, false, ["sign"]);
     const digest = new Uint8Array(await opCrypto.subtle.sign("HMAC", key, counter));
-    const offset = digest[digest.length - 1] & 15;
+    const offset = digest[digest.length - 1]! & 15;
     const binary = new DataView(digest.buffer).getUint32(offset) & 0x7fffffff;
     return String(binary % 10 ** digits).padStart(digits, "0");
   } finally {

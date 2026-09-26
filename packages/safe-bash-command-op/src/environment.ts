@@ -24,7 +24,7 @@ function variableEntries(value: unknown, allowUnset: boolean): [string, string |
 
 export function captureEnvironment(
   environment: Readonly<Record<string, string | undefined>>,
-  options: { readonly names?: readonly string[] } = {},
+  options: { readonly names?: readonly string[] | undefined } = {},
 ): EnvironmentSnapshot {
   const entries = new Map(variableEntries(environment, false));
   let captured = [...entries];
@@ -50,7 +50,7 @@ export function restoreEnvironment(
   if (version !== 1 || (scope !== "complete" && scope !== "selected") || !Object.hasOwn(descriptors.variables ?? {}, "value")) {
     throw new Error("Invalid environment snapshot");
   }
-  const variables = variableEntries(descriptors.variables.value, true);
+  const variables = variableEntries(descriptors.variables!.value, true);
   const result = new Map(scope === "selected" ? variableEntries(current, false) : []);
   for (const [name, value] of variables) {
     if (value === null) result.delete(name);

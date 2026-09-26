@@ -12,7 +12,7 @@ import { selectCreationVault } from "./object-vaults.js";
 import type { OpAdminContext } from "./admin.js";
 import type { OpBackendRequest, OpField, OpFile, OpItem, OpObject, OpObjectBackend, OpObjectBackendOptions, OpSection } from "./types.js";
 
-function strings(value: OpBackendRequest["flags"][string]): readonly string[] {
+function strings(value: OpBackendRequest["flags"][string] | undefined): readonly string[] {
   return typeof value === "string" ? value === "" ? [] : value.split(",") : Array.isArray(value) ? value : [];
 }
 
@@ -127,7 +127,7 @@ function itemPatch(input: Record<string, unknown>, args: readonly string[], flag
       field = { id: purpose ? parsed.field : nextId(), label: parsed.field, type: parsed.field === "password" ? "CONCEALED" : "STRING", ...(purpose ? { purpose } : {}), ...(section ? { section } : {}) };
       fields.push(field);
     }
-    if (parsed.type) field.type = types[parsed.type];
+    if (parsed.type) field.type = types[parsed.type]!;
     if (parsed.value !== undefined) field.value = parsed.value;
   }
   result.fields = fields;

@@ -51,7 +51,7 @@ export function createEnvironmentHandlers(backend: OpBackend) {
         const snapshot = captureEnvironment(context.env, { names: selected as readonly string[] | undefined });
         value = metadata(await backend.execute({ ...request, resource: "environment snapshot", args: [], input: { name: request.args[0], snapshot } }, selectOpBackendContext(context)));
       } else if (action === "restore") {
-        const stored = await backend.execute({ resource: "environment snapshot", action: "get", args: [request.args[0]], flags: selectOpGlobalFlags(request.flags) }, selectOpBackendContext(context));
+        const stored = await backend.execute({ resource: "environment snapshot", action: "get", args: [request.args[0]!], flags: selectOpGlobalFlags(request.flags) }, selectOpBackendContext(context));
         metadata(stored);
         const snapshot = structuredClone((stored as { snapshot: EnvironmentSnapshot }).snapshot);
         const variables = restoreEnvironment(snapshot, context.env);
@@ -62,14 +62,14 @@ export function createEnvironmentHandlers(backend: OpBackend) {
         } else if (request.args.length > 1) {
           if (!context.invoke) throw new Error("Environment restoration requires a host invocation capability");
           if (request.flags["no-masking"] === true) {
-            const result = await context.invoke(request.args[1], request.args.slice(2), { env: variables });
+            const result = await context.invoke(request.args[1]!, request.args.slice(2), { env: variables });
             context.signal.throwIfAborted();
             return result;
           }
           const values = Object.values(snapshot.variables).filter((value): value is string => typeof value === "string");
           const stdout = createMaskedSink(context.stdout, values, context.signal);
           const stderr = createMaskedSink(context.stderr, values, context.signal);
-          const result = await context.invoke(request.args[1], request.args.slice(2), { env: variables, stdout: stdout.sink, stderr: stderr.sink });
+          const result = await context.invoke(request.args[1]!, request.args.slice(2), { env: variables, stdout: stdout.sink, stderr: stderr.sink });
           context.signal.throwIfAborted();
           await stdout.flush();
           await stderr.flush();

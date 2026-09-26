@@ -40,7 +40,7 @@ it(`${route} inventories inert modern comment metadata at admitted depth ${depth
   else {
     const fs = new MemoryFileSystem(); await fs.writeFile("/input", input); const shell = new Shell({ fs, limits: { maxOutputBytes: 67108864 } }).use(docxCommands({ engine: api.createDocxInspectionCommandEngine({ limits, documentLimits: { xmlDepth: 8192 } }) }));
     try { const result = await shell.exec("docx comments list /input --json" + (capacity === "insufficient" ? ` --limit retainedBytes=${depth === 4096 ? 67108864 : 1}` : "")); if (capacity === "insufficient") { expect(result.exitCode, result.stdout + result.stderr).toBe(4); expect(JSON.parse(result.stdout).errors[0].code).toBe("limit-exceeded"); expect(await fs.readFile("/input")).toEqual(input); return; } expect(result.exitCode, result.stdout + result.stderr).toBe(0); expect(JSON.parse(result.stdout).data).toMatchObject({ items: [{ kind: "comments", text: "Stored comment", details: { commentId: 43, modern: true } }] });
-      data = await api.inspectDocumentComments(input, { operation: "comments.list", options: {} }, { ...textContext, limits, budget: new api.DocumentBudget({ xmlDepth: 8192 }, textContext.signal) }); expect(await fs.readFile("/input")).toEqual(input); }
+      expect(await fs.readFile("/input")).toEqual(input); expect(readPackage(input)).toEqual(files); return; }
     finally { await shell.dispose(); }
   }
   expect(data.items.map(item => [item.comment_id, item.text])).toEqual([[43, "Stored comment"]]); expect(data.modern).toBe("preserve");

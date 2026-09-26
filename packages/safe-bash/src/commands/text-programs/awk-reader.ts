@@ -114,6 +114,7 @@ export class Reader {
   private tryFillSync(): boolean {
     const syncIter = this.iterator as AsyncIterator<Uint8Array> & { tryNextSync?: () => IteratorResult<Uint8Array> | undefined };
     if (typeof syncIter.tryNextSync !== "function") return false;
+    const signal = this.budget.context.signal;
     while (!this.ended && !this.closed) {
       this.budget.step();
       if (this.head < this.blocksLen) {
@@ -122,7 +123,8 @@ export class Reader {
       }
       const next = syncIter.tryNextSync();
       if (next === undefined) return false;
-      this.budget.context.signal.throwIfAborted();
+      signal.throwIfAborted();
+      if (this.closed) return false;
       if (next.done) { this.ended = true; return true; }
       if (next.value.byteLength === 0) continue;
       this.retain(next.value);
@@ -133,13 +135,14 @@ export class Reader {
 
   private async fill(): Promise<void> {
     this.budget.step();
+    const signal = this.budget.context.signal;
     if (this.head < this.blocksLen) {
       const lastIdx = this.blocksLen - 1;
       this.blocks[lastIdx] = Buffer.from(this.blocks[lastIdx]!);
     }
     const next = await this.iterator.next();
+    signal.throwIfAborted();
     if (this.closed) return;
-    this.budget.context.signal.throwIfAborted();
     if (next.done) { this.ended = true; return; }
     this.retain(next.value);
   }
@@ -300,13 +303,14 @@ export class Reader {
   }
   async read(separator: string): Promise<string | undefined> {
     if (this.closed) return undefined;
-    this.budget.context.signal.throwIfAborted();
+    const budget = this.budget;
+    budget.context.signal.throwIfAborted();
     if (separator.length > 1) throw new ProgramError("RS must be one byte or empty for paragraph records");
     if (separator.length === 1 && !this.closed && this.head < this.blocksLen) {
       const headBlock = this.blocks[this.head]!;
       const idx = headBlock.indexOf(separator.charCodeAt(0), this.offset);
       if (idx >= 0 && idx - this.offset < 4096) {
-        this.budget.step();
+        budget.step();
         const record = headBlock.toString("latin1", this.offset, idx);
         this.consume(idx - this.offset + 1);
         return record;
@@ -314,21 +318,21 @@ export class Reader {
     }
     if (separator === "") {
       while (!this.closed) {
-        this.budget.step();
+        budget.step();
         if (this.trimLeading()) break;
         if (this.buffered === 0) {
           if (this.ended) return undefined;
           await this.fill();
         }
         if (this.closed) return undefined;
-        const pendingCheck = this.budget.checkpointSync();
+        const pendingCheck = budget.checkpointSync();
         if (pendingCheck) await pendingCheck;
       }
     }
     const state: Scan = { block: this.head, offset: this.offset, bytes: 0, newline: -1, paragraphEnd: -1 };
     while (true) {
       if (this.closed) return undefined;
-      this.budget.step();
+      budget.step();
       const found = this.scan(separator, state);
       if (found) return this.finish(found.length, found.consumed);
       if (state.block === this.blocksLen) {
@@ -341,7 +345,7 @@ export class Reader {
         await this.fill();
       }
       if (this.closed) return undefined;
-      const pendingCheck = this.budget.checkpointSync();
+      const pendingCheck = budget.checkpointSync();
       if (pendingCheck) await pendingCheck;
     }
   }

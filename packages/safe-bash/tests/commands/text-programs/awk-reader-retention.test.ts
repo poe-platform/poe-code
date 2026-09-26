@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { ByteSource, CommandContext } from "../../../src/contracts/index.js";
-import { Reader } from "../../../src/commands/text-programs/awk-reader.js";
+import { Reader, clearAwkReaderPool } from "../../../src/commands/text-programs/awk-reader.js";
 import { AwkRetention } from "../../../src/commands/text-programs/awk-retention.js";
 import { Budget, getCachedLatin1Batch } from "../../../src/commands/text-programs/shared.js";
 
@@ -177,6 +177,36 @@ test("awk reader close shares settlement while releasing storage before a pendin
     assert.equal(await reader.read("\n"), undefined);
   } finally { release(); }
   await observed;
+});
+
+for (const sync of [false, true]) test(`closed memory readers return EOF through both read routes: sync=${sync}`, async context => {
+  context.after(clearAwkReaderPool);
+  const retention = new AwkRetention(8);
+  const reader = Reader.fromMemoryView(Buffer.from("a\ntail"), budget(), retention);
+  await (sync ? reader.closeSyncOrAsync() : reader.close());
+  const slice = { source: "unchanged", start: 1, end: 2 };
+  assert.equal(reader.readSliceSync("\n", slice), false);
+  assert.deepEqual(slice, { source: "unchanged", start: 1, end: 2 });
+  assert.equal(await reader.read("\n"), undefined);
+  assert.equal(retention.retainedBytes, 0);
+});
+
+test("synchronous input cannot publish bytes after closing its reader", () => {
+  const retention = new AwkRetention(8);
+  let reader: Reader;
+  const input = {
+    [Symbol.asyncIterator]() { return this; },
+    async next() { return this.tryNextSync(); },
+    tryNextSync(): IteratorResult<Uint8Array> {
+      reader.closeSyncOrAsync();
+      return { done: false, value: Buffer.from("late\n") };
+    },
+  };
+  reader = new Reader(input, budget(), retention);
+  const slice = { source: "unchanged", start: 1, end: 2 };
+  assert.equal(reader.readSliceSync("\n", slice), false);
+  assert.deepEqual(slice, { source: "unchanged", start: 1, end: 2 });
+  assert.equal(retention.retainedBytes, 0);
 });
 
 for (const reason of [false, null, 0, ""]) {

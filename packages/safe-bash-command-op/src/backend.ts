@@ -121,13 +121,14 @@ function itemPatch(input: Record<string, unknown>, args: readonly string[], flag
       if (field.section && ![...fields, ...files].some(entry => entry.section?.id === field!.section!.id)) sections = sections.filter(entry => entry.id !== field!.section!.id);
       continue;
     }
-    if (parsed.type && !Object.hasOwn(types, parsed.type)) throw new Error("Unsupported field type");
+    const fieldType = parsed.type ? types[parsed.type] : undefined;
+    if (parsed.type && (!Object.hasOwn(types, parsed.type) || fieldType === undefined)) throw new Error("Unsupported field type");
     if (!field) {
       const purpose = !section && ["username", "password", "notesPlain"].includes(parsed.field) ? ({ username: "USERNAME", password: "PASSWORD", notesPlain: "NOTES" } as Record<string, string>)[parsed.field] : undefined;
       field = { id: purpose ? parsed.field : nextId(), label: parsed.field, type: parsed.field === "password" ? "CONCEALED" : "STRING", ...(purpose ? { purpose } : {}), ...(section ? { section } : {}) };
       fields.push(field);
     }
-    if (parsed.type) field.type = types[parsed.type]!;
+    if (fieldType !== undefined) field.type = fieldType;
     if (parsed.value !== undefined) field.value = parsed.value;
   }
   result.fields = fields;

@@ -2,22 +2,20 @@ import type {Font, Glyph, GlyphRun} from "@pdf-lib/fontkit";
 import {SsconvertError, type CapabilityContext} from "../../contracts.js";
 import {harfbuzzBase64} from "./harfbuzz/data.js";
 
-// Describe only this module's WebAssembly usage. Loading lib.dom here changes
-// Node consumers' unrelated fetch and stream declarations throughout the program.
-declare const WebAssembly: {
+// The native surface used here is also available in Node without DOM globals.
+// Keep exports unknown until the function/Memory checks below admit them.
+export interface FontShapingWebAssembly {
+  readonly Memory: abstract new (...args: never[]) => { readonly buffer: ArrayBuffer; grow(pages: number): number };
   compile(bytes: Uint8Array<ArrayBuffer>): Promise<object>;
-  instantiate(module: object, imports: Record<string, Record<string, (...args: number[]) => number>>): Promise<{exports: Record<string, unknown>}>;
-  Memory: new (descriptor: {initial: number; maximum?: number}) => {
-    readonly buffer: ArrayBuffer;
-    grow(delta: number): number;
-  };
-};
+  instantiate(module: object, imports: Record<string, Record<string, (...args: number[]) => number | void>>): Promise<{ readonly exports: Readonly<Record<string, unknown>> }>;
+}
+const wasm = (globalThis as unknown as { readonly WebAssembly: FontShapingWebAssembly }).WebAssembly;
 
 // Only immutable compiled code is shared. Font data, native handles and failure
 // state belong to one conversion and are discarded together on any failure.
-let compiled: ReturnType<typeof WebAssembly.compile> | undefined;
+let compiled: ReturnType<FontShapingWebAssembly["compile"]> | undefined;
 export function createFontShaper(context: CapabilityContext, tick: (amount?: number) => void) {
-  let exports: Record<string, unknown> | undefined, disposed = false;
+  let exports: Awaited<ReturnType<FontShapingWebAssembly["instantiate"]>>["exports"] | undefined, disposed = false;
   const fonts = new Map<Font, {font: number; data: number}>();
   const dispose = () => { disposed = true; exports = undefined; fonts.clear(); };
   context.own(dispose); // Register before asynchronous compilation or acquisition.
@@ -29,7 +27,7 @@ export function createFontShaper(context: CapabilityContext, tick: (amount?: num
   };
   const memory = () => {
     const value = exports?.memory;
-    if (disposed || !(value instanceof WebAssembly.Memory)) return fail();
+    if (disposed || !(value instanceof wasm.Memory)) return fail();
     return value;
   };
   const view = (pointer: number, length: number, alignment = 1) => {
@@ -47,12 +45,12 @@ export function createFontShaper(context: CapabilityContext, tick: (amount?: num
       tick(bytes.length);
       if (disposed || bytes.length > context.limits.inputBytes) fail();
       if (!exports) {
-        compiled ??= WebAssembly.compile(Uint8Array.from(atob(harfbuzzBase64), character => character.charCodeAt(0)));
+        compiled ??= wasm.compile(Uint8Array.from(atob(harfbuzzBase64), character => character.charCodeAt(0)));
         const module = await compiled;
         tick();
         if (disposed) fail();
         const unexpected = () => fail();
-        const instance = await WebAssembly.instantiate(module, {
+        const instance = await wasm.instantiate(module, {
           wasi_snapshot_preview1: {proc_exit: unexpected},
           env: {_emscripten_runtime_keepalive_clear: unexpected, _abort_js: unexpected, _setitimer_js: unexpected,
             emscripten_resize_heap(requested: number) {

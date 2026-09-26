@@ -2,7 +2,7 @@ import {afterEach, expect, it, vi} from "vitest";
 import fontkit from "@pdf-lib/fontkit";
 import {suppliedDefaultFont} from "@poe-code/pdf";
 import type {CapabilityContext} from "../../contracts.js";
-import {createFontShaper} from "./font-shaping.js";
+import {createFontShaper, type FontShapingWebAssembly} from "./font-shaping.js";
 
 const bytes = suppliedDefaultFont().bytes;
 function fixture() {
@@ -14,7 +14,7 @@ function fixture() {
 }
 afterEach(() => vi.restoreAllMocks());
 it("registers ownership before acquisition and refuses a released conversion", async () => {
-  const f = fixture(), instantiate = vi.spyOn(WebAssembly, "instantiate");
+  const f = fixture(), instantiate = vi.spyOn(WebAssembly satisfies FontShapingWebAssembly, "instantiate");
   const shaper = createFontShaper(f.context, f.tick), metrics = fontkit.create(bytes);
   expect(f.cleanups).toHaveLength(1);
   expect(instantiate).not.toHaveBeenCalled();

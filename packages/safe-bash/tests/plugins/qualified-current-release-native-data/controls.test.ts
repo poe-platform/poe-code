@@ -442,6 +442,17 @@ test("compiler-policy mutations cannot add exclusions or weaken current-source c
     ["missing source subpath", configuration => {
       delete (configuration.compilerOptions.paths as Record<string, string[]>)["safe-bash-contracts/*"];
     }],
+    ["exact optional types disabled", configuration => { configuration.compilerOptions.exactOptionalPropertyTypes = false; }],
+    ["indexed access checks disabled", configuration => { configuration.compilerOptions.noUncheckedIndexedAccess = false; }],
+    ["source contracts redirected to dist", configuration => {
+      (configuration.compilerOptions.paths as Record<string, string[]>)["safe-bash-contracts"] = ["../safe-bash-contracts/dist/index.d.ts"];
+    }],
+    ["extensionless contracts fall back to dist", configuration => {
+      (configuration.compilerOptions.paths as Record<string, string[]>)["safe-bash-contracts/*"] = ["../safe-bash-contracts/src/*"];
+    }],
+    ["unapproved wildcard source resolution", configuration => {
+      (configuration.compilerOptions.paths as Record<string, string[]>)["*"] = ["../*/src/index.ts"];
+    }],
   ];
   for (const [name, mutate] of mutations) {
     const configuration = structuredClone(approvedCompilerConfiguration());

@@ -13,6 +13,21 @@ function context(overrides: Partial<OpCommandContext> = {}): OpCommandContext {
   return { args: [], env: {}, signal: new AbortController().signal, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write() {} }, stderr: { async write() {} }, ...overrides };
 }
 
+test("prepared output preserves absent and explicit terminal metadata", () => {
+  for (const isTTY of [undefined, false, true]) {
+    const sink = { ...(isTTY === undefined ? {} : { isTTY }), async write() {} };
+    const source = context({ stdout: sink, stderr: sink });
+    const snapshot = createSourceSnapshot(source);
+    const prepared = createHandlerPreparation([], snapshot.context, []);
+    for (const wrapped of [snapshot.context, prepared.context]) {
+      for (const output of [wrapped.stdout, wrapped.stderr]) {
+        assert.equal(Object.hasOwn(output, "isTTY"), isTTY !== undefined);
+        assert.equal(output.isTTY, isTTY);
+      }
+    }
+  }
+});
+
 test("prepared sources detach caller bytes and replay without reading the host twice", async () => {
   const bytes = new Uint8Array([1, 2]);
   let reads = 0;

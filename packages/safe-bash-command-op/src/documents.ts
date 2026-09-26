@@ -90,7 +90,7 @@ export function createDocumentHandlers(backend: OpBackend, options: OpDocumentHa
   handlers["document get"] = Object.assign(async (request: OpBackendRequest, context: OpCommandContext) => {
     if (request.args.length !== 1 || !request.args[0] || request.args[0] === "-") throw new Error("document get requires one document name or ID");
     const path = textFlag(request, "out-file");
-    const mode = path === undefined ? undefined : parseOpFileMode(request.flags["file-mode"]);
+    const mode = parseOpFileMode(path === undefined ? undefined : request.flags["file-mode"]);
     if (path !== undefined && !context.writeFile) throw new Error("document output requires a host writeFile capability");
     context.signal.throwIfAborted();
     const result = await backend.execute(request, selectOpBackendContext(context));

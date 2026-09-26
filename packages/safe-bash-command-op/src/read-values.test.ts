@@ -19,7 +19,7 @@ function fixture(args: readonly string[], input = "") {
     stderr: { async write(bytes) { errors.push(Uint8Array.from(bytes)); } },
     async writeFile(path, bytes, options) {
       writes.push({ path, bytes: Uint8Array.from(bytes), options });
-      await fs.promises.writeFile(path, bytes, { mode: options?.mode, flag: options?.overwrite ? "w" : "wx" });
+      await fs.promises.writeFile(path, bytes, { ...(options?.mode === undefined ? {} : { mode: options.mode }), flag: options?.overwrite ? "w" : "wx" });
     }
   };
   const backend = createObjectBackend({

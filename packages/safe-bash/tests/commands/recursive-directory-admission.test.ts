@@ -51,11 +51,12 @@ test("diff admits matching directory names once", async () => {
   assert.deepEqual(caps, [2, 2]);
 });
 
-test("cross-device move leaves directory admission unlimited by default", async () => {
+test("cross-device move leaves traversal uncapped and observes cancellation", async () => {
   const fs = await fixture({ "sub/a": "x" });
   const { context } = await run("true", [], { fs });
   const read = fs.readdir.bind(fs);
-  const budget = new MoveBudget(context.signal);
+  const controller = new AbortController();
+  const budget = new MoveBudget(controller.signal);
   const caps: (number | undefined)[] = [];
   fs.readdir = async (path, options) => {
     assert.equal(options?.maxEntries, undefined);
@@ -66,6 +67,9 @@ test("cross-device move leaves directory admission unlimited by default", async 
   assert.deepEqual(caps, [undefined]);
   assert.equal(Buffer.from(await fs.readFile("/work/dest/a")).toString(), "x");
   await assert.rejects(fs.lstat("/work/sub"), { code: "ENOENT" });
+  const reason = new Error("cancelled traversal");
+  controller.abort(reason);
+  await assert.rejects(budget.step(), error => error === reason);
 });
 
 for (const route of routes.filter(route => route.name !== "diff")) {

@@ -21,10 +21,10 @@ function fixture(args: string[], result: unknown = { id: "document-id", content:
     async writeFile(path, bytes, options) {
       assert.ok(options);
       writes.push(options);
-      await fs.promises.writeFile(path, bytes, { mode: options.mode, flag: options.overwrite ? "w" : "wx" });
+      await fs.promises.writeFile(path, bytes, { ...(options.mode === undefined ? {} : { mode: options.mode }), flag: options.overwrite ? "w" : "wx" });
     },
   };
-  const command = createOpCommand({ backend, handlers: createDocumentHandlers(backend, { maxBytes }) });
+  const command = createOpCommand({ backend, handlers: createDocumentHandlers(backend, maxBytes === undefined ? {} : { maxBytes }) });
   return { fs, output, requests, writes, context, command };
 }
 

@@ -45,7 +45,7 @@ interface NodeDeclaration {
   readonly flagOverrides?: Readonly<Record<string, { [Key in keyof OpFlagDefinition]?: OpFlagDefinition[Key] | null }>>;
   readonly aliases?: readonly string[];
   readonly availability?: OpCatalogCommand["availability"];
-  readonly args?: OpCatalogCommand["args"];
+  readonly args?: NonNullable<OpCatalogCommand["args"]>;
 }
 
 export const opReferenceUrl = "https://www.1password.dev/cli/reference";

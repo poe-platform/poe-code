@@ -93,8 +93,8 @@ export class Budget {
       this.lastYield = now;
       return yieldTurn(this.caller).then(() => { this.assertOpen(); });
     }
-    const p = runYieldCheckpoint(this.caller);
-    if (p) return p.then(() => { this.assertOpen(); });
+    runYieldCheckpoint(this.caller);
+    this.assertOpen();
   }
   async arguments(): Promise<string[]> {
     const args = this.context.args;

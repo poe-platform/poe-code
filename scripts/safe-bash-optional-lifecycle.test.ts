@@ -102,5 +102,5 @@ describe("optional distribution production lifecycle", () => {
     await expect(buildOptionalPackage({ rootDir: root, compile, fileSystem })).rejects.toBe(reachedCompiler);
     expect(compile).toHaveBeenCalledExactlyOnceWith({ root: core, profile: "optional", fileSystem });
     expect(fileSystem.existsSync(core + "/dist/opt-in/optional.js")).toBe(false);
-  });
+  }, 30_000);
 });

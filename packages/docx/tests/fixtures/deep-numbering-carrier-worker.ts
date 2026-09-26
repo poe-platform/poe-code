@@ -12,7 +12,7 @@ const body = `<w:p xmlns:f="urn:original:deep-numbering-carrier" xmlns:mc="http:
 const scenario = process.argv[3] ?? "story";
 const inert = `<f:p xmlns:f="urn:original:deep-inactive-numbering">${"<f:p>".repeat(depth - 1)}<w:num w:numId="1"><w:abstractNumId w:val="9"/></w:num>${"</f:p>".repeat(depth)}`;
 const input = await textFixture(scenario === "inactive-numbering" ? `<w:p><w:r><w:rPr><w:rtl/></w:rPr><w:t>${text}</w:t></w:r></w:p>` : body, scenario === "inactive-numbering" ? { numbering: { kind: "numbering", xml: `<w:numbering xmlns:w="${w}" xmlns:f="urn:original:deep-inactive-numbering" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="f">${inert}</w:numbering>` } } : {}, strict), memory = Volume.fromJSON({ "/input": Buffer.from(input), "/output": "", "/destination": "Retain destination" });
-const context = () => ({ ...textContext, budget: new DocumentBudget({ xmlDepth: depth + 8, retainedBytes: 4294967296, work: 4294967296 }, textContext.signal) });
+const context = () => ({ ...textContext, budget: new DocumentBudget({ xmlDepth: depth + 8, retainedBytes: 4294967296, work: 4294967296 }, textContext.signal, async () => {}) });
 const result = await editDocumentLists(new Uint8Array(memory.readFileSync("/input") as Buffer), { operation: "lists.add", options: { kind: "decimal", text: "Added 日本 עברית", output: "-" } }, { ...context(), encoding: { order: "input", compression: "store" }, stdout: { async write(bytes) { memory.appendFileSync("/output", bytes); } } });
 assert.equal(result.changed, true);
 assert.equal(result.changes.length, 1);

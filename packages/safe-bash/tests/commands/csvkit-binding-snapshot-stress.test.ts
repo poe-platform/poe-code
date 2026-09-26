@@ -66,7 +66,7 @@ test("csvkit collision preflight leaves the complete host registry untouched for
   for (const name of names) {
     const shell = new Shell({ fs: new MemoryFileSystem() });
     try {
-      shell.commands.register({ name, execute: async () => ({ exitCode: 19 }) });
+      shell.commands.register({ name, fallback: true, execute: async () => ({ exitCode: 19 }) });
       const before = shell.commands.list();
       if (name === "csvcut" || name === "csvgrep") {
         csvkitCommands(bindings).setup(shell);
@@ -78,6 +78,19 @@ test("csvkit collision preflight leaves the complete host registry untouched for
       assert.equal((await shell.exec(name)).exitCode, 19);
     } finally { await shell.dispose(); }
   }
+});
+
+for (const name of ["csvcut", "csvgrep"]) test(`csvkit fallback preserves the dedicated ${name} command`, async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() });
+  try {
+    const dedicated = { name, execute: async () => ({ exitCode: 19 }) };
+    shell.commands.register(dedicated);
+    const registered = shell.commands.get(name);
+    csvkitCommands(bindings).setup(shell);
+    assert.equal(shell.commands.get(name), registered);
+    assert.ok(shell.commands.has("in2csv"));
+    assert.equal((await shell.exec(name)).exitCode, 19);
+  } finally { await shell.dispose(); }
 });
 
 for (const [name, command, input, expected] of [

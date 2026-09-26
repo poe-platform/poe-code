@@ -77,7 +77,7 @@ for (const name of ["seq", "nl", "rev", "unexpand"]) {
     assert.equal(inputReads, name === "seq" ? 0 : 1);
     release();
     assert.equal((await execution).exitCode, 0);
-    assert.deepEqual(retained, copies);
+    assert.deepEqual(retained.map(bytes => [...bytes]), copies.map(bytes => [...bytes]));
     for (const bytes of retained) assert.ok(bytes.length <= 16);
   });
 

@@ -214,7 +214,10 @@ export class ByteOutput {
     if (this.size === this.bytes.length) return this.flush();
   }
   async flush(): Promise<void> {
-    if (this.size) await this.session.output(this.bytes.subarray(0, this.size));
+    if (this.size) {
+      this.session.admitOutput(this.size);
+      await this.session.output(this.bytes.slice(0, this.size));
+    }
     this.size = 0;
   }
 }

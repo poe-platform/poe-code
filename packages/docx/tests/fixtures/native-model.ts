@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import type { Writable } from "node:stream";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 
@@ -6,11 +7,16 @@ import { build } from "esbuild";
 export async function prepareNativeModelScript(body: string) {
   const result = await build({
     stdin: {
-      contents: `import { Volume } from "memfs";
+      contents: `import { readFile } from "node:fs";
+import { Volume } from "memfs";
 import * as api from "./index.js";
 import { ModelStore } from "./model-store.js";
 import { archiveSettings } from "./archive.js";
-const request = __docxNativeRequest;
+console.log("ready");
+const request = await new Promise((resolve, reject) => readFile(3, "utf8", (error, data) => {
+  if (error) reject(error);
+  else { try { resolve(JSON.parse(data)); } catch (error) { reject(error); } }
+}));
 ${body}`,
       resolveDir: fileURLToPath(new URL("../../src/", import.meta.url)),
       loader: "js"
@@ -23,15 +29,44 @@ ${body}`,
     write: false
   });
   const script = result.outputFiles[0]!.text;
-  return (request: unknown, signal: AbortSignal): Promise<string> => new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, ["--input-type=module"], { signal, stdio: ["pipe", "pipe", "pipe"] });
+  return async (signal: AbortSignal) => {
+    const child = spawn(process.execPath, ["--input-type=module"], { signal, stdio: ["pipe", "pipe", "pipe", "pipe"] });
+    const input = child.stdio[3] as Writable;
     let stdout = "", stderr = "";
-    child.stdout.on("data", bytes => { stdout += String(bytes); });
+    let resolveReady!: () => void, rejectReady!: (error: Error) => void;
+    const ready = new Promise<void>((resolve, reject) => { resolveReady = resolve; rejectReady = reject; });
+    let started = false;
+    child.stdout.on("data", bytes => {
+      stdout += String(bytes);
+      if (!started && stdout.startsWith("ready\n")) {
+        started = true;
+        stdout = stdout.slice("ready\n".length);
+        resolveReady();
+      }
+    });
     child.stderr.on("data", bytes => { stderr += String(bytes); });
-    child.on("error", reject);
-    child.stdin.on("error", reject);
-    child.on("close", code => { if (code !== 0) reject(new Error(stderr)); else resolve(stdout); });
-    // Stdin avoids command-line size limits for deep XML and the compiled graph.
-    child.stdin.end(`const __docxNativeRequest = ${JSON.stringify(request)};\n${script}`);
-  });
+    const completion = new Promise<string>((resolve, reject) => {
+      child.on("error", reject);
+      child.stdin.on("error", reject);
+      input.on("error", reject);
+      child.on("close", code => {
+        if (code !== 0 || !started) reject(new Error(stderr || "Native model exited before becoming ready"));
+        else resolve(stdout);
+      });
+    });
+    void completion.catch(rejectReady);
+    // Separate pipes keep compilation and imports in setup, and model work in the test.
+    child.stdin.end(script);
+    await ready;
+    return {
+      run(request: unknown): Promise<string> {
+        input.end(JSON.stringify(request));
+        return completion;
+      },
+      async dispose(): Promise<void> {
+        if (child.exitCode === null && !child.killed) child.kill();
+        await completion.catch(() => {});
+      }
+    };
+  };
 }

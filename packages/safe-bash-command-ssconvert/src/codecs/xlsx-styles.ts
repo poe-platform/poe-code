@@ -2,6 +2,7 @@ import type { XmlElement } from "@poe-code/safe-fs/xml";
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import type { ImportedValue, RichTextRun } from "../workbook.js";
 import { xlsxNamespaces } from "./xlsx-schema.js";
+import { decodeXlsxString } from "./xlsx-strings.js";
 
 const namespace = "http://www.gnumeric.org/v10.dtd";
 const knownNamespaces = new Set(Object.values(xlsxNamespaces).flat());
@@ -83,9 +84,9 @@ export function readXlsxString(node: XmlElement | undefined, context: Capability
   let value = "", offset = 0; const runs: RichTextRun[] = [];
   for (const item of node?.children ?? []) {
     context.signal.throwIfAborted();
-    if (item.localName === "t") { value += item.text; offset += new TextEncoder().encode(item.text).length; }
+    if (item.localName === "t") { const text = decodeXlsxString(item.text); value += text; offset += new TextEncoder().encode(text).length; }
     if (item.localName !== "r") continue;
-    const text = child(item, "t")?.text ?? "", start = offset; value += text; offset += new TextEncoder().encode(text).length;
+    const text = decodeXlsxString(child(item, "t")?.text ?? ""), start = offset; value += text; offset += new TextEncoder().encode(text).length;
     const properties = child(item, "rPr"), attributes: Record<string, ImportedValue> = {};
     for (const p of properties?.children ?? []) {
       const val = attribute(p, "val");

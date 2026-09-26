@@ -1,6 +1,7 @@
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import type { ImportedValue, RichTextRun } from "../workbook.js";
 import { parseXmlSteps } from "@poe-code/safe-fs/xml";
+import { encodeXlsxString } from "./xlsx-strings.js";
 
 export type Attributes = Readonly<Record<string, string | number | undefined>>;
 export type ElementWriter = (name: string, attributes?: Attributes, content?: string) => string;
@@ -96,7 +97,7 @@ export function metadataNode(value: ImportedValue | undefined, charge?: (amount?
 }
 export function writeRichString(value: string, runs: readonly RichTextRun[] | undefined, xml: ElementWriter, charge?: (amount?: number) => void): string {
   charge?.(value.length);
-  const t = (text: string) => xml("t", text.trim() !== text ? { "xml:space": "preserve" } : {}, escapeXlsx(text));
+  const t = (text: string) => xml("t", text.trim() !== text ? { "xml:space": "preserve" } : {}, escapeXlsx(encodeXlsxString(text)));
   if (!runs?.length) return t(value);
   charge?.(runs.length);
   const bytes = new TextEncoder().encode(value), decoder = new TextDecoder("UTF-8", { fatal: true });

@@ -915,13 +915,33 @@
       "publicReadback": "Compiled command --recalc XLSX export and SDK readback preserve all 23 numeric results within 1e-12 and translated function formulas without LOTUS_ placeholders. Input 1229 bytes, output 4588 bytes; exit 0, empty stderr. Fixture remains in memory.",
       "remaining": "Wider argument/domain semantics, additional vendor add-ins, Works and independent application qualification remain open. Name-table coverage does not establish full native compatibility."
     },
+    "xlsxCellStringEscapes": {
+      "status": "implemented shared/inline string escapes; formula caches and other string fields remain open",
+      "source": {
+        "repository": "https://github.com/LibreOffice/core",
+        "revision": "bce0998afefdbc355585ca324285661a2170ba77",
+        "files": {
+          "sax/source/tools/fastserializer.cxx": "63490248258628a67e52b9c19c166df0c67088e831fc60909bec5a90f27dbc01",
+          "oox/source/helper/attributelist.cxx": "466fd00794fc5a038a30dfe46953d6e0304974ec54a0063b0ab48ea7ef31fd99",
+          "sc/source/filter/oox/richstring.cxx": "6d4254c6240faf3cb6386866ea1ba153adbab2ac2ca5aa60ddfbfce1e57ef79c",
+          "sc/source/filter/oox/richstringcontext.cxx": "89f1fab45720d802f4e57b96c0baf3049448c2817e6ed774b98d5aaebc55b75a",
+          "sc/source/filter/oox/sheetdatacontext.cxx": "e6d9c63cc23cc2842da7a11e5e2c7bc49b94933886d28856bcd6e6ad4f738b98",
+          "sc/source/filter/oox/sheetdatabuffer.cxx": "e4d1780352e7f71561bc3b06eb689bf52bdd329f5a113ca355eb6217affd0814"
+        }
+      },
+      "finding": "FastSaxSerializer::write lines 213-274 describes _xHHHH_ escaping and cites ECMA-376-1 22.4.2.4. AttributeConversion::decodeXString and lclGetXChar consume exactly seven characters, decode lowercase x with either hex case, and do not rescan decoded text. RichStringPortion::setText invokes that decoder per text element. The prior candidate rejected controls on export and retained escape text on import.",
+      "literalPreservation": "Protect each original underscore that begins an escape, including overlapping tokens and literal _x005F_xHHHH_. LibreOffice's shared serializer has assumptions for already-escaped text and _x0020_; those are not safe for raw workbook cell strings. Single-pass readback exposed loss when copying that overlap shortcut, so the candidate preserves each literal token explicitly.",
+      "validation": "Sixteen of nineteen focused regressions failed before implementation; all 221 tests in eleven XLSX files pass after repair. Covers NUL/C0/C1, U+FFFE/U+FFFF, escaped surrogate pairs, malformed and uppercase-X literals, single-pass/overlapping escapes, UTF-8 rich-run offsets, shared/inline storage and both XLSX editions. Generic XML escaping remains strict.",
+      "publicQualification": "Maintained package lint, source/test/consumer types and selected build pass. Compiled public SDK preserves eight strings and rich-run offsets in each edition; XLSX/XLSX2 outputs are 4515/4518 bytes. Python zipfile/ElementTree independently parses all ten XML members per output and verifies sixteen decoded values. This is structural/source-contract verification, not a LibreOffice application run. The first SDK probe compared object prototypes rather than run fields; correcting that probe required no product change.",
+      "remaining": "Qualify native workbook application readback and other ST_Xstring fields. Formula cached strings use a distinct path in both candidate and inspected Calc source; generic formulas/attributes must not acquire string escaping blindly. Rich-text unpaired UTF-16 units, BIFF/CSV NUL semantics and complete format coverage remain open. No family is closed."
+    },
     "lotusControlCharacters": {
       "status": "implemented C0/C1 control group and literal system-range marker import",
       "source": "lotusUnicodeCompatibility.source; literal controls and group 0x0F decoding at lines 1144-1174",
       "finding": "Group 0x0F subtracts 0x20 for C0 bytes and retains C1 bytes. Byte 0x19 is literal and must not consume the next character. The old table dropped NUL/C1 values or mapped them to private-use characters.",
       "validation": "Four original cases failed; two controls already passed. All 296 tests in fourteen Lotus files, maintained package lint/types and selected build pass. Native ICU 78.1 independently confirms six sequences.",
       "publicQualification": "Compiled SDK import/recalculation preserves all twelve label/formula strings from a 264-byte input. Compiled command BIFF export/readback preserves ten; its existing C-string handling truncates both embedded-NUL strings from A\\0Z to A. BIFF output is 3584 bytes. XLSX explicitly refuses non-XML characters without publishing output; CSV also truncates at NUL. These are recorded export limitations, not successful roundtrips.",
-      "remaining": "Investigate source-defined XLSX string escaping and the existing BIFF/CSV NUL contracts before changing those exporters. Malformed control sequences, other charset groups and native workbook applications remain open."
+      "remaining": "Shared/inline XLSX string escaping is now implemented; see xlsxCellStringEscapes. Formula caches, BIFF/CSV NUL contracts, malformed control sequences, other charset groups and native workbook applications remain open."
     },
     "lotusNationalDoubleByteGroups": {
       "status": "implemented explicit/implicit Japanese, Korean, Traditional Chinese and Simplified Chinese group decoding",

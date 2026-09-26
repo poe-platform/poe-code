@@ -7,8 +7,9 @@ const runNative = useNativeProcess([
 
 for (const capacity of ["sufficient", "insufficient"] as const)
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
-for (const count of capacity === "sufficient" ? [1024, 131072] : [131072])
-for (const route of ["model", "sdk", "cli"] as const) {
+for (const route of ["model", "sdk", "cli"] as const)
+// Every route crosses the 16-bit fanout boundary; larger cases run through QA.
+for (const count of capacity === "sufficient" ? [1024, 65536] : [65536]) {
   const title = capacity === "sufficient"
     ? "live comment style XML insertion retains admitted ignored physical fanout"
     : "live comment style complete workflow refuses insufficient original cumulative node capacity";

@@ -63,8 +63,18 @@ export async function readXmlInput(
   }
   const parts: string[] = [];
   const decoder = new TextDecoder("utf-8", { fatal: true });
+  let chunksSinceYield = 0;
   for await (const chunk of readBytes(source, context.signal)) {
-    { const _p = budget.tick(); if (_p) await _p; }
+    const checkpoint = budget.tick();
+    chunksSinceYield++;
+    if (checkpoint) {
+      await checkpoint;
+      chunksSinceYield = 0;
+    } else if (chunksSinceYield >= 1024) {
+      // Empty/tiny chunks must yield independently of parser work batching.
+      await runtime.yieldTurn(context.signal);
+      chunksSinceYield = 0;
+    }
     budget.inputBytes += chunk.byteLength;
     if (budget.inputBytes > budget.limits.maxInputBytes)
       throw new XmlQueryLimitError("maxInputBytes");

@@ -95,6 +95,17 @@ it("yields cooperative XML work at bounded intervals and preserves cancellation"
   expect(turn).toHaveBeenCalledTimes(1);
 });
 
+it("yields once for a completed bulk reservation and keeps the remaining cooperative interval", async () => {
+  const turn = vi.fn(async () => {});
+  const budget = new DocumentBudget({}, undefined, turn);
+  await budget.checkpoint(4096 * 1000 + 4095);
+  expect(turn).toHaveBeenCalledTimes(1);
+  expect(budget.usage.work).toBe(4096 * 1000 + 4095);
+  await budget.lower({}).checkpoint(1);
+  expect(turn).toHaveBeenCalledTimes(2);
+  expect(budget.usage.work).toBe(4096 * 1001);
+});
+
 it("counts attributes and all retained XML content across successive parses", () => {
   const budget = new DocumentBudget({ xmlNodes: 6 });
   const source = bytes('<r a="b">text<!--note--></r>');

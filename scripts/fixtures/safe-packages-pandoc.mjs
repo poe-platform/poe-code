@@ -22,6 +22,15 @@ try {
   const pdf = await shell.exec("pandoc -f markdown -t pdf /input.md -o /output.pdf");
   assert.equal(pdf.exitCode, 0, pdf.stderr);
   assert.equal(new TextDecoder().decode((await fs.readFile("/output.pdf")).slice(0, 5)), "%PDF-");
+  shell.use(main.ssconvertCommands({ codecs: [], environment: { env: {}, locale: "C", timezone: "UTC" } }));
+  await fs.writeFile("/table.csv", new TextEncoder().encode("Item name,Total\nGreen apples,7\n"));
+  const spreadsheet = await shell.exec("ssconvert /table.csv /table.xlsx");
+  assert.equal(spreadsheet.exitCode, 0, spreadsheet.stderr);
+  const markdown = await shell.exec("pandoc -f xlsx -t markdown /table.xlsx");
+  assert.equal(markdown.exitCode, 0, markdown.stderr);
+  assert.ok(markdown.stdout.includes("Item name"));
+  assert.ok(markdown.stdout.includes("Green apples"));
+  assert.equal(markdown.stderr, "");
   shell.commands.register(pandoc.createPandocCommand({ limits: { outputBytes: 1 } }), { replace: true });
   const limited = await shell.exec("pandoc -f markdown -t html /input.md");
   assert.equal(limited.exitCode, 7, limited.stderr);

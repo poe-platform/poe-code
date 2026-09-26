@@ -370,14 +370,14 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           }
           toolRoots.push(join(peerRoot, 'packages/safe-playwright/dist'));
         }
-        if (manifest.devDependencies?.["@poe-code/ssconvert"] !== undefined) {
-          assert.equal(manifest.devDependencies["@poe-code/ssconvert"], "*", "ssconvert SDK build dependency must be the local workspace");
+        if (manifest.devDependencies?.["safe-bash-command-ssconvert"] !== undefined) {
+          assert.equal(manifest.devDependencies["safe-bash-command-ssconvert"], "*", "ssconvert SDK build dependency must be the local workspace");
           const exported = peer.exports?.["./ssconvert"];
-          assert.equal(exported?.types, "./packages/ssconvert/dist/index.d.ts", "canonical public ssconvert declaration entry");
-          assert.equal(exported?.import, "./packages/ssconvert/dist/index.js", "canonical public ssconvert runtime entry");
+          assert.equal(exported?.types, "./packages/safe-bash-command-ssconvert/dist/index.d.ts", "canonical public ssconvert declaration entry");
+          assert.equal(exported?.import, "./packages/safe-bash-command-ssconvert/dist/index.js", "canonical public ssconvert runtime entry");
           peerPaths["poe-code/ssconvert"] = [resolve(peerRoot, exported.types)];
-          peerPaths["@poe-code/ssconvert"] = [resolve(peerRoot, exported.types)];
-          toolRoots.push(join(peerRoot, "packages/ssconvert/dist"));
+          peerPaths["safe-bash-command-ssconvert"] = [resolve(peerRoot, exported.types)];
+          toolRoots.push(join(peerRoot, "packages/safe-bash-command-ssconvert/dist"));
         }
         if (manifest.devDependencies?.["@poe-code/csvkit"] !== undefined) {
           assert.equal(manifest.devDependencies["@poe-code/csvkit"], "*", "CSV SDK build dependency must be the local workspace");

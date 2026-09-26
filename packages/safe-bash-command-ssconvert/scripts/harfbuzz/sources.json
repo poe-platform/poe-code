@@ -1,0 +1,274 @@
+{
+  "schema": 1,
+  "upstream": {
+    "name": "HarfBuzz",
+    "version": "14.5.0",
+    "commit": "863d3f7787c6df18d20e4535c5906bf3eb803bd5",
+    "url": "https://codeload.github.com/harfbuzz/harfbuzz/tar.gz/863d3f7787c6df18d20e4535c5906bf3eb803bd5",
+    "archiveSha256": "35d6211b9310646c8d6b7c06d697439efd26d787ec8fff2508e6b936836ca492",
+    "sourceFiles": 575,
+    "sourceTreeSha256": "af236e8d32c86fab9ae6925beaf90500b9f158a17d95259f3f77b3c3ecb54e12",
+    "treeEncoding": "SHA-256 of JSON array [relative path, byte length, SHA-256] sorted by UTF-16 path comparison"
+  },
+  "toolchain": {
+    "emscripten": "4.0.13",
+    "emscriptenCommit": "2659582941bef14008476903f48941909db1b196",
+    "versionLine": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 4.0.13 (2659582941bef14008476903f48941909db1b196)",
+    "emsdkCommit": "404dc1ec13f64fce1af1eaf5c007e18212f63527",
+    "recipeRepository": "https://github.com/harfbuzz/harfbuzzjs",
+    "recipeCommit": "b2ec00c97159ee8aa563691792aa3081adbc8a50"
+  },
+  "compilerFlags": [
+    "-DNDEBUG",
+    "-DHB_NO_BUFFER_VERIFY",
+    "-DHB_NO_ERRNO",
+    "-DHB_NO_OPEN",
+    "-DHB_NO_MMAP",
+    "-DHB_NO_GETENV",
+    "-DHB_NO_SETLOCALE",
+    "-DHB_NO_MT",
+    "-DHB_NO_ATEXIT",
+    "-std=c++11",
+    "-fno-exceptions",
+    "-fno-rtti",
+    "-fno-threadsafe-statics",
+    "-fvisibility-inlines-hidden",
+    "-Oz",
+    "-flto",
+    "-DHB_USE_INTERNAL_QSORT",
+    "-DHB_EXPERIMENTAL_API",
+    "-DHB_CUSTOM_MALLOC",
+    "-DHB_CONFIG_OVERRIDE_H=\"config-override.h\"",
+    "--no-entry",
+    "-sMODULARIZE",
+    "-sEXPORT_ES6",
+    "-sEXPORT_NAME=createHarfBuzz",
+    "-sINITIAL_MEMORY=256KB",
+    "-sALLOW_MEMORY_GROWTH",
+    "-sALLOW_TABLE_GROWTH",
+    "-lexports.js"
+  ],
+  "patches": [
+    {
+      "path": "hb-buffer.cc",
+      "beforeSha256": "58bd6aa7a3e93d21fe02041c53d9de7dea9e9cbc6d1826583ebff42952539245",
+      "afterSha256": "5b28a252cc82ccf31f638a260844404a1912763f22d75481d6a6325cd63fef83"
+    },
+    {
+      "path": "hb-shape.cc",
+      "beforeSha256": "2825723cfe9e101c93fd39adce889be2990751416babab4b16f8e36c1cb2bf6c",
+      "afterSha256": "bb9b74458d988a845d35c6d48480d5ea1c12114bba89e088ef7e367d3c9e737c"
+    },
+    {
+      "path": "hb-sanitize.hh",
+      "beforeSha256": "84bab23aa0035d9720fe0a7c384cb9d7898520967c4e91d34edcafb2363286df",
+      "afterSha256": "45bd5483a5b199ff334961505e3e9be642afe96323d97991bcb544a794921374"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "packages/safe-bash-command-ssconvert/scripts/harfbuzz/allocator.cc",
+      "sha256": "1ce6466e6076047929d96116808ff5633e733a3a792dbf752c49cfdd470fe57e"
+    },
+    {
+      "path": "packages/safe-bash-command-ssconvert/scripts/harfbuzz/completion.patch",
+      "sha256": "8f5a72341053e9af2286e85ca6e94f158fc90e2b536b645f862dd2e12efb7501"
+    },
+    {
+      "path": "packages/safe-bash-command-ssconvert/scripts/harfbuzz/config-override.h",
+      "sha256": "8ddfba91f84d10530f2bf00934172a0adc8c0a3c38720022505d2d02a8be261d"
+    },
+    {
+      "path": "packages/safe-bash-command-ssconvert/scripts/harfbuzz/exports.json",
+      "sha256": "7d20b616c63dd4773f0740e00a54aa27b7c6d14f156cff80f935d3aee8e351a0"
+    },
+    {
+      "path": "packages/safe-bash-command-ssconvert/src/rendering/print/harfbuzz/NOTICE.md",
+      "sha256": "942994c8af79eca0897d964e42539d15e9fe803e65af66b467e7d451acbc0e64"
+    },
+    {
+      "path": "packages/safe-bash-command-ssconvert/src/rendering/print/harfbuzz/HARFBUZZ-LICENSE.txt",
+      "sha256": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64"
+    },
+    {
+      "path": "packages/safe-bash-command-ssconvert/src/rendering/print/harfbuzz/EMSCRIPTEN-LICENSE.txt",
+      "sha256": "620a78084fc7ca97c0b5dea9abf891f3ffcadfdbf305276f099c9c4e12fc1d86"
+    },
+    {
+      "path": "packages/safe-bash-command-ssconvert/src/rendering/print/harfbuzz/MUSL-LICENSE.txt",
+      "sha256": "f9bc4423732350eb0b3f7ed7e91d530298476f8fec0c6c427a1c04ade22655af"
+    },
+    {
+      "path": "packages/safe-bash-command-ssconvert/src/rendering/print/harfbuzz/LIBCXX-LICENSE.txt",
+      "sha256": "539dd7aed86e8a4f12cbdd0e6c50c189c7d74847e4fecc64ce2c6ee3a01da38b"
+    },
+    {
+      "path": "packages/safe-bash-command-ssconvert/src/rendering/print/harfbuzz/LIBCXXABI-LICENSE.txt",
+      "sha256": "e2b35be49f7284a45b7baca8fc7b3ab7440e7902392b2528a457816b5bb2a15c"
+    }
+  ],
+  "artifact": {
+    "path": "packages/safe-bash-command-ssconvert/src/rendering/print/harfbuzz/data.ts",
+    "exportName": "harfbuzzBase64",
+    "bytes": 553970,
+    "sha256": "68569480a0b76c81040de1e8b5d441317d479ea07a629bc0ce75bbd0ac7c0258",
+    "initialMemoryBytes": 262144,
+    "maximumMemoryBytes": 2147483648,
+    "imports": [
+      {
+        "module": "wasi_snapshot_preview1",
+        "name": "proc_exit",
+        "kind": "function"
+      },
+      {
+        "module": "env",
+        "name": "_emscripten_runtime_keepalive_clear",
+        "kind": "function"
+      },
+      {
+        "module": "env",
+        "name": "_abort_js",
+        "kind": "function"
+      },
+      {
+        "module": "env",
+        "name": "_setitimer_js",
+        "kind": "function"
+      },
+      {
+        "module": "env",
+        "name": "emscripten_resize_heap",
+        "kind": "function"
+      }
+    ],
+    "exports": [
+      {
+        "name": "memory",
+        "kind": "memory"
+      },
+      {
+        "name": "__wasm_call_ctors",
+        "kind": "function"
+      },
+      {
+        "name": "hb_blob_create",
+        "kind": "function"
+      },
+      {
+        "name": "hb_blob_destroy",
+        "kind": "function"
+      },
+      {
+        "name": "hb_buffer_create",
+        "kind": "function"
+      },
+      {
+        "name": "hb_buffer_destroy",
+        "kind": "function"
+      },
+      {
+        "name": "hb_buffer_get_content_type",
+        "kind": "function"
+      },
+      {
+        "name": "hb_buffer_get_direction",
+        "kind": "function"
+      },
+      {
+        "name": "hb_buffer_get_script",
+        "kind": "function"
+      },
+      {
+        "name": "hb_buffer_get_language",
+        "kind": "function"
+      },
+      {
+        "name": "hb_buffer_set_cluster_level",
+        "kind": "function"
+      },
+      {
+        "name": "hb_buffer_allocation_successful",
+        "kind": "function"
+      },
+      {
+        "name": "hb_buffer_get_length",
+        "kind": "function"
+      },
+      {
+        "name": "hb_buffer_get_glyph_infos",
+        "kind": "function"
+      },
+      {
+        "name": "hb_buffer_get_glyph_positions",
+        "kind": "function"
+      },
+      {
+        "name": "hb_buffer_guess_segment_properties",
+        "kind": "function"
+      },
+      {
+        "name": "hb_buffer_add_utf16",
+        "kind": "function"
+      },
+      {
+        "name": "hb_language_to_string",
+        "kind": "function"
+      },
+      {
+        "name": "hb_version_string",
+        "kind": "function"
+      },
+      {
+        "name": "hb_face_create",
+        "kind": "function"
+      },
+      {
+        "name": "hb_face_destroy",
+        "kind": "function"
+      },
+      {
+        "name": "hb_face_get_upem",
+        "kind": "function"
+      },
+      {
+        "name": "hb_font_create",
+        "kind": "function"
+      },
+      {
+        "name": "hb_font_destroy",
+        "kind": "function"
+      },
+      {
+        "name": "hb_font_set_scale",
+        "kind": "function"
+      },
+      {
+        "name": "hb_shape_full",
+        "kind": "function"
+      },
+      {
+        "name": "malloc",
+        "kind": "function"
+      },
+      {
+        "name": "free",
+        "kind": "function"
+      },
+      {
+        "name": "ssconvert_hb_failure",
+        "kind": "function"
+      },
+      {
+        "name": "_emscripten_timeout",
+        "kind": "function"
+      }
+    ]
+  },
+  "failureBits": {
+    "allocator": 1,
+    "buffer": 2,
+    "sanitizerWork": 4,
+    "sanitizerSubtables": 8,
+    "sanitizerRecursion": 16
+  }
+}

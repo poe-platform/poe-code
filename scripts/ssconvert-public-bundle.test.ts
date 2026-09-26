@@ -6,7 +6,7 @@ import { expect, it } from "vitest";
 it("starts the bundled spreadsheet SDK in a Worker without Node module initialization", async () => {
   const result = await build({
     stdin: {
-      contents: 'import { snapshotRuntimeFunctions } from "./packages/ssconvert/dist/index.js"; globalThis.snapshot = snapshotRuntimeFunctions({});',
+      contents: 'import { snapshotRuntimeFunctions } from "./packages/safe-bash-command-ssconvert/dist/index.js"; globalThis.snapshot = snapshotRuntimeFunctions({});',
       resolveDir: new URL("../", import.meta.url).pathname,
     },
     bundle: true,
@@ -23,7 +23,7 @@ it("starts the bundled spreadsheet SDK in a Worker without Node module initializ
 it("ships the spreadsheet SDK without unavailable private runtime dependencies", async () => {
   const manifest = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
   const result = await build({
-    entryPoints: [new URL("../packages/ssconvert/dist/index.js", import.meta.url).pathname],
+    entryPoints: [new URL("../packages/safe-bash-command-ssconvert/dist/index.js", import.meta.url).pathname],
     bundle: true,
     packages: "external",
     platform: "node",

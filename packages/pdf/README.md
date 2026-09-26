@@ -29,20 +29,10 @@ and optional `headerRows` and `rowSplit` (`error` or `lines`). All blocks accept
 `onPlacement` receives top-down placement boxes with one-based page numbers.
 `charge` permits a host to enforce shared budgets before admitted work.
 
-Default limits, exported as `defaultPdfLimits`, are:
-
-| Limit | Default |
-| --- | ---: |
-| `fontBytes` | 4,000,000 |
-| `fonts` | 8 |
-| `glyphs` | 100,000 |
-| `pages` | 200 |
-| `objects` | 100,000 |
-| `images` | 100 |
-| `imageBytes` | 8,000,000 |
-| `decodedImageBytes` | 32,000,000 |
-| `layoutWork` | 500,000 |
-| `outputBytes` | 16,000,000 |
+All resource limits, exported as `defaultPdfLimits`, default to `Infinity`.
+Supply nonnegative safe integers to opt into finite ceilings; explicit `Infinity`
+keeps a resource unbounded. PNG scanlines are checked against their declared
+dimensions and the configured image/work budgets.
 
 `limits` overrides individual ceilings. See [the exported model](src/model.ts)
 for the layout and callback types. The supported profile includes left-to-right

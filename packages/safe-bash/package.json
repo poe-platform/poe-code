@@ -598,7 +598,6 @@
     "@poe-code/package-lint": "*",
     "safe-bash-command-fmt": "*",
     "@poe-code/csvkit": "*",
-    "@poe-code/ssconvert": "*",
     "@poe-code/media-cli": "*",
     "@poe-code/remote-execution": "*",
     "safe-bash-command-fold": "*",
@@ -630,7 +629,8 @@
     "safe-bash-command-less": "*",
     "safe-bash-command-ffmpeg": "*",
     "safe-bash-compression-engine": "*",
-    "safe-bash-command-xz": "*"
+    "safe-bash-command-xz": "*",
+    "safe-bash-command-ssconvert": "*"
   },
   "poeCode": {
     "packageLint": {
@@ -1004,6 +1004,22 @@
             "safe-bash-compression-engine": "*",
             "@poe-code/safe-fs": "*"
           }
+        },
+        "safe-bash-command-ssconvert": {
+          "version": "0.0.1",
+          "dependencies": {
+            "@noble/ciphers": "2.4.0",
+            "@noble/hashes": "2.4.0",
+            "@pdf-lib/fontkit": "1.1.1",
+            "@poe-code/office-package": "*",
+            "@poe-code/pdf": "*",
+            "@poe-code/safe-fs": "*",
+            "htmlparser2": "^10.0.0",
+            "jpeg-js": "0.4.4",
+            "pdf-lib": "1.17.1"
+          },
+          "devDependencies": {},
+          "publicAlias": "poe-code/ssconvert"
         }
       }
     }

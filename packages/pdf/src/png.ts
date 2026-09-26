@@ -44,7 +44,7 @@ export function decodePng(bytes: Uint8Array, work: (amount: number) => void): {w
   }
   if (!ended || color === 3 && !palette) invalid("Incomplete PNG");
   const stride = width * channels; const expected = (stride + 1) * height;
-  if (!Number.isSafeInteger(expected) || expected > 20_000_000) throw new PdfError("E_LIMIT", "PNG scanline limit exceeded");
+  if (!Number.isSafeInteger(expected)) throw new PdfError("E_LIMIT", "PNG scanline limit exceeded");
   work(expected);
   const raw = new Uint8Array(expected); let used = 0;
   const inflater = new Inflate({chunkSize: Math.min(16384, expected + 1), windowBits: 15});

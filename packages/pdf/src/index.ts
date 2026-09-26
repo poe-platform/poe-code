@@ -14,7 +14,7 @@ export {decodePng} from "./png.js";
 export function pdfCapabilities() {
   return {profile: "PDF-1.7-supplied-fonts-ltr", reference: "Adobe PDF Reference sixth edition, November 2006", scripts: ["Latin", "Greek", "Cyrillic"], fonts: ["sfnt-TrueType-glyf"], png: "static-noninterlaced-8bit", jpeg: "8bit-gray-rgb-adobe-cmyk", images: ["png", "jpeg"], tables: "rectangular-unspanned", encryption: false, javascript: false, attachments: false, accessibility: {tagged: false, readingOrder: "not-guaranteed", pdfUA: false}, conformance: {pdfA: false}, text: {unicodeMapping: "supported-scalars", extraction: "not-guaranteed", searchable: "not-guaranteed"}} as const;
 }
-export const defaultPdfLimits: Readonly<PdfLimits> = Object.freeze({fontBytes: 4_000_000, fonts: 8, glyphs: 100_000, pages: 200, objects: 100_000, images: 100, imageBytes: 8_000_000, decodedImageBytes: 32_000_000, layoutWork: 500_000, outputBytes: 16_000_000});
+export const defaultPdfLimits: Readonly<PdfLimits> = Object.freeze({fontBytes: Infinity, fonts: Infinity, glyphs: Infinity, pages: Infinity, objects: Infinity, images: Infinity, imageBytes: Infinity, decodedImageBytes: Infinity, layoutWork: Infinity, outputBytes: Infinity});
 function unsupported(message: string): never { throw new PdfError("E_CAPABILITY", message); }
 function positive(value: number): boolean { return Number.isFinite(value) && value > 0; }
 interface Glyph { text: string; code: string; font: PDFFont; size: number; width: number; ascent: number; descent: number; link?: string }
@@ -26,15 +26,14 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
   const check = () => { if (context.signal?.aborted) throw new PdfError("E_CANCELLED", "PDF cancelled"); };
   const charge = (key: keyof PdfLimits, amount: number) => {
     check();
-    if (!Number.isSafeInteger(amount) || amount < 0 || !Number.isSafeInteger(limits[key]) || limits[key] < 0 || amount > limits[key] - usage[key]) throw new PdfError("E_LIMIT", `PDF ${key} limit exceeded`);
+    if (!Number.isSafeInteger(amount) || amount < 0 || (limits[key] !== Infinity && !Number.isSafeInteger(limits[key])) || limits[key] < 0 || amount > limits[key] - usage[key]) throw new PdfError("E_LIMIT", `PDF ${key} limit exceeded`);
     context.charge?.(key, amount); usage[key] += amount;
   };
   const cooperate = async () => { check(); if (context.yield) await context.yield(); else await new Promise<void>(resolve => setTimeout(resolve, 0)); check(); };
   check();
   for (const key of Object.keys(defaultPdfLimits) as (keyof PdfLimits)[]) {
-    if (!Number.isSafeInteger(limits[key]) || limits[key] < 0) throw new PdfError("E_LIMIT", `Invalid PDF ${key} budget`);
+    if ((limits[key] !== Infinity && !Number.isSafeInteger(limits[key])) || limits[key] < 0) throw new PdfError("E_LIMIT", `Invalid PDF ${key} budget`);
   }
-  if (limits.outputBytes > 0x7fffffff || limits.objects > 1_000_000) throw new PdfError("E_LIMIT", "Invalid PDF serialization budget");
   const box = document.page ?? {width: 595.28, height: 841.89, margin: 48};
   const lineHeight = document.lineHeight ?? 1.2;
   if (!Number.isFinite(lineHeight) || lineHeight < 1 || lineHeight > 3) unsupported("Invalid line-height multiplier");

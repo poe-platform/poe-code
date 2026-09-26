@@ -2085,3 +2085,15 @@ test("ssconvert optional JS function ports share command and SDK calculation wit
     assert.deepEqual(volume.toJSON(), { "/input.xml": source, "/keep": "keep" });
   } finally { await sdk.dispose(); await shell.dispose(); }
 });
+
+test("ssconvert converts with omitted command limits", async () => {
+  const {limits: _limits, ...binding} = options;
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input.csv", new TextEncoder().encode("name\nvalue\n"));
+  const shell = new Shell({fs}).use(ssconvertCommands(binding));
+  try {
+    const result = await shell.exec("ssconvert -T Gnumeric_stf:stf_csv /input.csv fd://1");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "name\nvalue\n");
+  } finally {await shell.dispose();}
+});

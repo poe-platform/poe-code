@@ -1,4 +1,4 @@
-import { createEngine, snapshotRuntimeFunctions, createResourceIO, createVfsOutput, resolveVfsCwd, runCommand, type EngineConfig, type ResourceIOOptions } from "@poe-code/ssconvert";
+import { createEngine, defaultSsconvertLimits, snapshotRuntimeFunctions, createResourceIO, createVfsOutput, resolveVfsCwd, runCommand, type EngineConfig, type ResourceIOOptions } from "safe-bash-command-ssconvert";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import {
   createOutputOperation,
@@ -12,7 +12,7 @@ import { writeFileOutput } from "../../contracts/filesystem-output.js";
 export interface SsconvertCommandsOptions extends Omit<EngineConfig, "filesystem"> {
   readonly io?: Pick<ResourceIOOptions, "descriptors" | "adapters" | "transport">;
   readonly replace?: boolean;
-  readonly profile?: import("@poe-code/ssconvert").CommandProfile;
+  readonly profile?: import("safe-bash-command-ssconvert").CommandProfile;
 }
 /** Explicit opt-in; the domain engine is the only conversion implementation. */
 export function createSsconvertCommand(options: SsconvertCommandsOptions): CommandDefinition {
@@ -40,7 +40,7 @@ export function createSsconvertCommand(options: SsconvertCommandsOptions): Comma
       })
     }) }),
     codecs: Object.freeze([...options.codecs]),
-    limits: Object.freeze({ ...options.limits }),
+    limits: Object.freeze({ ...defaultSsconvertLimits, ...options.limits }),
     environment: Object.freeze({
       ...options.environment,
       env: Object.freeze({ ...options.environment.env })

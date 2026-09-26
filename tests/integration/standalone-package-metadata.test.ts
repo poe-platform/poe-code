@@ -199,10 +199,10 @@ describe("standalone package publish metadata", () => {
     ].sort());
     const rootPackage = readPackageJson("package.json");
     expect(rootPackage.exports?.["./ssconvert"]).toEqual({
-      types: "./packages/ssconvert/dist/index.d.ts",
-      import: "./packages/ssconvert/dist/index.js"
+      types: "./packages/safe-bash-command-ssconvert/dist/index.d.ts",
+      import: "./packages/safe-bash-command-ssconvert/dist/index.js"
     });
-    expect(rootPackage.files).toContain("packages/ssconvert/dist");
+    expect(rootPackage.files).toContain("packages/safe-bash-command-ssconvert/dist");
   });
 
   it("publishes the superintendent MCP server bin with the root package", () => {

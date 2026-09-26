@@ -39,7 +39,7 @@ package encryption with explicit password and cryptographic `entropy.read` callb
 For that profile, allow `limits.workbookWork: 256 * 1024 * 1024`; its Argon2 arena uses
 64 MiB, bounded by `limits.encryptionMemoryBytes`. Use a non-empty password for
 LibreOffice interoperability. Legacy export profiles and callback details are in the
-[package README](../../packages/ssconvert/README.md). BIFF ciphers and legacy ODF
+[package README](../../packages/safe-bash-command-ssconvert/README.md). BIFF ciphers and legacy ODF
 checksums do not authenticate workbook data; prefix checksums cover only the first
 1024 compressed bytes. No ambient password acquisition or native fallback occurs.
 
@@ -166,8 +166,9 @@ Authorize every hop; request hooks must not follow redirects or use ambient
 credentials. Safe Bash supplies stdin/stdout descriptors and its configured VFS.
 Mocked adapter success does not qualify deployed service behavior.
 
-Required limits bound input/output bytes, cells, sheets and operations.
-Optional limits cover argument/terminal bytes, compression/inflation, ZIP
+All resource limits default to `Infinity`. Supply a partial `limits` object
+with nonnegative safe integers to bound input/output bytes, cells, sheets and
+operations. Additional ceilings cover argument/terminal bytes, compression/inflation, ZIP
 entries/ratio, XML depth, split outputs and workbook nodes/text/work. These
 host resource refusals do not redefine native file validity. Clock, random,
 external references and runtime function providers require explicit bindings

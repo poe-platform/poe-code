@@ -29,7 +29,7 @@ it("rejects exhausted budgets before copying into an output allocation", async (
   await expect(serializePdf(context, {outputBytes: 1, objects: 10})).rejects.toMatchObject({code: "E_LIMIT"});
   expect(copy).not.toHaveBeenCalled();
   await expect(serializePdf(context, {outputBytes: 1000, objects: 0})).rejects.toMatchObject({code: "E_LIMIT"});
-  for (const outputBytes of [NaN, Infinity, -1, Number.MAX_SAFE_INTEGER]) {
+  for (const outputBytes of [NaN, -1, 1.5]) {
     await expect(serializePdf(context, {outputBytes, objects: 10})).rejects.toMatchObject({code: "E_LIMIT"});
   }
 });

@@ -8,7 +8,7 @@ const { strict, depth, kind, route } = JSON.parse(request) as { strict: boolean;
 const memory = Volume.fromJSON({ "/input": "", "/out": "", "/err": "" });
 const limits = { ...textContext.limits, maxArchiveBytes: 2 ** 21, maxEntryBytes: 2 ** 20, maxTotalBytes: 2 ** 22, maxRetainedBytes: 2 ** 31 };
 const documentLimits = { xmlDepth: depth + 16, retainedBytes: 2 ** 31, work: 2 ** 31 };
-const context = () => ({ ...textContext, limits, budget: new api.DocumentBudget(documentLimits) });
+const context = () => ({ ...textContext, limits, budget: new api.DocumentBudget(documentLimits, textContext.signal, async () => {}) });
 const base = await textFixture(`<w:p><w:r><w:${kind}Reference w:id="8"/><w:t>Body é 海</w:t></w:r></w:p><w:sectPr/>`, {
   [kind + "s"]: { kind: kind + "s", xml: `<w:${kind}s xmlns:w="${w}"><w:${kind} w:id="-1" w:type="separator"><w:p><w:r><w:separator/></w:r></w:p></w:${kind}><w:${kind} w:id="0" w:type="continuationSeparator"><w:p><w:r><w:continuationSeparator/></w:r></w:p></w:${kind}><w:${kind} w:id="8"><w:p><w:pPr><w:keepNext/></w:pPr><w:r><w:${kind}Ref/></w:r><w:r><w:t>Old é 海</w:t></w:r></w:p></w:${kind}></w:${kind}s>` }
 }, strict);

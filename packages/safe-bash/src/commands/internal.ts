@@ -13,6 +13,11 @@ import {
 } from "../contracts/index.js";
 
 const syncResolved = Symbol.for("safe-bash.syncResolved");
+const resolvedVoid: Promise<void> = Object.defineProperty(
+  Promise.resolve(),
+  syncResolved,
+  { value: true },
+);
 export const RESOLVED_EXIT_ZERO: Promise<CommandResult> = Object.defineProperty(
   Promise.resolve({ exitCode: 0 }),
   syncResolved,
@@ -142,7 +147,12 @@ export function codeOf(error: unknown): string | undefined {
 
 export function output(context: CommandContext, text: string | Uint8Array): Promise<void> {
   context.signal.throwIfAborted();
-  return writeBytes(context.stdout, typeof text === "string" ? encoder.encode(text) : text, context.signal);
+  const bytes = typeof text === "string" ? encoder.encode(text) : text;
+  const stdout = context.stdout as { isPipeStage?: boolean; writeSync?: (chunk: Uint8Array) => boolean };
+  if (!stdout.isPipeStage && typeof stdout.writeSync === "function" && stdout.writeSync(bytes) !== false) {
+    return resolvedVoid;
+  }
+  return writeBytes(context.stdout, bytes, context.signal);
 }
 
 export async function diagnostic(context: CommandContext, error: unknown): Promise<void> {

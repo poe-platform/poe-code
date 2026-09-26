@@ -1762,7 +1762,6 @@ export function textCommands(): CommandDefinition[] {
         const direction = context.args.length === 1 ? -1 : 1;
         const req = assertInputRequirements(context, EMPTY_OPERANDS);
         if (req) return executeSortFastAsync(context, direction, req);
-        assertCommandRequirements(context, textOutputRequirements, ["output"]);
         const srcIter = input(context, "-")[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
           tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
         };

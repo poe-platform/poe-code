@@ -254,7 +254,7 @@ function tryFastGrepAscii(
       !Object.prototype.hasOwnProperty.call(backing, "readFile")
     ) {
       try {
-        assertCommandRequirements(context, grepRequirements, ["file"]);
+        assertCommandRequirements(context, grepRequirements, ["file"], fastBacking?.capabilities);
         if (fastBacking !== undefined) (context as unknown as { _chargeFastFsOp(): void })._chargeFastFsOp();
         else chargeRuntimeFileSystemOperation(context.fs);
         const maxFileBytes = Number.isFinite(limits.maxFileBytes) ? limits.maxFileBytes : undefined;
@@ -1017,10 +1017,11 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
   return [{
     name: "grep",
     filesystemRequirements: grepRequirements,
-    execute: context => withRegexSession(context, executor, session => {
+    execute: context => {
       const args = context.args;
       if (
         canFastAscii &&
+        !(executor as unknown as { disposed?: boolean }).disposed &&
         (args.length === 1 || args.length === 2) &&
         !hasYieldCheckpoint(context.signal) &&
         maxPatternCount >= 1
@@ -1048,7 +1049,9 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
           }
         }
       }
-      return executeGrepWithSession(context, session, limits, maxPatternCount, bufferLimit);
-    }),
+      return withRegexSession(context, executor, session =>
+        executeGrepWithSession(context, session, limits, maxPatternCount, bufferLimit),
+      );
+    },
   }];
 }

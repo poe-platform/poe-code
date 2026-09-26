@@ -892,6 +892,14 @@ export class Capture implements ByteSink {
     this._tailLength = 0;
     return bytes;
   }
+
+  resetEmpty(): void {
+    if (this._chunks) this._chunks.length = 0;
+    this._first = undefined;
+    this.length = 0;
+    this._tail = undefined;
+    this._tailLength = 0;
+  }
 }
 Object.assign(Capture.prototype, {
   _chunks: undefined,
@@ -1700,10 +1708,10 @@ class FastShellCommandContext {
   declare [invocationScope]?: InvocationScope;
   declare [valueScope]?: ValueScope;
   declare readonly _self: FastShellCommandContext | undefined;
-  declare private readonly _runtime: Runtime;
-  declare private readonly _state: State;
-  declare private readonly _io: IO;
-  declare private readonly _scope: InvocationScope;
+  declare private _runtime: Runtime;
+  declare private _state: State;
+  declare private _io: IO;
+  declare private _scope: InvocationScope;
   declare private _scopedSignal: AbortSignal | undefined;
   declare private _contextFs: FileSystem | undefined;
   declare private _cachedPredicates: NonNullable<CommandContext["shellPredicates"]> | undefined;
@@ -1769,6 +1777,47 @@ class FastShellCommandContext {
     }
     bindCommandIO(this as unknown as CommandContext, { ...io, [invocationScope]: scope });
     void this.registerCleanup;
+  }
+
+  resetDirectStage(
+    runtime: Runtime,
+    state: State,
+    io: IO,
+    scope: InvocationScope,
+    name: string,
+    args: readonly string[],
+    stdin: ByteSource,
+    stdinIsDefault: boolean,
+    stdout: ByteSink,
+    signal: AbortSignal,
+  ): void {
+    this._runtime = runtime;
+    this._state = state;
+    this._io = io;
+    this._scope = scope;
+    this._scopedSignal = signal;
+    this._contextFs = undefined;
+    this._cachedPredicates = undefined;
+    this._cachedInputBudget = undefined;
+    this._argumentValues = undefined;
+    this._env = undefined;
+    this._registerCleanup = undefined;
+    this._invoke = undefined;
+    this.stdin = stdin;
+    this.stdinIsDefault = stdinIsDefault;
+    this.stdout = stdout;
+    this._stderr = undefined;
+    this.descriptors = io.descriptors;
+    this.command = name;
+    this.args = args;
+    this.cwd = state.cwd;
+    this.signal = signal;
+    this.onInternalError = runtime.budget.onInternalError;
+    this.argv0 = io.argv0;
+    this.capabilities = io.capabilities;
+    this.processSignals = io.processSignals;
+    this.diagnosticLine = io.diagnosticLine;
+    this.scriptName = io.scriptName;
   }
 
   static {
@@ -2969,6 +3018,97 @@ let cachedRedirectNameTable: (string | undefined)[] = new Array(256);
 
 const SYNC_UNIT_ZERO: { readonly exitCode: number; readonly terminated: boolean } = Object.freeze({ exitCode: 0, terminated: false });
 const SYNC_UNIT_ONE: { readonly exitCode: number; readonly terminated: boolean } = Object.freeze({ exitCode: 1, terminated: false });
+
+const EMPTY_BYTES = new Uint8Array(0);
+const SYNC_PIPE_DONE_RESULT: IteratorResult<Uint8Array> = Object.freeze({ done: true, value: undefined });
+const sharedSyncPipeBuf0 = new Uint8Array(65536);
+const sharedSyncPipeBuf1 = new Uint8Array(65536);
+let syncPurePipelineSlotInUse = false;
+let pooledSyncPipeContext: FastShellCommandContext | undefined;
+
+class PooledSyncPipeReader implements ByteSource, AsyncIterator<Uint8Array> {
+  private buf: Uint8Array = EMPTY_BYTES;
+  private yielded = false;
+  abortSignal: AbortSignal | undefined = undefined;
+  private readonly stepBox: { done: false; value: Uint8Array } = { done: false, value: EMPTY_BYTES };
+
+  reset(buf: Uint8Array, len: number, signal?: AbortSignal): void {
+    this.buf = len === 0 ? EMPTY_BYTES : buf.subarray(0, len);
+    this.yielded = len === 0;
+    this.abortSignal = signal;
+  }
+
+  [Symbol.asyncIterator](): this {
+    return this;
+  }
+
+  tryNextSync(): IteratorResult<Uint8Array> {
+    this.abortSignal?.throwIfAborted();
+    if (this.yielded) return SYNC_PIPE_DONE_RESULT;
+    this.yielded = true;
+    const box = this.stepBox;
+    box.value = this.buf;
+    return box;
+  }
+
+  syncReturn(): void {
+    this.yielded = true;
+  }
+
+  next(): Promise<IteratorResult<Uint8Array>> {
+    return Promise.resolve(this.tryNextSync());
+  }
+
+  return(): Promise<IteratorResult<Uint8Array>> {
+    this.yielded = true;
+    return Promise.resolve(SYNC_PIPE_DONE_RESULT);
+  }
+}
+
+class PooledSyncPipeWriter implements ByteSink {
+  readonly isPipeStage = false;
+  budget!: Budget;
+  signal!: AbortSignal;
+  target: Uint8Array = EMPTY_BYTES;
+  used = 0;
+  overflowed = false;
+
+  reset(budget: Budget, signal: AbortSignal, target: Uint8Array): void {
+    this.budget = budget;
+    this.signal = signal;
+    this.target = target;
+    this.used = 0;
+    this.overflowed = false;
+  }
+
+  writeSync(chunk: Uint8Array): boolean {
+    this.signal.throwIfAborted();
+    const len = chunk.byteLength;
+    if (len === 0) return true;
+    const budget = this.budget;
+    if (len > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+    if (this.used + len > this.target.byteLength) {
+      this.overflowed = true;
+      return false;
+    }
+    this.target.set(chunk, this.used);
+    this.used += len;
+    budget.bytes += len;
+    return true;
+  }
+
+  write(chunk: Uint8Array): Promise<void> {
+    try {
+      if (this.writeSync(chunk)) return resolvedVoid;
+      return Promise.reject(new Error("Sync pipe stage buffer overflow"));
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+}
+
+const sharedSyncPipeReader = new PooledSyncPipeReader();
+const sharedSyncPipeWriter = new PooledSyncPipeWriter();
 
 export class Runtime {
   declare readonly commands: CommandRegistry;
@@ -5126,6 +5266,8 @@ export class Runtime {
     io: IO,
     ignored: boolean,
   ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> {
+    const syncRes = this.tryExecuteSyncPurePipelineUnit(pipeline, state, rawState, monitor, io, ignored);
+    if (syncRes !== undefined) return syncRes;
     const n = pipeline.commands.length;
     this.budget.enterPipelineStages(n);
     this.budget.commands += n;
@@ -5274,6 +5416,153 @@ export class Runtime {
     }
     for (let i = 0; i < n - 1; i++) {
       void pipes[i]!.abort();
+    }
+    this.budget.leavePipelineStages(n);
+    const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+    monitor.lazyPipeStatus = statuses;
+    monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+    const rawStatus = rawState.pipefail ? statuses.findLast(s => s !== 0) ?? 0 : statuses[n - 1]!;
+    const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
+    rawState.status = finalStatus;
+    monitor.epoch = restEpoch;
+    if (rawStatus !== 0 && !pipeline.negate && !ignored && rawState.errexit) {
+      if (this.tryFinishShellSync(state)) return { exitCode: finalStatus, terminated: true };
+      return this.finishShell(state, io, finalStatus).then(exitCode => ({ exitCode, terminated: true }));
+    }
+    return finalStatus === 0 ? SYNC_UNIT_ZERO : finalStatus === 1 ? SYNC_UNIT_ONE : { exitCode: finalStatus, terminated: false };
+  }
+
+  private tryExecuteSyncPurePipelineUnit(
+    pipeline: Pipeline,
+    state: State,
+    rawState: State,
+    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
+    io: IO,
+    ignored: boolean,
+  ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> | undefined {
+    if (
+      syncPurePipelineSlotInUse ||
+      !io.stdinIsDefault ||
+      this.signal.aborted ||
+      hasYieldCheckpoint(this.signal) ||
+      this.budget.limits.pipeHighWaterMark < 65536 ||
+      !(io.stdout instanceof Capture && io.stdout.length === 0 && io.stdout.write === Capture.prototype.write) ||
+      !(io.stderr instanceof Capture && io.stderr.length === 0 && io.stderr.write === Capture.prototype.write)
+    ) {
+      return undefined;
+    }
+    const n = pipeline.commands.length;
+    for (let i = 0; i < n; i++) {
+      const cmd = pipeline.commands[i]! as Extract<Command, { kind: "simple" }>;
+      const name = cmd.words[0]!.plain!;
+      if (name !== "grep" && name !== "cut" && name !== "tr" && name !== "sort" && name !== "head") {
+        return undefined;
+      }
+      if (!this.getExternalCommand(name)) return undefined;
+    }
+    syncPurePipelineSlotInUse = true;
+    const savedCommands = this.budget.commands;
+    const savedBytes = this.budget.bytes;
+    const savedFsOps = (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations;
+    this.budget.enterPipelineStages(n);
+    this.budget.commands += n;
+    const scope = io[invocationScope];
+    const statuses = new Array<number>(n);
+    const stdoutCap = io.stdout as Capture;
+    const stderrCap = io.stderr as Capture;
+    let context = pooledSyncPipeContext;
+    try {
+      let prevBuf = sharedSyncPipeBuf0;
+      let prevLen = 0;
+      for (let index = 0; index < n; index++) {
+        const cmd = pipeline.commands[index]! as Extract<Command, { kind: "simple" }>;
+        const firstName = cmd.words[0]!.plain!;
+        const extDef = this.getExternalCommand(firstName)!;
+        let stageArgs = (cmd as { _cachedPlainArgs?: string[] })._cachedPlainArgs;
+        if (!stageArgs) {
+          stageArgs = new Array<string>(cmd.words.length - 1);
+          for (let w = 1; w < cmd.words.length; w++) {
+            const word = cmd.words[w]!;
+            stageArgs[w - 1] = word.plain ?? word.parts.map(p => (p as { value: string }).value).join("");
+          }
+          (cmd as { _cachedPlainArgs?: string[] })._cachedPlainArgs = stageArgs;
+        }
+        const isFirst = index === 0;
+        const isLast = index === n - 1;
+        let inputSource: ByteSource;
+        if (isFirst) {
+          inputSource = io.stdin;
+        } else {
+          sharedSyncPipeReader.reset(prevBuf, prevLen, this.signal);
+          inputSource = sharedSyncPipeReader;
+        }
+        const nextBuf = (index & 1) === 0 ? sharedSyncPipeBuf0 : sharedSyncPipeBuf1;
+        let stageStdout: ByteSink;
+        if (isLast) {
+          stageStdout = signalSink(io.stdout, this.signal);
+        } else {
+          sharedSyncPipeWriter.reset(this.budget, this.signal, nextBuf);
+          stageStdout = sharedSyncPipeWriter;
+        }
+        if (!context) {
+          context = new FastShellCommandContext(this, rawState, io, scope, firstName, stageArgs, undefined, undefined, true);
+          pooledSyncPipeContext = context;
+        }
+        context.resetDirectStage(this, rawState, io, scope, firstName, stageArgs, inputSource, isFirst, stageStdout, this.signal);
+        scope.enterWork();
+        this.budget.beginPathLookupSuspension();
+        let resPromise: CommandResult | Promise<CommandResult>;
+        try {
+          resPromise = extDef.execute(context as unknown as ShellCommandContext);
+        } finally {
+          this.budget.endPathLookupSuspension();
+          scope.leaveWork();
+        }
+        if (
+          (resPromise !== RESOLVED_EXIT_ZERO && resPromise !== RESOLVED_EXIT_ONE) ||
+          (!isLast && sharedSyncPipeWriter.overflowed) ||
+          stderrCap.length > 0
+        ) {
+          this.budget.commands = savedCommands;
+          this.budget.bytes = savedBytes;
+          (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations = savedFsOps;
+          this.budget.leavePipelineStages(n);
+          stdoutCap.resetEmpty();
+          stderrCap.resetEmpty();
+          return undefined;
+        }
+        this.signal.throwIfAborted();
+        statuses[index] = resPromise === RESOLVED_EXIT_ZERO ? 0 : 1;
+        prevBuf = nextBuf;
+        prevLen = sharedSyncPipeWriter.used;
+      }
+    } catch (err) {
+      if (err instanceof ShellLimitError) {
+        this.budget.leavePipelineStages(n);
+        throw err;
+      }
+      this.budget.commands = savedCommands;
+      this.budget.bytes = savedBytes;
+      (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations = savedFsOps;
+      this.budget.leavePipelineStages(n);
+      stdoutCap.resetEmpty();
+      stderrCap.resetEmpty();
+      return undefined;
+    } finally {
+      if (context) {
+        (context as unknown as { _runtime: unknown; _state: unknown; _io: unknown; _scope: unknown; _contextFs: unknown; stdin: unknown; stdout: unknown })._runtime = undefined;
+        (context as unknown as { _state: unknown })._state = undefined;
+        (context as unknown as { _io: unknown })._io = undefined;
+        (context as unknown as { _scope: unknown })._scope = undefined;
+        (context as unknown as { _contextFs: unknown })._contextFs = undefined;
+        (context as unknown as { stdin: unknown }).stdin = undefined;
+        (context as unknown as { stdout: unknown }).stdout = undefined;
+      }
+      sharedSyncPipeWriter.budget = undefined!;
+      sharedSyncPipeWriter.signal = undefined!;
+      sharedSyncPipeWriter.target = EMPTY_BYTES;
+      sharedSyncPipeReader.reset(EMPTY_BYTES, 0);
+      syncPurePipelineSlotInUse = false;
     }
     this.budget.leavePipelineStages(n);
     const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;

@@ -6,15 +6,15 @@ import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 
 /** Compile once and reuse Node; each request constructs its own document and budget. */
-export async function prepareNativeModelScript(body: string) {
+export async function prepareNativeModelScript(body: string, imports = `import { Volume } from "memfs";
+import * as api from "./index.js";
+import { ModelStore } from "./model-store.js";
+import { archiveSettings } from "./archive.js";`) {
   const result = await build({
     stdin: {
       contents: `import { createReadStream } from "node:fs";
 import { createInterface } from "node:readline";
-import { Volume } from "memfs";
-import * as api from "./index.js";
-import { ModelStore } from "./model-store.js";
-import { archiveSettings } from "./archive.js";
+${imports}
 async function executeRequest(request) {
 ${body}
 }

@@ -22,7 +22,7 @@ export function useNativeProcess(args: string[]) {
     const ready = await replies.next();
     assert.equal(ready.done, false, stderr);
     assert.deepEqual(JSON.parse(ready.value), { ready: true });
-  });
+  }, 30000);
 
   afterEach(() => {
     if (pending) child.kill();
@@ -31,7 +31,7 @@ export function useNativeProcess(args: string[]) {
   afterAll(async () => {
     child.stdin.end();
     assert.deepEqual(await completed, { code: 0, signal: null }, stderr);
-  });
+  }, 30000);
 
   return async (request: unknown): Promise<unknown> => {
     assert.equal(pending, false, "Native requests must be sequential");

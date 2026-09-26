@@ -136,7 +136,7 @@ image targets are rejected because their source-directory information cannot sur
 arbitrary JSON filtering. Absolute and URL image targets retain their existing writer
 and resource policies. Lua uses the explicit capability below. For genuine CSL
 citations and bibliography, import `createCiteprocFilterCapability` from
-`safe-bash-command-pandoc/citeproc-filters` and supply `{style, locale, references}`. Here
+`@poe-platform/safe-bash/commands/pandoc` and supply `{style, locale, references}`. Here
 `style` and `locale` are CSL XML strings and `references` is an array of CSL JSON
 items with unique string IDs. Pass the result as `filters`; `--citeproc` and `-C`
 then process citation-bearing Pandoc JSON, including author suppression, textual
@@ -149,7 +149,7 @@ The Safe Bash plugin accepts the same capability as `pandocCommands({filters})`.
 For example, with your already configured `jsonRuntime`:
 
 ```ts
-import {createJsonFilterCapability} from "safe-bash-command-pandoc";
+import {createJsonFilterCapability} from "@poe-platform/safe-bash/commands/pandoc";
 import {pandocCommands} from "@poe-platform/safe-bash/commands/pandoc";
 
 const filters = createJsonFilterCapability(jsonRuntime);
@@ -164,7 +164,7 @@ Local Lua `Str` filters can run in the supplied JavaScript Lua VM. Configure a
 reader for trusted scripts, then pass the capability to the SDK or shell plugin:
 
 ```ts
-import {createLuaFilterCapability} from "safe-bash-command-pandoc/lua-filters";
+import {createLuaFilterCapability} from "@poe-platform/safe-bash/commands/pandoc";
 const filters = createLuaFilterCapability({readFile: async (path, signal) => {
   return configuredFileSystem.readFile(path, signal);
 }});

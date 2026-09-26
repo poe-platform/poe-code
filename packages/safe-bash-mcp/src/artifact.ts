@@ -1,10 +1,9 @@
 import { snapshotRemoteMcpSchemaOptions } from "./schema-options.js";
-import { createHash } from "node:crypto";
 import type { OAuthClientProvider } from "mcp-oauth";
 import { compileJsonSchema, formatIssues, isJsonValue, type CompileJsonSchemaOptions } from "toolcraft-schema";
 import type { Tool } from "tiny-mcp-client";
 import { parseRemoteMcpConfiguration, type ConfigurationOptions, type RemoteMcpConfiguration } from "./configuration.js";
-import { bindRemoteMcpConfiguration, type ConfigurationBindingOptions } from "./runtime-configuration.js";
+import { bindRemoteMcpConfiguration, snapshotConfigurationBindingOptions, type ConfigurationBindingOptions } from "./runtime-configuration.js";
 import { preflightRemoteMcpServers, resolveRemoteMcpSchemas, type RemoteMcpSchema, type SchemaFetchOptions } from "./schema.js";
 import { remoteMcpCommands, type RemoteMcpCommandOptions } from "./commands.js";
 import { parseArgumentJson } from "./json-input.js";
@@ -54,18 +53,21 @@ function canonicalJson(value: unknown): string {
   return JSON.stringify(sorted(value));
 }
 function artifactLimit(options: ArtifactOptions): number {
-  const limit = options.maxArtifactBytes ?? 32 * 1024 * 1024;
-  if (!Number.isSafeInteger(limit) || limit < 1) throw new Error("maxArtifactBytes must be a positive safe integer");
+  const limit = options.maxArtifactBytes ?? Infinity;
+  if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 1)) throw new Error("maxArtifactBytes must be a positive safe integer");
   return limit;
 }
 function compareName(a: { readonly name: string }, b: { readonly name: string }): number { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0; }
-function digestPayload(value: unknown): string { return createHash("sha256").update(canonicalJson(value), "utf8").digest("hex"); }
+async function digestPayload(value: unknown): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonicalJson(value)));
+  return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
+}
 
 function snapshotRegistry(value: unknown, limit: number): Record<string, unknown> | undefined {
   if (value === undefined) return undefined;
   if (value === null || typeof value !== "object" || Array.isArray(value) || !isJsonValue(value, { maxNodes: limit }))
     throw new Error("MCP schema registry must contain only bounded JSON documents");
-  if (Buffer.byteLength(JSON.stringify(value), "utf8") > limit) throw new Error("MCP artifact byte limit exceeded");
+  if (new TextEncoder().encode(JSON.stringify(value)).byteLength > limit) throw new Error("MCP artifact byte limit exceeded");
   const registry = JSON.parse(canonicalJson(value)) as Record<string, unknown>;
   compileJsonSchema(true, { registry });
   return registry;
@@ -137,27 +139,28 @@ export async function generateRemoteMcpArtifact(value: unknown, options: Artifac
     ...(schemaRegistry === undefined ? {} : { schemaRegistry }) };
   // Revalidate discovered tool data before writing it into declarative configuration.
   parseRemoteMcpConfiguration(payload.configuration, options);
-  const artifact = JSON.parse(canonicalJson({ ...payload, digest: digestPayload(payload) })) as RemoteMcpArtifact;
+  const artifact = JSON.parse(canonicalJson({ ...payload, digest: await digestPayload(payload) })) as RemoteMcpArtifact;
   const json = `${JSON.stringify(artifact, null, 2)}\n`;
   const module = `// Generated remote MCP schema artifact. Credentials are resolved by the host.\nexport default JSON.parse(${JSON.stringify(canonicalJson(artifact))});\n`;
-  if (Buffer.byteLength(json, "utf8") > limit || Buffer.byteLength(module, "utf8") > limit) throw new Error("MCP artifact byte limit exceeded");
+  if (new TextEncoder().encode(json).byteLength > limit || new TextEncoder().encode(module).byteLength > limit) throw new Error("MCP artifact byte limit exceeded");
   return { artifact, json, module };
 }
 
 /** Validate bounded JSON, integrity and snapshot/configuration agreement before runtime binding. */
-export function parseRemoteMcpArtifact(value: unknown, options: ArtifactOptions = {}): RemoteMcpArtifact {
+export async function parseRemoteMcpArtifact(value: unknown, options: ArtifactOptions = {}): Promise<RemoteMcpArtifact> {
+  options = { maxArtifactBytes: options.maxArtifactBytes, maxConfigurationBytes: options.maxConfigurationBytes, maxTools: options.maxTools };
   const limit = artifactLimit(options);
   if (typeof value === "string") {
-    if (Buffer.byteLength(value, "utf8") > limit) throw new Error("MCP artifact byte limit exceeded");
+    if (new TextEncoder().encode(value).byteLength > limit) throw new Error("MCP artifact byte limit exceeded");
     value = parseArgumentJson(value);
   }
-  if (!isJsonValue(value, { maxNodes: limit }) || Buffer.byteLength(JSON.stringify(value), "utf8") > limit)
+  if (!isJsonValue(value, { maxNodes: limit }) || new TextEncoder().encode(JSON.stringify(value)).byteLength > limit)
     throw new Error("MCP artifact byte limit or JSON data limit exceeded");
   const validation = artifactValidator.validate(value);
   if (!validation.ok) throw new Error(`Invalid MCP artifact: ${formatIssues(validation.issues)}`);
-  const artifact = value as unknown as RemoteMcpArtifact;
+  const artifact = structuredClone(value) as unknown as RemoteMcpArtifact;
   const { digest, ...payload } = artifact;
-  if (digestPayload(payload) !== digest) throw new Error("MCP artifact digest does not match its contents");
+  if (await digestPayload(payload) !== digest) throw new Error("MCP artifact digest does not match its contents");
   const registry = snapshotRegistry(artifact.schemaRegistry, limit);
   if (registry !== undefined) for (const schema of artifact.schemas) validateToolSchemas(schema.tools, { registry });
   const configuration = parseRemoteMcpConfiguration(artifact.configuration, options);
@@ -180,9 +183,12 @@ export async function remoteMcpArtifactPlugin(value: unknown, options: ArtifactP
     schemaValidation: { ...options.commands?.schemaValidation,
       registry: options.commands?.schemaValidation?.registry,
       ...(options.commands?.schemaValidation?.formats === undefined ? {} : { formats: { ...options.commands.schemaValidation.formats } }) } };
-  commands.signal?.throwIfAborted();
-  const artifact = parseRemoteMcpArtifact(value, options);
+  options = { maxArtifactBytes: options.maxArtifactBytes, maxConfigurationBytes: options.maxConfigurationBytes, maxTools: options.maxTools,
+    binding: snapshotConfigurationBindingOptions(options.binding) };
   const registry = snapshotRegistry(commands.schemaValidation.registry, artifactLimit(options)) ?? {};
+  commands.signal?.throwIfAborted();
+  const artifact = await parseRemoteMcpArtifact(value, options);
+  commands.signal?.throwIfAborted();
   if (artifact.schemaRegistry !== undefined) for (const [uri, document] of Object.entries(registry)) {
     if (!Object.hasOwn(artifact.schemaRegistry, uri) || canonicalJson(artifact.schemaRegistry[uri]) !== canonicalJson(document))
       throw new Error("MCP artifact schema registry conflict");

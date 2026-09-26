@@ -1,6 +1,6 @@
 import { snapshotRemoteMcpCredentialOptions } from "./credential-options.js";
 import { snapshotRemoteMcpSchemaOptions } from "./schema-options.js";
-import { posix } from "node:path";
+import { resolvePath } from "@poe-code/safe-fs/core";
 import { commandRuntimeIdentity, collectBytes, toByteSource, createOutputOperation, type CommandDefinition } from "@poe-platform/safe-bash/contracts";
 import { argumentText, callerLimit, commandLimit, emit, errorDetails, positiveArgument, shellWord, textLine, validateCommandName } from "./commands.js";
 import { initRemoteMcpConfiguration, type ConfigurationOptions, type InitRemoteMcpServer } from "./configuration.js";
@@ -130,8 +130,8 @@ export function createRemoteMcpManagementCommand(
   validateCommandName(name);
   if (servers.some(server => server.name === name)) throw new Error(`Management command conflicts with generated command: ${name}`);
   const initialization = initRemoteMcpConfiguration(servers, options);
-  const maxInputBytes = commandLimit(options.maxInputBytes ?? 1024 * 1024, "maxInputBytes");
-  const maxOutputBytes = commandLimit(options.maxOutputBytes ?? 16 * 1024 * 1024, "maxOutputBytes");
+  const maxInputBytes = commandLimit(options.maxInputBytes ?? Infinity, "maxInputBytes");
+  const maxOutputBytes = commandLimit(options.maxOutputBytes ?? Infinity, "maxOutputBytes");
   const factorySignal = options.signal;
   const authenticationUsage = `Usage: ${textLine(shellWord(name))} auth <server> [--json] [--browser none|host] [--reset]`;
   const authenticationGuidance = [
@@ -145,7 +145,7 @@ export function createRemoteMcpManagementCommand(
     "--timeout-ms <milliseconds> bounds the complete authentication operation",
     "(default 120000). Host callback timeouts may impose a shorter limit.",
     "--max-response-bytes <bytes> overrides the transport response limit",
-    "(default 16777216). OAuth metadata/token responses retain their own limits."
+    "(default Infinity). OAuth metadata/token responses retain their own limits."
   ];
   const authenticationHelp = [authenticationUsage, "", ...authenticationGuidance, "", "  --help  Show this help.", ""].join("\n");
   const resetHelp = [`Usage: ${textLine(shellWord(name))} reset <server> [--json] [--timeout-ms <milliseconds>]`, "",
@@ -160,8 +160,8 @@ export function createRemoteMcpManagementCommand(
     "Complete results are JSON, including metadata and nextCursor; provide that",
     "cursor explicitly to request the next page. No tools are discovered or called.",
     "--timeout-ms <milliseconds> bounds the complete resource operation (default 30000).",
-    "--max-input-bytes <bytes> bounds the UTF-8 request JSON (default 1048576).",
-    "--max-response-bytes <bytes> bounds transport responses (default 16777216).",
+    "--max-input-bytes <bytes> bounds the UTF-8 request JSON (default Infinity).",
+    "--max-response-bytes <bytes> bounds transport responses (default Infinity).",
     "CLI values override host resource settings; the host command input limit also applies.",
     "  --help  Show this help.", ""].join("\n");
   const importHelp = [`Usage: ${textLine(shellWord(name))} import <server> [--file <path>] [--json]`, "",
@@ -178,7 +178,7 @@ export function createRemoteMcpManagementCommand(
     "for delayed imports. Absolute expiry wins over remaining relative lifetime.", "",
     "--timeout-ms <milliseconds> bounds input, discovery and persistence (default 30000).",
     "--lock-timeout-ms <milliseconds> sets the separate persistence lock wait (default 30000).",
-    "--max-import-bytes <bytes> bounds credential input (default 1048576).",
+    "--max-import-bytes <bytes> bounds credential input (default Infinity).",
     "CLI values override host import settings; the host command input limit also applies.",
     "Host-owned persistence requires an atomic import hook. Input is bounded by",
     "the host input limit; malformed JSON is rejected without quoting credentials.", "", "  --help  Show this help.", ""].join("\n");
@@ -206,9 +206,9 @@ export function createRemoteMcpManagementCommand(
     "Credentials remain environment references in every generated format.", "",
     "Generation --timeout-ms <milliseconds> bounds each discovery request",
     "(default 30000). Supplied schemas remain offline.",
-    "Generation limits: --max-pages (100), --max-tools (10000 per server),",
-    "--max-response-bytes (16777216), --max-configuration-bytes (16777216),",
-    "--max-artifact-bytes (33554432). Each requires a positive integer.",
+    "Generation limits: --max-pages (Infinity), --max-tools (Infinity per server),",
+    "--max-response-bytes (Infinity), --max-configuration-bytes (Infinity),",
+    "--max-artifact-bytes (Infinity). Each accepts a positive integer or Infinity.",
     "CLI values override the corresponding host generation settings.", "",
     ...authenticationGuidance, "",
     "  --help  Show this help.", ""
@@ -324,7 +324,7 @@ export function createRemoteMcpManagementCommand(
             const file = selected.file;
             let source = context.stdin;
             if (file !== undefined && file !== "-") {
-              const path = posix.resolve(context.cwd, file);
+              const path = resolvePath(context.cwd, file);
               source = context.fs.readStream === undefined
                 ? toByteSource(await context.fs.readFile(path, { signal, maxBytes: maxImportBytes }))
                 : context.fs.readStream(path, { signal });
@@ -396,7 +396,7 @@ export function createRemoteMcpManagementCommand(
                 const text = selected.json ? `${JSON.stringify(request)}\n` : `Authorization URL: ${textLine(request.authorizationUrl)}\nRedirect URI: ${textLine(request.redirectUri)}\n`;
                 try { await emit(operation, text, maxOutputBytes - emittedBytes); }
                 catch (error) { outputFailure = error; throw error; }
-                emittedBytes += Buffer.byteLength(text, "utf8");
+                emittedBytes += new TextEncoder().encode(text).byteLength;
                 emittedUrl = true;
                 await observer?.call(settings, request);
               }

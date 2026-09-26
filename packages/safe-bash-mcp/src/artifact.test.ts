@@ -89,7 +89,7 @@ it("generates credential-reference artifacts from supplied schemas without readi
   expect(fetch).not.toHaveBeenCalled();
   expect(generated.artifact.configuration.servers[0].auth).toEqual({ type: "bearer", token: { env: "CATALOG_TOKEN" } });
   expect(generated.artifact.schemas[0].tools).toEqual([tool]);
-  expect(parseRemoteMcpArtifact(generated.json)).toEqual(generated.artifact);
+  expect(await parseRemoteMcpArtifact(generated.json)).toEqual(generated.artifact);
 });
 
 it("is reproducible across server/tool/schema key order while preserving semantic array order", async () => {
@@ -118,7 +118,7 @@ it("rejects contradictory configured and archived instructions even with a recom
   generated.artifact.configuration.servers[0].instructions = "Write first";
   const { digest: ignoredDigest, ...payload } = generated.artifact;
   generated.artifact.digest = createHash("sha256").update(JSON.stringify(payload)).digest("hex");
-  expect(() => parseRemoteMcpArtifact(generated.artifact)).toThrow("schema/configuration mismatch");
+  await expect(parseRemoteMcpArtifact(generated.artifact)).rejects.toThrow("schema/configuration mismatch");
 });
 
 it("refuses to serialize credentials echoed into discovery metadata", async () => {
@@ -195,7 +195,7 @@ it("rejects internally inconsistent snapshots even with a recomputed digest", as
   const changed = structuredClone(generated.artifact); changed.schemas[0].url = "https://other.example/mcp";
   const { digest: ignoredDigest, ...payload } = changed;
   changed.digest = createHash("sha256").update(JSON.stringify(payload)).digest("hex");
-  expect(() => parseRemoteMcpArtifact(changed)).toThrow("schema/configuration mismatch");
+  await expect(parseRemoteMcpArtifact(changed)).rejects.toThrow("schema/configuration mismatch");
 });
 
 it("preserves typed, nested, array and raw inputs through an imported artifact and real Shell", async () => {
@@ -228,7 +228,7 @@ it("bounds generated and parsed artifact bytes and observes cancellation before 
   const configuration = initRemoteMcpConfiguration([{ ...server, tools: [tool] }]).configuration;
   await expect(generateRemoteMcpArtifact(configuration, { maxArtifactBytes: 100 })).rejects.toThrow("artifact byte limit");
   const generated = await generateRemoteMcpArtifact(configuration);
-  expect(() => parseRemoteMcpArtifact(generated.json, { maxArtifactBytes: 100 })).toThrow("artifact byte limit");
+  await expect(parseRemoteMcpArtifact(generated.json, { maxArtifactBytes: 100 })).rejects.toThrow("artifact byte limit");
   const controller = new AbortController(), reason = new Error("cancel generation"), fetch = vi.fn<HttpTransportFetch>(); controller.abort(reason);
   await expect(generateRemoteMcpArtifact(configuration, { schema: { fetch, signal: controller.signal } })).rejects.toBe(reason);
   expect(fetch).not.toHaveBeenCalled();
@@ -265,7 +265,7 @@ it("snapshots external documents before discovery and hashes their contents dete
   expect(first.module).toBe(second.module);
   const changed = structuredClone(first.artifact);
   changed.schemaRegistry![id] = false;
-  expect(() => parseRemoteMcpArtifact(changed)).toThrow("digest");
+  await expect(parseRemoteMcpArtifact(changed)).rejects.toThrow("digest");
 });
 
 it("rejects unsafe or oversized registries before reading credentials or connecting", async () => {
@@ -335,7 +335,7 @@ it("rejects invalid archived documents even after recomputing their digest", asy
   changed.schemaRegistry!["https://catalog.example/schema"] = { type: "invalid" };
   const { digest: ignoredDigest, ...payload } = changed;
   changed.digest = createHash("sha256").update(JSON.stringify(payload)).digest("hex");
-  expect(() => parseRemoteMcpArtifact(changed)).toThrow("JSON Schema type");
+  await expect(parseRemoteMcpArtifact(changed)).rejects.toThrow("JSON Schema type");
 });
 
 it("keeps older version-one artifacts compatible with host external registrations", async () => {
@@ -346,7 +346,7 @@ it("keeps older version-one artifacts compatible with host external registration
   legacy.schemas[0].tools[0].inputSchema = { $ref: id };
   const { digest: ignoredDigest, ...payload } = legacy;
   legacy.digest = createHash("sha256").update(JSON.stringify(payload)).digest("hex");
-  expect(parseRemoteMcpArtifact(legacy).schemaRegistry).toBeUndefined();
+  expect((await parseRemoteMcpArtifact(legacy)).schemaRegistry).toBeUndefined();
   const f = remote(), shell = new Shell({ fs: createMemoryFileSystem() });
   shell.use(await remoteMcpArtifactPlugin(legacy, { binding: { env: {} }, commands: { fetch: f.fetch, schemaValidation: { registry: { [id]: tool.inputSchema } } } }));
   try { expect((await shell.exec("catalog search_items --query 005930")).exitCode).toBe(0); }

@@ -268,7 +268,7 @@ describe("remote MCP schemas", () => {
       .toBe("http://127.0.0.1:4321/mcp");
   });
 
-  it.each([0, -1, Infinity, NaN, 1.5])("rejects invalid limits %s even with supplied schemas", async maxPages => {
+  it.each([0, -1, NaN, 1.5])("rejects invalid limits %s even with supplied schemas", async maxPages => {
     await expect(fetchRemoteMcpSchema({ ...server, tools: [] }, { maxPages })).rejects.toThrow("positive safe integer");
   });
 

@@ -2,7 +2,7 @@ import { HttpTransport, HttpTransportError, McpClient } from "tiny-mcp-client";
 import type { RemoteMcpServer, SchemaFetchOptions } from "./schema.js";
 
 function positiveLimit(value: number, name: string): number {
-  if (!Number.isSafeInteger(value) || value < 1) throw new Error(`${name} must be a positive safe integer`);
+  if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new Error(`${name} must be a positive safe integer`);
   return value;
 }
 
@@ -10,9 +10,9 @@ export function remoteLimits(options: SchemaFetchOptions) {
   const requestTimeoutMs = positiveLimit(options.requestTimeoutMs ?? 30_000, "requestTimeoutMs");
   if (requestTimeoutMs > 2_147_483_647) throw new Error("requestTimeoutMs must not exceed 2147483647");
   return {
-    maxPages: positiveLimit(options.maxPages ?? 100, "maxPages"),
-    maxTools: positiveLimit(options.maxTools ?? 10_000, "maxTools"),
-    maxResponseBytes: positiveLimit(options.maxResponseBytes ?? 16 * 1024 * 1024, "maxResponseBytes"),
+    maxPages: positiveLimit(options.maxPages ?? Infinity, "maxPages"),
+    maxTools: positiveLimit(options.maxTools ?? Infinity, "maxTools"),
+    maxResponseBytes: positiveLimit(options.maxResponseBytes ?? Infinity, "maxResponseBytes"),
     requestTimeoutMs
   };
 }

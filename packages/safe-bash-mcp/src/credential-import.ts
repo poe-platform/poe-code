@@ -47,15 +47,15 @@ export async function importRemoteMcpAuthentication(
   const requestTimeoutMs = options.requestTimeoutMs ?? 30_000;
   for (const [name, duration] of [["timeoutMs", timeoutMs], ["requestTimeoutMs", requestTimeoutMs]] as const)
     if (!Number.isSafeInteger(duration) || duration < 1 || duration > 2_147_483_647) throw new Error(`${name} must be a positive supported timer interval`);
-  const maxBytes = options.maxImportBytes ?? 1024 * 1024;
-  if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new Error("maxImportBytes must be a positive safe integer");
+  const maxBytes = options.maxImportBytes ?? Infinity;
+  if (maxBytes !== Infinity && (!Number.isSafeInteger(maxBytes) || maxBytes < 1)) throw new Error("maxImportBytes must be a positive safe integer");
   let input: Record<string, unknown>;
   try {
     if (typeof payload === "string") {
-      if (Buffer.byteLength(payload, "utf8") > maxBytes) throw new Error("Limit");
+      if (new TextEncoder().encode(payload).byteLength > maxBytes) throw new Error("Limit");
       payload = parseArgumentJson(payload);
     }
-    if (!isJsonValue(payload, { maxNodes: maxBytes, maxDepth: 64 }) || Buffer.byteLength(JSON.stringify(payload), "utf8") > maxBytes ||
+    if (!isJsonValue(payload, { maxNodes: maxBytes, maxDepth: 64 }) || new TextEncoder().encode(JSON.stringify(payload)).byteLength > maxBytes ||
       typeof payload !== "object" || payload === null || Array.isArray(payload)) throw new Error("Invalid JSON");
     input = structuredClone(payload) as Record<string, unknown>;
     if (!Object.hasOwn(input, "tokens") || Object.keys(input).some(key => !["tokens", "clientInfo", "issuedAt", "issuer"].includes(key)) ||

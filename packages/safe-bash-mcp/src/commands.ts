@@ -16,7 +16,7 @@ export interface RemoteMcpCommandOptions extends SchemaFetchOptions, ToolArgumen
 }
 
 export function commandLimit(value: number, name: string): number {
-  if (!Number.isSafeInteger(value) || value < 1) throw new Error(`${name} must be a positive safe integer`);
+  if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new Error(`${name} must be a positive safe integer`);
   return value;
 }
 
@@ -28,6 +28,7 @@ export function callerLimit(caller: number | undefined, host: number | undefined
 }
 
 export function positiveArgument(value: string | undefined, flag: string, maximum = Number.MAX_SAFE_INTEGER): number {
+  if (value === "Infinity" && maximum === Number.MAX_SAFE_INTEGER) return Infinity;
   if (value === undefined || value.length === 0 || [...value].some(char => char < "0" || char > "9"))
     throw new Error(`${flag} requires a positive integer no greater than ${maximum}`);
   const result = Number(value);
@@ -164,8 +165,8 @@ export function errorDetails(error: unknown, seen = new Set<unknown>(), depth = 
 class CommandOutputLimitError extends Error {}
 
 export async function emit(operation: OutputOperation, text: string, maxBytes: number): Promise<void> {
-  if (Buffer.byteLength(text, "utf8") > maxBytes) throw new CommandOutputLimitError("MCP command output byte limit exceeded");
   const bytes = new TextEncoder().encode(text);
+  if (bytes.byteLength > maxBytes) throw new CommandOutputLimitError("MCP command output byte limit exceeded");
   for (let offset = 0; offset < bytes.length; offset += 16 * 1024) {
     operation.signal.throwIfAborted();
     await operation.output.write(bytes.subarray(offset, offset + 16 * 1024));
@@ -205,8 +206,8 @@ export async function createRemoteMcpCommands(
   servers: readonly RemoteMcpServer[],
   options: RemoteMcpCommandOptions = {}
 ): Promise<CommandDefinition[]> {
-  const maxInputBytes = commandLimit(options.maxInputBytes ?? 1024 * 1024, "maxInputBytes");
-  const maxOutputBytes = commandLimit(options.maxOutputBytes ?? 16 * 1024 * 1024, "maxOutputBytes");
+  const maxInputBytes = commandLimit(options.maxInputBytes ?? Infinity, "maxInputBytes");
+  const maxOutputBytes = commandLimit(options.maxOutputBytes ?? Infinity, "maxOutputBytes");
   for (const server of servers) validateCommandName(server.name);
   const settings = {
     ...snapshotRemoteMcpSchemaOptions(options),
@@ -250,7 +251,7 @@ export async function createRemoteMcpCommands(
             policy = execution.policy;
             inputLimit = Math.min(maxInputBytes, policy.maxInputBytes ?? maxInputBytes);
             outputLimit = Math.min(maxOutputBytes, policy.maxOutputBytes ?? maxOutputBytes);
-            if (args.reduce((bytes, arg) => bytes + Buffer.byteLength(arg, "utf8"), 0) > inputLimit)
+            if (args.reduce((bytes, arg) => bytes + new TextEncoder().encode(arg).byteLength, 0) > inputLimit)
               throw new Error("MCP argument byte limit exceeded");
             if (execution.index === args.length || args[execution.index] === "--help") {
               help = summary;

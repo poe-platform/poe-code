@@ -21,9 +21,9 @@ function fixture() {
   const binding = { env: {}, oauth: { authStore, now: () => 10_000 } };
   return { fs, authStore, fetch, binding, stores: createResourceBoundOAuthStores(authStore, undefined, "catalog") };
 }
-it("imports raw tokens and complete original DCR metadata without initializing or listing tools", async () => {
+it.each([undefined, Infinity])("imports raw tokens and complete original DCR metadata with budget %s without initializing or listing tools", async maxImportBytes => {
   const f = fixture();
-  expect(await sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: f.binding, fetch: f.fetch })).toEqual({ name: "catalog", url: resource, imported: true });
+  expect(await sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: f.binding, fetch: f.fetch, maxImportBytes })).toEqual({ name: "catalog", url: resource, imported: true });
   expect(f.fetch).toHaveBeenCalledTimes(2);
   const session = await f.stores.sessionStore.load(resource);
   expect(session).toMatchObject({ resource, authorizationServer: issuer, client: { clientId: "original", registrationOwnership: "caller", registration: payload.clientInfo },

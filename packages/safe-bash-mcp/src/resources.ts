@@ -22,7 +22,7 @@ export function snapshotRemoteMcpResourceRequest(request: RemoteMcpResourceReque
   const allowed = operation === "read" ? ["operation", "uri"] : ["operation", "cursor"];
   if (Object.keys(request).some(key => !allowed.includes(key))) throw new Error("Unexpected remote MCP resource request field");
   const snapshot = structuredClone(request);
-  if (Buffer.byteLength(JSON.stringify(snapshot), "utf8") > maxInputBytes) throw new Error("MCP resource input byte limit exceeded");
+  if (new TextEncoder().encode(JSON.stringify(snapshot)).byteLength > maxInputBytes) throw new Error("MCP resource input byte limit exceeded");
   if (snapshot.operation === "read") {
     if (typeof snapshot.uri !== "string" || snapshot.uri.length === 0 || [...snapshot.uri].some(char => char.trim() === "" || char.codePointAt(0)! < 32 || (char.codePointAt(0)! >= 127 && char.codePointAt(0)! <= 159)))
       throw new Error("MCP resource URI must be an absolute URI without whitespace or controls");
@@ -40,7 +40,7 @@ export async function accessRemoteMcpResources(
 ): Promise<RemoteMcpResourceResult> {
   options.signal?.throwIfAborted();
   const limits = remoteLimits(options);
-  const snapshot = snapshotRemoteMcpResourceRequest(request, commandLimit(options.maxInputBytes ?? 1024 * 1024, "maxInputBytes"));
+  const snapshot = snapshotRemoteMcpResourceRequest(request, commandLimit(options.maxInputBytes ?? Infinity, "maxInputBytes"));
   preflightRemoteMcpServers([server], options);
   const { tools: ignoredTools, ...owned } = snapshotRemoteMcpServer(server);
   const deadline = AbortSignal.timeout(limits.requestTimeoutMs);

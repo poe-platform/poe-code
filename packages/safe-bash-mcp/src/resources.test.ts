@@ -312,3 +312,14 @@ it("rejects malformed/repeated resource policy values before network", async () 
     expect(f.fetch).not.toHaveBeenCalled();
   } finally { await shell.dispose(); }
 });
+
+it("accepts unlimited SDK and CLI resource byte budgets", async () => {
+  const f = remote();
+  expect(await accessRemoteMcpResources(server, { operation: "read", uri: "memo://one" }, { fetch: f.fetch, maxInputBytes: Infinity, maxResponseBytes: Infinity })).toEqual(read);
+  const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry([createRemoteMcpManagementCommand([server], { maxInputBytes: Infinity, maxOutputBytes: Infinity, resources: { fetch: f.fetch } })]) });
+  try {
+    const result = await shell.exec("mcp resource docs memo://one --max-input-bytes Infinity --max-response-bytes=Infinity");
+    expect(result.stderr).toBe("");
+    expect(result.exitCode).toBe(0);
+  } finally { await shell.dispose(); }
+});

@@ -79,8 +79,8 @@ Fragment rejection includes trailing empty `#`; percent-escaped hashes in paths
 and queries remain literal URL data. Discovery supports
 injected `fetch`, OAuth discovery caches, warning callbacks and cancellation.
 Set `maxPages`, `maxTools`, `maxResponseBytes` and `requestTimeoutMs` to bound
-discovery. Defaults are 100 pages, 10,000 tools, 16 MiB per JSON response body or
-SSE event, and 30 seconds per request. The byte limit does not accumulate across
+discovery. Page, tool and byte budgets default to `Infinity`; request deadlines default to
+30 seconds. SDK budgets and CLI `--max-*` options accept explicit `Infinity`. The byte limit does not accumulate across
 the lifetime of a receive stream; keepalive comments and separate events remain
 usable. Request deadlines must not exceed 2,147,483,647 ms;
 larger values fail before setup because Node would reduce them to a 1 ms timer.
@@ -138,7 +138,7 @@ parsing. Raw input cannot be mixed with named arguments. Defaults apply only
 with `--yes` or the SDK's `{ yes: true }`; explicit falsey values are preserved.
 The SDK opt-in also survives nonenumerable options. Artifact recreation retains
 that opt-in and declared input/output ceilings before credential callbacks run.
-Argument parsing defaults to a 1 MiB input byte limit (`maxInputBytes`). JSON
+Argument parsing defaults to unlimited input bytes (`maxInputBytes: Infinity`). JSON
 numbers that would become non-finite or silently round integer literals fail.
 Internal and external references use the schema compiler; supply external
 documents through its `registry` option. Flags also include fields declared in
@@ -195,7 +195,7 @@ and transport errors produce JSON diagnostics on stderr with codes, data and
 HTTP status when available. HTTP errors also retain `rpcMethod` when the native
 client identifies a handshake or request phase. Output writes are awaited and
 cancellation closes owned requests. Set `maxOutputBytes` to bound command output
-(default 16 MiB).
+(default `Infinity`).
 Output schemas and external schema registrations are captured during generation.
 Registration checks all command conflicts before registering any of them.
 Keep an agent's command surface small by passing only its selected server entries
@@ -220,12 +220,12 @@ binding. Resource operations capture OAuth configuration before connecting, reta
 selected credentials and provider through negotiated HTTP/SSE fallback.
 The SDK accepts `{ operation: "list" | "templates", cursor?: string }` or
 `{ operation: "read", uri: string }`. `maxInputBytes` bounds its request JSON
-(default 1 MiB); `requestTimeoutMs` bounds the complete resource operation.
+(default `Infinity`); `requestTimeoutMs` bounds the complete resource operation.
 Management `--timeout-ms <milliseconds>` can tighten that SDK/host setting
 (default 30,000 ms), including initialization and the resource request.
 `--max-input-bytes <bytes>` can tighten the resource request limit, and
 `--max-response-bytes <bytes>` can tighten the native transport response limit
-(default 16 MiB). Both accept positive integers, separated or with `=`. The
+(default `Infinity`). Both accept positive integers, separated or with `=`. The
 host's management input limit also applies. Oversized request JSON fails before
 credential binding; response failures return nonzero status and no result JSON.
 
@@ -280,7 +280,7 @@ falls back to `process.env`. Required missing variables fail before provider
 setup, and empty optional values use public fallbacks or remain absent. Values
 for every explicit registry reference are captured before host clocks run,
 independently from later environment changes. Credential inputs
-have a 1 MiB combined byte limit (`maxCredentialBytes`); shared references count
+have an unlimited combined byte budget by default (`maxCredentialBytes`); shared references count
 once. Binding captures declared environment, credential/configuration byte and
 tool-limit policies even when they are nonenumerable or supplied by a host
 class; invalid limits reject before store or transport access.
@@ -390,7 +390,7 @@ metadata and credentials. Use `--timeout-ms <milliseconds>` or SDK
 `requestTimeoutMs` to bound the complete operation (default 120,000 ms).
 CLI timeouts retain the configured host ceiling.
 `--max-response-bytes <bytes>` can tighten the SDK's `maxResponseBytes` transport
-limit (default 16 MiB), separated or with `=`. Invalid/repeated values fail before
+limit (default `Infinity`), separated or with `=`. Invalid/repeated values fail before
 credential binding. OAuth metadata and token responses keep their own byte limits.
 Authentication verifies initialization, establishes the configured OAuth grant
 even if initialization is public, and never lists or calls tools. A fresh
@@ -449,7 +449,7 @@ deadline and bounds input, discovery and persistence (default 30,000 ms), includ
 cache and atomic import callbacks. `mcp import --help` shows payload
 and expiry guidance. Management `options.credentialImport` supplies SDK settings
 and otherwise uses the authentication binding's persistence or shell environment.
-`--max-import-bytes <bytes>` can tighten the import budget (default 1 MiB),
+`--max-import-bytes <bytes>` can tighten the import budget (default `Infinity`),
 and `--lock-timeout-ms <milliseconds>` can tighten the separate persistence lock
 wait (default 30,000 ms). Both accept separated or inline positive values. Input
 collection stops at the smaller of the selected import budget and the host's
@@ -481,7 +481,7 @@ anchored before network waits, using original payload `issuedAt` milliseconds
 when supplied. Old token, timing and header environment values are never read.
 The SDK returns only `{ name, url, imported: true }`. Import and reset summaries retain the original validated identity even if a host hook changes its configuration argument. Default complete-operation
 and lock limits are 30 seconds (`requestTimeoutMs` and `timeoutMs`). Input defaults
-to 1 MiB (`maxImportBytes`), with token/DCR JSON separately bounded to 64 KiB.
+to `Infinity` (`maxImportBytes`), with token/DCR JSON separately bounded to 64 KiB.
 Malformed JSON diagnostics never quote input. Host-owned persistence requires
 `binding.oauth.importSession(server, session, { signal, timeoutMs })`; that hook
 owns atomic client/grant installation and durable stale-import suppression. Cancellation settles the caller while continuing to observe host completion. Host persistence can still finish afterward; an already completed write is retained. The hook must observe the supplied signal to stop its own work.
@@ -505,10 +505,9 @@ shell.use(await remoteMcpArtifactPlugin(generated.artifact, {
 configuration or `--format module` for an ESM data module that exports the
 artifact as default. `--timeout-ms <milliseconds>` can tighten the SDK's
 `schema.requestTimeoutMs` for each discovery request (default 30,000 ms).
-Supplied schemas remain offline. Generation also accepts `--max-pages` (default
-100), `--max-tools` (10,000 per server), `--max-response-bytes` (16 MiB),
-`--max-configuration-bytes` (16 MiB) and `--max-artifact-bytes` (32 MiB).
-Each takes a positive integer, separated or with `=`. CLI values retain the
+Supplied schemas remain offline. Generation also accepts `--max-pages`, `--max-tools`, `--max-response-bytes`,
+`--max-configuration-bytes` and `--max-artifact-bytes` (all default to `Infinity`).
+Each takes a positive integer or `Infinity`, separated or with `=`. CLI values retain the
 corresponding `options.generation` ceilings; `--max-tools` applies to discovery
 and the resolved configuration, including supplied snapshots. Byte limits apply
 before output, while the host's command output limit still bounds stdout.
@@ -544,9 +543,9 @@ directory. Runtime commands use the host's installed `safe-bash-mcp` library and
 explicit environment binding; every schema is supplied, so loading does not
 rediscover tools. Recreation captures command policies, selected dependency handles
 and schema format mappings before credential-binding callbacks; the original
-signal and selected host callbacks remain live. The parser checks a SHA-256 content digest and snapshot/config
+signal and selected host callbacks remain live. `await parseRemoteMcpArtifact(value)` checks a SHA-256 content digest using Web Crypto and snapshot/config
 agreement before touching credentials. `maxArtifactBytes` bounds generated JSON
-and modules individually, and parsed artifacts (default 32 MiB). Existing
+and modules individually, and parsed artifacts (default `Infinity`). Existing
 configuration, discovery, cancellation and credential limits still apply.
 
 CLI OAuth failure summaries keep the HTTP status, recognized recovery code,

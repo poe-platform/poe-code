@@ -92,14 +92,14 @@ const initValidator = compileJsonSchema({ type: "array", items: { ...finalServer
 ) } } });
 
 function configurationData(value: unknown, options: ConfigurationOptions): unknown {
-  const limit = options.maxConfigurationBytes ?? 16 * 1024 * 1024;
-  if (!Number.isSafeInteger(limit) || limit < 1) throw new Error("maxConfigurationBytes must be a positive safe integer");
+  const limit = options.maxConfigurationBytes ?? Infinity;
+  if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 1)) throw new Error("maxConfigurationBytes must be a positive safe integer");
   if (typeof value === "string") {
-    if (Buffer.byteLength(value, "utf8") > limit) throw new Error("MCP configuration byte limit exceeded");
+    if (new TextEncoder().encode(value).byteLength > limit) throw new Error("MCP configuration byte limit exceeded");
     value = parseArgumentJson(value);
   }
   if (!isJsonValue(value, { maxNodes: limit })) throw new Error("MCP configuration must contain only JSON data within the configuration byte limit and depth limit");
-  if (Buffer.byteLength(JSON.stringify(value), "utf8") > limit) throw new Error("MCP configuration byte limit exceeded");
+  if (new TextEncoder().encode(JSON.stringify(value)).byteLength > limit) throw new Error("MCP configuration byte limit exceeded");
   return structuredClone(value);
 }
 
@@ -146,7 +146,7 @@ export function parseRemoteMcpConfiguration(value: unknown, options: Configurati
       if (server.auth.clientName !== undefined && server.auth.clientName.trim() === "")
         throw new Error("OAuth clientName must be a nonempty string");
       const namespace = server.auth.persistenceNamespace;
-      if (namespace !== undefined && (namespace.trim() === "" || Buffer.byteLength(namespace, "utf8") > 1024))
+      if (namespace !== undefined && (namespace.trim() === "" || new TextEncoder().encode(namespace).byteLength > 1024))
         throw new Error("OAuth persistence namespace must be a nonempty string within 1024 bytes");
       for (const reference of Object.values(server.auth.credentials)) assertEnvironment(reference.env);
     }
@@ -207,6 +207,6 @@ export function initRemoteMcpConfiguration(servers: readonly InitRemoteMcpServer
   const configuration = parseRemoteMcpConfiguration({ version: 1, servers: configured }, options);
   const envTemplate = [...descriptions].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
     .map(([name, entries]) => `${[...entries].map(description => `# ${description}`).join("\n")}\n${name}=\n`).join("\n");
-  if (Buffer.byteLength(envTemplate, "utf8") > (options.maxConfigurationBytes ?? 16 * 1024 * 1024)) throw new Error("MCP environment template byte limit exceeded");
+  if (new TextEncoder().encode(envTemplate).byteLength > (options.maxConfigurationBytes ?? Infinity)) throw new Error("MCP environment template byte limit exceeded");
   return { configuration, envTemplate };
 }

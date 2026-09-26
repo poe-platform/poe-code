@@ -27,10 +27,12 @@ it("imports bounded redirected virtual stdin with a public JSON summary", async 
     expect(f.fetch).toHaveBeenCalledTimes(2);
   } finally { await f.shell.dispose(); }
 });
-it("imports a named virtual file and returns a concise text summary", async () => {
+it.each(["/credentials.json", "./credentials.json", "/credentials.json/"])("imports a normalized virtual file %s and returns a concise text summary", async path => {
   const f = fixture(); await f.fs.writeFile("/credentials.json", new TextEncoder().encode(JSON.stringify(payload)));
   try {
-    const result = await f.shell.exec("mcp import catalog --file /credentials.json");
+    const read = vi.spyOn(f.fs, "readStream");
+    const result = await f.shell.exec(`mcp import catalog --file ${path}`);
+    expect(read.mock.calls[0][0]).toBe("/credentials.json");
     expect(result.exitCode).toBe(0); expect(result.stdout).toBe("Imported OAuth credentials for catalog.\n");
     expect(result.stderr).toBe(""); expect(f.importSession).toHaveBeenCalledOnce();
   } finally { await f.shell.dispose(); }

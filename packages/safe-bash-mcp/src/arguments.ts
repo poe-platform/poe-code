@@ -116,11 +116,11 @@ export function compileToolArguments(tool: Tool, options: CompileJsonSchemaOptio
     toolName,
     parameters,
     parse(args, parseOptions = {}) {
-      const maxBytes = parseOptions.maxInputBytes ?? 1024 * 1024;
-      if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new Error("maxInputBytes must be a positive safe integer");
+      const maxBytes = parseOptions.maxInputBytes ?? Infinity;
+      if (maxBytes !== Infinity && (!Number.isSafeInteger(maxBytes) || maxBytes < 1)) throw new Error("maxInputBytes must be a positive safe integer");
       let bytes = 0;
       for (const arg of args) {
-        bytes += Buffer.byteLength(arg, "utf8");
+        bytes += new TextEncoder().encode(arg).byteLength;
         if (bytes > maxBytes) throw new Error("MCP argument byte limit exceeded");
       }
       const values = new Map<string, ValueToken[]>();

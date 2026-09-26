@@ -18,7 +18,7 @@ it("prints reproducible SDK artifacts from mcp generate without touching provide
   const second = await run("mcp generate --format=json", { generation: { schema: { fetch } } });
   expect(first.exitCode).toBe(0); expect(first.stderr).toBe("");
   expect(first.stdout).toBe(second.stdout);
-  expect(parseRemoteMcpArtifact(first.stdout).configuration.servers[0].tools).toEqual(server.tools);
+  expect((await parseRemoteMcpArtifact(first.stdout)).configuration.servers[0].tools).toEqual(server.tools);
   expect(first.stdout).not.toContain("private-runtime-token");
   expect(fetch).not.toHaveBeenCalled();
 });
@@ -30,7 +30,7 @@ it("prints an importable module through virtual shell redirection", async () => 
     expect(result.exitCode).toBe(0); expect(result.stdout).toBe("");
     const source = await fs.readFile("/catalog.mjs", "utf8");
     const module = await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
-    expect(parseRemoteMcpArtifact(module.default).schemas[0].source).toBe("provided");
+    expect((await parseRemoteMcpArtifact(module.default)).schemas[0].source).toBe("provided");
   } finally { await shell.dispose(); }
 });
 

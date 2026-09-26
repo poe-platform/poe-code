@@ -26,7 +26,8 @@
     "tiny-mcp-client": "*",
     "mcp-oauth": "*",
     "toolcraft-schema": "*",
-    "@poe-platform/safe-bash": "*"
+    "@poe-platform/safe-bash": "*",
+    "@poe-code/safe-fs": "*"
   },
   "repository": {
     "type": "git",

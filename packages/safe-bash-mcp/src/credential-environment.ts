@@ -3,8 +3,8 @@ import type { ConfigurationBindingOptions } from "./runtime-configuration.js";
 
 /** Read explicit own environment values once, without accessors or excess bytes. */
 export function credentialEnvironmentReader(options: Pick<ConfigurationBindingOptions, "env" | "maxCredentialBytes">): (reference: EnvironmentReference, required?: boolean) => string | undefined {
-  const limit = options.maxCredentialBytes ?? 1024 * 1024;
-  if (!Number.isSafeInteger(limit) || limit < 1) throw new Error("maxCredentialBytes must be a positive safe integer");
+  const limit = options.maxCredentialBytes ?? Infinity;
+  if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 1)) throw new Error("maxCredentialBytes must be a positive safe integer");
   if (typeof options.env !== "object" || options.env === null) throw new Error("MCP credential environment must be an object");
   let credentialBytes = 0;
   const values = new Map<string, string | undefined>();
@@ -14,7 +14,7 @@ export function credentialEnvironmentReader(options: Pick<ConfigurationBindingOp
       if (descriptor !== undefined && (!("value" in descriptor) || (descriptor.value !== undefined && typeof descriptor.value !== "string")))
         throw new Error(`Invalid MCP credential environment value for ${reference.env}`);
       const value = descriptor?.value as string | undefined;
-      credentialBytes += value === undefined ? 0 : Buffer.byteLength(value, "utf8");
+      credentialBytes += value === undefined ? 0 : new TextEncoder().encode(value).byteLength;
       if (credentialBytes > limit) throw new Error("MCP credential environment byte limit exceeded");
       values.set(reference.env, value === "" ? undefined : value);
     }

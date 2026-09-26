@@ -597,6 +597,17 @@ test("cut accepts blank separators and padding while rejecting empty comma items
   }
 });
 
+for (const size of [65535, 65536, 65537]) {
+  for (const terminated of [false, true]) test(`cut preserves the final newline at ${size} bytes, terminated=${terminated}`, async () => {
+    const line = "x".repeat(size);
+    const result = await run("cut", ["-f1"], { commands: textCommands(), stdin: line + (terminated ? "\n" : "") });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdoutBytes.length, size + 1);
+    assert.equal(result.stdout, line + "\n");
+  });
+}
+
 test("cut rejects undocumented short options", async () => {
   for (const args of [["-b", "1,2", "-o", ":"], ["-b", "1", "-C"]]) {
     const result = await run("cut", args, { stdin: "ab\n" });

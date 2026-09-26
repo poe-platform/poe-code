@@ -6,6 +6,18 @@ import { createGrepCommands } from "../../../src/commands/search/grep.js";
 import { Shell, agentCommands } from "../../../src/index.js";
 import { fixture, run } from "../helpers.js";
 
+for (const size of [65535, 65536, 65537]) {
+  for (const terminated of [false, true]) test(`ASCII grep preserves the final newline at ${size} bytes, terminated=${terminated}`, async () => {
+    const line = "x".repeat(size);
+    const fs = await fixture({ input: line + (terminated ? "\n" : "") });
+    const result = await run("grep", ["x", "input"], { fs, commands: createGrepCommands(new RegexExecutor(createBoundedRegexProvider())) });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdoutBytes.length, size + 1);
+    assert.equal(result.stdout, line + "\n");
+  });
+}
+
 for (const command of ["grep hello /work/input", "grep -i hello /work/input", "rg hello /work/input", "rg -c hello /work/input", "rg -l hello /work/input"]) {
   test(`${command} enforces the filesystem operation budget`, async () => {
     const fs = await fixture({ input: "hello\n" });

@@ -2038,7 +2038,7 @@ export function textCommands(): CommandDefinition[] {
                 } catch (error) {
                   return diagnostic(context, error).then(() => ({ exitCode: 1 }));
                 }
-                if (res2 !== undefined && res2.done && chunk.length <= sharedCutOutBuffer.length) {
+                if (res2 !== undefined && res2.done && chunk.length < sharedCutOutBuffer.length) {
                   const outBuf = sharedCutOutBuffer;
                   let outUsed = 0;
                   let start = 0;

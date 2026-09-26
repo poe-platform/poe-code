@@ -156,6 +156,8 @@ test("awk reader ignores empty chunks and does not acquire input when closed unu
   let acquired = false;
   const unused = new Reader({ [Symbol.asyncIterator]() { acquired = true; throw new Error("unused source acquired"); } }, budget(), retention);
   await unused.close(); assert.equal(await unused.read("\n"), undefined); assert.equal(acquired, false);
+  assert.equal(unused.readSync("\n"), undefined);
+  assert.equal(unused.readSliceSync("\n", { source: "", start: 0, end: 0 }), false);
 });
 
 test("awk reader close shares settlement while releasing storage before a pending return", async () => {

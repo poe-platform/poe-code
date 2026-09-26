@@ -138,8 +138,8 @@ export class Reader {
       this.blocks[lastIdx] = Buffer.from(this.blocks[lastIdx]!);
     }
     const next = await this.iterator.next();
-    this.budget.context.signal.throwIfAborted();
     if (this.closed) return;
+    this.budget.context.signal.throwIfAborted();
     if (next.done) { this.ended = true; return; }
     this.retain(next.value);
   }
@@ -233,6 +233,7 @@ export class Reader {
   }
 
   readSync(separator: string): string | undefined | Promise<string | undefined> {
+    if (this.closed) return undefined;
     if (this.budget.context.signal.aborted) this.budget.context.signal.throwIfAborted();
     if (separator.length > 1) throw new ProgramError("RS must be one byte or empty for paragraph records");
     if (separator.length === 1 && !this.closed && this.head < this.blocksLen) {
@@ -250,6 +251,7 @@ export class Reader {
   }
 
   readSliceSync(separator: string, out: { source: string; start: number; end: number }): boolean {
+    if (this.closed) return false;
     if (this.budget.context.signal.aborted) this.budget.context.signal.throwIfAborted();
     if (separator.length === 1 && !this.closed) {
       if (this.head >= this.blocksLen && !this.ended) {
@@ -297,6 +299,7 @@ export class Reader {
     return false;
   }
   async read(separator: string): Promise<string | undefined> {
+    if (this.closed) return undefined;
     this.budget.context.signal.throwIfAborted();
     if (separator.length > 1) throw new ProgramError("RS must be one byte or empty for paragraph records");
     if (separator.length === 1 && !this.closed && this.head < this.blocksLen) {
@@ -317,14 +320,15 @@ export class Reader {
           if (this.ended) return undefined;
           await this.fill();
         }
+        if (this.closed) return undefined;
         const pendingCheck = this.budget.checkpointSync();
         if (pendingCheck) await pendingCheck;
       }
     }
     const state: Scan = { block: this.head, offset: this.offset, bytes: 0, newline: -1, paragraphEnd: -1 };
     while (true) {
-      this.budget.step();
       if (this.closed) return undefined;
+      this.budget.step();
       const found = this.scan(separator, state);
       if (found) return this.finish(found.length, found.consumed);
       if (state.block === this.blocksLen) {
@@ -336,6 +340,7 @@ export class Reader {
         }
         await this.fill();
       }
+      if (this.closed) return undefined;
       const pendingCheck = this.budget.checkpointSync();
       if (pendingCheck) await pendingCheck;
     }

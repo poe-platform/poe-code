@@ -120,6 +120,17 @@ test("backing capacity is charged instead of logical file length", async () => {
   await filesystem.writeFile("/g", bytes(4));
 });
 
+test("either finite byte ceiling independently bounds small allocation backing capacity", async () => {
+  for (const [options, capacity] of [
+    [{ maxFileBytes: 4 }, 4],
+    [{ maxRetainedBytes: 200 }, 64],
+  ] as const) {
+    const filesystem = new memory.MemoryFileSystem(options);
+    await filesystem.appendFile("/f", bytes(1));
+    assert.equal(storage(filesystem, "f").buffer.byteLength, capacity);
+  }
+});
+
 test("geometric growth is clamped to file and retained limits without repeated copying", async () => {
   const small = new memory.MemoryFileSystem({ maxFileBytes: 4, maxRetainedBytes: 10 });
   await small.appendFile("/f", bytes(1));
@@ -288,6 +299,37 @@ test("failed native growth refunds reservations without publishing a file or cha
     assert.equal((await filesystem.stat("/")).mtimeMs, 100);
   } finally { globalThis.Uint8Array = NativeUint8Array; clock.mockRestore(); }
   await filesystem.writeFile("/f", bytes(6));
+});
+
+test("unlimited slab refill failure refunds the admitted slice without publishing it", async () => {
+  const filesystem = new memory.MemoryFileSystem(), input = bytes(1);
+  const ledger = Reflect.get(filesystem, "ledger");
+  const NativeUint8Array = globalThis.Uint8Array;
+  let failure: unknown, retainedBefore = 0, parentBefore = 0, failedPath = "";
+  globalThis.Uint8Array = new Proxy(NativeUint8Array, {
+    construct(target, argumentsList, newTarget) {
+      if (argumentsList[0] === 8192) throw new RangeError("injected slab refill failure");
+      return Reflect.construct(target, argumentsList, newTarget);
+    },
+  });
+  try {
+    // Each new small file consumes a 64-byte slice; 129 attempts force a refill
+    // regardless of the shared slab's incoming cursor, without touching it.
+    for (let index = 0; index < 129; index++) {
+      failedPath = `/f${index}`;
+      retainedBefore = Reflect.get(ledger, "retainedBytes");
+      parentBefore = (await filesystem.stat("/")).mtimeMs;
+      try { await filesystem.writeFile(failedPath, input); }
+      catch (error) { failure = error; break; }
+    }
+  } finally { globalThis.Uint8Array = NativeUint8Array; }
+  assert.ok(failure, "Expected an actual slab refill allocation failure");
+  assert.equal(Reflect.get(ledger, "retainedBytes"), retainedBefore);
+  assert.equal((await filesystem.stat("/")).mtimeMs, parentBefore);
+  await assert.rejects(filesystem.stat(failedPath), code("ENOENT"));
+  assert.ok(code("EFBIG")(failure));
+  await filesystem.writeFile(failedPath, input);
+  assert.deepEqual(await filesystem.readFile(failedPath), input);
 });
 
 test("multiple handles consume distinct units and close refunds only once", async () => {

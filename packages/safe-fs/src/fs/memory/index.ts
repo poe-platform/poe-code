@@ -979,16 +979,18 @@ export class MemoryFileSystem implements FileSystem {
       pooled.reuse();
       return pooled;
     }
-    if (length > 0 && length <= 64) {
-      if (smallAllocOffset + length > SMALL_ALLOC_SLAB_SIZE) {
-        smallAllocSlab = new Uint8Array(SMALL_ALLOC_SLAB_SIZE);
-        smallAllocOffset = 0;
-      }
-      const slice = smallAllocSlab.subarray(smallAllocOffset, smallAllocOffset + length);
-      smallAllocOffset += length;
-      return new MemoryAllocation(slice, this.ledger);
-    }
     try {
+      // A shared slab's backing buffer exceeds the admitted slice capacity.
+      // Finite file/storage ceilings require independently owned exact buffers.
+      if (length <= 64 && this.ledger.hasInfiniteRetained && this.ledger.limits.maxFileBytes === Infinity) {
+        if (smallAllocOffset + length > SMALL_ALLOC_SLAB_SIZE) {
+          smallAllocSlab = new Uint8Array(SMALL_ALLOC_SLAB_SIZE);
+          smallAllocOffset = 0;
+        }
+        const slice = smallAllocSlab.subarray(smallAllocOffset, smallAllocOffset + length);
+        smallAllocOffset += length;
+        return new MemoryAllocation(slice, this.ledger);
+      }
       return new MemoryAllocation(new Uint8Array(length), this.ledger);
     } catch (cause) {
       this.ledger.release(length, 0);

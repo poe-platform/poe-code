@@ -111,6 +111,40 @@ function fixture(cloudflare = false) {
 }
 
 describe("public safe-package verification", () => {
+  it("verifies a frozen branch only when its exact source ref is supplied", async () => {
+    const context = fixture();
+    const sourceRef = "refs/heads/codex/browser-release-5c41dd1aa754";
+    for (const statement of context.statements) {
+      statement.predicate.buildDefinition.externalParameters.workflow.ref = sourceRef;
+      statement.predicate.buildDefinition.resolvedDependencies[0].uri = `git+${repository}@${sourceRef}`;
+    }
+    await expect(context.verify({ maxAttempts: 1 })).rejects.toThrow("provenance");
+    await context.verify({ sourceRef, maxAttempts: 1 });
+    expect(context.run).toHaveBeenCalledTimes(2);
+  });
+
+  it.each(["workflow", "dependency", "commit", "archive"])("rejects a frozen branch with mismatched %s", async field => {
+    const context = fixture();
+    const sourceRef = "refs/heads/codex/browser-release-5c41dd1aa754";
+    for (const statement of context.statements) {
+      statement.predicate.buildDefinition.externalParameters.workflow.ref = sourceRef;
+      statement.predicate.buildDefinition.resolvedDependencies[0].uri = `git+${repository}@${sourceRef}`;
+    }
+    const definition = context.statements[0].predicate.buildDefinition;
+    if (field === "workflow") definition.externalParameters.workflow.ref = "refs/heads/main";
+    if (field === "dependency") definition.resolvedDependencies[0].uri = `git+${repository}@refs/heads/main`;
+    if (field === "commit") definition.resolvedDependencies[0].digest.gitCommit = "a".repeat(40);
+    if (field === "archive") context.statements[0].subject[0].digest.sha512 = "0".repeat(128);
+    await expect(context.verify({ sourceRef, maxAttempts: 1 })).rejects.toThrow("provenance");
+    expect(context.run).not.toHaveBeenCalled();
+  });
+
+  it.each(["main", "refs/heads/", "refs/heads/a..b", "refs/heads/a b", "refs/pull/1/merge"])("rejects invalid source ref %s before network access", async sourceRef => {
+    const context = fixture();
+    await expect(context.verify({ sourceRef, maxAttempts: 1 })).rejects.toThrow("source ref");
+    expect(context.fetch).not.toHaveBeenCalled();
+  });
+
   it("runs portable profile imports after verifying published adapter assets", async () => {
     const context = fixture(true);
     await context.verify({ cloudflare: true });

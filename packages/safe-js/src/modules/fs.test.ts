@@ -35,6 +35,11 @@ import {
 } from "./fs.conformance-cases.js";
 import { makeFsModule, type FsImplementation } from "./fs.js";
 
+vi.mock("#safe-js-platform", async (importOriginal) => {
+  const platform = await importOriginal<typeof import("#safe-js-platform")>();
+  return { ...platform, get hostPlatform() { return process.platform; } };
+});
+
 const SAMPLE_TEXT = "héllo ✓";
 
 const NUL_BYTE = "\u0000";

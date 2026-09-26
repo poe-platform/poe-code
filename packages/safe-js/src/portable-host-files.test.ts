@@ -3,6 +3,16 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runHarness } from "./runner/run-harness.js";
 import { runCli } from "./cli-runtime.js";
 import { runExampleFile } from "./example-runner.js";
+import { run } from "./run.js";
+import { dump } from "./dump.js";
+import { migrateSnapshotFile } from "./migration-file.js";
+import { EventEmitter } from "node:events";
+import { attachSignalDumpHandler } from "./runner/signal-dump.js";
+import "./restore.js";
+import "./snapshot/dump.js";
+import "./lint/runtime-modules.js";
+import "./modules/fs.js";
+import "./modules/mcp.js";
 
 it("runs a harness on a portable filesystem grant", async () => {
   const adapter = new MemoryFileSystem();
@@ -29,9 +39,6 @@ it("runs example files on a portable filesystem grant", async () => {
 });
 
 it("publishes migrations exclusively through a portable filesystem", async () => {
-  const {run} = await import("./run.js");
-  const {dump} = await import("./dump.js");
-  const {migrateSnapshotFile} = await import("./migration-file.js");
   const adapter = new MemoryFileSystem();
   const execution = run("return 1;");
   await execution;
@@ -55,8 +62,6 @@ it("publishes migrations exclusively through a portable filesystem", async () =>
 });
 
 it("writes signal snapshots through a portable filesystem", async () => {
-  const {EventEmitter} = await import("node:events");
-  const {attachSignalDumpHandler} = await import("./runner/signal-dump.js");
   const adapter = new MemoryFileSystem();
   const process = new EventEmitter();
   let complete!: () => void;

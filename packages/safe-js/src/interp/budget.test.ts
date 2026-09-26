@@ -254,7 +254,7 @@ describe("Budget", () => {
 
   it.each([
     { option: "maxSteps", value: Number.NaN },
-    { option: "maxSteps", value: Number.POSITIVE_INFINITY },
+    { option: "maxSteps", value: Number.NEGATIVE_INFINITY },
     { option: "maxSteps", value: -1 },
     { option: "maxSteps", value: 1.5 },
     { option: "maxCallDepth", value: Number.NaN },

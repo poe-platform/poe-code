@@ -166,6 +166,8 @@ try {
   model.decodedReasonGraph = { reason: receiptReason, again: receiptReason, nested: { reason: receiptReason } };
   model.receiptRecovery = { value: receiptResult.returnValue, calls: receiptCalls, requests: receiptRequests,
     completed: JSON.parse(await api.dump(receiptResult)), callId: receiptRecord.id };
+  // The completed-receipt control and the subject replay each keep the same watchdog.
+  timer.refresh();
   const ackInput = key => {
     const entry = pending.get(key);
     if (entry === undefined) throw Error('Missing pending proof for ' + key);

@@ -6,6 +6,7 @@ export async function waitForAtomicValue(view: Int32Array | BigInt64Array, index
   const startedAt = performance.now();
   const wait = Reflect.get(Atomics, "waitAsync");
   if (typeof wait !== "function") throw new TypeError("This host does not support Atomics.waitAsync.");
-  const result = Reflect.apply(wait, Atomics, [nativeTypedArrayView(view), index, expected, timeout]);
+  const result = Reflect.apply(wait, Atomics, [nativeTypedArrayView(view), index, expected, timeout]) as
+    { async: false; value: string } | { async: true; value: Promise<string> };
   return result.async ? { ...result, startedAt } : result;
 }

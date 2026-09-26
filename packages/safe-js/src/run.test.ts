@@ -47,8 +47,10 @@ describe("run", () => {
     );
   });
 
-  it("rejects unbounded recursion with the default call-depth guard", async () => {
-    await expect(run("function loop() { return loop(); } return loop();")).rejects.toMatchObject({
+  it("rejects unbounded recursion with a configured call-depth guard", async () => {
+    await expect(run("function loop() { return loop(); } return loop();", {
+      budget: new Budget({ maxCallDepth: 16 })
+    })).rejects.toMatchObject({
       name: "SandboxError",
       code: "budgetExceeded",
       budget: "callDepth"

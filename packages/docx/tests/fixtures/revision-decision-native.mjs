@@ -11,7 +11,7 @@ async function execute(request) {
     context = {
       limits: request.limits,
       signal,
-      budget: new api.DocumentBudget(request.documentLimits, signal),
+      budget: new api.DocumentBudget(request.documentLimits, signal, async () => {}),
       encoding: { order: "input", compression: "store" },
       stdout: {
         async write(bytes) {

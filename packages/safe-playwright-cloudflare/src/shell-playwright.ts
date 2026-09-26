@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import type { FileSystem } from "@poe-code/safe-fs/core";
 import type {
 	Browser,
@@ -72,7 +73,8 @@ export function createCloudflarePlaywrightAdapter(
 							"Cloudflare Browser Run does not support download artifact retrieval",
 						);
 					},
-					prepareFileBytes: (bytes: Uint8Array) => new Uint8Array(bytes),
+					// The provider validates Buffer payloads; import its constructor explicitly.
+					prepareFileBytes: (bytes: Uint8Array) => Buffer.from(bytes),
 					interrupt: resource.interrupt,
 					release: resource.release,
 				};

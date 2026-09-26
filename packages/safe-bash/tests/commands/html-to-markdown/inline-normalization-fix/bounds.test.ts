@@ -79,34 +79,40 @@ test("charged normalization yields in flight and preserves exact reason", async 
   assert.equal(triggered, true);
 });
 
-test("normalized large output awaits sink backpressure", async () => {
-  let release: (() => void) | undefined, writes = 0, settled = false;
-  let admitted: (() => void) | undefined;
-  const admission = new Promise<void>(resolve => { admitted = resolve; });
-  const barrier = new Promise<void>(resolve => { release = resolve; });
-  const output: Uint8Array[] = [];
-  const pending = convert("<em>" + "ab".repeat(5000) + "</em><b></b><em>end</em>", {}, {
-    stdout: { async write(bytes) { writes++; output.push(new Uint8Array(bytes)); if (writes === 1) { admitted!(); await barrier; } } },
-  }).finally(() => { settled = true; });
-  await admission;
-  try { assert.equal(writes, 1); assert.equal(settled, false); }
-  finally { release!(); }
-  const result = await pending;
-  assert.equal(result.exitCode, 0); assert(writes > 1);
-  assert.equal(Buffer.concat(output).toString(), "*" + "ab".repeat(5000) + "end*\n");
-});
-
-test("sink failure preserves only the accepted prefix", async () => {
-  const output: Uint8Array[] = [];
-  const reason = new Error("inline sink failure");
-  const internalErrors: unknown[] = [];
-  let writes = 0;
-  const result = await convert("<em>" + "ab".repeat(5000) + "</em><b></b><em>end</em>", {}, {
-    onInternalError(error) { internalErrors.push(error); },
-    stdout: { async write(bytes) { if (++writes === 2) throw reason; output.push(new Uint8Array(bytes)); } },
+for (const limits of [{}, { maxOutputBytes: 100000 }]) {
+  const profile = "maxOutputBytes" in limits ? "finite" : "unlimited";
+  test(`normalized large output awaits sink backpressure (${profile})`, async () => {
+    let release: (() => void) | undefined, writes = 0, settled = false;
+    let admitted: (() => void) | undefined;
+    const admission = new Promise<void>(resolve => { admitted = resolve; });
+    const barrier = new Promise<void>(resolve => { release = resolve; });
+    const output: Uint8Array[] = [];
+    const pending = convert("<em>" + "ab".repeat(20000) + "</em><b></b><em>end</em>", { limits }, {
+      stdout: { async write(bytes) { writes++; output.push(new Uint8Array(bytes)); if (writes === 1) { admitted!(); await barrier; } } },
+    }).finally(() => { settled = true; });
+    await admission;
+    try { assert.equal(writes, 1); assert.equal(settled, false); }
+    finally { release!(); }
+    const result = await pending;
+    assert.equal(result.exitCode, 0); assert(writes > 1);
+    assert.equal(Buffer.concat(output).toString(), "*" + "ab".repeat(20000) + "end*\n");
   });
-  assert.equal(result.exitCode, 1); assert.equal(result.stderr, "html-to-markdown: internal error\n");
-  assert.equal(internalErrors.length, 1); assert.equal(internalErrors[0], reason);
-  assert.equal(writes, 2);
-  assert.equal(Buffer.concat(output).toString(), ("*" + "ab".repeat(5000) + "end*\n").slice(0, 4096));
-});
+
+  test(`sink failure preserves only the accepted prefix (${profile})`, async () => {
+    const output: Uint8Array[] = [];
+    const reason = new Error("inline sink failure");
+    const internalErrors: unknown[] = [];
+    let writes = 0;
+    const result = await convert("<em>" + "ab".repeat(20000) + "</em><b></b><em>end</em>", { limits }, {
+      onInternalError(error) { internalErrors.push(error); },
+      stdout: { async write(bytes) { if (++writes === 2) throw reason; output.push(new Uint8Array(bytes)); } },
+    });
+    assert.equal(result.exitCode, 1); assert.equal(result.stderr, "html-to-markdown: internal error\n");
+    assert.equal(internalErrors.length, 1); assert.equal(internalErrors[0], reason);
+    assert.equal(writes, 2);
+    const expected = "*" + "ab".repeat(20000) + "end*\n";
+    const accepted = Buffer.concat(output).toString();
+    assert(accepted.length > 0 && accepted.length < expected.length);
+    assert.equal(accepted, expected.slice(0, accepted.length));
+  });
+}

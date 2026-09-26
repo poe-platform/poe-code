@@ -19,7 +19,7 @@ export async function trimText(text: string, budget: Budget): Promise<string> {
 }
 
 export async function normalizeText(text: string, budget: Budget, mode: "space" | "lines" | "inline", maximum?: number): Promise<string> {
-  if (text.length < 4096 && mode === "space" && !/[\t\r\n\f]|  /u.test(text)) {
+  if (text.length < 4096 && mode === "space" && !/[\t\r\n\f]| {2}/u.test(text)) {
     budget.work(text.length);
     const result = new Builder(budget, maximum);
     result.append(text);

@@ -1,5 +1,5 @@
 import { Volume } from "memfs";
-import { expect, it } from "vitest";
+import { beforeAll, expect, it } from "vitest";
 import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
 import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import type * as compiledTypes from "docx";
@@ -24,13 +24,7 @@ async function transcodeFixture(input: Uint8Array, codec: "utf8" | "utf16le" | "
   return new Uint8Array(memory.readFileSync("/encoded") as Buffer);
 }
 
-for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
-for (const codec of ["utf8", "utf16le", "utf16be"] as const)
-for (const runtime of ["source", "native"] as const)
-for (const operation of ["custom-xml.list", "glossary.list", "properties.list", "fonts.list"] as const)
-for (const route of ["sdk", "cli", "sdk-batch", "cli-batch"] as const)
-it(`exact whole-part encoding ancillary resource details; runtime=${runtime}; strict=${strict}; kind=${kind}; codec=${codec}; operation=${operation}; route=${route}`, async () => {
-  const api: typeof compiledTypes = runtime === "native" ? native : source as unknown as typeof compiledTypes;
+async function ancillaryFixture(strict: boolean, kind: "docx" | "dotx", codec: "utf8" | "utf16le" | "utf16be", api: typeof compiledTypes) {
   const r = strict ? "http://purl.oclc.org/ooxml/officeDocument/relationships" : "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
   const ds = strict ? "http://purl.oclc.org/ooxml/officeDocument/customXml" : "http://schemas.openxmlformats.org/officeDocument/2006/customXml";
   const cp = strict ? "http://purl.oclc.org/ooxml/officeDocument/customProperties" : "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties";
@@ -58,14 +52,39 @@ it(`exact whole-part encoding ancillary resource details; runtime=${runtime}; st
   parts.set("payload/properties.xml", enc(`<d:datastoreItem xmlns:d="${ds}" d:itemID="{11111111-2222-3333-4444-555555555555}"><d:schemaRefs><d:schemaRef d:uri="https://schema.example.invalid/inert"/></d:schemaRefs></d:datastoreItem>`));
   parts.set("payload/_rels/item.xml.rels", enc(`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="props" Type="${r}/customXmlProps" Target="properties.xml"/></Relationships>`));
   parts.set("metadata/custom.xml", enc(`<Properties xmlns="${cp}" xmlns:v="${vt}"><property fmtid="{D5CDD505-2E9C-101B-9397-08002B2CF9AE}" pid="2" name="Coast"><v:lpwstr>海🌊</v:lpwstr></property></Properties>`));
+  const memory = Volume.fromJSON({ "/input": "", "/output": "" }), context = { ...textContext, encoding: { order: "input", compression: "store" } as const };
+  await api.writeArchive({ comment: new Uint8Array(), members: [...parts].map(([name, bytes]) => ({ name, bytes, directory: false, modified: new Date("1980-01-01T00:00:00Z") })) }, { async write(bytes) { memory.appendFileSync("/input", bytes); } }, context.encoding, context);
+  const input = new Uint8Array(memory.readFileSync("/input") as Buffer);
+  return { input, parts };
+}
+
+const fixtures = new Map<string, Awaited<ReturnType<typeof ancillaryFixture>>>();
+beforeAll(async () => {
+  for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
+  for (const codec of ["utf8", "utf16le", "utf16be"] as const) for (const runtime of ["source", "native"] as const) {
+    const api = runtime === "native" ? native : source as unknown as typeof compiledTypes;
+    fixtures.set(`${strict}:${kind}:${codec}:${runtime}`, await ancillaryFixture(strict, kind, codec, api));
+  }
+});
+
+for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
+for (const codec of ["utf8", "utf16le", "utf16be"] as const)
+for (const runtime of ["source", "native"] as const)
+for (const operation of ["custom-xml.list", "glossary.list", "properties.list", "fonts.list"] as const)
+for (const route of ["sdk", "cli", "sdk-batch", "cli-batch"] as const)
+it(`exact whole-part encoding ancillary resource details; runtime=${runtime}; strict=${strict}; kind=${kind}; codec=${codec}; operation=${operation}; route=${route}`, async () => {
+  const api: typeof compiledTypes = runtime === "native" ? native : source as unknown as typeof compiledTypes;
+  const prepared = fixtures.get(`${strict}:${kind}:${codec}:${runtime}`)!;
+  const input = prepared.input.slice(), parts = prepared.parts;
+  const vt = strict ? "http://purl.oclc.org/ooxml/officeDocument/docPropsVTypes" : "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";
   for (const [name, bytes] of parts) {
     if (codec === "utf16le") expect([...bytes.subarray(0, 2)], name).toEqual([255, 254]);
     else if (codec === "utf16be") expect([...bytes.subarray(0, 2)], name).toEqual([254, 255]);
     else expect(new TextDecoder("utf8", { fatal: true }).decode(bytes), name).toContain("<");
   }
-  const memory = Volume.fromJSON({ "/input": "", "/output": "" }), context = { ...textContext, encoding: { order: "input", compression: "store" } as const };
-  await api.writeArchive({ comment: new Uint8Array(), members: [...parts].map(([name, bytes]) => ({ name, bytes, directory: false, modified: new Date("1980-01-01T00:00:00Z") })) }, { async write(bytes) { memory.appendFileSync("/input", bytes); } }, context.encoding, context);
-  const input = new Uint8Array(memory.readFileSync("/input") as Buffer), batch = { version: 1 as const, operations: [{ operation, arguments: {} }] };
+  const memory = Volume.fromJSON({ "/input": Buffer.from(input), "/output": "" });
+  const context = { ...textContext, encoding: { order: "input", compression: "store" } as const };
+  const batch = { version: 1 as const, operations: [{ operation, arguments: {} }] };
   let data: unknown;
   if (route === "sdk") data = operation === "properties.list" ? await api.inspectDocumentProperties(input, {}, context) : operation === "fonts.list" ? await api.inspectDocumentFonts(input, {}, context) : await api.inspectDocumentPackageResources(input, operation, {}, context);
   else if (route === "sdk-batch") data = (await api.executeDocumentBatch(input, batch, {}, context)).results[0]!.data;

@@ -265,6 +265,20 @@ test("tail preserves explicit shell output admission and finalizes the source", 
   assert.deepEqual(unlimited.stdoutBytes, bytes);
 });
 
+test("tail finalizes retained input without mutating it", async () => {
+  const bytes = Buffer.alloc(64, 65);
+  let finalized = false;
+  const stdin = (async function* () {
+    try { yield bytes; }
+    finally { assert.equal(bytes.every(byte => byte === 65), true); finalized = true; }
+  })();
+  const result = await run("tail", ["-c", String(bytes.length)], { stdin });
+  assert.equal(result.exitCode, 0);
+  assert.deepEqual(result.stdoutBytes, bytes);
+  assert.equal(result.stderr, "");
+  assert.equal(finalized, true);
+});
+
 for (const action of ["accept", "cancel", "reject"] as const) {
   test(`head byte omission awaits sink ${action} before another borrowed read`, { timeout: 10_000 }, async context => {
     const fs = await fixture({ input: "fixture" });

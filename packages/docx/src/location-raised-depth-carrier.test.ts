@@ -7,8 +7,8 @@ import { textFixture, textContext } from "../tests/fixtures/text.js";
 import { nativeRepeatTemplate } from "../tests/native-repeat-template.js";
 import { deepCarrierInput } from "../tests/fixtures/deep-carrier-input.js";
 type CarrierRequest = { strict: boolean; route?: string; action?: string; input: string; limits: typeof textContext.limits };
-const executeCarrier = nativeRepeatTemplate<CarrierRequest>(new URL("../tests/fixtures/deep-carrier-worker.ts", import.meta.url));
-const executeBox = nativeRepeatTemplate<CarrierRequest>(new URL("../tests/fixtures/deep-box-carrier-worker.ts", import.meta.url));
+const executeCarrier = await nativeRepeatTemplate<CarrierRequest>(new URL("../tests/fixtures/deep-carrier-worker.ts", import.meta.url));
+const executeBox = await nativeRepeatTemplate<CarrierRequest>(new URL("../tests/fixtures/deep-box-carrier-worker.ts", import.meta.url));
 
 for (const strict of [false, true]) for (const route of ["sdk", "cli"] as const)
 it(`reads original admitted native carrier paths beyond the default depth; strict=${strict}; route=${route}`, async () => {

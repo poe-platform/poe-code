@@ -9,7 +9,7 @@ import { compiledPublicRuntime } from "../tests/compiled-public-runtime.js";
 const native = (await compiledPublicRuntime) as unknown as typeof compiledTypes;
 import { textContext, textFixture } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
-const executeNative = nativeRepeatTemplate(
+const executeNative = await nativeRepeatTemplate(
   new URL("../tests/fixtures/revision-decision-native.mjs", import.meta.url)
 );
 
@@ -49,7 +49,7 @@ for (const strict of [false, true])
             const fresh = () => ({
               limits,
               signal,
-              budget: new product.DocumentBudget(documentLimits, signal),
+              budget: new product.DocumentBudget(documentLimits, signal, async () => {}),
               encoding: { order: "input", compression: "store" } as const
             });
             const retained =
@@ -253,7 +253,7 @@ for (const strict of [false, true])
                 const fresh = () => ({
                   limits,
                   signal: controller.signal,
-                  budget: new product.DocumentBudget(documentLimits, controller.signal),
+                  budget: new product.DocumentBudget(documentLimits, controller.signal, async () => {}),
                   encoding: { order: "input", compression: "store" } as const
                 });
                 if (check === "xml") {
@@ -264,7 +264,7 @@ for (const strict of [false, true])
                   const parsed = await product.parseDocumentXmlAsync(
                     xml,
                     { maxDepth: 16384 },
-                    new product.DocumentBudget(documentLimits, controller.signal)
+                    new product.DocumentBudget(documentLimits, controller.signal, async () => {})
                   );
                   expect(parsed.root.children[0]!.children[0]!.children[0]!.localName).toBe("pPr");
                   const decoded =

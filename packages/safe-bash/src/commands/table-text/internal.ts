@@ -38,13 +38,13 @@ export class OrderCheck {
   failed = false;
   private warned = new Set<number>();
   constructor(readonly mode: OrderMode, readonly context: CommandContext) {}
-  async check(previous: Uint8Array | undefined, next: Uint8Array | undefined, file: number, fold = false): Promise<void> {
+  check(previous: Uint8Array | undefined, next: Uint8Array | undefined, file: number, fold = false): void | Promise<void> {
     if (this.mode === "none" || (this.mode === "default" && !this.unpaired) || this.warned.has(file)) return;
     if (previous && next && compare(previous, next, fold) > 0) {
       const message = `file ${file} is not in sorted order`;
       if (this.mode === "check") fail(message);
       this.warned.add(file); this.failed = true;
-      await diagnostic(this.context, new PublicDiagnostic(message));
+      return diagnostic(this.context, new PublicDiagnostic(message));
     }
   }
   async finish(): Promise<void> {

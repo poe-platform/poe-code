@@ -57,6 +57,9 @@ export const documentLimitDefaults = Object.freeze({
 });
 export type DocumentLimitName = keyof typeof documentLimitDefaults;
 export type DocumentLimits = Readonly<Record<DocumentLimitName, number>>;
+const limitNames = Object.keys(documentLimitDefaults) as DocumentLimitName[];
+const limitIndices = new Map(limitNames.map((name, index) => [name, index]));
+
 const perDocument = new Set<DocumentLimitName>(["compressedInput", "expandedPackage", "zipEntries"]);
 const zeroCapacity = new Set<DocumentLimitName>(["embeddedMediaBytes", "batchOperations", "matches", "insertedNodes"]);
 
@@ -83,14 +86,16 @@ export class DocumentBudget {
   readonly limits: DocumentLimits;
   readonly signal: AbortSignal;
   readonly #turn: (signal: AbortSignal) => Promise<void>;
-  #ledger: Partial<Record<DocumentLimitName, number>> = {};
-  #document: Partial<Record<DocumentLimitName, number>> = {};
+  readonly #ceilings: Float64Array;
+  #ledger = new Float64Array(limitNames.length);
+  #document = new Float64Array(limitNames.length);
   #cooperation = { work: 0 };
   #xmlCache: InvocationXmlCache = {};
 
   constructor(host: Partial<DocumentLimits> = {}, signal = new AbortController().signal,
     yieldTurn: (signal: AbortSignal) => Promise<void> = yieldEventLoop) {
     this.limits = settings(host, documentLimitDefaults);
+    this.#ceilings = Float64Array.from(limitNames, name => this.limits[name]);
     if (!(signal instanceof AbortSignal) || typeof yieldTurn !== "function")
       throw new InvalidValueError("Expected a cancellation signal and cooperative scheduler.");
     this.signal = signal;
@@ -104,7 +109,7 @@ export class DocumentBudget {
 
   get usage(): DocumentLimits {
     const usage: Record<DocumentLimitName, number> = { ...documentLimitDefaults };
-    for (const key of Object.keys(usage) as DocumentLimitName[]) usage[key] = this.#ledger[key] ?? 0;
+    for (let index = 0; index < limitNames.length; index++) usage[limitNames[index]!] = this.#ledger[index]!;
     return Object.freeze(usage);
   }
 
@@ -120,25 +125,27 @@ export class DocumentBudget {
 
   document(): DocumentBudget {
     const next = this.lower({});
-    next.#document = {};
+    next.#document = new Float64Array(limitNames.length);
     return next;
   }
 
   check(name: DocumentLimitName, amount: number): void {
     if (this.signal.aborted) throw new CancellationError("Document operation cancelled.");
-    if (!Object.hasOwn(this.limits, name) || !Number.isSafeInteger(amount) || amount < 0)
+    const index = limitIndices.get(name);
+    if (index === undefined || !Number.isSafeInteger(amount) || amount < 0)
       throw new InvalidValueError("Expected a nonnegative safe resource count.");
-    if (amount > this.limits[name]) throw new ResourceLimitError(`Document ${name} limit exceeded.`);
+    if (amount > this.#ceilings[index]!) throw new ResourceLimitError(`Document ${name} limit exceeded.`);
   }
 
   charge(name: DocumentLimitName, amount: number): void {
     this.check(name, amount);
+    const index = limitIndices.get(name)!;
     const ledger = perDocument.has(name) ? this.#document : this.#ledger;
-    const used = ledger[name] ?? 0;
-    if (amount > this.limits[name] - used || amount > Number.MAX_SAFE_INTEGER - (this.#ledger[name] ?? 0))
+    const used = ledger[index]!;
+    if (amount > this.#ceilings[index]! - used || amount > Number.MAX_SAFE_INTEGER - this.#ledger[index]!)
       throw new ResourceLimitError(`Document ${name} limit exceeded.`);
-    if (ledger !== this.#ledger) ledger[name] = used + amount;
-    this.#ledger[name] = (this.#ledger[name] ?? 0) + amount;
+    if (ledger !== this.#ledger) ledger[index] = used + amount;
+    this.#ledger[index] = this.#ledger[index]! + amount;
   }
 
   table(rows: number, columns: number): void {

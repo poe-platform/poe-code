@@ -2,7 +2,7 @@ import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { createInterface } from "node:readline";
 import assert from "node:assert/strict";
 import { Volume } from "memfs";
-import { afterAll, afterEach, beforeAll, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import * as api from "./index.js";
 import { textContext, textFixture, w } from "../tests/fixtures/text.js";
 
@@ -37,24 +37,31 @@ afterAll(async () => {
 });
 
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
-for (const count of [1024, 131072]) for (const route of ["model", "sdk", "cli"] as const)
-it(`native comment range physical fanout reaches atomic opaque refusal; strict=${strict}; kind=${kind}; count=${count}; route=${route}`, async () => {
-  const seed = await api.readArchive(await textFixture("<w:p/>", {}, strict, { kind }), textContext);
-  const word = strict ? "http://purl.oclc.org/ooxml/wordprocessingml/main" : w;
-  const document = `<w:document xmlns:w="${word}" xmlns:o="urn:original:fanout" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="o"><w:body><w:p><w:r><w:rPr><w:i/>${"<o:leaf/>".repeat(count)}</w:rPr><w:t>Coastal anchor</w:t></w:r></w:p></w:body></w:document>`;
-  const limits = { ...textContext.limits, maxArchiveBytes: 4194304, maxEntryBytes: 2097152, maxTotalBytes: 4194304, maxRetainedBytes: 2147483648 };
-  const memory = Volume.fromJSON({ "/input": "" });
-  await api.writeArchive({ ...seed, members: seed.members.map(member => member.name === "word/document.xml" ? { ...member, bytes: new TextEncoder().encode(document) } : member) }, { async write(bytes) { memory.appendFileSync("/input", bytes); } }, { order: "input", compression: "store" }, { ...textContext, limits });
-  const input = new Uint8Array(memory.readFileSync("/input") as Buffer);
-  requestPending = true;
-  await new Promise<void>((resolve, reject) => {
-    child.stdin.write(JSON.stringify({ input: Buffer.from(input).toString("base64"), limits, route }) + "\n", error => error ? reject(error) : resolve());
+for (const count of [1024, 131072]) describe(`native comment range fanout fixture; strict=${strict}; kind=${kind}; count=${count}`, () => {
+  let input: Uint8Array;
+  let limits: typeof textContext.limits;
+  beforeAll(async () => {
+    const seed = await api.readArchive(await textFixture("<w:p/>", {}, strict, { kind }), textContext);
+    const word = strict ? "http://purl.oclc.org/ooxml/wordprocessingml/main" : w;
+    const document = `<w:document xmlns:w="${word}" xmlns:o="urn:original:fanout" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="o"><w:body><w:p><w:r><w:rPr><w:i/>${"<o:leaf/>".repeat(count)}</w:rPr><w:t>Coastal anchor</w:t></w:r></w:p></w:body></w:document>`;
+    limits = { ...textContext.limits, maxArchiveBytes: 4194304, maxEntryBytes: 2097152, maxTotalBytes: 4194304, maxRetainedBytes: 2147483648 };
+    const memory = Volume.fromJSON({ "/input": "" });
+    await api.writeArchive({ ...seed, members: seed.members.map(member => member.name === "word/document.xml" ? { ...member, bytes: new TextEncoder().encode(document) } : member) }, { async write(bytes) { memory.appendFileSync("/input", bytes); } }, { order: "input", compression: "store" }, { ...textContext, limits });
+    input = new Uint8Array(memory.readFileSync("/input") as Buffer);
   });
-  const reply = await replies.next();
-  requestPending = false;
-  assert.equal(reply.done, false, stderr);
-  const result = reply.value;
-  const response = JSON.parse(result) as { ok: boolean; stack?: string; error?: string };
-  expect(response, response.stack ?? response.error).toMatchObject({ ok: true, code: "unsupported-edit", sourceRetained: true, outputBytes: 0 });
-  assert.deepEqual(new Uint8Array(memory.readFileSync("/input") as Buffer), input);
+  for (const route of ["model", "sdk", "cli"] as const)
+  it(`native comment range physical fanout reaches atomic opaque refusal; strict=${strict}; kind=${kind}; count=${count}; route=${route}`, async () => {
+    const original = input.slice();
+    requestPending = true;
+    await new Promise<void>((resolve, reject) => {
+      child.stdin.write(JSON.stringify({ input: Buffer.from(input).toString("base64"), limits, route }) + "\n", error => error ? reject(error) : resolve());
+    });
+    const reply = await replies.next();
+    requestPending = false;
+    assert.equal(reply.done, false, stderr);
+    const result = reply.value;
+    const response = JSON.parse(result) as { ok: boolean; stack?: string; error?: string };
+    expect(response, response.stack ?? response.error).toMatchObject({ ok: true, code: "unsupported-edit", sourceRetained: true, outputBytes: 0 });
+    assert.deepEqual(input, original);
+  });
 });

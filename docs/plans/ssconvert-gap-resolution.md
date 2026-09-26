@@ -376,10 +376,18 @@ indices; `INDEX` also swaps its column/row operands. Nine original regressions
 failed; all 239 Lotus checks, package lint/types/build and compiled command
 XLSX/SDK readback pass. Three profiles preserve results 10/20/20 and translated
 formulas with empty stderr and 4,147–4,159-byte outputs. See
-`reference.lotusLookupSemantics`. The next source-backed task is the 23 missing
-named aliases in LibreOffice's `lcl_KnownAddIn`, including the optional third
-rounding argument. Other arities, dynamic/relative-sheet identity, range flag
+`reference.lotusLookupSemantics`. Other arities, dynamic/relative-sheet identity, range flag
 packing and independent application qualification remain open.
+
+The 23 missing aliases from LibreOffice's `lcl_KnownAddIn` now resolve, covering
+all 47 names recognized by that source table. These are named-only additions;
+ROUNDUP/ROUNDDOWN also discard the optional third operand. All 23 original
+regressions failed; all 262 Lotus checks and package lint/types/build pass.
+Compiled command XLSX and SDK readback retain the 23 scalar/range/statistical
+results within 1e-12, with empty stderr and a 4,588-byte output from 1,229 bytes.
+See `reference.lotusNamedAddinAudit`. Wider domains, vendor add-ins, Works and
+independent application qualification remain open; this is name-table coverage,
+not full native compatibility.
 
 Native format qualification uses the authenticated Gnumeric 1.12.61 source with GLib 2.90.0, goffice 0.10.62, GTK 3.24.52 and libgsf 1.14.59 on macOS arm64; it is distinct from the Linux numeric profile. Source-derived GSettings schemas correct a failed Homebrew library-discovery probe without modifying native source. A disposable public-API driver supplies test passwords through stdin, recalculates both sheets and saves Gnumeric XML. Three plaintext controls, 12 XOR exports (BIFF7/8 and DSF primary streams; 1/8/14/15-byte passwords) and four standard-RC4 exports (empty, ASCII, Unicode and 15 UTF-16 units) preserve all expected cells, including 10,800/16,200-character strings, formulas, booleans and errors. Both formulas recalculate to 42; 13 applicable wrong-password controls refuse with no output. Gnumeric refuses all 12 CryptoAPI profiles and the tested standard-RC4 lengths 16/27/28/31/32/255; its source's one-byte password-bit-length field explains the 15/16 boundary. These native limits do not narrow product support. The ledger binds executable/library/driver hashes and the 37-input aggregate (sorted basename, NUL, binary SHA-256 digest). Other native applications, platforms, ancillary streams and optional-language profiles remain open.
 

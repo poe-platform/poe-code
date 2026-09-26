@@ -257,6 +257,9 @@ async function lotusFormula(bytes: Uint8Array, version: number, group: number, r
             break;
           case "STRING": operands.push("TRUE()"); break;
           case "YEAR": subtract = 1900; break;
+          case "ROUNDUP": case "ROUNDDOWN":
+            if (operands.length === 3) operands.pop();
+            break;
           case "PMT": case "PV": case "FV":
             operands.push(`-(${operands.shift()!})`);
             break;

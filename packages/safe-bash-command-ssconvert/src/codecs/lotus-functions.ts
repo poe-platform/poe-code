@@ -1188,5 +1188,18 @@ const definitions: readonly (readonly [number, number, string, string | null, st
 
 export const lotusFunctions = Object.fromEntries(definitions.map(([ordinal, args, name, gnumeric, handler]) =>
   [ordinal, [args, name, gnumeric, handler] as const]));
-export const lotusFunctionsByName = Object.fromEntries(definitions.map(([, args, name, gnumeric, handler]) =>
-  [name, [args, name, gnumeric, handler] as const]));
+// LibreOffice sc/source/filter/lotus/lotform.cxx, lcl_KnownAddIn.
+// These named additions have no inferred numeric opcode.
+const additionalNamedFunctions = [
+  "ACOT", "COT", "TRUNC", "CORREL", "MEDIAN", ["COV", "COVAR"],
+  "CHITEST", "FTEST", "PRODUCT", "PERMUT", "POISSON", ["NORMAL", "NORMDIST"],
+  ["CRITBINOMIAL", "CRITBINOM"], "SUMIF", "COUNTIF", "CSC", "CSCH", "LARGE", "SMALL",
+  ["MODULO", "MOD"], "ROUNDDOWN", "ROUNDUP", "SEC"
+] as const;
+export const lotusFunctionsByName = Object.fromEntries([
+  ...definitions.map(([, args, name, gnumeric, handler]) => [name, [args, name, gnumeric, handler] as const]),
+  ...additionalNamedFunctions.map(entry => {
+    const [name, target] = typeof entry === "string" ? [entry, entry] as const : entry;
+    return [name, [-1, name, target, "wk1_std_func"] as const];
+  })
+]);

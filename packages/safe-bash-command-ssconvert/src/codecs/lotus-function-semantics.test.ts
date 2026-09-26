@@ -65,6 +65,47 @@ for (const [version, named] of [[0x404, false], [0x1000, false], [0x1002, true]]
   });
 }
 
+const x = { column: 0 }, y = { column: 1 };
+it.each([
+  { name: "ACOT", args: [1], formula: "=ACOT(1)", value: Math.PI / 4 },
+  { name: "COT", args: [1], formula: "=COT(1)", value: 1 / Math.tan(1) },
+  { name: "TRUNC", args: [123, -1], formula: "=TRUNC(123,-1)", value: 120 },
+  { name: "CORREL", args: [x, y], formula: "=CORREL($A$2:$A$4,$B$2:$B$4)", value: 1 },
+  { name: "MEDIAN", args: [x], formula: "=MEDIAN($A$2:$A$4)", value: 2 },
+  { name: "COV", args: [x, y], formula: "=COVAR($A$2:$A$4,$B$2:$B$4)", value: 4 / 3 },
+  { name: "CHITEST", args: [x, y], formula: "=CHITEST($A$2:$A$4,$B$2:$B$4)", value: Math.exp(-1.5) },
+  { name: "FTEST", args: [x, y], formula: "=FTEST($A$2:$A$4,$B$2:$B$4)", value: 0.4 },
+  { name: "PRODUCT", args: [x], formula: "=PRODUCT($A$2:$A$4)", value: 6 },
+  { name: "PERMUT", args: [5, 2], formula: "=PERMUT(5,2)", value: 20 },
+  { name: "POISSON", args: [0, 1, 1], formula: "=POISSON(0,1,1)", value: Math.exp(-1) },
+  { name: "NORMAL", args: [0, 0, 1, 1], formula: "=NORMDIST(0,0,1,1)", value: 0.5 },
+  { name: "CRITBINOMIAL", args: [2, 1, 1], formula: "=CRITBINOM(2,1,1)", value: 2 },
+  { name: "SUMIF", args: [x, ">1", y], formula: '=SUMIF($A$2:$A$4,">1",$B$2:$B$4)', value: 10 },
+  { name: "COUNTIF", args: [x, ">1"], formula: '=COUNTIF($A$2:$A$4,">1")', value: 2 },
+  { name: "CSC", args: [1], formula: "=CSC(1)", value: 1 / Math.sin(1) },
+  { name: "CSCH", args: [1], formula: "=CSCH(1)", value: 1 / Math.sinh(1) },
+  { name: "LARGE", args: [x, 2], formula: "=LARGE($A$2:$A$4,2)", value: 2 },
+  { name: "SMALL", args: [x, 2], formula: "=SMALL($A$2:$A$4,2)", value: 2 },
+  { name: "MODULO", args: [5, 2], formula: "=MOD(5,2)", value: 1 },
+  { name: "ROUNDDOWN", args: [123, -1, 0], formula: "=ROUNDDOWN(123,-1)", value: 120 },
+  { name: "ROUNDUP", args: [123, -1, 0], formula: "=ROUNDUP(123,-1)", value: 130 },
+  { name: "SEC", args: [0], formula: "=SEC(0)", value: 1 },
+])("imports LibreOffice-recognized named Lotus $name", async item => {
+  // Independent scalar/range outcomes cover the aliases absent from Gnumeric's table.
+  const tokens = item.args.flatMap(arg => typeof arg === "number" ? [5, ...word(arg * 2)]
+    : typeof arg === "string" ? [6, ...Array.from(arg, c => c.charCodeAt(0)), 0]
+    : [2, 0, ...word(1), 0, arg.column, ...word(3), 0, arg.column]);
+  const name = Array.from(`@<<@123>>${item.name}(`, c => c.charCodeAt(0));
+  tokens.push(0x7a, item.args.length, ...word(name.length), ...name, 3);
+  const initial = formulaFixture(0x1002, tokens);
+  const cells = [1, 2, 3].flatMap(row => [0, 1].flatMap(col => record(24,
+    [...word(row), 0, col, ...word(row * (col + 1) * 2)])));
+  const book = await readLotus(Uint8Array.from([...initial.subarray(0, -4), ...cells, ...record(1)]), context);
+  expect(book.sheets[0]!.cells[0]!.formula).toBe(item.formula);
+  expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value)
+    .toEqual({ kind: "number", value: expect.closeTo(item.value, 12) });
+});
+
 it.each([false, true])("imports Lotus IRR guess/range order (named %s)", async named => {
   const name = Array.from("@<<@123>>IRR(", c => c.charCodeAt(0));
   const tokens = [5, ...word(2), 2, 0, ...word(1), 0, 0, ...word(2), 0, 0,

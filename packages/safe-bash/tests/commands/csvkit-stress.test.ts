@@ -995,28 +995,38 @@ test("csvjson nonstream serialization awaits backpressure at each byte sink writ
   let release!: () => void;
   const barrier = new Promise<void>(resolve => { release = resolve; });
   const seen: Uint8Array[] = [];
+  const value = "x".repeat(20000);
+  const expected = `[{"a": "${value}"}, {"a": "${value}"}, {"a": "last"}]`;
+  let execution: ReturnType<typeof shell.exec> | undefined;
   try {
-    const execution = shell.exec("csvjson -I -y0", { stdin: "a,b\nx,NULL\ny,z\n", stdout: { write: async bytes => {
+    execution = shell.exec("csvjson -I -y0", { stdin: `a\n${value}\n${value}\nlast\n`, stdout: { write: async bytes => {
       seen.push(Uint8Array.from(bytes)); writes++;
       if (writes === 1) { started(); await barrier; }
     } } });
     await admitted;
+    await new Promise<void>(resolve => setImmediate(resolve));
     assert.equal(writes, 1);
-    assert.equal(new TextDecoder().decode(seen[0]), "[");
+    const prefix = new TextDecoder().decode(seen[0]);
+    assert.ok(prefix.length > 0 && prefix.length < expected.length);
+    assert.ok(expected.startsWith(prefix));
     release();
     const result = await execution;
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stderr, "");
-    assert.equal(seen.map(bytes => new TextDecoder().decode(bytes)).join(""), '[{"a": "x", "b": null}, {"a": "y", "b": "z"}]');
-  } finally { release(); await shell.dispose(); }
+    assert.ok(writes > 1);
+    assert.equal(seen.map(bytes => new TextDecoder().decode(bytes)).join(""), expected);
+  } finally { release(); await execution; await shell.dispose(); }
 });
 
-test("csvjson nonstream output refusal keeps admitted punctuation within the byte budget", async () => {
-  const shell = new Shell({ fs: new MemoryFileSystem() }).use(csvkitCommands({ ...options, limits: { maxOutputBytes: 3 } }));
+for (const maxOutputBytes of [3, 40024]) test(`csvjson nonstream output refusal keeps admitted batches within byte budget ${maxOutputBytes}`, async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(csvkitCommands({ ...options, limits: { maxOutputBytes } }));
+  const value = "x".repeat(20000);
+  const prefix = `[{"a": "${value}"}, {"a": "${value}"}`;
   try {
-    const result = await shell.exec("csvjson -I -y0", { stdin: "a\nx\n" });
+    const result = await shell.exec("csvjson -I -y0", { stdin: `a\n${value}\n${value}\nlast\n` });
     assert.equal(result.exitCode, 78);
-    assert.equal(result.stdout, "[{");
+    assert.equal(result.stdout, maxOutputBytes === 3 ? "" : prefix);
+    assert.ok(Buffer.byteLength(result.stdout) <= maxOutputBytes);
     assert.equal(result.stderr, "");
   } finally { await shell.dispose(); }
 });

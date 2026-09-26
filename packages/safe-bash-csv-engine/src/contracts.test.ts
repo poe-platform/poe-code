@@ -76,8 +76,10 @@ test("empty pure operations still enforce cancellation and invocation lifetime",
 });
 
 test("invalid resource limits and charges return structured argument errors", () => {
-  for (const value of [-1, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+  for (const value of [-1, 0.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1]) {
     assert.throws(() => new CsvBudget({ inputBytes: value }, new AbortController().signal), { code: "ARGUMENT" });
+  }
+  for (const value of [-1, 0.5, NaN, Infinity, -Infinity, Number.MAX_SAFE_INTEGER + 1]) {
     const b = budget();
     assert.throws(() => b.charge("inputBytes", value), { code: "ARGUMENT" });
     assert.equal(b.accounting.inputBytes, 0);

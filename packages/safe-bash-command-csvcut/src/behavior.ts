@@ -25,6 +25,7 @@ const kindOf = Object.getOwnPropertyDescriptor(bytePrototype, Symbol.toStringTag
 const extent = Object.getOwnPropertyDescriptor(bytePrototype, "byteLength")!.get!;
 const bufferOf = Object.getOwnPropertyDescriptor(bytePrototype, "buffer")!.get!;
 const offsetOf = Object.getOwnPropertyDescriptor(bytePrototype, "byteOffset")!.get!;
+const sharedEncoder = new TextEncoder();
 
 async function finishInput(retire: () => Promise<void>, failed: boolean): Promise<void> {
   try { await retire(); }
@@ -67,13 +68,19 @@ export function cutCsv(
       const encode = (text: string): Uint8Array => {
         b.charge("work", text.length);
         let length = 0;
-        for (const char of text) {
-          const code = char.codePointAt(0)!;
-          length += code <= 0x7f ? 1 : code <= 0x7ff ? 2 : code <= 0xffff ? 3 : 4;
+        for (let i = 0; i < text.length; i++) {
+          const code = text.charCodeAt(i);
+          if (code <= 0x7f) length += 1;
+          else if (code <= 0x7ff) length += 2;
+          else if (code >= 0xd800 && code <= 0xdbff && i + 1 < text.length) {
+            const low = text.charCodeAt(i + 1);
+            if (low >= 0xdc00 && low <= 0xdfff) { length += 4; i++; }
+            else length += 3;
+          } else length += 3;
         }
         b.charge("outputBytes", length);
         b.charge("retainedBytes", length + 32);
-        return new TextEncoder().encode(text);
+        return sharedEncoder.encode(text);
       };
       for (const value of [...Object.values(supplied), ...Object.values(supplied.dialect)]) {
         if (typeof value !== "string") continue;

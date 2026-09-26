@@ -213,4 +213,16 @@ test("differential oracle parity: safe-bash fold and diff3 vs host /usr/bin/fold
   const fmtRes = await shell.exec("fmt -w 60 /fmt-input.txt | wc -l");
   assert.equal(fmtRes.exitCode, 0, fmtRes.stderr);
   assert.ok(Number(fmtRes.stdout.trim()) > 900);
+
+  // High-throughput 5,000-row csvcut + csvgrep pipeline stress test
+  const csvRows = ["id,name,department,salary,notes"];
+  for (let i = 1; i <= 5000; i++) {
+    csvRows.push(`${i},"User, #${i}",dept_${i % 10},${50000 + i},"Note ${i}"`);
+  }
+  await fs.writeFile("/employees.csv", enc.encode(csvRows.join("\n") + "\n"));
+  const csvRes = await shell.exec(
+    "csvgrep -c department -r \"^dept_[246]$\" /employees.csv | csvcut -c name,salary,1 | wc -l"
+  );
+  assert.equal(csvRes.exitCode, 0, csvRes.stderr);
+  assert.equal(csvRes.stdout.trim(), "1501");
 });

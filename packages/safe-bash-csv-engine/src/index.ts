@@ -37,6 +37,8 @@ export const defaultCsvLimits: Readonly<CsvLimits> = Object.freeze({
 });
 export class CsvBudget {
   private disposed = false;
+  private aborted = false;
+  private readonly pollSignal: boolean;
   readonly limits: Readonly<CsvLimits>;
   private readonly usage = {
     inputBytes: 0,
@@ -64,10 +66,46 @@ export class CsvBudget {
     for (const value of Object.values(this.limits))
       if (value !== Infinity && (!Number.isSafeInteger(value) || value < 0))
         throw new CsvError("ARGUMENT", "CSV limits must be nonnegative safe integers");
+    this.aborted = signal.aborted;
+    if (typeof signal.addEventListener === "function") {
+      this.pollSignal = false;
+      if (!this.aborted) {
+        signal.addEventListener("abort", () => { this.aborted = true; }, { once: true });
+      }
+    } else {
+      this.pollSignal = true;
+    }
+  }
+  chargeWorkAndRetained(workAmount: number, retainedAmount: number): void {
+    if (this.disposed) throw new CsvError("INPUT", "CSV budget is disposed");
+    if (this.aborted || (this.pollSignal && this.signal.aborted))
+      this.signal.throwIfAborted();
+    if (workAmount > this.limits.work - this.usage.work)
+      throw new CsvError("LIMIT", "work limit exceeded");
+    this.usage.work += workAmount;
+    if (retainedAmount > this.limits.retainedBytes - this.usage.retainedBytes)
+      throw new CsvError("LIMIT", "retainedBytes limit exceeded");
+    this.usage.retainedBytes += retainedAmount;
+    if (this.usage.retainedBytes > this.usage.peakRetainedBytes)
+      this.usage.peakRetainedBytes = this.usage.retainedBytes;
+  }
+  chargeAppend(newFieldLen: number): void {
+    if (this.disposed) throw new CsvError("INPUT", "CSV budget is disposed");
+    if (this.aborted || (this.pollSignal && this.signal.aborted))
+      this.signal.throwIfAborted();
+    const bytes = newFieldLen * 2;
+    if (bytes > this.limits.fieldBytes) throw new CsvError("LIMIT", "Field byte limit exceeded");
+    if (newFieldLen > this.limits.work - this.usage.work) throw new CsvError("LIMIT", "work limit exceeded");
+    this.usage.work += newFieldLen;
+    if (bytes > this.limits.retainedBytes - this.usage.retainedBytes) throw new CsvError("LIMIT", "retainedBytes limit exceeded");
+    this.usage.retainedBytes += bytes;
+    if (this.usage.retainedBytes > this.usage.peakRetainedBytes)
+      this.usage.peakRetainedBytes = this.usage.retainedBytes;
   }
   charge(key: keyof CsvLimits, amount: number): void {
     if (this.disposed) throw new CsvError("INPUT", "CSV budget is disposed");
-    this.signal.throwIfAborted();
+    if (this.aborted || (this.pollSignal && this.signal.aborted))
+      this.signal.throwIfAborted();
     if (!Number.isSafeInteger(amount) || amount < 0)
       throw new CsvError("ARGUMENT", "Invalid resource charge");
     if (key === "fieldBytes") {
@@ -206,9 +244,7 @@ export class CsvParser {
     this.active = false;
   }
   private append(char: string): void {
-    this.budget.charge("fieldBytes", (this.field.length + char.length) * 2);
-    this.budget.charge("work", this.field.length + char.length);
-    this.budget.charge("retainedBytes", (this.field.length + char.length) * 2);
+    this.budget.chargeAppend(this.field.length + char.length);
     this.field += char;
   }
   private finishField(): void {
@@ -227,8 +263,15 @@ export class CsvParser {
   }
   private consume(text: string): CsvRow[] {
     const rows: CsvRow[] = [];
-    for (const char of text) {
-      this.budget.charge("work", 1);
+    for (let idx = 0; idx < text.length; idx++) {
+      const code = text.charCodeAt(idx);
+      let char: string;
+      if (code >= 0xd800 && code <= 0xdbff && idx + 1 < text.length) {
+        const low = text.charCodeAt(idx + 1);
+        if (low >= 0xdc00 && low <= 0xdfff) { char = text.slice(idx, idx + 2); idx++; }
+        else char = text[idx]!;
+      } else char = text[idx]!;
+      this.budget.chargeWorkAndRetained(1, 0);
       if (char === "\0" && this.dialect.profile === "utf8-sig-strict-v1")
         throw new CsvError("INPUT", "NUL is unsupported by strict-v1");
       const newline = char === "\r" || char === "\n",
@@ -408,15 +451,31 @@ export function resolveColumns(selection: CsvSelection, headers: readonly string
 export function serializeRow(cells: readonly string[], budget: CsvBudget): string {
   let result = "";
   for (let i = 0; i < cells.length; i++) {
+    const raw = cells[i]!;
     let field = "",
+      quoted = false,
+      simple = true;
+    for (let k = 0; k < raw.length; k++) {
+      const c = raw.charCodeAt(k);
+      if (c === 13 || c === 34 || (c >= 0xd800 && c <= 0xdfff)) { simple = false; break; }
+      if (c === 44 || c === 10) quoted = true;
+    }
+    if (simple) {
+      const n = raw.length;
+      if (n > 0) {
+        budget.chargeWorkAndRetained((n * (n + 1)) / 2, n * (n + 1));
+      }
+      field = raw;
+    } else {
       quoted = false;
-    for (const original of cells[i]!) {
-      budget.charge("work", field.length + 1);
-      const char = original === "\r" ? "\n" : original;
-      if (char === "," || char === '"' || char === "\n") quoted = true;
-      const addition = char === '"' ? '""' : char;
-      budget.charge("retainedBytes", (field.length + addition.length) * 2);
-      field += addition;
+      for (const original of raw) {
+        budget.charge("work", field.length + 1);
+        const char = original === "\r" ? "\n" : original;
+        if (char === "," || char === '"' || char === "\n") quoted = true;
+        const addition = char === '"' ? '""' : char;
+        budget.charge("retainedBytes", (field.length + addition.length) * 2);
+        field += addition;
+      }
     }
     if (cells.length === 1 && field === "") quoted = true;
     const addition = (i ? "," : "") + (quoted ? '"' + field + '"' : field);

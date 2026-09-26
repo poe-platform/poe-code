@@ -99,6 +99,7 @@ const DUMMY_POOL_LEDGER = new MemoryLedger(normalizeMemoryFileSystemLimits({}));
 const DUMMY_POOL_ALLOCATION = new MemoryAllocation(EMPTY_ALLOC_BYTES, DUMMY_POOL_LEDGER);
 const DUMMY_POOL_FILE_NODE = new MemoryFileNode(0, 0, null as unknown as number, 0, DUMMY_POOL_ALLOCATION, DUMMY_POOL_ALLOCATION.data);
 DUMMY_POOL_FILE_NODE.atimeMs = DUMMY_POOL_FILE_NODE.mtimeMs = DUMMY_POOL_FILE_NODE.ctimeMs = DUMMY_POOL_FILE_NODE.birthtimeMs = 1700000000000;
+const defaultDateNow = Date.now;
 let fastWriteCachedNow: number = Date.now();
 let fastWriteNowTick = 0;
 
@@ -1247,7 +1248,7 @@ export class MemoryFileSystem implements FileSystem {
     this.ledger.fileSize(length, syscall, path);
     this.ledger.reserve(length, 0, syscall, path);
     if (length === 0) {
-      return new MemoryAllocation(EMPTY_ALLOC_BYTES, this.ledger);
+      return DUMMY_POOL_ALLOCATION;
     }
     if (length === 64) {
       let pooled: MemoryAllocation | undefined;
@@ -1410,11 +1411,15 @@ export class MemoryFileSystem implements FileSystem {
   }
 
   private writeAt(node: FileNode, data: Uint8Array, position: number, syscall: string, path: string): void {
-    if (data.byteLength === 0) {
-      this.changed(node);
+    this.writeAtRange(node, data, data.byteLength, position, syscall, path, Date.now());
+  }
+
+  private writeAtRange(node: FileNode, data: Uint8Array, dataLen: number, position: number, syscall: string, path: string, now: number): void {
+    if (dataLen === 0) {
+      this.changed(node, now);
       return;
     }
-    const end = position + data.byteLength;
+    const end = position + dataLen;
     this.ledger.fileSize(end, syscall, path);
     const curLen = node.byteLength;
     const length = Math.max(curLen, end);
@@ -1434,9 +1439,15 @@ export class MemoryFileSystem implements FileSystem {
     }
     try {
       const storage = allocation.data;
-      if (allocation !== node.allocation) storage.set(node.view ?? (curLen === node.allocation.data.byteLength ? node.allocation.data : node.allocation.data.subarray(0, curLen)));
+      if (allocation !== node.allocation && curLen > 0) {
+        Buffer.prototype.copy.call(node.allocation.data, storage, 0, 0, curLen);
+      }
       if (position > curLen) storage.fill(0, curLen, position);
-      storage.set(data, position);
+      if (dataLen === data.byteLength) {
+        storage.set(data, position);
+      } else {
+        Buffer.prototype.copy.call(data, storage, position, 0, dataLen);
+      }
     } catch (error) {
       if (allocation !== node.allocation) allocation.release();
       throw error;
@@ -1447,7 +1458,7 @@ export class MemoryFileSystem implements FileSystem {
       node.byteLength = length;
       node.view = length === allocation.data.byteLength ? allocation.data : undefined;
     }
-    this.changed(node);
+    this.changed(node, now);
   }
 
   writeMemoryFileFast(path: string, data: Uint8Array, append: boolean, mode: number): void {
@@ -2661,10 +2672,10 @@ const openRedirectFastMethodNames = [
 ] as const;
 
 export class MemoryRedirectHandle {
-  declare readonly fs: MemoryFileSystem;
-  declare readonly path: string;
-  declare readonly node: FileNode;
-  declare readonly append: boolean;
+  declare fs: MemoryFileSystem;
+  declare path: string;
+  declare node: FileNode;
+  declare append: boolean;
   declare position: number;
   declare closed: boolean;
 
@@ -2677,27 +2688,53 @@ export class MemoryRedirectHandle {
     this.closed = false;
   }
 
-  writeSync(chunk: Uint8Array, signal?: AbortSignal): void {
+  reset(fs: MemoryFileSystem, path: string, node: FileNode, append: boolean): void {
+    this.fs = fs;
+    this.path = path;
+    this.node = node;
+    this.append = append;
+    this.position = 0;
+    this.closed = false;
+  }
+
+  writeRangeSync(src: Uint8Array, len: number, signal?: AbortSignal): void {
     signal?.throwIfAborted();
     if (this.closed) throw new FsError("EBADF", { syscall: "write", path: this.path });
-    if (chunk.byteLength === 0) return;
+    if (len === 0) return;
     const pos = this.append ? this.node.byteLength : this.position;
-    (this.fs as unknown as { writeAt: (n: FileNode, d: Uint8Array, p: number, s: string, pt: string) => void }).writeAt(
+    const now = Date.now === defaultDateNow ? fastWriteCachedNow : Date.now();
+    (this.fs as unknown as { writeAtRange: (n: FileNode, d: Uint8Array, l: number, p: number, s: string, pt: string, nw: number) => void }).writeAtRange(
       this.node,
-      chunk,
+      src,
+      len,
       pos,
       "write",
       this.path,
+      now,
     );
-    if (!this.append) this.position = pos + chunk.byteLength;
+    if (!this.append) this.position = pos + len;
+  }
+
+  writeSync(chunk: Uint8Array, signal?: AbortSignal): void {
+    this.writeRangeSync(chunk, chunk.byteLength, signal);
   }
 
   close(): void {
     if (this.closed) return;
     this.closed = true;
-    (this.fs as unknown as { releaseReference: (n: MemoryNode, p: string) => void }).releaseReference(this.node, this.path);
+    const fs = this.fs;
+    const node = this.node;
+    const path = this.path;
+    this.fs = undefined!;
+    this.node = DUMMY_POOL_FILE_NODE;
+    this.path = "";
+    (fs as unknown as { releaseReference: (n: MemoryNode, p: string) => void }).releaseReference(node, path);
+    if (pooledRedirectHandle === undefined) {
+      pooledRedirectHandle = this;
+    }
   }
 }
+let pooledRedirectHandle: MemoryRedirectHandle | undefined;
 
 export function tryOpenMemoryRedirectHandleSync(
   filesystem: FileSystem,
@@ -2715,41 +2752,116 @@ export function tryOpenMemoryRedirectHandleSync(
     activeConditionalMutations.has((mem as unknown as { identityScope: object | symbol }).identityScope) ||
     !isStockMemoryMethods(mem, openRedirectFastMethodNames, false) ||
     !isCleanAbsolutePath(path) ||
+    path === "/" ||
     path === "/dev" ||
     path.startsWith("/dev/")
   ) {
     return undefined;
   }
   signal?.throwIfAborted();
-  const validMode = (mem as unknown as { mode: (m: number | undefined, f: number, s: string, p: string) => number }).mode(mode, 0o666, "open", path);
-  const location = (mem as unknown as { resolve: (p: string, s: string, o: ResolveOptions) => Location }).resolve(path, "open", {
-    followFinal: true,
-    allowMissing: true,
-  });
-  let node = location.node as FileNode | undefined;
-  if (node) {
-    if (node.type !== "file") (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail("EISDIR", "open", path);
-    (mem as unknown as { permission: (n: MemoryNode, m: number, s: string, p: string) => void }).permission(node, 2, "open", path);
-  } else {
-    (mem as unknown as { permission: (n: MemoryNode, m: number, s: string, p: string) => void }).permission(location.parent, 3, "open", path);
-  }
-  const ledger = (mem as unknown as { ledger: MemoryLedger }).ledger;
-  ledger.reserve(path.length * 2, 1, "open", path);
-  try {
-    node ??= (mem as unknown as { openWrite: (p: string, o: WriteFileOptions, s: string, t: WriteTarget) => FileNode }).openWrite(
-      path,
-      {},
-      "open",
-      { location, mode: validMode, append: false },
-    );
-    if (!append) {
-      (mem as unknown as { resizeNode: (n: FileNode, l: number, s: string, p: string) => void }).resizeNode(node, 0, "open", path);
+  const validMode = (mode & 0o777) === mode
+    ? mode
+    : (mem as unknown as { mode: (m: number | undefined, f: number, s: string, p: string) => number }).mode(mode, 0o666, "open", path);
+  const memInternal = mem as unknown as {
+    root: DirectoryNode;
+    ledger: MemoryLedger;
+    nextInode: number;
+    permission: (n: MemoryNode, m: number, s: string, p: string) => void;
+    fail: (c: ErrnoCode, s: string, p: string) => never;
+    resizeNode: (n: FileNode, l: number, s: string, p: string) => void;
+  };
+  let parent = memInternal.root;
+  let start = 1;
+  let name = "";
+  while (true) {
+    memInternal.permission(parent, 1, "open", path);
+    const slash = path.indexOf("/", start);
+    if (slash === -1) {
+      name = path.slice(start);
+      if (exceedsComponentByteLimit(name)) memInternal.fail("ENAMETOOLONG", "open", path);
+      break;
     }
-  } catch (error) {
-    ledger.release(path.length * 2, 1);
-    throw error;
+    const seg = path.slice(start, slash);
+    if (exceedsComponentByteLimit(seg)) memInternal.fail("ENAMETOOLONG", "open", path);
+    const next = parent.entries.get(seg);
+    if (!next) memInternal.fail("ENOENT", "open", path);
+    if (next!.type !== "directory") memInternal.fail("ENOTDIR", "open", path);
+    parent = next as DirectoryNode;
+    start = slash + 1;
   }
-  node.references++;
+  const existing = parent.entries.get(name);
+  const ledger = memInternal.ledger;
+  let node: FileNode;
+  if (existing !== undefined) {
+    if (existing.type !== "file") memInternal.fail("EISDIR", "open", path);
+    memInternal.permission(existing, 2, "open", path);
+    ledger.reserve(path.length * 2, 1, "open", path);
+    node = existing as FileNode;
+    if (!append) {
+      try {
+        memInternal.resizeNode(node, 0, "open", path);
+      } catch (error) {
+        ledger.release(path.length * 2, 1);
+        throw error;
+      }
+    }
+    node.references++;
+  } else {
+    memInternal.permission(parent, 3, "open", path);
+    const refBytes = path.length * 2;
+    const nameBytes = name.length * 2;
+    ledger.reserve(refBytes, 1, "open", path);
+    try {
+      ledger.fileSize(0, "open", path);
+      ledger.reserve(nameBytes, 2, "open", path);
+    } catch (error) {
+      ledger.release(refBytes, 1);
+      throw error;
+    }
+    const cache = memoryCaches.get(ledger)!;
+    cache.clearWrites();
+    const now = Date.now === defaultDateNow ? ((++fastWriteNowTick & 63) === 0 ? (fastWriteCachedNow = Date.now()) : fastWriteCachedNow) : Date.now();
+    const fileMode = typeModes.file | validMode;
+    let newNode: MemoryFileNode | undefined;
+    if (sharedFileNodePoolLen > 0) {
+      newNode = sharedFileNodePool[--sharedFileNodePoolLen]!;
+      sharedFileNodePool[sharedFileNodePoolLen] = DUMMY_POOL_FILE_NODE;
+    } else {
+      newNode = cache.files.pop();
+    }
+    if (newNode) {
+      newNode.mode = fileMode;
+      newNode.ino = memInternal.nextInode++;
+      newNode.nlink = 1;
+      newNode.references = 1;
+      newNode.revision = 0;
+      newNode.atimeMs = now;
+      newNode.mtimeMs = now;
+      newNode.ctimeMs = now;
+      newNode.birthtimeMs = now;
+      newNode.byteLength = 0;
+      newNode.view = EMPTY_ALLOC_BYTES;
+      newNode.allocation = DUMMY_POOL_ALLOCATION;
+    } else {
+      newNode = new MemoryFileNode(fileMode, memInternal.nextInode++, now, 0, DUMMY_POOL_ALLOCATION, EMPTY_ALLOC_BYTES);
+      newNode.references = 1;
+    }
+    const prevNlink = parent.cachedNlinkRev === parent.revision ? parent.cachedNlink : (parent.entries.size === 0 ? 2 : undefined);
+    parent.entries.set(name, newNode);
+    parent.revision = parent.revision < 1073741823 ? (parent.revision + 1) | 0 : Math.min(Number.MAX_SAFE_INTEGER + 1, parent.revision + 1);
+    parent.mtimeMs = parent.ctimeMs = now;
+    if (prevNlink !== undefined) {
+      parent.cachedNlink = prevNlink;
+      parent.cachedNlinkRev = parent.revision;
+    }
+    node = newNode;
+  }
+  const handle = pooledRedirectHandle;
+  if (handle !== undefined) {
+    pooledRedirectHandle = undefined;
+    handle.reset(mem, path, node, append);
+    return handle;
+  }
   return new MemoryRedirectHandle(mem, path, node, append);
 }
 

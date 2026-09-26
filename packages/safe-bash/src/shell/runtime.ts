@@ -1469,6 +1469,22 @@ class MemoryRedirectSink implements ByteSink {
     return true;
   }
 
+  writeRangeSync(src: Uint8Array, len: number): boolean {
+    this.signal.throwIfAborted();
+    const budget = this.budget;
+    if (budget.bytes + len > budget.maxOutputBytesSmi && len > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+    if (len > 0) {
+      try {
+        this.handle.writeRangeSync(src, len, this.signal);
+      } catch (error) {
+        this.failedError ??= error;
+        throw error;
+      }
+      budget.bytes += len;
+    }
+    return true;
+  }
+
   write(chunk: Uint8Array): Promise<void> {
     try {
       this.writeSync(chunk);

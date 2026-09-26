@@ -35,6 +35,49 @@ const EMPTY_VARS_MAP: ReadonlyMap<string, Json> = new Map();
 let sharedFastBudget: Budget | undefined;
 let sharedFastInterpreter: Interpreter | undefined;
 let sharedFastInUse = false;
+let sharedFastJqAst: Ast | undefined;
+let sharedFastJqLimits: JqLimits | undefined;
+let sharedFastJqOutPos = 0;
+let sharedFastJqAborted = false;
+
+function sharedFastJqOnValue(input: Json): Promise<void> | void {
+  const interpreter = sharedFastInterpreter!;
+  const budget = sharedFastBudget!;
+  const limits = sharedFastJqLimits!;
+  const outBuf = sharedJqOutBuf!;
+  const syncResults = interpreter.tryRunSync(sharedFastJqAst!, input);
+  if (syncResults === undefined) {
+    sharedFastJqAborted = true;
+    return Promise.resolve();
+  }
+  for (let i = 0; i < syncResults.length; i++) {
+    const result = syncResults[i]!;
+    if (budget.needsYield() || (budget.results + 1 > budget.maxResultsSmi && budget.results + 1 > limits.maxResults)) {
+      sharedFastJqAborted = true;
+      return Promise.resolve();
+    }
+    const remSmi = budget.maxOutputBytesSmi - budget.outputBytes;
+    const maxChunkSmi = remSmi > 1
+      ? remSmi - 1
+      : (limits.maxOutputBytes === Infinity ? 0x3fffffff : Math.max(0, limits.maxOutputBytes - budget.outputBytes - 1));
+    const outPos = sharedFastJqOutPos;
+    const newPos = tryWriteCompactSync(result, budget, outBuf, outPos, "\n", maxChunkSmi, interpreter.getScratchKeys(result));
+    if (newPos < 0) {
+      sharedFastJqAborted = true;
+      return Promise.resolve();
+    }
+    const chunkLen = newPos - outPos;
+    if (chunkLen > remSmi && chunkLen > limits.maxOutputBytes - budget.outputBytes) {
+      sharedFastJqAborted = true;
+      return Promise.resolve();
+    }
+    budget.results++;
+    budget.outputBytes += chunkLen;
+    sharedFastJqOutPos = newPos;
+  }
+  interpreter.releaseScratch();
+  return undefined;
+}
 
 function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promise<{ exitCode: number }> | undefined {
   if (sharedFastInUse || sharedJqOutBufInUse) return undefined;
@@ -46,7 +89,7 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
   const cachedAst = jqAstCache.get(source);
   if (!cachedAst) return undefined;
   const syncSink = typeof (context.stdout as { writeSync?: unknown }).writeSync === "function"
-    ? (context.stdout as unknown as { writeSync(chunk: Uint8Array): boolean })
+    ? (context.stdout as unknown as { writeSync(chunk: Uint8Array): boolean; writeRangeSync?(src: Uint8Array, len: number): boolean })
     : undefined;
   if (!syncSink) return undefined;
   const fastMemFs = (context as {
@@ -90,9 +133,12 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
   }
   if (interpreter.run !== DEFAULT_INTERPRETER_RUN) return undefined;
   const outBuf = (sharedJqOutBuf ??= new Uint8Array(OUT_BUF_SIZE));
-  let outPos = 0;
   sharedFastInUse = true;
   sharedJqOutBufInUse = true;
+  sharedFastJqAst = cachedAst;
+  sharedFastJqLimits = limits;
+  sharedFastJqOutPos = 0;
+  sharedFastJqAborted = false;
   try {
     context.signal.throwIfAborted();
     budget.collection(3);
@@ -100,58 +146,25 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
     budget.inputLocation.name = file;
     budget.inputLocation.line = 0;
     budget.inputLocation.complete = false;
-    const flushSync = (): boolean => {
-      if (outPos > 0) {
-        const view = outBuf.subarray(0, outPos);
-        outPos = 0;
-        context.signal.throwIfAborted();
-        if (!syncSink.writeSync(view)) return false;
-      }
-      return true;
-    };
-    let abortedToSlow = false;
-    const onValue = (input: Json): Promise<void> | void => {
-      const syncResults = interpreter.tryRunSync(cachedAst, input);
-      if (syncResults === undefined) {
-        abortedToSlow = true;
-        return Promise.resolve();
-      }
-      for (let i = 0; i < syncResults.length; i++) {
-        const result = syncResults[i]!;
-        if (budget.needsYield() || (budget.results + 1 > budget.maxResultsSmi && budget.results + 1 > limits.maxResults)) {
-          abortedToSlow = true;
-          return Promise.resolve();
-        }
-        const remSmi = budget.maxOutputBytesSmi - budget.outputBytes;
-        const maxChunkSmi = remSmi > 1
-          ? remSmi - 1
-          : (limits.maxOutputBytes === Infinity ? 0x3fffffff : Math.max(0, limits.maxOutputBytes - budget.outputBytes - 1));
-        const newPos = tryWriteCompactSync(result, budget, outBuf, outPos, "\n", maxChunkSmi, interpreter.getScratchKeys(result));
-        if (newPos < 0) {
-          abortedToSlow = true;
-          return Promise.resolve();
-        }
-        const chunkLen = newPos - outPos;
-        if (chunkLen > remSmi && chunkLen > limits.maxOutputBytes - budget.outputBytes) {
-          abortedToSlow = true;
-          return Promise.resolve();
-        }
-        budget.results++;
-        budget.outputBytes += chunkLen;
-        outPos = newPos;
-      }
-      interpreter.releaseScratch();
-      return undefined;
-    };
-    const ok = tryProcessFlatJsonChunkSync(rawBytes, budget, onValue);
-    if (!ok || abortedToSlow) return undefined;
-    if (!flushSync()) return undefined;
+    const ok = tryProcessFlatJsonChunkSync(rawBytes, budget, sharedFastJqOnValue);
+    if (!ok || sharedFastJqAborted) return undefined;
+    const len = sharedFastJqOutPos;
+    if (len > 0) {
+      sharedFastJqOutPos = 0;
+      context.signal.throwIfAborted();
+      const wrote = typeof syncSink.writeRangeSync === "function"
+        ? syncSink.writeRangeSync(outBuf, len)
+        : syncSink.writeSync(outBuf.subarray(0, len));
+      if (!wrote) return undefined;
+    }
     (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
     return RESOLVED_EXIT_ZERO;
   } catch {
     return undefined;
   } finally {
     interpreter.releaseScratch();
+    sharedFastJqAst = undefined;
+    sharedFastJqLimits = undefined;
     (budget as unknown as { signal: AbortSignal }).signal = NEVER_ABORTED_SIGNAL;
     sharedJqOutBufInUse = false;
     sharedFastInUse = false;

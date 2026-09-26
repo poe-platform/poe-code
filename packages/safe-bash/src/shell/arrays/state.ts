@@ -89,6 +89,10 @@ class ArraySessionImpl implements Session {
   }
 
   closeSession(): void | Promise<void> {
+    const hasArena = this._values !== undefined || this._budget.hasValues !== false;
+    if (!this.owner && hasArena) {
+      this.values.close();
+    }
     if (this.monitors) {
       for (const owned of [...this.monitors]) owned.closeValues();
       this.monitors.clear();
@@ -97,12 +101,11 @@ class ArraySessionImpl implements Session {
       this.firstMonitor = undefined;
       first.closeValues();
     }
-    const hasArena = this._values !== undefined || this._budget.hasValues !== false;
     if (this.owner) {
       const closed = this.owner.close();
       if (!isSyncResolved(closed)) return closed.finally(() => { if (hasArena) this.values.close(); });
+      if (hasArena) this.values.close();
     }
-    if (hasArena) this.values.close();
   }
 }
 Object.assign(ArraySessionImpl.prototype, {

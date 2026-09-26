@@ -80,30 +80,59 @@ function trySearchFileSync(
     let matchedLines = 0;
     let matchesCount = 0;
     let bytesSearched = 0;
-    for (let start = 0; start < view.length;) {
-      const newline = view.indexOf(10, start);
-      const end = newline < 0 ? view.length : newline;
-      bytesSearched = newline < 0 ? end : end + 1;
-      const pending = limits.tick();
-      if (pending) return pending.then(() => undefined);
-      let count = 0;
-      let pos = start;
-      while (pos <= end - litLen) {
+    if (
+      !args.stats &&
+      !limits.hasExtYield &&
+      (args.mode === "count" || args.mode === "with" || args.mode === "without" || args.quiet) &&
+      lit.indexOf(10) === -1
+    ) {
+      bytesSearched = view.length;
+      const searchEnd = view.length - litLen;
+      let pos = 0;
+      while (pos <= searchEnd) {
         const index = view.indexOf(firstByte, pos);
-        if (index < 0 || index > end - litLen) break;
+        if (index < 0 || index > searchEnd) break;
         let equal = true;
         for (let offset = 1; offset < litLen; offset++) {
           if (view[index + offset] !== lit[offset]) { equal = false; break; }
         }
-        if (equal) count++;
-        pos = index + (equal ? litLen : 1);
+        if (equal) {
+          matchedLines++;
+          matchesCount++;
+          if (args.quiet || args.mode === "with" || args.mode === "without") break;
+          const nl = view.indexOf(10, index + litLen);
+          if (nl < 0) break;
+          pos = nl + 1;
+        } else {
+          pos = index + 1;
+        }
       }
-      if (count) {
-        matchedLines++;
-        matchesCount += count;
-        if (!args.stats && (args.quiet || args.mode === "with" || args.mode === "without")) break;
+    } else {
+      for (let start = 0; start < view.length;) {
+        const newline = view.indexOf(10, start);
+        const end = newline < 0 ? view.length : newline;
+        bytesSearched = newline < 0 ? end : end + 1;
+        const pending = limits.tick();
+        if (pending) return pending.then(() => undefined);
+        let count = 0;
+        let pos = start;
+        while (pos <= end - litLen) {
+          const index = view.indexOf(firstByte, pos);
+          if (index < 0 || index > end - litLen) break;
+          let equal = true;
+          for (let offset = 1; offset < litLen; offset++) {
+            if (view[index + offset] !== lit[offset]) { equal = false; break; }
+          }
+          if (equal) count++;
+          pos = index + (equal ? litLen : 1);
+        }
+        if (count) {
+          matchedLines++;
+          matchesCount += count;
+          if (!args.stats && (args.quiet || args.mode === "with" || args.mode === "without")) break;
+        }
+        start = bytesSearched;
       }
-      start = bytesSearched;
     }
     const matched = matchedLines > 0;
     const found = args.mode === "without" ? !matched : matched;

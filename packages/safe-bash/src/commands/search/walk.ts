@@ -75,6 +75,17 @@ function checkMemDirEntries(map: ReadonlyMap<string, { readonly type: string }>,
 }
 const syncWalkBuffer: unknown[] = new Array(256);
 let syncWalkBufferTop = 0;
+const defaultDateNow = Date.now;
+
+function isFastEntriesMapSorted(map: { readonly size?: number; readonly _next?: number; readonly _keys?: (string | undefined)[] }): boolean {
+  const len = map._next;
+  const keys = map._keys;
+  if (len === undefined || keys === undefined || map.size !== len) return false;
+  for (let i = 1; i < len; i++) {
+    if (keys[i - 1]! > keys[i]!) return false;
+  }
+  return true;
+}
 function stageMemDirVisitor(v: { readonly type: string }, k: string): void {
   if (sortCheckPrevKey > k) sortCheckSorted = false;
   sortCheckPrevKey = k;
@@ -592,7 +603,7 @@ export class Walker {
     rules: readonly IgnoreRule[],
     repository: boolean,
     onTarget: (target: FileTarget) => boolean | Promise<boolean>,
-    memDirEntries: ReadonlyMap<string, { readonly type: DirectoryEntry["type"] }>,
+    memDirEntries: ReadonlyMap<string, { readonly type: string }>,
     startEntryIdx: number,
     pendingStep: Promise<boolean>,
   ): Promise<boolean> {
@@ -634,6 +645,7 @@ export class Walker {
     repository: boolean,
     onTarget: (target: FileTarget) => boolean | Promise<boolean>,
     syncOnly = false,
+    knownEntries?: ReadonlyMap<string, { readonly type: string }>,
   ): boolean | Promise<boolean> | null {
     if (depth > this.args.maxDepth) return true;
     if (
@@ -661,7 +673,7 @@ export class Walker {
       if (syncOnly) return null;
       return this.walkDirectory(path, label, depth, new Map(), rules, repository, onTarget);
     }
-    const memDirEntries = tryGetMemoryDirectoryEntryNamesSync(backing, path);
+    const memDirEntries = knownEntries ?? tryGetMemoryDirectoryEntryNamesSync(backing, path);
     if (
       !memDirEntries ||
       (this.args.ignore && (memDirEntries.has(".git") || memDirEntries.has(".gitignore") || memDirEntries.has(".ignore") || memDirEntries.has(".rgignore"))) ||
@@ -669,6 +681,63 @@ export class Walker {
     ) {
       if (syncOnly) return null;
       return this.walkDirectory(path, label, depth, new Map(), rules, repository, onTarget);
+    }
+    const fastMap = memDirEntries as unknown as { readonly size?: number; readonly _next?: number; readonly _keys?: string[]; readonly _vals?: unknown[] };
+    if (syncOnly && isFastEntriesMapSorted(fastMap)) {
+      if (this.args.ignore && !this.uniformIgnoreAdmitted) {
+        assertCommandRequirements(this.context, searchRequirements, ["metadata", "ignore-file"]);
+        this.uniformIgnoreAdmitted = true;
+      }
+      const cleanPath = path.endsWith("/") ? path.slice(0, -1) : path;
+      const cleanLabel = label === path ? cleanPath : (label && label.endsWith("/") ? label.slice(0, -1) : label);
+      const samePrefix = cleanLabel === cleanPath;
+      const keys = fastMap._keys!;
+      const vals = fastMap._vals!;
+      const len = fastMap._next!;
+      const customClock = Date.now !== defaultDateNow;
+      for (let entryIdx = 0; entryIdx < len; entryIdx++) {
+        const entryName = keys[entryIdx]!;
+        const entryObj = vals[entryIdx] as { readonly type: DirectoryEntry["type"]; readonly mode?: number; readonly data?: Uint8Array; readonly entries?: ReadonlyMap<string, { readonly type: string }>; atimeMs?: number; ctimeMs?: number };
+        if (this.limits.tick()) return null;
+        if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
+        if (!this.args.hidden && entryName.startsWith(".")) continue;
+        const entryType = entryObj.type;
+        if (entryType === "directory") {
+          const child = `${cleanPath}/${entryName}`;
+          const display = samePrefix ? child : (cleanLabel ? `${cleanLabel}/${entryName}` : entryName);
+          const childEntries = entryObj.entries !== undefined && entryObj.mode !== undefined && ((entryObj.mode >> 6) & 4) === 4 ? entryObj.entries : undefined;
+          const sub = this.tryWalkDirectorySync(backing, child, display, depth + 1, rules, repository, onTarget, true, childEntries);
+          if (sub === null) return null;
+          if (!sub) return false;
+        } else if (entryType === "file") {
+          const t = this.reusableTarget;
+          t.dirPath = cleanPath;
+          t.dirLabel = cleanLabel;
+          t.entryName = entryName;
+          t._path = undefined;
+          t._label = undefined;
+          t._canonicalPath = undefined;
+          t._hasCanonical = true;
+          t.explicit = false;
+          t.recursive = true;
+          if (
+            entryObj.data !== undefined &&
+            entryObj.mode !== undefined &&
+            ((entryObj.mode >> 6) & 4) === 4 &&
+            entryObj.data.byteLength <= this.limits.maxFileBytes
+          ) {
+            if (customClock || entryObj.atimeMs !== entryObj.ctimeMs) entryObj.atimeMs = this.syncWalkNow;
+            t.memoryView = entryObj.data;
+          } else {
+            t.memoryView = undefined;
+          }
+          const res = onTarget(t);
+          t.memoryView = undefined;
+          if (res instanceof Promise) return null;
+          if (!res) return false;
+        }
+      }
+      return true;
     }
     const baseOffset = syncWalkBufferTop;
     const endOffset = checkAndStageMemDirEntries(memDirEntries, baseOffset);
@@ -786,7 +855,8 @@ export class Walker {
       ) {
         const operand = paths[0]!;
         const path = pathFor(this.context, operand);
-        if (path !== "/dev" && !path.startsWith("/dev/") && tryGetMemoryDirectoryEntryNamesSync(fastMem, path) !== undefined) {
+        const targetEntries = path !== "/dev" && !path.startsWith("/dev/") ? tryGetMemoryDirectoryEntryNamesSync(fastMem, path) : undefined;
+        if (targetEntries !== undefined) {
           const parent = dirname(resolvePath("/", path));
           const rootEntries = parent === "/" ? tryGetMemoryDirectoryEntryNamesSync(fastMem, "/") : undefined;
           if (
@@ -802,8 +872,8 @@ export class Walker {
               this.uniformCanonicalAdmitted = true;
               this.uniformReaddirAdmitted = true;
               this.uniformIgnoreAdmitted = true;
-              this.syncWalkNow = Date.now();
-              const syncWalk = this.tryWalkDirectorySync(fastMem, path, implicit ? "" : operand, 0, EMPTY_IGNORE_RULES, false, onTarget, syncOnly);
+              if (Date.now !== defaultDateNow) this.syncWalkNow = Date.now();
+              const syncWalk = this.tryWalkDirectorySync(fastMem, path, implicit ? "" : operand, 0, EMPTY_IGNORE_RULES, false, onTarget, syncOnly, targetEntries);
               if (syncWalk === null) return null;
               return syncWalk instanceof Promise ? syncWalk.then(() => undefined) : undefined;
             }

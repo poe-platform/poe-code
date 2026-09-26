@@ -166,7 +166,7 @@ export class ValueArena {
     if (--record.references) return;
     record.epoch = 0;
     if (record.object) this._objects?.delete(record.object);
-    else {
+    else if (!this._closed) {
       const list = this._freeRecords ??= [];
       if (list.length < 128) list.push(record);
     }
@@ -210,11 +210,8 @@ export class ValueArena {
     this._closed = true;
     this._epoch++;
     this._objects = undefined;
-    if (this._freeScopes) this._freeScopes.length = 0;
     if (this._freeScopes) this._freeScopes = undefined;
-    if (this._freeStores) this._freeStores.length = 0;
     if (this._freeStores) this._freeStores = undefined;
-    if (this._freeRecords) this._freeRecords.length = 0;
     if (this._freeRecords) this._freeRecords = undefined;
     this._bytes = 0;
     this._slots = 0;
@@ -454,14 +451,17 @@ export class ValueStore {
   invalidate(name?: string): void {
     if (name === undefined) {
       if (this._values) {
-        for (const value of this._values.values()) value.release();
-        this._values.clear();
+        if (this._values.size > 0) {
+          for (const value of this._values.values()) value.release();
+          this._values.clear();
+        }
       }
       if (this._stringsShared) {
         this._strings = undefined;
         this._stringsShared = false;
-      } else if (this._strings) {
-        this._strings.clear();
+      } else if (this._strings && this._strings.size > 0) {
+        if (this._closed) this._strings = undefined;
+        else this._strings.clear();
       }
       this._stringBytes = 0;
       if (this._stringRecord) {
@@ -561,6 +561,16 @@ export class ValueStore {
   close(): void {
     if (this._closed) return;
     this._closed = true;
+    if (this.arena["_closed"]) {
+      if (this._values && this._values.size > 0) {
+        for (const value of this._values.values()) value.release();
+      }
+      this._values = undefined;
+      this._strings = undefined;
+      this._stringRecord = undefined;
+      this._stringBytes = 0;
+      return;
+    }
     this.invalidate();
     if (!this._scope || this._scope.closeForStoreRecycle()) {
       this.arena.recycleStore(this);

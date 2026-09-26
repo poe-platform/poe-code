@@ -28,7 +28,7 @@ export class Limits {
   outputBytes = 0;
   files = 0;
   private ticks = 0;
-  private hasExtYield: boolean;
+  hasExtYield: boolean;
   private lastYieldMs = monotonicNow();
   private stopped: AbortController | undefined;
   private _signal: AbortSignal | undefined;
@@ -153,13 +153,16 @@ export class Limits {
   }
   flushSyncOrAsync(): Promise<void> | undefined {
     if (this.outPos > 0 && this.outBuf) {
-      const syncSink = this.context.stdout as { writeSync?: (chunk: Uint8Array) => boolean };
+      const syncSink = this.context.stdout as { writeSync?: (chunk: Uint8Array) => boolean; writeRangeSync?: (src: Uint8Array, len: number) => boolean };
       if (typeof syncSink.writeSync === "function") {
         const len = this.outPos;
         this.outPos = 0;
         try {
           (this._signal ?? this.context.signal).throwIfAborted();
-          if (syncSink.writeSync(this.outBuf.subarray(0, len))) {
+          const ok = typeof syncSink.writeRangeSync === "function"
+            ? syncSink.writeRangeSync(this.outBuf, len)
+            : syncSink.writeSync(this.outBuf.subarray(0, len));
+          if (ok) {
             this.releaseOutBuf();
             return undefined;
           }
@@ -312,12 +315,17 @@ export class Limits {
           if (ascii) {
             if (this.outputBytes + totalLen > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
             let v = amount | 0;
-            const dEnd = dst + digits;
-            buf[dEnd] = 10;
-            for (let d = dEnd - 1; d >= dst; d--) {
-              const q = (v / 10) | 0;
-              buf[d] = 48 + (v - q * 10);
-              v = q;
+            if (digits === 1) {
+              buf[dst] = 48 + v;
+              buf[dst + 1] = 10;
+            } else {
+              const dEnd = dst + digits;
+              buf[dEnd] = 10;
+              for (let d = dEnd - 1; d >= dst; d--) {
+                const q = v < 65536 ? (Math.imul(v, 0xcccd) >>> 19) : ((v / 10) | 0);
+                buf[d] = 48 + (v - q * 10);
+                v = q;
+              }
             }
             this.outPos = pos + totalLen;
             this.outputBytes += totalLen;
@@ -361,12 +369,17 @@ export class Limits {
           if (ascii) {
             if (this.outputBytes + totalLen > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
             let v = amount | 0;
-            const dEnd = dst + digits;
-            buf[dEnd] = 10;
-            for (let d = dEnd - 1; d >= dst; d--) {
-              const q = (v / 10) | 0;
-              buf[d] = 48 + (v - q * 10);
-              v = q;
+            if (digits === 1) {
+              buf[dst] = 48 + v;
+              buf[dst + 1] = 10;
+            } else {
+              const dEnd = dst + digits;
+              buf[dEnd] = 10;
+              for (let d = dEnd - 1; d >= dst; d--) {
+                const q = v < 65536 ? (Math.imul(v, 0xcccd) >>> 19) : ((v / 10) | 0);
+                buf[d] = 48 + (v - q * 10);
+                v = q;
+              }
             }
             this.outPos = pos + totalLen;
             this.outputBytes += totalLen;

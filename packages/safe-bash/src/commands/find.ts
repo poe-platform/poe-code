@@ -100,9 +100,29 @@ function stageAndSortFindKeys(map: ReadonlyMap<string, unknown>, baseOffset: num
   findKeySorted = true;
   findKeyAllFiles = true;
   findKeyPrev = "";
-  findKeyCurrentMatch = match;
-  map.forEach(collectFindKey as (v: unknown, k: string) => void);
-  findKeyCurrentMatch = undefined;
+  const fastMap = map as { _next?: number; _keys?: string[]; _vals?: ({ readonly type?: string } | undefined)[] };
+  if (typeof fastMap._next === "number" && fastMap._keys !== undefined && fastMap._vals !== undefined) {
+    const next = fastMap._next;
+    const keys = fastMap._keys;
+    const vals = fastMap._vals;
+    for (let i = 0; i < next; i++) {
+      const v = vals[i];
+      if (v !== undefined) {
+        if (v.type !== "file") findKeyAllFiles = false;
+        const k = keys[i]!;
+        if (match !== undefined && !match(k)) continue;
+        if (findKeyPrev > k) findKeySorted = false;
+        findKeyPrev = k;
+        if (findKeyScratchTop === findKeyScratch.length) findKeyScratch.push(k);
+        else findKeyScratch[findKeyScratchTop] = k;
+        findKeyScratchTop++;
+      }
+    }
+  } else {
+    findKeyCurrentMatch = match;
+    map.forEach(collectFindKey as (v: unknown, k: string) => void);
+    findKeyCurrentMatch = undefined;
+  }
   if (!findKeySorted) {
     sortFindKeyRange(baseOffset, findKeyScratchTop);
   }

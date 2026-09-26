@@ -82,7 +82,8 @@ Set `maxPages`, `maxTools`, `maxResponseBytes` and `requestTimeoutMs` to bound
 discovery. Page, tool and byte budgets default to `Infinity`; request deadlines default to
 30 seconds. SDK budgets and CLI `--max-*` options accept explicit `Infinity`. The byte limit does not accumulate across
 the lifetime of a receive stream; keepalive comments and separate events remain
-usable. Request deadlines must not exceed 2,147,483,647 ms;
+usable. SDK `requestTimeoutMs: Infinity` disables the request deadline while retaining caller cancellation.
+Finite request deadlines must not exceed 2,147,483,647 ms;
 larger values fail before setup because Node would reduce them to a 1 ms timer.
 Cyclic cursors and duplicate tools fail explicitly;
 connections close on success, failure and cancellation. Network, authentication,

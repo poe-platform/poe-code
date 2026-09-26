@@ -2782,7 +2782,7 @@ export class HttpTransport implements McpTransport {
 
   async completeInitialization(options: { signal?: AbortSignal; timeoutMs: number; protocolVersion?: string }): Promise<void> {
     validateRequestTimer(options.timeoutMs, "timeoutMs");
-    const deadline = options.timeoutMs > 0 ? AbortSignal.timeout(Math.ceil(options.timeoutMs)) : undefined;
+    const deadline = options.timeoutMs !== Infinity && options.timeoutMs > 0 ? AbortSignal.timeout(Math.ceil(options.timeoutMs)) : undefined;
     const signals = [options.signal, deadline].filter((signal): signal is AbortSignal => signal !== undefined);
     const signal = signals.length === 0 ? new AbortController().signal : AbortSignal.any(signals);
     signal.throwIfAborted();
@@ -3812,7 +3812,7 @@ export class SseParser {
 
 function validateRequestTimer(value: number, name: string): void {
   // Node reduces overflowing timers to 1ms rather than retaining the requested deadline.
-  if (!Number.isFinite(value) || value < 0 || value > 2_147_483_647)
+  if (value !== Infinity && (!Number.isFinite(value) || value < 0 || value > 2_147_483_647))
     throw new Error(`${name} must be a non-negative finite number no greater than 2147483647`);
 }
 
@@ -3965,7 +3965,7 @@ export class JsonRpcMessageLayer {
       currentRequestId = id;
       onRequestId?.(id);
     } };
-    const deadline = timeoutMs === null ? undefined : setTimeout(() => {
+    const deadline = timeoutMs === null || timeoutMs === Infinity ? undefined : setTimeout(() => {
       let reason: unknown = new Error(`JSON-RPC request "${method}" timed out after ${timeoutMs}ms`);
       try {
         if (currentRequestId !== undefined) options.onTimeout?.(currentRequestId);

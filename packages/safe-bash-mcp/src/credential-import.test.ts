@@ -371,3 +371,15 @@ it("retains the original private host receiver for an SDK import clock", async (
     .resolves.toEqual({ name: "catalog", url: resource, imported: true });
   expect((await f.stores.sessionStore.load(resource))?.tokens?.expiresAt).toBe(3_601_000);
 });
+
+it("imports with an unlimited request deadline retaining the caller signal", async () => {
+  const f = fixture();
+  const controller = new AbortController();
+  const importSession = vi.fn(async () => {});
+  try {
+    await expect(sdk.importRemoteMcpAuthentication(dynamic, payload, {
+      binding: { ...f.binding, oauth: { ...f.binding.oauth, importSession } }, fetch: f.fetch, requestTimeoutMs: Infinity, signal: controller.signal
+    })).resolves.toEqual({ name: "catalog", url: resource, imported: true });
+    expect(importSession).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.objectContaining({ signal: controller.signal }));
+  } finally { controller.abort(); }
+});

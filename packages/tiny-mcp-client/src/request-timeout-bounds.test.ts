@@ -41,3 +41,18 @@ it("retains the largest supported timer and explicit unlimited requests", async 
     await expect(unlimited).resolves.toEqual({});
   } finally { layer.dispose(); input.destroy(); output.destroy(); }
 });
+
+it("uses no timer for an unlimited default deadline and still supports cancellation", async () => {
+  const input = new PassThrough(), output = new PassThrough();
+  const timer = vi.spyOn(globalThis, "setTimeout");
+  let layer: JsonRpcMessageLayer | undefined;
+  try {
+    layer = new JsonRpcMessageLayer(input, output, Infinity);
+    const controller = new AbortController();
+    const request = layer.sendRequest("tools/list", {}, { signal: controller.signal });
+    const rejected = expect(request).rejects.toThrow("cancelled");
+    controller.abort(new Error("cancelled"));
+    await rejected;
+    expect(timer).not.toHaveBeenCalled();
+  } finally { timer.mockRestore(); layer?.dispose(); input.destroy(); output.destroy(); }
+});

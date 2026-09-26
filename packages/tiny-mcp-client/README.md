@@ -41,7 +41,8 @@ the options object cannot leave a finished call's progress token active; progres
 notifications remain available while that call is pending.
 
 Set `requestTimeoutMs` on `McpClient` or `timeoutMs` on individual requests.
-Numeric deadlines must be finite, nonnegative and no greater than
+Use `Infinity` to disable a deadline while retaining caller cancellation.
+Finite numeric deadlines must be nonnegative and no greater than
 2,147,483,647 ms; oversized values fail before a request is sent. Individual
 JSON-RPC requests also accept `timeoutMs: null` to disable their timer.
 The deadline covers the complete request, including modern input callbacks and

@@ -65,3 +65,8 @@ it("stops artifact recreation before credential binding when aborted during hash
     expect(bind).not.toHaveBeenCalled();
   } finally { digest.mockRestore(); bind.mockRestore(); }
 });
+
+it("accepts unlimited request deadlines while retaining finite timer bounds", () => {
+  expect(remoteLimits({ requestTimeoutMs: Infinity }).requestTimeoutMs).toBe(Infinity);
+  expect(() => remoteLimits({ requestTimeoutMs: 2_147_483_648 })).toThrow("requestTimeoutMs");
+});

@@ -43,8 +43,8 @@ export async function accessRemoteMcpResources(
   const snapshot = snapshotRemoteMcpResourceRequest(request, commandLimit(options.maxInputBytes ?? Infinity, "maxInputBytes"));
   preflightRemoteMcpServers([server], options);
   const { tools: ignoredTools, ...owned } = snapshotRemoteMcpServer(server);
-  const deadline = AbortSignal.timeout(limits.requestTimeoutMs);
-  const signal = options.signal === undefined ? deadline : AbortSignal.any([options.signal, deadline]);
+  const signal = limits.requestTimeoutMs === Infinity ? options.signal
+    : options.signal === undefined ? AbortSignal.timeout(limits.requestTimeoutMs) : AbortSignal.any([options.signal, AbortSignal.timeout(limits.requestTimeoutMs)]);
   return withRemoteMcpClient(owned, { ...snapshotRemoteMcpSchemaOptions(options), signal }, async client => {
     const result = snapshot.operation === "read" ? await client.readResource({ uri: snapshot.uri }, { signal })
       : snapshot.operation === "templates" ? await client.listResourceTemplates(snapshot.cursor === undefined ? {} : { cursor: snapshot.cursor }, { signal })

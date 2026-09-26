@@ -46,7 +46,7 @@ export async function importRemoteMcpAuthentication(
   const timeoutMs = options.timeoutMs ?? oauth?.sessionLockTimeoutMs ?? 30_000;
   const requestTimeoutMs = options.requestTimeoutMs ?? 30_000;
   for (const [name, duration] of [["timeoutMs", timeoutMs], ["requestTimeoutMs", requestTimeoutMs]] as const)
-    if (!Number.isSafeInteger(duration) || duration < 1 || duration > 2_147_483_647) throw new Error(`${name} must be a positive supported timer interval`);
+    if (!(name === "requestTimeoutMs" && duration === Infinity) && (!Number.isSafeInteger(duration) || duration < 1 || duration > 2_147_483_647)) throw new Error(`${name} must be a positive supported timer interval`);
   const maxBytes = options.maxImportBytes ?? Infinity;
   if (maxBytes !== Infinity && (!Number.isSafeInteger(maxBytes) || maxBytes < 1)) throw new Error("maxImportBytes must be a positive safe integer");
   let input: Record<string, unknown>;
@@ -82,8 +82,8 @@ export async function importRemoteMcpAuthentication(
   if (scope !== undefined && tokens.scope !== scope) throw new Error("Imported OAuth grant does not match the requested OAuth scope");
   const nativeStores = importSession === undefined
     ? createResourceBoundOAuthStores(authStore!, server.auth.persistenceNamespace, server.name) : undefined;
-  const deadline = AbortSignal.timeout(requestTimeoutMs);
-  const signal = options.signal === undefined ? deadline : AbortSignal.any([options.signal, deadline]);
+  const signal = requestTimeoutMs === Infinity ? options.signal ?? new AbortController().signal
+    : options.signal === undefined ? AbortSignal.timeout(requestTimeoutMs) : AbortSignal.any([options.signal, AbortSignal.timeout(requestTimeoutMs)]);
   const discovery = await discoverOAuthMetadata(server.url, { fetch: options.fetch, cache: options.oauthDiscoveryCache, signal });
   signal.throwIfAborted();
   if ((input.issuer !== undefined && input.issuer !== discovery.authorizationServer) ||

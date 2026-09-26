@@ -323,3 +323,12 @@ it("accepts unlimited SDK and CLI resource byte budgets", async () => {
     expect(result.exitCode).toBe(0);
   } finally { await shell.dispose(); }
 });
+
+it("supports unlimited resource deadlines through the native client", async () => {
+  const f = remote();
+  const deadline = vi.spyOn(AbortSignal, "timeout");
+  try {
+    expect(await accessRemoteMcpResources(server, { operation: "list" }, { fetch: f.fetch, requestTimeoutMs: Infinity })).toEqual(listed);
+    expect(deadline).not.toHaveBeenCalled();
+  } finally { deadline.mockRestore(); }
+});

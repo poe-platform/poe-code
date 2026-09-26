@@ -1013,7 +1013,6 @@ describe("JsonRpcMessageLayer constructor", () => {
 
   it.each([
     { label: "negative number", value: -1 },
-    { label: "positive infinity", value: Number.POSITIVE_INFINITY },
     { label: "negative infinity", value: Number.NEGATIVE_INFINITY },
     { label: "NaN", value: Number.NaN },
   ])("rejects $label requestTimeoutMs values", ({ value }) => {

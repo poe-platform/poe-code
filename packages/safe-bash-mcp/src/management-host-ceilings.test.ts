@@ -46,3 +46,17 @@ it.each([" ", "="])("retains all management host ceilings with %j CLI values", a
       schema: expect.objectContaining({ requestTimeoutMs: 100, maxPages: 2, maxTools: 3, maxResponseBytes: 300 }) }));
   } finally { await shell.dispose(); }
 });
+
+it("imports with an unlimited host deadline without creating a timer", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input.json", new TextEncoder().encode("{}"));
+  const shell = new Shell({ fs, commands: new CommandRegistry([createRemoteMcpManagementCommand([
+    { name: "catalog", url: "https://catalog.example/mcp", tools: [] }
+  ], { credentialImport: { requestTimeoutMs: Infinity } })]) });
+  const deadline = vi.spyOn(AbortSignal, "timeout");
+  try {
+    expect((await shell.exec("mcp import catalog --file /input.json")).exitCode).toBe(0);
+    expect(deadline).not.toHaveBeenCalled();
+    expect(importRemoteMcpAuthentication).toHaveBeenLastCalledWith(expect.anything(), "{}", expect.objectContaining({ requestTimeoutMs: Infinity, signal: expect.any(AbortSignal) }));
+  } finally { deadline.mockRestore(); await shell.dispose(); }
+});

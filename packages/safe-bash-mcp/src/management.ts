@@ -317,9 +317,9 @@ export function createRemoteMcpManagementCommand(
           try {
             parentSignal.throwIfAborted();
             const requestTimeoutMs = callerLimit(selected.requestTimeoutMs, settings?.requestTimeoutMs, "requestTimeoutMs") ?? 30_000;
-            if (!Number.isSafeInteger(requestTimeoutMs) || requestTimeoutMs < 1 || requestTimeoutMs > 2_147_483_647)
+            if (requestTimeoutMs !== Infinity && (!Number.isSafeInteger(requestTimeoutMs) || requestTimeoutMs < 1 || requestTimeoutMs > 2_147_483_647))
               throw new Error("Import requestTimeoutMs must be a positive supported timer interval");
-            const signal = AbortSignal.any([parentSignal, AbortSignal.timeout(requestTimeoutMs)]);
+            const signal = requestTimeoutMs === Infinity ? parentSignal : AbortSignal.any([parentSignal, AbortSignal.timeout(requestTimeoutMs)]);
             const maxImportBytes = Math.min(maxInputBytes, commandLimit(callerLimit(selected.maxImportBytes, settings?.maxImportBytes, "maxImportBytes") ?? maxInputBytes, "maxImportBytes"));
             const file = selected.file;
             let source = context.stdin;

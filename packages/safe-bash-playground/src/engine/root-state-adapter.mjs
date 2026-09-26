@@ -101,7 +101,7 @@ export function instrumentRootState(source) {
           factory.createIfStatement(hasObserver("onCwd"), factory.createBlock(observe, true))
         ], true));
       };
-      let assignedRootBinding = false;
+      let assignedConstructedRootBinding = false;
       const hasCwd = (initializer) => initializer && ts.isObjectLiteralExpression(initializer)
         && initializer.properties.some(property => ts.isShorthandPropertyAssignment(property) && property.name.text === "cwd");
       const isConstructedRoot = (initializer) => initializer && ts.isNewExpression(initializer)
@@ -157,11 +157,13 @@ export function instrumentRootState(source) {
           }
           return undefined;
         }
-        if (!assignedRootBinding || !ts.isExpressionStatement(statement)) return undefined;
+        if (!ts.isExpressionStatement(statement)) return undefined;
         const expression = statement.expression;
-        return ts.isBinaryExpression(expression) && expression.operatorToken.kind === ts.SyntaxKind.EqualsToken
-          && ts.isIdentifier(expression.left) && expression.left.text === "state" && hasCwd(expression.right)
-          ? { name: "state" } : undefined;
+        if (!ts.isBinaryExpression(expression) || expression.operatorToken.kind !== ts.SyntaxKind.EqualsToken
+          || !ts.isIdentifier(expression.left)) return undefined;
+        if (expression.left.text === "state" && hasCwd(expression.right)) return { name: "state" };
+        if (assignedConstructedRootBinding && expression.left.text === "currentState" && isConstructedRoot(expression.right)) return { name: "currentState" };
+        return undefined;
       };
       const visitBody = (node) => {
         if (ts.isFunctionLike(node) || ts.isClassLike(node)) return node;
@@ -213,7 +215,19 @@ export function instrumentRootState(source) {
             && ts.isIdentifier(statement.declarationList.declarations[0].name)
             && statement.declarationList.declarations[0].name.text === "state"
             && !statement.declarationList.declarations[0].initializer);
-          assignedRootBinding = bindings.length === 1;
+
+          let constructedBindings = 0;
+          const countBindings = (child) => {
+            if (ts.isFunctionLike(child) || ts.isClassLike(child)) return;
+            if (ts.isVariableStatement(child) && (child.declarationList.flags & ts.NodeFlags.BlockScoped) === ts.NodeFlags.Let) {
+              for (const declaration of child.declarationList.declarations) {
+                if (ts.isIdentifier(declaration.name) && declaration.name.text === "currentState" && !declaration.initializer) constructedBindings++;
+              }
+            }
+            ts.forEachChild(child, countBindings);
+          };
+          countBindings(node.body);
+          assignedConstructedRootBinding = constructedBindings === 1;
           let candidates = 0;
           const countCandidates = (child) => {
             if (ts.isFunctionLike(child) || ts.isClassLike(child)) return;

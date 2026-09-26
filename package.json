@@ -661,8 +661,6 @@
     "safe-bash-command-ffmpeg": "*",
     "safe-bash-command-xz": "*",
     "safe-bash-compression-engine": "*",
-    "safe-bash-command-od": "*",
-    "safe-bash-command-xxd": "*",
     "safe-bash-command-id": "*",
     "safe-bash-command-whoami": "*",
     "safe-bash-command-uname": "*",

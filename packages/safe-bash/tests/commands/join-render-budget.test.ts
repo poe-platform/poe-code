@@ -35,7 +35,8 @@ for (const reason of [null, false, 0, ""]) {
   test(`join wide rendering yields to cancellation with reason ${JSON.stringify(reason)}`, async () => {
     const controller = new AbortController();
     let writes = 0;
-    const running = runTable(fixture("join", ["-o", Array(128).fill("1.2").join(","), "left", "right"], {
+    // Cross the 1024-step cooperative boundary before the row can be published.
+    const running = runTable(fixture("join", ["-o", Array(1025).fill("1.2").join(","), "left", "right"], {
       left: "a x\n", right: "a y\n",
     }), {}, { signal: controller.signal, stdout: { async write() { writes++; } } });
     const rejected = assert.rejects(running, error => Object.is(error, reason));
@@ -125,9 +126,10 @@ test("join awaits a blocked sink without reading ahead or changing borrowed outp
     stdin, stdout: { async write(bytes) {
       writes.push(bytes);
       if (writes.length === 1) {
+        const borrowed = Uint8Array.from(bytes);
         blocked.resolve();
         await release.promise;
-        assert.deepEqual(bytes, Buffer.from("a"));
+        assert.deepEqual(bytes, borrowed);
       }
     } },
   });
@@ -137,6 +139,7 @@ test("join awaits a blocked sink without reading ahead or changing borrowed outp
     await new Promise<void>(resolve => setImmediate(resolve));
     assert.equal(reads, 2);
     assert.equal(writes.length, 1);
+    assert.equal(Buffer.concat(writes).toString("hex"), Buffer.from("a x y\n").toString("hex"));
   } finally { release.resolve(); }
   const actual = await running;
   assert.equal(actual.exitCode, 0, actual.stderr);
@@ -173,12 +176,12 @@ test("join sink failure retains the accepted byte prefix and closes its producer
   const actual = await runTable(fixture("join", ["-", "right"], { right: "a y\nb q\n" }), {}, {
     stdin, signal: controller.signal, stdout: { async write(bytes) {
       if (++writes === 2) throw new FsError("EPIPE", { message: "sink stopped" });
-      accepted.push(bytes.slice());
+      accepted.push(Uint8Array.from(bytes));
     } },
   });
   assert.equal(actual.exitCode, 1);
   assert.equal(actual.stderr, "join: EPIPE: sink stopped\n");
-  assert.equal(Buffer.concat(accepted).toString(), "a");
+  assert.equal(Buffer.concat(accepted).toString("hex"), Buffer.from("a x y\n").toString("hex"));
   assert.equal(writes, 2);
   assert.equal(closed, true);
   assert.equal(controller.signal.aborted, false);

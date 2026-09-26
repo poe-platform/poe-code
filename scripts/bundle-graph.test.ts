@@ -46,6 +46,19 @@ function createFileSystem(rootPackageJson: object) {
   return createFsFromVolume(volume).promises;
 }
 
+it("uses prepared workspace entrypoints when source cannot represent the built runtime", async () => {
+  const graph = await resolveBundleGraph("/repo", [{ dir: "engine", pkg: {
+    name: "private-engine", private: true,
+    exports: {
+      ".": { import: "./dist/index.js" },
+      "./filter": { import: "./dist/filter.js" },
+    },
+    poeCode: { bundle: { prebuilt: true } },
+  } }], createFileSystem({}));
+  expect(graph.alias["private-engine"]).toBe("/repo/packages/engine/dist/index.js");
+  expect(graph.alias["private-engine/filter"]).toBe("/repo/packages/engine/dist/filter.js");
+});
+
 it("routes embedded spreadsheet XML imports to the published core entry", () => {
   const consumer = resolveConsumerGraph({
     alias: { "@poe-code/safe-fs/xml": "/repo/packages/safe-fs/src/xml.ts" },

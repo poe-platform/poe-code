@@ -29,7 +29,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc && node scripts/bundle-lua.mjs",
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && node scripts/bundle.mjs",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json && npm run typecheck:public",
     "lint": "eslint src conformance stress scripts && npm run typecheck",
     "test": "cd ../.. && vitest run packages/safe-bash-command-pandoc",
@@ -62,5 +62,10 @@
   "devDependencies": {
     "safe-bash-contracts": "*",
     "@poe-code/safe-fs": "*"
+  },
+  "poeCode": {
+    "bundle": {
+      "prebuilt": true
+    }
   }
 }

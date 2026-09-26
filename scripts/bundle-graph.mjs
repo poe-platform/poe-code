@@ -120,7 +120,8 @@ export function findUnreachableBundleOutputs(metafile, entryPoints, workingDirec
  * Compute the esbuild graph shared by every bundle in scripts/bundle.mjs:
  *
  * - `alias`: maps each workspace package (and its sub-path exports) to its
- *   TypeScript source, so the bundle compiles workspace code just-in-time.
+ *   TypeScript source, or prepared runtime exports for workspaces that declare
+ *   poeCode.bundle.prebuilt because their build transforms runtime code.
  * - `external`: the packages left for npm to install — root runtime deps,
  *   root optional runtime deps, plus the third-party deps of workspace packages,
  *   workspace packages are inlined unless explicitly listed in poeCode.bundle.external.
@@ -149,13 +150,15 @@ export async function resolveBundleGraph(rootDir, packageJsons, fileSystem = { r
 
   for (const { dir, pkg } of packageJsons) {
     workspacePackageNames.add(pkg.name);
+    const prebuilt = pkg.poeCode?.bundle?.prebuilt === true;
+    if (prebuilt && !pkg.exports?.["."]) throw new Error(`Prebuilt workspace ${pkg.name} requires a root runtime export`);
     // Resolve workspace packages to source (just-in-time compilation).
     alias[pkg.name] = path.join(packagesDir, dir, "src/index.ts");
     // Resolve sub-path exports to the source behind their built import target
     // (e.g. "./configs" → "./dist/configs/index.js" → src/configs/index.ts).
     if (pkg.exports && typeof pkg.exports === "object") {
       for (const [subpath, target] of Object.entries(pkg.exports)) {
-        if (subpath === ".") continue;
+        if (subpath === "." && !prebuilt) continue;
         const clean = subpath.startsWith("./") ? subpath.slice(2) : subpath;
         const built = nodeRuntimeTarget(target);
         // Asset patterns retain package resolution; they have no source module.
@@ -166,7 +169,8 @@ export async function resolveBundleGraph(rootDir, packageJsons, fileSystem = { r
           );
         }
         const source = `${built.slice("./dist/".length, -".js".length)}.ts`;
-        alias[`${pkg.name}/${clean}`] = path.join(packagesDir, dir, "src", source);
+        const specifier = subpath === "." ? pkg.name : `${pkg.name}/${clean}`;
+        alias[specifier] = prebuilt ? path.join(packagesDir, dir, built) : path.join(packagesDir, dir, "src", source);
       }
     }
     for (const dep of Object.keys(pkg.dependencies || {})) workspaceDeps.add(dep);

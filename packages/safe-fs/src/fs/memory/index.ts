@@ -99,8 +99,7 @@ const DUMMY_POOL_LEDGER = new MemoryLedger(normalizeMemoryFileSystemLimits({}));
 const DUMMY_POOL_ALLOCATION = new MemoryAllocation(EMPTY_ALLOC_BYTES, DUMMY_POOL_LEDGER);
 const DUMMY_POOL_FILE_NODE = new MemoryFileNode(0, 0, null as unknown as number, 0, DUMMY_POOL_ALLOCATION, DUMMY_POOL_ALLOCATION.data);
 DUMMY_POOL_FILE_NODE.atimeMs = DUMMY_POOL_FILE_NODE.mtimeMs = DUMMY_POOL_FILE_NODE.ctimeMs = DUMMY_POOL_FILE_NODE.birthtimeMs = 1700000000000;
-let fastWriteCachedNow: number = Date.now();
-let fastWriteNowTick = 0;
+const fastWriteCachedNow: number = Date.now();
 
 class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   private _table: Int16Array | Int32Array = new Int16Array(128).fill(-1);

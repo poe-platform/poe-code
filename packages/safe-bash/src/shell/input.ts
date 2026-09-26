@@ -4,7 +4,7 @@ import { hasRegisteredYieldCheckpoint } from "../contracts/yield.js";
 import { monotonicNow, yieldTurn } from "../contracts/yield.js";
 import { addAbortSignalWaiter, interruptible, removeAbortSignalWaiter, type AbortSignalWaiter } from "../fs/creation-mask.js";
 import type { Budget } from "./runtime.js";
-import { concatShellValues, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
+import { concatShellValues, shellValueByteLength, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ShellValue, ValueAllocation, ValueReservation } from "../contracts/value.js";
 import type { ValueScope } from "./value-state.js";
 import type { CommandContext } from "../contracts/command.js";
@@ -72,7 +72,7 @@ class InputBufferLease {
 export function prepareBytesInput(value: string | Uint8Array, budget: Budget): PreparedShellInput {
   budget.signal.throwIfAborted();
   if (typeof value !== "string" && !(value instanceof Uint8Array)) throw new TypeError("Shell input must be a string or Uint8Array");
-  const length = typeof value === "string" ? Buffer.byteLength(value) : inputByteLength.call(value) as number;
+  const length = typeof value === "string" ? shellValueByteLength(value) : inputByteLength.call(value) as number;
   if (length > budget.limits.maxInputBytes) throw new FsError("EFBIG", { syscall: "read" });
   let buffer: InputBufferLease | undefined;
   let sent = false;

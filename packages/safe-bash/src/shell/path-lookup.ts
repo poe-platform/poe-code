@@ -1,6 +1,7 @@
 import type { FileSystem } from "../contracts/index.js";
 import type { InvocationScope } from "./cleanup.js";
 import type { ShellLimits } from "./types.js";
+import { shellValueByteLength } from "../contracts/value.js";
 
 const maxCacheEntries = 256;
 const maxCacheBytes = 64 * 1024;
@@ -64,7 +65,7 @@ export class PathLookup {
       file = false;
     }
     signal.throwIfAborted();
-    const bytes = Buffer.byteLength(path) + 64;
+    const bytes = shellValueByteLength(path) + 64;
     if (!this.#pending && generation === this.#generation && bytes <= maxCacheBytes && !this.#entries.has(path)) {
       while (this.#entries.size >= maxCacheEntries || this.#bytes + bytes > maxCacheBytes) {
         const oldest = this.#entries.entries().next().value!;
@@ -80,7 +81,7 @@ export class PathLookup {
 
 export function* pathTargets(name: string, path: string | undefined, limits: Required<Pick<ShellLimits, "maxExpansionBytes" | "maxExpansionFields" | "maxPathComponents">>, signal: AbortSignal, fail: (limit: keyof ShellLimits) => never): Generator<string> {
   signal.throwIfAborted();
-  if (path !== undefined && Buffer.byteLength(path) > limits.maxExpansionBytes) fail("maxExpansionBytes");
+  if (path !== undefined && shellValueByteLength(path) > limits.maxExpansionBytes) fail("maxExpansionBytes");
   if (name.includes("/") || path === undefined) {
     if (limits.maxExpansionFields < 1) fail("maxExpansionFields");
     yield name;

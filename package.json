@@ -623,7 +623,9 @@
     "safe-bash-command-xz": "*",
     "safe-bash-compression-engine": "*",
     "safe-bash-command-column": "*",
-    "safe-bash-table-text-engine": "*"
+    "safe-bash-table-text-engine": "*",
+    "safe-bash-command-od": "*",
+    "safe-bash-command-xxd": "*"
   },
   "repository": {
     "type": "git",

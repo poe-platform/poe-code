@@ -117,6 +117,15 @@ function parse(input: Uint8Array, resources: Resources): { chunks: Chunk[]; tags
       tags.push(Object.freeze({ name: "ImageWidth", rawName: "ImageWidth", chunkType: type,
         index: chunks.length, group: "PNG", instance: 0, offset: offset + 8,
         value: String(header.getUint32(0)), raw: new Uint8Array(data.subarray(0, 4)) }));
+      const fields = { ImageHeight: String(header.getUint32(4)), BitDepth: String(data[8]),
+        ColorType: ({ 0: "Grayscale", 2: "RGB", 3: "Palette", 4: "Grayscale with Alpha", 6: "RGB with Alpha" } as Record<number, string>)[data[9]!]!,
+        FileType: "PNG", MIMEType: "image/png", ImageSize: header.getUint32(0) + "x" + header.getUint32(4) };
+      for (const [name, value] of Object.entries(fields)) {
+        resources.admit("decoded", value.length * 2);
+        resources.admit("retained", value.length * 8 + 256);
+        tags.push(Object.freeze({ name, rawName: name, chunkType: type, index: chunks.length,
+          group: "PNG", instance: 0, offset: offset + 8, value, raw: new TextEncoder().encode(value) }));
+      }
     }
     if (type === "IDAT") imageData = true;
     if (type === "IEND" && !imageData) throw new Error("PNG missing IDAT");

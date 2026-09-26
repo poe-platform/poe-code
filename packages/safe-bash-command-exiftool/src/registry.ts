@@ -1,14 +1,14 @@
 /** Independently admitted format/tag subset; this is not the full upstream catalog. */
 const textChunks = Object.freeze(["tEXt", "iTXt"]);
 const writeChunks: Readonly<Record<string, readonly string[]>> = Object.freeze({
-  Title: textChunks, Author: textChunks, Description: textChunks,
+  Artist: textChunks, Title: textChunks, Author: textChunks, Description: textChunks,
   Comment: textChunks, Copyright: textChunks, ModifyDate: Object.freeze(["tIME"]),
 });
 export const exiftoolRegistry = Object.freeze({
-  version: 3,
+  version: 4,
   source: Object.freeze({ version: "13.59", commit: "2200871d9cef988051d2a99d67df3bda6cbb30a8", archiveSha256: "e1e2ad6c6fbf568afee5993ef8b2b91ab013d21698c9304e079e633ad82776f5" }),
-  formats: Object.freeze({ PNG: Object.freeze({ reader: "header-width-uncompressed-text-time", writer: "selected-text-time" }) }),
-  tags: Object.freeze([...Object.keys(writeChunks), "ImageWidth", "Subject", "Keywords", "Creator", "Producer", "CreateDate", "PDFVersion", "PageCount"]),
+  formats: Object.freeze({ PNG: Object.freeze({ reader: "header-uncompressed-text-time", writer: "selected-text-time" }), JPEG: Object.freeze({ reader: "frame-ifd0-text", writer: "ifd0-artist-copyright" }) }),
+  tags: Object.freeze([...Object.keys(writeChunks), "ImageWidth", "ImageHeight", "BitDepth", "ColorType", "FileType", "MIMEType", "ImageSize", "Subject", "Keywords", "Creator", "Producer", "CreateDate", "PDFVersion", "PageCount"]),
   writeChunks,
   scalarShiftErrorGroups: Object.freeze({ Title: "XMP-xmp" } as Readonly<Record<string, string>>),
 });

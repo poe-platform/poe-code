@@ -6,6 +6,7 @@ import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import { parseArguments } from "./arguments.js";
 import { inspectPng, editPng, type MetadataTag } from "./png.js";
+import { inspectJpeg, editJpeg, jpegWriteTags } from "./jpeg.js";
 import { inspectPdf, editPdf, pdfWriteTags } from "./pdf.js";
 import { Publication } from "./publication.js";
 import { Resources, ResourceLimitError, type ResourceLimits } from "./resources.js";
@@ -39,7 +40,7 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
   const limits = Object.freeze({ ...options.limits });
   return Object.freeze({
     name: "exiftool", runtimeIdentity: commandRuntimeIdentity,
-    description: "Inspect and edit admitted PNG metadata through virtual files",
+    description: "Inspect and edit admitted PNG, JPEG and PDF metadata through virtual files",
     async execute(context) {
       const publication = new Publication(context, limits.maxStagingAttempts);
       let stdout: OutputOperation | undefined, stderr: OutputOperation | undefined;
@@ -149,21 +150,23 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
             if (isPdf && invocation.assignments.some(a => a.name.toLowerCase() === "all")) {
               throw new Error("PDF parser/writer not yet supported; metadata deletion retains historical revisions and never guarantees redaction");
             }
+            const jpeg = bytes[0] === 255 && bytes[1] === 216;
             const png = bytes.length >= 8 && bytes[0] === 137 && bytes[1] === 80 && bytes[2] === 78 && bytes[3] === 71;
             if (writing) {
               if (!original) throw new Error("Writing stdin metadata is not yet supported");
-              if (!png && !isPdf) throw new Error("Format writer not yet supported");
+              if (!png && !isPdf && !jpeg) throw new Error("Format writer not yet supported");
               let assignments = invocation.assignments;
               if (invocation.tagsFromFile !== undefined) {
                 const source = await acquire(invocation.tagsFromFile);
                 const srcIsPdf = source.bytes.length >= 5 && source.bytes[0] === 0x25 && source.bytes[1] === 0x50 && source.bytes[2] === 0x44 && source.bytes[3] === 0x46;
-                const srcTags = srcIsPdf ? inspectPdf(source.bytes, resources).tags : inspectPng(source.bytes, resources).tags;
+                const srcJpeg = source.bytes[0] === 255 && source.bytes[1] === 216;
+                const srcTags = srcJpeg ? inspectJpeg(source.bytes, resources).tags : srcIsPdf ? inspectPdf(source.bytes, resources).tags : inspectPng(source.bytes, resources).tags;
                 const values = selected(srcTags, invocation.tags, false, resources);
                 resources.admit("work", values.length * exiftoolRegistry.tags.length * 16);
                 resources.admit("retained", values.length * 128);
-                assignments = values.filter(tag => isPdf ? pdfWriteTags.has(tag.name) : Object.hasOwn(exiftoolRegistry.writeChunks, tag.name)).map(tag => ({ name: tag.name, operation: "set" as const, value: tag.value }));
+                assignments = values.filter(tag => isPdf ? pdfWriteTags.has(tag.name) : jpeg ? Object.hasOwn(jpegWriteTags, tag.name) : Object.hasOwn(exiftoolRegistry.writeChunks, tag.name)).map(tag => ({ name: tag.name, operation: "set" as const, value: tag.value }));
               }
-              const edited = isPdf ? editPdf(bytes, assignments, resources) : editPng(bytes, assignments, resources);
+              const edited = jpeg ? editJpeg(bytes, assignments, resources) : isPdf ? editPdf(bytes, assignments, resources) : editPng(bytes, assignments, resources);
               resources.admit("retained", edited.length * 3);
               resources.admit("work", bytes.length);
               if (invocation.destination === undefined && !assignments.some(op => op.operation === "set" && op.value !== "") && edited.length === bytes.length && edited.every((byte, index) => byte === bytes[index])) { unchanged++; continue; }
@@ -189,8 +192,8 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
               continue;
             }
             // Unrecognized nonempty formats match the validated no-selected-tag control.
-            if (!png && !isPdf && ["XMP", "DOCX", "PPTX", "XLSX", "JPG", "JPEG", "TIF", "TIFF"].includes(extension)) throw new Error(extension + " reader not yet supported");
-            tags = png ? inspectPng(bytes, resources).tags : isPdf ? inspectPdf(bytes, resources).tags : [];
+            if (!png && !isPdf && !jpeg && ["XMP", "DOCX", "PPTX", "XLSX", "JPG", "JPEG", "TIF", "TIFF"].includes(extension)) throw new Error(extension + " reader not yet supported");
+            tags = jpeg ? inspectJpeg(bytes, resources).tags : png ? inspectPng(bytes, resources).tags : isPdf ? inspectPdf(bytes, resources).tags : [];
           } catch (error) {
             context.signal.throwIfAborted();
             if (error instanceof ResourceLimitError) throw error;
@@ -264,7 +267,7 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
               else {
                 resources.admit("work", (tag.name.length + tag.value.length) * 4);
                 const value = printable(tag.value, scalarOptions);
-                const group = invocation.groupFamily === 1 ? (tag.group === "PDF" ? "[PDF]" : "[PNG]").padEnd(16) : "";
+                const group = invocation.groupFamily === 1 ? ("[" + tag.group + "]").padEnd(16) : "";
                 await output(group + (invocation.style === "values" ? value + "\n" : (invocation.style === "compact" ? tag.name + ": " : tag.name.padEnd(32) + ": ") + value + "\n"));
               }
             }

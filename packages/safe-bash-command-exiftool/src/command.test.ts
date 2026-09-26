@@ -449,7 +449,7 @@ test("JSON SourceFile provenance cannot be shadowed by a same-token stored keywo
   const fs = createMemoryFileSystem(); const base = fixture("value");
   const input = new Uint8Array(Buffer.concat([base.subarray(0,33), pngChunk("tEXt", new TextEncoder().encode("SourceFile\0untrusted")), base.subarray(33)]));
   await fs.writeFile("/image.png", input);
-  const result = await invoke(["-j", "image.png"], fs);
+  const result = await invoke(["-j", "-ImageWidth", "-Title", "image.png"], fs);
   assert.equal(result.stdout, '[{\n  "SourceFile": "image.png",\n  "ImageWidth": 1,\n  "Title": "value"\n}]\n');
 });
 
@@ -696,4 +696,35 @@ test("omitted argument-file quotas admit deep nesting and many arguments", async
   await fs.writeFile("/many.args", new TextEncoder().encode("-Title\n".repeat(4097) + "image.png\n"));
   const many = await invoke(["-@", "many.args"], fs);
   assert.equal(many.exitCode, 0, many.stderr);
+});
+
+test("PNG header metadata, Artist writes and all deletion", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/image.png", fixture());
+  const read = await invoke(["-j", "image.png"], fs);
+  assert.equal(read.exitCode, 0, read.stderr);
+  assert.deepEqual(JSON.parse(read.stdout)[0], { SourceFile: "image.png", ImageWidth: 1, ImageHeight: 1, BitDepth: 8, ColorType: "Grayscale with Alpha", FileType: "PNG", MIMEType: "image/png", ImageSize: "1x1" });
+  assert.equal((await invoke(["-Artist=Alice", "-Title=Test Title", "-overwrite_original", "image.png"], fs)).exitCode, 0);
+  assert.equal((await invoke(["-s3", "-Artist", "image.png"], fs)).stdout, "Alice\n");
+  assert.equal((await invoke(["-all=", "-overwrite_original", "image.png"], fs)).exitCode, 0);
+  assert.deepEqual(await fs.readFile("/image.png"), fixture());
+});
+
+test("JPEG reads, EXIF writes, replacement and deletion preserve image segments", async () => {
+  const fs = createMemoryFileSystem();
+  const jpeg = new Uint8Array([255,216,255,192,0,11,8,0,32,0,64,1,1,17,0,255,218,0,8,1,1,0,0,63,0,7,255,0,8,255,217]);
+  await fs.writeFile("/img.jpg", jpeg);
+  for (const args of [["img.jpg"], ["-j", "img.jpg"]]) assert.equal((await invoke(args, fs)).exitCode, 0);
+  const dimensions = await invoke(["-s3", "-ImageWidth", "-ImageHeight", "img.jpg"], fs);
+  assert.equal(dimensions.stdout, "64\n32\n");
+  for (const artist of ["Bob", "Alice"]) {
+    const write = await invoke(["-Artist=" + artist, "-Copyright=2026", "-overwrite_original", "img.jpg"], fs);
+    assert.equal(write.exitCode, 0, write.stderr);
+    const read = await invoke(["-j", "img.jpg"], fs);
+    assert.equal(JSON.parse(read.stdout)[0].Artist, artist);
+    assert.equal(String(JSON.parse(read.stdout)[0].Copyright), "2026");
+  }
+  const clear = await invoke(["-all=", "-overwrite_original", "img.jpg"], fs);
+  assert.equal(clear.exitCode, 0, clear.stderr);
+  assert.deepEqual(await fs.readFile("/img.jpg"), jpeg);
 });

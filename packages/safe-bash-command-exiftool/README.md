@@ -1,6 +1,6 @@
 # Virtual ExifTool metadata
 
-Read PNG image width and inspect and edit admitted PNG text metadata in virtual files. Use the public
+Read PNG and JPEG dimensions and inspect and edit admitted metadata in virtual files. Use the public
 `@poe-platform/safe-bash/commands/exiftool` export; this private implementation
 workspace is never an installation dependency for consumers.
 
@@ -15,7 +15,7 @@ exiftool -@ /arguments.txt
 ```
 
 These commands run inside the configured virtual Shell, not a host executable.
-`ImageWidth` is read-only and comes from the validated PNG header. Metadata
+`ImageWidth`, `ImageHeight`, `BitDepth`, `ColorType`, `FileType`, `MIMEType` and `ImageSize` describe the PNG header. JPEG supports dimensions, file type, MIME type, bit depth and image size, plus EXIF `Artist` and `Copyright` reads and writes. PNG supports `Artist` text writes. `-all=` removes admitted PNG metadata or JPEG APP1–APP15 and comment segments while preserving image data. JPEG scalar writes preserve other EXIF entries and segment bytes. Metadata
 deletion preserves the header and image data.
 The runtime is first-party TypeScript ESM with byte-stream input/output and no
 external runtime dependencies, Perl, native/WASM fallback, network access,
@@ -121,7 +121,7 @@ of multiply linked files is explicitly unsupported; in-place writes preserve
 the inode and update aliases on a qualified VFS. Symlink inputs are refused.
 
 This is an initial implementation, not complete ExifTool compatibility. Compressed
-PNG metadata, qualified/XMP namespaces, JPEG/TIFF, Office
+PNG metadata, qualified/XMP namespaces, TIFF, Office
 inspection, broader timestamp syntax/conversions, import, extended tag catalogs and execute
 protocols remain open. Known unsupported readers and writers fail explicitly.
 PDF metadata removal is reversible and does not erase historical revisions or
@@ -145,7 +145,7 @@ syntax fails explicitly; the full native warning/no-op policy remains open.
 `-b` emits converted values without a terminator; SDK `raw` retains stored bytes.
 
 `createExiftoolCommand({ limits })` exposes the same handler used by the Shell
-plugin for direct SDK invocation. `inspectPng` and `editPng` operate on owned
+plugin for direct SDK invocation. `inspectPng`, `editPng`, `inspectJpeg` and `editJpeg` operate on owned
 byte results with mandatory signals. Limits conservatively charge transient
 allocations and cumulative bytes, so an operation may be refused before its
 exact final extent is known. Output limits include backups and diagnostics.

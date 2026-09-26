@@ -18,7 +18,7 @@ export interface SQLiteMemoryVolume {
 /** In-process memfs persistence and lock coordination, never host disk durability.
  * All connections to a volume must share this single adapter for lock safety. */
 export function createMemorySqliteFileSystem(volume: SQLiteMemoryVolume, options: { authorize(path: string): boolean; maxBytes: number }): SQLiteFileSystem {
-  if (!Number.isSafeInteger(options.maxBytes) || options.maxBytes < 1) throw new TypeError('SQLite memory maxBytes must be a positive safe integer');
+  if (options.maxBytes !== Infinity && (!Number.isSafeInteger(options.maxBytes) || options.maxBytes < 1)) throw new TypeError('SQLite memory maxBytes must be a positive safe integer or Infinity');
   const locks = new Map<string, Map<object, number>>();
   let retained = 0;
   const sizes = new Map<string, number>();

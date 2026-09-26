@@ -96,6 +96,22 @@ test('SQLite VFS denies unauthorized paths, requires parents and propagates writ
   finally { await session.close(); }
 });
 
+test('memory VFS accepts an explicit unlimited byte quota and preserves authorization', () => {
+  const memory = Volume.fromJSON({ '/authorized/.keep': '' });
+  const unlimited = createMemorySqliteFileSystem(memory, { authorize: path => path.startsWith('/authorized/'), maxBytes: Infinity });
+  const file = unlimited.open('/authorized/unlimited.db', 6);
+  try {
+    file.write(new Uint8Array([1, 2, 3]), 0);
+    file.truncate(5);
+    const read = new Uint8Array(5);
+    assert.equal(file.read(read, 0), 5);
+    assert.deepEqual(read, new Uint8Array([1, 2, 3, 0, 0]));
+    assert.equal(file.size(), 5);
+  } finally { file.close(); }
+  assert.throws(() => unlimited.open('/private.db', 6), /unauthorized memory VFS path/);
+  assert.equal(memory.existsSync('/private.db'), false);
+});
+
 test('memory VFS denies authorized spellings that resolve through symlinks', async () => {
   volume.writeFileSync('/private.db', 'private');
   volume.symlinkSync('/private.db', '/authorized/link.db');

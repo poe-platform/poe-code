@@ -85,7 +85,7 @@ test("htmlq buffered file reads omit unlimited bounds and preserve finite input 
   for (const inputBytes of [undefined, Infinity, 2]) {
     const sample = fixture(["-t", "p", "-f", "in"]);
     const bounds: (number | undefined)[] = [];
-    const fs = { ...sample.context.fs, readStream: undefined,
+    const fs = { ...sample.context.fs,
       async readFile(path: string, options?: { maxBytes?: number }) {
         bounds.push(options?.maxBytes);
         assert.ok(options?.maxBytes === undefined || Number.isSafeInteger(options.maxBytes));
@@ -94,6 +94,7 @@ test("htmlq buffered file reads omit unlimited bounds and preserve finite input 
         return bytes.slice();
       },
     };
+    delete fs.readStream;
     const result = await htmlq({ ...sample.context, fs }, { limits: inputBytes === undefined ? {} : { inputBytes } });
     assert.equal(result.exitCode, inputBytes === 2 ? 1 : 0);
     assert.deepEqual(bounds, [inputBytes === 2 ? 2 : undefined]);

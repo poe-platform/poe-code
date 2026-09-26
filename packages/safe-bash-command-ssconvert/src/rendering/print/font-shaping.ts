@@ -5,7 +5,6 @@ import {harfbuzzBase64} from "./harfbuzz/data.js";
 // Only immutable compiled code is shared. Font data, native handles and failure
 // state belong to one conversion and are discarded together on any failure.
 let compiled: Promise<WebAssembly.Module> | undefined;
-const heapLimit = 64 * 1024 * 1024;
 export function createFontShaper(context: CapabilityContext, tick: (amount?: number) => void) {
   let exports: WebAssembly.Exports | undefined, disposed = false;
   const fonts = new Map<Font, {font: number; data: number}>();
@@ -47,7 +46,7 @@ export function createFontShaper(context: CapabilityContext, tick: (amount?: num
           env: {_emscripten_runtime_keepalive_clear: unexpected, _abort_js: unexpected, _setitimer_js: unexpected,
             emscripten_resize_heap(requested: number) {
               const current = memory();
-              if (!Number.isSafeInteger(requested) || requested < current.buffer.byteLength || requested > heapLimit) return fail();
+              if (!Number.isSafeInteger(requested) || requested < current.buffer.byteLength) return fail();
               try { current.grow(Math.ceil((requested - current.buffer.byteLength) / 65536)); return 1; } catch { return fail(); }
             }}
         });

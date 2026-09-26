@@ -49,7 +49,12 @@
       "qualification": "Original memory fixtures cover all BIFF8 token classes, scoped names, encoded paths, Unicode/quotes, malformed names/paths, budgets, cancellation and explicit host resolution. Eight compiled poe-code/ssconvert XML/XLSX replays preserve identities; XML replay does not retain cached values. Native/application and compiled Shell qualification remain open. Maintained ssconvert tests pass 410 files / 23625 tests plus 2 posttest checks; package lint/types and selected four-workspace build pass. Compiled scoped Shell returns #REF! without a host and 84 with one explicit host call for the original BIFF8 cell record; stderr is empty.",
       "exportQualification": {
         "scope": "BIFF8 cell/range, global/sheet-scoped external names, defined-name expressions and array formulas. Local, add-in, macro and external link indexes stay separate regardless of discovery order.",
-        "profiles": ["book.xls", "dir/book.xls", "https://example.test/a[b].xls", "表] book.xls"],
+        "profiles": [
+          "book.xls",
+          "dir/book.xls",
+          "https://example.test/a[b].xls",
+          "\u8868] book.xls"
+        ],
         "outputSha256": [
           "778b0666a30cff97240da6b0a04ecf3b9b7d9d3fdc47d7c8a4dc332f4d732d27",
           "442fa46486b5137ef8a61617a58d58863b33d4a3d28b3af1e71e474caff46b3d",
@@ -295,7 +300,12 @@
         ],
         "guards": "In each context all three bindings are absent without opt-in; three unknown/inherited profile names refuse. Each Unicode profile preserves pre-abort reason identity, enforces output/work limits and publishes zero bytes on refusal.",
         "nativeCsvControl": {
-          "input": ["'abc'", "'123", "''", "plain"],
+          "input": [
+            "'abc'",
+            "'123",
+            "''",
+            "plain"
+          ],
           "nativeCells": [
             {
               "row": "0",
@@ -340,8 +350,18 @@
       "nativeSelection": "References, IF and INDEX preserve date/time formats; addition and SUM return unformatted numbers.",
       "independentExports": {
         "count": 12,
-        "dateSystems": ["1900", "1904"],
-        "profiles": ["Gnumeric XML", "XLSX 2006", "XLSX 2008", "BIFF7", "BIFF8", "DSF"],
+        "dateSystems": [
+          "1900",
+          "1904"
+        ],
+        "profiles": [
+          "Gnumeric XML",
+          "XLSX 2006",
+          "XLSX 2008",
+          "BIFF7",
+          "BIFF8",
+          "DSF"
+        ],
         "result": "Compiled public SDK exports reopened by native Gnumeric; exact CSV dates, times and explicit numeric-style controls matched."
       },
       "sdk": "Imported XML value formats and an injected READDBTABLE recordset produced the exact native CSV control bytes.",
@@ -403,7 +423,10 @@
       },
       "native": {
         "typedColumns": 13,
-        "dateSystems": ["1900", "1904"],
+        "dateSystems": [
+          "1900",
+          "1904"
+        ],
         "acceptedConnectionDialogs": 1,
         "rejectThenAcceptDialogs": 2,
         "connectionHandles": {
@@ -771,7 +794,7 @@
           "remaining": "Encrypted-property export, unknown ancillary reexport, additional applicable profiles and native application qualification remain open."
         },
         "exportImplementation": {
-          "change": "Explicit rc4-cryptoapi-<bits>-properties profiles (40–128 by 8) share provider-derived CLI/SDK options. The exporter admits ancillary work before password acquisition, reuses the Workbook key, restarts payload blocks from zero, separately resets header/table block zero, clears both fDocProps bits, omits plaintext SummaryInformation and emits the empty DocumentSummaryInformation placeholder. Cipher buffers and owned containers are cleared on failure/disposal. Workbook-only profiles retain plaintext properties.",
+          "change": "Explicit rc4-cryptoapi-<bits>-properties profiles (40\u2013128 by 8) share provider-derived CLI/SDK options. The exporter admits ancillary work before password acquisition, reuses the Workbook key, restarts payload blocks from zero, separately resets header/table block zero, clears both fDocProps bits, omits plaintext SummaryInformation and emits the empty DocumentSummaryInformation placeholder. Cipher buffers and owned containers are cleared on failure/disposal. Workbook-only profiles retain plaintext properties.",
           "validation": "56 BIFF files / 1270 tests passed; maintained package lint/source/test/consumer types and selected four-workspace build passed. Original OpenSSL 52-byte vector and a 3034-byte container SHA256 verify exact ciphertext and no Workbook-style payload rekeying. Property edits, one password/entropy request, pre-secret resource/name admission and disposal controls pass.",
           "remaining": "Additional profile and native application qualification remain open; broader encryption family is not complete. Workbook-only export still diagnoses unknown ancillary loss.",
           "cli": "Compiled public createEngine/runCommand exported a title and named custom property with one password and entropy request, no diagnostics and no plaintext summary. Independent SheetJS CFB parsing plus OpenSSL decryption matched both plaintext property streams exactly. Encrypted output reopened through the SDK; terminal screenshot inspected. Native application qualification remains separate."
@@ -881,7 +904,7 @@
     {
       "id": "lotus-named-formula-references",
       "status": "open",
-      "currentFinding": "WK1/WK3 names, WK3 coordinates, function names and namespace lifecycle repairs are implemented. WK3 op7/op8 external-variable fallback now preserves cell/range identities and relative axes after defined-name lookup; malformed names retain diagnostics and recalculation requires the explicit external-reference host. Full package suite: 403 files / 23,430 tests; 24 compiled SDK/Shell XML/XLSX conversion/readback profiles passed. Native Gnumeric 1.12.61 accepts the constant control but misparses the named token, so native parity is not claimed. Independent application readback, dynamic/relative-sheet identity and wider profiles remain open. Source-led direct-reference repair now decodes per-token column/row relativity correctly; 151 Lotus tests pass. Legacy offset widths, range flag packing and application qualification remain open."
+      "currentFinding": "WK1/WK3 names, coordinates, function names and namespace lifecycle repairs are implemented. Named tokens resolve workbook names and bounded external-variable fallbacks; recalculation requires the explicit external-reference host. Source-led repairs now decode per-token modern reference flags, signed legacy offsets for BOF 0x0404/0x0406, and original WK3 BOF 0x1000 detection/formula dispatch. All 167 tests in twelve Lotus files pass, plus package lint/types/build and compiled SDK/command XLSX readback for the repaired profiles. Earlier full-package and 24-profile XML/XLSX evidence remains scoped to its recorded candidate. BOF 0x0405 and Works offset semantics, modern range flag packing, dynamic/relative-sheet identity, wider formatting/charset profiles and independent application readback remain open. Native Gnumeric named-token limitations are not product completion evidence; containing publication is still pending."
     },
     {
       "id": "biff-external-and-token-formulas",
@@ -901,7 +924,7 @@
     {
       "id": "encrypted-paradox",
       "status": "open",
-      "currentFinding": "On-file-key encrypted imports match native records. Explicit encryption=paradox export now uses a host-supplied 1–256-byte password, native NUL termination, bounded work and cancellation, without entropy or implicit password acquisition. Empty effective passwords are refused; plaintext stays default. All seven compiled SDK profiles and the Shell export reopen in native Gnumeric byte-exact with empty stderr. This is legacy obfuscation with a recoverable key and readable schema, not authenticated password security. Wider profiles, companions and final delivery qualification remain open. Owned decrypted buffers now clear on disposal and cancellation, including concurrent abort/cleanup. Physical block 65535 and the five neighboring retained pxlib vectors pass through the compiled decoder with explicit finite limits; no large fixture retained."
+      "currentFinding": "On-file-key encrypted imports match native records. Explicit encryption=paradox export now uses a host-supplied 1\u2013256-byte password, native NUL termination, bounded work and cancellation, without entropy or implicit password acquisition. Empty effective passwords are refused; plaintext stays default. All seven compiled SDK profiles and the Shell export reopen in native Gnumeric byte-exact with empty stderr. This is legacy obfuscation with a recoverable key and readable schema, not authenticated password security. Wider profiles, companions and final delivery qualification remain open. Owned decrypted buffers now clear on disposal and cancellation, including concurrent abort/cleanup. Physical block 65535 and the five neighboring retained pxlib vectors pass through the compiled decoder with explicit finite limits; no large fixture retained."
     },
     {
       "id": "perl-date",

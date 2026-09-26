@@ -546,7 +546,7 @@ export class Shell implements PluginHost {
     try {
       if (typeof source !== "string") throw new TypeError("Shell source must be a string");
       const sourceByteLen = Buffer.byteLength(source);
-      if (sourceByteLen > budget.limits.maxSourceBytes) throw new ShellLimitError("maxSourceBytes");
+      if (sourceByteLen > budget.maxSourceBytesSmi && sourceByteLen > budget.limits.maxSourceBytes) throw new ShellLimitError("maxSourceBytes");
       budget.source(sourceByteLen);
       budget.signal.throwIfAborted();
       budget.parsing.admit(firstCached.unitsCharged);

@@ -52,10 +52,10 @@ function trySearchFileSync(
     context.signal.throwIfAborted();
     chargeRuntimeFileSystemOperation(context.fs);
   }
-  const maxBytes = Number.isFinite(limits.maxFileBytes) ? limits.maxFileBytes : undefined;
+  const maxBytes = limits.hasFiniteMaxFileBytes ? limits.maxFileBytes : undefined;
   const view = target.memoryView ?? tryReadMemoryFileViewSync(backing, target.canonicalPath!, maxBytes, context.signal);
   if (view === undefined) return undefined;
-  if (args.maxCount === 0) {
+  if (!args.hasInfiniteMaxCount && args.maxCount === 0) {
     totals.searches++;
     return false;
   }
@@ -70,9 +70,9 @@ function trySearchFileSync(
     !args.nullData &&
     !args.crlf &&
     binary === "skip" &&
-    args.maxCount === Infinity &&
+    args.hasInfiniteMaxCount !== false &&
     !hasExtYield &&
-    view.length <= limits.maxLineBytes &&
+    (view.length <= limits.maxLineBytesSmi || view.length <= limits.maxLineBytes) &&
     view.indexOf(0) === -1
   ) {
     const firstByte = lit[0]!;
@@ -256,7 +256,7 @@ async function patterns(context: CommandContext, args: Arguments, limits: Limits
 
 async function searchFile(context: CommandContext, args: Arguments, limits: Limits, matcher: Matcher, printer: Printer, target: FileTarget, stdin: ByteSource, filename: boolean): Promise<{ found: boolean; stats: Stats }> {
   const totals = stats(); totals.searches = 1;
-  if (args.maxCount === 0) return { found: false, stats: totals };
+  if (!args.hasInfiniteMaxCount && args.maxCount === 0) return { found: false, stats: totals };
   const state: ReadState = { bytesRead: 0, bytesSearched: 0, binaryOffset: null, skipped: false };
   const binary = args.binary === "text" ? "text" : args.binary === "binary" || target.explicit ? "binary" : "skip";
   let source: ByteSource | Uint8Array = target.path === "-"
@@ -561,10 +561,10 @@ function tryExecuteRgFastSync(
         return undefined;
       }
       const pat = args.patterns[0]!;
-      if (Buffer.byteLength(pat) > limits.maxPatternBytes) return undefined;
+      if (pat.length * 3 > limits.maxPatternBytesSmi && Buffer.byteLength(pat) > limits.maxPatternBytes) return undefined;
       runner.matcher.resetForRun(args.patterns, args, DUMMY_SESSION, true, true);
       if (runner.matcher.literalAsciiBytes === undefined) return undefined;
-      if (args.maxCount === 0) return RESOLVED_EXIT_ONE;
+      if (!args.hasInfiniteMaxCount && args.maxCount === 0) return RESOLVED_EXIT_ONE;
     }
     runner.walker.resetForRun(context, args, limits, DUMMY_REPORT, DUMMY_SESSION);
     runner.printer.resetForRun(args, limits);

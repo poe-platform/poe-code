@@ -76,6 +76,8 @@ function checkMemDirEntries(map: ReadonlyMap<string, { readonly type: string }>,
 const syncWalkBuffer: unknown[] = new Array(256);
 let syncWalkBufferTop = 0;
 const defaultDateNow = Date.now;
+function toVoidPromise(p: Promise<unknown>): Promise<void> { return p.then( noopVoid ); }
+function noopVoid(): void {}
 
 function isFastEntriesMapSorted(map: { readonly size?: number; readonly _next?: number; readonly _keys?: (string | undefined)[] }): boolean {
   const len = map._next;
@@ -141,11 +143,30 @@ export class Walker {
     this.limits = limits;
     this.report = report;
     this.session = session;
-    this.globs = args.globs.length
-      ? args.globs.map(({ source, insensitive }) => ({ glob: new Glob(source.startsWith("!") ? source.slice(1) : source, insensitive), include: !source.startsWith("!") }))
-      : EMPTY_GLOBS;
-    this.hasPositive = this.globs.length > 0 && this.globs.some(rule => rule.include);
-    this.hasPositiveType = args.types.length > 0 && args.types.some(rule => rule.include);
+    if (args.globs.length > 0) {
+      const globs = new Array<{ glob: Glob; include: boolean }>(args.globs.length);
+      let hasPos = false;
+      for (let i = 0; i < args.globs.length; i++) {
+        const g = args.globs[i]!;
+        const neg = g.source.charCodeAt(0) === 33;
+        if (!neg) hasPos = true;
+        globs[i] = { glob: new Glob(neg ? g.source.slice(1) : g.source, g.insensitive), include: !neg };
+      }
+      this.globs = globs;
+      this.hasPositive = hasPos;
+    } else {
+      this.globs = EMPTY_GLOBS;
+      this.hasPositive = false;
+    }
+    if (args.types.length > 0) {
+      let hasPosType = false;
+      for (let i = 0; i < args.types.length; i++) {
+        if (args.types[i]!.include) { hasPosType = true; break; }
+      }
+      this.hasPositiveType = hasPosType;
+    } else {
+      this.hasPositiveType = false;
+    }
     this.typeGlobs = EMPTY_GLOBS;
     this.cache = undefined;
     this.explicitRules = EMPTY_IGNORE_RULES;
@@ -292,7 +313,7 @@ export class Walker {
     if (depth >= this.args.maxDepth) return true;
     const backing = getRuntimeBackingFileSystem(this.context.fs);
     const uniformNonDevPath = backing !== undefined && backing.capabilitiesFor === undefined && path !== "/dev" && !path.startsWith("/dev/");
-    if (uniformNonDevPath && this.globs.length === 0 && rules.length === 0 && this.typeGlobs.length === 0 && !Number.isFinite(this.args.maxFileSize)) {
+    if (uniformNonDevPath && this.globs.length === 0 && rules.length === 0 && this.typeGlobs.length === 0 && !Boolean(this.args.hasFiniteMaxFileSize)) {
       if (!this.uniformDirAdmitted) {
         assertCommandRequirements(this.context, searchRequirements, ["directory"]);
         this.uniformDirAdmitted = true;
@@ -330,7 +351,7 @@ export class Walker {
                 handedOff = true;
                 return this.finishFastMemDirectoryAsync(path, pathPrefix, labelPrefix, depth, ancestors, rules, repository, allowHidden, memDirEntries, entryIdx, tickPending, true, onTarget);
               }
-              if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
+              if (++this.limits.files > this.limits.maxFilesSmi && this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
               if (entryType !== "symlink" && (allowHidden || !entryName.startsWith("."))) {
                 const child = `${pathPrefix}${entryName}`;
                 const display = samePrefix ? child : (labelPrefix ? `${labelPrefix}${entryName}` : entryName);
@@ -426,7 +447,7 @@ export class Walker {
           if (tickPending) await tickPending;
         }
         idx++;
-        if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
+        if (++this.limits.files > this.limits.maxFilesSmi && this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
         const entryType = entryMeta.type;
         if (entryType === "symlink" || (!allowHidden && entryName.startsWith("."))) continue;
         const child = `${pathPrefix}${entryName}`;
@@ -551,7 +572,7 @@ export class Walker {
       }
       const tickPending = this.limits.tick();
       if (tickPending) await tickPending;
-      if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
+      if (++this.limits.files > this.limits.maxFilesSmi && this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
       const child = `${path.endsWith("/") ? path.slice(0, -1) : path}/${entryName}`;
       const display = label ? `${label.endsWith("/") ? label.slice(0, -1) : label}/${entryName}` : entryName;
       try {
@@ -595,6 +616,37 @@ export class Walker {
     }
   }
 
+  private async finishWalkEntryAfterTickAsync(
+    backing: NonNullable<ReturnType<typeof getRuntimeBackingFileSystem>>,
+    cleanPath: string,
+    cleanLabel: string,
+    child: string,
+    display: string,
+    entryType: DirectoryEntry["type"],
+    depth: number,
+    rules: readonly IgnoreRule[],
+    repository: boolean,
+    onTarget: (target: FileTarget) => boolean | Promise<boolean>,
+    memDirEntries: ReadonlyMap<string, { readonly type: string }>,
+    nextEntryIdx: number,
+    tickPending: Promise<void>,
+  ): Promise<boolean> {
+    await tickPending;
+    let stepRes: boolean | Promise<boolean> = true;
+    if (entryType === "directory") {
+      stepRes = this.tryWalkDirectorySync(backing, child, display, depth + 1, rules, repository, onTarget) as boolean | Promise<boolean>;
+    } else if (entryType === "file") {
+      const t = this.reusableTarget;
+      t.path = child;
+      t.label = display;
+      t.explicit = false;
+      t.recursive = true;
+      t.canonicalPath = child;
+      stepRes = onTarget(t);
+    }
+    return this.finishWalkEntriesAsync(backing, cleanPath, cleanLabel, depth, rules, repository, onTarget, memDirEntries, nextEntryIdx, Promise.resolve(stepRes));
+  }
+
   private async finishWalkEntriesAsync(
     backing: NonNullable<ReturnType<typeof getRuntimeBackingFileSystem>>,
     cleanPath: string,
@@ -614,7 +666,7 @@ export class Walker {
     for (const [entryName, entryObj] of iter) {
       const tickPending = this.limits.tick();
       if (tickPending) await tickPending;
-      if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
+      if (++this.limits.files > this.limits.maxFilesSmi && this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
       if (!this.args.hidden && entryName.startsWith(".")) continue;
       const entryType = entryObj.type;
       const child = `${cleanPath}/${entryName}`;
@@ -647,14 +699,14 @@ export class Walker {
     syncOnly = false,
     knownEntries?: ReadonlyMap<string, { readonly type: string }>,
   ): boolean | Promise<boolean> | null {
-    if (depth > this.args.maxDepth) return true;
+    if (depth > this.args.maxDepthSmi! && depth > this.args.maxDepth) return true;
     if (
       path === "/dev" ||
       path.startsWith("/dev/") ||
       this.globs.length !== 0 ||
       rules.length !== 0 ||
       this.typeGlobs.length !== 0 ||
-      Number.isFinite(this.args.maxFileSize)
+      this.args.hasFiniteMaxFileSize
     ) {
       if (syncOnly) return null;
       return this.walkDirectory(path, label, depth, new Map(), rules, repository, onTarget);
@@ -677,7 +729,7 @@ export class Walker {
     if (
       !memDirEntries ||
       (this.args.ignore && (memDirEntries.has(".git") || memDirEntries.has(".gitignore") || memDirEntries.has(".ignore") || memDirEntries.has(".rgignore"))) ||
-      memDirEntries.size > this.limits.maxFiles - this.limits.files
+      (this.limits.files + memDirEntries.size > this.limits.maxFilesSmi && memDirEntries.size > this.limits.maxFiles - this.limits.files)
     ) {
       if (syncOnly) return null;
       return this.walkDirectory(path, label, depth, new Map(), rules, repository, onTarget);
@@ -699,7 +751,7 @@ export class Walker {
         const entryName = keys[entryIdx]!;
         const entryObj = vals[entryIdx] as { readonly type: DirectoryEntry["type"]; readonly mode?: number; readonly data?: Uint8Array; readonly entries?: ReadonlyMap<string, { readonly type: string }>; atimeMs?: number; ctimeMs?: number };
         if (this.limits.tick()) return null;
-        if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
+        if (++this.limits.files > this.limits.maxFilesSmi && this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
         if (!this.args.hidden && entryName.startsWith(".")) continue;
         const entryType = entryObj.type;
         if (entryType === "directory") {
@@ -725,9 +777,9 @@ export class Walker {
             entryObj.data !== undefined &&
             entryObj.mode !== undefined &&
             ((entryObj.mode >> 6) & 4) === 4 &&
-            entryObj.data.byteLength <= this.limits.maxFileBytes
+            (entryObj.data.byteLength <= this.limits.maxFileBytesSmi || entryObj.data.byteLength <= this.limits.maxFileBytes)
           ) {
-            if (customClock || entryObj.atimeMs !== entryObj.ctimeMs) entryObj.atimeMs = this.syncWalkNow;
+            if (customClock || (entryObj as { revision?: number }).revision !== 0) entryObj.atimeMs = this.syncWalkNow;
             t.memoryView = entryObj.data;
           } else {
             t.memoryView = undefined;
@@ -758,7 +810,7 @@ export class Walker {
         const entryName = syncWalkBuffer[bufIdx] as string;
         const entryObj = syncWalkBuffer[bufIdx + 1] as { readonly type: DirectoryEntry["type"]; readonly mode?: number; readonly data?: Uint8Array; atimeMs?: number };
         const tickPending = this.limits.tick();
-        if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
+        if (++this.limits.files > this.limits.maxFilesSmi && this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
         if (!this.args.hidden && entryName.startsWith(".")) {
           if (tickPending) {
             if (syncOnly) return null;
@@ -771,22 +823,7 @@ export class Walker {
           if (syncOnly) return null;
           const child = `${cleanPath}/${entryName}`;
           const display = samePrefix ? child : (cleanLabel ? `${cleanLabel}/${entryName}` : entryName);
-          const stepPromise = tickPending.then(() => {
-            if (entryType === "directory") {
-              return this.tryWalkDirectorySync(backing, child, display, depth + 1, rules, repository, onTarget) as boolean | Promise<boolean>;
-            }
-            if (entryType === "file") {
-              const t = this.reusableTarget;
-              t.path = child;
-              t.label = display;
-              t.explicit = false;
-              t.recursive = true;
-              t.canonicalPath = child;
-              return onTarget(t);
-            }
-            return true;
-          });
-          return this.finishWalkEntriesAsync(backing, cleanPath, cleanLabel, depth, rules, repository, onTarget, memDirEntries, entryIdx + 1, stepPromise);
+          return this.finishWalkEntryAfterTickAsync(backing, cleanPath, cleanLabel, child, display, entryType, depth, rules, repository, onTarget, memDirEntries, entryIdx + 1, tickPending);
         }
         if (entryType === "directory") {
           const child = `${cleanPath}/${entryName}`;
@@ -813,7 +850,7 @@ export class Walker {
             entryObj.data !== undefined &&
             entryObj.mode !== undefined &&
             ((entryObj.mode >> 6) & 4) === 4 &&
-            entryObj.data.byteLength <= this.limits.maxFileBytes
+            (entryObj.data.byteLength <= this.limits.maxFileBytesSmi || entryObj.data.byteLength <= this.limits.maxFileBytes)
           ) {
             entryObj.atimeMs = this.syncWalkNow;
             t.memoryView = entryObj.data;
@@ -858,8 +895,7 @@ export class Walker {
         const path = pathFor(this.context, operand);
         const targetEntries = path !== "/dev" && !path.startsWith("/dev/") ? tryGetMemoryDirectoryEntryNamesSync(fastMem, path) : undefined;
         if (targetEntries !== undefined) {
-          const parent = dirname(resolvePath("/", path));
-          const rootEntries = parent === "/" ? tryGetMemoryDirectoryEntryNamesSync(fastMem, "/") : undefined;
+          const rootEntries = path.indexOf("/", 1) === -1 ? tryGetMemoryDirectoryEntryNamesSync(fastMem, "/") : undefined;
           if (
             rootEntries !== undefined &&
             !rootEntries.has(".git") &&
@@ -868,7 +904,7 @@ export class Walker {
             this.context.signal.throwIfAborted();
             const tickPending = this.limits.tick();
             if (!tickPending) {
-              if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
+              if (++this.limits.files > this.limits.maxFilesSmi && this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
               this.uniformDirAdmitted = true;
               this.uniformCanonicalAdmitted = true;
               this.uniformReaddirAdmitted = true;
@@ -876,7 +912,7 @@ export class Walker {
               if (Date.now !== defaultDateNow) this.syncWalkNow = Date.now();
               const syncWalk = this.tryWalkDirectorySync(fastMem, path, implicit ? "" : operand, 0, EMPTY_IGNORE_RULES, false, onTarget, syncOnly, targetEntries);
               if (syncWalk === null) return null;
-              return syncWalk instanceof Promise ? syncWalk.then(() => undefined) : undefined;
+              return syncWalk instanceof Promise ? toVoidPromise(syncWalk) : undefined;
             }
           }
         }
@@ -900,7 +936,7 @@ export class Walker {
       }
       const tickPending = this.limits.tick();
       if (tickPending) await tickPending;
-      if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
+      if (++this.limits.files > this.limits.maxFilesSmi && this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
       if (operand === "-") {
         if (!await onTarget({ path: "-", label: "<stdin>", explicit: true, recursive: false })) return;
         continue;

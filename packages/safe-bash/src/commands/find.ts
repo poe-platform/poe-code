@@ -1,3 +1,6 @@
+let lastFindRootDisplay = "";
+let lastFindEscapedParent = "";
+let lastFindRootName = "/";
 import { tryGetMemoryDirectoryEntryNamesSync } from "@poe-code/safe-fs/core";
 import { modeChange } from "./metadata/chmod.js";
 import { PublicDiagnostic } from "../diagnostics.js";
@@ -164,10 +167,20 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
                 try {
                   assertCommandRequirements(context, filesystemCommandRequirements.ls, FIND_DIR_REQUIREMENTS, backing.capabilities);
                   if (fastBacking !== undefined) (context as unknown as { _chargeFastFsOp(): void })._chargeFastFsOp();
-                  let parent = rootDisplay;
-                  while (parent.endsWith("/") && parent.length > 1) parent = parent.slice(0, -1);
-                  const escapedParent = escapeText(parent === "/" ? "" : parent, "display");
-                  const rootName = basename(rootDisplay) || "/";
+                  let escapedParent: string;
+                  let rootName: string;
+                  if (rootDisplay === lastFindRootDisplay) {
+                    escapedParent = lastFindEscapedParent;
+                    rootName = lastFindRootName;
+                  } else {
+                    let parent = rootDisplay;
+                    while (parent.endsWith("/") && parent.length > 1) parent = parent.slice(0, -1);
+                    escapedParent = escapeText(parent === "/" ? "" : parent, "display");
+                    rootName = basename(rootDisplay) || "/";
+                    lastFindRootDisplay = rootDisplay;
+                    lastFindEscapedParent = escapedParent;
+                    lastFindRootName = rootName;
+                  }
                   sharedFindPrintBufInUse = true;
                   let printPos = 0;
                   let overflow = false;

@@ -441,6 +441,9 @@ export class Budget {
   declare readonly maxExpansionFieldsSmi: number;
   declare readonly maxExpansionBytesSmi: number;
   declare readonly maxOutputBytesSmi: number;
+  declare readonly hasInfiniteFsOps: boolean;
+  declare readonly canRedirect1: boolean;
+  declare readonly maxSourceBytesSmi: number;
 
   constructor(limits: ResolvedShellLimits, signal?: AbortSignal, onInternalError?: InternalErrorHandler) {
     this.limits = limits;
@@ -465,6 +468,9 @@ export class Budget {
     this.maxExpansionFieldsSmi = limits.maxExpansionFields <= 0x3fffffff ? (limits.maxExpansionFields | 0) : 0x3fffffff;
     this.maxExpansionBytesSmi = limits.maxExpansionBytes <= 0x3fffffff ? (limits.maxExpansionBytes | 0) : 0x3fffffff;
     this.maxOutputBytesSmi = limits.maxOutputBytes <= 0x3fffffff ? (limits.maxOutputBytes | 0) : 0x3fffffff;
+    if (limits.maxFileSystemOperations !== Infinity) (this as { hasInfiniteFsOps: boolean }).hasInfiniteFsOps = false;
+    if (limits.maxRedirects < 1) (this as { canRedirect1: boolean }).canRedirect1 = false;
+    if (limits.maxSourceBytes < 0x3fffffff) (this as { maxSourceBytesSmi: number }).maxSourceBytesSmi = limits.maxSourceBytes | 0;
     this.signal = signal ? combineManagedSignals(signal, this.controller.signal) : this.controller.signal;
     if (signal) inheritYieldCheckpoint(signal, this.signal);
     this.parsing = new ParseBudget(limits.maxParseUnits === Infinity ? undefined : limits.maxParseUnits, this.signal, this);
@@ -1941,6 +1947,16 @@ class FastShellCommandContext {
     this.scriptName = io.scriptName;
   }
 
+  releaseDirectStage(): void {
+    this._runtime = undefined!;
+    this._state = undefined!;
+    this._io = undefined!;
+    this._scope = undefined!;
+    this._contextFs = undefined;
+    this.stdin = undefined!;
+    this.stdout = undefined!;
+  }
+
   static {
     Object.assign(FastShellCommandContext.prototype, {
       _self: undefined,
@@ -1987,7 +2003,7 @@ class FastShellCommandContext {
   }
 
   get _hasInfiniteFsOpsLimit(): boolean {
-    return (this._self ?? this)._runtime.budget.limits.maxFileSystemOperations === Infinity;
+    return (this._self ?? this)._runtime.budget.hasInfiniteFsOps;
   }
 
   get argumentValues(): CommandArguments | undefined {
@@ -3159,12 +3175,16 @@ let pooledSyncPipeContext: FastShellCommandContext | undefined;
 
 class PooledSyncPipeReader implements ByteSource, AsyncIterator<Uint8Array> {
   private buf: Uint8Array = EMPTY_BYTES;
+  rawBuf: Uint8Array = EMPTY_BYTES;
+  rawLen = 0;
   private yielded = false;
   abortSignal: AbortSignal | undefined = undefined;
   private readonly stepBox: { done: false; value: Uint8Array } = { done: false, value: EMPTY_BYTES };
 
   reset(buf: Uint8Array, len: number, signal?: AbortSignal): void {
-    this.buf = len === 0 ? EMPTY_BYTES : buf.subarray(0, len);
+    this.rawBuf = buf;
+    this.rawLen = len;
+    this.buf = EMPTY_BYTES;
     this.yielded = len === 0;
     this.abortSignal = signal;
   }
@@ -3173,10 +3193,34 @@ class PooledSyncPipeReader implements ByteSource, AsyncIterator<Uint8Array> {
     return this;
   }
 
+  tryCountLinesOrBytesSync(countLines: boolean): number {
+    this.abortSignal?.throwIfAborted();
+    this.yielded = true;
+    const len = this.rawLen;
+    if (!countLines) return len;
+    const buf = this.rawBuf;
+    let count = 0;
+    for (let i = 0; i < len; i++) {
+      if (buf[i] === 10) count++;
+    }
+    return count;
+  }
+
+  private getSubarrayView(): Uint8Array {
+    const len = this.rawLen;
+    if (len === 0) return EMPTY_BYTES;
+    let view = this.buf;
+    if (view.byteLength !== len) {
+      view = this.rawBuf.subarray(0, len);
+      this.buf = view;
+    }
+    return view;
+  }
+
   tryReadAllSync(): Uint8Array {
     this.abortSignal?.throwIfAborted();
     this.yielded = true;
-    return this.buf;
+    return this.getSubarrayView();
   }
 
   tryNextSync(): IteratorResult<Uint8Array> {
@@ -3184,7 +3228,7 @@ class PooledSyncPipeReader implements ByteSource, AsyncIterator<Uint8Array> {
     if (this.yielded) return SYNC_PIPE_DONE_RESULT;
     this.yielded = true;
     const box = this.stepBox;
-    box.value = this.buf;
+    box.value = this.getSubarrayView();
     return box;
   }
 
@@ -3266,6 +3310,7 @@ const sharedSyncPipeWriter = new PooledSyncPipeWriter();
 let pooledFastSingleContext: FastShellCommandContext | undefined;
 let pooledMemoryRedirectSink: MemoryRedirectSink | undefined;
 let syncPurePipelineWarmed = false;
+let syncPureFindPipelineWarmed = false;
 const ZERO_PIPE_STATUSES: readonly (readonly number[])[] = [
   Object.freeze([]),
   singleStatusZero,
@@ -5072,26 +5117,36 @@ export class Runtime {
     if (this.tryStartExtensionsSync(state)) {
       if (state.extensions?.syntax.indexedDeclarations?.includes("readonly")) io.assignmentDiagnosticContext ??= { name: undefined };
       try {
-        const syncResult = this.trySyncScript(script, state, io, Boolean(io.execution?.ignoreErrexit));
-        if (typeof syncResult === "number") {
-          return syncResult === 0 ? SYNC_UNIT_ZERO : syncResult === 1 ? SYNC_UNIT_ONE : { exitCode: syncResult, terminated: false };
+        const ignoreErrexit = Boolean(io.execution?.ignoreErrexit);
+        for (let listIndex = 0; listIndex < script.lists.length; listIndex++) {
+          const list = script.lists[listIndex]!;
+          if (list.terminator) {
+            return this.runUnitFrom(script, monitor.proxy, io, listIndex, 0, false);
+          }
+          for (let index = 0; index < list.pipelines.length; index++) {
+            if (state.noexec) throw new Flow("discard", 0);
+            const operator = list.operators[index - 1];
+            if ((operator === "&&" && state.status !== 0) || (operator === "||" && state.status === 0)) continue;
+            const pipeline = list.pipelines[index]!;
+            const ignored = ignoreErrexit || index < list.pipelines.length - 1 || pipeline.negate;
+            const syncStatus = this.trySyncPipeline(pipeline, state, io, ignored);
+            if (syncStatus !== undefined) continue;
+            const fastUnit = this.tryFastSinglePipelineUnit(pipeline, state, io, Boolean(ignored));
+            if (fastUnit !== undefined) {
+              if (!(fastUnit instanceof Promise)) {
+                if (fastUnit.terminated) return fastUnit;
+                continue;
+              }
+              if (listIndex === script.lists.length - 1 && index === list.pipelines.length - 1) {
+                return fastUnit;
+              }
+              return this.continueRunUnitAfterFastPromise(fastUnit, script, monitor.proxy, io, listIndex, index);
+            }
+            return this.runUnitFrom(script, monitor.proxy, io, listIndex, index, false);
+          }
         }
-        if (
-          syncResult.listIndex === 0 &&
-          syncResult.pipelineIndex === 0 &&
-          script.lists.length === 1 &&
-          script.lists[0]!.pipelines.length === 1 &&
-          !script.lists[0]!.terminator
-        ) {
-          const fastUnit = this.tryFastSinglePipelineUnit(
-            script.lists[0]!.pipelines[0]!,
-            state,
-            io,
-            Boolean(io.execution?.ignoreErrexit),
-          );
-          if (fastUnit !== undefined) return fastUnit;
-        }
-        return this.runUnitFrom(script, monitor.proxy, io, syncResult.listIndex, syncResult.pipelineIndex, false);
+        const finalCode = script.lists.length ? state.status : 0;
+        return finalCode === 0 ? SYNC_UNIT_ZERO : finalCode === 1 ? SYNC_UNIT_ONE : { exitCode: finalCode, terminated: false };
       } catch (error) {
         if (error instanceof Flow && error.kind === "discard") {
           this.signal.throwIfAborted();
@@ -5111,6 +5166,35 @@ export class Runtime {
       }
     }
     return this.runUnitFrom(script, monitor.proxy, io, 0, 0, true);
+  }
+
+  private async continueRunUnitAfterFastPromise(
+    fastPromise: Promise<{ exitCode: number; terminated: boolean }>,
+    script: Script,
+    state: State,
+    io: IO,
+    listIndex: number,
+    pipelineIndex: number,
+  ): Promise<{ exitCode: number; terminated: boolean }> {
+    try {
+      const res = await fastPromise;
+      if (res.terminated) return res;
+      const list = script.lists[listIndex]!;
+      if (pipelineIndex + 1 < list.pipelines.length) {
+        return await this.runUnitFrom(script, state, io, listIndex, pipelineIndex + 1, false);
+      }
+      if (listIndex + 1 < script.lists.length) {
+        return await this.runUnitFrom(script, state, io, listIndex + 1, 0, false);
+      }
+      return res;
+    } catch (error) {
+      if (error instanceof NounsetDiagnosticFailure) {
+        if (state.isolated) throw error;
+        throw error.reason;
+      }
+      if (error instanceof Flow && error.kind === "exit") return { exitCode: await this.finishShell(state, io, error.status), terminated: true };
+      throw error;
+    }
   }
 
   private async runUnitFrom(script: Script, state: State, io: IO, startListIndex: number, startPipelineIndex: number, needStartExtensions: boolean): Promise<{ exitCode: number; terminated: boolean }> {
@@ -5185,8 +5269,8 @@ export class Runtime {
         !externalDef ||
         !builtInDirectContextExecutors.has(externalDef.execute) ||
         customRegisteredCommands.has(externalDef.execute) ||
-        command.words.length > this.budget.limits.maxExpansionFields ||
-        this.budget.commands + 1 > this.budget.limits.maxCommands
+        command.words.length > this.budget.maxExpansionFieldsSmi ||
+        (this.budget.commands + 1 > this.budget.maxCommandsSmi && this.budget.commands + 1 > this.budget.limits.maxCommands)
       ) {
         return undefined;
       }
@@ -5196,11 +5280,11 @@ export class Runtime {
       if (command.redirects.length === 1) {
         const r0 = command.redirects[0]!;
         if (
-          this.budget.limits.maxRedirects < 1 ||
-          this.budget.limits.maxFileSystemOperations !== Infinity ||
+          !this.budget.canRedirect1 ||
+          !this.budget.hasInfiniteFsOps ||
           io.admittedHandles !== undefined ||
-          this.fileWrites.size > 0 ||
-          this.outputFiles.size > 0 ||
+          (this._fileWrites !== undefined && this._fileWrites.size > 0) ||
+          (this._outputFiles !== undefined && this._outputFiles.size > 0) ||
           !this.canFastMemoryRedirect ||
           r0.descriptor !== 1 ||
           r0.move ||
@@ -5333,10 +5417,10 @@ export class Runtime {
     }
     if (pipeline.commands.length >= 2 && !existing) {
       const n = pipeline.commands.length;
-      if (this.budget.commands + n > this.budget.limits.maxCommands) return undefined;
+      if ((this.budget.commands + n > this.budget.maxCommandsSmi && this.budget.commands + n > this.budget.limits.maxCommands)) return undefined;
       for (let i = 0; i < n; i++) {
         const cmd = pipeline.commands[i]!;
-        if (cmd.kind !== "simple" || !this.isPureExternalStageCommand(cmd, rawState) || cmd.words.length > this.budget.limits.maxExpansionFields) {
+        if (cmd.kind !== "simple" || !this.isPureExternalStageCommand(cmd, rawState) || cmd.words.length > this.budget.maxExpansionFieldsSmi) {
           return undefined;
         }
       }
@@ -5375,13 +5459,7 @@ export class Runtime {
         this.budget.endPathLookupSuspension();
         scope.leaveWork();
         redirectSink?.handle.close();
-        (context as unknown as { _runtime: unknown; _state: unknown; _io: unknown; _scope: unknown; _contextFs: unknown; stdin: unknown; stdout: unknown })._runtime = undefined;
-        (context as unknown as { _state: unknown })._state = undefined;
-        (context as unknown as { _io: unknown })._io = undefined;
-        (context as unknown as { _scope: unknown })._scope = undefined;
-        (context as unknown as { _contextFs: unknown })._contextFs = undefined;
-        (context as unknown as { stdin: unknown }).stdin = undefined;
-        (context as unknown as { stdout: unknown }).stdout = undefined;
+        context.releaseDirectStage();
         pooledFastSingleContext = context;
         if (redirectSink) {
           redirectSink.budget = undefined!;
@@ -5691,8 +5769,11 @@ export class Runtime {
     const savedFsOps = (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations;
     const stdoutCap = io.stdout as Capture;
     const stderrCap = io.stderr as Capture;
-    if (!syncPurePipelineWarmed && this._isMemoryBackingFs) {
-      syncPurePipelineWarmed = true;
+    const firstStageName = (pipeline.commands[0]! as Extract<Command, { kind: "simple" }>).words[0]!.plain!;
+    const needsWarm = firstStageName === "find" ? !syncPureFindPipelineWarmed : !syncPurePipelineWarmed;
+    if (needsWarm && this._isMemoryBackingFs) {
+      if (firstStageName === "find") syncPureFindPipelineWarmed = true;
+      else syncPurePipelineWarmed = true;
       const savedEpoch = monitor.epoch;
       const savedLazyPipeStatus = monitor.lazyPipeStatus;
       const savedRawStatus = rawState.status;
@@ -5809,13 +5890,7 @@ export class Runtime {
       return undefined;
     } finally {
       if (context) {
-        (context as unknown as { _runtime: unknown; _state: unknown; _io: unknown; _scope: unknown; _contextFs: unknown; stdin: unknown; stdout: unknown })._runtime = undefined;
-        (context as unknown as { _state: unknown })._state = undefined;
-        (context as unknown as { _io: unknown })._io = undefined;
-        (context as unknown as { _scope: unknown })._scope = undefined;
-        (context as unknown as { _contextFs: unknown })._contextFs = undefined;
-        (context as unknown as { stdin: unknown }).stdin = undefined;
-        (context as unknown as { stdout: unknown }).stdout = undefined;
+        context.releaseDirectStage();
       }
       sharedSyncPipeWriter.budget = undefined!;
       sharedSyncPipeWriter.signal = undefined!;
@@ -6075,9 +6150,9 @@ export class Runtime {
       if (pipeline.negate && !ignored && rawState.errexit) return undefined;
       if (
         command.words.length === 0 ||
-        this.budget.limits.maxRedirects < 1 ||
-        this.fileWrites.size !== 0 ||
-        this.outputFiles.size !== 0 ||
+        !this.budget.canRedirect1 ||
+        (this._fileWrites !== undefined && this._fileWrites.size !== 0) ||
+        (this._outputFiles !== undefined && this._outputFiles.size !== 0) ||
         !this.canFastMemoryRedirect
       ) {
         return undefined;
@@ -6100,7 +6175,7 @@ export class Runtime {
       if (
         !def ||
         (w0Plain === "printf" ? def.execute !== printfCommand.execute : !defaultEchoExecutors.has(def.execute)) ||
-        command.words.length > this.budget.limits.maxExpansionFields ||
+        command.words.length > this.budget.maxExpansionFieldsSmi ||
         !this.isPureArgWord(r0.target, rawState) ||
         !this.arePureArgWords(command.words, rawState)
       ) {
@@ -6256,7 +6331,7 @@ export class Runtime {
       this.budget.fileSystemOperation();
       this.budget.bytes += byteLength;
       rawState.substitutionStatus = 0;
-      delete rawState.variables._;
+      if (rawState.variables._ !== undefined) delete rawState.variables._;
       rawState.lastArgument = lastArg;
       if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
       if (!existing) {
@@ -6291,7 +6366,7 @@ export class Runtime {
         const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
         this.budget.tick();
         rawState.substitutionStatus = 0;
-        delete rawState.variables._;
+        if (rawState.variables._ !== undefined) delete rawState.variables._;
         rawState.lastArgument = w0Plain;
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
         if (!existing) {
@@ -6370,7 +6445,7 @@ export class Runtime {
           (fastSyncSink || syncOut) &&
           def &&
           (w0Plain === "printf" ? def.execute === printfCommand.execute : defaultEchoExecutors.has(def.execute)) &&
-          command.words.length <= this.budget.limits.maxExpansionFields &&
+          command.words.length <= this.budget.maxExpansionFieldsSmi &&
           this.arePureArgWords(command.words, rawState) &&
           (canMutatePipeStatus || elem0!.text.shellValue === "0") &&
           (!pipeline.negate || ignored || !rawState.errexit)
@@ -6465,7 +6540,7 @@ export class Runtime {
       ) {
         const cmd = this.commands.get(w0Plain);
         if (cmd && defaultPredicateExecutors.has(cmd.execute)) {
-          if (command.words.length > this.budget.limits.maxExpansionFields) return undefined;
+          if (command.words.length > this.budget.maxExpansionFieldsSmi) return undefined;
           if (rawState.extensions && !rawState.extensions.eventDepth) {
             publishCommandSpelling(rawState, commandSpelling(command));
           }
@@ -6493,7 +6568,7 @@ export class Runtime {
           const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
           this.budget.tick();
           rawState.substitutionStatus = 0;
-          delete rawState.variables._;
+          if (rawState.variables._ !== undefined) delete rawState.variables._;
           rawState.lastArgument = lastPredArg;
           if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
           if (!existing) {
@@ -6513,16 +6588,16 @@ export class Runtime {
       if (
         (w0Plain === "mkdir" || w0Plain === "rm") &&
         command.words.length >= 3 &&
-        this.fileWrites.size === 0 &&
-        this.outputFiles.size === 0 &&
+        (this._fileWrites === undefined || this._fileWrites.size === 0) &&
+        (this._outputFiles === undefined || this._outputFiles.size === 0) &&
         this.canFastMemoryRedirect &&
         // A later operand can retry the whole command; scoped admission owns finite budgets.
-        this.budget.limits.maxFileSystemOperations === Infinity &&
+        this.budget.hasInfiniteFsOps &&
         !hasShellFunction(rawState, w0Plain) &&
         !rawState.extensions?.builtins.has(w0Plain) &&
         (canMutatePipeStatus || elem0!.text.shellValue === "0") &&
         (!pipeline.negate || ignored || !rawState.errexit) &&
-        command.words.length <= this.budget.limits.maxExpansionFields &&
+        command.words.length <= this.budget.maxExpansionFieldsSmi &&
         this.arePureArgWords(command.words, rawState)
       ) {
         const w1Plain = command.words[1]!.plain;
@@ -6533,7 +6608,7 @@ export class Runtime {
         if (
           def &&
           (isMkdir ? defaultMkdirExecutors.has(def.execute) && (umask & 0o300) === 0 : defaultRmExecutors.has(def.execute)) &&
-          this.budget.fileSystemOperations + (command.words.length - 2) <= this.budget.limits.maxFileSystemOperations
+          (this.budget.hasInfiniteFsOps || this.budget.fileSystemOperations + (command.words.length - 2) <= this.budget.limits.maxFileSystemOperations)
         ) {
           let pathCount = 0;
           let lastArg = w1Plain!;
@@ -6597,7 +6672,7 @@ export class Runtime {
             const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
             this.budget.tick();
             rawState.substitutionStatus = 0;
-            delete rawState.variables._;
+            if (rawState.variables._ !== undefined) delete rawState.variables._;
             rawState.lastArgument = lastArg;
             if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
             if (!existing) {
@@ -6704,9 +6779,9 @@ export class Runtime {
         if (cmd.redirects.length === 1) {
           if (
             cmd.words.length !== 2 ||
-            this.budget.limits.maxRedirects < 1 ||
-            this.fileWrites.size !== 0 ||
-            this.outputFiles.size !== 0 ||
+            !this.budget.canRedirect1 ||
+            (this._fileWrites !== undefined && this._fileWrites.size !== 0) ||
+            (this._outputFiles !== undefined && this._outputFiles.size !== 0) ||
             !this.canFastMemoryRedirect
           ) {
             return false;
@@ -8556,7 +8631,7 @@ export class Runtime {
               if (fastPred !== undefined) {
                 state.substitutionStatus = 0;
                 const rawState = stateMonitor(state)?.raw ?? state;
-                delete rawState.variables._;
+                if (rawState.variables._ !== undefined) delete rawState.variables._;
                 rawState.lastArgument = (wordValues as readonly string[])[wordValues.length - 1] ?? w0Plain;
                 if (originalIO.assignmentDiagnosticContext) originalIO.assignmentDiagnosticContext.name = undefined;
                 return fastPred;
@@ -8576,8 +8651,8 @@ export class Runtime {
       !terminal &&
       !state.variableAttributes?.size &&
       !guestArrays(state) &&
-      this.fileWrites.size === 0 &&
-      this.outputFiles.size === 0 &&
+      (this._fileWrites === undefined || this._fileWrites.size === 0) &&
+      (this._outputFiles === undefined || this._outputFiles.size === 0) &&
       this.canFastMemoryRedirect
     ) {
       const r0 = command.redirects[0]!;
@@ -8605,7 +8680,7 @@ export class Runtime {
           let lastArg = w0Plain;
           let fastFailed = false;
           try {
-            if (command.words.length <= this.budget.limits.maxExpansionFields) {
+            if (command.words.length <= this.budget.maxExpansionFieldsSmi) {
               if (w0Plain === "echo" && command.words.length === 1) {
                 targetVal = this.fastValueWord(r0.target, state, originalIO, true, false, false, true, undefined, diagnosticLine);
                 formatted = "\n";
@@ -8677,7 +8752,7 @@ export class Runtime {
                 }
                 if (writeSucceeded) {
                   state.substitutionStatus = 0;
-                  delete rawState.variables._;
+                  if (rawState.variables._ !== undefined) delete rawState.variables._;
                   rawState.lastArgument = lastArg;
                   if (originalIO.assignmentDiagnosticContext) originalIO.assignmentDiagnosticContext.name = undefined;
                   return 0;
@@ -13927,7 +14002,7 @@ export class Runtime {
     if (!def) return undefined;
     if (w0Plain === "printf" && def.execute !== printfCommand.execute) return undefined;
     if (w0Plain === "echo" && !defaultEchoExecutors.has(def.execute)) return undefined;
-    if (cmd.words.length > this.budget.maxExpansionFieldsSmi && cmd.words.length > this.budget.limits.maxExpansionFields) return undefined;
+    if (cmd.words.length > this.budget.maxExpansionFieldsSmi && cmd.words.length > this.budget.maxExpansionFieldsSmi) return undefined;
     for (let i = 0; i < cmd.words.length; i++) {
       if (!this.isPureArgWord(cmd.words[i]!, rawState)) return undefined;
     }
@@ -14728,6 +14803,11 @@ export class Runtime {
     return found.length ? found : state.nullglob ? [] : [value];
   }
 }
+Object.assign(Budget.prototype, {
+  hasInfiniteFsOps: true,
+  canRedirect1: true,
+  maxSourceBytesSmi: 0x3fffffff,
+});
 Object.assign(Runtime.prototype, {
   outcomeFrame: undefined,
   _fs: undefined,

@@ -658,7 +658,7 @@ export class MemoryFileSystem implements FileSystem {
 
   constructor(options: MemoryFileSystemOptions = {}) {
     this.ledger = new MemoryLedger(normalizeMemoryFileSystemLimits(options));
-    if (this.ledger.hasInfiniteRetained && this.ledger.limits.maxFileBytes === Infinity) {
+    if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes) {
       replenishSharedMemoryPools();
     }
     memoryCaches.set(this.ledger, new MemoryCache());
@@ -888,7 +888,7 @@ export class MemoryFileSystem implements FileSystem {
       alloc.release();
       if (alloc.isReleased64()) {
         alloc.detachLedger(DUMMY_POOL_LEDGER);
-        if (this.ledger.hasInfiniteRetained && this.ledger.limits.maxFileBytes === Infinity && sharedAllocationPoolLen < SHARED_POOL_CAPACITY) {
+        if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedAllocationPoolLen < SHARED_POOL_CAPACITY) {
           sharedAllocationPool[sharedAllocationPoolLen++] = alloc;
         } else if (cache.allocations.length < 128) {
           cache.allocations.push(alloc);
@@ -1252,7 +1252,7 @@ export class MemoryFileSystem implements FileSystem {
     }
     if (length === 64) {
       let pooled: MemoryAllocation | undefined;
-      if (this.ledger.hasInfiniteRetained && this.ledger.limits.maxFileBytes === Infinity && sharedAllocationPoolLen > 0) {
+      if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedAllocationPoolLen > 0) {
         pooled = sharedAllocationPool[--sharedAllocationPoolLen]!;
         sharedAllocationPool[sharedAllocationPoolLen] = DUMMY_POOL_ALLOCATION;
       } else {
@@ -1266,7 +1266,7 @@ export class MemoryFileSystem implements FileSystem {
     try {
       // A shared slab's backing buffer exceeds the admitted slice capacity.
       // Finite file/storage ceilings require independently owned exact buffers.
-      if (length <= 64 && this.ledger.hasInfiniteRetained && this.ledger.limits.maxFileBytes === Infinity) {
+      if (length <= 64 && this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes) {
         if (smallAllocOffset + length > SMALL_ALLOC_SLAB_SIZE) {
           smallAllocSlab = new Uint8Array(SMALL_ALLOC_SLAB_SIZE);
           smallAllocOffset = 0;
@@ -1541,7 +1541,7 @@ export class MemoryFileSystem implements FileSystem {
       return;
     }
     if (!current) {
-      const capacity = length > 0 && length < 64 && this.ledger.hasInfiniteRetained && this.ledger.limits.maxFileBytes === Infinity ? 64 : length;
+      const capacity = length > 0 && length < 64 && this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes ? 64 : length;
       const allocation = this.allocate(capacity, syscall, path);
       try {
         allocation.data.set(data);
@@ -1682,7 +1682,7 @@ export class MemoryFileSystem implements FileSystem {
         return;
       }
       if (!current) {
-        const capacity = length > 0 && length < 64 && this.ledger.hasInfiniteRetained && this.ledger.limits.maxFileBytes === Infinity ? 64 : length;
+        const capacity = length > 0 && length < 64 && this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes ? 64 : length;
         const allocation = this.allocate(capacity, syscall, name);
         try {
           allocation.data.set(data);

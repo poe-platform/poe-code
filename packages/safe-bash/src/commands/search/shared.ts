@@ -20,16 +20,23 @@ const sharedOutBuf = new Uint8Array(OUT_BUFFER_SIZE);
 let sharedOutBufInUse = false;
 
 export class Limits {
-  maxOutputBytes: number;
-  maxLineBytes: number;
-  maxFileBytes: number;
-  maxFiles: number;
-  maxPatternBytes: number;
+  declare maxOutputBytes: number;
+  declare maxLineBytes: number;
+  declare maxFileBytes: number;
+  declare maxFiles: number;
+  declare maxPatternBytes: number;
+  declare maxOutputBytesSmi: number;
+  declare maxLineBytesSmi: number;
+  declare maxFileBytesSmi: number;
+  declare maxFilesSmi: number;
+  declare maxPatternBytesSmi: number;
+  declare hasFiniteMaxFileBytes: boolean;
+  declare hasCustomLimits: boolean;
   outputBytes = 0;
   files = 0;
   private ticks = 0;
   hasExtYield: boolean;
-  private lastYieldMs = monotonicNow();
+  private lastYieldMs = 0;
   private stopped: AbortController | undefined;
   private _signal: AbortSignal | undefined;
   private outBuf: Uint8Array | null = null;
@@ -38,6 +45,33 @@ export class Limits {
   speculative = false;
   constructor(public context: CommandContext, options: SearchOptions) {
     this.hasExtYield = hasYieldCheckpoint(context.signal);
+    this._applyOptions(options);
+  }
+  private _applyOptions(options: SearchOptions): void {
+    if (
+      options.maxOutputBytes === undefined &&
+      options.maxLineBytes === undefined &&
+      options.maxFileBytes === undefined &&
+      options.maxFiles === undefined &&
+      options.maxPatternBytes === undefined
+    ) {
+      if (this.hasCustomLimits) {
+        this.maxOutputBytes = Infinity;
+        this.maxLineBytes = Infinity;
+        this.maxFileBytes = Infinity;
+        this.maxFiles = Infinity;
+        this.maxPatternBytes = Infinity;
+        this.maxOutputBytesSmi = 0x3fffffff;
+        this.maxLineBytesSmi = 0x3fffffff;
+        this.maxFileBytesSmi = 0x3fffffff;
+        this.maxFilesSmi = 0x3fffffff;
+        this.maxPatternBytesSmi = 0x3fffffff;
+        this.hasFiniteMaxFileBytes = false;
+        this.hasCustomLimits = false;
+      }
+      return;
+    }
+    this.hasCustomLimits = true;
     this.maxOutputBytes = options.maxOutputBytes ?? Infinity;
     this.maxLineBytes = options.maxLineBytes ?? Infinity;
     this.maxFileBytes = options.maxFileBytes ?? Infinity;
@@ -52,6 +86,12 @@ export class Limits {
     ) {
       throw new SearchError("search limits must be positive safe integers");
     }
+    this.maxOutputBytesSmi = this.maxOutputBytes <= 0x3fffffff ? (this.maxOutputBytes | 0) : 0x3fffffff;
+    this.maxLineBytesSmi = this.maxLineBytes <= 0x3fffffff ? (this.maxLineBytes | 0) : 0x3fffffff;
+    this.maxFileBytesSmi = this.maxFileBytes <= 0x3fffffff ? (this.maxFileBytes | 0) : 0x3fffffff;
+    this.maxFilesSmi = this.maxFiles <= 0x3fffffff ? (this.maxFiles | 0) : 0x3fffffff;
+    this.maxPatternBytesSmi = this.maxPatternBytes <= 0x3fffffff ? (this.maxPatternBytes | 0) : 0x3fffffff;
+    this.hasFiniteMaxFileBytes = this.maxFileBytes !== Infinity;
   }
   resetForRun(context: CommandContext, options: SearchOptions): void {
     this.context = context;
@@ -63,20 +103,7 @@ export class Limits {
     this._signal = undefined;
     this.outPos = 0;
     this.hasExtYield = hasYieldCheckpoint(context.signal);
-    this.maxOutputBytes = options.maxOutputBytes ?? Infinity;
-    this.maxLineBytes = options.maxLineBytes ?? Infinity;
-    this.maxFileBytes = options.maxFileBytes ?? Infinity;
-    this.maxFiles = options.maxFiles ?? Infinity;
-    this.maxPatternBytes = options.maxPatternBytes ?? Infinity;
-    if (
-      (this.maxOutputBytes !== Infinity && !Number.isSafeInteger(this.maxOutputBytes)) || this.maxOutputBytes < 1 ||
-      (this.maxLineBytes !== Infinity && !Number.isSafeInteger(this.maxLineBytes)) || this.maxLineBytes < 1 ||
-      (this.maxFileBytes !== Infinity && !Number.isSafeInteger(this.maxFileBytes)) || this.maxFileBytes < 1 ||
-      (this.maxFiles !== Infinity && !Number.isSafeInteger(this.maxFiles)) || this.maxFiles < 1 ||
-      (this.maxPatternBytes !== Infinity && !Number.isSafeInteger(this.maxPatternBytes)) || this.maxPatternBytes < 1
-    ) {
-      throw new SearchError("search limits must be positive safe integers");
-    }
+    this._applyOptions(options);
   }
   get signal(): AbortSignal {
     if (!this._signal) {
@@ -193,7 +220,7 @@ export class Limits {
         if (value.charCodeAt(i) >= 0x80) { ascii = false; break; }
       }
       if (ascii && len <= OUT_BUFFER_SIZE) {
-        if (this.outputBytes + len > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
+        if (this.outputBytes + len > this.maxOutputBytesSmi && this.outputBytes + len > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
         const buf = this.ensureOutBuf();
         if (this.outPos + len <= OUT_BUFFER_SIZE) {
           const pos = this.outPos;
@@ -222,7 +249,7 @@ export class Limits {
           buf[pos + i] = c;
         }
         if (ascii) {
-          if (this.outputBytes + totalLen > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
+          if (this.outputBytes + totalLen > this.maxOutputBytesSmi && this.outputBytes + totalLen > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
           buf[pos + labelLen] = nullPath ? 0 : 10;
           this.outPos = pos + totalLen;
           this.outputBytes += totalLen;
@@ -261,7 +288,7 @@ export class Limits {
           dst += entryLen;
         }
         if (ascii) {
-          if (this.outputBytes + totalLen > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
+          if (this.outputBytes + totalLen > this.maxOutputBytesSmi && this.outputBytes + totalLen > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
           buf[dst] = nullPath ? 0 : 10;
           this.outPos = pos + totalLen;
           this.outputBytes += totalLen;
@@ -314,7 +341,7 @@ export class Limits {
             buf[dst++] = nullPath ? 0 : 58;
           }
           if (ascii) {
-            if (this.outputBytes + totalLen > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
+            if (this.outputBytes + totalLen > this.maxOutputBytesSmi && this.outputBytes + totalLen > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
             let v = amount | 0;
             if (digits === 1) {
               buf[dst] = 48 + v;
@@ -368,7 +395,7 @@ export class Limits {
             buf[dst++] = nullPath ? 0 : 58;
           }
           if (ascii) {
-            if (this.outputBytes + totalLen > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
+            if (this.outputBytes + totalLen > this.maxOutputBytesSmi && this.outputBytes + totalLen > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
             let v = amount | 0;
             if (digits === 1) {
               buf[dst] = 48 + v;
@@ -402,7 +429,7 @@ export class Limits {
         if (value.charCodeAt(i) >= 0x80) { ascii = false; break; }
       }
       if (ascii && len <= OUT_BUFFER_SIZE) {
-        if (this.outputBytes + len > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
+        if (this.outputBytes + len > this.maxOutputBytesSmi && this.outputBytes + len > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
         if (this.outPos + len > OUT_BUFFER_SIZE) {
           await this.flush();
         }
@@ -784,3 +811,18 @@ export async function* lineBatches(
   }
   if (batch.length) yield batch;
 }
+
+Object.assign(Limits.prototype, {
+  maxOutputBytes: Infinity,
+  maxLineBytes: Infinity,
+  maxFileBytes: Infinity,
+  maxFiles: Infinity,
+  maxPatternBytes: Infinity,
+  maxOutputBytesSmi: 0x3fffffff,
+  maxLineBytesSmi: 0x3fffffff,
+  maxFileBytesSmi: 0x3fffffff,
+  maxFilesSmi: 0x3fffffff,
+  maxPatternBytesSmi: 0x3fffffff,
+  hasFiniteMaxFileBytes: false,
+  hasCustomLimits: false,
+});

@@ -29,6 +29,7 @@ function isSimpleRgLiteralChar(c: number): boolean {
 }
 
 const sharedLiteralBuf = new Uint8Array(64);
+const sharedLiteralViews: Uint8Array[] = Array.from({ length: 65 }, (_, len) => sharedLiteralBuf.subarray(0, len));
 const DUMMY_LITERAL_DESCRIPTOR: SearchDescriptor = Object.freeze({
   kind: "rg",
   patterns: Object.freeze([]),
@@ -77,7 +78,7 @@ export class Matcher {
           }
         }
         if (ok) {
-          const bytes = useSharedLiteralBuf ? sharedLiteralBuf.subarray(0, pat.length) : new Uint8Array(pat.length);
+          const bytes = useSharedLiteralBuf ? sharedLiteralViews[pat.length]! : new Uint8Array(pat.length);
           for (let i = 0; i < pat.length; i++) bytes[i] = pat.charCodeAt(i);
           literalAscii = bytes;
         }

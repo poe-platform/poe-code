@@ -57,8 +57,12 @@ export interface Arguments {
   after: number;
   separator: string | undefined;
   maxCount: number;
+  maxCountSmi?: number;
+  hasInfiniteMaxCount?: boolean;
   maxDepth: number;
+  maxDepthSmi?: number;
   maxFileSize: number;
+  hasFiniteMaxFileSize?: boolean;
   replacement?: string | undefined;
   trim: boolean;
   multiline?: boolean | undefined;
@@ -124,8 +128,12 @@ export class ParsedArguments implements Arguments {
   declare after: number;
   declare separator: string | undefined;
   declare maxCount: number;
+  declare maxCountSmi: number;
+  declare hasInfiniteMaxCount: boolean;
   declare maxDepth: number;
+  declare maxDepthSmi: number;
   declare maxFileSize: number;
+  declare hasFiniteMaxFileSize: boolean;
   declare replacement?: string | undefined;
   declare trim: boolean;
   declare multiline?: boolean | undefined;
@@ -135,9 +143,7 @@ export class ParsedArguments implements Arguments {
   reset(): void {
     this.help = undefined;
     this.version = undefined;
-    this.patterns.length = 0;
     this.patternFiles = EMPTY_STRINGS;
-    this.paths.length = 0;
     this.explicitPatterns = false;
     this.mode = "lines";
     this.case = "sensitive";
@@ -171,9 +177,19 @@ export class ParsedArguments implements Arguments {
     this.before = 0;
     this.after = 0;
     this.separator = "--";
-    this.maxCount = Infinity;
-    this.maxDepth = Infinity;
-    this.maxFileSize = Infinity;
+    if (!this.hasInfiniteMaxCount) {
+      this.maxCount = Infinity;
+      this.maxCountSmi = 0x3fffffff;
+      this.hasInfiniteMaxCount = true;
+    }
+    if (this.maxDepthSmi !== 0x3fffffff) {
+      this.maxDepth = Infinity;
+      this.maxDepthSmi = 0x3fffffff;
+    }
+    if (this.hasFiniteMaxFileSize) {
+      this.maxFileSize = Infinity;
+      this.hasFiniteMaxFileSize = false;
+    }
     this.replacement = undefined;
     this.trim = false;
     this.multiline = false;
@@ -216,8 +232,12 @@ export class ParsedArguments implements Arguments {
       after: 0,
       separator: "--",
       maxCount: Infinity,
+      maxCountSmi: 0x3fffffff,
+      hasInfiniteMaxCount: true,
       maxDepth: Infinity,
+      maxDepthSmi: 0x3fffffff,
       maxFileSize: Infinity,
+      hasFiniteMaxFileSize: false,
       trim: false,
       multiline: false,
       multilineDotall: false,
@@ -226,6 +246,8 @@ export class ParsedArguments implements Arguments {
     });
   }
 }
+
+function throwMissingFlagValue(long: boolean, flag: string): never { throw new SearchError(`${long ? "--" : "-"}${flag} requires a value`); }
 
 export function parse(args: readonly string[], target?: ParsedArguments): Arguments {
   let result: ParsedArguments;
@@ -236,15 +258,52 @@ export function parse(args: readonly string[], target?: ParsedArguments): Argume
     result = new ParsedArguments();
   }
   const operands = result.paths;
+  const patterns = result.patterns;
+  let patLen = 0;
+  let opLen = 0;
   let unrestricted = 0;
   let explicitLineNumber = false;
   let ended = false;
+  let _tmpVal = "";
   for (let index = 0; index < args.length; index++) {
     const argument = args[index]!;
-    if (ended || argument === "-" || !argument.startsWith("-")) { operands.push(argument); continue; }
+    if (ended || argument.length <= 1 || argument.charCodeAt(0) !== 45) { operands[opLen++] = argument; continue; }
     if (argument === "--") { ended = true; continue; }
-    const long = argument.startsWith("--");
-    const equals = argument.indexOf("=");
+    if (argument.length === 2 && argument.charCodeAt(1) !== 45) {
+      switch (argument.charCodeAt(1)) {
+        case 99: result.mode = "count"; continue;
+        case 108: result.mode = "with"; continue;
+        case 113: result.quiet = true; continue;
+        case 110: result.lineNumber = true; explicitLineNumber = true; continue;
+        case 78: result.lineNumber = false; explicitLineNumber = true; continue;
+        case 105: result.case = "insensitive"; continue;
+        case 115: result.case = "sensitive"; continue;
+        case 83: result.case = "smart"; continue;
+        case 70: result.fixed = true; continue;
+        case 118: result.invert = true; continue;
+        case 119: result.word = true; result.whole = false; continue;
+        case 120: result.whole = true; result.word = false; continue;
+        case 72: result.filename = true; continue;
+        case 73: result.filename = false; continue;
+        case 111: result.onlyMatching = true; continue;
+        case 76: result.follow = true; continue;
+        case 46: result.hidden = true; continue;
+        case 97: result.binary = "text"; continue;
+        case 48: result.nullPath = true; continue;
+        case 98: result.byteOffset = true; continue;
+        case 85: result.multiline = true; continue;
+        case 80: continue;
+        case 104: result.help = true; continue;
+        case 86: result.version = "short"; continue;
+        case 117:
+          unrestricted++; result.ignore = false;
+          if (unrestricted >= 2) result.hidden = true;
+          if (unrestricted >= 3) result.binary = "binary";
+          continue;
+      }
+    }
+    const long = argument.charCodeAt(1) === 45;
+    const equals = long ? argument.indexOf("=") : -1;
     const singleShort = !long && argument.length === 2 ? argument.slice(1) : undefined;
     const flags = singleShort !== undefined
       ? undefined
@@ -254,14 +313,6 @@ export function parse(args: readonly string[], target?: ParsedArguments): Argume
     let position = 0;
     let flag = "";
     let tookValue = false;
-    const value = (): string => {
-      tookValue = true;
-      if (inline !== undefined) { const output = inline; inline = undefined; return output; }
-      if (!long && position + 1 < flagsLen) { const output = flags!.slice(position + 1).join(""); position = flagsLen; return output; }
-      const output = args[++index];
-      if (output === undefined) throw new SearchError(`${long ? "--" : "-"}${flag} requires a value`);
-      return output;
-    };
     for (; position < flagsLen; position++) {
       flag = singleShort !== undefined ? singleShort : flags![position]!;
       tookValue = false;
@@ -269,12 +320,12 @@ export function parse(args: readonly string[], target?: ParsedArguments): Argume
         case "h": case "help": result.help = true; break;
         case "V": result.version = "short"; break;
         case "version": result.version = "long"; break;
-        case "e": case "regexp": result.explicitPatterns = true; result.patterns.push(value()); break;
-        case "f": case "file": result.explicitPatterns = true; if (result.patternFiles === EMPTY_STRINGS) result.patternFiles = []; result.patternFiles.push(value()); break;
-        case "g": case "glob": if (result.globs === EMPTY_GLOB_RULES) result.globs = []; result.globs.push({ source: value(), insensitive: false }); break;
-        case "iglob": if (result.globs === EMPTY_GLOB_RULES) result.globs = []; result.globs.push({ source: value(), insensitive: true }); break;
+        case "e": case "regexp": result.explicitPatterns = true; patterns[patLen++] = ((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))); break;
+        case "f": case "file": result.explicitPatterns = true; if (result.patternFiles === EMPTY_STRINGS) result.patternFiles = []; result.patternFiles.push(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal)))); break;
+        case "g": case "glob": if (result.globs === EMPTY_GLOB_RULES) result.globs = []; result.globs.push({ source: ((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), insensitive: false }); break;
+        case "iglob": if (result.globs === EMPTY_GLOB_RULES) result.globs = []; result.globs.push({ source: ((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), insensitive: true }); break;
         case "t": case "type": case "T": case "type-not": {
-          const name = value();
+          const name = ((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal)));
           if (name !== "all" && !Object.hasOwn(defaultFileTypes, name)) throw new SearchError(`unrecognized file type: ${name}`);
           if (result.types === EMPTY_TYPE_RULES) result.types = [];
           result.types.push({ name, include: flag === "t" || flag === "type" });
@@ -313,7 +364,7 @@ export function parse(args: readonly string[], target?: ParsedArguments): Argume
         case "no-ignore-vcs": result.ignoreVcs = false; break;
         case "no-ignore-dot": result.ignoreDot = false; break;
         case "no-ignore-parent": result.ignoreParent = false; break;
-        case "ignore-file": if (result.ignorePaths === EMPTY_STRINGS) result.ignorePaths = []; result.ignorePaths.push(value()); break;
+        case "ignore-file": if (result.ignorePaths === EMPTY_STRINGS) result.ignorePaths = []; result.ignorePaths.push(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal)))); break;
         case "no-ignore-files": result.ignoreFiles = false; break;
         case "ignore-files": result.ignoreFiles = true; break;
         case "no-require-git": result.requireGit = false; break;
@@ -339,15 +390,15 @@ export function parse(args: readonly string[], target?: ParsedArguments): Argume
         case "column": result.column = true; break;
         case "no-column": result.column = false; break;
         case "b": case "byte-offset": result.byteOffset = true; break;
-        case "A": case "after-context": result.after = count(value(), flag); break;
-        case "B": case "before-context": result.before = count(value(), flag); break;
-        case "C": case "context": result.before = result.after = count(value(), flag); break;
-        case "context-separator": result.separator = value(); break;
+        case "A": case "after-context": result.after = count(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), flag); break;
+        case "B": case "before-context": result.before = count(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), flag); break;
+        case "C": case "context": result.before = result.after = count(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), flag); break;
+        case "context-separator": result.separator = ((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))); break;
         case "no-context-separator": result.separator = undefined; break;
-        case "m": case "max-count": result.maxCount = count(value(), flag); break;
-        case "maxdepth": case "max-depth": result.maxDepth = count(value(), flag); break;
-        case "max-filesize": result.maxFileSize = fileSize(value()); break;
-        case "r": case "replace": result.replacement = value(); break;
+        case "m": case "max-count": { const c = count(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), flag); result.maxCount = c; result.maxCountSmi = c <= 0x3fffffff ? (c | 0) : 0x3fffffff; result.hasInfiniteMaxCount = false; break; }
+        case "maxdepth": case "max-depth": { const d = count(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), flag); result.maxDepth = d; result.maxDepthSmi = d <= 0x3fffffff ? (d | 0) : 0x3fffffff; break; }
+        case "max-filesize": result.maxFileSize = fileSize(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal)))); result.hasFiniteMaxFileSize = true; break;
+        case "r": case "replace": result.replacement = ((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))); break;
         case "trim": result.trim = true; break;
         case "no-trim": result.trim = false; break;
         case "U": case "multiline": result.multiline = true; break;
@@ -355,9 +406,9 @@ export function parse(args: readonly string[], target?: ParsedArguments): Argume
         case "multiline-dotall": result.multilineDotall = true; break;
         case "no-multiline-dotall": result.multilineDotall = false; break;
         case "P": case "pcre2": case "no-pcre2": break;
-        case "j": case "threads": count(value(), flag); break;
-        case "sort": if (value() !== "path") throw new SearchError("only --sort=path is supported"); break;
-        case "color": if (value() !== "never") throw new SearchError("only --color=never is supported"); break;
+        case "j": case "threads": count(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), flag); break;
+        case "sort": if (((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))) !== "path") throw new SearchError("only --sort=path is supported"); break;
+        case "color": if (((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))) !== "never") throw new SearchError("only --color=never is supported"); break;
         default: throw new SearchError(`unsupported option '${long ? "--" : "-"}${flag}'`);
       }
       if (long && equals >= 0 && !tookValue) throw new SearchError(`--${flag} does not take a value`);
@@ -365,10 +416,17 @@ export function parse(args: readonly string[], target?: ParsedArguments): Argume
   }
   if (result.replacement?.includes("$")) throw new SearchError("replacement capture expansion is unsupported; use a literal replacement without '$'");
   if (!result.help && !result.version && result.mode !== "files" && !result.explicitPatterns) {
-    const pattern = operands.shift();
-    if (pattern === undefined) throw new SearchError("a search pattern is required");
-    result.patterns.push(pattern);
+    if (opLen === 0) {
+      patterns.length = 0;
+      operands.length = 0;
+      throw new SearchError("a search pattern is required");
+    }
+    patterns[patLen++] = operands[0]!;
+    for (let i = 1; i < opLen; i++) operands[i - 1] = operands[i]!;
+    opLen--;
   }
+  if (patterns.length !== patLen) patterns.length = patLen;
+  if (operands.length !== opLen) operands.length = opLen;
   if (!explicitLineNumber) result.lineNumber = result.column;
   return result;
 }

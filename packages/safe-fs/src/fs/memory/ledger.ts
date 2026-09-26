@@ -10,12 +10,14 @@ export class MemoryLedger {
   readonly maxRetainedBytesSmi: number;
   readonly maxMetadataUnitsSmi: number;
   readonly hasInfiniteRetained: boolean;
+  declare readonly hasInfiniteFileBytes: boolean;
 
   constructor(readonly limits: Readonly<MemoryFileSystemLimits>) {
     this.maxFileBytesSmi = limits.maxFileBytes >= MAX_SMI ? MAX_SMI : (limits.maxFileBytes | 0);
     this.maxRetainedBytesSmi = limits.maxRetainedBytes >= MAX_SMI ? MAX_SMI : (limits.maxRetainedBytes | 0);
     this.maxMetadataUnitsSmi = limits.maxMetadataUnits >= MAX_SMI ? MAX_SMI : (limits.maxMetadataUnits | 0);
     this.hasInfiniteRetained = limits.maxRetainedBytes === Infinity;
+    if (limits.maxFileBytes !== Infinity) (this as { hasInfiniteFileBytes: boolean }).hasInfiniteFileBytes = false;
   }
 
   get availableBytes(): number {
@@ -117,3 +119,5 @@ export class MemoryAllocation {
 Object.assign(MemoryAllocation.prototype, {
   references: 1,
 });
+
+Object.assign(MemoryLedger.prototype, { hasInfiniteFileBytes: true });

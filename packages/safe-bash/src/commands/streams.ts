@@ -1,3 +1,4 @@
+const SMALL_WC_COUNT_LINES: readonly string[] = Array.from({ length: 129 }, (_, i) => `${i}\n`);
 import { createOutputOperation, FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
 import { openFileOutput, type FileOutput } from "../contracts/filesystem-output.js";
 import { outputFailure } from "../contracts/io.js";
@@ -678,7 +679,18 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
     define("wc", context => {
       if (context.args.length === 1 && (context.args[0] === "-l" || context.args[0] === "-c")) {
         const countLines = context.args[0] === "-l";
-        const syncBytes = (context.stdin as { tryReadAllSync?: () => Uint8Array | undefined }).tryReadAllSync?.();
+        const stdinFast = context.stdin as {
+          tryCountLinesOrBytesSync?: (countLines: boolean) => number;
+          tryReadAllSync?: () => Uint8Array | undefined;
+        };
+        if (typeof stdinFast.tryCountLinesOrBytesSync === "function" && !context.signal.aborted) {
+          const count = stdinFast.tryCountLinesOrBytesSync(countLines);
+          const text = count >= 0 && count <= 128 ? SMALL_WC_COUNT_LINES[count]! : `${count}\n`;
+          const p = output(context, text);
+          if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
+          return p.then(() => RESOLVED_EXIT_ZERO);
+        }
+        const syncBytes = stdinFast.tryReadAllSync?.();
         if (syncBytes !== undefined && !context.signal.aborted) {
           let count = 0;
           if (countLines) {
@@ -686,7 +698,8 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
           } else {
             count = syncBytes.length;
           }
-          const p = output(context, `${count}\n`);
+          const text = count >= 0 && count <= 128 ? SMALL_WC_COUNT_LINES[count]! : `${count}\n`;
+          const p = output(context, text);
           if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
           return p.then(() => RESOLVED_EXIT_ZERO);
         }

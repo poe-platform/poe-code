@@ -1335,7 +1335,7 @@ trailer
     expect(burstRes.exitCode).toBe(0);
     const bfPage1Doc = PdfDocument.load(files.get("bf_01.pdf")!);
     expect(bfPage1Doc.getFormFields()).toHaveLength(0);
-    expect(bfPage1Doc.extractText(0)).toContain("FLATTENED_BURST");
+    expect(bfPage1Doc.getPage(0).extractText()).toContain("FLATTENED_BURST");
 
     const dumpAnnots = await runPdftkCli(["labeled.pdf", "dump_data_annots_utf8"], files);
     expect(dumpAnnots.exitCode).toBe(0);

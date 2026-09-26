@@ -925,8 +925,8 @@ describe("safe-bash-command-qpdf", () => {
     const rebuiltDoc = PdfDocument.load(files.get("rebuilt-inline.pdf")!);
     assert.equal(rebuiltDoc.getPageCount(), 2);
     assert.equal(rebuiltDoc.getMetadata().title, "JSON Input Roundtrip");
-    assert.ok(rebuiltDoc.extractText(0).includes("Reconstructed From JSON"));
-    assert.ok(rebuiltDoc.extractText(1).includes("Second Page Content"));
+    assert.ok(rebuiltDoc.getPage(0).extractText().includes("Reconstructed From JSON"));
+    assert.ok(rebuiltDoc.getPage(1).extractText().includes("Second Page Content"));
 
     const dumpFile = await runQpdfCli(
       ["src.pdf", "--json", "--json-stream-data=file", "--json-stream-prefix=ext-", "ext.json"],
@@ -937,7 +937,7 @@ describe("safe-bash-command-qpdf", () => {
     assert.equal(rebuildFile.exitCode, 0);
     const rebuiltExtDoc = PdfDocument.load(files.get("rebuilt-ext.pdf")!);
     assert.equal(rebuiltExtDoc.getPageCount(), 2);
-    assert.ok(rebuiltExtDoc.extractText(0).includes("Reconstructed From JSON"));
+    assert.ok(rebuiltExtDoc.getPage(0).extractText().includes("Reconstructed From JSON"));
   });
 
   it("updates specific COS objects in an existing PDF via --update-from-json", async () => {
@@ -980,7 +980,7 @@ describe("safe-bash-command-qpdf", () => {
     assert.equal(patchedDoc.getMetadata().title, "Patched Title via JSON");
     assert.equal(patchedDoc.getMetadata().author, "JSON Patch Author");
     assert.equal(patchedDoc.getPage(0).getRotation(), 90);
-    assert.ok(patchedDoc.extractText(0).includes("Original Text"));
+    assert.ok(patchedDoc.getPage(0).extractText().includes("Original Text"));
   });
 
   it("discovers and copies attachments across multi-level /Kids Name Trees, /AF Associated Files, and /EF /Unix streams", async () => {

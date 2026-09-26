@@ -285,6 +285,9 @@ async function* nullRecords(context: CommandContext, files: readonly string[], b
   }
 }
 
+let sharedSedStdoutBuf: Buffer | undefined;
+let sharedSedStdoutBufInUse = false;
+
 async function execute(program: readonly Instruction[], context: CommandContext, files: readonly string[], quiet: boolean, budget: Budget, separator: string, outputState: OutputState, lineLength: number): Promise<{ status: number; quit: boolean }> {
   const useBatches = separator !== "\0";
   const batchSource = useBatches ? lineRecordBatches(context, files, budget) : undefined;
@@ -391,8 +394,19 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   let number = 0;
   let hold = "";
   let holdTerminated = true;
-  const STDOUT_CAP = 32768;
+  const STDOUT_CAP = 65536;
+  const STDOUT_FLUSH = 60000;
+  const stdoutSync = typeof (context.stdout as { writeSync?: unknown }).writeSync === "function"
+    ? (context.stdout as unknown as { writeSync(chunk: Uint8Array): void })
+    : undefined;
+  const canReuseStdoutBuf = !(context.stdout as { isPipeStage?: boolean }).isPipeStage;
+  let usingSharedStdoutBuf = false;
   let stdoutBuf: Buffer | undefined;
+  if (canReuseStdoutBuf && !sharedSedStdoutBufInUse) {
+    sharedSedStdoutBufInUse = true;
+    usingSharedStdoutBuf = true;
+    stdoutBuf = sharedSedStdoutBuf ??= Buffer.allocUnsafe(STDOUT_CAP);
+  }
   let stdoutLen = 0;
   const sepCode = separator.charCodeAt(0) & 0xff;
   const appendStdout = (text: string): void => {
@@ -418,14 +432,19 @@ async function execute(program: readonly Instruction[], context: CommandContext,
     }
     stdoutBuf[stdoutLen++] = sepCode;
   };
-  const flushStdout = async (): Promise<void> => {
+  const flushStdout = (): Promise<void> | undefined => {
     if (stdoutLen > 0 && stdoutBuf) {
       const chunk = stdoutBuf.subarray(0, stdoutLen);
-      stdoutBuf = undefined;
       stdoutLen = 0;
       context.signal.throwIfAborted();
-      await writeBytes(context.stdout, chunk, context.signal);
+      if (stdoutSync) {
+        stdoutSync.writeSync(chunk);
+        return undefined;
+      }
+      if (!usingSharedStdoutBuf || stdoutBuf.length > STDOUT_CAP) stdoutBuf = undefined;
+      return writeBytes(context.stdout, chunk, context.signal);
     }
+    return undefined;
   };
   const joinSpace = (left: string, right: string): string => {
     if (left.length + separator.length + right.length > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
@@ -435,7 +454,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
     if (outputState.stdoutUnterminated) appendStdoutSep();
     appendStdout(text);
     outputState.stdoutUnterminated = !terminated;
-    if (!useBatches || stdoutLen >= 24576) return flushStdout();
+    if (!useBatches || stdoutLen >= STDOUT_FLUSH) return flushStdout();
     return undefined;
   };
   let lastPattern: Pattern | undefined;
@@ -467,7 +486,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
     appendStdout(pattern);
     if (record.terminated) appendStdoutSep();
     outputState.stdoutUnterminated = !record.terminated;
-    if (!useBatches || stdoutLen >= 24576) return flushStdout();
+    if (!useBatches || stdoutLen >= STDOUT_FLUSH) return flushStdout();
     return undefined;
   };
   const flushSlow = async (printPattern: boolean): Promise<void> => {
@@ -480,13 +499,13 @@ async function execute(program: readonly Instruction[], context: CommandContext,
     }
     if (outputState.stdoutUnterminated && (appended.length || quit)) {
       appendStdoutSep();
-      if (stdoutLen >= 24576) await flushStdout();
+      if (stdoutLen >= STDOUT_FLUSH) await flushStdout();
       outputState.stdoutUnterminated = false;
     }
     for (const item of appended) {
       if (item.text !== undefined) {
         appendStdout(item.text);
-        if (stdoutLen >= 24576) await flushStdout();
+        if (stdoutLen >= STDOUT_FLUSH) await flushStdout();
         continue;
       }
       await flushStdout();
@@ -677,8 +696,9 @@ async function execute(program: readonly Instruction[], context: CommandContext,
                       lastPattern = nextExpr;
                       stdoutLen = newPos;
                       budget.step();
-                      if (!useBatches || stdoutLen >= 24576) {
-                        await flushStdout();
+                      if (!useBatches || stdoutLen >= STDOUT_FLUSH) {
+                        const p = flushStdout();
+                        if (p) await p;
                       }
                       if (batchSource && currentBatch && followingRecord === undefined) {
                         const batchText = currentBatch.text;
@@ -722,8 +742,9 @@ async function execute(program: readonly Instruction[], context: CommandContext,
                             if (pendingCheck) await pendingCheck;
                           }
                           stdoutLen = nextPos;
-                          if (stdoutLen >= 24576) {
-                            await flushStdout();
+                          if (stdoutLen >= STDOUT_FLUSH) {
+                            const p = flushStdout();
+                            if (p) await p;
                           }
                         }
                       }
@@ -802,9 +823,13 @@ async function execute(program: readonly Instruction[], context: CommandContext,
     }
     return { status: 0, quit: false };
   } finally {
-    if (stdoutLen > 0) await flushStdout();
-    if (batchSource) await batchSource.return(undefined);
-    else if (singleSource) await singleSource.return(undefined);
+    try {
+      if (stdoutLen > 0) await flushStdout();
+      if (batchSource) await batchSource.return(undefined);
+      else if (singleSource) await singleSource.return(undefined);
+    } finally {
+      if (usingSharedStdoutBuf) sharedSedStdoutBufInUse = false;
+    }
   }
 }
 

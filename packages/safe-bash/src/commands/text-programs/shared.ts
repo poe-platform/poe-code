@@ -77,6 +77,7 @@ export interface CachedLatin1Batch {
 }
 
 const latin1BatchCache = new WeakMap<Uint8Array, CachedLatin1Batch>();
+let lastLatin1Batch: CachedLatin1Batch | undefined;
 
 function matchesLatin1Bytes(chunk: Uint8Array, text: string): boolean {
   for (let index = 0; index < chunk.byteLength; index++) {
@@ -89,6 +90,10 @@ export function getCachedLatin1Batch(chunk: Uint8Array): CachedLatin1Batch | und
   const cLen = chunk.byteLength;
   if (cLen < 256) return undefined;
   let cached = latin1BatchCache.get(chunk);
+  let fromWeakMap = cached !== undefined;
+  if (!cached && lastLatin1Batch !== undefined && lastLatin1Batch.byteLength === cLen) {
+    cached = lastLatin1Batch;
+  }
   if (
     !cached ||
     cached.byteLength !== cLen ||
@@ -126,6 +131,9 @@ export function getCachedLatin1Batch(chunk: Uint8Array): CachedLatin1Batch | und
       maxLineLen,
       lastLineStart: cStart,
     };
+    latin1BatchCache.set(chunk, cached);
+    lastLatin1Batch = cached;
+  } else if (!fromWeakMap) {
     latin1BatchCache.set(chunk, cached);
   }
   return cached;

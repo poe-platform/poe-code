@@ -186,3 +186,53 @@ it("redirect range writes copy only admitted bytes without global Buffer", async
   }
   expect(result).toEqual(Uint8Array.of(1, 2, 3));
 });
+
+for (const separateFileSystems of [false, true]) for (const closeFirst of [false, true]) {
+  it(`redirect files retain independent bytes: separate filesystems=${separateFileSystems}, close first=${closeFirst}`, async () => {
+    const firstFs = new MemoryFileSystem();
+    const secondFs = separateFileSystems ? new MemoryFileSystem() : firstFs;
+    const first = tryOpenMemoryRedirectHandleSync(firstFs, "/first", false, 0o666)!;
+    expect(first).toBeDefined();
+    first.writeSync(bytes("first tenant content"));
+    if (closeFirst) first.close();
+    const second = tryOpenMemoryRedirectHandleSync(secondFs, "/second", false, 0o666)!;
+    expect(second).toBeDefined();
+    try {
+      second.writeSync(bytes("second content"));
+      expect(await firstFs.readFile("/first")).toEqual(bytes("first tenant content"));
+      expect(await secondFs.readFile("/second")).toEqual(bytes("second content"));
+      if (!closeFirst) {
+        first.writeSync(bytes("!"));
+        expect(await firstFs.readFile("/first")).toEqual(bytes("first tenant content!"));
+        expect(await secondFs.readFile("/second")).toEqual(bytes("second content"));
+      }
+    } finally {
+      if (!closeFirst) first.close();
+      second.close();
+    }
+  });
+}
+
+it("redirect allocation can be truncated by a later canonical descriptor", async () => {
+  const fs = new MemoryFileSystem();
+  const first = tryOpenMemoryRedirectHandleSync(fs, "/out", false, 0o666)!;
+  expect(first).toBeDefined();
+  try { first.writeSync(bytes("previous content")); }
+  finally { first.close(); }
+  const replacement = await fs.open("/out", { access: "write", truncate: true });
+  try {
+    await replacement.write(bytes("new"), null);
+    expect(await fs.readFile("/out")).toEqual(bytes("new"));
+  } finally { await replacement.close(); }
+});
+
+it("redirect handle retains independently replaced file data and its trailing bytes", async () => {
+  const fs = new MemoryFileSystem();
+  const handle = tryOpenMemoryRedirectHandleSync(fs, "/out", false, 0o666)!;
+  expect(handle).toBeDefined();
+  try {
+    await fs.writeFile("/out", bytes("longer-first-line\n"));
+    handle.writeSync(bytes("short\n"));
+    expect(await fs.readFile("/out")).toEqual(bytes("short\n-first-line\n"));
+  } finally { handle.close(); }
+});

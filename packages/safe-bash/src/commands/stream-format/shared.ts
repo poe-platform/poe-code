@@ -63,12 +63,13 @@ export class Session {
     this.untilYield -= count;
   }
 
-  async step(count = 1): Promise<void> {
+  step(count = 1): void | Promise<void> {
     this.charge(count);
     if (this.untilYield <= 0) {
       this.untilYield = 4096;
-      await yieldTurn();
-      this.signal.throwIfAborted();
+      return yieldTurn().then(() => {
+        this.signal.throwIfAborted();
+      });
     }
   }
 
@@ -184,7 +185,8 @@ export async function* records(source: ByteSource, session: Session): AsyncGener
   let size = 0;
   for await (const chunk of source) {
     for (const byte of chunk) {
-      await session.step();
+      const s = session.step();
+      if (s) await s;
       if (byte === 10) {
         yield { bytes: buffer.slice(0, size), terminated: true };
         size = 0;

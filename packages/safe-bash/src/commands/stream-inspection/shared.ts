@@ -54,15 +54,16 @@ export class Session {
     if (size > maximum) throw new FsError("EFBIG", { message: `stream-inspection ${label} limit exceeded` });
   }
 
-  async step(count = 1): Promise<void> {
+  step(count = 1): void | Promise<void> {
     this.signal.throwIfAborted();
     this.steps += count;
     this.check(this.steps, this.limits.maxSteps, "step");
     this.untilYield -= count;
     if (this.untilYield <= 0) {
       this.untilYield = 4096;
-      await yieldTurn();
-      this.signal.throwIfAborted();
+      return yieldTurn().then(() => {
+        this.signal.throwIfAborted();
+      });
     }
   }
 

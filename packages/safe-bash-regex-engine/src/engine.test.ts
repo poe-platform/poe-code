@@ -16,3 +16,11 @@ test("regex errors retain the canonical public diagnostic constructor", () => {
   assert.ok(new ProgramError("bounded") instanceof PublicDiagnostic);
   assert.throws(() => new Pattern("[", true, false, "jq"), ProgramError);
 });
+
+test("regex accepts budgets whose checkpoints complete synchronously", async () => {
+  let checkpoints = 0;
+  const pattern = new Pattern("a+", true, false, "jq");
+  const match = await pattern.find("baa", { step() {}, checkpoint() { checkpoints++; }, maxBufferBytes: 4096 });
+  assert.equal(match?.start, 1);
+  assert.ok(checkpoints > 0);
+});

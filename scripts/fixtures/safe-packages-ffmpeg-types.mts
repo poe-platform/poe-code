@@ -1,7 +1,8 @@
 import { Shell, CommandRegistry, createMemoryFileSystem } from "@poe-platform/safe-bash";
-import { createFfmpegCommand, createFfprobeCommand, createFfmpegCommands, ffmpegCommands, cloudflareWorkerLimits, type FfmpegCommandsOptions, type MediaAstPlugin } from "@poe-platform/safe-bash/commands/ffmpeg";
+import { createFfmpegCommand, createFfprobeCommand, createFfmpegCommands, ffmpegCommands, cloudflareWorkerLimits, type FfmpegCommandsOptions, type FfmpegLimits, type MediaAstPlugin } from "@poe-platform/safe-bash/commands/ffmpeg";
 
-const options: FfmpegCommandsOptions = { limits: cloudflareWorkerLimits(), features: { videoTranscode: true } };
+const limits: FfmpegLimits = cloudflareWorkerLimits();
+const options: FfmpegCommandsOptions = { limits, features: { videoTranscode: true } };
 const asts: readonly MediaAstPlugin[] | undefined = options.asts;
 const pair = createFfmpegCommands(options);
 const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry([createFfmpegCommand(options), createFfprobeCommand(options)]) });

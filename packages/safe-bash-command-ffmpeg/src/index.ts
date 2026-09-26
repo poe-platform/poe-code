@@ -64,7 +64,8 @@ export {
   MediaLimitExceededError,
   type MediaAstPlugin,
   type MediaFeatureOptions,
-  type MediaResourceLimits
+  type MediaResourceLimits,
+  type MediaResourceLimits as FfmpegLimits
 };
 
 export interface FfmpegCommandsOptions {

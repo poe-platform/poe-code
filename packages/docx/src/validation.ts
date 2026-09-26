@@ -166,10 +166,15 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     budget.charge("work", node.element.attributes.length);
     return node.element.attributes.find(a => a.namespace === namespace && a.localName === name)?.value;
   };
-  const children = (node: Node, name: string): Node[] => {
-    budget.charge("work", node.element.content.length);
-    return node.element.content.flatMap((child, i) => "source" in child && child.source.namespace === w && child.source.localName === name ?
-      [{ ...node, element: child, location: `${node.location}/${name}[${i + 1}]` }] : []);
+  const children = (node: Node, name?: string): Node[] => {
+    if (name !== undefined) budget.charge("work", node.element.content.length);
+    const result: Node[] = [];
+    for (let index = 0; index < node.element.content.length; index++) {
+      const child = node.element.content[index]!;
+      if (!("source" in child) || name !== undefined && (child.source.namespace !== w || child.source.localName !== name)) continue;
+      result.push({ ...node, element: child, location: `${node.location}/${child.source.localName}[${index + 1}]` });
+    }
+    return result;
   };
   const terminalCellBlock = (content: readonly CompatibilityContent[]): string | undefined => {
     for (let index = content.length - 1; index >= 0; index--) {
@@ -333,6 +338,12 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
   const fields = new Map<string, { node: Node; separated: boolean }[]>();
   const commentRanges = new Map<string, Node>();
   const revisionRanges = new Map<string, Node>();
+  const expectedStyleType: Record<string, string> = { pStyle: "paragraph", rStyle: "character", tblStyle: "table" };
+  const revisionRangesByName = new Map<string, { kind: string; start: boolean }>();
+  for (const kind of ["moveFrom", "moveTo", "customXmlIns", "customXmlDel", "customXmlMoveFrom", "customXmlMoveTo"]) {
+    revisionRangesByName.set(kind + "RangeStart", { kind, start: true });
+    revisionRangesByName.set(kind + "RangeEnd", { kind, start: false });
+  }
   for (const node of nodes) {
     const name = node.element.source.localName;
     const namespace = node.element.source.namespace;
@@ -356,7 +367,6 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
       if (attr(node, "val") !== undefined && !["numStyleLink", "styleLink"].includes(name)) styleFallback = true;
       else issue(node, "style-reference", "Style reference has no definition.");
     }
-    const expectedStyleType: Record<string, string> = { pStyle: "paragraph", rStyle: "character", tblStyle: "table" };
     if (Object.hasOwn(expectedStyleType, name)) {
       const style = lookup("style", attr(node, "val"));
       if (style && (attr(style, "type") ?? "paragraph") !== expectedStyleType[name]) issue(node, "style-type", "Style type disagrees with its usage.");
@@ -418,11 +428,12 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     }
     if (["ins", "del", "moveFrom", "moveTo", "rPrChange", "pPrChange", "sectPrChange", "tblPrChange", "trPrChange", "tcPrChange", "tblGridChange", "numberingChange", "cellIns", "cellDel", "cellMerge", "tblPrExChange"].includes(name) && !claim("revision", storedIntegerIdentity(attr(node, "id"))))
       issue(node, "revision-id", "Invalid or duplicate tracked revision ID.");
-    for (const kind of ["moveFrom", "moveTo", "customXmlIns", "customXmlDel", "customXmlMoveFrom", "customXmlMoveTo"]) {
-      if (name !== kind + "RangeStart" && name !== kind + "RangeEnd") continue;
+    const range = revisionRangesByName.get(name);
+    if (range) {
+      const { kind, start } = range;
       const id = storedIntegerIdentity(attr(node, "id"));
       const key = node.story + ":" + kind + ":" + id;
-      if (name.endsWith("Start")) {
+      if (start) {
         if (!claim(node.story + ":" + kind, id)) issue(node, "revision-id", "Invalid or duplicate tracked range ID.");
         revisionRanges.set(key, node);
       } else if (id === undefined || !revisionRanges.delete(key)) issue(node, "revision-id", "Tracked range end has no matching preceding start.");
@@ -447,7 +458,7 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
       const grids = children(node, "tblGrid");
       const width = grids.length === 1 ? children(grids[0]!, "gridCol").length : 0;
       let rows: Node[] = [];
-      try { rows = tableRows(node, node => node.element.source, node => node.element.content.flatMap((child, index) => "source" in child ? [{ ...node, element: child, location: `${node.location}/${child.source.localName}[${index + 1}]` }] : []), budget); }
+      try { rows = tableRows(node, node => node.element.source, node => children(node), budget); }
       catch (error) { if (!(error instanceof UnsupportedEditError)) throw error; issue(node, "table-grid", error.message); }
       if (width && rows.length) budget.table(rows.length, width);
       if (!width) issue(node, "table-grid", "A table needs one nonempty grid.");

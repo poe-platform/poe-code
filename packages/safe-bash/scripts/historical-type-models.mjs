@@ -5,7 +5,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { loadBoundaries } from "./integration-inputs.mjs";
-import { assertAdmittedInputPath, readRegularInput } from "./typecheck-integration-inputs.mjs";
+import { assertAdmittedInputPath, assertLiteralInputPath, readRegularInput } from "./typecheck-integration-inputs.mjs";
 
 export const historicalTypeModelDefinitions = Object.freeze([
   {
@@ -214,9 +214,34 @@ export function checkHistoricalSources(root, { fileSystem = fs, system = ts.sys,
       return declaration.endsWith(".ts") ? `${declaration.slice(0, -3)}.d.ts` : declaration;
     }),
   ]));
+  const paths = { ...dependencyPaths };
+  const manifest = metadata;
+  for (const [name, profile] of Object.entries(manifest.poeCode?.integration?.privateWorkspaces ?? {})) {
+    assertLiteralInputPath(name);
+    assert.ok(!name.includes("/"), "private workspace name must be a literal directory");
+    assert.equal(manifest.devDependencies?.[name], "*", "private workspace must be an explicit local build dependency");
+    const implementationRoot = resolve(root, "..", name);
+    const implementation = JSON.parse(readRegularInput(implementationRoot, "package.json", 65536, fileSystem));
+    assert.equal(implementation.name, name, "private workspace identity");
+    assert.equal(implementation.private, true, "implementation must remain private");
+    assert.equal(implementation.version, profile.version, "private workspace version");
+    assert.equal(implementation.type, "module", "private workspace must use ESM");
+    // Remove source wildcards as well as exact aliases: only declared exports
+    // may cross this workspace's compiler boundary.
+    for (const specifier of Object.keys(paths)) if (specifier === name || specifier.startsWith(name + "/")) delete paths[specifier];
+    const routes = Object.entries(implementation.exports ?? {});
+    assert.ok(routes.length > 0 && routes.length <= 32, "private workspace has bounded explicit exports");
+    for (const [route, target] of routes) {
+      assert.ok(route === "." || route.startsWith("./"), "private export route must be relative");
+      if (route !== ".") assertLiteralInputPath(route.slice(2));
+      assert.ok(typeof target?.types === "string" && target.types.startsWith("./dist/") && target.types.endsWith(".d.ts"), "private workspace declarations must remain below dist");
+      assertLiteralInputPath(target.types.slice(2));
+      paths[name + (route === "." ? "" : route.slice(1))] = [resolve(implementationRoot, target.types)];
+    }
+  }
   const parsedOptions = incrementalFile ? { ...parsed.options, incremental: true, tsBuildInfoFile: incrementalFile } : parsed.options;
-  const compilerOptions = parsed.options.paths ? { ...parsedOptions, paths: { ...dependencyPaths,
-    ...Object.fromEntries(Object.entries(engineAliases).filter(([specifier]) => Object.hasOwn(parsed.options.paths, specifier))),
+  const compilerOptions = Object.keys(paths).length > 0 ? { ...parsedOptions, paths: { ...paths,
+    ...Object.fromEntries(Object.entries(engineAliases).filter(([specifier]) => Object.hasOwn(paths, specifier))),
   } } : parsedOptions;
   const host = createHistoricalCompilerHost(compilerOptions, admission, baseHost);
   const filesystemRoot = resolve(root, "../safe-fs");

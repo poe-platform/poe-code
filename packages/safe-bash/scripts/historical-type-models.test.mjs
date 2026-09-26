@@ -533,10 +533,10 @@ for (const sourceDependencies of [false, true]) test(`private dependencies check
   addStandardLibrary(specimen.fileSystem);
   specimen.fileSystem.mkdirSync("/safe-bash-command-example/src", { recursive: true });
   specimen.fileSystem.mkdirSync("/safe-bash-command-example/dist", { recursive: true });
-  specimen.fileSystem.writeFileSync("/safe-bash-command-example/package.json", '{"type":"module"}');
+  specimen.fileSystem.writeFileSync("/safe-bash-command-example/package.json", JSON.stringify({ name: "safe-bash-command-example", private: true, version: "1.0.0", type: "module", exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } } }));
   specimen.fileSystem.writeFileSync("/safe-bash-command-example/src/index.ts", "export interface Options { value?: string; }\nexport function run(value): string { return value; }\n");
   specimen.fileSystem.writeFileSync("/safe-bash-command-example/dist/index.d.ts", "export interface Options { value?: string; }\nexport declare function run(value: string): string;\n");
-  specimen.fileSystem.writeFileSync("/package/package.json", JSON.stringify({ type: "module", poeCode: { integration: { privateWorkspaces: { "safe-bash-command-example": {} } } } }));
+  specimen.fileSystem.writeFileSync("/package/package.json", JSON.stringify({ type: "module", devDependencies: { "safe-bash-command-example": "*" }, poeCode: { integration: { privateWorkspaces: { "safe-bash-command-example": { version: "1.0.0" } } } } }));
   const config = {
     compilerOptions: { strict: true, exactOptionalPropertyTypes: true, noUncheckedIndexedAccess: true, module: "NodeNext", target: "ES2023", types: [], skipLibCheck: true,
       paths: { "safe-bash-command-example": ["../safe-bash-command-example/src/index.ts"] } },
@@ -575,6 +575,71 @@ test("source checking consumes built engine declarations without changing runtim
   assert.equal(result.program.getCompilerOptions().noUncheckedIndexedAccess, true);
   assert.deepEqual(result.diagnostics.map(diagnostic => diagnostic.code), [2375, 2322]);
   assert.deepEqual(JSON.parse(specimen.fileSystem.readFileSync(join(root, "tsconfig.json"), "utf8")), config);
+});
+
+function privateWorkspaceFixture() {
+  const specimen = fixture();
+  addStandardLibrary(specimen.fileSystem);
+  const config = {
+    compilerOptions: { strict: true, exactOptionalPropertyTypes: true, noUncheckedIndexedAccess: true, module: "NodeNext", target: "ES2023", types: [], skipLibCheck: true,
+      paths: {
+        "safe-bash-contracts": ["../safe-bash-contracts/src/index.ts"],
+        "safe-bash-contracts/value": ["../safe-bash-contracts/src/value.ts"],
+        "safe-bash-contracts/*": ["../safe-bash-contracts/src/*"],
+        "safe-bash-command-fixture/adapter": ["../safe-bash-command-fixture/src/adapter.ts"],
+        "safe-bash-command-fixture/*": ["../safe-bash-command-fixture/src/*"],
+      } },
+    files: ["tests/check.ts"],
+  };
+  const workspaces = {
+    "safe-bash-contracts": { ".": "index", "./value": "value" },
+    "safe-bash-command-fixture": { "./adapter": "adapter" },
+  };
+  specimen.fileSystem.writeFileSync(join(root, "package.json"), JSON.stringify({ type: "module",
+    devDependencies: Object.fromEntries(Object.keys(workspaces).map(name => [name, "*"])),
+    poeCode: { integration: { privateWorkspaces: Object.fromEntries(Object.keys(workspaces).map(name => [name, { version: "1.0.0" }])) } },
+  }));
+  for (const [name, routes] of Object.entries(workspaces)) {
+    for (const directory of ["src", "dist"]) specimen.fileSystem.mkdirSync(`/${name}/${directory}`, { recursive: true });
+    specimen.fileSystem.writeFileSync(`/${name}/package.json`, JSON.stringify({ name, private: true, version: "1.0.0", type: "module",
+      exports: Object.fromEntries(Object.entries(routes).map(([route, file]) => [route, { types: `./dist/${file}.d.ts`, import: `./dist/${file}.js` }])),
+    }));
+  }
+  for (const [path, source] of Object.entries({
+    "/safe-bash-contracts/src/index.ts": 'export { Value } from "./value.js";\n',
+    "/safe-bash-contracts/src/value.ts": "export class Value { private identity = 1; }\n",
+    "/safe-bash-contracts/dist/index.d.ts": 'export { Value } from "./value.js";\n',
+    "/safe-bash-contracts/dist/value.d.ts": "export declare class Value { private identity; }\n",
+    "/safe-bash-command-fixture/src/adapter.ts": 'export function run(value: import("../../safe-bash-contracts/dist/value.js").Value, options?: { limit?: number }): string { return String(value) + String(options); }\n',
+    "/safe-bash-command-fixture/src/internal.ts": "export const internal = 1;\n",
+    "/safe-bash-command-fixture/dist/adapter.d.ts": 'export declare function run(value: import("../../safe-bash-contracts/dist/value.js").Value, options?: { limit?: number }): string;\n',
+  })) specimen.fileSystem.writeFileSync(path, source);
+  const caller = 'import { Value } from "safe-bash-contracts";\nimport type { Value as NestedValue } from "safe-bash-contracts/value";\nimport { run } from "safe-bash-command-fixture/adapter";\nconst value: NestedValue = new Value();\nrun(value);\n';
+  specimen.fileSystem.writeFileSync(join(root, "tests/check.ts"), caller);
+  specimen.fileSystem.writeFileSync(join(root, "tsconfig.json"), JSON.stringify(config));
+  return { ...specimen, tsconfig: config, caller };
+}
+
+test("private workspace export declarations share one nominal owner without changing runtime aliases", () => {
+  const specimen = privateWorkspaceFixture();
+  const result = checkHistoricalSources(root, { ...specimen, boundaries });
+  assert.equal(result.status, 0, ts.formatDiagnostics(result.diagnostics, specimen.baseHost));
+  assert.deepEqual(result.program.getRootFileNames(), [join(root, "tests/check.ts")]);
+  assert.ok(result.program.getSourceFile("/safe-bash-contracts/dist/value.d.ts"));
+  assert.ok(result.program.getSourceFile("/safe-bash-command-fixture/dist/adapter.d.ts"));
+  assert.equal(result.program.getSourceFiles().some(source => source.fileName.includes("/src/")), false);
+  assert.deepEqual(JSON.parse(specimen.fileSystem.readFileSync(join(root, "tsconfig.json"), "utf8")), specimen.tsconfig);
+});
+
+test("private declaration boundaries retain strict callers and reject unexported source wildcard imports", () => {
+  const specimen = privateWorkspaceFixture();
+  specimen.fileSystem.writeFileSync(join(root, "tests/check.ts"), specimen.caller + 'run(value, { limit: undefined });\nconst indexed: string = ["value"][0];\nimport { internal } from "safe-bash-command-fixture/internal.js";\n');
+  const result = checkHistoricalSources(root, { ...specimen, boundaries });
+  assert.deepEqual(result.diagnostics.map(diagnostic => diagnostic.code), [2379, 2322, 2307]);
+  assert.equal(result.program.getCompilerOptions().exactOptionalPropertyTypes, true);
+  assert.equal(result.program.getCompilerOptions().noUncheckedIndexedAccess, true);
+  assert.equal(result.program.getCompilerOptions().noEmit, true);
+  assert.equal(result.program.getSourceFile("/safe-bash-command-fixture/src/internal.ts"), undefined);
 });
 
 for (const graph of ["workspace-package", "root-rewritten"]) test(`source filesystem ownership stays coherent with ${graph} engine declarations`, () => {

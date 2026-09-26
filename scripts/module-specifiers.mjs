@@ -27,8 +27,13 @@ export function rewriteModuleSpecifiers(filename, text, rewrite) {
     ts.forEachChild(node, child => { children.push(child); });
     for (let index = children.length - 1; index >= 0; index--) pending.push(children[index]);
   }
-  for (const replacement of replacements.sort((left, right) => right.start - left.start)) {
-    text = text.slice(0, replacement.start) + replacement.value + text.slice(replacement.end);
+  if (replacements.length === 0) return text;
+  const parts = [];
+  let offset = 0;
+  for (const replacement of replacements.sort((left, right) => left.start - right.start)) {
+    parts.push(text.slice(offset, replacement.start), replacement.value);
+    offset = replacement.end;
   }
-  return text;
+  parts.push(text.slice(offset));
+  return parts.join("");
 }

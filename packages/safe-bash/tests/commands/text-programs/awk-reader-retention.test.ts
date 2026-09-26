@@ -86,18 +86,32 @@ test("awk reader releases capacity and closes exactly once even for falsey retur
   }
 });
 
-test("awk reader concurrent close prevents late input publication", async () => {
+for (const separator of ["\n", ""]) test(`awk reader concurrent close prevents late input publication: ${JSON.stringify(separator)}`, async () => {
   let deliver!: (value: IteratorResult<Uint8Array>) => void;
   const pending = new Promise<IteratorResult<Uint8Array>>(resolve => { deliver = resolve; });
   let returns = 0;
   const input: ByteSource = { [Symbol.asyncIterator]() { return { next: () => pending, async return() { returns++; return { done: true, value: undefined }; } }; } };
   const retention = new AwkRetention(8), reader = new Reader(input, budget(), retention);
-  const reading = reader.read("\n");
+  const reading = reader.read(separator);
   const closing = reader.close(), again = reader.close();
   deliver({ done: false, value: Buffer.from("a\ntail") });
   assert.equal(await reading, undefined);
   await Promise.all([closing, again]);
   assert.equal(retention.retainedBytes, 0); assert.equal(returns, 1);
+});
+
+for (const close of ["close", "closeSyncOrAsync"] as const) test(`closed awk reader fast paths remain empty after ${close}`, async () => {
+  const retention = new AwkRetention(8), input = source([Buffer.from("a\ntail")]);
+  const reader = new Reader(input.stream, budget(), retention);
+  assert.equal(await reader.read("\n"), "a");
+  await reader[close]();
+  assert.equal(reader.readSync("\n"), undefined);
+  const output = { source: "untouched", start: 1, end: 2 };
+  assert.equal(reader.readSliceSync("\n", output), false);
+  assert.deepEqual(output, { source: "untouched", start: 1, end: 2 });
+  assert.equal(retention.retainedBytes, 0);
+  assert.equal(input.pulls(), 1);
+  assert.equal(input.returns(), 1);
 });
 
 for (const sync of [false, true]) for (const buffer of [false, true]) test(`awk reader copies borrowed views before producer reuse: sync=${sync}, buffer=${buffer}`, async () => {

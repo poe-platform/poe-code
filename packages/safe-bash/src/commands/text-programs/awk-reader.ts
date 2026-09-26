@@ -121,6 +121,7 @@ export class Reader {
         this.blocks[lastIdx] = new Uint8Array(this.blocks[lastIdx]!);
       }
       const next = syncIter.tryNextSync();
+      if (this.closed) return true;
       if (next === undefined) return false;
       signal.throwIfAborted();
       if (this.closed) return false;
@@ -365,10 +366,10 @@ export class Reader {
     this.ownedBytes = 0;
     const origIter = this.iterator;
     this.iterator = RELEASED_READER_ITERATOR;
+    this.budget = undefined!;
+    this.retention = undefined!;
     if (this.isPooledMemory && memoryReaderPool.reader === undefined) {
       this.isPooledMemory = false;
-      this.budget = undefined!;
-      this.retention = undefined!;
       memoryReaderPool.reader = this;
     }
     if (wasEnded || !origIter.return) {
@@ -395,10 +396,10 @@ export class Reader {
     this.ownedBytes = 0;
     const origIter = this.iterator;
     this.iterator = RELEASED_READER_ITERATOR;
+    this.budget = undefined!;
+    this.retention = undefined!;
     if (this.isPooledMemory && memoryReaderPool.reader === undefined) {
       this.isPooledMemory = false;
-      this.budget = undefined!;
-      this.retention = undefined!;
       memoryReaderPool.reader = this;
     }
     if (wasEnded || !origIter.return) {

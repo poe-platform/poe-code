@@ -674,7 +674,7 @@ export class MemoryFileSystem implements FileSystem {
       alloc.release();
       if (alloc.isReleased64()) {
         alloc.detachLedger(DUMMY_POOL_LEDGER);
-        if (sharedAllocationPool.length < 128) {
+        if (this.ledger.hasInfiniteRetained && this.ledger.limits.maxFileBytes === Infinity && sharedAllocationPool.length < 128) {
           sharedAllocationPool.push(alloc);
         } else if (cache.allocations.length < 128) {
           cache.allocations.push(alloc);
@@ -1037,7 +1037,10 @@ export class MemoryFileSystem implements FileSystem {
       return new MemoryAllocation(EMPTY_ALLOC_BYTES, this.ledger);
     }
     if (length === 64) {
-      const pooled = sharedAllocationPool.pop() ?? memoryCaches.get(this.ledger)!.allocations.pop();
+      const pooled =
+        (this.ledger.hasInfiniteRetained && this.ledger.limits.maxFileBytes === Infinity
+          ? sharedAllocationPool.pop()
+          : undefined) ?? memoryCaches.get(this.ledger)!.allocations.pop();
       if (pooled) {
         pooled.reuse(this.ledger);
         return pooled;

@@ -30,7 +30,7 @@ import type { PreparedShellChild, ShellBindingReference, ShellBindingResult, She
 import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { SourceLineIndex } from "./source-line-index.js";
-import { isCleanAbsolutePath, scopeFileSystem, tryGetMemoryDirectoryEntryNamesSync, tryMkdirMemorySync, tryOpenMemoryRedirectHandleSync, tryResolveMemoryDevicePath, tryRmRfMemorySync, tryWriteMemoryFileInDirSync, tryWriteMemoryFileSync, type MemoryRedirectHandle } from "@poe-code/safe-fs/core";
+import { isCleanAbsolutePath, retargetScopedFileSystem, scopeFileSystem, tryGetMemoryDirectoryEntryNamesSync, tryMkdirMemorySync, tryOpenMemoryRedirectHandleSync, tryResolveMemoryDevicePath, tryRmRfMemorySync, tryWriteMemoryFileInDirSync, tryWriteMemoryFileSync, type MemoryRedirectHandle } from "@poe-code/safe-fs/core";
 import { collectPureReadOnlySmiNames, compilePureSmiProgram, evalCompiledSmi, evaluateArithmetic, evaluateArithmeticReferences, evaluateArithmeticSync, evaluateArithmeticSyncNonZero, evaluateArithmeticSyncString, fastSafeInt, intToStr, isSafeSmiProgram, prepareArithmetic, runIntArithForLoop, runIntForLoop, sharedLoopIntRegs, type ArithmeticProgram, type ArithmeticReferences, type CompiledSmiExpr } from "./arithmetic.js";
 import { ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces, tryFastExpandBraceRange } from "./brace-expansion.js";
@@ -2688,6 +2688,35 @@ Object.assign(InvocationCancellationOwner.prototype, {
 
 const mapfileCallbackStates = new WeakSet<State>();
 const runtimeFileSystems = new WeakMap<FileSystem, FileSystem>();
+const reusableDefaultContextFsBySourceFs = new WeakMap<FileSystem, { scoped: FileSystem; inUseBy: Runtime | undefined }>();
+const noopFsCharge = (): void => {};
+const NEVER_ABORTED_SIGNAL = new AbortController().signal;
+
+export function warmDefaultRuntimeContextFs(sourceFs: FileSystem, backingFs: FileSystem): void {
+  if (reusableDefaultContextFsBySourceFs.has(sourceFs)) return;
+  const created = scopeFileSystem(
+    creationFileSystem(sourceFs, 0o022),
+    noopFsCharge,
+    NEVER_ABORTED_SIGNAL,
+    noopFsCharge,
+    { maxPathComponents: 256 },
+  );
+  runtimeFileSystems.set(created, sourceFs);
+  registerRuntimeBackingFileSystem(created, backingFs);
+  void created.capabilities;
+  void created.readFile;
+  void created.stat;
+  void created.lstat;
+  void created.readdir;
+  void created.realpath;
+  void created.readStream;
+  void created.openReadFile;
+  void created.writeFile;
+  void created.appendFile;
+  void created.mkdir;
+  void created.rm;
+  reusableDefaultContextFsBySourceFs.set(sourceFs, { scoped: created, inUseBy: undefined });
+}
 import { abortManagedController, addAbortSignalWaiter, combineManagedSignals, createManagedControlController, getRuntimeBackingFileSystem, interruptible, isSyncResolved, registerManagedAbortSignal, registerRuntimeBackingFileSystem, removeAbortSignalWaiter, type ManagedControlController } from "../fs/creation-mask.js";
 export { getRuntimeBackingFileSystem, interruptible, registerRuntimeBackingFileSystem };
 const emptyWords: readonly Word[] = [];
@@ -2934,6 +2963,11 @@ export class Runtime {
   }
 
   releaseAnchorResources(): void {
+    const reusableEntry = reusableDefaultContextFsBySourceFs.get(this.sourceFs);
+    if (reusableEntry && reusableEntry.inUseBy === this) {
+      retargetScopedFileSystem(reusableEntry.scoped, noopFsCharge, NEVER_ABORTED_SIGNAL, noopFsCharge, 256);
+      reusableEntry.inUseBy = undefined;
+    }
     if (Array.isArray(_lastFastContextAnchor) && _lastFastContextAnchor[0]) {
       (_lastFastContextAnchor[0] as { _contextFs?: FileSystem | undefined })._contextFs = undefined;
     }
@@ -2964,6 +2998,18 @@ export class Runtime {
   private getContextFsFor(umask: number, sig: AbortSignal): FileSystem {
     if (this._contextFs && this._contextFsMask === umask && this._contextFsSignal === sig) {
       return this._contextFs;
+    }
+    if (umask === 0o022 && !this._contextFs) {
+      const entry = reusableDefaultContextFsBySourceFs.get(this.sourceFs);
+      if (entry && (entry.inUseBy === undefined || entry.inUseBy === this)) {
+        if (retargetScopedFileSystem(entry.scoped, this.budget.chargeFs, sig, this.budget.cleanupChargeFs, this.budget.limits.maxPathnameComponents)) {
+          entry.inUseBy = this;
+          this._contextFsMask = umask;
+          this._contextFsSignal = sig;
+          this._contextFs = entry.scoped;
+          return entry.scoped;
+        }
+      }
     }
     const created = scopeFileSystem(
       creationFileSystem(this.sourceFs, umask),

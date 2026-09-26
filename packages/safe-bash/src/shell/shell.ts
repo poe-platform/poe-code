@@ -13,7 +13,7 @@ import { captureShellExtensions, extensionState } from "./extensions.js";
 import { ShellInput } from "./input.js";
 import { SourceLineIndex } from "./source-line-index.js";
 import { byteLocale } from "./locale.js";
-import { Budget, Capture, customRegisteredCommands, customRegisteredRegistries, interruptible, registerRuntimeBackingFileSystem, resolveLimits, RootShellState, Runtime, RuntimeCancellationState } from "./runtime.js";
+import { Budget, Capture, customRegisteredCommands, customRegisteredRegistries, interruptible, registerRuntimeBackingFileSystem, resolveLimits, RootShellState, Runtime, RuntimeCancellationState, warmDefaultRuntimeContextFs } from "./runtime.js";
 import { ensureStateMonitor } from "./arrays/state.js";
 import { combineManagedSignals, isSyncResolved } from "../fs/creation-mask.js";
 import type { State } from "./runtime.js";
@@ -622,6 +622,7 @@ export class Shell implements PluginHost {
           if (!this.#defaultRuntimeFs) {
             this.#defaultRuntimeFs = this.#options.deviceView === "provided" ? filesystem : createDeviceFileSystem(filesystem);
             registerRuntimeBackingFileSystem(this.#defaultRuntimeFs, filesystem);
+            warmDefaultRuntimeContextFs(this.#defaultRuntimeFs, filesystem);
           }
           runtimeFs = this.#defaultRuntimeFs;
         } else {

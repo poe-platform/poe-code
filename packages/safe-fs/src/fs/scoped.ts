@@ -12,6 +12,23 @@ import { createStagingCleanup, snapshotStagingCreation } from "./staging-cleanup
 import { inspectStagingBindings, runStagingGuard, snapshotDirectoryAncestry, snapshotStagingResolution } from "./staging-ancestry.js";
 
 const originals = new WeakMap<FileSystem, { filesystem: FileSystem; signal: AbortSignal; cleanupCharge: () => void; creationMask: number | undefined; maxPathComponents: number | undefined }>();
+const retargeters = new WeakMap<
+  FileSystem,
+  (charge: () => void, signal: AbortSignal, cleanupCharge: () => void, maxPathComponents?: number) => void
+>();
+
+export function retargetScopedFileSystem(
+  scoped: FileSystem,
+  charge: () => void,
+  signal: AbortSignal,
+  cleanupCharge = charge,
+  maxPathComponents?: number,
+): boolean {
+  const fn = retargeters.get(scoped);
+  if (!fn) return false;
+  fn(charge, signal, cleanupCharge, maxPathComponents);
+  return true;
+}
 const operations = new Set<keyof FileSystem>([
   "prepareDirectoryAncestry", "prepareStagingResolution",
   "publishFileConditional", "removeEntryConditional", "removeTreeConditional", "writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory",
@@ -25,7 +42,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
   options: { readonly preserveDescriptorWriteReceipt?: boolean; readonly creationMask?: number; readonly maxPathComponents?: number } = {}): FileSystem {
   const original = originals.get(filesystem)?.filesystem ?? filesystem;
   const creationMask = options.creationMask ?? originals.get(filesystem)?.creationMask;
-  const maxPathComponents = options.maxPathComponents ?? originals.get(filesystem)?.maxPathComponents;
+  let maxPathComponents = options.maxPathComponents ?? originals.get(filesystem)?.maxPathComponents;
   if (creationMask !== undefined && (!Number.isInteger(creationMask) || creationMask < 0 || creationMask > 0o777)) throw new RangeError("creationMask must be a permission mask between 0 and 0777");
   const creationOptions = <Options extends FsOptions & { readonly mode?: number }>(settings: Options, directory = false): Options => {
     // Explicit directory modes (mkdir -m) are independent of the shell mask.
@@ -419,7 +436,17 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       return scoped;
     },
   });
-  originals.set(view, { filesystem: original, signal, cleanupCharge, creationMask, maxPathComponents });
+  const originalRecord = { filesystem: original, signal, cleanupCharge, creationMask, maxPathComponents };
+  originals.set(view, originalRecord);
+  retargeters.set(view, (nextCharge, nextSignal, nextCleanupCharge, nextMaxPathComponents) => {
+    charge = nextCharge;
+    signal = nextSignal;
+    cleanupCharge = nextCleanupCharge;
+    maxPathComponents = nextMaxPathComponents ?? originals.get(filesystem)?.maxPathComponents;
+    originalRecord.signal = nextSignal;
+    originalRecord.cleanupCharge = nextCleanupCharge;
+    originalRecord.maxPathComponents = maxPathComponents;
+  });
   registerEntryView(view, async (path, options) => {
     assertOpen(options);
     return { filesystem: original, path };

@@ -21,7 +21,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json",
+    "build": "node ../../scripts/guard-package-dist.mjs && rm -rf dist && tsc -p tsconfig.json",
     "test": "node --import tsx --test src/*.test.ts",
     "test:unit": "node --import tsx --test src/*.test.ts",
     "lint": "eslint src && npm run typecheck",

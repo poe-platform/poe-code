@@ -792,6 +792,10 @@ export class Capture implements ByteSink {
       if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
       budget.bytes += chunk.byteLength;
     }
+    return this.writeRawSync(chunk);
+  }
+
+  writeRawSync(chunk: Uint8Array): boolean {
     if (!chunk.byteLength) return true;
     if (!this._chunks && !this._first && chunk.byteLength <= 4096) {
       this._first = new Uint8Array(chunk);
@@ -1273,7 +1277,7 @@ class BudgetedSyncSink implements ByteSink {
     const budget = this.budget;
     if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
     budget.bytes += chunk.byteLength;
-    this.target.writeSync(chunk);
+    this.target.writeRawSync(chunk);
     return true;
   }
 
@@ -1360,17 +1364,17 @@ class BudgetedPipeStageSink implements ByteSink {
   declare readonly budget: Budget;
   declare readonly writable: ByteSink;
   declare readonly signal: AbortSignal;
-  declare readonly written: Set<number>;
+  declare readonly written: Set<number> | undefined;
   declare readonly index: number;
   declare readonly controller: { readonly signal: AbortSignal; abort(reason?: unknown): void };
-  declare ownedOutput?: NonNullable<ByteSink["ownedOutput"]>;
+  declare private _ownedOutput: NonNullable<ByteSink["ownedOutput"]> | undefined;
   declare file?: NonNullable<CommandContext["stdoutFile"]>;
 
   constructor(
     budget: Budget,
     writable: ByteSink,
     signal: AbortSignal,
-    written: Set<number>,
+    written: Set<number> | undefined,
     index: number,
     controller: { readonly signal: AbortSignal; abort(reason?: unknown): void },
   ) {
@@ -1381,9 +1385,16 @@ class BudgetedPipeStageSink implements ByteSink {
     this.written = written;
     this.index = index;
     this.controller = controller;
-    if (writable.ownedOutput) this.ownedOutput = new BudgetedPipeStageOwnedSink(this);
-    const failOutput = writable[outputFailure];
-    if (failOutput) (this as unknown as Record<symbol, unknown>)[outputFailure] = failOutput.bind(writable);
+    this._ownedOutput = undefined;
+  }
+
+  get ownedOutput(): NonNullable<ByteSink["ownedOutput"]> {
+    return (this.writable.ownedOutput ? (this._ownedOutput ??= new BudgetedPipeStageOwnedSink(this)) : undefined) as NonNullable<ByteSink["ownedOutput"]>;
+  }
+
+  [outputFailure](reason: unknown): Promise<void> {
+    const fn = this.writable[outputFailure];
+    return fn ? fn.call(this.writable, reason) : resolvedVoid;
   }
 
   writeOwned(chunk: Uint8Array): Promise<void> {
@@ -1429,12 +1440,12 @@ class BudgetedPipeStageSink implements ByteSink {
         return Promise.reject(error);
       }
       if (isSyncResolved(res)) {
-        if (chunk.byteLength) this.written.add(this.index);
+        if (chunk.byteLength && this.written) this.written.add(this.index);
         signal.throwIfAborted();
         return resolvedVoid;
       }
       const handled = res.then(
-        () => { if (chunk.byteLength) this.written.add(this.index); },
+        () => { if (chunk.byteLength && this.written) this.written.add(this.index); },
         (error) => {
           if (errorCode(error) === "EPIPE") {
             const closed = SHARED_PIPELINE_CLOSED;
@@ -1451,8 +1462,8 @@ class BudgetedPipeStageSink implements ByteSink {
   }
 }
 
-function pollIncomingPipe(this: { incoming: { readiness(): "ready" | "eof" | "blocked" | "unknown" } }): "ready" | "eof" | "blocked" | "unknown" {
-  return this.incoming.readiness();
+function pollIncomingPipe(this: { incoming: { _readiness?: () => "ready" | "eof" | "blocked" | "unknown"; readiness(): "ready" | "eof" | "blocked" | "unknown" } }): "ready" | "eof" | "blocked" | "unknown" {
+  return this.incoming._readiness ? this.incoming._readiness() : this.incoming.readiness();
 }
 
 function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
@@ -2668,7 +2679,7 @@ Object.assign(InvocationCancellationOwner.prototype, {
 
 const mapfileCallbackStates = new WeakSet<State>();
 const runtimeFileSystems = new WeakMap<FileSystem, FileSystem>();
-import { abortManagedController, combineManagedSignals, createManagedControlController, getRuntimeBackingFileSystem, interruptible, isSyncResolved, registerManagedAbortSignal, registerRuntimeBackingFileSystem, type ManagedControlController } from "../fs/creation-mask.js";
+import { abortManagedController, addAbortSignalWaiter, combineManagedSignals, createManagedControlController, getRuntimeBackingFileSystem, interruptible, isSyncResolved, registerManagedAbortSignal, registerRuntimeBackingFileSystem, removeAbortSignalWaiter, type ManagedControlController } from "../fs/creation-mask.js";
 export { getRuntimeBackingFileSystem, interruptible, registerRuntimeBackingFileSystem };
 const emptyWords: readonly Word[] = [];
 const emptyShellValues: readonly ShellValue[] = [];
@@ -4903,9 +4914,10 @@ export class Runtime {
     for (let i = 0; i < n; i++) {
       controllers[i] = createManagedControlController();
     }
-    const written = new Set<number>();
-    const completed = new Set<number>();
-    const closing = new Set<TurnHandle>();
+    const onParentAbort = (reason: unknown) => {
+      for (let i = 0; i < n; i++) abortManagedController(controllers[i]!, reason);
+    };
+    addAbortSignalWaiter(this.signal, onParentAbort);
     const scope = io[invocationScope];
     const unsealScope = scope.onSeal(() => {
       const closedReason = new Error("Invocation is closed");
@@ -4918,22 +4930,26 @@ export class Runtime {
         const cmd = pipeline.commands[index]! as Extract<Command, { kind: "simple" }>;
         const firstName = cmd.words[0]!.plain!;
         const extDef = this.getExternalCommand(firstName)!;
-        const stageArgs = new Array<string>(cmd.words.length - 1);
-        for (let w = 1; w < cmd.words.length; w++) {
-          const word = cmd.words[w]!;
-          stageArgs[w - 1] = word.plain ?? word.parts.map(p => (p as { value: string }).value).join("");
+        let stageArgs = (cmd as { _cachedPlainArgs?: string[] })._cachedPlainArgs;
+        if (!stageArgs) {
+          stageArgs = new Array<string>(cmd.words.length - 1);
+          for (let w = 1; w < cmd.words.length; w++) {
+            const word = cmd.words[w]!;
+            stageArgs[w - 1] = word.plain ?? word.parts.map(p => (p as { value: string }).value).join("");
+          }
+          (cmd as { _cachedPlainArgs?: string[] })._cachedPlainArgs = stageArgs;
         }
         const incoming = index > 0 ? pipes[index - 1] : undefined;
         const outgoing = index < n - 1 ? pipes[index] : undefined;
         const reading = incoming?.endpoints?.read;
         const writing = outgoing?.endpoints?.write;
-        const stageSignal = combineManagedSignals(this.signal, controllers[index]!.signal);
+        const stageSignal = controllers[index]!.signal;
         const input = incoming
           ? new ShellInput(reading?.readable ?? incoming.readable, this.budget, stageSignal, { provenance: "stream", poll: pollIncomingPipe, incoming } as unknown as ConstructorParameters<typeof ShellInput>[3], true)
           : new ShellInput(io.stdin, this.budget, stageSignal, undefined, true);
         const writable = writing?.writable ?? outgoing?.writable;
         const stageStdout = outgoing
-          ? new BudgetedPipeStageSink(this.budget, writable!, stageSignal, written, index, controllers[index]!)
+          ? new BudgetedPipeStageSink(this.budget, writable!, stageSignal, undefined, index, controllers[index]!)
           : signalSink(io.stdout, stageSignal);
         const stageStderr = signalSink(io.stderr, stageSignal);
         const context = new FastShellCommandContext(this, rawState, io, scope, firstName, stageArgs, undefined, sharedEnv, true);
@@ -4971,16 +4987,6 @@ export class Runtime {
           } finally {
             this.budget.endPathLookupSuspension();
             scope.leaveWork();
-            completed.add(index);
-            if (incoming && !reading) {
-              const upstream = index - 1;
-              const close = scheduleTurn(() => {
-                closing.delete(close);
-                if (written.has(upstream) && !completed.has(upstream)) abortManagedController(controllers[upstream]!, SHARED_PIPELINE_CLOSED);
-              });
-              closing.add(close);
-              await incoming.abort();
-            }
             const closedInput = input.close();
             if (!isSyncResolved(closedInput)) {
               await closedInput.catch((error: unknown) => { if (!(error instanceof PipelineClosed)) throw error; });
@@ -5006,9 +5012,9 @@ export class Runtime {
         : await Promise.all(tasks);
     } finally {
       unsealScope();
-      for (const close of closing) cancelTurn(close);
+      removeAbortSignalWaiter(this.signal, onParentAbort);
       for (let i = 0; i < n; i++) {
-        if (!completed.has(i) || written.has(i)) abortManagedController(controllers[i]!, SHARED_PIPELINE_CLOSED);
+        abortManagedController(controllers[i]!, SHARED_PIPELINE_CLOSED);
       }
       for (let i = 0; i < n - 1; i++) {
         const ab = pipes[i]!.abort();
@@ -5397,13 +5403,8 @@ export class Runtime {
               if (fastSyncSink) {
                 if (fastSyncSink.budget !== this.budget) {
                   this.budget.bytes += byteLength;
-                  if (fastSyncSink instanceof Capture) {
-                    const prevBudget = fastSyncSink.budget;
-                    fastSyncSink.budget = undefined;
-                    try { fastSyncSink.writeSync(encoded); }
-                    finally { fastSyncSink.budget = prevBudget; }
-                  }
-                  else fastSyncSink.target.writeSync(encoded);
+                  if (fastSyncSink instanceof Capture) fastSyncSink.writeRawSync(encoded);
+                  else fastSyncSink.target.writeRawSync(encoded);
                 } else {
                   fastSyncSink.writeSync(encoded);
                 }

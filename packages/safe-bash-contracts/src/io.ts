@@ -244,11 +244,13 @@ class PipeWriteEndpointImpl implements PipeWriteEndpoint, ByteSink {
   declare writes: Set<WriteRequest> | undefined;
   declare open: boolean;
   declare closing: Promise<void> | undefined;
-  declare readonly write: (chunk: Uint8Array) => Promise<void>;
 
   constructor(pipe: BytePipeImpl) {
     this._pipe = pipe;
-    this.write = (chunk: Uint8Array) => pipe._write(this, chunk, false);
+  }
+
+  write(chunk: Uint8Array): Promise<void> {
+    return this._pipe._write(this, chunk, false);
   }
 
   get writable(): ByteSink {
@@ -315,11 +317,13 @@ class BytePipeImpl implements BytePipe {
   declare consumer: AbortController | undefined;
   declare consumerAborted: boolean;
   declare consumerReason: unknown;
+  declare readonly read: PipeReadEndpointImpl;
+  declare readonly write: PipeWriteEndpointImpl;
   declare readonly _readEndpoint: PipeReadEndpointImpl;
   declare readonly _writeEndpoint: PipeWriteEndpointImpl;
-  declare readonly endpoints: { readonly read: PipeReadEndpoint; readonly write: PipeWriteEndpoint };
   declare _failHandler: ((reason: unknown) => Promise<void>) | undefined;
   declare _onAbortHandler: (() => void) | undefined;
+  declare _boundReadiness: (() => "ready" | "eof" | "blocked") | undefined;
   declare _legacyReader: PipeBorrowIterator | undefined;
   declare _legacyIterator: AsyncGenerator<Uint8Array> | undefined;
   declare _legacyReadable: AsyncIterableIterator<Uint8Array> | undefined;
@@ -331,19 +335,29 @@ class BytePipeImpl implements BytePipe {
       throw new RangeError("highWaterMark must be a positive safe integer");
     }
     this.highWaterMark = highWaterMark;
-    this.readiness = this.readiness.bind(this);
     const signal = options.signal;
     if (signal !== undefined) {
       this.signal = signal;
       this.managedSignal = Boolean((signal as unknown as Record<symbol, unknown>)[managedSignalSymbol]);
     }
-    this._readEndpoint = new PipeReadEndpointImpl(this);
-    this._writeEndpoint = new PipeWriteEndpointImpl(this);
-    this.endpoints = { read: this._readEndpoint, write: this._writeEndpoint };
+    const readEp = new PipeReadEndpointImpl(this);
+    const writeEp = new PipeWriteEndpointImpl(this);
+    this.read = readEp;
+    this.write = writeEp;
+    this._readEndpoint = readEp;
+    this._writeEndpoint = writeEp;
     if (signal) {
       if (signal.aborted) this._onAbort();
       else this._attachSignal();
     }
+  }
+
+  get endpoints(): { readonly read: PipeReadEndpoint; readonly write: PipeWriteEndpoint } {
+    return this;
+  }
+
+  onAbort(): void {
+    this._onAbort();
   }
 
   _getFailHandler(): (reason: unknown) => Promise<void> {
@@ -443,20 +457,22 @@ class BytePipeImpl implements BytePipe {
   _attachSignal(): void {
     const signal = this.signal;
     if (!signal) return;
-    const onAbort = (this._onAbortHandler ??= () => this._onAbort());
     if (this.managedSignal) {
-      addManagedAbortWaiter(signal, onAbort);
+      addManagedAbortWaiter(signal, this);
     } else {
+      const onAbort = (this._onAbortHandler ??= () => this._onAbort());
       signal.addEventListener("abort", onAbort, { once: true });
     }
   }
 
   _detachSignal(): void {
     const signal = this.signal;
-    const onAbort = this._onAbortHandler;
-    if (!signal || !onAbort) return;
-    if (this.managedSignal) removeManagedAbortWaiter(signal, onAbort);
-    else signal.removeEventListener("abort", onAbort);
+    if (!signal) return;
+    if (this.managedSignal) {
+      removeManagedAbortWaiter(signal, this);
+    } else if (this._onAbortHandler) {
+      signal.removeEventListener("abort", this._onAbortHandler);
+    }
   }
 
   _cleanup(): void {
@@ -739,9 +755,13 @@ class BytePipeImpl implements BytePipe {
     return this._legacyWritable;
   }
 
-  readiness(): "ready" | "eof" | "blocked" {
+  _readiness(): "ready" | "eof" | "blocked" {
     if (this.failed) throw this.failure;
     return this.availableBytes > 0 ? "ready" : !this.writerReferences && !this.writes?.size ? "eof" : "blocked";
+  }
+
+  get readiness(): () => "ready" | "eof" | "blocked" {
+    return (this._boundReadiness ??= () => this._readiness());
   }
 
   close(): Promise<void> {

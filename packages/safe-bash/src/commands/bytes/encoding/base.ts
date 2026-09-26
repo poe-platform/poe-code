@@ -5,14 +5,21 @@ import { sources, validatedOption } from "./shared.js";
 
 interface Alphabet {
   readonly symbols: string;
+  readonly symbolBytes: Uint8Array;
   readonly bits: number;
   readonly quantum: number;
   readonly lengths: readonly number[];
 }
 
+function makeAlphabet(symbols: string, bits: number, quantum: number, lengths: readonly number[]): Alphabet {
+  const symbolBytes = new Uint8Array(symbols.length);
+  for (let i = 0; i < symbols.length; i++) symbolBytes[i] = symbols.charCodeAt(i);
+  return { symbols, symbolBytes, bits, quantum, lengths };
+}
+
 const alphabets: Record<"base64" | "base32", Alphabet> = {
-  base64: { symbols: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/", bits: 6, quantum: 4, lengths: [2, 3, 4] },
-  base32: { symbols: "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567", bits: 5, quantum: 8, lengths: [2, 4, 5, 7, 8] },
+  base64: makeAlphabet("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/", 6, 4, [2, 3, 4]),
+  base32: makeAlphabet("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567", 5, 8, [2, 4, 5, 7, 8]),
 };
 
 async function encode(context: CommandContext, files: readonly string[], alphabet: Alphabet, wrap: number, maxInputBytes: number): Promise<void> {
@@ -20,76 +27,106 @@ async function encode(context: CommandContext, files: readonly string[], alphabe
   let bits = 0;
   let symbols = 0;
   let column = 0;
-  let pending = "";
-  const emit = (character: string): void => {
-    pending += character;
-    symbols = (symbols + 1) % alphabet.quantum;
-    if (wrap && ++column === wrap) { pending += "\n"; column = 0; }
+  const symbolBytes = alphabet.symbolBytes;
+  const aBits = alphabet.bits;
+  const aQuantum = alphabet.quantum;
+  const mask = (1 << aBits) - 1;
+  const outBuf = new Uint8Array(16384);
+  let outUsed = 0;
+  const emitByte = (byte: number): void => {
+    outBuf[outUsed++] = byte;
+    symbols = (symbols + 1) % aQuantum;
+    if (wrap && ++column === wrap) {
+      outBuf[outUsed++] = 10;
+      column = 0;
+    }
   };
   for await (const chunk of sources(context, files, maxInputBytes)) {
-    for (const byte of chunk) {
-      carry = (carry << 8) | byte;
+    for (let i = 0; i < chunk.length; i++) {
+      carry = (carry << 8) | chunk[i]!;
       bits += 8;
-      while (bits >= alphabet.bits) {
-        bits -= alphabet.bits;
-        emit(alphabet.symbols[(carry >> bits) & ((1 << alphabet.bits) - 1)]!);
+      while (bits >= aBits) {
+        bits -= aBits;
+        emitByte(symbolBytes[(carry >> bits) & mask]!);
       }
       carry &= (1 << bits) - 1;
+      if (outUsed >= 16000) {
+        await output(context, outBuf.slice(0, outUsed));
+        outUsed = 0;
+      }
     }
-    if (pending) { await output(context, pending); pending = ""; }
+    if (outUsed > 0) {
+      await output(context, outBuf.slice(0, outUsed));
+      outUsed = 0;
+    }
   }
-  if (bits) emit(alphabet.symbols[carry << (alphabet.bits - bits)]!);
-  while (symbols) emit("=");
-  if (wrap && column) pending += "\n";
-  if (pending) await output(context, pending);
+  if (bits) emitByte(symbolBytes[carry << (aBits - bits)]!);
+  while (symbols) emitByte(61);
+  if (wrap && column) outBuf[outUsed++] = 10;
+  if (outUsed > 0) await output(context, outBuf.slice(0, outUsed));
 }
 
-function decodeQuantum(quantum: readonly number[], alphabet: Alphabet): { bytes: number[]; valid: boolean } {
-  const decoded: number[] = [];
-  if (alphabet.bits === 5 && quantum.length < alphabet.quantum) return { bytes: decoded, valid: false };
+function decodeQuantumInto(quantum: Int16Array, qLen: number, alphabet: Alphabet, outBuf: Uint8Array, outUsed: number): { nextUsed: number; valid: boolean } {
+  if (alphabet.bits === 5 && qLen < alphabet.quantum) return { nextUsed: outUsed, valid: false };
   let carry = 0;
   let bits = 0;
   let length = 0;
-  while (length < quantum.length && quantum[length]! >= 0) {
+  while (length < qLen && quantum[length]! >= 0) {
     carry = (carry << alphabet.bits) | quantum[length++]!;
     bits += alphabet.bits;
-    if (bits >= 8) { bits -= 8; decoded.push((carry >> bits) & 255); }
+    if (bits >= 8) {
+      bits -= 8;
+      outBuf[outUsed++] = (carry >> bits) & 255;
+    }
     carry &= (1 << bits) - 1;
   }
-  return { bytes: decoded, valid: quantum.length === alphabet.quantum && alphabet.lengths.includes(length)
-    && quantum.slice(length).every(number => number === -1) && carry === 0 };
+  let validTail = qLen === alphabet.quantum && carry === 0 && alphabet.lengths.includes(length);
+  if (validTail) {
+    for (let i = length; i < qLen; i++) {
+      if (quantum[i] !== -1) { validTail = false; break; }
+    }
+  }
+  return { nextUsed: outUsed, valid: validTail };
 }
 
 async function decode(context: CommandContext, files: readonly string[], alphabet: Alphabet, ignore: boolean, maxInputBytes: number): Promise<void> {
   const lookup = new Int16Array(256).fill(-2);
   for (let index = 0; index < alphabet.symbols.length; index++) lookup[alphabet.symbols.charCodeAt(index)] = index;
   lookup[61] = -1;
-  let quantum: number[] = [];
+  const aQuantum = alphabet.quantum;
+  const quantum = new Int16Array(8);
+  let qLen = 0;
   let lastByte: number | undefined;
+  const outBuf = new Uint8Array(8192);
   for await (const chunk of sources(context, files, maxInputBytes)) {
-    const pending: number[] = [];
+    let outUsed = 0;
     let invalid = false;
-    for (const byte of chunk) {
+    for (let i = 0; i < chunk.length; i++) {
+      const byte = chunk[i]!;
       const symbol = lookup[byte]!;
       if (ignore && symbol === -2) continue;
       if (byte === 10) continue;
       lastByte = byte;
-      quantum.push(symbol);
-      if (quantum.length === alphabet.quantum) {
-        const decoded = decodeQuantum(quantum, alphabet);
-        pending.push(...decoded.bytes);
-        if (!decoded.valid) { invalid = true; break; }
-        quantum = [];
+      quantum[qLen++] = symbol;
+      if (qLen === aQuantum) {
+        const res = decodeQuantumInto(quantum, qLen, alphabet, outBuf, outUsed);
+        outUsed = res.nextUsed;
+        qLen = 0;
+        if (!res.valid) { invalid = true; break; }
+        if (outUsed >= 8184) {
+          await output(context, outBuf.slice(0, outUsed));
+          outUsed = 0;
+        }
       }
     }
-    if (pending.length) await output(context, Uint8Array.from(pending));
+    if (outUsed > 0) await output(context, outBuf.slice(0, outUsed));
     if (invalid) throw new PublicDiagnostic("invalid input");
   }
-  if (quantum.length) {
-    if (lastByte !== 61) while (quantum.length < alphabet.quantum) quantum.push(-1);
-    const decoded = decodeQuantum(quantum, alphabet);
-    if (decoded.bytes.length) await output(context, Uint8Array.from(decoded.bytes));
-    if (!decoded.valid) throw new PublicDiagnostic("invalid input");
+  if (qLen > 0) {
+    if (lastByte !== 61) while (qLen < aQuantum) quantum[qLen++] = -1;
+    const res = decodeQuantumInto(quantum, qLen, alphabet, outBuf, 0);
+    if (res.nextUsed > 0) await output(context, outBuf.slice(0, res.nextUsed));
+    if (!res.valid) throw new PublicDiagnostic("invalid input");
   }
 }
 

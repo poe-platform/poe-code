@@ -29,7 +29,7 @@ try {
   await fs.writeFile("/registered.sh", new TextEncoder().encode("wkhtmltopdf --help | cat\n"));
   seen.length = 0;
   const result = await shell.exec("sh /registered.sh");
-  const expected = "Usage: wkhtmltopdf [options] [page|cover input|toc]... output\nStatic first-party renderer requires an explicit binding. Input/output '-' use stdin/stdout.\n";
+  const expected = "Usage: wkhtmltopdf [options] [page|cover input|toc]... output\nBuilt-in PDF AST static renderer; trusted overrides are optional. Input/output '-' use stdin/stdout.\n";
   assert.deepEqual(result, { exitCode: 0, stdout: expected, stderr: "", stdoutBytes: new TextEncoder().encode(expected), stderrBytes: new Uint8Array() });
   for (const name of ["sh", "wkhtmltopdf", "cat"]) assert.ok(seen.includes(name));
 } finally { await shell.dispose(); }

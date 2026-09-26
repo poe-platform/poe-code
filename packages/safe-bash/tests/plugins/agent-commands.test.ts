@@ -276,7 +276,7 @@ test("aggregate table-text composes with existing cut and virtual files", async 
 
 for (const [name, plugin, source, expected] of [
   ["exiftool", exiftoolCommands({ replace: true }), "exiftool -s3 -Title /image.png", "packed\n"],
-  ["wkhtmltopdf", wkhtmltopdfCommands({ limits: wkhtmltopdfLimits, replace: true }), "wkhtmltopdf --help", "Usage: wkhtmltopdf [options] [page|cover input|toc]... output\nStatic first-party renderer requires an explicit binding. Input/output '-' use stdin/stdout.\n"],
+  ["wkhtmltopdf", wkhtmltopdfCommands({ limits: wkhtmltopdfLimits, replace: true }), "wkhtmltopdf --help", "Usage: wkhtmltopdf [options] [page|cover input|toc]... output\nBuilt-in PDF AST static renderer; trusted overrides are optional. Input/output '-' use stdin/stdout.\n"],
 ] as const) {
   test(`${name} opt-in dispatch preserves middleware through pipes and VFS scripts`, async () => {
     const fs = createMemoryFileSystem();

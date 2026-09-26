@@ -17,7 +17,7 @@ async function verifyPublicationBoundary() {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(wkhtmltopdfCommands());
   try {
     const result = await shell.exec("wkhtmltopdf --help");
-    const expected = "Usage: wkhtmltopdf [options] [page|cover input|toc]... output\nStatic first-party renderer requires an explicit binding. Input/output '-' use stdin/stdout.\n";
+    const expected = "Usage: wkhtmltopdf [options] [page|cover input|toc]... output\nBuilt-in PDF AST static renderer; trusted overrides are optional. Input/output '-' use stdin/stdout.\n";
     if (result.exitCode !== 0 || result.stderr !== "" || result.stdout !== expected) {
       throw new Error("Packed renderer command failed canonical Shell invocation: " + JSON.stringify(result));
     }

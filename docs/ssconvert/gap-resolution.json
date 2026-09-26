@@ -780,6 +780,15 @@
           "change": "Explicit encrypted-property export decodes retained opaque ancillary bytes with bounded work, nodes, text and output accounting; owns and clears decoded payloads; rejects duplicate/property-name collisions and malformed hex before password acquisition. Only actually handled records are removed from metadata loss diagnostics. Workbook-only export and unrecognized record shapes retain their loss warnings.",
           "validation": "The independently OpenSSL-encrypted block-7 import fixture reexports under the source-defined block-0 ordering with exact expected ciphertext. Case-insensitive collisions, invalid/odd hex, resource admission, ownership, unchanged model bytes and unrelated warnings are covered. Four focused BIFF suites / 104 tests, maintained package lint/types and selected four-workspace build pass.",
           "cli": "Public command imports and reexports encrypted properties plus an opaque ancillary stream. Independent SheetJS CFB parsing and OpenSSL decryption match all three payloads; one import retention diagnostic and no export loss warnings. Screenshot inspected."
+        },
+        "independentReader": {
+          "implementation": "Apache POI 5.4.1, OpenJDK 26.0.1 (Homebrew), Darwin",
+          "artifact": "https://repo.maven.apache.org/maven2/org/apache/poi/poi/5.4.1/poi-5.4.1.jar",
+          "sha256": "da5abf42da4604c5a7bca38956af6e9d6f196d9b6d4cb7eabee4f480b580d505",
+          "inputSha256": "664e2ab612c8cfc073e1d57003ed84454c2182341aede7017b243c6f215cb74d",
+          "result": "HSSFWorkbook opens the public CLI encrypted-property export and reads cell 42, title Hidden and custom Note=Secret note. CryptoAPIDecryptor.getSummaryEntries reads exact opaque Ancillary bytes 01020304. Wrong password raises EncryptedDocumentException. The fixture is 4096 bytes; import and export use distinct synthetic salts.",
+          "diagnostic": "POI prints its missing Log4j logging-provider diagnostic; both verification checks pass.",
+          "scope": "One 128-bit CryptoAPI public-command export independently read by POI. This does not qualify GUI behavior, every key size or the full encrypted-format family."
         }
       }
     }

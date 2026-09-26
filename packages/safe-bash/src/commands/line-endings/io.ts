@@ -151,11 +151,13 @@ export class Reader {
     }
     return this.getSlow(step);
   }
+  beforeRead: (() => Promise<void>) | undefined;
   private async getSlow(step: void | Promise<void>): Promise<number> {
     if (step) await step;
     this.life.assertOpen();
     while (this.offset === this.chunk.length) {
       if (this.ended) return -1;
+      await this.beforeRead?.();
       const next = await this.life.operation(() => {
         const iterator = this.iterator!;
         const advance = iterator.next;

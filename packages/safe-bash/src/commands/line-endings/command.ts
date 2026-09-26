@@ -54,7 +54,6 @@ function definition(direction: Direction, options: LineEndingCommandsOptions): C
       const flags: ConversionOptions = { keepBom: direction === "unix2dos", addBom: false, keepUtf16: false, assume: "bytes", force: false, quiet: false, newline: false, sevenBit: false, keepDate: false, newFile: false, addEol: false, verbose: false, allowChown: false };
       let toStdout = false;
       const information = new FileInformation(active);
-      const state = { high: 1 };
       const diagnostic = async (text: string) => { await active.diagnostic(`${direction}: ${text}\n`); };
       const converted = async (result: Awaited<ReturnType<typeof convert>>, name: string, destination: string) => {
         if (flags.quiet) return;
@@ -100,7 +99,7 @@ function definition(direction: Direction, options: LineEndingCommandsOptions): C
             else {
               const writer = new Writer(active, bytes => active.stdout(bytes));
               try {
-                const result = await convert(direction, reader, writer, active, flags, state, name, true);
+                const result = await convert(direction, reader, writer, active, flags, name, true);
                 if (result.kind === "unicode") status ||= 1;
                 if (result.kind === "ok") await converted(result, name, destination);
               } finally { writer.release(); }
@@ -124,7 +123,7 @@ function definition(direction: Direction, options: LineEndingCommandsOptions): C
             } else throw error;
           }
           if (opened && await files.stat(outputPath) !== undefined && expected === undefined) throw new LineEndingError("destination appeared during acquisition");
-          if (opened) result = await convert(direction, reader, writer, active, flags, state, name, false);
+          if (opened) result = await convert(direction, reader, writer, active, flags, name, false);
           await reader.close();
           if (result?.kind === "ok") {
             await stage.publish(input, flags);
@@ -200,8 +199,8 @@ function definition(direction: Direction, options: LineEndingCommandsOptions): C
         await reader.open();
         if (information.flags.size) await information.print(direction, reader, flags, "");
         else {
-          const result = await convert(direction, reader, writer, active, flags, state, "stdin", true);
-          if (result.kind === "binary" && !flags.quiet) status ||= 1;
+          const result = await convert(direction, reader, writer, active, flags, "stdin", true);
+          if (result.kind === "unicode" || result.kind === "bom-error" || result.kind === "binary" && !flags.quiet) status ||= 1;
         }
       }
       if (!paired) { await diagnostic(`target of file ${args[Math.min(index - 1, args.length - 1)]} not specified in new-file mode`); status = 1; }

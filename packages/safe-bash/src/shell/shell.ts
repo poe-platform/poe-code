@@ -348,7 +348,7 @@ export class Shell implements PluginHost {
   #lastInvocation: unknown;
   #warmedInvocation: WarmedInvocation | undefined;
 
-  constructor(options: ShellOptions) {
+  constructor(options?: ShellOptions) {
     if (!options?.fs) throw new TypeError("Shell requires an explicit filesystem");
     if (options.deviceView !== undefined && options.deviceView !== "default" && options.deviceView !== "provided") throw new TypeError("deviceView must be default or provided");
     const commands = options.commands ?? new CommandRegistry();

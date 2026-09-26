@@ -5,9 +5,11 @@ import { agentWorkerPlugins } from "../plugins/worker-recipes.js";
 /** Node supplies a terminable worker boundary for timeout's kill-after policy. */
 export class Shell extends PortableShell {
   #requiresModules = false;
-  constructor(options: WorkerShellOptions) {
-    const policy = createWorkerKillAfterPolicy(() => this.commands, options, () => this.#requiresModules);
-    super({ ...options, capabilities: { timeoutKillAfterPolicy: policy, ...options.capabilities } });
+  constructor(options?: WorkerShellOptions) {
+    super(options ? { ...options, capabilities: {
+      timeoutKillAfterPolicy: createWorkerKillAfterPolicy(() => this.commands, options, () => this.#requiresModules),
+      ...options.capabilities,
+    } } : options);
   }
 
   override use(plugin: Parameters<PortableShell["use"]>[0]): this {

@@ -3,11 +3,12 @@ import { LineEndingError } from "./internal.js";
 import { Lifecycle, Reader, Writer } from "./io.js";
 import { encodingLabels, readEncoding } from "./encoding.js";
 
-export interface UnicodeState { high: number }
 export interface ConversionResult { readonly kind: "ok" | "binary" | "unicode" | "bom-error"; readonly encoding: string }
 
-export async function convert(direction: Direction, reader: Reader, writer: Writer, life: Lifecycle, options: ConversionOptions, state: UnicodeState, name: string, stdio: boolean): Promise<ConversionResult> {
-  const diagnostic = async (message: string) => { await life.diagnostic(`${direction}: ${message}\n`); };
+export async function convert(direction: Direction, reader: Reader, writer: Writer, life: Lifecycle, options: ConversionOptions, name: string, stdio: boolean): Promise<ConversionResult> {
+  let high = 1;
+  if (stdio) reader.beforeRead = () => writer.flush();
+  const diagnostic = async (message: string) => { if (stdio) await writer.flush(); await life.diagnostic(`${direction}: ${message}\n`); };
   const input = await readEncoding(reader);
   if (input.error) {
     if (!options.quiet) await diagnostic("can not read from input file: Success");
@@ -61,15 +62,15 @@ export async function convert(direction: Direction, reader: Reader, writer: Writ
       await writer.put(bom === "le" ? value >> 8 : value & 255);
       return true;
     }
-    if (state.high >= 0xd800 && state.high < 0xdc00 && (value < 0xdc00 || value >= 0xe000)) {
+    if (high >= 0xd800 && high < 0xdc00 && (value < 0xdc00 || value >= 0xe000)) {
       await diagnostic("error: Invalid surrogate pair. Missing low surrogate."); result.kind = "unicode"; return false;
     }
-    if (value >= 0xd800 && value < 0xdc00) { state.high = value; return true; }
+    if (value >= 0xd800 && value < 0xdc00) { high = value; return true; }
     if (value >= 0xdc00 && value < 0xe000) {
-      if (!(state.high >= 0xd800 && state.high < 0xdc00)) {
+      if (!(high >= 0xd800 && high < 0xdc00)) {
         await diagnostic("error: Invalid surrogate pair. Missing high surrogate."); result.kind = "unicode"; return false;
       }
-      value = 0x10000 + (state.high & 1023) * 1024 + (value & 1023); state.high = 1;
+      value = 0x10000 + (high & 1023) * 1024 + (value & 1023); high = 1;
     }
     if (!utf8 && value > 127) {
       if (!options.quiet) await diagnostic("Invalid or incomplete multibyte or wide character");
@@ -100,15 +101,15 @@ export async function convert(direction: Direction, reader: Reader, writer: Writ
         if (pushed !== 10) { const ok = put(13); if (!(typeof ok === "boolean" ? ok : await ok)) break; }
         else { converted++; last = 10; if (options.newline) { const ok = put(10); if (!(typeof ok === "boolean" ? ok : await ok)) break; } }
       } else {
-        if (current === 10) line++;
         const ok = put(current);
         if (!(typeof ok === "boolean" ? ok : await ok)) break;
+        if (current === 10) line++;
       }
     } else {
       if (current === 10 && previous !== 13) { converted++; const ok = put(13); if (!(typeof ok === "boolean" ? ok : await ok)) break; }
-      if (current === 10) line++;
       const ok = put(current);
       if (!(typeof ok === "boolean" ? ok : await ok)) break;
+      if (current === 10) line++;
       if (options.newline && current === 10) {
         const ok1 = put(13);
         if (!(typeof ok1 === "boolean" ? ok1 : await ok1)) break;
@@ -117,6 +118,10 @@ export async function convert(direction: Direction, reader: Reader, writer: Writ
       }
       previous = current;
     }
+  }
+  if (result.kind === "ok" && high >= 0xd800 && high < 0xdc00) {
+    await diagnostic("error: Invalid surrogate pair. Missing low surrogate.");
+    result.kind = "unicode";
   }
   if (result.kind === "ok" && options.addEol && last !== -1 && last !== 10) {
     if (options.verbose) await diagnostic("Added line break to last line.");

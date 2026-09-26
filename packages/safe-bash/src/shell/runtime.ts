@@ -1969,7 +1969,7 @@ const FAST_DIRECT_CONTEXT_COMMANDS = new Set([
   "rm", "mkdir", "rg", "sed", "awk", "jq", "sort", "head", "tail", "tr", "grep", "cut", "wc", "cat", "uniq",
 ]);
 
-const fastShellCommandAccessors = ["fs", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues"].map(
+const fastShellCommandAccessors = ["env", "fs", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues"].map(
   key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const,
 );
 

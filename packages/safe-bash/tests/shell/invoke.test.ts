@@ -8,6 +8,7 @@ import type { ShellCommandContext } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
+import { truncateCommands } from "../../src/commands/truncate/index.js";
 
 test("plugin command contexts retain own enumerable capabilities through object spread", async () => {
   const fs = new MemoryFileSystem();
@@ -118,6 +119,8 @@ for (const [source, stdout, contents] of [
   ["cat /file", "abc\n", "abc\n"],
   ["truncate -s 1 /file", "", "a"],
   ["html-to-markdown /page", "**hi**\n", "abc\n"],
+  ["DU_BLOCK_SIZE=1 du --apparent-size /file", "4\t/file\n", "abc\n"],
+  ["zip -q /archive.zip /file && unzip -p /archive.zip file", "abc\n", "abc\n"],
 ] as const) test(`default commands retain spread context capabilities: ${source}`, async () => {
   const fs = new MemoryFileSystem();
   const shell = new Shell({ fs }).use(agentCommands());
@@ -129,6 +132,26 @@ for (const [source, stdout, contents] of [
     assert.equal(result.stderr, "");
     assert.equal(result.stdout, stdout);
     assert.equal(new TextDecoder().decode(await fs.readFile("/file")), contents);
+  } finally { await shell.dispose(); }
+});
+
+for (const middleware of [false, true]) test(`optional truncate preserves the invocation environment through cleanup with middleware=${middleware}`, async () => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(agentCommands()).use(truncateCommands({ replace: true }));
+  if (middleware) shell.use((_context, next) => next());
+  try {
+    const resized = await shell.exec("truncate -o -s 1 /blocks");
+    assert.deepEqual([resized.exitCode, resized.stdout, resized.stderr], [0, "", ""]);
+    const blocks = await fs.stat("/blocks");
+    assert.equal(blocks.ioBlockSize, 65536);
+    assert.equal(blocks.size, blocks.ioBlockSize);
+    assert.deepEqual(await fs.readFile("/blocks"), new Uint8Array(65536));
+
+    const posix = await shell.exec("POSIXLY_CORRECT=1 truncate /absent -s1 2>/diagnostic");
+    assert.deepEqual([posix.exitCode, posix.stdout, posix.stderr], [1, "", ""]);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/diagnostic")),
+      "truncate: you must specify either '--size' or '--reference'\nTry 'truncate --help' for more information.\n");
+    await assert.rejects(fs.stat("/absent"), { code: "ENOENT" });
   } finally { await shell.dispose(); }
 });
 

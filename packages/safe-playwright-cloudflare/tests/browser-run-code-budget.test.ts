@@ -120,7 +120,7 @@ test("individual CDP budgets apply only when selected", () => {
 	expect(parse("{}")).toEqual({});
 	expect(parse("{}")).toEqual({});
 	expect(() => parse("{}")).toThrow("transport limit");
-	for (const value of [0, -1, NaN, Infinity, 1.5])
+	for (const value of [0, -1, NaN, -Infinity, 1.5])
 		expect(() => createRunCodeFrameBudget({ maxFrames: value })).toThrow(
 			"Invalid run-code CDP limit"
 		);
@@ -152,4 +152,9 @@ test("a context-only budget leaves pages unlimited and counts pending context re
 test("configured budgets reject an already oversized browser census", () => {
 	expect(() => createRunCodeCreationBudget({ maxPages: 1, pages: ["a", "b"], contexts: [] })).toThrow("page limit");
 	expect(() => createRunCodeCreationBudget({ maxContexts: 1, pages: [], contexts: ["a", "b"] })).toThrow("context limit");
+});
+
+test("explicit Infinity leaves CDP frame budgets unlimited", () => {
+ const admit = createRunCodeFrameBudget({ maxFrameBytes: Infinity, maxBytes: Infinity, maxFrames: Infinity });
+ expect(admit('{"id":1}')).toEqual({ id: 1 });
 });

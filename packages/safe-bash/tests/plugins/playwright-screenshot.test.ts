@@ -71,7 +71,7 @@ for (const type of ['png', 'jpeg'] as const) {
     assert.deepEqual(current.captures[0]!.clip, { x: 0, y: 0, width: 16, height: 16 });
   });
 
-  for (const size of [2048, 4096]) {
+  for (const size of [4096, 8192]) {
     test(`${type} refuses an observed ${size}x${size} full page before native capture`, async () => {
       const current = fixture();
       Object.assign(current.document.body, element(size, size));
@@ -146,12 +146,12 @@ for (const ratio of [1, 2, 4, 100]) test(`DPR ${ratio} cannot increase the CSS r
 
 for (const { type, width, height, allowed } of [
   { type: 'png', width: 2000, height: 2000, allowed: true },
-  { type: 'png', width: 2001, height: 2000, allowed: false },
+  { type: 'png', width: 2001, height: 2000, allowed: true },
   { type: 'jpeg', width: 1000, height: 1000, allowed: true },
-  { type: 'jpeg', width: 1001, height: 999, allowed: false },
+  { type: 'jpeg', width: 1001, height: 999, allowed: true },
   { type: 'jpeg', width: 1, height: 125000, allowed: true },
-  { type: 'jpeg', width: 1, height: 125001, allowed: false },
-] as const) test(`${type} transport ceiling ${width}x${height}: ${allowed}`, async () => {
+  { type: 'jpeg', width: 1, height: 125001, allowed: true },
+] as const) test(`${type} large explicit artifact budget ${width}x${height}: ${allowed}`, async () => {
   const current = fixture(width, height);
   const capture = capturePlaywrightScreenshot(current.page, { ...defaults, type, fullPage: true, maxArtifactBytes: Number.MAX_SAFE_INTEGER });
   if (allowed) {
@@ -226,7 +226,7 @@ test('byte admission uses the returned view length, not its backing allocation',
   assert.equal(await capturePlaywrightScreenshot(current.page, { ...defaults, maxArtifactBytes: 1024 }), bytes);
 });
 
-for (const maxArtifactBytes of [0, -1, NaN, Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) test(`invalid artifact budget ${maxArtifactBytes} is refused before page evaluation`, async () => {
+for (const maxArtifactBytes of [0, -1, NaN, -Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) test(`invalid artifact budget ${maxArtifactBytes} is refused before page evaluation`, async () => {
   const current = fixture();
   await assert.rejects(capturePlaywrightScreenshot(current.page, { ...defaults, maxArtifactBytes }), { message: 'Invalid screenshot options' });
   assert.deepEqual(current.measurements, []);
@@ -352,4 +352,10 @@ test('native capture cannot widen the artifact budget by mutating caller options
   };
   await assert.rejects(capturePlaywrightScreenshot(current.page, options), { message: 'Artifact byte limit exceeded' });
   assert.equal(current.captures.length, 1);
+});
+
+for (const type of ['png', 'jpeg'] as const) test(`${type} unlimited artifacts admit rasters beyond former transport caps`, async () => {
+ const current = fixture(4096, 4096);
+ assert.equal(await capturePlaywrightScreenshot(current.page, { ...defaults, type, maxArtifactBytes: Infinity }), current.bytes);
+ assert.equal(current.captures.length, 1);
 });

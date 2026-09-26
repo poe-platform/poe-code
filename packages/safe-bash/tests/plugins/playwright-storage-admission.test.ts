@@ -77,3 +77,18 @@ test("source admission enforces exact UTF-8 serializedBytes against maxBytes whi
   assert.deepEqual(parsePlaywrightStorageState(state, { maxBytes: exactBytes }), state);
   assert.throws(() => parsePlaywrightStorageState(state, { maxBytes: exactBytes - 1 }), /byte limit exceeded/);
 });
+
+test('state-load has no implicit byte cap and enforces configured limits', async () => {
+ const state = { cookies: [], origins: [{ origin: 'https://example.com', localStorage: [{ name: 'large', value: 'v'.repeat(1048577) }] }] };
+ const bytes = new TextEncoder().encode(JSON.stringify(state));
+ let restored: unknown;
+ const request = {
+ command: 'state-load', session: 'owned', args: ['state.json'], options: {},
+ signal: new AbortController().signal,
+ browserSession: { context: { async setStorageState(value: unknown) { restored = value; } } },
+ async readFile() { return bytes; },
+ } as unknown as PlaywrightAbilityRequest;
+ await playwrightStorageAbilities['state-load']!.execute(request);
+ assert.deepEqual(restored, state);
+ await assert.rejects(playwrightStorageAbilities['state-load']!.execute({ ...request, limits: { maxCommandBytes: 1048576 } } as PlaywrightAbilityRequest), /byte limit/);
+});

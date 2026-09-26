@@ -60,12 +60,12 @@ export async function resolvePlaywrightOpenOptions(options: Readonly<Record<stri
   const read = async (filename: string, configuration = false): Promise<unknown> => {
     if (!invocation.readArtifact) throw new Error('Artifact byte source unsupported');
     invocation.signal.throwIfAborted();
-    const byteLimit = configuration ? Math.min(maxBytes, playwrightConfigMaxBytes) : maxBytes;
+    const byteLimit = configuration && !filename.endsWith('.ini') ? Math.min(maxBytes, playwrightConfigMaxBytes) : maxBytes;
     const bytes = await invocation.readArtifact(filename, byteLimit);
     invocation.signal.throwIfAborted();
     if (!(bytes instanceof Uint8Array) || bytes.byteLength > byteLimit) throw new PlaywrightResourceLimitError('Playwright configuration byte limit exceeded');
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
-    return configuration ? filename.endsWith('.ini') ? parsePlaywrightIniConfig(text) : parsePlaywrightConfigJSON(text) : JSON.parse(text);
+    return configuration ? filename.endsWith('.ini') ? parsePlaywrightIniConfig(text, byteLimit) : parsePlaywrightConfigJSON(text) : JSON.parse(text);
   };
   let selectedConfig = typeof options.config === 'string' ? options.config : stringEnv('PLAYWRIGHT_MCP_CONFIG');
   let filename = selectedConfig ?? '.playwright/cli.config.json';

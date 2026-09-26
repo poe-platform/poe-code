@@ -47,7 +47,7 @@ test('INI sections preserve native nested coercion and duplicate assignment sema
 test('INI rejects unsafe object paths and bounds input before parsing', () => {
   for (const path of ['__proto__.polluted', 'constructor.prototype.polluted', 'browser.__proto__.polluted']) assert.throws(() => parsePlaywrightIniConfig(`${path}=yes`), /Invalid INI/);
   assert.equal(Object.hasOwn(Object.prototype, 'polluted'), false);
-  assert.throws(() => parsePlaywrightIniConfig('x'.repeat(8 * 1024 * 1024 + 1)), /byte limit/);
+
 });
 
 const adapter: PlaywrightAdapter = { browsers: { chromium: { headed: false } }, devices: {
@@ -82,7 +82,7 @@ test('open rejects compact config graphs before native object parsing', async ()
 test('all config sources receive the smaller byte budget', async () => {
   for (const [options, env] of [
     [{ config: 'explicit.json' }, {}], [{}, {}], [{}, { PLAYWRIGHT_MCP_CONFIG: 'env.json' }],
-    [{}, { PWTEST_CLI_GLOBAL_CONFIG: '/global' }], [{ config: 'explicit.ini' }, {}],
+    [{}, { PWTEST_CLI_GLOBAL_CONFIG: '/global' }],
   ] as const) {
     const budgets: number[] = [];
     await resolvePlaywrightOpenOptions(options, { ...invocation, env, async readArtifact(path, budget) {
@@ -222,4 +222,25 @@ test('INI config resolves typed settings and relative module paths through the s
   assert.equal(result.configuration?.codegen, 'none');
   assert.equal(result.configuration?.outputDir, 'settings/artifacts');
   assert.equal(result.configuration?.initPages?.[0]?.filename, 'settings/page.js');
+});
+
+test('INI configuration has no implicit byte ceiling and honors explicit UTF-8 limits', () => {
+ const source = ';' + 'a'.repeat(8 * 1024 * 1024 + 1) + '\noutputDir=artifacts';
+ assert.equal(parsePlaywrightIniConfig(source).outputDir, 'artifacts');
+ assert.deepEqual(parsePlaywrightIniConfig('outputDir=é', Infinity), { outputDir: 'é' });
+ assert.throws(() => parsePlaywrightIniConfig('outputDir=é', 11), /byte limit/);
+ assert.deepEqual(parsePlaywrightIniConfig('outputDir=é', 12), { outputDir: 'é' });
+});
+
+test('INI open has no implicit read ceiling and preserves caller byte limits', async () => {
+ const bytes = new TextEncoder().encode(';' + 'a'.repeat(128 * 1024) + '\noutputDir=artifacts');
+ for (const maximum of [Infinity, bytes.byteLength]) {
+  const result = await resolvePlaywrightOpenOptions({ config: 'explicit.ini' }, {
+   ...invocation, async readArtifact(_path, budget) { assert.equal(budget, maximum); return bytes; },
+  }, adapter, maximum);
+  assert.equal(result.configuration?.outputDir, 'artifacts');
+ }
+ await assert.rejects(resolvePlaywrightOpenOptions({ config: 'explicit.ini' }, {
+  ...invocation, async readArtifact() { return bytes; },
+ }, adapter, bytes.byteLength - 1), /byte limit/);
 });

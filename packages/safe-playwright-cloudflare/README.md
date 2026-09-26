@@ -2,7 +2,7 @@
 
 Run the standard `playwright-cli` commands against Cloudflare Browser Run, with
 native JavaScript, browser networking, uploads, snapshots, generated action code,
-bounded screenshots/PDFs/traces, and isolated Worker Loader `run-code` execution.
+screenshots/PDFs/traces with optional limits, and isolated Worker Loader `run-code` execution.
 The implementation ships through `@poe-platform/safe-bash/playwright/cloudflare`.
 Cloudflare dependencies stay outside the portable shell and CLI entrypoints.
 
@@ -55,7 +55,15 @@ message contains only fixed phase names, without session IDs or protocol data.
 
 An optional second argument supplies `loadState(session, signal)`. Explicit
 `contextOptions.storageState`, including an empty state, overrides that callback.
-The fourth argument bounds storage restoration bytes; its default is 2 MiB.
+The fourth argument optionally bounds storage restoration bytes; omitted limits
+and explicit `Infinity` are unlimited. It also accepts `artifactFileSystem`, a
+safe-fs `FileSystem` supplied by the host that accesses the **same Worker-local
+`/tmp` files** written by the pinned Playwright provider. PDF and trace capture
+require this binding and retained reads (`openReadFile`); without it they report
+an unavailable filesystem. A separate memory filesystem cannot read native
+Playwright output. Capture performs all I/O through safe-fs and never imports a
+Node filesystem implementation. The pinned Cloudflare provider still requires
+its documented `nodejs_compat` support.
 Portable profile byte, tab, and traversal limits are independently optional and default to unlimited; `Infinity` is also accepted. Explicit positive finite limits remain enforced. Storage structure and provider limits still apply.
 
 The trusted storage control channel has no default frame-byte, pending-command,

@@ -31,7 +31,7 @@ export function frameByteLength(message: string) {
 /** Omitted budgets never constrain the total traffic or individual frames. */
 export function createRunCodeFrameBudget(limits: RunCodeFrameLimits = {}) {
 	for (const [name, value] of Object.entries(limits)) {
-		if (value !== undefined && (!Number.isSafeInteger(value) || value <= 0))
+		if (value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) || value <= 0))
 			throw new TypeError(`Invalid run-code CDP limit: ${name}`);
 	}
 	let frames = 0;

@@ -27,7 +27,7 @@ export async function capturePlaywrightScreenshot(page: PlaywrightScreenshotPage
   options.signal?.throwIfAborted();
   if (!['png', 'jpeg'].includes(type) || !['css', 'device'].includes(scale) || typeof fullPage !== 'boolean'
     || !Number.isSafeInteger(timeout) || timeout < 0
-    || !Number.isSafeInteger(maxArtifactBytes) || maxArtifactBytes < 1) throw new TypeError('Invalid screenshot options');
+    || (maxArtifactBytes !== Infinity && !Number.isSafeInteger(maxArtifactBytes)) || maxArtifactBytes < 1) throw new TypeError('Invalid screenshot options');
   if (!page || typeof page.screenshot !== 'function') throw new Error('Screenshot engine unsupported');
   if (typeof page.evaluate !== 'function') throw new Error('Screenshot geometry evaluation unsupported');
   const geometry = await page.evaluate(input => {
@@ -67,7 +67,7 @@ export async function capturePlaywrightScreenshot(page: PlaywrightScreenshotPage
   const ratio = geometry.ratio ?? 1;
   const rasterWidth = Math.ceil(width * ratio / blockSize) * blockSize;
   const rasterHeight = Math.ceil(height * ratio / blockSize) * blockSize;
-  const maxPixels = Math.min(Math.floor(maxArtifactBytes / 4), type === 'jpeg' ? 1_000_000 : 4_000_000);
+  const maxPixels = Math.floor(maxArtifactBytes / 4);
   if (rasterWidth > Math.floor(maxPixels / rasterHeight)) throw new PlaywrightResourceLimitError('Screenshot pixel limit exceeded');
   const bytes = await page.screenshot({ type, ...(type === 'jpeg' ? { quality: 90 } : {}), fullPage, timeout, scale, clip: { x: 0, y: 0, width, height } });
   options.signal?.throwIfAborted();

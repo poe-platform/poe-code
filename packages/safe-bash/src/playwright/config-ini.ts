@@ -122,9 +122,9 @@ function coerce(value: unknown, type: IniType | undefined): unknown {
 }
 
 /** Native INI longhand coercion; ordinary config validation runs after parsing. */
-export function parsePlaywrightIniConfig(text: string): Record<string, unknown> {
-  const maximum = 8 * 1024 * 1024;
-  if (text.length > maximum || new TextEncoder().encode(text).byteLength > maximum) throw new PlaywrightResourceLimitError('Playwright INI configuration byte limit exceeded');
+export function parsePlaywrightIniConfig(text: string, maximum = Infinity): Record<string, unknown> {
+  if (maximum !== Infinity && (!Number.isSafeInteger(maximum) || maximum <= 0)) throw new TypeError("Invalid Playwright INI byte limit");
+  if (maximum !== Infinity && (text.length > maximum || new TextEncoder().encode(text).byteLength > maximum)) throw new PlaywrightResourceLimitError('Playwright INI configuration byte limit exceeded');
   const config: Record<string, unknown> = {};
   for (const [path, value] of Object.entries(readEntries(text))) assign(config, path.split('.'), coerce(value, types.get(path)));
   return config;

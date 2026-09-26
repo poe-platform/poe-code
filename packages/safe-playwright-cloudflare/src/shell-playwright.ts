@@ -1,3 +1,4 @@
+import type { FileSystem } from "@poe-code/safe-fs/core";
 import type {
 	Browser,
 	BrowserContext,
@@ -40,10 +41,11 @@ export function createCloudflarePlaywrightAdapter(
 		): Promise<BrowserStorageState | undefined>;
 	},
   runtime?: BrowserCodeRuntime,
-  limits: { maxStorageBytes?: number } = {},
+  limits: { maxStorageBytes?: number; artifactFileSystem?: FileSystem } = {},
 ): PlaywrightAdapter {
-  if (limits.maxStorageBytes !== undefined && (!Number.isSafeInteger(limits.maxStorageBytes) || limits.maxStorageBytes < 1)) throw new TypeError('Invalid Cloudflare storage byte limit');
+  if (limits.maxStorageBytes !== undefined && limits.maxStorageBytes !== Infinity && (!Number.isSafeInteger(limits.maxStorageBytes) || limits.maxStorageBytes < 1)) throw new TypeError('Invalid Cloudflare storage byte limit');
 	const maxStorageBytes = limits.maxStorageBytes ?? Infinity;
+ const artifactFileSystem = limits.artifactFileSystem;
 	const adapter = createPlaywrightAdapter({
 		chromium: {
 			headed: false,
@@ -60,8 +62,8 @@ export function createCloudflarePlaywrightAdapter(
 					captureSnapshotJSON: captureBrowserSnapshotJSON,
           captureSnapshotReferences: captureBrowserSnapshotReferences,
 					browser: publicBrowser(resource.browser, resource.prepareSnapshots),
-					captureArtifact: captureBrowserArtifact,
-					captureTrace: captureBrowserTrace,
+					captureArtifact: (produce, options) => captureBrowserArtifact(produce, options, artifactFileSystem),
+					captureTrace: (context, options) => captureBrowserTrace(context, options, artifactFileSystem),
 					async captureDownload() {
 						// Cloudflare's download APIs read a Worker-local path, while the
 						// file lives in remote Chromium. CDP exposes no file-byte stream.

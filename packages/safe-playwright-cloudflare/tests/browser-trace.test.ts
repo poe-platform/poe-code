@@ -1,5 +1,6 @@
 import { vi, beforeEach } from "vitest";
 import { vol } from "memfs";
+vi.mock("node:fs", async () => (await import("memfs")).fs);
 vi.mock("node:fs/promises", async () => (await import("memfs")).fs.promises);
 beforeEach(() => { vol.reset(); vol.mkdirSync("/tmp", {recursive: true}); });
 import { describe, expect, test } from "vitest";
@@ -11,7 +12,9 @@ import {
 	symlink,
 	writeFile,
 } from "node:fs/promises";
+import { RealFileSystem } from "@poe-code/safe-fs/fs/real";
 import { captureBrowserTrace } from "../src/browser-trace";
+const fs = new RealFileSystem({ root: "/" });
 
 async function fixture() {
 	const directory = await mkdtemp("/tmp/playwright-artifacts-");
@@ -61,7 +64,7 @@ describe("native browser trace transport", () => {
 				Uint8Array.of(255, 216),
 			);
 			f.native._state!.traceSha1s.add("page@native-123.45.jpeg");
-			const first = await captureBrowserTrace(f.context, options);
+			const first = await captureBrowserTrace(f.context, options, fs);
 			expect(first.files.map((file) => file.path).sort()).toEqual([
 				"resources/abc",
 				"resources/page@native-123.45.jpeg",
@@ -73,13 +76,13 @@ describe("native browser trace transport", () => {
 			]).toEqual([0, 255]);
 			await writeFile(`${f.directory}/resources/other-session`, "private");
 			expect(
-				(await captureBrowserTrace(f.context, options)).files.some((file) =>
+				(await captureBrowserTrace(f.context, options, fs)).files.some((file) =>
 					file.path.includes("other-session"),
 				),
 			).toBe(false);
 			f.native._state = undefined;
 			await appendFile(`${f.directory}/trace-test.trace`, "final\n");
-			const final = await captureBrowserTrace(f.context, options);
+			const final = await captureBrowserTrace(f.context, options, fs);
 			expect(
 				new TextDecoder().decode(
 					final.files.find((file) => file.path.endsWith(".trace"))!.bytes,
@@ -100,11 +103,11 @@ describe("native browser trace transport", () => {
 			}
 			const result = await captureBrowserTrace(f.context, {
 				signal: new AbortController().signal, maxBytes,
-			});
+			}, fs);
 			expect(result.files).toHaveLength(1028);
 			await expect(captureBrowserTrace(f.context, {
 				signal: new AbortController().signal, maxBytes: 1024,
-			})).rejects.toThrow("byte limit");
+			}, fs)).rejects.toThrow("byte limit");
 		} finally { await f.cleanup(); }
 	});
 
@@ -116,7 +119,7 @@ describe("native browser trace transport", () => {
 			f.native._state!.traceSha1s.add(name);
 			const result = await captureBrowserTrace(f.context, {
 				signal: new AbortController().signal, maxBytes: 1024,
-			});
+			}, fs);
 			expect(result.files.map(file => file.path)).toContain(`resources/${name}`);
 		} finally { await f.cleanup(); }
 	});
@@ -125,7 +128,7 @@ describe("native browser trace transport", () => {
 		const f = await fixture();
 		try {
 			const options = { signal: new AbortController().signal, maxBytes: 2 };
-			await expect(captureBrowserTrace(f.context, options)).rejects.toThrow(
+			await expect(captureBrowserTrace(f.context, options, fs)).rejects.toThrow(
 				"byte limit",
 			);
 			await symlink(
@@ -134,16 +137,16 @@ describe("native browser trace transport", () => {
 			);
 			f.native._state!.traceSha1s.add("escaped");
 			await expect(
-				captureBrowserTrace(f.context, { ...options, maxBytes: 1024 }),
+				captureBrowserTrace(f.context, { ...options, maxBytes: 1024 }, fs),
 			).rejects.toThrow("regular file");
 			await expect(
 				captureBrowserTrace(f.context, {
 					...options,
 					signal: AbortSignal.abort(new Error("cancelled")),
-				}),
+				}, fs),
 			).rejects.toThrow("cancelled");
 			f.native._state!.tracesDir = "/etc";
-			await expect(captureBrowserTrace(f.context, options)).rejects.toThrow(
+			await expect(captureBrowserTrace(f.context, options, fs)).rejects.toThrow(
 				"Invalid native browser trace directory",
 			);
 		} finally {

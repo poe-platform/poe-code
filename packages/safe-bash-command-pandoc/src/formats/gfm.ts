@@ -3,6 +3,7 @@ import type { FormatDescriptor } from "../formats.js";
 import { writeMarkdown } from "../markdown-writer.js";
 export default {
   name: "gfm",
+  aliases: { read: ["markdown"], write: ["markdown"] },
   operands: "join",
   reader: { format: "gfm", read: readCommonMark },
   writer: { format: "gfm", write: writeMarkdown },
@@ -10,7 +11,7 @@ export default {
   write: true,
   media: "text",
   inputEncoding: "utf8",
-  suffixes: ["gfm"],
+  suffixes: ["gfm", "markdown"],
   extensions: {
     pipe_tables: true,
     raw_html: true,

@@ -9,7 +9,7 @@ describe("declarative format registry", () => {
     expect(registry.parse("html", "write").descriptor.name).toBe("html5");
     expect(registry.capabilities.find((item) => item.name === "html")?.write.allowed).toBe(true);
     expect(registry.parse("html", "read").descriptor.name).toBe("html");
-    for (const name of ["markdown", "HTML", "unknown", "html5"])
+    for (const name of ["HTML", "unknown", "html5"])
       expect(() => registry.parse(name, "read")).toThrowError(
         expect.objectContaining({ code: "E_FORMAT" })
       );
@@ -37,8 +37,8 @@ describe("declarative format registry", () => {
     const registry = createFormatRegistry([...coreFormats].reverse(), {
       reader: { format: "docx", read }
     });
-    expect(registry.list("read")).toEqual(["commonmark", "csv", "docx", "epub", "gfm", "html", "json", "latex", "pdf", "pptx", "rst", "rtf", "tsv", "xlsx"]);
-    expect(registry.list("write")).toEqual(["commonmark", "docx", "epub", "epub3", "gfm", "html", "html5", "json", "latex", "pdf", "plain", "pptx", "rst", "rtf"]);
+    expect(registry.list("read")).toEqual(["commonmark", "csv", "docx", "epub", "gfm", "html", "json", "latex", "markdown", "pdf", "pptx", "rst", "rtf", "tsv", "xlsx"]);
+    expect(registry.list("write")).toEqual(["commonmark", "docx", "epub", "epub3", "gfm", "html", "html5", "json", "latex", "markdown", "pdf", "plain", "pptx", "rst", "rtf"]);
     expect(registry.infer("file.md", "read")).toBe("commonmark");
     expect(registry.infer("file.html", "write")).toBe("html5");
     expect(() => registry.infer("file.txt", "read")).toThrowError();

@@ -37,10 +37,8 @@ const disposeMock = vi.hoisted(() => vi.fn());
 const getHistoryMock = vi.hoisted(() => vi.fn());
 const createAgentSessionStoreMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@poe-code/poe-agent", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/poe-agent")>();
+vi.mock("@poe-code/poe-agent", () => {
   return {
-    ...actual,
     createAgentSession: createAgentSessionMock,
     createAgentSessionStore: createAgentSessionStoreMock,
     parseNullablePluginConfigEntries: (value: unknown) => value,

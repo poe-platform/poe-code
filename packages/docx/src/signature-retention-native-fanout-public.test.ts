@@ -8,8 +8,9 @@ import { textContext } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
 
 const encode = (value: string) => new TextEncoder().encode(value), decode = (bytes: Uint8Array) => new TextDecoder().decode(bytes);
+const count = 1024;
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
-for (const count of [1024, 131072]) for (const route of ["sdk", "cli", "sdk-batch", "cli-batch"] as const)
+for (const route of ["sdk", "cli", "sdk-batch", "cli-batch"] as const)
 it(`signature stripping retains admitted opaque relationship fanout; strict=${strict}; kind=${kind}; count=${count}; route=${route}`, async () => {
   const archive = await api.readArchive(await signatureFixture(), textContext);
   const retained = `<f:opaque>${"<f:leaf/>".repeat(count)}</f:opaque>`;

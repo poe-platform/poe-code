@@ -1,10 +1,13 @@
 import { Volume } from "memfs";
-import { spawn } from "node:child_process";
-import { beforeAll, describe, expect, it, onTestFinished } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import * as api from "./index.js";
 import { textContext, textFixture } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
 import { runElementOpen } from "./run-properties.js";
+import { useNativeProcess } from "../tests/native-process.js";
+
+const code = `import {Volume} from 'memfs';import * as api from 'docx';import {createInterface} from 'node:readline';console.log(JSON.stringify({ready:true}));for await(const data of createInterface({input:process.stdin})){const r=JSON.parse(data),input=new Uint8Array(Buffer.from(r.input,'base64')),m=Volume.fromJSON({'/output':''}),sink={async write(b){m.appendFileSync('/output',b);}},ctx=()=>({signal:new AbortController().signal,limits:r.limits,budget:new api.DocumentBudget(r.host,new AbortController().signal,async()=>{})});try{if(r.route==='model'){const d=await api.Document(input,ctx());d.tables[0].cell(0,0).text=r.value;await d.save(sink);}else await api.editDocumentTables(input,{operation:'tables.set',options:{table:1,cell:'A1',text:r.value,output:'-'}},{...ctx(),stdout:sink,encoding:{order:'input',compression:'store'}});console.log(JSON.stringify({ok:true,output:Buffer.from(m.readFileSync('/output')).toString('base64')}));}catch(error){console.log(JSON.stringify({ok:false,error:String(error),stack:error.stack,outputBytes:m.statSync('/output').size}));}}`;
+const execute = useNativeProcess(["--input-type=module", "-e", code]);
 
 const host = { xmlDepth: 16384, work: 4 * 1024 ** 3, retainedBytes: 4 * 1024 ** 3 };
 const limits = { ...textContext.limits, maxArchiveBytes: 2 * 1024 ** 2, maxEntryBytes: 1024 ** 2, maxTotalBytes: 2 * 1024 ** 2, maxRetainedBytes: 4 * 1024 ** 3 };
@@ -39,12 +42,7 @@ describe(`nested native fixture; ${strict}; ${kind}; levels=${levels}`, () => {
   it(`whole cell text honors admitted nested native blocks; ${strict}; ${kind}; levels=${levels}; ${route}`, async () => {
   memory.writeFileSync("/output", "");
   const outside = '<w:p><w:r><w:t>Outside 日本 עברית é 🌊</w:t></w:r></w:p>';
-  const code = `import {Volume} from 'memfs';import * as api from 'docx';let data='';for await(const b of process.stdin)data+=b;const r=JSON.parse(data),input=new Uint8Array(Buffer.from(r.input,'base64')),m=Volume.fromJSON({'/output':''}),sink={async write(b){m.appendFileSync('/output',b);}},ctx=()=>({signal:new AbortController().signal,limits:r.limits,budget:new api.DocumentBudget(r.host,new AbortController().signal,async()=>{})});try{if(r.route==='model'){const d=await api.Document(input,ctx());d.tables[0].cell(0,0).text=r.value;await d.save(sink);}else await api.editDocumentTables(input,{operation:'tables.set',options:{table:1,cell:'A1',text:r.value,output:'-'}},{...ctx(),stdout:sink,encoding:{order:'input',compression:'store'}});console.log(JSON.stringify({ok:true,output:Buffer.from(m.readFileSync('/output')).toString('base64')}));}catch(error){console.log(JSON.stringify({ok:false,error:String(error),stack:error.stack,outputBytes:m.statSync('/output').size}));}`;
-  const response = JSON.parse(await new Promise<string>((resolve, reject) => {
-    const child = spawn(process.execPath, ["--input-type=module", "-e", code], { stdio: ["pipe", "pipe", "pipe"] }); let stdout = "", stderr = "";
-    onTestFinished(() => { if (child.exitCode === null) child.kill(); });
-    child.stdout.on("data", b => { stdout += String(b); }); child.stderr.on("data", b => { stderr += String(b); }); child.on("error", reject); child.on("close", status => { if (status !== 0) reject(new Error(stderr)); else resolve(stdout); }); child.stdin.end(JSON.stringify({ input: Buffer.from(input).toString("base64"), value, route, host, limits }));
-  })) as { ok: boolean; output: string; error?: string; stack?: string };
+  const response = await execute({ input: Buffer.from(input).toString("base64"), value, route, host, limits }) as { ok: boolean; output: string; error?: string; stack?: string };
   expect(response, response.stack ?? response.error).toMatchObject({ ok: true });
   memory.writeFileSync("/output", new Uint8Array(Buffer.from(response.output, "base64")));
   const output = new Uint8Array(memory.readFileSync("/output") as Buffer), after = readPackage(output), xml = new TextDecoder().decode(after.get("word/document.xml"));

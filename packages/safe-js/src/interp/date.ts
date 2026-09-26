@@ -1,4 +1,3 @@
-import { types } from "node:util";
 import type { Budget } from "./budget.js";
 
 const NativeDate = Date;
@@ -21,10 +20,16 @@ export function dateTime(value: Date): number {
 }
 
 export function copyNativeDate(value: unknown): Date | undefined {
-  if (!types.isDate(value)) return undefined;
+  if (typeof value !== "object" || value === null) return undefined;
+  let time: number;
+  try {
+    time = Reflect.apply(readTime, value, []) as number;
+  } catch {
+    return undefined;
+  }
   if (Object.getPrototypeOf(value) !== NativeDate.prototype)
     throw new TypeError("Date subclasses are not supported.");
-  return createSandboxDate(dateTime(value));
+  return createSandboxDate(time);
 }
 
 export function exportDate(value: Date): Date {

@@ -1,6 +1,7 @@
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import type { ImportedValue, UnsupportedRecord, Workbook } from "../workbook.js";
 import { biffPropertyFields, biffPropertyFormats, isBiffKeywordSpace } from "./biff-properties.js";
+import { mergeBiffProperties } from "./biff-properties-merge.js";
 
 const fieldByName = new Map([...biffPropertyFields].flatMap(([guid, fields]) => [...fields].map(([id, name]) => [name, { guid, id }] as const)));
 const maximumFileTime = 0xffffffffffffffffn;
@@ -99,6 +100,7 @@ export async function writeBiffProperties(book: Workbook, context: CapabilityCon
 }> {
   const streams = new Map<string, Uint8Array>(), sections = new Map<string, Map<number, Uint8Array>>();
   const handledKeys = new Set<string>();
+  const unsupportedKeys: string[] = [];
   let work = 0, textBytes = 0, nodes = 0, payloadBytes = 0;
   const charge = (amount: number) => {
     context.signal.throwIfAborted(); work += amount;
@@ -199,7 +201,7 @@ export async function writeBiffProperties(book: Workbook, context: CapabilityCon
       if (valid) source = source.join(", ");
     }
     const value = key ? typed(source, key) : undefined;
-    if (!value) { await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: `Unsupported Excel BIFF document property: ${key}` }); continue; }
+    if (!value) { unsupportedKeys.push(key); continue; }
     const guid = field?.guid ?? biffPropertyFormats.custom, id = field?.id ?? names.length + 2;
     let nameBytes = 0;
     if (!field) { const bytes = string(key); nameBytes = bytes.length; names.push({ id, bytes }); }
@@ -211,7 +213,6 @@ export async function writeBiffProperties(book: Workbook, context: CapabilityCon
   for (const record of book.unsupportedRecords ?? []) {
     charge(1); if (handledPropertyRecord(record, handledKeys, charge)) handledMetadata.add(record);
   }
-  if (!sections.size) return { streams, handledMetadata };
   if (names.length) {
     const dictionary = allocate(4 + names.reduce((size, name) => size + 4 + name.bytes.length, 0)), view = new DataView(dictionary.buffer);
     view.setUint32(0, names.length, true); let at = 4;
@@ -246,5 +247,8 @@ export async function writeBiffProperties(book: Workbook, context: CapabilityCon
     }
     streams.set(name, bytes);
   }
+  const preserved = await mergeBiffProperties(book, streams, handledMetadata, context, charge, allocate);
+  for (const key of unsupportedKeys) if (!preserved.has(key))
+    await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: `Unsupported Excel BIFF document property: ${key}` });
   return { streams, handledMetadata };
 }

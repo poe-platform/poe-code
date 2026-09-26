@@ -27,5 +27,7 @@ source captures and logs under `out`; remove them after recording compact eviden
    streams and the workbook still requires the supplied password. Keep encrypted
    ancillary-property support open; the existing refusal is not an implementation.
 7. Qualify preservation of unknown property types, sections and timestamp precision
-   across edits and reexports. Current raw retention and export warnings do not prove
-   that unsupported metadata round-trips.
+   across edits and reexports using the source-identity merge. Inspect unknown value
+   bytes, complete unknown sections and original codepages independently. Include
+   a deleted custom field, a new dictionary name and an opaque duplicate; record
+   explicit encoding/identity limitations separately from preservation passes.

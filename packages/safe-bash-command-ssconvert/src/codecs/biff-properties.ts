@@ -1,6 +1,7 @@
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import type { ImportedValue, UnsupportedRecord } from "../workbook.js";
 import { Binary, invalidBiff } from "./biff-binary.js";
+import { readBiffPropertySections, readBiffPropertyValues } from "./biff-properties-layout.js";
 import { biffDecode } from "./biff-strings.js";
 
 // OLE property-set layout and IDs: LibreOffice oleprops.cxx/.hxx at
@@ -24,7 +25,7 @@ export function isBiffKeywordSpace(code: number): boolean {
 /** Property offsets are section-relative; dictionaries have no variant header. */
 export async function readBiffProperties(streams: ReadonlyMap<string, Uint8Array>, context: CapabilityContext,
   accountText: (text: string) => string, accountWork: (amount: number) => void,
-  retained: UnsupportedRecord[]): Promise<Readonly<Record<string, ImportedValue>>> {
+  retained: UnsupportedRecord[] | undefined, observe?: (property: { stream: string; section: number; id: number; key: string; value: ImportedValue }) => void): Promise<Readonly<Record<string, ImportedValue>>> {
   const properties: Record<string, ImportedValue> = Object.create(null);
   let nodes = 0;
   const admit = (count: number) => {
@@ -58,42 +59,12 @@ export async function readBiffProperties(streams: ReadonlyMap<string, Uint8Array
     }
     if (!bytes) continue;
     accountWork(bytes.length);
-    const file = new Binary(bytes); file.check(0, 28);
-    if (file.u16(0) !== 0xfffe || file.u16(2) > 1) invalidBiff("invalid property-set header");
-    const count = file.u32(24), tableEnd = 28 + count * 20;
-    file.check(28, count * 20); admit(count);
+    const file = new Binary(bytes), sections = readBiffPropertySections(bytes, admit, accountWork);
     let unknown = false;
-    const sections: { guid: string; offset: number; end: number }[] = [];
-    for (let i = 0; i < count; i++) {
-      const at = 28 + i * 20, offset = file.u32(at + 16);
-      if (offset < tableEnd || offset % 4) invalidBiff("invalid property section offset");
-      const size = file.u32(offset); if (size < 8 || size % 4) invalidBiff("invalid property section size");
-      file.check(offset, size);
-      const guid = Array.from(file.slice(at, 16), byte => byte.toString(16).padStart(2, "0")).join("");
-      sections.push({ guid, offset, end: offset + size });
-    }
-    accountWork(count * Math.ceil(Math.log2(count + 1)));
-    sections.sort((a, b) => a.offset - b.offset);
-    for (let i = 1; i < sections.length; i++) if (sections[i]!.offset < sections[i - 1]!.end) invalidBiff("overlapping property sections");
+    const modeled: [number, number, string][] = [];
     for (const { guid, offset, end } of sections) {
       if (!biffPropertyFields.has(guid) && guid !== custom) { unknown = true; continue; }
-      const section = new Binary(file.slice(offset, end - offset)), propertyCount = section.u32(4);
-      section.check(8, propertyCount * 8); admit(propertyCount);
-      const pointers: { id: number; at: number }[] = [], ids = new Set<number>();
-      for (let i = 0; i < propertyCount; i++) {
-        const id = section.u32(8 + i * 8), at = section.u32(12 + i * 8);
-        if (at < 8 + propertyCount * 8 || at % 4 || at > section.bytes.length - 4) invalidBiff("invalid property offset");
-        if (ids.has(id)) invalidBiff("duplicate property ID");
-        ids.add(id); pointers.push({ id, at });
-      }
-      accountWork(propertyCount * Math.ceil(Math.log2(propertyCount + 1)));
-      pointers.sort((a, b) => a.at - b.at);
-      const values = new Map<number, Binary>();
-      for (let i = 0; i < pointers.length; i++) {
-        const { id, at } = pointers[i]!, next = pointers[i + 1]?.at ?? section.bytes.length;
-        if (next === at) invalidBiff("overlapping property values");
-        values.set(id, new Binary(section.slice(at, next - at)));
-      }
+      const values = readBiffPropertyValues(new Binary(file.slice(offset, end - offset)), admit, accountWork);
       const cp = values.get(1); let codepage = 1252;
       if (cp) { if (cp.u32(0) !== 2) invalidBiff("invalid property codepage type"); codepage = cp.u16(4); }
       const names = new Map<number, string>(), dictionary = values.get(0);
@@ -158,14 +129,15 @@ export async function readBiffProperties(streams: ReadonlyMap<string, Uint8Array
             return keyword.slice(start, end);
           }).filter(Boolean);
         }
-        accountText(key); properties[key] = value;
+        accountText(key); properties[key] = value; modeled.push([offset, id, key]);
+        observe?.({ stream: streamName, section: offset, id, key, value });
       }
     }
-    if (unknown) {
+    if (unknown && retained) {
       if (bytes.length * 2 > (context.limits.workbookTextBytes ?? context.limits.inputBytes * 2))
         throw new SsconvertError("resource-limit", "ssconvert BIFF property retention limit exceeded");
       const hex = accountText(Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join(""));
-      retained.push({ source: "biff", kind: "ole-properties", disposition: "retained", data: { stream: streamName, bytes: hex } });
+      retained.push({ source: "biff", kind: "ole-properties", disposition: "retained", data: { stream: streamName, bytes: hex, modeled } });
       await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: `BIFF property stream ${streamName.slice(1)} retained with uninterpreted values` });
     }
   }

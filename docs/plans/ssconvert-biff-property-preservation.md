@@ -1,6 +1,6 @@
 # Preserve OLE properties across BIFF edits
 
-Status: source investigation complete; implementation pending. This is part of
+Status: source-derived merge implemented; delivery and qualification in progress. This is part of
 hey-boss #1748 and does not close the format or encryption gap families.
 
 Use LibreOffice revision `bce0998afefdbc355585ca324285661a2170ba77`.
@@ -40,3 +40,8 @@ document model. A native save therefore cannot certify opaque byte retention.
 
 Encrypted ancillary streams remain a separate implementation requirement. Keep
 the existing refusal until their cryptographic path is implemented and verified.
+
+Current scope: new imports carry source identities. Legacy retained records without
+those identities still warn. New dictionary names outside the original codepage
+and edits that expose an opaque duplicate remain explicitly diagnosed. These
+limitations and native application qualification remain open.

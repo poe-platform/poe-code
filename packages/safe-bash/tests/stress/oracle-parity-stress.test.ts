@@ -3,6 +3,7 @@ import test from "node:test";
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { Shell, createMemoryFileSystem, agentCommands } from "../../src/index.js";
+import { diff3Commands } from "../../src/commands/diff3/index.js";
 
 test("differential oracle parity: safe-bash bc vs /usr/bin/bc", async (t) => {
   if (!existsSync("/usr/bin/bc")) {
@@ -171,4 +172,45 @@ test("stress & parity: sed/awk ergonomic regexes, uniq chunked buffering, base64
   );
   assert.equal(tsortFactorRes.exitCode, 0, tsortFactorRes.stderr);
   assert.deepEqual(tsortFactorRes.stdout.trim().split(/\s+/), ["node_0", "200"]);
+});
+
+test("differential oracle parity: safe-bash fold and diff3 vs host /usr/bin/fold and /usr/bin/diff3, plus 60KB fmt throughput", async (t) => {
+  const fs = createMemoryFileSystem();
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(diff3Commands());
+
+  if (existsSync("/usr/bin/fold") && existsSync("/usr/bin/diff3")) {
+    const scripts = [
+      `printf "hello world foo bar baz\\n1234567890\\n" | fold -w 10`,
+      `printf "hello world foo bar baz\\n1234567890\\n" | fold -s -w 10`,
+      `printf "a\\tb\\tc\\td\\n" | fold -w 10`,
+      `printf "a\\tb\\tc\\td\\n" | fold -b -w 5`,
+      `printf "hello   world\\n" | fold -s -w 7`,
+      `mkdir -p /tmp/d3 && printf "a\\nb\\nc\\n" > /tmp/d3/mine && printf "a\\nb\\nc\\n" > /tmp/d3/old && printf "a\\nb\\nd\\n" > /tmp/d3/yours && diff3 -m /tmp/d3/mine /tmp/d3/old /tmp/d3/yours`,
+      `mkdir -p /tmp/d3b && printf "x\\nb\\nc\\n" > /tmp/d3b/mine && printf "a\\nb\\nc\\n" > /tmp/d3b/old && printf "a\\nb\\nd\\n" > /tmp/d3b/yours && diff3 -m /tmp/d3b/mine /tmp/d3b/old /tmp/d3b/yours`,
+      `mkdir -p /tmp/d3c && printf "a\\n1\\nc\\n" > /tmp/d3c/mine && printf "a\\nb\\nc\\n" > /tmp/d3c/old && printf "a\\n2\\nc\\n" > /tmp/d3c/yours && diff3 -m -L MINE -L OLD -L YOURS /tmp/d3c/mine /tmp/d3c/old /tmp/d3c/yours`,
+      `mkdir -p /tmp/d3d && printf "a\\n1\\nc\\n" > /tmp/d3d/mine && printf "a\\nb\\nc\\n" > /tmp/d3d/old && printf "a\\nb\\nd\\n" > /tmp/d3d/yours && diff3 /tmp/d3d/mine /tmp/d3d/old /tmp/d3d/yours`
+    ];
+
+    for (const script of scripts) {
+      const sbRes = await shell.exec(script);
+      let hostOut = "";
+      let hostCode = 0;
+      try {
+        hostOut = execFileSync("/bin/bash", ["-c", script], { encoding: "utf8" });
+      } catch (err: any) {
+        hostOut = err.stdout ?? "";
+        hostCode = err.status ?? 1;
+      }
+      assert.equal(sbRes.exitCode, hostCode, `exitCode mismatch for: ${script}`);
+      assert.equal(sbRes.stdout, hostOut, `stdout mismatch for: ${script}`);
+    }
+  }
+
+  // High-throughput 60KB fmt stress test
+  const enc = new TextEncoder();
+  const text60k = ("hello world this is a test of paragraph formatting in fmt command with seventy five columns. ".repeat(40) + "\n\n").repeat(16);
+  await fs.writeFile("/fmt-input.txt", enc.encode(text60k));
+  const fmtRes = await shell.exec("fmt -w 60 /fmt-input.txt | wc -l");
+  assert.equal(fmtRes.exitCode, 0, fmtRes.stderr);
+  assert.ok(Number(fmtRes.stdout.trim()) > 900);
 });

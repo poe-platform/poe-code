@@ -212,6 +212,7 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
         let stdinDone = false;
         let emptyChunks = 0;
         let chunks = 0;
+        let checkpoints = 0;
         let exitCode = 0;
         for (const { name, bytes: nameBytes } of settings.files) {
           local.signal.throwIfAborted();
@@ -249,7 +250,7 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
               step = machine.next(bytes);
             } else {
               if (step.value) await output(outputContext, step.value);
-              else await yieldTurn(local.signal);
+              else if (++checkpoints % 64 === 0) await yieldTurn(local.signal);
               step = machine.next();
             }
           }

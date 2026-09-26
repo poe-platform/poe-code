@@ -29,13 +29,20 @@ class WorkBudget {
     if (this.closed) throw new FmtError('CLOSED', 'fmt engine is closed');
     if (this.signal.aborted) throw new FmtError('CANCELLED', 'fmt engine cancelled');
   }
-  *step(count = 1): FmtMachine {
+  tick(count = 1): boolean {
     this.charge(count);
     if (this.sinceCheckpoint >= 1024) {
       this.sinceCheckpoint = 0;
-      if ((yield undefined) !== undefined) throw new FmtError('INPUT', 'Unexpected input on fmt checkpoint event');
+      return true;
     }
+    return false;
+  }
+  *checkpoint(): FmtMachine {
+    if ((yield undefined) !== undefined) throw new FmtError('INPUT', 'Unexpected input on fmt checkpoint event');
     this.check();
+  }
+  *step(count = 1): FmtMachine {
+    if (this.tick(count)) yield* this.checkpoint();
   }
   charge(count: number): void {
     this.check();
@@ -93,8 +100,9 @@ class Formatter {
 
   constructor(private settings: FmtOptions, private budget: WorkBudget) {}
 
-  private *read(): FmtMachine<number> {
-    yield* this.budget.step();
+  private *readSlow(alreadyTicked: boolean): FmtMachine<number> {
+    if (!alreadyTicked && this.budget.tick()) yield* this.budget.checkpoint();
+    else if (alreadyTicked) yield* this.budget.checkpoint();
     while (this.offset === this.chunkUsed) {
       if (this.eof) return -1;
       const incoming = yield "input";
@@ -110,13 +118,37 @@ class Formatter {
       for (const byte of view.values) this.chunk[position++] = byte;
       this.chunkUsed = view.length;
       this.offset = 0;
-      yield* this.budget.step(0);
+      if (this.budget.tick(0)) yield* this.budget.checkpoint();
     }
     return this.chunk[this.offset++]!;
   }
 
+  private *read(): FmtMachine<number> {
+    if (this.offset < this.chunkUsed) {
+      if (!this.budget.tick()) return this.chunk[this.offset++]!;
+      yield* this.budget.checkpoint();
+      if (this.offset < this.chunkUsed) return this.chunk[this.offset++]!;
+    }
+    return yield* this.readSlow(false);
+  }
+
+  private emitFast(byte: number): boolean {
+    const needCheckpoint = this.budget.tick();
+    this.budget.admitOutput();
+    this.pending[this.pendingUsed++] = byte;
+    return needCheckpoint || this.pendingUsed === this.pending.length;
+  }
+
+  private *flushEmit(needCheckpoint: boolean): FmtMachine {
+    if (needCheckpoint) yield* this.budget.checkpoint();
+    if (this.pendingUsed === this.pending.length) {
+      if ((yield this.pending.slice()) !== undefined) throw new FmtError('INPUT', 'Unexpected input on fmt output event');
+      this.pendingUsed = 0;
+    }
+  }
+
   private *emit(byte: number): FmtMachine {
-    yield* this.budget.step();
+    if (this.budget.tick()) yield* this.budget.checkpoint();
     this.budget.admitOutput();
     this.pending[this.pendingUsed++] = byte;
     if (this.pendingUsed === this.pending.length) {
@@ -130,18 +162,18 @@ class Formatter {
     const tabEnd = Math.trunc(target / 8) * 8;
     if (this.tabs && this.outColumn + 1 < tabEnd) {
       while (this.outColumn < tabEnd) {
-        yield* this.emit(9);
+        { const _b = 9; const _cp = this.budget.tick(); this.budget.admitOutput(); this.pending[this.pendingUsed++] = _b; if (_cp || this.pendingUsed === this.pending.length) yield* this.flushEmit(_cp); }
         this.outColumn = (Math.trunc(this.outColumn / 8) + 1) * 8;
       }
     }
-    while (this.outColumn < target) { yield* this.emit(32); this.outColumn++; }
+    while (this.outColumn < target) { { const _b = 32; const _cp = this.budget.tick(); this.budget.admitOutput(); this.pending[this.pendingUsed++] = _b; if (_cp || this.pendingUsed === this.pending.length) yield* this.flushEmit(_cp); } this.outColumn++; }
   }
 
   private *whitespace(byte: number): FmtMachine<number> {
     while (byte === 32 || byte === 9) {
       if (byte === 32) this.column = this.budget.exact(this.column + 1);
       else { this.tabs = true; this.column = this.budget.exact((Math.trunc(this.column / 8) + 1) * 8); }
-      byte = yield* this.read();
+      byte = (this.offset < this.chunkUsed && !this.budget.tick()) ? this.chunk[this.offset++]! : yield* this.readSlow(this.offset < this.chunkUsed);
     }
     return byte;
   }
@@ -155,9 +187,9 @@ class Formatter {
       for (const expected of prefix) {
         if (byte !== expected) return byte;
         this.column++;
-        byte = yield* this.read();
+        byte = (this.offset < this.chunkUsed && !this.budget.tick()) ? this.chunk[this.offset++]! : yield* this.readSlow(this.offset < this.chunkUsed);
       }
-      byte = yield* this.whitespace(byte);
+      if (byte === 32 && this.offset < this.chunkUsed && this.chunk[this.offset] !== 32 && this.chunk[this.offset] !== 9 && !this.budget.tick()) { this.column = this.budget.exact(this.column + 1); byte = this.chunk[this.offset++]!; } else byte = yield* this.whitespace(byte);
     }
     return byte;
   }
@@ -190,7 +222,7 @@ class Formatter {
       let length = (start === 0 ? this.firstIndent : this.otherIndent) + word.length;
       let best = Infinity;
       for (let end = start + 1; ; end++) {
-        yield* this.budget.step();
+        if (this.budget.tick()) yield* this.budget.checkpoint();
         let cost = this.costs[end]!;
         if (end !== count) {
           cost += 100 * (this.settings.goal - length) ** 2;
@@ -211,25 +243,25 @@ class Formatter {
     for (let start = 0; start < finish; start = this.breaks[start]!) {
       this.outColumn = 0;
       yield* this.spaces(this.prefixIndent);
-      for (const byte of this.settings.prefix) yield* this.emit(byte);
+      for (const byte of this.settings.prefix) { const _b = byte; const _cp = this.budget.tick(); this.budget.admitOutput(); this.pending[this.pendingUsed++] = _b; if (_cp || this.pendingUsed === this.pending.length) yield* this.flushEmit(_cp); }
       this.outColumn += this.settings.prefix.length;
       yield* this.spaces((start === 0 ? this.firstIndent : this.otherIndent) - this.outColumn);
       const end = this.breaks[start]!;
       for (let index = start; index < end; index++) {
         const word = this.words[index]!;
-        for (let position = word.start; position < word.start + word.length; position++) yield* this.emit(this.text[position]!);
+        for (let position = word.start; position < word.start + word.length; position++) { const _b = this.text[position]!; const _cp = this.budget.tick(); this.budget.admitOutput(); this.pending[this.pendingUsed++] = _b; if (_cp || this.pendingUsed === this.pending.length) yield* this.flushEmit(_cp); }
         this.outColumn += word.length;
-        if (index + 1 !== end) yield* this.spaces(word.space);
+        if (index + 1 !== end) { if (!this.tabs && word.space === 1) { this.budget.exact(this.outColumn + 1); const _cp = this.budget.tick(); this.budget.admitOutput(); this.pending[this.pendingUsed++] = 32; if (_cp || this.pendingUsed === this.pending.length) yield* this.flushEmit(_cp); this.outColumn++; } else yield* this.spaces(word.space); }
       }
       this.lastLength = this.outColumn;
-      yield* this.emit(10);
+      { const _b = 10; const _cp = this.budget.tick(); this.budget.admitOutput(); this.pending[this.pendingUsed++] = _b; if (_cp || this.pendingUsed === this.pending.length) yield* this.flushEmit(_cp); }
     }
   }
 
   private *makeRoom(current: Word): FmtMachine {
     this.secondary(true);
     if (!this.words.length) {
-      for (let position = 0; position < this.used; position++) yield* this.emit(this.text[position]!);
+      for (let position = 0; position < this.used; position++) { const _b = this.text[position]!; const _cp = this.budget.tick(); this.budget.admitOutput(); this.pending[this.pendingUsed++] = _b; if (_cp || this.pendingUsed === this.pending.length) yield* this.flushEmit(_cp); }
       this.used = 0;
       current.start = 0;
       return;
@@ -238,14 +270,14 @@ class Formatter {
     let cut = this.words.length;
     let score = Infinity;
     for (let line = this.breaks[0]!; line !== this.words.length; line = this.breaks[line]!) {
-      yield* this.budget.step();
+      if (this.budget.tick()) yield* this.budget.checkpoint();
       const candidate = this.costs[line]! - this.costs[this.breaks[line]!]!;
       if (candidate < score) { cut = line; score = candidate; }
       score += 9;
     }
     yield* this.render(cut);
     const offset = cut === this.words.length ? current.start : this.words[cut]!.start;
-    yield* this.budget.step(this.used - offset + this.words.length);
+    if (this.budget.tick(this.used - offset + this.words.length)) yield* this.budget.checkpoint();
     this.text.copyWithin(0, offset, this.used);
     this.used -= offset;
     this.words = this.words.slice(cut);
@@ -259,18 +291,18 @@ class Formatter {
       do {
         if (this.used === this.text.length) yield* this.makeRoom(word);
         this.text[this.used++] = byte;
-        byte = yield* this.read();
+        byte = (this.offset < this.chunkUsed && !this.budget.tick()) ? this.chunk[this.offset++]! : yield* this.readSlow(this.offset < this.chunkUsed);
       } while (byte !== -1 && byte !== 32 && !(byte >= 9 && byte <= 13));
       word.length = this.used - word.start;
       this.column = this.budget.exact(this.column + word.length);
       const first = this.text[word.start]!;
       const last = this.text[this.used - 1]!;
-      word.opening = first === 0 || "(['`\"".includes(String.fromCharCode(first));
+      word.opening = first === 0 || first === 40 || first === 91 || first === 39 || first === 96 || first === 34;
       word.punctuation = last >= 33 && last <= 47 || last >= 58 && last <= 64 || last >= 91 && last <= 96 || last >= 123 && last <= 126;
       let terminal = this.used - 1;
-      yield* this.budget.step(word.length);
-      while (terminal > word.start && (this.text[terminal] === 0 || ")]'\"".includes(String.fromCharCode(this.text[terminal]!)))) terminal--;
-      word.period = this.text[terminal] === 0 || ".?!".includes(String.fromCharCode(this.text[terminal]!));
+      if (this.budget.tick(word.length)) yield* this.budget.checkpoint();
+      while (terminal > word.start) { const tb = this.text[terminal]!; if (tb !== 0 && tb !== 41 && tb !== 93 && tb !== 39 && tb !== 34) break; terminal--; }
+      { const pb = this.text[terminal]!; word.period = pb === 0 || pb === 46 || pb === 63 || pb === 33; }
       const before = this.column;
       byte = yield* this.whitespace(byte);
       word.space = this.column - before;
@@ -297,15 +329,15 @@ class Formatter {
           yield* this.spaces(this.nextPrefix);
           for (const prefixByte of this.settings.prefix) {
             if (this.outColumn === this.column) break;
-            yield* this.emit(prefixByte);
+            { const _b = prefixByte; const _cp = this.budget.tick(); this.budget.admitOutput(); this.pending[this.pendingUsed++] = _b; if (_cp || this.pendingUsed === this.pending.length) yield* this.flushEmit(_cp); }
             this.outColumn++;
           }
           if (byte !== -1 && byte !== 10) yield* this.spaces(this.column - this.outColumn);
-          if (byte === -1 && this.column >= this.nextPrefix + this.settings.prefix.length) yield* this.emit(10);
+          if (byte === -1 && this.column >= this.nextPrefix + this.settings.prefix.length) { const _b = 10; const _cp = this.budget.tick(); this.budget.admitOutput(); this.pending[this.pendingUsed++] = _b; if (_cp || this.pendingUsed === this.pending.length) yield* this.flushEmit(_cp); }
         }
-        while (byte !== -1 && byte !== 10) { yield* this.emit(byte); byte = yield* this.read(); }
+        while (byte !== -1 && byte !== 10) { { const _b = byte; const _cp = this.budget.tick(); this.budget.admitOutput(); this.pending[this.pendingUsed++] = _b; if (_cp || this.pendingUsed === this.pending.length) yield* this.flushEmit(_cp); } byte = (this.offset < this.chunkUsed && !this.budget.tick()) ? this.chunk[this.offset++]! : yield* this.readSlow(this.offset < this.chunkUsed); }
         if (byte === -1) break;
-        yield* this.emit(10);
+        { const _b = 10; const _cp = this.budget.tick(); this.budget.admitOutput(); this.pending[this.pendingUsed++] = _b; if (_cp || this.pendingUsed === this.pending.length) yield* this.flushEmit(_cp); }
         byte = yield* this.lineStart();
         continue;
       }

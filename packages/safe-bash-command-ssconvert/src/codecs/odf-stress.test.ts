@@ -176,6 +176,9 @@ it.each([
   expect(JSON.stringify(book.sheets[0]!.unsupportedRecords)).toContain(JSON.stringify({ name: "target", namespace: "", value: target }));
 });
 it("admits annotation space expansion to the shared work budget before allocating it", async () => {
+  const expansiveBytes = await fixture('<t:table t:name="S"><t:table-row><t:table-cell><o:annotation><tx:p><tx:s tx:c="100000001"/></tx:p></o:annotation></t:table-cell></t:table-row></t:table>');
+  await expect(readOdf(expansiveBytes, { ...context, limits: { ...context.limits, workbookWork: 10_000_000 } }))
+    .rejects.toMatchObject({ code: "resource-limit" });
   const bytes = await fixture('<t:table t:name="S"><t:table-row><t:table-cell><o:annotation><tx:p><tx:s tx:c="10001"/></tx:p></o:annotation></t:table-cell></t:table-row></t:table>');
   const bounded = { ...context, limits: { ...context.limits, workbookWork: 10000 } };
   await expect(readOdf(bytes, bounded)).rejects.toMatchObject({ code: "resource-limit" });

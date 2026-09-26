@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { pythonDescriptorFixture } from "../helpers/python-descriptors.js";
-import { MemoryFileSystem } from "../../src/fs/memory/index.js";
+import { MemoryFileSystem, tryOpenMemoryRedirectHandleSync } from "../../src/fs/memory/index.js";
 
 const bytes = (text: string) => new TextEncoder().encode(text);
 
@@ -144,4 +144,45 @@ describe.each(["direct", "python"] as const)("memory canonical descriptors (%s)"
     })());
     await fs.writeFile("/other", bytes("xyz"));
   });
+});
+
+
+it("descriptor growth preserves bytes and gaps without global Buffer", async () => {
+  const fs = new MemoryFileSystem();
+  const fd = await fs.open("/portable", { access: "readwrite", creation: "exclusive" });
+  const prefix = new Uint8Array(32).fill(65);
+  const suffix = new Uint8Array(96).fill(66);
+  const saved = globalThis.Buffer;
+  let result: Uint8Array;
+  try {
+    Reflect.set(globalThis, "Buffer", undefined);
+    await fd.write(prefix, 0);
+    await fd.write(suffix, 64);
+    result = await fs.readFile("/portable");
+  } finally {
+    Reflect.set(globalThis, "Buffer", saved);
+    await fd.close();
+  }
+  expect(result).toEqual(new Uint8Array([...prefix, ...new Uint8Array(32), ...suffix]));
+  expect(prefix).toEqual(new Uint8Array(32).fill(65));
+  expect(suffix).toEqual(new Uint8Array(96).fill(66));
+});
+
+it("redirect range writes copy only admitted bytes without global Buffer", async () => {
+  const fs = new MemoryFileSystem();
+  const handle = tryOpenMemoryRedirectHandleSync(fs, "/range", false, 0o666)!;
+  expect(handle).toBeDefined();
+  const input = Uint8Array.of(1, 2, 3, 99, 100);
+  const saved = globalThis.Buffer;
+  let result: Uint8Array;
+  try {
+    Reflect.set(globalThis, "Buffer", undefined);
+    handle.writeRangeSync(input, 3);
+    input.fill(0);
+    result = await fs.readFile("/range");
+  } finally {
+    Reflect.set(globalThis, "Buffer", saved);
+    handle.close();
+  }
+  expect(result).toEqual(Uint8Array.of(1, 2, 3));
 });

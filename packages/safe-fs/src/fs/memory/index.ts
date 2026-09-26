@@ -1440,13 +1440,13 @@ export class MemoryFileSystem implements FileSystem {
     try {
       const storage = allocation.data;
       if (allocation !== node.allocation && curLen > 0) {
-        Buffer.prototype.copy.call(node.allocation.data, storage, 0, 0, curLen);
+        storage.set(node.allocation.data.subarray(0, curLen));
       }
       if (position > curLen) storage.fill(0, curLen, position);
       if (dataLen === data.byteLength) {
         storage.set(data, position);
       } else {
-        Buffer.prototype.copy.call(data, storage, position, 0, dataLen);
+        storage.set(data.subarray(0, dataLen), position);
       }
     } catch (error) {
       if (allocation !== node.allocation) allocation.release();

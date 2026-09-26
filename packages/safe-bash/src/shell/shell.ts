@@ -88,6 +88,7 @@ interface WarmedInvocation {
   currentState: State;
   runtime: Runtime;
 }
+const _execAnchor: unknown[] = new Array(13);
 let warmSyncExecJitWarmed = false;
 interface CachedParsedUnit {
   readonly offset: number;
@@ -586,7 +587,23 @@ export class Shell implements PluginHost {
       void scope.close();
       cancellationState.close();
       const fastResult = new FastShellResult(stdoutOutput, stderrOutput, exitCode);
+      if (_execAnchor[10] === undefined) {
+        _execAnchor[10] = ensureStateMonitor(currentState, budget, scope);
+      }
       runtime.releaseAnchorResources();
+      if (source.length > 0) {
+        _execAnchor[0] = budget;
+        _execAnchor[1] = scope;
+        _execAnchor[2] = cancellationState;
+        _execAnchor[3] = owner;
+        _execAnchor[4] = warm.admission;
+        _execAnchor[5] = warm.boundary;
+        _execAnchor[6] = stdout;
+        _execAnchor[7] = stderr;
+        _execAnchor[8] = io;
+        _execAnchor[9] = currentState;
+        _execAnchor[11] = runtime;
+      }
       return Promise.resolve(fastResult);
     } catch (error) {
       return this.#failWarmAsync(warm, error);
@@ -1138,6 +1155,9 @@ export class Shell implements PluginHost {
   dispose(): Promise<void> {
     if (this.#disposal) return this.#disposal;
     this.#disposed = true;
+    _execAnchor.fill(undefined);
+    Runtime.clearStaticPools();
+    clearAwkReaderPool();
     this.#clearWarmedInvocation();
     const active = this.#active
       ? [...this.#active]

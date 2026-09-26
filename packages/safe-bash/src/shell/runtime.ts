@@ -1952,9 +1952,23 @@ class FastShellCommandContext {
     this._state = undefined!;
     this._io = undefined!;
     this._scope = undefined!;
+    this._scopedSignal = undefined;
     this._contextFs = undefined;
+    this._cachedPredicates = undefined;
+    this._cachedInputBudget = undefined;
+    this._argumentValues = undefined;
+    this._env = undefined;
+    this._registerCleanup = undefined;
+    this._invoke = undefined;
     this.stdin = undefined!;
     this.stdout = undefined!;
+    this._stderr = undefined;
+    this.descriptors = undefined;
+    this.args = undefined!;
+    this.signal = NEVER_ABORTED_SIGNAL;
+    this.onInternalError = undefined;
+    this.capabilities = undefined!;
+    this.processSignals = undefined;
   }
 
   static {
@@ -3304,7 +3318,14 @@ class PooledSyncPipeWriter implements ByteSink {
 
 const sharedSyncPipeReader = new PooledSyncPipeReader();
 const sharedSyncPipeWriter = new PooledSyncPipeWriter();
+let pooledFastSingleContext: FastShellCommandContext | undefined;
+let pooledSyncPipeContext: FastShellCommandContext | undefined;
 let pooledMemoryRedirectSink: MemoryRedirectSink | undefined;
+export function clearRuntimePools(): void {
+  pooledFastSingleContext = undefined;
+  pooledSyncPipeContext = undefined;
+  pooledMemoryRedirectSink = undefined;
+}
 let syncPurePipelineWarmed = false;
 let syncPureFindPipelineWarmed = false;
 const ZERO_PIPE_STATUSES: readonly (readonly number[])[] = [
@@ -3320,6 +3341,7 @@ const ZERO_PIPE_STATUSES: readonly (readonly number[])[] = [
 ];
 
 export class Runtime {
+  static clearStaticPools(): void { clearRuntimePools(); }
   declare readonly commands: CommandRegistry;
   declare readonly middleware: readonly Middleware[];
   declare readonly budget: Budget;
@@ -3408,8 +3430,8 @@ export class Runtime {
       retargetScopedFileSystem(reusableEntry.scoped, noopFsCharge, NEVER_ABORTED_SIGNAL, noopFsCharge, 256);
       reusableEntry.inUseBy = undefined;
     }
-    if (this._isMemoryBackingFs && this.backingFs) {
-      const emptyFs = (_sharedEmptyMemoryFs ??= new (this.backingFs.constructor as new () => FileSystem)());
+    if (this.backingFs) {
+      const emptyFs = (_sharedEmptyMemoryFs ??= (this._isMemoryBackingFs ? new (this.backingFs.constructor as new () => FileSystem)() : Object.freeze({}) as unknown as FileSystem));
       (this as unknown as { backingFs: FileSystem }).backingFs = emptyFs;
       (this as unknown as { sourceFs: FileSystem }).sourceFs = emptyFs;
       (this as unknown as { _rawFs: FileSystem })._rawFs = emptyFs;
@@ -5362,8 +5384,29 @@ export class Runtime {
       rawState.lastArgument = lastArg;
       if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
       const scope = io[invocationScope];
-      const context = new FastShellCommandContext(this, rawState, io, scope, w0Plain, args, undefined, undefined, this._isMemoryBackingFs);
-      if (redirectSink) context.stdout = redirectSink;
+      let context: FastShellCommandContext;
+      if (pooledFastSingleContext) {
+        context = pooledFastSingleContext;
+        pooledFastSingleContext = undefined;
+        context.resetDirectStage(
+          this,
+          rawState,
+          io,
+          scope,
+          w0Plain,
+          args,
+          io.stdin,
+          io.stdinIsDefault === true,
+          redirectSink ?? io.stdout,
+          this.commandSignal,
+        );
+        if (!this._isMemoryBackingFs) {
+          (context as unknown as { _scopedSignal: AbortSignal | undefined })._scopedSignal = undefined;
+        }
+      } else {
+        context = new FastShellCommandContext(this, rawState, io, scope, w0Plain, args, undefined, undefined, this._isMemoryBackingFs);
+        if (redirectSink) context.stdout = redirectSink;
+      }
       if (redirectSink && io.descriptors) {
         const descriptors = new Map(io.descriptors);
         descriptors.set(1, { output: redirectSink });
@@ -5430,6 +5473,7 @@ export class Runtime {
         scope.leaveWork();
         redirectSink?.handle.close();
         context.releaseDirectStage();
+        pooledFastSingleContext = context;
         if (redirectSink) {
           redirectSink.budget = undefined!;
           redirectSink.handle = undefined!;
@@ -5775,7 +5819,7 @@ export class Runtime {
     this.budget.commands += n;
     const scope = io[invocationScope];
     let statuses: number[] | undefined;
-    let context: FastShellCommandContext | undefined;
+    let context = pooledSyncPipeContext;
     try {
       let prevBuf = sharedSyncPipeBuf0;
       let prevLen = 0;
@@ -5811,6 +5855,7 @@ export class Runtime {
         }
         if (!context) {
           context = new FastShellCommandContext(this, rawState, io, scope, firstName, stageArgs, undefined, undefined, true);
+          pooledSyncPipeContext = context;
         }
         context.resetDirectStage(this, rawState, io, scope, firstName, stageArgs, inputSource, isFirst, stageStdout, this.signal);
         if (!isFirst) sharedSyncPipeReader.abortSignal = context.signal;

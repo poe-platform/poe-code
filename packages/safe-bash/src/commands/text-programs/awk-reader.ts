@@ -14,6 +14,8 @@ const resolvedVoid = Promise.resolve();
 const RELEASED_READER_ITERATOR: AsyncIterator<Uint8Array> = {
   next() { return Promise.resolve({ done: true as const, value: undefined }); },
 };
+let pooledMemoryReader: Reader | undefined;
+export function clearAwkReaderPool(): void { pooledMemoryReader = undefined; }
 
 export class Reader {
   private iterator: AsyncIterator<Uint8Array>;
@@ -29,6 +31,7 @@ export class Reader {
   ended = false;
   private closed = false;
   private closing?: Promise<void> | undefined;
+  private isPooledMemory = false;
 
   constructor(source: ByteSource | undefined, private budget: Budget, private retention: Pick<AwkRetention, "admit" | "replace" | "release">) {
     this.iterator = source === undefined
@@ -39,8 +42,27 @@ export class Reader {
   }
 
   static fromMemoryView(chunk: Uint8Array, budget: Budget, retention: Pick<AwkRetention, "admit" | "replace" | "release">): Reader {
-    const reader = new Reader(undefined, budget, retention);
-    reader.ended = true;
+    let reader = pooledMemoryReader;
+    if (reader !== undefined) {
+      pooledMemoryReader = undefined;
+      reader.budget = budget;
+      reader.retention = retention;
+      reader.iterator = RELEASED_READER_ITERATOR;
+      reader.blocksLen = 0;
+      reader.blockEndIdx = 0;
+      reader.head = 0;
+      reader.offset = 0;
+      reader.buffered = 0;
+      reader.ownedBytes = 0;
+      reader.ended = true;
+      reader.closed = false;
+      reader.closing = undefined;
+      reader.isPooledMemory = true;
+    } else {
+      reader = new Reader(undefined, budget, retention);
+      reader.ended = true;
+      reader.isPooledMemory = true;
+    }
     budget.step();
     const length = chunk.byteLength;
     if (length > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
@@ -335,6 +357,13 @@ export class Reader {
     this.ownedBytes = 0;
     const origIter = this.iterator;
     this.iterator = RELEASED_READER_ITERATOR;
+    this.budget = undefined!;
+    this.retention = undefined!;
+    this.singleChunk = undefined;
+    if (this.isPooledMemory && pooledMemoryReader === undefined) {
+      this.isPooledMemory = false;
+      pooledMemoryReader = this;
+    }
     if (wasEnded || !origIter.return) {
       this.closing = resolvedVoid;
       return resolvedVoid;
@@ -359,6 +388,13 @@ export class Reader {
     this.ownedBytes = 0;
     const origIter = this.iterator;
     this.iterator = RELEASED_READER_ITERATOR;
+    this.budget = undefined!;
+    this.retention = undefined!;
+    this.singleChunk = undefined;
+    if (this.isPooledMemory && pooledMemoryReader === undefined) {
+      this.isPooledMemory = false;
+      pooledMemoryReader = this;
+    }
     if (wasEnded || !origIter.return) {
       this.closing = resolvedVoid;
       return undefined;

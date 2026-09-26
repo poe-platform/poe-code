@@ -309,10 +309,11 @@ test("fast-scope registrar rejection preserves falsey reasons without opening a 
   } finally { await executor.dispose(); }
 });
 
-for (const operation of ["search", "expr", "bre"] as const) test(`a session closed by its on-use hook cannot dispatch ${operation}`, async () => {
+for (const operation of ["search", "expr", "bre"] as const) test(`a closed session cannot dispatch ${operation}`, async () => {
   const executor = new NodeRegexExecutor();
   const from = workers.length;
-  const session = executor.open(new AbortController().signal, () => session.closeSync());
+  const session = executor.open(new AbortController().signal);
+  session.closeSync();
   try {
     const outcome = await settled(Promise.resolve().then<unknown>(() => {
       if (operation === "search") return session.runSync(descriptor, rows);
@@ -327,7 +328,7 @@ for (const operation of ["search", "expr", "bre"] as const) test(`a session clos
   } finally { await session.close(); await executor.dispose(); }
 });
 
-test("on-use closure cannot dispatch trusted rows to an already-ready in-process shared worker", async () => {
+test("closed sessions cannot dispatch trusted rows to an already-ready in-process shared worker", async () => {
   const executor = new RegexExecutor(createBoundedRegexProvider());
   const warm = executor.open(new AbortController().signal);
   const trustedRows = [...rows];
@@ -335,7 +336,8 @@ test("on-use closure cannot dispatch trusted rows to an already-ready in-process
   let closed: RegexSession | undefined;
   try {
     await warm.run(descriptor, trustedRows);
-    closed = executor.open(new AbortController().signal, () => closed!.closeSync());
+    closed = executor.open(new AbortController().signal);
+    closed.closeSync();
     const outcome = await settled(Promise.resolve().then(() => closed!.runSync(descriptor, trustedRows)));
     assert.equal(outcome.ok, false);
     if (!outcome.ok) assertClosed(outcome.error);

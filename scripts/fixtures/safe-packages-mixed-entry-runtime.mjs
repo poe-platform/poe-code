@@ -440,6 +440,7 @@ export async function verifyFactorCommands(entry = defaultEntry) {
     ["nul", "sh stdin.sh nul", "12\0junk 18\n", 0, "12: 2 2 3\n18: 2 3 3\n", ""],
     ["ceiling", "sh args.sh 4294967296 12", "", 1, "12: 2 2 3\n", "factor: '4294967296' exceeds supported maximum 4294967295\n"],
   ];
+  // The ceiling case qualifies an explicit host limit, independent of defaults.
   const shell = new entry.Shell({ fs: filesystem, cwd: "/factor-work", env: { LC_ALL: "C", TZ: "UTC" } }).use(entry.agentCommands({ factor: { limits: { maxValue: 4_294_967_295 } } }));
   try {
     if (entry.createFactorCommand().name !== "factor") throw new Error("Public factor factory is missing");
@@ -459,7 +460,7 @@ export async function verifyFactorCommands(entry = defaultEntry) {
     let invalidLimit;
     try { entry.createFactorCommand({ limits: { maxValue: 0 } }); }
     catch (error) { invalidLimit = error; }
-    if (invalidLimit?.name !== "RangeError") throw new Error("Public factor accepted an invalid magnitude limit");
+    if (invalidLimit?.name !== "RangeError") throw new Error("Public factor allowed a nonpositive configured limit");
   } finally { await shell.dispose(); }
 }
 

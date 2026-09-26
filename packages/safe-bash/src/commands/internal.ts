@@ -252,7 +252,12 @@ export function input(context: CommandContext, name = "-"): ByteSource {
         if (!finished) {
           finished = true;
           try { await iterator?.return?.(); }
-          catch (error) { if (!readFailure || !Object.is(error, readFailure.reason)) throw error; }
+          catch (error) {
+            // A canceled stream can repeat its cancellation from return() even
+            // when next() never rejected. It is not a separate cleanup failure.
+            if (context.signal.aborted && Object.is(error, context.signal.reason)) return;
+            if (!readFailure || !Object.is(error, readFailure.reason)) throw error;
+          }
         }
       });
       context.registerCleanup?.(close);

@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { CommandResult } from "../../src/contracts/index.js";
-import { writeText } from "../../src/contracts/index.js";
+import { FsError, writeText } from "../../src/contracts/index.js";
+import { streamCommands } from "../../src/commands/streams.js";
 import { setup } from "./helpers.js";
 
 function deferred<Value = void>() {
@@ -11,6 +12,49 @@ function deferred<Value = void>() {
 }
 
 const delay = () => new Promise<void>((resolve) => setTimeout(resolve, 15));
+
+for (const cleanup of ["cancellation", "distinct EPIPE", "false"] as const) {
+  test(`cat early refusal preserves ${cleanup} cleanup outcome`, { timeout: 2000 }, async () => {
+    const { shell, fs, commands } = setup();
+    commands.register(streamCommands().find(command => command.name === "cat")!);
+    const reading = deferred();
+    const secondary = cleanup === "false" ? false : new FsError("EPIPE", { syscall: "independent cleanup" });
+    let returns = 0;
+    await fs.writeFile("/source", Uint8Array.of(65));
+    fs.readStream = (_path, options) => ({ [Symbol.asyncIterator]() { return {
+      async next() {
+        reading.resolve();
+        const signal = options!.signal!;
+        await new Promise<void>(resolve => {
+          if (signal.aborted) resolve();
+          else signal.addEventListener("abort", () => resolve(), { once: true });
+        });
+        return { done: false, value: Uint8Array.of(65) };
+      },
+      async return() {
+        returns++;
+        assert.equal(options!.signal!.aborted, true);
+        throw cleanup === "cancellation" ? options!.signal!.reason : secondary;
+      },
+    }; } });
+    commands.register({ name: "refuse", async execute(context) {
+      await reading.promise;
+      await writeText(context.stderr, "refused\n");
+      return { exitCode: 2 };
+    } });
+    try {
+      const execution = shell.exec("cat /source | refuse");
+      if (cleanup === "cancellation") {
+        const result = await execution;
+        assert.equal(result.exitCode, 2);
+        assert.equal(result.stderr, "refused\n");
+        assert.equal(result.stdout, "");
+      } else await assert.rejects(execution, error => Object.is(error, secondary));
+      assert.equal(returns, 1);
+      assert.deepEqual(await fs.readFile("/source"), Uint8Array.of(65));
+    } finally { await shell.dispose(); }
+  });
+}
 
 for (const pipefail of [false, true]) {
   for (const failCleanup of [false, true]) {

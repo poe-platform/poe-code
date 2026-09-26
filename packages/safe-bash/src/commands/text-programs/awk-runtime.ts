@@ -50,16 +50,16 @@ function hasMainGetline(node: unknown): boolean {
 }
 
 interface PooledFieldBuffers {
-  fieldStarts: Int32Array;
-  fieldEnds: Int32Array;
-  lazyFieldGen: Int32Array;
+  fieldStarts: number[];
+  fieldEnds: number[];
+  lazyFieldGen: number[];
   lazyFields: Scalar[];
   fieldGeneration: number;
 }
 let sharedFieldBuffers: PooledFieldBuffers | undefined = {
-  fieldStarts: new Int32Array(64),
-  fieldEnds: new Int32Array(64),
-  lazyFieldGen: new Int32Array(64),
+  fieldStarts: new Array<number>(64).fill(0),
+  fieldEnds: new Array<number>(64).fill(0),
+  lazyFieldGen: new Array<number>(64).fill(0),
   lazyFields: new Array(64),
   fieldGeneration: 1,
 };
@@ -92,13 +92,13 @@ export class AwkRuntime {
   private rawFields: Scalar[] = [];
   private get fields(): Scalar[] { return this.ensureFields(); }
   private set fields(v: Scalar[]) { this.rawFields = v; }
-  private fieldStarts: Int32Array;
-  private fieldEnds: Int32Array;
+  private fieldStarts: number[];
+  private fieldEnds: number[];
   private fieldCount = 0;
   private deferredFieldSeparator = " ";
   private fieldsMaterialized = true;
   private fieldGeneration: number;
-  private lazyFieldGen: Int32Array;
+  private lazyFieldGen: number[];
   private lazyFields: Scalar[];
   private fieldBytes = 0;
   private rawRecord: string | undefined = "";
@@ -144,9 +144,9 @@ export class AwkRuntime {
       this.lazyFields = pooled.lazyFields;
       this.fieldGeneration = pooled.fieldGeneration;
     } else {
-      this.fieldStarts = new Int32Array(64);
-      this.fieldEnds = new Int32Array(64);
-      this.lazyFieldGen = new Int32Array(64);
+      this.fieldStarts = new Array<number>(64).fill(0);
+      this.fieldEnds = new Array<number>(64).fill(0);
+      this.lazyFieldGen = new Array<number>(64).fill(0);
       this.lazyFields = new Array(64);
       this.fieldGeneration = 1;
     }
@@ -260,6 +260,36 @@ export class AwkRuntime {
       this.rebuild(fields); return;
     }
     this.storeScalar(this.store(name), name, value);
+  }
+  private setNumber(name: string, n: number): Scalar {
+    const store = this.store(name);
+    if (name === "NF" && store === this.variables) {
+      const val = numeric(n);
+      this.set(name, val);
+      return val;
+    }
+    const existing = store.get(name);
+    if (existing instanceof AwkArray) throw new ProgramError(`cannot assign a scalar to array '${name}'`);
+    if (existing !== undefined && existing.kind === "number" && !Object.isFrozen(existing)) {
+      if (this.budget.context.signal.aborted) this.budget.context.signal.throwIfAborted();
+      (existing as { number: number }).number = n;
+      if (store === this.variables) {
+        if (name === "NR") { this.nrNum = n; this.nrDirty = false; }
+        else if (name === "FNR") { this.fnrNum = n; this.fnrDirty = false; }
+      }
+      return existing;
+    }
+    this.retention.admit(textSize(existing), 0);
+    const box: Scalar = { kind: "number", number: n };
+    store.set(name, box);
+    if (store === this.variables) {
+      if (name === "FS") this.fsText = this.asText(box);
+      else if (name === "RS") this.rsText = this.asText(box);
+      else if (name === "CONVFMT") this.convfmtText = this.asText(box);
+      else if (name === "NR") { this.nrNum = n; this.nrDirty = false; }
+      else if (name === "FNR") { this.fnrNum = n; this.fnrDirty = false; }
+    }
+    return box;
   }
   private array(name: string): AwkArray {
     const value = this.get(name);
@@ -785,8 +815,8 @@ export class AwkRuntime {
             const name = expression.operand.name;
             const previous = number(scalar(this.get(name)));
             const next = previous + (expression.operator === "++" ? 1 : -1);
-            this.set(name, numeric(next));
-            return numeric(expression.postfix ? previous : next);
+            const updated = this.setNumber(name, next);
+            return expression.postfix ? numeric(previous) : updated;
           }
           if (expression.operand.kind === "array") {
             const array = this.array(expression.operand.name);
@@ -817,12 +847,24 @@ export class AwkRuntime {
         if (operator === "=" || operator === "+=" || operator === "-=" || operator === "*=" || operator === "/=" || operator === "%=" || operator === "^=") {
           if (expression.left.kind === "variable") {
             const name = expression.left.name;
+            if (operator !== "=" && expression.right.kind === "field" && expression.right.index.kind === "number") {
+              this.budget.step(2);
+              const idx = Math.trunc(expression.right.index.value);
+              if (Number.isSafeInteger(idx) && idx > 0 && idx <= (this.budget.options.maxFields ?? Infinity)) {
+                const prevNum = number(scalar(this.get(name)));
+                const rightNum = this.getFieldNumber(idx);
+                const nextNum = this.arithmetic(operator[0]!, prevNum, rightNum);
+                return this.setNumber(name, nextNum);
+              }
+            }
             const previous = operator === "=" ? unset : scalar(this.get(name));
             const rightVal = this.scalarExpression(expression.right);
             if (!(rightVal instanceof Promise)) {
-              const value = operator === "=" ? rightVal : numeric(this.arithmetic(operator[0]!, number(previous), number(rightVal)));
-              this.set(name, value);
-              return value;
+              if (operator !== "=") {
+                return this.setNumber(name, this.arithmetic(operator[0]!, number(previous), number(rightVal)));
+              }
+              this.set(name, rightVal);
+              return rightVal;
             }
             return this.evaluateAssignVarAsync(operator, name, previous, rightVal);
           } else if (expression.left.kind === "array") {

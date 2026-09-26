@@ -2844,7 +2844,7 @@ interface IntLoopStep {
   readonly name: string;
   readonly program: ArithmeticProgram;
   readonly compiled: CompiledSmiExpr;
-  readonly varRegMap: Int32Array;
+  readonly varRegMap: number[];
   targetReg: number;
   readonly isSub: boolean;
   readonly extraNewlineByte: number;
@@ -5986,7 +5986,7 @@ export class Runtime {
         intLoopStepCache.set(step.cmd, null);
         return undefined;
       }
-      const res: IntLoopStep = { name: step.name, program: p0.expression, compiled, varRegMap: new Int32Array(compiled.varNames.length), targetReg: 0, isSub: false, extraNewlineByte: 0 };
+      const res: IntLoopStep = { name: step.name, program: p0.expression, compiled, varRegMap: new Array(compiled.varNames.length).fill(0), targetReg: 0, isSub: false, extraNewlineByte: 0 };
       intLoopStepCache.set(step.cmd, res);
       return res;
     }
@@ -6004,7 +6004,7 @@ export class Runtime {
           intLoopStepCache.set(step.cmd, null);
           return undefined;
         }
-        const res: IntLoopStep = { name: step.name, program: expr, compiled, varRegMap: new Int32Array(compiled.varNames.length), targetReg: 0, isSub: true, extraNewlineByte: 1 };
+        const res: IntLoopStep = { name: step.name, program: expr, compiled, varRegMap: new Array(compiled.varNames.length).fill(0), targetReg: 0, isSub: true, extraNewlineByte: 1 };
         intLoopStepCache.set(step.cmd, res);
         if (this.middleware.length > 0 || rawState.depth >= this.budget.maxSubstitutionDepthSmi) return undefined;
         return res;
@@ -6024,7 +6024,7 @@ export class Runtime {
           intLoopStepCache.set(step.cmd, null);
           return undefined;
         }
-        const res: IntLoopStep = { name: step.name, program: expr, compiled, varRegMap: new Int32Array(compiled.varNames.length), targetReg: 0, isSub: true, extraNewlineByte: 0 };
+        const res: IntLoopStep = { name: step.name, program: expr, compiled, varRegMap: new Array(compiled.varNames.length).fill(0), targetReg: 0, isSub: true, extraNewlineByte: 0 };
         intLoopStepCache.set(step.cmd, res);
         if (this.middleware.length > 0 || rawState.depth >= this.budget.maxSubstitutionDepthSmi) return undefined;
         return res;
@@ -6544,40 +6544,65 @@ export class Runtime {
     monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets);
     this.budget.tick();
     rawState.loopDepth++;
-    touched.add(command.name);
     const prevRawWrite = this._syncArithRawWriteOnly;
     const prevTouched = this._syncArithTouched;
     this._syncArithRawWriteOnly = true;
     this._syncArithTouched = touched;
-    try {
+    type CachedForPlan = {
+      intSteps: (IntLoopStep | undefined)[];
+      allIntStepsReady: boolean;
+      hasSubIntStep: boolean;
+      arithNamesList: string[];
+      touchedIntNamesList: string[];
+    };
+    let forPlan = (command as { _cachedForPlan?: CachedForPlan })._cachedForPlan;
+    if (!forPlan) {
       const arithNames = sharedSyncLoopArithNames;
       arithNames.clear();
+      const intSteps = new Array<IntLoopStep | undefined>(bodyAssignments.length);
+      let allIntStepsReady = true;
+      let hasSubIntStep = false;
+      const touchedSet = new Set<string>([command.name]);
+      for (let b = 0; b < bodyAssignments.length; b++) {
+        const intStep = this.extractIntLoopStep(bodyAssignments[b]!, rawState);
+        if (!intStep) {
+          allIntStepsReady = false;
+          break;
+        }
+        if (intStep.isSub) hasSubIntStep = true;
+        for (let v = 0; v < intStep.compiled.varNames.length; v++) arithNames.add(intStep.compiled.varNames[v]!);
+        intSteps[b] = intStep;
+        touchedSet.add(intStep.name);
+      }
+      forPlan = {
+        intSteps,
+        allIntStepsReady,
+        hasSubIntStep,
+        arithNamesList: [...arithNames],
+        touchedIntNamesList: [...touchedSet],
+      };
+      (command as { _cachedForPlan?: CachedForPlan })._cachedForPlan = forPlan;
+    }
+    let usedFastIntFor = false;
+    try {
       const intBudgetSnapshot = this.budget.parsing.snapshot();
       let canUseIntRegisters =
+        forPlan.allIntStepsReady &&
+        (!forPlan.hasSubIntStep || (this.middleware.length === 0 && rawState.depth < this.budget.maxSubstitutionDepthSmi)) &&
         !this.budget.hasCpuLimit &&
         this.budget.maxExpansionFieldsSmi >= 1 &&
         this.budget.maxExpansionBytesSmi >= 32 &&
         command.name !== "LINENO" &&
         command.name !== "_" &&
         command.name !== "FUNCNAME";
-      const intSteps = canUseIntRegisters ? sharedSyncLoopIntSteps : undefined;
-      if (canUseIntRegisters && intSteps) {
-        intSteps.length = bodyAssignments.length;
-        for (let b = 0; b < bodyAssignments.length; b++) {
-          const intStep = this.extractIntLoopStep(bodyAssignments[b]!, rawState);
-          if (!intStep) {
-            canUseIntRegisters = false;
-            break;
-          }
-          for (let v = 0; v < intStep.compiled.varNames.length; v++) arithNames.add(intStep.compiled.varNames[v]!);
-          intSteps[b] = intStep;
-        }
-      }
+      const intSteps = canUseIntRegisters ? forPlan.intSteps : undefined;
       const regNames = sharedSyncLoopRegNames;
       regNames.length = 0;
       if (canUseIntRegisters) {
         regNames.push(command.name);
-        for (const refName of arithNames) {
+        const arithNamesList = forPlan.arithNamesList;
+        for (let a = 0; a < arithNamesList.length; a++) {
+          const refName = arithNamesList[a]!;
           if (refName === command.name) continue;
           if (
             store?.get(refName) ||
@@ -6621,7 +6646,7 @@ export class Runtime {
         if (!ok) {
           canUseIntRegisters = false;
         } else {
-          for (let b = 0; b < bodyAssignments.length; b++) touched.add(intSteps[b]!.name);
+          usedFastIntFor = true;
           lastCmd = bodyAssignments[bodyAssignments.length - 1]?.cmd;
           this.budget.iterations += fastLoopWords.length;
           this.budget.commands += fastLoopWords.length * bodyAssignments.length + subCount;
@@ -6642,6 +6667,7 @@ export class Runtime {
         }
       }
       if (!canUseIntRegisters) {
+        touched.add(command.name);
         this.budget.parsing.restore(intBudgetSnapshot);
         regNames.length = 0;
         const fb = this.runSyncForFallback(
@@ -6654,7 +6680,17 @@ export class Runtime {
       this._syncArithRawWriteOnly = prevRawWrite;
       this._syncArithTouched = prevTouched;
       rawState.loopDepth--;
-      if (touched.size === 1) {
+      if (usedFastIntFor) {
+        const touchedList = forPlan.touchedIntNamesList;
+        for (let t = 0; t < touchedList.length; t++) {
+          const varName = touchedList[t]!;
+          const finalVal = rawState.variables[varName];
+          if (finalVal !== undefined) {
+            monitor.publishStringVariable(varName, finalVal);
+            if (rawState.allexport) monitor.proxy.exported.add(varName);
+          }
+        }
+      } else if (touched.size === 1) {
         const finalVal = rawState.variables[command.name];
         if (finalVal !== undefined) {
           monitor.publishStringVariable(command.name, finalVal);
@@ -6674,7 +6710,7 @@ export class Runtime {
           publishCommandSpelling(rawState, commandSpelling(lastCmd));
         }
         rawState.substitutionStatus = 0;
-        if (rawState.variables._ !== undefined && !touched.has("_")) delete rawState.variables._;
+        if (rawState.variables._ !== undefined && !touched.has("_") && !(usedFastIntFor && forPlan.touchedIntNamesList.includes("_"))) delete rawState.variables._;
         rawState.lastArgument = lastArg;
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
         if (!existing) {

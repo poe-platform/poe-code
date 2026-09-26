@@ -1,14 +1,23 @@
-/// <reference lib="dom" />
-/// <reference lib="dom.iterable" />
 import type {Font, Glyph, GlyphRun} from "@pdf-lib/fontkit";
 import {SsconvertError, type CapabilityContext} from "../../contracts.js";
 import {harfbuzzBase64} from "./harfbuzz/data.js";
 
+// Describe only this module's WebAssembly usage. Loading lib.dom here changes
+// Node consumers' unrelated fetch and stream declarations throughout the program.
+declare const WebAssembly: {
+  compile(bytes: Uint8Array<ArrayBuffer>): Promise<object>;
+  instantiate(module: object, imports: Record<string, Record<string, (...args: number[]) => number>>): Promise<{exports: Record<string, unknown>}>;
+  Memory: new (descriptor: {initial: number; maximum?: number}) => {
+    readonly buffer: ArrayBuffer;
+    grow(delta: number): number;
+  };
+};
+
 // Only immutable compiled code is shared. Font data, native handles and failure
 // state belong to one conversion and are discarded together on any failure.
-let compiled: Promise<WebAssembly.Module> | undefined;
+let compiled: ReturnType<typeof WebAssembly.compile> | undefined;
 export function createFontShaper(context: CapabilityContext, tick: (amount?: number) => void) {
-  let exports: WebAssembly.Exports | undefined, disposed = false;
+  let exports: Record<string, unknown> | undefined, disposed = false;
   const fonts = new Map<Font, {font: number; data: number}>();
   const dispose = () => { disposed = true; exports = undefined; fonts.clear(); };
   context.own(dispose); // Register before asynchronous compilation or acquisition.

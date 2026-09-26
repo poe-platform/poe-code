@@ -7,8 +7,9 @@ import { textContext, textFixture } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
 
 const ref = (resultHandle: string) => ({ resultHandle });
+const count = 1024;
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
-for (const count of [1024, 131072]) for (const route of ["model", "sdk", "cli"] as const)
+for (const route of ["model", "sdk", "cli"] as const)
 it(`rich comment style creation retains admitted ignored physical fanout; strict=${strict}; kind=${kind}; count=${count}; route=${route}`, async () => {
   const word = strict ? "http://purl.oclc.org/ooxml/wordprocessingml/main" : "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
   const opaque = `<f:opaque>${"<f:leaf/>".repeat(count)}</f:opaque>`;

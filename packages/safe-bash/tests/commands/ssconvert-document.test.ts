@@ -6,7 +6,7 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { FsError, isErrnoCode } from "../../src/contracts/index.js";
 import { ssconvertCommands } from "../../src/commands/ssconvert/index.js";
 import { createEngine } from "poe-code/ssconvert";
-import golden from "../../../ssconvert/src/codecs/latex-roff-golden.json" with { type: "json" };
+import golden from "../../../safe-bash-command-ssconvert/src/codecs/latex-roff-golden.json" with { type: "json" };
 
 function filesystem(volume: Volume) {
   const base = new MemoryFileSystem();

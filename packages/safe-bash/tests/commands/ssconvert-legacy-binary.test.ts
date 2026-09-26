@@ -6,7 +6,7 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { FsError, isErrnoCode } from "../../src/contracts/index.js";
 import { ssconvertCommands } from "../../src/commands/ssconvert/index.js";
 import { createEngine } from "poe-code/ssconvert";
-import { psionFixture } from "../../../ssconvert/src/codecs/psion-fixture.test-support.js";
+import { psionFixture } from "../../../safe-bash-command-ssconvert/src/codecs/psion-fixture.test-support.js";
 
 test("legacy binary import shares virtual command, SDK, namespace and replay", async () => {
   const record = (id: number, data: readonly number[] = []) => [id & 255, id >> 8, data.length & 255, data.length >> 8, ...data];

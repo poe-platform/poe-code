@@ -400,11 +400,15 @@ function inputs(
       !Object.prototype.hasOwnProperty.call(backing, "readStream")
     ) {
       const tickPromise = budget.tickSync();
-      if (!tickPromise) {
-        context.signal.throwIfAborted();
-        budget.inputLocation = { name: file, line: 0, complete: false };
-        source = context.fs.readStream(absolute, { signal: context.signal });
+      if (tickPromise) {
+        return (async function* () {
+          await tickPromise;
+          yield* inputs(context, options, budget, convert, onValue, onChunkEnd, hasPendingDiagnostics);
+        })();
       }
+      context.signal.throwIfAborted();
+      budget.inputLocation = { name: file, line: 0, complete: false };
+      source = context.fs.readStream(absolute, { signal: context.signal });
     }
   }
   if (source === undefined) {

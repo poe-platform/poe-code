@@ -9,6 +9,7 @@ import { parse } from "../../src/commands/structured/parser.js";
 import { registerYieldCheckpoint } from "../../src/contracts/yield.js";
 import { toByteSource, type CommandContext } from "../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
+import { registerRuntimeBackingFileSystem } from "../../src/fs/creation-mask.js";
 import { jqCommand } from "../../src/commands/structured/jq.js";
 
 function evaluation(source: string, input: Json = null, limits: Partial<JqLimits> = {}, signal = new AbortController().signal) {
@@ -59,6 +60,40 @@ for (const source of [
   registerYieldCheckpoint(controller.signal, () => controller.abort(reason));
   const { iterator } = evaluation(source, Array<Json>(2000).fill(null), {}, controller.signal);
   await assert.rejects(drain(iterator), error => error === reason);
+});
+
+test("single-file input resumes after a cooperative yield", async () => {
+  const fs = createMemoryFileSystem();
+  registerRuntimeBackingFileSystem(fs, fs);
+  await fs.writeFile("/input.json", Buffer.from("42\n"));
+  const signal = new AbortController().signal;
+  let checkpoints = 0;
+  registerYieldCheckpoint(signal, () => { checkpoints++; });
+  const result = await run(["-c", " ".repeat(1601) + ".", "/input.json"], "", {}, { fs, signal });
+  assert.equal(checkpoints, 1);
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "42\n");
+  assert.equal(result.stderr, "");
+});
+
+test("single-file input observes yielding cancellation without an unhandled rejection", async () => {
+  const reason = Object.freeze({ cancelled: true });
+  const fs = createMemoryFileSystem();
+  registerRuntimeBackingFileSystem(fs, fs);
+  await fs.writeFile("/input.json", Buffer.from("42\n"));
+  const controller = new AbortController();
+  let checkpoints = 0;
+  let writes = 0;
+  registerYieldCheckpoint(controller.signal, () => { checkpoints++; controller.abort(reason); });
+  await assert.rejects(run(["-c", " ".repeat(1600) + ".", "/input.json"], "", {}, {
+    fs, signal: controller.signal,
+    stdout: { async write() { writes++; } },
+    stderr: { async write() { writes++; } },
+  }), error => error === reason);
+  assert.equal(checkpoints, 1);
+  assert.equal(writes, 0);
+  // Let node:test observe any rejection left behind by the cancelled command.
+  await new Promise<void>(resolve => setImmediate(resolve));
 });
 
 test("nested lexical lookups charge the same budget without cloning CLI variables", async () => {

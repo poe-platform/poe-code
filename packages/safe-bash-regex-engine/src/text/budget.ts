@@ -103,9 +103,9 @@ export class Budget {
     this.maxBufferBytes = options.maxBufferBytes ?? Infinity;
   }
   step(count = 1): void {
+    if (this.signal.aborted) this.signal.throwIfAborted();
     const nextSteps = this.stepsUsed + count;
     this.stepsUsed = nextSteps;
-    if ((nextSteps & 1023) < count && this.signal.aborted) this.signal.throwIfAborted();
     if (this.unlimited) return;
     if ((count | 0) === count && count >= 0 && count <= this.remainingSmi) {
       this.remainingSmi = (this.remainingSmi - (count | 0)) | 0;

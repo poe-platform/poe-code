@@ -6,7 +6,7 @@ import type { AwkProgram, Expression, Statement } from "./awk-syntax.js";
 import { decodeString } from "./awk-syntax.js";
 import { AwkArray, SCALAR_ONE, SCALAR_ZERO, compare, formatted, inputValue, inputValueFromSlice, number, numeric, scalar, string, text, truth, unset, type Scalar, type Value } from "./awk-values.js";
 import { Pattern, substitute } from "./regex.js";
-import { Budget, ProgramError, byteString, bytes, getCachedLatin1Batch, input, virtualPath, write, type CachedLatin1Batch } from "./shared.js";
+import { Budget, ProgramError, byteString, bytes, input, virtualPath, write } from "./shared.js";
 import { AwkRetention } from "./awk-retention.js";
 import { Reader } from "./awk-reader.js";
 import type { AwkInspection } from "./awk-inspection.js";
@@ -30,13 +30,6 @@ function isOperandAssignment(text: string): boolean {
   for (let i = 1; i < eq; i++) {
     const c = text.charCodeAt(i);
     if (!((c >= 65 && c <= 90) || (c >= 97 && c <= 122) || (c >= 48 && c <= 57) || c === 95)) return false;
-  }
-  return true;
-}
-
-function isAllExpressionStatements(body: readonly Statement[]): boolean {
-  for (let i = 0; i < body.length; i++) {
-    if (body[i]!.kind !== "expression") return false;
   }
   return true;
 }
@@ -112,25 +105,10 @@ function hasMainGetline(node: unknown): boolean {
   return Object.values(node).some(child => Array.isArray(child) ? child.some(hasMainGetline) : hasMainGetline(child));
 }
 
-interface PooledFieldBuffers {
-  fieldStarts: number[];
-  fieldEnds: number[];
-  lazyFieldGen: number[];
-  lazyFields: Scalar[];
-  fieldGeneration: number;
-}
-let sharedFieldBuffers: PooledFieldBuffers | undefined = {
-  fieldStarts: new Array<number>(64).fill(0),
-  fieldEnds: new Array<number>(64).fill(0),
-  lazyFieldGen: new Array<number>(64).fill(0),
-  lazyFields: new Array(64),
-  fieldGeneration: 1,
-};
 const FAST_AWK_MATCH_OFFSETS = new Int32Array(20);
 
 const RETURN_SCALAR_ZERO = (): Scalar => SCALAR_ZERO;
 const RETURN_SCALAR_ONE = (): Scalar => SCALAR_ONE;
-const runtimeAnchor: { current?: AwkRuntime | undefined } = {};
 const RELEASED_AWK_SIGNAL = Object.freeze({
   aborted: false,
   reason: undefined,
@@ -143,10 +121,6 @@ const RELEASED_AWK_SIGNAL = Object.freeze({
 const RELEASED_AWK_CONTEXT = Object.freeze({ signal: RELEASED_AWK_SIGNAL }) as unknown as CommandContext;
 const _lastAwkArrayAnchor = new AwkArray();
 void _lastAwkArrayAnchor;
-const BUILTIN_VAR_NAMES = new Set<string>([
-  "FS", "RS", "OFS", "ORS", "OFMT", "CONVFMT", "SUBSEP",
-  "NR", "FNR", "NF", "FILENAME", "RSTART", "RLENGTH", "ARGC", "ARGV",
-]);
 const SMALL_ARG_KEYS = ["0", "1", "2", "3", "4", "5", "6", "7", "8"];
 
 class Flow {
@@ -159,29 +133,11 @@ export class AwkRuntime {
   private readonly variables = new Map<string, Value>();
   private readonly frames: Map<string, Value>[] = [];
   private readonly arrays = new Map<AwkArray, { bytes: number; references: number }>();
-  private readonly userKeys: string[] = [];
-  private userKeysLen = 0;
-  private readonly numBoxPool: { kind: "number"; number: number }[] = [
-    { kind: "number", number: 0 },
-    { kind: "number", number: 0 },
-    { kind: "number", number: 0 },
-    { kind: "number", number: 0 },
-  ];
-  private numBoxUsed = 0;
-  private pooledArgv: AwkArray | undefined;
-  private pooledArgvAlloc: { bytes: number; references: number } | undefined;
-  private lastArgvLen = 0;
-  private canReuseInPlace = false;
   private regexes: Map<string, Pattern> | undefined;
   private outputs: Set<string> | undefined;
   private inputs: Map<string, Reader> | undefined;
   private environInitialized = false;
-  private pooledBuffers: PooledFieldBuffers | undefined;
   private mainReader: Reader | undefined;
-  private fastBatch: CachedLatin1Batch | undefined;
-  lastCompletedBatch: CachedLatin1Batch | undefined;
-  lastCompletedOutput: string | undefined;
-  private fastRawView: Uint8Array | undefined;
   private argument = 1;
   private sawFile = false;
   private defaultUsed = false;
@@ -214,7 +170,6 @@ export class AwkRuntime {
     return this.rawRecord !== undefined ? this.rawRecord.length : this.recordEnd - this.recordStart;
   }
   private readonly sliceBox = { source: "", start: 0, end: 0 };
-  suppressStdout = false;
   private recordValue: Scalar | undefined = string("");
   private entries = 0;
   private fsText = " ";
@@ -230,54 +185,12 @@ export class AwkRuntime {
   private status = 0;
   private randomSeed = 1;
   private randomState = 1;
-  static acquire(
-    program: AwkProgram,
-    context: CommandContext,
-    budget: Budget,
-    retention: AwkRetention,
-    args: readonly string[],
-    assignments: readonly string[],
-    separator?: string,
-    operandAssignments = true,
-    ordchr = false,
-    inspection?: AwkInspection,
-  ): AwkRuntime {
-    const pooled = runtimeAnchor.current;
-    if (
-      pooled !== undefined &&
-      pooled.canReuseInPlace &&
-      inspection === undefined &&
-      assignments.length === 0 &&
-      args.length <= 8 &&
-      retention.capacity > 65536 &&
-      budget.options.maxArrayEntries === undefined &&
-      budget.options.maxBufferBytes === undefined &&
-      budget.options.maxRetainedBytes === undefined
-    ) {
-      runtimeAnchor.current = undefined;
-      pooled.resetForRun(program, context, budget, retention, args, separator, operandAssignments, ordchr);
-      return pooled;
-    }
-    return new AwkRuntime(program, context, budget, retention, args, assignments, separator, operandAssignments, ordchr, inspection);
-  }
-
   constructor(private program: AwkProgram, public context: CommandContext, public budget: Budget, public retention: AwkRetention, args: readonly string[], assignments: readonly string[], separator?: string, private operandAssignments = true, private ordchr = false, private inspection?: AwkInspection | undefined) {
-    const pooled = sharedFieldBuffers;
-    if (pooled) {
-      sharedFieldBuffers = undefined;
-      this.pooledBuffers = pooled;
-      this.fieldStarts = pooled.fieldStarts;
-      this.fieldEnds = pooled.fieldEnds;
-      this.lazyFieldGen = pooled.lazyFieldGen;
-      this.lazyFields = pooled.lazyFields;
-      this.fieldGeneration = pooled.fieldGeneration;
-    } else {
-      this.fieldStarts = new Array<number>(64).fill(0);
-      this.fieldEnds = new Array<number>(64).fill(0);
-      this.lazyFieldGen = new Array<number>(64).fill(0);
-      this.lazyFields = new Array(64);
-      this.fieldGeneration = 1;
-    }
+    this.fieldStarts = new Array<number>(64).fill(0);
+    this.fieldEnds = new Array<number>(64).fill(0);
+    this.lazyFieldGen = new Array<number>(64).fill(0);
+    this.lazyFields = new Array(64);
+    this.fieldGeneration = 1;
     try {
       for (let i = 0; i < DEFAULT_VARIABLES.length; i++) {
         const pair = DEFAULT_VARIABLES[i]!;
@@ -288,90 +201,15 @@ export class AwkRuntime {
         this.ensureEnviron();
       }
       const argv = this.array("ARGV"); this.arraySet(argv, "0", AWK_ARGV0);
-      this.pooledArgv = argv;
-      this.pooledArgvAlloc = this.arrays.get(argv);
-      this.lastArgvLen = args.length;
       for (let index = 0; index < args.length; index++) {
         const k = index + 1 < SMALL_ARG_KEYS.length ? SMALL_ARG_KEYS[index + 1]! : String(index + 1);
         this.arraySet(argv, k, inputValue(byteString(args[index]!)));
       }
       if (separator !== undefined) this.set("FS", string(separator));
       for (const assignment of assignments) this.assignment(assignment);
-      this.canReuseInPlace = inspection === undefined && !this.environInitialized && assignments.length === 0 && args.length <= 8;
     } catch (error) { this.releaseStore(this.variables); throw error; }
   }
 
-  private resetForRun(
-    program: AwkProgram,
-    context: CommandContext,
-    budget: Budget,
-    retention: AwkRetention,
-    args: readonly string[],
-    separator: string | undefined,
-    operandAssignments: boolean,
-    ordchr: boolean,
-  ): void {
-    this.program = program;
-    this.context = context;
-    this.budget = budget;
-    this.retention = retention;
-    this.operandAssignments = operandAssignments;
-    this.ordchr = ordchr;
-    this.inspection = undefined;
-    this.argument = 1;
-    this.sawFile = false;
-    this.defaultUsed = false;
-    this.fastBatch = undefined;
-    this.fastRawView = undefined;
-    this.fieldCount = 0;
-    this.deferredFieldSeparator = " ";
-    this.fieldsMaterialized = true;
-    this.fieldGeneration = (this.fieldGeneration + 1) | 0 || 1;
-    this.fieldBytes = 0;
-    this.rawRecord = "";
-    this.recordSource = "";
-    this.recordStart = 0;
-    this.recordEnd = 0;
-    this.recordValue = string("");
-    this.fsText = separator !== undefined ? separator : " ";
-    this.rsText = "\n";
-    this.convfmtText = "%.6g";
-    this.nrNum = 0;
-    this.nrDirty = false;
-    this.fnrNum = 0;
-    this.fnrDirty = false;
-    this.nfNum = 0;
-    this.nfDirty = false;
-    this.phase = "BEGIN";
-    this.status = 0;
-    this.randomSeed = 1;
-    this.randomState = 1;
-    this.recordChecks = 0;
-    this.stdoutBuffer = "";
-    this.numBoxUsed = 0;
-    this.variables.set("FS", separator !== undefined ? string(separator) : DEFAULT_VARIABLES[0]![1]);
-    this.variables.set("ARGC", numeric(args.length + 1));
-    const argv = this.pooledArgv!;
-    const argvAlloc = this.pooledArgvAlloc!;
-    let argvBytes = 4;
-    for (let index = 0; index < args.length; index++) {
-      const k = SMALL_ARG_KEYS[index + 1]!;
-      const val = inputValue(byteString(args[index]!));
-      const vSize = textSize(val);
-      const existed = index < this.lastArgvLen;
-      argv.entries.set(k, val);
-      argvBytes += vSize + 1;
-      if (!existed) this.entries++;
-    }
-    for (let index = args.length; index < this.lastArgvLen; index++) {
-      const k = SMALL_ARG_KEYS[index + 1]!;
-      argv.entries.delete(k);
-      this.entries--;
-    }
-    this.lastArgvLen = args.length;
-    retention.admit(0, 12 + (separator !== undefined ? separator.length : 1) + argvBytes);
-    argvAlloc.bytes = argvBytes;
-  }
   private ensureEnviron(): void {
     if (this.environInitialized) return;
     this.environInitialized = true;
@@ -426,9 +264,6 @@ export class AwkRuntime {
     if (value.kind === "string" || value.kind === "numeric") this.budget.check(value.text);
     this.retention.admit(textSize(store.get(name)), textSize(value));
     const owned = ownScalar(value);
-    if (store === this.variables && this.canReuseInPlace && !BUILTIN_VAR_NAMES.has(name) && store.get(name) === undefined) {
-      this.userKeys[this.userKeysLen++] = name;
-    }
     store.set(name, owned);
     if (store === this.variables) {
       if (name === "FS") this.fsText = this.asText(owned);
@@ -440,7 +275,6 @@ export class AwkRuntime {
     }
   }
   private bindArray(store: Map<string, Value>, name: string, array: AwkArray): void {
-    if (name !== "ARGV") this.canReuseInPlace = false;
     let allocation = this.arrays.get(array);
     if (!allocation) { allocation = { bytes: 0, references: 0 }; this.arrays.set(array, allocation); }
     allocation.references++;
@@ -480,27 +314,8 @@ export class AwkRuntime {
     }
     const existing = store.get(name);
     if (existing instanceof AwkArray) throw new ProgramError(`cannot assign a scalar to array '${name}'`);
-    if (existing !== undefined && existing.kind === "number" && !Object.isFrozen(existing)) {
-      if (this.budget.context.signal.aborted) this.budget.context.signal.throwIfAborted();
-      (existing as { number: number }).number = valNum;
-      if (store === this.variables) {
-        if (name === "NR") { this.nrNum = valNum; this.nrDirty = false; }
-        else if (name === "FNR") { this.fnrNum = valNum; this.fnrDirty = false; }
-      }
-      return existing;
-    }
     this.retention.admit(textSize(existing), 0);
-    let box: Scalar;
-    if (store === this.variables && this.canReuseInPlace && this.numBoxUsed < 4) {
-      const pooledBox = this.numBoxPool[this.numBoxUsed++]!;
-      pooledBox.number = valNum;
-      box = pooledBox;
-    } else {
-      box = { kind: "number", number: valNum };
-    }
-    if (store === this.variables && this.canReuseInPlace && !BUILTIN_VAR_NAMES.has(name) && existing === undefined) {
-      this.userKeys[this.userKeysLen++] = name;
-    }
+    const box = numeric(valNum);
     store.set(name, box);
     if (store === this.variables) {
       if (name === "FS") this.fsText = this.asText(box);
@@ -1514,23 +1329,8 @@ export class AwkRuntime {
           const prevNum = existing !== undefined ? (existing.kind === "number" ? existing.number : number(existing)) : 0;
           const rawNext = prevNum + (expr.operator === "++" ? 1 : -1);
           const next = (rawNext | 0) === rawNext && (rawNext !== 0 || 1 / rawNext > 0) ? (rawNext | 0) : rawNext;
-          if (existing !== undefined && existing.kind === "number" && !Object.isFrozen(existing)) {
-            (existing as { number: number }).number = next;
-            return true;
-          }
-          const prevBytes = textSize(existing);
-          if (prevBytes > 0) this.retention.admit(prevBytes, 0);
-          let box: Scalar;
-          if (this.canReuseInPlace && this.numBoxUsed < 4) {
-            const pooledBox = this.numBoxPool[this.numBoxUsed++]!;
-            pooledBox.number = next;
-            box = pooledBox;
-          } else {
-            box = { kind: "number", number: next };
-          }
-          if (this.canReuseInPlace && existing === undefined && !BUILTIN_VAR_NAMES.has(name)) {
-            this.userKeys[this.userKeysLen++] = name;
-          }
+          this.retention.admit(textSize(existing), 0);
+          const box = numeric(next);
           this.variables.set(name, box);
           return true;
         }
@@ -1564,23 +1364,8 @@ export class AwkRuntime {
               ? prevNum + rightNum
               : this.arithmetic(expr.operator[0]!, prevNum, rightNum);
             const next = (rawNext | 0) === rawNext && (rawNext !== 0 || 1 / rawNext > 0) ? (rawNext | 0) : rawNext;
-            if (existing !== undefined && existing.kind === "number" && !Object.isFrozen(existing)) {
-              (existing as { number: number }).number = next;
-              return true;
-            }
-            const prevBytes = textSize(existing);
-            if (prevBytes > 0) this.retention.admit(prevBytes, 0);
-            let box: Scalar;
-            if (this.canReuseInPlace && this.numBoxUsed < 4) {
-              const pooledBox = this.numBoxPool[this.numBoxUsed++]!;
-              pooledBox.number = next;
-              box = pooledBox;
-            } else {
-              box = { kind: "number", number: next };
-            }
-            if (this.canReuseInPlace && existing === undefined && !BUILTIN_VAR_NAMES.has(name)) {
-              this.userKeys[this.userKeysLen++] = name;
-            }
+            this.retention.admit(textSize(existing), 0);
+            const box = numeric(next);
             this.variables.set(name, box);
             return true;
           }
@@ -1869,71 +1654,18 @@ export class AwkRuntime {
   }
 
   private finishSyncCleanup(status: number): number {
-    if (this.canReuseInPlace && this.frames.length === 0 && !this.environInitialized && this.arrays.size === 1) {
-      if (this.userKeysLen <= 16) {
-        for (let i = 0; i < this.userKeysLen; i++) {
-          const k = this.userKeys[i]!;
-          const v = this.variables.get(k);
-          if (v !== undefined && v !== unset) {
-            this.retention.release(textSize(v));
-            this.variables.set(k, unset);
-          }
-        }
-      } else {
-        for (let i = 0; i < this.userKeysLen; i++) {
-          const k = this.userKeys[i]!;
-          const v = this.variables.get(k);
-          if (v !== undefined) {
-            if (v !== unset) this.retention.release(textSize(v));
-            this.variables.delete(k);
-          }
-        }
-        this.userKeysLen = 0;
-      }
-      for (let i = 0; i < DEFAULT_VARIABLES.length; i++) {
-        const pair = DEFAULT_VARIABLES[i]!;
-        const k = pair[0];
-        const defVal = pair[1];
-        const curVal = this.variables.get(k);
-        if (curVal !== defVal) {
-          this.retention.admit(textSize(curVal), textSize(defVal));
-          this.variables.set(k, defVal);
-        }
-      }
-      const argvAlloc = this.pooledArgvAlloc!;
-      this.retention.release(13 + argvAlloc.bytes);
-      argvAlloc.bytes = 0;
-      this.lazyFields.fill(unset, 0, Math.min(64, this.lazyFields.length));
-      this.fieldGeneration = (this.fieldGeneration + 1) | 0 || 1;
-      if (this.regexes && this.regexes.size > 0) this.regexes.clear();
-    } else {
-      this.canReuseInPlace = false;
-      this.releaseStore(this.variables);
-      if (this.pooledBuffers && !sharedFieldBuffers) {
-        this.pooledBuffers.fieldStarts = this.fieldStarts;
-        this.pooledBuffers.fieldEnds = this.fieldEnds;
-        this.pooledBuffers.lazyFieldGen = this.lazyFieldGen;
-        this.pooledBuffers.lazyFields = this.lazyFields;
-        this.pooledBuffers.fieldGeneration = this.fieldGeneration + 1;
-        this.lazyFields.fill(unset, 0, Math.min(64, this.lazyFields.length));
-        sharedFieldBuffers = this.pooledBuffers;
-        this.pooledBuffers = undefined;
-      }
-    }
+    this.releaseStore(this.variables);
     this.retention.release(this.recordLength + this.fieldBytes);
     this.record = "";
     if (this.rawFields.length > 0) this.rawFields.length = 0;
     this.fieldCount = 0; this.fieldsMaterialized = true; this.fieldBytes = 0;
     this.sliceBox.source = "";
-    this.fastBatch = undefined;
-    this.fastRawView = undefined;
     this.recordValue = unset;
     this.context.signal.throwIfAborted();
     (this as unknown as { context: CommandContext }).context = RELEASED_AWK_CONTEXT;
     (this.budget as unknown as { context: CommandContext; signal: AbortSignal }).context = RELEASED_AWK_CONTEXT;
     (this.budget as unknown as { context: CommandContext; signal: AbortSignal }).signal = RELEASED_AWK_SIGNAL;
     (this.retention as unknown as { signal: AbortSignal }).signal = RELEASED_AWK_SIGNAL;
-    runtimeAnchor.current = this;
     return status;
   }
 
@@ -1951,15 +1683,10 @@ export class AwkRuntime {
                   return this.finishRunAfterSyncProgram(progRes, pendingClose);
                 }
               }
-              this.lastCompletedOutput = this.stdoutBuffer;
               if (this.stdoutBuffer.length > 0) {
-                if (this.suppressStdout) {
-                  this.stdoutBuffer = "";
-                } else {
                 const flushPending = this.flushStdout();
                 if (flushPending) {
                   return this.finishRunAfterFlush(progRes, flushPending);
-                }
                 }
               }
               if (this.inspection) this.syncSpecialVars();
@@ -2047,235 +1774,12 @@ export class AwkRuntime {
     return this.finishRunFromPromise(this.runProgram());
   }
 
-  private applyFastPairDelta(sumName: string, sumDelta: number, cntName: string, cntDelta: number): void {
-    const exSum = this.variables.get(sumName);
-    const prevSum = exSum !== undefined && !(exSum instanceof AwkArray) ? (exSum.kind === "number" ? exSum.number : number(exSum)) : 0;
-    const nextSum = (prevSum + sumDelta) | 0;
-    if (exSum !== undefined && !(exSum instanceof AwkArray) && exSum.kind === "number" && !Object.isFrozen(exSum)) {
-      (exSum as { number: number }).number = nextSum;
-    } else {
-      if (this.canReuseInPlace && exSum === undefined) this.userKeys[this.userKeysLen++] = sumName;
-      const box = this.canReuseInPlace && this.numBoxUsed < 4 ? this.numBoxPool[this.numBoxUsed++]! : { kind: "number" as const, number: 0 };
-      box.number = nextSum;
-      this.variables.set(sumName, box);
-    }
-    const exCnt = this.variables.get(cntName);
-    const prevCnt = exCnt !== undefined && !(exCnt instanceof AwkArray) ? (exCnt.kind === "number" ? exCnt.number : number(exCnt)) : 0;
-    const nextCnt = (prevCnt + cntDelta) | 0;
-    if (exCnt !== undefined && !(exCnt instanceof AwkArray) && exCnt.kind === "number" && !Object.isFrozen(exCnt)) {
-      (exCnt as { number: number }).number = nextCnt;
-    } else {
-      if (this.canReuseInPlace && exCnt === undefined) this.userKeys[this.userKeysLen++] = cntName;
-      const box = this.canReuseInPlace && this.numBoxUsed < 4 ? this.numBoxPool[this.numBoxUsed++]! : { kind: "number" as const, number: 0 };
-      box.number = nextCnt;
-      this.variables.set(cntName, box);
-    }
-  }
-
   private tryRunProgramSync(): number | Promise<number> {
     this.phase = "record";
     let ranges: Set<number> | undefined;
     if (this.program.rules.length || this.program.end.length) {
-      if (!this.mainReader && !this.fastBatch) {
+      if (!this.mainReader) {
         this.tryOpenNextMainReaderSync();
-      }
-      const fastSource = this.fastBatch !== undefined ? this.fastBatch.text : (this.mainReader !== undefined && this.mainReader.blocksLen === 1 && this.mainReader.ended && this.mainReader.offset === 0 ? this.mainReader.blockStrings[0] : undefined);
-      const fastEnds = this.fastBatch !== undefined ? this.fastBatch.ends : (this.mainReader !== undefined && this.mainReader.blocksLen === 1 && this.mainReader.ended && this.mainReader.offset === 0 ? this.mainReader.blockEnds[0] : undefined);
-      if (
-        fastSource !== undefined &&
-        fastEnds !== undefined &&
-        this.program.rules.length === 1 &&
-        this.frames.length === 0 &&
-        this.rsText === "\n" &&
-        this.fsText.length === 1 &&
-        this.fsText !== " " &&
-        this.retention.capacity === Infinity &&
-        this.argument >= number(this.getScalar("ARGC"))
-      ) {
-        const rule = this.program.rules[0]!;
-        const pat = !rule.pattern ? undefined : rule.pattern.kind === "regex" ? rule.pattern.pattern : null;
-        if (
-          !rule.end &&
-          pat !== null &&
-          (pat === undefined || pat.canFindSync()) &&
-          rule.action.kind === "block" &&
-          isAllExpressionStatements(rule.action.body)
-        ) {
-          const source = fastSource;
-          const ends = fastEnds;
-          const endsLen = ends.length;
-          if (endsLen > 0 && ends[endsLen - 1] === source.length - 1) {
-            const body = rule.action.body as readonly Extract<Statement, { kind: "expression" }>[];
-            const bodyLen = body.length;
-            const fsChar = this.fsText;
-            let recStart = 0;
-            let completedLines = 0;
-            let fastOk = this.frames.length === 0 && bodyLen >= 1 && bodyLen <= 8;
-            if (fastOk) {
-              const maxF = this.budget.options.maxFields ?? Infinity;
-              for (let s = 0; s < bodyLen; s++) {
-                const expr = body[s]!.expression;
-                if (expr.kind === "unary" && (expr.operator === "++" || expr.operator === "--") && expr.operand.kind === "variable") {
-                  const n = expr.operand.name;
-                  if (n === "NF" || n === "NR" || n === "FNR" || n === "FS" || n === "RS" || n === "CONVFMT" || this.variables.get(n) instanceof AwkArray) {
-                    fastOk = false; break;
-                  }
-                } else if (expr.kind === "binary" && (expr.operator === "+=" || expr.operator === "-=" || expr.operator === "*=" || expr.operator === "/=") && expr.left.kind === "variable") {
-                  const n = expr.left.name;
-                  const r = expr.right;
-                  const rOk = r.kind === "number" || (r.kind === "field" && r.index.kind === "number" && Math.trunc(r.index.value) > 0 && Math.trunc(r.index.value) <= maxF);
-                  if (!rOk || n === "NF" || n === "NR" || n === "FNR" || n === "FS" || n === "RS" || n === "CONVFMT" || this.variables.get(n) instanceof AwkArray) {
-                    fastOk = false; break;
-                  }
-                } else {
-                  fastOk = false; break;
-                }
-              }
-            }
-            let checkpointPromise: Promise<void> | undefined;
-            if (fastOk) {
-              const patLit = pat !== undefined ? pat.getLiteralMatchInfo() : undefined;
-              const patLitStr = patLit !== undefined && patLit.anchoredStart && !patLit.anchoredEnd ? patLit.value : undefined;
-              const patLitLen = patLitStr !== undefined ? patLitStr.length : 0;
-              const patLitC0 = patLitLen > 0 ? patLitStr!.charCodeAt(0) : -1;
-              this.recordSource = source;
-              this.deferredFieldSeparator = fsChar;
-              const e0 = bodyLen === 2 ? body[0]!.expression : undefined;
-              const e1 = bodyLen === 2 ? body[1]!.expression : undefined;
-              const isFastSumCntPair =
-                e0 !== undefined &&
-                e1 !== undefined &&
-                e0.kind === "binary" &&
-                e0.operator === "+=" &&
-                e0.left.kind === "variable" &&
-                e0.right.kind === "field" &&
-                e0.right.index.kind === "number" &&
-                Math.trunc(e0.right.index.value) === 3 &&
-                e1.kind === "unary" &&
-                e1.operator === "++" &&
-                e1.operand.kind === "variable" &&
-                e0.left.name !== e1.operand.name;
-              const fsCode = fsChar.charCodeAt(0);
-              let sumAcc = 0;
-              let cntAcc = 0;
-              let sumTouched = false;
-              for (let lineIdx = 0; lineIdx < endsLen; lineIdx++) {
-                const recEnd = ends[lineIdx]!;
-                const recLen = recEnd - recStart;
-                if (recLen >= 64) { fastOk = false; break; }
-                this.budget.step(2 + recLen);
-                let matched: boolean;
-                if (pat === undefined) {
-                  matched = true;
-                } else if (patLitStr !== undefined) {
-                  this.budget.step();
-                  matched = recLen >= patLitLen && (patLitLen === 0 || (source.charCodeAt(recStart) === patLitC0 && (patLitLen === 1 || source.startsWith(patLitStr, recStart))));
-                } else {
-                  matched = pat.findSyncFastInto(source, this.budget, recStart, FAST_AWK_MATCH_OFFSETS, recEnd, recStart);
-                }
-                if (matched) {
-                  if (isFastSumCntPair) {
-                    const sep1 = source.indexOf(fsChar, recStart);
-                    const sep2 = sep1 >= 0 && sep1 < recEnd ? source.indexOf(fsChar, sep1 + 1) : -1;
-                    if (sep2 >= 0 && sep2 + 1 < recEnd) {
-                      let fEnd = source.indexOf(fsChar, sep2 + 1);
-                      if (fEnd < 0 || fEnd > recEnd) fEnd = recEnd;
-                      let fVal = 0;
-                      let digitsOk = fEnd > sep2 + 1 && fEnd - (sep2 + 1) <= 9;
-                      for (let p = sep2 + 1; digitsOk && p < fEnd; p++) {
-                        const d = source.charCodeAt(p) - 48;
-                        if (d < 0 || d > 9) { digitsOk = false; break; }
-                        fVal = fVal * 10 + d;
-                      }
-                      if (digitsOk) {
-                        this.budget.step(7);
-                        sumAcc = (sumAcc + fVal) | 0;
-                        cntAcc = (cntAcc + 1) | 0;
-                        sumTouched = true;
-                        recStart = recEnd + 1;
-                        completedLines = lineIdx + 1;
-                        if ((completedLines & 63) === 0) {
-                          const cp = this.budget.checkpointSync();
-                          if (cp) { checkpointPromise = cp; fastOk = false; break; }
-                        }
-                        continue;
-                      }
-                    }
-                  }
-                  if (sumTouched && e0 && e1 && e0.kind === "binary" && e0.left.kind === "variable" && e1.kind === "unary" && e1.operand.kind === "variable") {
-                    this.applyFastPairDelta(e0.left.name, sumAcc, e1.operand.name, cntAcc);
-                    sumAcc = 0;
-                    cntAcc = 0;
-                    sumTouched = false;
-                  }
-                  this.recordStart = recStart;
-                  this.recordEnd = recEnd;
-                  this.fieldCount = -1;
-                  this.fieldsMaterialized = false;
-                  this.fieldGeneration = (this.fieldGeneration + 1) | 0 || 1;
-                  this.recordValue = undefined;
-                  this.budget.step(1 + bodyLen);
-                  for (let s = 0; s < bodyLen; s++) {
-                    this.tryFastExpressionStatement(body[s]!.expression);
-                  }
-                }
-                recStart = recEnd + 1;
-                completedLines = lineIdx + 1;
-                if ((completedLines & 63) === 0) {
-                  const cp = this.budget.checkpointSync();
-                  if (cp) {
-                    checkpointPromise = cp;
-                    fastOk = false;
-                    break;
-                  }
-                }
-              }
-              if (sumTouched && e0 && e1 && e0.kind === "binary" && e0.left.kind === "variable" && e1.kind === "unary" && e1.operand.kind === "variable") {
-                this.applyFastPairDelta(e0.left.name, sumAcc, e1.operand.name, cntAcc);
-                sumAcc = 0;
-                cntAcc = 0;
-                sumTouched = false;
-              }
-            }
-            if (!fastOk && completedLines > 0) {
-              this.nrNum = completedLines;
-              this.nrDirty = true;
-              this.fnrNum = completedLines;
-              this.fnrDirty = true;
-              this.nfDirty = true;
-              if (this.fastRawView !== undefined) {
-                this.mainReader = Reader.fromMemoryView(this.fastRawView.subarray(recStart), this.budget, this.retention);
-                this.fastBatch = undefined;
-                this.fastRawView = undefined;
-              } else if (this.mainReader) {
-                this.mainReader.offset = recStart;
-              }
-              if (checkpointPromise) {
-                return checkpointPromise.then(() => this.continueProgramSlowAsync(ranges));
-              }
-            }
-            if (fastOk) {
-              this.nrNum = endsLen;
-              this.nrDirty = true;
-              this.fnrNum = endsLen;
-              this.fnrDirty = true;
-              this.nfDirty = true;
-              if (this.mainReader) {
-                this.mainReader.closeSyncOrAsync();
-                this.mainReader = undefined;
-              }
-              this.lastCompletedBatch = this.fastBatch;
-              this.fastBatch = undefined;
-              this.fastRawView = undefined;
-              return this.runEndPhaseSyncOrAsync(0);
-            }
-          }
-        }
-      }
-      if (this.fastBatch !== undefined && this.fastRawView !== undefined) {
-        this.mainReader = Reader.fromMemoryView(this.fastRawView, this.budget, this.retention);
-        this.fastBatch = undefined;
-        this.fastRawView = undefined;
       }
       while (true) {
         this.budget.step();
@@ -2519,21 +2023,10 @@ export class AwkRuntime {
     this.record = ""; this.fields = []; this.fieldCount = 0; this.fieldsMaterialized = true; this.fieldBytes = 0;
     this.sliceBox.source = "";
     this.recordValue = unset;
-    if (this.pooledBuffers && !sharedFieldBuffers) {
-      this.pooledBuffers.fieldStarts = this.fieldStarts;
-      this.pooledBuffers.fieldEnds = this.fieldEnds;
-      this.pooledBuffers.lazyFieldGen = this.lazyFieldGen;
-      this.pooledBuffers.lazyFields = this.lazyFields;
-      this.pooledBuffers.fieldGeneration = this.fieldGeneration + 1;
-      this.lazyFields.fill(unset, 0, Math.min(64, this.lazyFields.length));
-      sharedFieldBuffers = this.pooledBuffers;
-      this.pooledBuffers = undefined;
-    }
     this.context.signal.throwIfAborted();
     (this as unknown as { context: CommandContext }).context = RELEASED_AWK_CONTEXT;
     (this.budget as unknown as { context: CommandContext; signal: AbortSignal }).context = RELEASED_AWK_CONTEXT;
     (this.budget as unknown as { context: CommandContext; signal: AbortSignal }).signal = RELEASED_AWK_SIGNAL;
-    runtimeAnchor.current = this;
     if (failed) throw failure;
     if (cleanup) for (const result of cleanup) if (result.status === "rejected") throw result.reason;
     return status;
@@ -2676,16 +2169,7 @@ export class AwkRuntime {
               rawView = undefined;
             }
             if (rawView !== undefined && rawView.byteLength <= this.budget.maxBufferBytes) {
-              if (!this.suppressStdout) (this.context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
-              if (this.retention.capacity === Infinity) {
-                const batch = getCachedLatin1Batch(rawView);
-                if (batch !== undefined) {
-                  this.budget.step();
-                  this.fastBatch = batch;
-                  this.fastRawView = rawView;
-                  return true;
-                }
-              }
+              (this.context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
               this.mainReader = Reader.fromMemoryView(rawView, this.budget, this.retention);
               return true;
             }

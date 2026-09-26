@@ -1,7 +1,79 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CommandRegistry, MemoryFileSystem, Shell, createTextProgramCommands, createStandardCommands } from "../../../src/index.js";
+import { Budget } from "../../../src/commands/text-programs/shared.js";
 import { runVirtual } from "./helpers.js";
+
+for (const [name, rows, program, expected] of [
+  ["large stdout executes once", Array(600).fill("row:123456789012345678901234567890").join("\n") + "\n", '{ print $2 }', "123456789012345678901234567890\n".repeat(600)],
+  ["long record fallback preserves sums", [...Array(50).fill("a:10"), "d:10:" + "x".repeat(70)].join("\n") + "\n", '{ sum += $2 } END { print sum }', "510\n"],
+  ["unsupported second statement executes once", "a:10\n".repeat(60), '{ count++; total += $2 + 1 } END { print count, total }', "60 660\n"],
+  ["yielding batch executes once", "hello:10\n".repeat(128), '/hello/ { count++; sum += $2 } END { print count, sum }', "128 1280\n"],
+  ["retained scalar is immutable", "a:10\n".repeat(60), '{ x += 5000; saved = x; x++; print saved, x; exit }', "5000 5001\n"],
+] as const) test(`AWK ${name}`, async context => {
+  if (name === "yielding batch executes once") {
+    const checkpoint = Budget.prototype.checkpointSync;
+    context.mock.method(Budget.prototype, "checkpointSync", function (this: Budget) {
+      return checkpoint.call(this) ?? Promise.resolve();
+    });
+  }
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs, commands: new CommandRegistry(createTextProgramCommands()) });
+  context.after(() => shell.dispose());
+  await fs.writeFile("/rows", Buffer.from(rows));
+  const result = await shell.exec(`awk -F: '${program}' /rows`);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, expected);
+});
+
+test("AWK writes redirections and stderr once", async context => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs, commands: new CommandRegistry(createTextProgramCommands()) });
+  context.after(() => shell.dispose());
+  await fs.writeFile("/rows", Buffer.from("a:10\n"));
+  const result = await shell.exec(`awk -F: '{ print $2 >> "/out"; print $2 > "/dev/stderr" }' /rows`);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "10\n");
+  assert.equal(Buffer.from(await fs.readFile("/out")).toString(), "10\n");
+});
+
+test("AWK awaits asynchronous stdout and END output exactly once", async context => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs, commands: new CommandRegistry(createTextProgramCommands()) });
+  context.after(() => shell.dispose());
+  await fs.writeFile("/rows", Buffer.from("a:123456789012345678901234567890\n".repeat(600)));
+  const chunks: Uint8Array[] = [];
+  const result = await shell.exec(`awk -F: '{ print $2 } END { print "done" }' /rows`, {
+    stdout: { async write(chunk) { await Promise.resolve(); chunks.push(chunk.slice()); } },
+  });
+  const expected = "123456789012345678901234567890\n".repeat(600) + "done\n";
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, expected);
+  assert.equal(Buffer.concat(chunks).toString(), expected);
+});
+
+test("AWK independent shells have fresh ARGV and field buffers", async context => {
+  const shells = [];
+  for (let i = 0; i < 2; i++) {
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/rows", Buffer.from(i === 0 ? "Alpha:111\n" : "Long-beta:22:extra\n"));
+    const shell = new Shell({ fs, commands: new CommandRegistry(createTextProgramCommands()) });
+    context.after(() => shell.dispose());
+    shells.push(shell);
+  }
+  assert.equal((await shells[0]!.exec(`awk -F: '{ ARGV[0] = "tenant-secret"; ARGV["token"] = "secret"; ARGV[99] = "extra" }' /rows`)).exitCode, 0);
+  const result = await shells[1]!.exec(`awk -F: 'END { print ARGV[0], ARGV["token"], ARGV[99] }' /rows`);
+  assert.equal(result.stdout, "awk  \n");
+  const results = await Promise.all(shells.map(shell => shell.exec(`awk -F: 'function inspect(v) { return tolower(v) } { print inspect($1), $2; print $1, $2 }' /rows`)));
+  assert.equal(results[0]!.stdout, "alpha 111\nAlpha 111\n");
+  assert.equal(results[1]!.stdout, "long-beta 22\nLong-beta 22\n");
+});
+
+test("AWK numeric expressions retain earlier operands", async () => {
+  const result = await runVirtual("awk", { args: ['BEGIN { x = 10; x += 5; print x, (x += 5), (x == (x += 5)); x = 5000; print x, x++, x }'] });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stdout.toString(), "15 20 0\n5000 5000 5001\n");
+});
 
 for (const [name, program, expected] of [
   ["builtin print argument preserves prior side effects", '{ x = 0; print x++, tolower("ABC"); print "final x=" x }', "0 abc\nfinal x=1\n"],
@@ -14,7 +86,6 @@ for (const [name, program, expected] of [
   assert.equal(result.exitCode, 0, result.stderr.toString());
   assert.equal(result.stdout.toString(), expected);
 });
-
 for (const fallback of [false, true]) test(`infinite AWK preserves the published snapshot and recovers within the unchanged deadline: timer fallback=${fallback}`, { timeout: 5000 }, async context => {
   if (fallback) {
     const descriptor = Object.getOwnPropertyDescriptor(globalThis, "setImmediate")!;

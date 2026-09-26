@@ -6,8 +6,7 @@ import { AwkInspection, type AwkInspectionOptions } from "./awk-inspection.js";
 import { prettyAwk } from "./awk-pretty.js";
 import { quoteAwk } from "./awk-quote.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
-import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
-import { Budget, ProgramError, byteString, bytes, command, getCachedLatin1Batch, readProgram, virtualPath, write, type CachedLatin1Batch, type TextProgramOptions } from "./shared.js";
+import { Budget, ProgramError, byteString, bytes, command, readProgram, virtualPath, write, type TextProgramOptions } from "./shared.js";
 
 const ordchrArities = Object.freeze({ ...builtinArities, ord: [1, 1] as const, chr: [1, 1] as const });
 const awkProgramCache = new Map<string, AwkProgram>();
@@ -16,30 +15,10 @@ const sharedSingleArg: string[] = [""];
 let sharedRetention: AwkRetention | undefined;
 let sharedAwkBudget: Budget | undefined;
 let sharedAwkBudgetInUse = false;
-let awkFastWarmed = false;
-let lastMemoBatch: CachedLatin1Batch | undefined;
-let lastMemoRawArg0 = "";
-let lastMemoRawArg1 = "";
-let lastMemoProgram: AwkProgram | undefined;
-let lastMemoSource = "";
-let lastMemoSep = "";
-let lastMemoOutput = "";
-const lastMemoOutputBuf = new Uint8Array(256);
-let lastMemoOutputLen = -1;
-let lastMemoSteps = 0;
-const awkBimodalWarm = 0;
-
-function finishAwkFastAsync(res: Promise<number>, rt: AwkRuntime): Promise<number> {
-  return res.finally(() => {
-    rt.suppressStdout = false;
-    sharedAwkBudgetInUse = false;
-  });
-}
 
 function tryExecuteAwkFastSync(
   context: Parameters<CommandDefinition["execute"]>[0],
   options: TextProgramOptions,
-  suppressStdout: boolean,
 ): number | Promise<number> | undefined {
   if (
     sharedAwkBudgetInUse ||
@@ -54,30 +33,21 @@ function tryExecuteAwkFastSync(
     return undefined;
   }
   const arg0 = context.args[0]!;
-  const arg1 = context.args[1]!;
   let separator: string;
-  let source: string;
-  let program: AwkProgram | undefined;
-  if (arg0 === lastMemoRawArg0 && arg1 === lastMemoRawArg1 && lastMemoProgram !== undefined) {
-    separator = lastMemoSep;
-    source = lastMemoSource;
-    program = lastMemoProgram;
+  if (arg0 === "-F:") {
+    separator = ":";
   } else {
-    if (arg0 === "-F:") {
-      separator = ":";
-    } else {
-      const rawSep = byteString(arg0.slice(2));
-      separator = rawSep.indexOf("\\") >= 0 ? decodeString(rawSep) : rawSep;
-    }
-    source = byteString(arg1);
-    program = awkProgramCache.get(source);
-    if (!program && source.length <= 8192) {
-      program = new AwkParser(source, builtinArities).parse();
-      if (awkProgramCache.size >= 64) awkProgramCache.delete(awkProgramCache.keys().next().value!);
-      awkProgramCache.set(source, program);
-    }
-    if (!program) return undefined;
+    const rawSep = byteString(arg0.slice(2));
+    separator = rawSep.indexOf("\\") >= 0 ? decodeString(rawSep) : rawSep;
   }
+  const source = byteString(context.args[1]!);
+  let program = awkProgramCache.get(source);
+  if (!program && source.length <= 8192) {
+    program = new AwkParser(source, builtinArities).parse();
+    if (awkProgramCache.size >= 64) awkProgramCache.delete(awkProgramCache.keys().next().value!);
+    awkProgramCache.set(source, program);
+  }
+  if (!program) return undefined;
   let budget = sharedAwkBudget;
   if (!budget) {
     budget = sharedAwkBudget = new Budget(context, options);
@@ -92,66 +62,19 @@ function tryExecuteAwkFastSync(
     retention = new AwkRetention(Infinity, context.signal);
     sharedRetention = retention;
   }
-  const fileArg = context.args[2]!;
-  if (!suppressStdout && lastMemoBatch !== undefined && source === lastMemoSource && separator === lastMemoSep) {
-    const fastMem = (context as { _fastMemoryBackingFs?: Parameters<typeof tryReadMemoryFileViewSync>[0] & { capabilitiesFor?: unknown }; _cachedInputBudget?: unknown; _chargeFastFsOp?: () => void })._fastMemoryBackingFs;
-    if (fastMem && !fastMem.capabilitiesFor && (context as { _cachedInputBudget?: unknown })._cachedInputBudget === undefined && !Object.prototype.hasOwnProperty.call(fastMem, "readStream") && !Object.prototype.hasOwnProperty.call(fastMem, "readFile")) {
-      const resolvedPath = fileArg.charCodeAt(0) === 47 && fileArg.length > 1 && fileArg.charCodeAt(fileArg.length - 1) !== 47 && !fileArg.includes("//") && !fileArg.includes("/.") ? fileArg : virtualPath(context, fileArg);
-      if (resolvedPath !== "/dev" && !resolvedPath.startsWith("/dev/")) {
-        let rawView: Uint8Array | undefined;
-        try { rawView = tryReadMemoryFileViewSync(fastMem, resolvedPath, undefined, context.signal, true); } catch { rawView = undefined; }
-        if (rawView !== undefined && getCachedLatin1Batch(rawView) === lastMemoBatch) {
-          budget.step(lastMemoSteps);
-          if (!budget.checkpointSync()) {
-            (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
-            const stdoutSink = context.stdout as { isPipeStage?: boolean; writeRangeSync?: (src: Uint8Array, len: number) => boolean };
-            if (!stdoutSink.isPipeStage && lastMemoOutputLen >= 0 && typeof stdoutSink.writeRangeSync === "function") {
-              context.signal.throwIfAborted();
-              if (stdoutSink.writeRangeSync(lastMemoOutputBuf, lastMemoOutputLen) !== false) {
-                return 0;
-              }
-            }
-            const w = write(context, lastMemoOutput);
-            if ((w as unknown as Record<symbol, boolean>)[Symbol.for("safe-bash.syncResolved")]) {
-              return 0;
-            }
-          }
-        }
-      }
-    }
-  }
-  sharedSingleArg[0] = fileArg;
+  sharedSingleArg[0] = context.args[2]!;
   sharedAwkBudgetInUse = true;
   try {
-    const rt = AwkRuntime.acquire(program, context, budget, retention, sharedSingleArg, EMPTY_ARGS, separator, true, false, undefined);
-    rt.suppressStdout = suppressStdout;
+    const rt = new AwkRuntime(program, context, budget, retention, sharedSingleArg, EMPTY_ARGS, separator, true, false, undefined);
     const res = rt.runSyncOrAsync();
     sharedSingleArg[0] = "";
     if (typeof res === "number") {
-      if (!suppressStdout && res === 0 && rt.lastCompletedBatch !== undefined && rt.lastCompletedOutput !== undefined) {
-        lastMemoBatch = rt.lastCompletedBatch;
-        lastMemoRawArg0 = arg0;
-        lastMemoRawArg1 = arg1;
-        lastMemoProgram = program;
-        lastMemoSource = source;
-        lastMemoSep = separator;
-        const outStr = rt.lastCompletedOutput;
-        lastMemoOutput = outStr;
-        if (outStr.length <= 256) {
-          for (let oi = 0; oi < outStr.length; oi++) lastMemoOutputBuf[oi] = outStr.charCodeAt(oi) & 0xff;
-          lastMemoOutputLen = outStr.length;
-        } else {
-          lastMemoOutputLen = -1;
-        }
-        lastMemoSteps = budget.stepsUsed;
-      }
-      rt.lastCompletedBatch = undefined;
-      rt.lastCompletedOutput = undefined;
-      rt.suppressStdout = false;
       sharedAwkBudgetInUse = false;
       return res;
     }
-    return finishAwkFastAsync(res, rt);
+    return res.finally(() => {
+      sharedAwkBudgetInUse = false;
+    });
   } catch (err) {
     sharedSingleArg[0] = "";
     sharedAwkBudgetInUse = false;
@@ -161,20 +84,7 @@ function tryExecuteAwkFastSync(
 
 export function awkCommand(options: TextProgramOptions = {}): CommandDefinition {
   return command("awk", context => {
-    if (!awkFastWarmed && (context as { _fastMemoryBackingFs?: unknown })._fastMemoryBackingFs) {
-      awkFastWarmed = true;
-      const warmStart = performance.now();
-      try {
-        for (let w = 0; w < 16; w++) {
-          if (performance.now() - warmStart > 45) break;
-          const wRes = tryExecuteAwkFastSync(context, options, true);
-          if (typeof wRes !== "number") break;
-        }
-      } catch {
-        // Ignore warmup errors
-      }
-    }
-    const fastRes = tryExecuteAwkFastSync(context, options, false);
+    const fastRes = tryExecuteAwkFastSync(context, options);
     if (fastRes !== undefined) return fastRes;
     return executeAwkSlow(context, options);
   });
@@ -274,7 +184,7 @@ function executeAwkSlow(
         retention = new AwkRetention(maxRetained, context.signal);
         if (maxRetained === Infinity) sharedRetention = retention;
       }
-      return AwkRuntime.acquire(program, context, budget, retention, remainingArgs, assignments, separator, operandAssignments, ordchr, observer).runSyncOrAsync();
+      return new AwkRuntime(program, context, budget, retention, remainingArgs, assignments, separator, operandAssignments, ordchr, observer).runSyncOrAsync();
     }
     return (async () => {
     programs.length = 0;

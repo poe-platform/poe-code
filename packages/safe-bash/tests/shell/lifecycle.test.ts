@@ -4,9 +4,64 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { FsError, writeText } from "../../src/contracts/index.js";
 import type { ByteSource } from "../../src/contracts/index.js";
+import { Shell, agentCommands, createMemoryFileSystem } from "../../src/index.js";
 import { ShellInput } from "../../src/shell/input.js";
 import { Budget, defaultLimits, Runtime } from "../../src/shell/runtime.js";
 import { setup } from "./helpers.js";
+
+for (const [title, source] of [
+  ["prewarmed shell executes an asynchronous search once", "rg --json warm-once /warm-json"],
+  ["prewarmed shell executes an asynchronous final unit once", ":\nrg --json warm-once /warm-json"],
+] as const) {
+  test(title, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/warm-json");
+    await fs.writeFile("/warm-json/input", new TextEncoder().encode("warm-once\n"));
+    const shell = new Shell({ fs }).use(agentCommands());
+    try {
+      await shell.exec(":");
+      await shell.exec("");
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      const records = result.stdout.trim().split("\n").map(line => JSON.parse(line));
+      assert.deepEqual(records.map(record => record.type), ["begin", "match", "end", "summary"]);
+      assert.equal(records[1].data.path.text, "/warm-json/input");
+      assert.equal(records[1].data.lines.text, "warm-once\n");
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("prewarmed shell preserves earlier output and executes a final search once", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/warm-list");
+  await fs.writeFile("/warm-list/input", new TextEncoder().encode("match\n"));
+  const shell = new Shell({ fs }).use(agentCommands());
+  try {
+    await shell.exec(":");
+    await shell.exec("");
+    const result = await shell.exec("printf 'before\\n'\nrg -l match /warm-list");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "before\n/warm-list/input\n");
+  } finally { await shell.dispose(); }
+});
+
+test("prewarmed shell executes a mutating find once", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/warm-delete");
+  await fs.writeFile("/warm-delete/input", new TextEncoder().encode("remove once\n"));
+  const shell = new Shell({ fs }).use(agentCommands());
+  try {
+    await shell.exec(":");
+    await shell.exec("");
+    const result = await shell.exec("find /warm-delete -type f -print -delete");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "/warm-delete/input\n");
+    await assert.rejects(fs.stat("/warm-delete/input"), { code: "ENOENT" });
+  } finally { await shell.dispose(); }
+});
 
 for (const scenario of ["cleanup-abort", "cleanup-late-rejection", "shared-delayed-generator", "shared-serialized", "shared-repeated-cancellation", "shared-abandoned-rejection", "shared-retained-rejection", "owned-cleanup-abort", "busy-loop-abort"]) {
   test(`hard-timeout lifecycle regression: ${scenario}`, () => {

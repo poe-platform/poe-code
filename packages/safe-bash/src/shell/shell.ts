@@ -64,37 +64,6 @@ const EMPTY_STDIN_OPTIONS = Object.freeze({
   initialEof: true,
 });
 const EMPTY_EXEC_OPTIONS: ShellExecOptions = Object.freeze({});
-const IDEMPOTENT_WARM_COMMANDS = new Set([
-  "grep", "cut", "tr", "sort", "head", "wc", "find", "rg", "sed", "awk", "jq",
-]);
-function isIdempotentWarmUnit(unit: ReturnType<typeof parseShellUnit>, sourceLen: number, budget: Budget): boolean {
-  if (
-    unit.next < sourceLen ||
-    unit.script.lists.length !== 1 ||
-    unit.script.lists[0]!.terminator ||
-    unit.script.lists[0]!.pipelines.length !== 1 ||
-    budget.hasCpuLimit ||
-    budget.limits.maxCommands < 1000 ||
-    budget.limits.maxOutputBytes < 65536
-  ) {
-    return false;
-  }
-  const pipeline = unit.script.lists[0]!.pipelines[0]!;
-  for (let i = 0; i < pipeline.commands.length; i++) {
-    const cmd = pipeline.commands[i]!;
-    if (cmd.kind !== "simple" || cmd.words.length === 0) return false;
-    const name = cmd.words[0]!.plain;
-    if (!name || !IDEMPOTENT_WARM_COMMANDS.has(name)) return false;
-    for (let w = 1; w < cmd.words.length; w++) {
-      const p = cmd.words[w]!.plain;
-      if (p === "-i" || p?.startsWith("--in-place") || p === "-exec" || p === "-ok") return false;
-    }
-    for (let r = 0; r < cmd.redirects.length; r++) {
-      if (cmd.redirects[r]!.operator !== ">") return false;
-    }
-  }
-  return true;
-}
 const EMPTY_STDOUT_BYTES = new Uint8Array(0);
 const EMPTY_EXEC_RESULT: ShellResult = {
   stdout: "",
@@ -536,7 +505,7 @@ export class Shell implements PluginHost {
       const sourceCache = getSourceParseCache(source);
       const firstCached = sourceCache?.first0;
       if (firstCached && (!firstCached.unit.script.warnings || firstCached.unit.script.warnings.length === 0)) {
-        return this.#execWarmSyncOrFallback(source, options, sourceCache!, firstCached, false);
+        return this.#execWarmSyncOrFallback(source, options, sourceCache!, firstCached);
       }
       if (!firstCached && !this.#initialLocale) {
         const warm = this.#warmedInvocation;
@@ -551,7 +520,7 @@ export class Shell implements PluginHost {
             warm.budget.parsing.restore(savedParse);
             const parsedFirst = sourceCache.first0;
             if (parsedFirst && (!parsedFirst.unit.script.warnings || parsedFirst.unit.script.warnings.length === 0)) {
-              return this.#execWarmSyncOrFallback(source, options, sourceCache, parsedFirst, true);
+              return this.#execWarmSyncOrFallback(source, options, sourceCache, parsedFirst);
             }
           } catch {
             warm.budget.parsing.restore(savedParse);
@@ -567,7 +536,6 @@ export class Shell implements PluginHost {
     options: ShellExecOptions,
     sourceCache: SourceParseCache,
     firstCached: CachedParsedUnit,
-    isFirstParse: boolean,
   ): Promise<ShellResult> {
     const warm = this.#warmedInvocation!;
     this.#warmedInvocation = undefined;
@@ -579,36 +547,10 @@ export class Shell implements PluginHost {
       budget.source(sourceByteLen);
       budget.signal.throwIfAborted();
       budget.parsing.admit(firstCached.unitsCharged);
-      if (isFirstParse && isIdempotentWarmUnit(firstCached.unit, source.length, budget)) {
-        const warmIters = 12;
-        for (let w = 0; w < warmIters; w++) {
-          const r = runtime.runUnit(firstCached.unit.script, currentState, io);
-          if (r instanceof Promise) break;
-          budget.commands = 0;
-          budget.bytes = 0;
-          (budget as unknown as { _fileSystemOperations: number })._fileSystemOperations = 0;
-          stdout.resetEmpty();
-          stderr.resetEmpty();
-        }
-      }
       let currentCachedUnit: CachedParsedUnit | undefined = firstCached;
       let unit = firstCached.unit;
       let exitCode = 0;
       while (true) {
-        if (isFirstParse && unit !== firstCached.unit && unit.next >= source.length && isIdempotentWarmUnit(unit, source.length, budget)) {
-          const savedCmds = budget.commands;
-          const savedBytes = budget.bytes;
-          const savedFsOps = (budget as unknown as { _fileSystemOperations: number })._fileSystemOperations;
-          for (let w = 0; w < 12; w++) {
-            const r = runtime.runUnit(unit.script, currentState, io);
-            if (r instanceof Promise) break;
-            budget.commands = savedCmds;
-            budget.bytes = savedBytes;
-            (budget as unknown as { _fileSystemOperations: number })._fileSystemOperations = savedFsOps;
-            stdout.resetEmpty();
-            stderr.resetEmpty();
-          }
-        }
         if (unit.script.lists.length) {
           const unitResult = runtime.runUnit(unit.script, currentState, io);
           if (unitResult instanceof Promise) {

@@ -463,7 +463,7 @@
       },
       "configuration": "literal profile env HOME/XDG directories; fresh empty settings and exact enabledPluginIds; no ambient user plugins",
       "dependencies": "base captured dependency identities plus optional dependency build/install identities; missing optional identities block qualification",
-      "status": "defined; exact isolated activation and differential capture unresolved",
+      "status": "native activation verified; functional parity and remaining capability qualification unresolved",
       "nativeFallback": false,
       "enabledPluginIds": [
         "GOffice_plot_barcol",
@@ -562,7 +562,48 @@
         "--without-gda"
       ],
       "activationProtocol": "Install only enumerated source plugins; explicitly enable enumerated plugin IDs in isolated settings; confirm runtime inventory exactly before formula/format QA. GOffice IDs retain base captured plugin versions. Dependency/config/activation capture missing means unresolved.",
-      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required"
+      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required",
+      "activationEvidence": {
+        "auditedAt": "2026-09-26",
+        "workflowRun": "https://github.com/poe-platform/poe-code/actions/runs/35952204571",
+        "artifactId": 10789201706,
+        "sourceRevision": "b789d4043610e69c9c7784f57eb027a6aca18a76",
+        "identitySha256": "b0fa1b0971fc235902dff2d3b31830d21cd6f1cd94ddd1d71b99448a3e23a9fa",
+        "referenceProfileSha256": "f5767a61ed1356d95600370135bf3afce808c17aabc0c633d881e14578a8347e",
+        "capturedOptionalManifestSha256": "f585eaea65c17346d5d634916310caf1506bb13d1322f491ba82d8e589a78dfb",
+        "profileComparison": "Captured optional manifest differs from the current file, but the complete selected profile descriptor was unchanged at deb93e0ad454c09fc618a93f834814937d2a3a00 before this evidence update. Captured manifest hashes match the workflow source commit.",
+        "binarySha256": "1e05f849beba0397bbaae2a504ec65e44fd1d21b1106edd7b54b47db61b828c1",
+        "plugins": {
+          "expected": 46,
+          "observed": 46,
+          "active": 46,
+          "exactIdSet": true,
+          "exitCode": 0,
+          "stderrBytes": 0,
+          "stdoutSha256": "4334020c935f5e89112f716a23ee3d2ba52baac13f369fcdf7a6b3b0a5a599aa"
+        },
+        "functions": {
+          "exitCode": 0,
+          "stderrBytes": 0,
+          "stdoutSha256": "0b5521eea1b08c245b14412d0ea21adc023766f0299b8566326fcf60ed497702"
+        },
+        "dependencies": {
+          "observed": 72,
+          "byteIdenticalToFrozenReference": 70,
+          "rebuilt": [
+            {
+              "path": "/opt/ssconvert-reference/lib/libspreadsheet-1.12.61.so",
+              "sha256": "de27e21289922127c8d9c091d93df827df530710ba1d42b1216f0fe789cecc6b"
+            },
+            {
+              "path": "/opt/ssconvert-reference/lib/libgoffice-0.10.so.10.0.61",
+              "sha256": "023a21dab1e7ab8237ae908ded0f971e80dfbcef27b5ba6c7c449585076deac9"
+            }
+          ]
+        },
+        "limits": "Native activation only. Format/solver plugins may remain lazily unloaded. The two rebuilt libraries and changed host kernel are distinct from the frozen binary environment; this is not functional parity, complete capability qualification, or current candidate acceptance.",
+        "cleanup": "Only the identity receipt was retained for audit; the artifact ZIP stayed in memory and its native installation was not extracted. The receipt is purged after reduction."
+      }
     },
     {
       "id": "gnumeric-1.12.61-optional-perl-samples",

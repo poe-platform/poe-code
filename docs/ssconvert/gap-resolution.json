@@ -612,7 +612,7 @@
     {
       "id": "optional-profiles",
       "status": "open",
-      "currentFinding": "Eight activation environments and fourteen capability obligations remain open. Some authenticated Linux and language cohorts execute successfully; availability or registration alone is not a pass."
+      "currentFinding": "The base optional-none Linux ARM64 profile has verified exact activation of all 46 declared plugins; 70 of 72 linked library binaries match the frozen reference and two were rebuilt. Functional qualification of all eight environments and fourteen capability obligations remains open. Availability or registration alone is not a pass; the scoped activation receipt is in optional-runtime-extension-coverage.json."
     },
     {
       "id": "public-packed-artifacts",

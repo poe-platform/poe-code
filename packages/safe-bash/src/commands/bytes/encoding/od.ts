@@ -57,10 +57,26 @@ function floating(value: number, size: number): string {
   return String(rounded);
 }
 
+const OD_ESCAPES: Record<number, string> = { 0: "\\0", 7: "\\a", 8: "\\b", 9: "\\t", 10: "\\n", 11: "\\v", 12: "\\f", 13: "\\r" };
+const OD_NAMES = ["nul", "soh", "stx", "etx", "eot", "enq", "ack", "bel", "bs", "ht", "nl", "vt", "ff", "cr", "so", "si", "dle", "dc1", "dc2", "dc3", "dc4", "nak", "syn", "etb", "can", "em", "sub", "esc", "fs", "gs", "rs", "us", "sp"];
+const OD_HEX1_TABLE = Array.from({ length: 256 }, (_, i) => " " + i.toString(16).padStart(2, "0"));
+const OD_OCT1_TABLE = Array.from({ length: 256 }, (_, i) => " " + i.toString(8).padStart(3, "0"));
+const OD_ASCII_CHAR = Array.from({ length: 256 }, (_, i) => (i >= 32 && i <= 126 ? String.fromCharCode(i) : "."));
+
 function formatRow(row: Uint8Array, format: Format, bigEndian: boolean): string {
   let text = "";
-  const escapes: Record<number, string> = { 0: "\\0", 7: "\\a", 8: "\\b", 9: "\\t", 10: "\\n", 11: "\\v", 12: "\\f", 13: "\\r" };
-  const names = ["nul", "soh", "stx", "etx", "eot", "enq", "ack", "bel", "bs", "ht", "nl", "vt", "ff", "cr", "so", "si", "dle", "dc1", "dc2", "dc3", "dc4", "nak", "syn", "etb", "can", "em", "sub", "esc", "fs", "gs", "rs", "us", "sp"];
+  if (format.size === 1 && (format.kind === "x" || format.kind === "o")) {
+    const table = format.kind === "x" ? OD_HEX1_TABLE : OD_OCT1_TABLE;
+    for (let i = 0; i < row.length; i++) text += table[row[i]!]!;
+    if (format.printable) {
+      let ascii = "";
+      for (let i = 0; i < row.length; i++) ascii += OD_ASCII_CHAR[row[i]!]!;
+      text += `  >${ascii}<`;
+    }
+    return text;
+  }
+  const escapes = OD_ESCAPES;
+  const names = OD_NAMES;
   for (let offset = 0; offset < row.length; offset += format.size) {
     if (format.kind === "a") {
       const byte = row[offset]! & 127;

@@ -171,7 +171,8 @@ export function createXxdCommand(maxInputBytes: number): CommandDefinition {
       any = true;
       if (include) {
         if (includeRow) await writeOut(includeRow + ",\n");
-        includeRow = "  " + Array.from(row, byte => "0x" + hexTable[byte]!).join(", ");
+        const includePrefix = upper ? "0X" : "0x";
+        includeRow = "  " + Array.from(row, byte => includePrefix + hexTable[byte]!).join(", ");
         includeLength = addOffset(includeLength, row.length);
         continue;
       }

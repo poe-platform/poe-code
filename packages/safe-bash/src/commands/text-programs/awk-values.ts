@@ -8,7 +8,7 @@ export class AwkArray { readonly entries = new Map<string, Scalar>(); }
 export type Value = Scalar | AwkArray;
 export const unset: Scalar = Object.freeze({ kind: "unset" });
 const SMALL_NUMERICS: readonly Scalar[] = Array.from({ length: 4098 }, (_, i) => Object.freeze({ kind: "number" as const, number: i - 1 }));
-const SMALL_NUMERIC_STRINGS: readonly Scalar[] = Array.from({ length: 4096 }, (_, i) => Object.freeze({ kind: "numeric" as const, text: String(i), number: i }));
+const SMALL_NUMERIC_STRINGS: readonly { readonly kind: "numeric"; readonly text: string; readonly number: number }[] = Array.from({ length: 4096 }, (_, i) => Object.freeze({ kind: "numeric" as const, text: String(i), number: i }));
 const EMPTY_STRING_SCALAR: Scalar = Object.freeze({ kind: "string", text: "" });
 export const SCALAR_ZERO: Scalar = SMALL_NUMERICS[1]!;
 export const SCALAR_ONE: Scalar = SMALL_NUMERICS[2]!;
@@ -313,7 +313,8 @@ export function text(value: Scalar, format = "%.6g", budget?: Budget): string {
   if (value.kind !== "number") return value.text;
   if (Number.isInteger(value.number) && Math.abs(value.number) < 1e21) {
     budget?.step(0);
-    const result = String(value.number);
+    const n = value.number;
+    const result = (n | 0) === n && n >= 0 && n < 4096 ? SMALL_NUMERIC_STRINGS[n]!.text : String(n);
     budget?.check(result);
     budget?.step(result.length);
     return result;

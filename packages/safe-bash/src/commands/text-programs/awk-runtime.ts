@@ -6,7 +6,7 @@ import type { AwkProgram, Expression, Statement } from "./awk-syntax.js";
 import { decodeString } from "./awk-syntax.js";
 import { AwkArray, SCALAR_ONE, SCALAR_ZERO, compare, formatted, inputValue, inputValueFromSlice, number, numeric, scalar, string, text, truth, unset, type Scalar, type Value } from "./awk-values.js";
 import { Pattern, substitute } from "./regex.js";
-import { Budget, ProgramError, byteString, bytes, input, virtualPath, write } from "./shared.js";
+import { Budget, ProgramError, byteString, bytes, getCachedLatin1Batch, input, virtualPath, write, type CachedLatin1Batch } from "./shared.js";
 import { AwkRetention } from "./awk-retention.js";
 import { Reader } from "./awk-reader.js";
 import type { AwkInspection } from "./awk-inspection.js";
@@ -15,8 +15,69 @@ function textSize(value: Value | undefined): number {
   return value && !(value instanceof AwkArray) && (value.kind === "string" || value.kind === "numeric") ? value.text.length : 0;
 }
 
+function isAsciiText(text: string): boolean {
+  for (let i = 0; i < text.length; i++) {
+    if (text.charCodeAt(i) > 0x7f) return false;
+  }
+  return true;
+}
+
+function isOperandAssignment(text: string): boolean {
+  const eq = text.indexOf("=");
+  if (eq <= 0) return false;
+  const c0 = text.charCodeAt(0);
+  if (!((c0 >= 65 && c0 <= 90) || (c0 >= 97 && c0 <= 122) || c0 === 95)) return false;
+  for (let i = 1; i < eq; i++) {
+    const c = text.charCodeAt(i);
+    if (!((c >= 65 && c <= 90) || (c >= 97 && c <= 122) || (c >= 48 && c <= 57) || c === 95)) return false;
+  }
+  return true;
+}
+
+function isAllExpressionStatements(body: readonly Statement[]): boolean {
+  for (let i = 0; i < body.length; i++) {
+    if (body[i]!.kind !== "expression") return false;
+  }
+  return true;
+}
+
+const sharedFastPrintBuf = new Uint8Array(256);
+function writePositiveIntAscii(buf: Uint8Array, pos: number, num: number): number {
+  if (num === 0) {
+    buf[pos] = 48;
+    return (pos + 1) | 0;
+  }
+  let temp = num | 0;
+  let end = pos | 0;
+  while (temp > 0) {
+    let q = (temp >>> 1) + (temp >>> 2);
+    q = q + (q >>> 4);
+    q = q + (q >>> 8);
+    q = q + (q >>> 16);
+    q = q >>> 3;
+    let r = temp - (((q << 2) + q) << 1);
+    if (r >= 10) {
+      q = (q + 1) | 0;
+      r = (r - 10) | 0;
+    }
+    buf[end++] = (48 + r) | 0;
+    temp = q;
+  }
+  let lo = pos | 0;
+  let hi = (end - 1) | 0;
+  while (lo < hi) {
+    const t = buf[lo]!;
+    buf[lo] = buf[hi]!;
+    buf[hi] = t;
+    lo = (lo + 1) | 0;
+    hi = (hi - 1) | 0;
+  }
+  return end;
+}
+
 function ownScalar(value: Scalar): Scalar {
   if (value.kind === "string" || value.kind === "numeric") {
+    if (value.text.length < 13 && Object.isFrozen(value)) return value;
     const ownedText = value.text.length >= 13 ? Buffer.from(value.text, "latin1").toString("latin1") : value.text;
     return value.kind === "numeric"
       ? { kind: "numeric", text: ownedText, number: value.number }
@@ -116,6 +177,8 @@ export class AwkRuntime {
   private environInitialized = false;
   private pooledBuffers: PooledFieldBuffers | undefined;
   private mainReader: Reader | undefined;
+  private fastBatch: CachedLatin1Batch | undefined;
+  private fastRawView: Uint8Array | undefined;
   private argument = 1;
   private sawFile = false;
   private defaultUsed = false;
@@ -255,6 +318,8 @@ export class AwkRuntime {
     this.argument = 1;
     this.sawFile = false;
     this.defaultUsed = false;
+    this.fastBatch = undefined;
+    this.fastRawView = undefined;
     this.fieldCount = 0;
     this.deferredFieldSeparator = " ";
     this.fieldsMaterialized = true;
@@ -1569,6 +1634,39 @@ export class AwkRuntime {
         return undefined;
       }
       const ofmt = this.varText("OFMT");
+      if (this.stdoutBuffer.length === 0 && !this.suppressStdout) {
+        const stdoutSink = this.context.stdout as { isPipeStage?: boolean; writeRangeSync?: (src: Uint8Array, len: number) => boolean };
+        if (!stdoutSink.isPipeStage && typeof stdoutSink.writeRangeSync === "function" && ofs.length <= 8 && ors.length <= 8) {
+          let pos = 0;
+          let fastPrintOk = true;
+          for (let i = 0; i < args.length; i++) {
+            if (i > 0) {
+              for (let j = 0; j < ofs.length; j++) sharedFastPrintBuf[pos++] = ofs.charCodeAt(j) & 0xff;
+            }
+            const argExpr = args[i]!;
+            const v = this.scalarExpression(argExpr);
+            if (v instanceof Promise) { fastPrintOk = false; break; }
+            if (v.kind === "number" && (v.number | 0) === v.number && v.number >= 0 && pos + 24 < 256) {
+              this.budget.step(0);
+              const nextPos = writePositiveIntAscii(sharedFastPrintBuf, pos, v.number);
+              this.budget.step(nextPos - pos);
+              pos = nextPos;
+            } else if ((v.kind === "string" || v.kind === "numeric") && pos + v.text.length + 16 < 256) {
+              for (let j = 0; j < v.text.length; j++) sharedFastPrintBuf[pos++] = v.text.charCodeAt(j) & 0xff;
+            } else {
+              fastPrintOk = false;
+              break;
+            }
+          }
+          if (fastPrintOk) {
+            for (let j = 0; j < ors.length; j++) sharedFastPrintBuf[pos++] = ors.charCodeAt(j) & 0xff;
+            this.context.signal.throwIfAborted();
+            if (stdoutSink.writeRangeSync(sharedFastPrintBuf, pos) !== false) {
+              return undefined;
+            }
+          }
+        }
+      }
       let acc = "";
       for (let i = 0; i < args.length; i++) {
         const v = this.scalarExpression(args[i]!);
@@ -1786,6 +1884,8 @@ export class AwkRuntime {
     if (this.rawFields.length > 0) this.rawFields.length = 0;
     this.fieldCount = 0; this.fieldsMaterialized = true; this.fieldBytes = 0;
     this.sliceBox.source = "";
+    this.fastBatch = undefined;
+    this.fastRawView = undefined;
     this.recordValue = unset;
     this.context.signal.throwIfAborted();
     (this as unknown as { context: CommandContext }).context = RELEASED_AWK_CONTEXT;
@@ -1909,16 +2009,14 @@ export class AwkRuntime {
     this.phase = "record";
     let ranges: Set<number> | undefined;
     if (this.program.rules.length || this.program.end.length) {
-      if (!this.mainReader) {
+      if (!this.mainReader && !this.fastBatch) {
         this.tryOpenNextMainReaderSync();
       }
+      const fastSource = this.fastBatch !== undefined ? this.fastBatch.text : (this.mainReader !== undefined && this.mainReader.blocksLen === 1 && this.mainReader.ended && this.mainReader.offset === 0 ? this.mainReader.blockStrings[0] : undefined);
+      const fastEnds = this.fastBatch !== undefined ? this.fastBatch.ends : (this.mainReader !== undefined && this.mainReader.blocksLen === 1 && this.mainReader.ended && this.mainReader.offset === 0 ? this.mainReader.blockEnds[0] : undefined);
       if (
-        this.mainReader !== undefined &&
-        this.mainReader.blocksLen === 1 &&
-        this.mainReader.ended &&
-        this.mainReader.offset === 0 &&
-        this.mainReader.blockStrings[0] !== undefined &&
-        this.mainReader.blockEnds[0] !== undefined &&
+        fastSource !== undefined &&
+        fastEnds !== undefined &&
         this.program.rules.length === 1 &&
         this.frames.length === 0 &&
         this.rsText === "\n" &&
@@ -1934,10 +2032,10 @@ export class AwkRuntime {
           pat !== null &&
           (pat === undefined || pat.canFindSync()) &&
           rule.action.kind === "block" &&
-          rule.action.body.every(s => s.kind === "expression")
+          isAllExpressionStatements(rule.action.body)
         ) {
-          const source = this.mainReader.blockStrings[0]!;
-          const ends = this.mainReader.blockEnds[0]!;
+          const source = fastSource;
+          const ends = fastEnds;
           const endsLen = ends.length;
           if (endsLen > 0 && ends[endsLen - 1] === source.length - 1) {
             const body = rule.action.body as readonly Extract<Statement, { kind: "expression" }>[];
@@ -1981,12 +2079,21 @@ export class AwkRuntime {
               this.fnrNum = endsLen;
               this.fnrDirty = true;
               this.nfDirty = true;
-              this.mainReader.closeSyncOrAsync();
-              this.mainReader = undefined;
+              if (this.mainReader) {
+                this.mainReader.closeSyncOrAsync();
+                this.mainReader = undefined;
+              }
+              this.fastBatch = undefined;
+              this.fastRawView = undefined;
               return this.runEndPhaseSyncOrAsync(0);
             }
           }
         }
+      }
+      if (this.fastBatch !== undefined && this.fastRawView !== undefined) {
+        this.mainReader = Reader.fromMemoryView(this.fastRawView, this.budget, this.retention);
+        this.fastBatch = undefined;
+        this.fastRawView = undefined;
       }
       while (true) {
         this.budget.step();
@@ -2351,16 +2458,20 @@ export class AwkRuntime {
       this.budget.step();
       if (this.argument > maxArgs) throw new ProgramError("argument count limit exceeded");
       if (this.budget.checkpointSync()) return false;
-      const next = this.asText(this.array("ARGV").entries.get(String(this.argument++)) ?? unset);
+      const argIdx = this.argument++;
+      const argKey = argIdx < SMALL_ARG_KEYS.length ? SMALL_ARG_KEYS[argIdx]! : String(argIdx);
+      const next = this.asText((this.pooledArgv ?? this.array("ARGV")).entries.get(argKey) ?? unset);
       if (!next) continue;
-      if (this.operandAssignments && /^[A-Za-z_][A-Za-z0-9_]*=/u.test(next)) {
+      if (this.operandAssignments && isOperandAssignment(next)) {
         this.assignment(next);
         continue;
       }
       this.sawFile = true;
       this.set("FILENAME", string(next));
-      this.set("FNR", numeric(0));
-      const utf8File = /^[\x00-\x7f]*$/u.test(next) ? next : Buffer.from(next, "latin1").toString("utf8");
+      if (this.fnrNum !== 0 || this.fnrDirty || this.variables.get("FNR") !== SCALAR_ZERO) {
+        this.set("FNR", SCALAR_ZERO);
+      }
+      const utf8File = isAsciiText(next) ? next : Buffer.from(next, "latin1").toString("utf8");
       if (utf8File !== "-") {
         const fastMem = (this.context as {
           _fastMemoryBackingFs?: Parameters<typeof tryReadMemoryFileViewSync>[0] & { capabilitiesFor?: unknown };
@@ -2384,6 +2495,15 @@ export class AwkRuntime {
             }
             if (rawView !== undefined && rawView.byteLength <= this.budget.maxBufferBytes) {
               if (!this.suppressStdout) (this.context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
+              if (this.retention.capacity === Infinity) {
+                const batch = getCachedLatin1Batch(rawView);
+                if (batch !== undefined) {
+                  this.budget.step();
+                  this.fastBatch = batch;
+                  this.fastRawView = rawView;
+                  return true;
+                }
+              }
               this.mainReader = Reader.fromMemoryView(rawView, this.budget, this.retention);
               return true;
             }

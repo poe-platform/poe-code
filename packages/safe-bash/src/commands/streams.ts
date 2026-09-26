@@ -39,6 +39,10 @@ function compileTrConfig(args: readonly string[]): TrCompiledConfig {
   if (args.length === 2 && args[0] === lastTrArg0 && args[1] === lastTrArg1 && lastTrConfig !== undefined) {
     return lastTrConfig;
   }
+  return compileTrConfigSlow(args);
+}
+
+function compileTrConfigSlow(args: readonly string[]): TrCompiledConfig {
   const cacheKey = args.length <= 4 ? args.join("\0") : undefined;
   if (cacheKey !== undefined) {
     const cached = trConfigCache.get(cacheKey);

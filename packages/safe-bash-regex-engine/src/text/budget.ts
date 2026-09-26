@@ -1,5 +1,7 @@
 import { PublicDiagnostic } from "safe-bash-contracts/public-diagnostic";
-import { monotonicNow, yieldTurn } from "safe-bash-contracts/yield";
+import { hasYieldCheckpoint, monotonicNow, yieldTurn } from "safe-bash-contracts/yield";
+
+const defaultPerfNow = performance.now;
 import type { CommandContext } from "safe-bash-contracts";
 
 const validatedTextProgramOptions = new WeakSet<TextProgramOptions>();
@@ -43,7 +45,8 @@ export class Budget {
   private unlimited: boolean;
   private signal: AbortSignal;
   private checkpoints = 0;
-  private lastYield = monotonicNow();
+  private hasExtYield = false;
+  private readonly yieldTimes = new Float64Array(1);
   static acquire(context: CommandContext, options: TextProgramOptions): Budget {
     if (!pooledBudgetA) {
       pooledBudgetA = new Budget(DUMMY_COMMAND_CONTEXT, options);
@@ -78,6 +81,8 @@ export class Budget {
     this.remainingNum = this.unlimited ? 0 : rem;
     this.remainingSmi = !this.unlimited && rem <= 0x3fffffff ? (rem | 0) : 0x3fffffff;
     this.signal = context.signal;
+    this.hasExtYield = hasYieldCheckpoint(context.signal);
+    this.yieldTimes[0] = monotonicNow();
     this.maxBufferBytes = options.maxBufferBytes ?? Infinity;
     if (context.signal.aborted) context.signal.throwIfAborted();
     if (!validatedTextProgramOptions.has(options)) {
@@ -99,8 +104,10 @@ export class Budget {
     this.remainingSmi = !this.unlimited && rem <= 0x3fffffff ? (rem | 0) : 0x3fffffff;
     this.signal = context.signal;
     this.checkpoints = 0;
-    this.lastYield = monotonicNow();
-    this.maxBufferBytes = options.maxBufferBytes ?? Infinity;
+    this.hasExtYield = hasYieldCheckpoint(context.signal);
+    this.yieldTimes[0] = monotonicNow();
+    const nextMaxBuf = options.maxBufferBytes ?? Infinity;
+    if (this.maxBufferBytes !== nextMaxBuf) this.maxBufferBytes = nextMaxBuf;
   }
   step(count = 1): void {
     if (this.signal.aborted) this.signal.throwIfAborted();
@@ -131,14 +138,16 @@ export class Budget {
     if ((count & 255) === 0) {
       return this.yieldCheckpointAsync();
     }
-    if (monotonicNow() - this.lastYield >= 25) {
-      return this.yieldCheckpointAsync();
+    if (performance.now !== defaultPerfNow || this.hasExtYield || (count & 63) === 0) {
+      if (monotonicNow() - this.yieldTimes[0]! >= 25) {
+        return this.yieldCheckpointAsync();
+      }
     }
     return undefined;
   }
   private async yieldCheckpointAsync(): Promise<void> {
     await yieldTurn(this.signal);
-    this.lastYield = monotonicNow();
+    this.yieldTimes[0] = monotonicNow();
     this.signal.throwIfAborted();
   }
 }

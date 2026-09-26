@@ -1389,7 +1389,7 @@ class Parser {
       }
       if (!words.length && !redirects.length) this.error("Expected command");
       if (words.some(word => getArrayAssignment(word)) && words.some(word => !getArrayAssignment(word) && !scalarAssignmentName(word)) && !indexedDeclaration()) this.error("Indexed-array command prefixes are unsupported");
-      return { kind: "simple", words, redirects, ...(line === undefined ? {} : { line }) };
+      return { kind: "simple", words, redirects, ...(line === undefined ? {} : { line }), _cachedConstArgs: undefined, _cachedConstEchoRedirect: undefined, _cachedPlainArgs: undefined, _cachedSlice1: undefined } as Command;
     }
     let redirect: Redirect | undefined;
     while ((redirect = this.redirect())) command.redirects.push(redirect);
@@ -1416,7 +1416,7 @@ class Parser {
     if (!Number.isSafeInteger(descriptor) || descriptor > 255) this.error("File descriptor must be between 0 and 255");
     if (!this.current.word) this.error("Expected redirect target");
     const target = this.advance();
-    return { descriptor, ...(explicitDescriptor ? { explicitDescriptor: true } : {}), operator, target: target.word!, line: this.lexer.lineAt(Math.max(target.offset, target.end - 1)), ...((operator === "<&" || operator === ">&") && this.lexer.source[target.end - 1] === "-" ? { move: true } : {}), ...(target.document ? { document: target.document } : {}) };
+    return { descriptor, ...(explicitDescriptor ? { explicitDescriptor: true } : {}), operator, target: target.word!, line: this.lexer.lineAt(Math.max(target.offset, target.end - 1)), ...((operator === "<&" || operator === ">&") && this.lexer.source[target.end - 1] === "-" ? { move: true } : {}), ...(target.document ? { document: target.document } : {}), _cachedRedirectFile: undefined } as Redirect;
   }
 }
 

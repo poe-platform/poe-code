@@ -439,6 +439,8 @@ export class Budget {
   declare readonly _hasExternalSignal: boolean;
   declare readonly hasCpuLimit: boolean;
   declare readonly maxCommandsSmi: number;
+  declare readonly maxPipelineStagesSmi: number;
+  declare readonly canSyncPurePipe: boolean;
   declare readonly maxLoopIterationsSmi: number;
   declare readonly maxFileSystemOperationsSmi: number;
   declare readonly maxSubstitutionDepthSmi: number;
@@ -452,6 +454,10 @@ export class Budget {
   constructor(limits: ResolvedShellLimits, signal?: AbortSignal, onInternalError?: InternalErrorHandler) {
     this.limits = limits;
     this._arraySession = undefined;
+    this._values = undefined;
+    this._wallClockTimer = undefined;
+    this._pathLookup = undefined;
+    this._pathLookupSuspensions = 0;
     this.commands = 0;
     this.iterations = 0;
     this.bytes = 0;
@@ -475,6 +481,8 @@ export class Budget {
     if (limits.maxFileSystemOperations !== Infinity) (this as { hasInfiniteFsOps: boolean }).hasInfiniteFsOps = false;
     if (limits.maxRedirects < 1) (this as { canRedirect1: boolean }).canRedirect1 = false;
     if (limits.maxSourceBytes < 0x3fffffff) (this as { maxSourceBytesSmi: number }).maxSourceBytesSmi = limits.maxSourceBytes | 0;
+    if (limits.maxPipelineStages < 0x3fffffff) (this as { maxPipelineStagesSmi: number }).maxPipelineStagesSmi = limits.maxPipelineStages | 0;
+    if (limits.pipeHighWaterMark < 65536) (this as { canSyncPurePipe: boolean }).canSyncPurePipe = false;
     this.signal = signal ? combineManagedSignals(signal, this.controller.signal) : this.controller.signal;
     if (signal) inheritYieldCheckpoint(signal, this.signal);
     this.parsing = new ParseBudget(limits.maxParseUnits === Infinity ? undefined : limits.maxParseUnits, this.signal, this);
@@ -582,15 +590,20 @@ export class Budget {
   }
 
   close(): void {
-    if (this._wallClockTimer === true) {
+    const timer = this._wallClockTimer;
+    if (timer === undefined) return;
+    if (timer === true) {
       if (sharedWallClockBudgets.primary === this) {
         sharedWallClockBudgets.primary = sharedWallClockBudgets.extra.pop();
       } else {
         const idx = sharedWallClockBudgets.extra.indexOf(this);
-        if (idx >= 0) sharedWallClockBudgets.extra.splice(idx, 1);
+        if (idx >= 0) {
+          const last = sharedWallClockBudgets.extra.pop()!;
+          if (idx < sharedWallClockBudgets.extra.length) sharedWallClockBudgets.extra[idx] = last;
+        }
       }
-    } else if (this._wallClockTimer !== undefined) {
-      clearTimeout(this._wallClockTimer);
+    } else {
+      clearTimeout(timer);
     }
     this._wallClockTimer = undefined;
   }
@@ -641,6 +654,11 @@ export class Budget {
 
   enterPipelineStages(count: number): void {
     this.signal.throwIfAborted();
+    const next = (this._pipelineStages + (count | 0)) | 0;
+    if ((count | 0) === count && count >= 0 && next >= this._pipelineStages && next <= this.maxPipelineStagesSmi) {
+      this._pipelineStages = next;
+      return;
+    }
     if (count > this.limits.maxPipelineStages - this._pipelineStages) this.fail("maxPipelineStages");
     this._pipelineStages += count;
   }
@@ -658,6 +676,11 @@ export class Budget {
 
   source(bytes: number): void {
     this.signal.throwIfAborted();
+    const next = (this.sourceBytes + (bytes | 0)) | 0;
+    if ((bytes | 0) === bytes && bytes >= 0 && next >= this.sourceBytes && next <= this.maxSourceBytesSmi) {
+      this.sourceBytes = next;
+      return;
+    }
     if (bytes > this.limits.maxSourceBytes - this.sourceBytes) this.fail("maxSourceBytes");
     this.sourceBytes += bytes;
   }
@@ -788,6 +811,8 @@ Object.assign(Budget.prototype, {
 
 
 const EMPTY_CAPTURE_BYTES = new Uint8Array(0);
+const sharedCaptureStdoutScratch = new Uint8Array(65536);
+const sharedCaptureStderrScratch = new Uint8Array(65536);
 
 export class Capture implements ByteSink {
   declare private _chunks: Uint8Array[] | undefined;
@@ -799,15 +824,23 @@ export class Capture implements ByteSink {
   declare private _tailLength: number;
   declare budget: Budget | undefined;
   declare signal: AbortSignal | undefined;
-  declare file?: NonNullable<CommandContext["stdoutFile"]>;
+  declare file?: NonNullable<CommandContext["stdoutFile"]> | undefined;
 
   constructor(budget?: Budget, signal?: AbortSignal) {
-    if (budget !== undefined) this.budget = budget;
-    if (signal !== undefined) this.signal = signal;
+    this._chunks = undefined;
+    this._first = undefined;
+    this._scratch4k = undefined;
+    this._scratchLen = 0;
+    this.length = 0;
+    this._tail = undefined;
+    this._tailLength = 0;
+    this.budget = budget;
+    this.signal = signal;
+    this.file = undefined;
   }
 
-  enableScratchBuffer(): void {
-    this._scratch4k ??= new Uint8Array(65536);
+  enableScratchBuffer(isStderr = false): void {
+    this._scratch4k ??= isStderr ? sharedCaptureStderrScratch : sharedCaptureStdoutScratch;
   }
 
   get self(): ByteSink {
@@ -3436,7 +3469,7 @@ export function clearRuntimePools(): void {
 }
 let syncPurePipelineWarmed = false;
 let syncPureFindPipelineWarmed = false;
-let fastSingleExternalWarmed = false;
+const warmedFastSingleCommands = new Set<string>();
 let syncForLoopWarmed = false;
 let syncMkdirRmWarmed = false;
 let syncRmPipelineWarmed = false;
@@ -3517,6 +3550,10 @@ export class Runtime {
     this._rawFs = fs;
     if (fileWrites !== undefined) this._fileWrites = fileWrites;
     if (outputFiles !== undefined) this._outputFiles = outputFiles;
+    this._fs = undefined;
+    this._contextFs = undefined;
+    this._redirectFs = undefined;
+    this._canFastMemoryRedirect = undefined;
     this.sourceFs = runtimeFileSystems.get(fs) ?? fs;
     this.backingFs = getRuntimeBackingFileSystem(this.sourceFs) ?? this.sourceFs;
     this._isMemoryBackingFs = this.backingFs.constructor?.name === "MemoryFileSystem";
@@ -5249,7 +5286,7 @@ export class Runtime {
           }
           for (let index = 0; index < list.pipelines.length; index++) {
             if (state.noexec) throw new Flow("discard", 0);
-            const operator = list.operators[index - 1];
+            const operator = index > 0 ? list.operators[index - 1] : undefined;
             if ((operator === "&&" && state.status !== 0) || (operator === "||" && state.status === 0)) continue;
             const pipeline = list.pipelines[index]!;
             const ignored = ignoreErrexit || index < list.pipelines.length - 1 || pipeline.negate;
@@ -5433,7 +5470,7 @@ export class Runtime {
         try {
           for (let i = 1; i < command.words.length; i++) {
             const w = command.words[i]!;
-            if (w.plain === undefined) allPlain = false;
+            if (w.plain === undefined && !(w.parts.length === 1 && w.parts[0]!.kind === "text" && w.parts[0]!.quoted === true && !w.parts[0]!.byteValue)) allPlain = false;
             const v = this.fastValueWord(w, rawState, io, true, false, false, true, undefined, diagnosticLine);
             if (typeof v !== "string") return undefined;
             args[i - 1] = v;
@@ -5458,8 +5495,18 @@ export class Runtime {
           }
         }
         if (typeof targetVal !== "string" || !targetVal || targetVal.includes("\0")) return undefined;
-        const resolved = normalizePath(targetVal, rawState.cwd);
-        if (resolved === "/dev" || resolved.startsWith("/dev/")) return undefined;
+        let cachedFile = (r0 as { _cachedRedirectFile?: { path: string } })._cachedRedirectFile;
+        let resolved: string;
+        if (cachedFile !== undefined && r0.target.plain !== undefined && r0.target.plain.charCodeAt(0) === 47 && cachedFile.path === r0.target.plain) {
+          resolved = cachedFile.path;
+        } else {
+          resolved = normalizePath(targetVal, rawState.cwd);
+          if (resolved === "/dev" || resolved.startsWith("/dev/")) return undefined;
+          if (!cachedFile || cachedFile.path !== resolved) {
+            cachedFile = Object.freeze({ path: resolved });
+            (r0 as { _cachedRedirectFile?: { path: string } })._cachedRedirectFile = cachedFile;
+          }
+        }
         let handle: MemoryRedirectHandle | undefined;
         try {
           handle = tryOpenMemoryRedirectHandleSync(
@@ -5474,11 +5521,6 @@ export class Runtime {
         }
         if (!handle) return undefined;
         this.budget.fileSystemOperation();
-        let cachedFile = (r0 as { _cachedRedirectFile?: { path: string } })._cachedRedirectFile;
-        if (!cachedFile || cachedFile.path !== resolved) {
-          cachedFile = Object.freeze({ path: resolved });
-          (r0 as { _cachedRedirectFile?: { path: string } })._cachedRedirectFile = cachedFile;
-        }
         if (pooledMemoryRedirectSink) {
           redirectSink = pooledMemoryRedirectSink;
           pooledMemoryRedirectSink = undefined;
@@ -5524,7 +5566,7 @@ export class Runtime {
         descriptors.set(1, { output: redirectSink });
         context.descriptors = descriptors;
       }
-      const canWarmRg = !fastSingleExternalWarmed && externalDef.name === "rg" && !redirectSink && io.stdinIsDefault === true && io.stdout instanceof Capture && io.stdout.length === 0;
+      const canWarmFastSingle = !warmedFastSingleCommands.has(externalDef.name) && io.stdinIsDefault === true && ((!redirectSink && io.stdout instanceof Capture && io.stdout.length === 0) || (redirectSink !== undefined && command.redirects[0]?.operator === ">"));
       const syncRes = this.finishFastSingleExternalUnit(
         externalDef,
         context,
@@ -5540,14 +5582,14 @@ export class Runtime {
         state,
         io,
       );
-      if (canWarmRg && !(syncRes instanceof Promise)) {
-        fastSingleExternalWarmed = true;
-        const stdoutCap = io.stdout as Capture;
+      if (canWarmFastSingle && !(syncRes instanceof Promise)) {
+        warmedFastSingleCommands.add(externalDef.name);
+        const stdoutCap = !redirectSink ? (io.stdout as Capture) : undefined;
         const afterCmds = this.budget.commands;
         const afterBytes = this.budget.bytes;
         const afterFsOps = (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations;
-        for (let w = 0; w < 11; w++) {
-          stdoutCap.resetEmpty();
+        for (let w = 0; w < 15; w++) {
+          if (stdoutCap) stdoutCap.resetEmpty();
           this.budget.commands = afterCmds - 1;
           this.budget.bytes = 0;
           (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations = 0;
@@ -5735,7 +5777,7 @@ export class Runtime {
       !io.stdinIsDefault ||
       this.signal.aborted ||
       hasYieldCheckpoint(this.signal) ||
-      this.budget.limits.pipeHighWaterMark < 65536 ||
+      !this.budget.canSyncPurePipe ||
       !(io.stdout instanceof Capture && (io.stdout as unknown as { _scratch4k?: Uint8Array })._scratch4k !== undefined && io.stdout.length === 0 && io.stdout.write === Capture.prototype.write) ||
       !(io.stderr instanceof Capture && io.stderr.length === 0 && io.stderr.write === Capture.prototype.write)
     ) {
@@ -5770,13 +5812,15 @@ export class Runtime {
           if (pat.length < 1 || pat.length > 64 || pat.charCodeAt(0) === 45 || !isSimpleAsciiGrepPattern(pat)) return undefined;
           if (fileArg === "-" || fileArg.charCodeAt(0) === 45 || fileArg.startsWith("/dev")) return undefined;
           if (fileArg.charCodeAt(0) === 47 && fileArg.indexOf("/", 1) === -1) {
-            const rootEntry = (backing as unknown as { root?: { entries?: Map<string, { type: string; data?: Uint8Array }> } }).root?.entries?.get(fileArg.slice(1));
+            const slice1 = (cmd as { _cachedSlice1?: string })._cachedSlice1 ?? ((cmd as { _cachedSlice1?: string })._cachedSlice1 = fileArg.slice(1));
+            const rootEntry = (backing as unknown as { root?: { entries?: Map<string, { type: string; data?: Uint8Array }> } }).root?.entries?.get(slice1);
             if (!rootEntry || rootEntry.type !== "file" || (rootEntry.data && rootEntry.data.byteLength > 65536)) return undefined;
           }
         } else if (name === "find") {
           if (stageArgs.length !== 3 || stageArgs[1] !== "-name" || stageArgs[0]!.startsWith("-") || stageArgs[0]!.startsWith("/dev")) return undefined;
           if (stageArgs[0]!.charCodeAt(0) === 47 && stageArgs[0]!.indexOf("/", 1) === -1) {
-            const rootEntry = (backing as unknown as { root?: { entries?: Map<string, { type: string }> } }).root?.entries?.get(stageArgs[0]!.slice(1));
+            const slice1 = (cmd as { _cachedSlice1?: string })._cachedSlice1 ?? ((cmd as { _cachedSlice1?: string })._cachedSlice1 = stageArgs[0]!.slice(1));
+            const rootEntry = (backing as unknown as { root?: { entries?: Map<string, { type: string }> } }).root?.entries?.get(slice1);
             if (!rootEntry || rootEntry.type !== "directory") return undefined;
           }
         } else {
@@ -5863,7 +5907,7 @@ export class Runtime {
         const nextBuf = (index & 1) === 0 ? sharedSyncPipeBuf0 : sharedSyncPipeBuf1;
         let stageStdout: ByteSink;
         if (isLast) {
-          stageStdout = signalSink(io.stdout, this.signal);
+          stageStdout = io.stdout;
         } else {
           sharedSyncPipeWriter.reset(this.budget, this.signal, nextBuf);
           stageStdout = sharedSyncPipeWriter;
@@ -6905,7 +6949,7 @@ export class Runtime {
       const list = script.lists[listIndex]!;
       if (list.terminator) return { listIndex, pipelineIndex: 0 };
       for (let index = 0; index < list.pipelines.length; index++) {
-        const operator = list.operators[index - 1];
+        const operator = index > 0 ? list.operators[index - 1] : undefined;
         if ((operator === "&&" && state.status !== 0) || (operator === "||" && state.status === 0)) continue;
         const pipeline = list.pipelines[index]!;
         const ignored = ignoreErrexit || index < list.pipelines.length - 1 || pipeline.negate;
@@ -8219,7 +8263,7 @@ export class Runtime {
       const firstIndex = listIndex === startListIndex ? startPipelineIndex : 0;
       for (let index = firstIndex; index < list.pipelines.length; index++) {
         if (state.noexec) throw new Flow("discard", 0);
-        const operator = list.operators[index - 1];
+        const operator = index > 0 ? list.operators[index - 1] : undefined;
         if ((operator === "&&" && state.status !== 0) || (operator === "||" && state.status === 0)) continue;
         const pipeline = list.pipelines[index]!;
         const ignored = io.execution?.ignoreErrexit || index < list.pipelines.length - 1 || pipeline.negate;
@@ -15049,6 +15093,8 @@ Object.assign(Budget.prototype, {
   hasInfiniteFsOps: true,
   canRedirect1: true,
   maxSourceBytesSmi: 0x3fffffff,
+  maxPipelineStagesSmi: 0x3fffffff,
+  canSyncPurePipe: true,
 });
 Object.assign(Runtime.prototype, {
   outcomeFrame: undefined,
@@ -15080,6 +15126,7 @@ export class RootShellState implements State {
   declare globstar: boolean;
   declare status: number;
   declare substitutionStatus: number;
+  declare lastArgument: string;
   declare depth: number;
   declare loopDepth: number;
   declare functionDepth: number;
@@ -15097,8 +15144,11 @@ export class RootShellState implements State {
   ) {
     this.cwd = cwd;
     this.variables = variables;
-    if (exported !== undefined) this._exported = exported;
+    this._exported = exported;
     this.extensions = extensions;
+    this.status = 0;
+    this.substitutionStatus = 0;
+    this.lastArgument = "";
   }
 
   get exported(): Set<string> {

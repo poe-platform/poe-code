@@ -61,13 +61,17 @@ class ArraySessionImpl implements Session {
     values?: ValueArena,
   ) {
     this._budget = budget;
-    if (values !== undefined) this._values = values;
+    this._values = values;
     this.maxExpansionBytes = maxExpansionBytes;
     this.maxExpansionFields = maxExpansionFields;
-    if (ledger !== undefined) this._ledger = ledger;
+    this._ledger = ledger;
     this.internal = internal;
     this.scope = scope;
     this.firstMonitor = undefined;
+    this.monitors = undefined;
+    this.owner = undefined;
+    this.ownerHeaderCharged = false;
+    this.guestOwner = undefined;
   }
 
   get values(): ValueArena {
@@ -208,6 +212,11 @@ export class StateMonitor {
     this._values = source && source._values ? source._values.clone() : undefined;
     this._variablesProxy = undefined;
     this._wrapperCount = 1;
+    this._proxy = undefined;
+    this._wrapped = undefined;
+    this.lazyPipeStatus = undefined;
+    this.epoch = 0;
+    this.store = undefined;
     if (source?.lazyPipeStatus !== undefined) {
       this.lazyPipeStatus = source.lazyPipeStatus;
     }

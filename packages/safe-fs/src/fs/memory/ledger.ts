@@ -106,6 +106,10 @@ export class MemoryAllocation {
     return this.references === 0 && this.data.byteLength === 64;
   }
 
+  isReleased65536(): boolean {
+    return this.references === 0 && this.data.byteLength === 65536;
+  }
+
   detachLedger(dummyLedger: MemoryLedger): void {
     this.ledger = dummyLedger;
   }

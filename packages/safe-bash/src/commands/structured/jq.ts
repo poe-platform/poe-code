@@ -106,7 +106,7 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
   ) {
     return undefined;
   }
-  const absolute = pathOf(context, file);
+  const absolute = (file.charCodeAt(0) === 47 && file.length > 1 && file.charCodeAt(file.length - 1) !== 47 && !file.includes("//") && !file.includes("/.")) ? file : pathOf(context, file);
   if (absolute === "/dev" || absolute.startsWith("/dev/")) return undefined;
   let rawBytes: Uint8Array | undefined;
   try {
@@ -117,8 +117,10 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
   if (!rawBytes || rawBytes.byteLength === 0 || rawBytes[0] !== 123 || rawBytes[rawBytes.byteLength - 1] !== 10) {
     return undefined;
   }
-  const argBytes = 2 + Buffer.byteLength(source) + Buffer.byteLength(file);
-  if (argBytes + rawBytes.byteLength > limits.maxInputBytes) return undefined;
+  if (limits.maxInputBytes !== Infinity) {
+    const argBytes = 2 + Buffer.byteLength(source) + Buffer.byteLength(file);
+    if (argBytes + rawBytes.byteLength > limits.maxInputBytes) return undefined;
+  }
   let budget = sharedFastBudget;
   if (!budget || budget.limits !== limits) {
     budget = sharedFastBudget = new Budget(limits, context.signal);

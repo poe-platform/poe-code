@@ -286,6 +286,9 @@ const SHARED_POOL_CAPACITY = 256;
 const SHARED_DIR_POOL_CAPACITY = 64;
 const sharedAllocationPool: MemoryAllocation[] = new Array<MemoryAllocation>(SHARED_POOL_CAPACITY).fill(DUMMY_POOL_ALLOCATION);
 let sharedAllocationPoolLen = 0;
+const SHARED_LARGE_POOL_CAPACITY = 8;
+const sharedLargeAllocationPool: MemoryAllocation[] = new Array<MemoryAllocation>(SHARED_LARGE_POOL_CAPACITY).fill(DUMMY_POOL_ALLOCATION);
+let sharedLargeAllocationPoolLen = 0;
 const sharedFileNodePool: MemoryFileNode[] = new Array<MemoryFileNode>(SHARED_POOL_CAPACITY).fill(DUMMY_POOL_FILE_NODE);
 let sharedFileNodePoolLen = 0;
 const sharedDirectoryNodePool: MemoryDirectoryNode[] = new Array<MemoryDirectoryNode>(SHARED_DIR_POOL_CAPACITY);
@@ -320,6 +323,12 @@ function replenishSharedMemoryPools(): void {
   }
   while (sharedFileNodePoolLen < 112) {
     sharedFileNodePool[sharedFileNodePoolLen++] = new MemoryFileNode(0, 0, fastWriteCachedNow, 0, DUMMY_POOL_ALLOCATION, undefined);
+  }
+  while (sharedLargeAllocationPoolLen < 4) {
+    DUMMY_POOL_LEDGER.reserve(65536, 0, "init", "/");
+    const alloc = new MemoryAllocation(new Uint8Array(65536), DUMMY_POOL_LEDGER);
+    alloc.release();
+    sharedLargeAllocationPool[sharedLargeAllocationPoolLen++] = alloc;
   }
   while (sharedDirectoryNodePoolLen < 16) {
     sharedDirectoryNodePool[sharedDirectoryNodePoolLen++] = new MemoryDirectoryNode(0, 0, fastWriteCachedNow);
@@ -408,10 +417,10 @@ class MemoryCache {
   readonly directories: DirectoryNode[] = [];
   readonly removedScratch: MemoryNode[] = [];
   lastFastDirPrefix = "";
-  lastFastDirNode: DirectoryNode | undefined;
+  lastFastDirNode: DirectoryNode | undefined = undefined;
   lastFastFilePath = "";
   lastFastFileName = "";
-  lastFastFileNode: FileNode | undefined;
+  lastFastFileNode: FileNode | undefined = undefined;
 
   clearWrites(): void {
     this.lastFastDirPrefix = "";
@@ -893,6 +902,11 @@ export class MemoryFileSystem implements FileSystem {
         } else if (cache.allocations.length < 128) {
           cache.allocations.push(alloc);
         }
+      } else if (alloc.isReleased65536()) {
+        alloc.detachLedger(DUMMY_POOL_LEDGER);
+        if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedLargeAllocationPoolLen < SHARED_LARGE_POOL_CAPACITY) {
+          sharedLargeAllocationPool[sharedLargeAllocationPoolLen++] = alloc;
+        }
       }
       if (sharedFileNodePoolLen < SHARED_POOL_CAPACITY) {
         sharedFileNodePool[sharedFileNodePoolLen++] = node;
@@ -929,6 +943,17 @@ export class MemoryFileSystem implements FileSystem {
     node.view = length === allocation.data.byteLength ? allocation.data : undefined;
     node.allocation = allocation;
     previous.release();
+    if (previous.isReleased64()) {
+      previous.detachLedger(DUMMY_POOL_LEDGER);
+      if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedAllocationPoolLen < SHARED_POOL_CAPACITY) {
+        sharedAllocationPool[sharedAllocationPoolLen++] = previous;
+      }
+    } else if (previous.isReleased65536()) {
+      previous.detachLedger(DUMMY_POOL_LEDGER);
+      if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedLargeAllocationPoolLen < SHARED_LARGE_POOL_CAPACITY) {
+        sharedLargeAllocationPool[sharedLargeAllocationPoolLen++] = previous;
+      }
+    }
   }
 
   private admitSize(node: FileNode | undefined, length: number, syscall: string, path: string): void {
@@ -973,7 +998,7 @@ export class MemoryFileSystem implements FileSystem {
       const fastDir = cache.lastFastDirNode;
       const fastPrefix = cache.lastFastDirPrefix;
       if (fastDir !== undefined && fastDir.nlink !== 0 && fastPrefix.length > 0 && path.startsWith(fastPrefix)) {
-        const name = path.slice(fastPrefix.length);
+        const name = fastPrefix.length === 1 ? (path === _lastFileSlice1Path ? _lastFileSlice1Name : (_lastFileSlice1Path = path, _lastFileSlice1Name = path.slice(1))) : path.slice(fastPrefix.length);
         if (name.length > 0 && !name.includes("/")) {
           this.permission(fastDir, 1, syscall, path);
           if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
@@ -989,15 +1014,15 @@ export class MemoryFileSystem implements FileSystem {
         const slash = path.indexOf("/", start);
         if (slash === -1) {
           cache.clearWrites();
-          cache.lastFastDirPrefix = path.slice(0, start);
+          cache.lastFastDirPrefix = start === 1 ? "/" : path.slice(0, start);
           cache.lastFastDirNode = current;
-          const name = path.slice(start);
+          const name = start === 1 ? (path === _lastFileSlice1Path ? _lastFileSlice1Name : (_lastFileSlice1Path = path, _lastFileSlice1Name = path.slice(1))) : path.slice(start);
           if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
           const node = current.entries.get(name);
           if (!node) this.fail("ENOENT", syscall, path);
           return node;
         }
-        const name = path.slice(start, slash);
+        const name = slicePathSegment(path, start, slash);
         if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
         const next = current.entries.get(name);
         if (!next) this.fail("ENOENT", syscall, path);
@@ -1019,7 +1044,7 @@ export class MemoryFileSystem implements FileSystem {
         this.permission(current, 1, syscall, path);
         const slash = path.indexOf("/", start);
         if (slash === -1) {
-          const name = path.slice(start);
+          const name = slicePathSegment(path, start, path.length);
           if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
           let node = current.entries.get(name);
           if (!node && options.createDirectories !== undefined) {
@@ -1117,6 +1142,17 @@ export class MemoryFileSystem implements FileSystem {
   }
 
   private file(path: string, syscall: string): FileNode {
+    if (this.symlinkCount === 0 && path.charCodeAt(0) === 47 && path.length > 1 && path.indexOf("/", 1) === -1 && !path.includes("\0")) {
+      const name = path === _lastFileSlice1Path ? _lastFileSlice1Name : (_lastFileSlice1Path = path, _lastFileSlice1Name = path.slice(1));
+      if (name !== "." && name !== "..") {
+        this.permission(this.root, 1, syscall, path);
+        if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
+        const node = this.root.entries.get(name);
+        if (!node) this.fail("ENOENT", syscall, path);
+        if (node.type !== "file") this.fail("EISDIR", syscall, path);
+        return node;
+      }
+    }
     const cache = memoryCaches.get(this.ledger)!;
     if (this.symlinkCount === 0 && isCleanAbsolutePath(path)) {
       const fastDir = cache.lastFastDirNode;
@@ -1249,6 +1285,14 @@ export class MemoryFileSystem implements FileSystem {
     this.ledger.reserve(length, 0, syscall, path);
     if (length === 0) {
       return DUMMY_POOL_ALLOCATION;
+    }
+    if (length === 65536) {
+      if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedLargeAllocationPoolLen > 0) {
+        const pooled = sharedLargeAllocationPool[--sharedLargeAllocationPoolLen]!;
+        sharedLargeAllocationPool[sharedLargeAllocationPoolLen] = DUMMY_POOL_ALLOCATION;
+        pooled.reuse(this.ledger);
+        return pooled;
+      }
     }
     if (length === 64) {
       let pooled: MemoryAllocation | undefined;
@@ -1427,14 +1471,19 @@ export class MemoryFileSystem implements FileSystem {
     let allocation = node.allocation;
     if (length > allocation.data.byteLength) {
       this.ledger.check(length, 0, syscall, path);
-      const baseCap = curLen === 0 && length >= 8192 && length <= 16384 &&
-        this.ledger.limits.maxFileBytes >= 65536 &&
-        this.ledger.availableBytes >= 65536 &&
-        (this.ledger.limits.maxBytes === undefined || this.ledger.limits.maxBytes - this.totalBytes >= 65536)
-        ? 65536
-        : Math.max(length, curLen * 2, 64);
-      const capacity = Math.min(baseCap,
-        this.ledger.limits.maxFileBytes, this.ledger.availableBytes);
+      let capacity: number;
+      if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && this.ledger.limits.maxBytes === undefined) {
+        capacity = curLen === 0 && length >= 8192 && length <= 65536 ? 65536 : Math.max(length, curLen * 2, 64);
+      } else {
+        const baseCap = curLen === 0 && length >= 8192 && length <= 65536 &&
+          this.ledger.limits.maxFileBytes >= 65536 &&
+          this.ledger.availableBytes >= 65536 &&
+          (this.ledger.limits.maxBytes === undefined || this.ledger.limits.maxBytes - this.totalBytes >= 65536)
+          ? 65536
+          : Math.max(length, curLen * 2, 64);
+        capacity = Math.min(baseCap,
+          this.ledger.limits.maxFileBytes, this.ledger.availableBytes);
+      }
       allocation = this.allocate(capacity, syscall, path);
     }
     try {
@@ -1513,7 +1562,7 @@ export class MemoryFileSystem implements FileSystem {
           }
           break;
         }
-        const seg = path.slice(start, slash);
+        const seg = slicePathSegment(path, start, slash);
         if (exceedsComponentByteLimit(seg)) this.fail("ENAMETOOLONG", syscall, path);
         const next = parent.entries.get(seg);
         if (!next) this.fail("ENOENT", syscall, path);
@@ -1647,7 +1696,7 @@ export class MemoryFileSystem implements FileSystem {
         while (start < dirPrefix.length) {
           this.permission(parent, 1, syscall, name);
           const slash = dirPrefix.indexOf("/", start);
-          const seg = slash === -1 ? dirPrefix.slice(start) : dirPrefix.slice(start, slash);
+          const seg = slash === -1 ? slicePathSegment(dirPrefix, start, dirPrefix.length) : slicePathSegment(dirPrefix, start, slash);
           if (exceedsComponentByteLimit(seg)) this.fail("ENAMETOOLONG", syscall, name);
           const next = parent.entries.get(seg);
           if (!next) this.fail("ENOENT", syscall, name);
@@ -2738,6 +2787,10 @@ export class MemoryRedirectHandle {
 }
 const redirectHandlePool: { handle: MemoryRedirectHandle | undefined } = { handle: undefined };
 
+let _lastRedirectSlice1Path = "";
+let _lastRedirectSlice1Name = "";
+let _lastFileSlice1Path = "";
+let _lastFileSlice1Name = "";
 export function tryOpenMemoryRedirectHandleSync(
   filesystem: FileSystem,
   path: string,
@@ -2779,11 +2832,13 @@ export function tryOpenMemoryRedirectHandleSync(
     memInternal.permission(parent, 1, "open", path);
     const slash = path.indexOf("/", start);
     if (slash === -1) {
-      name = path.slice(start);
+      name = start === 1
+        ? (path === _lastRedirectSlice1Path ? _lastRedirectSlice1Name : (_lastRedirectSlice1Path = path, _lastRedirectSlice1Name = path.slice(1)))
+        : path.slice(start);
       if (exceedsComponentByteLimit(name)) memInternal.fail("ENAMETOOLONG", "open", path);
       break;
     }
-    const seg = path.slice(start, slash);
+    const seg = slicePathSegment(path, start, slash);
     if (exceedsComponentByteLimit(seg)) memInternal.fail("ENAMETOOLONG", "open", path);
     const next = parent.entries.get(seg);
     if (!next) memInternal.fail("ENOENT", "open", path);
@@ -2918,12 +2973,12 @@ export function tryResolveMemoryDevicePath(filesystem: FileSystem, path: string,
     if (((current.mode >> 6) & 1) !== 1) return undefined;
     const slash = path.indexOf("/", start);
     if (slash === -1) {
-      const name = path.slice(start);
+      const name = slicePathSegment(path, start, path.length);
       if (exceedsComponentByteLimit(name)) return undefined;
       if (resizeCreate === false && !current.entries.has(name)) return undefined;
       return path;
     }
-    const name = path.slice(start, slash);
+    const name = slicePathSegment(path, start, slash);
     if (exceedsComponentByteLimit(name)) return undefined;
     const next = current.entries.get(name);
     if (!next) {
@@ -2931,7 +2986,7 @@ export function tryResolveMemoryDevicePath(filesystem: FileSystem, path: string,
       let remStart = slash + 1;
       while (true) {
         const nextSlash = path.indexOf("/", remStart);
-        const seg = nextSlash === -1 ? path.slice(remStart) : path.slice(remStart, nextSlash);
+        const seg = nextSlash === -1 ? slicePathSegment(path, remStart, path.length) : slicePathSegment(path, remStart, nextSlash);
         if (exceedsComponentByteLimit(seg)) return undefined;
         if (nextSlash === -1) return path;
         remStart = nextSlash + 1;
@@ -2972,8 +3027,52 @@ export function tryReadMemoryFileViewSync(filesystem: FileSystem, path: string, 
   const node = (mem as unknown as { file: (p: string, s: string) => FileNode }).file(path, "readFile");
   (mem as unknown as { permission: (n: MemoryNode, m: number, s: string, p: string) => void }).permission(node, 4, "readFile", path);
   if (maxBytes !== undefined && node.data.byteLength > maxBytes) (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail("EFBIG", "readFile", path);
-  node.atimeMs = Date.now();
+  node.atimeMs = Date.now === defaultDateNow ? ((++fastWriteNowTick & 63) === 0 ? (fastWriteCachedNow = Date.now()) : fastWriteCachedNow) : Date.now();
   return node.data;
+}
+
+
+let segCache0 = "";
+let segCache1 = "";
+let segCache2 = "";
+let segCache3 = "";
+let segCacheCursor = 0;
+function slicePathSegment(path: string, start: number, end: number): string {
+  const len = end - start;
+  if (len <= 0) return "";
+  if (len === 1) return String.fromCharCode(path.charCodeAt(start));
+  if (len <= 16) {
+    const c0 = path.charCodeAt(start);
+    if (segCache0.length === len && segCache0.charCodeAt(0) === c0) {
+      let ok = true;
+      for (let i = 1; i < len; i++) if (path.charCodeAt(start + i) !== segCache0.charCodeAt(i)) { ok = false; break; }
+      if (ok) return segCache0;
+    }
+    if (segCache1.length === len && segCache1.charCodeAt(0) === c0) {
+      let ok = true;
+      for (let i = 1; i < len; i++) if (path.charCodeAt(start + i) !== segCache1.charCodeAt(i)) { ok = false; break; }
+      if (ok) return segCache1;
+    }
+    if (segCache2.length === len && segCache2.charCodeAt(0) === c0) {
+      let ok = true;
+      for (let i = 1; i < len; i++) if (path.charCodeAt(start + i) !== segCache2.charCodeAt(i)) { ok = false; break; }
+      if (ok) return segCache2;
+    }
+    if (segCache3.length === len && segCache3.charCodeAt(0) === c0) {
+      let ok = true;
+      for (let i = 1; i < len; i++) if (path.charCodeAt(start + i) !== segCache3.charCodeAt(i)) { ok = false; break; }
+      if (ok) return segCache3;
+    }
+    const sliced = path.slice(start, end);
+    const slot = segCacheCursor;
+    segCacheCursor = (slot + 1) & 3;
+    if (slot === 0) segCache0 = sliced;
+    else if (slot === 1) segCache1 = sliced;
+    else if (slot === 2) segCache2 = sliced;
+    else segCache3 = sliced;
+    return sliced;
+  }
+  return path.slice(start, end);
 }
 
 export function tryGetMemoryDirectoryEntryNamesSync(filesystem: FileSystem, path: string): ReadonlyMap<string, { readonly type: "file" | "directory" | "symlink" }> | undefined {
@@ -3004,11 +3103,11 @@ export function tryGetMemoryDirectoryEntryNamesSync(filesystem: FileSystem, path
     if (((current.mode >> 6) & 1) !== 1) return undefined;
     const slash = path.indexOf("/", start);
     if (slash === -1) {
-      const next = current.entries.get(path.slice(start));
+      const next = current.entries.get(slicePathSegment(path, start, path.length));
       if (!next || next.type !== "directory" || ((next.mode >> 6) & 4) !== 4) return undefined;
       return next.entries;
     }
-    const next = current.entries.get(path.slice(start, slash));
+    const next = current.entries.get(slicePathSegment(path, start, slash));
     if (!next || next.type !== "directory") return undefined;
     current = next;
     start = slash + 1;
@@ -3069,7 +3168,7 @@ export function tryMkdirMemorySync(
     while (true) {
       (mem as unknown as { permission: (n: MemoryNode, m: number, s: string, p: string) => void }).permission(current, 1, "mkdir", path);
       const slash = path.indexOf("/", start);
-      const seg = slash === -1 ? path.slice(start) : path.slice(start, slash);
+      const seg = slash === -1 ? slicePathSegment(path, start, path.length) : slicePathSegment(path, start, slash);
       if (exceedsComponentByteLimit(seg)) (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail("ENAMETOOLONG", "mkdir", path);
       let next = current.entries.get(seg);
       if (!next) {
@@ -3119,13 +3218,13 @@ export function tryRmRfMemorySync(
     (mem as unknown as { permission: (n: MemoryNode, m: number, s: string, p: string) => void }).permission(current, 1, "rm", path);
     const slash = path.indexOf("/", start);
     if (slash === -1) {
-      targetName = path.slice(start);
+      targetName = slicePathSegment(path, start, path.length);
       if (exceedsComponentByteLimit(targetName)) (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail("ENAMETOOLONG", "rm", path);
       targetNode = current.entries.get(targetName);
       if (!targetNode) return true;
       break;
     }
-    const seg = path.slice(start, slash);
+    const seg = slicePathSegment(path, start, slash);
     if (exceedsComponentByteLimit(seg)) (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail("ENAMETOOLONG", "rm", path);
     const next = current.entries.get(seg);
     if (!next) return true;

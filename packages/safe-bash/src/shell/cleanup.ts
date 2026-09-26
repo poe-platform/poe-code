@@ -43,7 +43,9 @@ export class InvocationScope {
     this.callerSignal = callerSignal;
     this._owner = undefined;
     this._activeBudget = undefined;
+    this._activeStdin = undefined;
     this._arraySession = undefined;
+    this._activeWork = 0;
     this._closed = false;
     this._drain = undefined;
     if (failures !== undefined) this._failures = failures;

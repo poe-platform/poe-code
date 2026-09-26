@@ -127,10 +127,26 @@ export class ArrayLedger {
     this._active = false;
     this.caps = undefined;
     this.used = undefined;
-    this.c3Smi = -1;
-    this.c4Smi = -1;
-    this.c5Smi = -1;
-    this.c6Smi = -1;
+    if (bytes === Infinity || fields === Infinity) {
+      this.c3Smi = 0x3fffffff;
+      this.c4Smi = 0x3fffffff;
+      this.c5Smi = 0x3fffffff;
+      this.c6Smi = 0x3fffffff;
+    } else if (bytes >= 0 && fields >= 0 && bytes <= 1e13 && fields <= 1e12 && Number.isSafeInteger(bytes) && Number.isSafeInteger(fields)) {
+      const c3 = 128 * fields;
+      const c4 = 8 * bytes + 512 * fields;
+      const c5 = 8 * fields;
+      const c6 = 32 * bytes + 256 * fields;
+      this.c3Smi = c3 <= 0x3fffffff ? (c3 | 0) : 0x3fffffff;
+      this.c4Smi = c4 <= 0x3fffffff ? (c4 | 0) : 0x3fffffff;
+      this.c5Smi = c5 <= 0x3fffffff ? (c5 | 0) : 0x3fffffff;
+      this.c6Smi = c6 <= 0x3fffffff ? (c6 | 0) : 0x3fffffff;
+    } else {
+      this.c3Smi = -1;
+      this.c4Smi = -1;
+      this.c5Smi = -1;
+      this.c6Smi = -1;
+    }
     this.u0Smi = 0;
     this.u1Smi = 0;
     this.u2Smi = 0;
@@ -197,7 +213,10 @@ export class ArrayLedger {
   }
 
   private ensureSmiCaps(): boolean {
-    if (this.c4Smi >= 0) return true;
+    if (this.c4Smi >= 0) {
+      this._active = true;
+      return true;
+    }
     const b = this.bytes;
     const f = this.fields;
     if (b === Infinity || f === Infinity) {

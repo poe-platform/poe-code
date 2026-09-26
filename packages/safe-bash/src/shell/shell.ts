@@ -218,6 +218,15 @@ class RootInvocationCancellationOwner implements CancellationOwnerSubscriber {
 
   constructor(scope: InvocationScope) {
     this.scope = scope;
+    this.active = false;
+    this._admissionOpen = true;
+    this._boundary = undefined;
+    this._observedOrigin = undefined;
+    this._resolveCapture = undefined;
+    this._rawPromise = undefined;
+    this._settled = false;
+    this._queuedOrigin = false;
+    this._finished = false;
     scope.setOwner(this);
   }
 
@@ -1112,7 +1121,10 @@ export class Shell implements PluginHost {
         state &&
         this.#isDefaultExecOptions(options, scope)
       ) {
-        if (state.extensions) state.extensions.exiting = false;
+        if (state.extensions) {
+          state.extensions.started = true;
+          state.extensions.exiting = false;
+        }
         const rawVars = state.variables;
         rawVars.__w0 = ""; rawVars.__w1 = ""; rawVars.__w2 = ""; rawVars.__w3 = ""; rawVars.__w4 = "";
         delete rawVars.__w0; delete rawVars.__w1; delete rawVars.__w2; delete rawVars.__w3; delete rawVars.__w4;
@@ -1120,7 +1132,7 @@ export class Shell implements PluginHost {
         void monitor.proxy.variables;
         monitor.values.prewarm();
         stdout.enableScratchBuffer();
-        stderr.enableScratchBuffer();
+        stderr.enableScratchBuffer(true);
         void runtime.canFastMemoryRedirect;
         this.#warmedInvocation = {
           budget,

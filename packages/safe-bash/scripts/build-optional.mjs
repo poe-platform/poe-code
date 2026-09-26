@@ -298,9 +298,16 @@ export async function buildOptionalPackage({ rootDir, compile, fileSystem = fs }
       let { specifier } = edge;
       if (privateInput && specifier.startsWith(".")) {
         const target = declaration ? declarationTarget(path.resolve(path.dirname(privateInput.source), specifier)) : path.resolve(path.dirname(privateInput.source), specifier);
-        const route = Object.entries(privateInput.owner.manifest.exports).find(([, pair]) => path.resolve(privateInput.owner.directory, declaration ? pair.types : pair.import) === target)?.[0];
-        if (!route) throw new Error(`Unexported private optional dependency: ${specifier}`);
-        specifier = privateInput.name + (route === "." ? "" : route.slice(1));
+        const dependencies = { ...privateInput.owner.manifest.dependencies, ...privateInput.owner.manifest.devDependencies, ...privateInput.owner.manifest.peerDependencies };
+        let reference;
+        for (const name of new Set([privateInput.name, ...Object.keys(dependencies)])) {
+          if (!Object.hasOwn(profiles, name) || !below(path.join(root, "packages", name, "dist"), target)) continue;
+          const owner = implementation(name);
+          const route = Object.entries(owner.manifest.exports).find(([, pair]) => path.resolve(owner.directory, declaration ? pair.types : pair.import) === target)?.[0];
+          if (route) { reference = name + (route === "." ? "" : route.slice(1)); break; }
+        }
+        if (!reference) throw new Error(`Unexported private optional dependency: ${specifier}`);
+        specifier = reference;
       }
       let replacement = specifier;
       const privateTarget = privateReference(specifier, edge.names, declaration);

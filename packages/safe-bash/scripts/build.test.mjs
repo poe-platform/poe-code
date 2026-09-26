@@ -1983,3 +1983,62 @@ for (const defect of ['none', 'declaration', 'runtime', 'source-import']) test(`
   }
   noHeldReads(owned);
 });
+
+
+for (const defect of ["none", "undeclared", "unexported", "source"]) test("optional private declaration edges retain admitted workspace ownership: " + defect, async () => {
+  const owned = optionalFixture();
+  const core = "/owned/packages/safe-bash";
+  for (const [filename, contents] of Object.entries(owned.volume.toJSON())) {
+    if (!filename.startsWith(root + "/")) continue;
+    const destination = core + filename.slice(root.length);
+    owned.memory.mkdirSync(destination.slice(0, destination.lastIndexOf("/")), { recursive: true });
+    owned.memory.writeFileSync(destination, contents);
+  }
+  const engine = "safe-bash-fixture-engine", contracts = "safe-bash-contracts";
+  const edge = defect === "undeclared" ? {} : { [contracts]: "*" };
+  const manifest = JSON.parse(owned.memory.readFileSync(core + "/package.json", "utf8"));
+  manifest.version = "1.0.0";
+  manifest.devDependencies = { "@poe-code/safe-fs": "*", [engine]: "*", [contracts]: "*" };
+  manifest.exports = { ".": { import: "./dist/index.js", types: "./dist/index.d.ts" } };
+  manifest.poeCode = { integration: { privateWorkspaces: Object.fromEntries([
+    [engine, edge], [contracts, {}]
+  ].map(([name, devDependencies]) => [name, { version: "0.0.1", dependencies: {}, devDependencies,
+    optionalModules: { ".": "./dist/commands/yes/" + name + ".js" } }])) } };
+  owned.memory.writeFileSync(core + "/package.json", JSON.stringify(manifest));
+  for (const [name, devDependencies] of [[engine, edge], [contracts, {}]]) {
+    const directory = "/owned/packages/" + name;
+    owned.memory.mkdirSync(directory + "/dist", { recursive: true });
+    owned.memory.mkdirSync(directory + "/src", { recursive: true });
+    owned.memory.writeFileSync(directory + "/package.json", JSON.stringify({ name, private: true,
+      type: "module", version: "0.0.1", dependencies: {}, devDependencies,
+      exports: { ".": { import: "./dist/index.js", types: "./dist/index.d.ts" } } }));
+    owned.memory.writeFileSync(directory + "/dist/index.js", "export {};\n");
+    owned.memory.writeFileSync(directory + "/dist/index.d.ts", "export interface Input { text: string; }\n");
+    owned.memory.writeFileSync(directory + "/dist/private.d.ts", "UNEXPORTED sentinel");
+    owned.memory.writeFileSync(directory + "/src/private.d.ts", "SOURCE sentinel");
+  }
+  const target = defect === "source" ? "src/private" : defect === "unexported" ? "dist/private" : "dist/index";
+  owned.memory.writeFileSync("/owned/packages/" + engine + "/dist/index.d.ts",
+    'export type { Input } from "../../' + contracts + '/' + target + '.js";\n');
+  owned.memory.mkdirSync("/owned/packages/safe-fs", { recursive: true });
+  owned.memory.writeFileSync("/owned/packages/safe-fs/package.json", JSON.stringify({
+    name: "@poe-platform/safe-fs", exports: { ".": { import: "./dist/index.js", types: "./dist/index.d.ts" } }
+  }));
+  const run = () => buildOptionalPackage({ rootDir: "/owned", fileSystem: owned.fileSystem, compile: async options => {
+    const result = await buildPackage({ ...options, tools, write: text => owned.output.push(text) });
+    assert.equal(result.status, 0, owned.output.join(""));
+    const filename = core + "/dist/commands/yes/helper.d.ts";
+    const bytes = 'export declare const value: import("' + engine + '").Input;\n';
+    owned.memory.writeFileSync(filename, bytes);
+    result.emittedHashes[filename] = createHash("sha256").update(bytes).digest("hex");
+    return result;
+  } });
+  if (defect === "none") {
+    const result = await run();
+    assert.equal(result.status, 0);
+    assert.match(owned.memory.readFileSync(core + "/dist/opt-in/commands/yes/" + engine + ".d.ts", "utf8"), /from ".\/safe-bash-contracts.js"/);
+    assert.ok(result.files.includes("commands/yes/" + contracts + ".d.ts"));
+  } else await assert.rejects(run(), /Unexported private optional dependency/);
+  assert.equal(owned.reads.some(filename => filename.endsWith("/src/private.d.ts") || filename.endsWith("/dist/private.d.ts")), false);
+  assert.equal(owned.descriptors.size, 0);
+});

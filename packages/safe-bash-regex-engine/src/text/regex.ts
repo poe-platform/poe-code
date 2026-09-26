@@ -806,6 +806,10 @@ export class Pattern {
     return this.fastPrefixInfo;
   }
 
+  getLiteralMatchInfo(): { readonly value: string; readonly anchoredStart: boolean; readonly anchoredEnd: boolean } | undefined {
+    return this.literalMatch;
+  }
+
   findSyncFastInto(
     text: string,
     budget: Pick<Budget, "step" | "maxBufferBytes">,
@@ -913,8 +917,25 @@ export class Pattern {
       const candidate = textEnd - len;
       if (candidate >= from && text.startsWith(value, candidate)) found = candidate;
     } else {
-      const idx = text.indexOf(value, from);
-      if (idx >= 0 && idx <= textEnd - len) found = idx;
+      const maxStart = textEnd - len;
+      if (from <= maxStart) {
+        if (textEnd === text.length || maxStart - from > 64) {
+          const idx = text.indexOf(value, from);
+          if (idx >= 0 && idx <= maxStart) found = idx;
+        } else {
+          const c0 = value.charCodeAt(0);
+          const c1 = len > 1 ? value.charCodeAt(1) : -1;
+          for (let i = from; i <= maxStart; i++) {
+            if (
+              text.charCodeAt(i) === c0 &&
+              (len === 1 || (text.charCodeAt(i + 1) === c1 && (len === 2 || text.startsWith(value, i))))
+            ) {
+              found = i;
+              break;
+            }
+          }
+        }
+      }
     }
     const positionsTried = anchoredStart ? 1 : found >= 0 ? found - from + 1 : textEnd - from + 1;
     budget.step(positionsTried * 2 + (found >= 0 ? this.code.length * 2 + len : 0));
@@ -1941,4 +1962,211 @@ export function trySubstitutePairToBufferSync(
   for (let i = e2; i < lineEnd; i++) outBuf[pos++] = text.charCodeAt(i);
   outBuf[pos++] = sepCode;
   return pos;
+}
+
+export function trySubstitutePairBatchToBufferSync(
+  batchText: string,
+  batchEnds: Int32Array,
+  endsLen: number,
+  pat1: Pattern,
+  rep1: string,
+  global1: boolean,
+  occ1: number,
+  pat2: Pattern,
+  rep2: string,
+  global2: boolean,
+  occ2: number,
+  budget: Budget,
+  outBuf: Uint8Array,
+  sepCode: number,
+  maxOutLen: number,
+): number {
+  if (occ1 !== 1 || occ2 !== 1) return -1;
+  if (!pat1.canFindSync() || !pat2.canFindSync()) return -1;
+  const info1 = pat1.getFastPrefixInfo();
+  const info2 = pat2.getFastPrefixInfo();
+  if (!info1 || !info2 || !info1.anchoredStart || info2.anchoredStart || info2.prefix.length === 0) return -1;
+  const sr1 = getSimpleReplacement(rep1, "sed");
+  const sr2 = getSimpleReplacement(rep2, "sed");
+  if (!sr1 || !sr2) return -1;
+
+  const lit1 = pat1.getLiteralMatchInfo();
+  const lit2 = pat2.getLiteralMatchInfo();
+  const maxBuf = budget.maxBufferBytes;
+
+  if (
+    lit1 &&
+    lit1.anchoredStart &&
+    !lit1.anchoredEnd &&
+    sr1.kind === "literal" &&
+    lit2 &&
+    !lit2.anchoredStart &&
+    !lit2.anchoredEnd &&
+    sr2.kind === "literal"
+  ) {
+    const v1 = lit1.value;
+    const v1Len = v1.length;
+    const v2 = lit2.value;
+    const v2Len = v2.length;
+    if (v1Len === 0 || v2Len === 0) return -1;
+    const r1Val = sr1.prefix;
+    let commonSuffix = 0;
+    const maxSuffix = Math.min(r1Val.length, v1Len);
+    while (
+      commonSuffix < maxSuffix &&
+      r1Val.charCodeAt(r1Val.length - 1 - commonSuffix) === v1.charCodeAt(v1Len - 1 - commonSuffix)
+    ) {
+      commonSuffix++;
+    }
+    const effectiveExp1Len = r1Val.length - commonSuffix;
+    const effectiveE1Offset = v1Len - commonSuffix;
+    const v2c0 = v2.charCodeAt(0);
+    for (let i = 0; i < effectiveExp1Len; i++) {
+      if (r1Val.charCodeAt(i) === v2c0) return -1;
+    }
+    const r2Val = sr2.prefix;
+    const r2Len = r2Val.length;
+    const v1c0 = v1.charCodeAt(0);
+    const v1c1 = v1Len > 1 ? v1.charCodeAt(1) : -1;
+    const v2c1 = v2Len > 1 ? v2.charCodeAt(1) : -1;
+
+    let outPos = 0;
+    let lStart = 0;
+    for (let idx = 0; idx < endsLen; idx++) {
+      const lEnd = batchEnds[idx]!;
+      const lineLen = lEnd - lStart;
+      if (lineLen > 4096) return -1;
+      let effectiveE1 = lStart;
+      let exp1Len = 0;
+      if (
+        lineLen >= v1Len &&
+        batchText.charCodeAt(lStart) === v1c0 &&
+        (v1Len === 1 || (batchText.charCodeAt(lStart + 1) === v1c1 && (v1Len === 2 || batchText.startsWith(v1, lStart))))
+      ) {
+        effectiveE1 = lStart + effectiveE1Offset;
+        exp1Len = effectiveExp1Len;
+      }
+      const maxS2 = lEnd - v2Len;
+      let s2 = -1;
+      for (let i = effectiveE1; i <= maxS2; i++) {
+        if (
+          batchText.charCodeAt(i) === v2c0 &&
+          (v2Len === 1 || (batchText.charCodeAt(i + 1) === v2c1 && (v2Len === 2 || batchText.startsWith(v2, i))))
+        ) {
+          s2 = i;
+          break;
+        }
+      }
+      if (s2 < 0) {
+        const restLen = lEnd - effectiveE1;
+        const outLen = exp1Len + restLen;
+        if (outLen > maxBuf) throw new ProgramError("text buffer limit exceeded");
+        if (outPos + outLen + 1 >= maxOutLen) return -2;
+        for (let i = 0; i < exp1Len; i++) outBuf[outPos++] = r1Val.charCodeAt(i);
+        for (let i = effectiveE1; i < lEnd; i++) outBuf[outPos++] = batchText.charCodeAt(i);
+        outBuf[outPos++] = sepCode;
+        budget.step(lineLen * 2 + exp1Len * 2 + 8);
+      } else {
+        const e2 = s2 + v2Len;
+        if (global2 && e2 <= maxS2) {
+          for (let i = e2; i <= maxS2; i++) {
+            if (
+              batchText.charCodeAt(i) === v2c0 &&
+              (v2Len === 1 || (batchText.charCodeAt(i + 1) === v2c1 && (v2Len === 2 || batchText.startsWith(v2, i))))
+            ) {
+              return -1;
+            }
+          }
+        }
+        const midLen = s2 - effectiveE1;
+        const tailLen = lEnd - e2;
+        const totalLen = exp1Len + midLen + r2Len + tailLen;
+        if (totalLen > maxBuf) throw new ProgramError("text buffer limit exceeded");
+        if (outPos + totalLen + 1 >= maxOutLen) return -2;
+        for (let i = 0; i < exp1Len; i++) outBuf[outPos++] = r1Val.charCodeAt(i);
+        for (let i = effectiveE1; i < s2; i++) outBuf[outPos++] = batchText.charCodeAt(i);
+        for (let i = 0; i < r2Len; i++) outBuf[outPos++] = r2Val.charCodeAt(i);
+        for (let i = e2; i < lEnd; i++) outBuf[outPos++] = batchText.charCodeAt(i);
+        outBuf[outPos++] = sepCode;
+        budget.step(lineLen * 2 + exp1Len * 2 + r2Len * 2 + 16);
+      }
+      if (((idx + 1) & 31) === 0) {
+        const pending = budget.checkpointSync ? budget.checkpointSync() : undefined;
+        if (pending) {
+          pending.catch(() => {});
+          return -1;
+        }
+      }
+      lStart = lEnd + 1;
+    }
+    return outPos;
+  }
+
+  let outPos = 0;
+  let lStart = 0;
+  const firstChar2 = info2.prefix.charCodeAt(0);
+  for (let idx = 0; idx < endsLen; idx++) {
+    const lEnd = batchEnds[idx]!;
+    if (lEnd - lStart > 4096) return -1;
+    budget.step();
+    let effectiveE1 = lStart;
+    let exp1 = "";
+    let effectiveExp1Len = 0;
+    if (pat1.findSyncFastInto(batchText, budget, lStart, PAIR_OFFSETS_1, lEnd, lStart)) {
+      const e1 = PAIR_OFFSETS_1[1]!;
+      if (e1 === lStart) return -1;
+      exp1 = expandSimpleFromOffsets(sr1, batchText, lStart, e1, PAIR_OFFSETS_1[2]!, PAIR_OFFSETS_1[3]!, budget);
+      let commonSuffix = 0;
+      const maxSuffix = Math.min(exp1.length, e1 - lStart);
+      while (commonSuffix < maxSuffix && exp1.charCodeAt(exp1.length - 1 - commonSuffix) === batchText.charCodeAt(e1 - 1 - commonSuffix)) {
+        commonSuffix++;
+      }
+      effectiveExp1Len = exp1.length - commonSuffix;
+      effectiveE1 = e1 - commonSuffix;
+      for (let i = 0; i < effectiveExp1Len; i++) {
+        if (exp1.charCodeAt(i) === firstChar2) return -1;
+      }
+    }
+    budget.step();
+    if (!pat2.findSyncFastInto(batchText, budget, effectiveE1, PAIR_OFFSETS_2, lEnd, lStart)) {
+      const outLen = effectiveExp1Len + (lEnd - effectiveE1);
+      if (outLen > maxBuf) throw new ProgramError("text buffer limit exceeded");
+      if (outPos + outLen + 1 >= maxOutLen) return -2;
+      budget.step(lEnd - effectiveE1 + 4);
+      for (let i = 0; i < effectiveExp1Len; i++) outBuf[outPos++] = exp1.charCodeAt(i);
+      for (let i = effectiveE1; i < lEnd; i++) outBuf[outPos++] = batchText.charCodeAt(i);
+      outBuf[outPos++] = sepCode;
+    } else {
+      const s2 = PAIR_OFFSETS_2[0]!;
+      const e2 = PAIR_OFFSETS_2[1]!;
+      if (s2 < effectiveE1 || e2 === s2) return -1;
+      const g2s = PAIR_OFFSETS_2[2]!;
+      const g2e = PAIR_OFFSETS_2[3]!;
+      if (global2 && e2 <= lEnd) {
+        budget.step();
+        if (pat2.findSyncFastInto(batchText, budget, e2, PAIR_OFFSETS_1, lEnd, lStart)) return -1;
+      }
+      const exp2 = expandSimpleFromOffsets(sr2, batchText, s2, e2, g2s, g2e, budget);
+      const midLen = s2 - effectiveE1;
+      const tailLen = lEnd - e2;
+      const totalLen = effectiveExp1Len + midLen + exp2.length + tailLen;
+      if (totalLen > maxBuf) throw new ProgramError("text buffer limit exceeded");
+      if (outPos + totalLen + 1 >= maxOutLen) return -2;
+      budget.step(midLen + tailLen + 5);
+      for (let i = 0; i < effectiveExp1Len; i++) outBuf[outPos++] = exp1.charCodeAt(i);
+      for (let i = effectiveE1; i < s2; i++) outBuf[outPos++] = batchText.charCodeAt(i);
+      for (let i = 0; i < exp2.length; i++) outBuf[outPos++] = exp2.charCodeAt(i);
+      for (let i = e2; i < lEnd; i++) outBuf[outPos++] = batchText.charCodeAt(i);
+      outBuf[outPos++] = sepCode;
+    }
+    if (((idx + 1) & 31) === 0) {
+      const pending = budget.checkpointSync ? budget.checkpointSync() : undefined;
+      if (pending) {
+        pending.catch(() => {});
+        return -1;
+      }
+    }
+    lStart = lEnd + 1;
+  }
+  return outPos;
 }

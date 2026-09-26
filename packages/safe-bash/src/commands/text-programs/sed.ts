@@ -2,7 +2,7 @@ import type { FileSystem } from "@poe-code/safe-fs";
 import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
 import { FsError, writeBytes, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
-import { Pattern, substitute, trySubstituteSync, trySubstitutePairSync, trySubstitutePairToBufferSync } from "./regex.js";
+import { Pattern, substitute, trySubstituteSync, trySubstitutePairSync, trySubstitutePairToBufferSync, trySubstitutePairBatchToBufferSync } from "./regex.js";
 import { Budget, ProgramError, byteString, bytes, command, getCachedLatin1Batch, input, lineRecordBatches, readProgram, virtualPath, write, type LineRecordBatch, type RecordLine, type TextProgramOptions } from "./shared.js";
 import { assertPathRequirements, requiredFileInput, sedRequirements } from "../search/requirements.js";
 import { pathOf } from "../internal.js";
@@ -857,26 +857,9 @@ function runSedPairBatchLoopSync(
   budget: Budget,
   stdoutBuf: Buffer,
 ): number {
-  let stdoutLen = 0;
-  for (let idx = 0; idx < endsLen; idx++) {
-    const lStart = idx === 0 ? 0 : batchEnds[idx - 1]! + 1;
-    const lEnd = batchEnds[idx]!;
-    const nextPos = trySubstitutePairToBufferSync(
-      batchText, expr0, r1, g1, o1, expr1, r2, g2, o2, budget, stdoutBuf, stdoutLen, 10, lStart, lEnd,
-    );
-    if (typeof nextPos !== "number" || nextPos < 0) return -1;
-    budget.step(3);
-    if (((idx + 1) & 31) === 0) {
-      const pending = budget.checkpointSync();
-      if (pending) {
-        pending.catch(() => {});
-        return -1;
-      }
-    }
-    stdoutLen = nextPos;
-    if (stdoutLen >= STDOUT_FLUSH) return -2;
-  }
-  return stdoutLen;
+  return trySubstitutePairBatchToBufferSync(
+    batchText, batchEnds, endsLen, expr0, r1, g1, o1, expr1, r2, g2, o2, budget, stdoutBuf, 10, STDOUT_FLUSH,
+  );
 }
 
 function tryExecutePairFastSync(

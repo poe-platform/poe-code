@@ -193,7 +193,6 @@ for (const sync of [false, true]) test(`closed memory readers return EOF through
 
 test("synchronous input cannot publish bytes after closing its reader", () => {
   const retention = new AwkRetention(8);
-  let reader: Reader;
   const input = {
     [Symbol.asyncIterator]() { return this; },
     async next() { return this.tryNextSync(); },
@@ -202,7 +201,7 @@ test("synchronous input cannot publish bytes after closing its reader", () => {
       return { done: false, value: Buffer.from("late\n") };
     },
   };
-  reader = new Reader(input, budget(), retention);
+  const reader = new Reader(input, budget(), retention);
   const slice = { source: "unchanged", start: 1, end: 2 };
   assert.equal(reader.readSliceSync("\n", slice), false);
   assert.deepEqual(slice, { source: "unchanged", start: 1, end: 2 });

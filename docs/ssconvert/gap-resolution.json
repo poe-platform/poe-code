@@ -104,6 +104,21 @@
           "source": "Gnumeric GNUMERIC_1_12_61 plugins/excel/ms-formula-read.c, excel_formula_parses_ref_sheets: positive legacy links still resolve the unused last-sheet field through the local table.",
           "sha256": "25cbe0982cc952431c7b10bf7df709e3997d4759cb158f0f6159ba7c6ccd21d5"
         }
+      },
+      "legacySourceInvestigation": {
+        "revision": "bce0998afefdbc355585ca324285661a2170ba77",
+        "sources": [
+          {
+            "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/excel/xelink.cxx",
+            "sha256": "e17006226c85f1bd31eebc366633dedab062ebd5ea4aee5971dad45cc7a95672"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/excel/xeformula.cxx",
+            "sha256": "d7da8f81242a4ed1b01c0d5f6a7f3a76f25405be7dee0ac166f53cb6f1c94f0b"
+          }
+        ],
+        "finding": "xelink.cxx:2313 XclExpLinkManagerImpl5::FindExtSheet for external files is explicitly unimplemented, as are StoreCell/StoreCellRange (2326/2331) and InsertExtName (2363). This differs from its implemented internal multi-sheet lookup at 2288. xeformula.cxx:2117 ProcessExternalRangeRef delegates external-sheet identity to that implementation. The token-writing branch alone is not evidence of working BIFF5/7 external-range export.",
+        "next": "Keep the product BIFF7 external multi-sheet range gap open. Establish representation against format documentation and an independently authored file; do not infer support from LibreOffice token serialization or remove the current refusal based on that code."
       }
     },
     "biffDetachedSheets": {

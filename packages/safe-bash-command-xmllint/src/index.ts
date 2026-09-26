@@ -7,6 +7,9 @@ import {
   type CommandContext,
   type CommandDefinition
 } from "safe-bash-contracts";
+import { yieldTurn } from "safe-bash-contracts/yield";
+import { pathOf } from "safe-bash-contracts/path";
+import { writeDiagnostic } from "safe-bash-contracts/escaping";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import {
   XmlBudget,
@@ -254,9 +257,28 @@ async function execute(
   }
 }
 
+const portableRuntime: XmlCommandRuntime = {
+  yieldTurn,
+  pathOf,
+  writeDiagnostic,
+  async interruptible<Result>(operation: () => PromiseLike<Result>, signal: AbortSignal): Promise<Result> {
+    signal.throwIfAborted();
+    return new Promise<Result>((resolve, reject) => {
+      const aborted = () => { signal.removeEventListener("abort", aborted); reject(signal.reason); };
+      signal.addEventListener("abort", aborted, { once: true });
+      try {
+        Promise.resolve(operation()).then(
+          result => { signal.removeEventListener("abort", aborted); resolve(result); },
+          error => { signal.removeEventListener("abort", aborted); reject(error); }
+        );
+      } catch (error) { signal.removeEventListener("abort", aborted); reject(error); }
+    });
+  }
+};
+
 export function createXmllintCommand(
-  options: XmlCommandsOptions,
-  runtime: XmlCommandRuntime
+  options: XmlCommandsOptions = {},
+  runtime: XmlCommandRuntime = portableRuntime
 ): CommandDefinition {
   const limits = resolveXmlQueryLimits(options.limits);
   return { name: "xmllint", execute: (context) => execute(context, limits, runtime) };

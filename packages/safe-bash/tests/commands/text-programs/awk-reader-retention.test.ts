@@ -114,6 +114,35 @@ for (const close of ["close", "closeSyncOrAsync"] as const) test(`closed awk rea
   assert.equal(input.returns(), 1);
 });
 
+for (const close of ["close", "closeSyncOrAsync"] as const) test(`awk memory readers are not reused while a read is suspended after ${close}`, async context => {
+  clearAwkReaderPool();
+  let resume!: () => void;
+  const pending = new Promise<void>(resolve => { resume = resolve; });
+  const firstBudget = budget(8192);
+  let checkpoint = false;
+  context.mock.method(firstBudget, "checkpointSync", () => { checkpoint = true; return pending; });
+  const firstRetention = new AwkRetention(8192), nextRetention = new AwkRetention(8192);
+  const first = Reader.fromMemoryView(Buffer.from("a".repeat(4096) + "\n"), firstBudget, firstRetention);
+  const reading = first.read("\n");
+  let next: Reader | undefined;
+  try {
+    assert.equal(checkpoint, true);
+    await first[close]();
+    next = Reader.fromMemoryView(Buffer.from("b".repeat(4096) + "\n"), budget(8192), nextRetention);
+    resume();
+    assert.equal(await reading, undefined);
+    assert.equal(firstRetention.retainedBytes, 0);
+    assert.equal(nextRetention.retainedBytes, 4097);
+    assert.equal(await next.read("\n"), "b".repeat(4096));
+  } finally {
+    resume();
+    await reading;
+    await first.close();
+    await next?.close();
+    clearAwkReaderPool();
+  }
+});
+
 for (const sync of [false, true]) for (const buffer of [false, true]) test(`awk reader copies borrowed views before producer reuse: sync=${sync}, buffer=${buffer}`, async () => {
   const retention = new AwkRetention(16), backing = buffer ? Buffer.from([255, 195]) : Uint8Array.of(255, 195);
   let pulls = 0;

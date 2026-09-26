@@ -33,6 +33,7 @@ export class Reader {
   private closed = false;
   private closing?: Promise<void> | undefined;
   private isPooledMemory = false;
+  private activeReads = 0;
 
   constructor(source: ByteSource | undefined, private budget: Budget, private retention: Pick<AwkRetention, "admit" | "replace" | "release">) {
     this.iterator = source === undefined
@@ -302,51 +303,56 @@ export class Reader {
     return false;
   }
   async read(separator: string): Promise<string | undefined> {
-    if (this.closed) return undefined;
-    const budget = this.budget;
-    budget.context.signal.throwIfAborted();
-    if (separator.length > 1) throw new ProgramError("RS must be one byte or empty for paragraph records");
-    if (separator.length === 1 && !this.closed && this.head < this.blocksLen) {
-      const headBlock = this.blocks[this.head]!;
-      const idx = headBlock.indexOf(separator.charCodeAt(0), this.offset);
-      if (idx >= 0 && idx - this.offset < 4096) {
-        budget.step();
-        const record = latin1Text(headBlock.subarray(this.offset, idx));
-        this.consume(idx - this.offset + 1);
-        return record;
+    this.activeReads++;
+    try {
+      if (this.closed) return undefined;
+      const budget = this.budget;
+      budget.context.signal.throwIfAborted();
+      if (separator.length > 1) throw new ProgramError("RS must be one byte or empty for paragraph records");
+      if (separator.length === 1 && !this.closed && this.head < this.blocksLen) {
+        const headBlock = this.blocks[this.head]!;
+        const idx = headBlock.indexOf(separator.charCodeAt(0), this.offset);
+        if (idx >= 0 && idx - this.offset < 4096) {
+          budget.step();
+          const record = latin1Text(headBlock.subarray(this.offset, idx));
+          this.consume(idx - this.offset + 1);
+          return record;
+        }
       }
-    }
-    if (separator === "") {
-      while (!this.closed) {
+      if (separator === "") {
+        while (!this.closed) {
+          budget.step();
+          if (this.trimLeading()) break;
+          if (this.buffered === 0) {
+            if (this.ended) return undefined;
+            await this.fill();
+          }
+          if (this.closed) return undefined;
+          const pendingCheck = budget.checkpointSync();
+          if (pendingCheck) await pendingCheck;
+        }
+      }
+      const state: Scan = { block: this.head, offset: this.offset, bytes: 0, newline: -1, paragraphEnd: -1 };
+      while (true) {
+        if (this.closed) return undefined;
         budget.step();
-        if (this.trimLeading()) break;
-        if (this.buffered === 0) {
-          if (this.ended) return undefined;
+        const found = this.scan(separator, state);
+        if (found) return this.finish(found.length, found.consumed);
+        if (state.block === this.blocksLen) {
+          if (this.ended) {
+            if (this.buffered === 0) return undefined;
+            const length = separator !== "" ? this.buffered : state.paragraphEnd >= 0 ? state.paragraphEnd
+              : state.newline === this.buffered - 1 ? this.buffered - 1 : this.buffered;
+            return this.finish(length, this.buffered);
+          }
           await this.fill();
         }
         if (this.closed) return undefined;
         const pendingCheck = budget.checkpointSync();
         if (pendingCheck) await pendingCheck;
       }
-    }
-    const state: Scan = { block: this.head, offset: this.offset, bytes: 0, newline: -1, paragraphEnd: -1 };
-    while (true) {
-      if (this.closed) return undefined;
-      budget.step();
-      const found = this.scan(separator, state);
-      if (found) return this.finish(found.length, found.consumed);
-      if (state.block === this.blocksLen) {
-        if (this.ended) {
-          if (this.buffered === 0) return undefined;
-          const length = separator !== "" ? this.buffered : state.paragraphEnd >= 0 ? state.paragraphEnd
-            : state.newline === this.buffered - 1 ? this.buffered - 1 : this.buffered;
-          return this.finish(length, this.buffered);
-        }
-        await this.fill();
-      }
-      if (this.closed) return undefined;
-      const pendingCheck = budget.checkpointSync();
-      if (pendingCheck) await pendingCheck;
+    } finally {
+      this.activeReads--;
     }
   }
 
@@ -368,7 +374,7 @@ export class Reader {
     this.iterator = RELEASED_READER_ITERATOR;
     this.budget = undefined!;
     this.retention = undefined!;
-    if (this.isPooledMemory && memoryReaderPool.reader === undefined) {
+    if (this.isPooledMemory && this.activeReads === 0 && memoryReaderPool.reader === undefined) {
       this.isPooledMemory = false;
       memoryReaderPool.reader = this;
     }
@@ -398,7 +404,7 @@ export class Reader {
     this.iterator = RELEASED_READER_ITERATOR;
     this.budget = undefined!;
     this.retention = undefined!;
-    if (this.isPooledMemory && memoryReaderPool.reader === undefined) {
+    if (this.isPooledMemory && this.activeReads === 0 && memoryReaderPool.reader === undefined) {
       this.isPooledMemory = false;
       memoryReaderPool.reader = this;
     }

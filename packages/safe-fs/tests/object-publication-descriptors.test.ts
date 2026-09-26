@@ -393,10 +393,12 @@ it("supports zip and tar creation round trips through withObjectFileDescriptors 
   await storage.writeFile("/hello.txt", new TextEncoder().encode("archive payload"));
   const { store, events } = publicationStore(storage);
   const fs = withObjectFileDescriptors(storage, store, { chunkBytes: 4, maxFileBytes: 4096 });
-  const shell = new Shell({ fs });
+  const errors: unknown[] = [];
+  const shell = new Shell({ fs, onInternalError: error => { errors.push(error); } });
   for (const command of createArchiveCommands()) shell.commands.register(command);
 
   const zipRes = await shell.exec("zip /archive.zip hello.txt && tar -cf /archive.tar hello.txt");
+  expect(errors).toEqual([]);
   expect(zipRes.stderr).toBe("");
   expect(zipRes.exitCode).toBe(0);
   expect((await storage.stat("/archive.zip")).size).toBeGreaterThan(0);

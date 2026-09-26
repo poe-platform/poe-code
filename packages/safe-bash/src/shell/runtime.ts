@@ -20570,11 +20570,11 @@ export class Runtime {
       allocation.close();
     }
   }
-  private virtualExecutionContext(context: ShellCommandContext, name: string): ShellCommandContext {
+  private virtualExecutionContext<Context extends CommandContext>(context: Context, name: string): Context {
     const normalized = Object.create(Object.getPrototypeOf(context), {
       ...Object.getOwnPropertyDescriptors(context),
       ...Object.getOwnPropertyDescriptors({ command: name, argv0: context.argv0 ?? context.command }),
-    }) as ShellCommandContext;
+    }) as Context;
     const workerState = workerRuntimeContexts.get(context);
     if (workerState) workerRuntimeContexts.set(normalized, workerState);
     return normalized;

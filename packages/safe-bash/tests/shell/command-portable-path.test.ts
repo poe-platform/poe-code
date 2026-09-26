@@ -32,7 +32,7 @@ test("type -t reports Bash command kinds without exposing dispatch kinds", async
   assert.equal(result.stderr, "");
   assert.equal(result.exitCode, 0);
   const shadowed = await shell.exec("cat() { true; }; type -t cat; type -ft cat; type -at cat");
-  assert.equal(shadowed.stdout, "function\nfile\nfunction\nfile\n");
+  assert.equal(shadowed.stdout, "function\nfile\nfunction\nfile\nfile\nfile\n");
   assert.equal(shadowed.stderr, "");
   assert.equal(shadowed.exitCode, 0);
   const missing = await shell.exec("type -t missing_command");

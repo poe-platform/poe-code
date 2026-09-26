@@ -135,10 +135,24 @@ export class Reader {
     });
   }
   unget(value: number): void { this.pushed = value; }
-  async get(): Promise<number> {
+  get(): number | Promise<number> {
     const { budget } = this.lifecycle;
     budget.charge();
-    await budget.checkpointWork();
+    const cp = budget.checkpointWork();
+    if (!cp && this.stat?.type !== "directory") {
+      if (this.pushed >= 0) { const value = this.pushed; this.pushed = -1; return value; }
+      if (this.offset < this.chunk.length) {
+        const value = this.chunk[this.offset++]!;
+        if (value === 10 || value === 12) { this.length = 0; budget.line(); }
+        else budget.check(++this.length, budget.limits.maxLineBytes, "input line bytes");
+        return value;
+      }
+    }
+    return this.getSlow(cp);
+  }
+  private async getSlow(cp: void | Promise<void>): Promise<number> {
+    const { budget } = this.lifecycle;
+    if (cp) await cp;
     if (this.stat?.type === "directory") throw new PrReadError(`${fileQuote(this.name)}: Is a directory`);
     if (this.pushed >= 0) { const value = this.pushed; this.pushed = -1; return value; }
     while (this.offset === this.chunk.length) {

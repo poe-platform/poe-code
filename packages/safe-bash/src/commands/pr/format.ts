@@ -182,13 +182,15 @@ export class Formatter {
     column.remaining = 0;
   }
   private async feed(column: Column): Promise<void> {
-    const next = await column.reader.get();
+    const r = column.reader.get();
+    const next = typeof r === "number" ? r : await r;
     if (next !== 10) column.reader.unget(next);
     this.hold(column);
   }
   private async rest(column: Column): Promise<void> {
     for (;;) {
-      const byte = await column.reader.get();
+      const r = column.reader.get();
+      const byte = typeof r === "number" ? r : await r;
       if (byte === 10) return;
       if (byte === 12) { await this.feed(column); if (this.options.keepFF) this.printFeed = true; return; }
       if (byte < 0) { this.close(column); return; }
@@ -221,8 +223,16 @@ export class Formatter {
     this.outputPosition = 0;
   }
   private async read(column: Column, date: string, name: string): Promise<void> {
-    let byte = await column.reader.get();
-    if (byte === 12 && column.full) { byte = await column.reader.get(); if (byte === 10) byte = await column.reader.get(); }
+    const r0 = column.reader.get();
+    let byte = typeof r0 === "number" ? r0 : await r0;
+    if (byte === 12 && column.full) {
+      const r1 = column.reader.get();
+      byte = typeof r1 === "number" ? r1 : await r1;
+      if (byte === 10) {
+        const r2 = column.reader.get();
+        byte = typeof r2 === "number" ? r2 : await r2;
+      }
+    }
     column.full = false;
     if (byte === 12) {
       await this.feed(column);
@@ -253,7 +263,8 @@ export class Formatter {
     if (byte === 10) return;
     for (const character of clump) this.character(character);
     for (;;) {
-      byte = await column.reader.get();
+      const rn = column.reader.get();
+      byte = typeof rn === "number" ? rn : await rn;
       if (byte === 10) return;
       if (byte === 12) { await this.feed(column); if (this.options.keepFF) this.printFeed = true; return; }
       if (byte < 0) { this.close(column); return; }

@@ -119,12 +119,11 @@ export class Budget {
     this.check(this.work, this.limits.maxWork, "work");
   }
   remaining(): number { return this.limits.maxWork - this.work; }
-  async checkpointWork(): Promise<void> {
+  checkpointWork(): void | Promise<void> {
     this.charge();
-    if (this.work - this.checkpoint >= 4096) {
-      this.checkpoint = this.work;
-      await yieldTurn(this.context.signal);
-    }
+    if (this.work - this.checkpoint < 4096) return;
+    this.checkpoint = this.work;
+    return yieldTurn(this.context.signal);
   }
   arguments(): string[] {
     this.check(this.context.args.length, this.limits.maxArguments, "argument count");

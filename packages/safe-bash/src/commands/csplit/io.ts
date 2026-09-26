@@ -113,7 +113,11 @@ export class Lines {
     this.partialBytes = 0;
     this.reserve();
   }
-  async get(number: number): Promise<Uint8Array | undefined> {
+  get(number: number): Uint8Array | undefined | Promise<Uint8Array | undefined> {
+    if (this.lines.length >= number || this.ended) return this.lines[number - 1];
+    return this.getSlow(number);
+  }
+  private async getSlow(number: number): Promise<Uint8Array | undefined> {
     const { budget } = this.lifecycle;
     while (this.lines.length < number && !this.ended) {
       this.lifecycle.assertOpen();
@@ -137,15 +141,24 @@ export class Lines {
       let start = 0;
       for (let offset = 0; offset < owned.length; offset++) {
         if (owned[offset] === 10) {
-          this.partialBytes += offset + 1 - start;
-          budget.check(this.partialBytes, budget.limits.maxLineBytes, "line bytes");
-          this.reserve(0, 1);
-          this.partial.push(owned.subarray(start, offset + 1));
-          this.appendLine(); start = offset + 1;
+          if (this.partialBytes === 0) {
+            const lineLen = offset + 1 - start;
+            budget.check(lineLen, budget.limits.maxLineBytes, "line bytes");
+            budget.check(this.lines.length + 1, budget.limits.maxLines, "line count");
+            this.reserve(1);
+            this.lines.push(owned.subarray(start, offset + 1));
+            start = offset + 1;
+          } else {
+            this.partialBytes += offset + 1 - start;
+            budget.check(this.partialBytes, budget.limits.maxLineBytes, "line bytes");
+            this.reserve(0, 1);
+            this.partial.push(owned.subarray(start, offset + 1));
+            this.appendLine(); start = offset + 1;
+          }
         }
         if (offset % 4096 === 0) {
           budget.charge(Math.min(4096, owned.length - offset));
-          await budget.checkpointWork();
+          { const cp = budget.checkpointWork(); if (cp) await cp; }
         }
       }
       if (start < owned.length) {
@@ -154,7 +167,7 @@ export class Lines {
         this.reserve(0, 1);
         this.partial.push(owned.subarray(start));
       }
-      await budget.checkpointWork();
+      { const cp = budget.checkpointWork(); if (cp) await cp; }
     }
     return this.lines[number - 1];
   }
@@ -263,7 +276,7 @@ export class Outputs {
       }));
     } catch (error) { output.failed = true; throw error; }
   }
-  async write(value: Uint8Array): Promise<void> {
+  write(value: Uint8Array): void | Promise<void> {
     const output = this.current;
     if (!output) throw new CsplitError("output is not open");
     const { budget } = this.lifecycle;
@@ -273,14 +286,24 @@ export class Outputs {
       budget.reserveBuffered(output, output.metadataBytes + capacity);
       output.buffer = new Uint8Array(capacity);
     }
+    if (output.buffered + value.length < output.buffer.length) {
+      this.lifecycle.assertOpen();
+      output.buffer.set(value, output.buffered);
+      output.buffered += value.length;
+      output.size += value.length;
+      return;
+    }
+    return this.writeSlow(output, value);
+  }
+  private async writeSlow(output: Output, value: Uint8Array): Promise<void> {
     for (let offset = 0; offset < value.length;) {
       this.lifecycle.assertOpen();
-      const count = Math.min(value.length - offset, output.buffer.length - output.buffered);
-      output.buffer.set(value.subarray(offset, offset + count), output.buffered);
+      const count = Math.min(value.length - offset, output.buffer!.length - output.buffered);
+      output.buffer!.set(value.subarray(offset, offset + count), output.buffered);
       output.buffered += count;
       output.size += count;
       offset += count;
-      if (output.buffered === output.buffer.length) await this.flush(output);
+      if (output.buffered === output.buffer!.length) await this.flush(output);
     }
   }
   async finish(): Promise<void> {

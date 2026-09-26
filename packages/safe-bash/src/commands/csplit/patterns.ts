@@ -30,7 +30,7 @@ export class Matcher {
       maxAllocatedUnits: limits.maxRegexAllocatedUnits,
     } }, subject);
     this.budget.charge(result.steps);
-    await this.budget.checkpointWork();
+    { const cp = this.budget.checkpointWork(); if (cp) await cp; }
     return result.matched;
   }
 }
@@ -78,7 +78,7 @@ export async function preparePatterns(args: readonly string[], matcher: Matcher)
       }
     }
     patterns.push(pattern);
-    await budget.checkpointWork();
+    { const cp = budget.checkpointWork(); if (cp) await cp; }
   }
   return patterns;
 }

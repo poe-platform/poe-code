@@ -165,7 +165,7 @@ test("05 legitimate Real DAV overlap refuses unknown, then truthful existing com
       try {
         const stat = await real.stat(path, settings);
         if (method === "PROPFIND") return xmlResponse(multistatus(resource(`/dav${path}`, stat.type === "directory", stat.size)));
-        if (method === "GET") return new Response(await real.readFile(path, { ...settings, maxBytes: 1024 }));
+        if (method === "GET") return new Response(new Uint8Array(await real.readFile(path, { ...settings, maxBytes: 1024 })));
         if (method === "PUT" && init.body) {
           const body = new Uint8Array(await new Response(init.body).arrayBuffer());
           assert.ok(body.byteLength <= 1024);

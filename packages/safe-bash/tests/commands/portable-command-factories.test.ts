@@ -20,7 +20,7 @@ test("workspace and shell factories support omitted options", () => {
   assert.equal(ssconvertCommands().name, "ssconvert-commands");
 });
 
-for (const [csv, sheet] of [[csvkit.csvkitCommands, ssconvert.ssconvertCommands], [csvkitCommands, ssconvertCommands]]) {
+for (const [csv, sheet] of [[csvkit.csvkitCommands, ssconvert.ssconvertCommands], [csvkitCommands, ssconvertCommands]] as const) {
   test("portable bindings execute CSV, spreadsheet and XML commands in the VFS", async () => {
     const fs = new MemoryFileSystem();
     const signal = new AbortController().signal;

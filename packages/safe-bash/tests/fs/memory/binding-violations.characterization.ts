@@ -51,7 +51,7 @@ for (const kind of ["s3", "webdav"] as const) {
         const service = new MockDav();
         service.files.set("/source", payload);
         remote = new WebDavFileSystem({ baseUrl, fetch: async (url, init) => {
-          if (init.method === "GET") { contentCalls++; return new Response(await memory.readFile("/source")); }
+          if (init.method === "GET") { contentCalls++; return new Response(new Uint8Array(await memory.readFile("/source"))); }
           if (init.method === "PUT") {
             contentCalls++;
             await memory.writeFile("/source", new Uint8Array(await new Response(init.body).arrayBuffer()));

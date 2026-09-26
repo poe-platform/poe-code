@@ -5,7 +5,7 @@ import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { createCsvkitCommands, csvkitCommands, type CsvkitCommandsOptions } from "../../src/commands/csvkit/index.js";
 
-const options: CsvkitCommandsOptions = {
+const options = {
   codecs: [utf8Codec],
   locale: { profile: "C", timezone: "UTC", formatNumber: (value, locale, format) => {
     assert.equal(locale, "C");
@@ -14,7 +14,7 @@ const options: CsvkitCommandsOptions = {
   } },
   clock: { now: () => 0 },
   terminal: { stdinIsTTY: false, stdoutIsTTY: false, stderrIsTTY: false, columns: 80, lines: 24 }
-};
+} satisfies CsvkitCommandsOptions;
 
 // Independently measured released csvkit 2.2.0 / frozen CPython 3.14.2 oracle.
 const cases = [

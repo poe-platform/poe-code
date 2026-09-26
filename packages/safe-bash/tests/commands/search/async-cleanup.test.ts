@@ -45,11 +45,12 @@ test("rg inventory emits large initial output exactly once", async () => {
   const { createSearchCommands } = await import("../../../src/commands/search/index.js");
   const { toByteSource } = await import("../../../src/contracts/index.js");
   const chunks: Uint8Array[] = [];
+  const stdout = { writeSync() { return false; }, async write(bytes: Uint8Array) { chunks.push(bytes.slice()); } };
   const result = await createSearchCommands()[0]!.execute({
     command: "rg", args: ["--files", "/"], cwd: "/", env: {}, fs,
     stdin: toByteSource(""), stdinIsDefault: true, signal: new AbortController().signal,
     ...{ _fastMemoryBackingFs: fs, _hasInfiniteFsOpsLimit: true },
-    stdout: { ...{ writeSync() { return false; } }, async write(bytes) { chunks.push(bytes.slice()); } },
+    stdout,
     stderr: { async write() {} },
   });
   assert.equal(result.exitCode, 0);
@@ -84,14 +85,15 @@ for (const failure of [undefined, Object.assign(new Error("closed"), { code: "EP
     const checked = Promise.resolve(pending).then(result =>
       assert.equal(result.exitCode, failure && !Object.hasOwn(failure, "code") ? 2 : 0));
     await writing;
+    const synchronousOutput = { writeSync() { return true; }, async write() {} };
     try {
-      const other = await command.execute({ ...context, stdout: { ...{ writeSync() { return true; } }, async write() {} } });
+      const other = await command.execute({ ...context, stdout: synchronousOutput });
       assert.equal(other.exitCode, 0);
     } finally {
       finish();
     }
     await checked;
-    const again = await command.execute({ ...context, stdout: { ...{ writeSync() { return true; } }, async write() {} } });
+    const again = await command.execute({ ...context, stdout: synchronousOutput });
     assert.equal(again.exitCode, 0);
   });
 }

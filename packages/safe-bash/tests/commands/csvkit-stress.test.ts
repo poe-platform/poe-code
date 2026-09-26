@@ -11,11 +11,11 @@ import statGuards from "../../../../docs/csvkit/stat-guard-operation-reference.j
 import parserContract from "../../../../docs/csvkit/parser-contract-audit-20260917.json" with { type: "json" };
 import expectationReference from "../../../../docs/csvkit/integration-expectation-reference.json" with { type: "json" };
 
-const options: CsvkitCommandsOptions = {
+const options = {
   codecs: [utf8Codec], locale: { profile: "C.UTF-8", timezone: "UTC", formatNumber: () => { throw new Error("unqualified locale"); } },
   clock: { now: () => 0 },
   terminal: { stdinIsTTY: false, stdoutIsTTY: false, stderrIsTTY: false, columns: 80, lines: 24 }
-};
+} satisfies CsvkitCommandsOptions;
 
 test("csvkit shell exports preserve the complete PYTHONIOENCODING input codec name", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(csvkitCommands(options));

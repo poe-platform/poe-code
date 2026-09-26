@@ -104,6 +104,7 @@ test("uploads are pull driven and copy mutable producer buffers", async () => {
   const fs = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", requestStreamSupport: true, fetch: async (url, init) => {
     if (init.method !== "PUT") return mock.fetch(url, init);
     assert.ok(init.body instanceof ReadableStream);
+    assert.ok("duplex" in init);
     assert.equal(init.duplex, "half");
     const reader = init.body.getReader();
     const first = await reader.read();

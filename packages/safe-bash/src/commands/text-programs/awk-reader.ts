@@ -293,7 +293,7 @@ export class Reader {
     this.ownedBytes = 0;
     const origIter = this.iterator;
     (this as unknown as { iterator: AsyncIterator<Uint8Array> }).iterator = RELEASED_READER_ITERATOR;
-    _lastReaderAnchor = this;
+    readerAnchor.current = this;
     if (wasEnded || !origIter.return) {
       this.closing = resolvedVoid;
       return resolvedVoid;
@@ -303,4 +303,4 @@ export class Reader {
   }
 }
 
-let _lastReaderAnchor: Reader | undefined;
+const readerAnchor: { current?: Reader } = {};

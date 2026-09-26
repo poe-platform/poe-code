@@ -66,7 +66,7 @@ let sharedFieldBuffers: PooledFieldBuffers | undefined = {
 const FAST_AWK_MATCH_OFFSETS = new Int32Array(20);
 const RELEASED_AWK_SIGNAL = new AbortController().signal;
 const RELEASED_AWK_CONTEXT = Object.freeze({ signal: RELEASED_AWK_SIGNAL }) as unknown as CommandContext;
-let _lastAwkRuntimeAnchor: AwkRuntime | undefined;
+const runtimeAnchor: { current?: AwkRuntime } = {};
 const _lastAwkArrayAnchor = new AwkArray();
 void _lastAwkArrayAnchor;
 
@@ -1547,7 +1547,7 @@ export class AwkRuntime {
     (this as unknown as { context: CommandContext }).context = RELEASED_AWK_CONTEXT;
     (this.budget as unknown as { context: CommandContext; signal: AbortSignal }).context = RELEASED_AWK_CONTEXT;
     (this.budget as unknown as { context: CommandContext; signal: AbortSignal }).signal = RELEASED_AWK_SIGNAL;
-    _lastAwkRuntimeAnchor = this;
+    runtimeAnchor.current = this;
     if (failed) throw failure;
     if (cleanup) for (const result of cleanup) if (result.status === "rejected") throw result.reason;
     return status;

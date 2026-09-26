@@ -455,9 +455,15 @@ export async function verifyFactorCommands(entry = defaultEntry) {
         if (actual.length !== expected.length || actual.some((value, index) => value !== expected[index])) throw new Error(`Public factor ${name} ${stream} differs: ${JSON.stringify(Array.from(actual))}`);
       }
     }
+    shell.use(entry.factorCommands({ replace: true }));
+    const unlimited = await shell.exec("sh args.sh 4294967296 12");
+    if (unlimited.exitCode !== 0 || unlimited.stdout !== `4294967296:${" 2".repeat(32)}\n12: 2 2 3\n` || unlimited.stderr !== "") throw new Error(`Public factor unlimited default failed: ${JSON.stringify(unlimited)}`);
     shell.use(entry.factorCommands({ replace: true, limits: { maxValue: 100 } }));
     const limited = await shell.exec("sh args.sh 100 101 12");
     if (limited.exitCode !== 1 || limited.stdout !== "100: 2 2 5 5\n12: 2 2 3\n" || limited.stderr !== "factor: '101' exceeds supported maximum 100\n") throw new Error(`Public factor configured cap failed: ${JSON.stringify(limited)}`);
+    shell.use(entry.factorCommands({ replace: true, limits: { maxValue: 4294967296 } }));
+    const raised = await shell.exec("sh args.sh 4294967296 4294967297");
+    if (raised.exitCode !== 1 || raised.stdout !== `4294967296:${" 2".repeat(32)}\n` || raised.stderr !== "factor: '4294967297' exceeds supported maximum 4294967296\n") throw new Error(`Public factor raised cap failed: ${JSON.stringify(raised)}`);
     let invalidLimit;
     try { entry.createFactorCommand({ limits: { maxValue: 0 } }); }
     catch (error) { invalidLimit = error; }

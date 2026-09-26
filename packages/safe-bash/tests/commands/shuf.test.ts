@@ -51,7 +51,7 @@ for (const args of [["-n", "1abc"], ["--head-count=0foo"], ["-n", "1 "], ["-n", 
   assert.match(result.stderr.toString(), /invalid line count/);
 });
 for (const args of [["-e", "only_one"], ["-i", "5-5"], ["input"]]) test(`shuf opens random source for one record: ${args.join(" ")}`, async () => {
-  const { fs } = fixture({ input: "one\n" });
+  const { fs } = fixture({ input: Buffer.from("one\n") });
   const result = await shuffle([...args, "--random-source=missing"], "", { fs });
   assert.equal(result.exitCode, 1);
   assert.equal(result.stderr.toString(), "shuf: missing: No such file or directory\n");

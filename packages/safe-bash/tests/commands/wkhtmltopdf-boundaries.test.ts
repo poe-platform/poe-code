@@ -43,7 +43,7 @@ test("Shell redirects have partial effects independently of PDF staging", async 
   try {
     const result = await shell.exec("wkhtmltopdf /missing.html - > /existing.pdf");
     assert.equal(result.exitCode, 1);
-    assert.match(result.stderr, /UNSUPPORTED_CAPABILITY/);
+    assert.equal(result.stderr, "wkhtmltopdf: ENOENT: ENOENT: no such file or directory, openReadFile '/missing.html'\n");
     assert.equal((await fs.readFile("/existing.pdf")).length, 0);
   } finally { await shell.dispose(); }
 });

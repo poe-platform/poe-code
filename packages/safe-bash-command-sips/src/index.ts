@@ -35,6 +35,17 @@ type SipsAction =
   | { readonly kind: "pad"; readonly height: number; readonly width: number };
 
 const SIPS_BUFFER_PROPS = new WeakMap<Uint8Array, Map<string, string | null>>();
+const SIPS_CONTENT_PROPS = new Map<string, Map<string, string | null>>();
+
+async function imageFingerprint(bytes: Uint8Array): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", Uint8Array.from(bytes));
+  return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function escapeXml(value: string): string {
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;").replaceAll("'", "&apos;");
+}
 
 function formatToTypeIdentifier(fmt: ImageFormat): string {
   switch (fmt) {
@@ -533,7 +544,7 @@ export async function runSipsCli(
     }
 
     try {
-      const mergedProps = new Map<string, string | null>(SIPS_BUFFER_PROPS.get(inBytes) ?? []);
+      const mergedProps = new Map<string, string | null>(SIPS_BUFFER_PROPS.get(inBytes) ?? SIPS_CONTENT_PROPS.get(await imageFingerprint(inBytes)) ?? []);
       for (const [k, v] of customSetProps) {
         mergedProps.set(k, v);
       }
@@ -749,6 +760,7 @@ export async function runSipsCli(
         files.set(finalOutPath, outBytes);
         if (mergedProps.size > 0) {
           SIPS_BUFFER_PROPS.set(outBytes, mergedProps);
+          SIPS_CONTENT_PROPS.set(await imageFingerprint(outBytes), mergedProps);
         }
         meta = await sharp(outBytes).metadata();
 
@@ -778,9 +790,9 @@ export async function runSipsCli(
                 return `  <key>${k}</key>\n  <${meta.hasAlpha ? "true" : "false"}/>`;
               }
               const val = formatSipsPropertyValue(meta, k, mergedProps) ?? "";
-              return `  <key>${k}</key>\n  <string>${val}</string>`;
+              return `  <key>${k}</key>\n  <string>${escapeXml(val)}</string>`;
             }),
-            `  <key>path</key>\n  <string>${inPath}</string>`
+            `  <key>path</key>\n  <string>${escapeXml(inPath)}</string>`
           ].join("\n");
           outLines.push(
             `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n<dict>\n${xmlEntries}\n</dict>\n</plist>`

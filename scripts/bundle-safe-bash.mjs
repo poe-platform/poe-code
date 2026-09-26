@@ -97,10 +97,24 @@ export function resolveBrowserOpBuild(rootDir) {
   };
 }
 
-export function resolveBrowserShellBuild(rootDir) {
+export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [] } = {}) {
   const directory = path.join(rootDir, "packages/safe-bash");
   const platform = path.join(directory, "browser/platform.mjs");
   const transport = path.join(directory, "src/commands/regex-execution/ere/transport/root.js");
+  const aliases = {
+    ...alias,
+    "node:stream/web": platform,
+    "safe-bash-contracts": path.join(rootDir, "packages/safe-bash-contracts/src"),
+    "safe-bash-command-op": path.join(rootDir, "packages/safe-bash-command-op/src/index.ts"),
+    "@poe-code/safe-fs": "poe-code/safe-fs",
+    "@poe-code/safe-fs/contracts/errors": "poe-code/safe-fs/core",
+    "@poe-code/safe-fs/contracts/object": "poe-code/safe-fs/core",
+  };
+  // Aliases resolve before external admission. Leaving a source alias for a
+  // canonical package embeds a second runtime identity in the browser bundle.
+  for (const specifier of Object.keys(aliases)) {
+    if (external.some(name => specifier === name || specifier.startsWith(name + "/"))) delete aliases[specifier];
+  }
   return {
     absWorkingDir: rootDir,
     entryPoints: {
@@ -136,15 +150,8 @@ export function resolveBrowserShellBuild(rootDir) {
     sourcemap: true,
     metafile: true,
     write: false,
-    external: ["poe-code/safe-fs/core"],
-    alias: {
-      "node:stream/web": platform,
-      "safe-bash-contracts": path.join(rootDir, "packages/safe-bash-contracts/src"),
-      "safe-bash-command-op": path.join(rootDir, "packages/safe-bash-command-op/src/index.ts"),
-      "@poe-code/safe-fs": "poe-code/safe-fs",
-      "@poe-code/safe-fs/contracts/errors": "poe-code/safe-fs/core",
-      "@poe-code/safe-fs/contracts/object": "poe-code/safe-fs/core",
-    },
+    external: [...new Set(["poe-code/safe-fs/core", ...external])],
+    alias: aliases,
     inject: [platform],
     plugins: [{
       name: "portable-shell-capabilities",
@@ -169,9 +176,7 @@ export function resolveBrowserShellBuild(rootDir) {
 export async function buildBrowserShellOutputs(rootDir, { alias = {}, external = [], files } = {}) {
   const esbuild = await import("esbuild");
   const { publishBundleOutputs } = await import("./publish-bundle.mjs");
-  const options = resolveBrowserShellBuild(rootDir);
-  options.alias = { ...alias, ...options.alias };
-  options.external = [...new Set([...options.external, ...external])];
+  const options = resolveBrowserShellBuild(rootDir, { alias, external });
   const result = await esbuild.build(options);
   await publishBundleOutputs(
     result,

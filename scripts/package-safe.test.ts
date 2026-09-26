@@ -441,13 +441,11 @@ describe("isolated packed private command graph", () => {
       }
     }
     volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
-    const portable = resolveBrowserShellBuild(repository);
-    delete portable.alias["safe-bash-contracts"];
+    const portable = resolveBrowserShellBuild(repository, { external: ["safe-bash-contracts", "@poe-platform/safe-fs"] });
     const shell = await build({ ...portable, splitting: false, sourcemap: false,
       entryPoints: undefined,
       stdin: { contents: 'export { Shell } from "./src/shell/shell.ts"; export * from "safe-bash-contracts/command"; export * from "safe-bash-contracts/errors";', resolveDir: path.join(repository, "packages/safe-bash") },
       outdir: "/repo/packages/safe-bash/dist",
-      external: [...portable.external, "safe-bash-contracts", "@poe-platform/safe-fs"],
     });
     volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", shell.outputFiles[0]!.contents);
     // Both public routes share this fixture's Shell; package its source graph once.
@@ -501,6 +499,10 @@ describe("isolated packed private command graph", () => {
       builder.onLoad({ filter: /.*/, namespace: "packed" }, args => ({ contents: volume.readFileSync(args.path, "utf8").toString(), resolveDir: path.dirname(args.path) }));
     } };
     await packageSafeLibraries({ ...options, outDir: "/output", bundle: async (settings: BuildOptions) => {
+      if (settings.platform === "browser" && settings.entryPoints && "core.browser" in settings.entryPoints) {
+        expect(settings.external).toContain("safe-bash-contracts");
+        expect(settings.alias).not.toHaveProperty("safe-bash-contracts");
+      }
       if (settings.outdir !== "/repo/packages") return options.bundle(settings);
       return build({ ...settings, plugins: [plugin] });
     } });

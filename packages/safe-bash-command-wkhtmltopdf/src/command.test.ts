@@ -53,7 +53,7 @@ for (const action of ["dump-default-toc-xsl", "manpage", "htmldoc", "readme", "l
       assert.ok(text.includes('THE SOFTWARE IS PROVIDED "AS IS"'));
     } else {
       assert.ok(text.includes("safe static adapter"));
-      assert.ok(text.includes("No renderer is included"));
+      assert.ok(text.includes("built-in PDF AST renderer"));
       assert.ok(text.includes("--dump-default-toc-xsl"));
       if (action === "manpage") assert.ok(text.startsWith('.TH WKHTMLTOPDF 1'));
       if (action === "htmldoc") assert.ok(text.startsWith("<!DOCTYPE html>"));
@@ -492,5 +492,15 @@ test("renderer cleanup failure still drains an admitted owned stderr write", asy
     release();
     await cleanup;
     await observed;
+  }
+});
+
+test("default command and SDK render PDF without an explicit binding", async () => {
+  for (const sdk of [false, true]) {
+    const f = fixture(["/page.html", "/invoice.pdf"]);
+    await f.context.fs.writeFile("/page.html", encoder.encode("<h1>Invoice</h1><p>Total: 42</p>"));
+    const result = sdk ? await runWkhtmltopdf(f.context) : await createWkhtmltopdfCommand().execute({ ...f.context, env: {}, command: "wkhtmltopdf" });
+    assert.equal(result.exitCode, 0, new TextDecoder().decode(Buffer.concat(f.stderr)));
+    assert.ok(new TextDecoder().decode(await f.context.fs.readFile("/invoice.pdf")).startsWith("%PDF-"));
   }
 });

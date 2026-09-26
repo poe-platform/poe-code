@@ -68,10 +68,10 @@ export function informationText(action: string): string {
   if (action === "dump-default-toc-xsl") return defaultToc;
   if (action === "license") return license;
   if (action === "version") return "wkhtmltopdf safe static adapter (source 024b2b2bb459dd904d15b911d04c6df4ff2c9031; Qt compatibility unqualified)\n";
-  const usage = "Usage: wkhtmltopdf [options] [page|cover input|toc]... output\nStatic first-party renderer requires an explicit binding. Input/output '-' use stdin/stdout.\n";
+  const usage = "Usage: wkhtmltopdf [options] [page|cover input|toc]... output\nBuilt-in PDF AST static renderer; trusted overrides are optional. Input/output '-' use stdin/stdout.\n";
   if (action === "help" || action === "extended-help") return usage;
   const description = "wkhtmltopdf safe static adapter\n\n" + usage +
-    "\nNo renderer is included. Conversion requires an explicitly supplied trusted first-party static renderer binding.\n" +
+    "\nThe built-in PDF AST renderer converts static HTML by default; a trusted first-party renderer may override it.\n" +
     "TOC stylesheet export does not enable TOC conversion. Qt/WebKit compatibility is unqualified.\n" +
     "Paths use only the configured virtual filesystem. No native executable, ambient files or implicit network are used.\n" +
     "Information exports require no renderer and write UTF-8 to stdout. --license describes this adapter's MIT license.\n\n" +

@@ -81,13 +81,13 @@ test("createPdfAstRenderer converts multi-section HTML with tables, lists, links
   assert.equal(doc.pageCount, 2);
   assert.equal(doc.getMetadata().title, "Architecture Report 2026");
 
-  const page1Text = doc.extractText(0);
+  const page1Text = doc.getPage(0).extractText();
   assert.ok(page1Text.includes("Executive Summary"));
   assert.ok(page1Text.includes("Zero native dependencies"));
   assert.ok(page1Text.includes("Lexer & Parser"));
   assert.ok(page1Text.includes("Page 1 of 2"));
 
-  const page2Text = doc.extractText(1);
+  const page2Text = doc.getPage(1).extractText();
   assert.ok(page2Text.includes("Page Two Details"));
   assert.ok(page2Text.includes("Page 2 of 2"));
 
@@ -143,7 +143,7 @@ test("createPdfAstRenderer renders inline <svg>, <blockquote>, <dl> definition l
 
   assert.equal(result.exitCode, 0);
   const doc = PdfDocument.load(await fs.readFile("/complex.pdf"));
-  const text = doc.extractText(0);
+  const text = doc.getPage(0).extractText();
   assert.ok(text.includes("All graphics primitives map deterministically"));
   assert.ok(text.includes("COS Layer: Carousel Object System"));
   assert.ok(text.includes("SVG Vector Diagram"));
@@ -174,5 +174,5 @@ test("wkhtmltopdf preserves &amp;lt; entities, recurses into nested containers, 
   assert.equal(result.exitCode, 0);
   const doc = PdfDocument.load(await fs.readFile("/issue1037.pdf"));
   assert.ok(doc.getPageCount() >= 2);
-  assert.match(doc.extractText(0), /Literal entity: &lt;tag&gt;/);
+  assert.match(doc.getPage(0).extractText(), /Literal entity: &lt;tag&gt;/);
 });

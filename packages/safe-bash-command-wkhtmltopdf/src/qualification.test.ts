@@ -56,13 +56,13 @@ test("default conversion has no fallback authority even for hostile resource mar
   const fs = new MemoryFileSystem();
   fs.openReadFile = async () => { read = true; throw new Error("forbidden acquisition"); };
   const result = await runWkhtmltopdf({
-    args: ["/ambient.html", "-"], fs, cwd: "/", signal: new AbortController().signal,
+    args: ["-", "-"], fs, cwd: "/", signal: new AbortController().signal,
     stdin: toByteSource("<script>fetch('https://denied.invalid')</script>"),
     stdout: { async write(bytes) { stdout.push(new Uint8Array(bytes)); } },
     stderr: { async write(bytes) { stderr.push(new Uint8Array(bytes)); } },
   }, { limits: wkhtmltopdfLimits });
-  assert.deepEqual(result, { kind: "rejected", exitCode: 1, code: "UNSUPPORTED_CAPABILITY" });
+  assert.equal(result.exitCode, 0);
   assert.equal(read, false);
-  assert.deepEqual(stdout, []);
-  assert.ok(new TextDecoder().decode(stderr[0]).includes("UNSUPPORTED_CAPABILITY"));
+  assert.ok(new TextDecoder().decode(Buffer.concat(stdout)).startsWith("%PDF-"));
+  assert.equal(stderr.length, 0);
 });

@@ -1,6 +1,6 @@
 # wkhtmltopdf flag reference
 
-All 122 switches from the pinned source are represented below. **Admitted means parsed settings, not implemented rendering.** No renderer is included. Resource, harness and excluded dispositions reject with `UNSUPPORTED_CAPABILITY`; supplying a renderer does not enable them. TOC parses but conversion rejects. Only help, extended-help and version information actions execute.
+All 122 switches from the pinned source are represented below. **Admitted means parsed settings, not implemented rendering.** The PDF AST static renderer is included by default. Resource, harness and excluded dispositions reject with `UNSUPPORTED_CAPABILITY`; supplying a renderer does not enable them. TOC parses but conversion rejects. Only help, extended-help and version information actions execute.
 
 Global flags must precede objects. Page flags may precede inputs as defaults or follow their page/cover object; TOC flags belong to TOC objects. Long names require separate operands, never `--key=value`. Short groups also consume separate operands. The adapter accepts `--`; the parser requires `endOfOptions: true` for that deliberate deviation.
 

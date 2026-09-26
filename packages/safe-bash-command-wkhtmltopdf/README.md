@@ -1,9 +1,8 @@
 # wkhtmltopdf command and SDK
 
 Use the opt-in HTML-to-PDF invocation parser and bounded byte adapter through
-`@poe-platform/safe-bash/commands/wkhtmltopdf`. **No renderer is included.**
-Conversion requires an explicitly supplied trusted first-party static renderer;
-otherwise it rejects with `UNSUPPORTED_CAPABILITY` before opening inputs.
+`@poe-platform/safe-bash/commands/wkhtmltopdf`. The built-in PDF AST renderer converts static HTML by default.
+Supply `renderer` to override it with a trusted first-party static renderer.
 This workspace is private, has no external runtime dependencies, and is bundled
 with its declarations into the Safe Bash artifact. Do not install it separately.
 
@@ -49,7 +48,7 @@ wkhtmltopdf --readme
 wkhtmltopdf --license
 ```
 
-With an approved renderer binding registered, conversion forms include:
+Conversion forms include:
 
 ```sh
 wkhtmltopdf --disable-javascript /input.html /output.pdf

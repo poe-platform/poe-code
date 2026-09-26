@@ -3,13 +3,12 @@
 Parse HTML-to-PDF invocations into global settings and independent page, cover
 and TOC objects. Use `@poe-platform/safe-bash/commands/wkhtmltopdf` in the built
 Safe Bash artifact. This private workspace supplies the command, SDK, parsing
-and bounded I/O adapter; it supplies no HTML/PDF renderer. Conversion requires
-an explicitly supplied trusted first-party static renderer binding. Without it,
-conversion fails with `UNSUPPORTED_CAPABILITY` before opening inputs.
+and bounded I/O adapter; it includes the PDF AST static renderer by default. A trusted first-party
+renderer binding may override it. Conversion with unsupported renderer features fails with `UNSUPPORTED_CAPABILITY` before opening inputs.
 
 | API | Purpose |
 | --- | --- |
-| `wkhtmltopdfCommand` | Opt-in command with bounded defaults; rendering requires an explicit binding |
+| `wkhtmltopdfCommand` | Opt-in command with bounded defaults; uses the PDF AST static renderer by default |
 | `createWkhtmltopdfCommand({ limits, renderer? })` | Create a command using explicit limits and an optional static renderer |
 | `wkhtmltopdfCommands(options)` | Register the command through a plugin |
 | `runWkhtmltopdf(context, options)` | Equivalent SDK invocation with literal arguments, byte destinations and a typed result |
@@ -50,7 +49,7 @@ const job = parseInvocation(
 
 Factories use exported `wkhtmltopdfLimits` by default; the SDK requires explicit options. Runtime profile: TypeScript ESM, Node.js >=22, byte streams and explicit cancellation. Browser/workerd condition import controls do not qualify an actual workerd runtime, rendering engine or replay support. No executable, native/WASM fallback, ambient files/fonts, implicit network or dependency downloads are used.
 
-With an approved renderer binding registered, command forms are `wkhtmltopdf --disable-javascript /input.html /output.pdf` and `wkhtmltopdf --disable-javascript - -`. Output is renderer-produced PDF bytes, help/version UTF-8 text, or stderr diagnostics; the SDK also returns a typed result and conversion resource usage. Without a binding, conversion rejects before input I/O.
+With an approved renderer binding registered, command forms are `wkhtmltopdf --disable-javascript /input.html /output.pdf` and `wkhtmltopdf --disable-javascript - -`. Output is renderer-produced PDF bytes, help/version UTF-8 text, or stderr diagnostics; the SDK also returns a typed result and conversion resource usage. The default renderer converts static HTML without an explicit binding.
 
 Limits are required positive safe integers. Argument and UTF-8 input-byte limits
 apply before retained parsing allocations. Work accounting covers input scans,
@@ -86,7 +85,7 @@ invocation signal and checked limits. The binding is trusted first-party code,
 not sandboxed host JavaScript. It must honor those limits and stop production
 in `close()`. No browser, filesystem, network, script, font or subprocess
 capability is passed to it. Source JavaScript defaults are inert metadata.
-The adapter does not supply a qualified static renderer or claim WebKit parity.
+The adapter supplies a PDF AST static renderer and does not claim WebKit parity.
 TOC conversion and batch HTML stdin are explicitly rejected. Main inputs and
 file destinations are literal VFS paths resolved against `cwd`; `-` selects
 stdin/stdout. VFS adapters must offer bounded `openReadFile` handles and
@@ -161,7 +160,7 @@ copies) and work. Work includes admission scans, repeated object visits and
 output records; output admission completes before records are retained.
 Cancellation preserves the original reason. No invocation resources are
 acquired. Renderer feature declarations are bounded admission data, not engine
-qualification evidence. No renderer profile is supplied or enabled by default.
+qualification evidence. The PDF AST static renderer profile is enabled by default.
 
 `withResources` requires an explicit cancellation signal and positive safe-integer
 limits for input, decoded and retained bytes, resource count and work. Reads are

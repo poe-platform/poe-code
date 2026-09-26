@@ -50,7 +50,7 @@ export interface WkhtmltopdfLimitsOverrides {
 export interface WkhtmltopdfCommandOptions {
   readonly replace?: boolean;
   readonly limits?: WkhtmltopdfLimitsOverrides;
-  /** Explicit trusted binding only. No renderer is supplied by this package. */
+  /** Override the built-in PDF AST static renderer with a trusted binding. */
   readonly renderer?: StaticRenderer;
 }
 
@@ -166,8 +166,7 @@ export async function runWkhtmltopdf(context: WkhtmltopdfContext, options: Wkhtm
       await writeBytes(stdout.output, encoder.encode(text), signal);
       result = { kind: "information", exitCode: 0 };
     } else {
-      const renderer = options.renderer;
-      if (!renderer) throw new WkhtmltopdfError("UNSUPPORTED_CAPABILITY", "A qualified first-party static renderer binding is required");
+      const renderer = options.renderer ?? (await import("./pdf-renderer.js")).pdfAstRenderer;
       requireRendererFeatures(renderer.profile, []);
       let outputBytes = 0;
       let outputChunks = 0;
@@ -355,7 +354,7 @@ async function diagnostic(context: WkhtmltopdfContext, outcome: ConversionOutcom
 export function createWkhtmltopdfCommand(options: WkhtmltopdfCommandOptions = { limits: wkhtmltopdfLimits }): CommandDefinition {
   return Object.freeze({
     name: "wkhtmltopdf", runtimeIdentity: commandRuntimeIdentity,
-    description: "Bounded static HTML-to-PDF adapter with an explicit first-party renderer",
+    description: "Bounded static HTML-to-PDF adapter with a built-in PDF AST renderer",
     execute: (context: CommandContext) => runWkhtmltopdf(context, options),
   });
 }

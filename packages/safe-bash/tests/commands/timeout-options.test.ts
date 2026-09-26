@@ -189,12 +189,17 @@ test("timeout options preserve byte streams and cancellation status through the 
   }
 });
 
-test("virtual signal names round-trip standard catalog numbers for jobs", () => {
+test("virtual signal names round-trip supported numbers for jobs", () => {
   assert.equal(signalName(9), "KILL");
   assert.equal(signalName(15), "TERM");
   assert.equal(signalName(17), "CHLD");
-  for (let number = 1; number <= 31; number++) {
-    assert.equal(parseSignal(signalName(number)!), number);
+  assert.deepEqual(Array.from({ length: 31 }, (_, index) => signalName(index + 1)), [
+    "HUP", "INT", "QUIT", "ILL", "TRAP", "ABRT", "BUS", "FPE", "KILL", "USR1", "SEGV",
+    "USR2", "PIPE", "ALRM", "TERM", "STKFLT", "CHLD", "CONT", "STOP", "TSTP", "TTIN",
+    "TTOU", "URG", "XCPU", "XFSZ", "VTALRM", "PROF", "WINCH", "IO", "PWR", "SYS",
+  ]);
+  for (let number = 0; number <= 64; number++) {
+    assert.equal(parseSignal(signalName(number)), number);
   }
-  for (const number of [0, 32, -1, 1.5, NaN]) assert.equal(signalName(number), undefined);
+  for (const number of [-1, 65, 1.5, NaN]) assert.equal(parseSignal(signalName(number)), undefined);
 });

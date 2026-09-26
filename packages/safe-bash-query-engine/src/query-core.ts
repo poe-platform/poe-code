@@ -148,7 +148,7 @@ class OwnedWork implements YqOwnedWork {
       this.assertOpen();
       if (this.#state.pending === checkpointWidth) {
         try {
-          await this.#budget.tick();
+          { const _p = this.#budget.tickSync(); if (_p) await _p; }
         } catch (failure) {
           throwSignal(this.#signal);
           throw failure;

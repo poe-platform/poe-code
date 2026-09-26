@@ -22,13 +22,15 @@ export function describe(value: Json, budget: Budget): string {
   const text = length < 15 ? bytes.toString() : `${bytes.subarray(0, 11).toString()}...`;
   return `${type(value)} (${text})`;
 }
-export async function stringCompare(left: string, right: string, budget: Budget): Promise<number> {
-  await budget.tick(1 + Math.ceil(Math.min(left.length, right.length) / 32));
+export function stringCompareMaybeSync(left: string, right: string, budget: Budget): number | Promise<number> {
+  if (budget.needsYield()) return stringCompare(left, right, budget);
+  budget.step(1 + Math.ceil(Math.min(left.length, right.length) / 32));
+  if (budget.needsYield()) return stringCompare(left, right, budget);
   let leftOffset = 0;
   let rightOffset = 0;
   let points = 0;
   while (leftOffset < left.length && rightOffset < right.length) {
-    if (points++ % 32 === 0) await budget.tick(0);
+    if ((points++ & 31) === 0 && budget.needsYield()) return stringCompare(left, right, budget);
     const leftPoint = left.codePointAt(leftOffset)!;
     const rightPoint = right.codePointAt(rightOffset)!;
     if (leftPoint !== rightPoint) return leftPoint < rightPoint ? -1 : 1;
@@ -37,11 +39,26 @@ export async function stringCompare(left: string, right: string, budget: Budget)
   }
   return leftOffset < left.length ? 1 : rightOffset < right.length ? -1 : 0;
 }
-export async function stableSort<Item>(items: Item[], budget: Budget, comparator: (left: Item, right: Item) => Promise<number>): Promise<void> {
-  await budget.tick(0);
+export async function stringCompare(left: string, right: string, budget: Budget): Promise<number> {
+  { const _p = budget.tickSync(1 + Math.ceil(Math.min(left.length, right.length) / 32)); if (_p) await _p; }
+  let leftOffset = 0;
+  let rightOffset = 0;
+  let points = 0;
+  while (leftOffset < left.length && rightOffset < right.length) {
+    if (points++ % 32 === 0) { const _p = budget.tickSync(0); if (_p) await _p; }
+    const leftPoint = left.codePointAt(leftOffset)!;
+    const rightPoint = right.codePointAt(rightOffset)!;
+    if (leftPoint !== rightPoint) return leftPoint < rightPoint ? -1 : 1;
+    leftOffset += leftPoint > 0xffff ? 2 : 1;
+    rightOffset += rightPoint > 0xffff ? 2 : 1;
+  }
+  return leftOffset < left.length ? 1 : rightOffset < right.length ? -1 : 0;
+}
+export async function stableSort<Item>(items: Item[], budget: Budget, comparator: (left: Item, right: Item) => number | Promise<number>): Promise<void> {
+  { const _p = budget.tickSync(0); if (_p) await _p; }
   budget.collection(items.length);
   if (items.length < 2) return;
-  await budget.tick(items.length);
+  { const _p = budget.tickSync(items.length); if (_p) await _p; }
   const scratch = new Array<Item>(items.length);
   let source = items;
   let target = scratch;
@@ -52,9 +69,19 @@ export async function stableSort<Item>(items: Item[], budget: Budget, comparator
       let left = start;
       let right = middle;
       for (let index = start; index < end; index++) {
-        await budget.tick();
-        if (left < middle && (right >= end || await comparator(source[left]!, source[right]!) <= 0)) target[index] = source[left++]!;
-        else target[index] = source[right++]!;
+        { const _p = budget.tickSync(); if (_p) await _p; }
+        if (left < middle) {
+          if (right >= end) {
+            target[index] = source[left++]!;
+          } else {
+            const c = comparator(source[left]!, source[right]!);
+            const cmp = typeof c === "number" ? c : await c;
+            if (cmp <= 0) target[index] = source[left++]!;
+            else target[index] = source[right++]!;
+          }
+        } else {
+          target[index] = source[right++]!;
+        }
       }
     }
     const previous = source;
@@ -62,23 +89,23 @@ export async function stableSort<Item>(items: Item[], budget: Budget, comparator
     target = previous;
   }
   if (source !== items) for (let index = 0; index < items.length; index++) {
-    await budget.tick();
+    { const _p = budget.tickSync(); if (_p) await _p; }
     items[index] = source[index]!;
   }
 }
 export async function sortedKeys(value: Record<string, Json>, budget: Budget): Promise<string[]> {
-  await budget.tick(0);
+  { const _p = budget.tickSync(0); if (_p) await _p; }
   const keys: string[] = [];
   for (const key of objectKeyIterator(value)) {
-    await budget.tick();
+    { const _p = budget.tickSync(); if (_p) await _p; }
     budget.collection(keys.length + 1);
     keys.push(key);
   }
-  await stableSort(keys, budget, (left, right) => stringCompare(left, right, budget));
+  await stableSort(keys, budget, (left, right) => stringCompareMaybeSync(left, right, budget));
   return keys;
 }
 export async function sortObjectKeys(value: Json, budget: Budget): Promise<Json> {
-  await budget.tick();
+  { const _p = budget.tickSync(); if (_p) await _p; }
   if (Array.isArray(value)) {
     budget.collection(value.length);
     const result: Json[] = [];
@@ -92,8 +119,28 @@ export async function sortObjectKeys(value: Json, budget: Budget): Promise<Json>
   }
   return value;
 }
+export function compareMaybeSync(left: Json, right: Json, budget: Budget): number | Promise<number> {
+  if (budget.needsYield()) return compare(left, right, budget);
+  budget.step();
+  const rank = (value: Json): number => value === null ? 0 : value === false ? 1 : value === true ? 2 : isNumber(value) ? 3 : typeof value === "string" ? 4 : Array.isArray(value) ? 5 : 6;
+  const difference = rank(left) - rank(right);
+  if (difference) return Math.sign(difference);
+  if (isNumber(left) && isNumber(right)) return compareNumbers(left, right, budget);
+  if (typeof left === "string" && typeof right === "string") return stringCompareMaybeSync(left, right, budget);
+  if (left === right && !Array.isArray(left) && !isObject(left)) return 0;
+  if (Array.isArray(left) && Array.isArray(right)) {
+    const len = Math.min(left.length, right.length);
+    for (let index = 0; index < len; index++) {
+      const r = compareMaybeSync(left[index]!, right[index]!, budget);
+      if (typeof r !== "number") return compare(left, right, budget);
+      if (r !== 0) return r;
+    }
+    return Math.sign(left.length - right.length);
+  }
+  return compare(left, right, budget);
+}
 export async function compare(left: Json, right: Json, budget: Budget): Promise<number> {
-  await budget.tick();
+  { const _p = budget.tickSync(); if (_p) await _p; }
   const rank = (value: Json): number => value === null ? 0 : value === false ? 1 : value === true ? 2 : isNumber(value) ? 3 : typeof value === "string" ? 4 : Array.isArray(value) ? 5 : 6;
   const difference = rank(left) - rank(right);
   if (difference) return Math.sign(difference);
@@ -131,7 +178,7 @@ export async function* entries(value: Json, budget: Budget): AsyncGenerator<[str
   if (Array.isArray(value)) {
     budget.collection(value.length);
     for (let index = 0; index < value.length; index++) {
-      await budget.tick(2);
+      { const _p = budget.tickSync(2); if (_p) await _p; }
       yield [index, value[index]!];
     }
     return;
@@ -139,7 +186,7 @@ export async function* entries(value: Json, budget: Budget): AsyncGenerator<[str
   if (isObject(value)) {
     let count = 0;
     for (const key of objectKeyIterator(value)) {
-      await budget.tick(2);
+      { const _p = budget.tickSync(2); if (_p) await _p; }
       budget.collection(++count);
       yield [key, value[key]!];
     }
@@ -171,7 +218,7 @@ export async function sliceValue(value: Json, start: Json, end: Json, budget: Bu
   if (first < 0 || (last !== undefined && last < 0)) {
     let length = 0;
     for (let offset = 0; offset < value.length; length++) {
-      await budget.tick();
+      { const _p = budget.tickSync(); if (_p) await _p; }
       offset += value.codePointAt(offset)! > 0xffff ? 2 : 1;
     }
     if (first < 0) first = Math.max(0, length + first);
@@ -182,7 +229,7 @@ export async function sliceValue(value: Json, start: Json, end: Json, budget: Bu
   let offset = 0;
   const stop = last ?? first;
   for (let point = 0; point < stop && offset < value.length;) {
-    await budget.tick();
+    { const _p = budget.tickSync(); if (_p) await _p; }
     offset += value.codePointAt(offset)! > 0xffff ? 2 : 1;
     if (++point === first) firstOffset = offset;
   }

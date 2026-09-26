@@ -4,7 +4,7 @@ import { regexError } from "./regex.js";
 import { describe } from "./values.js";
 
 export async function* splitRegex(input: Json, source: Json, budget: Budget): AsyncGenerator<string> {
-  await budget.tick();
+  { const _p = budget.tickSync(); if (_p) await _p; }
   if (typeof input !== "string") throw new JqError(`${describe(input, budget)} cannot be matched, as it is not a string`);
   if (typeof source !== "string") throw new JqError(`${describe(source, budget)} is not a string`);
   budget.value(input);
@@ -15,7 +15,7 @@ export async function* splitRegex(input: Json, source: Json, budget: Budget): As
     let search = 0;
     let copied = 0;
     while (search <= input.length) {
-      await budget.tick();
+      { const _p = budget.tickSync(); if (_p) await _p; }
       const match = await pattern.find(input, work, search);
       if (!match) break;
       const part = input.slice(copied, match.start);
@@ -33,7 +33,7 @@ export async function* splitRegex(input: Json, source: Json, budget: Budget): As
           const probe = await pattern.find(`${input.slice(0, search)}\ufffd${input.slice(search)}`, work, search);
           if (probe?.start === search && probe.end === search) {
             for (let index = 0; index < repeats; index++) {
-              await budget.tick();
+              { const _p = budget.tickSync(); if (_p) await _p; }
               const field = input.slice(copied, search);
               budget.value(field);
               yield field;

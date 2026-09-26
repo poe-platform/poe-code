@@ -4,7 +4,7 @@ import { isNumber } from "./numbers.js";
 
 export async function formatValue(name: string, input: Json, budget: Budget): Promise<string> {
   const text = typeof input === "string" ? input : await stringify(input, budget);
-  await budget.tick(text.length);
+  { const _p = budget.tickSync(text.length); if (_p) await _p; }
   let result: string;
   switch (name) {
     case "text": result = text; break;
@@ -20,7 +20,7 @@ export async function formatValue(name: string, input: Json, budget: Budget): Pr
     case "uri": {
       result = "";
       for (const byte of Buffer.from(text)) {
-        await budget.tick();
+        { const _p = budget.tickSync(); if (_p) await _p; }
         const character = String.fromCharCode(byte);
         result += "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~".includes(character) ? character : `%${byte.toString(16).toUpperCase().padStart(2, "0")}`;
         if (result.length > budget.limits.maxValueBytes) budget.text(result);
@@ -30,7 +30,7 @@ export async function formatValue(name: string, input: Json, budget: Budget): Pr
     case "html": {
       const escapes: Readonly<Record<string, string>> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&apos;", '"': "&quot;" };
       result = "";
-      for (const character of text) { await budget.tick(); result += escapes[character] ?? character; if (result.length > budget.limits.maxValueBytes) budget.text(result); }
+      for (const character of text) { { const _p = budget.tickSync(); if (_p) await _p; } result += escapes[character] ?? character; if (result.length > budget.limits.maxValueBytes) budget.text(result); }
       break;
     }
     case "csv":
@@ -40,7 +40,7 @@ export async function formatValue(name: string, input: Json, budget: Budget): Pr
       const values = Array.isArray(input) ? input : [input];
       const fields: string[] = [];
       for (const value of values) {
-        await budget.tick();
+        { const _p = budget.tickSync(); if (_p) await _p; }
         if (value !== null && typeof value !== "string" && typeof value !== "boolean" && !isNumber(value)) throw new JqError(`${name} cannot format an object or array`);
         const scalar = typeof value === "string" ? value : await stringify(value, budget);
         if (name === "sh") fields.push(typeof value === "string" ? `'${scalar.split("'").join("'\\''")}'` : scalar);
@@ -49,7 +49,7 @@ export async function formatValue(name: string, input: Json, budget: Budget): Pr
         else {
           let field = "";
           const escapes: Readonly<Record<string, string>> = { "\t": "\\t", "\r": "\\r", "\n": "\\n", "\\": "\\\\" };
-          for (const character of scalar) { await budget.tick(); field += escapes[character] ?? character; }
+          for (const character of scalar) { { const _p = budget.tickSync(); if (_p) await _p; } field += escapes[character] ?? character; }
           fields.push(field);
         }
         budget.collection(fields.length);

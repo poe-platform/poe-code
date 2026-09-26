@@ -11,7 +11,7 @@ import { capture } from "./capture.js";
 import { recurse } from "./recurse.js";
 import { delpaths } from "./delpaths.js";
 import { splitRegex } from "./splits.js";
-import { binary, compare, contains, describe, entries, equal, indexValue, sliceValue, sortedKeys, stableSort, type } from "./values.js";
+import { binary, compare, compareMaybeSync, contains, describe, entries, equal, indexValue, sliceValue, sortedKeys, stableSort, type } from "./values.js";
 
 type Path = (string | number | { start: number; end: number })[];
 interface Frame { readonly name: string; readonly value: Json; readonly parent: Frame | undefined; readonly depth: number }
@@ -26,6 +26,25 @@ function exactFiniteNumber(value: Json): number | undefined {
   if (value instanceof Decimal) {
     const d = value as Numeric & { digits: string; exponent: number; double: number };
     if (d.digits.length <= 15 && d.exponent === 0 && Number.isFinite(d.double)) return d.double;
+  }
+  return undefined;
+}
+
+function extractIteratePipeline(ast: Ast): { base: Ast; tail: Ast } | undefined {
+  if (ast.kind === "iterate") {
+    return { base: ast.base, tail: { kind: "identity" } };
+  }
+  if (ast.kind === "binary" && ast.operator === "|") {
+    if (ast.left.kind === "iterate") {
+      return { base: ast.left.base, tail: ast.right };
+    }
+    const inner = extractIteratePipeline(ast.left);
+    if (inner) {
+      return {
+        base: inner.base,
+        tail: { kind: "binary", operator: "|", left: inner.tail, right: ast.right },
+      };
+    }
   }
   return undefined;
 }
@@ -61,28 +80,48 @@ export class Interpreter {
   }
   tryRunSync(ast: Ast, input: Json): Json[] | undefined {
     const savedSteps = this.budget.currentSteps;
-    const res = this.tryRunSyncInternal(ast, input);
+    const res = this.tryRunSyncInternal(ast, input, true);
     if (res === undefined) this.budget.restoreSteps(savedSteps);
     return res;
   }
-  private tryRunSyncInternal(ast: Ast, input: Json): Json[] | undefined {
+  tryRunSyncNoScratch(ast: Ast, input: Json): Json[] | undefined {
+    if (!this.budget.unlimitedValueCheck) return undefined;
+    const savedSteps = this.budget.currentSteps;
+    const res = this.tryRunSyncInternal(ast, input, false);
+    if (res === undefined) {
+      this.budget.restoreSteps(savedSteps);
+      return undefined;
+    }
+    return res === this.singleResult ? [res[0]!] : res;
+  }
+  private tryRunSyncInternal(ast: Ast, input: Json, allowScratch: boolean): Json[] | undefined {
     if (this.budget.needsYield()) return undefined;
+    if (!allowScratch && ast.kind === "iterate") {
+      this.budget.step();
+      const base = this.tryEvalSingle(ast.base, input, 0, false);
+      if (base === NOT_SINGLE || !Array.isArray(base)) return undefined;
+      this.budget.step(base.length);
+      if (this.budget.needsYield()) return undefined;
+      return base;
+    }
     if (ast.kind === "binary" && ast.operator === "|") {
       this.budget.step();
       if (ast.left.kind === "call" && ast.left.name === "select" && ast.left.args.length === 1) {
         this.budget.step();
-        const cond = this.tryEvalSingle(ast.left.args[0]!, input);
+        const cond = this.tryEvalSingle(ast.left.args[0]!, input, 0, allowScratch);
         if (cond === NOT_SINGLE) return undefined;
         if (!truth(cond)) return EMPTY_RESULTS;
-        return this.tryRunSyncInternal(ast.right, input);
+        return this.tryRunSyncInternal(ast.right, input, allowScratch);
       }
-      const leftResults = this.tryRunSyncInternal(ast.left, input);
+      const leftResults = this.tryRunSyncInternal(ast.left, input, allowScratch);
       if (!leftResults) return undefined;
       if (leftResults.length === 0) return EMPTY_RESULTS;
-      if (leftResults.length === 1) return this.tryRunSyncInternal(ast.right, leftResults[0]!);
+      if (leftResults.length === 1) return this.tryRunSyncInternal(ast.right, leftResults[0]!, allowScratch);
+      if (allowScratch) return undefined;
       const out: Json[] = [];
       for (const item of leftResults) {
-        const rightResults = this.tryRunSyncInternal(ast.right, item);
+        if (this.budget.needsYield()) return undefined;
+        const rightResults = this.tryRunSyncInternal(ast.right, item, false);
         if (!rightResults) return undefined;
         out.push(...rightResults);
       }
@@ -90,20 +129,20 @@ export class Interpreter {
     }
     if (ast.kind === "call" && ast.name === "select" && ast.args.length === 1) {
       this.budget.step();
-      const cond = this.tryEvalSingle(ast.args[0]!, input);
+      const cond = this.tryEvalSingle(ast.args[0]!, input, 0, allowScratch);
       if (cond === NOT_SINGLE) return undefined;
       if (!truth(cond)) return EMPTY_RESULTS;
       this.singleResult[0] = input;
       return this.singleResult;
     }
-    const single = this.tryEvalSingle(ast, input);
+    const single = this.tryEvalSingle(ast, input, 0, allowScratch);
     if (single !== NOT_SINGLE) {
       this.singleResult[0] = single;
       return this.singleResult;
     }
     return undefined;
   }
-  private tryEvalSingle(ast: Ast, input: Json, depth = 0): Json | typeof NOT_SINGLE {
+  private tryEvalSingle(ast: Ast, input: Json, depth = 0, allowScratch = true): Json | typeof NOT_SINGLE {
     if (this.budget.needsYield()) return NOT_SINGLE;
     switch (ast.kind) {
       case "identity":
@@ -114,28 +153,38 @@ export class Interpreter {
         return ast.value;
       case "index": {
         this.budget.step();
-        const idx = this.tryEvalSingle(ast.index, input, depth + 1);
-        if (typeof idx !== "string") return NOT_SINGLE;
-        const base = this.tryEvalSingle(ast.base, input, depth + 1);
-        if (base === NOT_SINGLE || !(base === null || isObject(base))) return NOT_SINGLE;
-        return base === null ? null : Object.hasOwn(base, idx) ? base[idx]! : null;
+        const idx = this.tryEvalSingle(ast.index, input, depth + 1, allowScratch);
+        if (idx === NOT_SINGLE) return NOT_SINGLE;
+        const base = this.tryEvalSingle(ast.base, input, depth + 1, allowScratch);
+        if (base === NOT_SINGLE) return NOT_SINGLE;
+        if (typeof idx === "string") {
+          if (!(base === null || isObject(base))) return NOT_SINGLE;
+          return base === null ? null : Object.hasOwn(base, idx) ? base[idx]! : null;
+        }
+        const numIdx = exactFiniteNumber(idx);
+        if (numIdx !== undefined && Number.isInteger(numIdx) && (base === null || Array.isArray(base))) {
+          if (base === null) return null;
+          const resolved = numIdx < 0 ? base.length + numIdx : numIdx;
+          return resolved >= 0 && resolved < base.length ? base[resolved]! : null;
+        }
+        return NOT_SINGLE;
       }
       case "binary": {
         this.budget.step();
         const op = ast.operator;
         if (op === "and" || op === "or") {
-          const left = this.tryEvalSingle(ast.left, input, depth + 1);
+          const left = this.tryEvalSingle(ast.left, input, depth + 1, allowScratch);
           if (left === NOT_SINGLE) return NOT_SINGLE;
           if (op === "and" && !truth(left)) return false;
           if (op === "or" && truth(left)) return true;
-          const right = this.tryEvalSingle(ast.right, input, depth + 1);
+          const right = this.tryEvalSingle(ast.right, input, depth + 1, allowScratch);
           if (right === NOT_SINGLE) return NOT_SINGLE;
           return truth(right);
         }
         if (op === "==" || op === "!=") {
-          const rightVal = this.tryEvalSingle(ast.right, input, depth + 1);
+          const rightVal = this.tryEvalSingle(ast.right, input, depth + 1, allowScratch);
           if (rightVal === NOT_SINGLE) return NOT_SINGLE;
-          const leftVal = this.tryEvalSingle(ast.left, input, depth + 1);
+          const leftVal = this.tryEvalSingle(ast.left, input, depth + 1, allowScratch);
           if (leftVal === NOT_SINGLE) return NOT_SINGLE;
           if (
             typeof rightVal === "boolean" ||
@@ -156,11 +205,11 @@ export class Interpreter {
           return op === "==" ? left === right : left !== right;
         }
         if (op === "+" || op === "-" || op === "*" || op === "==" || op === "!=" || op === "<" || op === "<=" || op === ">" || op === ">=") {
-          const rightVal = this.tryEvalSingle(ast.right, input, depth + 1);
+          const rightVal = this.tryEvalSingle(ast.right, input, depth + 1, allowScratch);
           if (rightVal === NOT_SINGLE) return NOT_SINGLE;
           const right = exactFiniteNumber(rightVal);
           if (right === undefined) return NOT_SINGLE;
-          const leftVal = this.tryEvalSingle(ast.left, input, depth + 1);
+          const leftVal = this.tryEvalSingle(ast.left, input, depth + 1, allowScratch);
           if (leftVal === NOT_SINGLE) return NOT_SINGLE;
           const left = exactFiniteNumber(leftVal);
           if (left === undefined) return NOT_SINGLE;
@@ -181,7 +230,7 @@ export class Interpreter {
       }
       case "object": {
         this.budget.step();
-        const canScratch = depth === 0 && !this.scratchInUse;
+        const canScratch = allowScratch && depth === 0 && !this.scratchInUse;
         let result = canScratch ? this.scratchObj : object();
         const sKeys = this.scratchKeys;
         let shapeMatch = canScratch && sKeys.length === ast.fields.length;
@@ -191,11 +240,11 @@ export class Interpreter {
         }
         for (let i = 0; i < ast.fields.length; i++) {
           const f = ast.fields[i]!;
-          const key = this.tryEvalSingle(f.key, input, depth + 1);
+          const key = this.tryEvalSingle(f.key, input, depth + 1, allowScratch);
           if (typeof key !== "string") return NOT_SINGLE;
           let val: Json | typeof NOT_SINGLE;
           if (f.value) {
-            val = this.tryEvalSingle(f.value, input, depth + 1);
+            val = this.tryEvalSingle(f.value, input, depth + 1, allowScratch);
           } else if (input === null || isObject(input)) {
             val = input === null ? null : Object.hasOwn(input, key) ? input[key]! : null;
           } else {
@@ -234,7 +283,7 @@ export class Interpreter {
     return scope;
   }
   private async *matchPattern(pattern: BindingPattern, value: Json, keyScope: Interpreter): AsyncGenerator<Interpreter> {
-    await this.budget.tick();
+    { const _p = this.budget.tickSync(); if (_p) await _p; }
     if (pattern.kind === "variable") {
       const scope = this.binding(pattern.name, value);
       if (pattern.pattern) yield* scope.matchPattern(pattern.pattern, value, keyScope);
@@ -254,6 +303,43 @@ export class Interpreter {
     yield* matchFields(this, 0);
   }
   async collect(ast: Ast, input: Json): Promise<Json[]> {
+    const _w = this.budget.ensureFreshWindow();
+    if (_w) await _w;
+    if (this.budget.unlimitedValueCheck) {
+      const iterPipe = extractIteratePipeline(ast);
+      if (iterPipe) {
+        const savedSteps = this.budget.currentSteps;
+        const baseVal = this.tryEvalSingle(iterPipe.base, input, 0, false);
+        if (baseVal !== NOT_SINGLE && Array.isArray(baseVal)) {
+          this.budget.step();
+          const result: Json[] = [];
+          for (let i = 0; i < baseVal.length; i++) {
+            const _p = this.budget.tickSync();
+            if (_p) await _p;
+            const itemRes = this.tryRunSyncNoScratch(iterPipe.tail, baseVal[i]!);
+            if (itemRes !== undefined) {
+              for (let j = 0; j < itemRes.length; j++) {
+                result.push(itemRes[j]!);
+              }
+            } else {
+              for await (const value of this.run(iterPipe.tail, baseVal[i]!)) {
+                result.push(value);
+              }
+            }
+          }
+          this.budget.collection(result.length);
+          this.budget.value(result);
+          return result;
+        }
+        this.budget.restoreSteps(savedSteps);
+      }
+    }
+    const syncResult = this.tryRunSyncNoScratch(ast, input);
+    if (syncResult !== undefined) {
+      this.budget.collection(syncResult.length);
+      this.budget.value(syncResult);
+      return syncResult;
+    }
     const result: Json[] = [];
     let bytes = 2;
     for await (const value of this.run(ast, input)) {
@@ -293,7 +379,7 @@ export class Interpreter {
       case "literal": yield ast.value; return;
       case "variable": {
         for (let frame = this.frame; frame; frame = frame.parent) {
-          await this.budget.tick();
+          { const _p = this.budget.tickSync(); if (_p) await _p; }
           if (frame.name === ast.name) { yield frame.value; return; }
         }
         yield this.variables.get(ast.name)!; return;
@@ -341,13 +427,13 @@ export class Interpreter {
         for await (const initial of this.run(ast.init, input)) {
           let accumulator = initial;
           for await (const value of this.run(ast.source, sourceInput)) {
-            await this.budget.tick();
+            { const _p = this.budget.tickSync(); if (_p) await _p; }
             const scope = Object.create(Interpreter.prototype) as Interpreter;
             Object.assign(scope, this, { frame: { name: ast.name, value, parent: this.frame, depth } });
             const previous = accumulator;
             accumulator = null;
             for await (const updated of scope.run(ast.update, previous)) {
-              await this.budget.tick();
+              { const _p = this.budget.tickSync(); if (_p) await _p; }
               accumulator = updated;
               if (ast.kind === "foreach") {
                 if (ast.extract) yield* scope.run(ast.extract, updated);
@@ -382,12 +468,12 @@ export class Interpreter {
         for await (const start of ast.start ? this.run(ast.start, input) : [null])
           for await (const end of ast.end ? this.run(ast.end, input) : [null])
             for await (const base of this.run(ast.base, input)) {
-              await this.budget.tick();
+              { const _p = this.budget.tickSync(); if (_p) await _p; }
               yield await sliceValue(base, isNumber(start) && Number.isNaN(numberValue(start)) ? null : start, isNumber(end) && Number.isNaN(numberValue(end)) ? null : end, this.budget);
             }
         return;
       case "iterate":
-        for await (const base of this.run(ast.base, input)) for await (const [, value] of entries(base, this.budget)) { await this.budget.tick(); yield value; }
+        for await (const base of this.run(ast.base, input)) for await (const [, value] of entries(base, this.budget)) { { const _p = this.budget.tickSync(); if (_p) await _p; } yield value; }
         return;
       case "array": yield ast.body ? await this.collect(ast.body, input) : []; return;
       case "object": {
@@ -437,7 +523,7 @@ export class Interpreter {
     }
   }
   async *descend(input: Json, depth = 0): AsyncGenerator<Json> {
-    await this.budget.tick();
+    { const _p = this.budget.tickSync(); if (_p) await _p; }
     if (depth > this.budget.limits.maxDepth) throw new JqLimitError("maxDepth");
     yield input;
     if (Array.isArray(input)) {
@@ -472,13 +558,13 @@ export class Interpreter {
   }
   async read(input: Json, path: Path): Promise<Json> {
     for (const key of path) {
-      await this.budget.tick();
+      { const _p = this.budget.tickSync(); if (_p) await _p; }
       input = typeof key === "object" ? await sliceValue(input, key.start, key.end, this.budget) : indexValue(input, key);
     }
     return input;
   }
   async *paths(ast: Ast, input: Json, depth = 0): AsyncGenerator<Path> {
-    await this.budget.tick();
+    { const _p = this.budget.tickSync(); if (_p) await _p; }
     if (depth > this.budget.limits.maxDepth) throw new JqLimitError("maxDepth");
     if (ast.kind === "parameter") {
       const filter = this.filters.get(ast)!;
@@ -541,7 +627,7 @@ export class Interpreter {
     }
     for await (const path of this.paths(ast.base, input)) {
       const base = await this.read(input, path);
-      for await (const [key] of entries(base, this.budget)) { await this.budget.tick(); yield [...path, key]; }
+      for await (const [key] of entries(base, this.budget)) { { const _p = this.budget.tickSync(); if (_p) await _p; } yield [...path, key]; }
     }
   }
   async set(input: Json, path: Path, value: Json | typeof deleted, depth = 0): Promise<Json> {
@@ -581,10 +667,10 @@ export class Interpreter {
     const minimumBytes = size ? 2 * size + 1 + 3 * padding : 2;
     if (minimumBytes > Math.min(this.budget.limits.maxValueBytes, 16 * 1024 * 1024)) throw new JqLimitError("maxValueBytes");
     const result: Json[] = [];
-    if (input !== null) for (const item of input) { await this.budget.tick(); result.push(item); }
+    if (input !== null) for (const item of input) { { const _p = this.budget.tickSync(); if (_p) await _p; } result.push(item); }
     if (remove) { if (key < result.length) result.splice(key, 1); }
     else {
-      while (result.length <= key) { await this.budget.tick(); result.push(null); }
+      while (result.length <= key) { { const _p = this.budget.tickSync(); if (_p) await _p; } result.push(null); }
       result[key] = await this.set(previous, path, value, depth + 1);
     }
     return result;
@@ -626,7 +712,7 @@ export class Interpreter {
     if (name === "walk") {
       const evaluate = (value: Json) => this.run(args[0]!, value);
       async function* visit(value: Json): AsyncGenerator<Json> {
-        await budget.tick();
+        { const _p = budget.tickSync(); if (_p) await _p; }
         let result = value;
         if (Array.isArray(value)) {
           const mapped: Json[] = [];
@@ -667,7 +753,7 @@ export class Interpreter {
       const stack = [step(input)];
       try {
         while (stack.length) {
-          await budget.tick();
+          { const _p = budget.tickSync(); if (_p) await _p; }
           const next = await stack.at(-1)!.next();
           if (next.done) { stack.pop(); continue; }
           if (next.value.emit) yield next.value.value;
@@ -711,7 +797,7 @@ export class Interpreter {
           const path: Path = [];
           let base = input;
           for (const component of candidate) {
-            await budget.tick();
+            { const _p = budget.tickSync(); if (_p) await _p; }
             budget.collection(path.length + 1);
             // Read each old value before normalizing relative array indexes.
             const previous = indexValue(base, component);
@@ -738,7 +824,7 @@ export class Interpreter {
         if (!Array.isArray(path)) throw new JqError("Path must be specified as an array");
         let value = input;
         for (const key of path) {
-          await budget.tick();
+          { const _p = budget.tickSync(); if (_p) await _p; }
           if (isObject(key) && (value === null || Array.isArray(value) || typeof value === "string")) {
             if (value === null) continue;
             const start = Object.hasOwn(key, "start") ? key.start! : undefined;
@@ -760,7 +846,7 @@ export class Interpreter {
         const result: Json[] = [];
         const stack = [{ iterator: entries(input, budget), depth: numberValue(depth) }];
         while (stack.length) {
-          await budget.tick();
+          { const _p = budget.tickSync(); if (_p) await _p; }
           const frame = stack.at(-1)!;
           const next = await frame.iterator.next();
           if (next.done) { stack.pop(); continue; }
@@ -776,7 +862,7 @@ export class Interpreter {
       if (!Array.isArray(input) && !isObject(input)) return;
       const stack = [{ iterator: entries(input, budget), path: [] as Json[] }];
       while (stack.length) {
-        await budget.tick();
+        { const _p = budget.tickSync(); if (_p) await _p; }
         const frame = stack.at(-1)!;
         const next = await frame.iterator.next();
         if (next.done) { stack.pop(); continue; }
@@ -823,7 +909,7 @@ export class Interpreter {
           if (name === "ltrimstr" || name === "rtrimstr") { yield input; continue; }
           throw new JqError(`${name} requires strings`);
         }
-        await budget.tick(input.length + value.length);
+        { const _p = budget.tickSync(input.length + value.length); if (_p) await _p; }
         const matches = name === "startswith" || name === "ltrimstr" ? input.startsWith(value) : input.endsWith(value);
         yield name === "startswith" || name === "endswith" ? matches : !matches || !value.length ? input : name === "ltrimstr" ? input.slice(value.length) : input.slice(0, -value.length);
       }
@@ -834,7 +920,7 @@ export class Interpreter {
       const points: number[] = [];
       let bytes = 0;
       for (let offset = 0; offset < input.length;) {
-        await budget.tick();
+        { const _p = budget.tickSync(); if (_p) await _p; }
         const point = input.codePointAt(offset)!;
         offset += point > 0xffff ? 2 : 1;
         if (name === "explode") {
@@ -849,7 +935,7 @@ export class Interpreter {
     }
     if (name === "ascii_downcase" || name === "ascii_upcase") {
       if (typeof input !== "string") throw new JqError(`${name} requires a string`);
-      await budget.tick(input.length);
+      { const _p = budget.tickSync(input.length); if (_p) await _p; }
       let result = "";
       const lower = name === "ascii_downcase";
       for (let index = 0; index < input.length; index++) {
@@ -882,7 +968,7 @@ export class Interpreter {
           let high = numberValue(length as Numeric);
           let found: number | undefined;
           while (low < high) {
-            await budget.tick();
+            { const _p = budget.tickSync(); if (_p) await _p; }
             const middle = Math.floor((low + high - 1) / 2);
             const order = await compare(indexValue(input, middle), target, budget);
             if (order === 0) { found = middle; break; }
@@ -904,7 +990,7 @@ export class Interpreter {
         let depth = 0;
         try {
           while (depth >= 0) {
-            await budget.tick();
+            { const _p = budget.tickSync(); if (_p) await _p; }
             if (!iterators[depth]) iterators[depth] = entries(indexValue(input, depth), budget);
             const next = await iterators[depth]!.next();
             if (next.done) {
@@ -936,7 +1022,7 @@ export class Interpreter {
       const result: Json[] = [];
       let bytes = 2;
       for (let column = 0; column < width; column++) {
-        await budget.tick();
+        { const _p = budget.tickSync(); if (_p) await _p; }
         const values: Json[] = [];
         bytes += 2 + (column ? 1 : 0);
         for await (const [, row] of entries(input, budget)) {
@@ -954,10 +1040,10 @@ export class Interpreter {
       if (input === null) yield 0;
       else if (isNumber(input)) yield Math.abs(numberValue(input));
       else if (typeof input === "string") {
-        await budget.tick(input.length);
+        { const _p = budget.tickSync(input.length); if (_p) await _p; }
         let length = 0;
         for (let offset = 0; offset < input.length; length++) {
-          if (length % 32 === 0) await budget.tick(0);
+          if (length % 32 === 0) { const _p = budget.tickSync(0); if (_p) await _p; }
           offset += input.codePointAt(offset)! > 0xffff ? 2 : 1;
         }
         yield length;
@@ -965,7 +1051,7 @@ export class Interpreter {
       else if (Array.isArray(input)) yield input.length;
       else if (isObject(input)) {
         let length = 0;
-        for (const key of objectKeyIterator(input)) { await budget.tick(); void key; length++; }
+        for (const key of objectKeyIterator(input)) { { const _p = budget.tickSync(); if (_p) await _p; } void key; length++; }
         yield length;
       }
       else throw new JqError(`${describe(input, budget)} has no length`);
@@ -975,12 +1061,12 @@ export class Interpreter {
       let result: Json[];
       if (Array.isArray(input)) {
         budget.collection(input.length);
-        await budget.tick(input.length);
+        { const _p = budget.tickSync(input.length); if (_p) await _p; }
         result = [];
         let bytes = 2;
         if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
         for (let index = 0; index < input.length; index++) {
-          await budget.tick();
+          { const _p = budget.tickSync(); if (_p) await _p; }
           bytes += String(index).length + (index ? 1 : 0);
           if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
           result.push(index);
@@ -990,7 +1076,7 @@ export class Interpreter {
         let count = 0;
         if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
         for (const key of objectKeyIterator(input)) {
-          await budget.tick();
+          { const _p = budget.tickSync(); if (_p) await _p; }
           budget.collection(++count);
           const separator = count > 1 ? 1 : 0;
           bytes += separator + await measureValue(key, budget, 1, budget.limits.maxValueBytes - bytes - separator);
@@ -999,7 +1085,7 @@ export class Interpreter {
         else {
           result = [];
           for (const key of objectKeyIterator(input)) {
-            await budget.tick();
+            { const _p = budget.tickSync(); if (_p) await _p; }
             budget.collection(result.length + 1);
             result.push(key);
           }
@@ -1070,7 +1156,7 @@ export class Interpreter {
           result += text;
         };
         for await (const [, item] of entries(input, budget)) {
-          await budget.tick();
+          { const _p = budget.tickSync(); if (_p) await _p; }
           if (!first && separator !== null) {
             if (typeof separator !== "string") await binary("+", result, separator, budget);
             if (typeof separator !== "string") throw new JqError("join separator must be a string or null when used");
@@ -1113,7 +1199,7 @@ export class Interpreter {
             const stop = numberValue(end);
             if (step === 0) continue;
             for (let value: Numeric = start; step > 0 ? numberValue(value) < stop : numberValue(value) > stop;) {
-              await budget.tick(); yield value;
+              { const _p = budget.tickSync(); if (_p) await _p; } yield value;
               const next = numberValue(value) + step;
               if (!Number.isFinite(next)) throw new JqError("nonfinite range increment");
               if (next === numberValue(value)) throw new JqError("range increment makes no progress"); value = next;
@@ -1139,7 +1225,7 @@ export class Interpreter {
       yield result; return;
     }
     if (name === "to_entries") {
-      if (Array.isArray(input)) await budget.tick(input.length);
+      if (Array.isArray(input)) { const _p = budget.tickSync(input.length); if (_p) await _p; }
       const result: Json[] = [];
       let bytes = 2;
       if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
@@ -1149,7 +1235,7 @@ export class Interpreter {
         const overhead = 17 + (result.length ? 1 : 0);
         const keyBytes = await measureValue(key, budget, 2, budget.limits.maxValueBytes - bytes - overhead);
         const valueBytes = await measureValue(value, budget, 2, budget.limits.maxValueBytes - bytes - overhead - keyBytes);
-        await budget.tick(4);
+        { const _p = budget.tickSync(4); if (_p) await _p; }
         bytes += overhead + keyBytes + valueBytes;
         const entry = object();
         put(entry, "key", key); put(entry, "value", value);
@@ -1170,7 +1256,7 @@ export class Interpreter {
       }
       const result = object();
       for await (const [, entry] of entries(values, budget)) {
-        await budget.tick();
+        { const _p = budget.tickSync(); if (_p) await _p; }
         if (!isObject(entry)) throw new JqError(`Cannot index ${type(entry)} with string "key"`);
         const key = ["key", "Key", "name", "Name"].find(candidate => Object.hasOwn(entry, candidate) && truth(entry[candidate]!));
         const value = ["value", "Value"].find(candidate => Object.hasOwn(entry, candidate));
@@ -1184,7 +1270,7 @@ export class Interpreter {
       const condition: Ast = args[args.length === 2 ? 1 : 0] ?? { kind: "identity" };
       for await (const item of this.run(generator, input)) {
         for await (const value of this.run(condition, item)) {
-          await budget.tick();
+          { const _p = budget.tickSync(); if (_p) await _p; }
           if (truth(value) === (name === "any")) { yield name === "any"; return; }
         }
       }
@@ -1196,26 +1282,26 @@ export class Interpreter {
       throw new JqError(`${name} requires an array`);
     }
     if (name === "reverse") {
-      await budget.tick(input.length);
+      { const _p = budget.tickSync(input.length); if (_p) await _p; }
       await measureValue(input, budget);
       const result: Json[] = [];
-      for (let index = input.length - 1; index >= 0; index--) { await budget.tick(0); result.push(input[index]!); }
+      for (let index = input.length - 1; index >= 0; index--) { { const _p = budget.tickSync(0); if (_p) await _p; } result.push(input[index]!); }
       yield result; return;
     }
     if (name === "add") {
       let result: Json = null;
-      for (const item of input) { await budget.tick(); result = await binary("+", result, item, budget); budget.value(result); }
+      for (const item of input) { { const _p = budget.tickSync(); if (_p) await _p; } result = await binary("+", result, item, budget); budget.value(result); }
       yield result; return;
     }
     const keyed: { key: Json; value: Json }[] = [];
     let keyBytes = 0;
     for (const value of input) {
-      await budget.tick(); const key = args[0] ? await this.collect(args[0], value) : value;
+      { const _p = budget.tickSync(); if (_p) await _p; } const key = args[0] ? await this.collect(args[0], value) : value;
       keyBytes += budget.value(key);
       if (keyBytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
       keyed.push({ value, key });
     }
-    await stableSort(keyed, budget, (left, right) => compare(left.key, right.key, budget));
+    await stableSort(keyed, budget, (left, right) => compareMaybeSync(left.key, right.key, budget));
     if (name === "min" || name === "min_by" || name === "max" || name === "max_by") { yield keyed[name.startsWith("min") ? 0 : keyed.length - 1]?.value ?? null; return; }
     if (name === "sort" || name === "sort_by") { yield keyed.map(item => item.value); return; }
     if (name === "unique" || name === "unique_by") { yield keyed.filter((item, index) => index === 0 || !equal(item.key, keyed[index - 1]!.key, budget)).map(item => item.value); return; }

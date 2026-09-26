@@ -6,7 +6,7 @@ export async function indices(input: Json, sought: Json, budget: Budget): Promis
   let source: ArrayLike<Json>;
   let pattern: ArrayLike<Json>;
   if (typeof input === "string" && typeof sought === "string") {
-    await budget.tick(input.length + sought.length);
+    { const _p = budget.tickSync(input.length + sought.length); if (_p) await _p; }
     // jq's string search returns UTF-8 byte offsets, including overlapping matches.
     source = Buffer.from(input);
     pattern = Buffer.from(sought);
@@ -26,13 +26,13 @@ export async function indices(input: Json, sought: Json, budget: Budget): Promis
 
   const result: number[] = [];
   if (!pattern.length || pattern.length > source.length) return result;
-  await budget.tick(pattern.length);
+  { const _p = budget.tickSync(pattern.length); if (_p) await _p; }
   const prefixes = new Uint32Array(pattern.length);
   let matched = 0;
   for (let index = 1; index < pattern.length; index++) {
-    await budget.tick();
+    { const _p = budget.tickSync(); if (_p) await _p; }
     while (matched > 0 && !equal(pattern[index]!, pattern[matched]!, budget)) {
-      await budget.tick();
+      { const _p = budget.tickSync(); if (_p) await _p; }
       matched = prefixes[matched - 1]!;
     }
     if (equal(pattern[index]!, pattern[matched]!, budget)) matched++;
@@ -41,9 +41,9 @@ export async function indices(input: Json, sought: Json, budget: Budget): Promis
   matched = 0;
   let bytes = 2;
   for (let index = 0; index < source.length; index++) {
-    await budget.tick();
+    { const _p = budget.tickSync(); if (_p) await _p; }
     while (matched > 0 && !equal(source[index]!, pattern[matched]!, budget)) {
-      await budget.tick();
+      { const _p = budget.tickSync(); if (_p) await _p; }
       matched = prefixes[matched - 1]!;
     }
     if (equal(source[index]!, pattern[matched]!, budget)) matched++;

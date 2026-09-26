@@ -17,7 +17,7 @@ export async function* recurse(scope: Interpreter, args: readonly Ast[], input: 
     yield input;
     stack.push(children(input));
     while (stack.length) {
-      await scope.budget.tick();
+      { const _p = scope.budget.tickSync(); if (_p) await _p; }
       const next = await stack[stack.length - 1]!.next();
       if (next.done) stack.pop();
       else {

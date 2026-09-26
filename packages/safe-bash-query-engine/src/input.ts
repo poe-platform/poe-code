@@ -480,11 +480,13 @@ class JsonParser {
       return;
     }
     if (Array.isArray(parent)) {
-      this.budget.collection(parent.length + 1);
+      if (this.budget.limits.maxCollectionSize !== Infinity) this.budget.collection(parent.length + 1);
       parent.push(this.next!);
     } else if (typeof parent === "string") {
       const container = this.stack.at(-2) as Record<string, Json>;
-      if (!Object.hasOwn(container, parent)) this.budget.collection(objectSize(container) + 1);
+      if (this.budget.limits.maxCollectionSize !== Infinity && !Object.hasOwn(container, parent)) {
+        this.budget.collection(objectSize(container) + 1);
+      }
       put(container, parent, this.next!);
       this.stack.pop();
     } else this.fail("Objects must consist of key:value pairs");
@@ -523,7 +525,13 @@ class JsonParser {
         this.append();
       } else {
         if (typeof parent === "string" || Array.isArray(parent)) this.fail("Unmatched '}'");
-        if (objectSize(parent!) || closingCount) this.fail("Expected another key-value pair");
+        let hasKey = closingCount > 0;
+        if (!hasKey) {
+          for (const k in parent!) {
+            if (Object.hasOwn(parent!, k)) { hasKey = true; break; }
+          }
+        }
+        if (hasKey) this.fail("Expected another key-value pair");
       }
       this.next = this.stack.pop() as Json;
       this.depth--;
@@ -550,7 +558,7 @@ class JsonParser {
     }
     if (character === "\n") { this.line++; this.column = 0; } else this.column++;
     const space = character === " " || character === "\t" || character === "\r" || character === "\n";
-    const structure = "[]{}:,".includes(character);
+    const structure = character === "[" || character === "]" || character === "{" || character === "}" || character === ":" || character === ",";
     const endsScalar = !this.quoted && !this.stack.length && this.token !== "" && (space || structure || character === '"');
     if (!endsScalar && (this.bytes || !space)) {
       if (++this.bytes > this.budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
@@ -608,7 +616,7 @@ export function parseJson(input: string, budget: Budget, byteEncoded = false): J
 }
 export async function* readChunks(source: ByteSource, budget: Budget): AsyncGenerator<Uint8Array> {
   for await (const chunk of readBytes(source, budget.signal)) {
-    await budget.tick();
+    { const _p = budget.tickSync(); if (_p) await _p; }
     budget.inputBytes += chunk.byteLength;
     if (budget.inputBytes > budget.limits.maxInputBytes) throw new JqLimitError("maxInputBytes");
     let offset = 0;
@@ -913,7 +921,7 @@ export async function* rawValues(sources: AsyncIterable<ByteSource>, budget: Bud
   for await (const source of sources) {
     let pending = "";
     for await (const chunk of readChunks(source, budget)) {
-      await budget.tick();
+      { const _p = budget.tickSync(); if (_p) await _p; }
       pending += Buffer.from(chunk).toString("latin1");
       if (pending.length + bytes - (!slurp && pending.endsWith("\n") ? 1 : 0) > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
       if (pending.endsWith("\n")) {
@@ -1046,10 +1054,10 @@ export function* jsonFragments(value: Json, budget: Budget, format: boolean | Js
 }
 
 export async function measureValue(value: Json, budget: Budget, depth = 0, maxBytes = budget.limits.maxValueBytes): Promise<number> {
-  await budget.tick(0);
+  { const _p = budget.tickSync(0); if (_p) await _p; }
   let bytes = 0;
   for (const fragment of jsonFragments(value, budget, false, depth)) {
-    await budget.tick(0);
+    { const _p = budget.tickSync(0); if (_p) await _p; }
     bytes += fragment.bytes;
     if (bytes > maxBytes) throw new JqLimitError("maxValueBytes");
   }

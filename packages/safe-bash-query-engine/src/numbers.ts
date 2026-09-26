@@ -104,6 +104,19 @@ export function decimalNumber(token: string, budget: Budget): Numeric {
   return new Decimal(digits, exponent, negative, text, decimalDouble(digits, exponent, negative));
 }
 export function compareNumbers(left: Numeric, right: Numeric, budget: Budget): number {
+  if (
+    left instanceof Decimal &&
+    right instanceof Decimal &&
+    left.isFinite &&
+    right.isFinite &&
+    left.exponent === 0 &&
+    right.exponent === 0 &&
+    left.digits.length <= 15 &&
+    right.digits.length <= 15
+  ) {
+    budget.step(2);
+    return left.double < right.double ? -1 : left.double === right.double ? 0 : 1;
+  }
   if (Number.isNaN(numberValue(left))) return -1;
   if (Number.isNaN(numberValue(right))) return 1;
   if (!(left instanceof Decimal) || !(right instanceof Decimal)) {

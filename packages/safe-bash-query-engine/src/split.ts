@@ -1,7 +1,7 @@
 import { Budget, JqError, JqLimitError, type Json } from "./limits.js";
 
 export async function splitString(input: Json, separator: Json, budget: Budget): Promise<string[]> {
-  await budget.tick();
+  { const _p = budget.tickSync(); if (_p) await _p; }
   if (typeof input !== "string" || typeof separator !== "string") {
     throw new JqError("split input and separator must be strings");
   }
@@ -22,7 +22,7 @@ export async function splitString(input: Json, separator: Json, budget: Budget):
   if (separator.length === 0) {
     let offset = 0;
     for (const character of input) {
-      await budget.tick();
+      { const _p = budget.tickSync(); if (_p) await _p; }
       append(offset, offset + character.length);
       offset += character.length;
     }
@@ -32,9 +32,9 @@ export async function splitString(input: Json, separator: Json, budget: Budget):
       const prefixes = new Int32Array(separator.length);
       let matched = 0;
       for (let index = 1; index < separator.length; index++) {
-        await budget.tick();
+        { const _p = budget.tickSync(); if (_p) await _p; }
         while (matched > 0 && separator[index] !== separator[matched]) {
-          await budget.tick();
+          { const _p = budget.tickSync(); if (_p) await _p; }
           matched = prefixes[matched - 1]!;
         }
         if (separator[index] === separator[matched]) matched++;
@@ -43,9 +43,9 @@ export async function splitString(input: Json, separator: Json, budget: Budget):
       matched = 0;
       let start = 0;
       for (let index = 0; index < input.length; index++) {
-        await budget.tick();
+        { const _p = budget.tickSync(); if (_p) await _p; }
         while (matched > 0 && input[index] !== separator[matched]) {
-          await budget.tick();
+          { const _p = budget.tickSync(); if (_p) await _p; }
           matched = prefixes[matched - 1]!;
         }
         if (input[index] === separator[matched]) matched++;

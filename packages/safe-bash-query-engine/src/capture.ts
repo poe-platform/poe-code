@@ -8,13 +8,13 @@ async function extendedPattern(pattern: string, budget: Budget): Promise<string>
   let result = "";
   let characterClass = false;
   for (let index = 0; index < pattern.length; index++) {
-    await budget.tick();
+    { const _p = budget.tickSync(); if (_p) await _p; }
     const character = pattern[index]!;
     if (character === "\\") {
       const next = pattern[++index];
       result += next === undefined ? "\\" : next === " " || next === "#" ? next : `\\${next}`;
     } else if (!characterClass && character === "#") {
-      while (index + 1 < pattern.length && pattern[index + 1] !== "\n") { await budget.tick(); index++; }
+      while (index + 1 < pattern.length && pattern[index + 1] !== "\n") { { const _p = budget.tickSync(); if (_p) await _p; } index++; }
     } else if (characterClass || !" \t\r\n\f\v".includes(character)) {
       result += character;
       if (character === "[") characterClass = true;
@@ -30,22 +30,22 @@ export async function* capture(input: Json, pattern: Json, modifiers: Json, budg
   if (modifiers !== null && typeof modifiers !== "string") throw new JqError(`${describe(modifiers, budget)} is not a string`);
   const flags = modifiers ?? "";
   for (const flag of flags) {
-    await budget.tick();
+    { const _p = budget.tickSync(); if (_p) await _p; }
     if (!"gimnpsx".includes(flag)) throw new JqError(`${flags} is not a valid modifier string`);
   }
-  await budget.tick(input.length + pattern.length);
+  { const _p = budget.tickSync(input.length + pattern.length); if (_p) await _p; }
   const source = flags.includes("x") ? await extendedPattern(pattern, budget) : pattern;
   const work = { step: (count = 1) => budget.step(count), checkpoint: () => budget.tick(0), maxBufferBytes: budget.limits.maxValueBytes };
   try {
     const regex = new Pattern(source, true, flags.includes("i"), "jq", flags.includes("p") ? flags + "m" : flags);
     let search = 0;
     while (search <= input.length) {
-      await budget.tick();
+      { const _p = budget.tickSync(); if (_p) await _p; }
       const match = await regex.find(input, work, search);
       if (!match) return;
       const result = object();
       for (const [name, index] of regex.groupNames) {
-        await budget.tick();
+        { const _p = budget.tickSync(); if (_p) await _p; }
         put(result, name, match.groups[index] ?? null);
       }
       budget.value(result);

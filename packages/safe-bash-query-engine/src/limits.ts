@@ -50,6 +50,8 @@ export class Budget {
   private lastYield = monotonicNow() | 0;
   private readonly unlimitedSteps: boolean;
   private readonly maxStepsSmi: number;
+  private aborted = false;
+  private pollSignal = false;
   readonly maxInputBytesSmi: number;
   readonly maxValueBytesSmi: number;
   readonly maxOutputBytesSmi: number;
@@ -73,9 +75,27 @@ export class Budget {
     this.maxResultsSmi = limits.maxResults <= 0x3fffffff ? (limits.maxResults | 0) : 0x3fffffff;
     this.maxCollectionSizeSmi = limits.maxCollectionSize <= 0x3fffffff ? (limits.maxCollectionSize | 0) : 0x3fffffff;
     this.unlimitedValueCheck = limits.maxValueBytes === Infinity && limits.maxDepth === Infinity && limits.maxCollectionSize === Infinity;
+    this.bindSignal(signal);
+    if (!hasYieldCheckpoint(signal)) {
+      this.nextYield = 65536;
+    }
+  }
+  private bindSignal(signal: AbortSignal): void {
+    this.aborted = Boolean(signal?.aborted);
+    this.pollSignal = Boolean(
+      signal &&
+        (typeof signal.addEventListener !== "function" ||
+          Object.prototype.hasOwnProperty.call(signal, "aborted")),
+    );
+    if (signal && !this.aborted && !this.pollSignal) {
+      signal.addEventListener("abort", () => {
+        this.aborted = true;
+      }, { once: true });
+    }
   }
   resetForRun(signal: AbortSignal): void {
     (this as unknown as { signal: AbortSignal }).signal = signal;
+    this.bindSignal(signal);
     this.steps = 0;
     if (hasYieldCheckpoint(signal)) {
       this.nextYield = 1024;
@@ -92,7 +112,10 @@ export class Budget {
     this.inputLocation.complete = true;
   }
   step(count = 1): void {
-    if (this.signal.aborted) this.signal.throwIfAborted();
+    if (this.aborted || (this.pollSignal && this.signal.aborted)) {
+      this.aborted = true;
+      this.signal.throwIfAborted();
+    }
     const next = this.steps + count;
     this.steps = next;
     if (!this.unlimitedSteps && next > this.maxStepsSmi && next > this.limits.maxSteps) throw new JqLimitError("maxSteps");
@@ -116,6 +139,19 @@ export class Budget {
       }
     }
     return true;
+  }
+  ensureFreshWindow(): Promise<void> | undefined {
+    if (hasYieldCheckpoint(this.signal)) {
+      if (this.steps >= this.nextYield) return this.yieldTickSync();
+      return undefined;
+    }
+    const now = monotonicNow() | 0;
+    if (this.lastYield < 0 || ((now - this.lastYield) | 0) < 15) {
+      if (this.lastYield < 0) this.lastYield = now;
+      this.nextYield = this.steps + 65536;
+      return undefined;
+    }
+    return this.yieldTickSync();
   }
   tickSync(count = 1): Promise<void> | undefined {
     this.step(count);
@@ -142,20 +178,12 @@ export class Budget {
     this.lastYield = monotonicNow() | 0;
     return yieldTurn(this.signal).then(() => {
       this.signal.throwIfAborted();
-      this.nextYield = this.steps + 1024;
+      this.nextYield = this.steps + (hasYieldCheckpoint(this.signal) ? 1024 : 65536);
       this.lastYield = monotonicNow() | 0;
     });
   }
-  async tick(count = 1): Promise<void> {
-    this.step(count);
-    const now = monotonicNow() | 0;
-    if (this.lastYield < 0) this.lastYield = now;
-    if (this.steps >= this.nextYield || ((now - this.lastYield) | 0) >= 25) {
-      await yieldTurn(this.signal);
-      this.signal.throwIfAborted();
-      this.nextYield = this.steps + 1024;
-      this.lastYield = monotonicNow() | 0;
-    }
+  tick(count = 1): Promise<void> | undefined {
+    return this.tickSync(count);
   }
   collection(size: number): void {
     if (size > this.maxCollectionSizeSmi && size > this.limits.maxCollectionSize) throw new JqLimitError("maxCollectionSize");
@@ -171,6 +199,10 @@ export class Budget {
     this.visitValue(value, 0, 0);
   }
   value(value: Json): number {
+    if (this.unlimitedValueCheck && this.unlimitedSteps) {
+      this.step();
+      return 0;
+    }
     return this.visitValue(value, 0, 0);
   }
   private visitValue(current: Json, depth: number, bytes: number): number {

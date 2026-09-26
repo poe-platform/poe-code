@@ -24,7 +24,7 @@ export async function* substituteRegex(input: Json, source: Json, flags: Json,
       const next: string[] = [];
       let index = 0;
       for await (const value of replacement(captures)) {
-        await budget.tick();
+        { const _p = budget.tickSync(); if (_p) await _p; }
         if (value !== null && typeof value !== "string") throw new JqError(`string ("") and ${describe(value, budget)} cannot be added`);
         budget.collection(index + 1);
         const prefix = results[index] ?? "";
@@ -70,7 +70,7 @@ export async function* scanRegex(input: Json, source: Json, budget: Budget): Asy
   if (typeof input !== "string") throw new JqError(`${describe(input, budget)} cannot be matched, as it is not a string`);
   if (source === "") {
     const boundaries = Buffer.byteLength(input) + 1;
-    for (let index = 0; index < boundaries; index++) { await budget.tick(); yield ""; }
+    for (let index = 0; index < boundaries; index++) { { const _p = budget.tickSync(); if (_p) await _p; } yield ""; }
     return;
   }
   const work = { step: (count = 1) => budget.step(count), checkpoint: () => budget.tick(0), maxBufferBytes: budget.limits.maxValueBytes };

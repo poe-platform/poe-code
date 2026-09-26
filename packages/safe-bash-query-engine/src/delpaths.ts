@@ -5,7 +5,7 @@ import { indexValue, type } from "./values.js";
 // Group against the original value so deleting one array element cannot shift
 // any other requested path. An ancestor deletion subsumes its descendants.
 async function deleteAt(input: Json, paths: Json[][], budget: Budget, depth: number): Promise<Json> {
-  await budget.tick();
+  { const _p = budget.tickSync(); if (_p) await _p; }
   if (depth > budget.limits.maxDepth) throw new JqLimitError("maxDepth");
   if (paths.some(path => path.length === depth)) return null;
   if (input === null || paths.length === 0) return input;
@@ -16,7 +16,7 @@ async function deleteAt(input: Json, paths: Json[][], budget: Budget, depth: num
   }
   const groups = new Map<string | number, Json[][]>();
   for (const path of paths) {
-    await budget.tick();
+    { const _p = budget.tickSync(); if (_p) await _p; }
     const component = path[depth]!;
     const leaf = path.length === depth + 1;
     if (leaf) {
@@ -42,7 +42,7 @@ async function deleteAt(input: Json, paths: Json[][], budget: Budget, depth: num
     budget.collection(input.length);
     const result: Json[] = [];
     for (let index = 0; index < input.length; index++) {
-      await budget.tick();
+      { const _p = budget.tickSync(); if (_p) await _p; }
       const group = groups.get(index);
       if (group?.some(path => path.length === depth + 1)) continue;
       result.push(group ? await deleteAt(input[index]!, group, budget, depth + 1) : input[index]!);
@@ -61,7 +61,7 @@ export async function delpaths(input: Json, candidate: Json, budget: Budget): Pr
   if (!Array.isArray(candidate)) throw new JqError("Paths must be specified as an array");
   const paths: Json[][] = [];
   for (const path of candidate) {
-    await budget.tick();
+    { const _p = budget.tickSync(); if (_p) await _p; }
     if (!Array.isArray(path)) throw new JqError(`Path must be specified as array, not ${type(path)}`);
     budget.collection(paths.length + 1);
     paths.push(path);

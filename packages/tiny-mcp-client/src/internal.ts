@@ -2737,7 +2737,7 @@ export class HttpTransport implements McpTransport {
     onWarning,
     maxResponseBytes = 16 * 1024 * 1024,
   }: HttpTransportOptions) {
-    if (!Number.isSafeInteger(maxResponseBytes) || maxResponseBytes < 1)
+    if (maxResponseBytes !== Infinity && (!Number.isSafeInteger(maxResponseBytes) || maxResponseBytes < 1))
       throw new Error("HTTP response byte limit must be a positive safe integer");
     try {
       const target = new URL(url);
@@ -3686,7 +3686,7 @@ export class SseParser {
   private dataBytes = 0;
 
   constructor(private readonly maxEventBytes = 16 * 1024 * 1024, private readonly acceptEndpoint = false) {
-    if (!Number.isSafeInteger(maxEventBytes) || maxEventBytes < 1)
+    if (maxEventBytes !== Infinity && (!Number.isSafeInteger(maxEventBytes) || maxEventBytes < 1))
       throw new Error("SSE event byte limit must be a positive safe integer");
   }
 

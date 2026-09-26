@@ -79,7 +79,7 @@ it("enforces actual bytes when content length understates the body", async () =>
   }), 8)).rejects.toThrow("8 bytes");
 });
 
-it.each([0, -1, 1.5, Infinity, Number.MAX_SAFE_INTEGER + 1])("rejects invalid byte limit %s", async (limit) => {
+it.each([0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1])("rejects invalid byte limit %s", async (limit) => {
   await expect(readBoundedResponseText(new Response("body"), limit)).rejects.toThrow("positive safe integer");
 });
 
@@ -92,3 +92,5 @@ it("rejects malformed UTF-8 and releases its reader", async () => {
 it("handles an absent response body", async () => {
   expect(await readBoundedResponseText(new Response(null), 8)).toBe("");
 });
+
+it("reads with an unlimited byte budget", async () => { expect(await readBoundedResponseText(new Response("body"), Infinity)).toBe("body"); });

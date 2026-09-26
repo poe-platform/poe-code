@@ -23,7 +23,7 @@ it("cancels an oversized open SSE body before releasing its reader", async () =>
   }
 });
 
-it.each([0, -1, 1.5, Infinity, Number.MAX_SAFE_INTEGER + 1])(
+it.each([0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1])(
   "rejects invalid HTTP response byte limit %s before starting transport work",
   (maxResponseBytes) => {
     expect(() => new HttpTransport({
@@ -142,3 +142,5 @@ it("keeps a receive-stream failure primary when final initialization and deletio
     expect((await transport.closed).reason).toMatchObject({ status: 500, method: "DELETE" });
   } finally { receiving.resolve(new Response(null, { status: 405 })); await client.close(); transport.dispose(); await transport.closed; }
 });
+
+it("accepts an unlimited byte budget", () => { const transport = new HttpTransport({ url: "https://mcp.invalid/limits", maxResponseBytes: Infinity }); transport.dispose(); });

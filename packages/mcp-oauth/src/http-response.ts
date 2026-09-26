@@ -4,7 +4,7 @@ export async function readBoundedResponseText(
   readers?: Set<ReadableStreamDefaultReader<Uint8Array>>,
   signal?: AbortSignal
 ): Promise<string> {
-  if (!Number.isSafeInteger(maxBytes) || maxBytes < 1)
+  if (maxBytes !== Infinity && (!Number.isSafeInteger(maxBytes) || maxBytes < 1))
     throw new Error("HTTP response byte limit must be a positive safe integer");
   if (signal?.aborted) {
     void response.body?.cancel().catch(() => undefined);

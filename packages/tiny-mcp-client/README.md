@@ -72,7 +72,8 @@ Static HTTP headers are copied and validated when the transport is constructed,
 before OAuth callbacks run. Invalid headers fail without reflecting their values.
 Use `snapshotHttpTransportHeaders(headers)` to apply the same ownership and safe
 validation when preparing a registry before constructing transports.
-`maxResponseBytes` bounds a complete JSON body or each SSE event (default 16 MiB).
+`maxResponseBytes` bounds a complete JSON body or each SSE event (default 16 MiB);
+explicit `Infinity` removes the byte budget.
 Before deserialization, HTTP JSON-RPC messages also have fixed per-message limits:
 100,000 nodes (including keys), 64 container levels, 4 MiB of decoded UTF-16
 strings, and an 8 MiB allocation estimate (128 bytes per node plus string storage).
@@ -170,7 +171,7 @@ OAuth provider inputs receive the originating request's `signal`, covering heade
 | `fetch`               | `(input, init?) => Promise<Response>` | Custom fetch implementation.          |
 | `oauth`               | `OAuthClientProviderOptions`          | Enables OAuth authorization handling. |
 | `oauthDiscoveryCache` | `OAuthDiscoveryCache`                 | Optional shared metadata cache.       |
-| `maxResponseBytes`     | `number`                              | Maximum JSON/error body or retained SSE event bytes; defaults to 16 MiB and must be a positive safe integer. |
+| `maxResponseBytes`     | `number`                              | Maximum JSON/error body or retained SSE event bytes; defaults to 16 MiB and accepts a positive safe integer or `Infinity`. |
 
 ### `StdioTransportOptions`
 

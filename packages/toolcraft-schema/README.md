@@ -99,7 +99,7 @@ fetching.
 `isJsonValue(value, options)` checks JSON data without invoking getters or
 serialization hooks. It rejects cycles, sparse arrays, non-finite numbers and
 non-JSON prototypes. Defaults bound the tree to 10,000 nodes and depth 64.
-Use `maxNodes` for larger bounded documents, or `maxDepth` (0–256) to choose a
+Use `maxNodes` for larger bounded documents (`Infinity` removes the node budget), or `maxDepth` (0–256) to choose a
 depth budget. Shared objects count once for each occurrence in the JSON tree;
 options never change other calls' budgets.
 

@@ -28,7 +28,7 @@ it("supports primitive-only depth zero", () => {
   expect(isJsonValue({ value: "text" }, { maxDepth: 0 })).toBe(false);
 });
 
-it.each([0, -1, 1.5, Infinity, NaN])("rejects invalid node budgets %s", maxNodes => {
+it.each([0, -1, 1.5, NaN])("rejects invalid node budgets %s", maxNodes => {
   expect(() => isJsonValue(1, { maxNodes })).toThrow("maxNodes");
 });
 
@@ -46,3 +46,5 @@ it("retains cycle, prototype, getter and serialization-hook guards under an expa
   expect(getter).not.toHaveBeenCalled();
   expect(hook).not.toHaveBeenCalled();
 });
+
+it("accepts an unlimited node budget", () => { expect(isJsonValue([1, 2], { maxNodes: Infinity })).toBe(true); });

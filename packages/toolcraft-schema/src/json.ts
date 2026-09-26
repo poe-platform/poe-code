@@ -32,7 +32,7 @@ export interface JsonValueValidationOptions {
 export function isJsonValue(value: unknown, options: JsonValueValidationOptions = {}): boolean {
   const maxNodes = options.maxNodes ?? 10_000;
   const maxDepth = options.maxDepth ?? 64;
-  if (!Number.isSafeInteger(maxNodes) || maxNodes < 1) throw new Error("maxNodes must be a positive safe integer");
+  if (maxNodes !== Infinity && (!Number.isSafeInteger(maxNodes) || maxNodes < 1)) throw new Error("maxNodes must be a positive safe integer");
   if (!Number.isSafeInteger(maxDepth) || maxDepth < 0 || maxDepth > 256) throw new Error("maxDepth must be an integer between 0 and 256");
   const ancestors = new Set<object>();
   let nodes = 0;

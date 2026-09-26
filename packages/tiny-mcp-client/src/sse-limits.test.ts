@@ -24,6 +24,8 @@ it("does not accumulate SSE keepalive comments", () => {
   expect(parser.push("data: ok\n\n")).toEqual([{ data: "ok" }]);
 });
 
-it.each([0, -1, 1.5, Infinity])("rejects invalid SSE event byte limit %s", (limit) => {
+it.each([0, -1, 1.5])("rejects invalid SSE event byte limit %s", (limit) => {
   expect(() => new SseParser(limit)).toThrow("positive safe integer");
 });
+
+it("accepts an unlimited byte budget", () => { expect(new SseParser(Infinity).push("data: ok\n\n")).toEqual([{ data: "ok" }]); });

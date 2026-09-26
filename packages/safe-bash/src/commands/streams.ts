@@ -1,3 +1,6 @@
+import { hasYieldCheckpoint } from "../contracts/yield.js";
+const SMALL_WC_COUNT_LINES: readonly string[] = Array.from({ length: 129 }, (_, i) => `${i}\n`);
+const SINGLE_STDIN_OPERAND: readonly string[] = ["-"];
 import { createOutputOperation, FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
 import { openFileOutput, type FileOutput } from "../contracts/filesystem-output.js";
 import { outputFailure } from "../contracts/io.js";
@@ -717,7 +720,31 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
   return [
     define("cat", executeCatGeneral),
     headTail("head"), headTail("tail", maxTailFollowHandles),
-    define("wc", async context => {
+    define("wc", context => {
+      if (context.args.length === 1 && (context.args[0] === "-l" || context.args[0] === "-c") && !hasYieldCheckpoint(context.signal)) {
+        const countLines = context.args[0] === "-l";
+        const req = assertInputRequirements(context, SINGLE_STDIN_OPERAND);
+        if (!req) {
+          const stdinFast = context.stdin as {
+            tryCountLinesOrBytesSync?: (countLines: boolean) => number;
+            rawLen?: number;
+          };
+          if (typeof stdinFast.tryCountLinesOrBytesSync === "function" && !context.signal.aborted) {
+            const byteLen = stdinFast.rawLen ?? 0;
+            try {
+              context.inputBudget?.check(byteLen);
+              const count = stdinFast.tryCountLinesOrBytesSync(countLines);
+              const text = count >= 0 && count <= 128 ? SMALL_WC_COUNT_LINES[count]! : `${count}\n`;
+              const p = output(context, text);
+              if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
+              return p.then(RETURN_EXIT_ZERO);
+            } catch (error) {
+              return diagnostic(context, error).then(RETURN_EXIT_ONE);
+            }
+          }
+        }
+      }
+      return (async () => {
       if (context.args.length === 1 && (context.args[0] === "-l" || context.args[0] === "-c")) {
         const countLines = context.args[0] === "-l";
         const req = assertInputRequirements(context, ["-"]);
@@ -871,6 +898,7 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
       if (totalMode === "only") await print(totals);
       else if (totalMode === "always" || (totalMode === "auto" && names.length > 1)) await print(totals, "total");
       return { exitCode };
+      })();
     }),
     define("tee", async context => {
       const args: string[] = [];

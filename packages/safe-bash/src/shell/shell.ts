@@ -1,3 +1,20 @@
+function utf8ByteLength(str: string): number {
+  if (typeof globalThis.Buffer === "function") return globalThis.Buffer.byteLength(str);
+  let bytes = str.length;
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i);
+    if (code >= 0x80) {
+      if (code <= 0x7ff) bytes += 1;
+      else if (code >= 0xd800 && code <= 0xdbff && i + 1 < str.length && (str.charCodeAt(i + 1) & 0xfc00) === 0xdc00) {
+        bytes += 2;
+        i++;
+      } else {
+        bytes += 2;
+      }
+    }
+  }
+  return bytes;
+}
 import { clearAwkReaderPool } from "../commands/text-programs/awk-reader.js";
 import { writeDiagnostic } from "../escaping.js";
 import { createDeviceFileSystem } from "@poe-code/safe-fs/core";
@@ -511,7 +528,7 @@ export class Shell implements PluginHost {
       }
       if (!firstCached && !this.#initialLocale) {
         const warm = this.#warmedInvocation;
-        if (sharedUtf8Encoder.encode(source).byteLength <= warm.budget.limits.maxSourceBytes) {
+        if (utf8ByteLength(source) <= warm.budget.limits.maxSourceBytes) {
           const savedParse = warm.budget.parsing.snapshot();
           try {
             const parseState: ParseUnitState = { lineIndex: undefined, lineIndexUnits: 0, currentCachedUnit: undefined };
@@ -544,7 +561,7 @@ export class Shell implements PluginHost {
     const { budget, scope, cancellationState, owner, stdout, stderr, stdin, io, currentState, runtime } = warm;
     try {
       if (typeof source !== "string") throw new TypeError("Shell source must be a string");
-      const sourceByteLen = sharedUtf8Encoder.encode(source).byteLength;
+      const sourceByteLen = utf8ByteLength(source);
       if (sourceByteLen > budget.maxSourceBytesSmi && sourceByteLen > budget.limits.maxSourceBytes) throw new ShellLimitError("maxSourceBytes");
       budget.source(sourceByteLen);
       budget.signal.throwIfAborted();
@@ -851,7 +868,7 @@ export class Shell implements PluginHost {
     warm?: WarmedInvocation,
   ): Promise<ShellResult> {
     if (typeof source !== "string") throw new TypeError("Shell source must be a string");
-    const sourceByteLength = sharedUtf8Encoder.encode(source).byteLength;
+    const sourceByteLength = utf8ByteLength(source);
     if (sourceByteLength > budget.limits.maxSourceBytes) throw new ShellLimitError("maxSourceBytes");
     budget.source(sourceByteLength);
     budget.signal.throwIfAborted();

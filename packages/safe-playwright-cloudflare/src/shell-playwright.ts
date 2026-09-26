@@ -71,7 +71,7 @@ export function createCloudflarePlaywrightAdapter(
 							"Cloudflare Browser Run does not support download artifact retrieval",
 						);
 					},
-					prepareFileBytes: (bytes: Uint8Array) => Buffer.from(bytes),
+					prepareFileBytes: (bytes: Uint8Array) => new Uint8Array(bytes),
 					interrupt: resource.interrupt,
 					release: resource.release,
 				};

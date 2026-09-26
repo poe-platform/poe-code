@@ -494,6 +494,12 @@
       "safe-bash-command-sqlite3/*": [
         "../safe-bash-command-sqlite3/src/*.ts",
         "../safe-bash-command-sqlite3/src/*"
+      ],
+      "poe-code/safe-bash/contracts": [
+        "../safe-bash-contracts/src/index.ts"
+      ],
+      "poe-code/safe-bash/contracts/*": [
+        "../safe-bash-contracts/src/*.ts"
       ]
     },
     "baseUrl": "."

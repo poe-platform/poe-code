@@ -45,7 +45,6 @@ const EMPTY_STDIN_OPTIONS = Object.freeze({
 });
 const _execAnchor: unknown[] = new Array(13);
 export let _lastExecAnchor: unknown = _execAnchor;
-const _sharedCapturedReturn: { kind: "return"; value: any } = { kind: "return", value: undefined };
 interface CachedParsedUnit {
   readonly offset: number;
   readonly unit: ReturnType<typeof parseShellUnit>;
@@ -202,10 +201,6 @@ class RootInvocationCancellationOwner implements CancellationOwnerSubscriber {
     const resolve = this._resolveCapture;
     this._resolveCapture = undefined;
     resolve?.({ kind: "throw", reason });
-  }
-
-  markSettled(): void {
-    this._settled = true;
   }
 
   capture<Value>(raw: Promise<Value>): Promise<CapturedCancellationOutcome<Value>> {
@@ -441,19 +436,7 @@ export class Shell implements PluginHost {
     }
     let captured: CapturedCancellationOutcome<ShellResult>;
     try {
-      if (options.signal === undefined && !this.#hasCustomCommands && this.#middleware.length === 0) {
-        try {
-          const val = await this.#execute(source, options, scope, budget, boundary, cancellationState, owner, admission);
-          owner.markSettled();
-          _sharedCapturedReturn.value = val;
-          captured = _sharedCapturedReturn;
-        } catch (reason) {
-          owner.markSettled();
-          captured = { kind: "throw", reason };
-        }
-      } else {
-        captured = await owner.capture(this.#execute(source, options, scope, budget, boundary, cancellationState, owner, admission));
-      }
+      captured = await owner.capture(this.#execute(source, options, scope, budget, boundary, cancellationState, owner, admission));
       if (captured.kind === "throw" && budget.hasExecutionCleanup) budget.executionCleanup.abort(captured.reason);
     } finally {
       if (budget.hasExecutionCleanup) {

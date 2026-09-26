@@ -893,6 +893,26 @@
       "validation": "Four admission/decoding assertions failed before correction. All 167 tests in twelve Lotus files pass; maintained package lint/types and selected build pass. Wrong subtype/length remain refused.",
       "publicReadback": "A 133-byte in-memory WK3 fixture autodetects through the compiled SDK and converts through the public --recalc command to 4087-byte XLSX. Readback preserves values 7/8/8 and both =(A1+1) formulas; exit 0, empty stderr.",
       "remaining": "Wider WK3 formatting, charset and companion records, relative sheets, range flag packing and independent application qualification remain open. No Lotus family closure."
+    },
+    "lotusYearSemantics": {
+      "status": "implemented for direct/named Lotus YEAR; other function conversions and Works qualification open",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/lotus/lotform.cxx",
+          "sha256": "1a6b859a76fe0ac7d7485b0b298996125a19ecfc4b170fcbeccd9ca0a00b2794",
+          "lines": "48-78,106-110,226-230",
+          "finding": "DoFunc applies the same ocGetYear subtraction of 1900 after resolving named add-ins."
+        },
+        {
+          "url": "https://raw.githubusercontent.com/GNOME/gnumeric/325ef79a19580959afaee9cf01cb8ea15f0177b0/plugins/lotus-123/lotus-formula.c",
+          "sha256": "211c130f60af76d0f5383b36b1a25baa9ac258fb4075b8280c9773501ef9acd9",
+          "lines": "439-445",
+          "finding": "wk1_year_func comments year - 1900 but delegates directly to wk1_std_func; that implementation does not perform the documented conversion."
+        }
+      ],
+      "validation": "Four failing regressions cover BOF 0x0404, 0x1000 and 0x1002 plus the named YEAR token. All 171 tests in thirteen Lotus files pass, with maintained package lint/types and selected build.",
+      "publicReadback": "Compiled public command --recalc XLSX export and SDK readback preserve =(year(date(124,1,1))-1900) and value 124 for legacy direct and modern named YEAR; exit 0, empty stderr, 4085/4074 bytes. The serializer normalizes function spelling to lowercase. In-memory fixtures only.",
+      "remaining": "Further function argument/index conversions, Works semantics and independent application qualification remain open. This repairs Lotus semantics beyond Gnumeric's stub, not native parser parity."
     }
   },
   "cases": [

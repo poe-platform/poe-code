@@ -232,7 +232,9 @@ async function lotusFormula(bytes: Uint8Array, version: number, group: number, r
       const operands: string[] = []; for (let i = 0; i < args; i++) operands.unshift(await pop());
       if ([0x38, 0x39, 0x3a].includes(op)) operands.push(`-(${operands.shift()!})`);
       if (op === 0x59) operands.reverse();
-      stack.push(`${name}(${operands.join(",")})`);
+      const expression = `${name}(${operands.join(",")})`;
+      // Lotus YEAR returns years since 1900, including its named-function form.
+      stack.push(functions === lotusFunctions && info?.[3] === "wk1_year_func" ? `(${expression}-1900)` : expression);
     }
     if (stack.reduce((n, s) => n + s.length, 0) > context.limits.inputBytes)
       throw new SsconvertError("resource-limit", "ssconvert Lotus formula length limit exceeded");

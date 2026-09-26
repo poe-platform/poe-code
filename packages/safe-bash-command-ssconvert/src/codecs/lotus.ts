@@ -232,9 +232,27 @@ async function lotusFormula(bytes: Uint8Array, version: number, group: number, r
       const operands: string[] = []; for (let i = 0; i < args; i++) operands.unshift(await pop());
       if ([0x38, 0x39, 0x3a].includes(op)) operands.push(`-(${operands.shift()!})`);
       if (op === 0x59) operands.reverse();
+      let subtract = 0;
+      if (functions === lotusFunctions) {
+        // LibreOffice LotusToSc::DoFunc translates Lotus's zero-based positions.
+        // Use the resolved function so named opcodes follow the same conventions.
+        switch (info?.[1]) {
+          case "CHOOSE":
+            if (operands.length > 0) operands[0] = `(${operands[0]}+1)`;
+            break;
+          case "MID": case "REPLACE":
+            if (operands.length > 1) operands[1] = `(${operands[1]}+1)`;
+            break;
+          case "FIND":
+            if (operands.length > 2) operands[2] = `(${operands[2]}+1)`;
+            subtract = 1;
+            break;
+          case "STRING": operands.push("TRUE()"); break;
+          case "YEAR": subtract = 1900; break;
+        }
+      }
       const expression = `${name}(${operands.join(",")})`;
-      // Lotus YEAR returns years since 1900, including its named-function form.
-      stack.push(functions === lotusFunctions && info?.[3] === "wk1_year_func" ? `(${expression}-1900)` : expression);
+      stack.push(subtract ? `(${expression}-${subtract})` : expression);
     }
     if (stack.reduce((n, s) => n + s.length, 0) > context.limits.inputBytes)
       throw new SsconvertError("resource-limit", "ssconvert Lotus formula length limit exceeded");

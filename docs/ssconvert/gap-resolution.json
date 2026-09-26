@@ -894,6 +894,18 @@
       "publicReadback": "A 133-byte in-memory WK3 fixture autodetects through the compiled SDK and converts through the public --recalc command to 4087-byte XLSX. Readback preserves values 7/8/8 and both =(A1+1) formulas; exit 0, empty stderr.",
       "remaining": "Wider WK3 formatting, charset and companion records, relative sheets, range flag packing and independent application qualification remain open. No Lotus family closure."
     },
+    "lotusPositionSemantics": {
+      "status": "implemented for direct/named Lotus CHOOSE, MID, REPLACE, FIND and STRING; wider conversions open",
+      "source": {
+        "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/lotus/lotform.cxx",
+        "sha256": "1a6b859a76fe0ac7d7485b0b298996125a19ecfc4b170fcbeccd9ca0a00b2794",
+        "lines": "48-78,112-131,231-240",
+        "finding": "DoFunc increments CHOOSE's first operand, MID/REPLACE's second operand and FIND's final operand, decrements FIND's result, and appends TRUE() to FIXED (Lotus STRING) to suppress grouping. Parameter storage is reversed: index 0 is the final argument."
+      },
+      "validation": "Fifteen original regressions failed before the correction. All 186 tests in thirteen Lotus files pass, with maintained package lint/types and selected build.",
+      "publicReadback": "Compiled public command --recalc XLSX export and SDK readback preserve CHOOSE(0,first,second)=first, MID(abcd,0,2)=ab, REPLACE(abcd,0,2,X)=Xcd, FIND(b,abc,0)=1 and STRING(1234,2)=1234.00, plus their translated formulas. BOF 0x0404 direct, 0x1000 direct and 0x1002 named inputs are 178/197/287 bytes; outputs 4219/4205/4205 bytes. Exit 0, empty stderr. All fixtures remain in memory.",
+      "remaining": "Lookup/INDEX and financial argument conversions, Works semantics and independent application qualification remain open; no Lotus family closure."
+    },
     "lotusYearSemantics": {
       "status": "implemented for direct/named Lotus YEAR; other function conversions and Works qualification open",
       "sources": [
@@ -924,7 +936,7 @@
     {
       "id": "lotus-named-formula-references",
       "status": "open",
-      "currentFinding": "WK1/WK3 names, coordinates, function names and namespace lifecycle repairs are implemented. Named tokens resolve workbook names and bounded external-variable fallbacks; recalculation requires the explicit external-reference host. Source-led repairs now decode per-token modern reference flags, signed legacy offsets for BOF 0x0404/0x0406, and original WK3 BOF 0x1000 detection/formula dispatch. All 167 tests in twelve Lotus files pass, plus package lint/types/build and compiled SDK/command XLSX readback for the repaired profiles. Earlier full-package and 24-profile XML/XLSX evidence remains scoped to its recorded candidate. BOF 0x0405 and Works offset semantics, modern range flag packing, dynamic/relative-sheet identity, wider formatting/charset profiles and independent application readback remain open. Native Gnumeric named-token limitations are not product completion evidence; containing publication is still pending."
+      "currentFinding": "WK1/WK3 names, coordinates, function names and namespace lifecycle repairs are implemented. Named tokens resolve workbook names and bounded external-variable fallbacks; recalculation requires the explicit external-reference host. Source-led repairs now decode per-token modern reference flags, signed legacy offsets for BOF 0x0404/0x0406, and original WK3 BOF 0x1000 detection/formula dispatch. Source-led function conversion now preserves YEAR, CHOOSE, MID, REPLACE, FIND and STRING semantics for direct/named Lotus tokens. All 186 tests in thirteen Lotus files pass, plus package lint/types/build and compiled SDK/command XLSX readback for the repaired profiles. Lookup/INDEX and financial conversions remain open. Earlier full-package and 24-profile XML/XLSX evidence remains scoped to its recorded candidate. BOF 0x0405 and Works offset semantics, modern range flag packing, dynamic/relative-sheet identity, wider formatting/charset profiles and independent application readback remain open. Native Gnumeric named-token limitations are not product completion evidence; containing publication is still pending."
     },
     {
       "id": "biff-external-and-token-formulas",

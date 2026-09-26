@@ -10,18 +10,20 @@ const context: CapabilityContext = {
 };
 const word = (value: number) => [value & 255, value >>> 8];
 const record = (id: number, data: number[] = []) => [...word(id), ...word(data.length), ...data];
-function fixture(version: number, named: boolean): Uint8Array {
+function formulaFixture(version: number, tokens: number[]): Uint8Array {
   const modern = version >= 0x1000;
-  const number = (n: number) => [5, ...word(modern ? n * 2 : n)];
-  const name = Array.from("@<<@123>>YEAR(", c => c.charCodeAt(0));
-  const tokens = [...number(124), ...number(1), ...number(1), 54,
-    ...(named ? [0x7a, 1, ...word(name.length), ...name] : [62]), 3];
   return Uint8Array.from([
     ...record(0, [...word(version), ...(modern ? [4, 0, ...Array<number>(22).fill(0)] : [])]),
     ...(modern ? record(25, [0, 0, 0, 0, ...Array<number>(10).fill(0), ...tokens])
       : record(16, [...Array<number>(13).fill(0), ...word(tokens.length), ...tokens])),
     ...record(1)
   ]);
+}
+function fixture(version: number, named: boolean): Uint8Array {
+  const number = (n: number) => [5, ...word(version >= 0x1000 ? n * 2 : n)];
+  const name = Array.from("@<<@123>>YEAR(", c => c.charCodeAt(0));
+  return formulaFixture(version, [...number(124), ...number(1), ...number(1), 54,
+    ...(named ? [0x7a, 1, ...word(name.length), ...name] : [62]), 3]);
 }
 
 it.each([[0x404, false], [0x1000, false], [0x1002, false], [0x1002, true]] as const)(
@@ -33,3 +35,25 @@ it.each([[0x404, false], [0x1000, false], [0x1002, false], [0x1002, true]] as co
     expect(result.sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 124 });
   }
 );
+
+for (const [version, named] of [[0x404, false], [0x1000, false], [0x1002, true]] as const) {
+  it.each([
+    { name: "CHOOSE", opcode: 48, args: [0, "first", "second"], formula: '=CHOOSE((0+1),"first","second")', value: "first" },
+    { name: "MID", opcode: 73, args: ["abcd", 0, 2], formula: '=MID("abcd",(0+1),2)', value: "ab" },
+    { name: "REPLACE", opcode: 106, args: ["abcd", 0, 2, "X"], formula: '=REPLACE("abcd",(0+1),2,"X")', value: "Xcd" },
+    { name: "FIND", opcode: 76, args: ["b", "abc", 0], formula: '=(FIND("b","abc",(0+1))-1)', value: 1 },
+    { name: "STRING", opcode: 72, args: [1234, 2], formula: '=FIXED(1234,2,TRUE())', value: "1234.00" },
+  ])(`imports Lotus $name argument conventions (version ${version}, named ${named})`, async item => {
+    // LibreOffice LotusToSc::DoFunc adjusts zero-based indices and disables FIXED grouping.
+    const tokens = item.args.flatMap(arg => typeof arg === "number"
+      ? [5, ...word(version >= 0x1000 ? arg * 2 : arg)]
+      : [6, ...Array.from(arg, c => c.charCodeAt(0)), 0]);
+    const name = Array.from(`@<<@123>>${item.name}(`, c => c.charCodeAt(0));
+    tokens.push(...(named ? [0x7a, item.args.length, ...word(name.length), ...name]
+      : [item.opcode, ...(item.name === "CHOOSE" ? [item.args.length] : [])]), 3);
+    const book = await readLotus(formulaFixture(version, tokens), context);
+    expect(book.sheets[0]!.cells[0]!.formula).toBe(item.formula);
+    const result = recalculateWorkbook(book, context, true);
+    expect(result.sheets[0]!.cells[0]!.value).toEqual({ kind: typeof item.value === "number" ? "number" : "string", value: item.value });
+  });
+}

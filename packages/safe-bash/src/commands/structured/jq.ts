@@ -7,7 +7,7 @@ import { createSyncSingleChunkByteSource } from "../search/requirements.js";
 import { joinPath } from "../../contracts/path.js";
 import { escapeText, writeDiagnostic } from "../../escaping.js";
 import { Budget, copyObject, interruptible, JqHalt, JqError, JqLimitError, object, put, resolveJqLimits, truth, wellFormed, type InputLocation, type JqLimits, type Json, type StructuredCommandsOptions } from "./limits.js";
-import { jsonValues, parseJson, rawValues, stringify, tryProcessFlatJsonChunkSync, tryStringifyCompactSync, tryWriteCompactSync, type JsonFormat } from "./input.js";
+import { jsonValues, parseJson, rawValues, stringify, tryProcessFlatJsonChunkSync, tryProcessFlatSelectProjectChunkSync, tryStringifyCompactSync, tryWriteCompactSync, type FlatSchemaPlan, type JsonFormat } from "./input.js";
 import { Interpreter } from "./interpreter.js";
 import { moduleProgram, parse, type Ast } from "./parser.js";
 import { sortObjectKeys } from "./values.js";
@@ -79,6 +79,85 @@ function sharedFastJqOnValue(input: Json): Promise<void> | void {
   return undefined;
 }
 
+interface FastSelectProjectPlan {
+  readonly condKey: string | undefined;
+  readonly outKeys: readonly string[];
+  readonly srcKeys: readonly string[];
+  cachedSchemaPlan?: FlatSchemaPlan | undefined;
+}
+
+function getFastSelectProjectPlan(ast: Ast): FastSelectProjectPlan | null {
+  const cached = (ast as { _fastSelectProjectPlan?: FastSelectProjectPlan | null })._fastSelectProjectPlan;
+  if (cached !== undefined) return cached;
+  let condKey: string | undefined;
+  let objAst: Ast = ast;
+  if (ast.kind === "binary" && ast.operator === "|") {
+    const left = ast.left;
+    if (left.kind !== "call" || left.name !== "select" || left.args.length !== 1) {
+      (ast as { _fastSelectProjectPlan?: FastSelectProjectPlan | null })._fastSelectProjectPlan = null;
+      return null;
+    }
+    const arg0 = left.args[0]!;
+    if (arg0.kind === "index" && arg0.base.kind === "identity" && arg0.index.kind === "literal" && typeof arg0.index.value === "string") {
+      condKey = arg0.index.value;
+    } else if (
+      arg0.kind === "binary" &&
+      arg0.operator === "==" &&
+      arg0.left.kind === "index" &&
+      arg0.left.base.kind === "identity" &&
+      arg0.left.index.kind === "literal" &&
+      typeof arg0.left.index.value === "string" &&
+      arg0.right.kind === "literal" &&
+      arg0.right.value === true
+    ) {
+      condKey = arg0.left.index.value;
+    } else {
+      (ast as { _fastSelectProjectPlan?: FastSelectProjectPlan | null })._fastSelectProjectPlan = null;
+      return null;
+    }
+    objAst = ast.right;
+  }
+  if (objAst.kind !== "object" || objAst.fields.length < 1 || objAst.fields.length > 16) {
+    (ast as { _fastSelectProjectPlan?: FastSelectProjectPlan | null })._fastSelectProjectPlan = null;
+    return null;
+  }
+  const outKeys: string[] = [];
+  const srcKeys: string[] = [];
+  for (let i = 0; i < objAst.fields.length; i++) {
+    const f = objAst.fields[i]!;
+    if (f.key.kind !== "literal" || typeof f.key.value !== "string") {
+      (ast as { _fastSelectProjectPlan?: FastSelectProjectPlan | null })._fastSelectProjectPlan = null;
+      return null;
+    }
+    const k = f.key.value;
+    if (!k || k === "__proto__" || (k.charCodeAt(0) >= 48 && k.charCodeAt(0) <= 57) || outKeys.includes(k)) {
+      (ast as { _fastSelectProjectPlan?: FastSelectProjectPlan | null })._fastSelectProjectPlan = null;
+      return null;
+    }
+    for (let ci = 0; ci < k.length; ci++) {
+      const c = k.charCodeAt(ci);
+      if (c < 32 || c >= 127 || c === 34 || c === 92) {
+        (ast as { _fastSelectProjectPlan?: FastSelectProjectPlan | null })._fastSelectProjectPlan = null;
+        return null;
+      }
+    }
+    let sk: string;
+    if (f.value === undefined) {
+      sk = k;
+    } else if (f.value.kind === "index" && f.value.base.kind === "identity" && f.value.index.kind === "literal" && typeof f.value.index.value === "string") {
+      sk = f.value.index.value;
+    } else {
+      (ast as { _fastSelectProjectPlan?: FastSelectProjectPlan | null })._fastSelectProjectPlan = null;
+      return null;
+    }
+    outKeys.push(k);
+    srcKeys.push(sk);
+  }
+  const plan: FastSelectProjectPlan = { condKey, outKeys, srcKeys, cachedSchemaPlan: undefined };
+  (ast as { _fastSelectProjectPlan?: FastSelectProjectPlan | null })._fastSelectProjectPlan = plan;
+  return plan;
+}
+
 function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promise<{ exitCode: number }> | undefined {
   if (sharedFastInUse || sharedJqOutBufInUse) return undefined;
   const args = context.args;
@@ -86,8 +165,18 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
   const source = args[1]!;
   const file = args[2]!;
   if (source.startsWith("-") || file.startsWith("-") || file === "-" || source.includes("$")) return undefined;
-  const cachedAst = jqAstCache.get(source);
-  if (!cachedAst) return undefined;
+  let cachedAst = jqAstCache.get(source);
+  if (!cachedAst) {
+    if (limits.maxSourceBytes < source.length * 4 || limits.maxAstDepth < 256 || limits.maxSteps < 1000) return undefined;
+    try {
+      const parseBudget = sharedFastBudget ?? (sharedFastBudget = new Budget(limits, context.signal));
+      parseBudget.resetForRun(context.signal);
+      cachedAst = parse(source, EMPTY_VARS_MAP, parseBudget);
+      if (jqAstCache.size < 64) jqAstCache.set(source, cachedAst);
+    } catch {
+      return undefined;
+    }
+  }
   const syncSink = typeof (context.stdout as { writeSync?: unknown }).writeSync === "function"
     ? (context.stdout as unknown as { writeSync(chunk: Uint8Array): boolean; writeRangeSync?(src: Uint8Array, len: number): boolean })
     : undefined;
@@ -149,8 +238,16 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
     budget.inputLocation.name = file;
     budget.inputLocation.line = 0;
     budget.inputLocation.complete = false;
-    const ok = tryProcessFlatJsonChunkSync(rawBytes, budget, sharedFastJqOnValue);
-    if (!ok || sharedFastJqAborted) return undefined;
+    const spPlan = getFastSelectProjectPlan(cachedAst);
+    const fastPos = spPlan
+      ? tryProcessFlatSelectProjectChunkSync(rawBytes, budget, spPlan.condKey, spPlan.outKeys, spPlan.srcKeys, outBuf, spPlan)
+      : -1;
+    if (fastPos >= 0) {
+      sharedFastJqOutPos = fastPos;
+    } else {
+      const ok = tryProcessFlatJsonChunkSync(rawBytes, budget, sharedFastJqOnValue);
+      if (!ok || sharedFastJqAborted) return undefined;
+    }
     (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
     const len = sharedFastJqOutPos;
     if (len > 0) {

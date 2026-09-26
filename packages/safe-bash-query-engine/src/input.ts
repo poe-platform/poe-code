@@ -647,6 +647,237 @@ export interface JsonInputOptions {
 let sharedFlatParser: JsonParser | undefined;
 let sharedFlatParserInUse = false;
 
+export interface FlatSchemaPlan {
+  readonly numFields: number;
+  readonly fieldHeaders: readonly Uint8Array[];
+  readonly condFieldIdx: number;
+  readonly projCount: number;
+  readonly projSrcIdx: Int32Array;
+  readonly projHeaders: readonly Uint8Array[];
+}
+
+const FIELD_VAL_START = new Int32Array(16);
+const FIELD_VAL_END = new Int32Array(16);
+const flatSchemaPlanCache = new Map<string, FlatSchemaPlan>();
+
+function getOrCreateFlatSchemaPlan(
+  rawChunk: Uint8Array,
+  firstLineEnd: number,
+  condKey: string | undefined,
+  outKeys: readonly string[],
+  srcKeys: readonly string[],
+): FlatSchemaPlan | undefined {
+  if (rawChunk[0] !== 123 || rawChunk[firstLineEnd - 1] !== 125) return undefined;
+  const rKeys: string[] = [];
+  let pos = 1;
+  while (pos < firstLineEnd - 1) {
+    if (rawChunk[pos] !== 34) return undefined;
+    pos++;
+    const kStart = pos;
+    while (pos < firstLineEnd - 1) {
+      const c = rawChunk[pos]!;
+      if (c === 34) break;
+      if (c < 32 || c >= 127 || c === 92) return undefined;
+      pos++;
+    }
+    if (pos >= firstLineEnd - 1) return undefined;
+    const key = Buffer.from(rawChunk.buffer, rawChunk.byteOffset + kStart, pos - kStart).toString("latin1");
+    if (rKeys.includes(key)) return undefined;
+    rKeys.push(key);
+    if (rKeys.length > 16) return undefined;
+    pos++;
+    if (rawChunk[pos] !== 58) return undefined;
+    pos++;
+    const vFirst = rawChunk[pos]!;
+    if (vFirst === 34) {
+      pos++;
+      while (pos < firstLineEnd - 1 && rawChunk[pos] !== 34) {
+        const c = rawChunk[pos]!;
+        if (c < 32 || c >= 127 || c === 92) return undefined;
+        pos++;
+      }
+      if (pos >= firstLineEnd - 1) return undefined;
+      pos++;
+    } else {
+      while (pos < firstLineEnd - 1 && rawChunk[pos] !== 44 && rawChunk[pos] !== 125) pos++;
+    }
+    const sep = rawChunk[pos]!;
+    if (sep === 44) {
+      pos++;
+      continue;
+    }
+    if (sep === 125 && pos === firstLineEnd - 1) break;
+    return undefined;
+  }
+  if (rKeys.length === 0) return undefined;
+  const cacheKey = rKeys.join("\0") + "|" + (condKey ?? "") + "|" + outKeys.join(",") + "|" + srcKeys.join(",");
+  let plan = flatSchemaPlanCache.get(cacheKey);
+  if (plan) return plan;
+  const fieldHeaders = rKeys.map((k, idx) => Buffer.from((idx === 0 ? "{\"" : ",\"") + k + "\":", "latin1"));
+  const condFieldIdx = condKey === undefined ? -1 : (rKeys.indexOf(condKey) >= 0 ? rKeys.indexOf(condKey) : -2);
+  const projCount = outKeys.length;
+  const projSrcIdx = new Int32Array(projCount);
+  const projHeaders: Uint8Array[] = new Array(projCount);
+  for (let p = 0; p < projCount; p++) {
+    projSrcIdx[p] = rKeys.indexOf(srcKeys[p]!);
+    projHeaders[p] = Buffer.from((p === 0 ? "{\"" : ",\"") + outKeys[p]! + "\":", "latin1");
+  }
+  plan = { numFields: rKeys.length, fieldHeaders, condFieldIdx, projCount, projSrcIdx, projHeaders };
+  if (flatSchemaPlanCache.size < 64) flatSchemaPlanCache.set(cacheKey, plan);
+  return plan;
+}
+
+const LINE_STEP_OUT = new Int32Array(3);
+
+function stepFlatSelectProjectLine(
+  rawChunk: Uint8Array,
+  pos: number,
+  len: number,
+  plan: FlatSchemaPlan,
+  outBuf: Uint8Array,
+  outPos: number,
+): boolean {
+  const lineStart = pos;
+  const { numFields, fieldHeaders, condFieldIdx, projCount, projSrcIdx, projHeaders } = plan;
+  for (let f = 0; f < numFields; f++) {
+    const hdr = fieldHeaders[f]!;
+    const hLen = hdr.length;
+    if (pos + hLen >= len) return false;
+    for (let hi = 0; hi < hLen; hi++) {
+      if (rawChunk[pos + hi] !== hdr[hi]) return false;
+    }
+    pos += hLen;
+    const vStart = pos;
+    const vFirst = rawChunk[pos]!;
+    if (vFirst === 34) {
+      pos++;
+      while (pos < len) {
+        const c = rawChunk[pos]!;
+        if (c === 34) break;
+        if (c < 32 || c >= 127 || c === 92) return false;
+        pos++;
+      }
+      if (pos >= len) return false;
+      pos++;
+    } else if (vFirst >= 48 && vFirst <= 57) {
+      pos++;
+      if (vFirst !== 48) {
+        while (pos < len) {
+          const c = rawChunk[pos]!;
+          if (c < 48 || c > 57) break;
+          pos++;
+        }
+        if (pos - vStart > 15) return false;
+      }
+    } else if (vFirst === 116) {
+      if (rawChunk[pos + 1] !== 114 || rawChunk[pos + 2] !== 117 || rawChunk[pos + 3] !== 101) return false;
+      pos += 4;
+    } else if (vFirst === 102) {
+      if (rawChunk[pos + 1] !== 97 || rawChunk[pos + 2] !== 108 || rawChunk[pos + 3] !== 115 || rawChunk[pos + 4] !== 101) return false;
+      pos += 5;
+    } else if (vFirst === 110) {
+      if (rawChunk[pos + 1] !== 117 || rawChunk[pos + 2] !== 108 || rawChunk[pos + 3] !== 108) return false;
+      pos += 4;
+    } else {
+      return false;
+    }
+    FIELD_VAL_START[f] = vStart;
+    FIELD_VAL_END[f] = pos;
+  }
+  if (rawChunk[pos] !== 125 || rawChunk[pos + 1] !== 10) return false;
+  if (pos - lineStart > 16384) return false;
+  pos += 2;
+
+  if (condFieldIdx >= 0) {
+    const cByte = rawChunk[FIELD_VAL_START[condFieldIdx]!]!;
+    if (cByte === 102 || cByte === 110) {
+      LINE_STEP_OUT[0] = pos;
+      LINE_STEP_OUT[1] = outPos;
+      LINE_STEP_OUT[2] = 0;
+      return true;
+    }
+  } else if (condFieldIdx === -2) {
+    LINE_STEP_OUT[0] = pos;
+    LINE_STEP_OUT[1] = outPos;
+    LINE_STEP_OUT[2] = 0;
+    return true;
+  }
+
+  const outCap = outBuf.length;
+  for (let p = 0; p < projCount; p++) {
+    const pHdr = projHeaders[p]!;
+    const pLen = pHdr.length;
+    if (outPos + pLen + 16 > outCap) return false;
+    for (let hi = 0; hi < pLen; hi++) outBuf[outPos++] = pHdr[hi]!;
+    const sIdx = projSrcIdx[p]!;
+    if (sIdx >= 0) {
+      const vs = FIELD_VAL_START[sIdx]!;
+      const ve = FIELD_VAL_END[sIdx]!;
+      if (outPos + (ve - vs) + 4 > outCap) return false;
+      for (let vi = vs; vi < ve; vi++) outBuf[outPos++] = rawChunk[vi]!;
+    } else {
+      outBuf[outPos++] = 110;
+      outBuf[outPos++] = 117;
+      outBuf[outPos++] = 108;
+      outBuf[outPos++] = 108;
+    }
+  }
+  outBuf[outPos++] = 125;
+  outBuf[outPos++] = 10;
+  LINE_STEP_OUT[0] = pos;
+  LINE_STEP_OUT[1] = outPos;
+  LINE_STEP_OUT[2] = 1;
+  return true;
+}
+
+export function tryProcessFlatSelectProjectChunkSync(
+  rawChunk: Uint8Array,
+  budget: Budget,
+  condKey: string | undefined,
+  outKeys: readonly string[],
+  srcKeys: readonly string[],
+  outBuf: Uint8Array,
+  planHolder?: { cachedSchemaPlan?: FlatSchemaPlan | undefined },
+): number {
+  if (sharedFlatParserInUse || budget.tickSync()) return -1;
+  const len = rawChunk.byteLength;
+  if (len === 0) return 0;
+  if (rawChunk[0] !== 123 || rawChunk[len - 1] !== 10) return -1;
+  const totalAfter = budget.inputBytes + len;
+  if (totalAfter > budget.maxInputBytesSmi && totalAfter > budget.limits.maxInputBytes) return -1;
+  let plan = planHolder?.cachedSchemaPlan;
+  if (!plan) {
+    const firstNl = rawChunk.indexOf(10, 0);
+    if (firstNl < 2 || firstNl > 16384) return -1;
+    plan = getOrCreateFlatSchemaPlan(rawChunk, firstNl, condKey, outKeys, srcKeys);
+    if (!plan) return -1;
+    if (planHolder) planHolder.cachedSchemaPlan = plan;
+  }
+
+  let pos = 0;
+  let outPos = 0;
+  let lineCount = 0;
+  let resultCount = 0;
+  while (pos < len) {
+    if (!stepFlatSelectProjectLine(rawChunk, pos, len, plan, outBuf, outPos)) return -1;
+    pos = LINE_STEP_OUT[0]!;
+    outPos = LINE_STEP_OUT[1]!;
+    resultCount += LINE_STEP_OUT[2]!;
+    lineCount++;
+  }
+
+  budget.step(lineCount * (plan.numFields * 3 + 6) + resultCount * (plan.projCount * 2 + 2));
+  if (budget.tickSync() || budget.needsYield()) return -1;
+  if (resultCount > budget.maxResultsSmi && resultCount > budget.limits.maxResults) return -1;
+  if (outPos > budget.maxOutputBytesSmi && outPos > budget.limits.maxOutputBytes) return -1;
+  budget.inputBytes = totalAfter;
+  budget.inputLocation.line = lineCount;
+  budget.inputLocation.complete = true;
+  budget.results = resultCount;
+  budget.outputBytes = outPos;
+  return outPos;
+}
+
 export function tryProcessFlatJsonChunkSync(
   rawChunk: Uint8Array,
   budget: Budget,

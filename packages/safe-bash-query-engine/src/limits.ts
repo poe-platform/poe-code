@@ -1,3 +1,4 @@
+const ONCE_ABORT_OPTIONS = Object.freeze({ once: true });
 import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { Decimal, isNumber, numberText } from "./numbers.js";
 
@@ -77,17 +78,19 @@ export class Budget {
     this.unlimitedValueCheck = limits.maxValueBytes === Infinity && limits.maxDepth === Infinity && limits.maxCollectionSize === Infinity;
     this.bindSignal(signal);
   }
+  private readonly onAbortBound = (): void => {
+    this.aborted = true;
+  };
   private bindSignal(signal: AbortSignal): void {
     this.aborted = Boolean(signal?.aborted);
     this.pollSignal = Boolean(
       signal &&
-        (typeof signal.addEventListener !== "function" ||
+        (!(signal instanceof AbortSignal) ||
+          typeof signal.addEventListener !== "function" ||
           Object.prototype.hasOwnProperty.call(signal, "aborted")),
     );
     if (signal && !this.aborted && !this.pollSignal) {
-      signal.addEventListener("abort", () => {
-        this.aborted = true;
-      }, { once: true });
+      signal.addEventListener("abort", this.onAbortBound, ONCE_ABORT_OPTIONS);
     }
   }
   resetForRun(signal: AbortSignal): void {
@@ -95,7 +98,6 @@ export class Budget {
     this.bindSignal(signal);
     this.steps = 0;
     this.lastYieldSteps = 0;
-    this.lastYield = monotonicNow();
     this.inputBytes = 0;
     this.outputBytes = 0;
     this.results = 0;

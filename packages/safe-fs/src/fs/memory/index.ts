@@ -3073,13 +3073,14 @@ function isStockMemoryMethods(mem: MemoryFileSystem, names: readonly string[], c
 
 export function tryReadMemoryFileViewSync(filesystem: FileSystem, path: string, maxBytes?: number, signal?: AbortSignal): Uint8Array | undefined {
   const mem = filesystem as MemoryFileSystem;
-  if (!ownedStores.has(mem) || !isStockMemoryMethods(mem, readFileFastMethodNames, false)) return undefined;
+  if (mem._owner === undefined || !isStockMemoryMethods(mem, readFileFastMethodNames, false)) return undefined;
   signal?.throwIfAborted();
   if (maxBytes !== undefined) (mem as unknown as { integer: (v: number, s: string, p: string) => void }).integer(maxBytes, "readFile", path);
   const node = (mem as unknown as { file: (p: string, s: string) => FileNode }).file(path, "readFile");
   (mem as unknown as { permission: (n: MemoryNode, m: number, s: string, p: string) => void }).permission(node, 4, "readFile", path);
   if (maxBytes !== undefined && node.data.byteLength > maxBytes) (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail("EFBIG", "readFile", path);
-  node.atimeMs = Date.now === defaultDateNow ? ((++fastWriteNowTick & 63) === 0 ? (fastWriteCachedNow = Date.now()) : fastWriteCachedNow) : Date.now();
+  if (Date.now !== defaultDateNow) node.atimeMs = Date.now();
+  else if ((++fastWriteNowTick & 63) === 0) node.atimeMs = fastWriteCachedNow = Date.now();
   return node.data;
 }
 

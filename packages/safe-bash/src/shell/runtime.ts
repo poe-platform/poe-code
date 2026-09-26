@@ -56,7 +56,7 @@ import { defaultMkdirExecutors, defaultRmExecutors } from "../commands/filesyste
 export const customRegisteredCommands = new WeakSet<object>();
 export const customRegisteredRegistries = new WeakSet<CommandRegistry>();
 import { defaultPredicateExecutors, tryFastPredicate } from "../commands/predicates.js";
-import { builtInDirectContextExecutors, pathOf, UsageError } from "../commands/internal.js";
+import { builtInDirectContextExecutors, pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO, UsageError } from "../commands/internal.js";
 import { cloneGetoptsState, createGetoptsInput, createGetoptsState, GetoptsError, getoptsInputAllocationSize, scanGetopts, withGetoptsIndex } from "./getopts.js";
 import type { GetoptsState } from "./getopts.js";
 import {
@@ -627,6 +627,16 @@ export class Budget {
       released = true;
       this._pipelineStages -= count;
     };
+  }
+
+  enterPipelineStages(count: number): void {
+    this.signal.throwIfAborted();
+    if (count > this.limits.maxPipelineStages - this._pipelineStages) this.fail("maxPipelineStages");
+    this._pipelineStages += count;
+  }
+
+  leavePipelineStages(count: number): void {
+    this._pipelineStages -= count;
   }
 
   loop(): void {
@@ -1723,24 +1733,24 @@ class FastShellCommandContext {
     this._state = state;
     this._io = io;
     this._scope = scope;
-    if (signalIsScoped) this._scopedSignal = runtime.signal;
+    this._scopedSignal = signalIsScoped ? runtime.signal : undefined;
     this.stdin = io.stdin;
     this.stdinIsDefault = io.stdinIsDefault;
     this.stdout = io.stdout;
-    if (!signalIsScoped) this._stderr = io.stderr;
-    if (io.descriptors !== undefined) this.descriptors = io.descriptors;
+    this._stderr = signalIsScoped ? undefined : io.stderr;
+    this.descriptors = io.descriptors;
     this.command = name;
     this.args = args;
     this._argumentValues = argumentValues;
-    if (env !== undefined) this._env = env;
+    this._env = env;
     this.cwd = state.cwd;
     this.signal = runtime.commandSignal;
-    if (runtime.budget.onInternalError !== undefined) this.onInternalError = runtime.budget.onInternalError;
-    if (io.argv0 !== undefined) this.argv0 = io.argv0;
+    this.onInternalError = runtime.budget.onInternalError;
+    this.argv0 = io.argv0;
     this.capabilities = io.capabilities;
-    if (io.processSignals !== undefined) this.processSignals = io.processSignals;
-    if (io.diagnosticLine !== undefined) this.diagnosticLine = io.diagnosticLine;
-    if (io.scriptName !== undefined) this.scriptName = io.scriptName;
+    this.processSignals = io.processSignals;
+    this.diagnosticLine = io.diagnosticLine;
+    this.scriptName = io.scriptName;
     if (directContext) {
       return;
     }
@@ -1783,6 +1793,27 @@ class FastShellCommandContext {
 
   registerScopeCleanup(cleanup: Parameters<NonNullable<CommandContext["registerCleanup"]>>[0]): () => void {
     return (this._self ?? this)._scope.register(cleanup);
+  }
+
+  registerScopeCleanupDirect(cleanup: Parameters<NonNullable<CommandContext["registerCleanup"]>>[0]): void {
+    (this._self ?? this)._scope.registerDirect(cleanup);
+  }
+
+  unregisterScopeCleanupDirect(cleanup: Parameters<NonNullable<CommandContext["registerCleanup"]>>[0]): void {
+    (this._self ?? this)._scope.unregisterDirect(cleanup);
+  }
+
+  get _fastMemoryBackingFs(): FileSystem | undefined {
+    const self = this._self ?? this;
+    return !self._contextFs && self._runtime._isMemoryBackingFs
+      ? (self._runtime as unknown as { backingFs: FileSystem }).backingFs
+      : undefined;
+  }
+
+  _chargeFastFsOp(): void {
+    const self = this._self ?? this;
+    self._getScopedSignal().throwIfAborted();
+    self._runtime.budget.fileSystemOperation();
   }
 
   get argumentValues(): CommandArguments | undefined {
@@ -1935,7 +1966,7 @@ Object.assign(FastShellCommandContext.prototype, {
 });
 
 const FAST_DIRECT_CONTEXT_COMMANDS = new Set([
-  "rm", "mkdir", "rg", "sed", "awk", "jq", "sort", "head", "tr", "grep", "cut", "wc",
+  "rm", "mkdir", "rg", "sed", "awk", "jq", "sort", "head", "tail", "tr", "grep", "cut", "wc", "cat", "uniq",
 ]);
 
 const fastShellCommandAccessors = ["fs", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues"].map(
@@ -4775,7 +4806,7 @@ export class Runtime {
     state: State,
     io: IO,
     ignored: boolean,
-  ): Promise<{ exitCode: number; terminated: boolean }> | undefined {
+  ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> | undefined {
     if (
       this.middleware.length > 0 ||
       io.terminal !== undefined ||
@@ -5014,20 +5045,21 @@ export class Runtime {
     return finalStatus === 0 ? SYNC_UNIT_ZERO : finalStatus === 1 ? SYNC_UNIT_ONE : { exitCode: finalStatus, terminated: false };
   }
 
-  private async executeFastPurePipelineUnit(
+  private executeFastPurePipelineUnit(
     pipeline: Pipeline,
     state: State,
     rawState: State,
     monitor: NonNullable<ReturnType<typeof stateMonitor>>,
     io: IO,
     ignored: boolean,
-  ): Promise<{ exitCode: number; terminated: boolean }> {
+  ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> {
     const n = pipeline.commands.length;
-    const release = this.budget.reservePipelineStages(n);
+    this.budget.enterPipelineStages(n);
     this.budget.commands += n;
+    const pipeOptions = { highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal };
     const pipes = new Array<ReturnType<typeof createBytePipe>>(n - 1);
     for (let i = 0; i < n - 1; i++) {
-      pipes[i] = createBytePipe({ highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal });
+      pipes[i] = createBytePipe(pipeOptions);
     }
     const controllers = new Array<ManagedControlController>(n);
     for (let i = 0; i < n; i++) {
@@ -5038,13 +5070,15 @@ export class Runtime {
     };
     addAbortSignalWaiter(this.signal, onParentAbort);
     const scope = io[invocationScope];
-    const unsealScope = scope.onSeal(() => {
+    const onScopeSeal = () => {
       const closedReason = new Error("Invocation is closed");
       for (let i = 0; i < n; i++) abortManagedController(controllers[i]!, closedReason);
-    });
-    let statuses: number[];
+      for (let i = 0; i < n - 1; i++) void pipes[i]!.abort(closedReason);
+    };
+    scope.addSealCallback(onScopeSeal);
+    const statuses = new Array<number>(n);
+    let asyncTasks: Promise<number>[] | undefined;
     try {
-      const tasks = new Array<Promise<number>>(n);
       for (let index = 0; index < n; index++) {
         const cmd = pipeline.commands[index]! as Extract<Command, { kind: "simple" }>;
         const firstName = cmd.words[0]!.plain!;
@@ -5063,11 +5097,15 @@ export class Runtime {
         const reading = incoming?.endpoints?.read;
         const writing = outgoing?.endpoints?.write;
         const stageSignal = controllers[index]!.signal;
-        const input = incoming
-          ? new ShellInput(reading?.readable ?? incoming.readable, this.budget, stageSignal, { provenance: "stream", poll: pollIncomingPipe, incoming } as unknown as ConstructorParameters<typeof ShellInput>[3], true)
-          : (io.stdinIsDefault && io.stdin instanceof ShellInput
-            ? io.stdin
-            : new ShellInput(io.stdin, this.budget, stageSignal, undefined, true));
+        let input: ByteSource;
+        if (incoming) {
+          (reading as unknown as { abortSignal?: AbortSignal }).abortSignal = stageSignal;
+          input = reading! as unknown as ByteSource;
+        } else if (io.stdinIsDefault) {
+          input = io.stdin;
+        } else {
+          input = new ShellInput(io.stdin, this.budget, stageSignal, undefined, true);
+        }
         const writable = writing?.writable ?? outgoing?.writable;
         const stageStdout = outgoing
           ? new BudgetedPipeStageSink(this.budget, writable!, stageSignal, undefined, index, controllers[index]!)
@@ -5079,61 +5117,192 @@ export class Runtime {
         context.signal = stageSignal;
         (context as unknown as { _scopedSignal: AbortSignal })._scopedSignal = stageSignal;
         if (index === 0) _lastPipelineAnchor = [context, stageStdout, input, outgoing];
-        tasks[index] = (async () => {
-          let exitCode = 0;
+        if (asyncTasks === undefined) {
           scope.enterWork();
           this.budget.beginPathLookupSuspension();
+          let syncExitCode = -1;
+          let pendingRes: Promise<CommandResult> | undefined;
+          let syncErr: unknown;
+          let hasSyncErr = false;
           try {
-            const res = await extDef.execute(context as unknown as ShellCommandContext);
-            stageSignal.throwIfAborted();
-            exitCode = validateExitCode(res.exitCode);
-          } catch (error) {
-            if (error instanceof PipelineClosed || (stageSignal.aborted && Object.is(stageSignal.reason, SHARED_PIPELINE_CLOSED))) {
-              exitCode = 141;
-            } else if (errorCode(error) === "EPIPE" && !this.signal.aborted) {
-              exitCode = 141;
+            const resPromise = extDef.execute(context as unknown as ShellCommandContext);
+            if (resPromise === RESOLVED_EXIT_ZERO) {
+              stageSignal.throwIfAborted();
+              syncExitCode = 0;
+            } else if (resPromise === RESOLVED_EXIT_ONE) {
+              stageSignal.throwIfAborted();
+              syncExitCode = 1;
             } else {
-              this.signal.throwIfAborted();
-              if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
-              const line = io.diagnosticCommandLines?.get(cmd) ?? (cmd.line ?? 1) + (io.diagnosticOffset ?? 0);
-              try {
-                await writeDiagnostic(context.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${message(error, this.budget.onInternalError)}\n`);
-              } catch (failure) {
-                this.signal.throwIfAborted();
-                publicDiagnosticMessage(failure, this.budget.onInternalError);
-              }
-              exitCode = error instanceof CommandFailure ? error.status : 1;
+              pendingRes = Promise.resolve(resPromise);
             }
-          } finally {
+          } catch (error) {
+            hasSyncErr = true;
+            syncErr = error;
+          }
+          if (syncExitCode >= 0) {
             this.budget.endPathLookupSuspension();
             scope.leaveWork();
-            if (input !== io.stdin) {
-              const closedInput = input.close();
-              if (!isSyncResolved(closedInput)) {
-                await closedInput.catch((error: unknown) => { if (!(error instanceof PipelineClosed)) throw error; });
-              }
+            let asyncCleanup: Promise<unknown> | undefined;
+            if (!incoming && input !== io.stdin) {
+              const closedInput = (input as ShellInput).close();
+              if (!isSyncResolved(closedInput)) asyncCleanup = closedInput;
             }
-            if (reading) {
+            if (!asyncCleanup && reading) {
               const closedRead = reading.close();
-              if (!isSyncResolved(closedRead)) await closedRead;
+              if (!isSyncResolved(closedRead)) asyncCleanup = closedRead;
             }
-            if (writing) {
+            if (!asyncCleanup && writing) {
               const closedWrite = writing.close();
-              if (!isSyncResolved(closedWrite)) await closedWrite;
+              if (!isSyncResolved(closedWrite)) asyncCleanup = closedWrite;
             }
-            if (outgoing && !writing) {
+            if (!asyncCleanup && outgoing && !writing) {
               const closedOut = outgoing.close();
-              if (!isSyncResolved(closedOut)) await closedOut.catch(() => undefined);
+              if (!isSyncResolved(closedOut)) asyncCleanup = closedOut;
             }
+            if (!asyncCleanup) {
+              statuses[index] = syncExitCode;
+              continue;
+            }
+            asyncTasks = new Array<Promise<number>>(n);
+            for (let prev = 0; prev < index; prev++) asyncTasks[prev] = Promise.resolve(statuses[prev]!);
+            asyncTasks[index] = asyncCleanup.then(() => syncExitCode);
+            continue;
           }
-          return exitCode;
-        })();
+          asyncTasks = new Array<Promise<number>>(n);
+          for (let prev = 0; prev < index; prev++) asyncTasks[prev] = Promise.resolve(statuses[prev]!);
+          asyncTasks[index] = this.finishFastPurePipelineStageAsync(
+            cmd, context, incoming, outgoing, reading, writing, input, stageSignal, scope, io, pendingRes, hasSyncErr, syncErr,
+          );
+          continue;
+        }
+        scope.enterWork();
+        this.budget.beginPathLookupSuspension();
+        asyncTasks[index] = this.finishFastPurePipelineStageAsync(
+          cmd, context, incoming, outgoing, reading, writing, input, stageSignal, scope, io, undefined, false, undefined, extDef,
+        );
       }
+      if (asyncTasks !== undefined) {
+        return this.finishFastPurePipelineUnitAsync(
+          asyncTasks, n, pipes, controllers, onParentAbort, onScopeSeal, scope, monitor, rawState, pipeline, state, io, ignored,
+        );
+      }
+    } catch (syncFatal) {
+      scope.removeSealCallback(onScopeSeal);
+      removeAbortSignalWaiter(this.signal, onParentAbort);
+      for (let i = 0; i < n; i++) abortManagedController(controllers[i]!, SHARED_PIPELINE_CLOSED);
+      for (let i = 0; i < n - 1; i++) void pipes[i]!.abort();
+      this.budget.leavePipelineStages(n);
+      throw syncFatal;
+    }
+    scope.removeSealCallback(onScopeSeal);
+    removeAbortSignalWaiter(this.signal, onParentAbort);
+    for (let i = 0; i < n; i++) {
+      abortManagedController(controllers[i]!, SHARED_PIPELINE_CLOSED);
+    }
+    for (let i = 0; i < n - 1; i++) {
+      void pipes[i]!.abort();
+    }
+    this.budget.leavePipelineStages(n);
+    const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+    monitor.lazyPipeStatus = statuses;
+    monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+    const rawStatus = rawState.pipefail ? statuses.findLast(s => s !== 0) ?? 0 : statuses[n - 1]!;
+    const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
+    rawState.status = finalStatus;
+    monitor.epoch = restEpoch;
+    if (rawStatus !== 0 && !pipeline.negate && !ignored && rawState.errexit) {
+      if (this.tryFinishShellSync(state)) return { exitCode: finalStatus, terminated: true };
+      return this.finishShell(state, io, finalStatus).then(exitCode => ({ exitCode, terminated: true }));
+    }
+    return finalStatus === 0 ? SYNC_UNIT_ZERO : finalStatus === 1 ? SYNC_UNIT_ONE : { exitCode: finalStatus, terminated: false };
+  }
+
+  private async finishFastPurePipelineStageAsync(
+    cmd: Extract<Command, { kind: "simple" }>,
+    context: FastShellCommandContext,
+    incoming: ReturnType<typeof createBytePipe> | undefined,
+    outgoing: ReturnType<typeof createBytePipe> | undefined,
+    reading: NonNullable<ReturnType<typeof createBytePipe>["endpoints"]>["read"] | undefined,
+    writing: NonNullable<ReturnType<typeof createBytePipe>["endpoints"]>["write"] | undefined,
+    input: ByteSource,
+    stageSignal: AbortSignal,
+    scope: InvocationScope,
+    io: IO,
+    pendingRes: Promise<CommandResult> | undefined,
+    hasSyncErr: boolean,
+    syncErr: unknown,
+    extDef?: CommandDefinition,
+  ): Promise<number> {
+    let exitCode = 0;
+    try {
+      if (hasSyncErr) throw syncErr;
+      const res = await (pendingRes ?? extDef!.execute(context as unknown as ShellCommandContext));
+      stageSignal.throwIfAborted();
+      exitCode = validateExitCode(res.exitCode);
+    } catch (error) {
+      if (error instanceof PipelineClosed || (stageSignal.aborted && Object.is(stageSignal.reason, SHARED_PIPELINE_CLOSED))) {
+        exitCode = 141;
+      } else if (errorCode(error) === "EPIPE" && !this.signal.aborted) {
+        exitCode = 141;
+      } else {
+        this.signal.throwIfAborted();
+        if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
+        const line = io.diagnosticCommandLines?.get(cmd) ?? (cmd.line ?? 1) + (io.diagnosticOffset ?? 0);
+        try {
+          await writeDiagnostic(context.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${message(error, this.budget.onInternalError)}\n`);
+        } catch (failure) {
+          this.signal.throwIfAborted();
+          publicDiagnosticMessage(failure, this.budget.onInternalError);
+        }
+        exitCode = error instanceof CommandFailure ? error.status : 1;
+      }
+    } finally {
+      this.budget.endPathLookupSuspension();
+      scope.leaveWork();
+      if (!incoming && input !== io.stdin) {
+        const closedInput = (input as ShellInput).close();
+        if (!isSyncResolved(closedInput)) {
+          await closedInput.catch((error: unknown) => { if (!(error instanceof PipelineClosed)) throw error; });
+        }
+      }
+      if (reading) {
+        const closedRead = reading.close();
+        if (!isSyncResolved(closedRead)) await closedRead;
+      }
+      if (writing) {
+        const closedWrite = writing.close();
+        if (!isSyncResolved(closedWrite)) await closedWrite;
+      }
+      if (outgoing && !writing) {
+        const closedOut = outgoing.close();
+        if (!isSyncResolved(closedOut)) await closedOut.catch(() => undefined);
+      }
+    }
+    return exitCode;
+  }
+
+  private async finishFastPurePipelineUnitAsync(
+    tasks: Promise<number>[],
+    n: number,
+    pipes: ReturnType<typeof createBytePipe>[],
+    controllers: ManagedControlController[],
+    onParentAbort: (reason: unknown) => void,
+    onScopeSeal: () => void,
+    scope: InvocationScope,
+    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
+    rawState: State,
+    pipeline: Pipeline,
+    state: State,
+    io: IO,
+    ignored: boolean,
+  ): Promise<{ exitCode: number; terminated: boolean }> {
+    let statuses: number[];
+    try {
       statuses = this.budget._hasExternalSignal
         ? await interruptible(Promise.all(tasks), this.signal)
         : await Promise.all(tasks);
     } finally {
-      unsealScope();
+      scope.removeSealCallback(onScopeSeal);
       removeAbortSignalWaiter(this.signal, onParentAbort);
       for (let i = 0; i < n; i++) {
         abortManagedController(controllers[i]!, SHARED_PIPELINE_CLOSED);
@@ -5142,7 +5311,7 @@ export class Runtime {
         const ab = pipes[i]!.abort();
         if (!isSyncResolved(ab)) await ab;
       }
-      release();
+      this.budget.leavePipelineStages(n);
     }
     const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
     monitor.lazyPipeStatus = statuses;
@@ -5179,8 +5348,37 @@ export class Runtime {
     ) {
       return undefined;
     }
+    if (command.kind === "simple") {
+      const wordsLen = command.words.length;
+      if (wordsLen === 0) return undefined;
+      const w0 = command.words[0]!;
+      const w0Plain = w0.plain;
+      if (command.redirects.length === 1) {
+        if (w0Plain !== "echo" && w0Plain !== "printf") return undefined;
+      } else if (wordsLen >= 2) {
+        if (
+          w0Plain !== "echo" &&
+          w0Plain !== "printf" &&
+          w0Plain !== "[" &&
+          w0Plain !== "test" &&
+          w0Plain !== "mkdir" &&
+          w0Plain !== "rm"
+        ) {
+          return undefined;
+        }
+      } else if (
+        w0Plain !== "echo" &&
+        w0Plain !== "printf" &&
+        w0Plain !== ":" &&
+        w0Plain !== "true" &&
+        w0Plain !== "false" &&
+        !(w0.parts[0]?.kind === "text" && w0.parts[0].value.includes("="))
+      ) {
+        return undefined;
+      }
+    }
     const scope = io[invocationScope];
-    if (scope.failures.length > 0) return undefined;
+    if (scope.hasFailures) return undefined;
     const monitor = stateMonitor(state) ?? stateMonitor(trackState(state, this.budget, scope));
     if (!monitor) return undefined;
     const rawState = monitor.raw;
@@ -7091,7 +7289,7 @@ export class Runtime {
         if (syncStatus !== undefined) continue;
         const fastUnit = this.tryFastSinglePipelineUnit(pipeline, state, io, Boolean(ignored));
         if (fastUnit !== undefined) {
-          const fastRes = await fastUnit;
+          const fastRes = fastUnit instanceof Promise ? await fastUnit : fastUnit;
           if (fastRes.terminated) return fastRes.exitCode;
           continue;
         }

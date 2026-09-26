@@ -16,6 +16,7 @@ export class InvocationScope {
   declare readonly parent: InvocationScope | undefined;
   declare private _children: Set<InvocationScope> | undefined;
   declare private _singleCallback: InvocationCleanup | undefined;
+  declare private _singleSealCallback: (() => void) | undefined;
   declare private _regCount: number;
   declare private _callbacks: Map<number, InvocationCleanup> | undefined;
   declare private _finalizers: (() => void | Promise<void>)[] | undefined;
@@ -113,6 +114,11 @@ export class InvocationScope {
   }
 
   private _notifyInlineFinalizers(): Promise<unknown> | undefined {
+    if (this._singleSealCallback) {
+      const cb = this._singleSealCallback;
+      this._singleSealCallback = undefined;
+      try { cb(); } catch (error) { this.failures.push(error); }
+    }
     if (this._owner) {
       const owner = this._owner;
       this._owner = undefined;
@@ -171,6 +177,32 @@ export class InvocationScope {
     };
   }
 
+  addSealCallback(callback: () => void): void {
+    if (this._closed) {
+      callback();
+      return;
+    }
+    if (!this._singleSealCallback && !this._finalizers) {
+      this._singleSealCallback = callback;
+      return;
+    }
+    const list = (this._finalizers ??= []);
+    if (this._singleSealCallback) {
+      list.push(this._singleSealCallback);
+      this._singleSealCallback = undefined;
+    }
+    list.push(callback);
+  }
+
+  removeSealCallback(callback: () => void): void {
+    if (this._singleSealCallback === callback) {
+      this._singleSealCallback = undefined;
+    } else if (this._finalizers) {
+      const idx = this._finalizers.indexOf(callback);
+      if (idx !== -1) this._finalizers.splice(idx, 1);
+    }
+  }
+
   assertOpen(): void {
     this.callerSignal?.throwIfAborted();
     if (this._closed) throw this._controller ? this._controller.signal.reason : invocationClosedError;
@@ -187,16 +219,49 @@ export class InvocationScope {
   register(cleanup: InvocationCleanup): () => void {
     this.assertOpen();
     if (typeof cleanup !== "function") throw new TypeError("Cleanup must be callable");
-    const id = this._regCount++;
-    if (id === 0) {
+    if (this._singleCallback === undefined && (this._callbacks === undefined || this._callbacks.size === 0)) {
       this._singleCallback = cleanup;
       return () => {
-        this._singleCallback = undefined;
+        if (this._singleCallback === cleanup) this._singleCallback = undefined;
       };
     }
+    const id = this._regCount++;
     const callbacks = this._callbacks ??= new Map();
+    if (this._singleCallback !== undefined) {
+      callbacks.set(this._regCount++, this._singleCallback);
+      this._singleCallback = undefined;
+    }
     callbacks.set(id, cleanup);
     return () => { callbacks.delete(id); };
+  }
+
+  registerDirect(cleanup: InvocationCleanup): void {
+    this.assertOpen();
+    if (this._singleCallback === undefined && (this._callbacks === undefined || this._callbacks.size === 0)) {
+      this._singleCallback = cleanup;
+      return;
+    }
+    const callbacks = this._callbacks ??= new Map();
+    if (this._singleCallback !== undefined) {
+      callbacks.set(this._regCount++, this._singleCallback);
+      this._singleCallback = undefined;
+    }
+    callbacks.set(this._regCount++, cleanup);
+  }
+
+  unregisterDirect(cleanup: InvocationCleanup): void {
+    if (this._singleCallback === cleanup) {
+      this._singleCallback = undefined;
+      return;
+    }
+    if (this._callbacks) {
+      for (const [k, v] of this._callbacks) {
+        if (v === cleanup) {
+          this._callbacks.delete(k);
+          return;
+        }
+      }
+    }
   }
 
   enterWork(): void {
@@ -413,6 +478,7 @@ Object.assign(InvocationScope.prototype, {
   parent: undefined,
   _children: undefined,
   _singleCallback: undefined,
+  _singleSealCallback: undefined,
   _regCount: 0,
   _callbacks: undefined,
   _finalizers: undefined,

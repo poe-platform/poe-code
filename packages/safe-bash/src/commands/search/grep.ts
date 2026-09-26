@@ -5,7 +5,7 @@ import { chargeRuntimeFileSystemOperation, getRuntimeBackingFileSystem } from ".
 import { EreLedger } from "../regex-execution/ere/limits.js";
 import { validateUtf8 } from "../regex-execution/utf8.js";
 import { FsError, type ByteSource, type CommandDefinition } from "../../contracts/index.js";
-import { bufferLimit as internalBufferLimit, diagnostic, encoder, input, integer, lines, options as parseOptions, output, pathOf, UsageError, value, type Line } from "../internal.js";
+import { bufferLimit as internalBufferLimit, diagnostic, encoder, input, integer, lines, options as parseOptions, output, pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO, UsageError, value, type Line } from "../internal.js";
 import { RecordBuffer } from "../record-buffer.js";
 import { RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
 import { inProcessRegexProviders, trustedInputRows, type GrepDescriptor } from "../regex-execution/protocol.js";
@@ -232,7 +232,118 @@ function hasNulOrNonAscii(buf: Uint8Array, start: number, end: number): boolean 
   return false;
 }
 
-async function tryFastGrepAscii(
+function tryFastGrepAscii(
+  context: Parameters<CommandDefinition["execute"]>[0],
+  limits: GrepLimits,
+  pat: string,
+  fileArg: string | undefined,
+  anchoredStart: boolean,
+): Promise<{ exitCode: number }> {
+  if (fileArg !== undefined && fileArg !== "-" && !sharedGrepOutInUse) {
+    const fastBacking = (context as { _fastMemoryBackingFs?: import("../../contracts/index.js").FileSystem })._fastMemoryBackingFs;
+    const path = pathOf(context, fileArg);
+    const backing = fastBacking ?? getRuntimeBackingFileSystem(context.fs) ?? context.fs;
+    if (
+      backing !== undefined &&
+      backing.capabilitiesFor === undefined &&
+      path !== "/dev" &&
+      !path.startsWith("/dev/") &&
+      (fastBacking !== undefined || (context.fs.capabilities.streamingRead !== false && context.fs.capabilities.read !== false)) &&
+      Object.getPrototypeOf(backing)?.constructor?.name === "MemoryFileSystem" &&
+      !Object.prototype.hasOwnProperty.call(backing, "readStream") &&
+      !Object.prototype.hasOwnProperty.call(backing, "readFile")
+    ) {
+      try {
+        assertCommandRequirements(context, grepRequirements, ["file"]);
+        if (fastBacking !== undefined) (context as unknown as { _chargeFastFsOp(): void })._chargeFastFsOp();
+        else chargeRuntimeFileSystemOperation(context.fs);
+        const maxFileBytes = Number.isFinite(limits.maxFileBytes) ? limits.maxFileBytes : undefined;
+        const raw = tryReadMemoryFileViewSync(backing, path, maxFileBytes, context.signal);
+        if (raw !== undefined && raw.length <= sharedGrepOutBuffer.length && !hasNulOrNonAscii(raw, 0, raw.length)) {
+          const literalStart = anchoredStart ? 1 : 0;
+          const litLen = pat.length - literalStart;
+          const firstByte = pat.charCodeAt(literalStart);
+          const lineLimit = Math.min(internalBufferLimit, limits.maxLineBytes ?? Infinity);
+          const outBuffer = sharedGrepOutBuffer;
+          let outUsed = 0;
+          let anySelected = false;
+          let linesScanned = 0;
+          let lineStart = 0;
+          let exceededLines = false;
+          while (lineStart < raw.length) {
+            context.signal.throwIfAborted();
+            if ((++linesScanned & 4095) === 0) {
+              exceededLines = true;
+              break;
+            }
+            let lineEnd = raw.indexOf(10, lineStart);
+            if (lineEnd < 0) lineEnd = raw.length;
+            const lineLen = lineEnd - lineStart;
+            if (lineLen > lineLimit) {
+              throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
+            }
+            const maxPos = lineEnd - litLen;
+            let matched = false;
+            if (anchoredStart) {
+              if (lineStart <= maxPos && raw[lineStart] === firstByte) {
+                let equal = true;
+                for (let offset = 1; equal && offset < litLen; offset++) {
+                  equal = raw[lineStart + offset] === pat.charCodeAt(literalStart + offset);
+                }
+                matched = equal;
+              }
+            } else {
+              let pos = lineStart;
+              while (pos <= maxPos) {
+                const index = raw.indexOf(firstByte, pos);
+                if (index < 0 || index > maxPos) break;
+                let equal = true;
+                for (let offset = 1; equal && offset < litLen; offset++) {
+                  equal = raw[index + offset] === pat.charCodeAt(literalStart + offset);
+                }
+                if (equal) { matched = true; break; }
+                pos = index + 1;
+              }
+            }
+            if (matched) {
+              anySelected = true;
+              for (let i = lineStart; i < lineEnd; i++) {
+                outBuffer[outUsed++] = raw[i]!;
+              }
+              outBuffer[outUsed++] = 10;
+            }
+            lineStart = lineEnd + 1;
+          }
+          if (!exceededLines) {
+            if (!outUsed) {
+              return anySelected ? RESOLVED_EXIT_ZERO : RESOLVED_EXIT_ONE;
+            }
+            const isPipeStage = Boolean((context.stdout as { isPipeStage?: boolean }).isPipeStage);
+            const syncSink = !isPipeStage
+              ? (context.stdout as { writeSync?: (chunk: Uint8Array) => boolean })
+              : undefined;
+            if (typeof syncSink?.writeSync === "function" && syncSink.writeSync(outBuffer.subarray(0, outUsed)) !== false) {
+              return anySelected ? RESOLVED_EXIT_ZERO : RESOLVED_EXIT_ONE;
+            }
+            const bytes = isPipeStage ? outBuffer.subarray(0, outUsed) : outBuffer.slice(0, outUsed);
+            const pending = output(context, bytes);
+            if (isSyncResolved(pending)) {
+              return anySelected ? RESOLVED_EXIT_ZERO : RESOLVED_EXIT_ONE;
+            }
+            return pending.then(() => ({ exitCode: anySelected ? 0 : 1 }));
+          }
+        }
+      } catch (error) {
+        context.signal.throwIfAborted();
+        if (error instanceof RegexExecutionError) return Promise.reject(error);
+        return diagnostic(context, error).then(() => ({ exitCode: 2 }));
+      }
+    }
+  }
+  return tryFastGrepAsciiAsync(context, limits, pat, fileArg, anchoredStart);
+}
+
+async function tryFastGrepAsciiAsync(
   context: Parameters<CommandDefinition["execute"]>[0],
   limits: GrepLimits,
   pat: string,

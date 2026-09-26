@@ -71,6 +71,8 @@ export interface BytePipeOptions {
 const defaultAbortController = AbortController;
 const defaultAbortControllerAbort = AbortController.prototype.abort;
 const maximumObservationWaiters = 64;
+const SYNC_DONE_RESULT: IteratorResult<Uint8Array> = { done: true, value: undefined };
+const RESOLVED_DONE_RESULT: Promise<IteratorResult<Uint8Array>> = Promise.resolve(SYNC_DONE_RESULT);
 
 function brokenPipe(): FsError {
   return new FsError("EPIPE", { syscall: "pipe" });
@@ -101,6 +103,7 @@ class PipeBorrowIterator implements AsyncIterableIterator<Uint8Array> {
   declare readonly endpoint: PipeReadEndpointImpl;
   declare pending: Set<ReadRequest> | undefined;
   declare done: boolean;
+  declare _syncResult: { done: false; value: Uint8Array } | undefined;
 
   constructor(pipe: BytePipeImpl, endpoint: PipeReadEndpointImpl) {
     this._pipe = pipe;
@@ -116,14 +119,14 @@ class PipeBorrowIterator implements AsyncIterableIterator<Uint8Array> {
     if (this.pending) {
       for (const request of this.pending) {
         this._pipe._removeRead(request);
-        request.resolve({ done: true, value: undefined });
+        request.resolve(SYNC_DONE_RESULT);
       }
     }
-    return { done: true, value: undefined };
+    return SYNC_DONE_RESULT;
   }
 
   tryNextSync(): IteratorResult<Uint8Array> | undefined {
-    if (this.done) return { done: true, value: undefined };
+    if (this.done) return SYNC_DONE_RESULT;
     const pipe = this._pipe;
     pipe._checkEndpoint(this.endpoint);
     if (!pipe.reads || pipe.reads.size === 0) {
@@ -131,13 +134,20 @@ class PipeBorrowIterator implements AsyncIterableIterator<Uint8Array> {
       if (chunk) {
         pipe._changed();
         if (pipe.writes && pipe.writes.size > 0) pipe._pump();
-        return { done: false, value: chunk };
+        let box = this._syncResult;
+        if (!box) {
+          box = { done: false, value: chunk };
+          this._syncResult = box;
+        } else {
+          box.value = chunk;
+        }
+        return box;
       }
       if (!pipe.writerReferences) {
         this.done = true;
         pipe.finished = true;
         pipe._cleanup();
-        return { done: true, value: undefined };
+        return SYNC_DONE_RESULT;
       }
     }
     return undefined;
@@ -148,7 +158,7 @@ class PipeBorrowIterator implements AsyncIterableIterator<Uint8Array> {
   }
 
   next(): Promise<IteratorResult<Uint8Array>> {
-    if (this.done) return Promise.resolve({ done: true, value: undefined });
+    if (this.done) return RESOLVED_DONE_RESULT;
     const pipe = this._pipe;
     try {
       pipe._checkEndpoint(this.endpoint);
@@ -167,7 +177,7 @@ class PipeBorrowIterator implements AsyncIterableIterator<Uint8Array> {
         this.done = true;
         pipe.finished = true;
         pipe._cleanup();
-        return Promise.resolve({ done: true, value: undefined });
+        return RESOLVED_DONE_RESULT;
       }
     }
     return new Promise((resolve, reject) => {
@@ -191,6 +201,7 @@ Object.defineProperty(PipeBorrowIterator.prototype, ownedByteChunks, { value: tr
 Object.assign(PipeBorrowIterator.prototype, {
   pending: undefined,
   done: false,
+  _syncResult: undefined,
 });
 
 class PipeReadEndpointImpl implements PipeReadEndpoint, ByteSource {
@@ -199,6 +210,7 @@ class PipeReadEndpointImpl implements PipeReadEndpoint, ByteSource {
   declare readonly writes: undefined;
   declare open: boolean;
   declare closing: Promise<void> | undefined;
+  declare abortSignal: AbortSignal | undefined;
 
   constructor(pipe: BytePipeImpl) {
     this._pipe = pipe;
@@ -236,6 +248,7 @@ Object.assign(PipeReadEndpointImpl.prototype, {
   writes: undefined,
   open: true,
   closing: undefined,
+  abortSignal: undefined,
 });
 
 class PipeWriteEndpointImpl implements PipeWriteEndpoint, ByteSink {
@@ -434,6 +447,9 @@ class BytePipeImpl implements BytePipe {
   _checkEndpoint(endpoint: PipeReadEndpointImpl | PipeWriteEndpointImpl): void {
     this._checkFailure();
     this.signal?.throwIfAborted();
+    if (endpoint.direction === "read" && (endpoint as PipeReadEndpointImpl).abortSignal !== undefined) {
+      (endpoint as PipeReadEndpointImpl).abortSignal!.throwIfAborted();
+    }
     if (!endpoint.open) throw new FsError("EBADF", { syscall: "pipe" });
   }
 

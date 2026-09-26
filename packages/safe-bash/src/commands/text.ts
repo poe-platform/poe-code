@@ -1,6 +1,6 @@
 import { PublicDiagnostic } from "../diagnostics.js";
 import { FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
-import { assertInputRequirements, bufferLimit, codeOf, concatenate, define, diagnostic, encoder, input, integer, lines, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
+import { assertInputRequirements, bufferLimit, codeOf, concatenate, define, diagnostic, encoder, input, integer, lines, options, output, pathOf, requireOperands, RESOLVED_EXIT_ZERO, UsageError, value } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { inputRequirements, textOutputRequirements } from "./portable-requirements.js";
 import { hasYieldCheckpoint, runYieldCheckpoint, yieldTurn } from "../contracts/yield.js";
@@ -1745,9 +1745,14 @@ async function executeCutGeneral(context: CommandContext): Promise<{ exitCode: n
       return { exitCode };
 }
 
+const syncResolved = Symbol.for("safe-bash.syncResolved");
+function isSyncResolved(promise: unknown): boolean {
+  return Boolean(promise && typeof promise === "object" && (promise as Record<symbol, unknown>)[syncResolved]);
+}
+
 export function textCommands(): CommandDefinition[] {
   return [
-    define("sort", async context => {
+    define("sort", context => {
       if (
         (context.args.length === 0 || (context.args.length === 1 && context.args[0] === "-r")) &&
         !hasYieldCheckpoint(context.signal) &&
@@ -1755,16 +1760,377 @@ export function textCommands(): CommandDefinition[] {
         Uint8Array === defaultUint8Array
       ) {
         const direction = context.args.length === 1 ? -1 : 1;
-        await assertInputRequirements(context, EMPTY_OPERANDS);
-        await admitTextOutput(context, undefined);
-        let firstChunk: Uint8Array | undefined;
-        let moreChunks: Uint8Array[] | undefined;
-        let totalChunkBytes = 0;
+        const req = assertInputRequirements(context, EMPTY_OPERANDS);
+        if (req) return executeSortFastAsync(context, direction, req);
+        assertCommandRequirements(context, textOutputRequirements, ["output"]);
         const srcIter = input(context, "-")[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
           tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
         };
+        if (typeof srcIter.tryNextSync === "function") {
+          let res1: IteratorResult<Uint8Array> | undefined;
+          try {
+            res1 = srcIter.tryNextSync();
+          } catch (error) {
+            return diagnostic(context, error).then(() => ({ exitCode: 2 }));
+          }
+          if (res1 !== undefined) {
+            if (res1.done) return RESOLVED_EXIT_ZERO;
+            const firstChunk = res1.value;
+            let res2: IteratorResult<Uint8Array> | undefined;
+            try {
+              res2 = srcIter.tryNextSync();
+            } catch (error) {
+              return diagnostic(context, error).then(() => ({ exitCode: 2 }));
+            }
+            if (
+              res2 !== undefined &&
+              res2.done &&
+              firstChunk.length > 0 &&
+              firstChunk.length <= 65536 &&
+              firstChunk[firstChunk.length - 1] === 10
+            ) {
+              let start = 0;
+              let count = 0;
+              let validLines = true;
+              while (start < firstChunk.length) {
+                const offset = firstChunk.indexOf(10, start);
+                if (offset < 0 || count >= 4096 || offset - start > bufferLimit) {
+                  validLines = false;
+                  break;
+                }
+                sharedSortStarts[count] = start;
+                sharedSortEnds[count] = offset;
+                sharedSortIndices[count] = count;
+                count++;
+                start = offset + 1;
+              }
+              if (validLines) {
+                context.signal.throwIfAborted();
+                let src = sharedSortIndices;
+                let dst = sharedSortScratchIndices;
+                for (let width = 1; width < count; width *= 2) {
+                  context.signal.throwIfAborted();
+                  for (let begin = 0; begin < count; begin += width * 2) {
+                    const middle = Math.min(begin + width, count);
+                    const end = Math.min(begin + width * 2, count);
+                    let left = begin;
+                    let right = middle;
+                    for (let index = begin; index < end; index++) {
+                      if (left < middle) {
+                        if (right === end) {
+                          dst[index] = src[left++]!;
+                          continue;
+                        }
+                        const a = src[left]!;
+                        const b = src[right]!;
+                        if (
+                          compareChunkSliceBytes(
+                            firstChunk,
+                            sharedSortStarts[a]!,
+                            sharedSortEnds[a]!,
+                            sharedSortStarts[b]!,
+                            sharedSortEnds[b]!,
+                          ) * direction <= 0
+                        ) {
+                          dst[index] = src[left++]!;
+                          continue;
+                        }
+                      }
+                      dst[index] = src[right++]!;
+                    }
+                  }
+                  const tmp = src;
+                  src = dst;
+                  dst = tmp;
+                }
+                const outBuf = sharedSortOutScratch.subarray(0, firstChunk.length);
+                let used = 0;
+                for (let i = 0; i < count; i++) {
+                  const idx = src[i]!;
+                  const s = sharedSortStarts[idx]!;
+                  const e = sharedSortEnds[idx]!;
+                  for (let p = s; p < e; p++) outBuf[used++] = firstChunk[p]!;
+                  outBuf[used++] = 10;
+                }
+                const syncSink = !(context.stdout as { isPipeStage?: boolean }).isPipeStage
+                  ? (context.stdout as { writeSync?: (chunk: Uint8Array) => boolean })
+                  : undefined;
+                if (typeof syncSink?.writeSync === "function" && syncSink.writeSync(outBuf) !== false) {
+                  return RESOLVED_EXIT_ZERO;
+                }
+                const p = output(context, outBuf);
+                if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
+                return p.then(() => ({ exitCode: 0 }));
+              }
+            }
+            return executeSortFastContinueAsync(context, direction, srcIter, firstChunk, res2);
+          }
+        }
+        return executeSortFastContinueAsync(context, direction, srcIter, undefined, undefined);
+      }
+      return executeSortGeneral(context);
+    }),
+    define("uniq", async context => {
+      // Optional long arguments are accepted only after '=', never as operands.
+      let ended = false;
+      let repeatedMethod = "none";
+      let groupMethod: string | undefined;
+      const args = context.args.map(argument => {
+        if (ended) return argument;
+        if (argument === "--") ended = true;
+        if (argument === "--all-repeated") return "--all-repeated=none";
+        if (argument === "--group") return "--group=separate";
+        return argument;
+      });
+      const parsed = options(args, "cduiDf:s:w:z", { count: "c", repeated: "d", unique: "u", "all-repeated": "all-repeated:", group: "group:", "ignore-case": "i", "skip-fields": "f", "skip-chars": "s", "check-chars": "w", "zero-terminated": "z" }, false, undefined, undefined, (option, method) => {
+        if (option === "D") repeatedMethod = "none";
+        else if (option === "all-repeated") {
+          if (!["none", "prepend", "separate"].includes(method!)) throw new UsageError(`invalid argument '${method}' for 'all-repeated'`);
+          repeatedMethod = method!;
+        } else if (option === "group") {
+          if (!["separate", "prepend", "append", "both"].includes(method!)) throw new UsageError(`invalid argument '${method}' for 'group'`);
+          groupMethod = method;
+        }
+      });
+      const allRepeated = parsed.flags.has("D") || parsed.flags.has("all-repeated");
+      if (allRepeated && parsed.flags.has("c")) throw new UsageError("printing all duplicated lines and repeat counts is meaningless");
+      if (groupMethod !== undefined && (allRepeated || ["c", "d", "u"].some(flag => parsed.flags.has(flag)))) throw new UsageError("--group is mutually exclusive with -c/-d/-D/-u");
+      requireOperands(parsed.operands, 0, 2);
+      await assertInputRequirements(context, parsed.operands.slice(0, 1));
+      await admitTextOutput(context, parsed.operands[1]);
+      if (parsed.operands[1] !== undefined && parsed.operands[0] !== "-") {
+        const source = pathOf(context, parsed.operands[0]!);
+        const destination = pathOf(context, parsed.operands[1]);
+        const sourceStat = await context.fs.stat(source, { signal: context.signal });
+        let destinationStat;
+        try { destinationStat = await context.fs.stat(destination, { signal: context.signal }); }
+        catch (error) { context.signal.throwIfAborted(); if (codeOf(error) !== "ENOENT") throw error; }
+        if (destinationStat) {
+          const samePath = await context.fs.realpath(source, { signal: context.signal }) === await context.fs.realpath(destination, { signal: context.signal });
+          const identity = samePath ? "same" : await compareObservedEntries(context.fs, source, sourceStat, context.fs, destination, destinationStat, { signal: context.signal });
+          if (identity === "same") throw new UsageError("input and output must be different files");
+          if (identity === "unknown") throw new FsError("ENOTSUP", { syscall: "uniq", path: source, dest: destination, message: "cannot determine whether input and output are distinct files" });
+        }
+      }
+      const skipFields = integer(value(parsed, "f") ?? "0");
+      const skipCharacters = integer(value(parsed, "s") ?? "0");
+      const width = value(parsed, "w") === undefined ? Infinity : integer(value(parsed, "w")!);
+      const delimiter = parsed.flags.has("z") ? 0 : 10;
+      const key = (bytes: Uint8Array) => {
+        let offset = 0;
+        for (let field = 0; field < skipFields; field++) {
+          while (offset < bytes.length && (bytes[offset] === 32 || bytes[offset] === 9)) offset++;
+          while (offset < bytes.length && bytes[offset] !== 32 && bytes[offset] !== 9) offset++;
+        }
+        offset += skipCharacters;
+        const result = bytes.subarray(offset, width === Infinity ? undefined : offset + width);
+        return parsed.flags.has("i") ? fold(result) : result;
+      };
+      const records = (async function* (): ByteSource {
+        let previous: Uint8Array | undefined;
+        let previousKey: Uint8Array | undefined;
+        let count = 0;
+        let emittedGroup = false;
+        const expanded = allRepeated || groupMethod !== undefined;
+        const method = groupMethod ?? repeatedMethod;
+        const selected = () => (!parsed.flags.has("d") || count > 1) && (!parsed.flags.has("u") || count === 1);
+        const record = () => concatenate([...(parsed.flags.has("c") ? [encoder.encode(`${String(count).padStart(7)} `)] : []), previous!, Uint8Array.of(delimiter)]);
+        for await (const line of lines(input(context, parsed.operands[0]), delimiter)) {
+          context.signal.throwIfAborted();
+          const currentKey = key(line.bytes);
+          if (previousKey && compareBytes(previousKey, currentKey) === 0) {
+            count++;
+            if (expanded && !parsed.flags.has("u")) {
+              if (allRepeated && count === 2) {
+                if (method === "prepend" || (method === "separate" && emittedGroup)) yield Uint8Array.of(delimiter);
+                yield record();
+                emittedGroup = true;
+              }
+              yield concatenate([line.bytes, Uint8Array.of(delimiter)]);
+            }
+          }
+          else {
+            if (!expanded && previous !== undefined && selected()) yield record();
+            previous = line.bytes; previousKey = currentKey; count = 1;
+            if (groupMethod !== undefined) {
+              if (method === "prepend" || method === "both" || emittedGroup) yield Uint8Array.of(delimiter);
+              yield record();
+              emittedGroup = true;
+            }
+          }
+        }
+        if (!expanded && previous !== undefined && selected()) yield record();
+        if (emittedGroup && (method === "append" || method === "both")) yield Uint8Array.of(delimiter);
+      })();
+      await emitRecords(context, records, parsed.operands[1]);
+      return { exitCode: 0 };
+    }),
+    define("cut", context => {
+      if (!hasYieldCheckpoint(context.signal)) {
+        const args = context.args;
+        let sepByte = 9;
+        let targetField = 0;
+        let operand: string | undefined;
+        let canFast = args.length >= 1 && args.length <= 5;
+        if (canFast) {
+          for (let i = 0; i < args.length; i++) {
+            const a = args[i]!;
+            if (a.length >= 2 && a.charCodeAt(0) === 45) {
+              const opt = a.charCodeAt(1);
+              if (opt === 100) {
+                const val = a.length > 2 ? a.slice(2) : args[++i];
+                if (val === undefined || val.length !== 1 || val.charCodeAt(0) >= 128) {
+                  canFast = false;
+                  break;
+                }
+                sepByte = val.charCodeAt(0);
+              } else if (opt === 102) {
+                const val = a.length > 2 ? a.slice(2) : args[++i];
+                if (!val || targetField > 0) {
+                  canFast = false;
+                  break;
+                }
+                let num = 0;
+                for (let j = 0; j < val.length; j++) {
+                  const c = val.charCodeAt(j) - 48;
+                  if (c < 0 || c > 9 || num > 100000) {
+                    num = 0;
+                    break;
+                  }
+                  num = num * 10 + c;
+                }
+                if (num < 1) {
+                  canFast = false;
+                  break;
+                }
+                targetField = num;
+              } else {
+                canFast = false;
+                break;
+              }
+            } else if (operand === undefined) {
+              operand = a;
+            } else {
+              canFast = false;
+              break;
+            }
+          }
+        }
+        if (canFast && targetField >= 1) {
+          const req = assertInputRequirements(context, operand !== undefined ? [operand] : EMPTY_OPERANDS);
+          if (!req && operand === undefined && !sharedCutOutInUse) {
+            const srcIter = input(context, "-")[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
+              tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
+            };
+            if (typeof srcIter.tryNextSync === "function") {
+              let res1: IteratorResult<Uint8Array> | undefined;
+              try {
+                res1 = srcIter.tryNextSync();
+              } catch (error) {
+                return diagnostic(context, error).then(() => ({ exitCode: 1 }));
+              }
+              if (res1 !== undefined) {
+                if (res1.done) return RESOLVED_EXIT_ZERO;
+                const chunk = res1.value;
+                let res2: IteratorResult<Uint8Array> | undefined;
+                try {
+                  res2 = srcIter.tryNextSync();
+                } catch (error) {
+                  return diagnostic(context, error).then(() => ({ exitCode: 1 }));
+                }
+                if (res2 !== undefined && res2.done && chunk.length <= sharedCutOutBuffer.length) {
+                  const outBuf = sharedCutOutBuffer;
+                  let outUsed = 0;
+                  let start = 0;
+                  while (start < chunk.length) {
+                    let offset = chunk.indexOf(10, start);
+                    const hasNewline = offset >= 0;
+                    if (!hasNewline) {
+                      if (chunk.length - start > bufferLimit) {
+                        return diagnostic(context, new FsError("EFBIG", { message: `record length exceeds ${bufferLimit} bytes` })).then(() => ({ exitCode: 1 }));
+                      }
+                      offset = chunk.length;
+                    }
+                    context.signal.throwIfAborted();
+                    let boundary = chunk.indexOf(sepByte, start);
+                    if (boundary >= offset) boundary = -1;
+                    let fStart = start;
+                    let fEnd = offset;
+                    if (boundary >= 0) {
+                      let f = 1;
+                      while (f < targetField && boundary >= 0) {
+                        fStart = boundary + 1;
+                        boundary = fStart <= offset ? chunk.indexOf(sepByte, fStart) : -1;
+                        if (boundary >= offset) boundary = -1;
+                        f++;
+                      }
+                      if (f < targetField) {
+                        fStart = offset;
+                        fEnd = offset;
+                      } else {
+                        fEnd = boundary < 0 ? offset : boundary;
+                      }
+                    }
+                    for (let index = fStart; index < fEnd; index++) outBuf[outUsed++] = chunk[index]!;
+                    outBuf[outUsed++] = 10;
+                    start = offset + 1;
+                  }
+                  if (outUsed === 0) return RESOLVED_EXIT_ZERO;
+                  const isPipeStage = Boolean((context.stdout as { isPipeStage?: boolean }).isPipeStage);
+                  const syncSink = !isPipeStage
+                    ? (context.stdout as { writeSync?: (chunk: Uint8Array) => boolean })
+                    : undefined;
+                  if (typeof syncSink?.writeSync === "function" && syncSink.writeSync(outBuf.subarray(0, outUsed)) !== false) {
+                    return RESOLVED_EXIT_ZERO;
+                  }
+                  const bytes = isPipeStage ? outBuf.subarray(0, outUsed) : outBuf.slice(0, outUsed);
+                  const p = output(context, bytes);
+                  if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
+                  return p.then(() => ({ exitCode: 0 }));
+                }
+                return executeCutFastAsync(context, operand, sepByte, targetField, req, srcIter, chunk, res2);
+              }
+              return executeCutFastAsync(context, operand, sepByte, targetField, req, srcIter, undefined, undefined);
+            }
+          }
+          return executeCutFastAsync(context, operand, sepByte, targetField, req, undefined, undefined, undefined);
+        }
+      }
+      return executeCutGeneral(context);
+    }),
+  ].map(command => ({ ...command, filesystemRequirements: command.name === "cut" ? inputRequirements : textOutputRequirements }));
+}
+
+async function executeSortFastAsync(
+  context: CommandContext,
+  direction: number,
+  req: Promise<void>,
+): Promise<{ exitCode: number }> {
+  await req;
+  await admitTextOutput(context, undefined);
+  const srcIter = input(context, "-")[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
+    tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
+  };
+  return executeSortFastContinueAsync(context, direction, srcIter, undefined, undefined);
+}
+
+async function executeSortFastContinueAsync(
+  context: CommandContext,
+  direction: number,
+  srcIter: AsyncIterator<Uint8Array> & { tryNextSync?: () => IteratorResult<Uint8Array> | undefined },
+  initialFirstChunk: Uint8Array | undefined,
+  initialSecondRes: IteratorResult<Uint8Array> | undefined,
+): Promise<{ exitCode: number }> {
+        let firstChunk: Uint8Array | undefined = initialFirstChunk && initialFirstChunk.length > 0 ? initialFirstChunk : undefined;
+        let moreChunks: Uint8Array[] | undefined;
+        let totalChunkBytes = firstChunk ? firstChunk.length : 0;
+        if (initialSecondRes && !initialSecondRes.done && initialSecondRes.value.length > 0) {
+          totalChunkBytes += initialSecondRes.value.length;
+          if (!firstChunk) firstChunk = initialSecondRes.value;
+          else moreChunks = [firstChunk, initialSecondRes.value];
+        }
         try {
-          while (true) {
+          while (!initialSecondRes?.done) {
             const syncRes = srcIter.tryNextSync?.();
             const res = syncRes !== undefined ? syncRes : await srcIter.next();
             if (res.done) break;
@@ -1871,162 +2237,25 @@ export function textCommands(): CommandDefinition[] {
           }
         }
         return executeSortGeneral(context, moreChunks ?? [firstChunk]);
-      }
-      return executeSortGeneral(context);
-    }),
-    define("uniq", async context => {
-      // Optional long arguments are accepted only after '=', never as operands.
-      let ended = false;
-      let repeatedMethod = "none";
-      let groupMethod: string | undefined;
-      const args = context.args.map(argument => {
-        if (ended) return argument;
-        if (argument === "--") ended = true;
-        if (argument === "--all-repeated") return "--all-repeated=none";
-        if (argument === "--group") return "--group=separate";
-        return argument;
-      });
-      const parsed = options(args, "cduiDf:s:w:z", { count: "c", repeated: "d", unique: "u", "all-repeated": "all-repeated:", group: "group:", "ignore-case": "i", "skip-fields": "f", "skip-chars": "s", "check-chars": "w", "zero-terminated": "z" }, false, undefined, undefined, (option, method) => {
-        if (option === "D") repeatedMethod = "none";
-        else if (option === "all-repeated") {
-          if (!["none", "prepend", "separate"].includes(method!)) throw new UsageError(`invalid argument '${method}' for 'all-repeated'`);
-          repeatedMethod = method!;
-        } else if (option === "group") {
-          if (!["separate", "prepend", "append", "both"].includes(method!)) throw new UsageError(`invalid argument '${method}' for 'group'`);
-          groupMethod = method;
-        }
-      });
-      const allRepeated = parsed.flags.has("D") || parsed.flags.has("all-repeated");
-      if (allRepeated && parsed.flags.has("c")) throw new UsageError("printing all duplicated lines and repeat counts is meaningless");
-      if (groupMethod !== undefined && (allRepeated || ["c", "d", "u"].some(flag => parsed.flags.has(flag)))) throw new UsageError("--group is mutually exclusive with -c/-d/-D/-u");
-      requireOperands(parsed.operands, 0, 2);
-      await assertInputRequirements(context, parsed.operands.slice(0, 1));
-      await admitTextOutput(context, parsed.operands[1]);
-      if (parsed.operands[1] !== undefined && parsed.operands[0] !== "-") {
-        const source = pathOf(context, parsed.operands[0]!);
-        const destination = pathOf(context, parsed.operands[1]);
-        const sourceStat = await context.fs.stat(source, { signal: context.signal });
-        let destinationStat;
-        try { destinationStat = await context.fs.stat(destination, { signal: context.signal }); }
-        catch (error) { context.signal.throwIfAborted(); if (codeOf(error) !== "ENOENT") throw error; }
-        if (destinationStat) {
-          const samePath = await context.fs.realpath(source, { signal: context.signal }) === await context.fs.realpath(destination, { signal: context.signal });
-          const identity = samePath ? "same" : await compareObservedEntries(context.fs, source, sourceStat, context.fs, destination, destinationStat, { signal: context.signal });
-          if (identity === "same") throw new UsageError("input and output must be different files");
-          if (identity === "unknown") throw new FsError("ENOTSUP", { syscall: "uniq", path: source, dest: destination, message: "cannot determine whether input and output are distinct files" });
-        }
-      }
-      const skipFields = integer(value(parsed, "f") ?? "0");
-      const skipCharacters = integer(value(parsed, "s") ?? "0");
-      const width = value(parsed, "w") === undefined ? Infinity : integer(value(parsed, "w")!);
-      const delimiter = parsed.flags.has("z") ? 0 : 10;
-      const key = (bytes: Uint8Array) => {
-        let offset = 0;
-        for (let field = 0; field < skipFields; field++) {
-          while (offset < bytes.length && (bytes[offset] === 32 || bytes[offset] === 9)) offset++;
-          while (offset < bytes.length && bytes[offset] !== 32 && bytes[offset] !== 9) offset++;
-        }
-        offset += skipCharacters;
-        const result = bytes.subarray(offset, width === Infinity ? undefined : offset + width);
-        return parsed.flags.has("i") ? fold(result) : result;
-      };
-      const records = (async function* (): ByteSource {
-        let previous: Uint8Array | undefined;
-        let previousKey: Uint8Array | undefined;
-        let count = 0;
-        let emittedGroup = false;
-        const expanded = allRepeated || groupMethod !== undefined;
-        const method = groupMethod ?? repeatedMethod;
-        const selected = () => (!parsed.flags.has("d") || count > 1) && (!parsed.flags.has("u") || count === 1);
-        const record = () => concatenate([...(parsed.flags.has("c") ? [encoder.encode(`${String(count).padStart(7)} `)] : []), previous!, Uint8Array.of(delimiter)]);
-        for await (const line of lines(input(context, parsed.operands[0]), delimiter)) {
-          context.signal.throwIfAborted();
-          const currentKey = key(line.bytes);
-          if (previousKey && compareBytes(previousKey, currentKey) === 0) {
-            count++;
-            if (expanded && !parsed.flags.has("u")) {
-              if (allRepeated && count === 2) {
-                if (method === "prepend" || (method === "separate" && emittedGroup)) yield Uint8Array.of(delimiter);
-                yield record();
-                emittedGroup = true;
-              }
-              yield concatenate([line.bytes, Uint8Array.of(delimiter)]);
-            }
-          }
-          else {
-            if (!expanded && previous !== undefined && selected()) yield record();
-            previous = line.bytes; previousKey = currentKey; count = 1;
-            if (groupMethod !== undefined) {
-              if (method === "prepend" || method === "both" || emittedGroup) yield Uint8Array.of(delimiter);
-              yield record();
-              emittedGroup = true;
-            }
-          }
-        }
-        if (!expanded && previous !== undefined && selected()) yield record();
-        if (emittedGroup && (method === "append" || method === "both")) yield Uint8Array.of(delimiter);
-      })();
-      await emitRecords(context, records, parsed.operands[1]);
-      return { exitCode: 0 };
-    }),
-    define("cut", async context => {
-      if (!hasYieldCheckpoint(context.signal)) {
-        const args = context.args;
-        let sepByte = 9;
-        let targetField = 0;
-        let operand: string | undefined;
-        let canFast = args.length >= 1 && args.length <= 5;
-        if (canFast) {
-          for (let i = 0; i < args.length; i++) {
-            const a = args[i]!;
-            if (a.length >= 2 && a.charCodeAt(0) === 45) {
-              const opt = a.charCodeAt(1);
-              if (opt === 100) {
-                const val = a.length > 2 ? a.slice(2) : args[++i];
-                if (val === undefined || val.length !== 1 || val.charCodeAt(0) >= 128) {
-                  canFast = false;
-                  break;
-                }
-                sepByte = val.charCodeAt(0);
-              } else if (opt === 102) {
-                const val = a.length > 2 ? a.slice(2) : args[++i];
-                if (!val || targetField > 0) {
-                  canFast = false;
-                  break;
-                }
-                let num = 0;
-                for (let j = 0; j < val.length; j++) {
-                  const c = val.charCodeAt(j) - 48;
-                  if (c < 0 || c > 9 || num > 100000) {
-                    num = 0;
-                    break;
-                  }
-                  num = num * 10 + c;
-                }
-                if (num < 1) {
-                  canFast = false;
-                  break;
-                }
-                targetField = num;
-              } else {
-                canFast = false;
-                break;
-              }
-            } else if (operand === undefined) {
-              operand = a;
-            } else {
-              canFast = false;
-              break;
-            }
-          }
-        }
-        if (canFast && targetField >= 1) {
-          await assertInputRequirements(context, operand !== undefined ? [operand] : EMPTY_OPERANDS);
+}
+
+async function executeCutFastAsync(
+  context: CommandContext,
+  operand: string | undefined,
+  sepByte: number,
+  targetField: number,
+  req: void | Promise<void> | undefined,
+  existingIter: (AsyncIterator<Uint8Array> & { tryNextSync?: () => IteratorResult<Uint8Array> | undefined }) | undefined,
+  initialFirstChunk: Uint8Array | undefined,
+  initialSecondRes: IteratorResult<Uint8Array> | undefined,
+): Promise<{ exitCode: number }> {
+          if (req) await req;
           const ownsShared = !sharedCutOutInUse;
           if (ownsShared) sharedCutOutInUse = true;
           const outBuf = ownsShared ? sharedCutOutBuffer : new Uint8Array(65536);
           let outUsed = 0;
-          const syncSink = !(context.stdout as { isPipeStage?: boolean }).isPipeStage
+          const isPipeStage = Boolean((context.stdout as { isPipeStage?: boolean }).isPipeStage);
+          const syncSink = !isPipeStage
             ? (context.stdout as { writeSync?: (chunk: Uint8Array) => boolean })
             : undefined;
           const canWriteSync = typeof syncSink?.writeSync === "function";
@@ -2038,9 +2267,10 @@ export function textCommands(): CommandDefinition[] {
               context.signal.throwIfAborted();
               return;
             }
-            const bytes = outBuf.slice(0, outUsed);
+            const bytes = isPipeStage ? outBuf.subarray(0, outUsed) : outBuf.slice(0, outUsed);
             outUsed = 0;
-            return output(context, bytes);
+            const p = output(context, bytes);
+            return isSyncResolved(p) ? undefined : p;
           };
           const writeFieldSlow = async (chunk: Uint8Array, start: number, end: number): Promise<void> => {
             if (outUsed === outBuf.length) {
@@ -2066,12 +2296,23 @@ export function textCommands(): CommandDefinition[] {
           };
           let leftover: Uint8Array | undefined;
           try {
-            const srcIter = input(context, operand ?? "-")[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
+            const srcIter = existingIter ?? (input(context, operand ?? "-")[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
               tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
-            };
+            });
+            let stepIndex = 0;
             while (true) {
-              const syncRes = srcIter.tryNextSync?.();
-              const res = syncRes !== undefined ? syncRes : await srcIter.next();
+              let res: IteratorResult<Uint8Array>;
+              if (stepIndex === 0 && initialFirstChunk !== undefined) {
+                stepIndex = 1;
+                res = { done: false, value: initialFirstChunk };
+              } else if (stepIndex === 1 && initialSecondRes !== undefined) {
+                stepIndex = 2;
+                res = initialSecondRes;
+              } else {
+                stepIndex = 2;
+                const syncRes = srcIter.tryNextSync?.();
+                res = syncRes !== undefined ? syncRes : await srcIter.next();
+              }
               if (res.done) break;
               let chunk = res.value;
               if (chunk.length === 0) continue;
@@ -2149,9 +2390,4 @@ export function textCommands(): CommandDefinition[] {
           } finally {
             if (ownsShared) sharedCutOutInUse = false;
           }
-        }
-      }
-      return executeCutGeneral(context);
-    }),
-  ].map(command => ({ ...command, filesystemRequirements: command.name === "cut" ? inputRequirements : textOutputRequirements }));
 }

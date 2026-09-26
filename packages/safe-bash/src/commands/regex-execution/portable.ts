@@ -6,7 +6,11 @@ import { inProcessRegexProviders, inProcessRegexWorkers, inputBytes, policy, Reg
 export type { RegexExecutionOptions } from "./protocol.js";
 export { RegexExecutionError } from "./protocol.js";
 
-const resolvedVoid: Promise<void> = Object.defineProperty(Promise.resolve(), Symbol.for("safe-bash.syncResolved"), { value: true });
+const syncResolved = Symbol.for("safe-bash.syncResolved");
+const resolvedVoid: Promise<void> = Object.defineProperty(Promise.resolve(), syncResolved, { value: true });
+function isSyncResolved(promise: unknown): boolean {
+  return promise === resolvedVoid || Boolean(promise && typeof promise === "object" && (promise as Record<symbol, unknown>)[syncResolved]);
+}
 const closedSessionError = new RegexExecutionError("CLOSED", "invocation is closed");
 const idleProviderSlots = new WeakMap<object, Set<() => void>>();
 
@@ -29,7 +33,88 @@ async function awaitRetirements(retirements: Iterable<Promise<void>>): Promise<v
   if (failures.length > 1) throw new AggregateError(failures, "regex retirement failed");
 }
 
-export async function withRegexSession(
+async function finishWithRegexSessionDirect(
+  context: CommandContext,
+  session: RegexSession,
+  pending: Promise<CommandResult>,
+): Promise<CommandResult> {
+  let result: CommandResult | undefined;
+  let hasError = false;
+  let caughtError: unknown;
+  try {
+    result = await pending;
+  } catch (error) {
+    hasError = true;
+    caughtError = error;
+  }
+  let hasCleanupFailure = false;
+  let cleanupError: unknown;
+  const boundClose = session.boundClose;
+  try {
+    if (!session.closed && session.canCloseSync()) {
+      session.closeSync();
+      (context as unknown as { unregisterScopeCleanupDirect(cleanup: () => Promise<void>): void }).unregisterScopeCleanupDirect(boundClose);
+    } else {
+      await session.close();
+    }
+  } catch (error) {
+    hasCleanupFailure = true;
+    cleanupError = error;
+  }
+  context.signal.throwIfAborted();
+  if (hasError) throw caughtError;
+  if (hasCleanupFailure) throw cleanupError;
+  return result!;
+}
+
+export function withRegexSession(
+  context: CommandContext,
+  executor: RegexExecutor,
+  execute: (session: RegexSession) => CommandResult | Promise<CommandResult>,
+): Promise<CommandResult> {
+  const directRegister = (context as {
+    registerScopeCleanupDirect?: (cleanup: () => Promise<void>) => void;
+    unregisterScopeCleanupDirect?: (cleanup: () => Promise<void>) => void;
+  }).registerScopeCleanupDirect;
+  if (directRegister) {
+    let session: RegexSession | undefined;
+    try {
+      context.signal.throwIfAborted();
+      session = executor.open(context.signal);
+      directRegister.call(context, session.boundClose);
+      if (session.closed) throw new RegexExecutionError("CLOSED", "invocation is closed");
+      const res = execute(session);
+      if (isSyncResolved(res) || !(res instanceof Promise)) {
+        if (!session.closed && session.canCloseSync()) {
+          const boundClose = session.boundClose;
+          session.closeSync();
+          (context as unknown as { unregisterScopeCleanupDirect(cleanup: () => Promise<void>): void }).unregisterScopeCleanupDirect(boundClose);
+          context.signal.throwIfAborted();
+          return isSyncResolved(res) ? (res as Promise<CommandResult>) : Promise.resolve(res);
+        }
+      }
+      return finishWithRegexSessionDirect(context, session, Promise.resolve(res));
+    } catch (error) {
+      if (session) {
+        const boundClose = session.boundClose;
+        if (!session.closed && session.canCloseSync()) {
+          session.closeSync();
+          (context as unknown as { unregisterScopeCleanupDirect(cleanup: () => Promise<void>): void }).unregisterScopeCleanupDirect(boundClose);
+        } else {
+          return session.close().then(
+            () => { context.signal.throwIfAborted(); throw error; },
+            cleanupErr => { context.signal.throwIfAborted(); throw error ?? cleanupErr; },
+          );
+        }
+      }
+      context.signal.throwIfAborted();
+      return Promise.reject(error);
+    }
+  }
+  return withRegexSessionSlow(context, executor, execute);
+}
+
+async function withRegexSessionSlow(
   context: CommandContext,
   executor: RegexExecutor,
   execute: (session: RegexSession) => CommandResult | Promise<CommandResult>,
@@ -278,6 +363,7 @@ export class RegexExecutor {
   private sessions = 0;
   private sequence = 0;
   private disposed = false;
+  _pooledSession: RegexSession | undefined;
   constructor(readonly provider: BoundedRegexProvider, options: RegexExecutionOptions = {}) {
     if (!provider || typeof provider.createWorker !== "function") throw new TypeError("a bounded regex provider is required");
     this.options = policy(options);
@@ -289,6 +375,12 @@ export class RegexExecutor {
       idleProviderSlots.get(this.provider)?.delete(this.idleEvictor);
     }
     this.sessions++;
+    const pooled = this._pooledSession;
+    if (pooled) {
+      this._pooledSession = undefined;
+      pooled._reset(signal, onUse);
+      return pooled;
+    }
     return new RegexSession(this, signal, onUse);
   }
   canCloseSync(): boolean {
@@ -554,18 +646,25 @@ export class RegexExecutor {
 
 export class RegexSession {
   declare readonly executor: RegexExecutor;
-  declare readonly signal: AbortSignal;
+  declare signal: AbortSignal;
   declare private onUse: (() => void) | undefined;
-  declare private closed: Promise<void> | undefined;
+  declare closed: Promise<void> | undefined;
   declare private pending: Set<Promise<Match[][] | ExprMatchResult | BreSearchResult>> | undefined;
   declare private retirements: Set<Promise<void>> | undefined;
   declare private controller: AbortController | undefined;
   declare private requestSignal: AbortSignal;
+  readonly boundClose = (): Promise<void> => this.close();
   constructor(executor: RegexExecutor, signal: AbortSignal, onUse?: () => void) {
     this.executor = executor;
     this.signal = signal;
     this.requestSignal = signal;
     if (onUse !== undefined) this.onUse = onUse;
+  }
+  _reset(signal: AbortSignal, onUse?: () => void): void {
+    this.signal = signal;
+    this.requestSignal = signal;
+    this.onUse = onUse;
+    this.closed = undefined;
   }
   _ensureAsyncState(): AbortSignal {
     if (!this.controller) {
@@ -624,6 +723,10 @@ export class RegexSession {
       this.closed = resolvedVoid;
       this.controller?.abort(this.signal.aborted ? this.signal.reason : closedSessionError);
       this.executor.closeSync();
+      if (!this.pending && !this.retirements && !this.controller && !this.executor._pooledSession) {
+        this.onUse = undefined;
+        this.executor._pooledSession = this;
+      }
     }
   }
   close(): Promise<void> {

@@ -9,7 +9,7 @@ import { RecordBuffer } from "./record-buffer.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import {
   assertInputRequirements, bufferLimit, concatenate, define, diagnostic, encoder, input,
-  lines, options, output, pathOf, UsageError, value,
+  lines, options, output, pathOf, RESOLVED_EXIT_ZERO, UsageError, value,
 } from "./internal.js";
 
 const syncResolved = Symbol.for("safe-bash.syncResolved");
@@ -106,6 +106,132 @@ async function* combinedInput(context: CommandContext, names: readonly string[],
   for (const name of names.length ? names : ["-"]) {
     try { yield* input(context, name); }
     catch (error) { await diagnostic(context, error); state.exitCode = 1; }
+  }
+}
+
+function prefixSyncOrAsync(context: CommandContext, source: ByteSource, count: number, bytes: boolean, skip: boolean, delimiter: number): Promise<void> | undefined {
+  let remaining = count;
+  if (!remaining && !skip) return undefined;
+  const iter = source[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
+    tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
+    syncReturn?: () => void;
+  };
+  if (typeof iter.tryNextSync === "function") {
+    const syncSink = !(context.stdout as { isPipeStage?: boolean }).isPipeStage
+      ? (context.stdout as { writeSync?: (chunk: Uint8Array) => boolean })
+      : undefined;
+    const canWriteSync = typeof syncSink?.writeSync === "function";
+    let done = false;
+    try {
+      while (true) {
+        const step = iter.tryNextSync();
+        if (step === undefined) {
+          return prefixContinueAsync(context, iter, remaining, bytes, skip, delimiter, canWriteSync, syncSink);
+        }
+        if (step.done) { done = true; return undefined; }
+        const chunk = step.value;
+        context.signal.throwIfAborted();
+        let offset = 0;
+        if (remaining) {
+          if (bytes) { offset = Math.min(chunk.length, remaining); remaining -= offset; }
+          else {
+            for (; offset < chunk.length && remaining; offset++) if (chunk[offset] === delimiter) remaining--;
+          }
+        }
+        if (skip) {
+          if (!remaining && offset < chunk.length) {
+            const slice = chunk.subarray(offset);
+            if (!canWriteSync || syncSink!.writeSync!(slice) === false) {
+              const p = output(context, slice);
+              if (!isSyncResolved(p)) {
+                return p.then(() => prefixContinueAsync(context, iter, remaining, bytes, skip, delimiter, canWriteSync, syncSink));
+              }
+            }
+          }
+        } else {
+          if (offset) {
+            const slice = chunk.subarray(0, offset);
+            if (!canWriteSync || syncSink!.writeSync!(slice) === false) {
+              const p = output(context, slice);
+              if (!isSyncResolved(p)) {
+                if (!remaining) {
+                  done = true;
+                  return p.finally(() => {
+                    if (typeof iter.syncReturn === "function") iter.syncReturn();
+                    else return iter.return?.();
+                  });
+                }
+                return p.then(() => prefixContinueAsync(context, iter, remaining, bytes, skip, delimiter, canWriteSync, syncSink));
+              }
+            }
+          }
+          if (!remaining) {
+            done = true;
+            if (typeof iter.syncReturn === "function") {
+              iter.syncReturn();
+              return undefined;
+            }
+            return iter.return ? iter.return().then(() => undefined) : undefined;
+          }
+        }
+      }
+    } catch (err) {
+      if (!done && typeof iter.syncReturn === "function") iter.syncReturn();
+      throw err;
+    }
+  }
+  return prefix(context, source, count, bytes, skip, delimiter);
+}
+
+async function prefixContinueAsync(
+  context: CommandContext,
+  iter: AsyncIterator<Uint8Array> & { tryNextSync?: () => IteratorResult<Uint8Array> | undefined; syncReturn?: () => void },
+  remaining: number,
+  bytes: boolean,
+  skip: boolean,
+  delimiter: number,
+  canWriteSync: boolean,
+  syncSink: { writeSync?: (chunk: Uint8Array) => boolean } | undefined,
+): Promise<void> {
+  let done = false;
+  try {
+    while (true) {
+      let step = iter.tryNextSync!();
+      if (step === undefined) step = await iter.next();
+      if (step.done) { done = true; break; }
+      const chunk = step.value;
+      context.signal.throwIfAborted();
+      let offset = 0;
+      if (remaining) {
+        if (bytes) { offset = Math.min(chunk.length, remaining); remaining -= offset; }
+        else {
+          for (; offset < chunk.length && remaining; offset++) if (chunk[offset] === delimiter) remaining--;
+        }
+      }
+      if (skip) {
+        if (!remaining && offset < chunk.length) {
+          const slice = chunk.subarray(offset);
+          if (!canWriteSync || syncSink!.writeSync!(slice) === false) {
+            const p = output(context, slice);
+            if (!isSyncResolved(p)) await p;
+          }
+        }
+      } else {
+        if (offset) {
+          const slice = chunk.subarray(0, offset);
+          if (!canWriteSync || syncSink!.writeSync!(slice) === false) {
+            const p = output(context, slice);
+            if (!isSyncResolved(p)) await p;
+          }
+        }
+        if (!remaining) return;
+      }
+    }
+  } finally {
+    if (!done) {
+      if (typeof iter.syncReturn === "function") iter.syncReturn();
+      else await iter.return?.();
+    }
   }
 }
 
@@ -391,7 +517,7 @@ async function executeHeadTailSlow(
 }
 
 function headTail(name: "head" | "tail", maxTailFollowHandles = 64): CommandDefinition {
-  return define(name, async context => {
+  return define(name, context => {
     if (name === "head") {
       const a = context.args;
       let fastCount = -1;
@@ -419,11 +545,14 @@ function headTail(name: "head" | "tail", maxTailFollowHandles = 64): CommandDefi
       if (fastCount >= 0) {
         assertCommandRequirements(context, inspectedInputRequirements, STDIN_REQUIREMENT_MODES);
         try {
-          await prefix(context, input(context, "-"), fastCount, false, false, 10);
-          return { exitCode: 0 };
+          const p = prefixSyncOrAsync(context, input(context, "-"), fastCount, false, false, 10);
+          if (p === undefined) return RESOLVED_EXIT_ZERO;
+          return p.then(
+            () => ({ exitCode: 0 }),
+            async error => { await diagnostic(context, error); return { exitCode: 1 }; },
+          );
         } catch (error) {
-          await diagnostic(context, error);
-          return { exitCode: 1 };
+          return diagnostic(context, error).then(() => ({ exitCode: 1 }));
         }
       }
     }
@@ -890,7 +1019,7 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
         await Promise.allSettled([...targets].map(target => target.abort(context.signal.aborted ? context.signal.reason : new FsError("ECANCELED"))));
       }
     }),
-    define("tr", async context => {
+    define("tr", context => {
       const { deleting, squeezing, mapping, removed, squeezed } = compileTrConfig(context.args);
       let previous = -1;
       const iter = input(context)[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
@@ -898,8 +1027,78 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
         syncReturn?: () => void;
       };
       const canTrySync = typeof iter.tryNextSync === "function";
-      const ownsShared = !sharedTrOutInUse;
-      if (ownsShared) sharedTrOutInUse = true;
+      if (canTrySync && !sharedTrOutInUse) {
+        sharedTrOutInUse = true;
+        let released = false;
+        try {
+          while (true) {
+            const step = iter.tryNextSync!();
+            if (step === undefined) {
+              released = true;
+              return executeTrAsync(context, iter, deleting, squeezing, mapping, removed, squeezed, previous, true);
+            }
+            if (step.done) {
+              return RESOLVED_EXIT_ZERO;
+            }
+            const chunk = step.value;
+            context.signal.throwIfAborted();
+            if (!chunk.length) continue;
+            const useShared = chunk.length <= sharedTrOutBuffer.length;
+            const buf = useShared ? sharedTrOutBuffer : new Uint8Array(chunk.length);
+            if (!deleting && !squeezing) {
+              for (let index = 0; index < chunk.length; index++) buf[index] = mapping[chunk[index]!]!;
+              const p = output(context, useShared ? buf.subarray(0, chunk.length) : buf);
+              if (!isSyncResolved(p)) {
+                released = true;
+                return p.then(() => executeTrAsync(context, iter, deleting, squeezing, mapping, removed, squeezed, previous, true));
+              }
+              continue;
+            }
+            let count = 0;
+            for (let index = 0; index < chunk.length; index++) {
+              const byte = chunk[index]!;
+              if (removed[byte]) continue;
+              const translated = mapping[byte]!;
+              if (translated === previous && squeezed[translated]) continue;
+              buf[count++] = translated;
+              previous = translated;
+            }
+            if (count) {
+              const p = output(context, buf.subarray(0, count));
+              if (!isSyncResolved(p)) {
+                released = true;
+                return p.then(() => executeTrAsync(context, iter, deleting, squeezing, mapping, removed, squeezed, previous, true));
+              }
+            }
+          }
+        } catch (err) {
+          if (typeof iter.syncReturn === "function") iter.syncReturn();
+          throw err;
+        } finally {
+          if (!released) sharedTrOutInUse = false;
+        }
+      }
+      return executeTrAsync(context, iter, deleting, squeezing, mapping, removed, squeezed, previous, false);
+    }),
+  ].map(command => ({ ...command, filesystemRequirements: streamRequirements[command.name]! }));
+}
+
+async function executeTrAsync(
+  context: CommandContext,
+  iter: AsyncIterator<Uint8Array> & { tryNextSync?: () => IteratorResult<Uint8Array> | undefined; syncReturn?: () => void },
+  deleting: boolean,
+  squeezing: boolean,
+  mapping: Uint8Array,
+  removed: Uint8Array,
+  squeezingTable: Uint8Array,
+  initialPrevious: number,
+  alreadyOwnsShared: boolean,
+): Promise<{ exitCode: number }> {
+      const squeezed = squeezingTable;
+      let previous = initialPrevious;
+      const canTrySync = typeof iter.tryNextSync === "function";
+      const ownsShared = alreadyOwnsShared || !sharedTrOutInUse;
+      if (!alreadyOwnsShared && ownsShared) sharedTrOutInUse = true;
       let done = false;
       try {
         while (true) {
@@ -938,6 +1137,4 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
         }
       }
       return { exitCode: 0 };
-    }),
-  ].map(command => ({ ...command, filesystemRequirements: streamRequirements[command.name]! }));
 }

@@ -9,7 +9,31 @@ import { getRuntimeBackingFileSystem } from "../fs/creation-mask.js";
 import {
   FsError, readBytes, toByteSource, writeBytes,
   type ByteSource, type CommandContext, type CommandDefinition, type CommandHandler,
+  type CommandResult,
 } from "../contracts/index.js";
+
+const syncResolved = Symbol.for("safe-bash.syncResolved");
+export const RESOLVED_EXIT_ZERO: Promise<CommandResult> = Object.defineProperty(
+  Promise.resolve({ exitCode: 0 }),
+  syncResolved,
+  { value: true },
+);
+export const RESOLVED_EXIT_ONE: Promise<CommandResult> = Object.defineProperty(
+  Promise.resolve({ exitCode: 1 }),
+  syncResolved,
+  { value: true },
+);
+
+async function handleDefineError(
+  context: CommandContext,
+  error: unknown,
+  failureCode: number,
+  usageFailureCode: number,
+): Promise<CommandResult> {
+  context.signal.throwIfAborted();
+  await diagnostic(context, error);
+  return { exitCode: error instanceof UsageError ? usageFailureCode : failureCode };
+}
 
 export const encoder = new TextEncoder();
 export const decoder = new TextDecoder();
@@ -129,20 +153,26 @@ export async function diagnostic(context: CommandContext, error: unknown): Promi
 export function define(name: string, handler: CommandHandler, failureCode = 1, usageFailureCode = 2): CommandDefinition {
   const definition: CommandDefinition = {
     name,
-    async execute(context) {
-      context.signal.throwIfAborted();
+    execute(context): Promise<CommandResult> {
       try {
+        context.signal.throwIfAborted();
         const infoPromise = gnuInformation(name, context);
         if (infoPromise) {
-          const info = await infoPromise;
-          if (info) return info;
+          return infoPromise.then(
+            info => info ?? handler(context),
+          ).catch(error => handleDefineError(context, error, failureCode, usageFailureCode));
         }
-        return await handler(context);
-      }
-      catch (error) {
-        context.signal.throwIfAborted();
-        await diagnostic(context, error);
-        return { exitCode: error instanceof UsageError ? usageFailureCode : failureCode };
+        const res = handler(context);
+        if (
+          res === RESOLVED_EXIT_ZERO ||
+          res === RESOLVED_EXIT_ONE ||
+          Boolean(res && typeof res === "object" && (res as unknown as Record<symbol, unknown>)[syncResolved])
+        ) {
+          return res as Promise<CommandResult>;
+        }
+        return Promise.resolve(res).catch(error => handleDefineError(context, error, failureCode, usageFailureCode));
+      } catch (error) {
+        return handleDefineError(context, error, failureCode, usageFailureCode);
       }
     },
   };

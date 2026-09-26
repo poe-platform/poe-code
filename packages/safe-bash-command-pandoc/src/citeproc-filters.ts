@@ -1,3 +1,6 @@
+// Ambient declarations must follow source consumers without adding a runtime import.
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="./citeproc.d.ts" />
 import CSL from "citeproc";
 import {PandocError} from "./errors.js";
 import {htmlReader} from "./html.js";

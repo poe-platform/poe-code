@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { registerYieldCheckpoint } from "../../../src/contracts/yield.js";
 import { diffPatchCommands } from "../../../src/commands/diff-patch/index.js";
 import { Shell } from "../../../src/shell/index.js";
 import { filesystem, run } from "./helpers.js";
@@ -64,19 +65,15 @@ for (const line of ["a\n", "\n"]) test(`diff charges work for exclusion lines ${
   assert.equal(result.stderr, "diff: work limit exceeded\n");
 });
 
-test("diff exclusion ingestion yields for cancellation even for blank lines", async () => {
+test("diff exclusion ingestion yields for cancellation even for blank lines", async context => {
   const controller = new AbortController();
   const reason = new Error("cancel exclusion ingestion");
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const input = (async function* () {
-    timer = setTimeout(() => controller.abort(reason), 0);
-    yield Buffer.from("\n".repeat(20_000));
-  })();
-  try {
-    await assert.rejects(run("diff", ["-X", "-", "left", "right"], {
-      files: { left: "same", right: "same" }, input, signal: controller.signal,
-    }), error => error === reason);
-  } finally { clearTimeout(timer); }
+  let time = 0;
+  context.mock.method(performance, "now", () => time += 8);
+  registerYieldCheckpoint(controller.signal, () => controller.abort(reason));
+  await assert.rejects(run("diff", ["-X", "-", "left", "right"], {
+    files: { left: "same", right: "same" }, input: "\n".repeat(20_000), signal: controller.signal,
+  }), error => error === reason);
 });
 
 test("diff exclusion files preserve globs, whitespace and unterminated last lines", async () => {
@@ -92,10 +89,10 @@ test("diff exclusion files preserve globs, whitespace and unterminated last line
 
 test("diff validates exclusion limits before reading inputs", async () => {
   for (const name of ["maxExcludePatterns", "maxExcludePatternBytes"] as const) {
-    for (const value of [0, -1, 0.5, NaN, Infinity]) {
+    for (const value of [0, -1, 0.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1]) {
       const result = await run("diff", ["-X", "missing", "left", "right"], { options: { [name]: value } });
       assert.equal(result.exitCode, 2);
-      assert.equal(result.stderr, `diff: ${name} must be a positive safe integer\n`);
+      assert.equal(result.stderr, `diff: ${name} must be a positive safe integer or Infinity\n`);
     }
   }
 });

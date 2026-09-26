@@ -3,8 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       profile:
-        description: Declared isolated activation profile (runtime parity remains
-          separately qualified)
+        description: Declared isolated activation profile (runtime parity remains separately qualified)
         required: true
         type: choice
         default: gnumeric-1.12.61-optional-none
@@ -46,6 +45,46 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 1
           persist-credentials: false
+      - name: Recover authenticated native inputs into temporary storage
+        run: |-
+          python3 - <<'PY'
+          import hashlib, json, pathlib, subprocess
+          root = pathlib.Path('out/ssconvert-linux')
+          root.mkdir(parents=True, exist_ok=True)
+          git = ['git', '-c', 'safe.directory=' + str(pathlib.Path.cwd())]
+          receipts = []
+          fetched = set()
+          for name in ['linux-language-native-probes.json', 'linux-optional-service-native-probes.json']:
+              source = pathlib.Path('docs/ssconvert') / name
+              current = json.loads(source.read_text())
+              retention = current['captureRetention']
+              revision = retention['historicalRevision']
+              assert len(revision) == 40 and all(c in '0123456789abcdef' for c in revision)
+              if revision not in fetched:
+                  subprocess.run([*git, 'fetch', '--no-tags', '--filter=blob:none', '--depth=1', 'origin', revision], check=True)
+                  fetched.add(revision)
+              original = subprocess.check_output([*git, 'show', revision + ':' + source.as_posix()])
+              assert hashlib.sha256(original).hexdigest() == retention['originalSha256'], name
+              historical = json.loads(original)
+              historical_inputs = historical['inputs'] + ([historical['frozenDateControl']] if 'frozenDateControl' in historical else [])
+              current_inputs = current['inputs'] + ([current['frozenDateControl']] if 'frozenDateControl' in current else [])
+              payloads = {}
+              for fixture in historical_inputs:
+                  data = bytes.fromhex(fixture['inputHex'])
+                  assert hashlib.sha256(data).hexdigest() == fixture['inputSha256'], name
+                  payloads[fixture['inputSha256']] = fixture['inputHex']
+              restored = []
+              for fixture in current_inputs:
+                  digest = fixture['inputSha256']
+                  fixture['inputHex'] = payloads[digest]
+                  restored.append(digest)
+              destination = root / name
+              destination.write_text(json.dumps(current, indent=2) + '\n')
+              receipts.append(dict(path=str(source), historicalRevision=revision,
+                  historicalSha256=retention['originalSha256'], retainedSha256=hashlib.sha256(source.read_bytes()).hexdigest(),
+                  materializedSha256=hashlib.sha256(destination.read_bytes()).hexdigest(), restoredInputs=restored))
+          (root / 'input-recovery.json').write_text(json.dumps(receipts, indent=2) + '\n')
+          PY
       - name: Build authenticated GOffice and Gnumeric sources
         run: |
           mkdir -p out/ssconvert-linux
@@ -224,7 +263,7 @@ jobs:
           input_path = root / 'search-wildcards.gnumeric'
           input_path.write_bytes(bytes.fromhex(source['inputHex']))
           capture('search-wildcards', [str(binary), '--recalc', '-T', 'Gnumeric_stf:stf_csv', str(input_path), 'fd://1'])
-          language_fixture_path = pathlib.Path('docs/ssconvert/linux-language-native-probes.json')
+          language_fixture_path = root / 'linux-language-native-probes.json'
           language_inputs = []
           for fixture in json.loads(language_fixture_path.read_text())['inputs']:
               if fixture['profileId'] != profile['id']:
@@ -282,7 +321,7 @@ jobs:
                   zones.append(dict(timezone=zone['timezone'], fileSha256=hashlib.sha256(zone_file.read_bytes()).hexdigest()))
                   capture('frozen-date-' + str(index), [str(binary), '--recalc', '-T', 'Gnumeric_stf:stf_csv', str(path), 'fd://1'], dict(env, TZ=zone['timezone'], LD_PRELOAD=str(hook_binary.resolve())))
               clock_control = dict(clockUnixSeconds=control['clockUnixSeconds'], inputSha256=control['inputSha256'], hookSourceSha256=hashlib.sha256(hook_source.read_bytes()).hexdigest(), hookBinarySha256=hashlib.sha256(hook_binary.read_bytes()).hexdigest(), timezoneFiles=zones, policy=control['policy'])
-          service_path = pathlib.Path('docs/ssconvert/linux-optional-service-native-probes.json')
+          service_path = root / 'linux-optional-service-native-probes.json'
           external_programs = []
           for program in json.loads(service_path.read_text()).get('externalPrograms', []):
               executable = shutil.which(program['name'], path=env['PATH'])
@@ -365,6 +404,7 @@ jobs:
               status='native-activation-collected-product-parity-unqualified',
               activationComplete=all(item['exitCode'] == 0 for item in metadata if item['label'] in ['functions', 'plugins']),
               sourceRevision=source_revision,
+              inputRecovery=json.loads((root / 'input-recovery.json').read_text()),
               image=yaml.safe_load(workflow.read_text())['jobs']['native']['container']['image'],
               profileId=profile['id'], environment=profile['env'],
               scalarOracle=scalar_oracle, externalPrograms=external_programs,

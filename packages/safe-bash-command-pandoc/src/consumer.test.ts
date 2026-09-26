@@ -261,9 +261,9 @@ describe("public conversion seam (original adapters, no format conformance claim
   it("shares validation before any input or writer work", async () => {
     const ctx = context();
     for (const operation of [
-      () => convert([{ bytes: encode("x") }], { ...options, from: "markdown" }, ctx),
-      () => readDocument({ bytes: encode("x") }, { from: "markdown" }, ctx),
-      () => writeDocument(document, { to: "markdown" }, ctx)
+      () => convert([{ bytes: encode("x") }], { ...options, from: "unknown" }, ctx),
+      () => readDocument({ bytes: encode("x") }, { from: "unknown" }, ctx),
+      () => writeDocument(document, { to: "unknown" }, ctx)
     ])
       await expect(operation()).rejects.toMatchObject({ code: "E_FORMAT" });
     expect(ctx.reader!.read).not.toHaveBeenCalled();
@@ -316,12 +316,15 @@ describe("public conversion seam (original adapters, no format conformance claim
     ).rejects.toMatchObject({ code: "E_LIMIT" });
     expect(publish).not.toHaveBeenCalled();
   });
-  it("accepts raised limits and rejects aborted operations before callbacks", async () => {
+  it("accepts raised limits and rejects invalid budgets and aborted operations before callbacks", async () => {
     const ctx = context();
     await expect(
       convert([], options, { ...ctx, limits: { inputBytes: 33 * 1024 * 1024 } })
     ).resolves.toMatchObject({ kind: "text" });
     vi.clearAllMocks();
+    await expect(
+      convert([], options, { ...ctx, limits: { inputBytes: -1 } })
+    ).rejects.toBeInstanceOf(PandocError);
     const controller = new AbortController();
     controller.abort();
     await expect(convert([], options, { ...ctx, signal: controller.signal })).rejects.toMatchObject(

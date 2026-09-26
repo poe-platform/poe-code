@@ -50,7 +50,7 @@ export function createPandocCommand(capabilities: PandocCommandsOptions = {}) {
         else {
           const files: CommandInputs = context.fs ? {
             ...(context.cwd === undefined ? {} : {cwd: context.cwd}), stdin: context.stdin,
-            readFile: (path, signal, maxBytes) => context.fs!.readFile(path.startsWith("/") ? path : `${context.cwd ?? "/"}/${path}`, {signal, ...(maxBytes === undefined ? {} : {maxBytes})}),
+            readFile: (path, signal, maxBytes) => context.fs!.readFile(path.startsWith("/") ? path : `${context.cwd ?? "/"}/${path}`, {signal, ...(maxBytes === undefined || maxBytes === Infinity ? {} : {maxBytes})}),
             writeFile: (path, bytes, signal) => context.fs!.writeFile(path.startsWith("/") ? path : `${context.cwd ?? "/"}/${path}`, bytes, {signal})
           } : context;
           const {options, operands, destination, limits} = await resolveConversionArgs(context.args, files, context.signal, configured);

@@ -219,7 +219,7 @@ function* normalization(
     hasTable = false;
   const active = new Set<object>();
   const bound = (n: number, ceiling: number, p: string): void => {
-    if (n > ceiling) throw new AstError("E_LIMIT", p, "AST budget exceeded");
+    if (!Number.isSafeInteger(n) || n > ceiling) throw new AstError("E_LIMIT", p, "AST budget exceeded");
   };
   function checkStringBody(v: string, p: string, depth: number): void {
     bound(depth, limits.depth, p);

@@ -162,7 +162,8 @@ export class ResourceSession {
           const producer = fs.readStream ? await ctx.call(async () => fs.readStream!(key, readOptions)) : (async function* () {
             if (!fs.readFile) ctx.fail("E_CAPABILITY", "VFS requires explicit resource reads");
             let bytes: Uint8Array;
-            try {bytes = await fs.readFile!(key, {...readOptions, maxBytes: ctx.remaining("resourceBytes")});}
+            const maxBytes = ctx.remaining("resourceBytes");
+            try {bytes = await fs.readFile!(key, {...readOptions, ...(maxBytes === Infinity ? {} : {maxBytes})});}
             catch (error) {
               if (typeof error === "object" && error !== null && "code" in error && error.code === "EFBIG") ctx.fail("E_LIMIT", "resourceBytes: VFS bounded read refused");
               throw error;

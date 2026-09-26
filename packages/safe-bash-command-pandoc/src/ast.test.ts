@@ -284,8 +284,8 @@ it("preserves document language and direction through conversion", async () => {
   );
   expect(write.mock.calls[0]?.[0]).toMatchObject({ language: "ar", direction: "rtl" });
 });
-it("accepts raised and disabled AST limits", () => {
-  expect(normalizeDocument(empty, { depth: 1000000 })).toEqual(empty);
+  it("accepts raised and disabled AST limits", () => {
+  expect(normalizeDocument(empty, { depth: 1000000, nodes: Infinity })).toEqual(empty);
   expect(normalizeDocument(empty, { depth: Infinity })).toEqual(empty);
 });
 it("bounds metadata key text", () => {

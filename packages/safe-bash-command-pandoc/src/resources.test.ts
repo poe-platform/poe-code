@@ -16,6 +16,18 @@ function files(entries: Record<string, string>) {
   return {volume, fs, readStream, writeFile};
 }
 const options = {from: "commonmark", to: "html", extractMedia: "/media"};
+it("omits an unlimited read bound for finite-only VFS resource readers", async () => {
+  const host = files({"/p.png": "image"});
+  const readFile = vi.fn<NonNullable<ResourceFileSystem["readFile"]>>(async (path, options) => {
+    if (options?.maxBytes !== undefined && !Number.isSafeInteger(options.maxBytes)) throw new TypeError("Invalid VFS byte bound");
+    return new Uint8Array(host.volume.readFileSync(path) as Buffer);
+  });
+  await convert([{bytes: encode("![image](p.png)")}], options, {resourceFiles: {
+    lstat: host.fs.lstat, mkdir: host.fs.mkdir, writeFile: host.fs.writeFile, readFile
+  }});
+  expect(readFile.mock.calls[0]?.[1]?.maxBytes).toBeUndefined();
+  expect(host.volume.readFileSync("/media/p.png", "utf8")).toBe("image");
+});
 it("resolves URI escapes once, dot segments, Unicode and suffixes with repeated references", async () => {
   const host = files({"/doc/a b.png": "space", "/doc/a%20b.png": "literal", "/doc/字.png": "unicode"});
   const result = await convert([{base: "/doc", bytes: encode("![a](a%20b.png?x#y) ![b](./sub/../a%2520b.png) ![c](字.png) ![d](a%20b.png#z)")}], options, {resourceFiles: host.fs});

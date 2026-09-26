@@ -3039,8 +3039,8 @@ export class Runtime {
     } finally { allocation.close(); }
   }
 
-  async writeVariable(state: State, name: string, value: ShellValue, io: IO, origin: "assignment" | "arithmetic" | "getopts" = "assignment"): Promise<void> {
-    name = this.referenceName(state, name);
+  async writeVariable(state: State, name: string, value: ShellValue, io: IO, origin: "assignment" | "arithmetic" | "getopts" = "assignment", dereference = true): Promise<void> {
+    if (dereference) name = this.referenceName(state, name);
     const target = name.includes("[") ? this.variableTarget(name) : undefined;
     if (target?.subscript !== undefined) {
       await this.arrayAssignment({ kind: "element", name: target.name, append: false,
@@ -7612,7 +7612,11 @@ export class Runtime {
               else runYieldCheckpoint(this.signal);
             }
             if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
-            if (canFastAssignLoopVar && !rawLoopState.readonlyVariables?.has(command.name) && !arrayStore(rawLoopState)?.get(command.name)) {
+            if (state.variableAttributes?.get(command.name)?.includes("n")) {
+              const target = shellValueText(value);
+              if (!this.variableTarget(target) || target === command.name) throw new ExpansionFailure(`${target}: invalid name reference`);
+              await this.writeVariable(state, command.name, value, io, "assignment", false);
+            } else if (canFastAssignLoopVar && !rawLoopState.readonlyVariables?.has(command.name) && !arrayStore(rawLoopState)?.get(command.name)) {
               publishVariable(rawLoopState, command.name, value);
               if (rawLoopState.allexport) state.exported.add(command.name);
             } else {
@@ -11598,6 +11602,8 @@ export class Runtime {
   }
 
   private async resolveParameter<T extends WordPart>(part: T, state: State, io: IO): Promise<T> {
+    // Indirection of a nameref exposes its target name, not the target's value.
+    if (part.kind === "variable" && part.indirect && state.variableAttributes?.get(part.name)?.includes("n")) return part;
     if (part.kind === "variable" && part.indirect) {
       const referencePart: Extract<WordPart, { kind: "variable" }> = { kind: "variable", name: part.name, quoted: true, ...(part.line === undefined ? {} : { line: part.line }) };
       copyArraySelector(part, referencePart);
@@ -11741,7 +11747,8 @@ export class Runtime {
       delete base.transform;
       if (!part.transform) { delete base.operator; delete base.alternate; }
       copyArraySelector(part, base);
-      const existing = selector?.kind === "element" ? arrayStore(state)?.get(part.name)?.get(numericIndex(selector.index) ?? -1) ?? (numericIndex(selector.index) === 0 ? this.variable(state, part.name) : undefined)
+      const existing = part.indirect && state.variableAttributes?.get(part.name)?.includes("n") ? state.variables[part.name]
+        : selector?.kind === "element" ? arrayStore(state)?.get(part.name)?.get(numericIndex(selector.index) ?? -1) ?? (numericIndex(selector.index) === 0 ? this.variable(state, part.name) : undefined)
         : /^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name) ? this.variable(state, part.name)
         : /^[1-9][0-9]*$/u.test(part.name) ? state.positional[Number(part.name) - 1] : "";
       const value = await this.valuePart(base, state, io, hereString, split, hereDocument);
@@ -12090,7 +12097,9 @@ export class Runtime {
       const separator = part.name === "@" && !split || hereString && (part.name === "@" || !part.quoted) ? " " : this.ifsSeparator(state, io);
       return concatShellValues(values.flatMap((entry, index) => index ? [separator, entry] : [entry]), io[valueScope]);
     }
-    let value = part.specialParameter ? specialValue === undefined ? undefined : shellValueText(specialValue)
+    const namerefName = part.indirect && state.variableAttributes?.get(part.name)?.includes("n");
+    let value = namerefName ? state.variables[part.name] === undefined ? undefined : this.referenceName(state, part.name)
+      : part.specialParameter ? specialValue === undefined ? undefined : shellValueText(specialValue)
       : part.name === "?" ? String(state.status)
       : part.name === "-" ? `${state.allexport ? "a" : ""}${state.errexit ? "e" : ""}${state.noglob ? "f" : ""}${state.noexec ? "n" : ""}${state.nounset ? "u" : ""}${state.braceexpand !== false ? "B" : ""}${state.noclobber ? "C" : ""}`
       : part.name === "#" ? String(state.positional.length)
@@ -12099,7 +12108,7 @@ export class Runtime {
       : /^\d+$/u.test(part.name) ? state.positional[Number(part.name) - 1]
       : part.name === "LINENO" ? (state.extensions ? String(io.diagnosticLine ?? part.line ?? 1) : state.variables.LINENO ?? String(io.diagnosticLine ?? part.line ?? 1)) : this.variable(state, part.name);
     let retained: ShellValue | undefined = part.specialParameter ? specialValue : value;
-    if (value !== undefined) {
+    if (value !== undefined && !namerefName) {
       if (/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) {
         const name = this.referenceName(state, part.name);
         const binding = arrayStore(state)?.get(name);
@@ -12766,7 +12775,9 @@ export class Runtime {
         ? selector?.kind === "members" ? await this.arrayMembers(part.name, state, partIO) : part.name === "@" ? this.positionalValues(state) : undefined : undefined;
       const expandMembers = !defaultMembers || defaultMembers.length > 0 && !(part.kind === "variable" && part.operator!.endsWith("+"));
       if (part.kind === "variable" && ["-", "+", ":-", ":+"].includes(part.operator ?? "") && (part.name === "@" || /^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name))) {
-        let value: ShellValue | undefined = this.variable(state, part.name);
+        let value: ShellValue | undefined = part.indirect && state.variableAttributes?.get(part.name)?.includes("n")
+          ? state.variables[part.name] === undefined ? undefined : this.referenceName(state, part.name)
+          : this.variable(state, part.name);
         if (defaultMembers) {
           value = defaultMembers.length ? part.name === "@" && defaultMembers.length === 1 ? defaultMembers[0] : "set" : undefined;
         } else if (selector?.kind === "element") {

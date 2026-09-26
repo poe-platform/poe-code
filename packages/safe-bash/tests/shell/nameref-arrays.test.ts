@@ -5,6 +5,15 @@ import { basicCommands } from "../../src/commands/basic.js";
 import { predicateCommands } from "../../src/commands/predicates.js";
 
 const cases = [
+  ['a=1; b=2; c=3; declare -n r; for r in a b c; do r=$((r+10)); done; args "$a" "$b" "$c" "${!r}"', ["11", "12", "13", "c"]],
+  ['a=1; b=2; declare -n r=a; for r in b a; do r=$((r+10)); done; args "$a" "$b"', ["11", "12"]],
+  ['target=val; declare -n ref=target; args "$ref" "${!ref}"', ["val", "target"]],
+  ['target=val; declare -n ref=target; declare -n outer=ref; args "${!outer}"', ["target"]],
+  ['declare -n ref=missing; args "${!ref}"', ["missing"]],
+  ['a=(zero one); declare -n ref="a[1]"; args "${!ref}"', ["a[1]"]],
+  ['target=other; other=value; ref=target; args "${!ref}"', ["other"]],
+  ['a=1; b=2; f(){ local -n r=a; for r in a b; do r=$((r+10)); done; }; f; args "$a" "$b"', ["11", "12"]],
+  ['declare -n ref=missing; args "${!ref:-fallback}" "${!ref^^}" "${!ref:1:3}"', ["missing", "MISSING", "iss"]],
   ['a=(a b c); declare -n r=a; read -a r <<< "x y z"; args "${a[*]}" "${r[*]}"', ["x y z", "x y z"]],
   ['a=(a b c); declare -n r=a; mapfile -t r <<< $\'u\\nv\'; args "${a[*]}"', ["u v"]],
   ['a=(a b c); declare -n r=a; readarray -t r <<< $\'u\\nv\'; args "${a[*]}"', ["u v"]],

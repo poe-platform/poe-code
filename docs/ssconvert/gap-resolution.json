@@ -304,7 +304,8 @@
       },
       "unicode151": {
         "evidence": "docs/ssconvert/python-unicode151-profile.json",
-        "summary": "CPython 3.13 Unicode 15.1 selection adds 627 printable characters in three ranges. Full-domain extraction establishes unchanged title/lower/cased/ignorable/whitespace versus 15.0. All 2548 scalar fields match independent native Python through compiled SDK and Shell; defaults and 15.0 stay unchanged. Full activated Linux loader qualification remains open."
+        "summary": "CPython 3.13 Unicode 15.1 selection adds 627 printable characters in three ranges. Full-domain extraction establishes unchanged title/lower/cased/ignorable/whitespace versus 15.0. All 2548 scalar fields match independent native Python through compiled SDK and Shell; defaults and 15.0 stay unchanged. Full activated Linux loader qualification remains open.",
+        "browserWorker": "Chrome 154 page and real module worker match all 26687 CSV bytes for the 637-row cohort. Abort identity, output/work limits with zero publication, absent functions and invalid-profile controls pass; no ambient Node globals, external requests, diagnostics or surviving workers. Full evidence in python-unicode151-profile.json#browserWorker."
       }
     },
     "databaseValueFormats": {
@@ -665,12 +666,12 @@
     {
       "id": "python-printf",
       "status": "open",
-      "currentFinding": "Bounded formatting, arrays and precision-limited reference formats are implemented. The explicit Unicode 15/16 selector now controls printable-character rules for %r while preserving %s/%a semantics; current compiled SDK/Shell results match CPython reference cases. Address-bearing representations, raw reference/sheet APIs and wider language conversion remain open. Native array/range/axis controls pass; combined sheet/tuple probes crash and must not be counted as passes."
+      "currentFinding": "Bounded formatting, arrays and precision-limited reference formats are implemented. The explicit Unicode 15.0/15.1/16.0 selector now controls printable-character rules for %r while preserving %s/%a semantics; current compiled SDK/Shell results match CPython reference cases. Address-bearing representations, raw reference/sheet APIs and wider language conversion remain open. Native array/range/axis controls pass; combined sheet/tuple probes crash and must not be counted as passes."
     },
     {
       "id": "python-capwords-unicode",
       "status": "open",
-      "currentFinding": "Explicit frozen Unicode 15.0/15.1/16.0 selection covers the 139 recorded version differences while retaining Unicode 16 by default. Compiled SDK/Shell profiles match independent CPython casing/context cases; Chrome page/module-worker evidence covers 15.0/16.0 only; typed split errors, NUL, malformed-host and resource boundaries remain covered. Exact activated optional runtime profiles, packed/installed-package requalification and wider diagnostics remain open. Native malformed-UTF8 crashes retain a portable refusal."
+      "currentFinding": "Explicit frozen Unicode 15.0/15.1/16.0 selection covers the 139 recorded version differences while retaining Unicode 16 by default. Compiled SDK/Shell profiles match independent CPython casing/context cases; Chrome page/module-worker evidence covers all three selected versions; typed split errors, NUL, malformed-host and resource boundaries remain covered. Exact activated optional runtime profiles, packed/installed-package requalification and wider diagnostics remain open. Native malformed-UTF8 crashes retain a portable refusal."
     },
     {
       "id": "database-functions",

@@ -83,10 +83,76 @@
     "sha256": "e220bef8e8054640cd457c617e7af631cbf675944abe696a2a49d24b99344862",
     "result": "Actual compiled opt-in Shell invoked for all three profiles. Zero exits and empty stderr. Layout, ASCII escapes and Latin text readable. Terminal font lacks U+2FFC and U+1C89 glyphs; screenshot does not establish glyph fidelity."
   },
-  "remaining": "This property qualification uses macOS CPython 3.13.6, not execution of the retained Debian 3.13.5 loader. Full activated-plugin behavior, browser/worker 15.1, packed/installed consumers and publication remain separate. No broad ssconvert family is closed.",
+  "remaining": "This property qualification uses macOS CPython 3.13.6, not execution of the retained Debian 3.13.5 loader. Full activated-plugin behavior, packed/installed consumers and publication remain separate. No broad ssconvert family is closed.",
   "validation": {
     "workspaceTests": "420 files, 23987 tests passed; required root posttest and two lint stress checks passed",
     "lint": "Workspace lint, source/test typechecks and root/scoped public-consumer typechecks passed",
     "build": "Maintained selected @poe-code/ssconvert workspace build passed"
+  },
+  "browserWorker": {
+    "candidate": "307f0113e7a4f54117d9067fb635a43c89e8c104",
+    "browser": "Chrome 154.0.8037.58",
+    "driver": "Playwright CLI 0.1.19",
+    "bundleSha256": "679c5bf4970a98a5b1378c0c7265f2dbabe0231aa92ba9343d7f8643d11d1b96",
+    "inputSha256": "e1a79b116310b7f6a9c31c8bfbc0e00510683cbc312fa2f4e5c83c46452c77f9",
+    "method": "Reconstruct the original 637-row Gnumeric input from the documented point list and authenticate its exact prior input SHA256. Bundle the current public poe-code/ssconvert entry for ES2022 browsers; run identical operations in a real page and module Web Worker. Compare complete CSV bytes against the prior SDK/Shell hash whose 2548 scalar fields matched native CPython 3.13.6. No fresh native execution is claimed.",
+    "results": {
+      "page": {
+        "context": "page",
+        "globals": {
+          "process": "undefined",
+          "require": "undefined",
+          "Buffer": "undefined"
+        },
+        "unicodeVersion": "15.1.0",
+        "rows": 637,
+        "scalarFields": 2548,
+        "bytes": 26687,
+        "csvSha256": "e98d5475b66d8e826baa67a015658441ec9e00a5d3f3bdac474d89f5d1ef847b",
+        "diagnostics": 0,
+        "inputPreserved": true,
+        "preAbortIdentity": true,
+        "refusedWrites": 0,
+        "outputLimit": true,
+        "workLimit": true,
+        "invalidProfilesRefused": 3,
+        "absentFunctions": 3
+      },
+      "worker": {
+        "context": "module-worker",
+        "globals": {
+          "process": "undefined",
+          "require": "undefined",
+          "Buffer": "undefined"
+        },
+        "unicodeVersion": "15.1.0",
+        "rows": 637,
+        "scalarFields": 2548,
+        "bytes": 26687,
+        "csvSha256": "e98d5475b66d8e826baa67a015658441ec9e00a5d3f3bdac474d89f5d1ef847b",
+        "diagnostics": 0,
+        "inputPreserved": true,
+        "preAbortIdentity": true,
+        "refusedWrites": 0,
+        "outputLimit": true,
+        "workLimit": true,
+        "invalidProfilesRefused": 3,
+        "absentFunctions": 3
+      },
+      "workerTerminated": true
+    },
+    "network": "Eight observed requests, all owned localhost documents, modules or original input; no external requests. Includes the initial page load and corrected-probe reload.",
+    "console": {
+      "errors": 0,
+      "warnings": 0
+    },
+    "lifecycle": "Playwright confirms zero live workers after termination; engine disposal runs after every conversion and refusal.",
+    "screenshot": {
+      "sha256": "9f612ec8346c34af6e7c05edc4672d189191d45bbead9aeded39ee8c22a061d3",
+      "inspected": true,
+      "result": "Page and worker success, full output hash and guard outcomes are readable with no clipping."
+    },
+    "probeCorrection": "The first probe checked lexical typeof require, which esbuild rewrote to its own bundle helper. Direct globalThis properties confirmed ambient process/require/Buffer were all absent. Corrected the probe to test globalThis in both contexts; no product change was needed.",
+    "build": "Maintained selected ssconvert workspace/dependency build passed before bundling."
   }
 }

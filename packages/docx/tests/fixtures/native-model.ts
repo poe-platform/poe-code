@@ -1,23 +1,25 @@
+import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { createInterface } from "node:readline";
 import type { Writable } from "node:stream";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 
-/** Compile once, while retaining a fresh default-stack Node process per case. */
+/** Compile once and reuse Node; each request constructs its own document and budget. */
 export async function prepareNativeModelScript(body: string) {
   const result = await build({
     stdin: {
-      contents: `import { readFile } from "node:fs";
+      contents: `import { createReadStream } from "node:fs";
+import { createInterface } from "node:readline";
 import { Volume } from "memfs";
 import * as api from "./index.js";
 import { ModelStore } from "./model-store.js";
 import { archiveSettings } from "./archive.js";
 console.log("ready");
-const request = await new Promise((resolve, reject) => readFile(3, "utf8", (error, data) => {
-  if (error) reject(error);
-  else { try { resolve(JSON.parse(data)); } catch (error) { reject(error); } }
-}));
-${body}`,
+for await (const data of createInterface({ input: createReadStream(null, { fd: 3 }) })) {
+const request = JSON.parse(data);
+${body}
+}`,
       resolveDir: fileURLToPath(new URL("../../src/", import.meta.url)),
       loader: "js"
     },
@@ -29,43 +31,52 @@ ${body}`,
     write: false
   });
   const script = result.outputFiles[0]!.text;
-  return async (signal: AbortSignal) => {
-    const child = spawn(process.execPath, ["--input-type=module"], { signal, stdio: ["pipe", "pipe", "pipe", "pipe"] });
+  return async () => {
+    const child = spawn(process.execPath, ["--input-type=module"], { stdio: ["pipe", "pipe", "pipe", "pipe"] });
     const input = child.stdio[3] as Writable;
-    let stdout = "", stderr = "";
-    let resolveReady!: () => void, rejectReady!: (error: Error) => void;
-    const ready = new Promise<void>((resolve, reject) => { resolveReady = resolve; rejectReady = reject; });
-    let started = false;
-    child.stdout.on("data", bytes => {
-      stdout += String(bytes);
-      if (!started && stdout.startsWith("ready\n")) {
-        started = true;
-        stdout = stdout.slice("ready\n".length);
-        resolveReady();
-      }
-    });
+    const replies = createInterface({ input: child.stdout })[Symbol.asyncIterator]();
+    let stderr = "";
     child.stderr.on("data", bytes => { stderr += String(bytes); });
-    const completion = new Promise<string>((resolve, reject) => {
+    const completion = new Promise<void>((resolve, reject) => {
       child.on("error", reject);
       child.stdin.on("error", reject);
       input.on("error", reject);
       child.on("close", code => {
-        if (code !== 0 || !started) reject(new Error(stderr || "Native model exited before becoming ready"));
-        else resolve(stdout);
+        if (code !== 0) reject(new Error(stderr || "Native model exited unexpectedly"));
+        else resolve();
       });
     });
-    void completion.catch(rejectReady);
+    void completion.catch(() => {});
     // Separate pipes keep compilation and imports in setup, and model work in the test.
     child.stdin.end(script);
-    await ready;
+    const ready = await replies.next();
+    assert.equal(ready.done, false, stderr);
+    assert.equal(ready.value, "ready");
+    let pending = false;
     return {
-      run(request: unknown): Promise<string> {
-        input.end(JSON.stringify(request));
-        return completion;
+      async run(request: unknown, signal: AbortSignal): Promise<string> {
+        signal.throwIfAborted();
+        assert.equal(pending, false, "Native requests must be sequential");
+        pending = true;
+        const abort = () => { child.kill(); };
+        signal.addEventListener("abort", abort, { once: true });
+        try {
+          await new Promise<void>((resolve, reject) => {
+            input.write(JSON.stringify(request) + "\n", error => error ? reject(error) : resolve());
+          });
+          const reply = await replies.next();
+          signal.throwIfAborted();
+          assert.equal(reply.done, false, stderr);
+          return reply.value;
+        } finally {
+          pending = false;
+          signal.removeEventListener("abort", abort);
+        }
       },
       async dispose(): Promise<void> {
-        if (child.exitCode === null && !child.killed) child.kill();
-        await completion.catch(() => {});
+        if (pending) child.kill();
+        input.end();
+        await completion;
       }
     };
   };

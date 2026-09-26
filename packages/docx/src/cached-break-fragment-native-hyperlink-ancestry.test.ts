@@ -1,5 +1,5 @@
 import { Volume } from "memfs";
-import { afterEach, beforeAll, beforeEach, expect, it } from "vitest";
+import { afterAll, beforeAll, expect, it } from "vitest";
 import * as api from "./index.js";
 import { archiveSettings, type DocumentArchive } from "./archive.js";
 import { ModelStore } from "./model-store.js";
@@ -12,18 +12,15 @@ let native: Awaited<ReturnType<typeof startNative>> | undefined;
 beforeAll(async () => {
   original = await api.readArchive(await textFixture("<w:p/>"), textContext);
   startNative = await prepareNativeModelScript(`const memory=Volume.fromJSON(Object.fromEntries(request.members.map(m=>['/'+m.name,Buffer.from(m.bytes,'base64')]))),members=request.members.map(m=>({...m,modified:new Date(m.modified),bytes:new Uint8Array(memory.readFileSync('/'+m.name))})),context={...archiveSettings({limits:request.limits,signal:new AbortController().signal,budget:new api.DocumentBudget({xmlDepth:16384,retainedBytes:2**30,work:2**30})}),author:'',initials:''},store=new ModelStore({comment:new Uint8Array(),members},context,'/word/document.xml'),node=store.xml(store.mainPart).root.children[0].children[0],p=new api.Paragraph(store,store.ref(store.mainPart,node));let result;try{const cached=p.rendered_page_breaks[0],fragment=request.preceding?cached.preceding_paragraph_fragment:cached.following_paragraph_fragment;result={ok:true,fragmentText:fragment?.text,wholeBefore:new TextDecoder().decode(fragment.element.serialize()).includes('>LinkBefore</w:t>'),wholeAfter:new TextDecoder().decode(fragment.element.serialize()).includes('>LinkAfter</w:t>'),nativeLeft:new TextDecoder().decode(fragment.element.serialize()).includes('>Left</w:t>'),nativeRight:new TextDecoder().decode(fragment.element.serialize()).includes('>Right</w:t>'),noMarker:!new TextDecoder().decode(fragment.element.serialize()).includes('lastRenderedPageBreak'),fragmentKeep:fragment?.paragraph_format.keep_with_next,detached:fragment?.store!==p.store,text:p.text,keep:p.paragraph_format.keep_with_next,italic:p.runs[0].italic,exactParagraph:Buffer.from(p.element.serialize()).equals(Buffer.from(request.body))};}catch(error){result={ok:false,error:String(error),code:error.code??null};}const saved=store.snapshot();result.exactMembers=saved.members.length===members.length&&saved.members.every(m=>Buffer.from(m.bytes).equals(memory.readFileSync('/'+m.name)));console.log(JSON.stringify(result));`);
+  native = await startNative();
 });
-beforeEach(async ({ task, signal }) => {
-  if (task.name.endsWith("host=main")) native = await startNative(signal);
-});
-afterEach(async () => {
+afterAll(async () => {
   await native?.dispose();
-  native = undefined;
 });
 
 for (const strict of [false, true]) for (const depth of [32, 4096, 8192])
 for (const preceding of [false, true]) for (const host of ["worker", "main"] as const)
-it(`extracts complete nested hyperlink with cached-break native ancestors; strict=${strict}; depth=${depth}; preceding=${preceding}; host=${host}`, async () => {
+it(`extracts complete nested hyperlink with cached-break native ancestors; strict=${strict}; depth=${depth}; preceding=${preceding}; host=${host}`, async ({ signal }) => {
   const w = strict ? "http://purl.oclc.org/ooxml/wordprocessingml/main" :
     "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
   const r = strict ? "http://purl.oclc.org/ooxml/officeDocument/relationships" :
@@ -64,7 +61,7 @@ it(`extracts complete nested hyperlink with cached-break native ancestors; stric
     for (const member of snapshot.members) expect(Buffer.from(member.bytes).equals(memory.readFileSync("/" + member.name) as Buffer)).toBe(true);
   } else {
     const result = await native!.run({ members: members.map(member => ({ ...member,
-        bytes: Buffer.from(member.bytes).toString("base64") })), limits: textContext.limits, body: standaloneParagraph, preceding });
+        bytes: Buffer.from(member.bytes).toString("base64") })), limits: textContext.limits, body: standaloneParagraph, preceding }, signal);
     expect(JSON.parse(result)).toEqual({ ok: true, fragmentText: preceding ? "Before" : "After", wholeBefore: preceding, wholeAfter: preceding, nativeLeft: preceding, nativeRight: !preceding, noMarker: true, fragmentKeep: true, detached: true,
       text: "BeforeAfter", keep: true, italic: true, exactParagraph: true, exactMembers: true });
   }

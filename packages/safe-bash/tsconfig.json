@@ -77,7 +77,7 @@
         "../safe-bash-contracts/src/index.ts"
       ],
       "safe-bash-contracts/*": [
-        "../safe-bash-contracts/src/*"
+        "../safe-bash-contracts/src/*.ts"
       ],
       "safe-bash-regex-engine": [
         "../safe-bash-regex-engine/src/index.ts"

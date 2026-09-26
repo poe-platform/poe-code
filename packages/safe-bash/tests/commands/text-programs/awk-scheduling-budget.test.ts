@@ -3,6 +3,18 @@ import test from "node:test";
 import { CommandRegistry, MemoryFileSystem, Shell, createTextProgramCommands, createStandardCommands } from "../../../src/index.js";
 import { runVirtual } from "./helpers.js";
 
+for (const [name, program, expected] of [
+  ["builtin print argument preserves prior side effects", '{ x = 0; print x++, tolower("ABC"); print "final x=" x }', "0 abc\nfinal x=1\n"],
+  ["nested function print argument preserves call frames", 'function bump_global() { a += 100 } function inspect_val(v) { bump_global(); return v } { a = 5000; a += 5; print "v=" inspect_val(a), "a=" a }', "v=5005 a=5105\n"],
+  ["multiple asynchronous print arguments execute in order", 'function bump() { x++; return x } { x = 0; OFS = ":"; ORS = "!"; print x++, bump(), x++, bump(); print x }', "0:2:2:4!4!"],
+  ["numeric array overwrite owns its scalar", '{ a = 5000; a += 5; arr[1] = 5000; arr[1] = a; a += 100; print arr[1], a }', "5005 5105\n"],
+  ["numeric array overwrite survives scalar increment", '{ a = 5000; a += 5; arr[1] = 5000; arr[1] = a; a++; print arr[1], a }', "5005 5006\n"],
+] as const) test(`AWK ${name}`, async () => {
+  const result = await runVirtual("awk", { args: [program], stdin: "x\n" });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stdout.toString(), expected);
+});
+
 for (const fallback of [false, true]) test(`infinite AWK preserves the published snapshot and recovers within the unchanged deadline: timer fallback=${fallback}`, { timeout: 5000 }, async context => {
   if (fallback) {
     const descriptor = Object.getOwnPropertyDescriptor(globalThis, "setImmediate")!;

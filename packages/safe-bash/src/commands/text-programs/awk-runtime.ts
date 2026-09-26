@@ -267,7 +267,7 @@ export class AwkRuntime {
     const existingValue = array.entries.get(key);
     if (existingValue !== undefined && existingValue.kind === "number" && value.kind === "number") {
       if (this.budget.context.signal.aborted) this.budget.context.signal.throwIfAborted();
-      array.entries.set(key, value);
+      array.entries.set(key, ownScalar(value));
       return;
     }
     const existing = existingValue !== undefined || array.entries.has(key);
@@ -1317,7 +1317,7 @@ export class AwkRuntime {
       let acc = "";
       for (let i = 0; i < args.length; i++) {
         const v = this.scalarExpression(args[i]!);
-        if (v instanceof Promise) return this.execute(statement);
+        if (v instanceof Promise) return this.executePrintRemainder(args, i, v, acc, ofs, ors, ofmt);
         const t = text(v, ofmt, this.budget);
         acc = i === 0 ? t : acc + ofs + t;
       }
@@ -1327,6 +1327,16 @@ export class AwkRuntime {
       return undefined;
     }
     return this.execute(statement);
+  }
+
+  private async executePrintRemainder(args: readonly Expression[], index: number, pending: Promise<Scalar>, acc: string, ofs: string, ors: string, ofmt: string): Promise<void> {
+    const first = text(await pending, ofmt, this.budget);
+    acc = index === 0 ? first : acc + ofs + first;
+    for (let i = index + 1; i < args.length; i++) {
+      acc += ofs + text(await this.scalarExpression(args[i]!), ofmt, this.budget);
+    }
+    this.stdoutBuffer += this.budget.check(acc + ors);
+    if (this.stdoutBuffer.length >= 16384) await this.flushStdout();
   }
 
   private async ignorePromiseValue(promise: Promise<unknown>): Promise<void> {

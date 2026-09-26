@@ -1,11 +1,13 @@
-import { expect, it } from "vitest";
+import { beforeAll, expect, it } from "vitest";
 import { textContext, textFixture } from "../packages/docx/tests/fixtures/text.js";
 import { rasterPng } from "../packages/docx/tests/fixtures/raster.js";
 import { chartContext, chartFixture, chartSpace, series } from "../packages/docx/tests/fixtures/charts.js";
 import { diagramContext, diagramFixture, diagramCarrier } from "../packages/docx/tests/fixtures/diagrams.js";
 import { MemoryFileSystem } from "../packages/safe-fs/src/fs/memory/index.js";
 
-it("closes the document runtime over portable ZIP and XML implementations", async () => {
+let bundledRuntime: string;
+
+beforeAll(async () => {
   const { build } = await import("esbuild");
   const result = await build({
     entryPoints: [new URL("../packages/docx/src/index.ts", import.meta.url).pathname],
@@ -20,7 +22,11 @@ it("closes the document runtime over portable ZIP and XML implementations", asyn
   expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
   expect(Object.keys(result.metafile!.inputs).some(name => name.includes("office-package/"))).toBe(true);
   expect(Object.keys(result.metafile!.inputs).some(name => name.includes("safe-fs/") && name.includes("xml"))).toBe(true);
-  const runtime = await import(/* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(result.outputFiles[0]!.contents).toString("base64")}`);
+  bundledRuntime = Buffer.from(result.outputFiles[0]!.contents).toString("base64");
+});
+
+it("closes the document runtime over portable ZIP and XML implementations", async () => {
+  const runtime = await import(/* @vite-ignore */ `data:text/javascript;base64,${bundledRuntime}`);
   expect(runtime.parseDocumentXml(new TextEncoder().encode('<note label="Coastal survey"/>')).root.localName).toBe("note");
   const modelInput = await textFixture('<w:p><w:r><w:t>Coastal survey</w:t></w:r></w:p>');
   const modelAdmission = runtime.Document(modelInput, { ...textContext, timestamp: new Date("2025-01-02T03:04:06Z") });

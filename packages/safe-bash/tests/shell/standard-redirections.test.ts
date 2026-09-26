@@ -3,6 +3,9 @@ import test from "node:test";
 import { setup } from "./helpers.js";
 import { standardCommands } from "../../src/commands/index.js";
 import { textProgramCommands } from "../../src/commands/text-programs/index.js";
+import type { CommandContext } from "../../src/contracts/index.js";
+import { MemoryFileSystem } from "../../src/fs/memory/index.js";
+import { Shell } from "../../src/shell/index.js";
 
 for (const [name, source, expected] of [
   ["implicit both output", 'both >& out; pass < out', 'out\nerr\n'],
@@ -60,9 +63,9 @@ for (const extraRedirect of ["", " 2>/dev/null"]) {
     ['awk \'{ print "from-file-longer-text" >> "/out"; print "short" }\' /input', "short\nile-longer-text\n"],
   ]) {
     test(`output redirect preserves trailing bytes written independently: ${source}${extraRedirect}`, async t => {
-      const { shell, fs } = setup();
+      const fs = new MemoryFileSystem();
+      const shell = new Shell({ fs }).use(standardCommands()).use(textProgramCommands());
       t.after(() => shell.dispose());
-      shell.use(standardCommands()).use(textProgramCommands());
       await fs.writeFile("/input", new TextEncoder().encode("longer-first-line\n"));
       const result = await shell.exec(`${source} > /out${extraRedirect}`);
       assert.equal(result.exitCode, 0, result.stderr);
@@ -87,5 +90,121 @@ for (const operator of [">", ">>"]) {
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(new TextDecoder().decode(await fs.readFile("/moved")), operator === ">>" ? "before\nafter\n" : "after\n");
     assert.equal(new TextDecoder().decode(await fs.readFile("/out")), "replacement\n");
+  });
+}
+
+for (const name of ["fd-writer", "wc"]) {
+  for (const grouped of [false, true]) {
+    test(`redirected ${name} shares direct and admitted stdout, grouped=${grouped}`, async t => {
+      const fs = new MemoryFileSystem();
+      const shell = new Shell({ fs });
+      t.after(() => shell.dispose());
+      let admission: CommandContext["admittedHandles"];
+      shell.register({ name, async execute(context) {
+        await context.stdout.write(new TextEncoder().encode("direct\n"));
+        admission = context.admittedHandles;
+        assert.ok(admission);
+        const lease = await admission.acquire(1, ["write"], context.signal);
+        try { await lease.write!(new TextEncoder().encode("lease\n"), context.signal); }
+        finally { await lease.close(); }
+        return { exitCode: 0 };
+      } });
+      const command = `${name} > /out`;
+      const result = await shell.exec(grouped ? `{ ${command}; }` : command);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "");
+      assert.equal(new TextDecoder().decode(await fs.readFile("/out")), "direct\nlease\n");
+      assert.ok(admission);
+      await assert.rejects(admission.acquire(1, ["write"], new AbortController().signal), { code: "EBADF" });
+    });
+  }
+}
+
+test("middleware around a stock command observes the redirected descriptor", async t => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(standardCommands());
+  t.after(() => shell.dispose());
+  shell.use(async (context, next) => {
+    if (context.command === "wc") {
+      await context.stdout.write(new TextEncoder().encode("direct\n"));
+      assert.ok(context.admittedHandles);
+      const lease = await context.admittedHandles.acquire(1, ["write"], context.signal);
+      try { await lease.write!(new TextEncoder().encode("lease\n"), context.signal); }
+      finally { await lease.close(); }
+    }
+    return next();
+  });
+  const result = await shell.exec("{ wc -c > /out; }", { stdin: "four" });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/out")), "direct\nlease\n4\n");
+});
+
+for (const name of ["fd-writer", "sed"]) {
+  for (const operator of [">", ">>"]) {
+    test(`redirected ${name} ${operator} retains admitted file identity and retires leases`, async t => {
+      const { shell, fs } = setup();
+      t.after(() => shell.dispose());
+      await fs.writeFile("/out", new TextEncoder().encode("before\n"));
+      const original = await fs.stat("/out");
+      let retainedStat: (() => Promise<unknown>) | undefined;
+      shell.register({ name, async execute(context) {
+        assert.ok(context.admittedHandles);
+        const first = await context.admittedHandles.acquire(1, ["write", "stat"], context.signal);
+        const second = await context.admittedHandles.acquire(1, ["write", "stat"], context.signal);
+        retainedStat = () => first.stat!(new AbortController().signal);
+        assert.equal(first.identity, second.identity);
+        const opened = await first.stat!(context.signal);
+        assert.equal(opened.ino, original.ino);
+        assert.equal(opened.size, operator === ">>" ? 7 : 0);
+        await context.fs.rename("/out", "/moved");
+        await context.fs.writeFile("/out", new TextEncoder().encode("replacement\n"));
+        await context.stdout.write(new TextEncoder().encode("direct\n"));
+        await first.write!(new TextEncoder().encode("lease\n"), context.signal);
+        await second.close();
+        await first.write!(new TextEncoder().encode("after\n"), context.signal);
+        const moved = await first.stat!(context.signal);
+        assert.equal(moved.ino, original.ino);
+        assert.equal(moved.size, operator === ">>" ? 26 : 19);
+        // Keep one lease open: command cleanup must retire it without a caller close.
+        return { exitCode: 0 };
+      } });
+      const result = await shell.exec(`{ ${name} ${operator} /out; }`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "");
+      assert.equal(new TextDecoder().decode(await fs.readFile("/moved")), `${operator === ">>" ? "before\n" : ""}direct\nlease\nafter\n`);
+      assert.equal(new TextDecoder().decode(await fs.readFile("/out")), "replacement\n");
+      assert.ok(retainedStat);
+      await assert.rejects(retainedStat(), { code: "EBADF" });
+    });
+  }
+}
+
+for (const name of ["fd-writer", "wc"]) for (const registration of ["shell", "registry", "plugin"]) {
+  test(`redirected ${name} finalizes a caught file-write failure via ${registration}`, async t => {
+    const fs = new MemoryFileSystem({ maxFileBytes: 3 });
+    const shell = new Shell({ fs });
+    t.after(() => shell.dispose());
+    let rejected = false;
+    const command = { name, async execute(context: CommandContext) {
+      try { await context.stdout.write(new Uint8Array(4)); }
+      catch (error) {
+        assert.equal((error as { code?: string }).code, "EFBIG");
+        rejected = true;
+      }
+      return { exitCode: 0 };
+    } };
+    if (registration === "shell") shell.register(command);
+    else if (registration === "registry") shell.commands.register(command);
+    else shell.use({ name: "registered-output", setup(host) { host.commands.register(command); } });
+    const result = await shell.exec(`${name} > /out`);
+    assert.equal(rejected, true);
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /[Ff]ile too large/u);
+    assert.equal((await fs.stat("/out")).size, 0);
   });
 }

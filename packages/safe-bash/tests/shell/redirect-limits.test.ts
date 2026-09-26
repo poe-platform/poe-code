@@ -7,6 +7,7 @@ import { createMountFileSystem } from "poe-code/safe-fs/core";
 import { streamCommands } from "../../src/commands/streams.js";
 import { standardCommands } from "../../src/commands/index.js";
 import { textProgramCommands } from "../../src/commands/text-programs/index.js";
+import { Shell } from "../../src/shell/index.js";
 
 function fixture(t: TestContext, limits: ShellLimits = {}) {
   const instance = setup({ limits });
@@ -15,6 +16,70 @@ function fixture(t: TestContext, limits: ShellLimits = {}) {
 }
 
 const redirectLimit = (error: unknown): boolean => error instanceof ShellLimitError && error.limit === "maxRedirects";
+
+for (const name of ["fd-writer", "wc"]) {
+  test(`direct and admitted writes share a finite output budget for ${name}`, async t => {
+    const { shell, fs } = fixture(t, { maxOutputBytes: 5 });
+    shell.register({ name, async execute(context) {
+      await context.stdout.write(new TextEncoder().encode("ab"));
+      assert.ok(context.admittedHandles);
+      const lease = await context.admittedHandles.acquire(1, ["write"], context.signal);
+      try {
+        await lease.write!(new TextEncoder().encode("cde"), context.signal);
+        await lease.write!(new TextEncoder().encode("f"), context.signal);
+      } finally { await lease.close(); }
+      return { exitCode: 0 };
+    } });
+    await assert.rejects(shell.exec(`{ ${name} > /out; }`), error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
+    assert.equal(new TextDecoder().decode(await fs.readFile("/out")), "abcde");
+  });
+}
+
+for (const options of ["--parents", "-p"]) {
+  test(`mkdir ${options} does not double charge completed operands on failure`, async t => {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/work");
+    await fs.writeFile("/work/file", new TextEncoder().encode("preserved"));
+    const shell = new Shell({ fs, limits: { maxFileSystemOperations: 5 } }).use(standardCommands());
+    t.after(() => shell.dispose());
+    const result = await shell.exec(`mkdir ${options} /work/one /work/two /work/three /work/file`);
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "mkdir: EEXIST: file already exists, mkdir '/work/file'\n");
+    for (const name of ["one", "two", "three"]) assert.equal((await fs.stat(`/work/${name}`)).type, "directory");
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/file")), "preserved");
+  });
+}
+
+for (const options of ["--recursive --force", "-rf"]) {
+  test(`rm ${options} does not double charge completed operands on failure`, async t => {
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/one", new Uint8Array(1));
+    await fs.writeFile("/two", new Uint8Array(1));
+    await fs.mkdir("/sealed");
+    await fs.writeFile("/sealed/keep", new TextEncoder().encode("preserved"));
+    await fs.chmod!("/sealed", 0o555);
+    const shell = new Shell({ fs, limits: { maxFileSystemOperations: 4 } }).use(standardCommands());
+    t.after(() => shell.dispose());
+    const result = await shell.exec(`rm ${options} /one /two /sealed/keep`);
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /[Pp]ermission denied/u);
+    for (const path of ["/one", "/two"]) await assert.rejects(fs.stat(path), { code: "ENOENT" });
+    assert.equal(new TextDecoder().decode(await fs.readFile("/sealed/keep")), "preserved");
+  });
+}
+
+for (const prefix of ["command ", ""]) {
+  test(`${prefix}head redirect enforces the finite filesystem operation budget`, async t => {
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/input", new TextEncoder().encode("first\nsecond\n"));
+    const shell = new Shell({ fs, limits: { maxFileSystemOperations: 5 } }).use(standardCommands());
+    t.after(() => shell.dispose());
+    await assert.rejects(shell.exec(`${prefix}head -n 1 /input > /out`), error => error instanceof ShellLimitError && error.limit === "maxFileSystemOperations");
+    assert.equal((await fs.stat("/out")).size, 0);
+  });
+}
 
 for (const source of [
   "echo hello > /a/b/c/out",

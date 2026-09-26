@@ -28,7 +28,7 @@ import type { PreparedShellChild, ShellBindingReference, ShellBindingResult, She
 import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { SourceLineIndex } from "./source-line-index.js";
-import { isCleanAbsolutePath, scopeFileSystem, tryGetMemoryDirectoryEntryNamesSync, tryMkdirMemorySync, tryOpenMemoryRedirectHandleSync, tryResolveMemoryDevicePath, tryRmRfMemorySync, tryWriteMemoryFileInDirSync, tryWriteMemoryFileSync, type MemoryRedirectHandle } from "@poe-code/safe-fs/core";
+import { isCleanAbsolutePath, scopeFileSystem, tryGetMemoryDirectoryEntryNamesSync, tryMkdirMemorySync, tryResolveMemoryDevicePath, tryRmRfMemorySync, tryWriteMemoryFileInDirSync, tryWriteMemoryFileSync } from "@poe-code/safe-fs/core";
 import { collectPureReadOnlySmiNames, compilePureSmiProgram, evalCompiledSmi, evaluateArithmetic, evaluateArithmeticReferences, evaluateArithmeticSync, evaluateArithmeticSyncNonZero, evaluateArithmeticSyncString, fastSafeInt, intToStr, isSafeSmiProgram, prepareArithmetic, runIntArithForLoop, runIntForLoop, sharedLoopIntRegs, type ArithmeticProgram, type ArithmeticReferences, type CompiledSmiExpr } from "./arithmetic.js";
 import { ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces, tryFastExpandBraceRange } from "./brace-expansion.js";
@@ -228,7 +228,6 @@ const budgetedSinks = {
   get(sink: ByteSink) {
     if (
       (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) ||
-      (sink instanceof MemoryRedirectSink && sink.write === MemoryRedirectSink.prototype.write) ||
       (sink instanceof BudgetedPipeStageSink && sink.write === BudgetedPipeStageSink.prototype.write)
     ) {
       return sink;
@@ -244,9 +243,6 @@ const budgetedSinks = {
 const syncSinks = {
   get(sink: ByteSink) {
     if (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) {
-      return (chunk: Uint8Array) => sink.writeSync(chunk);
-    }
-    if (sink instanceof MemoryRedirectSink && sink.write === MemoryRedirectSink.prototype.write) {
       return (chunk: Uint8Array) => sink.writeSync(chunk);
     }
     if (sink instanceof Capture && sink.write === Capture.prototype.write) {
@@ -1221,51 +1217,6 @@ class BudgetedSyncSink implements ByteSink {
   }
 }
 
-class MemoryRedirectSink implements ByteSink {
-  declare readonly self: ByteSink;
-  declare readonly budget: Budget;
-  declare readonly handle: MemoryRedirectHandle;
-  declare readonly path: string;
-  declare readonly signal: AbortSignal;
-  declare file: NonNullable<CommandContext["stdoutFile"]>;
-
-  constructor(
-    budget: Budget,
-    handle: MemoryRedirectHandle,
-    path: string,
-    signal: AbortSignal,
-    file?: NonNullable<CommandContext["stdoutFile"]>,
-  ) {
-    this.self = this;
-    this.budget = budget;
-    this.handle = handle;
-    this.path = path;
-    this.signal = signal;
-    this.file = file ?? Object.freeze({ path });
-  }
-
-  writeSync(chunk: Uint8Array): boolean {
-    this.signal.throwIfAborted();
-    if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
-    const budget = this.budget;
-    if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
-    if (chunk.byteLength > 0) {
-      this.handle.writeSync(chunk, this.signal);
-      budget.bytes += chunk.byteLength;
-    }
-    return true;
-  }
-
-  write(chunk: Uint8Array): Promise<void> {
-    try {
-      this.writeSync(chunk);
-      return resolvedVoid;
-    } catch (error) {
-      return Promise.reject(error);
-    }
-  }
-}
-
 class BudgetedPipeStageOwnedSink {
   declare readonly parent: BudgetedPipeStageSink;
   constructor(parent: BudgetedPipeStageSink) {
@@ -1383,9 +1334,6 @@ function pollIncomingPipe(this: { incoming: { readiness(): "ready" | "eof" | "bl
 function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
   if (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) {
     return sink.signal === signal ? sink : new BudgetedSyncSink(sink.budget, sink.target, signal, sink.file);
-  }
-  if (sink instanceof MemoryRedirectSink && sink.write === MemoryRedirectSink.prototype.write) {
-    return sink.signal === signal ? sink : new MemoryRedirectSink(sink.budget, sink.handle, sink.path, signal, sink.file);
   }
   const ownership = budgetedSinks.get(sink);
   const owned = ownership?.write === sink.write ? ownership : undefined;
@@ -4576,7 +4524,7 @@ export class Runtime {
     if (!canMutatePipeStatus) return undefined;
     if (pipeline.commands.length === 1) {
       const command = pipeline.commands[0]!;
-      if (command.kind !== "simple" || command.words.length === 0 || command.redirects.length > 1) return undefined;
+      if (command.kind !== "simple" || command.words.length === 0 || command.redirects.length > 0) return undefined;
       const w0Plain = command.words[0]!.plain;
       if (
         !w0Plain ||
@@ -4600,24 +4548,6 @@ export class Runtime {
       for (let i = 0; i < command.words.length; i++) {
         if (!this.isPureArgWord(command.words[i]!, rawState)) return undefined;
       }
-      if (command.redirects.length === 1) {
-        const r0 = command.redirects[0]!;
-        if (
-          this.budget.limits.maxRedirects < 1 ||
-          this.fileWrites.size > 0 ||
-          this.outputFiles.size > 0 ||
-          !this.canFastMemoryRedirect ||
-          this.budget.fileSystemOperations + 1 > this.budget.limits.maxFileSystemOperations ||
-          r0.descriptor !== 1 ||
-          r0.move ||
-          r0.document ||
-          !(r0.operator === ">" || r0.operator === ">>" || (r0.operator === ">|" && rawState.noclobber)) ||
-          (r0.operator === ">" && rawState.noclobber) ||
-          !this.isPureArgWord(r0.target, rawState)
-        ) {
-          return undefined;
-        }
-      }
       const diagnosticLine = io.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0);
       const args = new Array<string>(command.words.length - 1);
       let lastArg = w0Plain;
@@ -4630,34 +4560,6 @@ export class Runtime {
         }
       } catch {
         return undefined;
-      }
-      let redirectSink: MemoryRedirectSink | undefined;
-      if (command.redirects.length === 1) {
-        const r0 = command.redirects[0]!;
-        let targetVal: ShellValue | undefined;
-        try {
-          targetVal = this.fastValueWord(r0.target, rawState, io, true, false, false, true, undefined, diagnosticLine);
-        } catch {
-          return undefined;
-        }
-        if (typeof targetVal !== "string" || !targetVal || targetVal.includes("\0")) return undefined;
-        const resolved = resolvePath(rawState.cwd, targetVal);
-        if (resolved === "/dev" || resolved.startsWith("/dev/")) return undefined;
-        let handle: MemoryRedirectHandle | undefined;
-        try {
-          handle = tryOpenMemoryRedirectHandleSync(
-            this.backingFs,
-            resolved,
-            r0.operator === ">>",
-            0o666 & ~(rawState.umask ?? 0o022),
-            this.signal,
-          );
-        } catch {
-          return undefined;
-        }
-        if (!handle) return undefined;
-        this.budget.fileSystemOperation();
-        redirectSink = new MemoryRedirectSink(this.budget, handle, resolved, this.commandSignal);
       }
       if (rawState.extensions && !rawState.extensions.eventDepth) {
         publishCommandSpelling(rawState, commandSpelling(command));
@@ -4680,18 +4582,9 @@ export class Runtime {
       }
       const scope = io[invocationScope];
       const context = new FastShellCommandContext(this, rawState, io, scope, w0Plain, args, undefined, env, this._isMemoryBackingFs);
-      if (redirectSink) {
-        context.stdout = redirectSink;
-        if (io.descriptors) {
-          const descriptors = new Map(io.descriptors);
-          descriptors.set(1, { output: redirectSink });
-          context.descriptors = descriptors;
-        }
-      }
       return this.finishFastSingleExternalUnit(
         externalDef,
         context,
-        redirectSink,
         diagnosticLine,
         pipeline.negate,
         ignored || pipeline.negate,
@@ -4721,7 +4614,6 @@ export class Runtime {
   private async finishFastSingleExternalUnit(
     definition: NonNullable<ReturnType<CommandRegistry["get"]>>,
     context: FastShellCommandContext,
-    redirectSink: MemoryRedirectSink | undefined,
     diagnosticLine: number,
     negate: boolean,
     ignored: boolean,
@@ -4765,7 +4657,6 @@ export class Runtime {
     } finally {
       this.budget.endPathLookupSuspension();
       scope.leaveWork();
-      redirectSink?.handle.close();
     }
     if (!existing) {
       monitor.lazyPipeStatus = rawStatus === 0 ? singleStatusZero : rawStatus === 1 ? singleStatusOne : [rawStatus];
@@ -5404,6 +5295,8 @@ export class Runtime {
         this.fileWrites.size === 0 &&
         this.outputFiles.size === 0 &&
         this.canFastMemoryRedirect &&
+        // A later operand can retry the whole command; scoped admission owns finite budgets.
+        this.budget.limits.maxFileSystemOperations === Infinity &&
         !rawState.functions.has(w0Plain) &&
         !rawState.extensions?.builtins.has(w0Plain) &&
         (canMutatePipeStatus || elem0!.text.shellValue === "0") &&
@@ -8012,51 +7905,6 @@ export class Runtime {
     }
   }
 
-  private tryFastMemoryOutputRedirect(redirect: Redirect, state: State, io: IO, outputs: Set<OutputFinalizer>, line: number): IO | undefined {
-    if (
-      this.budget.limits.maxRedirects < 1 ||
-      redirect.document ||
-      redirect.move ||
-      redirect.descriptor !== 1 ||
-      (redirect.operator !== ">" && redirect.operator !== ">>" && !(redirect.operator === ">|" && state.noclobber)) ||
-      (redirect.operator === ">" && state.noclobber) ||
-      this.fileWrites.size !== 0 ||
-      this.outputFiles.size !== 0 ||
-      !this.canFastMemoryRedirect ||
-      !this.budget.canFileSystemOperation() ||
-      !this.isPureArgWord(redirect.target, state)
-    ) {
-      return undefined;
-    }
-    let targetVal: ShellValue | undefined;
-    try {
-      targetVal = this.fastValueWord(redirect.target, state, io, true, false, false, true, undefined, line);
-    } catch {
-      return undefined;
-    }
-    if (typeof targetVal !== "string" || targetVal.length === 0 || targetVal.includes("\0")) return undefined;
-    const path = pathOf(state, targetVal);
-    if (path.startsWith("/dev/") || path === "/dev") return undefined;
-    const append = redirect.operator === ">>";
-    const mode = 0o666 & ~(state.umask ?? 0o022);
-    let handle: MemoryRedirectHandle | undefined;
-    try {
-      handle = tryOpenMemoryRedirectHandleSync(this.backingFs, path, append, mode, this.commandSignal);
-    } catch {
-      this.signal.throwIfAborted();
-      return undefined;
-    }
-    if (!handle) return undefined;
-    this.budget.fileSystemOperation();
-    const retire = io[invocationScope].register(() => { handle.close(); });
-    outputs.add(() => {
-      handle.close();
-      retire();
-    });
-    const output = new MemoryRedirectSink(this.budget, handle, path, this.commandSignal);
-    return { ...io, stdout: output };
-  }
-
   async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number): Promise<IO> {
     this.signal.throwIfAborted();
     if (redirects.length > this.budget.limits.maxRedirects) this.budget.fail("maxRedirects");
@@ -8605,18 +8453,7 @@ export class Runtime {
           }
           } finally { try { await copyOwner?.close(); } finally { holding?.release(); stateMonitor(redirectState)?.closeValues(); } }
         }
-      } else io = (
-        !inlineInput &&
-        !fileShortcut &&
-        !terminal &&
-        command.redirects.length === 1 &&
-        words.length > 0 &&
-        FAST_DIRECT_CONTEXT_COMMANDS.has(words[0]!) &&
-        !functionCommand &&
-        !state.extensions?.builtins.has(words[0]!)
-          ? this.tryFastMemoryOutputRedirect(command.redirects[0]!, state, io, outputs, command.line ?? 1)
-          : undefined
-      ) ?? await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput, !words.length || shellBuiltinNames.has(words[0]!) || !!state.extensions?.builtins.has(words[0]!) || functionCommand, fileShortcut, command.line ?? 1);
+      } else io = await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput, !words.length || shellBuiltinNames.has(words[0]!) || !!state.extensions?.builtins.has(words[0]!) || functionCommand, fileShortcut, command.line ?? 1);
       if (terminal) {
         terminal.io = io;
         await terminal.frame.reconcile(io.descriptors!);

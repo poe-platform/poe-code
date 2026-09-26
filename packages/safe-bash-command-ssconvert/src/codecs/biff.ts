@@ -15,6 +15,7 @@ import { biffNode as node, biffMetadataOpcodes, readBiffMetadata } from "./biff-
 import { writeCfb } from "./biff-write-binary.js";
 import { writeBiffStream } from "./biff-write.js";
 import { readBiffProperties } from "./biff-properties.js";
+import { writeBiffProperties } from "./biff-properties-write.js";
 import type { Codec } from "./types.js";
 
 export function createBiffWriter(profile: 7 | 8 | "dsf"): NonNullable<Codec["write"]> {
@@ -25,6 +26,7 @@ export function createBiffWriter(profile: 7 | 8 | "dsf"): NonNullable<Codec["wri
       encrypted = biffEncryptionProfiles.get(value);
       if (!encrypted || profile !== 8 && encrypted.algorithm !== "xor") throw new SsconvertError("invalid-request", "Invalid Excel BIFF encryption profile");
     }
+    const properties = await writeBiffProperties(book, context);
     const streams = new Map<string, Uint8Array>();
     try {
       if (profile === 7 || profile === "dsf") streams.set("Book", await writeBiffStream(book, 7, profile === "dsf", context,
@@ -35,6 +37,7 @@ export function createBiffWriter(profile: 7 | 8 | "dsf"): NonNullable<Codec["wri
         if (encrypted && encrypted.algorithm !== "xor") await encryptBiffStream(stream, context, encrypted);
       }
       if (encrypted?.algorithm === "xor") await encryptBiffXorStreams([...streams.values()], profile === 7 ? 7 : 8, context);
+      for (const [name, bytes] of properties) streams.set(name, bytes);
       return writeCfb(streams, context);
     } finally { if (encrypted) for (const stream of streams.values()) stream.fill(0); }
   };

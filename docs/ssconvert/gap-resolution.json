@@ -645,11 +645,19 @@
         {
           "url": "https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromoadate?view=net-9.0",
           "sha256": "00e1fb7e6c9f30ccc711222954a356ef4ae6b1f530374bc3ca6cc5af46b25199"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/comphelper/source/misc/string.cxx",
+          "sha256": "fa0c2fac525bc1307d6bd466d15f6f31b9338ad44cace294ab838472cd9a6c1f"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/include/o3tl/string_view.hxx",
+          "sha256": "db1e65355c8dc5b740cd15a7057d16c607fa770bfdad0003fc1a92aa7864588d"
         }
       ],
       "productEvidence": "At 5124a5a714, biff.ts workbookBytes (82) selects only Workbook/Book from readCfb; readBiff does not populate Workbook.properties, and writeBiff emits only workbook streams. biff-encryption.ts:96 refuses CryptoAPI flags without bit 8 (ancillary properties encrypted). These are separate metadata preservation and encryption gaps.",
       "nativeTrace": "excimp8.cxx:418 calls sfx2::LoadOlePropertySet on the root storage. docinf.cxx:49 reads SummaryInformation title/subject/author/comments/timestamps and DocumentSummaryInformation named custom properties. oleprops.cxx:1094 opens each property stream directly; this path does not supply the BIFF decrypter and is not an encrypted-property implementation recipe.",
-      "next": "Implement bounded OLE property-set export using Workbook.properties and explicit preservation/loss handling for retained streams. Qualify independent application readback. Resolve encrypted ancillary streams separately; keep the existing refusal until implemented.",
+      "next": "Reconcile generic metadata loss bookkeeping with successfully exported properties, then preserve unsupported property records across edits. Independently qualify native application readback and resolve encrypted ancillary streams; do not remove their refusal before implementation.",
       "containerPrerequisite": {
         "change": "CFB output now admits more than two root-owned streams, chains every directory sector and writes a balanced red-black directory tree. Optional node/work and output-byte admission remains explicit; original one/two-stream layouts remain stable.",
         "evidence": "Seven failing memory cases reproduced the cap. Final 53-file BIFF cohort passes 1174 tests, including independent directory order, cycle, color/black-height and exact stream-value checks for 3/4/7/8/15/16 streams. Maintained package lint/types/public consumers and selected four-workspace build pass.",
@@ -659,7 +667,32 @@
         "change": "Root SummaryInformation and DocumentSummaryInformation sections now populate Workbook.properties. Section-local codepages and custom dictionaries decode UTF-8, UTF-16 and supported legacy encodings; supported values include strings, I4, R8, BOOL, FILETIME and OLE DATE. Unknown types, fields, sections, unsupported encodings and name collisions retain the complete property stream with a warning. Offsets, overlaps, duplicates, string terminators, finite numbers, node/text/work limits and cancellation are admitted explicitly.",
         "evidence": "Five original memory fixtures failed before implementation. The expanded 18-case cohort passes; all 54 BIFF files / 1192 tests pass. No binary fixture or native-application pass is claimed. Follow-up: a failing uppercase property-stream fixture validated CFB name matching; the corrected 19 property and 19 container cases pass.",
         "dateFinding": "LibreOffice oleprops.cxx:565 truncates VT_DATE to integral days from 1899-12-31. Microsoft DateTime.FromOADate documentation defines 1899-12-30 plus the absolute fractional day. Import follows the documented stored representation, including negative fractional dates. FILETIME uses UTC and editing duration preserves 100 ns fractions; sub-millisecond timestamps retain their original bytes alongside the normalized string.",
-        "remaining": "Property export and encrypted ancillary-property support remain open. Unsupported values are retained for inspection, not yet round-tripped by the BIFF writer. Native application and wider format qualification remain open."
+        "remaining": "Property export is now implemented for supported values. Raw unsupported property retention, encrypted ancillary-property support and broader native qualification remain open; see scalarExport."
+      },
+      "scalarExport": {
+        "change": "BIFF7, BIFF8 and dual-stream exports emit SummaryInformation and DocumentSummaryInformation with UTF-8 codepages, section-relative offsets, padded values and named custom scalar dictionaries. Supported fields include Unicode text, keywords, integer/double/boolean values, revision strings, UTC FILETIME timestamps and exact elapsed-time ticks. Unsupported values produce loss warnings. Properties remain plaintext beside encrypted workbook streams; encrypted ancillary streams are not implemented.",
+        "sourceFindings": "LibreOffice comphelper string.cxx:367/396 joins keywords with comma-space and splits on commas; o3tl string_view.hxx:417 trims nonzero controls through U+0020, U+2000..200B and U+2028..2029. NUL and NBSP remain. oleprops.cxx:429 reads nonzero BOOL as true and :436 writes signed 16-bit -1. Import now follows those rules. Named values containing commas or trimmed boundary characters cannot round-trip as one native keyword and are diagnosed.",
+        "validation": "Six initial writer failures reproduced omitted properties and missing diagnostics/budget admission. Final 55-file BIFF cohort passes 1210 tests; maintained package lint, source/test/public consumer types and selected four-workspace build pass. The full repository build and root type-consumer route also passed before this export change after local dependency repair.",
+        "independentReader": {
+          "package": "@e965/xlsx",
+          "version": "0.20.3",
+          "sourceSha256": "1a0fb062ee9781b13f6687371b202aaefc53b6ce55b530c027e01f9c087b77db",
+          "profiles": [
+            7,
+            8,
+            "dsf"
+          ],
+          "exportBytes": [
+            3584,
+            3584,
+            5120
+          ],
+          "matchedMetadataFields": 24,
+          "matchedCells": 3,
+          "mismatches": "All three custom true values read as false. SheetJS xlsx.mjs:6419 calls parsebool, whose :6575 implementation recognizes only 1. Independent CFB decoding confirms our stored ffff0000 matches LibreOffice output; this is not counted as a boolean application pass."
+        },
+        "cli": "Executed compiled public createEngine/runCommand over Gnumeric XML with an embedded-comma keyword. Conversion publishes a BIFF workbook and emits the property loss warning; inspected terminal screenshot. A second generic document-meta retention warning remains and requires separate reconciliation.",
+        "remaining": "Unknown raw property sections/types and sub-millisecond timestamp bytes are retained on import but not yet merged back into edited exports. Generic retained document-meta wrappers can still cause redundant export warnings. Native application readback, encrypted ancillary metadata and wider property profiles remain open."
       }
     }
   },

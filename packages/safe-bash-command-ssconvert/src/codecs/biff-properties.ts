@@ -5,16 +5,21 @@ import { biffDecode } from "./biff-strings.js";
 
 // OLE property-set layout and IDs: LibreOffice oleprops.cxx/.hxx at
 // bce0998afefdbc355585ca324285661a2170ba77; source receipts are in the gap ledger.
-const summary = "e0859ff2f94f6810ab9108002b27b3d9";
-const document = "02d5cdd59c2e1b10939708002b2cf9ae";
-const custom = "05d5cdd59c2e1b10939708002b2cf9ae";
-const fields = new Map<string, ReadonlyMap<number, string>>([
+export const biffPropertyFormats = { summary: "e0859ff2f94f6810ab9108002b27b3d9",
+  document: "02d5cdd59c2e1b10939708002b2cf9ae", custom: "05d5cdd59c2e1b10939708002b2cf9ae" };
+const { summary, document, custom } = biffPropertyFormats;
+export const biffPropertyFields = new Map<string, ReadonlyMap<number, string>>([
   [summary, new Map([[2, "dc:title"], [3, "dc:subject"], [4, "meta:initial-creator"], [5, "dc:keywords"],
     [6, "dc:description"], [7, "meta:template"], [8, "dc:creator"], [9, "meta:editing-cycles"],
     [10, "meta:editing-duration"], [11, "meta:print-date"], [12, "meta:creation-date"], [13, "dc:date"],
     [14, "gsf:page-count"], [15, "gsf:word-count"], [16, "gsf:character-count"], [18, "meta:generator"], [19, "gsf:security"]])],
   [document, new Map([[2, "gsf:category"], [14, "gsf:manager"], [15, "dc:publisher"]])]
 ]);
+
+// comphelper's comma-separated keywords use o3tl::trim, not ECMAScript trim.
+export function isBiffKeywordSpace(code: number): boolean {
+  return code > 0 && code <= 32 || code >= 0x2000 && code <= 0x200b || code === 0x2028 || code === 0x2029;
+}
 
 /** Property offsets are section-relative; dictionaries have no variant header. */
 export async function readBiffProperties(streams: ReadonlyMap<string, Uint8Array>, context: CapabilityContext,
@@ -71,7 +76,7 @@ export async function readBiffProperties(streams: ReadonlyMap<string, Uint8Array
     sections.sort((a, b) => a.offset - b.offset);
     for (let i = 1; i < sections.length; i++) if (sections[i]!.offset < sections[i - 1]!.end) invalidBiff("overlapping property sections");
     for (const { guid, offset, end } of sections) {
-      if (!fields.has(guid) && guid !== custom) { unknown = true; continue; }
+      if (!biffPropertyFields.has(guid) && guid !== custom) { unknown = true; continue; }
       const section = new Binary(file.slice(offset, end - offset)), propertyCount = section.u32(4);
       section.check(8, propertyCount * 8); admit(propertyCount);
       const pointers: { id: number; at: number }[] = [], ids = new Set<number>();
@@ -108,7 +113,7 @@ export async function readBiffProperties(streams: ReadonlyMap<string, Uint8Array
       }
       for (const [id, data] of values) {
         context.signal.throwIfAborted(); if (id < 2) continue;
-        const key = guid === custom ? names.get(id) : fields.get(guid)?.get(id);
+        const key = guid === custom ? names.get(id) : biffPropertyFields.get(guid)?.get(id);
         if (key === undefined || Object.hasOwn(properties, key)) { unknown = true; continue; }
         let value: ImportedValue | undefined;
         const type = data.u32(0);
@@ -116,7 +121,7 @@ export async function readBiffProperties(streams: ReadonlyMap<string, Uint8Array
           if (type === 30 || type === 31) value = text(data, 4, type === 31 ? 1200 : codepage).value;
           else if (type === 3) value = data.u32(4) | 0;
           else if (type === 5) { value = data.f64(4); if (!Number.isFinite(value)) invalidBiff("nonfinite property value"); }
-          else if (type === 11) { const raw = data.u16(4); if (raw !== 0 && raw !== 0xffff) invalidBiff("invalid property boolean"); value = raw !== 0; }
+          else if (type === 11) value = data.u16(4) !== 0;
           else if (type === 64) {
             const ticks = BigInt(data.u32(4)) + (BigInt(data.u32(8)) << 32n);
             if (guid === summary && id === 10) {
@@ -143,6 +148,16 @@ export async function readBiffProperties(streams: ReadonlyMap<string, Uint8Array
           if (!(error instanceof SsconvertError) || error.code !== "unsupported-feature") throw error;
         }
         if (value === undefined) { unknown = true; continue; }
+        if (guid === summary && id === 5 && typeof value === "string") {
+          let count = 1; for (const character of value) if (character === ",") count++;
+          admit(count); accountWork(value.length);
+          value = value.split(",").map(keyword => {
+            let start = 0, end = keyword.length;
+            while (start < end && isBiffKeywordSpace(keyword.charCodeAt(start))) start++;
+            while (end > start && isBiffKeywordSpace(keyword.charCodeAt(end - 1))) end--;
+            return keyword.slice(start, end);
+          }).filter(Boolean);
+        }
         accountText(key); properties[key] = value;
       }
     }

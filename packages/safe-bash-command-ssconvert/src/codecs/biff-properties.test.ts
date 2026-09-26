@@ -56,6 +56,13 @@ it("resolves property stream names with CFB's case-insensitive identity", async 
   expect(book.properties).toEqual({ "dc:title": "Title" });
 });
 
+it("splits keywords using LibreOffice's comma and whitespace rules", async () => {
+  const bytes = propertySet([{ kind: 0, values: [[1, u32(2, 65001)],
+    [5, concat(u32(30), string("\u200b one\u2028, ,\u00a0two\u00a0,\0three\0"))]] }]);
+  const result = await readBiff(workbook([[summary, bytes]]), context);
+  expect(result.properties).toEqual({ "dc:keywords": ["one", "\u00a0two\u00a0", "\0three\0"] });
+});
+
 it("uses each section's codepage and dictionary for custom scalar values", async () => {
   const double = concat(u32(5), new Uint8Array(8)); new DataView(double.buffer).setFloat64(4, 2.5, true);
   const bytes = propertySet([{ kind: 1, values: [[1, u32(2, 1252)], [15, concat(u32(30, 5), new Uint8Array([67, 97, 102, 233, 0]))]] },
@@ -112,18 +119,24 @@ it("admits metadata text before decoding a property", async () => {
     limits: { ...context.limits, workbookTextBytes: 50 } })).rejects.toMatchObject({ code: "resource-limit" });
 });
 
-it.each(["duplicate ID", "same offset", "nonfinite number", "unterminated string", "invalid boolean", "codepage type"])(
+it.each(["duplicate ID", "same offset", "nonfinite number", "unterminated string", "truncated boolean", "codepage type"])(
   "rejects malformed property data: %s", async kind => {
     let values: [number, Uint8Array][] = [[1, u32(2, 1252)], [2, concat(u32(30), string("Title"))]];
     if (kind === "duplicate ID") values = [[2, u32(3, 1)], [2, u32(3, 2)]];
     if (kind === "nonfinite number") values[1] = [2, u32(5, 0, 0x7ff00000)];
     if (kind === "unterminated string") values[1] = [2, u32(30, 4, 0x61616161)];
-    if (kind === "invalid boolean") values[1] = [2, u32(11, 2)];
+    if (kind === "truncated boolean") values[1] = [2, u32(11)];
     if (kind === "codepage type") values[0] = [1, u32(3, 1252)];
     const bytes = propertySet([{ kind: 0, values }]);
     if (kind === "same offset") new DataView(bytes.buffer).setUint32(48 + 20, 24, true);
     await expect(readBiff(workbook([[summary, bytes]]), context)).rejects.toMatchObject({ code: "io" });
   });
+
+it.each([1, 2, 0xffff])("reads native nonzero BOOL value %i as true", async value => {
+  const bytes = propertySet([{ kind: 2, values: [[1, u32(2, 65001)],
+    [0, concat(u32(1, 2), string("Approved"))], [2, u32(11, value)]] }]);
+  expect((await readBiff(workbook([[document, bytes]]), context)).properties).toEqual({ Approved: true });
+});
 
 it("retains an unknown codepage and type without inventing a decoded value", async () => {
   const bytes = propertySet([{ kind: 0, values: [[1, u32(2, 65535)], [2, concat(u32(30), string("Title"))]] }]);

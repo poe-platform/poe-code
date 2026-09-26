@@ -340,13 +340,41 @@ describe("real safe-bash browser kernel", () => {
     expect(assets[2]!.source).toContain("MIT");
   });
 
+  it.each([false, true])("preserves native session callbacks with a root observer: %s", async (observeRoot) => {
+    const { fs, shell } = await fixture();
+    await fs.mkdir("/home/sub");
+    const roots: unknown[] = [];
+    const sessions: unknown[] = [];
+    const results: unknown[] = [];
+    let callbackFinished = false;
+    try {
+      const result = await shell.exec("cd sub; saved=value; exit 7", {
+        ...(observeRoot ? { onRootState: (state: unknown) => roots.push(state) } : {}),
+        onState: async (state, executionResult) => {
+          sessions.push(state);
+          results.push(executionResult);
+          await Promise.resolve();
+          callbackFinished = true;
+        }
+      });
+      expect(result.exitCode).toBe(7);
+      expect(result.state).toMatchObject({ cwd: "/home/sub", status: 7, variables: { saved: "value" } });
+      expect(sessions).toEqual([result.state]);
+      expect(results).toEqual([result]);
+      expect(callbackFinished).toBe(true);
+      expect(roots).toEqual(observeRoot ? [{ cwd: "/home/sub" }] : []);
+    } finally {
+      await shell.dispose();
+    }
+  });
+
   it("reports the final root cwd exactly once when exit skips later commands", async () => {
     const { fs, shell } = await fixture();
     await fs.mkdir("/home/sub");
     const states: Readonly<{ cwd: string }>[] = [];
     try {
       const result = await shell.exec("cd sub; exit 7; cd /", {
-        onState: (state) => states.push(state)
+        onRootState: (state) => states.push(state)
       });
       expect(result.exitCode).toBe(7);
       expect(states).toEqual([{ cwd: "/home/sub" }]);
@@ -362,7 +390,7 @@ describe("real safe-bash browser kernel", () => {
     const states: Readonly<{ cwd: string }>[] = [];
     try {
       const result = await shell.exec("cd sub; (cd /); sh -c 'cd /'; cd / | cat", {
-        onState: (state) => states.push(state)
+        onRootState: (state) => states.push(state)
       });
       expect(result.exitCode).toBe(0);
       expect(states).toEqual([{ cwd: "/home/sub" }]);
@@ -379,7 +407,7 @@ describe("real safe-bash browser kernel", () => {
       await expect(
         shell.exec("cd sub; while :; do :; done", {
           limits: { maxLoopIterations: 2 },
-          onState: (state) => states.push(state)
+          onRootState: (state) => states.push(state)
         })
       ).rejects.toThrow("maxLoopIterations");
       expect(states).toEqual([{ cwd: "/home/sub" }]);
@@ -396,7 +424,7 @@ describe("real safe-bash browser kernel", () => {
       expect(
         (
           await shell.exec("cd sub; set -e; false; cd /", {
-            onState: (state) => states.push(state)
+            onRootState: (state) => states.push(state)
           })
         ).exitCode
       ).toBe(1);
@@ -408,7 +436,7 @@ describe("real safe-bash browser kernel", () => {
           shell.exec("cd sub; while :; do :; done", {
             signal: controller.signal,
             limits: { maxCommands: 2_000_000, maxLoopIterations: 1_000_000 },
-            onState: (state) => states.push(state)
+            onRootState: (state) => states.push(state)
           })
         ).rejects.toBe(cancellation);
       } finally {

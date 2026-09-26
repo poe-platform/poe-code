@@ -16,7 +16,7 @@ export function instrumentRootState(source) {
       const factory = context.factory;
       const notify = factory.createExpressionStatement(
         factory.createCallChain(
-          factory.createPropertyAccessExpression(factory.createIdentifier("options"), "onState"),
+          factory.createPropertyAccessExpression(factory.createIdentifier("options"), "onRootState"),
           factory.createToken(ts.SyntaxKind.QuestionDotToken),
           undefined,
           [

@@ -63,7 +63,7 @@ describe("pinned browser source adapters", () => {
     for (const fail of [false, true]) {
       const states: unknown[] = [];
       const paths: string[] = [];
-      const options = { fail, cleaned: false, onState: (value: unknown) => states.push(value), onCwd: (value: string) => paths.push(value) };
+      const options = { fail, cleaned: false, onRootState: (value: unknown) => states.push(value), onCwd: (value: string) => paths.push(value) };
       const result = new Shell().run(options);
       if (fail) await expect(result).rejects.toThrow("execution failed");
       else expect(await result).toEqual(["read"]);

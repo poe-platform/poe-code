@@ -71,7 +71,7 @@ globalThis.addEventListener("message", async (event: MessageEvent<PageMessage>) 
       const executed = await shell.exec(message.command, {
         cwd: message.cwd,
         onCwd: (cwd) => send({ kind: "state", cwd }),
-        onState: ({ cwd }) => send({ kind: "state", cwd })
+        onRootState: ({ cwd }) => send({ kind: "state", cwd })
       });
       result = { stdout: executed.stdout, stderr: executed.stderr, exitCode: executed.exitCode };
     } catch (error) {

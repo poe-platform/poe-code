@@ -16,7 +16,7 @@ declare module "virtual:safe-bash-kernel" {
     readonly cwd: string;
   }
   export interface ShellExecOptions extends NativeShellExecOptions {
-    readonly onState?: (state: Readonly<RootShellState>) => void;
+    readonly onRootState?: (state: Readonly<RootShellState>) => void;
     readonly onCwd?: (cwd: string) => void;
   }
   export class Shell extends NativeShell {

@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { createContext, runInContext } from "node:vm";
 import { build } from "esbuild";
+import { readFile } from "node:fs/promises";
 
 type BrowserShell = typeof import("../../src/index.js");
 let browser: BrowserShell;
@@ -17,7 +18,11 @@ before(async () => {
     bundle: true, write: false, platform: "browser", conditions: ["workerd", "worker", "browser"],
     format: "cjs", target: "es2022",
   });
-  const bundle = await build(resolveBrowserShellBuild(root));
+  const { resolveBundleGraph } = await import(new URL("../../../../scripts/bundle-graph.mjs", import.meta.url).href);
+  const pkg = JSON.parse(await readFile(path.join(root, "packages/safe-bash-contracts/package.json"), "utf8"));
+  const graph = await resolveBundleGraph(root, [{ dir: "safe-bash-contracts", pkg }]);
+  const recipe = resolveBrowserShellBuild(root);
+  const bundle = await build({ ...recipe, alias: { ...graph.alias, ...recipe.alias } });
   const emitted = new Map(bundle.outputFiles!.map(output => [output.path, output.text]));
   const entry = bundle.outputFiles!.find(output => output.path.endsWith("core.browser.js"))!;
   const compiled = await build({

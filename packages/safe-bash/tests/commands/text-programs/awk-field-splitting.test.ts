@@ -96,3 +96,19 @@ test("awk explicit whitespace regex still splits carriage returns, vertical tabs
   assert.equal(result.exitCode, 0, result.stderr.toString());
   assert.equal(result.stdout.toString(), "4 a b c d\n");
 });
+
+test("pooled AWK invocations charge defaults before an array disables reuse", async () => {
+  for (const program of ["BEGIN { print 1 }", "BEGIN { print 1 }", "BEGIN { a[1]=1; print a[1] }"]) {
+    const result = await runVirtual("awk", { args: [program] });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.equal(result.stdout.toString(), "1\n");
+  }
+});
+
+test("pooled AWK field buffers have one invocation owner across reuse modes", async () => {
+  for (const args of [["{ print $1 }"], ["{ print $2 }"], ["-v", "mode=1", "{ print $1,$2 }"]]) {
+    const result = await runVirtual("awk", { args, stdin: args.length > 1 ? "fresh right\n" : "warm stale\n" });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.equal(result.stdout.toString(), args.length > 1 ? "fresh right\n" : args[0]!.includes("$1") ? "warm\n" : "stale\n");
+  }
+});

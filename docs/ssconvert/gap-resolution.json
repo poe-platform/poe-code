@@ -915,6 +915,18 @@
       "publicReadback": "Compiled command --recalc XLSX export and SDK readback preserve all 23 numeric results within 1e-12 and translated function formulas without LOTUS_ placeholders. Input 1229 bytes, output 4588 bytes; exit 0, empty stderr. Fixture remains in memory.",
       "remaining": "Wider argument/domain semantics, additional vendor add-ins, Works and independent application qualification remain open. Name-table coverage does not establish full native compatibility."
     },
+    "lotusUnicodeCompatibility": {
+      "status": "implemented Unicode compatibility zero-byte escape and private-use code units",
+      "source": {
+        "url": "https://raw.githubusercontent.com/unicode-org/icu/049e0d6a420629ac7db77256987d083a563287b5/icu4c/source/common/ucnv_lmb.cpp",
+        "sha256": "0ca62b7469713bb992f418dc216e0395b175e51047f6a56e67b7524b1452f39b",
+        "lines": "194-201,1088-1100,1169-1174",
+        "finding": "Group 0x14 holds UTF-16BE code units; F6/xx decodes to xx/00. Private-use code units and surrogate pairs are retained."
+      },
+      "validation": "Five original cases failed and one ordinary Unicode control passed before repair. All 285 tests in fourteen Lotus files, maintained package lint/types and selected build pass.",
+      "independentReadback": "Native macOS libicucore ucnv_convert (u_getVersion 78.1.0.0) independently decodes all six LMBCS-1 sequences. Compiled command --recalc XLSX export and SDK readback preserve all twelve label/formula strings, including A/Z neighbors, with empty stderr. Input 286 bytes, output 4539 bytes; fixtures stay in memory.",
+      "remaining": "Other LMBCS national/exception groups and native workbook application qualification remain open. ICU converter qualification is separate from workbook application qualification."
+    },
     "lotusExtendedRounding": {
       "status": "implemented single-rounding binary80-to-binary64 scaling for numeric records and formulas",
       "source": {
@@ -1035,7 +1047,7 @@
     {
       "id": "lotus-named-formula-references",
       "status": "open",
-      "currentFinding": "WK1/WK3 names, coordinates, function names and namespace lifecycle repairs are implemented. Named tokens resolve workbook names and bounded external-variable fallbacks; recalculation requires the explicit external-reference host. Source-led repairs now decode per-token modern reference flags, signed legacy offsets for BOF 0x0404/0x0406, and original WK3 BOF 0x1000 detection/formula dispatch. Source-led conversion now preserves YEAR, CHOOSE, MID, REPLACE, FIND, STRING, RATE, TERM, CTERM and named financial operand semantics. Compact 16-bit formula constants now sign-extend like cell records. Three-argument lookup/INDEX conversions are also implemented. The 23 missing source-recognized named aliases are implemented, covering all 47 names in LibreOffice's explicit add-in table. Numeric widths now follow formula record layout; extended constants retain small values with single binary64 rounding. All 279 tests in thirteen Lotus files pass, plus package lint/types/build and compiled SDK/command XLSX readback for the repaired profiles. Other arities, domains and vendor add-ins remain open. Earlier full-package and 24-profile XML/XLSX evidence remains scoped to its recorded candidate. BOF 0x0405 and Works offset semantics, modern range flag packing, dynamic/relative-sheet identity, wider formatting/charset profiles and independent application readback remain open. Native Gnumeric named-token limitations are not product completion evidence; containing publication is still pending."
+      "currentFinding": "WK1/WK3 names, coordinates, function names and namespace lifecycle repairs are implemented. Named tokens resolve workbook names and bounded external-variable fallbacks; recalculation requires the explicit external-reference host. Source-led repairs now decode per-token modern reference flags, signed legacy offsets for BOF 0x0404/0x0406, and original WK3 BOF 0x1000 detection/formula dispatch. Source-led conversion now preserves YEAR, CHOOSE, MID, REPLACE, FIND, STRING, RATE, TERM, CTERM and named financial operand semantics. Compact 16-bit formula constants now sign-extend like cell records. Three-argument lookup/INDEX conversions are also implemented. The 23 missing source-recognized named aliases are implemented, covering all 47 names in LibreOffice's explicit add-in table. Numeric widths now follow formula record layout; extended constants retain small values with single binary64 rounding. LMBCS Unicode compatibility escapes and private-use code units are preserved. All 285 tests in fourteen Lotus files pass, plus package lint/types/build and compiled SDK/command XLSX readback for the repaired profiles. Other arities, domains and vendor add-ins remain open. Earlier full-package and 24-profile XML/XLSX evidence remains scoped to its recorded candidate. BOF 0x0405 and Works offset semantics, modern range flag packing, dynamic/relative-sheet identity, wider formatting/charset profiles and independent application readback remain open. Native Gnumeric named-token limitations are not product completion evidence; containing publication is still pending."
     },
     {
       "id": "biff-external-and-token-formulas",

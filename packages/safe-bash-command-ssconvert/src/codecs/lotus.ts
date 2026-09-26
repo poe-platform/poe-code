@@ -34,9 +34,9 @@ async function lmbcs(bytes: Uint8Array, group: number, context: CapabilityContex
       const uc = mapped(c, bytes[at++]!); if (uc) text += String.fromCodePoint(uc);
     } else if (c === 0x14) {
       if (at + 1 >= bytes.length) break;
-      const uc = bytes[at++]! * 256 + bytes[at++]!;
-      if (uc >= 0xe000 && uc <= 0xf8ff) await warn(`Unhandled character 0x14${uc.toString(16).padStart(4, "0")}`);
-      else text += String.fromCodePoint(uc);
+      const high = bytes[at++]!, low = bytes[at++]!;
+      // ICU GetUniFromLMBCSUni: F6/xx encodes xx/00 without a NUL byte.
+      text += String.fromCharCode(high === 0xf6 ? low * 256 : high * 256 + low);
     } else if (c === 0x12 || c >= 128 && group === 0x12) {
       const start = c === 0x12 ? at : at - 1;
       if (start + 1 >= bytes.length) break;

@@ -10,6 +10,9 @@ import { basename, dirname, extname, joinPath } from "./path.js";
 import { isAscii, isUtf8, types } from "./browser-builtins.mjs";
 import { setImmediate as pause } from "./browser-timer-promises.mjs";
 import { createHash as nativeHash } from "node:crypto";
+import { Buffer as NativeBuffer } from "node:buffer";
+import { fileURLToPath } from "node:url";
+import { build } from "esbuild";
 import { createHash, randomBytes, randomInt, randomUUID } from "./browser-crypto.mjs";
 
 describe("browser byte platform", () => {
@@ -109,6 +112,31 @@ describe("browser byte platform", () => {
     expect(BrowserBuffer.compare(copied, original)).toBe(-1);
     expect(BrowserBuffer.compare(copied, copied)).toBe(0);
     expect(BrowserBuffer.from("abc").subarray(1).toString()).toBe("bc");
+  });
+
+  it("copies into byte-array views with the browser polyfill and native overlap semantics", async () => {
+    const built = await build({
+      entryPoints: [fileURLToPath(new URL("./browser-builtins.mjs", import.meta.url))],
+      bundle: true, platform: "browser", format: "esm", write: false
+    });
+    const { Buffer: BundledBuffer } = await import(
+      /* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(built.outputFiles[0].text).toString("base64")}`
+    );
+    for (const overlap of [false, true]) {
+      const run = (copy: typeof NativeBuffer.prototype.copy) => {
+        const source = new Uint8Array([10, 11, 12, 13, 14, 15]);
+        const target = overlap ? source : new Uint8Array(6).fill(90);
+        const count = copy.call(source.subarray(1, 5), target.subarray(2, 5), overlap ? 0 : 1, 0, 4);
+        return { count, source: [...source], target: [...target] };
+      };
+      expect(run(BundledBuffer.prototype.copy)).toEqual(run(NativeBuffer.prototype.copy));
+    }
+    const source = BundledBuffer.from([128, 255, 254]);
+    const target = new Uint8Array(4);
+    expect(source.copy(target, 1)).toBe(3);
+    expect([...target]).toEqual([0, 128, 255, 254]);
+    expect(() => source.copy(target, -1)).toThrow(RangeError);
+    expect(() => source.copy({ length: 4 })).toThrow(TypeError);
   });
 
   it("finds byte-sequence delimiters without decoding binary input", () => {

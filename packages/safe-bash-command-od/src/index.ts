@@ -221,7 +221,7 @@ async function* sources(context: CommandContext, operands: readonly string[], ma
         context.signal.throwIfAborted();
       }
       for (let offset = 0; offset < chunk.length; offset += blockSize) {
-        if (offset > 0 || ++slicesSinceYield >= 8) {
+        if (++slicesSinceYield >= 32) {
           slicesSinceYield = 0;
           await yieldTurn();
         }

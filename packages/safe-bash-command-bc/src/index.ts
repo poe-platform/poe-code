@@ -811,12 +811,12 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
     let steps = 0;
     let outBuffer = "";
 
-    const tick = async (): Promise<void> => {
+    const tick = (): Promise<void> | undefined => {
       if (++steps > maxSteps) throw new Error(`bc execution exceeded maximum step limit (${maxSteps})`);
-      if ((steps & 1023) === 0) {
-        await yieldTurn(context.signal);
-        context.signal.throwIfAborted();
+      if ((steps & 4095) === 0) {
+        return yieldTurn(context.signal);
       }
+      return undefined;
     };
 
     const getVar = async (name: string, indexExpr?: Expr): Promise<DecimalValue> => {
@@ -882,7 +882,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
     };
 
     const evalExpr = async (expr: Expr): Promise<DecimalValue> => {
-      await tick();
+      { const p = tick(); if (p) await p; }
       switch (expr.kind) {
         case "num":
           return parseLiteralInBase(expr.raw, ibase);
@@ -998,7 +998,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
     };
 
     const execStmt = async (stmt: Stmt): Promise<void> => {
-      await tick();
+      { const p = tick(); if (p) await p; }
       switch (stmt.kind) {
         case "define":
           funcs.set(stmt.name, { params: stmt.params, body: stmt.body });

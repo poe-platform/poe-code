@@ -319,8 +319,8 @@ export async function buildOptionalPackage({ rootDir, compile, fileSystem = fs }
         else {
           if (edge.asset) throw new Error(`Unmapped core asset: ${specifier}`);
           const route = publicRoute(coreManifest, core, target, declaration);
-          if (route !== undefined) replacement = requirePeer("@poe-platform/safe-bash" + route);
-          else if (supportBinding(target, edge.names, declaration)) replacement = requirePeer("@poe-platform/safe-bash/optional-host");
+          if (supportBinding(target, edge.names, declaration)) replacement = requirePeer("@poe-platform/safe-bash/optional-host");
+          else if (route !== undefined) replacement = requirePeer("@poe-platform/safe-bash" + route);
           else throw new Error(`Unmapped core boundary: ${filename} -> ${specifier}`);
         }
       } else if (specifier.startsWith("node:") && builtinModules.includes(specifier.slice(5))) {

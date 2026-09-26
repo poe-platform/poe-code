@@ -15,19 +15,26 @@ function snapshot(filesystems: readonly FileSystem[]): unknown {
     const root: unknown = Reflect.get(filesystem, "root");
     assert.ok(root && typeof root === "object");
     const state = structuredClone({ root, nextInode: Reflect.get(filesystem, "nextInode") });
-    const pending = [state.root];
+    const pending = [{ source: root, node: state.root }];
     while (pending.length) {
-      const node = pending.pop()!;
-      if (Reflect.get(node, "type") !== "directory") continue;
+      const { source, node } = pending.pop()!;
+      // structuredClone omits prototype fields; retain the live node kind.
+      const type: unknown = Reflect.get(source, "type");
+      Reflect.set(node, "type", type);
+      if (type !== "directory") continue;
       // Metadata reads may populate derived link-count caches. Compare every
       // other field, including revisions, timestamps, entries and file bytes.
       Reflect.deleteProperty(node, "cachedNlink");
       Reflect.deleteProperty(node, "cachedNlinkRev");
       const entries: unknown = Reflect.get(node, "entries");
+      const sourceEntries: unknown = Reflect.get(source, "entries");
       assert.ok(entries instanceof Map);
-      for (const child of entries.values()) {
+      assert.ok(sourceEntries instanceof Map);
+      for (const [name, child] of entries) {
         assert.ok(child && typeof child === "object");
-        pending.push(child);
+        const sourceChild: unknown = sourceEntries.get(name);
+        assert.ok(sourceChild && typeof sourceChild === "object");
+        pending.push({ source: sourceChild, node: child });
       }
     }
     return state;

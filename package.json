@@ -213,6 +213,14 @@
       "browser": "./packages/remote-execution/dist/providers/*.js",
       "node": "./packages/remote-execution/dist/providers/*.js",
       "default": "./packages/remote-execution/dist/providers/*.js"
+    },
+    "./safe-bash/contracts": {
+      "types": "./packages/safe-bash-contracts/dist/index.d.ts",
+      "import": "./packages/safe-bash-contracts/dist/index.js"
+    },
+    "./safe-bash/contracts/*": {
+      "types": "./packages/safe-bash-contracts/dist/*.d.ts",
+      "import": "./packages/safe-bash-contracts/dist/*.js"
     }
   },
   "workspaces": [

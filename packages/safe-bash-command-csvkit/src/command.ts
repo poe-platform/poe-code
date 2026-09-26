@@ -1,4 +1,10 @@
 import { utf8Codec } from "./codecs/utf8.js";
+import { pythonCodecs } from "./codecs/python.js";
+import { databases as databaseDialects } from "./databases.js";
+import { defaultSniffStreamProfile } from "./csv/sniffer-profile.js";
+import { createGzipCompressionProvider } from "./io/compression.js";
+import { createCompressionCodec } from "@poe-code/office-package/compression";
+import { portableLocale } from "./portable-locale.js";
 import { commands } from "./commands.js";
 import { execute, defaultLimits } from "./engine.js";
 import { OwnedArguments } from "./argv.js";
@@ -27,18 +33,15 @@ export interface CsvkitCommandsOptions extends Partial<Pick<CsvkitContext, "code
 export function createCsvkitCommands(options: CsvkitCommandsOptions = {}): readonly CommandDefinition[] {
   if (options.replace !== undefined && typeof options.replace !== "boolean") throw new TypeError("csvkit replace must be boolean");
   const limits = Object.freeze({ ...defaultLimits, ...options.limits });
-  const codecs = Object.freeze([...(options.codecs ?? [utf8Codec])]);
-  const compression = Object.freeze([...(options.compression ?? [])]);
+  const codecs = Object.freeze([...(options.codecs ?? [utf8Codec, ...pythonCodecs])]);
+  const compression = Object.freeze([...(options.compression ?? [createGzipCompressionProvider(createCompressionCodec())])]);
   const databases = Object.freeze([...(options.databases ?? [])]);
-  const sqlDialects = Object.freeze([...(options.sqlDialects ?? [])]);
-  const locale = options.locale ?? {
-    profile: "C", timezone: "UTC",
-    formatNumber() { throw new Error("csvkit: locale number formatting requires an explicit binding"); }
-  };
-  const clock = options.clock ?? { now: () => 0 };
+  const sqlDialects = Object.freeze([...(options.sqlDialects ?? databaseDialects)]);
+  const locale = options.locale ?? portableLocale;
+  const clock = options.clock ?? { now: Date.now };
   const interpreter = options.interpreter, openMatchFile = options.openMatchFile;
   const terminal = Object.freeze({ stdinIsTTY: false, stdoutIsTTY: false, stderrIsTTY: false, columns: 80, lines: 24, ...options.terminal });
-  const sniffing = options.sniffing === undefined ? undefined : Object.freeze({
+  const sniffing = options.sniffing === undefined ? Object.freeze({ stream: defaultSniffStreamProfile, suppressWarnings: true }) : Object.freeze({
     ...options.sniffing,
     ...(options.sniffing.warning === undefined ? {} : { warning: Object.freeze({ ...options.sniffing.warning }) })
   });

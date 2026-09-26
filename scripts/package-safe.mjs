@@ -23,7 +23,7 @@ function artifactPath(rootDir, filename) {
 }
 
 function publicSpecifier(specifier) {
-  for (const [from, to] of [["poe-code/safe-fs", "@poe-platform/safe-fs"], ["@poe-code/safe-fs", "@poe-platform/safe-fs"], ["@poe-platform/safe-js/fs", "@poe-platform/safe-fs"], ["poe-code/safe-js", "@poe-platform/safe-js"], ["poe-code/safejs", "@poe-platform/safe-js"], ["poe-code/ssconvert", "safe-bash-command-ssconvert"]]) {
+  for (const [from, to] of [["poe-code/safe-bash/contracts", "safe-bash-contracts"], ["poe-code/safe-fs", "@poe-platform/safe-fs"], ["@poe-code/safe-fs", "@poe-platform/safe-fs"], ["@poe-platform/safe-js/fs", "@poe-platform/safe-fs"], ["poe-code/safe-js", "@poe-platform/safe-js"], ["poe-code/safejs", "@poe-platform/safe-js"], ["poe-code/ssconvert", "safe-bash-command-ssconvert"]]) {
     if (specifier === from || specifier.startsWith(from + "/")) return to + specifier.slice(from.length);
   }
   return specifier;
@@ -300,6 +300,8 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
         if (canonical.some(name => specifier === name || specifier.startsWith(name + "/"))) delete alias[specifier];
       }
       external.push(...canonical);
+      alias["poe-code/safe-bash/contracts"] = "safe-bash-contracts";
+      alias["poe-code/safe-fs"] = "@poe-platform/safe-fs";
       const commands = resolvePrivateCommandBuild(rootDir, source.poeCode?.integration?.privateWorkspaces ?? {}, workspaces, { alias, external });
       if (commands) recipes.push(commands);
       const portableCommands = resolvePrivateCommandBuild(rootDir, source.poeCode?.integration?.privateWorkspaces ?? {}, workspaces, { alias, external, portable: true });

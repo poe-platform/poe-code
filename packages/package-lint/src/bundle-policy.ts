@@ -224,6 +224,17 @@ export function findBundleIssues(
     )
       continue;
     if (routes.has(specifier) && manifest.name === "poe-code") continue;
+    if (manifest.name === "poe-code" && (specifier === "poe-code/safe-bash/contracts" || specifier.startsWith("poe-code/safe-bash/contracts/"))) {
+      const suffix = specifier.slice("poe-code/safe-bash/contracts".length);
+      const entry = suffix ? suffix.slice(1) : "index";
+      const route = record(exported[suffix ? "./safe-bash/contracts/*" : "./safe-bash/contracts"]);
+      const runtime = `packages/safe-bash-contracts/dist/${entry}.js`;
+      const types = `packages/safe-bash-contracts/dist/${entry}.d.ts`;
+      if (entry.split("/").every(part => part && part !== "." && part !== "..") &&
+          route.import === `./packages/safe-bash-contracts/dist/${suffix ? "*" : "index"}.js` &&
+          route.types === `./packages/safe-bash-contracts/dist/${suffix ? "*" : "index"}.d.ts` &&
+          Object.hasOwn(metafile.outputs ?? {}, runtime) && packedFiles.has(runtime) && packedFiles.has(types)) continue;
+    }
     const dependency = packageName(specifier);
     const reason = !dependency
       ? "invalid-external"

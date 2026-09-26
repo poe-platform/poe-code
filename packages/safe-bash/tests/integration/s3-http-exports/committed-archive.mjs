@@ -725,7 +725,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
       assertArchiveDependencyContract(manifest);
       for (const key of ["prepare", "prepublish", "prepublishOnly", "prepack", "postpack", "preinstall", "install", "postinstall", "prebuild"]) assert.ok(!Object.hasOwn(manifest.scripts, key), `unapproved package lifecycle: ${key}`);
       if (Object.hasOwn(manifest.scripts, "postbuild")) assert.equal(manifest.scripts.postbuild, "node scripts/build-optional-cli.mjs", "unapproved package lifecycle: postbuild");
-      assert.equal(manifest.scripts.build, "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs", "unreviewed committed build command");
+      assert.equal(manifest.scripts.build, "node ../../scripts/guard-package-dist.mjs && rm -rf dist/opt-in && node scripts/integration-inputs.mjs && node scripts/build.mjs", "unreviewed committed build command");
       assert.equal(rootManifest.name, "poe-code");
       assert.ok(rootManifest.workspaces.includes("packages/*"), "workspace package prefix missing");
       const checkout = manifest.poeCode?.integration?.peerProfile === "checkout-root";

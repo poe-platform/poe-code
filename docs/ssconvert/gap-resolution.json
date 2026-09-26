@@ -49,12 +49,7 @@
       "qualification": "Original memory fixtures cover all BIFF8 token classes, scoped names, encoded paths, Unicode/quotes, malformed names/paths, budgets, cancellation and explicit host resolution. Eight compiled poe-code/ssconvert XML/XLSX replays preserve identities; XML replay does not retain cached values. Native/application and compiled Shell qualification remain open. Maintained ssconvert tests pass 410 files / 23625 tests plus 2 posttest checks; package lint/types and selected four-workspace build pass. Compiled scoped Shell returns #REF! without a host and 84 with one explicit host call for the original BIFF8 cell record; stderr is empty.",
       "exportQualification": {
         "scope": "BIFF8 cell/range, global/sheet-scoped external names, defined-name expressions and array formulas. Local, add-in, macro and external link indexes stay separate regardless of discovery order.",
-        "profiles": [
-          "book.xls",
-          "dir/book.xls",
-          "https://example.test/a[b].xls",
-          "表] book.xls"
-        ],
+        "profiles": ["book.xls", "dir/book.xls", "https://example.test/a[b].xls", "表] book.xls"],
         "outputSha256": [
           "778b0666a30cff97240da6b0a04ecf3b9b7d9d3fdc47d7c8a4dc332f4d732d27",
           "442fa46486b5137ef8a61617a58d58863b33d4a3d28b3af1e71e474caff46b3d",
@@ -268,12 +263,7 @@
         ],
         "guards": "In each context all three bindings are absent without opt-in; three unknown/inherited profile names refuse. Each Unicode profile preserves pre-abort reason identity, enforces output/work limits and publishes zero bytes on refusal.",
         "nativeCsvControl": {
-          "input": [
-            "'abc'",
-            "'123",
-            "''",
-            "plain"
-          ],
+          "input": ["'abc'", "'123", "''", "plain"],
           "nativeCells": [
             {
               "row": "0",
@@ -318,18 +308,8 @@
       "nativeSelection": "References, IF and INDEX preserve date/time formats; addition and SUM return unformatted numbers.",
       "independentExports": {
         "count": 12,
-        "dateSystems": [
-          "1900",
-          "1904"
-        ],
-        "profiles": [
-          "Gnumeric XML",
-          "XLSX 2006",
-          "XLSX 2008",
-          "BIFF7",
-          "BIFF8",
-          "DSF"
-        ],
+        "dateSystems": ["1900", "1904"],
+        "profiles": ["Gnumeric XML", "XLSX 2006", "XLSX 2008", "BIFF7", "BIFF8", "DSF"],
         "result": "Compiled public SDK exports reopened by native Gnumeric; exact CSV dates, times and explicit numeric-style controls matched."
       },
       "sdk": "Imported XML value formats and an injected READDBTABLE recordset produced the exact native CSV control bytes.",
@@ -391,10 +371,7 @@
       },
       "native": {
         "typedColumns": 13,
-        "dateSystems": [
-          "1900",
-          "1904"
-        ],
+        "dateSystems": ["1900", "1904"],
         "acceptedConnectionDialogs": 1,
         "rejectThenAcceptDialogs": 2,
         "connectionHandles": {
@@ -625,6 +602,11 @@
         "nativeRun": 36211475728,
         "result": "Ten native probes establish per-cell warnings during load and again on forced recalculation. The shared load stage now matches native CSV and diagnostic occurrence counts through compiled SDK and Shell. It handles manual-mode dirty cells before updates and leaves raw readWorkbook unchanged; the final automatic stage does not queue clean volatile formulas. Browser/worker Unicode 15.1 output and guards remain qualified after the repair. Remote delivery is tracked separately."
       }
+    },
+    "biffLibreOffice": {
+      "proof": "biff-libreoffice-interop-proof.json",
+      "sourceRevision": "bce0998afefdbc355585ca324285661a2170ba77",
+      "finding": "Source explains 1..15-unit passwords, fixed 128-bit CryptoAPI and native XLSX ocStop-to-#REF! export. Six of 35 original files opened; 168 native cell observations and 24 SDK/Shell replay comparisons passed with documented XLSX error loss. Wrong-password probes exceed native length admission; UI/native reexport reopening and current-head qualification remain open."
     }
   },
   "cases": [
@@ -646,7 +628,7 @@
     {
       "id": "encrypted-biff",
       "status": "open",
-      "currentFinding": "Explicit host passwords support XOR, standard RC4 and CryptoAPI imports and exports. Independent XOR decryption matches 152 streams from 114 SDK exports; msoffcrypto reads all 76 BIFF8/DSF primary streams. Native Gnumeric now reads 12 XOR and four standard-RC4 exports exactly, including continued strings and formula recalculation, and rejects 13 wrong-password controls without output. Its tested 16+ UTF-16-unit RC4 passwords and all 12 CryptoAPI profiles are refused; these are native limits, not product support restrictions. Other applications, ancillary streams/properties, additional applicable profiles and containing publication remain open."
+      "currentFinding": "Explicit host passwords support XOR, standard RC4 and CryptoAPI imports and exports. Independent XOR decryption matches 152 streams from 114 SDK exports; msoffcrypto reads all 76 BIFF8/DSF primary streams. Native Gnumeric now reads 12 XOR and four standard-RC4 exports exactly, including continued strings and formula recalculation, and rejects 13 wrong-password controls without output. Its tested 16+ UTF-16-unit RC4 passwords and all 12 CryptoAPI profiles are refused; these are native limits, not product support restrictions. Other applications, ancillary streams/properties, additional applicable profiles and containing publication remain open. LibreOffice 26.8 opens the plaintext control, three standard-RC4 and two 128-bit CryptoAPI profiles. Immutable source explains other refusals and native XLSX error loss; see biff-libreoffice-interop-proof.json. Wrong-password probes exceed its length limit; UI and current-head qualification remain open."
     },
     {
       "id": "encrypted-odf",

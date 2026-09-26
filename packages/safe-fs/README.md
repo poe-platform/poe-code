@@ -238,7 +238,7 @@ There are no package environment variables, implicit credentials, or automatic `
 | Memory / read-only | Memory accepts independent optional `maxFileBytes`, `maxRetainedBytes`, `maxMetadataUnits` and `maxBytes` quotas, all unlimited by default. Read-only takes the backing filesystem, without an options object. |
 | Real | Required `root`: existing absolute host directory; the constructor/factory also accepts the root string directly. |
 | Mount | Required `root`: fallback filesystem. `mounts` defaults to `{}` and maps absolute virtual paths to filesystems. |
-| Overlay | Required `upper` and `lower`; `maxBufferBytes` is unlimited unless configured. |
+| Overlay | Required `upper` and `lower`; `maxBufferBytes` is unlimited unless configured; it and per-read `maxBytes` accept explicit `Infinity`. |
 | Quota | `withFileSystemQuota` requires a nonnegative safe-integer `maxBytes`. It serializes mutations and counts files, symlinks, copies, hard links, truncation, and streaming writes. |
 | Node bridge | `cwd` defaults to `/`, must be an absolute virtual path; optional lifetime `signal` and trusted `readFileMaxBytes` cap forwarded to backend reads before copy/decode. |
 | Portable bridge | Same `cwd`, `signal` and `readFileMaxBytes`, plus required `codec` with `isEncoding`, `encode`, and `decode` functions. |
@@ -260,7 +260,7 @@ Every raw filesystem operation accepts an optional `signal`. Additional fields a
 
 `access` takes a separate mode bitmask from `ACCESS_MODES`. `chmod` takes a mode, `utimes` takes millisecond timestamps, and `truncate` takes a byte length (default 0). For conditional chmod, check `capabilitiesFor(path, { conditionalChmod: true })` (or `capabilities`) and require `conditionalChmod: true`; supply `parent`, `expected`, and complete root-to-parent `ancestors` together. An optional mutation-free `commitGuard` must return literal `true` synchronously. Memory validates at its metadata commit; mount and supported Memory overlays preserve wrapper ancestry. Real uses its existing externally isolated host-tree boundary and does not prevent races with other processes. Backend limits still apply. Node-shaped bridge methods translate their own options rather than accepting these raw option objects; see the [bridge signatures](src/bridge/filesystem.ts).
 
-`collectBytes(source, { maxBytes, maxMemoryBytes, signal })` snapshots streamed chunks into one growing buffer. `maxMemoryBytes` limits owned capacity, the current input's full backing buffer, and overlapping allocations during growth; exhaustion throws `EFBIG`. Browser and Worker bundles additionally share a fixed 32 MiB budget across active collectors, even when byte limits are omitted. The returned view may retain geometric spare capacity. This budget covers collection, not caller-retained results, transport buffering, archive decoding, strings, or the rest of the runtime; use streaming APIs and limit concurrent workloads for larger inputs.
+`collectBytes(source, { maxBytes, maxMemoryBytes, signal })` snapshots streamed chunks into one growing buffer. `maxBytes` and `maxMemoryBytes` accept explicit `Infinity`. `maxMemoryBytes` limits owned capacity, the current input's full backing buffer, and overlapping allocations during growth; exhaustion throws `EFBIG`. Browser and Worker bundles additionally share a fixed 32 MiB budget across active collectors, even when byte limits are omitted. The returned view may retain geometric spare capacity. This budget covers collection, not caller-retained results, transport buffering, archive decoding, strings, or the rest of the runtime; use streaming APIs and limit concurrent workloads for larger inputs.
 
 <details>
 <summary>S3 filesystem and HTTP transport options</summary>
@@ -280,12 +280,12 @@ For in-memory S3 simulations, `new MockS3Client({ buckets, pageSize?, now?, auth
 | `maxReadBytes` | Unlimited unless configured |
 | `maxStreamBytes` | Unlimited unless configured |
 | `maxListEntries` | Unlimited unless configured |
-| `removalLimits.maxRequests` | 32 transport calls per `rm`, including lookup, listing, and deletes |
-| `removalLimits.maxListEntries` | 32 returned listing entries in aggregate per `rm`, including lookup |
-| `removalLimits.maxDeleteObjects` | 16 objects per `rm` |
+| `removalLimits.maxRequests` | Unlimited unless configured; transport calls per `rm`, including lookup, listing, and deletes |
+| `removalLimits.maxListEntries` | Unlimited unless configured; returned listing entries in aggregate per `rm`, including lookup |
+| `removalLimits.maxDeleteObjects` | Unlimited unless configured; objects per `rm` |
 | `compareEntry` | Optional trusted backing-identity callback |
 
-Removal limits apply even when shell filesystem-call limits admit a recursive `rm` as one operation. Each limit accepts a positive safe integer. Traversal stops at the listing/request cap and rejects with `EFBIG`; all delete requests must fit the remaining request budget before the first mutation. Nonrecursive removal checks for children using pages of at most two entries. Configure larger `removalLimits` only where the deployment can afford the corresponding work. These limits count adapter transport calls; retries inside a supplied transport need their own limit. Remote failures or concurrent writers can still cause partial deletion after preflight.
+Removal limits apply even when shell filesystem-call limits admit a recursive `rm` as one operation. Removal limits default to unlimited and accept a positive safe integer or `Infinity`. Read, stream, listing, and request limits also accept explicit `Infinity`. Traversal stops at the listing/request cap and rejects with `EFBIG`; all delete requests must fit the remaining request budget before the first mutation. Nonrecursive removal checks for children using pages of at most two entries. Configure finite `removalLimits` to bound the work in deployments that need them. These limits count adapter transport calls; retries inside a supplied transport need their own limit. Remote failures or concurrent writers can still cause partial deletion after preflight.
 
 For larger trees, a trusted integration can process one bounded batch per request/job using its explicitly supplied transport. This example uses at most 17 transport calls and retains at most 16 summaries; repeat in a later job until `done`. The prefix must come from trusted deployment configuration, include the filesystem's configured prefix, and end in `/`. This deliberately bypasses filesystem collision checks and deletes directory markers as well as files; serialize it with writers when complete removal is required.
 
@@ -346,7 +346,7 @@ Each batch lists from the beginning because previous keys have been deleted; it 
 
 Known identity Content-Length responses use one result buffer; other responses grow storage up to the configured ceiling and return a view without a final copy. Growth can temporarily retain the old and new buffers (up to three times the response size), plus transport chunks. These per-response defaults leave headroom in Workers; hosts must still budget for metadata parsing, text decoding, transport buffers, and concurrent reads, especially when raising the limits. Use streaming reads for large files.
 
-WebDAV metadata parsing limits the document to 100,000 elements, 100,000 content nodes, 100,000 attributes, and 256 levels of nesting, independently of `maxEntries`. Text is bounded by `maxXmlBytes`. Exceeding a structural budget reports `EFBIG`; parsing yields cooperatively so caller cancellation and `timeoutMs` remain active.
+WebDAV `maxEntries`, `maxResponseBytes`, `maxXmlBytes`, and per-read `maxBytes` accept explicit `Infinity`. WebDAV metadata parsing limits the document to 100,000 elements, 100,000 content nodes, 100,000 attributes, and 256 levels of nesting, independently of `maxEntries`. Text is bounded by `maxXmlBytes`. Exceeding a structural budget reports `EFBIG`; parsing yields cooperatively so caller cancellation and `timeoutMs` remain active.
 
 See the [binding types](src/fs/webdav/webdav.ts) before implementing atomic directory removal. A recursive WebDAV DELETE does not satisfy that contract.
 

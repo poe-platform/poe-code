@@ -145,13 +145,13 @@ async function existingBytes(fs: FileSystem, path: string, options?: FsOptions):
 }
 
 export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOptions): FileSystem {
-  if (!Number.isSafeInteger(options.maxBytes) || options.maxBytes < 0) throw new RangeError("maxBytes must be a nonnegative safe integer");
+  if (options.maxBytes !== Infinity && (!Number.isSafeInteger(options.maxBytes) || options.maxBytes < 0)) throw new RangeError("maxBytes must be a nonnegative safe integer or Infinity");
   const scanLimits = {
     maxScanEntries: options.maxScanEntries ?? Infinity,
     maxScanDepth: options.maxScanDepth ?? Infinity,
   };
   for (const [name, value] of Object.entries({ maxScanEntries: options.maxScanEntries, maxScanDepth: options.maxScanDepth })) {
-    if (value !== undefined && (!Number.isSafeInteger(value) || value < 0)) throw new RangeError(`${name} must be a nonnegative safe integer`);
+    if (value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) || value < 0)) throw new RangeError(`${name} must be a nonnegative safe integer or Infinity`);
   }
   let queue: Promise<unknown> = Promise.resolve();
   let reservedBytes = 0;

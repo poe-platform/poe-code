@@ -87,7 +87,8 @@ function fail(code: ErrnoCode, path: string, message?: string): never {
   throw new FsError(code, { syscall: "overlay", path, ...(message === undefined ? {} : { message }) });
 }
 
-function integer(value: number, path: string): void {
+function integer(value: number, path: string, unlimited = false): void {
+  if (unlimited && value === Infinity) return;
   if (!Number.isSafeInteger(value) || value < 0) fail("EINVAL", path);
 }
 
@@ -136,7 +137,7 @@ export class OverlayFileSystem implements FileSystem {
       return { filesystem: entry.backend, path: entry.path, readOnly: this.capabilities.readOnly === true };
     }, false));
     this.maxBufferBytes = options.maxBufferBytes ?? Infinity;
-    if (options.maxBufferBytes !== undefined) integer(options.maxBufferBytes, "/");
+    if (options.maxBufferBytes !== undefined) integer(options.maxBufferBytes, "/", true);
     const writable = !this.#upper.capabilities.readOnly && this.#upper.capabilities.atomicRename === true;
     const readable = [this.#upper, this.#lower].map((backend) =>
       retainedReadCapabilities(backend).retainedRead);
@@ -524,7 +525,7 @@ export class OverlayFileSystem implements FileSystem {
   private async bytes(entry: Entry, options: ReadFileOptions): Promise<Uint8Array> {
     if (entry.stat.type !== "file") fail("EISDIR", entry.path);
     this.permission(entry, 4);
-    if (options.maxBytes !== undefined) integer(options.maxBytes, entry.path);
+    if (options.maxBytes !== undefined) integer(options.maxBytes, entry.path, true);
     const limit = Math.min(options.maxBytes ?? this.maxBufferBytes, this.maxBufferBytes);
     if (entry.stat.size > limit) fail("EFBIG", entry.path);
     const handle = await this.pinRead(entry, options);

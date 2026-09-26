@@ -89,8 +89,8 @@ export async function collectBytes(source: ByteSource, options: CollectOptions):
   if (options.maxBytes !== undefined && options.maxBytes !== Infinity && (!Number.isSafeInteger(options.maxBytes) || options.maxBytes < 0)) {
     throw new RangeError("maxBytes must be a nonnegative safe integer");
   }
-  if (options.maxMemoryBytes !== undefined && (!Number.isSafeInteger(options.maxMemoryBytes) || options.maxMemoryBytes < 0)) {
-    throw new RangeError("maxMemoryBytes must be a nonnegative safe integer");
+  if (options.maxMemoryBytes !== undefined && options.maxMemoryBytes !== Infinity && (!Number.isSafeInteger(options.maxMemoryBytes) || options.maxMemoryBytes < 0)) {
+    throw new RangeError("maxMemoryBytes must be a nonnegative safe integer or Infinity");
   }
   const memoryLimit = options.maxMemoryBytes ?? Infinity;
   let reserved = 0;

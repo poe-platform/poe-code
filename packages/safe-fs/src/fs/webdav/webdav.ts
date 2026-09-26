@@ -128,7 +128,8 @@ function fail(code: ErrnoCode, syscall: string, path: string, message?: string):
   throw new FsError(code, { syscall, path, ...(message === undefined ? {} : { message }) });
 }
 
-function positive(value: number, name: string, zero = false): number {
+function positive(value: number, name: string, zero = false, unlimited = false): number {
+  if (unlimited && value === Infinity) return value;
   if (!Number.isSafeInteger(value) || value < (zero ? 0 : 1)) {
     throw new FsError("EINVAL", { message: `${name} must be a ${zero ? "nonnegative" : "positive"} safe integer` });
   }
@@ -318,9 +319,9 @@ export class WebDavFileSystem implements FileSystem {
       removeDirectory: this.atomicEmptyDirectory !== undefined,
       streamingAppend: this.requestStreamSupport !== false,
     });
-    this.maxResponseBytes = options.maxResponseBytes === undefined ? 16 * 1024 * 1024 : positive(options.maxResponseBytes, "maxResponseBytes");
-    this.maxXmlBytes = options.maxXmlBytes === undefined ? 1024 * 1024 : positive(options.maxXmlBytes, "maxXmlBytes");
-    this.maxEntries = options.maxEntries === undefined ? Infinity : positive(options.maxEntries, "maxEntries");
+    this.maxResponseBytes = options.maxResponseBytes === undefined ? 16 * 1024 * 1024 : positive(options.maxResponseBytes, "maxResponseBytes", false, true);
+    this.maxXmlBytes = options.maxXmlBytes === undefined ? 1024 * 1024 : positive(options.maxXmlBytes, "maxXmlBytes", false, true);
+    this.maxEntries = options.maxEntries === undefined ? Infinity : positive(options.maxEntries, "maxEntries", false, true);
     this.timeoutMs = options.timeoutMs === undefined ? undefined : positive(options.timeoutMs, "timeoutMs");
     this.overwritePolicy = options.overwritePolicy ?? "lock";
     this.configuredComparison = options.compareEntry !== undefined;
@@ -833,7 +834,7 @@ export class WebDavFileSystem implements FileSystem {
 
   async readFile(path: string, options: ReadFileOptions = {}): Promise<Uint8Array> {
     const normalized = normalize(path);
-    const limit = Math.min(this.maxResponseBytes, options.maxBytes === undefined ? this.maxResponseBytes : positive(options.maxBytes, "maxBytes", true));
+    const limit = Math.min(this.maxResponseBytes, options.maxBytes === undefined ? this.maxResponseBytes : positive(options.maxBytes, "maxBytes", true, true));
     if ((await this.stat(path, options)).type === "directory") fail("EISDIR", "readFile", path);
     return this.request("GET", normalized, options, { headers: { "Accept-Encoding": "identity" } }, async (response, signal) => {
       if (response.status !== 200) this.httpError(response.status, "GET", path);

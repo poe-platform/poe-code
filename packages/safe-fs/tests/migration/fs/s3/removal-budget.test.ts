@@ -12,14 +12,15 @@ async function fixture(count: number, pageSize = 1000) {
   return transport;
 }
 
-test("default removal budget rejects amplified deletion before mutation", async () => {
-  const transport = await fixture(1500);
+test("default removal limits allow bulk deletion beyond former caps", async () => {
+  const transport = await fixture(40, 1);
   const fs = new S3FileSystem({ transport, bucket: "test" });
   const start = transport.requests.length;
-  await expect(fs.rm("/dir", { recursive: true })).rejects.toMatchObject({ code: "EFBIG" });
+  await fs.rm("/dir", { recursive: true });
   const requests = transport.requests.slice(start);
-  expect(requests.length).toBeLessThanOrEqual(32);
-  expect(requests.filter(request => request.operation === "deleteObject")).toHaveLength(0);
+  expect(requests.length).toBeGreaterThan(32);
+  expect(requests.filter(request => request.operation === "deleteObject")).toHaveLength(40);
+  await expect(fs.stat("/dir")).rejects.toMatchObject({ code: "ENOENT" });
 });
 
 test("nonrecursive removal inspects only a small page to detect children", async () => {
@@ -73,7 +74,7 @@ test("small removals and concurrent calls have independent budgets", async () =>
 
 test("removal budgets reject invalid configuration", () => {
   const transport = new MockS3Client({ buckets: ["test"] });
-  for (const value of [0, -1, 1.5, Infinity]) {
+  for (const value of [0, -1, 1.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1]) {
     for (const key of ["maxRequests", "maxListEntries", "maxDeleteObjects"]) {
       expect(() => new S3FileSystem({ transport, bucket: "test", removalLimits: { [key]: value } }))
         .toThrow(expect.objectContaining({ code: "EINVAL" }));
@@ -83,7 +84,7 @@ test("removal budgets reject invalid configuration", () => {
 
 test("#709: S3FileSystem maxRequests and scopeFileSystem budget S3 transport calls including nested lookups", async () => {
   const transport = await fixture(6);
-  for (const invalid of [0, -1, 1.5, Infinity]) {
+  for (const invalid of [0, -1, 1.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1]) {
     expect(() => new S3FileSystem({ transport, bucket: "test", maxRequests: invalid }))
       .toThrow(expect.objectContaining({ code: "EINVAL" }));
   }

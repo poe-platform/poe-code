@@ -49,7 +49,7 @@ it("accepts an exact memory boundary and snapshots reused source chunks", async 
     .toEqual([1, 2, 3, 4, 5, 5, 5, 5]);
 });
 
-it.each([-1, Infinity, NaN, 1.5])("rejects invalid memory budget %s", async maxMemoryBytes => {
+it.each([-1, -Infinity, NaN, 1.5])("rejects invalid memory budget %s", async maxMemoryBytes => {
   await expect(collectBytes((async function* () {})(), { maxMemoryBytes }))
     .rejects.toBeInstanceOf(RangeError);
 });

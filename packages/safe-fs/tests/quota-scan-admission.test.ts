@@ -8,10 +8,10 @@ import type { DirectoryEntry, FileSystem, FsOptions } from "../src/contracts/fil
 const bytes = (value: string): Uint8Array => new TextEncoder().encode(value);
 
 for (const name of ["maxScanEntries", "maxScanDepth"] as const) {
-  for (const value of [-1, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1, null, "1"]) {
+  for (const value of [-1, 0.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1, null, "1"]) {
     test(`quota rejects invalid ${name}: ${String(value)}`, () => {
       assert.throws(() => Reflect.apply(withFileSystemQuota, undefined, [createMemoryFileSystem(), { maxBytes: 8, [name]: value }]),
-        { name: "RangeError", message: `${name} must be a nonnegative safe integer` });
+        { name: "RangeError", message: `${name} must be a nonnegative safe integer or Infinity` });
     });
   }
 }

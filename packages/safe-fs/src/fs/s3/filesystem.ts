@@ -90,7 +90,7 @@ function fail(code: ErrnoCode, syscall: string, path: string, message?: string):
 }
 
 function validateLimit(value: number, name: string, minimum: number, maximum = Number.MAX_SAFE_INTEGER): number {
-  if (!Number.isSafeInteger(value) || value < minimum || value > maximum) {
+  if ((value !== Infinity || maximum !== Infinity) && (!Number.isSafeInteger(value) || value < minimum || value > maximum)) {
     throw new FsError("EINVAL", { message: `${name} must be an integer from ${minimum} to ${maximum}` });
   }
   return value;
@@ -162,14 +162,14 @@ export class S3FileSystem implements FileSystem {
     this.bucket = options.bucket;
     this.allowRename = options.allowNonAtomicRename ?? true;
     this.pageSize = validateLimit(options.pageSize ?? 1000, "pageSize", 1, 1000);
-    this.maxReadBytes = options.maxReadBytes === undefined ? Infinity : validateLimit(options.maxReadBytes, "maxReadBytes", 0);
-    this.maxStreamBytes = options.maxStreamBytes === undefined ? Infinity : validateLimit(options.maxStreamBytes, "maxStreamBytes", 0);
-    this.maxListEntries = options.maxListEntries === undefined ? Infinity : validateLimit(options.maxListEntries, "maxListEntries", 1);
-    this.maxRequests = options.maxRequests === undefined ? Infinity : validateLimit(options.maxRequests, "maxRequests", 1);
+    this.maxReadBytes = options.maxReadBytes === undefined ? Infinity : validateLimit(options.maxReadBytes, "maxReadBytes", 0, Infinity);
+    this.maxStreamBytes = options.maxStreamBytes === undefined ? Infinity : validateLimit(options.maxStreamBytes, "maxStreamBytes", 0, Infinity);
+    this.maxListEntries = options.maxListEntries === undefined ? Infinity : validateLimit(options.maxListEntries, "maxListEntries", 1, Infinity);
+    this.maxRequests = options.maxRequests === undefined ? Infinity : validateLimit(options.maxRequests, "maxRequests", 1, Infinity);
     this.removalLimits = {
-      maxRequests: validateLimit(options.removalLimits?.maxRequests ?? 32, "removalLimits.maxRequests", 1),
-      maxListEntries: validateLimit(options.removalLimits?.maxListEntries ?? 32, "removalLimits.maxListEntries", 1),
-      maxDeleteObjects: validateLimit(options.removalLimits?.maxDeleteObjects ?? 16, "removalLimits.maxDeleteObjects", 1),
+      maxRequests: validateLimit(options.removalLimits?.maxRequests ?? Infinity, "removalLimits.maxRequests", 1, Infinity),
+      maxListEntries: validateLimit(options.removalLimits?.maxListEntries ?? Infinity, "removalLimits.maxListEntries", 1, Infinity),
+      maxDeleteObjects: validateLimit(options.removalLimits?.maxDeleteObjects ?? Infinity, "removalLimits.maxDeleteObjects", 1, Infinity),
     };
     this.capabilities = Object.freeze({
       open: false,
@@ -433,7 +433,7 @@ export class S3FileSystem implements FileSystem {
   }
 
   private async body(output: S3GetOutput, path: string, options: ReadFileOptions): Promise<Uint8Array> {
-    const limit = Math.min(this.maxReadBytes, options.maxBytes === undefined ? this.maxReadBytes : validateLimit(options.maxBytes, "maxBytes", 0));
+    const limit = Math.min(this.maxReadBytes, options.maxBytes === undefined ? this.maxReadBytes : validateLimit(options.maxBytes, "maxBytes", 0, Infinity));
     let iterator: AsyncIterator<Uint8Array> | undefined;
     return this.call("readFile", path, options, async () => {
       if (output.Body && Symbol.asyncIterator in output.Body) iterator = output.Body[Symbol.asyncIterator]();
@@ -468,7 +468,7 @@ export class S3FileSystem implements FileSystem {
 
   async readFile(input: string, options: ReadFileOptions = {}): Promise<Uint8Array> {
     const path = this.path(input);
-    if (options.maxBytes !== undefined) validateLimit(options.maxBytes, "maxBytes", 0);
+    if (options.maxBytes !== undefined) validateLimit(options.maxBytes, "maxBytes", 0, Infinity);
     const info = await this.stat(input, options);
     if (info.type === "directory") fail("EISDIR", "readFile", path);
     if (info.size > Math.min(this.maxReadBytes, options.maxBytes ?? this.maxReadBytes)) fail("EFBIG", "readFile", path);

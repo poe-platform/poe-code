@@ -425,19 +425,15 @@ describe("optional-owned compiled graph", () => {
     const declarations: string[] = [];
     const expectedRuntime: string[] = [];
     const expectedDeclarations: string[] = [];
-    const publicBoundaries = new Map([
-      ["./shell/extensions/jobs/index.js", "@poe-platform/safe-bash/jobs"],
-    ]);
     for (const statement of hostDeclarations.statements) {
       if (!ts.isExportDeclaration(statement) || !statement.moduleSpecifier || !ts.isStringLiteral(statement.moduleSpecifier) || !statement.exportClause || !ts.isNamedExports(statement.exportClause)) throw new Error("Expected explicit named host re-exports");
       const names = statement.exportClause.elements.map(element => element.name.text);
       const specifier = "../../" + statement.moduleSpecifier.text.slice(2);
-      const publicSpecifier = publicBoundaries.get(statement.moduleSpecifier.text) ?? "@poe-platform/safe-bash/optional-host";
       declarations.push(`export type { ${names.join(", ")} } from ${JSON.stringify(specifier)};`);
-      expectedDeclarations.push(`export type { ${names.join(", ")} } from ${JSON.stringify(publicSpecifier)};`);
+      expectedDeclarations.push(`export type { ${names.join(", ")} } from "@poe-platform/safe-bash/optional-host";`);
       if (!statement.isTypeOnly) {
         runtime.push(`export { ${names.join(", ")} } from ${JSON.stringify(specifier)};`);
-        expectedRuntime.push(`export { ${names.join(", ")} } from ${JSON.stringify(publicSpecifier)};`);
+        expectedRuntime.push(`export { ${names.join(", ")} } from "@poe-platform/safe-bash/optional-host";`);
       }
     }
     expect(runtime.length).toBeGreaterThan(0);

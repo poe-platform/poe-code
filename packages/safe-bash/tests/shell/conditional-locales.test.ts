@@ -6,6 +6,7 @@ import { setup } from "./helpers.js";
 for (const locale of ["C", "POSIX", "C.UTF-8", "C.utf8", "en_US.UTF-8"]) {
   for (const source of [
     ...["!", "?", "*", "+", "@"].map(member => `pat='[${member}()]'; [[ '${member === "!" ? "a" : member}' == $pat ]]`),
+    '[[ a == @(a) && b != @(a) ]]',
     '[[ foo == foo && foo = f* && foo != bar && foo.txt == *.txt ]]',
     'pat="^a(.)c$"; [[ abc =~ $pat ]] && [[ ${BASH_REMATCH[0]} == abc && ${BASH_REMATCH[1]} == b ]]',
   ]) {
@@ -34,7 +35,7 @@ for (const source of [
   });
 }
 
-for (const expression of ['[[ a == [a-z] ]]', '[[ a =~ [a-z] ]]', '[[ a =~ [[:alpha:]] ]]', '[[ a == [[:alpha:]] ]]', '[[ a == @(a) ]]']) {
+for (const expression of ['[[ a == [a-z] ]]', '[[ a =~ [a-z] ]]', '[[ a =~ [[:alpha:]] ]]', '[[ a == [[:alpha:]] ]]']) {
   test(`unsupported locale-sensitive conditional: ${expression}`, async context => {
     const { shell } = setup({ extensions: [arraysExtension()] });
     context.after(() => shell.dispose());

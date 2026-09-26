@@ -584,7 +584,7 @@ test("csvkit family collision refuses registration even at the last executable",
     assert.throws(() => csvkitCommands(options).setup(shell), /already registered/);
     for (const name of ["csvclean", "csvcut", "csvformat", "csvgrep", "csvjoin", "csvjson", "csvlook", "csvpy", "csvsort", "csvsql", "csvstack", "csvstat", "in2csv"]) assert.equal(shell.commands.has(name), false);
     assert.equal((await shell.exec("sql2csv")).exitCode, 9);
-    assert.throws(() => createCsvkitCommands(undefined as unknown as CsvkitCommandsOptions), /explicit codec/);
+    assert.equal(createCsvkitCommands().length, 14);
   } finally { await shell.dispose(); }
 });
 

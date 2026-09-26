@@ -98,6 +98,7 @@ export class Budget {
     this.bindSignal(signal);
     this.steps = 0;
     this.lastYieldSteps = 0;
+    this.lastYield = monotonicNow();
     this.inputBytes = 0;
     this.outputBytes = 0;
     this.results = 0;

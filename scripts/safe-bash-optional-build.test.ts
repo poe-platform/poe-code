@@ -425,15 +425,19 @@ describe("optional-owned compiled graph", () => {
     const declarations: string[] = [];
     const expectedRuntime: string[] = [];
     const expectedDeclarations: string[] = [];
+    const publicBoundaries = new Map([
+      ["./shell/extensions/jobs/index.js", "@poe-platform/safe-bash/jobs"],
+    ]);
     for (const statement of hostDeclarations.statements) {
       if (!ts.isExportDeclaration(statement) || !statement.moduleSpecifier || !ts.isStringLiteral(statement.moduleSpecifier) || !statement.exportClause || !ts.isNamedExports(statement.exportClause)) throw new Error("Expected explicit named host re-exports");
       const names = statement.exportClause.elements.map(element => element.name.text);
       const specifier = "../../" + statement.moduleSpecifier.text.slice(2);
+      const publicSpecifier = publicBoundaries.get(statement.moduleSpecifier.text) ?? "@poe-platform/safe-bash/optional-host";
       declarations.push(`export type { ${names.join(", ")} } from ${JSON.stringify(specifier)};`);
-      expectedDeclarations.push(`export type { ${names.join(", ")} } from "@poe-platform/safe-bash/optional-host";`);
+      expectedDeclarations.push(`export type { ${names.join(", ")} } from ${JSON.stringify(publicSpecifier)};`);
       if (!statement.isTypeOnly) {
         runtime.push(`export { ${names.join(", ")} } from ${JSON.stringify(specifier)};`);
-        expectedRuntime.push(`export { ${names.join(", ")} } from "@poe-platform/safe-bash/optional-host";`);
+        expectedRuntime.push(`export { ${names.join(", ")} } from ${JSON.stringify(publicSpecifier)};`);
       }
     }
     expect(runtime.length).toBeGreaterThan(0);
@@ -448,6 +452,22 @@ describe("optional-owned compiled graph", () => {
     expect(result.files).toEqual([
       "commands/yes/helper.js", "commands/yes/index.d.ts", "commands/yes/index.js", "commands/yes/payload.bin", "entrypoints/yes.d.ts", "entrypoints/yes.js", "optional.d.ts", "optional.js",
     ]);
+  });
+
+  it("uses the named host binding when a direct public boundary is absent", async () => {
+    const { volume, options } = fixture();
+    const manifest = JSON.parse(volume.readFileSync(core + "/package.json", "utf8").toString());
+    delete manifest.exports["./jobs"];
+    volume.writeFileSync(core + "/package.json", JSON.stringify(manifest));
+    volume.writeFileSync(core + "/dist/commands/yes/helper.js", 'export { jobsExtension } from "../../shell/extensions/jobs/index.js";');
+    volume.writeFileSync(core + "/dist/commands/yes/index.d.ts", 'export type { jobsExtension } from "../../shell/extensions/jobs/index.js";');
+    await buildOptionalPackage(options);
+    expect(volume.readFileSync(optional + "/dist/opt-in/commands/yes/helper.js", "utf8").toString())
+      .toBe('export { jobsExtension } from "@poe-platform/safe-bash/optional-host";');
+    expect(volume.readFileSync(optional + "/dist/opt-in/commands/yes/index.d.ts", "utf8").toString())
+      .toBe('export type { jobsExtension } from "@poe-platform/safe-bash/optional-host";');
+    expect(volume.existsSync(optional + "/dist/opt-in/shell/extensions/jobs/index.js")).toBe(false);
+    expect(volume.existsSync(optional + "/dist/opt-in/optional-host.js")).toBe(false);
   });
 
   it.each(["../../commands/internal.js", "undeclared-private-peer", "@poe-platform/safe-bash/contracts/command"])("rejects unsupported external import-equals declarations for %s", async specifier => {

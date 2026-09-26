@@ -1,5 +1,13 @@
-import { expect, it } from "vitest";
-import { createHostCallbackContext } from "./workerd.js";
+import { AsyncLocalStorage } from "node:async_hooks";
+import { afterAll, beforeAll, expect, it, vi } from "vitest";
+
+let createHostCallbackContext: typeof import("./workerd.js").createHostCallbackContext;
+beforeAll(async () => {
+  vi.stubGlobal("AsyncLocalStorage", AsyncLocalStorage);
+  vi.resetModules();
+  ({ createHostCallbackContext } = await import("./workerd.js"));
+});
+afterAll(() => vi.unstubAllGlobals());
 
 it("isolates concurrent callback contexts across awaits", async () => {
   const context = createHostCallbackContext();
@@ -73,4 +81,20 @@ it("restores the outer context after nested callbacks throw a falsey reason", ()
   });
   expect(context.getStore()).toBeUndefined();
   context.disable();
+});
+
+it("falls back to stack-scoped context without a native host API", async () => {
+  vi.stubGlobal("AsyncLocalStorage", undefined);
+  vi.resetModules();
+  const platform = await import("./workerd.js");
+  const context = platform.createHostCallbackContext();
+  context.run(true, () => {
+    expect(context.getStore()).toBe(true);
+    context.run(false, () => expect(context.getStore()).toBe(false));
+    expect(context.getStore()).toBe(true);
+  });
+  await Promise.resolve();
+  expect(context.getStore()).toBeUndefined();
+  context.disable();
+  expect(() => context.run(true, () => undefined)).toThrow(expect.objectContaining({ code: "reentry" }));
 });

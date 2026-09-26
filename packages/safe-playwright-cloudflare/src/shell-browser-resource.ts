@@ -12,6 +12,7 @@ import {
 	registerBrowserSocketClose,
 } from "./browser-socket-closure.js";
 import { createBrowserStorageControl } from "./browser-storage-control.js";
+import { createBrowserSnapshotScheduler } from "./browser-snapshot-scheduler.js";
 
 const BROWSER_IDLE_MS = 600_000;
 const BROWSER_RELEASE_MS = 5_000;
@@ -68,6 +69,7 @@ function createOwnedConnections(binding: BrowserWorker, sessionId: string) {
 	});
 	const upstreams = new Set<WebSocket>();
 	const clients = new AbortController();
+	const snapshots = createBrowserSnapshotScheduler();
 	const deleteBrowser = createCloudflareBrowserRelease({ binding, sessionId });
 	let control: ReturnType<typeof createBrowserStorageControl> | undefined;
 	let browser: Browser | undefined;
@@ -118,7 +120,9 @@ function createOwnedConnections(binding: BrowserWorker, sessionId: string) {
 		return privacy.wrap(await rawSocket(lifetime), lifetime);
 	}
 	function disconnect(reason?: unknown) {
-		clients.abort(reason ?? new Error("Owned browser clients interrupted"));
+		const interruption = reason ?? new Error("Owned browser clients interrupted");
+		snapshots.stop(interruption);
+		clients.abort(interruption);
 	}
 	function attempt(operation: () => void | Promise<void>): Promise<void> {
 		try {
@@ -134,6 +138,7 @@ function createOwnedConnections(binding: BrowserWorker, sessionId: string) {
 		disconnect();
 		releasing = finishOwnedBrowserCleanup(
 			[
+				["snapshot capture", attempt(() => snapshots.settled())],
 				["storage control", attempt(() => control?.close())],
 				["private transport", attempt(() => privacy.close())],
 				["public connection", attempt(() => browser?.close())],
@@ -187,6 +192,7 @@ function createOwnedConnections(binding: BrowserWorker, sessionId: string) {
 		signal.throwIfAborted();
 		return {
 			browser,
+			prepareSnapshots: snapshots.prepare,
 			connectSocket,
 			prepareStorageOrigin: createPlaywrightStorageOriginPreparer(
 				control,

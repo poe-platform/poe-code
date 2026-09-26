@@ -59,7 +59,7 @@ export function createCloudflarePlaywrightAdapter(
 					generateActionCode: generateBrowserActionCode,
 					captureSnapshotJSON: captureBrowserSnapshotJSON,
           captureSnapshotReferences: captureBrowserSnapshotReferences,
-					browser: publicBrowser(resource.browser),
+					browser: publicBrowser(resource.browser, resource.prepareSnapshots),
 					captureArtifact: captureBrowserArtifact,
 					captureTrace: captureBrowserTrace,
 					async captureDownload() {
@@ -110,7 +110,7 @@ export function createCloudflarePlaywrightAdapter(
 	};
 }
 
-function publicBrowser(browser: Browser) {
+function publicBrowser(browser: Browser, prepareSnapshots: (page: Page) => void) {
 	return {
     isConnected: browser.isConnected.bind(browser),
 		on: browser.on.bind(browser),
@@ -123,7 +123,9 @@ function publicBrowser(browser: Browser) {
       const { storageState: ignoredStorageState, ...contextOptions } = options ?? {};
       const context = await browser.newContext(contextOptions);
       context.on('page', prepareBrowserScreenshots);
+      context.on('page', prepareSnapshots);
       for (const page of context.pages()) prepareBrowserScreenshots(page);
+      for (const page of context.pages()) prepareSnapshots(page);
       Object.defineProperty(context, 'browserProfile', { value: browserProfileRuntime(browser, context) });
 			const acquireCDP = context.newCDPSession.bind(context);
 			return Object.assign(context, {

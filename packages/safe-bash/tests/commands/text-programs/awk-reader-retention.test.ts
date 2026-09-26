@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { ByteSource, CommandContext } from "../../../src/contracts/index.js";
-import { Reader, clearAwkReaderPool } from "../../../src/commands/text-programs/awk-reader.js";
+import { Reader } from "../../../src/commands/text-programs/awk-reader.js";
 import { AwkRetention } from "../../../src/commands/text-programs/awk-retention.js";
 import { Budget, getCachedLatin1Batch } from "../../../src/commands/text-programs/shared.js";
 
@@ -115,7 +115,6 @@ for (const close of ["close", "closeSyncOrAsync"] as const) test(`closed awk rea
 });
 
 for (const close of ["close", "closeSyncOrAsync"] as const) test(`awk memory readers are not reused while a read is suspended after ${close}`, async context => {
-  clearAwkReaderPool();
   let resume!: () => void;
   const pending = new Promise<void>(resolve => { resume = resolve; });
   const firstBudget = budget(8192);
@@ -139,7 +138,6 @@ for (const close of ["close", "closeSyncOrAsync"] as const) test(`awk memory rea
     await reading;
     await first.close();
     await next?.close();
-    clearAwkReaderPool();
   }
 });
 
@@ -224,8 +222,7 @@ test("awk reader close shares settlement while releasing storage before a pendin
   await observed;
 });
 
-for (const sync of [false, true]) test(`closed memory readers return EOF through both read routes: sync=${sync}`, async context => {
-  context.after(clearAwkReaderPool);
+for (const sync of [false, true]) test(`closed memory readers return EOF through both read routes: sync=${sync}`, async () => {
   const retention = new AwkRetention(8);
   const reader = Reader.fromMemoryView(Buffer.from("a\ntail"), budget(), retention);
   await (sync ? reader.closeSyncOrAsync() : reader.close());
@@ -305,9 +302,7 @@ test("awk reader preserves retained suffixes across many small block releases", 
   await reader.close();
 });
 
-for (const failure of ["step", "buffer", "admission"] as const) test(`failed memory reader ${failure} preserves the sanitized pool`, async context => {
-  clearAwkReaderPool();
-  context.after(clearAwkReaderPool);
+for (const failure of ["step", "buffer", "admission"] as const) test(`failed memory reader ${failure} preserves released reader isolation`, async context => {
   const seed = Reader.fromMemoryView(Buffer.from("a"), budget(), new AwkRetention(64));
   await seed.close();
   const nextBudget = budget(failure === "buffer" ? 1 : 64);
@@ -318,7 +313,22 @@ for (const failure of ["step", "buffer", "admission"] as const) test(`failed mem
   assert.equal((seed as unknown as { retention: unknown }).retention, undefined);
   assert.equal(retention.retainedBytes, 0);
   const next = Reader.fromMemoryView(Buffer.from("c"), budget(), new AwkRetention(64));
-  assert.equal(next, seed);
+  assert.notEqual(next, seed);
   assert.equal(await next.read("\n"), "c");
   await next.close();
+});
+
+for (const sync of [false, true]) test(`closed memory reader cannot read a later reader's input: sync=${sync}`, async () => {
+  const firstRetention = new AwkRetention(64);
+  const first = Reader.fromMemoryView(Buffer.from("first\n"), budget(), firstRetention);
+  if (sync) await first.closeSyncOrAsync();
+  else await first.close();
+  const secondRetention = new AwkRetention(64);
+  const second = Reader.fromMemoryView(Buffer.from("second\n"), budget(), secondRetention);
+  try {
+    assert.equal(await first.read("\n"), undefined);
+    assert.equal(await second.read("\n"), "second");
+    assert.equal(firstRetention.retainedBytes, 0);
+  } finally { await second.close(); }
+  assert.equal(secondRetention.retainedBytes, 0);
 });

@@ -15,8 +15,6 @@ const resolvedVoid = Promise.resolve();
 const RELEASED_READER_ITERATOR: AsyncIterator<Uint8Array> = {
   next() { return Promise.resolve({ done: true as const, value: undefined }); },
 };
-const memoryReaderPool: { reader: Reader | undefined } = { reader: undefined };
-export function clearAwkReaderPool(): void { memoryReaderPool.reader = undefined; }
 
 export class Reader {
   private iterator: AsyncIterator<Uint8Array>;
@@ -32,8 +30,6 @@ export class Reader {
   ended = false;
   private closed = false;
   private closing?: Promise<void> | undefined;
-  private isPooledMemory = false;
-  private activeReads = 0;
 
   constructor(source: ByteSource | undefined, private budget: Budget, private retention: Pick<AwkRetention, "admit" | "replace" | "release">, private beforeRead?: (() => void | Promise<void>) | undefined) {
     this.iterator = source === undefined
@@ -44,7 +40,7 @@ export class Reader {
   }
 
   static fromMemoryView(chunk: Uint8Array, budget: Budget, retention: Pick<AwkRetention, "admit" | "replace" | "release">): Reader {
-    // Admission must not repopulate a pooled reader with invocation references.
+    // Validate admission before retaining invocation references.
     budget.step();
     const length = chunk.byteLength;
     if (length > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
@@ -54,27 +50,8 @@ export class Reader {
       try { batch = getCachedLatin1Batch(chunk); }
       catch (error) { retention.release(length); throw error; }
     }
-    let reader = memoryReaderPool.reader;
-    if (reader !== undefined) {
-      memoryReaderPool.reader = undefined;
-      reader.budget = budget;
-      reader.retention = retention;
-      reader.iterator = RELEASED_READER_ITERATOR;
-      reader.blocksLen = 0;
-      reader.blockEndIdx = 0;
-      reader.head = 0;
-      reader.offset = 0;
-      reader.buffered = 0;
-      reader.ownedBytes = 0;
-      reader.ended = true;
-      reader.closed = false;
-      reader.closing = undefined;
-      reader.isPooledMemory = true;
-    } else {
-      reader = new Reader(undefined, budget, retention);
-      reader.ended = true;
-      reader.isPooledMemory = true;
-    }
+    const reader = new Reader(undefined, budget, retention);
+    reader.ended = true;
     if (length > 0) {
       reader.blocks[0] = chunk;
       reader.blockStrings[0] = batch?.text;
@@ -307,56 +284,51 @@ export class Reader {
     return false;
   }
   async read(separator: string): Promise<string | undefined> {
-    this.activeReads++;
-    try {
-      if (this.closed) return undefined;
-      const budget = this.budget;
-      budget.context.signal.throwIfAborted();
-      if (separator.length > 1) throw new ProgramError("RS must be one byte or empty for paragraph records");
-      if (separator.length === 1 && !this.closed && this.head < this.blocksLen) {
-        const headBlock = this.blocks[this.head]!;
-        const idx = headBlock.indexOf(separator.charCodeAt(0), this.offset);
-        if (idx >= 0 && idx - this.offset < 4096) {
-          budget.step();
-          const record = latin1Text(headBlock.subarray(this.offset, idx));
-          this.consume(idx - this.offset + 1);
-          return record;
-        }
-      }
-      if (separator === "") {
-        while (!this.closed) {
-          budget.step();
-          if (this.trimLeading()) break;
-          if (this.buffered === 0) {
-            if (this.ended) return undefined;
-            await this.fill();
-          }
-          if (this.closed) return undefined;
-          const pendingCheck = budget.checkpointSync();
-          if (pendingCheck) await pendingCheck;
-        }
-      }
-      const state: Scan = { block: this.head, offset: this.offset, bytes: 0, newline: -1, paragraphEnd: -1 };
-      while (true) {
-        if (this.closed) return undefined;
+    if (this.closed) return undefined;
+    const budget = this.budget;
+    budget.context.signal.throwIfAborted();
+    if (separator.length > 1) throw new ProgramError("RS must be one byte or empty for paragraph records");
+    if (separator.length === 1 && !this.closed && this.head < this.blocksLen) {
+      const headBlock = this.blocks[this.head]!;
+      const idx = headBlock.indexOf(separator.charCodeAt(0), this.offset);
+      if (idx >= 0 && idx - this.offset < 4096) {
         budget.step();
-        const found = this.scan(separator, state);
-        if (found) return this.finish(found.length, found.consumed);
-        if (state.block === this.blocksLen) {
-          if (this.ended) {
-            if (this.buffered === 0) return undefined;
-            const length = separator !== "" ? this.buffered : state.paragraphEnd >= 0 ? state.paragraphEnd
-              : state.newline === this.buffered - 1 ? this.buffered - 1 : this.buffered;
-            return this.finish(length, this.buffered);
-          }
+        const record = latin1Text(headBlock.subarray(this.offset, idx));
+        this.consume(idx - this.offset + 1);
+        return record;
+      }
+    }
+    if (separator === "") {
+      while (!this.closed) {
+        budget.step();
+        if (this.trimLeading()) break;
+        if (this.buffered === 0) {
+          if (this.ended) return undefined;
           await this.fill();
         }
         if (this.closed) return undefined;
         const pendingCheck = budget.checkpointSync();
         if (pendingCheck) await pendingCheck;
       }
-    } finally {
-      this.activeReads--;
+    }
+    const state: Scan = { block: this.head, offset: this.offset, bytes: 0, newline: -1, paragraphEnd: -1 };
+    while (true) {
+      if (this.closed) return undefined;
+      budget.step();
+      const found = this.scan(separator, state);
+      if (found) return this.finish(found.length, found.consumed);
+      if (state.block === this.blocksLen) {
+        if (this.ended) {
+          if (this.buffered === 0) return undefined;
+          const length = separator !== "" ? this.buffered : state.paragraphEnd >= 0 ? state.paragraphEnd
+            : state.newline === this.buffered - 1 ? this.buffered - 1 : this.buffered;
+          return this.finish(length, this.buffered);
+        }
+        await this.fill();
+      }
+      if (this.closed) return undefined;
+      const pendingCheck = budget.checkpointSync();
+      if (pendingCheck) await pendingCheck;
     }
   }
 
@@ -379,10 +351,6 @@ export class Reader {
     this.budget = undefined!;
     this.retention = undefined!;
     this.beforeRead = undefined;
-    if (this.isPooledMemory && this.activeReads === 0 && memoryReaderPool.reader === undefined) {
-      this.isPooledMemory = false;
-      memoryReaderPool.reader = this;
-    }
     if (wasEnded || !origIter.return) {
       this.closing = resolvedVoid;
       return resolvedVoid;
@@ -410,10 +378,6 @@ export class Reader {
     this.budget = undefined!;
     this.retention = undefined!;
     this.beforeRead = undefined;
-    if (this.isPooledMemory && this.activeReads === 0 && memoryReaderPool.reader === undefined) {
-      this.isPooledMemory = false;
-      memoryReaderPool.reader = this;
-    }
     if (wasEnded || !origIter.return) {
       this.closing = resolvedVoid;
       return undefined;

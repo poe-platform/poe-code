@@ -1,6 +1,5 @@
 import { tryExecFast } from "./sync-extra-evaluators.js";
 import { utf8ByteLength } from "safe-bash-byte-engine";
-import { clearAwkReaderPool } from "../commands/text-programs/awk-reader.js";
 import { writeDiagnostic } from "../escaping.js";
 import { createDeviceFileSystem } from "@poe-code/safe-fs/runtime-core";
 import { builtInDirectContextExecutors, CommandRegistry, resolvePath, toByteSource } from "../contracts/index.js";
@@ -1056,7 +1055,6 @@ export class Shell implements PluginHost {
     this.#sessions.clear();
     this.#parsedSourceCache.clear();
     Runtime.clearStaticPools();
-    clearAwkReaderPool();
     (globalThis as { __safeBashClearRgPool?: () => void }).__safeBashClearRgPool?.();
     this.#clearWarmedInvocation();
     const active = this.#active

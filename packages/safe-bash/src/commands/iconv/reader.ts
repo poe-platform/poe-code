@@ -124,12 +124,12 @@ export class Reader {
       const owned = this.copy(value);
       budget.retain(64); this.retained += 64;
       this.chunks.push(owned); length += owned.length;
-      await budget.checkpointWork();
+      { const cp = budget.checkpointWork(); if (cp) await cp; }
     }
     budget.retain(length); this.retained += length;
     const content = new Uint8Array(length);
     let offset = 0;
-    for (const chunk of this.chunks) { content.set(chunk, offset); offset += chunk.length; budget.charge(chunk.length + 1); await budget.checkpointWork(); }
+    for (const chunk of this.chunks) { content.set(chunk, offset); offset += chunk.length; budget.charge(chunk.length + 1); { const cp = budget.checkpointWork(); if (cp) await cp; } }
     budget.retain(-length - this.chunks.length * 64); this.retained -= length + this.chunks.length * 64;
     this.chunks.length = 0; this.content = content;
     return content;

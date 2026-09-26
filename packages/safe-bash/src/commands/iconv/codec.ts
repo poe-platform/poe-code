@@ -77,10 +77,12 @@ export async function convert(input: Uint8Array, options: Parsed, state: Convers
   const flushFullOutput = async (): Promise<void> => {
     await flush(); batchCount = 1; suppressed = false; targetSuppressed = false; firstTargetBatch = false;
   };
-  const append = async (bytes: readonly number[], transliterated = false): Promise<void> => {
+  const append = (bytes: readonly number[], transliterated = false): void | Promise<void> => {
     let recursiveBom = transliterated && firstTargetBatch && options.to === "utf16";
     if (buffer.length - used < bytes.length + (recursiveBom ? 2 : 0)) {
-      await flushFullOutput(); recursiveBom = false;
+      return flushFullOutput().then(() => {
+        buffer.set(bytes, used); used += bytes.length;
+      });
     }
     if (recursiveBom) { buffer[used++] = 0xff; buffer[used++] = 0xfe; }
     buffer.set(bytes, used); used += bytes.length;
@@ -93,14 +95,14 @@ export async function convert(input: Uint8Array, options: Parsed, state: Convers
     }
     while (offset < input.length) {
       budget.charge(16);
-      await budget.checkpointWork();
+      { const cp = budget.checkpointWork(); if (cp) await cp; }
       const decoded = decode(input, offset, options.from, state.swap);
       let error: "illegal" | "incomplete" | undefined;
       if ("error" in decoded) error = decoded.error;
       else {
         batchCount++;
         if (buffer.length - used < (options.to.startsWith("utf16") ? 2 : 1)) await flushFullOutput();
-        if (!started && options.to === "utf16") await append([0xff, 0xfe]);
+        if (!started && options.to === "utf16") { const a = append([0xff, 0xfe]); if (a) await a; }
         started = true;
         let bytes = encode(decoded.value, options.to);
         const transliterated = bytes === undefined && options.transliterate;
@@ -111,7 +113,7 @@ export async function convert(input: Uint8Array, options: Parsed, state: Convers
           for (const character of replacement) bytes.push(...encode(character.charCodeAt(0), options.to)!);
         }
         if (bytes === undefined) { error = "illegal"; targetSuppressed = true; }
-        else await append(bytes, transliterated);
+        else { const a = append(bytes, transliterated); if (a) await a; }
       }
       if (error === "illegal" && options.discard) suppressed = true;
       else if (error) {

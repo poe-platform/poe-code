@@ -19,7 +19,7 @@ async function* segment(cursor: Cursor, args: SplitArguments): AsyncGenerator<Ui
         if (bytes[offset] === args.separator && --remaining === 0) { count = offset + 1; break; }
       }
     } else remaining -= count;
-    await cursor.budget.step(count);
+    { const s = cursor.budget.step(count); if (s) await s; }
     yield cursor.take(count);
   }
 }
@@ -33,7 +33,7 @@ class LineBytes {
       const bytes = await this.cursor.peek();
       if (!bytes.length) break;
       const count = Math.min(bytes.length, this.size - this.used);
-      await this.cursor.budget.step(count);
+      { const s = this.cursor.budget.step(count); if (s) await s; }
       const needed = this.used + count;
       if (needed > this.buffer.length) {
         const buffer = new Uint8Array(Math.min(this.size, Math.max(needed, this.buffer.length * 2)));
@@ -85,7 +85,7 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
         while (true) {
           const bytes = await cursor!.peek();
           if (!bytes.length) break;
-          await budget.step(bytes.length);
+          { const s = budget.step(bytes.length); if (s) await s; }
           yield cursor!.take(bytes.length);
         }
       })();
@@ -95,7 +95,7 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
     if (chunkInput && args.chunkMode === "round-robin") {
       let start = 0, record = 0;
       for (let offset = 0; offset < chunkInput.length; offset++) {
-        await budget.step(1);
+        { const s = budget.step(1); if (s) await s; }
         if (chunkInput[offset] !== args.separator && offset + 1 !== chunkInput.length) continue;
         const index = record++ % args.size;
         const ranges = records.get(index) ?? [];
@@ -121,7 +121,7 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
         if (args.chunkMode === "lines") {
           end = Math.max(end, chunkOffset);
           while (end < chunkInput.length && end > 0 && chunkInput[end - 1] !== args.separator) {
-            await budget.step(1);
+            { const s = budget.step(1); if (s) await s; }
             end++;
           }
         }

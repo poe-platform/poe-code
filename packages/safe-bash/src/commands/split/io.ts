@@ -31,16 +31,16 @@ export class Budget {
     this.check(size, this.limits.maxOutputBytes - this.outputBytes, "output");
     this.outputBytes += size;
   }
-  async step(count = 1): Promise<void> {
+  step(count = 1): void | Promise<void> {
     this.signal.throwIfAborted();
     this.check(count, this.limits.maxSteps - this.steps, "work");
     this.steps += count;
     this.untilYield -= count;
-    if (this.untilYield <= 0) {
-      this.untilYield = 65536;
-      await yieldTurn(this.signal).catch(error => { this.signal.throwIfAborted(); throw error; });
-    }
-    this.signal.throwIfAborted();
+    if (this.untilYield > 0) return;
+    this.untilYield = 65536;
+    return yieldTurn(this.signal).catch(error => { this.signal.throwIfAborted(); throw error; }).then(() => {
+      this.signal.throwIfAborted();
+    });
   }
 }
 
@@ -72,7 +72,7 @@ export class Cursor {
 
   async peek(): Promise<Uint8Array> {
     while (!this.ended && this.offset === this.bytes.length) {
-      await this.budget.step();
+      { const s = this.budget.step(); if (s) await s; }
       const result = await this.iterator.next();
       if (result.done) { this.ended = true; this.bytes = new Uint8Array(); this.offset = 0; break; }
       this.budget.input(result.value.byteLength);

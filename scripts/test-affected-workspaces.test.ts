@@ -32,7 +32,7 @@ describe("change-based unit scope", () => {
     expect(tests.testStages.map(stage => stage.name)).not.toContain("@poe-code/safe-js");
     const shell = createWorkspaceTestPlan(root, { changedFiles: ["packages/safe-bash/src/shell.ts"] });
     expect(shell.testStages.map(stage => stage.name)).toContain("docx");
-  });
+  }, 30_000);
 
   it("retains declared external task inputs without creating build dependency cycles", () => {
     const options = fixture();

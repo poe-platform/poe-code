@@ -1656,6 +1656,25 @@ class FastShellCommandContext {
     void this.registerCleanup;
   }
 
+  static {
+    Object.assign(FastShellCommandContext.prototype, {
+      _self: undefined,
+      _scopedSignal: undefined,
+      _contextFs: undefined,
+      _cachedPredicates: undefined,
+      _cachedInputBudget: undefined,
+      _argumentValues: undefined,
+      _registerCleanup: undefined,
+      _invoke: undefined,
+      descriptors: undefined,
+      onInternalError: undefined,
+      argv0: undefined,
+      processSignals: undefined,
+      diagnosticLine: undefined,
+      scriptName: undefined,
+    });
+  }
+
   registerScopeCleanup(cleanup: Parameters<NonNullable<CommandContext["registerCleanup"]>>[0]): () => void {
     return (this._self ?? this)._scope.register(cleanup);
   }
@@ -4464,6 +4483,21 @@ export class Runtime {
         if (typeof syncResult === "number") {
           return syncResult === 0 ? SYNC_UNIT_ZERO : syncResult === 1 ? SYNC_UNIT_ONE : { exitCode: syncResult, terminated: false };
         }
+        if (
+          syncResult.listIndex === 0 &&
+          syncResult.pipelineIndex === 0 &&
+          script.lists.length === 1 &&
+          script.lists[0]!.pipelines.length === 1 &&
+          !script.lists[0]!.terminator
+        ) {
+          const fastUnit = this.tryFastSinglePipelineUnit(
+            script.lists[0]!.pipelines[0]!,
+            state,
+            io,
+            Boolean(io.execution?.ignoreErrexit),
+          );
+          if (fastUnit !== undefined) return fastUnit;
+        }
         return this.runUnitFrom(script, state, io, syncResult.listIndex, syncResult.pipelineIndex, false);
       } catch (error) {
         if (error instanceof Flow && error.kind === "discard") {
@@ -4498,6 +4532,411 @@ export class Runtime {
       if (error instanceof Flow && error.kind === "exit") return { exitCode: await this.finishShell(state, io, error.status), terminated: true };
       throw error;
     }
+  }
+
+  private tryFastSinglePipelineUnit(
+    pipeline: Pipeline,
+    state: State,
+    io: IO,
+    ignored: boolean,
+  ): Promise<{ exitCode: number; terminated: boolean }> | undefined {
+    if (
+      this.middleware.length > 0 ||
+      io.terminal !== undefined ||
+      io.asyncDefaultInput !== undefined ||
+      (io.descriptors &&
+        (io.descriptors.size > 3 ||
+          io.descriptors.get(0)?.closed ||
+          io.descriptors.get(1)?.closed ||
+          io.descriptors.get(2)?.closed))
+    ) {
+      return undefined;
+    }
+    const monitor = stateMonitor(state);
+    if (!monitor) return undefined;
+    const rawState = monitor.raw;
+    if (
+      hasActiveExtensions(rawState) ||
+      rawState.externalInvocation ||
+      rawState.variableAttributes?.size ||
+      guestArrays(state) ||
+      rawState.readonlyVariables?.has("PIPESTATUS")
+    ) {
+      return undefined;
+    }
+    const store = monitor.store;
+    const existing = store?.get("PIPESTATUS");
+    const psTarget = existing ? "indexed" : pipelineStatusTarget(rawState);
+    if (psTarget !== "indexed" && psTarget !== "absent") return undefined;
+    if (store?.watches.has("PIPESTATUS") || monitor.hasOverlay("PIPESTATUS")) return undefined;
+    if (existing && (existing.associative || existing.values.size !== 1 || existing.maximum !== 0)) return undefined;
+    const elem0 = existing?.values.get(0);
+    if (existing && (!elem0 || elem0.text.bytes !== 1)) return undefined;
+    const canMutatePipeStatus = !existing || (existing.references === 1 && elem0!.text.references === 1);
+    if (!canMutatePipeStatus) return undefined;
+    if (pipeline.commands.length === 1) {
+      const command = pipeline.commands[0]!;
+      if (command.kind !== "simple" || command.words.length === 0 || command.redirects.length > 1) return undefined;
+      const w0Plain = command.words[0]!.plain;
+      if (
+        !w0Plain ||
+        !FAST_DIRECT_CONTEXT_COMMANDS.has(w0Plain) ||
+        implementedBuiltins.has(w0Plain) ||
+        rawState.functions.has(w0Plain) ||
+        rawState.extensions?.builtins.has(w0Plain)
+      ) {
+        return undefined;
+      }
+      const externalDef = this.getExternalCommand(w0Plain);
+      if (
+        !externalDef ||
+        customRegisteredCommands.has(externalDef.execute) ||
+        customRegisteredRegistries.has(this.commands) ||
+        command.words.length > this.budget.limits.maxExpansionFields ||
+        this.budget.commands + 1 > this.budget.limits.maxCommands
+      ) {
+        return undefined;
+      }
+      for (let i = 0; i < command.words.length; i++) {
+        if (!this.isPureArgWord(command.words[i]!, rawState)) return undefined;
+      }
+      if (command.redirects.length === 1) {
+        const r0 = command.redirects[0]!;
+        if (
+          this.budget.limits.maxRedirects < 1 ||
+          this.fileWrites.size > 0 ||
+          this.outputFiles.size > 0 ||
+          !this.canFastMemoryRedirect ||
+          this.budget.fileSystemOperations + 1 > this.budget.limits.maxFileSystemOperations ||
+          r0.descriptor !== 1 ||
+          r0.move ||
+          r0.document ||
+          !(r0.operator === ">" || r0.operator === ">>" || (r0.operator === ">|" && rawState.noclobber)) ||
+          (r0.operator === ">" && rawState.noclobber) ||
+          !this.isPureArgWord(r0.target, rawState)
+        ) {
+          return undefined;
+        }
+      }
+      const diagnosticLine = io.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0);
+      const args = new Array<string>(command.words.length - 1);
+      let lastArg = w0Plain;
+      try {
+        for (let i = 1; i < command.words.length; i++) {
+          const v = this.fastValueWord(command.words[i]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
+          if (typeof v !== "string") return undefined;
+          args[i - 1] = v;
+          lastArg = v;
+        }
+      } catch {
+        return undefined;
+      }
+      let redirectSink: MemoryRedirectSink | undefined;
+      if (command.redirects.length === 1) {
+        const r0 = command.redirects[0]!;
+        let targetVal: ShellValue | undefined;
+        try {
+          targetVal = this.fastValueWord(r0.target, rawState, io, true, false, false, true, undefined, diagnosticLine);
+        } catch {
+          return undefined;
+        }
+        if (typeof targetVal !== "string" || !targetVal || targetVal.includes("\0")) return undefined;
+        const resolved = resolvePath(rawState.cwd, targetVal);
+        if (resolved === "/dev" || resolved.startsWith("/dev/")) return undefined;
+        let handle: MemoryRedirectHandle | undefined;
+        try {
+          handle = tryOpenMemoryRedirectHandleSync(
+            this.backingFs,
+            resolved,
+            r0.operator === ">>",
+            0o666 & ~(rawState.umask ?? 0o022),
+            this.signal,
+          );
+        } catch {
+          return undefined;
+        }
+        if (!handle) return undefined;
+        this.budget.fileSystemOperation();
+        redirectSink = new MemoryRedirectSink(this.budget, handle, resolved, this.commandSignal);
+      }
+      if (rawState.extensions && !rawState.extensions.eventDepth) {
+        publishCommandSpelling(rawState, commandSpelling(command));
+      }
+      this.budget.tick();
+      rawState.substitutionStatus = 0;
+      if (rawState.variables._ !== undefined) delete rawState.variables._;
+      rawState.lastArgument = lastArg;
+      if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+      const env = Object.create(null) as Record<string, string>;
+      for (const key of rawState.exported) {
+        const value = rawState.variables[key];
+        if (value !== undefined) env[key] = value;
+      }
+      if (rawState.exportedFunctions) {
+        for (const key of rawState.exportedFunctions) {
+          const body = rawState.functions.get(key);
+          if (body) env[`BASH_FUNC_${key}%%`] = functionDisplay(key, body).slice(key.length + 1).trimEnd();
+        }
+      }
+      const scope = io[invocationScope];
+      const context = new FastShellCommandContext(this, rawState, io, scope, w0Plain, args, undefined, env, this._isMemoryBackingFs);
+      if (redirectSink) {
+        context.stdout = redirectSink;
+        if (io.descriptors) {
+          const descriptors = new Map(io.descriptors);
+          descriptors.set(1, { output: redirectSink });
+          context.descriptors = descriptors;
+        }
+      }
+      return this.finishFastSingleExternalUnit(
+        externalDef,
+        context,
+        redirectSink,
+        diagnosticLine,
+        pipeline.negate,
+        ignored || pipeline.negate,
+        monitor,
+        rawState,
+        existing,
+        elem0,
+        store,
+        state,
+        io,
+      );
+    }
+    if (pipeline.commands.length >= 2 && !existing) {
+      const n = pipeline.commands.length;
+      if (this.budget.commands + n > this.budget.limits.maxCommands) return undefined;
+      for (let i = 0; i < n; i++) {
+        const cmd = pipeline.commands[i]!;
+        if (cmd.kind !== "simple" || !this.isPureExternalStageCommand(cmd, rawState) || cmd.words.length > this.budget.limits.maxExpansionFields) {
+          return undefined;
+        }
+      }
+      return this.executeFastPurePipelineUnit(pipeline, state, rawState, monitor, io, ignored || pipeline.negate);
+    }
+    return undefined;
+  }
+
+  private async finishFastSingleExternalUnit(
+    definition: NonNullable<ReturnType<CommandRegistry["get"]>>,
+    context: FastShellCommandContext,
+    redirectSink: MemoryRedirectSink | undefined,
+    diagnosticLine: number,
+    negate: boolean,
+    ignored: boolean,
+    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
+    rawState: State,
+    existing: ReturnType<NonNullable<typeof monitor.store>["get"]>,
+    elem0: IndexedBinding["values"] extends Map<number, infer E> ? E | undefined : never,
+    store: typeof monitor.store,
+    state: State,
+    io: IO,
+  ): Promise<{ exitCode: number; terminated: boolean }> {
+    const scope = io[invocationScope];
+    const owner = monitor.internalOwner();
+    const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
+    let rawStatus = 0;
+    scope.enterWork();
+    this.budget.beginPathLookupSuspension();
+    try {
+      scope.assertOpen();
+      const raw = definition.execute(context as unknown as ShellCommandContext);
+      const res = this.budget._hasExternalSignal
+        ? await interruptible(Promise.resolve(raw), this.signal)
+        : await raw;
+      this.signal.throwIfAborted();
+      rawStatus = validateExitCode(res.exitCode);
+    } catch (error) {
+      this.signal.throwIfAborted();
+      if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
+      this.clearOutcomeReport();
+      if (errorCode(error) === "EPIPE") {
+        rawStatus = 141;
+      } else {
+        try {
+          await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: line ${diagnosticLine}: ${message(error, this.budget.onInternalError)}\n`);
+        } catch (failure) {
+          this.signal.throwIfAborted();
+          publicDiagnosticMessage(failure, this.budget.onInternalError);
+        }
+        rawStatus = error instanceof CommandFailure ? error.status : 1;
+      }
+    } finally {
+      this.budget.endPathLookupSuspension();
+      scope.leaveWork();
+      redirectSink?.handle.close();
+    }
+    if (!existing) {
+      monitor.lazyPipeStatus = rawStatus === 0 ? singleStatusZero : rawStatus === 1 ? singleStatusOne : [rawStatus];
+      owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+    } else if (rawStatus < 10) {
+      elem0!.text.shellValue = String(rawStatus);
+      store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+    } else {
+      await publishPipelineStatus(state, [rawStatus], this.signal, scope);
+    }
+    const finalStatus = negate ? Number(rawStatus === 0) : rawStatus;
+    rawState.status = finalStatus;
+    monitor.epoch = restEpoch;
+    if (store) store.epoch = restEpoch;
+    if (finalStatus !== 0 && !ignored && rawState.errexit) {
+      if (this.tryFinishShellSync(state)) return { exitCode: finalStatus, terminated: true };
+      return { exitCode: await this.finishShell(state, io, finalStatus), terminated: true };
+    }
+    return finalStatus === 0 ? SYNC_UNIT_ZERO : finalStatus === 1 ? SYNC_UNIT_ONE : { exitCode: finalStatus, terminated: false };
+  }
+
+  private async executeFastPurePipelineUnit(
+    pipeline: Pipeline,
+    state: State,
+    rawState: State,
+    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
+    io: IO,
+    ignored: boolean,
+  ): Promise<{ exitCode: number; terminated: boolean }> {
+    const n = pipeline.commands.length;
+    const release = this.budget.reservePipelineStages(n);
+    this.budget.commands += n;
+    const sharedEnv = Object.create(null) as Record<string, string>;
+    for (const key of rawState.exported) {
+      const value = rawState.variables[key];
+      if (value !== undefined) sharedEnv[key] = value;
+    }
+    const pipes = new Array<ReturnType<typeof createBytePipe>>(n - 1);
+    for (let i = 0; i < n - 1; i++) {
+      pipes[i] = createBytePipe({ highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal });
+    }
+    const controllers = new Array<ManagedControlController>(n);
+    for (let i = 0; i < n; i++) {
+      controllers[i] = createManagedControlController();
+    }
+    const written = new Set<number>();
+    const completed = new Set<number>();
+    const closing = new Set<TurnHandle>();
+    const scope = io[invocationScope];
+    const unsealScope = scope.onSeal(() => {
+      const closedReason = new Error("Invocation is closed");
+      for (let i = 0; i < n; i++) abortManagedController(controllers[i]!, closedReason);
+    });
+    let statuses: number[];
+    try {
+      const tasks = new Array<Promise<number>>(n);
+      for (let index = 0; index < n; index++) {
+        const cmd = pipeline.commands[index]! as Extract<Command, { kind: "simple" }>;
+        const firstName = cmd.words[0]!.plain!;
+        const extDef = this.getExternalCommand(firstName)!;
+        const stageArgs = new Array<string>(cmd.words.length - 1);
+        for (let w = 1; w < cmd.words.length; w++) {
+          const word = cmd.words[w]!;
+          stageArgs[w - 1] = word.plain ?? word.parts.map(p => (p as { value: string }).value).join("");
+        }
+        const incoming = index > 0 ? pipes[index - 1] : undefined;
+        const outgoing = index < n - 1 ? pipes[index] : undefined;
+        const reading = incoming?.endpoints?.read;
+        const writing = outgoing?.endpoints?.write;
+        const stageSignal = combineManagedSignals(this.signal, controllers[index]!.signal);
+        const input = incoming
+          ? new ShellInput(reading?.readable ?? incoming.readable, this.budget, stageSignal, { provenance: "stream", poll: pollIncomingPipe, incoming } as unknown as ConstructorParameters<typeof ShellInput>[3], true)
+          : new ShellInput(io.stdin, this.budget, stageSignal, undefined, true);
+        const writable = writing?.writable ?? outgoing?.writable;
+        const stageStdout = outgoing
+          ? new BudgetedPipeStageSink(this.budget, writable!, stageSignal, written, index, controllers[index]!)
+          : signalSink(io.stdout, stageSignal);
+        const stageStderr = signalSink(io.stderr, stageSignal);
+        const context = new FastShellCommandContext(this, rawState, io, scope, firstName, stageArgs, undefined, sharedEnv, true);
+        context.stdin = input;
+        if (incoming) context.stdinIsDefault = false;
+        context.stdout = stageStdout;
+        context.stderr = stageStderr;
+        context.signal = stageSignal;
+        (context as unknown as { _scopedSignal: AbortSignal })._scopedSignal = stageSignal;
+        tasks[index] = (async () => {
+          let exitCode = 0;
+          scope.enterWork();
+          this.budget.beginPathLookupSuspension();
+          try {
+            const res = await extDef.execute(context as unknown as ShellCommandContext);
+            stageSignal.throwIfAborted();
+            exitCode = validateExitCode(res.exitCode);
+          } catch (error) {
+            if (error instanceof PipelineClosed || (stageSignal.aborted && Object.is(stageSignal.reason, SHARED_PIPELINE_CLOSED))) {
+              exitCode = 141;
+            } else if (errorCode(error) === "EPIPE" && !this.signal.aborted) {
+              exitCode = 141;
+            } else {
+              this.signal.throwIfAborted();
+              if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
+              const line = io.diagnosticCommandLines?.get(cmd) ?? (cmd.line ?? 1) + (io.diagnosticOffset ?? 0);
+              try {
+                await writeDiagnostic(stageStderr, `${io.scriptName ?? "shell"}: line ${line}: ${message(error, this.budget.onInternalError)}\n`);
+              } catch (failure) {
+                this.signal.throwIfAborted();
+                publicDiagnosticMessage(failure, this.budget.onInternalError);
+              }
+              exitCode = error instanceof CommandFailure ? error.status : 1;
+            }
+          } finally {
+            this.budget.endPathLookupSuspension();
+            scope.leaveWork();
+            completed.add(index);
+            if (incoming && !reading) {
+              const upstream = index - 1;
+              const close = scheduleTurn(() => {
+                closing.delete(close);
+                if (written.has(upstream) && !completed.has(upstream)) abortManagedController(controllers[upstream]!, SHARED_PIPELINE_CLOSED);
+              });
+              closing.add(close);
+              await incoming.abort();
+            }
+            const closedInput = input.close();
+            if (!isSyncResolved(closedInput)) {
+              await closedInput.catch((error: unknown) => { if (!(error instanceof PipelineClosed)) throw error; });
+            }
+            if (reading) {
+              const closedRead = reading.close();
+              if (!isSyncResolved(closedRead)) await closedRead;
+            }
+            if (writing) {
+              const closedWrite = writing.close();
+              if (!isSyncResolved(closedWrite)) await closedWrite;
+            }
+            if (outgoing && !writing) {
+              const closedOut = outgoing.close();
+              if (!isSyncResolved(closedOut)) await closedOut.catch(() => undefined);
+            }
+          }
+          return exitCode;
+        })();
+      }
+      statuses = this.budget._hasExternalSignal
+        ? await interruptible(Promise.all(tasks), this.signal)
+        : await Promise.all(tasks);
+    } finally {
+      unsealScope();
+      for (const close of closing) cancelTurn(close);
+      for (let i = 0; i < n; i++) {
+        if (!completed.has(i) || written.has(i)) abortManagedController(controllers[i]!, SHARED_PIPELINE_CLOSED);
+      }
+      for (let i = 0; i < n - 1; i++) {
+        const ab = pipes[i]!.abort();
+        if (!isSyncResolved(ab)) await ab;
+      }
+      release();
+    }
+    const owner = monitor.internalOwner();
+    const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
+    monitor.lazyPipeStatus = statuses;
+    owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+    const rawStatus = rawState.pipefail ? statuses.findLast(s => s !== 0) ?? 0 : statuses[n - 1]!;
+    const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
+    rawState.status = finalStatus;
+    monitor.epoch = restEpoch;
+    if (rawStatus !== 0 && !pipeline.negate && !ignored && rawState.errexit) {
+      if (this.tryFinishShellSync(state)) return { exitCode: finalStatus, terminated: true };
+      return { exitCode: await this.finishShell(state, io, finalStatus), terminated: true };
+    }
+    return finalStatus === 0 ? SYNC_UNIT_ZERO : finalStatus === 1 ? SYNC_UNIT_ONE : { exitCode: finalStatus, terminated: false };
   }
 
   private async inputUnit(script: Script, state: State, io: IO, startListIndex = 0, startPipelineIndex = 0, skipFirstSync = false): Promise<number> {

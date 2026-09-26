@@ -36,6 +36,7 @@ export class Matcher {
   constructor(patterns: readonly string[], args: Arguments, private readonly session: RegexSession, ergonomic = true) {
     let literalAscii: Uint8Array | undefined;
     if (
+      ergonomic &&
       patterns.length === 1 &&
       args.case === "sensitive" &&
       !args.whole &&

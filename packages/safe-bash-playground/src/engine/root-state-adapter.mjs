@@ -14,77 +14,95 @@ export function instrumentRootState(source) {
   const transformed = ts.transform(file, [
     (context) => {
       const factory = context.factory;
-      const notify = factory.createExpressionStatement(
-        factory.createCallChain(
-          factory.createPropertyAccessExpression(factory.createIdentifier("options"), "onRootState"),
-          factory.createToken(ts.SyntaxKind.QuestionDotToken),
-          undefined,
-          [
-            factory.createCallExpression(
-              factory.createPropertyAccessExpression(factory.createIdentifier("Object"), "freeze"),
-              undefined,
-              [
-                factory.createObjectLiteralExpression([
-                  factory.createPropertyAssignment(
-                    "cwd",
-                    factory.createPropertyAccessExpression(factory.createIdentifier("state"), "cwd")
-                  )
-                ])
-              ]
-            )
-          ]
-        )
-      );
-      const observedCwd = factory.createIdentifier("playgroundRootCwd");
-      const cwdValue = factory.createIdentifier("value");
-      const observe = [
-        factory.createVariableStatement(undefined, factory.createVariableDeclarationList([
-          factory.createVariableDeclaration(observedCwd, undefined, undefined,
-            factory.createPropertyAccessExpression(factory.createIdentifier("state"), "cwd"))
-        ], ts.NodeFlags.Let)),
-        factory.createExpressionStatement(factory.createCallExpression(
-          factory.createPropertyAccessExpression(factory.createIdentifier("Object"), "defineProperty"),
-          undefined,
-          [factory.createIdentifier("state"), factory.createStringLiteral("cwd"), factory.createObjectLiteralExpression([
-            factory.createPropertyAssignment("enumerable", factory.createTrue()),
-            factory.createPropertyAssignment("configurable", factory.createTrue()),
-            factory.createPropertyAssignment("get", factory.createArrowFunction(
-              undefined, undefined, [], undefined, factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken), observedCwd
-            )),
-            factory.createPropertyAssignment("set", factory.createArrowFunction(
-              undefined, undefined, [factory.createParameterDeclaration(undefined, undefined, cwdValue)],
-              undefined, factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken), factory.createBlock([
-                factory.createIfStatement(
-                  factory.createBinaryExpression(observedCwd, ts.SyntaxKind.EqualsEqualsEqualsToken, cwdValue),
-                  factory.createReturnStatement()
-                ),
-                factory.createExpressionStatement(factory.createAssignment(observedCwd, cwdValue)),
-                factory.createExpressionStatement(factory.createCallChain(
-                  factory.createPropertyAccessExpression(factory.createIdentifier("options"), "onCwd"),
-                  factory.createToken(ts.SyntaxKind.QuestionDotToken), undefined, [cwdValue]
-                ))
-              ], true)
-            ))
-          ])]
-        ))
-      ];
+      const observation = (rootName) => {
+        const root = factory.createIdentifier(rootName);
+        const notify = factory.createExpressionStatement(
+          factory.createCallChain(
+            factory.createPropertyAccessExpression(factory.createIdentifier("options"), "onRootState"),
+            factory.createToken(ts.SyntaxKind.QuestionDotToken),
+            undefined,
+            [
+              factory.createCallExpression(
+                factory.createPropertyAccessExpression(factory.createIdentifier("Object"), "freeze"),
+                undefined,
+                [
+                  factory.createObjectLiteralExpression([
+                    factory.createPropertyAssignment(
+                      "cwd",
+                      factory.createPropertyAccessExpression(root, "cwd")
+                    )
+                  ])
+                ]
+              )
+            ]
+          )
+        );
+        const observedCwd = factory.createIdentifier("playgroundRootCwd");
+        const cwdValue = factory.createIdentifier("value");
+        const observe = [
+          factory.createVariableStatement(undefined, factory.createVariableDeclarationList([
+            factory.createVariableDeclaration(observedCwd, undefined, undefined,
+              factory.createPropertyAccessExpression(root, "cwd"))
+          ], ts.NodeFlags.Let)),
+          factory.createExpressionStatement(factory.createCallExpression(
+            factory.createPropertyAccessExpression(factory.createIdentifier("Object"), "defineProperty"),
+            undefined,
+            [root, factory.createStringLiteral("cwd"), factory.createObjectLiteralExpression([
+              factory.createPropertyAssignment("enumerable", factory.createTrue()),
+              factory.createPropertyAssignment("configurable", factory.createTrue()),
+              factory.createPropertyAssignment("get", factory.createArrowFunction(
+                undefined, undefined, [], undefined, factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken), observedCwd
+              )),
+              factory.createPropertyAssignment("set", factory.createArrowFunction(
+                undefined, undefined, [factory.createParameterDeclaration(undefined, undefined, cwdValue)],
+                undefined, factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken), factory.createBlock([
+                  factory.createIfStatement(
+                    factory.createBinaryExpression(observedCwd, ts.SyntaxKind.EqualsEqualsEqualsToken, cwdValue),
+                    factory.createReturnStatement()
+                  ),
+                  factory.createExpressionStatement(factory.createAssignment(observedCwd, cwdValue)),
+                  factory.createExpressionStatement(factory.createCallChain(
+                    factory.createPropertyAccessExpression(factory.createIdentifier("options"), "onCwd"),
+                    factory.createToken(ts.SyntaxKind.QuestionDotToken), undefined, [cwdValue]
+                  ))
+                ], true)
+              ))
+            ])]
+          ))
+        ];
+        return { notify, observe };
+      };
       let assignedRootBinding = false;
       const hasCwd = (initializer) => initializer && ts.isObjectLiteralExpression(initializer)
         && initializer.properties.some(property => ts.isShorthandPropertyAssignment(property) && property.name.text === "cwd");
-      const isRootState = (statement) => {
-        if (ts.isVariableStatement(statement)) return statement.declarationList.declarations.some(declaration =>
-          ts.isIdentifier(declaration.name) && declaration.name.text === "state" && hasCwd(declaration.initializer));
-        if (!assignedRootBinding || !ts.isExpressionStatement(statement)) return false;
+      const isConstructedRoot = (initializer) => initializer && ts.isNewExpression(initializer)
+        && ts.isIdentifier(initializer.expression) && initializer.expression.text === "RootShellState"
+        && initializer.arguments?.length === 4
+        && ["cwd", "variables", "exported"].every((name, index) =>
+          ts.isIdentifier(initializer.arguments[index]) && initializer.arguments[index].text === name);
+      const rootStateBinding = (statement) => {
+        if (ts.isVariableStatement(statement)) {
+          const declarations = statement.declarationList.declarations;
+          if (declarations.length !== 1) return undefined;
+          const declaration = declarations[0];
+          if (!ts.isIdentifier(declaration.name)) return undefined;
+          if (declaration.name.text === "state" && hasCwd(declaration.initializer)) return "state";
+          if (declaration.name.text === "currentState" && isConstructedRoot(declaration.initializer)) return "currentState";
+          return undefined;
+        }
+        if (!assignedRootBinding || !ts.isExpressionStatement(statement)) return undefined;
         const expression = statement.expression;
         return ts.isBinaryExpression(expression) && expression.operatorToken.kind === ts.SyntaxKind.EqualsToken
-          && ts.isIdentifier(expression.left) && expression.left.text === "state" && hasCwd(expression.right);
+          && ts.isIdentifier(expression.left) && expression.left.text === "state" && hasCwd(expression.right)
+          ? "state" : undefined;
       };
       const visitBody = (node) => {
         if (ts.isFunctionLike(node) || ts.isClassLike(node)) return node;
         if (ts.isBlock(node)) {
-          const index = node.statements.findIndex(isRootState);
+          const index = node.statements.findIndex(statement => rootStateBinding(statement) !== undefined);
           if (index >= 0) {
             adapted++;
+            const { notify, observe } = observation(rootStateBinding(node.statements[index]));
             return factory.updateBlock(node, [
               ...node.statements.slice(0, index + 1),
               ...observe,
@@ -115,7 +133,7 @@ export function instrumentRootState(source) {
           let candidates = 0;
           const countCandidates = (child) => {
             if (ts.isFunctionLike(child) || ts.isClassLike(child)) return;
-            if (isRootState(child)) candidates++;
+            if (rootStateBinding(child) !== undefined) candidates++;
             ts.forEachChild(child, countCandidates);
           };
           countCandidates(node.body);

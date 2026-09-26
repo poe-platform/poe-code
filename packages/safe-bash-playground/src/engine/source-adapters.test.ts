@@ -107,4 +107,55 @@ describe("pinned browser source adapters", () => {
       'let state; const nested = () => { state = { cwd }; };',
     ]) expect(() => instrumentRootState(`class Shell { async #execute(options) { ${body} } }`)).toThrow("structure changed");
   });
+
+  it.each([false, true])("observes constructed root state through restoration and cleanup: %s", async (fail) => {
+    const code = instrumentRootState(`
+      class RootShellState {
+        constructor(cwd, variables, exported, extensions) {
+          Object.assign(this, { cwd, variables, exported, extensions });
+        }
+      }
+      export class Shell {
+        run(options) { return this.#execute(options); }
+        async #execute(options) {
+          let state;
+          try {
+            const cwd = "/", variables = { retained: "value" }, exported = new Set();
+            let currentState = new RootShellState(cwd, variables, exported, { definitions: ["read"] });
+            state = currentState;
+            currentState = new Proxy(currentState, {});
+            state = currentState;
+            currentState.cwd = "/restored";
+            currentState.cwd = "/next";
+            options.onState?.(state);
+            if (options.fail) throw new Error("execution failed");
+            return state;
+          } finally { options.cleaned = true; }
+        }
+      }`);
+    const { Shell } = await import(/* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
+    const roots: unknown[] = [], paths: string[] = [], sessions: unknown[] = [];
+    const options = { fail, cleaned: false, onRootState: (value: unknown) => roots.push(value),
+      onCwd: (value: string) => paths.push(value), onState: (value: unknown) => sessions.push(value) };
+    const result = new Shell().run(options);
+    if (fail) await expect(result).rejects.toThrow("execution failed");
+    else expect(await result).toBe(sessions[0]);
+    expect(options.cleaned).toBe(true);
+    expect(roots).toEqual([{ cwd: "/next" }]);
+    expect(Object.isFrozen(roots[0])).toBe(true);
+    expect(paths).toEqual(["/restored", "/next"]);
+    expect(sessions[0]).toMatchObject({ variables: { retained: "value" }, extensions: { definitions: ["read"] } });
+  });
+
+  it("rejects changed or ambiguous root constructors", () => {
+    for (const body of [
+      'let currentState = new OtherState(cwd, variables, exported, extensions);',
+      'let currentState = new RootShellState(other, variables, exported, extensions);',
+      'let currentState = new RootShellState(cwd, exported, variables, extensions);',
+      'let currentState = new RootShellState(cwd, variables, exported);',
+      'let currentState = RootShellState(cwd, variables, exported, extensions);',
+      'let currentState = new RootShellState(cwd, variables, exported, extensions); const state = { cwd };',
+      'const nested = () => { let currentState = new RootShellState(cwd, variables, exported, extensions); };',
+    ]) expect(() => instrumentRootState(`class Shell { async #execute(options) { ${body} } }`)).toThrow("structure changed");
+  });
 });

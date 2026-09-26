@@ -368,6 +368,32 @@ describe("real safe-bash browser kernel", () => {
     }
   });
 
+  it("observes cwd after restoring a session with tracked arrays", async () => {
+    const { fs, shell } = await fixture();
+    await fs.mkdir("/home/sub");
+    const roots: unknown[] = [], sessions: unknown[] = [], paths: string[] = [];
+    try {
+      const saved = await shell.exec("declare -a values=(one two); cd sub", {
+        onState: (state) => { sessions.push(state); }
+      });
+      expect(saved.exitCode).toBe(0);
+      expect(saved.state).toBeDefined();
+      const result = await shell.exec('cd /; printf "%s" "${values[1]}"', {
+        state: saved.state,
+        onRootState: (state) => roots.push(state),
+        onCwd: (cwd) => paths.push(cwd),
+        onState: (state) => { sessions.push(state); }
+      });
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toBe("two");
+      expect(paths).toEqual(["/home/sub", "/"]);
+      expect(roots).toEqual([{ cwd: "/" }]);
+      expect(sessions).toEqual([saved.state, result.state]);
+    } finally {
+      await shell.dispose();
+    }
+  });
+
   it("reports the final root cwd exactly once when exit skips later commands", async () => {
     const { fs, shell } = await fixture();
     await fs.mkdir("/home/sub");

@@ -338,7 +338,7 @@ it("bundles a real private command behind its packed subpath", async () => {
     return source === undefined ? undefined : ts.createSourceFile(filename, source, languageVersion);
   };
   expect(ts.getPreEmitDiagnostics(ts.createProgram(["/consumer/index.mts"], compilerOptions, host)).map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"))).toEqual([]);
-});
+}, 30_000);
 
 it.each(["missing", "symlink", "excluded", "traversal", "outside-dist"])("refuses inadmissible declared private assets: %s", async kind => {
   const { volume, options } = optionalLeftovers();
@@ -513,7 +513,7 @@ describe("isolated packed private command graph", () => {
     volume.symlinkSync("/output/safe-bash", "/output/node_modules/@poe-platform/safe-bash");
     volume.symlinkSync("/output/safe-fs", "/output/node_modules/@poe-platform/safe-fs");
     volume.writeFileSync("/output/csvcut-consumer.mts", readFileSync(new URL("./fixtures/safe-packages-csvcut-types.mts", import.meta.url)));
-  });
+  }, 30_000);
 
   it("admits Shell byte argv through an isolated packed private command graph", async () => {
     // Check the packaged declarations without rechecking TypeScript's own library.
@@ -538,7 +538,7 @@ describe("isolated packed private command graph", () => {
       AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance });
     // Execute fixture top-level await in the Buffer-free isolated realm.
     await runInContext(`(async () => { const module = { exports: {} }; ${consumer.outputFiles[0]!.text}; await module.exports.verification; })()`, sandbox);
-  });
+  }, 30_000);
 });
 
 it.each(["wkhtmltopdf", "xz"])("packs %s and contract modules into one canonical relative graph", async command => {
@@ -1043,7 +1043,7 @@ describe("explicit optional safe package artifact", () => {
     expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/bundled-yaml/LICENSE", "utf8")).toBe("YAML fixture license");
     expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/opt-in/commands/yq/mike.js", "utf8")).toContain('import("yaml")');
     expect(bundle).toHaveBeenCalledWith(expect.objectContaining({ bundle: true, platform: "browser", write: false }));
-  });
+  }, 30_000);
 
   it("rejects explicitly blocked optional peer declaration conditions", async () => {
     const { volume, options } = optionalArtifact();

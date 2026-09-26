@@ -253,3 +253,43 @@ test("available batching emits all matching records", { timeout: 5000 }, async (
   assert.equal(result.stdout.toString(), "a\n".repeat(3));
   assert.equal(result.stderr.toString(), "");
 });
+
+for (const ergonomicRegex of [false, true]) {
+for (const reason of [false, null]) test(`literal grep closes its source after sink cancellation ${String(reason)}, ergonomic=${ergonomicRegex}`, async context => {
+  const controller = new AbortController();
+  let closed = false;
+  let pulls = 0;
+  const source = (async function* () {
+    try { pulls++; yield Uint8Array.of(97, 10); pulls++; yield Uint8Array.of(97, 10); }
+    finally { closed = true; }
+  })();
+  const executor = new RegexExecutor(createBoundedRegexProvider());
+  context.after(() => executor.dispose());
+  const definition = createGrepCommands(executor, { ergonomicRegex })[0]!;
+  await assert.rejects(run(definition, ["a", "-"], source, {
+    signal: controller.signal,
+    stdout: { async write() { controller.abort(reason); await Promise.resolve(); } },
+  }), error => error === reason);
+  assert.equal(pulls, 1);
+  assert.equal(closed, true);
+});
+
+test(`literal grep retains bytes held by a cancelled sink across later invocations, ergonomic=${ergonomicRegex}`, async context => {
+  const controller = new AbortController();
+  let release!: () => void;
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  let held!: Uint8Array;
+  const executor = new RegexExecutor(createBoundedRegexProvider());
+  context.after(() => executor.dispose());
+  const definition = createGrepCommands(executor, { ergonomicRegex })[0]!;
+  try {
+    await assert.rejects(run(definition, ["a", "-"], "a\n", {
+      signal: controller.signal,
+      stdout: { async write(bytes) { held = bytes; controller.abort(false); await pending; } },
+    }), error => error === false);
+    const later = await run(definition, ["b", "-"], "b\n");
+    assert.equal(later.code, 0);
+    assert.equal(Buffer.from(held).toString(), "a\n");
+  } finally { release(); }
+});
+}

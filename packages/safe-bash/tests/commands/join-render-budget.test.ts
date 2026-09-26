@@ -127,7 +127,7 @@ test("join awaits a blocked sink without reading ahead or changing borrowed outp
       if (writes.length === 1) {
         blocked.resolve();
         await release.promise;
-        assert.deepEqual(bytes, Buffer.from("a"));
+        assert.deepEqual(bytes, new TextEncoder().encode("a"));
       }
     } },
   });

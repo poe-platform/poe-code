@@ -408,6 +408,42 @@ describe("native npm execution and cleanup", () => {
     } finally { owned.remove(); }
   });
 
+  it("rechecks transient group inspection denial before admitting another workspace", async () => {
+    const owned = fixture(), mock = mockExecution(), inspections = new Map<number, number>();
+    vi.useFakeTimers();
+    mock.host.kill = vi.fn((pid: number, signal?: string | number) => {
+      expect(signal).toBe(0);
+      const count = (inspections.get(pid) ?? 0) + 1;
+      inspections.set(pid, count);
+      if (count <= 2) throw Object.assign(new Error("inspection denied"), { code: "EPERM" });
+      throw Object.assign(new Error("absent"), { code: "ESRCH" });
+    });
+    try {
+      const running = buildWorkspaces(owned.root, { host: mock.host, spawn: mock.spawn, environment: mock.environment });
+      const observed = running.catch(error => error);
+      await Promise.resolve();
+      expect(mock.start).toHaveBeenCalledTimes(1);
+      await vi.runAllTimersAsync();
+      expect(await observed).toMatchObject({ builds: 2 });
+      expect(inspections).toEqual(new Map([[-9000, 3], [-9001, 3]]));
+      expect(mock.host.kill).not.toHaveBeenCalledWith(-9000, "SIGTERM");
+    } finally { vi.useRealTimers(); owned.remove(); }
+  });
+
+  it("refuses persistent group inspection denial without signaling or advancing", async () => {
+    const owned = fixture(), mock = mockExecution(), denied = Object.assign(new Error("inspection denied"), { code: "EPERM" });
+    vi.useFakeTimers();
+    mock.host.kill = vi.fn((_pid: number, signal?: string | number) => { expect(signal).toBe(0); throw denied; });
+    try {
+      const observed = buildWorkspaces(owned.root, { host: mock.host, spawn: mock.spawn, environment: mock.environment }).catch(error => error);
+      await vi.runAllTimersAsync();
+      expect(await observed).toBe(denied);
+      expect(mock.start).toHaveBeenCalledTimes(1);
+      expect(vi.mocked(mock.host.kill).mock.calls.length).toBeLessThanOrEqual(41);
+      expect(mock.host.listenerCount("SIGTERM")).toBe(0);
+    } finally { vi.useRealTimers(); owned.remove(); }
+  });
+
   it("waits for residual group termination before starting the next workspace", async () => {
     const owned = fixture(), mock = mockExecution();
     let alive = true;

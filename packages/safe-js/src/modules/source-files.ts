@@ -8,7 +8,7 @@ import type {SourceResolver} from "./source-graph.js";
 export async function createRootedSourceResolver(root: string, adapter?: FileSystem): Promise<SourceResolver & {
   entryId(filename?: string): Promise<string>;
 }> {
-  const realpath = adapter ? adapter.realpath.bind(adapter) : hostFs.realpath;
+  const realpath = (filename: string) => adapter ? adapter.realpath(filename) : hostFs.realpath(filename);
   const stat = async (filename: string) => adapter ? sourceStat(await adapter.stat(filename)) : await hostFs.stat(filename);
   const granted = adapter ? resolvePath("/", root) : path.resolve(root);
   const directory = await realpath(granted);

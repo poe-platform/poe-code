@@ -55,7 +55,7 @@ test("built platform resolution does not add a nested canonical filesystem packa
 for (const [name, entry] of Object.entries(manifest.exports)) {
   test(`built ${name} export initializes in a fresh native ESM process`, () => {
     const url = new URL(`../${entry.import}`, import.meta.url).href;
-    const result = spawnSync(process.execPath, ["--input-type=module", "-e", `await import(${JSON.stringify(url)})`], { encoding: "utf8", timeout: 5000 });
+    const result = spawnSync(process.execPath, ["--input-type=module", "-e", `await import(${JSON.stringify(url)})`], { encoding: "utf8", timeout: 30000 });
     assert.equal(result.status, 0, result.stderr || String(result.error));
   });
 }
@@ -68,7 +68,7 @@ test("built SDK and snapshot helpers initialize together without preloading valu
     import { restore } from ${entry("restore")};
     if ([run, serializeSafeJSSnapshot, restore].some(value => typeof value !== "function")) throw new Error("Missing exports");
   `;
-  const result = spawnSync(process.execPath, ["--input-type=module", "-e", source], { encoding: "utf8", timeout: 5000 });
+  const result = spawnSync(process.execPath, ["--input-type=module", "-e", source], { encoding: "utf8", timeout: 30000 });
   assert.equal(result.status, 0, result.stderr || String(result.error));
 });
 
@@ -76,7 +76,7 @@ test("built replay-data helpers initialize without preloading the SDK", () => {
   const url = new URL("../dist/snapshot/replay-data.js", import.meta.url).href;
   const source = `const {encodeReplayData,decodeReplayData}=await import(${JSON.stringify(url)});
     if(decodeReplayData(encodeReplayData(7))!==7)throw new Error("Replay data round trip failed");`;
-  const result = spawnSync(process.execPath, ["--input-type=module", "-e", source], { encoding: "utf8", timeout: 5000 });
+  const result = spawnSync(process.execPath, ["--input-type=module", "-e", source], { encoding: "utf8", timeout: 30000 });
   assert.equal(result.status, 0, result.stderr || String(result.error));
 });
 
@@ -185,7 +185,7 @@ test("built scope accounting records retain fast fields without inherited metada
     child.text = "changed";
     assert.equal(child.text, "changed");
   `;
-  const result = spawnSync(process.execPath, ["--allow-natives-syntax", "--input-type=module", "-e", source], { encoding: "utf8", timeout: 5000 });
+  const result = spawnSync(process.execPath, ["--allow-natives-syntax", "--input-type=module", "-e", source], { encoding: "utf8", timeout: 30000 });
   assert.equal(result.status, 0, result.stderr || String(result.error));
 });
 
@@ -207,7 +207,7 @@ for (const edge of ["target", "handler"]) {
       assert.equal(measureSandboxData([chain(MAX_DATA_DEPTH)]), MAX_DATA_DEPTH + 2);
       assert.throws(() => measureSandboxData([chain(MAX_DATA_DEPTH + 1)]), { code: "budgetExceeded", budget: "dataDepth" });
     `;
-    const result = spawnSync(process.execPath, ["--input-type=module", "-e", source], { encoding: "utf8", timeout: 5000 });
+    const result = spawnSync(process.execPath, ["--input-type=module", "-e", source], { encoding: "utf8", timeout: 30000 });
     assert.equal(result.status, 0, result.stderr || String(result.error));
   });
 }

@@ -121,10 +121,10 @@ function lotusExternalVariable(name: string): string | undefined {
   return "[" + quoteFormulaString(name.slice(2, end), "'", gnumericGrammar) + "]" + first + (last === undefined ? "" : ":" + last);
 }
 
-async function lotusFormula(bytes: Uint8Array, version: number, group: number, row: number, column: number,
+async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", group: number, row: number, column: number,
   sheetIndex: number, sheetName: (index: number) => string, context: CapabilityContext,
   consumeOperation: () => void, functions: typeof lotusFunctions = lotusFunctions, names?: ReadonlyMap<string, LotusNamedRange>, legacyRowBits?: 11 | 13): Promise<string> {
-  const b = new Binary(bytes), stack: string[] = [], modern = version === 0x1000 || version >= 0x1002;
+  const b = new Binary(bytes), stack: string[] = [], modern = format !== "wk1";
   let at = 0;
   const pop = async () => {
     if (stack.length) return stack.pop()!;
@@ -157,8 +157,8 @@ async function lotusFormula(bytes: Uint8Array, version: number, group: number, r
     consumeOperation();
     if (op === 4) continue;
     if (op === 0) {
-      const length = modern ? 10 : 8; if (at + length > bytes.length) break;
-      const value = modern ? treal(b, at) : { kind: "number" as const, value: b.f64(at) };
+      const length = format === "wk3" ? 10 : 8; if (at + length > bytes.length) break;
+      const value = format === "wk3" ? treal(b, at) : { kind: "number" as const, value: b.f64(at) };
       stack.push(value.kind === "number" ? String(value.value) : value.kind === "error" ? value.value : value.kind === "string" ? '""' : "0"); at += length;
     } else if (op === 1 || op === 2) {
       const length = modern ? op === 1 ? 5 : 9 : op === 1 ? 4 : 8;
@@ -170,7 +170,7 @@ async function lotusFormula(bytes: Uint8Array, version: number, group: number, r
       } else stack.push(oldRef(at) + (op === 2 ? `:${oldRef(at + 4)}` : ""));
       at += length;
     } else if (op === 5) {
-      const length = modern && version > 0x1002 ? 4 : 2;
+      const length = format === "123" ? 4 : 2;
       if (at + length > bytes.length) break;
       const n = b.u16(at), signed = n >= 32768 ? n - 65536 : n;
       stack.push(String(modern ? length === 4 ? packedNumber(b.u32(at)) : smallNumber(signed) : signed)); at += length;
@@ -307,7 +307,7 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
   if (bytes.length > context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert input bytes limit exceeded");
   const b = new Binary(new Uint8Array(bytes));
   if (bytes.length >= 6 && b.u16(0) === 255 && b.u16(4) === 0x404) return readLotusWorks(b.bytes, context,
-    (tokens, row, column, index, name, tick) => lotusFormula(tokens, 0x404, 1, row, column, index, name, context, tick, worksFunctions),
+    (tokens, row, column, index, name, tick) => lotusFormula(tokens, "wk1", 1, row, column, index, name, context, tick, worksFunctions),
     text => lmbcs(text, 1, context));
   if (bytes.length < 6 || b.u16(0) !== 0 || b.u16(2) < 2) throw new SsconvertError("io", "Error while reading lotus workbook.");
   const version = b.u16(4), modern = ![0x404, 0x405, 0x406].includes(version);
@@ -326,7 +326,7 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
   let database: LotusRldb | undefined, databaseType = 0;
   const styles = new Map<number, Record<string, ImportedValue>>();
   const names = new Map<string, LotusNamedRange>();
-  const deferredFormulas: { tokens: Uint8Array; group: number; index: number; cell: Cell }[] = [];
+  const deferredFormulas: { tokens: Uint8Array; format: "wk3" | "123"; group: number; index: number; cell: Cell }[] = [];
   const deferredByCell = new WeakMap<Cell, typeof deferredFormulas[number]>();
   const sheets: { id: string; name: string; cells: Map<string, Cell>; columns: Map<number, AxisMetadata>; rows: Map<number, AxisMetadata>; defaultColumnWidth?: number; view: Record<string, ImportedValue>; metadata: UnsupportedRecord[]; formats: Map<string, string> }[] = [];
   const sheet = (index: number) => {
@@ -606,7 +606,7 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
         const n = data.u16(13); if (15 + n > length) continue;
         // ScanVersion qualifies these Lotus layouts, but not Works or 0x0405.
         const legacyRowBits = version === 0x404 ? 11 : version === 0x406 ? 13 : undefined;
-        formula = await lotusFormula(data.bytes.subarray(15, 15 + n), version, group, row, column, index, i => sheet(i).name, context, consumeOperation, lotusFunctions, undefined, legacyRowBits);
+        formula = await lotusFormula(data.bytes.subarray(15, 15 + n), "wk1", group, row, column, index, i => sheet(i).name, context, consumeOperation, lotusFunctions, undefined, legacyRowBits);
         if ((data.u16(11) & 0x7ff8) === 0x7ff0) {
           value = { kind: "error", value: "#VALUE!" };
           if (at + 4 <= bytes.length && b.u16(at) === 0x33) {
@@ -644,7 +644,9 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
       ...(formula ? { formula, cachedResult: value, formulaDirty: false } : id === 26 && old?.formula ? { formula: old.formula, cachedResult: value, formulaDirty: false } : {}) };
     s.cells.set(key, cell);
     if (modern && (id === 25 || id === 40)) {
-      const pending = { tokens: data.bytes.subarray(id === 25 ? 14 : 12), group, index, cell };
+      // LibreOffice OP_Formula123 and libwps readFormula select numeric widths
+      // from the record layout, independently of the workbook BOF version.
+      const pending: typeof deferredFormulas[number] = { tokens: data.bytes.subarray(id === 25 ? 14 : 12), format: id === 25 ? "wk3" : "123", group, index, cell };
       deferredFormulas.push(pending); deferredByCell.set(cell, pending);
     } else if (modern && id === 26 && old) {
       const pending = deferredByCell.get(old);
@@ -666,7 +668,7 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
   };
   for (const pending of deferredFormulas) {
     context.signal.throwIfAborted();
-    const formula = await lotusFormula(pending.tokens, version, pending.group, pending.cell.row, pending.cell.column,
+    const formula = await lotusFormula(pending.tokens, pending.format, pending.group, pending.cell.row, pending.cell.column,
       pending.index, i => sheet(i).name, context, consumeOperation, lotusFunctions, names);
     const owner = sheet(pending.index), key = `${pending.cell.row}:${pending.cell.column}`;
     if (owner.cells.get(key) === pending.cell) { chargeExpressionText(formula); owner.cells.set(key, { ...pending.cell, formula }); }

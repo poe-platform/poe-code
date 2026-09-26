@@ -389,6 +389,17 @@ See `reference.lotusNamedAddinAudit`. Wider domains, vendor add-ins, Works and
 independent application qualification remain open; this is name-table coverage,
 not full native compatibility.
 
+Source review also found incorrect numeric widths in modern formula records.
+LibreOffice's `OP_Formula123` and libwps select 8-byte floating/32-bit compact
+constants for record `0x28`, versus 10-byte floating/16-bit compact constants for
+record `0x19`. The decoder now retains that record layout during deferred formula
+resolution instead of inferring it from BOF. Seven original regressions failed;
+all 270 Lotus checks, package lint/types and selected build pass. Compiled command
+XLSX export and SDK readback preserve both layouts in four BOF profiles, with
+empty stderr and 4,067-byte outputs from 100-byte in-memory inputs. See
+`reference.lotusFormulaNumericLayouts`. Numeric extremes and independent
+application qualification remain open.
+
 Native format qualification uses the authenticated Gnumeric 1.12.61 source with GLib 2.90.0, goffice 0.10.62, GTK 3.24.52 and libgsf 1.14.59 on macOS arm64; it is distinct from the Linux numeric profile. Source-derived GSettings schemas correct a failed Homebrew library-discovery probe without modifying native source. A disposable public-API driver supplies test passwords through stdin, recalculates both sheets and saves Gnumeric XML. Three plaintext controls, 12 XOR exports (BIFF7/8 and DSF primary streams; 1/8/14/15-byte passwords) and four standard-RC4 exports (empty, ASCII, Unicode and 15 UTF-16 units) preserve all expected cells, including 10,800/16,200-character strings, formulas, booleans and errors. Both formulas recalculate to 42; 13 applicable wrong-password controls refuse with no output. Gnumeric refuses all 12 CryptoAPI profiles and the tested standard-RC4 lengths 16/27/28/31/32/255; its source's one-byte password-bit-length field explains the 15/16 boundary. These native limits do not narrow product support. The ledger binds executable/library/driver hashes and the 37-input aggregate (sorted basename, NUL, binary SHA-256 digest). Other native applications, platforms, ancillary streams and optional-language profiles remain open.
 
 LibreOffice source investigation now takes priority over expanding application matrices. At native build `bce0998afefdbc355585ca324285661a2170ba77`, Calc admits only 1–15 UTF-16 password units and initializes CryptoAPI with a fixed 128-bit key. This explains the existing capture: six of 35 BIFF8 exports open (plaintext, three standard-RC4, two CryptoAPI), preserving 168 observed cells across load/recalculation. Source also explains native XLSX error loss: BIFF literal errors become `ocStop`, which the OOXML symbol table spells `#REF!`, while the separate cache remains `#DIV/0!`. BIFF export explicitly preserves the error token. All 24 SDK/Shell sheet replays match the recorded semantics; retaining the stale XLSX cache would be incorrect. The 34 wrong-password refusals used 25-unit passwords, so they do not qualify verification within Calc's admitted range. Captures predate subsequent resource-limit/Shell changes; current-head, native reexport reopening and screenshot qualification remain open. See `../ssconvert/biff-libreoffice-interop-proof.json` and `ssconvert-encrypted-biff-application-qa.md`. No family is closed.

@@ -26,6 +26,26 @@ function fixture(version: number, named: boolean): Uint8Array {
     ...(named ? [0x7a, 1, ...word(name.length), ...name] : [62]), 3]);
 }
 
+for (const version of [0x1002, 0x1003, 0x1004, 0x1005]) {
+  it.each([0x19, 0x28])(`decodes numeric tokens by Lotus formula record (version ${version}, record %i)`, async id => {
+    // LibreOffice OP_Formula123/FT_Const10Float and libwps readCell/readFormula:
+    // record 0x28 uses binary64 plus 32-bit compact numbers, 0x19 uses 80/16 bits.
+    const ieee = id === 0x28;
+    const floating = ieee ? [0, 0, 0, 0, 0, 0, 4, 64] : [0, 0, 0, 0, 0, 0, 0, 160, 0, 64]; // 2.5
+    const compact = ieee ? [192, 0, 0, 0] : [6, 0]; // 3
+    const warnings: string[] = [];
+    const bytes = Uint8Array.from([
+      ...record(0, [...word(version), 4, 0, ...Array<number>(22).fill(0)]),
+      ...record(id, [0, 0, 0, 0, ...Array<number>(ieee ? 8 : 10).fill(0), 0, ...floating, 5, ...compact, 15, 3]),
+      ...record(1)
+    ]);
+    const book = await readLotus(bytes, { ...context, async diagnostic(d) { warnings.push(d.message); } });
+    expect(book.sheets[0]!.cells[0]!.formula).toBe("=(2.5+3)");
+    expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 5.5 });
+    expect(warnings).toEqual([]);
+  });
+}
+
 it.each([[0x404, false], [0x1000, false], [0x1002, false], [0x1002, true]] as const)(
   "imports Lotus YEAR as years since 1900 (version %i, named %s)", async (version, named) => {
     // LibreOffice LotusToSc::DoFunc subtracts 1900 for ocGetYear, including add-ins.

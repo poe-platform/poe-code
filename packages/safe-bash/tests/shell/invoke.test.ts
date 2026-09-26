@@ -29,7 +29,7 @@ for (const middleware of [false, true]) {
             .pipeThrough(new TextDecoderStream(), { signal }).getReader();
           assert.deepEqual(await reader.read(), { value: "catalog", done: false });
           assert.equal((await reader.read()).done, true);
-          await writeText(context.stdout, "ok", signal);
+          await writeText(context.stdout, "ok");
           return { exitCode: 0 };
         } catch (error) { errors.push(error); throw error; }
       } });

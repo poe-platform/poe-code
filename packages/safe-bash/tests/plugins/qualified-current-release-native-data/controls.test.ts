@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { globSync, readFileSync } from "node:fs";
 import { dirname, join, relative, sep } from "node:path";
 import test from "node:test";
+import ts from "typescript";
 import { baseline, compile, createCopy, diagnostics, native, owned, root, run } from "./helpers.js";
 import { collectSourceInputs, isAdmittedSourcePath, type SourceInputFileSystem } from "../../source-census.js";
 import { assertCommittedInputs, compilerToolPaths, digest, type CommittedInputs } from "../../shell-stress/invocation-cleanup-runtime/migration/binding.js";
@@ -110,13 +111,34 @@ const integrationTypePaths = [...integration.heldSourceFiles, ...integration.hel
 const repositoryRoot = join(root, "../..");
 const workspaces = (JSON.parse(readFileSync(join(repositoryRoot, "package.json"), "utf8")) as { workspaces: string[] }).workspaces;
 const workspaceSourcePaths: Record<string, string[]> = {};
+const workspaceExports: { specifier: string; source: string }[] = [];
 for (const path of globSync(workspaces.map(pattern => `${pattern}/package.json`), { cwd: repositoryRoot })) {
-  const manifest = JSON.parse(readFileSync(join(repositoryRoot, path), "utf8")) as { name: string };
+  const manifest = JSON.parse(readFileSync(join(repositoryRoot, path), "utf8")) as { name: string; exports?: Record<string, { types?: string }> };
   if (!manifest.name.startsWith("safe-bash-")) continue;
   const directory = relative(root, join(repositoryRoot, dirname(path))).split(sep).join("/");
   workspaceSourcePaths[manifest.name] = [`${directory}/src/index.ts`];
-  workspaceSourcePaths[`${manifest.name}/*`] = [`${directory}/src/*`];
+  workspaceSourcePaths[`${manifest.name}/*`] = [`${directory}/src/*.ts`, `${directory}/src/*`];
+  for (const [subpath, target] of Object.entries(manifest.exports ?? {})) {
+    if (!target.types?.startsWith("./dist/") || !target.types.endsWith(".d.ts")) continue;
+    workspaceExports.push({
+      specifier: manifest.name + (subpath === "." ? "" : subpath.slice(1)),
+      source: join(root, directory, "src", target.types.slice("./dist/".length, -".d.ts".length) + ".ts"),
+    });
+  }
 }
+
+test("workspace exports resolve to current source in NodeNext ESM mode", () => {
+  const configuration = JSON.parse(readFileSync(join(root, "tsconfig.json"), "utf8")) as CompilerConfiguration;
+  const { options, errors } = ts.convertCompilerOptionsFromJson(configuration.compilerOptions, root);
+  assert.deepEqual(errors, []);
+  const cache = ts.createModuleResolutionCache(root, path => path, options);
+  const failures: string[] = [];
+  for (const { specifier, source } of workspaceExports) {
+    const resolved = ts.resolveModuleName(specifier, join(root, "src/index.ts"), options, ts.sys, cache, undefined, ts.ModuleKind.ESNext).resolvedModule;
+    if (resolved?.resolvedFileName !== source) failures.push(`${specifier}: ${resolved?.resolvedFileName ?? "unresolved"} !== ${source}`);
+  }
+  assert.deepEqual(failures, []);
+});
 
 function approvedCompilerConfiguration(): CompilerConfiguration {
   const bytes = readFileSync(join(owned, "before-02.json"));
@@ -129,7 +151,9 @@ function approvedCompilerConfiguration(): CompilerConfiguration {
       baseUrl: ".",
       paths: {
         ...workspaceSourcePaths,
-        "safe-bash-contracts/*": ["../safe-bash-contracts/src/*.ts"],
+        "safe-bash-compression-engine/native/generated/bz2": ["../safe-bash-compression-engine/src/native/bz2.ts"],
+        "safe-bash-compression-engine/native/generated/xz": ["../safe-bash-compression-engine/src/native/xz.ts"],
+        "safe-bash-compression-engine/native/generated/zstd": ["../safe-bash-compression-engine/src/native/zstd.ts"],
         "poe-code/safe-bash": [
           "./dist/index.d.ts"
         ],

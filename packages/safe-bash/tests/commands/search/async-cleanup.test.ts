@@ -49,7 +49,7 @@ test("rg inventory emits large initial output exactly once", async () => {
     command: "rg", args: ["--files", "/"], cwd: "/", env: {}, fs,
     stdin: toByteSource(""), stdinIsDefault: true, signal: new AbortController().signal,
     ...{ _fastMemoryBackingFs: fs, _hasInfiniteFsOpsLimit: true },
-    stdout: { writeSync() { return false; }, async write(bytes) { chunks.push(bytes.slice()); } },
+    stdout: { ...{ writeSync() { return false; } }, async write(bytes) { chunks.push(bytes.slice()); } },
     stderr: { async write() {} },
   });
   assert.equal(result.exitCode, 0);
@@ -85,13 +85,13 @@ for (const failure of [undefined, Object.assign(new Error("closed"), { code: "EP
       assert.equal(result.exitCode, failure && !Object.hasOwn(failure, "code") ? 2 : 0));
     await writing;
     try {
-      const other = await command.execute({ ...context, stdout: { writeSync() { return true; }, async write() {} } });
+      const other = await command.execute({ ...context, stdout: { ...{ writeSync() { return true; } }, async write() {} } });
       assert.equal(other.exitCode, 0);
     } finally {
       finish();
     }
     await checked;
-    const again = await command.execute({ ...context, stdout: { writeSync() { return true; }, async write() {} } });
+    const again = await command.execute({ ...context, stdout: { ...{ writeSync() { return true; } }, async write() {} } });
     assert.equal(again.exitCode, 0);
   });
 }

@@ -45,7 +45,8 @@ describe("safe-bash imagemagick integration", () => {
       ].join(" && ")
     );
     assert.equal(parityRes.exitCode, 0, parityRes.stderr);
-    assert.equal(parityRes.stdout.trim(), "0");
+    assert.equal(parityRes.stdout, "");
+    assert.equal(parityRes.stderr, "0\n");
     const frame01Meta = await sharp(await fs.readFile("/anim-01.png")).metadata();
     assert.ok(frame01Meta.width > 0);
 

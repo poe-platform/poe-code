@@ -100,6 +100,40 @@ interface DirectoryNode extends Metadata {
   cachedNlinkRev?: number;
 }
 
+class MemoryDirectoryNode implements DirectoryNode {
+  declare readonly type: "directory";
+  declare mode: number;
+  declare ino: number;
+  declare nlink: number;
+  declare references: number;
+  declare revision: number;
+  declare atimeMs: number;
+  declare mtimeMs: number;
+  declare ctimeMs: number;
+  declare birthtimeMs: number;
+  declare entries: Map<string, MemoryNode>;
+  declare cachedNlink?: number;
+  declare cachedNlinkRev?: number;
+
+  constructor(mode: number, ino: number, now: number) {
+    this.mode = mode;
+    this.ino = ino;
+    this.atimeMs = now;
+    this.mtimeMs = now;
+    this.ctimeMs = now;
+    this.birthtimeMs = now;
+    this.entries = new Map();
+  }
+}
+Object.assign(MemoryDirectoryNode.prototype, {
+  type: "directory",
+  revision: 0,
+  nlink: 1,
+  references: 0,
+  cachedNlink: 2,
+  cachedNlinkRev: 0,
+});
+
 interface SymlinkNode extends Metadata {
   type: "symlink";
   target: string;
@@ -163,6 +197,8 @@ const ownedStores = new WeakMap<FileSystem, { root: DirectoryNode; ledger: Memor
   const dummyAlloc = new MemoryAllocation(new Uint8Array(0), new MemoryLedger(normalizeMemoryFileSystemLimits({})));
   const dummyFile = new MemoryFileNode(0, 0, null as unknown as number, 0, dummyAlloc, dummyAlloc.data);
   dummyFile.atimeMs = dummyFile.mtimeMs = dummyFile.ctimeMs = dummyFile.birthtimeMs = 1700000000000;
+  const dummyDir = new MemoryDirectoryNode(0, 0, null as unknown as number);
+  dummyDir.atimeMs = dummyDir.mtimeMs = dummyDir.ctimeMs = dummyDir.birthtimeMs = 1700000000000;
 }
 // Forwarded receivers share the ledger, so mutations invalidate the owner's cache.
 const memoryCaches = new WeakMap<MemoryLedger, MemoryCache>();
@@ -535,26 +571,21 @@ export class MemoryFileSystem implements FileSystem {
       pooled.cachedNlinkRev = 0;
       return pooled;
     }
-    const dir: DirectoryNode = {
-      type: "directory",
-      mode: fullMode,
-      ino,
-      nlink: 1,
-      references: 0,
-      revision: 0,
-      atimeMs: null as unknown as number,
-      mtimeMs: null as unknown as number,
-      ctimeMs: null as unknown as number,
-      birthtimeMs: null as unknown as number,
-      entries: new Map(),
-      cachedNlink: 2,
-      cachedNlinkRev: 0,
-    };
-    dir.atimeMs = now;
-    dir.mtimeMs = now;
-    dir.ctimeMs = now;
-    dir.birthtimeMs = now;
-    return dir;
+    return new MemoryDirectoryNode(fullMode, ino, now);
+  }
+
+  private addDirectoryNode(parent: DirectoryNode, name: string, mode: number, syscall: string, path: string): DirectoryNode {
+    const bytes = name.length * 2;
+    this.ledger.reserve(bytes, 2, syscall, path);
+    try {
+      const node = this.directory(mode);
+      parent.entries.set(name, node);
+      this.changed(parent);
+      return node;
+    } catch (error) {
+      this.ledger.release(bytes, 2);
+      throw error;
+    }
   }
 
   private addNode<Node extends MemoryNode>(parent: DirectoryNode, name: string, create: () => Node,
@@ -703,7 +734,7 @@ export class MemoryFileSystem implements FileSystem {
 
   private resolve(path: string, syscall: string, options: ResolveOptions = emptyResolveOptions): Location {
     this.validatePath(path, syscall);
-    if (this.symlinkCount === 0 && options.createDirectories === undefined && options.resizeCreate === undefined
+    if (this.symlinkCount === 0 && options.resizeCreate === undefined
       && options.resolutionSteps === undefined && isCleanAbsolutePath(path)) {
       let current: DirectoryNode = this.root;
       let start = 1;
@@ -713,13 +744,21 @@ export class MemoryFileSystem implements FileSystem {
         if (slash === -1) {
           const name = path.slice(start);
           if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
-          const node = current.entries.get(name);
+          let node = current.entries.get(name);
+          if (!node && options.createDirectories !== undefined) {
+            this.permission(current, 3, syscall, path);
+            node = this.addDirectoryNode(current, name, options.createDirectories, syscall, path);
+          }
           if (!node && !options.allowMissing) this.fail("ENOENT", syscall, path);
           return { node, parent: current, name, path };
         }
         const name = path.slice(start, slash);
         if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
-        const next = current.entries.get(name);
+        let next = current.entries.get(name);
+        if (!next && options.createDirectories !== undefined) {
+          this.permission(current, 3, syscall, path);
+          next = this.addDirectoryNode(current, name, options.createDirectories, syscall, path);
+        }
         if (!next) this.fail("ENOENT", syscall, path);
         if (next.type !== "directory") this.fail("ENOTDIR", syscall, path);
         current = next;
@@ -854,6 +893,10 @@ export class MemoryFileSystem implements FileSystem {
   }
 
   private terminalDot(path: string): boolean {
+    const len = path.length;
+    if (len === 0) return false;
+    const last = path.charCodeAt(len - 1);
+    if (last !== 46 && last !== 47) return false;
     return /(?:^|\/)\.{1,2}\/*$/.test(path);
   }
 
@@ -1088,7 +1131,13 @@ export class MemoryFileSystem implements FileSystem {
     let allocation = node.allocation;
     if (length > allocation.data.byteLength) {
       this.ledger.check(length, 0, syscall, path);
-      const capacity = Math.min(Math.max(length, curLen * 2, 64),
+      const baseCap = curLen === 0 && length >= 8192 && length <= 16384 &&
+        this.ledger.limits.maxFileBytes >= 65536 &&
+        this.ledger.availableBytes >= 65536 &&
+        (this.ledger.limits.maxBytes === undefined || this.ledger.limits.maxBytes - this.totalBytes >= 65536)
+        ? 65536
+        : Math.max(length, curLen * 2, 64);
+      const capacity = Math.min(baseCap,
         this.ledger.limits.maxFileBytes, this.ledger.availableBytes);
       allocation = this.allocate(capacity, syscall, path);
     }
@@ -1834,11 +1883,11 @@ export class MemoryFileSystem implements FileSystem {
       const entry = removed[index]!;
       if (entry.type === "directory" && entry.entries.size > 0) {
         this.permission(entry, 7, syscall, path);
-        entry.entries.forEach((child, name) => {
+        for (const [name, child] of entry.entries) {
           removed.push(child);
           keyChars += name.length;
           keyEntries++;
-        });
+        }
       }
     }
     location.parent.entries.delete(location.name);
@@ -2255,6 +2304,113 @@ const writeFileFastMethodNames = [
   "addNode", "replaceData", "resolve", "permission", "validatePath", "mode",
   "bytes", "allocate", "admitSize", "changed", "metadata", "fail",
 ] as const;
+const mkdirFastMethodNames = [
+  "mkdir", "lstat", "stat", "resolve", "permission", "validatePath", "mode",
+  "addNode", "directory", "changed", "fail",
+] as const;
+const rmFastMethodNames = [
+  "rm", "lstat", "stat", "readdir", "entry", "resolve", "removeLocation",
+  "permission", "validatePath", "terminalDot", "releaseNode", "changed", "fail",
+] as const;
+const openRedirectFastMethodNames = [
+  "open", "writeFile", "appendFile", "rename", "writeData", "prepareWrite", "openWrite",
+  "resizeNode", "writeAt", "addNode", "replaceData", "resolve", "permission",
+  "validatePath", "mode", "bytes", "allocate", "admitSize", "changed", "metadata",
+  "releaseReference", "releaseNode", "fail",
+] as const;
+
+export class MemoryRedirectHandle {
+  declare readonly fs: MemoryFileSystem;
+  declare readonly path: string;
+  declare readonly node: FileNode;
+  declare readonly append: boolean;
+  declare position: number;
+  declare closed: boolean;
+
+  constructor(fs: MemoryFileSystem, path: string, node: FileNode, append: boolean) {
+    this.fs = fs;
+    this.path = path;
+    this.node = node;
+    this.append = append;
+    this.position = 0;
+    this.closed = false;
+  }
+
+  writeSync(chunk: Uint8Array, signal?: AbortSignal): void {
+    signal?.throwIfAborted();
+    if (this.closed) throw new FsError("EBADF", { syscall: "write", path: this.path });
+    if (chunk.byteLength === 0) return;
+    const pos = this.append ? this.node.byteLength : this.position;
+    (this.fs as unknown as { writeAt: (n: FileNode, d: Uint8Array, p: number, s: string, pt: string) => void }).writeAt(
+      this.node,
+      chunk,
+      pos,
+      "write",
+      this.path,
+    );
+    if (!this.append) this.position = pos + chunk.byteLength;
+  }
+
+  close(): void {
+    if (this.closed) return;
+    this.closed = true;
+    (this.fs as unknown as { releaseReference: (n: MemoryNode, p: string) => void }).releaseReference(this.node, this.path);
+  }
+}
+
+export function tryOpenMemoryRedirectHandleSync(
+  filesystem: FileSystem,
+  path: string,
+  append: boolean,
+  mode: number,
+  signal?: AbortSignal,
+): MemoryRedirectHandle | undefined {
+  const mem = filesystem as MemoryFileSystem;
+  const owner = ownedStores.get(mem);
+  if (
+    !owner ||
+    mem.symlinkCount !== 0 ||
+    mem.capabilities !== owner.capabilities ||
+    activeConditionalMutations.has((mem as unknown as { identityScope: object | symbol }).identityScope) ||
+    !isStockMemoryMethods(mem, openRedirectFastMethodNames, false) ||
+    !isCleanAbsolutePath(path) ||
+    path === "/dev" ||
+    path.startsWith("/dev/")
+  ) {
+    return undefined;
+  }
+  signal?.throwIfAborted();
+  const validMode = (mem as unknown as { mode: (m: number | undefined, f: number, s: string, p: string) => number }).mode(mode, 0o666, "open", path);
+  const location = (mem as unknown as { resolve: (p: string, s: string, o: ResolveOptions) => Location }).resolve(path, "open", {
+    followFinal: true,
+    allowMissing: true,
+  });
+  let node = location.node as FileNode | undefined;
+  if (node) {
+    if (node.type !== "file") (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail("EISDIR", "open", path);
+    (mem as unknown as { permission: (n: MemoryNode, m: number, s: string, p: string) => void }).permission(node, 2, "open", path);
+  } else {
+    (mem as unknown as { permission: (n: MemoryNode, m: number, s: string, p: string) => void }).permission(location.parent, 3, "open", path);
+  }
+  const ledger = (mem as unknown as { ledger: MemoryLedger }).ledger;
+  ledger.reserve(path.length * 2, 1, "open", path);
+  try {
+    node ??= (mem as unknown as { openWrite: (p: string, o: WriteFileOptions, s: string, t: WriteTarget) => FileNode }).openWrite(
+      path,
+      {},
+      "open",
+      { location, mode: validMode, append: false },
+    );
+    if (!append) {
+      (mem as unknown as { resizeNode: (n: FileNode, l: number, s: string, p: string) => void }).resizeNode(node, 0, "open", path);
+    }
+  } catch (error) {
+    ledger.release(path.length * 2, 1);
+    throw error;
+  }
+  node.references++;
+  return new MemoryRedirectHandle(mem, path, node, append);
+}
 
 export function utf8ByteLength(value: string): number {
   let bytes = 0;
@@ -2414,6 +2570,71 @@ export function tryWriteMemoryFileSync(
   }
   signal?.throwIfAborted();
   mem.writeMemoryFileFast(path, data, append, mode);
+  return true;
+}
+
+export function tryMkdirMemorySync(
+  filesystem: FileSystem,
+  path: string,
+  recursive: boolean,
+  mode: number,
+  signal?: AbortSignal,
+): boolean {
+  const mem = filesystem as MemoryFileSystem;
+  const owner = ownedStores.get(mem);
+  if (
+    !owner ||
+    mem.symlinkCount !== 0 ||
+    mem.capabilities !== owner.capabilities ||
+    !isStockMemoryMethods(mem, mkdirFastMethodNames, false) ||
+    !isCleanAbsolutePath(path) ||
+    path === "/dev" ||
+    path.startsWith("/dev/")
+  ) {
+    return false;
+  }
+  signal?.throwIfAborted();
+  const validMode = (mem as unknown as { mode: (m: number | undefined, f: number, s: string, p: string) => number }).mode(mode, 0o777, "mkdir", path);
+  if (recursive) {
+    const node = (mem as unknown as { resolve: (p: string, s: string, o: ResolveOptions) => Location }).resolve(path, "mkdir", { createDirectories: validMode }).node!;
+    if (node.type !== "directory") (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail("EEXIST", "mkdir", path);
+    return true;
+  }
+  const location = (mem as unknown as { resolve: (p: string, s: string, o: ResolveOptions) => Location }).resolve(path, "mkdir", { allowMissing: true, followFinal: false });
+  if (location.node) (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail("EEXIST", "mkdir", path);
+  (mem as unknown as { permission: (n: MemoryNode, m: number, s: string, p: string) => void }).permission(location.parent, 3, "mkdir", path);
+  (mem as unknown as { addDirectoryNode: (p: DirectoryNode, n: string, m: number, s: string, pt: string) => DirectoryNode }).addDirectoryNode(location.parent, location.name, validMode, "mkdir", path);
+  return true;
+}
+
+export function tryRmRfMemorySync(
+  filesystem: FileSystem,
+  path: string,
+  signal?: AbortSignal,
+): boolean {
+  const mem = filesystem as MemoryFileSystem;
+  const owner = ownedStores.get(mem);
+  if (
+    !owner ||
+    mem.symlinkCount !== 0 ||
+    mem.capabilities !== owner.capabilities ||
+    activeConditionalMutations.has((mem as unknown as { identityScope: object | symbol }).identityScope) ||
+    !isStockMemoryMethods(mem, rmFastMethodNames, false) ||
+    !isCleanAbsolutePath(path) ||
+    path === "/dev" ||
+    path.startsWith("/dev/")
+  ) {
+    return false;
+  }
+  signal?.throwIfAborted();
+  let location: Location;
+  try {
+    location = (mem as unknown as { resolve: (p: string, s: string, o: ResolveOptions) => Location }).resolve(path, "rm", noFollowResolveOptions);
+  } catch (error) {
+    if (error instanceof FsError && error.code === "ENOENT") return true;
+    throw error;
+  }
+  (mem as unknown as { removeLocation: (l: Location, p: string, s: string, r: boolean) => void }).removeLocation(location, path, "rm", true);
   return true;
 }
 

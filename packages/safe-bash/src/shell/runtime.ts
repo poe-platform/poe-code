@@ -28,7 +28,7 @@ import type { PreparedShellChild, ShellBindingReference, ShellBindingResult, She
 import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { SourceLineIndex } from "./source-line-index.js";
-import { isCleanAbsolutePath, scopeFileSystem, tryGetMemoryDirectoryEntryNamesSync, tryWriteMemoryFileInDirSync, tryWriteMemoryFileSync } from "@poe-code/safe-fs/core";
+import { isCleanAbsolutePath, scopeFileSystem, tryGetMemoryDirectoryEntryNamesSync, tryMkdirMemorySync, tryOpenMemoryRedirectHandleSync, tryResolveMemoryDevicePath, tryRmRfMemorySync, tryWriteMemoryFileInDirSync, tryWriteMemoryFileSync, type MemoryRedirectHandle } from "@poe-code/safe-fs/core";
 import { collectPureReadOnlySmiNames, compilePureSmiProgram, evalCompiledSmi, evaluateArithmetic, evaluateArithmeticReferences, evaluateArithmeticSync, evaluateArithmeticSyncNonZero, evaluateArithmeticSyncString, fastSafeInt, intToStr, isSafeSmiProgram, prepareArithmetic, runIntArithForLoop, runIntForLoop, sharedLoopIntRegs, type ArithmeticProgram, type ArithmeticReferences, type CompiledSmiExpr } from "./arithmetic.js";
 import { ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces, tryFastExpandBraceRange } from "./brace-expansion.js";
@@ -50,6 +50,7 @@ import type { CommandFileDescriptor } from "../contracts/filesystem-descriptor.j
 import { outputFailure } from "../contracts/io.js";
 import { executionCommands } from "../commands/execution.js";
 import { defaultEchoExecutors, formatPrintf, printfCommand, tryFastPrintf } from "../commands/basic.js";
+import { defaultMkdirExecutors, defaultRmExecutors } from "../commands/filesystem.js";
 export const customRegisteredCommands = new WeakSet<object>();
 export const customRegisteredRegistries = new WeakSet<CommandRegistry>();
 import { defaultPredicateExecutors, tryFastPredicate } from "../commands/predicates.js";
@@ -227,6 +228,7 @@ const budgetedSinks = {
   get(sink: ByteSink) {
     if (
       (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) ||
+      (sink instanceof MemoryRedirectSink && sink.write === MemoryRedirectSink.prototype.write) ||
       (sink instanceof BudgetedPipeStageSink && sink.write === BudgetedPipeStageSink.prototype.write)
     ) {
       return sink;
@@ -242,6 +244,9 @@ const budgetedSinks = {
 const syncSinks = {
   get(sink: ByteSink) {
     if (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) {
+      return (chunk: Uint8Array) => sink.writeSync(chunk);
+    }
+    if (sink instanceof MemoryRedirectSink && sink.write === MemoryRedirectSink.prototype.write) {
       return (chunk: Uint8Array) => sink.writeSync(chunk);
     }
     if (sink instanceof Capture && sink.write === Capture.prototype.write) {
@@ -1216,6 +1221,51 @@ class BudgetedSyncSink implements ByteSink {
   }
 }
 
+class MemoryRedirectSink implements ByteSink {
+  declare readonly self: ByteSink;
+  declare readonly budget: Budget;
+  declare readonly handle: MemoryRedirectHandle;
+  declare readonly path: string;
+  declare readonly signal: AbortSignal;
+  declare file: NonNullable<CommandContext["stdoutFile"]>;
+
+  constructor(
+    budget: Budget,
+    handle: MemoryRedirectHandle,
+    path: string,
+    signal: AbortSignal,
+    file?: NonNullable<CommandContext["stdoutFile"]>,
+  ) {
+    this.self = this;
+    this.budget = budget;
+    this.handle = handle;
+    this.path = path;
+    this.signal = signal;
+    this.file = file ?? Object.freeze({ path });
+  }
+
+  writeSync(chunk: Uint8Array): boolean {
+    this.signal.throwIfAborted();
+    if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+    const budget = this.budget;
+    if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+    if (chunk.byteLength > 0) {
+      this.handle.writeSync(chunk, this.signal);
+      budget.bytes += chunk.byteLength;
+    }
+    return true;
+  }
+
+  write(chunk: Uint8Array): Promise<void> {
+    try {
+      this.writeSync(chunk);
+      return resolvedVoid;
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+}
+
 class BudgetedPipeStageOwnedSink {
   declare readonly parent: BudgetedPipeStageSink;
   constructor(parent: BudgetedPipeStageSink) {
@@ -1333,6 +1383,9 @@ function pollIncomingPipe(this: { incoming: { readiness(): "ready" | "eof" | "bl
 function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
   if (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) {
     return sink.signal === signal ? sink : new BudgetedSyncSink(sink.budget, sink.target, signal, sink.file);
+  }
+  if (sink instanceof MemoryRedirectSink && sink.write === MemoryRedirectSink.prototype.write) {
+    return sink.signal === signal ? sink : new MemoryRedirectSink(sink.budget, sink.handle, sink.path, signal, sink.file);
   }
   const ownership = budgetedSinks.get(sink);
   const owned = ownership?.write === sink.write ? ownership : undefined;
@@ -2646,6 +2699,9 @@ const sharedSyncLoopIntSteps: (IntLoopStep | undefined)[] = [];
 let cachedRedirectNamePrefix = "";
 let cachedRedirectNameSuffix = "";
 let cachedRedirectNameTable: (string | undefined)[] = new Array(256);
+
+const SYNC_UNIT_ZERO: { readonly exitCode: number; readonly terminated: boolean } = Object.freeze({ exitCode: 0, terminated: false });
+const SYNC_UNIT_ONE: { readonly exitCode: number; readonly terminated: boolean } = Object.freeze({ exitCode: 1, terminated: false });
 
 export class Runtime {
   declare readonly commands: CommandRegistry;
@@ -4399,14 +4455,14 @@ export class Runtime {
   }
 
   runUnit(script: Script, state: State, io: IO): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> {
-    if (state.noexec) return { exitCode: 0, terminated: false };
+    if (state.noexec) return SYNC_UNIT_ZERO;
     state = trackState(state, this.budget, io[invocationScope]);
     if (this.tryStartExtensionsSync(state)) {
       if (state.extensions?.syntax.indexedDeclarations?.includes("readonly")) io.assignmentDiagnosticContext ??= { name: undefined };
       try {
         const syncResult = this.trySyncScript(script, state, io, Boolean(io.execution?.ignoreErrexit));
         if (typeof syncResult === "number") {
-          return { exitCode: syncResult, terminated: false };
+          return syncResult === 0 ? SYNC_UNIT_ZERO : syncResult === 1 ? SYNC_UNIT_ONE : { exitCode: syncResult, terminated: false };
         }
         return this.runUnitFrom(script, state, io, syncResult.listIndex, syncResult.pipelineIndex, false);
       } catch (error) {
@@ -4901,6 +4957,109 @@ export class Runtime {
           monitor.epoch = restEpoch;
           if (store) store.epoch = restEpoch;
           return finalStatus;
+        }
+      }
+      if (
+        (w0Plain === "mkdir" || w0Plain === "rm") &&
+        command.words.length >= 3 &&
+        this.fileWrites.size === 0 &&
+        this.outputFiles.size === 0 &&
+        this.canFastMemoryRedirect &&
+        !rawState.functions.has(w0Plain) &&
+        !rawState.extensions?.builtins.has(w0Plain) &&
+        (canMutatePipeStatus || elem0!.text.shellValue === "0") &&
+        (!pipeline.negate || ignored || !rawState.errexit) &&
+        command.words.length <= this.budget.limits.maxExpansionFields &&
+        command.words.every(w => this.isPureArgWord(w, rawState))
+      ) {
+        const w1Plain = command.words[1]!.plain;
+        const isMkdir = w0Plain === "mkdir" && w1Plain === "-p";
+        const isRmRf = w0Plain === "rm" && (w1Plain === "-rf" || w1Plain === "-fr");
+        const umask = rawState.umask ?? 0o022;
+        const def = (isMkdir || isRmRf) ? this.commands.get(w0Plain) : undefined;
+        if (
+          def &&
+          (isMkdir ? defaultMkdirExecutors.has(def.execute) && (umask & 0o300) === 0 : defaultRmExecutors.has(def.execute)) &&
+          this.budget.fileSystemOperations + (command.words.length - 2) <= this.budget.limits.maxFileSystemOperations
+        ) {
+          fastSubScratchArgs.length = 0;
+          let lastArg = w1Plain!;
+          let valid = true;
+          try {
+            for (let i = 2; i < command.words.length; i++) {
+              const v = this.fastValueWord(command.words[i]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
+              if (
+                typeof v !== "string" ||
+                v.length === 0 ||
+                v.startsWith("-") ||
+                v.includes("\0") ||
+                (isRmRf && (v.endsWith(".") || v.endsWith("/")))
+              ) {
+                valid = false;
+                break;
+              }
+              lastArg = v;
+              const path = pathOf(rawState, v);
+              if (
+                path === "/" ||
+                path === "/dev" ||
+                path.startsWith("/dev/") ||
+                !isCleanAbsolutePath(path) ||
+                tryResolveMemoryDevicePath(this.backingFs, path) === undefined
+              ) {
+                valid = false;
+                break;
+              }
+              fastSubScratchArgs.push(path);
+            }
+          } catch {
+            valid = false;
+          }
+          if (valid && fastSubScratchArgs.length > 0) {
+            const mode = 0o777 & ~umask;
+            try {
+              for (let i = 0; i < fastSubScratchArgs.length; i++) {
+                const targetPath = fastSubScratchArgs[i]!;
+                const ok = isMkdir
+                  ? tryMkdirMemorySync(this.backingFs, targetPath, true, mode, this.commandSignal)
+                  : tryRmRfMemorySync(this.backingFs, targetPath, this.commandSignal);
+                if (!ok) {
+                  valid = false;
+                  break;
+                }
+                this.budget.fileSystemOperation();
+              }
+            } catch {
+              fastSubScratchArgs.length = 0;
+              this.signal.throwIfAborted();
+              return undefined;
+            }
+          }
+          fastSubScratchArgs.length = 0;
+          if (valid) {
+            if (rawState.extensions && !rawState.extensions.eventDepth) {
+              publishCommandSpelling(rawState, commandSpelling(command));
+            }
+            const owner = monitor.internalOwner();
+            const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
+            this.budget.tick();
+            rawState.substitutionStatus = 0;
+            delete rawState.variables._;
+            rawState.lastArgument = lastArg;
+            if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+            if (!existing) {
+              monitor.lazyPipeStatus = singleStatusZero;
+              owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+            } else {
+              elem0!.text.shellValue = "0";
+              store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+            }
+            const finalStatus = pipeline.negate ? 1 : 0;
+            rawState.status = finalStatus;
+            monitor.epoch = restEpoch;
+            if (store) store.epoch = restEpoch;
+            return finalStatus;
+          }
         }
       }
     }
@@ -7405,6 +7564,51 @@ export class Runtime {
     }
   }
 
+  private tryFastMemoryOutputRedirect(redirect: Redirect, state: State, io: IO, outputs: Set<OutputFinalizer>, line: number): IO | undefined {
+    if (
+      this.budget.limits.maxRedirects < 1 ||
+      redirect.document ||
+      redirect.move ||
+      redirect.descriptor !== 1 ||
+      (redirect.operator !== ">" && redirect.operator !== ">>" && !(redirect.operator === ">|" && state.noclobber)) ||
+      (redirect.operator === ">" && state.noclobber) ||
+      this.fileWrites.size !== 0 ||
+      this.outputFiles.size !== 0 ||
+      !this.canFastMemoryRedirect ||
+      !this.budget.canFileSystemOperation() ||
+      !this.isPureArgWord(redirect.target, state)
+    ) {
+      return undefined;
+    }
+    let targetVal: ShellValue | undefined;
+    try {
+      targetVal = this.fastValueWord(redirect.target, state, io, true, false, false, true, undefined, line);
+    } catch {
+      return undefined;
+    }
+    if (typeof targetVal !== "string" || targetVal.length === 0 || targetVal.includes("\0")) return undefined;
+    const path = pathOf(state, targetVal);
+    if (path.startsWith("/dev/") || path === "/dev") return undefined;
+    const append = redirect.operator === ">>";
+    const mode = 0o666 & ~(state.umask ?? 0o022);
+    let handle: MemoryRedirectHandle | undefined;
+    try {
+      handle = tryOpenMemoryRedirectHandleSync(this.backingFs, path, append, mode, this.commandSignal);
+    } catch {
+      this.signal.throwIfAborted();
+      return undefined;
+    }
+    if (!handle) return undefined;
+    this.budget.fileSystemOperation();
+    const retire = io[invocationScope].register(() => { handle.close(); });
+    outputs.add(() => {
+      handle.close();
+      retire();
+    });
+    const output = new MemoryRedirectSink(this.budget, handle, path, this.commandSignal);
+    return { ...io, stdout: output };
+  }
+
   async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number): Promise<IO> {
     this.signal.throwIfAborted();
     if (redirects.length > this.budget.limits.maxRedirects) this.budget.fail("maxRedirects");
@@ -7953,7 +8157,18 @@ export class Runtime {
           }
           } finally { try { await copyOwner?.close(); } finally { holding?.release(); stateMonitor(redirectState)?.closeValues(); } }
         }
-      } else io = await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput, !words.length || shellBuiltinNames.has(words[0]!) || !!state.extensions?.builtins.has(words[0]!) || functionCommand, fileShortcut, command.line ?? 1);
+      } else io = (
+        !inlineInput &&
+        !fileShortcut &&
+        !terminal &&
+        command.redirects.length === 1 &&
+        words.length > 0 &&
+        FAST_DIRECT_CONTEXT_COMMANDS.has(words[0]!) &&
+        !functionCommand &&
+        !state.extensions?.builtins.has(words[0]!)
+          ? this.tryFastMemoryOutputRedirect(command.redirects[0]!, state, io, outputs, command.line ?? 1)
+          : undefined
+      ) ?? await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput, !words.length || shellBuiltinNames.has(words[0]!) || !!state.extensions?.builtins.has(words[0]!) || functionCommand, fileShortcut, command.line ?? 1);
       if (terminal) {
         terminal.io = io;
         await terminal.frame.reconcile(io.descriptors!);

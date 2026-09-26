@@ -1,7 +1,7 @@
 import { bindConditionalMutation, tryGetMemoryDirectoryEntryNamesSync } from "@poe-code/safe-fs/core";
 import {
   basename, dirname, FsError, isPathWithin, joinPath, normalizePath, relativePath,
-  readBytes, writeBytes, type CommandContext, type CommandDefinition, type FileStat, type FileSystem,
+  readBytes, writeBytes, type CommandContext, type CommandDefinition, type CommandHandler, type FileStat, type FileSystem,
 } from "../contracts/index.js";
 import { codeOf, define, diagnostic, eachOperand, lines, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
 import { escapeText, quoteShellOperand } from "../escaping.js";
@@ -437,9 +437,12 @@ function modeText(stat: FileStat): string {
   return text;
 }
 
+export const defaultMkdirExecutors = new WeakSet<CommandHandler>();
+export const defaultRmExecutors = new WeakSet<CommandHandler>();
+
 export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinition[] {
   const readDirectory = createDirectoryReader(maxDirectoryEntries);
-  return [
+  const commands = [
     define("mkdir", async context => {
       const parsed = options(context.args, "pm:v", MKDIR_LONG_OPTIONS);
       requireOperands(parsed.operands);
@@ -448,7 +451,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       const umask = typeof mask === "number" ? mask : 0o022;
       const directoryMode = mode === undefined ? undefined : modeChange(mode, umask)({ type: "directory", mode: 0o777 & ~umask });
       if (
-        parsed.operands.length === 1 &&
+        parsed.operands.length >= 1 &&
         !parsed.flags.has("v") &&
         directoryMode === undefined &&
         (umask & 0o300) === 0
@@ -466,18 +469,35 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
           !Object.prototype.hasOwnProperty.call(backingMem, "lstat") &&
           !Object.prototype.hasOwnProperty.call(backingMem, "stat")
         ) {
-          const operand = parsed.operands[0]!;
-          const path = pathOf(context, operand);
-          if (path !== "/dev" && !path.startsWith("/dev/")) {
+          let allSafe = true;
+          for (let i = 0; i < parsed.operands.length; i++) {
+            const p = pathOf(context, parsed.operands[i]!);
+            if (p === "/dev" || p.startsWith("/dev/")) {
+              allSafe = false;
+              break;
+            }
+          }
+          if (allSafe) {
             const recursive = parsed.flags.has("p");
+            const effectiveMode = caps.permissions !== false ? 0o777 & ~umask : undefined;
+            let exitCode = 0;
             try {
-              await admitFilesystemModes(context, "mkdir", [recursive ? "parents" : "directory"], [path]);
-              await context.fs.mkdir(path, { recursive, ...(caps.permissions !== false ? { mode: 0o777 & ~umask } : {}), signal: context.signal });
-              return { exitCode: 0 };
+              for (let i = 0; i < parsed.operands.length; i++) {
+                await admitFilesystemModes(context, "mkdir", [recursive ? "parents" : "directory"], [pathOf(context, parsed.operands[i]!)]);
+              }
             } catch (error) {
               await diagnostic(context, error);
               return { exitCode: 1 };
             }
+            for (let i = 0; i < parsed.operands.length; i++) {
+              try {
+                await context.fs.mkdir(pathOf(context, parsed.operands[i]!), { recursive, ...(effectiveMode === undefined ? {} : { mode: effectiveMode }), signal: context.signal });
+              } catch (error) {
+                exitCode = 1;
+                await diagnostic(context, error);
+              }
+            }
+            return { exitCode };
           }
         }
       }
@@ -1434,4 +1454,9 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
     const requirements = filesystemCommandRequirements[command.name as keyof typeof filesystemCommandRequirements];
     return requirements ? { ...command, filesystemRequirements: requirements } : command;
   });
+  for (const command of commands) {
+    if (command.name === "mkdir") defaultMkdirExecutors.add(command.execute);
+    else if (command.name === "rm") defaultRmExecutors.add(command.execute);
+  }
+  return commands;
 }

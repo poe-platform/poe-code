@@ -624,7 +624,9 @@ export class Shell implements PluginHost {
         );
         exitCode = 0;
         while (true) {
-          for (const warning of unit.script.warnings ?? []) await writeDiagnostic(io.stderr, `shell: warning: ${warning}\n`);
+          if (unit.script.warnings) {
+            for (const warning of unit.script.warnings) await writeDiagnostic(io.stderr, `shell: warning: ${warning}\n`);
+          }
           if (unit.script.lists.length) {
             const unitResult = runtime.runUnit(unit.script, state, io);
             const result = unitResult instanceof Promise

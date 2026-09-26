@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SessionUpdate } from "@poe-code/agent-spawn";
 import type { AcpSession } from "./agent.js";
 import type { AcpEvent, RunResult } from "./runtime/types.js";
+import * as poeAgent from "./index.js";
 
 const openaiResponsesPluginMock = vi.hoisted(() =>
   vi.fn(() => ({ name: "openai-responses-plugin" }))
@@ -151,9 +152,7 @@ describe("createAgentSession", () => {
     );
   });
 
-  it("exports createAgentSession from package entrypoint", async () => {
-    const poeAgent = await import("./index.js");
-
+  it("exports createAgentSession from package entrypoint", () => {
     expect(poeAgent.createAgentSession).toBeTypeOf("function");
   });
 

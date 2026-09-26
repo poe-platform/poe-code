@@ -41,6 +41,16 @@ async function run(args: readonly string[], overrides: Partial<CommandContext> =
   }
 }
 
+for (const value of [undefined, Infinity]) test(`grep accepts explicit unlimited limits: ${String(value)}`, async () => {
+  const result = await run(["x"], {}, { maxPatterns: value, maxPatternBytes: value, maxLineBytes: value, maxContextBytes: value, maxFileBytes: value });
+  assert.equal(result.code, 1);
+  assert.equal(result.stderr, "");
+});
+
+for (const value of [0, -1, NaN, -Infinity, 1.5]) test(`grep rejects invalid limits: ${String(value)}`, async () => {
+  await assert.rejects(run(["x"], {}, { maxLineBytes: value }), RangeError);
+});
+
 for (const chunks of [["xxx\n"], ["xxx"], ["x", "xx\n"], ["xxxx\n"], ["xxxx"], ["xx", "xx\n"], ["xx", "xx"]]) {
   test(`grep enforces line bytes across ${JSON.stringify(chunks)}`, async () => {
     let closed = false;

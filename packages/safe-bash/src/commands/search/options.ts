@@ -36,6 +36,7 @@ export interface Arguments {
   filename?: boolean;
   onlyMatching: boolean;
   quiet: boolean;
+  stats?: boolean;
   hidden: boolean;
   follow: boolean;
   ignore: boolean;
@@ -239,6 +240,8 @@ export function parse(args: readonly string[]): Arguments {
         case "c": case "count": result.mode = "count"; break;
         case "count-matches": result.mode = "matches"; break;
         case "json": result.mode = "json"; break;
+        case "stats": result.stats = true; break;
+        case "no-stats": result.stats = false; break;
         case "o": case "only-matching": result.onlyMatching = true; break;
         case "no-only-matching": result.onlyMatching = false; break;
         case "q": case "quiet": result.quiet = true; break;

@@ -8,6 +8,7 @@ import { data, elapsed, Printer, stats, type Stats } from "./output.js";
 import { diagnostic, Limits, lineBatches, trySyncLineBatches, OutputClosed, pathFor, type Line, type ReadState } from "./shared.js";
 import { Walker, type FileTarget } from "./walk.js";
 import { RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
+import { inProcessRegexProviders } from "../regex-execution/protocol.js";
 import { assertPathRequirements, requiredFileInput, searchRequirements } from "./requirements.js";
 
 const EMPTY_RG_LINES: readonly Line[] = Object.freeze([]);
@@ -47,13 +48,13 @@ function trySearchFileSync(
     return false;
   }
   const binary = args.binary === "text" ? "text" : args.binary === "binary" || target.explicit ? "binary" : "skip";
-  const needAll = args.replacement !== undefined || args.onlyMatching || args.mode === "matches";
+  const needAll = args.replacement !== undefined || args.onlyMatching || args.mode === "matches" || args.stats === true;
   const hasExtYield = hasYieldCheckpoint(context.signal);
   const lit = matcher.literalAsciiBytes;
   if (
     lit !== undefined &&
     !args.invert &&
-    !needAll &&
+    args.replacement === undefined && !args.onlyMatching && args.mode !== "matches" &&
     !args.nullData &&
     !args.crlf &&
     binary === "skip" &&
@@ -64,36 +65,43 @@ function trySearchFileSync(
   ) {
     const firstByte = lit[0]!;
     const litLen = lit.length;
-    const maxPos = view.length - litLen;
     let matchedLines = 0;
-    let pos = 0;
-    while (pos <= maxPos) {
-      const idx = view.indexOf(firstByte, pos);
-      if (idx < 0 || idx > maxPos) break;
-      let ok = true;
-      for (let k = 1; k < litLen; k++) {
-        if (view[idx + k] !== lit[k]) {
-          ok = false;
-          break;
+    let matchesCount = 0;
+    let bytesSearched = 0;
+    for (let start = 0; start < view.length;) {
+      const newline = view.indexOf(10, start);
+      const end = newline < 0 ? view.length : newline;
+      bytesSearched = newline < 0 ? end : end + 1;
+      const pending = limits.tick();
+      // No totals or output have been published; yield before retrying via the
+      // asynchronous search path, which awaits each subsequent checkpoint.
+      if (pending) return pending.then(() => undefined);
+      let count = 0;
+      let pos = start;
+      while (pos <= end - litLen) {
+        const index = view.indexOf(firstByte, pos);
+        if (index < 0 || index > end - litLen) break;
+        let equal = true;
+        for (let offset = 1; offset < litLen; offset++) {
+          if (view[index + offset] !== lit[offset]) { equal = false; break; }
         }
+        if (equal) count++;
+        pos = index + (equal ? litLen : 1);
       }
-      if (ok) {
+      if (count) {
         matchedLines++;
-        if (args.quiet || args.mode === "with" || args.mode === "without") break;
-        const nl = view.indexOf(10, idx + litLen);
-        if (nl < 0) break;
-        pos = nl + 1;
-      } else {
-        pos = idx + 1;
+        matchesCount += count;
+        if (!args.stats && (args.quiet || args.mode === "with" || args.mode === "without")) break;
       }
+      start = bytesSearched;
     }
     const matched = matchedLines > 0;
     const found = args.mode === "without" ? !matched : matched;
     totals.searches++;
     if (matched) totals.searches_with_match++;
-    totals.bytes_searched += view.length;
+    totals.bytes_searched += bytesSearched;
     totals.matched_lines += matchedLines;
-    totals.matches += matchedLines;
+    totals.matches += matchesCount;
     if (!args.quiet) {
       if ((args.mode === "with" || args.mode === "without") && found) {
         const p = printer.filenameSyncOrAsync(target.label);
@@ -139,7 +147,7 @@ function trySearchFileSync(
       if (selected && matchedLines < maxCountSmi) {
         matchedLines++;
         matchesCount += args.invert ? 0 : matches.length;
-        if (args.quiet || args.mode === "with" || args.mode === "without") break records;
+        if (!args.stats && (args.quiet || args.mode === "with" || args.mode === "without")) break records;
       }
       if (matchedLines >= maxCountSmi) {
         bytesSearched = Math.max(lastSelectedEnd, args.invert || line.rawLength === line.content.length ? line.offset : 0);
@@ -227,20 +235,22 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
       state.bytesRead = rawBytes.length;
       state.bytesSearched = rawBytes.length;
       const selectedOutput = !args.quiet;
+      const fileOutputStart = limits.outputBytes;
+      let lastMatchedLine = 0;
       for (const m of crossLineMatches) {
-        if (totals.matched_lines >= args.maxCount) break;
-        totals.matched_lines++;
+        let lineNum = 1;
+        let lineStart = 0;
+        for (let i = 0; i < m.start; i++) {
+          if (rawBytes[i] === 10) { lineNum++; lineStart = i + 1; }
+        }
+        if (totals.matched_lines >= args.maxCount && lineNum > lastMatchedLine) break;
+        let endLine = lineNum;
+        for (let i = m.start; i < m.end - 1; i++) if (rawBytes[i] === 10) endLine++;
+        totals.matched_lines += Math.max(0, endLine - Math.max(lastMatchedLine + 1, lineNum) + 1);
+        lastMatchedLine = endLine;
         totals.matches++;
-        if (args.quiet) break;
+        if (args.quiet && !args.stats) break;
         if (selectedOutput) {
-          let lineNum = 1;
-          let lineStart = 0;
-          for (let i = 0; i < m.start; i++) {
-            if (rawBytes[i] === 10) {
-              lineNum++;
-              lineStart = i + 1;
-            }
-          }
           const rawBuf = Buffer.from(rawBytes);
           const syntheticLine: Line = {
             number: lineNum,
@@ -259,6 +269,7 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
       const matched = totals.matched_lines > 0;
       totals.searches_with_match = matched ? 1 : 0;
       totals.bytes_searched = state.bytesSearched;
+      totals.bytes_printed = limits.outputBytes - fileOutputStart;
       return { found: matched, stats: totals };
     }
   }
@@ -277,7 +288,7 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
   };
   const selectedOutput = !args.quiet && (args.mode === "lines" || args.mode === "json");
   const binaryOutput = selectedOutput && args.mode === "lines" && binary === "binary";
-  const needAll = args.replacement !== undefined || args.onlyMatching || args.mode === "json" || args.mode === "matches";
+  const needAll = args.replacement !== undefined || args.onlyMatching || args.mode === "json" || args.mode === "matches" || args.stats === true;
   const batchSize = () => Number.isFinite(args.maxCount) || args.quiet && args.mode !== "json" || args.mode === "with" || args.mode === "without" || binaryOutput && state.binaryOffset !== null ? 1 : 128;
   const syncBatches = source instanceof Uint8Array ? trySyncLineBatches(source, limits, state, binary, args.nullData, batchSize, needAll, args.crlf, args.before === 0) : undefined;
   let syncIdx = 0;
@@ -321,12 +332,16 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
         await printer.binary(target.label, state.binaryOffset, filename); binaryPrinted = true; break records;
       }
       const matches = results[index]!;
+      // A multiline match can be projected onto several records for printing.
+      // Count its occurrence only in the record containing its original start.
+      const matchCount = crossLineMatches === undefined ? matches.length : crossLineMatches.reduce((count, match) =>
+        count + Number(match.start >= line.offset && match.start <= line.offset + line.content.length), 0);
       const limitedInvertedTail = args.invert && totals.matched_lines >= args.maxCount && after > 0 && line.rawLength === line.content.length;
       const selected = (matches.length > 0) !== args.invert || limitedInvertedTail;
       if (selected) lastSelectedEnd = line.offset + line.rawLength;
       if (selected && totals.matched_lines < args.maxCount) {
-        totals.matched_lines++; totals.matches += args.invert ? 0 : matches.length;
-        if (args.quiet && args.mode !== "json" || args.mode === "with" || args.mode === "without") break records;
+        totals.matched_lines++; totals.matches += args.invert ? 0 : matchCount;
+        if (!args.stats && (args.quiet && args.mode !== "json" || args.mode === "with" || args.mode === "without")) break records;
         if (selectedOutput) {
           await begin();
           if (state.binaryOffset !== null && args.mode !== "json") {
@@ -340,7 +355,7 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
           after = args.after;
         }
       } else if (after && selectedOutput) {
-        if (selected) { totals.matched_lines++; totals.matches += args.invert && !limitedInvertedTail ? 0 : matches.length; }
+        if (selected) { totals.matched_lines++; totals.matches += args.invert && !limitedInvertedTail ? 0 : matchCount; }
         await printer.record(target.label, line, matches, selected, filename); lastPrinted = line.number; after--;
       }
       if (binaryOutput && args.before > 0 && state.binaryOffset !== null) break records;
@@ -370,6 +385,7 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
   const found = args.mode === "without" ? !matched && !state.skipped : matched;
   totals.searches_with_match = matched ? 1 : 0;
   totals.bytes_searched = state.bytesSearched;
+  if (selectedOutput) totals.bytes_printed = limits.outputBytes - fileOutputStart;
   if (!args.quiet) {
     if ((args.mode === "with" || args.mode === "without") && found) await printer.filename(target.label);
     if ((args.mode === "count" || args.mode === "matches") && (matched || args.includeZero) && !state.skipped) {
@@ -377,7 +393,6 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
       await printer.count(target.label, amount, filename);
     }
     if (begun && args.mode === "json") {
-      totals.bytes_printed = limits.outputBytes - fileOutputStart;
       await printer.event("end", { path: data(Buffer.from(target.label)), binary_offset: state.binaryOffset, stats: totals });
     }
   }
@@ -432,6 +447,7 @@ Default input depends on shell configuration.
   -c, --count              Print matching line counts
       --count-matches     Print match counts
       --json              Emit JSON events
+      --stats             Report aggregate search statistics
   -q, --quiet              Suppress normal output
   -g, --glob=GLOB          Include or exclude paths (repeatable)
       --iglob=GLOB        Case-insensitive glob
@@ -498,7 +514,7 @@ Unicode selection and extended regex syntax require a configured executor.
           } else {
             activePatterns = await patterns(context, args, limits);
           }
-          const matcher = new Matcher(activePatterns, args, session, options.regexExecutor === undefined);
+          const matcher = new Matcher(activePatterns, args, session, options.regexExecutor === undefined && inProcessRegexProviders.has(executor.provider));
           if (args.mode !== "files" && matcher.literalAsciiBytes === undefined) {
             const initBatch = matcher.batchSync(EMPTY_RG_LINES);
             if (initBatch instanceof Promise) await initBatch;
@@ -521,7 +537,7 @@ Unicode selection and extended regex syntax require a configured executor.
               totals.bytes_printed += result.stats.bytes_printed;
               totals.matched_lines += result.stats.matched_lines;
               totals.matches += result.stats.matches;
-              if (args!.quiet && found && args!.mode !== "json") return false;
+              if (!args!.stats && args!.quiet && found && args!.mode !== "json") return false;
             } catch (error) { if (error instanceof SearchError || error instanceof RegexExecutionError) throw error; await report(error); }
             return true;
           });
@@ -549,14 +565,14 @@ Unicode selection and extended regex syntax require a configured executor.
                 const syncOut = fastReadState === 1 ? trySearchFileSync(context, args!, limits!, matcher, printer, target, showFilename, totals, fastReadBacking) : undefined;
                 if (typeof syncOut === "boolean") {
                   found ||= syncOut;
-                  if (args!.quiet && found && args!.mode !== "json") return false;
+                  if (!args!.stats && args!.quiet && found && args!.mode !== "json") return false;
                   return true;
                 }
                 if (syncOut instanceof Promise) {
                   return syncOut.then(f => {
                     if (f === undefined) return getRunTargetSlow()(target, showFilename);
                     found ||= f;
-                    return !(args!.quiet && found && args!.mode !== "json");
+                    return !(!args!.stats && args!.quiet && found && args!.mode !== "json");
                   }, async error => {
                     if (error instanceof SearchError || error instanceof RegexExecutionError) throw error;
                     await report(error);
@@ -570,6 +586,7 @@ Unicode selection and extended regex syntax require a configured executor.
               return getRunTargetSlow()(target, showFilename);
           });
           if (args.mode === "json") await printer.event("summary", { elapsed_total: elapsed, stats: totals });
+          else if (args.stats) await limits.output(`\n${totals.matches} matches\n${totals.matched_lines} matched lines\n${totals.searches_with_match} files contained matches\n${totals.searches} files searched\n${totals.bytes_printed} bytes printed\n${totals.bytes_searched} bytes searched\n0.000000 seconds spent searching\n0.000000 seconds total\n`);
           await limits.flush();
           return { exitCode: args.quiet && found ? 0 : failed ? 2 : found ? 0 : 1 };
         } catch (error) {

@@ -4,6 +4,9 @@ import { getEventListeners } from "node:events";
 import { setTimeout as delay } from "node:timers/promises";
 import test from "node:test";
 import { Worker } from "node:worker_threads";
+import { RegexExecutor } from "../../../src/commands/regex-execution/portable.js";
+import { createBoundedRegexProvider } from "../../../src/commands/regex-execution/bounded-provider.js";
+import { createGrepCommands } from "../../../src/commands/search/grep.js";
 import { createSearchCommands, createStandardCommands, standardCommands, searchCommands, MemoryFileSystem, Shell, toByteSource, type ByteSource, type CommandContext, type CommandDefinition, type RegexExecutionOptions } from "../../../src/index.js";
 
 function command(name: "grep" | "rg", regex: RegexExecutionOptions = {}): CommandDefinition {
@@ -71,6 +74,25 @@ test("synchronous grep flushes each batch before reading feedback-dependent inpu
   assert.equal(Buffer.concat(chunks).toString(), "a\na\na\na\n");
   assert.equal(closed, true);
 });
+
+for (const pattern of ["foo", "^foo"]) for (const chunks of [["foo1\nxxxxx\n"], ["foo1\nxx", "xxx\n"]]) {
+  test(`literal grep preserves output and closes input on line admission failure: ${pattern}, ${JSON.stringify(chunks)}`, async () => {
+    const executor = new RegexExecutor(createBoundedRegexProvider());
+    const definition = createGrepCommands(executor, { ergonomicRegex: true, maxLineBytes: 4 })[0]!;
+    let closed = 0;
+    const source = (async function* () {
+      try { for (const chunk of chunks) yield Buffer.from(chunk); }
+      finally { closed++; }
+    })();
+    try {
+      const result = await run(definition, [pattern], source);
+      assert.equal(result.code, 2);
+      assert.equal(result.stdout.toString(), "foo1\n");
+      assert.equal(result.stderr.toString(), "grep: EFBIG: line buffer limit exceeded\n");
+      assert.equal(closed, 1);
+    } finally { await executor.dispose(); }
+  });
+}
 
 for (const tool of ["grep", "rg"] as const) {
   test(`${tool} validation and fragment matching never construct host RegExp`, { timeout: 5000 }, async () => {

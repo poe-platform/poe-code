@@ -2,6 +2,7 @@ import { commandRuntimeIdentity, CommandArgumentIdentityError, FsError, getComma
 import { isAbsolutePath, validatePath } from '@poe-code/safe-fs/core';
 import { assertCommandRequirements } from 'safe-bash-contracts/command-requirements';
 import { createOutputOperation, type OutputOperation } from 'safe-bash-contracts/output';
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn as contractYieldTurn } from 'safe-bash-contracts/yield';
 import { FmtError, defaultFmtLimits, validateFmtLimits, type FmtLimits, type FmtProfile } from './contracts.js';
 import { parseFmtArguments } from './arguments.js';
 import { createFmtEngine, type FmtEngine } from './engine.js';
@@ -18,11 +19,6 @@ const inputRequirements = [
   { id: 'stdin', description: 'Read standard input', capabilities: [] },
   { id: 'file', description: 'Read file operands', capabilities: [], anyOf: [['streamingRead'], ['read']] },
 ] as const;
-async function yieldTurn(signal: AbortSignal): Promise<void> {
-  signal.throwIfAborted();
-  await new Promise<void>(resolve => setTimeout(resolve, 0));
-  signal.throwIfAborted();
-}
 async function output(context: CommandContext, bytes: string | Uint8Array): Promise<void> {
   await writeBytes(context.stdout, typeof bytes === 'string' ? new TextEncoder().encode(bytes) : bytes, context.signal);
 }
@@ -213,6 +209,18 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
         let emptyChunks = 0;
         let chunks = 0;
         let checkpoints = 0;
+        let yieldCount = 0;
+        let lastYield = monotonicNow();
+        const maybeYield = async (signal: AbortSignal): Promise<void> => {
+          const count = ++yieldCount;
+          const now = monotonicNow();
+          if (count === 1 || (count & 15) === 0 || now - lastYield >= 16 || hasYieldCheckpoint(signal)) {
+            lastYield = now;
+            await contractYieldTurn(signal);
+          } else {
+            await runYieldCheckpoint(signal);
+          }
+        };
         let exitCode = 0;
         for (const { name, bytes: nameBytes } of settings.files) {
           local.signal.throwIfAborted();
@@ -232,9 +240,19 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
           let readFailed = false;
           let readError: unknown;
           let received = false;
+          const canBatchOutput = limits.retainedBytes >= 32768;
+          const outBatch = canBatchOutput ? new Uint8Array(16384) : undefined;
+          let outBatchUsed = 0;
+          const flushOutBatch = async (): Promise<void> => {
+            if (!outBatchUsed) return;
+            const slice = outBatch!.subarray(0, outBatchUsed);
+            outBatchUsed = 0;
+            await output(outputContext, slice);
+          };
           while (!step.done) {
             local.signal.throwIfAborted();
             if (step.value === "input") {
+              if (outBatchUsed) await flushOutBatch();
               let bytes: Uint8Array | null = null;
               if (!readFailed) {
                 try { bytes = await current.next(); if (bytes?.length) received = true; }
@@ -246,14 +264,25 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
                 }
               }
               if (bytes?.length === 0 && ++emptyChunks > 4096) throw new FmtError("LIMIT", "empty input chunk limit exceeded");
-              if (++chunks % 64 === 0) await yieldTurn(local.signal);
+              if (++chunks % 64 === 0) await maybeYield(local.signal);
               step = machine.next(bytes);
             } else {
-              if (step.value) await output(outputContext, step.value);
-              else if (++checkpoints % 64 === 0) await yieldTurn(local.signal);
+              if (step.value) {
+                if (outBatch) {
+                  if (outBatchUsed + step.value.length > outBatch.length) await flushOutBatch();
+                  if (step.value.length >= outBatch.length) await output(outputContext, step.value);
+                  else {
+                    outBatch.set(step.value, outBatchUsed);
+                    outBatchUsed += step.value.length;
+                  }
+                } else {
+                  await output(outputContext, step.value);
+                }
+              } else if (++checkpoints % 64 === 0) await maybeYield(local.signal);
               step = machine.next();
             }
           }
+          if (outBatchUsed) await flushOutBatch();
           try { await current.close(); }
           catch (error) { if (!readFailed) throw error; }
           current = undefined;

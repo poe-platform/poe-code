@@ -5,12 +5,15 @@ import { cTransliterations } from "./transliterations.js";
 type Decoded = { readonly count: number; readonly value: number } | { readonly count: number; readonly error: "illegal" | "incomplete" };
 export interface ConversionState { swap: boolean }
 
+const LATIN1_DECODED: readonly Decoded[] = Array.from({ length: 256 }, (_, value) => ({ count: 1, value }));
+const BYTE_ENCODED: readonly (readonly number[])[] = Array.from({ length: 256 }, (_, value) => [value]);
+
 function decode(input: Uint8Array, offset: number, encoding: Encoding, swap: boolean): Decoded {
   const first = input[offset]!;
-  if (encoding === "ascii") return first < 128 ? { count: 1, value: first } : { count: 1, error: "illegal" };
-  if (encoding === "latin1") return { count: 1, value: first };
+  if (encoding === "ascii") return first < 128 ? LATIN1_DECODED[first]! : { count: 1, error: "illegal" };
+  if (encoding === "latin1") return LATIN1_DECODED[first]!;
   if (encoding === "utf8") {
-    if (first < 128) return { count: 1, value: first };
+    if (first < 128) return LATIN1_DECODED[first]!;
     let count = 0, value = 0;
     if (first >= 0xc2 && first < 0xe0) { count = 2; value = first & 0x1f; }
     else if (first >= 0xe0 && first < 0xf0) { count = 3; value = first & 0x0f; }
@@ -40,15 +43,15 @@ function decode(input: Uint8Array, offset: number, encoding: Encoding, swap: boo
   return { count: 4, value: 0x10000 + (word - 0xd800) * 1024 + next - 0xdc00 };
 }
 
-function encode(value: number, encoding: Encoding): number[] | undefined {
+function encode(value: number, encoding: Encoding): readonly number[] | undefined {
   if (value > 0x10ffff || (value >= 0xd800 && value <= 0xdfff)) return undefined;
   if (encoding === "ascii" || encoding === "latin1") {
-    if (value < (encoding === "ascii" ? 128 : 256)) return [value];
+    if (value < (encoding === "ascii" ? 128 : 256)) return BYTE_ENCODED[value]!;
     if (value >= 0xe0000 && value <= 0xe007f) return [];
     return undefined;
   }
   if (encoding === "utf8") {
-    if (value < 128) return [value];
+    if (value < 128) return BYTE_ENCODED[value]!;
     let count = 2;
     while (count < 4 && value >= 2 ** (5 * count + 1)) count++;
     const result = new Array<number>(count);
@@ -79,6 +82,10 @@ export async function convert(input: Uint8Array, options: Parsed, state: Convers
   };
   const append = (bytes: readonly number[], transliterated = false): void | Promise<void> => {
     const recursiveBom = transliterated && firstTargetBatch && options.to === "utf16";
+    if (!recursiveBom && bytes.length === 1 && used < buffer.length) {
+      buffer[used++] = bytes[0]!;
+      return;
+    }
     if (buffer.length - used < bytes.length + (recursiveBom ? 2 : 0)) {
       return flushFullOutput().then(() => {
         buffer.set(bytes, used); used += bytes.length;
@@ -109,8 +116,9 @@ export async function convert(input: Uint8Array, options: Parsed, state: Convers
         if (transliterated) {
           const replacement = Object.hasOwn(cTransliterations, decoded.value) ? cTransliterations[decoded.value]! : "?";
           budget.charge(replacement.length + 1);
-          bytes = [];
-          for (const character of replacement) bytes.push(...encode(character.charCodeAt(0), options.to)!);
+          const mutableBytes: number[] = [];
+          for (const character of replacement) mutableBytes.push(...encode(character.charCodeAt(0), options.to)!);
+          bytes = mutableBytes;
         }
         if (bytes === undefined) { error = "illegal"; targetSuppressed = true; }
         else { const a = append(bytes, transliterated); if (a) await a; }

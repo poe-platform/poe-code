@@ -500,9 +500,11 @@ async function* records(input: Input, separator: number): AsyncGenerator<Uint8Ar
       const bytes = await input.next();
       if (!bytes) break;
       let start = 0;
-      for (let offset = 0; offset < bytes.length; offset++) {
-        if (offset % 65536 === 65535) await yieldTurn(input.signal);
-        if (bytes[offset] !== separator) continue;
+      let recordsInChunk = 0;
+      while (start < bytes.length) {
+        const offset = bytes.indexOf(separator, start);
+        if (offset < 0) break;
+        if ((++recordsInChunk & 1023) === 0) await yieldTurn(input.signal);
         yield pending.finish(undefined, bytes, start, offset + 1);
         start = offset + 1;
       }
@@ -611,6 +613,36 @@ export function shufCommand(): CommandDefinition {
         const sepStr = String.fromCharCode(settings.separator);
         const generated: ByteSource = { async *[Symbol.asyncIterator]() {
           if (settings.repeat && count > 0 && length === 0n) throw new ShufDiagnostic("no lines to repeat");
+          if (!settings.repeat || (settings.hasCount && settings.random === undefined)) {
+            const batchCap = 16384;
+            let batch = new Uint8Array(batchCap);
+            let batchOffset = 0;
+            for (let index = 0; index < count; index++) {
+              signal.throwIfAborted();
+              const choice = settings.repeat ? random.choose(length) : indices![index]!;
+              const selected = typeof choice === "number" || typeof choice === "bigint" ? choice : await choice;
+              const line = settings.range ? encoder.encode(String(settings.range.low + BigInt(selected)) + sepStr) : lines[Number(selected)]!;
+              if (line.length >= batchCap) {
+                if (batchOffset > 0) {
+                  yield batch.subarray(0, batchOffset);
+                  batch = new Uint8Array(batchCap);
+                  batchOffset = 0;
+                }
+                yield line;
+              } else {
+                if (batchOffset + line.length > batchCap) {
+                  yield batch.subarray(0, batchOffset);
+                  batch = new Uint8Array(batchCap);
+                  batchOffset = 0;
+                }
+                batch.set(line, batchOffset);
+                batchOffset += line.length;
+              }
+              if ((index & 1023) === 1023) await yieldTurn(signal);
+            }
+            if (batchOffset > 0) yield batch.subarray(0, batchOffset);
+            return;
+          }
           for (let index = 0n; settings.repeat ? !settings.hasCount || index < settings.count : index < BigInt(count); index++) {
             signal.throwIfAborted();
             const choice = settings.repeat ? random.choose(length) : indices![Number(index)]!;

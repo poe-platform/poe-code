@@ -158,5 +158,6 @@ export async function sort(reader: Reader, lifecycle: Lifecycle): Promise<number
       }
     } while (loop);
   }
+  await lifecycle.flush();
   return status;
 }

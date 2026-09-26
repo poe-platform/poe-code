@@ -1,6 +1,6 @@
 import { getCommandArguments, type CommandContext } from "../../contracts/index.js";
 import { shellValueByteLength, shellValueBytes } from "../../contracts/value.js";
-import { yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { PublicDiagnostic } from "../../diagnostics.js";
 
 export interface TsortLimits {
@@ -47,7 +47,10 @@ export function raw(value: Uint8Array): string {
 }
 
 export function bytes(value: string): Uint8Array {
-  return Uint8Array.from(value, character => character.charCodeAt(0));
+  const len = value.length;
+  const out = new Uint8Array(len);
+  for (let i = 0; i < len; i++) out[i] = value.charCodeAt(i);
+  return out;
 }
 
 export function pathText(value: string): string {
@@ -96,24 +99,43 @@ export function fileQuote(value: string): string {
 export class Budget {
   private work = 0;
   private checkpoint = 0;
+  private checkpointCount = 0;
+  private lastYield = monotonicNow();
   private retained = 0;
   private input = 0;
   private output = 0;
   private diagnostics = 0;
-  constructor(readonly context: CommandContext, readonly limits: TsortLimits, readonly signal: AbortSignal) {}
+  private signalAborted: boolean;
+  private readonly pollSignal: boolean;
+  constructor(readonly context: CommandContext, readonly limits: TsortLimits, readonly signal: AbortSignal) {
+    this.signalAborted = signal.aborted;
+    this.pollSignal = Object.prototype.hasOwnProperty.call(signal, "aborted");
+    if (!this.signalAborted && !this.pollSignal) {
+      signal.addEventListener("abort", () => { this.signalAborted = true; }, { once: true });
+    }
+  }
+  assertSignalOpen(): void {
+    if (this.pollSignal ? this.signal.aborted : this.signalAborted) this.signal.throwIfAborted();
+  }
   check(value: number, maximum: number, label: string): void {
-    if (!Number.isSafeInteger(value) || value < 0 || value > maximum) throw new TsortError(`${label} limit exceeded`);
+    if (value > maximum || value < 0 || ((value | 0) !== value && !Number.isSafeInteger(value))) throw new TsortError(`${label} limit exceeded`);
   }
   charge(amount = 1): void {
-    this.signal.throwIfAborted();
+    this.assertSignalOpen();
     this.check(this.work + amount, this.limits.maxWork, "work");
     this.work += amount;
   }
   checkpointWork(): void | Promise<void> {
-    this.signal.throwIfAborted();
+    this.assertSignalOpen();
     if (this.work - this.checkpoint < 4096) return;
     this.checkpoint = this.work;
-    return yieldTurn(this.signal);
+    const count = ++this.checkpointCount;
+    const now = monotonicNow();
+    if (count === 1 || (count & 15) === 0 || now - this.lastYield >= 16 || hasYieldCheckpoint(this.signal)) {
+      this.lastYield = now;
+      return yieldTurn(this.signal);
+    }
+    return runYieldCheckpoint(this.signal);
   }
   retain(amount: number): void {
     this.check(this.retained + amount, this.limits.maxBufferedBytes, "buffered bytes");

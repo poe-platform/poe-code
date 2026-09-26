@@ -1,6 +1,6 @@
 import { getCommandArguments, type CommandContext } from "../../contracts/index.js";
 import { shellValueByteLength, shellValueBytes } from "../../contracts/value.js";
-import { yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { PublicDiagnostic } from "../../diagnostics.js";
 
 export interface IconvLimits {
@@ -51,19 +51,29 @@ export function pathText(value: string): string {
 export class Budget {
   private work = 0;
   private checkpoint = 0;
+  private checkpointCount = 0;
+  private lastYield = monotonicNow();
   private retained = 0;
   private input = 0;
   private output = 0;
   private diagnostics = 0;
   private chunks = 0;
   private empties = 0;
-  constructor(readonly context: CommandContext, readonly limits: IconvLimits, readonly signal: AbortSignal, readonly callerSignal: AbortSignal, readonly admission: { readonly closed: boolean }) {}
+  private signalAborted: boolean;
+  private readonly pollSignal: boolean;
+  constructor(readonly context: CommandContext, readonly limits: IconvLimits, readonly signal: AbortSignal, readonly callerSignal: AbortSignal, readonly admission: { readonly closed: boolean }) {
+    this.signalAborted = signal.aborted;
+    this.pollSignal = Object.prototype.hasOwnProperty.call(signal, "aborted");
+    if (!this.signalAborted && !this.pollSignal) {
+      signal.addEventListener("abort", () => { this.signalAborted = true; }, { once: true });
+    }
+  }
   assertOpen(): void {
-    this.signal.throwIfAborted();
+    if (this.pollSignal ? this.signal.aborted : this.signalAborted) this.signal.throwIfAborted();
     if (this.admission.closed) throw new IconvError("command is closed");
   }
   check(value: number, maximum: number, label: string): void {
-    if (!Number.isSafeInteger(value) || value < 0 || value > maximum) throw new IconvError(`${label} limit exceeded`);
+    if (value > maximum || value < 0 || ((value | 0) !== value && !Number.isSafeInteger(value))) throw new IconvError(`${label} limit exceeded`);
   }
   charge(amount = 1): void {
     this.assertOpen();
@@ -73,9 +83,16 @@ export class Budget {
     this.assertOpen();
     if (this.work - this.checkpoint < 4096) return;
     this.checkpoint = this.work;
-    return yieldTurn(this.callerSignal).then(() => {
-      this.assertOpen();
-    });
+    const count = ++this.checkpointCount;
+    const now = monotonicNow();
+    if (count === 1 || (count & 15) === 0 || now - this.lastYield >= 16 || hasYieldCheckpoint(this.callerSignal)) {
+      this.lastYield = now;
+      return yieldTurn(this.callerSignal).then(() => {
+        this.assertOpen();
+      });
+    }
+    const p = runYieldCheckpoint(this.callerSignal);
+    if (p) return p.then(() => { this.assertOpen(); });
   }
   retain(amount: number): void {
     this.check(this.retained + amount, this.limits.maxBufferedBytes, "buffered bytes"); this.retained += amount;

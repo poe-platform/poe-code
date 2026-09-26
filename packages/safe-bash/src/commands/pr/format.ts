@@ -332,8 +332,8 @@ export class Formatter {
         numbered: this.options.numbered && (!this.options.merge || index === 0), start,
         lines: [], current: 0, remaining: 0 });
     }
-    try { await this.pages(date, name); }
-    catch (error) { if (error instanceof PrReadError) await this.flush(); throw error; }
+    try { await this.pages(date, name); await this.lifecycle.flush(); }
+    catch (error) { if (error instanceof PrReadError) { await this.flush(); await this.lifecycle.flush(); } throw error; }
   }
   private async pages(date: string, name: string): Promise<void> {
     while (this.pageNumber <= this.options.lastPage) {

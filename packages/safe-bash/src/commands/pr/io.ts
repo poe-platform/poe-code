@@ -6,12 +6,14 @@ export class Lifecycle {
   private readonly pending = new Set<Promise<unknown>>();
   private readonly cleanups: (() => Promise<void>)[] = [];
   private closing: Promise<void> | undefined;
+  private pendingStdout = "";
   constructor(readonly budget: Budget, output: OutputOperation) { output.registerCleanup(() => this.close()); }
   cleanup(action: () => Promise<void>): void { this.assertOpen(); this.cleanups.push(action); }
   assertOpen(): void {
-    this.budget.signal.throwIfAborted();
+    this.budget.assertSignalOpen();
     if (this.closing) throw new PrError("command is closed");
   }
+  hasPendingStdout(): boolean { return this.pendingStdout.length > 0; }
   async operation<Value>(action: () => Value | Promise<Value>, diagnostic = false): Promise<Value> {
     this.assertOpen();
     if (!diagnostic) this.budget.charge();
@@ -31,20 +33,43 @@ export class Lifecycle {
       if (failures.length > 1) throw new AggregateError(failures, "pr cleanup failed");
     });
   }
-  async write(value: string, diagnostic = false): Promise<void> {
+  async flush(): Promise<void> {
+    if (!this.pendingStdout.length) return;
+    const chunk = this.pendingStdout;
+    this.pendingStdout = "";
     const { budget } = this;
-    budget.emitted(value.length, diagnostic);
     await this.operation(async () => {
-      if (!diagnostic) budget.retain(value.length * 3);
       try {
-        const sink = diagnostic ? budget.context.stderr : budget.context.stdout;
+        const sink = budget.context.stdout;
         this.assertOpen();
         const destination = sink.ownedOutput ?? sink;
         this.assertOpen();
         const write = destination.write;
         this.assertOpen();
-        await Reflect.apply(write, destination, [bytes(value)]);
-      } finally { if (!diagnostic) budget.retain(-value.length * 3); }
+        await Reflect.apply(write, destination, [bytes(chunk)]);
+      } finally { budget.retain(-chunk.length * 3); }
+    }, false);
+  }
+  async write(value: string, diagnostic = false): Promise<void> {
+    const { budget } = this;
+    budget.emitted(value.length, diagnostic);
+    if (!diagnostic) {
+      this.assertOpen();
+      if (!value.length) return;
+      budget.retain(value.length * 3);
+      this.pendingStdout += value;
+      if (this.pendingStdout.length >= 16384) await this.flush();
+      return;
+    }
+    if (this.pendingStdout.length) await this.flush();
+    await this.operation(async () => {
+      const sink = budget.context.stderr;
+      this.assertOpen();
+      const destination = sink.ownedOutput ?? sink;
+      this.assertOpen();
+      const write = destination.write;
+      this.assertOpen();
+      await Reflect.apply(write, destination, [bytes(value)]);
     }, diagnostic);
   }
 }
@@ -157,6 +182,7 @@ export class Reader {
     if (this.pushed >= 0) { const value = this.pushed; this.pushed = -1; return value; }
     while (this.offset === this.chunk.length) {
       if (this.ended) return -1;
+      if (this.lifecycle.hasPendingStdout()) await this.lifecycle.flush();
       let next: IteratorResult<Uint8Array>;
       try {
         if (!this.iterator) await this.acquire();

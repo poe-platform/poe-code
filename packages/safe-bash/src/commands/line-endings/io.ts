@@ -14,7 +14,7 @@ export class Lifecycle {
   private diagnosticDestination: { destination: ByteSink; consumer: AbortSignal | undefined } | undefined;
   diagnosticCancellation: { reason: unknown } | undefined;
   constructor(readonly budget: Budget, output: OutputOperation, private readonly captured: ByteSink, private readonly caller: AbortSignal, readonly admission: { closed: boolean }) { output.registerCleanup(() => this.close()); }
-  assertOpen(): void { this.budget.signal.throwIfAborted(); if (this.closing || this.admission.closed) throw new LineEndingError("command is closed"); }
+  assertOpen(): void { this.budget.assertOpen(); if (this.closing) throw new LineEndingError("command is closed"); }
   private assertDiagnosticOpen(): void {
     this.caller.throwIfAborted();
     const consumer = this.diagnosticDestination?.consumer;

@@ -1,6 +1,6 @@
 import { getCommandArguments, type CommandContext, type FileStat } from "../../contracts/index.js";
 import { shellValueByteLength, shellValueBytes } from "../../contracts/value.js";
-import { yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { PublicDiagnostic } from "../../diagnostics.js";
 
 export interface LineEndingLimits {
@@ -51,18 +51,28 @@ export class LineEndingError extends PublicDiagnostic {
 export class Budget {
   private work = 0;
   private quantum = 0;
+  private checkpointCount = 0;
+  private lastYield = monotonicNow();
   private memory = 0;
   private input = 0;
   private output = 0;
   private diagnostics = 0;
   private files = 0;
-  constructor(readonly context: CommandContext, readonly limits: LineEndingLimits, readonly signal: AbortSignal, private readonly caller: AbortSignal, private readonly admission: { closed: boolean }) {}
-  private assertOpen(): void {
-    this.signal.throwIfAborted();
+  private signalAborted: boolean;
+  private readonly pollSignal: boolean;
+  constructor(readonly context: CommandContext, readonly limits: LineEndingLimits, readonly signal: AbortSignal, private readonly caller: AbortSignal, private readonly admission: { closed: boolean }) {
+    this.signalAborted = signal.aborted;
+    this.pollSignal = Object.prototype.hasOwnProperty.call(signal, "aborted");
+    if (!this.signalAborted && !this.pollSignal) {
+      signal.addEventListener("abort", () => { this.signalAborted = true; }, { once: true });
+    }
+  }
+  assertOpen(): void {
+    if (this.pollSignal ? this.signal.aborted : this.signalAborted) this.signal.throwIfAborted();
     if (this.admission.closed) throw new LineEndingError("command is closed");
   }
   check(value: number, maximum: number, label: string): void {
-    if (!Number.isSafeInteger(value) || value < 0 || value > maximum) throw new LineEndingError(`${label} limit exceeded`);
+    if (value > maximum || value < 0 || ((value | 0) !== value && !Number.isSafeInteger(value))) throw new LineEndingError(`${label} limit exceeded`);
   }
   retain(amount: number): void { this.check(this.memory + amount, this.limits.maxBufferedBytes, "buffered bytes"); this.memory += amount; }
   incoming(amount: number): void { this.check(this.input + amount, this.limits.maxInputBytes, "input bytes"); this.input += amount; }
@@ -77,7 +87,14 @@ export class Budget {
     this.quantum += amount;
     if (this.quantum < 1024) return;
     this.quantum = 0;
-    return yieldTurn(this.caller).then(() => { this.assertOpen(); });
+    const count = ++this.checkpointCount;
+    const now = monotonicNow();
+    if (count === 1 || (count & 15) === 0 || now - this.lastYield >= 16 || hasYieldCheckpoint(this.caller)) {
+      this.lastYield = now;
+      return yieldTurn(this.caller).then(() => { this.assertOpen(); });
+    }
+    const p = runYieldCheckpoint(this.caller);
+    if (p) return p.then(() => { this.assertOpen(); });
   }
   async arguments(): Promise<string[]> {
     const args = this.context.args;

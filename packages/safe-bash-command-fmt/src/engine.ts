@@ -24,10 +24,18 @@ class WorkBudget {
   input = 0;
   closed = false;
   private sinceCheckpoint = 0;
-  constructor(readonly limits: FmtLimits, readonly signal: AbortSignal) {}
+  private signalAborted: boolean;
+  private readonly pollSignal: boolean;
+  constructor(readonly limits: FmtLimits, readonly signal: AbortSignal) {
+    this.signalAborted = signal.aborted;
+    this.pollSignal = Object.prototype.hasOwnProperty.call(signal, "aborted");
+    if (!this.signalAborted && !this.pollSignal) {
+      signal.addEventListener("abort", () => { this.signalAborted = true; }, { once: true });
+    }
+  }
   check(): void {
     if (this.closed) throw new FmtError('CLOSED', 'fmt engine is closed');
-    if (this.signal.aborted) throw new FmtError('CANCELLED', 'fmt engine cancelled');
+    if (this.pollSignal ? this.signal.aborted : this.signalAborted) throw new FmtError('CANCELLED', 'fmt engine cancelled');
   }
   tick(count = 1): boolean {
     this.charge(count);
@@ -59,7 +67,7 @@ class WorkBudget {
     this.output++;
   }
   exact(value: number): number {
-    if (!Number.isSafeInteger(value)) throw new FmtError('ARITHMETIC', 'fmt exact arithmetic limit exceeded');
+    if ((value | 0) !== value && !Number.isSafeInteger(value)) throw new FmtError('ARITHMETIC', 'fmt exact arithmetic limit exceeded');
     return value;
   }
 }

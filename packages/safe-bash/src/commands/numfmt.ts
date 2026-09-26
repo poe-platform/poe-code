@@ -1,7 +1,7 @@
 import { FsError, getCommandArguments, readBytes, writeBytes, type CommandContext, type CommandDefinition } from "../contracts/index.js";
 import { createOutputOperation, type OutputOperation } from "../contracts/output.js";
 import { shellValueByteLength } from "../contracts/value.js";
-import { yieldTurn } from "../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../contracts/yield.js";
 import { PublicDiagnostic, publicDiagnosticMessage } from "../diagnostics.js";
 import { bufferLimit, encoder } from "./internal.js";
 import { RecordBuffer } from "./record-buffer.js";
@@ -200,12 +200,20 @@ type Rounding = "up" | "down" | "from-zero" | "towards-zero" | "nearest";
 type Invalid = "abort" | "fail" | "warn" | "ignore";
 interface Binary { coefficient: bigint; exponent: number; negativeZero?: boolean }
 
+function bitLength(n: bigint): number {
+  if (n >= 0x8000000000000000n && n <= 0xffffffffffffffffn) return 64;
+  if (n <= 0x7fffffffn) return 32 - Math.clz32(Number(n));
+  if (n <= 0xffffffffffffffffn) return 64 - Math.clz32(Number(n >> 32n));
+  if (n >= (1n << 126n) && n < (1n << 128n)) return n >= (1n << 127n) ? 128 : 127;
+  return n.toString(2).length;
+}
+
 function binary(numerator: bigint, denominator = 1n, exponent = 0): Binary {
   if (!numerator) return { coefficient: 0n, exponent: 0 };
   const negative = numerator < 0n !== denominator < 0n;
   numerator = numerator < 0n ? -numerator : numerator;
   denominator = denominator < 0n ? -denominator : denominator;
-  let shift = numerator.toString(2).length - denominator.toString(2).length;
+  let shift = bitLength(numerator) - bitLength(denominator);
   if (shift >= 0 ? numerator < denominator << BigInt(shift) : numerator << BigInt(-shift) < denominator) shift--;
   const target = Math.max(shift + exponent - 63, -16445);
   const adjustment = exponent - target;
@@ -219,6 +227,11 @@ function binary(numerator: bigint, denominator = 1n, exponent = 0): Binary {
 }
 
 function add(left: Binary, right: Binary): Binary {
+  if (!left.coefficient && !right.coefficient) {
+    return { coefficient: 0n, exponent: 0, negativeZero: left.negativeZero === true && right.negativeZero === true };
+  }
+  if (!left.coefficient) return { ...right };
+  if (!right.coefficient) return { ...left };
   const exponent = Math.min(left.exponent, right.exponent);
   const result = binary((left.coefficient << BigInt(left.exponent - exponent)) + (right.coefficient << BigInt(right.exponent - exponent)), 1n, exponent);
   if (!result.coefficient) result.negativeZero = left.negativeZero === true && right.negativeZero === true;
@@ -254,10 +267,20 @@ function compare(left: Binary, right: Binary): number {
   return difference < 0n ? -1 : difference > 0n ? 1 : 0;
 }
 
+const BINARY_0: Binary = { coefficient: 0n, exponent: 0 };
+const BINARY_1: Binary = binary(1n);
+const BINARY_10: Binary = binary(10n);
+const BINARY_1000: Binary = binary(1000n);
+const BINARY_1024: Binary = binary(1024n);
+const BINARY_HALF_POS: Binary = binary(1n, 2n);
+const BINARY_HALF_NEG: Binary = binary(-1n, 2n);
+
 function power(base: number, exponent: number): Binary {
+  if (exponent === 0) return BINARY_1;
+  if (exponent === 1) return base === 10 ? BINARY_10 : base === 1000 ? BINARY_1000 : base === 1024 ? BINARY_1024 : binary(BigInt(base));
   if (base === 10 && exponent > 4933) return { coefficient: 1n, exponent: Infinity };
-  let result = binary(1n);
-  const factor = binary(BigInt(base));
+  let result = BINARY_1;
+  const factor = base === 10 ? BINARY_10 : base === 1000 ? BINARY_1000 : base === 1024 ? BINARY_1024 : binary(BigInt(base));
   for (let index = 0; index < exponent; index++) {
     result = multiply(result, factor);
     if (result.exponent === Infinity) break;
@@ -266,6 +289,16 @@ function power(base: number, exponent: number): Binary {
 }
 
 function round(value: Binary, method: Rounding): Binary {
+  if (value.exponent < -1) {
+    let rounded = integer(value);
+    if (method === "nearest") rounded = integer(add(value, value.coefficient < 0n ? BINARY_HALF_NEG : BINARY_HALF_POS));
+    else if (compare(value, binary(rounded)) !== 0) {
+      if (method === "from-zero") rounded += value.coefficient < 0n ? -1n : 1n;
+      else if (method === "up" && value.coefficient > 0n) rounded++;
+      else if (method === "down" && value.coefficient < 0n) rounded--;
+    }
+    return binary(rounded);
+  }
   const maximum = binary(signedMaximum);
   const multiple = integer(divide(value, maximum));
   const high = multiply(maximum, binary(multiple));
@@ -358,6 +391,12 @@ const utf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
 function quote(text: string, unicode: boolean): string {
   const right = unicode ? "\xe2\x80\x99" : "'";
   let result = unicode ? "\xe2\x80\x98" : "'";
+  let simple = true;
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i);
+    if (c < 32 || c >= 127 || c === 39 || c === 92) { simple = false; break; }
+  }
+  if (simple) return `${result}${text}${right}`;
   const escapes: Readonly<Record<string, string>> = { "\x07": "\\a", "\b": "\\b", "\f": "\\f", "\n": "\\n", "\r": "\\r", "\t": "\\t", "\v": "\\v" };
   for (let index = 0; index < text.length;) {
     if (text.startsWith(right, index)) { result += `\\${right}`; index += right.length; continue; }
@@ -578,13 +617,32 @@ class Converter {
   invalid = false;
   private autoPadding = false;
   private work = 0;
-  constructor(readonly settings: Settings, private context: CommandContext, private output: { readonly remaining: number; emit(text: string, error?: boolean): Promise<void> }) {}
+  private tickCount = 0;
+  private lastYield = monotonicNow();
+  private signalAborted: boolean;
+  private readonly pollSignal: boolean;
+  constructor(readonly settings: Settings, private context: CommandContext, private output: { readonly remaining: number; emit(text: string, error?: boolean): Promise<void> }) {
+    this.signalAborted = context.signal.aborted;
+    this.pollSignal = Object.prototype.hasOwnProperty.call(context.signal, "aborted");
+    if (!this.signalAborted && !this.pollSignal) {
+      context.signal.addEventListener("abort", () => { this.signalAborted = true; }, { once: true });
+    }
+  }
 
-  async tick(amount = 1): Promise<void> {
+  tick(amount = 1): void | Promise<void> {
     this.work += amount;
     if (this.work > 16 * 1024 * 1024) throw new PublicDiagnostic("numfmt work limit exceeded");
-    if (this.work % 256 < amount) await yieldTurn(this.context.signal);
-    this.context.signal.throwIfAborted();
+    if (this.work % 256 < amount) {
+      const count = ++this.tickCount;
+      const now = monotonicNow();
+      if (count === 1 || (count & 15) === 0 || now - this.lastYield >= 16 || hasYieldCheckpoint(this.context.signal)) {
+        this.lastYield = now;
+        return yieldTurn(this.context.signal);
+      }
+      const p = runYieldCheckpoint(this.context.signal);
+      if (p) return p;
+    }
+    if (this.pollSignal ? this.context.signal.aborted : this.signalAborted) this.context.signal.throwIfAborted();
   }
 
   async warning(message: string): Promise<void> { await this.output.emit(`numfmt: ${message}\n`, true); }
@@ -659,8 +717,9 @@ class Converter {
 
   private async number(text: string, backing: Uint8Array, start: number): Promise<{ value: Binary; precision: number } | false> {
     const settings = this.settings;
-    const quoted = quote(text, settings.unicode);
-    if (settings.developer) await this.output.emit(`simple_strtod_human:\n  input string: ${quoted}\n  locale decimal-point: ${quote(".", settings.unicode)}\n  MAX_UNSCALED_DIGITS: 18\n`, true);
+    let cachedQuoted: string | undefined;
+    const getQuoted = (): string => cachedQuoted ??= quote(text, settings.unicode);
+    if (settings.developer) await this.output.emit(`simple_strtod_human:\n  input string: ${getQuoted()}\n  locale decimal-point: ${quote(".", settings.unicode)}\n  MAX_UNSCALED_DIGITS: 18\n`, true);
     let offset = 0;
     let loss = false;
     let error = "";
@@ -668,18 +727,27 @@ class Converter {
       const negative = text[offset] === "-";
       if (negative) offset++;
       const start = offset;
-      let value = binary(0n);
+      let exactAcc = 0n;
+      let value: Binary | undefined;
       let digits = 0;
       while (digit(text[offset])) {
-        if (value.coefficient || text[offset] !== "0") digits++;
+        const d = text.charCodeAt(offset) - 48;
+        if (exactAcc !== 0n || value !== undefined || d !== 0) digits++;
         if (digits > 18) loss = true;
         if (digits > 33) { error = "overflow"; break; }
-        value = add(multiply(value, binary(10n)), binary(BigInt(text.charCodeAt(offset) - 48)));
+        if (digits <= 18) {
+          exactAcc = exactAcc * 10n + BigInt(d);
+        } else {
+          value ??= binary(exactAcc);
+          value = add(multiply(value, binary(10n)), binary(BigInt(d)));
+        }
         offset++;
-        await this.tick();
+        const t = this.tick();
+        if (t) await t;
       }
+      const finalValue = value ?? binary(exactAcc);
       if (offset === start && text[offset] !== ".") error = "number";
-      return { value: negative ? negate(value) : value, negative };
+      return { value: negative ? negate(finalValue) : finalValue, negative };
     };
     const main = await integral();
     let value = main.value;
@@ -694,7 +762,7 @@ class Converter {
         value = add(value, main.negative ? negate(part) : part);
       }
     }
-    if (error) return this.failure(error === "overflow" ? `value too large to be converted: ${quoted}` : `invalid number: ${quoted}`);
+    if (error) return this.failure(error === "overflow" ? `value too large to be converted: ${getQuoted()}` : `invalid number: ${getQuoted()}`);
     if (settings.developer) await this.output.emit(`  parsed numeric value: ${fixed(value, 6)}\n  input precision = ${precision}\n`, true);
     let exponent = 0;
     let base = settings.from === "iec" || settings.from === "iec-i" ? 1024 : 1000;
@@ -703,8 +771,8 @@ class Converter {
       else while (blank(text[offset])) offset++;
       if (offset < text.length || settings.unitSeparator === undefined) {
         const suffix = text[offset] === "k" ? "K" : text[offset];
-        if (suffix !== undefined && !unitPrefixes.includes(suffix)) return this.failure(`invalid suffix in input: ${quoted}`);
-        if (settings.from === "none") return this.failure(`rejecting suffix in input: ${quoted} (consider using --from)`);
+        if (suffix !== undefined && !unitPrefixes.includes(suffix)) return this.failure(`invalid suffix in input: ${getQuoted()}`);
+        if (settings.from === "none") return this.failure(`rejecting suffix in input: ${getQuoted()} (consider using --from)`);
         exponent = suffix === undefined ? 0 : unitPrefixes.indexOf(suffix) + 1;
         offset++;
         if (settings.from === "auto" && backing[start + offset] === 105) {
@@ -715,7 +783,7 @@ class Converter {
       }
     }
     if (settings.from === "iec-i") {
-      if (backing[start + offset] !== 105) return this.failure(`missing 'i' suffix in input: ${quoted} (e.g Ki/Mi/Gi)`);
+      if (backing[start + offset] !== 105) return this.failure(`missing 'i' suffix in input: ${getQuoted()} (e.g Ki/Mi/Gi)`);
       offset++;
     }
     const multiplier = power(base, exponent);
@@ -728,13 +796,13 @@ class Converter {
       let tailEnd = tailStart;
       while (tailEnd < backing.length && backing[tailEnd]) {
         tailEnd++;
-        if ((tailEnd - tailStart) % 4096 === 0) await this.tick(4096);
+        if ((tailEnd - tailStart) % 4096 === 0) { const t = this.tick(4096); if (t) await t; }
       }
-      await this.tick((tailEnd - tailStart) % 4096);
+      { const t = this.tick((tailEnd - tailStart) % 4096); if (t) await t; }
       tail = byteText(backing.subarray(tailStart, tailEnd));
     }
-    if (tail) return this.failure(`invalid suffix in input ${quoted}: ${quote(tail, settings.unicode)}`);
-    if (loss && settings.debug) await this.warning(`large input value ${quoted}: possible precision loss`);
+    if (tail) return this.failure(`invalid suffix in input ${getQuoted()}: ${quote(tail, settings.unicode)}`);
+    if (loss && settings.debug) await this.warning(`large input value ${getQuoted()}: possible precision loss`);
     if (settings.fromUnit !== 1n || settings.toUnit !== 1n) value = divide(multiply(value, binary(settings.fromUnit)), binary(settings.toUnit));
     return { value, precision };
   }
@@ -744,7 +812,7 @@ class Converter {
     const precision = settings.precision ?? BigInt(inputPrecision);
     let decimalPower = 0;
     let reduced = absolute(value);
-    while (compare(reduced, binary(10n)) >= 0) { reduced = divide(reduced, binary(10n)); decimalPower++; }
+    while (compare(reduced, BINARY_10) >= 0) { reduced = divide(reduced, BINARY_10); decimalPower++; }
     if (settings.to === "none" && BigInt(decimalPower) + precision > 18n) return this.failure(precision ? `value/precision too large to be printed: '${general(value)}/${precision}' (consider using --to)` : `value too large to be printed: '${general(value)}' (consider using --to)`);
     if (decimalPower > 32) return this.failure(`value too large to be printed: '${general(value)}' (cannot handle values > 999Q)`);
     if (settings.developer) await this.output.emit("double_to_human:\n", true);
@@ -758,14 +826,15 @@ class Converter {
       if (settings.developer) await this.output.emit(`  no scaling, returning ${settings.grouping ? "(grouped) " : ""}value: ${rendered}\n`, true);
     } else {
       const base = settings.to === "si" ? 1000 : 1024;
-      while (compare(absolute(printedValue), binary(BigInt(base))) >= 0) { printedValue = divide(printedValue, binary(BigInt(base))); powerIndex++; }
+      const baseBinary = base === 1000 ? BINARY_1000 : BINARY_1024;
+      while (compare(absolute(printedValue), baseBinary) >= 0) { printedValue = divide(printedValue, baseBinary); powerIndex++; }
       if (settings.developer) await this.output.emit(`  scaled value to ${fixed(printedValue, 6)} * ${base} ^ ${powerIndex}\n`, true);
-      const adjustment = settings.precision === undefined ? compare(absolute(printedValue), binary(10n)) < 0 ? 1 : 0 : Number(settings.precision < BigInt(powerIndex * 3) ? settings.precision : BigInt(powerIndex * 3));
+      const adjustment = settings.precision === undefined ? compare(absolute(printedValue), BINARY_10) < 0 ? 1 : 0 : Number(settings.precision < BigInt(powerIndex * 3) ? settings.precision : BigInt(powerIndex * 3));
       const factor = power(10, adjustment);
       printedValue = divide(round(multiply(printedValue, factor), settings.rounding), factor);
-      if (compare(absolute(printedValue), binary(BigInt(base))) >= 0) { printedValue = divide(printedValue, binary(BigInt(base))); powerIndex++; }
+      if (compare(absolute(printedValue), baseBinary) >= 0) { printedValue = divide(printedValue, baseBinary); powerIndex++; }
       if (settings.developer) await this.output.emit(`  after rounding, value=${fixed(printedValue, 6)} * ${base} ^ ${powerIndex}\n`, true);
-      let outputPrecision = settings.precision === undefined ? (printedValue.coefficient !== 0n && compare(absolute(printedValue), binary(10n)) < 0 && powerIndex > 0 ? 1n : 0n) : BigInt.asIntN(32, settings.precision);
+      let outputPrecision = settings.precision === undefined ? (printedValue.coefficient !== 0n && compare(absolute(printedValue), BINARY_10) < 0 && powerIndex > 0 ? 1n : 0n) : BigInt.asIntN(32, settings.precision);
       if (outputPrecision < 0n) outputPrecision = 6n;
       if (outputPrecision > 126n) throw new NumfmtDiagnostic(`failed to prepare value '${fixed(printedValue, 6)}' for printing`);
       rendered = fixed(printedValue, Number(outputPrecision));
@@ -865,13 +934,31 @@ export function numfmtCommand(): CommandDefinition {
     let stderr: OutputOperation | undefined;
     let outputBytes = 0;
     let errorBytes = 0;
+    let pendingStdout = "";
     const outputLimit = new PublicDiagnostic("numfmt output limit exceeded");
     const output = {
       get remaining() { return bufferLimit - outputBytes; },
+      async flush(): Promise<void> {
+        if (!pendingStdout.length) return;
+        const chunk = pendingStdout;
+        pendingStdout = "";
+        const destination = stdout?.output ?? context.stdout;
+        for (let offset = 0; offset < chunk.length; offset += 65536) {
+          await writeBytes(destination, textBytes(chunk.slice(offset, offset + 65536)), local.signal);
+        }
+      },
       async emit(text: string, error = false): Promise<void> {
         const total = error ? errorBytes : outputBytes;
         if (text.length > bufferLimit - total) throw outputLimit;
-        if (error) errorBytes += text.length; else outputBytes += text.length;
+        if (error) {
+          if (pendingStdout.length) await output.flush();
+          errorBytes += text.length;
+        } else {
+          outputBytes += text.length;
+          pendingStdout += text;
+          if (pendingStdout.length >= 16384) await output.flush();
+          return;
+        }
         const destination = error ? stderr?.output ?? context.stderr : stdout?.output ?? context.stdout;
         for (let offset = 0; offset < text.length; offset += 65536) await writeBytes(destination, textBytes(text.slice(offset, offset + 65536)), local.signal);
       },
@@ -926,7 +1013,7 @@ export function numfmtCommand(): CommandDefinition {
             }
           };
           while (true) {
-            await converter.tick();
+            { const t = converter.tick(); if (t) await t; }
             let item: IteratorResult<Uint8Array>;
             try { item = await reader.next(); }
             catch (error) {
@@ -941,27 +1028,36 @@ export function numfmtCommand(): CommandDefinition {
             received += item.value.length;
             if (!item.value.length && ++empty > 4096) throw new PublicDiagnostic("empty input chunk limit exceeded");
             const chunk = new Uint8Array(item.value);
+            const sepByte = settings.separator.charCodeAt(0);
             let start = 0;
-            for (let offset = 0; offset < chunk.length; offset++) {
-              if (offset % 4096 === 0) await converter.tick();
-              if (chunk[offset] === settings.separator.charCodeAt(0)) {
-                if (offset - start > record.capacity - record.size) throw new PublicDiagnostic("line buffer limit exceeded");
-                await process(record.finish(undefined, chunk, start, offset), true);
-                start = offset + 1;
+            while (start < chunk.length) {
+              const offset = chunk.indexOf(sepByte, start);
+              if (offset < 0) {
+                const rem = chunk.length - start;
+                if (rem >= 4096) { const t = converter.tick(rem >> 12); if (t) await t; }
+                break;
               }
+              { const t = converter.tick(); if (t) await t; }
+              if (offset - start > record.capacity - record.size) throw new PublicDiagnostic("line buffer limit exceeded");
+              await process(record.finish(undefined, chunk, start, offset), true);
+              start = offset + 1;
             }
             if (chunk.length - start > record.capacity - record.size) throw new PublicDiagnostic("line buffer limit exceeded");
             record.append(chunk, start);
+            if (pendingStdout.length) await output.flush();
           }
           if (record.size) await process(record.finish(), false);
           if (readFailure) await converter.warning(`error reading input: ${readFailure}`);
         }
         if (settings.debug && converter.invalid) await converter.warning("failed to convert some of the input numbers");
+        await output.flush();
         outcome = { exitCode: converter.invalid && settings.invalid === "fail" ? 2 : 0 };
       }
+      await output.flush();
     } catch (error) {
       try {
         context.signal.throwIfAborted();
+        await output.flush();
         if (error instanceof NumfmtDiagnostic) {
           const text = `numfmt: ${error.message}\n${error.extra}${error.help ? "Try 'numfmt --help' for more information.\n" : ""}`;
           await output.emit(text, true);

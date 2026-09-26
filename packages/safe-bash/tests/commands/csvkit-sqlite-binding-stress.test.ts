@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { Volume } from "memfs";
 import sqlite3InitModule from "@sqlite.org/sqlite-wasm";
-import { createSqliteDatabaseProvider, createMemorySqliteFileSystem, utf8Codec } from "@poe-code/csvkit";
+import { createSqliteDatabaseProvider, createMemorySqliteFileSystem, utf8Codec } from "safe-bash-command-csvkit";
 import { FsError } from "../../src/contracts/errors.js";
 import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";

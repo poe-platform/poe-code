@@ -36,16 +36,16 @@
       "import": "./dist/skills.js"
     },
     "./csvkit": {
-      "types": "./packages/csvkit/dist/index.d.ts",
-      "import": "./packages/csvkit/dist/index.js"
+      "types": "./packages/safe-bash-command-csvkit/dist/index.d.ts",
+      "import": "./packages/safe-bash-command-csvkit/dist/index.js"
     },
     "./csvkit/codecs/utf8": {
-      "types": "./packages/csvkit/dist/codecs/utf8.d.ts",
-      "import": "./packages/csvkit/dist/codecs/utf8.js"
+      "types": "./packages/safe-bash-command-csvkit/dist/codecs/utf8.d.ts",
+      "import": "./packages/safe-bash-command-csvkit/dist/codecs/utf8.js"
     },
     "./csvkit/codecs/python": {
-      "types": "./packages/csvkit/dist/codecs/python.d.ts",
-      "import": "./packages/csvkit/dist/codecs/python.js"
+      "types": "./packages/safe-bash-command-csvkit/dist/codecs/python.d.ts",
+      "import": "./packages/safe-bash-command-csvkit/dist/codecs/python.js"
     },
     "./ssconvert": {
       "types": "./packages/safe-bash-command-ssconvert/dist/index.d.ts",
@@ -365,11 +365,11 @@
     "!dist/corpus",
     "!packages/memory/dist/corpus",
     "packages/user-error/dist",
-    "packages/csvkit/dist",
-    "packages/csvkit/LICENSE",
-    "!packages/csvkit/dist/operations/workbook-iso.d.ts",
-    "!packages/csvkit/dist/operations/workbook-iso.d.ts.map",
-    "packages/csvkit/THIRD_PARTY_NOTICES.txt",
+    "packages/safe-bash-command-csvkit/dist",
+    "packages/safe-bash-command-csvkit/LICENSE",
+    "!packages/safe-bash-command-csvkit/dist/operations/workbook-iso.d.ts",
+    "!packages/safe-bash-command-csvkit/dist/operations/workbook-iso.d.ts.map",
+    "packages/safe-bash-command-csvkit/THIRD_PARTY_NOTICES.txt",
     "packages/safe-bash-command-ssconvert/dist",
     "packages/safe-bash-command-ssconvert/LICENSE",
     "packages/safe-bash-command-ssconvert/src/encoding/LGPL-2.1.txt",
@@ -575,7 +575,7 @@
     "@poe-platform/safe-bash": "*",
     "vite": "6.4.3",
     "vitest": "4.1.11",
-    "@poe-code/pandoc": "0.0.1",
+    "safe-bash-command-pandoc": "0.0.1",
     "@poe-code/pdf": "0.0.1",
     "@poe-code/pdf-ast": "0.0.1",
     "@poe-code/safe-playwright": "*",
@@ -593,7 +593,7 @@
     "safe-bash-command-exiftool": "*",
     "safe-bash-command-fmt": "*",
     "safe-bash-mcp": "*",
-    "@poe-code/csvkit": "*",
+    "safe-bash-command-csvkit": "*",
     "safe-bash-command-ssconvert": "*",
     "@poe-code/media-cli": "*",
     "@poe-code/remote-execution": "*",

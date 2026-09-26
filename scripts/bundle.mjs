@@ -246,12 +246,12 @@ consumerBuilds.push(
 // The public CSV SDK must inline its private office-package implementation.
 for (const entryPoint of ["index", "codecs/utf8", "codecs/python"]) {
   consumerBuilds.push(await esbuild.build({
-    entryPoints: [path.join(rootDir, "packages/csvkit/src", entryPoint + ".ts")],
+    entryPoints: [path.join(rootDir, "packages/safe-bash-command-csvkit/src", entryPoint + ".ts")],
     bundle: true,
     platform: "node",
     target: "node22",
     format: "esm",
-    outfile: path.join(rootDir, "packages/csvkit/dist", entryPoint + ".js"),
+    outfile: path.join(rootDir, "packages/safe-bash-command-csvkit/dist", entryPoint + ".js"),
     ...consumerBuildOptions,
     external: Object.keys({ ...packageJson.dependencies, ...packageJson.optionalDependencies }),
     sourcemap: true,

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { MemoryFileSystem } from '../../src/fs/memory/index.js';
 import { createCsvkitCommands } from '../../src/commands/csvkit/index.js';
-import { utf8Codec } from '@poe-code/csvkit';
+import { utf8Codec } from 'safe-bash-command-csvkit';
 import reference from '../../../../docs/csvkit/in2csv-reference.json' with { type: 'json' };
 
 test('closing stdout during a side-file write drains sibling files through invocation cleanup', async () => {

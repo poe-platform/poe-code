@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { csvkitCommands } from "../../src/commands/csvkit/index.js";
-import { utf8Codec, databaseDialects, type DatabaseDialectDescriptor, type DatabaseProvider } from "@poe-code/csvkit";
+import { utf8Codec, databaseDialects, type DatabaseDialectDescriptor, type DatabaseProvider } from "safe-bash-command-csvkit";
 
 function fixture(databases: readonly DatabaseProvider[] = [], sqlDialects: readonly DatabaseDialectDescriptor[] = []) {
   const fs = new MemoryFileSystem();

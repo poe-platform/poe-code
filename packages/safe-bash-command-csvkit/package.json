@@ -1,5 +1,5 @@
 {
-  "name": "@poe-code/csvkit",
+  "name": "safe-bash-command-csvkit",
   "version": "0.0.1",
   "private": true,
   "license": "MIT",
@@ -27,8 +27,8 @@
   ],
   "scripts": {
     "build": "node scripts/generate-inventories.mjs && node ../../scripts/guard-package-dist.mjs && tsc",
-    "test": "cd ../.. && vitest run packages/csvkit/src",
-    "test:unit": "cd ../.. && vitest run packages/csvkit/src",
+    "test": "cd ../.. && vitest run packages/safe-bash-command-csvkit/src",
+    "test:unit": "cd ../.. && vitest run packages/safe-bash-command-csvkit/src",
     "lint": "eslint src && tsc --noEmit && tsc -p tsconfig.test.json"
   },
   "dependencies": {
@@ -43,7 +43,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",
-    "directory": "packages/csvkit"
+    "directory": "packages/safe-bash-command-csvkit"
   },
   "poeCode": {
     "safeLibraryNotices": {

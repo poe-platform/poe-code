@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { utf8Codec } from "@poe-code/csvkit";
+import { utf8Codec } from "safe-bash-command-csvkit";
 import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { csvkitCommands, createCsvkitCommands } from "../../src/commands/csvkit/index.js";

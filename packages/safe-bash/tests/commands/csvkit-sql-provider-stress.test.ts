@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import type { DatabaseProvider } from "@poe-code/csvkit";
-import { utf8Codec } from "@poe-code/csvkit";
+import type { DatabaseProvider } from "safe-bash-command-csvkit";
+import { utf8Codec } from "safe-bash-command-csvkit";
 import urlReference from "../../../../docs/csvkit/sql-url-reference.json" with { type: "json" };
 import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
@@ -148,7 +148,7 @@ for (const item of urlReference.cli) {
 }
 
 test("SQL provider factory refuses a foreign scheme before endpoint authorization or connection", async () => {
-  const { createDatabaseProvider } = await import("@poe-code/csvkit");
+  const { createDatabaseProvider } = await import("safe-bash-command-csvkit");
   const effects: string[] = [];
   const provider = createDatabaseProvider({ schemes: ["owned"], profile: "in-memory-driver-stress", transport: "network",
     async authorize() { effects.push("authorize"); return true; },
@@ -159,7 +159,7 @@ test("SQL provider factory refuses a foreign scheme before endpoint authorizatio
 });
 
 test("SQL factory late acquisition cancellation closes session even when rollback fails", async () => {
-  const { createDatabaseProvider } = await import("@poe-code/csvkit");
+  const { createDatabaseProvider } = await import("safe-bash-command-csvkit");
   const effects: string[] = [];
   const caller = new AbortController();
   const reason = new Error("cancel late driver session");
@@ -179,7 +179,7 @@ test("SQL factory late acquisition cancellation closes session even when rollbac
 });
 
 test("SQL factory actual Shell rejects unmapped execution options before driver query and cleans its owned session", async () => {
-  const { createDatabaseProvider } = await import("@poe-code/csvkit");
+  const { createDatabaseProvider } = await import("safe-bash-command-csvkit");
   const effects: string[] = [];
   const provider = createDatabaseProvider({ schemes: ["owned"], profile: "in-memory-driver-stress", transport: "network",
     executionOptions: { stream_results: { target: "stream", convert: value => { assert.equal(value, true); return value; } } },
@@ -214,7 +214,7 @@ test("SQL execution-option SyntaxError occurs after connection acquisition and c
 });
 
 test("SQL provider URL credentials form one identity without borrowing another configured identity password", async () => {
-  const { createDatabaseProvider } = await import("@poe-code/csvkit");
+  const { createDatabaseProvider } = await import("safe-bash-command-csvkit");
   let authorized = false;
   const provider = createDatabaseProvider({ schemes: ["owned"], profile: "in-memory-driver-stress", transport: "network",
     credentials: { username: "configured", password: "configured-secret" },

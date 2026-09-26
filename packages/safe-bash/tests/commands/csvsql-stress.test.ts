@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { csvkitCommands } from "../../src/commands/csvkit/index.js";
-import { utf8Codec, CsvkitDiagnostic, type DatabaseProvider, type DatabaseResult, type DatabaseSession } from "@poe-code/csvkit";
+import { utf8Codec, CsvkitDiagnostic, type DatabaseProvider, type DatabaseResult, type DatabaseSession } from "safe-bash-command-csvkit";
 
 function fixture(answer: (sql: string) => DatabaseResult = () => ({ columns: null, rows: (async function* () {})(), close: async () => {} }), methods: Partial<Pick<DatabaseSession, "begin" | "commit" | "hasTable" | "dialect">> = {}) {
   const effects: string[] = [];

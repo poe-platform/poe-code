@@ -81,10 +81,10 @@ export function resolvePandocBuild(rootDir) {
   return {
     ...portable,
     entryPoints: {
-      sdk: path.join(rootDir, "packages/pandoc/src/index.ts"),
+      sdk: path.join(rootDir, "packages/safe-bash-command-pandoc/src/index.ts"),
       command: path.join(rootDir, "packages/safe-bash/src/commands/pandoc/index.ts")
     },
-    outdir: path.join(rootDir, "packages/pandoc/dist/public"),
+    outdir: path.join(rootDir, "packages/safe-bash-command-pandoc/dist/public"),
     external: ["poe-code/safe-fs/core"]
   };
 }

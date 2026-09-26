@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { csvkitCommands, createCsvkitCommands, type CsvkitCommandsOptions } from "../../src/commands/csvkit/index.js";
-import { utf8Codec } from "@poe-code/csvkit";
+import { utf8Codec } from "safe-bash-command-csvkit";
 import parserReference from "../../../../docs/csvkit/oracle-3.14.2.json" with { type: "json" };
 import ioReference from "../../../../docs/csvkit/io-reference.json" with { type: "json" };
 import scalarReference from "../../../../docs/csvkit/sql-scalar-options-reference.json" with { type: "json" };

@@ -96,20 +96,20 @@ it("ships the spreadsheet command SDK without a CLI dependency", async () => {
 it("ships an explicitly declared private command SDK with its runtime graph", async () => {
   const { volume, options } = optionalLeftovers();
   const manifest = structuredClone(bashManifest);
-  manifest.devDependencies["@poe-code/csvkit"] = "*";
+  manifest.devDependencies["safe-bash-command-csvkit"] = "*";
   volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
-  volume.mkdirSync("/repo/packages/csvkit/dist", { recursive: true });
-  volume.writeFileSync("/repo/packages/csvkit/package.json", JSON.stringify({
-    name: "@poe-code/csvkit", private: true, type: "module",
+  volume.mkdirSync("/repo/packages/safe-bash-command-csvkit/dist", { recursive: true });
+  volume.writeFileSync("/repo/packages/safe-bash-command-csvkit/package.json", JSON.stringify({
+    name: "safe-bash-command-csvkit", private: true, type: "module",
     exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
   }));
-  volume.writeFileSync("/repo/packages/csvkit/dist/index.js", "export const commands = ['csvcut'];");
-  volume.writeFileSync("/repo/packages/csvkit/dist/index.d.ts", "export declare const commands: string[];");
-  for (const suffix of ["js", "d.ts"]) volume.writeFileSync("/repo/packages/safe-bash/dist/commands/csvkit/index." + suffix, 'export { commands } from "@poe-code/csvkit";');
+  volume.writeFileSync("/repo/packages/safe-bash-command-csvkit/dist/index.js", "export const commands = ['csvcut'];");
+  volume.writeFileSync("/repo/packages/safe-bash-command-csvkit/dist/index.d.ts", "export declare const commands: string[];");
+  for (const suffix of ["js", "d.ts"]) volume.writeFileSync("/repo/packages/safe-bash/dist/commands/csvkit/index." + suffix, 'export { commands } from "safe-bash-command-csvkit";');
   await packageSafeLibraries({ ...options, outDir: "/output" });
-  expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/commands/csvkit/index.js", "utf8")).toContain('"../../../csvkit/index.js"');
-  expect(volume.readFileSync("/output/safe-bash/dist/csvkit/index.js", "utf8")).toContain("csvcut");
-  expect(JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8")).dependencies).not.toHaveProperty("@poe-code/csvkit");
+  expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/commands/csvkit/index.js", "utf8")).toContain('"../../../safe-bash-command-csvkit/index.js"');
+  expect(volume.readFileSync("/output/safe-bash/dist/safe-bash-command-csvkit/index.js", "utf8")).toContain("csvcut");
+  expect(JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8")).dependencies).not.toHaveProperty("safe-bash-command-csvkit");
 });
 
 it("packages declared private Node exports and their conditional declarations", async () => {
@@ -138,21 +138,21 @@ it("packages declared private Node exports and their conditional declarations", 
 
 it("embeds declared private SDKs with portable conditional exports", async () => {
   const { volume, options } = optionalLeftovers();
-  volume.mkdirSync("/repo/packages/csvkit/dist", { recursive: true });
-  volume.writeFileSync("/repo/packages/csvkit/package.json", JSON.stringify({
-    name: "@poe-code/csvkit", private: true, type: "module",
+  volume.mkdirSync("/repo/packages/safe-bash-command-csvkit/dist", { recursive: true });
+  volume.writeFileSync("/repo/packages/safe-bash-command-csvkit/package.json", JSON.stringify({
+    name: "safe-bash-command-csvkit", private: true, type: "module",
     exports: { ".": {
       types: { browser: "./dist/index.d.ts", default: "./dist/index.d.ts" },
       workerd: "./dist/index.js", browser: "./dist/index.js", node: "./dist/index.js", default: "./dist/index.js",
     } },
   }));
-  volume.writeFileSync("/repo/packages/csvkit/dist/index.js", "export const commands = ['csvcut'];");
-  volume.writeFileSync("/repo/packages/csvkit/dist/index.d.ts", "export declare const commands: string[];");
-  for (const suffix of ["js", "d.ts"]) volume.writeFileSync("/repo/packages/safe-bash/dist/commands/csvkit/index." + suffix, 'export { commands } from "@poe-code/csvkit";');
+  volume.writeFileSync("/repo/packages/safe-bash-command-csvkit/dist/index.js", "export const commands = ['csvcut'];");
+  volume.writeFileSync("/repo/packages/safe-bash-command-csvkit/dist/index.d.ts", "export declare const commands: string[];");
+  for (const suffix of ["js", "d.ts"]) volume.writeFileSync("/repo/packages/safe-bash/dist/commands/csvkit/index." + suffix, 'export { commands } from "safe-bash-command-csvkit";');
   await packageSafeLibraries({ ...options, outDir: "/output" });
-  for (const suffix of ["js", "d.ts"]) expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/commands/csvkit/index." + suffix, "utf8")).toContain('"../../../csvkit/index.js"');
-  expect(volume.readFileSync("/output/safe-bash/dist/csvkit/index.js", "utf8")).toContain("csvcut");
-  expect(volume.readFileSync("/output/safe-bash/dist/csvkit/index.d.ts", "utf8")).toContain("commands");
+  for (const suffix of ["js", "d.ts"]) expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/commands/csvkit/index." + suffix, "utf8")).toContain('"../../../safe-bash-command-csvkit/index.js"');
+  expect(volume.readFileSync("/output/safe-bash/dist/safe-bash-command-csvkit/index.js", "utf8")).toContain("csvcut");
+  expect(volume.readFileSync("/output/safe-bash/dist/safe-bash-command-csvkit/index.d.ts", "utf8")).toContain("commands");
 });
 
 it.each([
@@ -161,11 +161,11 @@ it.each([
   { types: { import: null, default: "./dist/index.d.ts" }, import: "./dist/index.js" },
 ])("refuses private SDK export conditions explicitly blocked by null: %j", async (exported) => {
   const { volume, options } = optionalLeftovers();
-  volume.mkdirSync("/repo/packages/csvkit/dist", { recursive: true });
-  volume.writeFileSync("/repo/packages/csvkit/package.json", JSON.stringify({ name: "@poe-code/csvkit", private: true, exports: { ".": exported } }));
-  volume.writeFileSync("/repo/packages/csvkit/dist/index.js", "export const commands = [];");
-  volume.writeFileSync("/repo/packages/csvkit/dist/index.d.ts", "export declare const commands: string[];");
-  for (const suffix of ["js", "d.ts"]) volume.writeFileSync("/repo/packages/safe-bash/dist/commands/csvkit/index." + suffix, 'export { commands } from "@poe-code/csvkit";');
+  volume.mkdirSync("/repo/packages/safe-bash-command-csvkit/dist", { recursive: true });
+  volume.writeFileSync("/repo/packages/safe-bash-command-csvkit/package.json", JSON.stringify({ name: "safe-bash-command-csvkit", private: true, exports: { ".": exported } }));
+  volume.writeFileSync("/repo/packages/safe-bash-command-csvkit/dist/index.js", "export const commands = [];");
+  volume.writeFileSync("/repo/packages/safe-bash-command-csvkit/dist/index.d.ts", "export declare const commands: string[];");
+  for (const suffix of ["js", "d.ts"]) volume.writeFileSync("/repo/packages/safe-bash/dist/commands/csvkit/index." + suffix, 'export { commands } from "safe-bash-command-csvkit";');
   await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("Missing private workspace");
 });
 
@@ -934,9 +934,9 @@ describe("explicit optional safe package artifact", () => {
     volume.mkdirSync("/repo/node_modules/yaml", { recursive: true });
     volume.writeFileSync("/repo/node_modules/yaml/package.json", JSON.stringify({ name: "yaml", version: "2.9.0" }));
     volume.writeFileSync("/repo/node_modules/yaml/LICENSE", "YAML fixture license");
-    volume.mkdirSync("/repo/packages/pandoc/dist", { recursive: true });
-    volume.writeFileSync("/repo/packages/pandoc/dist/defaults.js", 'export { parseDocument } from "yaml";');
-    volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", 'export { parseDocument } from "yaml"; export * from "../../pandoc/dist/defaults.js";');
+    volume.mkdirSync("/repo/packages/safe-bash-command-pandoc/dist", { recursive: true });
+    volume.writeFileSync("/repo/packages/safe-bash-command-pandoc/dist/defaults.js", 'export { parseDocument } from "yaml";');
+    volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", 'export { parseDocument } from "yaml"; export * from "../../safe-bash-command-pandoc/dist/defaults.js";');
     const bundle = vi.fn(async (recipe: BuildOptions) => recipe.outfile?.endsWith("/bundled-yaml/index.js")
       ? build({ ...recipe, absWorkingDir: path.resolve(import.meta.dirname, ".."),
         stdin: { ...recipe.stdin!, resolveDir: path.resolve(import.meta.dirname, "..") } })
@@ -946,7 +946,7 @@ describe("explicit optional safe package artifact", () => {
     expect(manifest.dependencies.yaml).toBeUndefined();
     expect(manifest.peerDependencies.yaml).toBe("2.9.0");
     expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/index.js", "utf8")).toContain('"./bundled-yaml/index.js"');
-    expect(volume.readFileSync("/output/safe-bash/dist/pandoc/defaults.js", "utf8")).toContain('"../safe-bash/bundled-yaml/index.js"');
+    expect(volume.readFileSync("/output/safe-bash/dist/safe-bash-command-pandoc/defaults.js", "utf8")).toContain('"../safe-bash/bundled-yaml/index.js"');
     const parser = volume.readFileSync("/output/safe-bash/dist/safe-bash/bundled-yaml/index.js", "utf8").toString();
     const embedded = await import("data:text/javascript;base64," + Buffer.from(parser).toString("base64"));
     expect(embedded.parseDocument("from: markdown\nto: html").toJS()).toEqual({ from: "markdown", to: "html" });
@@ -1378,7 +1378,7 @@ it("prepares scoped browser and private command runtimes without root sandbox bu
   }
   volume.writeFileSync("/repo/packages/office-package/dist/index.js", "export const codec = 1;\n");
   for (const name of ["op", "pandoc"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${name}/index.js`,
-    `export * from "${name === "op" ? "safe-bash-command-op" : "@poe-code/pandoc"}";`);
+    `export * from "${name === "op" ? "safe-bash-command-op" : "safe-bash-command-pandoc"}";`);
   volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", 'export { codec } from "@poe-code/office-package";');
   const bundle = vi.fn(async (settings: { outfile?: string; outdir?: string; entryPoints: Record<string, string> | string[] }) => {
     const targets = settings.outfile ? [settings.outfile] : Object.keys(settings.entryPoints).map(name => `${settings.outdir}/${name}.js`);

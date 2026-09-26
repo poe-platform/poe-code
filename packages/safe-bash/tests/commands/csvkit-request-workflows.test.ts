@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createSqliteDatabaseProvider, createMemorySqliteFileSystem, utf8Codec } from '@poe-code/csvkit';
+import { createSqliteDatabaseProvider, createMemorySqliteFileSystem, utf8Codec } from 'safe-bash-command-csvkit';
 import { readFile } from 'node:fs/promises';
 import initSqlite from '@sqlite.org/sqlite-wasm';
 import { Volume } from 'memfs';

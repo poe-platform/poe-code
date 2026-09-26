@@ -311,7 +311,7 @@ export function bindPeerArtifact({ root, artifact, declarations, checkout = fals
     assert.equal(digest(capture(path)), expected, `Peer declaration differs from binding: ${path}`);
     declarationPaths.add(path);
   }
-  if (manifest.devDependencies?.["@poe-code/pandoc"] !== undefined) {
+  if (manifest.devDependencies?.["safe-bash-command-pandoc"] !== undefined) {
     const visit = directory => {
       const filename = join(tooling, directory);
       const stat = io.lstatSync(filename);

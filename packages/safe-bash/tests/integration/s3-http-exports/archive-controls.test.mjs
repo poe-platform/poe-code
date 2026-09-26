@@ -31,7 +31,7 @@ test("committed workspace build metadata is authenticated with the source archiv
     }
     throw error;
   }
-  const names = new Set(["@poe-code/pandoc", "@poe-code/pdf", ...Object.keys(candidate.manifest.poeCode.integration.privateWorkspaces)]);
+  const names = new Set(["safe-bash-command-pandoc", "@poe-code/pdf", ...Object.keys(candidate.manifest.poeCode.integration.privateWorkspaces)]);
   for (const name of names) {
     const path = `${candidate.lock.packages[`node_modules/${name}`].resolved}/package.json`;
     assert.ok(candidate.blobReads.includes(path), `missing committed build metadata: ${path}`);
@@ -1586,9 +1586,9 @@ async function withRepository(change, run, { localTypes = false } = {}) {
     delete manifest.devDependencies["@poe-code/media-cli"];
     delete manifest.devDependencies["@poe-code/remote-execution"];
     // This synthetic S3 fixture has no Pandoc sources or declaration dependency.
-    delete manifest.devDependencies["@poe-code/pandoc"];
+    delete manifest.devDependencies["safe-bash-command-pandoc"];
     // This synthetic S3 fixture has no CSV sources or public peer entry.
-    delete manifest.devDependencies["@poe-code/csvkit"];
+    delete manifest.devDependencies["safe-bash-command-csvkit"];
     // This synthetic S3 fixture has no spreadsheet sources or public peer entry.
     delete manifest.devDependencies["@poe-code/ssconvert"];
     // Its synthetic S3 sources do not import private command contracts or implementations.

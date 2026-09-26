@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CsvkitBlocked, createMemorySqliteFileSystem, createSqliteDatabaseProvider, utf8Codec } from "@poe-code/csvkit";
+import { CsvkitBlocked, createMemorySqliteFileSystem, createSqliteDatabaseProvider, utf8Codec } from "safe-bash-command-csvkit";
 import { readFile } from "node:fs/promises";
 import { Volume } from "memfs";
 import sqlite3InitModule from "@sqlite.org/sqlite-wasm";

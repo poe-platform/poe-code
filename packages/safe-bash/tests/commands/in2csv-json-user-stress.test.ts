@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { pythonCodecs, utf8Codec } from '@poe-code/csvkit';
+import { pythonCodecs, utf8Codec } from 'safe-bash-command-csvkit';
 import reference from '../../../../docs/csvkit/in2csv-json-native-reference.json' with { type: 'json' };
 import edgeReference from '../../../../docs/csvkit/in2csv-json-user-edge-reference.json' with { type: 'json' };
 import codecReference from '../../../../docs/csvkit/in2csv-json-user-codec-reference.json' with { type: 'json' };

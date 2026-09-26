@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { utf8Codec, pythonCodecs, createGzipCompressionProvider } from "@poe-code/csvkit";
+import { utf8Codec, pythonCodecs, createGzipCompressionProvider } from "safe-bash-command-csvkit";
 import { createCompressionCodec } from "@poe-code/office-package/compression";
 import reference from "../../../../docs/csvkit/in2csv-fixed-reference.json" with { type: "json" };
 import { Shell } from "../../src/shell/index.js";

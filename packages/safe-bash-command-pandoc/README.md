@@ -1,12 +1,12 @@
-# @poe-code/pandoc
+# safe-bash-command-pandoc
 
 Private document-conversion workspace. Within this repository, import
-`@poe-code/pandoc`; explicit shell registration is exposed by
+`safe-bash-command-pandoc`; explicit shell registration is exposed by
 `@poe-platform/safe-bash/commands/pandoc`. These entries are not included in the
 published `poe-code` package.
 
 ```ts
-import { convert } from "@poe-code/pandoc";
+import { convert } from "safe-bash-command-pandoc";
 
 const result = await convert(
   [{ bytes: new TextEncoder().encode("# Hello\n") }],
@@ -123,7 +123,7 @@ image targets are rejected because their source-directory information cannot sur
 arbitrary JSON filtering. Absolute and URL image targets retain their existing writer
 and resource policies. Lua uses the explicit capability below. For genuine CSL
 citations and bibliography, import `createCiteprocFilterCapability` from
-`@poe-code/pandoc/citeproc-filters` and supply `{style, locale, references}`. Here
+`safe-bash-command-pandoc/citeproc-filters` and supply `{style, locale, references}`. Here
 `style` and `locale` are CSL XML strings and `references` is an array of CSL JSON
 items with unique string IDs. Pass the result as `filters`; `--citeproc` and `-C`
 then process citation-bearing Pandoc JSON, including author suppression, textual
@@ -136,7 +136,7 @@ The Safe Bash plugin accepts the same capability as `pandocCommands({filters})`.
 For example, with your already configured `jsonRuntime`:
 
 ```ts
-import {createJsonFilterCapability} from "@poe-code/pandoc";
+import {createJsonFilterCapability} from "safe-bash-command-pandoc";
 import {pandocCommands} from "@poe-platform/safe-bash/commands/pandoc";
 
 const filters = createJsonFilterCapability(jsonRuntime);
@@ -151,7 +151,7 @@ Local Lua `Str` filters can run in the supplied JavaScript Lua VM. Configure a
 reader for trusted scripts, then pass the capability to the SDK or shell plugin:
 
 ```ts
-import {createLuaFilterCapability} from "@poe-code/pandoc/lua-filters";
+import {createLuaFilterCapability} from "safe-bash-command-pandoc/lua-filters";
 const filters = createLuaFilterCapability({readFile: async (path, signal) => {
   return configuredFileSystem.readFile(path, signal);
 }});
@@ -217,6 +217,6 @@ runner accepts `PANDOC_DOCUTILS_PYTHON` to select its Python executable (default
 
 ## Development
 
-Run `npm run build --workspace=@poe-code/pandoc`,
-`npm run typecheck --workspace=@poe-code/pandoc`, or
-`npm run test:unit --workspace=@poe-code/pandoc` from the repository root.
+Run `npm run build --workspace=safe-bash-command-pandoc`,
+`npm run typecheck --workspace=safe-bash-command-pandoc`, or
+`npm run test:unit --workspace=safe-bash-command-pandoc` from the repository root.

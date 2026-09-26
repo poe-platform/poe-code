@@ -6,7 +6,7 @@ import { csvkitCommands, createCsvkitCommands, type CsvkitCommandsOptions } from
 import { createCommandArguments } from "../../src/contracts/command.js";
 import { FsError } from "../../src/contracts/index.js";
 import { shellValueFromBytes } from "../../src/contracts/value.js";
-import { utf8Codec } from "@poe-code/csvkit";
+import { utf8Codec } from "safe-bash-command-csvkit";
 import statGuards from "../../../../docs/csvkit/stat-guard-operation-reference.json" with { type: "json" };
 import parserContract from "../../../../docs/csvkit/parser-contract-audit-20260917.json" with { type: "json" };
 import expectationReference from "../../../../docs/csvkit/integration-expectation-reference.json" with { type: "json" };

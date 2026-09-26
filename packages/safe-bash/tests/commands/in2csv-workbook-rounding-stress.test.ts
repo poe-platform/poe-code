@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { utf8Codec } from '@poe-code/csvkit';
+import { utf8Codec } from 'safe-bash-command-csvkit';
 import reference from '../../../../docs/csvkit/in2csv-workbook-rounding-reference.json' with { type: 'json' };
 import styleReference from '../../../../docs/csvkit/in2csv-workbook-style-reference.json' with { type: 'json' };
 import sectionReference from '../../../../docs/csvkit/in2csv-workbook-section-reference.json' with { type: 'json' };

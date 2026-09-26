@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { csvkitCommands } from "../../src/commands/csvkit/index.js";
-import { utf8Codec } from "@poe-code/csvkit";
+import { utf8Codec } from "safe-bash-command-csvkit";
 
 // Independently observed with the frozen CPython 3.14.2 / csvkit 2.2.0 /
 // Agate 1.14.2 reference, locale C and timezone UTC. No native oracle runs here.

@@ -112,25 +112,25 @@ for (const defect of ["none", "public", "closure", "source", "link", "mixed-nati
 
 for (const defect of ["none", "pin", "name", "version", "export", "lua-export", "lua-dependency", "pdf-export", "closure", "missing-docx", "missing-ssconvert", "fengari-version", "link", "source-import", "runtime-import", "unapproved-import", "fengari-import"]) test(`build explicit Pandoc SDK declaration admission: ${defect}`, async () => {
   const exports = {".": {types: "./dist/index.d.ts", import: "./dist/index.js"}};
-  const pandoc = {name: "@poe-code/pandoc", version: "0.0.1", private: true, type: "module", exports: { ...exports, "./lua-filters": { types: "./dist/lua-filters.d.ts", import: "./dist/lua-filters.js" }, "./citeproc-filters": { types: "./dist/citeproc-filters.d.ts", import: "./dist/citeproc-filters.js" } }, dependencies: {"@poe-code/office-package": "*", citeproc: "2.4.63", entities: "^6.0.1", fengari: "^0.1.5", "jpeg-js": "^0.4.4", "jsonc-parser": "^3.3.1", parse5: "7.3.0", saxes: "6.0.0", yaml: "2.9.0", "@poe-code/pdf": "0.0.1", "@poe-code/pdf-ast": "*", pptx: "*", docx: "*", "safe-bash-command-ssconvert": "*"}};
+  const pandoc = {name: "safe-bash-command-pandoc", version: "0.0.1", private: true, type: "module", exports: { ...exports, "./lua-filters": { types: "./dist/lua-filters.d.ts", import: "./dist/lua-filters.js" }, "./citeproc-filters": { types: "./dist/citeproc-filters.d.ts", import: "./dist/citeproc-filters.js" } }, dependencies: {"@poe-code/office-package": "*", citeproc: "2.4.63", entities: "^6.0.1", fengari: "^0.1.5", "jpeg-js": "^0.4.4", "jsonc-parser": "^3.3.1", parse5: "7.3.0", saxes: "6.0.0", yaml: "2.9.0", "@poe-code/pdf": "0.0.1", "@poe-code/pdf-ast": "*", pptx: "*", docx: "*", "safe-bash-command-ssconvert": "*"}};
   const pdf = {name: "@poe-code/pdf", version: "0.0.1", private: true, type: "module", exports, dependencies: {"pdf-lib": "1.17.1", "@pdf-lib/fontkit": "1.1.1", pako: "3.0.1"}};
   const owned = fixture({
-    "package.json": JSON.stringify({name: "virtual-bash", private: true, type: "module", devDependencies: {"@poe-code/pandoc": defect === "pin" ? "unapproved" : "*"}}),
-    "src/index.ts": 'import type { Page } from "@poe-code/pandoc"; export const page: Page = { width: 12 };',
-    "../pandoc/package.json": JSON.stringify(pandoc),
-    "../pandoc/dist/lua-filters.d.ts": "export declare function filter(): void;",
-    "../pandoc/dist/citeproc-filters.d.ts": "export declare function citeprocFilter(): void;",
-    "../pandoc/dist/index.d.ts": 'export type { Page } from "@poe-code/pdf"; export type { PdfNode } from "@poe-code/pdf-ast";',
+    "package.json": JSON.stringify({name: "virtual-bash", private: true, type: "module", devDependencies: {"safe-bash-command-pandoc": defect === "pin" ? "unapproved" : "*"}}),
+    "src/index.ts": 'import type { Page } from "safe-bash-command-pandoc"; export const page: Page = { width: 12 };',
+    "../safe-bash-command-pandoc/package.json": JSON.stringify(pandoc),
+    "../safe-bash-command-pandoc/dist/lua-filters.d.ts": "export declare function filter(): void;",
+    "../safe-bash-command-pandoc/dist/citeproc-filters.d.ts": "export declare function citeprocFilter(): void;",
+    "../safe-bash-command-pandoc/dist/index.d.ts": 'export type { Page } from "@poe-code/pdf"; export type { PdfNode } from "@poe-code/pdf-ast";',
     "../pdf-ast/package.json": JSON.stringify({name: "@poe-code/pdf-ast", version: "0.0.1", private: true, type: "module", exports, dependencies: {pako: "3.0.1"}}),
     "../pdf-ast/dist/index.d.ts": 'export interface PdfNode { text: string; }',
     "../pdf/package.json": JSON.stringify(pdf),
     "../pdf/dist/index.d.ts": 'export type { Page } from "./model.js";',
     "../pdf/dist/model.d.ts": 'export interface Page { width: number; }',
-    "../pandoc/src/private.d.ts": 'export declare const hidden: number;',
-    "../pandoc/dist/runtime.js": 'export const hidden = 12;',
+    "../safe-bash-command-pandoc/src/private.d.ts": 'export declare const hidden: number;',
+    "../safe-bash-command-pandoc/dist/runtime.js": 'export const hidden = 12;',
     "node_modules/unapproved/index.d.ts": 'export declare const hidden: number;',
-    "../pandoc/node_modules/fengari/package.json": JSON.stringify({name: "fengari", version: "0.1.5", types: "./index.d.ts"}),
-    "../pandoc/node_modules/fengari/index.d.ts": 'export declare const hidden: number;',
+    "../safe-bash-command-pandoc/node_modules/fengari/package.json": JSON.stringify({name: "fengari", version: "0.1.5", types: "./index.d.ts"}),
+    "../safe-bash-command-pandoc/node_modules/fengari/index.d.ts": 'export declare const hidden: number;',
   });
   if (defect === "name") pandoc.name = "other";
   if (defect === "version") pdf.version = "0.0.2";
@@ -143,16 +143,16 @@ for (const defect of ["none", "pin", "name", "version", "export", "lua-export", 
   if (defect === "missing-ssconvert") delete pandoc.dependencies["safe-bash-command-ssconvert"];
   if (defect === "fengari-version") pandoc.dependencies.fengari = "^0.2.0";
   if (["name", "version", "export", "lua-export", "lua-dependency", "pdf-export", "closure", "missing-docx", "missing-ssconvert", "fengari-version"].includes(defect)) {
-    owned.memory.writeFileSync(root + "/../pandoc/package.json", JSON.stringify(pandoc));
+    owned.memory.writeFileSync(root + "/../safe-bash-command-pandoc/package.json", JSON.stringify(pandoc));
     owned.memory.writeFileSync(root + "/../pdf/package.json", JSON.stringify(pdf));
   }
   if (defect === "link") {
     owned.memory.unlinkSync(root + "/../pdf/dist/model.d.ts");
-    owned.memory.symlinkSync(root + "/../pandoc/src/private.d.ts", root + "/../pdf/dist/model.d.ts");
+    owned.memory.symlinkSync(root + "/../safe-bash-command-pandoc/src/private.d.ts", root + "/../pdf/dist/model.d.ts");
   }
   if (["source-import", "runtime-import", "unapproved-import", "fengari-import"].includes(defect)) {
     const target = defect === "source-import" ? "../src/private.js" : defect === "runtime-import" ? "./runtime.js" : defect === "fengari-import" ? "fengari" : "unapproved";
-    owned.memory.writeFileSync(root + "/../pandoc/dist/index.d.ts", `export { hidden } from "${target}";`);
+    owned.memory.writeFileSync(root + "/../safe-bash-command-pandoc/dist/index.d.ts", `export { hidden } from "${target}";`);
     assert.notEqual((await owned.run()).status, 0);
     assert.equal(owned.reads.some(path => path.endsWith("/src/private.d.ts") || path.endsWith("/dist/runtime.js") || path.includes("/unapproved/") || path.includes("/fengari/")), false);
   } else if (defect === "none") {

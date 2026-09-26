@@ -4,7 +4,7 @@ import {Shell} from "../../src/shell/index.js";
 import {FsError, type FileSystem} from "../../src/contracts/index.js";
 import {pandocCommands} from "../../src/commands/pandoc/index.js";
 import {fixture} from "./pandoc-fixture.js";
-import {convert} from "@poe-code/pandoc";
+import {convert} from "safe-bash-command-pandoc";
 
 function override(fs: FileSystem, changes: Partial<FileSystem>): FileSystem {
   return new Proxy(fs, {get(target, key) {

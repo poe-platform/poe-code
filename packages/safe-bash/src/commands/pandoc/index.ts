@@ -1,4 +1,4 @@
-import {convert, createCiteprocFilterCapability, createJsonFilterCapability, createLuaFilterCapability, resolveConversionArgs, inspectCommand, PandocError, defaultLimits, type CiteprocFilterOptions, type ConversionContext, type FilterCapability} from "@poe-code/pandoc";
+import {convert, createCiteprocFilterCapability, createJsonFilterCapability, createLuaFilterCapability, resolveConversionArgs, inspectCommand, PandocError, defaultLimits, type CiteprocFilterOptions, type ConversionContext, type FilterCapability} from "safe-bash-command-pandoc";
 import {createOutputOperation, getCommandArguments, readBytes, dirname, FsError, type CommandDefinition, type CommandContext, type OutputOperation, type FileStat, type VirtualShellPlugin} from "../../contracts/index.js";
 import {writeFileOutput} from "../../contracts/filesystem-output.js";
 import {compareObservedEntries, compareCopyIdentity} from "../copy-identity.js";

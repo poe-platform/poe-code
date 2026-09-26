@@ -31,12 +31,12 @@ on:
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/release-toolcraft.yml"
-      - packages/csvkit/**
+      - packages/safe-bash-command-csvkit/**
       - packages/media-cli/**
       - packages/office-package/**
       - packages/op/**
       - packages/package-lint/**
-      - packages/pandoc/**
+      - packages/safe-bash-command-pandoc/**
       - packages/pdf/**
       - packages/pptx/**
       - packages/remote-execution/**
@@ -118,12 +118,12 @@ jobs:
             scripts/verify-toolcraft-cli-bundle.mjs
             scripts/verify-toolcraft-standalone.mjs
             scripts/verify-toolcraft-published-sdk-types.mjs
-            packages/csvkit
+            packages/safe-bash-command-csvkit
             packages/media-cli
             packages/office-package
             packages/op
             packages/package-lint
-            packages/pandoc
+            packages/safe-bash-command-pandoc
             packages/pdf
             packages/pptx
             packages/remote-execution

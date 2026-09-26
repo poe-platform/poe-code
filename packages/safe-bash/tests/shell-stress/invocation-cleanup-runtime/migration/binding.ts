@@ -71,7 +71,7 @@ export async function captureRequiredPeer(snapshot: string, emittedHashes: Hashe
   }
   const entries: Record<string, string> = {};
   const checkoutEntries: Record<string, string> = {
-    "poe-code/csvkit": "./packages/csvkit/dist/index.js",
+    "poe-code/csvkit": "./packages/safe-bash-command-csvkit/dist/index.js",
     "poe-code/safe-fs": "./packages/safe-js/dist/safe-fs.js",
     "poe-code/safe-fs/core": "./packages/safe-js/dist/safe-fs-core.js",
     "poe-code/safe-playwright": "./packages/safe-playwright/dist/index.js",
@@ -299,8 +299,8 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
     const peerBinding = bindPeerArtifact({ root: repository, declarations: { peer: createPeerBinding(repository, manifest, sourceInputs) }, checkout: profile.profile === "checkout-root", ...(profile.profile === "checkout-root" ? {} : { artifact: process.env.SAFE_BASH_PEER_ARTIFACT }) });
     const rootInputs = new Map<string, Buffer>();
     const integrationRoot = resolve(repository, "../..");
-    const pandocMetadata = manifest.devDependencies?.["@poe-code/pandoc"] !== undefined
-      ? ["packages/pandoc/package.json", "packages/pdf/package.json"] : [];
+    const pandocMetadata = manifest.devDependencies?.["safe-bash-command-pandoc"] !== undefined
+      ? ["packages/safe-bash-command-pandoc/package.json", "packages/pdf/package.json"] : [];
     for (const path of ["package.json", "package-lock.json", "scripts/guard-package-dist.mjs", ...pandocMetadata]) {
       const filename = join(integrationRoot, path), stat = await lstat(filename);
       assert.ok(stat.isFile() && !stat.isSymbolicLink() && stat.nlink === 1 && stat.size <= 1024 * 1024);

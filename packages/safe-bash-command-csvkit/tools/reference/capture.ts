@@ -88,7 +88,7 @@ const probe = await launch(interpreter.path, [probePath], new Uint8Array(), 60_0
 if (probe.status !== 0 || probe.timedOut || probe.outputLimitExceeded) throw new Error(`reference inspection blocked: status ${probe.status}`);
 const inventory = JSON.parse(Buffer.from(probe.stdoutBase64, 'base64').toString('utf8'));
 const qualification = qualifyProfile({ ...frozen, locale: requalified.locale, stdio: requalified.stdio, executable: { name: request.command, sha256: frozenScript.sha256 } }, { ...inventory, executable: { name: request.command, sha256: executable.sha256 } });
-const toolingSources = await Promise.all(['capture.ts', 'model.ts', 'process.ts', 'snapshot.ts', 'probe.py'].map(async name => ({ path: `packages/csvkit/tools/reference/${name}`, sha256: sha(await fs.readFile(new URL(name, import.meta.url))) })));
+const toolingSources = await Promise.all(['capture.ts', 'model.ts', 'process.ts', 'snapshot.ts', 'probe.py'].map(async name => ({ path: `packages/safe-bash-command-csvkit/tools/reference/${name}`, sha256: sha(await fs.readFile(new URL(name, import.meta.url))) })));
 const sourceManifest = await readJson(path.join(repository, 'docs/csvkit/source-manifest.json'));
 const before = await snapshot(workDirectory, fs, 64_000_000);
 const started = performance.now();

@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
-import { createFormatRegistry } from "@poe-code/pandoc";
-import type { FormatDescriptor } from "@poe-code/pandoc";
+import { createFormatRegistry } from "safe-bash-command-pandoc";
+import type { FormatDescriptor } from "safe-bash-command-pandoc";
 
 it("owns and freezes aliases in public format capability descriptors", () => {
   const aliases = { write: ["original"] };

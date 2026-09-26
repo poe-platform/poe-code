@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type {FilterRequest} from "@poe-code/pandoc";
+import type {FilterRequest} from "safe-bash-command-pandoc";
 import {Shell} from "../../src/shell/index.js";
 import {MemoryFileSystem} from "../../src/fs/memory/index.js";
 import {FsError, readBytes} from "../../src/contracts/index.js";

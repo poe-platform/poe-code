@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { utf8Codec } from "@poe-code/csvkit";
+import { utf8Codec } from "safe-bash-command-csvkit";
 import original from "../../../../docs/csvkit/csvstat-user-reference.json" with { type: "json" };
 import reference from "../../../../docs/csvkit/csvstat-reference.json" with { type: "json" };
 import review from "../../../../docs/csvkit/csvstat-metrics-review-reference.json" with { type: "json" };

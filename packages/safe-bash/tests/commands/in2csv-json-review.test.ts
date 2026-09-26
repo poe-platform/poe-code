@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { utf8Codec, pythonCodecs } from '@poe-code/csvkit';
+import { utf8Codec, pythonCodecs } from 'safe-bash-command-csvkit';
 import reference from '../../../../docs/csvkit/json-input-operation-reference.json' with { type: 'json' };
 import nativeReference from '../../../../docs/csvkit/in2csv-json-native-reference.json' with { type: 'json' };
 import { Shell } from '../../src/shell/index.js';

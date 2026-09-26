@@ -379,14 +379,14 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           peerPaths["safe-bash-command-ssconvert"] = [resolve(peerRoot, exported.types)];
           toolRoots.push(join(peerRoot, "packages/safe-bash-command-ssconvert/dist"));
         }
-        if (manifest.devDependencies?.["@poe-code/csvkit"] !== undefined) {
-          assert.equal(manifest.devDependencies["@poe-code/csvkit"], "*", "CSV SDK build dependency must be the local workspace");
+        if (manifest.devDependencies?.["safe-bash-command-csvkit"] !== undefined) {
+          assert.equal(manifest.devDependencies["safe-bash-command-csvkit"], "*", "CSV SDK build dependency must be the local workspace");
           const exported = peer.exports?.["./csvkit"];
-          assert.equal(exported?.types, "./packages/csvkit/dist/index.d.ts", "canonical public CSV declaration entry");
-          assert.equal(exported?.import, "./packages/csvkit/dist/index.js", "canonical public CSV runtime entry");
+          assert.equal(exported?.types, "./packages/safe-bash-command-csvkit/dist/index.d.ts", "canonical public CSV declaration entry");
+          assert.equal(exported?.import, "./packages/safe-bash-command-csvkit/dist/index.js", "canonical public CSV runtime entry");
           peerPaths["poe-code/csvkit"] = [resolve(peerRoot, exported.types)];
-          peerPaths["@poe-code/csvkit"] = [resolve(peerRoot, exported.types)];
-          toolRoots.push(join(peerRoot, "packages/csvkit/dist"));
+          peerPaths["safe-bash-command-csvkit"] = [resolve(peerRoot, exported.types)];
+          toolRoots.push(join(peerRoot, "packages/safe-bash-command-csvkit/dist"));
         }
       }
       const portableDependencies = Object.keys(manifest.dependencies ?? {}).length
@@ -431,17 +431,17 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           }
         }
       }
-      if (manifest.devDependencies?.["@poe-code/pandoc"] !== undefined) {
+      if (manifest.devDependencies?.["safe-bash-command-pandoc"] !== undefined) {
         assert.equal(manifest.private, true, "Pandoc SDK build dependency is internal only");
-        assert.equal(manifest.devDependencies["@poe-code/pandoc"], "*", "Pandoc SDK build dependency must be the local workspace");
+        assert.equal(manifest.devDependencies["safe-bash-command-pandoc"], "*", "Pandoc SDK build dependency must be the local workspace");
         const exports = { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } };
         const packageExports = {
-          pandoc: { ...exports, "./lua-filters": { types: "./dist/lua-filters.d.ts", import: "./dist/lua-filters.js" }, "./citeproc-filters": { types: "./dist/citeproc-filters.d.ts", import: "./dist/citeproc-filters.js" } },
+          "safe-bash-command-pandoc": { ...exports, "./lua-filters": { types: "./dist/lua-filters.d.ts", import: "./dist/lua-filters.js" }, "./citeproc-filters": { types: "./dist/citeproc-filters.d.ts", import: "./dist/citeproc-filters.js" } },
           pdf: exports,
           "pdf-ast": exports,
         };
         const packages = {
-          pandoc: { "@poe-code/office-package": "*", citeproc: "2.4.63", entities: "^6.0.1", fengari: "^0.1.5", "jpeg-js": "^0.4.4", "jsonc-parser": "^3.3.1", parse5: "7.3.0", saxes: "6.0.0", yaml: "2.9.0", "@poe-code/pdf": "0.0.1", "@poe-code/pdf-ast": "*", pptx: "*", docx: "*", "safe-bash-command-ssconvert": "*" },
+          "safe-bash-command-pandoc": { "@poe-code/office-package": "*", citeproc: "2.4.63", entities: "^6.0.1", fengari: "^0.1.5", "jpeg-js": "^0.4.4", "jsonc-parser": "^3.3.1", parse5: "7.3.0", saxes: "6.0.0", yaml: "2.9.0", "@poe-code/pdf": "0.0.1", "@poe-code/pdf-ast": "*", pptx: "*", docx: "*", "safe-bash-command-ssconvert": "*" },
           pdf: { "pdf-lib": "1.17.1", "@pdf-lib/fontkit": "1.1.1", pako: "3.0.1" },
           "pdf-ast": { pako: "3.0.1" },
         };
@@ -451,14 +451,15 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           const metadataPath = join(dependencyRoot, "package.json");
           peerMetadata.add(metadataPath);
           const dependency = JSON.parse(read(metadataPath, 64 * 1024));
-          assert.equal(dependency.name, "@poe-code/" + name, "Pandoc SDK dependency identity");
+          const packageName = name.startsWith("safe-bash-command-") ? name : "@poe-code/" + name;
+          assert.equal(dependency.name, packageName, "Pandoc SDK dependency identity");
           assert.equal(dependency.version, "0.0.1", "Pandoc SDK dependency version");
           assert.equal(dependency.private, true, "Pandoc SDK implementation must remain private");
           assert.deepEqual(dependency.dependencies, dependencies, "Pandoc SDK dependency closure");
           assert.deepEqual(dependency.exports, packageExports[name], "Pandoc SDK declaration exports");
           toolRoots.push(join(dependencyRoot, "dist"));
           for (const [subpath, entry] of Object.entries(packageExports[name])) {
-            peerPaths["@poe-code/" + name + (subpath === "." ? "" : subpath.slice(1))] = [resolve(dependencyRoot, entry.types)];
+            peerPaths[packageName + (subpath === "." ? "" : subpath.slice(1))] = [resolve(dependencyRoot, entry.types)];
           }
         }
       }

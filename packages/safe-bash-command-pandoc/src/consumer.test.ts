@@ -5,8 +5,8 @@ import {
   writeDocument,
   PandocError,
   formatCapabilities
-} from "@poe-code/pandoc";
-import type { ConversionContext, Document, ConversionOptions, InputSource } from "@poe-code/pandoc";
+} from "safe-bash-command-pandoc";
+import type { ConversionContext, Document, ConversionOptions, InputSource } from "safe-bash-command-pandoc";
 
 const encode = (value: string) => new TextEncoder().encode(value);
 const document: Document = {

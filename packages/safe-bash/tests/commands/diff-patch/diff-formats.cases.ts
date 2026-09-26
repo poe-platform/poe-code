@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { registerYieldCheckpoint } from "../../../src/contracts/yield.js";
 import { run } from "./helpers.js";
 
 const marker = "\n\\ No newline at end of file\n";
@@ -170,17 +171,18 @@ for (const options of [{ maxInputBytes: 1 }, { maxOutputBytes: 30 }, { maxLines:
   });
 }
 
-test("context cancellation interrupts comparison without output", async () => {
+test("context cancellation interrupts comparison without output", async context => {
   const controller = new AbortController();
   const reason = new Error("cancel context comparison");
+  let time = 0;
+  context.mock.method(performance, "now", () => time += 8);
+  registerYieldCheckpoint(controller.signal, () => controller.abort(reason));
   let writes = 0;
   const pending = run("diff", ["-c", "old", "new"], {
     files: { old: "old\n".repeat(800), new: "new\n".repeat(800) }, signal: controller.signal,
     stdout: { async write() { writes++; } },
   });
-  const timer = setTimeout(() => controller.abort(reason), 0);
-  try { await assert.rejects(pending, error => error === reason); }
-  finally { clearTimeout(timer); }
+  await assert.rejects(pending, error => error === reason);
   assert.equal(writes, 0);
 });
 

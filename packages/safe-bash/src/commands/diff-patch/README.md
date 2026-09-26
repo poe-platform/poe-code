@@ -79,7 +79,7 @@ and the source entry point was exercised directly through `Shell.use`.
   line prefixes.
 - `-e` / `--ed`, `-n` / `--rcs`, and `-D NAME` / `--ifdef=NAME` emit edit
   scripts or conditional text. `-d` / `--minimal` uses the bounded LCS algorithm.
-  Ed scripts treat incomplete final lines as newline-terminated, report each
+  For text inputs, ed scripts treat incomplete final lines as newline-terminated, report each
   affected input on stderr, and return status 2 while preserving the script.
   `-D` rejects directory operands, as GNU diff does.
   `-p` and `-F PATTERN` annotate context headers with preceding function lines.

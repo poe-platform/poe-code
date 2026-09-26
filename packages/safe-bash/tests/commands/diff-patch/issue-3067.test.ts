@@ -54,3 +54,16 @@ test("ed preserves scripts and diagnoses each incomplete input, including unchan
       !right!.endsWith("\n") ? "diff: right: No newline at end of file\n\n" : ""].join(""));
   }
 });
+
+test("ed newline diagnostics preserve binary comparisons unless text mode is requested", async () => {
+  for (const right of ["a\0", "b\0"]) {
+    const result = await run("diff", ["-e", "left", "right"], { files: { left: "a\0", right } });
+    assert.equal(result.exitCode, right === "a\0" ? 0 : 1);
+    assert.equal(result.stdout, right === "a\0" ? "" : "Binary files left and right differ\n");
+    assert.equal(result.stderr, "");
+  }
+  const text = await run("diff", ["-ae", "left", "right"], { files: { left: "a\0", right: "b\0" } });
+  assert.equal(text.exitCode, 2);
+  assert.equal(text.stdout, "1c\nb\0\n.\n");
+  assert.equal(text.stderr, "diff: left: No newline at end of file\n\ndiff: right: No newline at end of file\n\n");
+});

@@ -308,7 +308,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const newBytes = await read(right, rightStat);
     const label = (name: string) => encoding === "latin1" ? Buffer.from(name).toString("latin1") : name;
     const reportSame = () => { if (options.reportSame) append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} are identical\n`); };
-    if (options.format === "ed") {
+    if (options.format === "ed" && (options.text || !oldBytes.includes("\0") && !newBytes.includes("\0"))) {
       for (const [path, text] of [[left, oldBytes], [right, newBytes]] as const) {
         if (text && !text.endsWith("\n")) {
           await writeDiagnostic(context.stderr, `diff: ${path}: No newline at end of file\n\n`, context.signal);

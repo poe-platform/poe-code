@@ -11,7 +11,7 @@ function deferred<T>() {
   const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no; });
   return { promise, resolve, reject };
 }
-function fixture(maxSessions = 2) {
+function fixture(maxSessions = 2, maxArtifactBytes?: number) {
   const events: string[] = [];
   const leases: { lease: PlaywrightLease; lost(): void; releases: number; callbacks: (() => void)[] }[] = [];
   const adapter: PlaywrightAdapter = {
@@ -34,7 +34,7 @@ function fixture(maxSessions = 2) {
       return item.lease;
     },
   };
-  const controller = createPlaywrightController({ adapter, limits: { maxSessions } });
+  const controller = createPlaywrightController({ adapter, limits: { maxSessions, ...(maxArtifactBytes === undefined ? {} : { maxArtifactBytes }) } });
   const run = (args: string[], overrides = {}) => controller.run({ args, env: {}, signal: new AbortController().signal, write: async (text: string) => { events.push(`out:${text}`); }, ...overrides });
   return { controller, adapter, events, leases, run };
 }
@@ -877,7 +877,7 @@ test('invocation cleanup prevents queued close-all effects and drains its work',
 });
 
 test('screenshots reject oversized producer geometry before capture or artifact writes', async () => {
-  const current = fixture();
+  const current = fixture(2, 16 * 1024 * 1024);
   await current.run(['open']);
   const page = await current.leases[0]!.lease.context.newPage();
   let captures = 0;
@@ -890,6 +890,23 @@ test('screenshots reject oversized producer geometry before capture or artifact 
   assert.equal(current.leases[0]!.releases, 0);
   await current.run(['goto', 'https://example.test/recovery']);
   await current.controller.dispose();
+});
+
+test('screenshots without an artifact budget admit large geometry and small producer output', async () => {
+  const current = fixture();
+  try {
+    await current.run(['open']);
+    const page = await current.leases[0]!.lease.context.newPage();
+    const bytes = new Uint8Array([1]);
+    let captures = 0;
+    const writes: Uint8Array[] = [];
+    Object.assign(page, { evaluate: async () => ({ width: 4096, height: 4096 }) });
+    page.screenshot = async () => { captures++; return bytes; };
+    await current.run(['screenshot', '--full-page'], { writeArtifact: async (output: Uint8Array) => { writes.push(output); } });
+    assert.equal(captures, 1);
+    assert.deepEqual(writes, [bytes]);
+    assert.equal(current.leases[0]!.releases, 0);
+  } finally { await current.controller.dispose(); }
 });
 
 test('screenshots fix CSS geometry before calling the native producer', async () => {

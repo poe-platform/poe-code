@@ -1,5 +1,5 @@
 import { PublicDiagnostic } from "safe-bash-contracts/public-diagnostic";
-import { hasYieldCheckpoint, monotonicNow, yieldTurn } from "safe-bash-contracts/yield";
+import { monotonicNow, yieldTurn } from "safe-bash-contracts/yield";
 import type { CommandContext } from "safe-bash-contracts";
 
 const validatedTextProgramOptions = new WeakSet<TextProgramOptions>();
@@ -32,9 +32,8 @@ export class Budget {
   private remainingNum: number;
   private unlimited: boolean;
   private signal: AbortSignal;
-  private hasExtYield: boolean;
   private checkpoints = 0;
-  private lastYield = 0;
+  private lastYield = monotonicNow();
   static acquire(context: CommandContext, options: TextProgramOptions): Budget {
     if (!pooledBudgetA) {
       pooledBudgetA = new Budget(DUMMY_COMMAND_CONTEXT, options);
@@ -69,7 +68,6 @@ export class Budget {
     this.remainingNum = this.unlimited ? 0 : rem;
     this.remainingSmi = !this.unlimited && rem <= 0x3fffffff ? (rem | 0) : 0x3fffffff;
     this.signal = context.signal;
-    this.hasExtYield = hasYieldCheckpoint(context.signal);
     this.maxBufferBytes = options.maxBufferBytes ?? Infinity;
     if (context.signal.aborted) context.signal.throwIfAborted();
     if (!validatedTextProgramOptions.has(options)) {
@@ -90,9 +88,8 @@ export class Budget {
     this.remainingNum = this.unlimited ? 0 : rem;
     this.remainingSmi = !this.unlimited && rem <= 0x3fffffff ? (rem | 0) : 0x3fffffff;
     this.signal = context.signal;
-    this.hasExtYield = hasYieldCheckpoint(context.signal);
     this.checkpoints = 0;
-    this.lastYield = 0;
+    this.lastYield = monotonicNow();
     this.maxBufferBytes = options.maxBufferBytes ?? Infinity;
   }
   step(count = 1): void {
@@ -124,15 +121,8 @@ export class Budget {
     if ((count & 255) === 0) {
       return this.yieldCheckpointAsync();
     }
-    if (this.hasExtYield || (count & 63) === 0) {
-      const now = monotonicNow();
-      if (this.lastYield === 0) {
-        this.lastYield = now;
-        return undefined;
-      }
-      if (now - this.lastYield >= 25) {
-        return this.yieldCheckpointAsync();
-      }
+    if (monotonicNow() - this.lastYield >= 25) {
+      return this.yieldCheckpointAsync();
     }
     return undefined;
   }

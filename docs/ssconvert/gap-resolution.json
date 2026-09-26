@@ -791,6 +791,39 @@
           "scope": "One 128-bit CryptoAPI public-command export independently read by POI. This does not qualify GUI behavior, every key size or the full encrypted-format family."
         }
       }
+    },
+    "lotusReferenceFlags": {
+      "status": "implemented; application qualification and wider record semantics remain open",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/lotus/lotform.cxx",
+          "sha256": "1a6b859a76fe0ac7d7485b0b298996125a19ecfc4b170fcbeccd9ca0a00b2794",
+          "lines": "320-343,563-566"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/inc/lotform.hxx",
+          "sha256": "0dfbf5c6b2a6c75944f636db8c748868562ae3feace68b8a3eeaecfec057c5b8",
+          "lines": "100-106"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/lotus/filter.cxx",
+          "sha256": "a4e77dbdcc9e0463adc682e7952fe58b8a565ba2da6790e47488db7bae43ee3b",
+          "lines": "ScanVersion"
+        },
+        {
+          "url": "https://sources.debian.org/data/main/libw/libwps/0.4.14-2/src/lib/LotusSpreadsheet.cpp",
+          "sha256": "fcfe58ee8430ce43222e76c01aa4f436731722c5b171d801698a9a0a2496a6e5",
+          "lines": "2833-2854"
+        },
+        {
+          "url": "https://sources.debian.org/data/main/libw/libwps/0.4.14-2/src/lib/WKS4Spreadsheet.cpp",
+          "sha256": "67a28542ea3f829740e2f39db31d629e07991fd1c7b24eea43efdd0db854fdeb",
+          "lines": "1790-1826"
+        }
+      ],
+      "finding": "Modern direct references carry flags per token, with bit 0 for columns and bit 1 for rows. Corrected swapped axes and reuse of the first token flag byte. Five focused controls: three reproduced failures and two unchanged controls; all 151 tests in ten Lotus suites pass.",
+      "publicReadback": "Compiled SDK import and public command XLSX export/readback retain =($C$2+D3), with exit 0, empty stderr and 4056 output bytes. In-memory fixture; no generated binary retained.",
+      "remaining": "Legacy sign/width disagreement, three-bit versus four-bit second range endpoint flags, relative sheet identity and independent application qualification remain open."
     }
   },
   "cases": [
@@ -802,7 +835,7 @@
     {
       "id": "lotus-named-formula-references",
       "status": "open",
-      "currentFinding": "WK1/WK3 names, WK3 coordinates, function names and namespace lifecycle repairs are implemented. WK3 op7/op8 external-variable fallback now preserves cell/range identities and relative axes after defined-name lookup; malformed names retain diagnostics and recalculation requires the explicit external-reference host. Full package suite: 403 files / 23,430 tests; 24 compiled SDK/Shell XML/XLSX conversion/readback profiles passed. Native Gnumeric 1.12.61 accepts the constant control but misparses the named token, so native parity is not claimed. Independent application readback, dynamic/relative-sheet identity and wider profiles remain open."
+      "currentFinding": "WK1/WK3 names, WK3 coordinates, function names and namespace lifecycle repairs are implemented. WK3 op7/op8 external-variable fallback now preserves cell/range identities and relative axes after defined-name lookup; malformed names retain diagnostics and recalculation requires the explicit external-reference host. Full package suite: 403 files / 23,430 tests; 24 compiled SDK/Shell XML/XLSX conversion/readback profiles passed. Native Gnumeric 1.12.61 accepts the constant control but misparses the named token, so native parity is not claimed. Independent application readback, dynamic/relative-sheet identity and wider profiles remain open. Source-led direct-reference repair now decodes per-token column/row relativity correctly; 151 Lotus tests pass. Legacy offset widths, range flag packing and application qualification remain open."
     },
     {
       "id": "biff-external-and-token-formulas",

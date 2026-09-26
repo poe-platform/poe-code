@@ -140,7 +140,7 @@ async function lotusFormula(bytes: Uint8Array, version: number, group: number, r
   };
   const newRef = (p: number, flags: number) => {
     const target = b.u8(p + 2), name = sheetName(target);
-    return (target === sheetIndex ? "" : quoteFormulaString(name, "'", gnumericGrammar) + "!") + ref(b.u16(p), b.u8(p + 3), !!(flags & 1), !!(flags & 2));
+    return (target === sheetIndex ? "" : quoteFormulaString(name, "'", gnumericGrammar) + "!") + ref(b.u16(p), b.u8(p + 3), !!(flags & 2), !!(flags & 1));
   };
   while (at < bytes.length) {
     context.signal.throwIfAborted();
@@ -156,8 +156,8 @@ async function lotusFormula(bytes: Uint8Array, version: number, group: number, r
       const length = modern ? op === 1 ? 5 : 9 : op === 1 ? 4 : 8;
       if (at + length > bytes.length) break;
       if (modern) {
-        // Released parser reads data[1] for relative bits, including later references.
-        const flags = bytes[1]!;
+        // Each reference carries its own column/row/sheet relativity bits.
+        const flags = b.u8(at);
         stack.push(newRef(at + 1, flags & 7) + (op === 2 ? `:${newRef(at + 5, flags >> 3 & 7)}` : ""));
       } else stack.push(oldRef(at) + (op === 2 ? `:${oldRef(at + 4)}` : ""));
       at += length;

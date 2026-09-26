@@ -96,6 +96,16 @@ it("recalculates imported names after an apostrophe-containing sheet rename", as
 
 const namedToken = (text: string, opcode = 7) => [opcode, ...Array.from(text, c => c.charCodeAt(0)), 0];
 const formulaRecord = (tokens: number[], row = 0, column = 1, sheet = 0) => record(25, [...word(row), sheet, column, ...Array<number>(10).fill(0), ...tokens, 3]);
+it.each([[0, "=$C$2"], [1, "=C$2"], [2, "=$C2"], [3, "=C2"]])("decodes WK3 cell-reference axis flags %i from the Lotus record", async (flags, formula) => {
+  // LibreOffice LotusToSc::ReadSRD and libwps LotusSpreadsheet::readCell
+  // both assign bit 0 to columns and bit 1 to rows.
+  const book = await readLotus(modern(formulaRecord([1, Number(flags), 1, 0, 0, 2])), context);
+  expect(book.sheets[0]!.cells[0]!.formula).toBe(formula);
+});
+it("reads each WK3 reference's flags after earlier tokens", async () => {
+  const book = await readLotus(modern(formulaRecord([1, 0, 1, 0, 0, 2, 1, 3, 2, 0, 0, 3, 15])), context);
+  expect(book.sheets[0]!.cells[0]!.formula).toBe("=($C$2+D3)");
+});
 it.each([7, 8])("resolves a forward WK3 name token %i and continues subsequent arithmetic", async opcode => {
   const warnings: string[] = [];
   const book = await readLotus(modern(formulaRecord([...namedToken(opcode === 8 ? "$Value" : "Value", opcode), 5, 2, 0, 15]), newName("Value"), record(24, [0, 0, 0, 0, 22, 0])), { ...context, async diagnostic(d) { warnings.push(d.message); } });

@@ -14,6 +14,7 @@ import {
 export const encoder = new TextEncoder();
 export const decoder = new TextDecoder();
 export const bufferLimit = 32 * 1024 * 1024;
+export const builtInDirectContextExecutors = new WeakSet<CommandHandler>();
 
 export { UsageError } from "safe-bash-contracts/diagnostics";
 
@@ -126,7 +127,7 @@ export async function diagnostic(context: CommandContext, error: unknown): Promi
 }
 
 export function define(name: string, handler: CommandHandler, failureCode = 1, usageFailureCode = 2): CommandDefinition {
-  return {
+  const definition: CommandDefinition = {
     name,
     async execute(context) {
       context.signal.throwIfAborted();
@@ -145,6 +146,8 @@ export function define(name: string, handler: CommandHandler, failureCode = 1, u
       }
     },
   };
+  builtInDirectContextExecutors.add(definition.execute);
+  return definition;
 }
 
 export async function eachOperand(

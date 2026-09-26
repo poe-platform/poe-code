@@ -11,7 +11,7 @@ import { cmpCommand } from "./cmp.js";
 import { fmtCommand } from "./fmt.js";
 import { shufCommand } from "./shuf.js";
 import { numfmtCommand } from "./numfmt.js";
-import { diagnostic } from "./internal.js";
+import { builtInDirectContextExecutors, diagnostic } from "./internal.js";
 import type { RegexExecutionOptions } from "./regex-execution/protocol.js";
 import type { BoundedRegexProvider } from "./regex-execution/provider.js";
 
@@ -66,9 +66,11 @@ export function createStandardCommandsWithGrep(options: StandardCommandsOptions,
       ...executionCommands(execute, options.execution),
       ...findCommands(execute, undefined),
     );
+    for (let i = 0; i < commands.length; i++) builtInDirectContextExecutors.add(commands[i]!.execute);
     return commands;
   }
   commands.push(...basicCommands(), ...filesystemCommands(options.maxDirectoryEntries), ...streamCommands(options.maxTeeTargets, options.maxTailFollowHandles), ...textCommands(), ...grep, ...predicateCommands(options.predicateIdentity), ...executionCommands(execute, options.execution), ...findCommands(execute, options.maxDirectoryEntries));
   commands.push(cmpCommand(), fmtCommand(), shufCommand(), numfmtCommand());
+  for (let i = 0; i < commands.length; i++) builtInDirectContextExecutors.add(commands[i]!.execute);
   return commands;
 }

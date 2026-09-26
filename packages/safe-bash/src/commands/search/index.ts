@@ -1,11 +1,14 @@
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
+import { builtInDirectContextExecutors } from "../internal.js";
 import { rgCommand } from "./rg.js";
 import type { SearchOptions } from "./options.js";
 
 export type { SearchOptions } from "./options.js";
 
 export function createSearchCommands(options: SearchOptions = {}): readonly CommandDefinition[] {
-  return [rgCommand(options)];
+  const definitions = [rgCommand(options)];
+  for (let i = 0; i < definitions.length; i++) builtInDirectContextExecutors.add(definitions[i]!.execute);
+  return definitions;
 }
 
 export function searchCommands(options: SearchOptions = {}): VirtualShellPlugin {

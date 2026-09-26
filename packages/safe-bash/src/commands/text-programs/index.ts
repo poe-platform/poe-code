@@ -1,4 +1,5 @@
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
+import { builtInDirectContextExecutors } from "../internal.js";
 import { sedCommand } from "./sed.js";
 import { awkCommand } from "./awk.js";
 import type { TextProgramOptions } from "./shared.js";
@@ -6,7 +7,9 @@ import type { TextProgramOptions } from "./shared.js";
 export type { TextProgramOptions } from "./shared.js";
 
 export function createTextProgramCommands(options: TextProgramOptions = {}): readonly CommandDefinition[] {
-  return [sedCommand(options), awkCommand(options)];
+  const definitions = [sedCommand(options), awkCommand(options)];
+  for (let i = 0; i < definitions.length; i++) builtInDirectContextExecutors.add(definitions[i]!.execute);
+  return definitions;
 }
 
 export function textProgramCommands(options: TextProgramOptions = {}): VirtualShellPlugin {

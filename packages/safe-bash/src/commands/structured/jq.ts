@@ -655,6 +655,9 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
 }
 export function jqCommand(options: StructuredCommandsOptions = {}): CommandDefinition {
   const limits = resolveJqLimits(options.limits);
-  return { name: "jq", description: "Bounded, dependency-free JSON filter interpreter", execute: context => executeJq(context, limits) };
+  const definition: CommandDefinition = { name: "jq", description: "Bounded, dependency-free JSON filter interpreter", execute: context => executeJq(context, limits) };
+  builtInDirectContextExecutors.add(definition.execute);
+  return definition;
 }
 import { isSyncResolved } from "../../fs/creation-mask.js";
+import { builtInDirectContextExecutors } from "../internal.js";

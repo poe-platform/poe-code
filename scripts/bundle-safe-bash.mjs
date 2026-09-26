@@ -139,6 +139,7 @@ export function resolveBrowserShellBuild(rootDir) {
     external: ["poe-code/safe-fs/core"],
     alias: {
       "node:stream/web": platform,
+      "safe-bash-contracts": path.join(rootDir, "packages/safe-bash-contracts/src"),
       "safe-bash-command-op": path.join(rootDir, "packages/safe-bash-command-op/src/index.ts"),
       "@poe-code/safe-fs": "poe-code/safe-fs",
       "@poe-code/safe-fs/contracts/errors": "poe-code/safe-fs/core",

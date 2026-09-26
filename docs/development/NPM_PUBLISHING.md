@@ -86,6 +86,29 @@ Registry failures stop version selection. After publishing, the workflow verifie
 each exact version before reporting successful publication. Publishing happens
 in GitHub Actions with the configured trusted publishers and provenance.
 
+The verifier binds both the provenance workflow ref and dependency ref to the
+exact dispatch ref, alongside the dispatch commit and archive digest. Its CLI
+and programmatic `sourceRef` option default to `refs/heads/main`; frozen branch
+or tag releases must explicitly supply their full ref.
+
+A running release retains its original workflow and verifier even after a fix
+lands on main. If an older run publishes successfully but rejects its frozen
+ref during verification, use the corrected verifier from main against the
+shared version selected by that same run, its original commit, and original ref:
+
+```sh
+node scripts/verify-safe-publication.mjs --cloudflare \
+  --version <exact-version-from-existing-run> \
+  --source <original-40-character-commit> \
+  --source-ref refs/heads/<original-frozen-branch>
+```
+
+This repeats the archive, provenance, fresh-install, import and Cloudflare
+artifact gates without publishing anything. Do not dispatch another release
+or substitute the current branch tip or registry latest version. Keep consumer
+publication work pending until these checks succeed; an older workflow run
+remains failed even if this independent verification succeeds.
+
 ### Toolcraft Artifact Preparation
 
 The root build rewrites workspace declaration imports for the `poe-code`

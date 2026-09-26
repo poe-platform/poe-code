@@ -69,7 +69,7 @@ function metadataIdentity(metadata, name, version) {
   };
 }
 
-function verifySource(attestations, identity, source) {
+function verifySource(attestations, identity, source, sourceRef) {
   const envelope = attestations.attestations?.find(attestation => attestation.predicateType === provenanceType)?.bundle?.dsseEnvelope;
   if (envelope?.payloadType !== "application/vnd.in-toto+json" || typeof envelope.payload !== "string") throw new Error(`${identity.name}: missing provenance`);
   const statement = JSON.parse(Buffer.from(envelope.payload, "base64").toString("utf8"));
@@ -79,8 +79,8 @@ function verifySource(attestations, identity, source) {
   const digest = Buffer.from(identity.integrity.slice(7), "base64").toString("hex");
   if (statement.predicateType !== provenanceType ||
       subject?.length !== 1 || subject[0].name !== `pkg:npm/${identity.name.replace("@", "%40")}@${identity.version}` || subject[0].digest?.sha512 !== digest ||
-      workflow?.repository !== repository || workflow.path !== ".github/workflows/release-safe.yml" || workflow.ref !== "refs/heads/main" ||
-      !definition.resolvedDependencies?.some(dependency => dependency.uri === `git+${repository}@refs/heads/main` && dependency.digest?.gitCommit === source)) {
+      workflow?.repository !== repository || workflow.path !== ".github/workflows/release-safe.yml" || workflow.ref !== sourceRef ||
+      !definition.resolvedDependencies?.some(dependency => dependency.uri === `git+${repository}@${sourceRef}` && dependency.digest?.gitCommit === source)) {
     throw new Error(`${identity.name}@${identity.version}: provenance does not match archive and source ${source}`);
   }
 }
@@ -180,12 +180,19 @@ assert.deepEqual([...raw.bytes(1)], [254]);
 assert.throws(() => contracts.getCommandArguments({ args: [...raw.args], argumentValues: raw }), safeBash.CommandArgumentIdentityError);
 `;
 
-export async function verifyPublication({ version, source, workDir, cloudflare = false, maxAttempts = 180, retryDelayMs = 10_000, timeoutMs = 2_400_000 }, {
+export async function verifyPublication({ version, source, sourceRef = "refs/heads/main", workDir, cloudflare = false, maxAttempts = 180, retryDelayMs = 10_000, timeoutMs = 2_400_000 }, {
   files = fs, fetch = globalThis.fetch, run = runCommand, sleep = delay, log = console.log
 } = {}) {
   const versionParts = typeof version === "string" ? version.split(".") : [];
   if (versionParts.length !== 3 || versionParts.some(part => !Number.isSafeInteger(Number(part)) || Number(part) < 0 || String(Number(part)) !== part)) throw new Error("An exact stable version is required");
   if (typeof source !== "string" || source.length !== 40 || [...source].some(character => !"0123456789abcdef".includes(character))) throw new Error("An exact source commit is required");
+  if (typeof sourceRef !== "string" ||
+      !(sourceRef.startsWith("refs/heads/") || sourceRef.startsWith("refs/tags/")) ||
+      sourceRef.includes("..") || sourceRef.includes("@{") ||
+      [...sourceRef].some(character => character.charCodeAt(0) <= 32 || character.charCodeAt(0) === 127 || "~^:?*[\\".includes(character)) ||
+      sourceRef.split("/").some(part => !part || part.startsWith(".") || part.endsWith(".") || part.endsWith(".lock"))) {
+    throw new Error("An exact branch or tag source ref is required");
+  }
   for (const [label, value, maximum] of [["maxAttempts", maxAttempts, 180], ["retryDelayMs", retryDelayMs, 10_000], ["timeoutMs", timeoutMs, 2_400_000]]) {
     if (!Number.isSafeInteger(value) || value < 1 || value > maximum) throw new Error(`Invalid bounded ${label}`);
   }
@@ -208,7 +215,7 @@ export async function verifyPublication({ version, source, workDir, cloudflare =
         const bytes = await readRegistry(identity.tarball, { maxBytes: 67_108_864, signal, onChunk: chunk => hash.update(chunk) }, fetch);
         if (`sha512-${hash.digest("base64")}` !== identity.integrity) throw new Error(`${name}: downloaded archive integrity mismatch`);
         const attestations = JSON.parse((await readRegistry(identity.attestations, { maxBytes: 4_194_304, signal }, fetch)).toString("utf8"));
-        verifySource(attestations, identity, source);
+        verifySource(attestations, identity, source, sourceRef);
         log(`Downloaded ${name}@${version}: ${bytes} bytes, ${identity.integrity}, source ${source}`);
       }
       signal.throwIfAborted();
@@ -259,11 +266,11 @@ assert.equal(typeof checkpointBrowserProfile, "function");
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   try {
     const { values } = parseArgs({ options: {
-      version: { type: "string" }, source: { type: "string" }, "work-dir": { type: "string" },
+      version: { type: "string" }, source: { type: "string" }, "source-ref": { type: "string", default: "refs/heads/main" }, "work-dir": { type: "string" },
       cloudflare: { type: "boolean", default: false },
       attempts: { type: "string", default: "180" }, "timeout-ms": { type: "string", default: "2400000" }
     } });
-    await verifyPublication({ version: values.version, source: values.source, cloudflare: values.cloudflare, workDir: values["work-dir"] ?? "out/safe-publication",
+    await verifyPublication({ version: values.version, source: values.source, sourceRef: values["source-ref"], cloudflare: values.cloudflare, workDir: values["work-dir"] ?? "out/safe-publication",
       maxAttempts: Number(values.attempts), timeoutMs: Number(values["timeout-ms"]) });
   } catch (error) {
     console.error(String(error.message ?? error).slice(0, 4_096));

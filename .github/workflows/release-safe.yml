@@ -166,8 +166,9 @@ jobs:
         env:
           VERSION: ${{ needs.publish.outputs.version }}
           SOURCE: ${{ github.sha }}
+          SOURCE_REF: ${{ github.ref }}
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/verify-safe-publication.mjs --cloudflare --version "$VERSION" --source "$SOURCE"
+          node scripts/verify-safe-publication.mjs --cloudflare --version "$VERSION" --source "$SOURCE" --source-ref "$SOURCE_REF"
           printf 'Public archives downloaded and SHA-512 verified; provenance source matched; fresh npm resolution/install and Node imports (including explicit commands) passed for safe-fs, safe-js and safe-bash at %s from %s\n' "$VERSION" "$SOURCE" >> "$GITHUB_STEP_SUMMARY"

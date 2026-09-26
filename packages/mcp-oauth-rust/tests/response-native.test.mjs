@@ -14,10 +14,18 @@ test("bounded readers match strict streaming UTF8, declared and actual byte limi
     assert.equal(await factory.readBoundedResponseText(response([...bytes].map(byte => Uint8Array.of(byte))).response, bytes.length, readers), "🦊é");
     assert.equal(readers.size, 0);
     assert.equal(await factory.readBoundedResponseText(new Response(null), 4), "");
-    for (const limit of [0, -1, 0.5, NaN, Number.MAX_SAFE_INTEGER+1]) await assert.rejects(factory.readBoundedResponseText(new Response(null), limit), { message: "HTTP response byte limit must be a positive safe integer" });
+    for (const limit of [0, -1, 0.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER+1]) await assert.rejects(factory.readBoundedResponseText(new Response(null), limit), { message: "HTTP response byte limit must be a positive safe integer" });
     for (const input of [response([Buffer.from("12345")]).response, response([], { "Content-Length": "000000000000000000005" }).response]) await assert.rejects(factory.readBoundedResponseText(input, 4), { message: "HTTP response exceeds 4 bytes" });
     await assert.rejects(factory.readBoundedResponseText(response([Uint8Array.of(0xc3,0x28)]).response, 4));
     assert.equal(await factory.readBoundedResponseText(response([Buffer.from("1234")], { "Content-Length": "5x" }).response, 4), "1234");
+  }
+});
+test("unlimited readers accept large declared lengths and retain strict decoding", async () => {
+  for (const factory of [native, reference]) {
+    const readers = new Set();
+    assert.equal(await factory.readBoundedResponseText(response([Buffer.from("ok")], { "Content-Length": "9".repeat(128) }).response, Infinity, readers), "ok");
+    assert.equal(readers.size, 0);
+    await assert.rejects(factory.readBoundedResponseText(response([Uint8Array.of(0xc3, 0x28)]).response, Infinity));
   }
 });
 test("bounded readers cancel and release locks and tracking entries on failure or abort", async () => {

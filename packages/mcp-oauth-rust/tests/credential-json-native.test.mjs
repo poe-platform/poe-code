@@ -9,7 +9,7 @@ const original = await tsImport("../../mcp-oauth/src/client/bounded-json.ts", im
     "../../mcp-oauth/src/client/client-registration.ts",
     import.meta.url
   );
-test("bounded credential JSON owns extensions without running accessors or serialization", () => {
+test("credential JSON owns extensions without running accessors or serialization", () => {
   for (const api of [original, { copyBoundedOAuthJson }]) {
     const input = JSON.parse('{"__proto__":{"values":[1,true,null,"\\ud800"]}}');
     const result = api.copyBoundedOAuthJson(input, "invalid credential");
@@ -83,4 +83,22 @@ test("native credential copying handles deep output without recursion", () => {
   assert.notEqual(output, input);
   for (let depth = 0; depth < 20_000; depth++) output = output.next;
   assert.equal(output, "leaf");
+});
+
+test("credential JSON copies large and deeply nested values while rejecting cycles", () => {
+  for (const api of [original, { copyBoundedOAuthJson }]) {
+    const shared = { text: "x".repeat(65_536), values: Array(20_001).fill(null) };
+    const copy = api.copyBoundedOAuthJson([shared, shared], "invalid credential");
+    assert.deepEqual(copy, [shared, shared]);
+    assert.notEqual(copy[0], copy[1]);
+    assert.notEqual(copy[0].values, shared.values);
+    let nested = "leaf";
+    for (let depth = 0; depth < 5000; depth++) nested = { child: nested };
+    let copied = api.copyBoundedOAuthJson(nested, "invalid credential");
+    for (let depth = 0; depth < 5000; depth++) copied = copied.child;
+    assert.equal(copied, "leaf");
+    const cycle = {};
+    cycle.child = { parent: cycle };
+    assert.throws(() => api.copyBoundedOAuthJson(cycle, "invalid credential"), { message: "invalid credential" });
+  }
 });

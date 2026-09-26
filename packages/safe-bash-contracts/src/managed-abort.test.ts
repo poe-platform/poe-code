@@ -1,14 +1,61 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createBytePipe } from "./io.js";
-import { addManagedAbortWaiter } from "./managed-abort.js";
+import { addManagedAbortWaiter, removeManagedAbortWaiter } from "./managed-abort.js";
 import { createOutputOperation } from "./output.js";
 
 const waitersSymbol = Symbol.for("safe-bash.managedWaiters");
 const discard = { async write() {} };
 
-function seed(signal: AbortSignal, waiter: (reason: unknown) => void, multiple = false): void {
+function seed(signal: AbortSignal, waiter: ((reason: unknown) => void) | { onAbort(reason: unknown): void }, multiple = false): void {
   Reflect.set(signal, waitersSymbol, multiple ? new Set([waiter]) : waiter);
+}
+
+test("managed callbacks promote object waiters without losing identity", () => {
+  const signal = new AbortController().signal;
+  const object = { onAbort() {} };
+  const callback = () => {};
+  seed(signal, object);
+  addManagedAbortWaiter(signal, object);
+  assert.equal(Reflect.get(signal, waitersSymbol), object);
+  addManagedAbortWaiter(signal, callback);
+  assert.deepEqual([...Reflect.get(signal, waitersSymbol)], [object, callback]);
+  removeManagedAbortWaiter(signal, callback);
+  assert.deepEqual([...Reflect.get(signal, waitersSymbol)], [object]);
+});
+
+test("managed cleanup preserves an unrelated singleton object waiter", () => {
+  const signal = new AbortController().signal;
+  const object = { onAbort() {} };
+  seed(signal, object);
+  removeManagedAbortWaiter(signal, () => {});
+  assert.equal(Reflect.get(signal, waitersSymbol), object);
+  removeManagedAbortWaiter(signal, object);
+  assert.equal(Reflect.get(signal, waitersSymbol), undefined);
+});
+
+for (const reason of [false, null, 0, ""]) {
+  for (const multiple of [false, true]) {
+    test(`output cancellation shares ${multiple ? "mixed Set" : "singleton object"} shell waiters: ${String(reason)}`, async () => {
+      const upstream = createOutputOperation({ signal: new AbortController().signal }, discard);
+      const object = {
+        received: [] as unknown[],
+        onAbort(value: unknown) { this.received.push(value); },
+      };
+      const received: unknown[] = [];
+      seed(upstream.signal, object, multiple);
+      if (multiple) addManagedAbortWaiter(upstream.signal, value => { received.push(value); });
+      try {
+        const operation = multiple ? createOutputOperation({ signal: upstream.signal }, discard) : undefined;
+        await upstream.abort(reason);
+        assert.equal((operation?.signal ?? upstream.signal).aborted, true);
+        assert.equal((operation?.signal ?? upstream.signal).reason, reason);
+        assert.deepEqual(object.received, [reason], "object notification retains its receiver and exact reason");
+        assert.deepEqual(received, multiple ? [reason] : []);
+        await operation?.close();
+      } finally { await upstream.close(); }
+    });
+  }
 }
 
 for (const reason of [false, null, 0, ""]) {

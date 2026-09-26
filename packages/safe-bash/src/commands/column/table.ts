@@ -85,16 +85,41 @@ class TailPadding {
 export async function tableOutput(rows: readonly Cell[][], widths: readonly number[], separator: string, budget: ColumnBudget): Promise<void> {
   if (!rows.length) return;
   const padding = await TailPadding.create(widths, separator, budget);
-  for (const row of rows) {
+  const unlimited = budget.columnLimits.maxOutputBytes === Infinity && budget.columnLimits.maxSteps === Infinity;
+  let batch = "";
+  for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+    const row = rows[rowIndex]!;
+    if (!unlimited || rowIndex === 0 || row.length < widths.length) {
+      if (batch) { await budget.text(batch); batch = ""; }
+      for (let index = 0; index < row.length; index++) {
+        const entry = row[index]!;
+        await budget.text(entry.text);
+        if (index + 1 < row.length) {
+          await budget.padding(widths[index]! - entry.width);
+          await budget.text(separator);
+        }
+      }
+      await padding.emit(row, budget);
+      await budget.text("\n");
+      continue;
+    }
+    let line = "";
     for (let index = 0; index < row.length; index++) {
       const entry = row[index]!;
-      await budget.text(entry.text);
+      line += entry.text;
       if (index + 1 < row.length) {
-        await budget.padding(widths[index]! - entry.width);
-        await budget.text(separator);
+        const pad = widths[index]! - entry.width;
+        { const w = budget.work(pad); if (w) await w; }
+        if (pad > 0) line += " ".repeat(pad);
+        line += separator;
       }
     }
-    await padding.emit(row, budget);
-    await budget.text("\n");
+    line += "\n";
+    batch += line;
+    if (batch.length >= ColumnBudget.outputChunkBytes) {
+      await budget.text(batch);
+      batch = "";
+    }
   }
+  if (batch) await budget.text(batch);
 }

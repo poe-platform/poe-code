@@ -13,29 +13,79 @@ async function dump(options: Parsed, lifecycle: Lifecycle, name: string): Promis
   const block = new Uint8Array(16), previous = new Uint8Array(16);
   let address = 0, used = 0, skip = options.skip, count = options.count;
   let hasPrevious = false, squeezed = false, exitCode = 0;
-  const emit = async (): Promise<void> => {
+  let firstWrite = true, outBuf = "";
+  let currentReader: Reader | undefined;
+  const unlimitedFast = budget.limits.maxOutputBytes === Infinity && budget.limits.maxBufferedBytes === Infinity && budget.limits.maxWork === Infinity;
+  const flushOut = async (): Promise<void> => {
+    if (outBuf) {
+      const chunk = outBuf;
+      outBuf = "";
+      await lifecycle.write(chunk);
+    }
+  };
+  const writeOut = (text: string): void | Promise<void> => {
+    if (!unlimitedFast || firstWrite || !currentReader?.hasBufferedBytes()) {
+      firstWrite = false;
+      return flushOut().then(() => lifecycle.write(text));
+    }
+    outBuf += text;
+    if (outBuf.length >= 16384) return flushOut();
+  };
+  const emitAsync = async (): Promise<void> => {
+    for (const format of options.formats) {
+      budget.charge(16);
+      const cp = budget.checkpointWork();
+      if (cp) { await flushOut(); await cp; }
+      const w = writeOut(formatBlock(block, used, address, format));
+      if (w) await w;
+    }
+    previous.set(block);
+    hasPrevious = true;
+    squeezed = false;
+    address += used;
+    used = 0;
+  };
+  const emit = (): void | Promise<void> => {
     let same = hasPrevious && (options.dialect !== "util-linux" || used === 16);
     for (let index = 0; same && index < used; index++) if (block[index] !== previous[index]) same = false;
     budget.charge(used);
     if (!options.verbose && same) {
-      if (!squeezed) await lifecycle.write("*\n");
+      let p: void | Promise<void>;
+      if (!squeezed) p = writeOut("*\n");
       squeezed = true;
-    } else {
-      for (const format of options.formats) {
-        budget.charge(16);
-        { const cp = budget.checkpointWork(); if (cp) await cp; }
-        await lifecycle.write(formatBlock(block, used, address, format));
-      }
-      previous.set(block);
-      hasPrevious = true;
-      squeezed = false;
+      address += used;
+      used = 0;
+      return p;
     }
-    address += used;
-    used = 0;
+    if (options.formats.length === 1 && unlimitedFast && !firstWrite && currentReader?.hasBufferedBytes()) {
+      budget.charge(16);
+      const cp = budget.checkpointWork();
+      if (!cp) {
+        outBuf += formatBlock(block, used, address, options.formats[0]!);
+        previous.set(block);
+        hasPrevious = true;
+        squeezed = false;
+        address += used;
+        used = 0;
+        if (outBuf.length >= 16384) return flushOut();
+        return;
+      }
+      return flushOut().then(() => cp).then(() => {
+        const w = writeOut(formatBlock(block, used, address, options.formats[0]!));
+        previous.set(block);
+        hasPrevious = true;
+        squeezed = false;
+        address += used;
+        used = 0;
+        return w;
+      });
+    }
+    return emitAsync();
   };
   for (const file of options.files.length ? options.files : [undefined]) {
     if (count === 0) break;
     const reader = new Reader(file, lifecycle);
+    currentReader = reader;
     let opened = true;
     try {
       await reader.open();
@@ -61,12 +111,15 @@ async function dump(options: Parsed, lifecycle: Lifecycle, name: string): Promis
         if (skip > 0) { skip--; address++; continue; }
         block[used++] = byte;
         count--;
-        if (used === 16) await emit();
+        if (used === 16) { const p = emit(); if (p) await p; }
       }
     }
+    await flushOut();
+    currentReader = undefined;
     await lifecycle.operation(() => reader.close());
   }
-  if (used) await emit();
+  if (used) { const p = emit(); if (p) await p; }
+  await flushOut();
   if (address > 0) await lifecycle.write(address.toString(16).padStart(options.formats.at(-1) === "C" ? 8 : 7, "0") + "\n");
   return exitCode;
 }

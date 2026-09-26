@@ -1,3 +1,5 @@
+const HEX_BYTE = Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, "0"));
+const ASCII_CHAR = Array.from({ length: 256 }, (_, i) => (i >= 32 && i <= 126 ? String.fromCharCode(i) : "."));
 import type { Format } from "./options.js";
 
 export function formatBlock(block: Uint8Array, used: number, address: number, format: Format): string {
@@ -6,13 +8,12 @@ export function formatBlock(block: Uint8Array, used: number, address: number, fo
   if (canonical) {
     for (let index = 0; index < 16; index++) {
       if (index === 8) result += " ";
-      result += index < used ? block[index]!.toString(16).padStart(2, "0") : "  ";
+      result += index < used ? HEX_BYTE[block[index]!]! : "  ";
       if (index !== 15) result += " ";
     }
     result += "  |";
     for (let index = 0; index < used; index++) {
-      const byte = block[index]!;
-      result += byte >= 32 && byte <= 126 ? String.fromCharCode(byte) : ".";
+      result += ASCII_CHAR[block[index]!]!;
     }
     return result + "|\n";
   }

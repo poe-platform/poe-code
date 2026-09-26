@@ -1,6 +1,6 @@
 import { getCommandArguments, type CommandContext } from "../../contracts/index.js";
 import { shellValueByteLength, shellValueBytes } from "../../contracts/value.js";
-import { yieldTurn } from "../../contracts/yield.js";
+import { monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { PublicDiagnostic } from "../../diagnostics.js";
 
 export interface HexdumpLimits {
@@ -46,7 +46,9 @@ export function raw(value: Uint8Array): string {
 }
 
 export function bytes(value: string): Uint8Array {
-  return Uint8Array.from(value, character => character.charCodeAt(0));
+  const out = new Uint8Array(value.length);
+  for (let i = 0; i < value.length; i++) out[i] = value.charCodeAt(i);
+  return out;
 }
 
 export function pathText(value: string): string {
@@ -57,13 +59,24 @@ export function pathText(value: string): string {
 export class Budget {
   private work = 0;
   private checkpoint = 0;
+  private lastYield = monotonicNow();
+  private yieldedOnce = false;
   private retained = 0;
   private input = 0;
   private output = 0;
   private diagnostics = 0;
-  constructor(readonly context: CommandContext, readonly limits: HexdumpLimits, readonly signal: AbortSignal, private readonly callerSignal: AbortSignal, readonly admission: { readonly closed: boolean }) {}
+  private aborted = false;
+  private readonly pollSignal: boolean;
+  constructor(readonly context: CommandContext, readonly limits: HexdumpLimits, readonly signal: AbortSignal, private readonly callerSignal: AbortSignal, readonly admission: { readonly closed: boolean }) {
+    this.pollSignal = typeof signal.addEventListener !== "function" || Object.prototype.hasOwnProperty.call(signal, "aborted");
+    if (signal.aborted) this.aborted = true;
+    else if (!this.pollSignal) signal.addEventListener("abort", () => { this.aborted = true; }, { once: true });
+  }
   assertOpen(): void {
-    this.signal.throwIfAborted();
+    if (this.aborted || (this.pollSignal && this.signal.aborted)) {
+      this.aborted = true;
+      this.signal.throwIfAborted();
+    }
     if (this.admission.closed) throw new HexdumpError("command is closed");
   }
   check(value: number, maximum: number, label: string): void {
@@ -78,7 +91,14 @@ export class Budget {
     this.assertOpen();
     if (this.work - this.checkpoint < 4096) return;
     this.checkpoint = this.work;
+    runYieldCheckpoint(this.callerSignal);
+    this.assertOpen();
+    const now = monotonicNow();
+    if (this.yieldedOnce && now - this.lastYield < 16) return;
+    this.yieldedOnce = true;
+    this.lastYield = now;
     return yieldTurn(this.callerSignal).then(() => {
+      this.lastYield = monotonicNow();
       this.assertOpen();
     });
   }

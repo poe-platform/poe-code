@@ -1,5 +1,5 @@
 import { publicDiagnosticMessage } from "../../diagnostics.js";
-import { yieldTurn } from "../../contracts/yield.js";
+import { monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { escapeText } from "../../escaping.js";
 import { FsError, writeBytes, type ByteSource, type CommandContext, type FileSystem, type ReadStreamOptions } from "../../contracts/index.js";
 import { Budget, Inputs, type RecordReader } from "../table-text/internal.js";
@@ -29,11 +29,19 @@ export class ColumnBudget extends Budget {
   static readonly outputChunkBytes = 8192;
   private workUsed = 0;
   private untilYield = 2048;
+  private lastYield = monotonicNow();
+  private yieldedOnce = false;
   private emittedBytes = 0;
   private retainedBytes = 0;
   private projectedBytes = 0;
+  private aborted = false;
+  private readonly pollSignal: boolean;
   constructor(context: CommandContext, readonly columnLimits: ColumnLimits) {
     super(context, readerSettings(columnLimits));
+    const sig = context.signal;
+    this.pollSignal = typeof sig.addEventListener !== "function" || Object.prototype.hasOwnProperty.call(sig, "aborted");
+    if (sig.aborted) this.aborted = true;
+    else if (!this.pollSignal) sig.addEventListener("abort", () => { this.aborted = true; }, { once: true });
   }
   override check(value: number, maximum: number, label: string): void {
     if (!Number.isSafeInteger(value) || value < 0 || value > maximum) {
@@ -54,13 +62,19 @@ export class ColumnBudget extends Budget {
     this.projectedBytes += size;
   }
   work(amount: number): void | Promise<void> {
-    this.context.signal.throwIfAborted();
+    if (this.aborted || (this.pollSignal && this.context.signal.aborted)) { this.aborted = true; this.context.signal.throwIfAborted(); }
     this.check(amount, this.columnLimits.maxSteps - this.workUsed, "work");
     this.workUsed += amount;
     this.untilYield -= amount;
     if (this.untilYield > 0) return;
     this.untilYield = 2048;
-    return yieldTurn().then(() => {
+    runYieldCheckpoint(this.context.signal);
+    const now = monotonicNow();
+    if (this.yieldedOnce && now - this.lastYield < 16) return;
+    this.yieldedOnce = true;
+    this.lastYield = now;
+    return yieldTurn(this.context.signal).then(() => {
+      this.lastYield = monotonicNow();
       this.context.signal.throwIfAborted();
     });
   }

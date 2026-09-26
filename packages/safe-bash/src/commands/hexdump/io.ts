@@ -175,6 +175,7 @@ export class Reader {
       this.iterator = Reflect.apply(factory, source, []);
     });
   }
+  hasBufferedBytes(): boolean { return this.offset < this.chunk.length; }
   get(): number | Promise<number> {
     const { budget } = this.lifecycle;
     budget.charge();

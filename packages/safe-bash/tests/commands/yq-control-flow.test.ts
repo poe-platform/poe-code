@@ -1,15 +1,17 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { toByteSource, type CommandContext } from "../../src/contracts/index.js";
+import { toByteSource, type ByteSource, type CommandContext } from "../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { createYqCommand } from "../../src/commands/yq/index.js";
 import { createYqQuerySession } from "../../src/commands/structured/query-core.js";
+import { YqLedger } from "../../src/commands/yq/accounting.js";
 
-async function run(source: string, input: string) {
+async function run(source: string, input: string | Uint8Array | ByteSource) {
   const stdout: Uint8Array[] = [];
   const stderr: Uint8Array[] = [];
   const context: CommandContext = {
-    command: "yq", args: ["-o", "json", "-c", source], stdin: toByteSource(input),
+    command: "yq", args: ["-o", "json", "-c", source],
+    stdin: typeof input === "string" || input instanceof Uint8Array ? toByteSource(input) : input,
     stdout: { async write(chunk) { stdout.push(new Uint8Array(chunk)); } },
     stderr: { async write(chunk) { stderr.push(new Uint8Array(chunk)); } },
     cwd: "/", env: {}, fs: createMemoryFileSystem(), signal: new AbortController().signal,
@@ -36,6 +38,59 @@ test("yq input parse failures stay outside try", async () => {
   assert.notEqual(baseline.status, 0);
   assert.deepEqual(await run("try . catch 99", "[\n"), baseline);
 });
+
+function oneByteSource(input: Uint8Array): ByteSource {
+  return (async function* () {
+    const scratch = new Uint8Array(1);
+    for (const byte of input) {
+      scratch[0] = byte;
+      yield scratch;
+    }
+    scratch[0] = 0;
+  })();
+}
+
+for (const chunked of [false, true]) {
+  for (const newline of ["\n", "\r\n", "\r"]) {
+    test(`yq retains indented document output before malformed UTF-8: ${JSON.stringify(newline)}, chunked=${chunked}`, async () => {
+      const input = Buffer.concat([Buffer.from(`  foo: 1${newline}---${newline}`), Buffer.from([0xff, 0x0a])]);
+      const result = await run(".", chunked ? oneByteSource(input) : input);
+      assert.equal(result.status, 5);
+      assert.equal(result.stdout, '{"foo":1}\n');
+      assert.match(result.stderr, /INPUT_INVALID_UTF8/u);
+    });
+  }
+
+  for (const [name, prefix, document] of [
+    ["BOM comment and directive", "", "\ufeff# header\n%YAML 1.2\n---\nfoo: 1\n"],
+    ["BOM end marker", "\ufeff...\r\n", "  foo: 1\r\n"],
+    ["BOM end marker and bare CR", "\ufeff...\r", "  foo: 1\r"],
+  ] as const) {
+    test(`yq admits exact raw document bytes after ${name}, chunked=${chunked}`, async context => {
+      const admissions = context.mock.method(YqLedger.prototype, "beginDocument");
+      const input = Buffer.from(prefix + document);
+      assert.deepEqual(await run(".", chunked ? oneByteSource(input) : input), {
+        status: 0, stdout: '{"foo":1}\n', stderr: "",
+      });
+      assert.deepEqual(admissions.mock.calls.map(call => call.arguments[0]), [Buffer.byteLength(document)]);
+    });
+  }
+
+  for (const marker of ["---", "..."]) {
+    for (const suffix of ["# comment", "x"]) {
+      test(`yq classifies ${marker} after long whitespace before ${suffix}, chunked=${chunked}`, async () => {
+        const input = Buffer.concat([
+          Buffer.from(`foo: 1\n${marker}${" \t".repeat(32)}${suffix}\n`),
+          Buffer.from([0xff, 0x0a]),
+        ]);
+        const result = await run(".", chunked ? oneByteSource(input) : input);
+        assert.equal(result.status, 5);
+        assert.equal(result.stdout, suffix.startsWith("#") ? '{"foo":1}\n' : "");
+        assert.match(result.stderr, /INPUT_INVALID_UTF8/u);
+      });
+    }
+  }
+}
 
 test("yq query session closes a suspended foreach and refuses more work", async () => {
   const session = createYqQuerySession({ signal: new AbortController().signal });

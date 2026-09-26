@@ -63,34 +63,59 @@ class RawDocumentFramer {
   #lineBytes = 0;
   #lineCouldBeMarker = true;
   #markerComment = false;
+  #leadingWhitespace = true;
+  #lineHasContent = false;
+  #bomBytes = 0;
   #hasContent = false;
 
   admit(chunk: Uint8Array): void {
     for (const byte of chunk) {
       this.#offset++;
+      if (this.#pendingCr && byte !== 0x0a) {
+        this.#pendingCr = false;
+        this.#finishLine(this.#offset - 1);
+      }
       this.#lineBytes++;
       if (this.#lineBytes > yqCaps.maxDocumentBytes) throw new YqError("limit", "LIMIT_MAX_DOCUMENT_BYTES", 5);
       if (this.#pendingCr) {
         this.#pendingCr = false;
-        if (byte === 0x0a) {
-          this.#line += "\n";
-          this.#finishLine(this.#offset);
+        this.#finishLine(this.#offset);
+        continue;
+      }
+      // Decode only a frame-prefix BOM; retain its raw bytes in all admission counts.
+      if (this.#lineStart === this.#frameStart && this.#lineBytes <= 3) {
+        const expected = this.#lineBytes === 1 ? 0xef
+          : this.#lineBytes === 2 && this.#bomBytes === 1 ? 0xbb
+          : this.#lineBytes === 3 && this.#bomBytes === 2 ? 0xbf : undefined;
+        if (byte === expected) {
+          this.#bomBytes++;
           continue;
         }
-        this.#finishLine(this.#offset - 1);
-      }
-      if (this.#lineCouldBeMarker) {
-        if (this.#line.length === 0 && byte !== 0x2d && byte !== 0x2e && byte !== 0x0d && byte !== 0x0a) {
-          this.#line = String.fromCharCode(byte);
+        if (this.#bomBytes > 0) {
           this.#lineCouldBeMarker = false;
-        } else {
-          if (!this.#markerComment && (this.#line.length <= 8 || /^(?:---|\.\.\.)[ \t]+#/u.test(this.#line))) {
+          this.#lineHasContent = true;
+          this.#leadingWhitespace = false;
+        }
+      }
+      // Content detection must continue after indentation rules out a marker.
+      if (this.#leadingWhitespace && byte !== 0x20 && byte !== 0x09 && byte !== 0x0d && byte !== 0x0a) {
+        this.#lineHasContent = byte !== 0x23 && byte !== 0x25;
+        this.#leadingWhitespace = false;
+      }
+      if (this.#lineCouldBeMarker && byte !== 0x0d && byte !== 0x0a && !this.#markerComment) {
+        if (this.#line.length < 3) {
+          if (this.#line.length === 0 ? byte === 0x2d || byte === 0x2e : byte === this.#line.charCodeAt(0)) {
             this.#line += String.fromCharCode(byte);
+          } else {
+            this.#lineCouldBeMarker = false;
           }
-          if (/^(?:---|\.\.\.)[ \t]+#/u.test(this.#line)) this.#markerComment = true;
-          const candidate = this.#line.replace(/[\r\n]+$/u, "");
-          this.#lineCouldBeMarker = /^(?:-{0,3}|\.{0,3})$/u.test(candidate)
-            || /^(?:---|\.\.\.)(?:[ \t]*|[ \t]+#.*)$/u.test(candidate);
+        } else if (byte === 0x20 || byte === 0x09) {
+          // A single canonical space records any amount of marker whitespace.
+          if (this.#line.length === 3) this.#line += " ";
+        } else if (byte === 0x23) {
+          this.#markerComment = true;
+        } else {
+          this.#lineCouldBeMarker = false;
         }
       }
       if (!this.#lineCouldBeMarker && this.#lineBytes > yqCaps.maxDocumentBytes - this.#frameBytes) {
@@ -102,7 +127,7 @@ class RawDocumentFramer {
   }
 
   finish(bytes: Uint8Array): InputFrame[] {
-    if (this.#line !== "") {
+    if (this.#lineBytes > 0) {
       this.#pendingCr = false;
       this.#finishLine(this.#offset);
     }
@@ -115,9 +140,8 @@ class RawDocumentFramer {
   }
 
   #finishLine(end: number): void {
-    const line = this.#line.replace(/[\r\n]+$/u, "");
-    const marker = /^---[ \t]*(?:#.*)?$/u.test(line);
-    const endMarker = /^\.\.\.[ \t]*(?:#.*)?$/u.test(line);
+    const marker = this.#lineCouldBeMarker && this.#line.startsWith("---");
+    const endMarker = this.#lineCouldBeMarker && this.#line.startsWith("...");
     if (marker && this.#hasContent && this.#lineStart > this.#frameStart) {
       this.#ranges.push({ start: this.#frameStart, end: this.#lineStart, lineOffset: this.#frameLine });
       this.#frameStart = this.#lineStart;
@@ -128,8 +152,7 @@ class RawDocumentFramer {
       if (this.#lineBytes > yqCaps.maxDocumentBytes - this.#frameBytes) throw new YqError("limit", "LIMIT_MAX_DOCUMENT_BYTES", 5);
       this.#frameBytes += this.#lineBytes;
     }
-    const visible = line.replace(/^\ufeff/u, "").trimStart();
-    if (visible !== "" && !visible.startsWith("#") && !visible.startsWith("%") && !marker && !endMarker) this.#hasContent = true;
+    if (this.#lineHasContent && !marker && !endMarker) this.#hasContent = true;
     if (endMarker && this.#frameStart < end) {
       this.#ranges.push({ start: this.#frameStart, end, lineOffset: this.#frameLine });
       this.#frameStart = end;
@@ -141,6 +164,9 @@ class RawDocumentFramer {
     this.#lineBytes = 0;
     this.#lineCouldBeMarker = true;
     this.#markerComment = false;
+    this.#leadingWhitespace = true;
+    this.#lineHasContent = false;
+    this.#bomBytes = 0;
     this.#lineStart = end;
     this.#lineNumber++;
   }

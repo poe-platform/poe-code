@@ -6,7 +6,7 @@ import { registerYieldCheckpoint } from "../../../src/contracts/yield.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/shell.js";
 import { createYqCommand, createYqCommands, yqCommands } from "../../../src/commands/yq/index.js";
-import { createYqQuerySession } from "../../../src/commands/structured/query-core.js";
+import { createYqQuerySession, type YqOwnedWork } from "../../../src/commands/structured/query-core.js";
 import { JqLimitError } from "../../../src/commands/structured/limits.js";
 import { parseYamlDocuments } from "../../../src/commands/yq/parser.js";
 import { YqLedger } from "../../../src/commands/yq/accounting.js";
@@ -20,6 +20,35 @@ function sink(): ByteSink & { readonly bytes: Uint8Array[] } {
 function text(output: { readonly bytes: Uint8Array[] }): string {
   return new TextDecoder().decode(Buffer.concat(output.bytes));
 }
+
+test("ASCII scalar awaits its admitted work without charging it again", async () => {
+  let release!: () => void;
+  let entered!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const admission = new Promise<void>(resolve => { entered = resolve; });
+  const charges: number[] = [];
+  const work: YqOwnedWork = {
+    async charge() {},
+    chargeSync(units = 1) { charges.push(units); entered(); return gate; },
+    admitInputBytes() {}, admitOutputBytes() {}, admitResult() {}, assertOpen() {},
+    async measure() { return 0; }, async stringifyJson() { return ""; },
+    reserve() { throw new Error("unexpected reservation"); },
+  };
+  const ledger = new YqLedger();
+  const values: unknown[] = [];
+  const parsing = (async () => {
+    for await (const value of parseYamlDocuments("word", work, ledger)) values.push(value);
+  })();
+  await admission;
+  await new Promise<void>(resolve => { setImmediate(resolve); });
+  try {
+    assert.deepEqual(charges, [6]);
+    assert.equal(ledger.documentNodes, 0);
+    assert.deepEqual(values, []);
+  } finally { release(); await parsing; }
+  assert.deepEqual(charges, [6]);
+  assert.deepEqual(values, ["word"]);
+});
 
 for (const reason of [false, null]) {
   for (const input of ["x", "\u0001", "# comment"]) test(`final source scan preserves cancellation for ${JSON.stringify(input)}: ${reason}`, async context => {

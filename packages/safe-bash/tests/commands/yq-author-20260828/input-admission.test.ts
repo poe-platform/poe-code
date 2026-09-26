@@ -21,7 +21,7 @@ async function run(overrides: Partial<CommandContext> = {}) {
     stdin: (async function* () { yield Buffer.from("1\n"); })(),
     stdout: { async write(chunk) { stdout += new TextDecoder().decode(chunk); } },
     stderr: { async write(chunk) { stderr += new TextDecoder().decode(chunk); } },
-    cwd: "/", env: {}, fs: createMemoryFileSystem(), signal: new AbortController().signal,
+    cwd: "/", env: {}, fs: overrides.fs ?? createMemoryFileSystem(), signal: new AbortController().signal,
     ...overrides,
   };
   const result = await createYqCommand().execute(context);
@@ -75,6 +75,7 @@ for (const streaming of [true, false]) {
     const copied: Uint8Array[] = [];
     const opened: string[] = [];
     let closed = 0;
+    const fs: FileSystem = createMemoryFileSystem();
     context.mock.method(globalThis, "Uint8Array", new Proxy(Uint8Array, {
       construct(target, args, newTarget) {
         if (typeof args[0] === "number" && args[0] > 1024) {
@@ -84,7 +85,6 @@ for (const streaming of [true, false]) {
         return Reflect.construct(target, args, newTarget);
       },
     }));
-    const fs: FileSystem = createMemoryFileSystem();
     if (streaming) {
       fs.readStream = async function* (path) {
         opened.push(path);

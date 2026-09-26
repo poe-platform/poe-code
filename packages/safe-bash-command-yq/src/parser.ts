@@ -807,13 +807,17 @@ class Composer {
       if (ascii) {
         const totalUnits = 1 + text.length + (text.length > 0 ? 1 : 0);
         const _p = this.work.chargeSync(totalUnits);
-        if (_p === undefined) {
+        if (_p !== undefined) return _p.then(() => {
           this.work.assertOpen();
           this.ledger.admitNode();
           if (!admitted) this.ledger.admitScalar(text.length);
           this.ledger.admitValueBytes(compactScalarBytes(value));
-          return undefined;
-        }
+        });
+        this.work.assertOpen();
+        this.ledger.admitNode();
+        if (!admitted) this.ledger.admitScalar(text.length);
+        this.ledger.admitValueBytes(compactScalarBytes(value));
+        return undefined;
       }
     }
     return this.#scalarSlow(text, value, admitted);

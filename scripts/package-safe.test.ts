@@ -10,6 +10,36 @@ import { build, transformSync, type BuildOptions, type Plugin } from "esbuild";
 import { packageSafeLibraries, parsePackageSafeArguments, rewriteModuleSpecifiers } from "./package-safe.mjs";
 
 const bashManifest = JSON.parse(readFileSync(new URL("../packages/safe-bash/package.json", import.meta.url), "utf8"));
+it("keeps canonical command functions external in the actual scoped browser recipe", async () => {
+  const { options } = optionalLeftovers();
+  let browser: BuildOptions | undefined;
+  await packageSafeLibraries({ ...options, outDir: "/output", bundle: async (recipe: BuildOptions) => {
+    if (Object.hasOwn(recipe.entryPoints ?? {}, "core.browser")) browser = recipe;
+    return options.bundle(recipe);
+  } });
+  expect(browser).toBeDefined();
+  const repository = fileURLToPath(new URL("../", import.meta.url));
+  const artifact = await build({ ...browser, absWorkingDir: repository,
+    alias: Object.fromEntries(Object.entries(browser!.alias ?? {}).map(([name, target]) => [name, target.replace("/repo/", repository)])),
+    inject: browser!.inject?.map(filename => filename.replace("/repo/", repository)),
+    entryPoints: undefined, splitting: false, sourcemap: false,
+    stdin: { contents: 'export { getCommandArguments } from "safe-bash-contracts/command";', resolveDir: repository },
+  });
+  const consumer = await build({ stdin: { contents: artifact.outputFiles[0]!.text, resolveDir: repository },
+    bundle: true, write: false, platform: "browser", format: "cjs",
+    plugins: [{ name: "canonical-runtime", setup(builder) {
+      builder.onResolve({ filter: /^@poe-platform\/safe-fs\/core$/ }, () => ({ path: "fs", namespace: "canonical" }));
+      builder.onResolve({ filter: /^safe-bash-contracts\/command$/ }, () => ({ path: "command", namespace: "canonical" }));
+      builder.onLoad({ filter: /.*/, namespace: "canonical" }, args => ({ contents: args.path === "fs"
+        ? "export class FsError extends Error {} export const posixPath = {};"
+        : "export const getCommandArguments = globalThis.canonicalArguments;" }));
+    } }],
+  });
+  const canonicalArguments = () => undefined;
+  const realm = createContext({ canonicalArguments, TextEncoder, TextDecoder, module: { exports: {} } });
+  runInContext(consumer.outputFiles[0]!.text, realm);
+  expect(realm.module.exports.getCommandArguments).toBe(canonicalArguments);
+});
 it("ships the admitted portable ffmpeg facade and canonical contract edges", async () => {
   const { volume, options } = optionalLeftovers();
   const name = "safe-bash-command-ffmpeg";
@@ -412,6 +442,7 @@ describe("isolated packed private command graph", () => {
     }
     volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
     const portable = resolveBrowserShellBuild(repository);
+    delete portable.alias["safe-bash-contracts"];
     const shell = await build({ ...portable, splitting: false, sourcemap: false,
       entryPoints: undefined,
       stdin: { contents: 'export { Shell } from "./src/shell/shell.ts"; export * from "safe-bash-contracts/command"; export * from "safe-bash-contracts/errors";', resolveDir: path.join(repository, "packages/safe-bash") },

@@ -333,6 +333,11 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       if (portableCommands) recipes.push(portableCommands);
       if (Object.values(source.exports).some(value => value?.browser?.endsWith(".browser.js") || value?.workerd?.endsWith(".browser.js"))) {
         const browser = resolveBrowserShellBuild(rootDir);
+        // Aliases run before esbuild's external matching. Preserve the same
+        // canonical owners as the private-command recipes above.
+        for (const specifier of Object.keys(browser.alias)) {
+          if (canonical.some(name => specifier === name || specifier.startsWith(name + "/"))) delete browser.alias[specifier];
+        }
         recipes.push({ ...browser,
           alias: { ...browser.alias, "@poe-code/safe-fs": "@poe-platform/safe-fs", "poe-code/safe-fs": "@poe-platform/safe-fs" },
           external: [...browser.external, "@poe-platform/safe-fs", ...canonical],

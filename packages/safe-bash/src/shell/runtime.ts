@@ -2766,6 +2766,20 @@ function encodeRedirectTextToScratch(formatted: string): Uint8Array {
     : Buffer.from(formatted, "utf8");
 }
 
+function encodeRedirectTextWithNewlineToScratch(arg0: string): Uint8Array | undefined {
+  const len = arg0.length;
+  if (len < 128) {
+    for (let i = 0; i < len; i++) {
+      const code = arg0.charCodeAt(i);
+      if (code >= 128) return undefined;
+      fastRedirectScratchBytes[i] = code;
+    }
+    fastRedirectScratchBytes[len] = 10;
+    return fastRedirectScratchViews[len + 1]!;
+  }
+  return undefined;
+}
+
 interface IntLoopStep {
   readonly name: string;
   readonly program: ArithmeticProgram;
@@ -5205,6 +5219,7 @@ export class Runtime {
       }
       let targetVal: ShellValue | undefined;
       let formatted: string | undefined;
+      let preEncoded: Uint8Array | undefined;
       let lastArg = w0Plain;
       try {
         if (w0Plain === "echo" && command.words.length === 1) {
@@ -5214,7 +5229,8 @@ export class Runtime {
           const arg0 = this.fastValueWord(command.words[1]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
           if (typeof arg0 === "string" && !arg0.startsWith("-") && !arg0.includes("\0")) {
             targetVal = this.fastValueWord(r0.target, rawState, io, true, false, false, true, undefined, diagnosticLine);
-            formatted = `${arg0}\n`;
+            preEncoded = encodeRedirectTextWithNewlineToScratch(arg0);
+            if (preEncoded === undefined) formatted = `${arg0}\n`;
             lastArg = arg0;
           }
         } else {
@@ -5248,12 +5264,12 @@ export class Runtime {
         fastSubScratchArgs.length = 0;
         return undefined;
       }
-      if (formatted === undefined || typeof targetVal !== "string" || targetVal.length === 0 || targetVal.includes("\0")) {
+      if ((preEncoded === undefined && formatted === undefined) || typeof targetVal !== "string" || targetVal.length === 0 || targetVal.includes("\0")) {
         return undefined;
       }
-      const path = pathOf(rawState, targetVal);
+      const path = isCleanAbsolutePath(targetVal) ? targetVal : pathOf(rawState, targetVal);
       if (path.startsWith("/dev/") || path === "/dev") return undefined;
-      const encoded = encodeRedirectTextToScratch(formatted);
+      const encoded = preEncoded ?? encodeRedirectTextToScratch(formatted!);
       const byteLength = encoded.byteLength;
       if (byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) return undefined;
       if (!this.budget.canFileSystemOperation()) return undefined;
@@ -12654,7 +12670,7 @@ export class Runtime {
         }
         out += part.value;
       } else if (part.kind === "variable") {
-        if (split && !part.quoted) return undefined;
+        if (split && !part.quoted && ((rawVars.IFS !== undefined && rawVars.IFS !== " \t\n") || this.budget.limits.maxExpansionBytes !== Infinity)) return undefined;
         if (part.indirect || part.prefixNames || part.specialParameter || part.length || part.substring || part.transform) return undefined;
         if (part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME") return undefined;
         if (getArraySelector(part) !== undefined || !isShellIdentifier(part.name)) return undefined;
@@ -12670,16 +12686,23 @@ export class Runtime {
             if (!patPart.quoted && hasGlobOrEscape(pat, !!rawState.extglob)) return undefined;
             const raw = rawVars[part.name];
             this.requireParameter(raw, part.name, state, io, part.line ?? overrideDiagnosticLine);
-            if (raw === undefined) continue;
+            if (raw === undefined) {
+              if (split && !part.quoted) return undefined;
+              continue;
+            }
             const val = this._syncArithRawWriteOnly && this._syncArithTouched?.has(part.name) ? raw : (monitor?.values.get(part.name, raw) ?? raw);
             if (typeof val !== "string") return undefined;
             const byteMode = byteLocale(rawVars);
             if (!isWellFormedString(val, byteMode) || !isWellFormedString(pat, byteMode)) return undefined;
-            if (part.operator === "#" || part.operator === "##") {
-              out += val.startsWith(pat) ? val.slice(pat.length) : val;
-            } else {
-              out += val.endsWith(pat) ? val.slice(0, val.length - pat.length) : val;
+            const sliced = part.operator === "#" || part.operator === "##"
+              ? (val.startsWith(pat) ? val.slice(pat.length) : val)
+              : (val.endsWith(pat) ? val.slice(0, val.length - pat.length) : val);
+            if (split && !part.quoted) {
+              if (sliced.length === 0 || sliced.includes(" ") || sliced.includes("\t") || sliced.includes("\n") || (!rawState.noglob && hasGlobOrEscape(sliced, !!rawState.extglob))) {
+                return undefined;
+              }
             }
+            out += sliced;
             continue;
           }
           return undefined;
@@ -12688,6 +12711,11 @@ export class Runtime {
         this.requireParameter(raw, part.name, state, io, part.line ?? overrideDiagnosticLine);
         const val = raw === undefined ? "" : (this._syncArithRawWriteOnly && this._syncArithTouched?.has(part.name) ? raw : (monitor?.values.get(part.name, raw) ?? raw));
         if (typeof val !== "string") return undefined;
+        if (split && !part.quoted) {
+          if (val.length === 0 || val.includes(" ") || val.includes("\t") || val.includes("\n") || (!rawState.noglob && hasGlobOrEscape(val, !!rawState.extglob))) {
+            return undefined;
+          }
+        }
         out += val;
       } else if (part.kind === "arithmetic") {
         if (split && !part.quoted && rawVars.IFS !== undefined && rawVars.IFS !== " \t\n") return undefined;

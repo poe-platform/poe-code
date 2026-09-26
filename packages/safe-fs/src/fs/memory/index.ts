@@ -97,6 +97,35 @@ const DUMMY_POOL_ALLOCATION = new MemoryAllocation(EMPTY_ALLOC_BYTES, DUMMY_POOL
 const sharedAllocationPool: MemoryAllocation[] = [];
 const sharedFileNodePool: MemoryFileNode[] = [];
 const sharedDirectoryNodePool: MemoryDirectoryNode[] = [];
+const sharedRemovedScratch: MemoryNode[] = [];
+let sharedRemovedKeyChars = 0;
+let sharedRemovedKeyEntries = 0;
+function collectRemovedChild(child: MemoryNode, name: string): void {
+  sharedRemovedScratch.push(child);
+  sharedRemovedKeyChars += name.length;
+  sharedRemovedKeyEntries++;
+}
+
+function replenishSharedMemoryPools(): void {
+  while (sharedAllocationPool.length < 112) {
+    if (smallAllocOffset + 64 > SMALL_ALLOC_SLAB_SIZE) {
+      smallAllocSlab = new Uint8Array(SMALL_ALLOC_SLAB_SIZE);
+      smallAllocOffset = 0;
+    }
+    const slice = smallAllocSlab.subarray(smallAllocOffset, smallAllocOffset + 64);
+    smallAllocOffset += 64;
+    DUMMY_POOL_LEDGER.reserve(64, 0, "init", "/");
+    const alloc = new MemoryAllocation(slice, DUMMY_POOL_LEDGER);
+    alloc.release();
+    sharedAllocationPool.push(alloc);
+  }
+  while (sharedFileNodePool.length < 112) {
+    sharedFileNodePool.push(new MemoryFileNode(0, 0, 0, 0, DUMMY_POOL_ALLOCATION, undefined));
+  }
+  while (sharedDirectoryNodePool.length < 16) {
+    sharedDirectoryNodePool.push(new MemoryDirectoryNode(0, 0, 0));
+  }
+}
 
 interface DirectoryNode extends Metadata {
   type: "directory";
@@ -420,6 +449,9 @@ export class MemoryFileSystem implements FileSystem {
 
   constructor(options: MemoryFileSystemOptions = {}) {
     this.ledger = new MemoryLedger(normalizeMemoryFileSystemLimits(options));
+    if (this.ledger.hasInfiniteRetained && this.ledger.limits.maxFileBytes === Infinity) {
+      replenishSharedMemoryPools();
+    }
     memoryCaches.set(this.ledger, new MemoryCache());
     this.ledger.reserve(0, 1, "mkdir", "/");
     this.root = this.directory(0o755);
@@ -1945,38 +1977,37 @@ export class MemoryFileSystem implements FileSystem {
     if (node.type === "directory" && !recursive) this.fail("EISDIR", syscall, path);
     const cache = memoryCaches.get(this.ledger)!;
     cache.clearWrites();
-    const removed = cache.removedScratch;
+    const removed = sharedRemovedScratch;
     removed.length = 0;
     removed.push(node);
-    let keyChars = 0;
-    let keyEntries = 0;
-    for (let index = 0; index < removed.length; index++) {
-      const entry = removed[index]!;
-      if (entry.type === "directory" && entry.entries.size > 0) {
-        this.permission(entry, 7, syscall, path);
-        for (const [name, child] of entry.entries) {
-          removed.push(child);
-          keyChars += name.length;
-          keyEntries++;
+    sharedRemovedKeyChars = 0;
+    sharedRemovedKeyEntries = 0;
+    try {
+      for (let index = 0; index < removed.length; index++) {
+        const entry = removed[index]!;
+        if (entry.type === "directory" && entry.entries.size > 0) {
+          this.permission(entry, 7, syscall, path);
+          entry.entries.forEach(collectRemovedChild);
         }
       }
-    }
-    location.parent.entries.delete(location.name);
-    this.ledger.release((location.name.length + keyChars) * 2, 1 + keyEntries);
-    const now = Date.now();
-    for (let i = 0; i < removed.length; i++) {
-      const entry = removed[i]!;
-      if (entry.type === "directory") {
-        entry.entries.clear();
+      location.parent.entries.delete(location.name);
+      this.ledger.release((location.name.length + sharedRemovedKeyChars) * 2, 1 + sharedRemovedKeyEntries);
+      const now = Date.now();
+      for (let i = 0; i < removed.length; i++) {
+        const entry = removed[i]!;
+        if (entry.type === "directory") {
+          entry.entries.clear();
+        }
+        entry.nlink--;
+        if (entry.nlink !== 0 || entry.references !== 0) {
+          entry.ctimeMs = now;
+          entry.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, entry.revision + 1);
+        }
+        this.releaseNode(entry);
       }
-      entry.nlink--;
-      if (entry.nlink !== 0 || entry.references !== 0) {
-        entry.ctimeMs = now;
-        entry.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, entry.revision + 1);
-      }
-      this.releaseNode(entry);
+    } finally {
+      removed.length = 0;
     }
-    removed.length = 0;
     this.changed(location.parent);
   }
 

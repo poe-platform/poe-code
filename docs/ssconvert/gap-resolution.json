@@ -637,15 +637,29 @@
         {
           "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sfx2/source/doc/oleprops.cxx",
           "sha256": "62d45a8369420a6ddef598d9156bcd51be74b11fa7c3131c856251c3c4fb6c41"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sfx2/source/doc/oleprops.hxx",
+          "sha256": "8b6bc34ce283f7ed8cc9320ce8a48343e88cbdfc66ced45bb0e449f6a9ebaa01"
+        },
+        {
+          "url": "https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromoadate?view=net-9.0",
+          "sha256": "00e1fb7e6c9f30ccc711222954a356ef4ae6b1f530374bc3ca6cc5af46b25199"
         }
       ],
       "productEvidence": "At 5124a5a714, biff.ts workbookBytes (82) selects only Workbook/Book from readCfb; readBiff does not populate Workbook.properties, and writeBiff emits only workbook streams. biff-encryption.ts:96 refuses CryptoAPI flags without bit 8 (ancillary properties encrypted). These are separate metadata preservation and encryption gaps.",
       "nativeTrace": "excimp8.cxx:418 calls sfx2::LoadOlePropertySet on the root storage. docinf.cxx:49 reads SummaryInformation title/subject/author/comments/timestamps and DocumentSummaryInformation named custom properties. oleprops.cxx:1094 opens each property stream directly; this path does not supply the BIFF decrypter and is not an encrypted-property implementation recipe.",
-      "next": "Implement bounded OLE property-set import/export using Workbook.properties and explicit preservation/loss handling for unsupported types. First derive section offsets, GUIDs, codepages, typed values and dictionary rules from source plus the file-format contract; use a minimal independent fixture to reproduce value loss before code changes. Resolve encrypted property streams separately; retain the explicit refusal until their format and ownership are implemented.",
+      "next": "Implement bounded OLE property-set export using Workbook.properties and explicit preservation/loss handling for retained streams. Qualify independent application readback. Resolve encrypted ancillary streams separately; keep the existing refusal until implemented.",
       "containerPrerequisite": {
         "change": "CFB output now admits more than two root-owned streams, chains every directory sector and writes a balanced red-black directory tree. Optional node/work and output-byte admission remains explicit; original one/two-stream layouts remain stable.",
         "evidence": "Seven failing memory cases reproduced the cap. Final 53-file BIFF cohort passes 1174 tests, including independent directory order, cycle, color/black-height and exact stream-value checks for 3/4/7/8/15/16 streams. Maintained package lint/types/public consumers and selected four-workspace build pass.",
         "remaining": "This is the container prerequisite only. OLE property-set import/export and encrypted-property handling are still unimplemented; the broader format/encryption families remain open."
+      },
+      "scalarImport": {
+        "change": "Root SummaryInformation and DocumentSummaryInformation sections now populate Workbook.properties. Section-local codepages and custom dictionaries decode UTF-8, UTF-16 and supported legacy encodings; supported values include strings, I4, R8, BOOL, FILETIME and OLE DATE. Unknown types, fields, sections, unsupported encodings and name collisions retain the complete property stream with a warning. Offsets, overlaps, duplicates, string terminators, finite numbers, node/text/work limits and cancellation are admitted explicitly.",
+        "evidence": "Five original memory fixtures failed before implementation. The expanded 18-case cohort passes; all 54 BIFF files / 1192 tests pass. No binary fixture or native-application pass is claimed.",
+        "dateFinding": "LibreOffice oleprops.cxx:565 truncates VT_DATE to integral days from 1899-12-31. Microsoft DateTime.FromOADate documentation defines 1899-12-30 plus the absolute fractional day. Import follows the documented stored representation, including negative fractional dates. FILETIME uses UTC and editing duration preserves 100 ns fractions; sub-millisecond timestamps retain their original bytes alongside the normalized string.",
+        "remaining": "Property export and encrypted ancillary-property support remain open. Unsupported values are retained for inspection, not yet round-tripped by the BIFF writer. Native application and wider format qualification remain open."
       }
     }
   },

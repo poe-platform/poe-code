@@ -14,6 +14,7 @@ import { biffOpcodes } from "./biff-source.js";
 import { biffNode as node, biffMetadataOpcodes, readBiffMetadata } from "./biff-metadata.js";
 import { writeCfb } from "./biff-write-binary.js";
 import { writeBiffStream } from "./biff-write.js";
+import { readBiffProperties } from "./biff-properties.js";
 import type { Codec } from "./types.js";
 
 export function createBiffWriter(profile: 7 | 8 | "dsf"): NonNullable<Codec["write"]> {
@@ -94,7 +95,8 @@ export async function probeBiff(bytes: Uint8Array, context: CapabilityContext): 
 export async function readBiff(borrowed: Uint8Array, context: CapabilityContext, encoding?: string): Promise<Workbook> {
   context.signal.throwIfAborted();
   if (borrowed.length > context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert input bytes limit exceeded");
-  const bytes = new Uint8Array(borrowed), stream = workbookBytes(bytes, context);
+  const bytes = new Uint8Array(borrowed), streams = isCfb(bytes) ? readCfb(bytes, context) : undefined;
+  const stream = streams ? workbookStreams.map(name => streams.get(name)).find(value => value !== undefined) : bytes;
   if (!stream) throw new SsconvertError("io", "E No Workbook or Book streams found.");
   const records = readBiffRecords(stream, context);
   if (!records[0] || !bofOpcodes.has(records[0].opcode)) invalidBiff("missing BOF");
@@ -658,7 +660,9 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       ...(formulaGroups.length ? { formulaGroups } : {}),
       ...(sheet.unsupportedRecords.length ? { unsupportedRecords: sheet.unsupportedRecords } : {}) });
   }
+  const properties = streams ? await readBiffProperties(streams, context, accountText, accountFormulaWork, unsupported) : {};
   return { sheets: resultSheets, dateSystem, calculationMode, iteration: { enabled: iterationEnabled, maximum, tolerance },
+    ...(Object.keys(properties).length ? { properties } : {}),
     ...(activeSheet === undefined ? {} : { activeSheet }),
     ...(materializedNames.length ? { names: materializedNames } : {}), ...(unsupported.length ? { unsupportedRecords: unsupported } : {}) };
 }

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { globSync, readFileSync } from "node:fs";
-import { join, relative } from "node:path";
+import { dirname, join, relative, sep } from "node:path";
 import test from "node:test";
 import { baseline, compile, createCopy, diagnostics, native, owned, root, run } from "./helpers.js";
 import { collectSourceInputs, isAdmittedSourcePath, type SourceInputFileSystem } from "../../source-census.js";
@@ -107,6 +107,16 @@ interface CompilerConfiguration {
 const integration = JSON.parse(readFileSync(join(root, "integration-boundaries.json"), "utf8")) as { heldSourceFiles: string[]; heldEvidenceDirectories: string[]; fixtureDirectories: { path: string }[] };
 const integrationTypes = JSON.parse(readFileSync(join(root, "integration-type-inputs.json"), "utf8")) as { cohorts: { entries: { path: string }[] }[] };
 const integrationTypePaths = [...integration.heldSourceFiles, ...integration.heldEvidenceDirectories, ...integration.fixtureDirectories.map(fixture => fixture.path), ...integrationTypes.cohorts.flatMap(cohort => cohort.entries.map(entry => entry.path)).filter(path => path.endsWith(".ts"))];
+const repositoryRoot = join(root, "../..");
+const workspaces = (JSON.parse(readFileSync(join(repositoryRoot, "package.json"), "utf8")) as { workspaces: string[] }).workspaces;
+const workspaceSourcePaths: Record<string, string[]> = {};
+for (const path of globSync(workspaces.map(pattern => `${pattern}/package.json`), { cwd: repositoryRoot })) {
+  const manifest = JSON.parse(readFileSync(join(repositoryRoot, path), "utf8")) as { name: string };
+  if (!manifest.name.startsWith("safe-bash-")) continue;
+  const directory = relative(root, join(repositoryRoot, dirname(path))).split(sep).join("/");
+  workspaceSourcePaths[manifest.name] = [`${directory}/src/index.ts`];
+  workspaceSourcePaths[`${manifest.name}/*`] = [`${directory}/src/*`];
+}
 
 function approvedCompilerConfiguration(): CompilerConfiguration {
   const bytes = readFileSync(join(owned, "before-02.json"));
@@ -116,7 +126,10 @@ function approvedCompilerConfiguration(): CompilerConfiguration {
     ...before.before.config,
     compilerOptions: {
       ...before.before.config.compilerOptions,
+      baseUrl: ".",
       paths: {
+        ...workspaceSourcePaths,
+        "safe-bash-contracts/*": ["../safe-bash-contracts/src/*.ts"],
         "poe-code/safe-bash": [
           "./dist/index.d.ts"
         ],
@@ -351,6 +364,16 @@ test("compiler-policy mutations cannot add exclusions or weaken current-source c
     ["missing native-data exclusion", configuration => { configuration.exclude = configuration.exclude.filter(path => path !== native); }],
     ["test include removed", configuration => { configuration.include = ["src/**/*.ts"]; }],
     ["strict typing disabled", configuration => { configuration.compilerOptions.strict = false; }],
+    ["source base escapes package", configuration => { configuration.compilerOptions.baseUrl = ".."; }],
+    ["unregistered workspace alias", configuration => {
+      (configuration.compilerOptions.paths as Record<string, string[]>)["safe-bash-unregistered"] = ["../unregistered/src/index.ts"];
+    }],
+    ["command alias points to stale build", configuration => {
+      (configuration.compilerOptions.paths as Record<string, string[]>)["safe-bash-command-ssconvert"] = ["../safe-bash-command-ssconvert/dist/index.d.ts"];
+    }],
+    ["missing source subpath", configuration => {
+      delete (configuration.compilerOptions.paths as Record<string, string[]>)["safe-bash-contracts/*"];
+    }],
   ];
   for (const [name, mutate] of mutations) {
     const configuration = structuredClone(approvedCompilerConfiguration());

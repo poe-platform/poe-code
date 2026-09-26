@@ -98,7 +98,7 @@ export function createDocumentHandlers(backend: OpBackend, options: OpDocumentHa
     const bytes = renderOpOutput(result, request);
     if (!(bytes instanceof Uint8Array)) throw new Error("document backend did not return content");
     if (bytes.byteLength > maxBytes) throw new Error("document exceeds byte limit");
-    if (path !== undefined) await context.writeFile!(path, bytes, { mode, overwrite: request.flags.force === true });
+    if (path !== undefined) await context.writeFile!(path, bytes, { ...(mode === undefined ? {} : { mode }), overwrite: request.flags.force === true });
     else {
       if (context.stdout.isTTY && request.flags.force !== true && !readable(bytes)) throw new Error("refusing binary document output to terminal; use --force or --out-file");
       await context.stdout.write(bytes);

@@ -48,7 +48,7 @@ export function createEnvironmentHandlers(backend: OpBackend) {
       if (action === "create") {
         const selected = request.flags.vars;
         if (selected !== undefined && (!Array.isArray(selected) || selected.some(name => typeof name !== "string"))) throw new Error("Invalid snapshot variable selection");
-        const snapshot = captureEnvironment(context.env, { names: selected as readonly string[] | undefined });
+        const snapshot = captureEnvironment(context.env, selected === undefined ? {} : { names: selected as readonly string[] });
         value = metadata(await backend.execute({ ...request, resource: "environment snapshot", args: [], input: { name: request.args[0], snapshot } }, selectOpBackendContext(context)));
       } else if (action === "restore") {
         const stored = await backend.execute({ resource: "environment snapshot", action: "get", args: [request.args[0]!], flags: selectOpGlobalFlags(request.flags) }, selectOpBackendContext(context));
@@ -97,7 +97,7 @@ export function createEnvironmentHandlers(backend: OpBackend) {
         if (action === "create") {
           const selected = request.flags.vars;
           if (selected !== undefined && (!Array.isArray(selected) || selected.some(name => typeof name !== "string"))) throw new Error("Invalid snapshot variable selection");
-          const snapshot = captureEnvironment(source.context.env, { names: selected as readonly string[] | undefined });
+          const snapshot = captureEnvironment(source.context.env, selected === undefined ? {} : { names: selected as readonly string[] });
           return createHandlerPreparation([{ ...request, resource: "environment snapshot", args: [], input: { name: request.args[0], snapshot } }], source.context, [{ kind: "stdout", environmentNames: Object.keys(snapshot.variables), unsetNames: Object.entries(snapshot.variables).filter(([, value]) => value === null).map(([key]) => key) }]);
         }
         if (action !== "restore") return createHandlerPreparation([{ ...request, resource: "environment snapshot" }], source.context, [{ kind: "stdout" }]);

@@ -63,8 +63,8 @@ export function createSourceSnapshot(source: OpCommandContext, maxBytes = Infini
     ...source,
     args: Object.freeze([...source.args]),
     env: Object.freeze({ ...source.env }),
-    stdout: Object.freeze({ isTTY: source.stdout.isTTY, write: source.stdout.write.bind(source.stdout) }),
-    stderr: Object.freeze({ isTTY: source.stderr.isTTY, write: source.stderr.write.bind(source.stderr) }),
+    stdout: Object.freeze({ ...(source.stdout.isTTY === undefined ? {} : { isTTY: source.stdout.isTTY }), write: source.stdout.write.bind(source.stdout) }),
+    stderr: Object.freeze({ ...(source.stderr.isTTY === undefined ? {} : { isTTY: source.stderr.isTTY }), write: source.stderr.write.bind(source.stderr) }),
     ...(source.writeFile ? { writeFile: source.writeFile.bind(source) } : {}),
     ...(source.invoke ? { invoke: source.invoke.bind(source) } : {}),
     ...(source.authentication ? { authentication: Object.freeze({ ...source.authentication }) } : {}),
@@ -148,14 +148,14 @@ export function createHandlerPreparation(
   const guarded: OpCommandContext = {
     ...context,
     stdout: {
-      isTTY: context.stdout.isTTY,
+      ...(context.stdout.isTTY === undefined ? {} : { isTTY: context.stdout.isTTY }),
       async write(bytes) {
         if (!allowed("stdout").length && !allowed("invoke").length) throw new Error("Unplanned output");
         await acquire(signal, () => context.stdout.write(Uint8Array.from(bytes)));
       },
     },
     stderr: {
-      isTTY: context.stderr.isTTY,
+      ...(context.stderr.isTTY === undefined ? {} : { isTTY: context.stderr.isTTY }),
       async write(bytes) {
         if (!allowed("invoke").length) throw new Error("Unplanned error output");
         await acquire(signal, () => context.stderr.write(Uint8Array.from(bytes)));

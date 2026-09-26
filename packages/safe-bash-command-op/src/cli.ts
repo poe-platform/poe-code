@@ -434,7 +434,8 @@ export function createOpCommand(options: OpCommandOptions): { name: "op"; execut
         }
         context.signal.throwIfAborted();
         context.stdin = original.stdin;
-        context.readFile = original.readFile;
+        if (original.readFile) context.readFile = original.readFile;
+        else delete context.readFile;
         const buffered = !handler || requiresInput ? await readInput(context, parsed.flags.encoding) : undefined;
         const input = buffered?.input;
         if (requiresInput && input === undefined) throw new Error("An object selector or piped input is required");
@@ -452,8 +453,8 @@ export function createOpCommand(options: OpCommandOptions): { name: "op"; execut
             const pending = validate();
             return pending === undefined ? effect() : pending.then(effect);
           };
-          context.stdout = { isTTY: original.stdout.isTTY, async write(bytes) { return handoff(() => original.stdout.write(bytes)); } };
-          context.stderr = { isTTY: original.stderr.isTTY, async write(bytes) { return handoff(() => original.stderr.write(bytes)); } };
+          context.stdout = { ...(original.stdout.isTTY === undefined ? {} : { isTTY: original.stdout.isTTY }), async write(bytes) { return handoff(() => original.stdout.write(bytes)); } };
+          context.stderr = { ...(original.stderr.isTTY === undefined ? {} : { isTTY: original.stderr.isTTY }), async write(bytes) { return handoff(() => original.stderr.write(bytes)); } };
           if (original.writeFile) context.writeFile = async (path, bytes, writeOptions) => handoff(() => original.writeFile!(path, bytes, writeOptions));
           if (original.invoke) context.invoke = async (command, args, invokeOptions) => handoff(() => original.invoke!(command, args, invokeOptions));
           const restoration = original as OpCommandContext & { restoreEnvironment?: (snapshot: unknown, context: { signal: AbortSignal }) => Promise<void> };

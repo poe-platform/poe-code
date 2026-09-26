@@ -104,7 +104,7 @@ export function createBindingManager(source: Map<string, OpObject[]>, policy: Op
   const invalid = () => new Error("Binding is invalid or no longer current");
   function cancel(binding: Binding): void {
     binding.cancelled = true;
-    binding.staged = undefined;
+    delete binding.staged;
     binding.steps = [];
     binding.signal.removeEventListener("abort", binding.abort);
   }
@@ -309,7 +309,7 @@ export function createBindingManager(source: Map<string, OpObject[]>, policy: Op
           for (const [resource, objects] of binding.staged) if (!sameData(source.get(resource), objects)) source.set(resource, objects);
           published(before);
           binding.generation = generation;
-          binding.staged = undefined;
+          delete binding.staged;
         }
         return result;
       } catch (error) {

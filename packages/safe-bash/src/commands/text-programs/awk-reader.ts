@@ -14,8 +14,8 @@ const resolvedVoid = Promise.resolve();
 const RELEASED_READER_ITERATOR: AsyncIterator<Uint8Array> = {
   next() { return Promise.resolve({ done: true as const, value: undefined }); },
 };
-let pooledMemoryReader: Reader | undefined;
-export function clearAwkReaderPool(): void { pooledMemoryReader = undefined; }
+const pooledMemoryReader: { value?: Reader } = {};
+export function clearAwkReaderPool(): void { pooledMemoryReader.value = undefined; }
 
 export class Reader {
   private iterator: AsyncIterator<Uint8Array>;
@@ -42,9 +42,9 @@ export class Reader {
   }
 
   static fromMemoryView(chunk: Uint8Array, budget: Budget, retention: Pick<AwkRetention, "admit" | "replace" | "release">): Reader {
-    let reader = pooledMemoryReader;
+    let reader = pooledMemoryReader.value;
     if (reader !== undefined) {
-      pooledMemoryReader = undefined;
+      pooledMemoryReader.value = undefined;
       reader.budget = budget;
       reader.retention = retention;
       reader.iterator = RELEASED_READER_ITERATOR;
@@ -359,9 +359,9 @@ export class Reader {
     this.iterator = RELEASED_READER_ITERATOR;
     this.budget = undefined!;
     this.retention = undefined!;
-    if (this.isPooledMemory && pooledMemoryReader === undefined) {
+    if (this.isPooledMemory && pooledMemoryReader.value === undefined) {
       this.isPooledMemory = false;
-      pooledMemoryReader = this;
+      pooledMemoryReader.value = this;
     }
     if (wasEnded || !origIter.return) {
       this.closing = resolvedVoid;
@@ -389,9 +389,9 @@ export class Reader {
     this.iterator = RELEASED_READER_ITERATOR;
     this.budget = undefined!;
     this.retention = undefined!;
-    if (this.isPooledMemory && pooledMemoryReader === undefined) {
+    if (this.isPooledMemory && pooledMemoryReader.value === undefined) {
       this.isPooledMemory = false;
-      pooledMemoryReader = this;
+      pooledMemoryReader.value = this;
     }
     if (wasEnded || !origIter.return) {
       this.closing = resolvedVoid;

@@ -6,8 +6,8 @@ import { createFsFromVolume, Volume } from "memfs";
 import { build, type BuildResult } from "esbuild";
 import { beforeAll, expect, it } from "vitest";
 import { resolveBrowserOpBuild, resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
-import { rewriteModuleSpecifiers } from "./package-safe.mjs";
 import { publishBundleOutputs } from "./publish-bundle.mjs";
+import { resolveBundleGraph } from "./bundle-graph.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 // Build and rewrite once per test-file run; consumer builds and VMs stay separate.
@@ -15,6 +15,12 @@ let portableBuild: BuildResult;
 let filesystemBuild: BuildResult;
 let browserFixtureBuild: BuildResult;
 const artifacts = new Volume();
+let canonicalAliases: Record<string, string>;
+
+beforeAll(async () => {
+  const pkg = JSON.parse(await readFile(path.join(root, "packages/safe-bash-contracts/package.json"), "utf8"));
+  canonicalAliases = (await resolveBundleGraph(root, [{ dir: "safe-bash-contracts", pkg }])).alias;
+});
 
 it("publishes the op entry and live compression chunks in one browser output graph", async () => {
   const options = resolveBrowserShellBuild(root);
@@ -51,6 +57,9 @@ async function bundlePublicConsumer(contents: string) {
     plugins: [{
       name: "public-built-shell-entries",
       setup(builder) {
+        builder.onResolve({ filter: /^poe-code\/safe-fs\/core$/ }, () => ({
+          path: "@poe-platform/safe-fs/core", external: true,
+        }));
         builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/commands\/(?:xml|yq|network|node|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings|llm(?:\/providers)?))?$/ }, args => ({
           path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
           namespace: "built-shell",
@@ -248,7 +257,8 @@ it.each(["verifyTruncateCommands", "verifyCsplitCommands", "verifyPrCommands", "
 });
 
 it("bundles the opt-in op plugin with browser crypto and no Node implementation", async () => {
-  const result = await build(resolveBrowserOpBuild(root));
+  const recipe = resolveBrowserOpBuild(root);
+  const result = await build({ ...recipe, alias: { ...canonicalAliases, ...recipe.alias } });
   expect(result.outputFiles!.some(output => output.path.endsWith("/commands/op/index.browser.js"))).toBe(true);
   const inputs = Object.keys(result.metafile!.inputs);
   expect(inputs).toContain("packages/safe-bash-command-op/src/crypto.ts");
@@ -381,17 +391,14 @@ beforeAll(async () => {
 });
 
 beforeAll(async () => {
-  portableBuild = await build({...resolveBrowserShellBuild(root), sourcemap: false});
+  const recipe = resolveBrowserShellBuild(root);
+  portableBuild = await build({ ...recipe, alias: { ...canonicalAliases, ...recipe.alias }, sourcemap: false });
 });
 
 beforeAll(async () => {
   for (const output of portableBuild.outputFiles!.filter(output => output.path.endsWith(".js"))) {
     artifacts.mkdirSync(path.dirname(output.path), { recursive: true });
-    const metadata = portableBuild.metafile!.outputs[path.relative(root, output.path).split(path.sep).join("/")]!;
-    const contents = metadata.imports.some(item => item.path === "poe-code/safe-fs/core")
-      ? rewriteModuleSpecifiers(output.path, output.text, specifier => specifier === "poe-code/safe-fs/core" ? "@poe-platform/safe-fs/core" : specifier)
-      : output.text;
-    artifacts.writeFileSync(output.path, contents);
+    artifacts.writeFileSync(output.path, output.text);
   }
 });
 
@@ -442,7 +449,7 @@ beforeAll(async () => {
           path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
           namespace: "built-shell",
         }));
-        builder.onResolve({ filter: /^@poe-platform\/(?:safe-fs\/core|safe-js\/fs\/core)$/ }, () => ({
+        builder.onResolve({ filter: /^(?:@poe-platform\/(?:safe-fs\/core|safe-js\/fs\/core)|poe-code\/safe-fs\/core)$/ }, () => ({
           path: path.join(root, "packages/safe-fs/src/core.ts"),
         }));
         builder.onResolve({ filter: /^@poe-platform\/safe-fs\/testing\/atomic$/ }, () => ({

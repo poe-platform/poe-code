@@ -6,7 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import fastGlob from "fast-glob";
 import { createFsFromVolume, Volume } from "memfs";
-import { describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import * as workspaceRunner from "./build-workspaces.mjs";
 import { buildWorkspaces, createWorkspaceBuildPlan, matchesWorkspaceRange, readManifest } from "./build-workspaces.mjs";
 
@@ -1012,20 +1012,29 @@ describe("finite unit input and environment boundaries", () => {
     } finally { owned.remove(); }
   });
 
-  it("keeps foreign fixture configuration and branch creation out of an owned detached hook repository", async () => {
-    const owned = unitFixture(), mock = mockExecution();
-    try {
-      const decoy = path.join(owned.root, "decoy"), foreign = path.join(owned.root, "foreign");
+  describe("detached hook repository isolation", () => {
+    let owned: Fixture, decoy: string, foreign: string;
+    let environment: NodeJS.ProcessEnv, config: Buffer, head: Buffer;
+    const git = (cwd: string, args: string[], env: NodeJS.ProcessEnv = environment) => execFileSync("git", ["-c", "core.hooksPath=/dev/null", "-c", "commit.gpgsign=false", ...args], { cwd, env, encoding: "utf8", timeout: 5000, maxBuffer: 1048576, stdio: ["ignore", "pipe", "pipe"] });
+
+    beforeAll(() => {
+      owned = unitFixture();
+      decoy = path.join(owned.root, "decoy");
+      foreign = path.join(owned.root, "foreign");
       fs.mkdirSync(decoy); fs.mkdirSync(foreign);
-      const environment = { PATH: process.env.PATH, HOME: owned.root, GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null", GIT_TERMINAL_PROMPT: "0" };
-      const git = (cwd: string, args: string[], env: NodeJS.ProcessEnv = environment) => execFileSync("git", ["-c", "core.hooksPath=/dev/null", "-c", "commit.gpgsign=false", ...args], { cwd, env, encoding: "utf8", timeout: 5000, maxBuffer: 1048576, stdio: ["ignore", "pipe", "pipe"] });
+      environment = { PATH: process.env.PATH, HOME: owned.root, GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null", GIT_TERMINAL_PROMPT: "0" };
       git(decoy, ["init", "--initial-branch=main"]);
       git(decoy, ["config", "user.name", "Owned Decoy"]);
       git(decoy, ["config", "user.email", "decoy@example.invalid"]);
       git(decoy, ["commit", "--allow-empty", "-m", "owned"]);
       git(decoy, ["checkout", "--detach"]);
-      const config = fs.readFileSync(path.join(decoy, ".git/config"));
-      const head = fs.readFileSync(path.join(decoy, ".git/HEAD"));
+      config = fs.readFileSync(path.join(decoy, ".git/config"));
+      head = fs.readFileSync(path.join(decoy, ".git/HEAD"));
+    });
+    afterAll(() => owned?.remove());
+
+    it("keeps foreign fixture configuration and branch creation out of an owned detached hook repository", async () => {
+      const mock = mockExecution();
       const parent = Object.freeze({ ...mock.environment, ...environment, GIT_DIR: path.join(decoy, ".git"), GIT_WORK_TREE: decoy, GIT_INDEX_FILE: path.join(decoy, ".git/index") });
       await workspaceRunner.testWorkspaces(owned.root, { ...mock, environment: parent });
       const childEnvironment = mock.start.mock.calls.find(call => call[1][4] === "test:unit")![2].env;
@@ -1037,7 +1046,7 @@ describe("finite unit input and environment boundaries", () => {
       expect(fs.readFileSync(path.join(decoy, ".git/config"))).toEqual(config);
       expect(fs.readFileSync(path.join(decoy, ".git/HEAD"))).toEqual(head);
       expect(parent.GIT_DIR).toBe(path.join(decoy, ".git"));
-    } finally { owned.remove(); }
+    });
   });
 
   it("does not open source payloads while planning the metadata-only graph", () => {

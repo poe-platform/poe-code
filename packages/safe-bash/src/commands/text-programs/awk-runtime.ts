@@ -20,6 +20,9 @@ function ownScalar(value: Scalar): Scalar {
       ? { kind: "numeric", text: ownedText, number: value.number }
       : { kind: "string", text: ownedText };
   }
+  if (value.kind === "number" && !Object.isFrozen(value)) {
+    return { kind: "number", number: value.number };
+  }
   return value;
 }
 
@@ -393,6 +396,54 @@ export class AwkRuntime {
       if (value !== "") await segment(consumed, value.length);
     }
     return parts;
+  }
+  private parseSliceNumber(record: string, start: number, end: number): number {
+    const len = end - start;
+    if (len <= 0) return 0;
+    const first = record.charCodeAt(start);
+    if (first >= 48 && first <= 57 && len <= 15) {
+      let num = first - 48;
+      for (let i = start + 1; i < end; i++) {
+        const c = record.charCodeAt(i);
+        if (c < 48 || c > 57) {
+          return number(inputValueFromSlice(record, start, end));
+        }
+        num = num * 10 + (c - 48);
+      }
+      return num;
+    }
+    return number(inputValueFromSlice(record, start, end));
+  }
+  private getFieldNumber(index: number): number {
+    if (index === 0) return number(this.getField(0));
+    const slot = index - 1;
+    if (this.fieldsMaterialized) {
+      const f = this.rawFields[slot];
+      return f ? number(f) : 0;
+    }
+    if (this.fieldCount < 0) {
+      const sep = this.deferredFieldSeparator;
+      if (sep.length === 1 && sep !== " ") {
+        const source = this.recordSource;
+        const recEnd = this.recordEnd;
+        let start = this.recordStart;
+        if (start >= recEnd) return 0;
+        for (let s = 0; s < slot; s++) {
+          const idx = source.indexOf(sep, start);
+          if (idx < 0 || idx >= recEnd) return 0;
+          start = idx + 1;
+        }
+        const nextIdx = source.indexOf(sep, start);
+        const end = nextIdx >= 0 && nextIdx < recEnd ? nextIdx : recEnd;
+        return this.parseSliceNumber(source, start, end);
+      }
+      this.ensureSliceFieldsSplit();
+    }
+    if (slot < 0 || slot >= this.fieldCount) return 0;
+    if (this.lazyFieldGen[slot] === this.fieldGeneration) {
+      return number(this.lazyFields[slot]!);
+    }
+    return this.parseSliceNumber(this.recordSource, this.fieldStarts[slot]!, this.fieldEnds[slot]!);
   }
   private getField(index: number): Scalar {
     if (index === 0) {
@@ -1156,9 +1207,70 @@ export class AwkRuntime {
     return this.execute(statement);
   }
 
+  private tryFastExpressionStatement(expr: Expression): boolean {
+    if (this.frames.length !== 0) return false;
+    if (expr.kind === "unary" && (expr.operator === "++" || expr.operator === "--") && expr.operand.kind === "variable") {
+      const name = expr.operand.name;
+      if (name !== "NF" && name !== "NR" && name !== "FNR" && name !== "FS" && name !== "RS" && name !== "CONVFMT") {
+        this.budget.step();
+        const existing = this.variables.get(name);
+        if (existing === undefined || !(existing instanceof AwkArray)) {
+          const next = (existing !== undefined ? number(existing) : 0) + (expr.operator === "++" ? 1 : -1);
+          if (existing !== undefined && existing.kind === "number" && !Object.isFrozen(existing)) {
+            (existing as { number: number }).number = next;
+            return true;
+          }
+          const prevBytes = textSize(existing);
+          if (prevBytes > 0) this.retention.admit(prevBytes, 0);
+          this.variables.set(name, { kind: "number", number: next });
+          return true;
+        }
+      }
+      return false;
+    }
+    if (
+      expr.kind === "binary" &&
+      (expr.operator === "+=" || expr.operator === "-=" || expr.operator === "*=" || expr.operator === "/=") &&
+      expr.left.kind === "variable"
+    ) {
+      const name = expr.left.name;
+      if (name !== "NF" && name !== "NR" && name !== "FNR" && name !== "FS" && name !== "RS" && name !== "CONVFMT") {
+        const right = expr.right;
+        let rightNum: number | undefined;
+        if (right.kind === "field" && right.index.kind === "number") {
+          this.budget.step(3);
+          const idx = Math.trunc(right.index.value);
+          if (idx > 0 && idx <= (this.budget.options.maxFields ?? Infinity)) {
+            rightNum = this.getFieldNumber(idx);
+          }
+        } else if (right.kind === "number") {
+          this.budget.step(2);
+          rightNum = right.value;
+        }
+        if (rightNum !== undefined) {
+          const existing = this.variables.get(name);
+          if (existing === undefined || !(existing instanceof AwkArray)) {
+            const prevNum = existing !== undefined ? number(existing) : 0;
+            const next = this.arithmetic(expr.operator[0]!, prevNum, rightNum);
+            if (existing !== undefined && existing.kind === "number" && !Object.isFrozen(existing)) {
+              (existing as { number: number }).number = next;
+              return true;
+            }
+            const prevBytes = textSize(existing);
+            if (prevBytes > 0) this.retention.admit(prevBytes, 0);
+            this.variables.set(name, { kind: "number", number: next });
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   private executeSyncBody(statement: Statement): void | Promise<void> {
     if (statement.kind === "expression") {
       this.budget.step();
+      if (!this.inspection && this.tryFastExpressionStatement(statement.expression)) return undefined;
       const val = this.evaluate(statement.expression);
       return val instanceof Promise ? this.ignorePromiseValue(val) : undefined;
     }
@@ -1169,6 +1281,7 @@ export class AwkRuntime {
         let res: void | Promise<void>;
         if (child.kind === "expression" && !this.inspection) {
           this.budget.step();
+          if (this.tryFastExpressionStatement(child.expression)) continue;
           const val = this.evaluate(child.expression);
           res = val instanceof Promise ? this.ignorePromiseValue(val) : undefined;
         } else {

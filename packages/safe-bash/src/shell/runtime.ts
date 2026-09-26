@@ -228,9 +228,10 @@ const budgetedSinks = {
   get(sink: ByteSink) {
     if (
       (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) ||
+      (sink instanceof Capture && sink.budget !== undefined && sink.write === Capture.prototype.write) ||
       (sink instanceof BudgetedPipeStageSink && sink.write === BudgetedPipeStageSink.prototype.write)
     ) {
-      return sink;
+      return sink as { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> };
     }
     const entry = (sink as unknown as Record<symbol, BudgetedSinkEntry | undefined>)[budgetedSinkSymbol];
     return entry?.self === sink ? entry : fallbackBudgetedSinks.get(sink);
@@ -645,6 +646,12 @@ export class Budget {
 
   sink(sink: ByteSink, signal = this.signal): ByteSink {
     if (sink instanceof Capture && sink.write === Capture.prototype.write) {
+      if (sink.budget === undefined) {
+        sink.budget = this;
+        sink.signal = signal;
+        return sink;
+      }
+      if (sink.budget === this && sink.signal === signal) return sink;
       return new BudgetedSyncSink(this, sink, signal);
     }
     if (sink instanceof BudgetedSyncSink && sink.budget === this && sink.write === BudgetedSyncSink.prototype.write) {
@@ -742,25 +749,56 @@ Object.assign(Budget.prototype, {
 });
 
 
+const EMPTY_CAPTURE_BYTES = new Uint8Array(0);
+
 export class Capture implements ByteSink {
-  readonly chunks: Uint8Array[] = [];
-  length = 0;
-  private _tail: Uint8Array | undefined;
-  private _tailLength = 0;
+  declare private _chunks: Uint8Array[] | undefined;
+  declare private _first: Uint8Array | undefined;
+  declare length: number;
+  declare private _tail: Uint8Array | undefined;
+  declare private _tailLength: number;
+  declare budget: Budget | undefined;
+  declare signal: AbortSignal | undefined;
+  declare file?: NonNullable<CommandContext["stdoutFile"]>;
+
+  constructor(budget?: Budget, signal?: AbortSignal) {
+    if (budget !== undefined) this.budget = budget;
+    if (signal !== undefined) this.signal = signal;
+  }
+
+  get self(): ByteSink {
+    return this;
+  }
+
+  get chunks(): Uint8Array[] {
+    if (!this._chunks) {
+      this._chunks = this._first ? [this._first] : [];
+      this._first = undefined;
+    }
+    return this._chunks;
+  }
 
   writeSync(chunk: Uint8Array): boolean {
+    if (this.budget !== undefined) {
+      this.signal!.throwIfAborted();
+      if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+      const budget = this.budget;
+      if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+      budget.bytes += chunk.byteLength;
+    }
     if (!chunk.byteLength) return true;
-    if (this.chunks.length === 0 && chunk.byteLength <= 4096) {
-      this.chunks.push(new Uint8Array(chunk));
+    if (!this._chunks && !this._first && chunk.byteLength <= 4096) {
+      this._first = new Uint8Array(chunk);
       this.length = chunk.byteLength;
       return true;
     }
-    if (!this._tail && this.chunks.length === 1 && this.chunks[0]!.byteLength < 4096) {
-      const first = this.chunks[0]!;
+    const chunks = this.chunks;
+    if (!this._tail && chunks.length === 1 && chunks[0]!.byteLength < 4096) {
+      const first = chunks[0]!;
       this._tail = new Uint8Array(4096);
       this._tail.set(first);
       this._tailLength = first.byteLength;
-      this.chunks[0] = this._tail.subarray(0, this._tailLength);
+      chunks[0] = this._tail.subarray(0, this._tailLength);
     }
     let offset = 0;
     while (offset < chunk.byteLength) {
@@ -769,34 +807,49 @@ export class Capture implements ByteSink {
         const nextCap = remaining >= 16384 ? Math.max(128 * 1024, Math.min(256 * 1024, remaining * 4)) : Math.max(4096, Math.min(64 * 1024, remaining));
         this._tail = new Uint8Array(nextCap);
         this._tailLength = 0;
-        this.chunks.push(this._tail.subarray(0, 0));
+        chunks.push(this._tail.subarray(0, 0));
       }
       const size = Math.min(chunk.byteLength - offset, this._tail.byteLength - this._tailLength);
       this._tail.set(chunk.subarray(offset, offset + size), this._tailLength);
       this._tailLength += size;
       offset += size;
-      this.chunks[this.chunks.length - 1] = this._tail.subarray(0, this._tailLength);
+      chunks[chunks.length - 1] = this._tail.subarray(0, this._tailLength);
     }
     this.length += chunk.byteLength;
     return true;
   }
 
   write(chunk: Uint8Array): Promise<void> {
-    this.writeSync(chunk);
-    return resolvedVoid;
+    try {
+      this.writeSync(chunk);
+      return resolvedVoid;
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   bytes(): Uint8Array {
+    if (this.length === 0) return EMPTY_CAPTURE_BYTES;
+    if (this._first && !this._chunks) return new Uint8Array(this._first);
     const bytes = new Uint8Array(this.length);
     let offset = 0;
-    for (const chunk of this.chunks) {
-      bytes.set(chunk, offset);
-      offset += chunk.byteLength;
+    if (this._chunks) {
+      for (const chunk of this._chunks) {
+        bytes.set(chunk, offset);
+        offset += chunk.byteLength;
+      }
     }
     return bytes;
   }
 
   takeBytes(): Uint8Array {
+    if (this.length === 0) return EMPTY_CAPTURE_BYTES;
+    if (this._first && !this._chunks) {
+      const first = this._first;
+      this._first = undefined;
+      this.length = 0;
+      return first;
+    }
     const chunk = this.chunks.length === 1 ? this.chunks[0] : undefined;
     const bytes = chunk && (chunk.byteLength === chunk.buffer.byteLength || chunk.buffer.byteLength - chunk.byteLength <= 65536)
       ? chunk
@@ -808,6 +861,16 @@ export class Capture implements ByteSink {
     return bytes;
   }
 }
+Object.assign(Capture.prototype, {
+  _chunks: undefined,
+  _first: undefined,
+  length: 0,
+  _tail: undefined,
+  _tailLength: 0,
+  budget: undefined,
+  signal: undefined,
+  file: undefined,
+});
 
 interface GetoptsBinding {
   cursor: GetoptsState;
@@ -864,8 +927,8 @@ export interface State {
   loopDepth: number;
   functionDepth: number;
   locals: Map<string, SavedVariable>[];
-  getopts?: GetoptsBinding;
-  directoryStack?: { readonly entries: readonly string[]; readonly bytes: number };
+  getopts?: GetoptsBinding | undefined;
+  directoryStack?: { readonly entries: readonly string[]; readonly bytes: number } | undefined;
   directoryStackCwdPublication?: symbol;
   dotglob?: boolean;
   extglob?: boolean;
@@ -1335,6 +1398,9 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
   if (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) {
     return sink.signal === signal ? sink : new BudgetedSyncSink(sink.budget, sink.target, signal, sink.file);
   }
+  if (sink instanceof Capture && sink.budget !== undefined && sink.write === Capture.prototype.write) {
+    return sink.signal === signal ? sink : new BudgetedSyncSink(sink.budget, sink, signal);
+  }
   const ownership = budgetedSinks.get(sink);
   const owned = ownership?.write === sink.write ? ownership : undefined;
   const write = owned ? owned.write.bind(sink) : (chunk: Uint8Array) => sink.write(chunk);
@@ -1746,20 +1812,28 @@ const fastShellCommandAccessors = ["fs", "shellPredicates", "inputBudget", "exec
 );
 
 function cloneRawState(raw: State, hasLocals: boolean): State {
-  const cloned: State = {
-    ...raw,
-    variables: Object.assign(Object.create(null) as Record<string, string>, raw.variables),
-    exported: raw.exported.size ? new Set(raw.exported) : new Set(),
-    functions: raw.functions.size ? new Map(raw.functions) : new Map(),
-    positional: raw.positional.length > 0 ? [...raw.positional] : [],
-    directoryStack: {
-      entries: raw.directoryStack?.entries.length ? [...raw.directoryStack.entries] : [],
-      bytes: raw.directoryStack?.bytes ?? 0,
+  const variables = Object.assign(Object.create(null) as Record<string, string>, raw.variables);
+  const exported = raw.exported.size ? new Set(raw.exported) : new Set<string>();
+  const hasFunctions = raw instanceof RootShellState ? Boolean(raw._functions?.size) : raw.functions.size > 0;
+  const cloned: State = Object.assign(
+    new RootShellState(raw.cwd, variables, exported, raw.extensions),
+    raw,
+    {
+      variables,
+      exported,
+      _functions: hasFunctions ? new Map(raw.functions) : undefined,
+      positional: raw.positional.length > 0 ? [...raw.positional] : EMPTY_POSITIONALS,
+      directoryStack: raw.directoryStack
+        ? {
+            entries: raw.directoryStack.entries.length ? [...raw.directoryStack.entries] : [],
+            bytes: raw.directoryStack.bytes,
+          }
+        : undefined,
+      locals: hasLocals
+        ? raw.locals.map((scope) => new Map([...scope].map(([name, saved]) => [name, { ...saved, ...(saved.getopts ? { getopts: { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) } } : {}) }])))
+        : EMPTY_LOCALS,
     },
-    locals: hasLocals
-      ? raw.locals.map((scope) => new Map([...scope].map(([name, saved]) => [name, { ...saved, ...(saved.getopts ? { getopts: { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) } } : {}) }])))
-      : [],
-  };
+  );
   if (raw.exportedFunctions) cloned.exportedFunctions = new Set(raw.exportedFunctions);
   if (raw.readonlyVariables) cloned.readonlyVariables = new Set(raw.readonlyVariables);
   if (raw.readonlyFunctions) cloned.readonlyFunctions = new Set(raw.readonlyFunctions);
@@ -1819,7 +1893,7 @@ async function cloneState(state: State, signal: AbortSignal, scope?: InvocationS
 }
 
 function cloneGetoptsBinding(state: State): GetoptsBinding {
-  return { cursor: state.getopts ? cloneGetoptsState(state.getopts.cursor) : createGetoptsState(), integer: state.getopts?.integer ?? false };
+  return { cursor: state.getopts ? cloneGetoptsState(state.getopts.cursor) : createGetoptsState(), integer: state.getopts?.integer ?? true };
 }
 
 function shellCharacterWidth(bytes: Uint8Array, offset: number, byteCount: boolean): number {
@@ -3053,7 +3127,7 @@ export class Runtime {
     const maxBytes = this.budget.limits.maxExpansionBytes;
     if ((typeof value !== "string" || value.length * 3 > maxBytes) && shellValueByteLength(value) > maxBytes) this.budget.fail("maxExpansionBytes");
     if (state.variableAttributes?.size) value = await this.attributeValue(state, name, value, io, origin);
-    if (name === "OPTIND" && state.getopts?.integer && origin !== "arithmetic") {
+    if (name === "OPTIND" && (state.getopts === undefined || state.getopts.integer) && origin !== "arithmetic") {
       try { value = String(evaluateArithmetic(prepareArithmetic(shellValueText(value) || "0", this.budget.parsing), this.arithmeticVariables(state), this.budget.parsing)); }
       catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error, this.budget.onInternalError)); }
     }
@@ -4530,7 +4604,7 @@ export class Runtime {
         !w0Plain ||
         !FAST_DIRECT_CONTEXT_COMMANDS.has(w0Plain) ||
         implementedBuiltins.has(w0Plain) ||
-        rawState.functions.has(w0Plain) ||
+        hasShellFunction(rawState, w0Plain) ||
         rawState.extensions?.builtins.has(w0Plain)
       ) {
         return undefined;
@@ -4944,7 +5018,7 @@ export class Runtime {
         (r0.operator !== ">" && r0.operator !== ">>" && !(r0.operator === ">|" && rawState.noclobber)) ||
         (r0.operator === ">" && rawState.noclobber) ||
         (w0Plain !== "echo" && w0Plain !== "printf") ||
-        rawState.functions.has(w0Plain) ||
+        hasShellFunction(rawState, w0Plain) ||
         rawState.extensions?.builtins.has(w0Plain)
       ) {
         return undefined;
@@ -5052,7 +5126,7 @@ export class Runtime {
       const w0Plain = w0.plain;
       if (
         (w0Plain === ":" || w0Plain === "true" || w0Plain === "false") &&
-        !rawState.functions.has(w0Plain) &&
+        !hasShellFunction(rawState, w0Plain) &&
         !rawState.extensions?.builtins.has(w0Plain)
       ) {
         const rawStatus = w0Plain === "false" ? 1 : 0;
@@ -5200,9 +5274,14 @@ export class Runtime {
               const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
               this.budget.tick();
               if (fastSyncSink) {
-                if (fastSyncSink instanceof Capture || fastSyncSink.budget !== this.budget) {
+                if (fastSyncSink.budget !== this.budget) {
                   this.budget.bytes += byteLength;
-                  if (fastSyncSink instanceof Capture) fastSyncSink.writeSync(encoded);
+                  if (fastSyncSink instanceof Capture) {
+                    const prevBudget = fastSyncSink.budget;
+                    fastSyncSink.budget = undefined;
+                    try { fastSyncSink.writeSync(encoded); }
+                    finally { fastSyncSink.budget = prevBudget; }
+                  }
                   else fastSyncSink.target.writeSync(encoded);
                 } else {
                   fastSyncSink.writeSync(encoded);
@@ -6764,13 +6843,18 @@ export class Runtime {
             try {
               let exitCode: number;
               try {
-                const child: State = isPureStage || runtime.isPureExternalStageCommand(command, rawStateForChild)
-                  ? {
-                      ...rawStateForChild,
-                      extensions: forkExtensions(state.extensions, "pipeline"),
-                      isolated: true,
-                      _readOnlyStage: true,
-                    }
+                const isFastPure = isPureStage || runtime.isPureExternalStageCommand(command, rawStateForChild);
+                const forkedExt = isFastPure ? forkExtensions(state.extensions, "pipeline") : undefined;
+                const child: State = isFastPure
+                  ? Object.assign(
+                      new RootShellState(rawStateForChild.cwd, rawStateForChild.variables, rawStateForChild.exported, forkedExt),
+                      rawStateForChild,
+                      {
+                        extensions: forkedExt,
+                        isolated: true,
+                        _readOnlyStage: true,
+                      },
+                    )
                   : (tryCloneStateSync(state) ?? await cloneState(state, this.signal));
                 preparedChild = child;
                 if (!child._readOnlyStage) {
@@ -7012,7 +7096,7 @@ export class Runtime {
     if (
       firstName === undefined ||
       !FAST_DIRECT_CONTEXT_COMMANDS.has(firstName) ||
-      rawState.functions.has(firstName) ||
+      hasShellFunction(rawState, firstName) ||
       rawState.extensions?.builtins.has(firstName)
     ) {
       return false;
@@ -7168,7 +7252,7 @@ export class Runtime {
         const w0Plain = command.words[0]!.plain;
         if (
           (w0Plain === "[" || w0Plain === "test") &&
-          !state.functions.has(w0Plain) &&
+          !hasShellFunction(state, w0Plain) &&
           !state.extensions?.builtins.has(w0Plain)
         ) {
           const cmd = this.commands.get(w0Plain);
@@ -7218,7 +7302,7 @@ export class Runtime {
         (r0.operator === ">" || r0.operator === ">>" || (r0.operator === ">|" && state.noclobber)) &&
         !(r0.operator === ">" && state.noclobber) &&
         (w0Plain === "echo" || w0Plain === "printf") &&
-        !state.functions.has(w0Plain) &&
+        !hasShellFunction(state, w0Plain) &&
         !state.extensions?.builtins.has(w0Plain)
       ) {
         const def = this.commands.get(w0Plain);
@@ -8887,7 +8971,7 @@ export class Runtime {
           const locals = new Map<string, SavedVariable>();
           try {
             getoptsRestoration = stateMonitor(state)?.restoration();
-            const stack = state.locals;
+            const stack = state.locals === EMPTY_LOCALS ? (state.locals = []) : state.locals;
             const argumentsCopy = [...context.args];
             const monitor = stateMonitor(state);
             const preparedLocals = frameOwner ? monitor!.prepareCollection(locals, "locals") : locals;
@@ -13343,3 +13427,74 @@ Object.assign(Runtime.prototype, {
   _syncArithTouched: undefined,
   _syncArithRefs: undefined,
 });
+const EMPTY_POSITIONALS: string[] = [];
+const EMPTY_LOCALS: Map<string, SavedVariable>[] = [];
+
+export class RootShellState implements State {
+  declare umask: number;
+  declare extensions: ShellExtensionState | undefined;
+  declare cwd: string;
+  declare variables: Record<string, string>;
+  declare exported: Set<string>;
+  declare _functions: Map<string, Command> | undefined;
+  declare positional: string[];
+  declare getopts: GetoptsBinding | undefined;
+  declare directoryStack: { entries: string[]; bytes: number } | undefined;
+  declare dotglob: boolean;
+  declare globstar: boolean;
+  declare status: number;
+  declare substitutionStatus: number;
+  declare depth: number;
+  declare loopDepth: number;
+  declare functionDepth: number;
+  declare locals: Map<string, SavedVariable>[];
+  declare pipefail: boolean;
+  declare profile: "bash";
+
+  constructor(
+    cwd: string,
+    variables: Record<string, string>,
+    exported: Set<string>,
+    extensions: ShellExtensionState | undefined,
+  ) {
+    this.cwd = cwd;
+    this.variables = variables;
+    this.exported = exported;
+    this.extensions = extensions;
+  }
+
+  get functions(): Map<string, Command> {
+    return this._functions ??= new Map();
+  }
+  set functions(value: Map<string, Command>) {
+    this._functions = value;
+  }
+}
+Object.assign(RootShellState.prototype, {
+  umask: 0o022,
+  extensions: undefined,
+  cwd: "/",
+  variables: undefined,
+  exported: undefined,
+  _functions: undefined,
+  positional: EMPTY_POSITIONALS,
+  getopts: undefined,
+  directoryStack: undefined,
+  dotglob: false,
+  globstar: false,
+  status: 0,
+  substitutionStatus: 0,
+  depth: 0,
+  loopDepth: 0,
+  functionDepth: 0,
+  locals: EMPTY_LOCALS,
+  pipefail: false,
+  profile: "bash",
+});
+
+function hasShellFunction(state: State, name: string): boolean {
+  if (state instanceof RootShellState) {
+    return state._functions !== undefined && state._functions.has(name);
+  }
+  return state.functions.has(name);
+}

@@ -13,7 +13,7 @@ import { captureShellExtensions, extensionState } from "./extensions.js";
 import { ShellInput } from "./input.js";
 import { SourceLineIndex } from "./source-line-index.js";
 import { byteLocale } from "./locale.js";
-import { Budget, Capture, customRegisteredCommands, customRegisteredRegistries, interruptible, registerRuntimeBackingFileSystem, resolveLimits, Runtime, RuntimeCancellationState } from "./runtime.js";
+import { Budget, Capture, customRegisteredCommands, customRegisteredRegistries, interruptible, registerRuntimeBackingFileSystem, resolveLimits, RootShellState, Runtime, RuntimeCancellationState } from "./runtime.js";
 import { combineManagedSignals, isSyncResolved } from "../fs/creation-mask.js";
 import type { State } from "./runtime.js";
 import { captureShellSessionState, restoreShellSessionState } from "./session-state.js";
@@ -242,7 +242,7 @@ Object.assign(RootInvocationCancellationOwner.prototype, {
 });
 
 function createInvocationSink(budget: Budget, capture: Capture, external?: ByteSink): ByteSink {
-  if (external === undefined) return budget.sink(capture);
+  if (external === undefined) return capture.budget === budget && capture.signal === budget.signal ? capture : budget.sink(capture);
   return budget.sink({
     ...(external.ownedOutput ? { ownedOutput: {
       get consumerClosed() { return external.ownedOutput!.consumerClosed; },
@@ -479,8 +479,8 @@ export class Shell implements PluginHost {
     budget.source(Buffer.byteLength(source));
     budget.signal.throwIfAborted();
     scope.setActiveBudget(budget);
-    const stdout = new Capture();
-    const stderr = new Capture();
+    const stdout = new Capture(budget, budget.signal);
+    const stderr = new Capture(budget, budget.signal);
     let stdin: ShellInput | undefined;
     let unregisterStdin: (() => void) | undefined;
     if (options.stdin !== undefined && typeof options.stdin !== "string" && !(options.stdin instanceof Uint8Array)) {
@@ -489,18 +489,22 @@ export class Shell implements PluginHost {
         catch (error) { if (!budget.signal.aborted || !Object.is(error, budget.signal.reason)) throw error; }
       });
     }
-    const io = {
-      capabilities: options.capabilities === undefined && options.limits === undefined
-        ? (this.#defaultIoCapabilities ?? Object.freeze({ ...this.#options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) }))
-        : Object.freeze({ ...this.#options.capabilities, ...options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) }),
+    const readySync = isSyncResolved(this.#ready);
+    const initialCapabilities = !readySync
+      ? undefined!
+      : options.capabilities === undefined && options.limits === undefined
+        ? (this.#defaultIoCapabilities ??= Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) }))
+        : Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) });
+    const io: { -readonly [K in keyof Parameters<Runtime["runUnit"]>[2]]: Parameters<Runtime["runUnit"]>[2][K] } = {
+      capabilities: initialCapabilities,
       [invocationScope]: scope,
-      ...(options.admittedHandles === undefined ? {} : { admittedHandles: options.admittedHandles }),
-      ...(options.processSignals === undefined ? {} : { processSignals: options.processSignals }),
       stdin: SHARED_EMPTY_SOURCE,
       stdinIsDefault: options.stdin === undefined,
       stdout: createInvocationSink(budget, stdout, options.stdout),
       stderr: createInvocationSink(budget, stderr, options.stderr),
     };
+    if (options.admittedHandles !== undefined) io.admittedHandles = options.admittedHandles;
+    if (options.processSignals !== undefined) io.processSignals = options.processSignals;
     let exitCode: number;
     let runtime: Runtime | undefined;
     let state: State | undefined;
@@ -545,20 +549,21 @@ export class Shell implements PluginHost {
           if (options.stdin !== undefined) scope.setActiveStdin(stdin);
         } else stdin = new ShellInput(options.stdin, budget);
         io.stdin = stdin;
-        if (!isSyncResolved(this.#ready)) {
+        if (!readySync) {
           await interruptible(this.#ready, budget.signal);
+          io.capabilities = options.capabilities === undefined && options.limits === undefined
+            ? (this.#defaultIoCapabilities ??= Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) }))
+            : Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) });
         } else {
           budget.signal.throwIfAborted();
         }
-        io.capabilities = options.capabilities === undefined && options.limits === undefined
-          ? (this.#defaultIoCapabilities ??= Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) }))
-          : Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) });
         const cwd = options.cwd !== undefined ? resolvePath("/", options.cwd) : (this.#options.cwd ?? "/");
         const variables = Object.create(null) as Record<string, string>;
         let exported: Set<string>;
         if (!this.#hasInitialEnv && options.env === undefined) {
           variables.PWD = cwd;
-          exported = new Set(["PWD"]);
+          exported = new Set();
+          exported.add("PWD");
         } else {
           Object.assign(variables, this.#options.env, options.env, { PWD: cwd });
           if (options.env !== undefined) {
@@ -570,26 +575,25 @@ export class Shell implements PluginHost {
         }
         variables.OPTIND = "1";
         variables.OPTERR = "1";
-        state = {
-          umask: 0o022,
-          extensions: extensionState(extensions.definitions, undefined, undefined, defaultPortableTrapExtension),
-          cwd, variables, exported, functions: new Map(), positional: [], getopts: { cursor: { index: 0 }, integer: true },
-          directoryStack: { entries: [], bytes: 0 },
-          dotglob: false,
-          globstar: false,
-          status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, profile: "bash",
-        };
+        let currentState: State = new RootShellState(
+          cwd,
+          variables,
+          exported,
+          extensionState(extensions.definitions, undefined, undefined, defaultPortableTrapExtension),
+        );
+        state = currentState;
         const beforeExecHook = options.hooks?.beforeExec ?? this.#options.hooks?.beforeExec;
         const restoredSnapshot = options.state ?? (beforeExecHook ? await beforeExecHook({ source, options }) : undefined);
         if (restoredSnapshot) {
-          state = await restoreShellSessionState(
-            state,
+          currentState = await restoreShellSessionState(
+            currentState,
             restoredSnapshot,
             { cwd: options.cwd, env: options.env },
             budget,
             scope,
             extensions.syntax,
           );
+          state = currentState;
         }
         const filesystem = options.fs ?? this.#options.fs;
         let runtimeFs: typeof filesystem;
@@ -628,7 +632,7 @@ export class Shell implements PluginHost {
             for (const warning of unit.script.warnings) await writeDiagnostic(io.stderr, `shell: warning: ${warning}\n`);
           }
           if (unit.script.lists.length) {
-            const unitResult = runtime.runUnit(unit.script, state, io);
+            const unitResult = runtime.runUnit(unit.script, currentState, io);
             const result = unitResult instanceof Promise
               ? await interruptible(unitResult, budget.signal)
               : unitResult;
@@ -638,7 +642,7 @@ export class Shell implements PluginHost {
           }
           if (unit.next >= source.length) break;
           budget.signal.throwIfAborted();
-          const vars = state.variables;
+          const vars = currentState.variables;
           const nextLocale = (vars.LC_ALL || vars.LC_CTYPE || vars.LANG) ? byteLocale(vars) : false;
           if (currentCachedUnit && currentCachedUnit.locale === nextLocale && currentCachedUnit.nextCached !== undefined) {
             currentCachedUnit = currentCachedUnit.nextCached;
@@ -699,18 +703,27 @@ export class Shell implements PluginHost {
       state && (options.state !== undefined || options.onState !== undefined || options.hooks !== undefined || this.#options.hooks !== undefined),
     );
     const capturedState = shouldCaptureState && state ? captureShellSessionState(state, exitCode) : undefined;
+    const stdoutStr = stdoutBytes.byteLength === 0 ? "" : sharedUtf8Decoder.decode(stdoutBytes);
+    const stderrStr = stderrBytes.byteLength === 0 ? "" : sharedUtf8Decoder.decode(stderrBytes);
+    if (capturedState === undefined) {
+      return {
+        stdout: stdoutStr,
+        stderr: stderrStr,
+        stdoutBytes,
+        stderrBytes,
+        exitCode,
+      };
+    }
     const result: ShellResult = {
-      stdout: sharedUtf8Decoder.decode(stdoutBytes),
-      stderr: sharedUtf8Decoder.decode(stderrBytes),
+      stdout: stdoutStr,
+      stderr: stderrStr,
       stdoutBytes,
       stderrBytes,
       exitCode,
-      ...(capturedState === undefined ? {} : { state: capturedState }),
+      state: capturedState,
     };
-    if (capturedState) {
-      await options.onState?.(capturedState, result);
-      await afterExecHook?.(capturedState, result);
-    }
+    await options.onState?.(capturedState, result);
+    await afterExecHook?.(capturedState, result);
     return result;
   }
 

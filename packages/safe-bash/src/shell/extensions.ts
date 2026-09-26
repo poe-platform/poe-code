@@ -274,21 +274,21 @@ function createEagerIdlePortableTrapExtensionState(): ShellExtensionState {
 class LazyIdlePortableTrapExtensionState implements ShellExtensionState {
   #materialized: ShellExtensionState | undefined;
   #cleanup: (() => Promise<void>)[] | undefined;
-  readonly syntax = EMPTY_EXTENSION_SYNTAX;
-  readonly listTerminators = EMPTY_LIST_TERMINATORS;
-  readonly specialParameters = EMPTY_SPECIAL_PARAMETERS;
-  readonly checkpoints = EMPTY_CHECKPOINTS;
+  declare readonly syntax: CapturedShellSyntax;
+  declare readonly listTerminators: ReadonlyMap<string, ShellListTerminatorHook>;
+  declare readonly specialParameters: ReadonlyMap<string, ShellSpecialParameterHook>;
+  declare readonly checkpoints: readonly NonNullable<ShellExtensionInstance["checkpoint"]>[];
   get cleanup(): (() => Promise<void>)[] {
     return this.#cleanup ??= [];
   }
   set cleanup(value: (() => Promise<void>)[]) {
     this.#cleanup = value;
   }
-  started?: boolean;
-  eventDepth?: number;
-  exiting?: boolean;
-  exitStatus?: number;
-  waiting?: (status: number) => boolean;
+  declare started?: boolean;
+  declare eventDepth?: number;
+  declare exiting?: boolean;
+  declare exitStatus?: number;
+  declare waiting?: (status: number) => boolean;
 
   get isIdleTrapState(): boolean {
     if (!this.#materialized) return true;
@@ -327,6 +327,17 @@ class LazyIdlePortableTrapExtensionState implements ShellExtensionState {
   get options() { return this.#materialize().options; }
   get shoptOptions() { return this.#materialize().shoptOptions; }
 }
+Object.assign(LazyIdlePortableTrapExtensionState.prototype, {
+  syntax: EMPTY_EXTENSION_SYNTAX,
+  listTerminators: EMPTY_LIST_TERMINATORS,
+  specialParameters: EMPTY_SPECIAL_PARAMETERS,
+  checkpoints: EMPTY_CHECKPOINTS,
+  started: undefined,
+  eventDepth: undefined,
+  exiting: undefined,
+  exitStatus: undefined,
+  waiting: undefined,
+});
 
 function createIdlePortableTrapExtensionState(): ShellExtensionState {
   return new LazyIdlePortableTrapExtensionState();

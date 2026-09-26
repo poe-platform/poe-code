@@ -48,6 +48,7 @@ async function bundlePublicConsumer(contents: string) {
     stdin: { contents, resolveDir: root },
     bundle: true, write: false, platform: "browser", conditions: ["workerd", "worker", "browser"], format: "cjs", target: "es2022",
     external: ["@poe-platform/safe-fs/core"],
+    alias: { "poe-code/safe-fs/core": "@poe-platform/safe-fs/core" },
     plugins: [{
       name: "public-built-shell-entries",
       setup(builder) {
@@ -368,7 +369,7 @@ beforeAll(async () => {
   portableBuild = await build({...resolveBrowserShellBuild(root), sourcemap: false, minify: true});
 });
 
-beforeAll(async () => {
+beforeAll(() => {
   for (const output of portableBuild.outputFiles!) {
     artifacts.mkdirSync(path.dirname(output.path), { recursive: true });
     artifacts.writeFileSync(output.path, output.contents);
@@ -441,7 +442,7 @@ beforeAll(async () => {
           }
           return { contents: output.exports.map(name => `export const ${name} = globalThis.browser.${name};`).join("\n"), loader: "js" };
         });
-        builder.onResolve({ filter: /^@poe-platform\/(?:safe-fs\/core|safe-js\/fs\/core)$/ }, () => ({ path: "core", namespace: "evaluated-fs" }));
+        builder.onResolve({ filter: /^(?:poe-code\/safe-fs\/core|@poe-platform\/(?:safe-fs\/core|safe-js\/fs\/core))$/ }, () => ({ path: "core", namespace: "evaluated-fs" }));
         builder.onLoad({ filter: /.*/, namespace: "evaluated-fs" }, () => ({
           contents: Object.keys(filesystem).map(name => `export const ${name} = globalThis.canonical.${name};`).join("\n"), loader: "js",
         }));

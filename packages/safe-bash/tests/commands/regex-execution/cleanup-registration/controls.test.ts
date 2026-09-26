@@ -9,6 +9,8 @@ import { rgCommand } from "../../../../src/commands/search/rg.js";
 import { RegexExecutor as NodeRegexExecutor } from "../../../../src/commands/regex-execution/client.js";
 import { RegexExecutor, RegexExecutionError, RegexSession, withRegexSession } from "../../../../src/commands/regex-execution/portable.js";
 import type { Request } from "../../../../src/commands/regex-execution/protocol.js";
+import { exprMatchCeilings, trustedInputRows } from "../../../../src/commands/regex-execution/protocol.js";
+import { createBoundedRegexProvider } from "../../../../src/commands/regex-execution/bounded-provider.js";
 import { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import { toByteSource, type CommandContext, type InvocationCleanup } from "../../../../src/contracts/index.js";
 
@@ -248,6 +250,98 @@ for (const tool of ["grep", "rg"] as const) {
 
 const descriptor = { kind: "grep" as const, patterns: ["a"], fixed: false, extended: true, insensitive: false, whole: false, word: false };
 const rows = [{ bytes: Buffer.from("a"), all: true, terminated: true }];
+
+for (const useRegex of [false, true]) test(`fast scope registers before opening a session, regex dispatch=${useRegex}`, async () => {
+  const executor = new NodeRegexExecutor();
+  const events: string[] = [];
+  const callbacks: (() => Promise<void>)[] = [];
+  RegexExecutor.prototype.open = function(...args) { events.push("open"); return originalOpen.apply(this, args); };
+  const invocation = Object.assign(context("grep", { registerCleanup() { assert.fail("fast scope must own registration"); } }), {
+    registerScopeCleanup(callback: () => Promise<void>) { events.push("register"); callbacks.push(callback); return () => {}; },
+  });
+  try {
+    const result = await withRegexSession(invocation, executor, async session => {
+      if (useRegex) await session.run(descriptor, rows);
+      return { exitCode: 7 };
+    });
+    assert.equal(result.exitCode, 7);
+    assert.deepEqual(events, ["register", "open"]);
+    assert.equal(callbacks.length, 1);
+    const closed = callbacks[0]!();
+    assert.equal(callbacks[0]!(), closed);
+    await closed;
+  } finally { await executor.dispose(); }
+});
+
+test("synchronous fast-scope cleanup closes admission before session acquisition", async () => {
+  const executor = new NodeRegexExecutor();
+  const from = workers.length;
+  let opens = 0, executions = 0;
+  let cleanup: Promise<void> | undefined;
+  RegexExecutor.prototype.open = function(...args) { opens++; return originalOpen.apply(this, args); };
+  const invocation = Object.assign(context("grep"), {
+    registerScopeCleanup(callback: () => Promise<void>) { cleanup = callback(); return () => {}; },
+  });
+  try {
+    const outcome = await settled(withRegexSession(invocation, executor, () => { executions++; return { exitCode: 0 }; }));
+    await cleanup;
+    assert.equal(outcome.ok, false);
+    if (!outcome.ok) assertClosed(outcome.error);
+    assert.equal(opens, 0);
+    assert.equal(executions, 0);
+    assert.equal(workers.length, from);
+  } finally { await executor.dispose(); }
+});
+
+test("fast-scope registrar rejection preserves falsey reasons without opening a session", async () => {
+  const executor = new NodeRegexExecutor();
+  let opens = 0, executions = 0;
+  RegexExecutor.prototype.open = function(...args) { opens++; return originalOpen.apply(this, args); };
+  try {
+    for (const reason of [undefined, null, false, 0, ""]) {
+      const invocation = Object.assign(context("grep"), { registerScopeCleanup() { throw reason; } });
+      const outcome = await settled(withRegexSession(invocation, executor, () => { executions++; return { exitCode: 0 }; }));
+      assert.equal(outcome.ok, false);
+      if (!outcome.ok) assert.equal(outcome.error, reason);
+    }
+    assert.equal(opens, 0);
+    assert.equal(executions, 0);
+  } finally { await executor.dispose(); }
+});
+
+for (const operation of ["search", "expr", "bre"] as const) test(`a session closed by its on-use hook cannot dispatch ${operation}`, async () => {
+  const executor = new NodeRegexExecutor();
+  const from = workers.length;
+  const session = executor.open(new AbortController().signal, () => session.closeSync());
+  try {
+    const outcome = await settled(Promise.resolve().then<unknown>(() => {
+      if (operation === "search") return session.runSync(descriptor, rows);
+      const request = { pattern: Buffer.from("a"), profile: "byte" as const, limits: exprMatchCeilings };
+      return operation === "expr"
+        ? session.matchExpr({ kind: "expr-match", ...request }, Buffer.from("a"))
+        : session.searchBre({ kind: "bre-search", ...request }, Buffer.from("a"));
+    }));
+    assert.equal(outcome.ok, false);
+    if (!outcome.ok) assertClosed(outcome.error);
+    assert.equal(workers.length, from);
+  } finally { await session.close(); await executor.dispose(); }
+});
+
+test("on-use closure cannot dispatch trusted rows to an already-ready in-process shared worker", async () => {
+  const executor = new RegexExecutor(createBoundedRegexProvider());
+  const warm = executor.open(new AbortController().signal);
+  const trustedRows = [...rows];
+  trustedInputRows.add(trustedRows);
+  let closed: RegexSession | undefined;
+  try {
+    await warm.run(descriptor, trustedRows);
+    closed = executor.open(new AbortController().signal, () => closed!.closeSync());
+    const outcome = await settled(Promise.resolve().then(() => closed!.runSync(descriptor, trustedRows)));
+    assert.equal(outcome.ok, false);
+    if (!outcome.ok) assertClosed(outcome.error);
+    assert.deepEqual(await warm.run(descriptor, trustedRows), [[{ start: 0, end: 1 }]]);
+  } finally { await closed?.close(); await warm.close(); await executor.dispose(); }
+});
 
 for (const primaryFails of [false, true]) test(`session settlement preserves falsey ${primaryFails ? "callback" : "cleanup"} identities`, async () => {
   for (const reason of [undefined, null, false, 0, 0n, "", NaN, new Error("selected failure")]) {

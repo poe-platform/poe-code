@@ -38,7 +38,6 @@ export async function withRegexSession(
   let session: RegexSession | undefined;
   let closing: Promise<void> | undefined;
   let unregisterCleanup: (() => void) | undefined;
-  let cleanupRegistered = false;
   const fastScope = (context as { registerScopeCleanup?: (cleanup: () => Promise<void>) => () => void }).registerScopeCleanup;
   const close = (): Promise<void> => {
     if (!closing) {
@@ -51,20 +50,15 @@ export async function withRegexSession(
     }
     return closing;
   };
-  const ensureCleanupRegistered = (): void => {
-    if (cleanupRegistered) return;
-    cleanupRegistered = true;
-    try {
-      unregisterCleanup = fastScope
-        ? fastScope.call(context, close)
-        : (context.registerCleanup?.(close) as (() => void) | undefined);
-    } catch (error) {
-      context.signal.throwIfAborted();
-      throw error;
-    }
-  };
-  if (!fastScope) {
-    ensureCleanupRegistered();
+  // Byte-level fast paths still own a session even without a regex request.
+  // Register its cleanup before opening it, including synchronous scope closure.
+  try {
+    unregisterCleanup = fastScope
+      ? fastScope.call(context, close)
+      : (context.registerCleanup?.(close) as (() => void) | undefined);
+  } catch (error) {
+    context.signal.throwIfAborted();
+    throw error;
   }
   let result: CommandResult | undefined;
   let hasError = false;
@@ -72,7 +66,7 @@ export async function withRegexSession(
   try {
     context.signal.throwIfAborted();
     if (closing) throw new RegexExecutionError("CLOSED", "invocation is closed");
-    session = executor.open(context.signal, fastScope ? ensureCleanupRegistered : undefined);
+    session = executor.open(context.signal);
     result = await execute(session);
   } catch (error) {
     hasError = true;

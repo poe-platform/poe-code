@@ -3,6 +3,11 @@ import type { CommandContext, CommandDefinition } from "../../../contracts/index
 import { define, options, output, requireOperands, UsageError } from "../../internal.js";
 import { addOffset, numeric, range, rows, sources, validatedOption } from "./shared.js";
 
+const HEX_LOWER = Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, "0"));
+const HEX_UPPER = HEX_LOWER.map(s => s.toUpperCase());
+const BIN_TABLE = Array.from({ length: 256 }, (_, i) => i.toString(2).padStart(8, "0"));
+const ASCII_CHAR = Array.from({ length: 256 }, (_, i) => (i >= 32 && i <= 126 ? String.fromCharCode(i) : "."));
+
 function hexDigit(byte: number): number {
   if (byte >= 48 && byte <= 57) return byte - 48;
   if (byte >= 65 && byte <= 70) return byte - 55;
@@ -28,6 +33,17 @@ async function reversePlain(context: CommandContext, files: readonly string[], m
 async function reverseNormal(context: CommandContext, files: readonly string[], columns: number, maxInputBytes: number): Promise<void> {
   let line = "";
   let offset = 0;
+  const outBuf = new Uint8Array(8192);
+  let outUsed = 0;
+  let flushedFirst = false;
+  const flushOut = async () => {
+    if (outUsed > 0) {
+      flushedFirst = true;
+      const chunk = outBuf.slice(0, outUsed);
+      outUsed = 0;
+      await output(context, chunk);
+    }
+  };
   const emitLine = async (): Promise<void> => {
     if (!line.trim()) { line = ""; return; }
     const colon = line.indexOf(":");
@@ -60,9 +76,10 @@ async function reverseNormal(context: CommandContext, files: readonly string[], 
       }
     }
     if (!pending.length) throw new PublicDiagnostic("invalid input: malformed hexadecimal data field");
-    const bytes = Uint8Array.from(pending);
-    offset = addOffset(offset, bytes.length);
-    await output(context, bytes);
+    offset = addOffset(offset, pending.length);
+    if (outUsed + pending.length > outBuf.length) await flushOut();
+    for (let i = 0; i < pending.length; i++) outBuf[outUsed++] = pending[i]!;
+    if (!flushedFirst || outUsed >= outBuf.length) await flushOut();
     line = "";
   };
   for await (const chunk of sources(context, files, maxInputBytes)) {
@@ -74,6 +91,7 @@ async function reverseNormal(context: CommandContext, files: readonly string[], 
     }
   }
   if (line) await emitLine();
+  await flushOut();
 }
 
 export function createXxdCommand(maxInputBytes: number): CommandDefinition {
@@ -129,13 +147,31 @@ export function createXxdCommand(maxInputBytes: number): CommandDefinition {
       }
       if (identifier[0] && identifier[0] >= "0" && identifier[0] <= "9") identifier = "__" + identifier;
     }
-    if (include && includeName !== undefined) await output(context, `unsigned char ${identifier}[] = {\n`);
+    const upper = parsed.flags.has("u");
+    const hexTable = upper ? HEX_UPPER : HEX_LOWER;
+    const byteTable = binary ? BIN_TABLE : hexTable;
+    const decimalAddress = parsed.flags.has("d");
+    const octets = Math.min(group || columns, columns);
+    const width = littleEndian
+      ? Math.ceil(columns / octets) * (octets * 2 + 1) - 1
+      : columns * (binary ? 8 : 2) + (group ? Math.floor((columns - 1) / group) : 0);
+    let outBuf = "";
+    let flushedFirst = false;
+    const writeOut = async (text: string) => {
+      outBuf += text;
+      if (!flushedFirst || outBuf.length >= 8192) {
+        flushedFirst = true;
+        const chunk = outBuf;
+        outBuf = "";
+        await output(context, chunk);
+      }
+    };
+    if (include && includeName !== undefined) await writeOut(`unsigned char ${identifier}[] = {\n`);
     for await (const row of rows(source, plain && !columns ? 4096 : columns)) {
       any = true;
       if (include) {
-        if (includeRow) await output(context, includeRow + ",\n");
-        includeRow = "  " + Array.from(row, byte => "0x" + byte.toString(16).padStart(2, "0")).join(", ");
-        if (parsed.flags.has("u")) includeRow = includeRow.toUpperCase();
+        if (includeRow) await writeOut(includeRow + ",\n");
+        includeRow = "  " + Array.from(row, byte => "0x" + hexTable[byte]!).join(", ");
         includeLength = addOffset(includeLength, row.length);
         continue;
       }
@@ -144,35 +180,30 @@ export function createXxdCommand(maxInputBytes: number): CommandDefinition {
       for (let index = 0; index < row.length; index++) {
         if (!plain && !littleEndian && group && index && index % group === 0) data += " ";
         const byte = row[index]!;
-        if (!littleEndian) data += byte.toString(binary ? 2 : 16).padStart(binary ? 8 : 2, "0");
-        ascii += byte >= 32 && byte <= 126 ? String.fromCharCode(byte) : ".";
+        if (!littleEndian) data += byteTable[byte]!;
+        if (!plain) ascii += ASCII_CHAR[byte]!;
       }
       if (littleEndian) {
-        const octets = Math.min(group || columns, columns);
         for (let start = 0; start < row.length; start += octets) {
           if (start) data += " ";
           for (let index = start + octets - 1; index >= start; index--) {
-            data += index < row.length ? row[index]!.toString(16).padStart(2, "0") : "  ";
+            data += index < row.length ? hexTable[row[index]!]! : "  ";
           }
         }
       }
-      if (parsed.flags.has("u")) data = data.toUpperCase();
-      if (plain) await output(context, data + (columns ? "\n" : ""));
+      if (plain) await writeOut(data + (columns ? "\n" : ""));
       else {
-        const octets = Math.min(group || columns, columns);
-        const width = littleEndian
-          ? Math.ceil(columns / octets) * (octets * 2 + 1) - 1
-          : columns * (binary ? 8 : 2) + (group ? Math.floor((columns - 1) / group) : 0);
-        const address = offset.toString(parsed.flags.has("d") ? 10 : 16).padStart(8, "0");
-        await output(context, `${address}: ${data.padEnd(width)}  ${ascii}\n`);
+        const address = offset.toString(decimalAddress ? 10 : 16).padStart(8, "0");
+        await writeOut(`${address}: ${data.padEnd(width)}  ${ascii}\n`);
       }
       offset = addOffset(offset, row.length);
     }
     if (include) {
-      if (includeRow) await output(context, includeRow + "\n");
-      if (includeName !== undefined) await output(context, `};\nunsigned int ${identifier}_len = ${includeLength};\n`);
+      if (includeRow) await writeOut(includeRow + "\n");
+      if (includeName !== undefined) await writeOut(`};\nunsigned int ${identifier}_len = ${includeLength};\n`);
     }
-    if (plain && !columns && any) await output(context, "\n");
+    if (plain && !columns && any) await writeOut("\n");
+    if (outBuf) await output(context, outBuf);
     return { exitCode: 0 };
   });
 }

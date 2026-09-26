@@ -28,13 +28,17 @@ export async function* sources(context: CommandContext, operands: readonly strin
       if (!context.fs.readStream) throw new FsError("ENOTSUP", { path, syscall: "readStream", message: "encoding commands require a streaming-read filesystem" });
       source = context.fs.readStream(path, { signal: context.signal, chunkSize: blockSize });
     }
+    let slicesSinceYield = 0;
     for await (const chunk of budget.read(source, context.signal)) {
       if (chunk.length === 0 && ++emptyChunks % 64 === 0) {
         await yieldTurn();
         context.signal.throwIfAborted();
       }
       for (let offset = 0; offset < chunk.length; offset += blockSize) {
-        await yieldTurn();
+        if (offset > 0 || ++slicesSinceYield >= 8) {
+          slicesSinceYield = 0;
+          await yieldTurn();
+        }
         context.signal.throwIfAborted();
         yield chunk.subarray(offset, offset + blockSize);
       }
@@ -61,12 +65,22 @@ export async function* rows(source: ByteSource, width: number): ByteSource {
   const row = new Uint8Array(width);
   let used = 0;
   for await (const chunk of source) {
-    for (let offset = 0; offset < chunk.length;) {
-      const length = Math.min(width - used, chunk.length - offset);
-      row.set(chunk.subarray(offset, offset + length), used);
+    let offset = 0;
+    if (used > 0) {
+      const length = Math.min(width - used, chunk.length);
+      row.set(chunk.subarray(0, length), used);
       offset += length;
       used += length;
       if (used === width) { yield row.slice(); used = 0; }
+    }
+    while (offset + width <= chunk.length) {
+      yield chunk.subarray(offset, offset + width);
+      offset += width;
+    }
+    if (offset < chunk.length) {
+      const rem = chunk.length - offset;
+      row.set(chunk.subarray(offset), 0);
+      used = rem;
     }
   }
   if (used) yield row.slice(0, used);

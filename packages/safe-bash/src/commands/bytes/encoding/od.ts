@@ -201,22 +201,45 @@ export function createOdCommand(maxInputBytes: number): CommandDefinition {
       }
       return { exitCode: 0 };
     }
+    const verbose = parsed.flags.has("v");
+    const isBigEndian = endian === "big";
+    let outBuf = "";
+    let flushedFirst = false;
+    const writeOut = async (text: string) => {
+      outBuf += text;
+      if (!flushedFirst || outBuf.length >= 8192) {
+        flushedFirst = true;
+        const chunk = outBuf;
+        outBuf = "";
+        await output(context, chunk);
+      }
+    };
     for await (const row of rows(range(sources(context, parsed.operands, maxInputBytes), skip, count), width)) {
-      const same = previous?.length === row.length && row.every((byte, index) => previous![index] === byte);
-      if (!parsed.flags.has("v") && same) {
-        if (!suppressed) await output(context, "*\n");
+      let same = false;
+      if (!verbose && previous !== undefined && previous.length === row.length) {
+        same = true;
+        for (let i = 0; i < row.length; i++) {
+          if (previous[i] !== row[i]) { same = false; break; }
+        }
+      }
+      if (same) {
+        if (!suppressed) await writeOut("*\n");
         suppressed = true;
       } else {
+        const addr = address();
+        const pad = selected.length > 1 ? " ".repeat(addr.length) : "";
         for (let index = 0; index < selected.length; index++) {
-          const prefix = index === 0 ? address() : " ".repeat(address().length);
-          await output(context, `${prefix}${formatRow(row, selected[index]!, endian === "big")}\n`);
+          const prefix = index === 0 ? addr : pad;
+          await writeOut(`${prefix}${formatRow(row, selected[index]!, isBigEndian)}\n`);
         }
-        previous = row;
+        if (previous === undefined || previous.length !== row.length) previous = row.slice();
+        else previous.set(row);
         suppressed = false;
       }
       offset = addOffset(offset, row.length);
     }
-    if (radix !== "n") await output(context, `${address()}\n`);
+    if (radix !== "n") await writeOut(`${address()}\n`);
+    if (outBuf) await output(context, outBuf);
     return { exitCode: 0 };
   });
 }

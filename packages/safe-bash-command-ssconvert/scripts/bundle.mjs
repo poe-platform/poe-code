@@ -7,7 +7,6 @@ await build({
   entryPoints: [new URL("../src/index.ts", import.meta.url).pathname],
   outfile: new URL("../dist/index.js", import.meta.url).pathname,
   bundle: true,
-  external: ["safe-bash-contracts", "safe-bash-contracts/*", "@poe-code/safe-fs/core"],
   platform: "node",
   target: "node22",
   format: "esm",

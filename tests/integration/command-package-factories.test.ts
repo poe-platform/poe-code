@@ -6,6 +6,7 @@ import * as csvcut from "safe-bash-command-csvcut";
 import * as csvgrep from "safe-bash-command-csvgrep";
 import * as diff3 from "safe-bash-command-diff3";
 import * as htmlq from "safe-bash-command-htmlq";
+import * as publicHtmlq from "../../packages/safe-bash/src/commands/htmlq/index.js";
 import * as mmdc from "safe-bash-command-mmdc";
 import * as pdftk from "safe-bash-command-pdftk";
 import * as pdftoppm from "safe-bash-command-pdftoppm";
@@ -156,4 +157,10 @@ it("wkhtmltopdf exposes zero-argument command factories and preserves plugin reg
   const host = { commands: { register: (command: CommandDefinition) => registered.push(command), has: () => false } };
   plugin.setup(host as Parameters<VirtualShellPlugin["setup"]>[0]);
   expect(registered.map(command => command.name)).toEqual(commands.map(command => command.name));
+});
+
+it("htmlq public facade exposes the family factory and options", () => {
+  const options: publicHtmlq.HtmlqCommandsOptions = {};
+  expect(publicHtmlq.createHtmlqCommands).toBe(htmlq.createHtmlqCommands);
+  expect(publicHtmlq.createHtmlqCommands(options)[0].name).toBe("htmlq");
 });

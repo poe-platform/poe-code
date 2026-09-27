@@ -4,6 +4,7 @@ export {
   htmlqBytes,
   htmlq,
   createHtmlqCommand,
+  createHtmlqCommands,
   htmlqCommand,
   htmlqCommands,
   parseHtml,
@@ -18,6 +19,7 @@ export {
 export type {
   HtmlqArguments,
   HtmlqCommandOptions,
+  HtmlqCommandsOptions,
   HtmlqRunOptions,
   HtmlqResult,
   HtmlAccounting,

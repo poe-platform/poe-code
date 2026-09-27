@@ -371,7 +371,9 @@ class DocumentLocations {
   }
 
   snapshot(): DocumentArchive {
-    return this.#inventory ? this.#copyArchive(this.#archive) : new DocumentArchiveEditor(this.#archive, {}, undefined, this.#budget).snapshot();
+    // Editing archives are validated on admission and before each committed mutation.
+    // Snapshot consumers receive owned copies of that private, unchanged archive.
+    return this.#copyArchive(this.#archive);
   }
 
   #copyArchive(archive: DocumentArchive): DocumentArchive {

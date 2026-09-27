@@ -6157,7 +6157,7 @@ export class Runtime {
             return undefined;
           }
         }
-        let cachedArgs = (command as { _cachedConstArgs?: string[] })._cachedConstArgs;
+        const cachedArgs = (command as { _cachedConstArgs?: string[] })._cachedConstArgs;
         if (cachedArgs !== undefined) {
           args = cachedArgs;
           lastArg = args.length > 0 ? args[args.length - 1]! : w0Plain;

@@ -645,7 +645,7 @@ impl LinkHost for Host<'_> {
 }
 fn link_error(error: links::Error<RuntimeError>) -> Result<J> {
     Ok(match error {
-        links::Error::Policy(message) => policy(message).0,
+        links::Error::Policy(message) => std::mem::replace(&mut policy(message).0, J::Null),
         links::Error::UserAuthored(message) => object(vec![(
             "userError",
             object(vec![

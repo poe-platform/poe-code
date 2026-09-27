@@ -108,14 +108,14 @@ pub fn task_yaml_spans(
                         } else {
                             vec![]
                         };
-                    config_mutations_rust_napi_core::parsed_yaml_snapshot(
+                    let mut snapshot = config_mutations_rust_napi_core::parsed_yaml_snapshot(
                         config_mutations_rust::yaml::Parsed {
                             value,
                             date_ids,
                             symbol_ids,
                         },
-                    )
-                    .0
+                    );
+                    std::mem::replace(&mut snapshot.0, Value::Null)
                 })
                 .unwrap_or(Value::Null);
             Value::Object(vec![

@@ -18,6 +18,7 @@ test("resource imports reject credential effects before storage and preserve loc
   await stores.importSession({ ...valid, extension: "x".repeat(65_536) });
   assert.equal(touched, 0);
   await stores.importSession({ ...valid, extension: "x".repeat(65_536) });
+  assert.equal((await stores.sessionStore.load(valid.resource)).extension.length, 65_536);
   assert.equal((await stores.sessionStore.load(valid.resource)).tokens.accessToken, "token");
   const controller = new AbortController(), reason = {}; controller.abort(reason);
   await assert.rejects(stores.importSession(valid, { signal: controller.signal }), error => error === reason);

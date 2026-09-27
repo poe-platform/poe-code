@@ -171,7 +171,7 @@ pub fn config_yaml_parse(
         return Err(error);
     }
     Ok(NativeJson(match parsed {
-        Ok(parsed) => parsed_yaml_snapshot(parsed).0,
+        Ok(parsed) => std::mem::replace(&mut parsed_yaml_snapshot(parsed).0, Value::Null),
         Err(error) => object(vec![(
             "error",
             object(vec![

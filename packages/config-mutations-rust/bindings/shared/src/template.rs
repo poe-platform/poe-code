@@ -25,7 +25,8 @@ fn value(result: std::result::Result<Request, Vec<u16>>) -> NativeJson {
         Err(message) => return NativeJson(super::object(vec![("error", Value::String(message))])),
     };
     if let Request::Config(request) = request {
-        let NativeJson(Value::Object(mut fields)) = super::config::value(Ok(request)) else {
+        let mut value = super::config::value(Ok(request));
+        let Value::Object(mut fields) = std::mem::replace(&mut value.0, Value::Null) else {
             unreachable!()
         };
         fields.push(("phase".encode_utf16().collect(), s("config")));

@@ -3,131 +3,156 @@ use crate::convert::NativeJson;
 use mcp_protocol_rust::json::Value;
 use napi::{Env, ValueType, bindgen_prelude::*};
 use napi_derive::napi;
-enum ReadTask<'env> {
-    Value(Unknown<'env>),
-    Array(usize),
-    Object(Vec<Vec<u16>>),
+
+// Keep the unfinished tree flat: descriptor errors and cycles cannot recursively
+// drop a partially copied, deeply nested provider extension.
+enum Node {
+    Scalar(Value),
+    Array(Vec<usize>),
+    Object(Vec<(Vec<u16>, usize)>),
+}
+enum Task<'env> {
+    Visit(Unknown<'env>, usize),
+    Leave(Unknown<'env>),
 }
 
 pub(crate) fn read_credential_json(env: Env, source: Unknown<'_>) -> Result<Value> {
     let global = env.get_global()?;
     let object: Object = global.get_named_property_unchecked("Object")?;
-    let descriptors: Function<'_, Unknown<'_>, Object<'_>> =
+    let descriptors: Function<Unknown, Object> =
         object.get_named_property("getOwnPropertyDescriptors")?;
     let prototype: Unknown = object.get_named_property("prototype")?;
-    let constructor: Function<(), Unknown> = global.get_named_property("Set")?;
-    let ancestors: Object = unsafe { constructor.new_instance(())?.cast()? };
-    let has: Function<Unknown, bool> = ancestors.get_named_property("has")?;
-    let add: Function<Unknown, Unknown> = ancestors.get_named_property("add")?;
-    let delete: Function<Unknown, bool> = ancestors.get_named_property("delete")?;
-    let mut ancestry = vec![];
-    let mut tasks = vec![ReadTask::Value(source)];
-    let mut values = vec![];
+    let constructor: Function<(), Unknown> = global.get_named_property_unchecked("Set")?;
+    let active: Object = unsafe { constructor.new_instance(())?.cast()? };
+    let has: Function<Unknown, bool> = active.get_named_property("has")?;
+    let add: Function<Unknown, Unknown> = active.get_named_property("add")?;
+    let delete: Function<Unknown, bool> = active.get_named_property("delete")?;
+    let mut nodes = vec![Node::Scalar(Value::Null)];
+    let mut tasks = vec![Task::Visit(source, 0)];
     while let Some(task) = tasks.pop() {
-        match task {
-            ReadTask::Array(length) => {
-                let items = values.split_off(values.len() - length);
-                values.push(Value::Array(items));
-                delete.apply(ancestors, ancestry.pop().expect("matching object entry"))?;
+        let Task::Visit(source, index) = task else {
+            if let Task::Leave(source) = task {
+                delete.apply(active, source)?;
             }
-            ReadTask::Object(keys) => {
-                let items = values.split_off(values.len() - keys.len());
-                values.push(Value::Object(keys.into_iter().zip(items).collect()));
-                delete.apply(ancestors, ancestry.pop().expect("matching object entry"))?;
+            continue;
+        };
+        nodes[index] = match source.get_type()? {
+            ValueType::Null => Node::Scalar(Value::Null),
+            ValueType::Boolean => Node::Scalar(Value::Bool(unsafe { source.cast()? })),
+            ValueType::String => {
+                let text: Utf16String = unsafe { source.cast()? };
+                Node::Scalar(Value::String(text.to_vec()))
             }
-            ReadTask::Value(source) => match source.get_type()? {
-                ValueType::Null => values.push(Value::Null),
-                ValueType::Boolean => values.push(Value::Bool(unsafe { source.cast()? })),
-                ValueType::String => {
-                    let text: Utf16String = unsafe { source.cast()? };
-                    values.push(Value::String(text.to_vec()));
+            ValueType::Number => {
+                let number: f64 = unsafe { source.cast()? };
+                if !number.is_finite() {
+                    return Err(napi::Error::from_reason("Invalid registration"));
                 }
-                ValueType::Number => {
-                    let value: f64 = unsafe { source.cast()? };
-                    if !value.is_finite() {
+                Node::Scalar(Value::Number(number))
+            }
+            ValueType::Object => {
+                if has.apply(active, source)? {
+                    return Err(napi::Error::from_reason("Invalid registration"));
+                }
+                let object: Object = unsafe { source.cast()? };
+                let properties = descriptors.call(source)?;
+                let array = object.is_array()?;
+                if !array {
+                    let actual = object.get_prototype()?;
+                    if actual.get_type()? != ValueType::Null
+                        && !env.strict_equals(actual, prototype)?
+                    {
                         return Err(napi::Error::from_reason("Invalid registration"));
                     }
-                    values.push(Value::Number(value));
                 }
-                ValueType::Object => {
-                    if has.apply(ancestors, source)? {
-                        return Err(napi::Error::from_reason("Invalid registration"));
-                    }
-                    let object: Object = unsafe { source.cast()? };
-                    let properties = descriptors.call(source)?;
-                    let mut children = vec![];
-                    if object.is_array()? {
-                        let length: Object = properties.get_named_property("length")?;
-                        let length: u32 = length.get_named_property("value")?;
-                        for index in 0..length {
-                            let key = index.to_string();
-                            if !properties.has_own_property(&key)? {
-                                return Err(napi::Error::from_reason("Invalid registration"));
-                            }
-                            let descriptor: Object = properties.get_named_property(&key)?;
-                            if !descriptor.has_own_property("value")? {
-                                return Err(napi::Error::from_reason("Invalid registration"));
-                            }
-                            children.push(descriptor.get_named_property("value")?);
-                        }
-                        tasks.push(ReadTask::Array(children.len()));
-                    } else {
-                        let current_prototype = object.get_prototype()?;
-                        if current_prototype.get_type()? != ValueType::Null
-                            && !env.strict_equals(current_prototype, prototype)?
-                        {
+                add.apply(active, source)?;
+                tasks.push(Task::Leave(source));
+                let mut children = Vec::new();
+                let mut fields = Vec::new();
+                if array {
+                    let length: Object = properties.get_named_property("length")?;
+                    let length: u32 = length.get_named_property("value")?;
+                    for at in 0..length {
+                        let key = at.to_string();
+                        if !properties.has_own_property(&key)? {
                             return Err(napi::Error::from_reason("Invalid registration"));
                         }
-                        let keys = properties.get_all_property_names(
-                            KeyCollectionMode::OwnOnly,
-                            KeyFilter::Enumerable,
-                            KeyConversion::NumbersToStrings,
-                        )?;
-                        let mut fields = vec![];
-                        for index in 0..keys.get_array_length()? {
-                            let key: Unknown = keys.get_element(index)?;
-                            if key.get_type()? == ValueType::Symbol {
-                                continue;
-                            }
-                            let descriptor: Object = properties.get_property(key)?;
-                            if !descriptor.get_named_property::<bool>("enumerable")? {
-                                continue;
-                            }
-                            if !descriptor.has_own_property("value")? {
-                                return Err(napi::Error::from_reason("Invalid registration"));
-                            }
-                            let key: Utf16String = unsafe { key.cast()? };
-                            fields.push(key.to_vec());
-                            children.push(descriptor.get_named_property("value")?);
+                        let descriptor: Object = properties.get_named_property(&key)?;
+                        if !descriptor.has_own_property("value")? {
+                            return Err(napi::Error::from_reason("Invalid registration"));
                         }
-                        tasks.push(ReadTask::Object(fields));
+                        let child = nodes.len();
+                        nodes.push(Node::Scalar(Value::Null));
+                        children.push(Task::Visit(descriptor.get_named_property("value")?, child));
+                        fields.push((vec![], child));
                     }
-                    add.apply(ancestors, source)?;
-                    ancestry.push(source);
-                    for child in children.into_iter().rev() {
-                        tasks.push(ReadTask::Value(child));
+                } else {
+                    let keys = properties.get_all_property_names(
+                        KeyCollectionMode::OwnOnly,
+                        KeyFilter::Enumerable,
+                        KeyConversion::NumbersToStrings,
+                    )?;
+                    for at in 0..keys.get_array_length()? {
+                        let key: Unknown = keys.get_element(at)?;
+                        if key.get_type()? == ValueType::Symbol {
+                            continue;
+                        }
+                        let descriptor: Object = properties.get_property(key)?;
+                        if !descriptor.get_named_property::<bool>("enumerable")? {
+                            continue;
+                        }
+                        if !descriptor.has_own_property("value")? {
+                            return Err(napi::Error::from_reason("Invalid registration"));
+                        }
+                        let key: Utf16String = unsafe { key.cast()? };
+                        let child = nodes.len();
+                        nodes.push(Node::Scalar(Value::Null));
+                        children.push(Task::Visit(descriptor.get_named_property("value")?, child));
+                        fields.push((key.to_vec(), child));
                     }
                 }
-                _ => return Err(napi::Error::from_reason("Invalid registration")),
-            },
-        }
+                tasks.extend(children.into_iter().rev());
+                if array {
+                    Node::Array(fields.into_iter().map(|(_, index)| index).collect())
+                } else {
+                    Node::Object(fields)
+                }
+            }
+            _ => return Err(napi::Error::from_reason("Invalid registration")),
+        };
     }
-    values
-        .pop()
-        .ok_or_else(|| napi::Error::from_reason("Invalid registration"))
+    let mut values = (0..nodes.len()).map(|_| Value::Null).collect::<Vec<_>>();
+    for (index, node) in nodes.into_iter().enumerate().rev() {
+        values[index] = match node {
+            Node::Scalar(value) => value,
+            Node::Array(children) => Value::Array(
+                children
+                    .into_iter()
+                    .map(|child| std::mem::replace(&mut values[child], Value::Null))
+                    .collect(),
+            ),
+            Node::Object(fields) => Value::Object(
+                fields
+                    .into_iter()
+                    .map(|(key, child)| (key, std::mem::replace(&mut values[child], Value::Null)))
+                    .collect(),
+            ),
+        };
+    }
+    Ok(values.swap_remove(0))
 }
 #[napi]
 pub fn copy_credential_json(env: Env, source: Unknown<'_>) -> Result<CredentialJson> {
-    let value = read_credential_json(env, source)?;
-    mcp_oauth_rust::registration::validate_credential_json(&value)
+    let mut value = NativeJson(read_credential_json(env, source)?);
+    mcp_oauth_rust::registration::validate_credential_json(&value.0)
         .map_err(napi::Error::from_reason)?;
-    Ok(CredentialJson(value))
+    Ok(CredentialJson(std::mem::replace(&mut value.0, Value::Null)))
 }
 #[napi]
 pub fn parse_client_registration(env: Env, source: Unknown<'_>) -> Result<CredentialJson> {
-    let value = read_credential_json(env, source)?;
-    let (key, value) = match mcp_oauth_rust::registration::validate(&value) {
-        Ok(()) => ("value", value),
+    let mut input = NativeJson(read_credential_json(env, source)?);
+    let (key, value) = match mcp_oauth_rust::registration::validate(&input.0) {
+        Ok(()) => ("value", std::mem::replace(&mut input.0, Value::Null)),
         Err(message) => ("error", Value::String(message.encode_utf16().collect())),
     };
     Ok(CredentialJson(Value::Object(vec![(

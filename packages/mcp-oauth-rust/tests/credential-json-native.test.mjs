@@ -54,13 +54,45 @@ test("credential JSON owns extensions without running accessors or serialization
     assert.deepEqual(api.copyBoundedOAuthJson(ignored, "invalid credential"), { visible: "x" });
   }
 });
-test("large registration extensions preserve the missing-client diagnostic", () => {
+test("large registration extensions retain the missing-client diagnostic", () => {
   const value = { client_id: "", extension: "x".repeat(65536) };
   for (const api of [originalRegistration, ownRegistration])
     assert.throws(
       () => api.parseOAuthClientRegistration(value),
       (error) => error.message === "OAuth client registration response missing client_id"
     );
+});
+
+test("credential copies preserve large, deep and repeated provider extensions", () => {
+  for (const api of [original, { copyBoundedOAuthJson }]) {
+    const repeated = { text: "🦊".repeat(20000) };
+    const value = { first: repeated, second: repeated, values: Array(20001).fill(null) };
+    const result = api.copyBoundedOAuthJson(value, "invalid credential");
+    assert.deepEqual(result, value);
+    assert.notEqual(result.first, result.second);
+    result.first.text = "changed";
+    assert.equal(result.second.text, repeated.text);
+    let deep = "leaf";
+    for (let index = 0; index < 2048; index++) deep = { nested: deep };
+    let copy = api.copyBoundedOAuthJson(deep, "invalid credential");
+    for (let index = 0; index < 2048; index++) copy = copy.nested;
+    assert.equal(copy, "leaf");
+    const cycle = { child: deep }; cycle.self = cycle;
+    assert.throws(() => api.copyBoundedOAuthJson(cycle, "invalid credential"), { message: "invalid credential" });
+  }
+});
+
+test("deep registration validation returns owned data or a safe field error", () => {
+  let extension = "leaf";
+  for (let index = 0; index < 2048; index++) extension = [extension];
+  for (const api of [originalRegistration, ownRegistration]) {
+    let result = api.parseOAuthClientRegistration({ client_id: "c", extension }).extension;
+    for (let index = 0; index < 2048; index++) result = result[0];
+    assert.equal(result, "leaf");
+    assert.throws(() => api.parseOAuthClientRegistration({ client_id: "", extension }), {
+      message: "OAuth client registration response missing client_id"
+    });
+  }
 });
 
 test("credential JSON accepts large and deep extensions while rejecting cycles", () => {

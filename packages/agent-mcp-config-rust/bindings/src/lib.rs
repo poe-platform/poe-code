@@ -119,7 +119,9 @@ pub fn agent_mcp_shape_policies() -> NativeJson {
             let states = shape::Shape::policy(style)
                 .into_iter()
                 .map(|state| {
-                    let Value::Object(mut fields) = shape_request(state.request).0 else {
+                    let Value::Object(mut fields) =
+                        std::mem::replace(&mut shape_request(state.request).0, Value::Null)
+                    else {
                         unreachable!()
                     };
                     let mut add = |key: &str, index: usize| {

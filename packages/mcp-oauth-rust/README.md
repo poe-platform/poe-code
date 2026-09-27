@@ -48,6 +48,8 @@ Configured scopes are captured at provider creation; cached, refreshed and excha
 must match an explicit requested scope set. Refresh responses retain omitted granted scopes.
 Imported grants retain their original client and resource, anchor relative lifetimes at import,
 and yield to persisted rotations and revocations.
+Credential and registration extensions are copied without implicit depth, size or node caps.
+Copies reject cycles, accessors and non-JSON values and retain independent ownership.
 `parseOAuthTokenGrant(raw, { issuedAt, expiresAt, now })` admits raw
 Bearer responses, validates every supplied timing field, anchors relative expiry
 once and returns independent normalized credentials. Absolute overrides retain

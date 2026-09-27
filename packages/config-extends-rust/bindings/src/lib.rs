@@ -155,7 +155,9 @@ pub fn extends_parse_document(
     }
     Ok(NativeJson(match parsed {
         Ok(parsed) => {
-            let Value::Object(mut fields) = parsed_yaml_snapshot(parsed.yaml).0 else {
+            let Value::Object(mut fields) =
+                std::mem::replace(&mut parsed_yaml_snapshot(parsed.yaml).0, Value::Null)
+            else {
                 unreachable!()
             };
             fields.push((

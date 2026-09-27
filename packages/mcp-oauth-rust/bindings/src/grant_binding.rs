@@ -12,9 +12,9 @@ pub struct NativeTokenGrant {
 impl NativeTokenGrant {
     #[napi(constructor)]
     pub fn new(env: Env, source: Unknown<'_>) -> Result<Self> {
-        let payload = read_credential_json(env, source)?;
+        let payload = NativeJson(read_credential_json(env, source)?);
         Ok(Self {
-            grant: TokenGrant::parse(&payload).map_err(napi::Error::from_reason)?,
+            grant: TokenGrant::parse(&payload.0).map_err(napi::Error::from_reason)?,
             prepared: None,
         })
     }

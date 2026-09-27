@@ -67,7 +67,9 @@ pub fn frontmatter_parse(
     if let Some(error) = callback_error {
         return Err(error);
     }
-    let Value::Object(mut fields) = parsed_yaml_snapshot(document.yaml).0 else {
+    let Value::Object(mut fields) =
+        std::mem::replace(&mut parsed_yaml_snapshot(document.yaml).0, Value::Null)
+    else {
         unreachable!()
     };
     fields.push((

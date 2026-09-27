@@ -129,6 +129,20 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   }
 
   get(k: string): MemoryNode | undefined {
+    if (this.size === 0) return undefined;
+    let slot = this._hash(k);
+    const mask = this._mask;
+    const table = this._table;
+    const keys = this._keys;
+    while (true) {
+      const idx = table[slot]!;
+      if (idx === -1) return undefined;
+      if (idx >= 0 && keys[idx] === k) return this._vals[idx];
+      slot = (slot + 1) & mask;
+    }
+  }
+
+  getForWrite(k: string): MemoryNode | undefined {
     let slot = this._hash(k);
     if (this.size === 0) {
       lastFastMapMissMap = this;
@@ -1643,7 +1657,7 @@ export class MemoryFileSystem implements FileSystem {
         start = slash + 1;
       }
     }
-    const existing = parent.entries.get(name);
+    const existing = (parent.entries as FastDirectoryEntriesMap).getForWrite ? (parent.entries as FastDirectoryEntriesMap).getForWrite(name) : parent.entries.get(name);
     if (existing) {
       if (existing.type !== "file") this.fail("EISDIR", syscall, path);
       this.permission(existing, 2, syscall, path);
@@ -1851,7 +1865,11 @@ export class MemoryFileSystem implements FileSystem {
             cache.lastFastFilePath = "";
             cache.lastFastFileName = name;
             cache.lastFastFileNode = node;
+            lastFastMapMissMap = undefined;
+            lastFastMapMissKey = "";
           } catch (error) {
+            lastFastMapMissMap = undefined;
+            lastFastMapMissKey = "";
             this.ledger.release(nameBytes, 2);
             throw error;
           }

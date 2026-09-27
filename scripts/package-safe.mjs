@@ -19,7 +19,7 @@ import { resolveWorkerdRuntimeBuild } from "./bundle-fs.mjs";
  * @param {(specifier: string) => string} rewrite
  */
 export function rewriteModuleSpecifiers(filename, text, rewrite) {
-  const source = ts.createSourceFile(filename, text, ts.ScriptTarget.Latest, true);
+  const source = ts.createSourceFile(filename, text, ts.ScriptTarget.Latest);
   const replacements = [];
   const visit = node => {
     let literal;

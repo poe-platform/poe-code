@@ -438,9 +438,13 @@ it.each([false, true])("admits asset-only contract owners against the full priva
         if (!filename.endsWith(".ts") || filename.endsWith(".test.ts") || filename === "fixtures.ts") continue;
         const source = readFileSync(path.join(directory, "src", filename), "utf8");
         const compilerOptions = { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 };
+        const distJs = path.join(directory, "dist", `${filename.slice(0, -3)}.js`);
+        if (existsSync(distJs)) volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.js`, readFileSync(distJs, "utf8"));
+        else {
         modules.push(transform(source, { loader: "ts", format: "esm", target: "es2022" }).then(({ code }) => {
           volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.js`, code);
         }));
+        }
         const distDts = path.join(directory, "dist", `${filename.slice(0, -3)}.d.ts`);
         const dtsText = getCachedDeclaration(distDts, source, compilerOptions);
         volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.d.ts`, dtsText);

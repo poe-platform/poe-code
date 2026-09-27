@@ -4181,15 +4181,8 @@ export class Runtime {
   }
 
   private async shellArithmetic(program: ArithmeticProgram, state: State, io: IO, variables?: Record<string, string>): Promise<bigint> {
-    if (!program.hasSubscript && !state.namerefVariables?.size && variables === undefined) {
-      if (!guestArrays(state) && !state.variableAttributes?.size) {
-        return this.syncShellArithmetic(program, state, io.diagnosticLine);
-      }
-      try {
-        return this.syncShellArithmetic(program, state, io.diagnosticLine);
-      } catch (err) {
-        if (!(err instanceof ArrayFailure)) throw err;
-      }
+    if (!program.hasSubscript && !guestArrays(state) && !state.variableAttributes?.size && variables === undefined) {
+      return this.syncShellArithmetic(program, state, io.diagnosticLine);
     }
     const resolvedVariables = variables ?? this.arithmeticVariables(state, io.diagnosticLine);
     let depth = 0;
@@ -4255,15 +4248,8 @@ export class Runtime {
   }
 
   private async expandedArithmeticValue(program: ArithmeticProgram, state: State, io: IO): Promise<bigint> {
-    if (!program.error && !program.hasSubscript && !state.namerefVariables?.size) {
-      if (!guestArrays(state) && !state.variableAttributes?.size) {
-        return this.syncShellArithmetic(program, state, io.diagnosticLine);
-      }
-      try {
-        return this.syncShellArithmetic(program, state, io.diagnosticLine);
-      } catch (err) {
-        if (!(err instanceof ArrayFailure)) throw err;
-      }
+    if (!program.error && !program.hasSubscript && !guestArrays(state) && !state.variableAttributes?.size) {
+      return this.syncShellArithmetic(program, state, io.diagnosticLine);
     }
     const allocation = this.budget.values.scope();
     try {
@@ -9906,7 +9892,7 @@ export class Runtime {
       command.redirects.length === 0 &&
       !fileShortcut &&
       !terminal &&
-      !state.namerefVariables?.size
+      !state.variableAttributes?.size
     ) {
       if (command.words.length === 1) {
         const w0 = command.words[0]!;
@@ -10429,10 +10415,9 @@ export class Runtime {
           };
           const evaluateSyncNonZero = (program: ArithmeticProgram | undefined): boolean | Promise<bigint | undefined> => {
             if (!program) return true;
-            if (!program.error && !program.hasSubscript && !rawArithState.namerefVariables?.size) {
+            if (!program.error && !program.hasSubscript && !guestArrays(rawArithState) && !rawArithState.variableAttributes?.size) {
               try { return this.syncShellArithmeticNonZero(program, rawArithState, io.diagnosticLine); }
               catch (error) {
-                if (error instanceof ArrayFailure) return evaluate(program);
                 this.rethrowArithmeticControl(error);
                 return this.diagnostic(io, `((: ${message(error, this.budget.onInternalError)}`).then(() => undefined);
               }
@@ -11424,7 +11409,7 @@ export class Runtime {
           await writeBytes(targetSink, fastSharedTextEncoder.encode(text), this.commandSignal);
           return 0;
         }
-      } else if (name === "read" && !state.namerefVariables?.size && io.stdin instanceof ShellInput) {
+      } else if (name === "read" && !state.variableAttributes?.size && io.stdin instanceof ShellInput) {
         let raw = false;
         let argIdx = 0;
         let simpleRead = true;
@@ -15246,7 +15231,8 @@ export class Runtime {
   private fastValueWord(word: Word, state: State, io: IO, split: boolean, pattern: boolean, hereDocument: boolean, braces: boolean, assignmentStart?: number, overrideDiagnosticLine?: number): ShellValue | undefined {
     const monitor = stateMonitor(state);
     const rawState = monitor ? monitor.raw : state;
-    if (pattern || word.parts.length === 0 || rawState.namerefVariables?.size) return undefined;
+    if (pattern || word.parts.length === 0 || rawState.variableAttributes?.size) return undefined;
+    if (guestArrays(state) && word.parts.some(part => part.kind === "arithmetic")) return undefined;
     const activeArrayStore = arrayStore(state);
     const rawVars = rawState.variables;
     this.signal.throwIfAborted();

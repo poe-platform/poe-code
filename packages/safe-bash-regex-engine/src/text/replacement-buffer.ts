@@ -1,7 +1,7 @@
 import { Budget, ProgramError } from "./budget.js";
 
 export class ReplacementBuffer {
-  #segments: Buffer[] = [];
+  #segments: Uint16Array[] = [];
   #size = 0;
   #allocated = 0;
   #tailUsed = 0;
@@ -41,7 +41,7 @@ export class ReplacementBuffer {
       this.budget.step(length);
       if (!available) {
         this.budget.step();
-        tail = Buffer.allocUnsafeSlow(capacity);
+        tail = new Uint16Array(capacity);
         this.#segments.push(tail);
         this.#allocated += capacity;
         this.#tailUsed = 0;
@@ -65,25 +65,25 @@ export class ReplacementBuffer {
       return text;
     }
     if (this.#segments.length === 1) {
-      const text = this.#segments[0]!.toString("latin1", 0, this.#size);
+      const text = String.fromCharCode(...this.#segments[0]!.subarray(0, this.#size));
       this.clear();
       return text;
     }
     this.budget.step(this.#size);
     if (this.#allocated > this.budget.maxBufferBytes || this.#size > this.budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
-    const result = Buffer.allocUnsafeSlow(this.#size);
+    const parts: string[] = [];
     let offset = 0;
     for (const segment of this.#segments) {
       await this.budget.checkpoint();
       this.budget.step(0);
       const length = Math.min(segment.length, this.#size - offset);
-      result.set(segment.subarray(0, length), offset);
+      parts.push(String.fromCharCode(...segment.subarray(0, length)));
       offset += length;
     }
     this.clear();
     await this.budget.checkpoint();
     this.budget.step(0);
-    return result.toString("latin1");
+    return parts.join("");
   }
 
   clear(): void {

@@ -1428,7 +1428,8 @@
             "@poe-code/pdf-ast": "*",
             "citeproc": "2.4.63",
             "docx": "*",
-            "safe-bash-command-ssconvert": "*"
+            "safe-bash-command-ssconvert": "*",
+            "safe-bash-markdown-engine": "*"
           },
           "devDependencies": {
             "safe-bash-contracts": "*",
@@ -1474,31 +1475,6 @@
           "version": "0.0.1",
           "dependencies": {},
           "devDependencies": {},
-          "portable": true
-        },
-        "safe-bash-command-pandoc": {
-          "version": "0.0.1",
-          "dependencies": {
-            "@poe-code/office-package": "*",
-            "entities": "^6.0.1",
-            "jpeg-js": "^0.4.4",
-            "jsonc-parser": "^3.3.1",
-            "parse5": "7.3.0",
-            "saxes": "6.0.0",
-            "@poe-code/pdf": "0.0.1",
-            "pptx": "*",
-            "yaml": "2.9.0",
-            "fengari": "^0.1.5",
-            "@poe-code/pdf-ast": "*",
-            "citeproc": "2.4.63",
-            "docx": "*",
-            "safe-bash-command-ssconvert": "*",
-            "safe-bash-markdown-engine": "*"
-          },
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
           "portable": true
         }
       }

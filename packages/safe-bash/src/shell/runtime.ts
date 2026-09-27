@@ -3644,6 +3644,7 @@ export class Runtime {
   declare private _syncArithLine: number | undefined;
   declare private _syncArithRawWriteOnly: boolean;
   declare private _syncArithTouched: Set<string> | undefined;
+  declare private _fastSubPositional: readonly string[] | undefined;
   declare private _syncArithRefs: ArithmeticReferences | undefined;
   constructor(
     fs: FileSystem,
@@ -7607,6 +7608,8 @@ export class Runtime {
           w0Plain !== "rm" &&
           w0Plain !== "local" &&
           w0Plain !== "return" &&
+          w0Plain !== "read" &&
+          !(command.words[1]?.plain === "read" && w0.parts[0]?.kind === "text" && w0.parts[0].value.startsWith("IFS=")) &&
           !(w0Plain !== undefined && state.functions.has(w0Plain))
         ) {
           return undefined;
@@ -8377,7 +8380,137 @@ export class Runtime {
       }
     }
     if (command.words.length >= 2) {
-      const w0Plain = command.words[0]!.plain;
+      const w0 = command.words[0]!;
+      const w0Plain = w0.plain;
+      if (
+        (w0Plain === "read" || (command.words[1]?.plain === "read" && w0.parts[0]?.kind === "text" && w0.parts[0].value.startsWith("IFS="))) &&
+        canMutatePipeStatus &&
+        !pipeline.negate &&
+        !rawState.allexport &&
+        !hasShellFunction(rawState, "read") &&
+        !rawState.extensions?.builtins.has("read") &&
+        io.stdin instanceof ShellInput
+      ) {
+        let ifs: ShellValue | undefined;
+        let readWordIdx = 1;
+        if (w0Plain === "read") {
+          ifs = monitor.values.get("IFS", rawState.variables.IFS ?? " \t\n") ?? rawState.variables.IFS ?? " \t\n";
+        } else {
+          if (rawState.readonlyVariables?.has("IFS") || store?.get("IFS") || rawState.variableAttributes?.get("IFS")) return undefined;
+          const ifsAssign = !getArrayAssignment(w0) ? this.assignment(w0) : undefined;
+          if (!ifsAssign || ifsAssign.name !== "IFS" || ifsAssign.append) return undefined;
+          try {
+            ifs = this.fastValueWord(ifsAssign.value, rawState, io, false, false, false, false, 0, diagnosticLine);
+          } catch {
+            return undefined;
+          }
+          readWordIdx = 2;
+        }
+        if (typeof ifs === "string") {
+          let asciiIfs = true;
+          for (let i = 0; i < ifs.length; i++) {
+            if (ifs.charCodeAt(i) >= 128) { asciiIfs = false; break; }
+          }
+          if (asciiIfs) {
+            let raw = false;
+            let simpleRead = true;
+            while (readWordIdx < command.words.length) {
+              const p = command.words[readWordIdx]!.plain;
+              if (p === undefined) { simpleRead = false; break; }
+              if (p === "--") { readWordIdx++; break; }
+              if (p.startsWith("-") && p !== "-") {
+                for (let k = 1; k < p.length; k++) {
+                  if (p[k] === "r") raw = true;
+                  else if (p[k] === "s") { /* no-op */ }
+                  else { simpleRead = false; break; }
+                }
+                if (!simpleRead) break;
+                readWordIdx++;
+              } else {
+                break;
+              }
+            }
+            if (simpleRead) {
+              const varCount = command.words.length - readWordIdx;
+              if (varCount === 0) {
+                if (rawState.readonlyVariables?.has("REPLY") || store?.get("REPLY") || rawState.variableAttributes?.get("REPLY")) simpleRead = false;
+              } else {
+                for (let i = readWordIdx; i < command.words.length; i++) {
+                  const vn = command.words[i]!.plain;
+                  if (
+                    !vn ||
+                    !isShellIdentifier(vn) ||
+                    rawState.readonlyVariables?.has(vn) ||
+                    store?.get(vn) ||
+                    rawState.variableAttributes?.get(vn) ||
+                    vn === "OPTIND" ||
+                    vn === "PIPESTATUS" ||
+                    vn === "_"
+                  ) {
+                    simpleRead = false;
+                    break;
+                  }
+                }
+              }
+              if (simpleRead) {
+                const lineStr = io.stdin.tryReadSimpleRawAsciiLineSync(10, raw);
+                if (lineStr !== undefined) {
+                  if (rawState.extensions && !rawState.extensions.eventDepth) {
+                    publishCommandSpelling(rawState, commandSpelling(command));
+                  }
+                  if (varCount === 0) {
+                    monitor.publishStringVariable("REPLY", lineStr);
+                  } else {
+                    const isSep = (c: number): boolean => {
+                      for (let i = 0; i < ifs.length; i++) {
+                        if (ifs.charCodeAt(i) === c) return true;
+                      }
+                      return false;
+                    };
+                    const isWhite = (c: number): boolean => (c === 32 || c === 9 || c === 10) && isSep(c);
+                    let end = lineStr.length;
+                    while (end > 0 && isWhite(lineStr.charCodeAt(end - 1))) end--;
+                    let pos = 0;
+                    while (pos < end && isWhite(lineStr.charCodeAt(pos))) pos++;
+                    for (let vIdx = 0; vIdx < varCount; vIdx++) {
+                      const vn = command.words[readWordIdx + vIdx]!.plain!;
+                      if (pos >= end) {
+                        monitor.publishStringVariable(vn, "");
+                        continue;
+                      }
+                      const start = pos;
+                      while (pos < end && !isSep(lineStr.charCodeAt(pos))) pos++;
+                      let fieldEnd = pos;
+                      while (pos < end && isWhite(lineStr.charCodeAt(pos))) pos++;
+                      if (pos < end && isSep(lineStr.charCodeAt(pos))) pos++;
+                      while (pos < end && isWhite(lineStr.charCodeAt(pos))) pos++;
+                      if (vIdx === varCount - 1 && pos < end) fieldEnd = end;
+                      monitor.publishStringVariable(vn, lineStr.slice(start, fieldEnd));
+                    }
+                  }
+                  const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+                  this.budget.tick();
+                  rawState.substitutionStatus = 0;
+                  if (rawState.variables._ !== undefined) delete rawState.variables._;
+                  rawState.lastArgument = command.words[command.words.length - 1]!.plain!;
+                  if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+                  if (!existing) {
+                    monitor.lazyPipeStatus = singleStatusZero;
+                    monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+                  } else {
+                    elem0!.text.shellValue = "0";
+                    store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+                  }
+                  rawState.status = 0;
+                  monitor.epoch = restEpoch;
+                  if (store) store.epoch = restEpoch;
+                  return 0;
+                }
+              }
+            }
+          }
+        }
+      }
       if (
         command.words.length === 2 &&
         w0Plain === "local" &&
@@ -16507,12 +16640,13 @@ export class Runtime {
           if (part.name === "?") {
             val = String(rawState.status);
           } else if (part.name === "#") {
-            val = String(rawState.positional.length);
+            val = String((this._fastSubPositional ?? rawState.positional).length);
           } else {
             const idx = part.name.charCodeAt(0) - 49;
-            const rawPos = rawState.positional[idx];
+            const activePos = this._fastSubPositional ?? rawState.positional;
+            const rawPos = activePos[idx];
             this.requireParameter(rawPos, part.name, state, io, part.line ?? overrideDiagnosticLine);
-            val = rawPos === undefined ? "" : (monitor?.positionals.get(String(idx), rawPos) ?? rawPos);
+            val = rawPos === undefined ? "" : (this._fastSubPositional ? rawPos : (monitor?.positionals.get(String(idx), rawPos) ?? rawPos));
           }
           if (typeof val !== "string") return undefined;
           if (split && !part.quoted) {
@@ -16707,6 +16841,20 @@ export class Runtime {
       if (p.kind === "text") continue;
       if (p.kind === "variable") {
         if (
+          !p.indirect &&
+          !p.prefixNames &&
+          !p.length &&
+          !p.substring &&
+          !p.transform &&
+          p.operator === undefined &&
+          getArraySelector(p) === undefined &&
+          (p.name === "?" || p.name === "#" || (p.name.length === 1 && p.name >= "1" && p.name <= "9"))
+        ) {
+          const activePos = this._fastSubPositional ?? rawState.positional;
+          if (rawState.nounset && p.name >= "1" && p.name <= "9" && activePos[p.name.charCodeAt(0) - 49] === undefined) return false;
+          continue;
+        }
+        if (
           p.indirect ||
           p.prefixNames ||
           p.specialParameter ||
@@ -16725,7 +16873,8 @@ export class Runtime {
         continue;
       }
       if (p.kind === "arithmetic") {
-        if (p.expression.error || p.expression.hasSubscript || p.expression.hasMutation || rawState.nounset) return false;
+        if (p.expression.hasSubscript || p.expression.hasMutation || rawState.nounset) return false;
+        if (p.expression.error && (p.expression.source.includes("=") || p.expression.source.includes("++") || p.expression.source.includes("--"))) return false;
         continue;
       }
       return false;
@@ -16758,16 +16907,51 @@ export class Runtime {
     if (list.terminator || list.pipelines.length !== 1) return undefined;
     const pipeline = list.pipelines[0]!;
     if (pipeline.negate || pipeline.commands.length !== 1) return undefined;
-    const cmd = pipeline.commands[0]!;
+    let cmd = pipeline.commands[0]!;
     if (cmd.kind !== "simple" || cmd.redirects.length > 0 || cmd.words.length === 0) return undefined;
-    const w0Plain = cmd.words[0]!.plain;
-    if (!w0Plain || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return undefined;
+    let w0Plain = cmd.words[0]!.plain;
+    if (!w0Plain || rawState.extensions?.builtins.has(w0Plain)) return undefined;
+    let fnPositional: string[] | undefined;
+    if (rawState.functions.has(w0Plain)) {
+      if (rawState.depth + 1 >= this.budget.limits.maxSubstitutionDepth) return undefined;
+      const fnBody = rawState.functions.get(w0Plain)!;
+      if (
+        fnBody.kind !== "group" ||
+        fnBody.redirects.length !== 0 ||
+        fnBody.body.lists.length !== 1 ||
+        fnBody.body.lists[0]!.terminator ||
+        fnBody.body.lists[0]!.pipelines.length !== 1 ||
+        fnBody.body.lists[0]!.pipelines[0]!.negate ||
+        fnBody.body.lists[0]!.pipelines[0]!.commands.length !== 1
+      ) {
+        return undefined;
+      }
+      const innerCmd = fnBody.body.lists[0]!.pipelines[0]!.commands[0]!;
+      if (innerCmd.kind !== "simple" || innerCmd.redirects.length > 0 || innerCmd.words.length === 0) return undefined;
+      const innerW0 = innerCmd.words[0]!.plain;
+      if (!innerW0 || rawState.functions.has(innerW0) || rawState.extensions?.builtins.has(innerW0)) return undefined;
+      if (innerW0 !== "printf" && innerW0 !== "echo") return undefined;
+      for (let i = 0; i < cmd.words.length; i++) {
+        if (!this.isPureArgWord(cmd.words[i]!, rawState)) return undefined;
+      }
+      fnPositional = [];
+      for (let i = 1; i < cmd.words.length; i++) {
+        const argVal = this.fastValueWord(cmd.words[i]!, state, io, true, false, false, true, undefined, part.line);
+        if (typeof argVal !== "string") return undefined;
+        fnPositional.push(argVal);
+      }
+      cmd = innerCmd;
+      w0Plain = innerW0;
+    }
     if (w0Plain !== "printf" && w0Plain !== "echo") return undefined;
     const def = this.commands.get(w0Plain);
     if (!def) return undefined;
     if (w0Plain === "printf" && def.execute !== printfCommand.execute) return undefined;
     if (w0Plain === "echo" && !defaultEchoExecutors.has(def.execute)) return undefined;
     if (cmd.words.length > this.budget.maxExpansionFieldsSmi && cmd.words.length > this.budget.limits.maxExpansionFields) return undefined;
+    const prevFastSubPos = this._fastSubPositional;
+    if (fnPositional !== undefined) this._fastSubPositional = fnPositional;
+    try {
     for (let i = 0; i < cmd.words.length; i++) {
       if (!this.isPureArgWord(cmd.words[i]!, rawState)) return undefined;
     }
@@ -16785,6 +16969,7 @@ export class Runtime {
       }
       this.budget.bytes = nextBytes;
       this.budget.tick();
+      if (fnPositional !== undefined) this.budget.tick();
       rawState.substitutionStatus = 0;
       rawState.status = 0;
       let end = val.length;
@@ -16843,9 +17028,13 @@ export class Runtime {
     this.budget.tick();
     rawState.substitutionStatus = 0;
     rawState.status = 0;
+    if (fnPositional !== undefined) this.budget.tick();
     let end = formatted.length;
     while (end > 0 && formatted.charCodeAt(end - 1) === 10) end--;
     return end === formatted.length ? formatted : formatted.slice(0, end);
+    } finally {
+      this._fastSubPositional = prevFastSubPos;
+    }
   }
 
   private async valueWord(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean, value: ShellValue) => void, hereDocument = false, braces = split && !pattern && !hereString && !hereDocument, assignmentStart?: number): Promise<ShellValue[]> {

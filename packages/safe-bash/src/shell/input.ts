@@ -1449,6 +1449,25 @@ export class ShellInput implements ByteSource, CommandInput {
     });
   }
 
+  tryReadSimpleRawAsciiLineSync(delimiter = 10, raw = true): string | undefined {
+    if (this._viewClosed || (this._reads && this._reads.size > 0)) return undefined;
+    const cursor = this._lazyCursor;
+    if (!cursor) return undefined;
+    const rem = cursor.remainder;
+    if (!rem || rem.length === 0) return undefined;
+    const delimIdx = rem.indexOf(delimiter);
+    if (delimIdx === -1 || delimIdx > 4096 || delimIdx > this.budget.limits.maxOutputBytes) return undefined;
+    for (let i = 0; i < delimIdx; i++) {
+      const b = rem[i]!;
+      if (b === 0 || b >= 128 || (!raw && b === 92)) return undefined;
+    }
+    this.signal.throwIfAborted();
+    cursor.admitBoundedRead();
+    cursor.position += delimIdx + 1;
+    cursor.remainder = delimIdx + 1 < rem.length ? rem.subarray(delimIdx + 1) : undefined;
+    return Buffer.from(rem.buffer, rem.byteOffset, delimIdx).toString("latin1");
+  }
+
   async line(raw: boolean, options: ReadLineOptions = {}): Promise<ReadLine> {
     const { count, delimiter = 10, byteCount = false, exact = false, timeoutMs } = options;
     this.signal.throwIfAborted();

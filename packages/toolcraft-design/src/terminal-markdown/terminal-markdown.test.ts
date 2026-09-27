@@ -755,12 +755,12 @@ describe("terminal markdown integration", () => {
 describe("terminal markdown theme validation", () => {
   const fixturePath = path.join(
     path.dirname(fileURLToPath(import.meta.url)),
-    "testing",
-    "theme-render-fixture.ts"
+    "..", "..", "dist", "terminal-markdown", "testing",
+    "theme-render-fixture.js"
   );
 
   it("dark and light themes render readable, visually distinct ANSI output", async () => {
-    const { stdout } = await execFileAsync(process.execPath, ["--import", "tsx", fixturePath], {
+    const { stdout } = await execFileAsync(process.execPath, [fixturePath], {
       cwd: process.cwd(),
       env: { ...process.env }
     });

@@ -2253,7 +2253,34 @@
         "diagnostics": 0,
         "description": "Python constructs the Gnumeric XML and independently reads all eight ZIP/XML packages. Six sheets, global/local Total destinations and eight link labels survive; second-cycle SDK/command edits force fresh hyperlink serialization. Actual command screenshot inspected."
       },
-      "remaining": "Native application navigation, ambiguous dotted global names versus sheet-scoped names, non-A1 marks and broader application/format qualification remain open. No hyperlink target executes or gains host authority."
+      "remaining": "Native application navigation, ambiguous dotted global names versus sheet-scoped names, non-A1 marks and broader application/format qualification remain open. No hyperlink target executes or gains host authority.",
+      "calcLocalNameImport": {
+        "sources": [
+          {
+            "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/core/tool/rangeutl.cxx",
+            "sha256": "ff2ee0577e5c807b26f1ca0426ec9395b42a84abeb055fbbdbee08c742e4eb67",
+            "lines": "233-322"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/GNOME/gnumeric/GNUMERIC_1_12_61/src/hlink.c",
+            "sha256": "717b39575f5292de06a9273aba8dcbefdc85a3d448c11a2594fe6a4fe472b2e9",
+            "lines": "335-359"
+          }
+        ],
+        "finding": "Calc navigation recognizes name (Sheet) as an explicitly local name. The reader previously retained this as an unparsed Gnumeric hyperlink target; Gnumeric requires a parsed name or range expression.",
+        "implementation": "Decode Calc UI marks against declared workbook sheet names, including later sheets, using the existing sheet-name fold. Validate a qualified name with the formula parser and retain its scope. Charge sheet lookup and parsing to package work. Missing-sheet, malformed and non-name marks remain passive text.",
+        "validation": "Three original cases fail before repair and three malformed/missing-sheet controls pass. After repair, three focused files / 68 tests, package lint/source/test/consumer types and selected workspace build pass.",
+        "publicValidation": {
+          "fixtureBytes": 697,
+          "fixtureSha256": "a6676ed01838ed418ae63eeab668de75871f9bfd34586c9f9ddf81a41b85370f",
+          "nativeXmlExports": 2,
+          "editedOdfExports": 4,
+          "qualifiedLinkObservations": 18,
+          "diagnostics": 0,
+          "description": "Python independently constructs ODF and inspects SDK/command XML plus subsequent strict/extended ODF. Three local Total targets remain qualified and are not replaced by fixed ranges or the distinct global Total=999. Actual command screenshot inspected."
+        },
+        "remaining": "Native navigation and cross-application scoped-name export spelling remain unqualified: Calc UI marks and Gnumeric qualified-expression fragments are distinct profiles."
+      }
     }
   },
   "cases": [

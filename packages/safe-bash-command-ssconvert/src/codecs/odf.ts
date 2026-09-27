@@ -381,10 +381,11 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
     let textTarget: { cells: Cell[]; row: number; column: number } | undefined;
     const tables = children(spreadsheet, "table");
     if (tables.length > context.limits.sheets) limit("sheets");
+    const declaredSheetNames = tables.map((node, index) => { pkg.charge(); return attr(node, "name") ?? `Sheet${index + 1}`; });
     const sheetNames = new Set<string>();
     for (const [index, node] of tables.entries()) {
       pkg.charge();
-      const name = attr(node, "name") ?? `Sheet${index + 1}`;
+      const name = declaredSheetNames[index]!;
       if (sheetNames.has(name)) invalid("duplicate sheet name"); sheetNames.add(name);
       const id = name, cells: Cell[] = [], rows: AxisMetadata[] = [], columns: AxisMetadata[] = [], merges: Range[] = [], groups: FormulaGroup[] = [], records: UnsupportedRecord[] = [];
       let row = 0, column = 0, maxRow = 0, maxColumn = 0;
@@ -517,7 +518,7 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
         }
       }
       await axes(node, "column"); await axes(node, "row");
-      const translatedMetadata = [...odfSheetMetadata(node, pkg.charge, styleRoots), ...odfDatabaseRanges(spreadsheet, name, pkg.charge)];
+      const translatedMetadata = [...odfSheetMetadata(node, pkg.charge, styleRoots, declaredSheetNames), ...odfDatabaseRanges(spreadsheet, name, pkg.charge)];
       if (translatedMetadata.length > (context.limits.workbookNodes ?? Infinity) - metadata) limit("metadata");
       metadata += translatedMetadata.length; records.push(...translatedMetadata);
       for (const n of node.children) if (!["table-column", "table-row", "table-column-group", "table-row-group", "table-header-rows", "table-header-columns", "table-columns", "table-rows", "named-expressions"].includes(n.localName)) retain(n);

@@ -126,3 +126,16 @@ Unqualified label exports and the complete BIFF/format family remain open.
     fixtures cover both style-region links and cell-only links. Inspect the
     command transcript screenshot. Native navigation, ambiguous dotted names,
     non-A1 marks and unqualified application profiles remain open.
+
+14. Read Calc `MakeRangeFromName` and Gnumeric `gnm_hlink_cur_wb_set_target`
+    before handling Calc's `Total (Sheet)` hyperlink marks. Build an independent
+    ODF package with Links first, later `O'Brien`, `Data (Q1)` and Data sheets,
+    local Total names, and a separate global Total=999. Disable automatic label
+    lookup in this fixture to isolate hyperlink conversion. Import URI-encoded
+    local marks, including case variation, and export native Gnumeric XML via
+    SDK and command. Independently verify three qualified name targets and all
+    four name definitions. Reexport both XML outputs to strict/extended ODF
+    after editing the link text; require all named targets to survive. Verify
+    missing sheets and malformed marks remain passive text. Native Calc accepts
+    UI mark notation while Gnumeric exports qualified-expression notation;
+    do not claim native navigation from these transport checks alone.

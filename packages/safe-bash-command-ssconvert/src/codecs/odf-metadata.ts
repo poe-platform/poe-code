@@ -105,7 +105,8 @@ export function odfCellStyle(node: XmlElement, parent: ImportedValue | undefined
 }
 
 /** Metadata effects use the same retained-record path as the other importers. */
-export function odfSheetMetadata(sheet: XmlElement, charge: (n?: number) => void, roots: readonly XmlElement[] = []): UnsupportedRecord[] {
+export function odfSheetMetadata(sheet: XmlElement, charge: (n?: number) => void, roots: readonly XmlElement[] = [],
+  sheetNames: readonly string[] = []): UnsupportedRecord[] {
   const objects: ImportedValue[] = [], regions: ImportedValue[] = [], print: ImportedValue[] = []; let row = 0, column = 0;
   const repeat = (n: XmlElement, name: string) => Number(attr(n, name, "table") ?? "1");
   function rows(parent: XmlElement) {
@@ -133,7 +134,7 @@ export function odfSheetMetadata(sheet: XmlElement, charge: (n?: number) => void
             if (child.localName === "a") {
               const href = attr(child, "href", "xlink"); if (!href) continue;
               const type = href.startsWith("http") ? "GnmHLinkURL" : href.startsWith("mail") ? "GnmHLinkEMail" : href.startsWith("file") ? "GnmHLinkExternal" : "GnmHLinkCurWB";
-              const target = type === "GnmHLinkCurWB" ? translateOdfHyperlink(href, "import", charge) : href;
+              const target = type === "GnmHLinkCurWB" ? translateOdfHyperlink(href, "import", charge, sheetNames) : href;
               regions.push(gnode("StyleRegion", { startRow: row, endRow: row, startCol: column, endCol: column }, [
                 gnode("Style", { Fore: "0:0:FFFF" }, [gnode("Font", { Underline: 1 }),
                   gnode("HyperLink", { type, target, ...(attr(child, "title", "office") ? { tip: attr(child, "title", "office")! } : {}) })])

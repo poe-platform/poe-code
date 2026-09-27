@@ -136,6 +136,19 @@ it("matches native hyperlink URI-prefix classes and current-workbook target conv
   expect(serialized).toContain('"value":"GnmHLinkEMail"');
   expect(serialized).toContain('"value":"GnmHLinkExternal"');
 });
+
+it.each([
+  ["#Total%20(O'Brien)", "O'Brien", "'O\\'Brien'!Total"],
+  ["#Total%20(Data%20(Q1))", "Data (Q1)", "'Data (Q1)'!Total"],
+  ["#Total%20(data)", "Data", "Data!Total"],
+  ["#Total%20(Missing)", "Data", "Total (Missing)"],
+  ["#Total%20(Data", "Data", "Total (Data"],
+  ["#Total+1%20(Data)", "Data", "Total+1 (Data)"]
+])("imports Calc named hyperlink %s using declared sheet identity", async (href, sheet, target) => {
+  const book = await readOdf(await fixture(`<t:table t:name="Links"><t:table-row><t:table-cell o:value-type="string"><tx:p><tx:a xl:href="${href}">link</tx:a></tx:p></t:table-cell></t:table-row></t:table>
+    <t:table t:name="${sheet}"><t:named-expressions><t:named-expression t:name="Total" t:expression="of:=[.$A$1]"/></t:named-expressions></t:table>`), context);
+  expect(JSON.stringify(book.sheets[0]!.unsupportedRecords)).toContain(JSON.stringify({ name: "target", namespace: "", value: target }));
+});
 it("admits annotation space expansion to the shared work budget before allocating it", async () => {
   const bytes = await fixture('<t:table t:name="S"><t:table-row><t:table-cell><o:annotation><tx:p><tx:s tx:c="10001"/></tx:p></o:annotation></t:table-cell></t:table-row></t:table>');
   const bounded = { ...context, limits: { ...context.limits, workbookWork: 10000 } };

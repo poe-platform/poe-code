@@ -4622,7 +4622,8 @@ export class Runtime {
     if ( rawState.readonlyVariables?.has(name) || rawState.variableAttributes?.get(name) || rawState.exported.has(name) || controlNames.has(name)) {
       return false;
     }
-    const store = monitor?.store ?? (monitor ? requireArrays(rawState) : undefined);
+    // Cold activation belongs to normal command handling, which maps array refusals.
+    const store = monitor?.store;
     let current = store?.get(name);
     if ( !monitor || !store || store.watches.has(name) || monitor.hasOverlay(name) || (current && (current.references !== 1 || (associative !== undefined && current.associative !== associative))) || (!current && rawState.variables[name] !== undefined)) {
       return false;
@@ -7035,6 +7036,8 @@ export class Runtime {
         const st = stateMonitor(rawState)?.store;
         const arrayAssign = getArrayAssignment(w0);
         if (arrayAssign) {
+          // Refuse the whole compound before any prefix executes on a cold store.
+          if (!st) return false;
           if ( rawState.readonlyVariables?.has(arrayAssign.name) || rawState.exported.has(arrayAssign.name) || rawState.variableAttributes?.get(arrayAssign.name) || controlNames.has(arrayAssign.name) || (!st?.get(arrayAssign.name) && rawState.variables[arrayAssign.name] !== undefined)) {
             return false;
           }

@@ -35,6 +35,10 @@ async function output(source: string, expected: string, status = 0): Promise<voi
   } finally { await instance.dispose(); }
 }
 
+test("foundation: cold array assignment does not replay a loop prefix", { timeout: 5000 }, async () => {
+  await output('for i in one; do echo marker; value=(x); done; printf "<%s>" "${value[@]}"', "marker\n<x>");
+});
+
 test("foundation: sparse assignment, append and distinct zero views", { timeout: 5000 }, async () => {
   await output('a=([9]=nine [0]="" [2147483647]=max); printf "<%s>" "${a[@]}"; printf "/%s/%s/%s" "${#a[@]}" "${a-absent}" "${a:-empty}"', "<><nine><max>/3//empty");
   await output('a=(A B); a+=([5]=F G); a[0]+=Z; a+=([1]=Q); printf "<%s>" "${a[@]}"', "<AZ><Q><F><G>");

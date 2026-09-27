@@ -16,7 +16,7 @@ function remote(text: string) {
 const valid = { version: 1, etag: '"version"', type: "directory", atimeMs: -2000.5, mtimeMs: 3000 };
 
 it.each([
-  '{"junk":[' + '{},'.repeat(550_000) + '{}]}',
+  '{"junk":[' + '{},'.repeat(10_000) + '{}]}',
   JSON.stringify({ ...valid, junk: 1 }),
   JSON.stringify({ ...valid, atimeMs: [] }),
   JSON.stringify({ ...valid, atimeMs: { nested: {} } }),

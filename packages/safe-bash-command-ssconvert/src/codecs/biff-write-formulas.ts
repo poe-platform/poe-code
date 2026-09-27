@@ -4,6 +4,7 @@ import type { FormulaNode, ParsePosition, ReferenceEndpoint } from "../formulas/
 import { parseExpression } from "../formulas/parser.js";
 import { parseNamedExpression } from "../formulas/named-expressions.js";
 import { biffFunctions } from "./biff-source.js";
+import { isBiffRadicalArea } from "./biff-formulas.js";
 import { biffString, biffError } from "./biff-write.js";
 import { words } from "./biff-write-binary.js";
 import { foldSheetName } from "../workbook/case-fold.js";
@@ -187,7 +188,6 @@ export class BiffFormulaWriter {
           if (definition)
             throw new SsconvertError("unsupported-feature", "Excel BIFF live label reference in a named expression is not yet supported");
           const anchor = node.first, r = anchor.row, c = anchor.column;
-          const rowLabel = node.label.axis === "row";
           if (this.revision !== 8 || node.last || !r || !c || r.relative !== c.relative ||
             anchor.workbook !== undefined || anchor.sheet !== undefined)
             throw new SsconvertError("unsupported-feature", "Excel BIFF live label reference requires a local BIFF8 anchor with matching row/column relativity");
@@ -197,7 +197,21 @@ export class BiffFormulaWriter {
           if (labelRow < 0 || labelRow >= 65536 || labelColumn < 0 || labelColumn >= 256)
             throw new SsconvertError("unsupported-feature", "Excel BIFF live label reference exceeds version limits");
           const columnBits = labelColumn | (r.relative ? 0x8000 : 0) | (node.label.quoted ? 0x4000 : 0);
-          push([0x18, (rowLabel ? 2 : 3) + (node.label.referenceClass === "value" ? 4 : 0), ...words(labelRow, columnBits)]);
+          if (node.label.kind === "radical") {
+            const data = node.label.data;
+            const areaClass = node.label.dataClass === "reference" ? 0x20 : node.label.dataClass === "value" ? 0x40 : 0x60;
+            push([0x18, 10, ...words(labelRow, columnBits)]);
+            if (!data) push([areaClass | 0x0b, ...new Uint8Array(8)]);
+            else {
+              if ([data.first, data.last].some(ref => !ref.row || !ref.column || ref.sheet !== undefined || ref.workbook !== undefined))
+                throw new SsconvertError("unsupported-feature", "Excel BIFF radical label requires a local explicit area");
+              const first = reference(data.first), last = reference(data.last);
+              const a = new DataView(first.buffer), b = new DataView(last.buffer);
+              if (!isBiffRadicalArea(labelRow, labelColumn, [a.getUint16(0, true), b.getUint16(0, true), a.getUint16(2, true) & 255, b.getUint16(2, true) & 255]))
+                throw new SsconvertError("unsupported-feature", "Excel BIFF radical label must adjoin its explicit area");
+              push([areaClass | 5]); push(first.subarray(0, 2)); push(last.subarray(0, 2)); push(first.subarray(2)); push(last.subarray(2));
+            }
+          } else push([0x18, (node.label.axis === "row" ? 2 : 3) + (node.label.referenceClass === "value" ? 4 : 0), ...words(labelRow, columnBits)]);
           return;
         }
         if (!sheetLossReported && (node.first.sheetRelative && (node.first.sheet || node.last?.sheet) || node.last?.sheet && node.last.sheetRelative)) {

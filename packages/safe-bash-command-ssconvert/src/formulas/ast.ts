@@ -13,13 +13,18 @@ export interface ReferenceEndpoint {
   readonly sheetOffset?: number;
   readonly workbook?: string;
 }
+export type LabelReference = { readonly quoted?: boolean; readonly scalar: boolean } & (
+  | { readonly kind?: "implicit"; readonly axis: "row" | "column"; readonly referenceClass: "reference" | "value" }
+  | { readonly kind: "radical"; readonly dataClass: "reference" | "value" | "array";
+      /** The following BIFF Area, or null for AreaErr; independent of the label anchor. */
+      readonly data: (Span & { readonly kind: "reference"; readonly first: ReferenceEndpoint; readonly last: ReferenceEndpoint }) | null }
+);
 export type FormulaNode = Span & (
   | { readonly kind: "literal"; readonly value: CellValue }
   | { readonly kind: "omitted" }
   | { readonly kind: "reference"; readonly first: ReferenceEndpoint; readonly last?: ReferenceEndpoint;
       /** A live label anchor, not the data range it currently selects. */
-      readonly label?: { readonly axis: "row" | "column"; readonly referenceClass: "reference" | "value";
-        readonly quoted?: boolean; readonly scalar: boolean } }
+      readonly label?: LabelReference }
   | { readonly kind: "name"; readonly name: string; readonly sheet?: string;
       /** Empty means the current workbook; without a sheet it selects only global names. */
       readonly workbook?: string }

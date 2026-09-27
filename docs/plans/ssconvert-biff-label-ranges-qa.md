@@ -51,7 +51,7 @@ Keep source inputs, generated workbooks, screenshots and command captures under
     live label. Require explicit refusal; quoted text containing `@row:$A1`
     remains ordinary text. Inspect actual command diagnostics in a screenshot.
     These refusals are unfinished transport work, not format qualification.
-12. Continue native application readback, named-expression export, radical and
+12. Continue native application readback, named-expression export,
     extra-data subtypes, cross-sheet label transport, remaining BIFF profiles,
     and XML/XLSX/ODF live identity transport before closing the formula family.
 
@@ -68,3 +68,15 @@ Keep source inputs, generated workbooks, screenshots and command captures under
     SHRFMLA; array records allow it and shared groups can expand to cell formulas.
     Radical's following Area record and multiple-label RgbExtra are semantic
     data, not disposable padding. Implement and qualify their preservation.
+
+15. For radical subtype `0A`, inspect MS-XLS PtgElfRadical and its separate
+    following Area/AreaErr. Test row/column labels before and after a range,
+    scalar/SUM use, all three area classes and all four anchor flag combinations,
+    with independent data endpoint flags. Require 192 compiled SDK/command
+    exports to preserve the 15 native bytes and fresh values 2/5 from cache 999;
+    gaps within the explicit area count and adjacent data outside it does not.
+    Check AreaErr retains its anchor and class (undefined payload bytes may
+    normalize), copy/move and case-varied sheet rename/remap, resize clipping
+    and deletion, precise dirty propagation, malformed/truncated records and
+    invalid adjacency. Inspect the actual CLI refusal and confirm an existing
+    destination survives. Native application readback remains a separate gate.

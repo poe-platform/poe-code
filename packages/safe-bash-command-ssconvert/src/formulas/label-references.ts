@@ -18,6 +18,24 @@ export function resolveLabelReference(book: Workbook, node: Extract<FormulaNode,
     const value = node.first[axis];
     if (!value || value.value + (value.relative ? position[axis] : 0) !== coordinate) return error("#REF!");
   }
+  if (label.kind === "radical") {
+    // MS-XLS PtgElfRadical's following Area is authoritative. Calc discards
+    // those bytes and infers a column range, which loses row/backward ranges.
+    if (!label.data) return error("#REF!");
+    const range = localReferenceRange(book, label.data, position);
+    if (!range || range.sheets.length !== 1 || range.sheets[0] !== sheet) return error("#REF!");
+    for (const ref of [label.data.first, label.data.last]) for (const axis of ["row", "column"] as const) {
+      tick(); const value = ref[axis];
+      const coordinate = value && value.value + (value.relative ? position[axis] : 0);
+      if (coordinate === undefined || coordinate < 0 || coordinate >= (axis === "row" ? size.rows : size.columns)) return error("#REF!");
+    }
+    if (range.firstRow !== range.lastRow && range.firstColumn !== range.lastColumn) return error("#REF!");
+    if (!label.scalar || range.firstRow === range.lastRow && range.firstColumn === range.lastColumn) return { kind: "range", ...range };
+    if (range.firstRow === range.lastRow) return position.column < range.firstColumn || position.column > range.lastColumn ? error("#REF!") :
+      { kind: "range", ...range, firstColumn: position.column, lastColumn: position.column };
+    return position.row < range.firstRow || position.row > range.lastRow ? error("#REF!") :
+      { kind: "range", ...range, firstRow: position.row, lastRow: position.row };
+  }
   const pairs = (sheet.labelRanges ?? []).filter(pair => { tick(); return pair.axis === label.axis; });
   const declared = pairs.find(pair => { tick(); return row >= pair.labels.startRow && row <= pair.labels.endRow &&
     column >= pair.labels.startColumn && column <= pair.labels.endColumn; });

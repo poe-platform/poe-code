@@ -8,6 +8,7 @@ export function visitFormula(node: FormulaNode, visitor: (node: FormulaNode) => 
   else if (node.kind === "binary") { visitFormula(node.left, visitor); visitFormula(node.right, visitor); }
   else if (node.kind === "call") for (const child of node.args) visitFormula(child, visitor);
   else if (node.kind === "array") for (const row of node.rows) for (const child of row) visitFormula(child, visitor);
+  else if (node.kind === "reference" && node.label?.kind === "radical" && node.label.data) visitFormula(node.label.data, visitor);
 }
 
 export interface ReferenceRewrite {
@@ -24,6 +25,7 @@ export interface ReferenceRewrite {
 export function rewriteReferences(document: FormulaDocument, edit: ReferenceRewrite): string {
   const changes: { start: number; end: number; text: string }[] = [];
   const lexicalReferences = new Set<string>();
+  const absorbedReferences = new Set<FormulaNode>();
   const target = edit.position ?? document.position;
   const endpoint = (ref: ReferenceEndpoint): ReferenceEndpoint => {
     let next: ReferenceEndpoint = ref;
@@ -47,6 +49,7 @@ export function rewriteReferences(document: FormulaDocument, edit: ReferenceRewr
   };
   visitFormula(document.root, node => {
     edit.signal?.throwIfAborted();
+    if (absorbedReferences.has(node)) return;
     if (node.kind === "reference" || node.kind === "name") {
       const token = `${node.start}:${node.end}`;
       if (lexicalReferences.has(token)) return;
@@ -54,13 +57,17 @@ export function rewriteReferences(document: FormulaDocument, edit: ReferenceRewr
     }
     if (node.kind === "reference") {
       const first = endpoint(node.first), last = node.last ? endpoint(node.last) : undefined;
+      // The parent replacement includes its explicit area's source span.
+      if (node.label?.kind === "radical" && node.label.data) absorbedReferences.add(node.label.data);
+      const label = node.label?.kind === "radical" && node.label.data ? { ...node.label,
+        data: { ...node.label.data, first: endpoint(node.label.data.first), last: endpoint(node.label.data.last) } } : node.label;
       // External references still translate during a copy, but are never renamed locally.
-      const unchanged = JSON.stringify(first) === JSON.stringify(node.first) && JSON.stringify(last) === JSON.stringify(node.last) &&
+      const unchanged = JSON.stringify(first) === JSON.stringify(node.first) && JSON.stringify(last) === JSON.stringify(node.last) && JSON.stringify(label) === JSON.stringify(node.label) &&
         target.row === document.position.row && target.column === document.position.column;
       if (!unchanged) {
         const position = { ...target, sheet: document.sheetNames?.[target.sheet] ?? target.sheet };
-        changes.push({ start: node.start, end: node.end, text: node.label
-          ? serializeLabelReference({ ...node, first, ...(last ? { last } : {}) }, document.grammar, position)
+        changes.push({ start: node.start, end: node.end, text: label
+          ? serializeLabelReference({ ...node, first, ...(last ? { last } : {}), label }, document.grammar, position)
           : serializeReference(first, last, document.grammar, position) });
       }
     } else if (node.kind === "name" && (node.workbook === undefined || node.workbook === "") && node.sheet && edit.sheets?.has(node.sheet)) {

@@ -3,7 +3,7 @@ import { gnumericGrammar, odfGrammar } from "./conventions.js";
 import { foldSheetName } from "../workbook/case-fold.js";
 import { isUnicodeAlphanumeric } from "../cli/unicode-alphanumeric.js";
 import { isUnicodeAlpha } from "../workbook/unicode-sheet-name.js";
-import type { Axis, FormulaNode, FormulaParseOptions, FormulaParseResult, ReferenceEndpoint } from "./ast.js";
+import type { Axis, FormulaNode, FormulaParseOptions, FormulaParseResult, LabelReference, ReferenceEndpoint } from "./ast.js";
 
 const digit = (c: string | undefined): boolean => c !== undefined && c >= "0" && c <= "9";
 const letter = (c: string | undefined): boolean => c !== undefined && (c >= "A" && c <= "Z" || c >= "a" && c <= "z");
@@ -220,11 +220,11 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
         // Explicit ssconvert label references avoid the ambiguity of Gnumeric's
         // ordinary single-quoted strings. The address remains the live anchor.
         offset++;
-        const axis = source.startsWith("row", offset) ? "row" : source.startsWith("column", offset) ? "column" : undefined;
+        const axis = source.startsWith("row", offset) ? "row" : source.startsWith("column", offset) ? "column" : source.startsWith("range", offset) ? "range" : undefined;
         if (!axis) fail("Invalid label reference axis");
         offset += axis.length;
-        const referenceClass = source.startsWith(".value", offset) ? "value" : "reference";
-        if (referenceClass === "value") offset += 6;
+        const referenceClass = source.startsWith(".value", offset) ? "value" : axis === "range" && source.startsWith(".array", offset) ? "array" : "reference";
+        if (referenceClass !== "reference") offset += 6;
         const quoted = source.startsWith(".quoted", offset);
         if (quoted) offset += 7;
         if (source[offset++] !== ":") fail("Invalid label reference");
@@ -232,6 +232,21 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
         if (target?.kind !== "reference" || target.last || !target.first.row || !target.first.column || target.first.workbook !== undefined)
           fail("Invalid label reference target");
         hasLabels = true;
+        if (axis === "range") {
+          if (!source.startsWith("->", offset)) fail("Radical label requires an explicit data area");
+          offset += 2;
+          let data: Extract<LabelReference, { kind: "radical" }>["data"] = null;
+          if (source.startsWith("#REF!", offset)) offset += 5;
+          else {
+            const area = referenceOrName();
+            if (area?.kind !== "reference" || !area.first.row || !area.first.column || area.first.workbook !== undefined ||
+              area.last && (!area.last.row || !area.last.column || area.last.workbook !== undefined)) fail("Invalid radical label data area");
+            data = { ...area, last: area.last ?? area.first };
+          }
+          return { ...target, start, end: offset, label: { kind: "radical", dataClass: referenceClass, data,
+            ...(quoted ? { quoted } : {}), scalar: false } };
+        }
+        if (referenceClass === "array") fail("Invalid label reference class");
         return { ...target, start, label: { axis, referenceClass, ...(quoted ? { quoted } : {}), scalar: false } };
       }
       if (grammar.bracketReferences) for (const spelling of ["[#REF!]", "[.#REF!]", "[.$#REF!]"]) {

@@ -123,11 +123,15 @@ export function buildDependencyGraph(
       const { node, position, names, depth } = pending.pop()!;
       if (depth > 128) throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded");
       tick();
-      if (node.kind === "call" && ["RAND", "NOW", "TODAY"].includes(node.name) || node.kind === "reference" && node.label) volatile.add(cell);
+      if (node.kind === "call" && ["RAND", "NOW", "TODAY"].includes(node.name) || node.kind === "reference" && node.label && node.label.kind !== "radical") volatile.add(cell);
       if (node.kind === "reference") {
         const { label, ...anchor } = node;
         const value = resolve(anchor, position);
-        if (value && label) {
+        if (value && label?.kind === "radical") {
+          range(cell, value);
+          const data = label.data && resolve(label.data, position);
+          if (data) range(cell, data);
+        } else if (value && label) {
           // Any occupied cell can extend an automatic label's data area.
           // Share this conservative dependency with edit and solver paths;
           // staticScalar/staticRanges still cannot treat it as a fixed range.

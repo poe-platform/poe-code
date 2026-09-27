@@ -95,6 +95,11 @@ export function serializeLabelReference(node: Extract<FormulaNode, { kind: "refe
     throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: live label reference in target grammar");
   const address = serializeReference(node.first, node.last, grammar, position);
   if (address.endsWith("#REF!")) return "#REF!";
+  if (node.label.kind === "radical") {
+    const data = node.label.data ? serializeReference(node.label.data.first, node.label.data.last, grammar, position) : "#REF!";
+    return "@range" + (node.label.dataClass === "reference" ? "" : "." + node.label.dataClass) +
+      (node.label.quoted ? ".quoted" : "") + ":" + address + "->" + (data.endsWith("#REF!") ? "#REF!" : data);
+  }
   return "@" + node.label.axis + (node.label.referenceClass === "value" ? ".value" : "") + (node.label.quoted ? ".quoted" : "") + ":" + address;
 }
 

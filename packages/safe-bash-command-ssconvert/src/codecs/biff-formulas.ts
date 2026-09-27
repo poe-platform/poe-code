@@ -63,6 +63,13 @@ const legacyFixedFunctions: Readonly<Record<number, readonly [number, number, nu
   197: [2, 2, 1], 220: [3, 4, 2]
 };
 
+/** MS-XLS PtgElfRadical: the label must adjoin one axis of its explicit area. */
+export function isBiffRadicalArea(row: number, column: number, [r1, r2, c1, c2]: readonly [number, number, number, number]): boolean {
+  const rowLabel = r1 === r2 && row === r1 && (column === c1 - 1 || column === c2 + 1);
+  const columnLabel = c1 === c2 && column === c1 && (row === r1 - 1 || row === r2 + 1);
+  return r1 <= r2 && c1 <= c2 && c2 < 256 && rowLabel !== columnLabel;
+}
+
 export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaContext): string {
   const data = new Binary(bytes), stack: Expression[] = [];
   let offset = 0, work = 0;
@@ -135,7 +142,7 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       // MS-XLS PtgElfLel/PtgElfRadicalLel: deleted natural-language labels.
       // Calc emits ocErrName for both. The quoted/reserved bits do not affect it.
       data.check(offset, 5); offset += 5; push("#NAME?");
-    } else if (token === 0x18 && context.revision === 8 && [2, 3, 6, 7].includes(data.u8(offset))) {
+    } else if (token === 0x18 && context.revision === 8 && [2, 3, 6, 7, 10].includes(data.u8(offset))) {
       data.check(offset, 5);
       const subtype = data.u8(offset), row = data.u16(offset + 1), columnBits = data.u16(offset + 3), column = columnBits & 0x3fff;
       // MS-XLS ColElfU: fQuoted and fRelative are separate from its 14-bit
@@ -145,8 +152,18 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       const axis = subtype === 2 || subtype === 6 ? "row" : "column";
       let letters = "";
       for (let n = column + 1; n; n = Math.floor((n - 1) / 26)) letters = String.fromCharCode(65 + (n - 1) % 26) + letters;
-      push("@" + axis + (subtype >= 6 ? ".value" : "") + (columnBits & 0x4000 ? ".quoted" : "") + ":" + absolute + letters + absolute + (row + 1));
+      const anchor = (columnBits & 0x4000 ? ".quoted" : "") + ":" + absolute + letters + absolute + (row + 1);
       offset += 5;
+      if (subtype === 10) {
+        data.check(offset, 9);
+        const areaToken = data.u8(offset);
+        if (![0x25, 0x45, 0x65, 0x2b, 0x4b, 0x6b].includes(areaToken)) invalidBiff("radical label requires Area or AreaErr");
+        const deleted = (areaToken & 0x1f) === 0x0b;
+        if (!deleted && !isBiffRadicalArea(row, column, [data.u16(offset + 1), data.u16(offset + 3), data.u16(offset + 5) & 0x3fff, data.u16(offset + 7) & 0x3fff]))
+          invalidBiff("invalid radical label area");
+        push("@range" + ((areaToken & 0x60) === 0x40 ? ".value" : (areaToken & 0x60) === 0x60 ? ".array" : "") + anchor + "->" + (deleted ? "#REF!" : area(offset + 1, false)));
+        offset += 9;
+      } else push("@" + axis + (subtype >= 6 ? ".value" : "") + anchor);
     } else if (token === 0x19) {
       const width = context.revision === 2 ? 1 : 2;
       const flags = data.u8(offset), value = width === 1 ? data.u8(offset + 1) : data.u16(offset + 1); offset += 1 + width;

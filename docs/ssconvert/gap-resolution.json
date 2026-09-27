@@ -1594,8 +1594,8 @@
       "import": "ReadLabelranges converts declared labels into label/data pairs. Row data extends right to the Calc document column limit, or left when the label reaches that limit; column data analogously extends down or up. The importer uses document limits, not the BIFF record field limit. This profile distinction still needs native qualification.",
       "evaluation": "GetRefColRowNames first consults ordered label/data pairs. Automatic ranges use label text/empty cells, formula position and the next declared data range to choose their boundaries. Binary-operator neighbors and beginning/end positions select a scalar; label/intersection neighbors preserve ranges. A missing scalar intersection returns NoRef. Single-cell ranges remain position independent. Axis-relative flags survive the resulting reference.",
       "export": "XclExpLabelranges stores only label ranges, not paired data endpoints. It narrows row labels to the first column for Excel97/2000/XP, then writes the two range lists. This is an observable normalization, not lossless pair preservation.",
-      "currentCode": "Ordered label metadata and lookup settings are implemented. Live BIFF8 row/column subtypes 02/03/06/07 now import as tagged label anchors, recalculate with Calc-derived scalar/contiguous-region rules and reexport native ELF tokens. Dependencies dirty formulas after edits change data boundaries. Ordinary quoted strings remain strings. Wider subtypes and native/other-format transport remain open. ColElfU quoting and relative/absolute flags now survive import, copying/moving and native token export; invalid 14-bit column values are rejected instead of truncated. This corrects the earlier Calc-derived flag loss.",
-      "nextAction": "Implement radical labels with their explicit following PtgArea/PtgAreaErr and multi-cell labels with RgbExtra; Calc ignores or rejects that data and is not a complete preservation guide. NameParsedFormula forbids direct ELF tokens, so NAME transport needs a different loss-characterized representation. Qualify native application behavior and XML/XLSX/ODF identity transport; no family is closed.",
+      "currentCode": "Ordered label metadata and lookup settings are implemented. Live BIFF8 row/column subtypes 02/03/06/07 now import as tagged label anchors, recalculate with Calc-derived scalar/contiguous-region rules and reexport native ELF tokens. Dependencies dirty formulas after edits change data boundaries. Ordinary quoted strings remain strings. Wider subtypes and native/other-format transport remain open. ColElfU quoting and relative/absolute flags now survive import, copying/moving and native token export; invalid 14-bit column values are rejected instead of truncated. This corrects the earlier Calc-derived flag loss. Radical subtype 0A now retains its following explicit Area/AreaErr, independent endpoint flags and token class through import, evaluation, edits and native export.",
+      "nextAction": "Implement multi-cell labels with ordered PtgExtraElf in RgbExtra; Calc ignores or rejects that data and is not a complete preservation guide. NameParsedFormula forbids direct ELF tokens, so NAME transport needs a different loss-characterized representation. Qualify native application behavior and XML/XLSX/ODF identity transport; no family is closed.",
       "metadataImplementation": {
         "profile": "Inferred data endpoints use the BIFF8 sheet grid (65536 rows, 256 columns). This explicitly differs from Calc document maxima. Original overlapping and multi-column label rectangles retain their order and bytes; no Calc row-label narrowing is performed.",
         "settings": "USESELFS defaults disabled. Only BIFF8 workbook-global records enable it, using native nonzero semantics. Missing/disabled settings export through the disabled default; enabled settings emit one USESELFS record.",
@@ -1714,6 +1714,35 @@
         "contexts": "ArrayParsedFormula permits ELF tokens. NameParsedFormula and SharedParsedFormula explicitly forbid them. Existing shared-group export expands into ordinary cell FORMULA records; do not put live ELF tokens directly in NAME or SHRFMLA. Direct native NAME emission is not the remaining implementation strategy.",
         "radicalFinding": "PtgElfRadical is six bytes followed by a separate nine-byte PtgArea/PtgAreaErr carrying the actual data range. Calc consumes the combined 15 bytes but ignores that explicit area and forces a column-label inference. RadicalS/ColS/ColSV additionally need ordered PtgExtraElf entries in RgbExtra. Implementing only Calc's skip/placeholder behavior would lose required identity and range semantics.",
         "validation": "19 focused cases failed before the flag correction. Final BIFF/formula cohort: 67 files / 1732 tests pass; maintained lint/source/test/consumer types and selected workspace build pass. Compiled public APIs pass 64 native exports with independent SheetJS CFB plus original token/cache decoding and 32 copy/move cases. Actual CLI refusal preserves an existing output; screenshot inspected. Native application qualification remains open."
+      },
+      "radicalImplementation": {
+        "source": "MS-XLS PtgElfRadical and the pinned Calc excform8.cxx (receipts in flagAndContextAudit). The explicit following Area/AreaErr is authoritative; Calc consumes but discards it.",
+        "representation": "@range[.value|.array][.quoted]:anchor->area retains the label plus independent endpoint flags and following token class; ->#REF! preserves AreaErr identity. BIFF export requires a local one-dimensional area adjoining its label; NAME and BIFF7 remain refused.",
+        "behavior": "Scalar intersection and SUM use the stored range, including gaps, without inferred lookup. Copy/move, case-varied rename/remap and resize handle both anchor and data. Dependencies cover anchor and explicit area; unrelated edits do not dirty the formula. AreaErr undefined payload bytes normalize to zero.",
+        "validation": "26 original native/structural cases, two rename/resize cases and one dependency case failed before correction. Final 87-file BIFF/formula/workbook cohort passes 1959 tests, including 31 radical tests. Maintained package lint, source/test/consumer types and selected workspace build pass.",
+        "publicValidation": {
+          "exports": 192,
+          "moveChecks": 96,
+          "flags": [
+            0,
+            16384,
+            32768,
+            49152
+          ],
+          "classes": [
+            "reference",
+            "value",
+            "array"
+          ],
+          "scalar": 2,
+          "sum": 5,
+          "staleCache": 999,
+          "independent": "SheetJS CFB and raw FORMULA bytes/cache",
+          "refusalPreservesOutput": true
+        },
+        "qualification": "Independent binary proof; native application readback, extra-data subtypes and other-format identity transport remain open.",
+        "qa": "docs/plans/ssconvert-biff-label-ranges-qa.md",
+        "visualValidation": "Actual compiled runCommand refusal screenshot inspected; an existing destination remains unchanged."
       }
     },
     "xlsxFormulaTextAudit": {

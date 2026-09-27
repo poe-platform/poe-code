@@ -1,5 +1,5 @@
 import { HtmlBudget, HtmlError, type HtmlNode, type HtmlOptions } from "./contracts.js";
-import { inclusiveHtmlDescendants } from "./traversal.js";
+import { getInternalHtmlNode, getPublicHtmlView, type FastMutableNode } from "./tree.js";
 export const cssSpace = (c: string): boolean =>
   c === " " || c === "\t" || c === "\n" || c === "\r" || c === "\f";
 function asciiLower(s: string): string {
@@ -458,10 +458,38 @@ export function selectHtml(
 ): Generator<HtmlNode, void> {
   const budget = new HtmlBudget(options);
   const program = new Parser(selector, budget).list();
+  const internalRoot = getInternalHtmlNode(root);
+  if (!internalRoot) throw new HtmlError("E_OWNERSHIP", "Unowned HTML node");
   return (function* () {
-    for (const node of inclusiveHtmlDescendants(root, options)) {
+    let node: FastMutableNode | null = internalRoot;
+    let start = true;
+    let depth = 0;
+    while (node) {
       budget.charge("work", 1);
-      if (node.kind === "element" && matchesProgram(node, program, budget)) yield node;
+      budget.bound("depth", depth);
+      const current: FastMutableNode = node;
+      const entering = start;
+      if (start) {
+        if (current.children.length) {
+          node = current.children[0]! as FastMutableNode;
+          depth++;
+        } else start = false;
+      } else {
+        if (current === internalRoot) return;
+        if (current.nextSibling) {
+          node = current.nextSibling as FastMutableNode;
+          start = true;
+        } else {
+          node = current.parent as FastMutableNode | null;
+          depth = Math.max(0, depth - 1);
+        }
+      }
+      if (entering) {
+        budget.charge("work", 1);
+        if (current.kind === "element" && matchesProgram(current, program, budget)) {
+          yield getPublicHtmlView(current);
+        }
+      }
     }
   })();
 }

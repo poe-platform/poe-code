@@ -192,17 +192,29 @@ class Session extends ExecutionContext {
     this.inputBase = input.base;
     try {
       const document = await this.document(await this.call(() => selection.reader!.read(input, this, selection)));
-      const origins = async (value: unknown): Promise<void> => {
-        await this.cooperate();
-        if (!value || typeof value !== "object" || value instanceof Uint8Array) return;
+      const originStack: unknown[] = [document.metadata, document.blocks];
+      while (originStack.length > 0) {
+        const p = this.cooperateFast();
+        if (p) await p;
+        const value = originStack.pop();
+        if (!value || typeof value !== "object" || value instanceof Uint8Array) continue;
         if ("t" in value && value.t === "Image") {
           const target = (value as Extract<import("./ast-types.js").Inline, {t: "Image" | "Link"}>).c[2];
           if (!this.media.origins.has(target)) this.resourceTarget(target, 1);
         }
-        for (const child of Object.values(value)) await origins(child);
-      };
-      await origins(document.blocks);
-      await origins(document.metadata);
+        if (Array.isArray(value)) {
+          for (let i = value.length - 1; i >= 0; i--) {
+            const child = value[i];
+            if (child && typeof child === "object") originStack.push(child);
+          }
+        } else {
+          const vals = Object.values(value);
+          for (let i = vals.length - 1; i >= 0; i--) {
+            const child = vals[i];
+            if (child && typeof child === "object") originStack.push(child);
+          }
+        }
+      }
       return document;
     } catch (error) {
       if (error instanceof PandocError && locations.length && error.code !== "E_CANCELLED" && error.code !== "E_IO")
@@ -244,7 +256,7 @@ class Session extends ExecutionContext {
           references: this.limits.references,
           resourceBytes: this.limits.resourceBytes
         },
-        (units) => this.cooperate(units),
+        (units) => this.cooperateFast(units),
         (key, units) => {
           if (!aggregate) this.charge(key, units);
           if (key === "text") this.charge("retainedBytes", units * 2);
@@ -257,14 +269,36 @@ class Session extends ExecutionContext {
         throw new PandocError(error.code, this.operation, error.message, undefined, error.path);
       throw error;
     }
-    const transfer = async (original: unknown, copy: unknown): Promise<void> => {
-      await this.cooperate();
-      if (!original || !copy || typeof original !== "object" || typeof copy !== "object" || original instanceof Uint8Array) return;
+    const transferOrig: unknown[] = [document];
+    const transferCopy: unknown[] = [owned];
+    while (transferOrig.length > 0) {
+      const p = this.cooperateFast();
+      if (p) await p;
+      const original = transferOrig.pop();
+      const copy = transferCopy.pop();
+      if (!original || !copy || typeof original !== "object" || typeof copy !== "object" || original instanceof Uint8Array) continue;
       const origin = this.media.origins.get(original);
       if (origin) this.media.origins.set(copy, origin);
-      for (const key of Object.keys(original)) await transfer((original as Record<string, unknown>)[key], (copy as Record<string, unknown>)[key]);
-    };
-    await transfer(document, owned);
+      if (Array.isArray(original) && Array.isArray(copy)) {
+        for (let i = original.length - 1; i >= 0; i--) {
+          const origChild = original[i];
+          if (origChild && typeof origChild === "object") {
+            transferOrig.push(origChild);
+            transferCopy.push(copy[i]);
+          }
+        }
+      } else {
+        const keys = Object.keys(original);
+        for (let i = keys.length - 1; i >= 0; i--) {
+          const key = keys[i]!;
+          const origChild = (original as Record<string, unknown>)[key];
+          if (origChild && typeof origChild === "object") {
+            transferOrig.push(origChild);
+            transferCopy.push((copy as Record<string, unknown>)[key]);
+          }
+        }
+      }
+    }
     return owned;
   }
 
@@ -283,7 +317,7 @@ class Session extends ExecutionContext {
     }
     if (math !== "source") {
       const visit = async (value: unknown, path: string): Promise<void> => {
-        await this.cooperate();
+        { const p = this.cooperateFast(); if (p) await p; }
         if (value === null || typeof value !== "object" || value instanceof Uint8Array) return;
         if ("t" in value && value.t === "Math")
           throw new PandocError(
@@ -300,7 +334,7 @@ class Session extends ExecutionContext {
     }
     if (this.shiftHeadingLevelBy || this.stripComments) {
       const visit = async (value: unknown): Promise<void> => {
-        await this.cooperate();
+        { const p = this.cooperateFast(); if (p) await p; }
         if (!value || typeof value !== "object" || value instanceof Uint8Array) return;
         const node = value as {t?: string; c?: unknown[]};
         if (node.t === "Header" && node.c) {
@@ -348,7 +382,7 @@ class Session extends ExecutionContext {
     if (serialized.kind === "text" && this.eol === "crlf") {
       const parts: string[] = []; let length = 0;
       for (const ch of serialized.text) {
-        await this.cooperate();
+        { const p = this.cooperateFast(); if (p) await p; }
         const part = ch === "\n" ? "\r\n" : ch;
         length += part.length; this.bound("outputBytes", length);
         this.charge("retainedBytes", part.length * 2); this.charge("references", 1); parts.push(part);
@@ -369,7 +403,7 @@ class Session extends ExecutionContext {
     if (this.context.output && "write" in this.context.output) {
       for (let offset = 0; offset < bytes.length; offset += 4096) {
         await this.emit(bytes.subarray(offset, offset + 4096));
-        await this.cooperate(1);
+        await this.cooperateFast(1);
       }
     } else await this.emit(bytes);
     await this.completeOutput();
@@ -390,9 +424,9 @@ class Session extends ExecutionContext {
         this.fail("E_ENCODING", "Invalid output Unicode");
       else length += code < 0x80 ? 1 : code < 0x800 ? 2 : 3;
       this.bound("outputBytes", length);
-      if (++scanned % 256 === 0) await this.cooperate(0);
+      if (++scanned % 256 === 0) await this.cooperateFast(0);
     }
-    await this.cooperate(0);
+    await this.cooperateFast(0);
     this.charge("retainedBytes", length);
     const bytes = new Uint8Array(length);
     const encoder = new TextEncoder();
@@ -405,7 +439,7 @@ class Session extends ExecutionContext {
       this.charge("retainedBytes", (end - i) * 2);
       offset += encoder.encodeInto(text.slice(i, end), bytes.subarray(offset)).written;
       i = end;
-      await this.cooperate(0);
+      await this.cooperateFast(0);
     }
     return bytes;
   }
@@ -504,7 +538,7 @@ export async function convert(
         for (let offset = 0; offset < part.length; offset++) {
           session.checkpoint();
           if (part[offset] === "\n") line++;
-          if (offset % 256 === 0) await session.cooperate(0);
+          if (offset % 256 === 0) await session.cooperateFast(0);
         }
       }
       const text = parts.join("\n");
@@ -536,11 +570,11 @@ export async function convert(
       session.charge("references", document.blocks.length + document.resources.length);
       for (const block of document.blocks) {
         blocks.push(block);
-        await session.cooperate();
+        { const p = session.cooperateFast(); if (p) await p; }
       }
       for (const resource of document.resources) {
         resources.push(resource);
-        await session.cooperate();
+        { const p = session.cooperateFast(); if (p) await p; }
       }
       for (const [key, value] of Object.entries(document.metadata)) {
         if (Object.hasOwn(metadata, key))

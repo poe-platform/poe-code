@@ -52,16 +52,7 @@ function record(v: unknown, p: string): Record<string, unknown> {
     (Object.getPrototypeOf(v) !== Object.prototype && Object.getPrototypeOf(v) !== null)
   )
     fail(p);
-  // Narrow through own descriptors; no getters are executed.
-  const result: Record<string, unknown> = Object.create(null);
-  for (const key of Object.keys(v)) {
-    if (["__proto__", "constructor", "prototype"].includes(key))
-      fail(`${p}.${key}`, "Dangerous key");
-    const descriptor = Object.getOwnPropertyDescriptor(v, key);
-    if (!descriptor || !("value" in descriptor)) fail(`${p}.${key}`, "Accessor");
-    result[key] = descriptor.value;
-  }
-  return result;
+  return v as Record<string, unknown>;
 }
 const attr = tuple(str, array(str), array(tuple(str, str)));
 const align = choice("AlignLeft", "AlignRight", "AlignCenter", "AlignDefault");
@@ -199,8 +190,9 @@ function validateDocument(value: unknown): asserts value is Document {
 function* normalization(
   value: unknown,
   options: Partial<AstLimits>,
-  reserve: (key: keyof AstLimits, units: number) => void
-): Generator<void, Document> {
+  reserve: (key: keyof AstLimits, units: number) => void,
+  cooperate?: (units: number) => Promise<void> | void
+): Generator<Promise<void> | void, Document> {
   const ceilings = {
     depth: Infinity,
     nodes: Infinity,
@@ -223,104 +215,145 @@ function* normalization(
     attributes = 0,
     cells = 0,
     references = 0,
-    resourceBytes = 0;
+    resourceBytes = 0,
+    hasTable = false;
   const active = new Set<object>();
   const bound = (n: number, ceiling: number, p: string): void => {
     if (n > ceiling) throw new AstError("E_LIMIT", p, "AST budget exceeded");
   };
-  function* visit(v: unknown, p: string, depth: number): Generator<void> {
+  function checkStringBody(v: string, p: string, depth: number): void {
     bound(depth, limits.depth, p);
     bound(++nodes, limits.nodes, p);
     reserve("nodes", 1);
-    yield;
+    bound((text += v.length), limits.text, p);
+    reserve("text", v.length);
+  }
+  type Frame =
+    | { kind: "node"; v: unknown; p: string; depth: number }
+    | { kind: "arr"; v: unknown[]; elemValues: unknown[]; idx: number; p: string; depth: number }
+    | { kind: "obj"; v: Record<string, unknown>; keys: string[]; idx: number; p: string; depth: number };
+  const stack: Frame[] = [{ kind: "node", v: value, p: "$", depth: 0 }];
+  while (stack.length > 0) {
+    const frame = stack[stack.length - 1]!;
+    if (frame.kind === "arr") {
+      if (frame.idx < frame.elemValues.length) {
+        const i = frame.idx++;
+        stack.push({ kind: "node", v: frame.elemValues[i], p: `${frame.p}[${i}]`, depth: frame.depth + 1 });
+      } else {
+        stack.pop();
+        if (Object.keys(frame.v).length !== frame.v.length) fail(frame.p);
+        active.delete(frame.v);
+      }
+      continue;
+    }
+    if (frame.kind === "obj") {
+      if (frame.idx < frame.keys.length) {
+        const k = frame.keys[frame.idx++]!;
+        checkStringBody(k, frame.p, frame.depth + 1);
+        if (cooperate) { const c = cooperate(1); if (c) yield c; }
+        for (let i = 0; i < k.length; i++) {
+          if (i % 256 === 0 && cooperate) { const c = cooperate(1); if (c) yield c; }
+          const ch = k.charCodeAt(i);
+          if (ch >= 0xd800 && ch <= 0xdbff) {
+            const next = k.charCodeAt(++i);
+            if (!(next >= 0xdc00 && next <= 0xdfff)) fail(frame.p, "Invalid Unicode");
+          } else if (ch >= 0xdc00 && ch <= 0xdfff) fail(frame.p, "Invalid Unicode");
+        }
+        if (!Object.hasOwn(frame.v, k)) fail(frame.p);
+        const d = Object.getOwnPropertyDescriptor(frame.v, k);
+        if (!d || !("value" in d) || ["__proto__", "constructor", "prototype"].includes(k))
+          fail(`${frame.p}.${k}`);
+        if (k === "t" && d.value === "Table") hasTable = true;
+        stack.push({ kind: "node", v: d.value, p: `${frame.p}.${k}`, depth: frame.depth + 1 });
+      } else {
+        stack.pop();
+        if (Object.getOwnPropertySymbols(frame.v).length) fail(frame.p);
+        active.delete(frame.v);
+      }
+      continue;
+    }
+    stack.pop();
+    const { v, p, depth } = frame;
     if (typeof v === "string") {
-      bound((text += v.length), limits.text, p);
-      reserve("text", v.length);
+      checkStringBody(v, p, depth);
+      if (cooperate) { const c = cooperate(1); if (c) yield c; }
       for (let i = 0; i < v.length; i++) {
-        if (i % 256 === 0) yield;
-        const c = v.charCodeAt(i);
-        if (c >= 0xd800 && c <= 0xdbff) {
+        if (i % 256 === 0 && cooperate) { const c = cooperate(1); if (c) yield c; }
+        const ch = v.charCodeAt(i);
+        if (ch >= 0xd800 && ch <= 0xdbff) {
           const next = v.charCodeAt(++i);
           if (!(next >= 0xdc00 && next <= 0xdfff)) fail(p, "Invalid Unicode");
-        } else if (c >= 0xdc00 && c <= 0xdfff) fail(p, "Invalid Unicode");
+        } else if (ch >= 0xdc00 && ch <= 0xdfff) fail(p, "Invalid Unicode");
       }
-      return;
+      continue;
     }
-    if (v === null || typeof v === "boolean") return;
+    bound(depth, limits.depth, p);
+    bound(++nodes, limits.nodes, p);
+    reserve("nodes", 1);
+    if (cooperate) { const c = cooperate(1); if (c) yield c; }
+    if (v === null || typeof v === "boolean") continue;
     if (typeof v === "number") {
       if (!Number.isFinite(v)) fail(p);
-      return;
+      continue;
     }
     if (typeof v !== "object" || active.has(v)) fail(p, "Non-JSON or cyclic input");
     if (v instanceof Uint8Array && p.startsWith("$.resources[") && p.endsWith(".bytes")) {
       bound((resourceBytes += v.byteLength), limits.resourceBytes, p);
       reserve("resourceBytes", v.byteLength);
-      return;
+      continue;
     }
     active.add(v);
     if (Array.isArray(v)) {
       bound(nodes + v.length, limits.nodes, p);
       if (Object.getOwnPropertySymbols(v).length) fail(p);
+      const elemValues = new Array<unknown>(v.length);
       for (let i = 0; i < v.length; i++) {
-        const d = Object.getOwnPropertyDescriptor(v, String(i));
+        const d = Object.getOwnPropertyDescriptor(v, i);
         if (!d || !("value" in d)) fail(`${p}[${i}]`, "Accessor or sparse array");
-        yield;
+        elemValues[i] = d.value;
+        if (cooperate) { const c = cooperate(1); if (c) yield c; }
       }
-      // Attribute triples and modern cell tuples have unambiguous structural arity.
       if (
         v.length === 3 &&
-        typeof v[0] === "string" &&
-        Array.isArray(v[1]) &&
-        Array.isArray(v[2])
+        typeof elemValues[0] === "string" &&
+        Array.isArray(elemValues[1]) &&
+        Array.isArray(elemValues[2])
       ) {
-        const count = 1 + v[1].length + v[2].length;
+        const count = 1 + elemValues[1].length + elemValues[2].length;
         bound((attributes += count), limits.attributes, p);
         reserve("attributes", count);
       }
-      if (v.length === 5 && Array.isArray(v[0]) && typeof v[1] === "string") {
+      if (v.length === 5 && Array.isArray(elemValues[0]) && typeof elemValues[1] === "string") {
         if (
-          typeof v[2] !== "number" ||
-          typeof v[3] !== "number" ||
-          !Number.isSafeInteger(v[2]) ||
-          !Number.isSafeInteger(v[3]) ||
-          v[2] < 1 ||
-          v[3] < 1
+          typeof elemValues[2] !== "number" ||
+          typeof elemValues[3] !== "number" ||
+          !Number.isSafeInteger(elemValues[2]) ||
+          !Number.isSafeInteger(elemValues[3]) ||
+          elemValues[2] < 1 ||
+          elemValues[3] < 1
         )
           fail(p, "Invalid spans");
-        bound((cells += v[2] * v[3]), limits.tableCells, p);
-        reserve("tableCells", v[2] * v[3]);
-        // Reserve sparse span-index capacity before geometry creates its maps.
-        bound((references += v[2] * v[3]), limits.references, p);
-        reserve("references", v[2] * v[3]);
+        bound((cells += elemValues[2] * elemValues[3]), limits.tableCells, p);
+        reserve("tableCells", elemValues[2] * elemValues[3]);
+        bound((references += elemValues[2] * elemValues[3]), limits.references, p);
+        reserve("references", elemValues[2] * elemValues[3]);
       }
-      for (let i = 0; i < v.length; i++) {
-        const d = Object.getOwnPropertyDescriptor(v, String(i));
-        if (!d || !("value" in d)) fail(`${p}[${i}]`);
-        yield* visit(d.value, `${p}[${i}]`, depth + 1);
-      }
-      if (Object.keys(v).length !== v.length) fail(p);
+      stack.push({ kind: "arr", v, elemValues, idx: 0, p, depth });
     } else {
-      // Inspect before allocating an owned result or running constructor validation.
-      for (const k in v) {
-        yield* visit(k, p, depth + 1);
-        if (!Object.hasOwn(v, k)) fail(p);
-        const d = Object.getOwnPropertyDescriptor(v, k);
-        if (!d || !("value" in d) || ["__proto__", "constructor", "prototype"].includes(k))
-          fail(`${p}.${k}`);
-        yield* visit(d.value, `${p}.${k}`, depth + 1);
-      }
-      if (Object.getOwnPropertySymbols(v).length) fail(p);
+      const keys: string[] = [];
+      for (const k in v) keys.push(k);
+      stack.push({ kind: "obj", v: v as Record<string, unknown>, keys, idx: 0, p, depth });
     }
-    active.delete(v);
   }
-  yield* visit(value, "$", 0);
   validateDocument(value);
-  function* geometry(v: unknown, p: string): Generator<void> {
+  function* geometry(v: unknown, p: string): Generator<Promise<void> | void> {
     if (v === null || typeof v !== "object" || v instanceof Uint8Array) return;
-    yield;
+    if (cooperate) { const c = cooperate(1); if (c) yield c; }
     if ("t" in v && v.t === "Table") {
       const content = (v as Extract<Block, { t: "Table" }>).c;
-      yield* tableGeometry(content, `${p}.c`);
+      for (const _ of tableGeometry(content, `${p}.c`)) {
+        if (cooperate) { const c = cooperate(1); if (c) yield c; }
+      }
     }
     if (Array.isArray(v)) {
       for (const [index, child] of v.entries()) yield* geometry(child, `${p}[${index}]`);
@@ -328,7 +361,7 @@ function* normalization(
       for (const [key, child] of Object.entries(v)) yield* geometry(child, `${p}.${key}`);
     }
   }
-  yield* geometry(value, "$");
+  if (hasTable) yield* geometry(value, "$");
   return structuredClone(value);
 }
 
@@ -343,13 +376,13 @@ export function normalizeDocument(value: unknown, options: Partial<AstLimits> = 
 export async function normalizeDocumentCooperatively(
   value: unknown,
   options: Partial<AstLimits>,
-  cooperate: (units: number) => Promise<void>,
+  cooperate: (units: number) => Promise<void> | void,
   reserve: (key: keyof AstLimits, units: number) => void = () => {}
 ): Promise<Document> {
-  const steps = normalization(value, options, reserve);
+  const steps = normalization(value, options, reserve, cooperate);
   let step = steps.next();
   while (!step.done) {
-    await cooperate(1);
+    if (step.value) await step.value;
     step = steps.next();
   }
   return step.value;

@@ -174,6 +174,7 @@ export interface MetadataObject { readonly [key: string]: MetadataValue }
 export type MetadataValue = string | number | boolean | null | readonly MetadataValue[] | MetadataObject;
 /** Explicit trusted adapters; their format conformance is not established by this seam. */
 export interface AdapterContext {
+  readonly sinceYield?: number | undefined;
   readonly wrap?: WriteOptions["wrap"] | undefined;
   readonly columns?: number | undefined;
   readonly numberSections?: boolean | undefined;

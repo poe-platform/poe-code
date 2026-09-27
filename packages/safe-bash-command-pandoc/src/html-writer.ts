@@ -29,10 +29,21 @@ class HtmlWriter {
     this.chunks.push(text); this.length += text.length;
   }
   escape(text: string, attribute = false): void {
+    if (!this.context.ascii && text.length < 256 && !/[\0&<>\r"]/.test(text)) {
+      if (text) this.add(text);
+      return;
+    }
     let chunk = "";
     for(const ch of text) {
       if(ch === "\0") this.fail("NUL cannot be represented in HTML");
-      chunk += this.context.ascii && ch.codePointAt(0)! > 127 ? `&#${ch.codePointAt(0)};` : ({"&": "&amp;", "<": "&lt;", ">": "&gt;", "\r": "&#13;"}[ch] ?? (attribute && ch === '"' ? "&quot;" : ch));
+      let rep = ch;
+      if (this.context.ascii && ch.codePointAt(0)! > 127) rep = `&#${ch.codePointAt(0)};`;
+      else if (ch === "&") rep = "&amp;";
+      else if (ch === "<") rep = "&lt;";
+      else if (ch === ">") rep = "&gt;";
+      else if (ch === "\r") rep = "&#13;";
+      else if (attribute && ch === '"') rep = "&quot;";
+      chunk += rep;
       if(chunk.length >= 256) {this.add(chunk); chunk = "";}
     }
     if(chunk) this.add(chunk);
@@ -107,7 +118,7 @@ class HtmlWriter {
   }
   async inlines(nodes: readonly Inline[], path: string): Promise<void> {
     for(const [i, node] of nodes.entries()) {
-      await this.context.cooperate(); const p = `${path}[${i}]`;
+      if (this.context.sinceYield !== undefined && this.context.sinceYield < 255) this.context.checkpoint(); else await this.context.cooperate(); const p = `${path}[${i}]`;
       switch(node.t) {
         case "Str": this.escape(node.c); break;
         case "Space": this.add(" "); break;
@@ -146,7 +157,7 @@ class HtmlWriter {
   async rows(rows: readonly Row[], cols: readonly ColSpec[], path: string, header: boolean, rowHeads = 0): Promise<void> {
     let current = -1;
     for(const placed of placeRows(rows, cols.length, path, rowHeads)) {
-      await this.context.cooperate(); if(!placed) continue;
+      if (this.context.sinceYield !== undefined && this.context.sinceYield < 255) this.context.checkpoint(); else await this.context.cooperate(); if(!placed) continue;
       while(current < placed.row) {if(current >= 0) this.add("</tr>\n"); current++; this.add("<tr"); this.attrs(rows[current]![0]); this.add(">");}
       const cell = placed.cell, head = header || placed.column < rowHeads, tag = head ? "th" : "td";
       this.add(`<${tag}`); this.attrs(cell[0]);
@@ -176,7 +187,7 @@ class HtmlWriter {
   }
   async blocks(nodes: readonly Block[], path: string): Promise<void> {
     for(const [i, node] of nodes.entries()) {
-      await this.context.cooperate(); const p = `${path}[${i}]`;
+      if (this.context.sinceYield !== undefined && this.context.sinceYield < 255) this.context.checkpoint(); else await this.context.cooperate(); const p = `${path}[${i}]`;
       switch(node.t) {
         case "Plain": await this.inlines(node.c, `${p}.c`); break;
         case "Para": this.add("<p>"); await this.inlines(node.c, `${p}.c`); this.add("</p>\n"); break;
@@ -227,7 +238,7 @@ class HtmlWriter {
     const levels: number[] = [];
     for (const {node, id, number} of this.sections) {
       if (node.c[0] > 3 || node.c[1][1].includes("unlisted")) continue;
-      await this.context.cooperate();
+      if (this.context.sinceYield !== undefined && this.context.sinceYield < 255) this.context.checkpoint(); else await this.context.cooperate();
       const level = node.c[0];
       if (levels.length && level > levels[levels.length - 1]!) this.add("<ul>\n");
       else if (levels.length) {
@@ -254,7 +265,7 @@ class HtmlWriter {
     this.reserve(document.blocks);
     if (this.context.toc) {
       const visit = async (value: unknown): Promise<void> => {
-        await this.context.cooperate();
+        if (this.context.sinceYield !== undefined && this.context.sinceYield < 255) this.context.checkpoint(); else await this.context.cooperate();
         if (!value || typeof value !== "object") return;
         if ("t" in value && value.t === "Header") {
           const node = value as Extract<Block, {t: "Header"}>;

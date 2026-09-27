@@ -167,7 +167,7 @@ export async function parseCommonMarkInlines(
   context.charge("retainedBytes", definitions.length * 48);
   const refs = new Map<string, BlockDefinition>();
   for (const definition of definitions) {
-    await context.cooperate();
+    if (context.sinceYield !== undefined && context.sinceYield < 255) context.checkpoint(); else await context.cooperate();
     if (!refs.has(definition.label)) refs.set(definition.label, definition);
   }
   const root: Node = { value: "", children: null, previous: null, next: null };
@@ -203,13 +203,13 @@ export async function parseCommonMarkInlines(
     let closer = bottom ? bottom.next : delimiter;
     if (!bottom) while (closer?.previous) closer = closer.previous;
     while (closer) {
-      await context.cooperate();
+      if (context.sinceYield !== undefined && context.sinceYield < 255) context.checkpoint(); else await context.cooperate();
       if (!closer.close) { closer = closer.next; continue; }
       const key = closer.char + Number(closer.open) + closer.original % 3;
       const floor = bottoms.get(key) ?? lower;
       let opener = closer.previous;
       while (opener && opener.index > floor) {
-        await context.cooperate();
+        if (context.sinceYield !== undefined && context.sinceYield < 255) context.checkpoint(); else await context.cooperate();
         if (opener.char === closer.char && opener.open && (closer.char === "~" || !((closer.open || opener.close) && (opener.original + closer.original) % 3 === 0 && (opener.original % 3 !== 0 || closer.original % 3 !== 0)))) break;
         opener = opener.previous;
       }
@@ -249,10 +249,22 @@ export async function parseCommonMarkInlines(
   };
 
   // Index backtick runs once, so failed/mismatched runs never rescan the suffix.
+  const fastCooperate = async () => {
+    if ((context as { sinceYield?: number }).sinceYield !== undefined && (context as { sinceYield: number }).sinceYield < 255) context.checkpoint();
+    else if (context.sinceYield !== undefined && context.sinceYield < 255) context.checkpoint(); else await context.cooperate();
+  };
   const ticks = new Map<number, number[]>();
   for (let i = 0; i < text.length;) {
-    await context.cooperate();
-    if (text[i] !== "`") { i++; continue; }
+    const next = text.indexOf("`", i);
+    if (next < 0) {
+      if (text.length > i) context.checkpoint(text.length - i);
+      break;
+    }
+    if (next > i) {
+      context.checkpoint(next - i);
+      i = next;
+    }
+    if (context.sinceYield !== undefined && context.sinceYield < 255) context.checkpoint(); else await context.cooperate();
     const begin = i;
     while (text[i] === "`") { context.checkpoint(); i++; }
     context.charge("references", 1);
@@ -263,7 +275,7 @@ export async function parseCommonMarkInlines(
   }
   const tickPositions = new Map<number, number>();
   for (let i = 0; i < text.length;) {
-    await context.cooperate();
+    if (context.sinceYield !== undefined && context.sinceYield < 255) context.checkpoint(); else await context.cooperate();
     const char = text[i]!;
     if (char === "\\") {
       if (text[i + 1] === "\n") { append({ t: "LineBreak" }); i = skipSpace(text, i + 2, context); }
@@ -435,7 +447,7 @@ export async function parseCommonMarkInlines(
       }
     };
     for (let node = first; node; node = node.next) {
-      await context.cooperate();
+      if (context.sinceYield !== undefined && context.sinceYield < 255) context.checkpoint(); else await context.cooperate();
       if (typeof node.value === "string") { addText(node.value); continue; }
       flush();
       let value = node.value;

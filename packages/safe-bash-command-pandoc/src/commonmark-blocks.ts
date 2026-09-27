@@ -286,11 +286,12 @@ export async function parseCommonMarkBlocks(
     }
   }
   while (cursor < text.length) {
-    await context.cooperate();
+    if (context.sinceYield !== undefined && context.sinceYield < 255) context.checkpoint();
+    else await context.cooperate();
     const begin = cursor;
     while (cursor < text.length && text[cursor] !== "\n" && text[cursor] !== "\r") {
       context.checkpoint();
-      if ((cursor - begin) % 256 === 0) await context.cooperate(0);
+      if (cursor > begin && (cursor - begin) % 256 === 0) await context.cooperate(0);
       cursor++;
     }
     const raw = text.slice(begin, cursor);
@@ -301,19 +302,29 @@ export async function parseCommonMarkBlocks(
     }
     context.charge("retainedBytes", raw.length * 12 + 64);
     const offsets: number[] = [];
-    const fragments: string[] = [];
-    let width = 0;
-    for (let i = 0; i < raw.length; i++) {
-      context.checkpoint();
-      const count = raw[i] === "\t" ? 4 - width % 4 : 1;
-      context.bound("text", width + count);
-      context.charge("retainedBytes", count * 10);
-      fragments.push(raw[i] === "\t" ? " ".repeat(count) : raw[i]!);
-      for (let j = 0; j < count; j++) offsets.push(i);
-      width += count;
-      if (i % 256 === 0) await context.cooperate(0);
+    let lineText = raw;
+    if (!raw.includes("\t")) {
+      context.checkpoint(raw.length);
+      context.bound("text", raw.length);
+      context.charge("retainedBytes", raw.length * 10);
+      for (let i = 0; i < raw.length; i++) offsets.push(i);
+      if (raw.length >= 256) await context.cooperate(0);
+    } else {
+      const fragments: string[] = [];
+      let width = 0;
+      for (let i = 0; i < raw.length; i++) {
+        context.checkpoint();
+        const count = raw[i] === "\t" ? 4 - width % 4 : 1;
+        context.bound("text", width + count);
+        context.charge("retainedBytes", count * 10);
+        fragments.push(raw[i] === "\t" ? " ".repeat(count) : raw[i]!);
+        for (let j = 0; j < count; j++) offsets.push(i);
+        width += count;
+        if (i > 0 && i % 256 === 0) await context.cooperate(0);
+      }
+      lineText = fragments.join("");
     }
-    const line: Line = { raw, text: fragments.join(""), offsets, number: ++number, ending };
+    const line: Line = { raw, text: lineText, offsets, number: ++number, ending };
     let offset = 0;
     let matched = 0;
     for (; matched < stack.length; matched++) {

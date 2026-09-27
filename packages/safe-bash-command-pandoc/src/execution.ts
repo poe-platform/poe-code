@@ -68,7 +68,9 @@ export class ExecutionContext implements AdapterContext {
   private completingOutput: Promise<void> | undefined;
   private outputStarted = false;
   private pendingOutput = false;
-  private sinceYield = 0;
+  sinceYield = 0;
+  private yieldedOnce = false;
+  private lastYieldMs = 0;
 
   constructor(
     readonly operation: Operation,
@@ -121,6 +123,14 @@ export class ExecutionContext implements AdapterContext {
     if (this.failure) throw this.failure;
     if (this.signal?.aborted) this.fail("E_CANCELLED", "Conversion cancelled");
     if (this.closing) this.fail("E_IO", "Execution context is closed");
+    if ((units | 0) === units && units >= 0) {
+      const nextWork = this.usage.work + units;
+      if (nextWork <= this.limits.work) {
+        this.usage.work = nextWork;
+        this.sinceYield += units;
+        return;
+      }
+    }
     this.charge("work", units);
     this.sinceYield += units;
   }
@@ -129,6 +139,11 @@ export class ExecutionContext implements AdapterContext {
     if (this.failure) throw this.failure;
     if (this.signal?.aborted) this.fail("E_CANCELLED", "Conversion cancelled");
     if (this.closing) this.fail("E_IO", "Execution context is closed");
+    const limit = this.limits[key];
+    if (limit !== undefined && ((actual | 0) === actual ? actual >= 0 : Number.isSafeInteger(actual) && actual >= 0)) {
+      if (actual > limit) this.fail("E_LIMIT", `${key}: ${actual} exceeds ${limit}`);
+      return;
+    }
     if (!Object.hasOwn(this.limits, key) || !Number.isSafeInteger(actual) || actual < 0)
       this.fail("E_INTERNAL", "Invalid budget charge");
     if (actual > this.limits[key])
@@ -139,12 +154,26 @@ export class ExecutionContext implements AdapterContext {
     if (this.failure) throw this.failure;
     if (this.signal?.aborted) this.fail("E_CANCELLED", "Conversion cancelled");
     if (this.closing) this.fail("E_IO", "Execution context is closed");
+    if (key !== "expandedBytes" && key !== "binaryBytes") {
+      const current = this.usage[key];
+      if (current !== undefined && ((units | 0) === units ? units >= 0 : Number.isSafeInteger(units) && units >= 0)) {
+        const next = current + units;
+        if (next > this.limits[key])
+          this.fail("E_LIMIT", `${key}: ${next} exceeds ${this.limits[key]}`);
+        this.usage[key] = next;
+        return;
+      }
+    }
     if (!Number.isSafeInteger(units) || units < 0 || !Object.hasOwn(this.usage, key))
       this.fail("E_INTERNAL", "Invalid budget charge");
-    const keys: (keyof Limits)[] =
-      key === "expandedBytes" || key === "binaryBytes"
-        ? [key, "resourceBytes", "retainedBytes"]
-        : [key];
+    if (key !== "expandedBytes" && key !== "binaryBytes") {
+      const next = this.usage[key] + units;
+      if (next > this.limits[key])
+        this.fail("E_LIMIT", `${key}: ${next} exceeds ${this.limits[key]}`);
+      this.usage[key] = next;
+      return;
+    }
+    const keys: (keyof Limits)[] = [key, "resourceBytes", "retainedBytes"];
     // Admit the whole reservation before changing any counter.
     for (const budget of keys) this.bound(budget, this.usage[budget] + units);
     for (const budget of keys) this.usage[budget] += units;
@@ -155,13 +184,43 @@ export class ExecutionContext implements AdapterContext {
     return this.limits[key] - this.usage[key];
   }
 
-  async cooperate(units = 1): Promise<void> {
+  cooperateFast(units = 1): Promise<void> | void {
     this.checkpoint(units);
     if (this.sinceYield >= 256) {
+      if (this.context.yield !== undefined) {
+        return this.cooperateSlow();
+      }
+      const now = performance.now();
+      if (!this.yieldedOnce || now - this.lastYieldMs >= 16) {
+        return this.cooperateSlow();
+      }
       this.sinceYield = 0;
-      await this.call(
-        this.context.yield ?? (() => new Promise((resolve) => setTimeout(resolve, 0)))
-      );
+    }
+  }
+
+  async cooperate(units = 1): Promise<void> {
+    const p = this.cooperateFast(units);
+    if (p) await p;
+  }
+
+  private async cooperateSlow(): Promise<void> {
+    this.sinceYield = 0;
+    if (this.context.yield !== undefined) {
+      await this.call(this.context.yield);
+    } else {
+      const now = performance.now();
+      if (!this.yieldedOnce || now - this.lastYieldMs >= 16) {
+        this.yieldedOnce = true;
+        this.lastYieldMs = now;
+        const imm = (globalThis as { setImmediate?: (cb: () => void) => void }).setImmediate;
+        await this.call(
+          () =>
+            new Promise<void>((resolve) =>
+              typeof imm === "function" ? imm(resolve) : setTimeout(resolve, 0)
+            )
+        );
+        this.lastYieldMs = performance.now();
+      }
     }
     this.checkpoint(0);
   }

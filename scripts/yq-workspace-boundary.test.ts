@@ -1,4 +1,4 @@
-import { expect, it } from "vitest";
+import { beforeAll, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolvePrivateCommandBuild } from "./bundle-safe-bash.mjs";
 import { build as bundle } from "esbuild";
@@ -31,7 +31,8 @@ it("builds explicitly admitted optional peers and rejects peer profile drift", (
   expect(() => resolvePrivateCommandBuild("/repo", profiles, workspaces, { alias: {}, external: [], portable: true })).toThrow("profile mismatch");
 });
 
-it("executes the restricted private runtime without a host Buffer global", async () => {
+let realm: { module: { exports: { createYqCommand: () => { execute(context: unknown): Promise<{ exitCode: number }> } } } } & Record<string, unknown>;
+beforeAll(async () => {
   const root = path.resolve(import.meta.dirname, "..");
   const parent = JSON.parse(readFileSync(new URL("../packages/safe-bash/package.json", import.meta.url), "utf8"));
   const profiles = parent.poeCode.integration.privateWorkspaces;
@@ -41,8 +42,11 @@ it("executes the restricted private runtime without a host Buffer global", async
   });
   const options = resolvePrivateCommandBuild(root, profiles, workspaces, { alias: {}, external: [], portable: true });
   const result = await bundle({ ...options, entryPoints: undefined, stdin: { contents: 'export { createYqCommand } from "./packages/safe-bash-command-yq/src/index.ts";', resolveDir: root }, external: [], platform: "browser", conditions: ["browser"], format: "cjs", splitting: false, sourcemap: false, write: false });
-  const realm = { module: { exports: {} as { createYqCommand: () => { execute(context: unknown): Promise<{ exitCode: number }> } } }, Uint8Array, TextEncoder, TextDecoder, AbortController, AbortSignal, DOMException, setTimeout, clearTimeout, performance };
+  realm = { module: { exports: {} as { createYqCommand: () => { execute(context: unknown): Promise<{ exitCode: number }> } } }, Uint8Array, TextEncoder, TextDecoder, AbortController, AbortSignal, DOMException, setTimeout, clearTimeout, performance };
   runInNewContext(result.outputFiles[0]!.text, realm);
+}, 30_000);
+
+it("executes the restricted private runtime without a host Buffer global", async () => {
   const chunks: Uint8Array[] = [];
   const errors: Uint8Array[] = [];
   const outcome = await realm.module.exports.createYqCommand().execute({

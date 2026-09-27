@@ -204,10 +204,7 @@ describe("mmdc CLI grammar, VFS command execution, and SDK parity", () => {
     assert.equal(parseMmdcArguments(["-i", "in.mmd", "-o", "out.png"]).scale, undefined);
 
     assert.equal(parseMmdcArguments(["-i", "in.mmd", "-o", "out.svg", "-e", "png"]).outputFormat, "png");
-    assert.throws(
-      () => parseMmdcArguments(["-i", "in.mmd", "-o", "out.pdf"]),
-      (err: unknown) => (err as { exitCode?: number }).exitCode === 2
-    );
+    assert.equal(parseMmdcArguments(["-i", "in.mmd", "-o", "out.pdf"]).outputFormat, "pdf");
     assert.throws(
       () => parseMmdcArguments(["-i", "in.mmd", "-o", "out.svg", "-t", "unknown"]),
       (err: unknown) => (err as { exitCode?: number }).exitCode === 2
@@ -300,10 +297,11 @@ describe("mmdc CLI grammar, VFS command execution, and SDK parity", () => {
     const resAlias = await cmd.execute(runAlias.context);
     assert.equal(resAlias.exitCode, 1);
 
-    // Unsupported .pdf rejected with exit 2
+    // PDF output is supported
     const runPdf = createMockContext(["-i", "/vfs/diagram.mmd", "-o", "/vfs/diagram.pdf"], vfs);
     const resPdf = await cmd.execute(runPdf.context);
-    assert.equal(resPdf.exitCode, 2);
+    assert.equal(resPdf.exitCode, 0);
+    assert.equal(new TextDecoder().decode(vfs.files.get("/vfs/diagram.pdf")!.subarray(0, 8)), "%PDF-1.7");
 
     // SDK parity
     const sdkSvg = renderMermaidSvg(source, { theme: "light" });

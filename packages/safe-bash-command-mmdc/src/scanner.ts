@@ -1,4 +1,5 @@
 import { drainWork } from "./work.js";
+import { parseDocument } from "yaml";
 import {
   MermaidBudget,
   MermaidError,
@@ -98,7 +99,8 @@ export function unquoteText(raw: string): string {
 
 export function* scanStatementsSteps(
   rawSource: string,
-  budget: MermaidBudget
+  budget: MermaidBudget,
+  metadata?: { title?: string; config?: Record<string, unknown> }
 ): Generator<void, readonly ScannedStatement[], void> {
   yield;
 
@@ -117,42 +119,31 @@ export function* scanStatementsSteps(
     baseOffset = 1;
   }
 
-  // Check for YAML frontmatter at start of document
   let firstNonWs = 0;
-  let firstLine = 1;
-  let firstCol = 1;
   while (firstNonWs < source.length && isAsciiWhitespace(source[firstNonWs]!)) {
     if (++work % 256 === 0) yield;
-
-    if (source[firstNonWs] === "\n") {
-      firstLine++;
-      firstCol = 1;
-    } else if (source[firstNonWs] !== "\r") {
-      firstCol++;
-    }
     firstNonWs++;
   }
-  if (source.startsWith("---", firstNonWs)) {
-    const afterDashes = firstNonWs + 3;
-    if (
-      afterDashes >= source.length ||
-      source[afterDashes] === "\n" ||
-      source[afterDashes] === "\r" ||
-      source[afterDashes] === " "
-    ) {
-      throw new MermaidError(
-        "E_UNSUPPORTED",
-        "YAML frontmatter is not supported in the initial profile",
-        {
-          span: {
-            offset: baseOffset + firstNonWs,
-            line: firstLine,
-            column: firstCol,
-            length: 3
-          }
-        }
-      );
+  if (source.slice(firstNonWs).startsWith("---\n") || source.slice(firstNonWs).startsWith("---\r\n")) {
+    const openingEnd = source.indexOf("\n", firstNonWs);
+    let closingStart = openingEnd + 1;
+    while (closingStart < source.length) {
+      if (++work % 256 === 0) yield;
+      const end = source.indexOf("\n", closingStart);
+      const line = source.slice(closingStart, end < 0 ? source.length : end).trim();
+      if (line === "---") break;
+      closingStart = end < 0 ? source.length : end + 1;
     }
+    if (closingStart >= source.length) throw new MermaidError("E_SYNTAX", "Unclosed YAML frontmatter");
+    budget.chargeWork(closingStart - openingEnd);
+    const parsed = parseSourceConfig(source.slice(openingEnd + 1, closingStart));
+    if (metadata) {
+      if (typeof parsed.title === "string") metadata.title = checkSafeLabelText(parsed.title, budget);
+      if (parsed.config && typeof parsed.config === "object" && !Array.isArray(parsed.config)) metadata.config = parsed.config as Record<string, unknown>;
+    }
+    const closingEnd = source.indexOf("\n", closingStart);
+    const end = closingEnd < 0 ? source.length : closingEnd;
+    source = source.slice(0, end).split("").map(ch => ch === "\n" || ch === "\r" ? ch : " ").join("") + source.slice(end);
   }
 
   const statements: ScannedStatement[] = [];
@@ -222,11 +213,19 @@ export function* scanStatementsSteps(
     // Comments and %%{init:...}%% directives outside quotes
     if (inQuote === null && ch === "%" && source[i + 1] === "%") {
       if (source[i + 2] === "{") {
-        throw new MermaidError(
-          "E_UNSUPPORTED",
-          "Mermaid init directives (%%{...}%%) are not supported; supply host theme/limit settings instead",
-          { span: { offset: baseOffset + i, line, column: col, length: 3 } }
-        );
+        const end = source.indexOf("}%%", i + 3);
+        if (end < 0) throw new MermaidError("E_SYNTAX", "Unclosed Mermaid directive", { span: { offset: baseOffset + i, line, column: col } });
+        const directive = source.slice(i + 3, end).trim();
+        const colon = directive.indexOf(":");
+        if (colon >= 0 && ["init", "initialize"].includes(directive.slice(0, colon).trim()) && metadata) {
+          metadata.config = mergeSourceConfig(metadata.config ?? {}, parseSourceConfig(directive.slice(colon + 1)));
+        }
+        while (i < end + 3) {
+          budget.chargeWork(1);
+          if (source[i] === "\n") { line++; col = 1; } else col++;
+          i++;
+        }
+        continue;
       }
       // Skip to end of line
       while (i < source.length && source[i] !== "\n" && source[i] !== "\r") {
@@ -318,4 +317,23 @@ export function* scanStatementsSteps(
 
 export function scanStatements(rawSource: string, budget: MermaidBudget): readonly ScannedStatement[] {
   return drainWork(scanStatementsSteps(rawSource, budget));
+}
+
+export function mergeSourceConfig(left: Record<string, unknown>, right: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = { ...left };
+  for (const [key, value] of Object.entries(right)) {
+    if (key === "__proto__" || key === "constructor" || key === "prototype") continue;
+    const existing = result[key];
+    result[key] = value && typeof value === "object" && !Array.isArray(value) && existing && typeof existing === "object" && !Array.isArray(existing)
+      ? mergeSourceConfig(existing as Record<string, unknown>, value as Record<string, unknown>) : value;
+  }
+  return result;
+}
+
+function parseSourceConfig(source: string): Record<string, unknown> {
+  const document = parseDocument(source);
+  if (document.errors.length) throw new MermaidError("E_CONFIG", document.errors[0]!.message);
+  const value: unknown = document.toJS({ maxAliasCount: 0 });
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new MermaidError("E_CONFIG", "Mermaid configuration must be a mapping");
+  return value as Record<string, unknown>;
 }

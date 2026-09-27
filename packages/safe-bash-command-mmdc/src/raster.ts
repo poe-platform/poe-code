@@ -1315,6 +1315,30 @@ export function* rasterizeSceneSteps(
     }
   }
 
+  if (scene.slices?.length) {
+    const slices = scene.slices;
+    const colors = slices.map(slice => parseCssColor(slice.fill));
+    const first = slices[0]!;
+    const cx = first.cx * effectiveScale, cy = first.cy * effectiveScale, radius = first.radius * effectiveScale;
+    const x0 = Math.max(0, Math.floor(cx - radius)), x1 = Math.min(width - 1, Math.ceil(cx + radius));
+    const y0 = Math.max(0, Math.floor(cy - radius)), y1 = Math.min(height - 1, Math.ceil(cy + radius));
+    options?.budget?.chargeWork((x1 - x0 + 1) * (y1 - y0 + 1) * 16 * Math.max(1, Math.ceil(Math.log2(slices.length))));
+    for (let py = y0; py <= y1; py++) for (let px = x0; px <= x1; px++) {
+      let hits = 0, red = 0, green = 0, blue = 0;
+      for (const sy of SUB_OFFSETS) for (const sx of SUB_OFFSETS) {
+        const dx = px + sx - cx, dy = py + sy - cy;
+        if (dx * dx + dy * dy > radius * radius) continue;
+        let angle = Math.atan2(dy, dx);
+        if (angle < first.startAngle) angle += Math.PI * 2;
+        let low = 0, high = slices.length - 1;
+        while (low < high) { const mid = (low + high) >>> 1; if (angle < slices[mid]!.endAngle) high = mid; else low = mid + 1; }
+        const color = colors[low]!;
+        red += color.r; green += color.g; blue += color.b; hits++;
+      }
+      if (hits) blendPixel(rgba, (py * width + px) * 4, { r: red / hits, g: green / hits, b: blue / hits, a: 255 }, hits / 16);
+    }
+  }
+
   // 4. Nodes (drawn before edges/markers, matching SVG layer order so node shadows don't darken edges and arrowheads aren't clipped)
   for (const node of scene.nodes) {
     if (++work % 4096 === 0) yield;

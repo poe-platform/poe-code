@@ -6,6 +6,8 @@ import { layoutMermaidSteps } from "./layout.js";
 import { rasterizeSceneSteps } from "./raster.js";
 import { encodeRgbaToPngSteps } from "./png.js";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
+import { PdfDocument } from "@poe-code/pdf-ast";
+import { mergeSourceConfig } from "./scanner.js";
 import {
   commandRuntimeIdentity,
   getCommandArguments,
@@ -68,6 +70,30 @@ export interface MmdcResult {
   readonly exitCode: 0 | 1 | 2;
   readonly error?: MermaidError | FsError | undefined;
   readonly accounting: MermaidAccounting;
+}
+
+export interface MermaidPdfResult {
+  readonly pdf: Uint8Array;
+  readonly width: number;
+  readonly height: number;
+  readonly family: MermaidSvgResult["family"];
+  readonly accounting: MermaidAccounting;
+}
+
+export function* renderMermaidPdfSteps(source: string, options?: MermaidPngRenderOptions): Generator<void, MermaidPdfResult, void> {
+  const { scene, budget, renderOptions } = yield* prepareSceneSteps(source, options);
+  const raster = yield* rasterizeSceneSteps(scene, { scale: renderOptions?.scale ?? 1, budget });
+  const png = yield* encodeRgbaToPngSteps(raster.rgba, raster.width, raster.height);
+  budget.chargeMemoryBytes(png.byteLength);
+  budget.check();
+  const document = PdfDocument.create();
+  const width = scene.width * 0.75, height = scene.height * 0.75;
+  const page = document.addPage([width, height]);
+  page.drawImage(document.embedPng(png), { x: 0, y: 0, width, height });
+  const pdf = document.save();
+  budget.chargeMemoryBytes(pdf.byteLength);
+  budget.chargeOutputBytes(pdf.byteLength);
+  return { pdf, width, height, family: scene.family, accounting: budget.snapshot() };
 }
 
 export type MmdcPlugin = VirtualShellPlugin & readonly CommandDefinition[];
@@ -253,44 +279,48 @@ function parseMermaidConfig(parsed: unknown): {
   };
 }
 
-function resolveRenderOptions(options?: MermaidPngRenderOptions): MermaidPngRenderOptions | undefined {
-  if (!options || options.mermaidConfig === undefined) return options;
-  const config = parseMermaidConfig(options.mermaidConfig);
+function resolveRenderOptions(options?: MermaidPngRenderOptions, sourceConfig?: Record<string, unknown>): MermaidPngRenderOptions | undefined {
+  if (!sourceConfig && options?.mermaidConfig === undefined) return options;
+  const supported = new Set(["theme", "rankGap", "nodeGap", "padding", "width", "height", "scale", "backgroundColor", "flowchart", "themeVariables"]);
+  const selected = Object.fromEntries(Object.entries(sourceConfig ?? {}).filter(([key]) => supported.has(key)));
+  if (selected.flowchart && typeof selected.flowchart === "object") {
+    selected.flowchart = Object.fromEntries(Object.entries(selected.flowchart).filter(([key]) => ["nodeSpacing", "rankSpacing", "wrappingWidth", "padding"].includes(key)));
+  }
+  if (selected.themeVariables && typeof selected.themeVariables === "object") {
+    selected.themeVariables = Object.fromEntries(Object.entries(selected.themeVariables).filter(([key]) => ["primaryColor", "primaryTextColor", "primaryBorderColor", "lineColor", "textColor", "background", "noteBkgColor", "noteTextColor", "noteBorderColor"].includes(key)));
+  }
+  const supplied = options?.mermaidConfig;
+  if (supplied !== undefined) parseMermaidConfig(supplied);
+  const config = parseMermaidConfig(mergeSourceConfig(selected, supplied ?? {}));
   return {
     ...options,
-    theme: config.themeMode ?? options.theme,
-    rankGap: options.rankGap ?? config.rankGap,
-    nodeGap: options.nodeGap ?? config.nodeGap,
-    wrappingWidth: options.wrappingWidth ?? config.wrappingWidth,
-    width: options.width ?? config.width,
-    height: options.height ?? config.height,
-    padding: options.padding ?? config.padding,
-    scale: options.scale ?? config.scale,
-    backgroundColor: options.backgroundColor ?? config.backgroundColor,
-    settings: { ...options.settings, theme: {
-      ...options.settings?.theme,
-      light: { ...config.lightOverrides, ...options.settings?.theme?.light },
-      dark: { ...config.darkOverrides, ...options.settings?.theme?.dark }
+    theme: config.themeMode ?? options?.theme,
+    rankGap: options?.rankGap ?? config.rankGap,
+    nodeGap: options?.nodeGap ?? config.nodeGap,
+    wrappingWidth: options?.wrappingWidth ?? config.wrappingWidth,
+    width: options?.width ?? config.width,
+    height: options?.height ?? config.height,
+    padding: options?.padding ?? config.padding,
+    scale: options?.scale ?? config.scale,
+    backgroundColor: options?.backgroundColor ?? config.backgroundColor,
+    settings: { ...options?.settings, theme: {
+      ...options?.settings?.theme,
+      light: { ...config.lightOverrides, ...options?.settings?.theme?.light },
+      dark: { ...config.darkOverrides, ...options?.settings?.theme?.dark }
     } }
   };
 }
 
-export function* renderMermaidSvgSteps(
-  source: string,
-  options?: MermaidRenderOptions
-): Generator<void, MermaidSvgResult, void> {
+function* prepareSceneSteps(source: string, options?: MermaidPngRenderOptions) {
   yield;
-
-
-
-  options = resolveRenderOptions(options);
   const hostCeiling = options?.settings?.limits
-    ? admitMermaidLimits(options.settings.limits, defaultMermaidLimits)
+    ? admitMermaidLimits(options?.settings.limits, defaultMermaidLimits)
     : defaultMermaidLimits;
   const limits = admitMermaidLimits(options?.limits, hostCeiling);
   const budget = options?.budget ?? new MermaidBudget(limits, options?.signal);
 
   const doc = (yield* parseMermaidSteps(source, { budget, limits, signal: options?.signal }));
+  options = resolveRenderOptions(options, doc.config);
   const mergedDoc =
     options?.title !== undefined || options?.description !== undefined
       ? {
@@ -308,6 +338,14 @@ export function* renderMermaidSvgSteps(
       `Scene geometry verification failed: ${check.violations[0] ?? "invalid geometry"}`
     );
   }
+  return { scene, budget, renderOptions: options };
+}
+
+export function* renderMermaidSvgSteps(
+  source: string,
+  options?: MermaidRenderOptions
+): Generator<void, MermaidSvgResult, void> {
+  const { scene, budget } = yield* prepareSceneSteps(source, options);
   const svg = yield* serializeSceneToSvgSteps(scene, budget, options?.svgId);
 
   return {
@@ -328,39 +366,10 @@ export function* renderMermaidPngSteps(
   source: string,
   options?: MermaidPngRenderOptions
 ): Generator<void, MermaidPngResult, void> {
-  yield;
-
-
-
-  options = resolveRenderOptions(options);
-  const hostCeiling = options?.settings?.limits
-    ? admitMermaidLimits(options.settings.limits, defaultMermaidLimits)
-    : defaultMermaidLimits;
-  const limits = admitMermaidLimits(options?.limits, hostCeiling);
-  const budget = options?.budget ?? new MermaidBudget(limits, options?.signal);
-
-  const doc = (yield* parseMermaidSteps(source, { budget, limits, signal: options?.signal }));
-  const mergedDoc =
-    options?.title !== undefined || options?.description !== undefined
-      ? {
-          ...doc,
-          title: options?.title ?? doc.title,
-          description: options?.description ?? doc.description
-        }
-      : doc;
-
-  const scene = (yield* layoutMermaidSteps(mergedDoc, { ...options, backgroundColor: options?.backgroundColor ?? "white", budget, limits }));
-  const check = verifySceneGeometry(scene);
-  if (!check.ok) {
-    throw new MermaidError(
-      "E_LIMIT",
-      `Scene geometry verification failed: ${check.violations[0] ?? "invalid geometry"}`
-    );
-  }
-
-  const scale = options?.scale ?? 1;
-  const raster = (yield* rasterizeSceneSteps(scene, { scale, budget }));
-  const png = (yield* encodeRgbaToPngSteps(raster.rgba, raster.width, raster.height, budget));
+  const { scene, budget, renderOptions } = yield* prepareSceneSteps(source, options);
+  const scale = renderOptions?.scale ?? 1;
+  const raster = yield* rasterizeSceneSteps(scene, { scale, budget });
+  const png = yield* encodeRgbaToPngSteps(raster.rgba, raster.width, raster.height, budget);
 
   return {
     png,
@@ -505,11 +514,11 @@ export async function runMmdc(
       if (options.input !== undefined) argv.push("-i", options.input);
       if (options.output !== undefined) argv.push("-o", options.output);
       if (options.outputFormat !== undefined) argv.push("-e", options.outputFormat);
-      if (options.themeMode !== undefined) argv.push("-t", options.themeMode);
-      if (options.width !== undefined) argv.push("-w", String(options.width));
-      if (options.height !== undefined) argv.push("-H", String(options.height));
-      if (options.scale !== undefined) argv.push("-s", String(options.scale));
-      if (options.backgroundColor !== undefined) argv.push("-b", options.backgroundColor);
+      if (options?.themeMode !== undefined) argv.push("-t", options?.themeMode);
+      if (options?.width !== undefined) argv.push("-w", String(options?.width));
+      if (options?.height !== undefined) argv.push("-H", String(options?.height));
+      if (options?.scale !== undefined) argv.push("-s", String(options?.scale));
+      if (options?.backgroundColor !== undefined) argv.push("-b", options?.backgroundColor);
       if (options.configFile !== undefined) argv.push("-c", options.configFile);
       if (options.svgId !== undefined) argv.push("-I", options.svgId);
     } else if (options.argv !== undefined) {
@@ -693,8 +702,9 @@ export async function runMmdc(
       await yieldTurn(signal);
       signal.throwIfAborted();
       budget.check();
-      const res = await renderMermaidPngAsync(sourceText, renderOptions);
-      outputBytes = res.png;
+      outputBytes = parsedArgs.outputFormat === "pdf"
+        ? (await runWork(renderMermaidPdfSteps(sourceText, renderOptions), signal)).pdf
+        : (await renderMermaidPngAsync(sourceText, renderOptions)).png;
     }
 
     // Yield before publishing so cancellation stops before VFS write
@@ -797,4 +807,8 @@ export async function renderMermaidPngAsync(source: string, options?: MermaidPng
 
 export async function renderMermaidSvgAsync(source: string, options?: MermaidRenderOptions): Promise<MermaidSvgResult> {
   return await runWork(renderMermaidSvgSteps(source, options), options?.signal);
+}
+
+export function renderMermaidPdf(source: string, options?: MermaidPngRenderOptions): MermaidPdfResult {
+  return drainWork(renderMermaidPdfSteps(source, options));
 }

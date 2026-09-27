@@ -1,7 +1,9 @@
 import { drainWork } from "../work.js";
+import { interactionHref, parseDiagramStyle } from "../styles.js";
 import {
   MermaidBudget,
   MermaidError,
+  type DiagramStyle,
   type DocumentEdge,
   type DocumentGroup,
   type DocumentNode,
@@ -21,15 +23,6 @@ import {
 } from "../scanner.js";
 
 const VALID_DIRECTIONS: readonly FlowDirection[] = ["TB", "TD", "BT", "LR", "RL"];
-
-const UNSUPPORTED_FLOWCHART_KEYWORDS = [
-  "click",
-  "classDef",
-  "class",
-  "style",
-  "linkStyle",
-  "callback"
-];
 
 // Longest match first; shared by identifier scanning and edge parsing.
 const FLOWCHART_EDGE_OPERATORS: readonly {
@@ -55,6 +48,7 @@ const FLOWCHART_EDGE_OPERATORS: readonly {
 ];
 
 interface ParsedNodeRef {
+  readonly classes?: readonly string[];
   readonly id: string;
   readonly label?: string | undefined;
   readonly shape?: NodeShape | undefined;
@@ -203,13 +197,24 @@ function parseSingleNodeRef(
     i = res.nextPos;
   }
 
+  const classes: string[] = [];
+  if (text.startsWith(":::", i)) {
+    i += 3;
+    const start = i;
+    while (i < text.length && (isIdentifierChar(text[i]!) || text[i] === ",")) {
+      if (FLOWCHART_EDGE_OPERATORS.some(operator => text.startsWith(operator.token, i))) break;
+      i++;
+    }
+    classes.push(...text.slice(start, i).split(",").filter(Boolean));
+    if (!classes.length) throw new MermaidError("E_SYNTAX", "Missing inline class name", { span });
+  }
   const label =
     rawLabel !== undefined
       ? checkSafeLabelText(unquoteText(rawLabel), budget, span)
       : undefined;
 
   return {
-    node: { id, label, shape, accent, span },
+    node: { id, label, shape, accent, classes, span },
     nextPos: i
   };
 }
@@ -402,6 +407,11 @@ export function* parseFlowchartSteps(
 
   const upsertNode = (ref: ParsedNodeRef): void => {
     const currentGroup = groupStack[groupStack.length - 1];
+    if (ref.classes?.length) {
+      const assigned = classAssignments.get(ref.id) ?? new Set<string>();
+      for (const name of ref.classes) assigned.add(name);
+      classAssignments.set(ref.id, assigned);
+    }
     const existing = nodeMap.get(ref.id);
     if (!existing) {
       budget.chargeNodes(1);
@@ -425,6 +435,11 @@ export function* parseFlowchartSteps(
     }
   };
 
+  const hrefs = new Map<string, string>();
+  const classDefinitions = new Map<string, DiagramStyle>();
+  const classAssignments = new Map<string, Set<string>>();
+  const nodeStyles = new Map<string, DiagramStyle>();
+  const edgeStyles = new Map<string, DiagramStyle>();
   for (let sIdx = 1; sIdx < statements.length; sIdx++) {
     if (++work % 256 === 0) yield;
 
@@ -438,12 +453,33 @@ export function* parseFlowchartSteps(
 
     const { word: kw, nextPos: afterKwPos } = readWord(text, 0);
 
-    if (UNSUPPORTED_FLOWCHART_KEYWORDS.includes(kw)) {
-      throw new MermaidError(
-        "E_UNSUPPORTED",
-        `Flowchart directive '${kw}' is not supported in the safe-bash mmdc profile`,
-        { span }
-      );
+    if (kw === "classDef" || kw === "class" || kw === "style" || kw === "linkStyle") {
+      const rest = text.slice(afterKwPos).trim();
+      const target = readWord(rest, 0);
+      const value = rest.slice(target.nextPos).trim();
+      if (!target.word || !value) throw new MermaidError("E_SYNTAX", `Missing ${kw} declaration`, { span });
+      if (kw === "class") {
+        for (const id of target.word.split(",")) {
+          const assigned = classAssignments.get(id) ?? new Set<string>();
+          for (const name of value.split(",")) assigned.add(name.trim());
+          classAssignments.set(id, assigned);
+        }
+      } else {
+        const style = parseDiagramStyle(value);
+        const table = kw === "classDef" ? classDefinitions : kw === "style" ? nodeStyles : edgeStyles;
+        for (const id of target.word.split(",")) table.set(id, { ...table.get(id), ...style });
+      }
+      continue;
+    }
+    if (kw === "click" || kw === "callback") {
+      // Static renderers accept interaction declarations without evaluating callbacks.
+      checkSafeLabelText(text, budget, span);
+      if (kw === "click") {
+        const rest = text.slice(afterKwPos).trim(), target = readWord(rest, 0);
+        const href = interactionHref(rest.slice(target.nextPos));
+        if (href !== undefined) hrefs.set(target.word, href);
+      }
+      continue;
     }
 
     if (kw === "accTitle:" || kw === "title") {
@@ -594,9 +630,13 @@ export function* parseFlowchartSteps(
     direction,
     title,
     description,
-    nodes: Array.from(nodeMap.values()),
+    nodes: Array.from(nodeMap.values(), node => {
+      const classes = [...(classAssignments.get(node.id) ?? [])];
+      const style = Object.assign({}, classDefinitions.get("default"), ...classes.map(name => classDefinitions.get(name)), nodeStyles.get(node.id));
+      return { ...node, classes, style, href: hrefs.get(node.id) };
+    }),
     groups,
-    edges,
+    edges: edges.map((edge, index) => ({ ...edge, style: { ...edgeStyles.get("default"), ...edgeStyles.get(String(index)) } })),
     notes: []
   };
 }

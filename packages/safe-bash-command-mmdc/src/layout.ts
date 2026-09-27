@@ -1,6 +1,7 @@
 import { drainWork } from "./work.js";
 import { layoutGraphDocumentSteps } from "./layout/graph.js";
 import { layoutSequenceDocumentSteps } from "./layout/sequence.js";
+import { layoutPie } from "./layout/pie.js";
 import {
   MermaidError,
   type MermaidDocument,
@@ -27,7 +28,7 @@ export function* layoutMermaidSteps(
       throw new MermaidError("E_ARGUMENT", `Viewport ${dimension} must be a positive integer`);
     }
   }
-  const scene = document.family === "sequence"
+  const scene = document.family === "pie" ? layoutPie(document, options) : document.family === "sequence"
     ? (yield* layoutSequenceDocumentSteps(document, options))
     : (yield* layoutGraphDocumentSteps(document, options));
   const width = options?.width ?? (options?.height === undefined

@@ -55,6 +55,8 @@ export {
   createMmdcCommand,
   mmdcCommand,
   mmdcCommands,
+  renderMermaidPdf,
+  type MermaidPdfResult,
   renderMermaidPng,
   renderMermaidPngAsync,
   renderMermaidSvg,

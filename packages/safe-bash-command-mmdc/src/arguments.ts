@@ -3,7 +3,7 @@ import {
   type MermaidThemeMode
 } from "./contracts.js";
 
-export type MmdcOutputFormat = "svg" | "png";
+export type MmdcOutputFormat = "svg" | "png" | "pdf";
 
 export interface MmdcParsedArguments {
   readonly action: "render" | "help" | "version";
@@ -35,10 +35,10 @@ function inferFormatFromPath(outputPath: string, explicitFormat?: string): MmdcO
   let normalizedExplicit: MmdcOutputFormat | undefined;
   if (explicitFormat !== undefined) {
     const lower = explicitFormat.trim().toLowerCase();
-    if (lower !== "svg" && lower !== "png") {
+    if (lower !== "svg" && lower !== "png" && lower !== "pdf") {
       throw new MermaidError(
         "E_ARGUMENT",
-        `Unsupported output format '${explicitFormat}'. Supported formats: svg, png`
+        `Unsupported output format '${explicitFormat}'. Supported formats: svg, png, pdf`
       );
     }
     normalizedExplicit = lower;
@@ -52,12 +52,12 @@ function inferFormatFromPath(outputPath: string, explicitFormat?: string): MmdcO
   const lastSlash = outputPath.lastIndexOf("/");
   if (lastDot > lastSlash && lastDot < outputPath.length - 1) {
     const ext = outputPath.slice(lastDot + 1).toLowerCase();
-    if (ext === "svg" || ext === "png") {
+    if (ext === "svg" || ext === "png" || ext === "pdf") {
       return normalizedExplicit ?? ext;
     }
     throw new MermaidError(
       "E_ARGUMENT",
-      `Unsupported output extension '.${ext}'. Supported extensions: .svg, .png`
+      `Unsupported output extension '.${ext}'. Supported extensions: .svg, .png, .pdf`
     );
   }
 
@@ -67,7 +67,7 @@ function inferFormatFromPath(outputPath: string, explicitFormat?: string): MmdcO
 
   throw new MermaidError(
     "E_ARGUMENT",
-    `Cannot infer output format for '${outputPath}'; specify -e svg, -e png, or use a .svg/.png extension`
+    `Cannot infer output format for '${outputPath}'; specify -e svg, -e png, -e pdf, or use a .svg/.png/.pdf extension`
   );
 }
 
@@ -256,16 +256,16 @@ export const MMDC_VERSION = "0.0.1";
 export const MMDC_HELP_TEXT = [
   "Usage: mmdc [options]",
   "",
-  "Render Mermaid diagrams (flowchart, sequence, state, class, ER) to SVG or PNG.",
+  "Render Mermaid diagrams (flowchart, sequence, state, class, ER, pie) to SVG, PNG, or PDF.",
   "",
   "Options:",
   "  -i, --input <path|->            Input Mermaid file (default: stdin)",
   "  -o, --output <path|->           Output file or '-' for stdout (default: input + .svg, or out.svg)",
-  "  -e, --outputFormat <svg|png>    Explicit output format (inferred from -o when omitted)",
+  "  -e, --outputFormat <format>     Explicit format: svg, png, pdf (inferred from -o when omitted)",
   "  -t, --theme <theme>             default, forest, dark, neutral, base, light",
   "  -w, --width <pixels>            Positive viewport width in CSS pixels",
   "  -H, --height <pixels>           Positive viewport height in CSS pixels",
-  "  -s, --scale <multiplier>        PNG rasterization scale multiplier (default: 1)",
+  "  -s, --scale <multiplier>        PNG/PDF rasterization scale multiplier (default: 1)",
   "  -b, --backgroundColor <color>   Canvas color (default: white; CSS names, hex, rgb/rgba, transparent)",
   "  -c, --configFile <path>         JSON configuration file for theme and layout spacing",
   "  -I, --svgId <id>               ID of the root SVG element",

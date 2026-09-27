@@ -1,4 +1,4 @@
-export type DiagramFamily = "flowchart" | "sequence" | "state" | "class" | "er";
+export type DiagramFamily = "flowchart" | "sequence" | "state" | "class" | "er" | "pie";
 
 export type FlowDirection = "TB" | "TD" | "BT" | "LR" | "RL";
 
@@ -312,7 +312,15 @@ export interface CompartmentMember {
   readonly isMethod?: boolean | undefined;
 }
 
+export interface DiagramStyle {
+  readonly fill?: string | undefined;
+  readonly stroke?: string | undefined;
+  readonly color?: string | undefined;
+  readonly strokeWidth?: number | undefined;
+}
+
 export interface DocumentNode {
+  readonly href?: string | undefined;
   readonly id: string;
   readonly label: string;
   readonly shape: NodeShape;
@@ -321,6 +329,8 @@ export interface DocumentNode {
   readonly attributes?: readonly CompartmentMember[] | undefined;
   readonly methods?: readonly CompartmentMember[] | undefined;
   readonly accent?: boolean | undefined;
+  readonly style?: DiagramStyle | undefined;
+  readonly classes?: readonly string[] | undefined;
   readonly span?: MermaidSourceSpan | undefined;
 }
 
@@ -328,7 +338,8 @@ export interface DocumentGroup {
   readonly id: string;
   readonly label: string;
   readonly parentId?: string | undefined;
-  readonly kind: "subgraph" | "compositeState" | "namespace" | "sequenceBlock";
+  readonly kind: "subgraph" | "compositeState" | "namespace" | "sequenceBlock" | "participantBox";
+  readonly fill?: string | undefined;
   readonly blockKeyword?: "loop" | "alt" | "opt" | undefined;
   readonly branches?: readonly { readonly label: string; readonly messageIndices: readonly number[] }[] | undefined;
   readonly span?: MermaidSourceSpan | undefined;
@@ -347,6 +358,7 @@ export interface DocumentEdge {
   readonly activateTarget?: boolean | undefined;
   readonly deactivateSource?: boolean | undefined;
   readonly sequenceIndex?: number | undefined;
+  readonly style?: DiagramStyle | undefined;
   readonly span?: MermaidSourceSpan | undefined;
 }
 
@@ -369,6 +381,9 @@ export interface SequenceActivationEvent {
 export interface MermaidDocument {
   readonly family: DiagramFamily;
   readonly direction: FlowDirection;
+  readonly config?: Record<string, unknown> | undefined;
+  readonly slices?: readonly { label: string; value: number }[] | undefined;
+  readonly showData?: boolean | undefined;
   readonly title?: string | undefined;
   readonly description?: string | undefined;
   readonly nodes: readonly DocumentNode[];
@@ -422,6 +437,7 @@ export interface SceneDivider {
 }
 
 export interface SceneNode {
+  readonly href?: string | undefined;
   readonly id: string;
   readonly shape: NodeShape;
   readonly x: number;
@@ -551,6 +567,7 @@ export interface MermaidScene {
   readonly backgroundColor: string;
   readonly title?: string | undefined;
   readonly description?: string | undefined;
+  readonly slices?: readonly { points: readonly Point[]; fill: string; cx: number; cy: number; radius: number; startAngle: number; endAngle: number }[] | undefined;
   readonly groups: readonly SceneGroup[];
   readonly lifelines: readonly SceneLifeline[];
   readonly activations: readonly SceneActivation[];

@@ -188,7 +188,8 @@ function renderNode(
     .map((l) => renderTextLine(l, fontFamily, monoFontFamily))
     .join("");
 
-  return `<g class="mmdc-node" data-id="${escapeXml(node.id)}">${shapeSvg}${dividersSvg}${badgesSvg}${linesSvg}</g>`;
+  const content = `<g class="mmdc-node" data-id="${escapeXml(node.id)}">${shapeSvg}${dividersSvg}${badgesSvg}${linesSvg}</g>`;
+  return node.href === undefined ? content : `<a href="${escapeXml(node.href)}">${content}</a>`;
 }
 
 export function* serializeSceneToSvgSteps(
@@ -288,6 +289,7 @@ export function* serializeSceneToSvgSteps(
   }
 
   // Nodes
+  for (const slice of scene.slices ?? []) parts.push(`<polygon class="mmdc-pie-slice" points="${slice.points.map(point => `${point.x},${point.y}`).join(" ")}" fill="${escapeXml(slice.fill)}" />`);
   for (let idx = 0; idx < scene.nodes.length; idx++) {
     if (++work % 16 === 0) yield;
     const node = scene.nodes[idx]!;

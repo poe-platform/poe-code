@@ -1340,11 +1340,17 @@ export function* layoutGraphDocumentSteps(
   const shiftX = Math.round(pad - minSceneX);
   const shiftY = Math.round(pad - minSceneY);
 
+  const hrefsById = new Map(document.nodes.map(node => [node.id, node.href]));
+  const stylesById = new Map(document.nodes.map(node => [node.id, node.style]));
   const finalNodes: SceneNode[] = rawSceneNodes.map((n) => ({
     ...n,
+    href: hrefsById.get(n.id),
+    fill: stylesById.get(n.id)?.fill ?? n.fill,
+    stroke: stylesById.get(n.id)?.stroke ?? n.stroke,
+    strokeWidth: stylesById.get(n.id)?.strokeWidth ?? n.strokeWidth,
     x: n.x + shiftX,
     y: n.y + shiftY,
-    lines: n.lines.map((l) => ({ ...l, x: l.x + shiftX, y: l.y + shiftY })),
+    lines: n.lines.map((l) => ({ ...l, color: stylesById.get(n.id)?.color ?? l.color, x: l.x + shiftX, y: l.y + shiftY })),
     dividers: n.dividers.map((d) => ({
       ...d,
       x1: d.x1 + shiftX,
@@ -1367,7 +1373,15 @@ export function* layoutGraphDocumentSteps(
     label: { ...g.label, x: g.label.x + shiftX, y: g.label.y + shiftY }
   }));
 
-  const finalEdges: SceneEdge[] = rawEdges.map((e) => shiftEdge(e, shiftX, shiftY));
+  const edgeStylesById = new Map(document.edges.map(edge => [edge.id, edge.style]));
+  const finalEdges: SceneEdge[] = rawEdges.map((e) => {
+    const style = edgeStylesById.get(e.id);
+    const shifted = shiftEdge(e, shiftX, shiftY);
+    return { ...shifted, stroke: style?.stroke ?? shifted.stroke, strokeWidth: style?.strokeWidth ?? shifted.strokeWidth,
+      startMarker: shifted.startMarker && style?.stroke ? { ...shifted.startMarker, stroke: style.stroke, fill: shifted.startMarker.fill === shifted.stroke ? style.stroke : shifted.startMarker.fill } : shifted.startMarker,
+      endMarker: shifted.endMarker && style?.stroke ? { ...shifted.endMarker, stroke: style.stroke, fill: shifted.endMarker.fill === shifted.stroke ? style.stroke : shifted.endMarker.fill } : shifted.endMarker
+    };
+  });
   const finalNotes: SceneNote[] = rawNotes.map((note) => ({
     ...note,
     x: note.x + shiftX,

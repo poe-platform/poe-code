@@ -706,6 +706,7 @@ export function* layoutSequenceDocumentSteps(
       }));
       return {
         id: cardId,
+        href: p.href,
         shape: "participant",
         x: nx,
         y: cardY,
@@ -716,6 +717,7 @@ export function* layoutSequenceDocumentSteps(
         stroke: p.stereotype === "actor" ? theme.accentBorder : theme.border,
         strokeWidth: 1.5,
         shadow: true,
+        groupId: p.groupId,
         lines,
         dividers: [],
         badges: []
@@ -732,6 +734,20 @@ export function* layoutSequenceDocumentSteps(
       stroke: theme.borderStrong
     });
   });
+
+  for (const box of document.groups.filter(group => group.kind === "participantBox")) {
+    const members = rawNodes.filter(node => node.groupId === box.id);
+    if (!members.length) continue;
+    const x = Math.min(...members.map(node => node.x)) - 16;
+    const y = Math.min(...members.map(node => node.y)) - 48;
+    const right = Math.max(...members.map(node => node.x + node.width)) + 16;
+    const bottom = Math.max(...members.map(node => node.y + node.height)) + 16;
+    builtGroupById.set(box.id, { id: box.id, kind: box.kind, x, y, width: right - x, height: bottom - y,
+      rx: 0, fill: box.fill ?? theme.groupSurface, headerFill: box.fill ?? theme.groupHeaderSurface,
+      headerHeight: 32, stroke: theme.groupBorder, strokeWidth: 1,
+      label: { text: box.label, width: measureLineWidth(box.label, 13, "ui", 600), x: (x + right) / 2, y: y + 22, color: theme.text, fontSize: 13, fontWeight: 600, fontFamily: "ui", align: "center" }
+    });
+  }
 
   // Compute global bounding box and normalize to [padding, ...]
   let minX = Infinity;

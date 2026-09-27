@@ -1,4 +1,7 @@
 import { drainWork } from "../work.js";
+import { interactionHref } from "../styles.js";
+import { parseCssColor } from "../theme.js";
+import { checkSafeLabelText } from "../scanner.js";
 import {
   MermaidError,
   type DocumentEdge,
@@ -148,12 +151,14 @@ export function* parseSequenceDiagramSteps(
 
   const nodes = new Map<string, DocumentNode>();
   const groups: DocumentGroup[] = [];
+  const hrefs = new Map<string, string>();
   const edges: DocumentEdge[] = [];
   const notes: DocumentNote[] = [];
   const activations: SequenceActivationEvent[] = [];
   const blockStack: OpenSequenceBlock[] = [];
 
   let sequenceIndex = 0;
+  let openBox: DocumentGroup | undefined;
 
   const ensureParticipant = (
     rawId: string,
@@ -177,6 +182,7 @@ export function* parseSequenceDiagramSteps(
         id,
         label,
         shape: "participant",
+        groupId: openBox?.id,
         stereotype: isActor ? "actor" : undefined,
         span
       });
@@ -212,13 +218,39 @@ export function* parseSequenceDiagramSteps(
     const lowerKw = kw.toLowerCase();
 
     if (lowerKw === "link" || lowerKw === "links" || lowerKw === "click") {
-      throw new MermaidError(
-        "E_UNSUPPORTED",
-        `Interactive sequence directive '${kw}' is not supported`,
-        { span }
-      );
+      checkSafeLabelText(text, budget, span);
+      const rest = text.slice(afterKw).trim();
+      if (lowerKw === "click") {
+        const target = readWord(rest, 0), href = interactionHref(rest.slice(target.next));
+        if (href !== undefined) hrefs.set(target.word, href);
+      } else {
+        const colon = rest.indexOf(":");
+        if (colon >= 0) {
+          const id = rest.slice(0, colon).trim(), value = rest.slice(colon + 1).trim();
+          let href: string | undefined;
+          if (lowerKw === "link") {
+            const at = value.indexOf("@");
+            if (at >= 0) href = value.slice(at + 1).trim();
+          } else {
+            try { const links: unknown = JSON.parse(value); if (links && typeof links === "object") href = Object.values(links).find(link => typeof link === "string"); }
+            catch { throw new MermaidError("E_SYNTAX", "Invalid sequence links mapping", { span }); }
+          }
+          if (href !== undefined) hrefs.set(id, interactionHref(JSON.stringify(href))!);
+        }
+      }
+      continue;
     }
 
+    if (lowerKw === "box") {
+      if (openBox) throw new MermaidError("E_SYNTAX", "Participant boxes cannot be nested", { span });
+      let label = trimWhitespace(text.slice(afterKw)), fill: string | undefined;
+      const first = readWord(label, 0);
+      try { parseCssColor(first.word); fill = first.word; label = trimWhitespace(label.slice(first.next)); } catch { /* A color is optional. */ }
+      checkSafeLabelText(label, budget, span);
+      openBox = { id: `participant_box_${groups.length}`, label: stripQuotes(label), kind: "participantBox", fill, span };
+      budget.enterDepth(1);
+      continue;
+    }
     if (lowerKw === "autonumber") {
       continue;
     }
@@ -352,6 +384,7 @@ export function* parseSequenceDiagramSteps(
 
     if (lowerKw === "end") {
       const closed = blockStack.pop();
+      if (!closed && openBox) { groups.push(openBox); openBox = undefined; continue; }
       if (!closed) {
         throw new MermaidError("E_SYNTAX", "Unexpected 'end' without matching sequence block", {
           span
@@ -427,10 +460,11 @@ export function* parseSequenceDiagramSteps(
     );
   }
 
+  if (openBox) throw new MermaidError("E_SYNTAX", "Unclosed participant box", { span: openBox.span });
   return {
     family: "sequence",
     direction: "TD",
-    nodes: Array.from(nodes.values()),
+    nodes: Array.from(nodes.values(), node => ({ ...node, href: hrefs.get(node.id) })),
     groups,
     edges,
     notes,

@@ -49,22 +49,12 @@ describe("scanner and flowchart parser", () => {
     assert.equal(doc.nodes.find((n) => n.id === "API")?.groupId, "VPC");
   });
 
-  it("rejects init directives, YAML frontmatter, clickable links, and invalid syntax with source spans", () => {
-    assert.throws(
-      () => parseMermaid(`%%{init: {'theme': 'dark'}}%%\nflowchart TD\nA --> B`),
-      (err: unknown) =>
-        err instanceof MermaidError && err.code === "E_UNSUPPORTED" && err.span?.line === 1
-    );
-    assert.throws(
-      () => parseMermaid(`---\ntitle: Test\n---\nflowchart TD\nA --> B`),
-      (err: unknown) =>
-        err instanceof MermaidError && err.code === "E_UNSUPPORTED" && err.span?.line === 1
-    );
-    assert.throws(
-      () => parseMermaid(`flowchart TD\nA --> B\nclick A "https://example.com"`),
-      (err: unknown) =>
-        err instanceof MermaidError && err.code === "E_UNSUPPORTED" && err.span?.line === 3
-    );
+  it("accepts standard metadata and links while rejecting active URLs and invalid syntax", () => {
+    assert.equal(parseMermaid(`%%{init: {'theme': 'dark'}}%%\nflowchart TD\nA --> B`).config?.theme, "dark");
+    assert.equal(parseMermaid(`---\ntitle: Test\n---\nflowchart TD\nA --> B`).title, "Test");
+    assert.doesNotThrow(() => parseMermaid(`flowchart TD\nA --> B\nclick A "https://example.com"`));
+    assert.throws(() => parseMermaid(`flowchart TD\nA --> B\nclick A "javascript:alert(1)"`),
+      (err: unknown) => err instanceof MermaidError && err.code === "E_UNSUPPORTED" && err.span?.line === 3);
     assert.throws(
       () => parseMermaid(`flowchart TD\nsubgraph Unclosed\nA --> B`),
       (err: unknown) => err instanceof MermaidError && err.code === "E_SYNTAX"

@@ -2,9 +2,9 @@
 
 `createMmdcCommand(options?)` creates one command, `createMmdcCommands(options?)` returns the command family, and `mmdcCommands(options?)` registers it as a shell plugin. `MmdcCommandsOptions` describes configuration; all three factories accept no arguments.
 
-Deterministic, zero-DOM Mermaid-to-SVG and Mermaid-to-PNG diagram renderer for `@poe-platform/safe-bash` and Node.js applications.
+Deterministic, zero-DOM Mermaid-to-SVG, PNG, and PDF diagram renderer for `@poe-platform/safe-bash` and Node.js applications.
 
-Render crisp architecture flowcharts, sequence interactions, state machines, UML class hierarchies, and entity-relationship diagrams directly inside a sandboxed virtual shell or TypeScript SDK—without headless browsers, native canvas bindings, or network requests.
+Render crisp architecture flowcharts, sequence interactions, state machines, UML class hierarchies, entity-relationship diagrams, and pie charts directly inside a sandboxed virtual shell or TypeScript SDK—without headless browsers, native canvas bindings, or network requests.
 
 ---
 
@@ -13,8 +13,8 @@ Render crisp architecture flowcharts, sequence interactions, state machines, UML
 | Capability | Details |
 | :--- | :--- |
 | **Command** | `mmdc` (`@poe-platform/safe-bash/commands/mmdc`) |
-| **Output Formats** | Vector `svg` and antialiased `png` (`4x4` subpixel supersampling, RFC 2083 PNG) |
-| **Diagram Families** | `flowchart` / `graph`, `sequenceDiagram`, `stateDiagram-v2` / `stateDiagram`, `classDiagram`, `erDiagram` |
+| **Output Formats** | Vector `svg` and antialiased `png` (`4x4` subpixel supersampling, RFC 2083 PNG), plus PDF pages containing the rendered diagram |
+| **Diagram Families** | `flowchart` / `graph`, `sequenceDiagram`, `stateDiagram-v2` / `stateDiagram`, `classDiagram`, `erDiagram`, `pie` |
 | **Themes** | `default` / `light`, `dark`, green `forest`, slate `neutral`, and customizable `base` palettes on an `8px` spatial grid |
 | **Typography** | Embedded TrueType (`sfnt`) glyph metrics & outlines (`Latin`, `Greek`, math symbols, and `CJK`) |
 | **Sandbox Safety** | Zero DOM/browser dependencies, strict node/edge/pixel/time budgets, and VFS-only I/O |
@@ -70,6 +70,7 @@ import {
   layoutMermaid,
   renderMermaidSvg,
   renderMermaidPng,
+  renderMermaidPdf,
   verifySceneGeometry
 } from "safe-bash-command-mmdc";
 
@@ -106,7 +107,7 @@ const verification = verifySceneGeometry(scene);
 | :--- | :--- | :--- | :--- |
 | `--input <path\|->` | `-i` | `-` (`stdin`) | Input Mermaid file path in the VFS or `-` for `stdin` |
 | `--output <path\|->` | `-o` | `<input>.svg` or `out.svg` | Output file path in the VFS or `-` / `/dev/stdout` for `stdout`; `-e` controls the default extension |
-| `--outputFormat <svg\|png>` | `-e` | Inferred from `-o` or `svg` | Explicit output format (`svg` or `png`) |
+| `--outputFormat <svg\|png\|pdf>` | `-e` | Inferred from `-o` or `svg` | Explicit output format (`svg`, `png`, or `pdf`) |
 | `--theme <name>` | `-t` | `default` | Theme preset (`default`, `forest`, `dark`, `neutral`, `base`, `light`) |
 | `--backgroundColor <css>` | `-b` | `white` | Canvas background color (CSS names, `#hex`, `rgb(...)`, `rgba(...)`, or `transparent`) |
 | `--width <px>` | `-w` | Scene width | Positive integer output width; preserves aspect ratio when height is omitted |
@@ -120,9 +121,9 @@ const verification = verifySceneGeometry(scene);
 
 ---
 
-This implements the SVG/PNG subset of Mermaid CLI 11.x options with a deterministic renderer. Explicit `-e` overrides format inference. The CLI and SDK default to white backgrounds and PNG scale 1; use `-b '#0b1120'` with dark diagrams for a dark canvas.
+This implements the SVG/PNG/PDF subset of Mermaid CLI 11.x options with a deterministic renderer. Explicit `-e` overrides format inference. The CLI and SDK default to white backgrounds and PNG scale 1; use `-b '#0b1120'` with dark diagrams for a dark canvas.
 
-Dimensions describe the output viewport, fitting the natural scene. They are not browser viewport dimensions; omitted dimensions use the natural scene size rather than Mermaid CLI's 800 × 600 browser viewport. Presets use this renderer's palette, not Mermaid's exact CSS. PDF output, Markdown extraction, Puppeteer, external CSS, icon packs, and diagram families outside the table below are unsupported and return explicit errors.
+Dimensions describe the output viewport, fitting the natural scene. They are not browser viewport dimensions; omitted dimensions use the natural scene size rather than Mermaid CLI's 800 × 600 browser viewport. Presets use this renderer's palette, not Mermaid's exact CSS. Markdown extraction, Puppeteer, external CSS, icon packs, and diagram families outside the table below are unsupported and return explicit errors.
 
 Use `-c config.json`, or the same object as SDK `mermaidConfig` (also available in typed `runMmdc`):
 
@@ -137,14 +138,15 @@ const { svg } = renderMermaidSvg(source, {
 });
 ```
 
-Supported `themeVariables` are `primaryColor`, `primaryTextColor`, `primaryBorderColor`, `lineColor`, `textColor`, `background`, `noteBkgColor`, `noteTextColor`, and `noteBorderColor`. The canvas background option controls the output background independently of theme variables. Config `theme` takes precedence over `-t`. Renderer extensions include `rankGap`, `nodeGap`, `padding`, `width`, `height`, `scale`, `backgroundColor`, and `theme: { mode, light, dark }` token overrides. Unknown config keys are rejected. Host settings remain authoritative for palette and resource limits.
+Supported `themeVariables` are `primaryColor`, `primaryTextColor`, `primaryBorderColor`, `lineColor`, `textColor`, `background`, `noteBkgColor`, `noteTextColor`, and `noteBorderColor`. The canvas background option controls the output background independently of theme variables. Config `theme` takes precedence over `-t`. Renderer extensions include `rankGap`, `nodeGap`, `padding`, `width`, `height`, `scale`, `backgroundColor`, and `theme: { mode, light, dark }` token overrides. Unknown explicit config keys are rejected. YAML frontmatter (`title` and `config`) and `%%{init: ...}%%` directives configure the same renderer; unknown source configuration keys are ignored. Host settings remain authoritative for palette and resource limits.
 
 ## Supported Mermaid Syntax Reference
 
 | Diagram Family | Header | Supported Constructs |
 | :--- | :--- | :--- |
-| **Flowchart** | `flowchart TD\|TB\|BT\|LR\|RL`<br/>`graph TD\|TB\|BT\|LR\|RL` | Node shapes: `[Rect]`, `(Rounded)`, `([Stadium])`, `[[Subroutine]]`, `[(Cylinder)]`, `((Circle))`, `{Diamond}`, `{{Hexagon}}`<br/>Edges: `-->`, `---`, `-.->`, `-.-`, `==>`, `===` with `\|label\|` or inline labels<br/>Containers: Nested `subgraph id [Title] ... end` blocks, comments `%%`, multiline labels (`<br/>`) |
-| **Sequence** | `sequenceDiagram` | Actors: `participant Id as Label`, `actor Id as Label`, `autonumber`<br/>Messages: `->>`, `-->>`, `->`, `-->`, `-x`, `--x`<br/>Activations: `+` / `-` shorthand, `activate` / `deactivate`, self-message loops<br/>Blocks & Notes: `alt` / `else`, `opt`, `loop`, `par` / `and`, `Note left of`, `Note right of`, `Note over A,B` |
+| **Flowchart** | `flowchart TD\|TB\|BT\|LR\|RL`<br/>`graph TD\|TB\|BT\|LR\|RL` | Node shapes: `[Rect]`, `(Rounded)`, `([Stadium])`, `[[Subroutine]]`, `[(Cylinder)]`, `((Circle))`, `{Diamond}`, `{{Hexagon}}`<br/>Edges: `-->`, `---`, `-.->`, `-.-`, `==>`, `===` with `\|label\|` or inline labels<br/>Containers: Nested `subgraph id [Title] ... end` blocks, comments `%%`, multiline labels (`<br/>`), `classDef`, `class`, `style`, `linkStyle`, inline `:::className`, `click` and `callback` declarations |
+| **Sequence** | `sequenceDiagram` | Actors: `participant Id as Label`, `actor Id as Label`, `autonumber`<br/>Messages: `->>`, `-->>`, `->`, `-->`, `-x`, `--x`<br/>Activations: `+` / `-` shorthand, `activate` / `deactivate`, self-message loops<br/>Blocks & Notes: `alt` / `else`, `opt`, `loop`, `par` / `and`, `Note left of`, `Note right of`, `Note over A,B`, participant `box [Color] [Title] ... end`, `link`, `links`, and `click` declarations |
+| **Pie** | `pie [showData] [title Title]` | Quoted labels with nonnegative numeric values, proportional slices, percentages, and a legend |
 | **State (`v2`)** | `stateDiagram-v2`<br/>`stateDiagram` | Pseudo-states: `[*] --> State` (initial), `State --> [*]` (final)<br/>States: `state "Description" as Id`, `StateId : description`<br/>Composite states: Nested `state CompositeId { ... }` blocks<br/>Notes: `note left of State : text`, `note right of State : text` |
 | **Class** | `classDiagram` | Declarations: `class Name { ... }`, stereotypes `<<interface>>`, `<<abstract>>`, `<<service>>`, `<<enumeration>>`<br/>Members: Visibility `+` (public), `-` (private), `#` (protected), `~` (package), classifiers `*` (abstract), `$` (static)<br/>Relationships: `<\|--`, `*--`, `o--`, `-->`, `..>`, `..\|>`, `--` with `"1"` / `"0..*"` multiplicity badges & `: label`<br/>Grouping: `namespace PackageName { ... }` |
 | **Entity-Relationship** | `erDiagram` | Entities: `ENTITY { type name [PK\|FK\|UK] ["comment"] }` and `ENTITY["Display Label"]`<br/>Crow's Foot Cardinalities: `\|\|` (exactly one), `\|o` / `o\|` (zero or one), `}\|` / `\|{` (one or more), `}o` / `o{` (zero or more)<br/>Identifying (`--`) and non-identifying (`..`) relationships with `: label` |
@@ -153,3 +155,4 @@ The workspace entrypoint exports `mmdcCommands()` for plugin registration,
 `createMmdcCommands()` for the command collection, and
 `createMmdcCommand()` for a single command. Each accepts an optional
 `MmdcCommandsOptions` object; existing factory names remain available.
+SVG output includes static URL links. Callback declarations are accepted without running JavaScript. PNG and PDF preserve the diagram appearance; PDF pages use 72 points per inch and embed the antialiased raster, with resolution controlled by `scale`.

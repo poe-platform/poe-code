@@ -252,3 +252,23 @@ test('key enumeration cannot expose values of indexed or scalar bindings', async
     assert.equal(result.stdout, '["2","7","0"]');
   } finally { await shell.dispose(); }
 });
+
+test("declare -A element read/write and indexed array append inside arithmetic-for loops", async () => {
+  const { shell } = setup();
+  try {
+    const result = await shell.exec(`
+      declare -A map
+      arr=()
+      for ((i=0; i<20; i++)); do
+        k="k_\$((i % 5))"
+        prev="\${map[\$k]:-0}"
+        map[\$k]=\$((prev + i))
+        arr+=("item_\$i")
+      done
+      args "\${map[k_0]}:\${map[k_4]}:\${#map[@]}:\${#arr[@]}:\${arr[19]}"
+    `);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "[\"30:46:5:20:item_19\"]");
+  } finally { await shell.dispose(); }
+});

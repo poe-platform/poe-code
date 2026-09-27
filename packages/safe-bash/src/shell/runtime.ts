@@ -3344,6 +3344,7 @@ function sameRedirectTargetWord(a: Word, b: Word): boolean {
 type SyncLoopStep = {
   readonly cmd: Extract<Command, { kind: "simple" }>;
   readonly name: string | undefined;
+  readonly arrayAssign?: ArrayAssignment | undefined;
   readonly value: Word | undefined;
   readonly targetWord: Word | undefined;
   readonly targetDirPrefix?: string | undefined;
@@ -3767,7 +3768,7 @@ const SIMPLE_SCALAR_MUT_RE = /^\s*([a-zA-Z_][a-zA-Z_0-9]*)\s*(\+=|-=|=)\s*(-?(?:
 const readArrayScratchFields: string[] = [];
 const SIMPLE_EXPANDED_ARITH_RE = /^\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*([+\-*/%])\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*$/;
 const SIMPLE_ARITH_OPERAND_RE = /^(?:-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)$/;
-function resolveSimpleArithOperand(tok: string, rawState: State, monitor: ReturnType<typeof stateMonitor>, activeArrayStore: ReturnType<typeof arrayStore>): number | undefined {
+function resolveSimpleArithOperand(tok: string, rawState: State, monitor: ReturnType<typeof stateMonitor>, activeArrayStore: ReturnType<typeof arrayStore>, syncTouched?: Set<string>): number | undefined {
   if (!SIMPLE_ARITH_OPERAND_RE.test(tok)) return undefined;
   const c0 = tok.charCodeAt(0);
   if ((c0 >= 48 && c0 <= 57) || c0 === 45) {
@@ -3776,18 +3777,18 @@ function resolveSimpleArithOperand(tok: string, rawState: State, monitor: Return
   if (rawState.nounset || activeArrayStore?.bindings.has(tok) || monitor?.hasOverlay(tok) || activeArrayStore?.watches.has(tok)) return undefined;
   const raw = rawState.variables[tok];
   if (raw === undefined || raw === "") return 0;
-  const v = monitor?.values.get(tok, raw) ?? raw;
+  const v = syncTouched?.has(tok) ? raw : (monitor?.values.get(tok, raw) ?? raw);
   if (typeof v !== "string" || !/^-?(?:0|[1-9][0-9]{0,12})$/.test(v)) return undefined;
   return Number(v);
 }
 const SIMPLE_ADDSUB_CHAIN_RE = /^\s*(?:-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)(?:\s+[+\-]\s+(?:-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)){2,6}\s*$/;
-function tryEvalSimpleExpandedArith(src: string, rawState: State, monitor: ReturnType<typeof stateMonitor>, activeArrayStore: ReturnType<typeof arrayStore>): string | undefined {
+function tryEvalSimpleExpandedArith(src: string, rawState: State, monitor: ReturnType<typeof stateMonitor>, activeArrayStore: ReturnType<typeof arrayStore>, syncTouched?: Set<string>): string | undefined {
   if (src.length > 96) return undefined;
   const m = SIMPLE_EXPANDED_ARITH_RE.exec(src);
   if (m) {
-    const lhs = resolveSimpleArithOperand(m[1]!, rawState, monitor, activeArrayStore);
+    const lhs = resolveSimpleArithOperand(m[1]!, rawState, monitor, activeArrayStore, syncTouched);
     if (lhs === undefined) return undefined;
-    const rhs = resolveSimpleArithOperand(m[3]!, rawState, monitor, activeArrayStore);
+    const rhs = resolveSimpleArithOperand(m[3]!, rawState, monitor, activeArrayStore, syncTouched);
     if (rhs === undefined) return undefined;
     const op = m[2]!;
     if ((op === "/" || op === "%") && rhs === 0) return undefined;
@@ -3802,12 +3803,12 @@ function tryEvalSimpleExpandedArith(src: string, rawState: State, monitor: Retur
   }
   if (SIMPLE_ADDSUB_CHAIN_RE.test(src)) {
     const parts = src.trim().split(/\s+/);
-    const first = resolveSimpleArithOperand(parts[0]!, rawState, monitor, activeArrayStore);
+    const first = resolveSimpleArithOperand(parts[0]!, rawState, monitor, activeArrayStore, syncTouched);
     if (first === undefined) return undefined;
     let total = first;
     for (let i = 1; i < parts.length; i += 2) {
       const op = parts[i]!;
-      const val = resolveSimpleArithOperand(parts[i + 1]!, rawState, monitor, activeArrayStore);
+      const val = resolveSimpleArithOperand(parts[i + 1]!, rawState, monitor, activeArrayStore, syncTouched);
       if (val === undefined) return undefined;
       total = op === "+" ? total + val : total - val;
       if (!Number.isSafeInteger(total)) return undefined;
@@ -10194,7 +10195,33 @@ export class Runtime {
         if ((w0Plain === ":" || w0Plain === "true") && !rawState.functions.has(w0Plain) && !rawState.extensions?.builtins.has(w0Plain)) {
           continue;
         }
-        const assignment = !getArrayAssignment(w0) ? this.assignment(w0) : undefined;
+        const arrAssign = getArrayAssignment(w0);
+        if (arrAssign) {
+          const curArr = store?.get(arrAssign.name);
+          if (
+            !curArr ||
+            curArr.references !== 1 ||
+            store!.watches.has(arrAssign.name) ||
+            rawState.readonlyVariables?.has(arrAssign.name) ||
+            rawState.exported.has(arrAssign.name) ||
+            controlNames.has(arrAssign.name)
+          ) {
+            return false;
+          }
+          if (arrAssign.kind === "compound" && arrAssign.append && !curArr.associative && arrAssign.entries.length === 1 && !arrAssign.entries[0]!.index) {
+            const ev = arrAssign.entries[0]!.value;
+            if (!this.isPureSyncValueWord(ev, rawState) || !ev.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))) {
+              return false;
+            }
+            continue;
+          }
+          if (arrAssign.kind === "element" && !arrAssign.append && curArr.associative) {
+            if (!this.isPureSyncValueWord(arrAssign.value, rawState)) return false;
+            continue;
+          }
+          return false;
+        }
+        const assignment = this.assignment(w0);
         if (
           !assignment ||
           assignment.append ||
@@ -10339,8 +10366,9 @@ export class Runtime {
             line,
           });
         } else {
-          const assignment = !getArrayAssignment(w0) ? this.assignment(w0) : undefined;
-          bodyAssignments.push({ cmd, name: assignment?.name, value: assignment?.value, targetWord: undefined, append: false, line });
+          const arrAssign = getArrayAssignment(w0);
+          const assignment = !arrAssign ? this.assignment(w0) : undefined;
+          bodyAssignments.push({ cmd, name: assignment?.name, value: assignment?.value ?? (arrAssign?.kind === "element" ? arrAssign.value : arrAssign?.entries[0]?.value), arrayAssign: arrAssign, targetWord: undefined, append: false, line });
         }
       }
     }
@@ -10571,6 +10599,7 @@ export class Runtime {
       const inductionName = e0.tree.left.name;
       const arithNames = sharedSyncLoopArithNames;
       arithNames.clear();
+      const paramReadNames = new Set<string>();
       const intSteps = new Array<IntLoopStep | undefined>(bodyAssignments.length);
       let hasSubIntStep = false;
       for (let b = 0; b < bodyAssignments.length; b++) {
@@ -10597,9 +10626,14 @@ export class Runtime {
             if (part.kind === "text" || part.kind === "variable") continue;
             if (part.kind === "arithmetic") {
               if (part.expression.error) {
-                const idMatches = part.expression.source.match(/[a-zA-Z_][a-zA-Z0-9_]*/g);
-                if (idMatches) {
-                  for (let mIdx = 0; mIdx < idMatches.length; mIdx++) arithNames.add(idMatches[mIdx]!);
+                const allIds = part.expression.source.match(/[a-zA-Z_][a-zA-Z0-9_]*/g);
+                if (allIds) {
+                  for (let mIdx = 0; mIdx < allIds.length; mIdx++) paramReadNames.add(allIds[mIdx]!);
+                }
+                const stripped = part.expression.source.replace(/\$\{[^}]*\}/g, "0");
+                const bareIds = stripped.match(/[a-zA-Z_][a-zA-Z0-9_]*/g);
+                if (bareIds) {
+                  for (let mIdx = 0; mIdx < bareIds.length; mIdx++) arithNames.add(bareIds[mIdx]!);
                 }
                 continue;
               }
@@ -10615,9 +10649,10 @@ export class Runtime {
         }
       }
       const arithNamesList = [...arithNames];
+      const hasAnyArrayAssign = bodyAssignments.some(s => s.arrayAssign !== undefined);
       let hasDeferredSteps = false;
       let deferredMask = 0;
-      for (let b = 0; b < bodyAssignments.length; b++) {
+      if (!hasAnyArrayAssign) for (let b = 0; b < bodyAssignments.length; b++) {
         const step = bodyAssignments[b]!;
         if (
           step.targetWord === undefined &&
@@ -10625,6 +10660,7 @@ export class Runtime {
           step.value !== undefined &&
           step.name !== inductionName &&
           !arithNames.has(step.name) &&
+          !paramReadNames.has(step.name) &&
           step.value.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.length && !p.substring && p.operator === undefined))
         ) {
           let readAnywhere = false;
@@ -10681,9 +10717,9 @@ export class Runtime {
       (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan = plan;
       }
       if (
-        (this.budget.commands + 1600) >= this.budget.limits.maxCommands ||
-        (this.budget.iterations + 1600) >= this.budget.limits.maxLoopIterations ||
-        (redirectCount > 0 && (this.budget.fileSystemOperations + 1600 * redirectCount) >= this.budget.limits.maxFileSystemOperations)
+        (this.budget.commands + plan.iterations * bodyAssignments.length + 64) >= this.budget.limits.maxCommands ||
+        (this.budget.iterations + plan.iterations + 64) >= this.budget.limits.maxLoopIterations ||
+        (redirectCount > 0 && (this.budget.fileSystemOperations + plan.iterations * redirectCount + 64) >= this.budget.limits.maxFileSystemOperations)
       ) {
         return undefined;
       }
@@ -10704,7 +10740,8 @@ export class Runtime {
               !intSteps[b] &&
               (!step.value || !step.value.parts.some(p => p.kind === "arithmetic") || step.value.parts.some(p => p.kind !== "arithmetic" && (p.kind !== "text" || p.value !== "")))
             ) {
-              return undefined;
+              const isArrDefaultZero = step.value?.parts.length === 1 && step.value.parts[0]!.kind === "variable" && getArraySelector(step.value.parts[0]!)?.kind === "element" && step.value.parts[0]!.operator === ":-" && step.value.parts[0]!.alternate?.plain === "0";
+              if (!isArrDefaultZero) return undefined;
             }
           }
         }
@@ -11380,6 +11417,10 @@ export class Runtime {
           this.budget.fileSystemOperation();
           this.budget.bytes += encoded.byteLength;
           lastValueWord = step.value;
+        } else if (step.arrayAssign !== undefined) {
+          this.tryFastArrayAssignmentSync(step.arrayAssign, rawState, io, step.line, undefined, undefined, true);
+          lastArg = "";
+          lastValueWord = undefined;
         } else if (step.name !== undefined && step.value !== undefined) {
           const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
           rawState.variables[step.name] = val;
@@ -18084,11 +18125,12 @@ export class Runtime {
               if (/^(?:0|[1-9][0-9]{0,8})$/.test(subVal)) {
                 subIdx = Number(subVal);
               } else {
-                const directOp = resolveSimpleArithOperand(subVal.trim(), rawState, monitor, activeArrayStore);
+                const syncTouched = this._syncArithRawWriteOnly ? this._syncArithTouched : undefined;
+                const directOp = resolveSimpleArithOperand(subVal.trim(), rawState, monitor, activeArrayStore, syncTouched);
                 if (directOp !== undefined && directOp >= 0) {
                   subIdx = directOp;
                 } else {
-                  const exprStr = tryEvalSimpleExpandedArith(subVal, rawState, monitor, activeArrayStore);
+                  const exprStr = tryEvalSimpleExpandedArith(subVal, rawState, monitor, activeArrayStore, syncTouched);
                   if (exprStr !== undefined) {
                     const n = Number(exprStr);
                     if (n >= 0) subIdx = n;
@@ -18154,9 +18196,10 @@ export class Runtime {
             if (typeof expanded !== "string") return undefined;
             const trimmed = expanded.trim();
             if (trimmed.length === 0) return 0;
-            const directOp = resolveSimpleArithOperand(trimmed, rawState, monitor, activeArrayStore);
+            const syncTouched = this._syncArithRawWriteOnly ? this._syncArithTouched : undefined;
+            const directOp = resolveSimpleArithOperand(trimmed, rawState, monitor, activeArrayStore, syncTouched);
             if (directOp !== undefined) return directOp;
-            const simpleExpr = tryEvalSimpleExpandedArith(trimmed, rawState, monitor, activeArrayStore);
+            const simpleExpr = tryEvalSimpleExpandedArith(trimmed, rawState, monitor, activeArrayStore, syncTouched);
             if (simpleExpr !== undefined) return Number(simpleExpr);
             return undefined;
           };
@@ -18428,7 +18471,7 @@ export class Runtime {
           if (!expWord) return undefined;
           const fastSrc = this.fastValueWord(expWord, state, io, false, false, true, false, undefined, line);
           if (typeof fastSrc !== "string") return undefined;
-          const directVal = tryEvalSimpleExpandedArith(fastSrc, rawState, monitor, activeArrayStore);
+          const directVal = tryEvalSimpleExpandedArith(fastSrc, rawState, monitor, activeArrayStore, this._syncArithRawWriteOnly ? this._syncArithTouched : undefined);
           if (directVal !== undefined) {
             out += directVal;
             continue;

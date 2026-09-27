@@ -475,3 +475,14 @@ fn diff_flags_before_path_separator_keep_paths_out_of_revisions() {
     assert_eq!(diff.exit_code, 0, "{}", diff.stderr);
     assert!(diff.stdout.contains("+worktree a\n"));
 }
+
+#[test]
+fn cat_file_exposes_non_utf8_object_bytes_to_sdk_callers() {
+    let fs = committed_repo();
+    let bytes = [0, 255, 128, 65, 10];
+    fs.write("/repo/binary", &bytes);
+    let oid = execute_git_cli(&fs, "/repo", &["hash-object", "-w", "binary"]).stdout;
+    let result = execute_git_cli(&fs, "/repo", &["cat-file", "-p", oid.trim()]);
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    assert_eq!(result.stdout_bytes.as_deref(), Some(bytes.as_slice()));
+}

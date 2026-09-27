@@ -51,6 +51,8 @@ assert_eq!(status(&fs, "/repo", None, "hello.txt")?, "unmodified");
 
 ### `safe-bash` CLI Dispatcher
 
+For binary output, use `CliResult.stdout_bytes` when present; `stdout` provides the text representation.
+
 ```rust
 use git_rust::{execute_git_cli, MemoryFs};
 

@@ -179,6 +179,14 @@ pub fn execute_portable(input: &[u8]) -> Result<Vec<u8>, GitError> {
     }
     Ok(json::stringify(&object(vec![
         ("exitCode", Value::Number(result.exit_code as f64)),
+        (
+            "stdoutBytes",
+            result
+                .stdout_bytes
+                .as_deref()
+                .map(|bytes| text(hex(bytes)))
+                .unwrap_or(Value::Null),
+        ),
         ("stdout", text(result.stdout)),
         ("stderr", text(result.stderr)),
         ("entries", Value::Array(output)),

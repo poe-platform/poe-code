@@ -66,3 +66,24 @@ test('Git works with the Shell default device filesystem', async () => {
   assert.equal(result.exitCode,0,stderr);
   assert.equal((await memory.stat('/repo/.git')).type,'directory');
 });
+
+test('cat-file preserves binary object bytes', async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir('/repo', {recursive:true});
+  const command = createGitCommand();
+  const run = async (args: string[]) => {
+    const chunks: Uint8Array[] = [];
+    let stderr = '';
+    const result = await command.execute({command:'git',args,cwd:'/repo',env:{},fs,
+      signal:new AbortController().signal,stdin:(async function*(){})(),
+      stdout:{write(bytes:Uint8Array){chunks.push(bytes.slice());}},
+      stderr:{write(bytes:Uint8Array){stderr+=new TextDecoder().decode(bytes);}}} as CommandContext);
+    assert.equal(result.exitCode,0,stderr);
+    return Uint8Array.from(chunks.flatMap(chunk=>Array.from(chunk)));
+  };
+  await run(['init']);
+  const binary = Uint8Array.of(0,255,128,65,10);
+  await fs.writeFile('/repo/binary',binary);
+  const oid = new TextDecoder().decode(await run(['hash-object','-w','binary'])).trim();
+  assert.deepEqual(await run(['cat-file','-p',oid]),binary);
+});

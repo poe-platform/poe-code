@@ -14,7 +14,7 @@ await shell.exec('git init -b main; git add .; git commit -m "Initial commit"');
 | `init`, `config`, `status`, `add`, `rm`, `mv` | Manage a repository and stage files |
 | `commit`, `log`, `diff`, `show`, `reset`, `restore`, `checkout` | Inspect and update history, index and worktree |
 | `branch`, `switch`, `tag`, `merge`, `cherry-pick`, `stash` | Manage branches and changes |
-| `rev-parse`, `cat-file`, `hash-object`, `ls-files` | Inspect Git objects and paths |
+| `rev-parse`, `cat-file`, `hash-object`, `ls-files` | Inspect Git objects and paths, including binary object output |
 | `remote`, `clone`, `fetch`, `pull`, `push` | Exchange changes through explicitly supplied HTTP |
 
 `createGitCommand()`, `createGitCommands()` and `gitCommands()` accept no arguments. Optional `limits` bound filesystem entries (4096), file/path bytes (4 MiB), depth (128), HTTP requests (16) and HTTP bytes (4 MiB). The filesystem is imported as a bounded snapshot per invocation; changed entries are published after successful execution. A failed input or output budget check publishes no filesystem changes. Adapter publication failures may leave partial writes, as with ordinary filesystem operations; serialize commands that mutate the same repository.

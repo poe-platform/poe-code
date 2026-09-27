@@ -18,6 +18,8 @@ use crate::{
 pub struct CliResult {
     pub exit_code: i32,
     pub stdout: String,
+    /// Exact output when stdout contains non-UTF-8 bytes.
+    pub stdout_bytes: Option<Vec<u8>>,
     pub stderr: String,
 }
 
@@ -26,7 +28,23 @@ impl CliResult {
         Self {
             exit_code: 0,
             stdout: stdout.into(),
+            stdout_bytes: None,
             stderr: String::new(),
+        }
+    }
+
+    pub fn ok_bytes(stdout: Vec<u8>) -> Self {
+        match String::from_utf8(stdout) {
+            Ok(stdout) => Self::ok(stdout),
+            Err(error) => {
+                let bytes = error.into_bytes();
+                Self {
+                    exit_code: 0,
+                    stdout: String::from_utf8_lossy(&bytes).into_owned(),
+                    stdout_bytes: Some(bytes),
+                    stderr: String::new(),
+                }
+            }
         }
     }
 
@@ -34,6 +52,7 @@ impl CliResult {
         Self {
             exit_code: code,
             stdout: String::new(),
+            stdout_bytes: None,
             stderr: stderr.into(),
         }
     }
@@ -917,7 +936,7 @@ pub fn execute_git_cli_with_http(
                     ),
                     Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
                 },
-                Ok(obj) => CliResult::ok(String::from_utf8_lossy(&obj.object).to_string()),
+                Ok(obj) => CliResult::ok_bytes(obj.object),
                 Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
             }
         }

@@ -11933,19 +11933,19 @@ export class Runtime {
             }
           }
         }
-        if (lastCmd) {
-          if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(lastCmd));
-          rawState.substitutionStatus = 0;
-          if (rawState.variables._ !== undefined && !touched.has("_") && !(usedFastIntPath && touchedIntNamesList.includes("_"))) delete rawState.variables._;
-          rawState.lastArgument = lastArg;
-          if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
-          if (!existing) {
-            monitor.lazyPipeStatus = singleStatusZero;
-            monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
-          } else {
-            this.setSyncPipeStatusCell(existing!, "0");
-            store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
-          }
+      }
+      if (lastCmd) {
+        if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(lastCmd));
+        rawState.substitutionStatus = 0;
+        if (rawState.variables._ !== undefined && !touched.has("_") && !(usedFastIntPath && touchedIntNamesList.includes("_"))) delete rawState.variables._;
+        rawState.lastArgument = lastArg;
+        if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+        if (!existing) {
+          monitor.lazyPipeStatus = singleStatusZero;
+          monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+        } else {
+          this.setSyncPipeStatusCell(existing!, "0");
+          store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
         }
       }
       rawState.status = 0;

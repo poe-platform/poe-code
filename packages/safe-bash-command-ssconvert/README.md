@@ -158,3 +158,5 @@ The workspace entrypoint exports `ssconvertCommands()` for plugin registration,
 `createSsconvertCommands()` for the command collection, and
 `createSsconvertCommand()` for a single command. Each accepts an optional
 `SsconvertCommandsOptions` object; existing factory names remain available.
+The command supports streaming and buffered virtual filesystems and honors
+`limits.inputBytes` on both paths.

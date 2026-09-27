@@ -114,6 +114,35 @@ describe("new default command entrypoints", () => {
     expect((await run(createSsconvertCommand(), ["--help"])).exitCode).toBe(0);
   });
 
+  it("converts buffered virtual files with ssconvert defaults and preserves explicit read limits", async () => {
+    const fs = new Proxy(new MemoryFileSystem(), {
+      get(target, key) {
+        if (key === "readStream") return undefined;
+        const value: unknown = Reflect.get(target, key, target);
+        return typeof value === "function" ? value.bind(target) : value;
+      }
+    });
+    const source = new TextEncoder().encode("1,2\n3,4\n");
+    await fs.writeFile("/input.csv", source);
+    const args = [
+      "-I", "Gnumeric_stf:stf_csvtab", "-T", "Gnumeric_stf:stf_csv",
+      "/input.csv", "/output.csv"
+    ];
+    expect(await run(createSsconvertCommand(), args, "", fs)).toMatchObject({
+      exitCode: 0, stdout: "", stderr: ""
+    });
+    expect(await fs.readFile("/output.csv")).toEqual(source);
+    const sentinel = new TextEncoder().encode("preserved");
+    await fs.writeFile("/output.csv", sentinel);
+    await expect(
+      run(createSsconvertCommand({ limits: { inputBytes: 2 } }), args, "", fs)
+    ).rejects.toMatchObject({ code: "EFBIG" });
+    expect(await fs.readFile("/output.csv")).toEqual(sentinel);
+    expect((await fs.readdir("/")).map((entry) => entry.name).sort()).toEqual([
+      "input.csv", "output.csv"
+    ]);
+  });
+
   it("preserves xz aliases and validates the single-command resource bound", async () => {
     expect(createXzCommands().map((command) => command.name)).toContain("unxz");
     expect((await run(createXzCommand(), ["--help"])).stdout).toContain("Usage: xz");

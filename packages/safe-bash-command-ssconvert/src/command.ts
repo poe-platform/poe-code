@@ -116,7 +116,7 @@ export function createSsconvertCommand(options: SsconvertCommandsOptions = {}): 
                   () =>
                     context.fs.readFile(uri, {
                       signal,
-                      maxBytes: inputBytes
+                      ...(inputBytes === Infinity ? {} : { maxBytes: inputBytes })
                     }),
                   () => {}
                 );

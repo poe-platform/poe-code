@@ -735,6 +735,10 @@ it("resolves packaged real filesystem declarations for Workers while retaining b
 
 it('preserves companion references to conditional public contracts in the same published package', async () => {
   const { volume, options } = optionalLeftovers();
+  const contractsManifest = structuredClone(bashManifest);
+  contractsManifest.exports = Object.fromEntries(Object.entries(contractsManifest.exports)
+    .filter(([route]) => route === "." || route.startsWith("./contracts")));
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(contractsManifest));
   const directory = '/repo/packages/mcp-companion';
   volume.mkdirSync(directory + '/dist', { recursive: true });
   volume.writeFileSync(directory + '/package.json', JSON.stringify({

@@ -723,7 +723,7 @@ describe("Netpbm encoders & PDF rasterization options", () => {
     page.drawImage(handle, { x: 10, y: 10, width: 40, height: 20 });
     const dl = page.evaluateDisplayList();
     expect(dl.images).toHaveLength(1);
-    expect(Array.from(dl.images[0]!.decodedRgba)).toEqual([255, 0, 0, 64, 0, 200, 50, 255]);
+    expect(Array.from(dl.images[0]!.decodedRgba!)).toEqual([255, 0, 0, 64, 0, 200, 50, 255]);
   });
 
   it("evaluates /ExtGState (/LW line width, /D dash pattern, and /Font [fontRef size]) via gs operator without Tf", () => {

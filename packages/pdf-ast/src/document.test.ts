@@ -475,8 +475,8 @@ describe("Layer 2 & Layer 3 Unified PdfDocument SDK, Extraction, Editing, Redact
 
     // Draw a 2-column ruled table where columns are separated by a vertical border rule at x = 62
     // (only a ~8pt horizontal gap between "ID" and "Name", which requires vertical rule detection)
-    page.drawRect({ x: 20, y: 100, width: 140, height: 60, borderColor: { r: 0, g: 0, b: 0 }, borderWidth: 1 });
-    page.drawLine({ x1: 62, y1: 100, x2: 62, y2: 160, color: { r: 0, g: 0, b: 0 }, width: 1 });
+    page.drawRect({ x: 20, y: 100, width: 140, height: 60, stroke: { r: 0, g: 0, b: 0 }, strokeWidth: 1 });
+    page.drawLine({ x1: 62, y1: 100, x2: 62, y2: 160, stroke: { r: 0, g: 0, b: 0 }, strokeWidth: 1 });
     page.drawText("Key", { x: 35, y: 140, size: 10 });
     page.drawText("Value", { x: 66, y: 140, size: 10 });
     page.drawText("A01", { x: 35, y: 118, size: 10 });

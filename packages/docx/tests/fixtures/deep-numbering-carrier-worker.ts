@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { pathToFileURL } from "node:url";
 import { Volume } from "memfs";
 import { Document, DocumentBudget, createDocxInspectionCommandEngine, editDocumentLists, executeDocumentBatch, extractDocumentText, readDocumentArchive } from "../../src/index.js";
 import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
@@ -6,10 +7,11 @@ import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import { textFixture, textContext, w } from "./text.js";
 import { readPackage } from "../assertions.js";
 
-const strict = process.argv[2] === "strict", depth = 4096;
+export async function run(args: readonly string[]) {
+const strict = args[0] === "strict", depth = 4096;
 const text = "Original 日本 עברית ẹ́ 🌊 𠀀";
 const body = `<w:p xmlns:f="urn:original:deep-numbering-carrier" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="f" mc:ProcessContent="f:p">${"<f:p>".repeat(depth)}<w:r><w:rPr><w:rtl/></w:rPr><w:t>${text}</w:t></w:r>${"</f:p>".repeat(depth)}</w:p>`;
-const scenario = process.argv[3] ?? "story";
+const scenario = args[1] ?? "story";
 const inert = `<f:p xmlns:f="urn:original:deep-inactive-numbering">${"<f:p>".repeat(depth - 1)}<w:num w:numId="1"><w:abstractNumId w:val="9"/></w:num>${"</f:p>".repeat(depth)}`;
 const input = await textFixture(scenario === "inactive-numbering" ? `<w:p><w:r><w:rPr><w:rtl/></w:rPr><w:t>${text}</w:t></w:r></w:p>` : body, scenario === "inactive-numbering" ? { numbering: { kind: "numbering", xml: `<w:numbering xmlns:w="${w}" xmlns:f="urn:original:deep-inactive-numbering" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="f">${inert}</w:numbering>` } } : {}, strict), memory = Volume.fromJSON({ "/input": Buffer.from(input), "/output": "", "/destination": "Retain destination" });
 const context = () => ({ ...textContext, budget: new DocumentBudget({ xmlDepth: depth + 8, retainedBytes: 4294967296, work: 4294967296 }, textContext.signal) });
@@ -27,14 +29,14 @@ for (const [name, bytes] of before) if (!["word/document.xml", "word/_rels/docum
 const extracted = await extractDocumentText(output, context());
 assert.equal(extracted.text, text + "\nAdded 日本 עברית");
 assert.ok(extracted.segments.some(segment => segment.text === text && segment.formatting.rtl === true));
-if (scenario === "unused-level" && !process.argv[4]) {
+if (scenario === "unused-level" && !args[2]) {
   memory.writeFileSync("/next", "");
   await editDocumentLists(output, { operation: "lists.add", options: { paragraph: 2, kind: "lowerLetter", level: 1, text: "Next", output: "-" } }, { ...context(), encoding: { order: "input", compression: "store" }, stdout: { async write(bytes) { memory.appendFileSync("/next", bytes); } } });
   const next = new Uint8Array(memory.readFileSync("/next") as Buffer);
   assert.equal((await extractDocumentText(next, context())).text, text + "\nAdded 日本 עברית\nNext");
   for (const [name, bytes] of after) if (!["word/document.xml", numberingName].includes(name)) assert.deepEqual(readPackage(next).get(name), bytes);
 }
-const route = process.argv[4], dryRun = process.argv[5] === "dry";
+const route = args[2], dryRun = args[3] === "dry";
 if (route) {
   const seed = scenario === "unused-level" ? output : input;
   const options = scenario === "unused-level" ? { paragraph: 2, kind: "lowerLetter" as const, level: 1, text: "Next" } : { kind: "decimal" as const, text: "Added 日本 עברית" };
@@ -74,4 +76,9 @@ if (route) {
 }
 assert.deepEqual(new Uint8Array(memory.readFileSync("/input") as Buffer), input);
 assert.equal(memory.readFileSync("/destination", "utf8"), "Retain destination");
-console.log(JSON.stringify({ strict, depth, exactNumberingPublicationAndCarrierRetention: true, ...(scenario === "story" ? {} : { scenario }), ...(route ? { route, dryRun, actualPublicDispatchAndRetention: true } : {}) }));
+return { strict, depth, exactNumberingPublicationAndCarrierRetention: true, ...(scenario === "story" ? {} : { scenario }), ...(route ? { route, dryRun, actualPublicDispatchAndRetention: true } : {}) };
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  console.log(JSON.stringify(await run(process.argv.slice(2))));
+}

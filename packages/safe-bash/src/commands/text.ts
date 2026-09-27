@@ -721,11 +721,12 @@ const sharedSortScratchIndices = new Int32Array(4096);
 const sharedSortInScratch = new Uint8Array(65536);
 let sharedSortInUse = false;
 const sharedSortOutScratch = new Uint8Array(65536);
-const cachedSortOutBuffer = new Uint8Array(32768);
-let lastSortInBuf: Buffer | undefined;
-let lastSortDir = 0;
-let lastSortMaxLineLen = 0;
-let lastSortOutUsed = -1;
+let lastSort: {
+  readonly input: Buffer;
+  readonly output: Uint8Array;
+  readonly direction: number;
+  readonly maxLineLength: number;
+} | undefined;
 const cachedCutOutBuffer = new Uint8Array(32768);
 let lastCutInBuf: Buffer | undefined;
 let lastCutSep = -1;
@@ -2260,14 +2261,14 @@ export function textCommands(): CommandDefinition[] {
             } catch (error) {
               return diagnostic(context, error).then(RETURN_EXIT_TWO);
             }
+            const cached = lastSort;
             if (
-              lastSortOutUsed >= 0 &&
+              cached !== undefined &&
               firstChunkLen >= 256 &&
-              lastSortInBuf !== undefined &&
-              firstChunkLen === lastSortInBuf.byteLength &&
-              direction === lastSortDir &&
-              lastSortMaxLineLen <= bufferLimit &&
-              lastSortInBuf.equals(rawFirst)
+              firstChunkLen === cached.input.byteLength &&
+              direction === cached.direction &&
+              cached.maxLineLength <= bufferLimit &&
+              cached.input.equals(rawFirst)
             ) {
               let res2Fast: IteratorResult<Uint8Array> | undefined;
               try {
@@ -2277,11 +2278,11 @@ export function textCommands(): CommandDefinition[] {
               }
               if (res2Fast !== undefined && res2Fast.done) {
                 context.signal.throwIfAborted();
-                const p = outputRange(context, cachedSortOutBuffer, lastSortOutUsed);
+                const p = outputRange(context, cached.output, cached.output.length);
                 if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
                 return p.then(RETURN_EXIT_ZERO);
               }
-              return executeSortFastContinueAsync(context, direction, srcIter, new Uint8Array(rawFirst), res2Fast);
+              return executeSortFastContinueAsync(context, direction, srcIter, cached.input, res2Fast);
             }
             let firstChunk: Uint8Array;
             let usedSortInScratch = false;
@@ -2374,11 +2375,12 @@ export function textCommands(): CommandDefinition[] {
                     outBuf[used++] = 10;
                   }
                   if (firstChunkLen >= 256 && used <= 32768) {
-                    lastSortInBuf = Buffer.from(firstChunk.subarray(0, firstChunkLen));
-                    lastSortDir = direction;
-                    lastSortMaxLineLen = maxSortLine;
-                    lastSortOutUsed = used;
-                    cachedSortOutBuffer.set(outBuf.subarray(0, used));
+                    lastSort = {
+                      input: Buffer.from(firstChunk.subarray(0, firstChunkLen)),
+                      output: outBuf.slice(0, used),
+                      direction,
+                      maxLineLength: maxSortLine,
+                    };
                   }
                   const p = outputRange(context, outBuf, used);
                   if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;

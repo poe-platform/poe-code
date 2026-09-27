@@ -61,6 +61,52 @@ test("sort owns its first fragment across a reentrant next-input pull", async ()
   assert.equal(outer.stdout, "a\nb\n");
 });
 
+test("sort preserves borrowed input when a repeated prefix is followed by another fragment", async () => {
+  const commands = textCommands();
+  const signal = new AbortController().signal;
+  const prefix = "b\n" + "a\n".repeat(128);
+  const first = await run("sort", [], { commands, signal, stdin: { ...synchronousFragments([prefix]), abortSignal: signal } });
+  assert.equal(first.stdout, "a\n".repeat(128) + "b\n");
+  const borrowed = Buffer.from(prefix);
+  let index = 0;
+  const iterator = {
+    tryNextSync(): IteratorResult<Uint8Array> {
+      if (index++ === 0) return { done: false, value: borrowed };
+      borrowed.fill(0);
+      return index === 2 ? { done: false, value: Buffer.from("c\n") } : { done: true, value: undefined };
+    },
+    async next(): Promise<IteratorResult<Uint8Array>> { return this.tryNextSync(); },
+  };
+  const result = await run("sort", [], { commands, signal, stdin: { abortSignal: signal, [Symbol.asyncIterator]: () => iterator } });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "a\n".repeat(128) + "b\nc\n");
+});
+
+test("sort preserves a repeated input result across a reentrant EOF pull", async () => {
+  const commands = textCommands();
+  const fs = await fixture();
+  const signal = new AbortController().signal;
+  const input = "b\n" + "a\n".repeat(128);
+  const expected = "a\n".repeat(128) + "b\n";
+  const first = await run("sort", [], { fs, commands, signal, stdin: { ...synchronousFragments([input]), abortSignal: signal } });
+  assert.equal(first.stdout, expected);
+  let nested: ReturnType<typeof run> | undefined;
+  const stdin = {
+    ...synchronousFragments([input], index => {
+      if (index === 1 && !nested) nested = run("sort", [], {
+        fs, commands, signal, stdin: { ...synchronousFragments(["z\n".repeat(128)]), abortSignal: signal },
+      });
+    }),
+    abortSignal: signal,
+  };
+  const result = await run("sort", [], { fs, commands, signal, stdin });
+  const inner = await nested;
+  assert.ok(inner);
+  assert.equal(inner.stdout, "z\n".repeat(128));
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, expected);
+});
+
 test("sort retains indexed record boundaries across a cooperative host turn", async t => {
   const fs = await fixture();
   const commands = textCommands();

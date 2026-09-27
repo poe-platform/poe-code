@@ -47,6 +47,6 @@ it("doubles each matching Unicode scalar in a multichar quote", async () => {
     ["quote='😀🦊' quoting-mode=always"], context))).toBe("😀🦊😀🦊😀a😀🦊🦊b😀🦊\n");
 });
 
-it("truncates text at native strlen NUL before trigger scanning", async () => {
-  expect(new TextDecoder("utf-8", { ignoreBOM: true }).decode(await writePlainCsv(workbook("safe\0,hidden"), [], context))).toBe("safe\n");
+it("quotes delimiters after NUL without truncating the field", async () => {
+  expect(new TextDecoder("utf-8", { ignoreBOM: true }).decode(await writePlainCsv(workbook("safe\0,hidden"), [], context))).toBe('"safe\0,hidden"\n');
 });

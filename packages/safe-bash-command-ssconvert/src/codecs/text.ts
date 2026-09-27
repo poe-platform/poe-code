@@ -103,13 +103,8 @@ function separator(text: string, ending: string, csv: boolean, decimal: string):
 
 export async function readText(bytes: Uint8Array, context: CapabilityContext, encoding?: string): Promise<Workbook> {
   admit(bytes, context);
-  let text = decodeText(bytes, encoding);
-  const nulParts = text.split("\0");
-  const nuls = nulParts.length - 1;
-  if (nuls) text = nulParts.join(" ");
-  if (nuls) await context.diagnostic?.({ code: "text-nul", severity: "warning", message: nuls === 1 ?
-    "The file contains 1 NUL character. It has been changed to a space." :
-    `The file contains ${nuls} NUL characters. They have been changed to spaces.` });
+  // Keep explicit-length text intact; native NUL substitution loses cell data.
+  const text = decodeText(bytes, encoding);
   context.signal.throwIfAborted();
   const { ending, unique } = lineEnding(text);
   const csv = context.inputFilename?.toLowerCase().endsWith(".csv") ?? false;

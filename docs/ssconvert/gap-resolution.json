@@ -1184,7 +1184,7 @@
       "remaining": "Primary format or native-authored token evidence is required to select the error-constant payload width. Source disagreement does not establish a validated product defect; no blanket width change or interoperability claim."
     },
     "csvNulSourceReview": {
-      "status": "source investigation; lossless NUL import/export remains open",
+      "status": "implemented NUL preservation in text import and both CSV exporters; publication and broader qualification pending",
       "sources": [
         {
           "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/ui/docshell/impex.cxx",
@@ -1199,8 +1199,11 @@
           "finding": "AsciiSave selects the cell string and writes OUString values or encoded buffers with explicit lengths, including WriteBytes(aStrEnc.getStr(), aStrEnc.getLength()). This is distinct from the importer's deliberate NUL removal."
         }
       ],
-      "candidate": "codecs/text.ts:readText replaces each NUL with a space and reports the loss; codecs/text-export.ts:appendField truncates at the first NUL to follow Gnumeric strlen behavior. Thus Calc strips, candidate import substitutes, and candidate export truncates. These are separate loss policies, not lossless roundtrips.",
-      "remaining": "Implement and qualify requested lossless CSV handling through both import and export, with explicit compatibility documentation for the native differences. Cover delimiter/quote scanning, formula-looking text, encoded NULs, cancellation and byte limits. Do not close this requirement merely because native applications also lose NUL. No new product change or application execution is claimed by this source review."
+      "priorCandidate": "codecs/text.ts:readText replaced each NUL with a space and reported the loss; codecs/text-export.ts:appendField truncated at the first NUL to follow Gnumeric strlen behavior. Thus Calc strips, former candidate import substituted, and former candidate export truncated.",
+      "candidate": "Text import now retains decoded NUL; both CSV exporters retain the complete field and scan delimiters, quotes and line breaks after NUL. The README documents this deliberate compatibility difference from native Gnumeric and Calc. Existing format inference, encoding selection and explicit resource limits remain in effect.",
+      "validation": "Twelve of thirteen new regressions failed before correction; all 169 text-codec checks pass. Cases cover leading/trailing/repeated NUL, delimiters/quotes/newlines after NUL, formula-looking text, UTF-8/UTF-16LE/Latin-1, exact output byte admission and pre-abort identity. All 437 package files / 24384 tests pass after repairing three stale quota tests and retained XML recursion. Maintained package lint, source/test/consumer types and selected build pass.",
+      "publicQualification": "Eight compiled SDK/command conversions preserve all 72 values from nine independent Python CSV rows across both exporters and three encodings, byte-for-byte with no diagnostics. Python csv independently reads all 72 output values exactly. The CLI screenshot shows the post-NUL suffix and no loss warning; actual NUL preservation is established by byte comparisons, not its invisible terminal glyph. The initial probe compared plain expected objects with the public API's null-prototype records; it was corrected to compare kind/value pairs without changing product code.",
+      "remaining": "Verify remote delivery, containing publication and broader application/platform qualification. Native Gnumeric/Calc CSV import cannot establish NUL-preserving readback because their inspected source intentionally loses it. Other formula/text semantics and the nineteen gap families remain open."
     },
     "besselPhaseBoundary": {
       "status": "implemented source-qualified phase dispatch through 1 / binary64 epsilon",
@@ -1256,7 +1259,7 @@
     {
       "id": "lotus-named-formula-references",
       "status": "open",
-      "currentFinding": "Implemented source-qualified WK1/WK3 names, namespace lifecycle, WK1/WK2, Windows Works and DOS Symphony offsets, WK3 admission, numeric record widths and single-rounding extended values and direct cross-sheet range endpoints. Qualified financial/date/position/lookup semantics and all 47 LibreOffice-recognized add-ins resolve. LMBCS Unicode, four national double-byte groups and C0/C1 controls follow ICU source. All 327 tests in seventeen Lotus files and package lint/types/build pass; public SDK/command observations remain scoped by the source records. BIFF NUL and shared/inline XLSX string preservation are now implemented. Ambiguous DOS Works profiles, modern range flags, relative-sheet identity, wider charsets/formatting/domains and native applications remain open. CSV NUL loss and raw-NUL XLSX formula refusal remain distinct export gaps. Containing publication is pending."
+      "currentFinding": "Implemented source-qualified WK1/WK3 names, namespace lifecycle, WK1/WK2, Windows Works and DOS Symphony offsets, WK3 admission, numeric record widths and single-rounding extended values and direct cross-sheet range endpoints. Qualified financial/date/position/lookup semantics and all 47 LibreOffice-recognized add-ins resolve. LMBCS Unicode, four national double-byte groups and C0/C1 controls follow ICU source. All 327 tests in seventeen Lotus files and package lint/types/build pass; public SDK/command observations remain scoped by the source records. BIFF NUL and shared/inline XLSX string preservation are now implemented. Ambiguous DOS Works profiles, modern range flags, relative-sheet identity, wider charsets/formatting/domains and native applications remain open. CSV now preserves NUL on import/export with documented native differences; raw-NUL XLSX formula refusal remains a distinct export gap. Containing publication is pending."
     },
     {
       "id": "biff-external-and-token-formulas",

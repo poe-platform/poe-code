@@ -68,9 +68,8 @@ interface TextOptions {
 }
 
 function appendField(text: string, options: TextOptions, append: (text: string) => void): void {
-  // Native strlen stops at NUL. Triggers retain the initial configuration even
-  // after separator, quote and eol properties are changed by -O.
-  text = text.split("\0", 1)[0]!;
+  // Preserve NUL and scan the entire field. Triggers retain the initial
+  // configuration even after separator, quote and eol properties change via -O.
   const whitespace = (c: string | undefined) => c !== undefined && c !== "\u000b" && c !== "\ufeff" && c.trim() === "";
   const quoted = options.mode === "always" || options.mode === "auto" &&
     (text.includes(",") || text.includes(" ") || text.includes("\t") || text.includes("\n") || text.includes('"') || options.whitespace &&

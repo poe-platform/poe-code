@@ -80,7 +80,10 @@ host binding.
 
 Configurable text export (`Gnumeric_stf:stf_assistant`) remembers a text input's
 unique LF, CRLF or CR terminator unless an explicit `eol` option overrides it;
-plain CSV export continues to use LF.
+plain CSV export continues to use LF. Text import and both CSV exporters preserve
+embedded NUL characters, including delimiters and quotes that follow them. This
+extends native behavior: Gnumeric substitutes spaces on import and truncates
+exported fields at NUL; LibreOffice strips NUL on CSV import.
 
 SYLK export preserves explicit cell and column formats. CSV text-entry formats
 (such as inferred times and month/day/year dates) export as General, matching

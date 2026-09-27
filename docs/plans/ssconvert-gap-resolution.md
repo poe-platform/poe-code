@@ -467,11 +467,13 @@ native application qualification remains open.
 
 CSV source follow-up: LibreOffice's actual import calls EmbeddedNullTreatment
 before field parsing and removes every NUL. Its length-aware exporter does not
-prove lossless roundtrips. The candidate instead substitutes spaces on import
-and truncates at NUL on export. Implement the requested preservation across both
-paths and document the compatibility difference; another application's loss does
-not resolve this requirement. See `reference.csvNulSourceReview` for immutable
-source hashes and call sites. This investigation changes no product behavior.
+prove lossless roundtrips. The candidate now preserves NUL through text import
+and both CSV exporters, with the native difference documented. Twelve initial
+regressions failed; all 169 text-codec checks pass. Eight compiled SDK/command
+conversions and independent Python CSV readback preserve 72 values exactly.
+All 437 package files / 24,384 tests, lint/types and the selected build pass;
+publication remains pending. See `reference.csvNulSourceReview` for source hashes
+and scoped evidence. No family is closed.
 
 LibreOffice's formula-cache path is now traced separately: ordinary string
 results use `t="str"`; its inline-string branch handles invalid/default results.

@@ -153,7 +153,7 @@ it("keeps native UCS-4 big-endian ordering and iconv Latin-1 aliases", async () 
   const bytes = new Uint8Array([97, 0, 0, 0, 44, 0, 0, 0, 98, 0, 0, 0]);
   const book = await readText(bytes, context, "UCS-4");
   expect(book.sheets[0]!.cells.map(cell => cell.value)).toEqual([
-    { kind: "string", value: "a   " }, { kind: "string", value: "   b   " }
+    { kind: "string", value: "a\0\0\0" }, { kind: "string", value: "\0\0\0b\0\0\0" }
   ]);
   expect((await readText(new Uint8Array([128]), context, "ISO8859-1")).sheets[0]!.cells[0]!.value)
     .toEqual({ kind: "string", value: "\u0080" });
@@ -167,22 +167,16 @@ it.each([
   expect(book.sheets[0]!.cells[1]!.value).toEqual({ kind: "string", value: decoded });
 });
 
-it("replaces NULs and awaits the warning before observing cancellation", async () => {
+it("preserves NULs without reporting a lossy substitution", async () => {
   const messages: string[] = [];
   const bytes = new Uint8Array([97, 0, 44, 98, 0]);
   const book = await readText(bytes, { ...context,
     async diagnostic(diagnostic) { messages.push(diagnostic.message); }
   });
   expect(book.sheets[0]!.cells.map(cell => cell.value)).toEqual([
-    { kind: "string", value: "a " }, { kind: "string", value: "b " }
+    { kind: "string", value: "a\0" }, { kind: "string", value: "b\0" }
   ]);
-  expect(messages).toEqual(["The file contains 2 NUL characters. They have been changed to spaces."]);
-  const controller = new AbortController();
-  const reason = new Error("abort after warning");
-  await expect(readText(bytes, { ...context, signal: controller.signal,
-    async diagnostic(diagnostic) { messages.push(diagnostic.message); controller.abort(reason); }
-  })).rejects.toBe(reason);
-  expect(messages).toHaveLength(2);
+  expect(messages).toEqual([]);
 });
 
 it("uses source-defined locale argument separators before generic candidates", async () => {

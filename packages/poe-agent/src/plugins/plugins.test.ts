@@ -13,6 +13,7 @@ import gitContext from "./poe-agent-plugin-git-context.js";
 import maxIterations from "./poe-agent-plugin-max-iterations.js";
 import scratchpad from "./poe-agent-plugin-scratchpad.js";
 import filesPlugin from "./poe-agent-plugin-files.js";
+import { createShellChild } from "../../testing/shell-child.js";
 import shellPlugin from "./poe-agent-plugin-shell.js";
 import skillsPlugin from "./poe-agent-plugin-skills.js";
 import spawnPlugin from "./poe-agent-plugin-spawn.js";
@@ -20,6 +21,11 @@ import systemPromptPlugin, {
   spec as systemPromptPluginSpec
 } from "./poe-agent-plugin-system-prompt.js";
 import webPlugin from "./poe-agent-plugin-web.js";
+
+vi.mock("node:child_process", async importOriginal => {
+  const actual = await importOriginal<typeof import("node:child_process")>();
+  return { ...actual, spawn: vi.fn(actual.spawn) };
+});
 
 const appendFileMock = vi.hoisted(() => vi.fn());
 
@@ -893,6 +899,7 @@ describe("poe-agent built-in plugins", () => {
   });
 
   it("shell plugin starts background commands, reads buffered output, and kills them", async () => {
+    createShellChild({ stdout: "ready\n" });
     const cwd = process.cwd();
     const plugin = shellPlugin({
       cwd,

@@ -2745,11 +2745,11 @@
     },
     "currentIntegration": {
       "state": "rebased locally; not pushed or published",
-      "onto": "cfae5636f2",
-      "localHead": "8e27c46af8",
-      "runtime": "Incoming generic shared-workspace contracts retained. A private workspace rebuild overwrites shared public runtime in packages/safe-bash-contracts/dist; current repair emits root-owned runtime to dist/shared/safe-bash-contracts. Root declarations retain private declaration paths.",
-      "checks": "Calc source-directed comments: 85 focused checks and compiled SDK/command native readbacks pass. Live ODF labels: 8 compiled SDK/command outputs and 16 Calc conversions retain live labels and recalculate stale 999 to 5/15. Full npm test failed with 1811 passes and one unavailable-private-import shipment failure. Shared runtime output repair: 3 failing-before regressions, 29 focused passes; broader 20-file/822-test packaging cohort and root ESLint pass. Maintained root build passed. Rebuilding the two-workspace private contracts closure leaves all 74 public files byte-identical; all four public SDK bundle checks pass before and after. Package lint reports two image-ast unresolved-import violations already repaired by incoming main commit 299af2edd5; current rebase will include it.",
-      "remaining": "Rebase current main, fresh isolated installed qualification, complete full integrated acceptance, push and verify containing publication. All 19 families remain open."
+      "onto": "8120dccbf5f6cd5949adb635883139d062c86ea6",
+      "localHead": "6fec9470be",
+      "runtime": "Root shared contracts now emit under dist/shared, independently of private workspace builds. Public ssconvert stays under dist/ssconvert. Incoming portable path and compressed-control-flow repairs retained. New arithmetic-loop regressions cover awaited conditions; optimized substitutions count actual UTF-8 before trimming trailing newlines.",
+      "checks": "Shared output: 822 packaging tests and root build passed before later main updates; private contracts rebuild preserved all 74 public files, with four public bundle tests passing before/after. Loop conditions: two failing-before cases pass with incoming repair. UTF-8 accounting: ten failing-before boundaries; 20 final boundary cases and 115 focused tests pass, two existing skips; root ESLint passes. Last full build reached SafeJS native import probes and failed on two chain(Infinity) loops after the default-depth change. Incoming 9b91601b15 retains finite 1024/1025 qualification; selected 23-workspace build passes, including all 15 native import checks. Rebased seven-file shell checks pass 295 tests with two existing skips, and root ESLint passes. Complete integrated build/test and installed qualification remain pending.",
+      "remaining": "Complete maintained root build, full npm test and current lint; fresh compiled/isolated installed qualification; push, verify remote main and containing publication. Native Calc comment/live-label proofs remain recorded, but all 19 families are open."
     }
   },
   "history": {

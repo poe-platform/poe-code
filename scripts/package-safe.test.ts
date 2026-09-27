@@ -545,7 +545,7 @@ it.each([false, true])("admits asset-only contract owners against the full priva
     volume.symlinkSync("/output/safe-fs", "/output/node_modules/@poe-platform/safe-fs");
     volume.writeFileSync("/output/csvcut-consumer.mts", readFileSync(new URL("./fixtures/safe-packages-csvcut-types.mts", import.meta.url)));
 
-  it("admits Shell byte argv through an isolated packed private command graph", async () => {
+  it("checks packed Shell byte argv declarations without Node types", () => {
     // Check the packaged declarations without rechecking TypeScript's own library.
     const compilerOptions = { module: ts.ModuleKind.NodeNext, target: ts.ScriptTarget.ES2022, strict: true, noEmit: true, skipDefaultLibCheck: true, types: [], customConditions: ["browser"] };
     const host = ts.createCompilerHost(compilerOptions);
@@ -562,6 +562,8 @@ it.each([false, true])("admits asset-only contract owners against the full priva
     };
     const program = ts.createProgram(["/output/csvcut-consumer.mts"], compilerOptions, host);
     expect(ts.getPreEmitDiagnostics(program).map(diagnostic => `${diagnostic.file?.fileName ?? "compiler"}:${diagnostic.start ?? 0}: ${ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")}`)).toEqual([]);
+  });
+  it("admits Shell byte argv through an isolated packed private command graph", async () => {
     const consumer = await build({ stdin: { contents: readFileSync(new URL("./fixtures/safe-packages-private-command.mjs", import.meta.url), "utf8"), resolveDir: "/output" },
       bundle: true, write: false, platform: "browser", format: "cjs", target: "es2022", plugins: [plugin] });
     const sandbox = createContext({ TextEncoder, TextDecoder, TypeError, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,

@@ -25,13 +25,15 @@ async function connectToServerScript(source: string): Promise<{
     env: { ...process.env },
   });
   const client = new McpClient({
+    protocolVersion: "2026-07-28",
     clientInfo: {
       name: "typed-output-workflow-test",
       version: "1.0.0",
     },
   });
 
-  await client.connect(transport);
+  const connection = await client.connect(transport);
+  expect(connection.protocolVersion).toBe("2026-07-28");
   return {
     client,
     cleanup: async () => {

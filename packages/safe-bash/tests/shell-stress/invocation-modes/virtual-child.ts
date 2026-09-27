@@ -108,7 +108,8 @@ async function host(id: string) {
     assert.match(result.stderr, /tool/u);
   } else if (id === "host-no-startup-host-fallback") {
     await fs.writeFile("/work/startup", Buffer.from("printf 'STARTUP-LEAK\\n'\n"));
-    const result = await shell.exec("bash -c 'printf child'; sh -c 'printf child'; PATH=/bin:/usr/bin uname", { env: { BASH_ENV: "/work/startup", ENV: "/work/startup" } });
+    // An explicit host path must stay in the VFS even when uname is registered.
+    const result = await shell.exec("bash -c 'printf child'; sh -c 'printf child'; PATH=/bin:/usr/bin /usr/bin/uname", { env: { BASH_ENV: "/work/startup", ENV: "/work/startup" } });
     assert.equal(result.stdout, "childchild");
     assert.equal(result.exitCode, 127);
     assert.match(result.stderr, /uname/u);

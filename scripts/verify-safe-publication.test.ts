@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it, vi } from "vitest";
 import { readRegistry, runCommand, verifyCloudflareArtifacts, verifyPublication } from "./verify-safe-publication.mjs";
@@ -422,18 +423,35 @@ describe("bounded registry reads", () => {
 
 describe("bounded child execution", () => {
   it("preserves a real nonzero child exit", async () => {
-    await expect(runCommand(process.execPath, ["-e", "process.exit(7)"], { timeout: 1_000 })).rejects.toMatchObject({ code: 7 });
+    await expect(runCommand("/bin/sh", ["-c", "exit 7"], { timeout: 1_000 })).rejects.toMatchObject({ code: 7 });
   });
 
   it("kills a stalled package manager or import", async () => {
-    await expect(runCommand(process.execPath, ["-e", "setInterval(() => {}, 1000)"], { timeout: 50 })).rejects.toMatchObject({ signal: "SIGKILL" });
+    await expect(runCommand("/bin/sh", ["-c", "while :; do :; done"], { timeout: 50 })).rejects.toMatchObject({ signal: "SIGKILL" });
   });
 
   it("bounds child output", async () => {
-    await expect(runCommand(process.execPath, ["-e", "process.stdout.write('x'.repeat(2_000_000))"], { timeout: 1_000 })).rejects.toMatchObject({ code: "ERR_CHILD_PROCESS_STDIO_MAXBUFFER" });
+    await expect(runCommand("/bin/sh", ["-c", "printf '%2000000s' x"], { timeout: 1_000 })).rejects.toMatchObject({ code: "ERR_CHILD_PROCESS_STDIO_MAXBUFFER" });
   });
 
   it("the CLI exits nonzero for non-exact versions before touching disk", async () => {
-    await expect(runCommand(process.execPath, ["scripts/verify-safe-publication.mjs", "--version", "latest", "--source", source], { timeout: 1_000 })).rejects.toMatchObject({ code: 1 });
+    const argv = process.argv;
+    const exitCode = process.exitCode;
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const mkdir = vi.fn().mockRejectedValue(new Error("Unexpected filesystem access"));
+    try {
+      process.argv = [process.execPath, fileURLToPath(new URL("./verify-safe-publication.mjs", import.meta.url)), "--version", "latest", "--source", source];
+      vi.doMock("node:fs/promises", () => ({ mkdir }));
+      vi.resetModules();
+      await import("./verify-safe-publication.mjs");
+      expect(process.exitCode).toBe(1);
+      expect(error).toHaveBeenCalledWith(expect.stringContaining("exact"));
+      expect(mkdir).not.toHaveBeenCalled();
+    } finally {
+      vi.doUnmock("node:fs/promises");
+      process.argv = argv;
+      process.exitCode = exitCode;
+      error.mockRestore();
+    }
   });
 });

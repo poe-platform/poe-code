@@ -47,7 +47,7 @@ export function resolveJqLimits(options: Partial<JqLimits> = {}): JqLimits {
 }
 export class Budget {
   private steps = 0;
-  private lastYield = monotonicNow();
+  private readonly yieldTimes = new Float64Array([monotonicNow()]);
   private lastYieldSteps = 0;
   private readonly unlimitedSteps: boolean;
   private readonly maxStepsSmi: number;
@@ -83,22 +83,14 @@ export class Budget {
   };
   private bindSignal(signal: AbortSignal): void {
     this.aborted = Boolean(signal?.aborted);
-    this.pollSignal = Boolean(
-      signal &&
-        (!(signal instanceof AbortSignal) ||
-          typeof signal.addEventListener !== "function" ||
-          Object.prototype.hasOwnProperty.call(signal, "aborted")),
-    );
-    if (signal && !this.aborted && !this.pollSignal) {
-      signal.addEventListener("abort", this.onAbortBound, ONCE_ABORT_OPTIONS);
-    }
+    this.pollSignal = true;
   }
   resetForRun(signal: AbortSignal): void {
     (this as unknown as { signal: AbortSignal }).signal = signal;
     this.bindSignal(signal);
     this.steps = 0;
     this.lastYieldSteps = 0;
-    this.lastYield = monotonicNow();
+    if (hasYieldCheckpoint(signal)) this.yieldTimes[0] = monotonicNow();
     this.inputBytes = 0;
     this.outputBytes = 0;
     this.results = 0;
@@ -120,14 +112,14 @@ export class Budget {
   needsYield(): boolean {
     if (hasYieldCheckpoint(this.signal)) {
       const now = monotonicNow();
-      return this.steps - this.lastYieldSteps >= 1024 || now - this.lastYield >= 25;
+      return this.steps - this.lastYieldSteps >= 1024 || now - this.yieldTimes[0]! >= 25;
     }
     // Even fast finite workloads must eventually let host timers run.
     return this.steps - this.lastYieldSteps >= 65536;
   }
   ensureFreshWindow(): Promise<void> | undefined {
     const now = monotonicNow();
-    if (now - this.lastYield < 15) {
+    if (now - this.yieldTimes[0]! < 15) {
       runYieldCheckpoint(this.signal);
       return undefined;
     }
@@ -146,7 +138,7 @@ export class Budget {
   private yieldTickSync(): Promise<void> {
     return yieldTurn(this.signal).then(() => {
       this.signal.throwIfAborted();
-      this.lastYield = monotonicNow();
+      this.yieldTimes[0] = monotonicNow();
       this.lastYieldSteps = this.steps;
     });
   }

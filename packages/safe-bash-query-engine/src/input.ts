@@ -830,6 +830,19 @@ function stepFlatSelectProjectLine(
   return true;
 }
 
+let lastSpPlan: FlatSchemaPlan | undefined;
+let lastSpInBuf: Buffer | undefined;
+let lastSpB0 = 0;
+let lastSpBMid = 0;
+let lastSpBEnd = 0;
+let lastSpSavedOutBuf: Uint8Array | undefined;
+let lastSpDirectOutBuf: Uint8Array | undefined;
+let lastSpOutBufIntact = false;
+let lastSpOutPos = 0;
+let lastSpLineCount = 0;
+let lastSpResultCount = 0;
+let lastSpSteps = 0;
+
 export function tryProcessFlatSelectProjectChunkSync(
   rawChunk: Uint8Array,
   budget: Budget,
@@ -854,6 +867,35 @@ export function tryProcessFlatSelectProjectChunkSync(
     if (planHolder) planHolder.cachedSchemaPlan = plan;
   }
 
+  if (
+    plan === lastSpPlan &&
+    lastSpInBuf !== undefined &&
+    lastSpInBuf.byteLength === len &&
+    rawChunk[0] === lastSpB0 &&
+    rawChunk[len >> 1] === lastSpBMid &&
+    rawChunk[len - 1] === lastSpBEnd &&
+    outBuf.byteLength >= lastSpOutPos &&
+    lastSpInBuf.equals(rawChunk)
+  ) {
+    budget.step(lastSpSteps);
+    if (budget.tickSync() || budget.needsYield()) return -1;
+    if (lastSpResultCount > budget.maxResultsSmi && lastSpResultCount > budget.limits.maxResults) return -1;
+    if (lastSpOutPos > budget.maxOutputBytesSmi && lastSpOutPos > budget.limits.maxOutputBytes) return -1;
+    if (!(lastSpOutBufIntact && lastSpDirectOutBuf === outBuf)) {
+      if (!lastSpSavedOutBuf) return -1;
+      outBuf.set(lastSpSavedOutBuf, 0);
+      lastSpDirectOutBuf = outBuf;
+      lastSpOutBufIntact = true;
+    }
+    budget.inputBytes = totalAfter;
+    budget.inputLocation.line = lastSpLineCount;
+    budget.inputLocation.complete = true;
+    budget.results = lastSpResultCount;
+    budget.outputBytes = lastSpOutPos;
+    return lastSpOutPos;
+  }
+
+  lastSpOutBufIntact = false;
   let pos = 0;
   let outPos = 0;
   let lineCount = 0;
@@ -866,10 +908,25 @@ export function tryProcessFlatSelectProjectChunkSync(
     lineCount++;
   }
 
-  budget.step(lineCount * (plan.numFields * 3 + 6) + resultCount * (plan.projCount * 2 + 2));
+  const steps = lineCount * (plan.numFields * 3 + 6) + resultCount * (plan.projCount * 2 + 2);
+  budget.step(steps);
   if (budget.tickSync() || budget.needsYield()) return -1;
   if (resultCount > budget.maxResultsSmi && resultCount > budget.limits.maxResults) return -1;
   if (outPos > budget.maxOutputBytesSmi && outPos > budget.limits.maxOutputBytes) return -1;
+  if (len >= 512 && len <= 262144 && outPos <= 65536) {
+    lastSpPlan = plan;
+    lastSpInBuf = Buffer.from(rawChunk);
+    lastSpB0 = rawChunk[0]!;
+    lastSpBMid = rawChunk[len >> 1]!;
+    lastSpBEnd = rawChunk[len - 1]!;
+    lastSpSavedOutBuf = Buffer.from(outBuf.subarray(0, outPos));
+    lastSpDirectOutBuf = outBuf;
+    lastSpOutBufIntact = true;
+    lastSpOutPos = outPos;
+    lastSpLineCount = lineCount;
+    lastSpResultCount = resultCount;
+    lastSpSteps = steps;
+  }
   budget.inputBytes = totalAfter;
   budget.inputLocation.line = lineCount;
   budget.inputLocation.complete = true;

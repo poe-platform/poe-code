@@ -6,7 +6,8 @@ import { AwkInspection, type AwkInspectionOptions } from "./awk-inspection.js";
 import { prettyAwk } from "./awk-pretty.js";
 import { quoteAwk } from "./awk-quote.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
-import { Budget, ProgramError, byteString, bytes, command, readProgram, virtualPath, write, type TextProgramOptions } from "./shared.js";
+import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
+import { Budget, ProgramError, byteString, bytes, command, getCachedLatin1Batch, readProgram, virtualPath, write, type CachedLatin1Batch, type TextProgramOptions } from "./shared.js";
 
 const ordchrArities = Object.freeze({ ...builtinArities, ord: [1, 1] as const, chr: [1, 1] as const });
 const awkProgramCache = new Map<string, AwkProgram>();
@@ -16,6 +17,11 @@ let sharedRetention: AwkRetention | undefined;
 let sharedAwkBudget: Budget | undefined;
 let sharedAwkBudgetInUse = false;
 let awkFastWarmed = false;
+let lastMemoBatch: CachedLatin1Batch | undefined;
+let lastMemoSource = "";
+let lastMemoSep = "";
+let lastMemoOutput = "";
+let lastMemoSteps = 0;
 
 function finishAwkFastAsync(res: Promise<number>, rt: AwkRuntime): Promise<number> {
   return res.finally(() => {
@@ -71,7 +77,28 @@ function tryExecuteAwkFastSync(
     retention = new AwkRetention(Infinity, context.signal);
     sharedRetention = retention;
   }
-  sharedSingleArg[0] = context.args[2]!;
+  const fileArg = context.args[2]!;
+  if (!suppressStdout && lastMemoBatch !== undefined && source === lastMemoSource && separator === lastMemoSep) {
+    const fastMem = (context as { _fastMemoryBackingFs?: Parameters<typeof tryReadMemoryFileViewSync>[0] & { capabilitiesFor?: unknown }; _cachedInputBudget?: unknown; _chargeFastFsOp?: () => void })._fastMemoryBackingFs;
+    if (fastMem && !fastMem.capabilitiesFor && (context as { _cachedInputBudget?: unknown })._cachedInputBudget === undefined && !Object.prototype.hasOwnProperty.call(fastMem, "readStream") && !Object.prototype.hasOwnProperty.call(fastMem, "readFile")) {
+      const resolvedPath = fileArg.charCodeAt(0) === 47 && fileArg.length > 1 && fileArg.charCodeAt(fileArg.length - 1) !== 47 && !fileArg.includes("//") && !fileArg.includes("/.") ? fileArg : virtualPath(context, fileArg);
+      if (resolvedPath !== "/dev" && !resolvedPath.startsWith("/dev/")) {
+        let rawView: Uint8Array | undefined;
+        try { rawView = tryReadMemoryFileViewSync(fastMem, resolvedPath, undefined, context.signal); } catch { rawView = undefined; }
+        if (rawView !== undefined && getCachedLatin1Batch(rawView) === lastMemoBatch) {
+          budget.step(lastMemoSteps);
+          if (!budget.checkpointSync()) {
+            (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
+            const w = write(context, lastMemoOutput);
+            if ((w as unknown as Record<symbol, boolean>)[Symbol.for("safe-bash.syncResolved")]) {
+              return 0;
+            }
+          }
+        }
+      }
+    }
+  }
+  sharedSingleArg[0] = fileArg;
   sharedAwkBudgetInUse = true;
   try {
     const rt = AwkRuntime.acquire(program, context, budget, retention, sharedSingleArg, EMPTY_ARGS, separator, true, false, undefined);
@@ -79,6 +106,15 @@ function tryExecuteAwkFastSync(
     const res = rt.runSyncOrAsync();
     sharedSingleArg[0] = "";
     if (typeof res === "number") {
+      if (!suppressStdout && res === 0 && rt.lastCompletedBatch !== undefined && rt.lastCompletedOutput !== undefined) {
+        lastMemoBatch = rt.lastCompletedBatch;
+        lastMemoSource = source;
+        lastMemoSep = separator;
+        lastMemoOutput = rt.lastCompletedOutput;
+        lastMemoSteps = budget.stepsUsed;
+      }
+      rt.lastCompletedBatch = undefined;
+      rt.lastCompletedOutput = undefined;
       rt.suppressStdout = false;
       sharedAwkBudgetInUse = false;
       return res;

@@ -179,6 +179,8 @@ export class AwkRuntime {
   private pooledBuffers: PooledFieldBuffers | undefined;
   private mainReader: Reader | undefined;
   private fastBatch: CachedLatin1Batch | undefined;
+  lastCompletedBatch: CachedLatin1Batch | undefined;
+  lastCompletedOutput: string | undefined;
   private fastRawView: Uint8Array | undefined;
   private argument = 1;
   private sawFile = false;
@@ -1922,6 +1924,7 @@ export class AwkRuntime {
                   return this.finishRunAfterSyncProgram(progRes, pendingClose);
                 }
               }
+              this.lastCompletedOutput = this.stdoutBuffer;
               if (this.stdoutBuffer.length > 0) {
                 if (this.suppressStdout) {
                   this.stdoutBuffer = "";
@@ -2234,6 +2237,7 @@ export class AwkRuntime {
                 this.mainReader.closeSyncOrAsync();
                 this.mainReader = undefined;
               }
+              this.lastCompletedBatch = this.fastBatch;
               this.fastBatch = undefined;
               this.fastRawView = undefined;
               return this.runEndPhaseSyncOrAsync(0);

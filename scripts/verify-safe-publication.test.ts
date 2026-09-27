@@ -440,6 +440,12 @@ describe("bounded child execution", () => {
   });
 
   it("kills a stalled package manager or import", async () => {
+    vi.mocked(execFile).mockImplementationOnce((...parameters) => {
+      expect(parameters[2]).toMatchObject({ timeout: 50, maxBuffer: 1_048_576, killSignal: "SIGKILL" });
+      const callback = parameters[3] as (error: Error, stdout: string) => void;
+      callback(Object.assign(new Error("child killed"), { signal: "SIGKILL" }), "");
+      return {} as ReturnType<typeof execFile>;
+    });
     await expect(runCommand("/bin/sh", ["-c", "while :; do :; done"], { timeout: 50 })).rejects.toMatchObject({ signal: "SIGKILL" });
   });
 

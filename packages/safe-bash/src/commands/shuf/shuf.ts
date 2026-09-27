@@ -3,7 +3,7 @@ import {
   type ByteSource, type CommandContext, type CommandDefinition,
 } from "../../contracts/index.js";
 import { openFileOutput, type FileOutput } from "../../contracts/filesystem-output.js";
-import { hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { countMax, Diagnostic, fileQuote, parse, quote } from "./args.js";
 import { ownedBytes, records, virtualPath } from "./input.js";
 import { settings, type ShufCommandsOptions } from "./options.js";
@@ -147,8 +147,13 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
                 lines[index] = next.value;
               }
               seen++;
-              if (seen % 1024n === 0n && (hasYieldCheckpoint(context.signal) || monotonicNow() - lastYield >= 25)) {
-                await yieldTurn(context.signal); lastYield = monotonicNow();
+              if (seen % 1024n === 0n) {
+                if (hasYieldCheckpoint(context.signal) || monotonicNow() - lastYield >= 25) {
+                  await yieldTurn(context.signal); lastYield = monotonicNow();
+                } else {
+                  runYieldCheckpoint(context.signal);
+                  context.signal.throwIfAborted();
+                }
               }
             }
           }
@@ -169,8 +174,13 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
             permutation.push(swaps.get(chosen) ?? chosen);
             swaps.set(chosen, swaps.get(index) ?? index);
             swaps.delete(index);
-            if (index % 1024n === 1023n && (hasYieldCheckpoint(context.signal) || monotonicNow() - lastYield >= 25)) {
-              await yieldTurn(context.signal); lastYield = monotonicNow();
+            if (index % 1024n === 1023n) {
+              if (hasYieldCheckpoint(context.signal) || monotonicNow() - lastYield >= 25) {
+                await yieldTurn(context.signal); lastYield = monotonicNow();
+              } else {
+                runYieldCheckpoint(context.signal);
+                context.signal.throwIfAborted();
+              }
             }
           }
         }
@@ -199,8 +209,13 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
           const line = parsed.range ? encoder.encode(`${parsed.range.low + chosen}${parsed.delimiter === 0 ? "\0" : "\n"}`) : lines[Number(chosen)]!;
           diagnostic = "write error";
           await sink.write(line);
-          if (index % 256n === 255n && (hasYieldCheckpoint(context.signal) || monotonicNow() - lastYield >= 25)) {
-            await yieldTurn(context.signal); lastYield = monotonicNow();
+          if (index % 256n === 255n) {
+            if (hasYieldCheckpoint(context.signal) || monotonicNow() - lastYield >= 25) {
+              await yieldTurn(context.signal); lastYield = monotonicNow();
+            } else {
+              runYieldCheckpoint(context.signal);
+              context.signal.throwIfAborted();
+            }
           }
         }
         await sink.flush();

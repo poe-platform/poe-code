@@ -6,7 +6,7 @@ import { createStreamFormatCommands } from "../../src/commands/stream-format/ind
 import { createStreamInspectionCommands } from "../../src/commands/stream-inspection/index.js";
 import { createTableTextCommands } from "../../src/commands/table-text/index.js";
 import { createColumnCommand } from "../../src/commands/column/index.js";
-import { createShufCommand } from "../../src/commands/shuf/index.js";
+import { createShufCommand } from "safe-bash-command-shuf";
 import { textCommands } from "../../src/commands/text.js";
 import { streamCommands } from "../../src/commands/streams.js";
 import { fmtCommand } from "safe-bash-command-fmt";

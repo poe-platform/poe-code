@@ -85,12 +85,11 @@ export async function* records(source: ByteSource, delimiter: number, limit: num
         }
       }
       if (++scanned % 8192 === 0) {
-        const now = monotonicNow();
-        if (hasYieldCheckpoint(signal) || now - lastYield >= 16) {
-          await yieldTurn(signal);
-          lastYield = monotonicNow();
+        if (hasYieldCheckpoint(signal) || monotonicNow() - lastYield >= 25) {
+          await yieldTurn(signal); lastYield = monotonicNow();
         } else {
           runYieldCheckpoint(signal);
+          signal.throwIfAborted();
         }
       }
     }

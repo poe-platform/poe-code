@@ -1,5 +1,5 @@
 import { FsError, readBytes, type ByteSource } from "../../contracts/index.js";
-import { hasYieldCheckpoint, monotonicNow, yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { Diagnostic } from "./args.js";
 
 export function virtualPath(cwd: string, name: string): string {
@@ -83,8 +83,13 @@ export async function* records(source: ByteSource, delimiter: number, limit: num
           used = 0;
         }
       }
-      if (++scanned % 1024 === 0 && (hasYieldCheckpoint(signal) || monotonicNow() - lastYield >= 25)) {
-        await yieldTurn(signal); lastYield = monotonicNow();
+      if (++scanned % 1024 === 0) {
+        if (hasYieldCheckpoint(signal) || monotonicNow() - lastYield >= 25) {
+          await yieldTurn(signal); lastYield = monotonicNow();
+        } else {
+          runYieldCheckpoint(signal);
+          signal.throwIfAborted();
+        }
       }
     }
   }

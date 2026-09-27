@@ -910,7 +910,7 @@ describe("finite unit input and environment boundaries", () => {
   it("clears Git's repository-local hook environment without changing the parent or private configuration", async () => {
     const owned = unitFixture(), mock = mockExecution();
     try {
-      const names = localGitVariables;
+      const names = localGitVariables.split("\n");
       const retained = { GIT_CONFIG_GLOBAL: "/owned/private.gitconfig", GIT_CONFIG_SYSTEM: "/owned/system.gitconfig", GIT_CONFIG_NOSYSTEM: "1", GIT_SSH_COMMAND: "owned-ssh", GIT_TERMINAL_PROMPT: "0", GIT_OPTIONAL_LOCKS: "0", HOME: owned.root };
       const environment = Object.freeze({ ...mock.environment, ...retained, ...Object.fromEntries(names.map(name => [name, `owned-hook-${name}`])) });
       await workspaceRunner.testWorkspaces(owned.root, { ...mock, environment });

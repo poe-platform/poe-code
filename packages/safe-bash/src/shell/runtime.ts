@@ -13163,7 +13163,8 @@ export class Runtime {
             primaryFailure = !(error instanceof Flow) || error instanceof NounsetDiagnosticFailure;
             outcome = { kind: "throw", reason: error };
           } finally {
-            if (hasActiveExtensions(state)) {
+            const activeExt = hasActiveExtensions(state);
+            if (activeExt) {
               await scope.cleanup(async () => {
                 try { if (!this.signal.aborted) await this.extensionEvent("function-leave", state, io, state.status); }
                 catch (error) {

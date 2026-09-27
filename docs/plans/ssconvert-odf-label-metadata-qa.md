@@ -183,3 +183,14 @@ Unqualified label exports and the complete BIFF/format family remain open.
     sheet. Inspect the command transcript screenshot, record compact receipts
     and remove generated packages. Native application recalculation remains a
     separate qualification.
+
+18. Audit Calc's automatic-boundary loops separately from explicit data binding:
+    the pinned global pair list has no data-sheet filter. Put an automatic A1
+    label and values 10/20/30 on Local, and a declared label/data pair on Remote
+    whose data interval starts at row 3 (transpose for a row label). Require
+    Calc/BIFF SUM to stop at 10; OpenFormula's contiguous range still sums 60.
+    Cover both declaration owners and omitted/local/remote data identities.
+    Through compiled SDK and command, convert a BIFF8 workbook carrying the
+    remote declaration to CSV and independently inspect the result and untouched
+    local values. Record that these BIFF inputs are product-writer-seeded and
+    that native application recalculation remains unqualified.

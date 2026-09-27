@@ -154,3 +154,27 @@ it("refuses ODF publication when the data sheet is detached", async () => {
   expect(snapshotWorkbook(value, context.limits).sheets[0]!.labelRanges![0]!.dataSheet).toBe("data");
   await expect(createOdfWriter("strict")(value, [], context)).rejects.toMatchObject({ code: "unsupported-feature" });
 });
+
+it.each(["column", "row"] as const)("uses workbook-wide Calc %s boundaries without filtering data sheets", axis => {
+  const column = axis === "column";
+  for (const owner of ["local", "remote"]) for (const dataSheet of [undefined, "local", "remote"]) {
+    const pair = { axis, labels: range(0, 0, 1, 1),
+      data: column ? range(2, 4, 0, 1) : range(0, 1, 2, 4),
+      ...(dataSheet === undefined ? {} : { dataSheet }) };
+    // A row declaration's label is on another row so the A1 anchor stays automatic.
+    if (!column) pair.labels = range(1, 1, 0, 0);
+    const local = { id: "local", name: "Local", cells: [
+      { row: 0, column: 0, value: { kind: "string" as const, value: "Automatic" } },
+      ...[10, 20, 30].map((value, i) => number(column ? i + 1 : 0, column ? 0 : i + 1, value))
+    ], ...(owner === "local" ? { labelRanges: [pair] } : {}) };
+    const remote = { id: "remote", name: "Remote", cells: [], ...(owner === "remote" ? { labelRanges: [pair] } : {}) };
+    for (const semantics of ["", ".odf"]) {
+      const value: Workbook = { automaticLabelLookup: true, sheets: [local, remote, { id: "output", name: "Output", cells: [
+        { ...number(5, 5, 999), formula: `=SUM(@${axis}${semantics}:Local!$A$1)`, formulaDirty: true }
+      ] }] };
+      expect(results(recalculateWorkbook(value, context, true))).toEqual([
+        { kind: "number", value: semantics === ".odf" ? 60 : 10 }
+      ]);
+    }
+  }
+});

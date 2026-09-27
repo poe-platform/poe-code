@@ -97,11 +97,17 @@ export function resolveLabelReference(book: Workbook, node: Extract<FormulaNode,
       if (ownAxis === start) start = Math.min(start + 1, maximum);
       else if (ownAxis > start) end = ownAxis - 1;
     }
-    for (const pair of pairs) {
-      tick(); const data = pair.data;
-      const aligned = columnLabel ? column >= data.startColumn && column <= data.endColumn : row >= data.startRow && row <= data.endRow;
-      const next = columnLabel ? data.startRow : data.startColumn;
-      if (aligned && start < next && next <= end) end = next - 1;
+    // Calc scans its workbook-wide pair list here, without filtering the data
+    // sheet. The inferred range itself still belongs to the label's sheet.
+    for (const owner of [...book.sheets, ...book.detachedSheets ?? []]) {
+      tick();
+      for (const pair of owner.labelRanges ?? []) {
+        tick(); if (pair.axis !== label.axis) continue;
+        const data = pair.data;
+        const aligned = columnLabel ? column >= data.startColumn && column <= data.endColumn : row >= data.startRow && row <= data.endRow;
+        const next = columnLabel ? data.startRow : data.startColumn;
+        if (aligned && start < next && next <= end) end = next - 1;
+      }
     }
   }
   if (start !== end && label.scalar) {

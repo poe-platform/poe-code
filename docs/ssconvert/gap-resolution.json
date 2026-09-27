@@ -2335,7 +2335,13 @@
       },
       "behavior": "Label and data rectangles retain separate sheets. The evaluator copies the data range and projects the physical label row/column without offset mapping. Optional LabelRange.dataSheet holds a stable ID; omission uses the owner. Import grows each referenced sheet independently; model validation, dependencies, resize and ID remapping retain the relationship, including detached owners. ODF exports the target display name; BIFF8 refuses remote data.",
       "validation": "Original memory regressions reproduced wrong-sheet results, cross-sheet import rejection and lifecycle/data-loss failures. 289 executed tests across 11 focused files passed (shared fixture tests included); maintained package lint, product/test/consumer types and selected workspace build passed. Independently generated Python ODF fixtures passed 16 compiled SDK/command exports across both axes/profiles before/after edits: 32 live formulas, distinct addresses, sums 5/15 and scalar 2. Edit inputs put data first for the native --set active-view contract. Command transcript screenshot inspected.",
-      "remaining": "Native Calc/Gnumeric recalculation remains unqualified. No family closed."
+      "remaining": "Native Calc/Gnumeric recalculation remains unqualified. No family closed.",
+      "automaticCalcBoundaries": {
+        "source": "Same pinned compiler.cxx, GetRefColRowNames lines 5867–5885 and 5907–5923: scan the global row/column pair list, with no data-sheet Tab filter. The inferred range stays on the anchor sheet.",
+        "implementation": "Automatic Calc/BIFF labels inspect declarations on all workbook sheets. OpenFormula automatic labels retain their separate contiguous-data rules. No dependency on remote cell values is introduced: the boundary uses declaration geometry only.",
+        "validation": "Two original regressions returned 60 instead of source-derived 10. 24 axis/owner/data-sheet/dialect combinations pass; complete focused cohort 135 executed tests across four files, with imported fixture tests included. Maintained package lint, product/test/consumer types and selected build pass. Four compiled SDK/command BIFF8-to-CSV conversions return 10 and retain 10/20/30 local data; inputs were seeded through the product writer, output independently parsed with Python. Transcript screenshot inspected.",
+        "remaining": "Native application recalculation still unqualified. #3670 command-factory requirements remain open; the report’s requested data-sheet filter is absent from the pinned Calc source."
+      }
     }
   },
   "cases": [

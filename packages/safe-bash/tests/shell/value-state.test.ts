@@ -516,3 +516,20 @@ test("cross-arena or closed restoration is rejected before mutation", () => {
   assert.deepEqual(first.arena.usage, { bytes: 0, slots: 0 });
   assert.deepEqual(second.arena.usage, { bytes: 0, slots: 0 });
 });
+
+test("unlimited string publication replaces cached cloned values", () => {
+  const arena = new ValueArena(Infinity, Infinity, () => {});
+  const store = new ValueStore(arena);
+  store.publish("i", "0", () => true);
+  const copy = store.clone();
+  const variables = { i: "0" };
+  try {
+    copy.publishString("i", "1", variables);
+    assert.equal(copy.get("i", variables.i), "1");
+    assert.equal(store.get("i", "0"), "0");
+  } finally {
+    copy.close();
+    store.close();
+    arena.close();
+  }
+});

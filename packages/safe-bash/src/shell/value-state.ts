@@ -386,13 +386,7 @@ export class ValueStore {
     if (this.arena.hasInfiniteBytes) {
       this.arena.assertOpen();
       rawVariables[name] = value;
-      if (this._values) {
-        const held = this._values.get(name);
-        if (held) {
-          held.release();
-          this._values.delete(name);
-        }
-      }
+      this.invalidate(name);
       return;
     }
     const newBytes = value.length * 2;

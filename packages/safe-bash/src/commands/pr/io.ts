@@ -14,9 +14,9 @@ export class Lifecycle {
     if (this.closing) throw new PrError("command is closed");
   }
   hasPendingStdout(): boolean { return this.pendingStdout.length > 0; }
-  async operation<Value>(action: () => Value | Promise<Value>, diagnostic = false): Promise<Value> {
+  async operation<Value>(action: () => Value | Promise<Value>, admitted = false): Promise<Value> {
     this.assertOpen();
-    if (!diagnostic) this.budget.charge();
+    if (!admitted) this.budget.charge();
     const pending = Promise.resolve().then(() => { this.assertOpen(); return action(); });
     this.pending.add(pending);
     try { const value = await pending; this.assertOpen(); return value; }
@@ -38,8 +38,10 @@ export class Lifecycle {
     const chunk = this.pendingStdout;
     this.pendingStdout = "";
     const { budget } = this;
-    await this.operation(async () => {
-      try {
+    try {
+      // Emission already charged this data. Flushing it must remain possible
+      // when reporting the work limit that stopped the formatter.
+      await this.operation(async () => {
         const sink = budget.context.stdout;
         this.assertOpen();
         const destination = sink.ownedOutput ?? sink;
@@ -47,8 +49,8 @@ export class Lifecycle {
         const write = destination.write;
         this.assertOpen();
         await Reflect.apply(write, destination, [bytes(chunk)]);
-      } finally { budget.retain(-chunk.length * 3); }
-    }, false);
+      }, true);
+    } finally { budget.retain(-chunk.length * 3); }
   }
   async write(value: string, diagnostic = false): Promise<void> {
     const { budget } = this;

@@ -53,6 +53,30 @@ test("unterminated records consume a cumulative line budget across files", async
   assert.ok(result.stderr.includes("input lines limit exceeded"), result.stderr);
 });
 
+test("stdout batching flushes within a small retained-byte budget", async () => {
+  const input = Array.from({ length: 250 }, (_, index) => `line_${index}\n`).join("");
+  const result = await run(["-t"], input, { limits: { maxBufferedBytes: 8192 } });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, input);
+});
+
+test("quiet missing-file handling preserves output from the preceding file", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/first", Buffer.from("preserved\n"));
+  const result = await run(["-t", "-r", "first", "missing"], "", {}, { fs });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "preserved\n");
+  assert.equal(result.stderr, "");
+});
+
+test("diagnostic refusal preserves already admitted stdout", async () => {
+  const written: Uint8Array[] = [];
+  await assert.rejects(run(["-t"], "a\nb\n", { limits: { maxOutputBytes: 3, maxDiagnosticBytes: 1 } }, {
+    stdout: { async write(value) { written.push(Uint8Array.from(value)); } },
+  }), error => error instanceof AggregateError && error.message === "pr failure reporting failed");
+  assert.equal(Buffer.concat(written).toString(), "a\n");
+});
+
 test("invalid UTF8 paths never alias replacement-character paths", async () => {
   const fs = new MemoryFileSystem();
   await fs.writeFile("/�", Buffer.from("wrong\n"));

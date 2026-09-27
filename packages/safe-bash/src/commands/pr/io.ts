@@ -54,16 +54,17 @@ export class Lifecycle {
   }
   async write(value: string, diagnostic = false): Promise<void> {
     const { budget } = this;
+    if (diagnostic && this.pendingStdout.length) await this.flush();
     budget.emitted(value.length, diagnostic);
     if (!diagnostic) {
       this.assertOpen();
       if (!value.length) return;
       budget.retain(value.length * 3);
       this.pendingStdout += value;
-      if (this.pendingStdout.length >= 16384) await this.flush();
+      // Finite budgets must leave room for the next input/format allocation.
+      if (Number.isFinite(budget.limits.maxBufferedBytes) || this.pendingStdout.length >= 16384) await this.flush();
       return;
     }
-    if (this.pendingStdout.length) await this.flush();
     await this.operation(async () => {
       const sink = budget.context.stderr;
       this.assertOpen();

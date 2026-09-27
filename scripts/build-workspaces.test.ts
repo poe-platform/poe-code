@@ -1,10 +1,11 @@
-import { execFileSync, spawn, spawnSync, type SpawnOptions } from "node:child_process";
+import { execFileSync, spawn, type SpawnOptions } from "node:child_process";
 import { EventEmitter } from "node:events";
 import fs from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import fastGlob from "fast-glob";
+import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
 import { createFsFromVolume, Volume } from "memfs";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import * as workspaceRunner from "./build-workspaces.mjs";
@@ -18,41 +19,42 @@ const primaryValues = [undefined, null, false, 0, -0, "", NaN, new Error("primar
 describe("maintained literal workspace test selectors", () => {
   const root = path.dirname(path.dirname(runnerFilename));
 
-  function captureArguments(
+  async function captureArguments(
     workspace: string,
     event: "test" | "test:unit",
     enumeration: "unavailable" | "empty" | "nonempty"
   ) {
-    const directory = path.join(root, "packages", workspace);
-    const manifest = JSON.parse(fs.readFileSync(path.join(directory, "package.json"), "utf8"));
-    const result = spawnSync(
-      "/bin/sh",
-      [
-        "-c",
-        [
-          'sort() { /usr/bin/sort "$@"; }',
-          'tr() { /usr/bin/tr "$@"; }',
-          'vitest() { printf "%s\\000" "$@"; }',
-          enumeration === "empty"
-            ? "rg() { return 0; }"
-            : enumeration === "nonempty"
-              ? `rg() { printf '%s\\n' 'packages/${workspace}/src/current.test.ts' 'packages/${workspace}/src/future/nested.test.ts'; }`
-              : "",
-          manifest.scripts[event]
-        ].join("\n")
-      ],
-      { cwd: directory, env: { ...process.env, PATH: "" }, encoding: "utf8", timeout: 5000 }
-    );
-    expect(result.error).toBeUndefined();
-    expect(result.status).toBe(0);
-    expect(result.signal).toBeNull();
-    return { arguments: result.stdout.split("\0").slice(0, -1), stderr: result.stderr };
+    const manifest = JSON.parse(fs.readFileSync(path.join(root, "packages", workspace, "package.json"), "utf8"));
+    const memory = createMemoryFileSystem();
+    await memory.mkdir(`/packages/${workspace}`, { recursive: true });
+    const shell = new Shell({ fs: memory, cwd: `/packages/${workspace}`, env: { PATH: "" } });
+    let captured: string[] | undefined;
+    shell.commands.register({ name: "vitest", execute({ args }) {
+      captured = [...args];
+      return { exitCode: 0 };
+    } });
+    if (enumeration !== "unavailable") {
+      shell.commands.register({ name: "rg", async execute({ stdout }) {
+        if (enumeration === "nonempty") {
+          await stdout.write(new TextEncoder().encode(`packages/${workspace}/src/current.test.ts\npackages/${workspace}/src/future/nested.test.ts\n`));
+        }
+        return { exitCode: 0 };
+      } });
+    }
+    try {
+      const result = await shell.exec(manifest.scripts[event]);
+      expect(result.exitCode).toBe(0);
+      expect(captured).toBeDefined();
+      return { arguments: captured!, stderr: result.stderr };
+    } finally {
+      await shell.dispose();
+    }
   }
 
-  it("uses owned directories rather than shell-expanded wildcard file lists", () => {
+  it("uses owned directories rather than shell-expanded wildcard file lists", async () => {
     for (const workspace of ["agent-gaslight", "agent-spawn", "agent-trace-viewer", "agent-traces", "markdown-reader", "process-launcher", "process-runner", "workspace-resolver"]) {
       for (const event of ["test", "test:unit"] as const) {
-        const captured = captureArguments(workspace, event, "unavailable");
+        const captured = await captureArguments(workspace, event, "unavailable");
         expect(captured.arguments.filter(argument => argument.startsWith("packages/")), `${workspace}:${event}`)
           .toEqual([`packages/${workspace}/src/`]);
         expect(captured.stderr).toBe("");
@@ -66,8 +68,8 @@ describe("maintained literal workspace test selectors", () => {
   for (const workspace of ["superintendent", "terminal-pilot"]) {
     for (const event of ["test", "test:unit"] as const) {
       for (const enumeration of ["unavailable", "empty", "nonempty"] as const) {
-        it(`${workspace} ${event} keeps its directory filter when rg is ${enumeration}`, () => {
-          expect(captureArguments(workspace, event, enumeration)).toEqual({
+        it(`${workspace} ${event} keeps its directory filter when rg is ${enumeration}`, async () => {
+          expect(await captureArguments(workspace, event, enumeration)).toEqual({
             arguments: ["run", `packages/${workspace}/src/`, ...(workspace === "terminal-pilot" ? ["--pool=forks"] : [])],
             stderr: ""
           });
@@ -75,8 +77,8 @@ describe("maintained literal workspace test selectors", () => {
       }
     }
 
-    it(`${workspace} retains current and future nested src paths without enumerating filenames in argv`, () => {
-      const { arguments: capturedArguments } = captureArguments(workspace, "test:unit", "empty");
+    it(`${workspace} retains current and future nested src paths without enumerating filenames in argv`, async () => {
+      const { arguments: capturedArguments } = await captureArguments(workspace, "test:unit", "empty");
       const selector = capturedArguments[1];
       expect(selector).toBe(`packages/${workspace}/src/`);
       const current = fastGlob.sync(`packages/${workspace}/src/**/*.test.ts`, { cwd: root });

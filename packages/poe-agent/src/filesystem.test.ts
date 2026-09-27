@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   createMemoryFileSystem,
   createNodeFsBridge,
@@ -10,10 +10,8 @@ import filesPlugin from "./plugins/poe-agent-plugin-files.js";
 import memoryPlugin from "./plugins/poe-agent-plugin-memory.js";
 import { toAcpModelResponse } from "./testing/model-response.js";
 
-beforeAll(async () => {
-  // Load virtual grep's runtime before the file-operation deadline starts.
-  await import("@poe-platform/safe-bash/search");
-});
+// Load virtual grep before the file-operation deadlines start.
+import "@poe-platform/safe-bash/search";
 
 const bytes = (text: string) => new TextEncoder().encode(text);
 async function workspace(text = "virtual needle\n") {

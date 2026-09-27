@@ -16,6 +16,8 @@ export interface ReferenceEndpoint {
 export type LabelReference = { readonly quoted?: boolean; readonly scalar: boolean } & (
   | { readonly kind?: "implicit"; readonly axis: "row" | "column"; readonly referenceClass: "reference" | "value" }
   | { readonly kind: "radical"; readonly dataClass: "reference" | "value" | "array";
+      /** Present for a multiple-cell label; the parent anchor is the final member. */
+      readonly preceding?: readonly (Span & { readonly kind: "reference"; readonly first: ReferenceEndpoint })[];
       /** The following BIFF Area, or null for AreaErr; independent of the label anchor. */
       readonly data: (Span & { readonly kind: "reference"; readonly first: ReferenceEndpoint; readonly last: ReferenceEndpoint }) | null }
 );

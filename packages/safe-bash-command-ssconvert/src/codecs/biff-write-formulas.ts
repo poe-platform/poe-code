@@ -200,14 +200,29 @@ export class BiffFormulaWriter {
           if (node.label.kind === "radical") {
             const data = node.label.data;
             const areaClass = node.label.dataClass === "reference" ? 0x20 : node.label.dataClass === "value" ? 0x40 : 0x60;
-            push([0x18, 10, ...words(labelRow, columnBits)]);
+            const preceding = node.label.preceding;
+            if (preceding) {
+              if (node.label.quoted || preceding.length >= 0x3fffffff)
+                throw new SsconvertError("unsupported-feature", "Excel BIFF multiple label flags or count cannot be represented");
+              const count = preceding.length + 1;
+              push([0x18, 11, 0, 0, 0, 0]);
+              push(words(count & 0xffff, Math.floor(count / 65536) | (r.relative ? 0x8000 : 0)), arrays);
+              for (const ref of [...preceding.map(member => member.first), anchor]) {
+                this.context.signal.throwIfAborted();
+                if (!ref.row || !ref.column || ref.row.relative !== r.relative || ref.column.relative !== r.relative || ref.sheet !== undefined || ref.workbook !== undefined)
+                  throw new SsconvertError("unsupported-feature", "Excel BIFF multiple labels require local cells with matching relativity");
+                const bytes = reference(ref);
+                push([bytes[0]!, bytes[1]!, bytes[2]!, 0], arrays);
+              }
+            } else push([0x18, 10, ...words(labelRow, columnBits)]);
             if (!data) push([areaClass | 0x0b, ...new Uint8Array(8)]);
             else {
               if ([data.first, data.last].some(ref => !ref.row || !ref.column || ref.sheet !== undefined || ref.workbook !== undefined))
                 throw new SsconvertError("unsupported-feature", "Excel BIFF radical label requires a local explicit area");
               const first = reference(data.first), last = reference(data.last);
               const a = new DataView(first.buffer), b = new DataView(last.buffer);
-              if (!isBiffRadicalArea(labelRow, labelColumn, [a.getUint16(0, true), b.getUint16(0, true), a.getUint16(2, true) & 255, b.getUint16(2, true) & 255]))
+              if (!isBiffRadicalArea(labelRow, labelColumn, [a.getUint16(0, true), b.getUint16(0, true), a.getUint16(2, true) & 255, b.getUint16(2, true) & 255]) ||
+                preceding && first[2] !== last[2])
                 throw new SsconvertError("unsupported-feature", "Excel BIFF radical label must adjoin its explicit area");
               push([areaClass | 5]); push(first.subarray(0, 2)); push(last.subarray(0, 2)); push(first.subarray(2)); push(last.subarray(2));
             }

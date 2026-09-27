@@ -80,3 +80,17 @@ Keep source inputs, generated workbooks, screenshots and command captures under
     and deletion, precise dirty propagation, malformed/truncated records and
     invalid adjacency. Inspect the actual CLI refusal and confirm an existing
     destination survives. Native application readback remains a separate gate.
+
+16. For multiple-cell radical subtype `0B`, inspect PtgExtraElf, RgceElfLocExtra
+    and RgbExtra alongside Calc's unsupported branch. The 30-bit count is nonzero;
+    the list-wide fRel controls both coordinates, while individual ColRelU flags
+    are ignored. Preserve member order, including a one-member list. Require
+    48 compiled SDK/command outputs with independently decoded token bytes,
+    RgbExtra members and scalar/SUM caches. Interleave two different label lists,
+    array constants and cached-area payloads in both orders. Qualify all area
+    classes, labels before/after the column, AreaErr, copy/move, rename, resize
+    and every member's dependencies. Check truncation, invalid columns/geometry,
+    counts, parser/output budgets and cancellation. Mixed member relativity
+    must fail before replacing a destination; inspect actual CLI diagnostics.
+    Continue inferred multiple-cell ColS/ColSV, applicable older row forms,
+    native readback and remaining transport requirements separately.

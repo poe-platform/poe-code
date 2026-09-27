@@ -225,10 +225,21 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
         offset += axis.length;
         const referenceClass = source.startsWith(".value", offset) ? "value" : axis === "range" && source.startsWith(".array", offset) ? "array" : "reference";
         if (referenceClass !== "reference") offset += 6;
+        const multiple = axis === "range" && source.startsWith(".multi", offset);
+        if (multiple) offset += 6;
         const quoted = source.startsWith(".quoted", offset);
         if (quoted) offset += 7;
         if (source[offset++] !== ":") fail("Invalid label reference");
-        const target = referenceOrName();
+        const preceding: (Extract<FormulaNode, { kind: "reference" }> & { last?: never })[] = [];
+        if (multiple && (quoted || source[offset++] !== "{")) fail("Invalid multiple label reference");
+        let target = referenceOrName();
+        while (multiple && source[offset] === ";") {
+          if (target?.kind !== "reference" || target.last || !target.first.row || !target.first.column || target.first.workbook !== undefined)
+            fail("Invalid multiple label member");
+          preceding.push({ kind: "reference", start: target.start, end: target.end, first: target.first });
+          offset++; target = referenceOrName();
+        }
+        if (multiple && source[offset++] !== "}") fail("Invalid multiple label reference");
         if (target?.kind !== "reference" || target.last || !target.first.row || !target.first.column || target.first.workbook !== undefined)
           fail("Invalid label reference target");
         hasLabels = true;
@@ -244,6 +255,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
             data = { ...area, last: area.last ?? area.first };
           }
           return { ...target, start, end: offset, label: { kind: "radical", dataClass: referenceClass, data,
+            ...(multiple ? { preceding } : {}),
             ...(quoted ? { quoted } : {}), scalar: false } };
         }
         if (referenceClass === "array") fail("Invalid label reference class");

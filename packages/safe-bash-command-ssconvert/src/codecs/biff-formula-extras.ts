@@ -3,12 +3,13 @@ import { gnumericGrammar } from "../formulas/conventions.js";
 import { quoteFormulaString } from "../formulas/serialization.js";
 import { Binary, invalidBiff } from "./biff-binary.js";
 import { biffErrors } from "./biff-formulas.js";
+import type { BiffFormulaContext } from "./biff-formulas.js";
 import { BiffStrings } from "./biff-strings.js";
 
 /** Auxiliary payloads follow the token stream in token encounter order.
  * Arrays: Gnumeric 1.12.61 plugins/excel/ms-formula-read.c; cached areas: MS-XLS 2.5.198.61. */
 export function biffFormulaExtras(parts: readonly Binary[], revision: number, codepage: number, context: CapabilityContext,
-  accountWork?: (amount: number) => void): { readArray(): string; readMemory(): void } {
+  accountWork?: (amount: number) => void): Required<Pick<BiffFormulaContext, "readArray" | "readMemory" | "readLabels">> {
   const cursor = new BiffStrings(parts, context, codepage);
   const number = new Uint8Array(8), view = new DataView(number.buffer);
   const encoder = new TextEncoder();
@@ -68,5 +69,22 @@ export function biffFormulaExtras(parts: readonly Binary[], revision: number, co
       for (let byte = 0; byte < rangeBytes; byte++) cursor.byte();
     }
   };
-  return { readArray, readMemory };
+  const readLabels = () => {
+    context.signal.throwIfAborted();
+    const low = cursor.word(), high = cursor.word(), count = low + (high & 0x3fff) * 65536;
+    if (!count) invalidBiff("empty multiple label references");
+    work += count * 4;
+    if (work > workLimit) throw new SsconvertError("resource-limit", "ssconvert BIFF label work limit exceeded");
+    accountWork?.(count * 4);
+    const cells: { row: number; column: number }[] = [];
+    for (let index = 0; index < count; index++) {
+      context.signal.throwIfAborted();
+      const row = cursor.word(), column = cursor.word() & 0x3fff;
+      if (column > 255) invalidBiff("invalid multiple label column");
+      cells.push({ row, column });
+    }
+    // PtgExtraElf fRel overrides both ignored ColRelU coordinate flags.
+    return { relative: !!(high & 0x8000), cells };
+  };
+  return { readArray, readMemory, readLabels };
 }

@@ -19,6 +19,14 @@ export function resolveLabelReference(book: Workbook, node: Extract<FormulaNode,
     if (!value || value.value + (value.relative ? position[axis] : 0) !== coordinate) return error("#REF!");
   }
   if (label.kind === "radical") {
+    for (const member of label.preceding ?? []) {
+      tick(); const selected = localReferenceRange(book, member, position);
+      if (!selected || selected.sheets.length !== 1 || selected.sheets[0] !== sheet) return error("#REF!");
+      for (const axis of ["row", "column"] as const) {
+        const value = member.first[axis], coordinate = value && value.value + (value.relative ? position[axis] : 0);
+        if (coordinate === undefined || coordinate < 0 || coordinate >= (axis === "row" ? size.rows : size.columns)) return error("#REF!");
+      }
+    }
     // MS-XLS PtgElfRadical's following Area is authoritative. Calc discards
     // those bytes and infers a column range, which loses row/backward ranges.
     if (!label.data) return error("#REF!");

@@ -97,8 +97,11 @@ export function serializeLabelReference(node: Extract<FormulaNode, { kind: "refe
   if (address.endsWith("#REF!")) return "#REF!";
   if (node.label.kind === "radical") {
     const data = node.label.data ? serializeReference(node.label.data.first, node.label.data.last, grammar, position) : "#REF!";
+    const labels = node.label.preceding?.map(ref => serializeReference(ref.first, undefined, grammar, position));
+    if (labels?.some(value => value.endsWith("#REF!"))) return "#REF!";
     return "@range" + (node.label.dataClass === "reference" ? "" : "." + node.label.dataClass) +
-      (node.label.quoted ? ".quoted" : "") + ":" + address + "->" + (data.endsWith("#REF!") ? "#REF!" : data);
+      (labels ? ".multi" : node.label.quoted ? ".quoted" : "") + ":" +
+      (labels ? "{" + [...labels, address].join(";") + "}" : address) + "->" + (data.endsWith("#REF!") ? "#REF!" : data);
   }
   return "@" + node.label.axis + (node.label.referenceClass === "value" ? ".value" : "") + (node.label.quoted ? ".quoted" : "") + ":" + address;
 }

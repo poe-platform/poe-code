@@ -45,6 +45,7 @@ export interface BiffFormulaContext {
   readonly shared?: boolean;
   readonly readArray?: () => string;
   readonly readMemory?: () => void;
+  readonly readLabels?: () => { readonly relative: boolean; readonly cells: readonly { readonly row: number; readonly column: number }[] };
   readonly accountWork?: (amount: number) => void;
   readonly limit: number;
 }
@@ -142,9 +143,12 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       // MS-XLS PtgElfLel/PtgElfRadicalLel: deleted natural-language labels.
       // Calc emits ocErrName for both. The quoted/reserved bits do not affect it.
       data.check(offset, 5); offset += 5; push("#NAME?");
-    } else if (token === 0x18 && context.revision === 8 && [2, 3, 6, 7, 10].includes(data.u8(offset))) {
+    } else if (token === 0x18 && context.revision === 8 && [2, 3, 6, 7, 10, 11].includes(data.u8(offset))) {
       data.check(offset, 5);
-      const subtype = data.u8(offset), row = data.u16(offset + 1), columnBits = data.u16(offset + 3), column = columnBits & 0x3fff;
+      const subtype = data.u8(offset), labels = subtype === 11 ? context.readLabels?.() : undefined;
+      if (subtype === 11 && !labels?.cells.length) invalidBiff("missing multiple label references");
+      const terminal = labels?.cells[labels.cells.length - 1];
+      const row = terminal?.row ?? data.u16(offset + 1), columnBits = terminal ? terminal.column | (labels!.relative ? 0x8000 : 0) : data.u16(offset + 3), column = columnBits & 0x3fff;
       // MS-XLS ColElfU: fQuoted and fRelative are separate from its 14-bit
       // column field. Calc discards both flags; preserve the BIFF identity.
       if (column > 255) invalidBiff("invalid label column");
@@ -154,14 +158,21 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       for (let n = column + 1; n; n = Math.floor((n - 1) / 26)) letters = String.fromCharCode(65 + (n - 1) % 26) + letters;
       const anchor = (columnBits & 0x4000 ? ".quoted" : "") + ":" + absolute + letters + absolute + (row + 1);
       offset += 5;
-      if (subtype === 10) {
+      if (subtype === 10 || subtype === 11) {
         data.check(offset, 9);
         const areaToken = data.u8(offset);
         if (![0x25, 0x45, 0x65, 0x2b, 0x4b, 0x6b].includes(areaToken)) invalidBiff("radical label requires Area or AreaErr");
         const deleted = (areaToken & 0x1f) === 0x0b;
-        if (!deleted && !isBiffRadicalArea(row, column, [data.u16(offset + 1), data.u16(offset + 3), data.u16(offset + 5) & 0x3fff, data.u16(offset + 7) & 0x3fff]))
+        if (!deleted && (!isBiffRadicalArea(row, column, [data.u16(offset + 1), data.u16(offset + 3), data.u16(offset + 5) & 0x3fff, data.u16(offset + 7) & 0x3fff]) ||
+          labels && (data.u16(offset + 5) & 0x3fff) !== (data.u16(offset + 7) & 0x3fff)))
           invalidBiff("invalid radical label area");
-        push("@range" + ((areaToken & 0x60) === 0x40 ? ".value" : (areaToken & 0x60) === 0x60 ? ".array" : "") + anchor + "->" + (deleted ? "#REF!" : area(offset + 1, false)));
+        const sequence = labels?.cells.map(cell => {
+          let letters = "";
+          for (let n = cell.column + 1; n; n = Math.floor((n - 1) / 26)) letters = String.fromCharCode(65 + (n - 1) % 26) + letters;
+          return absolute + letters + absolute + (cell.row + 1);
+        });
+        push("@range" + ((areaToken & 0x60) === 0x40 ? ".value" : (areaToken & 0x60) === 0x60 ? ".array" : "") +
+          (sequence ? ".multi:{" + sequence.join(";") + "}" : anchor) + "->" + (deleted ? "#REF!" : area(offset + 1, false)));
         offset += 9;
       } else push("@" + axis + (subtype >= 6 ? ".value" : "") + anchor);
     } else if (token === 0x19) {

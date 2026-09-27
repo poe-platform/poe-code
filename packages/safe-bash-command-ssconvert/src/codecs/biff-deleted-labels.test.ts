@@ -59,7 +59,7 @@ it.each([2, 3, 4, 7])("does not interpret BIFF8 label tokens in revision %i", re
     .toThrow("Unsupported ssconvert feature: BIFF formula token");
 });
 
-it.each([0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x1d])("does not replace unimplemented live label/pivot subtype %i with a deleted-label error", subtype => {
+it.each([0x0c, 0x0d, 0x0e, 0x0f, 0x1d])("does not replace unimplemented live label/pivot subtype %i with a deleted-label error", subtype => {
   expect(() => translateBiffFormula(Uint8Array.from([0x18, subtype, ...new Array<number>(13).fill(0)]), formulaContext))
     .toThrow("Unsupported ssconvert feature: BIFF formula token");
 });

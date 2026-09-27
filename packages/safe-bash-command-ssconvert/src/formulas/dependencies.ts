@@ -129,6 +129,10 @@ export function buildDependencyGraph(
         const value = resolve(anchor, position);
         if (value && label?.kind === "radical") {
           range(cell, value);
+          for (const ref of label.preceding ?? []) {
+            tick(); const member = resolve(ref, position);
+            if (member) range(cell, member);
+          }
           const data = label.data && resolve(label.data, position);
           if (data) range(cell, data);
         } else if (value && label) {

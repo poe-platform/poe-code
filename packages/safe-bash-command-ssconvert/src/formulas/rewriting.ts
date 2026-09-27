@@ -8,7 +8,10 @@ export function visitFormula(node: FormulaNode, visitor: (node: FormulaNode) => 
   else if (node.kind === "binary") { visitFormula(node.left, visitor); visitFormula(node.right, visitor); }
   else if (node.kind === "call") for (const child of node.args) visitFormula(child, visitor);
   else if (node.kind === "array") for (const row of node.rows) for (const child of row) visitFormula(child, visitor);
-  else if (node.kind === "reference" && node.label?.kind === "radical" && node.label.data) visitFormula(node.label.data, visitor);
+  else if (node.kind === "reference" && node.label?.kind === "radical") {
+    for (const ref of node.label.preceding ?? []) visitFormula(ref, visitor);
+    if (node.label.data) visitFormula(node.label.data, visitor);
+  }
 }
 
 export interface ReferenceRewrite {
@@ -58,9 +61,13 @@ export function rewriteReferences(document: FormulaDocument, edit: ReferenceRewr
     if (node.kind === "reference") {
       const first = endpoint(node.first), last = node.last ? endpoint(node.last) : undefined;
       // The parent replacement includes its explicit area's source span.
-      if (node.label?.kind === "radical" && node.label.data) absorbedReferences.add(node.label.data);
-      const label = node.label?.kind === "radical" && node.label.data ? { ...node.label,
-        data: { ...node.label.data, first: endpoint(node.label.data.first), last: endpoint(node.label.data.last) } } : node.label;
+      if (node.label?.kind === "radical") {
+        if (node.label.data) absorbedReferences.add(node.label.data);
+        for (const ref of node.label.preceding ?? []) absorbedReferences.add(ref);
+      }
+      const label = node.label?.kind === "radical" ? { ...node.label,
+        ...(node.label.preceding ? { preceding: node.label.preceding.map(ref => ({ ...ref, first: endpoint(ref.first) })) } : {}),
+        data: node.label.data ? { ...node.label.data, first: endpoint(node.label.data.first), last: endpoint(node.label.data.last) } : null } : node.label;
       // External references still translate during a copy, but are never renamed locally.
       const unchanged = JSON.stringify(first) === JSON.stringify(node.first) && JSON.stringify(last) === JSON.stringify(node.last) && JSON.stringify(label) === JSON.stringify(node.label) &&
         target.row === document.position.row && target.column === document.position.column;

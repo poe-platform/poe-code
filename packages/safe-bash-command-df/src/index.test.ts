@@ -50,3 +50,28 @@ test("df reports VFS usage, supports -h, -i, -T, -P, --total, --output, and vali
   const missing = await runDf(["/nonexistent"]);
   assert.equal(missing.exitCode, 1);
 });
+
+test("df resolves configured mount points (/tmp, /proc, /dev) on a fresh VFS without prior mkdir", async () => {
+  const fs = createMemoryFileSystem();
+  const stdout = createBytePipe();
+  const stderr = createBytePipe();
+  const cmd = createDfCommand();
+  const res = await cmd.execute({
+    command: "df",
+    args: createCommandArguments(["--output=file,source,target", "/tmp"]).args,
+    cwd: "/",
+    env: {},
+    fs,
+    stdin: createBytePipe().readable,
+    stdout: stdout.writable,
+    stderr: stderr.writable,
+    signal: new AbortController().signal
+  });
+  await stdout.close();
+  await stderr.close();
+  const chunks: Uint8Array[] = [];
+  for await (const c of stdout.readable) chunks.push(c);
+  const out = Buffer.concat(chunks).toString("utf8");
+  assert.equal(res.exitCode, 0);
+  assert.match(out, /\/tmp\s+tmpfs\s+\/tmp/);
+});

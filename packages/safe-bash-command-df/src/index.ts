@@ -463,12 +463,15 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
       if (operands.length > 0) {
         for (const op of operands) {
           const resolved = resolveVfsPath(context.cwd, op);
-          try {
-            await context.fs.lstat(resolved, { signal: context.signal });
-          } catch {
-            await writeText(context.stderr, `df: '${op}': No such file or directory\n`);
-            exitCode = 1;
-            continue;
+          const isMountTarget = mountTable.some((m) => m.target === resolved);
+          if (!isMountTarget) {
+            try {
+              await context.fs.lstat(resolved, { signal: context.signal });
+            } catch {
+              await writeText(context.stderr, `df: '${op}': No such file or directory\n`);
+              exitCode = 1;
+              continue;
+            }
           }
           // Find deepest matching mount
           let best = mountTable[0]!;

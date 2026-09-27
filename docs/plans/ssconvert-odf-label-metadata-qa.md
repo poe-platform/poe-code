@@ -113,3 +113,16 @@ Unqualified label exports and the complete BIFF/format family remain open.
     Inspect the command transcript screenshot and purge generated artifacts.
     This checks exported syntax and retained metadata; native application
     evaluation of conditional formatting and validation remains unqualified.
+
+13. Inspect Calc `tabvwsh3.cxx` address/range parsing and URL decoding, plus
+    Gnumeric `odf_write_link_start` and `oo_cell_content_link`. Hyperlink
+    fragments use unbracketed addresses. Construct Gnumeric XML with real
+    destinations for `Bang!`, `O'Brien`, `Q.1`, `Path\Data` and `Rate%20` sheets,
+    absolute cell ranges, global/local Total names and an unchanged HTTPS link.
+    Export strict/extended ODF through compiled SDK and command. In a second
+    conversion edit every link's display text, forcing regenerated paragraphs.
+    Independently parse all eight ZIP/XML packages: require the same 64 targets,
+    correct escaping, retained destinations and updated display text. In unit
+    fixtures cover both style-region links and cell-only links. Inspect the
+    command transcript screenshot. Native navigation, ambiguous dotted names,
+    non-A1 marks and unqualified application profiles remain open.

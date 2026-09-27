@@ -3,6 +3,7 @@ import { formatA1, type ImportedValue, type UnsupportedRecord } from "../workboo
 import { parseExpression } from "../formulas/parser.js";
 import { odfGrammar } from "../formulas/conventions.js";
 import { SsconvertError } from "../contracts.js";
+import { translateOdfHyperlink } from "./odf-hyperlinks.js";
 
 const urn = "urn:oasis:names:tc:opendocument:xmlns:";
 const ns = {
@@ -132,11 +133,7 @@ export function odfSheetMetadata(sheet: XmlElement, charge: (n?: number) => void
             if (child.localName === "a") {
               const href = attr(child, "href", "xlink"); if (!href) continue;
               const type = href.startsWith("http") ? "GnmHLinkURL" : href.startsWith("mail") ? "GnmHLinkEMail" : href.startsWith("file") ? "GnmHLinkExternal" : "GnmHLinkCurWB";
-              let target = type === "GnmHLinkCurWB" && href.startsWith("#") ? href.slice(1) : href;
-              if (type === "GnmHLinkCurWB") {
-                const dot = target.indexOf(".");
-                if (dot >= 0) target = target.slice(0, dot) + "!" + target.slice(dot + 1);
-              }
+              const target = type === "GnmHLinkCurWB" ? translateOdfHyperlink(href, "import", charge) : href;
               regions.push(gnode("StyleRegion", { startRow: row, endRow: row, startCol: column, endCol: column }, [
                 gnode("Style", { Fore: "0:0:FFFF" }, [gnode("Font", { Underline: 1 }),
                   gnode("HyperLink", { type, target, ...(attr(child, "title", "office") ? { tip: attr(child, "title", "office")! } : {}) })])

@@ -5,6 +5,7 @@ import type { createOdfStyles } from "./odf-write-styles.js";
 import { formatA1 } from "../workbook.js";
 import { quoteFormulaString } from "../formulas/serialization.js";
 import { odfGrammar } from "../formulas/conventions.js";
+import { translateOdfHyperlink } from "./odf-hyperlinks.js";
 
 /** Translate original Gnumeric regions without materializing a sheet-sized grid. */
 export async function writeOdfRegion(node: ImportedValue, r: Range, id: string, sheet: Sheet,
@@ -58,6 +59,6 @@ export async function writeOdfRegion(node: ImportedValue, r: Range, id: string, 
   }
   const link = children.find(n => odfObject(n)?.name === "HyperLink"), linkAttributes = odfAttributes(link);
   return { styleName, styleXml, validationName, validationXml, ...(linkAttributes.target ? { link: {
-    "xlink:href": linkAttributes.type === "GnmHLinkCurWB" ? "#" + linkAttributes.target.split("!").join(".") : linkAttributes.target,
+    "xlink:href": linkAttributes.type === "GnmHLinkCurWB" ? translateOdfHyperlink(linkAttributes.target, "export", xml.charge) : linkAttributes.target,
     "xlink:type": "simple", "office:title": linkAttributes.tip } } : {}) };
 }

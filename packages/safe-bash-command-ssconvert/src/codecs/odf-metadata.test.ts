@@ -25,3 +25,19 @@ it("retains comments as Gnumeric objects and maps passive hyperlinks without net
   expect(JSON.stringify(records)).toContain('https://example.invalid/a');
   expect(JSON.stringify(records)).toContain('GnmHLinkURL');
 });
+
+it.each([
+  ["#'Q.1'.A1", "Q.1!A1"],
+  ["#'O''Brien'.A1", "'O\\'Brien'!A1"],
+  ["#'Bang!'.$A$1:$B$2", "'Bang!'!$A$1:$B$2"],
+  ["#'Rate%2520'.A1", "'Rate%20'!A1"],
+  ["#'Bang!'.Total", "'Bang!'!Total"],
+  ["#Total", "Total"],
+  ["https://example.invalid/Q.1!A1?x=%20", "https://example.invalid/Q.1!A1?x=%20"]
+])("imports hyperlink %s without changing target identity", (href, target) => {
+  const sheet = xml(`<table:table-row><table:table-cell><text:p><text:a xlink:href="${href}">link</text:a></text:p></table:table-cell></table:table-row>`);
+  const styles = odfSheetMetadata(sheet, () => {}).find(r => r.kind === "Styles");
+  expect(styles).toMatchObject({ data: { children: [{ children: [{ children: expect.arrayContaining([
+    expect.objectContaining({ name: "HyperLink", attributes: expect.arrayContaining([{ name: "target", namespace: "", value: target }]) })
+  ]) }] }] } });
+});

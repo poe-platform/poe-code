@@ -2221,6 +2221,39 @@
         "description": "Python independently constructs Gnumeric XML and parses all 32 compiled SDK/command ODF packages. Conditional and validation addresses retain H8 with exact sheet names, relative A1 formulas and scalar A1=3. Actual command transcript screenshot inspected."
       },
       "remaining": "Native application evaluation of conditional formatting and validation remains unqualified. This repair does not close the format family or the 19-family goal."
+    },
+    "odfHyperlinkTargets": {
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/ui/view/tabvwsh3.cxx",
+          "sha256": "6de8125654f5a903bd5da738e26bec65f5437ee7e396d226c36ae8d798638cf1",
+          "lines": "99-170, 492-590"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/GNOME/gnumeric/GNUMERIC_1_12_61/plugins/openoffice/openoffice-write.c",
+          "sha256": "7bf401b899d890d7b2830f001206c195d639025034448b9e6e40aca6420a379e",
+          "lines": "3351-3390"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/GNOME/gnumeric/GNUMERIC_1_12_61/plugins/openoffice/openoffice-read.c",
+          "sha256": "8b5f354d79760823ba1913be35ebf8f98fd8007d628ce3608c8b092e504f71d6",
+          "lines": "4426-4472"
+        }
+      ],
+      "finding": "Both product export paths replaced every exclamation mark, corrupting quoted sheet names. Import replaced the first dot even inside a quoted sheet and omitted URI decoding. Calc instead decodes marks and parses addresses/ranges before named-range lookup; Gnumeric export resolves named or range targets, while its importer also has the first-dot limitation.",
+      "implementation": "Shared bounded parsing translates local address/range and named-target syntax between Gnumeric and Calc-style unbracketed fragments. Export encodes URI characters, import decodes them, and sheet quotes use the target grammar. Both style-region and cell-style exporters use the same conversion. External URL payloads remain unchanged and passive.",
+      "validation": "Corrected original fixtures reproduce nine failures before repair with simple-name and external-URL controls passing. Focused cohort: five files / 127 tests pass. A final 27-test file additionally forces edited-text paragraph regeneration and covers both cell-only and style-region exports. Package lint, source/test/consumer types and selected workspace build pass.",
+      "publicValidation": {
+        "inputBytes": 2729,
+        "inputSha256": "445aa19df6bc661df388ad9a014195b0114dfc5ee862a73f4aeffe5e20b67901",
+        "sdkExports": 4,
+        "commandExports": 4,
+        "independentlyCheckedLinks": 64,
+        "regeneratedAfterEdits": 32,
+        "diagnostics": 0,
+        "description": "Python constructs the Gnumeric XML and independently reads all eight ZIP/XML packages. Six sheets, global/local Total destinations and eight link labels survive; second-cycle SDK/command edits force fresh hyperlink serialization. Actual command screenshot inspected."
+      },
+      "remaining": "Native application navigation, ambiguous dotted global names versus sheet-scoped names, non-A1 marks and broader application/format qualification remain open. No hyperlink target executes or gains host authority."
     }
   },
   "cases": [

@@ -10,6 +10,7 @@ import { quotedLabelText } from "../formulas/quoted-labels.js";
 import { visitFormula } from "../formulas/rewriting.js";
 import { gnumericGrammar, odfGrammar, legacyOpenOfficeGrammar } from "../formulas/conventions.js";
 import { serializeExpression, quoteNativeSheet, quoteFormulaString } from "../formulas/serialization.js";
+import { translateOdfHyperlink } from "./odf-hyperlinks.js";
 import { dateSerial, gregorian } from "../formulas/functions/dates.js";
 import { converterLocale } from "../locale/runtime.js";
 import { odfReaderStates } from "./odf-schema.js";
@@ -840,7 +841,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
       for (const cell of addresses.values()) {
         const node = cell.style?.gnumeric;
         const link = odfChildren(node).find(n => odfObject(n)?.name === "HyperLink"), a = odfAttributes(link);
-        if (a.target) links.set(`${cell.row}:${cell.column}`, { "xlink:href": a.type === "GnmHLinkCurWB" ? "#" + a.target.split("!").join(".") : a.target,
+        if (a.target) links.set(`${cell.row}:${cell.column}`, { "xlink:href": a.type === "GnmHLinkCurWB" ? translateOdfHyperlink(a.target, "export", xml.charge) : a.target,
           "xlink:type": "simple", "office:title": a.tip });
       }
       const events = new Set<number>([0]);

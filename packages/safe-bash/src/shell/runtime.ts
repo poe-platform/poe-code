@@ -1670,6 +1670,37 @@ class BudgetedPipeStageSink implements ByteSink {
     }
   }
 
+  canWriteSync(): boolean {
+    if (this.signal.aborted) return false;
+    const w = this.writable as unknown as {
+      open?: boolean;
+      _pipe?: {
+        failed?: boolean;
+        signal?: AbortSignal;
+        readerReferences?: number;
+        writes?: { size: number };
+        availableBytes?: number;
+        highWaterMark?: number;
+      };
+    };
+    const pipe = w._pipe;
+    return Boolean(
+      w.open &&
+      pipe &&
+      !pipe.failed &&
+      !pipe.signal?.aborted &&
+      pipe.readerReferences &&
+      (!pipe.writes || pipe.writes.size === 0) &&
+      (pipe.availableBytes ?? 0) < (pipe.highWaterMark ?? 0),
+    );
+  }
+
+  writeSync(chunk: Uint8Array): void {
+    this.budget.bytes += chunk.byteLength;
+    this.writable.write(chunk);
+    if (chunk.byteLength && this.written) this.written.add(this.index);
+  }
+
   write(chunk: Uint8Array): Promise<void> {
     try {
       const signal = this.signal;
@@ -3613,6 +3644,60 @@ const ZERO_PIPE_STATUSES: readonly (readonly number[])[] = [
 
 const HEX_BYTE_TABLE: readonly string[] = Array.from({ length: 128 }, (_, i) => i.toString(16).padStart(2, "0"));
 const SIMPLE_SUBSCRIPT_MUT_RE = /^\s*([a-zA-Z_][a-zA-Z_0-9]*)\[([a-zA-Z0-9_.\-/:@]+)\]\s*(?:(\+=|-=|=)\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)|(\+\+|--))\s*$/;
+const fixedGlobParamRegexCache = new Map<string, RegExp | null>();
+function tryCompileFixedGlobToRegex(pat: string, op: string, extglob: boolean): RegExp | undefined {
+  if (pat.length === 0 || pat.length > 64) return undefined;
+  if (extglob && pat.includes("(")) return undefined;
+  const key = `${op}:${pat}`;
+  const cached = fixedGlobParamRegexCache.get(key);
+  if (cached !== undefined) return cached ?? undefined;
+  let reSrc = op === "/#" ? "^" : "";
+  for (let i = 0; i < pat.length; i++) {
+    const code = pat.charCodeAt(i);
+    if (code >= 128 || code === 42 || code === 92) {
+      fixedGlobParamRegexCache.set(key, null);
+      return undefined;
+    }
+    const ch = pat[i]!;
+    if (ch === "?") {
+      reSrc += ".";
+    } else if (ch === "[") {
+      let j = i + 1;
+      if (j < pat.length && (pat[j] === "!" || pat[j] === "^")) j++;
+      if (j < pat.length && pat[j] === "]") j++;
+      while (j < pat.length && pat[j] !== "]") {
+        const c2 = pat.charCodeAt(j);
+        if (c2 >= 128 || c2 === 91 || c2 === 92) {
+          fixedGlobParamRegexCache.set(key, null);
+          return undefined;
+        }
+        j++;
+      }
+      if (j >= pat.length) {
+        fixedGlobParamRegexCache.set(key, null);
+        return undefined;
+      }
+      let inner = pat.slice(i + 1, j);
+      if (inner.startsWith("!")) inner = "^" + inner.slice(1);
+      reSrc += "[" + inner + "]";
+      i = j;
+    } else if (".^$+()|{}".includes(ch)) {
+      reSrc += "\\" + ch;
+    } else {
+      reSrc += ch;
+    }
+  }
+  if (op === "/%") reSrc += "$";
+  let compiled: RegExp | null = null;
+  try {
+    compiled = new RegExp(reSrc, op === "//" ? "gs" : "s");
+  } catch {
+    compiled = null;
+  }
+  if (fixedGlobParamRegexCache.size >= 256) fixedGlobParamRegexCache.clear();
+  fixedGlobParamRegexCache.set(key, compiled);
+  return compiled ?? undefined;
+}
 const SIMPLE_SCALAR_MUT_RE = /^\s*([a-zA-Z_][a-zA-Z_0-9]*)\s*(\+=|-=|=)\s*(-?(?:0|[1-9][0-9]{0,12}))(?:\s*([+\-*])\s*(-?(?:0|[1-9][0-9]{0,12})))?\s*$/;
 const readArrayScratchFields: string[] = [];
 const SIMPLE_EXPANDED_ARITH_RE = /^\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*([+\-*])\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*$/;
@@ -3912,31 +3997,86 @@ export class Runtime {
     const collation = state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C";
     const characters = state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C";
     if (![collation, characters].every(locale => cCollation(locale) || utf8Locale(locale))) return undefined;
-    const ledger = new EreLedger({
-      maxExpansionBytes: this.budget.limits.maxExpansionBytes,
-      maxExpansionFields: this.budget.limits.maxExpansionFields,
-    });
-    let result: ReturnType<typeof tryMatchEreSync>;
-    try {
-      const program = tryCompileEreSync([{ text: pat.text, literal: pat.literal }], ledger, this.signal, !!state.nocasematch, {
-        ranges: cCollation(collation), classes: !utf8Locale(characters),
-      });
-      if (!program) return undefined;
-      result = tryMatchEreSync(program, subject, ledger, this.signal);
-    } catch {
-      return undefined;
+    let fastMatchValues: string[] | null | undefined;
+    if (
+      !pat.literal &&
+      !state.nocasematch &&
+      this.budget.limits.maxExpansionBytes === Infinity &&
+      this.budget.limits.maxExpansionFields === Infinity &&
+      cCollation(collation) &&
+      !utf8Locale(characters)
+    ) {
+      const patWithCache = pat as { text: string; literal: boolean; _fastAnchoredRe?: RegExp | null };
+      if (patWithCache._fastAnchoredRe === undefined) {
+        if (
+          pat.text.startsWith("^") &&
+          pat.text.endsWith("$") &&
+          /^[\^a-zA-Z0-9_.\-/:@()\[\]+?]+\$/.test(pat.text) &&
+          !pat.text.includes("[:") &&
+          !pat.text.includes("[.") &&
+          !pat.text.includes("[=") &&
+          !pat.text.includes(")(") &&
+          !pat.text.includes("][")
+        ) {
+          try {
+            patWithCache._fastAnchoredRe = new RegExp(pat.text);
+          } catch {
+            patWithCache._fastAnchoredRe = null;
+          }
+        } else {
+          patWithCache._fastAnchoredRe = null;
+        }
+      }
+      if (patWithCache._fastAnchoredRe) {
+        let asciiSubj = true;
+        for (let i = 0; i < subject.length; i++) {
+          if (subject.charCodeAt(i) >= 128) { asciiSubj = false; break; }
+        }
+        if (asciiSubj) {
+          const m = patWithCache._fastAnchoredRe.exec(subject);
+          fastMatchValues = m ? Array.from(m, g => g ?? "") : null;
+        }
+      }
     }
-    if (!result) return undefined;
-    const status = result.matched ? 0 : 1;
-    const capLen = result.matched ? result.captures.length : 0;
-    for (const key of existingRematch.values.keys()) {
-      if (key >= capLen) existingRematch.remove(key);
+    let status: number;
+    let capLen: number;
+    let getCapValue: (index: number) => string;
+    if (fastMatchValues !== undefined) {
+      status = fastMatchValues !== null ? 0 : 1;
+      capLen = fastMatchValues !== null ? fastMatchValues.length : 0;
+      getCapValue = (index: number) => fastMatchValues![index]!;
+    } else {
+      const ledger = new EreLedger({
+        maxExpansionBytes: this.budget.limits.maxExpansionBytes,
+        maxExpansionFields: this.budget.limits.maxExpansionFields,
+      });
+      let result: ReturnType<typeof tryMatchEreSync>;
+      try {
+        const program = tryCompileEreSync([{ text: pat.text, literal: pat.literal }], ledger, this.signal, !!state.nocasematch, {
+          ranges: cCollation(collation), classes: !utf8Locale(characters),
+        });
+        if (!program) return undefined;
+        result = tryMatchEreSync(program, subject, ledger, this.signal);
+      } catch {
+        return undefined;
+      }
+      if (!result) return undefined;
+      status = result.matched ? 0 : 1;
+      capLen = result.matched ? result.captures.length : 0;
+      getCapValue = (index: number) => {
+        const span = result!.captures[index]!;
+        return span === null ? "" : subject.slice(span.start, span.end);
+      };
+    }
+    if (existingRematch.values.size > capLen) {
+      for (const key of existingRematch.values.keys()) {
+        if (key >= capLen) existingRematch.remove(key);
+      }
     }
     existingRematch.maximum = capLen - 1;
     for (let index = 0; index < capLen; index++) {
-      const span = result.captures[index]!;
-      const value = span === null ? "" : subject.slice(span.start, span.end);
-      const byteLen = Buffer.byteLength(value);
+      const value = getCapValue(index);
+      const byteLen = fastMatchValues !== undefined ? value.length : Buffer.byteLength(value);
       const elem = existingRematch.values.get(index);
       if (elem && elem.text.references === 1 && elem.text.bytes === byteLen) {
         elem.text.shellValue = value;
@@ -8980,10 +9120,17 @@ export class Runtime {
           (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write)
             ? io.stdout
             : undefined;
-        const syncOut = fastSyncSink ? undefined : syncSinks.get(io.stdout);
-        const def = (fastSyncSink || syncOut) ? this.commands.get(w0Plain) : undefined;
+        const fastPipeSink =
+          !fastSyncSink &&
+          io.stdout instanceof BudgetedPipeStageSink &&
+          io.stdout.write === BudgetedPipeStageSink.prototype.write &&
+          io.stdout.canWriteSync()
+            ? io.stdout
+            : undefined;
+        const syncOut = (fastSyncSink || fastPipeSink) ? undefined : syncSinks.get(io.stdout);
+        const def = (fastSyncSink || fastPipeSink || syncOut) ? this.commands.get(w0Plain) : undefined;
         if (
-          (fastSyncSink || syncOut) &&
+          (fastSyncSink || fastPipeSink || syncOut) &&
           def &&
           (w0Plain === "printf" ? def.execute === printfCommand.execute : defaultEchoExecutors.has(def.execute)) &&
           command.words.length <= this.budget.maxExpansionFieldsSmi &&
@@ -9047,6 +9194,11 @@ export class Runtime {
                 } else {
                   fastSyncSink.writeSync(encoded);
                 }
+              } else if (fastPipeSink) {
+                if (fastPipeSink.budget !== this.budget) {
+                  this.budget.bytes += byteLength;
+                }
+                fastPipeSink.writeSync(encoded);
               } else {
                 if (budgetedSinks.get(io.stdout)?.budget !== this.budget) {
                   this.budget.bytes += byteLength;
@@ -17647,7 +17799,7 @@ export class Runtime {
   private fastValueWord(word: Word, state: State, io: IO, split: boolean, pattern: boolean, hereDocument: boolean, braces: boolean, assignmentStart?: number, overrideDiagnosticLine?: number): ShellValue | undefined {
     const monitor = stateMonitor(state);
     const rawState = monitor ? monitor.raw : state;
-    if (pattern || word.parts.length === 0 || hasActiveVariableAttributes(rawState)) return undefined;
+    if (pattern || word.parts.length === 0 || (rawState.depth + (io.parameterDepth ?? 0)) >= 32 || hasActiveVariableAttributes(rawState)) return undefined;
     if (guestArrays(state) && word.parts.some(part => part.kind === "arithmetic" && !part.expression.error && !isSafeSmiProgram(part.expression))) return undefined;
     const activeArrayStore = arrayStore(state);
     const rawVars = rawState.variables;
@@ -17873,7 +18025,12 @@ export class Runtime {
           ) {
             const patPart = part.alternate.parts[0]!;
             const pat = patPart.value;
-            if (pat.length === 0 || (!patPart.quoted && hasGlobOrEscape(pat, !!rawState.extglob))) return undefined;
+            if (pat.length === 0) return undefined;
+            let fixedGlobRe: RegExp | undefined;
+            if (!patPart.quoted && hasGlobOrEscape(pat, !!rawState.extglob)) {
+              fixedGlobRe = tryCompileFixedGlobToRegex(pat, part.operator, !!rawState.extglob);
+              if (!fixedGlobRe) return undefined;
+            }
             const repPart = part.replacement?.parts[0] as Extract<WordPart, { kind: "text" }> | undefined;
             const rep = repPart ? repPart.value : "";
             if (repPart && !repPart.quoted && (rep.startsWith("~") || rep.includes("&") || rep.includes("\\"))) return undefined;
@@ -17895,7 +18052,10 @@ export class Runtime {
               if (rep.charCodeAt(k) >= 128) return undefined;
             }
             let replaced: string;
-            if (part.operator === "//") {
+            if (fixedGlobRe) {
+              fixedGlobRe.lastIndex = 0;
+              replaced = val.replace(fixedGlobRe, () => rep);
+            } else if (part.operator === "//") {
               replaced = val.includes(pat) ? val.split(pat).join(rep) : val;
             } else if (part.operator === "/") {
               const idx = val.indexOf(pat);

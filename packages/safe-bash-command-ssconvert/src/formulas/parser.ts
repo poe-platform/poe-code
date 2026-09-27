@@ -1,5 +1,5 @@
 import { SsconvertError } from "../contracts.js";
-import { gnumericGrammar, odfGrammar } from "./conventions.js";
+import { gnumericGrammar, internalOdfGrammar } from "./conventions.js";
 import { foldSheetName } from "../workbook/case-fold.js";
 import { isUnicodeAlphanumeric } from "../cli/unicode-alphanumeric.js";
 import { isUnicodeAlpha } from "../workbook/unicode-sheet-name.js";
@@ -13,7 +13,8 @@ const whitespace = (c: string | undefined): boolean => c !== undefined && " \t\r
 
 /** Relative axes are offsets from the explicit parse position, never the active cell. */
 export function parseExpression(source: string, options: FormulaParseOptions): FormulaParseResult {
-  const grammar = options.grammar ?? (source.startsWith("of:=") ? odfGrammar : gnumericGrammar);
+  const grammar = options.grammar ?? (source.startsWith("of:=") ? internalOdfGrammar : gnumericGrammar);
+  const internalLabels = grammar.id === "gnumeric" || grammar.internalLabels === true;
   options.signal?.throwIfAborted();
   if (source.length > (options.maximumLength ?? 1_048_576)) throw new SsconvertError("resource-limit", "ssconvert formula length limit exceeded");
   const origin = options.workbook?.sheets.find(sheet => sheet.id === options.position.sheet) ??
@@ -172,7 +173,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
     }
     return { ...scope, ...(sheetRelative === undefined ? {} : { sheetRelative }), ...(sheetOffset === undefined ? {} : { sheetOffset }), ...(row ? { row } : {}), ...(column ? { column } : {}) };
   }
-  function referenceOrName(): FormulaNode | undefined {
+  function referenceOrName(labelAnchor = false): FormulaNode | undefined {
     const start = offset;
     const bracket = grammar.bracketReferences && source[offset] === "[";
     if (bracket) offset++;
@@ -185,10 +186,16 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
     const scopeStart = offset;
     const scope = qualifier();
     if (external !== undefined) { scope.workbook = external; scope.sheetRelative = false; }
-    const first = scope.workbook !== undefined && !scope.sheet ? undefined : endpoint(scope);
+    let first = scope.workbook !== undefined && !scope.sheet ? undefined : endpoint(scope);
     if (first) {
+      if (labelAnchor && first.sheet === undefined && first.workbook === undefined) {
+        // A local label follows the formula's sheet on copy. It is not an
+        // ordinary OpenFormula reference with a relative named-sheet offset.
+        const { sheetRelative: ignoredRelative, sheetOffset: ignoredOffset, ...anchor } = first;
+        first = anchor;
+      }
       let last: ReferenceEndpoint | undefined;
-      if (source.startsWith(rangeSeparator, offset)) {
+      if ((!labelAnchor || bracket) && source.startsWith(rangeSeparator, offset)) {
         const colon = offset; offset += rangeSeparator.length;
         const secondScope = qualifier();
         last = endpoint({ ...scope, ...(scope.endSheet ? { sheet: scope.endSheet } : {}), ...secondScope });
@@ -216,12 +223,12 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
     offset = start; return undefined;
   }
   function labelIntersection(left: FormulaNode, allowed: boolean): FormulaNode {
-    if (!allowed || grammar.quotedLabels !== "openformula" && grammar.id !== "gnumeric") return left;
+    if (!allowed || grammar.quotedLabels !== "openformula" && !internalLabels) return left;
     const before = offset; space();
     if (!source.startsWith("!!", offset)) { offset = before; return left; }
     offset += 2;
     const right = primary(false, false);
-    const deleted = grammar.id === "gnumeric" && right.kind === "literal" && right.value.kind === "error";
+    const deleted = internalLabels && right.kind === "literal" && right.value.kind === "error";
     if (!deleted && (right.kind !== "reference" || !right.label || right.label.kind === "radical"))
       fail("Automatic intersection requires two labels", right.start, right.end);
     return node({ kind: "binary", op: "label-intersection", start: left.start, end: right.end, left, right });
@@ -231,7 +238,8 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
     if (++depth > 128) throw new SsconvertError("resource-limit", "ssconvert formula depth limit exceeded");
     try {
       const c = source[offset];
-      if (c === "@" && grammar.id === "gnumeric") {
+      if (c === "@" && !internalLabels) fail("Internal label reference in native formula");
+      if (c === "@" && internalLabels) {
         // Explicit ssconvert label references avoid the ambiguity of Gnumeric's
         // ordinary single-quoted strings. The address remains the live anchor.
         offset++;
@@ -249,12 +257,12 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
         if (source[offset++] !== ":") fail("Invalid label reference");
         const preceding: (Extract<FormulaNode, { kind: "reference" }> & { last?: never })[] = [];
         if (multiple && (quoted || source[offset++] !== "{")) fail("Invalid multiple label reference");
-        let target = referenceOrName();
+        let target = referenceOrName(true);
         while (multiple && source[offset] === ";") {
           if (target?.kind !== "reference" || target.last || !target.first.row || !target.first.column || target.first.workbook !== undefined)
             fail("Invalid multiple label member");
           preceding.push({ kind: "reference", start: target.start, end: target.end, first: target.first });
-          offset++; target = referenceOrName();
+          offset++; target = referenceOrName(true);
         }
         if (multiple && source[offset++] !== "}") fail("Invalid multiple label reference");
         if (target?.kind !== "reference" || target.last || !target.first.row || !target.first.column || target.first.workbook !== undefined)
@@ -342,7 +350,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
           const result = node({ kind: "literal", start, end: offset, value: { kind: "error", value } });
           // Internal syntax keeps deleted-anchor errors beside the surviving
           // label. Native OpenFormula still requires two QuotedLabel tokens.
-          return grammar.id === "gnumeric" ? labelIntersection(result, allowLabelIntersection) : result;
+          return internalLabels ? labelIntersection(result, allowLabelIntersection) : result;
         }
       // Function spellings such as LOG2 and EXPM1 are also valid A1 addresses.
       // A following argument list takes precedence over address recognition.

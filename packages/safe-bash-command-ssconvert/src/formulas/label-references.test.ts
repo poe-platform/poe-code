@@ -36,7 +36,7 @@ it("leaves ordinary single-quoted strings unchanged", () => {
   expect(parsed.ok && parsed.document.root).toMatchObject({ kind: "literal", value: { kind: "string", value: "Sales" } });
 });
 
-for (const source of ["=@row:A1:B2", "=@column:Name", "=@row:[other]S!A1", "=@diagonal:A1"]) {
+for (const source of ["=@column:Name", "=@row:[other]S!A1", "=@diagonal:A1"]) {
   it(`rejects an invalid label target ${source}`, () => {
     expect(parseExpression(source, { position }).ok).toBe(false);
   });

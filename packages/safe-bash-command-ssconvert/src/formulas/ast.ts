@@ -69,6 +69,8 @@ export interface FormulaGrammar {
   readonly nativeNames?: boolean;
   readonly singleQuotedStrings?: boolean;
   readonly quotedLabels?: "openformula" | "calc";
+  /** Permit ssconvert's live label anchors in internal workbook expressions. */
+  readonly internalLabels?: boolean;
   readonly quotedErrors?: boolean;
   readonly rangeSeparator?: string;
   readonly sheetSpans?: boolean;

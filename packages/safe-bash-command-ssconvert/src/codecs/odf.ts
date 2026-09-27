@@ -9,7 +9,7 @@ import { parseExpression } from "../formulas/parser.js";
 import { quotedLabelText } from "../formulas/quoted-labels.js";
 import { prepareOdfFormulaLabels } from "./odf-formula-labels.js";
 import { visitFormula } from "../formulas/rewriting.js";
-import { gnumericGrammar, odfGrammar, legacyOpenOfficeGrammar } from "../formulas/conventions.js";
+import { gnumericGrammar, odfGrammar, internalOdfGrammar, legacyOpenOfficeGrammar } from "../formulas/conventions.js";
 import { serializeExpression, quoteNativeSheet, quoteFormulaString } from "../formulas/serialization.js";
 import { translateOdfHyperlink } from "./odf-hyperlinks.js";
 import { dateSerial, gregorian } from "../formulas/functions/dates.js";
@@ -301,7 +301,7 @@ async function formula(source: string, legacy: boolean, position: { sheet: strin
   visitFormula(parsed.document.root, node => {
     if (node.kind === "reference" && (node.first.sheet && node.first.sheetRelative || node.last?.sheet && node.last.sheetRelative)) relativeSheets = true;
   });
-  return serializeExpression(parsed.document, relativeSheets ? odfGrammar : { ...gnumericGrammar, quoteSheetName: quoteNativeSheet }, false, true);
+  return serializeExpression(parsed.document, relativeSheets ? internalOdfGrammar : { ...gnumericGrammar, quoteSheetName: quoteNativeSheet }, false, true);
 }
 
 export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Promise<Workbook> {
@@ -715,13 +715,8 @@ export function createOdfWriter(profile: "strict" | "extended") {
         maximumNodes: context.limits.workbookNodes ?? Infinity });
       if (!parsed.ok) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: invalid OpenDocument formula");
       const aliases: Record<string,string> = { ...odfGrammar.functionExportAliases, ...odfWriterFunctionNames };
-      let labels = false, relativeSheets = false;
       function visit(node: FormulaNode) {
         xml.charge();
-        if (node.kind === "reference") {
-          labels ||= node.label !== undefined;
-          relativeSheets ||= !!(node.first.sheet && node.first.sheetRelative || node.last?.sheet && node.last.sheetRelative);
-        }
         if (node.kind === "call") {
           if (!Object.hasOwn(aliases, node.name)) aliases[node.name] = node.name.startsWith("ODF.") ? node.name.slice(4) : "ORG.GNUMERIC." + node.name;
           node.args.forEach(visit);
@@ -730,8 +725,6 @@ export function createOdfWriter(profile: "strict" | "extended") {
         else if (node.kind === "unary" || node.kind === "parentheses") visit(node.child);
       }
       visit(parsed.document.root);
-      if (labels && relativeSheets)
-        throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: mixed relative-sheet and live label formula in OpenDocument output");
       return serializeExpression(parsed.document, { ...odfGrammar, functionExportAliases: aliases }, false, true, {
         quotedLabel(node) {
           const text = quotedLabelText(book, node, parsed.document.position, xml.charge);

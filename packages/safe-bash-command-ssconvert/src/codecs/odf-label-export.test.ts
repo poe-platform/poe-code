@@ -134,10 +134,11 @@ it.each(["blank", "number"] as const)("refuses a %s label cell without inventing
   await expect(createOdfWriter("strict")(changed, [], context)).rejects.toMatchObject({ code: "unsupported-feature" });
 });
 
-it("does not publish mixed relative-sheet and live-label formulas without a preserving importer", async () => {
+it("preserves mixed relative-sheet and live-label formulas", async () => {
   const original = book("of:=SUM('Sales')+[Other.B2]"), mixed: Workbook = { ...original,
     sheets: [...original.sheets, { id: "other", name: "Other", cells: [] }] };
-  await expect(createOdfWriter("strict")(mixed, [], context)).rejects.toMatchObject({ code: "unsupported-feature" });
+  const reopened = await readOdf(await createOdfWriter("strict")(mixed, [], context), context);
+  expect(value(reopened)).toEqual({ kind: "number", value: 9 });
 });
 
 it("exports a clean formula-generated label without discarding the captured anchor", async () => {

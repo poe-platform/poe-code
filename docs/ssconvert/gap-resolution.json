@@ -2169,7 +2169,7 @@
         },
         "mixedRangeSourceAudit": {
           "issue": 3654,
-          "status": "source verified; implementation pending",
+          "status": "implemented and locally qualified; remote delivery and native application qualification pending",
           "sourceRevision": "LibreOffice bce0998afefdbc355585ca324285661a2170ba77",
           "sources": {
             "sc/source/core/tool/compiler.cxx": {
@@ -2182,7 +2182,9 @@
             }
           },
           "finding": "Calc selects a scalar when a label has an immediate binary-operator neighbor. ocRange=66 belongs to [ocStartBinaryOperators=50, ocStopBinaryOperators=67). Parenthesizing a single label to delimit its internal anchor can therefore change range values. Native label text and ordinary relative-sheet references are emitted independently.",
-          "next": "Regress ungrouped versus grouped range results and captured identity. Parse internal anchors as single-cell targets without adding semantic grouping; retain an internal OpenFormula grammar with native parsing kept strict. Qualify mixed-label/relative-sheet import, export, editing, copy/move, names, arrays and intersections."
+          "next": "Verify remote delivery/publication and native application readback; broader labels and format families remain open.",
+          "implementation": "Internal label anchors consume one cell without swallowing the outer range operator. Internal OpenFormula syntax retains label identity beside relative-sheet references; explicit native grammar rejects internal anchors. ODF output emits native quoted labels without artificial grouping.",
+          "validation": "Original candidate: 8 failures / 21 passes. Focused candidate checks, production/test types, lint and 16 compiled SDK/command conversions pass. Independent XML verifies native mixed formulas and caches 44 versus grouped 70. Applied alongside the self-exclusion/XLSX fixes: 871 checks in 34 files, maintained package lint and selected workspace build pass."
         }
       },
       "inferredMultipleLabelSourceAudit": {

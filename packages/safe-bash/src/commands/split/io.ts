@@ -1,15 +1,33 @@
-import { yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, yieldTurn } from "../../contracts/yield.js";
 import { FsError, readBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
 import { pathOf } from "../internal.js";
 import type { SplitLimits } from "./options.js";
 
+const splitSignalWaiters = new WeakMap<AbortSignal, Set<() => void>>();
+function getSplitSignalWaiters(signal: AbortSignal): Set<() => void> {
+  let waiters = splitSignalWaiters.get(signal);
+  if (!waiters) {
+    waiters = new Set();
+    splitSignalWaiters.set(signal, waiters);
+    signal.addEventListener("abort", () => {
+      const pending = [...waiters!];
+      waiters!.clear();
+      for (const fn of pending) fn();
+    }, { once: true });
+  }
+  return waiters;
+}
+
 export async function interruptible<Result>(operation: () => Promise<Result>, signal: AbortSignal): Promise<Result> {
   signal.throwIfAborted();
+  const waiters = getSplitSignalWaiters(signal);
   return new Promise<Result>((resolve, reject) => {
-    const abort = (): void => reject(signal.reason);
-    signal.addEventListener("abort", abort, { once: true });
-    Promise.resolve().then(() => { signal.throwIfAborted(); return operation(); }).then(resolve, reject)
-      .finally(() => signal.removeEventListener("abort", abort));
+    const abort = (): void => { waiters.delete(abort); reject(signal.reason); };
+    waiters.add(abort);
+    Promise.resolve().then(() => { signal.throwIfAborted(); return operation(); }).then(
+      value => { waiters.delete(abort); resolve(value); },
+      error => { waiters.delete(abort); reject(error); },
+    );
   });
 }
 
@@ -18,6 +36,7 @@ export class Budget {
   private outputBytes = 0;
   private steps = 0;
   private untilYield = 65536;
+  private lastYield = monotonicNow();
   constructor(readonly limits: SplitLimits, readonly signal: AbortSignal) {}
   check(value: number, maximum: number, label: string): void {
     if (value > maximum) throw new FsError("EFBIG", { message: `split ${label} limit exceeded` });
@@ -38,7 +57,10 @@ export class Budget {
     this.untilYield -= count;
     if (this.untilYield > 0) return;
     this.untilYield = 65536;
+    if (!hasYieldCheckpoint(this.signal) && monotonicNow() - this.lastYield < 16) return;
+    this.lastYield = monotonicNow();
     return yieldTurn(this.signal).catch(error => { this.signal.throwIfAborted(); throw error; }).then(() => {
+      this.lastYield = monotonicNow();
       this.signal.throwIfAborted();
     });
   }

@@ -89,17 +89,34 @@ export function vfsPath(cwd: string, path: string): string {
   return path.startsWith("/") ? path : `${cwd === "/" ? "" : cwd}/${path}`;
 }
 
+const signalWaiters = new WeakMap<AbortSignal, Set<() => void>>();
+
+function getSignalWaiters(signal: AbortSignal): Set<() => void> {
+  let waiters = signalWaiters.get(signal);
+  if (!waiters) {
+    waiters = new Set();
+    signalWaiters.set(signal, waiters);
+    signal.addEventListener("abort", () => {
+      const pending = [...waiters!];
+      waiters!.clear();
+      for (const fn of pending) fn();
+    }, { once: true });
+  }
+  return waiters;
+}
+
 export function wait<Value>(signal: AbortSignal, action: () => Value | PromiseLike<Value>): Promise<Value> {
   signal.throwIfAborted();
   return new Promise((resolve, reject) => {
-    const abort = () => { signal.removeEventListener("abort", abort); reject(signal.reason); };
-    signal.addEventListener("abort", abort, { once: true });
+    const waiters = getSignalWaiters(signal);
+    const abort = () => { waiters.delete(abort); reject(signal.reason); };
+    waiters.add(abort);
     try {
       Promise.resolve(action()).then(value => {
-        signal.removeEventListener("abort", abort);
+        waiters.delete(abort);
         resolve(value);
-      }, error => { signal.removeEventListener("abort", abort); reject(error); });
-    } catch (error) { signal.removeEventListener("abort", abort); reject(error); }
+      }, error => { waiters.delete(abort); reject(error); });
+    } catch (error) { waiters.delete(abort); reject(error); }
   });
 }
 
@@ -190,10 +207,14 @@ export async function* bounded(source: ByteSource, maximum: number, signal: Abor
     size += chunk.length;
     // Empty views can still retain a large backing slab; downstream memory
     // admission must see them before the producer advances.
-    if (!chunk.length) yield chunk;
-    for (let offset = 0; offset < chunk.length; offset += chunkSize) {
+    if (chunk.length <= chunkSize) {
       signal.throwIfAborted();
-      yield chunk.subarray(offset, Math.min(chunk.length, offset + chunkSize));
+      yield chunk;
+    } else {
+      for (let offset = 0; offset < chunk.length; offset += chunkSize) {
+        signal.throwIfAborted();
+        yield chunk.subarray(offset, Math.min(chunk.length, offset + chunkSize));
+      }
     }
     if (++turns % 128 === 0 && (hasYieldCheckpoint(signal) || monotonicNow() - lastYield >= 16)) {
       await yieldTurn(signal);

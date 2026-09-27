@@ -31,29 +31,40 @@ export async function* compressed(source: ByteSource, decode: boolean, signal: A
 }
 
 export async function* autodetected(source: ByteSource, signal: AbortSignal, limits: ArchiveLimits): ByteSource {
-  const reader = new Reader(source, signal);
+  const iterator = readBytes(source, signal)[Symbol.asyncIterator]();
   try {
     const prefix = new Uint8Array(6);
     let size = 0;
+    let remainder: Uint8Array | undefined;
     while (size < prefix.length) {
-      const bytes = await reader.take(prefix.length - size);
-      if (!bytes) break;
-      prefix.set(bytes, size);
-      size += bytes.length;
+      const next = await iterator.next();
+      if (next.done) break;
+      const chunk = next.value;
+      if (!chunk.length) continue;
+      const take = Math.min(prefix.length - size, chunk.length);
+      prefix.set(chunk.subarray(0, take), size);
+      size += take;
+      if (take < chunk.length) {
+        remainder = chunk.subarray(take);
+        break;
+      }
     }
     const replay = (async function* (): ByteSource {
       yield prefix.subarray(0, size);
+      if (remainder) yield remainder;
       for (;;) {
-        const bytes = await reader.take(limits.chunkSize);
-        if (!bytes) return;
-        yield bytes;
+        const next = await iterator.next();
+        if (next.done) return;
+        if (next.value.length) yield next.value;
       }
     })();
     const format = size >= 2 && prefix[0] === 31 && prefix[1] === 139 ? "gzip"
       : size >= 3 && prefix[0] === 66 && prefix[1] === 90 && prefix[2] === 104 ? "bzip2"
       : size === 6 && [253, 55, 122, 88, 90, 0].every((byte, index) => prefix[index] === byte) ? "xz" : undefined;
     yield* format ? compressed(replay, true, signal, limits, format) : replay;
-  } finally { await reader.close(); }
+  } finally {
+    if (iterator.return) await iterator.return(undefined);
+  }
 }
 
 export function recordPadding(size: number, recordSize: number, maximum: number): number {
@@ -103,6 +114,13 @@ export class Reader {
     return bytes;
   }
   async exact(size: number): Promise<Uint8Array> {
+    this.signal.throwIfAborted();
+    if (this.chunk.length - this.offset >= size) {
+      const bytes = this.chunk.subarray(this.offset, this.offset + size);
+      this.offset += size;
+      this.position += size;
+      return bytes;
+    }
     const result = new Uint8Array(size);
     let offset = 0;
     while (offset < size) {
@@ -123,6 +141,13 @@ export class Reader {
     }
   }
   async discard(size: number): Promise<void> {
+    this.signal.throwIfAborted();
+    if (size === 0) return;
+    if (this.chunk.length - this.offset >= size) {
+      this.offset += size;
+      this.position += size;
+      return;
+    }
     for await (const ignoredChunk of this.body(size)) this.signal.throwIfAborted();
   }
   async padding(size: number): Promise<void> { await this.discard((512 - size % 512) % 512); }

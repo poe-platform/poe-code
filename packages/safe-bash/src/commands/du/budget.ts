@@ -26,19 +26,25 @@ export class Budget {
   private readonly work = new Set<Promise<unknown>>();
   private readonly pending = new Set<() => void>();
   private readonly timers = new Set<TurnHandle>();
+  private readonly onSignalAbort = (): void => {
+    const callbacks = [...this.pending];
+    this.pending.clear();
+    for (const cancel of callbacks) cancel();
+  };
 
   constructor(readonly context: CommandContext, readonly limits: DuLimits, readonly caller: CommandContext = context) {
     this.ioSignal = AbortSignal.any([caller.signal, this.cancellation.signal]);
+    context.signal.addEventListener("abort", this.onSignalAbort, { once: true });
   }
 
   readonly close = (): Promise<void> => {
     if (this.completion) return this.completion;
     this.closed = true;
+    this.context.signal.removeEventListener("abort", this.onSignalAbort);
     this.cancellation.abort(this.context.signal.aborted ? this.context.signal.reason : new Error("du invocation closed"));
     for (const timer of this.timers) cancelTurn(timer);
     this.timers.clear();
     for (const cancel of this.pending) {
-      this.context.signal.removeEventListener("abort", cancel);
       cancel();
     }
     this.pending.clear();
@@ -91,7 +97,6 @@ export class Budget {
     let cancel!: () => void;
     const aborted = new Promise<never>((_resolve, reject) => {
       cancel = () => reject(signal.aborted ? signal.reason : new Error("du invocation closed"));
-      signal.addEventListener("abort", cancel, { once: true });
       this.pending.add(cancel);
     });
     try {
@@ -99,7 +104,6 @@ export class Budget {
       this.active();
       return result;
     } finally {
-      signal.removeEventListener("abort", cancel);
       this.pending.delete(cancel);
     }
   }

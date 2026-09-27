@@ -1,5 +1,5 @@
 import { publicDiagnosticMessage } from "../../diagnostics.js";
-import { monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { escapeText } from "../../escaping.js";
 import { FsError, writeBytes, type ByteSource, type CommandContext, type FileSystem, type ReadStreamOptions } from "../../contracts/index.js";
 import { Budget, Inputs, type RecordReader } from "../table-text/internal.js";
@@ -70,7 +70,7 @@ export class ColumnBudget extends Budget {
     this.untilYield = 2048;
     runYieldCheckpoint(this.context.signal);
     const now = monotonicNow();
-    if (this.yieldedOnce && now - this.lastYield < 16) return;
+    if (this.yieldedOnce && now - this.lastYield < 16 && !hasYieldCheckpoint(this.context.signal)) return;
     this.yieldedOnce = true;
     this.lastYield = now;
     return yieldTurn(this.context.signal).then(() => {
@@ -108,17 +108,33 @@ export class ColumnBudget extends Budget {
   }
 }
 
+const columnSignalWaiters = new WeakMap<AbortSignal, Set<() => void>>();
+function getColumnSignalWaiters(signal: AbortSignal): Set<() => void> {
+  let waiters = columnSignalWaiters.get(signal);
+  if (!waiters) {
+    waiters = new Set();
+    columnSignalWaiters.set(signal, waiters);
+    signal.addEventListener("abort", () => {
+      const pending = [...waiters!];
+      waiters!.clear();
+      for (const fn of pending) fn();
+    }, { once: true });
+  }
+  return waiters;
+}
+
 function cancellable<Result>(operation: () => Promise<Result>, signal: AbortSignal): Promise<Result> {
   signal.throwIfAborted();
+  const waiters = getColumnSignalWaiters(signal);
   return new Promise<Result>((resolve, reject) => {
-    const onAbort = (): void => { signal.removeEventListener("abort", onAbort); reject(signal.reason); };
-    signal.addEventListener("abort", onAbort, { once: true });
+    const onAbort = (): void => { waiters.delete(onAbort); reject(signal.reason); };
+    waiters.add(onAbort);
     try {
       Promise.resolve(operation()).then(value => {
-        signal.removeEventListener("abort", onAbort);
+        waiters.delete(onAbort);
         if (signal.aborted) reject(signal.reason); else resolve(value);
-      }, error => { signal.removeEventListener("abort", onAbort); reject(error); });
-    } catch (error) { signal.removeEventListener("abort", onAbort); reject(error); }
+      }, error => { waiters.delete(onAbort); reject(error); });
+    } catch (error) { waiters.delete(onAbort); reject(error); }
   });
 }
 

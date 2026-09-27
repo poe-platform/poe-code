@@ -3,6 +3,36 @@ import { FsError, toFsError } from "../contracts/errors.js";
 import { finishCleanup } from "../contracts/cleanup.js";
 import { inspectStagingBindings } from "./staging-ancestry.js";
 
+const signalWaiters = new WeakMap<AbortSignal, Set<() => void>>();
+
+function getSignalWaiters(signal: AbortSignal): Set<() => void> {
+  let waiters = signalWaiters.get(signal);
+  if (!waiters) {
+    waiters = new Set();
+    signalWaiters.set(signal, waiters);
+    signal.addEventListener("abort", () => {
+      const pending = [...waiters!];
+      waiters!.clear();
+      for (const fn of pending) fn();
+    }, { once: true });
+  }
+  return waiters;
+}
+
+function awaitWithSignal<Value>(promise: Promise<Value>, signal: AbortSignal | undefined): Promise<Value> {
+  if (!signal) return promise;
+  return new Promise<Value>((resolve, reject) => {
+    const waiters = getSignalWaiters(signal);
+    const abort = (): void => { waiters.delete(abort); reject(signal.reason); };
+    waiters.add(abort);
+    promise.then(
+      value => { waiters.delete(abort); resolve(value); },
+      error => { waiters.delete(abort); reject(error); },
+    );
+    if (signal.aborted) abort();
+  });
+}
+
 export function retainedReadCapabilities(filesystem: FileSystem, capabilities = filesystem.capabilities): FileSystemCapabilities {
   return typeof filesystem.openReadFile === "function" ? capabilities : { ...capabilities, retainedRead: false };
 }
@@ -18,15 +48,7 @@ export async function openRetainedReadFile(filesystem: FileSystem, path: string,
     const query = filesystem.capabilitiesFor;
     signal?.throwIfAborted();
     const metadata = Promise.resolve(query == null ? undefined : Reflect.apply(query, filesystem, [path, options]));
-    const queried = await (signal ? new Promise<FileSystemCapabilities | undefined>((resolve, reject) => {
-      const abort = (): void => { signal.removeEventListener("abort", abort); reject(signal.reason); };
-      signal.addEventListener("abort", abort, { once: true });
-      metadata.then(
-        value => { signal.removeEventListener("abort", abort); resolve(value); },
-        error => { signal.removeEventListener("abort", abort); reject(error); },
-      );
-      if (signal.aborted) abort();
-    }) : metadata);
+    const queried = await awaitWithSignal(metadata, signal);
     signal?.throwIfAborted();
     const capabilities = queried ?? filesystem.capabilities;
     signal?.throwIfAborted();
@@ -69,15 +91,7 @@ export async function openRetainedResizeFile(filesystem: FileSystem, path: strin
     const intent = { ...(signal === undefined ? {} : { signal }), create: options.create === true };
     signal?.throwIfAborted();
     const metadata = Promise.resolve(query === undefined ? filesystem.capabilities : Reflect.apply(query, filesystem, [path, intent]));
-    const capabilities = await (signal ? new Promise<FileSystemCapabilities>((resolve, reject) => {
-      const abort = (): void => { signal.removeEventListener("abort", abort); reject(signal.reason); };
-      signal.addEventListener("abort", abort, { once: true });
-      metadata.then(
-        value => { signal.removeEventListener("abort", abort); resolve(value); },
-        error => { signal.removeEventListener("abort", abort); reject(error); },
-      );
-      if (signal.aborted) abort();
-    }) : metadata);
+    const capabilities = await awaitWithSignal(metadata, signal);
     signal?.throwIfAborted();
     const readOnly = capabilities.readOnly;
     signal?.throwIfAborted();

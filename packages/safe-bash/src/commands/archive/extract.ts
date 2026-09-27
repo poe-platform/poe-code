@@ -31,33 +31,45 @@ function relativeName(name: string, strip: number): string | undefined {
   return stripped.join("/");
 }
 
-async function checkRoot(context: CommandContext, root: string): Promise<void> {
+async function checkRoot(context: CommandContext, root: string): Promise<FileStagingEntry[]> {
+  const ancestors: FileStagingEntry[] = [];
+  const slashStat = await operation(context, () => context.fs.lstat("/", { signal: context.signal }));
+  if (slashStat.type !== "directory") fail(`not an extraction directory: /`);
+  ancestors.push({ path: "/", stat: slashStat });
+  if (root === "/") return ancestors;
+  const parts = root.split("/").filter(Boolean);
   let path = "/";
-  for (const component of root.split("/").filter(Boolean)) {
-    path = resolvePath(path, component);
+  for (let i = 0; i < parts.length - 1; i++) {
+    path = resolvePath(path, parts[i]!);
     const stat = await operation(context, () => context.fs.lstat(path, { signal: context.signal }));
     if (stat.type !== "directory") fail(`extraction root has a non-directory or symlink ancestor: ${display(path)}`);
+    ancestors.push({ path, stat });
   }
   const stat = await operation(context, () => context.fs.lstat(root, { signal: context.signal }));
   if (stat.type !== "directory") fail(`not an extraction directory: ${display(root)}`);
+  ancestors.push({ path: root, stat });
+  return ancestors;
 }
 
-async function parents(context: CommandContext, root: string, path: string, create: boolean, allowMissing = false): Promise<void> {
+async function parents(context: CommandContext, root: string, path: string, create: boolean, allowMissing = false): Promise<FileStagingEntry[]> {
   if (!isPathWithin(root, path)) fail("extraction path escapes root");
-  await checkRoot(context, root);
+  const ancestors = await checkRoot(context, root);
   const relative = path.slice(root === "/" ? 1 : root.length + 1);
   let parent = root;
   for (const component of relative.split("/").slice(0, -1)) {
     if (!component) continue;
     parent = resolvePath(parent, component);
-    const stat = await maybeStat(context, parent);
+    let stat = await maybeStat(context, parent);
     if (!stat && create) {
       if (!context.fs.prepareDirectory) fail("extraction requires conditional directory creation");
-      const identity = await context.fs.lstat(dirname(parent), { signal: context.signal });
+      const identity = ancestors.at(-1)!.stat;
       await context.fs.prepareDirectory(parent, { signal: context.signal, parent: identity, expected: null, mode: 0o700 });
+      stat = await context.fs.lstat(parent, { signal: context.signal });
     }
     else if ((!stat && !allowMissing) || (stat && stat.type !== "directory")) fail(`unsafe non-directory or symlink ancestor: ${display(parent)}`);
+    if (stat) ancestors.push({ path: parent, stat });
   }
+  return ancestors;
 }
 
 async function removeExisting(context: CommandContext, path: string, stat: FileStat | undefined): Promise<void> {
@@ -130,17 +142,22 @@ async function metadata(context: CommandContext, path: string, entry: ReadEntry,
 }
 
 let stagingSerial = 0;
-async function stageEntry(context: CommandContext, path: string, source: ByteSource, existing: FileStat | undefined, entry: ReadEntry, options: TarOptions, budget: Budget): Promise<void> {
+async function stageEntry(context: CommandContext, path: string, source: ByteSource, existing: FileStat | undefined, entry: ReadEntry, options: TarOptions, budget: Budget, preparedAncestors?: FileStagingEntry[]): Promise<void> {
   const { fs, signal } = context;
   const capabilities = await fs.capabilitiesFor?.(path, { signal, create: true, stagingAncestry: true }) ?? fs.capabilities;
   if ((capabilities.atomicFileStaging !== true && capabilities.trustedOwnedStaging !== true) || capabilities.atomicStagingAncestry !== true || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile) fail("extraction requires atomic staging and ancestry verification");
-  const ancestors: FileStagingEntry[] = [];
-  let current = "/";
-  for (const component of ["", ...dirname(path).split("/").filter(Boolean)]) {
-    if (component) current = resolvePath(current, component);
-    const stat = await fs.lstat(current, { signal });
-    if (stat.type !== "directory") fail("unsafe extraction ancestor");
-    ancestors.push({ path: current, stat });
+  let ancestors: FileStagingEntry[];
+  if (preparedAncestors) {
+    ancestors = preparedAncestors;
+  } else {
+    ancestors = [];
+    let current = "/";
+    for (const component of ["", ...dirname(path).split("/").filter(Boolean)]) {
+      if (component) current = resolvePath(current, component);
+      const stat = await fs.lstat(current, { signal });
+      if (stat.type !== "directory") fail("unsafe extraction ancestor");
+      ancestors.push({ path: current, stat });
+    }
   }
   const parent = ancestors.at(-1)!.stat;
   let staging: FileStaging | undefined;
@@ -177,11 +194,31 @@ async function stageEntry(context: CommandContext, path: string, source: ByteSou
       const writer = staging.writer;
       if (!writer) fail("filesystem did not return a retained staged writer");
       let written = 0;
+      const flushThreshold = Math.min(65536, budget.limits.chunkSize);
+      let buf: Uint8Array | undefined;
+      let bufUsed = 0;
       for await (const bytes of source) {
         signal.throwIfAborted();
         if (bytes.byteLength > maximum - written) fail("entry byte limit exceeded");
-        await writer.write(bytes, { signal });
         written += bytes.byteLength;
+        if (bytes.byteLength >= flushThreshold) {
+          if (bufUsed > 0) {
+            await writer.write(buf!.subarray(0, bufUsed), { signal });
+            bufUsed = 0;
+          }
+          await writer.write(bytes, { signal });
+        } else {
+          if (!buf) buf = new Uint8Array(flushThreshold);
+          if (bufUsed + bytes.byteLength > flushThreshold) {
+            await writer.write(buf.subarray(0, bufUsed), { signal });
+            bufUsed = 0;
+          }
+          buf.set(bytes, bufUsed);
+          bufUsed += bytes.byteLength;
+        }
+      }
+      if (bufUsed > 0) {
+        await writer.write(buf!.subarray(0, bufUsed), { signal });
       }
       const stat = await writer.finish({ signal });
       staging = { ...staging, file: { ...staging.file, stat } };
@@ -414,7 +451,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
           directories.delete(directory);
         }
       }
-      await parents(context, root, path, true);
+      const preparedAncestors = await parents(context, root, path, true);
       if (options.metadata.permissions === true && entry.type !== "2" && entry.type !== "1") {
         const capabilities = await operation(context, () => context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities);
         if (!context.fs.prepareDirectory || capabilities.permissions === false) fail("filesystem does not support restoring archive permissions");
@@ -431,9 +468,10 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
       }
       if (existing?.type === "file" && archiveStat && (!hasIdentity(existing) || !hasIdentity(archiveStat))) fail("cannot replace an existing file with unknown input-archive/destination backing identity");
       if (entry.type === "2") {
-        if (existing && existing.type !== "file") await removeExisting(context, path, existing);
+        const hadNonFile = Boolean(existing && existing.type !== "file");
+        if (hadNonFile) await removeExisting(context, path, existing);
         published.delete(path); directories.delete(path);
-        await stageEntry(context, path, reader.body(0), existing?.type === "file" ? existing : undefined, entry, options, budget);
+        await stageEntry(context, path, reader.body(0), existing?.type === "file" ? existing : undefined, entry, options, budget, hadNonFile ? undefined : preparedAncestors);
       } else if (entry.type === "1") {
         await removeExisting(context, path, existing);
         published.delete(path); directories.delete(path);
@@ -449,9 +487,10 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
         published.delete(path);
         directories.set(path, { root, entry });
       } else {
-        if (existing && existing.type !== "file") await removeExisting(context, path, existing);
+        const hadNonFile = Boolean(existing && existing.type !== "file");
+        if (hadNonFile) await removeExisting(context, path, existing);
         published.delete(path); directories.delete(path);
-        await stageEntry(context, path, reader.body(entry.size), existing?.type === "file" ? existing : undefined, entry, options, budget);
+        await stageEntry(context, path, reader.body(entry.size), existing?.type === "file" ? existing : undefined, entry, options, budget, hadNonFile ? undefined : preparedAncestors);
         published.set(path, await operation(context, () => context.fs.lstat(path, { signal: context.signal })));
       }
       await reader.padding(entry.size);

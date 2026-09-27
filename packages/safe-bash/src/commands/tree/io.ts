@@ -1,3 +1,18 @@
+const treeUtf8Encoder = new TextEncoder();
+const treeSignalWaiters = new WeakMap<AbortSignal, Set<() => void>>();
+function getTreeSignalWaiters(signal: AbortSignal): Set<() => void> {
+  let waiters = treeSignalWaiters.get(signal);
+  if (!waiters) {
+    waiters = new Set();
+    treeSignalWaiters.set(signal, waiters);
+    signal.addEventListener("abort", () => {
+      const pending = [...waiters!];
+      waiters!.clear();
+      for (const fn of pending) fn();
+    }, { once: true });
+  }
+  return waiters;
+}
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { hasYieldCheckpoint, monotonicNow, yieldTurn } from "../../contracts/yield.js";
 import { escapeText } from "../../escaping.js";
@@ -89,25 +104,26 @@ export class WalkBudget {
       this.lastYield = monotonicNow();
     }
     signal.throwIfAborted();
-    let abort!: () => void;
-    const aborted = new Promise<never>((_resolve, reject) => {
-      abort = () => reject(signal.reason);
-      signal.addEventListener("abort", abort, { once: true });
-    });
-    try {
-      const result = await Promise.race([Promise.resolve().then(() => {
+    const waiters = getTreeSignalWaiters(signal);
+    const result = await new Promise<Result>((resolve, reject) => {
+      const abort = () => { waiters.delete(abort); reject(signal.reason); };
+      waiters.add(abort);
+      Promise.resolve().then(() => {
         signal.throwIfAborted();
         return operation();
-      }), aborted]);
-      signal.throwIfAborted();
-      return result;
-    } finally { signal.removeEventListener("abort", abort); }
+      }).then(
+        value => { waiters.delete(abort); resolve(value); },
+        error => { waiters.delete(abort); reject(error); },
+      );
+    });
+    signal.throwIfAborted();
+    return result;
   }
 
   async emit(sink: ByteSink, value: string): Promise<void> {
     const size = this.outputText(value);
     this.output += size;
-    const bytes = new TextEncoder().encode(value);
+    const bytes = treeUtf8Encoder.encode(value);
     for (let offset = 0; offset < bytes.length; offset += 16384) {
       await writeBytes(sink, bytes.slice(offset, offset + 16384), this.context.signal);
       this.context.signal.throwIfAborted();

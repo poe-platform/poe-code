@@ -86,9 +86,18 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       close() { closed = true; return close(); },
     };
   };
+  let cachedCallerSignal: AbortSignal | undefined;
+  let cachedCombinedSignal: AbortSignal | undefined;
+  const combineSignal = (callerSignal: AbortSignal | undefined): AbortSignal => {
+    if (!callerSignal || callerSignal === signal) return signal;
+    if (callerSignal === cachedCallerSignal && cachedCombinedSignal) return cachedCombinedSignal;
+    cachedCallerSignal = callerSignal;
+    cachedCombinedSignal = AbortSignal.any([signal, callerSignal]);
+    return cachedCombinedSignal;
+  };
   const resizeOptions = <Options extends FsOptions>(options: Options): Options => {
     const scopedOptions = {
-      ...options, signal: options.signal ? AbortSignal.any([signal, options.signal]) : signal,
+      ...options, signal: combineSignal(options.signal),
     };
     scopedOptions.signal.throwIfAborted();
     return scopedOptions;
@@ -229,7 +238,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
           signal.throwIfAborted();
           if (property === "createStagedFile") args[3] = snapshotStagingCreation(args[3] as CreateStagedFileOptions, args[0] as string);
           const callerSignal = (args[property === "createStagedFile" ? 3 : 2] as FsOptions | undefined)?.signal;
-          stagingSignal = callerSignal && callerSignal !== signal ? AbortSignal.any([signal, callerSignal]) : signal;
+          stagingSignal = combineSignal(callerSignal);
           stagingSignal.throwIfAborted();
         }
         if (operations.has(property as keyof FileSystem)) {
@@ -440,6 +449,10 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
   originals.set(view, originalRecord);
   retargeters.set(view, (nextCharge, nextSignal, nextCleanupCharge, nextMaxPathComponents) => {
     charge = nextCharge;
+    if (signal !== nextSignal) {
+      cachedCallerSignal = undefined;
+      cachedCombinedSignal = undefined;
+    }
     signal = nextSignal;
     cleanupCharge = nextCleanupCharge;
     maxPathComponents = nextMaxPathComponents ?? originals.get(filesystem)?.maxPathComponents;

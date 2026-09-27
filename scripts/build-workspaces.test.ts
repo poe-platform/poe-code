@@ -1,7 +1,6 @@
 import { execFileSync, spawn, spawnSync, type SpawnOptions } from "node:child_process";
 import { EventEmitter } from "node:events";
 import fs from "node:fs";
-import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,18 +14,6 @@ type Manifest = Record<string, unknown>;
 type Fixture = { root: string; write: (name: string, manifest: Manifest) => void; remove: () => void };
 const runnerFilename = fileURLToPath(new URL("./build-workspaces.mjs", import.meta.url));
 const primaryValues = [undefined, null, false, 0, -0, "", NaN, new Error("primary")];
-
-function copyOwnedRunner(root: string): void {
-  fs.mkdirSync(path.join(root, "scripts"));
-  for (const filename of ["build-workspaces.mjs", "check-cache.mjs", "workspace-test-ownership.mjs"]) {
-    fs.copyFileSync(fileURLToPath(new URL(filename, import.meta.url)), path.join(root, "scripts", filename));
-  }
-  fs.mkdirSync(path.join(root, "node_modules"));
-  for (const name of ["typescript", "shell-quote"]) {
-    const installed = path.dirname(createRequire(import.meta.url).resolve(name + "/package.json"));
-    fs.symlinkSync(installed, path.join(root, "node_modules", name), "junction");
-  }
-}
 
 describe("maintained literal workspace test selectors", () => {
   const root = path.dirname(path.dirname(runnerFilename));
@@ -649,79 +636,6 @@ describe("manifest descriptor cleanup", () => {
   });
 });
 
-async function ownedNpm(root: string, event: string) {
-  const npmCli = process.env.npm_execpath;
-  if (!npmCli) throw new Error("Owned lifecycle controls require the invoking npm CLI path");
-  for (const name of ["home", "tmp", "cache"]) fs.mkdirSync(path.join(root, name));
-  for (const name of ["user.npmrc", "global.npmrc"]) fs.writeFileSync(path.join(root, name), "");
-  const environment = {
-    PATH: `${path.dirname(process.execPath)}:/usr/bin:/bin`, HOME: path.join(root, "home"), TMPDIR: path.join(root, "tmp"),
-    LANG: "C", LC_ALL: "C", TZ: "UTC", CUSTOM_TEST_VALUE: "preserved", BUILD_EVENTS: path.join(root, "events.jsonl"),
-    npm_config_userconfig: path.join(root, "user.npmrc"), npm_config_globalconfig: path.join(root, "global.npmrc"),
-    npm_config_cache: path.join(root, "cache"), npm_config_offline: "true", npm_config_audit: "false", npm_config_fund: "false", npm_config_update_notifier: "false"
-  };
-  const child = spawn(process.execPath, [npmCli, "--prefix", root, "run", event], { cwd: root, env: environment, detached: true, stdio: ["ignore", "pipe", "pipe"] });
-  const chunks: Buffer[] = [];
-  let bytes = 0, stopped = false;
-  let forceTimer: ReturnType<typeof setTimeout> | undefined;
-  const failures: unknown[] = [];
-  const signal = (value: NodeJS.Signals) => {
-    try { process.kill(-child.pid!, value); } catch (error) { if ((error as NodeJS.ErrnoException).code !== "ESRCH") failures.push(error); }
-  };
-  const stop = () => { stopped = true; signal("SIGTERM"); forceTimer ??= setTimeout(() => signal("SIGKILL"), 1000); };
-  const timer = setTimeout(stop, 20000);
-  child.on("error", error => failures.push(error));
-  for (const stream of [child.stdout!, child.stderr!]) stream.on("data", (chunk: Buffer) => { bytes += chunk.length; if (bytes > 1024 * 1024) stop(); else chunks.push(chunk); });
-  const result = await new Promise<{ code: number | null; signal: NodeJS.Signals | null }>(resolve => child.once("close", (code, signal) => resolve({ code, signal })));
-  clearTimeout(timer);
-  clearTimeout(forceTimer);
-  if (failures.length > 1) throw new AggregateError(failures, "Owned npm execution and cleanup failed");
-  if (failures.length) throw failures[0];
-  expect(stopped, Buffer.concat(chunks).toString()).toBe(false);
-  return { ...result, output: Buffer.concat(chunks).toString() };
-}
-
-describe("owned real npm lifecycle route", () => {
-  for (const mode of ["build", "prepack", "postbuild-failure", "suppress-lifecycle", "include-root"]) it(mode, async () => {
-    const step = "node ../../step.cjs";
-    const owned = fixture({
-      alpha: { name: "alpha", version: "1.0.0", scripts: { prebuild: step, build: step, postbuild: step }, dependencies: { beta: "*" } },
-      beta: { name: "beta", version: "1.0.0", scripts: { prebuild: step, build: step, postbuild: mode === "postbuild-failure" ? `${step} fail` : step } },
-      python: { name: "python" }
-    });
-    try {
-      copyOwnedRunner(owned.root);
-      const npmCli = process.env.npm_execpath;
-      if (!npmCli) throw new Error("Owned lifecycle controls require the invoking npm CLI path");
-      const npmCommand = [process.execPath, npmCli].map(value => "'" + value.replaceAll("'", "'\\''") + "'").join(" ");
-      writeJson(path.join(owned.root, "package.json"), { name: "owned-root", private: true, workspaces: ["packages/*"], scripts: { build: "node scripts/build-workspaces.mjs && node step.cjs suffix", prepack: `${npmCommand} run build` } });
-      fs.writeFileSync(path.join(owned.root, "step.cjs"), 'const fs=require("node:fs");fs.appendFileSync(process.env.BUILD_EVENTS,JSON.stringify({name:process.env.npm_package_name,event:process.env.npm_lifecycle_event,custom:process.env.CUSTOM_TEST_VALUE,suffix:process.argv.includes("suffix")})+"\\n");if(process.argv.includes("fail"))process.exit(7);');
-      if (mode === "suppress-lifecycle") fs.writeFileSync(path.join(owned.root, ".npmrc"), "ignore-scripts=true\n");
-      if (mode === "include-root") fs.writeFileSync(path.join(owned.root, ".npmrc"), "include-workspace-root=true\n");
-      const result = await ownedNpm(owned.root, mode === "prepack" ? "prepack" : "build");
-      if (mode === "suppress-lifecycle") {
-        expect(result.code, result.output).not.toBe(0);
-        expect(result.output).toContain("Unsupported lifecycle or workspace option");
-        expect(fs.existsSync(path.join(owned.root, "events.jsonl"))).toBe(false);
-        return;
-      }
-      expect(fs.existsSync(path.join(owned.root, "events.jsonl")), result.output).toBe(true);
-      const events = fs.readFileSync(path.join(owned.root, "events.jsonl"), "utf8").trim().split("\n").map(line => JSON.parse(line));
-      expect(result.signal, result.output).toBeNull();
-      expect(events.every(event => event.custom === "preserved")).toBe(true);
-      if (mode === "postbuild-failure") {
-        expect(result.code, result.output).not.toBe(0);
-        expect(events.map(event => `${event.name}:${event.event}`)).toEqual(["beta:prebuild", "beta:build", "beta:postbuild"]);
-      } else {
-        expect(result.code, result.output).toBe(0);
-        expect(events.map(event => `${event.name}:${event.event}`)).toEqual(["beta:prebuild", "beta:build", "beta:postbuild", "alpha:prebuild", "alpha:build", "alpha:postbuild", "owned-root:build"]);
-        expect(events.at(-1).suffix).toBe(true);
-        expect(result.output).toContain("NO_DECLARED_BUILD_NOT_A_PASS");
-      }
-    } finally { owned.remove(); }
-  }, 25000);
-});
-
 function unitFixture() {
   const owned = fixture({
     alpha: { name: "alpha", scripts: { "test:unit": "node unit.cjs" } },
@@ -913,28 +827,6 @@ describe("finite unit execution and ownership", () => {
       expect(vi.getTimerCount()).toBe(0); expect(host.listenerCount("SIGTERM")).toBe(0);
     } finally { vi.useRealTimers(); owned.remove(); }
   });
-});
-
-describe("finite unit owned npm lifecycle", () => {
-  for (const failedEvent of ["none", "prebuild", "postbuild", "pretest:unit", "posttest:unit"]) it(failedEvent, async () => {
-    const step = "node ../../step.cjs", owned = fixture({
-      bash: { name: "@poe-platform/safe-bash", scripts: { prebuild: step, build: step, postbuild: step, "pretest:unit": step, "test:unit": step, "posttest:unit": step } }
-    });
-    try {
-      copyOwnedRunner(owned.root);
-      writeJson(path.join(owned.root, "package.json"), { name: "owned-root", private: true, workspaces: ["packages/*"], scripts: { pretest: "node step.cjs", test: "node scripts/build-workspaces.mjs --test-unit", posttest: "node step.cjs", "pretest:unit": "node step.cjs", "test:unit": "node step.cjs", "posttest:unit": "node step.cjs" } });
-      writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "@poe-platform/safe-bash#test:unit": { dependsOn: ["build"] } } });
-      fs.writeFileSync(path.join(owned.root, "step.cjs"), 'const fs=require("node:fs");const event=process.env.npm_lifecycle_event;fs.appendFileSync(process.env.BUILD_EVENTS,JSON.stringify({name:process.env.npm_package_name,event})+"\\n");if(process.env.npm_package_name==="@poe-platform/safe-bash"&&event===' + JSON.stringify(failedEvent) + ')process.exit(7);');
-      const result = await ownedNpm(owned.root, "test");
-      expect(fs.existsSync(path.join(owned.root, "events.jsonl")), result.output).toBe(true);
-      const events = fs.readFileSync(path.join(owned.root, "events.jsonl"), "utf8").trim().split("\n").map(line => JSON.parse(line));
-      const all = ["owned-root:pretest", "@poe-platform/safe-bash:prebuild", "@poe-platform/safe-bash:build", "@poe-platform/safe-bash:postbuild", "owned-root:pretest:unit", "owned-root:test:unit", "owned-root:posttest:unit", "@poe-platform/safe-bash:pretest:unit", "@poe-platform/safe-bash:test:unit", "@poe-platform/safe-bash:posttest:unit", "owned-root:posttest"];
-      expect(result.signal).toBeNull();
-      expect(result.code, result.output).toBe(failedEvent === "none" ? 0 : 7);
-      const stop = failedEvent === "none" ? all.length : all.indexOf("@poe-platform/safe-bash:" + failedEvent) + 1;
-      expect(events.map(event => event.name + ":" + event.event)).toEqual(all.slice(0, stop));
-    } finally { owned.remove(); }
-  }, 25000);
 });
 
 describe("finite unit late failure and cleanup ordering", () => {

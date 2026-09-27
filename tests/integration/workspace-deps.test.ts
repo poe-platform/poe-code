@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import rootUnitConfig from "../../vitest.root.config.js";
@@ -46,9 +46,11 @@ function findTestFiles(dir: string): boolean {
 }
 
 describe("workspace dependency completeness", () => {
+  let plan: ReturnType<typeof createWorkspaceTestPlan>;
+  beforeAll(() => { plan = createWorkspaceTestPlan(ROOT); });
   it.each(["safe-bash-command-xz", "safe-bash-compression-engine"])("runs %s only through its declared Node task", name => {
     expect(rootUnitConfig.test?.exclude).toContain(`packages/${name}/src/*.test.ts`);
-    const stages = sharedVitestStages(createWorkspaceTestPlan(ROOT));
+    const stages = sharedVitestStages(plan);
     expect(stages.filter(stage => stage.name === name)).toEqual([
       { id: `${name}#test:unit`, name, path: `packages/${name}`, event: "test:unit" }
     ]);
@@ -57,7 +59,6 @@ describe("workspace dependency completeness", () => {
 
   it("runs csvcut node:test files once through their declared workspace task", () => {
     expect(rootUnitConfig.test?.exclude).toContain("packages/safe-bash-command-csvcut/src/*.test.ts");
-    const plan = createWorkspaceTestPlan(ROOT);
     expect(plan.testStages.filter(stage => stage.name === "safe-bash-command-csvcut")).toEqual([
       { id: "safe-bash-command-csvcut#test:unit", name: "safe-bash-command-csvcut", path: "packages/safe-bash-command-csvcut", event: "test:unit" }
     ]);
@@ -67,7 +68,6 @@ describe("workspace dependency completeness", () => {
   });
   it("keeps op node:test files out of Vitest while retaining their maintained workspace task", () => {
     expect(rootUnitConfig.test?.exclude).toContain("packages/safe-bash-command-op/src/*.test.ts");
-    const plan = createWorkspaceTestPlan(ROOT);
     expect(plan.testStages.filter(stage => stage.name === "safe-bash-command-op")).toEqual([
       { id: "safe-bash-command-op#test:unit", name: "safe-bash-command-op", path: "packages/safe-bash-command-op", event: "test:unit" }
     ]);
@@ -78,7 +78,6 @@ describe("workspace dependency completeness", () => {
 
   it("runs fold node:test suites through their maintained workspace task", () => {
     expect(rootUnitConfig.test?.exclude).toContain("packages/safe-bash-command-fold/src/*.test.ts");
-    const plan = createWorkspaceTestPlan(ROOT);
     expect(plan.testStages.filter(stage => stage.name === "safe-bash-command-fold")).toEqual([
       { id: "safe-bash-command-fold#test:unit", name: "safe-bash-command-fold", path: "packages/safe-bash-command-fold", event: "test:unit" }
     ]);
@@ -89,7 +88,6 @@ describe("workspace dependency completeness", () => {
 
   it("runs htmlq node:test suites only through the maintained private workspace task", () => {
     expect(rootUnitConfig.test?.exclude).toContain("packages/safe-bash-command-htmlq/src/*.test.ts");
-    const plan = createWorkspaceTestPlan(ROOT);
     expect(plan.testStages.filter(stage => stage.name === "safe-bash-command-htmlq")).toEqual([
       { id: "safe-bash-command-htmlq#test:unit", name: "safe-bash-command-htmlq", path: "packages/safe-bash-command-htmlq", event: "test:unit" }
     ]);

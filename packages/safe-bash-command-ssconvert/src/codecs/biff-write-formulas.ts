@@ -142,6 +142,7 @@ export class BiffFormulaWriter {
     const root = definition ? parseNamedExpression(definition, this.book, parse, () => this.context.signal.throwIfAborted()) :
       parse(source, { sheet, row, column });
     const bytes: number[] = [], arrays: number[] = [], diagnostics: Diagnostic[] = [];
+    let sheetLossReported = false;
     const relocations: { offset: number; index: number; kind: "sheet" | "name" }[] = [];
     const push = (part: Uint8Array | readonly number[], target = bytes): void => {
       if (part.length > this.context.limits.outputBytes - bytes.length - arrays.length)
@@ -182,15 +183,22 @@ export class BiffFormulaWriter {
         const opcode = operators[node.op]; if (opcode === undefined) throw new SsconvertError("unsupported-feature", `Unsupported Excel operator '${node.op}'`);
         visit(node.left); visit(node.right); push([opcode]);
       } else if (node.kind === "reference") {
-        if (node.first.sheetRelative && (node.first.sheet || node.last?.sheet) || node.last?.sheet && node.last.sheetRelative)
-          throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: relative sheet reference in Excel BIFF");
+        if (!sheetLossReported && (node.first.sheetRelative && (node.first.sheet || node.last?.sheet) || node.last?.sheet && node.last.sheetRelative)) {
+          // LibreOffice's BIFF exporter resolves tabs at the formula anchor and
+          // writes fixed EXTERNSHEET links, losing explicit sheet relativity.
+          const location = definition ? `name '${definition.name}'` :
+            `cell '${this.book.sheets.find(candidate => candidate.id === sheet)?.name ?? sheet}' R${row + 1}C${column + 1}`;
+          diagnostics.push({ code: "biff-loss-warning", severity: "warning",
+            message: `Excel BIFF exports relative sheet references in ${location} as fixed sheet references; copying across sheets or evaluating names from another sheet can change results` });
+          sheetLossReported = true;
+        }
         if (node.last?.workbook && node.last.workbook !== node.first.workbook)
           throw new SsconvertError("unsupported-feature", "Excel BIFF range spans different workbooks");
         const endpoint = (ref: ReferenceEndpoint, end: boolean): ReferenceEndpoint => ({ ...ref,
           row: ref.row ?? { value: end ? this.revision === 8 ? 65535 : 16383 : 0, relative: false },
           column: ref.column ?? { value: end ? 255 : 0, relative: false } });
         const first = reference(endpoint(node.first, false)), last = node.last ? reference(endpoint(node.last, true)) : undefined;
-        const qualified = node.first.sheet !== undefined || !!node.first.workbook;
+        const qualified = node.first.sheet !== undefined || node.last?.sheet !== undefined || !!node.first.workbook;
         let index = 0, firstSheet = 0, lastSheet = 0;
         if (qualified) {
           if (node.first.workbook) {
@@ -202,7 +210,8 @@ export class BiffFormulaWriter {
               throw new SsconvertError("unsupported-feature", "Excel BIFF7 external range cannot span sheets");
             index = this.sheetLink(book, firstSheet, lastSheet);
           } else {
-            firstSheet = this.book.sheets.findIndex(s => foldSheetName(s.name) === foldSheetName(node.first.sheet!));
+            firstSheet = node.first.sheet === undefined ? this.book.sheets.findIndex(s => s.id === sheet) :
+              this.book.sheets.findIndex(s => foldSheetName(s.name) === foldSheetName(node.first.sheet!));
             lastSheet = node.last?.sheet !== undefined ? this.book.sheets.findIndex(s => foldSheetName(s.name) === foldSheetName(node.last!.sheet!)) : firstSheet;
             if (firstSheet < 0) firstSheet = 0xffff;
             if (lastSheet < 0) lastSheet = 0xffff;

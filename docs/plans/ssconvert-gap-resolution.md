@@ -332,8 +332,8 @@ The shared model now retains per-endpoint sheet relativity in standard `of:=`
 formula strings, including names and array groups. ODF preserves sheet `$`
 markers; XML/XLSX carry the source and named anchor in the existing ssconvert
 namespace beside a fixed-target fallback. Readers ignoring those annotations
-lose relative-sheet copy semantics. BIFF export explicitly refuses named relative
-sheets. Recalculation resolves named expressions from their declaration anchor;
+lose relative-sheet copy semantics. BIFF7/8 export resolves relative targets at the formula or name declaration
+anchor, with a warning for the lost relative-sheet behavior. Recalculation resolves named expressions from their declaration anchor;
 SDK copy translation follows workbook tab order, while moves retain target identity.
 CLI `--set` and SDK text updates accept OpenFormula.
 
@@ -371,9 +371,16 @@ The BIFF exporter audit now records pinned LibreOffice `xeformula.cxx` under
 `reference.sheetReferenceSemantics.biffExportSource`. Its cell/range exporter
 resolves relative sheets at the base position and writes fixed EXTERNSHEET links;
 row/column relativity is encoded separately. A missing base position can instead
-produce an invalid tab. Next implement a diagnosed fixed-target export for known
-anchors and qualify it independently. This does not preserve relative-sheet copy
-semantics or establish lossless relative named-expression roundtrips.
+produce an invalid tab. BIFF7/8 now exports fixed targets and reports one
+`biff-loss-warning` per affected formula or name. Implicit first-sheet range
+endpoints bind to the actual source sheet. Six initial regressions failed; ten
+focused cases and all 1,309 checks in the 58-file BIFF/relative-sheet cohort pass.
+Named-expression readback deliberately changes a caller-relative result from 10
+to the declared target 11, with a warning. This does not preserve relative-sheet
+copy semantics or establish lossless relative named-expression roundtrips.
+Maintained lint/source/test/consumer types and selected build pass. Four compiled
+SDK/command BIFF7/8 exports reopen as 33/11 with two warnings and 4096-byte
+outputs; actual command screenshot inspected. Native readback remains open.
 
 
 LibreOffice's separate WK3/WK4 reader also exposed a missing BOF version:

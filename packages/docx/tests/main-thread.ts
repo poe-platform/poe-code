@@ -1,15 +1,28 @@
-import { fork, type ChildProcess } from "node:child_process";
+import { spawn, type ChildProcess } from "node:child_process";
+import { build } from "esbuild";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll } from "vitest";
 
-/** Keep the real main-thread stack, but pay the TypeScript/module startup once per suite. */
+/** Keep the real main-thread stack without a runtime TypeScript loader. */
 export function mainThreadFixture(fixture: URL): (request: unknown) => Promise<string> {
   let child: ChildProcess;
   let pending: { resolve(value: string): void; reject(error: Error): void } | undefined;
   let stderr = "";
   beforeAll(async () => {
-    child = fork(fileURLToPath(new URL("./main-thread-host.ts", import.meta.url)), [fixture.href], {
-      execArgv: ["--import", "tsx"], stdio: ["ignore", "ignore", "pipe", "ipc"]
+    const directory = fileURLToPath(new URL(".", fixture));
+    const { outputFiles } = await build({
+      stdin: {
+        contents: `import { run } from ${JSON.stringify(fileURLToPath(fixture))};
+import { serveFixture } from ${JSON.stringify(fileURLToPath(new URL("./main-thread-host.ts", import.meta.url)))};
+serveFixture(run);`,
+        resolveDir: directory,
+        sourcefile: "main-thread-fixture.ts"
+      },
+      bundle: true, write: false, platform: "node", format: "esm", target: "node22",
+      packages: "external", sourcemap: "inline", sourcesContent: false
+    });
+    child = spawn(process.execPath, ["--input-type=module", "--enable-source-maps", "-"], {
+      cwd: directory, stdio: ["pipe", "ignore", "pipe", "ipc"]
     });
     child.stderr!.on("data", bytes => { stderr = (stderr + String(bytes)).slice(-8192); });
     child.on("error", error => { pending?.reject(error); });
@@ -20,7 +33,10 @@ export function mainThreadFixture(fixture: URL): (request: unknown) => Promise<s
       if (message.error !== undefined) pending?.reject(new Error(message.error));
       else pending?.resolve(message.value ?? "");
     });
-    await new Promise<string>((resolve, reject) => { pending = { resolve, reject }; });
+    const ready = new Promise<string>((resolve, reject) => { pending = { resolve, reject }; });
+    child.stdin!.on("error", error => { pending?.reject(error); });
+    child.stdin!.end(outputFiles[0]!.contents);
+    await ready;
     pending = undefined;
   });
   afterAll(async () => {

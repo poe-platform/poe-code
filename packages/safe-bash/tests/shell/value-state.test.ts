@@ -87,6 +87,22 @@ test("failed optimized string admission preserves the prior raw binding", () => 
   arena.close();
 });
 
+for (const bytes of [4096, Infinity]) {
+  test(`optimized scalar replacement invalidates retained text without changing a snapshot (${bytes})`, () => {
+    const { arena, store } = fixture(bytes);
+    const variables = { value: "before" };
+    store.publish("value", variables.value, () => true);
+    const snapshot = store.clone();
+    store.publishString("value", "after", variables);
+    assert.equal(store.get("value", variables.value), "after");
+    assert.equal(snapshot.get("value", "before"), "before");
+    snapshot.close();
+    store.close();
+    assert.deepEqual(arena.usage, { bytes: 0, slots: 0 });
+    arena.close();
+  });
+}
+
 for (const kind of ["raw", "text"] as const) {
   for (const replacement of ["", "longer replacement"]) {
     test(`rejected optimized ${kind} replacement of length ${replacement.length} preserves ownership`, () => {

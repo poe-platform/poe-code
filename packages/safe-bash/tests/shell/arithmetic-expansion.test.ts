@@ -418,7 +418,7 @@ test("wave 49: propagates multi-level continue/break across sync/async loops and
   const { shell } = setup();
   context.after(() => shell.dispose());
   for (const command of basicCommands()) shell.commands.register(command, { replace: true });
-  const result = await shell.exec([
+  const source = [
     "declare -A map",
     "declare -a arr",
     "work() {",
@@ -443,9 +443,17 @@ test("wave 49: propagates multi-level continue/break across sync/async loops and
     "work >/dev/null",
     "out=$(work)",
     "printf \"%s\\n\" \"$out\""
-  ].join("\n"));
-  assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(result.stdout, "145|v01|m02\n");
+  ].join("\n");
+  const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], {
+    encoding: "utf8", env: { PATH: process.env.PATH, LC_ALL: "C" }, timeout: 5000,
+  });
+  assert.ifError(native.error);
+  assert.equal(native.status, 0, native.stderr);
+  assert.equal(native.stdout, "145|v01|m02\n");
+  const result = await shell.exec(source);
+  assert.equal(result.exitCode, native.status, result.stderr);
+  assert.equal(result.stderr, native.stderr);
+  assert.equal(result.stdout, native.stdout);
 });
 
 for (const [source, stdout] of [

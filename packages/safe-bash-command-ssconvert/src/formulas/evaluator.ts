@@ -351,6 +351,12 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
     const sheet = book.sheets.find(s => s.id === position.sheet);
     const group = sheet?.formulaGroups?.find(g => g.kind === "array" && g.range.startRow === position.row && g.range.startColumn === position.column);
     if (!sheet || !group || !array || args.length !== 2 || position.row < 1 || position.column < 1) return error("#REF!");
+    // Preserve BIFF8 deleted input identity as TABLE(#REF!,...). Calc propagates
+    // deleted references; this explicit marker extends Gnumeric's omission rule.
+    for (let arg of args) {
+      while (arg.kind === "parentheses") { tick(); arg = arg.child; }
+      if (arg.kind === "literal" && arg.value.kind === "error" && arg.value.value === "#REF!") return error("#REF!");
+    }
     const inputs = args.map(arg => {
       if (arg.kind !== "reference" || arg.last || !arg.first.row || !arg.first.column) return undefined;
       // gnumeric_table fetches raw input coordinates on ep->sheet, ignoring the

@@ -1448,8 +1448,30 @@
       "implementation": "Import BIFF2/3/4/7/8 table definitions as existing array formula groups with TABLE expressions; resolve only matching tTbl anchors and retain cached string ordering. BIFF7/8 export recognizes TABLE array groups, resolves relative input coordinates and writes 16-byte native DATATABLE plus tTbl pointers instead of add-in formulas. Input substitution and restoration use the existing evaluator. Qualified input references follow TABLE own-sheet coordinate semantics without external lookup.",
       "validation": "All 21 initial regressions failed before correction. All 40 expanded cases and seven group controls pass: original row/column/two-input tables, literal native record bytes, BIFF7/8 recalculated reexports, restored inputs, cached string ordering, malformed pointers/records, version bounds and retained unsupported flags. The BIFF2 unknown-option regression also failed before its correction. The surrounding cohort passed 65 files / 1655 tests before the final diagnostic-label and BIFF2-option corrections. Final maintained package lint/source/test/consumer types, selected build and compiled public probe all pass.",
       "publicValidation": "Sixty compiled SDK/command conversions across five input revisions, three modes and two output revisions retained 240 expected table values and original input values with zero diagnostics. Actual compiled command screenshot inspected. Native application readback was not performed for this change.",
-      "remaining": "Active deleted-input flags and unrepresented legacy options retain raw records/cached cells with explicit loss diagnostics; this does not implement their semantics. Broader table edits, native application readback, remaining BIFF tokens and all 19 gap families remain open.",
-      "reservedFlags": "MS-XLS requires BIFF8 reserved fields to be ignored; a one-variable table also ignores its second input coordinates. The earlier reader incorrectly rejected reserved bits and an unused second-input deletion flag. All 11 new memory regressions failed before correction; all 58 final table/group tests, maintained lint/source/test/consumer types and selected build pass. Six compiled SDK/command XLSX conversions retain 24 results and original inputs without diagnostics. The initial SDK probe used the wrong recalc option; correcting the probe required no product change. Actual command screenshot inspected."
+      "remaining": "Unrepresented legacy options retain raw records/cached cells with explicit loss diagnostics. Broader table edits, native application readback, remaining BIFF tokens and all 19 gap families remain open.",
+      "reservedFlags": "MS-XLS requires BIFF8 reserved fields to be ignored; a one-variable table also ignores its second input coordinates. The earlier reader incorrectly rejected reserved bits and an unused second-input deletion flag. All 11 new memory regressions failed before correction; all 58 final table/group tests, maintained lint/source/test/consumer types and selected build pass. Six compiled SDK/command XLSX conversions retain 24 results and original inputs without diagnostics. The initial SDK probe used the wrong recalc option; correcting the probe required no product change. Actual command screenshot inspected.",
+      "deletedInputs": {
+        "sources": [
+          {
+            "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/core/tool/interpr4.cxx",
+            "sha256": "94df4c610207f280458809f2edd7d4e3ee5f377537177a52cbe1c64ba8442de1",
+            "lines": "925-960,3659-3751"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/core/data/documentimport.cxx",
+            "sha256": "ca6f02daec153459d6312f608bc4744ed0279b2a07d61165fc541857d88ed653",
+            "lines": "510-610"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/GNOME/gnumeric/GNUMERIC_1_12_61/src/func-builtin.c",
+            "sha256": "01a0249f65564103b22d143b2de37b6d5af57603c453e4d8c4581b22900252fc",
+            "lines": "192-230"
+          }
+        ],
+        "finding": "MS-XLS 2.4.319 assigns BIFF8 deletion bits 0x10/0x20 and requires row/column 0xffff sentinels. Calc constructs MULTIPLE.OPERATIONS references; PopSingleRef propagates deleted references as NoRef. Gnumeric TABLE ignores non-reference arguments. This implementation deliberately extends that rule for an explicit #REF! argument only; it does not claim Gnumeric parity for that expression.",
+        "implementation": "Import deleted inputs as TABLE(#REF!,...), retaining the active slot and other input identity. An explicit reference-error marker, including parentheses, broadcasts #REF! before TABLE substitution. Omitted/numeric/other-error inputs retain existing semantics. BIFF8 export restores deletion bits and sentinels; BIFF7/dual-stream export refuses the unsupported state. Malformed deleted coordinates are rejected; an unused second input remains ignored.",
+        "validation": "Twelve initial memory regressions failed before correction. Final five-file cohort passes 187 tests, covering all five mode/deletion combinations, malformed sentinels, neighboring omission behavior, XML/XLSX transport back to BIFF8 and BIFF7 refusal. Maintained package lint, source/test/public-consumer types and selected build pass. Ten compiled SDK/command XLSX conversions preserve 40 reference errors without diagnostics. Probe corrections accounted for engine-owned workbooks and null-prototype values; no product change was needed for those corrections. Native application qualification remains open. Actual compiled command CSV screenshot inspected."
+      }
     }
   },
   "cases": [

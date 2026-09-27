@@ -2,6 +2,7 @@ import { expect, it } from "vitest";
 import type { CapabilityContext } from "../contracts.js";
 import type { Workbook } from "../workbook.js";
 import { recalculateWorkbook } from "../formulas/evaluator.js";
+import { createEngine } from "../engine.js";
 import { createBiffWriter, readBiff } from "./biff.js";
 import { readBiffRecords, readCfb } from "./biff-binary.js";
 import { writeBiffDataTable } from "./biff-data-tables.js";
@@ -111,7 +112,7 @@ it.each(["short record", "input column", "first row", "wrong pointer", "trailing
   await expect(readBiff(Uint8Array.from(bytes), context)).rejects.toThrow("Invalid Excel BIFF");
 });
 
-it.each([2, 8])("retains unrepresented BIFF%i input flags with warnings and cached results", async revision => {
+it.each([2, 7])("retains unrepresented BIFF%i input flags with warnings and cached results", async revision => {
   const records = readBiffRecords(originalTable(revision, revision === 2 ? "row" : "both"), context), bytes: number[] = [];
   for (const r of records) {
     const data = r.data.bytes.slice();
@@ -126,6 +127,82 @@ it.each([2, 8])("retains unrepresented BIFF%i input flags with warnings and cach
   expect(diagnostics.every(code => code === "biff-loss-warning")).toBe(true);
   expect(book.sheets[0]!.unsupportedRecords?.some(r => r.kind === "untranslated-formula")).toBe(true);
   expect(book.sheets[0]!.cells.find(c => c.row === 1 && c.column === 1)?.cachedResult).toEqual({ kind: "number", value: 0 });
+});
+
+for (const [mode, deleted] of [["row", 1], ["column", 1], ["both", 1], ["both", 2], ["both", 3]] as const) {
+  it(`preserves deleted BIFF8 ${mode} inputs ${deleted} and recalculates reference errors`, async () => {
+    const bytes: number[] = [];
+    for (const r of readBiffRecords(originalTable(8, mode), context)) {
+      const data = r.data.bytes.slice();
+      if (r.opcode === 0x236) {
+        data[6]! |= deleted << 4;
+        if (deleted & 1) data.fill(0xff, 8, 12);
+        if (deleted & 2) data.fill(0xff, 12, 16);
+      }
+      bytes.push(...record(r.opcode, [...data]));
+    }
+    const diagnostics: string[] = [];
+    const book = await readBiff(Uint8Array.from(bytes), { ...context, diagnostic: async d => { diagnostics.push(d.code); } });
+    const formula = `=TABLE(${mode === "column" ? "" : deleted & 1 ? "#REF!" : "E1"},${mode === "row" ? "" : deleted & (mode === "both" ? 2 : 1) ? "#REF!" : "F1"})`;
+    expect(book.sheets[0]!.formulaGroups?.[0]?.expression).toBe(formula);
+    expect(results(book)).toEqual(Array.from({ length: 4 }, () => ({ kind: "error", value: "#REF!" })));
+    expect(book.sheets[0]!.cells.filter(c => c.column >= 4).map(c => c.value))
+      .toEqual([100, 200].map(value => ({ kind: "number", value })));
+    expect(diagnostics).toEqual([]);
+    const encoded = await createBiffWriter(8)(book, [], context);
+    const table = readBiffRecords(readCfb(encoded, context).get("Workbook")!, context).find(r => r.opcode === 0x236)!;
+    expect(table.data.u16(6)).toBe((mode === "both" ? 12 : mode === "row" ? 4 : 0) | deleted << 4);
+    if (deleted & 1) expect([...table.data.bytes.subarray(8, 12)]).toEqual([255, 255, 255, 255]);
+    if (deleted & 2) expect([...table.data.bytes.subarray(12, 16)]).toEqual([255, 255, 255, 255]);
+    const reopened = await readBiff(encoded, context);
+    expect(reopened.sheets[0]!.formulaGroups?.[0]?.expression).toBe(formula);
+    expect(results(reopened)).toEqual(results(book));
+    await expect(createBiffWriter(7)(book, [], context)).rejects.toMatchObject({ code: "unsupported-feature" });
+    const engine = createEngine({ codecs: [], environment: context.environment, limits: context.limits });
+    try {
+      const owned = await engine.readWorkbook({ kind: "stream", source: [Uint8Array.from(bytes)] }, {}, { signal: context.signal });
+      for (const exportType of ["Gnumeric_Excel:xlsx", "Gnumeric_XmlIO:sax:0"]) {
+        const chunks: Uint8Array[] = [];
+        const output = await engine.writeWorkbook(owned, { kind: "stream", sink: { async write(bytes) { chunks.push(bytes.slice()); } } },
+          { exportType }, { signal: context.signal, async diagnostic(d) { diagnostics.push(d.code); } });
+        expect(output.exitCode).toBe(0);
+        const transported = await engine.readWorkbook({ kind: "stream", source: chunks }, {}, { signal: context.signal });
+        expect(results(transported)).toEqual(results(book));
+        const returned = await readBiff(await createBiffWriter(8)(transported, [], context), context);
+        expect(returned.sheets[0]!.formulaGroups?.[0]?.expression).toBe(formula);
+      }
+      expect(diagnostics).toEqual([]);
+    } finally { await engine.dispose(); }
+  });
+}
+
+it.each([8, 10, 12, 14])("rejects deleted BIFF8 input with a non-sentinel coordinate at %i", async offset => {
+  const bytes: number[] = [];
+  for (const r of readBiffRecords(originalTable(8, "both"), context)) {
+    const data = r.data.bytes.slice();
+    if (r.opcode === 0x236) { data[6]! |= 0x30; data.fill(0xff, 8, 16); data[offset] = 0; }
+    bytes.push(...record(r.opcode, [...data]));
+  }
+  await expect(readBiff(Uint8Array.from(bytes), context)).rejects.toThrow("invalid deleted data-table input cell");
+});
+
+it.each(["=TABLE(#REF!,F1)", "=TABLE(E1,#REF!)", "=TABLE((#REF!),F1)"])
+  ("evaluates explicit deleted TABLE input without substitutions: %s", async expression => {
+    const original = await readBiff(originalTable(8, "both"), context);
+    const sheet = original.sheets[0]!;
+    const book: Workbook = { ...original, sheets: [{ ...sheet,
+      formulaGroups: [{ ...sheet.formulaGroups![0]!, expression }],
+      cells: sheet.cells.map(cell => cell.formulaGroup ? { ...cell, formula: expression } : cell) }] };
+    expect(results(book)).toEqual(Array.from({ length: 4 }, () => ({ kind: "error", value: "#REF!" })));
+  });
+
+it.each(["", "1", "#DIV/0!"])("retains the existing TABLE omission rule for a non-reference input %s", async input => {
+  const original = await readBiff(originalTable(8, "column"), context), sheet = original.sheets[0]!;
+  const formula = `=TABLE(${input},F1)`;
+  const book: Workbook = { ...original, sheets: [{ ...sheet,
+    formulaGroups: [{ ...sheet.formulaGroups![0]!, expression: formula }],
+    cells: sheet.cells.map(cell => cell.formulaGroup ? { ...cell, formula } : cell) }] };
+  expect(results(book)).toEqual(expected);
 });
 
 for (const mode of ["row", "column", "both"] as const) {

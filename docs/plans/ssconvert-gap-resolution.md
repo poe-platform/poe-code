@@ -358,9 +358,12 @@ The earlier surrounding cohort passed 1,655 tests; 60 final compiled SDK/command
 conversions retain 240 results while restoring the original input cells. MS-XLS
 2.4.319 additionally requires reserved BIFF8 fields and unused second-input fields
 to be ignored: all 11 regressions failed before correction, and the final 58
-table/group controls and six compiled conversions pass. Active deleted-input and
-unrepresented legacy flags retain records/caches with explicit warnings; their semantics and
-independent native application qualification remain open.
+table/group controls and six compiled conversions pass. Deleted BIFF8 inputs now
+retain their identity as explicit TABLE reference-error markers and native flags;
+BIFF7/dual-stream export refuses this unrepresentable state. The marker extends
+Gnumeric omission semantics using Calc deleted-reference error propagation. Qualify
+these files in native applications next; broader table edits and unrepresented
+legacy options remain open. See `reference.biffDataTables.deletedInputs`.
 
 The Calc reference-model audit is recorded under `reference.sheetReferenceSemantics`.
 Its parser and writer preserve ODF sheet `$` markers; external sheet references

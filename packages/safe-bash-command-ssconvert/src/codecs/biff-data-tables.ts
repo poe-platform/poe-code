@@ -10,16 +10,19 @@ export function readBiffDataTable(data: Binary, revision: number, opcode: number
   data.check(0, revision === 2 && !both ? 12 : 16);
   const flags = revision === 2 ? data.u8(7) : data.u16(6);
   // MS-XLS 2.4.319: BIFF8 reserved bits and an unused second input are ignored.
-  // Active deleted inputs remain unrepresented; retain their records and caches.
-  if (revision === 2 ? !both && flags > 1 : revision >= 8 ? flags & (both ? 0x30 : 0x10) : flags & ~15) return undefined;
+  if (revision === 2 ? !both && flags > 1 : revision < 8 && flags & ~15) return undefined;
   const row = revision === 2 ? !!flags : !!(flags & 4);
-  const input = (offset: number) => {
+  const input = (offset: number, deleted: boolean) => {
     const r = data.u16(offset), c = data.u16(offset + 2);
+    if (deleted) {
+      if (r !== 0xffff || c !== 0xffff) invalidBiff("invalid deleted data-table input cell");
+      return "#REF!";
+    }
     if (c >= 256 || r >= (revision === 8 ? 65536 : 16384)) invalidBiff("invalid data-table input cell");
     return formatA1(r, c);
   };
-  const first = input(8);
-  return `=TABLE(${both || row ? first : ""},${both ? input(12) : row ? "" : first})`;
+  const first = input(8, revision >= 8 && !!(flags & 0x10));
+  return `=TABLE(${both || row ? first : ""},${both ? input(12, revision >= 8 && !!(flags & 0x20)) : row ? "" : first})`;
 }
 
 /** Recognize TABLE only in an array group, where its border/input semantics apply. */
@@ -36,7 +39,13 @@ export function writeBiffDataTable(group: FormulaGroup, sheet: string, book: Wor
   if (root.args.length !== 2 || position.row < 1 || position.column < 1)
     throw new SsconvertError("unsupported-feature", "Cannot export Excel data table without its border or two input slots");
   const inputs = root.args.map(arg => {
+    let marker = arg;
+    while (marker.kind === "parentheses") marker = marker.child;
     if (arg.kind === "omitted" || arg.kind === "literal" && arg.value.kind === "blank") return undefined;
+    if (marker.kind === "literal" && marker.value.kind === "error" && marker.value.value === "#REF!") {
+      if (maxRows < 65536) throw new SsconvertError("unsupported-feature", "Cannot export deleted Excel data table input before BIFF8");
+      return { row: 0xffff, column: 0xffff, deleted: true };
+    }
     if (arg.kind !== "reference" || arg.last || !arg.first.row || !arg.first.column)
       throw new SsconvertError("unsupported-feature", "Cannot export Excel data table input expression");
     // TABLE evaluates raw coordinates on its own sheet, including qualified inputs.
@@ -51,8 +60,9 @@ export function writeBiffDataTable(group: FormulaGroup, sheet: string, book: Wor
   const bytes = new Uint8Array(16), data = new DataView(bytes.buffer);
   data.setUint16(0, position.row, true); data.setUint16(2, Math.min(group.range.endRow, maxRows - 1), true);
   bytes[4] = position.column; bytes[5] = Math.min(group.range.endColumn, 255);
-  data.setUint16(6, inputs[0] && inputs[1] ? 12 : inputs[0] ? 4 : 0, true);
   const first = inputs[0] ?? inputs[1]!;
+  data.setUint16(6, (inputs[0] && inputs[1] ? 12 : inputs[0] ? 4 : 0) |
+    (first.deleted ? 0x10 : 0) | (inputs[0] && inputs[1]?.deleted ? 0x20 : 0), true);
   data.setUint16(8, first.row, true); data.setUint16(10, first.column, true);
   if (inputs[0] && inputs[1]) { data.setUint16(12, inputs[1].row, true); data.setUint16(14, inputs[1].column, true); }
   return bytes;

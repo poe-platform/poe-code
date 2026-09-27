@@ -13,6 +13,7 @@ export { parseTomlDocument } from "./commands/yq/toml.js";
 export { YqLedger } from "./commands/yq/accounting.js";
 export { utf8ByteLength, utf8Encoder, compareBytes, encodeBase64 } from "./commands/yq/bytes.js";
 export { Decimal, numberText } from "./commands/structured/numbers.js";
+export { utf8ByteLength, utf8Encoder, utf8Decoder, encodeBase64, decodeBase64, compareBytes } from "./commands/structured/bytes.js";
 export type {
   PreparedShellChild,
   ShellBindingReference,

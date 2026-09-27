@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { policy, exprMatchCeilings, validateExprInput } from "../../src/commands/regex-execution/protocol.js";
 import { EreLedger } from "../../src/commands/regex-execution/ere/limits.js";
 import { Pattern } from "../../src/commands/text-programs/regex.js";
+import { Budget } from "safe-bash-regex-engine/text/budget";
+import type { CommandContext } from "../../src/contracts/index.js";
 
 test("omitted worker quotas stay unlimited when one option is supplied", () => {
   for (const options of [{}, { maxWorkers: 3 }, { requestTimeoutMs: 50 }]) {
@@ -26,12 +28,18 @@ test("BRE protocol accepts unlimited and larger explicit individual limits", () 
     limits: { ...exprMatchCeilings, maxSteps: 60_000_000 } };
   validateExprInput(descriptor, [{ bytes: new Uint8Array([97]), all: false, terminated: false }], new AbortController().signal);
 });
-test("text regex compilation retains documented host storage bounds independently of optional quotas", () => {
-  assert.doesNotThrow(() => new Pattern("a".repeat(8192), true));
-  assert.throws(() => new Pattern("a".repeat(8193), true), /regular expression source limit exceeded/);
-  assert.doesNotThrow(() => new Pattern("(".repeat(64) + "a" + ")".repeat(64), true));
-  assert.throws(() => new Pattern("(".repeat(65) + "a" + ")".repeat(65), true), /regular expression depth limit exceeded/);
-  assert.doesNotThrow(() => new Pattern("a{16383}", true));
+test("text regex compilation admits former fixed boundaries through caller quotas", async () => {
+  const context = { signal: new AbortController().signal } as CommandContext;
+  for (const source of [
+    "a".repeat(8192), "a".repeat(8193),
+    "(".repeat(64) + "a" + ")".repeat(64),
+    "(".repeat(65) + "a" + ")".repeat(65),
+    "a{16383}", "a{16384}"
+  ]) {
+    const pattern = new Pattern(source, true);
+    await assert.rejects(pattern.prepare(new Budget(context, { maxSteps: 1 })), /execution step limit exceeded/);
+    await assert.doesNotReject(pattern.prepare(new Budget(context, {})));
+  }
   assert.throws(() => new Pattern("a{16384}", true, false, "sed", "", { maxPatternInstructions: 16384 }), /regular expression program limit exceeded/);
 });
 

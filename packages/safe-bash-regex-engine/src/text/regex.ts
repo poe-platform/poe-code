@@ -25,40 +25,123 @@ type Node = { type: "empty" | "begin" | "end" }
   | { type: "character"; literal?: string; accepts: (character: string) => boolean }
   | { type: "sequence" | "alternate"; nodes: Node[] }
   | { type: "repeat"; node: Node; minimum: number; maximum: number; lazy?: boolean }
-  | { type: "group"; node: Node; index: number };
+  | { type: "group"; node: Node; index: number; lastCapture: number };
 
 type Instruction = { kind: "character"; literal?: string; accepts: (character: string) => boolean }
   | { kind: "backreference"; index: number; ignoreCase: boolean }
   | { kind: "assertion"; first: number; next: number; positive: boolean; behind: boolean }
   | { kind: "boundary"; boundary: BoundaryKind }
   | { kind: "begin" | "end" | "match" }
-  | { kind: "save"; slot: number; clear?: readonly number[] }
+  | { kind: "save"; slot: number; clearUntil?: number }
   | { kind: "jump"; target: number }
   | { kind: "split"; first: number; second: number };
 
 function instructionCounts(root: Node): Map<Node, number> {
   const counts = new Map<Node, number>();
-  const count = (node: Node): number => {
+  const pending: { node: Node; visited: boolean }[] = [{ node: root, visited: false }];
+  while (pending.length) {
+    const { node, visited } = pending.pop()!;
+    if (!visited) {
+      pending.push({ node, visited: true });
+      if (node.type === "group" || node.type === "assertion" || node.type === "repeat")
+        pending.push({ node: node.node, visited: false });
+      else if (node.type === "sequence" || node.type === "alternate")
+        for (let index = node.nodes.length - 1; index >= 0; index--)
+          pending.push({ node: node.nodes[index]!, visited: false });
+      continue;
+    }
     let size: number;
     if (node.type === "empty") size = 0;
-    else if (node.type === "group" || node.type === "assertion") size = 2 + count(node.node);
+    else if (node.type === "group" || node.type === "assertion") size = 2 + counts.get(node.node)!;
     else if (node.type === "sequence" || node.type === "alternate") {
       size = node.type === "alternate" ? 2 * (node.nodes.length - 1) : 0;
-      for (const child of node.nodes) size += count(child);
+      for (const child of node.nodes) size += counts.get(child)!;
       // Remove empty sequence work once, before enclosing repetitions amplify it.
       if (node.type === "sequence") node.nodes = node.nodes.filter(child => counts.get(child)! > 0);
     } else if (node.type === "repeat") {
-      const child = count(node.node);
-      size = node.maximum === Infinity ? child * (node.minimum + 1) + 2
+      const child = counts.get(node.node)!;
+      size = node.maximum === 0 ? 0 : node.maximum === Infinity ? child * (node.minimum + 1) + 2
         : child * node.maximum + node.maximum - node.minimum;
     } else size = 1;
-    // Saturation keeps nested products bounded without ever expanding a repeat.
-    size = Math.min(size, Number.MAX_SAFE_INTEGER);
-    counts.set(node, size);
-    return size;
-  };
-  count(root);
+    // Preserve an overflow marker until enclosing zero repetitions discard it.
+    counts.set(node, Number.isSafeInteger(size) ? size : Infinity);
+  }
   return counts;
+}
+
+function* compileProgram(root: Node, counts: Map<Node, number>, ignoreCase: boolean): Generator<void, Instruction[]> {
+  const code: Instruction[] = [];
+  const emit = (instruction: Instruction): number => code.push(instruction) - 1;
+  interface Frame { node: Node; index: number; start?: number | undefined; awaiting?: boolean; jumps?: number[] }
+  const pending: Frame[] = [{ node: root, index: 0 }];
+  while (pending.length) {
+    const frame = pending[pending.length - 1]!;
+    const node = frame.node;
+    if (counts.get(node) === 0) { pending.pop(); continue; }
+    yield;
+    if (node.type === "sequence") {
+      if (frame.index < node.nodes.length) pending.push({ node: node.nodes[frame.index++]!, index: 0 });
+      else pending.pop();
+    } else if (node.type === "group") {
+      if (frame.index++ === 0) {
+        emit({ kind: "save", slot: node.index * 2,
+          ...(node.lastCapture > node.index ? { clearUntil: (node.lastCapture + 1) * 2 } : {}) });
+        pending.push({ node: node.node, index: 0 });
+      } else { emit({ kind: "save", slot: node.index * 2 + 1 }); pending.pop(); }
+    } else if (node.type === "assertion") {
+      if (frame.index++ === 0) {
+        frame.start = emit({ kind: "assertion", first: code.length + 1, next: 0, positive: node.positive, behind: node.behind });
+        pending.push({ node: node.node, index: 0 });
+      } else {
+        emit({ kind: "match" });
+        (code[frame.start!] as Extract<Instruction, { kind: "assertion" }>).next = code.length;
+        pending.pop();
+      }
+    } else if (node.type === "alternate") {
+      if (frame.awaiting) {
+        if (frame.index < node.nodes.length) {
+          (frame.jumps ??= []).push(emit({ kind: "jump", target: 0 }));
+          (code[frame.start!] as Extract<Instruction, { kind: "split" }>).second = code.length;
+        }
+        frame.awaiting = false;
+      }
+      if (frame.index === node.nodes.length) {
+        for (const jump of frame.jumps ?? []) (code[jump] as Extract<Instruction, { kind: "jump" }>).target = code.length;
+        pending.pop();
+      } else {
+        if (frame.index < node.nodes.length - 1) frame.start = emit({ kind: "split", first: code.length + 1, second: 0 });
+        frame.awaiting = true;
+        pending.push({ node: node.nodes[frame.index++]!, index: 0 });
+      }
+    } else if (node.type === "repeat") {
+      if (frame.start !== undefined) {
+        if (node.maximum === Infinity) emit({ kind: "jump", target: frame.start });
+        const split = code[frame.start] as Extract<Instruction, { kind: "split" }>;
+        split.second = code.length;
+        if (node.lazy) [split.first, split.second] = [split.second, split.first];
+        frame.start = undefined;
+        if (node.maximum === Infinity) { pending.pop(); continue; }
+      }
+      if (counts.get(node.node) === 0) frame.index = Math.max(frame.index, node.minimum);
+      if (frame.index < node.minimum) {
+        frame.index++;
+        pending.push({ node: node.node, index: 0 });
+      } else if (frame.index < node.maximum) {
+        frame.index++;
+        frame.start = emit({ kind: "split", first: code.length + 1, second: 0 });
+        pending.push({ node: node.node, index: 0 });
+      } else pending.pop();
+    } else {
+      if (node.type === "character") emit({ kind: "character", ...(node.literal !== undefined ? { literal: node.literal } : {}), accepts: node.accepts });
+      else if (node.type === "backreference") emit({ kind: "backreference", index: node.index, ignoreCase });
+      else if (node.type === "boundary") emit({ kind: "boundary", boundary: node.boundary });
+      else if (node.type === "begin" || node.type === "end") emit({ kind: node.type });
+      else throw new ProgramError("invalid internal regular expression node");
+      pending.pop();
+    }
+  }
+  emit({ kind: "match" });
+  return code;
 }
 
 const classes: Record<string, (character: string) => boolean> = {
@@ -311,11 +394,9 @@ export class Pattern {
     const prefix = dialect === "jq" ? "jq " : "";
     const maximumInstructions = limits.maxPatternInstructions ?? Infinity;
     if (maximumInstructions !== Infinity && (!Number.isSafeInteger(maximumInstructions) || maximumInstructions < 1)) throw new ProgramError("limits must be positive safe integers");
-    if (source.length > 8192) throw new ProgramError(`${prefix}regular expression source limit exceeded`);
     if (!extended) source = extendedSource(source);
     let offset = 0;
     let groups = 0;
-    let depth = 0;
     const closedGroups = new Set<number>();
     const characterNode = (character: string): Node => ({
       type: "character",
@@ -383,37 +464,6 @@ export class Pattern {
     const atom = (atStart: boolean, afterBegin: boolean): Node => {
       const token = dialect === "jq" && offset < source.length ? String.fromCodePoint(source.codePointAt(offset)!) : source[offset];
       offset += token?.length ?? 1;
-      if (token === "(") {
-        if (++depth > 64) throw new ProgramError(`${prefix}regular expression depth limit exceeded`);
-        let name: string | undefined;
-        let capturing = true;
-        let assertion: { positive: boolean; behind: boolean } | undefined;
-        if (source[offset] === "?" && source[offset + 1] === ":") {
-          offset += 2;
-          capturing = false;
-        } else if (dialect === "jq" && source[offset] === "?") {
-          offset++;
-          if (source[offset] === ":") { offset++; capturing = false; }
-          else if (source[offset] === "=" || source[offset] === "!") {
-            assertion = { positive: source[offset++] === "=", behind: false }; capturing = false;
-          } else if (source[offset] === "<" && "=!".includes(source[offset + 1] ?? "")) {
-            offset++;
-            assertion = { positive: source[offset++] === "=", behind: true }; capturing = false;
-          }
-          else if (source[offset] === "<" && !"=!".includes(source[offset + 1] ?? "")) {
-            const end = source.indexOf(">", ++offset);
-            if (end < 0) throw new ProgramError("invalid named capture");
-            name = source.slice(offset, end); offset = end + 1;
-          } else throw new ProgramError("unsupported jq regular expression group");
-        }
-        const index = capturing ? ++groups : 0;
-        if (name !== undefined) this.groupNames.set(name, index);
-        const node = alternate();
-        if (source[offset++] !== ")") throw new ProgramError("unmatched '(' in regular expression");
-        closedGroups.add(index);
-        depth--;
-        return assertion ? { type: "assertion", node, ...assertion } : capturing ? { type: "group", index, node } : node;
-      }
       if (token === "[") return bracket();
       if (token === "\\") {
         const reference = source[offset];
@@ -452,8 +502,8 @@ export class Pattern {
       if (token === undefined || "*+?{}".includes(token)) throw new ProgramError("quantifier without an expression");
       return characterNode(token);
     };
-    const repeated = (atStart: boolean, afterBegin: boolean): Node => {
-      let node = atom(atStart, afterBegin);
+    const repeated = (original: Node): Node => {
+      let node = original;
       if (!extended && (node.type === "begin" || node.type === "end")) return node;
       const quantifier = source[offset];
       if (quantifier === "*" || quantifier === "+" || quantifier === "?") {
@@ -472,22 +522,69 @@ export class Pattern {
       if (source[offset] !== undefined && "*+?{".includes(source[offset]!)) throw new ProgramError("nested quantifier is not supported");
       return node;
     };
-    const sequence = (): Node => {
-      const nodes: Node[] = [];
-      while (offset < source.length && source[offset] !== ")" && source[offset] !== "|") nodes.push(repeated(nodes.length === 0, nodes.length === 1 && nodes[0]!.type === "begin"));
-      return nodes.length ? { type: "sequence", nodes } : { type: "empty" };
+    interface ParseFrame {
+      nodes: Node[];
+      alternatives: Node[];
+      index: number;
+      assertion?: { positive: boolean; behind: boolean } | undefined;
+    }
+    const frames: ParseFrame[] = [{ nodes: [], alternatives: [], index: 0 }];
+    const sequence = (nodes: Node[]): Node => nodes.length ? { type: "sequence", nodes } : { type: "empty" };
+    const finish = (frame: ParseFrame): Node => {
+      frame.alternatives.push(sequence(frame.nodes));
+      return frame.alternatives.length === 1 ? frame.alternatives[0]! : { type: "alternate", nodes: frame.alternatives };
     };
-    const alternate = (): Node => {
-      const nodes = [sequence()];
-      while (source[offset] === "|") { offset++; nodes.push(sequence()); }
-      return nodes.length === 1 ? nodes[0]! : { type: "alternate", nodes };
-    };
-    const root = alternate();
-    if (offset !== source.length) throw new ProgramError("unmatched ')' in regular expression");
+    while (offset < source.length) {
+      const frame = frames[frames.length - 1]!;
+      if (source[offset] === "|") {
+        offset++;
+        frame.alternatives.push(sequence(frame.nodes));
+        frame.nodes = [];
+      } else if (source[offset] === ")") {
+        if (frames.length === 1) throw new ProgramError("unmatched ')' in regular expression");
+        offset++;
+        const inner = finish(frame);
+        frames.pop();
+        closedGroups.add(frame.index);
+        const node: Node = frame.assertion ? { type: "assertion", node: inner, ...frame.assertion }
+          : frame.index ? { type: "group", index: frame.index, lastCapture: groups, node: inner } : inner;
+        frames[frames.length - 1]!.nodes.push(repeated(node));
+      } else if (source[offset] === "(") {
+        offset++;
+        let name: string | undefined;
+        let capturing = true;
+        let assertion: ParseFrame["assertion"];
+        if (source[offset] === "?" && source[offset + 1] === ":") {
+          offset += 2;
+          capturing = false;
+        } else if (dialect === "jq" && source[offset] === "?") {
+          offset++;
+          if (source[offset] === ":") { offset++; capturing = false; }
+          else if (source[offset] === "=" || source[offset] === "!") {
+            assertion = { positive: source[offset++] === "=", behind: false }; capturing = false;
+          } else if (source[offset] === "<" && "=!".includes(source[offset + 1] ?? "")) {
+            offset++;
+            assertion = { positive: source[offset++] === "=", behind: true }; capturing = false;
+          } else if (source[offset] === "<" && !"=!".includes(source[offset + 1] ?? "")) {
+            const end = source.indexOf(">", ++offset);
+            if (end < 0) throw new ProgramError("invalid named capture");
+            name = source.slice(offset, end); offset = end + 1;
+          } else throw new ProgramError("unsupported jq regular expression group");
+        }
+        const index = capturing ? ++groups : 0;
+        if (name !== undefined) this.groupNames.set(name, index);
+        frames.push({ nodes: [], alternatives: [], index, assertion });
+      } else {
+        frame.nodes.push(repeated(atom(frame.nodes.length === 0, frame.nodes.length === 1 && frame.nodes[0]!.type === "begin")));
+      }
+    }
+    if (frames.length !== 1) throw new ProgramError("unmatched '(' in regular expression");
+    const root = finish(frames[0]!);
     this.groupCount = groups;
     this.anchored = root.type === "sequence" && root.nodes[0]?.type === "begin";
     const counts = instructionCounts(root);
-    if (!Number.isSafeInteger(counts.get(root)! + 1) || counts.get(root)! + 1 > maximumInstructions) throw new ProgramError(`${prefix}regular expression program limit exceeded`);
+    if (!Number.isSafeInteger(counts.get(root)! + 1)) throw new ProgramError(`${prefix}regular expression program size is not representable`);
+    if (counts.get(root)! + 1 > maximumInstructions) throw new ProgramError(`${prefix}regular expression program limit exceeded`);
     this.instructionCount = counts.get(root)! + 1;
     this.parsed = { root, counts };
     if (counts.get(root)! <= 64) {
@@ -503,154 +600,42 @@ export class Pattern {
     if (!this.parsed) return;
     const { root, counts } = this.parsed;
     this.compiledSteps = counts.get(root)! + 1;
-    const code: Instruction[] = [];
-    const ignoreCase = this.ignoreCase;
-    const emit = (instruction: Instruction): number => code.push(instruction) - 1;
-    const compile = (node: Node): void => {
-      if (counts.get(node) === 0) return;
-      if (node.type === "character") { emit({ kind: "character", ...(node.literal !== undefined ? { literal: node.literal } : {}), accepts: node.accepts }); return; }
-      if (node.type === "backreference") { emit({ kind: "backreference", index: node.index, ignoreCase }); return; }
-      if (node.type === "assertion") {
-        const index = emit({ kind: "assertion", first: code.length + 1, next: 0, positive: node.positive, behind: node.behind });
-        compile(node.node); emit({ kind: "match" });
-        (code[index] as Extract<Instruction, { kind: "assertion" }>).next = code.length;
-        return;
-      }
-      if (node.type === "begin" || node.type === "end") { emit({ kind: node.type }); return; }
-      if (node.type === "boundary") { emit({ kind: "boundary", boundary: node.boundary }); return; }
-      if (node.type === "sequence") { for (const child of node.nodes) compile(child); return; }
-      if (node.type === "group") {
-        const clear: number[] = [];
-        const collect = (current: Node): void => {
-          if (current.type === "group") { clear.push(current.index * 2, current.index * 2 + 1); collect(current.node); }
-          else if (current.type === "assertion" || current.type === "repeat") collect(current.node);
-          else if (current.type === "sequence" || current.type === "alternate") for (const child of current.nodes) collect(child);
-        };
-        collect(node.node);
-        emit({ kind: "save", slot: node.index * 2, ...(clear.length ? { clear } : {}) });
-        compile(node.node);
-        emit({ kind: "save", slot: node.index * 2 + 1 });
-        return;
-      }
-      if (node.type === "alternate") {
-        const jumps: number[] = [];
-        for (let index = 0; index < node.nodes.length; index++) {
-          if (index === node.nodes.length - 1) { compile(node.nodes[index]!); break; }
-          const split = emit({ kind: "split", first: code.length + 1, second: 0 });
-          compile(node.nodes[index]!);
-          jumps.push(emit({ kind: "jump", target: 0 }));
-          (code[split] as Extract<Instruction, { kind: "split" }>).second = code.length;
-        }
-        for (const jump of jumps) (code[jump] as Extract<Instruction, { kind: "jump" }>).target = code.length;
-        return;
-      }
-      if (node.type !== "repeat") throw new ProgramError("invalid internal regular expression node");
-      if (counts.get(node.node)! > 0) for (let count = 0; count < node.minimum; count++) compile(node.node);
-      if (node.maximum === Infinity) {
-        const split = emit({ kind: "split", first: code.length + 1, second: 0 });
-        compile(node.node); emit({ kind: "jump", target: split });
-        (code[split] as Extract<Instruction, { kind: "split" }>).second = code.length;
-        if (node.lazy) { const instruction = code[split] as Extract<Instruction, { kind: "split" }>; [instruction.first, instruction.second] = [instruction.second, instruction.first]; }
-      } else for (let count = node.minimum; count < node.maximum; count++) {
-        const split = emit({ kind: "split", first: code.length + 1, second: 0 });
-        compile(node.node);
-        (code[split] as Extract<Instruction, { kind: "split" }>).second = code.length;
-        if (node.lazy) { const instruction = code[split] as Extract<Instruction, { kind: "split" }>; [instruction.first, instruction.second] = [instruction.second, instruction.first]; }
-      }
-    };
-    compile(root);
-    emit({ kind: "match" });
-    this.finalizeCompiledCode(code, root);
+    const compilation = compileProgram(root, counts, this.ignoreCase);
+    let result = compilation.next();
+    while (!result.done) result = compilation.next();
+    this.finalizeCompiledCode(result.value, root);
   }
 
   async prepare(budget: Pick<PatternBudget, "step" | "checkpoint" | "checkpointSync" | "options">): Promise<void> {
     this.assertInstructionLimit(budget);
     if (!this.parsed) {
       if (!this.budgetPrepared && this.compiledSteps > 0) {
-        this.budgetPrepared = true;
         budget.step(this.compiledSteps);
-        const p = budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint();
-        if (p) await p;
+        const pending = budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint();
+        if (pending) await pending;
+        this.budgetPrepared = true;
       }
       return;
     }
-    if (!this.parsed) return;
     const { root, counts } = this.parsed;
     budget.step(counts.get(root)! + 1);
     await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
-    // Publish only a finished program. Cancelled or concurrent preparations own
-    // separate arrays, so a failed caller cannot leave a partially patched NFA.
-    const code: Instruction[] = [];
-    const ignoreCase = this.ignoreCase;
-    const emit = (instruction: Instruction): number => {
-      return code.push(instruction) - 1;
-    };
-    const compile = function* (node: Node): Generator<void> {
-      if (counts.get(node) === 0) return;
-      yield;
-      if (node.type === "character") { emit({ kind: "character", ...(node.literal !== undefined ? { literal: node.literal } : {}), accepts: node.accepts }); return; }
-      if (node.type === "backreference") { emit({ kind: "backreference", index: node.index, ignoreCase }); return; }
-      if (node.type === "assertion") {
-        const index = emit({ kind: "assertion", first: code.length + 1, next: 0, positive: node.positive, behind: node.behind });
-        yield* compile(node.node); emit({ kind: "match" });
-        (code[index] as Extract<Instruction, { kind: "assertion" }>).next = code.length;
-        return;
-      }
-      if (node.type === "begin" || node.type === "end") { emit({ kind: node.type }); return; }
-      if (node.type === "boundary") { emit({ kind: "boundary", boundary: node.boundary }); return; }
-      if (node.type === "sequence") { for (const child of node.nodes) yield* compile(child); return; }
-      if (node.type === "group") {
-        const clear: number[] = [];
-        const collect = (current: Node): void => {
-          if (current.type === "group") { clear.push(current.index * 2, current.index * 2 + 1); collect(current.node); }
-          else if (current.type === "assertion" || current.type === "repeat") collect(current.node);
-          else if (current.type === "sequence" || current.type === "alternate") for (const child of current.nodes) collect(child);
-        };
-        collect(node.node);
-        emit({ kind: "save", slot: node.index * 2, ...(clear.length ? { clear } : {}) });
-        yield* compile(node.node);
-        emit({ kind: "save", slot: node.index * 2 + 1 });
-        return;
-      }
-      if (node.type === "alternate") {
-        const jumps: number[] = [];
-        for (let index = 0; index < node.nodes.length; index++) {
-          yield;
-          if (index === node.nodes.length - 1) { yield* compile(node.nodes[index]!); break; }
-          const split = emit({ kind: "split", first: code.length + 1, second: 0 });
-          yield* compile(node.nodes[index]!);
-          jumps.push(emit({ kind: "jump", target: 0 }));
-          (code[split] as Extract<Instruction, { kind: "split" }>).second = code.length;
-        }
-        for (const jump of jumps) (code[jump] as Extract<Instruction, { kind: "jump" }>).target = code.length;
-        return;
-      }
-      if (node.type !== "repeat") throw new ProgramError("invalid internal regular expression node");
-      // A zero-width noncapturing body may have an enormous minimum but emits
-      // no instructions. Skip that loop while retaining optional split/jump work.
-      if (counts.get(node.node)! > 0) for (let count = 0; count < node.minimum; count++) yield* compile(node.node);
-      if (node.maximum === Infinity) {
-        const split = emit({ kind: "split", first: code.length + 1, second: 0 });
-        yield* compile(node.node); emit({ kind: "jump", target: split });
-        (code[split] as Extract<Instruction, { kind: "split" }>).second = code.length;
-        if (node.lazy) { const instruction = code[split] as Extract<Instruction, { kind: "split" }>; [instruction.first, instruction.second] = [instruction.second, instruction.first]; }
-      } else for (let count = node.minimum; count < node.maximum; count++) {
-        yield;
-        const split = emit({ kind: "split", first: code.length + 1, second: 0 });
-        yield* compile(node.node);
-        (code[split] as Extract<Instruction, { kind: "split" }>).second = code.length;
-        if (node.lazy) { const instruction = code[split] as Extract<Instruction, { kind: "split" }>; [instruction.first, instruction.second] = [instruction.second, instruction.first]; }
-      }
-    };
+    // Each preparation owns its program until every branch is patched and the
+    // final checkpoint succeeds. Cancellation leaves the parsed tree reusable.
+    const compilation = compileProgram(root, counts, this.ignoreCase);
+    let result = compilation.next();
     let work = 0;
-    for (const ignored of compile(root)) {
-      if (++work % 64 === 0) { await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint()); budget.step(0); }
+    while (!result.done) {
+      if (++work % 64 === 0) {
+        await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
+        budget.step(0);
+      }
+      result = compilation.next();
     }
-    emit({ kind: "match" });
     await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
     budget.step(0);
     this.budgetPrepared = true;
-    this.finalizeCompiledCode(code, root);
+    this.finalizeCompiledCode(result.value, root);
   }
 
   private finalizeCompiledCode(code: Instruction[], root: Node): void {
@@ -790,7 +775,12 @@ export class Pattern {
         }
         else if (instruction.kind === "jump") push(instruction.target);
         else if (instruction.kind === "split") { push(instruction.second); push(instruction.first); }
-        else if (instruction.kind === "save") { const saved = [...captures]; if (instruction.clear) for (const slot of instruction.clear) delete saved[slot]; saved[instruction.slot] = position; push(state.pc + 1, position, saved); }
+        else if (instruction.kind === "save") {
+          const saved = [...captures];
+          for (let slot = instruction.slot + 2; slot < Math.min(instruction.clearUntil ?? 0, saved.length); slot++) delete saved[slot];
+          saved[instruction.slot] = position;
+          push(state.pc + 1, position, saved);
+        }
         else if (instruction.kind === "begin") { if (position === 0) push(state.pc + 1); }
         else if (instruction.kind === "boundary") { if (matchesBoundary(instruction.boundary, text, position)) push(state.pc + 1); }
         else if (instruction.kind === "end") { if (position === text.length || position === text.length - 1 && text[position] === "\n") push(state.pc + 1); }
@@ -1292,14 +1282,16 @@ export class Pattern {
         positions.delete(position);
         const visited = new Map<string | number, number>();
         let stateBytes = 0;
-        const enqueue = (destination: number, pc: number, start: number, captures: number[], saveSlot?: number, clearSlots?: readonly number[]): void => {
+        const enqueue = (destination: number, pc: number, start: number, captures: number[], saveSlot?: number, clearUntil?: number): void => {
           const length = saveSlot === undefined ? captures.length : Math.max(captures.length, saveSlot + 1);
           const bytes = 72 + length * 8;
           const waiting = destination === position ? pending : positions.get(destination);
           storage.reserve(bytes + (waiting ? 0 : 64));
-          const saved = saveSlot === undefined && !clearSlots?.length ? captures : [...captures];
-          if (clearSlots) for (const slot of clearSlots) delete saved[slot];
-          if (saveSlot !== undefined) saved[saveSlot] = position;
+          const saved = saveSlot === undefined ? captures : [...captures];
+          if (saveSlot !== undefined) {
+            for (let slot = saveSlot + 2; slot < Math.min(clearUntil ?? 0, saved.length); slot++) delete saved[slot];
+            saved[saveSlot] = position;
+          }
           const thread = { pc, start, captures: saved, bytes };
           if (waiting) waiting.push(thread);
           else positions.set(destination, [thread]);
@@ -1384,7 +1376,7 @@ export class Pattern {
             else if (instruction.kind === "save") {
               const copied = work(Math.max(thread.captures.length, instruction.slot + 1));
               if (copied) await copied;
-              enqueue(position, thread.pc + 1, thread.start, thread.captures, instruction.slot, instruction.clear);
+              enqueue(position, thread.pc + 1, thread.start, thread.captures, instruction.slot, instruction.clearUntil);
             } else if (instruction.kind === "boundary") {
               if (matchesBoundary(instruction.boundary, text, position)) enqueue(position, thread.pc + 1, thread.start, thread.captures);
             } else if (instruction.kind === "begin" ? position === 0 : position === text.length) enqueue(position, thread.pc + 1, thread.start, thread.captures);

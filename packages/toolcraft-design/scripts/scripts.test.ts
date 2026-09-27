@@ -1,9 +1,10 @@
 import { existsSync, readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { memfs } from "memfs";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { getMarkdownDemo } from "../src/terminal-markdown/demo-content.js";
-import { renderMarkdown } from "../src/index.js";
+import { renderMarkdown, resetOutputFormatCache } from "../src/index.js";
 import {
   loadMarkdownDemoDocument,
   main as runDemo,
@@ -26,6 +27,11 @@ vi.mock("node:fs", async (importOriginal) => {
     readFileSync: vi.fn(actual.readFileSync)
   };
 });
+
+vi.mock("node:child_process", async importOriginal => ({
+  ...await importOriginal<typeof import("node:child_process")>(),
+  execFileSync: vi.fn()
+}));
 
 const repoRoot = path.resolve(import.meta.dirname, "../../..");
 const packageRoot = path.resolve(import.meta.dirname, "..");
@@ -199,14 +205,47 @@ describe("generate-docs", () => {
     );
   });
 
-  it("captures format-aware demo output through one executable run", () => {
-    const [heading, table, markdown, minimalMarkdown, menu] = captureTextOutputs([
+  it("captures one executable request with parsed arguments and formats", () => {
+    vi.mocked(execFileSync).mockReturnValueOnce(Buffer.from(JSON.stringify(["heading", "menu"])));
+    expect(captureTextOutputs([
       { demoArgs: 'heading "Available Commands"', format: "markdown" },
-      { demoArgs: "table", format: "markdown" },
-      { demoArgs: "markdown", format: "markdown" },
-      { demoArgs: "markdown-minimal", format: "markdown" },
       { demoArgs: "menu", format: "json" }
-    ]);
+    ])).toEqual(["heading", "menu"]);
+    expect(execFileSync).toHaveBeenCalledTimes(1);
+    expect(execFileSync).toHaveBeenCalledWith(process.execPath, [
+      "--import", "tsx", path.join(import.meta.dirname, "capture-demo-batch.ts"),
+      JSON.stringify([
+        { args: ["heading", "Available Commands"], format: "markdown" },
+        { args: ["menu"], format: "json" }
+      ])
+    ], { cwd: repoRoot, env: process.env });
+  });
+
+  it("renders format-aware demo output without process startup", async () => {
+    const outputs: string[] = [];
+    for (const [args, format] of [
+      [["heading", "Available Commands"], "markdown"],
+      [["table"], "markdown"],
+      [["markdown"], "markdown"],
+      [["markdown-minimal"], "markdown"],
+      [["menu"], "json"]
+    ] as const) {
+      let output = "";
+      vi.stubEnv("OUTPUT_FORMAT", format);
+      resetOutputFormatCache();
+      const write = vi.spyOn(process.stdout, "write").mockImplementation(chunk => {
+        output += typeof chunk === "string" ? chunk : Buffer.from(chunk).toString("utf8");
+        return true;
+      });
+      try { await runDemo([...args]); }
+      finally {
+        write.mockRestore();
+        vi.unstubAllEnvs();
+        resetOutputFormatCache();
+      }
+      outputs.push(output);
+    }
+    const [heading, table, markdown, minimalMarkdown, menu] = outputs;
 
     expect(heading).toContain("Available Commands");
     expect(heading).not.toContain("> toolcraft-design");

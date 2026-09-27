@@ -27,8 +27,10 @@ export const string = (text: string): Scalar => {
   if (len <= 16) {
     const slot = ((text.charCodeAt(0) * 31 + text.charCodeAt(len - 1) * 17 + len) & 63);
     if (STRING_SCALAR_CACHE_KEYS[slot] === text) return STRING_SCALAR_CACHE_VALS[slot]!;
-    const val: Scalar = Object.freeze({ kind: "string", text });
-    STRING_SCALAR_CACHE_KEYS[slot] = text;
+    // A short substring can otherwise keep its entire input record alive.
+    const flat = Buffer.from(text, "utf16le").toString("utf16le");
+    const val: Scalar = Object.freeze({ kind: "string", text: flat });
+    STRING_SCALAR_CACHE_KEYS[slot] = flat;
     STRING_SCALAR_CACHE_VALS[slot] = val;
     return val;
   }

@@ -3,6 +3,31 @@ import test from "node:test";
 import { CommandRegistry, MemoryFileSystem, Shell, createTextProgramCommands, createStandardCommands } from "../../../src/index.js";
 import { Budget } from "../../../src/commands/text-programs/shared.js";
 import { runVirtual } from "./helpers.js";
+import { string } from "../../../src/commands/text-programs/awk-values.js";
+
+test("AWK cached short strings preserve every UTF-16 code unit", () => {
+  for (const text of ["abcdefghijklmnop", "é漢字😀", "\ud800x\udfff"]) {
+    const parent = "q".repeat(100_000) + text + "q".repeat(100_000);
+    const value = string(parent.slice(100_000, 100_000 + text.length));
+    assert.deepEqual(value, { kind: "string", text });
+    assert.strictEqual(string(text), value);
+  }
+});
+
+test("AWK BEGIN reads memory-backed files above the batch threshold", async () => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs, commands: new CommandRegistry(createTextProgramCommands()) });
+  try {
+    await fs.writeFile("/large.txt", new TextEncoder().encode("10\n".repeat(100)));
+    for (let i = 0; i < 2; i++) {
+      const result = await shell.exec("awk 'BEGIN { sum = 0 } { sum += $1 } END { print NR, sum }' /large.txt");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "100 1000\n");
+    }
+  } finally {
+    await shell.dispose();
+  }
+});
 
 for (const [name, rows, program, expected] of [
   ["print fallback evaluates arguments once", "a\n", '{ x = 0; print x++, -1; print x }', "0 -1\n1\n"],

@@ -1,15 +1,16 @@
 import { Volume } from "memfs";
-import { expect, it, onTestFinished } from "vitest";
+import { describe, expect, it, onTestFinished } from "vitest";
 import { compiledPublicRuntime } from "../tests/compiled-public-runtime.js";
 import { nativeRepeatTemplate } from "../tests/native-repeat-template.js";
 import { textContext, textFixture } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
 
 const api = await compiledPublicRuntime;
-const execute = nativeRepeatTemplate();
 
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
-for (const codec of ["utf8", "utf16le", "utf16be"] as const)
+for (const codec of ["utf8", "utf16le", "utf16be"] as const) {
+  describe(`native table matrix; strict=${strict}; kind=${kind}; codec=${codec}`, () => {
+  const execute = nativeRepeatTemplate();
 for (const depth of [1, 1024, 2048])
 for (const operation of ["controls.repeat", "template.apply"] as const) {
   const label = `repeat/template admitted nested native table depth; strict=${strict}; kind=${kind}; codec=${codec}; depth=${depth}; operation=${operation}`;
@@ -86,5 +87,7 @@ for (const operation of ["controls.repeat", "template.apply"] as const) {
     const output = new Uint8Array(Buffer.from(observed.output!, "base64"));
     expect(Buffer.compare(Buffer.from(output), Buffer.from(baseline.output))).toBe(0);
     assertInput(input, original, parts);
+  });
+}
   });
 }

@@ -24,7 +24,6 @@ import { createUnameCommands } from "../commands/uname/index.js";
 import { createHostnameCommands } from "../commands/hostname/index.js";
 import { createNprocCommands } from "../commands/nproc/index.js";
 import { createShufCommands } from "safe-bash-command-shuf";
-import { createYesCommands } from "safe-bash-command-yes";
 import { createDdCommands } from "safe-bash-command-dd";
 import { createNumfmtCommands } from "../commands/numfmt/index.js";
 import { createEnvsubstCommands } from "../commands/envsubst/index.js";
@@ -3179,7 +3178,7 @@ let nextProcessSubstitutionId = 0;
 let defaultRuntimeMuscleMemoryMap: ReadonlyMap<string, CommandDefinition> | undefined;
 
 function getRuntimeMuscleMemoryCommand(name: string): CommandDefinition | undefined {
-  defaultRuntimeMuscleMemoryMap ??= new Map([...createBcCommands(), ...createSpongeCommands(), ...createFdCommands(), ...createLessCommands(), ...createIdCommands(), ...createWhoamiCommands(), ...createUnameCommands(), ...createHostnameCommands(), ...createNprocCommands(), ...createShufCommands(), ...createYesCommands(), ...createDdCommands(), ...createNumfmtCommands(), ...createEnvsubstCommands(), ...createCalCommands(), ...createPathchkCommands(), ...createGetconfCommands(), ...createLocaleCommands(), ...createDfCommands(), ...createSqlite3Commands()].map(cmd => [cmd.name, cmd]));
+  defaultRuntimeMuscleMemoryMap ??= new Map([...createBcCommands(), ...createSpongeCommands(), ...createFdCommands(), ...createLessCommands(), ...createIdCommands(), ...createWhoamiCommands(), ...createUnameCommands(), ...createHostnameCommands(), ...createNprocCommands(), ...createShufCommands(), ...createDdCommands(), ...createNumfmtCommands(), ...createEnvsubstCommands(), ...createCalCommands(), ...createPathchkCommands(), ...createGetconfCommands(), ...createLocaleCommands(), ...createDfCommands(), ...createSqlite3Commands()].map(cmd => [cmd.name, cmd]));
   return defaultRuntimeMuscleMemoryMap.get(name);
 }
 const fastSubScratchArgs: string[] = [];

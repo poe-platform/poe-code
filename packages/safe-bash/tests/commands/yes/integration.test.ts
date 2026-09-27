@@ -28,6 +28,21 @@ test("yes remains absent until explicitly installed on the shell", async () => {
   }
 });
 
+test("agent commands do not implicitly install yes", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  try {
+    assert.equal((await shell.exec("command -v yes")).exitCode, 1);
+    assert.equal((await shell.exec("yes --help")).exitCode, 127);
+    shell.use(yesCommands());
+    const result = await shell.exec("yes explicit | head -n 1");
+    assert.equal(result.stdout, "explicit\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally {
+    await shell.dispose();
+  }
+});
+
 test("a VFS script can consume yes and continue after its producer closes", async () => {
   const fs = createMemoryFileSystem();
   await fs.mkdir("/work");

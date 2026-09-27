@@ -67,7 +67,7 @@ export function collectSourceInputs(root: string, fileSystem: SourceInputFileSys
     } else {
       assert.ok(stat.isFile(), `source census input must be a regular file: ${path}`);
       assert.ok(files.size < 5000 && sourceBytes + stat.size <= 64 * 1024 * 1024, "source census exceeds its explicit input budget");
-      const bytes = readRegularInput(root, path, 1048576, fileSystem);
+      const bytes = readRegularInput(root, path, 64 * 1024 * 1024 - sourceBytes, fileSystem);
       sourceBytes += bytes.length;
       files.set(path, bytes);
     }

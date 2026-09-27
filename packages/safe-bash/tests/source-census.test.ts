@@ -30,13 +30,64 @@ test("source census captures compression adapters without the relocated codec ma
   assert.equal(captured.admissionInputs.has(native + "/sources.json"), false);
 });
 
-test("source census applies the ordinary per-file limit to adapters too", () => {
+test("source census admits files above one MiB within the aggregate budget", () => {
+  for (const path of ["src/shell/runtime.ts", ...adapters.map(adapter => adapter.path)]) {
+    const state = fixture();
+    const bytes = Buffer.alloc(1048577);
+    state.write(path, bytes);
+    const captured = collectSourceInputs("/candidate", state.reader);
+    assert.deepEqual(captured.files.get(path), bytes);
+  }
+});
+
+test("source census applies aggregate size admission to ordinary files and adapters", () => {
   for (const path of ["src/ordinary.mjs", ...adapters.map(adapter => adapter.path)]) {
     const state = fixture();
-    state.write(path, Buffer.alloc(1048577));
-    assert.throws(() => collectSourceInputs("/candidate", state.reader), /size/);
+    state.write(path, "oversized");
+    const reader: SourceInputFileSystem = {
+      ...state.reader,
+      lstatSync(absolute) {
+        const stat = state.reader.lstatSync(absolute);
+        return absolute === "/candidate/" + path
+          ? { isFile: () => true, isDirectory: () => false, size: 64 * 1024 * 1024 + 1 }
+          : stat;
+      },
+    };
+    assert.throws(() => collectSourceInputs("/candidate", reader), /explicit input budget/);
     assert.equal(state.reads.includes("/candidate/" + path), false);
   }
+});
+
+test("source census admits the exact aggregate budget and refuses the next byte before reading", () => {
+  const state = fixture();
+  for (const { path } of adapters) state.files.unlinkSync("/candidate/" + path);
+  const sizes = new Map<string, number>();
+  const payload = Buffer.alloc(1024 * 1024);
+  for (let index = 0; index < 64; index++) {
+    const path = `src/aggregate/${String(index).padStart(2, "0")}.ts`;
+    state.write(path, "fixture");
+    sizes.set("/candidate/" + path, payload.length);
+  }
+  const reader: SourceInputFileSystem = {
+    ...state.reader,
+    lstatSync(path) {
+      const stat = state.reader.lstatSync(path);
+      const size = sizes.get(path);
+      return size === undefined ? stat : { isFile: () => true, isDirectory: () => false, size };
+    },
+    readFileSync(path) {
+      const size = sizes.get(path);
+      if (size === undefined) return state.reader.readFileSync(path);
+      state.reads.push(path);
+      return payload.subarray(0, size);
+    },
+  };
+  const captured = collectSourceInputs("/candidate", reader);
+  assert.equal(captured.files.size, 64);
+  assert.equal([...captured.files.values()].reduce((sum, bytes) => sum + bytes.length, 0), 64 * 1024 * 1024);
+  state.write("src/overflow.ts", "x");
+  assert.throws(() => collectSourceInputs("/candidate", reader), /explicit input budget/);
+  assert.equal(state.reads.includes("/candidate/src/overflow.ts"), false);
 });
 
 test("source census refuses adapter symlinks before reading payloads", () => {

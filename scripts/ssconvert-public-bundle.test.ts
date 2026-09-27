@@ -12,13 +12,16 @@ import { resolveSpreadsheetSdkBuilds } from "./bundle-spreadsheets.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const manifest = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
-it("shares raw arguments and frozen cleanup budgets between public contracts and the bundled SDK", async () => {
+it.each([
+  ["public", "poe-code/ssconvert", "poe-code/safe-bash/contracts", "poe-code/safe-fs/core"],
+  ["workspace", "safe-bash-command-ssconvert", "safe-bash-contracts", "@poe-code/safe-fs/core"]
+])("shares raw arguments and frozen cleanup budgets in the %s SDK graph", async (_profile, sdk, contracts, filesystem) => {
   const result = await build({
     stdin: {
       contents: `
-        import { createSsconvertCommands } from "poe-code/ssconvert";
-        import { bindFileOutputBudget, createCommandArguments, shellValueFromBytes } from "poe-code/safe-bash/contracts";
-        import { MemoryFileSystem } from "poe-code/safe-fs/core";
+        import { createSsconvertCommands } from ${JSON.stringify(sdk)};
+        import { bindFileOutputBudget, createCommandArguments, shellValueFromBytes } from ${JSON.stringify(contracts)};
+        import { MemoryFileSystem } from ${JSON.stringify(filesystem)};
         globalThis.result = (async () => {
           const observations = [];
           for (const mode of ["allowed", "limited", "cancelled"]) {
@@ -65,10 +68,10 @@ it("shares raw arguments and frozen cleanup budgets between public contracts and
       resolveDir: new URL("../", import.meta.url).pathname,
     },
     bundle: true, platform: "browser", format: "iife", write: false,
-    // Workspace-only builds do not publish the root canonical filesystem graph.
-    // Compile its real portable implementation for this VM; packed routes have
-    // their own publication-policy and installed-consumer qualification.
-    alias: { "poe-code/safe-fs/core": new URL("../packages/safe-fs/src/core.ts", import.meta.url).pathname },
+    // Root public artifacts are built independently of private workspace outputs.
+    // The VM compiles the same canonical portable filesystem source because a
+    // workspace SafeJS rebuild can remove that root-generated filesystem entry.
+    alias: { [filesystem]: new URL("../packages/safe-fs/src/core.ts", import.meta.url).pathname },
   });
   const worker: Record<string, unknown> = { TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, AbortController, URL, URLSearchParams, atob, crypto: webcrypto, setTimeout, clearTimeout, queueMicrotask };
   runInNewContext(result.outputFiles[0]!.text, worker);

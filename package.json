@@ -378,7 +378,7 @@
     "!packages/safe-bash-command-csvkit/dist/operations/workbook-iso.d.ts",
     "!packages/safe-bash-command-csvkit/dist/operations/workbook-iso.d.ts.map",
     "packages/safe-bash-command-csvkit/THIRD_PARTY_NOTICES.txt",
-    "packages/safe-bash-command-ssconvert/dist",
+    "packages/safe-bash-command-ssconvert/dist/**/*.d.ts",
     "packages/safe-bash-command-ssconvert/LICENSE",
     "packages/safe-bash-command-ssconvert/src/encoding/LGPL-2.1.txt",
     "packages/safe-bash-command-ssconvert/src/encoding/NOTICE.md",

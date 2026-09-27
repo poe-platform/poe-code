@@ -2403,10 +2403,11 @@
     "commandPackageOwnership": {
       "issue": 3670,
       "status": "partial",
-      "implemented": "Singular/plural/plugin factories and options/limits types belong to safe-bash-command-ssconvert; core is a one-line re-export. Node and browser SDK bundles share the Shell contracts facade. Scoped packaging maps contracts and filesystem imports to canonical runtimes.",
+      "implemented": "Singular/plural/plugin factories and options/limits types belong to safe-bash-command-ssconvert; core is a one-line re-export. Private workspace bundles share private contracts and filesystem runtimes. The root builds its public SDK separately at dist/ssconvert/index.js, with the unchanged poe-code/ssconvert API and shared public contracts/FS routes; root packages include private declarations only. Scoped packaging maps contracts and filesystem imports to canonical runtimes.",
       "evidence": "Factory regression failed before extraction. Focused command, package-policy and browser tests pass. Actual root/scoped packages installed outside the checkout expose all factories and preserve edited numeric B2=8, independently decoded with Python ZIP/XML. Strict NodeNext consumers pass. Installed root/scoped Shell output caps preserve the existing destination and remove staging; raw argv and frozen budgets pass. Installed scoped Worker conversion has no external/Node imports. Transcript screenshot inspected.",
       "qa": "../plans/ssconvert-audit-qa.md#qa-command-package-ownership",
-      "remaining": "Full maintained test run and final build/delivery/publication remain pending. XLSX reexport emits seven worksheet-record warnings tracked separately in #3686; the format family remains open."
+      "remaining": "Full maintained test run and final build/delivery/publication remain pending. XLSX reexport emits seven worksheet-record warnings tracked separately in #3686; the format family remains open.",
+      "integrationFollowup": "The full unit run exposed the previous shared output file resolving a private Shell through root-only FS entries after workspace rebuilds. Separate private/public bundles repair the actual Node import, private Shell CSV conversion, output limit identity and staging cleanup. Four failing document CLI cases now pass; 44 unselected cases were skipped. All 417 guarded build tests pass after updating the exact public runtime entry contract. Full maintained test/build and installed-artifact requalification remain pending."
     }
   },
   "cases": [

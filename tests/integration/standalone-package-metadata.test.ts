@@ -203,7 +203,7 @@ describe("standalone package publish metadata", () => {
       import: "./dist/ssconvert/index.js"
     });
     expect(rootPackage.files).toContain("dist");
-    expect(rootPackage.files).toContain("packages/safe-bash-command-ssconvert/dist");
+    expect(rootPackage.files).toContain("packages/safe-bash-command-ssconvert/dist/**/*.d.ts");
   });
 
   it("publishes the superintendent MCP server bin with the root package", () => {

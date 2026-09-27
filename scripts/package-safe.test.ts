@@ -1535,13 +1535,12 @@ it.each(["@poe-code/safe-fs/core", "poe-code/safe-fs/core", "@poe-platform/safe-
   const { options } = optionalLeftovers();
   await packageSafeLibraries({ ...options, outDir: "/output" });
   const browser = options.bundle.mock.calls.map(([settings]) => settings as BuildOptions)
-    .find(settings => settings.platform === "browser")!;
+    .find(settings => Object.hasOwn(settings.entryPoints ?? {}, "core.browser"))!;
   expect(browser).toBeDefined();
   const result = await build({
     ...browser, absWorkingDir: process.cwd(), entryPoints: undefined, outdir: undefined,
     sourcemap: false, splitting: false, inject: [],
     stdin: { contents: `export { FsError } from ${JSON.stringify(specifier)};`, resolveDir: process.cwd() },
-    plugins: [],
   });
   expect(result.outputFiles![0]!.text).toContain('from "@poe-platform/safe-fs/core"');
   expect(result.outputFiles![0]!.text).not.toContain("extends Error");
@@ -1558,6 +1557,7 @@ it('ships xmllint and its shared XML engine through the established XML export',
     volume.writeFileSync(`/repo/packages/${name}/package.json`, readFileSync(new URL(`../packages/${name}/package.json`, import.meta.url), 'utf8'));
     volume.writeFileSync(`/repo/packages/${name}/LICENSE`, 'MIT\n');
   }
+
   const limits = readFileSync(new URL('../packages/safe-bash-xml-engine/src/limits.ts', import.meta.url), 'utf8');
   for (const module of ['yield', 'managed-abort']) {
     const source = readFileSync(new URL(`../packages/safe-bash-contracts/src/${module}.ts`, import.meta.url), 'utf8');

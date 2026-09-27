@@ -40,7 +40,7 @@ fn raw_grants_validate_all_timings_and_anchor_relative_lifetimes() {
     }
 }
 #[test]
-fn grant_admission_rejects_invalid_secrets_scope_and_oversized_extensions() {
+fn grant_admission_rejects_invalid_secrets_scope_and_accepts_large_extensions() {
     for text in [
         r#"{"access_token":"a","token_type":"Basic"}"#,
         r#"{"access_token":"a","token_type":"Bearer","refresh_token":false}"#,
@@ -55,7 +55,7 @@ fn grant_admission_rejects_invalid_secrets_scope_and_oversized_extensions() {
             r#", "extension":"{}""#,
             "x".repeat(65_536)
         )))
-        .is_err()
+        .is_ok()
     );
 }
 #[test]

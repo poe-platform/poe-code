@@ -24,8 +24,7 @@ test("bounded credential JSON owns extensions without running accessors or seria
       Infinity,
       () => {},
       new Date(),
-      new Array(1),
-      "x".repeat(65_536)
+      new Array(1)
     ])
       assert.throws(
         () => api.copyBoundedOAuthJson(value, "invalid credential"),
@@ -55,11 +54,33 @@ test("bounded credential JSON owns extensions without running accessors or seria
     assert.deepEqual(api.copyBoundedOAuthJson(ignored, "invalid credential"), { visible: "x" });
   }
 });
-test("registration byte budget rejects before a missing-client diagnostic", () => {
+test("large registration extensions preserve the missing-client diagnostic", () => {
   const value = { client_id: "", extension: "x".repeat(65536) };
   for (const api of [originalRegistration, ownRegistration])
     assert.throws(
       () => api.parseOAuthClientRegistration(value),
-      (error) => error.message === "Invalid OAuth client registration metadata"
+      (error) => error.message === "OAuth client registration response missing client_id"
     );
+});
+
+test("credential JSON accepts large and deep extensions while rejecting cycles", () => {
+  let extension = "x".repeat(100_000);
+  for (let depth = 0; depth < 100; depth++) extension = { next: extension };
+  const value = { client_id: "c", extension, nodes: Array(25_000).fill(null) };
+  for (const api of [original, { copyBoundedOAuthJson }]) {
+    assert.deepEqual(api.copyBoundedOAuthJson(value, "invalid credential"), value);
+    const cycle = {}; cycle.self = cycle;
+    assert.throws(() => api.copyBoundedOAuthJson(cycle, "invalid credential"), { message: "invalid credential" });
+    const shared = { value: "shared" };
+    assert.deepEqual(api.copyBoundedOAuthJson([shared, shared], "invalid credential"), [shared, shared]);
+  }
+});
+
+test("native credential copying handles deep output without recursion", () => {
+  let input = "leaf";
+  for (let depth = 0; depth < 20_000; depth++) input = { next: input };
+  let output = copyBoundedOAuthJson(input, "invalid credential");
+  assert.notEqual(output, input);
+  for (let depth = 0; depth < 20_000; depth++) output = output.next;
+  assert.equal(output, "leaf");
 });

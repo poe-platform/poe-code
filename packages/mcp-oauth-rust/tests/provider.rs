@@ -165,10 +165,7 @@ fn full_registration_preserves_json_extensions_and_enforces_nullable_metadata() 
             Value::String("😀".repeat(16384).encode_utf16().collect()),
         ));
     }
-    assert_eq!(
-        validate(&huge),
-        Err("Invalid OAuth client registration metadata")
-    );
+    assert!(validate(&huge).is_ok());
 }
 
 #[test]

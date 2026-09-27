@@ -48,7 +48,7 @@ Configured scopes are captured at provider creation; cached, refreshed and excha
 must match an explicit requested scope set. Refresh responses retain omitted granted scopes.
 Imported grants retain their original client and resource, anchor relative lifetimes at import,
 and yield to persisted rotations and revocations.
-`parseOAuthTokenGrant(raw, { issuedAt, expiresAt, now })` admits bounded raw
+`parseOAuthTokenGrant(raw, { issuedAt, expiresAt, now })` admits raw
 Bearer responses, validates every supplied timing field, anchors relative expiry
 once and returns independent normalized credentials. Absolute overrides retain
 precedence while invalid overridden timing still rejects. Clock callback failures
@@ -70,9 +70,8 @@ capabilities in its own addon and has no runtime import of `auth-store`.
 
 `parseOAuthClientRegistration` returns an owned copy of full RFC 7591 metadata,
 including provider JSON extensions. It validates known fields without invoking
-accessors or serialization hooks, with a 64 KiB UTF-8 limit, depth 64 and
-20,000 values. String ingress is bounded before copying into Rust; the complete
-serialized budget is checked before field diagnostics. Invalid metadata errors
+accessors or serialization hooks. Valid JSON extensions have no implicit size,
+node or depth caps; cycles and non-JSON values reject. Invalid metadata errors
 never quote credential input.
 
 `withOAuthSessionTransaction` serializes complete operations for a resource

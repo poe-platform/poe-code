@@ -136,7 +136,7 @@ test("registration descriptor admission never invokes accessors or serialization
   compare(proxy);
   assert.equal(effects, 0);
 });
-test("registration enforces exact depth, node and UTF8 serialization bounds", () => {
+test("registration accepts uncapped JSON extensions and rejects cycles", () => {
   for (const depth of [63, 64, 65]) {
     let extension = 0;
     for (let i = 0; i < depth; i++) extension = [extension];

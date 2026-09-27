@@ -2,6 +2,7 @@ use napi::bindgen_prelude::*;
 use napi_derive::napi;
 #[path = "../../../auth-store-rust/bindings/src/api.rs"]
 pub mod credential_api;
+mod credential_json_binding;
 pub mod jwks_binding;
 pub mod provider_binding;
 #[napi]

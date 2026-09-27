@@ -1,23 +1,6 @@
-//! Bounded RFC7591 registration admission, preserving provider JSON extensions.
-use mcp_protocol_rust::{
-    json::{self, Value},
-    strings::trim_ecmascript,
-};
+//! RFC7591 registration admission, preserving provider JSON extensions.
+use mcp_protocol_rust::{json::Value, strings::trim_ecmascript};
 const INVALID: &str = "Invalid OAuth client registration metadata";
-fn bounded(value: &Value, depth: usize, nodes: &mut usize) -> bool {
-    *nodes += 1;
-    if depth > 64 || *nodes > 20_000 {
-        return false;
-    }
-    match value {
-        Value::Number(number) => number.is_finite(),
-        Value::Array(values) => values.iter().all(|value| bounded(value, depth + 1, nodes)),
-        Value::Object(fields) => fields
-            .iter()
-            .all(|(_, value)| bounded(value, depth + 1, nodes)),
-        _ => true,
-    }
-}
 pub fn validate(value: &Value) -> Result<(), &'static str> {
     if validate_credential_json(value).is_err() || !matches!(value, Value::Object(_)) {
         return Err(INVALID);
@@ -201,8 +184,16 @@ pub fn imported_client(existing: Option<&Value>, stored: Option<&Value>) -> u32 
 }
 
 pub fn validate_credential_json(value: &Value) -> Result<(), &'static str> {
-    if !bounded(value, 0, &mut 0) || json::stringify(value).len() > 64 * 1024 {
-        return Err("Invalid OAuth credential JSON");
+    let mut pending = vec![value];
+    while let Some(value) = pending.pop() {
+        match value {
+            Value::Number(number) if !number.is_finite() => {
+                return Err("Invalid OAuth credential JSON");
+            }
+            Value::Array(values) => pending.extend(values),
+            Value::Object(fields) => pending.extend(fields.iter().map(|(_, value)| value)),
+            _ => {}
+        }
     }
     Ok(())
 }

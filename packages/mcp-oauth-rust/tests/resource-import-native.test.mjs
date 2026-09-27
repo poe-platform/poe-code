@@ -13,9 +13,10 @@ test("resource imports reject credential effects before storage and preserve loc
   const valid = session();
   await stores.importSession(valid);
   let touched = 0;
-  for (const change of [{ get secret() { touched++; throw Error("private-marker"); } }, { extension: "x".repeat(65_536) }, { extension: new Date() }])
+  for (const change of [{ get secret() { touched++; throw Error("private-marker"); } }, { extension: new Date() }])
     await assert.rejects(stores.importSession(Object.defineProperties({ ...valid }, Object.getOwnPropertyDescriptors(change))), /Invalid OAuth import/);
   assert.equal(touched, 0);
+  await stores.importSession({ ...valid, extension: "x".repeat(65_536) });
   assert.equal((await stores.sessionStore.load(valid.resource)).tokens.accessToken, "token");
   const controller = new AbortController(), reason = {}; controller.abort(reason);
   await assert.rejects(stores.importSession(valid, { signal: controller.signal }), error => error === reason);

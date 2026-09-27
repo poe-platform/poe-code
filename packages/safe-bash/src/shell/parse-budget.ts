@@ -15,8 +15,10 @@ export class ParseBudget {
     maximum?: number,
     signal?: AbortSignal,
     onLimit?: ((error: ShellLimitError) => void) | { abort(error: ShellLimitError): void },
+    readonly maxSyntaxDepth = Infinity,
   ) {
-    if (maximum !== undefined && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("maxParseUnits must be a nonnegative safe integer");
+    if (maximum !== undefined && maximum !== Infinity && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("maxParseUnits must be a nonnegative safe integer");
+    if (maxSyntaxDepth !== Infinity && (!Number.isSafeInteger(maxSyntaxDepth) || maxSyntaxDepth < 0)) throw new RangeError("Invalid maxSyntaxDepth");
     const rem = maximum ?? defaultMaxParseUnits;
     this.totalAdmitted = 0;
     this.unlimited = rem === Infinity;

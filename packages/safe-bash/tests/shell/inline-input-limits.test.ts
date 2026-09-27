@@ -26,7 +26,7 @@ test("large literal bodies remain source-bounded even when skipped", async () =>
 test("inline-input nested parsing retains its bound at the expansion boundary", async () => {
   const nested = "$(say ".repeat(65) + "x" + ")".repeat(65);
   for (const input of [`<<EOF\n${nested}\nEOF\n`, `<<<${nested}`]) {
-    const { shell, fs } = setup();
+    const { shell, fs } = setup({ limits: { maxSyntaxDepth: 64 } });
     const result = await shell.exec(`say ran >marker; pass ${input}`);
     assert.equal(result.exitCode, 2);
     assert.match(result.stderr, /nesting exceeds 64/u);

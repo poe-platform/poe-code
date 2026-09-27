@@ -90,7 +90,7 @@ test("heredoc backticks retain their failed-substitution parse path", () => {
 
 test("ordinary backtick failure retains parameter nesting limits", () => {
   const source = 'value=`printf "%s" "' + "${unset:-".repeat(64) + "${value!}" + "}".repeat(64) + '"`';
-  assert.throws(() => parseShell(source), (error: unknown) => error instanceof ShellSyntaxError && error.reason === "Syntax nesting exceeds 64");
+  assert.throws(() => parseShell(source, 0, { maxSyntaxDepth: 64 }), (error: unknown) => error instanceof ShellSyntaxError && error.reason === "Syntax nesting exceeds 64");
 });
 
 for (const backend of ["memory", "s3"] as const) test(`backtick cancellation precedes malformed expansion: ${backend}`, async () => {

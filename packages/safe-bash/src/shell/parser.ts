@@ -344,7 +344,7 @@ class Lexer {
   braceReplay?: ReadonlyMap<number, ShellValue>;
   readonly documents: HereDocument[] = [];
   constructor(readonly budget: ParseBudget, readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number, readonly partial = false, readonly lineIndex = new SourceLineIndex(source, budget), readonly sourceOffset = 0, readonly ordinaryBacktick = false, readonly sourceValues?: ReadonlyMap<number, ByteShellValue>, readonly byteSource = false, readonly syntax: CapturedShellSyntax = defaultSyntax) {
-    if (depth > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", 0);
+    if (depth > this.budget.maxSyntaxDepth) throw new ShellSyntaxError(`Syntax nesting exceeds ${this.budget.maxSyntaxDepth}`, 0);
   }
 
   lineAt(position: number): number {
@@ -565,7 +565,7 @@ class Lexer {
         } else if ((current === "(" && (closers.at(-1) === ")" || this.source[this.position - 2] === "$"))
           || (current === "{" && (closers.at(-1) === "}" || this.source[this.position - 2] === "$"))) {
           closers.push(current === "(" ? ")" : "}");
-          if (closers.length + this.depth > 64) this.error("Syntax nesting exceeds 64");
+          if (closers.length + this.depth > this.budget.maxSyntaxDepth) this.error(`Syntax nesting exceeds ${this.budget.maxSyntaxDepth}`);
         }
       }
     }
@@ -624,7 +624,7 @@ class Lexer {
           else if (current === "^" && regexBracketFirst && regexBracketNegation) regexBracketNegation = false;
           else { regexBracketFirst = false; regexBracketNegation = false; }
         } else if (current === "(" && (conditionalPattern === "regex" || patternParentheses > 0 || "?*+@!".includes(this.source[this.position - 1] ?? " "))) {
-          if (++patternParentheses > 64) this.error("Conditional syntax nesting exceeds 64");
+          if (++patternParentheses > this.budget.maxSyntaxDepth) this.error(`Conditional syntax nesting exceeds ${this.budget.maxSyntaxDepth}`);
         } else if (current === ")" && patternParentheses > 0) patternParentheses--;
         else if (/[()<>]/u.test(current) || patternParentheses === 0 && (this.source.startsWith("&&", this.position) || this.source.startsWith("||", this.position))) break;
       } else if (terminator) {
@@ -637,7 +637,7 @@ class Lexer {
           && !(this.source[this.position + 1] === ")" && /^\(\)\s*(?:\{|\(|if\b|case\b|while\b|until\b|for\b|select\b|\[\[)/u.test(this.source.slice(this.position)))
           && this.hasClosingExtglobParen(this.position)
         ))) {
-          if (++patternParentheses > 64) this.error("Syntax nesting exceeds 64");
+          if (++patternParentheses > this.budget.maxSyntaxDepth) this.error(`Syntax nesting exceeds ${this.budget.maxSyntaxDepth}`);
         } else if (!enclosingQuoted && !literal && current === ")" && patternParentheses > 0) {
           patternParentheses--;
         } else if (patternParentheses > 0) {
@@ -799,7 +799,7 @@ class Lexer {
         continue;
       }
       if (ch === "(") {
-        if (++depth > 64) return false;
+        if (++depth > this.budget.maxSyntaxDepth) return false;
       } else if (ch === ")") {
         if (--depth === 0) return true;
       }
@@ -904,7 +904,7 @@ class Lexer {
       || (!quoted && ["'", '"'].includes(this.source[this.position] ?? ""))) this.error("Unsupported shell quoting or special parameter");
     if (this.source.startsWith("((", this.position)) {
       const start = this.position + 2;
-      const end = arithmeticEnd(this.source, start);
+      const end = arithmeticEnd(this.source, start, false, this.budget.maxSyntaxDepth);
       const source = this.source.slice(start, end);
       parts.push({ kind: "arithmetic", expression: prepareArithmetic(source, this.budget), source, line, quoted });
       this.position = end + 2;
@@ -983,7 +983,7 @@ class Lexer {
       let replacement: Word | undefined;
       let substring: Extract<WordPart, { kind: "variable" }>["substring"];
       if (operator || this.source[this.position] === ":") {
-        if (this.depth + this.operandDepth + 1 > 64) this.error("Syntax nesting exceeds 64");
+        if (this.depth + this.operandDepth + 1 > this.budget.maxSyntaxDepth) this.error(`Syntax nesting exceeds ${this.budget.maxSyntaxDepth}`);
         this.operandDepth++;
         try {
           if (operator) {
@@ -1137,7 +1137,7 @@ class Parser {
   }
 
   command(): Command {
-    if (++this.nesting + this.lexer.depth > 64) this.error("Syntax nesting exceeds 64");
+    if (++this.nesting + this.lexer.depth > this.lexer.budget.maxSyntaxDepth) this.error(`Syntax nesting exceeds ${this.lexer.budget.maxSyntaxDepth}`);
     this.budget.admit();
     const line = this.lexer.lineAt(this.current.offset);
     this.openCommands.push({ name: this.current.value, line });
@@ -1151,7 +1151,7 @@ class Parser {
   commandInner(): Command {
     this.budget.admit();
     const arithmeticCommandEnd = this.is("(") && this.lexer.source.startsWith("((", this.current.offset)
-      ? arithmeticEnd(this.lexer.source, this.current.offset + 2, true) : -1;
+      ? arithmeticEnd(this.lexer.source, this.current.offset + 2, true, this.lexer.budget.maxSyntaxDepth) : -1;
     let command: Command;
     if (this.is("[[")) {
       const start = this.current.end;
@@ -1165,7 +1165,7 @@ class Parser {
         return this.advance().word!;
       };
       const primary = (depth: number): ConditionalExpression => {
-        if (depth > 64) this.error("Conditional syntax nesting exceeds 64");
+        if (depth > this.lexer.budget.maxSyntaxDepth) this.error(`Conditional syntax nesting exceeds ${this.lexer.budget.maxSyntaxDepth}`);
         if (this.is("!")) {
           admit();
           this.advance();
@@ -1436,8 +1436,8 @@ export function parseCompoundArrayValue(source: string, byteLocale: boolean, byt
 }
 
 export function parseShell(source: string, depth = 0, options: ShellParseOptions | ShellSyntaxDeclarations = {}, syntax?: ShellSyntaxDeclarations): Script {
-  const budget = new ParseBudget("maxParseUnits" in options ? options.maxParseUnits : undefined);
-  const captured = captureShellSyntax(syntax === undefined ? ("maxParseUnits" in options ? undefined : options as ShellSyntaxDeclarations) : syntax);
+  const budget = new ParseBudget("maxParseUnits" in options ? options.maxParseUnits : undefined, undefined, undefined, "maxSyntaxDepth" in options ? options.maxSyntaxDepth : Infinity);
+  const captured = captureShellSyntax(syntax === undefined ? (("maxParseUnits" in options || "maxSyntaxDepth" in options) ? undefined : options as ShellSyntaxDeclarations) : syntax);
   const warnings: string[] = [];
   const script = parseSource(source, depth, warnings, 0, false, budget, false, undefined, false, captured);
   budget.admit();

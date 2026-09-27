@@ -98,5 +98,5 @@ test("heredoc compound EOF keeps its original failed-substitution path", () => {
 });
 
 test("compound EOF never bypasses syntax nesting limits", () => {
-  assert.throws(() => parseShell('value=`' + 'if true; then '.repeat(65) + '`'), error => error instanceof ShellSyntaxError && error.reason === "Syntax nesting exceeds 64");
+  assert.throws(() => parseShell('value=`' + 'if true; then '.repeat(65) + '`', 0, { maxSyntaxDepth: 64 }), error => error instanceof ShellSyntaxError && error.reason === "Syntax nesting exceeds 64");
 });

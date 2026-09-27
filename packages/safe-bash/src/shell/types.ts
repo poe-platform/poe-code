@@ -43,6 +43,10 @@ export interface ShellCommandContext extends CommandContext {
 export interface ShellLimits {
   /** Per-invocation command-family ceilings, also applied to nested commands. */
   readonly commandLimits?: CommandFamilyLimits;
+  readonly maxSyntaxDepth?: number;
+  readonly maxAdmittedHandles?: number;
+  readonly maxDescriptorOperations?: number;
+  readonly maxDescriptorReadBytes?: number;
   readonly maxParseUnits?: number;
   readonly maxInputBytes?: number;
   readonly maxOutputBytes?: number;
@@ -76,6 +80,7 @@ export interface ShellLimits {
 }
 
 export interface ShellParseOptions {
+  readonly maxSyntaxDepth?: number;
   readonly maxParseUnits?: number;
 }
 

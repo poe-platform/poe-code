@@ -152,7 +152,7 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
         if (character === "'" || character === '"') quote = character;
         else if (character === "[") depth++;
         else if (character === "]") depth--;
-        if (depth > 64) throw new ShellSyntaxError("Arithmetic nesting exceeds 64", offset + start);
+        if (depth > budget.maxSyntaxDepth) throw new ShellSyntaxError(`Arithmetic nesting exceeds ${budget.maxSyntaxDepth}`, offset + start);
       }
       if (depth) throw new ShellSyntaxError("Unclosed arithmetic subscript", offset + start);
       budget.admit(position - start);
@@ -175,7 +175,7 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
   const current = () => tokens[cursor]?.value ?? "";
   const error = (message: string): never => { throw new ShellSyntaxError(message, tokens[cursor]?.offset ?? offset + source.length); };
   const expression = (minimum = 1): Arithmetic => {
-    if (++depth > 64) error("Arithmetic nesting exceeds 64");
+    if (++depth > budget.maxSyntaxDepth) error(`Arithmetic nesting exceeds ${budget.maxSyntaxDepth}`);
     let left: Arithmetic;
     const start = tokens[cursor]?.offset ?? offset + source.length;
     const token = current();
@@ -238,7 +238,7 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
   return tree;
 }
 
-export function arithmeticEnd(source: string, start: number, allowSubshell = false): number {
+export function arithmeticEnd(source: string, start: number, allowSubshell = false, maxSyntaxDepth = Infinity): number {
   let depth = 0;
   let quote = "";
   let ansiQuote = false;
@@ -248,7 +248,7 @@ export function arithmeticEnd(source: string, start: number, allowSubshell = fal
     if (allowSubshell) {
       if (character === "\\" && (quote !== "'" || ansiQuote)) { position++; continue; }
       if (quote === '"' && character === "$" && source[position + 1] === "(") {
-        if (quotedSubstitutions.length >= 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", position);
+        if (quotedSubstitutions.length >= maxSyntaxDepth) throw new ShellSyntaxError(`Syntax nesting exceeds ${maxSyntaxDepth}`, position);
         quotedSubstitutions.push(depth);
         depth++;
         position++;

@@ -17,7 +17,7 @@ const alternate: Word = { offset: 10, parts: [{ kind: "variable", name: "inner",
 const nested: Word = { offset: 0, parts: [{ kind: "variable", name: "outer", quoted: true, operator: ":-", alternate }] };
 
 function fixture(context: TestContext, depth: number, limits: ShellLimits = {}, signal?: AbortSignal) {
-  const budget = new Budget(resolveLimits(limits), signal);
+  const budget = new Budget(resolveLimits({ maxSyntaxDepth: 64 }, limits), signal);
   const scope = new InvocationScope(signal);
   const cancellationState = new RuntimeCancellationState();
   const admission = Runtime.rootCancellationAdmission(budget);

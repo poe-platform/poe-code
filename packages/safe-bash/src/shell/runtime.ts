@@ -159,7 +159,7 @@ async function signedLong(argument: string, budget: Budget, signal: AbortSignal)
 }
 type ResolvedShellLimits = Required<Omit<ShellLimits, "commandLimits">> & Pick<ShellLimits, "commandLimits">;
 export const defaultLimits: ResolvedShellLimits = {
-  maxParseUnits: Infinity,
+  maxParseUnits: Infinity, maxSyntaxDepth: Infinity, maxAdmittedHandles: Infinity, maxDescriptorOperations: Infinity, maxDescriptorReadBytes: Infinity,
   maxInputBytes: Infinity,
   maxOutputBytes: Infinity,
   maxCommands: Infinity,
@@ -478,7 +478,7 @@ export class Budget {
     if (limits.pipeHighWaterMark < 65536) (this as { canSyncPurePipe: boolean }).canSyncPurePipe = false;
     this.signal = signal ? combineManagedSignals(signal, this.controller.signal) : this.controller.signal;
     if (signal) inheritYieldCheckpoint(signal, this.signal);
-    this.parsing = new ParseBudget(limits.maxParseUnits === Infinity ? undefined : limits.maxParseUnits, this.signal, this);
+    this.parsing = new ParseBudget(limits.maxParseUnits === Infinity ? undefined : limits.maxParseUnits, this.signal, this, limits.maxSyntaxDepth);
     if (limits.maxWallClockMs !== Infinity) this._armWallClock();
   }
   get yieldCheckpoint(): () => void {
@@ -1566,7 +1566,7 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
 }
 const admissionGetterSymbol = Symbol("safe-bash.descriptorAdmissionGetter");
 const descriptorByteLength = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype), "byteLength")!.get!;
-function bindCommandIO(context: CommandContext, io?: IO): void {
+function bindCommandIO(context: CommandContext, io?: IO, limits: ShellLimits = {}): void {
   const existingHandlesDesc = Object.getOwnPropertyDescriptor(context, "admittedHandles");
   if (io?.descriptors && (!existingHandlesDesc || (existingHandlesDesc.get ? Boolean((existingHandlesDesc.get as unknown as Record<symbol, unknown>)[admissionGetterSymbol]) : (!existingHandlesDesc.value || shellDescriptorAdmissions.has(existingHandlesDesc.value))))) {
     let handleManager: CommandContext["admittedHandles"];
@@ -1587,14 +1587,14 @@ function bindCommandIO(context: CommandContext, io?: IO): void {
             signal.throwIfAborted(); context.signal.throwIfAborted();
             if (closed || !Number.isSafeInteger(fd) || fd < 0) throw new FsError("EBADF");
             io[invocationScope].assertOpen();
-            if ((leases?.size ?? 0) >= 64) throw new FsError("EMFILE");
+            if ((leases?.size ?? 0) >= (limits.maxAdmittedHandles ?? Infinity)) throw new FsError("EMFILE");
             if (!Array.isArray(requestedRights) || !requestedRights.length || requestedRights.length > 4) throw new FsError("EINVAL");
             const rights = Array.from({ length: requestedRights.length }, (_, index) => requestedRights[index]!);
             if (new Set(rights).size !== rights.length || rights.some(right => !["read", "write", "seek", "stat"].includes(right))) throw new FsError("EINVAL");
             signal.throwIfAborted(); context.signal.throwIfAborted();
             if (closed) throw new FsError("EBADF");
             io[invocationScope].assertOpen();
-            if ((leases?.size ?? 0) >= 64) throw new FsError("EMFILE");
+            if ((leases?.size ?? 0) >= (limits.maxAdmittedHandles ?? Infinity)) throw new FsError("EMFILE");
             const descriptor = io.descriptors!.get(fd);
             if (!descriptor || descriptor.closed) throw new FsError("EBADF");
             const input = descriptor.input instanceof ShellInput ? descriptor.input : undefined;
@@ -1625,7 +1625,7 @@ function bindCommandIO(context: CommandContext, io?: IO): void {
             async function work<T>(callerSignal: AbortSignal, operation: (signal: AbortSignal) => Promise<T>): Promise<T> {
               callerSignal.throwIfAborted(); context.signal.throwIfAborted();
               if (closed || ended) throw new FsError("EBADF");
-              if (pending.size >= 16) throw new FsError("EAGAIN");
+              if (pending.size >= (limits.maxDescriptorOperations ?? Infinity)) throw new FsError("EAGAIN");
               const combined = combineManagedSignals(callerSignal, context.signal, lifetime.signal);
               const task = Promise.resolve().then(() => operation(combined));
               pending.add(task);
@@ -1634,7 +1634,7 @@ function bindCommandIO(context: CommandContext, io?: IO): void {
             }
             const lease = {
               identity: input?.identity ?? file ?? descriptor.output!, ...(rights.includes("write") && descriptor.output?.ownedOutput ? { consumerClosed: descriptor.output.ownedOutput.consumerClosed } : {}), ...(rights.includes("read") ? { read: (count: number, caller: AbortSignal) => work(caller, async combined => {
-                if (!Number.isSafeInteger(count) || count < 0 || count > 65536) throw new FsError("EINVAL");
+                if (!Number.isSafeInteger(count) || count < 0 || count > (limits.maxDescriptorReadBytes ?? Infinity)) throw new FsError("EINVAL");
                 return input!.readAvailable(count, combined);
               }) } : {}), ...(rights.includes("write") ? { write: async (bytes: Uint8Array, caller: AbortSignal) => {
                 if (!(bytes instanceof Uint8Array) || descriptorByteLength.call(bytes) > 65536) throw new FsError("EINVAL");
@@ -1731,7 +1731,7 @@ class FastShellCommandContext {
       Object.defineProperty(this, key, {
         ...descriptor, enumerable: true, get: descriptor.get!.bind(this), ...(descriptor.set ? { set: descriptor.set.bind(this) } : {}), });
     }
-    bindCommandIO(this as unknown as CommandContext, { ...io, [invocationScope]: scope });
+    bindCommandIO(this as unknown as CommandContext, { ...io, [invocationScope]: scope }, runtime.budget.limits);
     void this.registerCleanup;
   }
   resetDirectStage( runtime: Runtime, state: State, io: IO, scope: InvocationScope, name: string, args: readonly string[], stdin: ByteSource, stdinIsDefault: boolean, stdout: ByteSink, signal: AbortSignal, ): void {
@@ -4396,6 +4396,7 @@ export class Runtime {
     }
     const resolvedVariables = variables ?? this.arithmeticVariables(state, io.diagnosticLine);
     let depth = 0;
+    const resolving = new Set<string>();
     const references: ArithmeticReferences = {
       isSync: false, resolve: (variable, subscript) => {
         this.signal.throwIfAborted();
@@ -4415,7 +4416,10 @@ export class Runtime {
             const identity = await binding.keyIdentity(value, binding.owner, this.signal);
             index = binding.keys.get(identity)?.index;
           } else {
-            if (++depth > 64) throw new PublicDiagnostic("Arithmetic subscript nesting exceeds 64");
+            const identity = JSON.stringify([name, subscript]);
+            if (resolving.has(identity)) throw new PublicDiagnostic("Arithmetic subscript recursion nesting");
+            resolving.add(identity);
+            if (++depth > this.budget.limits.maxSyntaxDepth) throw new PublicDiagnostic(`Arithmetic subscript nesting exceeds ${this.budget.limits.maxSyntaxDepth}`);
             let number: bigint;
             try {
               let operand = prepareArithmetic(subscript ?? "0", this.budget.parsing);
@@ -4425,7 +4429,7 @@ export class Runtime {
                 operand = prepareArithmetic(shellValueText(concatShellValues(fields, io[valueScope])), this.budget.parsing);
               }
               number = await evaluateArithmeticReferences(operand, references, this.budget.parsing);
-            } finally { depth--; }
+            } finally { depth--; resolving.delete(identity); }
             if (number < 0n) number += BigInt((binding?.maximum ?? (state.variables[name] === undefined ? -1 : 0)) + 1);
             if (number < 0n || number > 2147483647n) throw new ArrayFailure("index outside 0..2147483647");
             index = Number(number);
@@ -18199,7 +18203,7 @@ export class Runtime {
     }) as NonNullable<ReturnType<typeof workerRuntimeContexts.get>>);
     if (typeof nameValue !== "string") Object.defineProperty(context, "command", {
       configurable: true, enumerable: true, get: readName, set(replacement: string) { currentName = replacement; }, });
-    bindCommandIO(context, io);
+    bindCommandIO(context, io, this.budget.limits);
     bindFileOutputBudget(context, sink => this.budget.sink(sink, getScopedSignal()), (chunk, write) => this.budget.writeCounted(chunk, write, getScopedSignal()));
     const middleware = hasMiddleware ? this.middleware.map<Middleware>((handler) => (context, next) => {
       scope.assertOpen();
@@ -18889,7 +18893,7 @@ export class Runtime {
         }, };
       Reflect.deleteProperty(context, invocationScope);
       Reflect.deleteProperty(context, valueScope);
-      bindCommandIO(context, { ...io, [invocationScope]: scope });
+      bindCommandIO(context, { ...io, [invocationScope]: scope }, this.budget.limits);
       bindFileOutputBudget(context, sink => this.budget.sink(sink, runtime.signal), (chunk, write) => this.budget.writeCounted(chunk, write, runtime.signal));
       if (argumentValues.values.every(value => typeof value === "string")) Reflect.deleteProperty(context, "argumentValues");
       const child = await runtime.shebangState(context, state);
@@ -21173,7 +21177,7 @@ export class Runtime {
   private parameterOperandIO(word: Word, state: State, io: IO): IO {
     this.signal.throwIfAborted();
     const parameterDepth = (io.parameterDepth ?? 0) + 1;
-    if (state.depth + parameterDepth > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", word.offset);
+    if (state.depth + parameterDepth > this.budget.limits.maxSyntaxDepth) throw new ShellSyntaxError(`Syntax nesting exceeds ${this.budget.limits.maxSyntaxDepth}`, word.offset);
     return { ...io, parameterDepth };
   }
   private async variableMetaTransform(part: Extract<WordPart, { kind: "variable" }>, state: State, io: IO): Promise<ShellValue> {
@@ -21350,7 +21354,7 @@ export class Runtime {
       this.signal.throwIfAborted();
       if (part.form === "dollar-parenthesis" && state.extensions?.checkpoints.length) await this.extensionCheckpoint("source-input-read", state, io);
       const parameterDepth = io.parameterDepth ?? 0;
-      if (parameterDepth > 0 && state.depth + parameterDepth + 1 > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", 0);
+      if (parameterDepth > 0 && state.depth + parameterDepth + 1 > this.budget.limits.maxSyntaxDepth) throw new ShellSyntaxError(`Syntax nesting exceeds ${this.budget.limits.maxSyntaxDepth}`, 0);
       const capture = new Capture();
       const child = await cloneState(state, this.signal);
       child.isolated = true;
@@ -26791,7 +26795,7 @@ export class Runtime {
     if (rawState.depth >= this.budget.maxSubstitutionDepthSmi && rawState.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     this.signal.throwIfAborted();
     const parameterDepth = io.parameterDepth ?? 0;
-    if (parameterDepth > 0 && rawState.depth + parameterDepth + 1 > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", 0);
+    if (parameterDepth > 0 && rawState.depth + parameterDepth + 1 > this.budget.limits.maxSyntaxDepth) throw new ShellSyntaxError(`Syntax nesting exceeds ${this.budget.limits.maxSyntaxDepth}`, 0);
     if ( rawState.noexec || hasActiveExtensions(rawState) || rawState.extensions?.checkpoints.length || hasNonNamerefAttributes(rawState) || (guestArrays(state) && (guestArrays(state)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) || rawState.redirectAssignments?.size) {
       return undefined;
     }

@@ -31,7 +31,7 @@ test("deferred heredoc retains source and cumulative expansion limits", async ()
 
 test("deferred heredoc keeps parser nesting bounded before redirected execution", async () => {
   const nested = "$(say ".repeat(65) + "value" + ")".repeat(65);
-  const { shell, fs } = setup();
+  const { shell, fs } = setup({ limits: { maxSyntaxDepth: 64 } });
   const result = await shell.exec(`say before >before; pass <<EOF\n${nested}\nEOF\nsay after >after`);
   assert.equal(result.exitCode, 2);
   assert.match(result.stderr, /nesting exceeds 64/u);

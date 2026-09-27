@@ -646,7 +646,7 @@ have unlimited resource budgets by default. Set individual family limits to opt
 in; setting one limit leaves the others unlimited. Explicit `Infinity` also
 disables a limit. Shell helpers expose `maxCdWork`, `maxCdProbes`,
 `maxCdPathBytes`, `maxCdPathComponents`, `maxDirectoryStackEntries`,
-`maxDirectoryStackOutputBytes`, `maxGlobstarStates`, `maxGlobstarDepth` and
+`maxDirectoryStackOutputBytes`, `maxSyntaxDepth`, `maxAdmittedHandles`, `maxDescriptorOperations`, `maxDescriptorReadBytes`, `maxGlobstarStates`, `maxGlobstarDepth` and
 `maxGlobstarEntries`. Env split limits are supplied through
 `execution.envSplitLimits`; truncate uses `metadata.limits.maxArguments`.
 Browser controller structural ceilings (configuration, snapshots, output files,

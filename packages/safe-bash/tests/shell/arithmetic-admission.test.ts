@@ -15,7 +15,7 @@ test("arithmetic delimiter fallback is command-only and retains incomplete diagn
 
 test("arithmetic command lookahead bounds nested quoted substitutions", () => {
   const source = '"$('.repeat(65) + "1" + ')"'.repeat(65) + "))";
-  assert.throws(() => arithmeticEnd(source, 0, true), error => error instanceof ShellSyntaxError && error.reason === "Syntax nesting exceeds 64");
+  assert.throws(() => arithmeticEnd(source, 0, true, 64), error => error instanceof ShellSyntaxError && error.reason === "Syntax nesting exceeds 64");
 });
 
 for (const [source, units] of [["", 1], ["1", 2], ["1+2", 6], ["(1)", 4], ["-1", 4], ["name++", 4], ["1?2:3", 9]] as const) {

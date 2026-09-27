@@ -205,7 +205,7 @@ fn diff_context_splits_separated_changes_and_stat_counts_only_edits() {
     assert!(
         result
             .stdout
-            .contains("@@ -1 +1 @@\n-a\n+A\n@@ -7 +7 @@\n-g\n+G\n"),
+            .contains("@@ -1 +1 @@\n-a\n+A\n@@ -7 +7 @@ f\n-g\n+G\n"),
         "{}",
         result.stdout
     );

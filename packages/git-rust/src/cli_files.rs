@@ -368,8 +368,18 @@ fn patch(a: &str, b: &str, context: usize) -> String {
                 format!("{},{}", if count == 0 { line } else { line + 1 }, count)
             }
         };
+        let heading = old[..old_line]
+            .iter()
+            .rev()
+            .find(|line| {
+                line.as_bytes()
+                    .first()
+                    .is_some_and(|c| c.is_ascii_alphabetic() || *c == b'_' || *c == b'$')
+            })
+            .map(|line| format!(" {}", line.trim_end().chars().take(80).collect::<String>()))
+            .unwrap_or_default();
         out.push_str(&format!(
-            "@@ -{} +{} @@\n",
+            "@@ -{} +{} @@{heading}\n",
             range(old_line, old_count),
             range(new_line, new_count)
         ));

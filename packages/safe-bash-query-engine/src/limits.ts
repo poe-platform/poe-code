@@ -1,5 +1,4 @@
 const ONCE_ABORT_OPTIONS = Object.freeze({ once: true });
-const defaultPerfNow = performance.now;
 import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { Decimal, isNumber, numberText } from "./numbers.js";
 
@@ -91,7 +90,7 @@ export class Budget {
     this.bindSignal(signal);
     this.steps = 0;
     this.lastYieldSteps = 0;
-    this.yieldTimes[0] = (performance.now !== defaultPerfNow || hasYieldCheckpoint(signal)) ? monotonicNow() : -1;
+    this.yieldTimes[0] = monotonicNow();
     this.inputBytes = 0;
     this.outputBytes = 0;
     this.results = 0;

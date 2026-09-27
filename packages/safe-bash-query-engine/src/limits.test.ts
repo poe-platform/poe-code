@@ -1,7 +1,34 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { setTimeout as delay } from "node:timers/promises";
 import { registerYieldCheckpoint } from "safe-bash-contracts/yield";
 import { Budget, JqLimitError, resolveJqLimits } from "./limits.js";
+
+test("a reset window includes real elapsed time before its first check", async () => {
+  const signal = new AbortController().signal;
+  const budget = new Budget(resolveJqLimits(), signal);
+  budget.resetForRun(signal);
+  await delay(35);
+  const pending = budget.ensureFreshWindow();
+  assert.ok(pending instanceof Promise);
+  await pending;
+  assert.equal(budget.currentSteps, 0);
+});
+
+test("late checkpoint binding includes real time elapsed since reset", async () => {
+  const signal = new AbortController().signal;
+  const budget = new Budget(resolveJqLimits(), signal);
+  budget.resetForRun(signal);
+  await delay(35);
+  let checkpoints = 0;
+  registerYieldCheckpoint(signal, () => { checkpoints++; });
+  assert.equal(budget.needsYield(), true);
+  const pending = budget.tickSync(0);
+  assert.ok(pending instanceof Promise);
+  await pending;
+  assert.equal(checkpoints, 1);
+  assert.equal(budget.currentSteps, 0);
+});
 
 for (const start of [2 ** 31 - 10, 2 ** 31 + 100, 2 ** 32 + 100]) {
   for (const reset of [false, true]) {

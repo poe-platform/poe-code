@@ -128,7 +128,7 @@ export function inspectControlSnapshot(node: XmlElement, location: Location<"con
   return { location, kind, ...metadata, placeholder, binding,
     value, choices, support: reason === null ? "supported" : "unsupported", reason };
 }
-async function inventory(input: Uint8Array, options: DocxOperationArguments<"controls.list">, context: ArchiveContext) {
+export async function openControlInventory(input: Uint8Array, options: DocxOperationArguments<"controls.list">, context: ArchiveContext) {
   const settings = archiveSettings(context); const document = await openDocumentLocations(input, settings); const archive = document.snapshot();
   const query = { ...(options.scope ? { scope: options.scope } : {}), ...(options.section ? { section: options.section } : {}) };
   let owner: Location | undefined = options.select ? document.resolve(options.select) : undefined;
@@ -147,7 +147,7 @@ async function inventory(input: Uint8Array, options: DocxOperationArguments<"con
 export async function inspectDocumentControls(input: Uint8Array, options: DocxOperationArguments<"controls.list"> = {}, context: ArchiveContext): Promise<ControlReadData> {
   const settings = archiveSettings(context); const invocation = validateDocxInvocation({ operation: "controls.list", inputs: ["document"], options }, settings.budget);
   const opts = invocation.options as typeof options; const budget = settings.budget.lower(Object.fromEntries((opts.limit ?? []).map(item => [item.name, item.value])));
-  const result = await inventory(input, opts, { ...settings, budget }); return { items: result.items };
+  const result = await openControlInventory(input, opts, { ...settings, budget }); return { items: result.items };
 }
 function opening(node: XmlElement): string {
   return `<${node.name}${node.attributes.map(a => ` ${a.name}="${xmlValue(a.value)}"`).join("")}>`;
@@ -308,7 +308,7 @@ export async function editDocumentControls(input: Uint8Array, options: DocxOpera
   const invocation = validateDocxInvocation({ operation: "controls.set", inputs: [identity?.path ?? "document"], options: args }, settings.budget);
   const opts = invocation.options as DocxOperationArguments<"controls.set">; const budget = settings.budget.lower(Object.fromEntries((opts.limit ?? []).map(item => [item.name, item.value])));
   const { output, inPlace, force, dryRun, json, all, allowEmpty, text, checked, choice, date, file, ...selectors } = opts; delete selectors.limit;
-  const result = await inventory(input, selectors, { ...settings, budget }); assertDocumentEditable(result.archive, { ...settings, budget }, result.archive);
+  const result = await openControlInventory(input, selectors, { ...settings, budget }); assertDocumentEditable(result.archive, { ...settings, budget }, result.archive);
   const chosen = result.document.select(result.items.map(item => item.location), { ...(all === undefined ? {} : { all }), ...(allowEmpty === undefined ? {} : { allowEmpty }) }, "mutation");
   const stages: (() => void)[] = []; let picture: Uint8Array | undefined;
   for (const location of chosen) {

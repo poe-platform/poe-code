@@ -22,7 +22,7 @@ export type GetconfOptions = GetconfCommandsOptions;
 
 export function settings(options: GetconfCommandsOptions = {}): GetconfLimits {
   const limits: GetconfLimits = {
-    maxArgumentBytes: options.limits?.maxArgumentBytes ?? 64 * 1024,
+    maxArgumentBytes: options.limits?.maxArgumentBytes ?? Infinity,
   };
   for (const [name, value] of Object.entries(limits)) {
     if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) {

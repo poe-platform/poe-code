@@ -2,6 +2,8 @@
 
 Compute and verify FIPS 180-4 512-bit SHA-512 cryptographic digests.
 
+Resource limits default to `Infinity`; configure finite quotas through command options when needed.
+
 Generate or check SHA-512 checksums in standard GNU or BSD `--tag` format with `--check`, `--strict`, `--status`, and `--ignore-missing` support.
 
 ## Features

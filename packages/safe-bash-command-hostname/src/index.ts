@@ -26,8 +26,8 @@ export type HostnameOptions = HostnameCommandsOptions;
 
 export function settings(options: HostnameCommandsOptions = {}): HostnameLimits {
   const limits: HostnameLimits = {
-    maxArgumentBytes: options.limits?.maxArgumentBytes ?? 64 * 1024,
-    maxFileBytes: options.limits?.maxFileBytes ?? 64 * 1024,
+    maxArgumentBytes: options.limits?.maxArgumentBytes ?? Infinity,
+    maxFileBytes: options.limits?.maxFileBytes ?? Infinity,
   };
   for (const [name, value] of Object.entries(limits)) {
     if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) {

@@ -2,6 +2,8 @@
 
 GNU-compatible disk and inode usage reporting for virtual filesystems.
 
+Resource limits default to `Infinity`; configure finite quotas through command options when needed.
+
 Inspect filesystem capacity, used space, available blocks, and inode counts across mounted virtual filesystems with human-readable and custom column formatting.
 
 ## Features

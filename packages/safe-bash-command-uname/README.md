@@ -2,6 +2,8 @@
 
 Platform and kernel metadata reporting for virtualized shell environments.
 
+Resource limits default to `Infinity`; configure finite quotas through command options when needed.
+
 Expose deterministic `Sandbox` kernel and `VFS-ish/GNU` operating system identifiers across all standard `uname` flags.
 
 ## Features

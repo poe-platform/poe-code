@@ -25,7 +25,7 @@ export type Sha512sumOptions = Sha512sumCommandsOptions;
 export function settings(options: Sha512sumCommandsOptions = {}): Sha512sumLimits {
   const limits: Sha512sumLimits = {
     maxInputBytes: options.limits?.maxInputBytes ?? options.maxInputBytes ?? Infinity,
-    maxArgumentBytes: options.limits?.maxArgumentBytes ?? 64 * 1024,
+    maxArgumentBytes: options.limits?.maxArgumentBytes ?? Infinity,
   };
   for (const [name, value] of Object.entries(limits)) {
     if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) {

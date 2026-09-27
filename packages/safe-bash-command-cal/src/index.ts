@@ -22,8 +22,8 @@ export type CalOptions = CalCommandsOptions;
 
 export function settings(options: CalCommandsOptions = {}): CalLimits {
   const limits: CalLimits = {
-    maxArgumentBytes: options.limits?.maxArgumentBytes ?? 64 * 1024,
-    maxMonths: options.limits?.maxMonths ?? 1200,
+    maxArgumentBytes: options.limits?.maxArgumentBytes ?? Infinity,
+    maxMonths: options.limits?.maxMonths ?? Infinity,
   };
   for (const [name, value] of Object.entries(limits)) {
     if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) {

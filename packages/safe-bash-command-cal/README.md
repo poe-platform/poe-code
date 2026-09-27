@@ -2,6 +2,8 @@
 
 Render ASCII monthly and annual calendars with Julian/Gregorian reformation support.
 
+Resource limits default to `Infinity`; configure finite quotas through command options when needed.
+
 Display formatted single-month, three-month (`-3`), or full-year (`-y`) calendars with Sunday/Monday week starts and day-of-year (`-j`) modes. `ncal` keeps vertical weekday rows for all month spans and full years. Set `SOURCE_DATE_EPOCH` for reproducible default dates.
 
 ## Features

@@ -35,8 +35,8 @@ export type DfOptions = DfCommandsOptions;
 
 export function settings(options: DfCommandsOptions = {}): DfLimits {
   const limits: DfLimits = {
-    maxVisitedEntries: options.limits?.maxVisitedEntries ?? 10000,
-    maxArgumentBytes: options.limits?.maxArgumentBytes ?? 64 * 1024,
+    maxVisitedEntries: options.limits?.maxVisitedEntries ?? Infinity,
+    maxArgumentBytes: options.limits?.maxArgumentBytes ?? Infinity,
   };
   for (const [name, value] of Object.entries(limits)) {
     if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) {

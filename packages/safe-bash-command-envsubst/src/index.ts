@@ -27,9 +27,9 @@ export type EnvsubstOptions = EnvsubstCommandsOptions;
 
 export function settings(options: EnvsubstCommandsOptions = {}): EnvsubstLimits {
   const limits: EnvsubstLimits = {
-    maxInputBytes: options.limits?.maxInputBytes ?? options.maxInputBytes ?? 16 * 1024 * 1024,
-    maxOutputBytes: options.limits?.maxOutputBytes ?? options.maxOutputBytes ?? 16 * 1024 * 1024,
-    maxArgumentBytes: options.limits?.maxArgumentBytes ?? 64 * 1024,
+    maxInputBytes: options.limits?.maxInputBytes ?? options.maxInputBytes ?? Infinity,
+    maxOutputBytes: options.limits?.maxOutputBytes ?? options.maxOutputBytes ?? Infinity,
+    maxArgumentBytes: options.limits?.maxArgumentBytes ?? Infinity,
   };
   for (const [name, value] of Object.entries(limits)) {
     if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) {

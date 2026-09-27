@@ -2,6 +2,8 @@
 
 Deterministic user and group identity reporting for sandboxed shell scripts.
 
+Resource limits default to `Infinity`; configure finite quotas through command options when needed.
+
 Provide GNU coreutils-compatible `id` output (`uid`, `gid`, supplementary `groups`, and `Sandbox` security context) so build and setup scripts run unmodified.
 
 ## Features

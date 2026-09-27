@@ -2,6 +2,8 @@
 
 Inspect or configure the virtual sandbox host identity.
 
+Resource limits default to `Infinity`; configure finite quotas through command options when needed.
+
 Query short, FQDN, domain, or loopback IP address metadata for scripts expecting standard `hostname` flags.
 
 ## Features

@@ -2,6 +2,8 @@
 
 Validate file path validity and POSIX portability across systems.
 
+Resource limits default to `Infinity`; configure finite quotas through command options when needed.
+
 Check paths for non-portable characters, leading hyphens, empty names, component length limits (`NAME_MAX`), and path length limits (`PATH_MAX`).
 
 ## Features

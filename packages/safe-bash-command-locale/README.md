@@ -2,6 +2,8 @@
 
 Inspect active locale categories, available locales (`-a`), charmaps (`-m`), and keywords.
 
+Resource limits default to `Infinity`; configure finite quotas through command options when needed.
+
 Report POSIX and UTF-8 locale environment settings (`LANG`, `LC_ALL`, `LC_CTYPE`, `charmap`) for internationalization-aware shell scripts.
 
 ## Features

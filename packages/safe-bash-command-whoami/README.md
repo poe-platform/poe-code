@@ -2,6 +2,8 @@
 
 Print the effective sandbox user name.
 
+Resource limits default to `Infinity`; configure finite quotas through command options when needed.
+
 Return the active user name (`sandbox` or `USER`/`LOGNAME`) for scripts that branch on user identity.
 
 ## Features

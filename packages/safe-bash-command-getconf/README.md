@@ -2,6 +2,8 @@
 
 Query POSIX and system configuration limits (`PAGESIZE`, `ARG_MAX`, `PATH_MAX`).
 
+Resource limits default to `Infinity`; configure finite quotas through command options when needed.
+
 Inspect system-wide and path-specific configuration variables expected by build systems and shell scripts.
 
 ## Features

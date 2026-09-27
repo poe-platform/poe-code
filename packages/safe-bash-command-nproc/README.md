@@ -2,6 +2,8 @@
 
 Query available logical processing units for parallel build scripts.
 
+Resource limits default to `Infinity`; configure finite quotas through command options when needed.
+
 Report deterministic processor counts with `--all`, `--ignore=N`, and `OMP_NUM_THREADS` / `OMP_THREAD_LIMIT` awareness.
 
 ## Features

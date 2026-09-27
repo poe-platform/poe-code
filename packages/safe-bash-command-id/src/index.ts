@@ -48,8 +48,8 @@ export type IdOptions = IdCommandsOptions;
 
 export function settings(options: IdCommandsOptions = {}): IdLimits {
   const limits: IdLimits = {
-    maxArgumentBytes: options.limits?.maxArgumentBytes ?? 64 * 1024,
-    maxPasswdBytes: options.limits?.maxPasswdBytes ?? 256 * 1024,
+    maxArgumentBytes: options.limits?.maxArgumentBytes ?? Infinity,
+    maxPasswdBytes: options.limits?.maxPasswdBytes ?? Infinity,
   };
   for (const [name, value] of Object.entries(limits)) {
     if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) {

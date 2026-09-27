@@ -28,7 +28,7 @@ export type UnameOptions = UnameCommandsOptions;
 
 export function settings(options: UnameCommandsOptions = {}): UnameLimits {
   const limits: UnameLimits = {
-    maxArgumentBytes: options.limits?.maxArgumentBytes ?? 64 * 1024,
+    maxArgumentBytes: options.limits?.maxArgumentBytes ?? Infinity,
   };
   for (const [name, value] of Object.entries(limits)) {
     if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) {

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Worker } from "node:worker_threads";
-import { parseJson, parseJsonUtf8, canonicalizeJson } from "../dist/index.js";
+import { parseJson, parseJsonUtf8, canonicalizeJson, parseMessage, parseMessageUtf8 } from "../dist/index.js";
 
 test("native values agree with JSON.parse without a JS stringify/parse bridge", () => {
   for (const source of [
@@ -55,7 +55,7 @@ test("resource limits are enforced by the actual addon", () => {
   assert.throws(() => parseJson("[1]", { maxBytes: 2 }), { code: "ByteLimit" });
   assert.throws(() => parseJson("[[]]", { maxDepth: 1 }), { code: "DepthLimit" });
   assert.throws(() => parseJson("[1]", { maxNodes: 1 }), { code: "NodeLimit" });
-  assert.throws(() => parseJson("0", { maxDepth: 513 }), { code: "InvalidLimits" });
+  assert.equal(parseJson("0", { maxDepth: 513 }), 0);
   assert.throws(() => parseJson("0", { maxNodes: 0 }), { code: "NodeLimit" });
   assert.equal(parseJson('"\ud800"', { maxBytes: 5 }), "\ud800");
 });
@@ -70,7 +70,7 @@ test("native serializer preserves JSON values and escapes unpaired surrogates", 
 
 test("numeric limits cannot silently wrap or truncate at the Node-API boundary", () => {
   for (const name of ["maxBytes", "maxDepth", "maxNodes"]) {
-    for (const value of [-1, 1.5, NaN, Infinity, 2 ** 32, Number.MAX_SAFE_INTEGER]) {
+    for (const value of [-1, 1.5, NaN, -Infinity, 2 ** 32, Number.MAX_SAFE_INTEGER]) {
       assert.throws(() => parseJson("0", { [name]: value }), { code: "InvalidLimits" });
     }
   }
@@ -108,4 +108,38 @@ test("addon loads and releases independently in worker environments", async () =
         })
     )
   );
+});
+
+test("all native JSON entry points accept omitted and infinite budgets", () => {
+  const source = '['.repeat(600) + '0' + ']'.repeat(600);
+  const message = '{"jsonrpc":"2.0","id":1,"method":"test","params":{"deep":' + source + '}}';
+  for (const limits of [undefined, { maxBytes: Infinity, maxDepth: Infinity, maxNodes: Infinity }]) {
+    assert.equal(canonicalizeJson(source, limits), source);
+    for (const value of [parseJson(source, limits), parseJsonUtf8(Buffer.from(source), limits)]) {
+      let leaf = value;
+      for (let i = 0; i < 600; i++) leaf = leaf[0];
+      assert.equal(leaf, 0);
+    }
+    assert.equal(parseMessage(message, limits).success, true);
+    assert.equal(parseMessageUtf8(Buffer.from(message), limits).success, true);
+  }
+  assert.throws(() => parseJson(source, { maxDepth: 599, maxBytes: Infinity }), { code: "DepthLimit" });
+});
+
+
+test("infinite budgets preserve finite limits at every native entry point", () => {
+  const unlimited = { maxBytes: Infinity, maxDepth: Infinity, maxNodes: Infinity };
+  for (const [name, maximum, code] of [["maxBytes", 2, "ByteLimit"], ["maxDepth", 0, "DepthLimit"], ["maxNodes", 1, "NodeLimit"]]) {
+    for (const parse of [parseJson, canonicalizeJson, (input, limits) => parseJsonUtf8(Buffer.from(input), limits)]) {
+      assert.throws(() => parse("[0]", { ...unlimited, [name]: maximum }), { code });
+    }
+  }
+  for (const name of ["maxBytes", "maxDepth", "maxNodes"]) {
+    assert.equal(parseJson("0", { [name]: Infinity }), 0);
+  }
+  for (const parse of [parseMessage, (input, limits) => parseMessageUtf8(Buffer.from(input), limits)]) {
+    const result = parse('{"jsonrpc":"2.0","method":"ping"}', { ...unlimited, maxNodes: 1 });
+    assert.equal(result.success, false);
+    assert.equal(result.error.code, -32700);
+  }
 });

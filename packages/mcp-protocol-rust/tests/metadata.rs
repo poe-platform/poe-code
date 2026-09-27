@@ -5,24 +5,23 @@ fn object(value: Value) -> Value {
 }
 
 #[test]
-fn metadata_rejects_nonfinite_numbers_and_enforces_json_node_budget() {
-    assert!(!is_valid_metadata(&object(Value::Number(f64::INFINITY))));
+fn metadata_validates_finite_numbers_without_a_node_budget() {
     assert!(is_valid_metadata(&object(Value::Array(vec![
         Value::Null;
-        9_998
+        20_000
     ]))));
-    assert!(!is_valid_metadata(&object(Value::Array(vec![
-        Value::Null;
-        9_999
-    ]))));
+    for number in [f64::INFINITY, f64::NEG_INFINITY, f64::NAN] {
+        assert!(!is_valid_metadata(&object(Value::Array(vec![
+            Value::Number(number)
+        ]))));
+    }
 }
 
 #[test]
-fn metadata_accepts_depth_64_and_rejects_depth_65() {
+fn metadata_accepts_depth_above_64() {
     let mut metadata = Value::Null;
-    for _ in 0..64 {
+    for _ in 0..200 {
         metadata = object(metadata);
     }
     assert!(is_valid_metadata(&metadata));
-    assert!(!is_valid_metadata(&object(metadata)));
 }

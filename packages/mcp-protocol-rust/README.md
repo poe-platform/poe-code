@@ -2,7 +2,7 @@
 
 Parse and serialize JSON for MCP messages with a Rust library that has no external
 crate dependencies. Preserve UTF-16 strings, including lone surrogates, and bound
-input bytes, nesting, and value count before accepting untrusted messages.
+input bytes, nesting, and value count with explicit limits for untrusted messages.
 
 | Capability      | Behavior                                                                                    |
 | --------------- | ------------------------------------------------------------------------------------------- |
@@ -45,10 +45,13 @@ let message = parse(
 let encoded = stringify(&message);
 ```
 
-Defaults allow 16 MiB, 128 nested containers, and 262,144 values. The maximum
-supported depth setting is 512; larger settings return `InvalidLimits` rather
-than removing stack protection. Array and object containers count as values;
-object keys do not. Limits of zero reject the corresponding resource use.
+Bytes, container depth, and value count are uncapped by default (`usize::MAX`
+in Rust). Node callers can also pass `Infinity` to disable an individual budget;
+finite limits must be nonnegative integers no greater than 4,294,967,295.
+Parsing and serialization use iterative traversal. Array and object containers
+count as values; object keys do not. Limits of zero reject the corresponding
+resource use. JSON-value and metadata validation require finite numbers without
+fixed depth or node caps.
 
 Strings are stored as UTF-16 code units, so `"\ud800"` is preserved rather than
 replaced. Serialization retains property order and produces valid JSON. Numbers

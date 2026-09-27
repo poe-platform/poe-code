@@ -72,13 +72,17 @@ impl ParseLimits {
                 (options.max_nodes, &mut limits.max_nodes),
             ] {
                 if let Some(value) = input {
+                    if value == f64::INFINITY {
+                        *target = usize::MAX;
+                        continue;
+                    }
                     if !value.is_finite()
                         || value.fract() != 0.0
                         || !(0.0..=u32::MAX as f64).contains(&value)
                     {
                         return Err(Error::new(
                             "InvalidLimits".into(),
-                            "Limits must be nonnegative integers no greater than 4294967295",
+                            "Limits must be Infinity or nonnegative integers no greater than 4294967295",
                         ));
                     }
                     *target = value as usize;

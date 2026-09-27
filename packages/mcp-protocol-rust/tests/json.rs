@@ -170,23 +170,44 @@ fn bounds_value_count_independently_of_byte_count() {
 }
 
 #[test]
-fn rejects_a_depth_configuration_that_would_remove_stack_protection() {
-    let limits = Limits {
-        max_depth: 513,
-        ..Limits::default()
-    };
-    assert_eq!(
-        json::parse(b"[]", limits).unwrap_err().kind,
-        ErrorKind::InvalidLimits
-    );
+fn defaults_disable_all_budgets() {
+    let limits = Limits::default();
+    assert_eq!(limits.max_bytes, usize::MAX);
+    assert_eq!(limits.max_depth, usize::MAX);
+    assert_eq!(limits.max_nodes, usize::MAX);
+    let source = format!("\"{}\"", "x".repeat(16 * 1024 * 1024));
+    assert!(json::parse(source.as_bytes(), limits).is_ok());
+    let source = format!("[{}]", vec!["0"; 262_145].join(","));
+    assert!(json::parse(source.as_bytes(), limits).is_ok());
 }
 
 #[test]
-fn rejects_deep_untrusted_input_without_visiting_the_entire_tree() {
+fn accepts_depth_above_the_previous_ceiling_for_both_encodings() {
+    let input = format!("{}0{}", "[".repeat(1000), "]".repeat(1000));
+    for limits in [
+        Limits::default(),
+        Limits {
+            max_depth: 1000,
+            ..Limits::default()
+        },
+    ] {
+        let value = json::parse(input.as_bytes(), limits).unwrap();
+        assert_eq!(json::stringify(&value), input);
+        let value = json::parse_utf16(&input.encode_utf16().collect::<Vec<_>>(), limits).unwrap();
+        assert_eq!(json::stringify(&value), input);
+    }
+}
+
+#[test]
+fn rejects_deep_untrusted_input_when_a_limit_is_explicit() {
     let input = format!("{}0{}", "[".repeat(10_000), "]".repeat(10_000));
-    let error = json::parse(input.as_bytes(), Limits::default()).unwrap_err();
+    let limits = Limits {
+        max_depth: 128,
+        ..Limits::default()
+    };
+    let error = json::parse(input.as_bytes(), limits).unwrap_err();
     assert_eq!(error.kind, ErrorKind::DepthLimit);
-    assert_eq!(error.offset, Limits::default().max_depth);
+    assert_eq!(error.offset, limits.max_depth);
 }
 
 #[test]
@@ -230,4 +251,28 @@ fn serializes_controls_and_round_trips_nested_unicode() {
         assert_eq!(parse(&json::stringify(&value)), value);
     }
     assert_eq!(json::stringify(&text("\u{0}\n\t")), r#""\u0000\n\t""#);
+}
+
+#[test]
+fn iterative_parser_preserves_deep_objects_and_duplicate_keys() {
+    let nested = format!("{}null{}", "{\"child\":[".repeat(300), "]}".repeat(300));
+    let input = format!(
+        "{{\"first\":{},\"second\":true,\"first\":{}}}",
+        nested, nested
+    );
+    let value = json::parse(input.as_bytes(), Limits::default()).unwrap();
+    assert_eq!(
+        json::stringify(&value),
+        format!("{{\"first\":{},\"second\":true}}", nested)
+    );
+    let limits = Limits {
+        max_depth: 600,
+        ..Limits::default()
+    };
+    assert_eq!(
+        json::parse(input.as_bytes(), limits).unwrap_err().kind,
+        ErrorKind::DepthLimit
+    );
+    let malformed = format!("{}0{}", "[".repeat(1000), "]".repeat(999));
+    assert!(json::parse(malformed.as_bytes(), Limits::default()).is_err());
 }

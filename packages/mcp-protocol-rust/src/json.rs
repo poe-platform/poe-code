@@ -14,31 +14,15 @@ pub enum Value {
 }
 
 impl Value {
-    /// The repository's JSON-value contract: finite numbers, depth <= 64,
-    /// and at most 10,000 values, including the root.
+    /// Validate JSON values without resource caps; all numbers must be finite.
     pub fn is_json_value(&self) -> bool {
-        let mut pending = vec![(self, 0)];
-        let mut scheduled = 1usize;
-        while let Some((value, depth)) = pending.pop() {
-            if depth > 64 {
-                return false;
-            }
-            let children = match value {
-                Self::Number(number) if !number.is_finite() => return false,
-                Self::Array(values) => values.len(),
-                Self::Object(properties) => properties.len(),
-                _ => 0,
-            };
-            if children > 10_000 - scheduled {
-                return false;
-            }
-            scheduled += children;
+        let mut pending = vec![self];
+        while let Some(value) = pending.pop() {
             match value {
-                Self::Array(values) => {
-                    pending.extend(values.iter().map(|value| (value, depth + 1)))
-                }
+                Self::Number(number) if !number.is_finite() => return false,
+                Self::Array(values) => pending.extend(values),
                 Self::Object(properties) => {
-                    pending.extend(properties.iter().map(|(_, value)| (value, depth + 1)))
+                    pending.extend(properties.iter().map(|(_, value)| value))
                 }
                 _ => {}
             }
@@ -82,9 +66,9 @@ pub struct Limits {
 impl Default for Limits {
     fn default() -> Self {
         Self {
-            max_bytes: 16 * 1024 * 1024,
-            max_depth: 128,
-            max_nodes: 262_144,
+            max_bytes: usize::MAX,
+            max_depth: usize::MAX,
+            max_nodes: usize::MAX,
         }
     }
 }
@@ -125,12 +109,6 @@ impl std::error::Error for Error {}
 /// The byte budget uses UTF-8 lengths, counting each unpaired unit as three bytes.
 /// Error offsets refer to the normalized UTF-8 source.
 pub fn parse_utf16(input: &[u16], limits: Limits) -> Result<Value, Error> {
-    if limits.max_depth > 512 {
-        return Err(Error {
-            offset: 0,
-            kind: ErrorKind::InvalidLimits,
-        });
-    }
     if input.len() > limits.max_bytes {
         return Err(Error {
             offset: limits.max_bytes,
@@ -191,12 +169,6 @@ pub fn parse_utf16(input: &[u16], limits: Limits) -> Result<Value, Error> {
 }
 
 pub fn parse(input: &[u8], limits: Limits) -> Result<Value, Error> {
-    if limits.max_depth > 512 {
-        return Err(Error {
-            offset: 0,
-            kind: ErrorKind::InvalidLimits,
-        });
-    }
     if input.len() > limits.max_bytes {
         return Err(Error {
             offset: limits.max_bytes,
@@ -213,7 +185,7 @@ pub fn parse(input: &[u8], limits: Limits) -> Result<Value, Error> {
         nodes: 0,
         limits,
     };
-    let value = parser.value(0)?;
+    let value = parser.value()?;
     parser.whitespace();
     if parser.offset != input.len() {
         return Err(parser.error(ErrorKind::TrailingData));
@@ -255,25 +227,98 @@ impl Parser<'_> {
         }
     }
 
-    fn value(&mut self, depth: usize) -> Result<Value, Error> {
-        self.whitespace();
-        if self.nodes >= self.limits.max_nodes {
-            return Err(self.error(ErrorKind::NodeLimit));
+    fn value(&mut self) -> Result<Value, Error> {
+        enum Container {
+            Array(Vec<Value>),
+            Object {
+                properties: Vec<(JsonString, Value)>,
+                indexes: HashMap<JsonString, usize>,
+                key: JsonString,
+            },
         }
-        self.nodes += 1;
-        match self.peek() {
-            Some(b'n') => self.literal("null", Value::Null),
-            Some(b't') => self.literal("true", Value::Bool(true)),
-            Some(b'f') => self.literal("false", Value::Bool(false)),
-            Some(b'"') => self.string().map(Value::String),
-            Some(b'-' | b'0'..=b'9') => self.number().map(Value::Number),
-            Some(b'[' | b'{') if depth >= self.limits.max_depth => {
-                Err(self.error(ErrorKind::DepthLimit))
+        let mut containers = Vec::new();
+        loop {
+            self.whitespace();
+            if self.nodes >= self.limits.max_nodes {
+                return Err(self.error(ErrorKind::NodeLimit));
             }
-            Some(b'[') => self.array(depth),
-            Some(b'{') => self.object(depth),
-            None => Err(self.error(ErrorKind::UnexpectedEnd)),
-            _ => Err(self.error(ErrorKind::UnexpectedValue)),
+            self.nodes += 1;
+            let mut value = match self.peek() {
+                Some(b'n') => self.literal("null", Value::Null)?,
+                Some(b't') => self.literal("true", Value::Bool(true))?,
+                Some(b'f') => self.literal("false", Value::Bool(false))?,
+                Some(b'"') => Value::String(self.string()?),
+                Some(b'-' | b'0'..=b'9') => Value::Number(self.number()?),
+                Some(b'[' | b'{') if containers.len() >= self.limits.max_depth => {
+                    return Err(self.error(ErrorKind::DepthLimit));
+                }
+                Some(b'[') => {
+                    self.offset += 1;
+                    self.whitespace();
+                    if self.consume(b']') {
+                        Value::Array(Vec::new())
+                    } else {
+                        containers.push(Container::Array(Vec::new()));
+                        continue;
+                    }
+                }
+                Some(b'{') => {
+                    self.offset += 1;
+                    self.whitespace();
+                    if self.consume(b'}') {
+                        Value::Object(Vec::new())
+                    } else {
+                        let key = self.object_key()?;
+                        containers.push(Container::Object {
+                            properties: Vec::new(),
+                            indexes: HashMap::new(),
+                            key,
+                        });
+                        continue;
+                    }
+                }
+                None => return Err(self.error(ErrorKind::UnexpectedEnd)),
+                _ => return Err(self.error(ErrorKind::UnexpectedValue)),
+            };
+            loop {
+                let Some(container) = containers.last_mut() else {
+                    return Ok(value);
+                };
+                self.whitespace();
+                let closing = match container {
+                    Container::Array(values) => {
+                        values.push(value);
+                        b']'
+                    }
+                    Container::Object {
+                        properties,
+                        indexes,
+                        key,
+                    } => {
+                        let key = std::mem::take(key);
+                        if let Some(index) = indexes.get(&key).copied() {
+                            properties[index].1 = value;
+                        } else {
+                            indexes.insert(key.clone(), properties.len());
+                            properties.push((key, value));
+                        }
+                        b'}'
+                    }
+                };
+                if self.consume(closing) {
+                    value = match containers.pop().expect("current container exists") {
+                        Container::Array(values) => Value::Array(values),
+                        Container::Object { properties, .. } => Value::Object(properties),
+                    };
+                } else if self.consume(b',') {
+                    if let Container::Object { key, .. } = container {
+                        *key = self.object_key()?;
+                    }
+                    break;
+                } else {
+                    return Err(self.error(ErrorKind::UnexpectedValue));
+                }
+            }
         }
     }
 
@@ -286,55 +331,14 @@ impl Parser<'_> {
         }
     }
 
-    fn array(&mut self, depth: usize) -> Result<Value, Error> {
-        self.offset += 1;
+    fn object_key(&mut self) -> Result<JsonString, Error> {
         self.whitespace();
-        let mut values = Vec::new();
-        if self.consume(b']') {
-            return Ok(Value::Array(values));
-        }
-        loop {
-            values.push(self.value(depth + 1)?);
-            self.whitespace();
-            if self.consume(b']') {
-                return Ok(Value::Array(values));
-            }
-            if !self.consume(b',') {
-                return Err(self.error(ErrorKind::UnexpectedValue));
-            }
-        }
-    }
-
-    fn object(&mut self, depth: usize) -> Result<Value, Error> {
-        self.offset += 1;
+        let key = self.string()?;
         self.whitespace();
-        let mut properties: Vec<(JsonString, Value)> = Vec::new();
-        let mut indexes: HashMap<JsonString, usize> = HashMap::new();
-        if self.consume(b'}') {
-            return Ok(Value::Object(properties));
+        if !self.consume(b':') {
+            return Err(self.error(ErrorKind::UnexpectedValue));
         }
-        loop {
-            self.whitespace();
-            let key = self.string()?;
-            self.whitespace();
-            if !self.consume(b':') {
-                return Err(self.error(ErrorKind::UnexpectedValue));
-            }
-            let value = self.value(depth + 1)?;
-            if let Some(index) = indexes.get(&key).copied() {
-                properties[index].1 = value;
-            } else {
-                indexes.insert(key.clone(), properties.len());
-                properties.push((key, value));
-            }
-            self.whitespace();
-            if self.consume(b'}') {
-                return Ok(Value::Object(properties));
-            }
-            if !self.consume(b',') {
-                return Err(self.error(ErrorKind::UnexpectedValue));
-            }
-        }
+        Ok(key)
     }
 
     fn string(&mut self) -> Result<JsonString, Error> {

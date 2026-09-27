@@ -137,3 +137,17 @@ test("sqlite3 supports dot-commands (.mode, .headers, .tables, .schema, .dump, .
   assert.match(dumpRes.stdout, /CREATE TABLE "items"/);
   assert.match(dumpRes.stdout, /INSERT INTO items VALUES\('A1','5'\);/);
 });
+
+test("sqlite3 supports INSERT INTO ... WITH RECURSIVE and CREATE TABLE ... AS WITH", async () => {
+  const fs = createMemoryFileSystem();
+  const res = await runSqlite3(fs, [
+    ":memory:",
+    `CREATE TABLE nums (n INTEGER, label TEXT);
+     INSERT INTO nums WITH RECURSIVE seq(x) AS (VALUES(1) UNION ALL SELECT x + 1 FROM seq WHERE x < 5) SELECT x, 'n-' || x FROM seq;
+     CREATE TABLE summary AS WITH totals(cnt, s) AS (SELECT COUNT(*), SUM(n) FROM nums) SELECT cnt, s FROM totals;
+     SELECT * FROM nums ORDER BY n;
+     SELECT * FROM summary;`
+  ]);
+  assert.equal(res.code, 0, res.stderr);
+  assert.equal(res.stdout, "1|n-1\n2|n-2\n3|n-3\n4|n-4\n5|n-5\n5|15\n");
+});

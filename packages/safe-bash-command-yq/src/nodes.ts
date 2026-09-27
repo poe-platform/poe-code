@@ -143,25 +143,50 @@ async function admitCst(token: unknown, work: NativeWork): Promise<void> {
   let nodes = 0;
   let composed = 0;
   let bytes = 0;
+  const maxParserNodes = work.limits.maxParserNodes;
+  const maxNodes8 = maxParserNodes * 8;
+  const maxDocBytes = work.limits.maxDocumentBytes;
+  const maxScalarBytes = work.limits.maxScalarBytes;
+  const checkDocBytes = maxDocBytes !== Infinity;
   while (pending.length) {
     const { value, depth } = pending.pop()!;
     if (!value || typeof value !== "object") continue;
     { const t = work.tick(); if (t) await t; }
-    if (Array.isArray(value)) { for (const child of value) pending.push({ value: child, depth }); continue; }
+    if (Array.isArray(value)) {
+      for (let i = 0; i < value.length; i++) {
+        const child = value[i];
+        if (child && typeof child === "object") pending.push({ value: child, depth });
+      }
+      continue;
+    }
     const item = value as Record<string, unknown>;
-    const collection = item.type === "block-map" || item.type === "block-seq" || item.type === "flow-collection";
-    if (collection || ["alias", "scalar", "single-quoted-scalar", "double-quoted-scalar", "block-scalar"].includes(String(item.type))) {
-      if (++composed > work.limits.maxParserNodes) throw new MikeError("yq limit exceeded: maxParserNodes");
+    const itemType = item.type;
+    const collection = itemType === "block-map" || itemType === "block-seq" || itemType === "flow-collection";
+    if (
+      collection ||
+      itemType === "alias" ||
+      itemType === "scalar" ||
+      itemType === "single-quoted-scalar" ||
+      itemType === "double-quoted-scalar" ||
+      itemType === "block-scalar"
+    ) {
+      if (++composed > maxParserNodes) throw new MikeError("yq limit exceeded: maxParserNodes");
       work.node();
     }
     work.depth(depth);
-    if (item.type && ++nodes > work.limits.maxParserNodes * 8) throw new MikeError("yq limit exceeded: maxParserNodes");
+    if (itemType && ++nodes > maxNodes8) throw new MikeError("yq limit exceeded: maxParserNodes");
     if (typeof item.source === "string") {
-      bytes += Buffer.byteLength(item.source);
-      if (bytes > work.limits.maxDocumentBytes) throw new MikeError("yq limit exceeded: maxDocumentBytes");
-      if (item.source.length > work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
+      if (item.source.length > maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
+      if (checkDocBytes) {
+        bytes += Buffer.byteLength(item.source);
+        if (bytes > maxDocBytes) throw new MikeError("yq limit exceeded: maxDocumentBytes");
+      }
     }
-    for (const child of Object.values(item)) if (child && typeof child === "object") pending.push({ value: child, depth: depth + (collection ? 1 : 0) });
+    const nextDepth = depth + (collection ? 1 : 0);
+    for (const key in item) {
+      const child = item[key];
+      if (child && typeof child === "object") pending.push({ value: child, depth: nextDepth });
+    }
   }
 }
 
@@ -262,6 +287,7 @@ async function decodeJsonDocument(source: string, filename: string, yaml: YamlMo
 async function adaptQuotedIndent(text: string, filename: string, yaml: YamlModule, work: NativeWork): Promise<{ text: string; insertions: { offset: number; length: number }[]; failures: Map<number, string> }> {
   const additions: { offset: number; length: number }[] = [];
   const failures = new Map<number, string>();
+  if (!text.includes('"') && !text.includes("'")) return { text, insertions: [], failures };
   let size = Buffer.byteLength(text);
   let sourceOffset = 0;
   let quotedUntil = 0;

@@ -69,13 +69,14 @@ export class NativeWork {
     this.#steps += units;
     if (!Number.isSafeInteger(this.#steps) || this.#steps > this.limits.maxSteps) throw new MikeError("yq limit exceeded: maxSteps");
     if (this.#steps >= this.#yieldAt) {
-      this.#yieldAt = this.#steps + 1024;
       const now = monotonicNow();
       if (!hasYieldCheckpoint(this.signal) && this.#yieldedOnce && now - this.#lastYield < 16) {
+        this.#yieldAt = this.#steps + 8192;
         runYieldCheckpoint(this.signal);
         this.assertOpen();
         return;
       }
+      this.#yieldAt = this.#steps + 1024;
       this.#yieldedOnce = true;
       this.#lastYield = now;
       return yieldTurn(this.signal).then(() => {

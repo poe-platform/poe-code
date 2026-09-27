@@ -193,11 +193,8 @@ export async function warmEreProgram(program: EreProgram): Promise<void> {
   await prepareInitialCharacters(root, warmLedger);
 }
 
-export function canFastSyncEreProgram(program: EreProgram): boolean {
-  if (program.groups === 0) return true;
-  const root = resolveEreProgramUnchecked(program);
-  const fastPA = getFastErePrefixAlt(root);
-  return fastPA !== null && fastPA.prefix.length > 0;
+export function canFastSyncEreProgram(_program: EreProgram): boolean {
+  return true;
 }
 
 export function tryMatchEreAsciiRangeSync(
@@ -214,14 +211,15 @@ export function tryMatchEreAsciiRangeSync(
   const root = resolveEreProgramUnchecked(program);
   if (program.groups !== 0) {
     if (
+      !skipPerRowLedgerCharge ||
       ledger.limits.work !== Infinity ||
       ledger.limits.states !== Infinity ||
-      ledger.limits.allocationUnits !== Infinity
+      ledger.limits.allocationUnits !== Infinity ||
+      ledger.limits.captureBytes !== Infinity ||
+      ledger.limits.captureSlots !== Infinity
     ) {
       return null;
     }
-    const fastPA = getFastErePrefixAlt(root);
-    if (fastPA === null || fastPA.prefix.length === 0) return null;
   }
   const initial = root.nullable ? undefined : initialCharacters.get(root);
   if (!root.nullable && !initial) return null;

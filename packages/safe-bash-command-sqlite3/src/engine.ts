@@ -2707,6 +2707,15 @@ export class SqliteDatabase {
     for (const u of tbl.uniqueColSets) {
       keySets.push(u);
     }
+    if (keySets.length === 0 && candidate.rowid >= tbl.nextRowId) {
+      return null;
+    }
+    const resolvedKeySets = keySets.map((kSet) =>
+      kSet.map((colName) => {
+        const realCol = tbl.columns.find((c) => c.name.toLowerCase() === colName.toLowerCase());
+        return { cKey: realCol ? realCol.name : colName, collate: realCol?.collate ?? "BINARY" };
+      })
+    );
 
     for (const existing of tbl.rows) {
       if (excludeRowid !== undefined && existing.rowid === excludeRowid) {
@@ -2715,14 +2724,12 @@ export class SqliteDatabase {
       if (existing.rowid === candidate.rowid) {
         return existing;
       }
-      for (const kSet of keySets) {
+      for (const kSet of resolvedKeySets) {
         let allEqual = true;
-        for (const colName of kSet) {
-          const realCol = tbl.columns.find((c) => c.name.toLowerCase() === colName.toLowerCase());
-          const cKey = realCol ? realCol.name : colName;
+        for (const { cKey, collate } of kSet) {
           const v1 = candidate.data[cKey] ?? null;
           const v2 = existing.data[cKey] ?? null;
-          if (v1 === null || v2 === null || !sqlEquals(v1, v2, realCol?.collate ?? "BINARY")) {
+          if (v1 === null || v2 === null || !sqlEquals(v1, v2, collate)) {
             allEqual = false;
             break;
           }
@@ -3387,10 +3394,11 @@ export class SqliteDatabase {
     }
 
     let iterations = 0;
+    const stepMap = new Map(cteMap);
+    const cteKey = cteName.toLowerCase();
     while (workingRows.length > 0 && iterations < 5000) {
       iterations += 1;
-      const stepMap = new Map(cteMap);
-      stepMap.set(cteName.toLowerCase(), { columns: cols, rows: workingRows });
+      stepMap.set(cteKey, { columns: cols, rows: workingRows });
       const nextRes = this.executeSelectCompound(recTokens, positionalParams, stepMap);
       const nextWorking: SqlValue[][] = [];
       for (const r of nextRes.rows) {
@@ -3410,11 +3418,29 @@ export class SqliteDatabase {
     return { columns: cols, rows: allRows };
   }
 
+  private readonly singleSelectCache = new WeakMap<
+    Token[],
+    {
+      distinct: boolean;
+      fromTokens: Token[] | undefined;
+      whereExpr: ExprNode | undefined;
+      groupByTokens: Token[] | undefined;
+      havingTokens: Token[] | undefined;
+      orderByTokens: Token[] | undefined;
+      limitTokens: Token[] | undefined;
+      targetItems: Token[][];
+      staticTargets: { expr: ExprNode; alias: string }[] | undefined;
+    }
+  >();
+
   private executeSelectCompound(
     tokens: Token[],
     positionalParams: SqlValue[],
     cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
   ): QueryResultSet {
+    if (tokens[0]?.value.toUpperCase() === "WITH") {
+      return this.executeWith(tokens, positionalParams, cteScope) ?? { columns: [], rows: [] };
+    }
     // Split by top-level UNION / UNION ALL / INTERSECT / EXCEPT
     // Note: ORDER BY and LIMIT at the very end apply to the entire compound query
     const segments: { op: "NONE" | "UNION" | "UNION ALL" | "INTERSECT" | "EXCEPT"; tokens: Token[] }[] = [];
@@ -3559,56 +3585,91 @@ export class SqliteDatabase {
     }
 
     // Parse SELECT clauses at depth 0
-    let idx = 1; // Skip SELECT
-    let distinct = false;
-    if (tokens[idx]?.value.toUpperCase() === "DISTINCT") {
-      distinct = true;
-      idx += 1;
-    } else if (tokens[idx]?.value.toUpperCase() === "ALL") {
-      idx += 1;
-    }
+    let plan = this.singleSelectCache.get(tokens);
+    if (!plan) {
+      let idx = 1; // Skip SELECT
+      let distinct = false;
+      if (tokens[idx]?.value.toUpperCase() === "DISTINCT") {
+        distinct = true;
+        idx += 1;
+      } else if (tokens[idx]?.value.toUpperCase() === "ALL") {
+        idx += 1;
+      }
 
-    const clausePositions: { name: string; pos: number }[] = [];
-    let d = 0;
-    for (let i = idx; i < tokens.length; i += 1) {
-      const t = tokens[i]!;
-      if (t.value === "(") {
-        d += 1;
-      } else if (t.value === ")") {
-        d -= 1;
-      } else if (d === 0 && t.type === "word") {
-        const u = t.value.toUpperCase();
-        if (u === "FROM" || u === "WHERE" || u === "HAVING" || u === "WINDOW" || u === "LIMIT") {
-          clausePositions.push({ name: u, pos: i });
-        } else if (u === "GROUP" && tokens[i + 1]?.value.toUpperCase() === "BY") {
-          clausePositions.push({ name: "GROUP BY", pos: i });
-          i += 1;
-        } else if (u === "ORDER" && tokens[i + 1]?.value.toUpperCase() === "BY") {
-          clausePositions.push({ name: "ORDER BY", pos: i });
-          i += 1;
+      const clausePositions: { name: string; pos: number }[] = [];
+      let d = 0;
+      for (let i = idx; i < tokens.length; i += 1) {
+        const t = tokens[i]!;
+        if (t.value === "(") {
+          d += 1;
+        } else if (t.value === ")") {
+          d -= 1;
+        } else if (d === 0 && t.type === "word") {
+          const u = t.value.toUpperCase();
+          if (u === "FROM" || u === "WHERE" || u === "HAVING" || u === "WINDOW" || u === "LIMIT") {
+            clausePositions.push({ name: u, pos: i });
+          } else if (u === "GROUP" && tokens[i + 1]?.value.toUpperCase() === "BY") {
+            clausePositions.push({ name: "GROUP BY", pos: i });
+            i += 1;
+          } else if (u === "ORDER" && tokens[i + 1]?.value.toUpperCase() === "BY") {
+            clausePositions.push({ name: "ORDER BY", pos: i });
+            i += 1;
+          }
         }
       }
+
+      const selectEnd = clausePositions[0]?.pos ?? tokens.length;
+      const selectListTokens = tokens.slice(idx, selectEnd);
+
+      const getClauseTokens = (clauseName: string): Token[] | undefined => {
+        const cIdx = clausePositions.findIndex((c) => c.name === clauseName);
+        if (cIdx === -1) {
+          return undefined;
+        }
+        const startTok = clausePositions[cIdx]!.pos + (clauseName.includes(" ") ? 2 : 1);
+        const endTok = clausePositions[cIdx + 1]?.pos ?? tokens.length;
+        return tokens.slice(startTok, endTok);
+      };
+
+      const fromTokens = getClauseTokens("FROM");
+      const whereTokens = getClauseTokens("WHERE");
+      const groupByTokens = getClauseTokens("GROUP BY");
+      const havingTokens = getClauseTokens("HAVING");
+      const orderByTokens = getClauseTokens("ORDER BY");
+      const limitTokens = getClauseTokens("LIMIT");
+      const whereExpr = whereTokens && whereTokens.length > 0 ? new ExprParser(whereTokens).parseExpression() : undefined;
+      const targetItems = this.splitTopLevelComma(selectListTokens);
+      const hasWildcard = targetItems.some(
+        (itemToks) =>
+          (itemToks.length === 1 && itemToks[0]!.value === "*") ||
+          (itemToks.length === 3 && itemToks[1]!.value === "." && itemToks[2]!.value === "*")
+      );
+      const staticTargets = hasWildcard ? undefined : targetItems.map((itemToks) => this.parseSelectTarget(itemToks));
+      plan = {
+        distinct,
+        fromTokens,
+        whereExpr,
+        groupByTokens,
+        havingTokens,
+        orderByTokens,
+        limitTokens,
+        targetItems,
+        staticTargets
+      };
+      this.singleSelectCache.set(tokens, plan);
     }
 
-    const selectEnd = clausePositions[0]?.pos ?? tokens.length;
-    const selectListTokens = tokens.slice(idx, selectEnd);
-
-    const getClauseTokens = (clauseName: string): Token[] | undefined => {
-      const cIdx = clausePositions.findIndex((c) => c.name === clauseName);
-      if (cIdx === -1) {
-        return undefined;
-      }
-      const startTok = clausePositions[cIdx]!.pos + (clauseName.includes(" ") ? 2 : 1);
-      const endTok = clausePositions[cIdx + 1]?.pos ?? tokens.length;
-      return tokens.slice(startTok, endTok);
-    };
-
-    const fromTokens = getClauseTokens("FROM");
-    const whereTokens = getClauseTokens("WHERE");
-    const groupByTokens = getClauseTokens("GROUP BY");
-    const havingTokens = getClauseTokens("HAVING");
-    const orderByTokens = getClauseTokens("ORDER BY");
-    const limitTokens = getClauseTokens("LIMIT");
+    const {
+      distinct,
+      fromTokens,
+      whereExpr,
+      groupByTokens,
+      havingTokens,
+      orderByTokens,
+      limitTokens,
+      targetItems,
+      staticTargets
+    } = plan;
 
     // 1. Evaluate FROM & JOINs into row contexts
     let workingRows: Record<string, SqlValue>[] = [{}];
@@ -3621,37 +3682,40 @@ export class SqliteDatabase {
     }
 
     // 2. Evaluate WHERE
-    if (whereTokens && whereTokens.length > 0) {
-      const whereExpr = new ExprParser(whereTokens).parseExpression();
+    if (whereExpr) {
       workingRows = workingRows.filter((row) => isTruthy(this.evalExpr(whereExpr, row, positionalParams, cteScope)));
     }
 
     // 3. Expand SELECT targets
-    const targetItems = this.splitTopLevelComma(selectListTokens);
-    const selectTargets: { expr: ExprNode; alias: string }[] = [];
-    for (const itemToks of targetItems) {
-      if (itemToks.length === 1 && itemToks[0]!.value === "*") {
-        for (const src of sourceSchema) {
-          for (const col of src.columns) {
-            selectTargets.push({
-              expr: { kind: "column", table: src.tableAlias || undefined, name: col },
-              alias: col
-            });
+    let selectTargets: { expr: ExprNode; alias: string }[];
+    if (staticTargets) {
+      selectTargets = staticTargets;
+    } else {
+      selectTargets = [];
+      for (const itemToks of targetItems) {
+        if (itemToks.length === 1 && itemToks[0]!.value === "*") {
+          for (const src of sourceSchema) {
+            for (const col of src.columns) {
+              selectTargets.push({
+                expr: { kind: "column", table: src.tableAlias || undefined, name: col },
+                alias: col
+              });
+            }
           }
-        }
-      } else if (itemToks.length === 3 && itemToks[1]!.value === "." && itemToks[2]!.value === "*") {
-        const tblAlias = itemToks[0]!.value;
-        const src = sourceSchema.find((s) => s.tableAlias.toLowerCase() === tblAlias.toLowerCase());
-        if (src) {
-          for (const col of src.columns) {
-            selectTargets.push({
-              expr: { kind: "column", table: src.tableAlias, name: col },
-              alias: col
-            });
+        } else if (itemToks.length === 3 && itemToks[1]!.value === "." && itemToks[2]!.value === "*") {
+          const tblAlias = itemToks[0]!.value;
+          const src = sourceSchema.find((s) => s.tableAlias.toLowerCase() === tblAlias.toLowerCase());
+          if (src) {
+            for (const col of src.columns) {
+              selectTargets.push({
+                expr: { kind: "column", table: src.tableAlias, name: col },
+                alias: col
+              });
+            }
           }
+        } else {
+          selectTargets.push(this.parseSelectTarget(itemToks));
         }
-      } else {
-        selectTargets.push(this.parseSelectTarget(itemToks));
       }
     }
 

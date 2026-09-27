@@ -40,8 +40,8 @@ function observeTokens(context: TestContext, pattern: string, materialized?: () 
 }
 
 const routes = [
-  { name: "case", source: 'case $a in "$a") :;; esac', suffix: "" },
-  { name: "conditional", source: '[[ $a == "$a" ]]', suffix: "" },
+  { name: "case", source: 'case ${a}x in "$a"?) :;; esac', suffix: "?" },
+  { name: "conditional", source: '[[ ${a}x == "$a"? ]]', suffix: "?" },
   { name: "glob", source: ': $a*', suffix: "*" },
 ] as const;
 
@@ -100,12 +100,12 @@ for (const route of routes) {
 }
 
 for (const [name, source] of [
-  ["case alternatives", 'case x in "$a") :;; "$a") :;; "$a") :;; esac'],
-  ["conditional alternatives", '[[ x == "$a" || x == "$a" || x == "$a" ]]'],
+  ["case alternatives", 'case x in "$a"?) :;; "$a"?) :;; "$a"?) :;; esac'],
+  ["conditional alternatives", '[[ x == "$a"? || x == "$a"? || x == "$a"? ]]'],
 ] as const) {
   test(`${name} retire completed matches rather than accumulating token reservations`, async context => {
     const text = "0".repeat(16);
-    const observed = observeTokens(context, text);
+    const observed = observeTokens(context, `${text}?`);
     const shell = new Shell({ fs: memory() });
     try {
       const result = await shell.exec(`a=${text}; ${source}; :`, { limits: { maxExpansionBytes: 4096 } });
@@ -114,6 +114,27 @@ for (const [name, source] of [
       assert.equal(observed.admissions, 3);
       assert.equal(observed.materializations, 3);
       assert.deepEqual(observed.liveAtMaterialization, [1, 1, 1]);
+      assert.equal(observed.live, 0);
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const [name, source, status] of [
+  ["matching case", 'case $a in "$a") :;; *) false;; esac', 0],
+  ["nonmatching case", 'case x in "$a") false;; *) :;; esac', 0],
+  ["matching conditional", '[[ $a == "$a" ]]', 0],
+  ["nonmatching conditional", '[[ x == "$a" ]]', 1],
+] as const) {
+  test(`${name} uses no pattern tokens for a short literal comparison`, async context => {
+    const text = "0".repeat(128);
+    const observed = observeTokens(context, text);
+    const shell = new Shell({ fs: memory() });
+    try {
+      const result = await shell.exec(`a=${text}; ${source}`, { limits: { maxExpansionBytes: 4096 } });
+      assert.equal(result.exitCode, status, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(observed.attempts, 0);
+      assert.equal(observed.materializations, 0);
       assert.equal(observed.live, 0);
     } finally { await shell.dispose(); }
   });

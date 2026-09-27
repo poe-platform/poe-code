@@ -8372,7 +8372,11 @@ export class Runtime {
           return fnBody.kind === "group" && fnBody.redirects.length === 0 && this.canSyncScriptCompound(fnBody.body, rawState, depth + 1);
         }
         const arrayAssign = getArrayAssignment(w0);
-        if (arrayAssign) return arrayAssign.words.every(isNoBraceSyncWord);
+        if (arrayAssign) {
+          return arrayAssign.kind === "element"
+            ? isNoBraceSyncWord(arrayAssign.value)
+            : arrayAssign.entries.every(entry => isNoBraceSyncWord(entry.value));
+        }
         const assignment = this.assignment(w0);
         return Boolean(
           assignment &&

@@ -15,6 +15,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 let portableBuild: BuildResult;
 let filesystemBuild: BuildResult;
 let browserFixtureBuild: BuildResult;
+let referenceLlmConsumer: { run(): Promise<Record<string, unknown>> };
 const artifacts = new Volume();
 
 it("publishes the op entry and live compression chunks in one browser output graph", async () => {
@@ -130,49 +131,7 @@ it("runs injected llm providers and binary pipelines through the browser command
 });
 
 it("runs both reference llm transports without Node globals in a browser consumer", async () => {
-  const source = `
-    const { Shell, agentCommands, createMemoryFileSystem, toByteSource, llmCommands, createOpenAiProvider, createElevenLabsProvider } = browser;
-    async function run() {
-      const requests = [];
-      let disposed = 0;
-      let temperature;
-      const transport = async request => {
-        requests.push(request.url);
-        if (request.url.includes("chat/completions")) {
-          const chunks = [];
-          for await (const chunk of request.body) chunks.push(Uint8Array.from(chunk));
-          temperature = JSON.parse(await new Blob(chunks).text()).temperature;
-        }
-        const content = request.url.includes("chat/completions")
-          ? 'data: {"choices":[{"delta":{"content":"fox"}}]}\\n\\ndata: [DONE]\\n\\n'
-          : request.url.includes("images") ? '{"data":[{"b64_json":"iVBORw=="}]}' : new Uint8Array([255,0,128]);
-        return { status:200, statusText:"OK", headers:[], body:toByteSource(content), async dispose() { disposed++; } };
-      };
-      const providers = [createOpenAiProvider({ transport, apiKey:"fixture", models:[
-        { id:"caption", endpoint:"chat", attachmentTypes:["image/*"] },
-        { id:"draw", endpoint:"images", attachmentTypes:["image/*"], outputType:"image/png" }
-      ] }), createElevenLabsProvider({ transport, apiKey:"fixture", models:[
-        { id:"voice", endpoint:"tts", defaultVoiceId:"speaker", outputType:"audio/mpeg" }
-      ] })];
-      const fs = createMemoryFileSystem();
-      await fs.writeFile("/fox.png", new Uint8Array([137,80,78,71,13,10,26,10]));
-      const shell = new Shell({ fs }).use(agentCommands()).use(llmCommands({ providers, defaultModel:"caption" }));
-      try {
-        const audio = await shell.exec("llm --at /fox.png Image/PNG -o temperature 0.7 caption | llm -m voice | base64");
-        const image = await shell.exec("llm -m draw -a /fox.png edit | base64");
-        return { audio, image, requests, disposed, temperature };
-      } finally { await shell.dispose(); }
-    }
-    ({ run });
-  `;
-  const sandbox = createContext({
-    TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
-    AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
-    URL, FormData, Blob, Response, btoa, atob, browser,
-  });
-  expect(runInContext('typeof Buffer + ":" + typeof process + ":" + typeof require', sandbox)).toBe("undefined:undefined:undefined");
-  const consumer = runInContext(source, sandbox);
-  const result = await consumer.run();
+  const result = await referenceLlmConsumer.run();
   expect(result.audio).toMatchObject({ exitCode: 0, stdout: "/wCA\n", stderr: "" });
   expect(result.image).toMatchObject({ exitCode: 0, stdout: "iVBORw==\n", stderr: "" });
   expect(result.requests).toEqual([
@@ -414,6 +373,54 @@ beforeAll(async () => {
       },
     }],
   });
+});
+
+beforeAll(async () => {
+  const compiled = await bundlePublicConsumer(`
+    import { Shell, agentCommands, createMemoryFileSystem, toByteSource } from "@poe-platform/safe-bash";
+    import { llmCommands, createOpenAiProvider, createElevenLabsProvider } from "@poe-platform/safe-bash/commands/llm";
+    export async function run() {
+      const requests = [];
+      let disposed = 0;
+      let temperature;
+      const transport = async request => {
+        requests.push(request.url);
+        if (request.url.includes("chat/completions")) {
+          const chunks = [];
+          for await (const chunk of request.body) chunks.push(Uint8Array.from(chunk));
+          temperature = JSON.parse(await new Blob(chunks).text()).temperature;
+        }
+        const content = request.url.includes("chat/completions")
+          ? 'data: {"choices":[{"delta":{"content":"fox"}}]}\\n\\ndata: [DONE]\\n\\n'
+          : request.url.includes("images") ? '{"data":[{"b64_json":"iVBORw=="}]}' : new Uint8Array([255,0,128]);
+        return { status:200, statusText:"OK", headers:[], body:toByteSource(content), async dispose() { disposed++; } };
+      };
+      const providers = [createOpenAiProvider({ transport, apiKey:"fixture", models:[
+        { id:"caption", endpoint:"chat", attachmentTypes:["image/*"] },
+        { id:"draw", endpoint:"images", attachmentTypes:["image/*"], outputType:"image/png" }
+      ] }), createElevenLabsProvider({ transport, apiKey:"fixture", models:[
+        { id:"voice", endpoint:"tts", defaultVoiceId:"speaker", outputType:"audio/mpeg" }
+      ] })];
+      const fs = createMemoryFileSystem();
+      await fs.writeFile("/fox.png", new Uint8Array([137,80,78,71,13,10,26,10]));
+      const shell = new Shell({ fs }).use(agentCommands()).use(llmCommands({ providers, defaultModel:"caption" }));
+      try {
+        const audio = await shell.exec("llm --at /fox.png Image/PNG -o temperature 0.7 caption | llm -m voice | base64");
+        const image = await shell.exec("llm -m draw -a /fox.png edit | base64");
+        return { audio, image, requests, disposed, temperature };
+      } finally { await shell.dispose(); }
+    }
+  `);
+  const sandbox = createContext({
+    TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
+    AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
+    URL, FormData, Blob, Response, btoa, atob,
+    require(name: string) {
+      if (name !== "@poe-platform/safe-fs/core") throw new Error(name);
+      return filesystem;
+    },
+  });
+  referenceLlmConsumer = runInContext(`(function(){ const module = { exports: {} }; ${compiled}; return module.exports; })()`, sandbox);
 });
 
 it("executes the maintained browser fixture with all top-level workflows in a Node VM", async () => {

@@ -1,4 +1,4 @@
-import { execFileSync, spawn, type SpawnOptions } from "node:child_process";
+import { spawn, type SpawnOptions } from "node:child_process";
 import { EventEmitter } from "node:events";
 import fs from "node:fs";
 import { tmpdir } from "node:os";
@@ -905,10 +905,14 @@ describe("finite unit input and environment boundaries", () => {
   it("clears Git's repository-local hook environment without changing the parent or private configuration", async () => {
     const owned = unitFixture(), mock = mockExecution();
     try {
-      const names = execFileSync("git", ["rev-parse", "--local-env-vars"], {
-        cwd: owned.root, env: { PATH: process.env.PATH, GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null" },
-        encoding: "utf8", timeout: 5000, maxBuffer: 65536
-      }).trim().split("\n");
+      // Fixture inputs are explicit; the runner still discovers Git's contract itself.
+      const names = [
+        "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_CONFIG", "GIT_CONFIG_PARAMETERS",
+        "GIT_CONFIG_COUNT", "GIT_OBJECT_DIRECTORY", "GIT_DIR", "GIT_WORK_TREE",
+        "GIT_IMPLICIT_WORK_TREE", "GIT_GRAFT_FILE", "GIT_INDEX_FILE",
+        "GIT_NO_REPLACE_OBJECTS", "GIT_REPLACE_REF_BASE", "GIT_PREFIX",
+        "GIT_INTERNAL_SUPER_PREFIX", "GIT_SHALLOW_FILE", "GIT_COMMON_DIR"
+      ];
       const retained = { GIT_CONFIG_GLOBAL: "/owned/private.gitconfig", GIT_CONFIG_SYSTEM: "/owned/system.gitconfig", GIT_CONFIG_NOSYSTEM: "1", GIT_SSH_COMMAND: "owned-ssh", GIT_TERMINAL_PROMPT: "0", GIT_OPTIONAL_LOCKS: "0", HOME: owned.root };
       const environment = Object.freeze({ ...mock.environment, ...retained, ...Object.fromEntries(names.map(name => [name, `owned-hook-${name}`])) });
       await workspaceRunner.testWorkspaces(owned.root, { ...mock, environment });

@@ -611,9 +611,7 @@ export async function buildWorkspaces(rootDirectory, options = {}) {
     ...(buildCache ? { cache: "SHARED", ...buildCache.stats, executionMs: Math.round(performance.now() - started) } : {}) };
 }
 
-export async function testWorkspaces(rootDirectory, options = {}) {
-  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup, cache, cacheStore, cacheFiles, affected, affectedFiles, workspaces, changedSince, dryRun = false, testFiles } = options;
-  validateEnvironment(environment);
+function unitChildEnvironment(rootDirectory, environment) {
   const childEnvironment = { ...environment };
   const gitPath = environment.PATH ?? process.env.PATH;
   let localGitVariables = gitLocalVariablesByPath.get(gitPath);
@@ -625,8 +623,16 @@ export async function testWorkspaces(rootDirectory, options = {}) {
   assert.ok(localGitVariables.every(name => name.startsWith("GIT_") && [...name].every(character => "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_".includes(character))), "Invalid Git local environment names");
   gitLocalVariablesByPath.set(gitPath, localGitVariables);
   for (const name of localGitVariables) delete childEnvironment[name];
+  return childEnvironment;
+}
+
+export async function testWorkspaces(rootDirectory, options = {}) {
+  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup, cache, cacheStore, cacheFiles, affected, affectedFiles, workspaces, changedSince, dryRun = false, testFiles } = options;
+  validateEnvironment(environment);
+  let childEnvironment = changedSince === undefined ? null : unitChildEnvironment(rootDirectory, environment);
   const changedFiles = changedSince === undefined ? undefined : changedFilesSince(path.resolve(rootDirectory), changedSince, childEnvironment);
   const plan = createWorkspaceTestPlan(rootDirectory, { fileSystem, excludeWorkspace, concurrency, testArguments, ciGroup, workspaces, changedFiles, affected, affectedFiles, testFiles });
+  childEnvironment ??= unitChildEnvironment(rootDirectory, environment);
   let testStages = plan.testStages;
   if (plan.rootManifest.scripts["test:unit:shared"]) {
     const { sharedVitestStages } = await import("./test-vitest-workspaces.mjs");

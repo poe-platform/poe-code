@@ -128,8 +128,16 @@ test("IFS short array members share a cooperative scan quantum", async context =
 
 test("IFS CPU checkpoint failure releases scalar scratch without command charges", async context => {
   const { runtime, state, word, io, budget } = ifsFixture(context, "a".repeat(16384));
+  // Nondefault IFS exercises the scanner rather than the intact-scalar fast path.
+  state.variables.IFS = ":";
   let checkpoints = 0;
-  context.mock.method(budget, "cpuCheckpoint", () => { if (++checkpoints === 2) budget.fail("maxCpuMs"); });
+  context.mock.method(budget, "cpuCheckpoint", () => {
+    if (++checkpoints === 2) {
+      assert.ok(budget.values.usage.bytes > 0);
+      assert.ok(budget.values.usage.slots > 0);
+      budget.fail("maxCpuMs");
+    }
+  });
   await assert.rejects(runtime.word(word, state, io), error => error instanceof ShellLimitError && error.limit === "maxCpuMs");
   assert.equal(checkpoints, 2);
   assert.equal(budget.commands, 0);

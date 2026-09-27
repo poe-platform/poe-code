@@ -1,10 +1,12 @@
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
-import { Document as compiledDocument } from "docx";
+import { compiledPublicRuntime } from "../tests/compiled-public-runtime.js";
 import * as api from "./index.js";
 import { nativeStoryFixture } from "../tests/fixtures/native-parts.js";
 import { textContext } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
+
+const { Document: compiledDocument, DocumentBudget: CompiledDocumentBudget } = await compiledPublicRuntime;
 
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
   for (const depth of [4096, 8192])
@@ -17,7 +19,7 @@ for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const
       const context = { ...textContext, limits: { ...textContext.limits, maxArchiveBytes: 1048576, maxEntryBytes: 524288, maxTotalBytes: 1048576, maxRetainedBytes: 1073741824 }, budget: new api.DocumentBudget({ xmlDepth: 16384, retainedBytes: 1073741824, work: 1073741824 }) };
       await api.writeArchive({ comment: new Uint8Array(), members: [...parts].map(([name, bytes]) => ({ name, bytes, directory: false, modified: new Date("2026-01-02T03:04:06Z") })) }, { async write(bytes) { memory.appendFileSync("/input", bytes); } }, { order: "input", compression: "store" }, context);
       const input = new Uint8Array(memory.readFileSync("/input") as Buffer);
-      const compiled = await compiledDocument(input, context);
+      const compiled = await compiledDocument(input, { ...context, budget: new CompiledDocumentBudget({ xmlDepth: 16384, retainedBytes: 1073741824, work: 1073741824 }) });
       compiled.comments.get(2)!.paragraphs[0]!.text = "Changed 日本 עברית é 🌊";
       await compiled.save({ async write(bytes) { memory.appendFileSync("/out", bytes); } });
       const output = new Uint8Array(memory.readFileSync("/out") as Buffer);

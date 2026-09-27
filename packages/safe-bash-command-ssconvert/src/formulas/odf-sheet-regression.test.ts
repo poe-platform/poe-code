@@ -6,11 +6,11 @@ import { serializeExpression } from "./serialization.js";
 
 const position = { sheet: "Local", row: 3, column: 2 };
 
-it.each(["of:=[$Remote.$A1]", "of:=[$'Remote'.$A1]"])("ignores ODF absolute sheet sigils as Gnumeric does: %s", source => {
+it.each(["of:=[$Remote.$A1]", "of:=[$'Remote'.$A1]"])("preserves ODF absolute sheet sigils when renaming: %s", source => {
   const parsed = parseExpression(source, { position, grammar: odfGrammar });
   expect(parsed).toMatchObject({ ok: true, document: { root: { kind: "reference", first: { sheet: "Remote", column: { value: 0, relative: false } } } } });
   if (!parsed.ok) throw new Error(parsed.diagnostic.message);
-  expect(rewriteReferences(parsed.document, { sheets: new Map([["Remote", "O'Brien"]]) })).toBe("of:=['O''Brien'.$A1]");
+  expect(rewriteReferences(parsed.document, { sheets: new Map([["Remote", "O'Brien"]]) })).toBe("of:=[$'O''Brien'.$A1]");
 });
 
 it("allows punctuation in unquoted ODF sheet names rather than treating it as an operator", () => {
@@ -28,7 +28,7 @@ it("resolves a missing last-endpoint sheet against the first sheet as Gnumeric d
   if (parsed.document.root.kind !== "reference") throw new Error("Expected reference");
   // position.c:717 and expr.c:3573: a NULL b sheet means a's sheet.
   expect(parsed.document.root.last?.sheet).toBe("Remote");
-  expect(serializeExpression(parsed.document, excelGrammar, false)).toBe("='Remote'!A1:B2");
+  expect(serializeExpression(parsed.document, excelGrammar, false, false, { relativeSheets: "fixed" })).toBe("='Remote'!A1:B2");
   expect(rewriteReferences(parsed.document, { sheets: new Map([["Remote", "Renamed"]]) })).toBe("of:=['Renamed'.A1:'Renamed'.B2]");
 });
 

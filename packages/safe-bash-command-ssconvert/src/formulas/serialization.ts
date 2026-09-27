@@ -45,6 +45,8 @@ export function quoteNativeSheet(name: string): string {
 }
 
 export function serializeReference(first: ReferenceEndpoint, last: ReferenceEndpoint | undefined, grammar: FormulaGrammar, position: ParsePosition): string {
+  if (!(grammar.bracketReferences && grammar.absoluteSheetReferences) && (first.sheetRelative && (first.sheet || last?.sheet) || last?.sheet && last.sheetRelative))
+    throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: relative sheet reference in target grammar");
   if (grammar.wholeAxisReferences === false && (!first.row || !first.column || last && (!last.row || !last.column)))
     throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: whole-axis formula reference in target grammar");
   if (!last && grammar.address === "a1" && (!first.row || !first.column)) last = first;
@@ -73,7 +75,8 @@ export function serializeReference(first: ReferenceEndpoint, last: ReferenceEndp
   };
   const external = first.workbook === undefined ? "" : grammar.bracketReferences ? sheet(first.workbook) + "#" : workbookReference(first.workbook, grammar);
   if (grammar.bracketReferences) {
-    const endpoint = (ref: ReferenceEndpoint) => (ref.sheet ? sheet(ref.sheet) : "") + "." + address(ref);
+    if (address(first) === "#REF!" || last && address(last) === "#REF!") return "[#REF!]";
+    const endpoint = (ref: ReferenceEndpoint) => (ref.sheet ? (ref.sheetRelative ? "" : "$") + sheet(ref.sheet) : "") + "." + address(ref);
     return "[" + external + endpoint(first) + (last ? ":" + endpoint(last) : "") + "]";
   }
   if (grammar.qualifiedRangeEndpoints) {
@@ -88,8 +91,9 @@ export function serializeReference(first: ReferenceEndpoint, last: ReferenceEndp
 }
 
 /** Serialize the tree, retaining explicit grouping even across different precedences. */
-export function serializeExpression(document: FormulaDocument, grammar = document.grammar, preserveSource = true, canonical = false): string {
-  if (preserveSource && grammar === document.grammar) return document.source;
+export function serializeExpression(document: FormulaDocument, grammar = document.grammar, preserveSource = true, canonical = false,
+  options: { readonly relativeSheets?: "preserve" | "fixed" } = {}): string {
+  if (preserveSource && grammar === document.grammar && options.relativeSheets !== "fixed") return document.source;
   const position = { ...document.position, sheet: document.sheetNames?.[document.position.sheet] ?? document.position.sheet };
   function emit(value: FormulaNode, parentPrecedence = -1): string {
     if (value.kind === "literal" && value.value.kind === "error" && !grammar.quotedErrors && !["#NAME?", "#REF!", "#VALUE!", "#NUM!", "#DIV/0!", "#N/A", "#NULL!"].includes(value.value.value))
@@ -99,7 +103,9 @@ export function serializeExpression(document: FormulaDocument, grammar = documen
         value.value.kind === "error" && grammar.quotedErrors && !["#NAME?", "#REF!", "#VALUE!", "#NUM!", "#DIV/0!", "#N/A", "#NULL!"].includes(value.value.value) ? "#" + quoteFormulaString(value.value.value, '"', grammar) :
         value.value.kind === "boolean" ? (value.value.value ? "TRUE" : "FALSE") + (grammar.booleanFunctions ? "()" : "") : String(value.value.value);
       case "omitted": return "";
-      case "reference": return serializeReference(value.first, value.last, grammar, position);
+      case "reference": return serializeReference(
+        options.relativeSheets === "fixed" ? { ...value.first, sheetRelative: false } : value.first,
+        options.relativeSheets === "fixed" && value.last ? { ...value.last, sheetRelative: false } : value.last, grammar, position);
       case "name": {
         if (grammar.qualifiedNames === false && (value.sheet !== undefined || value.workbook !== undefined))
           throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: qualified formula name in target grammar");

@@ -9,7 +9,10 @@ export function localReferenceRange(book: Workbook, node: Extract<FormulaNode, {
   if (first.workbook !== undefined || last.workbook !== undefined) return undefined;
   const resolve = (name?: string) => name === undefined ? book.sheets.find(sheet => sheet.id === position.sheet) :
     [...book.sheets, ...book.detachedSheets ?? []].find(sheet => foldSheetName(sheet.name) === foldSheetName(name));
-  const a = resolve(first.sheet), b = resolve(last.sheet ?? first.sheet);
+  const endpoint = (ref: typeof first, fallback?: string) => ref.sheetRelative
+    ? ref.sheetOffset === undefined ? undefined : book.sheets[book.sheets.findIndex(sheet => sheet.id === position.sheet) + ref.sheetOffset]
+    : resolve(ref.sheet ?? fallback);
+  const a = endpoint(first), b = endpoint(last, first.sheet);
   if (!a || !b) return undefined;
   let sheets: readonly Sheet[] = [a];
   if (a !== b) {

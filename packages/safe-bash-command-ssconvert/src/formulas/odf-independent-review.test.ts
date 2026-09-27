@@ -22,12 +22,12 @@ it("normalizes scalar and invalid-reference ODF errors to the same writer syntax
   expect(parseExpression("of:=[#REF!x]", { position, grammar: odfGrammar })).toMatchObject({ ok: false });
 });
 
-it.each(["of:=['$Revenue'.$A1]", "of:=[$'$Revenue'.$A1]"])("preserves a quoted literal dollar in ODF sheet names: %s", source => {
+it.each([["of:=['$Revenue'.$A1]", "of:=['Actual'.$A1]"], ["of:=[$'$Revenue'.$A1]", "of:=[$'Actual'.$A1]"]])("preserves a quoted literal dollar in ODF sheet names: %s", (source, expected) => {
   const parsed = parseExpression(source, { position, grammar: odfGrammar });
   expect(parsed).toMatchObject({ ok: true, document: { root: { kind: "reference", first: { sheet: "$Revenue" } } } });
   if (!parsed.ok) throw new Error(parsed.diagnostic.message);
   expect(rewriteReferences(parsed.document, { sheets: new Map([["Revenue", "Wrong"]]) })).toBe(source);
-  expect(rewriteReferences(parsed.document, { sheets: new Map([["$Revenue", "Actual"]]) })).toBe("of:=['Actual'.$A1]");
+  expect(rewriteReferences(parsed.document, { sheets: new Map([["$Revenue", "Actual"]]) })).toBe(expected);
 });
 
 it("keeps ODF external namespaces and unknown function bytes during local rename", () => {

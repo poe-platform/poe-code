@@ -182,6 +182,8 @@ export class BiffFormulaWriter {
         const opcode = operators[node.op]; if (opcode === undefined) throw new SsconvertError("unsupported-feature", `Unsupported Excel operator '${node.op}'`);
         visit(node.left); visit(node.right); push([opcode]);
       } else if (node.kind === "reference") {
+        if (node.first.sheetRelative && (node.first.sheet || node.last?.sheet) || node.last?.sheet && node.last.sheetRelative)
+          throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: relative sheet reference in Excel BIFF");
         if (node.last?.workbook && node.last.workbook !== node.first.workbook)
           throw new SsconvertError("unsupported-feature", "Excel BIFF range spans different workbooks");
         const endpoint = (ref: ReferenceEndpoint, end: boolean): ReferenceEndpoint => ({ ...ref,

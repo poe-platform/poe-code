@@ -1,5 +1,6 @@
 import { SsconvertError } from "../contracts.js";
-import { gnumericGrammar } from "./conventions.js";
+import { gnumericGrammar, odfGrammar } from "./conventions.js";
+import { foldSheetName } from "../workbook/case-fold.js";
 import { isUnicodeAlphanumeric } from "../cli/unicode-alphanumeric.js";
 import { isUnicodeAlpha } from "../workbook/unicode-sheet-name.js";
 import type { Axis, FormulaNode, FormulaParseOptions, FormulaParseResult, ReferenceEndpoint } from "./ast.js";
@@ -11,7 +12,7 @@ const whitespace = (c: string | undefined): boolean => c !== undefined && " \t\r
 
 /** Relative axes are offsets from the explicit parse position, never the active cell. */
 export function parseExpression(source: string, options: FormulaParseOptions): FormulaParseResult {
-  const grammar = options.grammar ?? gnumericGrammar;
+  const grammar = options.grammar ?? (source.startsWith("of:=") ? odfGrammar : gnumericGrammar);
   options.signal?.throwIfAborted();
   if (source.length > (options.maximumLength ?? 1_048_576)) throw new SsconvertError("resource-limit", "ssconvert formula length limit exceeded");
   const position = options.position;
@@ -59,7 +60,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
     }
     fail("Unterminated string");
   }
-  function qualifier(): { sheet?: string; endSheet?: string; workbook?: string } {
+  function qualifier(): { sheet?: string; endSheet?: string; workbook?: string; sheetRelative?: boolean } {
     const start = offset;
     let workbook: string | undefined;
     let bookEnd: number | undefined;
@@ -76,10 +77,10 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
       if (source[offset++] !== "]") { offset = start; return {}; }
       bookEnd = offset;
     }
+    let sheetRelative: boolean | undefined;
     const readSheet = (): string => {
       if (grammar.bracketReferences) {
-        // ODF ignores absolute/relative sheet sigils; quoted names must end
-        // immediately before the sheet separator (oo_cellref_parse).
+        if (grammar.absoluteSheetReferences) sheetRelative = source[offset] !== "$";
         if (grammar.absoluteSheetReferences && source[offset] === "$") offset++;
         if (source[offset] === "'") return quoted("'", grammar.stringEscape);
         const begin = offset;
@@ -115,7 +116,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
       if (close >= 0) { workbook = sheet.slice(1, close); sheet = sheet.slice(close + 1); }
     }
     if (sheet.includes(":") && !endSheet) { const colon = sheet.indexOf(":"); endSheet = sheet.slice(colon + 1); sheet = sheet.slice(0, colon); }
-    return { ...(sheet ? { sheet } : {}), ...(endSheet ? { endSheet } : {}), ...(workbook === undefined ? {} : { workbook }) };
+    return { ...(sheet ? { sheet, ...(sheetRelative === undefined ? {} : { sheetRelative }) } : {}), ...(endSheet ? { endSheet } : {}), ...(workbook === undefined ? {} : { workbook }) };
   }
   function axisA1(kind: "row" | "column"): Axis | undefined {
     const start = offset, relative = source[offset] !== "$";
@@ -149,7 +150,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
     if (offset === digits || source[offset++] !== "]" || !Number.isSafeInteger(value) || !Number.isSafeInteger(value + origin)) return undefined;
     return { value, relative: true };
   }
-  function endpoint(scope: { sheet?: string; workbook?: string }): ReferenceEndpoint | undefined {
+  function endpoint(scope: { sheet?: string; workbook?: string; sheetRelative?: boolean }): ReferenceEndpoint | undefined {
     const start = offset;
     let row: Axis | undefined, column: Axis | undefined;
     if (grammar.address === "r1c1") {
@@ -157,7 +158,15 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
       column = axisR1C1("C", position.column);
     } else { column = axisA1("column"); row = axisA1("row"); }
     if ((!row && !column) || grammar.wholeAxisReferences === false && (!row || !column) || word(source[offset]) && !source.startsWith(rangeSeparator, offset)) { offset = start; return undefined; }
-    return { ...scope, ...(row ? { row } : {}), ...(column ? { column } : {}) };
+    const sheetRelative = scope.workbook !== undefined ? false : scope.sheetRelative ??
+      (grammar.bracketReferences && grammar.absoluteSheetReferences && scope.sheet === undefined ? true : undefined);
+    let sheetOffset: number | undefined = sheetRelative && scope.sheet === undefined ? 0 : undefined;
+    if (sheetRelative && scope.sheet && options.workbook) {
+      const target = options.workbook.sheets.findIndex(sheet => foldSheetName(sheet.name) === foldSheetName(scope.sheet!));
+      const origin = options.workbook.sheets.findIndex(sheet => sheet.id === position.sheet);
+      if (target >= 0 && origin >= 0) sheetOffset = target - origin;
+    }
+    return { ...scope, ...(sheetRelative === undefined ? {} : { sheetRelative }), ...(sheetOffset === undefined ? {} : { sheetOffset }), ...(row ? { row } : {}), ...(column ? { column } : {}) };
   }
   function referenceOrName(): FormulaNode | undefined {
     const start = offset;
@@ -171,7 +180,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
     }
     const scopeStart = offset;
     const scope = qualifier();
-    if (external !== undefined) scope.workbook = external;
+    if (external !== undefined) { scope.workbook = external; scope.sheetRelative = false; }
     const first = scope.workbook !== undefined && !scope.sheet ? undefined : endpoint(scope);
     if (first) {
       let last: ReferenceEndpoint | undefined;
@@ -433,7 +442,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
       return [sheet.id, sheet.name];
     }))) : undefined;
     return { ok: true, document: { source, grammar, position: { ...position }, root,
-      ...(options.arrayStringLiterals ? { arrayStringLiterals: true } : {}), ...(sheetNames ? { sheetNames } : {}) } };
+      ...(options.arrayStringLiterals ? { arrayStringLiterals: true } : {}), ...(sheetNames ? { sheetNames, sheetOrder: Object.freeze(options.workbook!.sheets.map(sheet => sheet.id)) } : {}) } };
   } catch (error) {
     if (error !== syntax) throw error;
     return { ok: false, source, diagnostic };

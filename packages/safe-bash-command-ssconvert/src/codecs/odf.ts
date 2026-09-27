@@ -6,6 +6,7 @@ import { MAX_SHEET_SIZE, DEFAULT_SHEET_SIZE, formatA1, type Workbook, type Sheet
   type CellValue, type ImportedValue, type UnsupportedRecord, type AxisMetadata, type Range,
   type NamedExpression, type FormulaGroup } from "../workbook.js";
 import { parseExpression } from "../formulas/parser.js";
+import { visitFormula } from "../formulas/rewriting.js";
 import { gnumericGrammar, odfGrammar, legacyOpenOfficeGrammar } from "../formulas/conventions.js";
 import { serializeExpression, quoteNativeSheet } from "../formulas/serialization.js";
 import { dateSerial, gregorian } from "../formulas/functions/dates.js";
@@ -292,7 +293,11 @@ async function formula(source: string, legacy: boolean, position: { sheet: strin
     await warning(`${position.sheet}!${formatA1(position.row, position.column)} : Unable to parse '${source}'\n`, context);
     return undefined;
   }
-  return serializeExpression(parsed.document, { ...gnumericGrammar, quoteSheetName: quoteNativeSheet }, false, true);
+  let relativeSheets = false;
+  visitFormula(parsed.document.root, node => {
+    if (node.kind === "reference" && (node.first.sheet && node.first.sheetRelative || node.last?.sheet && node.last.sheetRelative)) relativeSheets = true;
+  });
+  return serializeExpression(parsed.document, relativeSheets ? odfGrammar : { ...gnumericGrammar, quoteSheetName: quoteNativeSheet }, false, true);
 }
 
 export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Promise<Workbook> {
@@ -648,7 +653,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
     }
     function expression(source: string, sheet: Sheet, row: number, column: number) {
       xml.charge(source.length);
-      const parsed = parseExpression(source, { grammar: gnumericGrammar, position: { sheet: sheet.id, row, column }, workbook: book,
+      const parsed = parseExpression(source, { position: { sheet: sheet.id, row, column }, workbook: book,
         signal: context.signal, maximumLength: context.limits.workbookTextBytes ?? context.limits.outputBytes,
         maximumNodes: context.limits.workbookNodes ?? Infinity });
       if (!parsed.ok) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: invalid OpenDocument formula");

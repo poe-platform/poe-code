@@ -1,10 +1,22 @@
 import type { XmlElement } from "@poe-code/safe-fs/xml";
-import { SsconvertError } from "../contracts.js";
+import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import type { FormulaSemantics } from "../workbook.js";
+import type { ParsePosition } from "../formulas/ast.js";
+import { parseExpression } from "../formulas/parser.js";
+import { serializeExpression } from "../formulas/serialization.js";
+import { gnumericGrammar } from "../formulas/conventions.js";
 
 // Gnumeric text parsing coerces quoted numbers, booleans and errors in arrays.
 // This ignorable extension preserves imported string types during readback.
 const namespace = "urn:poe-code:ssconvert:formulas:1";
+
+export function nativeOpenFormula(source: string, position: ParsePosition, context: CapabilityContext, arrayStringLiterals = false): string {
+  if (!source.startsWith("of:=")) return source;
+  const parsed = parseExpression(source, { position, arrayStringLiterals, signal: context.signal,
+    maximumLength: context.limits.workbookTextBytes ?? context.limits.outputBytes, maximumNodes: context.limits.workbookNodes ?? Infinity });
+  if (!parsed.ok) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: invalid OpenFormula expression");
+  return serializeExpression(parsed.document, gnumericGrammar, false, true, { relativeSheets: "fixed" });
+}
 
 export function readFormulaSemantics(node: XmlElement | undefined): FormulaSemantics {
   const value = node?.attributes.find(attribute => attribute.namespace === namespace && attribute.localName === "array-string-literals")?.value;
@@ -13,7 +25,26 @@ export function readFormulaSemantics(node: XmlElement | undefined): FormulaSeman
   return value === "1" ? { arrayStringLiterals: true } : {};
 }
 
-export function formulaSemanticsAttributes(enabled: boolean | undefined, markupCompatibility = false): Record<string, string> {
-  return enabled ? { "xmlns:ssc": namespace, "ssc:array-string-literals": "1",
+/** Native Excel/Gnumeric syntax cannot retain relative named-sheet references.
+ * The standard expression is a fixed-target fallback; this extension carries
+ * the original OpenFormula expression and an optional named-expression anchor. */
+export function readOpenFormula(node: XmlElement | undefined): { source: string; position?: ParsePosition } | undefined {
+  const source = node?.attributes.find(attribute => attribute.namespace === namespace && attribute.localName === "openformula")?.value;
+  if (source === undefined) return undefined;
+  if (!source.startsWith("of:=")) throw new SsconvertError("io", "Invalid ssconvert OpenFormula expression");
+  const anchor = node?.attributes.find(attribute => attribute.namespace === namespace && attribute.localName === "openformula-origin")?.value;
+  if (anchor === undefined) return { source };
+  let values: unknown;
+  try { values = JSON.parse(anchor); } catch { throw new SsconvertError("io", "Invalid ssconvert OpenFormula origin"); }
+  if (!Array.isArray(values) || values.length !== 3 || typeof values[0] !== "string" || !values[0] ||
+    !values.slice(1).every(value => Number.isSafeInteger(value) && value >= 0))
+    throw new SsconvertError("io", "Invalid ssconvert OpenFormula origin");
+  return { source, position: { sheet: values[0], row: values[1] as number, column: values[2] as number } };
+}
+
+export function formulaSemanticsAttributes(enabled: boolean | undefined, markupCompatibility = false, source?: string, position?: ParsePosition): Record<string, string> {
+  const openFormula = source?.startsWith("of:=") ? source : undefined;
+  return enabled || openFormula ? { "xmlns:ssc": namespace, ...(enabled ? { "ssc:array-string-literals": "1" } : {}),
+    ...(openFormula ? { "ssc:openformula": openFormula, ...(position ? { "ssc:openformula-origin": JSON.stringify([position.sheet, position.row, position.column]) } : {}) } : {}),
     ...(markupCompatibility ? { "xmlns:mc": "http://schemas.openxmlformats.org/markup-compatibility/2006", "mc:Ignorable": "ssc" } : {}) } : {};
 }

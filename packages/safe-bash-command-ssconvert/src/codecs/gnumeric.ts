@@ -17,7 +17,7 @@ import { clipboardObjectRecords } from "../conversion/clipboard-objects.js";
 import { clipboardMerges } from "../conversion/clipboard-merges.js";
 import { foldSheetName } from "../workbook/case-fold.js";
 import { rejectGnumericNameCycles } from "./gnumeric-name-cycles.js";
-import { formulaSemanticsAttributes, readFormulaSemantics } from "./formula-semantics.js";
+import { formulaSemanticsAttributes, readFormulaSemantics, readOpenFormula, nativeOpenFormula } from "./formula-semantics.js";
 
 const namespace = "http://www.gnumeric.org/v10.dtd";
 const namespaces = new Set(["http://www.gnome.org/gnumeric/",
@@ -292,13 +292,15 @@ async function warnUnknown(node: XmlElement, context: CapabilityContext, path: r
   }
 }
 
-function names(node: XmlElement | undefined, sheet: string, local = false): NamedExpression[] {
+function names(node: XmlElement | undefined, sheet: string, local = false, sheets?: readonly Sheet[]): NamedExpression[] {
   return children(node, "Name").flatMap(item => {
     const prop = (name: string) => item.children.find(c => c.localName === name && (namespaces.has(c.namespace) || !c.namespace))?.text;
     const name = prop("name"), expression = prop("value"); if (!name || expression === undefined) return [];
     const pos = parseA1(prop("position") ?? "A1");
-    return [{ name, expression, ...readFormulaSemantics(item), ...(local ? { sheet } : {}),
-      ...(pos ? { position: { sheet, ...pos } } : {}) }];
+    const openFormula = readOpenFormula(item);
+    const origin = openFormula?.position ? { ...openFormula.position, sheet: sheets?.find(s => foldSheetName(s.name) === foldSheetName(openFormula.position!.sheet))?.id ?? openFormula.position.sheet } : undefined;
+    return [{ name, expression: openFormula?.source ?? expression, ...readFormulaSemantics(item), ...(local ? { sheet } : {}),
+      ...(origin ? { position: origin } : pos ? { position: { sheet, ...pos } } : {}) }];
   });
 }
 
@@ -467,7 +469,7 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
       const text = child(item, "Content")?.text ?? item.text;
       const type = attribute(item, "ValueType"), cached = attribute(item, "Value"), id = attribute(item, "ExprID");
       let semantics = readFormulaSemantics(item);
-      let formula = text.startsWith("=") && (type === undefined || cached !== undefined) ? boundNames.formulas.get(item) ?? text : undefined;
+      let formula = text.startsWith("=") && (type === undefined || cached !== undefined) ? readOpenFormula(item)?.source ?? boundNames.formulas.get(item) ?? text : undefined;
       if (!text && id && shared.has(id)) {
         const original = shared.get(id)!;
         semantics = original.arrayStringLiterals ? { arrayStringLiterals: true } : {};
@@ -519,7 +521,7 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
   const selected = number(child(root, "UIData"), "SelectedTab", 0);
   const declarations = new Map<XmlElement, NamedExpression[]>();
   const declaredNames = (group: XmlElement, sheet: string, local = false) => {
-    const entries = names(group, sheet, local);
+    const entries = names(group, sheet, local, sheets);
     declarations.set(group, entries);
     return entries;
   };
@@ -698,10 +700,15 @@ function emitRecord(value: ImportedValue | undefined, depth: number, writer: Xml
 function emitRetained(records: readonly UnsupportedRecord[] | undefined, kind: string, depth: number, writer: XmlWriter): string {
   return records?.filter(r => r.source === "Gnumeric_XmlIO:sax" && r.kind === kind && r.disposition === "retained").map(r => emitRecord(r.data, depth, writer)).join("") ?? "";
 }
-function emitNames(book: Workbook, sheet: Sheet | undefined, depth: number, writer: XmlWriter): string {
-  const entries = book.names?.filter(n => n.sheet === sheet?.id).map(n => writer.element("gnm:Name", formulaSemanticsAttributes(n.arrayStringLiterals), "",
-    writer.element("gnm:name", {}, n.name, "", depth + 2) + writer.element("gnm:value", {}, n.expression.startsWith("=") ? n.expression.slice(1) : n.expression, "", depth + 2) +
-    writer.element("gnm:position", {}, n.position ? formatA1(n.position.row, n.position.column) : "A1", "", depth + 2), depth + 1)).join("") ?? "";
+function emitNames(book: Workbook, sheet: Sheet | undefined, depth: number, writer: XmlWriter, context: CapabilityContext): string {
+  const entries = book.names?.filter(n => n.sheet === sheet?.id).map(n => {
+    const position = n.position ?? { sheet: n.sheet ?? book.sheets[0]?.id ?? "", row: 0, column: 0 };
+    const origin = { ...position, sheet: book.sheets.find(s => s.id === position.sheet)?.name ?? position.sheet };
+    const expression = nativeOpenFormula(n.expression, position, context, n.arrayStringLiterals);
+    return writer.element("gnm:Name", formulaSemanticsAttributes(n.arrayStringLiterals, false, n.expression, origin), "",
+      writer.element("gnm:name", {}, n.name, "", depth + 2) + writer.element("gnm:value", {}, expression.startsWith("=") ? expression.slice(1) : expression, "", depth + 2) +
+      writer.element("gnm:position", {}, formatA1(position.row, position.column), "", depth + 2), depth + 1);
+  }).join("") ?? "";
   return entries ? writer.element("gnm:Names", {}, "", entries, depth) : "";
 }
 function emitMetadata(book: Workbook, writer: XmlWriter): string {
@@ -780,7 +787,7 @@ export function writeClipboardGnumeric(book: Workbook, sheet: Sheet, range: impo
     if (array && (cell.row !== array.range.startRow || cell.column !== array.range.startColumn)) continue;
     const value = cell.cachedResult ?? cell.value;
     const attrs: Record<string, string | number> = { Row: cell.row, Col: cell.column,
-      ...formulaSemanticsAttributes(array?.arrayStringLiterals ?? cell.arrayStringLiterals) };
+      ...formulaSemanticsAttributes(array?.arrayStringLiterals ?? cell.arrayStringLiterals, false, cell.formula) };
     let repeated = false;
     if (cell.formula) {
       const key = cell.formulaGroup ?? `${cell.row}:${cell.column}`;
@@ -796,7 +803,7 @@ export function writeClipboardGnumeric(book: Workbook, sheet: Sheet, range: impo
     const format = cell.richText ? richFormat(cell.richText) : cellValueFormat(cell);
     if (format) attrs.ValueFormat = format;
     if (cell.formula && value.kind !== "byte-string") attrs.Value = valueText(value, context);
-    cells += writer.element("gnm:Cell", attrs, cell.formula ?? valueText(value, context), "", 2, true);
+    cells += writer.element("gnm:Cell", attrs, cell.formula ? nativeOpenFormula(cell.formula, { sheet: sheet.id, row: cell.row, column: cell.column }, context, cell.arrayStringLiterals) : valueText(value, context), "", 2, true);
   }
   body += emitRetained(clipboardStyleRecords(sheet, range, context), "Styles", 1, writer);
   const merges = clipboardMerges(sheet, range, context);
@@ -826,7 +833,7 @@ export async function writeGnumeric(book: Workbook, _options: readonly string[],
     IterationTolerance: book.iteration?.tolerance ?? 0.001, ...(book.dateSystem === "1904" ? { "gnm:DateConvention": "Apple:1904" } : {}), FloatRadix: 2, FloatDigits: 53 }, "", "", 1);
   body += writer.element("gnm:SheetNameIndex", {}, "", book.sheets.map(sheet => writer.element("gnm:SheetName",
     { "gnm:Cols": sheet.size?.columns ?? 256, "gnm:Rows": sheet.size?.rows ?? 65536 }, sheet.name, "", 2)).join(""), 1);
-  body += emitNames(book, undefined, 1, writer) + emitRetained(book.unsupportedRecords, "Geometry", 1, writer);
+  body += emitNames(book, undefined, 1, writer, context) + emitRetained(book.unsupportedRecords, "Geometry", 1, writer);
   let sheetXml = "";
   for (const sheet of book.sheets) {
     context.signal.throwIfAborted();
@@ -838,7 +845,7 @@ export async function writeGnumeric(book: Workbook, _options: readonly string[],
     let content = writer.element("gnm:Name", {}, sheet.name, "", 3) +
       writer.element("gnm:MaxCol", {}, String(extent.column), "", 3) +
       writer.element("gnm:MaxRow", {}, String(extent.row), "", 3) +
-      writer.element("gnm:Zoom", {}, gnumericNumber(Number(sheet.view?.zoom ?? 1), false, 4), "", 3) + emitNames(book, sheet, 3, writer);
+      writer.element("gnm:Zoom", {}, gnumericNumber(Number(sheet.view?.zoom ?? 1), false, 4), "", 3) + emitNames(book, sheet, 3, writer, context);
     content += emitRetained(sheet.unsupportedRecords, "PrintInformation", 3, writer);
     const sourceStyles = sheet.unsupportedRecords?.find(r => r.kind === "Styles" && r.source === "Gnumeric_XmlIO:sax");
     const savedStyle = object(sourceStyles?.data);
@@ -907,14 +914,14 @@ export async function writeGnumeric(book: Workbook, _options: readonly string[],
       const group = sheet.formulaGroups?.find(g => g.kind === "array" && cell.row >= g.range.startRow && cell.row <= g.range.endRow && cell.column >= g.range.startColumn && cell.column <= g.range.endColumn);
       if (group && (cell.row !== group.range.startRow || cell.column !== group.range.startColumn)) continue;
       const cellAttrs: Record<string, string | number> = { Row: cell.row, Col: cell.column,
-        ...formulaSemanticsAttributes(group?.arrayStringLiterals ?? cell.arrayStringLiterals) };
+        ...formulaSemanticsAttributes(group?.arrayStringLiterals ?? cell.arrayStringLiterals, false, cell.formula) };
       if (group) { cellAttrs.Rows = group.range.endRow - group.range.startRow + 1; cellAttrs.Cols = group.range.endColumn - group.range.startColumn + 1; }
       // Released normal writer deliberately omits formula caches.
       if (!cell.formula) { cellAttrs.ValueType = types[cell.value.kind];
         const format = cell.richText ? richFormat(cell.richText) : cellValueFormat(cell);
         if (format) cellAttrs.ValueFormat = format;
       }
-      cellXml += writer.element("gnm:Cell", cellAttrs, cell.formula ?? valueText(cell.value, context), "", 4);
+      cellXml += writer.element("gnm:Cell", cellAttrs, cell.formula ? nativeOpenFormula(cell.formula, { sheet: sheet.id, row: cell.row, column: cell.column }, context, cell.arrayStringLiterals) : valueText(cell.value, context), "", 4);
     }
     content += writer.element("gnm:Cells", {}, "", cellXml, 3);
     if (sheet.merges?.length) content += writer.element("gnm:MergedRegions", {}, "", sheet.merges.map(r => writer.element("gnm:Merge", {},

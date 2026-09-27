@@ -7,6 +7,10 @@ export interface ReferenceEndpoint {
   readonly row?: Axis;
   readonly column?: Axis;
   readonly sheet?: string;
+  /** OpenFormula sheet relativity; a missing flag retains fixed named-sheet semantics. */
+  readonly sheetRelative?: boolean;
+  /** Resolved at the parse anchor when workbook tab order is available. */
+  readonly sheetOffset?: number;
   readonly workbook?: string;
 }
 export type FormulaNode = Span & (
@@ -64,6 +68,7 @@ export interface FormulaDocument extends FormulaSemantics {
   readonly position: ParsePosition;
   readonly root: FormulaNode;
   readonly sheetNames?: Readonly<Record<string, string>>;
+  readonly sheetOrder?: readonly string[];
 }
 export interface FormulaParseOptions extends FormulaSemantics {
   readonly grammar?: FormulaGrammar;

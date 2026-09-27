@@ -25,7 +25,7 @@ export function setCellText(book: Workbook, range: CellRange, text: string, cont
   const textFormat = sheet.cells.find(cell => cell.row === range.startRow && cell.column === range.startColumn)?.format === "@";
   const inferred = inferText(text, book, textFormat ? "@" : undefined);
   const singleIntroducer = text[0] === "@" || (text[0] === "+" || text[0] === "-") && text[1] !== text[0];
-  const formulaText = textFormat ? undefined : text.startsWith("=") ? text : inferred.value.kind === "string" && singleIntroducer
+  const formulaText = textFormat ? undefined : text.startsWith("=") || text.startsWith("of:=") ? text : inferred.value.kind === "string" && singleIntroducer
     ? "=" + (text[0] === "-" ? text : text.slice(1)) : undefined;
   const names = [...book.names ?? []];
   const knownNames = new Set(names.map(name => `${name.sheet ?? ""}\0${name.name.toUpperCase()}`));

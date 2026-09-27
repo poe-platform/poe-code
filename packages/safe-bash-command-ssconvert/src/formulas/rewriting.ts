@@ -27,6 +27,15 @@ export function rewriteReferences(document: FormulaDocument, edit: ReferenceRewr
   const target = edit.position ?? document.position;
   const endpoint = (ref: ReferenceEndpoint): ReferenceEndpoint => {
     let next: ReferenceEndpoint = ref;
+    if (edit.translation === "copy" && target.sheet !== document.position.sheet && ref.sheet !== undefined && ref.sheetRelative && ref.workbook === undefined) {
+      const origin = document.sheetOrder?.indexOf(document.position.sheet) ?? -1;
+      const destination = document.sheetOrder?.indexOf(target.sheet) ?? -1;
+      if (origin < 0 || destination < 0 || ref.sheetOffset === undefined)
+        throw new SsconvertError("invalid-request", "Cross-sheet formula copy requires workbook tab order");
+      const id = document.sheetOrder![destination + ref.sheetOffset];
+      if (id === undefined) return { row: { value: -1, relative: false }, column: { value: 0, relative: false } };
+      next = { ...ref, sheet: document.sheetNames![id]! };
+    }
     if (edit.translation === "move" && target.sheet !== document.position.sheet && ref.workbook === undefined && ref.sheet === undefined)
       next = { ...ref, sheet: document.sheetNames?.[document.position.sheet] ?? document.position.sheet };
     if (next.workbook === undefined && next.sheet && edit.sheets?.has(next.sheet)) next = { ...next, sheet: edit.sheets.get(next.sheet)! };

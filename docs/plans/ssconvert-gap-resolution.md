@@ -328,15 +328,32 @@ The candidate's cross-sheet origin move now qualifies implicit local references,
 including both range endpoints, while retaining original display names and applying
 simultaneous renames. All seven baseline failures and 109 neighboring checks pass.
 
-For the remaining sheet-relative work, retain per-endpoint relativity through cells,
-names and shared/array groups before changing Lotus decoding. ODF import currently
-canonicalizes to Gnumeric strings, so an AST-only flag would be lost immediately.
-Then wire snapshots, rewriting, recalculation and codec readback to that storage;
-preserve ODF markers and define explicit loss handling for grammars without them.
+The shared model now retains per-endpoint sheet relativity in standard `of:=`
+formula strings, including names and array groups. ODF preserves sheet `$`
+markers; XML/XLSX carry the source and named anchor in the existing ssconvert
+namespace beside a fixed-target fallback. Readers ignoring those annotations
+lose relative-sheet copy semantics. BIFF export explicitly refuses named relative
+sheets. Recalculation resolves named expressions from their declaration anchor;
+SDK copy translation follows workbook tab order, while moves retain target identity.
+CLI `--set` and SDK text updates accept OpenFormula.
+
+Eight initial regression cases failed, with additional failing controls for
+out-of-workbook copy, text updates, unsupported target grammars and explicit
+fixed-sheet conversion. All 440 package files / 24,426 tests passed before the
+last two serializer guards; the final 42-test formula/codec/legacy cohort,
+maintained package lint/types and selected build pass. Six compiled SDK/command
+XML/XLSX/ODF conversions retain the mixed sheet flags after readback and calculate
+23 after copying to the next sheet. A screenshot of the compiled public command
+with explicit memory I/O confirms `--set B1=of:=[.A1]+1` emits `11,12`.
+These checks establish candidate behavior,
+not native-application qualification.
+
+Next wire the source-qualified Lotus sheet bit into the durable representation.
 Qualify origin moves separately from moved cell ranges, tab reordering and copying:
 Calc's optional `AdjustCrossSheetRefs` clone mode preserves nonzero cross-sheet
-targets even when the underlying token is relative. Native operation qualification
-and the Lotus endpoint-bit disagreement remain open.
+targets even when the underlying token is relative. Native operation qualification,
+BIFF persistence, deleted-sheet behavior and the Lotus endpoint-bit disagreement
+remain open.
 
 LibreOffice's separate WK3/WK4 reader also exposed a missing BOF version:
 `0x1000`, subtype 4, with a 26-byte header. The importer now detects that WK3

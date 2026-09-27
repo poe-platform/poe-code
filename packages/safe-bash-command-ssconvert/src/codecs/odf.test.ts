@@ -49,7 +49,7 @@ it("imports ODS through the shared engine with sparse repeats, cross-sheet formu
     expect(book.sheets[0]!.cells.map(c => [c.row, c.column, c.value])).toEqual([
       [0, 0, { kind: "number", value: 7 }], [0, 1, { kind: "number", value: 7 }],
       [1, 0, { kind: "number", value: 7 }], [1, 1, { kind: "number", value: 7 }]]);
-    expect(book.sheets[1]!.cells[0]).toMatchObject({ formula: "=Input!A1+2", cachedResult: { kind: "number", value: 9 }, formulaDirty: true });
+    expect(book.sheets[1]!.cells[0]).toMatchObject({ formula: "of:=['Input'.A1]+2", cachedResult: { kind: "number", value: 9 }, formulaDirty: true });
     expect(new Uint8Array(volume.readFileSync("/book.ods") as Uint8Array)).toEqual(bytes);
   } finally { await engine.dispose(); }
 });

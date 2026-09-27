@@ -35,7 +35,7 @@ function metadata(name: string, args: readonly (Value | undefined)[], host: Func
     else if (node.kind === "array") for (const row of node.rows) pending.push(...row);
   }
   const formula = serializeExpression(parsed.document, parsed.document.grammar, false, true);
-  return str(name === "EXPRESSION" ? formula.slice(1) : formula);
+  return str(name === "EXPRESSION" ? formula.slice((parsed.document.grammar.prefixes[0] ?? "=").length) : formula);
 }
 function cellInformation(type: string, range: Reference, host: FunctionHost): Value {
   const sheet = range.sheets[0]!;

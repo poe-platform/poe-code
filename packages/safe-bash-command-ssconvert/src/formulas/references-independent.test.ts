@@ -106,7 +106,7 @@ it("refuses unrepresentable raw external named-expression workbook names", () =>
 
 it("retains an explicitly qualified last endpoint in a range", () => {
   const document = parse("of:=[.A1:Remote.B2]", odfGrammar);
-  const converted = parse(serializeExpression(document, excelGrammar, false));
+  const converted = parse(serializeExpression(document, excelGrammar, false, false, { relativeSheets: "fixed" }));
   expect(converted.root).toMatchObject({ kind: "reference", first: { sheet: "Local", row: { value: -4 } }, last: { sheet: "Remote", row: { value: -3 } } });
 });
 
@@ -116,7 +116,7 @@ it("uses workbook display names rather than stable sheet IDs when qualifying a l
   expect(result.ok).toBe(true);
   if (!result.ok) throw new Error(result.diagnostic.message);
   workbook.sheets[0]!.name = "Mutated";
-  expect(serializeExpression(result.document, excelGrammar, false)).toBe("='First':'Remote'!A1:B2");
+  expect(serializeExpression(result.document, excelGrammar, false, false, { relativeSheets: "fixed" })).toBe("='First':'Remote'!A1:B2");
 });
 
 it("retains external named-expression namespaces in ODF", () => {

@@ -126,7 +126,7 @@ it("translates original OpenFormula calls, quotes and unknown function prefixes"
     { row: 0, column: 0, formula: '=SUM(\'A B\'!$B$2,TRUE,"a\\"b")+UNMEASURED(1)', value: { kind: "number", value: 0 } }
   ] }] };
   const xml = (await unpackOdf(await createOdfWriter("strict")(input, [], context))).parts.get("content.xml")!;
-  expect(xml).toContain('of:=SUM([&apos;A B&apos;.$B$2];TRUE();&quot;a&quot;&quot;b&quot;)+ORG.GNUMERIC.UNMEASURED(1)'.split("&apos;").join("'"));
+  expect(xml).toContain('of:=SUM([$&apos;A B&apos;.$B$2];TRUE();&quot;a&quot;&quot;b&quot;)+ORG.GNUMERIC.UNMEASURED(1)'.split("&apos;").join("'"));
 });
 
 it("preserves original ODF conditional styles, validations and embedded image/chart parts", async () => {

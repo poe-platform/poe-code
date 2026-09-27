@@ -365,6 +365,14 @@ Gnumeric omission semantics using Calc deleted-reference error propagation. Qual
 these files in native applications next; broader table edits and unrepresented
 legacy options remain open. See `reference.biffDataTables.deletedInputs`.
 
+Deleted natural-language labels (`PtgElfLel` and `PtgElfRadicalLel`) now import
+as `#NAME?` expressions and preserve those results through BIFF7/8, XML and XLSX.
+The source audit and focused evidence are in `reference.biffDeletedLabels`. Next,
+implement live labels with their metadata, range limits and operand-class semantics;
+retain original label identity where it affects editing. The independent xlrd
+source audit also leaves `tSheet`/`tEndSheet` identity unresolved. Native application
+readback and broader BIFF qualification remain open.
+
 The Calc reference-model audit is recorded under `reference.sheetReferenceSemantics`.
 Its parser and writer preserve ODF sheet `$` markers; external sheet references
 are absolute. Moves resolve the old target and rebind at the new formula position.

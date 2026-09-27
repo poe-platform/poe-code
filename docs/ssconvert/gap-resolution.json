@@ -1411,6 +1411,36 @@
       "publicValidation": "Twenty-four compiled SDK/command BIFF2/3/4-to-BIFF7/8 conversions preserve all 48 expected numeric/string results and array group identity, with no diagnostics. Inputs are 102-111 bytes; outputs are 3072-3584 bytes and remain in memory. Actual compiled command screenshot inspected.",
       "remaining": "Native application and wider BIFF record/token qualification remain open; no gap family is closed."
     },
+    "biffDeletedLabels": {
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/67784d96-e87d-4f97-b643-f8f2176a6148",
+          "section": "2.5.198.50 PtgElfLel",
+          "sha256": "917dd8884670abbf26465f2fb6455f97b91f56dd2c110b9a33003976ffdf0453"
+        },
+        {
+          "url": "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/304191e6-2c82-4542-8477-a1ffd548442e",
+          "section": "2.5.198.52 PtgElfRadicalLel",
+          "sha256": "0791213c2bbef05907f6544e9eead02ae310dd83f87903f35335dc4b6e835718"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/excel/excform8.cxx",
+          "sha256": "d170e34001710f2b27a42770faecb0117c7f6828d938c7fcb320ec4589459cac",
+          "lines": "291-359"
+        }
+      ],
+      "finding": "PtgElfLel (18 01) and PtgElfRadicalLel (18 10) identify deleted natural-language labels. Both occupy six bytes, including an Ilel index and quoted/reserved bits. LibreOffice maps both to ocErrName. Gnumeric instead emits a diagnostic #REF! placeholder for 01 and no stack operand for 10; this change follows Calc error semantics rather than claiming Gnumeric parity.",
+      "implementation": "BIFF8 import translates the two deleted-label forms to #NAME? expressions. It consumes exactly five bytes after the opcode and ignores quoted/reserved bits as required. Existing text/work bounds apply. Truncated payloads fail; other revisions and live-label/pivot subtypes remain unsupported. BIFF7/8 reexport preserves error semantics using ordinary error tokens, not original deleted-label spelling or Ilel identity.",
+      "validation": "All 22 initial regressions failed; all 37 label tests and the final four-file 214-test cohort pass. Checks include reserved fields, truncation, work limits, ERROR.TYPE=5, ISNA, ISERROR, binary and conditional contexts, BIFF7/8 reexport and neighboring compact/deleted-reference/data-table controls. Maintained package lint/source/test/public-consumer types and selected build pass. Sixteen compiled SDK/command conversions across BIFF7, BIFF8, XLSX and XML preserve 96 expected values without diagnostics; actual CSV command screenshot inspected.",
+      "remaining": "Live natural-language row/column ranges need label metadata, dynamic range limits and scalar/reference-class behavior; scalar substitution is insufficient. Original deleted-label identity, pivot-field semantics, native application readback and broader BIFF qualification remain open."
+    },
+    "biffLegacySheetTokenAudit": {
+      "url": "https://raw.githubusercontent.com/python-excel/xlrd/60c4cff7b003234ea88fe933cf98a86588e830fb/xlrd/formula.py",
+      "sha256": "72011735609a6152b3219c1aec85b4b43702d485f352f86a25750e2fbe57a1ac",
+      "finding": "tSheet/tEndSheet raise FormulaError: not implemented; corroborates missing reference identity rather than supporting token skipping.",
+      "priorSources": "LibreOffice excform.cxx skips 7/10 and 3/4 bytes for tSheet/tEndSheet in BIFF2/3/4; Gnumeric warns and skips 10/4. Excel File Format 1.42 gives lengths but no payload identity layout.",
+      "decision": "Keep retaining these untranslated formulas with explicit diagnostics until source/specification or native-authored evidence establishes workbook/sheet identity. Token skipping does not implement external references."
+    },
     "biffDataTables": {
       "sources": [
         {

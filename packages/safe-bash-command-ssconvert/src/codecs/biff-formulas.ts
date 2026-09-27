@@ -131,6 +131,10 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
         offset += length * (flags ? 2 : 1);
       } else { text = biffDecode(data.slice(offset, length), context.codepage); offset += length; }
       push('"' + text.split('"').join('""') + '"', 99, text);
+    } else if (token === 0x18 && context.revision === 8 && [1, 0x10].includes(data.u8(offset))) {
+      // MS-XLS PtgElfLel/PtgElfRadicalLel: deleted natural-language labels.
+      // Calc emits ocErrName for both. The quoted/reserved bits do not affect it.
+      data.check(offset, 5); offset += 5; push("#NAME?");
     } else if (token === 0x19) {
       const width = context.revision === 2 ? 1 : 2;
       const flags = data.u8(offset), value = width === 1 ? data.u8(offset + 1) : data.u16(offset + 1); offset += 1 + width;

@@ -2441,6 +2441,52 @@
         },
         "cleanup": "237,598,053 bytes of consumed package archives, staging trees and spreadsheet outputs removed after compact receipts; temporary installed consumer retained for delivery verification."
       }
+    },
+    "xlsxWorksheetRecordAudit": {
+      "status": "source investigated and original regression failures recorded; implementation and delivery pending",
+      "issue": 3686,
+      "sourceRevision": "bce0998afefdbc355585ca324285661a2170ba77",
+      "sources": [
+        {
+          "source": "sc/source/filter/oox/pagesettings.cxx",
+          "sha256": "5cd1782cafdc7574611b3bfba072079434b9f7b308a2dc3d61c1a9162b4439ec"
+        },
+        {
+          "source": "sc/source/filter/oox/worksheethelper.cxx",
+          "sha256": "1f773758eea0fb11851e6cfb3c619b03a6c1129cae7e37d9f504e989829a1a48"
+        },
+        {
+          "source": "sc/source/filter/oox/worksheetfragment.cxx",
+          "sha256": "153961549896253aa1a6f28f8aefb45823c830a119a524f5e995286032417459"
+        },
+        {
+          "source": "sc/source/filter/excel/xepage.cxx",
+          "sha256": "dd5ac538229a4b6bf34ddbb18ad537bccf3ee5d34ccdb5b03efb8d52e867ec1f"
+        },
+        {
+          "source": "sc/source/filter/excel/xetable.cxx",
+          "sha256": "80e2100a4f38eb195e8e7a8d4035586f4df820743b2904a4bc0cd3947064ac9a"
+        },
+        {
+          "source": "sc/source/filter/oox/worksheetsettings.cxx",
+          "sha256": "eed4f1505db26331cb7ec9b03741413308d91ec14a43bedb9a1066bd46630de2"
+        }
+      ],
+      "findings": [
+        "XLSX import retains the original seven worksheet records alongside normalized PrintInformation and view fields. Export currently diagnoses those raw records while replacing them with partial or hardcoded values; dropping warnings alone would hide real loss.",
+        "LibreOffice pagesettings.cxx:140-225 imports margins, copies, first-page numbering, fit dimensions, print resolution, orientation/order, comment/error modes and all six odd/even/first header/footer strings. xepage.cxx:93-133 emits the corresponding settings and omits false usePrinterDefaults because its presence can affect Excel orientation.",
+        "worksheetfragment.cxx:669-691 distinguishes character-based default/base column widths from row heights in points; worksheethelper.cxx:745-763 gives explicit default width precedence over base width. Existing view.defaultColumnWidth/defaultRowHeight fields already carry point dimensions for rendering and Gnumeric transport.",
+        "worksheetsettings.cxx:88-133 imports codeName, filter state, tab color, outline settings, protection hashes and operation flags. Protection operation defaults differ; replacing the imported flags with a fixed allow/deny set changes behavior.",
+        "Untouched raw settings must remain intact when a caller edits normalized metadata. The original raw representation and its normalized baseline can distinguish real edits from lossy normalization (margin precision, header formatting codes, default orientation and paper sizes outside the normalized subset). Relationship-backed printer settings require preserving their targets or an explicit unsupported diagnostic; copying a stale relationship ID is not preservation."
+      ],
+      "reproduction": {
+        "newFailures": 18,
+        "inheritedControlsPassed": 38,
+        "scope": "Both XLSX editions; all seven nondefault worksheet records; self-generated warning roundtrip; default dimensions in the rendering model; orientation-only normalized edit preserving paper size, copies, print resolution and first-page numbering.",
+        "fixture": "Original in-memory OOXML with schema-ordered worksheet elements; no generated binary fixture committed.",
+        "testSha256": "42108c2e72bbfde44afe94005cdac1cdfd98232b202cb7e5deb89a028afe8e2e"
+      },
+      "remaining": "Implement record semantics/retention and edit precedence, pass current regressions and neighboring controls, qualify compiled SDK/command and independent OOXML/native consumers, deliver to remote main and verify publication. No format-family or issue closure."
     }
   },
   "cases": [

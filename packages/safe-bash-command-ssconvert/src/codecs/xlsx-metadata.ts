@@ -147,9 +147,13 @@ export function readXlsxComments(comments: XmlElement, context: CapabilityContex
     const ref = attribute(comment, "ref"); if (!ref) continue;
     const author = authors[numeric(attribute(comment, "authorId"), 0)];
     const text = readXlsxString(comment.children.find(c => c.localName === "text"), context);
+    // The Gnumeric markup codec cannot carry delimiter-bearing font names.
+    // The original comments part retains those rich nodes for XLSX transport.
+    const representable = text.richText?.every(run => typeof run.attributes.family !== "string" ||
+      !run.attributes.family.includes(":") && !run.attributes.family.includes("]"));
     objects.push(gnode("CellComment", { ObjectBound: ref.split(":")[0]!, ObjectOffset: "1 0 1 0", Direction: 17, Print: 1,
       ...(author !== undefined ? { Author: author } : {}), Text: text.value,
-      ...(text.richText?.length ? { TextFormat: writeGnumericRichText(text.richText) } : {}) }));
+      ...(text.richText?.length && representable ? { TextFormat: writeGnumericRichText(text.richText) } : {}) }));
   }
   return { source: "Gnumeric_XmlIO:sax", kind: "Objects", disposition: "retained", data: gnode("Objects", {}, objects) };
 }

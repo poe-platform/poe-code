@@ -3,7 +3,7 @@ import { parseA1, formatA1, type Sheet, type Workbook } from "../workbook.js";
 import { SsconvertError } from "../contracts.js";
 import type { createXlsxStyles } from "./xlsx-write-styles.js";
 import { escapeXlsx, metadataNode, writeRichString, type ElementWriter, type MetadataNode } from "./xlsx-write-support.js";
-import { encodeXlsxString } from "./xlsx-strings.js";
+import { decodeXlsxString, encodeXlsxString } from "./xlsx-strings.js";
 import { gnumericNumber } from "./gnumeric-number.js";
 import { writeXlsxSheetSettings } from "./xlsx-sheet-settings.js";
 import { readGnumericRichText } from "./gnumeric-rich-text.js";
@@ -126,10 +126,31 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
   if (objects) {
     const comments = objects.children.filter(n => n.name === "CellComment" || n.name === "GnmCellComment");
     const authors = [...new Set(comments.flatMap(n => n.attributes.Author === undefined ? [] : [n.attributes.Author]))];
+    const originalComments = child(records.find(r => r.record.kind === "comments")?.node, "commentList");
+    const commentText = (comment: MetadataNode): string => {
+      const value = comment.attributes.Text ?? "";
+      if (comment.attributes.TextFormat === undefined) {
+        const original = originalComments?.children.find(node => {
+          charge(); return node.attributes.ref === (comment.attributes.ObjectBound?.split(":")[0] ?? "A1");
+        });
+        const text = child(original, "text"); let decoded = "", requiresOriginal = false;
+        for (const portion of text?.children ?? []) {
+          charge();
+          if (portion.name === "t") decoded += decodeXlsxString(portion.text);
+          else if (portion.name === "r") {
+            decoded += decodeXlsxString(child(portion, "t")?.text ?? "");
+            const font = decodeXlsxString(child(child(portion, "rPr"), "rFont")?.attributes.val ?? "");
+            requiresOriginal ||= font.includes(":") || font.includes("]");
+          }
+        }
+        if (text && requiresOriginal && decoded === value) return render(text);
+      }
+      return xml("text", {}, writeRichString(value, readGnumericRichText(comment.attributes.TextFormat, charge), xml, charge));
+    };
     if (comments.length) parts.push({ name: `comments${number}.xml`, relation: "comments", type: "application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml",
       content: xml("comments", { xmlns: namespace }, xml("authors", {}, authors.map(a => xml("author", {}, escapeXlsx(encodeXlsxString(a)))).join("")) + xml("commentList", {}, comments.map(comment =>
         xml("comment", { ref: comment.attributes.ObjectBound?.split(":")[0] ?? "A1", authorId: comment.attributes.Author === undefined ? undefined : authors.indexOf(comment.attributes.Author) },
-          xml("text", {}, writeRichString(comment.attributes.Text ?? "", readGnumericRichText(comment.attributes.TextFormat, charge), xml, charge)))).join(""))) });
+          commentText(comment))).join(""))) });
     if (comments.length) parts.push({ name: `drawings/vmlDrawing${number}.vml`, relation: "vmlDrawing", type: "application/vnd.openxmlformats-officedocument.vmlDrawing",
       content: xml("xml", { "xmlns:v": "urn:schemas-microsoft-com:vml", "xmlns:o": "urn:schemas-microsoft-com:office:office", "xmlns:x": "urn:schemas-microsoft-com:office:excel" },
         xml("v:shapetype", { id: "_x0000_t202" }) + comments.map((comment, index) => {

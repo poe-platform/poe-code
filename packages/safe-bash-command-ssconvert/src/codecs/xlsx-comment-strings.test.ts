@@ -69,6 +69,35 @@ it.each(["2006", "2008"] as const)("preserves comment markup through Gnumeric an
   expect(book).toEqual(before);
 });
 
+it("preserves rich comment fonts that cannot be encoded in Gnumeric TextFormat", async () => {
+  const zip = createZipCodec();
+  const limits = { maxArchiveBytes: 1000000, maxEntryBytes: 1000000, maxTotalBytes: 1000000,
+    maxMembers: 100, maxPathBytes: 1024, maxDepth: 32, maxPaxBytes: 10000, maxTextBytes: 1000000, chunkSize: 4096 };
+  const relationships = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+  const packageNamespace = "http://schemas.openxmlformats.org/package/2006/relationships";
+  const parts = {
+    "_rels/.rels": `<Relationships xmlns="${packageNamespace}"><Relationship Id="w" Type="${relationships}/officeDocument" Target="xl/workbook.xml"/></Relationships>`,
+    "xl/workbook.xml": `<workbook xmlns="${namespace}" xmlns:r="${relationships}"><sheets><sheet name="S" sheetId="1" r:id="s"/></sheets></workbook>`,
+    "xl/_rels/workbook.xml.rels": `<Relationships xmlns="${packageNamespace}"><Relationship Id="s" Type="${relationships}/worksheet" Target="worksheets/sheet1.xml"/></Relationships>`,
+    "xl/worksheets/sheet1.xml": `<worksheet xmlns="${namespace}"><sheetData/></worksheet>`,
+    "xl/worksheets/_rels/sheet1.xml.rels": `<Relationships xmlns="${packageNamespace}"><Relationship Id="c" Type="${relationships}/comments" Target="../comments1.xml"/></Relationships>`,
+    "xl/comments1.xml": `<comments xmlns="${namespace}"><authors><author>Ada</author></authors><commentList><comment ref="B2" authorId="0"><text><r><rPr><rFont val="Font:Name]"/><b/></rPr><t>é</t></r></text></comment></commentList></comments>`
+  };
+  const entries = [];
+  for (const [name, content] of Object.entries(parts)) entries.push(await zip.makeZipEntry(name, new TextEncoder().encode(content),
+    { modified: new Date("2000-01-01Z"), mode: 0o644, directory: false, symlink: false, compression: "store" }, limits, context.signal));
+  const book = await readXlsx(await zip.writeZipArchive({ entries, comment: new Uint8Array() }, limits, context.signal), context);
+  for (const edition of ["2006", "2008"] as const) {
+    const output = await zip.readZipArchive(await createXlsxWriter(edition)(book, [], context), limits, context.signal);
+    const entry = output.entries.find(entry => entry.name === "xl/comments1.xml")!;
+    const decoder = new TextDecoder(); let content = "";
+    for await (const chunk of zip.decodeZipEntry(entry, limits, context.signal)) content += decoder.decode(chunk, { stream: true });
+    expect(content + decoder.decode()).toContain('<rFont val="Font:Name]"/>');
+    expect(content).toContain("<b/>");
+    expect(content).toContain("<t>é</t>");
+  }
+});
+
 for (const edition of ["2006", "2008"] as const) {
   it.each([
     [" _x0041_ ", " _x005F_x0041_ "],

@@ -809,6 +809,10 @@ class InputCursor {
     return undefined;
   }
 
+  canTakeRemainderSync(): boolean {
+    return this._consumers === 0 && this._turn === resolvedVoid && !this._unread?.length;
+  }
+
   async take(signal: AbortSignal, maxBytes?: number): Promise<IteratorResult<Uint8Array>> {
     signal.throwIfAborted();
     if (this.remainder) {
@@ -1301,6 +1305,37 @@ export class ShellInput implements ByteSource, CommandInput {
     const { delimiter = 10 } = options;
     this.signal.throwIfAborted();
     if (!Number.isInteger(delimiter) || delimiter < 0 || delimiter > 255) throw new RangeError("Invalid raw record delimiter");
+    const cursor = this._cursor;
+    if (cursor.canTakeRemainderSync()) {
+      if (!cursor.remainder) {
+        const ready = cursor.tryTakeReadySync();
+        if (ready && !ready.done && ready.value.length > 0) {
+          cursor.remainder = ready.value;
+        }
+      }
+      const rem = cursor.remainder;
+      if (rem && rem.length > 0) {
+        const delimIdx = rem.indexOf(delimiter);
+        if (delimIdx >= 0 && delimIdx + 1 <= this.budget.limits.maxOutputBytes) {
+          const recLen = delimIdx + 1;
+          const slice = rem.subarray(0, recLen);
+          const fastScope = this.budget.values.scope();
+          fastScope.reserve(128, 2);
+          const shellValue = shellValueFromBytes(slice, fastScope);
+          cursor.position += recLen;
+          cursor.remainder = recLen < rem.length ? rem.subarray(recLen) : undefined;
+          let released = false;
+          const fastRelease = (): Promise<void> => {
+            if (!released) {
+              released = true;
+              fastScope.close();
+            }
+            return resolvedVoid;
+          };
+          return Object.freeze({ shellValue, reason: "delimiter" as const, release: fastRelease });
+        }
+      }
+    }
     const scope = this.budget.values.scope();
     let active = true;
     let completion: Promise<void> | undefined;
@@ -1403,7 +1438,52 @@ export class ShellInput implements ByteSource, CommandInput {
     });
   }
 
+  tryMapfileRecordSync(delimiter: number, strip: boolean, allocation: ValueAllocation): { value: ShellValue; present: boolean } | undefined {
+    if (this._viewClosed || (this._reads && this._reads.size > 0)) return undefined;
+    const cursor = this._cursor;
+    if (!cursor.canTakeRemainderSync()) return undefined;
+    if (!cursor.remainder) {
+      const ready = cursor.tryTakeReadySync();
+      if (ready) {
+        if (ready.done) {
+          cursor.admitBoundedRead();
+          return { value: "", present: false };
+        }
+        if (ready.value.length > 0) cursor.remainder = ready.value;
+      }
+    }
+    const rem = cursor.remainder;
+    if (!rem || rem.length === 0) return undefined;
+    const delimIdx = rem.indexOf(delimiter);
+    if (delimIdx < 0 || delimIdx + 1 > this.budget.limits.maxOutputBytes) return undefined;
+    cursor.admitBoundedRead();
+    const recLen = delimIdx + 1;
+    cursor.position += recLen;
+    cursor.remainder = recLen < rem.length ? rem.subarray(recLen) : undefined;
+    const endIdx = strip ? delimIdx : recLen;
+    let nulIdx = -1;
+    let isAscii = true;
+    for (let k = 0; k < endIdx; k++) {
+      const b = rem[k]!;
+      if (b === 0) {
+        nulIdx = k;
+        break;
+      }
+      if (b >= 128) isAscii = false;
+    }
+    const finalLen = nulIdx >= 0 ? nulIdx : endIdx;
+    allocation.reserve(finalLen + 96, 0);
+    const slice = rem.subarray(0, finalLen);
+    if (isAscii && finalLen <= 512) {
+      const strVal = finalLen === 0 ? "" : Buffer.from(slice.buffer, slice.byteOffset, slice.byteLength).toString("latin1");
+      return { value: strVal, present: true };
+    }
+    return { value: shellValueFromBytes(slice, allocation), present: true };
+  }
+
   mapfileRecord(delimiter: number, strip: boolean, allocation: ValueAllocation): Promise<{ value: ShellValue; present: boolean }> {
+    const syncRec = this.tryMapfileRecordSync(delimiter, strip, allocation);
+    if (syncRec !== undefined) return Promise.resolve(syncRec);
     return this._cursor.consume(this.signal, async () => {
       this._cursor.admitBoundedRead();
       allocation.reserve(64, 0);

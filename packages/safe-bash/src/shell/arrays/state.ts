@@ -462,6 +462,10 @@ export class StateMonitor {
     return false;
   }
 
+  hasAnyOverlays(): boolean {
+    return this._overlays !== undefined;
+  }
+
   *overlayFrames(): Iterable<OverlayMap> {
     for (let frame = this._overlays; frame; frame = frame[overlayNext]) yield frame;
   }

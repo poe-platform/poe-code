@@ -462,6 +462,24 @@ export class ArrayLedger {
       }
     }
   }
+
+  tryCheckpointSync(signal?: AbortSignal, units = 1): boolean {
+    signal?.throwIfAborted();
+    if (this.checkpointCount + units >= 128) {
+      if (hasYieldCheckpoint(signal)) {
+        return false;
+      }
+      const now = monotonicNow();
+      if (now - this.lastYieldMs >= 16) {
+        return false;
+      }
+      this.checkpointCount = (this.checkpointCount + units) % 128;
+      runYieldCheckpoint(signal);
+      return true;
+    }
+    this.checkpointCount += units;
+    return true;
+  }
 }
 
 export function exactSum(left: number, right: number): number {

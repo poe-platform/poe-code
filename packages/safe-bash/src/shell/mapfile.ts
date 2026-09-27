@@ -92,6 +92,7 @@ export async function mapfileOptions(context: CommandContext, work: StringWork, 
 export async function collectMapfile(options: MapfileOptions, input: ShellInput, hooks: {
   allocation(): ValueAllocation & { close(): void };
   loop(): void;
+  tryWriteSync?(index: number, value: ShellValue): boolean;
   write(index: number, value: ShellValue): Promise<void>;
   callback(source: string, index: number, value: ShellValue): Promise<void>;
 }): Promise<void> {
@@ -101,13 +102,18 @@ export async function collectMapfile(options: MapfileOptions, input: ShellInput,
     hooks.loop();
     const allocation = hooks.allocation();
     try {
-      const record = await input.mapfileRecord(options.delimiter, options.strip, allocation);
+      const syncRec = options.callback === undefined && hooks.tryWriteSync
+        ? input.tryMapfileRecordSync(options.delimiter, options.strip, allocation)
+        : undefined;
+      const record = syncRec ?? await input.mapfileRecord(options.delimiter, options.strip, allocation);
       if (!record.present) break;
       if (skipped < options.skip) { skipped++; continue; }
       const index = options.origin + written;
       if (index > 2147483647) throw new MapfileUsageError("array index exceeds 2147483647", 1);
       if (options.callback !== undefined && (written + 1) % options.quantum === 0) await hooks.callback(options.callback, index, record.value);
-      await hooks.write(index, record.value);
+      if (options.callback !== undefined || !hooks.tryWriteSync?.(index, record.value)) {
+        await hooks.write(index, record.value);
+      }
       written++;
     } finally { allocation.close(); }
   }

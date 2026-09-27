@@ -237,7 +237,22 @@ async function execute(context: ShellExtensionContext): Promise<number> {
           await context.evaluate(source, { name: "stdin" });
           check();
         }
-        await writer.set(index, shellValueFromBytes(line));
+        let lineValue: ShellValue;
+        if (line.length <= 512) {
+          let isAscii = true;
+          for (let k = 0; k < line.length; k++) {
+            if (line[k]! >= 128) {
+              isAscii = false;
+              break;
+            }
+          }
+          lineValue = isAscii
+            ? Buffer.from(line.buffer, line.byteOffset, line.byteLength).toString("latin1")
+            : shellValueFromBytes(line);
+        } else {
+          lineValue = shellValueFromBytes(line);
+        }
+        await writer.set(index, lineValue);
         check();
         await release();
         count = (count + 1) >>> 0;

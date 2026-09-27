@@ -26,12 +26,19 @@ export class OwnedText {
   }
 }
 
-export function tryTextTokenSync(owner: ArrayOwner, value: string, signal: AbortSignal): OwnedText | undefined {
-  if (value.length > 64) return undefined;
+export function tryTextTokenSync(owner: ArrayOwner, value: ShellValue, signal: AbortSignal): OwnedText | undefined {
   signal.throwIfAborted();
   owner.assertOpen();
-  if (owner.ledger.checkpoint(signal, value.length) !== undefined) return undefined;
-  if (owner.ledger.checkpoint(signal, 0) !== undefined) return undefined;
+  if (typeof value !== "string") {
+    const bytes = shellValueByteLength(value);
+    if (bytes > 512) return undefined;
+    if (!owner.ledger.tryCheckpointSync(signal, 4)) return undefined;
+    const metadata = exactSum(32, shellValueRetainedBytes(value) - bytes);
+    const admission = owner.reserve({ payload: bytes, metadata, work: 4 });
+    return new OwnedText(value, bytes, admission);
+  }
+  if (value.length > 512) return undefined;
+  if (!owner.ledger.tryCheckpointSync(signal, value.length)) return undefined;
   owner.chargeWork(value.length);
   let bytes = 0;
   for (let offset = 0; offset < value.length;) {

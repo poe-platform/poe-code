@@ -81,6 +81,82 @@ export function tryFastPredicate(name: string, rawArgs: readonly string[], offse
       }
     }
   }
+  if (rawLen >= 5 && rawLen <= 16) {
+    let cursor = offset;
+    const end = offset + rawLen;
+    const evalPrimary = (): boolean | undefined => {
+      if (cursor >= end) return undefined;
+      const t0 = rawArgs[cursor]!;
+      if (t0 === "(" || t0 === ")") return undefined;
+      if (cursor + 1 < end && binary.has(rawArgs[cursor + 1]!)) {
+        const op = rawArgs[cursor + 1]!;
+        if (cursor + 2 >= end) return undefined;
+        const right = rawArgs[cursor + 2]!;
+        cursor += 3;
+        if (op === "=" || op === "==") return t0 === right;
+        if (op === "!=") return t0 !== right;
+        if (numeric.has(op)) {
+          const leftNum = parseSafeIntegerFast(t0);
+          const rightNum = parseSafeIntegerFast(right);
+          if (leftNum === undefined || rightNum === undefined) return undefined;
+          return (
+            op === "-eq" ? leftNum === rightNum :
+            op === "-ne" ? leftNum !== rightNum :
+            op === "-lt" ? leftNum < rightNum :
+            op === "-le" ? leftNum <= rightNum :
+            op === "-gt" ? leftNum > rightNum :
+            leftNum >= rightNum
+          );
+        }
+        return undefined;
+      }
+      if (t0 === "-n" || t0 === "-z") {
+        if (cursor + 1 >= end) return undefined;
+        const operand = rawArgs[cursor + 1]!;
+        cursor += 2;
+        return t0 === "-n" ? operand !== "" : operand === "";
+      }
+      if (unary.has(t0)) return undefined;
+      cursor++;
+      return t0 !== "";
+    };
+    const evalNeg = (): boolean | undefined => {
+      let neg = false;
+      while (cursor < end && rawArgs[cursor] === "!") {
+        neg = !neg;
+        cursor++;
+      }
+      const v = evalPrimary();
+      if (v === undefined) return undefined;
+      return neg ? !v : v;
+    };
+    const evalAnd = (): boolean | undefined => {
+      let v = evalNeg();
+      if (v === undefined) return undefined;
+      while (cursor < end && rawArgs[cursor] === "-a") {
+        cursor++;
+        const r = evalNeg();
+        if (r === undefined) return undefined;
+        v = v && r;
+      }
+      return v;
+    };
+    const evalOr = (): boolean | undefined => {
+      let v = evalAnd();
+      if (v === undefined) return undefined;
+      while (cursor < end && rawArgs[cursor] === "-o") {
+        cursor++;
+        const r = evalAnd();
+        if (r === undefined) return undefined;
+        v = v || r;
+      }
+      return v;
+    };
+    const res = evalOr();
+    if (res !== undefined && cursor === end) {
+      return res ? 0 : 1;
+    }
+  }
   return undefined;
 }
 

@@ -207,7 +207,7 @@ test("built scope accounting records retain fast fields without inherited metada
 });
 
 for (const edge of ["target", "handler"]) {
-  test(`built Proxy accounting handles a cold ${edge} chain through the data-depth limit`, () => {
+  test(`built Proxy accounting handles a cold ${edge} chain through the data-depth limit`, async () => {
     const entry = name => JSON.stringify(new URL(`../dist/${name}.js`, import.meta.url).href);
     const source = `
       import assert from "node:assert/strict";
@@ -224,7 +224,6 @@ for (const edge of ["target", "handler"]) {
       assert.equal(measureSandboxData([chain(MAX_DATA_DEPTH)]), MAX_DATA_DEPTH + 2);
       assert.throws(() => measureSandboxData([chain(MAX_DATA_DEPTH + 1)]), { code: "budgetExceeded", budget: "dataDepth" });
     `;
-    const result = spawnSync(process.execPath, ["--input-type=module", "-e", source], { encoding: "utf8", timeout: 30000 });
-    assert.equal(result.status, 0, result.stderr || String(result.error));
+    await initializeInFreshRealm(source);
   });
 }

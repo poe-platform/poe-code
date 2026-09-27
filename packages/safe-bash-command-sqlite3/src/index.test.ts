@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem, type FileSystem } from "@poe-code/safe-fs";
-import { CommandRegistry, commandRuntimeIdentity, createBytePipe, createCommandArguments, writeText } from "safe-bash-contracts";
+import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, createCommandArguments, writeText } from "safe-bash-contracts";
 import { createSqlite3Command, createSqlite3Commands } from "./index.js";
 
 test("sqlite3 factories cannot cross runtime registries", async () => {
@@ -191,4 +191,114 @@ test("sqlite3 matches native /usr/bin/sqlite3 for COALESCE/IFNULL/IIF projection
     rTablesGrid.stdout,
     "agents                issue_status_updates  projects            \ncomments              issues              \n"
   );
+});
+
+test("sqlite3 supports Cloudflare Durable Object SqlStorage (ctx.storage.sql) and D1Database (env.DB) engine injection with VFS binary B-tree bridge", async () => {
+  const { SqliteDatabase } = await import("./engine.js");
+  const fs = createMemoryFileSystem();
+
+  // First create a binary SQLite file in VFS using the default engine
+  const seedRes = await runSqlite3(fs, [
+    "/hey-boss.db",
+    "CREATE TABLE issues(number INT PRIMARY KEY, state TEXT, title TEXT); CREATE INDEX idx_issues_state ON issues(state); INSERT INTO issues VALUES (3781, 'closed', 'B-tree reserved space'), (3783, 'open', 'Cloudflare SqlStorage injection');"
+  ]);
+  assert.equal(seedRes.code, 0, seedRes.stderr);
+
+  // Simulate Cloudflare Durable Object ctx.storage.sql (only exposes exec(sql, ...bindings) -> SqlStorageCursor)
+  const backingDoDb = new SqliteDatabase();
+  const cloudflareDoSqlStorage = {
+    exec(query: string) {
+      const sets = backingDoDb.exec(query);
+      const last = sets[sets.length - 1];
+      const columnNames = last?.columns ?? [];
+      const rawRows = last?.rows ?? [];
+      return {
+        columnNames,
+        *raw() {
+          for (const r of rawRows) {
+            yield r;
+          }
+        },
+        toArray() {
+          return rawRows.map((r) => Object.fromEntries(columnNames.map((c, idx) => [c, r[idx]])));
+        }
+      };
+    }
+  };
+
+  const cmdDo = createSqlite3Command({ engine: () => cloudflareDoSqlStorage });
+  const pipeOut = createBytePipe();
+  const pipeErr = createBytePipe();
+  const resDo = await cmdDo.execute({
+    command: "sqlite3",
+    args: createCommandArguments([
+      "/hey-boss.db",
+      "UPDATE issues SET state = 'closed' WHERE number = 3783;",
+      "SELECT number, state, title FROM issues ORDER BY number;",
+      ".indexes",
+      ".dump"
+    ]).args,
+    cwd: "/",
+    env: {},
+    fs,
+    stdin: createBytePipe().readable,
+    stdout: pipeOut.writable,
+    stderr: pipeErr.writable,
+    signal: new AbortController().signal
+  });
+  await pipeOut.close();
+  await pipeErr.close();
+  const outDo = Buffer.from(await collectBytes(pipeOut.readable, { maxBytes: 1_000_000 })).toString("utf8");
+  assert.equal(resDo.exitCode, 0);
+  assert.match(outDo, /3781\|closed\|B-tree reserved space\n3783\|closed\|Cloudflare SqlStorage injection/);
+  assert.match(outDo, /idx_issues_state/);
+  assert.match(outDo, /INSERT INTO issues VALUES\(3783,'closed','Cloudflare SqlStorage injection'\);/);
+
+  // Verify the updated database was persisted back to VFS as a valid SQLite format 3 binary file
+  const verifySaved = await runSqlite3(fs, ["/hey-boss.db", "SELECT number, state FROM issues ORDER BY number;"]);
+  assert.equal(verifySaved.code, 0, verifySaved.stderr);
+  assert.equal(verifySaved.stdout, "3781|closed\n3783|closed\n");
+
+  // Simulate Cloudflare D1 (env.DB with prepare(sql).bind(...).raw({ columnNames: true }) / run())
+  const backingD1Db = new SqliteDatabase();
+  const cloudflareD1 = {
+    prepare(query: string) {
+      let bound: unknown[] = [];
+      return {
+        bind(...values: unknown[]) {
+          bound = values;
+          return this;
+        },
+        async raw(opts?: { columnNames?: boolean }) {
+          const sets = backingD1Db.exec(query, bound as any);
+          const last = sets[sets.length - 1];
+          if (!last || last.columns.length === 0) return [];
+          return opts?.columnNames ? [last.columns, ...last.rows] : last.rows;
+        },
+        async run() {
+          backingD1Db.exec(query, bound as any);
+          return { success: true };
+        }
+      };
+    }
+  };
+  const cmdD1 = createSqlite3Command({ engine: cloudflareD1 });
+  const d1Out = createBytePipe();
+  const d1Err = createBytePipe();
+  const resD1 = await cmdD1.execute({
+    command: "sqlite3",
+    args: createCommandArguments(["/hey-boss.db", "SELECT COUNT(*), MIN(number), MAX(number) FROM issues;"]).args,
+    cwd: "/",
+    env: {},
+    fs,
+    stdin: createBytePipe().readable,
+    stdout: d1Out.writable,
+    stderr: d1Err.writable,
+    signal: new AbortController().signal
+  });
+  await d1Out.close();
+  await d1Err.close();
+  const outD1Text = Buffer.from(await collectBytes(d1Out.readable, { maxBytes: 1_000_000 })).toString("utf8");
+  assert.equal(resD1.exitCode, 0);
+  assert.equal(outD1Text, "2|3781|3783\n");
 });

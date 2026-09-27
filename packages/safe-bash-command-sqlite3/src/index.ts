@@ -38,16 +38,43 @@ export interface SqliteEngineInstance {
   findTable?(name: string): { name: string; sql: string; columns: { name: string }[]; rows: { data: Record<string, SqlValue> }[] } | undefined;
 }
 
+export interface CloudflareSqlStorageCursor {
+  readonly columnNames?: readonly string[] | undefined;
+  raw?(): Iterable<readonly unknown[]>;
+  toArray?(): readonly Record<string, unknown>[];
+  [Symbol.iterator]?(): Iterator<Record<string, unknown>>;
+}
+
+export interface CloudflareSqlStorage {
+  exec(query: string, ...bindings: unknown[]): CloudflareSqlStorageCursor | Promise<CloudflareSqlStorageCursor>;
+}
+
+export interface CloudflareD1PreparedStatement {
+  bind?(...values: unknown[]): CloudflareD1PreparedStatement;
+  raw?(options?: { columnNames?: boolean }): Promise<unknown[][]>;
+  all?(): Promise<{ results?: Record<string, unknown>[] }>;
+  run?(): Promise<unknown>;
+}
+
+export interface CloudflareD1Database {
+  prepare(query: string): CloudflareD1PreparedStatement;
+}
+
+export type InjectableSqliteEngine =
+  | SqliteEngineInstance
+  | CloudflareSqlStorage
+  | CloudflareD1Database;
+
 export type SqliteEngineFactory = (options: {
   readonly dbPath: string;
   readonly readonly: boolean;
   readonly context: CommandContext;
-}) => Promise<SqliteEngineInstance> | SqliteEngineInstance;
+}) => Promise<InjectableSqliteEngine> | InjectableSqliteEngine;
 
 export interface Sqlite3CommandsOptions {
   readonly replace?: boolean | undefined;
   readonly limits?: Partial<Sqlite3Limits> | undefined;
-  readonly engine?: SqliteEngineFactory | SqliteEngineInstance | undefined;
+  readonly engine?: SqliteEngineFactory | InjectableSqliteEngine | undefined;
 }
 
 export type Sqlite3Options = Sqlite3CommandsOptions;
@@ -136,6 +163,123 @@ function formatSqlQuote(v: SqlValue): string {
     hex += b.toString(16).toUpperCase().padStart(2, "0");
   }
   return `X'${hex}'`;
+}
+
+function coerceInjectedSqlValue(v: unknown): SqlValue {
+  if (v === null || v === undefined) {
+    return null;
+  }
+  if (
+    typeof v === "number" ||
+    typeof v === "bigint" ||
+    typeof v === "string" ||
+    v instanceof Number ||
+    v instanceof Uint8Array
+  ) {
+    return v;
+  }
+  if (typeof v === "boolean") {
+    return v ? 1 : 0;
+  }
+  if (v instanceof ArrayBuffer) {
+    return new Uint8Array(v);
+  }
+  if (ArrayBuffer.isView(v)) {
+    return new Uint8Array(v.buffer, v.byteOffset, v.byteLength);
+  }
+  return String(v);
+}
+
+function normalizeInjectedEngine(raw: InjectableSqliteEngine): SqliteEngineInstance {
+  const candidate = raw as SqliteEngineInstance & Partial<CloudflareD1Database> & Partial<CloudflareSqlStorage>;
+  if (typeof candidate.executeStatement === "function") {
+    return candidate;
+  }
+  if (typeof candidate.prepare === "function") {
+    const d1 = candidate as CloudflareD1Database;
+    return {
+      async executeStatement(sql: string, positionalParams?: SqlValue[]): Promise<QueryResultSet | null> {
+        let stmt = d1.prepare(sql);
+        if (positionalParams && positionalParams.length > 0 && typeof stmt.bind === "function") {
+          stmt = stmt.bind(...positionalParams);
+        }
+        const isReturningOrQuery = /^\s*(SELECT|PRAGMA|WITH|VALUES|EXPLAIN)\b|\bRETURNING\b/i.test(sql);
+        if (!isReturningOrQuery && typeof stmt.run === "function") {
+          await stmt.run();
+          return null;
+        }
+        if (typeof stmt.raw === "function") {
+          const rawRows = await stmt.raw({ columnNames: true });
+          if (!Array.isArray(rawRows) || rawRows.length === 0) {
+            return { columns: [], rows: [] };
+          }
+          const first = rawRows[0];
+          if (Array.isArray(first) && first.every((c) => typeof c === "string")) {
+            const columns = first as string[];
+            const rows = rawRows.slice(1).map((r) => (Array.isArray(r) ? r.map(coerceInjectedSqlValue) : []));
+            return { columns, rows };
+          }
+        }
+        if (typeof stmt.all === "function") {
+          const res = await stmt.all();
+          const objs = res?.results ?? [];
+          if (objs.length === 0) {
+            return { columns: [], rows: [] };
+          }
+          const columns = Object.keys(objs[0]!);
+          const rows = objs.map((o) => columns.map((c) => coerceInjectedSqlValue(o[c])));
+          return { columns, rows };
+        }
+        if (typeof stmt.run === "function") {
+          await stmt.run();
+        }
+        return null;
+      }
+    };
+  }
+  if (typeof candidate.exec === "function") {
+    return {
+      ...candidate,
+      async executeStatement(sql: string, positionalParams?: SqlValue[]): Promise<QueryResultSet | null> {
+        const ret = await (candidate.exec as (...a: unknown[]) => unknown)(sql, ...(positionalParams ?? []));
+        if (ret === null || ret === undefined) {
+          return null;
+        }
+        if (Array.isArray(ret)) {
+          const sets = ret as QueryResultSet[];
+          return sets[sets.length - 1] ?? null;
+        }
+        const cursor = ret as CloudflareSqlStorageCursor;
+        if (Array.isArray(cursor.columnNames) && typeof cursor.raw === "function") {
+          const columns = [...cursor.columnNames];
+          const rows = Array.from(cursor.raw(), (r) => Array.from(r, coerceInjectedSqlValue));
+          return columns.length === 0 && rows.length === 0 ? null : { columns, rows };
+        }
+        if (typeof cursor.toArray === "function") {
+          const objs = cursor.toArray();
+          const columns = Array.isArray(cursor.columnNames)
+            ? [...cursor.columnNames]
+            : objs.length > 0
+              ? Object.keys(objs[0]!)
+              : [];
+          const rows = objs.map((o) => columns.map((c) => coerceInjectedSqlValue(o[c])));
+          return columns.length === 0 && rows.length === 0 ? null : { columns, rows };
+        }
+        if (typeof cursor[Symbol.iterator] === "function") {
+          const objs = Array.from(cursor);
+          const columns = Array.isArray(cursor.columnNames)
+            ? [...cursor.columnNames]
+            : objs.length > 0
+              ? Object.keys(objs[0]!)
+              : [];
+          const rows = objs.map((o) => columns.map((c) => coerceInjectedSqlValue(o[c])));
+          return columns.length === 0 && rows.length === 0 ? null : { columns, rows };
+        }
+        return null;
+      }
+    };
+  }
+  return candidate;
 }
 
 function formatCsvCell(s: string, sep: string): string {
@@ -607,9 +751,10 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
 
     const createDbInstance = async (dbPath: string, readonly: boolean): Promise<SqliteEngineInstance> => {
       if (options?.engine) {
-        return typeof options.engine === "function"
+        const raw = typeof options.engine === "function"
           ? await options.engine({ dbPath, readonly, context })
           : options.engine;
+        return normalizeInjectedEngine(raw);
       }
       return new SqliteDatabase();
     };
@@ -636,6 +781,34 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
           const bytes = await context.fs.readFile(path);
           if (typeof db.loadFromBytes === "function") {
             await db.loadFromBytes(bytes);
+          } else if (bytes.byteLength > 0) {
+            const tempDb = new SqliteDatabase();
+            tempDb.loadFromBytes(bytes);
+            for (const tbl of tempDb.tables.values()) {
+              if (tbl.sql) {
+                await execSingleStmt(tbl.sql);
+              }
+              const colNames = tbl.columns.map((c) => `"${c.name.replace(/"/g, '""')}"`).join(", ");
+              for (const r of tbl.rows) {
+                const vals = tbl.columns.map((c) => formatSqlQuote(r.data[c.name] ?? null)).join(", ");
+                await execSingleStmt(`INSERT INTO "${tbl.name.replace(/"/g, '""')}" (${colNames}) VALUES (${vals});`);
+              }
+            }
+            for (const idx of tempDb.indexes.values()) {
+              if (idx.sql) {
+                await execSingleStmt(idx.sql);
+              }
+            }
+            for (const v of tempDb.views.values()) {
+              if (v.sql) {
+                await execSingleStmt(v.sql);
+              }
+            }
+            for (const tr of tempDb.triggers.values()) {
+              if (tr.sql) {
+                await execSingleStmt(tr.sql);
+              }
+            }
           }
         }
       } catch (err) {
@@ -650,6 +823,33 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
       }
       if (typeof db.serializeToBytes === "function") {
         const bytes = await db.serializeToBytes();
+        await context.fs.writeFile(path, bytes);
+      } else {
+        const tempDb = new SqliteDatabase();
+        const masterRes = await execSingleStmt(
+          "SELECT type, name, tbl_name, sql FROM sqlite_master WHERE sql IS NOT NULL AND name NOT LIKE 'sqlite_%' ORDER BY CASE type WHEN 'table' THEN 1 WHEN 'index' THEN 2 WHEN 'view' THEN 3 ELSE 4 END;"
+        );
+        for (const row of masterRes?.rows ?? []) {
+          const sql = String(row[3] ?? "");
+          if (sql) {
+            try {
+              tempDb.exec(sql);
+            } catch {
+              // Ignore unsupported DDL
+            }
+          }
+        }
+        for (const tbl of tempDb.tables.values()) {
+          const rowsRes = await execSingleStmt(`SELECT * FROM "${tbl.name.replace(/"/g, '""')}";`);
+          const colNames = (rowsRes?.columns ?? tbl.columns.map((c) => c.name))
+            .map((c) => `"${c.replace(/"/g, '""')}"`)
+            .join(", ");
+          for (const r of rowsRes?.rows ?? []) {
+            const vals = r.map((v) => formatSqlQuote(v ?? null)).join(", ");
+            tempDb.exec(`INSERT INTO "${tbl.name.replace(/"/g, '""')}" (${colNames}) VALUES (${vals});`);
+          }
+        }
+        const bytes = tempDb.serializeToBytes();
         await context.fs.writeFile(path, bytes);
       }
     };
@@ -889,7 +1089,15 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
 
       if (cmd === ".indexes" || cmd === ".indices") {
         const pattern = parts[1];
-        const idxList = db.indexes ? [...db.indexes.values()] : [];
+        let idxList: { name: string; tableName: string }[];
+        if (db.indexes) {
+          idxList = [...db.indexes.values()];
+        } else {
+          const res = await execSingleStmt(
+            "SELECT name, tbl_name FROM sqlite_master WHERE type='index' AND name NOT LIKE 'sqlite_%' ORDER BY name;"
+          );
+          idxList = (res?.rows ?? []).map((r) => ({ name: String(r[0] ?? ""), tableName: String(r[1] ?? "") }));
+        }
         const names = idxList
           .filter(
             (idx) =>
@@ -913,29 +1121,54 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
       if (cmd === ".dump") {
         const pattern = parts[1];
         const dumpLines: string[] = ["PRAGMA foreign_keys=OFF;", "BEGIN TRANSACTION;"];
-        for (const tbl of db.tables?.values() ?? []) {
-          if (pattern && !matchGlob(tbl.name.toLowerCase(), pattern.toLowerCase()) && tbl.name.toLowerCase() !== pattern.toLowerCase()) {
-            continue;
+        if (db.tables) {
+          for (const tbl of db.tables.values()) {
+            if (pattern && !matchGlob(tbl.name.toLowerCase(), pattern.toLowerCase()) && tbl.name.toLowerCase() !== pattern.toLowerCase()) {
+              continue;
+            }
+            dumpLines.push(`${tbl.sql.replace(/;*\s*$/, "")};`);
+            for (const r of tbl.rows) {
+              const vals = tbl.columns.map((c) => formatSqlQuote(r.data[c.name] ?? null)).join(",");
+              dumpLines.push(`INSERT INTO ${tbl.name} VALUES(${vals});`);
+            }
           }
-          dumpLines.push(`${tbl.sql.replace(/;*\s*$/, "")};`);
-          for (const r of tbl.rows) {
-            const vals = tbl.columns.map((c) => formatSqlQuote(r.data[c.name] ?? null)).join(",");
-            dumpLines.push(`INSERT INTO ${tbl.name} VALUES(${vals});`);
+          for (const idx of db.indexes?.values() ?? []) {
+            if (!pattern || idx.tableName.toLowerCase() === pattern.toLowerCase()) {
+              dumpLines.push(`${idx.sql.replace(/;*\s*$/, "")};`);
+            }
           }
-        }
-        for (const idx of db.indexes?.values() ?? []) {
-          if (!pattern || idx.tableName.toLowerCase() === pattern.toLowerCase()) {
-            dumpLines.push(`${idx.sql.replace(/;*\s*$/, "")};`);
+          for (const v of db.views?.values() ?? []) {
+            if (!pattern || v.name.toLowerCase() === pattern.toLowerCase()) {
+              dumpLines.push(`${v.sql.replace(/;*\s*$/, "")};`);
+            }
           }
-        }
-        for (const v of db.views?.values() ?? []) {
-          if (!pattern || v.name.toLowerCase() === pattern.toLowerCase()) {
-            dumpLines.push(`${v.sql.replace(/;*\s*$/, "")};`);
+          for (const tr of db.triggers?.values() ?? []) {
+            if (!pattern || tr.tableName.toLowerCase() === pattern.toLowerCase()) {
+              dumpLines.push(`${tr.sql.replace(/;*\s*$/, "")};`);
+            }
           }
-        }
-        for (const tr of db.triggers?.values() ?? []) {
-          if (!pattern || tr.tableName.toLowerCase() === pattern.toLowerCase()) {
-            dumpLines.push(`${tr.sql.replace(/;*\s*$/, "")};`);
+        } else {
+          const masterRes = await execSingleStmt(
+            "SELECT type, name, tbl_name, sql FROM sqlite_master WHERE sql IS NOT NULL AND name NOT LIKE 'sqlite_%';"
+          );
+          for (const row of masterRes?.rows ?? []) {
+            const type = String(row[0] ?? "");
+            const name = String(row[1] ?? "");
+            const tblName = String(row[2] ?? "");
+            const sql = String(row[3] ?? "");
+            if (type === "table") {
+              if (pattern && !matchGlob(name.toLowerCase(), pattern.toLowerCase()) && name.toLowerCase() !== pattern.toLowerCase()) {
+                continue;
+              }
+              dumpLines.push(`${sql.replace(/;*\s*$/, "")};`);
+              const rowsRes = await execSingleStmt(`SELECT * FROM "${name.replace(/"/g, '""')}";`);
+              for (const r of rowsRes?.rows ?? []) {
+                const vals = r.map((v) => formatSqlQuote(v ?? null)).join(",");
+                dumpLines.push(`INSERT INTO ${name} VALUES(${vals});`);
+              }
+            } else if (!pattern || tblName.toLowerCase() === pattern.toLowerCase() || name.toLowerCase() === pattern.toLowerCase()) {
+              dumpLines.push(`${sql.replace(/;*\s*$/, "")};`);
+            }
           }
         }
         dumpLines.push("COMMIT;");
@@ -971,7 +1204,20 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         let tbl = db.findTable ? db.findTable(tableArg) : undefined;
         let dataRows = parsedRows;
         let colCount = tbl ? tbl.columns.length : (parsedRows[0]?.length ?? 0);
-        if (!tbl) {
+        let tableExists = Boolean(tbl);
+        if (!tableExists && !db.findTable) {
+          const checkRes = await execSingleStmt(
+            `SELECT name FROM sqlite_master WHERE type='table' AND lower(name)=lower('${tableArg.replace(/'/g, "''")}');`
+          );
+          if ((checkRes?.rows.length ?? 0) > 0) {
+            tableExists = true;
+            const colRes = await execSingleStmt(`SELECT * FROM "${tableArg.replace(/"/g, '""')}" LIMIT 0;`);
+            if (colRes && colRes.columns.length > 0) {
+              colCount = colRes.columns.length;
+            }
+          }
+        }
+        if (!tableExists) {
           const headerCols = parsedRows[0]!;
           colCount = headerCols.length;
           dataRows = parsedRows.slice(1);

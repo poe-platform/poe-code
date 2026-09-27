@@ -26,10 +26,11 @@ export function recordMockS3Head(output: S3HeadOutput, input: S3ObjectInput, sto
 
 export async function queryS3Head(input: S3ObjectInput, action: (query: S3ObjectInput) => Promise<S3HeadOutput>): Promise<S3HeadOutput> {
   const token = Object.freeze({});
-  const query: QueryInput = { ...input, [queryKey]: token };
+  const query = Object.freeze({ ...input });
+  const forwarded: QueryInput = { ...query, [queryKey]: token };
   queries.set(token, query);
   try {
-    const output = await action(query);
+    const output = await action(forwarded);
     acceptedHeads.delete(output);
     const proof = providerHeads.get(output);
     if (proof?.query === query) acceptedHeads.set(output, proof.entry);

@@ -90,6 +90,19 @@ describe("Node policy preservation", () => {
     }
   });
 
+  it.each(["Bucket", "Key"])("rejects an S3 proof after the transport mutates %s", async field => {
+    const own = view();
+    registerS3EntryOwner(own.filesystem, path => path, () => true, async () => "unknown");
+    const output = await queryS3Head({ Bucket: "bucket", Key: "file" }, async query => {
+      Object.assign(query, { [field]: "other" });
+      const head = {};
+      recordMockS3Head(head, query, {});
+      return head;
+    });
+    recordS3Stat(own.filesystem, own.path, own.stat, output);
+    expect(getOwnedS3Entry(own)).toBeUndefined();
+  });
+
   it("retains S3 and memory cross-adapter authority in one registry", async () => {
     const transport = new MockS3Client({ buckets: ["test"] });
     const left = new S3FileSystem({ transport, bucket: "test" });

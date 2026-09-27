@@ -12,13 +12,19 @@ export async function run(): Promise<boolean> {
   if (results.filter(result => result.status === "fulfilled").length !== 1) throw new Error("conditional write raced");
   await client.putObject({ Bucket: "bucket", Key: "nested/😀", Body: Uint8Array.of(3) });
   if ((await fs.readdir("/nested")).length !== 2) throw new Error("listing failed");
+  let rewrite = false;
   const forwarding = new Proxy(client, { get(target, key) {
-    if (key === "headObject") return (input: Parameters<typeof client.headObject>[0]) => client.headObject({ ...input });
+    if (key === "headObject") return (input: Parameters<typeof client.headObject>[0]) => {
+      if (rewrite && input.Key === "nested/file") Object.assign(input, { Key: "nested/😀" });
+      return client.headObject({ ...input });
+    };
     const value: unknown = Reflect.get(target, key);
     return typeof value === "function" ? value.bind(target) : value;
   } });
   const forwarded = new S3FileSystem({ bucket: "bucket", transport: forwarding });
   if (await fs.compareEntry!("/nested/file", forwarded, "/nested/file") !== "same") throw new Error("forwarded identity lost");
+  rewrite = true;
+  if (await forwarded.compareEntry("/nested/file", fs, "/nested/😀") !== "unknown") throw new Error("mutated query acquired authority");
   let calls = 0;
   const limit = new Error("request budget exceeded");
   const scoped = scopeFileSystem(fs, () => { if (++calls > 1) throw limit; }, new AbortController().signal);

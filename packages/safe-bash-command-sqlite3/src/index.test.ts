@@ -180,4 +180,15 @@ test("sqlite3 matches native /usr/bin/sqlite3 for COALESCE/IFNULL/IIF projection
   const rModeSwitch = await runSqlite3(fs, [":memory:", ".mode csv", "SELECT 1, 2;", ".mode list", "SELECT 3, 4;"]);
   assert.equal(rModeSwitch.code, 0, rModeSwitch.stderr);
   assert.equal(rModeSwitch.stdout, "1,2\n3|4\n");
+
+  const rTablesGrid = await runSqlite3(fs, [
+    ":memory:",
+    "CREATE TABLE agents(x); CREATE TABLE comments(x); CREATE TABLE issue_status_updates(x); CREATE TABLE issues(x); CREATE TABLE projects(x);",
+    ".tables"
+  ]);
+  assert.equal(rTablesGrid.code, 0, rTablesGrid.stderr);
+  assert.equal(
+    rTablesGrid.stdout,
+    "agents                issue_status_updates  projects            \ncomments              issues              \n"
+  );
 });

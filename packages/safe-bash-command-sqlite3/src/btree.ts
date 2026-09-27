@@ -285,14 +285,15 @@ function extractLeafCellPayload(
   cellBytes: Uint8Array,
   payloadSize: number
 ): Uint8Array {
-  const usableSize = pageSize;
+  const reservedSpace = dbBytes[20] ?? 0;
+  const usableSize = Math.max(480, pageSize - reservedSpace);
   const maxLocal = usableSize - 35;
-  const minLocal = ((usableSize - 12) * 32) / 255 - 23;
+  const minLocal = Math.floor(((usableSize - 12) * 32) / 255) - 23;
   if (payloadSize <= maxLocal) {
     return cellBytes.subarray(0, payloadSize);
   }
-  const k = Math.floor(minLocal + ((payloadSize - minLocal) % (usableSize - 4)));
-  const localSize = k <= maxLocal ? k : Math.floor(minLocal);
+  const k = minLocal + ((payloadSize - minLocal) % (usableSize - 4));
+  const localSize = k <= maxLocal ? k : minLocal;
   const out = new Uint8Array(payloadSize);
   out.set(cellBytes.subarray(0, localSize), 0);
   let written = localSize;

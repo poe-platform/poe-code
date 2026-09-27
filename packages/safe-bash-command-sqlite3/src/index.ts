@@ -814,7 +814,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         if (db.tables && db.views) {
           names = [...db.tables.keys(), ...db.views.keys()]
             .filter((n) => !n.toLowerCase().startsWith("sqlite_"))
-            .sort((a, b) => a.localeCompare(b));
+            .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
         } else {
           const res = await execSingleStmt("SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name NOT LIKE 'sqlite_%' ORDER BY name;");
           names = (res?.rows ?? []).map((r) => String(r[0] ?? ""));
@@ -827,7 +827,21 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
             )
           : names;
         if (filtered.length > 0) {
-          await emitOutput(`${filtered.join("  ")}\n`);
+          const maxLen = Math.max(...filtered.map((s) => s.length));
+          const nCol = Math.max(1, Math.floor(79 / (maxLen + 2)));
+          const nRow = Math.ceil(filtered.length / nCol);
+          const rows: string[] = [];
+          for (let r = 0; r < nRow; r += 1) {
+            const cells: string[] = [];
+            for (let c = 0; c < nCol; c += 1) {
+              const idx = c * nRow + r;
+              if (idx < filtered.length) {
+                cells.push(filtered[idx]!.padEnd(maxLen, " "));
+              }
+            }
+            rows.push(cells.join("  "));
+          }
+          await emitOutput(`${rows.join("\n")}\n`);
         }
         return;
       }

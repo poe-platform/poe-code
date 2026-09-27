@@ -13,6 +13,7 @@ import { buildWorkspaces, createWorkspaceBuildPlan, matchesWorkspaceRange, readM
 type Manifest = Record<string, unknown>;
 type Fixture = { root: string; write: (name: string, manifest: Manifest) => void; remove: () => void };
 const runnerFilename = fileURLToPath(new URL("./build-workspaces.mjs", import.meta.url));
+const checkCacheFilename = fileURLToPath(new URL("./check-cache.mjs", import.meta.url));
 const primaryValues = [undefined, null, false, 0, -0, "", NaN, new Error("primary")];
 
 describe("maintained literal workspace test selectors", () => {
@@ -679,6 +680,7 @@ describe("owned real npm lifecycle route", () => {
     try {
       fs.mkdirSync(path.join(owned.root, "scripts"));
       fs.copyFileSync(runnerFilename, path.join(owned.root, "scripts/build-workspaces.mjs"));
+      fs.copyFileSync(checkCacheFilename, path.join(owned.root, "scripts/check-cache.mjs"));
       const npmCli = process.env.npm_execpath;
       if (!npmCli) throw new Error("Owned lifecycle controls require the invoking npm CLI path");
       const npmCommand = [process.execPath, npmCli].map(value => "'" + value.replaceAll("'", "'\\''") + "'").join(" ");
@@ -909,7 +911,7 @@ describe("finite unit owned npm lifecycle", () => {
       bash: { name: "@poe-platform/safe-bash", scripts: { prebuild: step, build: step, postbuild: step, "pretest:unit": step, "test:unit": step, "posttest:unit": step } }
     });
     try {
-      fs.mkdirSync(path.join(owned.root, "scripts")); fs.copyFileSync(runnerFilename, path.join(owned.root, "scripts/build-workspaces.mjs"));
+      fs.mkdirSync(path.join(owned.root, "scripts")); fs.copyFileSync(runnerFilename, path.join(owned.root, "scripts/build-workspaces.mjs")); fs.copyFileSync(checkCacheFilename, path.join(owned.root, "scripts/check-cache.mjs"));
       writeJson(path.join(owned.root, "package.json"), { name: "owned-root", private: true, workspaces: ["packages/*"], scripts: { pretest: "node step.cjs", test: "node scripts/build-workspaces.mjs --test-unit", posttest: "node step.cjs", "pretest:unit": "node step.cjs", "test:unit": "node step.cjs", "posttest:unit": "node step.cjs" } });
       writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "@poe-platform/safe-bash#test:unit": { dependsOn: ["build"] } } });
       fs.writeFileSync(path.join(owned.root, "step.cjs"), 'const fs=require("node:fs");const event=process.env.npm_lifecycle_event;fs.appendFileSync(process.env.BUILD_EVENTS,JSON.stringify({name:process.env.npm_package_name,event})+"\\n");if(process.env.npm_package_name==="@poe-platform/safe-bash"&&event===' + JSON.stringify(failedEvent) + ')process.exit(7);');

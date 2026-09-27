@@ -5,7 +5,7 @@ import { FsError } from '@poe-platform/safe-bash/contracts/errors';
 import { FsError as CanonicalFsError } from '@poe-platform/safe-fs/core';
 
 assert.equal(FsError, CanonicalFsError);
-assert.equal(defaultXmlQueryLimits.maxNodes, 10_000);
+assert.equal(defaultXmlQueryLimits.maxNodes, Infinity);
 for (const name of ['safe-bash-command-xmllint', 'safe-bash-xml-engine']) {
   assert.throws(() => import.meta.resolve(name), { code: 'ERR_MODULE_NOT_FOUND' });
 }
@@ -19,6 +19,11 @@ try {
   assert.equal((await shell.exec("xmllint --xpath $'\\xff' /input")).exitCode, 2);
   assert.equal((await shell.exec("xq '.root.item | length' /input")).stdout.trim(), '2');
   assert.throws(() => xmlCommands().setup({ commands: shell.commands }), /already registered/);
+  xmlCommands({ replace: true, limits: { maxNodes: 2 } }).setup({ commands: shell.commands });
+  const nodeLimited = await shell.exec('xmllint --noout /input');
+  assert.equal(nodeLimited.exitCode, 5);
+  assert.equal(nodeLimited.stdout, '');
+  assert.equal(nodeLimited.stderr, 'xmllint: XML resource limit exceeded\n');
   xmlCommands({ replace: true, limits: { maxOutputBytes: 1 } }).setup({ commands: shell.commands });
   assert.equal((await shell.exec('xmllint --c14n /input')).exitCode, 5);
   assert.deepEqual(createXmlCommands().map(command => command.name), ['xq', 'xmllint']);

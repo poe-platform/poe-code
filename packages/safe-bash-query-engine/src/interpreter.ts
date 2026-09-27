@@ -1,4 +1,4 @@
-import { Budget, copyObject, hasCustomKeyOrder, isObject, JqHalt, JqError, JqLimitError, object, objectKeyIterator, objectKeys, put, remove as removeKey, truth, type Json } from "./limits.js";
+import { Budget, invalidateCachedValueMetrics, copyObject, hasCustomKeyOrder, isObject, JqHalt, JqError, JqLimitError, object, objectKeyIterator, objectKeys, put, remove as removeKey, truth, type Json } from "./limits.js";
 import { Decimal, isNumber, numberValue, type Numeric } from "./numbers.js";
 import { JqParseError, measureValue, parseJson, stringify } from "./input.js";
 import type { Ast, BindingPattern } from "./parser.js";
@@ -280,7 +280,7 @@ export class Interpreter {
             result[key] = val;
           }
         }
-        if (canScratch) this.scratchInUse = true;
+        if (canScratch) { this.scratchInUse = true; invalidateCachedValueMetrics(result); }
         this.budget.checkValue(result);
         return result;
       }
@@ -307,6 +307,115 @@ export class Interpreter {
           if (name === "type") {
             this.budget.step();
             return type(input);
+          }
+          if (name === "length") {
+            if (Array.isArray(input)) {
+              this.budget.step();
+              return input.length;
+            }
+            if (input === null) {
+              this.budget.step();
+              return 0;
+            }
+            if (typeof input === "string") {
+              this.budget.step(input.length + 1);
+              let len = input.length;
+              for (let i = 0; i < input.length; i++) {
+                const c = input.charCodeAt(i);
+                if (c >= 0xd800 && c <= 0xdbff) len--;
+              }
+              return len;
+            }
+            if (isObject(input)) {
+              const keys = Object.keys(input);
+              this.budget.step(keys.length + 1);
+              return keys.length;
+            }
+            return NOT_SINGLE;
+          }
+          if (name === "add" && Array.isArray(input)) {
+            if (input.length === 0) {
+              this.budget.step();
+              return null;
+            }
+            const first = input[0]!;
+            if (typeof first !== "number" || !Number.isSafeInteger(first) || Object.is(first, -0)) return NOT_SINGLE;
+            let sum = first;
+            for (let i = 1; i < input.length; i++) {
+              const n = input[i]!;
+              if (typeof n !== "number" || !Number.isSafeInteger(n) || Object.is(n, -0)) return NOT_SINGLE;
+              sum += n;
+              if (!Number.isSafeInteger(sum)) return NOT_SINGLE;
+            }
+            this.budget.step(input.length + 1);
+            if (this.budget.needsYield()) return NOT_SINGLE;
+            return sum;
+          }
+        }
+        if (ast.args.length === 1 && !this.filters.has(ast) && Array.isArray(input)) {
+          const name = ast.name;
+          if (name === "map") {
+            this.budget.step(input.length + 1);
+            if (this.budget.needsYield()) return NOT_SINGLE;
+            const out: Json[] = [];
+            let bytes = 2;
+            for (let i = 0; i < input.length; i++) {
+              const mappedList = this.tryRunSyncInternal(ast.args[0]!, input[i]!, false);
+              if (!mappedList) return NOT_SINGLE;
+              for (let j = 0; j < mappedList.length; j++) {
+                const m = mappedList[j]!;
+                bytes += this.budget.value(m) + 1;
+                if (bytes - 1 > this.budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+                this.budget.collection(out.length + 1);
+                out.push(m);
+              }
+            }
+            this.budget.value(out);
+            return out;
+          }
+          if (name === "group_by" || name === "sort_by") {
+            this.budget.step(input.length + 1);
+            if (this.budget.needsYield()) return NOT_SINGLE;
+            if (input.length === 0) return [];
+            const keyed: { key: string | number; value: Json; idx: number }[] = [];
+            let keyType: "string" | "number" | undefined;
+            let keyBytes = 0;
+            for (let i = 0; i < input.length; i++) {
+              const val = input[i]!;
+              const k = this.tryEvalSingle(ast.args[0]!, val, depth + 1, false);
+              if (k === NOT_SINGLE) return NOT_SINGLE;
+              if (typeof k === "string") {
+                if (keyType === undefined) keyType = "string";
+                else if (keyType !== "string") return NOT_SINGLE;
+                keyBytes += this.budget.value(k);
+                if (keyBytes > this.budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+                keyed.push({ key: k, value: val, idx: i });
+              } else {
+                const nk = exactFiniteNumber(k);
+                if (nk === undefined) return NOT_SINGLE;
+                if (keyType === undefined) keyType = "number";
+                else if (keyType !== "number") return NOT_SINGLE;
+                keyBytes += this.budget.value(k);
+                if (keyBytes > this.budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+                keyed.push({ key: nk, value: val, idx: i });
+              }
+            }
+            keyed.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : a.idx - b.idx));
+            if (name === "sort_by") {
+              const res = keyed.map(x => x.value);
+              this.budget.value(res);
+              return res;
+            }
+            const groups: Json[][] = [];
+            let prevKey: string | number | undefined;
+            for (let i = 0; i < keyed.length; i++) {
+              const item = keyed[i]!;
+              if (prevKey === undefined || item.key !== prevKey) groups.push([]);
+              groups[groups.length - 1]!.push(item.value);
+              prevKey = item.key;
+            }
+            this.budget.value(groups);
+            return groups;
           }
         }
         return NOT_SINGLE;

@@ -1,6 +1,6 @@
 import { readBytes, type ByteSource } from "safe-bash-contracts";
 import { yieldTurn } from "safe-bash-contracts/yield";
-import { Budget, hasCustomKeyOrder, JqError, JqLimitError, object, objectKeyIterator, objectSize, put, scalarJson, type Json } from "./limits.js";
+import { Budget, hasCustomKeyOrder, invalidateCachedValueMetrics, JqError, JqLimitError, object, objectKeyIterator, objectSize, put, scalarJson, type Json } from "./limits.js";
 import { Decimal, numericToken, isNumber, SMALL_DECIMALS } from "./numbers.js";
 
 export class JqParseError extends JqError {
@@ -94,6 +94,7 @@ class JsonParser {
     this.line = line; this.column = column;
   }
   releaseReusable(): void {
+    invalidateCachedValueMetrics(this.reusableObj);
     this.reusableInUse = false;
   }
   isQuotedUnescaped(): boolean {
@@ -641,6 +642,7 @@ export interface JsonInputOptions {
   readonly sequence?: boolean;
   readonly warning?: (message: string) => Promise<void>;
   readonly onValue?: (value: Json) => Promise<void> | void;
+  readonly retainValues?: boolean;
   readonly onChunkEnd?: () => Promise<void> | void;
   readonly hasPendingDiagnostics?: () => boolean;
 }
@@ -1070,7 +1072,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
               if (options.onValue) {
                 const pending = options.onValue(fastObj);
                 if (pending) await pending;
-                else parser.releaseReusable();
+                else if (!options.retainValues) parser.releaseReusable();
                 if (budget.needsYield()) {
                   const py = budget.tickSync(0);
                   if (py) await py;

@@ -192,25 +192,54 @@ export class Budget {
     this.step();
     if (depth > this.limits.maxDepth) throw new JqLimitError("maxDepth");
     if (current !== null && typeof current === "object" && !(current instanceof Decimal)) {
+      const cached = cachedValueMetrics.get(current);
+      if (cached !== undefined) {
+        if (depth + cached.maxRelDepth > this.limits.maxDepth) throw new JqLimitError("maxDepth");
+        this.collection(cached.maxCol);
+        const total = bytes + cached.bytes;
+        if (total > this.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+        return total;
+      }
       if (depth + 1 > this.limits.maxDepth) throw new JqLimitError("maxDepth");
+      const startBytes = bytes;
+      let maxRelDepth = 1;
+      let maxCol = 0;
       if (Array.isArray(current)) {
-        this.collection(current.length);
+        maxCol = current.length;
+        this.collection(maxCol);
         bytes += 2 + Math.max(0, current.length - 1);
         for (let index = 0; index < current.length; index++) {
           if (bytes > this.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
-          bytes = this.visitValue(current[index]!, depth + 1, bytes);
+          const child = current[index]!;
+          bytes = this.visitValue(child, depth + 1, bytes);
+          if (child !== null && typeof child === "object" && !(child instanceof Decimal)) {
+            const cm = cachedValueMetrics.get(child);
+            if (cm) {
+              if (cm.maxRelDepth + 1 > maxRelDepth) maxRelDepth = cm.maxRelDepth + 1;
+              if (cm.maxCol > maxCol) maxCol = cm.maxCol;
+            }
+          }
         }
       } else {
         const keys = keyOrders.get(current);
         if (keys !== undefined) {
-          this.collection(keys.length);
+          maxCol = keys.length;
+          this.collection(maxCol);
           bytes += 2 + Math.max(0, keys.length - 1);
           for (let index = 0; index < keys.length; index++) {
             const key = keys[index]!;
             this.text(key);
             bytes += scalarJsonByteLength(key, this) + 1;
             if (bytes > this.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
-            bytes = this.visitValue(current[key]!, depth + 1, bytes);
+            const child = current[key]!;
+            bytes = this.visitValue(child, depth + 1, bytes);
+            if (child !== null && typeof child === "object" && !(child instanceof Decimal)) {
+              const cm = cachedValueMetrics.get(child);
+              if (cm) {
+                if (cm.maxRelDepth + 1 > maxRelDepth) maxRelDepth = cm.maxRelDepth + 1;
+                if (cm.maxCol > maxCol) maxCol = cm.maxCol;
+              }
+            }
           }
         } else {
           let count = 0;
@@ -220,11 +249,21 @@ export class Budget {
             this.text(key);
             bytes += scalarJsonByteLength(key, this) + 1 + (count > 1 ? 1 : 0);
             if (bytes > this.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
-            bytes = this.visitValue(current[key]!, depth + 1, bytes);
+            const child = current[key]!;
+            bytes = this.visitValue(child, depth + 1, bytes);
+            if (child !== null && typeof child === "object" && !(child instanceof Decimal)) {
+              const cm = cachedValueMetrics.get(child);
+              if (cm) {
+                if (cm.maxRelDepth + 1 > maxRelDepth) maxRelDepth = cm.maxRelDepth + 1;
+                if (cm.maxCol > maxCol) maxCol = cm.maxCol;
+              }
+            }
           }
+          if (count > maxCol) maxCol = count;
           bytes += 2;
         }
       }
+      cachedValueMetrics.set(current, { bytes: bytes - startBytes, maxRelDepth, maxCol });
     } else {
       if (typeof current === "string") { this.step(current.length); this.text(current); }
       bytes += scalarJsonByteLength(current, this);
@@ -234,6 +273,10 @@ export class Budget {
   }
 }
 const keyOrders = new WeakMap<Record<string, Json>, string[]>();
+const cachedValueMetrics = new WeakMap<object, { bytes: number; maxRelDepth: number; maxCol: number }>();
+export function invalidateCachedValueMetrics(target: object): void {
+  cachedValueMetrics.delete(target);
+}
 export function hasCustomKeyOrder(value: Record<string, Json>): boolean {
   return keyOrders.has(value);
 }

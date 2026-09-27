@@ -630,6 +630,7 @@ function inputs(
   onValue?: (value: Json) => Promise<void> | void,
   onChunkEnd?: () => Promise<void> | void,
   hasPendingDiagnostics?: () => boolean,
+  retainValues?: boolean,
 ): AsyncGenerator<Json> {
   if (options.rawInput) {
     return rawValues(inputSources(context, options, budget, convert), budget, options.slurp);
@@ -662,7 +663,7 @@ function inputs(
           if (tickPromise) {
             return (async function* () {
               await tickPromise;
-              yield* inputs(context, options, budget, convert, onValue, onChunkEnd, hasPendingDiagnostics);
+              yield* inputs(context, options, budget, convert, onValue, onChunkEnd, hasPendingDiagnostics, retainValues);
             })();
           }
           (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
@@ -707,6 +708,7 @@ function inputs(
   return jsonValues(source, budget, {
     stream: options.stream, streamErrors: options.streamErrors, sequence: options.sequence,
     ...(onValue ? { onValue } : {}),
+    ...(retainValues ? { retainValues } : {}),
     ...(onChunkEnd ? { onChunkEnd } : {}),
     ...(hasPendingDiagnostics ? { hasPendingDiagnostics } : {}),
     warning: async message => {
@@ -969,13 +971,18 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
     else if (options.slurp && !options.rawInput) {
       const values: Json[] = [];
       let bytes = 2;
-      for await (const value of inputs(context, options, budget, convert)) {
+      const onSlurpValue = (value: Json): void => {
         budget.collection(values.length + 1);
         bytes += budget.value(value) + (values.length ? 1 : 0);
         if (bytes > limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
         values.push(value);
+      };
+      for await (const value of inputs(context, options, budget, convert, onSlurpValue, undefined, undefined, true)) {
+        onSlurpValue(value);
       }
-      budget.value(values); await emit(values);
+      budget.value(values);
+      const pEmit = emitSyncOrAsync(values);
+      if (pEmit) await pEmit;
     } else for await (const value of inputs(context, options, budget, convert, emitSyncOrAsync, flushStdout, () => diagnostics.length > 0)) {
       const p = emitSyncOrAsync(value);
       if (p) await p;

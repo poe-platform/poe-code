@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import { Budget } from "./interp/budget.js";
 import { declareHostOperation } from "./interp/host-bridge.js";
@@ -208,66 +208,89 @@ describe.each(originals)("CBI-001 original $name", (fixture) => {
     expect(host.calls[0]!.callback).toBe(host.calls[1]!.callback);
   });
 
-  it.each(["first", "second", "completed"])(
-    "retains original registration after %s",
-    async (boundary) => {
+  describe.each(["first", "second", "completed"])("after %s", (boundary) => {
+    let checkpoint: SafeJSSnapshot;
+
+    beforeAll(async () => {
       const first = await execute(
         fixture.source,
         registryHost(fixture.configuration).bindings,
         boundary === "completed" ? {} : { stopAt: boundary }
       );
       expect(first.result).toMatchObject({ ok: true, returnValue: fixture.expected });
-      const checkpoint = first.saved ?? first.result.snapshot;
+      checkpoint = first.saved ?? first.result.snapshot;
       expect(checkpoint.replay!.calls.find((call) => call.operation === "register")).toMatchObject({
         lifecycle: "consumed"
       });
-      for (let repeat = 0; repeat < 2; repeat++) {
-        const host = registryHost();
-        const resumed = await execute(fixture.source, host.bindings, { snapshot: checkpoint });
-        expect(resumed.result).toMatchObject({ ok: true, returnValue: fixture.expected });
-        expect(host.register).not.toHaveBeenCalled();
-        expect(host.rebind).toHaveBeenCalledTimes(1);
-        expect(host.calls).toHaveLength(boundary === "first" ? 1 : 0);
-        if (boundary === "first") {
-          expect(host.calls[0]!.callback).toBe(host.rebind.mock.calls[0]![0][1]);
-          expect(host.steps.mock.calls.map(([label]) => label)).toEqual(
-            fixture.name === "map-prefulfilled" ? ["second:0", "second:1"] : ["second:0"]
-          );
-        } else expect(host.steps).not.toHaveBeenCalled();
-        const registration = resumed.result.snapshot.replay!.calls.find(
-          (call) => call.operation === "register"
-        )!;
-        expect(registration.callbacks).toHaveLength(2);
-        expect(registration.id).toBe(
-          checkpoint.replay!.calls.find((call) => call.operation === "register")!.id
-        );
-        if (fixture.configuration === null)
-          expect(checkpoint.replay!.calls.filter((call) => call.moduleId === "<inputs>")).toEqual(
-            []
-          );
-      }
-    }
-  );
+    }, 5_000);
 
-  it("recaptures first to second to completed without consuming new deliveries as history", async () => {
-    const first = await execute(fixture.source, registryHost(fixture.configuration).bindings, {
-      stopAt: "first"
+    it.each([1, 2])("retains original registration on restore %i", async () => {
+      const host = registryHost();
+      const resumed = await execute(fixture.source, host.bindings, { snapshot: checkpoint });
+      expect(resumed.result).toMatchObject({ ok: true, returnValue: fixture.expected });
+      expect(host.register).not.toHaveBeenCalled();
+      expect(host.rebind).toHaveBeenCalledTimes(1);
+      expect(host.calls).toHaveLength(boundary === "first" ? 1 : 0);
+      if (boundary === "first") {
+        expect(host.calls[0]!.callback).toBe(host.rebind.mock.calls[0]![0][1]);
+        expect(host.steps.mock.calls.map(([label]) => label)).toEqual(
+          fixture.name === "map-prefulfilled" ? ["second:0", "second:1"] : ["second:0"]
+        );
+      } else expect(host.steps).not.toHaveBeenCalled();
+      const registration = resumed.result.snapshot.replay!.calls.find(
+        (call) => call.operation === "register"
+      )!;
+      expect(registration.callbacks).toHaveLength(2);
+      expect(registration.id).toBe(
+        checkpoint.replay!.calls.find((call) => call.operation === "register")!.id
+      );
+      if (fixture.configuration === null)
+        expect(checkpoint.replay!.calls.filter((call) => call.moduleId === "<inputs>")).toEqual(
+          []
+        );
     });
-    const second = await execute(fixture.source, registryHost().bindings, {
-      snapshot: first.saved,
-      stopAt: "second"
+  });
+
+  describe("recaptures first to second to completed without consuming new deliveries as history", () => {
+    let first: Awaited<ReturnType<typeof execute>>;
+    let second: Awaited<ReturnType<typeof execute>>;
+    let completed: Awaited<ReturnType<typeof execute>>;
+
+    // Each hook performs one real execution. Keep multi-stage setup out of the
+    // individual restore deadline without replacing replay with mocks.
+    beforeAll(async () => {
+      first = await execute(fixture.source, registryHost(fixture.configuration).bindings, {
+        stopAt: "first"
+      });
+      expect(first.result).toMatchObject({ ok: true, returnValue: fixture.expected });
+    }, 5_000);
+
+    beforeAll(async () => {
+      expect(first.saved).toBeDefined();
+      second = await execute(fixture.source, registryHost().bindings, {
+        snapshot: first.saved,
+        stopAt: "second"
+      });
+      expect(second.result).toMatchObject({ ok: true, returnValue: fixture.expected });
+    }, 5_000);
+
+    beforeAll(async () => {
+      expect(second.saved).toBeDefined();
+      completed = await execute(fixture.source, registryHost().bindings, {
+        snapshot: second.saved
+      });
+      expect(completed.result).toMatchObject({ ok: true, returnValue: fixture.expected });
+    }, 5_000);
+
+    it("restores the recaptured terminal snapshot without new deliveries", async () => {
+      const terminalHost = registryHost();
+      const terminal = await execute(fixture.source, terminalHost.bindings, {
+        snapshot: completed.result.snapshot
+      });
+      expect(terminal.result).toMatchObject({ ok: true, returnValue: fixture.expected });
+      expect(terminalHost.calls).toEqual([]);
+      expect(terminalHost.register).not.toHaveBeenCalled();
     });
-    const completed = await execute(fixture.source, registryHost().bindings, {
-      snapshot: second.saved
-    });
-    const terminalHost = registryHost();
-    const terminal = await execute(fixture.source, terminalHost.bindings, {
-      snapshot: completed.result.snapshot
-    });
-    for (const observation of [first, second, completed, terminal])
-      expect(observation.result).toMatchObject({ ok: true, returnValue: fixture.expected });
-    expect(terminalHost.calls).toEqual([]);
-    expect(terminalHost.register).not.toHaveBeenCalled();
   });
 });
 

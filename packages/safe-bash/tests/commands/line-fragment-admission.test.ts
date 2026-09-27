@@ -7,6 +7,7 @@ import { RecordBuffer } from "../../src/commands/record-buffer.js";
 import { SortRecordBudget } from "../../src/commands/sort-admission.js";
 import { textCommands } from "../../src/commands/text.js";
 import { FsError, type ByteSource } from "../../src/contracts/index.js";
+import { registerYieldCheckpoint } from "../../src/contracts/yield.js";
 import { fixture, run } from "./helpers.js";
 
 function synchronousFragments(fragments: readonly string[], beforePull?: (index: number) => void): ByteSource {
@@ -119,12 +120,18 @@ test("sort retains indexed record boundaries across a cooperative host turn", as
   const records = Array.from({ length: 4096 }, (_, index) => String(index).padStart(4, "0"));
   const expected = records.join("\n") + "\n";
   const input = records.reverse().join("\n") + "\n";
-  let outerFinished = false;
+  const signal = new AbortController().signal;
+  let checkpoints = 0;
   const stdin = synchronousFragments([input], index => {
-    // Expire the native-work quantum at EOF, independently of host/JIT speed.
-    if (index === 1) now = 100;
+    // Bind after input admission so the indexed path suspends during sorting.
+    if (index === 1) {
+      // Expire the native-work quantum independently of host/JIT speed.
+      now = 100;
+      registerYieldCheckpoint(signal, () => { checkpoints++; });
+    }
   });
-  const outer = run("sort", ["-s"], { fs, stdin, commands }).then(result => {
+  let outerFinished = false;
+  const outer = run("sort", ["-s"], { fs, stdin, commands, signal }).then(result => {
     outerFinished = true;
     return result;
   });
@@ -137,6 +144,7 @@ test("sort retains indexed record boundaries across a cooperative host turn", as
   });
   const [first, second] = await Promise.all([outer, inner]);
   assert.equal(observedPending, true);
+  assert.ok(checkpoints > 0);
   assert.equal(second.exitCode, 0, second.stderr);
   assert.equal(second.stdout, "aaa\nm\nz\n");
   assert.equal(first.exitCode, 0, first.stderr);

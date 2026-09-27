@@ -223,6 +223,32 @@ it("exports original Gnumeric style regions on blank cells, validations and cond
   expect(round.sheets[0]!.cells[0]!.format).toBe("0.00");
 });
 
+it.each([
+  ["Sheet 1", "'Sheet 1'.H8"],
+  ["O'Brien", "'O''Brien'.H8"],
+  ["Path\\Data", "'Path\\Data'.H8"],
+  ["'O'Brien'", "'''O''Brien'''.H8"]
+])("preserves ODF conditional and validation base addresses on %s", async (name, address) => {
+  const source = `<g:Workbook xmlns:g="http://www.gnumeric.org/v10.dtd"><g:Sheets><g:Sheet><g:Name>${name}</g:Name><g:Styles>
+    <g:StyleRegion startRow="7" endRow="8" startCol="7" endCol="7"><g:Style>
+      <g:Validation Type="GNM_VALIDATION_TYPE_CUSTOM" Operator="GNM_VALIDATION_OP_NONE"><g:Expression0>A1&gt;0</g:Expression0></g:Validation>
+      <g:Condition Operator="8"><g:Expression0>A1&gt;0</g:Expression0><g:Style Fore="FFFF:0000:0000"/></g:Condition>
+    </g:Style></g:StyleRegion></g:Styles><g:Cells/></g:Sheet></g:Sheets></g:Workbook>`;
+  const original = await readGnumeric(new TextEncoder().encode(source), context);
+  for (const profile of ["strict", "extended"] as const) {
+    const bytes = await createOdfWriter(profile)(original, [], context);
+    const xml = (await unpackOdf(bytes)).parts.get("content.xml")!;
+    expect(xml).toContain(`style:base-cell-address="${address}"`);
+    expect(xml).toContain(`table:base-cell-address="${address}"`);
+    expect(xml).toContain('of:is-true-formula([.A1]&gt;0)');
+    const reopened = await readOdf(bytes, context);
+    expect(reopened.sheets[0]!.name).toBe(name);
+    const repeated = (await unpackOdf(await createOdfWriter(profile)(reopened, [], context))).parts.get("content.xml")!;
+    expect(repeated).toContain(`style:base-cell-address="${address}"`);
+    expect(repeated).toContain(`table:base-cell-address="${address}"`);
+  }
+});
+
 it.each(["strict", "extended"] as const)("reports unexported original object records before %s publication", async profile => {
   const events: string[] = [], input: Workbook = { sheets: [{ id: "s", name: "S", cells: [], unsupportedRecords: [
     { source: "Gnumeric_XmlIO:sax", kind: "Objects", disposition: "retained", data: { name: "Objects", namespace: "http://www.gnumeric.org/v10.dtd", children: [

@@ -3,14 +3,15 @@ import type { CapabilityContext } from "../contracts.js";
 import { createOdfXml, odfAttributes, odfChildren, odfObject } from "./odf-write-support.js";
 import type { createOdfStyles } from "./odf-write-styles.js";
 import { formatA1 } from "../workbook.js";
-import { quoteNativeSheet } from "../formulas/serialization.js";
+import { quoteFormulaString } from "../formulas/serialization.js";
+import { odfGrammar } from "../formulas/conventions.js";
 
 /** Translate original Gnumeric regions without materializing a sheet-sized grid. */
 export async function writeOdfRegion(node: ImportedValue, r: Range, id: string, sheet: Sheet,
   xml: ReturnType<typeof createOdfXml>, styles: ReturnType<typeof createOdfStyles>, context: CapabilityContext,
   formula: (source: string, sheet: Sheet, row: number, column: number) => string) {
   const e = xml.element, a = odfAttributes(node), base = styles.register({ style: { gnumeric: node }, ...(a.Format ? { format: a.Format } : {}) });
-  const children = odfChildren(node), baseAddress = quoteNativeSheet(sheet.name) + "." + formatA1(r.startRow,r.startColumn);
+  const children = odfChildren(node), baseAddress = quoteFormulaString(sheet.name, "'", odfGrammar) + "." + formatA1(r.startRow,r.startColumn);
   function expression(source: ImportedValue | undefined, name: string) {
     const n = odfChildren(source).find(n => odfObject(n)?.name === name), text = odfObject(n)?.text;
     return typeof text === "string" ? formula(text.startsWith("=") ? text : "=" + text, sheet,r.startRow,r.startColumn).slice(4) : "";

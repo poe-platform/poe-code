@@ -2182,6 +2182,45 @@
         "validation": "Eight ODF cases pass within the four-file cohort: 26 passed, one GNU yes oracle unavailable. Guarded root ESLint completes with zero errors and warnings. All prior output, replay, input immutability, authority and failure-publication assertions remain.",
         "remaining": "Native application and complete format/public artifact qualification remain open."
       }
+    },
+    "odfRegionBaseAddresses": {
+      "source": {
+        "repository": "LibreOffice/core",
+        "revision": "bce0998afefdbc355585ca324285661a2170ba77",
+        "files": [
+          {
+            "path": "sc/source/core/tool/compiler.cxx",
+            "sha256": "84dfe1e52b8b632d8fd9d687d64857c779283bb3de660063664b916c7d458e83",
+            "symbol": "ScCompiler::CheckTabQuotes",
+            "lines": "2104-2140"
+          },
+          {
+            "path": "sc/source/core/tool/address.cxx",
+            "sha256": "8cb729f76ca00c2cb38c356aeeef2f8107aa4613d2185056cc65b185ba80e09d",
+            "symbol": "parseQuotedName / ScAddress::Format",
+            "lines": "93-129, 2107-2119"
+          },
+          {
+            "path": "sc/source/core/tool/rangeutl.cxx",
+            "sha256": "ff2ee0577e5c807b26f1ca0426ec9395b42a84abeb055fbbdbee08c742e4eb67",
+            "symbol": "ScRangeStringConverter::GetStringFromAddress",
+            "lines": "619-633"
+          }
+        ]
+      },
+      "finding": "Gnumeric style-region exports used Gnumeric backslash quoting for ODF style:base-cell-address and table:base-cell-address. Apostrophes produced invalid ODF addresses; literal backslashes were doubled, changing sheet identity.",
+      "implementation": "Use the existing ODF formula-string quoting for both region base addresses, matching named-expression and label-declaration exports.",
+      "validation": "Three sheet-name regressions failed before repair; a space-containing control passed. After repair, 3 maintained files / 85 tests pass, including strict/extended export and repeated metadata roundtrip. Package lint, source/test/consumer types and maintained selected workspace build pass.",
+      "publicValidation": {
+        "independentInputs": 4,
+        "sdkExports": 16,
+        "commandExports": 16,
+        "exportCycles": 2,
+        "nativeAddressAndFormulaChecks": 64,
+        "diagnostics": 0,
+        "description": "Python independently constructs Gnumeric XML and parses all 32 compiled SDK/command ODF packages. Conditional and validation addresses retain H8 with exact sheet names, relative A1 formulas and scalar A1=3. Actual command transcript screenshot inspected."
+      },
+      "remaining": "Native application evaluation of conditional formatting and validation remains unqualified. This repair does not close the format family or the 19-family goal."
     }
   },
   "cases": [

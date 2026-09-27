@@ -100,3 +100,16 @@ Unqualified label exports and the complete BIFF/format family remain open.
     Keep non-text/formula-generated/deleted labels, ambiguous rebinding,
     mixed relative-sheet expressions, BIFF-specific reference classes and
     native application qualification open.
+
+12. Inspect pinned Calc `ScCompiler::CheckTabQuotes`, `ScAddress::Format` and
+    `ScRangeStringConverter::GetStringFromAddress` before changing other ODF
+    addresses. Build independent Gnumeric XML style regions at H8:H9 with
+    conditional and validation expressions `A1>0`. Use sheet names `Sheet 1`,
+    `O'Brien`, `Path\Data` and `'O'Brien'`. Convert each through compiled SDK
+    and command into strict and extended ODF, then repeat each conversion.
+    Independently inspect all 32 ZIP/XML outputs: both base addresses retain
+    H8 and the exact sheet name, apostrophes double, backslashes remain literal,
+    relative formula A1 and cell A1's value 3 survive. Require no diagnostics.
+    Inspect the command transcript screenshot and purge generated artifacts.
+    This checks exported syntax and retained metadata; native application
+    evaluation of conditional formatting and validation remains unqualified.

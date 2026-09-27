@@ -1299,7 +1299,34 @@
       },
       "priorHighQ": "The compiled engine before this change matched all 120 immutable high-q cases exactly. Historical 47-mismatch reports remain historical evidence; they are not current failures.",
       "accuracy": "A separate mpmath 1.4.1 comparison at 100 decimal digits covered the sixteen initial large-x cases. Source-component results differ from correctly rounded high-precision results in ten cases, by relative errors no larger than 3.572e-16. This change qualifies source parity, not universal correct rounding.",
-      "remaining": "Arguments above 2^52, broader phase/order domains, other runtime profiles, full application qualification and containing publication remain open. No family is closed."
+      "remaining": "Arguments above 2^52, broader phase/order domains, other runtime profiles, full application qualification and containing publication remain open. No family is closed.",
+      "largeArguments": {
+        "issue": 3623,
+        "sources": {
+          "gnumeric": "GNUMERIC_1_12_61/src/sf-bessel.c:2455-2770, SHA256 7a6d8aa65ac2dfd095ffa8d0bc3e77fc7801cf9adac82c66d276e67072938981",
+          "goffice": "GOFFICE_0_10_62/goffice/math/go-quad.c:428-512,579-605, SHA256 c73feeeb6a29ffc7acc05a9c8c129689e1b94cb78a2bfe287a1dbe24e1687f48",
+          "instructions": "Installed goffice go_quad_mul12/go_quad_mul/go_quad_div arm64 instructions 0x6d130-0x6d334 establish split-product FMA contractions; library SHA256 c0562060e1efc3bff34a93cfd6b08a1e9ba2bf67f7c7cf3cd446dae6fa948bed"
+        },
+        "repair": "Removed the artificial 2^52 dispatch ceiling. Ported paired split products, contracted multiply/divide and paired floor; accuracy warnings retain each source reduction occurrence. Exact-zero/subnormal tails terminate when the relative precision threshold underflows; square-overflow NaN propagates without 399 wasted recurrence steps.",
+        "originalEvidence": "87 of 110 current compiled SDK/source-probe comparisons differed or exhausted work. All eight initial original regression cases failed before correction. The source component is unchanged Gnumeric phase code with type/function aliases to native goffice/libm, not a full native application.",
+        "validation": "Nine regression cases; 514 tests in 17 Bessel/numeric files pass. Maintained package lint/source/test/consumer types and selected build pass. Four compiled SDK/runCommand load/forced-recalculation XLSX exports each preserve 110 caches: 109 match Darwin source exactly; the one primitive-cosine profile difference is retained below. Warnings match 132 on load and 264 with forced recalculation. Warning-triggered cancellation preserves the exact reason and publishes zero bytes. Actual command screenshot inspected; independent Python ZIP/XML inspection verifies its formula and numeric cache.",
+        "sourceProbe": {
+          "compiler": "Apple clang 21.0.0, arm64, -O2 -ffp-contract=fast; goffice 0.10.62 and GLib 2.90.0",
+          "sourceSha256": "20de808f79fa55150a6ebc45e0c7a8d8609b398d22d5a7433d52fa867e0caf31",
+          "binarySha256": "ba018193c299648f2dc1f437e3f17582e5501cb0c3349c0e8ec783ad271ae04b"
+        },
+        "remainingDifference": {
+          "formula": "BESSELY(1e40,1e38)",
+          "native": 3.441885932555787e-21,
+          "candidate": 3.441885932555786e-21,
+          "phase": -22881830532471902000,
+          "nativeCosine": 0.33291403539290154,
+          "candidateCosine": 0.3329140353929016,
+          "finding": "Native amplitude/phase/quadrant substituted into the candidate reproduce the candidate result. Independent 160-digit Decimal Machin/Taylor evaluation gives cosine 0.33291403539290157039655028599135625445..., rounding to the candidate binary64 value. Do not alter it merely to match the less accurate Darwin primitive. Exact other-platform/libm profiles remain unqualified."
+        },
+        "remaining": "Full native application, Linux/other runtime large-argument profiles, broader order/argument domains and containing publication remain open. No numeric family is closed.",
+        "qa": "docs/plans/ssconvert-bessel-phase-qa.md"
+      }
     },
     "sheetReferenceSemantics": {
       "status": "source audit and cross-sheet formula-origin move repair implemented; sheet-relative persistence remains open",
@@ -1864,7 +1891,7 @@
     {
       "id": "numeric-bessel-high-q",
       "status": "open",
-      "currentFinding": "Current compiled engine matches all 120 retained high-q cases exactly; historical mismatch receipts are not current failures. Paired phase dispatch now extends from 1e12 through 2^52 using the source-defined accuracy-warning boundary, and an all-zero series terminates without exhausting work. All 175 focused tests and 64 compiled public values/recalculations match the scoped Darwin C source probe. Seven XLSX metadata warnings, larger arguments, wider domains, other runtime/native profiles and publication remain open."
+      "currentFinding": "The artificial phase-dispatch ceiling is removed and source accuracy warnings are preserved above 2^52. Source-qualified split-product/FMA arithmetic and paired floor handle large arguments and terminate underflow/overflow without exhausting work. All 514 focused tests and four compiled public conversions pass their scoped checks; 109/110 native source-component values match exactly, with one independently explained Darwin cosine rounding difference retained in besselPhaseBoundary.largeArguments. Full native/Linux/other-runtime qualification, broader domains and publication remain open."
     },
     {
       "id": "format-record-roundtrip",

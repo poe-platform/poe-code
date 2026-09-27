@@ -193,8 +193,7 @@ function bessel(name: string, x: number, order: number, host: FunctionHost): num
     return (order % 2 === 0 ? 1 : -1) * bessel(name, -x, order, host);
   }
   if (x === 0 && (name === "BESSELK" || name === "BESSELY" || name === "BESSELJ" && order < 0)) return NaN;
-  // sf-bessel's paired argument reduction warns only above 1 / epsilon.
-  if ((name === "BESSELJ" || name === "BESSELY") && x > 0 && x <= 1 / Number.EPSILON && Number.isFinite(order) && besselPhaseDomain(x, order)) return capturedBesselPhase(x, order, name === "BESSELY", host);
+  if ((name === "BESSELJ" || name === "BESSELY") && x > 0 && Number.isFinite(order) && besselPhaseDomain(x, order)) return capturedBesselPhase(x, order, name === "BESSELY", host);
   if (x > 0 && x * x < 105) {
     if (name === "BESSELJ" && order === -.5) return series(x, order, false, host);
     if (name === "BESSELY" && order === .5) return -series(x, -.5, false, host);

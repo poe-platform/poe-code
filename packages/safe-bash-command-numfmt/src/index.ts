@@ -1170,6 +1170,11 @@ export function numfmtCommand(): CommandDefinition {
           let readFailure: string | undefined;
           let backing: Uint8Array = new Uint8Array(0);
           const process = (bytes: Uint8Array, terminated: boolean): void | Promise<void> => {
+            const initialized = bytes.length + (terminated ? 2 : 1);
+            if (backing.length < initialized) backing = new Uint8Array(initialized);
+            backing.set(bytes);
+            backing[bytes.length] = terminated ? settings.separator.charCodeAt(0) : 0;
+            if (terminated) backing[bytes.length + 1] = 0;
             const line = byteText(bytes);
             if (settings.header) {
               settings.header--;
@@ -1177,13 +1182,11 @@ export function numfmtCommand(): CommandDefinition {
               const nul = header.indexOf("\0");
               return output.emit(nul < 0 ? header : header.slice(0, nul));
             }
-            const simple = converter["trySimpleLineSync"](line, terminated);
-            if (simple !== false) return simple === true ? undefined : simple;
-            const initialized = bytes.length + (terminated ? 2 : 1);
-            if (backing.length < initialized) backing = new Uint8Array(initialized);
-            backing.set(bytes);
             backing[bytes.length] = 0;
-            if (terminated) backing[bytes.length + 1] = 0;
+            if (terminated || backing.length <= initialized) {
+              const simple = converter["trySimpleLineSync"](line, terminated);
+              if (simple !== false) return simple === true ? undefined : simple;
+            }
             return converter["lineSlow"](line, terminated, backing);
           };
           while (true) {

@@ -18,8 +18,9 @@ export function stringCheckpoint(work: StringWork, units = 1): Promise<void> | u
   if (work.steps < 128) return undefined;
   work.steps %= 128;
   const now = monotonicNow();
+  const firstYield = work.lastYield === undefined;
   const lastYield = (work.lastYield ??= now);
-  if (hasYieldCheckpoint(work.signal) || now - lastYield >= 8) {
+  if (firstYield || hasYieldCheckpoint(work.signal) || now - lastYield >= 8) {
     work.lastYield = now;
     return yieldTurn(work.signal).then(() => {
       work.lastYield = monotonicNow();

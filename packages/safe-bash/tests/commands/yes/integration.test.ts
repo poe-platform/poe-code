@@ -15,10 +15,10 @@ const pipelines = [
 ];
 
 test("yes remains absent until explicitly installed on the shell", async () => {
-  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem() });
   try {
     assert.equal((await shell.exec("command -v yes")).exitCode, 1);
-    shell.use(yesCommands());
+    shell.use(agentCommands()).use(yesCommands());
     const result = await shell.exec("yes ready | head -n 2");
     assert.equal(result.stdout, "ready\nready\n");
     assert.equal(result.stderr, "");

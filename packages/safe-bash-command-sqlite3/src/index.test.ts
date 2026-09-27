@@ -394,3 +394,32 @@ test('sqlite3 emits valid JSON for exponential REAL numbers', async () => {
 test("sqlite3 settings disable all resource ceilings by default", () => {
   assert.deepEqual(settings.limits, { maxInputBytes: Infinity, maxOutputBytes: Infinity, maxRows: Infinity });
 });
+
+for (const operation of ["INSERT", "UPDATE", "UPSERT"]) {
+  test(`sqlite3 applies column affinities on ${operation}`, async () => {
+    for (const [values, expected] of [
+      ["'42', 42, '42.0', '42'", "42|integer|42|text|42|integer|42.0|real\n"],
+      ["42.0, 42.5, 42.0, 7", "42|integer|42.5|text|42|integer|7.0|real\n"],
+      ["'42.5', 'hello', '42.5', 'hello'", "42.5|real|hello|text|42.5|real|hello|text\n"],
+      ["NULL, x'4142', '0x10', NULL", "|null|AB|blob|0x10|text||null\n"]
+    ] as const) {
+      const assignments = values.split(", ").map((value, index) => `${["i", "s", "n", "r"][index]} = ${value}`).join(", ");
+      const write = operation === "INSERT" ? `INSERT INTO t VALUES (1, ${values});`
+        : operation === "UPDATE" ? `INSERT INTO t VALUES (1, NULL, NULL, NULL, NULL); UPDATE t SET ${assignments};`
+        : `INSERT INTO t VALUES (1, NULL, NULL, NULL, NULL); INSERT INTO t VALUES (1, NULL, NULL, NULL, NULL) ON CONFLICT(id) DO UPDATE SET ${assignments};`;
+      const result = await runSqlite3(createMemoryFileSystem(), [":memory:",
+        `CREATE TABLE t(id INT PRIMARY KEY, i INT, s TEXT, n NUMERIC, r REAL); ${write} SELECT i, typeof(i), s, typeof(s), n, typeof(n), r, typeof(r) FROM t;`]);
+      assert.equal(result.code, 0, result.stderr);
+      assert.equal(result.stdout, expected, values);
+    }
+  });
+}
+
+test("sqlite3 affinity respects declared-type precedence and preserves unconvertible values", async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [":memory:",
+    `CREATE TABLE t(a CHARINT, b CLOB, c DOUBLE, d BLOB, e, f DECIMAL, g FLOATINGPOINT);
+     INSERT INTO t VALUES ('3.0e+5', 42.0, '4.5', 42.0, '42', ' 42 ', '42.0');
+     SELECT a, typeof(a), b, typeof(b), c, typeof(c), d, typeof(d), e, typeof(e), f, typeof(f), g, typeof(g) FROM t;`]);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout, "300000|integer|42.0|text|4.5|real|42.0|real|42|text|42|integer|42|integer\n");
+});

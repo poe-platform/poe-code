@@ -987,6 +987,29 @@ function toSqlNumber(v: SqlValue): number {
   return 0;
 }
 
+// SQLite derives affinity from the declared type in this precedence order.
+function applyColumnAffinity(value: SqlValue, declaredType: string): SqlValue {
+  if (value === null || value instanceof Uint8Array) return value;
+  const type = declaredType.toUpperCase();
+  const integer = type.includes("INT");
+  if (!integer && ["CHAR", "CLOB", "TEXT"].some((part) => type.includes(part))) {
+    return toSqlString(value);
+  }
+  if (!integer && (type === "" || type.includes("BLOB"))) return value;
+  const real = !integer && ["REAL", "FLOA", "DOUB"].some((part) => type.includes(part));
+  if (typeof value === "string") {
+    const text = value.trim();
+    if (!text || ![...text].every((char) => "0123456789.+-eE".includes(char)) || Number.isNaN(Number(text))) return value;
+    value = new Number(Number(text));
+  }
+  if (typeof value === "bigint") return real ? new Number(Number(value)) : value;
+  const number = value instanceof Number ? value.valueOf() : value;
+  if (real) return new Number(number);
+  // INTEGER and NUMERIC affinity store integral reals as signed 64-bit integers.
+  if (Number.isInteger(number) && number >= -9223372036854775808 && number < 9223372036854775808) return number;
+  return new Number(number);
+}
+
 export function toSqlString(v: SqlValue): string {
   if (v === null || v === undefined) {
     return "";
@@ -2915,6 +2938,10 @@ export class SqliteDatabase {
         data[targetCols[c]!] = vRow[c] ?? null;
       }
 
+      for (const col of tbl.columns) {
+        data[col.name] = applyColumnAffinity(data[col.name] ?? null, col.type);
+      }
+
       // Determine rowid
       let rowid = tbl.nextRowId;
       for (const col of tbl.columns) {
@@ -2933,19 +2960,7 @@ export class SqliteDatabase {
 
       for (const col of tbl.columns) {
         if (col.generatedExpr) {
-          data[col.name] = this.evalScalarSql(col.generatedExpr, data, positionalParams);
-        }
-      }
-
-      for (const col of tbl.columns) {
-        const type = col.type.toUpperCase();
-        const value = data[col.name];
-        // INTEGER and TEXT affinity take precedence over REAL in SQLite.
-        if (!type.includes("INT") && !["CHAR", "CLOB", "TEXT", "BLOB"].some((part) => type.includes(part))
-          && ["REAL", "FLOA", "DOUB"].some((part) => type.includes(part))
-          && value !== null && value !== undefined && !(value instanceof Uint8Array)
-          && (typeof value !== "string" || (value.trim() !== "" && [...value.trim()].every((char) => "0123456789.+-eE".includes(char)) && Number.isFinite(Number(value))))) {
-          data[col.name] = new Number(toSqlNumber(value));
+          data[col.name] = applyColumnAffinity(this.evalScalarSql(col.generatedExpr, data, positionalParams), col.type);
         }
       }
 
@@ -2975,7 +2990,7 @@ export class SqliteDatabase {
           for (const assign of upsertSetPairs) {
             const realCol = tbl.columns.find((c) => c.name.toLowerCase() === assign.col.toLowerCase());
             const colKey = realCol ? realCol.name : assign.col;
-            conflictRow.data[colKey] = this.evalExpr(assign.expr, ctx, positionalParams);
+            conflictRow.data[colKey] = applyColumnAffinity(this.evalExpr(assign.expr, ctx, positionalParams), realCol?.type ?? "");
           }
           insertedCount += 1;
           affectedRows.push(conflictRow);
@@ -3158,11 +3173,11 @@ export class SqliteDatabase {
       for (const assign of assignments) {
         const realCol = tbl.columns.find((c) => c.name.toLowerCase() === assign.col.toLowerCase());
         const colKey = realCol ? realCol.name : assign.col;
-        newData[colKey] = this.evalExpr(assign.expr, ctx, positionalParams);
+        newData[colKey] = applyColumnAffinity(this.evalExpr(assign.expr, ctx, positionalParams), realCol?.type ?? "");
       }
       for (const col of tbl.columns) {
         if (col.generatedExpr) {
-          newData[col.name] = this.evalScalarSql(col.generatedExpr, newData, positionalParams);
+          newData[col.name] = applyColumnAffinity(this.evalScalarSql(col.generatedExpr, newData, positionalParams), col.type);
         }
       }
       this.fireTriggers(tbl.name, "BEFORE", "UPDATE", oldData, newData);

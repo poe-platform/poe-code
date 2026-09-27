@@ -4,6 +4,8 @@ import { OverlayFileSystem } from "../src/fs/overlay/index.js";
 import { PythonFileSystem } from "../src/python/filesystem.js";
 import { parseXml } from "../src/xml.js";
 import { retainFileSystemCleanup } from "../src/fs/scoped.js";
+import { createS3NamespaceFileSystem } from "../src/fs/s3/namespace.js";
+import { MockS3Client } from "../src/fs/s3/mock.js";
 
 it.each([{}, { maxMetadataUnits: 10 }, { maxRetainedBytes: 32 * 1024 * 1024 }])("omitted memory file quotas stay unlimited with %j", async options => {
   const fs = new MemoryFileSystem(options);
@@ -109,16 +111,20 @@ it("Python directory listings do not forward an omitted quota to the backend", a
   } finally { await bridge.close(); await limited.close(); }
 });
 
-it("S3 namespace limits are independent and no longer capped by implicit maxima", async () => {
-  const { createS3NamespaceFileSystem } = await import("../src/fs/s3/namespace.js");
-  const { MockS3Client } = await import("../src/fs/s3/mock.js");
+it("S3 namespace entry limits do not impose a file byte quota", async () => {
   const client = new MockS3Client({ buckets: ["owned"] });
-  const options = { client, bucket: "owned", key: "namespace.json", maxManifestBytes: 8 * 1024 * 1024 };
-  const fs = await createS3NamespaceFileSystem({ ...options, maxEntries: 10 });
+  const fs = await createS3NamespaceFileSystem({ client, bucket: "owned", key: "namespace.json",
+    maxManifestBytes: 8 * 1024 * 1024, maxEntries: 10 });
   const bytes = new Uint8Array(1024 * 1024 + 1);
   await fs.writeFile("/f", bytes);
   expect((await fs.stat("/f")).size).toBe(bytes.length);
-  await createS3NamespaceFileSystem({ ...options, maxBytes: 67108865, maxEntries: 65537, maxManifestBytes: 268435457 });
+});
+
+it("S3 namespace accepts large explicit limits and keeps omitted handle quotas unlimited", async () => {
+  const client = new MockS3Client({ buckets: ["owned"] });
+  const options = { client, bucket: "owned", key: "namespace.json" };
+  const fs = await createS3NamespaceFileSystem({ ...options, maxBytes: 67108865, maxEntries: 65537,
+    maxManifestBytes: 268435457 });
   const limited = await createS3NamespaceFileSystem({ ...options, key: "limited.json", maxBytes: 1 });
   await expect(limited.writeFile("/f", Uint8Array.of(1, 2))).rejects.toMatchObject({ code: "ENOSPC" });
   await fs.writeFile("/f", new Uint8Array());

@@ -447,3 +447,25 @@ test("wave 49: propagates multi-level continue/break across sync/async loops and
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, "145|v01|m02\n");
 });
+
+for (const [source, stdout] of [
+  ['while break; do :; done; printf "done\\n"', "done\n"],
+  ['for n in 1 2; do while break 2; do :; done; printf "bad\\n"; done; printf "done\\n"', "done\n"],
+  ['i=0; while (( i < 3 )); do (( i+=1 )); while continue 2; do :; done; printf "bad\\n"; done; printf "%s\\n" "$i"', "3\n"],
+] as const) {
+  test(`compound loop condition control flow: ${source}`, async context => {
+    const { shell } = setup({ limits: { maxLoopIterations: 50 } });
+    context.after(() => shell.dispose());
+    for (const command of basicCommands()) shell.register(command);
+    const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], {
+      encoding: "utf8", env: { PATH: process.env.PATH, LC_ALL: "C" }, timeout: 5000,
+    });
+    assert.ifError(native.error);
+    assert.equal(native.status, 0, native.stderr);
+    assert.equal(native.stdout, stdout);
+    const actual = await shell.exec(source);
+    assert.equal(actual.exitCode, native.status, actual.stderr);
+    assert.equal(actual.stderr, native.stderr);
+    assert.equal(actual.stdout, native.stdout);
+  });
+}

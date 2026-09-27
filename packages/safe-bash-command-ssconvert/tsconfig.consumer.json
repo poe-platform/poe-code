@@ -1,8 +1,23 @@
 {
   "compilerOptions": {
-    "target": "ES2022", "module": "NodeNext", "moduleResolution": "NodeNext",
-    "strict": true, "exactOptionalPropertyTypes": true, "noUncheckedIndexedAccess": true,
-    "skipLibCheck": false, "noEmit": true, "types": ["node"], "lib": ["ES2022", "DOM"]
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": false,
+    "noEmit": true,
+    "types": [],
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "customConditions": [
+      "browser"
+    ]
   },
-  "include": ["tests/public-consumer.mts"]
+  "include": [
+    "tests/public-consumer.mts"
+  ]
 }

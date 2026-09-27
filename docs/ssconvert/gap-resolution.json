@@ -2575,7 +2575,7 @@
         "remaining": "Existing raw comments-record warning remains: complete rich formatting/metadata retention is not implemented. Native author decoding is not established by the inspected LibreOffice functions; ST_Xstring defines the correction. Native application, installed release, remote delivery and publication remain unverified. No family closure."
       },
       "commentShapeReference": {
-        "status": "implemented; focused tests and package checks pass; compiled delivery pending",
+        "status": "implemented and locally qualified; installed release, native renderer and delivery gates pending",
         "source": {
           "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/oox/source/export/vmlexport.cxx",
           "sha256": "ce656db22669132d3e1c0f179c5d0013c1aa7cb43fe8121468a2001721bddb88",
@@ -2584,8 +2584,8 @@
         },
         "finding": "VML shape declarations use a plain ID and references use # plus that ID. The writer declared #_x0000_t201 but referenced #_x0000_t202, leaving every generated comment shape reference unresolved.",
         "implementation": "Declare _x0000_t202 to match the existing #_x0000_t202 references.",
-        "validation": "Both XLSX editions fail the parsed declaration/reference check before the fix; all 22 tests in the comment-string and writer-metadata files pass after it. Package lint and source/test/consumer type checks pass.",
-        "remaining": "This corrects the broken identifier only. Complete shape geometry, rich comment metadata, native rendering, compiled/installed delivery and publication remain unverified."
+        "validation": "Both XLSX editions fail the parsed declaration/reference check before the fix; all 22 tests in the comment-string and writer-metadata files pass after it. Package lint and source/test/consumer type checks pass. Current declared root/scoped public exports pass eight codec/command conversions across both editions; independent ZIP/XML inspection verifies 96 XML members, exact escaped author/text and every generated shape reference. Consumed output archives were removed.",
+        "remaining": "This corrects the broken identifier only. Full comment geometry and rich metadata retention are not established. The command still reports loss of raw legacyDrawing/xml/comments records. Native rendering, installed release, remote delivery and publication remain unverified."
       }
     }
   },

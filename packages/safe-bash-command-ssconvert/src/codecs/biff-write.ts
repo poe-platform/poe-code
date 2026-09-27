@@ -70,6 +70,8 @@ function stringCache(output: BiffOutput, text: string, revision: 7 | 8, context:
 export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boolean, context: CapabilityContext,
   filepass?: Uint8Array): Promise<Uint8Array> {
   context.signal.throwIfAborted();
+  if (revision !== 8 && book.automaticLabelLookup)
+    throw new SsconvertError("unsupported-feature", "Excel BIFF7 cannot enable automatic label lookup");
   if (book.sheets.length > context.limits.sheets) throw new SsconvertError("resource-limit", "ssconvert BIFF sheets limit exceeded");
   let cellCount = 0;
   for (const sheet of book.sheets) {
@@ -126,6 +128,7 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
   output.record(0xe1, revision === 8 ? words(1200) : new Uint8Array());
   output.record(0xc1, words(0)); output.record(0xe2);
   output.record(0x42, words(revision === 8 ? 1200 : 1252));
+  if (revision === 8 && book.automaticLabelLookup) output.record(0x160, words(1));
   if (revision === 8) { output.record(0x161, words(dual ? 1 : 0)); output.record(0x1c0); output.record(0x13d, words(...book.sheets.map((_, i) => i + 1))); }
   output.record(0x9c, words(14)); output.record(0x19, words(0)); output.record(0x12, words(0)); output.record(0x13, words(0));
   output.record(0x3d, words(0, 0, 0x3fcf, 0x2a4e, 0x38, Math.max(0, book.sheets.findIndex(sheet => sheet.id === book.activeSheet)), 0, 1, 600));

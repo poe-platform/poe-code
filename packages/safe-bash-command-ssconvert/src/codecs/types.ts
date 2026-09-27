@@ -33,6 +33,8 @@ export interface ServiceDescriptor {
   readonly exporterOptionKeys?: readonly string[];
 }
 export interface Codec extends ServiceDescriptor {
+  /** Handles label metadata explicitly; other writers report its omission. */
+  readonly labelRanges?: true;
   /** Provider-owned declarative handlers; unrecognized keys use common options. */
   readonly exportOptionRules?: Readonly<Record<string, ExportOptionRule>>;
   /** Explicit name probe: extensions alone never implement a probe. */

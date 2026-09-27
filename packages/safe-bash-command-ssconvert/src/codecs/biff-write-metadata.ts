@@ -3,6 +3,7 @@ import { parseA1, type Sheet, type Workbook, type UnsupportedRecord } from "../w
 import { metadataNode, type MetadataNode } from "./xlsx-write-support.js";
 import { BiffOutput, words } from "./biff-write-binary.js";
 import { biffString } from "./biff-write.js";
+import { writeBiffLabelRanges } from "./biff-label-ranges.js";
 
 function concat(...parts: Uint8Array[]): Uint8Array {
   const result = new Uint8Array(parts.reduce((sum, part) => sum + part.length, 0)); let at = 0;
@@ -81,6 +82,7 @@ export class BiffMetadataWriter {
     output.record(0xeb, escher(0xf000, 0, 15, escher(0xf006, 0, 0, dgg)));
   }
   view(output: BiffOutput, sheet: Sheet, revision: 7 | 8, active: boolean): void {
+    writeBiffLabelRanges(sheet, revision, output, amount => this.charge(amount));
     const layouts = this.records.get(sheet)!.filter(r => r.record.kind === "SheetLayout");
     const layout = layouts[0]?.node, freeze = layout?.children.find(n => n.name === "FreezePanes");
     const position = (source: string) => {

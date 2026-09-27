@@ -270,6 +270,7 @@ export function snapshotWorkbook(book: Workbook, limits: RuntimeLimits): Workboo
     ["iteration", "view", "properties"]
   );
   checkImportedRecords(owned.unsupportedRecords);
+  optionalType(owned.automaticLabelLookup, "boolean", "Invalid automatic label lookup setting");
   const ids = new Map<string, Sheet>();
   const names = new Set<string>();
   const sheetNames = new Set<string>();
@@ -282,7 +283,7 @@ export function snapshotWorkbook(book: Workbook, limits: RuntimeLimits): Workboo
   for (const sheet of [...owned.sheets, ...(owned.detachedSheets ?? [])]) {
     checkRecord(
       sheet,
-      ["rows", "columns", "merges", "formulaGroups", "unsupportedRecords"],
+      ["rows", "columns", "merges", "formulaGroups", "labelRanges", "unsupportedRecords"],
       ["size", "view"]
     );
     checkImportedRecords(sheet.unsupportedRecords);
@@ -373,6 +374,11 @@ export function snapshotWorkbook(book: Workbook, limits: RuntimeLimits): Workboo
         )
           invalid("Invalid axis outline");
       }
+    }
+    for (const pair of sheet.labelRanges ?? []) {
+      tick(); checkRecord(pair);
+      if (pair.axis !== "row" && pair.axis !== "column") invalid("Invalid label range axis");
+      checkRange(pair.labels, size); checkRange(pair.data, size);
     }
     const merges = sheet.merges ?? [];
     for (let i = 0; i < merges.length; i++) {

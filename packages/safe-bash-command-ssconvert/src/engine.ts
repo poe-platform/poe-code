@@ -401,6 +401,10 @@ export function createEngine(supplied: EngineConfig): Engine {
     const writerSelection = sheets === undefined && exportRange === undefined ? undefined : Object.freeze({ sheets: Object.freeze([...(sheets ?? [])]),
       ...(exportRange === undefined ? {} : { range: exportRange }) });
     admitByteStringExport(book, selection.codec, context, writerSelection, selection.options);
+    if (!selection.codec.labelRanges && (book.automaticLabelLookup || book.sheets.some(sheet =>
+      (sheets === undefined || sheets.includes(sheet.id)) && sheet.labelRanges?.length)))
+      await context.diagnostic?.({ code: "label-range-loss-warning", severity: "warning",
+        message: `Label ranges and automatic label lookup are omitted by ${selection.codec.id}` });
     const output = destination.kind === "resource" ? await config.filesystem?.openOutput?.(destination.uri, context) : undefined;
     check(context);
     let bytes: Uint8Array;

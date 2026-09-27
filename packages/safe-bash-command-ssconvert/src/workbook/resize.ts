@@ -1,5 +1,5 @@
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
-import { DEFAULT_SHEET_SIZE, MAX_SHEET_SIZE, parseA1, snapshotWorkbook, type SheetSize, type Workbook } from "../workbook.js";
+import { DEFAULT_SHEET_SIZE, MAX_SHEET_SIZE, parseA1, snapshotWorkbook, type Range, type SheetSize, type Workbook } from "../workbook.js";
 import { validSheetSize } from "./model.js";
 import { foldSheetName } from "./case-fold.js";
 import type { ReferenceEndpoint } from "../formulas/ast.js";
@@ -46,6 +46,12 @@ export function resizeWorkbookReferences(book: Workbook, sheetId: string, size: 
   const oldSize = sheet.size ?? DEFAULT_SHEET_SIZE;
   if (size.rows === oldSize.rows && size.columns === oldSize.columns) return book;
   const shrinking = size.rows < oldSize.rows || size.columns < oldSize.columns;
+  const clipLabelRange = (range: Range): Range | undefined => {
+    context.signal.throwIfAborted();
+    return range.startRow >= size.rows || range.startColumn >= size.columns ? undefined : {
+      ...range, endRow: Math.min(range.endRow, size.rows - 1), endColumn: Math.min(range.endColumn, size.columns - 1)
+    };
+  };
   const retained = snapshotWorkbook({ ...book, sheets: book.sheets.map(s => {
     if (s.id !== sheetId) return s;
     for (const merge of s.merges ?? [])
@@ -58,6 +64,10 @@ export function resizeWorkbookReferences(book: Workbook, sheetId: string, size: 
           size.rows < oldSize.rows && group.range.startRow < size.rows && group.range.endRow >= size.rows))
         throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: resize formula group");
     return { ...s, cells: s.cells.filter(cell => cell.row < size.rows && cell.column < size.columns),
+      ...(s.labelRanges ? { labelRanges: s.labelRanges.flatMap(pair => {
+        const labels = clipLabelRange(pair.labels), data = clipLabelRange(pair.data);
+        return labels && data ? [{ ...pair, labels, data }] : [];
+      }) } : {}),
       ...(s.formulaGroups ? { formulaGroups: s.formulaGroups.filter(group => group.range.startRow < size.rows && group.range.startColumn < size.columns).map(group => ({ ...group, range: { ...group.range, endRow: Math.min(group.range.endRow, size.rows - 1), endColumn: Math.min(group.range.endColumn, size.columns - 1) } })) } : {}) };
   }) }, context.limits);
   const rewritten = shrinking ? rewriteWorkbook(retained, context, (document, namedExpression) => {

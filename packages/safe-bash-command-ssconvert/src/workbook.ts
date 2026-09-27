@@ -74,6 +74,13 @@ export interface FormulaGroup extends FormulaSemantics {
   readonly range: Range;
   readonly expression: string;
 }
+/** Ordered natural-language label bindings. Both rectangles belong to this sheet;
+ * overlaps and duplicates are meaningful because lookup uses the first match. */
+export interface LabelRange {
+  readonly axis: "row" | "column";
+  readonly labels: Range;
+  readonly data: Range;
+}
 export interface UnsupportedRecord {
   readonly source: string;
   readonly kind: string;
@@ -90,6 +97,7 @@ export interface Sheet {
   readonly columns?: readonly AxisMetadata[];
   readonly merges?: readonly Range[];
   readonly formulaGroups?: readonly FormulaGroup[];
+  readonly labelRanges?: readonly LabelRange[];
   readonly view?: Readonly<Record<string, ImportedValue>>;
   readonly unsupportedRecords?: readonly UnsupportedRecord[];
 }
@@ -103,6 +111,8 @@ export interface Workbook {
   readonly names?: readonly NamedExpression[];
   readonly dateSystem?: "1900" | "1904";
   readonly calculationMode?: "automatic" | "manual";
+  /** Permit automatic label lookup outside declared label ranges. */
+  readonly automaticLabelLookup?: boolean;
   readonly iteration?: {
     readonly enabled: boolean;
     readonly maximum: number;

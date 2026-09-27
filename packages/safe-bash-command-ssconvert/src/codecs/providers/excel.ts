@@ -36,6 +36,7 @@ export default {
     {
       "id": "excel_biff8",
       write: createBiffWriter(8),
+      labelRanges: true,
       exportOptionRules: { encryption: { kind: "enum", values: [...biffEncryptionProfiles.keys()] } },
       "direction": "write",
       "description": "MS Excel™ 97/2000/XP",
@@ -51,6 +52,7 @@ export default {
     {
       "id": "excel_biff7",
       write: createBiffWriter(7),
+      labelRanges: true,
       exportOptionRules: { encryption: { kind: "enum", values: biffLegacyEncryptionOptions } },
       "direction": "write",
       "description": "MS Excel™ 5.0/95",
@@ -65,6 +67,7 @@ export default {
     {
       "id": "excel_dsf",
       write: createBiffWriter("dsf"),
+      labelRanges: true,
       exportOptionRules: { encryption: { kind: "enum", values: biffLegacyEncryptionOptions } },
       "direction": "write",
       "description": "MS Excel™ 97/2000/XP & 5.0/95",

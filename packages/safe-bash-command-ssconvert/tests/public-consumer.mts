@@ -1,6 +1,6 @@
 import { createEngine, readXlsx, createXlsxWriter, referenceText, exportOptionPairs, resolveVfsCwd, createPythonSampleFunctions, recalculateWorkbook,
   type Workbook, type CapabilityContext, type ConversionRequest, type EngineConfig, type WorkingDirectoryFileSystem, type PythonUnicodeVersion, type FormulaCapability } from "safe-bash-command-ssconvert";
-import { readXlsx as rootReadXlsx, createPythonSampleFunctions as rootPythonFunctions } from "poe-code/ssconvert";
+import { readXlsx as rootReadXlsx, createPythonSampleFunctions as rootPythonFunctions, type LabelRange } from "poe-code/ssconvert";
 const context: CapabilityContext = { signal: new AbortController().signal, own() {},
   environment: { env: {}, locale: "C", timezone: "UTC" },
   limits: { inputBytes: 1000000, outputBytes: 1000000, cells: 10, sheets: 2, operations: 30 } };
@@ -49,7 +49,15 @@ const request: ConversionRequest = { input: { kind: "stream", source: [bytes] },
   destination: { kind: "stream", sink: { async write() {} } },
   importType: "Gnumeric_Excel:xlsx", exportType: "Gnumeric_Excel:xlsx2" };
 const engine = createEngine(config);
-try { if ((await engine.convert(request, context)).exitCode !== 0) throw new Error("Public engine consumer failed"); }
+try {
+  if ((await engine.convert(request, context)).exitCode !== 0) throw new Error("Public engine consumer failed");
+  const labels: LabelRange = { axis: "row", labels: { startRow: 0, endRow: 0, startColumn: 0, endColumn: 0 },
+    data: { startRow: 0, endRow: 0, startColumn: 1, endColumn: 255 } };
+  const labelled: Workbook = { ...original, automaticLabelLookup: true,
+    sheets: [{ ...original.sheets[0]!, labelRanges: [labels] }] };
+  await engine.writeWorkbook(labelled, { kind: "stream", sink: { async write() {} } },
+    { exportType: "Gnumeric_Excel:excel_biff8" }, context);
+}
 finally { await engine.dispose(); }
 
 // Non-scalar cooperative port results remain typed at the public boundary.

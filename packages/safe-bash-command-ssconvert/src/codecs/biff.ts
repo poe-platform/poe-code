@@ -1,5 +1,5 @@
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
-import type { Cell, CellValue, Workbook, Range, AxisMetadata, NamedExpression, ImportedValue, UnsupportedRecord, RichTextRun, FormulaGroup } from "../workbook.js";
+import type { Cell, CellValue, Workbook, Range, AxisMetadata, NamedExpression, ImportedValue, UnsupportedRecord, RichTextRun, FormulaGroup, LabelRange } from "../workbook.js";
 import { Binary, isCfb, readCfb, readBiffRecords, invalidBiff, type BiffRecord } from "./biff-binary.js";
 import { decryptBiffRecords } from "./biff-encryption.js";
 import { encryptBiffStream, createBiffEncryptionHeader, biffEncryptionProfiles, type BiffEncryptionProfile } from "./biff-encrypted-write.js";
@@ -10,6 +10,7 @@ import { translateBiffFormula, biffErrors, type BiffFormulaContext, type BiffExt
 import { biffExternalPath, biffLegacyExternalPath } from "./biff-external-path.js";
 import { biffFormulaExtras } from "./biff-formula-extras.js";
 import { readBiffDataTable } from "./biff-data-tables.js";
+import { readBiffLabelRanges } from "./biff-label-ranges.js";
 import { BiffNameBindings } from "./biff-name-bindings.js";
 import { biffOpcodes } from "./biff-source.js";
 import { biffNode as node, biffMetadataOpcodes, readBiffMetadata } from "./biff-metadata.js";
@@ -87,7 +88,7 @@ interface PendingExternalName { name: string; sheetIndex: number; tokens: Uint8A
 interface LegacyExternalLink { workbook?: string; sheet?: string; addin: boolean; names: PendingExternalName[]; }
 interface PendingSheet {
   id: string; name: string; offset: number; visibility: "visible" | "hidden" | "very-hidden";
-  cells: PendingCell[]; merges: Range[]; rows: AxisMetadata[]; columns: AxisMetadata[];
+  cells: PendingCell[]; merges: Range[]; rows: AxisMetadata[]; columns: AxisMetadata[]; labelRanges: LabelRange[];
   unsupportedRecords: UnsupportedRecord[]; view: Record<string, ImportedValue>;
   records: BiffRecord[]; revision: number; codepage: number;
   legacyExternalSheets: (string | null | undefined)[];
@@ -129,6 +130,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
   let codepage = override ?? 1252, ver = revision(records[0]), dateSystem: "1900" | "1904" = "1900";
   const decryptedProperties = await decryptBiffRecords(records, ver, context, streams);
   let calculationMode: "automatic" | "manual" = "automatic", maximum = 100, tolerance = 0.001, iterationEnabled = false;
+  let automaticLabelLookup = false;
   let cellCount = 0, textBytes = 0, metadataBytes = 0, formulaWork = 0;
   const boundSheets: BoundSheet[] = [], sheets: PendingSheet[] = [], unsupported: UnsupportedRecord[] = [];
   const names: { name: string; flags: number; tokens: Uint8Array; arrays: readonly Binary[]; sheetIndex: number; revision: number; codepage: number; record: BiffRecord; owner?: PendingSheet }[] = [];
@@ -189,7 +191,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
         const name = accountText(bound?.name ?? (sheets.length ? `Worksheet${sheets.length + 1}` : "Worksheet"));
         if (sheets.some(sheet => sheet.name === name)) invalidBiff("duplicate worksheet name");
         sheet = { id: name, name, offset: record.offset, visibility: bound?.visibility ?? "visible", cells: [],
-          merges: [], rows: [], columns: [], unsupportedRecords: [], view: {}, records: [], revision: ver, codepage, groups: [], legacyExternalSheets: [], legacyExternalLinks: new Map() }; sheets.push(sheet);
+          merges: [], rows: [], columns: [], labelRanges: [], unsupportedRecords: [], view: {}, records: [], revision: ver, codepage, groups: [], legacyExternalSheets: [], legacyExternalLinks: new Map() }; sheets.push(sheet);
       }
       scopes.push({ type, ...(sheet ? { sheet } : {}), revision: ver }); lastFormula = undefined;
       if (![5, 0x10, 0x40, 0x100].includes(type)) await retain(record, sheet?.unsupportedRecords ?? unsupported);
@@ -210,6 +212,16 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     if (opcode === 0xc) { maximum = data.u16(0); continue; }
     if (opcode === 0x10) { tolerance = data.f64(0); if (!Number.isFinite(tolerance)) invalidBiff("invalid iteration tolerance"); continue; }
     if (opcode === 0x11) { iterationEnabled = !!data.u16(0); continue; }
+    if (opcode === 0x160 && ver === 8 && scope.type === 5) {
+      if (data.bytes.length !== 2) invalidBiff("invalid USESELFS length");
+      automaticLabelLookup ||= data.u16(0) !== 0; continue;
+    }
+    if (opcode === 0x15f && ver === 8 && sheet) {
+      const parts = [data];
+      while (records[index + 1]?.opcode === 0x3c) parts.push(records[++index]!.data);
+      for (const pair of readBiffLabelRanges(parts, accountFormulaWork)) sheet.labelRanges.push(pair);
+      continue;
+    }
     if (opcode === 0x85) {
       const start = data.u32(0), visibility = data.u8(4), type = data.u8(5), length = data.u8(6);
       if (visibility > 2 || start >= stream.length) invalidBiff("invalid BOUNDSHEET");
@@ -697,6 +709,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       ...(sheet.merges.length ? { merges: sheet.merges } : {}), ...(sheet.rows.length ? { rows: sheet.rows } : {}),
       ...(sheet.columns.length ? { columns: sheet.columns } : {}), ...(Object.keys(sheet.view).length ? { view: sheet.view } : {}),
       ...(formulaGroups.length ? { formulaGroups } : {}),
+      ...(sheet.labelRanges.length ? { labelRanges: sheet.labelRanges } : {}),
       ...(sheet.unsupportedRecords.length ? { unsupportedRecords: sheet.unsupportedRecords } : {}) });
   }
   const propertyStreams = decryptedProperties ?? streams;
@@ -710,7 +723,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: `BIFF encrypted ancillary stream ${name} retained without interpretation` });
   }
   const properties = propertyStreams ? await readBiffProperties(propertyStreams, context, accountText, accountFormulaWork, unsupported) : {};
-  return { sheets: resultSheets, dateSystem, calculationMode, iteration: { enabled: iterationEnabled, maximum, tolerance },
+  return { sheets: resultSheets, dateSystem, calculationMode, automaticLabelLookup, iteration: { enabled: iterationEnabled, maximum, tolerance },
     ...(Object.keys(properties).length ? { properties } : {}),
     ...(activeSheet === undefined ? {} : { activeSheet }),
     ...(materializedNames.length ? { names: materializedNames } : {}), ...(unsupported.length ? { unsupportedRecords: unsupported } : {}) };

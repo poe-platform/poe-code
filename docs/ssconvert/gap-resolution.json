@@ -915,6 +915,22 @@
       "publicReadback": "Compiled command --recalc XLSX export and SDK readback preserve all 23 numeric results within 1e-12 and translated function formulas without LOTUS_ placeholders. Input 1229 bytes, output 4588 bytes; exit 0, empty stderr. Fixture remains in memory.",
       "remaining": "Wider argument/domain semantics, additional vendor add-ins, Works and independent application qualification remain open. Name-table coverage does not establish full native compatibility."
     },
+    "biffNulStrings": {
+      "status": "implemented length-delimited NUL preservation for BIFF7/8 strings",
+      "source": {
+        "repository": "https://github.com/LibreOffice/core",
+        "revision": "bce0998afefdbc355585ca324285661a2170ba77",
+        "files": {
+          "sc/source/filter/excel/xestring.cxx": "7744ed450ea125cca3573d7b34727e19e737dc0b84320a7c9c9633f4a370b227",
+          "sc/source/filter/excel/xistring.cxx": "6b452804c8de8a3c64bc56afe4cc4120c38c231bd0f8212f19872c0ce30ab9f3"
+        }
+      },
+      "finding": "XclExpString::Assign/Build/CharsToBuffer and WriteLenField/WriteBuffer carry explicit byte or UTF-16 lengths; AppendByte explicitly preserves zero. XclImpString reads the declared character count. The candidate's common biffString helper and legacy LABEL path instead truncated at the first NUL. Removing those two truncations preserves cells, literal/array formula strings, caches and continuation data.",
+      "validation": "Twelve regressions failed and two ordinary-string controls passed before correction. All 1291 tests in 57 BIFF files pass; maintained package lint/types/consumers, selected build and guarded root lint pass (0 errors, 101 warnings). No generated workbook is committed.",
+      "publicQualification": "Compiled SDK exports/reopens six strings per BIFF7/8/DSF profile, including an 8301-character continuation and NUL formula/cache. Outputs: 10752/19456/28672 bytes. Actual --recalc command reexports all eighteen values to BIFF8; BIFF7 input emits existing HEADER/FOOTER/WINDOW2_v2 metadata warnings. BIFF8/DSF are diagnostic-free. XLSX conversion still refuses the raw-NUL formula expression and publishes no output.",
+      "independent": "xlrd 2.0.2 preserves all fifteen short string/cache observations plus the two long BIFF8/DSF observations. Its BIFF7 LABEL reader only decodes the first record: the long value is 2072 rather than 8301 characters. That case is not an independent pass. xlrd/sheet.py SHA256 9a1c04a84b5e508418f632b90b25fceecb6e9363265d444e35ff3a91940c858d, lines 835-841; current candidate continuation readback passes.",
+      "remaining": "Native applications and BIFF7 long-LABEL interoperability, raw-NUL XLSX formula expressions/caches, metadata loss warnings and CSV behavior remain open. CSV source diverges: candidate text-export.ts intentionally follows Gnumeric strlen; pinned LibreOffice ScDocShell::AsciiSave writes explicit encoded lengths (docsh.cxx SHA256 961609efad0a0851e4b99a6ee861d778a61d83a5620b96323888335b8060d2c2, lines 2233-2391). Candidate text import also replaces NUL with spaces and warns; changing only CSV export would not establish roundtrip preservation. No family is closed."
+    },
     "xlsxCellStringEscapes": {
       "status": "implemented shared/inline string escapes; formula caches and other string fields remain open",
       "source": {
@@ -941,7 +957,7 @@
       "finding": "Group 0x0F subtracts 0x20 for C0 bytes and retains C1 bytes. Byte 0x19 is literal and must not consume the next character. The old table dropped NUL/C1 values or mapped them to private-use characters.",
       "validation": "Four original cases failed; two controls already passed. All 296 tests in fourteen Lotus files, maintained package lint/types and selected build pass. Native ICU 78.1 independently confirms six sequences.",
       "publicQualification": "Compiled SDK import/recalculation preserves all twelve label/formula strings from a 264-byte input. Compiled command BIFF export/readback preserves ten; its existing C-string handling truncates both embedded-NUL strings from A\\0Z to A. BIFF output is 3584 bytes. XLSX explicitly refuses non-XML characters without publishing output; CSV also truncates at NUL. These are recorded export limitations, not successful roundtrips.",
-      "remaining": "Shared/inline XLSX string escaping is now implemented; see xlsxCellStringEscapes. Formula caches, BIFF/CSV NUL contracts, malformed control sequences, other charset groups and native workbook applications remain open."
+      "remaining": "Shared/inline XLSX string escaping and BIFF7/8 NUL preservation are now implemented; see xlsxCellStringEscapes and biffNulStrings. XLSX formula expressions/caches, CSV NUL contracts, malformed control sequences, other charset groups and native workbook applications remain open."
     },
     "lotusNationalDoubleByteGroups": {
       "status": "implemented explicit/implicit Japanese, Korean, Traditional Chinese and Simplified Chinese group decoding",

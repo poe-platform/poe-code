@@ -14,9 +14,8 @@ export function biffString(text: string, revision: 7 | 8, context: CapabilityCon
   const legacy = singleByteTables["windows-1252"]!;
   context.signal.throwIfAborted();
   if (text.length > context.limits.outputBytes) throw new SsconvertError("resource-limit", "ssconvert BIFF string bytes limit exceeded");
-  const nul = text.indexOf("\0"), source = nul < 0 ? text : text.slice(0, nul);
-  const data = revision === 8 ? encodeText(source, "UTF-16LE", false, context) :
-    new Uint8Array(Array.from(source, character => { const byte = legacy.indexOf(character); return byte < 0 ? 63 : byte; }));
+  const data = revision === 8 ? encodeText(text, "UTF-16LE", false, context) :
+    new Uint8Array(Array.from(text, character => { const byte = legacy.indexOf(character); return byte < 0 ? 63 : byte; }));
   const length = revision === 8 ? data.length / 2 : data.length;
   if (length > (width === 1 ? 255 : 65535)) throw new SsconvertError("unsupported-feature", "Excel BIFF string is too long");
   const result = new Uint8Array(width + (revision === 8 ? 1 : 0) + data.length), view = new DataView(result.buffer);
@@ -288,7 +287,6 @@ async function writeCell(output: BiffOutput, cell: Cell, xf: number, revision: 7
     else {
       let text = value.value;
       if (text.length > context.limits.outputBytes) throw new SsconvertError("resource-limit", "ssconvert BIFF string bytes limit exceeded");
-      const nul = text.indexOf("\0"); if (nul >= 0) text = text.slice(0, nul);
       if (text.length > 65535) {
         const characters = Array.from(text);
         if (characters.length > 65535) {

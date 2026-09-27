@@ -241,15 +241,16 @@ test("large binary records and transforms are stable across chunk boundaries", a
   }
 });
 
-test("CPU-heavy nonempty scans yield to caller cancellation", async () => {
-  for (const name of names) {
+for (const name of names) {
+  test(`${name}: CPU-heavy nonempty scans yield to caller cancellation`, async () => {
     const controller = new AbortController(), reason = new Error("interrupt scan");
     const running = runFixture(fixture("scan", name, [], Buffer.alloc(200000, 65)), {}, { signal: controller.signal }, 200000);
     const check = assert.rejects(running, error => error === reason);
-    const timer = setTimeout(() => controller.abort(reason), 0);
-    try { await check; } finally { clearTimeout(timer); }
-  }
-});
+    // Queue cancellation for the next host turn, without a timer deadline race.
+    const immediate = setImmediate(() => controller.abort(reason));
+    try { await check; } finally { clearImmediate(immediate); }
+  });
+}
 
 for (const [input, width, columns, bytes] of [
   ["Changed界🚀Tail\n", 4, "Chan\nged\n界🚀\nTail\n", "Chan\nged\n界\n🚀\nTail\n"],

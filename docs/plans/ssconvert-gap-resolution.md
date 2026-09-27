@@ -475,6 +475,15 @@ All 437 package files / 24,384 tests, lint/types and the selected build pass;
 publication remains pending. See `reference.csvNulSourceReview` for source hashes
 and scoped evidence. No family is closed.
 
+The full package gate exposed retained XML recursion before resource admission.
+The writer now traverses iteratively, checks limits before descending, rejects
+cycles and permits shared children. Two baseline controls failed; all 24,384
+package tests pass after repair, with lint/types and the selected build. Three
+quota tests now explicitly select finite limits after the default changed to
+unlimited; the annotation fixture no longer creates 100 million spaces. Monitor
+containing publication before marking release restoration complete.
+See `reference.gnumericRetainedTraversal`.
+
 LibreOffice's formula-cache path is now traced separately: ordinary string
 results use `t="str"`; its inline-string branch handles invalid/default results.
 The loader interns raw cached text only for known-good generators and requests

@@ -143,11 +143,42 @@ it("rejects XML syntax embedded in retained axis container attribute names", asy
   await expect(writeGnumeric(book, [], context())).rejects.toMatchObject({ code: "io" });
 });
 
-it("bounds recursive retained SDK records before JavaScript stack exhaustion", async () => {
+it("rejects cyclic retained SDK records without relying on a finite depth limit", async () => {
   const cycle: { name: string; namespace: string; text: string; children: ImportedValue[]; attributes: ImportedValue[] } = { name: "Attribute", namespace: ns, text: "", children: [], attributes: [] };
   cycle.children.push(cycle);
   const book = { sheets: [], unsupportedRecords: [{ source: "Gnumeric_XmlIO:sax", kind: "Attributes", disposition: "retained" as const, data: cycle }] };
-  await expect(writeGnumeric(book, [], context())).rejects.toMatchObject({ code: "resource-limit" });
+  await expect(writeGnumeric(book, [], context())).rejects.toMatchObject({ code: "io", message: "E Invalid Gnumeric XML: cyclic retained record" });
+});
+
+it("admits retained record depth before inspecting a deeper record", async () => {
+  let inspected = false;
+  let node: ImportedValue = { get name(): string { inspected = true; throw new Error("depth admission was late"); }, namespace: ns };
+  for (let i = 0; i < 4; i++) node = { name: "Attribute", namespace: ns, children: [node] };
+  const book = { sheets: [], unsupportedRecords: [{ source: "Gnumeric_XmlIO:sax", kind: "Attributes", disposition: "retained" as const, data: node }] };
+  await expect(writeGnumeric(book, [], context({ xmlDepth: 3 }))).rejects.toMatchObject({ code: "resource-limit" });
+  expect(inspected).toBe(false);
+});
+
+it("bounds deeply nested acyclic records by output bytes without exhausting the host stack", async () => {
+  let node: ImportedValue = { name: "Attribute", namespace: ns, text: "leaf" };
+  for (let i = 0; i < 6000; i++) node = { name: "Attribute", namespace: ns, children: [node] };
+  const book = { sheets: [], unsupportedRecords: [{ source: "Gnumeric_XmlIO:sax", kind: "Attributes", disposition: "retained" as const, data: node }] };
+  await expect(writeGnumeric(book, [], context({ outputBytes: 1000, workbookWork: 10000 }))).rejects.toMatchObject({ code: "resource-limit" });
+});
+
+it("allows a retained child to be shared by sibling branches", async () => {
+  const child = { name: "Attribute", namespace: ns, text: "shared-value" };
+  const book = { sheets: [], unsupportedRecords: [{ source: "Gnumeric_XmlIO:sax", kind: "Attributes", disposition: "retained" as const,
+    data: { name: "Attributes", namespace: ns, children: [child, child] } }] };
+  const text = new TextDecoder().decode(await writeGnumeric(book, [], context()));
+  expect(text.split("shared-value")).toHaveLength(3);
+});
+
+it("preserves cancellation when an admitted record supplies its text", async () => {
+  const controller = new AbortController();
+  const node = { name: "Attribute", namespace: ns, get text() { controller.abort(false); return "cancelled"; } };
+  const book = { sheets: [], unsupportedRecords: [{ source: "Gnumeric_XmlIO:sax", kind: "Attributes", disposition: "retained" as const, data: node }] };
+  await expect(writeGnumeric(book, [], { ...context(), signal: controller.signal })).rejects.toBe(false);
 });
 
 it("reads nonzero integer axis flags with the native integer convention", async () => {

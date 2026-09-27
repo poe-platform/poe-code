@@ -1205,6 +1205,13 @@
       "publicQualification": "Eight compiled SDK/command conversions preserve all 72 values from nine independent Python CSV rows across both exporters and three encodings, byte-for-byte with no diagnostics. Python csv independently reads all 72 output values exactly. The CLI screenshot shows the post-NUL suffix and no loss warning; actual NUL preservation is established by byte comparisons, not its invisible terminal glyph. The initial probe compared plain expected objects with the public API's null-prototype records; it was corrected to compare kind/value pairs without changing product code.",
       "remaining": "Verify remote delivery, containing publication and broader application/platform qualification. Native Gnumeric/Calc CSV import cannot establish NUL-preserving readback because their inspected source intentionally loses it. Other formula/text semantics and the nineteen gap families remain open."
     },
+    "gnumericRetainedTraversal": {
+      "status": "implemented iterative retained-record serialization; publication pending",
+      "finding": "emitRecord descended recursively before XmlWriter checked resource limits. With optional depth limits omitted, a cyclic SDK record reached host stack exhaustion and was misreported by XML-name validation. Checking only during output was also too late to prevent inspecting deeper records under an explicit depth limit.",
+      "change": "Retained records now use an explicit traversal stack, per-path cycle detection and admission before inspecting each record. Cycles report an invalid-record I/O error; finite depth/work limits still report resource-limit. Shared children in sibling branches serialize independently. Normal element output uses the same accounting, and admitted output rechecks cancellation.",
+      "validation": "Two of 50 baseline controls failed before correction. The focused ten-file Gnumeric cohort passed 149 tests before the additional cancellation control; all 437 package files / 24384 tests pass afterward. Maintained package lint, source/test/consumer types and selected build pass. A compiled codec check rejects the cycle and retains both shared-child occurrences in 616 output bytes.",
+      "qualification": "This validates codec traversal and resource admission, not a new native file-format feature. Public engine model ownership and malformed-data validation remain separate layers. Containing publication and the overall compatibility families remain open."
+    },
     "besselPhaseBoundary": {
       "status": "implemented source-qualified phase dispatch through 1 / binary64 epsilon",
       "source": {

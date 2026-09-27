@@ -568,10 +568,14 @@ class XmlWriter {
   private length = 0;
   private work = 0;
   constructor(private readonly maximum: number, private readonly context: CapabilityContext) {}
-  element(name: string, attrs: Readonly<Record<string, string | number>> = {}, text = "", nested = "", depth = 0, explicitContent = false): string {
+  admit(depth: number): void {
     this.context.signal.throwIfAborted();
     if (depth > (this.context.limits.xmlDepth ?? Infinity)) limit("XML depth");
     if (++this.work > (this.context.limits.workbookWork ?? this.context.limits.inputBytes + this.context.limits.cells * 32)) limit("XML serialization work");
+  }
+  element(name: string, attrs: Readonly<Record<string, string | number>> = {}, text = "", nested = "", depth = 0, explicitContent = false, admitted = false): string {
+    if (admitted) this.context.signal.throwIfAborted();
+    else this.admit(depth);
     if (text.length > this.maximum - this.length) limit("output bytes");
     const indent = "  ".repeat(depth); let attributes = "";
     for (const [key, val] of Object.entries(attrs)) {
@@ -651,21 +655,45 @@ function validateRecordName(name: string): void {
   } catch { invalid("invalid XML record name"); }
 }
 function emitRecord(value: ImportedValue | undefined, depth: number, writer: XmlWriter): string {
-  const node = object(value); if (!node || typeof node.name !== "string" || typeof node.namespace !== "string") return "";
-  const attrs: Record<string, string> = {};
-  const qualify = (name: string, ns: string): string => {
-    validateRecordName(name);
-    if (ns === xmlns) invalid("reserved XML namespace in record");
-    if (ns === "http://www.w3.org/XML/1998/namespace") return `xml:${name}`;
-    if (!ns) return name; if (ns === namespace) return `gnm:${name}`;
-    const prefix = `ns${Object.keys(attrs).filter(k => k.startsWith("xmlns:")).length}`; attrs[`xmlns:${prefix}`] = ns; return `${prefix}:${name}`;
+  const ancestors = new Set<object>();
+  const stack: { node: NonNullable<ReturnType<typeof object>>; depth: number; name: string;
+    attrs: Record<string, string>; children: readonly ImportedValue[]; next: number; parts: string[] }[] = [];
+  const enter = (value: ImportedValue | undefined, depth: number) => {
+    const node = object(value); if (!node) return;
+    writer.admit(depth);
+    if (typeof node.name !== "string" || typeof node.namespace !== "string") return;
+    if (ancestors.has(node)) invalid("cyclic retained record");
+    const attrs: Record<string, string> = {};
+    const qualify = (name: string, ns: string): string => {
+      validateRecordName(name);
+      if (ns === xmlns) invalid("reserved XML namespace in record");
+      if (ns === "http://www.w3.org/XML/1998/namespace") return `xml:${name}`;
+      if (!ns) return name; if (ns === namespace) return `gnm:${name}`;
+      const prefix = `ns${Object.keys(attrs).filter(k => k.startsWith("xmlns:")).length}`; attrs[`xmlns:${prefix}`] = ns; return `${prefix}:${name}`;
+    };
+    const name = qualify(node.name, node.namespace);
+    if (Array.isArray(node.attributes)) for (const a of node.attributes) { const attr = object(a);
+      if (attr && typeof attr.name === "string" && typeof attr.namespace === "string" && typeof attr.value === "string") attrs[qualify(attr.name, attr.namespace)] = attr.value;
+    }
+    ancestors.add(node);
+    stack.push({ node, depth, name, attrs, children: Array.isArray(node.children) ? node.children : [], next: 0, parts: [] });
   };
-  const name = qualify(node.name, node.namespace);
-  if (Array.isArray(node.attributes)) for (const a of node.attributes) { const attr = object(a);
-    if (attr && typeof attr.name === "string" && typeof attr.namespace === "string" && typeof attr.value === "string") attrs[qualify(attr.name, attr.namespace)] = attr.value;
+  enter(value, depth);
+  let result = "";
+  while (stack.length) {
+    const frame = stack[stack.length - 1]!;
+    if (frame.next < frame.children.length) {
+      enter(frame.children[frame.next++], frame.depth + 1);
+      continue;
+    }
+    const text = writer.element(frame.name, frame.attrs, typeof frame.node.text === "string" ? frame.node.text : "",
+      frame.parts.join(""), frame.depth, false, true);
+    ancestors.delete(frame.node);
+    stack.pop();
+    if (stack.length) stack[stack.length - 1]!.parts.push(text);
+    else result = text;
   }
-  const nested = Array.isArray(node.children) ? node.children.map(n => emitRecord(n, depth + 1, writer)).join("") : "";
-  return writer.element(name, attrs, typeof node.text === "string" ? node.text : "", nested, depth);
+  return result;
 }
 function emitRetained(records: readonly UnsupportedRecord[] | undefined, kind: string, depth: number, writer: XmlWriter): string {
   return records?.filter(r => r.source === "Gnumeric_XmlIO:sax" && r.kind === kind && r.disposition === "retained").map(r => emitRecord(r.data, depth, writer)).join("") ?? "";

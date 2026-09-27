@@ -3774,7 +3774,6 @@ function tryCompileTrimGlobToRegex(pat: string, op: "#" | "##" | "%" | "%%", ext
   return compiled ?? undefined;
 }
 const SIMPLE_ARITH_CMP_RE = /^\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*(<=|>=|==|!=|<|>)\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*$/;
-const SIMPLE_ARITH_BIN_CMP_RE = /^\s*\(?\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*([+\-*%/&|^])\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*\)?\s*(<=|>=|==|!=|<|>)\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*$/;
 const SIMPLE_SCALAR_MUT_RE = /^\s*([a-zA-Z_][a-zA-Z_0-9]*)\s*(\+=|-=|=)\s*(-?(?:0|[1-9][0-9]{0,12}))(?:\s*([+\-*])\s*(-?(?:0|[1-9][0-9]{0,12})))?\s*$/;
 const readArrayScratchFields: string[] = [];
 const SIMPLE_EXPANDED_ARITH_RE = /^\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*([+\-*/%])\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*$/;
@@ -8853,51 +8852,7 @@ export class Runtime {
             return finalStatus;
           }
         }
-        const binCmpMatch = fastSrc.length <= 64 ? SIMPLE_ARITH_BIN_CMP_RE.exec(fastSrc) : null;
-        if (binCmpMatch) {
-          const opA = resolveSimpleArithOperand(binCmpMatch[1]!, rawState, monitor, store);
-          const opB = resolveSimpleArithOperand(binCmpMatch[3]!, rawState, monitor, store);
-          const opC = resolveSimpleArithOperand(binCmpMatch[5]!, rawState, monitor, store);
-          const binOp = binCmpMatch[2]!;
-          if (
-            opA !== undefined &&
-            opB !== undefined &&
-            opC !== undefined &&
-            !((binOp === "/" || binOp === "%") && opB === 0) &&
-            !((binOp === "&" || binOp === "|" || binOp === "^") && (opA < -2147483648 || opA > 2147483647 || opB < -2147483648 || opB > 2147483647))
-          ) {
-            const lhs = binOp === "+" ? opA + opB : binOp === "-" ? opA - opB : binOp === "*" ? opA * opB : binOp === "/" ? Math.trunc(opA / opB) : binOp === "%" ? (opA % opB || 0) : binOp === "&" ? (opA & opB) : binOp === "|" ? (opA | opB) : (opA ^ opB);
-            if (Number.isSafeInteger(lhs)) {
-              const cmpOp = binCmpMatch[4]!;
-              const nonZero = cmpOp === "<=" ? lhs <= opC : cmpOp === ">=" ? lhs >= opC : cmpOp === "<" ? lhs < opC : cmpOp === ">" ? lhs > opC : cmpOp === "==" ? lhs === opC : lhs !== opC;
-              this.budget.parsing.admit(4);
-              if (rawState.extensions && !rawState.extensions.eventDepth) {
-                publishCommandSpelling(rawState, commandSpelling(command));
-              }
-              const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
-              this.budget.tick();
-              if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "((";
-              const rawStatus = nonZero ? 0 : 1;
-              const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
-              if (!existing) {
-                if (store) {
-                  if (publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined;
-                } else {
-                  monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne;
-                  monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
-                }
-              } else {
-                elem0!.text.shellValue = finalStatus === 0 ? "0" : "1";
-                store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
-              }
-              rawState.status = finalStatus;
-              monitor.epoch = restEpoch;
-              if (store) store.epoch = restEpoch;
-              return finalStatus;
-            }
-          }
-        }
-                const scalarMutMatch = fastSrc.length <= 64 ? SIMPLE_SCALAR_MUT_RE.exec(fastSrc) : null;
+        const scalarMutMatch = fastSrc.length <= 64 ? SIMPLE_SCALAR_MUT_RE.exec(fastSrc) : null;
         if (scalarMutMatch) {
           const varName = scalarMutMatch[1]!;
           const binOp = scalarMutMatch[2]!;

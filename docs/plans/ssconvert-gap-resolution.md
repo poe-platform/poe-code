@@ -349,6 +349,16 @@ Two of fourteen original regressions failed; all now pass, alongside 1,501 BIFF
 tests, maintained lint/types, selected build and 24 compiled SDK/command
 conversions retaining 48 values without diagnostics. Native qualification remains open.
 
+The data-table audit in `reference.biffDataTables` maps DATATABLE/DATATABLE2 and
+`tTbl` to the existing TABLE evaluator. BIFF2/3/4/7/8 row, column and two-input
+tables now import; BIFF7/8 export emits native DATATABLE records and `tTbl` pointers.
+All 21 initial regressions failed before correction. The expanded 40-case suite
+and seven group controls pass, alongside final lint/types and the selected build.
+The earlier surrounding cohort passed 1,655 tests; 60 final compiled SDK/command
+conversions retain 240 results while restoring the original input cells. Deleted-input and
+unknown flags retain records/caches with explicit warnings; their semantics and
+independent native application qualification remain open.
+
 The Calc reference-model audit is recorded under `reference.sheetReferenceSemantics`.
 Its parser and writer preserve ODF sheet `$` markers; external sheet references
 are absolute. Moves resolve the old target and rebind at the new formula position.

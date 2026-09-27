@@ -1410,6 +1410,40 @@
       "validation": "Two of fourteen original memory cases failed before the repair; all pass after it. Controls cover BIFF2/3/4/7/8, numeric/string auxiliary arrays, separate cached formula strings, multi-cell group identities, BIFF7/8 reexport and truncated headers/token data. An initial fixture incorrectly gave BIFF3/4/7 cached STRING records an 8-bit length; source section 5.102 corrected it before recording the production baseline. The surrounding 61-file/1501-test BIFF cohort, maintained package lint/source/test/consumer types and selected build pass.",
       "publicValidation": "Twenty-four compiled SDK/command BIFF2/3/4-to-BIFF7/8 conversions preserve all 48 expected numeric/string results and array group identity, with no diagnostics. Inputs are 102-111 bytes; outputs are 3072-3584 bytes and remain in memory. Actual compiled command screenshot inspected.",
       "remaining": "Native application and wider BIFF record/token qualification remain open; no gap family is closed."
+    },
+    "biffDataTables": {
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/excel/impop.cxx",
+          "sha256": "2cc624e5c93b88de03fdd435afc74b93459a0c6ea8511b038c2f1e0782dc0589",
+          "lines": "1103-1182"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/excel/read.cxx",
+          "sha256": "6913d42542cd275733afb11679e575611cd4b22001f802192f324517ed23d010",
+          "lines": "711,1197"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/GNOME/gnumeric/GNUMERIC_1_12_61/plugins/excel/ms-excel-read.c",
+          "sha256": "fba376ae47e276e9209800415a44e1060cc775745d3bdd8b400770d0c0f49216",
+          "lines": "2807-2874"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/GNOME/gnumeric/GNUMERIC_1_12_61/plugins/excel/ms-excel-write.c",
+          "sha256": "771526dcbc11e619594b2174603887b0557f849e6154e7905177bd25432d276a",
+          "lines": "3574-3615"
+        },
+        {
+          "url": "https://www.openoffice.org/sc/excelfileformat.pdf",
+          "sha256": "af25dee84bd186225a241cafc07ab9f2ea60149f4e2836d3f44a10107949ab4e",
+          "sections": "3.10.2,4.9,5.24-25"
+        }
+      ],
+      "finding": "DATATABLE/DATATABLE2 follow the table anchor FORMULA, whose cells use tTbl pointers. Row and column modes take formulas/values from the table borders; two-input mode evaluates the top-left border formula. Gnumeric maps this to TABLE(rowInput,columnInput), leaving the unused argument empty. LibreOffice TableOp agrees for BIFF5/8; its inspected dispatch does not establish BIFF2/3/4 support. Those original layouts follow the published specification, including the 12-byte BIFF2 single-input record and separate 16-byte DATATABLE2.",
+      "implementation": "Import BIFF2/3/4/7/8 table definitions as existing array formula groups with TABLE expressions; resolve only matching tTbl anchors and retain cached string ordering. BIFF7/8 export recognizes TABLE array groups, resolves relative input coordinates and writes 16-byte native DATATABLE plus tTbl pointers instead of add-in formulas. Input substitution and restoration use the existing evaluator. Qualified input references follow TABLE own-sheet coordinate semantics without external lookup.",
+      "validation": "All 21 initial regressions failed before correction. All 40 expanded cases and seven group controls pass: original row/column/two-input tables, literal native record bytes, BIFF7/8 recalculated reexports, restored inputs, cached string ordering, malformed pointers/records, version bounds and retained unsupported flags. The BIFF2 unknown-option regression also failed before its correction. The surrounding cohort passed 65 files / 1655 tests before the final diagnostic-label and BIFF2-option corrections. Final maintained package lint/source/test/consumer types, selected build and compiled public probe all pass.",
+      "publicValidation": "Sixty compiled SDK/command conversions across five input revisions, three modes and two output revisions retained 240 expected table values and original input values with zero diagnostics. Actual compiled command screenshot inspected. Native application readback was not performed for this change.",
+      "remaining": "Deleted-input flags and unknown option bits retain raw records/cached cells with explicit loss diagnostics; this does not implement their semantics. Broader table edits, native application readback, remaining BIFF tokens and all 19 gap families remain open."
     }
   },
   "cases": [

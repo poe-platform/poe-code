@@ -9,6 +9,7 @@ import { BiffStrings, biffDecode, biffOverrideCodepage } from "./biff-strings.js
 import { translateBiffFormula, biffErrors, type BiffFormulaContext, type BiffExternalName } from "./biff-formulas.js";
 import { biffExternalPath, biffLegacyExternalPath } from "./biff-external-path.js";
 import { biffFormulaExtras } from "./biff-formula-extras.js";
+import { readBiffDataTable } from "./biff-data-tables.js";
 import { BiffNameBindings } from "./biff-name-bindings.js";
 import { biffOpcodes } from "./biff-source.js";
 import { biffNode as node, biffMetadataOpcodes, readBiffMetadata } from "./biff-metadata.js";
@@ -91,7 +92,8 @@ interface PendingSheet {
   records: BiffRecord[]; revision: number; codepage: number;
   legacyExternalSheets: (string | null | undefined)[];
   legacyExternalLinks: Map<number, LegacyExternalLink>;
-  groups: { id: string; kind: "shared" | "array"; range: Range; tokens: Uint8Array; arrays: readonly Binary[]; keyRow: number; keyColumn: number }[];
+  groups: { id: string; kind: "shared" | "array" | "table"; range: Range; tokens: Uint8Array; arrays: readonly Binary[];
+    expression?: string; keyRow: number; keyColumn: number }[];
 }
 interface BoundSheet { offset: number; name: string; visibility: PendingSheet["visibility"]; type: number; }
 interface Font { name: string; attributes: Record<string, number>; color: number; codepage: number; }
@@ -376,7 +378,8 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       lastFormula.tokens = data.slice(tokenStart, tokenLength);
       const arrays = stringParts(index, tokenStart + tokenLength); index = arrays.next; lastFormula.arrays = arrays.parts;
       const nextOpcode = records[index + 1]?.opcode;
-      const groupFollows = nextOpcode === 0x4bc || nextOpcode === 0x21 || nextOpcode === 0x221;
+      const groupFollows = nextOpcode === 0x4bc || nextOpcode === 0x21 || nextOpcode === 0x221 ||
+        nextOpcode === 0x36 || nextOpcode === 0x37 || nextOpcode === 0x236;
       const stringOpcode = records[index + (groupFollows ? 2 : 1)]?.opcode;
       if (stringCache && stringOpcode !== 7 && stringOpcode !== 0x207) {
         const error: CellValue = { kind: "error", value: "MISSING STRING" };
@@ -390,13 +393,23 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       }
       continue;
     }
-    if (opcode === 0x4bc || opcode === 0x21 || opcode === 0x221) {
+    if (opcode === 0x4bc || opcode === 0x21 || opcode === 0x221 || opcode === 0x36 || opcode === 0x37 || opcode === 0x236) {
       const range = { startRow: data.u16(0), endRow: data.u16(2), startColumn: data.u8(4), endColumn: data.u8(5) };
       if (range.endRow < range.startRow || range.endColumn < range.startColumn || !lastFormula) invalidBiff("invalid shared/array formula group");
       if (lastFormula.cell.row < range.startRow || lastFormula.cell.row > range.endRow ||
         lastFormula.cell.column < range.startColumn || lastFormula.cell.column > range.endColumn ||
         range.endRow >= (ver >= 8 ? 65536 : 16384)) invalidBiff("invalid shared/array formula group");
       if (++groupCount > context.limits.operations) throw new SsconvertError("resource-limit", "ssconvert BIFF formula group limit exceeded");
+      if (opcode === 0x36 || opcode === 0x37 || opcode === 0x236) {
+        if ((ver === 2) !== (opcode !== 0x236) || range.startRow < 1 || range.startColumn < 1 ||
+          lastFormula.cell.row !== range.startRow || lastFormula.cell.column !== range.startColumn)
+          invalidBiff("invalid data-table anchor or version");
+        const expression = readBiffDataTable(data, ver, opcode);
+        if (expression === undefined) await retain(record, sheet.unsupportedRecords);
+        sheet.groups.push({ id: `biff-${sheet.offset}-${record.offset}`, kind: "table", range,
+          tokens: Uint8Array.of(2), arrays: [], ...(expression === undefined ? {} : { expression }),
+          keyRow: range.startRow, keyColumn: range.startColumn }); continue;
+      }
       const kind = opcode === 0x4bc ? "shared" : "array";
       const start = kind === "shared" ? 10 : ver === 2 ? 8 : ver <= 4 ? 10 : 14;
       const tokens = data.slice(start, ver === 2 && kind === "array" ? data.u8(start - 1) : data.u16(start - 2));
@@ -641,9 +654,9 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     const cells: Cell[] = [];
     const formulaGroups: FormulaGroup[] = [];
     for (const group of sheet.groups) {
-      try { formulaGroups.push({ id: group.id, kind: group.kind, range: group.range,
+      try { formulaGroups.push({ id: group.id, kind: group.kind === "table" ? "array" : group.kind, range: group.range,
         ...(group.arrays.some(part => part.bytes.length) ? { arrayStringLiterals: true } : {}),
-        expression: accountText(formula(group.tokens, group.arrays, sheet.revision, sheet.codepage, group.range.startRow, group.range.startColumn, sheet, group.kind === "shared")) }); }
+        expression: accountText(group.expression ?? formula(group.tokens, group.arrays, sheet.revision, sheet.codepage, group.range.startRow, group.range.startColumn, sheet, group.kind === "shared")) }); }
       catch (error) { if (!(error instanceof SsconvertError) || error.code !== "unsupported-feature") throw error;
         await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: error.message }); }
     }
@@ -652,20 +665,22 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       if (pending.tokens) {
         try {
           let tokens = pending.tokens, arrays = pending.arrays;
-          let formulaRow = cell.row, formulaColumn = cell.column, shared = false;
-          if (tokens[0] === 1) {
-            if (tokens.length !== (pending.revision >= 3 ? 5 : 4)) invalidBiff("invalid ptgExp length");
+          let formulaRow = cell.row, formulaColumn = cell.column, shared = false, expression: string | undefined;
+          if (tokens[0] === 1 || tokens[0] === 2) {
+            if (tokens.length !== (pending.revision >= 3 ? 5 : 4)) invalidBiff(tokens[0] === 2 ? "invalid ptgTbl length" : "invalid ptgExp length");
             const exp = new Binary(tokens), row = exp.u16(1), column = pending.revision >= 3 ? exp.u16(3) : exp.u8(3);
-            const group = sheet.groups.find(group => group.keyRow === row && group.keyColumn === column);
-            if (!group) invalidBiff("unresolved shared/array formula");
+            const group = sheet.groups.find(group => group.keyRow === row && group.keyColumn === column &&
+              (group.kind === "table") === (tokens[0] === 2));
+            if (!group) invalidBiff(tokens[0] === 2 ? "unresolved data-table formula" : "unresolved shared/array formula");
             if (cell.row < group.range.startRow || cell.row > group.range.endRow || cell.column < group.range.startColumn || cell.column > group.range.endColumn)
               invalidBiff("formula outside group range");
             tokens = group.tokens; arrays = group.arrays;
+            expression = group.expression;
             shared = group.kind === "shared";
             if (formulaGroups.some(materialized => materialized.id === group.id)) cell = { ...cell, formulaGroup: group.id };
-            if (group.kind === "array") { formulaRow = group.range.startRow; formulaColumn = group.range.startColumn; }
+            if (group.kind !== "shared") { formulaRow = group.range.startRow; formulaColumn = group.range.startColumn; }
           }
-          cell = { ...cell, formula: accountText(formula(tokens, arrays, pending.revision, pending.codepage, formulaRow, formulaColumn, sheet, shared)),
+          cell = { ...cell, formula: accountText(expression ?? formula(tokens, arrays, pending.revision, pending.codepage, formulaRow, formulaColumn, sheet, shared)),
             ...(arrays?.some(part => part.bytes.length) ? { arrayStringLiterals: true } : {}) };
         }
         catch (error) {

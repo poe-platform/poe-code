@@ -8,6 +8,7 @@ import { BiffStyles } from "./biff-write-styles.js";
 import { BiffMetadataWriter } from "./biff-write-metadata.js";
 import { singleByteTables } from "../encoding/tables.js";
 import { encodeBiffExternalPath } from "./biff-external-path.js";
+import { writeBiffDataTable } from "./biff-data-tables.js";
 import { biffDecode } from "./biff-strings.js";
 
 export function biffString(text: string, revision: 7 | 8, context: CapabilityContext, width: 1 | 2 = 2): Uint8Array {
@@ -84,12 +85,15 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
   const styles = new BiffStyles(context), xfIds = new Map<Cell, number>();
   const formulaWriter = new BiffFormulaWriter(book, revision, context), formulas = new Map<Cell, CompiledBiffFormula>();
   const arrayFormulas = new Map<FormulaGroup, CompiledBiffFormula>();
+  const dataTables = new Map<FormulaGroup, Uint8Array>();
   const named = (book.names ?? []).map(name => ({ name, formula: formulaWriter.compile(name.expression,
     name.position?.sheet ?? name.sheet ?? book.sheets[0]!.id, name.position?.row ?? 0, name.position?.column ?? 0, name) }));
   for (const { formula } of named) for (const diagnostic of formula.diagnostics) await context.diagnostic?.(diagnostic);
   let extentWarningReported = false;
   for (const sheet of book.sheets) {
     for (const group of sheet.formulaGroups ?? []) if (group.kind === "array" && group.range.startRow < maxRows && group.range.startColumn < 256) {
+      const table = writeBiffDataTable(group, sheet.id, book, context, maxRows);
+      if (table) { dataTables.set(group, table); continue; }
       const formula = formulaWriter.compile(group.expression, sheet.id, group.range.startRow, group.range.startColumn, undefined, group.arrayStringLiterals);
       arrayFormulas.set(group, formula); for (const diagnostic of formula.diagnostics) await context.diagnostic?.(diagnostic);
     }
@@ -110,7 +114,7 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
       xfIds.set(cell, styles.register(cell));
       const group = sheet.formulaGroups?.find(group => group.id === cell.formulaGroup && group.kind === "array");
       if (group) {
-        formulas.set(cell, { tokens: new Uint8Array([1, ...words(group.range.startRow, group.range.startColumn)]),
+        formulas.set(cell, { tokens: new Uint8Array([dataTables.has(group) ? 2 : 1, ...words(group.range.startRow, group.range.startColumn)]),
           arrays: new Uint8Array(), diagnostics: [], nameDependencies: [] });
       } else if (cell.formula) { const formula = formulaWriter.compile(cell.formula, sheet.id, cell.row, cell.column, undefined, cell.arrayStringLiterals);
         formulas.set(cell, formula); for (const diagnostic of formula.diagnostics) await context.diagnostic?.(diagnostic); }
@@ -204,10 +208,14 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
       await writeCell(output, cell, xfIds.get(cell) ?? 15, revision, stringIds, context, formulas.get(cell));
       const group = sheet.formulaGroups?.find(group => group.id === cell.formulaGroup && group.kind === "array");
       if (group && cell.row === group.range.startRow && cell.column === group.range.startColumn) {
-        const formula = arrayFormulas.get(group)!, data = new Uint8Array(14 + formula.tokens.length + formula.arrays.length), view = new DataView(data.buffer);
-        view.setUint16(0, group.range.startRow, true); view.setUint16(2, Math.min(group.range.endRow, maxRows - 1), true);
-        data[4] = group.range.startColumn; data[5] = Math.min(group.range.endColumn, 255); view.setUint16(12, formula.tokens.length, true);
-        data.set(formula.tokens, 14); data.set(formula.arrays, 14 + formula.tokens.length); output.record(0x221, data);
+        const table = dataTables.get(group);
+        if (table) output.record(0x236, table);
+        else {
+          const formula = arrayFormulas.get(group)!, data = new Uint8Array(14 + formula.tokens.length + formula.arrays.length), view = new DataView(data.buffer);
+          view.setUint16(0, group.range.startRow, true); view.setUint16(2, Math.min(group.range.endRow, maxRows - 1), true);
+          data[4] = group.range.startColumn; data[5] = Math.min(group.range.endColumn, 255); view.setUint16(12, formula.tokens.length, true);
+          data.set(formula.tokens, 14); data.set(formula.arrays, 14 + formula.tokens.length); output.record(0x221, data);
+        }
       }
       const cached = cell.cachedResult ?? cell.value;
       if (formulas.has(cell) && cached.kind === "string") stringCache(output, cached.value, revision, context);

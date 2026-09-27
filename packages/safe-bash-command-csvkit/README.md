@@ -50,5 +50,5 @@ The workspace entrypoint exports `csvkitCommands()` for plugin registration,
 `createCsvkitCommands()` for the command collection, and
 `createCsvkitCommand()` for a single command. Each accepts an optional
 `CsvkitCommandsOptions` object; existing factory names remain available.
-`createCsvkitCommand()` selects `csvclean`; pass a command name as its second
-argument to select another tool, for example `createCsvkitCommand({}, "csvcut")`.
+`createCsvkitCommand()` selects `csvclean`; set `name` to select another tool,
+for example `createCsvkitCommand({ name: "csvcut" })`.

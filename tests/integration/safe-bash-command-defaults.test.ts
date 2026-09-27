@@ -93,18 +93,18 @@ describe("new default command entrypoints", () => {
     expect(createCsvkitCommand().name).toBe("csvclean");
     expect((await run(createCsvkitCommand(), ["--help"])).exitCode).toBe(0);
     expect(
-      await run(createCsvkitCommand({}, "csvcut"), ["-c", "name"], "name,age\nAda,36\n")
+      await run(createCsvkitCommand({ name: "csvcut" }), ["-c", "name"], "name,age\nAda,36\n")
     ).toEqual({ exitCode: 0, stdout: "name\nAda\n", stderr: "" });
     expect(
       (
         await run(
-          createCsvkitCommand({ limits: { maxInputBytes: 2 } }, "csvcut"),
+          createCsvkitCommand({ name: "csvcut", limits: { maxInputBytes: 2 } }),
           ["-c", "name"],
           "name,age\nAda,36\n"
         )
       ).exitCode
     ).not.toBe(0);
-    expect(() => createCsvkitCommand({}, "missing")).toThrow("Unknown csvkit command");
+    expect(() => createCsvkitCommand({ name: "missing" })).toThrow("Unknown csvkit command");
   });
 
   it("runs default pandoc and ssconvert commands", async () => {

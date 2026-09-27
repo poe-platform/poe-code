@@ -302,6 +302,7 @@ test("wave 42: dynamic pattern trim/replace, printf -v %x/%X/%o/%u, shift in fun
     });
     const actual = await shell.exec(script);
     assert.equal(actual.exitCode, expected.status, actual.stderr);
+    assert.equal(actual.stderr, "");
     assert.equal(actual.stdout, expected.stdout);
   });
 

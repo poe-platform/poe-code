@@ -705,7 +705,10 @@ describe("finite unit task planning", () => {
       const owned = unitFixture(), mock = mockExecution();
       const options: Record<string, unknown> = {};
       try {
-        if (kind === "empty-unit") owned.write("alpha", { name: "alpha", scripts: { "test:unit": "" } });
+        if (kind === "empty-unit") {
+          owned.write("alpha", { name: "alpha", scripts: { "test:unit": "" } });
+          options.environment = { ...mock.environment, PATH: owned.root };
+        }
         if (kind === "invalid-pre") owned.write("alpha", { name: "alpha", scripts: { "test:unit": "node unit.cjs", "pretest:unit": 1 } });
         if (kind === "unknown-override") writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "missing#test:unit": {} } });
         if (kind === "unknown-edge") writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "alpha#test:unit": { dependsOn: ["lint"] } } });
@@ -714,7 +717,9 @@ describe("finite unit task planning", () => {
         if (kind === "rg-leak") writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "alpha#test:unit": { passThroughEnv: ["SAFE_BASH_TEST_RG"] } } });
         if (kind === "unknown-exclusion") options.excludeWorkspace = "alpha";
         if (kind === "invalid-concurrency") options.concurrency = 0;
-        await expect(workspaceRunner.testWorkspaces(owned.root, { ...mock, spawn: mock.spawn, ...options })).rejects.toBeDefined();
+        const running = workspaceRunner.testWorkspaces(owned.root, { ...mock, spawn: mock.spawn, ...options });
+        if (kind === "empty-unit") await expect(running).rejects.toThrow("Invalid test:unit: alpha");
+        else await expect(running).rejects.toBeDefined();
         expect(mock.start).not.toHaveBeenCalled();
       } finally { owned.remove(); }
     });

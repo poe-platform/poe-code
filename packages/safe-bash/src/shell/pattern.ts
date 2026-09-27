@@ -239,15 +239,100 @@ export async function compilePattern(pattern: string, work: StringWork, ignoreCa
 }
 
 const defaultArrayFrom = Array.from;
-export function tryMatchesPatternSync(pattern: string, value: string, work: StringWork, ignoreCase = false, extglob = false): boolean | undefined {
-  if (Array.from !== defaultArrayFrom || ignoreCase || pattern.length >= 128 || value.length > 512) return undefined;
+const syncPatternRegexCache = new Map<string, RegExp | null>();
+
+function getCompiledSyncPatternRegex(pattern: string): RegExp | null {
+  const cached = syncPatternRegexCache.get(pattern);
+  if (cached !== undefined) return cached;
+  let regexBody = "^";
+  let starCount = 0;
   for (let i = 0; i < pattern.length; i++) {
     const c = pattern.charCodeAt(i);
-    if (c === 92 || c === 91 || c === 63 || (extglob && c === 40)) return undefined;
+    if (c >= 128 || c === 92) {
+      syncPatternRegexCache.set(pattern, null);
+      return null;
+    }
+    if (c === 42) {
+      if (i === 0 || pattern.charCodeAt(i - 1) !== 42) {
+        if (++starCount > 2) {
+          syncPatternRegexCache.set(pattern, null);
+          return null;
+        }
+        regexBody += "[\\s\\S]*";
+      }
+      continue;
+    }
+    if (c === 63) {
+      regexBody += "[\\s\\S]";
+      continue;
+    }
+    if (c === 91) {
+      let cursor = i + 1;
+      let contents = "";
+      const firstBr = pattern.charCodeAt(cursor);
+      if (firstBr === 33 || firstBr === 94) {
+        contents = "^";
+        cursor++;
+      }
+      if (cursor >= pattern.length || pattern.charCodeAt(cursor) === 93) {
+        syncPatternRegexCache.set(pattern, null);
+        return null;
+      }
+      let closed = false;
+      for (; cursor < pattern.length; cursor++) {
+        const mc = pattern.charCodeAt(cursor);
+        if (mc === 93) {
+          closed = true;
+          break;
+        }
+        if (mc >= 128 || mc === 92 || mc === 91 || mc === 94) {
+          syncPatternRegexCache.set(pattern, null);
+          return null;
+        }
+        contents += pattern[cursor]!;
+      }
+      if (!closed || contents.length === 0 || contents === "^") {
+        syncPatternRegexCache.set(pattern, null);
+        return null;
+      }
+      regexBody += `[${contents}]`;
+      i = cursor;
+      continue;
+    }
+    const ch = pattern[i]!;
+    if (".+^${}()|]".includes(ch)) regexBody += `\\${ch}`;
+    else regexBody += ch;
+  }
+  regexBody += "$";
+  let compiled: RegExp | null;
+  try {
+    compiled = new RegExp(regexBody, "su");
+  } catch {
+    compiled = null;
+  }
+  if (syncPatternRegexCache.size >= 256) {
+    syncPatternRegexCache.delete(syncPatternRegexCache.keys().next().value!);
+  }
+  syncPatternRegexCache.set(pattern, compiled);
+  return compiled;
+}
+
+export function tryMatchesPatternSync(pattern: string, value: string, work: StringWork, ignoreCase = false, extglob = false): boolean | undefined {
+  if (Array.from !== defaultArrayFrom || ignoreCase || pattern.length >= 128 || value.length > 512) return undefined;
+  let hasBracketOrQmark = false;
+  for (let i = 0; i < pattern.length; i++) {
+    const c = pattern.charCodeAt(i);
+    if (c === 92 || (extglob && c === 40)) return undefined;
+    if (c === 91 || c === 63) hasBracketOrQmark = true;
   }
   work.signal.throwIfAborted();
   work.remaining -= pattern.length + value.length + 1;
   if (work.remaining < 0) work.exhausted();
+  if (hasBracketOrQmark) {
+    const re = getCompiledSyncPatternRegex(pattern);
+    if (!re) return undefined;
+    return re.test(value);
+  }
   if (pattern === "*") return true;
   const firstStar = pattern.indexOf("*");
   if (firstStar < 0) return value === pattern;

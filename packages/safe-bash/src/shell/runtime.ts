@@ -7435,17 +7435,21 @@ export class Runtime {
               firstStageFindDirEntries = de;
             }
           }
+        } else if (name === "sed") {
+          if (stageArgs.length !== 2 || stageArgs[0]!.startsWith("-") || stageArgs[0] === "-" || stageArgs[1] === "-" || stageArgs[1]!.startsWith("-") || stageArgs[1]!.startsWith("/dev")) return undefined;
         } else {
           return undefined;
         }
       } else {
         if (name === "cut") {
-          if (stageArgs.length !== 2 || stageArgs[0]!.length !== 3 || !stageArgs[0]!.startsWith("-d") || stageArgs[1]!.length < 3 || !stageArgs[1]!.startsWith("-f")) return undefined;
+          const validCut2 = stageArgs.length === 2 && stageArgs[0]!.length === 3 && stageArgs[0]!.startsWith("-d") && stageArgs[1]!.length >= 3 && stageArgs[1]!.startsWith("-f");
+          const validCut1 = stageArgs.length === 1 && stageArgs[0]!.length >= 3 && stageArgs[0]!.startsWith("-f");
+          if (!validCut2 && !validCut1) return undefined;
         } else if (name === "tr") {
           if (stageArgs.length !== 2 || stageArgs[0]!.startsWith("-") || stageArgs[1]!.startsWith("-")) return undefined;
         } else if (name === "sort") {
           if (stageArgs.length > 1 || (stageArgs.length === 1 && stageArgs[0] !== "-r")) return undefined;
-        } else if (name === "head") {
+        } else if (name === "head" || name === "tail") {
           if (stageArgs.length !== 0 && !(stageArgs.length === 2 && stageArgs[0] === "-n" && stageArgs[1]!.length >= 1 && stageArgs[1]!.charCodeAt(0) >= 48 && stageArgs[1]!.charCodeAt(0) <= 57)) return undefined;
         } else if (name === "wc") {
           if (stageArgs.length !== 1 || (stageArgs[0] !== "-l" && stageArgs[0] !== "-c")) return undefined;
@@ -8015,6 +8019,19 @@ export class Runtime {
         (w0Plain === "[" || w0Plain === "test") &&
         !hasShellFunction(rawState, w0Plain) &&
         !rawState.extensions?.builtins.has(w0Plain)
+      ) {
+        return true;
+      }
+      if (
+        command.words.length >= 4 &&
+        w0Plain === "printf" &&
+        command.words[1]?.plain === "-v" &&
+        command.words[2]?.plain !== undefined &&
+        /^[a-zA-Z_][a-zA-Z_0-9]*$/.test(command.words[2]!.plain!) &&
+        command.words[2]!.plain !== "OPTIND" &&
+        command.words[2]!.plain !== "PIPESTATUS" &&
+        !hasShellFunction(rawState, "printf") &&
+        !rawState.extensions?.builtins.has("printf")
       ) {
         return true;
       }
@@ -9359,6 +9376,82 @@ export class Runtime {
           monitor.epoch = restEpoch;
           if (store) store.epoch = restEpoch;
           return finalStatus;
+        }
+      }
+      if (
+        w0Plain === "printf" &&
+        command.words.length >= 4 &&
+        command.words[1]?.plain === "-v" &&
+        this.budget.limits.maxExpansionFields === Infinity &&
+        this.writeVariable === Runtime.prototype.writeVariable &&
+        !rawState.externalInvocation &&
+        !hasShellFunction(rawState, "printf") &&
+        !rawState.extensions?.builtins.has("printf") &&
+        !rawState.readonlyVariables?.size &&
+        !hasActiveVariableAttributes(rawState) &&
+        !hasActiveExtensions(rawState) &&
+        canMutatePipeStatus
+      ) {
+        const varName = command.words[2]?.plain;
+        const def = this.commands.get("printf");
+        if (
+          def?.execute === printfCommand.execute &&
+          varName !== undefined &&
+          /^[a-zA-Z_][a-zA-Z_0-9]*$/.test(varName) &&
+          varName !== "OPTIND" &&
+          varName !== "PIPESTATUS" &&
+          !store?.get(varName) &&
+          command.words.length <= this.budget.maxExpansionFieldsSmi
+        ) {
+          fastSubScratchArgs.length = 0;
+          let allStrings = true;
+          try {
+            for (let i = 3; i < command.words.length; i++) {
+              const v = this.fastValueWord(command.words[i]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
+              if (typeof v !== "string") {
+                allStrings = false;
+                break;
+              }
+              fastSubScratchArgs.push(v);
+            }
+          } catch {
+            fastSubScratchArgs.length = 0;
+            this.signal.throwIfAborted();
+            return undefined;
+          }
+          if (allStrings && fastSubScratchArgs.length > 0 && !fastSubScratchArgs[0]!.startsWith("-")) {
+            const lastPrintfArg = fastSubScratchArgs[fastSubScratchArgs.length - 1]!;
+            const formatted = tryFastPrintf(fastSubScratchArgs);
+            fastSubScratchArgs.length = 0;
+            if (formatted !== undefined && formatted.length <= this.budget.limits.maxExpansionBytes) {
+              const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+              this.budget.tick();
+              rawState.substitutionStatus = 0;
+              if (rawState.variables._ !== undefined) delete rawState.variables._;
+              rawState.lastArgument = lastPrintfArg;
+              monitor.publishStringVariable(varName, formatted);
+              if (rawState.allexport) monitor.proxy.exported.add(varName);
+              if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+              if (!existing) {
+                if (store) {
+                  if (publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined;
+                } else {
+                  monitor.lazyPipeStatus = singleStatusZero;
+                  monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+                }
+              } else {
+                elem0!.text.shellValue = "0";
+                store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+              }
+              const finalStatus = pipeline.negate ? 1 : 0;
+              rawState.status = finalStatus;
+              monitor.epoch = restEpoch;
+              if (store) store.epoch = restEpoch;
+              return finalStatus;
+            }
+          } else {
+            fastSubScratchArgs.length = 0;
+          }
         }
       }
       if (

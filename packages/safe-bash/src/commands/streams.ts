@@ -632,7 +632,7 @@ async function executeHeadTailSlow(
 
 function headTail(name: "head" | "tail", maxTailFollowHandles = Infinity): CommandDefinition {
   return define(name, context => {
-    if (name === "head") {
+    if (name === "head" || name === "tail") {
       const a = context.args;
       let fastCount = -1;
       if (a.length === 0) {
@@ -657,13 +657,52 @@ function headTail(name: "head" | "tail", maxTailFollowHandles = Infinity): Comma
         fastCount = n;
       }
       if (fastCount >= 0) {
-        assertCommandRequirements(context, inspectedInputRequirements, STDIN_REQUIREMENT_MODES);
-        try {
-          const p = prefixSyncOrAsync(context, input(context, "-"), fastCount, false, false, 10);
-          if (p === undefined) return RESOLVED_EXIT_ZERO;
-          return finishHeadTailPromise(context, p);
-        } catch (error) {
-          return diagnostic(context, error).then(RETURN_EXIT_ONE);
+        if (name === "head") {
+          assertCommandRequirements(context, inspectedInputRequirements, STDIN_REQUIREMENT_MODES);
+          try {
+            const p = prefixSyncOrAsync(context, input(context, "-"), fastCount, false, false, 10);
+            if (p === undefined) return RESOLVED_EXIT_ZERO;
+            return finishHeadTailPromise(context, p);
+          } catch (error) {
+            return diagnostic(context, error).then(RETURN_EXIT_ONE);
+          }
+        } else {
+          const req = assertInputRequirements(context, SINGLE_STDIN_OPERAND);
+          if (!req) {
+            assertCommandRequirements(context, inspectedInputRequirements, STDIN_REQUIREMENT_MODES);
+            const iter = input(context, "-")[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
+              tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
+              syncReturn?: () => void;
+            };
+            if (typeof iter.tryNextSync === "function") {
+              try {
+                const res1 = iter.tryNextSync();
+                if (res1 !== undefined) {
+                  if (res1.done) return RESOLVED_EXIT_ZERO;
+                  const chunk = res1.value;
+                  const res2 = iter.tryNextSync();
+                  if (res2 !== undefined && res2.done && chunk.length <= bufferLimit) {
+                    if (fastCount === 0 || chunk.length === 0) return RESOLVED_EXIT_ZERO;
+                    let pos = chunk[chunk.length - 1] === 10 ? chunk.length - 2 : chunk.length - 1;
+                    let startIdx = 0;
+                    for (let rem = fastCount; rem > 0; rem--) {
+                      if (pos < 0) { startIdx = 0; break; }
+                      const nl = chunk.lastIndexOf(10, pos);
+                      if (nl === -1) { startIdx = 0; break; }
+                      startIdx = nl + 1;
+                      pos = nl - 1;
+                    }
+                    const slice = startIdx === 0 ? chunk : chunk.subarray(startIdx);
+                    const p = output(context, slice);
+                    if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
+                    return finishHeadTailPromise(context, p);
+                  }
+                }
+              } catch (error) {
+                return diagnostic(context, error).then(RETURN_EXIT_ONE);
+              }
+            }
+          }
         }
       }
     }

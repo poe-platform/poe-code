@@ -43,6 +43,91 @@ const sedFastRawCache = new Map<string, CachedSedProgram>();
 const EMPTY_STRINGS: readonly string[] = Object.freeze([]);
 const EMPTY_SET: Set<string> = new Set();
 
+function tryParseFastPairProgramSync(rawProg: string, budget: Budget): CachedSedProgram | undefined {
+  if (rawProg.length > 256 || rawProg.startsWith("#n")) return undefined;
+  const parts = rawProg.split(/[;\n]/);
+  const instructions: Instruction[] = [];
+  const stepsBefore = budget.stepsUsed;
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i]!.trim();
+    if (part.length === 0) continue;
+    if (part.charCodeAt(0) !== 115 || part.length < 4) return undefined;
+    const delim = part[1]!;
+    if (delim === "\\" || delim === "\n") return undefined;
+    let p = 2;
+    let patStr = "";
+    while (p < part.length && part[p] !== delim) {
+      const ch = part[p++]!;
+      if (ch === "\\") {
+        if (p >= part.length) return undefined;
+        const next = part[p++]!;
+        if (next === "[" || next === "]" || next === delim) return undefined;
+        patStr += `\\${next}`;
+      } else {
+        if (ch === "[") return undefined;
+        patStr += ch;
+      }
+    }
+    if (p >= part.length || part[p] !== delim || patStr.length === 0) return undefined;
+    p++;
+    let repStr = "";
+    let repGroupCount = 0;
+    while (p < part.length && part[p] !== delim) {
+      const ch = part[p++]!;
+      if (ch === "\\") {
+        if (p >= part.length) return undefined;
+        const next = part[p++]!;
+        if (next === delim) return undefined;
+        if (next >= "1" && next <= "9") repGroupCount = Math.max(repGroupCount, Number(next));
+        repStr += `\\${next}`;
+      } else {
+        repStr += ch;
+      }
+    }
+    if (p >= part.length || part[p] !== delim) return undefined;
+    p++;
+    let global = false;
+    for (; p < part.length; p++) {
+      if (part[p] === "g" && !global) global = true;
+      else return undefined;
+    }
+    let compiled: Pattern;
+    try {
+      compiled = new Pattern(patStr, false, false);
+    } catch {
+      return undefined;
+    }
+    const compiledInternal = compiled as unknown as { parsed?: unknown; budgetPrepared?: boolean; compiledSteps?: number };
+    if (compiledInternal.parsed || repGroupCount > compiled.groupCount) return undefined;
+    if (!compiledInternal.budgetPrepared && (compiledInternal.compiledSteps ?? 0) > 0) {
+      compiledInternal.budgetPrepared = true;
+      budget.step(compiledInternal.compiledSteps!);
+    }
+    instructions.push({
+      kind: "s",
+      negate: false,
+      pattern: compiled,
+      replacement: repStr,
+      replacementGroupCount: repGroupCount,
+      global,
+    });
+    if (instructions.length > 2) return undefined;
+  }
+  if (instructions.length !== 2) return undefined;
+  const steps = budget.stepsUsed - stepsBefore;
+  const cached: CachedSedProgram = {
+    program: instructions,
+    steps,
+    outputFiles: EMPTY_STRINGS,
+    readFiles: EMPTY_STRINGS,
+  };
+  const cacheKey = `0:\n:${Infinity}:${rawProg}`;
+  if (sedProgramCache.size >= 64) sedProgramCache.delete(sedProgramCache.keys().next().value!);
+  sedProgramCache.set(cacheKey, cached);
+  sedFastRawCache.set(rawProg, cached);
+  return cached;
+}
+
 async function parse(source: string, extended: boolean, separator: string, maxProgramInstructions: number, budget: Budget): Promise<Instruction[]> {
   const result: Instruction[] = [];
   const groups: number[] = [];
@@ -1078,7 +1163,15 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       context.args[1] !== "-"
     ) {
       const rawProg = context.args[0]!;
-      const cached = sedFastRawCache.get(rawProg);
+      let cached = sedFastRawCache.get(rawProg);
+      if (!cached) {
+        const parseBudget = Budget.acquire(context, options);
+        try {
+          cached = tryParseFastPairProgramSync(rawProg, parseBudget);
+        } finally {
+          Budget.release(parseBudget);
+        }
+      }
       if (cached && cached.outputFiles.length === 0 && cached.readFiles.length === 0) {
         const quiet = rawProg.charCodeAt(0) === 35 && rawProg.charCodeAt(1) === 110;
         const budget = Budget.acquire(context, options);

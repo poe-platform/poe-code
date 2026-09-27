@@ -290,14 +290,38 @@ export function tryFastPrintf(args: readonly string[]): string | undefined {
       }
       const spec = format.charCodeAt(offset + 1);
       if (spec === 37) { result += "%"; offset += 2; continue; }
-      if (spec === 115) {
+      let cur = offset + 1;
+      let leftAlign = false;
+      let zeroPad = false;
+      while (cur < format.length) {
+        const fc = format.charCodeAt(cur);
+        if (fc === 45) { leftAlign = true; cur++; }
+        else if (fc === 48) { zeroPad = true; cur++; }
+        else break;
+      }
+      if (leftAlign) zeroPad = false;
+      let width = 0;
+      while (cur < format.length) {
+        const dc = format.charCodeAt(cur);
+        if (dc < 48 || dc > 57) break;
+        width = width * 10 + (dc - 48);
+        if (width > 128) return undefined;
+        cur++;
+      }
+      const conv = format.charCodeAt(cur);
+      if (conv === 115 && !zeroPad) {
         const val = args[argument++] ?? "";
         if (val.includes("\0")) return undefined;
-        result += val;
-        offset += 2;
+        if (width > val.length) {
+          const pad = " ".repeat(width - val.length);
+          result += leftAlign ? val + pad : pad + val;
+        } else {
+          result += val;
+        }
+        offset = cur + 1;
         continue;
       }
-      if (spec === 100 || spec === 105) {
+      if (conv === 100 || conv === 105) {
         const val = args[argument++] ?? "0";
         if (val.length === 0 || val.length > 15) return undefined;
         const first = val.charCodeAt(0);
@@ -306,16 +330,29 @@ export function tryFastPrintf(args: readonly string[]): string | undefined {
           if (val.length === 1) return undefined;
           start = 1;
         }
+        if (val.length - start > 1 && val.charCodeAt(start) === 48) return undefined;
         for (let i = start; i < val.length; i++) {
           const d = val.charCodeAt(i);
           if (d < 48 || d > 57) return undefined;
         }
-        if (first !== 43 && (val === "0" || (first === 45 ? val.charCodeAt(1) !== 48 : first !== 48))) {
-          result += val;
+        const numStr = first === 43 ? val.slice(1) : val;
+        if (width > numStr.length) {
+          const padLen = width - numStr.length;
+          if (leftAlign) {
+            result += numStr + " ".repeat(padLen);
+          } else if (zeroPad) {
+            if (numStr.charCodeAt(0) === 45) {
+              result += "-" + "0".repeat(padLen) + numStr.slice(1);
+            } else {
+              result += "0".repeat(padLen) + numStr;
+            }
+          } else {
+            result += " ".repeat(padLen) + numStr;
+          }
         } else {
-          result += String(BigInt(val));
+          result += numStr;
         }
-        offset += 2;
+        offset = cur + 1;
         continue;
       }
       return undefined;

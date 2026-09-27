@@ -24,11 +24,11 @@ function entries(): Record<string, string> {
     "Book/nav.xhtml": xhtml('<nav epub:type="toc"><ol><li><a href="Text/one.xhtml#same">First</a></li><li><a href="Text/two.xhtml#same">Second</a></li></ol></nav>')
   };
 }
-async function archive(parts = entries(), duplicate?: string) {
+async function archive(parts = entries(), duplicate?: string, limits = zipLimits) {
   const signal = new AbortController().signal;
-  const members = await Promise.all(Object.entries(parts).map(([name, text]) => codec.makeZipEntry(name, encode(text), {modified: new Date("2000-01-01T00:00:00Z"), mode: 0o644, directory: false, symlink: false, compression: "store"}, zipLimits, signal)));
+  const members = await Promise.all(Object.entries(parts).map(([name, text]) => codec.makeZipEntry(name, encode(text), {modified: new Date("2000-01-01T00:00:00Z"), mode: 0o644, directory: false, symlink: false, compression: "store"}, limits, signal)));
   if (duplicate) members.push(members.find(e => e.name === duplicate)!);
-  return codec.writeZipArchive({entries: members, comment: new Uint8Array()}, zipLimits, signal);
+  return codec.writeZipArchive({entries: members, comment: new Uint8Array()}, limits, signal);
 }
 const read = async (parts = entries(), limits = {}) => readDocument({bytes: await archive(parts), source: "original.epub"}, {from: "epub"}, {limits, yield: async () => {}});
 
@@ -275,4 +275,16 @@ it("does not load note dependencies from dropped foreign XML", async () => {
   const doc = await read(p);
   expect(JSON.stringify(doc.blocks)).toContain('Safe');
   expect(doc.blocks).toHaveLength(2);
+});
+
+it("reads ZIP member paths above the former hardcoded path limit", async () => {
+  const p = entries();
+  const path = "Text/" + "a".repeat(4200) + ".xhtml";
+  for (const key of Object.keys(p)) p[key] = p[key]!.replaceAll("Text/one.xhtml", path);
+  p["Book/" + path] = p["Book/Text/one.xhtml"]!;
+  delete p["Book/Text/one.xhtml"];
+  const bytes = await archive(p, undefined, { ...zipLimits, maxPathBytes: Infinity });
+  const document = await readDocument({ bytes }, { from: "epub" }, { yield: async () => {} });
+  expect(document.blocks.length).toBeGreaterThan(0);
+  await expect(readDocument({ bytes }, { from: "epub" }, { limits: { text: 4096 } })).rejects.toThrow("path byte limit");
 });

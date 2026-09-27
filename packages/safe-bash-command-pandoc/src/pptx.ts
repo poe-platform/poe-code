@@ -21,8 +21,8 @@ function engineContext(context: AdapterContext): PresentationContext & Selection
     ...(context.signal ? {signal: context.signal} : {}),
     limits: {maxBytes: Math.min(l.binaryBytes, Math.max(l.inputBytes, l.outputBytes)), maxReads: l.work, chunkBytes: 4096},
     archiveLimits: {maxArchiveBytes: l.compressedBytes, maxEntryBytes: Math.min(l.binaryBytes, expanded),
-      maxTotalBytes: expanded, maxMembers: l.parts, maxPathBytes: 1024,
-      maxDepth: l.depth, maxPaxBytes: 4096, maxTextBytes: l.text, chunkSize: 4096},
+      maxTotalBytes: expanded, maxMembers: l.parts, maxPathBytes: l.text,
+      maxDepth: l.depth, maxPaxBytes: l.binaryBytes, maxTextBytes: l.text, chunkSize: 4096},
     xmlLimits: {maxBytes: l.binaryBytes, maxNodes: l.xmlNodes, maxDepth: l.xmlDepth},
     relationshipLimits: {maxBytes: l.binaryBytes, maxParts: l.parts, maxRelationships: l.references}
   };

@@ -48,7 +48,7 @@ export const epubReader: ReaderCapability = {
     const fail: (part: string, message: string) => never = (part, message) => epubFailure(ctx, part, message);
     const warn = (part: string, message: string, code: "W_RAW_CONTENT" | "W_RESOURCE_MISSING" = "W_RAW_CONTENT") => ctx.report({code, operation: ctx.operation ?? "read", format: "epub", location: part, message});
     const signal = ctx.signal ?? new AbortController().signal;
-    const limits: ZipLimits = {maxArchiveBytes: ctx.limits.compressedBytes, maxEntryBytes: ctx.limits.expandedBytes, maxTotalBytes: ctx.limits.expandedBytes, maxMembers: ctx.limits.parts, maxPathBytes: 4096, maxDepth: ctx.limits.depth, maxPaxBytes: 65535, maxTextBytes: 65535, chunkSize: 4096};
+    const limits: ZipLimits = {maxArchiveBytes: ctx.limits.compressedBytes, maxEntryBytes: ctx.limits.expandedBytes, maxTotalBytes: ctx.limits.expandedBytes, maxMembers: ctx.limits.parts, maxPathBytes: ctx.limits.text, maxDepth: ctx.limits.depth, maxPaxBytes: ctx.limits.binaryBytes, maxTextBytes: ctx.limits.text, chunkSize: 4096};
     const codec = createZipCodec({compression: createCompressionCodec(), yieldTurn: async () => ctx.cooperate(1), fail: message => {
       return epubFailure(ctx, input.source ?? "archive", message, message.includes("limit") ? "E_LIMIT" : "E_PARSE");
     }}, {rejectDuplicateNames: true});

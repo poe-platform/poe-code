@@ -130,6 +130,33 @@ for (const source of [
   } finally { await shell.dispose(); }
 });
 
+for (const [name, payload] of [
+  ["raw byte", Uint8Array.of(255)],
+  ["UTF8", new TextEncoder().encode("café")],
+  ["short ASCII", new TextEncoder().encode("record")],
+  ["ASCII fast boundary", new TextEncoder().encode("a".repeat(512))],
+  ["ASCII fallback", new TextEncoder().encode("a".repeat(513))],
+] as const) for (const maxExpansionBytes of [undefined, 32768]) {
+  test(`mapfile fallback preserves ordered records: ${name}, budget=${maxExpansionBytes ?? "default"}`, async () => {
+    const { shell } = setup();
+    shell.register({ name: "raw", async execute(context) {
+      const args = getCommandArguments(context);
+      for (let index = 0; index < args.values.length; index++) {
+        await context.stdout.write(args.bytes(index)!);
+        await context.stdout.write(Uint8Array.of(0));
+      }
+      return { exitCode: 0 };
+    } });
+    try {
+      const stdin = Uint8Array.from([...new TextEncoder().encode("before\n"), ...payload, 10, ...new TextEncoder().encode("after\n")]);
+      const result = await shell.exec('mapfile -t A; raw "${A[@]}"', { stdin, ...(maxExpansionBytes === undefined ? {} : { limits: { maxExpansionBytes } }) });
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(result.stdoutBytes, Uint8Array.from([...new TextEncoder().encode("before\0"), ...payload, 0, ...new TextEncoder().encode("after\0")]));
+    } finally { await shell.dispose(); }
+  });
+}
+
 test("mapfile raw element zero survives scalar-style append", async () => {
   const { shell } = setup();
   shell.register({ name: "raw", async execute(context) { await context.stdout.write(getCommandArguments(context).bytes(0)!); return { exitCode: 0 }; } });

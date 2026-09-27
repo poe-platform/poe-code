@@ -13803,10 +13803,7 @@ export class Runtime {
           let loopTurn = 0;
           while (true) {
             this.budget.loop();
-            if ((++loopTurn & 127) === 0) {
-              if (hasYieldCheckpoint(this.signal) || (loopTurn & 2047) === 0) await yieldTurn(this.signal);
-              else runYieldCheckpoint(this.signal);
-            }
+            if ((++loopTurn & 127) === 0) await yieldTurn(this.signal);
             const condOrPromise = evaluateSyncNonZero(command.expressions[1]);
             if (typeof condOrPromise === "boolean") {
               if (!condOrPromise) break;

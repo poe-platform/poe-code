@@ -61,15 +61,16 @@ test("empty context remains subject to line and work budgets", async () => {
   }
 });
 
-test("empty context parsing observes cancellation before mutation", async () => {
+test("empty context parsing observes cancellation before mutation", async context => {
+  context.mock.method(performance, "now", () => 0);
   const fs = await filesystem({ target: "head\n\nold\n" });
   const controller = new AbortController();
   const reason = new Error("stop parsing empty context");
   const input = headers + "@@ -1,10001 +1,10001 @@\n-old\n+new\n" + "\n".repeat(10_000);
   const pending = run("patch", [], { fs, input, signal: controller.signal });
-  const timer = setTimeout(() => controller.abort(reason), 0);
+  const timer = setImmediate(() => controller.abort(reason));
   try { await assert.rejects(pending, error => error === reason); }
-  finally { clearTimeout(timer); }
+  finally { clearImmediate(timer); }
   assert.equal(await contents(fs, "target"), "head\n\nold\n");
 });
 

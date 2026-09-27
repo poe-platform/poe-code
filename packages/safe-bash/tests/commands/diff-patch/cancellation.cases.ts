@@ -72,15 +72,16 @@ test("filesystem waits propagate the signal and observe late rejection", { timeo
   assert.equal(await contents(fs, "target"), "old\n");
 });
 
-test("diff computation yields for cancellation before producing output", { timeout: 2000 }, async () => {
+test("diff computation yields for cancellation before producing output", { timeout: 2000 }, async context => {
+  context.mock.method(performance, "now", () => 0);
   const controller = new AbortController();
   const reason = new Error("author CPU abort");
   const old = Array.from({ length: 1200 }, (_unused, index) => `old${index}\n`).join("");
   const next = Array.from({ length: 1200 }, (_unused, index) => `new${index}\n`).join("");
-  const timer = setTimeout(() => controller.abort(reason), 10);
+  const timer = setImmediate(() => controller.abort(reason));
   try {
     await assert.rejects(run("diff", ["old", "new"], { files: { old, new: next }, signal: controller.signal, options: { maxWork: 100_000_000 } }), error => error === reason);
-  } finally { clearTimeout(timer); }
+  } finally { clearImmediate(timer); }
 });
 
 test("patch matching yields for cancellation and preflight leaves bytes intact", { timeout: 2000 }, async () => {

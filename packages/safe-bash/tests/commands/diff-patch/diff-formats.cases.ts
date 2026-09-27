@@ -56,7 +56,8 @@ for (const options of [{ maxInputBytes: 1 }, { maxOutputBytes: 1 }, { maxLines: 
   });
 }
 
-test("normal cancellation interrupts comparison without output", async () => {
+test("normal cancellation interrupts comparison without output", async context => {
+  context.mock.method(performance, "now", () => 0);
   const controller = new AbortController();
   const reason = new Error("cancel normal comparison");
   let writes = 0;
@@ -64,9 +65,9 @@ test("normal cancellation interrupts comparison without output", async () => {
     files: { old: "old\n".repeat(800), new: "new\n".repeat(800) }, signal: controller.signal,
     stdout: { async write() { writes++; } },
   });
-  const timer = setTimeout(() => controller.abort(reason), 0);
+  const timer = setImmediate(() => controller.abort(reason));
   try { await assert.rejects(pending, error => error === reason); }
-  finally { clearTimeout(timer); }
+  finally { clearImmediate(timer); }
   assert.equal(writes, 0);
 });
 
@@ -311,7 +312,8 @@ test("normalization charges original characters even when all are ignored", asyn
   }
 });
 
-test("whitespace cancellation interrupts normalization without output", async () => {
+test("whitespace cancellation interrupts normalization without output", async context => {
+  context.mock.method(performance, "now", () => 0);
   const controller = new AbortController();
   const reason = new Error("cancel whitespace normalization");
   let writes = 0;
@@ -319,9 +321,9 @@ test("whitespace cancellation interrupts normalization without output", async ()
     files: { old: "a b\n".repeat(10_000), new: "ab\n".repeat(10_000) }, signal: controller.signal,
     stdout: { async write() { writes++; } },
   });
-  const timer = setTimeout(() => controller.abort(reason), 0);
+  const timer = setImmediate(() => controller.abort(reason));
   try { await assert.rejects(pending, error => error === reason); }
-  finally { clearTimeout(timer); }
+  finally { clearImmediate(timer); }
   assert.equal(writes, 0);
 });
 

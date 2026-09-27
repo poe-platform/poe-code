@@ -17,8 +17,8 @@ export class Lifecycle {
     if (!this.pendingStdout.length) return;
     const chunk = this.pendingStdout;
     this.pendingStdout = "";
-    await this.operation(async () => {
-      try {
+    try {
+      await this.operation(async () => {
         const sink = this.budget.context.stdout;
         this.assertOpen();
         const destination = sink.ownedOutput ?? sink;
@@ -26,8 +26,8 @@ export class Lifecycle {
         const write = destination.write;
         this.assertOpen();
         await Reflect.apply(write, destination, [bytes(chunk)]);
-      } finally { this.budget.retain(-chunk.length * 3); }
-    }, false);
+      }, true);
+    } finally { this.budget.retain(-chunk.length * 3); }
   }
   async operation<Value>(action: () => Value | Promise<Value>, diagnostic = false): Promise<Value> {
     this.assertOpen();
@@ -49,16 +49,16 @@ export class Lifecycle {
     });
   }
   async write(value: string, diagnostic = false): Promise<void> {
+    if (diagnostic && this.pendingStdout.length) await this.flush();
     this.budget.emitted(value.length, diagnostic);
     if (!diagnostic) {
       this.assertOpen();
       if (!value.length) return;
       this.budget.retain(value.length * 3);
       this.pendingStdout += value;
-      if (this.pendingStdout.length >= 16384) await this.flush();
+      if (Number.isFinite(this.budget.limits.maxBufferedBytes) || this.pendingStdout.length >= 16384) await this.flush();
       return;
     }
-    if (this.pendingStdout.length) await this.flush();
     await this.operation(async () => {
       const sink = this.budget.context.stderr;
       this.assertOpen();

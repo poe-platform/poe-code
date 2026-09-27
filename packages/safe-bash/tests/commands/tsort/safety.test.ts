@@ -62,6 +62,25 @@ test("stdout cap preserves already written nodes, without emitting a partial nex
   assert.ok(result.stderr.includes("output bytes limit exceeded"));
 });
 
+test("finite retained memory flushes output before accumulating the next node", async () => {
+  const names = Array.from({ length: 14 }, (_, index) => `node${String(index).padStart(2, "0")}`.padEnd(64, "x"));
+  const stdin: ByteSource = { async *[Symbol.asyncIterator]() {
+    for (const name of names) yield Buffer.from(`${name} ${name}\n`);
+  } };
+  const result = await run([], "", { limits: { maxBufferedBytes: 8192 } }, { stdin });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, names.join("\n") + "\n");
+  assert.equal(result.stderr, "");
+});
+
+test("diagnostic admission failure preserves previously admitted acyclic output", async () => {
+  const stdout: Uint8Array[] = [];
+  await assert.rejects(run([], "a a b c c b", { limits: { maxDiagnosticBytes: 1 } }, {
+    stdout: { async write(chunk) { stdout.push(Uint8Array.from(chunk)); } },
+  }), error => error instanceof AggregateError && error.errors.every(failure => failure instanceof Error && failure.message.includes("diagnostic bytes limit exceeded")));
+  assert.equal(Buffer.concat(stdout).toString(), "a\n");
+});
+
 test("self pairs do not spend edge budget", async () => {
   assert.equal((await run([], "a a a a b b", { limits: { maxEdges: 1 } })).stdout, "a\nb\n");
 });
@@ -140,17 +159,23 @@ test("cooperative graph parsing cancellation keeps stdout empty", async () => {
   await cancellation;
 });
 
-test("cancellation scheduled at EOF interrupts in-memory ordering", async () => {
+test("cancellation scheduled at EOF interrupts in-memory ordering", async t => {
   const caller = new AbortController();
   let cancellation: Promise<void> | undefined;
+  let now = 0;
+  t.mock.method(performance, "now", () => now);
   const input = Array.from({ length: 512 }, (_, index) => `${index} ${index}`).join(" ");
   let writes = 0;
   const stdin: ByteSource = { async *[Symbol.asyncIterator]() {
     yield Buffer.from(input);
+    // Expire the elapsed-work quantum at EOF, independently of host/JIT speed.
+    // The queued abort still requires a real host turn during ordering.
+    now = 100;
     cancellation = setImmediate().then(() => { caller.abort(0); });
   } };
-  await assert.rejects(run([], "", {}, { stdin, signal: caller.signal, stdout: { async write() { writes++; } } }), error => error === 0);
-  await cancellation;
+  try {
+    await assert.rejects(run([], "", {}, { stdin, signal: caller.signal, stdout: { async write() { writes++; } } }), error => error === 0);
+  } finally { await cancellation; }
   assert.equal(writes, 0);
 });
 

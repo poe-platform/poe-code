@@ -366,6 +366,41 @@ function buildSharedArchive(candidate, tools, dependencies, captured) {
   return output;
 }
 
+export function assertRootShellExports(manifest, rootManifest) {
+  const checkout = manifest.poeCode?.integration?.peerProfile === "checkout-root";
+  const facadeExports = {
+    "./safe-bash": {
+      types: { workerd: "./packages/safe-bash/dist/core.d.ts", browser: "./packages/safe-bash/dist/core.d.ts", default: "./dist/safe-bash.d.ts" },
+      workerd: "./packages/safe-bash/dist/core.browser.js", browser: "./packages/safe-bash/dist/core.browser.js",
+      node: "./dist/safe-bash.js", default: "./dist/safe-bash.js",
+    },
+    "./safe-bash/commands/media": {
+      types: "./dist/safe-bash-media.d.ts",
+      workerd: "./packages/safe-bash/dist/commands/media/index.browser.js",
+      browser: "./packages/safe-bash/dist/commands/media/index.browser.js",
+      node: "./dist/safe-bash-media.js", default: "./dist/safe-bash-media.js",
+    },
+    "./safe-bash/pdf-ast": { types: "./packages/pdf-ast/dist/index.d.ts", import: "./packages/pdf-ast/dist/index.js" },
+    "./safe-bash/image-ast": { types: "./packages/image-ast/dist/index.d.ts", import: "./packages/image-ast/dist/index.js" },
+    "./safe-bash/sharp": { types: "./packages/image-ast/dist/index.d.ts", import: "./packages/image-ast/dist/index.js" },
+    "./safe-bash/contracts": { types: "./packages/safe-bash-contracts/dist/index.d.ts", import: "./packages/safe-bash-contracts/dist/index.js" },
+    "./safe-bash/contracts/*": { types: "./packages/safe-bash-contracts/dist/*.d.ts", import: "./packages/safe-bash-contracts/dist/*.js" },
+  };
+  const facades = checkout && rootManifest.exports["./safe-bash"]?.node === "./dist/safe-bash.js";
+  const detached = checkout && rootManifest.exports["./safe-bash"] === undefined;
+  if (facades) {
+    const actual = Object.fromEntries(Object.entries(rootManifest.exports).filter(([name]) => name === "./safe-bash" || name.startsWith("./safe-bash/")));
+    assert.deepEqual(actual, facadeExports, "root export inventory mismatch: safe-bash facades");
+  }
+  for (const [path, conditions] of Object.entries(manifest.exports)) {
+    const name = path === "." ? "./safe-bash" : `./safe-bash${path.slice(1)}`;
+    const expected = mirrorArchiveExportTargets(conditions);
+    if (path === "./commands/pandoc") expected.import = "./packages/safe-bash-command-pandoc/dist/public/command.js";
+    assert.deepEqual(rootManifest.exports[name], detached ? undefined : facades ? facadeExports[name] : expected, `root export mismatch: ${name}`);
+    if (detached) assert.ok(!rootManifest.files.includes("packages/safe-bash/dist"), "private shell must not be shipped by root");
+  }
+}
+
 export function mirrorArchiveExportTargets(target) {
   if (target === null) return null;
   if (typeof target === "string") {

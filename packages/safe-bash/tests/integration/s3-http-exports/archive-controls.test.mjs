@@ -24,6 +24,18 @@ const fixtureGit = process.platform === "darwin"
   ? realpathSync(execFileSync("/usr/bin/xcrun", ["--find", "git"], { encoding: "utf8", timeout: 10000 }).trim())
   : "/usr/bin/git";
 
+test("current shell facade inventory authenticates canonical contracts and rejects extra or changed routes", () => {
+  const manifest = JSON.parse(readRegularInput(authority, "package.json", 300000));
+  const root = JSON.parse(readRegularInput(resolve(authority, "../.."), "package.json", 300000));
+  assert.doesNotThrow(() => distChecks.assertRootShellExports(manifest, root));
+  const changed = structuredClone(root);
+  changed.exports["./safe-bash/contracts"].import = "./dist/unapproved.js";
+  assert.throws(() => distChecks.assertRootShellExports(manifest, changed), /inventory/);
+  const extra = structuredClone(root);
+  extra.exports["./safe-bash/unapproved"] = { import: "./dist/unapproved.js" };
+  assert.throws(() => distChecks.assertRootShellExports(manifest, extra), /inventory/);
+});
+
 test("committed workspace build metadata is authenticated with the source archive", (context) => {
   let candidate;
   try {

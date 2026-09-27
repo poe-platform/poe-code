@@ -1,6 +1,7 @@
 import { verification as selectedSpreadsheetVerification } from "./safe-packages-ssconvert-scoped.mjs";
 await selectedSpreadsheetVerification;
 import "./safe-packages-xml-portable.mjs";
+import "./safe-packages-command-exports.mjs";
 import { Shell, agentCommands, createAgentCommands, createMemoryFileSystem, evaluateCommandSupport, FsError, createBoundedRegexProvider } from "@poe-platform/safe-bash";
 import { checksumWorkflows, expectedAgentCommandNames, nullDeviceWorkflows, runNestedCommands, verifyCmpCommands, verifyFmtCommands, verifyShufCommands, verifyNumfmtCommands, verifyTruncateCommands, verifyZipCommands, verifyCsplitCommands, verifyPrCommands, verifyTsortCommands, verifyFactorCommands, verifyGetoptCommands, verifyHexdumpCommands, verifyMdqCommands, verifyNullDeviceView } from "./safe-packages-mixed-entry-runtime.mjs";
 import { FsError as CoreFsError, createDeviceFileSystem } from "@poe-platform/safe-fs/core";

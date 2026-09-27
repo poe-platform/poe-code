@@ -168,3 +168,20 @@ it.each([false, true])("preserves private conditional imports for consumers (por
   });
   expect(result.outputFiles.find(file => file.path.endsWith(".js"))!.text).toContain('from "#command-runtime-regression"');
 });
+
+it("retains the host environment warning in portable runtimes with Node compatibility", async () => {
+  const options = resolveBrowserShellBuild(import.meta.dirname + "/..");
+  const result = await build({ ...options, entryPoints: undefined, outdir: undefined, inject: [],
+    stdin: { contents: 'import { warnIfHostProcessEnv } from "./packages/safe-bash/src/shell/env-warning.ts"; export { warnIfHostProcessEnv };', resolveDir: import.meta.dirname + "/.." },
+    splitting: false, format: "cjs", sourcemap: false
+  });
+  const module = { exports: {} as { warnIfHostProcessEnv(env: Record<string, string>): void } };
+  const env = { TOKEN: "synthetic" };
+  const warnings: string[] = [];
+  runInNewContext(result.outputFiles![0]!.text, { module, process: { env }, console: { warn: (message: string) => warnings.push(message) } });
+  module.exports.warnIfHostProcessEnv(env);
+  module.exports.warnIfHostProcessEnv(env);
+  module.exports.warnIfHostProcessEnv({ ...env });
+  expect(warnings).toHaveLength(1);
+  expect(warnings[0]).toContain("secret bindings");
+});

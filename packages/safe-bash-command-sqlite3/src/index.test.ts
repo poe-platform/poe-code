@@ -310,3 +310,30 @@ test("sqlite3 supports Cloudflare Durable Object SqlStorage (ctx.storage.sql) an
   assert.equal(resD1.exitCode, 0);
   assert.equal(outD1Text, "2|3781|3783\n");
 });
+
+
+test("sqlite3 rejects missing columns and supports double-quoted string fallback", async () => {
+  for (const sql of ["SELECT no_such_col;", "CREATE TABLE t(a INT); SELECT no_such_col FROM t;", "SELECT CASE WHEN 0 THEN no_such_col END;", "CREATE TABLE t(a INT); INSERT INTO t VALUES (NULL); SELECT other.a FROM t;", "SELECT [missing];", "SELECT `missing`;", "CREATE TABLE t(a INT); INSERT INTO t VALUES (1); SELECT no_such_col FROM t;"]) {
+    const result = await runSqlite3(createMemoryFileSystem(), [":memory:", sql]);
+    assert.equal(result.code, 1);
+    assert.ok(result.stderr.includes("Error: in prepare, no such column:"), result.stderr);
+  }
+  const result = await runSqlite3(createMemoryFileSystem(), [":memory:", 'CREATE TABLE t(a INT); INSERT INTO t VALUES (1); SELECT "a", "hello", CASE 1 WHEN 1 THEN "matched" END FROM t;']);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout, "1|hello|matched\n");
+});
+
+test("sqlite3 preserves REAL expression types and JSON numeric representation", async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [":memory:", "SELECT 4.0, typeof(4.0), CAST(4 AS REAL), typeof(CAST(4 AS REAL)), ROUND(3.5) + 1, typeof(ROUND(3.5) + 1), AVG(x), typeof(AVG(x)) FROM (SELECT 2 AS x UNION ALL SELECT 4 AS x);"]);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout, "4.0|real|4.0|real|5.0|real|3.0|real\n");
+  const json = await runSqlite3(createMemoryFileSystem(), ["-json", ":memory:", "SELECT ROUND(3.5) AS r, TOTAL(x) AS t FROM (SELECT 1 AS x);"]);
+  assert.equal(json.stdout, '[{"r":4.0,"t":1.0}]\n');
+});
+
+
+test("sqlite3 REAL arithmetic preserves affinity without changing integer division", async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [":memory:", "SELECT -4.0, +4.0, 4e0, 0xFE, 4.0-1, 4.0*2, 4.0/2, 4.0%3, 5/2, 5.0/2;"]);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout, "-4.0|4.0|4.0|254|3.0|8.0|2.0|1.0|2|2.5\n");
+});

@@ -371,16 +371,14 @@ function formatQueryResult(res: QueryResultSet, state: CliSessionState): string 
     }
 
     case "json": {
-      const objs = rows.map((r) => {
-        const o: Record<string, unknown> = {};
-        columns.forEach((c, i) => {
-          const val = r[i];
-          o[c] = val instanceof Uint8Array ? toSqlString(val) : (val ?? null);
-        });
-        return o;
-      });
-      if (objs.length === 0) return "[]\n";
-      return `[${objs.map((o) => JSON.stringify(o)).join(",\n")}]\n`;
+      const objects = rows.map(row => "{" + columns.map((column, index) => {
+        const value = row[index];
+        const encoded = value instanceof Number
+          ? Number.isFinite(value.valueOf()) ? toSqlString(value) : "null"
+          : JSON.stringify(value instanceof Uint8Array ? toSqlString(value) : typeof value === "bigint" ? Number(value) : value ?? null);
+        return `${JSON.stringify(column)}:${encoded}`;
+      }).join(",") + "}");
+      return `[${objects.join(",\n")}]\n`;
     }
 
     case "line": {

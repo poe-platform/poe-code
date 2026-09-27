@@ -1,6 +1,5 @@
 import {
   type SqlValue,
-  type StoredDatabaseImage,
   type StoredTableMeta,
   readSqliteDatabaseBytes,
   writeSqliteDatabaseBytes
@@ -365,7 +364,7 @@ export function tokenizeSql(sql: string): Token[] {
 // --- Expression AST ---
 export type ExprNode =
   | { kind: "literal"; value: SqlValue }
-  | { kind: "column"; table?: string | undefined; name: string }
+  | { kind: "column"; table?: string | undefined; name: string; doubleQuoted?: boolean }
   | { kind: "star"; table?: string | undefined }
   | { kind: "param"; name: string; index: number }
   | { kind: "unary"; op: string; expr: ExprNode }
@@ -730,7 +729,9 @@ class ExprParser {
       const num = tok.value.startsWith("0x") || tok.value.startsWith("0X")
         ? Number.parseInt(tok.value, 16)
         : Number(tok.value);
-      return { kind: "literal", value: num };
+      const spelling = tok.value.toLowerCase();
+      const real = !spelling.startsWith("0x") && (spelling.includes(".") || spelling.includes("e"));
+      return { kind: "literal", value: real ? new Number(num) : num };
     }
 
     if (tok.type === "string") {
@@ -897,7 +898,7 @@ class ExprParser {
         return { kind: "column", table: name, name: colTok?.value ?? "" };
       }
 
-      return { kind: "column", name };
+      return { kind: "column", name, doubleQuoted: tok.raw.startsWith('"') };
     }
 
     this.pos += 1;
@@ -2562,7 +2563,7 @@ export class SqliteDatabase {
       const newCol = tokens[idx + 2]?.value ?? "";
       const colObj = tbl.columns.find((c) => c.name.toLowerCase() === oldCol.toLowerCase());
       if (!colObj) {
-        throw new Error(`no such column: "${oldCol}"`);
+        throw new Error(`in prepare, no such column: "${oldCol}"`);
       }
       const realOld = colObj.name;
       colObj.name = newCol;
@@ -2594,7 +2595,7 @@ export class SqliteDatabase {
       const dropCol = tokens[idx]?.value ?? "";
       const colIdx = tbl.columns.findIndex((c) => c.name.toLowerCase() === dropCol.toLowerCase());
       if (colIdx === -1) {
-        throw new Error(`no such column: "${dropCol}"`);
+        throw new Error(`in prepare, no such column: "${dropCol}"`);
       }
       const realName = tbl.columns[colIdx]!.name;
       tbl.columns.splice(colIdx, 1);
@@ -3681,12 +3682,7 @@ export class SqliteDatabase {
       sourceSchema = built.schema;
     }
 
-    // 2. Evaluate WHERE
-    if (whereExpr) {
-      workingRows = workingRows.filter((row) => isTruthy(this.evalExpr(whereExpr, row, positionalParams, cteScope)));
-    }
-
-    // 3. Expand SELECT targets
+    // Expand SELECT targets
     let selectTargets: { expr: ExprNode; alias: string }[];
     if (staticTargets) {
       selectTargets = staticTargets;
@@ -3717,6 +3713,41 @@ export class SqliteDatabase {
           selectTargets.push(this.parseSelectTarget(itemToks));
         }
       }
+    }
+
+    // Resolve identifiers against the schema before evaluating any rows. This
+    // catches errors in empty tables and branches that evaluation never visits.
+    const bindings: Record<string, SqlValue> = {};
+    for (const source of sourceSchema) {
+      for (const column of [...source.columns, "rowid", "_rowid_", "oid"]) {
+        bindings[column] = null;
+        bindings[`${source.tableAlias}.${column}`] = null;
+      }
+    }
+    const validateColumns = (node: unknown, scope: Record<string, SqlValue>): void => {
+      if (!node || typeof node !== "object") return;
+      if ("kind" in node && node.kind === "column") {
+        const column = node as Extract<ExprNode, { kind: "column" }>;
+        this.lookupColInRow(scope, column.table, column.name, column.doubleQuoted);
+        return;
+      }
+      for (const child of Object.values(node)) validateColumns(child, scope);
+    };
+    for (const target of selectTargets) validateColumns(target.expr, bindings);
+    const aliasBindings = { ...bindings };
+    for (const target of selectTargets) aliasBindings[target.alias] = null;
+    validateColumns(whereExpr, aliasBindings);
+    for (const clause of [groupByTokens, havingTokens, orderByTokens]) {
+      if (clause) {
+        for (const expression of this.splitTopLevelComma(clause)) {
+          validateColumns(new ExprParser(expression).parseExpression(), aliasBindings);
+        }
+      }
+    }
+
+    // Evaluate WHERE after resolving identifiers
+    if (whereExpr) {
+      workingRows = workingRows.filter((row) => isTruthy(this.evalExpr(whereExpr, row, positionalParams, cteScope)));
     }
 
     // Check if query has aggregates or GROUP BY
@@ -4999,7 +5030,7 @@ export class SqliteDatabase {
         return null;
       }
       const sum = activeVals.reduce<number>((s, v) => s + toSqlNumber(v), 0);
-      return sum / activeVals.length;
+      return new Number(sum / activeVals.length);
     }
     if (u === "MIN") {
       if (activeVals.length === 0) {
@@ -5044,7 +5075,7 @@ export class SqliteDatabase {
     return v;
   }
 
-  private lookupColInRow(row: Record<string, SqlValue>, table: string | undefined, name: string): SqlValue {
+  private lookupColInRow(row: Record<string, SqlValue>, table: string | undefined, name: string, doubleQuoted = false): SqlValue {
     if (table) {
       const exact = `${table}.${name}`;
       if (exact in row) {
@@ -5057,16 +5088,17 @@ export class SqliteDatabase {
         }
       }
     }
-    if (name in row) {
+    if (!table && name in row) {
       return row[name]!;
     }
     const lowerName = name.toLowerCase();
     for (const [k, v] of Object.entries(row)) {
-      if (k.toLowerCase() === lowerName || k.toLowerCase().endsWith(`.${lowerName}`)) {
+      if (!table && (k.toLowerCase() === lowerName || k.toLowerCase().endsWith(`.${lowerName}`))) {
         return v;
       }
     }
-    return null;
+    if (doubleQuoted && !table) return name;
+    throw new Error(`in prepare, no such column: ${table ? `${table}.` : ""}${name}`);
   }
 
   private evalScalarSql(sql: string, row: Record<string, SqlValue>, positionalParams: SqlValue[]): SqlValue {
@@ -5083,7 +5115,7 @@ export class SqliteDatabase {
       case "literal":
         return expr.value;
       case "column":
-        return this.lookupColInRow(row, expr.table, expr.name);
+        return this.lookupColInRow(row, expr.table, expr.name, expr.doubleQuoted);
       case "star":
         return null;
       case "param": {
@@ -5289,10 +5321,10 @@ export class SqliteDatabase {
       return null;
     }
     if (op === "-") {
-      return -toSqlNumber(v);
+      return v instanceof Number ? new Number(-v.valueOf()) : -toSqlNumber(v);
     }
     if (op === "+") {
-      return typeof v === "string" ? v : toSqlNumber(v);
+      return v;
     }
     if (op === "~") {
       return ~Math.trunc(toSqlNumber(v));
@@ -5323,15 +5355,16 @@ export class SqliteDatabase {
     if (l === null || r === null) {
       return null;
     }
+    const real = l instanceof Number || r instanceof Number || !Number.isInteger(toSqlNumber(l)) || !Number.isInteger(toSqlNumber(r));
     switch (op) {
       case "||":
         return `${toSqlString(l)}${toSqlString(r)}`;
       case "+":
-        return toSqlNumber(l) + toSqlNumber(r);
+        return real ? new Number(toSqlNumber(l) + toSqlNumber(r)) : toSqlNumber(l) + toSqlNumber(r);
       case "-":
-        return toSqlNumber(l) - toSqlNumber(r);
+        return real ? new Number(toSqlNumber(l) - toSqlNumber(r)) : toSqlNumber(l) - toSqlNumber(r);
       case "*":
-        return toSqlNumber(l) * toSqlNumber(r);
+        return real ? new Number(toSqlNumber(l) * toSqlNumber(r)) : toSqlNumber(l) * toSqlNumber(r);
       case "/": {
         const denom = toSqlNumber(r);
         if (denom === 0) {
@@ -5341,14 +5374,14 @@ export class SqliteDatabase {
         if (Number.isInteger(nL) && Number.isInteger(denom) && typeof l === "number" && typeof r === "number") {
           return Math.trunc(nL / denom);
         }
-        return nL / denom;
+        return new Number(nL / denom);
       }
       case "%": {
         const denom = Math.trunc(toSqlNumber(r));
         if (denom === 0) {
           return null;
         }
-        return Math.trunc(toSqlNumber(l)) % denom;
+        return real ? new Number(Math.trunc(toSqlNumber(l)) % denom) : Math.trunc(toSqlNumber(l)) % denom;
       }
       case "<<":
         return Math.trunc(toSqlNumber(l)) << Math.trunc(toSqlNumber(r));
@@ -5402,7 +5435,7 @@ export class SqliteDatabase {
       return v instanceof Uint8Array ? v : textEncoder.encode(toSqlString(v));
     }
     if (targetType.includes("REAL") || targetType.includes("FLOA") || targetType.includes("DOUB")) {
-      return Number(toSqlNumber(v));
+      return new Number(toSqlNumber(v));
     }
     const n = toSqlNumber(v);
     return Number.isInteger(n) ? n : n;

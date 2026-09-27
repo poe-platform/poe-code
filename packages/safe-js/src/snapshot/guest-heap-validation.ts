@@ -15,7 +15,6 @@ import { createBuiltinBindings } from "../interp/globals.js";
 import { getIntrinsicIdentity, listIntrinsicIdentities, resolveIntrinsicIdentity } from "../interp/intrinsics.js";
 import { releaseObjectPrototype } from "../interp/object-model.js";
 import { isSandboxClosure } from "../interp/values.js";
-import { assertSnapshotDataDepth } from "../graph-depth.js";
 import { validateStringIteratorState } from "../interp/string-iterator.js";
 import { createSandboxTemporalInstant } from "../interp/temporal-instant.js";
 import { createSandboxTemporalZonedDateTime, temporalZonedDateTimeFields } from "../interp/temporal-zoned-date-time.js";
@@ -274,18 +273,10 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     if ((node.target === null) !== (node.handler === null)) throw new TypeError("Invalid revoked Proxy state.");
     if (node.target !== null) {
       reference(node.handler, objectKinds);
-      const seen = new Set([node]);
-      let current = node;
-      while (current.kind === "guest-proxy" && current.target !== null) {
-        assertSnapshotDataDepth(seen.size, "Proxy target chain");
-        const target = reference(current.target, objectKinds);
-        if (seen.has(target)) throw new TypeError("Cyclic Proxy target chain.");
-        seen.add(target);
-        if (target.kind === "guest-proxy" &&
-            (target.callable !== current.callable || target.constructible !== current.constructible))
-          throw new TypeError("Inconsistent Proxy callable flags.");
-        current = target;
-      }
+      const target = reference(node.target, objectKinds);
+      if (target.kind === "guest-proxy" &&
+          (target.callable !== node.callable || target.constructible !== node.constructible))
+        throw new TypeError("Inconsistent Proxy callable flags.");
     }
     if (node.privateElements !== undefined) privateState(node.privateElements);
   } else if (node.kind === "guest-proxy-revoker") {
@@ -1105,15 +1096,8 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     if (!absent(node.length) && !(typeof node.length === "number" && node.length >= 0) &&
         !(record(node.length).kind === "number" && record(node.length).value === "Infinity"))
       throw new TypeError("Invalid bound function length.");
-    const visited = new Set<unknown>([raw]);
-    let current = node;
-    while (current.kind === "bound-function") {
-      assertSnapshotDataDepth(visited.size, "<bound-target>");
-      callable(current.target);
-      current = reference(current.target);
-      if (visited.has(current)) throw new TypeError("Cyclic bound function target.");
-      visited.add(current);
-    }
+    callable(node.target);
+    reference(node.target);
     state(node.state);
   } else if (node.kind === "guest-function") {
     fields(node, ["kind", "astNodeId", "scope", "state"], ["name", "environment", "dynamicSource", "realm"]);
@@ -1479,7 +1463,9 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
 export function validateGuestHeapGraphs(heap: Record<string, unknown>): void {
   for (const [kind, edge, message] of [
     ["scope-frame", "parent", "Cyclic guest scope parent graph."],
-    ["promise-reaction", "source", "Cyclic promise reaction source graph."]
+    ["promise-reaction", "source", "Cyclic promise reaction source graph."],
+    ["guest-proxy", "target", "Cyclic Proxy target chain."],
+    ["bound-function", "target", "Cyclic bound function target."]
   ] as const) {
     const finished = new Set<string>();
     for (const [id, raw] of Object.entries(heap)) {
@@ -1492,7 +1478,7 @@ export function validateGuestHeapGraphs(heap: Record<string, unknown>): void {
         if (node.kind !== kind) break;
         path.add(current);
         const parent: unknown = node[edge];
-        current = absent(parent) ? undefined : String(record(parent).id);
+        current = parent === null || absent(parent) ? undefined : String(record(parent).id);
       }
       for (const visited of path) finished.add(visited);
     }

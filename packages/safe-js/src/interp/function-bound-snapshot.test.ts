@@ -9,10 +9,10 @@ import { restore as restoreGraph } from "../snapshot/restore.js";
 import { getSandboxDataProperty } from "./object-model.js";
 import { isSandboxClosure } from "./values.js";
 import { Budget } from "./budget.js";
-import { validateGuestHeapNode } from "../snapshot/guest-heap-validation.js";
+import { validateDumpEnvelope } from "../snapshot/validation.js";
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
 
-it("bounds untrusted bound-target chain traversal", async () => {
+it("accepts untrusted bound-target chains beyond the former depth cap", async () => {
   const source="return Math.abs.bind(null)";
   const original=await run(source);
   const saved=JSON.parse(JSON.stringify(serialize({source,currentAstNodeId:1,scopeChain:[{id:"external",bindings:{bound:original.returnValue as RuntimeSnapshotValue}}],callStack:[],pendingPromises:[],moduleBindings:{}})));
@@ -25,7 +25,7 @@ it("bounds untrusted bound-target chain traversal", async () => {
     saved.heap[String(id)]=node;
     target={kind:"ref",id:id++};
   }
-  expect(()=>validateGuestHeapNode(node,saved.heap)).toThrow("dataDepth");
+  expect(()=>validateDumpEnvelope({ version: 2, sourceHash: "bound-chain", heap: saved.heap })).not.toThrow();
 });
 
 it.each([

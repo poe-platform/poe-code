@@ -1183,15 +1183,17 @@ function validateScopeCycles(
   ids: Set<string | number>,
   parentById: Map<string | number, string | number>
 ): void {
+  const validated = new Set<string | number>();
   for (const id of ids) {
     const seen = new Set<string | number>();
     let current: string | number | undefined = id;
-    while (current !== undefined) {
+    while (current !== undefined && !validated.has(current)) {
       if (seen.has(current))
         fail("invalidCycle", "$.scopeChain", `scope parent cycle includes ${String(current)}`);
       seen.add(current);
       current = parentById.get(current);
     }
+    for (const scope of seen) validated.add(scope);
   }
 }
 

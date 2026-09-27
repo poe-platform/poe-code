@@ -1,3 +1,4 @@
+import type { PatternLimits } from "./regex.js";
 import { PublicDiagnostic } from "safe-bash-contracts/public-diagnostic";
 import { hasYieldCheckpoint, monotonicNow, yieldTurn } from "safe-bash-contracts/yield";
 
@@ -21,7 +22,7 @@ let pooledBudgetA: Budget | undefined;
 let pooledBudgetB: Budget | undefined;
 let pooledBudgetToggle = 0;
 
-export interface TextProgramOptions {
+export interface TextProgramOptions extends PatternLimits {
   readonly replace?: boolean;
   readonly maxProgramInstructions?: number;
   readonly maxSteps?: number;

@@ -19,7 +19,7 @@ test("oversized regex programs are rejected before emitting any instruction", ()
   };
   try {
     for (const source of ["a{700000}", "(a{200}){200}", "a{0,700000}", "a{700000,}", "(a|b){10000}", "(){9007199254740991}"]) {
-      assert.throws(() => new Pattern(source), error => error instanceof ProgramError && error.message === "regular expression program limit exceeded", source);
+      assert.throws(() => new Pattern(source, true, false, "sed", "", { maxPatternInstructions: 16384 }), error => error instanceof ProgramError && error.message === "regular expression program limit exceeded", source);
     }
   } finally { Array.prototype.push = push; }
   assert.equal(emitted, 0);
@@ -27,7 +27,7 @@ test("oversized regex programs are rejected before emitting any instruction", ()
 
 test("sed refuses a short high-repeat pattern under low work and buffer budgets", async () => {
   for (const args of [["-E", "s/a{700000}/x/"], [String.raw`s/a\{700000\}/x/`], ["-nE", "/a{700000}/p"]]) {
-    const result = await runVirtual("sed", { args }, { maxSteps: 16, maxBufferBytes: 64 });
+    const result = await runVirtual("sed", { args }, { maxSteps: 16, maxBufferBytes: 64, maxPatternInstructions: 16384 });
     assert.equal(result.exitCode, 2);
     assert.equal(result.stderr.toString(), "sed: regular expression program limit exceeded\n");
     assert.equal(result.stdout.length, 0);
@@ -57,14 +57,14 @@ test("regex preflight includes captures, branches, optional repeats and the fina
     ["(a|b){2730}", "(a|b){2731}"],
     ["(a{126}){127}", "(a{127}){128}"],
   ] as const) {
-    const pattern = new Pattern(accepted);
+    const pattern = new Pattern(accepted, true, false, "sed", "", { maxPatternInstructions: 16384 });
     await pattern.prepare({ step() {}, async checkpoint() {} });
-    assert.throws(() => new Pattern(rejected), { message: "regular expression program limit exceeded" });
+    assert.throws(() => new Pattern(rejected, true, false, "sed", "", { maxPatternInstructions: 16384 }), { message: "regular expression program limit exceeded" });
   }
 });
 
 test("jq preflight preserves assertion costs and skips enormous zero-instruction repeats", async () => {
-  assert.throws(() => new Pattern("(?=a{16381})a", true, false, "jq"), { message: "jq regular expression program limit exceeded" });
+  assert.throws(() => new Pattern("(?=a{16381})a", true, false, "jq", "", { maxPatternInstructions: 16384 }), { message: "jq regular expression program limit exceeded" });
   const work = { step() {}, async checkpoint() {}, maxBufferBytes: 8192 };
   for (const source of ["(?:){9007199254740991}", "(?:){9007199254740991,}", "(?:a{700000}){0}"]) {
     assert.deepEqual(await new Pattern(source, true, false, "jq").find("", work), { start: 0, end: 0, groups: [""] }, source);

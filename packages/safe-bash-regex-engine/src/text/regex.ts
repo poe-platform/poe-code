@@ -36,9 +36,6 @@ type Instruction = { kind: "character"; literal?: string; accepts: (character: s
   | { kind: "jump"; target: number }
   | { kind: "split"; first: number; second: number };
 
-// Host-owned bounds cover both the parsed tree and expanded instruction storage.
-const maxPatternInstructions = 16384;
-
 function instructionCounts(root: Node): Map<Node, number> {
   const counts = new Map<Node, number>();
   const count = (node: Node): number => {
@@ -56,7 +53,7 @@ function instructionCounts(root: Node): Map<Node, number> {
         : child * node.maximum + node.maximum - node.minimum;
     } else size = 1;
     // Saturation keeps nested products bounded without ever expanding a repeat.
-    size = Math.min(size, maxPatternInstructions + 1);
+    size = Math.min(size, Number.MAX_SAFE_INTEGER);
     counts.set(node, size);
     return size;
   };
@@ -118,9 +115,13 @@ function extendedSource(source: string): string {
   return result;
 }
 
+export interface PatternLimits {
+  readonly maxPatternInstructions?: number;
+}
+
 export interface Match { readonly start: number; readonly end: number; readonly groups: readonly (string | undefined)[] }
 
-type PatternBudget = Pick<Budget, "step" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">> & {
+type PatternBudget = Pick<Budget, "step" | "maxBufferBytes"> & { readonly options?: PatternLimits } & Partial<Pick<Budget, "checkpointSync">> & {
   checkpoint(): void | Promise<void>;
 };
 
@@ -287,6 +288,7 @@ export class Pattern {
   readonly groupNames = new Map<string, number>();
   private code: Instruction[] = [];
   private compiledSteps = 0;
+  private readonly instructionCount: number;
   private budgetPrepared = false;
   private parsed: { root: Node; counts: Map<Node, number> } | undefined;
   private readonly anchored: boolean;
@@ -305,8 +307,10 @@ export class Pattern {
   private backreferences = false;
   private fastPrefixInfo: { readonly anchoredStart: boolean; readonly anchoredEnd: boolean; readonly prefix: string } | undefined;
 
-  constructor(source: string, extended = true, private readonly ignoreCase = false, private readonly dialect: "sed" | "awk" | "jq" = "sed", private readonly modifiers = "") {
+  constructor(source: string, extended = true, private readonly ignoreCase = false, private readonly dialect: "sed" | "awk" | "jq" = "sed", private readonly modifiers = "", limits: PatternLimits = {}) {
     const prefix = dialect === "jq" ? "jq " : "";
+    const maximumInstructions = limits.maxPatternInstructions ?? Infinity;
+    if (maximumInstructions !== Infinity && (!Number.isSafeInteger(maximumInstructions) || maximumInstructions < 1)) throw new ProgramError("limits must be positive safe integers");
     if (source.length > 8192) throw new ProgramError(`${prefix}regular expression source limit exceeded`);
     if (!extended) source = extendedSource(source);
     let offset = 0;
@@ -483,11 +487,16 @@ export class Pattern {
     this.groupCount = groups;
     this.anchored = root.type === "sequence" && root.nodes[0]?.type === "begin";
     const counts = instructionCounts(root);
-    if (counts.get(root)! + 1 > maxPatternInstructions) throw new ProgramError(`${prefix}regular expression program limit exceeded`);
+    if (!Number.isSafeInteger(counts.get(root)! + 1) || counts.get(root)! + 1 > maximumInstructions) throw new ProgramError(`${prefix}regular expression program limit exceeded`);
+    this.instructionCount = counts.get(root)! + 1;
     this.parsed = { root, counts };
     if (counts.get(root)! <= 64) {
       this.compileFromParsedSync();
     }
+  }
+
+  private assertInstructionLimit(budget: Pick<PatternBudget, "options">): void {
+    if (this.instructionCount > (budget.options?.maxPatternInstructions ?? Infinity)) throw new ProgramError(`${this.dialect === "jq" ? "jq " : ""}regular expression program limit exceeded`);
   }
 
   private compileFromParsedSync(): void {
@@ -554,7 +563,8 @@ export class Pattern {
     this.finalizeCompiledCode(code, root);
   }
 
-  async prepare(budget: Pick<PatternBudget, "step" | "checkpoint" | "checkpointSync">): Promise<void> {
+  async prepare(budget: Pick<PatternBudget, "step" | "checkpoint" | "checkpointSync" | "options">): Promise<void> {
+    this.assertInstructionLimit(budget);
     if (!this.parsed) {
       if (!this.budgetPrepared && this.compiledSteps > 0) {
         this.budgetPrepared = true;
@@ -817,12 +827,13 @@ export class Pattern {
 
   findSyncFastInto(
     text: string,
-    budget: Pick<Budget, "step" | "maxBufferBytes">,
+    budget: Pick<PatternBudget, "step" | "maxBufferBytes" | "options">,
     from: number,
     outOffsets: Int32Array,
     textEnd = text.length,
     textStart = 0,
   ): boolean {
+    this.assertInstructionLimit(budget);
     if (this.chainMatch) {
       const { prefix, anchoredStart, anchoredEnd, steps } = this.chainMatch;
       if (from > textEnd || (anchoredStart && from > textStart)) return false;
@@ -1033,6 +1044,7 @@ export class Pattern {
   }
 
   tryFindSync(text: string, budget: PatternBudget, from = 0): Match | undefined | Promise<Match | undefined> {
+    this.assertInstructionLimit(budget);
     if (this.code.length && this.chainMatch && this.dialect !== "jq") {
       const initialCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
       if (initialCheck) return this.findAfterCheck(initialCheck, text, budget, from);
@@ -1176,6 +1188,7 @@ export class Pattern {
   }
 
   async find(text: string, budget: PatternBudget, from = 0): Promise<Match | undefined> {
+    this.assertInstructionLimit(budget);
     if (!this.code.length) await this.prepare(budget);
     if (this.dialect === "jq") return (await this.findJq(text, budget, from))?.match;
     if (this.simpleRepeatMatch) {

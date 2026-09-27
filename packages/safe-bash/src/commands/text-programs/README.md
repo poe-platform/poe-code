@@ -14,7 +14,7 @@ standard command plugin, or add the definitions to a `CommandRegistry`.
 The parent command plugin is not edited by this family.
 
 `TextProgramOptions` has `replace?: boolean` and optional budgets: `maxSteps`,
-`maxBufferBytes`, `maxProgramInstructions` (sed), `maxArrayEntries`, `maxFields`,
+`maxBufferBytes`, `maxProgramInstructions` (sed), `maxPatternInstructions` (expanded regex programs), `maxArrayEntries`, `maxFields`,
 `maxGetlineFiles`, `maxRecursionDepth`, `maxArguments`, and `maxRetainedBytes` (awk).
 Omitted budgets are unlimited; setting one does not enable another. Finite limits
 must be positive safe integers. Plugin setup checks all collisions before registering commands.

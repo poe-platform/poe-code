@@ -1,6 +1,32 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import fs from "node:fs/promises";
+import { EventEmitter } from "node:events";
+import { createMockRunner } from "@poe-code/process-runner/testing";
 import { fileURLToPath } from "node:url";
+
+// Exercise the complete spawn/adapter pipeline with controlled process streams.
+// Real mock-agent subprocess coverage is preserved in the native QA plan.
+vi.mock("node:child_process", async importOriginal => ({
+  ...await importOriginal<typeof import("node:child_process")>(),
+  spawn: vi.fn((command: string, args: string[] = []) => {
+    const mode = args[1];
+    const sessions = { codex: fixtureSessions.codexSession, claude: fixtureSessions.claudeSession, "native-empty": ["{}"] };
+    const lines = sessions[mode as keyof typeof sessions];
+    expect(command).toBe(process.execPath);
+    expect(lines !== undefined || mode === "fail").toBe(true);
+    const handle = createMockRunner([{
+      stdout: lines?.map(line => line + "\n") ?? [],
+      stderr: mode === "fail" ? ["mock agent failed\n"] : [],
+      exitCode: mode === "fail" ? 2 : 0,
+      stdoutInterval: 0
+    }]).exec({ command, args, stdin: "pipe", stdout: "pipe", stderr: "pipe" });
+    const child = Object.assign(new EventEmitter(), {
+      pid: handle.pid, stdin: handle.stdin, stdout: handle.stdout, stderr: handle.stderr, kill: handle.kill
+    });
+    void handle.result.then(({ exitCode }) => child.emit("close", exitCode));
+    return child;
+  })
+}));
 
 vi.mock("../configs/resolve-config.js", () => ({
   resolveConfig: vi.fn()
@@ -118,6 +144,12 @@ async function withObjectPrototypeProperties<T>(
   }
 }
 
+const fixtureSessions = JSON.parse(await fs.readFile(new URL("./__fixtures__/sample-sessions.json", import.meta.url), "utf8")) as { codexSession: string[]; claudeSession: string[] };
+
+// Load the shared implementation once before the timed pipeline assertions.
+const { resolveConfig } = await import("../configs/resolve-config.js");
+const { spawnStreaming } = await import("./spawn.js");
+const { renderAcpStream } = await import("./renderer.js");
 describe("acp/spawnStreaming integration", () => {
   const repoRoot = fileURLToPath(new URL("../../../../", import.meta.url));
   const mockAgentExecutablePath = fileURLToPath(
@@ -126,7 +158,6 @@ describe("acp/spawnStreaming integration", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.resetModules();
     const log = (globalThis as any).__acpIntegrationRenderLog as unknown[] | undefined;
     if (Array.isArray(log)) {
       log.length = 0;
@@ -136,7 +167,6 @@ describe("acp/spawnStreaming integration", () => {
   it("spawnStreaming (codex) emits events in the expected order", async () => {
     const expected = await loadExpectedAcpOutput();
 
-    const { resolveConfig } = await import("../configs/resolve-config.js");
     vi.mocked(resolveConfig).mockImplementation((agentId: string) => {
       if (agentId !== "codex") {
         throw new Error(`unexpected agentId: ${agentId}`);
@@ -156,7 +186,6 @@ describe("acp/spawnStreaming integration", () => {
       };
     });
 
-    const { spawnStreaming } = await import("./spawn.js");
 
     const { events, done } = spawnStreaming({
       agentId: "codex",
@@ -176,7 +205,6 @@ describe("acp/spawnStreaming integration", () => {
   });
 
   it("merges captured native OTLP records before consumer middleware completes", async () => {
-    const { resolveConfig } = await import("../configs/resolve-config.js");
     vi.mocked(resolveConfig).mockReturnValue({
       agentId: "codex",
       binaryName: process.execPath,
@@ -192,7 +220,6 @@ describe("acp/spawnStreaming integration", () => {
     });
     let metadata: Record<string, unknown> | undefined;
 
-    const { spawnStreaming } = await import("./spawn.js");
     const { events, done } = spawnStreaming({
       agentId: "codex",
       prompt: "codex",
@@ -223,7 +250,6 @@ describe("acp/spawnStreaming integration", () => {
   it("spawnStreaming (claude) emits events in the expected order", async () => {
     const expected = await loadExpectedAcpOutput();
 
-    const { resolveConfig } = await import("../configs/resolve-config.js");
     vi.mocked(resolveConfig).mockImplementation((agentId: string) => {
       if (agentId !== "claude-code") {
         throw new Error(`unexpected agentId: ${agentId}`);
@@ -243,7 +269,6 @@ describe("acp/spawnStreaming integration", () => {
       };
     });
 
-    const { spawnStreaming } = await import("./spawn.js");
 
     const { events, done } = spawnStreaming({
       agentId: "claude-code",
@@ -263,7 +288,6 @@ describe("acp/spawnStreaming integration", () => {
   });
 
   it("ignores adapter outputs whose event field is only inherited", async () => {
-    const { resolveConfig } = await import("../configs/resolve-config.js");
     vi.mocked(resolveConfig).mockImplementation((agentId: string) => {
       if (agentId !== "native-empty") {
         throw new Error(`unexpected agentId: ${agentId}`);
@@ -282,7 +306,6 @@ describe("acp/spawnStreaming integration", () => {
       };
     });
 
-    const { spawnStreaming } = await import("./spawn.js");
     let actualEvents: unknown[] = [];
     let result: unknown;
 
@@ -302,7 +325,6 @@ describe("acp/spawnStreaming integration", () => {
   });
 
   it("full pipeline: spawnStreaming → renderAcpStream", async () => {
-    const { resolveConfig } = await import("../configs/resolve-config.js");
     vi.mocked(resolveConfig).mockImplementation((agentId: string) => {
       if (agentId !== "codex") {
         throw new Error(`unexpected agentId: ${agentId}`);
@@ -322,8 +344,6 @@ describe("acp/spawnStreaming integration", () => {
       };
     });
 
-    const { spawnStreaming } = await import("./spawn.js");
-    const { renderAcpStream } = await import("./renderer.js");
 
     const { events, done } = spawnStreaming({
       agentId: "codex",
@@ -359,7 +379,6 @@ describe("acp/spawnStreaming integration", () => {
   });
 
   it("captures stderr and exitCode when the agent fails", async () => {
-    const { resolveConfig } = await import("../configs/resolve-config.js");
     vi.mocked(resolveConfig).mockImplementation((agentId: string) => {
       if (agentId !== "codex") {
         throw new Error(`unexpected agentId: ${agentId}`);
@@ -379,7 +398,6 @@ describe("acp/spawnStreaming integration", () => {
       };
     });
 
-    const { spawnStreaming } = await import("./spawn.js");
 
     const { events, done } = spawnStreaming({
       agentId: "codex",

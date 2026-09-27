@@ -295,7 +295,7 @@ beforeAll(async () => {
 });
 
 beforeAll(async () => {
-  portableBuild = await build({...resolveBrowserShellBuild(root), sourcemap: false});
+  portableBuild = await build({...resolveBrowserShellBuild(root), sourcemap: false, minify: true});
 });
 
 beforeAll(async () => {

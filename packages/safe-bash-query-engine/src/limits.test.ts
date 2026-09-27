@@ -30,6 +30,18 @@ test("late checkpoint binding includes real time elapsed since reset", async () 
   assert.equal(budget.currentSteps, 0);
 });
 
+for (const start of [0, 2 ** 32 + 100]) test(`untracked yield admission preserves the clock window at ${start}`, context => {
+  let now = start;
+  context.mock.method(performance, "now", () => now);
+  const budget = new Budget(resolveJqLimits(), new AbortController().signal);
+  budget.step(65536);
+  now += 19;
+  assert.equal(budget.needsYield(), false);
+  budget.step(65536);
+  now++;
+  assert.equal(budget.needsYield(), true);
+});
+
 for (const start of [2 ** 31 - 10, 2 ** 31 + 100, 2 ** 32 + 100]) {
   for (const reset of [false, true]) {
     test(`fresh-window deadline retains the full clock at ${start}, reset=${reset}`, async context => {

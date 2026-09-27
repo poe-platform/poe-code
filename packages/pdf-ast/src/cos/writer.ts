@@ -161,8 +161,8 @@ export function concatByteArrays(chunks: readonly Uint8Array[]): Uint8Array {
 }
 
 export function serializeCosDocument(options: SerializeCosOptions): Uint8Array {
-  const maxOutputBytes = options.maxOutputBytes ?? 64_000_000;
-  const maxObjects = options.maxObjects ?? 1_000_000;
+  const maxOutputBytes = options.maxOutputBytes ?? Infinity;
+  const maxObjects = options.maxObjects ?? Infinity;
   const sorted = [...options.objects].sort((a, b) => a.objectNumber - b.objectNumber);
 
   if (sorted.length > maxObjects) {

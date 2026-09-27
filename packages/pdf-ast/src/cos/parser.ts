@@ -60,8 +60,8 @@ export class ParsedCosDocument {
     this.encryptRef = params.encryptRef;
     this.idArray = params.idArray;
     this.encryption = params.encryption;
-    this.maxDecompressedBytes = params.maxDecompressedBytes ?? 128 * 1024 * 1024;
-    this.maxRecursionDepth = params.maxRecursionDepth ?? 64;
+    this.maxDecompressedBytes = params.maxDecompressedBytes ?? Infinity;
+    this.maxRecursionDepth = params.maxRecursionDepth ?? Infinity;
   }
 
   get maxObjectNumber(): number {
@@ -548,7 +548,7 @@ function isAsciiDigit(ch: number): boolean {
   return ch >= 0x30 && ch <= 0x39;
 }
 
-function repairScanCosDocument(bytes: Uint8Array): {
+function repairScanCosDocument(bytes: Uint8Array, maxObjects: number, maxDecompressedBytes: number): {
   objects: Map<number, PdfIndirectObject>;
   rootRef: PdfCosRef;
   infoRef?: PdfCosRef | undefined;
@@ -588,10 +588,12 @@ function repairScanCosDocument(bytes: Uint8Array): {
       try {
         const parsed = parseObjectAtOffset(bytes, headerStart);
         objects.set(parsed.objectNumber, parsed);
+        if (objects.size > maxObjects) throw new PdfError("E_LIMIT", "PDF object count limit exceeded");
         if (parsed.span && parsed.span.end > pos) {
           pos = parsed.span.end;
         }
-      } catch {
+      } catch (error) {
+        if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
         // Skip unparseable fragments during full-file repair scan
       }
     }
@@ -603,16 +605,18 @@ function repairScanCosDocument(bytes: Uint8Array): {
       const t = dictGet(obj.value.dict, "Type");
       if (t?.kind === "name" && t.decoded === "ObjStm") {
         try {
-          for (const [unpackedNum, unpackedVal] of unpackObjectStream(obj.value, 128 * 1024 * 1024).entries()) {
+          for (const [unpackedNum, unpackedVal] of unpackObjectStream(obj.value, maxDecompressedBytes).entries()) {
             if (!objects.has(unpackedNum)) {
               objects.set(unpackedNum, {
                 objectNumber: unpackedNum,
                 generationNumber: 0,
                 value: unpackedVal,
               });
+              if (objects.size > maxObjects) throw new PdfError("E_LIMIT", "PDF object count limit exceeded");
             }
           }
-        } catch {
+        } catch (error) {
+          if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
           // Ignore damaged object stream
         }
       }
@@ -679,9 +683,9 @@ function unpackObjectStream(
 export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {}): ParsedCosDocument {
   const version = parseHeaderVersion(bytes);
   const recovery = options.recovery ?? "strict";
-  const maxObjects = options.maxObjects ?? 100_000;
-  const maxDecompressedBytes = options.maxDecompressedBytes ?? 128 * 1024 * 1024;
-  const maxRecursionDepth = options.maxRecursionDepth ?? 64;
+  const maxObjects = options.maxObjects ?? Infinity;
+  const maxDecompressedBytes = options.maxDecompressedBytes ?? Infinity;
+  const maxRecursionDepth = options.maxRecursionDepth ?? Infinity;
 
   const startXrefIdx = findLastSubsequence(bytes, STARTXREF_BYTES);
   const revisions: PdfRevision[] = [];
@@ -745,7 +749,7 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
     if (recovery !== "repair") {
       throw new PdfError("E_PARSE", "PDF trailer missing /Root reference");
     }
-    const repaired = repairScanCosDocument(bytes);
+    const repaired = repairScanCosDocument(bytes, maxObjects, maxDecompressedBytes);
     return new ParsedCosDocument({
       version,
       bytes,
@@ -760,12 +764,10 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
 
   const objects = new Map<number, PdfIndirectObject>();
   for (const [objNum, entry] of mergedXref.entries()) {
-    if (objects.size > maxObjects) {
-      throw new PdfError("E_LIMIT", "PDF object count limit exceeded");
-    }
     if (entry.type === "uncompressed") {
       const parsed = parseObjectAtOffset(bytes, entry.offset ?? 0);
       objects.set(objNum, parsed);
+      if (objects.size > maxObjects) throw new PdfError("E_LIMIT", "PDF object count limit exceeded");
     }
   }
 
@@ -818,6 +820,7 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
           generationNumber: 0,
           value: val,
         });
+        if (objects.size > maxObjects) throw new PdfError("E_LIMIT", "PDF object count limit exceeded");
       }
     }
   }

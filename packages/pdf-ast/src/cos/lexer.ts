@@ -77,7 +77,7 @@ export class CosByteLexer {
   readonly end: number;
   readonly maxTokenBytes: number;
 
-  constructor(bytes: Uint8Array, start = 0, end = bytes.length, maxTokenBytes = 16_000_000) {
+  constructor(bytes: Uint8Array, start = 0, end = bytes.length, maxTokenBytes = Infinity) {
     this.bytes = bytes;
     this.pos = start;
     this.end = end;

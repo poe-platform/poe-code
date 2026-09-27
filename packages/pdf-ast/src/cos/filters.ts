@@ -14,7 +14,7 @@ export interface PdfFilterDecodeParms {
   readonly EncodedByteAlign?: boolean | undefined;
 }
 
-const DEFAULT_MAX_DECODED_BYTES = 64_000_000;
+const DEFAULT_MAX_DECODED_BYTES = Infinity;
 
 export function encodeFlate(bytes: Uint8Array): Uint8Array {
   return deflate(bytes);

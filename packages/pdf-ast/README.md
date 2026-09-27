@@ -40,3 +40,6 @@ const text = doc.extractText({ mode: "logical" });
 const pngBytes = page.renderToPng({ scale: 1.5 });
 const pdfBytes = doc.save({ normalizeContent: true });
 ```
+
+Resource limits default to `Infinity`. Set `maxObjects`, `maxDecompressedBytes`,
+`maxRecursionDepth`, or save-time `maxOutputBytes` to enforce explicit budgets.

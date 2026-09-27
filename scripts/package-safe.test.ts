@@ -553,7 +553,7 @@ it.each([false, true])("admits asset-only contract owners against the full priva
       }
     }
     volume.mkdirSync("/repo/packages/safe-bash/dist/contracts", { recursive: true });
-    for (const name of ["exiftool", "csvgrep", "csvcut"]) volume.mkdirSync(`/repo/packages/safe-bash/dist/commands/${name}`, { recursive: true });
+    for (const name of ["exiftool", "csvgrep", "csvcut", "line-endings", "mdq"]) volume.mkdirSync(`/repo/packages/safe-bash/dist/commands/${name}`, { recursive: true });
     for (const subpath of ["command", "value", "errors", "plugin"]) {
       for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/contracts/${subpath}.${suffix}`, `export * from "safe-bash-contracts/${subpath}";`);
     }
@@ -1801,7 +1801,7 @@ it('ships xmllint and its shared XML engine through the established XML export',
   }
 
   const limits = readFileSync(new URL('../packages/safe-bash-xml-engine/src/limits.ts', import.meta.url), 'utf8');
-  for (const module of ['yield', 'managed-abort']) {
+  for (const module of ['yield', 'signals']) {
     const source = readFileSync(new URL(`../packages/safe-bash-contracts/src/${module}.ts`, import.meta.url), 'utf8');
     volume.writeFileSync(`/repo/packages/safe-bash-contracts/dist/${module}.js`, ts.transpileModule(source,
       { compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 } }).outputText);
@@ -1819,7 +1819,7 @@ it('ships xmllint and its shared XML engine through the established XML export',
   expect(read('safe-bash-command-xmllint/index.js')).toContain('"../safe-bash-xml-engine/limits.js"');
   expect(read('safe-bash-command-xmllint/index.d.ts')).toContain('"../safe-bash-xml-engine/limits.js"');
   expect(read('safe-bash-xml-engine/limits.js')).toContain('"../safe-bash-contracts/yield.js"');
-  expect(read('safe-bash-contracts/yield.js')).toContain('"./managed-abort.js"');
+  expect(read('safe-bash-contracts/yield.js')).toContain('"./signals.js"');
   const bundled = await build({
     entryPoints: ['/output/safe-bash/dist/safe-bash-xml-engine/limits.js'], bundle: true, write: false, format: 'esm', platform: 'neutral',
     plugins: [{ name: 'packaged-xml-memory-consumer', setup(builder) {

@@ -14,6 +14,17 @@ import {
   sourceFixture
 } from "./run.integration-helper.js";
 
+vi.mock("node:fs/promises", async () => {
+  const { createRunMemoryFileSystem } = await import("../../testing/run-memory.js");
+  const memory = createRunMemoryFileSystem();
+  return { ...memory, default: memory };
+});
+
+vi.mock("./scorer.js", async importOriginal => ({
+  ...await importOriginal<typeof import("./scorer.js")>(),
+  runScorer: vi.fn(async () => ({ passed: 1, total: 1, cases: [{ name: "fixture scorer", passed: true, durationMs: 0 }] })),
+}));
+
 const mockedAgentSpawn = vi.hoisted(() => ({
   spawnMock: undefined as ReturnType<typeof createSpawnMock> | undefined,
   spawnStreaming: vi.fn()

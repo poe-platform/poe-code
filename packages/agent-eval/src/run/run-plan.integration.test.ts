@@ -12,6 +12,11 @@ import {
   sourceFixture
 } from "./run.integration-helper.js";
 
+vi.mock("./scorer.js", async importOriginal => ({
+  ...await importOriginal<typeof import("./scorer.js")>(),
+  runScorer: vi.fn(async () => ({ passed: 1, total: 1, cases: [{ name: "fixture scorer", passed: true, durationMs: 0 }] })),
+}));
+
 const mockedFs = vi.hoisted(() => ({
   failedStatTarget: undefined as string | undefined
 }));
@@ -21,9 +26,10 @@ const mockedAgentSpawn = vi.hoisted(() => ({
   spawnStreaming: vi.fn()
 }));
 
-vi.mock("node:fs/promises", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("node:fs/promises")>();
-  return {
+vi.mock("node:fs/promises", async () => {
+  const { createRunMemoryFileSystem } = await import("../../testing/run-memory.js");
+  const actual = createRunMemoryFileSystem();
+  const memory = {
     ...actual,
     stat: async (...args: Parameters<typeof actual.stat>) => {
       const [target] = args;
@@ -34,6 +40,7 @@ vi.mock("node:fs/promises", async (importOriginal) => {
       return actual.stat(...args);
     }
   };
+  return { ...memory, default: memory };
 });
 
 vi.mock("@poe-code/agent-spawn", async (importOriginal) => {

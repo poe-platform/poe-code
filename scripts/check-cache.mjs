@@ -331,7 +331,9 @@ export function createCheckCache({
       fileSystem.writeFileSync(temporary, gzipSync(Buffer.from(JSON.stringify(value))), { flag: "wx", mode: 0o600 });
       fileSystem.renameSync(temporary, destination);
     } finally {
-      try { fileSystem.rmSync(temporary, { force: true }); } catch {}
+      try { fileSystem.rmSync(temporary, { force: true }); } catch {
+        // Best-effort cleanup must not replace a write or rename failure.
+      }
     }
   };
   const outputRoots = patterns => patterns.map(pattern => {

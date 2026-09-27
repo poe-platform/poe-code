@@ -1902,6 +1902,63 @@
         "independent": "Original Python ZIP/XML fixture: 627 bytes. Compiled SDK engine.convert and runCommand --recalc each emit two-byte CSV 5\\n, independently read with Python csv. Actual command transcript rendered and visually inspected: fresh value 5, no diagnostics. Earlier ad hoc QA attempts had script syntax, null-prototype comparison and engine-ownership harness errors; those are not product failures or qualification evidence.",
         "remaining": "Automatic quoted-label lookup/ranges, !! automatic intersection, cross-sheet label/data pairs, native formula-result label recalculation, locale-specific transliteration, duplicate-order ties between remote sheets, mixed relative-sheet/live-label formulas, direct textual formula lifecycle and all identity-preserving exports/native application profiles remain open. Current matching uses the existing pinned Unicode default case fold. No family is closed.",
         "qa": "docs/plans/ssconvert-odf-label-metadata-qa.md"
+      },
+      "odfAutomaticLabels": {
+        "sourceReceipt": "reference.biffLiveLabelRangeAudit.odfQuotedLabels.sources",
+        "rules": "OpenFormula 1.2 sections 5.10.3-5.10.5; pinned Calc ParseColRowName proximity selection and numeric-right orientation extension. Calc GetDataArea expansion is not the standard OpenFormula contiguous automatic-range rule.",
+        "implementation": "Quoted native labels first search declared labels, then the current sheet when automatic lookup is enabled. Sparse candidates use Calc column-wise proximity/direction selection, excluding the formula cell. Vertical text implies a row; the numeric-right fallback is restricted to legacy Calc grammar and valid neighbor coordinates. Native ODF anchors retain semantics=openformula in the AST and .odf in internal reference syntax, including declared labels. Non-scalar OpenFormula ranges skip at most one initial blank and stop at the first subsequent gap; neighboring cells cannot bridge it. Scalar consumers resolve at the formula coordinate, including ABS and parentheses. Existing BIFF/Calc references retain data-area expansion. BIFF writing refuses to silently discard OpenFormula range semantics.",
+        "validation": "Initial automatic-label suite: 13 failures / one pass. Separate failing-before controls exposed BIFF semantic loss, ABS taking the first aggregate value instead of the formula row, and the legacy numeric-right fallback at the bottom sheet boundary. Final broad cohort: 25 files / 882 tests pass; final automatic/native-import files: 40 tests pass. Package lint and source/test/consumer types pass. Selected maintained workspace build passes; final boundary rebuild is recorded in the compact receipt.",
+        "publicValidation": {
+          "fixturesBytes": [
+            538,
+            535
+          ],
+          "sdk": [
+            {
+              "name": "original",
+              "expected": 3,
+              "csv": "3\n"
+            },
+            {
+              "name": "gap",
+              "expected": 15,
+              "csv": "15\n"
+            },
+            {
+              "name": "renamed",
+              "expected": 3,
+              "csv": "3\n"
+            },
+            {
+              "name": "scalar",
+              "expected": 8,
+              "csv": "8\n"
+            }
+          ],
+          "command": [
+            {
+              "name": "original",
+              "expected": 3,
+              "csv": "3\n",
+              "stderr": "Label ranges and automatic label lookup are omitted by Gnumeric_stf:stf_csv\n"
+            },
+            {
+              "name": "gap",
+              "expected": 15,
+              "csv": "15\n",
+              "stderr": "Label ranges and automatic label lookup are omitted by Gnumeric_stf:stf_csv\n"
+            },
+            {
+              "name": "scalar",
+              "expected": 8,
+              "csv": "8\n",
+              "stderr": "Label ranges and automatic label lookup are omitted by Gnumeric_stf:stf_csv\n"
+            }
+          ]
+        },
+        "independent": "Original Python ZIP/XML fixtures and independent Python csv readback: compiled SDK produces 3, 15 after filling A5, 3 after renaming the captured label, and scalar ABS result 8; compiled command produces 3/15/8. Actual command transcripts were rendered and visually inspected; only the expected CSV label-metadata loss warning appears.",
+        "remaining": "Automatic !! intersection; exact locale/transliteration and all proximity tie/native profiles; formula-generated label text recalculation; cross-sheet label/data pairs; direct textual formula lifecycle; mixed relative-sheet/live-label expressions; identity-preserving exports and native application qualification. All 19 families remain open.",
+        "qa": "docs/plans/ssconvert-odf-label-metadata-qa.md"
       }
     },
     "xlsxFormulaTextAudit": {

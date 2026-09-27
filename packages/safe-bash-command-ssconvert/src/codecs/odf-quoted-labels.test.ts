@@ -16,7 +16,7 @@ async function source(formula: string, attributes = 'office:value="999"', extra 
 it.each(['office:value="999"', ''])("imports a forward declared label with attributes %s and computes across a blank gap", async attributes => {
   const diagnostics: string[] = [];
   const book = await readOdf(await source("of:=SUM('Sales')", attributes), { ...context, async diagnostic(d) { diagnostics.push(d.code); } });
-  expect(book.sheets[0]!.cells[0]).toMatchObject({ formula: "=SUM(@column.quoted:Data!A$1)", formulaDirty: true });
+  expect(book.sheets[0]!.cells[0]).toMatchObject({ formula: "=SUM(@column.odf.quoted:Data!A$1)", formulaDirty: true });
   expect(diagnostics).toEqual([]);
   expect(book.sheets[0]!.unsupportedRecords?.some(r => r.kind === "unparsed-formula")).toBe(false);
   expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 5 });
@@ -29,7 +29,7 @@ it.each(['office:value="999"', ''])("imports a forward declared label with attri
 it("binds sheet-local named expressions after declarations and cells load", async () => {
   const local = '<table:named-expressions><table:named-expression table:name="Total" table:expression="of:=SUM(\'Sales\')" table:base-cell-address="$Output.$A$1"/></table:named-expressions>';
   const book = await readOdf(await source('of:=Total', 'office:value="999"', local), context);
-  expect(book.names).toContainEqual(expect.objectContaining({ name: "Total", sheet: "Output", expression: "=SUM(@column.quoted:Data!A$1)" }));
+  expect(book.names).toContainEqual(expect.objectContaining({ name: "Total", sheet: "Output", expression: "=SUM(@column.odf.quoted:Data!A$1)" }));
   expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 5 });
 });
 
@@ -42,16 +42,30 @@ it("charges the enclosing operation for label lookup and aborts with the exact r
   await expect(readOdf(bytes, { ...context, signal: controller.signal })).rejects.toBe(reason);
 });
 
+it("binds native automatic labels using the default-enabled document setting", async () => {
+  const rows = [
+    '<table:table-cell office:value-type="string"><text:p>Sales</text:p></table:table-cell>', '',
+    '<table:table-cell office:value="1"/>', '<table:table-cell office:value="2"/>', '',
+    '<table:table-cell office:value="8"/><table:table-cell table:number-columns-repeated="4"/><table:table-cell table:formula="of:=SUM(\'Sales\')" office:value="999"/>', '',
+    '<table:table-cell office:value="32"/>'
+  ].map(row => '<table:table-row>' + row + '</table:table-row>').join('');
+  const bytes = await fixture({ mimetype: 'application/vnd.oasis.opendocument.spreadsheet', 'content.xml': content('<table:table table:name="S">' + rows + '</table:table>') });
+  const book = await readOdf(bytes, context);
+  expect(book.automaticLabelLookup).toBe(true);
+  expect(book.sheets[0]!.cells.find(cell => cell.formula)?.formula).toBe('=SUM(@column.odf.quoted:A$1)');
+  expect(recalculateWorkbook(book, context, true).sheets[0]!.cells.find(cell => cell.formula)?.value).toEqual({ kind: 'number', value: 3 });
+});
+
 it("retains a bound array formula and its covered cells", async () => {
   const book = await readOdf(await source("of:=SUM('Sales')", 'office:value="999" table:number-matrix-columns-spanned="2" table:number-matrix-rows-spanned="1"'), context);
-  expect(book.sheets[0]!.formulaGroups).toMatchObject([{ expression: "=SUM(@column.quoted:Data!A$1)", kind: "array" }]);
+  expect(book.sheets[0]!.formulaGroups).toMatchObject([{ expression: "=SUM(@column.odf.quoted:Data!A$1)", kind: "array" }]);
   expect(book.sheets[0]!.cells).toHaveLength(2);
   expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 5 });
 });
 
 it("preserves OpenCalc repeats: one bound formula and cached scalar copies", async () => {
   const book = await readOdf(await source("of:=SUM('Sales')", 'office:value="999" table:number-columns-repeated="2"'), context);
-  expect(book.sheets[0]!.cells.map(cell => cell.formula)).toEqual(["=SUM(@column.quoted:Data!A$1)", undefined]);
+  expect(book.sheets[0]!.cells.map(cell => cell.formula)).toEqual(["=SUM(@column.odf.quoted:Data!A$1)", undefined]);
 });
 
 it.each(['office:value="999"', ''])("retains an unresolved source without a fabricated formula or array group (%s)", async attributes => {

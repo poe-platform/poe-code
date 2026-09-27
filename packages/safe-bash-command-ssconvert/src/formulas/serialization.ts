@@ -103,7 +103,7 @@ export function serializeLabelReference(node: Extract<FormulaNode, { kind: "refe
       (labels ? ".multi" : node.label.quoted ? ".quoted" : "") + ":" +
       (labels ? "{" + [...labels, address].join(";") + "}" : address) + "->" + (data.endsWith("#REF!") ? "#REF!" : data);
   }
-  return "@" + node.label.axis + (node.label.referenceClass === "value" ? ".value" : "") + (node.label.quoted ? ".quoted" : "") + ":" + address;
+  return "@" + node.label.axis + (node.label.referenceClass === "value" ? ".value" : "") + (node.label.semantics === "openformula" ? ".odf" : "") + (node.label.quoted ? ".quoted" : "") + ":" + address;
 }
 
 /** Serialize the tree, retaining explicit grouping even across different precedences. */

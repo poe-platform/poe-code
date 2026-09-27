@@ -50,6 +50,19 @@ complete BIFF/format family remain open.
    and `runCommand --recalc` to CSV; independently parse each CSV and require 5.
    Inspect the captured command transcript as a terminal screenshot. A cached
    formula-generated label value is not native recalculation evidence. Keep
-   automatic lookup, automatic intersection, locale-specific text matching,
+   unqualified automatic-lookup profiles, automatic intersection, locale-specific text matching,
    duplicate declarations across remote sheets, mixed relative-sheet formulas
    and all unqualified export/native profiles open.
+
+9. Qualify automatic lookup with no declarations and the default-enabled setting.
+   Use Sales at A1, blank A2, 1 at A3, 2 at A4, blank A5, 8 at A6, blank A7,
+   and 32 at A8. Put `SUM('Sales')` at F6 with stale cache 999. The imported
+   formula must keep OpenFormula range semantics and return 3; setting A5 to 4
+   through the SDK and command must return 15. A neighboring cell must not bridge
+   a blank in the label's data column. Verify row-label transposition, two initial
+   blanks, sparse large sheets, current-sheet-only automatic lookup, declarations
+   taking precedence, direction/distance ties and copy/move identity. Check
+   `ABS('Sales')` at F6 with 2 at A2, blank A3 and -8 at A6: scalar result 8,
+   aggregate result 2. Native BIFF export must not discard OpenFormula semantics;
+   its identity-preserving transport remains open. Use the compiled SDK/command,
+   independent CSV inspection and a captured command screenshot before delivery.

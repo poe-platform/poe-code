@@ -52,6 +52,31 @@ export function resolveLabelReference(book: Workbook, node: Extract<FormulaNode,
   const ownAxis = columnLabel ? position.row : position.column;
   const sameAxis = columnLabel ? position.column === column : position.row === row;
   let start: number, end: number;
+  if (!declared && label.semantics === "openformula") {
+    if (!book.automaticLabelLookup) return error("#NAME?");
+    const value = read(sheet, row, column);
+    if (value.kind !== "string" && value.kind !== "blank") return error("#NAME?");
+    start = (columnLabel ? row : column) + 1;
+    if (start > maximum) return error("#REF!");
+    if (label.scalar) {
+      if (ownAxis < start || ownAxis > maximum) return error("#REF!");
+      start = end = ownAxis;
+    } else {
+      // OpenFormula §5.10.5: only this row/column, at most one initial blank,
+      // then contiguous non-empty cells. Adjacent data cannot bridge a gap.
+      const occupied = new Set<number>();
+      for (const cell of sheet.cells) {
+        tick();
+        if ((columnLabel ? cell.column === column : cell.row === row) && (cell.value.kind !== "blank" || cell.formula))
+          occupied.add(columnLabel ? cell.row : cell.column);
+      }
+      if (!occupied.has(start) && start < maximum && occupied.has(start + 1)) start++;
+      end = start;
+      if (occupied.has(start)) while (end < maximum && occupied.has(end + 1)) { tick(); end++; }
+    }
+    return { kind: "range", sheets: [sheet], firstRow: columnLabel ? start : row, lastRow: columnLabel ? end : row,
+      firstColumn: columnLabel ? column : start, lastColumn: columnLabel ? column : end };
+  }
   if (declared) {
     start = columnLabel ? declared.data.startRow : declared.data.startColumn;
     end = columnLabel ? declared.data.endRow : declared.data.endColumn;

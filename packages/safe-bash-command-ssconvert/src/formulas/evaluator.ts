@@ -63,6 +63,7 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
   const cleared = new Set<Cell>(), tablePending = new Set<Cell>();
   const arrayKeys = new Map<Cell, string>();
   const expressions = new Map<Cell, FormulaNode>(), matrices = new Map<string, Value>();
+  const scalarLabels = new WeakMap<object, { node: Extract<FormulaNode, { kind: "reference" }>; position: ParsePosition }>();
   let activeCell: Cell | undefined;
   const dynamicCells = new Set<Cell>(), dynamicRanges = new Map<Cell, Map<string, CalculationRange>>();
   function trackRange(value: Value): void {
@@ -119,6 +120,8 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
     if (node.label) {
       if (activeCell) dynamicCells.add(activeCell);
       const value = resolveLabelReference(book, node, position, read, tick);
+      if (value.kind === "range" && node.label.kind !== "radical" && node.label.semantics === "openformula" && !node.label.scalar)
+        scalarLabels.set(value, { node: { ...node, label: { ...node.label, scalar: true } }, position });
       trackRange(value); return value;
     }
     const first = node.first, last = node.last ?? first;
@@ -141,6 +144,13 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
     return indirectRange(parseNamedExpression(name, book, parse, tick), position, new Set([...names, name]), depth + 1);
   }
   function scalar(value: Value, position: ParsePosition): CellValue {
+    // OpenFormula §5.10.4 selects at the formula position when the consumer
+    // requests a scalar. Aggregate consumers retain the automatic range.
+    const label = scalarLabels.get(value);
+    if (label) {
+      value = resolveLabelReference(book, label.node, label.position, read, tick);
+      trackRange(value);
+    }
     if (value.kind === "matrix") return value.rows[0]?.[0] ?? error("#VALUE!");
     if (value.kind === "set") return error("#VALUE!");
     if (value.kind !== "range") return value;

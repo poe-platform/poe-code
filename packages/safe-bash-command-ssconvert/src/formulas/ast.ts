@@ -19,7 +19,9 @@ export interface ReferenceEndpoint {
   readonly workbook?: string;
 }
 export type LabelReference = { readonly quoted?: boolean; readonly scalar: boolean } & (
-  | { readonly kind?: "implicit"; readonly axis: "row" | "column"; readonly referenceClass: "reference" | "value" }
+  | { readonly kind?: "implicit"; readonly axis: "row" | "column"; readonly referenceClass: "reference" | "value";
+      /** OpenFormula's contiguous automatic range differs from Calc/BIFF data-area expansion. */
+      readonly semantics?: "openformula" }
   | { readonly kind: "radical"; readonly dataClass: "reference" | "value" | "array";
       /** Present for a multiple-cell label; the parent anchor is the final member. */
       readonly preceding?: readonly (Span & { readonly kind: "reference"; readonly first: ReferenceEndpoint })[];
@@ -66,7 +68,7 @@ export interface FormulaGrammar {
   readonly functionArgumentInsertions?: Readonly<Record<string, { readonly arity: number; readonly index: number; readonly value: CellValue }>>;
   readonly nativeNames?: boolean;
   readonly singleQuotedStrings?: boolean;
-  readonly quotedLabels?: boolean;
+  readonly quotedLabels?: "openformula" | "calc";
   readonly quotedErrors?: boolean;
   readonly rangeSeparator?: string;
   readonly sheetSpans?: boolean;

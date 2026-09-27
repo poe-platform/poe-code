@@ -3,7 +3,7 @@ import { gnumericGrammar, odfGrammar } from "./conventions.js";
 import { foldSheetName } from "../workbook/case-fold.js";
 import { isUnicodeAlphanumeric } from "../cli/unicode-alphanumeric.js";
 import { isUnicodeAlpha } from "../workbook/unicode-sheet-name.js";
-import { bindDeclaredLabel } from "./quoted-labels.js";
+import { bindQuotedLabel } from "./quoted-labels.js";
 import type { Axis, FormulaNode, FormulaParseOptions, FormulaParseResult, LabelReference, ReferenceEndpoint } from "./ast.js";
 
 const digit = (c: string | undefined): boolean => c !== undefined && c >= "0" && c <= "9";
@@ -231,6 +231,8 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
         if (referenceClass !== "reference") offset += 6;
         const multiple = axis === "range" && source.startsWith(".multi", offset);
         if (multiple) offset += 6;
+        const openFormula = axis !== "range" && source.startsWith(".odf", offset);
+        if (openFormula) offset += 4;
         const quoted = source.startsWith(".quoted", offset);
         if (quoted) offset += 7;
         if (source[offset++] !== ":") fail("Invalid label reference");
@@ -263,7 +265,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
             ...(quoted ? { quoted } : {}), scalar: false } };
         }
         if (referenceClass === "array") fail("Invalid label reference class");
-        return { ...target, start, label: { axis, referenceClass, ...(quoted ? { quoted } : {}), scalar: false } };
+        return { ...target, start, label: { axis, referenceClass, ...(openFormula ? { semantics: "openformula" } : {}), ...(quoted ? { quoted } : {}), scalar: false } };
       }
       if (grammar.bracketReferences) for (const spelling of ["[#REF!]", "[.#REF!]", "[.$#REF!]"]) {
         if (source.startsWith(spelling, offset)) {
@@ -336,7 +338,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
       if (reference) return reference;
       if (c === "'" && grammar.quotedLabels) {
         const text = quoted("'", grammar.stringEscape);
-        const bound = options.workbook && bindDeclaredLabel(options.workbook, text, position, () => {
+        const bound = options.workbook && bindQuotedLabel(options.workbook, text, position, grammar.quotedLabels, () => {
           options.signal?.throwIfAborted();
           options.onWork?.();
           if (++labelWork > (options.maximumNodes ?? 65_536)) throw new SsconvertError("resource-limit", "ssconvert formula label lookup limit exceeded");

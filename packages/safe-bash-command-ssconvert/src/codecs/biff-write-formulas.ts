@@ -185,6 +185,8 @@ export class BiffFormulaWriter {
         visit(node.left); visit(node.right); push([opcode]);
       } else if (node.kind === "reference") {
         if (node.label) {
+          if (node.label.kind !== "radical" && node.label.semantics === "openformula")
+            throw new SsconvertError("unsupported-feature", "Excel BIFF live label reference cannot retain OpenFormula automatic-range semantics");
           if (definition)
             throw new SsconvertError("unsupported-feature", "Excel BIFF live label reference in a named expression is not yet supported");
           const anchor = node.first, r = anchor.row, c = anchor.column;

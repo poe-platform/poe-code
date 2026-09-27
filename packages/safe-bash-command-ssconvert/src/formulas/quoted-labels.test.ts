@@ -24,7 +24,7 @@ it("binds a native quoted label to a cell with Calc's orientation-dependent rela
   const document = parsed("of:='Sales'");
   expect(document.root).toMatchObject({ kind: "reference", label: { axis: "column", quoted: true, scalar: true },
     first: { row: { value: 0, relative: false }, column: { value: -2, relative: true } } });
-  expect(serializeExpression(document, gnumericGrammar, false)).toBe("=@column.quoted:A$1");
+  expect(serializeExpression(document, gnumericGrammar, false)).toBe("=@column.odf.quoted:A$1");
 });
 
 it("prefers this sheet's row declaration over another sheet's column declaration", () => {
@@ -60,7 +60,7 @@ it("captures a remote label's sheet name and decodes doubled apostrophes", () =>
     { id: "remote-id", name: "O'Brien", cells: [label(0, 0, "Owner's sales")], labelRanges: [pair("column")] }
   ] });
   expect(document.root).toMatchObject({ args: [{ label: { scalar: false }, first: { sheet: "O'Brien" } }] });
-  expect(serializeExpression(document, gnumericGrammar, false)).toBe("=SUM(@column.quoted:'O\\'Brien'!A$1)");
+  expect(serializeExpression(document, gnumericGrammar, false)).toBe("=SUM(@column.odf.quoted:'O\\'Brien'!A$1)");
 });
 
 it("allows a cached textual formula result as a label, excluding the formula being bound", () => {
@@ -87,8 +87,8 @@ it("preserves the captured identity through text edits and copy/move after lower
   const source = serializeExpression(parsed("=SUM('Sales')"), gnumericGrammar, false);
   const document = parseExpression(source, { position, workbook: book() });
   if (!document.ok) throw new Error("Expected internal label");
-  expect(rewriteReferences(document.document, { translation: "copy", position: { ...position, column: 3 } })).toBe("=SUM(@column.quoted:B$1)");
-  expect(rewriteReferences(document.document, { translation: "move", position: { ...position, column: 3 } })).toBe("=SUM(@column.quoted:A$1)");
+  expect(rewriteReferences(document.document, { translation: "copy", position: { ...position, column: 3 } })).toBe("=SUM(@column.odf.quoted:B$1)");
+  expect(rewriteReferences(document.document, { translation: "move", position: { ...position, column: 3 } })).toBe("=SUM(@column.odf.quoted:A$1)");
   const workbook = book(), sheet = workbook.sheets[0]!;
   const context: CapabilityContext = { signal: new AbortController().signal, own() {}, environment: { env: {}, locale: "C", timezone: "UTC" },
     limits: { inputBytes: 10000, outputBytes: 10000, cells: 100, sheets: 2, operations: 10000 } };

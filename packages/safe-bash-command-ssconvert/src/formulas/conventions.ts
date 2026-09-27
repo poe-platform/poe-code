@@ -17,7 +17,7 @@ export const excelGrammar: FormulaGrammar = Object.freeze({ ...gnumericGrammar,
 export const odfGrammar: FormulaGrammar = Object.freeze({ ...gnumericGrammar,
   id: "odf", arguments: ";", arrayColumn: ";", arrayRow: "|", intersection: "!", union: "~",
   sheetSeparator: ".", bracketReferences: true, stringEscape: "double", leftAssociativePower: true,
-  nativeNames: false, singleQuotedStrings: false, quotedLabels: true, quotedErrors: false,
+  nativeNames: false, singleQuotedStrings: false, quotedLabels: "openformula", quotedErrors: false,
   absoluteSheetReferences: true, sheetSpans: false,
   functionPrefixAliases: Object.freeze({ "COM.MICROSOFT.": odfStatisticsImports }),
   functionAliases: Object.freeze({ ...odfStatisticsImports, TIME: "ODF.TIME", PDURATION: "G_DURATION", INDIRECT_XL: "INDIRECT", ADDRESS_XL: "ADDRESS", ERRORTYPE: "ERROR.TYPE", FORMULA: "GET.FORMULA", USDOLLAR: "DOLLAR", SUMPRODUCT: "ODF.SUMPRODUCT" }),
@@ -31,6 +31,7 @@ export const sylkGrammar: FormulaGrammar = Object.freeze({ ...gnumericGrammar, i
 export const sylkWriterGrammar: FormulaGrammar = Object.freeze({ ...sylkGrammar, id: "sylk-writer", stringEscape: "raw" });
 /** Old OpenOffice textual expressions; binary Lotus/BIFF tokens need their own decoder. */
 export const legacyOpenOfficeGrammar: FormulaGrammar = Object.freeze({ ...odfGrammar, id: "legacy-openoffice", sheetSeparator: "!",
+  quotedLabels: "calc",
   functionArgumentInsertions: Object.freeze({ ADDRESS: Object.freeze({ arity: 4, index: 3, value: Object.freeze({ kind: "number" as const, value: 1 }) }) })
 });
 export const legacyApplixGrammar: FormulaGrammar = Object.freeze({ ...gnumericGrammar, id: "legacy-applix",

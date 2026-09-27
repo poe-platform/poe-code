@@ -99,10 +99,13 @@ Overlaps and multi-column row labels retain their original order and extent.
 ODF and legacy OpenOffice imports read native same-sheet label/data declarations;
 ODF exports preserve their order, explicit endpoints and automatic lookup setting.
 ODF defaults automatic lookup to enabled when the setting is absent. Native quoted
-labels such as `SUM('Sales')` bind to declared label cells after all sheets load,
-including declarations on another sheet, array formulas and named expressions.
-Their internal cell anchors survive label text edits. Automatic quoted-label
-lookup, label/data pairs on different sheets and live formula export remain open.
+labels such as `SUM('Sales')` bind after all sheets load, using declared ranges
+first and enabled automatic lookup on the formula's sheet. Array and named
+expressions use the same binding. The internal `@column.odf.quoted:A$1` form keeps
+the cell anchor and OpenFormula range rules through edits: aggregates stop at a
+gap after skipping at most one initial blank; scalar consumers use the formula
+position. BIFF labels retain Calc's data-area expansion. Automatic `!!`
+intersection, label/data pairs on different sheets and live formula export remain open.
 BIFF7 and data endpoints that BIFF8 cannot encode are refused; the public engine
 warns when other exporters omit this metadata. Live BIFF8 row/column label tokens
 (`02`, `03`, `06`, `07`) recalculate and reexport with their anchor, reference

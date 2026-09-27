@@ -57,7 +57,7 @@ export function write(context: CommandContext, text: string): Promise<void> {
 export function input(context: CommandContext, file = "-"): ByteSource {
   context.signal.throwIfAborted();
   if (file === "-" || file === "/dev/stdin") return readBytes(context.stdin, context.signal);
-  return requiredFileInput(context, inputRequirements, "file", file, Infinity);
+  return requiredFileInput(context, inputRequirements, "file", file, context.inputBudget?.maxBytes ?? Infinity);
 }
 
 export async function readProgram(context: CommandContext, file: string): Promise<string> {

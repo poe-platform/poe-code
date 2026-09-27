@@ -38,6 +38,42 @@ test("AWK writes redirections and stderr once", async context => {
   assert.equal(Buffer.from(await fs.readFile("/out")).toString(), "10\n");
 });
 
+test("AWK repeated files preserve output and current environment and filename", async context => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs, commands: new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands()]) });
+  context.after(() => shell.dispose());
+  await fs.writeFile("/rows", Buffer.from("a:10:20\nb:30:40\n".repeat(40)));
+  for (let i = 0; i < 3; i++) {
+    const result = await shell.exec(`awk -F: '{ sum += $3; count++ } END { print sum, count }' /rows`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "2400 80\n");
+  }
+  const result = await shell.exec(`export MODE=prod
+awk -F: '{ sum += $3 } END { printf "%s %s %d\\n", ENVIRON["MODE"], FILENAME, sum }' /rows
+export MODE=dev
+awk -F: '{ sum += $3 } END { printf "%s %s %d\\n", ENVIRON["MODE"], FILENAME, sum }' rows`);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "prod /rows 2400\ndev rows 2400\n");
+});
+
+test("AWK memory-backed files honor lazy input limits", async context => {
+  const fs = new MemoryFileSystem();
+  const rows = Buffer.from("a:10:20\nb:30:40\n".repeat(40));
+  await fs.writeFile("/rows", rows);
+  for (const maxInputBytes of [4, rows.byteLength - 1, rows.byteLength]) {
+    const shell = new Shell({ fs, limits: { maxInputBytes }, commands: new CommandRegistry(createTextProgramCommands()) });
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`awk -F: '{ sum += $3; count++ } END { print sum, count }' /rows`);
+    if (maxInputBytes < rows.byteLength) {
+      assert.notEqual(result.exitCode, 0);
+      assert.equal(result.stdout, "");
+    } else {
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "2400 80\n");
+    }
+  }
+});
+
 test("AWK awaits asynchronous stdout and END output exactly once", async context => {
   const fs = new MemoryFileSystem();
   const shell = new Shell({ fs, commands: new CommandRegistry(createTextProgramCommands()) });

@@ -2057,12 +2057,10 @@ export class AwkRuntime {
         const fastMem = (this.context as {
           _fastMemoryBackingFs?: Parameters<typeof tryReadMemoryFileViewSync>[0] & { capabilitiesFor?: unknown };
           _chargeFastFsOp?: () => void;
-          _cachedInputBudget?: unknown;
         })._fastMemoryBackingFs;
         if (
           fastMem &&
           fastMem.capabilitiesFor === undefined &&
-          (this.context as { _cachedInputBudget?: unknown })._cachedInputBudget === undefined &&
           !Object.prototype.hasOwnProperty.call(fastMem, "readStream") &&
           !Object.prototype.hasOwnProperty.call(fastMem, "readFile")
         ) {
@@ -2075,6 +2073,7 @@ export class AwkRuntime {
               rawView = undefined;
             }
             if (rawView !== undefined && rawView.byteLength <= this.budget.maxBufferBytes) {
+              this.context.inputBudget?.check(rawView.byteLength);
               (this.context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
               this.mainReader = Reader.fromMemoryView(rawView, this.budget, this.retention);
               return true;

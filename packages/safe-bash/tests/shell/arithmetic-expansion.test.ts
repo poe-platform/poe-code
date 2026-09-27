@@ -4,7 +4,35 @@ import test from "node:test";
 import { setup } from "./helpers.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import { basicCommands, printfCommand } from "../../src/commands/basic.js";
+import { streamCommands } from "../../src/commands/streams.js";
 import { writeText } from "../../src/contracts/index.js";
+
+for (const [source, bytes] of [
+  ["dirname /é/file", 4],
+  ["basename /dir/é", 3],
+  ["dirname /😀/file", 6],
+  ["basename /dir/😀", 5],
+  ["dirname '/é\n/file'", 5],
+  ["basename '/dir/é\n'", 4],
+  ["echo é", 3],
+  ["printf %s é", 2],
+  ["printf %s 'é\n'", 3],
+  ["printf %s é | tr x y", 4],
+] as const) for (const allowed of [false, true]) {
+  test(`command substitution charges UTF-8 bytes: ${source}, allowed=${allowed}`, async context => {
+    const { shell } = setup({ limits: { maxOutputBytes: bytes - (allowed ? 0 : 1) } });
+    context.after(() => shell.dispose());
+    for (const command of [...basicCommands(), ...streamCommands()]) shell.commands.register(command, { replace: true });
+    const execution = shell.exec(`value=$(${source}); :`);
+    if (!allowed) await assert.rejects(execution, ShellLimitError);
+    else {
+      const result = await execution;
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, "");
+    }
+  });
+}
 
 const cases = [
   ["command substitution", 'set -e\nvalue=$(($(printf 3)-1))\nprintf "%s\\n" "$value"', "2\n"],

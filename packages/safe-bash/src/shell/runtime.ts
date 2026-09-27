@@ -20839,7 +20839,7 @@ export class Runtime {
         if (stage0Formatted.includes("\0")) stage0Formatted = undefined;
       }
       if (stage0Formatted === undefined || stage0Formatted.length > 8192) return undefined;
-      const stage0ByteLen = stage0Formatted.length * 3 > 127 ? shellValueByteLength(stage0Formatted) : stage0Formatted.length;
+      const stage0ByteLen = shellValueByteLength(stage0Formatted);
       if (stage0ByteLen > sharedSyncPipeBuf0.byteLength) return undefined;
       const nextBytes0 = this.budget.bytes + stage0ByteLen;
       if (nextBytes0 > this.budget.maxOutputBytesSmi && stage0ByteLen > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
@@ -21109,7 +21109,7 @@ export class Runtime {
             const preservesTerminator = firstName === "head" || firstName === "tail" || firstName === "rev" || firstName === "sed";
             const terminated = !preservesTerminator || inStr.endsWith("\n") || firstName === "head" && outLines.length < rawLines.length;
             const outStr = outLines.length > 0 ? outLines.join("\n") + (terminated ? "\n" : "") : "";
-            const outByteLen = outStr.length * 3 > 127 ? shellValueByteLength(outStr) : outStr.length;
+            const outByteLen = shellValueByteLength(outStr);
             if (outByteLen > nextBuf.byteLength) return undefined;
             const nextTotalBytes = this.budget.bytes + outByteLen;
             if (nextTotalBytes > this.budget.maxOutputBytesSmi && outByteLen > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
@@ -21534,8 +21534,8 @@ export class Runtime {
       let pEnd = parent.length;
       while (pEnd > 1 && parent[pEnd - 1] === "/") pEnd--;
       let res = parent.slice(0, pEnd);
+      const byteLength = shellValueByteLength(res) + 1;
       while (res.endsWith("\n")) res = res.slice(0, -1);
-      const byteLength = (res.length * 3 > 127 ? shellValueByteLength(res) : res.length) + 1;
       const nextBytes = this.budget.bytes + byteLength;
       if (nextBytes > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
       this.budget.bytes = nextBytes;
@@ -21559,8 +21559,8 @@ export class Runtime {
       }
       let res = /^\/+$/u.test(wVal1) ? "/" : basename(wVal1);
       if (wVal2 && res !== wVal2 && res.endsWith(wVal2)) res = res.slice(0, -wVal2.length);
+      const byteLength = shellValueByteLength(res) + 1;
       while (res.endsWith("\n")) res = res.slice(0, -1);
-      const byteLength = (res.length * 3 > 127 ? shellValueByteLength(res) : res.length) + 1;
       const nextBytes = this.budget.bytes + byteLength;
       if (nextBytes > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
       this.budget.bytes = nextBytes;
@@ -21601,7 +21601,7 @@ export class Runtime {
         if (typeof wVal !== "string" || wVal.startsWith("-") || wVal.includes("\0")) return undefined;
         val = wVal;
       }
-      const byteLength = (val.length * 3 > 127 ? shellValueByteLength(val) : val.length) + 1;
+      const byteLength = shellValueByteLength(val) + 1;
       const nextBytes = this.budget.bytes + byteLength;
       if (nextBytes > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
       this.budget.bytes = nextBytes;
@@ -21637,7 +21637,7 @@ export class Runtime {
       if (formatted.includes("\0")) return undefined;
     }
     if (formatted === undefined) return undefined;
-    const byteLength = formatted.length * 3 > 127 ? shellValueByteLength(formatted) : formatted.length;
+    const byteLength = shellValueByteLength(formatted);
     const nextBytes = this.budget.bytes + byteLength;
     if (nextBytes > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
     this.budget.bytes = nextBytes;

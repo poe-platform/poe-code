@@ -348,7 +348,19 @@ with explicit memory I/O confirms `--set B1=of:=[.A1]+1` emits `11,12`.
 These checks establish candidate behavior,
 not native-application qualification.
 
-Next wire the source-qualified Lotus sheet bit into the durable representation.
+Modern Lotus direct references now retain bit 2 as sheet relativity and force
+owner-sheet endpoints relative, following pinned LibreOffice `ReadSRD`. Relative
+references survive the decoder's expression construction as reference nodes and
+are stored as OpenFormula; fixed-only expressions retain their native syntax.
+Repeated physical targets keep independent flags, and quoted/backslash string
+literals survive both grammars. Five of six initial sheet controls failed, as did
+two subsequent literal controls. Existing three-sheet sums still return 41;
+the affected expectations now retain their owner-sheet flag in OpenFormula.
+The second range endpoint still uses the existing three-bit shift; this does not
+resolve libwps's conflicting four-bit layout. All 441 package files / 24,436 tests,
+maintained lint/source/test/consumer types and selected build pass. Six compiled
+SDK/command XML/XLSX/ODF conversions preserve the literal and calculate 23 after
+readback and copying; input is 158 bytes, outputs are 735/5940/3410 bytes.
 Qualify origin moves separately from moved cell ranges, tab reordering and copying:
 Calc's optional `AdjustCrossSheetRefs` clone mode preserves nonzero cross-sheet
 targets even when the underlying token is relative. Native operation qualification,

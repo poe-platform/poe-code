@@ -8,8 +8,10 @@ import { lmbcsGroups } from "./lotus-charset.js";
 import { readLotusWorks } from "./lotus-works.js";
 import { worksFunctions } from "./lotus-works-functions.js";
 import { lotusFunctions, lotusFunctionsByName } from "./lotus-functions.js";
-import { gnumericGrammar } from "../formulas/conventions.js";
-import { quoteFormulaString } from "../formulas/serialization.js";
+import { gnumericGrammar, odfGrammar } from "../formulas/conventions.js";
+import { quoteFormulaString, serializeExpression } from "../formulas/serialization.js";
+import { parseExpression } from "../formulas/parser.js";
+import type { FormulaNode, ReferenceEndpoint } from "../formulas/ast.js";
 import { biffDbcsTables } from "../encoding/biff-dbcs-tables.js";
 
 export function probeLotus(bytes: Uint8Array, context: CapabilityContext): boolean {
@@ -154,6 +156,7 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
   sheetIndex: number, sheetName: (index: number) => string, context: CapabilityContext,
   consumeOperation: () => void, functions: typeof lotusFunctions = lotusFunctions, names?: ReadonlyMap<string, LotusNamedRange>, legacyReferenceLayout?: "wk1" | "wk2" | "works3" | "symphony"): Promise<string> {
   const b = new Binary(bytes), stack: string[] = [], modern = format !== "wk1";
+  const relativeReferences = new Map<string, Extract<FormulaNode, { kind: "reference" }>>();
   let at = 0;
   const pop = async () => {
     if (stack.length) return stack.pop()!;
@@ -215,7 +218,22 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
         const flags = b.u8(at);
         // A span must qualify both sheets, including the formula's own sheet.
         const crossSheet = op === 2 && b.u8(at + 3) !== b.u8(at + 7);
-        stack.push(newRef(at + 1, flags & 7, crossSheet) + (op === 2 ? `:${newRef(at + 5, flags >> 3 & 7, crossSheet)}` : ""));
+        const endpoint = (p: number, bits: number): ReferenceEndpoint => {
+          const target = b.u8(p + 2), rr = !!(bits & 2), cr = !!(bits & 1);
+          return { ...(target !== sheetIndex || crossSheet ? { sheet: sheetName(target) } : {}),
+            // LibreOffice ReadSRD forces same-sheet references relative.
+            sheetRelative: !!(bits & 4) || target === sheetIndex,
+            row: { value: b.u16(p) - (rr ? row : 0), relative: rr },
+            column: { value: b.u8(p + 3) - (cr ? column : 0), relative: cr } };
+        };
+        const first = endpoint(at + 1, flags & 7), last = op === 2 ? endpoint(at + 5, flags >> 3 & 7) : undefined;
+        if (first.sheet && first.sheetRelative || last?.sheet && last.sheetRelative) {
+          // Imported names are expanded into coordinates below. These identifiers
+          // exist only in this decoder-owned expression, until AST substitution.
+          const name = `LOTUS_SHEET_REFERENCE_${relativeReferences.size}`;
+          relativeReferences.set(name, { kind: "reference", start: 0, end: 0, first, ...(last ? { last } : {}) });
+          stack.push(name);
+        } else stack.push(newRef(at + 1, flags & 7, crossSheet) + (op === 2 ? `:${newRef(at + 5, flags >> 3 & 7, crossSheet)}` : ""));
       } else stack.push(oldRef(at) + (op === 2 ? `:${oldRef(at + 4)}` : ""));
       at += length;
     } else if (op === 5) {
@@ -225,7 +243,7 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
       stack.push(String(modern ? length === 4 ? packedNumber(b.u32(at)) : smallNumber(signed) : signed)); at += length;
     } else if (op === 6) {
       const start = at; while (at < bytes.length && bytes[at]) at++;
-      stack.push('"' + (await lmbcs(bytes.subarray(start, at), group, context)).split('"').join('""') + '"'); at++;
+      stack.push(quoteFormulaString(await lmbcs(bytes.subarray(start, at), group, context), '"', gnumericGrammar)); at++;
     } else if (modern && (op === 7 || op === 8)) {
       const start = at;
       while (at < bytes.length && bytes[at]) { context.signal.throwIfAborted(); at++; }
@@ -348,6 +366,24 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
   const result = stack.pop() ?? "#VALUE!";
   if (stack.length) await context.diagnostic?.({ code: "lotus", severity: "warning", message: `${formatA1(row, column)}: args remain on stack` });
   context.signal.throwIfAborted();
+  if (relativeReferences.size) {
+    const parsed = parseExpression(`=${result}`, { position: { sheet: sheetName(sheetIndex), row, column }, signal: context.signal,
+      maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? Infinity });
+    if (!parsed.ok) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: Lotus relative-sheet formula");
+    const substitute = (node: FormulaNode): FormulaNode => {
+      context.signal.throwIfAborted();
+      if (node.kind === "name") return relativeReferences.get(node.name) ?? node;
+      if (node.kind === "unary" || node.kind === "parentheses") return { ...node, child: substitute(node.child) };
+      if (node.kind === "binary") return { ...node, left: substitute(node.left), right: substitute(node.right) };
+      if (node.kind === "call") return { ...node, args: node.args.map(substitute) };
+      if (node.kind === "array") return { ...node, rows: node.rows.map(row => row.map(substitute)) };
+      return node;
+    };
+    const expression = serializeExpression({ ...parsed.document, root: substitute(parsed.document.root) }, odfGrammar, false, true);
+    if (expression.length > (context.limits.workbookTextBytes ?? context.limits.inputBytes))
+      throw new SsconvertError("resource-limit", "ssconvert Lotus formula length limit exceeded");
+    return expression;
+  }
   return `=${result}`;
 }
 

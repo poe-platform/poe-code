@@ -25,8 +25,8 @@ function input(id: number, owner: number, first: number, last: number): Uint8Arr
 // ReadSRD also reads an independent sheet byte for every endpoint.
 for (const id of [25, 40]) {
   it.each([
-    [0, 2, 0, "=SUM('Last'!$A$1:'First\\'s'!$A$1)", 41],
-    [2, 0, 2, "=SUM('First\\'s'!$A$1:'Last'!$A$1)", 41],
+    [0, 2, 0, "of:=SUM([$'Last'.$A$1:'First''s'.$A$1])", 41],
+    [2, 0, 2, "of:=SUM([$'First''s'.$A$1:'Last'.$A$1])", 41],
     [1, 0, 2, "=SUM('First\\'s'!$A$1:'Last'!$A$1)", 41],
     [0, 0, 0, "=SUM($A$1:$A$1)", 11],
     [0, 2, 2, "=SUM('Last'!$A$1:'Last'!$A$1)", 17],

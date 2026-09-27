@@ -3226,6 +3226,7 @@ function getRuntimeMuscleMemoryCommand(name: string): CommandDefinition | undefi
 const fastSubScratchArgs: string[] = [];
 const defaultValueScopeReserve = ValueScope.prototype.reserve;
 const defaultStringCodePointAt = String.prototype.codePointAt;
+const defaultFloat64Array = globalThis.Float64Array;
 const fastMkdirRmPaths: string[] = new Array<string>(32).fill("");
 const fastRedirectScratchBytes = new Uint8Array(8192);
 const fastRedirectScratchViews: Uint8Array[] = Array.from({ length: 129 }, (_, len) => fastRedirectScratchBytes.subarray(0, len));
@@ -16718,7 +16719,7 @@ export class Runtime {
           continue;
         }
         if (part.operator !== undefined) {
-          if (ValueScope.prototype.reserve !== defaultValueScopeReserve || String.prototype.codePointAt !== defaultStringCodePointAt) return undefined;
+          if (ValueScope.prototype.reserve !== defaultValueScopeReserve || String.prototype.codePointAt !== defaultStringCodePointAt || globalThis.Float64Array !== defaultFloat64Array) return undefined;
           if (
             !rawState.nocasematch &&
             (part.operator === "/" || part.operator === "//" || part.operator === "/#" || part.operator === "/%") &&

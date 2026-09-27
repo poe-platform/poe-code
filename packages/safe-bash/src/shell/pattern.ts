@@ -267,13 +267,13 @@ function getCompiledSyncPatternRegex(pattern: string): RegExp | null {
       continue;
     }
     if (c === 42) {
-      if (i === 0 || pattern.charCodeAt(i - 1) !== 42) {
-        if (++starCount > 4) {
-          syncPatternRegexCache.set(pattern, null);
-          return null;
-        }
-        regexBody += "[\\s\\S]*";
+      // Consume only adjacent wildcard tokens; an escaped star is a literal.
+      if (++starCount > 4) {
+        syncPatternRegexCache.set(pattern, null);
+        return null;
       }
+      regexBody += "[\\s\\S]*";
+      while (pattern.charCodeAt(i + 1) === 42) i++;
       continue;
     }
     if (c === 63) {

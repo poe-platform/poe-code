@@ -87,31 +87,28 @@ test("nested eval calling function resumes without replaying prefix across scala
 });
 
 test("compound loops preserve multi-arg unset, export, let, and quoted array expansion", async () => {
-    const res = await execute(`
-      arr=(foo_1 bar_2 foo_3 baz_4)
-      acc=0
-      for ((i=1; i<=20; i++)); do
-        a=$i
-        b=$((i+1))
-        unset -v a b
-        export EXP_A="v$i" EXP_B="w$i"
-        let "acc += i" "last = i * 2"
-        s1="\${arr[@]:1:2}"
-        s2="\${arr[@]/foo/qux}"
-        (( acc += \${#EXP_A} + \${#EXP_B} + \${#s1} + \${#s2} + \${a:-0} + \${b:-0} ))
-      done
-      echo "$acc:$last:$EXP_A:$EXP_B"
-    `);
-    assert.equal(res.exitCode, 0);
-    assert.equal(res.stderr, "");
-    assert.equal(res.stdout, "992:40:v20:w20\n");
-=======
-    expect(res.exitCode).toBe(0);
-    expect(res.stdout).toBe("992:40:v20:w20\n");
-  });
-  it("executes multi-arg array unset, glob array trims, declare/typeset scalars, and assoc/keyed compound assignments synchronously", async () => {
-    const shell = createShell();
-    const res = await shell.exec(`
+  const res = await execute(`
+    arr=(foo_1 bar_2 foo_3 baz_4)
+    acc=0
+    for ((i=1; i<=20; i++)); do
+      a=$i
+      b=$((i+1))
+      unset -v a b
+      export EXP_A="v$i" EXP_B="w$i"
+      let "acc += i" "last = i * 2"
+      s1="${arr[@]:1:2}"
+      s2="${arr[@]/foo/qux}"
+      (( acc += ${#EXP_A} + ${#EXP_B} + ${#s1} + ${#s2} + ${a:-0} + ${b:-0} ))
+    done
+    echo "$acc:$last:$EXP_A:$EXP_B"
+  `);
+  assert.equal(res.exitCode, 0);
+  assert.equal(res.stderr, "");
+  assert.equal(res.stdout, "992:40:v20:w20\n");
+});
+
+test("compound loops execute multi-arg array unset, glob array trims, declare/typeset scalars, and assoc/keyed compound assignments synchronously", async () => {
+  const res = await execute(`
     arr=(pre_a pre_b pre_c)
     declare -A map=([x]=1)
     acc=0
@@ -127,7 +124,7 @@ test("compound loops preserve multi-arg unset, export, let, and quoted array exp
     done
     echo "$acc:${map[a]}:${map[c]}:${karr[3]}"
   `);
-    expect(res.exitCode).toBe(0);
-    expect(res.stdout).toBe("482:v20:z20:q20\n");
-  });
+  assert.equal(res.exitCode, 0);
+  assert.equal(res.stderr, "");
+  assert.equal(res.stdout, "482:v20:z20:q20\n");
 });

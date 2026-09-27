@@ -128,6 +128,35 @@ it.each([2, 8])("retains unrepresented BIFF%i input flags with warnings and cach
   expect(book.sheets[0]!.cells.find(c => c.row === 1 && c.column === 1)?.cachedResult).toEqual({ kind: "number", value: 0 });
 });
 
+for (const mode of ["row", "column", "both"] as const) {
+  it.each([0x40, 0x8000, 0xffc2])(`ignores reserved BIFF8 table flags %i in ${mode} mode`, async flags => {
+    const bytes: number[] = [];
+    for (const r of readBiffRecords(originalTable(8, mode), context)) {
+      const data = r.data.bytes.slice(), view = new DataView(data.buffer);
+      if (r.opcode === 0x236) view.setUint16(6, view.getUint16(6, true) | flags, true);
+      bytes.push(...record(r.opcode, [...data]));
+    }
+    const diagnostics: string[] = [];
+    const book = await readBiff(Uint8Array.from(bytes), { ...context, diagnostic: async d => { diagnostics.push(d.code); } });
+    expect(book.sheets[0]!.formulaGroups?.[0]?.expression).toBe(expression(mode));
+    expect(results(book)).toEqual(expected);
+    expect(diagnostics).toEqual([]);
+  });
+}
+
+it.each(["row", "column"] as const)("ignores the unused second input in a BIFF8 %s table", async mode => {
+  const bytes: number[] = [];
+  for (const r of readBiffRecords(originalTable(8, mode), context)) {
+    const data = r.data.bytes.slice();
+    if (r.opcode === 0x236) { data[6]! |= 0x20; data.fill(0xff, 12, 16); }
+    bytes.push(...record(r.opcode, [...data]));
+  }
+  const diagnostics: string[] = [];
+  const book = await readBiff(Uint8Array.from(bytes), { ...context, diagnostic: async d => { diagnostics.push(d.code); } });
+  expect(results(book)).toEqual(expected);
+  expect(diagnostics).toEqual([]);
+});
+
 it("exports parenthesized and qualified TABLE input coordinates without external lookup", () => {
   const book: Workbook = { sheets: [{ id: "s", name: "Sheet", cells: [] }] };
   const group = { id: "t", kind: "array" as const, range: { startRow: 1, endRow: 2, startColumn: 1, endColumn: 2 },

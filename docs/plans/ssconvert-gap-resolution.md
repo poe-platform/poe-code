@@ -355,8 +355,11 @@ tables now import; BIFF7/8 export emits native DATATABLE records and `tTbl` poin
 All 21 initial regressions failed before correction. The expanded 40-case suite
 and seven group controls pass, alongside final lint/types and the selected build.
 The earlier surrounding cohort passed 1,655 tests; 60 final compiled SDK/command
-conversions retain 240 results while restoring the original input cells. Deleted-input and
-unknown flags retain records/caches with explicit warnings; their semantics and
+conversions retain 240 results while restoring the original input cells. MS-XLS
+2.4.319 additionally requires reserved BIFF8 fields and unused second-input fields
+to be ignored: all 11 regressions failed before correction, and the final 58
+table/group controls and six compiled conversions pass. Active deleted-input and
+unrepresented legacy flags retain records/caches with explicit warnings; their semantics and
 independent native application qualification remain open.
 
 The Calc reference-model audit is recorded under `reference.sheetReferenceSemantics`.

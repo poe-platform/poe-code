@@ -1437,13 +1437,19 @@
           "url": "https://www.openoffice.org/sc/excelfileformat.pdf",
           "sha256": "af25dee84bd186225a241cafc07ab9f2ea60149f4e2836d3f44a10107949ab4e",
           "sections": "3.10.2,4.9,5.24-25"
+        },
+        {
+          "url": "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/2e33c7ad-8a8a-4abc-b36f-01c682ad2eb9",
+          "section": "2.4.319 Table",
+          "sha256": "211d5783b9e8fab6edbb59e3726abe60f970ed2cb2c5a0df9897507e1d033f27"
         }
       ],
       "finding": "DATATABLE/DATATABLE2 follow the table anchor FORMULA, whose cells use tTbl pointers. Row and column modes take formulas/values from the table borders; two-input mode evaluates the top-left border formula. Gnumeric maps this to TABLE(rowInput,columnInput), leaving the unused argument empty. LibreOffice TableOp agrees for BIFF5/8; its inspected dispatch does not establish BIFF2/3/4 support. Those original layouts follow the published specification, including the 12-byte BIFF2 single-input record and separate 16-byte DATATABLE2.",
       "implementation": "Import BIFF2/3/4/7/8 table definitions as existing array formula groups with TABLE expressions; resolve only matching tTbl anchors and retain cached string ordering. BIFF7/8 export recognizes TABLE array groups, resolves relative input coordinates and writes 16-byte native DATATABLE plus tTbl pointers instead of add-in formulas. Input substitution and restoration use the existing evaluator. Qualified input references follow TABLE own-sheet coordinate semantics without external lookup.",
       "validation": "All 21 initial regressions failed before correction. All 40 expanded cases and seven group controls pass: original row/column/two-input tables, literal native record bytes, BIFF7/8 recalculated reexports, restored inputs, cached string ordering, malformed pointers/records, version bounds and retained unsupported flags. The BIFF2 unknown-option regression also failed before its correction. The surrounding cohort passed 65 files / 1655 tests before the final diagnostic-label and BIFF2-option corrections. Final maintained package lint/source/test/consumer types, selected build and compiled public probe all pass.",
       "publicValidation": "Sixty compiled SDK/command conversions across five input revisions, three modes and two output revisions retained 240 expected table values and original input values with zero diagnostics. Actual compiled command screenshot inspected. Native application readback was not performed for this change.",
-      "remaining": "Deleted-input flags and unknown option bits retain raw records/cached cells with explicit loss diagnostics; this does not implement their semantics. Broader table edits, native application readback, remaining BIFF tokens and all 19 gap families remain open."
+      "remaining": "Active deleted-input flags and unrepresented legacy options retain raw records/cached cells with explicit loss diagnostics; this does not implement their semantics. Broader table edits, native application readback, remaining BIFF tokens and all 19 gap families remain open.",
+      "reservedFlags": "MS-XLS requires BIFF8 reserved fields to be ignored; a one-variable table also ignores its second input coordinates. The earlier reader incorrectly rejected reserved bits and an unused second-input deletion flag. All 11 new memory regressions failed before correction; all 58 final table/group tests, maintained lint/source/test/consumer types and selected build pass. Six compiled SDK/command XLSX conversions retain 24 results and original inputs without diagnostics. The initial SDK probe used the wrong recalc option; correcting the probe required no product change. Actual command screenshot inspected."
     }
   },
   "cases": [

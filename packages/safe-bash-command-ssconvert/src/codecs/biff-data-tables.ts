@@ -9,8 +9,9 @@ export function readBiffDataTable(data: Binary, revision: number, opcode: number
   const both = revision === 2 ? opcode === 0x37 : !!(data.u16(6) & 8);
   data.check(0, revision === 2 && !both ? 12 : 16);
   const flags = revision === 2 ? data.u8(7) : data.u16(6);
-  // Keep unrepresented flags and cached cells with explicit retained-record diagnostics.
-  if (revision === 2 ? !both && flags > 1 : flags & ~15) return undefined;
+  // MS-XLS 2.4.319: BIFF8 reserved bits and an unused second input are ignored.
+  // Active deleted inputs remain unrepresented; retain their records and caches.
+  if (revision === 2 ? !both && flags > 1 : revision >= 8 ? flags & (both ? 0x30 : 0x10) : flags & ~15) return undefined;
   const row = revision === 2 ? !!flags : !!(flags & 4);
   const input = (offset: number) => {
     const r = data.u16(offset), c = data.u16(offset + 2);

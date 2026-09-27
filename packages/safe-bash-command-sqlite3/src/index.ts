@@ -449,17 +449,17 @@ function formatQueryResult(res: QueryResultSet, state: CliSessionState): string 
           return explicit;
         }
         const maxData = strRows.reduce((m, r) => Math.max(m, (r[i] ?? "").length), 0);
-        return Math.max(state.showHeaders ? c.length : 1, maxData, 1);
+        return Math.max(c.length, maxData, 1);
       });
 
       if (state.mode === "column") {
         const lines: string[] = [];
         if (state.showHeaders) {
-          lines.push(columns.map((c, i) => c.padEnd(colWidths[i]!, " ")).join("  ").trimEnd());
+          lines.push(columns.map((c, i) => c.padEnd(colWidths[i]!, " ")).join("  "));
           lines.push(colWidths.map((w) => "-".repeat(w)).join("  "));
         }
         for (const r of strRows) {
-          lines.push(r.map((cell, i) => cell.padEnd(colWidths[i]!, " ")).join("  ").trimEnd());
+          lines.push(r.map((cell, i) => cell.padEnd(colWidths[i]!, " ")).join("  "));
         }
         return `${lines.join("\n")}\n`;
       }
@@ -692,7 +692,6 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         state.colSeparator = "|";
       } else if (arg === "-column" || arg === "--column") {
         state.mode = "column";
-        state.showHeaders = true;
       } else if (arg === "-table" || arg === "--table") {
         state.mode = "table";
         state.showHeaders = true;
@@ -923,7 +922,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
             state.colSeparator = "\t";
           } else if (newMode === "insert" && parts[2]) {
             state.insertTable = parts[2];
-          } else if (["column", "table", "box", "markdown"].includes(newMode) && parts[2] === undefined) {
+          } else if (["table", "box", "markdown"].includes(newMode) && parts[2] === undefined) {
             state.showHeaders = true;
           }
         }

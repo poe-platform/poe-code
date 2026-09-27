@@ -181,6 +181,14 @@ test("sqlite3 matches native /usr/bin/sqlite3 for COALESCE/IFNULL/IIF projection
   assert.equal(rModeSwitch.code, 0, rModeSwitch.stderr);
   assert.equal(rModeSwitch.stdout, "1,2\n3|4\n");
 
+  const rColNoHeader = await runSqlite3(fs, ["-column", ":memory:", "SELECT 3779 AS number, 'open' AS state, 1 AS version;"]);
+  assert.equal(rColNoHeader.code, 0, rColNoHeader.stderr);
+  assert.equal(rColNoHeader.stdout, "3779    open   1      \n");
+
+  const rColHeader = await runSqlite3(fs, ["-column", "-header", ":memory:", "SELECT 3779 AS number, 'open' AS state, 1 AS version;"]);
+  assert.equal(rColHeader.code, 0, rColHeader.stderr);
+  assert.equal(rColHeader.stdout, "number  state  version\n------  -----  -------\n3779    open   1      \n");
+
   const rTablesGrid = await runSqlite3(fs, [
     ":memory:",
     "CREATE TABLE agents(x); CREATE TABLE comments(x); CREATE TABLE issue_status_updates(x); CREATE TABLE issues(x); CREATE TABLE projects(x);",

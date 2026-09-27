@@ -10,6 +10,24 @@ function pause(signal: AbortSignal): Promise<never> {
   return new Promise((_resolve, reject) => signal.addEventListener("abort", () => reject(signal.reason), { once: true }));
 }
 
+for (const quantum of ["members", "input chunks"] as const) {
+  test(`the first archive ${quantum} quantum admits queued cancellation before the elapsed deadline`, async context => {
+    context.mock.method(performance, "now", () => 0);
+    const { fs, shell } = await fixture();
+    await shell.dispose();
+    const bytes = quantum === "members"
+      ? archive(...Array.from({ length: 256 }, (_, index) => member(`file-${index}`)))
+      : archive(member("file", new Uint8Array(256 * 512)));
+    const controller = new AbortController();
+    const timer = setImmediate(() => controller.abort(null));
+    try {
+      await assert.rejects(direct(["tf", "-"], fs, {
+        stdin: source(bytes, quantum === "members" ? bytes.length : 512), signal: controller.signal,
+      }), error => error === null);
+    } finally { clearImmediate(timer); }
+  });
+}
+
 async function settle<Value>(promise: Promise<Value>): Promise<Value> {
   let timer: NodeJS.Timeout | undefined;
   try {

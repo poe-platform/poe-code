@@ -99,7 +99,7 @@ export class WalkBudget {
   async fs<Result>(operation: () => Promise<Result>): Promise<Result> {
     this.step();
     const { signal } = this.context;
-    if (++this.operations % 64 === 0 && (hasYieldCheckpoint(signal) || monotonicNow() - this.lastYield >= 16)) {
+    if (++this.operations % 64 === 0 && (this.operations === 64 || hasYieldCheckpoint(signal) || monotonicNow() - this.lastYield >= 16)) {
       await yieldTurn(signal);
       this.lastYield = monotonicNow();
     }

@@ -16,6 +16,17 @@ function deferred<Value>() {
 
 const directoryStat: FileStat = { type: "directory", mode: 0o40755, size: 0, mtimeMs: 0, atimeMs: 0, ctimeMs: 0 };
 
+test("the first traversal quantum admits queued cancellation before the elapsed deadline", async context => {
+  context.mock.method(performance, "now", () => 0);
+  const fs = createMemoryFileSystem();
+  for (let index = 0; index < 200; index++) await fs.writeFile(`/file-${index}`, new Uint8Array());
+  const controller = new AbortController();
+  const timer = setImmediate(() => controller.abort(false));
+  try {
+    await assert.rejects(run([], {}, { fs, signal: controller.signal }), error => error === false);
+  } finally { clearImmediate(timer); }
+});
+
 test("known ancestor identity prevents recursion; bare inode and lexical realpath do not", async () => {
   const backing = createMemoryFileSystem();
   const scope = {};

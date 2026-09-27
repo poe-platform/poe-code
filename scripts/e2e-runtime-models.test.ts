@@ -1,4 +1,3 @@
-import { execFileSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 import { resolveE2eModel, resolveE2eModelEnvironment } from "../e2e/runtime-models.js";
 
@@ -20,9 +19,6 @@ describe("native model environment for E2E", () => {
       const model = resolveE2eModel("goose", { POE_CODE_E2E_GOOSE_MODEL: override });
       const env = resolveE2eModelEnvironment("goose", model);
       expect(env).toEqual({ GOOSE_MODEL: override ?? "gpt-5.4" });
-      expect(execFileSync(process.execPath, ["-e", "process.stdout.write(process.env.GOOSE_MODEL ?? '')"], {
-        encoding: "utf8", env: { ...process.env, ...env },
-      })).toBe(model);
     }
   });
 

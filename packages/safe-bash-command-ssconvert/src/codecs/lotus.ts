@@ -193,9 +193,9 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
     return ref((r & 4095) * (rr && r & 4096 ? -1 : 1) + (rr ? row : 0),
       (c & 4095) % 256 * (cr && c & 4096 ? -1 : 1) + (cr ? column : 0), rr, cr);
   };
-  const newRef = (p: number, flags: number) => {
+  const newRef = (p: number, flags: number, qualifySheet: boolean) => {
     const target = b.u8(p + 2), name = sheetName(target);
-    return (target === sheetIndex ? "" : quoteFormulaString(name, "'", gnumericGrammar) + "!") + ref(b.u16(p), b.u8(p + 3), !!(flags & 2), !!(flags & 1));
+    return (target === sheetIndex && !qualifySheet ? "" : quoteFormulaString(name, "'", gnumericGrammar) + "!") + ref(b.u16(p), b.u8(p + 3), !!(flags & 2), !!(flags & 1));
   };
   while (at < bytes.length) {
     context.signal.throwIfAborted();
@@ -213,7 +213,9 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
       if (modern) {
         // Each reference carries its own column/row/sheet relativity bits.
         const flags = b.u8(at);
-        stack.push(newRef(at + 1, flags & 7) + (op === 2 ? `:${newRef(at + 5, flags >> 3 & 7)}` : ""));
+        // A span must qualify both sheets, including the formula's own sheet.
+        const crossSheet = op === 2 && b.u8(at + 3) !== b.u8(at + 7);
+        stack.push(newRef(at + 1, flags & 7, crossSheet) + (op === 2 ? `:${newRef(at + 5, flags >> 3 & 7, crossSheet)}` : ""));
       } else stack.push(oldRef(at) + (op === 2 ? `:${oldRef(at + 4)}` : ""));
       at += length;
     } else if (op === 5) {

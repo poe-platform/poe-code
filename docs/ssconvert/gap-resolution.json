@@ -1130,6 +1130,26 @@
       "validation": "Ten of fourteen original memory regressions failed. All 317 tests in sixteen Lotus files pass after correction, including WK1/WK2/Windows Works controls, independent range endpoints, conditional column wrapping, signed row boundaries and preserved absolute coordinates. Maintained package lint, source/test/consumer types and selected build pass.",
       "publicQualification": "Nine compiled public --recalc WK1-to-XLSX conversions and SDK readbacks retain the expected formulas and values with no diagnostics. Four backward references recalculate to 42. A preserved absolute IW8193 reference evaluates to #REF! because the imported sheet has only 256 columns; the initial probe's zero expectation was corrected without changing product bounds. Inputs are 46 bytes; outputs are 4074\u20134092 bytes and remain in memory.",
       "remaining": "Native Symphony/Works application readback, ambiguous DOS Works profiles, relative-sheet identity, modern range flag packing and wider format qualification remain open. No family is closed."
+    },
+    "lotusDirectSheetSpans": {
+      "status": "implemented independent sheet endpoints for direct Lotus range tokens",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/GNOME/gnumeric/GNUMERIC_1_12_61/plugins/lotus-123/lotus-formula.c",
+          "sha256": "211c130f60af76d0f5383b36b1a25baa9ac258fb4075b8280c9773501ef9acd9",
+          "lines": "706-720,754-762",
+          "finding": "The range reader resolves each physical sheet byte and drops a sheet qualifier only when both endpoints share the same sheet. An owner-sheet endpoint stays explicit for a span. The candidate independently omitted owner-sheet qualifiers, collapsing spans ending at the owner to one sheet."
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/lotus/lotform.cxx",
+          "sha256": "1a6b859a76fe0ac7d7485b0b298996125a19ecfc4b170fcbeccd9ca0a00b2794",
+          "lines": "320-342",
+          "finding": "ReadSRD reads each endpoint's independent row, sheet and column. Its separate relative-tab flag semantics do not justify collapsing distinct physical endpoints."
+        }
+      ],
+      "validation": "Four of ten memory regressions failed before correction, returning 11 or 17 instead of 41. Both formula records 25 and 40 now preserve forward/reversed spans, late quoted sheet names and owner/interior positions, with same-sheet controls. All 327 tests in seventeen Lotus files, maintained package lint/source/test/consumer types and selected build pass. Initial test spelling used Excel doubled apostrophes; corrected to the existing Gnumeric backslash grammar before counting baseline failures.",
+      "publicQualification": "Ten compiled public --recalc WK3-to-XLSX conversions and SDK readbacks retain both sheet identities and values; fresh recalculation after reopening returns 41 for all six span cases, 11 and 17 for the four controls. Empty diagnostics. Inputs are 161/163 bytes; outputs are 5772-5786 bytes. Fixtures remain in memory.",
+      "remaining": "Native application readback, relative-sheet behavior, modern range flag packing and wider Lotus format qualification remain open. No family is closed."
     }
   },
   "cases": [
@@ -1141,7 +1161,7 @@
     {
       "id": "lotus-named-formula-references",
       "status": "open",
-      "currentFinding": "Implemented source-qualified WK1/WK3 names, namespace lifecycle, WK1/WK2, Windows Works and DOS Symphony offsets, WK3 admission, numeric record widths and single-rounding extended values. Qualified financial/date/position/lookup semantics and all 47 LibreOffice-recognized add-ins resolve. LMBCS Unicode, four national double-byte groups and C0/C1 controls follow ICU source. All 317 tests in sixteen Lotus files and package lint/types/build pass; public SDK/command observations remain scoped by the source records. BIFF NUL and shared/inline XLSX string preservation are now implemented. Ambiguous DOS Works profiles, modern range flags, relative-sheet identity, wider charsets/formatting/domains and native applications remain open. CSV NUL loss and raw-NUL XLSX formula refusal remain distinct export gaps. Containing publication is pending."
+      "currentFinding": "Implemented source-qualified WK1/WK3 names, namespace lifecycle, WK1/WK2, Windows Works and DOS Symphony offsets, WK3 admission, numeric record widths and single-rounding extended values and direct cross-sheet range endpoints. Qualified financial/date/position/lookup semantics and all 47 LibreOffice-recognized add-ins resolve. LMBCS Unicode, four national double-byte groups and C0/C1 controls follow ICU source. All 327 tests in seventeen Lotus files and package lint/types/build pass; public SDK/command observations remain scoped by the source records. BIFF NUL and shared/inline XLSX string preservation are now implemented. Ambiguous DOS Works profiles, modern range flags, relative-sheet identity, wider charsets/formatting/domains and native applications remain open. CSV NUL loss and raw-NUL XLSX formula refusal remain distinct export gaps. Containing publication is pending."
     },
     {
       "id": "biff-external-and-token-formulas",

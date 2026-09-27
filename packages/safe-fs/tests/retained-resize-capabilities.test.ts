@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { getEventListeners } from "node:events";
 import type { FileResizeHandle, FileStat, FileSystem, FileSystemCapabilities } from "../src/contracts/filesystem.js";
 import * as admission from "../src/fs/capabilities.js";
 
@@ -119,6 +120,94 @@ describe("retained-resize admission", () => {
     await Promise.resolve();
     expect(openResizeFile).not.toHaveBeenCalled();
     expect(remove).toHaveBeenCalledWith("abort", expect.any(Function));
+  });
+
+  it.each(["resolve", "reject"] as const)("releases the last metadata listener on %s and allows reuse", async settlement => {
+    const { filesystem, handle, openResizeFile } = fixture();
+    const controller = new AbortController();
+    const add = vi.spyOn(controller.signal, "addEventListener");
+    const remove = vi.spyOn(controller.signal, "removeEventListener");
+    for (let wave = 0; wave < 2; wave++) {
+      const metadata = deferred<FileSystemCapabilities>();
+      filesystem.capabilitiesFor = vi.fn(() => metadata.promise);
+      const outcome = admission.openRetainedResizeFile(filesystem, "/file", { signal: controller.signal }).then(value => ({ value }), error => ({ error }));
+      expect(getEventListeners(controller.signal, "abort")).toHaveLength(1);
+      if (settlement === "resolve") metadata.resolve(filesystem.capabilities);
+      else metadata.reject(null);
+      expect(await outcome).toEqual(settlement === "resolve" ? { value: handle } : { error: null });
+      expect(getEventListeners(controller.signal, "abort")).toHaveLength(0);
+      expect(add).toHaveBeenCalledTimes(wave + 1);
+      expect(remove).toHaveBeenCalledTimes(wave + 1);
+      if (settlement === "resolve") await handle.close();
+    }
+    expect(openResizeFile).toHaveBeenCalledTimes(settlement === "resolve" ? 2 : 0);
+  });
+
+  it("shares one listener across concurrent waits until the last waiter settles", async () => {
+    const { filesystem, handle, openResizeFile } = fixture();
+    const first = deferred<FileSystemCapabilities>();
+    const second = deferred<FileSystemCapabilities>();
+    filesystem.capabilitiesFor = vi.fn().mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+    const controller = new AbortController();
+    const add = vi.spyOn(controller.signal, "addEventListener");
+    const remove = vi.spyOn(controller.signal, "removeEventListener");
+    const accepted = admission.openRetainedResizeFile(filesystem, "/first", { signal: controller.signal });
+    const rejected = admission.openRetainedResizeFile(filesystem, "/second", { signal: controller.signal }).catch(error => error);
+    expect(add).toHaveBeenCalledTimes(1);
+    first.resolve(filesystem.capabilities);
+    expect(await accepted).toBe(handle);
+    expect(remove).not.toHaveBeenCalled();
+    expect(getEventListeners(controller.signal, "abort")).toHaveLength(1);
+    second.reject(false);
+    expect(await rejected).toBe(false);
+    expect(remove).toHaveBeenCalledTimes(1);
+    expect(getEventListeners(controller.signal, "abort")).toHaveLength(0);
+    expect(openResizeFile).toHaveBeenCalledExactlyOnceWith("/first", { signal: controller.signal });
+    await handle.close();
+  });
+
+  it.each([false, null, 0, ""])("cancels every shared waiter with exact reason %j and owns late settlements", async reason => {
+    const { filesystem, openResizeFile } = fixture();
+    const first = deferred<FileSystemCapabilities>();
+    const second = deferred<FileSystemCapabilities>();
+    filesystem.capabilitiesFor = vi.fn().mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+    const controller = new AbortController();
+    const remove = vi.spyOn(controller.signal, "removeEventListener");
+    const outcomes = ["/first", "/second"].map(path => admission.openRetainedResizeFile(filesystem, path, { signal: controller.signal }).catch(error => error));
+    expect(getEventListeners(controller.signal, "abort")).toHaveLength(1);
+    controller.abort(reason);
+    expect(await Promise.all(outcomes)).toEqual([reason, reason]);
+    expect(remove).toHaveBeenCalledTimes(1);
+    expect(getEventListeners(controller.signal, "abort")).toHaveLength(0);
+    first.resolve(filesystem.capabilities);
+    second.reject(new Error("late metadata rejection"));
+    await new Promise<void>(resolve => setImmediate(resolve));
+    expect(openResizeFile).not.toHaveBeenCalled();
+    expect(remove).toHaveBeenCalledTimes(1);
+  });
+
+  it("late retired waiters cannot detach a new listener for the same signal", async () => {
+    const { filesystem, openResizeFile } = fixture();
+    const first = deferred<FileSystemCapabilities>();
+    const second = deferred<FileSystemCapabilities>();
+    filesystem.capabilitiesFor = vi.fn().mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+    const controller = new AbortController();
+    const old = admission.openRetainedResizeFile(filesystem, "/old", { signal: controller.signal }).catch(error => error);
+    // An explicit event retires this listener while the signal can still admit
+    // another wait; the original metadata promise remains pending.
+    controller.signal.dispatchEvent(new Event("abort"));
+    expect(await old).toBeUndefined();
+    const current = admission.openRetainedResizeFile(filesystem, "/current", { signal: controller.signal }).catch(error => error);
+    expect(getEventListeners(controller.signal, "abort")).toHaveLength(1);
+    first.reject(new Error("retired metadata rejection"));
+    await new Promise<void>(resolve => setImmediate(resolve));
+    expect(getEventListeners(controller.signal, "abort")).toHaveLength(1);
+    controller.abort(false);
+    expect(await current).toBe(false);
+    second.resolve(filesystem.capabilities);
+    await Promise.resolve();
+    expect(getEventListeners(controller.signal, "abort")).toHaveLength(0);
+    expect(openResizeFile).not.toHaveBeenCalled();
   });
 
   it("drains a late acquired resource and preserves cancellation over close failure", async () => {

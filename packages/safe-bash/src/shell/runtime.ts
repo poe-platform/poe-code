@@ -7287,6 +7287,7 @@ export class Runtime {
   }
 
   private trySyncPipeline(pipeline: Pipeline, state: State, io: IO, ignored: boolean): number | undefined {
+    if (this.budget.limits.maxExpansionBytes < 65536 || this.budget.limits.maxCommands < 1000 || this.script !== Runtime.prototype.script) return undefined;
     if (this.middleware.length > 0) return undefined;
     if (pipeline.commands.length !== 1) {
       (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
@@ -7766,6 +7767,7 @@ export class Runtime {
       if (
         w0Plain === "return" &&
         (rawState.functionDepth > 0 || rawState.sourceDepth) &&
+        !hasActiveExtensions(rawState) &&
         !hasShellFunction(rawState, "return") &&
         !rawState.extensions?.builtins.has("return") &&
         !pipeline.negate &&
@@ -10524,6 +10526,10 @@ export class Runtime {
         }
         if (
           w0Plain !== undefined &&
+          command.words.length <= 64 &&
+          this.budget.limits.maxExpansionBytes >= 65536 &&
+          this.budget.limits.maxCommands >= 1000 &&
+          this.script === Runtime.prototype.script &&
           !state.externalInvocation &&
           state.functions.has(w0Plain) &&
           this.firstInternalDiscovery(w0Plain, state, false) === "function" &&
@@ -16154,7 +16160,7 @@ export class Runtime {
         const val = raw === undefined ? "" : (this._syncArithRawWriteOnly && this._syncArithTouched?.has(part.name) ? raw : (monitor?.values.get(part.name, raw) ?? raw));
         if (typeof val !== "string") return undefined;
         if (split && !part.quoted) {
-          if (val.length === 0 || val.includes(" ") || val.includes("\t") || val.includes("\n") || (!rawState.noglob && hasGlobOrEscape(val, !!rawState.extglob))) {
+          if (val.length === 0 || val.length >= 4096 || val.includes(" ") || val.includes("\t") || val.includes("\n") || (!rawState.noglob && hasGlobOrEscape(val, !!rawState.extglob))) {
             return undefined;
           }
         }

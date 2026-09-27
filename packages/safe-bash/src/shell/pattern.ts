@@ -238,8 +238,9 @@ export async function compilePattern(pattern: string, work: StringWork, ignoreCa
   return (value, start = 0, end = value.length) => matchTokens(patternTokens, value, work, start, end, ignoreCase);
 }
 
+const defaultArrayFrom = Array.from;
 export function tryMatchesPatternSync(pattern: string, value: string, work: StringWork, ignoreCase = false, extglob = false): boolean | undefined {
-  if (ignoreCase || pattern.length > 128 || value.length > 512) return undefined;
+  if (Array.from !== defaultArrayFrom || ignoreCase || pattern.length >= 128 || value.length > 512) return undefined;
   for (let i = 0; i < pattern.length; i++) {
     const c = pattern.charCodeAt(i);
     if (c === 92 || c === 91 || c === 63 || (extglob && c === 40)) return undefined;

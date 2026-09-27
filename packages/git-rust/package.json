@@ -1,0 +1,18 @@
+{
+  "name": "@poe-code/git-rust",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "Full-featured Rust Git implementation modeled on isomorphic-git for safe-bash and programmatic workflows",
+  "scripts": {
+    "build": "cargo build --release",
+    "test:unit": "cargo test",
+    "lint": "cargo clippy --all-targets -- -D warnings"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/git-rust"
+  }
+}

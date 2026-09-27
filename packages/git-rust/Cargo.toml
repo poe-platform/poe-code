@@ -1,0 +1,13 @@
+[package]
+name = "git-rust"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+description = "Full-featured Rust Git implementation modeled on isomorphic-git with virtual filesystem support for safe-bash"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+mcp-protocol-rust = { path = "../mcp-protocol-rust" }

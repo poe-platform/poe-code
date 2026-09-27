@@ -50,3 +50,20 @@ All six original native cases and assertions passed unchanged on 27 September
 runs separately reproduced variable subprocess delays and five-second timeouts;
 the unit suite now controls process streams without changing production code or
 discarding these native assertions.
+
+## Native output burst throughput
+
+Run this measurement on an otherwise idle host for both the source SDK and the
+built `agent-spawn-rust` SDK. Feed `spawnStreaming` 60,000 newline-delimited
+OpenCode text events through the controlled child-process streams, with session
+ID `burst` and each `part.text` equal to its zero-based decimal index. Start the
+clock immediately before calling `spawnStreaming`, consume every event, and await
+`done`. Require exit zero, exactly 60,000 agent messages in order, and completion
+within 1,000 ms. Record runtime, host load, SDK variant and elapsed time. A slower
+run fails this throughput check; do not relax its deadline.
+
+The unit test keeps ordered delivery and queue-compaction coverage with 16,385
+events after integration (originally 8,193). The 60,000-event timing assertion failed at 1,397 ms during the concurrent
+repository unit run on 27 September 2026, so it belongs in this controlled
+performance check rather than the unit gate. This move does not establish a
+passing throughput result for that run.

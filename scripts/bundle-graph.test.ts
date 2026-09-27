@@ -1,4 +1,5 @@
 import { build } from "esbuild";
+import path from "node:path";
 import { createContext, runInContext } from "node:vm";
 import * as commandContracts from "../packages/safe-bash-contracts/src/command.js";
 import * as filesystem from "../packages/safe-fs/src/core.js";
@@ -352,4 +353,18 @@ it("leaves explicitly external workspaces to their published runtime dependency"
 
 it("rejects external workspaces without a declared runtime dependency", async () => {
   await expect(resolveBundleGraph("/repo", [], createFileSystem({devDependencies: {tokenfill: "*"}, poeCode: {bundle: {external: ["tokenfill"]}}}))).rejects.toThrow("must be declared as a runtime dependency");
+});
+
+it("links shared runtime entries relative to each nested split output", async () => {
+  const graph = resolveConsumerGraph({ alias: {}, external: [] }, canonicalFs, [{ directory: "/repo/packages/contracts", pkg: { name: "contracts", exports: { "./command": { import: "./dist/command.js" }, "./errors": { import: "./dist/errors.js" } } } }]);
+  const result = await build({ ...graph, entryPoints: { index: "entry-root", "nested/index": "entry-nested" }, outdir: "/repo/dist", bundle: true, splitting: true, write: false, metafile: true, format: "esm", plugins: [...graph.plugins, { name: "entry", setup(builder) {
+    builder.onResolve({ filter: /^entry-/ }, args => ({ path: args.path, namespace: "fixture" }));
+    builder.onLoad({ filter: /.*/, namespace: "fixture" }, args => ({ contents: `export { value } from "contracts/${args.path === 'entry-root' ? 'command' : 'errors'}";` }));
+  } }] });
+  for (const output of result.outputFiles.filter(file => file.path.endsWith(".js"))) {
+    const expected = output.path.includes("/nested/") ? "../../packages/contracts/dist/errors.js" : "../packages/contracts/dist/command.js";
+    expect(output.text).toContain(JSON.stringify(expected));
+    const metadata = Object.entries(result.metafile.outputs).find(([filename]) => output.path === path.resolve(filename))?.[1];
+    expect(metadata?.imports.some(edge => edge.external && edge.path === expected)).toBe(true);
+  }
 });

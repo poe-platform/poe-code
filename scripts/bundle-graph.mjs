@@ -1,5 +1,6 @@
 import path from "node:path";
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
+import { rewriteModuleSpecifiers } from "./module-specifiers.mjs";
 
 export function resolveConsumerGraph(graph, canonical, sharedWorkspaces = []) {
   const targets = new Map();
@@ -13,9 +14,35 @@ export function resolveConsumerGraph(graph, canonical, sharedWorkspaces = []) {
   }
   return {
     ...(targets.size ? { plugins: [{ name: "shared-workspace-runtime", setup(builder) {
+      builder.initialOptions.metafile = true;
       builder.onResolve({ filter: /.*/ }, args => {
         const target = targets.get(args.path) ?? targets.get(path.join(args.path, "index.ts"));
-        return target ? { path: target, namespace: "file", external: true } : undefined;
+        return target ? { path: args.path, external: true } : undefined;
+      });
+      builder.onEnd(async result => {
+        if (result.errors.length) return;
+        const workingDirectory = builder.initialOptions.absWorkingDir ?? process.cwd();
+        const outputFiles = new Map((result.outputFiles ?? []).map(output => [output.path, output]));
+        for (const [filename, output] of Object.entries(result.metafile.outputs)) {
+          if (!filename.endsWith(".js")) continue;
+          const absolute = path.resolve(workingDirectory, filename);
+          const routes = new Map();
+          for (const edge of output.imports) {
+            const target = edge.external ? targets.get(edge.path) : undefined;
+            if (!target) continue;
+            const relative = path.relative(path.dirname(absolute), target).split(path.sep).join("/");
+            routes.set(edge.path, relative.startsWith(".") ? relative : "./" + relative);
+            edge.path = routes.get(edge.path);
+          }
+          if (!routes.size) continue;
+          const file = outputFiles.get(absolute);
+          const source = file ? file.text : await readFile(absolute, "utf8");
+          const rewritten = rewriteModuleSpecifiers(absolute, source, specifier => routes.get(specifier) ?? specifier);
+          const bytes = new TextEncoder().encode(rewritten);
+          output.bytes = bytes.byteLength;
+          if (file) file.contents = bytes;
+          else await writeFile(absolute, bytes);
+        }
       });
     } }] } : {}),
     alias: Object.fromEntries(

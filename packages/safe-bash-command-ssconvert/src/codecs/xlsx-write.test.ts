@@ -90,7 +90,7 @@ it.each(["2006", "2008"] as const)("%s preserves axis metadata beyond populated 
   const parts = await unpack(await createXlsxWriter(edition)(input, [], context));
   const sheet = parts.get("xl/worksheets/sheet1.xml")!;
   expect(sheet).toContain('<dimension ref="A1:E9"/>');
-  expect(sheet).toContain('<sheetFormatPr defaultColWidth="48" defaultRowHeight="12.75" outlineLevelRow="2"/>');
+  expect(sheet).toContain('<sheetFormatPr defaultColWidth="9.142307692307693" defaultRowHeight="12.75" outlineLevelRow="2"/>');
   expect(sheet).toContain('<row r="9" spans="1:5" collapsed="1" hidden="1" outlineLevel="2"/>');
   expect(sheet).toContain('<mergeCells><mergeCell ref="A3:B4"/></mergeCells>');
   const reopened = await readXlsx(await createXlsxWriter(edition)(input, [], context), context);

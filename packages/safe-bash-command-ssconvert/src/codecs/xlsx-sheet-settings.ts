@@ -93,9 +93,9 @@ export async function writeXlsxSheetSettings(sheet: Sheet,
   const defaultColumnWidth = typeof sheet.view?.defaultColumnWidth === "number" ? sheet.view.defaultColumnWidth : originalWidth ?? 48;
   const originalHeight = format?.defaultRowHeight === undefined ? undefined : Number(format.defaultRowHeight);
   const defaultRowHeight = typeof sheet.view?.defaultRowHeight === "number" ? sheet.view.defaultRowHeight : originalHeight ?? 12.75;
-  baseline.push(node("sheetFormatPr", { defaultColWidth: originalWidth === undefined ? 48 : originalWidth / xlsxColumnWidthPoints,
+  baseline.push(node("sheetFormatPr", { defaultColWidth: originalWidth === undefined ? undefined : originalWidth / xlsxColumnWidthPoints,
     defaultRowHeight: originalHeight ?? 12.75, outlineLevelRow: format?.outlineLevelRow, outlineLevelCol: format?.outlineLevelCol }));
-  current.push(node("sheetFormatPr", { defaultColWidth: typeof sheet.view?.defaultColumnWidth === "number" || originalWidth !== undefined ? defaultColumnWidth / xlsxColumnWidthPoints : 48,
+  current.push(node("sheetFormatPr", { defaultColWidth: typeof sheet.view?.defaultColumnWidth === "number" || originalWidth !== undefined || !format ? defaultColumnWidth / xlsxColumnWidthPoints : undefined,
     defaultRowHeight, outlineLevelRow: sheet.rows?.reduce((maximum, row) => { charge(); return Math.max(maximum, row.outlineLevel ?? 0); }, 0) || undefined,
     outlineLevelCol: sheet.columns?.reduce((maximum, column) => { charge(); return Math.max(maximum, column.outlineLevel ?? 0); }, 0) || undefined }));
   const view = sheet.view?.gnumeric && typeof sheet.view.gnumeric === "object" && !Array.isArray(sheet.view.gnumeric) ? sheet.view.gnumeric as Readonly<Record<string, ImportedValue>> : {};

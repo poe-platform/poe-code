@@ -41,6 +41,23 @@ function edited(book: Workbook): Workbook {
   return { ...book, sheets: book.sheets.map(sheet => ({ ...sheet, cells: sheet.cells.map(cell => ({ ...cell, value: { kind: "number", value: 8 } })) })) };
 }
 for (const edition of ["2006", "2008"] as const) {
+  it.each([undefined, 48, 75])(`keeps ${edition} default and explicit column widths in the same units: %s`, async width => {
+    const book: Workbook = { sheets: [{ id: "s", name: "S", cells: [{ row: 0, column: 0, value: { kind: "number", value: 1 } }],
+      ...(width === undefined ? {} : { view: { defaultColumnWidth: width } }) }] };
+    const bytes = await createXlsxWriter(edition)(book, [], context);
+    const output = await worksheet(bytes);
+    const format = attributes(output.children.find(node => node.localName === "sheetFormatPr")!);
+    const column = attributes(output.children.find(node => node.localName === "cols")!.children[0]!);
+    expect(Number(format.defaultColWidth)).toBe(Number(column.width));
+    expect((await readXlsx(bytes, context)).sheets[0]!.view?.defaultColumnWidth).toBeCloseTo(width ?? 48, 10);
+  });
+  it.each(['defaultRowHeight="15"', 'baseColWidth="0" defaultColWidth="0" defaultRowHeight="0"'])(
+    `applies an explicit ${edition} default width when the raw record has no positive width: %s`, async raw => {
+      const input = await readXlsx(await fixture(parts(`<sheetFormatPr ${raw}/>` + cells)), context);
+      const book: Workbook = { ...input, sheets: input.sheets.map(sheet => ({ ...sheet, view: { ...sheet.view, defaultColumnWidth: 48 } })) };
+      const bytes = await createXlsxWriter(edition)(book, [], context);
+      expect((await readXlsx(bytes, context)).sheets[0]!.view?.defaultColumnWidth).toBeCloseTo(48, 10);
+    });
   it.each(Object.entries(records))(`retains ${edition} nondefault %s through a cell edit`, async (name, expected) => {
     const output = await worksheet(await createXlsxWriter(edition)(edited(await original()), [], context));
     const matching = output.children.filter(node => node.localName === name);

@@ -2498,7 +2498,22 @@
       },
       "remaining": "Verify remote delivery, publication and native application readback. Unsupported printer relationships and broader format/rendering requirements remain open.",
       "implementation": "Retain supported native worksheet records and compare normalized edits against the imported baseline before changing attributes or children. Import first/even headers, point dimensions and positive base-width fallback; preserve untouched formatting codes, precision, flags, hashes and raw-only settings. Recompute edited page-break counts. Unknown fields and unattached relationships produce granular loss diagnostics.",
-      "validation": "18 original regressions failed; new controls caught raw-only print resets, stale break counts and two zero-width inconsistencies. All 72 candidate checks and 305 XLSX checks pass. Applied with label fixes: 871 checks in 34 files, maintained package lint including source/test/consumer types, and selected workspace build pass. Four conversions through the actual built SDK/command edit B2 from 7 to 8 without warnings; independent Python ZIP/XML verifies all eight native records in every output (32 comparisons). Command screenshot inspected."
+      "validation": "18 original regressions failed; new controls caught raw-only print resets, stale break counts and two zero-width inconsistencies. All 72 candidate checks and 305 XLSX checks pass. Applied with label fixes: 871 checks in 34 files, maintained package lint including source/test/consumer types, and selected workspace build pass. Four conversions through the actual built SDK/command edit B2 from 7 to 8 without warnings; independent Python ZIP/XML verifies all eight native records in every output (32 comparisons). Command screenshot inspected.",
+      "fallbackWidth": {
+        "status": "implemented and locally qualified; full integration, native application and delivery gates remain open",
+        "source": {
+          "revision": "325ef79a19580959afaee9cf01cb8ea15f0177b0",
+          "url": "https://raw.githubusercontent.com/GNOME/gnumeric/325ef79a19580959afaee9cf01cb8ea15f0177b0/plugins/excel/xlsx-write.c",
+          "sha256": "004060bcb15f769aa760d3120b81afd3c36dd3d1c9198515de4cc322eac6550a",
+          "lines": "2195-2197,2950-2954",
+          "finding": "The native writer emits defaultColWidth directly from sheet_col_get_default_size_pts, while individual widths divide by (130/18.5703125)*(72/96). The discrepancy is inherited; a format-consistent correction intentionally differs from this native default declaration."
+        },
+        "finding": "Fresh sheets declared 48 character units while explicit column records converted the 48-point default to 9.142307692307693 character units. Re-import inflated the model default to 252.01514514093392 points. Gnumeric 1.12.61 has the same mixed-unit declaration; the correction deliberately follows XLSX units.",
+        "implementation": "Use character units for fresh defaults. Keep absent or zero raw defaults distinct from the normalized fallback so unedited records survive, while explicit model widths still update the native declaration.",
+        "validation": "Maintained regressions: two initial failures and 80 passing controls; after the correction all 104 checks in three files pass. Package lint, source/test/consumer types and selected maintained build pass. An isolated 20-case matrix covers both editions, implicit and explicit widths, raw absence/zero/native widths and positive base-width fallback.",
+        "compiledValidation": "Four conversions from the maintained build cover both XLSX editions through the codec and command API, with empty command diagnostics. Independent Python ZIP/XML inspection parses all 36 XML members and verifies equal default/explicit widths and unchanged cell values. Eight additional isolated-candidate archives and 72 XML members pass raw-record controls.",
+        "remaining": "Native application readback, installed-release qualification, remote delivery and containing publication remain open; no family closure."
+      }
     }
   },
   "cases": [

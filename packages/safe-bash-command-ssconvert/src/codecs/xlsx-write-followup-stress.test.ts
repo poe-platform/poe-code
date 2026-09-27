@@ -114,6 +114,6 @@ it.each(["2006", "2008"] as const)("%s computes outline maxima independently for
     columns: [{ index: 0, outlineLevel: 6 }, { index: 3, outlineLevel: 3 }, { index: 7, outlineLevel: 0 }] },
   { id: "t", name: "T", cells: [], rows: [{ index: 2, outlineLevel: 0 }], columns: [{ index: 2 }] }] };
   const xml = await parts(await createXlsxWriter(edition)(book, [], context));
-  expect(xml.get("xl/worksheets/sheet1.xml")).toContain('<sheetFormatPr defaultColWidth="48" defaultRowHeight="12.75" outlineLevelRow="4" outlineLevelCol="6"/>');
-  expect(xml.get("xl/worksheets/sheet2.xml")).toContain('<sheetFormatPr defaultColWidth="48" defaultRowHeight="12.75"/>');
+  expect(xml.get("xl/worksheets/sheet1.xml")).toContain('<sheetFormatPr defaultColWidth="9.142307692307693" defaultRowHeight="12.75" outlineLevelRow="4" outlineLevelCol="6"/>');
+  expect(xml.get("xl/worksheets/sheet2.xml")).toContain('<sheetFormatPr defaultColWidth="9.142307692307693" defaultRowHeight="12.75"/>');
 });

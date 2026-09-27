@@ -168,12 +168,19 @@ export class RecordWriter {
     if (this.used >= 512) {
       let end = 512;
       while (this.buffer[end - 1] !== 10) end--;
-      await this.lifecycle.write(this.buffer.subarray(0, end));
+      budget.retain(end);
+      try { await this.lifecycle.write(this.buffer.slice(0, end)); }
+      finally { budget.retain(-end); }
       this.buffer.copyWithin(0, end, this.used);
       this.used -= end;
     }
   }
   async finish(): Promise<void> {
-    if (this.used) { await this.lifecycle.write(this.buffer.subarray(0, this.used)); this.used = 0; }
+    if (this.used) {
+      const size = this.used;
+      this.lifecycle.budget.retain(size);
+      try { await this.lifecycle.write(this.buffer.slice(0, size)); this.used = 0; }
+      finally { this.lifecycle.budget.retain(-size); }
+    }
   }
 }

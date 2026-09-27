@@ -155,13 +155,15 @@ test("producer reuse at EOF cannot change retained token bytes", async () => {
   assert.equal(fragment.toString(), "XXXXX");
 });
 
-for (const [input, sizes] of [["0 ".repeat(166) + "100", [511]], ["0 ".repeat(169) + "2", [512]], ["0 ".repeat(171), [510, 3]]] as const) {
+for (const [input, sizes] of [["0 ".repeat(166) + "100", [511]], ["0 ".repeat(169) + "2", [512]], ["0 ".repeat(171), [510, 3]], ["0 ".repeat(170) + "1", [510, 3]]] as const) {
   test(`source-derived complete-line batches: ${sizes.join(",")}`, async () => {
     const chunks: Uint8Array[] = [];
-    const result = await run([], input, {}, { stdout: { async write(value) { chunks.push(Uint8Array.from(value)); } } });
+    const retained: Uint8Array[] = [];
+    const result = await run([], input, {}, { stdout: { async write(value) { retained.push(value); chunks.push(Uint8Array.from(value)); } } });
     assert.equal(result.exitCode, 0);
     assert.deepEqual(chunks.map(chunk => chunk.length), [...sizes]);
     assert.ok(chunks.every(chunk => chunk.at(-1) === 10 && chunk.length <= 512));
+    assert.deepEqual(retained, chunks);
   });
 }
 

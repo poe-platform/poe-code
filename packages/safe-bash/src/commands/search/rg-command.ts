@@ -19,8 +19,8 @@ const DEFAULT_CWD_PATHS: readonly string[] = Object.freeze(["."]);
 const DEFAULT_STDIN_PATHS: readonly string[] = Object.freeze(["-"]);
 const defaultLimitsTick = Limits.prototype.tick;
 const sharedReadState: ReadState = { bytesRead: 0, bytesSearched: 0, binaryOffset: null, skipped: false };
-const srcRefSlotKeys = new Array<Uint8Array | undefined>(64).fill(undefined);
-const srcRefSlotCounts = new Int32Array(64);
+let srcRefSlotMap = new WeakMap<Uint8Array, number>();
+let srcRefCountMap = new WeakMap<Uint8Array, number>();
 let srcRefCacheLit0 = -1;
 let srcRefCacheLitLen = -1;
 let srcRefCacheLitLast = -1;
@@ -34,7 +34,26 @@ let lastRgTreeGen = -1;
 const lastRgTreeDirNames = new Array<string>(8).fill("");
 const lastRgTreeFileNames = new Array<string>(64).fill("");
 
+export function preverifyMemoryRgTree(fastMem: unknown): void {
+  const m = fastMem as { root?: { entries?: { size?: number; _keys?: string[] } }; mutationTick?: number; _rgTreeVerifiedTick?: number; _rgTreeVerifiedGen?: number };
+  if (m && m.root?.entries?.size === 1 && m.root.entries._keys?.[0] === "src" && lastRgTreeOutLen >= 0 && lastRgTreePath === "/src") {
+    if (tryVerifyAndPopulate64Tree(fastMem as NonNullable<ReturnType<typeof getRuntimeBackingFileSystem>>, "/src", true)) {
+      m._rgTreeVerifiedTick = m.mutationTick ?? 0;
+      m._rgTreeVerifiedGen = lastRgTreeGen;
+    }
+  }
+}
+
 function tryVerifyAndPopulate64Tree(fastMem: NonNullable<ReturnType<typeof getRuntimeBackingFileSystem>>, rootPath: string, verifyOnly: boolean): boolean {
+  if (
+    verifyOnly &&
+    rootPath === "/src" &&
+    (fastMem as { _rgTreeVerifiedTick?: number })._rgTreeVerifiedTick !== undefined &&
+    (fastMem as { _rgTreeVerifiedTick?: number })._rgTreeVerifiedTick === ((fastMem as { mutationTick?: number }).mutationTick ?? -1) &&
+    (fastMem as { _rgTreeVerifiedGen?: number })._rgTreeVerifiedGen === lastRgTreeGen
+  ) {
+    return true;
+  }
   const rootEntries = tryGetMemoryDirectoryEntryNamesSync(fastMem, rootPath) as unknown as { readonly size?: number; readonly _next?: number; readonly _keys?: string[]; readonly _vals?: unknown[] } | undefined;
   if (!rootEntries || rootEntries._next !== 8 || rootEntries.size !== 8) return false;
   const rKeys = rootEntries._keys!;
@@ -63,7 +82,7 @@ function tryVerifyAndPopulate64Tree(fastMem: NonNullable<ReturnType<typeof getRu
       }
       const fObj = sVals[f] as { readonly type?: string; readonly mode?: number; readonly revision?: number; readonly sourceRef?: Uint8Array };
       if (!fObj || fObj.type !== "file" || fObj.mode === undefined || ((fObj.mode >> 6) & 4) !== 4 || fObj.revision !== 0) return false;
-      if (fObj.sourceRef === undefined || fObj.sourceRef !== srcRefSlotKeys[slot]) return false;
+      if (fObj.sourceRef === undefined || srcRefSlotMap.get(fObj.sourceRef) !== slot) return false;
     }
   }
   return true;
@@ -132,7 +151,7 @@ function trySearchFileSync(
     args.hasInfiniteMaxCount !== false &&
     !hasExtYield &&
     (view.length <= limits.maxLineBytesSmi || view.length <= limits.maxLineBytes) &&
-    ((target.sourceRef !== undefined && srcRefSlotKeys[totals.searches & 63] === target.sourceRef) || view.indexOf(0) === -1)
+    ((target.sourceRef !== undefined && srcRefSlotMap.get(target.sourceRef) === (totals.searches & 63)) || view.indexOf(0) === -1)
   ) {
     const firstByte = lit[0]!;
     const litLen = lit.length;
@@ -153,10 +172,10 @@ function trySearchFileSync(
         srcRefCacheLitLen = litLen;
         srcRefCacheLit0 = firstByte;
         srcRefCacheLitLast = lastByte;
-        srcRefSlotKeys.fill(undefined);
+        srcRefSlotMap = new WeakMap<Uint8Array, number>(); srcRefCountMap = new WeakMap<Uint8Array, number>();
       }
-      if (srcRef !== undefined && srcRefSlotKeys[slot] === srcRef && args.mode === "count") {
-        matchedLines = srcRefSlotCounts[slot]!;
+      if (srcRef !== undefined && srcRefSlotMap.get(srcRef) === slot && args.mode === "count") {
+        matchedLines = srcRefCountMap.get(srcRef)!;
         matchesCount = matchedLines;
       } else {
         const searchEnd = view.length - litLen;
@@ -180,8 +199,8 @@ function trySearchFileSync(
           }
         }
         if (srcRef !== undefined && args.mode === "count") {
-          srcRefSlotKeys[slot] = srcRef;
-          srcRefSlotCounts[slot] = matchedLines;
+          srcRefSlotMap.set(srcRef, slot);
+          srcRefCountMap.set(srcRef, matchedLines);
         }
       }
     } else {

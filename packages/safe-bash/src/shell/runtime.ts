@@ -3260,7 +3260,9 @@ const sharedSyncPipeBuf0 = new Uint8Array(65536);
 const sharedSyncPipeBuf1 = new Uint8Array(65536);
 let syncPurePipelineSlotInUse = false;
 let lastPurePipeAst: unknown;
-let lastPurePipeSrcRef: Uint8Array | undefined;
+const lastPurePipeSrcRefs = new WeakSet<Uint8Array>();
+let lastPurePipeSlice1 = "";
+let lastPurePipeRegistry: unknown;
 const lastPurePipeOutBuf = new Uint8Array(256);
 let lastPurePipeOutLen = 0;
 let lastPureFindPipeAst: unknown;
@@ -3618,10 +3620,12 @@ export class Runtime {
   }
 
   releaseAnchorResources(): void {
-    const reusableEntry = reusableDefaultContextFsBySourceFs.get(this.sourceFs);
-    if (reusableEntry && reusableEntry.inUseBy === this) {
-      retargetScopedFileSystem(reusableEntry.scoped, noopFsCharge, NEVER_ABORTED_SIGNAL, noopFsCharge, 256);
-      reusableEntry.inUseBy = undefined;
+    if (this._contextFs !== undefined) {
+      const reusableEntry = reusableDefaultContextFsBySourceFs.get(this.sourceFs);
+      if (reusableEntry && reusableEntry.inUseBy === this) {
+        retargetScopedFileSystem(reusableEntry.scoped, noopFsCharge, NEVER_ABORTED_SIGNAL, noopFsCharge, 256);
+        reusableEntry.inUseBy = undefined;
+      }
     }
     if (this.backingFs) {
       const emptyFs = (_sharedEmptyMemoryFs ??= (this._isMemoryBackingFs ? new (this.backingFs.constructor as new () => FileSystem)() : Object.freeze({}) as unknown as FileSystem));
@@ -5422,7 +5426,7 @@ export class Runtime {
             this.budget.fileSystemOperation();
             continue;
           }
-          if (!tryMkdirMemorySync(this.backingFs, mp, true, dirMode, this.commandSignal)) return undefined;
+          if (!tryMkdirMemorySync(this.backingFs, mp, true, dirMode, this.commandSignal, firstCc.dirPrefix.startsWith(mp) && firstCc.dirPrefix.length === mp.length + 1 ? firstCc.dirPrefix : undefined)) return undefined;
           this.budget.fileSystemOperation();
         }
       } catch {
@@ -5449,7 +5453,11 @@ export class Runtime {
     let cur = firstCachedUnit;
     const vars = rawState.variables;
     const curLocale = (vars.LC_ALL || vars.LC_CTYPE || vars.LANG) ? byteLocale(vars) : false;
-    const mem = this.backingFs as unknown as { symlinkCount: number; writeMemoryFileInDirFast(d: string, n: string, data: Uint8Array, a: boolean, m: number, h?: number): void };
+    const mem = this.backingFs as unknown as {
+      symlinkCount: number;
+      writeMemoryFileInDirFast(d: string, n: string, data: Uint8Array, a: boolean, m: number, h?: number): void;
+      writeMemoryFilesInDirBatchFast(firstFn: string, d: string, fns: readonly string[], hashes: Int32Array, payloads: readonly Uint8Array[], totalNameBytes: number, payloadBytesSum: number, m: number): void;
+    };
     let deadRmTarget: string | undefined;
     let deadRmTargetLen = 0;
     if (mem.symlinkCount === 0 && curLocale === false) {
@@ -5485,7 +5493,63 @@ export class Runtime {
         deadRmTargetLen = target.length;
       }
     }
-    while (cur.unit.next < sourceLength && mem.symlinkCount === 0 && !this.signal.aborted) {
+    type EchoBatchPlan = {
+      readonly endUnit: T;
+      readonly totalCount: number;
+      readonly totalBytes: number;
+      readonly totalUnitsCharged: number;
+      readonly lastArg: string;
+      readonly fileNames: readonly string[];
+      readonly nameHashes: Int32Array;
+      readonly payloads: readonly Uint8Array[];
+      readonly totalNameBytes: number;
+      readonly payloadBytesSum: number;
+    };
+    const cachedBatchPlan = deadRmTarget !== undefined ? (firstCc as { _cachedEchoBatch?: EchoBatchPlan | null })._cachedEchoBatch : undefined;
+    if (
+      cachedBatchPlan !== undefined &&
+      cachedBatchPlan !== null &&
+      mem.symlinkCount === 0 &&
+      !this.signal.aborted &&
+      this.budget.bytes + cachedBatchPlan.totalBytes <= this.budget.maxOutputBytesSmi &&
+      (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations + cachedBatchPlan.totalCount <= this.budget.maxFileSystemOperationsSmi &&
+      this.budget.commands + cachedBatchPlan.totalCount <= this.budget.maxCommandsSmi
+    ) {
+      this.budget.parsing.admit(cachedBatchPlan.totalUnitsCharged);
+      try {
+        mem.writeMemoryFilesInDirBatchFast(
+          firstCc.fileName,
+          firstCc.dirPrefix,
+          cachedBatchPlan.fileNames,
+          cachedBatchPlan.nameHashes,
+          cachedBatchPlan.payloads,
+          cachedBatchPlan.totalNameBytes,
+          cachedBatchPlan.payloadBytesSum,
+          mode,
+        );
+        this.budget.commands += cachedBatchPlan.totalCount;
+        (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations += cachedBatchPlan.totalCount;
+        this.budget.bytes += cachedBatchPlan.totalBytes;
+        lastArg = cachedBatchPlan.lastArg;
+        count += cachedBatchPlan.totalCount;
+        cur = cachedBatchPlan.endUnit;
+      } catch {
+        this.signal.throwIfAborted();
+      }
+    }
+    if (cur !== cachedBatchPlan?.endUnit && cur.unit.next < sourceLength && mem.symlinkCount === 0 && !this.signal.aborted) {
+      const buildBatchStart = cur === firstCachedUnit && deadRmTarget !== undefined && cachedBatchPlan === undefined;
+      let bTotalCount = 0;
+      let bTotalBytes = 0;
+      let bTotalUnits = 0;
+      let bTotalNameBytes = 0;
+      let bPayloadBytesSum = 0;
+      let bCanCache = buildBatchStart && !firstCc.append;
+      const bFileNames: string[] | undefined = bCanCache ? [] : undefined;
+      const bHashes: number[] | undefined = bCanCache ? [] : undefined;
+      const bPayloads: Uint8Array[] | undefined = bCanCache ? [] : undefined;
+      const bSeenNames = bCanCache ? new Set<string>([firstCc.fileName]) : undefined;
+      while (cur.unit.next < sourceLength && mem.symlinkCount === 0 && !this.signal.aborted) {
       const next = cur.nextCached;
       if (!next || next.locale !== curLocale || (next.unit.script.warnings && next.unit.script.warnings.length > 0)) break;
       const nextCc = (next.unit.script as { _fastConstEcho?: typeof firstCc })._fastConstEcho;
@@ -5514,12 +5578,49 @@ export class Runtime {
           break;
         }
       }
+      if (bCanCache) {
+        const isDeadRm = deadRmTarget !== undefined && nextCc.dirPrefix.length === deadRmTargetLen + 1 && nextCc.dirPrefix.charCodeAt(deadRmTargetLen) === 47 && nextCc.dirPrefix.startsWith(deadRmTarget);
+        if (isDeadRm) {
+          bTotalCount++;
+          bTotalBytes += bLen;
+          bTotalUnits += next.unitsCharged;
+        } else if (!nextCc.append && nextCc.dirPrefix === firstCc.dirPrefix && nextCc.fileName.length <= 85 && !bSeenNames!.has(nextCc.fileName)) {
+          bSeenNames!.add(nextCc.fileName);
+          bFileNames!.push(nextCc.fileName);
+          bHashes!.push((nextCc as { _nameHash?: number })._nameHash!);
+          bPayloads!.push(nextCc.encoded);
+          bTotalNameBytes += nextCc.fileName.length * 2;
+          bPayloadBytesSum += bLen;
+          bTotalCount++;
+          bTotalBytes += bLen;
+          bTotalUnits += next.unitsCharged;
+        } else {
+          bCanCache = false;
+        }
+      }
       this.budget.commands++;
       (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations++;
       this.budget.bytes += bLen;
       lastArg = nextCc.arg0;
       count++;
       cur = next;
+    }
+      if (buildBatchStart) {
+        (firstCc as { _cachedEchoBatch?: EchoBatchPlan | null })._cachedEchoBatch = bCanCache && bTotalCount > 0
+          ? {
+              endUnit: cur,
+              totalCount: bTotalCount,
+              totalBytes: bTotalBytes,
+              totalUnitsCharged: bTotalUnits,
+              lastArg,
+              fileNames: bFileNames!,
+              nameHashes: new Int32Array(bHashes!),
+              payloads: bPayloads!,
+              totalNameBytes: bTotalNameBytes,
+              payloadBytesSum: bPayloadBytesSum,
+            }
+          : null;
+      }
     }
     if (
       deadRmTarget !== undefined &&
@@ -5840,7 +5941,7 @@ export class Runtime {
             if ((operator === "&&" && state.status !== 0) || (operator === "||" && state.status === 0)) continue;
             const pipeline = list.pipelines[index]!;
             const ignored = ignoreErrexit || index < list.pipelines.length - 1 || pipeline.negate;
-            const syncStatus = this.trySyncPipeline(pipeline, state, io, ignored);
+            const syncStatus = (pipeline as { _skipTrySync?: boolean })._skipTrySync ? undefined : this.trySyncPipeline(pipeline, state, io, ignored);
             if (syncStatus !== undefined) {
               if (script.lists.length === 1 && list.pipelines.length === 1 && !pipeline.negate && pipeline.commands.length === 1) {
                 const cc = (pipeline.commands[0]! as { _cachedConstEchoRedirect?: { arg0: string; targetPath: string; dirPrefix: string | undefined; fileName: string | undefined; encoded: Uint8Array; append: boolean } | null })._cachedConstEchoRedirect;
@@ -5972,73 +6073,120 @@ export class Runtime {
     if (!canMutatePipeStatus) return undefined;
     if (pipeline.commands.length === 1) {
       const command = pipeline.commands[0]!;
-      if (command.kind !== "simple" || command.words.length === 0 || command.redirects.length > 1) return undefined;
-      const w0Plain = command.words[0]!.plain;
+      if (command.kind !== "simple") return undefined;
+      const cSingle = (command as { _cachedFastSingle?: { w0Plain: string; args: string[]; lastArg: string } })._cachedFastSingle;
+      let w0Plain: string;
+      let externalDef: NonNullable<ReturnType<CommandRegistry["get"]>>;
+      let args: string[];
+      let lastArg: string;
+      const diagnosticLine = io.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0);
       if (
-        !w0Plain ||
-        !isFastDirectCommand(w0Plain, command.words) ||
-        implementedBuiltins.has(w0Plain) ||
-        hasShellFunction(rawState, w0Plain) ||
-        rawState.extensions?.builtins.has(w0Plain)
+        cSingle !== undefined &&
+        !customRegisteredRegistries.has(this.commands) &&
+        !hasShellFunction(rawState, cSingle.w0Plain) &&
+        !rawState.extensions?.builtins.has(cSingle.w0Plain) &&
+        command.words.length <= this.budget.maxExpansionFieldsSmi &&
+        (this.budget.commands + 1 <= this.budget.maxCommandsSmi || this.budget.commands + 1 <= this.budget.limits.maxCommands)
       ) {
-        return undefined;
-      }
-      const externalDef = this.getExternalCommand(w0Plain);
-      if (
-        !externalDef ||
-        !builtInDirectContextExecutors.has(externalDef.execute) ||
-        customRegisteredCommands.has(externalDef.execute) ||
-        customRegisteredRegistries.has(this.commands) ||
-        command.words.length > this.budget.maxExpansionFieldsSmi ||
-        (this.budget.commands + 1 > this.budget.maxCommandsSmi && this.budget.commands + 1 > this.budget.limits.maxCommands)
-      ) {
-        return undefined;
-      }
-      for (let i = 0; i < command.words.length; i++) {
-        if (!this.isPureArgWord(command.words[i]!, rawState)) return undefined;
-      }
-      if (command.redirects.length === 1) {
-        const r0 = command.redirects[0]!;
+        w0Plain = cSingle.w0Plain;
+        const extD = this.getExternalCommand(w0Plain);
+        if (!extD || !builtInDirectContextExecutors.has(extD.execute) || customRegisteredCommands.has(extD.execute)) {
+          return undefined;
+        }
+        externalDef = extD;
+        args = cSingle.args;
+        lastArg = cSingle.lastArg;
+        if (command.redirects.length === 1) {
+          const r0 = command.redirects[0]!;
+          if (
+            !this.budget.canRedirect1 ||
+            !this.budget.hasInfiniteFsOps ||
+            io.admittedHandles !== undefined ||
+            (this._fileWrites !== undefined && this._fileWrites.size > 0) ||
+            (this._outputFiles !== undefined && this._outputFiles.size > 0) ||
+            !this.canFastMemoryRedirect ||
+            (r0.operator === ">" && rawState.noclobber)
+          ) {
+            return undefined;
+          }
+        }
+      } else {
+        if (command.words.length === 0 || command.redirects.length > 1) return undefined;
+        const w0P = command.words[0]!.plain;
         if (
-          !this.budget.canRedirect1 ||
-          !this.budget.hasInfiniteFsOps ||
-          io.admittedHandles !== undefined ||
-          (this._fileWrites !== undefined && this._fileWrites.size > 0) ||
-          (this._outputFiles !== undefined && this._outputFiles.size > 0) ||
-          !this.canFastMemoryRedirect ||
-          r0.descriptor !== 1 ||
-          r0.move ||
-          r0.document ||
-          !(r0.operator === ">" || r0.operator === ">>" || (r0.operator === ">|" && rawState.noclobber)) ||
-          (r0.operator === ">" && rawState.noclobber) ||
-          !this.isPureArgWord(r0.target, rawState)
+          !w0P ||
+          !isFastDirectCommand(w0P, command.words) ||
+          implementedBuiltins.has(w0P) ||
+          hasShellFunction(rawState, w0P) ||
+          rawState.extensions?.builtins.has(w0P)
         ) {
           return undefined;
         }
-      }
-      const diagnosticLine = io.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0);
-      let args = (command as { _cachedConstArgs?: string[] })._cachedConstArgs;
-      let lastArg: string;
-      if (args !== undefined) {
-        lastArg = args.length > 0 ? args[args.length - 1]! : w0Plain;
-      } else {
-        args = new Array<string>(command.words.length - 1);
-        lastArg = w0Plain;
-        let allPlain = true;
-        try {
-          for (let i = 1; i < command.words.length; i++) {
-            const w = command.words[i]!;
-            if (w.plain === undefined && !(w.parts.length === 1 && w.parts[0]!.kind === "text" && w.parts[0]!.quoted === true && !w.parts[0]!.byteValue)) allPlain = false;
-            const v = this.fastValueWord(w, rawState, io, true, false, false, true, undefined, diagnosticLine);
-            if (typeof v !== "string") return undefined;
-            args[i - 1] = v;
-            lastArg = v;
-          }
-        } catch {
+        w0Plain = w0P;
+        const extD = this.getExternalCommand(w0Plain);
+        if (
+          !extD ||
+          !builtInDirectContextExecutors.has(extD.execute) ||
+          customRegisteredCommands.has(extD.execute) ||
+          customRegisteredRegistries.has(this.commands) ||
+          command.words.length > this.budget.maxExpansionFieldsSmi ||
+          (this.budget.commands + 1 > this.budget.maxCommandsSmi && this.budget.commands + 1 > this.budget.limits.maxCommands)
+        ) {
           return undefined;
         }
-        if (allPlain) {
-          (command as { _cachedConstArgs?: string[] })._cachedConstArgs = args;
+        externalDef = extD;
+        for (let i = 0; i < command.words.length; i++) {
+          if (!this.isPureArgWord(command.words[i]!, rawState)) return undefined;
+        }
+        if (command.redirects.length === 1) {
+          const r0 = command.redirects[0]!;
+          if (
+            !this.budget.canRedirect1 ||
+            !this.budget.hasInfiniteFsOps ||
+            io.admittedHandles !== undefined ||
+            (this._fileWrites !== undefined && this._fileWrites.size > 0) ||
+            (this._outputFiles !== undefined && this._outputFiles.size > 0) ||
+            !this.canFastMemoryRedirect ||
+            r0.descriptor !== 1 ||
+            r0.move ||
+            r0.document ||
+            !(r0.operator === ">" || r0.operator === ">>" || (r0.operator === ">|" && rawState.noclobber)) ||
+            (r0.operator === ">" && rawState.noclobber) ||
+            !this.isPureArgWord(r0.target, rawState)
+          ) {
+            return undefined;
+          }
+        }
+        let cachedArgs = (command as { _cachedConstArgs?: string[] })._cachedConstArgs;
+        if (cachedArgs !== undefined) {
+          args = cachedArgs;
+          lastArg = args.length > 0 ? args[args.length - 1]! : w0Plain;
+        } else {
+          args = new Array<string>(command.words.length - 1);
+          lastArg = w0Plain;
+          let allPlain = true;
+          try {
+            for (let i = 1; i < command.words.length; i++) {
+              const w = command.words[i]!;
+              if (w.plain === undefined && !(w.parts.length === 1 && w.parts[0]!.kind === "text" && w.parts[0]!.quoted === true && !w.parts[0]!.byteValue)) allPlain = false;
+              const v = this.fastValueWord(w, rawState, io, true, false, false, true, undefined, diagnosticLine);
+              if (typeof v !== "string") return undefined;
+              args[i - 1] = v;
+              lastArg = v;
+            }
+          } catch {
+            return undefined;
+          }
+          if (allPlain) {
+            (command as { _cachedConstArgs?: string[] })._cachedConstArgs = args;
+            if (command.redirects.length === 0 || (command.redirects[0]!.target.plain !== undefined && (command.redirects[0]!.operator === ">" || command.redirects[0]!.operator === ">>"))) {
+              (command as { _cachedFastSingle?: typeof cSingle })._cachedFastSingle = {
+                w0Plain,
+                args,
+                lastArg,
+              };
+            }
+          }
         }
       }
       let redirectSink: MemoryRedirectSink | undefined;
@@ -6143,6 +6291,46 @@ export class Runtime {
     if (pipeline.commands.length >= 2 && !existing) {
       const n = pipeline.commands.length;
       if ((this.budget.commands + n > this.budget.maxCommandsSmi && this.budget.commands + n > this.budget.limits.maxCommands)) return undefined;
+      if (
+        pipeline === lastPurePipeAst &&
+        !syncPurePipelineSlotInUse &&
+        this._isMemoryBackingFs &&
+        this.backingFs &&
+        this.backingFs.capabilitiesFor === undefined &&
+        this.commands === lastPurePipeRegistry &&
+        (!rawState.functions || rawState.functions.size === 0) &&
+        !rawState.extensions?.builtins.size &&
+        io.stdinIsDefault &&
+        !this.signal.aborted &&
+        !hasYieldCheckpoint(this.signal) &&
+        this.budget.canSyncPurePipe &&
+        Date.now === defaultDateNow &&
+        io.stdout instanceof Capture &&
+        (io.stdout as unknown as { _scratch4k?: Uint8Array })._scratch4k !== undefined &&
+        io.stdout.length === 0 &&
+        io.stdout.write === Capture.prototype.write &&
+        io.stderr instanceof Capture &&
+        io.stderr.length === 0 &&
+        io.stderr.write === Capture.prototype.write
+      ) {
+        const rootEntry = (this.backingFs as unknown as { root?: { entries?: Map<string, { type: string; mode?: number; revision?: number; sourceRef?: Uint8Array }> } }).root?.entries?.get(lastPurePipeSlice1);
+        if (rootEntry && rootEntry.type === "file" && rootEntry.revision === 0 && rootEntry.mode !== undefined && ((rootEntry.mode >> 6) & 4) === 4 && rootEntry.sourceRef && lastPurePipeSrcRefs.has(rootEntry.sourceRef)) {
+          this.budget.enterPipelineStages(n);
+          this.budget.commands += n;
+          try {
+            this.budget.fileSystemOperation();
+            (io.stdout as Capture).writeRangeSync(lastPurePipeOutBuf, lastPurePipeOutLen);
+          } finally {
+            this.budget.leavePipelineStages(n);
+          }
+          const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+          monitor.lazyPipeStatus = ZERO_PIPE_STATUSES[n]!;
+          monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+          rawState.status = 0;
+          monitor.epoch = restEpoch;
+          return SYNC_UNIT_ZERO;
+        }
+      }
       for (let i = 0; i < n; i++) {
         const cmd = pipeline.commands[i]!;
         if (cmd.kind !== "simple" || !this.isPureExternalStageCommand(cmd, rawState) || cmd.words.length > this.budget.maxExpansionFieldsSmi) {
@@ -6419,7 +6607,7 @@ export class Runtime {
       n >= 3 &&
       pipeline === lastPurePipeAst &&
       firstStageRootSourceRef !== undefined &&
-      firstStageRootSourceRef === lastPurePipeSrcRef &&
+      lastPurePipeSrcRefs.has(firstStageRootSourceRef) &&
       Date.now === defaultDateNow
     ) {
       this.budget.enterPipelineStages(n);
@@ -6524,7 +6712,9 @@ export class Runtime {
         for (let bi = 0; bi < outLen; bi++) lastPurePipeOutBuf[bi] = scratch[bi]!;
         lastPurePipeOutLen = outLen;
         lastPurePipeAst = pipeline;
-        lastPurePipeSrcRef = firstStageRootSourceRef;
+        lastPurePipeSlice1 = ((pipeline.commands[0]! as { _cachedSlice1?: string })._cachedSlice1) ?? "";
+        lastPurePipeRegistry = this.commands;
+        lastPurePipeSrcRefs.add(firstStageRootSourceRef);
       }
     }
     if (
@@ -6855,21 +7045,32 @@ export class Runtime {
   }
 
   private trySyncPipeline(pipeline: Pipeline, state: State, io: IO, ignored: boolean): number | undefined {
-    if (this.middleware.length > 0 || pipeline.commands.length !== 1) return undefined;
+    if (this.middleware.length > 0) return undefined;
+    if (pipeline.commands.length !== 1) {
+      (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
+      return undefined;
+    }
     const command = pipeline.commands[0]!;
     if (
       (command.kind !== "simple" && command.kind !== "arithmetic" && command.kind !== "arithmetic-for" && command.kind !== "for") ||
       command.redirects.length > 1
     ) {
+      (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
       return undefined;
     }
     if (command.kind === "simple") {
       const wordsLen = command.words.length;
-      if (wordsLen === 0) return undefined;
+      if (wordsLen === 0) {
+        (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
+        return undefined;
+      }
       const w0 = command.words[0]!;
       const w0Plain = w0.plain;
       if (command.redirects.length === 1) {
-        if (w0Plain !== "echo" && w0Plain !== "printf") return undefined;
+        if (w0Plain !== "echo" && w0Plain !== "printf") {
+          (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
+          return undefined;
+        }
       } else if (wordsLen >= 2) {
         if (
           w0Plain !== "echo" &&
@@ -6879,6 +7080,7 @@ export class Runtime {
           w0Plain !== "mkdir" &&
           w0Plain !== "rm"
         ) {
+          (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
           return undefined;
         }
       } else if (
@@ -6889,6 +7091,7 @@ export class Runtime {
         w0Plain !== "false" &&
         !(w0.parts[0]?.kind === "text" && w0.parts[0].value.includes("="))
       ) {
+        (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
         return undefined;
       }
     }

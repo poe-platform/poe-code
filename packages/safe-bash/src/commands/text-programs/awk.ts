@@ -18,9 +18,14 @@ let sharedAwkBudget: Budget | undefined;
 let sharedAwkBudgetInUse = false;
 let awkFastWarmed = false;
 let lastMemoBatch: CachedLatin1Batch | undefined;
+let lastMemoRawArg0 = "";
+let lastMemoRawArg1 = "";
+let lastMemoProgram: AwkProgram | undefined;
 let lastMemoSource = "";
 let lastMemoSep = "";
 let lastMemoOutput = "";
+const lastMemoOutputBuf = new Uint8Array(256);
+let lastMemoOutputLen = -1;
 let lastMemoSteps = 0;
 const awkBimodalWarm = 0;
 
@@ -49,21 +54,30 @@ function tryExecuteAwkFastSync(
     return undefined;
   }
   const arg0 = context.args[0]!;
+  const arg1 = context.args[1]!;
   let separator: string;
-  if (arg0 === "-F:") {
-    separator = ":";
+  let source: string;
+  let program: AwkProgram | undefined;
+  if (arg0 === lastMemoRawArg0 && arg1 === lastMemoRawArg1 && lastMemoProgram !== undefined) {
+    separator = lastMemoSep;
+    source = lastMemoSource;
+    program = lastMemoProgram;
   } else {
-    const rawSep = byteString(arg0.slice(2));
-    separator = rawSep.indexOf("\\") >= 0 ? decodeString(rawSep) : rawSep;
+    if (arg0 === "-F:") {
+      separator = ":";
+    } else {
+      const rawSep = byteString(arg0.slice(2));
+      separator = rawSep.indexOf("\\") >= 0 ? decodeString(rawSep) : rawSep;
+    }
+    source = byteString(arg1);
+    program = awkProgramCache.get(source);
+    if (!program && source.length <= 8192) {
+      program = new AwkParser(source, builtinArities).parse();
+      if (awkProgramCache.size >= 64) awkProgramCache.delete(awkProgramCache.keys().next().value!);
+      awkProgramCache.set(source, program);
+    }
+    if (!program) return undefined;
   }
-  const source = byteString(context.args[1]!);
-  let program = awkProgramCache.get(source);
-  if (!program && source.length <= 8192) {
-    program = new AwkParser(source, builtinArities).parse();
-    if (awkProgramCache.size >= 64) awkProgramCache.delete(awkProgramCache.keys().next().value!);
-    awkProgramCache.set(source, program);
-  }
-  if (!program) return undefined;
   let budget = sharedAwkBudget;
   if (!budget) {
     budget = sharedAwkBudget = new Budget(context, options);
@@ -90,6 +104,13 @@ function tryExecuteAwkFastSync(
           budget.step(lastMemoSteps);
           if (!budget.checkpointSync()) {
             (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
+            const stdoutSink = context.stdout as { isPipeStage?: boolean; writeRangeSync?: (src: Uint8Array, len: number) => boolean };
+            if (!stdoutSink.isPipeStage && lastMemoOutputLen >= 0 && typeof stdoutSink.writeRangeSync === "function") {
+              context.signal.throwIfAborted();
+              if (stdoutSink.writeRangeSync(lastMemoOutputBuf, lastMemoOutputLen) !== false) {
+                return 0;
+              }
+            }
             const w = write(context, lastMemoOutput);
             if ((w as unknown as Record<symbol, boolean>)[Symbol.for("safe-bash.syncResolved")]) {
               return 0;
@@ -109,9 +130,19 @@ function tryExecuteAwkFastSync(
     if (typeof res === "number") {
       if (!suppressStdout && res === 0 && rt.lastCompletedBatch !== undefined && rt.lastCompletedOutput !== undefined) {
         lastMemoBatch = rt.lastCompletedBatch;
+        lastMemoRawArg0 = arg0;
+        lastMemoRawArg1 = arg1;
+        lastMemoProgram = program;
         lastMemoSource = source;
         lastMemoSep = separator;
-        lastMemoOutput = rt.lastCompletedOutput;
+        const outStr = rt.lastCompletedOutput;
+        lastMemoOutput = outStr;
+        if (outStr.length <= 256) {
+          for (let oi = 0; oi < outStr.length; oi++) lastMemoOutputBuf[oi] = outStr.charCodeAt(oi) & 0xff;
+          lastMemoOutputLen = outStr.length;
+        } else {
+          lastMemoOutputLen = -1;
+        }
         lastMemoSteps = budget.stepsUsed;
       }
       rt.lastCompletedBatch = undefined;

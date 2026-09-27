@@ -751,7 +751,8 @@ export class MemoryFileSystem implements FileSystem {
   private readonly identityScope = Symbol();
   private nextInode = 1;
   private readonly ledger: MemoryLedger;
-  private readonly _cache: MemoryCache;
+  readonly _cache: MemoryCache;
+  mutationTick = 0;
   readonly _owner: OwnedStore;
   private readonly root: DirectoryNode;
   private totalBytes = 0;
@@ -1085,6 +1086,7 @@ export class MemoryFileSystem implements FileSystem {
   }
 
   private changed(node: MemoryNode, now = Date.now()): void {
+    this.mutationTick = (this.mutationTick + 1) | 0;
     node.revision = node.revision < 1073741823 ? (node.revision + 1) | 0 : Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1);
     node.mtimeMs = node.ctimeMs = now;
   }
@@ -1765,6 +1767,89 @@ export class MemoryFileSystem implements FileSystem {
     }
   }
 
+  writeMemoryFilesInDirBatchFast(
+    firstFileName: string,
+    dirPrefix: string,
+    fileNames: readonly string[],
+    nameHashes: Int32Array,
+    payloads: readonly Uint8Array[],
+    totalNameBytes: number,
+    payloadBytesSum: number,
+    mode: number,
+  ): void {
+    const batchCount = fileNames.length;
+    const cache = this._cache;
+    if (
+      batchCount > 0 &&
+      dirPrefix === cache.lastFastDirPrefix &&
+      cache.lastFastDirNode !== undefined &&
+      cache.lastFastDirNode.nlink !== 0 &&
+      (cache.lastFastDirNode.mode & 0o300) === 0o300 &&
+      this.ledger.hasInfiniteRetained &&
+      this.ledger.hasInfiniteFileBytes &&
+      this.ledger.limits.maxBytes === undefined &&
+      sharedFileNodePoolLen >= batchCount
+    ) {
+      const parent = cache.lastFastDirNode;
+      const entries = parent.entries as FastDirectoryEntriesMap;
+      if (
+        entries.size === 1 &&
+        entries._next === 1 &&
+        entries._keys[0] === firstFileName &&
+        1 + batchCount <= entries._keys.length
+      ) {
+        this.ledger.reserve(totalNameBytes, 2 * batchCount, "writeFile", fileNames[batchCount - 1]!);
+        this.totalBytes += payloadBytesSum;
+        const now = fastWriteCachedNow;
+        const fileMode = typeModes.file | mode;
+        let ino = this.nextInode;
+        this.nextInode = ino + batchCount;
+        let nextIdx = 1;
+        entries._next = 1 + batchCount;
+        entries.size = 1 + batchCount;
+        const table = entries._table;
+        const mask = table.length - 1;
+        const keys = entries._keys;
+        const vals = entries._vals;
+        for (let k = 0; k < batchCount; k++) {
+          const name = fileNames[k]!;
+          const data = payloads[k]!;
+          const node = sharedFileNodePool[--sharedFileNodePoolLen]!;
+          sharedFileNodePool[sharedFileNodePoolLen] = DUMMY_POOL_FILE_NODE;
+          node.mode = fileMode;
+          node.ino = ino++;
+          if (node.nlink !== 1) node.nlink = 1;
+          if (node.references !== 0) node.references = 0;
+          if (node.revision !== 0) node.revision = 0;
+          node.atimeMs = now;
+          node.mtimeMs = now;
+          node.ctimeMs = now;
+          node.birthtimeMs = now;
+          node.byteLength = data.byteLength;
+          node.view = data;
+          node.allocation = DUMMY_POOL_ALLOCATION;
+          node.sourceRef = data;
+          const entryIdx = nextIdx++;
+          keys[entryIdx] = name;
+          vals[entryIdx] = node;
+          let slot = nameHashes[k]! & mask;
+          while (table[slot] !== -1) slot = (slot + 1) & mask;
+          table[slot] = entryIdx;
+        }
+        this.mutationTick = (this.mutationTick + 1) | 0;
+        parent.revision = parent.revision < 1073741000 ? (parent.revision + batchCount) | 0 : Math.min(Number.MAX_SAFE_INTEGER + 1, parent.revision + batchCount);
+        parent.mtimeMs = parent.ctimeMs = now;
+        cache.lastFastFilePath = "";
+        cache.lastFastFileName = fileNames[batchCount - 1]!;
+        cache.lastFastFileNode = vals[nextIdx - 1] as FileNode;
+        return;
+      }
+    }
+    for (let k = 0; k < batchCount; k++) {
+      this.writeMemoryFileInDirFast(dirPrefix, fileNames[k]!, payloads[k]!, false, mode, nameHashes[k]!);
+    }
+  }
+
   writeMemoryFileInDirFast(dirPrefix: string, name: string, data: Uint8Array, append: boolean, mode: number, nameHash?: number): void {
     const cache = this._cache;
     if (
@@ -1809,6 +1894,7 @@ export class MemoryFileSystem implements FileSystem {
         lastFastMapMiss.key = "";
         this.ledger.reserve(name.length * 2, 2, "writeFile", name);
         this.totalBytes += length;
+        this.mutationTick = (this.mutationTick + 1) | 0;
         parent.revision = parent.revision < 1073741823 ? (parent.revision + 1) | 0 : Math.min(Number.MAX_SAFE_INTEGER + 1, parent.revision + 1);
         parent.mtimeMs = parent.ctimeMs = now;
         cache.lastFastFilePath = "";
@@ -3008,7 +3094,12 @@ export class MemoryRedirectHandle {
     this.fs = undefined!;
     this.node = DUMMY_POOL_FILE_NODE;
     this.path = "";
-    (fs as unknown as { releaseReference: (n: MemoryNode, p: string) => void }).releaseReference(node, path);
+    if (node.nlink > 0 && node.references === 1) {
+      node.references = 0;
+      (fs as unknown as { ledger: MemoryLedger }).ledger.release(path.length * 2, 1);
+    } else {
+      (fs as unknown as { releaseReference: (n: MemoryNode, p: string) => void }).releaseReference(node, path);
+    }
     if (redirectHandlePool.handle === undefined) {
       redirectHandlePool.handle = this;
     }
@@ -3028,12 +3119,12 @@ export function tryOpenMemoryRedirectHandleSync(
   signal?: AbortSignal,
 ): MemoryRedirectHandle | undefined {
   const mem = filesystem as MemoryFileSystem;
-  const owner = ownedStores.get(mem);
+  const owner = mem._owner ?? ownedStores.get(mem);
   if (
     !owner ||
     mem.symlinkCount !== 0 ||
     mem.capabilities !== owner.capabilities ||
-    activeConditionalMutations.has((mem as unknown as { identityScope: object | symbol }).identityScope) ||
+    (activeConditionalMutations.size > 0 && activeConditionalMutations.has((mem as unknown as { identityScope: object | symbol }).identityScope)) ||
     !isStockMemoryMethods(mem, openRedirectFastMethodNames, false) ||
     !isCleanAbsolutePath(path) ||
     path === "/" ||
@@ -3096,15 +3187,19 @@ export function tryOpenMemoryRedirectHandleSync(
     memInternal.permission(parent, 3, "open", path);
     const refBytes = path.length * 2;
     const nameBytes = name.length * 2;
-    ledger.reserve(refBytes, 1, "open", path);
-    try {
-      ledger.fileSize(0, "open", path);
-      ledger.reserve(nameBytes, 2, "open", path);
-    } catch (error) {
-      ledger.release(refBytes, 1);
-      throw error;
+    if (ledger.hasInfiniteRetained && ledger.hasInfiniteFileBytes) {
+      ledger.reserve(refBytes + nameBytes, 3, "open", path);
+    } else {
+      ledger.reserve(refBytes, 1, "open", path);
+      try {
+        ledger.fileSize(0, "open", path);
+        ledger.reserve(nameBytes, 2, "open", path);
+      } catch (error) {
+        ledger.release(refBytes, 1);
+        throw error;
+      }
     }
-    const cache = memoryCaches.get(ledger)!;
+    const cache = mem._cache;
     cache.clearWrites();
     const now = Date.now === defaultDateNow ? ((++fastWriteNowTick & 63) === 0 ? (fastWriteCachedNow = Date.now()) : fastWriteCachedNow) : Date.now();
     const fileMode = typeModes.file | validMode;
@@ -3118,9 +3213,9 @@ export function tryOpenMemoryRedirectHandleSync(
     if (newNode) {
       newNode.mode = fileMode;
       newNode.ino = memInternal.nextInode++;
-      newNode.nlink = 1;
+      if (newNode.nlink !== 1) newNode.nlink = 1;
       newNode.references = 1;
-      newNode.revision = 0;
+      if (newNode.revision !== 0) newNode.revision = 0;
       newNode.atimeMs = now;
       newNode.mtimeMs = now;
       newNode.ctimeMs = now;
@@ -3133,7 +3228,19 @@ export function tryOpenMemoryRedirectHandleSync(
       newNode.references = 1;
     }
     const prevNlink = parent.cachedNlinkRev === parent.revision ? parent.cachedNlink : (parent.entries.size === 0 ? 2 : undefined);
-    parent.entries.set(name, newNode);
+    const entries = parent.entries as FastDirectoryEntriesMap;
+    if (lastFastMapMiss.map === entries && lastFastMapMiss.key === name && entries._next < entries._keys.length) {
+      const entryIdx = entries._next++;
+      entries._table[lastFastMapMiss.slot] = entryIdx;
+      entries._keys[entryIdx] = name;
+      entries._vals[entryIdx] = newNode;
+      entries.size++;
+      lastFastMapMiss.map = undefined;
+      lastFastMapMiss.key = "";
+    } else {
+      entries.set(name, newNode);
+    }
+    mem.mutationTick = (mem.mutationTick + 1) | 0;
     parent.revision = parent.revision < 1073741823 ? (parent.revision + 1) | 0 : Math.min(Number.MAX_SAFE_INTEGER + 1, parent.revision + 1);
     parent.mtimeMs = parent.ctimeMs = now;
     if (prevNlink !== undefined) {
@@ -3405,6 +3512,7 @@ export function tryMkdirMemorySync(
   recursive: boolean,
   mode: number,
   signal?: AbortSignal,
+  dirPrefixHint?: string,
 ): boolean {
   const mem = filesystem as MemoryFileSystem;
   const owner = ownedStores.get(mem);
@@ -3436,7 +3544,13 @@ export function tryMkdirMemorySync(
       } else if (next.type !== "directory") {
         (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail(slash === -1 ? "EEXIST" : "ENOTDIR", "mkdir", path);
       }
-      if (slash === -1) break;
+      if (slash === -1) {
+        if (dirPrefixHint !== undefined) {
+          mem._cache.lastFastDirPrefix = dirPrefixHint;
+          mem._cache.lastFastDirNode = next as DirectoryNode;
+        }
+        break;
+      }
       current = next as DirectoryNode;
       start = slash + 1;
     }

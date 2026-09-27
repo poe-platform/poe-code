@@ -1046,6 +1046,7 @@ function tryExecutePairFastSync(
       lastSedPairProgram = program;
       lastSedPairBatch = cachedBatch;
       lastSedPairStdoutLen = stdoutLen;
+      lastSedPairSavedOutBuf = stdoutLen > 0 ? Uint8Array.prototype.slice.call(stdoutBuf, 0, stdoutLen) : undefined;
       lastSedPairSteps = budget.stepsUsed - stepsBefore;
       lastSedPairStdoutIntact = true;
     }

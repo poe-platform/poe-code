@@ -1,3 +1,4 @@
+import { preverifyMemoryRgTree } from "../commands/search/rg-command.js";
 import { MemoryFileSystem } from "../fs/memory/index.js";
 function utf8ByteLength(str: string): number {
   if (typeof globalThis.Buffer === "function") return globalThis.Buffer.byteLength(str);
@@ -121,22 +122,28 @@ interface CachedParsedUnit {
   nextCached?: CachedParsedUnit | undefined;
 }
 interface SourceParseCache {
+  readonly byteLength: number;
   first0?: CachedParsedUnit | undefined;
   first1?: CachedParsedUnit | undefined;
   byOffset0?: Map<number, CachedParsedUnit> | undefined;
   byOffset1?: Map<number, CachedParsedUnit> | undefined;
 }
 const parsedSourceCache = new Map<string, SourceParseCache>();
+let lastSourceCacheKey = "";
+let lastSourceCacheVal: SourceParseCache | undefined;
 function getSourceParseCache(source: string): SourceParseCache {
+  if (source === lastSourceCacheKey && lastSourceCacheVal !== undefined) return lastSourceCacheVal;
   let entry = parsedSourceCache.get(source);
   if (!entry) {
     if (parsedSourceCache.size >= 64) {
       const oldest = parsedSourceCache.keys().next().value;
       if (oldest !== undefined) parsedSourceCache.delete(oldest);
     }
-    entry = {};
+    entry = { byteLength: utf8ByteLength(source) };
     parsedSourceCache.set(source, entry);
   }
+  lastSourceCacheKey = source;
+  lastSourceCacheVal = entry;
   return entry;
 }
 
@@ -641,7 +648,7 @@ export class Shell implements PluginHost {
     const { budget, scope, cancellationState, owner, stdout, stderr, stdin, io, currentState, runtime } = warm;
     try {
       if (typeof source !== "string") throw new TypeError("Shell source must be a string");
-      const sourceByteLen = utf8ByteLength(source);
+      const sourceByteLen = sourceCache.byteLength;
       if (sourceByteLen > budget.maxSourceBytesSmi && sourceByteLen > budget.limits.maxSourceBytes) throw new ShellLimitError("maxSourceBytes");
       budget.source(sourceByteLen);
       budget.signal.throwIfAborted();
@@ -1217,6 +1224,7 @@ export class Shell implements PluginHost {
         stdout.enableScratchBuffer();
         stderr.enableScratchBuffer(true);
         void runtime.canFastMemoryRedirect;
+        preverifyMemoryRgTree((runtime as unknown as { backingFs: unknown }).backingFs);
         this.#warmedInvocation = {
           budget,
           scope,

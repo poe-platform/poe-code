@@ -2671,7 +2671,7 @@ export class AwkRuntime {
           if (resolvedPath !== "/dev" && !resolvedPath.startsWith("/dev/")) {
             let rawView: Uint8Array | undefined;
             try {
-              rawView = tryReadMemoryFileViewSync(fastMem, resolvedPath, undefined, this.context.signal);
+              rawView = tryReadMemoryFileViewSync(fastMem, resolvedPath, undefined, this.context.signal, true);
             } catch {
               rawView = undefined;
             }

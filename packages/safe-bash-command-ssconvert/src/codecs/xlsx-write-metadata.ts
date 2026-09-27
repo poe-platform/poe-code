@@ -2,7 +2,8 @@ import type { CapabilityContext } from "../contracts.js";
 import { parseA1, formatA1, type Sheet, type Workbook } from "../workbook.js";
 import { SsconvertError } from "../contracts.js";
 import type { createXlsxStyles } from "./xlsx-write-styles.js";
-import { escapeXlsx, metadataNode, type ElementWriter, type MetadataNode } from "./xlsx-write-support.js";
+import { escapeXlsx, metadataNode, writeRichString, type ElementWriter, type MetadataNode } from "./xlsx-write-support.js";
+import { encodeXlsxString } from "./xlsx-strings.js";
 import { gnumericNumber } from "./gnumeric-number.js";
 import { writeXlsxSheetSettings } from "./xlsx-sheet-settings.js";
 
@@ -125,9 +126,9 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
     const comments = objects.children.filter(n => n.name === "CellComment" || n.name === "GnmCellComment");
     const authors = [...new Set(comments.flatMap(n => n.attributes.Author === undefined ? [] : [n.attributes.Author]))];
     if (comments.length) parts.push({ name: `comments${number}.xml`, relation: "comments", type: "application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml",
-      content: xml("comments", { xmlns: namespace }, xml("authors", {}, authors.map(a => xml("author", {}, escapeXlsx(a))).join("")) + xml("commentList", {}, comments.map(comment =>
+      content: xml("comments", { xmlns: namespace }, xml("authors", {}, authors.map(a => xml("author", {}, escapeXlsx(encodeXlsxString(a)))).join("")) + xml("commentList", {}, comments.map(comment =>
         xml("comment", { ref: comment.attributes.ObjectBound?.split(":")[0] ?? "A1", authorId: comment.attributes.Author === undefined ? undefined : authors.indexOf(comment.attributes.Author) },
-          xml("text", {}, xml("t", {}, escapeXlsx(comment.attributes.Text ?? ""))))).join(""))) });
+          xml("text", {}, writeRichString(comment.attributes.Text ?? "", undefined, xml)))).join(""))) });
     if (comments.length) parts.push({ name: `drawings/vmlDrawing${number}.vml`, relation: "vmlDrawing", type: "application/vnd.openxmlformats-officedocument.vmlDrawing",
       content: xml("xml", { "xmlns:v": "urn:schemas-microsoft-com:vml", "xmlns:o": "urn:schemas-microsoft-com:office:office", "xmlns:x": "urn:schemas-microsoft-com:office:excel" },
         xml("v:shapetype", { id: "#_x0000_t201" }) + comments.map((comment, index) => {

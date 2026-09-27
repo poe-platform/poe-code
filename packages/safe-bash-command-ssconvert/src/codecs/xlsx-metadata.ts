@@ -95,17 +95,17 @@ export function readXlsxMetadata(sheet: SourceNode, comments?: SourceNode): read
     records.push({ source: "Gnumeric_XmlIO:sax", kind: "PrintInformation", disposition: "retained", data: gnode("PrintInformation", {}, print) });
   }
   if (comments) {
-    const authors = element(comments, "authors")?.children.filter(c => nodeName(c) === "author").map(c => c.text.trimEnd()) ?? [];
+    const authors = element(comments, "authors")?.children.filter(c => nodeName(c) === "author").map(c => decodeXlsxString(c.text)) ?? [];
     const objects: ImportedValue[] = [];
     for (const comment of element(comments, "commentList")?.children ?? []) {
       if (nodeName(comment) !== "comment") continue;
       const ref = attribute(comment, "ref"); if (!ref) continue;
       const author = authors[numeric(attribute(comment, "authorId"), 0)];
       const text = element(comment, "text"); let value = "";
-      for (const node of text?.children ?? []) if (nodeName(node) === "t") value += node.text;
-        else if (nodeName(node) === "r") value += element(node, "t")?.text ?? "";
+      for (const node of text?.children ?? []) if (nodeName(node) === "t") value += decodeXlsxString(node.text);
+        else if (nodeName(node) === "r") value += decodeXlsxString(element(node, "t")?.text ?? "");
       objects.push(gnode("CellComment", { ObjectBound: ref.split(":")[0]!, ObjectOffset: "1 0 1 0", Direction: 17, Print: 1,
-        ...(author ? { Author: author } : {}), Text: value }));
+        ...(author !== undefined ? { Author: author } : {}), Text: value }));
     }
     records.push({ source: "Gnumeric_XmlIO:sax", kind: "Objects", disposition: "retained", data: gnode("Objects", {}, objects) });
   }

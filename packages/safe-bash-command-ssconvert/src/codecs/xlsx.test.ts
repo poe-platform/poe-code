@@ -161,7 +161,7 @@ it("exports interpreted comments, print settings and sheet protection", async ()
   expect(output).toContain('<gnm:Header Left="Header &amp;[PAGE]" Middle="" Right=""/>');
   expect(output).toContain('<gnm:paper>iso_a4</gnm:paper>');
   expect(output).toContain('<gnm:break pos="2" type="manual"/>');
-  expect(output).toContain('Author="Ada" Text="original note"');
+  expect(output).toContain('Author="Ada  " Text="original note"');
 });
 it("uses the source writer's four significant digits for imported print points", async () => {
   const book = await readXlsx(await fixture(parts('<sheetData/><pageMargins top="0.123456"/>')), context);

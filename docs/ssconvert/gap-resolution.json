@@ -2543,6 +2543,36 @@
         "implementation": "Decode odd header/footer strings before normalized field parsing; encode generated strings before comparing against the normalized baseline and merging raw records. Untouched odd/even/first-page wire strings remain exact.",
         "validation": "112 tests in three files, package lint/source/test/consumer types and selected maintained build pass. Four actual compiled codec/command conversions preserve normalized controls and literal escapes with empty command diagnostics; Python independently parses 36 XML members and verifies both headers in every output.",
         "remaining": "Native application and installed release qualification, remote delivery and publication; all 19 families stay open."
+      },
+      "commentStrings": {
+        "status": "implemented and locally qualified; remote delivery, publication and native application gates pending",
+        "sources": [
+          {
+            "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/oox/commentsfragment.cxx",
+            "sha256": "906e84d70ac1fbf37f7bace2e207da48c7db03ac1122be1a8fe56310acdec52f",
+            "bytes": 5027
+          },
+          {
+            "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/oox/commentsbuffer.cxx",
+            "sha256": "602c0f31c3d1adb2640171a6e1f28bc9e17d9f5270f98c146bd91a94864c95bb",
+            "bytes": 12263
+          },
+          {
+            "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/oox/richstring.cxx",
+            "sha256": "6d4254c6240faf3cb6386866ea1ba153adbab2ac2ca5aa60ddfbfce1e57ef79c",
+            "bytes": 15601
+          },
+          {
+            "url": "https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.spreadsheet.author?view=openxml-3.0.1",
+            "sha256": "77eb0c96e9777395d2fdf062450ce387bff4ef3d4314351311133982ecd99d78",
+            "bytes": 134034
+          }
+        ],
+        "finding": "CommentsFragment gives comment text to RichStringContext; RichStringPortion::setText decodes XString before text portions are concatenated. Author callbacks and CommentsBuffer preserve text without trim; these functions do not decode author escapes, so the author correction follows the primary ST_Xstring type rather than claiming native parity.",
+        "reproduction": "Corrected original in-memory cases fail 15 checks before the repair; 37 neighboring cases pass. Initial assertions used the wrong imported-attribute shape and were corrected before this baseline; separate compiled input reproduced un-decoded author/text and rejected NUL export.",
+        "implementation": "Decode each plain/rich comment text node independently and authors once. Preserve author whitespace and explicit empty authors. Encode author strings and use the existing rich-string writer for comment text, including xml:space preservation. Generic XML escaping remains strict.",
+        "validation": "81 tests in four files, package lint/source/test/consumer types and selected maintained build pass. Four compiled codec/command conversions across both editions preserve values and leave the input model unchanged; independent Python ZIP/XML parsing verifies all 48 members and exact encoded author/text.",
+        "remaining": "Existing raw comments-record warning remains: complete rich formatting/metadata retention is not implemented. Native author decoding is not established by the inspected LibreOffice functions; ST_Xstring defines the correction. Native application, installed release, remote delivery and publication remain unverified. No family closure."
       }
     }
   },

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { test } from 'node:test';
+import { setImmediate } from 'node:timers/promises';
 import { createPlaywrightCli, createPlaywrightController } from '../../src/commands/playwright/index.js';
 import type { PlaywrightContext, PlaywrightLease, PlaywrightPage } from '../../src/playwright/index.js';
 
@@ -237,6 +238,114 @@ test('host operations decline a yielded native dialog and resume after it is dis
     await f.run(['dialog-dismiss']);
     assert.deepEqual(await binding.run(async () => 'after dialog'), { status: 'completed', value: 'after dialog' });
   } finally { resume.resolve(); await f.controller.dispose(); }
+});
+
+for (const outcome of ['success', 'failure', 'cancelled'] as const) test(`a host callback yields a dialog to agent commands and retains its ${outcome} outcome`, async () => {
+  const f = fixture();
+  const entered = deferred();
+  const resume = deferred();
+  const abort = new AbortController();
+  const failure = new Error('host readback failed after dismissal');
+  let dismissed = 0;
+  let settled = false;
+  try {
+    await f.adopt();
+    const binding = f.controller.bindSessionPage(f.request())!;
+    const page = f.native.pages[0]!;
+    const running = Promise.allSettled([binding.run(async () => {
+      f.native.events.emit('dialog', { page: () => page, type: () => 'alert', message: () => 'Input handler', defaultValue: () => '',
+        async accept() { assert.fail('dialog must not be accepted automatically'); },
+        async dismiss() { dismissed++; resume.resolve(); },
+      });
+      entered.resolve();
+      await resume.promise;
+      if (outcome === 'failure') throw failure;
+      return 'authoritative readback';
+    }, { signal: abort.signal })]).then(result => { settled = true; return result; });
+    await entered.promise;
+    if (outcome === 'cancelled') abort.abort(false);
+    await setImmediate();
+    assert.equal(settled, false, 'modal and cancellation must not settle pending native work');
+    assert.equal(dismissed, 0, 'cancellation must preserve the dialog');
+    const declining = binding.run(async () => assert.fail('another host callback cannot overlap pending work'));
+    void declining.catch(() => {});
+    const dismissing = f.run(['dialog-dismiss']);
+    void dismissing.catch(() => {});
+    await setImmediate();
+    assert.equal(dismissed, 1, 'the agent must be able to dismiss a dialog raised by host work');
+    assert.deepEqual(await declining, { status: 'unavailable' });
+    await dismissing;
+    assert.deepEqual(await running, outcome === 'success'
+      ? [{ status: 'fulfilled', value: { status: 'completed', value: 'authoritative readback' } }]
+      : [{ status: 'rejected', reason: outcome === 'failure' ? failure : false }]);
+    assert.equal(f.controller.inspectSessions().length, 1);
+    assert.deepEqual(f.native.calls, []);
+  } finally { resume.resolve(); await f.controller.dispose(); }
+});
+
+test('a modal-yielded host callback does not clear the next command idle pause', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: 1000 });
+  const f = fixture();
+  const entered = deferred();
+  const resume = deferred();
+  const dismissalEntered = deferred();
+  const finishDismissal = deferred();
+  try {
+    await f.adopt({ expiresAt: 1100, idleTimeoutMs: 100 });
+    const binding = f.controller.bindSessionPage(f.request())!;
+    const page = f.native.pages[0]!;
+    const running = binding.run(async ({ check }) => {
+      f.native.events.emit('dialog', { page: () => page, type: () => 'alert', message: () => 'Input handler', defaultValue: () => '',
+        async accept() { assert.fail('unexpected accept'); }, async dismiss() { dismissalEntered.resolve(); await finishDismissal.promise; },
+      });
+      entered.resolve(); await resume.promise; check(); return 'readback';
+    });
+    void running.catch(() => {});
+    await entered.promise;
+    const dismissing = f.run(['dialog-dismiss']);
+    void dismissing.catch(() => {});
+    let dismissalStarted = false;
+    void dismissalEntered.promise.then(() => { dismissalStarted = true; });
+    await setImmediate();
+    assert.equal(dismissalStarted, true, 'dialog command must enter before host completion');
+    t.mock.timers.setTime(1200);
+    resume.resolve();
+    assert.deepEqual(await running, { status: 'completed', value: 'readback' });
+    t.mock.timers.setTime(1400);
+    assert.equal(f.controller.inspectSessions().length, 1, 'the agent command still owns its idle pause');
+    finishDismissal.resolve();
+    await dismissing;
+    assert.equal(f.controller.inspectSessions()[0]?.expiresAt, 1500);
+    t.mock.timers.setTime(1500);
+    assert.deepEqual(await binding.run(async () => assert.fail('cannot revive expired session')), { status: 'unavailable' });
+  } finally { resume.resolve(); finishDismissal.resolve(); await f.controller.dispose(); }
+});
+
+test('idle expiry cancels modal-yielded host work without reviving or double-releasing its session', async t => {
+  t.mock.timers.enable({ apis: ['Date', 'setTimeout'], now: 1000 });
+  const f = fixture();
+  const entered = deferred();
+  const aborted = deferred();
+  try {
+    await f.adopt({ expiresAt: 1100, idleTimeoutMs: 100 });
+    const binding = f.controller.bindSessionPage(f.request())!;
+    const page = f.native.pages[0]!;
+    const running = Promise.allSettled([binding.run(async ({ signal }) => {
+      signal.addEventListener('abort', aborted.resolve, { once: true });
+      f.native.events.emit('dialog', { page: () => page, type: () => 'alert', message: () => 'Input handler', defaultValue: () => '',
+        async accept() { assert.fail('expiry must not accept the dialog'); },
+        async dismiss() { assert.fail('expiry must not dismiss the dialog'); },
+      });
+      entered.resolve(); await aborted.promise; return 'late callback completion';
+    })]);
+    await entered.promise;
+    await setImmediate();
+    t.mock.timers.tick(100);
+    assert.equal((await running)[0]?.status, 'rejected');
+    await f.controller.dispose();
+    assert.equal(f.controller.inspectSessions().length, 0);
+    assert.deepEqual(f.native.calls, ['release']);
+  } finally { aborted.resolve(); await f.controller.dispose(); }
 });
 
 test('disposal cancels and awaits an admitted callback including its late failure', async () => {

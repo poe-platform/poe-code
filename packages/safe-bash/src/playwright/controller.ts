@@ -502,41 +502,56 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
           signal.throwIfAborted();
           if (!available()) throw new Error('Bound live Playwright session or page is no longer available');
         };
-        const operation = enqueue(name, async () => {
+        const queued = enqueue(name, async () => {
           callerSignal?.throwIfAborted();
           signal.throwIfAborted();
           // A native action can outlive its queue entry while a modal is open.
           // Decline host work rather than overlapping or waiting for human input.
           if (!available() || session.pendingActions?.size || getPlaywrightModal(page)) return { status: 'unavailable' as const };
           const paused = !!session.idleTimeoutMs;
-          let completed = false;
           if (paused) { session.idlePaused = true; clearTimeout(session.expiryTimer); }
           const closed = () => { pageClosed.abort(new Error('Bound live Playwright page is no longer available')); };
           let observing = false;
-          let settled: Promise<void> | undefined;
+          let yielded!: () => void;
+          const modal = new Promise<void>(resolve => { yielded = resolve; });
+          const unsubscribe = onPlaywrightModal(page, value => { if (value) yielded(); });
           try {
-            if (page.on && page.off) { observing = true; page.on('close', closed); }
-            const pending = Promise.resolve().then(() => { check(); return callback({ signal, check }); });
-            settled = pending.then(() => {}, () => {});
+            const pending = Promise.resolve().then(async () => {
+              try {
+                if (page.on && page.off) { observing = true; page.on('close', closed); }
+                check();
+                const value = await callback({ signal, check });
+                check();
+                if (paused) {
+                  session.expiresAt = Date.now() + session.idleTimeoutMs!;
+                  if (!session.idlePaused) scheduleExpiry(session);
+                }
+                return { status: 'completed' as const, value };
+              } catch (error) {
+                callerSignal?.throwIfAborted();
+                signal.throwIfAborted();
+                throw error;
+              } finally {
+                if (observing) page.off!('close', closed);
+              }
+            });
+            const settled = pending.then(() => {}, () => {});
             (session.pendingActions ??= new Set()).add(settled);
-            const value = await pending;
-            check();
-            completed = true;
-            return { status: 'completed' as const, value };
-          } catch (error) {
-            callerSignal?.throwIfAborted();
-            signal.throwIfAborted();
-            throw error;
+            void settled.then(() => { session.pendingActions!.delete(settled); });
+            // A dialog raised by the callback needs a later agent command. Yield
+            // only the queue; the caller and disposal still await native work.
+            if (getPlaywrightModal(page)) yielded();
+            await Promise.race([settled, modal]);
+            return { pending };
           } finally {
-            if (settled) session.pendingActions!.delete(settled);
-            if (observing) page.off!('close', closed);
+            unsubscribe();
             if (paused) {
               delete session.idlePaused;
-              if (completed && session.state === 'open') session.expiresAt = Date.now() + session.idleTimeoutMs!;
               scheduleExpiry(session);
             }
           }
         });
+        const operation = queued.then(async result => 'pending' in result ? result.pending : result);
         work.add(operation);
         try { return await operation; }
         finally { work.delete(operation); }

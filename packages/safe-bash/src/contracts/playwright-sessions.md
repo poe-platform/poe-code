@@ -97,7 +97,7 @@ across separate capture/commit calls: it never follows a replacement session,
 even if its alias, context, and page objects are reused. Each call enters the
 existing per-session command queue and checks the original session and selected
 page again. It never allocates, restores, selects, focuses, or checkpoints a page.
-Successful calls renew configured idle activity; in-flight work pauses idle expiry.
+Successful calls renew configured idle activity; queue-held work pauses idle expiry.
 
 The callback receives a cancellation `signal` and a synchronous `check()` for
 revalidating lifecycle and selection before effects and after awaited work.
@@ -107,8 +107,12 @@ cooperative callback can settle without waiting for its caller's deadline.
 pending native action or modal that requires human attention. Otherwise success
 returns `{ status: 'completed', value }`. An entered operation can have effects
 before cancellation, page loss, or failure, so rejection never establishes a
-no-op and must not trigger an automatic replay of non-idempotent work. The queue
-and disposal continue to await the underlying callback after cancellation.
+no-op and must not trigger an automatic replay of non-idempotent work. Cancellation
+does not release the queue before the underlying callback settles. If the callback
+opens a native modal, its queue entry yields so modal-handling commands can run,
+and idle expiry resumes. The binding call and disposal still await the original
+callback, including failures after modal dismissal. Other host calls decline
+while it remains pending. Cancellation never accepts or dismisses the modal.
 
 Hosts must bound work, obey cancellation, authenticate the displayed session,
 and validate native document/element/selection identities inside their operation.

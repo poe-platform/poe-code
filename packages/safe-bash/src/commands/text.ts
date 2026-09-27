@@ -2499,6 +2499,7 @@ export function textCommands(): CommandDefinition[] {
         const args = context.args;
         let sepByte = 9;
         let targetField = 0;
+        let fieldMask = 0;
         let operand: string | undefined;
         let canFast = args.length >= 1 && args.length <= 5;
         if (canFast) {
@@ -2525,7 +2526,7 @@ export function textCommands(): CommandDefinition[] {
                 const inline = a.length > 2;
                 const val = inline ? a : args[++i];
                 const startJ = inline ? 2 : 0;
-                if (!val || val.length <= startJ || targetField > 0) {
+                if (!val || val.length <= startJ || targetField > 0 || fieldMask !== 0) {
                   canFast = false;
                   break;
                 }
@@ -2538,11 +2539,35 @@ export function textCommands(): CommandDefinition[] {
                   }
                   num = num * 10 + c;
                 }
-                if (num < 1) {
-                  canFast = false;
-                  break;
+                if (num >= 1) {
+                  targetField = num;
+                } else {
+                  const spec = val.slice(startJ);
+                  if (/^[1-9][0-9]*(?:[,-][1-9][0-9]*)+$/.test(spec)) {
+                    let mask = 0;
+                    let okMask = true;
+                    const parts = spec.split(",");
+                    for (let p = 0; p < parts.length; p++) {
+                      const part = parts[p]!;
+                      const dashIdx = part.indexOf("-");
+                      if (dashIdx === -1) {
+                        const fn = Number(part);
+                        if (fn < 1 || fn > 30) { okMask = false; break; }
+                        mask |= (1 << fn);
+                      } else {
+                        const f1 = Number(part.slice(0, dashIdx));
+                        const f2 = Number(part.slice(dashIdx + 1));
+                        if (f1 < 1 || f2 < f1 || f2 > 30) { okMask = false; break; }
+                        for (let fn = f1; fn <= f2; fn++) mask |= (1 << fn);
+                      }
+                    }
+                    if (okMask && mask !== 0) fieldMask = mask;
+                    else { canFast = false; break; }
+                  } else {
+                    canFast = false;
+                    break;
+                  }
                 }
-                targetField = num;
               } else {
                 canFast = false;
                 break;
@@ -2555,7 +2580,7 @@ export function textCommands(): CommandDefinition[] {
             }
           }
         }
-        if (canFast && targetField >= 1) {
+        if (canFast && (targetField >= 1 || (fieldMask !== 0 && typeof (context.stdin as { tryReadAllSync?: unknown }).tryReadAllSync === "function"))) {
           const req = assertInputRequirements(context, operand !== undefined ? [operand] : EMPTY_OPERANDS);
           if (!req && operand === undefined && !sharedCutOutInUse) {
             const srcIter = input(context, "-")[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
@@ -2579,6 +2604,7 @@ export function textCommands(): CommandDefinition[] {
                 }
                 if (res2 !== undefined && res2.done && chunk.length < sharedCutOutBuffer.length) {
                   if (
+                    fieldMask === 0 &&
                     lastCutOutUsed >= 0 &&
                     chunk.length >= 256 &&
                     lastCutInBuf !== undefined &&
@@ -2610,29 +2636,50 @@ export function textCommands(): CommandDefinition[] {
                     context.signal.throwIfAborted();
                     let boundary = chunk.indexOf(sepByte, start);
                     if (boundary >= offset) boundary = -1;
-                    let fStart = start;
-                    let fEnd = offset;
-                    if (boundary >= 0) {
+                    if (offset - start > maxCutLine) maxCutLine = offset - start;
+                    if (fieldMask !== 0 && boundary >= 0) {
                       let f = 1;
-                      while (f < targetField && boundary >= 0) {
-                        fStart = boundary + 1;
-                        boundary = fStart <= offset ? chunk.indexOf(sepByte, fStart) : -1;
-                        if (boundary >= offset) boundary = -1;
+                      let curStart = start;
+                      let curBound = boundary;
+                      let wroteField = false;
+                      while (true) {
+                        const curEnd = curBound >= 0 ? curBound : offset;
+                        if ((fieldMask & (1 << f)) !== 0) {
+                          if (wroteField) outBuf[outUsed++] = sepByte;
+                          for (let index = curStart; index < curEnd; index++) outBuf[outUsed++] = chunk[index]!;
+                          wroteField = true;
+                        }
+                        if (curBound < 0 || (fieldMask >>> (f + 1)) === 0) break;
+                        curStart = curBound + 1;
+                        curBound = curStart <= offset ? chunk.indexOf(sepByte, curStart) : -1;
+                        if (curBound >= offset) curBound = -1;
                         f++;
                       }
-                      if (f < targetField) {
-                        fStart = offset;
-                        fEnd = offset;
-                      } else {
-                        fEnd = boundary < 0 ? offset : boundary;
+                      outBuf[outUsed++] = 10;
+                    } else {
+                      let fStart = start;
+                      let fEnd = offset;
+                      if (boundary >= 0) {
+                        let f = 1;
+                        while (f < targetField && boundary >= 0) {
+                          fStart = boundary + 1;
+                          boundary = fStart <= offset ? chunk.indexOf(sepByte, fStart) : -1;
+                          if (boundary >= offset) boundary = -1;
+                          f++;
+                        }
+                        if (f < targetField) {
+                          fStart = offset;
+                          fEnd = offset;
+                        } else {
+                          fEnd = boundary < 0 ? offset : boundary;
+                        }
                       }
+                      for (let index = fStart; index < fEnd; index++) outBuf[outUsed++] = chunk[index]!;
+                      outBuf[outUsed++] = 10;
                     }
-                    if (offset - start > maxCutLine) maxCutLine = offset - start;
-                    for (let index = fStart; index < fEnd; index++) outBuf[outUsed++] = chunk[index]!;
-                    outBuf[outUsed++] = 10;
                     start = offset + 1;
                   }
-                  if (chunk.length >= 256 && outUsed <= 32768) {
+                  if (fieldMask === 0 && chunk.length >= 256 && outUsed <= 32768) {
                     lastCutInBuf = Buffer.from(chunk);
                     lastCutSep = sepByte;
                     lastCutField = targetField;

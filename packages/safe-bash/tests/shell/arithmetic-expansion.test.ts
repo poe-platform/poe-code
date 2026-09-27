@@ -216,3 +216,50 @@ test("wave 41: indirect expansion, :+/:= defaults, array element case conversion
     assert.equal(result.stdout, '["404:8:def_3"]');
   } finally { await shell.dispose(); }
 });
+
+test("wave 42: dynamic pattern trim/replace, printf -v %x/%X/%o/%u, shift in functions, and sed/cut multi-field pipelines", async () => {
+  const { shell } = setup();
+  for (const c of basicCommands()) shell.register(c);
+  const { textCommands } = await import("../../src/commands/text.js");
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  for (const c of textCommands()) shell.commands.register(c, { replace: true });
+  for (const c of createTextProgramCommands()) shell.commands.register(c, { replace: true });
+  const script = [
+    'pfx="pre_"; sfx="_end"; old="foo"; new="BAR"',
+    'acc=0; last=""; out=""',
+    'for ((i=0; i<40; i++)); do',
+    '  s="pre_foo_item_${i}_foo_end"',
+    '  s1="${s#$pfx}"',
+    '  s2="${s1%$sfx}"',
+    '  s3="${s2//$old/$new}"',
+    '  printf -v out "%03d:%s:%x:%X:%o:%u" "$i" "$s3" "$((i * 16))" "$((i * 16))" "$i" "$i"',
+    '  last="$out"',
+    '  acc=$((acc + ${#out}))',
+    'done',
+    'sum_pairs() {',
+    '  local total=0',
+    '  while [[ $# -ge 2 ]]; do',
+    '    total=$((total + $1 + $2))',
+    '    shift 2',
+    '  done',
+    '  while [[ $# -gt 0 ]]; do',
+    '    total=$((total + $1))',
+    '    shift',
+    '  done',
+    '  REPLY=$total',
+    '}',
+    'grand=0',
+    'for ((i=0; i<20; i++)); do',
+    '  sum_pairs "$i" "$((i+1))" "$((i+2))" "$((i+3))" "$((i+4))"',
+    '  grand=$((grand + REPLY))',
+    'done',
+    'pipe_last=""',
+    'for ((i=0; i<15; i++)); do',
+    '  pipe_last=$(printf "alpha:%d:mid:%d:omega\\n" "$i" "$((i*2))" | sed "s/alpha/BETA/" | cut -d: -f1,2,4)',
+    'done',
+    'echo "$acc|$last|$grand|$pipe_last"'
+  ].join("\n");
+  const result = await shell.exec(script);
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout.trim(), "1258|039:BAR_item_39_BAR:270:270:47:39|1150|BETA:14:28");
+});

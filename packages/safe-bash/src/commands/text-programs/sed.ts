@@ -1060,7 +1060,8 @@ function tryExecutePairFastSync(
   let rawBytes: Uint8Array | undefined;
   try {
     rawBytes = tryReadMemoryFileViewSync(fastMem, path, undefined, context.signal, true);
-  } catch {
+  } catch (e) {
+    console.error('SED_SYNC_ERR:', e);
     return undefined;
   }
   if (!rawBytes || rawBytes.byteLength < 256) return undefined;
@@ -1151,9 +1152,80 @@ function tryExecutePairFastSync(
   }
 }
 
+const SED_META_RE = /[\\^$.*+?()[\]{}|\n]/;
+function tryExecuteSimpleSedStdinSync(rawProg: string, context: CommandContext, options: TextProgramOptions): number | undefined {
+  if (rawProg.length < 4 || rawProg.length > 256 || rawProg.charCodeAt(0) !== 115) return undefined;
+  const delim = rawProg[1]!;
+  if (delim === "\\" || delim === "\n") return undefined;
+  const parts = rawProg.split(delim);
+  if (parts.length !== 4) return undefined;
+  const pat = parts[1]!;
+  const rep = parts[2]!;
+  const flags = parts[3]!;
+  if (pat.length === 0 || (flags !== "" && flags !== "g")) return undefined;
+  if (SED_META_RE.test(pat) || rep.includes("&") || rep.includes("\\") || rep.includes("\n")) return undefined;
+  for (let i = 0; i < rawProg.length; i++) {
+    if (rawProg.charCodeAt(i) >= 128) return undefined;
+  }
+  const stdinSync = context.stdin as { tryReadAllSync?: () => Uint8Array };
+  const stdoutSync = context.stdout as { writeSync?: (chunk: Uint8Array) => boolean };
+  if (typeof stdinSync.tryReadAllSync !== "function" || typeof stdoutSync.writeSync !== "function") return undefined;
+  const rawBytes = stdinSync.tryReadAllSync();
+  if (!rawBytes || rawBytes.byteLength > 16384) return undefined;
+  for (let i = 0; i < rawBytes.byteLength; i++) {
+    const b = rawBytes[i]!;
+    if (b >= 128 || b === 0) return undefined;
+  }
+  const budget = Budget.acquire(context, options);
+  try {
+    const pCheck = budget.checkpointSync();
+    if (pCheck) {
+      pCheck.catch(() => {});
+      return undefined;
+    }
+    const text = Buffer.from(rawBytes.buffer, rawBytes.byteOffset, rawBytes.byteLength).toString("latin1");
+    if (text.length === 0) {
+      budget.step(1);
+      return 0;
+    }
+    const hasTrailingNewline = text.charCodeAt(text.length - 1) === 10;
+    const body = hasTrailingNewline ? text.slice(0, -1) : text;
+    const lines = body.split("\n");
+    const isGlobal = flags === "g";
+    budget.step(1 + lines.length);
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]!;
+      if (line.length > budget.maxBufferBytes) return undefined;
+      const idx = line.indexOf(pat);
+      if (idx !== -1) {
+        const nextLine = isGlobal ? line.split(pat).join(rep) : line.slice(0, idx) + rep + line.slice(idx + pat.length);
+        if (nextLine.length > budget.maxBufferBytes) return undefined;
+        lines[i] = nextLine;
+      }
+    }
+    const outText = lines.join("\n") + (hasTrailingNewline ? "\n" : "");
+    budget.check(outText);
+    const outBytes = Buffer.from(outText, "latin1");
+    if (!stdoutSync.writeSync(outBytes)) return undefined;
+    return 0;
+  } catch {
+    return undefined;
+  } finally {
+    Budget.release(budget);
+  }
+}
+
 export function sedCommand(options: TextProgramOptions = {}): CommandDefinition {
   const maxProgramInstructions = options.maxProgramInstructions === undefined ? Infinity : options.maxProgramInstructions;
   const definition = command("sed", context => {
+    if (
+      maxProgramInstructions === Infinity &&
+      (context.args.length === 1 || (context.args.length === 2 && context.args[0] === "-e"))
+    ) {
+      const rawProg = context.args[context.args.length - 1]!;
+      const stdinRes = tryExecuteSimpleSedStdinSync(rawProg, context, options);
+      if (stdinRes !== undefined) return stdinRes;
+    }
     if (
       maxProgramInstructions === Infinity &&
       context.args.length === 2 &&

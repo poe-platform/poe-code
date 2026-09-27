@@ -355,6 +355,32 @@ export function tryFastPrintf(args: readonly string[]): string | undefined {
         offset = cur + 1;
         continue;
       }
+      if (conv === 120 || conv === 88 || conv === 111 || conv === 117) {
+        const val = args[argument++] ?? "0";
+        if (val.length === 0 || val.length > 15) return undefined;
+        if (val.length > 1 && val.charCodeAt(0) === 48) return undefined;
+        for (let i = 0; i < val.length; i++) {
+          const d = val.charCodeAt(i);
+          if (d < 48 || d > 57) return undefined;
+        }
+        const n = Number(val);
+        if (!Number.isSafeInteger(n) || n < 0) return undefined;
+        const numStr = conv === 120 ? n.toString(16) : conv === 88 ? n.toString(16).toUpperCase() : conv === 111 ? n.toString(8) : String(n);
+        if (width > numStr.length) {
+          const padLen = width - numStr.length;
+          if (leftAlign) {
+            result += numStr + " ".repeat(padLen);
+          } else if (zeroPad) {
+            result += "0".repeat(padLen) + numStr;
+          } else {
+            result += " ".repeat(padLen) + numStr;
+          }
+        } else {
+          result += numStr;
+        }
+        offset = cur + 1;
+        continue;
+      }
       return undefined;
     }
     if (argument <= before) break;

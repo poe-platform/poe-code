@@ -8353,11 +8353,153 @@ export class Runtime {
     // with state-dependent eligibility to the resumable asynchronous executor.
     // Individual commands still use their synchronous fast paths there.
     if (command.kind === "simple") {
-      const name = command.words[0]?.plain;
-      return command.words.length === 1 &&
-        (name === ":" || name === "true" || name === "false") &&
-        !hasShellFunction(rawState, name) &&
-        !rawState.extensions?.builtins.has(name);
+      if (command.words.length === 0) return false;
+      const w0 = command.words[0]!;
+      const w0Plain = w0.plain;
+      const isNoBraceSyncWord = (w: Word) =>
+        this.isPureSyncValueWord(w, rawState) &&
+        !w.parts.some(part => part.kind === "substitution" || (rawState.braceexpand !== false && part.kind === "text" && !part.quoted && part.value.includes("{")));
+      if (command.words.length === 1) {
+        if (
+          (w0Plain === ":" || w0Plain === "true" || w0Plain === "false" || w0Plain === "return" || w0Plain === "shift") &&
+          !hasShellFunction(rawState, w0Plain) &&
+          !rawState.extensions?.builtins.has(w0Plain)
+        ) {
+          return true;
+        }
+        if (w0Plain !== undefined && rawState.functions.has(w0Plain)) {
+          const fnBody = rawState.functions.get(w0Plain)!;
+          return fnBody.kind === "group" && fnBody.redirects.length === 0 && this.canSyncScriptCompound(fnBody.body, rawState, depth + 1);
+        }
+        const arrayAssign = getArrayAssignment(w0);
+        if (arrayAssign) return arrayAssign.words.every(isNoBraceSyncWord);
+        const assignment = this.assignment(w0);
+        return Boolean(
+          assignment &&
+          !assignment.append &&
+          assignment.name !== "OPTIND" &&
+          assignment.name !== "PIPESTATUS" &&
+          !assignment.name.includes("[") &&
+          isNoBraceSyncWord(assignment.value),
+        );
+      }
+      if (command.words.length === 2) {
+        if (
+          (w0Plain === "return" || w0Plain === "shift") &&
+          !hasShellFunction(rawState, w0Plain) &&
+          !rawState.extensions?.builtins.has(w0Plain) &&
+          isNoBraceSyncWord(command.words[1]!)
+        ) {
+          return true;
+        }
+        if (
+          w0Plain === "unset" &&
+          !hasShellFunction(rawState, "unset") &&
+          !rawState.extensions?.builtins.has("unset") &&
+          command.words[1]?.plain !== undefined &&
+          /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(command.words[1]!.plain!)
+        ) {
+          return true;
+        }
+        if (
+          w0Plain === "export" &&
+          !hasShellFunction(rawState, "export") &&
+          !rawState.extensions?.builtins.has("export")
+        ) {
+          const assignment = !getArrayAssignment(command.words[1]!) ? this.assignment(command.words[1]!) : undefined;
+          if (
+            assignment &&
+            !assignment.append &&
+            assignment.name !== "OPTIND" &&
+            assignment.name !== "PIPESTATUS" &&
+            !assignment.name.includes("[") &&
+            isNoBraceSyncWord(assignment.value)
+          ) {
+            return true;
+          }
+        }
+      }
+      if (
+        command.words.length >= 2 &&
+        command.words.length <= 16 &&
+        w0Plain === "local" &&
+        !hasShellFunction(rawState, "local") &&
+        !rawState.extensions?.builtins.has("local")
+      ) {
+        let allValidLocal = true;
+        for (let idx = 1; idx < command.words.length; idx++) {
+          const wArg = command.words[idx]!;
+          const assignment = !getArrayAssignment(wArg) ? this.assignment(wArg) : undefined;
+          if (assignment) {
+            if (
+              assignment.append ||
+              assignment.name === "OPTIND" ||
+              assignment.name !== "PIPESTATUS" && false ||
+              assignment.name === "PIPESTATUS" ||
+              assignment.name.includes("[") ||
+              !isNoBraceSyncWord(assignment.value)
+            ) {
+              allValidLocal = false;
+              break;
+            }
+          } else if (!wArg.plain || !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(wArg.plain) || wArg.plain === "OPTIND" || wArg.plain === "PIPESTATUS") {
+            allValidLocal = false;
+            break;
+          }
+        }
+        if (allValidLocal) return true;
+      }
+      if (
+        w0Plain === "echo" &&
+        !hasShellFunction(rawState, "echo") &&
+        !rawState.extensions?.builtins.has("echo")
+      ) {
+        const w1Plain = command.words[1]?.plain;
+        if (w1Plain === undefined || !w1Plain.startsWith("-") || w1Plain === "-n" || w1Plain === "-e" || w1Plain === "-ne" || w1Plain === "-en") {
+          if (command.words.slice(1).every(isNoBraceSyncWord)) return true;
+        }
+      }
+      if (
+        w0Plain === "printf" &&
+        !hasShellFunction(rawState, "printf") &&
+        !rawState.extensions?.builtins.has("printf")
+      ) {
+        const isPrintfV =
+          command.words.length >= 4 &&
+          command.words[1]?.plain === "-v" &&
+          command.words[2]?.plain !== undefined &&
+          /^[a-zA-Z_][a-zA-Z_0-9]*$/.test(command.words[2]!.plain!) &&
+          command.words[2]!.plain !== "OPTIND" &&
+          command.words[2]!.plain !== "PIPESTATUS";
+        const fmtIdx = isPrintfV ? 3 : 1;
+        const fmtPlain = command.words[fmtIdx]?.plain;
+        if (
+          fmtPlain !== undefined &&
+          !fmtPlain.startsWith("-") &&
+          /^(?:[^%]|%%|%[-0]*\d*[sdxXou])*$/.test(fmtPlain) &&
+          command.words.slice(fmtIdx + 1).every(isNoBraceSyncWord)
+        ) {
+          return true;
+        }
+      }
+      if (
+        command.words.length >= 3 &&
+        (w0Plain === "[" || w0Plain === "test") &&
+        !hasShellFunction(rawState, w0Plain) &&
+        !rawState.extensions?.builtins.has(w0Plain)
+      ) {
+        const isBracket = w0Plain === "[";
+        const argCount = isBracket ? command.words.length - 2 : command.words.length - 1;
+        if ((!isBracket || command.words[command.words.length - 1]?.plain === "]") && command.words.slice(1).every(isNoBraceSyncWord)) {
+          if (argCount === 2 && (command.words[1]?.plain === "-z" || command.words[1]?.plain === "-n")) return true;
+          if (argCount === 3 && (command.words[2]?.plain === "=" || command.words[2]?.plain === "==" || command.words[2]?.plain === "!=")) return true;
+        }
+      }
+      if (w0Plain !== undefined && rawState.functions.has(w0Plain) && command.words.slice(1).every(isNoBraceSyncWord)) {
+        const fnBody = rawState.functions.get(w0Plain)!;
+        return fnBody.kind === "group" && fnBody.redirects.length === 0 && this.canSyncScriptCompound(fnBody.body, rawState, depth + 1);
+      }
+      return false;
     }
     if (command.kind === "group") {
       return this.canSyncScriptCompound(command.body, rawState, depth + 1);
@@ -9451,6 +9593,133 @@ export class Runtime {
     }
     if (command.words.length >= 1) {
       const w0Plain = command.words[0]!.plain;
+      if (
+        command.words.length >= 4 &&
+        w0Plain === "printf" &&
+        command.words[1]?.plain === "-v" &&
+        command.redirects.length === 0 &&
+        canMutatePipeStatus &&
+        (!pipeline.negate || ignored || !rawState.errexit) &&
+        !hasShellFunction(rawState, "printf") &&
+        !rawState.extensions?.builtins.has("printf")
+      ) {
+        const targetVar = command.words[2]?.plain;
+        const def = this.commands.get("printf");
+        if (
+          targetVar &&
+          isShellIdentifier(targetVar) &&
+          targetVar !== "OPTIND" &&
+          targetVar !== "PIPESTATUS" &&
+          targetVar !== "_" &&
+          !rawState.readonlyVariables?.has(targetVar) &&
+          !store?.get(targetVar) &&
+          !monitor.hasOverlay(targetVar) &&
+          def &&
+          def.execute === printfCommand.execute &&
+          command.words.length <= this.budget.maxExpansionFieldsSmi &&
+          this.arePureArgWords(command.words, rawState)
+        ) {
+          fastSubScratchArgs.length = 0;
+          let allStrings = true;
+          try {
+            for (let i = 3; i < command.words.length; i++) {
+              const v = this.fastValueWord(command.words[i]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
+              if (typeof v !== "string") {
+                allStrings = false;
+                break;
+              }
+              fastSubScratchArgs.push(v);
+            }
+          } catch {
+            allStrings = false;
+          }
+          const lastArg = fastSubScratchArgs.length > 0 ? fastSubScratchArgs[fastSubScratchArgs.length - 1]! : targetVar;
+          const formatted = allStrings ? tryFastPrintf(fastSubScratchArgs) : undefined;
+          fastSubScratchArgs.length = 0;
+          if (
+            formatted !== undefined &&
+            formatted.length <= this.budget.limits.maxExpansionBytes &&
+            (formatted.length * 3 <= this.budget.limits.maxExpansionBytes || Buffer.byteLength(formatted) <= this.budget.limits.maxExpansionBytes)
+          ) {
+            if (rawState.extensions && !rawState.extensions.eventDepth) {
+              publishCommandSpelling(rawState, commandSpelling(command));
+            }
+            const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+            this.budget.tick();
+            rawState.substitutionStatus = 0;
+            if (rawState.variables._ !== undefined) delete rawState.variables._;
+            rawState.lastArgument = lastArg;
+            if (this._syncArithRawWriteOnly && this._syncArithTouched) {
+              rawState.variables[targetVar] = formatted;
+              this._syncArithTouched.add(targetVar);
+            } else {
+              monitor.publishStringVariable(targetVar, formatted);
+            }
+            if (rawState.allexport) monitor.proxy.exported.add(targetVar);
+            if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+            if (!existing) {
+              monitor.lazyPipeStatus = singleStatusZero;
+              monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+            } else {
+              elem0!.text.shellValue = "0";
+              store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+            }
+            const finalStatus = pipeline.negate ? 1 : 0;
+            rawState.status = finalStatus;
+            monitor.epoch = restEpoch;
+            if (store) store.epoch = restEpoch;
+            return finalStatus;
+          }
+        }
+      }
+      if (
+        command.words.length === 2 &&
+        w0Plain === "shift" &&
+        command.redirects.length === 0 &&
+        canMutatePipeStatus &&
+        !pipeline.negate &&
+        !hasShellFunction(rawState, "shift") &&
+        !rawState.extensions?.builtins.has("shift")
+      ) {
+        let argVal: ShellValue | undefined;
+        try {
+          argVal = command.words[1]!.plain ?? this.fastValueWord(command.words[1]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
+        } catch {
+          argVal = undefined;
+        }
+        if (typeof argVal === "string" && /^[0-9]{1,6}$/.test(argVal)) {
+          const shiftCount = Number(argVal);
+          const activePos = this._fastSubPositional ?? rawState.positional;
+          if (shiftCount >= 0 && shiftCount <= activePos.length) {
+            const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+            this.budget.tick();
+            rawState.substitutionStatus = 0;
+            if (rawState.variables._ !== undefined) delete rawState.variables._;
+            rawState.lastArgument = argVal;
+            if (shiftCount > 0) {
+              if (this._fastSubPositional !== undefined) {
+                const nextPos = activePos.slice(shiftCount);
+                this._fastSubPositional = nextPos;
+                rawState.positional = nextPos;
+              } else {
+                this.replacePositionals(state, this.positionalValues(state).slice(shiftCount));
+              }
+            }
+            if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+            if (!existing) {
+              monitor.lazyPipeStatus = singleStatusZero;
+              monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+            } else {
+              elem0!.text.shellValue = "0";
+              store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+            }
+            rawState.status = 0;
+            monitor.epoch = restEpoch;
+            if (store) store.epoch = restEpoch;
+            return 0;
+          }
+        }
+      }
       if (
         (w0Plain === "echo" || w0Plain === "printf") &&
         !hasShellFunction(rawState, w0Plain) &&
@@ -10701,23 +10970,32 @@ export class Runtime {
           } else if (part.operator === "-" || part.operator === ":-" || part.operator === "+" || part.operator === ":+") {
             if (!part.alternate || !part.alternate.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring))) return false;
           } else if (part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") {
-            if (part.alternate?.parts.length !== 1 || part.alternate.parts[0]!.kind !== "text" || part.alternate.parts[0]!.byteValue) return false;
-            const pat = part.alternate.parts[0]!.value;
-            if (!part.alternate.parts[0]!.quoted && hasGlobOrEscape(pat, !!rawState.extglob)) {
-              if (!tryCompileTrimGlobToRegex(pat, part.operator, !!rawState.extglob)) return false;
-            }
-          } else if (part.operator === "/" || part.operator === "//" || part.operator === "/#" || part.operator === "/%") {
-            if (
-              part.alternate?.parts.length !== 1 ||
-              part.alternate.parts[0]!.kind !== "text" ||
-              part.alternate.parts[0]!.byteValue ||
-              (part.replacement && part.replacement.parts.length > 0 && (part.replacement.parts.length !== 1 || part.replacement.parts[0]!.kind !== "text" || part.replacement.parts[0]!.byteValue))
-            ) {
+            if (!part.alternate || part.alternate.parts.length === 0) return false;
+            const q0 = part.alternate.parts[0]!.quoted;
+            const trimOp = part.operator;
+            if (!part.alternate.parts.every(p => p.quoted === q0 && (
+              (p.kind === "text" && !p.byteValue && (p.quoted || !hasGlobOrEscape(p.value, !!rawState.extglob) || (part.alternate!.parts.length === 1 && Boolean(tryCompileTrimGlobToRegex(p.value, trimOp, !!rawState.extglob))))) ||
+              (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))
+            ))) {
               return false;
             }
-            const pat = part.alternate.parts[0]!.value;
-            if (!part.alternate.parts[0]!.quoted && hasGlobOrEscape(pat, !!rawState.extglob)) {
-              if (!tryCompileFixedGlobToRegex(pat, part.operator, !!rawState.extglob)) return false;
+          } else if (part.operator === "/" || part.operator === "//" || part.operator === "/#" || part.operator === "/%") {
+            if (!part.alternate || part.alternate.parts.length === 0) return false;
+            const q0 = part.alternate.parts[0]!.quoted;
+            const repOp = part.operator;
+            if (!part.alternate.parts.every(p => p.quoted === q0 && (
+              (p.kind === "text" && !p.byteValue && (p.quoted || !hasGlobOrEscape(p.value, !!rawState.extglob) || (part.alternate!.parts.length === 1 && Boolean(tryCompileFixedGlobToRegex(p.value, repOp, !!rawState.extglob))))) ||
+              (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))
+            ))) {
+              return false;
+            }
+            if (part.replacement && part.replacement.parts.length > 0) {
+              if (!part.replacement.parts.every(p => (
+                (p.kind === "text" && !p.byteValue && !p.value.includes("&") && !p.value.includes("\\") && (p.quoted || !p.value.startsWith("~"))) ||
+                (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))
+              ))) {
+                return false;
+              }
             }
           } else {
             return false;
@@ -19116,22 +19394,33 @@ export class Runtime {
           if (
             !rawState.nocasematch &&
             (part.operator === "/" || part.operator === "//" || part.operator === "/#" || part.operator === "/%") &&
-            part.alternate?.parts.length === 1 &&
-            part.alternate.parts[0]!.kind === "text" &&
-            !part.alternate.parts[0]!.byteValue &&
-            (!part.replacement || part.replacement.parts.length === 0 || (part.replacement.parts.length === 1 && part.replacement.parts[0]!.kind === "text" && !part.replacement.parts[0]!.byteValue))
+            part.alternate &&
+            part.alternate.parts.length >= 1 &&
+            part.alternate.parts.every(p => p.quoted === part.alternate!.parts[0]!.quoted && ((p.kind === "text" && !p.byteValue) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name)))) &&
+            (!part.replacement || part.replacement.parts.length === 0 || part.replacement.parts.every(p => (p.kind === "text" && !p.byteValue) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))))
           ) {
-            const patPart = part.alternate.parts[0]!;
-            const pat = patPart.value;
-            if (pat.length === 0) return undefined;
+            const patQuoted = part.alternate.parts[0]!.quoted;
+            const pat = (part.alternate.parts.length === 1 && part.alternate.parts[0]!.kind === "text")
+              ? part.alternate.parts[0]!.value
+              : this.fastValueWord(part.alternate, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
+            if (typeof pat !== "string" || pat.length === 0) return undefined;
             let fixedGlobRe: RegExp | undefined;
-            if (!patPart.quoted && hasGlobOrEscape(pat, !!rawState.extglob)) {
+            if (!patQuoted && hasGlobOrEscape(pat, !!rawState.extglob)) {
               fixedGlobRe = tryCompileFixedGlobToRegex(pat, part.operator, !!rawState.extglob);
               if (!fixedGlobRe) return undefined;
             }
-            const repPart = part.replacement?.parts[0] as Extract<WordPart, { kind: "text" }> | undefined;
-            const rep = repPart ? repPart.value : "";
-            if (repPart && !repPart.quoted && (rep.startsWith("~") || rep.includes("&") || rep.includes("\\"))) return undefined;
+            let rep = "";
+            if (part.replacement && part.replacement.parts.length > 0) {
+              if (part.replacement.parts.length === 1 && part.replacement.parts[0]!.kind === "text") {
+                const repPart = part.replacement.parts[0]!;
+                rep = repPart.value;
+                if ((!repPart.quoted && rep.startsWith("~")) || rep.includes("&") || rep.includes("\\")) return undefined;
+              } else {
+                const expRep = this.fastValueWord(part.replacement, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
+                if (typeof expRep !== "string" || expRep.startsWith("~") || expRep.includes("&") || expRep.includes("\\")) return undefined;
+                rep = expRep;
+              }
+            }
             const raw = rawVars[part.name];
             this.requireParameter(raw, part.name, state, io, part.line ?? overrideDiagnosticLine);
             if (raw === undefined) {
@@ -19174,16 +19463,19 @@ export class Runtime {
           }
           if (
             (part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") &&
-            part.alternate?.parts.length === 1 &&
-            part.alternate.parts[0]!.kind === "text" &&
-            !part.alternate.parts[0]!.byteValue
+            part.alternate &&
+            part.alternate.parts.length >= 1 &&
+            part.alternate.parts.every(p => p.quoted === part.alternate!.parts[0]!.quoted && ((p.kind === "text" && !p.byteValue) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))))
           ) {
-            const patPart = part.alternate.parts[0]!;
-            const pat = patPart.value;
+            const patQuoted = part.alternate.parts[0]!.quoted;
+            const pat = (part.alternate.parts.length === 1 && part.alternate.parts[0]!.kind === "text")
+              ? part.alternate.parts[0]!.value
+              : this.fastValueWord(part.alternate, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
+            if (typeof pat !== "string") return undefined;
             const isPrefixTrim = part.operator === "#" || part.operator === "##";
             let starWildcardLit: string | undefined;
             let trimGlobRe: RegExp | undefined;
-            if (!patPart.quoted && hasGlobOrEscape(pat, !!rawState.extglob)) {
+            if (!patQuoted && hasGlobOrEscape(pat, !!rawState.extglob)) {
               if (rawState.nocasematch || byteLocale(rawVars)) return undefined;
               if (isPrefixTrim && pat.charCodeAt(0) === 42 && !hasGlobOrEscape(pat.slice(1), !!rawState.extglob)) {
                 starWildcardLit = pat.slice(1);
@@ -19342,9 +19634,12 @@ export class Runtime {
         const line = overrideDiagnosticLine ?? io.diagnosticLine ?? part.line;
         if (expr.error) {
           const canCacheWord = !byteLocale(rawVars) && (rawState.depth + (io.parameterDepth ?? 0)) < 32;
-          const cachedExpr = expr as { _cachedArithWord?: Word | null; _cachedArithSyntax?: unknown };
+          const cachedExpr = expr as { _cachedArithWord?: Word | null; _cachedArithSyntax?: unknown; _cachedArithUnits?: number };
           let expWord = canCacheWord && cachedExpr._cachedArithSyntax === rawState.extensions?.syntax ? cachedExpr._cachedArithWord : undefined;
-          if (expWord === undefined) {
+          if (expWord !== undefined) {
+            if (cachedExpr._cachedArithUnits) this.budget.parsing.admit(cachedExpr._cachedArithUnits);
+          } else {
+            const beforeUnits = this.budget.parsing.admittedUnits;
             try {
               expWord = parseArithmeticExpansion(
                 expr.source,
@@ -19357,7 +19652,11 @@ export class Runtime {
             } catch {
               expWord = null;
             }
-            if (canCacheWord) { cachedExpr._cachedArithWord = expWord; cachedExpr._cachedArithSyntax = rawState.extensions?.syntax; }
+            if (canCacheWord && expWord !== null) {
+              cachedExpr._cachedArithWord = expWord;
+              cachedExpr._cachedArithSyntax = rawState.extensions?.syntax;
+              cachedExpr._cachedArithUnits = this.budget.parsing.admittedUnits - beforeUnits;
+            }
           }
           if (!expWord) return undefined;
           const fastSrc = this.fastValueWord(expWord, state, io, false, false, true, false, undefined, line);
@@ -19623,6 +19922,10 @@ export class Runtime {
           if (sArgs.length !== 2 || sArgs[0] !== "-n" || !/^[0-9]+$/.test(sArgs[1]!)) return undefined;
         } else if (sName === "wc") {
           if (sArgs.length !== 1 || (sArgs[0] !== "-l" && sArgs[0] !== "-c")) return undefined;
+        } else if (sName === "sed") {
+          const validSed1 = sArgs.length === 1 && sArgs[0]!.startsWith("s");
+          const validSed2 = sArgs.length === 2 && sArgs[0] === "-e" && sArgs[1]!.startsWith("s");
+          if (!validSed1 && !validSed2) return undefined;
         } else {
           return undefined;
         }
@@ -19682,6 +19985,11 @@ export class Runtime {
             scope.leaveWork();
           }
           if (resPromise !== RESOLVED_EXIT_ZERO) {
+            if (resPromise && typeof (resPromise as Promise<unknown>).catch === "function") {
+              (resPromise as Promise<unknown>).catch(() => {});
+            }
+            pooledSyncPipeContext = undefined;
+            context = undefined;
             return undefined;
           }
           this.signal.throwIfAborted();

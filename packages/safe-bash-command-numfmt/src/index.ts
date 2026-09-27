@@ -281,7 +281,6 @@ function compare(left: Binary, right: Binary): number {
   return lc < scaledR ? -1 : lc > scaledR ? 1 : 0;
 }
 
-const BINARY_0: Binary = { coefficient: 0n, exponent: 0 };
 const BINARY_1: Binary = binary(1n);
 const BINARY_10: Binary = binary(10n);
 const BINARY_1000: Binary = binary(1000n);
@@ -1023,7 +1022,7 @@ class Converter {
           if (this.tick((settings.fields?.length ?? 0) + 1)) return bail();
           lineOut += line.slice(end);
           break;
-        } else if (line[end] === " " && !/[\t\n]|  | $/.test(line.slice(end))) {
+        } else if (line[end] === " " && !/[\t\n]| {2}| $/.test(line.slice(end))) {
           if (this.tick((settings.fields?.length ?? 0) + 1)) return bail();
           lineOut += line.slice(end);
           break;

@@ -305,7 +305,8 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
         table[slot] = -2;
         keys[idx] = "";
         this._vals[idx] = DUMMY_POOL_FILE_NODE;
-        if (idx === this._next - 1) this._next--;
+        // Keep deleted indices until compaction: reusing the tail would let
+        // tombstones fill the table without reaching set()'s rebuild threshold.
         this.size--;
         return true;
       }

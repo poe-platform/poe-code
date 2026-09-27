@@ -9,6 +9,7 @@ import { settings as columnSettings } from "../../src/commands/column/options.js
 import { Budget as HexBudget, settings as hexSettings } from "../../src/commands/hexdump/internal.js";
 import { Budget as PrBudget, settings as prSettings } from "../../src/commands/pr/internal.js";
 import { Budget as EndingBudget, settings as endingSettings } from "../../src/commands/line-endings/internal.js";
+import { Session as InspectionSession, settings as inspectionSettings } from "../../src/commands/stream-inspection/shared.js";
 
 const factories: readonly [string, (context: CommandContext) => () => void | Promise<void>][] = [
   ["stream", context => { const budget = new Session(context, streamSettings({})); return () => budget.step(4096); }],
@@ -17,8 +18,10 @@ const factories: readonly [string, (context: CommandContext) => () => void | Pro
   ["hexdump", context => { const budget = new HexBudget(context, hexSettings({}), context.signal, context.signal, { closed: false }); return async () => { budget.charge(4096); await budget.checkpointWork(); }; }],
   ["pr", context => { const budget = new PrBudget(context, prSettings({}), new AbortController().signal); return async () => { budget.charge(4096); await budget.checkpointWork(); }; }],
   ["line endings", context => { const budget = new EndingBudget(context, endingSettings({}), context.signal, context.signal, { closed: false }); return () => budget.step(1024); }],
+  ["inspection", context => { const budget = new InspectionSession(context, inspectionSettings({})); return () => budget.step(4096); }],
 ];
-for (const [name, factory] of factories) {
+const quantumNames = new Set(["table", "column", "hexdump", "inspection"]);
+for (const [name, factory] of factories.filter(([name]) => !quantumNames.has(name))) {
   test(`${name} yields on elapsed time and caller checkpoints`, async t => {
     let now = 0, turns = 0;
     const immediate = globalThis.setImmediate;
@@ -39,6 +42,37 @@ for (const [name, factory] of factories) {
     await checkpointTick();
     assert.equal(checkpoints, 1);
     assert.equal(turns, 2);
+  });
+}
+
+for (const [name, factory] of factories.filter(([name]) => quantumNames.has(name))) {
+  test(`${name} yields repeatedly and accepts later cancellation with a frozen clock`, async t => {
+    t.mock.method(performance, "now", () => 0);
+    const controller = new AbortController();
+    const context = { args: [], signal: controller.signal, stdout: { async write() {} } } as unknown as CommandContext;
+    const tick = factory(context);
+    for (let index = 0; index < 3; index++) {
+      let turnObserved = false;
+      const pending = new Promise<void>(resolve => setImmediate(() => { turnObserved = true; resolve(); }));
+      await tick();
+      assert.equal(turnObserved, true, `quantum ${index + 1} must permit host work`);
+      await pending;
+    }
+    const stopped = new Error("cancel after earlier quanta");
+    setImmediate(() => controller.abort(stopped));
+    await assert.rejects(Promise.resolve().then(tick), error => error === stopped);
+  });
+
+  test(`${name} invokes each caller checkpoint once per quantum`, async () => {
+    const controller = new AbortController();
+    let checkpoints = 0;
+    registerYieldCheckpoint(controller.signal, () => { checkpoints++; });
+    const context = { args: [], signal: controller.signal, stdout: { async write() {} } } as unknown as CommandContext;
+    const tick = factory(context);
+    await tick();
+    assert.equal(checkpoints, 1);
+    await tick();
+    assert.equal(checkpoints, 2);
   });
 }
 

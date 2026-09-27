@@ -1,5 +1,5 @@
 import { publicDiagnosticMessage } from "../../diagnostics.js";
-import { hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
+import { inheritYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { escapeText } from "../../escaping.js";
 import { FsError, writeBytes, type ByteSource, type CommandContext, type FileSystem, type ReadStreamOptions } from "../../contracts/index.js";
 import { Budget, Inputs, type RecordReader } from "../table-text/internal.js";
@@ -66,13 +66,8 @@ export class ColumnBudget extends Budget {
     this.untilYield -= amount;
     if (this.untilYield > 0) return;
     this.untilYield = 2048;
-    if (!hasYieldCheckpoint(this.context.signal) && monotonicNow() - this.lastYield < 25) {
-      runYieldCheckpoint(this.context.signal);
-      this.context.signal.throwIfAborted();
-      return;
-    }
+    // A work quantum must allow host cancellation even when the clock is frozen.
     return yieldTurn(this.context.signal).then(() => {
-      this.lastYield = monotonicNow();
       this.context.signal.throwIfAborted();
     });
   }

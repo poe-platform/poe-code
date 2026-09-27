@@ -1,4 +1,4 @@
-import { hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
+import { inheritYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { createBufferedOutput, FsError, readBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { diagnostic, pathOf } from "../internal.js";
 import { gnuInformation } from "../gnu-information.js";
@@ -40,7 +40,6 @@ export class Session {
   private outputBytes = 0;
   private steps = 0;
   private untilYield = 4096;
-  private lastYield = monotonicNow();
   readonly buffered: ReturnType<typeof createBufferedOutput>;
   private signalAborted = false;
   private readonly pollSignal: boolean;
@@ -73,13 +72,8 @@ export class Session {
     this.untilYield -= count;
     if (this.untilYield <= 0) {
       this.untilYield = 4096;
-      if (!hasYieldCheckpoint(this.signal) && monotonicNow() - this.lastYield < 25) {
-        runYieldCheckpoint(this.signal);
-        this.signal.throwIfAborted();
-        return;
-      }
+      // A work quantum must allow host cancellation even when the clock is frozen.
       return yieldTurn(this.signal).then(() => {
-        this.lastYield = monotonicNow();
         this.signal.throwIfAborted();
       });
     }

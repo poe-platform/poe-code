@@ -1,5 +1,5 @@
 import { PublicDiagnostic } from "../../diagnostics.js";
-import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
+import { yieldTurn } from "../../contracts/yield.js";
 import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition, type CommandHandler } from "../../contracts/index.js";
 import { diagnostic, pathOf } from "../internal.js";
 import { gnuInformation } from "../gnu-information.js";
@@ -70,7 +70,6 @@ export class Budget {
   private inputBytes = 0;
   private outputBytes = 0;
   steps = 0;
-  protected lastYield = monotonicNow();
   private signalAborted: boolean;
   private readonly pollBaseSignal: boolean;
   constructor(readonly context: CommandContext, readonly limits: TableTextLimits, outputChunkBytes = 16384) {
@@ -89,13 +88,8 @@ export class Budget {
     if (this.pollBaseSignal ? this.context.signal.aborted : this.signalAborted) this.context.signal.throwIfAborted();
     this.check(++this.steps, this.limits.maxSteps, "step");
     if (this.steps % 1024 !== 0) return;
-    if (!hasYieldCheckpoint(this.context.signal) && monotonicNow() - this.lastYield < 25) {
-      runYieldCheckpoint(this.context.signal);
-      this.context.signal.throwIfAborted();
-      return;
-    }
+    // A work quantum must allow host cancellation even when the clock is frozen.
     return yieldTurn(this.context.signal).then(() => {
-      this.lastYield = monotonicNow();
       this.context.signal.throwIfAborted();
     });
   }

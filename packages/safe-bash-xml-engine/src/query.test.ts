@@ -34,7 +34,7 @@ for (const [predicate, expected] of [
   ['(@id="1" or @id="2") and @price>15', ['Beta']],
   ['not(@id="1")', ['Beta']], ['contains(., "Alp")', ['Alpha']],
   ['starts-with(., "Be")', ['Beta']], ['normalize-space(.)="Alpha"', ['Alpha']],
-  ['@missing != "x"', []], ['@missing < 10', []],
+  ['0 = 1 < 2', []], ['@missing != "x"', []], ['@missing < 10', []],
   ['position()=1', ['Alpha']], ['last()', ['Beta']]
 ] as const) {
   test(`XPath predicate ${predicate}`, async () => {

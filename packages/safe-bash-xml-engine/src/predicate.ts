@@ -9,7 +9,7 @@ export type Instruction =
   | { kind: "nodes"; axis: "attribute" | "child" | "text" | "self"; name: string }
   | { kind: "operator"; name: Operator }
   | { kind: "function"; name: FunctionName; count: number };
-const precedence: Record<Operator, number> = { or: 1, and: 2, "=": 3, "!=": 3, "<": 3, "<=": 3, ">": 3, ">=": 3 };
+const precedence: Record<Operator, number> = { or: 1, and: 2, "=": 3, "!=": 3, "<": 4, "<=": 4, ">": 4, ">=": 4 };
 const arity: Record<FunctionName, readonly number[]> = { contains: [2], "starts-with": [2], "normalize-space": [0, 1], not: [1], position: [0], last: [0] };
 const whitespace = (c: string): boolean => c === " " || c === "\t" || c === "\n" || c === "\r";
 const digit = (c: string): boolean => c >= "0" && c <= "9";

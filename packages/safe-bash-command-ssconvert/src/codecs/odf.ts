@@ -282,13 +282,13 @@ function typedValue(node: XmlElement, legacy: boolean, dateSystem: "1900" | "190
   const p = paragraphs(node, charge);
   return p !== undefined && (legacy || attr(node, "value-type", office) !== undefined) ? { kind: "string", value: p } : undefined;
 }
-async function formula(source: string, legacy: boolean, position: { sheet: string; row: number; column: number }, context: CapabilityContext): Promise<string | undefined> {
+async function formula(source: string, legacy: boolean, position: { sheet: string; row: number; column: number }, context: CapabilityContext, workbook: Workbook, onWork: () => void): Promise<string | undefined> {
   let grammar = legacy ? legacyOpenOfficeGrammar : odfGrammar;
   if (!legacy && source.startsWith("oooc:")) { grammar = legacyOpenOfficeGrammar; source = source.slice(5); }
   else if (!legacy && source.startsWith("of:")) source = source.slice(3);
   else if (!legacy && source.startsWith("msoxl:")) { grammar = { ...gnumericGrammar, leftAssociativePower: true }; source = source.slice(6); }
   if (source === "=") return undefined;
-  const parsed = parseExpression(source, { grammar, position, signal: context.signal,
+  const parsed = parseExpression(source, { grammar, position, workbook, onWork, signal: context.signal,
     maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? Infinity });
   if (!parsed.ok) {
     await warning(`${position.sheet}!${formatA1(position.row, position.column)} : Unable to parse '${source}'\n`, context);
@@ -372,6 +372,8 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
     }
     await embedded(root);
     const sheets: Sheet[] = [], names: NamedExpression[] = []; let materialized = 0, metadata = 0;
+    const pending: ((book: Workbook) => Promise<void>)[] = [];
+    const cellIndexes = new Map<string, Map<string, number>>(), discardedCells = new Set<Cell>();
     // OpenCalc's curr_cell survives boundaries; empty-formula error paragraphs
     // write through that pointer (oo_cell_content_end in the released reader).
     let textTarget: { cells: Cell[]; row: number; column: number } | undefined;
@@ -423,23 +425,19 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
             if (c.localName === "covered-table-cell") { cellColumn += repeat; continue; }
             const source = attr(c, "formula");
             let value = typedValue(c, legacy, dateSystem, pkg.charge);
-            let expression = source ? await formula(source, legacy, { sheet: id, row, column: cellColumn }, context) : undefined;
-            let restoredError = false;
+            // Keep source until all sheets and label declarations are available.
+            let expression = source && !["=", "of:=", "oooc:="].includes(source) ? source : undefined;
             const errorFlag = c.attributes.findIndex(a => a.localName === "error-value" && namespaces.OO_GNUM_NS_EXT!.includes(a.namespace));
             const formulaAttribute = c.attributes.findIndex(a => a.localName === "formula" && table.includes(a.namespace));
             if (expression && errorFlag >= 0 && errorFlag < formulaAttribute) {
-              const parsed = parseExpression(expression, { position: { sheet: id, row, column: cellColumn }, signal: context.signal,
+              const msoxl = expression.startsWith("msoxl:");
+              const parsed = parseExpression(msoxl ? expression.slice(6) : expression, { grammar: msoxl ? gnumericGrammar : legacy ? legacyOpenOfficeGrammar : odfGrammar, position: { sheet: id, row, column: cellColumn }, signal: context.signal,
                 maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? Infinity });
               if (parsed.ok && parsed.document.root.kind === "literal" && parsed.document.root.value.kind === "error") {
-                value = parsed.document.root.value; expression = undefined; restoredError = true;
+                value = parsed.document.root.value; expression = undefined;
               }
             }
             const errorFormula = source === "=" || source === "of:=" || source === "oooc:=";
-            if (source && !expression && !errorFormula && !restoredError) {
-              if (++metadata > (context.limits.workbookNodes ?? Infinity)) limit("metadata");
-              records.push({ source: "Gnumeric_OpenCalc:openoffice", kind: "unparsed-formula", disposition: "retained",
-                data: { row, column: cellColumn, formula: source, rows: count, columns: repeat } });
-            }
             const hasScalar = c.attributes.some(a => (legacy ? table : office).includes(a.namespace) &&
               ["value", "boolean-value", "string-value", "date-value", "time-value"].includes(a.localName));
             if (errorFormula) {
@@ -456,15 +454,6 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
             if (width > MAX_SHEET_SIZE.columns - cellColumn || height > MAX_SHEET_SIZE.rows - row) limit("merge extent");
             if (width > 1 || height > 1) { merges.push({ startRow: row, startColumn: cellColumn, endRow: row + height - 1, endColumn: cellColumn + width - 1 }); maxRow = Math.max(maxRow, row + height); maxColumn = Math.max(maxColumn, cellColumn + width); }
             const arrayWidth = integer(attr(c, "number-matrix-columns-spanned"), 0), arrayHeight = integer(attr(c, "number-matrix-rows-spanned"), 0);
-            let group: string | undefined;
-            if (expression && (arrayWidth || arrayHeight)) {
-              const w = arrayWidth || 1, h = arrayHeight || 1;
-              if (!arrayWidth || !arrayHeight) await warning(`${id}!${formatA1(row, cellColumn)} : Invalid array expression does not specify number of ${!arrayWidth ? "columns" : "rows"}.\n`, context);
-              if (w > MAX_SHEET_SIZE.columns - cellColumn || h > MAX_SHEET_SIZE.rows - row) limit("array extent");
-              group = `array-${row}-${cellColumn}`; groups.push({ id: group, kind: "array", expression,
-                range: { startRow: row, startColumn: cellColumn, endRow: row + h - 1, endColumn: cellColumn + w - 1 } });
-              maxRow = Math.max(maxRow, row + h); maxColumn = Math.max(maxColumn, cellColumn + w);
-            }
             const validation = attr(c, "content-validation-name");
             for (const child of c.children) if (child.namespace !== text[0] && child.namespace !== text[1] || child.localName !== "p") retain(child, { row, column: cellColumn });
             for (const paragraph of children(c, "p", text)) if (children(paragraph, "a", text).length || children(paragraph, "span", text).length)
@@ -481,11 +470,45 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
                 const repeatedStyle = col === 0 ? cellStyle : styles.resolve(repeatedStyleName) ?? styles.defaultCell;
                 cells.push({ row: row + r, column: cellColumn + col, value: value ?? { kind: "blank" },
                   ...(first && expression ? { formula: expression, formulaDirty: true,
-                    ...(value === undefined ? {} : { cachedResult: value }), ...(group ? { formulaGroup: group } : {}) } : {}),
+                    ...(value === undefined ? {} : { cachedResult: value }) } : {}),
                   ...(repeatedStyle?.format ? { format: repeatedStyle.format } : {}), ...(repeatedStyle ? { style: repeatedStyle.style } : {}) });
               }
               maxRow = Math.max(maxRow, row + count); maxColumn = Math.max(maxColumn, cellColumn + repeat);
             } else if (cellStyle) retain(c, { row, column: cellColumn, rows: count, columns: repeat, styleName: styleName ?? "" });
+            if (expression) {
+              const position = { sheet: id, row, column: cellColumn };
+              pending.push(async book => {
+                pkg.charge();
+                const bound = await formula(expression, legacy, position, context, book, pkg.charge);
+                const positions = cellIndexes.get(id)!, index = positions.get(`${position.row}:${position.column}`)!;
+                if (bound) {
+                  let group: string | undefined;
+                  if (arrayWidth || arrayHeight) {
+                    const w = arrayWidth || 1, h = arrayHeight || 1;
+                    if (!arrayWidth || !arrayHeight) await warning(`${id}!${formatA1(position.row, position.column)} : Invalid array expression does not specify number of ${!arrayWidth ? "columns" : "rows"}.\n`, context);
+                    if (w > MAX_SHEET_SIZE.columns - position.column || h > MAX_SHEET_SIZE.rows - position.row) limit("array extent");
+                    group = `array-${position.row}-${position.column}`;
+                    groups.push({ id: group, kind: "array", expression: bound, range: {
+                      startRow: position.row, startColumn: position.column, endRow: position.row + h - 1, endColumn: position.column + w - 1 } });
+                  }
+                  cells[index] = { ...cells[index]!, formula: bound, ...(group ? { formulaGroup: group } : {}) };
+                } else {
+                  if (++metadata > (context.limits.workbookNodes ?? Infinity)) limit("metadata");
+                  records.push({ source: "Gnumeric_OpenCalc:openoffice", kind: "unparsed-formula", disposition: "retained",
+                    data: { row: position.row, column: position.column, formula: source!, rows: count, columns: repeat } });
+                  if (value !== undefined) {
+                    const { formula: ignoredFormula, formulaDirty: ignoredDirty, cachedResult: ignoredCache, ...scalar } = cells[index]!;
+                    cells[index] = scalar;
+                  } else {
+                    for (let r = 0; r < count; r++) for (let col = 0; col < repeat; col++) {
+                      pkg.charge(); const at = positions.get(`${position.row + r}:${position.column + col}`)!;
+                      discardedCells.add(cells[at]!); materialized--;
+                    }
+                    if (cellStyle) retain(c, { row: position.row, column: position.column, rows: count, columns: repeat, styleName: styleName ?? "" });
+                  }
+                }
+              });
+            }
             cellColumn += repeat;
           }
           row += count;
@@ -495,29 +518,8 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
       const translatedMetadata = [...odfSheetMetadata(node, pkg.charge, styleRoots), ...odfDatabaseRanges(spreadsheet, name, pkg.charge)];
       if (translatedMetadata.length > (context.limits.workbookNodes ?? Infinity) - metadata) limit("metadata");
       metadata += translatedMetadata.length; records.push(...translatedMetadata);
-      if (groups.length) {
-        const positions = new Map(cells.map((c, i) => [`${c.row}:${c.column}`, i]));
-        for (const g of groups) {
-          const area = (g.range.endRow - g.range.startRow + 1) * (g.range.endColumn - g.range.startColumn + 1);
-          pkg.charge(area);
-          let tick = 0;
-          for (let r = g.range.startRow; r <= g.range.endRow; r++) for (let col = g.range.startColumn; col <= g.range.endColumn; col++) {
-            if (++tick % 1024 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); pkg.charge(); }
-            const key = `${r}:${col}`, index = positions.get(key);
-            if (index === undefined) {
-              if (materialized >= context.limits.cells) limit("cells"); materialized++;
-              positions.set(key, cells.length); cells.push({ row: r, column: col, value: { kind: "blank" }, formulaGroup: g.id });
-            } else {
-              const cell = cells[index]!;
-              cells[index] = { ...cell, formulaGroup: g.id,
-                ...(cell.value.kind === "blank" ? {} : { cachedResult: cell.value }) };
-            }
-          }
-        }
-      }
       for (const n of node.children) if (!["table-column", "table-row", "table-column-group", "table-row-group", "table-header-rows", "table-header-columns", "table-columns", "table-rows", "named-expressions"].includes(n.localName)) retain(n);
       if (attr(node, "print-ranges")) retain(node, { printRanges: attr(node, "print-ranges")! });
-      await readNames(node, id);
       const sheetProperties = odfChildren(sheetStyle?.style.odf).find(n => odfObject(n)?.name === "table-properties" && odfObject(n)?.namespace === odfNamespaces.style), sheetAttributes = odfAttributes(sheetProperties, odfNamespaces.gnm);
       const viewAttributes: Record<string,string> = { RTL_Layout: odfAttributes(sheetProperties, odfNamespaces.style)["writing-mode"] === "rl-tb" ? "1" : "0" };
       for (const [source,target,invert] of [["display-formulas", "DisplayFormulas",false], ["display-col-header","HideColHeader",true], ["display-row-header","HideRowHeader",true]] as const) {
@@ -544,21 +546,64 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
         const endpoint = parsedBase?.ok && parsedBase.document.root.kind === "reference" && !parsedBase.document.root.last
           ? parsedBase.document.root.first : undefined;
         const position = { sheet: endpoint?.sheet ?? initialSheet, row: endpoint?.row?.value ?? 0, column: endpoint?.column?.value ?? 0 };
-        const expression = await formula(source, legacy, position, context);
+        const expression = await formula(source, legacy, position, context, book, pkg.charge);
         if (expression) names.push({ name, expression, ...(sheet ? { sheet } : {}), position });
       }
     }
-    await readNames(spreadsheet);
     for (const n of spreadsheet.children) if (!["table", "named-expressions", "calculation-settings", "label-ranges"].includes(n.localName)) unsupportedRecords.push(record(n));
     if (calculation) unsupportedRecords.push(record(calculation));
     if (!sheets.length) invalid("no sheets");
     const iteration = children(calculation, "iteration")[0];
     const lookup = attr(calculation, "automatic-find-labels");
     if (lookup !== undefined && !["true", "false"].includes(lookup)) invalid("invalid automatic label lookup setting");
-    return { sheets: readOdfLabelRanges(spreadsheet, sheets, context, pkg.charge), names, dateSystem,
+    const book: Workbook = { sheets: readOdfLabelRanges(spreadsheet, sheets, context, pkg.charge), names, dateSystem,
       automaticLabelLookup: lookup !== "false", calculationMode: "automatic", unsupportedRecords,
       ...(iteration ? { iteration: { enabled: attr(iteration, "status") === "enable", maximum: 100,
         tolerance: Number(attr(iteration, "maximum-difference") ?? "0.001") } } : {}) };
+    for (const sheet of book.sheets) cellIndexes.set(sheet.id, new Map(sheet.cells.map((cell, index) => {
+      pkg.charge(); return [`${cell.row}:${cell.column}`, index];
+    })));
+    for (const [index, bind] of pending.entries()) {
+      if (index % 128 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); pkg.charge(); }
+      await bind(book);
+    }
+    for (const [index, node] of tables.entries()) await readNames(node, sheets[index]!.id);
+    await readNames(spreadsheet);
+    const finalized: Sheet[] = [];
+    for (const sheet of book.sheets) {
+      const cells: Cell[] = [], groups = sheet.formulaGroups ?? [];
+      for (const [index, cell] of sheet.cells.entries()) {
+        if (index > 0 && index % 1024 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+        pkg.charge(); if (!discardedCells.has(cell)) cells.push(cell);
+      }
+      if (groups.length) {
+        const positions = new Map(cells.map((c, i) => [`${c.row}:${c.column}`, i]));
+        for (const g of groups) {
+          const area = (g.range.endRow - g.range.startRow + 1) * (g.range.endColumn - g.range.startColumn + 1);
+          pkg.charge(area);
+          let tick = 0;
+          for (let r = g.range.startRow; r <= g.range.endRow; r++) for (let col = g.range.startColumn; col <= g.range.endColumn; col++) {
+            if (++tick % 1024 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); pkg.charge(); }
+            const key = `${r}:${col}`, index = positions.get(key);
+            if (index === undefined) {
+              if (materialized >= context.limits.cells) limit("cells"); materialized++;
+              positions.set(key, cells.length); cells.push({ row: r, column: col, value: { kind: "blank" }, formulaGroup: g.id });
+            } else {
+              const cell = cells[index]!;
+              cells[index] = { ...cell, formulaGroup: g.id,
+                ...(cell.value.kind === "blank" ? {} : { cachedResult: cell.value }) };
+            }
+          }
+        }
+      }
+      let rows = sheet.size!.rows, columns = sheet.size!.columns;
+      for (const group of groups) {
+        while (rows <= group.range.endRow) rows = Math.min(rows * 2, MAX_SHEET_SIZE.rows);
+        while (columns <= group.range.endColumn) columns = Math.min(columns * 2, MAX_SHEET_SIZE.columns);
+      }
+      finalized.push({ ...sheet, cells: cells.sort((a, b) => a.row - b.row || a.column - b.column), size: { rows, columns } });
+    }
+    return { ...book, sheets: finalized };
   } catch (error) { return failure(error, context); }
 }
 

@@ -75,7 +75,7 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
   }
   function parse(source: string, position: ParsePosition, arrayStringLiterals = false): FormulaNode {
     tick();
-    const parsed = parseExpression(source, { position, arrayStringLiterals, workbook: book, signal: context.signal, maximumLength: context.limits.inputBytes, maximumNodes: maximumWork - work });
+    const parsed = parseExpression(source, { position, arrayStringLiterals, workbook: book, signal: context.signal, maximumLength: context.limits.inputBytes, maximumNodes: maximumWork - work, onWork: tick });
     if (!parsed.ok) throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: formula syntax at ${parsed.diagnostic.start}:${parsed.diagnostic.end}`);
     return parsed.document.root;
   }

@@ -1,7 +1,8 @@
 # ODF label metadata qualification
 
 Tracking: hey-boss #1748. This procedure covers native label declarations and
-lookup settings, not live formula transport or the complete BIFF/format family.
+lookup settings and declared quoted-label import. Live formula export and the
+complete BIFF/format family remain open.
 
 1. Inspect the pinned LibreOffice `xmllabri.cxx`, `xmlexprt.cxx` and
    `XMLCalculationSettingsContext.cxx` receipts in the case ledger. Check the
@@ -36,3 +37,19 @@ lookup settings, not live formula transport or the complete BIFF/format family.
 7. Keep cross-sheet label/data declarations, live formula identity, inferred
    BIFF forms and native application readback open. Verify remote main and
    publication separately; purge scratch outputs after reducing evidence.
+
+8. Read OpenFormula 1.2 section 5.10 and the pinned Calc `ParseColRowName`
+   implementation before changing quoted-label binding. Construct a small ODF
+   package with `of:=SUM('Sales')` on Output, stale cache 999, and a later Data
+   sheet containing Sales at A1, 2 at A2 and 3 at A5. Declare Data.A1 as a column
+   label for Data.A2:A5 and disable automatic lookup. Through the compiled SDK,
+   require a live internal anchor and fresh result 5; renaming the label text
+   must retain that anchor. Exercise formula-only cells, array groups, repeats,
+   local named expressions, unresolved labels, lookup accounting and cancellation.
+   Convert the independent input with both `engine.convert({ recalc: true })`
+   and `runCommand --recalc` to CSV; independently parse each CSV and require 5.
+   Inspect the captured command transcript as a terminal screenshot. A cached
+   formula-generated label value is not native recalculation evidence. Keep
+   automatic lookup, automatic intersection, locale-specific text matching,
+   duplicate declarations across remote sheets, mixed relative-sheet formulas
+   and all unqualified export/native profiles open.

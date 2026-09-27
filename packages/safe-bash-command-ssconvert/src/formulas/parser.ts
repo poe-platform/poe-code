@@ -3,6 +3,7 @@ import { gnumericGrammar, odfGrammar } from "./conventions.js";
 import { foldSheetName } from "../workbook/case-fold.js";
 import { isUnicodeAlphanumeric } from "../cli/unicode-alphanumeric.js";
 import { isUnicodeAlpha } from "../workbook/unicode-sheet-name.js";
+import { bindDeclaredLabel } from "./quoted-labels.js";
 import type { Axis, FormulaNode, FormulaParseOptions, FormulaParseResult, LabelReference, ReferenceEndpoint } from "./ast.js";
 
 const digit = (c: string | undefined): boolean => c !== undefined && c >= "0" && c <= "9";
@@ -21,7 +22,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
   const rangeSeparator = grammar.rangeSeparator ?? ":";
   for (const value of [position.row, position.column])
     if (!Number.isSafeInteger(value) || value < 0) throw new SsconvertError("invalid-request", "Invalid formula parse position");
-  let offset = 0, depth = 0, nodes = 0, hasLabels = false;
+  let offset = 0, depth = 0, nodes = 0, labelWork = 0, hasLabels = false;
   for (const prefix of grammar.prefixes) if (source.startsWith(prefix)) { offset = prefix.length; break; }
   const heights = new WeakMap<FormulaNode, number>();
   const syntax = {};
@@ -33,6 +34,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
   }
   function node<T extends FormulaNode>(value: T): T {
     options.signal?.throwIfAborted();
+    options.onWork?.();
     if (++nodes > (options.maximumNodes ?? 65_536)) throw new SsconvertError("resource-limit", "ssconvert formula node limit exceeded");
     const children = value.kind === "binary" ? [value.left, value.right] : value.kind === "unary" || value.kind === "parentheses" ? [value.child] :
       value.kind === "call" ? value.args : value.kind === "array" ? value.rows.flat() : [];
@@ -332,6 +334,17 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
       while (whitespace(source[lookahead])) lookahead++;
       const reference = source[lookahead] === "(" && lookahead > offset ? undefined : referenceOrName();
       if (reference) return reference;
+      if (c === "'" && grammar.quotedLabels) {
+        const text = quoted("'", grammar.stringEscape);
+        const bound = options.workbook && bindDeclaredLabel(options.workbook, text, position, () => {
+          options.signal?.throwIfAborted();
+          options.onWork?.();
+          if (++labelWork > (options.maximumNodes ?? 65_536)) throw new SsconvertError("resource-limit", "ssconvert formula label lookup limit exceeded");
+        });
+        if (!bound) fail("Unresolved quoted label", start, offset);
+        hasLabels = true;
+        return node({ kind: "reference", start, end: offset, ...bound });
+      }
       if (c === "'" && grammar.singleQuotedStrings) { const value = quoted("'", grammar.stringEscape); return node({ kind: "literal", start, end: offset, value: { kind: "string", value } }); }
       if (digit(c) || c === ".") {
         while (digit(source[offset])) offset++;

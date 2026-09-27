@@ -110,7 +110,7 @@ export function serializeLabelReference(node: Extract<FormulaNode, { kind: "refe
 export function serializeExpression(document: FormulaDocument, grammar = document.grammar, preserveSource = true, canonical = false,
   options: { readonly relativeSheets?: "preserve" | "fixed" } = {}): string {
   if (preserveSource && grammar === document.grammar && options.relativeSheets !== "fixed") return document.source;
-  const pending = document.source.includes("@") ? [document.root] : [];
+  const pending = [document.root];
   let labels = false;
   while (pending.length) {
     const node = pending.pop()!;

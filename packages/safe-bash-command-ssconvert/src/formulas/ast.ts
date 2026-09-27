@@ -66,6 +66,7 @@ export interface FormulaGrammar {
   readonly functionArgumentInsertions?: Readonly<Record<string, { readonly arity: number; readonly index: number; readonly value: CellValue }>>;
   readonly nativeNames?: boolean;
   readonly singleQuotedStrings?: boolean;
+  readonly quotedLabels?: boolean;
   readonly quotedErrors?: boolean;
   readonly rangeSeparator?: string;
   readonly sheetSpans?: boolean;
@@ -92,6 +93,8 @@ export interface FormulaParseOptions extends FormulaSemantics {
   readonly signal?: AbortSignal;
   readonly maximumNodes?: number;
   readonly maximumLength?: number;
+  /** Charge parser nodes and label lookup work to an enclosing operation. */
+  readonly onWork?: () => void;
   readonly onName?: (name: string, sheet?: string) => void;
 }
 export type FormulaParseResult =

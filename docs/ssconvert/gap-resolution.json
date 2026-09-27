@@ -53,7 +53,7 @@
           "book.xls",
           "dir/book.xls",
           "https://example.test/a[b].xls",
-          "\u8868] book.xls"
+          "表] book.xls"
         ],
         "outputSha256": [
           "778b0666a30cff97240da6b0a04ecf3b9b7d9d3fdc47d7c8a4dc332f4d732d27",
@@ -794,7 +794,7 @@
           "remaining": "Encrypted-property export, unknown ancillary reexport, additional applicable profiles and native application qualification remain open."
         },
         "exportImplementation": {
-          "change": "Explicit rc4-cryptoapi-<bits>-properties profiles (40\u2013128 by 8) share provider-derived CLI/SDK options. The exporter admits ancillary work before password acquisition, reuses the Workbook key, restarts payload blocks from zero, separately resets header/table block zero, clears both fDocProps bits, omits plaintext SummaryInformation and emits the empty DocumentSummaryInformation placeholder. Cipher buffers and owned containers are cleared on failure/disposal. Workbook-only profiles retain plaintext properties.",
+          "change": "Explicit rc4-cryptoapi-<bits>-properties profiles (40–128 by 8) share provider-derived CLI/SDK options. The exporter admits ancillary work before password acquisition, reuses the Workbook key, restarts payload blocks from zero, separately resets header/table block zero, clears both fDocProps bits, omits plaintext SummaryInformation and emits the empty DocumentSummaryInformation placeholder. Cipher buffers and owned containers are cleared on failure/disposal. Workbook-only profiles retain plaintext properties.",
           "validation": "56 BIFF files / 1270 tests passed; maintained package lint/source/test/consumer types and selected four-workspace build passed. Original OpenSSL 52-byte vector and a 3034-byte container SHA256 verify exact ciphertext and no Workbook-style payload rekeying. Property edits, one password/entropy request, pre-secret resource/name admission and disposal controls pass.",
           "remaining": "Additional profile and native application qualification remain open; broader encryption family is not complete. Workbook-only export still diagnoses unknown ancillary loss.",
           "cli": "Compiled public createEngine/runCommand exported a title and named custom property with one password and entropy request, no diagnostics and no plaintext summary. Independent SheetJS CFB parsing plus OpenSSL decryption matched both plaintext property streams exactly. Encrypted output reopened through the SDK; terminal screenshot inspected. Native application qualification remains separate."
@@ -1187,7 +1187,7 @@
         }
       ],
       "validation": "Ten of fourteen original memory regressions failed. All 317 tests in sixteen Lotus files pass after correction, including WK1/WK2/Windows Works controls, independent range endpoints, conditional column wrapping, signed row boundaries and preserved absolute coordinates. Maintained package lint, source/test/consumer types and selected build pass.",
-      "publicQualification": "Nine compiled public --recalc WK1-to-XLSX conversions and SDK readbacks retain the expected formulas and values with no diagnostics. Four backward references recalculate to 42. A preserved absolute IW8193 reference evaluates to #REF! because the imported sheet has only 256 columns; the initial probe's zero expectation was corrected without changing product bounds. Inputs are 46 bytes; outputs are 4074\u20134092 bytes and remain in memory.",
+      "publicQualification": "Nine compiled public --recalc WK1-to-XLSX conversions and SDK readbacks retain the expected formulas and values with no diagnostics. Four backward references recalculate to 42. A preserved absolute IW8193 reference evaluates to #REF! because the imported sheet has only 256 columns; the initial probe's zero expectation was corrected without changing product bounds. Inputs are 46 bytes; outputs are 4074–4092 bytes and remain in memory.",
       "remaining": "Native Symphony/Works application readback, ambiguous DOS Works profiles, relative-sheet identity, modern range flag packing and wider format qualification remain open. No family is closed."
     },
     "lotusDirectSheetSpans": {
@@ -1423,7 +1423,7 @@
           54,
           59
         ],
-        "finding": "BIFF2 tName is eight bytes including its opcode, versus eleven in BIFF3/4. MemAreaN/MemNoMemN have no appended cell-range list and remain accepted in BIFF5/8 even though no longer generated. Corrected the previous test that followed Gnumeric\u2019s undifferentiated pre-BIFF5 ten-byte NAME payload."
+        "finding": "BIFF2 tName is eight bytes including its opcode, versus eleven in BIFF3/4. MemAreaN/MemNoMemN have no appended cell-range list and remain accepted in BIFF5/8 even though no longer generated. Corrected the previous test that followed Gnumeric’s undifferentiated pre-BIFF5 ten-byte NAME payload."
       },
       "publicValidation": "Compiled SDK and command conversions with explicit recalculation retained values [43,42] through BIFF7 and BIFF8; command CSV output was 43 followed by 42. All five conversions completed without diagnostics. The initial SDK probe omitted recalc and retained its cached zero; corrected probe options passed without another production change. Actual compiled command screenshot inspected."
     },
@@ -1857,6 +1857,51 @@
         },
         "remaining": "Cross-sheet label/data pairs, live formula identity in ODF/XML/XLSX, inferred BIFF labels and native application qualification remain open. Current host has no LibreOffice, ssconvert or Docker executable; no native readback pass is claimed. This partial implementation closes no family.",
         "qa": "docs/plans/ssconvert-odf-label-metadata-qa.md"
+      },
+      "odfQuotedLabels": {
+        "sources": [
+          {
+            "url": "https://docs.oasis-open.org/office/v1.2/os/OpenDocument-v1.2-os-part2.html",
+            "sha256": "061673677d31768570f52e0367f3bc33b2509dbf4af29e846afdad3b9d3d663f",
+            "sections": "5.10.1-5.10.6"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/core/tool/compiler.cxx",
+            "sha256": "84dfe1e52b8b632d8fd9d687d64857c779283bb3de660063664b916c7d458e83",
+            "lines": "3994-4248,5799-5850,6000-6095"
+          }
+        ],
+        "finding": "ODF formulas were parsed before workbook labels and later sheets loaded; native QuotedLabel tokens were retained only as unparsed records. Native defined-label lookup prioritizes the formula sheet, column declarations before rows, then declaration/cell iteration order. Calc captures an anchor with orientation-dependent coordinate relativity.",
+        "implementation": "The ODF reader defers formula binding until sheet values and label declarations load, then lowers declared quoted labels to existing live cell-anchor syntax. Array groups, local/global named-expression parsing, cached results, formula-only cells and repeats use the same completed workbook. The parser searches sparse cells in column-major order within each declaration, applies current-sheet precedence and preserves quoting/relative-axis metadata. Node/lookup work charges the enclosing import/calculation budget; final cell admission yields for cancellation.",
+        "validation": "Before implementation: 12/13 parser cases and five native ODF import cases failed. After: ODF/label cohort 19 files / 787 tests; evaluator cohort six files / 94 tests; final expanded new-test cohort two files / 35 tests, all pass. Package lint, source/test/consumer types and selected maintained build pass. A queued cancellation exposed by delayed diagnostics was repaired in final cell materialization; the existing exact-reason test passes.",
+        "publicValidation": {
+          "fixtureBytes": 627,
+          "formula": "=SUM(@column.quoted:Data!A$1)",
+          "sdkValue": {
+            "kind": "number",
+            "value": 5
+          },
+          "command": {
+            "exitCode": 0,
+            "diagnostics": [],
+            "artifacts": [
+              {
+                "bytes": 2
+              }
+            ],
+            "usage": {
+              "inputBytes": 627,
+              "outputBytes": 2
+            },
+            "profile": "gnumeric-1.12.61"
+          },
+          "stdout": "5\n",
+          "stderr": "",
+          "diagnostics": []
+        },
+        "independent": "Original Python ZIP/XML fixture: 627 bytes. Compiled SDK engine.convert and runCommand --recalc each emit two-byte CSV 5\\n, independently read with Python csv. Actual command transcript rendered and visually inspected: fresh value 5, no diagnostics. Earlier ad hoc QA attempts had script syntax, null-prototype comparison and engine-ownership harness errors; those are not product failures or qualification evidence.",
+        "remaining": "Automatic quoted-label lookup/ranges, !! automatic intersection, cross-sheet label/data pairs, native formula-result label recalculation, locale-specific transliteration, duplicate-order ties between remote sheets, mixed relative-sheet/live-label formulas, direct textual formula lifecycle and all identity-preserving exports/native application profiles remain open. Current matching uses the existing pinned Unicode default case fold. No family is closed.",
+        "qa": "docs/plans/ssconvert-odf-label-metadata-qa.md"
       }
     },
     "xlsxFormulaTextAudit": {
@@ -1924,7 +1969,7 @@
     {
       "id": "encrypted-paradox",
       "status": "open",
-      "currentFinding": "On-file-key encrypted imports match native records. Explicit encryption=paradox export now uses a host-supplied 1\u2013256-byte password, native NUL termination, bounded work and cancellation, without entropy or implicit password acquisition. Empty effective passwords are refused; plaintext stays default. All seven compiled SDK profiles and the Shell export reopen in native Gnumeric byte-exact with empty stderr. This is legacy obfuscation with a recoverable key and readable schema, not authenticated password security. Wider profiles, companions and final delivery qualification remain open. Owned decrypted buffers now clear on disposal and cancellation, including concurrent abort/cleanup. Physical block 65535 and the five neighboring retained pxlib vectors pass through the compiled decoder with explicit finite limits; no large fixture retained."
+      "currentFinding": "On-file-key encrypted imports match native records. Explicit encryption=paradox export now uses a host-supplied 1–256-byte password, native NUL termination, bounded work and cancellation, without entropy or implicit password acquisition. Empty effective passwords are refused; plaintext stays default. All seven compiled SDK profiles and the Shell export reopen in native Gnumeric byte-exact with empty stderr. This is legacy obfuscation with a recoverable key and readable schema, not authenticated password security. Wider profiles, companions and final delivery qualification remain open. Owned decrypted buffers now clear on disposal and cancellation, including concurrent abort/cleanup. Physical block 65535 and the five neighboring retained pxlib vectors pass through the compiled decoder with explicit finite limits; no large fixture retained."
     },
     {
       "id": "perl-date",

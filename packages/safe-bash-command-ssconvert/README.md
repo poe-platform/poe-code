@@ -98,8 +98,11 @@ setting. Inferred data ranges use the BIFF8 grid (65,536 rows, 256 columns).
 Overlaps and multi-column row labels retain their original order and extent.
 ODF and legacy OpenOffice imports read native same-sheet label/data declarations;
 ODF exports preserve their order, explicit endpoints and automatic lookup setting.
-ODF defaults automatic lookup to enabled when the setting is absent. Label/data
-pairs on different sheets and live formula transport still require implementation.
+ODF defaults automatic lookup to enabled when the setting is absent. Native quoted
+labels such as `SUM('Sales')` bind to declared label cells after all sheets load,
+including declarations on another sheet, array formulas and named expressions.
+Their internal cell anchors survive label text edits. Automatic quoted-label
+lookup, label/data pairs on different sheets and live formula export remain open.
 BIFF7 and data endpoints that BIFF8 cannot encode are refused; the public engine
 warns when other exporters omit this metadata. Live BIFF8 row/column label tokens
 (`02`, `03`, `06`, `07`) recalculate and reexport with their anchor, reference

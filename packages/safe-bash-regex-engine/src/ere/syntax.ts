@@ -3,6 +3,16 @@ import { EreLedger } from "./limits.js";
 import type { EreFragment, EreNode, EreProgram } from "./types.js";
 
 const programs = new WeakMap<EreProgram, { root: EreNode; ledger: EreLedger }>();
+interface CachedEreCompilation {
+  readonly pattern: string;
+  readonly groups: number;
+  readonly root: EreNode;
+  readonly patternBytes: number;
+  readonly work: number;
+  readonly states: number;
+  readonly allocationUnits: number;
+}
+const ereCompilationCache = new Map<string, CachedEreCompilation>();
 const special = "\\.^$[]()|*+?{}";
 const classes = new Set(["alnum", "alpha", "blank", "cntrl", "digit", "graph", "lower", "print", "punct", "space", "upper", "xdigit"]);
 
@@ -27,13 +37,25 @@ function classMember(name: string, code: number): boolean {
   }
 }
 
-export async function admitAscii(text: string, ledger: EreLedger, signal?: AbortSignal): Promise<void> {
-  for (let offset = 0; offset < text.length; offset++) {
-    ledger.charge("work", 1, signal);
-    const code = text.charCodeAt(offset);
-    if (code === 0 || code > 127) throw new EreUnsupportedError("only non-NUL ASCII in the C/POSIX profile", offset);
-    { const c = ledger.checkpoint(signal); if (c) await c; }
+export function admitAscii(text: string, ledger: EreLedger, signal?: AbortSignal): void | Promise<void> {
+  if (ledger.workAllowanceUntilCheckpoint(signal) >= text.length + 4) {
+    for (let offset = 0; offset < text.length; offset++) {
+      ledger.chargeWork(1, signal);
+      const code = text.charCodeAt(offset);
+      if (code === 0 || code > 127) throw new EreUnsupportedError("only non-NUL ASCII in the C/POSIX profile", offset);
+    }
+    const c = ledger.checkpoint(signal);
+    if (c) return c;
+    return;
   }
+  return (async () => {
+    for (let offset = 0; offset < text.length; offset++) {
+      ledger.charge("work", 1, signal);
+      const code = text.charCodeAt(offset);
+      if (code === 0 || code > 127) throw new EreUnsupportedError("only non-NUL ASCII in the C/POSIX profile", offset);
+      { const c = ledger.checkpoint(signal); if (c) await c; }
+    }
+  })();
 }
 
 async function flatten(input: string | readonly EreFragment[], ledger: EreLedger, signal?: AbortSignal): Promise<{ pattern: string; quoted: readonly boolean[] | null }> {
@@ -243,6 +265,33 @@ class Parser {
 export async function compileEre(input: string | readonly EreFragment[], ledger: EreLedger, signal?: AbortSignal, asciiInsensitive = false, localeProfile = { ranges: true, classes: true }): Promise<EreProgram> {
   ledger.check(signal);
   if (typeof asciiInsensitive !== "boolean") throw new TypeError("ASCII case mode must be boolean");
+  let cacheKey: string | undefined;
+  if (typeof input === "string" && input.length <= 128) {
+    cacheKey = `S:${asciiInsensitive ? 1 : 0}:${localeProfile.ranges ? 1 : 0}:${localeProfile.classes ? 1 : 0}:${input}`;
+  } else if (Array.isArray(input) && input.length === 1 && typeof input[0]?.text === "string" && typeof input[0]?.literal === "boolean" && input[0].text.length <= 128) {
+    cacheKey = `F:${asciiInsensitive ? 1 : 0}:${localeProfile.ranges ? 1 : 0}:${localeProfile.classes ? 1 : 0}:${input[0].literal ? 1 : 0}:${input[0].text}`;
+  }
+  if (cacheKey !== undefined) {
+    const cached = ereCompilationCache.get(cacheKey);
+    if (
+      cached &&
+      ledger.workAllowanceUntilCheckpoint(signal) >= cached.work + 16 &&
+      cached.patternBytes <= ledger.limits.patternBytes &&
+      cached.states <= ledger.limits.states - ledger.usage.states &&
+      cached.allocationUnits <= ledger.limits.allocationUnits - ledger.usage.allocationUnits
+    ) {
+      ledger.admitInput("patternBytes", cached.patternBytes, signal);
+      if (cached.work > 0) ledger.chargeWork(cached.work, signal);
+      if (cached.states > 0) ledger.charge("states", cached.states, signal);
+      if (cached.allocationUnits > 0) ledger.charge("allocationUnits", cached.allocationUnits, signal);
+      const c = ledger.checkpoint(signal);
+      if (c) await c;
+      const program = Object.freeze({ pattern: cached.pattern, groups: cached.groups });
+      programs.set(program, { root: cached.root, ledger });
+      return program;
+    }
+  }
+  const before = cacheKey !== undefined ? ledger.usage : undefined;
   const { pattern, quoted } = await flatten(input, ledger, signal);
   const parser = new Parser(pattern, quoted, ledger, signal, asciiInsensitive, localeProfile);
   const root = await parser.expression();
@@ -250,6 +299,19 @@ export async function compileEre(input: string | readonly EreFragment[], ledger:
   ledger.charge("allocationUnits", 3, signal);
   const program = Object.freeze({ pattern, groups: parser.groups });
   programs.set(program, { root, ledger });
+  if (cacheKey !== undefined && before !== undefined) {
+    const after = ledger.usage;
+    if (ereCompilationCache.size >= 256) ereCompilationCache.clear();
+    ereCompilationCache.set(cacheKey, {
+      pattern,
+      groups: parser.groups,
+      root,
+      patternBytes: after.patternBytes,
+      work: after.work - before.work,
+      states: after.states - before.states,
+      allocationUnits: after.allocationUnits - before.allocationUnits,
+    });
+  }
   return program;
 }
 

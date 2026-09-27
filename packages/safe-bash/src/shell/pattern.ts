@@ -238,7 +238,35 @@ export async function compilePattern(pattern: string, work: StringWork, ignoreCa
   return (value, start = 0, end = value.length) => matchTokens(patternTokens, value, work, start, end, ignoreCase);
 }
 
+export function tryMatchesPatternSync(pattern: string, value: string, work: StringWork, ignoreCase = false, extglob = false): boolean | undefined {
+  if (ignoreCase || pattern.length > 128 || value.length > 512) return undefined;
+  for (let i = 0; i < pattern.length; i++) {
+    const c = pattern.charCodeAt(i);
+    if (c === 92 || c === 91 || c === 63 || (extglob && c === 40)) return undefined;
+  }
+  work.signal.throwIfAborted();
+  work.remaining -= pattern.length + value.length + 1;
+  if (work.remaining < 0) work.exhausted();
+  if (pattern === "*") return true;
+  const firstStar = pattern.indexOf("*");
+  if (firstStar < 0) return value === pattern;
+  const nextStar = pattern.indexOf("*", firstStar + 1);
+  if (nextStar < 0) {
+    if (firstStar === 0) return value.endsWith(pattern.slice(1));
+    if (firstStar === pattern.length - 1) return value.startsWith(pattern.slice(0, -1));
+    const prefix = pattern.slice(0, firstStar);
+    const suffix = pattern.slice(firstStar + 1);
+    return value.length >= prefix.length + suffix.length && value.startsWith(prefix) && value.endsWith(suffix);
+  }
+  if (firstStar === 0 && nextStar === pattern.length - 1) {
+    return value.includes(pattern.slice(1, -1));
+  }
+  return undefined;
+}
+
 export async function matchesPattern(pattern: string, value: string, work: StringWork, ignoreCase = false, extglob = false): Promise<boolean> {
+  const fast = tryMatchesPatternSync(pattern, value, work, ignoreCase, extglob);
+  if (fast !== undefined) return fast;
   const { patternTokens, reservation } = await tokens(pattern, work, ignoreCase, extglob);
   try {
     if (hasExtglobTokens(patternTokens)) {

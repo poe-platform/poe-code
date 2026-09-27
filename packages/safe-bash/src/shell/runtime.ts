@@ -55,7 +55,7 @@ import { ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces, tryFastExpandBraceRange } from "./brace-expansion.js";
 import { expandTildes } from "./tilde-expansion.js";
 import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
-import { compilePattern, compilePatternBoundaries, matchesPattern } from "./pattern.js";
+import { compilePattern, compilePatternBoundaries, matchesPattern, tryMatchesPatternSync } from "./pattern.js";
 import { nextCodePointOffset, scanString, stringCheckpoint } from "./string-operations.js";
 import { selectMenu } from "./select-menu.js";
 import type { StringWork } from "./string-operations.js";
@@ -95,7 +95,7 @@ import { arrayStore, ensureStateMonitor, guestArrays, monitorSymbol, requireArra
 import { pipelineStatusTarget, publishPipelineStatus } from "./pipestatus.js";
 import type { Restoration } from "./arrays/state.js";
 import type { Admission } from "./arrays/ledger.js";
-import type { BindingWatch, OwnedText, PreparedBinding } from "./arrays/bindings.js";
+import { OwnedText, type BindingWatch, type PreparedBinding } from "./arrays/bindings.js";
 import { EreProfileLimitError, EreSyntaxError, EreUnsupportedError } from "../commands/regex-execution/ere/errors.js";
 import { EreLedger } from "../commands/regex-execution/ere/limits.js";
 import { compileEre } from "../commands/regex-execution/ere/syntax.js";
@@ -1109,6 +1109,7 @@ const childIdentities = new WeakMap<Budget, number>();
 
 export interface State {
   variableAttributes?: Map<string, string>;
+  namerefVariables?: Set<string> | undefined;
   umask?: number;
   extensions?: ShellExtensionState | undefined;
   cwd: string;
@@ -1401,9 +1402,11 @@ interface OutputFailureTracker {
   outputStatus?: number;
 }
 
-class Flow extends Error {
+class Flow {
+  readonly name = "Flow";
+  readonly message: string;
   constructor(readonly kind: "exit" | "return" | "break" | "continue" | "discard", readonly status: number, public levels = 1, readonly previousStatus?: number, readonly expansionFailure = false) {
-    super(kind);
+    this.message = kind;
   }
 }
 
@@ -2419,6 +2422,40 @@ function publishVariable(state: State, name: string, value: ShellValue): void {
     return;
   }
   state.variables[name] = shellValueText(value);
+}
+
+function tryRestoreVariableSync(state: State, name: string, saved: SavedVariable): boolean {
+  if (typedSavedVariables.has(saved)) return false;
+  try {
+    const monitor = stateMonitor(state);
+    if (saved.attributes !== undefined) {
+      state.variableAttributes ??= new Map();
+      state.variableAttributes.set(name, saved.attributes);
+    } else {
+      state.variableAttributes?.delete(name);
+    }
+    const store = monitor?.values;
+    if (saved.value === undefined) {
+      if (monitor) delete monitor.proxy.variables[name];
+      else delete state.variables[name];
+    }
+    else if (saved.heldValue && store) {
+      store.restoreHeld(name, saved.heldValue, () => { state.variables[name] = saved.value!; });
+      delete saved.heldValue;
+    } else publishVariable(state, name, saved.value);
+    if (saved.exported) state.exported.add(name);
+    else state.exported.delete(name);
+    if (name === "OPTIND" && saved.getopts) {
+      state.getopts = { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) };
+      if (!saved.readOnly) state.readonlyVariables?.delete(name);
+      else { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
+    }
+    if (!saved.readOnly) state.readonlyVariables?.delete(name);
+  } finally {
+    saved.heldValue?.release();
+    delete saved.heldValue;
+  }
+  return true;
 }
 
 async function restoreVariable(state: State, name: string, saved: SavedVariable): Promise<void> {
@@ -3744,6 +3781,77 @@ export class Runtime {
   private async ere(subject: string, pattern: Word, state: State, io: IO): Promise<number> {
     const scope = io[invocationScope];
     scope.assertOpen();
+    const monitor = stateMonitor(state);
+    const existingStore = monitor?.store;
+    const existingRematch = existingStore?.get("BASH_REMATCH");
+    if (
+      monitor &&
+      existingStore &&
+      existingRematch &&
+      !existingRematch.associative &&
+      existingRematch.references === 1 &&
+      !existingStore.watches.has("BASH_REMATCH") &&
+      !monitor.hasOverlay("BASH_REMATCH") &&
+      !state.readonlyVariables?.has("BASH_REMATCH") &&
+      !state.exported.has("BASH_REMATCH") &&
+      pattern.parts.length === 1 &&
+      pattern.parts[0]!.kind === "text" &&
+      !pattern.parts[0]!.value.includes("\\") &&
+      !pattern.parts[0]!.value.includes("~") &&
+      !existingStore.owner.ledger.checkpoint(this.signal, 2)
+    ) {
+      const collation = state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C";
+      const characters = state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C";
+      if ([collation, characters].every(locale => cCollation(locale) || utf8Locale(locale))) {
+        const p0 = pattern.parts[0]!;
+        const ledger = new EreLedger({
+          maxExpansionBytes: this.budget.limits.maxExpansionBytes,
+          maxExpansionFields: this.budget.limits.maxExpansionFields,
+        });
+        let result: Awaited<ReturnType<typeof matchEre>> | undefined;
+        let syntaxErr = false;
+        try {
+          const program = await compileEre([{ text: p0.value, literal: !!p0.quoted }], ledger, this.signal, !!state.nocasematch, {
+            ranges: cCollation(collation), classes: !utf8Locale(characters),
+          });
+          result = await matchEre(program, subject, ledger, this.signal);
+        } catch (error) {
+          this.signal.throwIfAborted();
+          if (error instanceof EreSyntaxError || error instanceof EreUnsupportedError) {
+            syntaxErr = true;
+          } else {
+            throw error;
+          }
+        }
+        if (!syntaxErr && result !== undefined && !existingStore.watches.has("BASH_REMATCH") && !monitor.hasOverlay("BASH_REMATCH") && existingRematch.references === 1) {
+          const status = result.matched ? 0 : 1;
+          const capLen = result.matched ? result.captures.length : 0;
+          for (const key of existingRematch.values.keys()) {
+            if (key >= capLen) existingRematch.remove(key);
+          }
+          existingRematch.maximum = capLen - 1;
+          for (let index = 0; index < capLen; index++) {
+            const span = result.captures[index]!;
+            const value = span === null ? "" : subject.slice(span.start, span.end);
+            const byteLen = Buffer.byteLength(value);
+            const elem = existingRematch.values.get(index);
+            if (elem && elem.text.references === 1 && elem.text.bytes === byteLen) {
+              elem.text.shellValue = value;
+            } else {
+              existingRematch.owner.chargeWork(byteLen);
+              const token = new OwnedText(value, byteLen, existingRematch.owner.reserve({ payload: byteLen, metadata: 32, work: 4 }));
+              try { existingRematch.insert(index, token); }
+              catch (error) { token.release(); throw error; }
+            }
+          }
+          delete state.variables.BASH_REMATCH;
+          const tickets = existingStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+          monitor.epoch = tickets.epoch;
+          existingStore.changed(tickets, "BASH_REMATCH");
+          return status;
+        }
+      }
+    }
     const store = requireArrays(state);
     let operation: ArrayOwner | undefined;
     let holding: ReturnType<ArrayOwner["hold"]> | undefined;
@@ -3759,10 +3867,21 @@ export class Runtime {
       await this.prepareArrayObservers(state, operation);
       operation.reserve({ metadata: 64, allocatedSlots: 1, work: 2 });
       const fragments: EreFragment[] = [];
-      await this.word(pattern, state, io, false, false, false, false, (text, literal) => {
-        operation!.reserve({ metadata: 64, allocatedSlots: 1, payload: Buffer.byteLength(text), work: text.length + 2 });
-        fragments.push({ text, literal });
-      });
+      if (
+        pattern.parts.length === 1 &&
+        pattern.parts[0]!.kind === "text" &&
+        !pattern.parts[0]!.value.includes("\\") &&
+        !pattern.parts[0]!.value.includes("~")
+      ) {
+        const p0 = pattern.parts[0]!;
+        operation.reserve({ metadata: 64, allocatedSlots: 1, payload: Buffer.byteLength(p0.value), work: p0.value.length + 2 });
+        fragments.push({ text: p0.value, literal: !!p0.quoted });
+      } else {
+        await this.word(pattern, state, io, false, false, false, false, (text, literal) => {
+          operation!.reserve({ metadata: 64, allocatedSlots: 1, payload: Buffer.byteLength(text), work: text.length + 2 });
+          fragments.push({ text, literal });
+        });
+      }
       const collation = state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C";
       const characters = state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C";
       if (![collation, characters].every(locale => cCollation(locale) || utf8Locale(locale))) {
@@ -7175,7 +7294,7 @@ export class Runtime {
     }
     const command = pipeline.commands[0]!;
     if (
-      (command.kind !== "simple" && command.kind !== "arithmetic" && command.kind !== "arithmetic-for" && command.kind !== "for") ||
+      (command.kind !== "simple" && command.kind !== "arithmetic" && command.kind !== "arithmetic-for" && command.kind !== "for" && command.kind !== "if" && command.kind !== "case" && command.kind !== "group") ||
       command.redirects.length > 1
     ) {
       (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
@@ -7201,9 +7320,11 @@ export class Runtime {
           w0Plain !== "[" &&
           w0Plain !== "test" &&
           w0Plain !== "mkdir" &&
-          w0Plain !== "rm"
+          w0Plain !== "rm" &&
+          w0Plain !== "local" &&
+          w0Plain !== "return" &&
+          !(w0Plain !== undefined && state.functions.has(w0Plain))
         ) {
-          (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
           return undefined;
         }
       } else if (
@@ -7212,18 +7333,87 @@ export class Runtime {
         w0Plain !== ":" &&
         w0Plain !== "true" &&
         w0Plain !== "false" &&
+        w0Plain !== "return" &&
+        !(w0Plain !== undefined && state.functions.has(w0Plain)) &&
         !(w0.parts[0]?.kind === "text" && w0.parts[0].value.includes("="))
       ) {
-        (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
         return undefined;
       }
     }
     return this.executeSyncPipelineBody(pipeline, command, state, io, ignored);
   }
 
+  private canSyncCommandCompound(command: Command, rawState: State, depth = 0): boolean {
+    if (depth > 6 || command.redirects.length !== 0) return false;
+    if (command.kind === "arithmetic") {
+      return !command.expression.error && !command.expression.hasSubscript && !rawState.nounset && !rawState.readonlyVariables?.size;
+    }
+    if (command.kind === "simple") {
+      if (command.words.length === 0) return false;
+      const w0 = command.words[0]!;
+      const w0Plain = w0.plain;
+      if (command.words.length === 1) {
+        if (w0Plain === ":" || w0Plain === "true" || w0Plain === "false" || w0Plain === "return") return true;
+        if (w0Plain !== undefined && rawState.functions.has(w0Plain)) {
+          const fnBody = rawState.functions.get(w0Plain)!;
+          return fnBody.kind === "group" && fnBody.redirects.length === 0 && this.canSyncScriptCompound(fnBody.body, rawState, depth + 1);
+        }
+        const assignment = !getArrayAssignment(w0) ? this.assignment(w0) : undefined;
+        return Boolean(assignment && !assignment.append && assignment.name !== "OPTIND" && assignment.name !== "PIPESTATUS" && !assignment.name.includes("["));
+      }
+      if (command.words.length === 2) {
+        if (w0Plain === "return") return true;
+        if (w0Plain === "local") {
+          const assignment = !getArrayAssignment(command.words[1]!) ? this.assignment(command.words[1]!) : undefined;
+          return Boolean(assignment && !assignment.append && assignment.name !== "OPTIND" && assignment.name !== "PIPESTATUS" && !assignment.name.includes("["));
+        }
+      }
+      if (w0Plain !== undefined && rawState.functions.has(w0Plain)) {
+        const fnBody = rawState.functions.get(w0Plain)!;
+        return fnBody.kind === "group" && fnBody.redirects.length === 0 && this.canSyncScriptCompound(fnBody.body, rawState, depth + 1);
+      }
+      return false;
+    }
+    if (command.kind === "group") {
+      return this.canSyncScriptCompound(command.body, rawState, depth + 1);
+    }
+    if (command.kind === "if") {
+      for (let i = 0; i < command.branches.length; i++) {
+        const b = command.branches[i]!;
+        if (!this.canSyncScriptCompound(b.condition, rawState, depth + 1) || !this.canSyncScriptCompound(b.body, rawState, depth + 1)) return false;
+      }
+      if (command.otherwise && !this.canSyncScriptCompound(command.otherwise, rawState, depth + 1)) return false;
+      return true;
+    }
+    if (command.kind === "case") {
+      if (rawState.nocasematch || rawState.extglob) return false;
+      for (let i = 0; i < command.clauses.length; i++) {
+        const c = command.clauses[i]!;
+        if (c.terminator !== ";;" && c.terminator !== "esac") return false;
+        if (!this.canSyncScriptCompound(c.body, rawState, depth + 1)) return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  private canSyncScriptCompound(script: Script, rawState: State, depth = 0): boolean {
+    if (depth > 6 || rawState.noexec) return false;
+    for (let i = 0; i < script.lists.length; i++) {
+      const list = script.lists[i]!;
+      if (list.terminator) return false;
+      for (let j = 0; j < list.pipelines.length; j++) {
+        const p = list.pipelines[j]!;
+        if (p.commands.length !== 1 || p.negate) return false;
+        if (!this.canSyncCommandCompound(p.commands[0]!, rawState, depth)) return false;
+      }
+    }
+    return true;
+  }
+
   private executeSyncPipelineBody(
     pipeline: Pipeline,
-    command: Extract<Command, { kind: "simple" | "arithmetic" | "arithmetic-for" | "for" }>,
+    command: Extract<Command, { kind: "simple" | "arithmetic" | "arithmetic-for" | "for" | "if" | "case" | "group" }>,
     state: State,
     io: IO,
     ignored: boolean,
@@ -7233,7 +7423,8 @@ export class Runtime {
     const monitor = stateMonitor(state) ?? stateMonitor(trackState(state, this.budget, scope));
     if (!monitor) return undefined;
     const rawState = monitor.raw;
-    if (io.terminal || io.asyncDefaultInput || hasActiveExtensions(rawState) || rawState.variableAttributes?.size || guestArrays(rawState)) return undefined;
+    const gArrays = guestArrays(rawState);
+    if (io.terminal || io.asyncDefaultInput || hasActiveExtensions(rawState) || rawState.variableAttributes?.size || (gArrays && (gArrays.watches.size > 0 || gArrays.bindings.size > 1 || !gArrays.bindings.has("BASH_REMATCH")))) return undefined;
     if (((this.budget.commands + 1) & 127) === 0) {
       if (hasYieldCheckpoint(this.signal) || ((this.budget.commands + 1) & 2047) === 0) return undefined;
       runYieldCheckpoint(this.signal);
@@ -7298,6 +7489,74 @@ export class Runtime {
     }
     if (command.kind === "arithmetic-for" || command.kind === "for") {
       return this.trySyncLoop(command, pipeline, rawState, monitor, store, existing, elem0, canMutatePipeStatus, io, diagnosticLine);
+    }
+    if (command.kind === "group" || command.kind === "if" || command.kind === "case") {
+      if (
+        command.redirects.length !== 0 ||
+        pipeline.negate ||
+        !canMutatePipeStatus ||
+        (!ignored && rawState.errexit) ||
+        rawState.nounset ||
+        rawState.readonlyVariables?.size ||
+        hasYieldCheckpoint(this.signal) ||
+        ((this.budget.commands + 32) & 2047) < 32 ||
+        !this.canSyncCommandCompound(command, rawState, 0)
+      ) {
+        return undefined;
+      }
+      if (command.kind === "group") {
+        this.budget.tick();
+        const res = this.trySyncScript(command.body, state, io, ignored);
+        return typeof res === "number" ? res : undefined;
+      }
+      if (command.kind === "if") {
+        this.budget.tick();
+        for (let i = 0; i < command.branches.length; i++) {
+          const b = command.branches[i]!;
+          const condRes = this.trySyncScript(b.condition, state, io, true);
+          if (typeof condRes !== "number") return undefined;
+          if (condRes === 0) {
+            const bodyRes = this.trySyncScript(b.body, state, io, ignored);
+            return typeof bodyRes === "number" ? bodyRes : undefined;
+          }
+        }
+        if (command.otherwise) {
+          const elseRes = this.trySyncScript(command.otherwise, state, io, ignored);
+          return typeof elseRes === "number" ? elseRes : undefined;
+        }
+        rawState.status = 0;
+        return 0;
+      }
+      // command.kind === "case"
+      let fastSubject: ShellValue | undefined;
+      try {
+        fastSubject = this.fastValueWord(command.subject, rawState, io, false, false, false, false, undefined, diagnosticLine);
+      } catch {
+        return undefined;
+      }
+      if (typeof fastSubject !== "string") return undefined;
+      const work = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+      let matchedClauseIndex = -1;
+      for (let cIdx = 0; cIdx < command.clauses.length; cIdx++) {
+        const clause = command.clauses[cIdx]!;
+        for (let pIdx = 0; pIdx < clause.patterns.length; pIdx++) {
+          const pw = clause.patterns[pIdx]!;
+          const pStr = pw.plain ?? (pw.parts.length === 1 && pw.parts[0]!.kind === "text" && !pw.parts[0]!.quoted && !pw.parts[0]!.value.includes("~") ? pw.parts[0]!.value : undefined);
+          if (pStr === undefined) return undefined;
+          const matched = tryMatchesPatternSync(pStr, fastSubject, work, false, false);
+          if (matched === undefined) return undefined;
+          if (matched) { matchedClauseIndex = cIdx; break; }
+        }
+        if (matchedClauseIndex !== -1) break;
+      }
+      this.budget.tick();
+      rawState.substitutionStatus = 0;
+      if (matchedClauseIndex >= 0) {
+        const bodyRes = this.trySyncScript(command.clauses[matchedClauseIndex]!.body, state, io, ignored);
+        return typeof bodyRes === "number" ? bodyRes : undefined;
+      }
+      rawState.status = 0;
+      return 0;
     }
     if (command.redirects.length === 1) {
       if (!canMutatePipeStatus && elem0!.text.shellValue !== "0") return undefined;
@@ -7505,6 +7764,35 @@ export class Runtime {
       const w0 = command.words[0]!;
       const w0Plain = w0.plain;
       if (
+        w0Plain === "return" &&
+        (rawState.functionDepth > 0 || rawState.sourceDepth) &&
+        !hasShellFunction(rawState, "return") &&
+        !rawState.extensions?.builtins.has("return") &&
+        !pipeline.negate &&
+        canMutatePipeStatus
+      ) {
+        const retStatus = rawState.status;
+        const statusStr = retStatus === 0 ? "0" : retStatus === 1 ? "1" : String(retStatus);
+        if (existing && elem0!.text.bytes !== statusStr.length) return undefined;
+        const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+        this.budget.tick();
+        rawState.substitutionStatus = 0;
+        if (rawState.variables._ !== undefined) delete rawState.variables._;
+        rawState.lastArgument = "return";
+        if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+        if (!existing) {
+          monitor.lazyPipeStatus = retStatus === 0 ? singleStatusZero : retStatus === 1 ? singleStatusOne : [retStatus];
+          monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+        } else {
+          elem0!.text.shellValue = statusStr;
+          store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+        }
+        rawState.status = retStatus;
+        monitor.epoch = restEpoch;
+        if (store) store.epoch = restEpoch;
+        throw completedExit(retStatus, "return", 1, retStatus);
+      }
+      if (
         (w0Plain === ":" || w0Plain === "true" || w0Plain === "false") &&
         !hasShellFunction(rawState, w0Plain) &&
         !rawState.extensions?.builtins.has(w0Plain)
@@ -7689,6 +7977,177 @@ export class Runtime {
     }
     if (command.words.length >= 2) {
       const w0Plain = command.words[0]!.plain;
+      if (
+        command.words.length === 2 &&
+        w0Plain === "local" &&
+        rawState.locals.length > 0 &&
+        !hasShellFunction(rawState, "local") &&
+        !rawState.extensions?.builtins.has("local") &&
+        !pipeline.negate &&
+        canMutatePipeStatus
+      ) {
+        const w1 = command.words[1]!;
+        const assignment = !getArrayAssignment(w1) ? this.assignment(w1) : undefined;
+        if (
+          assignment &&
+          !assignment.append &&
+          assignment.name !== "OPTIND" &&
+          assignment.name !== "PIPESTATUS" &&
+          !assignment.name.includes("[") &&
+          !rawState.readonlyVariables?.has(assignment.name) &&
+          !store?.get(assignment.name)
+        ) {
+          let fastAssigned: ShellValue | undefined;
+          try {
+            fastAssigned = this.fastValueWord(assignment.value, rawState, io, false, false, false, false, 0, diagnosticLine);
+          } catch {
+            return undefined;
+          }
+          if (typeof fastAssigned === "string") {
+            const locals = rawState.locals[rawState.locals.length - 1]!;
+            if (!locals.has(assignment.name)) {
+              locals.set(assignment.name, saveVariable(state, assignment.name));
+            }
+            const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+            this.budget.tick();
+            rawState.substitutionStatus = 0;
+            if (rawState.variables._ !== undefined) delete rawState.variables._;
+            rawState.lastArgument = `${assignment.name}=${fastAssigned}`;
+            monitor.publishStringVariable(assignment.name, fastAssigned);
+            if (rawState.allexport) monitor.proxy.exported.add(assignment.name);
+            if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+            if (!existing) {
+              monitor.lazyPipeStatus = singleStatusZero;
+              monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+            } else {
+              elem0!.text.shellValue = "0";
+              store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+            }
+            rawState.status = 0;
+            monitor.epoch = restEpoch;
+            if (store) store.epoch = restEpoch;
+            return 0;
+          }
+        }
+      }
+      if (
+        command.words.length === 2 &&
+        w0Plain === "return" &&
+        (rawState.functionDepth > 0 || rawState.sourceDepth) &&
+        !hasShellFunction(rawState, "return") &&
+        !rawState.extensions?.builtins.has("return") &&
+        !pipeline.negate &&
+        canMutatePipeStatus
+      ) {
+        let fastArg: ShellValue | undefined;
+        try {
+          fastArg = this.fastValueWord(command.words[1]!, rawState, io, false, false, false, false, 0, diagnosticLine);
+        } catch {
+          return undefined;
+        }
+        if (typeof fastArg === "string" && fastArg !== "--") {
+          if (fastArg.length > 0 && fastArg.length <= 15 && /^-?[0-9]+$/.test(fastArg)) {
+            const retStatus = ((Number(fastArg) % 256) + 256) % 256;
+            const statusStr = retStatus === 0 ? "0" : retStatus === 1 ? "1" : String(retStatus);
+            if (existing && elem0!.text.bytes !== statusStr.length) return undefined;
+            const prevStatus = rawState.status;
+            const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+            this.budget.tick();
+            rawState.substitutionStatus = 0;
+            if (rawState.variables._ !== undefined) delete rawState.variables._;
+            rawState.lastArgument = fastArg;
+            if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+            if (!existing) {
+              monitor.lazyPipeStatus = retStatus === 0 ? singleStatusZero : retStatus === 1 ? singleStatusOne : [retStatus];
+              monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+            } else {
+              elem0!.text.shellValue = statusStr;
+              store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+            }
+            rawState.status = retStatus;
+            monitor.epoch = restEpoch;
+            if (store) store.epoch = restEpoch;
+            throw completedExit(retStatus, "return", 1, prevStatus);
+          }
+        }
+      }
+      if (
+        w0Plain !== undefined &&
+        !rawState.externalInvocation &&
+        rawState.functions.has(w0Plain) &&
+        this.firstInternalDiscovery(w0Plain, rawState, false) === "function" &&
+        !pipeline.negate &&
+        canMutatePipeStatus &&
+        (!ignored && rawState.errexit ? false : true) &&
+        rawState.depth < this.budget.limits.maxSubstitutionDepth &&
+        !hasYieldCheckpoint(this.signal) &&
+        ((this.budget.commands + 32) & 2047) >= 32
+      ) {
+        const fnBody = rawState.functions.get(w0Plain)!;
+        if (fnBody.kind === "group" && fnBody.redirects.length === 0 && this.canSyncScriptCompound(fnBody.body, rawState, 0)) {
+          const fnArgs: string[] = [];
+          let argsOk = true;
+          try {
+            for (let i = 1; i < command.words.length; i++) {
+              const v = this.fastValueWord(command.words[i]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
+              if (typeof v !== "string") { argsOk = false; break; }
+              fnArgs.push(v);
+            }
+          } catch {
+            argsOk = false;
+          }
+          if (argsOk) {
+            this.budget.tick();
+            rawState.substitutionStatus = 0;
+            if (rawState.variables._ !== undefined) delete rawState.variables._;
+            rawState.lastArgument = fnArgs.length > 0 ? fnArgs[fnArgs.length - 1]! : w0Plain;
+            const positional = rawState.positional;
+            const savedPositionals = monitor.positionals.clone();
+            const positionalSetVersion = rawState.positionalSetVersion ?? 0;
+            const locals = new Map<string, SavedVariable>();
+            this.replacePositionals(state, fnArgs, () => { rawState.positional = fnArgs; });
+            rawState.functionDepth++;
+            rawState.depth++;
+            rawState.locals.push(locals);
+            (rawState.functionNames ??= []).unshift(w0Plain);
+            const callerLoopDepth = rawState.loopDepth;
+            let exitStatus = 0;
+            try {
+              const bodyRes = this.trySyncScript(fnBody.body, state, io, ignored);
+              if (typeof bodyRes !== "number") return undefined;
+              exitStatus = bodyRes;
+            } catch (error) {
+              if (error instanceof Flow && error.kind === "return") {
+                exitStatus = error.status;
+              } else {
+                throw error;
+              }
+            } finally {
+              monitor.positionals.restore(savedPositionals, () => { rawState.positional = positional; });
+              savedPositionals.close();
+              rawState.positionalSetVersion = positionalSetVersion;
+              rawState.functionDepth--;
+              rawState.loopDepth = callerLoopDepth;
+              rawState.depth--;
+              rawState.locals.pop();
+              rawState.functionNames?.shift();
+              for (const [k, previous] of locals) {
+                tryRestoreVariableSync(state, k, previous);
+              }
+            }
+            const statusStr = exitStatus === 0 ? "0" : exitStatus === 1 ? "1" : String(exitStatus);
+            if (!existing) {
+              monitor.lazyPipeStatus = exitStatus === 0 ? singleStatusZero : exitStatus === 1 ? singleStatusOne : [exitStatus];
+              monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+            } else if (elem0!.text.bytes === statusStr.length) {
+              elem0!.text.shellValue = statusStr;
+              store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+            }
+            rawState.status = exitStatus;
+            return exitStatus;
+          }
+        }
+      }
       if (
         (w0Plain === "[" || w0Plain === "test") &&
         !hasShellFunction(rawState, w0Plain) &&
@@ -9891,6 +10350,51 @@ export class Runtime {
     ) {
       if (command.words.length === 1) {
         const w0 = command.words[0]!;
+        const w0Plain = w0.plain;
+        if (
+          (w0Plain === ":" || w0Plain === "true" || w0Plain === "false") &&
+          !hasShellFunction(state, w0Plain) &&
+          !state.extensions?.builtins.has(w0Plain) &&
+          !state.externalInvocation
+        ) {
+          state.substitutionStatus = 0;
+          const rawState = stateMonitor(state)?.raw ?? state;
+          if (rawState.variables._ !== undefined) delete rawState.variables._;
+          rawState.lastArgument = w0Plain;
+          state.lastArgument = w0Plain;
+          if (originalIO.assignmentDiagnosticContext) originalIO.assignmentDiagnosticContext.name = undefined;
+          return w0Plain === "false" ? 1 : 0;
+        }
+        if (
+          w0Plain === "return" &&
+          (state.functionDepth > 0 || state.sourceDepth) &&
+          !hasShellFunction(state, "return") &&
+          !state.extensions?.builtins.has("return") &&
+          !state.externalInvocation
+        ) {
+          state.substitutionStatus = 0;
+          const rawState = stateMonitor(state)?.raw ?? state;
+          if (rawState.variables._ !== undefined) delete rawState.variables._;
+          rawState.lastArgument = "return";
+          state.lastArgument = "return";
+          if (originalIO.assignmentDiagnosticContext) originalIO.assignmentDiagnosticContext.name = undefined;
+          throw completedExit(state.status, "return", 1, state.status);
+        }
+        if (
+          (w0Plain === "break" || w0Plain === "continue") &&
+          state.loopDepth > 0 &&
+          !hasShellFunction(state, w0Plain) &&
+          !state.extensions?.builtins.has(w0Plain) &&
+          !state.externalInvocation
+        ) {
+          state.substitutionStatus = 0;
+          const rawState = stateMonitor(state)?.raw ?? state;
+          if (rawState.variables._ !== undefined) delete rawState.variables._;
+          rawState.lastArgument = w0Plain;
+          state.lastArgument = w0Plain;
+          if (originalIO.assignmentDiagnosticContext) originalIO.assignmentDiagnosticContext.name = undefined;
+          throw completedExit(0, w0Plain, 1);
+        }
         const assignment = !getArrayAssignment(w0) ? this.assignment(w0) : undefined;
         if (
           assignment &&
@@ -9919,8 +10423,78 @@ export class Runtime {
             return 0;
           }
         }
+      } else if (
+        command.words.length === 2 &&
+        command.words[0]!.plain === "local" &&
+        state.locals.length > 0 &&
+        !hasShellFunction(state, "local") &&
+        !state.extensions?.builtins.has("local") &&
+        (!guestArrays(state) || (guestArrays(state)!.watches.size === 0 && guestArrays(state)!.bindings.size === 1 && guestArrays(state)!.bindings.has("BASH_REMATCH")))
+      ) {
+        const w1 = command.words[1]!;
+        const assignment = !getArrayAssignment(w1) ? this.assignment(w1) : undefined;
+        if (
+          assignment &&
+          !assignment.append &&
+          assignment.name !== "OPTIND" &&
+          !assignment.name.includes("[") &&
+          !state.readonlyVariables?.has(assignment.name) &&
+          !state.variableAttributes?.get(assignment.name) &&
+          !arrayStore(state)?.get(assignment.name)
+        ) {
+          let fastAssigned: ShellValue | undefined;
+          let fastFailed = false;
+          try {
+            fastAssigned = this.fastValueWord(assignment.value, state, originalIO, false, false, false, false, 0, diagnosticLine);
+          } catch {
+            fastFailed = true;
+          }
+          if (!fastFailed && fastAssigned !== undefined) {
+            const locals = state.locals[state.locals.length - 1]!;
+            if (!locals.has(assignment.name)) {
+              locals.set(assignment.name, saveVariable(state, assignment.name));
+            }
+            state.substitutionStatus = 0;
+            const rawState = stateMonitor(state)?.raw ?? state;
+            if (rawState.variables._ !== undefined) delete rawState.variables._;
+            rawState.lastArgument = `${assignment.name}=${shellValueText(fastAssigned)}`;
+            state.lastArgument = rawState.lastArgument;
+            publishVariable(state, assignment.name, fastAssigned);
+            if (state.allexport) state.exported.add(assignment.name);
+            if (originalIO.assignmentDiagnosticContext) originalIO.assignmentDiagnosticContext.name = undefined;
+            return 0;
+          }
+        }
       } else if (command.words.length >= 2) {
         const w0Plain = command.words[0]!.plain;
+        if (
+          command.words.length === 2 &&
+          w0Plain === "return" &&
+          (state.functionDepth > 0 || state.sourceDepth) &&
+          !hasShellFunction(state, "return") &&
+          !state.extensions?.builtins.has("return") &&
+          !state.externalInvocation
+        ) {
+          let fastArg: ShellValue | undefined;
+          let fastFailed = false;
+          try {
+            fastArg = this.fastValueWord(command.words[1]!, state, originalIO, false, false, false, false, 0, diagnosticLine);
+          } catch {
+            fastFailed = true;
+          }
+          if (!fastFailed && typeof fastArg === "string" && fastArg !== "--") {
+            if (fastArg.length > 0 && fastArg.length <= 15 && /^-?[0-9]+$/.test(fastArg)) {
+              state.substitutionStatus = 0;
+              const rawState = stateMonitor(state)?.raw ?? state;
+              if (rawState.variables._ !== undefined) delete rawState.variables._;
+              rawState.lastArgument = fastArg;
+              state.lastArgument = fastArg;
+              if (originalIO.assignmentDiagnosticContext) originalIO.assignmentDiagnosticContext.name = undefined;
+              const n = ((Number(fastArg) % 256) + 256) % 256;
+              throw completedExit(n, "return", 1, state.status);
+            }
+          }
+        }
         if (
           (w0Plain === "[" || w0Plain === "test") &&
           !hasShellFunction(state, w0Plain) &&
@@ -9946,6 +10520,75 @@ export class Runtime {
                 return fastPred;
               }
             }
+          }
+        }
+        if (
+          w0Plain !== undefined &&
+          !state.externalInvocation &&
+          state.functions.has(w0Plain) &&
+          this.firstInternalDiscovery(w0Plain, state, false) === "function" &&
+          !hasActiveExtensions(state) &&
+          !guestArrays(state) &&
+          !mapfileCallbackStates.has(state)
+        ) {
+          let wordValues: ShellValue[] | undefined;
+          let fastFailed = false;
+          try {
+            wordValues = this.fastValueWords(command.words, state, originalIO, false, false, diagnosticLine);
+          } catch {
+            fastFailed = true;
+          }
+          if (!fastFailed && wordValues !== undefined && wordValues.every(v => typeof v === "string")) {
+            state.substitutionStatus = 0;
+            const rawState = stateMonitor(state)?.raw ?? state;
+            if (rawState.variables._ !== undefined) delete rawState.variables._;
+            rawState.lastArgument = (wordValues as readonly string[])[wordValues.length - 1] ?? w0Plain;
+            state.lastArgument = rawState.lastArgument;
+            return await this.dispatchFastFunction(w0Plain, state.functions.get(w0Plain)!, (wordValues as readonly string[]).slice(1), state, originalIO);
+          }
+        }
+      }
+    }
+    if (
+      this.middleware.length === 0 &&
+      (command.kind === "group" || command.kind === "case") &&
+      command.redirects.length === 0 &&
+      !fileShortcut &&
+      !terminal &&
+      !hasActiveExtensions(state)
+    ) {
+      if (command.kind === "group") {
+        return this.script(command.body, state, originalIO);
+      }
+      if (!state.nocasematch && !state.extglob) {
+        let fastSubject: ShellValue | undefined;
+        let subjectFailed = false;
+        try {
+          fastSubject = this.fastValueWord(command.subject, state, originalIO, false, false, false, false, undefined, diagnosticLine);
+        } catch {
+          subjectFailed = true;
+        }
+        if (!subjectFailed && typeof fastSubject === "string") {
+          const work = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+          let allFast = true;
+          let matchedClauseIndex = -1;
+          for (let cIdx = 0; cIdx < command.clauses.length; cIdx++) {
+            const clause = command.clauses[cIdx]!;
+            if (clause.terminator !== ";;" && clause.terminator !== "esac") { allFast = false; break; }
+            for (let pIdx = 0; pIdx < clause.patterns.length; pIdx++) {
+              const pw = clause.patterns[pIdx]!;
+              const pStr = pw.plain ?? (pw.parts.length === 1 && pw.parts[0]!.kind === "text" && !pw.parts[0]!.quoted && !pw.parts[0]!.value.includes("~") ? pw.parts[0]!.value : undefined);
+              if (pStr === undefined) { allFast = false; break; }
+              const m = tryMatchesPatternSync(pStr, fastSubject, work, false, false);
+              if (m === undefined) { allFast = false; break; }
+              if (m) { matchedClauseIndex = cIdx; break; }
+            }
+            if (!allFast || matchedClauseIndex >= 0) break;
+          }
+          if (allFast) {
+            if (matchedClauseIndex < 0) return 0;
+            const matchedBody = command.clauses[matchedClauseIndex]!.body;
+            return matchedBody.lists.length ? this.script(matchedBody, state, originalIO) : 0;
           }
         }
       }
@@ -10239,7 +10882,11 @@ export class Runtime {
             ignoreCase: !!state.nocasematch,
             extglob: true,
             work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation },
-            expand: async (word, pattern = false) => (await this.word(word, state, { ...io, nameExpansionContext: "conditional" }, false, pattern, false, pattern)).join(""),
+            expand: async (word, pattern = false) => {
+              const fast = !pattern ? this.fastValueWord(word, state, io, false, false, false, false) : undefined;
+              if (typeof fast === "string") return fast;
+              return (await this.word(word, state, { ...io, nameExpansionContext: "conditional" }, false, pattern, false, pattern)).join("");
+            },
             arithmetic: value => this.arithmeticValue(prepareArithmetic(value || "0", this.budget.parsing), state, io),
             regex: (subject, pattern) => this.ere(subject, pattern, state, { ...io, nameExpansionContext: "conditional" }),
             option: name => name === "allexport" ? !!state.allexport : name === "braceexpand" ? state.braceexpand !== false : name === "noexec" ? !!state.noexec : name === "noglob" ? !!state.noglob : name === "noclobber" ? !!state.noclobber : name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : state.extensions?.options.get(name)?.enabled ?? false,
@@ -11374,7 +12021,175 @@ export class Runtime {
     }
   }
 
+  private async dispatchFastFunction(
+    name: string,
+    body: Command,
+    args: readonly string[],
+    state: State,
+    io: IO,
+  ): Promise<number> {
+    if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+    const scope = io[invocationScope].child();
+    try {
+      const positional = state.positional;
+      const monitor = stateMonitor(state);
+      const savedPositionals = monitor!.positionals.clone();
+      const positionalSetVersion = state.positionalSetVersion ?? 0;
+      const getoptsEntry = cloneGetoptsBinding(state);
+      const functionRestoration = monitor?.restoration(true);
+      let getoptsRestoration: Restoration | undefined;
+      const locals = new Map<string, SavedVariable>();
+      try {
+        getoptsRestoration = monitor?.restoration();
+        const argumentsCopy = [...args];
+        this.replacePositionals(state, args, () => { state.positional = argumentsCopy; });
+        state.functionDepth++;
+        state.depth++;
+        state.locals.push(locals);
+        const rawState = monitor?.raw ?? state;
+        (rawState.functionNames ??= []).unshift(name);
+        if (rawState !== state) state.functionNames = rawState.functionNames;
+      } catch (error) {
+        savedPositionals.close();
+        getoptsRestoration?.close();
+        functionRestoration?.close();
+        throw error;
+      }
+      const callerLoopDepth = state.loopDepth;
+      let restoredLocals = false;
+      const restoreLocals = async (): Promise<void> => {
+        if (restoredLocals) return;
+        restoredLocals = true;
+        if (!this.signal.aborted && scope.failures.length === 0) {
+          let allSync = true;
+          for (const [, previous] of locals) {
+            if (typedSavedVariables.has(previous)) { allSync = false; break; }
+          }
+          if (allSync) {
+            for (const [k, previous] of locals) {
+              tryRestoreVariableSync(state, k, previous);
+            }
+            return;
+          }
+        }
+        for (const [k, previous] of locals) await scope.cleanup(async () => {
+          const typed = typedSavedVariables.has(previous);
+          await restoreVariable(state, k, previous);
+          if (!typed && !previous.readOnly) state.readonlyVariables?.delete(k);
+        });
+      };
+      const diagnostic = functionDiagnostics.get(body);
+      const funcIO: IO = {
+        ...io,
+        [invocationScope]: scope,
+        scriptName: body.sourceName ?? io.scriptName ?? "shell",
+        diagnosticOffset: diagnostic?.offset ?? 0,
+        assignmentDiagnosticContext: { name },
+        functionCommandLines: diagnostic?.lines,
+        diagnosticCommandLines: diagnostic?.lines,
+      };
+      let primaryFailure = false;
+      let exitStatus = 0;
+      let thrownError: unknown;
+      let hasThrown = false;
+      let checkpointFailure: ExtensionCheckpointFailure | undefined;
+      try {
+        try {
+          const status = await this.command(body, state, funcIO);
+          const activeExt = hasActiveExtensions(state);
+          exitStatus = activeExt ? await this.finishReturn("function-return", state, funcIO, status) : status;
+        } catch (error) {
+          if (error instanceof NounsetDiagnosticFailure) throw error;
+          if (error instanceof Flow && error.kind === "return") {
+            const activeExt = hasActiveExtensions(state);
+            exitStatus = activeExt ? await this.finishReturn("function-return", state, funcIO, error.status, error.previousStatus) : error.status;
+          } else {
+            if (error instanceof Flow && error.kind === "exit" && state.extensions) {
+              if (error.previousStatus === undefined) await restoreLocals();
+              throw new Flow("exit", await this.beginShellExit(state, funcIO, error.status));
+            }
+            throw error;
+          }
+        }
+      } catch (error) {
+        primaryFailure = !(error instanceof Flow) || error instanceof NounsetDiagnosticFailure;
+        thrownError = error;
+        hasThrown = true;
+      } finally {
+        const activeExt = hasActiveExtensions(state);
+        if (activeExt) {
+          await scope.cleanup(async () => {
+            try { if (!this.signal.aborted) await this.extensionEvent("function-leave", state, io, state.status); }
+            catch (error) {
+              if (error instanceof ExtensionCheckpointFailure && !primaryFailure) checkpointFailure = error;
+              else throw error;
+            }
+          });
+        }
+        const restoreControls = () => {
+          monitor!.positionals.restore(savedPositionals, () => { state.positional = positional; });
+          savedPositionals.close();
+          state.positionalSetVersion = positionalSetVersion;
+          state.functionDepth--;
+          state.loopDepth = callerLoopDepth;
+          state.depth--;
+          state.locals.pop();
+          const rawState = monitor?.raw ?? state;
+          rawState.functionNames?.shift();
+        };
+        if (!activeExt && !this.signal.aborted && scope.failures.length === 0 && !locals.has("OPTIND")) {
+          if (functionRestoration) functionRestoration.apply(restoreControls, false);
+          else restoreControls();
+          await restoreLocals();
+          getoptsRestoration?.close();
+          functionRestoration?.close();
+        } else {
+          await scope.cleanup(() => {
+            if (functionRestoration) functionRestoration.apply(restoreControls, false);
+            else restoreControls();
+          });
+          await restoreLocals();
+          if (locals.has("OPTIND")) await scope.cleanup(() => {
+            const restoreGetopts = () => {
+              state.getopts ??= getoptsEntry;
+              state.getopts.cursor = getoptsEntry.cursor;
+            };
+            if (getoptsRestoration) getoptsRestoration.apply(restoreGetopts);
+            else restoreGetopts();
+          });
+          await scope.cleanup(() => getoptsRestoration?.close());
+          await scope.cleanup(() => functionRestoration?.close());
+        }
+      }
+      if (checkpointFailure) {
+        this.signal.throwIfAborted();
+        throw checkpointFailure;
+      }
+      if (hasThrown) throw thrownError;
+      return exitStatus;
+    } finally {
+      await scope.close();
+    }
+  }
+
   async dispatch(name: ShellValue, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions = false, values: readonly ShellValue[] = args, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>, defaultPath = false): Promise<number> {
+    if (
+      !state.externalInvocation &&
+      this.middleware.length === 0 &&
+      typeof name === "string" &&
+      !state.extensions?.builtins.has(name) &&
+      !bypassFunctions &&
+      state.functions.has(name) &&
+      this.firstInternalDiscovery(name, state, false) === "function" &&
+      !hasActiveExtensions(state) &&
+      !guestArrays(state) &&
+      !mapfileCallbackStates.has(state) &&
+      assignments.size === 0 &&
+      !temporaryEnvironment &&
+      (values === args || !values.some(value => typeof value !== "string"))
+    ) {
+      return await this.dispatchFastFunction(name, state.functions.get(name)!, args, state, io);
+    }
     if (
       !state.externalInvocation &&
       this.middleware.length === 0 &&
@@ -11752,6 +12567,18 @@ export class Runtime {
           const restoreLocals = async (): Promise<void> => {
             if (restoredLocals) return;
             restoredLocals = true;
+            if (!this.signal.aborted && scope.failures.length === 0) {
+              let allSync = true;
+              for (const [, previous] of locals) {
+                if (typedSavedVariables.has(previous)) { allSync = false; break; }
+              }
+              if (allSync) {
+                for (const [name, previous] of locals) {
+                  tryRestoreVariableSync(state, name, previous);
+                }
+                return;
+              }
+            }
             for (const [name, previous] of locals) await scope.cleanup(async () => {
               const typed = typedSavedVariables.has(previous);
               await restoreVariable(state, name, previous);
@@ -11759,12 +12586,13 @@ export class Runtime {
             });
           };
           let primaryFailure = false;
+          const activeExt = hasActiveExtensions(state);
           let outcome: CapturedCancellationOutcome<CommandResult>;
           let checkpointFailure: ExtensionCheckpointFailure | undefined;
           try {
             try {
-              await this.extensionEvent("function-enter", state, io, state.status);
-              if (await this.extensionEvent("command", state, { ...io, ...context }, state.status, context.command)) outcome = { kind: "return", value: { exitCode: state.status } };
+              if (activeExt) await this.extensionEvent("function-enter", state, io, state.status);
+              if (activeExt && await this.extensionEvent("command", state, { ...io, ...context }, state.status, context.command)) outcome = { kind: "return", value: { exitCode: state.status } };
               else {
                 const diagnostic = functionDiagnostics.get(body);
                 const status = await this.command(body, state, {
@@ -11773,13 +12601,13 @@ export class Runtime {
                   assignmentDiagnosticContext: { name: context.command },
                   functionCommandLines: diagnostic?.lines, diagnosticCommandLines: diagnostic?.lines,
                 });
-                outcome = { kind: "return", value: { exitCode: await this.finishReturn("function-return", state, { ...io, ...context }, status) } };
+                outcome = { kind: "return", value: { exitCode: activeExt ? await this.finishReturn("function-return", state, { ...io, ...context }, status) : status } };
               }
             }
             catch (error) {
               if (error instanceof NounsetDiagnosticFailure) throw error;
               if (error instanceof Flow && error.kind === "return") {
-                outcome = { kind: "return", value: { exitCode: await this.finishReturn("function-return", state, { ...io, ...context }, error.status, error.previousStatus) } };
+                outcome = { kind: "return", value: { exitCode: activeExt ? await this.finishReturn("function-return", state, { ...io, ...context }, error.status, error.previousStatus) : error.status } };
               } else {
                 if (error instanceof Flow && error.kind === "exit" && state.extensions) {
                   if (error.previousStatus === undefined) await restoreLocals();
@@ -11792,13 +12620,15 @@ export class Runtime {
             primaryFailure = !(error instanceof Flow) || error instanceof NounsetDiagnosticFailure;
             outcome = { kind: "throw", reason: error };
           } finally {
-            await scope.cleanup(async () => {
-              try { if (!this.signal.aborted) await this.extensionEvent("function-leave", state, io, state.status); }
-              catch (error) {
-                if (error instanceof ExtensionCheckpointFailure && !primaryFailure) checkpointFailure = error;
-                else throw error;
-              }
-            });
+            if (activeExt) {
+              await scope.cleanup(async () => {
+                try { if (!this.signal.aborted) await this.extensionEvent("function-leave", state, io, state.status); }
+                catch (error) {
+                  if (error instanceof ExtensionCheckpointFailure && !primaryFailure) checkpointFailure = error;
+                  else throw error;
+                }
+              });
+            }
             const restoreControls = () => {
               stateMonitor(state)!.positionals.restore(savedPositionals, () => { state.positional = positional; });
               savedPositionals.close();
@@ -11810,21 +12640,29 @@ export class Runtime {
               const rawState = stateMonitor(state)?.raw ?? state;
               rawState.functionNames?.shift();
             };
-            await scope.cleanup(() => {
+            if (!activeExt && !this.signal.aborted && scope.failures.length === 0 && !locals.has("OPTIND")) {
               if (functionRestoration) functionRestoration.apply(restoreControls, false);
               else restoreControls();
-            });
-            await restoreLocals();
-            if (locals.has("OPTIND")) await scope.cleanup(() => {
-              const restoreGetopts = () => {
-                state.getopts ??= getoptsEntry;
-                state.getopts.cursor = getoptsEntry.cursor;
-              };
-              if (getoptsRestoration) getoptsRestoration.apply(restoreGetopts);
-              else restoreGetopts();
-            });
-            await scope.cleanup(() => getoptsRestoration?.close());
-            await scope.cleanup(() => functionRestoration?.close());
+              await restoreLocals();
+              getoptsRestoration?.close();
+              functionRestoration?.close();
+            } else {
+              await scope.cleanup(() => {
+                if (functionRestoration) functionRestoration.apply(restoreControls, false);
+                else restoreControls();
+              });
+              await restoreLocals();
+              if (locals.has("OPTIND")) await scope.cleanup(() => {
+                const restoreGetopts = () => {
+                  state.getopts ??= getoptsEntry;
+                  state.getopts.cursor = getoptsEntry.cursor;
+                };
+                if (getoptsRestoration) getoptsRestoration.apply(restoreGetopts);
+                else restoreGetopts();
+              });
+              await scope.cleanup(() => getoptsRestoration?.close());
+              await scope.cleanup(() => functionRestoration?.close());
+            }
           }
           if (checkpointFailure) {
             this.signal.throwIfAborted();
@@ -15244,7 +16082,37 @@ export class Runtime {
         out += part.value;
       } else if (part.kind === "variable") {
         if (rawState.variableAttributes?.get(part.name)?.includes("n")) return undefined;
-        if (split && !part.quoted && ((rawVars.IFS !== undefined && rawVars.IFS !== " \t\n") || (this.budget.maxExpansionBytesSmi < 0x3fffffff && this.budget.limits.maxExpansionBytes !== Infinity))) return undefined;
+        if (split && !part.quoted && (rawVars.IFS !== undefined && rawVars.IFS !== " \t\n")) return undefined;
+        if (
+          !part.indirect &&
+          !part.prefixNames &&
+          !part.length &&
+          !part.substring &&
+          !part.transform &&
+          part.operator === undefined &&
+          getArraySelector(part) === undefined &&
+          (part.name === "?" || part.name === "#" || (part.name.length === 1 && part.name >= "1" && part.name <= "9"))
+        ) {
+          let val: ShellValue | undefined;
+          if (part.name === "?") {
+            val = String(rawState.status);
+          } else if (part.name === "#") {
+            val = String(rawState.positional.length);
+          } else {
+            const idx = part.name.charCodeAt(0) - 49;
+            const rawPos = rawState.positional[idx];
+            this.requireParameter(rawPos, part.name, state, io, part.line ?? overrideDiagnosticLine);
+            val = rawPos === undefined ? "" : (monitor?.positionals.get(String(idx), rawPos) ?? rawPos);
+          }
+          if (typeof val !== "string") return undefined;
+          if (split && !part.quoted) {
+            if (val.length === 0 || val.includes(" ") || val.includes("\t") || val.includes("\n") || (!rawState.noglob && hasGlobOrEscape(val, !!rawState.extglob))) {
+              return undefined;
+            }
+          }
+          out += val;
+          continue;
+        }
         if (part.indirect || part.prefixNames || part.specialParameter || part.length || part.substring || part.transform) return undefined;
         if (part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME") return undefined;
         if (getArraySelector(part) !== undefined || !isShellIdentifier(part.name) || activeArrayStore?.get(part.name) !== undefined) return undefined;

@@ -193,7 +193,10 @@ function buildChainMatch(root: Node, groupCount: number): ChainMatch | undefined
     }
   }
   const first = steps[0];
-  if (!first || first.kind !== "literal" || first.value.length === 0 || first.group !== 0) return undefined;
+  if (!first) return undefined;
+  const hasLiteralPrefix = first.kind === "literal" && first.value.length > 0;
+  const hasRepeatHead = first.kind === "repeat" && first.minimum >= 1;
+  if (!hasLiteralPrefix && !hasRepeatHead) return undefined;
   for (let s = 0; s < steps.length; s++) {
     const step = steps[s]!;
     if (step.kind === "repeat") {
@@ -201,7 +204,7 @@ function buildChainMatch(root: Node, groupCount: number): ChainMatch | undefined
         const next = steps[s + 1]!;
         if (next.kind !== "literal" || next.value.length === 0 || step.accepts(next.value[0]!)) return undefined;
       }
-      if (!anchoredStart) {
+      if (!anchoredStart && hasLiteralPrefix) {
         for (let k = 0; k < first.value.length; k++) {
           if (step.accepts(first.value[k]!)) return undefined;
         }
@@ -209,7 +212,7 @@ function buildChainMatch(root: Node, groupCount: number): ChainMatch | undefined
     }
   }
   if (!hasRepeat && steps.length < 2) return undefined;
-  return { prefix: first.value, anchoredStart, anchoredEnd, steps };
+  return { prefix: hasLiteralPrefix ? first.value : "", anchoredStart, anchoredEnd, steps };
 }
 
 function matchChainAt(
@@ -221,13 +224,14 @@ function matchChainAt(
   outOffsets: Int32Array,
   groupCount: number,
   textEnd = text.length,
+  startStep = 1,
 ): number {
   for (let g = 1; g <= groupCount; g++) {
     outOffsets[g * 2] = -1;
     outOffsets[g * 2 + 1] = -1;
   }
-  let cursor = startPos + prefixLen;
-  for (let s = 1; s < steps.length; s++) {
+  let cursor = startStep === 1 ? startPos + prefixLen : startPos;
+  for (let s = startStep; s < steps.length; s++) {
     const step = steps[s]!;
     const stepStart = cursor;
     if (step.kind === "literal") {
@@ -822,25 +826,56 @@ export class Pattern {
     if (this.chainMatch) {
       const { prefix, anchoredStart, anchoredEnd, steps } = this.chainMatch;
       if (from > textEnd || (anchoredStart && from > textStart)) return false;
+      const first = steps[0]!;
+      const startStep = prefix.length > 0 && first.group === 0 ? 1 : 0;
       let found = -1;
       let matchEnd = -1;
       if (anchoredStart) {
-        if (textStart + prefix.length <= textEnd && text.startsWith(prefix, textStart)) {
-          matchEnd = matchChainAt(steps, prefix.length, anchoredEnd, text, textStart, outOffsets, this.groupCount, textEnd);
+        if (prefix.length === 0 || (textStart + prefix.length <= textEnd && text.startsWith(prefix, textStart))) {
+          matchEnd = matchChainAt(steps, prefix.length, anchoredEnd, text, textStart, outOffsets, this.groupCount, textEnd, startStep);
           if (matchEnd >= 0) found = textStart;
         }
-      } else {
+      } else if (prefix.length > 0) {
         let searchFrom = from;
         while (searchFrom <= textEnd - prefix.length) {
           const idx = text.indexOf(prefix, searchFrom);
           if (idx < 0 || idx > textEnd - prefix.length) break;
-          const end = matchChainAt(steps, prefix.length, anchoredEnd, text, idx, outOffsets, this.groupCount, textEnd);
+          const end = matchChainAt(steps, prefix.length, anchoredEnd, text, idx, outOffsets, this.groupCount, textEnd, startStep);
           if (end >= 0) {
             found = idx;
             matchEnd = end;
             break;
           }
           searchFrom = idx + 1;
+        }
+      } else {
+        const head = first as Extract<ChainStep, { kind: "repeat" }>;
+        const headAscii = head.ascii;
+        const headAccepts = head.accepts;
+        const headMin = head.minimum;
+        let searchFrom = from;
+        while (searchFrom < textEnd) {
+          while (searchFrom < textEnd) {
+            const c = text.charCodeAt(searchFrom);
+            if (c < 128 ? headAscii[c] !== 0 : headAccepts(text[searchFrom]!)) break;
+            searchFrom++;
+          }
+          if (searchFrom >= textEnd) break;
+          let runEnd = searchFrom + 1;
+          while (runEnd < textEnd) {
+            const c = text.charCodeAt(runEnd);
+            if (c < 128 ? headAscii[c] === 0 : !headAccepts(text[runEnd]!)) break;
+            runEnd++;
+          }
+          if (runEnd - searchFrom >= headMin) {
+            const end = matchChainAt(steps, 0, anchoredEnd, text, searchFrom, outOffsets, this.groupCount, textEnd, 0);
+            if (end >= 0) {
+              found = searchFrom;
+              matchEnd = end;
+              break;
+            }
+          }
+          searchFrom = runEnd + 1;
         }
       }
       const positionsTried = anchoredStart ? 1 : found >= 0 ? found - from + 1 : textEnd - from + 1;

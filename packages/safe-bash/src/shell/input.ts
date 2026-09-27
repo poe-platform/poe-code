@@ -1608,6 +1608,8 @@ export class ShellInput implements ByteSource, CommandInput {
           bytes = projected.bytes();
         }
         const shellValue = shellValueFromBytes(bytes, scope);
+        const shellValueStr = shellValueText(shellValue);
+        const asciiStringValue = typeof shellValue === "string" && shellValueStr.length === bytes.length ? shellValueStr : undefined;
         const escaped = new Set<number>();
         if (escapedByteOffsets.length > 0) {
           let escapeIndex = 0;
@@ -1619,12 +1621,52 @@ export class ShellInput implements ByteSource, CommandInput {
         }
         Object.freeze(escapedByteOffsets);
         const result: ReadLine = {
-          value: shellValueText(shellValue), shellValue, escaped, escapedByteOffsets, terminated, reason, release,
+          value: shellValueStr, shellValue, escaped, escapedByteOffsets, terminated, reason, release,
           fields: async (ifs, maximum) => {
             assertOpen();
             active++;
             try {
             if (maximum !== undefined && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("Invalid read field count");
+            if (asciiStringValue !== undefined && escapedByteOffsets.length === 0 && typeof ifs === "string") {
+              let asciiIfs = true;
+              for (let i = 0; i < ifs.length; i++) {
+                if (ifs.charCodeAt(i) >= 128) { asciiIfs = false; break; }
+              }
+              if (asciiIfs) {
+                scope.reserve(128, 2);
+                const isSep = (c: number): boolean => {
+                  for (let i = 0; i < ifs.length; i++) {
+                    if (ifs.charCodeAt(i) === c) return true;
+                  }
+                  return false;
+                };
+                const isWhite = (c: number): boolean => (c === 32 || c === 9 || c === 10) && isSep(c);
+                const s = asciiStringValue;
+                let end = s.length;
+                while (end > 0 && isWhite(s.charCodeAt(end - 1))) end--;
+                let position = 0;
+                while (position < end && isWhite(s.charCodeAt(position))) position++;
+                const fields: ReadField[] = [];
+                const maxFields = maximum ?? Number.MAX_SAFE_INTEGER;
+                let steps = 0;
+                while (position < end && fields.length < maxFields) {
+                  const start = position;
+                  while (position < end && !isSep(s.charCodeAt(position))) {
+                    position++;
+                    if (++steps % 1024 === 0) { await yieldTurn(this.signal); assertOpen(); }
+                  }
+                  let fieldEnd = position;
+                  while (position < end && isWhite(s.charCodeAt(position))) position++;
+                  if (position < end && isSep(s.charCodeAt(position))) position++;
+                  while (position < end && isWhite(s.charCodeAt(position))) position++;
+                  if (maximum !== undefined && fields.length === maximum - 1 && position < end) fieldEnd = end;
+                  scope.reserve(64, 1);
+                  fields.push(Object.freeze({ start, end: fieldEnd, value: s.slice(start, fieldEnd) } as ReadField));
+                }
+                assertOpen();
+                return Object.freeze(fields);
+              }
+            }
             const separators = shellValueBytes(ifs, scope);
             scope.reserve(128, 2);
             const keys = new Set<number>();
@@ -1687,8 +1729,10 @@ export class ShellInput implements ByteSource, CommandInput {
               while (position < end && whitespace(position)) { const pending = advance(); if (pending) await pending; }
               if (maximum !== undefined && fields.length === maximum - 1 && position < end) fieldEnd = end;
               scope.reserve(64, 1);
-              const fieldValue = shellValueFromBytes(bytes.subarray(start, fieldEnd), scope);
-              fields.push(Object.freeze({ start, end: fieldEnd, value: fieldValue }));
+              const fieldValue = asciiStringValue !== undefined
+                ? asciiStringValue.slice(start, fieldEnd)
+                : shellValueFromBytes(bytes.subarray(start, fieldEnd), scope);
+              fields.push(Object.freeze({ start, end: fieldEnd, value: fieldValue } as ReadField));
             }
             assertOpen();
             return Object.freeze(fields);

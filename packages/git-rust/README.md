@@ -1,11 +1,68 @@
 # `@poe-code/git-rust` (`git-rust`)
 
-Pure Rust Git engine with full [`isomorphic-git`](https://github.com/isomorphic-git/isomorphic-git) API parity and virtual filesystem (`GitFs` / `MemoryFs`) support for `safe-bash`.
+Zero-dependency, in-memory-capable Git engine and CLI dispatcher in pure Rust with full [`isomorphic-git`](https://github.com/isomorphic-git/isomorphic-git) API parity and `safe-bash` integration.
 
-## Features
+## Feature Index
 
-- **Complete Object & Pack Engine**: Loose objects (`blob`, `tree`, `commit`, `tag`), Packfiles v2 (`.pack`, `.idx`), `OFS_DELTA` and `REF_DELTA` decoding and delta compression.
-- **Working Tree, Staging & Index**: Binary `.git/index` v2/v3 with conflict stages (`0..=3`), `TREE` cache extension, `.gitignore` rules, `status`, `statusMatrix`, `add`, `remove`, `resetIndex`, `updateIndex`, `checkout`.
-- **Branching, History & Merging**: `init`, `commit`, `log`, `branch`, `deleteBranch`, `renameBranch`, `listBranches`, `currentBranch`, `tag`, `annotatedTag`, `deleteTag`, `listTags`, `findMergeBase`, `isDescendent`, 3-way `merge` (with diff3 file merge), `abortMerge`, `cherryPick`, `fastForward`, `stash`, `notes`, `walk`.
-- **Smart HTTP v1/v2 & Wire Protocol**: `GitPktLine`, `GitSideBand`, `clone`, `fetch`, `pull`, `push`, `getRemoteInfo`, `getRemoteInfo2`, `listServerRefs`, `uploadPack`, `packObjects`, `indexPack`, plus an in-memory Smart/Dumb HTTP server for deterministic testing.
-- **`safe-bash` CLI Frontend**: Built-in `git` command dispatcher operating directly against any `GitFs` virtual filesystem.
+| Category | Available Commands & APIs |
+| --- | --- |
+| **Repository & Config** | `init`, `find_root`, `get_config`, `get_config_all`, `set_config`, `version` |
+| **Refs, Branches & Tags** | `resolve_ref`, `write_ref`, `delete_ref`, `list_refs`, `branch`, `delete_branch`, `rename_branch`, `list_branches`, `current_branch`, `tag`, `annotated_tag`, `delete_tag`, `list_tags` |
+| **Objects, Trees & Packs** | `hash_blob`, `read_blob`, `write_blob`, `read_tree`, `write_tree`, `read_commit`, `write_commit`, `read_tag`, `write_tag`, `read_object`, `write_object`, `expand_oid`, `pack_objects`, `index_pack`, `upload_pack` |
+| **Worktree & Index** | `status`, `status_matrix`, `is_ignored`, `list_files`, `add`, `remove`, `reset_index`, `update_index`, `checkout`, `commit` |
+| **History, Merge & Stash** | `log`, `is_descendent`, `find_merge_base`, `merge`, `fast_forward`, `abort_merge`, `cherry_pick`, `stash`, `add_note`, `read_note`, `remove_note`, `list_notes` |
+| **Remotes & Smart HTTP** | `add_remote`, `delete_remote`, `list_remotes`, `get_remote_info`, `get_remote_info2`, `list_server_refs`, `fetch`, `clone`, `pull`, `push` |
+| **`safe-bash` CLI** | `execute_git_cli(&MemoryFs, cwd, args)` (`git init`, `status`, `add`, `rm`, `commit`, `log`, `branch`, `checkout`, `tag`, `merge`, `cherry-pick`, `stash`, `remote`, `config`, `rev-parse`, `cat-file`, `hash-object`, `ls-files`, `clone`, `fetch`, `pull`, `push`) |
+
+## Quick Start
+
+### Programmatic Rust API
+
+```rust
+use git_rust::{add, commit, init, status, Author, MemoryFs};
+
+let fs = MemoryFs::new();
+init(&fs, Some("/repo"), None, false, Some("main"))?;
+
+fs.write_str("/repo/hello.txt", "Hello from git-rust!\n");
+add(&fs, "/repo", None, &["hello.txt".to_string()], false)?;
+
+let oid = commit(
+    &fs,
+    "/repo/.git",
+    Some("feat: initial commit"),
+    Some(Author {
+        name: "Alice".to_string(),
+        email: "alice@example.com".to_string(),
+        timestamp: 1700000000,
+        timezone_offset: 0.0,
+    }),
+    None,
+    false,
+    false,
+    false,
+    false,
+    None,
+    None,
+    None,
+)?;
+assert_eq!(status(&fs, "/repo", None, "hello.txt")?, "unmodified");
+```
+
+### `safe-bash` CLI Dispatcher
+
+```rust
+use git_rust::{execute_git_cli, MemoryFs};
+
+let fs = MemoryFs::new();
+execute_git_cli(&fs, "/workspace", &["init"]);
+execute_git_cli(&fs, "/workspace", &["config", "user.name", "Safe Bash"]);
+execute_git_cli(&fs, "/workspace", &["config", "user.email", "bash@poe.com"]);
+
+fs.write_str("/workspace/README.md", "# Project\n");
+execute_git_cli(&fs, "/workspace", &["add", "README.md"]);
+execute_git_cli(&fs, "/workspace", &["commit", "-m", "Initial commit"]);
+
+let log = execute_git_cli(&fs, "/workspace", &["log", "--oneline"]);
+assert_eq!(log.exit_code, 0);
+```

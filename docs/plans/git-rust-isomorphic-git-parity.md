@@ -141,3 +141,7 @@ Build a comprehensive, standalone Rust Git implementation in `packages/git-rust`
 85. `test_write_ref` + `test_write_ref_in_submodule`
 86. `test_write_tag` + `test_write_tag_in_submodule`
 87. `test_write_tree` + `test_write_tree_in_submodule`
+
+## Completion Status
+
+- [x] All 6 milestones implemented, verified in-memory via `MemoryFs`, and passing `cargo test --manifest-path packages/git-rust/Cargo.toml`.

@@ -57,4 +57,27 @@ impl GitSideBand {
             error,
         }
     }
+
+    pub fn mux(_protocol: &str, packfile: &[u8], progress: &[Vec<u8>], error: &[Vec<u8>]) -> Vec<u8> {
+        let mut out = Vec::new();
+        for p in progress {
+            let mut payload = vec![2u8];
+            payload.extend_from_slice(p);
+            out.extend_from_slice(&GitPktLine::encode(&payload));
+        }
+        if !packfile.is_empty() {
+            for chunk in packfile.chunks(65515) {
+                let mut payload = vec![1u8];
+                payload.extend_from_slice(chunk);
+                out.extend_from_slice(&GitPktLine::encode(&payload));
+            }
+        }
+        for e in error {
+            let mut payload = vec![3u8];
+            payload.extend_from_slice(e);
+            out.extend_from_slice(&GitPktLine::encode(&payload));
+        }
+        out.extend_from_slice(&GitPktLine::flush());
+        out
+    }
 }

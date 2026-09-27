@@ -1,7 +1,9 @@
 pub mod commands;
+pub mod cli;
 pub mod errors;
 pub mod fixtures;
 pub mod fs;
+pub mod http;
 pub mod managers;
 pub mod models;
 pub mod storage;
@@ -104,3 +106,5 @@ pub fn is_ignored(fs: &MemoryFs, dir: &str, gitdir: Option<&str>, filepath: &str
 }
 
 pub use commands::*;
+pub use cli::*;
+pub use http::{GitHttpRequest, GitHttpResponse, HttpClient, MockHttpServer};

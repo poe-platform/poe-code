@@ -51,6 +51,8 @@ assert_eq!(status(&fs, "/repo", None, "hello.txt")?, "unmodified");
 
 ### `safe-bash` CLI Dispatcher
 
+`status --porcelain` and `--porcelain=v1` provide short machine-readable status. `diff` accepts paths without `--` and compares two revisions. Use `branch --show-current`, `-a`, `-r`, `-m` or `-M` to inspect or rename branches. `log` accepts a revision, `-n N`, `-N`, `--max-count=N`, `--format=...` and `--pretty=format:...` (without a trailing newline). Formats support commit IDs (`%H`, `%h`), subject/body (`%s`, `%b`, `%B`), author/committer names and emails (`%an`, `%ae`, `%cn`, `%ce`), `%%` and `%n`.
+
 For binary output, use `CliResult.stdout_bytes` when present; `stdout` provides the text representation.
 
 ```rust

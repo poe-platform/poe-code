@@ -1,7 +1,7 @@
 use crate::commands::network::{clone, fetch, pull, push};
 use crate::commands::plumbing::{
     add_remote, annotated_tag, branch, delete_branch, delete_remote, delete_tag, find_root,
-    get_config, init, list_remotes, log, read_tree, set_config, tag, write_blob,
+    get_config, init, list_remotes, log, read_tree, rename_branch, set_config, tag, write_blob,
 };
 use crate::commands::worktree::{
     abort_merge, add, checkout, cherry_pick, commit, list_files, merge, remove, reset_index, stash,
@@ -194,7 +194,9 @@ pub fn execute_git_cli_with_http(
 
     match subcmd {
         "status" => {
-            let short = sub_args.contains(&"-s") || sub_args.contains(&"--short");
+            let short = sub_args
+                .iter()
+                .any(|arg| matches!(*arg, "-s" | "--short" | "--porcelain" | "--porcelain=v1"));
             match status_matrix(fs, &repo_root, Some(&gitdir), None, None) {
                 Ok(rows) => {
                     if short {
@@ -434,12 +436,70 @@ pub fn execute_git_cli_with_http(
             }
         }
         "log" => {
-            let oneline = sub_args.contains(&"--oneline");
-            match log(fs, &gitdir, Some("HEAD"), None, None, None, false, false) {
+            let mut depth = None;
+            let mut revision = "HEAD";
+            let mut format = None;
+            let mut terminate = true;
+            let mut oneline = false;
+            let mut i = 0;
+            while i < sub_args.len() {
+                let arg = sub_args[i];
+                let count = match arg {
+                    "-n" | "--max-count" => {
+                        i += 1;
+                        sub_args.get(i).copied()
+                    }
+                    _ => arg
+                        .strip_prefix("--max-count=")
+                        .or_else(|| arg.strip_prefix("-n"))
+                        .or_else(|| {
+                            arg.strip_prefix('-')
+                                .filter(|n| !n.is_empty() && n.bytes().all(|b| b.is_ascii_digit()))
+                        }),
+                };
+                if let Some(count) = count {
+                    let Ok(count) = count.parse::<usize>() else {
+                        return CliResult::err(129, "error: invalid maximum commit count\n");
+                    };
+                    depth = Some(count);
+                } else if matches!(arg, "-n" | "--max-count") {
+                    return CliResult::err(129, "error: missing maximum commit count\n");
+                } else if arg == "--oneline" {
+                    oneline = true;
+                } else if let Some(value) = arg
+                    .strip_prefix("--format=")
+                    .or_else(|| arg.strip_prefix("--pretty="))
+                {
+                    terminate = !value.starts_with("format:");
+                    format = Some(
+                        value
+                            .strip_prefix("format:")
+                            .or_else(|| value.strip_prefix("tformat:"))
+                            .unwrap_or(value),
+                    );
+                } else if !arg.starts_with('-') {
+                    revision = arg;
+                } else {
+                    return CliResult::err(129, format!("error: unknown option '{arg}'\n"));
+                }
+                i += 1;
+            }
+            if depth == Some(0) {
+                return CliResult::ok("");
+            }
+            match log(fs, &gitdir, Some(revision), None, depth, None, false, false) {
                 Ok(commits) => {
                     let mut out = String::new();
-                    for c in commits {
-                        if oneline {
+                    for (i, c) in commits.into_iter().enumerate() {
+                        if let Some(format) = format {
+                            if i > 0 && !terminate {
+                                out.push('\n');
+                            }
+                            out.push_str(&format_commit(&c, format));
+                            if terminate {
+                                out.push('\n');
+                            }
+                        } else if oneline {
                             let first_line = c.commit.message.lines().next().unwrap_or("");
                             out.push_str(&format!("{} {}\n", &c.oid[..7], first_line));
                         } else {
@@ -458,30 +518,114 @@ pub fn execute_git_cli_with_http(
             }
         }
         "branch" => {
-            if sub_args.is_empty() {
-                let curr = current_branch(fs, &gitdir, false, false).ok().flatten();
-                let branches = list_branches(fs, &gitdir, None);
+            let mut remote = false;
+            let mut all = false;
+            let mut rename = false;
+            let mut force = false;
+            let mut delete = false;
+            let mut show_current = false;
+            let mut names = Vec::new();
+            for &arg in sub_args {
+                match arg {
+                    "--show-current" => show_current = true,
+                    "-a" | "--all" => all = true,
+                    "-r" | "--remotes" => remote = true,
+                    "-m" | "--move" => rename = true,
+                    "-M" => {
+                        rename = true;
+                        force = true;
+                    }
+                    "-d" | "--delete" => delete = true,
+                    "-D" => {
+                        delete = true;
+                        force = true;
+                    }
+                    "-f" | "--force" => force = true,
+                    arg if !arg.starts_with('-') => names.push(arg),
+                    _ => return CliResult::err(129, format!("error: unknown option '{arg}'\n")),
+                }
+            }
+            let curr = current_branch(fs, &gitdir, false, false).ok().flatten();
+            if show_current {
+                return CliResult::ok(curr.map(|b| format!("{b}\n")).unwrap_or_default());
+            }
+            if rename {
+                let (old, new) = match names.as_slice() {
+                    [new] if curr.is_some() => (curr.as_deref().unwrap(), *new),
+                    [old, new] => (*old, *new),
+                    _ => return CliResult::err(129, "usage: git branch -m [<old>] <new>\n"),
+                };
+                // Validate both names and source before a forced replacement changes refs.
+                if !crate::utils::is_valid_ref(old, true) || !crate::utils::is_valid_ref(new, true)
+                {
+                    return CliResult::err(128, "fatal: invalid branch name\n");
+                }
+                if old == new {
+                    return CliResult::ok("");
+                }
+                let old_ref = format!("refs/heads/{old}");
+                let new_ref = format!("refs/heads/{new}");
+                if let Err(e) = resolve_ref(fs, &gitdir, &old_ref, None) {
+                    if curr.as_deref() == Some(old)
+                        && !crate::GitRefManager::exists(fs, &gitdir, &old_ref)
+                        && !crate::GitRefManager::exists(fs, &gitdir, &new_ref)
+                    {
+                        return match crate::GitRefManager::write_symbolic_ref(
+                            fs, &gitdir, "HEAD", &new_ref,
+                        ) {
+                            Ok(()) => CliResult::ok(""),
+                            Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+                        };
+                    }
+                    return CliResult::err(128, format!("fatal: {}\n", e.message));
+                }
+                if force
+                    && crate::GitRefManager::exists(fs, &gitdir, &new_ref)
+                    && let Err(e) = crate::GitRefManager::delete_ref(fs, &gitdir, &new_ref)
+                {
+                    return CliResult::err(128, format!("fatal: {}\n", e.message));
+                }
+                return match rename_branch(fs, &gitdir, old, new, false) {
+                    Ok(()) => CliResult::ok(""),
+                    Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+                };
+            }
+            if delete {
+                if names.is_empty() {
+                    return CliResult::err(129, "fatal: branch name required\n");
+                }
                 let mut out = String::new();
-                for b in branches {
-                    if Some(&b) == curr.as_ref() {
-                        out.push_str(&format!("* {b}\n"));
-                    } else {
-                        out.push_str(&format!("  {b}\n"));
+                for name in names {
+                    if let Err(e) = delete_branch(fs, &gitdir, name) {
+                        return CliResult::err(128, format!("fatal: {}\n", e.message));
+                    }
+                    out.push_str(&format!("Deleted branch {name}.\n"));
+                }
+                return CliResult::ok(out);
+            }
+            if names.is_empty() || all || remote {
+                let mut out = String::new();
+                if !remote || all {
+                    for b in list_branches(fs, &gitdir, None) {
+                        out.push_str(&format!(
+                            "{} {b}\n",
+                            if Some(&b) == curr.as_ref() { "*" } else { " " }
+                        ));
+                    }
+                }
+                if remote || all {
+                    for b in crate::GitRefManager::list_refs(fs, &gitdir, "refs/remotes") {
+                        out.push_str(&format!("  {}{b}\n", if all { "remotes/" } else { "" }));
                     }
                 }
                 CliResult::ok(out)
-            } else if (sub_args[0] == "-d" || sub_args[0] == "-D") && sub_args.len() > 1 {
-                match delete_branch(fs, &gitdir, sub_args[1]) {
-                    Ok(()) => CliResult::ok(format!("Deleted branch {}.\n", sub_args[1])),
-                    Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
-                }
-            } else {
-                let name = sub_args[0];
-                let start = sub_args.get(1).copied();
-                match branch(fs, &gitdir, name, start, false, false) {
+            } else if names.len() <= 2 {
+                match branch(fs, &gitdir, names[0], names.get(1).copied(), false, force) {
                     Ok(()) => CliResult::ok(""),
                     Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
                 }
+            } else {
+                CliResult::err(129, "usage: git branch <name> [<start-point>]\n")
             }
         }
         "diff" | "show" | "restore" | "clean" | "mv" => {
@@ -489,18 +633,55 @@ pub fn execute_git_cli_with_http(
                 "diff" => {
                     let cached = sub_args.contains(&"--cached") || sub_args.contains(&"--staged");
                     let sep = sub_args.iter().position(|a| *a == "--");
-                    let revision = sub_args[..sep.unwrap_or(sub_args.len())]
-                        .iter()
-                        .copied()
-                        .find(|arg| !arg.starts_with('-'));
-                    let paths: Vec<_> = sep
-                        .map(|i| {
+                    let mut revisions = Vec::new();
+                    let mut paths = Vec::new();
+                    for &arg in &sub_args[..sep.unwrap_or(sub_args.len())] {
+                        if matches!(
+                            arg,
+                            "--cached" | "--staged" | "--no-color" | "--no-ext-diff"
+                        ) {
+                            continue;
+                        }
+                        if arg.starts_with('-') {
+                            return CliResult::err(129, format!("error: unknown option '{arg}'\n"));
+                        }
+                        let path = repository_path(&repo_root, &effective_cwd, arg);
+                        if paths.is_empty()
+                            && resolve_ref(fs, &gitdir, arg, None)
+                                .or_else(|_| expand_oid(fs, &gitdir, arg))
+                                .is_ok()
+                        {
+                            revisions.push(arg);
+                        } else if sep.is_none()
+                            && (fs.exists(&absolute_path(&effective_cwd, arg))
+                                || list_files(fs, &gitdir, None)
+                                    .unwrap_or_default()
+                                    .contains(&path))
+                        {
+                            paths.push(path);
+                        } else {
+                            return CliResult::err(
+                                128,
+                                format!(
+                                    "fatal: ambiguous argument '{arg}': unknown revision or path\n"
+                                ),
+                            );
+                        }
+                    }
+                    if revisions.len() > 2 {
+                        return CliResult::err(
+                            129,
+                            "usage: git diff [<rev> [<rev>]] [--] [<path>...]\n",
+                        );
+                    }
+                    if let Some(i) = sep {
+                        paths.extend(
                             sub_args[i + 1..]
                                 .iter()
-                                .map(|p| repository_path(&repo_root, &effective_cwd, p))
-                                .collect()
-                        })
-                        .unwrap_or_default();
+                                .map(|p| repository_path(&repo_root, &effective_cwd, p)),
+                        );
+                    }
+                    let revision = revisions.first().copied();
                     let before = match revision {
                         Some(revision) => revision,
                         None if !cached => ":index",
@@ -519,7 +700,11 @@ pub fn execute_git_cli_with_http(
                         &repo_root,
                         &gitdir,
                         before,
-                        if cached { ":index" } else { ":worktree" },
+                        revisions.get(1).copied().unwrap_or(if cached {
+                            ":index"
+                        } else {
+                            ":worktree"
+                        }),
                         &paths,
                     )
                 }
@@ -1127,4 +1312,56 @@ fn reset_repository(
     let head = fs.read_str(&join(&[gitdir, "HEAD"])).unwrap_or_default();
     let ref_name = head.trim().strip_prefix("ref: ").unwrap_or("HEAD");
     crate::GitRefManager::write_ref(fs, gitdir, ref_name, &oid)
+}
+
+fn format_commit(c: &crate::commands::plumbing::ReadCommitResult, format: &str) -> String {
+    let mut out = String::new();
+    let mut chars = format.chars();
+    while let Some(ch) = chars.next() {
+        if ch != '%' {
+            out.push(ch);
+            continue;
+        }
+        match chars.next() {
+            Some('%') => out.push('%'),
+            Some('n') => out.push('\n'),
+            Some('H') => out.push_str(&c.oid),
+            Some('h') => out.push_str(&c.oid[..7]),
+            Some('s') => out.push_str(c.commit.message.lines().next().unwrap_or("")),
+            Some('B') => out.push_str(&c.commit.message),
+            Some('b') => out.push_str(
+                c.commit
+                    .message
+                    .split_once("\n\n")
+                    .map(|(_, b)| b)
+                    .unwrap_or(""),
+            ),
+            Some(selector @ ('a' | 'c')) => {
+                let who = if selector == 'a' {
+                    &c.commit.author
+                } else {
+                    &c.commit.committer
+                };
+                match chars.next() {
+                    Some('n') => out.push_str(&who.name),
+                    Some('e') => out.push_str(&who.email),
+                    Some(other) => {
+                        out.push('%');
+                        out.push(selector);
+                        out.push(other);
+                    }
+                    None => {
+                        out.push('%');
+                        out.push(selector);
+                    }
+                }
+            }
+            Some(other) => {
+                out.push('%');
+                out.push(other);
+            }
+            None => out.push('%'),
+        }
+    }
+    out
 }

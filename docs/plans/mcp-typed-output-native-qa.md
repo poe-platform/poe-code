@@ -1,14 +1,26 @@
+# MCP typed output native QA
+
+1. Run the original two native stdio workflows below independently with Vitest using the original five-second deadline. Store any temporary test copy under `out`.
+2. Verify the modern protocol negotiation, output schemas, structured and text results, snake casing, and invalid-result error responses. Keep every assertion.
+3. Purge task evidence after verification.
+
+```ts
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
-import { McpClient, StdioTransport, createSdkTestPair } from "tiny-mcp-client";
-import { defineCommand, defineGroup, S } from "toolcraft";
-import { createMCPServer } from "toolcraft/mcp";
+import { McpClient, StdioTransport } from "tiny-mcp-client";
 
 const root = process.cwd();
 const tinyStdioEntry = pathToFileURL(
   path.join(root, "packages/tiny-stdio-mcp-server/dist/index.js"),
 ).href;
+const toolcraftEntry = pathToFileURL(
+  path.join(root, "packages/toolcraft/dist/index.js"),
+).href;
+const toolcraftMcpEntry = pathToFileURL(
+  path.join(root, "packages/toolcraft/dist/mcp.js"),
+).href;
+
 async function connectToServerScript(source: string): Promise<{
   client: McpClient;
   cleanup: () => Promise<void>;
@@ -124,61 +136,63 @@ describe("MCP typed output real stdio workflows", () => {
     }
   });
 
-  it("round-trips toolcraft result schemas through the MCP SDK transport, including invalid result failures", async () => {
-    const resultSchema = S.Object({
-      delivery: S.OneOf({
-        discriminator: "deliveryKind",
-        branches: {
-          pickup: S.Object({ pickupAt: S.String() }),
-          ship: S.Object({ streetAddress: S.String() })
-        }
-      }),
-      labels: S.Record(S.Object({ displayName: S.String() })),
-      contact: S.Union([
-        S.Object({ emailAddress: S.String() }),
-        S.Object({ phoneNumber: S.String() })
-      ])
-    });
+  it("round-trips toolcraft result schemas through a spawned MCP server, including invalid result failures", async () => {
+    const source = `
+      import { defineCommand, defineGroup, S } from ${JSON.stringify(toolcraftEntry)};
+      import { runMCP } from ${JSON.stringify(toolcraftMcpEntry)};
 
-    const server = createMCPServer(
-      defineGroup({
-        name: "root",
-        children: [
-          defineCommand({
-            name: "route",
-            scope: ["mcp"],
-            params: S.Object({}),
-            result: resultSchema,
-            handler: async () => ({
-              delivery: { deliveryKind: "ship", streetAddress: "1 Main St" },
-              labels: { primary: { displayName: "Primary" } },
-              contact: { emailAddress: "ops@example.com" }
+      const resultSchema = S.Object({
+        delivery: S.OneOf({
+          discriminator: "deliveryKind",
+          branches: {
+            pickup: S.Object({ pickupAt: S.String() }),
+            ship: S.Object({ streetAddress: S.String() })
+          }
+        }),
+        labels: S.Record(S.Object({ displayName: S.String() })),
+        contact: S.Union([
+          S.Object({ emailAddress: S.String() }),
+          S.Object({ phoneNumber: S.String() })
+        ])
+      });
+
+      await runMCP(
+        defineGroup({
+          name: "root",
+          children: [
+            defineCommand({
+              name: "route",
+              scope: ["mcp"],
+              params: S.Object({}),
+              result: resultSchema,
+              handler: async () => ({
+                delivery: { deliveryKind: "ship", streetAddress: "1 Main St" },
+                labels: { primary: { displayName: "Primary" } },
+                contact: { emailAddress: "ops@example.com" }
+              })
+            }),
+            defineCommand({
+              name: "broken_route",
+              scope: ["mcp"],
+              params: S.Object({}),
+              result: resultSchema,
+              handler: async () => ({
+                delivery: { deliveryKind: "ship" },
+                labels: { primary: { displayName: "Primary" } },
+                contact: { emailAddress: "ops@example.com" }
+              })
             })
-          }),
-          defineCommand({
-            name: "broken_route",
-            scope: ["mcp"],
-            params: S.Object({}),
-            result: resultSchema,
-            handler: async () => ({
-              delivery: { deliveryKind: "ship" },
-              labels: { primary: { displayName: "Primary" } },
-              contact: { emailAddress: "ops@example.com" }
-            })
-          })
-        ]
-      }),
-      {
-        name: "typed-toolcraft-workflow",
-        version: "1.0.0",
-        omitRootToolNamePrefix: true,
-        casing: "snake"
-      }
-    );
-    const { client, cleanup } = await createSdkTestPair(server, () => new McpClient({
-      protocolVersion: "2026-07-28",
-      clientInfo: { name: "typed-output-workflow-test", version: "1.0.0" },
-    }));
+          ]
+        }),
+        {
+          name: "typed-toolcraft-workflow",
+          version: "1.0.0",
+          omitRootToolNamePrefix: true,
+          casing: "snake"
+        }
+      );
+    `;
+    const { client, cleanup } = await connectToServerScript(source);
 
     try {
       const { tools } = await client.listTools();
@@ -232,3 +246,4 @@ describe("MCP typed output real stdio workflows", () => {
     }
   });
 });
+```

@@ -6,11 +6,13 @@ import { validateGuestHeapNode } from "./guest-heap-validation.js";
 
 it("accepts more than 10000 call frames without a call-depth budget and enforces explicit budgets", () => {
   const source = parseModule("return 1");
-  const ast = new Map([[source.nodeId, source]]);
+  const node = source.body[0]!;
+  if (node.nodeId === undefined) throw new Error("Missing parsed node identity");
+  const ast = new Map([[node.nodeId, node]]);
   const snapshot = {
-    sourceHash: "test", currentAstNodeId: source.nodeId,
+    sourceHash: "test", currentAstNodeId: node.nodeId,
     scopeChain: [{ id: 1, bindings: {} }],
-    callStack: Array.from({ length: 10001 }, () => ({ astNodeId: source.nodeId, scopeId: 1 })),
+    callStack: Array.from({ length: 10001 }, () => ({ astNodeId: node.nodeId, scopeId: 1 })),
     pendingPromises: [], moduleBindings: {},
   };
   expect(() => validateInterpreterSnapshot(snapshot, ast, new Budget())).not.toThrow();

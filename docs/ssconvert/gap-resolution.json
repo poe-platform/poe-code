@@ -2320,6 +2320,22 @@
           "qa": "docs/plans/ssconvert-odf-label-metadata-qa.md, step 16"
         }
       }
+    },
+    "odfCrossSheetLabelRanges": {
+      "sourceRevision": "LibreOffice bce0998afefdbc355585ca324285661a2170ba77",
+      "sources": {
+        "sc/source/ui/unoobj/nameuno.cxx": {
+          "sha256": "2cee81e0d7eccf6a45fee5fef665ef390deee162c6007316c31684a7671a930c",
+          "lines": "922–956, 1039–1070"
+        },
+        "sc/source/core/tool/compiler.cxx": {
+          "sha256": "84dfe1e52b8b632d8fd9d687d64857c779283bb3de660063664b916c7d458e83",
+          "lines": "5799 onward, GetRefColRowNames"
+        }
+      },
+      "behavior": "Label and data rectangles retain separate sheets. The evaluator copies the data range and projects the physical label row/column without offset mapping. Optional LabelRange.dataSheet holds a stable ID; omission uses the owner. Import grows each referenced sheet independently; model validation, dependencies, resize and ID remapping retain the relationship, including detached owners. ODF exports the target display name; BIFF8 refuses remote data.",
+      "validation": "Original memory regressions reproduced wrong-sheet results, cross-sheet import rejection and lifecycle/data-loss failures. 289 executed tests across 11 focused files passed (shared fixture tests included); maintained package lint, product/test/consumer types and selected workspace build passed. Independently generated Python ODF fixtures passed 16 compiled SDK/command exports across both axes/profiles before/after edits: 32 live formulas, distinct addresses, sums 5/15 and scalar 2. Edit inputs put data first for the native --set active-view contract. Command transcript screenshot inspected.",
+      "remaining": "Native Calc/Gnumeric recalculation remains unqualified. No family closed."
     }
   },
   "cases": [

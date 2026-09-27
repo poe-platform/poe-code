@@ -135,13 +135,24 @@ export function buildDependencyGraph(
           }
           const data = label.data && resolve(label.data, position);
           if (data) range(cell, data);
-        } else if (value && label) {
+        } else if (value && label && label.kind !== "radical") {
           // Any occupied cell can extend an automatic label's data area.
           // Share this conservative dependency with edit and solver paths;
           // staticScalar/staticRanges still cannot treat it as a fixed range.
           for (const sheet of value.sheets) {
             const size = sheet.size ?? DEFAULT_SHEET_SIZE;
             range(cell, { sheets: [sheet], firstRow: 0, firstColumn: 0, lastRow: size.rows - 1, lastColumn: size.columns - 1 });
+            const pair = sheet.labelRanges?.find(pair => { tick(); return pair.axis === label.axis &&
+              value.firstRow >= pair.labels.startRow && value.firstRow <= pair.labels.endRow &&
+              value.firstColumn >= pair.labels.startColumn && value.firstColumn <= pair.labels.endColumn; });
+            if (pair?.dataSheet !== undefined && pair.dataSheet !== sheet.id) {
+              const data = [...book.sheets, ...book.detachedSheets ?? []].find(s => { tick(); return s.id === pair.dataSheet; });
+              if (data) range(cell, { sheets: [data],
+                firstRow: label.axis === "column" ? pair.data.startRow : value.firstRow,
+                lastRow: label.axis === "column" ? pair.data.endRow : value.firstRow,
+                firstColumn: label.axis === "column" ? value.firstColumn : pair.data.startColumn,
+                lastColumn: label.axis === "column" ? value.firstColumn : pair.data.endColumn });
+            }
           }
         } else if (value) range(cell, value);
       }

@@ -12,6 +12,14 @@ export function readOdfLabelRanges(parent: XmlElement, sheets: readonly Sheet[],
   charge: (amount?: number) => void): readonly Sheet[] {
   const byName = new Map(sheets.map(sheet => { charge(); return [sheet.name, sheet] as const; }));
   const ranges = new Map<string, LabelRange[]>();
+  const sizes = new Map<string, { rows: number; columns: number }>(sheets.map(sheet => {
+    charge(); return [sheet.id, { ...(sheet.size ?? DEFAULT_SHEET_SIZE) }];
+  }));
+  function include(sheet: Sheet, range: Range) {
+    const size = sizes.get(sheet.id)!;
+    while (size.rows <= range.endRow) { charge(); size.rows *= 2; }
+    while (size.columns <= range.endColumn) { charge(); size.columns *= 2; }
+  }
   function invalid(): never { throw new SsconvertError("io", "E Invalid OpenDocument: invalid label range"); }
   function attribute(node: XmlElement, name: string) {
     return node.attributes.find(a => a.localName === name && tableNamespaces.includes(a.namespace))?.value;
@@ -42,21 +50,14 @@ export function readOdfLabelRanges(parent: XmlElement, sheets: readonly Sheet[],
       if (axis !== "row" && axis !== "column") invalid();
       const labels = address(attribute(node, "label-cell-range-address"));
       const data = address(attribute(node, "data-cell-range-address"));
-      if (labels.sheet !== data.sheet) throw new SsconvertError("unsupported-feature",
-        "Unsupported ssconvert feature: OpenDocument label and data ranges on different sheets");
+      include(labels.sheet, labels.range); include(data.sheet, data.range);
       let pairs = ranges.get(labels.sheet.id);
       if (!pairs) { pairs = []; ranges.set(labels.sheet.id, pairs); }
-      pairs.push({ axis, labels: labels.range, data: data.range });
+      pairs.push({ axis, labels: labels.range, data: data.range, ...(data.sheet !== labels.sheet ? { dataSheet: data.sheet.id } : {}) });
     }
   }
   return sheets.map(sheet => {
-    charge(); const pairs = ranges.get(sheet.id); if (!pairs) return sheet;
-    let { rows, columns } = sheet.size ?? DEFAULT_SHEET_SIZE;
-    for (const pair of pairs) {
-      charge();
-      while (rows <= Math.max(pair.labels.endRow, pair.data.endRow)) rows *= 2;
-      while (columns <= Math.max(pair.labels.endColumn, pair.data.endColumn)) columns *= 2;
-    }
-    return { ...sheet, size: { rows, columns }, labelRanges: pairs };
+    charge(); const pairs = ranges.get(sheet.id);
+    return { ...sheet, size: sizes.get(sheet.id)!, ...(pairs ? { labelRanges: pairs } : {}) };
   });
 }

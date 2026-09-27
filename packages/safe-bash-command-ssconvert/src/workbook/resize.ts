@@ -1,5 +1,5 @@
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
-import { DEFAULT_SHEET_SIZE, MAX_SHEET_SIZE, parseA1, snapshotWorkbook, type Range, type SheetSize, type Workbook } from "../workbook.js";
+import { DEFAULT_SHEET_SIZE, MAX_SHEET_SIZE, parseA1, snapshotWorkbook, type Range, type Sheet, type SheetSize, type Workbook } from "../workbook.js";
 import { validSheetSize } from "./model.js";
 import { foldSheetName } from "./case-fold.js";
 import type { ReferenceEndpoint } from "../formulas/ast.js";
@@ -52,7 +52,16 @@ export function resizeWorkbookReferences(book: Workbook, sheetId: string, size: 
       ...range, endRow: Math.min(range.endRow, size.rows - 1), endColumn: Math.min(range.endColumn, size.columns - 1)
     };
   };
-  const retained = snapshotWorkbook({ ...book, sheets: book.sheets.map(s => {
+  const clipLabels = (s: Sheet): Sheet => !s.labelRanges ? s : { ...s, labelRanges: s.labelRanges.flatMap(pair => {
+      context.signal.throwIfAborted();
+      const labels = s.id === sheetId ? clipLabelRange(pair.labels) : pair.labels;
+      const data = (pair.dataSheet ?? s.id) === sheetId ? clipLabelRange(pair.data) : pair.data;
+      return labels && data ? [{ ...pair, labels, data }] : [];
+    }) };
+  const retained = snapshotWorkbook({ ...book,
+    ...(book.detachedSheets ? { detachedSheets: book.detachedSheets.map(clipLabels) } : {}),
+    sheets: book.sheets.map(original => {
+    const s = clipLabels(original);
     if (s.id !== sheetId) return s;
     for (const merge of s.merges ?? [])
       if (merge.startRow < size.rows && merge.startColumn < size.columns && (merge.endRow >= size.rows || merge.endColumn >= size.columns))
@@ -64,10 +73,6 @@ export function resizeWorkbookReferences(book: Workbook, sheetId: string, size: 
           size.rows < oldSize.rows && group.range.startRow < size.rows && group.range.endRow >= size.rows))
         throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: resize formula group");
     return { ...s, cells: s.cells.filter(cell => cell.row < size.rows && cell.column < size.columns),
-      ...(s.labelRanges ? { labelRanges: s.labelRanges.flatMap(pair => {
-        const labels = clipLabelRange(pair.labels), data = clipLabelRange(pair.data);
-        return labels && data ? [{ ...pair, labels, data }] : [];
-      }) } : {}),
       ...(s.formulaGroups ? { formulaGroups: s.formulaGroups.filter(group => group.range.startRow < size.rows && group.range.startColumn < size.columns).map(group => ({ ...group, range: { ...group.range, endRow: Math.min(group.range.endRow, size.rows - 1), endColumn: Math.min(group.range.endColumn, size.columns - 1) } })) } : {}) };
   }) }, context.limits);
   const rewritten = shrinking ? rewriteWorkbook(retained, context, (document, namedExpression) => {

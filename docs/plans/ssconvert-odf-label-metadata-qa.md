@@ -165,3 +165,21 @@ Unqualified label exports and the complete BIFF/format family remain open.
     Exercise both top-level and nested links in memory tests; keep depth, cycle,
     namespace and resource guards intact. Inspect the command transcript and
     purge the four generated packages after recording their observations.
+
+17. Inspect Calc `ScLabelRangesObj::addNew` and `GetRefColRowNames`: declared
+    pairs retain the data sheet and project the label's physical column/row,
+    without rectangle-offset mapping. Construct independent ODF column/row
+    fixtures with Labels first, data on `O'Brien`, stale Output caches of 999,
+    wrong-sheet values and blank data gaps. Through compiled SDK and command,
+    export both ODF profiles before and after inserting 10 into a former gap.
+    Put the data sheet first in edit inputs for the native `--set` active-view
+    contract; use A3 for the column case and C1 for the row case.
+    Independently parse all 16 outputs: require distinct label/data addresses,
+    live quoted formulas, sum 5 then 15, and scalar 2. Exercise forward IDs,
+    target grid bounds, remote dependencies without volatile queuing, names,
+    arrays, independent owner/data resizing, rename, tab move, ID remapping and
+    detached owners in memory tests. BIFF8 must refuse remote data even when its
+    coordinates match its inferred interval; ODF must refuse an unexported data
+    sheet. Inspect the command transcript screenshot, record compact receipts
+    and remove generated packages. Native application recalculation remains a
+    separate qualification.

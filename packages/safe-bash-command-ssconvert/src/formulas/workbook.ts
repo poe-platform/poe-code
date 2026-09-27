@@ -94,7 +94,13 @@ export function remapWorkbookSheets(book: Workbook, mapping: ReadonlyMap<string,
     return target && target.name !== sheet.name ? [[sheet.id, quoteFormulaString(target.name, '"', gnumericGrammar)]] : [];
   }));
   const range = <T extends { sheet: string; endSheet?: string }>(value: T): T => ({ ...value, sheet: id(value.sheet), ...(value.endSheet ? { endSheet: id(value.endSheet) } : {}) });
-  return snapshotWorkbook({ ...rewritten, sheets: rewritten.sheets.map(sheet => ({ ...sheet, ...mapping.get(sheet.id) })),
+  const remapSheet = (sheet: Sheet): Sheet => ({ ...sheet, ...mapping.get(sheet.id),
+    ...(sheet.labelRanges ? { labelRanges: sheet.labelRanges.map(pair => {
+      context.signal.throwIfAborted();
+      return pair.dataSheet === undefined ? pair : { ...pair, dataSheet: id(pair.dataSheet) };
+    }) } : {}) });
+  return snapshotWorkbook({ ...rewritten, sheets: rewritten.sheets.map(remapSheet),
+    ...(rewritten.detachedSheets ? { detachedSheets: rewritten.detachedSheets.map(remapSheet) } : {}),
     ...(rewritten.activeSheet ? { activeSheet: id(rewritten.activeSheet) } : {}),
     ...(rewritten.names ? { names: rewritten.names.map(name => ({ ...name, ...(name.sheet ? { sheet: id(name.sheet) } : {}),
       ...(name.name === "Sheet_Title" && name.sheet !== undefined && renamedTitles.has(name.sheet) ? { expression: renamedTitles.get(name.sheet)! } : {}),

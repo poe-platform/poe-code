@@ -46,6 +46,8 @@ export function writeBiffLabelRanges(sheet: Sheet, revision: 7 | 8, output: Biff
   for (const pair of pairs) {
     charge(1);
     if (pair.axis !== "row" && pair.axis !== "column") throw new SsconvertError("invalid-request", "Invalid label range axis");
+    if (pair.dataSheet !== undefined && pair.dataSheet !== sheet.id)
+      throw new SsconvertError("unsupported-feature", "Excel BIFF8 cannot preserve label data on another sheet");
     const labels = pair.labels, expected = dataRange(labels, pair.axis);
     for (const [key, maximum] of [["startRow", 65536], ["endRow", 65536], ["startColumn", 256], ["endColumn", 256]] as const)
       if (!Number.isSafeInteger(labels[key]) || labels[key] < 0 || labels[key] >= maximum || pair.data[key] !== expected[key])

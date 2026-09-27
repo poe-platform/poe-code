@@ -969,14 +969,17 @@ export function createOdfWriter(profile: "strict" | "extended") {
       }
       spreadsheet += e("table:table", { "table:name": sheet.name, "table:style-name": sheetStyle }, tableBody + names(sheet.id));
     }
+    const labelSheets = new Map(book.sheets.map(sheet => { xml.charge(); return [sheet.id, sheet] as const; }));
     let labelRanges = "";
     for (const sheet of book.sheets) for (const pair of sheet.labelRanges ?? []) {
       xml.charge(); range(pair.labels); range(pair.data);
       if (pair.axis !== "row" && pair.axis !== "column") throw new SsconvertError("invalid-request", "Invalid OpenDocument label orientation");
-      const address = (r: Range) => "$" + quoteFormulaString(sheet.name, "'", odfGrammar) + "." + formatA1(r.startRow, r.startColumn) +
+      const dataSheet = pair.dataSheet === undefined ? sheet : labelSheets.get(pair.dataSheet);
+      if (!dataSheet) throw new SsconvertError("unsupported-feature", "OpenDocument label data sheet is not exported");
+      const address = (r: Range, name: string) => "$" + quoteFormulaString(name, "'", odfGrammar) + "." + formatA1(r.startRow, r.startColumn) +
         ":." + formatA1(r.endRow, r.endColumn);
-      labelRanges += e("table:label-range", { "table:label-cell-range-address": address(pair.labels),
-        "table:data-cell-range-address": address(pair.data), "table:orientation": pair.axis });
+      labelRanges += e("table:label-range", { "table:label-cell-range-address": address(pair.labels, sheet.name),
+        "table:data-cell-range-address": address(pair.data, dataSheet.name), "table:orientation": pair.axis });
     }
     spreadsheet = prelude + (validations ? e("table:content-validations", {}, validations) : "") + spreadsheet +
       (labelRanges ? e("table:label-ranges", {}, labelRanges) : "") + names() + databaseRanges;

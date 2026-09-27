@@ -74,12 +74,14 @@ export interface FormulaGroup extends FormulaSemantics {
   readonly range: Range;
   readonly expression: string;
 }
-/** Ordered natural-language label bindings. Both rectangles belong to this sheet;
+/** Ordered natural-language label bindings. Labels belong to their owning sheet;
  * overlaps and duplicates are meaningful because lookup uses the first match. */
 export interface LabelRange {
   readonly axis: "row" | "column";
   readonly labels: Range;
   readonly data: Range;
+  /** Stable data-sheet ID; omitted means the label owner. */
+  readonly dataSheet?: string;
 }
 export interface UnsupportedRecord {
   readonly source: string;

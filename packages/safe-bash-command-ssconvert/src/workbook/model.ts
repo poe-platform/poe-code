@@ -375,11 +375,6 @@ export function snapshotWorkbook(book: Workbook, limits: RuntimeLimits): Workboo
           invalid("Invalid axis outline");
       }
     }
-    for (const pair of sheet.labelRanges ?? []) {
-      tick(); checkRecord(pair);
-      if (pair.axis !== "row" && pair.axis !== "column") invalid("Invalid label range axis");
-      checkRange(pair.labels, size); checkRange(pair.data, size);
-    }
     const merges = sheet.merges ?? [];
     for (let i = 0; i < merges.length; i++) {
       const range = merges[i]!;
@@ -420,6 +415,16 @@ export function snapshotWorkbook(book: Workbook, limits: RuntimeLimits): Workboo
         )
           invalid("Invalid formula group member");
       }
+  }
+  // Resolve stable identities after all visible and detached sheets are validated.
+  for (const sheet of ids.values()) for (const pair of sheet.labelRanges ?? []) {
+    tick(); checkRecord(pair);
+    if (pair.axis !== "row" && pair.axis !== "column") invalid("Invalid label range axis");
+    optionalType(pair.dataSheet, "string", "Invalid label data sheet");
+    const target = pair.dataSheet === undefined ? sheet : ids.get(pair.dataSheet);
+    if (!target) invalid("Invalid label data sheet");
+    checkRange(pair.labels, sheet.size ?? DEFAULT_SHEET_SIZE);
+    checkRange(pair.data, target.size ?? DEFAULT_SHEET_SIZE);
   }
   for (const name of owned.names ?? []) {
     checkRecord(name, [], ["position"]);

@@ -77,7 +77,15 @@ export function resolveLabelReference(book: Workbook, node: Extract<FormulaNode,
     return { kind: "range", sheets: [sheet], firstRow: columnLabel ? start : row, lastRow: columnLabel ? end : row,
       firstColumn: columnLabel ? column : start, lastColumn: columnLabel ? column : end };
   }
+  let dataSheet = sheet;
   if (declared) {
+    if (declared.dataSheet !== undefined) {
+      const target = [...book.sheets, ...book.detachedSheets ?? []].find(s => { tick(); return s.id === declared.dataSheet; });
+      if (!target) return error("#REF!");
+      dataSheet = target;
+    }
+    const targetSize = dataSheet.size ?? DEFAULT_SHEET_SIZE;
+    if (columnLabel ? column >= targetSize.columns : row >= targetSize.rows) return error("#REF!");
     start = columnLabel ? declared.data.startRow : declared.data.startColumn;
     end = columnLabel ? declared.data.endRow : declared.data.endColumn;
   } else {
@@ -131,6 +139,6 @@ export function resolveLabelReference(book: Workbook, node: Extract<FormulaNode,
     }
   }
   if (start > end) return error("#REF!");
-  return { kind: "range", sheets: [sheet], firstRow: columnLabel ? start : row, lastRow: columnLabel ? end : row,
+  return { kind: "range", sheets: [dataSheet], firstRow: columnLabel ? start : row, lastRow: columnLabel ? end : row,
     firstColumn: columnLabel ? column : start, lastColumn: columnLabel ? column : end };
 }

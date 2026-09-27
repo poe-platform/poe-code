@@ -96,9 +96,9 @@ test("compound loops preserve multi-arg unset, export, let, and quoted array exp
       unset -v a b
       export EXP_A="v$i" EXP_B="w$i"
       let "acc += i" "last = i * 2"
-      s1="${arr[@]:1:2}"
-      s2="${arr[@]/foo/qux}"
-      (( acc += ${#EXP_A} + ${#EXP_B} + ${#s1} + ${#s2} + ${a:-0} + ${b:-0} ))
+      s1="\${arr[@]:1:2}"
+      s2="\${arr[@]/foo/qux}"
+      (( acc += \${#EXP_A} + \${#EXP_B} + \${#s1} + \${#s2} + \${a:-0} + \${b:-0} ))
     done
     echo "$acc:$last:$EXP_A:$EXP_B"
   `);
@@ -118,11 +118,11 @@ test("compound loops execute multi-arg array unset, glob array trims, declare/ty
       map+=([c]="z$i")
       karr=([1]="p$i" [3]="q$i")
       unset "karr[1]" "map[b]"
-      s1="${arr[@]#pre_}"
-      s2="${arr[@]%_*}"
-      (( acc += ${#dx} + ${#dy} + ${#map[@]} + ${#karr[@]} + ${#s1} + ${#s2} ))
+      s1="\${arr[@]#pre_}"
+      s2="\${arr[@]%_*}"
+      (( acc += \${#dx} + \${#dy} + \${#map[@]} + \${#karr[@]} + \${#s1} + \${#s2} ))
     done
-    echo "$acc:${map[a]}:${map[c]}:${karr[3]}"
+    echo "$acc:\${map[a]}:\${map[c]}:\${karr[3]}"
   `);
   assert.equal(res.exitCode, 0);
   assert.equal(res.stderr, "");

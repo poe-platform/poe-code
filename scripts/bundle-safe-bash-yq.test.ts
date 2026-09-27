@@ -24,6 +24,11 @@ it.each(["browser", "workerd"])("runs public optional YQ staged writes without N
   const consumer = await build({
     ...options, entryPoints: undefined, outdir: undefined, sourcemap: false, splitting: false,
     conditions: [condition], external: [], format: "cjs",
+    alias: { ...options.alias,
+      "@poe-code/safe-fs": path.join(root, "packages/safe-fs/src/core.ts"),
+      "@poe-code/safe-fs/core": path.join(root, "packages/safe-fs/src/core.ts"),
+      "poe-code/safe-fs/core": path.join(root, "packages/safe-fs/src/core.ts"),
+    },
     stdin: { resolveDir: root, contents: `
       import { Shell, createMemoryFileSystem } from "./packages/safe-bash/src/core.browser.ts";
       import { yqCommands } from "@poe-platform/safe-bash/yq";

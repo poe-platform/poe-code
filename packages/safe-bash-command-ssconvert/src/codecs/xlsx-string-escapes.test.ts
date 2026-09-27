@@ -54,6 +54,18 @@ it.each(["2006", "2008"] as const)("round-trips shared and inline escaped string
   expect(result.sheets[0]!.cells.map(cell => cell.value)).toEqual(values.map(value => ({ kind: "string", value })));
 });
 
+it.each(["2006", "2008"] as const)("preserves shared and inline rich typeface names through export and reimport in %s", async edition => {
+  const values = ["é😀", "é😀", "unique"];
+  const book: Workbook = { sheets: [{ id: "s", name: "S", cells: values.map((value, row) => ({ row, column: 0,
+    value: { kind: "string", value }, richText: [{ start: 0, end: new TextEncoder().encode(value).length,
+      attributes: { family: "Noto _x0041_ & Serif", bold: 1 } }] })) }] };
+  const before = structuredClone(book);
+  const result = await readXlsx(await createXlsxWriter(edition)(book, [], context), context);
+  expect(result.sheets[0]!.cells.map(cell => ({ value: cell.value, richText: cell.richText }))).toEqual(
+    book.sheets[0]!.cells.map(cell => ({ value: cell.value, richText: cell.richText })));
+  expect(book).toEqual(before);
+});
+
 it("keeps generic XML escaping strict and does not interpret string escapes there", () => {
   expect(escapeXlsx("_x0000_")).toBe("_x0000_");
   expect(() => escapeXlsx("\0")).toThrow("non-XML XLSX character");

@@ -90,7 +90,7 @@ export function readXlsxString(node: XmlElement | undefined, context: Capability
     const properties = child(item, "rPr"), attributes: Record<string, ImportedValue> = {};
     for (const p of properties?.children ?? []) {
       const val = attribute(p, "val");
-      if (p.localName === "family" && val !== undefined) attributes.family = val;
+      if (p.localName === "rFont" && val !== undefined) attributes.family = decodeXlsxString(val);
       else if (p.localName === "sz") attributes.size = Math.trunc(Math.max(0, Math.min(1000, number(val))) * 1024);
       else if (p.localName === "b") attributes.bold = boolean(val, true) ? 1 : 0;
       else if (p.localName === "i") attributes.italic = boolean(val, true) ? 1 : 0;

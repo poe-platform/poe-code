@@ -18,9 +18,21 @@ it("maps measured native font, fill, border, alignment, protection and builtin d
   expect(Object.fromEntries(record.attributes.map(a => [a.name, a.value]))).toMatchObject({ HAlign: "GNM_HALIGN_CENTER", VAlign: "GNM_VALIGN_TOP", WrapText: "1", ShrinkToFit: "1", Rotation: "330", Shade: "1", Indent: "2", Locked: "0", Hidden: "1", Fore: "1111:2222:3333", Back: "ABAB:CDCD:EFEF", PatternColor: "4444:5555:6666" });
   expect(record.children).toMatchObject([{ name: "Font", text: "Liberation Sans", attributes: [{ name: "Unit", value: "12" }, { name: "Bold", value: "1" }, { name: "Italic", value: "1" }, { name: "Underline", value: "4" }, { name: "StrikeThrough", value: "1" }, { name: "Script", value: "1" }] }, { name: "StyleBorder", children: [{ name: "Left", attributes: [{ name: "Style", value: "1" }, { name: "Color", value: "101:202:303" }] }] }]);
 });
-it("matches native UTF8 rich offsets, family handler, size clamp and markup spellings", () => {
-  const result = readXlsxString(xml(`<si xmlns="${ss}"><r><rPr><rFont val="IgnoredFont"/><family val="NativeFamily"/><sz val="2000"/><b/><u val="doubleAccounting"/><color rgb="FF010203"/></rPr><t>é😀</t></r><r><rPr><i val="0"/></rPr><t>z</t></r></si>`), context);
-  expect(result).toEqual({ value: "é😀z", richText: [{ start: 0, end: 6, attributes: { family: "NativeFamily", size: 1024000, bold: 1, underline: "low", color: "01x02x03" } }, { start: 6, end: 7, attributes: { italic: 0 } }] });
+it("preserves rich font names, UTF8 offsets, size clamp and markup spellings", () => {
+  const result = readXlsxString(xml(`<si xmlns="${ss}"><r><rPr><rFont val="Liberation Serif"/><family val="1"/><sz val="2000"/><b/><u val="doubleAccounting"/><color rgb="FF010203"/></rPr><t>é😀</t></r><r><rPr><i val="0"/></rPr><t>z</t></r></si>`), context);
+  expect(result).toEqual({ value: "é😀z", richText: [{ start: 0, end: 6, attributes: { family: "Liberation Serif", size: 1024000, bold: 1, underline: "low", color: "01x02x03" } }, { start: 6, end: 7, attributes: { italic: 0 } }] });
+});
+// LibreOffice bce0998a stylesbuffer.cxx:605-617 maps rFont to the decoded
+// font name; family is an integer classification, never a typeface name.
+it.each([
+  ['<rFont val="Noto _x0053_ans"/><family val="2"/>', "Noto Sans"],
+  ['<family val="2"/><rFont val="Noto _x005F_x0041_"/>', "Noto _x0041_"],
+  ['<rFont val=""/>', ""],
+  ['<family val="3"/>', undefined],
+  ['<rFont/>', undefined],
+])("reads rich typeface names independently of family classification: %s", (properties, family) => {
+  const result = readXlsxString(xml(`<si xmlns="${ss}"><r><rPr>${properties}<b/></rPr><t>é</t></r></si>`), context);
+  expect(result).toEqual({ value: "é", richText: [{ start: 0, end: 2, attributes: { bold: 1, ...(family === undefined ? {} : { family }) } }] });
 });
 it("ignores attempts to redefine native builtin number formats", async () => {
   const messages: string[] = [];

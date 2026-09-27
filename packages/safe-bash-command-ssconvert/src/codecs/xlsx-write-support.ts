@@ -113,7 +113,7 @@ export function writeRichString(value: string, runs: readonly RichTextRun[] | un
     for (const [key, name] of [["bold", "b"], ["italic", "i"], ["strikethrough", "strike"]] as const)
       if (attrs[key] !== undefined) properties += xml(name, { val: Number(attrs[key]) ? 1 : 0 });
     if (attrs.size !== undefined) properties += xml("sz", { val: Number(attrs.size) / 1024 });
-    if (typeof attrs.family === "string") properties += xml("rFont", { val: attrs.family });
+    if (typeof attrs.family === "string") properties += xml("rFont", { val: encodeXlsxString(attrs.family) });
     if (typeof attrs.color === "string") properties += xml("color", { rgb: "FF" + attrs.color.split("x").join("").toUpperCase() });
     if (typeof attrs.underline === "string") properties += xml("u", { val: attrs.underline === "low" ? "singleAccounting" : attrs.underline === "error" ? "single" : attrs.underline });
     if (attrs.subscript || attrs.superscript) properties += xml("vertAlign", { val: attrs.subscript ? "subscript" : "superscript" });

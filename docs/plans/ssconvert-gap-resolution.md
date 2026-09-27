@@ -84,6 +84,39 @@ tasks:
       test: open
       commit: open
       release: open
+  - id: biff-live-label-range-semantics
+    title: Preserve and evaluate live BIFF natural-language label references
+    prompt: >-
+      Use reference.biffLiveLabelRangeAudit in the gap ledger. LABELRANGES is two counted
+      lists of eight-byte ranges, rows first; its labels are not already resolved data ranges.
+      LibreOffice constructs label/data pairs extending right or down, with a left/up fallback
+      at its document limits. Preserve pair order, orientation, sheet identity and explicit
+      versus automatically inferred labels. Bind those limits to the supported workbook profile;
+      do not substitute Calc document limits for BIFF on-file limits without qualification.
+      Extend the workbook model and formula representation together: a live label reference must
+      retain its label-cell identity, axis, reference/value class and copy/move behavior through
+      parsing, recalculation, dependency tracking, snapshots and edits. An ordinary resolved cell
+      or range, generated name, cached value or fabricated function is not a durable replacement.
+      In original small memory fixtures, cover row/column labels, declared and automatic ranges,
+      formula cells immediately after or farther along a label axis, following label boundaries,
+      single-cell ranges, binary operators versus SUM/intersection, and missing intersections.
+      Calc returns NoRef for a failed label intersection; the current generic range scalar path
+      returns VALUE, so sharing that path without preserving the distinction is insufficient.
+      Preserve shared/array/name contexts, explicit string labels, duplicate/overlapping metadata,
+      edits to label cells, structural edits and cross-sheet copy/move. Resolve malformed counts,
+      truncation, work/cell budgets, cancellation and bounded range materialization with TDD.
+      Implement BIFF8 token and LABELRANGES read/write together and qualify native-authored inputs.
+      Calc narrows multi-column row-label metadata during export and discards data-pair endpoints
+      on file; characterize the resulting loss instead of copying that normalization silently.
+      Qualify supported XML/XLSX/ODF transports and BIFF7 behavior explicitly. Deleted labels,
+      pivot-field tokens and extra-data-bearing NLR variants remain distinct cases. Do not close
+      the BIFF family until the full token/version and application matrix has current evidence.
+    status:
+      reproduce: open
+      implement: open
+      test: open
+      commit: open
+      release: open
   - id: encrypted-format-admission
     title: Define encrypted-format contracts from actual native support
     prompt: >-

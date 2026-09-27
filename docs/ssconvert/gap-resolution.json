@@ -1521,6 +1521,42 @@
       "validation": "Eleven initial regressions failed. The final six-file cohort passes 139 tests, including controls, NUL, unpaired surrogate code units, literal and overlapping escape sequences, unchanged formula syntax, empty versus absent caches, both XLSX editions, output limits and cancellation. Maintained package lint, source/test/public-consumer type checks and selected workspace build pass.",
       "publicValidation": "Compiled SDK and command conversions preserve eight caches in each edition (32 observations), with formula spelling and clean cache state intact. Independent Python zipfile/ElementTree parses all nine XML members in each of four artifacts and independently decodes all 32 ST_Xstring values. Explicit command recalculation yields the literal _x0000_ in all sixteen results. The command reexports retain seven pre-existing raw sheet-metadata warnings per edition. Screenshot of the compiled command probe inspected.",
       "remaining": "Current native application and installed-package readback, raw-NUL formula expressions, other string-bearing fields and metadata preservation remain open. No family closure; containing publication is pending."
+    },
+    "biffLiveLabelRangeAudit": {
+      "revision": "bce0998afefdbc355585ca324285661a2170ba77",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/excel/xicontent.cxx",
+          "sha256": "a92788cb8f295af409ad674306ba797179b7752549cb6d9a33a20d14627250ed",
+          "lines": "442-500"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/excel/xecontent.cxx",
+          "sha256": "dec1eca7b9d82be2eb41a3891bcfd29517a6580a35d4b7ebb578820d1a32556b",
+          "lines": "558-600"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/excel/excform8.cxx",
+          "sha256": "d170e34001710f2b27a42770faecb0117c7f6828d938c7fcb320ec4589459cac",
+          "lines": "291-359"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/core/tool/compiler.cxx",
+          "sha256": "84dfe1e52b8b632d8fd9d687d64857c779283bb3de660063664b916c7d458e83",
+          "lines": "5799-6004"
+        }
+      ],
+      "recordLayout": "Excel File Format 1.42 section 5.64: BIFF8 opcode 0x015f contains row-label and column-label counted range lists, in that order. Each range is eight bytes. Its tNlr section 3.10.4 remains an unimplemented documentation placeholder, so it cannot establish operand semantics.",
+      "import": "ReadLabelranges converts declared labels into label/data pairs. Row data extends right to the Calc document column limit, or left when the label reaches that limit; column data analogously extends down or up. The importer uses document limits, not the BIFF record field limit. This profile distinction still needs native qualification.",
+      "evaluation": "GetRefColRowNames first consults ordered label/data pairs. Automatic ranges use label text/empty cells, formula position and the next declared data range to choose their boundaries. Binary-operator neighbors and beginning/end positions select a scalar; label/intersection neighbors preserve ranges. A missing scalar intersection returns NoRef. Single-cell ranges remain position independent. Axis-relative flags survive the resulting reference.",
+      "export": "XclExpLabelranges stores only label ranges, not paired data endpoints. It narrows row labels to the first column for Excel97/2000/XP, then writes the two range lists. This is an observable normalization, not lossless pair preservation.",
+      "currentCode": "biff.ts retains LABELRANGES as opaque metadata and translateBiffFormula rejects live NLR subtypes. Sheet and FormulaNode have no label-range/label-reference representation. Generic evaluator.scalar returns VALUE for a missing ordinary intersection, which differs from Calc label NoRef. Token skipping or a scalar/range substitution cannot supply the missing identity and edit semantics.",
+      "nextAction": "Execute the biff-live-label-range-semantics task in docs/plans/ssconvert-gap-resolution.md: implement metadata and reference semantics together, with original TDD cases and explicit transport/export qualification. No code support or family closure is claimed by this audit."
+    },
+    "xlsxFormulaTextAudit": {
+      "url": "https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.spreadsheet.cellformula?view=openxml-3.0.1",
+      "sha256": "df7449b987ee458e57489bae8f69da7a369a23d53f254fb4e1cdc375f9f9e625",
+      "finding": "The primary API documentation reproduces the ISO cell-formula definition as formula text in the element character node; unlike CellValue, CellFormula is not derived from XstringType. This does not establish a lossless encoding for XML-forbidden characters inside formula literals. Keep this separate from the proven ST_Xstring cache repair; no generic formula decoding change or resolution claim."
     }
   },
   "cases": [

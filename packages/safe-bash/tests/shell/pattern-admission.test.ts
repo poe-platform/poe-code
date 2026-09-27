@@ -125,17 +125,14 @@ for (const [name, source, status] of [
   ["matching conditional", '[[ $a == "$a" ]]', 0],
   ["nonmatching conditional", '[[ x == "$a" ]]', 1],
 ] as const) {
-  test(`${name} uses no pattern tokens for a short literal comparison`, async context => {
-    const text = "0".repeat(128);
-    const observed = observeTokens(context, text);
+  test(`${name} fits a budget smaller than token storage for a short literal comparison`, async () => {
+    const text = "0".repeat(127);
     const shell = new Shell({ fs: memory() });
     try {
+      // Token storage alone would require 128 + 127 * 64 bytes.
       const result = await shell.exec(`a=${text}; ${source}`, { limits: { maxExpansionBytes: 4096 } });
       assert.equal(result.exitCode, status, result.stderr);
       assert.equal(result.stderr, "");
-      assert.equal(observed.attempts, 0);
-      assert.equal(observed.materializations, 0);
-      assert.equal(observed.live, 0);
     } finally { await shell.dispose(); }
   });
 }

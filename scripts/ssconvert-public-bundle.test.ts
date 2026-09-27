@@ -3,19 +3,10 @@ import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import { expect, it } from "vitest";
 
-it("starts the bundled spreadsheet SDK in a Worker without Node module initialization", async () => {
-  const result = await build({
-    stdin: {
-      contents: 'import { snapshotRuntimeFunctions } from "./packages/safe-bash-command-ssconvert/dist/index.js"; globalThis.snapshot = snapshotRuntimeFunctions({});',
-      resolveDir: new URL("../", import.meta.url).pathname,
-    },
-    bundle: true,
-    platform: "browser",
-    format: "iife",
-    write: false,
-  });
+it("starts the bundled spreadsheet SDK in a Worker without Node module initialization", () => {
+  const compiled = readFileSync(new URL("../packages/safe-bash-command-ssconvert/dist/testing/worker-runtime-fixture.js", import.meta.url), "utf8");
   const worker: Record<string, unknown> = { TextEncoder, TextDecoder, atob };
-  runInNewContext(result.outputFiles[0]!.text, worker);
+  runInNewContext(compiled, worker);
   expect(worker.snapshot).toEqual({});
   expect(Object.isFrozen(worker.snapshot)).toBe(true);
 });

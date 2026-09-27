@@ -260,10 +260,10 @@ test("declare -A element read/write and indexed array append inside arithmetic-f
       declare -A map
       arr=()
       for ((i=0; i<20; i++)); do
-        k="k_\$((i % 5))"
-        prev="\${map[\$k]:-0}"
-        map[\$k]=\$((prev + i))
-        arr+=("item_\$i")
+        k="k_$((i % 5))"
+        prev="\${map[$k]:-0}"
+        map[$k]=$((prev + i))
+        arr+=("item_$i")
       done
       args "\${map[k_0]}:\${map[k_4]}:\${#map[@]}:\${#arr[@]}:\${arr[19]}"
     `);

@@ -145,7 +145,7 @@ test("arithmetic-for echo producer into pipeline with read and awk matches bash"
   try {
     const result = await shell.exec(`
       for ((i=1; i<=50; i++)); do
-        echo "dept_\$((i % 4)):\$((i * 10))"
+        echo "dept_$((i % 4)):$((i * 10))"
       done | awk -F: '{sum[$1]+=$2} END {for (k in sum) print k ":" sum[k]}' | sort
     `);
     assert.equal(result.exitCode, 0);

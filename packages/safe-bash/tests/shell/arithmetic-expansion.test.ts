@@ -171,9 +171,9 @@ test("substring arithmetic offsets, indexed array variable subscripts, and multi
       for ((i=0; i<20; i++)); do
         sub="\${s:i%10:4}"
         elem="\${arr[i%5]}"
-        acc=\$((acc + \${#sub} + elem + 1 + 2))
+        acc=$((acc + \${#sub} + elem + 1 + 2))
       done
-      args "\$acc"
+      args "$acc"
     `);
     assert.equal(result.exitCode, 0);
     assert.equal(result.stderr, "");

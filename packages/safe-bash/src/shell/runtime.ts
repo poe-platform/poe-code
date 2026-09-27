@@ -4489,6 +4489,7 @@ export class Runtime {
     return binding.keyIndex(resolvedValue, owner, this.signal, create);
   }
   private tryFastArraySubscriptWriteSync(state: State, name: string, sub: string, val: string): boolean {
+    if (hasUnpreparedLocals(state)) return false;
     this._syncArithTouched?.delete(name);
     const monitor = stateMonitor(state);
     const rawState = monitor ? monitor.raw : state;
@@ -7044,7 +7045,7 @@ export class Runtime {
           return isNoBraceSyncWord(arrayAssign.value);
         }
         const assignment = this.assignment(w0);
-        return Boolean( assignment && assignment.name !== "OPTIND" && assignment.name !== "PIPESTATUS" && !assignment.name.includes("[") && !rawState.readonlyVariables?.has(assignment.name) && !st?.get(assignment.name) && isNoBraceSyncAssignWord(assignment.value), );
+        return Boolean( assignment && assignment.name !== "OPTIND" && assignment.name !== "PIPESTATUS" && !assignment.name.includes("[") && !rawState.readonlyVariables?.has(assignment.name) && (!st?.get(assignment.name) || (!assignment.append && !hasUnpreparedLocals(rawState) && !rawState.exported.has(assignment.name))) && isNoBraceSyncAssignWord(assignment.value), );
       }
       if (w0Plain !== undefined && command.words.length <= 64 && rawState.functions.has(w0Plain) && this.firstInternalDiscovery(w0Plain, rawState, false) === "function" && !hasActiveExtensions(rawState)) {
         const fnBody = rawState.functions.get(w0Plain)!;
@@ -8443,13 +8444,14 @@ export class Runtime {
       const assignment = this.assignment(w0);
       if (assignment) {
       const hasSubPart = assignment.value.parts.some(part => part.kind === "substitution");
+      const existingArrAssign = store?.get(assignment.name);
       if (
         assignment.name === "OPTIND" ||
         assignment.name === "PIPESTATUS" ||
         assignment.name.includes("[") ||
         (hasSubPart && !this.isPureSyncValueWord(assignment.value, rawState)) ||
         rawState.readonlyVariables?.has(assignment.name) ||
-        store?.get(assignment.name)
+        (existingArrAssign && (assignment.append || hasUnpreparedLocals(rawState) || rawState.exported.has(assignment.name)))
       ) {
         return undefined;
       }
@@ -8461,6 +8463,33 @@ export class Runtime {
         return undefined;
       }
       if (typeof fastAssigned !== "string") return undefined;
+      if (existingArrAssign) {
+        if (!this.tryFastArraySubscriptWriteSync(rawState, assignment.name, "0", fastAssigned)) return undefined;
+        const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+        this.budget.tick();
+        if (!hasSubPart) rawState.substitutionStatus = 0;
+        if (assignment.name !== "_" && rawState.variables._ !== undefined) delete rawState.variables._;
+        rawState.lastArgument = "";
+        if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+        const activeStore = monitor.store;
+        const activeExisting = activeStore?.get("PIPESTATUS");
+        if (!activeExisting) {
+          if (activeStore) {
+            if (publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined;
+          } else {
+            monitor.lazyPipeStatus = singleStatusZero;
+            monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+          }
+        } else {
+          activeExisting.values.get(0)!.text.shellValue = "0";
+          activeStore!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+        }
+        const finalStatus = pipeline.negate ? 1 : 0;
+        rawState.status = finalStatus;
+        monitor.epoch = restEpoch;
+        if (activeStore) activeStore.epoch = restEpoch;
+        return finalStatus;
+      }
       let finalAssigned = fastAssigned;
       if (assignment.append) {
         const curRaw = rawState.variables[assignment.name];
@@ -8799,7 +8828,8 @@ export class Runtime {
               } else {
                 for (let i = readWordIdx; i < command.words.length; i++) {
                   const vn = command.words[i]!.plain;
-                  if ( !vn || !isShellIdentifier(vn) || rawState.readonlyVariables?.has(vn) || store?.get(vn) || rawState.variableAttributes?.get(vn) || vn === "OPTIND" || vn === "PIPESTATUS" || vn === "_") {
+                  const existingReadArr = vn ? store?.get(vn) : undefined;
+                  if ( !vn || !isShellIdentifier(vn) || rawState.readonlyVariables?.has(vn) || (existingReadArr && (hasUnpreparedLocals(rawState) || rawState.exported.has(vn) || existingReadArr.references !== 1 || store!.watches.has(vn) || monitor.hasOverlay(vn))) || rawState.variableAttributes?.get(vn) || vn === "OPTIND" || vn === "PIPESTATUS" || vn === "_") {
                     simpleRead = false;
                     break;
                   }
@@ -8896,7 +8926,9 @@ export class Runtime {
                     for (let vIdx = 0; vIdx < varCount; vIdx++) {
                       const vn = command.words[readWordIdx + vIdx]!.plain!;
                       if (pos >= end) {
-                        if (this._syncArithRawWriteOnly && this._syncArithTouched) {
+                        if (store?.get(vn)) {
+                          if (!this.tryFastArraySubscriptWriteSync(rawState, vn, "0", "")) return undefined;
+                        } else if (this._syncArithRawWriteOnly && this._syncArithTouched) {
                           rawState.variables[vn] = "";
                           this._syncArithTouched.add(vn);
                         } else monitor.publishStringVariable(vn, "");
@@ -8910,7 +8942,9 @@ export class Runtime {
                       while (pos < end && isWhite(lineStr.charCodeAt(pos))) pos++;
                       if (vIdx === varCount - 1 && pos < end) fieldEnd = end;
                       const sliceVal = lineStr.slice(start, fieldEnd);
-                      if (this._syncArithRawWriteOnly && this._syncArithTouched) {
+                      if (store?.get(vn)) {
+                        if (!this.tryFastArraySubscriptWriteSync(rawState, vn, "0", sliceVal)) return undefined;
+                      } else if (this._syncArithRawWriteOnly && this._syncArithTouched) {
                         rawState.variables[vn] = sliceVal;
                         this._syncArithTouched.add(vn);
                       } else monitor.publishStringVariable(vn, sliceVal);
@@ -9644,10 +9678,11 @@ export class Runtime {
           }
         }
         const def = this.commands.get("printf");
-        const isScalarTarget = targetSpec !== undefined && /^[a-zA-Z_][a-zA-Z_0-9]*$/.test(targetSpec) && targetSpec !== "OPTIND" && targetSpec !== "PIPESTATUS" && !store?.get(targetSpec);
-        const brkIdx = targetSpec !== undefined && !isScalarTarget && targetSpec.endsWith("]") ? targetSpec.indexOf("[") : -1;
-        const arrName = brkIdx > 0 ? targetSpec!.slice(0, brkIdx) : undefined;
-        const subExpr = brkIdx > 0 ? targetSpec!.slice(brkIdx + 1, -1) : undefined;
+        const isPlainTargetId = targetSpec !== undefined && /^[a-zA-Z_][a-zA-Z_0-9]*$/.test(targetSpec) && targetSpec !== "OPTIND" && targetSpec !== "PIPESTATUS";
+        const isScalarTarget = isPlainTargetId && !store?.get(targetSpec!);
+        const brkIdx = targetSpec !== undefined && !isPlainTargetId && targetSpec.endsWith("]") ? targetSpec.indexOf("[") : -1;
+        const arrName = isPlainTargetId && !isScalarTarget ? targetSpec : (brkIdx > 0 ? targetSpec!.slice(0, brkIdx) : undefined);
+        const subExpr = isPlainTargetId && !isScalarTarget ? "0" : (brkIdx > 0 ? targetSpec!.slice(brkIdx + 1, -1) : undefined);
         const isArrayTarget = arrName !== undefined && /^[a-zA-Z_][a-zA-Z_0-9]*$/.test(arrName) && !controlNames.has(arrName) && subExpr !== undefined && subExpr.length > 0 && !subExpr.includes("$") && !subExpr.includes("\x60");
         if ( def?.execute === printfCommand.execute && (isScalarTarget || isArrayTarget) && command.words.length <= this.budget.maxExpansionFieldsSmi) {
           fastSubScratchArgs.length = 0;

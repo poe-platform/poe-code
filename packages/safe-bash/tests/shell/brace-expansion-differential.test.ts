@@ -48,6 +48,7 @@ const cases = [
   ["raw fragments preserve byte concatenation", String.raw`printf '<%s>\n' $'\xc3'{a,b}$'\xa9' {"$'literal'",$'\xff'}`],
   ["scalar assignments do not brace expand", String.raw`value={a,b}; copy={1..3}; printf '<%s>\n' "$value" "$copy"; value={x,y} bash -c 'printf "<%s>\n" "$value"'`],
   ["declaration assignments do brace expand", String.raw`export value={a,b}; printf '<%s>\n' "$value"; inspect() { local copy={x,y}; printf '<%s>\n' "$copy"; }; inspect`],
+  ["local declaration braces preserve synchronous function effects and scope", String.raw`copy=outer; count=0; inspect() { ((count++)); local copy={x,y}; result=$copy; }; inspect arg; printf '<%s>\n' "$result" "$copy" "$count"`],
   ["compound array values expand", "values=({a,b} {01..03}); printf '<%s>\\n' \"${values[@]}\""],
   ["indexed array assignment remains scalar", "values[2]={a,b}; printf '<%s>\\n' \"${values[@]}\""],
   ["indexed compound entries become expanded ordinary values", "values=([2]={a,b} [5]={1..3}); printf '<%s>\\n' \"${values[@]}\""],

@@ -7653,7 +7653,8 @@ export class Runtime {
         if (w0Plain === "return") return true;
         if (w0Plain === "local") {
           const assignment = !getArrayAssignment(command.words[1]!) ? this.assignment(command.words[1]!) : undefined;
-          return Boolean(assignment && !assignment.append && assignment.name !== "OPTIND" && assignment.name !== "PIPESTATUS" && !assignment.name.includes("["));
+          return Boolean(assignment && !assignment.append && assignment.name !== "OPTIND" && assignment.name !== "PIPESTATUS" && !assignment.name.includes("[") &&
+            !(rawState.braceexpand !== false && assignment.value.parts.some(part => part.kind === "text" && !part.quoted && part.value.includes("{"))));
         }
       }
       if (w0Plain !== undefined && rawState.functions.has(w0Plain)) {

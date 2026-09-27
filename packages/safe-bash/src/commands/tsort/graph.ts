@@ -1,5 +1,6 @@
 import { TsortError, fileQuote, raw } from "./internal.js";
 import { Lifecycle, Reader } from "./io.js";
+import { yieldTurn } from "../../contracts/yield.js";
 
 interface Edge { target: Node; next: Edge | undefined }
 interface Node { name: string; count: number; printed: boolean; top: Edge | undefined; link: Node | undefined }
@@ -62,6 +63,8 @@ export async function sort(reader: Reader, lifecycle: Lifecycle): Promise<number
   budget.retain(-token.length);
   token = new Uint8Array();
   if (predecessor) throw new TsortError(`${fileQuote(reader.name)}: input contains an odd number of tokens`);
+  // Observe cancellation queued by EOF before ordering or publishing the graph.
+  await yieldTurn(budget.signal);
   budget.retain(nodes.size * 16);
   let ordered = [...nodes.values()];
   let scratch = new Array<Node>(ordered.length);

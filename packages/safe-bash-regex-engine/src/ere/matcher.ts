@@ -796,73 +796,89 @@ function ereAtomsDisjoint(a: EreAtomNode, b: EreAtomNode): boolean {
   return true;
 }
 
-function compileEreLinearChain(root: EreNode): CompiledEreLinearChain | null {
+/** Synchronous speculation must stop before it owes a cooperative checkpoint. */
+function admitSynchronousWork(ledger: EreLedger, amount: number, signal?: AbortSignal): boolean {
+  if (ledger.workAllowanceUntilCheckpoint(signal) < amount) {
+    ledger.check(signal);
+    return false;
+  }
+  ledger.chargeWork(amount, signal);
+  return true;
+}
+
+function compileEreLinearChain(root: EreNode, ledger: EreLedger, signal?: AbortSignal): CompiledEreLinearChain | null | undefined {
+  if (!admitSynchronousWork(ledger, 1, signal)) return undefined;
   const cached = ereLinearChainCache.get(root);
   if (cached !== undefined) return cached;
+  ledger.charge("allocationUnits", 3, signal);
   let anchoredStart = false;
   let anchoredEnd = false;
   let seenConsuming = false;
   const steps: EreChainStep[] = [];
-  const visit = (node: EreNode): boolean => {
+  const pending: (EreNode | Extract<EreChainStep, { kind: "groupClose" }>)[] = [root];
+  let supported = true;
+  while (pending.length > 0 && supported) {
+    if (!admitSynchronousWork(ledger, 1, signal)) return undefined;
+    const node = pending.pop()!;
     switch (node.kind) {
       case "start":
-        if (seenConsuming || steps.length > 0) return false;
+        if (seenConsuming || steps.length > 0) { supported = false; break; }
         anchoredStart = true;
-        return true;
+        break;
       case "end":
         anchoredEnd = true;
-        return true;
+        break;
       case "sequence":
-        for (const child of node.children) {
-          if (!visit(child)) return false;
-        }
-        return true;
+        if (!admitSynchronousWork(ledger, node.children.length, signal)) return undefined;
+        ledger.charge("allocationUnits", node.children.length, signal);
+        for (let i = node.children.length - 1; i >= 0; i--) pending.push(node.children[i]!);
+        break;
       case "group":
-        if (anchoredEnd) return false;
+        if (anchoredEnd) { supported = false; break; }
+        ledger.charge("allocationUnits", 7, signal);
         steps.push({ kind: "groupOpen", index: node.index });
-        if (!visit(node.child)) return false;
-        steps.push({ kind: "groupClose", index: node.index });
-        return true;
+        pending.push({ kind: "groupClose", index: node.index }, node.child);
+        break;
+      case "groupClose":
+        ledger.charge("allocationUnits", 1, signal);
+        steps.push(node);
+        break;
       case "literal":
       case "set":
-        if (anchoredEnd) return false;
+        if (anchoredEnd) { supported = false; break; }
         seenConsuming = true;
+        ledger.charge("allocationUnits", 3, signal);
         steps.push({ kind: "char", atom: node });
-        return true;
+        break;
       case "repeat":
-        if (anchoredEnd || node.min < 1 || node.max !== Infinity) return false;
-        if (node.child.kind !== "literal" && node.child.kind !== "set") return false;
+        if (anchoredEnd || node.min < 1 || node.max !== Infinity ||
+          node.child.kind !== "literal" && node.child.kind !== "set") { supported = false; break; }
         seenConsuming = true;
+        ledger.charge("allocationUnits", 4, signal);
         steps.push({ kind: "repeat", atom: node.child, min: node.min });
-        return true;
+        break;
       default:
-        return false;
+        supported = false;
     }
-  };
-  if (!visit(root) || !seenConsuming) {
-    ereLinearChainCache.set(root, null);
-    return null;
   }
   let firstAtom: EreAtomNode | undefined;
-  for (let i = 0; i < steps.length; i++) {
+  // A reverse pass finds each repeat's next consuming atom without rescanning
+  // intervening capture steps for every repeat.
+  for (let i = steps.length - 1; supported && i >= 0; i--) {
+    if (!admitSynchronousWork(ledger, 1, signal)) return undefined;
     const step = steps[i]!;
-    if ((step.kind === "char" || step.kind === "repeat") && !firstAtom) {
-      firstAtom = step.atom;
+    if (step.kind !== "char" && step.kind !== "repeat") continue;
+    if (step.kind === "repeat" && firstAtom) {
+      if (!admitSynchronousWork(ledger, 129, signal)) return undefined;
+      if (!ereAtomsDisjoint(step.atom, firstAtom)) supported = false;
     }
-    if (step.kind === "repeat") {
-      let nextAtom: EreAtomNode | undefined;
-      for (let j = i + 1; j < steps.length; j++) {
-        const nextStep = steps[j]!;
-        if (nextStep.kind === "char" || nextStep.kind === "repeat") {
-          nextAtom = nextStep.atom;
-          break;
-        }
-      }
-      if (nextAtom && !ereAtomsDisjoint(step.atom, nextAtom)) {
-        ereLinearChainCache.set(root, null);
-        return null;
-      }
-    }
+    firstAtom = step.atom;
+  }
+  if (!admitSynchronousWork(ledger, 1, signal)) return undefined;
+  ledger.charge("allocationUnits", supported && seenConsuming ? 6 : 2, signal);
+  if (!supported || !seenConsuming) {
+    ereLinearChainCache.set(root, null);
+    return null;
   }
   const compiled: CompiledEreLinearChain = { anchoredStart, anchoredEnd, steps, firstAtom };
   ereLinearChainCache.set(root, compiled);
@@ -876,40 +892,33 @@ function tryMatchEreLinearChainSync(
   ledger: EreLedger,
   signal?: AbortSignal,
 ): EreResult | undefined {
-  const chain = compileEreLinearChain(root);
+  const chain = compileEreLinearChain(root, ledger, signal);
   if (!chain) return undefined;
   const width = program.groups + 1;
-  const estimatedWork = subject.length * 3 + chain.steps.length * 4 + width * 4 + 32;
-  if (
-    ledger.workAllowanceUntilCheckpoint(signal) < estimatedWork ||
-    ledger.limits.states - ledger.usage.states < subject.length + chain.steps.length + 8 ||
-    ledger.limits.allocationUnits - ledger.usage.allocationUnits < width * 4 + 32 ||
-    ledger.limits.captureSlots < width
-  ) {
-    return undefined;
-  }
+  if (!admitSynchronousWork(ledger, width * 2, signal)) return undefined;
+  ledger.charge("allocationUnits", width * 2 + 2, signal);
   const groupStarts = new Int32Array(width);
   const groupEnds = new Int32Array(width);
   const maxStart = chain.anchoredStart ? 0 : subject.length;
   const steps = chain.steps;
   const stepsLen = steps.length;
   for (let start = 0; start <= maxStart; start++) {
+    if (!admitSynchronousWork(ledger, 1, signal)) return undefined;
+    ledger.charge("states", 1, signal);
     if (chain.firstAtom) {
       if (start >= subject.length) break;
       if (!ereAtomMatchesCode(chain.firstAtom, subject.charCodeAt(start))) {
-        if (!chain.anchoredStart && chain.firstAtom.kind === "literal" && !chain.firstAtom.insensitive) {
-          const nextIdx = subject.indexOf(String.fromCharCode(chain.firstAtom.code), start + 1);
-          if (nextIdx === -1) break;
-          start = nextIdx - 1;
-        }
         continue;
       }
     }
+    if (!admitSynchronousWork(ledger, width * 2, signal)) return undefined;
     groupStarts.fill(-1);
     groupEnds.fill(-1);
     let pos = start;
     let ok = true;
     for (let s = 0; s < stepsLen; s++) {
+      if (!admitSynchronousWork(ledger, 1, signal)) return undefined;
+      ledger.charge("states", 1, signal);
       const step = steps[s]!;
       if (step.kind === "groupOpen") {
         groupStarts[step.index] = pos;
@@ -923,7 +932,10 @@ function tryMatchEreLinearChainSync(
         pos++;
       } else {
         let count = 0;
-        while (pos < subject.length && ereAtomMatchesCode(step.atom, subject.charCodeAt(pos))) {
+        while (pos < subject.length) {
+          if (!admitSynchronousWork(ledger, 1, signal)) return undefined;
+          ledger.charge("states", 1, signal);
+          if (!ereAtomMatchesCode(step.atom, subject.charCodeAt(pos))) break;
           pos++;
           count++;
         }
@@ -934,19 +946,18 @@ function tryMatchEreLinearChainSync(
       }
     }
     if (!ok || (chain.anchoredEnd && pos !== subject.length)) continue;
+    if (!admitSynchronousWork(ledger, width, signal)) return undefined;
     let bytes = pos - start;
     for (let g = 1; g < width; g++) {
       if (groupStarts[g]! >= 0 && groupEnds[g]! >= groupStarts[g]!) {
         bytes += groupEnds[g]! - groupStarts[g]!;
       }
     }
-    if (bytes > ledger.limits.captureBytes) return undefined;
-    ledger.chargeWork(Math.max(1, pos - start + stepsLen + width * 2), signal);
-    ledger.charge("states", Math.max(1, pos - start + stepsLen), signal);
+    if (!admitSynchronousWork(ledger, width * 3 + bytes, signal)) return undefined;
     ledger.charge("captureSlots", width, signal);
     ledger.charge("captureBytes", bytes, signal);
-    ledger.charge("allocationUnits", width * 2 + bytes + 6, signal);
-    if (ledger.checkpoint(signal)) return undefined;
+    // Two result arrays, one span per capture, copied strings and the result.
+    ledger.charge("allocationUnits", width * 4 + bytes + 6, signal);
     const captures = new Array<EreSpan | null>(width);
     const values = new Array<string>(width);
     captures[0] = Object.freeze({ start, end: pos });
@@ -965,10 +976,8 @@ function tryMatchEreLinearChainSync(
     ledger.check(signal);
     return Object.freeze({ matched: true, captures: Object.freeze(captures), values: Object.freeze(values) });
   }
-  ledger.chargeWork(Math.max(1, subject.length + 1), signal);
-  ledger.charge("states", Math.max(1, maxStart + 1), signal);
+  if (!admitSynchronousWork(ledger, 1, signal)) return undefined;
   ledger.charge("allocationUnits", 4, signal);
-  if (ledger.checkpoint(signal)) return undefined;
   ledger.check(signal);
   return Object.freeze({ matched: false, captures: Object.freeze([] as const), values: Object.freeze([] as const) });
 }

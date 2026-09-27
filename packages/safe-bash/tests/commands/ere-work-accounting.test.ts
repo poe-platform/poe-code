@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { EreLedger } from "../../src/commands/regex-execution/ere/limits.js";
-import { matchEre } from "../../src/commands/regex-execution/ere/matcher.js";
+import { matchEre, tryMatchEreSync } from "../../src/commands/regex-execution/ere/matcher.js";
 import { compileEre } from "../../src/commands/regex-execution/ere/syntax.js";
 import type { EreFragment, EreResource } from "../../src/commands/regex-execution/ere/types.js";
 
@@ -31,6 +31,77 @@ class ObservedLedger extends EreLedger {
     this.observe?.(admission);
   }
 }
+
+test("ERE linear matcher admits capture buffers before constructing them", async t => {
+  const ledger = new EreLedger(bounds);
+  const program = await compileEre("((c))", ledger);
+  await matchEre(program, "c", ledger);
+  const before = ledger.usage;
+  const BufferType = Int32Array;
+  let buffers = 0;
+  t.mock.method(globalThis, "Int32Array", function (length: number) {
+    buffers++;
+    assert.ok(ledger.usage.allocationUnits - before.allocationUnits >= 2 * (program.groups + 1), "reserve both capture buffers before allocation");
+    assert.ok(ledger.usage.work - before.work >= 2 * (program.groups + 1), "admit buffer initialization work before allocation");
+    return new BufferType(length);
+  });
+  assert.deepEqual((await matchEre(program, "c", ledger)).values, ["c", "c", "c"]);
+  assert.equal(buffers, 2);
+});
+
+test("ERE linear matcher charges unsuccessful candidate scans", async t => {
+  const ledger = new EreLedger(bounds);
+  const program = await compileEre("c+d", ledger);
+  const subject = "c".repeat(32);
+  await matchEre(program, subject, ledger);
+  const before = ledger.usage.work;
+  const character = String.prototype.charCodeAt;
+  let reads = 0;
+  t.mock.method(String.prototype, "charCodeAt", function (this: string, index: number) {
+    if (String(this) === subject) reads++;
+    return character.call(this, index);
+  });
+  assert.equal((await matchEre(program, subject, ledger)).matched, false);
+  assert.ok(reads > subject.length * 2, "exercise repeated candidate scans");
+  assert.ok(ledger.usage.work - before >= reads, `${reads} subject reads must be work-admitted`);
+});
+
+test("ERE repeated linear candidates cannot bypass a finite work limit", async () => {
+  const ledger = new EreLedger(bounds, { work: 2000 });
+  const program = await compileEre("g+h", ledger);
+  await assert.rejects(matchEre(program, "g".repeat(64), ledger), { resource: "work", status: 3 });
+  assert.ok(ledger.usage.work <= 2000);
+});
+
+test("ERE synchronous linear matching preserves captures and yields to the bounded fallback", async () => {
+  const ledger = new EreLedger(bounds, { work: 2000 });
+  const program = await compileEre("^(m+)([0-9]+)$", ledger);
+  const expected = await matchEre(program, "mmm42", ledger);
+  assert.deepEqual(expected.values, ["mmm42", "mmm", "42"]);
+  assert.deepEqual(tryMatchEreSync(program, "mmm42", ledger), expected);
+  const failing = await compileEre("i+j", ledger);
+  assert.equal(tryMatchEreSync(failing, "i".repeat(64), ledger), undefined);
+  await assert.rejects(matchEre(failing, "i".repeat(64), ledger), { resource: "work", status: 3 });
+  assert.ok(ledger.usage.work <= 2000);
+});
+
+test("ERE linear matcher stops candidate scanning at the original abort reason", async t => {
+  const ledger = new EreLedger(bounds);
+  const program = await compileEre("e+f", ledger);
+  const subject = "e".repeat(64);
+  const controller = new AbortController();
+  const character = String.prototype.charCodeAt;
+  let reads = 0;
+  t.mock.method(String.prototype, "charCodeAt", function (this: string, index: number) {
+    if (String(this) === subject) {
+      if (++reads === 100) controller.abort(false);
+      else if (reads > 100) throw new Error("subject read after cancellation");
+    }
+    return character.call(this, index);
+  });
+  await assert.rejects(matchEre(program, subject, ledger, controller.signal), error => error === false);
+  assert.equal(reads, 100);
+});
 
 test("ERE work grows with capture/history copy width", async () => {
   for (const groups of [4, 8, 16, 32]) {
@@ -65,7 +136,9 @@ test("ERE initial capture storage is work-admitted before allocation", async () 
 test("ERE initialization, reset, close and result copies admit work before storage", async () => {
   const ledger = new ObservedLedger(bounds);
   // Alternation retains the general matcher path instead of the linear-chain shortcut.
+  // Prime metadata so these observations cover matching storage, not compilation.
   const program = await compileEre("((a|b))", ledger);
+  await matchEre(program, "a", ledger);
   ledger.admissions.length = 0;
   assert.deepEqual((await matchEre(program, "a", ledger)).values, ["a", "a", "a"]);
   // Reset admits its three-entry copy before storage and charges visits separately.

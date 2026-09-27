@@ -135,6 +135,16 @@ formats independently. A listed renderer and a PDF header do not prove a usable
 renderer or correct pages. Justify each nondeterministic field separately; never
 normalize away content, warnings, layout or namespace changes.
 
+## qa-release-regex-admission
+
+Build the maintained regex-engine workspace closure. Through its compiled
+exports, compare nested captures, disjoint repetitions, anchors, nonmatches
+and general-matcher controls against an explicitly selected native Bash with
+locale `C`. Repeat each case to cover cached metadata. Record the Bash version;
+this does not qualify other native profiles. Separately verify finite work
+refusal and exact false-valued cancellation, and inspect the actual transcript
+screenshot. Record compact results and purge the consumed `out` artifacts.
+
 ## qa-command-factory-defaults
 
 Build the maintained Safe Bash workspace closure. Import the compiled

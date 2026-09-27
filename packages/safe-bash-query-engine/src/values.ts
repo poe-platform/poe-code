@@ -1,4 +1,4 @@
-import { utf8ByteLength, encoder, decoder } from "./encoding.js";
+import { utf8ByteLength, utf8Encoder, utf8Decoder } from "./bytes.js";
 import { Budget, copyObject, isObject, JqError, JqLimitError, object, objectKeyIterator, objectKeys, put, type Json } from "./limits.js";
 import { compareNumbers, isNumber, numberValue, type Numeric } from "./numbers.js";
 import { jsonFragments, renderJsonFragment } from "./input.js";
@@ -8,21 +8,18 @@ export function type(value: Json): string {
   return value === null ? "null" : isNumber(value) ? "number" : Array.isArray(value) ? "array" : typeof value;
 }
 export function describe(value: Json, budget: Budget): string {
-  const parts: Uint8Array[] = [];
+  const bytes = new Uint8Array(15);
   let length = 0;
   for (const fragment of jsonFragments(value, budget)) {
     const text = renderJsonFragment(fragment, budget);
     budget.step(text.length);
-    const bytes = encoder.encode(text);
-    const retained = Math.min(15 - length, bytes.length);
-    parts.push(bytes.subarray(0, retained));
+    const fragmentBytes = utf8Encoder.encode(text);
+    const retained = Math.min(15 - length, fragmentBytes.length);
+    bytes.set(fragmentBytes.subarray(0, retained), length);
     length += retained;
     if (length === 15) break;
   }
-  const bytes = new Uint8Array(length);
-  let offset = 0;
-  for (const part of parts) { bytes.set(part, offset); offset += part.length; }
-  const text = length < 15 ? decoder.decode(bytes) : `${decoder.decode(bytes.subarray(0, 11))}...`;
+  const text = length < 15 ? utf8Decoder.decode(bytes.subarray(0, length)) : `${utf8Decoder.decode(bytes.subarray(0, 11))}...`;
   return `${type(value)} (${text})`;
 }
 export function stringCompareMaybeSync(left: string, right: string, budget: Budget): number | Promise<number> {

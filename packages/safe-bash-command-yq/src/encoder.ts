@@ -1,4 +1,4 @@
-import { utf8ByteLength } from "./bytes.js";
+import { utf8ByteLength } from "safe-bash-query-engine/bytes";
 import { JqLimitError, objectKeys, wellFormed, type Json } from "safe-bash-query-engine/limits";
 import { Decimal, numberText } from "safe-bash-query-engine/numbers";
 import type { YqOwnedWork } from "safe-bash-query-engine/query-core";

@@ -1,4 +1,4 @@
-import { utf8ByteLength } from "./bytes.js";
+import { utf8ByteLength } from "safe-bash-query-engine/bytes";
 import { MikeError } from "./native-work.js";
 
 export type Expression =

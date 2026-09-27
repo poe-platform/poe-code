@@ -1,4 +1,4 @@
-import { utf8ByteLength, utf8Encoder, encodeBase64 } from "./bytes.js";
+import { utf8ByteLength, utf8Encoder, encodeBase64, decodeBase64 } from "safe-bash-query-engine/bytes";
 import { parseXmlSteps, type XmlElement } from "@poe-code/safe-fs/core";
 import { decodeDocuments, type Candidate, type NativeDocument, type YamlModule } from "./nodes.js";
 import { encodeNative } from "./native-encoder.js";
@@ -123,7 +123,7 @@ export async function decodeFormat(text: string, filename: string, fileIndex: nu
     else if (format === "base64") {
       const clean = text.split("\n").join("").split("\r").join("");
       let data: Uint8Array;
-      try { data = Uint8Array.from(atob(clean), character => character.charCodeAt(0)); }
+      try { data = decodeBase64(clean); }
       catch { throw new MikeError("invalid base64 input"); }
       if (encodeBase64(data) !== clean) throw new MikeError("invalid base64 input");
       value = new TextDecoder("utf-8", { fatal: true }).decode(data);

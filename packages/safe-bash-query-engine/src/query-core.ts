@@ -1,4 +1,4 @@
-import { utf8ByteLength } from "./encoding.js";
+import { utf8ByteLength } from "./bytes.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { Interpreter } from "./interpreter.js";
 import {

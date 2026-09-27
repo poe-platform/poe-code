@@ -1,4 +1,4 @@
-import { utf8ByteLength } from "./encoding.js";
+import { utf8ByteLength } from "./bytes.js";
 import { Pattern } from "safe-bash-regex-engine/text/regex";
 import { ProgramError } from "safe-bash-regex-engine/text/budget";
 import { Budget, JqError, JqLimitError, object, put, type Json } from "./limits.js";

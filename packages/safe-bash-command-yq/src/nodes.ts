@@ -1,4 +1,4 @@
-import { utf8ByteLength, utf8Encoder } from "./bytes.js";
+import { utf8ByteLength, utf8Encoder, utf8Decoder } from "safe-bash-query-engine/bytes";
 import type { Document, Node, Pair, YAMLMap, YAMLSeq } from "yaml";
 import { MikeError, type NativeWork } from "./native-work.js";
 import { recordHeadComments } from "./comments.js";
@@ -210,7 +210,7 @@ async function decodeJsonDocument(source: string, filename: string, yaml: YamlMo
         let value: string;
         try { value = JSON.parse(source.slice(start, offset)) as string; } catch { return fail(); }
         if (utf8ByteLength(value) > work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
-        return new TextDecoder("utf-8", { ignoreBOM: true }).decode(utf8Encoder.encode(value));
+        return utf8Decoder.decode(utf8Encoder.encode(value));
       }
       if (!escaped && character === "\\") escaped = true;
       else escaped = false;

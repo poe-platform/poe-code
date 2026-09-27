@@ -1,4 +1,4 @@
-import { utf8ByteLength, utf8Encoder, compareBytes } from "./bytes.js";
+import { utf8ByteLength, utf8Encoder, compareBytes } from "safe-bash-query-engine/bytes";
 import type { Node, Pair, YAMLMap, YAMLSeq } from "yaml";
 import type { Expression } from "./expression.js";
 import { cloneNode, decodeDocuments, dereference, nodeTag, replace, scalar, truth, type Candidate, type YamlModule } from "./nodes.js";

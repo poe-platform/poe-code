@@ -1,4 +1,4 @@
-import { encoder, decoder, byteString, latin1Bytes } from "./encoding.js";
+import { utf8Encoder, utf8Decoder, encodeBase64, decodeBase64 } from "./bytes.js";
 import { stringify } from "./input.js";
 import { Budget, JqError, type Json } from "./limits.js";
 import { isNumber } from "./numbers.js";
@@ -10,17 +10,17 @@ export async function formatValue(name: string, input: Json, budget: Budget): Pr
   switch (name) {
     case "text": result = text; break;
     case "json": result = await stringify(input, budget); break;
-    case "base64": result = btoa(byteString(encoder.encode(text))); break;
+    case "base64": result = encodeBase64(utf8Encoder.encode(text)); break;
     case "base64d": {
       if (typeof input !== "string") throw new JqError("base64d requires a string");
       const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
       const raw = input.endsWith("==") ? input.slice(0, -2) : input.endsWith("=") ? input.slice(0, -1) : input;
       if (raw.length % 4 === 1 || [...raw].some(character => !alphabet.includes(character))) throw new JqError("invalid base64 string");
-      result = decoder.decode(latin1Bytes(atob(raw))); break;
+      result = utf8Decoder.decode(decodeBase64(raw)); break;
     }
     case "uri": {
       result = "";
-      for (const byte of encoder.encode(text)) {
+      for (const byte of utf8Encoder.encode(text)) {
         { const _p = budget.tickSync(); if (_p) await _p; }
         const character = String.fromCharCode(byte);
         result += "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~".includes(character) ? character : `%${byte.toString(16).toUpperCase().padStart(2, "0")}`;

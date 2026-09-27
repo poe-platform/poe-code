@@ -1,4 +1,4 @@
-import { utf8ByteLength, utf8Encoder } from "./bytes.js";
+import { utf8ByteLength, utf8Encoder } from "safe-bash-query-engine/bytes";
 import { escapeText } from "safe-bash-query-engine/escaping";
 import { pathOf } from "safe-bash-query-engine/path";
 import {
@@ -663,7 +663,7 @@ async function runCommand(context: CommandContext, owner: InvocationOwner, input
               await flushOutBatch();
               const output = new Uint8Array(outputBytes);
               let offset = 0;
-              if (separator !== "") offset += utf8Encoder.encodeInto(separator, output.subarray(offset)).written;
+              if (separator !== "") offset += utf8Encoder.encodeInto(separator, output).written;
               offset += utf8Encoder.encodeInto(encoded, output.subarray(offset)).written;
               output[offset] = 0x0a;
               owner.assertOpen(context.signal);

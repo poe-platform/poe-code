@@ -1,4 +1,4 @@
-import { utf8ByteLength } from "./encoding.js";
+import { utf8ByteLength } from "./bytes.js";
 import { JqError, JqLimitError, wellFormed, type Budget, type Json } from "./limits.js";
 import { decimalNumber } from "./numbers.js";
 

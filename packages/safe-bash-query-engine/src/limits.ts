@@ -1,4 +1,4 @@
-import { utf8ByteLength } from "./encoding.js";
+import { utf8ByteLength } from "./bytes.js";
 const ONCE_ABORT_OPTIONS = Object.freeze({ once: true });
 const defaultPerfNow = performance.now;
 import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";

@@ -1,4 +1,4 @@
-import { utf8ByteLength } from "./bytes.js";
+import { utf8ByteLength } from "safe-bash-query-engine/bytes";
 import type { Node } from "yaml";
 import { cloneNode, dereference, inspectNode, type Candidate, type YamlModule } from "./nodes.js";
 import { mikeLimits, MikeError, type NativeWork } from "./native-work.js";

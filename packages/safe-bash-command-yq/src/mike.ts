@@ -1,4 +1,4 @@
-import { utf8ByteLength, utf8Encoder } from "./bytes.js";
+import { utf8ByteLength, utf8Encoder } from "safe-bash-query-engine/bytes";
 import { decodeFormat, encodeFormat } from "./formats.js";
 import { commandRuntimeIdentity, FsError, type CommandContext, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
 import { mikeCommandMode, mikeFormat, mikeHelp, mikeUsage, mikeEvalHelp, mikeAllHelp, parseMikeArguments } from "./arguments.js";

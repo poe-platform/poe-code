@@ -1,4 +1,4 @@
-import { utf8ByteLength } from "./encoding.js";
+import { utf8ByteLength } from "./bytes.js";
 import { Budget, invalidateCachedValueMetrics, copyObject, hasCustomKeyOrder, isObject, JqHalt, JqError, JqLimitError, object, objectKeyIterator, objectKeys, put, remove as removeKey, truth, type Json } from "./limits.js";
 import { Decimal, isNumber, numberValue, type Numeric } from "./numbers.js";
 import { JqParseError, measureValue, parseJson, stringify } from "./input.js";

@@ -2688,14 +2688,24 @@
         "source": "out/ssconvert-xlsx-metadata/rich-font-source.json",
         "red": "out/ssconvert-xlsx-metadata/rich-font-red.log",
         "green": "out/ssconvert-xlsx-metadata/rich-font-final.log",
-        "packageLint": "out/ssconvert-xlsx-metadata/rich-font-lint.log"
+        "packageLint": "out/ssconvert-xlsx-metadata/rich-font-lint.log",
+        "nativeCalc": "Both XLSX editions from the current source public codec preserve the used A2 font name Font _x0041_ and rich \u00e9 span typeface Noto _x0041_ & Serif through official Calc 26.8.0.3 read/export. Independent XML resolves A2 cell style/font indexes and rich shared-string properties; native wire escaping remains _x005F_x0041_. This does not qualify rendering, every font property, conditional fonts or compiled/installed native composition. Receipts: out/ssconvert-calc-current/font-comment-calc.json and font-comment-source-proof.json."
       },
       "commentRichText": {
         "implementation": "8aecc7f3aa shares the Gnumeric rich-text codec between cell values and comment TextFormat; XLSX import/export retains supported span attributes and UTF-8 offsets. b169158279 preserves unchanged original XLSX rich text when font delimiters cannot fit that markup codec, avoiding an import refusal introduced by the first change. Edited text is regenerated. Full comment properties, geometry, rendering and all-format transport remain open.",
         "source": "Gnumeric sheet-object-cell-comment.c:333-370 and GOffice go-format.c:5986-6170, plus LibreOffice RichStringContext. Compact authenticated excerpts are in out/ssconvert-xlsx-metadata/comment-gnumeric-markup-source.json and gnumeric-markup-grammar-source.json.",
         "localChecks": "Three initial regressions failed before the text-format repair; 145 focused checks and package lint passed. The delimiter-font regression then failed before its repair; the final four-file cohort passes 89 checks and package lint. Ordinary and conditional font XString handling is separately fixed at 3ab2edeb53 with seven original failures and 126 focused passes.",
         "nativeReadback": "Both XLSX editions produced from source at 8aecc7f3aa reopen in the rebuilt Gnumeric with exact Ada author, text and bold/italic byte ranges. Each emits Unhandled object of type Note: the pinned reader maps that VML type to G_TYPE_NONE. This verifies comment text formatting, not drawing fidelity, compiled public bundles, registry delivery or rendering.",
-        "receipts": "out/ssconvert-native-current/comment-rich-native.json; native-identity.json; out/ssconvert-xlsx-metadata/comment-rich-red.log; comment-rich-first.log; comment-unrepresentable-red.log; comment-unrepresentable-final.log"
+        "receipts": "out/ssconvert-native-current/comment-rich-native.json; native-identity.json; out/ssconvert-xlsx-metadata/comment-rich-red.log; comment-rich-first.log; comment-unrepresentable-red.log; comment-unrepresentable-final.log",
+        "nativeCalcReadback": {
+          "preserved": "Both editions preserve Ada _x0041_ author and \u00e9\ud83d\ude00z text through signed Calc 26.8.0.3 native read/export.",
+          "failed": "Expected bold \u00e9 / italic \ud83d\ude00 / plain z returns plain \u00e9 / italic \ud83d\ude00z. Native comment formatting qualification fails, despite the passing Gnumeric span readbacks.",
+          "source": "Pinned commentsbuffer.cxx converts note captions through RichString::convert(XText); richstring.cxx:84-106 and 380-397 sets the first portion on the whole XText, then appends through getEnd. Cell rich strings instead apply explicit EditEngine selections at 109-140 and 408-425. This identifies different conversion paths, not a fully proven cause.",
+          "controls": "Four independent XML variants retain first-run bold loss: explicit b/i resets, explicit font/size, both, and positive VML dimensions. Reset/font variants isolate the trailing plain z correctly. These controls do not establish a complete exporter repair; no production workaround was applied.",
+          "remaining": "Correct first and following comment spans across native readers, full comment metadata and rendering, current compiled-public composition and release remain open.",
+          "receipts": "out/ssconvert-calc-current/font-comment-calc.json; comment-span-controls.json; commentsbuffer-source.json; richstring-conversion-source.json; native-identity.json",
+          "candidate": "A source-directed leading empty run plus explicit b/i resets restores bold \u00e9 / italic \ud83d\ude00 / plain z in one independent Calc XML control. This is a candidate for a bounded comment-only interoperability repair, not production implementation or full rich-property/cross-reader qualification. Receipt: out/ssconvert-calc-current/comment-leading-empty-control.json."
+        }
       }
     },
     {

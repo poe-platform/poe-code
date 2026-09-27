@@ -19,8 +19,6 @@ const mutations: Array<[string, (value: SafeJSSnapshot) => void]> = [
   ["missing heap tag", value => { value.heap = { 1: {} }; }],
   ["dangling heap reference", value => { value.bindings = { value: { kind: "ref", id: 99 } }; }],
   ["source mismatch", value => { value.sourceHash = hashSource("return 8;"); }],
-  ["oversized string", value => { value.bindings = { data: "x".repeat(1_000_001) }; }],
-  ["oversized key", value => { value.bindings = { ["x".repeat(1_000_001)]: 0 }; }],
   ["oversized sparse array", value => { value.bindings = { data: new Array(100_001) }; }],
   ["wire cycle", value => { value.bindings = { cycle: value }; }],
   ["foreign prototype", value => { value.bindings = Object.create({ inherited: 7 }); }]
@@ -146,4 +144,16 @@ it.each([
   expect(() => decodeReplayData(graph, { resolveCapability, resolvePromise })).toThrow();
   expect(resolveCapability).not.toHaveBeenCalled();
   expect(resolvePromise).not.toHaveBeenCalled();
+});
+
+
+it.each(["value", "key"])("accepts large snapshot string %s without an implicit cap", async location => {
+  const text = "x".repeat(1_000_001);
+  const snapshot = base();
+  snapshot.bindings = location === "value" ? { data: text } : { [text]: 0 };
+  expect(restore(snapshot, { source })).toBe(snapshot);
+  expect(inspectSnapshotMigration(snapshot, { source }).unresolvedCalls).toEqual([]);
+  const effect = vi.fn(() => 7);
+  expect(await run(source, { snapshot, bindings: { effect } })).toMatchObject({ ok: true, returnValue: 7 });
+  expect(effect).toHaveBeenCalledOnce();
 });

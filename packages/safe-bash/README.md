@@ -729,8 +729,9 @@ creation/deletion patches; top-level readable character and FIFO inputs are
 read to EOF. Regular files retain identity-checked reads.
 
 The package root exports `createBoundedRegexProvider`, `BoundedRegexProvider`,
-and `BoundedRegexProviderOptions`. `agentCommands()` uses this provider by default;
-pass `regexExecutor` to configure its resource limits explicitly:
+and `BoundedRegexProviderOptions`. `portableSearchCommands()` and `agentCommands()`
+use this provider by default. Pass `regexExecutor` to `agentCommands()` to configure
+its resource limits explicitly:
 
 ```ts
 import { agentCommands, createBoundedRegexProvider } from "@poe-platform/safe-bash";

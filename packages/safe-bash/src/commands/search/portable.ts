@@ -1,3 +1,4 @@
+import { createBoundedRegexProvider } from "../regex-execution/bounded-provider.js";
 import type { VirtualShellPlugin } from "../../contracts/index.js";
 import { RegexExecutor } from "../regex-execution/portable.js";
 import type { BoundedRegexProvider } from "../regex-execution/provider.js";
@@ -9,15 +10,15 @@ import { createRgCommand } from "./rg-command.js";
 import type { SearchOptions } from "./options.js";
 
 export interface PortableSearchOptions {
-  readonly provider: BoundedRegexProvider;
+  readonly provider?: BoundedRegexProvider;
   readonly replace?: boolean;
   readonly regex?: RegexExecutionOptions;
   readonly search?: Omit<SearchOptions, "replace" | "regex">;
   readonly sed?: Omit<TextProgramOptions, "replace">;
 }
 
-export function portableSearchCommands(options: PortableSearchOptions): VirtualShellPlugin {
-  const executor = new RegexExecutor(options.provider, options.regex);
+export function portableSearchCommands(options: PortableSearchOptions = {}): VirtualShellPlugin {
+  const executor = new RegexExecutor(options.provider ?? createBoundedRegexProvider(), options.regex);
   const commands = [...createGrepCommands(executor), createRgCommand(executor, options.search), sedCommand(options.sed)];
   return {
     name: "portable-search-commands",

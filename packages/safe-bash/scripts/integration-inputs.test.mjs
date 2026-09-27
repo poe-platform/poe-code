@@ -19,6 +19,18 @@ import * as typecheckInputs from "./typecheck-inputs.mjs";
 
 const owner = "fixture producer";
 
+test("loop substitution and portable search regressions remain in active discovery", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const selected = discoverTests(root, loadBoundaries(root));
+  for (const path of [
+    "tests/shell/fast-path-regressions.test.ts",
+    "tests/shell/mapfile-portable-records.test.ts",
+    "tests/commands/portable-search-default.test.ts",
+  ]) assert.ok(selected.includes(path), path);
+});
+
+
+
 test("basic command audit regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const selected = discoverTests(root, loadBoundaries(root));

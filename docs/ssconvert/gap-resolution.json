@@ -846,7 +846,7 @@
       ],
       "finding": "Modern direct references carry flags per token, with bit 0 for columns and bit 1 for rows. Corrected swapped axes and reuse of the first token flag byte. Five focused controls: three reproduced failures and two unchanged controls; all 151 tests in ten Lotus suites pass.",
       "publicReadback": "Compiled SDK import and public command XLSX export/readback retain =($C$2+D3), with exit 0, empty stderr and 4056 output bytes. In-memory fixture; no generated binary retained.",
-      "remaining": "Legacy profiles 0x0404/0x0406 are addressed in lotusLegacyReferenceOffsets. BOF 0x0405/Works, three-bit versus four-bit second range endpoint flags, relative sheet identity and independent application qualification remain open."
+      "remaining": "Legacy WK1/WK2, Windows Works and DOS Symphony reference offsets are addressed in their separate source records. Ambiguous DOS Works profiles, three-bit versus four-bit second range endpoint flags, relative sheet identity and independent application qualification remain open."
     },
     "lotusWorksWindowsReferences": {
       "status": "implemented source-defined Windows Works v3 reference offsets",
@@ -866,7 +866,7 @@
       ],
       "validation": "Six of seven original regressions failed. All 303 tests in fifteen Lotus files pass after correction, including WK1/WK2 controls, mixed range endpoints, negative bounds and source-defined row wrapping. Maintained package lint, source/test/consumer types and selected build pass. A test fixture initially placed its formula over the control cell; correcting the origin preserved both independent negative-axis assertions.",
       "publicQualification": "Compiled public --recalc WKS-to-XLSX conversion and SDK readback preserve six expected formulas and numeric results, including three backward references recalculating to 42. Each input is 54 bytes; outputs range from 4061 to 4069 bytes. Empty diagnostics; all inputs stay in memory.",
-      "remaining": "Symphony 0x0405 and DOS Works reference profiles, native Works/libwps application readback, relative-sheet identity, modern range flag packing and wider format qualification remain open. No family is closed."
+      "remaining": "DOS Symphony 0x0405 offsets are addressed separately in lotusSymphonyReferences. Ambiguous DOS Works profiles, native Works/libwps application readback, relative-sheet identity, modern range flag packing and wider format qualification remain open. No family is closed."
     },
     "lotusLegacyReferenceOffsets": {
       "status": "implemented for BOF 0x0404 and 0x0406; other profiles and application qualification open",
@@ -892,7 +892,7 @@
       ],
       "validation": "Seven of twelve original in-memory assertions failed before correction. All 163 tests in eleven Lotus files pass after correction, as do maintained package lint/types and the four-workspace selected build. Recalculation explicitly forces refresh of the fixture's stale cached zero.",
       "publicReadback": "Compiled SDK import and public command --recalc XLSX export/readback preserve =A1 and value 42 for both BOF versions, exit 0, empty stderr, 4074 bytes each. Fixtures and outputs remain in memory.",
-      "remaining": "BOF 0x0405 and Lotus Works keep their prior decoder; libwps's documented row-width uncertainty remains relevant. Modern range flag packing, relative sheets and independent application readback remain open. No Lotus family closure."
+      "remaining": "Windows Works and DOS Symphony offsets are addressed in separate source records. Ambiguous DOS Works profiles, modern range flag packing, relative sheets and independent application readback remain open. No Lotus family closure."
     },
     "lotusWk3Admission": {
       "status": "implemented for BOF 0x1000, subtype 4, length 26; broader qualification open",
@@ -1110,6 +1110,26 @@
       "validation": "Four failing regressions cover BOF 0x0404, 0x1000 and 0x1002 plus the named YEAR token. All 171 tests in thirteen Lotus files pass, with maintained package lint/types and selected build.",
       "publicReadback": "Compiled public command --recalc XLSX export and SDK readback preserve =(year(date(124,1,1))-1900) and value 124 for legacy direct and modern named YEAR; exit 0, empty stderr, 4085/4074 bytes. The serializer normalizes function spelling to lowercase. In-memory fixtures only.",
       "remaining": "Further function argument/index conversions, Works semantics and independent application qualification remain open. This repairs Lotus semantics beyond Gnumeric's stub, not native parser parity."
+    },
+    "lotusSymphonyReferences": {
+      "status": "implemented source-defined DOS Symphony BOF 0x0405 references",
+      "sources": [
+        {
+          "url": "https://sources.debian.org/data/main/libw/libwps/0.4.14-2/src/lib/WKS4.cpp",
+          "sha256": "585920eb2c5897cc6c5a0761c13a5f0113193c2e1c6ad3f9cbb7ad816341be8a",
+          "lines": "413-514",
+          "finding": "BOF bytes 00 00 select DOS version 1; BOF version 0x0405 explicitly identifies Symphony. Ambiguous DOS Works 0x0404 is not reclassified."
+        },
+        {
+          "url": "https://sources.debian.org/data/main/libw/libwps/0.4.14-2/src/lib/WKS4Spreadsheet.cpp",
+          "sha256": "67a28542ea3f829740e2f39db31d629e07991fd1c7b24eea43efdd0db854fdeb",
+          "lines": "1790-1838",
+          "finding": "Relative columns use the low byte and subtract 256 only when bit 7 is set and the target reaches 256. Relative rows use signed 14-bit offsets and fold targets at 8192. Absolute coordinates stay raw; negative targets fail. The old candidate instead used sign-and-magnitude fallback arithmetic."
+        }
+      ],
+      "validation": "Ten of fourteen original memory regressions failed. All 317 tests in sixteen Lotus files pass after correction, including WK1/WK2/Windows Works controls, independent range endpoints, conditional column wrapping, signed row boundaries and preserved absolute coordinates. Maintained package lint, source/test/consumer types and selected build pass.",
+      "publicQualification": "Nine compiled public --recalc WK1-to-XLSX conversions and SDK readbacks retain the expected formulas and values with no diagnostics. Four backward references recalculate to 42. A preserved absolute IW8193 reference evaluates to #REF! because the imported sheet has only 256 columns; the initial probe's zero expectation was corrected without changing product bounds. Inputs are 46 bytes; outputs are 4074\u20134092 bytes and remain in memory.",
+      "remaining": "Native Symphony/Works application readback, ambiguous DOS Works profiles, relative-sheet identity, modern range flag packing and wider format qualification remain open. No family is closed."
     }
   },
   "cases": [
@@ -1121,7 +1141,7 @@
     {
       "id": "lotus-named-formula-references",
       "status": "open",
-      "currentFinding": "Implemented source-qualified WK1/WK3 names, namespace lifecycle, WK1/WK2 and Windows Works offsets, WK3 admission, numeric record widths and single-rounding extended values. Qualified financial/date/position/lookup semantics and all 47 LibreOffice-recognized add-ins resolve. LMBCS Unicode, four national double-byte groups and C0/C1 controls follow ICU source. All 303 tests in fifteen Lotus files and package lint/types/build pass; public SDK/command observations remain scoped by the source records. BIFF NUL and shared/inline XLSX string preservation are now implemented. Symphony 0x0405/DOS Works, modern range flags, relative-sheet identity, wider charsets/formatting/domains and native applications remain open. CSV NUL loss and raw-NUL XLSX formula refusal remain distinct export gaps. Containing publication is pending."
+      "currentFinding": "Implemented source-qualified WK1/WK3 names, namespace lifecycle, WK1/WK2, Windows Works and DOS Symphony offsets, WK3 admission, numeric record widths and single-rounding extended values. Qualified financial/date/position/lookup semantics and all 47 LibreOffice-recognized add-ins resolve. LMBCS Unicode, four national double-byte groups and C0/C1 controls follow ICU source. All 317 tests in sixteen Lotus files and package lint/types/build pass; public SDK/command observations remain scoped by the source records. BIFF NUL and shared/inline XLSX string preservation are now implemented. Ambiguous DOS Works profiles, modern range flags, relative-sheet identity, wider charsets/formatting/domains and native applications remain open. CSV NUL loss and raw-NUL XLSX formula refusal remain distinct export gaps. Containing publication is pending."
     },
     {
       "id": "biff-external-and-token-formulas",

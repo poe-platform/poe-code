@@ -15,6 +15,12 @@ separate native QA profile are recorded in
   Ziem, Marc Maurer and Fridrich Strba. SHA-256:
   `fcfe58ee8430ce43222e76c01aa4f436731722c5b171d801698a9a0a2496a6e5`.
   The implementation uses the shared A1 parser for correct multi-letter columns.
+- Windows Works and DOS Symphony reference layouts follow libwps 0.4.14-2
+  `src/lib/WKS4.cpp` and `src/lib/WKS4Spreadsheet.cpp`, under LGPL-2.1-or-later
+  (alternatively MPL-2.0), by the same libwps contributors above. Source hashes
+  and the separately scoped application qualification are recorded in
+  `docs/ssconvert/gap-resolution.json`. The LGPL text is included at
+  `src/encoding/LGPL-2.1.txt`.
 - Quattro Pro: Copyright (C) 2002 Jody Goldberg
   (`plugins/qpro/qpro-read.c`).
 - PlanPerfect reader: Kevin Handy (`plugins/plan-perfect/pln.c`).

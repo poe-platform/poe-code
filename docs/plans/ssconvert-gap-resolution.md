@@ -461,8 +461,19 @@ wrapping identified in libwps. Six regressions failed before correction; all
 303 Lotus checks pass, including the WK1/WK2 controls. Public recalculating
 WKS-to-XLSX conversion preserves backward references and larger absolute rows.
 BOF 0x0405 is Symphony in the source, so it remains separate from this Windows
-Works repair. Native application and DOS/Symphony qualification remain open;
-see `reference.lotusWorksWindowsReferences`.
+Works repair; its separate decoder is now recorded below. Native application
+and ambiguous DOS Works qualification remain open; see
+`reference.lotusWorksWindowsReferences`.
+
+DOS Symphony BOF 0x0405 now follows libwps's conditional low-byte column wrap
+and signed 14-bit row offsets. Ten initial failures reproduced the generic
+fallback defect; all 317 Lotus checks, maintained package lint/types and selected
+build pass. Nine compiled public recalculating XLSX conversions preserve formulas
+and values with no diagnostics, including four backward references returning 42.
+Absolute coordinates remain intact; a target beyond the imported sheet's 256
+columns correctly evaluates to #REF!. Native application qualification and
+ambiguous DOS Works profiles stay open; see `reference.lotusSymphonyReferences`.
+No family is closed.
 
 Native format qualification uses the authenticated Gnumeric 1.12.61 source with GLib 2.90.0, goffice 0.10.62, GTK 3.24.52 and libgsf 1.14.59 on macOS arm64; it is distinct from the Linux numeric profile. Source-derived GSettings schemas correct a failed Homebrew library-discovery probe without modifying native source. A disposable public-API driver supplies test passwords through stdin, recalculates both sheets and saves Gnumeric XML. Three plaintext controls, 12 XOR exports (BIFF7/8 and DSF primary streams; 1/8/14/15-byte passwords) and four standard-RC4 exports (empty, ASCII, Unicode and 15 UTF-16 units) preserve all expected cells, including 10,800/16,200-character strings, formulas, booleans and errors. Both formulas recalculate to 42; 13 applicable wrong-password controls refuse with no output. Gnumeric refuses all 12 CryptoAPI profiles and the tested standard-RC4 lengths 16/27/28/31/32/255; its source's one-byte password-bit-length field explains the 15/16 boundary. These native limits do not narrow product support. The ledger binds executable/library/driver hashes and the 37-input aggregate (sorted basename, NUL, binary SHA-256 digest). Other native applications, platforms, ancillary streams and optional-language profiles remain open.
 

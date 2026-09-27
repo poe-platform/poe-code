@@ -1,8 +1,40 @@
 import { describe, expect, it, vi } from "vitest";
+import { ChildProcess, spawn } from "node:child_process";
+import { PassThrough } from "node:stream";
 import { createFsFromVolume, Volume } from "memfs";
 import type { Tool } from "../runtime/plugin-types.js";
 import type { ToolContext } from "../runtime/types.js";
 import shellPlugin, { spec as shellPluginSpec } from "./poe-agent-plugin-shell.js";
+
+vi.mock("node:child_process", async importOriginal => {
+  const actual = await importOriginal<typeof import("node:child_process")>();
+  return { ...actual, spawn: vi.fn(actual.spawn) };
+});
+
+function createShellChild(output: { stdout?: string; stderr?: string; exitCode?: number } = {}): ChildProcess {
+  const child = new ChildProcess();
+  const stdout = new PassThrough();
+  const stderr = new PassThrough();
+  child.stdout = stdout;
+  child.stderr = stderr;
+  child.kill = vi.fn(() => {
+    queueMicrotask(() => child.emit("close", null, "SIGTERM"));
+    return true;
+  });
+  vi.mocked(spawn).mockImplementationOnce(() => {
+    queueMicrotask(() => {
+      if (output.stdout !== undefined) stdout.write(output.stdout);
+      if (output.stderr !== undefined) stderr.write(output.stderr);
+      if (output.exitCode !== undefined) {
+        stdout.end();
+        stderr.end();
+        child.emit("close", output.exitCode, null);
+      }
+    });
+    return child;
+  });
+  return child;
+}
 
 type TestTool = Pick<Tool, "name" | "call">;
 
@@ -142,6 +174,7 @@ describe("poe-agent-plugin-shell", () => {
   });
 
   it("starts background commands, reads buffered output, and kills them", async () => {
+    const child = createShellChild({ stdout: "ready\n" });
     const cwd = process.cwd();
     const notifications: Array<{ event: string; message?: string; data?: unknown }> = [];
     const plugin = shellPlugin({
@@ -188,10 +221,12 @@ describe("poe-agent-plugin-shell", () => {
       "Status: exited"
     );
 
+    expect(child.kill).toHaveBeenCalledWith("SIGTERM");
     await plugin.dispose?.();
   });
 
   it("bounds retained foreground command output and marks truncation", async () => {
+    createShellChild({ stdout: "x".repeat(140_000) + "tail-marker", exitCode: 0 });
     const cwd = process.cwd();
     const plugin = shellPlugin({
       cwd,
@@ -211,6 +246,7 @@ describe("poe-agent-plugin-shell", () => {
   });
 
   it("bounds retained background command output and marks truncation", async () => {
+    createShellChild({ stdout: "x".repeat(140_000) + "tail-marker" });
     const cwd = process.cwd();
     const plugin = shellPlugin({
       cwd,
@@ -254,6 +290,7 @@ describe("poe-agent-plugin-shell", () => {
   });
 
   it("includes captured output when a foreground command times out", async () => {
+    createShellChild({ stdout: "partial stdout\n", stderr: "partial stderr\n" });
     const cwd = process.cwd();
     const plugin = shellPlugin({
       cwd,
@@ -450,6 +487,7 @@ describe("poe-agent-plugin-shell", () => {
   });
 
   it("emits notification events for shell output", async () => {
+    createShellChild({ stdout: "ready\n", stderr: "warn\n", exitCode: 0 });
     const cwd = process.cwd();
     const notifications: Array<{ event: string; message?: string; data?: unknown }> = [];
     const plugin = shellPlugin({

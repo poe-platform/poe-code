@@ -9,6 +9,7 @@ const lifecycleURL = new URL("../packages/safe-bash/scripts/build-optional-cli.m
 vi.mock("../packages/safe-bash/scripts/build.mjs", () => ({ buildPackage: compiler }));
 vi.mock("../packages/safe-bash/scripts/build-optional.mjs", () => ({ buildOptionalPackage: stage }));
 vi.mock("./bundle-safe-bash.mjs", () => ({ buildBrowserShellOutputs: browserBuild }));
+const { buildOptionalPackage } = await vi.importActual<{ buildOptionalPackage: (options: unknown) => Promise<unknown> }>("../packages/safe-bash/scripts/build-optional.mjs");
 
 describe("optional distribution production lifecycle", () => {
   let argv: string[];
@@ -88,7 +89,6 @@ describe("optional distribution production lifecycle", () => {
   }
 
   it("admits the private checkout manifest without unpublished public install dependencies", async () => {
-    const { buildOptionalPackage } = await vi.importActual<{ buildOptionalPackage: (options: unknown) => Promise<unknown> }>("../packages/safe-bash/scripts/build-optional.mjs");
     const root = "/repo";
     const core = root + "/packages/safe-bash";
     const fileSystem = createFsFromVolume(Volume.fromJSON({

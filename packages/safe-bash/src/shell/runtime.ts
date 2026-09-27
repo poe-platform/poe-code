@@ -5439,6 +5439,35 @@ export class Runtime {
       count++;
       cur = next;
     }
+    if (
+      deadRmTarget !== undefined &&
+      cur.nextCached !== undefined &&
+      !this.signal.aborted &&
+      mem.symlinkCount === 0 &&
+      (this._outputFiles === undefined || this._outputFiles.size === 0) &&
+      !hasShellFunction(rawState, "rm") &&
+      !rawState.extensions?.builtins.has("rm")
+    ) {
+      const rmDef = this.commands.get("rm");
+      const rmUnit = cur.nextCached;
+      const rmCmd0 = rmUnit.unit.script.lists[0]?.pipelines[0]?.commands[0];
+      if (rmDef && defaultRmExecutors.has(rmDef.execute) && rmCmd0 && rmCmd0.kind === "simple" && rmCmd0.words[0]?.plain === "rm" && rmCmd0.words[2]?.plain === deadRmTarget) {
+        let rmOk = false;
+        try {
+          rmOk = tryRmRfMemorySync(this.backingFs, deadRmTarget, this.commandSignal);
+        } catch {
+          this.signal.throwIfAborted();
+          rmOk = false;
+        }
+        if (rmOk) {
+          this.budget.parsing.admit(rmUnit.unitsCharged);
+          this.budget.commands++;
+          (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations++;
+          lastArg = deadRmTarget;
+          cur = rmUnit;
+        }
+      }
+    }
     const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
     rawState.substitutionStatus = 0;
     if (rawState.variables._ !== undefined) delete rawState.variables._;
@@ -7092,12 +7121,13 @@ export class Runtime {
                 break;
               }
               lastArg = v;
-              const path = pathOf(rawState, v);
+              const cleanV = isCleanAbsolutePath(v);
+              const path = cleanV ? v : pathOf(rawState, v);
               if (
                 path === "/" ||
                 path === "/dev" ||
                 path.startsWith("/dev/") ||
-                !isCleanAbsolutePath(path) ||
+                (!cleanV && !isCleanAbsolutePath(path)) ||
                 tryResolveMemoryDevicePath(this.backingFs, path) === undefined
               ) {
                 valid = false;

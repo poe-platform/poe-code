@@ -24,6 +24,9 @@ export interface FoldEngine {
   /** Idempotently discard invocation-owned state; further input is rejected. */
   dispose(): void;
   /** Immutable invocation counters, also available after disposal or failure. */
+  inputBytes?(): number;
+  retainedBytes?(): number;
+  outputBytes?(): number;
   accounting(): Readonly<FoldAccounting>;
 }
 export function createFoldEngine(options: FoldOptions, locale: string, configuration: Partial<FoldLimits> = {}, signal?: AbortSignal): FoldEngine {
@@ -133,6 +136,27 @@ export function createFoldEngine(options: FoldOptions, locale: string, configura
         if (length > 4096 || length > inputBytes - input) throw new FoldError('LIMIT', 'Input byte or bounded-call limit exceeded');
         input += length;
         for (const b of values) {
+          if (
+            pending.length === 0 &&
+            b >= 32 &&
+            b < 127 &&
+            column < width &&
+            used + 1 < line.length &&
+            1 <= decodedLimit - decoded &&
+            5 <= work - steps &&
+            !closed &&
+            !aborted &&
+            !(pollSignal && signal!.aborted)
+          ) {
+            steps += 5;
+            decoded += 1;
+            column += 1;
+            lastWidth = 1;
+            line[used++] = b;
+            if (spaces && b === 32) lastBlank = used;
+            if (used > peakRetained) peakRetained = used;
+            continue;
+          }
           check();
           if (pending.length === 0 && b < 128) {
             if (used + 1 > peakRetained) peakRetained = used + 1;
@@ -156,6 +180,9 @@ export function createFoldEngine(options: FoldOptions, locale: string, configura
       catch (error) { dispose(); throw error; }
     },
     dispose,
+    inputBytes: () => input,
+    retainedBytes: () => used + pending.length,
+    outputBytes: () => output,
     accounting: () => Object.freeze({ inputBytes: input, decodedBytes: decoded, retainedBytes: used + pending.length, peakRetainedBytes: peakRetained, outputBytes: output, work: steps }),
   };
 }

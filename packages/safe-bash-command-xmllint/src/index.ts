@@ -136,6 +136,22 @@ async function execute(
     } finally {
       if (!parsed.done) parser.return(undefined as never);
     }
+    const outBatch = new Uint8Array(16384);
+    let outBatchUsed = 0;
+    let writesCount = 0;
+    async function flushWrite(): Promise<void> {
+      if (outBatchUsed > 0) {
+        const slice = outBatch.subarray(0, outBatchUsed);
+        outBatchUsed = 0;
+        writesCount++;
+        try {
+          await writeBytes(context.stdout, slice, context.signal);
+        } catch (error) {
+          outputFailed = true;
+          throw error;
+        }
+      }
+    }
     async function write(part: string): Promise<void> {
       for (let offset = 0; offset < part.length; ) {
         let end = Math.min(offset + 4096, part.length);
@@ -149,14 +165,24 @@ async function execute(
         const slice = part.slice(offset, end);
         const bytes = sharedEncoder.encode(slice);
         const size = bytes.byteLength;
-        if (size > limits.maxOutputBytes - budget.outputBytes)
+        if (size > limits.maxOutputBytes - budget.outputBytes) {
+          await flushWrite();
           throw new XmlQueryLimitError("maxOutputBytes");
+        }
         budget.outputBytes += size;
-        try {
-          await writeBytes(context.stdout, bytes, context.signal);
-        } catch (error) {
-          outputFailed = true;
-          throw error;
+        if (writesCount < 2 || size >= 8192) {
+          await flushWrite();
+          writesCount++;
+          try {
+            await writeBytes(context.stdout, bytes, context.signal);
+          } catch (error) {
+            outputFailed = true;
+            throw error;
+          }
+        } else {
+          if (outBatchUsed + size > outBatch.byteLength) await flushWrite();
+          outBatch.set(bytes, outBatchUsed);
+          outBatchUsed += size;
         }
         offset = end;
       }
@@ -171,6 +197,7 @@ async function execute(
         ))
           await write(part);
       }
+      await flushWrite();
       return { exitCode: 0 };
     }
     const nodes = await evaluate(options.query, parsed.value, budget);
@@ -184,9 +211,11 @@ async function execute(
         for await (const part of serialize(node, budget)) await write(part);
         await write("\n");
       }
+      await flushWrite();
       return { exitCode: 0 };
     }
     await write("\n");
+    await flushWrite();
     return { exitCode: 0 };
   } catch (error) {
     context.signal.throwIfAborted();

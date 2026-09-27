@@ -162,7 +162,8 @@ async function executeFold(context: CommandContext, configuration: FoldCommandOp
     }
     const deliver = async (chunks: readonly Uint8Array[]): Promise<void> => {
       chargeWork(0);
-      if (engine!.accounting().outputBytes > limits.outputBytes - diagnostics) throw new FoldError('LIMIT', 'Output byte limit exceeded');
+      const engOut = (engine as unknown as { outputBytes?: () => number })?.outputBytes?.() ?? engine!.accounting().outputBytes;
+      if (engOut > limits.outputBytes - diagnostics) throw new FoldError('LIMIT', 'Output byte limit exceeded');
       if (chunks.length === 0) return;
       if (chunks.length === 1) { await writeBytes(stdout!.output, chunks[0]!, signal); return; }
       let total = 0;
@@ -244,8 +245,10 @@ async function executeFold(context: CommandContext, configuration: FoldCommandOp
             // Intrinsic subarray still invokes producer-controlled species.
             // A direct view reads the original storage without that callback.
             const unit = new Uint8Array(byteBuffer.call(next.value) as ArrayBuffer, (byteOffset.call(next.value) as number) + offset, Math.min(4096, length - offset));
-            context.inputBudget?.check(engine.accounting().inputBytes + unit.byteLength);
-            retain(ownedInput + engine.accounting().retainedBytes + unit.byteLength * 2 + 4);
+            const engIn = (engine as unknown as { inputBytes?: () => number }).inputBytes?.() ?? engine.accounting().inputBytes;
+            const engRet = (engine as unknown as { retainedBytes?: () => number }).retainedBytes?.() ?? engine.accounting().retainedBytes;
+            context.inputBudget?.check(engIn + unit.byteLength);
+            retain(ownedInput + engRet + unit.byteLength * 2 + 4);
             await deliver(engine.push(unit));
           }
         }

@@ -247,7 +247,13 @@ export async function htmlq(
         if (options.limits.outputBytes === Infinity && options.limits.retainedBytes === Infinity) {
           const batch = new Uint8Array(16384);
           let batchOffset = 0;
+          let firstChunk = true;
           for await (const bytes of rendered) {
+            if (firstChunk) {
+              firstChunk = false;
+              await writeBytes(stdout!.output, bytes, options.signal);
+              continue;
+            }
             if (bytes.byteLength >= 8192) {
               if (batchOffset > 0) {
                 await writeBytes(stdout!.output, batch.subarray(0, batchOffset), options.signal);

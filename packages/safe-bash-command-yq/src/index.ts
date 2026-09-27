@@ -591,11 +591,21 @@ async function runCommand(context: CommandContext, owner: InvocationOwner, input
         }
         owner.assertOpen(context.signal);
         const iterator = session.run(document);
+        const outBatch = Buffer.allocUnsafe(16384);
+        let outBatchUsed = 0;
+        const flushOutBatch = async (): Promise<void> => {
+          if (outBatchUsed > 0) {
+            const slice = outBatch.subarray(0, outBatchUsed);
+            outBatchUsed = 0;
+            await writeOperation(stdoutOperation(), slice, owner, context.signal);
+          }
+        };
         try {
           while (true) {
             let next: IteratorResult<Json>;
             try { next = await iterator.next(); }
             catch (failure) {
+              await flushOutBatch();
               if (context.signal.aborted) throw context.signal.reason;
               if (failure instanceof JqLimitError) throw fromJqLimit(failure);
               if (failure instanceof JqError) throw new YqError("query", "QUERY_RUNTIME_FAILED", 5, sourceName);
@@ -603,8 +613,11 @@ async function runCommand(context: CommandContext, owner: InvocationOwner, input
             }
             owner.assertOpen(context.signal);
             if (next.done) break;
-            try { await session.ownedWork.measure(next.value); }
-            catch (failure) {
+            try {
+              const m = session.ownedWork.measureSync ? session.ownedWork.measureSync(next.value) : session.ownedWork.measure(next.value);
+              if (m instanceof Promise) await m;
+            } catch (failure) {
+              await flushOutBatch();
               if (failure instanceof JqLimitError) throw fromJqLimit(failure);
               if (failure instanceof YqValueFailure) throw classifyValueFailure(failure);
               throw failure;
@@ -614,15 +627,22 @@ async function runCommand(context: CommandContext, owner: InvocationOwner, input
             const separator = emitted === 0 || options.format === "json" ? "" : "---\n";
             const suffixBytes = Buffer.byteLength(separator) + 1;
             const remaining = yqCaps.stdoutCapBytes - ledger.stdoutBytes;
-            if (suffixBytes > remaining) throw new YqError("limit", "LIMIT_MAX_OUTPUT_BYTES", 5, sourceName);
+            if (suffixBytes > remaining) {
+              await flushOutBatch();
+              throw new YqError("limit", "LIMIT_MAX_OUTPUT_BYTES", 5, sourceName);
+            }
             let encoded: string;
             try {
-              encoded = options.format === "yaml"
-                ? await encodeYaml(next.value, session.ownedWork, remaining - suffixBytes)
-                : options.raw && typeof next.value === "string"
-                  ? await encodeRaw(next.value, session.ownedWork, remaining - 1)
-                  : await encodeJson(next.value, session.ownedWork, !options.compact, remaining - 1);
+              if (options.format === "yaml") {
+                const e = encodeYaml(next.value, session.ownedWork, remaining - suffixBytes);
+                encoded = e instanceof Promise ? await e : e;
+              } else if (options.raw && typeof next.value === "string") {
+                encoded = await encodeRaw(next.value, session.ownedWork, remaining - 1);
+              } else {
+                encoded = await encodeJson(next.value, session.ownedWork, !options.compact, remaining - 1);
+              }
             } catch (failure) {
+              await flushOutBatch();
               if (failure instanceof JqLimitError) throw fromJqLimit(failure);
               if (failure instanceof YqValueFailure) throw classifyValueFailure(failure);
               throw failure;
@@ -630,19 +650,34 @@ async function runCommand(context: CommandContext, owner: InvocationOwner, input
             owner.assertOpen(context.signal);
             const encodedBytes = Buffer.byteLength(encoded);
             const outputBytes = encodedBytes + suffixBytes;
-            ledger.admitStdout(outputBytes);
-            session.ownedWork.admitOutputBytes(outputBytes);
+            try {
+              ledger.admitStdout(outputBytes);
+              session.ownedWork.admitOutputBytes(outputBytes);
+            } catch (failure) {
+              await flushOutBatch();
+              throw failure;
+            }
             owner.assertOpen(context.signal);
-            const output = Buffer.allocUnsafe(outputBytes);
-            let offset = 0;
-            if (separator !== "") offset += output.write(separator, offset, "utf8");
-            offset += output.write(encoded, offset, "utf8");
-            output[offset] = 0x0a;
-            owner.assertOpen(context.signal);
-            await writeOperation(stdoutOperation(), output, owner, context.signal);
+            if (emitted < 2 || outputBytes >= 8192) {
+              await flushOutBatch();
+              const output = Buffer.allocUnsafe(outputBytes);
+              let offset = 0;
+              if (separator !== "") offset += output.write(separator, offset, "utf8");
+              offset += output.write(encoded, offset, "utf8");
+              output[offset] = 0x0a;
+              owner.assertOpen(context.signal);
+              await writeOperation(stdoutOperation(), output, owner, context.signal);
+            } else {
+              if (outBatchUsed + outputBytes > outBatch.byteLength) await flushOutBatch();
+              if (separator !== "") outBatchUsed += outBatch.write(separator, outBatchUsed, "utf8");
+              outBatchUsed += outBatch.write(encoded, outBatchUsed, "utf8");
+              outBatch[outBatchUsed++] = 0x0a;
+            }
             emitted++;
           }
+          await flushOutBatch();
         } finally {
+          outBatchUsed = 0;
           await iterator.return(undefined);
           owner.assertOpen(context.signal);
         }

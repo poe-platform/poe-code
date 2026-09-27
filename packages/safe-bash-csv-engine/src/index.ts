@@ -58,6 +58,12 @@ export class CsvBudget {
   get accounting(): Readonly<typeof this.usage> {
     return Object.freeze({ ...this.usage });
   }
+  getUsage(key: keyof typeof this.usage): number {
+    return this.usage[key];
+  }
+  remaining(key: Exclude<keyof CsvLimits, "fieldBytes">): number {
+    return this.limits[key] - this.usage[key];
+  }
   constructor(
     limits: Partial<CsvLimits>,
     readonly signal: AbortSignal

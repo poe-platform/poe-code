@@ -128,7 +128,7 @@ export function cutCsv(
         } catch {
           throw new CsvError("INPUT", "Invalid CSV byte chunk");
         }
-        if (length > b.limits.inputBytes - b.accounting.inputBytes)
+        if (length > b.remaining("inputBytes"))
           throw new CsvError("LIMIT", "inputBytes limit exceeded");
         // Parse synchronously before producer advancement; never retain its views.
         const step = supplied.names ? 1 : 4096;
@@ -147,7 +147,34 @@ export function cutCsv(
       if (supplied.names && !first) throw new CsvError("INPUT", "StopIteration: ");
       const headers = supplied.headerless ? generatedHeaders(first?.cells.length ?? 0, b) : first?.cells ?? [];
       const output: Uint8Array[] = [];
-      const put = (text: string): void => { b.charge("retainedBytes", 8); output.push(encode(text)); };
+      let pendingBatch = "";
+      const chargeEncoded = (text: string): void => {
+        let length = 0;
+        for (let i = 0; i < text.length; i++) {
+          const code = text.charCodeAt(i);
+          if (code < 0x80) length += 1;
+          else if (code < 0x800) length += 2;
+          else if (code >= 0xd800 && code <= 0xdbff && i + 1 < text.length) {
+            const low = text.charCodeAt(i + 1);
+            if (low >= 0xdc00 && low <= 0xdfff) { length += 4; i++; } else length += 3;
+          } else length += 3;
+        }
+        b.charge("outputBytes", length);
+        b.charge("retainedBytes", length + 32);
+      };
+      const put = (text: string): void => {
+        b.charge("retainedBytes", 8);
+        if (output.length === 0) {
+          output.push(encode(text));
+          return;
+        }
+        chargeEncoded(text);
+        pendingBatch += text;
+        if (pendingBatch.length >= 16384) {
+          output.push(sharedEncoder.encode(pendingBatch));
+          pendingBatch = "";
+        }
+      };
       if (supplied.names) {
         for (let i = 0; i < headers.length; i++) {
           b.charge("work", headers[i]!.length + 1);
@@ -180,6 +207,7 @@ export function cutCsv(
           put(serializeRow(cells, b));
         }
       }
+      if (pendingBatch.length > 0) { output.push(sharedEncoder.encode(pendingBatch)); pendingBatch = ""; }
       for (const bytes of output) { signal.throwIfAborted(); yield bytes; }
     } catch (error) {
       failed = true;

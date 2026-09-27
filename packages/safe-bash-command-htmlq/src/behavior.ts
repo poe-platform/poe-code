@@ -1,5 +1,5 @@
 import { HtmlBudget, HtmlError, invocationOptions, type HtmlOptions } from "./contracts.js";
-import { parseHtml, detachHtmlNode, replaceHtmlAttribute } from "./tree.js";
+import { parseHtml, detachHtmlNode, replaceHtmlAttribute, getInternalHtmlNode } from "./tree.js";
 import { selectHtml } from "./selectors.js";
 import { inclusiveHtmlDescendants } from "./traversal.js";
 import { serializeHtmlBytes, rustWhitespaceOnly } from "./serializer.js";
@@ -62,6 +62,25 @@ export async function* projectHtmlq(
   }
   const encoder = new TextEncoder();
   async function* outputText(text: string): AsyncGenerator<Uint8Array> {
+    if (text.length > 0 && text.length <= 2048) {
+      let cpCount = text.length;
+      for (let i = 0; i < text.length; i++) {
+        const code = text.charCodeAt(i);
+        if (code >= 0xd800 && code <= 0xdbff && i + 1 < text.length) {
+          const low = text.charCodeAt(i + 1);
+          if (low >= 0xdc00 && low <= 0xdfff) { cpCount--; i++; }
+        }
+      }
+      if (budget.remaining("work") >= cpCount && budget.remaining("retainedBytes") >= text.length * 5) {
+        budget.charge("work", cpCount);
+        budget.charge("retainedBytes", text.length * 5);
+        const bytes = encoder.encode(text);
+        budget.charge("outputBytes", bytes.length);
+        yield bytes;
+        budget.check();
+        return;
+      }
+    }
     let pending = "";
     for (const c of text) {
       budget.charge("work", 1);
@@ -84,7 +103,9 @@ export async function* projectHtmlq(
       budget.check();
     }
   }
+  let selectedIndex = 0;
   for (const node of selected) {
+    const isFirstNode = selectedIndex++ === 0;
     if (removal) {
       const first = selectHtml(node, removal, invocation).next().value;
       if (first) detachHtmlNode(first, invocation);
@@ -118,14 +139,23 @@ export async function* projectHtmlq(
         }
       }
     } else if (args.text) {
-      for (const descendant of inclusiveHtmlDescendants(node, invocation)) {
-        if (descendant.kind !== "text") continue;
-        budget.charge("work", descendant.data.length);
-        if (args.ignoreWhitespace && rustWhitespaceOnly(descendant.data)) continue;
-        yield* outputText(descendant.data);
-        if (args.ignoreWhitespace) yield* outputText("\n");
+      const internal = !args.ignoreWhitespace && !isFirstNode && budget.limits.outputBytes === Infinity ? getInternalHtmlNode(node) : undefined;
+      if (internal && internal.children.length === 1 && internal.children[0]!.kind === "text" && internal.children[0]!.children.length === 0) {
+        const textData = internal.children[0]!.data;
+        budget.charge("work", 2);
+        budget.bound("depth", 1);
+        budget.charge("work", textData.length);
+        yield* outputText(textData + "\n");
+      } else {
+        for (const descendant of inclusiveHtmlDescendants(node, invocation)) {
+          if (descendant.kind !== "text") continue;
+          budget.charge("work", descendant.data.length);
+          if (args.ignoreWhitespace && rustWhitespaceOnly(descendant.data)) continue;
+          yield* outputText(descendant.data);
+          if (args.ignoreWhitespace) yield* outputText("\n");
+        }
+        yield* outputText("\n");
       }
-      yield* outputText("\n");
     } else {
       yield* serializeHtmlBytes(node, invocation, args.pretty ? "pretty" : "normalized");
       yield* outputText("\n");

@@ -15,7 +15,7 @@ class Fragments {
   async append(fragment: string): Promise<void> {
     const bytes = Buffer.byteLength(fragment);
     if (bytes > this.maxBytes - this.bytes) throw new JqLimitError("maxOutputBytes");
-    if (bytes > 0) await this.work.charge(Math.ceil(bytes / 1024));
+    if (bytes > 0) { const _p = this.work.chargeSync ? this.work.chargeSync(Math.ceil(bytes / 1024)) : this.work.charge(Math.ceil(bytes / 1024)); if (_p) await _p; }
     this.work.assertOpen();
     this.parts.push(fragment);
     this.bytes += bytes;
@@ -30,7 +30,7 @@ class Fragments {
 
   async appendReserved(fragment: string, bytes: number): Promise<void> {
     if (Buffer.byteLength(fragment) !== bytes) throw new Error("escaped fragment projection mismatch");
-    if (bytes > 0) await this.work.charge(Math.ceil(bytes / 1024));
+    if (bytes > 0) { const _p = this.work.chargeSync ? this.work.chargeSync(Math.ceil(bytes / 1024)) : this.work.charge(Math.ceil(bytes / 1024)); if (_p) await _p; }
     this.work.assertOpen();
     this.parts.push(fragment);
   }
@@ -38,7 +38,7 @@ class Fragments {
   async indent(depth: number): Promise<void> {
     const bytes = depth * 2;
     if (!Number.isSafeInteger(bytes) || bytes > this.maxBytes - this.bytes) throw new JqLimitError("maxOutputBytes");
-    if (bytes > 0) await this.work.charge(Math.ceil(bytes / 1024));
+    if (bytes > 0) { const _p = this.work.chargeSync ? this.work.chargeSync(Math.ceil(bytes / 1024)) : this.work.charge(Math.ceil(bytes / 1024)); if (_p) await _p; }
     this.work.assertOpen();
     this.parts.push("  ".repeat(depth));
     this.bytes += bytes;
@@ -95,7 +95,7 @@ async function quoted(text: string, output: Fragments): Promise<void> {
       fragment += yamlEscape(codePoint);
       index += codePoint > 0xffff ? 2 : 1;
     }
-    await output.work.charge(codePoints);
+    { const _p = output.work.chargeSync ? output.work.chargeSync(codePoints) : output.work.charge(codePoints); if (_p) await _p; }
     output.work.assertOpen();
     await output.appendReserved(fragment, projectedBytes);
     output.work.assertOpen();
@@ -115,7 +115,7 @@ function nonemptyCollection(value: Json): boolean {
 }
 
 async function inline(value: Json, output: Fragments): Promise<void> {
-  await output.work.charge(1);
+  { const _p = output.work.chargeSync ? output.work.chargeSync(1) : output.work.charge(1); if (_p) await _p; }
   output.work.assertOpen();
   if (value === null || typeof value === "boolean") await output.append(JSON.stringify(value));
   else if (typeof value === "number" || value instanceof Decimal) {
@@ -148,7 +148,7 @@ async function mappingBlock(value: Record<string, Json>, output: Fragments, dept
 }
 
 async function block(value: Json, output: Fragments, depth: number): Promise<void> {
-  await output.work.charge(1);
+  { const _p = output.work.chargeSync ? output.work.chargeSync(1) : output.work.charge(1); if (_p) await _p; }
   output.work.assertOpen();
   if (!nonemptyCollection(value)) {
     await output.indent(depth);
@@ -162,7 +162,7 @@ async function block(value: Json, output: Fragments, depth: number): Promise<voi
       await output.append("-");
       const item = value[index]!;
       if (isCollection(item) && !Array.isArray(item) && objectKeys(item).length > 0) {
-        await output.work.charge(1);
+        { const _p = output.work.chargeSync ? output.work.chargeSync(1) : output.work.charge(1); if (_p) await _p; }
         output.work.assertOpen();
         await output.append(" ");
         await mappingBlock(item, output, depth + 1, true);

@@ -23,6 +23,7 @@ import {
 import { createMatcher, matchesRow, pythonRstrip, pythonWhitespace, type MatchOptions } from "./match.js";
 const bytePrototype = Object.getPrototypeOf(Uint8Array.prototype);
 const byteExtent = Object.getOwnPropertyDescriptor(bytePrototype, "byteLength")!.get!;
+const sharedEncoder = new TextEncoder();
 const byteBuffer = Object.getOwnPropertyDescriptor(bytePrototype, "buffer")!.get!;
 const byteOffset = Object.getOwnPropertyDescriptor(bytePrototype, "byteOffset")!.get!;
 export interface CsvgrepOptions extends MatchOptions {
@@ -247,24 +248,46 @@ export async function csvgrep(
     const b = new CsvBudget(limits, signal);
     stdout = createOutputOperation({ signal }, context.stdout);
     stderr = createOutputOperation({ signal }, context.stderr);
+    const outBatch = new Uint8Array(16384);
+    let outBatchUsed = 0;
+    let stdoutWrites = 0;
+    const flushStdout = async (): Promise<void> => {
+      if (outBatchUsed > 0) {
+        const slice = outBatch.subarray(0, outBatchUsed);
+        outBatchUsed = 0;
+        stdoutWrites++;
+        await writeBytes(stdout!.output, slice, signal);
+      }
+    };
     const write = async (text: string, diagnostic = false): Promise<void> => {
       signal.throwIfAborted();
       // Diagnostics are best effort within the same invocation quotas. Never
       // replace an admitted failure status with another reservation failure.
       if (diagnostic && (
-        text.length > b.limits.work - b.accounting.work ||
-        text.length * 3 > b.limits.retainedBytes - b.accounting.retainedBytes ||
-        text.length > b.limits.outputBytes - b.accounting.outputBytes
+        text.length > b.remaining("work") ||
+        text.length * 3 > b.remaining("retainedBytes") ||
+        text.length > b.remaining("outputBytes")
       )) return;
       b.charge("work", text.length);
       b.charge("retainedBytes", text.length * 3);
       // UTF-16 length is a lower bound for UTF-8; reserve the exact output before writing.
-      if (text.length > b.limits.outputBytes - b.accounting.outputBytes)
+      if (text.length > b.remaining("outputBytes"))
         throw new CsvError("LIMIT", "outputBytes limit exceeded");
-      const bytes = new TextEncoder().encode(text);
-      if (diagnostic && bytes.length > b.limits.outputBytes - b.accounting.outputBytes) return;
+      const bytes = sharedEncoder.encode(text);
+      if (diagnostic && bytes.length > b.remaining("outputBytes")) return;
       b.charge("outputBytes", bytes.length);
-      await writeBytes((diagnostic ? stderr! : stdout!).output, bytes, signal);
+      if (diagnostic) {
+        await flushStdout();
+        await writeBytes(stderr!.output, bytes, signal);
+      } else if (stdoutWrites < 2 || bytes.byteLength >= 8192) {
+        await flushStdout();
+        stdoutWrites++;
+        await writeBytes(stdout!.output, bytes, signal);
+      } else {
+        if (outBatchUsed + bytes.byteLength > outBatch.byteLength) await flushStdout();
+        outBatch.set(bytes, outBatchUsed);
+        outBatchUsed += bytes.byteLength;
+      }
     };
     const source = (path: string): ByteSource => {
       signal.throwIfAborted();
@@ -316,8 +339,8 @@ export async function csvgrep(
           const length = byteExtent.call(next.value) as number;
           const buffer = byteBuffer.call(next.value) as ArrayBuffer;
           const origin = byteOffset.call(next.value) as number;
-          context.inputBudget?.check(b.accounting.inputBytes + length);
-          if (length > b.limits.inputBytes - b.accounting.inputBytes)
+          context.inputBudget?.check(b.getUsage("inputBytes") + length);
+          if (length > b.remaining("inputBytes"))
             throw new CsvError("LIMIT", "inputBytes limit exceeded");
           for (let offset = 0; offset < length; offset += 4096) {
             await receive(new Uint8Array(buffer, origin + offset, Math.min(4096, length - offset)));
@@ -502,8 +525,10 @@ export async function csvgrep(
         if (options.names) throw new CsvError("INPUT", "No header row available");
         await write(serializeRow([], b));
       }
+      await flushStdout();
       return { exitCode: 0, accounting: Object.freeze({ ...b.accounting, retainedBytes: 0 }) };
     } catch (error) {
+      outBatchUsed = 0;
       signal.throwIfAborted();
       if (!(error instanceof CsvError) && !(error instanceof FsError)) throw error;
       await write(`error: ${error.message}\n`, true);

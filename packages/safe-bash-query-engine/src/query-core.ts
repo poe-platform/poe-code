@@ -51,6 +51,7 @@ export interface YqOwnedWork {
   admitOutputBytes(bytes: number): void;
   admitResult(): void;
   measure(value: Json): Promise<number>;
+  measureSync?(value: Json): number | Promise<number>;
   stringifyJson(value: Json, options: {
     readonly pretty: boolean;
     readonly maxBytes: number;
@@ -196,6 +197,49 @@ class OwnedWork implements YqOwnedWork {
 
   measure(value: Json): Promise<number> {
     return this.#track(this.#measure(value));
+  }
+
+  measureSync(value: Json): number | Promise<number> {
+    if (
+      this.#budget.limits.maxDepth >= 0 &&
+      (value === null || typeof value === "boolean" || typeof value === "number" || value instanceof Decimal || (typeof value === "string" && value.length <= 256))
+    ) {
+      this.assertOpen();
+      const p = this.chargeSync(1);
+      if (p === undefined) {
+        this.assertOpen();
+        if (value === null || typeof value === "boolean") {
+          return this.#addMeasured(0, scalarBytes(value));
+        }
+        if (typeof value === "number" || value instanceof Decimal) {
+          validateNumber(value);
+          return this.#addMeasured(0, Buffer.byteLength(numberText(value)));
+        }
+        if (typeof value === "string") {
+          const p2 = value.length > 0 ? this.chargeSync(value.length) : undefined;
+          if (p2 === undefined) {
+            this.assertOpen();
+            if (!wellFormed(value)) throw new YqValueFailure("ENCODE_INVALID_UNICODE");
+            let total = 2;
+            for (let i = 0; i < value.length; i++) {
+              const code = value.charCodeAt(i);
+              if (code === 0x22 || code === 0x5c || code === 0x08 || code === 0x0c || code === 0x0a || code === 0x0d || code === 0x09) total += 2;
+              else if (code < 0x20) total += 6;
+              else if (code < 0x80) total += 1;
+              else {
+                const cp = value.codePointAt(i)!;
+                total += cp <= 0x7ff ? 2 : cp <= 0xffff ? 3 : 4;
+                if (cp > 0xffff) i++;
+              }
+            }
+            return this.#addMeasured(0, total);
+          }
+          return this.#track(p2.then(() => this.#measure(value)));
+        }
+      }
+      if (p !== undefined) return this.#track(p.then(() => this.#measure(value)));
+    }
+    return this.measure(value);
   }
 
   async #measure(value: Json): Promise<number> {

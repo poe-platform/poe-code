@@ -542,11 +542,18 @@ class FlowParser {
     readonly line: number,
   ) {}
 
-  async parse(): Promise<ParsedNode> {
-    const node = await this.#node();
+  parse(): ParsedNode | Promise<ParsedNode> {
+    const n0 = this.#node();
+    if (n0 instanceof Promise) {
+      return n0.then((node) => {
+        this.#space();
+        if (this.#position !== this.source.length) throw syntax(this.line, this.#position + 1);
+        return node;
+      });
+    }
     this.#space();
     if (this.#position !== this.source.length) throw syntax(this.line, this.#position + 1);
-    return node;
+    return n0;
   }
 
   #node(keyMode = false): ParsedNode | Promise<ParsedNode> {
@@ -982,12 +989,12 @@ class BlockParser {
   async #inlineMappingItem(first: string, indent: number, lineNumber: number): Promise<ParsedNode> {
     this.composer.enterCollection();
     try {
-      await this.composer.node();
+      { const _n = this.composer.node(); if (_n) await _n; }
       this.composer.collection();
       const result = object();
       let members = 1;
       this.composer.member(members);
-      await this.#mappingLine(result, first, indent, lineNumber, true);
+      { const _m = this.#mappingLine(result, first, indent, lineNumber, true); if (_m) await _m; }
       while (this.#index < this.lines.length) {
         this.#skip();
         const line = this.lines[this.#index];
@@ -996,7 +1003,7 @@ class BlockParser {
         if (mappingColon(content) < 0) break;
         this.composer.member(++members);
         this.#index++;
-        await this.#mappingLine(result, content, indent, line.number, true);
+        { const _m = this.#mappingLine(result, content, indent, line.number, true); if (_m) await _m; }
       }
       return { value: result };
     } finally { this.composer.leaveCollection(); }
@@ -1005,7 +1012,7 @@ class BlockParser {
   async #mapping(indent: number): Promise<ParsedNode> {
     this.composer.enterCollection();
     try {
-      await this.composer.node();
+      { const _n = this.composer.node(); if (_n) await _n; }
       this.composer.collection();
       const result = object();
       let members = 0;
@@ -1031,20 +1038,33 @@ class BlockParser {
         if (colon < 0) break;
         this.composer.member(++members);
         this.#index++;
-        await this.#mappingLine(result, content, indent, line.number, true);
+        { const _m = this.#mappingLine(result, content, indent, line.number, true); if (_m) await _m; }
       }
       return { value: result };
     } finally { this.composer.leaveCollection(); }
   }
 
-  async #mappingLine(target: Record<string, Json>, content: string, indent: number, lineNumber: number, memberAdmitted: boolean): Promise<void> {
+  #mappingLine(target: Record<string, Json>, content: string, indent: number, lineNumber: number, memberAdmitted: boolean): Promise<void> | undefined {
     const colon = mappingColon(content);
     if (colon < 0) throw syntax(lineNumber, 1);
     const keyText = content.slice(0, colon).trimEnd();
     const valueText = content.slice(colon + 1).trimStart();
-    const key = await this.#inlineOrBlock(keyText, indent, lineNumber);
-    const value = valueText.length > 0 ? await this.#inlineOrBlock(valueText, indent, lineNumber) : await this.#nestedOrNull(indent);
-    this.composer.mappingEntry(target, key, value.value, true, memberAdmitted);
+    const k0 = this.#inlineOrBlock(keyText, indent, lineNumber);
+    if (k0 instanceof Promise) {
+      return k0.then(async (key) => {
+        const v0 = valueText.length > 0 ? this.#inlineOrBlock(valueText, indent, lineNumber) : this.#nestedOrNull(indent);
+        const value = v0 instanceof Promise ? await v0 : v0;
+        this.composer.mappingEntry(target, key, value.value, true, memberAdmitted);
+      });
+    }
+    const v0 = valueText.length > 0 ? this.#inlineOrBlock(valueText, indent, lineNumber) : this.#nestedOrNull(indent);
+    if (v0 instanceof Promise) {
+      return v0.then((value) => {
+        this.composer.mappingEntry(target, k0, value.value, true, memberAdmitted);
+      });
+    }
+    this.composer.mappingEntry(target, k0, v0.value, true, memberAdmitted);
+    return undefined;
   }
 
   async #nestedOrNull(parentIndent: number): Promise<ParsedNode> {
@@ -1058,7 +1078,31 @@ class BlockParser {
     return { value: null, style: "plain" };
   }
 
-  async #inlineOrBlock(content: string, parentIndent: number, lineNumber: number): Promise<ParsedNode> {
+  #inlineOrBlock(content: string, parentIndent: number, lineNumber: number): ParsedNode | Promise<ParsedNode> {
+    if (content.length > 0 && content.length <= 256 && this.composer.work.chargeSync) {
+      const c0 = content.charCodeAt(0);
+      if (c0 !== 0x7c && c0 !== 0x3e && c0 !== 0x21 && c0 !== 0x26 && c0 !== 0x2a && c0 !== 0x5b && c0 !== 0x7b && c0 !== 0x22 && c0 !== 0x27) {
+        let simplePlain = true;
+        for (let i = 0; i < content.length; i++) {
+          const ch = content.charCodeAt(i);
+          if (ch === 0x22 || ch === 0x27 || ch === 0x5b || ch === 0x5d || ch === 0x7b || ch === 0x7d || ch === 0x23) {
+            simplePlain = false;
+            break;
+          }
+        }
+        if (simplePlain) {
+          const p = this.composer.work.chargeSync(content.length);
+          if (p === undefined) {
+            this.composer.work.assertOpen();
+            return new FlowParser(content, this.composer, lineNumber).parse();
+          }
+        }
+      }
+    }
+    return this.#inlineOrBlockSlow(content, parentIndent, lineNumber);
+  }
+
+  async #inlineOrBlockSlow(content: string, parentIndent: number, lineNumber: number): Promise<ParsedNode> {
     const property = /^(?:(!![^\s]+|!<[^>]+>|!)\s+)?(?:&([^\s]+)\s+)?([|>])([1-9]?[+-]?|[+-]?[1-9]?)$/u.exec(content);
     if (property) return this.#blockScalar(property, parentIndent, lineNumber);
     if (/^[|>]/u.test(content)) throw syntax(lineNumber, 1);
@@ -1074,7 +1118,7 @@ class BlockParser {
       let inComment = false;
       for (let start = 0; start < fragment.length; start += 256) {
         const end = Math.min(start + 256, fragment.length);
-        await this.composer.work.charge(end - start);
+        { const _p = this.composer.work.chargeSync ? this.composer.work.chargeSync(end - start) : this.composer.work.charge(end - start); if (_p) await _p; }
         this.composer.work.assertOpen();
         for (let index = start; index < end; index++) {
           if (inComment) continue;
@@ -1157,34 +1201,7 @@ class BlockParser {
 // Bound retained line metadata to a few MiB independently of the byte cap.
 const maxYamlSourceLines = 65_536;
 
-async function* rawLines(text: string, work: YqOwnedWork, lineOffset = 0): AsyncGenerator<SourceLine> {
-  let start = 0;
-  let count = 0;
-  let scanned = 0;
-  for (let index = 0; index < text.length; index++) {
-    if (++scanned === 256) {
-      await work.charge(scanned);
-      work.assertOpen();
-      scanned = 0;
-    }
-    const character = text[index];
-    const hadBreak = character === "\r" || character === "\n";
-    if (!hadBreak && index + 1 < text.length) continue;
-    if (++count > maxYamlSourceLines) throw limit("LIMIT_MAX_SOURCE_LINES");
-    work.assertOpen();
-    const line = text.slice(start, hadBreak ? index : index + 1);
-    if (character === "\r" && text[index + 1] === "\n") index++;
-    start = index + 1;
-    yield { text: line, number: lineOffset + count, rawBytes: Buffer.byteLength(line) + (hadBreak ? 1 : 0), hadBreak };
-  }
-  if (scanned > 0) {
-    await work.charge(scanned);
-    work.assertOpen();
-  }
-}
-
 async function* documents(text: string, work: YqOwnedWork, lineOffset = 0): AsyncGenerator<RawDocument> {
-  const lines = rawLines(text, work, lineOffset);
   let current: SourceLine[] = [];
   let explicit = false;
   let ended = false;
@@ -1200,7 +1217,25 @@ async function* documents(text: string, work: YqOwnedWork, lineOffset = 0): Asyn
     directives = 0;
     return document;
   };
-  for await (const original of lines) {
+  let start = 0;
+  let count = 0;
+  let scanned = 0;
+  for (let index = 0; index < text.length; index++) {
+    if (++scanned === 256) {
+      const _p = work.chargeSync ? work.chargeSync(scanned) : work.charge(scanned);
+      if (_p) await _p;
+      work.assertOpen();
+      scanned = 0;
+    }
+    const character = text[index];
+    const hadBreak = character === "\r" || character === "\n";
+    if (!hadBreak && index + 1 < text.length) continue;
+    if (++count > maxYamlSourceLines) throw limit("LIMIT_MAX_SOURCE_LINES");
+    work.assertOpen();
+    const rawLine = text.slice(start, hadBreak ? index : index + 1);
+    if (character === "\r" && text[index + 1] === "\n") index++;
+    start = index + 1;
+    const original: SourceLine = { text: rawLine, number: lineOffset + count, rawBytes: Buffer.byteLength(rawLine) + (hadBreak ? 1 : 0), hadBreak };
     let line = original;
     if (line.number === 1 && line.text.startsWith("\ufeff")) line = { ...line, text: line.text.slice(1) };
     if (ended && line.text.startsWith("\ufeff")) line = { ...line, text: line.text.slice(1) };
@@ -1238,6 +1273,11 @@ async function* documents(text: string, work: YqOwnedWork, lineOffset = 0): Asyn
     current.push(line);
     if (trimmed !== "") sawContent = true;
   }
+  if (scanned > 0) {
+    const _p = work.chargeSync ? work.chargeSync(scanned) : work.charge(scanned);
+    if (_p) await _p;
+    work.assertOpen();
+  }
   const document = take(false);
   if (document) yield document;
 }
@@ -1245,6 +1285,7 @@ async function* documents(text: string, work: YqOwnedWork, lineOffset = 0): Asyn
 function futureAnchorNames(lines: readonly SourceLine[]): string[] {
   const names: string[] = [];
   for (const line of lines) {
+    if (!line.text.includes("&")) continue;
     const source = stripComment(line.text);
     const matcher = /(?:^|[\s[,{}])&([^\s[\],{}]+)/gu;
     for (const match of source.matchAll(matcher)) names.push(match[1]!);

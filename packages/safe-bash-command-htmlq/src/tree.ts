@@ -18,7 +18,7 @@ interface Owner {
 }
 const kNode = Symbol("node");
 const kOwner = Symbol("owner");
-type FastMutableNode = HtmlNode & { _view?: PublicHtmlNode; _childViews?: readonly PublicHtmlNode[]; _owner?: Owner };
+export type FastMutableNode = HtmlNode & { _view?: PublicHtmlNode; _childViews?: readonly PublicHtmlNode[]; _owner?: Owner; _attrsFrozen?: boolean };
 type FastPublicView = PublicHtmlNode & { readonly [kNode]?: FastMutableNode; readonly [kOwner]?: Owner };
 const owners = {
   get(node: PublicHtmlNode | HtmlNode): Owner | undefined {
@@ -32,59 +32,82 @@ const internals = {
   has(node: PublicHtmlNode): boolean { return Boolean((node as FastPublicView)[kNode]); },
   get(node: PublicHtmlNode): FastMutableNode | undefined { return (node as FastPublicView)[kNode]; }
 };
+export function getInternalHtmlNode(node: PublicHtmlNode): FastMutableNode | undefined {
+  return internals.get(node);
+}
+export function getPublicHtmlView(node: FastMutableNode): PublicHtmlNode {
+  let view = node._view;
+  if (!view) {
+    const v = Object.create(publicViewProto) as Record<symbol, unknown>;
+    v[kNode] = node;
+    v[kOwner] = node._owner;
+    Object.freeze(v);
+    view = v as unknown as PublicHtmlNode;
+    node._view = view;
+  }
+  return view;
+}
 const views = {
-  get(node: HtmlNode): PublicHtmlNode | undefined { return (node as FastMutableNode)._view; }
+  get(node: HtmlNode): PublicHtmlNode | undefined { return getPublicHtmlView(node as FastMutableNode); }
 };
 const childViews = {
   get(node: HtmlNode): readonly PublicHtmlNode[] | undefined { return (node as FastMutableNode)._childViews; },
   set(node: HtmlNode, cv: readonly PublicHtmlNode[]): void { (node as FastMutableNode)._childViews = cv; }
 };
 const publicViewProto = {};
-for (const key of ["kind", "name", "data", "namespace", "attributes"] as const) {
+for (const key of ["kind", "name", "data", "namespace"] as const) {
   Object.defineProperty(publicViewProto, key, {
     enumerable: true,
     get(this: FastPublicView) { return this[kNode]![key]; }
   });
 }
+Object.defineProperty(publicViewProto, "attributes", {
+  enumerable: true,
+  get(this: FastPublicView) {
+    const n = this[kNode]!;
+    if (!n._attrsFrozen) {
+      for (const attribute of n.attributes) Object.freeze(attribute);
+      Object.freeze(n.attributes);
+      n._attrsFrozen = true;
+    }
+    return n.attributes;
+  }
+});
 Object.defineProperty(publicViewProto, "children", {
   enumerable: true,
-  get(this: FastPublicView) { return this[kNode]!._childViews!; }
+  get(this: FastPublicView) {
+    const n = this[kNode]!;
+    let cv = n._childViews;
+    if (!cv) {
+      cv = Object.freeze(n.children.map((child) => getPublicHtmlView(child as FastMutableNode)));
+      n._childViews = cv;
+    }
+    return cv;
+  }
 });
 for (const key of ["parent", "previousSibling", "nextSibling", "templateContents"] as const) {
   Object.defineProperty(publicViewProto, key, {
     enumerable: true,
     get(this: FastPublicView) {
       const n = this[kNode]![key] as FastMutableNode | null | undefined;
-      return n ? n._view : n;
+      return n ? getPublicHtmlView(n) : n;
     }
   });
 }
 Object.freeze(publicViewProto);
 function expose(document: HtmlNode, budget: HtmlBudget): PublicHtmlNode {
   const pending = [{ node: document as FastMutableNode, depth: 0 }];
-  const nodes: FastMutableNode[] = [];
   const docOwner = owners.get(document)!;
   while (pending.length) {
     const { node, depth } = pending.pop()!;
     budget.bound("depth", depth);
     budget.charge("work", 1);
     budget.charge("retainedBytes", 128 + node.children.length * 8);
-    nodes.push(node);
-    const view = Object.create(publicViewProto) as Record<symbol, unknown>;
-    view[kNode] = node;
-    view[kOwner] = docOwner;
-    Object.freeze(view);
-    node._view = view as unknown as PublicHtmlNode;
     node._owner = docOwner;
     for (const child of node.children) pending.push({ node: child as FastMutableNode, depth: depth + 1 });
     if (node.templateContents) pending.push({ node: node.templateContents as FastMutableNode, depth: depth + 1 });
   }
-  for (const node of nodes) {
-    node._childViews = Object.freeze(node.children.map((child) => (child as FastMutableNode)._view!));
-    Object.freeze(node.attributes);
-    for (const attribute of node.attributes) Object.freeze(attribute);
-  }
-  return (document as FastMutableNode)._view!;
+  return getPublicHtmlView(document as FastMutableNode);
 }
 export function ownsHtmlNode(node: PublicHtmlNode): boolean {
   return internals.has(node);

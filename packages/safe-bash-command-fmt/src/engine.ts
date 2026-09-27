@@ -192,6 +192,10 @@ class Formatter {
 
   private *lineStart(): FmtMachine<number> {
     this.column = 0;
+    if (this.settings.prefix.length === 0 && this.offset < this.chunkUsed && this.chunk[this.offset] !== 32 && this.chunk[this.offset] !== 9 && !this.budget.tick()) {
+      this.nextPrefix = 0;
+      return this.chunk[this.offset++]!;
+    }
     let byte = yield* this.whitespace(yield* this.read());
     const { prefix, leading } = this.settings;
     this.nextPrefix = prefix.length ? this.column : Math.min(leading, this.column);
@@ -254,10 +258,11 @@ class Formatter {
   private *render(finish: number): FmtMachine {
     for (let start = 0; start < finish; start = this.breaks[start]!) {
       this.outColumn = 0;
-      yield* this.spaces(this.prefixIndent);
+      if (this.prefixIndent > 0) yield* this.spaces(this.prefixIndent);
       for (const byte of this.settings.prefix) { const _b = byte; const _cp = this.budget.tick(); this.budget.admitOutput(); this.pending[this.pendingUsed++] = _b; if (_cp || this.pendingUsed === this.pending.length) yield* this.flushEmit(_cp); }
       this.outColumn += this.settings.prefix.length;
-      yield* this.spaces((start === 0 ? this.firstIndent : this.otherIndent) - this.outColumn);
+      const indentNeeded = (start === 0 ? this.firstIndent : this.otherIndent) - this.outColumn;
+      if (indentNeeded > 0) yield* this.spaces(indentNeeded);
       const end = this.breaks[start]!;
       for (let index = start; index < end; index++) {
         const word = this.words[index]!;
@@ -340,7 +345,7 @@ class Formatter {
       while (terminal > word.start) { const tb = this.text[terminal]!; if (tb !== 0 && tb !== 41 && tb !== 93 && tb !== 39 && tb !== 34) break; terminal--; }
       { const pb = this.text[terminal]!; word.period = pb === 0 || pb === 46 || pb === 63 || pb === 33; }
       const before = this.column;
-      byte = yield* this.whitespace(byte);
+      if (byte === 32 && this.offset < this.chunkUsed && this.chunk[this.offset] !== 32 && this.chunk[this.offset] !== 9 && !this.budget.tick()) { this.column = this.budget.exact(this.column + 1); byte = this.chunk[this.offset++]!; } else byte = yield* this.whitespace(byte);
       word.space = this.column - before;
       word.final = byte === -1 || word.period && (byte === 10 || word.space > 1);
       if (byte === 10 || byte === -1 || this.settings.uniform) word.space = word.final ? 2 : 1;

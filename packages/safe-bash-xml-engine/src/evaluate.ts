@@ -219,6 +219,11 @@ export async function* stringValue(
 }
 
 export async function* serialize(node: Node, budget: XmlBudget): AsyncGenerator<string> {
+  if (node.kind === "text" && node.value.text.length > 0 && node.value.text.length < 4096 && !/[&<>"\n\r\t\uD800-\uDFFF]/.test(node.value.text)) {
+    { const _p = budget.tick(1 + node.value.text.length); if (_p) await _p; }
+    yield node.value.text;
+    return;
+  }
   if (node.kind === "attribute") {
     yield ` ${node.value.name}="`;
     yield* escape(node.value.value, true, budget);
@@ -284,6 +289,11 @@ export async function* escape(
   budget: XmlBudget,
   options: { canonical?: boolean; ascii?: boolean } = {}
 ): AsyncGenerator<string> {
+  if (value.length > 0 && value.length < 4096 && !options.ascii && !/[&<>"\n\r\t\uD800-\uDFFF]/.test(value)) {
+    { const _p = budget.tick(value.length); if (_p) await _p; }
+    yield value;
+    return;
+  }
   let part = "";
   for (const character of value) {
     { const _p = budget.tick(); if (_p) await _p; }

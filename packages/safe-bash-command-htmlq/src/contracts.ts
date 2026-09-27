@@ -102,26 +102,28 @@ export class HtmlBudget {
   readonly limits: HtmlLimits;
   private ledger: Ledger;
   constructor(readonly options: HtmlOptions) {
-    this.limits = { ...options.limits };
     let ledger = invocationCounts.get(options);
     if (!ledger) {
+      this.limits = { ...options.limits };
+      for (const name of [
+        "inputBytes",
+        "decodedBytes",
+        "retainedBytes",
+        "nodes",
+        "attributes",
+        "depth",
+        "tokenBytes",
+        "work",
+        "outputBytes"
+      ] as const)
+        if (this.limits[name] !== Infinity && (!Number.isSafeInteger(this.limits[name]) || this.limits[name] < 0))
+          throw new HtmlError("E_LIMIT", "Expected nonnegative safe integer limits or Infinity", 0, name);
       ledger = createLedger(options.signal);
       invocationCounts.set(options, ledger);
+    } else {
+      this.limits = options.limits;
     }
     this.ledger = ledger;
-    for (const name of [
-      "inputBytes",
-      "decodedBytes",
-      "retainedBytes",
-      "nodes",
-      "attributes",
-      "depth",
-      "tokenBytes",
-      "work",
-      "outputBytes"
-    ] as const)
-      if (this.limits[name] !== Infinity && (!Number.isSafeInteger(this.limits[name]) || this.limits[name] < 0))
-        throw new HtmlError("E_LIMIT", "Expected nonnegative safe integer limits or Infinity", 0, name);
     this.check();
   }
   check(): void {
@@ -130,7 +132,7 @@ export class HtmlBudget {
   }
   bound(resource: keyof HtmlLimits, amount: number): void {
     this.check();
-    if (!Number.isSafeInteger(amount) || amount < 0 || amount > this.limits[resource])
+    if ((((amount | 0) !== amount || amount < 0) && (!Number.isSafeInteger(amount) || amount < 0)) || amount > this.limits[resource])
       throw new HtmlError("E_LIMIT", `HTML ${resource} limit exceeded`, 0, resource);
     if (amount > this.ledger.peaks[resource]) this.ledger.peaks[resource] = amount;
   }

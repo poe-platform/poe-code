@@ -2065,7 +2065,13 @@
     "odfIntegrationWarnings": {
       "trigger": "Terminal release 36307124170, Bash shard 1: four tests in packages/safe-bash/tests/commands/ssconvert-odf.test.ts failed after native ODF default-enabled label lookup was imported.",
       "validation": "All four failures reproduced on current source. Their expected empty diagnostics omitted the required Gnumeric XML/CSV metadata-loss warning. Assertions now compare exact Shell/SDK warning codes and text, including message-only SDK diagnostics. Original input bytes, output CSV, checkpoint/replay, passive-resource authority and failed-publication checks remain. All six maintained file-selected integration tests pass; guarded root ESLint passes with zero errors/warnings.",
-      "scope": "Test correction only; no warning suppression or product behavior change. XML/CSV label identity preservation and complete native/public qualification remain open. Release publication is separately tracked in hey-boss #3360."
+      "scope": "Test correction only; no warning suppression or product behavior change. XML/CSV label identity preservation and complete native/public qualification remain open. Release publication is separately tracked in hey-boss #3360.",
+      "profileReconciliation": {
+        "trigger": "Incoming 4718633707 disabled lookup in the shared fixture after a478340c9f added default-enabled warning expectations; four current integration failures reproduced.",
+        "implementation": "Keep disabled lookup as the fixture default. Parameterize the SDK/Shell/replay conversion over absent, false and true settings; explicitly enable lookup in the style transport case. Passive-resource and malformed-input cases use disabled lookup and retain their own diagnostics.",
+        "validation": "Eight ODF cases pass within the four-file cohort: 26 passed, one GNU yes oracle unavailable. Guarded root ESLint completes with zero errors and warnings. All prior output, replay, input immutability, authority and failure-publication assertions remain.",
+        "remaining": "Native application and complete format/public artifact qualification remain open."
+      }
     }
   },
   "cases": [

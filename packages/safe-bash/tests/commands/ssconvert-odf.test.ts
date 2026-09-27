@@ -37,12 +37,12 @@ test("ODF savers use the command/SDK engine with distinct profiles and replay by
     assert.deepEqual(Object.keys(volume.toJSON()).sort(), ["/auto.ods", "/keep", "/odf.ods", "/openoffice.ods", "/original.gnumeric", "/sdk-odf.ods", "/sdk-openoffice.ods"]);
   } finally { await engine.dispose(); }
 });
-async function fixture(body: string, mime = "application/vnd.oasis.opendocument.spreadsheet", styles = "") {
+async function fixture(body: string, mime = "application/vnd.oasis.opendocument.spreadsheet", styles = "", automaticLabelLookup: boolean | null = false) {
   const zip = createZipCodec(), signal = new AbortController().signal;
   const bounds = { maxArchiveBytes: 100000, maxEntryBytes: 100000, maxTotalBytes: 100000,
     maxMembers: 20, maxPathBytes: 1024, maxDepth: 32, maxPaxBytes: 10000, maxTextBytes: 100000, chunkSize: 4096 };
   const urn = "urn:oasis:names:tc:opendocument:xmlns:";
-  const calc = body.includes("calculation-settings") ? "" : '<t:calculation-settings t:automatic-find-labels="false"/>';
+  const calc = body.includes("calculation-settings") || automaticLabelLookup === null ? "" : `<t:calculation-settings t:automatic-find-labels="${automaticLabelLookup}"/>`;
   const content = `<o:document-content xmlns:o="${urn}office:1.0" xmlns:t="${urn}table:1.0" xmlns:x="${urn}text:1.0" xmlns:s="${urn}style:1.0" xmlns:n="${urn}datastyle:1.0"><o:automatic-styles>${styles}</o:automatic-styles><o:body><o:spreadsheet>${calc}${body}</o:spreadsheet></o:body></o:document-content>`;
   const entries = [];
   for (const [name, source] of Object.entries({ mimetype: mime, "content.xml": content })) entries.push(await zip.makeZipEntry(name, new TextEncoder().encode(source),
@@ -74,21 +74,21 @@ function filesystem(volume: Volume) {
     const value: unknown = Reflect.get(target, key, target); return typeof value === "function" ? value.bind(target) : value;
   } });
 }
-test("ssconvert OpenCalc uses the SDK engine and preserves memfs input, CSV bytes and replay", async () => {
-  const source = await fixture('<t:table t:name="S"><t:table-row><t:table-cell o:value-type="string"><x:p>hello</x:p></t:table-cell><t:table-cell t:formula="of:=1+2" o:value-type="float" o:value="99"/></t:table-row></t:table>');
+for (const lookup of [null, false, true]) test(`ssconvert OpenCalc preserves SDK diagnostics, memfs input and replay with label lookup ${lookup ?? "default"}`, async () => {
+  const source = await fixture('<t:table t:name="S"><t:table-row><t:table-cell o:value-type="string"><x:p>hello</x:p></t:table-cell><t:table-cell t:formula="of:=1+2" o:value-type="float" o:value="99"/></t:table-row></t:table>', undefined, "", lookup);
   const volume = Volume.fromJSON({ "/keep": "untouched" }); volume.writeFileSync("/book.ots", source);
   const shell = new Shell({ fs: filesystem(volume) }).use(ssconvertCommands(config)), engine = createEngine(config);
   try {
     const command = await shell.exec("ssconvert -T Gnumeric_XmlIO:sax:0 /book.ots /round.xml");
-    assert.equal(command.exitCode, 0, command.stderr); assert.equal(command.stderr, xmlLabelLoss); assert.equal(command.stdout, "");
+    assert.equal(command.exitCode, 0, command.stderr); assert.equal(command.stderr, lookup === false ? "" : xmlLabelLoss); assert.equal(command.stdout, "");
     const chunks: Uint8Array[] = [];
     const sdk = await engine.convert({ input: { kind: "stream", filename: "book.ots", source: [source] }, exportType: "Gnumeric_XmlIO:sax:0",
       destination: { kind: "stream", sink: { async write(bytes) { chunks.push(new Uint8Array(bytes)); } } } }, { signal: new AbortController().signal });
-    assert.equal(sdk.exitCode, 0); assert.deepEqual(sdk.diagnostics.map(d => d.code), ["label-range-loss-warning"]);
+    assert.equal(sdk.exitCode, 0); assert.deepEqual(sdk.diagnostics.map(d => d.code), lookup === false ? [] : ["label-range-loss-warning"]);
     assert.equal(sdk.diagnostics.map(d => d.bytes ? new TextDecoder().decode(d.bytes) : d.message + "\n").join(""), command.stderr);
     assert.deepEqual(new Uint8Array(volume.readFileSync("/round.xml") as Uint8Array), chunks[0]);
     const cached = await shell.exec("ssconvert -T Gnumeric_stf:stf_csv /book.ots fd://1");
-    assert.equal(cached.exitCode, 0, cached.stderr); assert.equal(cached.stderr, csvLabelLoss); assert.equal(cached.stdout, "hello,3\n");
+    assert.equal(cached.exitCode, 0, cached.stderr); assert.equal(cached.stderr, lookup === false ? "" : csvLabelLoss); assert.equal(cached.stdout, "hello,3\n");
     const replay = await shell.exec("ssconvert --recalc -T Gnumeric_stf:stf_csv /round.xml fd://1");
     assert.equal(replay.exitCode, 0, replay.stderr); assert.equal(replay.stderr, ""); assert.equal(replay.stdout, "hello,3\n");
     assert.deepEqual(new Uint8Array(volume.readFileSync("/book.ots") as Uint8Array), source);
@@ -103,7 +103,7 @@ test("OpenCalc style families survive SDK import, command checkpoint and replay"
     '<s:style s:name="Shared" s:family="table"><s:table-properties t:display="false"/></s:style>' +
     '<s:style s:name="Shared" s:family="table-row"><s:table-row-properties s:row-height="18pt"/></s:style>' +
     '<s:style s:name="Shared" s:family="table-column"><s:table-column-properties s:column-width="36pt"/></s:style>';
-  const source = await fixture('<t:table t:name="S" t:style-name="Shared"><t:table-column t:style-name="Shared"/><t:table-row t:style-name="Shared"><t:table-cell t:style-name="Shared" o:value="1.25"/><t:table-cell o:boolean-value="FALSE"/></t:table-row></t:table>', undefined, styles);
+  const source = await fixture('<t:table t:name="S" t:style-name="Shared"><t:table-column t:style-name="Shared"/><t:table-row t:style-name="Shared"><t:table-cell t:style-name="Shared" o:value="1.25"/><t:table-cell o:boolean-value="FALSE"/></t:table-row></t:table>', undefined, styles, true);
   const volume = Volume.fromJSON({ "/keep": "unchanged" }); volume.writeFileSync("/book.ods", source);
   const shell = new Shell({ fs: filesystem(volume) }).use(ssconvertCommands(config)), engine = createEngine(config);
   const signal = new AbortController().signal;
@@ -159,7 +159,7 @@ test("OpenCalc passive drawing links confer no virtual filesystem or network aut
   const shell = new Shell({ fs: tracked }).use(ssconvertCommands(config));
   try {
     const result = await shell.exec("ssconvert -T Gnumeric_stf:stf_csv /book.ods fd://1");
-    assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stderr, csvLabelLoss); assert.equal(result.stdout, "safe\n");
+    assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stderr, ""); assert.equal(result.stdout, "safe\n");
     assert.deepEqual(reads, ["/book.ods"]);
     assert.equal(volume.readFileSync("/secret", "utf8"), "must not be read");
     assert.deepEqual(Object.keys(volume.toJSON()).sort(), ["/book.ods", "/secret"]);
@@ -177,7 +177,7 @@ test("OpenCalc warnings precede output and malformed forced input has command/SD
     assert.equal(command.exitCode, sdk.exitCode); assert.equal(command.exitCode, 0);
     assert.equal(command.stdout, new TextDecoder().decode(output[0])); assert.equal(command.stdout, "2\n");
     assert.equal(command.stderr, sdk.diagnostics.map(d => d.bytes ? new TextDecoder().decode(d.bytes) : d.message + "\n").join(""));
-    assert.equal(command.stderr, "Unexpected element 't:unknown' in state : \n\tdocument-content -> body -> spreadsheet -> table\n".repeat(2) + csvLabelLoss);
+    assert.equal(command.stderr, "Unexpected element 't:unknown' in state : \n\tdocument-content -> body -> spreadsheet -> table\n".repeat(2));
     volume.writeFileSync("/bad.ods", new Uint8Array([1, 2, 3]));
     const bad = await shell.exec("ssconvert -I Gnumeric_OpenCalc:openoffice -T Gnumeric_stf:stf_csv /bad.ods fd://1");
     const malformed = createEngine({ ...config, filesystem: { async read(uri) {

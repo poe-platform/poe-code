@@ -2,10 +2,21 @@
 
 Zero-dependency image processing AST and pixel pipeline with a `sharp`-compatible API for `@poe-platform/safe-bash` and `@poe-platform/safe-js`.
 
-Use `@poe-code/image-ast/portable` for codecs and pixel operations in browsers or
-Workers without Node builtins. `compositeImage` accepts bytes and inline SVG;
-file paths require an explicit third-argument `readFile` capability. The Node
-Sharp API continues to read its configured file inputs.
+The main export selects a Web Streams Sharp API in browsers and Workers without
+Node builtins. Node retains its Duplex stream API. File paths require an explicit
+`filesystem` from safe-fs and an asynchronous output method; byte inputs also
+support synchronous output. `@poe-code/image-ast/portable` exposes codecs and
+pixel operations; `compositeImage` accepts an explicit `readFile` capability.
+
+```ts
+import sharp from "@poe-code/image-ast";
+import { MemoryFileSystem } from "@poe-code/safe-fs/core";
+
+const filesystem = new MemoryFileSystem();
+await sharp({ create: { width: 32, height: 32, channels: 3, background: "red" }, filesystem })
+  .png().toFile("/input.png");
+await sharp("/input.png", { filesystem }).resize(16, 16).toFile("/output.png");
+```
 
 ## Features
 

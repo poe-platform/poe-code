@@ -702,7 +702,8 @@ it("resolves packaged real filesystem declarations for Workers while retaining b
     types: { workerd: "./dist/safe-fs/platform/browser.d.ts", browser: "./dist/safe-fs/platform/browser.d.ts", default: "./dist/safe-fs/platform/node.d.ts" },
     workerd: "./dist/safe-fs/platform/browser.js", browser: "./dist/safe-fs/platform/browser.js", default: "./dist/safe-fs/platform/node.js",
   });
-  for (const entry of ["./node", "./fs/s3", "./fs/s3/http"]) {
+  expect(manifest.exports["./fs/s3"]).toEqual({ types: "./dist/safe-fs/fs/s3/index.d.ts", import: "./dist/safe-fs/fs/s3/index.js" });
+  for (const entry of ["./node", "./fs/s3/http"]) {
     expect(manifest.exports[entry].workerd).toBeUndefined();
     expect(manifest.exports[entry].types.workerd).toBeUndefined();
     expect(manifest.exports[entry].browser).toBeNull();
@@ -750,6 +751,46 @@ it('preserves companion references to conditional public contracts in the same p
     types: './dist/mcp-companion/index.d.ts', import: './dist/mcp-companion/index.js',
   });
   expect(manifest.dependencies).not.toHaveProperty('@poe-platform/safe-bash');
+});
+
+it('preserves companion conditional types and internal platform imports', async () => {
+  const { volume, options } = optionalLeftovers();
+  const directory = '/repo/packages/image-companion';
+  volume.mkdirSync(directory + '/dist', { recursive: true });
+  const types = { workerd: './dist/web.d.ts', browser: './dist/web.d.ts', default: './dist/node.d.ts' };
+  volume.writeFileSync(directory + '/package.json', JSON.stringify({
+    name: 'image-companion', private: true, type: 'module',
+    imports: { '#image-streams': { types, workerd: './dist/web.js', browser: './dist/web.js', default: './dist/node.js' } },
+    exports: { '.': { types, workerd: './dist/web.js', browser: './dist/web.js', import: './dist/node.js' } },
+    poeCode: { safeLibraryExports: { 'safe-bash': { './sharp': '.' } } },
+  }));
+  for (const profile of ['node', 'web']) {
+    volume.writeFileSync(directory + '/dist/' + profile + '.js', 'export const profile = ' + JSON.stringify(profile) + ';');
+    volume.writeFileSync(directory + '/dist/' + profile + '.d.ts', 'export { profile } from "#image-streams";');
+  }
+  await packageSafeLibraries({ ...options, outDir: '/output' });
+  const manifest = JSON.parse(volume.readFileSync('/output/safe-bash/package.json', 'utf8').toString());
+  expect(manifest.exports['./sharp'].types.browser).toBe('./dist/image-companion/web.d.ts');
+  expect(manifest.imports['#image-streams'].browser).toBe('./dist/image-companion/web.js');
+  expect(manifest.imports['#image-streams'].types.default).toBe('./dist/image-companion/node.d.ts');
+  expect(volume.readFileSync('/output/safe-bash/dist/image-companion/web.js', 'utf8').toString()).toContain('"web"');
+});
+
+it('refuses companion private imports outside their built distribution', async () => {
+  const { volume, options } = optionalLeftovers();
+  const directory = '/repo/packages/image-companion';
+  volume.mkdirSync(directory + '/dist', { recursive: true });
+  volume.mkdirSync('/repo/src', { recursive: true });
+  volume.writeFileSync('/repo/src/private.ts', 'export {};');
+  volume.writeFileSync(directory + '/package.json', JSON.stringify({
+    name: 'image-companion', private: true, type: 'module',
+    imports: { '#image-streams': { default: './src/private.ts' } },
+    exports: { '.': { types: './dist/index.d.ts', import: './dist/index.js' } },
+    poeCode: { safeLibraryExports: { 'safe-bash': { './sharp': '.' } } },
+  }));
+  volume.writeFileSync(directory + '/dist/index.js', 'export {};');
+  volume.writeFileSync(directory + '/dist/index.d.ts', 'import "#image-streams";');
+  await expect(packageSafeLibraries({ ...options, outDir: '/output' })).rejects.toThrow('Invalid companion import target');
 });
 
 it('ships an optional browser companion with generated assets and optional provider peers', async () => {

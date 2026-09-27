@@ -1,7 +1,5 @@
-import { EventEmitter } from "node:events";
-import fs from "node:fs";
-import path from "node:path";
-import { Duplex } from "node:stream";
+import { EventEmitter, Duplex, outputBytes, isBuffer } from "#image-ast-streams";
+import { extname, normalizePath } from "@poe-code/safe-fs/core";
 import {
   parseColor,
   type ColorInput,
@@ -226,13 +224,14 @@ function validateInputOptions(opts: SharpInputOptions | undefined): void {
   }
 }
 
-function toBytes(input: Uint8Array | ArrayBuffer | ArrayBufferView | string | undefined): Uint8Array | undefined {
+function toBytes(input: Uint8Array | ArrayBuffer | ArrayBufferView | string | undefined, readFile?: (path: string) => Uint8Array): Uint8Array | undefined {
   if (!input) return undefined;
-  if (Buffer.isBuffer(input)) {
-    if (input.length === 0) {
+  if (isBuffer(input)) {
+    const bytes = input as Uint8Array;
+    if (bytes.length === 0) {
       throw new Error("Input Buffer is empty");
     }
-    return input;
+    return bytes;
   }
   if (ArrayBuffer.isView(input)) {
     if (input.byteLength === 0) {
@@ -250,13 +249,14 @@ function toBytes(input: Uint8Array | ArrayBuffer | ArrayBufferView | string | un
     if (input.trimStart().startsWith("<")) {
       return new TextEncoder().encode(input);
     }
-    return new Uint8Array(fs.readFileSync(input));
+    if (!readFile) throw new Error("File inputs require an explicit filesystem and an asynchronous output method");
+    return readFile(input);
   }
   return undefined;
 }
 
 function inferFormatFromPath(fileOut: string): ImageFormat | undefined {
-  const ext = path.extname(fileOut).toLowerCase().replace(/^\./, "");
+  const ext = extname(fileOut).toLowerCase().slice(1);
   switch (ext) {
     case "png":
       return "png";
@@ -303,7 +303,10 @@ export class SharpInstance extends Duplex {
   private outputOptions: OutputEncodeOptions = {};
   private streamIn = false;
   private streamInFinished = false;
-  private readonly streamChunks: Buffer[] = [];
+  private streamFailure?: Error;
+  private readonly streamChunks: Uint8Array[] = [];
+  private readonly fileInputs = new Map<string, Uint8Array>();
+  private readonly fileLoads = new Map<string, Promise<void>>();
   private readonly clonedStreams: SharpInstance[] = [];
   private streamOutStarted = false;
 
@@ -356,7 +359,7 @@ export class SharpInstance extends Duplex {
         };
       }
       validateInputOptions(effectiveOptions);
-      this.inputBytes = toBytes(input as Uint8Array | ArrayBuffer | ArrayBufferView | string | undefined);
+      this.inputBytes = this.inputFilePath ? undefined : toBytes(input as Uint8Array | ArrayBuffer | ArrayBufferView | string | undefined);
       this.joinInputs = undefined;
       this.inputOptions = effectiveOptions;
       if (input === undefined && (!effectiveOptions || (!effectiveOptions.create && !effectiveOptions.text))) {
@@ -364,6 +367,7 @@ export class SharpInstance extends Duplex {
       }
     }
     validateInputOptions(this.inputOptions);
+    this.on("error", (error: Error) => { this.streamFailure = error; });
     if (this.streamIn) {
       this.on("finish", () => {
         this.flattenStreamInput();
@@ -376,7 +380,9 @@ export class SharpInstance extends Duplex {
 
   private flattenStreamInput(): void {
     if (this.streamIn && !this.streamInFinished) {
-      const merged = Buffer.concat(this.streamChunks);
+      const merged = new Uint8Array(this.streamChunks.reduce((total, bytes) => total + bytes.length, 0));
+      let offset = 0;
+      for (const bytes of this.streamChunks) { merged.set(bytes, offset); offset += bytes.length; }
       this.receiveStreamInput(merged);
     }
   }
@@ -391,6 +397,9 @@ export class SharpInstance extends Duplex {
   }
 
   private async waitForStreamInput(): Promise<void> {
+    if (this.streamFailure) throw this.streamFailure;
+    await this.loadFileInputs();
+    if (this.streamFailure) throw this.streamFailure;
     if (!this.streamIn || this.streamInFinished) {
       return;
     }
@@ -417,13 +426,50 @@ export class SharpInstance extends Duplex {
     });
   }
 
-  override _write(chunk: unknown, _encoding: BufferEncoding, callback: (error?: Error | null) => void): void {
+  private operationInput(input: Uint8Array | ArrayBuffer | ArrayBufferView | string): Uint8Array | string | undefined {
+    if (typeof input !== "string" || input.trimStart().startsWith("<")) return toBytes(input);
+    return input;
+  }
+
+  private loadedFile(path: string): Uint8Array {
+    const bytes = this.fileInputs.get(path);
+    if (!bytes) throw new Error("File inputs require an explicit filesystem and an asynchronous output method");
+    return bytes;
+  }
+
+  private async loadFileInputs(): Promise<void> {
+    const paths = new Set<string>();
+    if (this.inputFilePath) paths.add(this.inputFilePath);
+    for (const input of this.joinInputs ?? []) {
+      if (typeof input === "string" && !input.trimStart().startsWith("<")) paths.add(input);
+    }
+    for (const node of this.nodes) {
+      if (node.kind === "boolean" && typeof node.operand === "string") paths.add(node.operand);
+      if (node.kind === "joinChannel") {
+        for (const input of node.inputs) if (typeof input.data === "string") paths.add(input.data);
+      }
+      if (node.kind !== "composite") continue;
+      for (const layer of node.layers) {
+        if (typeof layer.input === "string" && !layer.input.trimStart().startsWith("<")) paths.add(layer.input);
+      }
+    }
+    await Promise.all([...paths].map(path => {
+      if (this.fileInputs.has(path)) return;
+      let pending = this.fileLoads.get(path);
+      if (!pending) {
+        if (!this.inputOptions?.filesystem) throw new Error("File inputs require an explicit filesystem");
+        pending = this.inputOptions.filesystem.readFile(path).then(bytes => { this.fileInputs.set(path, new Uint8Array(bytes)); });
+        this.fileLoads.set(path, pending);
+      }
+      return pending;
+    }));
+    if (this.inputFilePath) this.inputBytes = this.loadedFile(this.inputFilePath);
+  }
+
+  override _write(chunk: unknown, _encoding: string, callback: (error?: Error | null) => void): void {
     if (this.streamIn && !this.streamInFinished) {
-      if (Buffer.isBuffer(chunk) || chunk instanceof Uint8Array) {
-        const buf = Buffer.isBuffer(chunk)
-          ? chunk
-          : Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength);
-        this.streamChunks.push(buf);
+      if (chunk instanceof Uint8Array) {
+        this.streamChunks.push(new Uint8Array(chunk));
         callback();
       } else {
         callback(new Error("Non-Buffer data on Writable Stream"));
@@ -444,8 +490,7 @@ export class SharpInstance extends Duplex {
           this.push(null);
         })
         .catch(err => {
-          this.emit("error", err);
-          this.push(null);
+          this.destroy(err);
         });
     }
   }
@@ -462,10 +507,13 @@ export class SharpInstance extends Duplex {
     const copy =
       this.joinInputs !== undefined
         ? new SharpInstance(this.joinInputs, this.inputOptions)
-        : this.inputBytes !== undefined
-          ? new SharpInstance(this.inputBytes, this.inputOptions)
-          : new SharpInstance(this.inputOptions);
+        : this.inputFilePath !== undefined
+          ? new SharpInstance(this.inputFilePath, this.inputOptions)
+          : this.inputBytes !== undefined
+            ? new SharpInstance(this.inputBytes, this.inputOptions)
+            : new SharpInstance(this.inputOptions);
     copy.inputFilePath = this.inputFilePath;
+    for (const [path, bytes] of this.fileInputs) copy.fileInputs.set(path, bytes);
     copy.nodes.length = 0;
     copy.nodes.push(...this.nodes);
     copy.outputOptions = { ...this.outputOptions };
@@ -474,13 +522,13 @@ export class SharpInstance extends Duplex {
 
   private decodeInitialImage(): RgbaImage {
     if (!this.joinInputs) {
-      return decodeImage(this.inputBytes, this.inputOptions);
+      return decodeImage(this.inputFilePath ? this.loadedFile(this.inputFilePath) : this.inputBytes, this.inputOptions);
     }
     const imgs = this.joinInputs.map(item => {
       if (item && typeof item === "object" && !(item instanceof Uint8Array) && !(item instanceof ArrayBuffer)) {
         return decodeImage(undefined, item as SharpInputOptions);
       }
-      return decodeImage(toBytes(item as Uint8Array | ArrayBuffer | string | undefined), this.inputOptions);
+      return decodeImage(toBytes(item as Uint8Array | ArrayBuffer | string | undefined, path => this.loadedFile(path)), this.inputOptions);
     });
     const n = imgs.length;
     const cellW = Math.max(...imgs.map(i => i.width));
@@ -713,7 +761,7 @@ export class SharpInstance extends Duplex {
           img = extendImage(img, node);
           break;
         case "composite":
-          img = compositeImage(img, node.layers, path => new Uint8Array(fs.readFileSync(path)));
+          img = compositeImage(img, node.layers, path => this.loadedFile(path));
           break;
         case "grayscale":
           img = grayscaleImage(img);
@@ -787,12 +835,12 @@ export class SharpInstance extends Duplex {
           img = bandboolImage(img, node.op);
           break;
         case "boolean": {
-          const opImg = decodeImage(node.operand, node.options);
+          const opImg = decodeImage(typeof node.operand === "string" ? this.loadedFile(node.operand) : node.operand, node.options);
           img = booleanImage(img, opImg, node.op);
           break;
         }
         case "joinChannel": {
-          const extras = node.inputs.map(item => decodeImage(item.data, item.options));
+          const extras = node.inputs.map(item => decodeImage(typeof item.data === "string" ? this.loadedFile(item.data) : item.data, item.options));
           img = joinChannelImage(img, extras);
           break;
         }
@@ -854,7 +902,7 @@ export class SharpInstance extends Duplex {
             size: joined.data.byteLength
           } as ImageMetadata;
         })()
-      : readImageMetadata(this.inputBytes, this.inputOptions);
+      : readImageMetadata(this.inputFilePath ? this.loadedFile(this.inputFilePath) : this.inputBytes, this.inputOptions);
     if (this.nodes.length === 0) {
       return {
         ...rawMeta,
@@ -1797,7 +1845,7 @@ export class SharpInstance extends Duplex {
     if (op !== "and" && op !== "or" && op !== "eor") {
       throw new Error(`Expected one of: and, or, eor for operator but received ${op}`);
     }
-    const data = toBytes(operand);
+    const data = this.operationInput(operand);
     if (data) {
       this.nodes.push({
         kind: "boolean",
@@ -1817,7 +1865,7 @@ export class SharpInstance extends Duplex {
     this.nodes.push({
       kind: "joinChannel",
       inputs: list.map(buf => {
-        const data = toBytes(buf as Uint8Array | ArrayBuffer | ArrayBufferView | string);
+        const data = this.operationInput(buf as Uint8Array | ArrayBuffer | ArrayBufferView | string);
         if (!data) {
           throw new Error(`Unsupported joinChannel input: ${typeof buf}`);
         }
@@ -2404,9 +2452,7 @@ export class SharpInstance extends Duplex {
       img = { ...img, space: "srgb", channels: img.hasAlpha ? 4 : 3 };
     }
     const encoded = encodeImage(img, this.outputOptions);
-    const outBuf = Buffer.isBuffer(encoded.data)
-      ? encoded.data
-      : Buffer.from(encoded.data.buffer, encoded.data.byteOffset, encoded.data.byteLength);
+    const outBuf = outputBytes(encoded.data);
     return {
       data: outBuf,
       info: {
@@ -2440,9 +2486,11 @@ export class SharpInstance extends Duplex {
       if (!fileOut || typeof fileOut !== "string") {
         throw new Error("Missing output file path");
       }
-      if (this.inputFilePath && path.resolve(fileOut) === path.resolve(this.inputFilePath)) {
+      if (this.inputFilePath && normalizePath(fileOut) === normalizePath(this.inputFilePath)) {
         throw new Error("Cannot use same file for input and output");
       }
+      const filesystem = this.inputOptions?.filesystem;
+      if (!filesystem) throw new Error("File outputs require an explicit filesystem");
       const prevFormat = this.outputOptions.format;
       const inferred = prevFormat ?? inferFormatFromPath(fileOut);
       if (!prevFormat && inferred) {
@@ -2451,7 +2499,7 @@ export class SharpInstance extends Duplex {
       try {
         await this.waitForStreamInput();
         const res = this.toBufferWithObjectSync();
-        fs.writeFileSync(fileOut, res.data);
+        await filesystem.writeFile(fileOut, res.data);
         if (callback) callback(null, res.info);
         return res.info;
       } finally {

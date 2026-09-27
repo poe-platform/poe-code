@@ -1,5 +1,5 @@
-import fs from "node:fs";
-import { describe, expect, it, vi } from "vitest";
+import { MemoryFileSystem } from "@poe-code/safe-fs/core";
+import { describe, expect, it } from "vitest";
 import { PdfDocument, createStandardFontHandle } from "@poe-code/pdf-ast";
 import sharp, {
   decodeImage,
@@ -1981,41 +1981,27 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(Array.from(joinedGray.data)).toEqual([50, 50, 50, 100, 100, 100, 150, 150, 150, 200, 200, 200]);
   });
   it("supports file path inputs in sharp()/composite() and .toFile(fileOut) with extension inference (#103)", async () => {
-    const virtualFs = new Map<string, Uint8Array>();
-    const readSpy = vi.spyOn(fs, "readFileSync").mockImplementation(((p: any) => {
-      const key = String(p);
-      const val = virtualFs.get(key);
-      if (!val) throw new Error(`ENOENT: ${key}`);
-      return Buffer.from(val);
-    }) as any);
-    const writeSpy = vi.spyOn(fs, "writeFileSync").mockImplementation(((p: any, data: any) => {
-      virtualFs.set(String(p), new Uint8Array(data));
-    }) as any);
-
-    try {
+    const virtualFs = new MemoryFileSystem();
+    await virtualFs.mkdir("/mem");
       const info1 = await (sharp({
-        create: { width: 10, height: 8, channels: 3, background: { r: 200, g: 100, b: 50 } }
+        create: { width: 10, height: 8, channels: 3, background: { r: 200, g: 100, b: 50 } }, filesystem: virtualFs
       }) as any).toFile("/mem/input.png");
       expect(info1.format).toBe("png");
       expect(info1.width).toBe(10);
       expect(info1.height).toBe(8);
-      expect(virtualFs.has("/mem/input.png")).toBe(true);
+      expect((await virtualFs.readFile("/mem/input.png")).length).toBeGreaterThan(0);
 
-      const info2 = await (sharp("/mem/input.png") as any)
+      const info2 = await (sharp("/mem/input.png", { filesystem: virtualFs }) as any)
         .resize(5, 4)
         .toFile("/mem/output.webp");
       expect(info2.format).toBe("webp");
       expect(info2.width).toBe(5);
       expect(info2.height).toBe(4);
-      expect(virtualFs.has("/mem/output.webp")).toBe(true);
+      expect((await virtualFs.readFile("/mem/output.webp")).length).toBeGreaterThan(0);
 
-      await expect((sharp("/mem/input.png") as any).toFile("/mem/input.png")).rejects.toThrow(
+      await expect((sharp("/mem/input.png", { filesystem: virtualFs }) as any).toFile("/mem/input.png")).rejects.toThrow(
         /Cannot use same file for input and output/i
       );
-    } finally {
-      readSpy.mockRestore();
-      writeSpy.mockRestore();
-    }
   });
   it("supports callback overloads on toBuffer/metadata/stats and sharp.cache/concurrency/counters/simd/block (#104)", async () => {
     expect(typeof (sharp as any).cache).toBe("function");
@@ -2246,17 +2232,11 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(() => inst().clahe({ width: 4, height: 4, maxSlope: 150 })).toThrow(/maxSlope/);
 
     const alphaPng = await sharp(Buffer.from([128]), { raw: { width: 1, height: 1, channels: 1 } }).png().toBuffer();
-    const origRead = fs.readFileSync;
-    const readSpy = vi.spyOn(fs, "readFileSync").mockImplementation(((p: any, ...rest: any[]) => {
-      if (String(p) === "/virtual/alpha.png") return Buffer.from(alphaPng);
-      return origRead.call(fs, p, ...rest);
-    }) as any);
-    try {
-      const joined = await inst().joinChannel("/virtual/alpha.png" as any).raw().toBuffer();
+    const virtualFs = new MemoryFileSystem();
+    await virtualFs.mkdir("/virtual");
+    await virtualFs.writeFile("/virtual/alpha.png", alphaPng);
+      const joined = await sharp(rgb, { raw: { width: 1, height: 1, channels: 3 }, filesystem: virtualFs }).joinChannel("/virtual/alpha.png").raw().toBuffer();
       expect(Array.from(joined)).toEqual([10, 20, 30, 128]);
-    } finally {
-      readSpy.mockRestore();
-    }
   });
 
   it("matches sharp Pre/Post extract() slot replacement and validates extract/blur/median/sharpen/dilate/erode parameters", async () => {

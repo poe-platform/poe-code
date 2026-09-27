@@ -241,6 +241,8 @@ export interface CompositeLayer {
 }
 
 export interface SharpInputOptions {
+  /** Explicit virtual filesystem for path inputs and outputs. */
+  readonly filesystem?: Pick<import("@poe-code/safe-fs/core").FileSystem, "readFile" | "writeFile">;
   readonly density?: number;
   readonly page?: number;
   readonly pages?: number;
@@ -382,14 +384,14 @@ export type ImageAstNode =
   | { readonly kind: "bandbool"; readonly op: "and" | "or" | "eor" }
   | {
       readonly kind: "boolean";
-      readonly operand: Uint8Array;
+      readonly operand: Uint8Array | string;
       readonly options?: SharpInputOptions;
       readonly op: "and" | "or" | "eor";
     }
   | {
       readonly kind: "joinChannel";
       readonly inputs: ReadonlyArray<{
-        readonly data: Uint8Array;
+        readonly data: Uint8Array | string;
         readonly options?: SharpInputOptions;
       }>;
     }

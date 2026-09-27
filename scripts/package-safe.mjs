@@ -333,23 +333,26 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       for (const [route, entry] of Object.entries(pkg.poeCode.safeLibraryExports[name])) {
         if (!route.startsWith('./') || Object.hasOwn(source.exports, route)) throw new Error('Invalid companion public route: ' + route);
         const exported = pkg.exports?.[entry];
-        if (!exported || typeof exported.import !== 'string' || typeof exported.types !== 'string') throw new Error('Missing companion entry: ' + entry);
-        exports[route] = Object.fromEntries(Object.entries(exported).map(([condition, target]) => {
+        if (!exported || typeof exported.import !== 'string' || !exported.types) throw new Error('Missing companion entry: ' + entry);
+        const companionTarget = target => {
+          if (target && typeof target === 'object' && !Array.isArray(target)) return Object.fromEntries(Object.entries(target).map(([condition, value]) => [condition, companionTarget(value)]));
           if (typeof target !== 'string' || !target.startsWith('./dist/') || target.split('/').includes('..') || target.includes('*')) throw new Error('Invalid companion entry target: ' + target);
-          return [condition, enqueueExport('./packages/' + dir + '/' + target.slice(2))];
-        }));
+          return enqueueExport('./packages/' + dir + '/' + target.slice(2));
+        };
+        exports[route] = companionTarget(exported);
       }
     }
     const imports = {};
     const workspaceTarget = value => typeof value === "string" ? value.replace("./dist/", `./packages/${name}/dist/`) : value && typeof value === "object" ? Object.fromEntries(Object.entries(value).map(([key, item]) => [key, workspaceTarget(item)])) : value;
-    const importTarget = (value, types = false) => {
+    const importTarget = (value, types = false, owner = name) => {
       if (value && typeof value === "object") return Object.fromEntries(Object.entries(value)
-        .map(([condition, target]) => [condition, importTarget(target, types || condition === "types")]));
+        .map(([condition, target]) => [condition, importTarget(target, types || condition === "types", owner)]));
       if (typeof value !== "string") return value;
       if (!value.startsWith("./")) throw new Error(`Unsupported package import target: ${value}`);
       const built = types && value.startsWith("./src/") && value.endsWith(".ts")
         ? "./dist/" + value.slice(6, -3) + ".d.ts" : value;
-      return enqueueExport(workspaceTarget(built));
+      if (owner !== name && (!built.startsWith("./dist/") || built.slice(2).split("/").some(part => !part || part === "." || part === ".." || part.includes("\\") || part.includes("*")))) throw new Error("Invalid companion import target: " + built);
+      return enqueueExport(built.replace("./dist/", `./packages/${owner}/dist/`));
     };
     if (name === "safe-js") {
       const rootExports = Object.entries(root.exports ?? {})
@@ -374,8 +377,8 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
         }
         let target = value;
         if (name === "safe-fs") {
-          if (key === "." || key === "./contracts") target = { types: { browser: "./dist/core.d.ts", default: value.types }, browser: "./dist/core.js", import: value.import };
-          if (["./node", "./fs/s3", "./fs/s3/http"].includes(key)) target = { types: { browser: "./dist/node-unavailable.d.ts", default: key === "./node" ? "./dist/node-host.d.ts" : value.types }, browser: null, import: key === "./node" ? "./dist/node-host.js" : value.import };
+          if (key === "." || key === "./contracts") target = { types: { workerd: "./dist/core.d.ts", browser: "./dist/core.d.ts", default: value.types?.default ?? value.types }, workerd: "./dist/core.js", browser: "./dist/core.js", import: value.import };
+          if (["./node", "./fs/s3/http"].includes(key)) target = { types: { browser: "./dist/node-unavailable.d.ts", default: key === "./node" ? "./dist/node-host.d.ts" : value.types }, browser: null, import: key === "./node" ? "./dist/node-host.js" : value.import };
           if (key === "./fs/real") target = {
             types: { workerd: value.types, browser: "./dist/node-unavailable.d.ts", default: value.types },
             workerd: value.import, browser: null, import: value.import,
@@ -475,9 +478,15 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
             for (const profile of ["node", "browser"]) pending.push(path.join(rootDir, "packages/safe-fs/dist/platform", profile + (declaration ? ".d.ts" : ".js")));
             return specifier;
           }
-          if (specifier.startsWith("#") && Object.hasOwn(source.imports ?? {}, specifier)) {
-            if (!Object.hasOwn(imports, specifier)) imports[specifier] = importTarget(source.imports[specifier]);
-            return specifier;
+          if (specifier.startsWith("#")) {
+            const owner = workspaces.find(workspace => filename.startsWith(path.join(rootDir, "packages", workspace.dir) + path.sep));
+            const mapping = owner?.pkg.imports?.[specifier];
+            if (mapping !== undefined) {
+              const target = importTarget(mapping, false, owner.dir);
+              if (Object.hasOwn(imports, specifier) && !isDeepStrictEqual(imports[specifier], target)) throw new Error("Conflicting private import mapping: " + specifier);
+              imports[specifier] = target;
+              return specifier;
+            }
           }
           let publicName = publicSpecifier(specifier);
           if (name === "safe-bash" && optional && !declaration && publicName === "yaml") {
@@ -560,7 +569,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       manifest.peerDependencies = Object.fromEntries(companionPeers);
       manifest.peerDependenciesMeta = Object.fromEntries([...companionPeers.keys()].map(peer => [peer, { optional: true }]));
     }
-    if (name === "safe-fs") manifest.imports = { "#safe-fs-platform": { types: { workerd: "./dist/safe-fs/platform/browser.d.ts", browser: "./dist/safe-fs/platform/browser.d.ts", default: "./dist/safe-fs/platform/node.d.ts" }, workerd: "./dist/safe-fs/platform/browser.js", browser: "./dist/safe-fs/platform/browser.js", default: "./dist/safe-fs/platform/node.js" } };
+    if (name === "safe-fs") manifest.imports = { ...imports, "#safe-fs-platform": { types: { workerd: "./dist/safe-fs/platform/browser.d.ts", browser: "./dist/safe-fs/platform/browser.d.ts", default: "./dist/safe-fs/platform/node.d.ts" }, workerd: "./dist/safe-fs/platform/browser.js", browser: "./dist/safe-fs/platform/browser.js", default: "./dist/safe-fs/platform/node.js" } };
     if (name === "safe-fs" && nativeAssets) manifest.imports[nativeAssets.registry.specifier] = nativeImportMapping(nativeAssets.registry,
       artifactPath(rootDir, path.join(rootDir, "packages/safe-fs/dist")));
     if (name === "safe-js") {

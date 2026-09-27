@@ -2431,25 +2431,33 @@
     },
     "commandPackageOwnership": {
       "issue": 3670,
-      "status": "partial",
+      "status": "implemented and locally qualified; full integration and delivery pending",
       "implemented": "Singular/plural/plugin factories and options/limits types belong to safe-bash-command-ssconvert; core is a one-line re-export. Private workspace bundles share private contracts and filesystem runtimes. The root builds its public SDK separately at dist/ssconvert/index.js, with the unchanged poe-code/ssconvert API and shared public contracts/FS routes; root packages include private declarations only. Scoped packaging maps contracts and filesystem imports to canonical runtimes.",
-      "evidence": "Factory regression failed before extraction. Focused command, package-policy and browser tests pass. Actual root/scoped packages installed outside the checkout expose all factories and preserve edited numeric B2=8, independently decoded with Python ZIP/XML. Strict NodeNext consumers pass. Installed root/scoped Shell output caps preserve the existing destination and remove staging; raw argv and frozen budgets pass. Installed scoped Worker conversion has no external/Node imports. Transcript screenshot inspected.",
+      "evidence": "Fresh local root/scoped tarballs built at 5aaf8a8bc7 and installed outside the checkout pass four public SDK/Shell CSV-XLSX/edit/readback routes with numeric B2=8 and empty diagnostics. Both editions preserve 48-point defaults and normalized header/footer escapes. Six direct write/budget/cancellation cases and two Shell output caps verify shared budget binding, exact failures and destination preservation on failure, with staging removed; raw invalid UTF-8 remains exact in both profiles. Strict NodeNext consumers pass. Native commands are absent from the verification PATH.",
       "qa": "../plans/ssconvert-audit-qa.md#qa-command-package-ownership",
-      "remaining": "Full maintained test run, rebase over incoming main, remote delivery and publication remain pending. XLSX reexport emits seven worksheet-record warnings tracked separately in #3686; the format family remains open.",
-      "integrationFollowup": "The full unit run exposed the previous shared output file resolving a private Shell through root-only FS entries after workspace rebuilds. Separate private/public bundles repair the actual Node import, private Shell CSV conversion, output limit identity and staging cleanup. Four failing document CLI cases now pass; 44 unselected cases were skipped. All 417 guarded build tests pass after updating the exact public runtime entry contract. Full root build and final installed-artifact requalification pass; the full maintained test run remains in progress.",
-      "validationFollowup": "Full root build and lint pass; final ESLint reports 18,428 files and zero errors/warnings. All 251 focused public/private bundle, browser, scoped recipe and root export checks pass. Final actual root/scoped tarballs installed outside the checkout pass eight omitted/empty-option CSV-to-XLSX/edit/readback cases, independently decoded with Python ZIP/XML. Four Shell routes preserve destinations under output caps and remove staging. Both installed Worker graphs pass raw invalid UTF-8 arguments, frozen cleanup budget binding, exact false cancellation and conversion with zero external imports. Strict NodeNext consumers pass. Public runtime is packed at dist/ssconvert/index.js; the private dist contributes declarations only, and private packages cannot resolve. Full maintained tests and release delivery remain pending.",
+      "remaining": "Full maintained test run, remote main delivery, containing publication and actual registry-installed qualification remain pending. Current browser evidence is a browser bundle executed in a VM without Node APIs, not an actual browser-engine qualification. Native application and broader format/rendering requirements remain open.",
       "candidatePackages": {
         "root": {
-          "compressedBytes": 49787309,
-          "unpackedBytes": 248492031,
-          "sha1": "77e095c9caa5157c98659aff64f3d73ac9ef2f31"
+          "compressedBytes": 49980300,
+          "unpackedBytes": 249711084,
+          "sha1": "719b2a74d2836892c70aaf18b124b88119e9616d"
         },
         "scopedSafeBash": {
-          "compressedBytes": 26254453,
-          "unpackedBytes": 129564697,
-          "sha1": "a294360f4b5b7367f444f43ca5d305a92801c3df"
+          "compressedBytes": 26320620,
+          "unpackedBytes": 129977986,
+          "sha1": "f31386fa22ddfea33e3cde2e4b5d7126f5bea223"
         },
-        "cleanup": "237,598,053 bytes of consumed package archives, staging trees and spreadsheet outputs removed after compact receipts; temporary installed consumer retained for delivery verification."
+        "cleanup": "Consumed installations, archives, staging trees and generated spreadsheets are removed after compact receipts; no generated binary is committed."
+      },
+      "qualification": {
+        "sourceCommit": "5aaf8a8bc73d25ccecd15ce790b6744bfed7793b",
+        "node": "22.23.2",
+        "typescript": "5.9.3",
+        "xlsx": "Eight independently parsed outputs / 72 XML members; expected strings, numeric edits, matching default/explicit width units, and encoded header/footer wire text.",
+        "odf": "Sixteen root/scoped strict/extended label cases return fresh 5, 44, 30 or #REF! rather than stale 999; dirty label text becomes New Sales. Independent Python parsing verifies 80 XML members, standard label spelling and cached values.",
+        "browser": "Installed root public graph bundles without private source aliases; VM exposes browser globals and no Node APIs. Allowed writes, frozen cleanup budget refusal, exact false cancellation, staging cleanup and raw argv pass. Actual browser-engine execution remains unverified.",
+        "visual": "Actual installed Shell transcript: three successful commands, B2 changed to 8, expected CSV, empty diagnostics; inspected image.",
+        "screenshotSha256": "c07779e600f3135ad824f827f8fe07038cbbc4654478fc0e14912ac5113b4d5c"
       }
     },
     "xlsxWorksheetRecordAudit": {
@@ -2632,7 +2640,7 @@
     {
       "id": "public-packed-artifacts",
       "status": "open",
-      "currentFinding": "At 51af29f33, actual root/scoped tarballs installed outside the repository pass 80 SDK/Shell BIFF7/8 format controls with private ssconvert resolution absent. Strict NodeNext declarations, logical PWD, typed-array XLSX/CSV, edited CSV/XLSX, cancellation and input budgets pass with native-command PATH empty. Four orphaned ignored Tesseract outputs were removed to restore canonical scoped packaging. Registry-installed, browser/worker and wider service qualification remain open."
+      "currentFinding": "Fresh local root/scoped packages built at 5aaf8a8bc7 pass installed CSV/XLSX editing, worksheet width/header settings, ODF label refresh/ranges/self-exclusion, strict NodeNext declarations, raw argv, output budgets, exact cancellation and staging cleanup. Independent ZIP/XML verifies 24 outputs and 152 XML members. Installed root browser graph passes a VM without Node APIs. Earlier BIFF qualification remains profile-specific evidence. Full integration, remote delivery/publication, actual registry installs, actual browser/Worker engines and wider service qualification remain open."
     }
   ],
   "delivery": {

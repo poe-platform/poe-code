@@ -264,9 +264,9 @@ function parseArguments(args: readonly string[], inputFormat: "yaml" | "toml"): 
       ended = true;
       continue;
     }
-    if (!ended && (argument === "-p" || argument === "--input-format" || argument.startsWith("--input-format="))) {
+    if (!ended && (argument === "-p" || argument.startsWith("-p=") || argument === "--input-format" || argument.startsWith("--input-format="))) {
       if (inputFormatSeen) throw cli("CLI_DUPLICATE_OPTION");
-      const value = argument.startsWith("--input-format=") ? argument.slice("--input-format=".length) : args[++index];
+      const value = argument.startsWith("-p=") ? argument.slice(3) : argument.startsWith("--input-format=") ? argument.slice("--input-format=".length) : args[++index];
       if (value === undefined || value === "") throw cli("CLI_MISSING_OPTION_VALUE");
       if (value !== "yaml" && value !== "toml") throw cli("CLI_INVALID_OPTION_VALUE");
       inputFormatSeen = true;
@@ -283,9 +283,9 @@ function parseArguments(args: readonly string[], inputFormat: "yaml" | "toml"): 
       explicitJson = value === "json";
       continue;
     }
-    if (!ended && argument.startsWith("--output-format=")) {
+    if (!ended && (argument.startsWith("--output-format=") || argument.startsWith("-o="))) {
       if (formatSeen) throw cli("CLI_DUPLICATE_OPTION");
-      const value = argument.slice("--output-format=".length);
+      const value = argument.slice(argument.startsWith("-o=") ? 3 : "--output-format=".length);
       if (value === "") throw cli("CLI_MISSING_OPTION_VALUE");
       if (value !== "yaml" && value !== "json") throw cli("CLI_INVALID_OPTION_VALUE");
       formatSeen = true;

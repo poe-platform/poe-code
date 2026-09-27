@@ -21,7 +21,10 @@ await shell.exec("printf 'name: example\\n' | yq '.name'");
 await shell.dispose();
 ```
 
-The default factories support `-i`, `-n`, `-e`, `ea`, `-P`, and `-I`.
+The default factories support `-i`, `-n`, `-e`, `ea`, `-P`, and `-I`. Both profiles
+accept attached format flags such as `-p=yaml`, `-p=toml`, and `-o=json`.
+The package and command entrypoints also export `createMikeYqCommand`,
+`createMikeYqCommands`, and `mikeYqCommands` explicitly.
 `@poe-platform/safe-bash/yq` exports the same Mike-yq profile. Register one profile
 at a time, or explicitly request replacement under the shell registry's existing
 collision policy. This workspace is internal; its implementation ships through

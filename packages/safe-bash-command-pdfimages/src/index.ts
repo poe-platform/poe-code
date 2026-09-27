@@ -368,3 +368,9 @@ export function pdfimagesPlugin(options: PdfimagesCommandOptions = {}): VirtualS
 }
 
 export const pdfimagesCommands = pdfimagesPlugin;
+
+export type PdfimagesCommandsOptions = PdfimagesCommandOptions;
+
+export function createPdfimagesCommands(options: PdfimagesCommandsOptions = {}): readonly CommandDefinition[] {
+    return [createPdfimagesCommand(options)];
+}

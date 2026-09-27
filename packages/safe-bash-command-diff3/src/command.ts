@@ -215,3 +215,9 @@ export type Diff3CommandsOptions = Diff3CommandOptions;
 export function createDiff3Commands(options: Diff3CommandsOptions = {}): readonly CommandDefinition[] {
   return Object.freeze([createDiff3Command(options)]);
 }
+
+export type Diff3CommandsOptions = Diff3CommandOptions;
+
+export function createDiff3Commands(options: Diff3CommandsOptions = {}): readonly CommandDefinition[] {
+    return [createDiff3Command(options)];
+}

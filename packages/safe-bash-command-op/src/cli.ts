@@ -7,6 +7,7 @@ import { renderPluginList } from "./plugin-list-output.js";
 import { validateOpFlagValue } from "./flag-values.js";
 import { parseOpFileMode } from "./file-mode.js";
 import { parseOpCsv } from "./csv-values.js";
+import { createObjectBackend } from "./backend.js";
 export { parseOpFileMode } from "./file-mode.js";
 export { createOpTextCodec } from "./encoding.js";
 import { opCommandCatalog, opGlobalFlags, opRootFlags, type OpCatalogCommand, type OpFlagDefinition } from "./catalog.js";
@@ -44,7 +45,7 @@ export interface OpCommandContext {
 }
 
 export interface OpCommandOptions {
-  backend: OpBackend;
+  backend?: OpBackend;
   version?: string;
   channel?: "stable" | "beta";
   authorize?: (request: OpBackendRequest, context: Readonly<Pick<OpBackendContext, "signal" | "pluginScope" | "authentication">>) =>
@@ -349,8 +350,8 @@ function approvalManifest(request: OpBackendRequest, requests: readonly OpBacken
   return freezeJson(manifest) as OpResolvedApproval;
 }
 
-export function createOpCommand(options: OpCommandOptions): { name: "op"; execute(context: OpCommandContext): Promise<{ exitCode: number }> } {
-  const { backend, authorize, approve, authorizeResolution, approveResolved, approvalMode = "resolved", version = "0.0.1", channel = "stable" } = options;
+export function createOpCommand(options: OpCommandOptions = {}): { name: "op"; execute(context: OpCommandContext): Promise<{ exitCode: number }> } {
+  const { backend = createObjectBackend(), authorize, approve, authorizeResolution, approveResolved, approvalMode = "resolved", version = "0.0.1", channel = "stable" } = options;
   const handlers = { ...options.handlers };
   const planners = new Map(Object.entries(handlers).flatMap(([key, handler]) => typeof (handler as Partial<OpPreparedHandler>).prepare === "function" ? [[key, (handler as OpPreparedHandler).prepare.bind(handler)] as const] : []));
   return {

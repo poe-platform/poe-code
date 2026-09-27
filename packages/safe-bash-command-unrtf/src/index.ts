@@ -9,3 +9,4 @@ export { renderRtf } from './render.js';
 export type { UnrtfRenderOptions } from './render.js';
 export { unrtf, createUnrtfCommand, unrtfCommand, unrtfCommands } from './command.js';
 export type { UnrtfCommandOptions, UnrtfResult } from './command.js';
+export { createUnrtfCommands, type UnrtfCommandsOptions } from "./command.js";

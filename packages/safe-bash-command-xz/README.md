@@ -34,3 +34,8 @@ identity and publication capabilities of the virtual filesystem.
 
 This workspace is private and bundled into the existing Safe Bash distribution.
 Use the public imports above; no separate package installation is required.
+
+The workspace entrypoint exports `xzCommands()` for plugin registration,
+`createXzCommands()` for the command collection, and
+`createXzCommand()` for a single command. Each accepts an optional
+`XzCommandsOptions` object; existing factory names remain available.

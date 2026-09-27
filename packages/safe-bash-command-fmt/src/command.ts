@@ -330,3 +330,11 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
     if ("error" in outcome) throw outcome.error;
     return outcome.result;
 }
+
+export type FmtCommandsOptions = FmtPluginOptions;
+
+export { fmtCommand as createFmtCommand };
+
+export function createFmtCommands(options: FmtCommandsOptions = {}): readonly CommandDefinition[] {
+    return [fmtCommand(options)];
+}

@@ -28,3 +28,8 @@ const shell = createShell({
 
 await shell.exec("pdftoppm -png -r 150 deck.pdf slide");
 ```
+
+The workspace entrypoint exports `pdftoppmCommands()` for plugin registration,
+`createPdftoppmCommands()` for the command collection, and
+`createPdftoppmCommand()` for a single command. Each accepts an optional
+`PdftoppmCommandsOptions` object; existing factory names remain available.

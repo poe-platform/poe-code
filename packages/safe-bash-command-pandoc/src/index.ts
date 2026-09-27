@@ -62,7 +62,7 @@ export type {
   LossDiagnostic
 } from "./ast-types.js";
 export { inspectFormats, inspectCommand } from "./inspection.js";
-export { createFormatInspectionCommand, createPandocCommand } from "./safe-bash.js";
+export { createFormatInspectionCommand, createPandocCommand, createPandocCommands, pandocCommands, type PandocCommandsOptions } from "./safe-bash.js";
 export type { FormatInspectionContext, PandocCommandContext } from "./safe-bash.js";
 export { parseConversionArgs } from "./cli.js";
 export type { CommandInputs } from "./cli.js";

@@ -27,3 +27,8 @@ const shell = new Shell({ fs }).use(qpdfCommands());
 
 await shell.exec("qpdf --empty --pages /part1.pdf 1-2 /part2.pdf z -- /merged.pdf");
 ```
+
+The workspace entrypoint exports `qpdfCommands()` for plugin registration,
+`createQpdfCommands()` for the command collection, and
+`createQpdfCommand()` for a single command. Each accepts an optional
+`QpdfCommandsOptions` object; existing factory names remain available.

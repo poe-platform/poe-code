@@ -158,3 +158,8 @@ This package is private and ships only through
 
 CLI informational flags are also available through SDK `help: true`, `version: true`,
 and `htmlqBytes` argv. They write to stdout regardless of `--output`.
+
+The workspace entrypoint exports `htmlqCommands()` for plugin registration,
+`createHtmlqCommands()` for the command collection, and
+`createHtmlqCommand()` for a single command. Each accepts an optional
+`HtmlqCommandsOptions` object; existing factory names remain available.

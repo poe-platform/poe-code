@@ -334,3 +334,10 @@ Repository references: [public contracts](../../docs/op.md),
 [recording checklist](../../docs/plans/op-native-fixtures.md).
 These repository documents may not be included in the npm archive. This README
 does not claim a published package, successful release or universal native parity.
+
+The workspace entrypoint exports `opCommands()` for plugin registration,
+`createOpCommands()` for the command collection, and
+`createOpCommand()` for a single command. Each accepts an optional
+`OpCommandsOptions` object; existing factory names remain available.
+Omitting the backend creates a fresh empty object backend. Supply `backend`
+to use your own data; defaults do not read host credentials.

@@ -8,12 +8,18 @@ import { parseOptions, xzProfile } from "./options.js";
 import { DecodedBudget, type CompressionCommandOptions } from "safe-bash-compression-engine/stream";
 import { inspectXz, listingRatio, listingChecks, humanListing, type XzListing } from "./xz-list.js";
 
-export function createXzCommands(config: CompressionCommandOptions = {}): readonly CommandDefinition[] {
+import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
+
+export interface XzCommandsOptions extends CompressionCommandOptions {
+  readonly replace?: boolean;
+}
+
+export function createXzCommand(config: XzCommandsOptions = {}, name = "xz"): CommandDefinition {
   const maxDecodedBytes = config.maxDecodedBytes;
   if (maxDecodedBytes !== undefined && maxDecodedBytes !== Infinity && (!Number.isSafeInteger(maxDecodedBytes) || maxDecodedBytes < 0)) {
     throw new RangeError("maxDecodedBytes must be a nonnegative safe integer or Infinity");
   }
-  return xzProfile.names.map<CommandDefinition>(name => ({ name, async execute(context) {
+  return { name, async execute(context) {
     context.signal.throwIfAborted();
     try {
       const options = parseOptions(name, context.args);
@@ -86,5 +92,19 @@ export function createXzCommands(config: CompressionCommandOptions = {}): readon
       await diagnostic(context, error);
       return { exitCode: error instanceof UsageError ? 2 : 1 };
     }
-  } }));
+  } };
+}
+
+export function createXzCommands(options: XzCommandsOptions = {}): readonly CommandDefinition[] {
+  return xzProfile.names.map(name => createXzCommand(options, name));
+}
+
+export function xzCommands(options: XzCommandsOptions = {}): VirtualShellPlugin {
+  const commands = createXzCommands(options);
+  return {
+    name: "xz-commands",
+    setup(host) {
+      for (const command of commands) host.commands.register(command, { replace: options.replace ?? false });
+    }
+  };
 }

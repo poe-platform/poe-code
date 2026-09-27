@@ -146,3 +146,8 @@ Supported `themeVariables` are `primaryColor`, `primaryTextColor`, `primaryBorde
 | **State (`v2`)** | `stateDiagram-v2`<br/>`stateDiagram` | Pseudo-states: `[*] --> State` (initial), `State --> [*]` (final)<br/>States: `state "Description" as Id`, `StateId : description`<br/>Composite states: Nested `state CompositeId { ... }` blocks<br/>Notes: `note left of State : text`, `note right of State : text` |
 | **Class** | `classDiagram` | Declarations: `class Name { ... }`, stereotypes `<<interface>>`, `<<abstract>>`, `<<service>>`, `<<enumeration>>`<br/>Members: Visibility `+` (public), `-` (private), `#` (protected), `~` (package), classifiers `*` (abstract), `$` (static)<br/>Relationships: `<\|--`, `*--`, `o--`, `-->`, `..>`, `..\|>`, `--` with `"1"` / `"0..*"` multiplicity badges & `: label`<br/>Grouping: `namespace PackageName { ... }` |
 | **Entity-Relationship** | `erDiagram` | Entities: `ENTITY { type name [PK\|FK\|UK] ["comment"] }` and `ENTITY["Display Label"]`<br/>Crow's Foot Cardinalities: `\|\|` (exactly one), `\|o` / `o\|` (zero or one), `}\|` / `\|{` (one or more), `}o` / `o{` (zero or more)<br/>Identifying (`--`) and non-identifying (`..`) relationships with `: label` |
+
+The workspace entrypoint exports `mmdcCommands()` for plugin registration,
+`createMmdcCommands()` for the command collection, and
+`createMmdcCommand()` for a single command. Each accepts an optional
+`MmdcCommandsOptions` object; existing factory names remain available.

@@ -29,3 +29,8 @@ const shell = createShell({
 
 await shell.exec("pdftk tax-form.pdf fill_form answers.fdf output filled.pdf flatten");
 ```
+
+The workspace entrypoint exports `pdftkCommands()` for plugin registration,
+`createPdftkCommands()` for the command collection, and
+`createPdftkCommand()` for a single command. Each accepts an optional
+`PdftkCommandsOptions` object; existing factory names remain available.

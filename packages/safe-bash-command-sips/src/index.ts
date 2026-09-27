@@ -1248,3 +1248,9 @@ export function sipsPlugin(options: SipsCommandOptions = {}): VirtualShellPlugin
 }
 
 export const sipsCommands = sipsPlugin;
+
+export type SipsCommandsOptions = SipsCommandOptions;
+
+export function createSipsCommands(options: SipsCommandsOptions = {}): readonly CommandDefinition[] {
+    return [createSipsCommand(options)];
+}

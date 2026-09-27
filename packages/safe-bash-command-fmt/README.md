@@ -123,3 +123,8 @@ Source review and original byte tests establish the implemented contract, while
 combined punctuation/prefix/margin/window native qualification remains incomplete.
 This package has no external runtime dependencies, host executable fallback,
 implicit filesystem/network access or downloadable engine.
+
+The workspace entrypoint exports `fmtCommands()` for plugin registration,
+`createFmtCommands()` for the command collection, and
+`createFmtCommand()` for a single command. Each accepts an optional
+`FmtCommandsOptions` object; existing factory names remain available.

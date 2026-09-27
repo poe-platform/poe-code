@@ -80,3 +80,8 @@ Diagnostics share the invocation's work, retention and output quotas. If a diagn
 This private workspace is bundled with its declarations inside safe-bash. Consumers import the public safe-bash subpath; this workspace is not published.
 
 Runtime: TypeScript ESM, Node.js >=22, byte streams and explicit VFS capabilities; no external command runtime dependencies, host executables/files, implicit network, native/WASM fallback or downloaded dependencies. Browser/workerd export-condition checks qualify the packed graph only; actual engine qualification is separate.
+
+The workspace entrypoint exports `csvgrepCommands()` for plugin registration,
+`createCsvgrepCommands()` for the command collection, and
+`createCsvgrepCommand()` for a single command. Each accepts an optional
+`CsvgrepCommandsOptions` object; existing factory names remain available.

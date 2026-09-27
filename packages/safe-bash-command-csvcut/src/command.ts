@@ -245,3 +245,9 @@ export type CsvcutCommandsOptions = CsvcutCommandOptions;
 export function createCsvcutCommands(options: CsvcutCommandsOptions = {}): readonly CommandDefinition[] {
   return Object.freeze([createCsvcutCommand(options)]);
 }
+
+export type CsvcutCommandsOptions = CsvcutCommandOptions;
+
+export function createCsvcutCommands(options: CsvcutCommandsOptions = {}): readonly CommandDefinition[] {
+    return [createCsvcutCommand(options)];
+}

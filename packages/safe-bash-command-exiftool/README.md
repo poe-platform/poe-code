@@ -178,3 +178,8 @@ independent of command execution limits. Unsupported combinations use the CLI
 parser's admission rules. Argument-file expansion remains available through raw
 CLI argv. Resource exhaustion throws from the direct handler; Shell currently
 maps it to an internal-error diagnostic, so failure diagnostic parity is pending.
+
+The workspace entrypoint exports `exiftoolCommands()` for plugin registration,
+`createExiftoolCommands()` for the command collection, and
+`createExiftoolCommand()` for a single command. Each accepts an optional
+`ExiftoolCommandsOptions` object; existing factory names remain available.

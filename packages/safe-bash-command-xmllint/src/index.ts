@@ -5,7 +5,8 @@ import {
   getCommandArguments,
   writeBytes,
   type CommandContext,
-  type CommandDefinition
+  type CommandDefinition,
+  type VirtualShellPlugin
 } from "safe-bash-contracts";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { pathOf } from "safe-bash-contracts/path";
@@ -26,6 +27,7 @@ import { serializeDocument, type DocumentMode } from "safe-bash-xml-engine/docum
 const sharedEncoder = new TextEncoder();
 export { defaultXmlQueryLimits } from "safe-bash-xml-engine/limits";
 export type { XmlCommandsOptions, XmlQueryLimits } from "safe-bash-xml-engine/limits";
+export type { XmlCommandsOptions as XmllintCommandsOptions } from "safe-bash-xml-engine/limits";
 
 async function argumentsFor(
   context: CommandContext,
@@ -282,4 +284,18 @@ export function createXmllintCommand(
 ): CommandDefinition {
   const limits = resolveXmlQueryLimits(options.limits);
   return { name: "xmllint", execute: (context) => execute(context, limits, runtime) };
+}
+
+export function createXmllintCommands(options: XmlCommandsOptions = {}): readonly CommandDefinition[] {
+  return [createXmllintCommand(options)];
+}
+
+export function xmllintCommands(options: XmlCommandsOptions = {}): VirtualShellPlugin {
+  const commands = createXmllintCommands(options);
+  return {
+    name: "xmllint-commands",
+    setup(host) {
+      for (const command of commands) host.commands.register(command, { replace: options.replace ?? false });
+    }
+  };
 }

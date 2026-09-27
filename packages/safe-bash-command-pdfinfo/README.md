@@ -34,3 +34,8 @@ const shell = new Shell({ fs }).use(pdfinfoCommands());
 const result = await shell.exec("pdfinfo -box -isodates /report.pdf");
 console.log(result.stdout);
 ```
+
+The workspace entrypoint exports `pdfinfoCommands()` for plugin registration,
+`createPdfinfoCommands()` for the command collection, and
+`createPdfinfoCommand()` for a single command. Each accepts an optional
+`PdfinfoCommandsOptions` object; existing factory names remain available.

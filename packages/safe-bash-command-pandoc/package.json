@@ -52,5 +52,8 @@
     "citeproc": "2.4.63",
     "docx": "*",
     "safe-bash-command-ssconvert": "*"
+  },
+  "devDependencies": {
+    "safe-bash-contracts": "*"
   }
 }

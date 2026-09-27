@@ -30,3 +30,8 @@ const shell = new Shell({ fs }).use(pdftotextCommands());
 const result = await shell.exec("pdftotext -layout /report.pdf -");
 console.log(result.stdout);
 ```
+
+The workspace entrypoint exports `pdftotextCommands()` for plugin registration,
+`createPdftotextCommands()` for the command collection, and
+`createPdftotextCommand()` for a single command. Each accepts an optional
+`PdftotextCommandsOptions` object; existing factory names remain available.

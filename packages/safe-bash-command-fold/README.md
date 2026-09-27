@@ -94,3 +94,8 @@ Source-derived semantics are distinct from native observations; see the
 Original implementation: MIT. Unicode 17 tables: LGPL-2.1-or-later,
 Copyright 2000–2025 Free Software Foundation, Inc.; see LICENSE, COPYING.LESSER,
 COPYING and bundled modified table source.
+
+The workspace entrypoint exports `foldCommands()` for plugin registration,
+`createFoldCommands()` for the command collection, and
+`createFoldCommand()` for a single command. Each accepts an optional
+`FoldCommandsOptions` object; existing factory names remain available.

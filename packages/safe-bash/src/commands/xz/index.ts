@@ -1,1 +1,1 @@
-export { createXzCommands, type CompressionCommandOptions } from "safe-bash-command-xz";
+export * from "safe-bash-command-xz";

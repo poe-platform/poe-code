@@ -142,3 +142,8 @@ errors emit no document/header bytes. No VFS outputs or images are created by th
 command. Shell redirection truncates its destination before conversion and is
 not atomic: redirecting onto the input (including a symlink alias) destroys it,
 and failures can leave partial output. Callers own exclusive/atomic publication.
+
+The workspace entrypoint exports `unrtfCommands()` for plugin registration,
+`createUnrtfCommands()` for the command collection, and
+`createUnrtfCommand()` for a single command. Each accepts an optional
+`UnrtfCommandsOptions` object; existing factory names remain available.

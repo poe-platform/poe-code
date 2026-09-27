@@ -297,3 +297,9 @@ export function exiftoolCommands(options: ExiftoolCommandOptions = {}): VirtualS
   const command = createExiftoolCommand(options);
   return { name: "exiftool", setup(host) { host.commands.register(command, { replace: options.replace ?? false }); } };
 }
+
+export type ExiftoolCommandsOptions = ExiftoolCommandOptions;
+
+export function createExiftoolCommands(options: ExiftoolCommandsOptions = {}): readonly CommandDefinition[] {
+    return [createExiftoolCommand(options)];
+}

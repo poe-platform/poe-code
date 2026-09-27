@@ -27,3 +27,8 @@ const shell = new Shell({ fs }).use(sofficeCommands());
 
 await shell.exec("soffice --headless --convert-to pdf --outdir /out /report.docx");
 ```
+
+The workspace entrypoint exports `sofficeCommands()` for plugin registration,
+`createSofficeCommands()` for the command collection, and
+`createSofficeCommand()` for a single command. Each accepts an optional
+`SofficeCommandsOptions` object; existing factory names remain available.

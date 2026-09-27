@@ -21,3 +21,10 @@ plugin accepts explicit limit overrides and replacement registration.
 DTD/external entities and unsupported XPath syntax are refused. This internal
 workspace ships inside the existing Safe Bash bundle; install and import the
 public package, without installing this workspace separately.
+
+The workspace entrypoint exports `xmllintCommands()` for plugin registration,
+`createXmllintCommands()` for the command collection, and
+`createXmllintCommand()` for a single command. Each accepts an optional
+`XmllintCommandsOptions` object; existing factory names remain available.
+The default runtime reads virtual files and stdin, handles cancellation, and
+uses the configured XML limits. The optional runtime argument remains supported.

@@ -26,3 +26,8 @@ const shell = createShell({
 await shell.exec("pdfimages -list paper.pdf");
 await shell.exec("pdfimages -png paper.pdf fig");
 ```
+
+The workspace entrypoint exports `pdfimagesCommands()` for plugin registration,
+`createPdfimagesCommands()` for the command collection, and
+`createPdfimagesCommand()` for a single command. Each accepts an optional
+`PdfimagesCommandsOptions` object; existing factory names remain available.

@@ -144,3 +144,8 @@ validation does not make sink writes atomic. A BOM can precede failure and a
 failed sink can leave completed records. Shell redirects open before reading:
 redirecting onto the input or a symlink alias destroys it. csvcut creates no
 temporary files and provides no atomic destination publication.
+
+The workspace entrypoint exports `csvcutCommands()` for plugin registration,
+`createCsvcutCommands()` for the command collection, and
+`createCsvcutCommand()` for a single command. Each accepts an optional
+`CsvcutCommandsOptions` object; existing factory names remain available.

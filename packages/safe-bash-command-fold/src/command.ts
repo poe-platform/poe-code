@@ -288,3 +288,9 @@ export function foldCommands(options: FoldCommandOptions = {}): VirtualShellPlug
   const replace = options.replace ?? false;
   return { name: 'fold', setup(host) { host.commands.register(command, { replace }); } };
 }
+
+export type FoldCommandsOptions = FoldCommandOptions;
+
+export function createFoldCommands(options: FoldCommandsOptions = {}): readonly CommandDefinition[] {
+    return [createFoldCommand(options)];
+}

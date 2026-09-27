@@ -226,3 +226,8 @@ runner accepts `PANDOC_DOCUTILS_PYTHON` to select its Python executable (default
 Run `npm run build --workspace=safe-bash-command-pandoc`,
 `npm run typecheck --workspace=safe-bash-command-pandoc`, or
 `npm run test:unit --workspace=safe-bash-command-pandoc` from the repository root.
+
+The workspace entrypoint exports `pandocCommands()` for plugin registration,
+`createPandocCommands()` for the command collection, and
+`createPandocCommand()` for a single command. Each accepts an optional
+`PandocCommandsOptions` object; existing factory names remain available.

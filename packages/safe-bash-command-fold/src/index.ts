@@ -5,3 +5,4 @@ export { portableWidth } from './width.js';
 export { adjustFoldColumn, type FoldLocale, type FoldColumnState, type FoldGlyph } from './column.js';
 export { fold, createFoldCommand, foldCommand, foldCommands, type FoldCommandOptions, type FoldRunOptions, type FoldResult } from './command.js';
 export { decodeFoldUnit, type FoldUnit } from "./units.js";
+export { createFoldCommands, type FoldCommandsOptions } from "./command.js";

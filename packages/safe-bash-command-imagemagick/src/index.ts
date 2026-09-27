@@ -5223,3 +5223,11 @@ export function imagemagickPlugin(options: ImageMagickCommandOptions = {}): Virt
 }
 
 export const imagemagickCommands = imagemagickPlugin;
+
+export type ImagemagickCommandsOptions = ImageMagickCommandOptions;
+
+export { createMagickCommand as createImagemagickCommand };
+
+export function createImagemagickCommands(options: ImagemagickCommandsOptions = {}): readonly CommandDefinition[] {
+    return [createMagickCommand(options), createConvertCommand(options), createMogrifyCommand(options), createCompositeCommand(options), createMontageCommand(options), createIdentifyCommand(options), createCompareCommand(options)];
+}

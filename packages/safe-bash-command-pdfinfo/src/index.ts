@@ -2945,3 +2945,9 @@ export function pdfinfoCommands(options: PdfinfoCommandOptions = {}): VirtualShe
     }
   };
 }
+
+export type PdfinfoCommandsOptions = PdfinfoCommandOptions;
+
+export function createPdfinfoCommands(options: PdfinfoCommandsOptions = {}): readonly CommandDefinition[] {
+    return [createPdfinfoCommand(options), createPdfuniteCommand(options), createPdfseparateCommand(options), createPdffontsCommand(options), createPdfdetachCommand(options)];
+}

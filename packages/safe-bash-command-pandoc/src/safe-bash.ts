@@ -4,6 +4,11 @@ import { convert } from "./engine.js";
 import type { ConversionContext, ResourceFileSystem } from "./types.js";
 import { resolveConversionArgs } from "./defaults.js";
 import type { CommandInputs } from "./cli.js";
+import type { CommandDefinition, VirtualShellPlugin } from "safe-bash-contracts";
+
+export interface PandocCommandsOptions extends Omit<ConversionContext, "output" | "signal" | "resources" | "resourceFiles" | "resourceCwd"> {
+  readonly replace?: boolean;
+}
 
 const errorStatuses: Readonly<Record<string, number>> = {
   E_FORMAT_REQUIRED: 2, E_FORMAT: 2, E_EXTENSION: 2, E_OPTION: 2, E_METADATA: 2,
@@ -28,7 +33,7 @@ export interface PandocCommandContext extends FormatInspectionContext, CommandIn
 
 /** Opt-in conversion adapter. File access requires explicit injected callbacks;
  * all conversion and limits belong to the SDK. It never invokes native tools. */
-export function createPandocCommand(capabilities: Omit<ConversionContext, "output" | "signal" | "resources" | "resourceFiles" | "resourceCwd"> = {}) {
+export function createPandocCommand(capabilities: PandocCommandsOptions = {}) {
   const configured: typeof capabilities = Object.fromEntries(Object.keys(capabilities)
     .filter(key => ["reader", "writer", "filters", "limits", "yield"].includes(key))
     .map(key => [key, capabilities[key as keyof typeof capabilities]]));
@@ -72,6 +77,19 @@ export function createPandocCommand(capabilities: Omit<ConversionContext, "outpu
       await context.stdout.write(bytes);
       context.signal.throwIfAborted();
       return {exitCode: 0};
+    }
+  };
+}
+export function createPandocCommands(options: PandocCommandsOptions = {}): readonly CommandDefinition[] {
+  return [createPandocCommand(options)];
+}
+
+export function pandocCommands(options: PandocCommandsOptions = {}): VirtualShellPlugin {
+  const commands = createPandocCommands(options);
+  return {
+    name: "pandoc-commands",
+    setup(host) {
+      for (const command of commands) host.commands.register(command, { replace: options.replace ?? false });
     }
   };
 }

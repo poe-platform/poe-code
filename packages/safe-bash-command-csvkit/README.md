@@ -45,3 +45,10 @@ Resource budgets are opt-in: every `defaultLimits` value is `Infinity`. Supply f
 nonnegative integer limits to enforce budgets; explicit `Infinity` disables a budget.
 CSV field lengths, decimal inference and sniff samples have no additional implicit
 ceiling. Use `field_size_limit` (CLI `-z`) for a field ceiling; both accept `Infinity`.
+
+The workspace entrypoint exports `csvkitCommands()` for plugin registration,
+`createCsvkitCommands()` for the command collection, and
+`createCsvkitCommand()` for a single command. Each accepts an optional
+`CsvkitCommandsOptions` object; existing factory names remain available.
+`createCsvkitCommand()` selects `csvclean`; pass a command name as its second
+argument to select another tool, for example `createCsvkitCommand({}, "csvcut")`.

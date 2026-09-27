@@ -26,3 +26,10 @@ console.log(info.stdout); // PNG 60x40
 | `montage` | Contact-sheet grid generation with `-tile MxN`, `-geometry WxH+X+Y`, `-background`, and `-border` / `-bordercolor`. |
 | `compare` | Perceptual and pixel diffing (`-metric AE\|MAE\|MSE\|RMSE\|PAE\|PSNR\|SSIM\|DSSIM\|NCC`), `-fuzz` tolerance, `-highlight-color`, `-lowlight-color`, and visual diff output. Metrics go to stderr; identical images return 0 and differing images return 1 (with `-fuzz` tolerance or an explicit `-dissimilarity-threshold`). |
 | `identify` | Image metadata and statistics inspection (`-ping`, `-format`, `-verbose`). |
+
+The workspace entrypoint exports `imagemagickCommands()` for plugin registration,
+`createImagemagickCommands()` for the command collection, and
+`createImagemagickCommand()` for a single command. Each accepts an optional
+`ImagemagickCommandsOptions` object; existing factory names remain available.
+`createImagemagickCommand` is the `createMagickCommand` factory; the collection
+includes all seven tools registered by the ImageMagick plugin.

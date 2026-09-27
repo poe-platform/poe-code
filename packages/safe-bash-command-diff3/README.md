@@ -152,3 +152,8 @@ network/ambient files, downloads or native/WASM fallbacks are used by this comma
 Registration is opt-in. Private implementation and declarations are bundled into
 safe-bash with canonical contract identity; never install or publish this workspace
 separately. Actual browser/workerd engine qualification remains open.
+
+The workspace entrypoint exports `diff3Commands()` for plugin registration,
+`createDiff3Commands()` for the command collection, and
+`createDiff3Command()` for a single command. Each accepts an optional
+`Diff3CommandsOptions` object; existing factory names remain available.

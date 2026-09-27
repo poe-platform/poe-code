@@ -125,3 +125,9 @@ export function unrtfCommands(options:UnrtfCommandOptions = {}):VirtualShellPlug
   const command = createUnrtfCommand(options), replace = options.replace ?? false;
   return {name:'unrtf',setup(host) { host.commands.register(command,{replace}); }};
 }
+
+export type UnrtfCommandsOptions = UnrtfCommandOptions;
+
+export function createUnrtfCommands(options: UnrtfCommandsOptions = {}): readonly CommandDefinition[] {
+    return [createUnrtfCommand(options)];
+}

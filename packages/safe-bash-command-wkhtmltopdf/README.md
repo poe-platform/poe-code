@@ -103,3 +103,8 @@ Semantics derive from source commit
 See [detailed runtime and safety contracts](RUNTIME.md) for numeric/encoding
 validation, cover/cloning, batch parsing, resource ownership, cleanup and deliberate
 deviations. Static settings are never a claim of full browser parity.
+
+The workspace entrypoint exports `wkhtmltopdfCommands()` for plugin registration,
+`createWkhtmltopdfCommands()` for the command collection, and
+`createWkhtmltopdfCommand()` for a single command. Each accepts an optional
+`WkhtmltopdfCommandsOptions` object; existing factory names remain available.

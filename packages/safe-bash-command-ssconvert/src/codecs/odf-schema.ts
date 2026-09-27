@@ -1,5 +1,6 @@
 // Reader states derived from Gnumeric 1.12.61 plugins/openoffice/openoffice-read.c
 // Archive SHA-256: 2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12
+// Native label-ranges added from LibreOffice sc/source/filter/xml/xmllabri.cxx.
 export const odfReaderStates: Readonly<Record<string, string>> = {
   opendoc_content_dtd: `START OFFICE OO_NS_OFFICE document-content
 OFFICE SCRIPT OO_NS_OFFICE scripts
@@ -264,6 +265,8 @@ TABLE TABLE_ROW_GROUP OO_NS_TABLE table-row-group
 TABLE_ROW_GROUP TABLE_ROW OO_NS_TABLE table-row
 TABLE NAMED_EXPRS OO_NS_TABLE named-expressions
 SPREADSHEET NAMED_EXPRS OO_NS_TABLE named-expressions
+SPREADSHEET LABEL_RANGES OO_NS_TABLE label-ranges
+LABEL_RANGES LABEL_RANGE OO_NS_TABLE label-range
 NAMED_EXPRS NAMED_EXPR OO_NS_TABLE named-expression
 NAMED_EXPRS NAMED_RANGE OO_NS_TABLE named-range
 SPREADSHEET DB_RANGES OO_NS_TABLE database-ranges
@@ -369,6 +372,8 @@ TABLE TABLE_ROW_GROUP OO_NS_TABLE table-row-group
 TABLE_ROW_GROUP TABLE_ROW_GROUP OO_NS_TABLE table-row-group
 TABLE_ROW_GROUP TABLE_ROW OO_NS_TABLE table-row
 OFFICE_BODY NAMED_EXPRS OO_NS_TABLE named-expressions
+OFFICE_BODY LABEL_RANGES OO_NS_TABLE label-ranges
+LABEL_RANGES LABEL_RANGE OO_NS_TABLE label-range
 NAMED_EXPRS NAMED_EXPR OO_NS_TABLE named-expression
 NAMED_EXPRS NAMED_RANGE OO_NS_TABLE named-range
 OFFICE_BODY DB_RANGES OO_NS_TABLE database-ranges

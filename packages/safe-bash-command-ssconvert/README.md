@@ -96,6 +96,10 @@ BIFF8 preserves declared label ranges in each sheet's ordered `labelRanges`
 bindings (`axis`, `labels`, `data`) and the workbook's `automaticLabelLookup`
 setting. Inferred data ranges use the BIFF8 grid (65,536 rows, 256 columns).
 Overlaps and multi-column row labels retain their original order and extent.
+ODF and legacy OpenOffice imports read native same-sheet label/data declarations;
+ODF exports preserve their order, explicit endpoints and automatic lookup setting.
+ODF defaults automatic lookup to enabled when the setting is absent. Label/data
+pairs on different sheets and live formula transport still require implementation.
 BIFF7 and data endpoints that BIFF8 cannot encode are refused; the public engine
 warns when other exporters omit this metadata. Live BIFF8 row/column label tokens
 (`02`, `03`, `06`, `07`) recalculate and reexport with their anchor, reference

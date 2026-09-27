@@ -127,7 +127,8 @@ it("converts the authenticated inner workbook through the CLI engine", async () 
     const result = await runCommand(["/encrypted.ods", "fd://1", "-T", "Gnumeric_stf:stf_csv"], engine,
       { ...context, stdout: { async write(bytes) { stdout.push(bytes.slice()); } }, stderr: { async write(bytes) { stderr.push(bytes.slice()); } } });
     expect(result.exitCode).toBe(0);
-    expect(Buffer.concat(stdout).toString()).toBe("private,42\n"); expect(stderr).toHaveLength(0);
+    expect(Buffer.concat(stdout).toString()).toBe("private,42\n");
+    expect(Buffer.concat(stderr).toString()).toBe("Label ranges and automatic label lookup are omitted by Gnumeric_stf:stf_csv\n");
   } finally { await engine.dispose(); }
 });
 

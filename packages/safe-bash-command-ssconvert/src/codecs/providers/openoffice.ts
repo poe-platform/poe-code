@@ -30,6 +30,7 @@ export default {
       "id": "openoffice",
       "direction": "write",
       write: createOdfWriter("strict"),
+      labelRanges: true,
       exportOptionRules: { encryption: { kind: "enum", values: [...odfEncryptionProfiles.keys()] } },
       "description": "ODF 1.2 strict conformance (*.ods)",
       "extensions": [
@@ -44,6 +45,7 @@ export default {
       "id": "odf",
       "direction": "write",
       write: createOdfWriter("extended"),
+      labelRanges: true,
       exportOptionRules: { encryption: { kind: "enum", values: [...odfEncryptionProfiles.keys()] } },
       "description": "ODF 1.2 extended conformance (*.ods)",
       "extensions": [

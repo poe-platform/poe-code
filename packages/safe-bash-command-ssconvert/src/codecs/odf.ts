@@ -8,11 +8,12 @@ import { MAX_SHEET_SIZE, DEFAULT_SHEET_SIZE, formatA1, type Workbook, type Sheet
 import { parseExpression } from "../formulas/parser.js";
 import { visitFormula } from "../formulas/rewriting.js";
 import { gnumericGrammar, odfGrammar, legacyOpenOfficeGrammar } from "../formulas/conventions.js";
-import { serializeExpression, quoteNativeSheet } from "../formulas/serialization.js";
+import { serializeExpression, quoteNativeSheet, quoteFormulaString } from "../formulas/serialization.js";
 import { dateSerial, gregorian } from "../formulas/functions/dates.js";
 import { converterLocale } from "../locale/runtime.js";
 import { odfReaderStates } from "./odf-schema.js";
 import { odfCellStyle, odfSheetMetadata, odfDatabaseRanges } from "./odf-metadata.js";
+import { readOdfLabelRanges } from "./odf-label-ranges.js";
 import { createOdfXml, odfObject, odfAttributes, odfChildren, odfNamespaces, odfEncryptionNamespace, type OdfAttributes } from "./odf-write-support.js";
 import { encryptOdfParts, odfEncryptionProfiles, type OdfEncryptionProfile } from "./odf-encrypted-write.js";
 import { exportOptionPairs } from "../cli/export-options.js";
@@ -548,11 +549,14 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
       }
     }
     await readNames(spreadsheet);
-    for (const n of spreadsheet.children) if (!["table", "named-expressions", "calculation-settings"].includes(n.localName)) unsupportedRecords.push(record(n));
+    for (const n of spreadsheet.children) if (!["table", "named-expressions", "calculation-settings", "label-ranges"].includes(n.localName)) unsupportedRecords.push(record(n));
     if (calculation) unsupportedRecords.push(record(calculation));
     if (!sheets.length) invalid("no sheets");
     const iteration = children(calculation, "iteration")[0];
-    return { sheets, names, dateSystem, calculationMode: "automatic", unsupportedRecords,
+    const lookup = attr(calculation, "automatic-find-labels");
+    if (lookup !== undefined && !["true", "false"].includes(lookup)) invalid("invalid automatic label lookup setting");
+    return { sheets: readOdfLabelRanges(spreadsheet, sheets, context, pkg.charge), names, dateSystem,
+      automaticLabelLookup: lookup !== "false", calculationMode: "automatic", unsupportedRecords,
       ...(iteration ? { iteration: { enabled: attr(iteration, "status") === "enable", maximum: 100,
         tolerance: Number(attr(iteration, "maximum-difference") ?? "0.001") } } : {}) };
   } catch (error) { return failure(error, context); }
@@ -687,7 +691,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
       return e("table:named-expressions", {}, body);
     }
     const iteration = book.iteration;
-    const prelude = e("table:calculation-settings", { "table:null-year": 1930, "table:automatic-find-labels": "false",
+    const prelude = e("table:calculation-settings", { "table:null-year": 1930, "table:automatic-find-labels": String(book.automaticLabelLookup ?? false),
       "table:case-sensitive": "false", "table:precision-as-shown": "false", "table:search-criteria-must-apply-to-whole-cell": "true",
       "table:use-regular-expressions": "false", "table:use-wildcards": "false" },
     e("table:null-date", { "table:date-value": book.dateSystem === "1904" ? "1904-1-1" : "1899-12-30", "table:value-type": "date" }) +
@@ -901,7 +905,17 @@ export function createOdfWriter(profile: "strict" | "extended") {
       }
       spreadsheet += e("table:table", { "table:name": sheet.name, "table:style-name": sheetStyle }, tableBody + names(sheet.id));
     }
-    spreadsheet = prelude + (validations ? e("table:content-validations", {}, validations) : "") + spreadsheet + names() + databaseRanges;
+    let labelRanges = "";
+    for (const sheet of book.sheets) for (const pair of sheet.labelRanges ?? []) {
+      xml.charge(); range(pair.labels); range(pair.data);
+      if (pair.axis !== "row" && pair.axis !== "column") throw new SsconvertError("invalid-request", "Invalid OpenDocument label orientation");
+      const address = (r: Range) => "$" + quoteFormulaString(sheet.name, "'", odfGrammar) + "." + formatA1(r.startRow, r.startColumn) +
+        ":." + formatA1(r.endRow, r.endColumn);
+      labelRanges += e("table:label-range", { "table:label-cell-range-address": address(pair.labels),
+        "table:data-cell-range-address": address(pair.data), "table:orientation": pair.axis });
+    }
+    spreadsheet = prelude + (validations ? e("table:content-validations", {}, validations) : "") + spreadsheet +
+      (labelRanges ? e("table:label-ranges", {}, labelRanges) : "") + names() + databaseRanges;
     const parts = new Map<string, Uint8Array>(), encoder = new TextEncoder();
     if (wrapped) context.own(() => { for (const bytes of parts.values()) bytes.fill(0); });
     function part(name: string, value: string) { parts.set(name, encoder.encode(value)); }

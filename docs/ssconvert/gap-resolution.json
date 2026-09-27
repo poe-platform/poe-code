@@ -1629,13 +1629,13 @@
       "import": "ReadLabelranges converts declared labels into label/data pairs. Row data extends right to the Calc document column limit, or left when the label reaches that limit; column data analogously extends down or up. The importer uses document limits, not the BIFF record field limit. This profile distinction still needs native qualification.",
       "evaluation": "GetRefColRowNames first consults ordered label/data pairs. Automatic ranges use label text/empty cells, formula position and the next declared data range to choose their boundaries. Binary-operator neighbors and beginning/end positions select a scalar; label/intersection neighbors preserve ranges. A missing scalar intersection returns NoRef. Single-cell ranges remain position independent. Axis-relative flags survive the resulting reference.",
       "export": "XclExpLabelranges stores only label ranges, not paired data endpoints. It narrows row labels to the first column for Excel97/2000/XP, then writes the two range lists. This is an observable normalization, not lossless pair preservation.",
-      "currentCode": "Ordered label metadata and lookup settings are implemented. Live BIFF8 row/column subtypes 02/03/06/07 retain their anchor, reference class, quoting and addressing flags, with Calc-derived scalar/contiguous-region evaluation. Radical 0A and multiple-cell radical 0B preserve the authoritative following Area/AreaErr, its independent endpoint flags and token class; 0B also preserves its ordered RgbExtra member list and shared relativity. Structural edits and dependencies include every label member and explicit range. Inferred multiple-cell forms, other transports and native qualification remain open.",
+      "currentCode": "Ordered label metadata and lookup settings are implemented. Live BIFF8 row/column subtypes 02/03/06/07 retain their anchor, reference class, quoting and addressing flags, with Calc-derived scalar/contiguous-region evaluation. Radical 0A and multiple-cell radical 0B preserve the authoritative following Area/AreaErr, its independent endpoint flags and token class; 0B also preserves its ordered RgbExtra member list and shared relativity. Structural edits and dependencies include every label member and explicit range. Native ODF/legacy OpenOffice same-sheet label metadata import and ODF export retain ordered explicit data pairs and lookup settings. Inferred multiple-cell forms, live formula transports, cross-sheet metadata and native qualification remain open.",
       "nextAction": "Resolve inferred multi-cell ColS/ColSV and applicable older row forms from primary sources; RadicalS ordered RgbExtra is implemented. NameParsedFormula forbids direct ELF tokens, so NAME transport needs a different loss-characterized representation. Qualify native behavior and XML/XLSX/ODF identity transport; no family is closed.",
       "metadataImplementation": {
         "profile": "Inferred data endpoints use the BIFF8 sheet grid (65536 rows, 256 columns). This explicitly differs from Calc document maxima. Original overlapping and multi-column label rectangles retain their order and bytes; no Calc row-label narrowing is performed.",
         "settings": "USESELFS defaults disabled. Only BIFF8 workbook-global records enable it, using native nonzero semantics. Missing/disabled settings export through the disabled default; enabled settings emit one USESELFS record.",
         "bounds": "Malformed counts, truncation, reversed rectangles, invalid columns and trailing data are rejected. Raw continuation data has no Unicode-width bytes. Work and output limits are enforced without materializing the covered cell grids.",
-        "export": "BIFF7/dual-stream export refuses labels or enabled automatic lookup. BIFF8 refuses pairs whose explicit data endpoints cannot be reconstructed. The public engine warns before other exporters omit label metadata; native XML/XLSX/ODF transport is still open.",
+        "export": "BIFF7/dual-stream export refuses labels or enabled automatic lookup. BIFF8 refuses pairs whose explicit data endpoints cannot be reconstructed. ODF exports native same-sheet label/data declarations and lookup settings; the engine warns for exporters that omit them. Live formula transport and native application qualification remain open.",
         "validation": "15 original metadata cases failed before implementation; four corrected workbook-global live-label fixtures also fail and remain open. Two additional resize/export-warning regressions failed before correction. Final 68-file BIFF/model/engine cohort: 1687 tests pass, excluding the four unimplemented live-label tests. Maintained package lint/source/test/consumer types and selected workspace build pass.",
         "publicValidation": {
           "inputBytes": 80,
@@ -1814,6 +1814,49 @@
         "qualification": "Inferred ColS/ColSV and applicable older row forms, native application readback, group-context qualification and other-format identity transport remain open.",
         "qa": "docs/plans/ssconvert-biff-label-ranges-qa.md",
         "visualValidation": "Actual compiled CLI mixed-relativity refusal screenshot inspected; existing destination remains unchanged."
+      },
+      "odfMetadata": {
+        "sources": [
+          {
+            "url": "https://docs.oasis-open.org/office/v1.2/os/OpenDocument-v1.2-os-schema.rng",
+            "sha256": "ca5d2510858c6f922b20cd27dc76d34959c1a976b9dfc6b5caeadbebfc83dbbb",
+            "definitions": [
+              "table-label-ranges",
+              "table-label-range-attlist",
+              "table-calculation-setting-attlist",
+              "boolean"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/xml/xmllabri.cxx",
+            "sha256": "b50ae556d2f765dd19bf54701084b4f3f9e97cdd4faf7e33dec81d62800a19b9",
+            "lines": "47-105"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/xml/xmlexprt.cxx",
+            "sha256": "5d81e90e7e1f99d5894bdf6eb6649d18d6e6577d8cb80944a0991ab15f9b841b",
+            "lines": "4178-4220"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/xml/XMLCalculationSettingsContext.cxx",
+            "sha256": "ffbca3e9c52f53a1f5d448d97b8ae6736868972eb79dca70a4b155ef79f739c1",
+            "lines": "35-73,119"
+          }
+        ],
+        "finding": "The reader schema discarded native table:label-ranges; the writer forced automatic lookup false. ODF provides ordered label/data address pairs and row/column orientation. Lookup defaults enabled. ODF booleans are literal true/false; numeric XML Schema booleans are not part of this ODF datatype.",
+        "implementation": "ODF and legacy OpenOffice import native same-sheet pairs after sheet loading. Strict/extended ODF export their explicit bounds, order, duplicates, display-name quoting and lookup setting. Sheet size expands by the existing power-of-two contract without allocating covered cells. Malformed addresses/orientations/settings fail before publication; shared work, text/node and cancellation limits apply.",
+        "validation": "Initial run had 12 substantive regression failures plus two corrected test-harness mistakes. Final ODF/BIFF-label/evaluator cohort: 18 files / 771 tests pass. Package lint, source/test/consumer types and selected maintained build pass. Original BIFF8 declarations survive ODF and native BIFF8 reexport. Imported explicit range recalculates a stale 999 cache to 5 across a blank gap.",
+        "publicValidation": {
+          "sdkStrictBytes": 3292,
+          "sdkExtendedBytes": 3322,
+          "commandBytes": 3337,
+          "orderedPairs": 3,
+          "recalculated": 5,
+          "independent": "Python ZIP/XML inspection confirms all three outputs retain the ordered row/column/row declarations, apostrophe quoting, explicit row 70001 endpoint and enabled lookup.",
+          "visual": "Actual compiled command screenshot inspected: expected CSV loss warning and unchanged values. Reopening repeated-export output also exposes two page-layout warnings, tracked separately as hey-boss #3627."
+        },
+        "remaining": "Cross-sheet label/data pairs, live formula identity in ODF/XML/XLSX, inferred BIFF labels and native application qualification remain open. Current host has no LibreOffice, ssconvert or Docker executable; no native readback pass is claimed. This partial implementation closes no family.",
+        "qa": "docs/plans/ssconvert-odf-label-metadata-qa.md"
       }
     },
     "xlsxFormulaTextAudit": {

@@ -4493,7 +4493,7 @@ export class Runtime {
       const existingKey = current.keys.get(identity);
       if (existingKey !== undefined) {
         const existingSlot = current.values.get(existingKey.index);
-        if (existingSlot !== undefined && existingSlot.text.references === 1 && existingSlot.text.bytes === valByteLenUpdated) {
+        if (existingSlot !== undefined && existingSlot.text.references === 1 && existingSlot.text.bytes === valByteLen) {
           try {
             current.owner.chargeWork(valByteLen + 9);
             const tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
@@ -4526,8 +4526,8 @@ export class Runtime {
             throw error;
           }
         }
-        current.owner.chargeWork(valByteLenUpdated);
-        valToken = new OwnedText(val, valByteLenUpdated, current.owner.reserve({ payload: valByteLenUpdated, metadata: 32, work: 4 }));
+        current.owner.chargeWork(valByteLen);
+        valToken = new OwnedText(val, valByteLen, current.owner.reserve({ payload: valByteLen, metadata: 32, work: 4 }));
         try {
           slotAdmission = current.owner.reserve({ slots: 1, metadata: 32, work: 5 });
           tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });

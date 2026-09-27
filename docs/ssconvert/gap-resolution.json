@@ -2742,6 +2742,14 @@
       "npm": true,
       "githubRelease": true,
       "containsRecentCommits": false
+    },
+    "currentIntegration": {
+      "state": "rebased locally; not pushed or published",
+      "onto": "e6fd6ccb0e",
+      "localHead": "12f2e55f5b",
+      "runtime": "Incoming generic shared-workspace contracts runtime retained. Public ssconvert bundle remains separate under dist/ssconvert; private workspace output is not overwritten. Equivalent upstream mapfile repair retained instead of replaying the local duplicate.",
+      "checks": "Final comment change: 85 focused checks, package lint, source-native Calc/Gnumeric readbacks. DOCX deep numbering: all 54 cases and package lint/types pass. Integrated build/checks in progress; previous full root run failed on two numbering timeouts.",
+      "remaining": "Current compiled/installed public qualification, full integrated acceptance, remote main delivery and containing release. All 19 families remain open."
     }
   },
   "history": {

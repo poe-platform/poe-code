@@ -51,11 +51,12 @@ concrete evidence, neighboring controls and narrowly maintained verification.
 
 Complete the standard singular/plural/plugin command exports in that package.
 Keep file-output budget and cancellation ownership in `safe-bash-contracts`.
-The root SDK needs a small contracts entrypoint built in the same graph as the
-Shell, for both Node and browser profiles; its standalone bundle must reference
-that shared entrypoint. Scoped packaging must map the reference back to its
-canonical private contracts runtime. Verify cross-bundle raw arguments, file
-budgets, cancellation and installed consumers before claiming extraction complete.
+The root SDK and Shell use the declared shared-workspace contracts runtime for
+both Node and browser profiles. Preserve that canonical identity through the
+root bundler and scoped packaging. Emit the public ssconvert SDK under
+`dist/ssconvert`, separately from its private workspace output. Verify cross-bundle
+raw arguments, file budgets, cancellation and installed consumers before claiming
+extraction complete.
 
 | Family | Required completion scope |
 | --- | --- |

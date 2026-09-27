@@ -1594,8 +1594,8 @@
       "import": "ReadLabelranges converts declared labels into label/data pairs. Row data extends right to the Calc document column limit, or left when the label reaches that limit; column data analogously extends down or up. The importer uses document limits, not the BIFF record field limit. This profile distinction still needs native qualification.",
       "evaluation": "GetRefColRowNames first consults ordered label/data pairs. Automatic ranges use label text/empty cells, formula position and the next declared data range to choose their boundaries. Binary-operator neighbors and beginning/end positions select a scalar; label/intersection neighbors preserve ranges. A missing scalar intersection returns NoRef. Single-cell ranges remain position independent. Axis-relative flags survive the resulting reference.",
       "export": "XclExpLabelranges stores only label ranges, not paired data endpoints. It narrows row labels to the first column for Excel97/2000/XP, then writes the two range lists. This is an observable normalization, not lossless pair preservation.",
-      "currentCode": "Ordered label metadata and lookup settings are implemented. Live BIFF8 row/column subtypes 02/03/06/07 now import as tagged label anchors, recalculate with Calc-derived scalar/contiguous-region rules and reexport native ELF tokens. Dependencies dirty formulas after edits change data boundaries. Ordinary quoted strings remain strings. Wider subtypes and native/other-format transport remain open.",
-      "nextAction": "Qualify native application behavior; implement BIFF named-expression export, radical/extra-data forms, remaining BIFF profiles and XML/XLSX/ODF identity transport. Investigate source first. No compatibility family is closed by this increment.",
+      "currentCode": "Ordered label metadata and lookup settings are implemented. Live BIFF8 row/column subtypes 02/03/06/07 now import as tagged label anchors, recalculate with Calc-derived scalar/contiguous-region rules and reexport native ELF tokens. Dependencies dirty formulas after edits change data boundaries. Ordinary quoted strings remain strings. Wider subtypes and native/other-format transport remain open. ColElfU quoting and relative/absolute flags now survive import, copying/moving and native token export; invalid 14-bit column values are rejected instead of truncated. This corrects the earlier Calc-derived flag loss.",
+      "nextAction": "Implement radical labels with their explicit following PtgArea/PtgAreaErr and multi-cell labels with RgbExtra; Calc ignores or rejects that data and is not a complete preservation guide. NameParsedFormula forbids direct ELF tokens, so NAME transport needs a different loss-characterized representation. Qualify native application behavior and XML/XLSX/ODF identity transport; no family is closed.",
       "metadataImplementation": {
         "profile": "Inferred data endpoints use the BIFF8 sheet grid (65536 rows, 256 columns). This explicitly differs from Calc document maxima. Original overlapping and multi-column label rectangles retain their order and bytes; no Calc row-label narrowing is performed.",
         "settings": "USESELFS defaults disabled. Only BIFF8 workbook-global records enable it, using native nonzero semantics. Missing/disabled settings export through the disabled default; enabled settings emit one USESELFS record.",
@@ -1633,7 +1633,7 @@
       },
       "runtimeFinding": "ScColRowNameAuto shrinks the candidate to its start cell, calls GetDataArea(includeOld=true, onlyDown=false), uses only the end result, then restricts to the label axis and prior boundary and excludes the formula cell. GetDataArea expands an occupied rectangle in two dimensions, including diagonal neighbors. One-dimensional scans and used-range bounds do not reproduce this behavior.",
       "liveFormulaImplementation": {
-        "representation": "Canonical ssconvert @row:$A1 / @column.value:A$1 references retain label-cell coordinates, orientation, axis relativity and reference/value class. Scalar selection comes from immediate lexical neighbors; serialization preserves grouping, and copy/move rewriting retains the tag. These are not native Gnumeric strings.",
+        "representation": "Canonical ssconvert @row:A1 / @column.value.quoted:$A$1 references retain the label cell, orientation, reference/value class, quoted spelling and both-coordinate relative/absolute addressing. Scalar selection comes from immediate lexical neighbors; serialization preserves grouping, and copy/move rewriting retains the tag. These are not native Gnumeric strings. Mixed row/column relativity remains representable in the generic model but cannot be encoded in BIFF ColElfU.",
         "evaluation": "Ordered declared pairs win; automatic lookup requires a string/empty anchor. Scalar intersection failure is REF. Automatic ranges use bounded sparse two-dimensional contiguous-area expansion, including diagonal cells, followed by the original axis/boundary/formula-cell restriction. Workbook edits and solver cell-at-a-time evaluation share conservative sheet dependencies; static range consumers cannot confuse the label cell with its data.",
         "transport": "BIFF8 cell and supported group expressions write native ELF tokens. BIFF7, invalid relativity/cross-sheet anchors and BIFF NAME export refuse live labels. Gnumeric and grammar-based XLSX/ODF/SYLK writers refuse them explicitly. Literal strings containing the tag remain exportable. Refusals are interim limitations, not fulfillment of remaining format requirements.",
         "validation": "Original import/evaluation regressions failed before implementation. Native-token export, grouping, dirty-propagation and export-boundary regressions also failed before their fixes. The broad formula/workbook/BIFF/Gnumeric/XLSX cohort passed 215 files and 20192 tests; the final changed formula test file passed 38 cases, including eight added grouping/group cases. Maintained package lint, source/test/consumer types and selected workspace build pass.",
@@ -1664,6 +1664,56 @@
         "visualValidation": "Screenshot of captured actual compiled command diagnostics inspected; consumed captures purged after recording compact results.",
         "qualification": "Source-derived behavior and independent binary checks only. Native application qualification is not complete.",
         "qa": "docs/plans/ssconvert-biff-label-ranges-qa.md"
+      },
+      "flagAndContextAudit": {
+        "sources": [
+          {
+            "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/excel/xeformula.cxx",
+            "sha256": "d7da8f81242a4ed1b01c0d5f6a7f3a76f25405be7dee0ac166f53cb6f1c94f0b",
+            "section": "582-619, 1904-2007"
+          },
+          {
+            "url": "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/62a57ab3-11b5-45df-9d92-0a712d94937a",
+            "sha256": "fb91dfa63d9692a2ae3e4d3b12a0d7dd44e355dcae26644d98d6383eb56f5abc",
+            "section": "2.5.47 ColElfU"
+          },
+          {
+            "url": "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/dc352cde-62fc-4c68-99fd-186d6bc4d610",
+            "sha256": "adccc5d6165633dfc50d3c46ac9b08322633b98426b610848bead04d2fbf8222",
+            "section": "2.5.198.51 PtgElfRadical"
+          },
+          {
+            "url": "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/e3112a89-f771-4043-82a9-18b3d4c1e137",
+            "sha256": "321cbac7a02fb450a2a93a88a14f5fcca47e942657908d7e960e9524e0f0f837",
+            "section": "2.5.198.53 PtgElfRadicalS"
+          },
+          {
+            "url": "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/a40d14cc-51ea-4e59-bdc3-eb1abb1ad1ef",
+            "sha256": "9e828aab02bc8d8f55a2e5c8146dffb486563d8403a6ae0e7b482996212c74c8",
+            "section": "2.5.198.60 PtgExtraElf"
+          },
+          {
+            "url": "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/9afd1c6c-c486-4d9c-b644-3708428d2ffb",
+            "sha256": "b2957056ea023c514d58cf0b9c29ea79ad9788dac4426097d0a1079d45183564",
+            "section": "2.5.198.21 NameParsedFormula"
+          },
+          {
+            "url": "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/458bbec0-cd89-4a5d-bf64-576c64896ff0",
+            "sha256": "9c5300c19b4b40d46c81e8d4e42fdb6c8342b497f60238ad05e612f4045df1f5",
+            "section": "2.5.198.118 SharedParsedFormula"
+          },
+          {
+            "url": "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/242bcf20-047b-43aa-ad58-9a7288545cbc",
+            "sha256": "e407d27112ff6f7a6a63f8f7b2b2c7f2c3f4211be448180b7556c0d6e2e4f025",
+            "section": "2.5.198.1 ArrayParsedFormula"
+          }
+        ],
+        "layout": "ColElfU bits 0..13 are a column field constrained to 0..255; bit 14 preserves quoted label occurrences; bit 15 selects relative versus absolute coordinates for both row and column. RgceElfLoc stores the label address. The importer must not discard flags or truncate invalid column-field bits.",
+        "calcDifference": "excform8.cxx ignores the high bits and infers one relative axis from the subtype. xeformula.cxx always emits relative NLR for cell/matrix/chart base positions and converts NAME/shared contexts to ordinary references. This normalization is not lossless BIFF label transport. The ssconvert model preserves the published on-file flag semantics instead.",
+        "implementation": "The existing anchor axis flags now represent ColElfU fRelative; .quoted preserves fQuoted. Both absolute and both relative anchors roundtrip. Mixed axis addressing fails before writing BIFF because its one relative bit cannot encode that model. Generic model evaluation/copying remains available.",
+        "contexts": "ArrayParsedFormula permits ELF tokens. NameParsedFormula and SharedParsedFormula explicitly forbid them. Existing shared-group export expands into ordinary cell FORMULA records; do not put live ELF tokens directly in NAME or SHRFMLA. Direct native NAME emission is not the remaining implementation strategy.",
+        "radicalFinding": "PtgElfRadical is six bytes followed by a separate nine-byte PtgArea/PtgAreaErr carrying the actual data range. Calc consumes the combined 15 bytes but ignores that explicit area and forces a column-label inference. RadicalS/ColS/ColSV additionally need ordered PtgExtraElf entries in RgbExtra. Implementing only Calc's skip/placeholder behavior would lose required identity and range semantics.",
+        "validation": "19 focused cases failed before the flag correction. Final BIFF/formula cohort: 67 files / 1732 tests pass; maintained lint/source/test/consumer types and selected workspace build pass. Compiled public APIs pass 64 native exports with independent SheetJS CFB plus original token/cache decoding and 32 copy/move cases. Actual CLI refusal preserves an existing output; screenshot inspected. Native application qualification remains open."
       }
     },
     "xlsxFormulaTextAudit": {

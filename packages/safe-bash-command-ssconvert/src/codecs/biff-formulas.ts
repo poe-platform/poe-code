@@ -137,11 +137,15 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       data.check(offset, 5); offset += 5; push("#NAME?");
     } else if (token === 0x18 && context.revision === 8 && [2, 3, 6, 7].includes(data.u8(offset))) {
       data.check(offset, 5);
-      const subtype = data.u8(offset), row = data.u16(offset + 1), column = data.u16(offset + 3) & 255;
+      const subtype = data.u8(offset), row = data.u16(offset + 1), columnBits = data.u16(offset + 3), column = columnBits & 0x3fff;
+      // MS-XLS ColElfU: fQuoted and fRelative are separate from its 14-bit
+      // column field. Calc discards both flags; preserve the BIFF identity.
+      if (column > 255) invalidBiff("invalid label column");
+      const absolute = columnBits & 0x8000 ? "" : "$";
       const axis = subtype === 2 || subtype === 6 ? "row" : "column";
       let letters = "";
       for (let n = column + 1; n; n = Math.floor((n - 1) / 26)) letters = String.fromCharCode(65 + (n - 1) % 26) + letters;
-      push("@" + axis + (subtype >= 6 ? ".value" : "") + ":" + (axis === "row" ? "$" : "") + letters + (axis === "column" ? "$" : "") + (row + 1));
+      push("@" + axis + (subtype >= 6 ? ".value" : "") + (columnBits & 0x4000 ? ".quoted" : "") + ":" + absolute + letters + absolute + (row + 1));
       offset += 5;
     } else if (token === 0x19) {
       const width = context.revision === 2 ? 1 : 2;

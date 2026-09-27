@@ -225,12 +225,14 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
         offset += axis.length;
         const referenceClass = source.startsWith(".value", offset) ? "value" : "reference";
         if (referenceClass === "value") offset += 6;
+        const quoted = source.startsWith(".quoted", offset);
+        if (quoted) offset += 7;
         if (source[offset++] !== ":") fail("Invalid label reference");
         const target = referenceOrName();
         if (target?.kind !== "reference" || target.last || !target.first.row || !target.first.column || target.first.workbook !== undefined)
           fail("Invalid label reference target");
         hasLabels = true;
-        return { ...target, start, label: { axis, referenceClass, scalar: false } };
+        return { ...target, start, label: { axis, referenceClass, ...(quoted ? { quoted } : {}), scalar: false } };
       }
       if (grammar.bracketReferences) for (const spelling of ["[#REF!]", "[.#REF!]", "[.$#REF!]"]) {
         if (source.startsWith(spelling, offset)) {

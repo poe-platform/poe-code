@@ -188,15 +188,16 @@ export class BiffFormulaWriter {
             throw new SsconvertError("unsupported-feature", "Excel BIFF live label reference in a named expression is not yet supported");
           const anchor = node.first, r = anchor.row, c = anchor.column;
           const rowLabel = node.label.axis === "row";
-          if (this.revision !== 8 || node.last || !r || !c || r.relative !== rowLabel || c.relative === rowLabel ||
+          if (this.revision !== 8 || node.last || !r || !c || r.relative !== c.relative ||
             anchor.workbook !== undefined || anchor.sheet !== undefined)
-            throw new SsconvertError("unsupported-feature", "Excel BIFF live label reference requires a local BIFF8 anchor with axis-relative addressing");
+            throw new SsconvertError("unsupported-feature", "Excel BIFF live label reference requires a local BIFF8 anchor with matching row/column relativity");
           // Unlike RefN in NAME/shared formulas, ELF stores an absolute label
-          // address. The subtype supplies its relative axis (excform8.cxx).
+          // address. ColElfU supplies one relative flag for both coordinates.
           const labelRow = r.value + (r.relative ? row : 0), labelColumn = c.value + (c.relative ? column : 0);
           if (labelRow < 0 || labelRow >= 65536 || labelColumn < 0 || labelColumn >= 256)
             throw new SsconvertError("unsupported-feature", "Excel BIFF live label reference exceeds version limits");
-          push([0x18, (rowLabel ? 2 : 3) + (node.label.referenceClass === "value" ? 4 : 0), ...words(labelRow, labelColumn)]);
+          const columnBits = labelColumn | (r.relative ? 0x8000 : 0) | (node.label.quoted ? 0x4000 : 0);
+          push([0x18, (rowLabel ? 2 : 3) + (node.label.referenceClass === "value" ? 4 : 0), ...words(labelRow, columnBits)]);
           return;
         }
         if (!sheetLossReported && (node.first.sheetRelative && (node.first.sheet || node.last?.sheet) || node.last?.sheet && node.last.sheetRelative)) {

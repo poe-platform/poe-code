@@ -98,11 +98,13 @@ setting. Inferred data ranges use the BIFF8 grid (65,536 rows, 256 columns).
 Overlaps and multi-column row labels retain their original order and extent.
 BIFF7 and data endpoints that BIFF8 cannot encode are refused; the public engine
 warns when other exporters omit this metadata. Live BIFF8 row/column label tokens
-(`02`, `03`, `06`, `07`) recalculate and reexport with their anchor and reference
-class preserved. The internal formula spellings `=@row:$A1` and
-`=SUM(@column.value:A$1)` retain the label cell; scalar uses select a cell at the
+(`02`, `03`, `06`, `07`) recalculate and reexport with their anchor, reference
+class, quoting and relative/absolute flags preserved. The internal spellings
+`=@row:A1` and `=SUM(@column.value.quoted:$A$1)` retain the label cell; scalar uses select a cell at the
 formula position, while automatic aggregate uses follow the contiguous data
-area. Copies, shared/array evaluation and edits retain that behavior. These are
+area. Copies, shared/array evaluation and edits retain that behavior. BIFF uses
+one relative flag for both coordinates: `A1` moves with a copy, `$A$1` stays
+fixed, and mixed addressing such as `$A1` cannot be exported as a BIFF label. These are
 ssconvert expressions, not native Gnumeric text syntax. BIFF7, BIFF named-expression
 export, and other formula formats refuse live labels until their transport is
 implemented. Radical/extra-data label forms and native application qualification

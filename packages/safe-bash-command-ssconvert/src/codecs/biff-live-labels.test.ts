@@ -1,5 +1,7 @@
 import { expect, it } from "vitest";
 import type { CapabilityContext } from "../contracts.js";
+import { parseExpression } from "../formulas/parser.js";
+import { rewriteReferences } from "../formulas/rewriting.js";
 import { recalculateWorkbook } from "../formulas/evaluator.js";
 import { readBiff, createBiffWriter } from "./biff.js";
 import { writeGnumeric } from "./gnumeric.js";
@@ -65,15 +67,45 @@ it("allows quoted tag text in Gnumeric and XLSX formulas", async () => {
 
 it("does not silently bind unsupported BIFF label anchors", () => {
   const writer = new BiffFormulaWriter(book, 8, context);
-  for (const source of ["=@row:A1", "=@row:$A$1", "=@column:$A$1", "=@row:S!$A1", "=@row:$A65537"])
+  for (const source of ["=@row:$A1", "=@row:A$1", "=@column:$A1", "=@row:S!$A$1", "=@row:$A$65537"])
     expect(() => writer.compile(source, "S", 2, 1)).toThrow("live label reference");
   expect(() => writer.compile("=@row:$A1", "S", 2, 1, { name: "Sales", expression: "=@row:$A1", position: { sheet: "S", row: 2, column: 1 } }))
     .toThrow("live label reference");
 });
 
-it("rejects truncated ELF payloads and keeps the high column bits out of the address", () => {
+it("rejects truncated ELF payloads and preserves valid column flags", () => {
   const formulaContext = { revision: 8 as const, row: 2, column: 1, names: [], externalSheets: [], codepage: 1252, limit: 1000 };
-  const bytes = Uint8Array.from([0x18, 6, 0, 1, 255, 255]);
-  expect(translateBiffFormula(bytes, formulaContext)).toBe("=@row.value:$IV257");
+  const bytes = Uint8Array.from([0x18, 6, 0, 1, 255, 192]);
+  expect(translateBiffFormula(bytes, formulaContext)).toBe("=@row.value.quoted:IV257");
   for (let end = 1; end < bytes.length; end++) expect(() => translateBiffFormula(bytes.subarray(0, end), formulaContext)).toThrow();
+});
+
+// MS-XLS ColElfU: bits 0..13 are the column (<=255), bit 14 is
+// fQuoted, and bit 15 is fRelative for the corresponding row and column.
+for (const subtype of [2, 3, 6, 7]) for (const relative of [false, true]) for (const quoted of [false, true]) {
+  it(`preserves ELF subtype ${subtype}, relative=${relative}, quoted=${quoted} through edits and export`, () => {
+    const position = { sheet: "S", row: 260, column: 9 };
+    const flags = Number(relative) * 128 + Number(quoted) * 64;
+    const tokens = Uint8Array.from([24, subtype, 1, 1, 5, flags]);
+    const source = translateBiffFormula(tokens, { revision: 8, ...position, names: [], externalSheets: [], codepage: 1252, limit: 1000 });
+    const axis = subtype === 2 || subtype === 6 ? "row" : "column";
+    const tag = "@" + axis + (subtype >= 6 ? ".value" : "") + (quoted ? ".quoted" : "") + ":";
+    expect(source).toBe("=" + tag + (relative ? "F258" : "$F$258"));
+    const parsed = parseExpression(source, { position });
+    if (!parsed.ok) throw new Error(parsed.diagnostic.message);
+    const target = { sheet: "S", row: 265, column: 11 };
+    const copied = rewriteReferences(parsed.document, { position: target, translation: "copy" });
+    expect(copied).toBe("=" + tag + (relative ? "H263" : "$F$258"));
+    const writer = new BiffFormulaWriter(book, 8, context);
+    expect(writer.compile(source, "S", position.row, position.column).tokens).toEqual(tokens);
+    expect([...writer.compile(copied, "S", target.row, target.column).tokens]).toEqual([24, subtype, relative ? 6 : 1, 1, relative ? 7 : 5, flags]);
+    const moved = rewriteReferences(parsed.document, { position: target, translation: "move" });
+    expect(writer.compile(moved, "S", target.row, target.column).tokens).toEqual(tokens);
+  });
+}
+
+it("rejects ColElfU columns above 255 instead of truncating their address", () => {
+  for (const high of [1, 63, 65, 129, 255]) expect(() => translateBiffFormula(Uint8Array.from([24, 2, 0, 0, 0, high]),
+    { revision: 8, row: 0, column: 0, names: [], externalSheets: [], codepage: 1252, limit: 1000 }))
+    .toThrow("label column");
 });

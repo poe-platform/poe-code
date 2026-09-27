@@ -54,3 +54,17 @@ Keep source inputs, generated workbooks, screenshots and command captures under
 12. Continue native application readback, named-expression export, radical and
     extra-data subtypes, cross-sheet label transport, remaining BIFF profiles,
     and XML/XLSX/ODF live identity transport before closing the formula family.
+
+13. Inspect MS-XLS ColElfU and the pinned Calc importer/exporter together. Require
+    all four flag combinations for subtypes 02/03/06/07: bit 14 is quoted, bit 15
+    is relative for both coordinates, and bits 0..13 must hold a column <=255.
+    Verify 64 compiled scalar/SUM SDK/command outputs, original token bytes and
+    numeric caches. Copy/move all 32 input expressions; absolute labels stay
+    fixed, relative labels follow both coordinates, and quoting survives.
+    Reject mixed-axis BIFF export without changing the destination. Do not
+    reproduce Calc's ignored flags or silently truncate malformed column bits.
+14. Use the NameParsedFormula, SharedParsedFormula and ArrayParsedFormula receipts
+    before changing group/name export. Direct ELF is forbidden in NAME and
+    SHRFMLA; array records allow it and shared groups can expand to cell formulas.
+    Radical's following Area record and multiple-label RgbExtra are semantic
+    data, not disposable padding. Implement and qualify their preservation.

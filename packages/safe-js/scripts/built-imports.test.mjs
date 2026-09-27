@@ -47,7 +47,7 @@ test("portable SDK executes without Node globals or shared memory", async () => 
       if ((await realm.evaluate("return await Promise.resolve(42);")).returnValue !== 42) throw new Error("Portable realm failed");
     } finally { await realm.close(); }
   `;
-  const execution = spawnSync(process.execPath, ["--input-type=module"], { input: script, encoding: "utf8", timeout: nativeProcessTimeoutMs, maxBuffer: 10 * 1024 * 1024 });
+  const execution = spawnSync(process.execPath, ["--input-type=module"], { input: script, encoding: "utf8", timeout: 30000, maxBuffer: 10 * 1024 * 1024 });
   assert.equal(execution.status, 0, execution.stderr.slice(-4000) || String(execution.error));
 });
 

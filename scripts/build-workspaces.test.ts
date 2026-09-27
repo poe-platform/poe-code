@@ -11,6 +11,24 @@ import { describe, expect, it, vi } from "vitest";
 import * as workspaceRunner from "./build-workspaces.mjs";
 import { buildWorkspaces, createWorkspaceBuildPlan, matchesWorkspaceRange, readManifest } from "./build-workspaces.mjs";
 
+const localGitVariables = vi.hoisted(() => [
+  "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_CONFIG", "GIT_CONFIG_PARAMETERS", "GIT_CONFIG_COUNT",
+  "GIT_OBJECT_DIRECTORY", "GIT_DIR", "GIT_WORK_TREE", "GIT_IMPLICIT_WORK_TREE", "GIT_GRAFT_FILE",
+  "GIT_INDEX_FILE", "GIT_NO_REPLACE_OBJECTS", "GIT_REPLACE_REF_BASE", "GIT_PREFIX",
+  "GIT_INTERNAL_SUPER_PREFIX", "GIT_SHALLOW_FILE", "GIT_COMMON_DIR", "GIT_OWNED_LOCAL_HOOK",
+].join("\n"));
+
+vi.mock("node:child_process", async importOriginal => {
+  const actual = await importOriginal<typeof import("node:child_process")>();
+  return { ...actual, execFileSync: vi.fn(((...parameters: Parameters<typeof actual.execFileSync>) => {
+    const [command, args, options] = parameters;
+    if (command === "git" && args?.length === 2 && args[0] === "rev-parse" && args[1] === "--local-env-vars") {
+      return options?.encoding === "utf8" ? localGitVariables : Buffer.from(localGitVariables);
+    }
+    return actual.execFileSync(...parameters);
+  }) as typeof actual.execFileSync) };
+});
+
 type Manifest = Record<string, unknown>;
 type Fixture = { root: string; write: (name: string, manifest: Manifest) => void; remove: () => void };
 const runnerFilename = fileURLToPath(new URL("./build-workspaces.mjs", import.meta.url));
@@ -914,6 +932,9 @@ describe("finite unit input and environment boundaries", () => {
 
   it("fails before any unit-mode child when Git cannot supply its local environment contract", async () => {
     const owned = unitFixture(), mock = mockExecution();
+    vi.mocked(execFileSync).mockImplementationOnce(() => {
+      throw Object.assign(new Error("spawnSync git ENOENT"), { code: "ENOENT" });
+    });
     try {
       await expect(workspaceRunner.testWorkspaces(owned.root, { ...mock, environment: { ...mock.environment, PATH: owned.root } })).rejects.toMatchObject({ code: "ENOENT" });
       expect(mock.start).not.toHaveBeenCalled();

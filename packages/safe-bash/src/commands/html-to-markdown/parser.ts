@@ -84,6 +84,18 @@ export class Parser {
 
   private async tag(raw: string): Promise<void> {
     this.budget.add("tokens"); this.budget.work(raw.length);
+    if (raw.length >= 4 && raw.charCodeAt(0) === 60 && raw.charCodeAt(1) === 47 && raw.charCodeAt(raw.length - 1) === 62) {
+      let simpleClose = true;
+      for (let i = 2; i < raw.length - 1; i++) {
+        const c = raw.charCodeAt(i);
+        const ok = (c >= 65 && c <= 90) || (c >= 97 && c <= 122) || (i > 2 && ((c >= 48 && c <= 57) || c === 58 || c === 95 || c === 45));
+        if (!ok) { simpleClose = false; break; }
+      }
+      if (simpleClose) {
+        this.pop(raw.slice(2, -1).toLowerCase());
+        return;
+      }
+    }
     if (/^<!|^<\?/u.test(raw)) return;
     const match = /^<(\/)?([A-Za-z][A-Za-z0-9:_-]*)([\s\S]*)>$/u.exec(raw);
     if (!match || match[3] && !/^[\t\n\r\f /]/u.test(match[3])) { await this.appendText(raw); return; }
@@ -165,6 +177,31 @@ export class Parser {
             if (this.bufferBytes >= 4096) await this.flushText(false);
             offset = end;
             continue;
+          }
+        }
+        if (lt === offset && offset + 2 < text.length) {
+          const c1 = text.charCodeAt(offset + 1);
+          const isAlpha = (c1 >= 65 && c1 <= 90) || (c1 >= 97 && c1 <= 122);
+          const c2 = text.charCodeAt(offset + 2);
+          const isCloseAlpha = c1 === 47 && ((c2 >= 65 && c2 <= 90) || (c2 >= 97 && c2 <= 122));
+          if (isAlpha || isCloseAlpha) {
+            const gt = text.indexOf(">", offset + 2);
+            if (gt > offset + 1 && gt - offset + 1 <= this.budget.limits.maxTokenBytes) {
+              let cleanTag = true;
+              for (let i = offset + 1; i < gt; i++) {
+                const code = text.charCodeAt(i);
+                if (code >= 0x80 || code === 60 || code === 34 || code === 39) { cleanTag = false; break; }
+              }
+              if (cleanTag) {
+                if (this.buffer) await this.flushText(true);
+                const raw = text.slice(offset, gt + 1);
+                this.budget.work(raw.length);
+                this.budget.check(raw.length, this.budget.limits.maxTokenBytes, "token bytes");
+                offset = gt + 1;
+                await this.tag(raw);
+                continue;
+              }
+            }
           }
         }
       }

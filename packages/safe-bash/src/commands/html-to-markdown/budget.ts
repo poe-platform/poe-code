@@ -52,14 +52,16 @@ export class Budget {
       this.sinceYield = 0;
       const count = ++this.checkpoints;
       const now = monotonicNow();
-      if (!this.hasExtYield && count > 1 && (count & 15) !== 0 && now - this.lastYieldTime < 16) {
+      if (!this.hasExtYield && count > 1 && now - this.lastYieldTime < 16) {
         runYieldCheckpoint(this.context.signal);
         return;
       }
       this.lastYieldTime = now;
       return yieldTurn(this.context.signal).then(() => {
+        this.lastYieldTime = monotonicNow();
         if (this.aborted || (this.pollSignal && this.context.signal.aborted)) this.context.signal.throwIfAborted();
       }, error => {
+        this.lastYieldTime = monotonicNow();
         if (this.aborted || (this.pollSignal && this.context.signal.aborted)) this.context.signal.throwIfAborted();
         throw error;
       });

@@ -98,6 +98,18 @@ async function dump(options: Parsed, lifecycle: Lifecycle, name: string): Promis
     }
     if (opened) {
       while (count > 0) {
+        if (skip === 0 && used === 0 && count >= 16 && reader.hasBufferedBytes()) {
+          const cp = budget.checkpointWork();
+          if (cp) await cp;
+          if (reader.canReadBlockSync(16)) {
+            reader.readBlockSync(block, 16);
+            used = 16;
+            count -= 16;
+            const p = emit();
+            if (p) await p;
+            continue;
+          }
+        }
         if (skip === 0 && used === 0 && count >= 16 && reader.canReadBlockSync(16)) {
           reader.readBlockSync(block, 16);
           used = 16;

@@ -2,7 +2,7 @@ import { Diff3Error, type Diff3Accounting, type Diff3Limits } from './contracts.
 export class Budget {
   readonly limits: Diff3Limits;
   private aborted = false;
-  private readonly pollSignal: boolean;
+  readonly pollSignal: boolean;
   inputBytes = 0; retainedBytes = 0; peakRetainedBytes = 0;
   tokens = 0; graphCells = 0; peakGraphCells = 0; work = 0;
   constructor(limits: Partial<Diff3Limits>, readonly signal?: AbortSignal) {
@@ -17,6 +17,10 @@ export class Budget {
     }
   }
   admit(resource: keyof Diff3Limits, amount: number): void {
+    if (resource === "work" && !this.aborted && !this.pollSignal && amount >= 0 && this.work + amount <= this.limits.work) {
+      this.work += amount;
+      return;
+    }
     if (this.aborted || (this.pollSignal && this.signal!.aborted)) throw new Diff3Error('CANCELLED', 'Diff3 invocation cancelled');
     if (!Number.isSafeInteger(amount) || amount < 0 || amount > this.limits[resource] - this[resource]) throw new Diff3Error('LIMIT', `Diff3 ${resource} limit exceeded`, resource);
     this[resource] += amount;

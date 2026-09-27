@@ -8,6 +8,17 @@ export function equalLines(a: Diff3Line, b: Diff3Line, options: Diff3Options, bu
   budget.admit('work', 1);
   const size = bodyLength(a, options);
   if (a.terminated !== b.terminated || size !== bodyLength(b, options)) return false;
-  for (let index = 0; index < size; index++) { budget.admit('work', 1); if (a.bytes[index] !== b.bytes[index]) return false; }
+  if (budget.pollSignal) {
+    for (let index = 0; index < size; index++) { budget.admit('work', 1); if (a.bytes[index] !== b.bytes[index]) return false; }
+    return true;
+  }
+  const aBytes = a.bytes, bBytes = b.bytes;
+  for (let index = 0; index < size; index++) {
+    if (aBytes[index] !== bBytes[index]) {
+      budget.admit('work', index + 1);
+      return false;
+    }
+  }
+  budget.admit('work', size);
   return true;
 }

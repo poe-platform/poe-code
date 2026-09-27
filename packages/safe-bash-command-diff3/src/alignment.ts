@@ -9,7 +9,13 @@ function equivalences(files: readonly (readonly Diff3Line[])[], options: Diff3Op
   return files.map(lines => lines.map(line => {
     let hash = line.terminated ? 2166136261 : 2166136260;
     const size = bodyLength(line, options);
-    for (let i = 0; i < size; i++) { budget.admit('work', 1); hash = Math.imul(hash ^ line.bytes[i]!, 16777619) >>> 0; }
+    const bytes = line.bytes;
+    if (budget.pollSignal) {
+      for (let i = 0; i < size; i++) { budget.admit('work', 1); hash = Math.imul(hash ^ bytes[i]!, 16777619) >>> 0; }
+    } else {
+      budget.admit('work', size);
+      for (let i = 0; i < size; i++) { hash = Math.imul(hash ^ bytes[i]!, 16777619) >>> 0; }
+    }
     const bucket = buckets.get(hash) ?? [];
     for (const entry of bucket) if (equalLines(line, entry.line, options, budget)) return entry.key;
     bucket.push({ line, key: next }); buckets.set(hash, bucket); return next++;

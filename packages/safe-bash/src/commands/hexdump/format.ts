@@ -4,6 +4,13 @@ import type { Format } from "./options.js";
 
 export function formatBlock(block: Uint8Array, used: number, address: number, format: Format): string {
   const canonical = format === "C";
+  if (canonical && used === 16) {
+    const b0 = block[0]!, b1 = block[1]!, b2 = block[2]!, b3 = block[3]!;
+    const b4 = block[4]!, b5 = block[5]!, b6 = block[6]!, b7 = block[7]!;
+    const b8 = block[8]!, b9 = block[9]!, b10 = block[10]!, b11 = block[11]!;
+    const b12 = block[12]!, b13 = block[13]!, b14 = block[14]!, b15 = block[15]!;
+    return `${address.toString(16).padStart(8, "0")}  ${HEX_BYTE[b0]} ${HEX_BYTE[b1]} ${HEX_BYTE[b2]} ${HEX_BYTE[b3]} ${HEX_BYTE[b4]} ${HEX_BYTE[b5]} ${HEX_BYTE[b6]} ${HEX_BYTE[b7]}  ${HEX_BYTE[b8]} ${HEX_BYTE[b9]} ${HEX_BYTE[b10]} ${HEX_BYTE[b11]} ${HEX_BYTE[b12]} ${HEX_BYTE[b13]} ${HEX_BYTE[b14]} ${HEX_BYTE[b15]}  |${ASCII_CHAR[b0]}${ASCII_CHAR[b1]}${ASCII_CHAR[b2]}${ASCII_CHAR[b3]}${ASCII_CHAR[b4]}${ASCII_CHAR[b5]}${ASCII_CHAR[b6]}${ASCII_CHAR[b7]}${ASCII_CHAR[b8]}${ASCII_CHAR[b9]}${ASCII_CHAR[b10]}${ASCII_CHAR[b11]}${ASCII_CHAR[b12]}${ASCII_CHAR[b13]}${ASCII_CHAR[b14]}${ASCII_CHAR[b15]}|\n`;
+  }
   let result = address.toString(16).padStart(canonical ? 8 : 7, "0") + (canonical ? "  " : " ");
   if (canonical) {
     for (let index = 0; index < 16; index++) {

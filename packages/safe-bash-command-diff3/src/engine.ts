@@ -55,12 +55,30 @@ export function createDiff3Engine(limits: Partial<Diff3Limits> = {}, options: Di
         const line = (end: number, terminated: boolean): void => {
           budget.admit('tokens', 1); input.lines.push({ bytes: bytes.subarray(start, end), terminated }); start = end;
         };
-        for (let index = 0; index < bytes.length; index++) {
-          budget.admit('work', 1);
-          if (bytes[index] === 0 && !comparison.text) throw new Diff3Error('BINARY', 'Binary input requires text comparison');
-          if (bytes[index] === 10) line(index + 1, true);
+        if (budget.pollSignal) {
+          for (let index = 0; index < bytes.length; index++) {
+            budget.admit('work', 1);
+            if (bytes[index] === 0 && !comparison.text) throw new Diff3Error('BINARY', 'Binary input requires text comparison');
+            if (bytes[index] === 10) line(index + 1, true);
+          }
+          if (start < bytes.length) line(bytes.length, false);
+        } else {
+          for (let index = 0; index < bytes.length; index++) {
+            const b = bytes[index];
+            if (b === 0 && !comparison.text) {
+              budget.admit('work', index - start + 1);
+              throw new Diff3Error('BINARY', 'Binary input requires text comparison');
+            }
+            if (b === 10) {
+              budget.admit('work', index - start + 1);
+              line(index + 1, true);
+            }
+          }
+          if (start < bytes.length) {
+            budget.admit('work', bytes.length - start);
+            line(bytes.length, false);
+          }
         }
-        if (start < bytes.length) line(bytes.length, false);
         input.ended = true;
       });
     },

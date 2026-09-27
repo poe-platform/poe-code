@@ -76,6 +76,21 @@ export async function escapeText(text: string, budget: Budget, maximum?: number,
 
 export async function destination(value: string | undefined, image: boolean, budget: Budget): Promise<string | undefined> {
   if (value === undefined) return undefined;
+  if (value.length >= 10 && value.length <= 2048 && (value.startsWith("https://") || value.startsWith("http://"))) {
+    let cleanUrl = true;
+    for (let i = 0; i < value.length; i++) {
+      const c = value.charCodeAt(i);
+      if (c <= 32 || c >= 0x7f || c === 37 || c === 38 || c === 92 || c === 40 || c === 41 || c === 60 || c === 62) {
+        cleanUrl = false;
+        break;
+      }
+    }
+    if (cleanUrl && /^https?:\/\/[A-Za-z0-9]+(?:\.[A-Za-z0-9]+)+(?:\/[A-Za-z0-9._~:@!$'*,;=-]*)?$/u.test(value)) {
+      budget.work(value.length * 2);
+      { const c = budget.checkpoint(); if (c) await c; }
+      return value;
+    }
+  }
   let first = 0, last = value.length, reference: "none" | "start" | "numeric" | "named" = "none";
   for (let offset = 0; offset < value.length; offset++) {
     budget.work(1);

@@ -75,3 +75,15 @@ it("preserves unknown namespace spelling and enforces cancellation and budgets",
   expect(() => parseExpression('=1+2', { position, maximumNodes: 2 })).toThrow('node limit');
   expect(() => parseExpression('='.padEnd(20, '1'), { position, maximumLength: 10 })).toThrow('length limit');
 });
+
+
+it("does not impose implicit formula length or node quotas", () => {
+  const long = '="' + 'a'.repeat(1_048_576) + '"';
+  const wide = '={' + Array<string>(65_537).fill('1').join(',') + '}';
+  for (const source of [long, wide]) {
+    expect(parseExpression(source, { position }).ok).toBe(true);
+    expect(parseExpression(source, { position, maximumLength: Infinity, maximumNodes: Infinity }).ok).toBe(true);
+  }
+  expect(() => parseExpression(long, { position, maximumLength: 1_048_576 })).toThrow('length limit');
+  expect(() => parseExpression(wide, { position, maximumNodes: 65_536 })).toThrow('node limit');
+});

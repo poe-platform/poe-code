@@ -16,7 +16,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
   const grammar = options.grammar ?? (source.startsWith("of:=") ? internalOdfGrammar : gnumericGrammar);
   const internalLabels = grammar.id === "gnumeric" || grammar.internalLabels === true;
   options.signal?.throwIfAborted();
-  if (source.length > (options.maximumLength ?? 1_048_576)) throw new SsconvertError("resource-limit", "ssconvert formula length limit exceeded");
+  if (source.length > (options.maximumLength ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert formula length limit exceeded");
   const origin = options.workbook?.sheets.find(sheet => sheet.id === options.position.sheet) ??
     options.workbook?.sheets.find(sheet => foldSheetName(sheet.name) === foldSheetName(options.position.sheet));
   const position = origin ? { ...options.position, sheet: origin.id } : options.position;
@@ -36,7 +36,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
   function node<T extends FormulaNode>(value: T): T {
     options.signal?.throwIfAborted();
     options.onWork?.();
-    if (++nodes > (options.maximumNodes ?? 65_536)) throw new SsconvertError("resource-limit", "ssconvert formula node limit exceeded");
+    if (++nodes > (options.maximumNodes ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert formula node limit exceeded");
     const children = value.kind === "binary" ? [value.left, value.right] : value.kind === "unary" || value.kind === "parentheses" ? [value.child] :
       value.kind === "call" ? value.args : value.kind === "array" ? value.rows.flat() : [];
     let height = 1;
@@ -364,7 +364,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
         const bound = options.workbook && bindQuotedLabel(options.workbook, text, position, grammar.quotedLabels, () => {
           options.signal?.throwIfAborted();
           options.onWork?.();
-          if (++labelWork > (options.maximumNodes ?? 65_536)) throw new SsconvertError("resource-limit", "ssconvert formula label lookup limit exceeded");
+          if (++labelWork > (options.maximumNodes ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert formula label lookup limit exceeded");
         });
         if (!bound) fail("Unresolved quoted label", start, offset);
         hasLabels = true;

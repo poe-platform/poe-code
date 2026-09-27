@@ -121,3 +121,17 @@ it("charges sparse label candidates to the caller and observes cancellation duri
     signal: controller.signal, onWork() { if (++work === 2) controller.abort(reason); } })).toThrow(reason);
   expect(work).toBe(2);
 });
+
+
+it("allows label lookup above the former implicit work ceiling", () => {
+  const workbook = book(), sheet = workbook.sheets[0]!;
+  const cells: Cell[] = Array.from({ length: 65_537 }, (_, row) => label(row, 0, "Other"));
+  cells.push(label(65_537));
+  const large: Workbook = { ...workbook, sheets: [{ ...sheet, cells, labelRanges: [{
+    axis: "column", labels: { startRow: 0, endRow: 65_537, startColumn: 0, endColumn: 0 },
+    data: { startRow: 65_538, endRow: 65_539, startColumn: 0, endColumn: 0 }
+  }] }] };
+  expect(parseExpression("='Sales'", { position, workbook: large, grammar: odfGrammar }).ok).toBe(true);
+  expect(() => parseExpression("='Sales'", { position, workbook: large, grammar: odfGrammar, maximumNodes: 65_536 }))
+    .toThrow("label lookup limit");
+});

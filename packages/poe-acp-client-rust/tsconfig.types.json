@@ -5,7 +5,12 @@
     "skipLibCheck": true,
     "target": "ES2022",
     "module": "NodeNext",
-    "moduleResolution": "NodeNext"
+    "moduleResolution": "NodeNext",
+    "types": [
+      "node"
+    ]
   },
-  "include": ["tests/types.ts"]
+  "include": [
+    "tests/types.ts"
+  ]
 }

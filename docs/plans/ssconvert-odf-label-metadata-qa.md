@@ -1,8 +1,8 @@
 # ODF label metadata qualification
 
 Tracking: hey-boss #1748. This procedure covers native label declarations and
-lookup settings and declared quoted-label import. Live formula export and the
-complete BIFF/format family remain open.
+lookup settings, quoted-label import and native OpenFormula label export.
+Unqualified label exports and the complete BIFF/format family remain open.
 
 1. Inspect the pinned LibreOffice `xmllabri.cxx`, `xmlexprt.cxx` and
    `XMLCalculationSettingsContext.cxx` receipts in the case ledger. Check the
@@ -78,5 +78,25 @@ complete BIFF/format family remain open.
     deleted anchors and precedence beside range/postfix operators. Reject native
     syntax with references, calls, parenthesized operands or chained `!!`.
     Internal deleted-anchor syntax must not escape into native Gnumeric/ODF
-    formula exports. Identity-preserving export and native application readback
-    remain open.
+    formula exports. Unqualified exports and native application readback remain
+    open.
+
+11. Inspect pinned Calc `CreateStringFromSingleRef` at lines 6026–6059. Native
+    ODF label output quotes the current cell text with doubled apostrophes;
+    verify that native lookup selects the original anchor and axis before export.
+    Construct an independent Python ODF package on sheet `O'Brien`, with Sales
+    at B1, West at A3, 7 at B3, a live `!!` at H8 and a named label Total based
+    at H8 and consumed at H3. Export strict and extended ODF using both compiled
+    SDK and command, with and without renaming Sales to `O'Brien Sales` and
+    setting B3 to 19. Independently inspect all eight ZIP/XML outputs: native
+    quoted formulas, named-expression rather than named-range, and base H8.
+    Reopen/recalculate and independently parse all sixteen H3/H8 CSV outputs:
+    require 7 before edits and 19 afterward. Verify automatic range gaps,
+    remote declarations, array groups and copy/move in maintained tests.
+    Rename Sales to conflicting West and require export failure with the prior
+    destination unchanged. CLI `--set` takes literal text after the first equals;
+    quoting that text inside an already formed argv value changes the cell text.
+    Inspect the actual command transcript screenshot and purge generated files.
+    Keep non-text/formula-generated/deleted labels, ambiguous rebinding,
+    mixed relative-sheet expressions, BIFF-specific reference classes and
+    native application qualification open.

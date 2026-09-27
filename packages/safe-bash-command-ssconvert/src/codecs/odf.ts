@@ -6,6 +6,7 @@ import { MAX_SHEET_SIZE, DEFAULT_SHEET_SIZE, formatA1, type Workbook, type Sheet
   type CellValue, type ImportedValue, type UnsupportedRecord, type AxisMetadata, type Range,
   type NamedExpression, type FormulaGroup } from "../workbook.js";
 import { parseExpression } from "../formulas/parser.js";
+import { quotedLabelText } from "../formulas/quoted-labels.js";
 import { visitFormula } from "../formulas/rewriting.js";
 import { gnumericGrammar, odfGrammar, legacyOpenOfficeGrammar } from "../formulas/conventions.js";
 import { serializeExpression, quoteNativeSheet, quoteFormulaString } from "../formulas/serialization.js";
@@ -703,12 +704,17 @@ export function createOdfWriter(profile: "strict" | "extended") {
     function expression(source: string, sheet: Sheet, row: number, column: number) {
       xml.charge(source.length);
       const parsed = parseExpression(source, { position: { sheet: sheet.id, row, column }, workbook: book,
-        signal: context.signal, maximumLength: context.limits.workbookTextBytes ?? context.limits.outputBytes,
+        signal: context.signal, onWork: xml.charge, maximumLength: context.limits.workbookTextBytes ?? context.limits.outputBytes,
         maximumNodes: context.limits.workbookNodes ?? Infinity });
       if (!parsed.ok) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: invalid OpenDocument formula");
       const aliases: Record<string,string> = { ...odfGrammar.functionExportAliases, ...odfWriterFunctionNames };
+      let labels = false, relativeSheets = false;
       function visit(node: FormulaNode) {
         xml.charge();
+        if (node.kind === "reference") {
+          labels ||= node.label !== undefined;
+          relativeSheets ||= !!(node.first.sheet && node.first.sheetRelative || node.last?.sheet && node.last.sheetRelative);
+        }
         if (node.kind === "call") {
           if (!Object.hasOwn(aliases, node.name)) aliases[node.name] = node.name.startsWith("ODF.") ? node.name.slice(4) : "ORG.GNUMERIC." + node.name;
           node.args.forEach(visit);
@@ -717,7 +723,14 @@ export function createOdfWriter(profile: "strict" | "extended") {
         else if (node.kind === "unary" || node.kind === "parentheses") visit(node.child);
       }
       visit(parsed.document.root);
-      return serializeExpression(parsed.document, { ...odfGrammar, functionExportAliases: aliases }, false, true);
+      if (labels && relativeSheets)
+        throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: mixed relative-sheet and live label formula in OpenDocument output");
+      return serializeExpression(parsed.document, { ...odfGrammar, functionExportAliases: aliases }, false, true, {
+        quotedLabel(node) {
+          const text = quotedLabelText(book, node, parsed.document.position, xml.charge);
+          xml.charge(text.length); return text;
+        }
+      });
     }
     function names(scope?: string) {
       let body = "";
@@ -727,9 +740,11 @@ export function createOdfWriter(profile: "strict" | "extended") {
         const row = n.position?.row ?? 0, column = n.position?.column ?? 0;
         coordinate(row, MAX_SHEET_SIZE.rows); coordinate(column, MAX_SHEET_SIZE.columns);
         const formula = expression(n.expression, sheet, row, column);
-        const address = formatA1(row, column), base = quoteNativeSheet(sheet.name) + ".$" + address.slice(0, address.length - String(row + 1).length) + "$" + (row + 1);
-        const parsed = parseExpression(n.expression, { position: { sheet: sheet.id, row, column }, workbook: book, signal: context.signal });
-        body += parsed.ok && parsed.document.root.kind === "reference" ? e("table:named-range", {
+        const address = formatA1(row, column), base = quoteFormulaString(sheet.name, "'", odfGrammar) + ".$" + address.slice(0, address.length - String(row + 1).length) + "$" + (row + 1);
+        const parsed = parseExpression(n.expression, { position: { sheet: sheet.id, row, column }, workbook: book,
+          signal: context.signal, onWork: xml.charge, maximumLength: context.limits.workbookTextBytes ?? context.limits.outputBytes,
+          maximumNodes: context.limits.workbookNodes ?? Infinity });
+        body += parsed.ok && parsed.document.root.kind === "reference" && !parsed.document.root.label ? e("table:named-range", {
           "table:name": n.name, "table:cell-range-address": formula.slice(5, -1), "table:base-cell-address": base
         }) : e("table:named-expression", { "table:name": n.name, "table:expression": formula, "table:base-cell-address": base });
       }

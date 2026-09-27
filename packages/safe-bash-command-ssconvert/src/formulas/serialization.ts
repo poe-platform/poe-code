@@ -108,7 +108,9 @@ export function serializeLabelReference(node: Extract<FormulaNode, { kind: "refe
 
 /** Serialize the tree, retaining explicit grouping even across different precedences. */
 export function serializeExpression(document: FormulaDocument, grammar = document.grammar, preserveSource = true, canonical = false,
-  options: { readonly relativeSheets?: "preserve" | "fixed" } = {}): string {
+  options: { readonly relativeSheets?: "preserve" | "fixed";
+    /** Native label spelling, resolved and identity-checked by the workbook exporter. */
+    readonly quotedLabel?: (node: Extract<FormulaNode, { kind: "reference" }>) => string } = {}): string {
   if (preserveSource && grammar === document.grammar && options.relativeSheets !== "fixed") return document.source;
   const pending = [document.root];
   let labels = false;
@@ -131,7 +133,8 @@ export function serializeExpression(document: FormulaDocument, grammar = documen
         value.value.kind === "error" && grammar.quotedErrors && !["#NAME?", "#REF!", "#VALUE!", "#NUM!", "#DIV/0!", "#N/A", "#NULL!"].includes(value.value.value) ? "#" + quoteFormulaString(value.value.value, '"', grammar) :
         value.value.kind === "boolean" ? (value.value.value ? "TRUE" : "FALSE") + (grammar.booleanFunctions ? "()" : "") : String(value.value.value);
       case "omitted": return "";
-      case "reference": return value.label ? serializeLabelReference(value, grammar, position) : serializeReference(
+      case "reference": return value.label ? grammar.quotedLabels === "openformula" && options.quotedLabel
+        ? quoteFormulaString(options.quotedLabel(value), "'", grammar) : serializeLabelReference(value, grammar, position) : serializeReference(
         options.relativeSheets === "fixed" ? { ...value.first, sheetRelative: false } : value.first,
         options.relativeSheets === "fixed" && value.last ? { ...value.last, sheetRelative: false } : value.last, grammar, position);
       case "name": {
@@ -151,7 +154,8 @@ export function serializeExpression(document: FormulaDocument, grammar = documen
         return (labels ? precedence < parentPrecedence : precedence <= parentPrecedence) ? "(" + text + ")" : text;
       }
       case "binary": {
-        if (value.op === "label-intersection" && grammar.id !== "gnumeric")
+        if (value.op === "label-intersection" && grammar.id !== "gnumeric" && !(grammar.quotedLabels === "openformula" && options.quotedLabel &&
+          value.left.kind === "reference" && value.left.label && value.right.kind === "reference" && value.right.label))
           throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: automatic label intersection in target grammar");
         if (value.op === "intersection" && !grammar.intersection)
           throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: formula intersection in target grammar");

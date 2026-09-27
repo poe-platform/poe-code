@@ -1,6 +1,35 @@
 import { DEFAULT_SHEET_SIZE, type Cell, type Sheet, type Workbook } from "../workbook.js";
 import { foldSheetName } from "../workbook/case-fold.js";
-import type { LabelReference, ParsePosition, ReferenceEndpoint } from "./ast.js";
+import type { FormulaNode, LabelReference, ParsePosition, ReferenceEndpoint } from "./ast.js";
+import { SsconvertError } from "../contracts.js";
+
+/** Calc CreateStringFromSingleRef emits the current label text. Verify that
+ * native lookup will capture this same anchor before publishing that spelling. */
+export function quotedLabelText(book: Workbook, node: Extract<FormulaNode, { kind: "reference" }>, position: ParsePosition, tick: () => void): string {
+  const { first, label } = node;
+  function unsupported(): never {
+    throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: live label identity in OpenDocument output");
+  }
+  tick();
+  if (!label || label.kind === "radical" || label.semantics !== "openformula" || !label.quoted ||
+    label.referenceClass !== "reference" || node.last || !first.row || !first.column || first.workbook !== undefined || first.sheetRelative)
+    return unsupported();
+  const origin = book.sheets.find(sheet => { tick(); return sheet.id === position.sheet; });
+  const target = first.sheet === undefined ? origin : book.sheets.find(sheet => { tick(); return foldSheetName(sheet.name) === foldSheetName(first.sheet!); });
+  if (!origin || !target) return unsupported();
+  const row = first.row.value + (first.row.relative ? position.row : 0), column = first.column.value + (first.column.relative ? position.column : 0);
+  const size = target.size ?? DEFAULT_SHEET_SIZE;
+  if (row < 0 || row >= size.rows || column < 0 || column >= size.columns) return unsupported();
+  const cell = target.cells.find(cell => { tick(); return cell.row === row && cell.column === column; });
+  // Formula-generated text needs independent native recalculation qualification.
+  if (!cell || cell.formula || cell.value.kind !== "string" || !cell.value.value) return unsupported();
+  const bound = bindQuotedLabel(book, cell.value.value, position, "openformula", tick);
+  if (!bound || bound.label.kind === "radical" || bound.label.axis !== label.axis ||
+    (bound.first.sheet ?? origin.name) !== target.name) return unsupported();
+  for (const axis of ["row", "column"] as const) if (bound.first[axis]?.value !== first[axis]!.value || bound.first[axis]?.relative !== first[axis]!.relative)
+    return unsupported();
+  return cell.value.value;
+}
 
 /** OpenFormula 1.2 §5.10.2 and Calc ParseColRowName: local declarations,
  * columns before rows, declaration order, then column-major cell order.

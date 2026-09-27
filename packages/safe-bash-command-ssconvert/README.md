@@ -107,7 +107,12 @@ gap after skipping at most one initial blank; scalar consumers use the formula
 position. BIFF labels retain Calc's data-area expansion. OpenFormula `!!`
 intersects one row label and one column label, retaining both live anchors;
 it returns an error unless their data ranges intersect in exactly one cell.
-Label/data pairs on different sheets and live formula export remain open.
+Both ODF writers export these live OpenFormula labels using the current label
+text, including `!!`, arrays and named expressions. Export verifies that the text
+still selects the same anchor, orientation and relative coordinates. Ambiguous,
+deleted, non-text and formula-generated labels, mixed relative-sheet expressions,
+and BIFF-specific label semantics remain unsupported in ODF output. Label/data
+pairs on different sheets and native application qualification remain open.
 BIFF7 and data endpoints that BIFF8 cannot encode are refused; the public engine
 warns when other exporters omit this metadata. Live BIFF8 row/column label tokens
 (`02`, `03`, `06`, `07`) recalculate and reexport with their anchor, reference
@@ -118,7 +123,7 @@ area. Copies, shared/array evaluation and edits retain that behavior. BIFF uses
 one relative flag for both coordinates: `A1` moves with a copy, `$A$1` stays
 fixed, and mixed addressing such as `$A1` cannot be exported as a BIFF label. These are
 ssconvert expressions, not native Gnumeric text syntax. BIFF7, BIFF named-expression
-export, and other formula formats refuse live labels until their transport is
+export, and other formula formats refuse live BIFF labels until their transport is
 implemented. Explicit BIFF8 radical labels (`0A`) preserve their following data
 area, including gaps, independent endpoint addressing and reference/value/array
 class. For example, `=SUM(@range:$A$1->$B$1:$D$1)` sums exactly B1:D1;

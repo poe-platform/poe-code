@@ -1,12 +1,20 @@
-import { expect, it } from 'vitest';
+import { beforeAll, expect, it } from 'vitest';
 import { MemoryFileSystem } from '@poe-platform/safe-bash';
 import { runBash } from './bash.js';
 import { createTransport, fixtureDigest } from '../../packages/media-cli/fixtures/transport.js';
 
-it.each([
+const commands = [
   'animate', 'compare', 'composite', 'conjure', 'convert', 'display', 'ffmpeg', 'ffprobe',
   'identify', 'import', 'magick', 'magick-script', 'mogrify', 'montage', 'stream',
-])('preserves %s SDK argv and executable heredocs through the authenticated protocol', async command => {
+ ] as const;
+const prepared = new Map<string, {
+  direct: Awaited<ReturnType<typeof runBash>>;
+  scripted: Awaited<ReturnType<typeof runBash>>;
+  requests: unknown[];
+}>();
+
+beforeAll(async () => {
+  for (const command of commands) {
   const requests: unknown[] = [];
   const fs = new MemoryFileSystem();
   await fs.mkdir('/work');
@@ -25,6 +33,12 @@ ${command} -help --media-provider native-value 'a b' '' $'\\377'
 EOF
 chmod +x /native.sh
 /native.sh` });
+    prepared.set(command, { direct, scripted, requests });
+  }
+});
+
+it.each(commands)('preserves %s SDK argv and executable heredocs through the authenticated protocol', command => {
+  const { direct, scripted, requests } = prepared.get(command)!;
   expect(direct.exitCode).toBe(0);
   expect(scripted.exitCode).toBe(direct.exitCode);
   expect(scripted.stdoutBytes).toEqual(direct.stdoutBytes);

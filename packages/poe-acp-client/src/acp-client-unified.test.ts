@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { EventEmitter } from "node:events";
+import { createInterface } from "node:readline";
+import { runInNewContext } from "node:vm";
 import type { AcpTransport } from "./acp-transport.js";
 import { AcpClient, type AcpClientTerminalHandler } from "./acp-client.js";
 import {
@@ -60,7 +62,7 @@ import {
 } from "./index.js";
 
 // ---------------------------------------------------------------------------
-// acp-client.integration.test.ts — integration test with real subprocess
+// ACP lifecycle through the process port; real subprocess control lives in native QA.
 // ---------------------------------------------------------------------------
 
 const MOCK_AGENT_SCRIPT = `
@@ -246,6 +248,17 @@ describe("AcpClient integration", () => {
     const client = new AcpClient({
       command: process.execPath,
       args: ["-e", MOCK_AGENT_SCRIPT],
+      spawn: vi.fn((_command, _args, options) => {
+        const child = createMockChildProcess();
+        runInNewContext(MOCK_AGENT_SCRIPT, {
+          require: (name: string) => {
+            expect(name).toBe("node:readline");
+            return { createInterface };
+          },
+          process: { stdin: child.stdin, stdout: child.stdout, env: options?.env }
+        });
+        return child;
+      }),
       env: {
         ...process.env,
         ACP_CLIENT_TEST_FLAG: "from-client-env",

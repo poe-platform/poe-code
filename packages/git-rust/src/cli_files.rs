@@ -51,6 +51,31 @@ fn snapshot(fs: &MemoryFs, root: &str, gitdir: &str, source: &str) -> Result<Sna
         .collect()
 }
 
+#[derive(Default)]
+pub(crate) enum DiffMode {
+    #[default]
+    Patch,
+    Names,
+    Status,
+    Stat,
+}
+pub(crate) struct DiffOptions {
+    pub mode: DiffMode,
+    pub context: usize,
+    pub quiet: bool,
+    pub exit_code: bool,
+}
+impl Default for DiffOptions {
+    fn default() -> Self {
+        Self {
+            mode: DiffMode::Patch,
+            context: 3,
+            quiet: false,
+            exit_code: false,
+        }
+    }
+}
+
 pub fn diff(
     fs: &MemoryFs,
     root: &str,
@@ -58,24 +83,62 @@ pub fn diff(
     before: &str,
     after: &str,
     paths: &[String],
-) -> Result<String, GitError> {
+    options: &DiffOptions,
+) -> Result<(String, bool), GitError> {
     let old = snapshot(fs, root, gitdir, before)?;
     let new = snapshot(fs, root, gitdir, after)?;
     let names: BTreeSet<_> = old.keys().chain(new.keys()).collect();
     let mut out = String::new();
+    let mut changed = false;
+    let mut stats = Vec::new();
     for p in names {
-        if !paths.is_empty()
-            && !paths
-                .iter()
-                .any(|f| f == "." || p == f || p.starts_with(&format!("{f}/")))
-        {
+        if !crate::cli_history::matches_path(p, paths) {
             continue;
         }
         if old.get(p) == new.get(p) {
             continue;
         }
+        changed = true;
+        if options.quiet {
+            return Ok((String::new(), true));
+        }
+        match options.mode {
+            DiffMode::Names => {
+                out.push_str(&format!("{p}\n"));
+                continue;
+            }
+            DiffMode::Status => {
+                let status = if !old.contains_key(p) {
+                    'A'
+                } else if !new.contains_key(p) {
+                    'D'
+                } else {
+                    'M'
+                };
+                out.push_str(&format!("{status}\t{p}\n"));
+                continue;
+            }
+            _ => {}
+        }
         let left = old.get(p).map(|(_, b)| b.as_slice()).unwrap_or_default();
         let right = new.get(p).map(|(_, b)| b.as_slice()).unwrap_or_default();
+        if matches!(options.mode, DiffMode::Stat) {
+            let binary = left.contains(&0) || right.contains(&0);
+            let (added, deleted) = if binary {
+                (0, 0)
+            } else {
+                line_counts(left, right)
+            };
+            stats.push((
+                p.to_string(),
+                added,
+                deleted,
+                binary,
+                left.len(),
+                right.len(),
+            ));
+            continue;
+        }
         out.push_str(&format!("diff --git a/{p} b/{p}\n"));
         match (old.get(p), new.get(p)) {
             (None, Some((mode, _))) => out.push_str(&format!("new file mode {mode}\n")),
@@ -107,57 +170,219 @@ pub fn diff(
                 "/dev/null".into()
             }
         ));
-        out.push_str(&patch(&a, &b));
+        out.push_str(&patch(&a, &b, options.context));
     }
-    Ok(out)
+    if matches!(options.mode, DiffMode::Stat) && !stats.is_empty() {
+        let width = stats.iter().map(|s| s.0.len()).max().unwrap_or(0);
+        let count_width = stats
+            .iter()
+            .filter(|s| !s.3)
+            .map(|s| (s.1 + s.2).to_string().len())
+            .max()
+            .unwrap_or(1);
+        let mut added = 0;
+        let mut deleted = 0;
+        for (path, a, d, binary, old_len, new_len) in &stats {
+            if *binary {
+                out.push_str(&format!(
+                    " {path:width$} | Bin {old_len} -> {new_len} bytes\n"
+                ));
+            } else {
+                added += a;
+                deleted += d;
+                let total = a + d;
+                let available = 80usize.saturating_sub(width + count_width + 6).max(1);
+                let max = stats.iter().map(|s| s.1 + s.2).max().unwrap_or(0);
+                let scaled = if max > available {
+                    total * available / max
+                } else {
+                    total
+                };
+                let plus = if total == 0 {
+                    0
+                } else {
+                    (a * scaled).div_ceil(total)
+                };
+                out.push_str(&format!(
+                    " {path:width$} | {total:count_width$} {}{}\n",
+                    "+".repeat(plus),
+                    "-".repeat(scaled.saturating_sub(plus))
+                ));
+            }
+        }
+        out.push_str(&format!(
+            " {} file{} changed",
+            stats.len(),
+            if stats.len() == 1 { "" } else { "s" }
+        ));
+        if added > 0 {
+            out.push_str(&format!(
+                ", {added} insertion{}(+)",
+                if added == 1 { "" } else { "s" }
+            ));
+        }
+        if deleted > 0 {
+            out.push_str(&format!(
+                ", {deleted} deletion{}(-)",
+                if deleted == 1 { "" } else { "s" }
+            ));
+        }
+        out.push('\n');
+    }
+    Ok((out, changed))
 }
 
-fn patch(a: &str, b: &str) -> String {
-    let old: Vec<_> = a.split_inclusive('\n').collect();
-    let new: Vec<_> = b.split_inclusive('\n').collect();
+fn lcs_row(old: &[&str], new: &[&str]) -> Vec<usize> {
+    let mut row = vec![0usize; new.len() + 1];
+    for a in old {
+        let mut diagonal = 0;
+        for (j, b) in new.iter().enumerate() {
+            let previous = row[j + 1];
+            row[j + 1] = if a == b {
+                diagonal + 1
+            } else {
+                row[j + 1].max(row[j])
+            };
+            diagonal = previous;
+        }
+    }
+    row
+}
+
+// Hirschberg alignment keeps memory linear in line count, including large files.
+fn matching_lines(old: &[&str], new: &[&str], a: usize, b: usize, pairs: &mut Vec<(usize, usize)>) {
     let mut prefix = 0;
     while prefix < old.len().min(new.len()) && old[prefix] == new[prefix] {
+        pairs.push((a + prefix, b + prefix));
         prefix += 1;
     }
+    let old = &old[prefix..];
+    let new = &new[prefix..];
+    let a = a + prefix;
+    let b = b + prefix;
     let mut suffix = 0;
-    while suffix < old.len().min(new.len()) - prefix
+    while suffix < old.len().min(new.len())
         && old[old.len() - 1 - suffix] == new[new.len() - 1 - suffix]
     {
         suffix += 1;
     }
-    let start = prefix.saturating_sub(3);
-    let old_end = (old.len() - suffix + 3).min(old.len());
-    let new_end = (new.len() - suffix + 3).min(new.len());
-    let range = |count: usize| {
-        if count == 1 {
-            (start + 1).to_string()
+    let left = &old[..old.len() - suffix];
+    let right = &new[..new.len() - suffix];
+    if left.len() == 1 {
+        if let Some(j) = right.iter().position(|line| *line == left[0]) {
+            pairs.push((a, b + j));
+        }
+    } else if !left.is_empty() && !right.is_empty() {
+        let midpoint = left.len() / 2;
+        let forward = lcs_row(&left[..midpoint], right);
+        let reverse_old: Vec<_> = left[midpoint..].iter().rev().copied().collect();
+        let reverse_new: Vec<_> = right.iter().rev().copied().collect();
+        let backward = lcs_row(&reverse_old, &reverse_new);
+        let split = (0..=right.len())
+            .max_by_key(|j| forward[*j] + backward[right.len() - *j])
+            .unwrap_or(0);
+        drop(forward);
+        drop(backward);
+        drop(reverse_old);
+        drop(reverse_new);
+        matching_lines(&left[..midpoint], &right[..split], a, b, pairs);
+        matching_lines(
+            &left[midpoint..],
+            &right[split..],
+            a + midpoint,
+            b + split,
+            pairs,
+        );
+    }
+    for i in 0..suffix {
+        pairs.push((a + left.len() + i, b + right.len() + i));
+    }
+}
+
+fn line_counts(left: &[u8], right: &[u8]) -> (usize, usize) {
+    let a = String::from_utf8_lossy(left);
+    let b = String::from_utf8_lossy(right);
+    let old: Vec<_> = a.split_inclusive('\n').collect();
+    let new: Vec<_> = b.split_inclusive('\n').collect();
+    let mut pairs = Vec::new();
+    matching_lines(&old, &new, 0, 0, &mut pairs);
+    (new.len() - pairs.len(), old.len() - pairs.len())
+}
+
+fn patch(a: &str, b: &str, context: usize) -> String {
+    let old: Vec<_> = a.split_inclusive('\n').collect();
+    let new: Vec<_> = b.split_inclusive('\n').collect();
+    let mut pairs = Vec::new();
+    matching_lines(&old, &new, 0, 0, &mut pairs);
+    let mut lines = Vec::new();
+    let (mut i, mut j) = (0, 0);
+    for (x, y) in pairs.into_iter().chain(Some((old.len(), new.len()))) {
+        while i < x {
+            lines.push(('-', old[i]));
+            i += 1;
+        }
+        while j < y {
+            lines.push(('+', new[j]));
+            j += 1;
+        }
+        if x < old.len() {
+            lines.push((' ', old[x]));
+            i += 1;
+            j += 1;
+        }
+    }
+    let mut hunks: Vec<(usize, usize)> = Vec::new();
+    for (i, (mark, _)) in lines.iter().enumerate() {
+        if *mark == ' ' {
+            continue;
+        }
+        let start = i.saturating_sub(context);
+        let end = i.saturating_add(context).saturating_add(1).min(lines.len());
+        if let Some(last) = hunks.last_mut()
+            && start <= last.1
+        {
+            last.1 = end;
         } else {
-            format!("{},{}", if count == 0 { start } else { start + 1 }, count)
+            hunks.push((start, end));
         }
-    };
-    let mut out = format!(
-        "@@ -{} +{} @@\n",
-        range(old_end - start),
-        range(new_end - start)
-    );
-    let mut line = |mark: char, text: &str| {
-        out.push(mark);
-        out.push_str(text);
-        if !text.ends_with('\n') {
-            out.push_str("\n\\ No newline at end of file\n");
+    }
+    let mut out = String::new();
+    let (mut old_line, mut new_line, mut cursor) = (0, 0, 0);
+    for (start, end) in hunks {
+        for (mark, _) in &lines[cursor..start] {
+            old_line += usize::from(*mark != '+');
+            new_line += usize::from(*mark != '-');
         }
-    };
-    for text in &old[start..prefix] {
-        line(' ', text);
-    }
-    for text in &old[prefix..old.len() - suffix] {
-        line('-', text);
-    }
-    for text in &new[prefix..new.len() - suffix] {
-        line('+', text);
-    }
-    for text in &old[old.len() - suffix..old_end] {
-        line(' ', text);
+        let old_count = lines[start..end]
+            .iter()
+            .filter(|(mark, _)| *mark != '+')
+            .count();
+        let new_count = lines[start..end]
+            .iter()
+            .filter(|(mark, _)| *mark != '-')
+            .count();
+        let range = |line: usize, count: usize| {
+            if count == 1 {
+                (line + 1).to_string()
+            } else {
+                format!("{},{}", if count == 0 { line } else { line + 1 }, count)
+            }
+        };
+        out.push_str(&format!(
+            "@@ -{} +{} @@\n",
+            range(old_line, old_count),
+            range(new_line, new_count)
+        ));
+        for (mark, text) in &lines[start..end] {
+            out.push(*mark);
+            out.push_str(text);
+            if !text.ends_with('\n') {
+                out.push_str("\n\\ No newline at end of file\n");
+            }
+        }
+        old_line += old_count;
+        new_line += new_count;
+        cursor = end;
     }
     out
 }
@@ -178,18 +403,22 @@ pub fn show(fs: &MemoryFs, root: &str, gitdir: &str, target: &str) -> Result<Str
         commit.author.email,
         commit.message.trim()
     );
-    out.push_str(&diff(
-        fs,
-        root,
-        gitdir,
-        commit
-            .parent
-            .first()
-            .map(String::as_str)
-            .unwrap_or(":empty"),
-        &oid,
-        &[],
-    )?);
+    out.push_str(
+        &diff(
+            fs,
+            root,
+            gitdir,
+            commit
+                .parent
+                .first()
+                .map(String::as_str)
+                .unwrap_or(":empty"),
+            &oid,
+            &[],
+            &DiffOptions::default(),
+        )?
+        .0,
+    );
     Ok(out)
 }
 

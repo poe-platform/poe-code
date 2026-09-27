@@ -1,7 +1,7 @@
 use crate::commands::network::{clone, fetch, pull, push};
 use crate::commands::plumbing::{
     add_remote, annotated_tag, branch, delete_branch, delete_remote, delete_tag, find_root,
-    get_config, init, list_remotes, log, read_tree, rename_branch, set_config, tag, write_blob,
+    get_config, init, list_remotes, read_tree, rename_branch, set_config, tag, write_blob,
 };
 use crate::commands::worktree::{
     abort_merge, add, checkout, cherry_pick, commit, list_files, merge, remove, reset_index, stash,
@@ -194,13 +194,65 @@ pub fn execute_git_cli_with_http(
 
     match subcmd {
         "status" => {
-            let short = sub_args
-                .iter()
-                .any(|arg| matches!(*arg, "-s" | "--short" | "--porcelain" | "--porcelain=v1"));
-            match status_matrix(fs, &repo_root, Some(&gitdir), None, None) {
+            let mut short = false;
+            let mut branch = false;
+            let mut untracked = true;
+            let mut paths = Vec::new();
+            let mut separator = false;
+            for &arg in sub_args {
+                if separator {
+                    paths.push(repository_path(&repo_root, &effective_cwd, arg));
+                } else {
+                    match arg {
+                        "--" => separator = true,
+                        "--short" | "--porcelain" | "--porcelain=v1" => short = true,
+                        "--branch" => branch = true,
+                        "-uno" | "--untracked-files=no" => untracked = false,
+                        "-u"
+                        | "-uall"
+                        | "-unormal"
+                        | "--untracked-files"
+                        | "--untracked-files=all"
+                        | "--untracked-files=normal" => untracked = true,
+                        a if a.starts_with('-')
+                            && !a.starts_with("--")
+                            && a[1..].chars().all(|c| c == 's' || c == 'b') =>
+                        {
+                            short |= a.contains('s');
+                            branch |= a.contains('b');
+                        }
+                        a if a.starts_with('-') => {
+                            return CliResult::err(129, format!("error: unknown option '{a}'\n"));
+                        }
+                        _ => paths.push(repository_path(&repo_root, &effective_cwd, arg)),
+                    }
+                }
+            }
+            match status_matrix(
+                fs,
+                &repo_root,
+                Some(&gitdir),
+                None,
+                if paths.is_empty() { None } else { Some(&paths) },
+            ) {
                 Ok(rows) => {
+                    let rows: Vec<_> = rows
+                        .into_iter()
+                        .filter(|(_, h, _, s)| untracked || *h != 0 || *s != 0)
+                        .collect();
                     if short {
                         let mut out = String::new();
+                        if branch {
+                            let name = current_branch(fs, &gitdir, false, false).ok().flatten();
+                            let label = match name {
+                                Some(name) if resolve_ref(fs, &gitdir, "HEAD", None).is_err() => {
+                                    format!("No commits yet on {name}")
+                                }
+                                Some(name) => name,
+                                None => "HEAD (no branch)".to_string(),
+                            };
+                            out.push_str(&format!("## {label}\n"));
+                        }
                         for (path, head, workdir, stage) in rows {
                             if head == 1 && workdir == 1 && stage == 1 {
                                 continue;
@@ -435,88 +487,7 @@ pub fn execute_git_cli_with_http(
                 Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
             }
         }
-        "log" => {
-            let mut depth = None;
-            let mut revision = "HEAD";
-            let mut format = None;
-            let mut terminate = true;
-            let mut oneline = false;
-            let mut i = 0;
-            while i < sub_args.len() {
-                let arg = sub_args[i];
-                let count = match arg {
-                    "-n" | "--max-count" => {
-                        i += 1;
-                        sub_args.get(i).copied()
-                    }
-                    _ => arg
-                        .strip_prefix("--max-count=")
-                        .or_else(|| arg.strip_prefix("-n"))
-                        .or_else(|| {
-                            arg.strip_prefix('-')
-                                .filter(|n| !n.is_empty() && n.bytes().all(|b| b.is_ascii_digit()))
-                        }),
-                };
-                if let Some(count) = count {
-                    let Ok(count) = count.parse::<usize>() else {
-                        return CliResult::err(129, "error: invalid maximum commit count\n");
-                    };
-                    depth = Some(count);
-                } else if matches!(arg, "-n" | "--max-count") {
-                    return CliResult::err(129, "error: missing maximum commit count\n");
-                } else if arg == "--oneline" {
-                    oneline = true;
-                } else if let Some(value) = arg
-                    .strip_prefix("--format=")
-                    .or_else(|| arg.strip_prefix("--pretty="))
-                {
-                    terminate = !value.starts_with("format:");
-                    format = Some(
-                        value
-                            .strip_prefix("format:")
-                            .or_else(|| value.strip_prefix("tformat:"))
-                            .unwrap_or(value),
-                    );
-                } else if !arg.starts_with('-') {
-                    revision = arg;
-                } else {
-                    return CliResult::err(129, format!("error: unknown option '{arg}'\n"));
-                }
-                i += 1;
-            }
-            if depth == Some(0) {
-                return CliResult::ok("");
-            }
-            match log(fs, &gitdir, Some(revision), None, depth, None, false, false) {
-                Ok(commits) => {
-                    let mut out = String::new();
-                    for (i, c) in commits.into_iter().enumerate() {
-                        if let Some(format) = format {
-                            if i > 0 && !terminate {
-                                out.push('\n');
-                            }
-                            out.push_str(&format_commit(&c, format));
-                            if terminate {
-                                out.push('\n');
-                            }
-                        } else if oneline {
-                            let first_line = c.commit.message.lines().next().unwrap_or("");
-                            out.push_str(&format!("{} {}\n", &c.oid[..7], first_line));
-                        } else {
-                            out.push_str(&format!(
-                                "commit {}\nAuthor: {} <{}>\n\n    {}\n",
-                                c.oid,
-                                c.commit.author.name,
-                                c.commit.author.email,
-                                c.commit.message.trim()
-                            ));
-                        }
-                    }
-                    CliResult::ok(out)
-                }
-                Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
-            }
-        }
+        "log" => crate::cli_history::execute(fs, &repo_root, &gitdir, &effective_cwd, sub_args),
         "branch" => {
             let mut remote = false;
             let mut all = false;
@@ -632,26 +603,111 @@ pub fn execute_git_cli_with_http(
             let result = match subcmd {
                 "diff" => {
                     let cached = sub_args.contains(&"--cached") || sub_args.contains(&"--staged");
+                    let mut options = crate::cli_files::DiffOptions::default();
                     let sep = sub_args.iter().position(|a| *a == "--");
-                    let mut revisions = Vec::new();
+                    let mut revisions: Vec<String> = Vec::new();
                     let mut paths = Vec::new();
-                    for &arg in &sub_args[..sep.unwrap_or(sub_args.len())] {
-                        if matches!(
-                            arg,
-                            "--cached" | "--staged" | "--no-color" | "--no-ext-diff"
-                        ) {
+                    let args = &sub_args[..sep.unwrap_or(sub_args.len())];
+                    let mut i = 0;
+                    while i < args.len() {
+                        let arg = args[i];
+                        i += 1;
+                        match arg {
+                            "--cached" | "--staged" | "--no-color" | "--no-ext-diff" => continue,
+                            "--name-only" => {
+                                options.mode = crate::cli_files::DiffMode::Names;
+                                continue;
+                            }
+                            "--name-status" => {
+                                options.mode = crate::cli_files::DiffMode::Status;
+                                continue;
+                            }
+                            "--stat" => {
+                                options.mode = crate::cli_files::DiffMode::Stat;
+                                continue;
+                            }
+                            "-q" | "--quiet" => {
+                                options.quiet = true;
+                                continue;
+                            }
+                            "--exit-code" => {
+                                options.exit_code = true;
+                                continue;
+                            }
+                            _ => {}
+                        }
+                        if let Some(value) = arg
+                            .strip_prefix("--unified=")
+                            .or_else(|| arg.strip_prefix("-U"))
+                        {
+                            let value = if value.is_empty() {
+                                let v = args.get(i).copied().unwrap_or("");
+                                i += 1;
+                                v
+                            } else {
+                                value
+                            };
+                            let Ok(context) = value.parse() else {
+                                return CliResult::err(129, "error: invalid context count\n");
+                            };
+                            options.context = context;
+                            continue;
+                        }
+                        if arg == "--unified" {
+                            let Some(value) = args.get(i).and_then(|v| v.parse().ok()) else {
+                                return CliResult::err(129, "error: invalid context count\n");
+                            };
+                            i += 1;
+                            options.context = value;
                             continue;
                         }
                         if arg.starts_with('-') {
                             return CliResult::err(129, format!("error: unknown option '{arg}'\n"));
                         }
-                        let path = repository_path(&repo_root, &effective_cwd, arg);
                         if paths.is_empty()
-                            && resolve_ref(fs, &gitdir, arg, None)
-                                .or_else(|_| expand_oid(fs, &gitdir, arg))
-                                .is_ok()
+                            && let Some((left, right)) =
+                                arg.split_once("...").or_else(|| arg.split_once(".."))
                         {
-                            revisions.push(arg);
+                            if !revisions.is_empty() {
+                                return CliResult::err(
+                                    129,
+                                    "error: range cannot be combined with revisions\n",
+                                );
+                            }
+                            let left = if left.is_empty() { "HEAD" } else { left };
+                            let right = if right.is_empty() { "HEAD" } else { right };
+                            let range = (|| {
+                                let a = crate::cli_history::resolve(fs, &gitdir, left)?;
+                                let b = crate::cli_history::resolve(fs, &gitdir, right)?;
+                                let a = if arg.contains("...") {
+                                    crate::commands::plumbing::find_merge_base(
+                                        fs,
+                                        &gitdir,
+                                        &[a, b.clone()],
+                                    )?
+                                    .into_iter()
+                                    .next()
+                                    .ok_or_else(|| crate::GitError::internal("no merge base"))?
+                                } else {
+                                    a
+                                };
+                                Ok::<_, crate::GitError>((a, b))
+                            })();
+                            match range {
+                                Ok((a, b)) => {
+                                    revisions.push(a);
+                                    revisions.push(b);
+                                }
+                                Err(e) => {
+                                    return CliResult::err(128, format!("fatal: {}\n", e.message));
+                                }
+                            }
+                            continue;
+                        }
+                        let path = repository_path(&repo_root, &effective_cwd, arg);
+                        if paths.is_empty() && crate::cli_history::resolve(fs, &gitdir, arg).is_ok()
+                        {
+                            revisions.push(arg.to_string());
                         } else if sep.is_none()
                             && (fs.exists(&absolute_path(&effective_cwd, arg))
                                 || list_files(fs, &gitdir, None)
@@ -681,7 +737,7 @@ pub fn execute_git_cli_with_http(
                                 .map(|p| repository_path(&repo_root, &effective_cwd, p)),
                         );
                     }
-                    let revision = revisions.first().copied();
+                    let revision = revisions.first().map(String::as_str);
                     let before = match revision {
                         Some(revision) => revision,
                         None if !cached => ":index",
@@ -695,18 +751,28 @@ pub fn execute_git_cli_with_http(
                         }
                         None => "HEAD",
                     };
-                    crate::cli_files::diff(
+                    return match crate::cli_files::diff(
                         fs,
                         &repo_root,
                         &gitdir,
                         before,
-                        revisions.get(1).copied().unwrap_or(if cached {
+                        revisions.get(1).map(String::as_str).unwrap_or(if cached {
                             ":index"
                         } else {
                             ":worktree"
                         }),
                         &paths,
-                    )
+                        &options,
+                    ) {
+                        Ok((out, changed)) => {
+                            let mut result = CliResult::ok(out);
+                            if changed && (options.quiet || options.exit_code) {
+                                result.exit_code = 1;
+                            }
+                            result
+                        }
+                        Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+                    };
                 }
                 "show" => crate::cli_files::show(
                     fs,
@@ -1243,7 +1309,7 @@ fn absolute_path(cwd: &str, path: &str) -> String {
     }
 }
 
-fn repository_path(root: &str, cwd: &str, path: &str) -> String {
+pub(crate) fn repository_path(root: &str, cwd: &str, path: &str) -> String {
     let full = absolute_path(cwd, path);
     if full == root {
         ".".to_string()
@@ -1314,7 +1380,10 @@ fn reset_repository(
     crate::GitRefManager::write_ref(fs, gitdir, ref_name, &oid)
 }
 
-fn format_commit(c: &crate::commands::plumbing::ReadCommitResult, format: &str) -> String {
+pub(crate) fn format_commit(
+    c: &crate::commands::plumbing::ReadCommitResult,
+    format: &str,
+) -> String {
     let mut out = String::new();
     let mut chars = format.chars();
     while let Some(ch) = chars.next() {

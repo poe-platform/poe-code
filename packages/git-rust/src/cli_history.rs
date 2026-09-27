@@ -1,0 +1,271 @@
+use crate::cli::{CliResult, format_commit, repository_path};
+use crate::commands::plumbing::{ReadCommitResult, log};
+use crate::commands::worktree::collect_tree_map;
+use crate::{GitError, MemoryFs, expand_oid, resolve_ref};
+use std::collections::{BTreeMap, BTreeSet};
+
+pub(crate) fn resolve(fs: &MemoryFs, gitdir: &str, revision: &str) -> Result<String, GitError> {
+    resolve_ref(fs, gitdir, revision, None).or_else(|_| expand_oid(fs, gitdir, revision))
+}
+
+pub(crate) fn matches_path(path: &str, paths: &[String]) -> bool {
+    paths.is_empty()
+        || paths
+            .iter()
+            .any(|p| p == "." || p == path || path.starts_with(&format!("{p}/")))
+}
+
+fn touches_paths(
+    fs: &MemoryFs,
+    gitdir: &str,
+    c: &ReadCommitResult,
+    paths: &[String],
+) -> Result<bool, GitError> {
+    let mut current = BTreeMap::new();
+    collect_tree_map(fs, gitdir, &c.oid, "", &mut current)?;
+    // Git simplifies path-limited merges when any parent has an identical selected tree.
+    for parent in c
+        .commit
+        .parent
+        .iter()
+        .map(Some)
+        .chain(if c.commit.parent.is_empty() {
+            Some(None)
+        } else {
+            None
+        })
+    {
+        let mut previous = BTreeMap::new();
+        if let Some(parent) = parent {
+            collect_tree_map(fs, gitdir, parent, "", &mut previous)?;
+        }
+        let changed = current.keys().chain(previous.keys()).any(|p| {
+            matches_path(p, paths)
+                && current.get(p).map(|e| (&e.mode, &e.oid))
+                    != previous.get(p).map(|e| (&e.mode, &e.oid))
+        });
+        if !changed {
+            return Ok(false);
+        }
+    }
+    Ok(true)
+}
+
+pub(crate) fn execute(
+    fs: &MemoryFs,
+    root: &str,
+    gitdir: &str,
+    cwd: &str,
+    args: &[&str],
+) -> CliResult {
+    let mut depth = None;
+    let mut revision = "HEAD";
+    let mut format = "medium";
+    let mut paths = Vec::new();
+    let mut separator = false;
+    let mut i = 0;
+    while i < args.len() {
+        let arg = args[i];
+        if separator {
+            paths.push(repository_path(root, cwd, arg));
+        } else if arg == "--" {
+            separator = true;
+        } else if arg == "--oneline" {
+            format = "%h %s";
+        } else if matches!(arg, "--format" | "--pretty") {
+            i += 1;
+            let Some(value) = args.get(i) else {
+                return CliResult::err(129, "error: missing format\n");
+            };
+            format = value;
+        } else if let Some(value) = arg
+            .strip_prefix("--format=")
+            .or_else(|| arg.strip_prefix("--pretty="))
+        {
+            format = value;
+        } else if arg == "-n"
+            || arg == "--max-count"
+            || arg.starts_with("--max-count=")
+            || arg.starts_with("-n")
+            || arg
+                .strip_prefix('-')
+                .is_some_and(|s| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit()))
+        {
+            let value = if arg == "-n" || arg == "--max-count" {
+                i += 1;
+                args.get(i).copied().unwrap_or("")
+            } else {
+                arg.strip_prefix("--max-count=")
+                    .or_else(|| arg.strip_prefix("-n"))
+                    .unwrap_or(&arg[1..])
+            };
+            let Ok(count) = value.parse::<usize>() else {
+                return CliResult::err(129, "error: invalid maximum commit count\n");
+            };
+            depth = Some(count);
+        } else if arg.starts_with('-') {
+            return CliResult::err(129, format!("error: unknown option '{arg}'\n"));
+        } else if paths.is_empty() && (arg.contains("..") || resolve(fs, gitdir, arg).is_ok()) {
+            revision = arg;
+        } else if fs.exists(&crate::utils::join(&[cwd, arg])) {
+            paths.push(repository_path(root, cwd, arg));
+        } else {
+            return CliResult::err(
+                128,
+                format!("fatal: ambiguous argument '{arg}': unknown revision or path\n"),
+            );
+        }
+        i += 1;
+    }
+    if depth == Some(0) {
+        return CliResult::ok("");
+    }
+    let result = (|| {
+        let (exclude, tip) = revision
+            .split_once("..")
+            .map(|(a, b)| {
+                (
+                    Some(if a.is_empty() { "HEAD" } else { a }),
+                    if b.is_empty() { "HEAD" } else { b },
+                )
+            })
+            .unwrap_or((None, revision));
+        let excluded: BTreeSet<_> = match exclude {
+            Some(exclude) => log(
+                fs,
+                gitdir,
+                Some(&resolve(fs, gitdir, exclude)?),
+                None,
+                None,
+                None,
+                false,
+                false,
+            )?
+            .into_iter()
+            .map(|c| c.oid)
+            .collect(),
+            None => BTreeSet::new(),
+        };
+        let mut commits = log(
+            fs,
+            gitdir,
+            Some(&resolve(fs, gitdir, tip)?),
+            None,
+            if exclude.is_none() && paths.is_empty() {
+                depth
+            } else {
+                None
+            },
+            None,
+            false,
+            false,
+        )?;
+        let mut seen = BTreeSet::new();
+        commits.retain(|c| !excluded.contains(&c.oid) && seen.insert(c.oid.clone()));
+        let mut selected = Vec::new();
+        for c in commits {
+            if depth.is_some_and(|n| selected.len() >= n) {
+                break;
+            }
+            if paths.is_empty() || touches_paths(fs, gitdir, &c, &paths)? {
+                selected.push(c);
+            }
+        }
+        Ok::<_, GitError>(render(&selected, format))
+    })();
+    match result {
+        Ok(out) => CliResult::ok(out),
+        Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+    }
+}
+
+fn render(commits: &[ReadCommitResult], format: &str) -> String {
+    let mut out = String::new();
+    let preset = matches!(format, "oneline" | "short" | "medium" | "full");
+    for (i, c) in commits.iter().enumerate() {
+        if preset {
+            if format == "oneline" {
+                out.push_str(&format!(
+                    "{} {}\n",
+                    c.oid,
+                    c.commit.message.lines().next().unwrap_or("")
+                ));
+                continue;
+            }
+            if i > 0 {
+                out.push('\n');
+            }
+            out.push_str(&format!(
+                "commit {}\nAuthor: {} <{}>\n",
+                c.oid, c.commit.author.name, c.commit.author.email
+            ));
+            if format == "medium" {
+                out.push_str(&format!("Date:   {}\n", date(&c.commit.author)));
+            }
+            if format == "full" {
+                out.push_str(&format!(
+                    "Commit: {} <{}>\n",
+                    c.commit.committer.name, c.commit.committer.email
+                ));
+            }
+            out.push('\n');
+            let message = if format == "short" {
+                c.commit.message.split("\n\n").next().unwrap_or("")
+            } else {
+                c.commit.message.trim_end()
+            };
+            for line in message.lines() {
+                out.push_str(&format!("    {line}\n"));
+            }
+        } else {
+            let terminate = !format.starts_with("format:");
+            if i > 0 && !terminate {
+                out.push('\n');
+            }
+            let template = format
+                .strip_prefix("format:")
+                .or_else(|| format.strip_prefix("tformat:"))
+                .unwrap_or(format);
+            out.push_str(&format_commit(c, template));
+            if terminate {
+                out.push('\n');
+            }
+        }
+    }
+    out
+}
+
+// Civil date conversion uses integer arithmetic so native and WASM builds agree.
+fn date(author: &crate::utils::Author) -> String {
+    let offset = -(author.timezone_offset as i64);
+    let seconds = author.timestamp + offset * 60;
+    let days = seconds.div_euclid(86400);
+    let time = seconds.rem_euclid(86400);
+    let z = days + 719468;
+    let era = z.div_euclid(146097);
+    let doe = z - era * 146097;
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    let y = yoe + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let day = doy - (153 * mp + 2) / 5 + 1;
+    let month = mp + if mp < 10 { 3 } else { -9 };
+    let year = y + i64::from(month <= 2);
+    let weekdays = ["Thu", "Fri", "Sat", "Sun", "Mon", "Tue", "Wed"];
+    let months = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    ];
+    format!(
+        "{} {} {} {:02}:{:02}:{:02} {} {}{:02}{:02}",
+        weekdays[days.rem_euclid(7) as usize],
+        months[(month - 1) as usize],
+        day,
+        time / 3600,
+        time / 60 % 60,
+        time % 60,
+        year,
+        if offset < 0 { '-' } else { '+' },
+        offset.abs() / 60,
+        offset.abs() % 60
+    )
+}

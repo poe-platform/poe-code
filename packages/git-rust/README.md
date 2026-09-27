@@ -51,7 +51,7 @@ assert_eq!(status(&fs, "/repo", None, "hello.txt")?, "unmodified");
 
 ### `safe-bash` CLI Dispatcher
 
-`status --porcelain` and `--porcelain=v1` provide short machine-readable status. `diff` accepts paths without `--` and compares two revisions. Use `branch --show-current`, `-a`, `-r`, `-m` or `-M` to inspect or rename branches. `log` accepts a revision, `-n N`, `-N`, `--max-count=N`, `--format=...` and `--pretty=format:...` (without a trailing newline). Formats support commit IDs (`%H`, `%h`), subject/body (`%s`, `%b`, `%B`), author/committer names and emails (`%an`, `%ae`, `%cn`, `%ce`), `%%` and `%n`.
+`status --porcelain` and `--porcelain=v1` provide short machine-readable status. Combine `-s` and `-b` (including `-sb` or `-bs`) to include the branch header, use `-uno` or `--untracked-files=no` to hide untracked files, and select files or directories with pathspecs. `diff` accepts paths, two revisions, `A..B`, or `A...B` (from the merge base); choose `--name-only`, `--name-status`, `--stat`, `--quiet` (exit 1 for changes), or `-U<n>` / `--unified=<n>`. Use `branch --show-current`, `-a`, `-r`, `-m` or `-M` to inspect or rename branches. `log` accepts a revision or `A..B`, file or directory pathspecs after `--`, `-n N`, `-N`, and `--max-count=N`. `--format` and `--pretty` accept values with either a space or `=`, including `oneline`, `short`, `medium`, `full`, or a custom format. `format:...` omits the trailing newline. Custom formats support commit IDs (`%H`, `%h`), subject/body (`%s`, `%b`, `%B`), author/committer names and emails (`%an`, `%ae`, `%cn`, `%ce`), `%%` and `%n`.
 
 For binary output, use `CliResult.stdout_bytes` when present; `stdout` provides the text representation.
 

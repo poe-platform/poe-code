@@ -90,6 +90,33 @@ Hosts must map
 authenticated client requests to these retained objects, not accept raw objects
 or provider identifiers from clients.
 
+`bindSessionPage({ name, context, page })` binds trusted host operations to the
+currently selected live page. It returns `undefined` for an unavailable identity,
+or a frozen binding with `run(callback, { signal? })`. Retain that same binding
+across separate capture/commit calls: it never follows a replacement session,
+even if its alias, context, and page objects are reused. Each call enters the
+existing per-session command queue and checks the original session and selected
+page again. It never allocates, restores, selects, focuses, or checkpoints a page.
+Successful calls renew configured idle activity; in-flight work pauses idle expiry.
+
+The callback receives a cancellation `signal` and a synchronous `check()` for
+revalidating lifecycle and selection before effects and after awaited work.
+Session retirement and native page-close events also abort the signal so a
+cooperative callback can settle without waiting for its caller's deadline.
+`{ status: 'unavailable' }` means the callback was not entered; this includes a
+pending native action or modal that requires human attention. Otherwise success
+returns `{ status: 'completed', value }`. An entered operation can have effects
+before cancellation, page loss, or failure, so rejection never establishes a
+no-op and must not trigger an automatic replay of non-idempotent work. The queue
+and disposal continue to await the underlying callback after cancellation.
+
+Hosts must bound work, obey cancellation, authenticate the displayed session,
+and validate native document/element/selection identities inside their operation.
+The queue does not serialize other controllers, sessions, or page JavaScript.
+Wait for clipboard permissions or other human input between `run` calls, outside
+the queue; do not await another queued controller method from inside a callback.
+This host API does not redact callback arguments from native provider tracing.
+
 Private CDP target/session capacity counts active identities. Only native target
 destruction or session detach confirmations release that identity's capacity.
 Bounded recent retirement tombstones suppress late messages; active private

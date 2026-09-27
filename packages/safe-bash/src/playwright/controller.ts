@@ -52,6 +52,12 @@ export interface PlaywrightSessionSelectOptions extends PlaywrightSessionRenewOp
   readonly page: PlaywrightPage;
   readonly signal?: AbortSignal;
 }
+export interface PlaywrightSessionPageBinding {
+  /** Each call enters the session command queue separately. Never await another
+   * queued controller operation or human permission from inside the callback. */
+  run<T>(operation: (scope: { readonly signal: AbortSignal; readonly check: () => void }) => Promise<T>,
+    options?: { readonly signal?: AbortSignal }): Promise<{ readonly status: 'unavailable' } | { readonly status: 'completed'; readonly value: T }>;
+}
 export interface PlaywrightSessionRestoreOptions {
   readonly recovery?: 'saved-storage';
   readonly name: string;
@@ -120,6 +126,7 @@ interface Session {
   livePageStateLost?: true;
   readonly name: string;
   readonly generation: number;
+  readonly retirement: AbortController;
   state: PlaywrightSessionState;
   lease?: PlaywrightLease;
   page?: PlaywrightPage;
@@ -274,6 +281,8 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     });
     // Notifications and abort handlers cannot throw unhandled rejections.
     void session.releasing.catch(() => {});
+    // Install shared completion before a host abort listener can reenter release.
+    session.retirement.abort(new Error('Live Playwright session is no longer available'));
     return session.releasing;
   };
   const checkpointAndRelease = async (session: Session, signal: AbortSignal): Promise<void> => {
@@ -470,6 +479,70 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     try { return await operation; }
     finally { work.delete(operation); }
   };
+  const bindSessionPage = (request: Omit<PlaywrightSessionSelectOptions, 'signal'>): PlaywrightSessionPageBinding | undefined => {
+    const { name, context, page } = request;
+    validatePlaywrightSessionName(name);
+    const session = sessions.get(name);
+    if (!session) return undefined;
+    const available = () => !lifetime.signal.aborted && sessions.get(name) === session
+      && session.state === 'open' && !session.releasing && !session.failure
+      && session.lease?.context === context && session.page === page && context.pages().includes(page)
+      && (session.idlePaused || session.expiresAt === undefined || session.expiresAt > Date.now());
+    if (!available()) return undefined;
+    return Object.freeze({
+      async run<T>(callback: (scope: { readonly signal: AbortSignal; readonly check: () => void }) => Promise<T>,
+        request: { readonly signal?: AbortSignal } = {}): Promise<{ readonly status: 'unavailable' } | { readonly status: 'completed'; readonly value: T }> {
+        const callerSignal = request.signal;
+        callerSignal?.throwIfAborted();
+        if (!available()) return { status: 'unavailable' };
+        const pageClosed = new AbortController();
+        const signal = AbortSignal.any([...(callerSignal ? [callerSignal] : []), lifetime.signal, session.retirement.signal, pageClosed.signal]);
+        const check = () => {
+          callerSignal?.throwIfAborted();
+          signal.throwIfAborted();
+          if (!available()) throw new Error('Bound live Playwright session or page is no longer available');
+        };
+        const operation = enqueue(name, async () => {
+          callerSignal?.throwIfAborted();
+          signal.throwIfAborted();
+          // A native action can outlive its queue entry while a modal is open.
+          // Decline host work rather than overlapping or waiting for human input.
+          if (!available() || session.pendingActions?.size || getPlaywrightModal(page)) return { status: 'unavailable' as const };
+          const paused = !!session.idleTimeoutMs;
+          let completed = false;
+          if (paused) { session.idlePaused = true; clearTimeout(session.expiryTimer); }
+          const closed = () => { pageClosed.abort(new Error('Bound live Playwright page is no longer available')); };
+          let observing = false;
+          let settled: Promise<void> | undefined;
+          try {
+            if (page.on && page.off) { observing = true; page.on('close', closed); }
+            const pending = Promise.resolve().then(() => { check(); return callback({ signal, check }); });
+            settled = pending.then(() => {}, () => {});
+            (session.pendingActions ??= new Set()).add(settled);
+            const value = await pending;
+            check();
+            completed = true;
+            return { status: 'completed' as const, value };
+          } catch (error) {
+            callerSignal?.throwIfAborted();
+            signal.throwIfAborted();
+            throw error;
+          } finally {
+            if (settled) session.pendingActions!.delete(settled);
+            if (observing) page.off!('close', closed);
+            if (paused) {
+              delete session.idlePaused;
+              if (completed && session.state === 'open') session.expiresAt = Date.now() + session.idleTimeoutMs!;
+              scheduleExpiry(session);
+            }
+          }
+        });
+        work.add(operation);
+        try { return await operation; }
+        finally { work.delete(operation); }
+      },
+    });
+  };
   const inspectRecovery = async (request: { readonly name: string; readonly signal?: AbortSignal }): Promise<PlaywrightRecoveryResult> => {
     validatePlaywrightSessionName(request.name);
     const signal = request.signal ? AbortSignal.any([request.signal, lifetime.signal]) : lifetime.signal;
@@ -512,7 +585,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       check();
       if (occupiedSessions(name) >= maxSessions) throw new PlaywrightResourceLimitError('Playwright session capacity exceeded');
       const epoch = Array.from(crypto.getRandomValues(new Uint32Array(4)), value => String(value).padStart(10, '0')).join('');
-      const session: Session = { name, generation: ++generation, state: 'acquiring', cleanups: new Set(),
+      const session: Session = { name, generation: ++generation, retirement: new AbortController(), state: 'acquiring', cleanups: new Set(),
         ...(request.recovery === undefined ? {} : { recovery: request.recovery }),
         snapshot: createSnapshotEngine(snapshotLimits, () => `e${epoch}${++refSequence}`),
         ...(expiresAt === undefined ? {} : { expiresAt }),
@@ -1202,7 +1275,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             // claim this slot during retirement's asynchronous boundary.
             const occupied = occupiedSessions();
             if (occupied >= maxSessions) throw new PlaywrightResourceLimitError('Playwright session capacity exceeded');
-            active = { name: parsed.session, generation: ++generation, state: 'acquiring', snapshot: createSnapshotEngine(snapshotLimits, () => `e${++refSequence}`), cleanups: new Set(), idleTimeoutMs: openOptions.idleTimeoutMs, contextOptions: openOptions.contextOptions };
+            active = { name: parsed.session, generation: ++generation, retirement: new AbortController(), state: 'acquiring', snapshot: createSnapshotEngine(snapshotLimits, () => `e${++refSequence}`), cleanups: new Set(), idleTimeoutMs: openOptions.idleTimeoutMs, contextOptions: openOptions.contextOptions };
             active.configuration = { ...openOptions.configuration, browserName: openOptions.browser, headless: openOptions.headless };
             sessions.set(parsed.session, active);
             const session = active;
@@ -1470,6 +1543,6 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     lifetime.abort(new Error('Playwright controller is disposed'));
     return disposal;
   };
-  return { run, dispose, restoreSession: (request: PlaywrightSessionRestoreOptions) => restoreSession(request), renewSession, selectSessionPage, inspectSessions, inspectRecovery };
+  return { run, dispose, restoreSession: (request: PlaywrightSessionRestoreOptions) => restoreSession(request), renewSession, selectSessionPage, bindSessionPage, inspectSessions, inspectRecovery };
 }
 import { PlaywrightResourceLimitError, PlaywrightSnapshotLimitError, isPlaywrightResourceLimitError } from './resource-limit.js';

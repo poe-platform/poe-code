@@ -18,6 +18,11 @@ import { assertAdmittedInputPath, assertLiteralInputPath, readIntegrationTypeInp
 
 const owner = "fixture producer";
 
+test("host page binding regressions remain in active discovery", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/plugins/playwright-session-page-binding.test.ts"));
+});
+
 test("compound fast-path replay regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/compound-fast-path-replay.test.ts"));

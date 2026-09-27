@@ -85,7 +85,25 @@ test("prewarmed shell executes a mutating find once", async () => {
   } finally { await shell.dispose(); }
 });
 
-for (const scenario of ["cleanup-abort", "cleanup-late-rejection", "shared-delayed-generator", "shared-serialized", "shared-repeated-cancellation", "shared-abandoned-rejection", "shared-retained-rejection", "owned-cleanup-abort", "busy-loop-abort"]) {
+test("nested while and until effects execute once and preserve loop control", async () => {
+  for (const loop of ["while ((i < 3))", "until ((i >= 3))"]) {
+    const { shell } = setup();
+    shell.use(agentCommands());
+    try {
+      const body = `count=$((count + 1)); ${loop}; do ((i++)); printf '%s' "$i"; done`;
+      for (const compound of [`{ ${body}; }`, `f() { ${body}; }; f`, `if true; then ${body}; fi`, `case x in x) ${body};; esac`]) {
+        const result = await shell.exec(`i=0; count=0; ${compound}; printf ':%s:%s' "$count" "$i"`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, "");
+        assert.equal(result.stdout, "123:1:3", compound);
+      }
+      const control = await shell.exec(`f() { ${loop}; do return 7; done; }; i=0; f`);
+      assert.equal(control.exitCode, 7, control.stderr);
+    } finally { await shell.dispose(); }
+  }
+});
+
+for (const scenario of ["cleanup-abort", "cleanup-late-rejection", "shared-delayed-generator", "shared-serialized", "shared-repeated-cancellation", "shared-abandoned-rejection", "shared-retained-rejection", "owned-cleanup-abort", "busy-loop-abort", "busy-until-abort", "busy-group-loop-abort", "busy-function-loop-abort", "busy-if-loop-abort", "busy-substitution-loop-abort"]) {
   test(`hard-timeout lifecycle regression: ${scenario}`, () => {
     const result = spawnSync(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", fileURLToPath(new URL("./lifecycle-probe.ts", import.meta.url)), scenario], {
       timeout: 3000, encoding: "utf8", maxBuffer: 1024 * 1024,

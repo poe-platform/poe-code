@@ -8362,6 +8362,8 @@ export class Runtime {
     if (command.kind === "group") {
       return this.canSyncScriptCompound(command.body, rawState, depth + 1);
     }
+    // Predicate loops need the asynchronous executor to yield without replay.
+    if (command.kind === "while" || command.kind === "until") return false;
     if (command.kind === "arithmetic-for") return false;
     if (command.kind === "if") {
       for (let i = 0; i < command.branches.length; i++) {
@@ -19489,10 +19491,7 @@ export class Runtime {
           }
           continue;
         }
-        if (c.kind === "while" || c.kind === "until") {
-          if (!this.canSyncPureFunctionBody(c.condition, rawState, localVars) || !this.canSyncPureFunctionBody(c.body, rawState, localVars)) return false;
-          continue;
-        }
+        if (c.kind === "while" || c.kind === "until") return false;
         if (c.kind === "arithmetic") {
           if (/[+]{2}|--|<<|>>|(?<![<>!=])=(?!=)/.test(c.expression.source)) return false;
           continue;

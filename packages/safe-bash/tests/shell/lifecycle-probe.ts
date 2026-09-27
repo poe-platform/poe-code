@@ -72,18 +72,31 @@ if (scenario === "cleanup-abort" || scenario === "cleanup-late-rejection") {
   assert.equal((await shell.exec(script, { stdin })).stdout, scenario === "shared-repeated-cancellation" ? "" : "B");
   assert.equal(maximum, 1);
   assert.equal(position, 3);
-} else if (scenario === "busy-loop-abort") {
+} else if (scenario?.startsWith("busy-")) {
+  const sources: Record<string, string> = {
+    "busy-loop-abort": "while true; do :; done",
+    "busy-until-abort": "until false; do :; done",
+    "busy-group-loop-abort": "{ count=$((count + 1)); while true; do :; done; }",
+    "busy-function-loop-abort": "busy() { count=$((count + 1)); until false; do :; done; }; busy",
+    "busy-if-loop-abort": "if true; then count=$((count + 1)); while true; do :; done; fi",
+    "busy-substitution-loop-abort": "busy() { until false; do :; done; }; value=$(busy)",
+  };
+  const source = sources[scenario];
+  assert.ok(source !== undefined);
   const { shell, fs } = setup();
   const controller = new AbortController();
-  const reason = new Error("cancel busy loop");
+  const reason = source.startsWith("until") ? 0 : new Error("cancel busy loop");
   const timer = setTimeout(() => controller.abort(reason), 20);
   try {
-    await assert.rejects(shell.exec("while true; do :; done; : >after", {
+    await assert.rejects(shell.exec(`${source}; : >after`, {
       signal: controller.signal,
       limits: { maxCommands: 1_000_000_000, maxLoopIterations: 1_000_000_000 },
     }), (error) => error === reason);
     assert.deepEqual(await fs.readdir("/"), []);
-  } finally { clearTimeout(timer); }
+  } finally {
+    clearTimeout(timer);
+    await shell.dispose();
+  }
 } else if (scenario === "owned-cleanup-abort") {
   const { shell, fs } = setup();
   Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false, retainedRead: false } });

@@ -165,7 +165,6 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
         const swaps = new Map<bigint, bigint>();
         diagnostic = parsed.random === undefined ? "getrandom" : `${quote(parsed.random)}: read error`;
         const useSyncRandom = parsed.random === undefined;
-        let lastYield = monotonicNow();
         if (!parsed.repeat && !streamDirect) {
           for (let index = 0n; index < ahead; index++) {
             const chosen = index + (useSyncRandom ? random.chooseSync(size - index) : await random.choose(size - index));

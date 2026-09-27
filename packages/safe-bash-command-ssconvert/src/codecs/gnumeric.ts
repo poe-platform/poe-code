@@ -650,8 +650,10 @@ function validateRecordName(name: string): void {
     if (step.value.localName !== name || step.value.namespace || step.value.attributes.length) invalid("invalid XML record name");
   } catch { invalid("invalid XML record name"); }
 }
-function emitRecord(value: ImportedValue | undefined, depth: number, writer: XmlWriter): string {
+function emitRecord(value: ImportedValue | undefined, depth: number, writer: XmlWriter, ancestors = new Set<ImportedValue>()): string {
   const node = object(value); if (!node || typeof node.name !== "string" || typeof node.namespace !== "string") return "";
+  if (ancestors.has(node)) limit("cyclic XML record");
+  ancestors.add(node);
   const attrs: Record<string, string> = {};
   const qualify = (name: string, ns: string): string => {
     validateRecordName(name);
@@ -664,7 +666,8 @@ function emitRecord(value: ImportedValue | undefined, depth: number, writer: Xml
   if (Array.isArray(node.attributes)) for (const a of node.attributes) { const attr = object(a);
     if (attr && typeof attr.name === "string" && typeof attr.namespace === "string" && typeof attr.value === "string") attrs[qualify(attr.name, attr.namespace)] = attr.value;
   }
-  const nested = Array.isArray(node.children) ? node.children.map(n => emitRecord(n, depth + 1, writer)).join("") : "";
+  const nested = Array.isArray(node.children) ? node.children.map(n => emitRecord(n, depth + 1, writer, ancestors)).join("") : "";
+  ancestors.delete(node);
   return writer.element(name, attrs, typeof node.text === "string" ? node.text : "", nested, depth);
 }
 function emitRetained(records: readonly UnsupportedRecord[] | undefined, kind: string, depth: number, writer: XmlWriter): string {

@@ -4862,8 +4862,40 @@ export class Runtime {
     }
   }
 
+  // Scalar syntax can hide array writes in recursively evaluated variable values.
+  // Admit only plain scalar operands before any arithmetic mutation runs.
+  private canSyncArithmeticOperands(tree: ArithmeticProgram["tree"], state: State, line?: number): boolean {
+    if (!tree || hasActiveVariableAttributes(state) || state.readonlyVariables?.size) return false;
+    switch (tree.kind) {
+      case "literal": return true;
+      case "name": {
+        if (tree.subscript !== undefined || tree.name === "OPTIND" || tree.name === "PIPESTATUS" || arrayStore(state)?.get(tree.name)) return false;
+        const monitor = stateMonitor(state);
+        if (monitor?.hasOverlay(tree.name) || monitor?.store?.watches.has(tree.name)) return false;
+        const value = state.variables[tree.name]
+          ?? (tree.name === "LINENO" ? String(line ?? 1)
+            : tree.name === "_" ? state.lastArgument ?? ""
+            : tree.name === "FUNCNAME" ? state.functionNames?.[0] : undefined);
+        const text = value === undefined ? undefined : monitor?.values.get(tree.name, value) ?? value;
+        if (text === undefined || text === "") return true;
+        if (typeof text !== "string") return false;
+        let index = text[0] === "+" || text[0] === "-" ? 1 : 0;
+        if (index === text.length) return false;
+        for (; index < text.length; index++) {
+          const code = text.charCodeAt(index);
+          if (code < 48 || code > 57) return false;
+        }
+        return true;
+      }
+      case "unary": return this.canSyncArithmeticOperands(tree.operand, state, line);
+      case "binary": return this.canSyncArithmeticOperands(tree.left, state, line) && this.canSyncArithmeticOperands(tree.right, state, line);
+      case "conditional": return this.canSyncArithmeticOperands(tree.condition, state, line) &&
+        this.canSyncArithmeticOperands(tree.yes, state, line) && this.canSyncArithmeticOperands(tree.no, state, line);
+    }
+  }
+
   private async shellArithmetic(program: ArithmeticProgram, state: State, io: IO, variables?: Record<string, string>): Promise<bigint> {
-    if (!program.hasSubscript && !arithTreeTouchesArray(program.tree, arrayStore(state)) && (!guestArrays(state) || isSafeSmiProgram(program)) && !hasActiveVariableAttributes(state) && variables === undefined) {
+    if (variables === undefined && this.canSyncArithmeticOperands(program.tree, state, io.diagnosticLine)) {
       const snap = this.budget.parsing.snapshot();
       try {
         return this.syncShellArithmetic(program, state, io.diagnosticLine);
@@ -4875,7 +4907,8 @@ export class Runtime {
     const resolvedVariables = variables ?? this.arithmeticVariables(state, io.diagnosticLine);
     let depth = 0;
     const references: ArithmeticReferences = {
-      isSync: !program.hasSubscript && !guestArrays(state) && !arithTreeTouchesArray(program.tree, arrayStore(state)),
+      // Recursive variable values may introduce async subscript resolution.
+      isSync: false,
       resolve: (variable, subscript) => {
         this.signal.throwIfAborted();
         const target = this.variableTarget(this.referenceName(state, variable))!;
@@ -4936,7 +4969,7 @@ export class Runtime {
   }
 
   private async expandedArithmeticValue(program: ArithmeticProgram, state: State, io: IO): Promise<bigint> {
-    if (!program.error && (!guestArrays(state) || isSafeSmiProgram(program)) && (!program.hasMutation || !arithTreeTouchesArray(program.tree, arrayStore(state))) && (!program.hasSubscript || isSafeSmiProgram(program)) && !hasActiveVariableAttributes(state)) {
+    if (this.canSyncArithmeticOperands(program.tree, state, io.diagnosticLine)) {
       const snap = this.budget.parsing.snapshot();
       try {
         return this.syncShellArithmetic(program, state, io.diagnosticLine);
@@ -4959,7 +4992,7 @@ export class Runtime {
         const fastSource = this.fastValueWord(word, state, io, false, false, true, false, undefined, io.diagnosticLine);
         if (typeof fastSource === "string") {
           program = prepareArithmetic(fastSource, this.budget.parsing);
-          if (!program.error && (!program.hasMutation || !arithTreeTouchesArray(program.tree, arrayStore(state))) && isSafeSmiProgram(program) && !hasActiveVariableAttributes(state)) {
+          if (this.canSyncArithmeticOperands(program.tree, state, io.diagnosticLine)) {
             const snap = this.budget.parsing.snapshot();
             try {
               return this.syncShellArithmetic(program, state, io.diagnosticLine);
@@ -8631,7 +8664,7 @@ export class Runtime {
 
   private executeSyncPipelineBody(
     pipeline: Pipeline,
-    command: Extract<Command, { kind: "simple" | "arithmetic" | "conditional" | "arithmetic-for" | "for" | "if" | "case" | "group" | "while" | "until" }>,
+    command: Extract<Command, { kind: "simple" | "arithmetic" | "conditional" | "arithmetic-for" | "for" | "if" | "case" | "group" }>,
     state: State,
     io: IO,
     ignored: boolean,

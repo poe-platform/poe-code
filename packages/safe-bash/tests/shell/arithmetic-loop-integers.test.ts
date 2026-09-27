@@ -10,6 +10,18 @@ test("integer string cache converts negative one on its first lookup", () => {
   assert.equal(intToStr(-1), "-1");
 });
 
+for (const [condition, expected] of [
+  ["$(say 0)", ""],
+  ["$(say $((i < 2)))", "0\n1\n"],
+] as const) test(`arithmetic loop awaits substituted condition: ${condition}`, async context => {
+  const { shell } = setup();
+  context.after(() => shell.dispose());
+  const result = await shell.exec(`for ((i=0; ${condition}; i++)); do say "$i"; if ((i == 3)); then break; fi; done`);
+  assert.equal(result.stdout, expected);
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+});
+
 for (const header of ["for ((i=0;i<100;i++))", "for i in {1..100}"]) {
   for (const [initial, expression, expected] of [
     ["0", "60000 * 60000", "3600000000"],

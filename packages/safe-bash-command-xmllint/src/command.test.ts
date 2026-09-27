@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createCommandArguments, toByteSource, type CommandContext } from "safe-bash-contracts";
-import { createXmllintCommand } from "./index.js";
+import { CommandRegistry, createCommandArguments, toByteSource, type CommandContext } from "safe-bash-contracts";
+import { createXmllintCommand, xmllintCommands } from "./index.js";
 for (const [args, input, expected] of [
   [["--xpath", '//item[@id=1 or @id="2"]/text()'], '<root><item id="1">Alpha</item><item id="2">Beta</item></root>', "Alpha\nBeta\n"],
   [["--xpath", 'boolean(//item[@price>15])'], '<root><item price="20"/></root>', "true\n"],
@@ -20,3 +20,13 @@ for (const [args, input, expected] of [
     assert.equal(output, expected);
   });
 }
+
+test("xmllint plugin captures the replacement policy at creation", () => {
+  const options = { replace: false };
+  const plugin = xmllintCommands(options);
+  const commands = new CommandRegistry();
+  commands.register(createXmllintCommand());
+  options.replace = true;
+  assert.throws(() => plugin.setup({ commands, use() {}, registerFileSystem() {} }),
+    (error: unknown) => error instanceof Error && error.message.includes("Command already registered"));
+});

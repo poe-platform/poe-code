@@ -298,10 +298,11 @@ export function createXmllintCommands(options: XmlCommandsOptions = {}): readonl
 
 export function xmllintCommands(options: XmlCommandsOptions = {}): VirtualShellPlugin {
   const commands = createXmllintCommands(options);
+  const replace = options.replace ?? false;
   return {
     name: "xmllint-commands",
     setup(host) {
-      for (const command of commands) host.commands.register(command, { replace: options.replace ?? false });
+      for (const command of commands) host.commands.register(command, { replace });
     }
   };
 }

@@ -43,6 +43,7 @@ export const nonCodeDirectoryIgnores = [
   "packages/config-mutations-rust/src/yaml/**",
   "packages/docx/tests/schema-entrypoints/**",
   "packages/frontmatter-rust/bindings/**",
+  "packages/git-rust/target/**",
   "packages/github-workflows/docs/**",
   "packages/github-workflows/src/workflow-templates/**",
   "packages/maestro-tui/fixtures/**",

@@ -359,7 +359,7 @@ export type FsModule = Pick<FsImplementation, FsPassthroughName> & {
 
 
 
-export function makeFsModule(options: FsModuleOptions = {}): FsModule {
+export function makeFsModule(options: FsModuleOptions = {}): FsModule & { default: FsModule; promises: FsModule } {
   assertSupportedPlatform();
   const hostReadMemoryLimit = options.hostReadMemoryLimit ?? Infinity;
   const readFileMaxBytes = options.readFileMaxBytes ?? Infinity;
@@ -368,6 +368,10 @@ export function makeFsModule(options: FsModuleOptions = {}): FsModule {
       throw new TypeError("Filesystem read limits must be non-negative safe integers or Infinity.");
   }
   let reservedHostReadMemory = 0;
+
+  if (options.fs && "capabilities" in options.fs) {
+    throw new TypeError("Pass safe-fs FileSystem through the adapter option, not fs.");
+  }
 
   if (options.adapter !== undefined && options.fs !== undefined) {
     throw new TypeError("fs module accepts either adapter or fs, not both.");
@@ -437,7 +441,7 @@ export function makeFsModule(options: FsModuleOptions = {}): FsModule {
     declareBudgetedHostOperation(directRead, boundedRead);
     readFile = directRead;
   }
-  return {
+  const module: FsModule = {
     access: bind(fs, "access", "re-issue"),
     appendFile: bind(fs, "appendFile", "read-side-effect"),
     chmod: bind(fs, "chmod", "read-side-effect"),
@@ -470,6 +474,7 @@ export function makeFsModule(options: FsModuleOptions = {}): FsModule {
       COPYFILE_EXCL: nodeFsConstants.COPYFILE_EXCL
     }
   };
+  return { ...module, default: module, promises: module };
 }
 
 // The module forwards node's error rather than translating it, which makes node's answer the

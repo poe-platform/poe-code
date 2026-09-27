@@ -1254,3 +1254,23 @@ it("confines rooted Node-shaped mkdtemp names while preserving native prefix sep
   expect(vol.statSync(created).isDirectory()).toBe(true);
   expect(vol.readdirSync("/")).toEqual(["work"]);
 });
+
+it.each([
+  'import fs from "node:fs";',
+  'import fs from "node:fs/promises";',
+  'import { promises as fs } from "node:fs";',
+  'import { readFile } from "node:fs/promises"; const fs = { readFile };'
+])("supports standard filesystem ESM imports: %s", async (statement) => {
+  const adapter = createMemoryFileSystem();
+  await adapter.writeFile("/input.txt", new TextEncoder().encode("portable"));
+  const fs = makeFsModule({ adapter });
+  await expect(run(statement + ' export const text = await fs.readFile("/input.txt", "utf8");', {
+    sourceType: "module",
+    modules: { "node:fs": fs, "node:fs/promises": fs }
+  })).resolves.toMatchObject({ ok: true, returnValue: { text: "portable" } });
+});
+
+it("rejects safe-fs in the fs option at construction with actionable guidance", () => {
+  expect(() => makeFsModule({ fs: createMemoryFileSystem() as unknown as FsImplementation }))
+    .toThrow("Pass safe-fs FileSystem through the adapter option");
+});

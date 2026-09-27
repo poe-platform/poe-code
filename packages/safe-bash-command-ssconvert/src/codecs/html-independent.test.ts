@@ -94,7 +94,9 @@ it("preserves cancellation reason identity before parsing and after awaited diag
 it("enforces sheet, cell, and parser-depth admission limits", async () => {
   await expect(readHtml(bytes('<table><caption>A</caption><tr><td>x<table><caption>B</caption><tr><td>y</table></table>'), context({ sheets: 1 }))).rejects.toMatchObject({ code: "resource-limit" });
   await expect(readHtml(bytes('<table><tr><td>x<td>y</table>'), context({ cells: 1 }))).rejects.toMatchObject({ code: "resource-limit" });
-  await expect(readHtml(bytes('<div>'.repeat(257) + 'x' + '</div>'.repeat(257)), context())).rejects.toMatchObject({ code: "resource-limit" });
+  const nested = bytes('<div>'.repeat(9) + 'x' + '</div>'.repeat(9));
+  await expect(readHtml(nested, context({ xmlDepth: 8 }))).rejects.toMatchObject({ code: "resource-limit" });
+  expect((await readHtml(nested, context())).sheets[0]!.cells.some(cell => cell.value.kind === "string" && cell.value.value === "x")).toBe(true);
 });
 
 it("preserves native nonascii caption names, link targets, and image comments", async () => {

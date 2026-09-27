@@ -25,7 +25,7 @@ import { createSandboxTemporalPlainDate, temporalPlainDateFields, temporalPlainD
 import { createSandboxTemporalPlainMonthDay, temporalPlainMonthDayFields, type TemporalPlainMonthDayFields } from "../interp/temporal-plain-month-day.js";
 import { createSandboxTemporalPlainYearMonth, temporalPlainYearMonthFields, type TemporalPlainYearMonthFields } from "../interp/temporal-plain-year-month.js";
 
-let intrinsicKinds: Map<string, boolean> | undefined;
+let intrinsicKinds: Map<string, { callable: boolean; constructible: boolean }> | undefined;
 
 const objectKinds = ["object", "array", "map", "set", "float32array", "typedarray", "arraybuffer", "sharedarraybuffer", "dataview",
   "boxed", "date", "regex-object", "module-namespace", "raw-json", "guest-proxy", "guest-proxy-revoker",
@@ -38,19 +38,37 @@ const objectKinds = ["object", "array", "map", "set", "float32array", "typedarra
   "array-iterator", "string-iterator", "async-disposable-stack", "disposable-stack", "iterator-wrapper", "iterator-helper",
   "guest-collection-iterator", "guest-regexp-iterator", "guest-finalization-registry"];
 
-function intrinsicCatalogue(): Map<string, boolean> {
+function intrinsicCatalogue(): Map<string, { callable: boolean; constructible: boolean }> {
   if (intrinsicKinds !== undefined) return intrinsicKinds;
   const budget = new Budget();
   try {
     createBuiltinBindings({ budget });
-    const kinds = new Map<string, boolean>();
+    const kinds = new Map<string, { callable: boolean; constructible: boolean }>();
     for (const id of listIntrinsicIdentities(budget)) {
       const value = resolveIntrinsicIdentity(budget, id);
-      if (getIntrinsicIdentity(value) === id) kinds.set(id, isSandboxClosure(value));
+      if (getIntrinsicIdentity(value) === id) kinds.set(id, { callable: isSandboxClosure(value), constructible: isSandboxClosure(value) && value.construct !== undefined });
     }
     intrinsicKinds = kinds;
     return kinds;
   } finally { releaseObjectPrototype(budget); }
+}
+
+// Guest function and module capability constructibility is resolved by restore.
+// Envelopes contain only their identities, so leave that flag unresolved here.
+function targetFlags(node: Record<string, unknown>): { callable: boolean; constructible?: boolean } | undefined {
+  if (node.kind === "bound-function") return undefined;
+  if (node.kind === "guest-proxy") return { callable: node.callable === true, constructible: node.constructible === true };
+  if (node.kind === "intrinsic") return intrinsicCatalogue().get(String(node.id));
+  if (node.kind === "guest-function" || node.kind === "module-function") return { callable: true };
+  if (node.kind === "guest-class") return { callable: true, constructible: true };
+  return { callable: ["guest-proxy-revoker", "async-generator-handler", "async-function-handler",
+    "async-cleanup-handler", "thenable-resolver", "aggregate-handler", "adoption-resolver", "capability-executor",
+    "promise-resolver"].includes(String(node.kind)), constructible: false };
+}
+
+function validateProxyFlags(node: Record<string, unknown>, flags: { callable: boolean; constructible?: boolean }): void {
+  if (node.callable !== flags.callable || (flags.constructible !== undefined && node.constructible !== flags.constructible))
+    throw new TypeError("Inconsistent Proxy callable flags.");
 }
 
 function record(value: unknown): Record<string, unknown> {
@@ -186,7 +204,7 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     const target = reference(value, ["guest-proxy", "guest-proxy-revoker", "module-function", "async-generator-handler", "async-function-handler", "async-cleanup-handler", "thenable-resolver", "aggregate-handler", "capability-executor", "intrinsic", "bound-function", "promise-resolver", "guest-function", "guest-class"]);
     if (target.kind === "guest-proxy" && target.callable !== true)
       throw new TypeError("Guest accessor Proxy is not callable.");
-    if (target.kind === "intrinsic" && intrinsicCatalogue().get(String(target.id)) !== true)
+    if (target.kind === "intrinsic" && intrinsicCatalogue().get(String(target.id))?.callable !== true)
       throw new TypeError("Guest accessor reference is not callable.");
   };
   if ((node.kind === "pending-promise" || node.kind === "guest-promise") && Object.hasOwn(node, "generatorOwner")) {
@@ -274,9 +292,8 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     if (node.target !== null) {
       reference(node.handler, objectKinds);
       const target = reference(node.target, objectKinds);
-      if (target.kind === "guest-proxy" &&
-          (target.callable !== node.callable || target.constructible !== node.constructible))
-        throw new TypeError("Inconsistent Proxy callable flags.");
+      const flags = targetFlags(target);
+      if (flags !== undefined) validateProxyFlags(node, flags);
     }
     if (node.privateElements !== undefined) privateState(node.privateElements);
   } else if (node.kind === "guest-proxy-revoker") {
@@ -1463,9 +1480,7 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
 export function validateGuestHeapGraphs(heap: Record<string, unknown>): void {
   for (const [kind, edge, message] of [
     ["scope-frame", "parent", "Cyclic guest scope parent graph."],
-    ["promise-reaction", "source", "Cyclic promise reaction source graph."],
-    ["guest-proxy", "target", "Cyclic Proxy target chain."],
-    ["bound-function", "target", "Cyclic bound function target."]
+    ["promise-reaction", "source", "Cyclic promise reaction source graph."]
   ] as const) {
     const finished = new Set<string>();
     for (const [id, raw] of Object.entries(heap)) {
@@ -1481,6 +1496,36 @@ export function validateGuestHeapGraphs(heap: Record<string, unknown>): void {
         current = parent === null || absent(parent) ? undefined : String(record(parent).id);
       }
       for (const visited of path) finished.add(visited);
+    }
+  }
+  // Resolve both target kinds together, caching each suffix exactly once.
+  const finished = new Map<string, { callable: boolean; constructible?: boolean }>();
+  for (const [id, raw] of Object.entries(heap)) {
+    const root = record(raw);
+    if ((root.kind !== "guest-proxy" && root.kind !== "bound-function") || finished.has(id)) continue;
+    const path = new Map<string, Record<string, unknown>>();
+    let current = id;
+    let flags = finished.get(current);
+    while (flags === undefined) {
+      if (path.has(current)) throw new TypeError(root.kind === "guest-proxy"
+        ? "Cyclic Proxy target chain." : "Cyclic bound function target.");
+      const node = record(heap[current]);
+      if ((node.kind !== "guest-proxy" && node.kind !== "bound-function") || node.target === null) {
+        flags = targetFlags(node);
+        if (flags === undefined) throw new TypeError("Invalid function target.");
+        break;
+      }
+      path.set(current, node);
+      current = String(record(node.target).id);
+      flags = finished.get(current);
+    }
+    for (const [visited, node] of [...path].reverse()) {
+      if (node.kind === "guest-proxy") {
+        validateProxyFlags(node, flags);
+        // A proxy supplies the source-dependent flag for preceding bound targets.
+        flags = targetFlags(node)!;
+      }
+      finished.set(visited, flags);
     }
   }
 }

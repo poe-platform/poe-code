@@ -37,8 +37,8 @@ import { concatShellValues, shellValueByteLength, shellValueBytes, shellValueFro
 import type { ShellValue, ValueReservation } from "../contracts/value.js";
 import { createCommandArguments, getCommandArguments } from "../contracts/command.js";
 import type { CommandArguments } from "../contracts/command.js";
-import { ValueArena } from "./value-state.js";
-import type { HeldValue, ValueScope, ValueStore } from "./value-state.js";
+import { ValueArena, ValueScope } from "./value-state.js";
+import type { HeldValue, ValueStore } from "./value-state.js";
 import type { AndOr, Command, HereDocument, Pipeline, Redirect, Script, Word, WordPart } from "./parser.js";
 import { parseArithmeticExpansion, parseArraySubscript, compoundEntryWords, HereDocumentSyntaxError, functionReprintedLines, hereDocumentWords, parseCompoundArrayValue, parseShellInputUnit, parseShellUnit } from "./parser.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
@@ -3224,6 +3224,8 @@ function getRuntimeMuscleMemoryCommand(name: string): CommandDefinition | undefi
   return defaultRuntimeMuscleMemoryMap.get(name);
 }
 const fastSubScratchArgs: string[] = [];
+const defaultValueScopeReserve = ValueScope.prototype.reserve;
+const defaultStringCodePointAt = String.prototype.codePointAt;
 const fastMkdirRmPaths: string[] = new Array<string>(32).fill("");
 const fastRedirectScratchBytes = new Uint8Array(8192);
 const fastRedirectScratchViews: Uint8Array[] = Array.from({ length: 129 }, (_, len) => fastRedirectScratchBytes.subarray(0, len));
@@ -4431,13 +4433,13 @@ export class Runtime {
   }
 
   private async shellArithmetic(program: ArithmeticProgram, state: State, io: IO, variables?: Record<string, string>): Promise<bigint> {
-    if (!program.hasSubscript && !guestArrays(state) && !hasActiveVariableAttributes(state) && variables === undefined) {
+    if (!program.hasSubscript && (!program.hasMutation || !(arrayStore(state)?.bindings.size)) && !guestArrays(state) && !hasActiveVariableAttributes(state) && variables === undefined) {
       return this.syncShellArithmetic(program, state, io.diagnosticLine);
     }
     const resolvedVariables = variables ?? this.arithmeticVariables(state, io.diagnosticLine);
     let depth = 0;
     const references: ArithmeticReferences = {
-      isSync: !program.hasSubscript && !guestArrays(state),
+      isSync: !program.hasSubscript && !guestArrays(state) && !(arrayStore(state)?.bindings.size),
       resolve: (variable, subscript) => {
         this.signal.throwIfAborted();
         const target = this.variableTarget(this.referenceName(state, variable))!;
@@ -4498,7 +4500,7 @@ export class Runtime {
   }
 
   private async expandedArithmeticValue(program: ArithmeticProgram, state: State, io: IO): Promise<bigint> {
-    if (!program.error && (!program.hasSubscript && !guestArrays(state) || isSafeSmiProgram(program)) && !hasActiveVariableAttributes(state)) {
+    if (!program.error && !guestArrays(state) && (!program.hasMutation || !(arrayStore(state)?.bindings.size)) && (!program.hasSubscript || isSafeSmiProgram(program)) && !hasActiveVariableAttributes(state)) {
       const snap = this.budget.parsing.snapshot();
       try {
         return this.syncShellArithmetic(program, state, io.diagnosticLine);
@@ -4520,7 +4522,7 @@ export class Runtime {
         const fastSource = this.fastValueWord(word, state, io, false, false, true, false, undefined, io.diagnosticLine);
         if (typeof fastSource === "string") {
           program = prepareArithmetic(fastSource, this.budget.parsing);
-          if (!program.error && isSafeSmiProgram(program) && !hasActiveVariableAttributes(state)) {
+          if (!program.error && !guestArrays(state) && (!program.hasMutation || !(arrayStore(state)?.bindings.size)) && isSafeSmiProgram(program) && !hasActiveVariableAttributes(state)) {
             const snap = this.budget.parsing.snapshot();
             try {
               return this.syncShellArithmetic(program, state, io.diagnosticLine);
@@ -4919,16 +4921,26 @@ export class Runtime {
       }
       const nextIndex = current.maximum + 1;
       if (nextIndex > 2147483647) return false;
-      current.owner.chargeWork(byteLen);
-      const token = new OwnedText(val, byteLen, current.owner.reserve({ payload: byteLen, metadata: 32, work: 4 }));
+      let token: OwnedText;
+      let slotAdmission: ReturnType<typeof current.owner.reserve> | undefined;
+      let tickets: ReturnType<typeof store.owner.charge>;
       try {
-        current.insert(nextIndex, token);
+        current.owner.chargeWork(byteLen);
+        token = new OwnedText(val, byteLen, current.owner.reserve({ payload: byteLen, metadata: 32, work: 4 }));
+        try {
+          slotAdmission = current.owner.reserve({ slots: 1, metadata: 32, work: 5 });
+          tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+        } catch (error) {
+          slotAdmission?.release();
+          token.release();
+          throw error;
+        }
       } catch (error) {
-        token.release();
+        if (error instanceof ArrayFailure) return false;
         throw error;
       }
+      current.insert(nextIndex, token, slotAdmission);
       delete rawState.variables[name];
-      const tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
       monitor.epoch = tickets.epoch;
       store.revise(name, current, tickets);
       return true;
@@ -4964,17 +4976,48 @@ export class Runtime {
         return false;
       }
       const identity = Buffer.from(keyVal).toString("hex");
-      const index = current.resolveOrInsertKeySync(identity, keyVal, keyByteLen);
-      current.owner.chargeWork(valByteLen);
-      const valToken = new OwnedText(val, valByteLen, current.owner.reserve({ payload: valByteLen, metadata: 32, work: 4 }));
+      const existingKey = current.keys.get(identity);
+      let pendingKey: { identity: string; index: number; text: OwnedText; admission: ReturnType<typeof current.owner.reserve> } | undefined;
+      let index: number;
+      let valToken: OwnedText;
+      let slotAdmission: ReturnType<typeof current.owner.reserve> | undefined;
+      let tickets: ReturnType<typeof store.owner.charge>;
       try {
-        current.insert(index, valToken);
+        if (existingKey) {
+          index = existingKey.index;
+        } else {
+          index = current.maximum + 1;
+          const admission = current.owner.reserve({ metadata: 128 + identity.length * 2, work: 8 });
+          try {
+            current.owner.chargeWork(keyByteLen);
+            const keyText = new OwnedText(keyVal, keyByteLen, current.owner.reserve({ payload: keyByteLen, metadata: 32, work: 4 }));
+            pendingKey = { identity, index, text: keyText, admission };
+          } catch (error) {
+            admission.release();
+            throw error;
+          }
+        }
+        current.owner.chargeWork(valByteLen);
+        valToken = new OwnedText(val, valByteLen, current.owner.reserve({ payload: valByteLen, metadata: 32, work: 4 }));
+        try {
+          slotAdmission = current.owner.reserve({ slots: 1, metadata: 32, work: 5 });
+          tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+        } catch (error) {
+          slotAdmission?.release();
+          valToken.release();
+          throw error;
+        }
       } catch (error) {
-        valToken.release();
+        if (pendingKey) {
+          pendingKey.text.release();
+          pendingKey.admission.release();
+        }
+        if (error instanceof ArrayFailure) return false;
         throw error;
       }
+      if (pendingKey) current.commitStagedKey(pendingKey);
+      current.insert(index, valToken, slotAdmission);
       delete rawState.variables[name];
-      const tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
       monitor.epoch = tickets.epoch;
       store.revise(name, current, tickets);
       return true;
@@ -7629,7 +7672,7 @@ export class Runtime {
   private canSyncCommandCompound(command: Command, rawState: State, depth = 0): boolean {
     if (depth > 6 || command.redirects.length !== 0) return false;
     if (command.kind === "arithmetic") {
-      return (!command.expression.error && (!command.expression.hasSubscript || isSafeSmiProgram(command.expression)) || command.expression.error !== undefined) && !rawState.nounset && !rawState.readonlyVariables?.size;
+      return (!command.expression.error && (!command.expression.hasMutation || !(arrayStore(rawState)?.bindings.size)) && (!command.expression.hasSubscript || isSafeSmiProgram(command.expression)) || command.expression.error !== undefined) && !rawState.nounset && !rawState.readonlyVariables?.size;
     }
     if (command.kind === "conditional") {
       return command.expression.kind === "binary" && command.expression.operator === "=~" && this.extractSimpleErePattern(command.expression.right) !== undefined;
@@ -7826,6 +7869,7 @@ export class Runtime {
         expr = prepareArithmetic(fastSrc, this.budget.parsing);
         if (expr.error || (expr.hasSubscript && !isSafeSmiProgram(expr))) return undefined;
       }
+      if (expr.hasMutation && (expr.hasSubscript || (arrayStore(rawState)?.bindings.size ?? 0) > 0)) return undefined;
       let nonZero: boolean;
       const snap = this.budget.parsing.snapshot();
       try {
@@ -11595,7 +11639,7 @@ export class Runtime {
           };
           const evaluateSyncNonZero = (program: ArithmeticProgram | undefined): boolean | Promise<bigint | undefined> => {
             if (!program) return true;
-            if (!program.error && (!program.hasSubscript && !guestArrays(rawArithState) || isSafeSmiProgram(program)) && !hasActiveVariableAttributes(rawArithState)) {
+            if (!program.error && !guestArrays(rawArithState) && (!program.hasMutation || !(arrayStore(rawArithState)?.bindings.size)) && (!program.hasSubscript || isSafeSmiProgram(program)) && !hasActiveVariableAttributes(rawArithState)) {
               const snap = this.budget.parsing.snapshot();
               try { return this.syncShellArithmeticNonZero(program, rawArithState, io.diagnosticLine); }
               catch (error) {
@@ -16662,27 +16706,19 @@ export class Runtime {
         if (part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME") return undefined;
         if (getArraySelector(part) !== undefined || !isShellIdentifier(part.name) || activeArrayStore?.get(part.name) !== undefined) return undefined;
         if (part.length) {
-          if (part.operator !== undefined) return undefined;
+          if (part.operator !== undefined || ValueScope.prototype.reserve !== defaultValueScopeReserve || String.prototype.codePointAt !== defaultStringCodePointAt) return undefined;
           const raw = rawVars[part.name];
           this.requireParameter(raw, part.name, state, io, part.line ?? overrideDiagnosticLine);
           const val = raw === undefined ? "" : (this._syncArithRawWriteOnly && this._syncArithTouched?.has(part.name) ? raw : (monitor?.values.get(part.name, raw) ?? raw));
           if (typeof val !== "string") return undefined;
-          const byteMode = byteLocale(rawVars);
-          if (!isWellFormedString(val, byteMode)) return undefined;
-          let charLen = val.length;
-          if (!byteMode) {
-            for (let k = 0; k < val.length; k++) {
-              if (val.charCodeAt(k) >= 128) { charLen = Array.from(val).length; break; }
-            }
-          } else {
-            for (let k = 0; k < val.length; k++) {
-              if (val.charCodeAt(k) >= 128) { charLen = Buffer.byteLength(val); break; }
-            }
+          for (let k = 0; k < val.length; k++) {
+            if (val.charCodeAt(k) >= 128) return undefined;
           }
-          out += String(charLen);
+          out += String(val.length);
           continue;
         }
         if (part.operator !== undefined) {
+          if (ValueScope.prototype.reserve !== defaultValueScopeReserve || String.prototype.codePointAt !== defaultStringCodePointAt) return undefined;
           if (
             !rawState.nocasematch &&
             (part.operator === "/" || part.operator === "//" || part.operator === "/#" || part.operator === "/%") &&
@@ -16705,8 +16741,15 @@ export class Runtime {
             }
             const val = this._syncArithRawWriteOnly && this._syncArithTouched?.has(part.name) ? raw : (monitor?.values.get(part.name, raw) ?? raw);
             if (typeof val !== "string") return undefined;
-            const byteMode = byteLocale(rawVars);
-            if (!isWellFormedString(val, byteMode) || !isWellFormedString(pat, byteMode) || !isWellFormedString(rep, byteMode)) return undefined;
+            for (let k = 0; k < val.length; k++) {
+              if (val.charCodeAt(k) >= 128) return undefined;
+            }
+            for (let k = 0; k < pat.length; k++) {
+              if (pat.charCodeAt(k) >= 128) return undefined;
+            }
+            for (let k = 0; k < rep.length; k++) {
+              if (rep.charCodeAt(k) >= 128) return undefined;
+            }
             let replaced: string;
             if (part.operator === "//") {
               replaced = val.includes(pat) ? val.split(pat).join(rep) : val;
@@ -16744,8 +16787,12 @@ export class Runtime {
             }
             const val = this._syncArithRawWriteOnly && this._syncArithTouched?.has(part.name) ? raw : (monitor?.values.get(part.name, raw) ?? raw);
             if (typeof val !== "string") return undefined;
-            const byteMode = byteLocale(rawVars);
-            if (!isWellFormedString(val, byteMode) || !isWellFormedString(pat, byteMode)) return undefined;
+            for (let k = 0; k < val.length; k++) {
+              if (val.charCodeAt(k) >= 128) return undefined;
+            }
+            for (let k = 0; k < pat.length; k++) {
+              if (pat.charCodeAt(k) >= 128) return undefined;
+            }
             const sliced = part.operator === "#" || part.operator === "##"
               ? (val.startsWith(pat) ? val.slice(pat.length) : val)
               : (val.endsWith(pat) ? val.slice(0, val.length - pat.length) : val);
@@ -16801,7 +16848,7 @@ export class Runtime {
             this.budget.parsing.restore(snapParse);
           }
         }
-        if (expr.error || (expr.hasSubscript && !isSafeSmiProgram(expr))) return undefined;
+        if (expr.error || (expr.hasMutation && (word.parts.length > 1 || expr.hasSubscript || guestArrays(state) || (activeArrayStore?.bindings.size ?? 0) > 0)) || (expr.hasSubscript && !isSafeSmiProgram(expr))) return undefined;
         const snap = this.budget.parsing.snapshot();
         try {
           out += this.syncShellArithmeticString(expr, state, line);
@@ -16998,27 +17045,24 @@ export class Runtime {
       rawState.status = 0;
       return val;
     }
-    fastSubScratchArgs.length = 0;
+    const subArgs: string[] = [];
     for (let i = 1; i < cmd.words.length; i++) {
       const val = this.fastValueWord(cmd.words[i]!, state, io, true, false, false, true, undefined, part.line);
       if (typeof val !== "string") {
-        fastSubScratchArgs.length = 0;
         return undefined;
       }
-      fastSubScratchArgs.push(val);
+      subArgs.push(val);
     }
     let formatted: string | undefined;
     if (w0Plain === "printf") {
-      formatted = tryFastPrintf(fastSubScratchArgs);
+      formatted = tryFastPrintf(subArgs);
     } else {
-      if (fastSubScratchArgs[0]?.startsWith("-")) {
-        fastSubScratchArgs.length = 0;
+      if (subArgs[0]?.startsWith("-")) {
         return undefined;
       }
-      formatted = `${fastSubScratchArgs.join(" ")}\n`;
+      formatted = `${subArgs.join(" ")}\n`;
       if (formatted.includes("\0")) return undefined;
     }
-    fastSubScratchArgs.length = 0;
     if (formatted === undefined) return undefined;
     const byteLength = formatted.length * 3 > 127 ? Buffer.byteLength(formatted) : formatted.length;
     const nextBytes = this.budget.bytes + byteLength;

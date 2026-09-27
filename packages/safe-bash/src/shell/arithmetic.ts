@@ -551,7 +551,7 @@ export function evalPureSmiWithInts(node: Arithmetic, intVars: Map<string, numbe
 }
 
 export function isSafeSmiProgram(program: ArithmeticProgram): boolean {
-  if (program.error || !program.tree) return false;
+  if (program.error || !program.tree || (program.hasSubscript && program.hasMutation)) return false;
   let cached = (program as unknown as Record<symbol, boolean | undefined>)[safeSmiSymbol];
   if (cached === undefined) {
     cached = canEvalSafeSmiTree(program.tree);

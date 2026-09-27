@@ -2136,7 +2136,7 @@
         "remaining": "Native application readback; locale/transliteration/proximity profiles; ambiguous, empty/non-text/formula-generated and deleted label identities; mixed relative-sheet/live-label formulas; direct textual formula lifecycle; BIFF/radical/value-class labels and other format transports remain open. This resolves supported native ODF export profiles, not the complete family; all 19 families remain open. Cross-sheet label/data identity is now implemented; see reference.odfCrossSheetLabelRanges for the current source and qualification evidence.",
         "qa": "docs/plans/ssconvert-odf-label-metadata-qa.md",
         "formulaResultLabels": {
-          "status": "partial implementation; public/native qualification pending",
+          "status": "implemented and installed-candidate verified; full integration/native/delivery gates open",
           "sourceRevision": "LibreOffice bce0998afefdbc355585ca324285661a2170ba77",
           "sources": {
             "sc/source/core/tool/compiler.cxx": {
@@ -2160,11 +2160,12 @@
               "lines": "451-484"
             }
           },
-          "finding": "ParseColRowName accepts formula cells with compiled code other than the formula currently being compiled. hasString/HasStringData call IsValue, and formula GetString calls MaybeInterpret. NeedsInterpret requires dirty/table-operation state and automatic calculation, a matrix cell, or the qualifying post-import recalculation mode; an iteration cell returns its current value. CreateStringFromSingleRef then quotes the current text. The product quotedLabelText rejects every formula cell, so the existing refusal test confirms a limitation rather than proving native incompatibility.",
+          "finding": "ParseColRowName accepts formula cells with compiled code other than the formula currently being compiled. hasString/HasStringData call IsValue, and formula GetString calls MaybeInterpret. NeedsInterpret requires dirty/table-operation state and automatic calculation, a matrix cell, or the qualifying post-import recalculation mode; an iteration cell returns its current value. CreateStringFromSingleRef then quotes the current text. Before this repair, quotedLabelText rejected every formula cell; the former refusal test confirmed that limitation rather than proving native incompatibility.",
           "implemented": "ODF export captures label references before refreshing formula text, batches candidate-label evaluation with shared dependency results, and writes coherent label caches. Clean/manual scalar caches remain unchanged; dirty automatic and matrix label candidates are evaluated without scheduling unrelated dirty formulas or clean volatile formulas. Explicit host callbacks retain cancellation and enclosing work accounting. Noniterative circular label evaluation is refused rather than publishing its stale string as fresh proof.",
           "validation": "Seven original positive/cancellation regressions failed before implementation. Two additional regressions exposed circular stale-cache publication and textual lookup against a value different from the output cache. All 16 new cases and the 124-test focused ODF/goal-seek cohort pass; maintained package lint and source/test/strict-consumer type checks pass. No native application result is claimed.",
-          "remaining": "Full maintained package/integration gate, installed-artifact requalification, remote delivery and publication remain pending. Native application readback, wider iterative/matrix/post-import profiles and the full label/BIFF/format families remain open.",
-          "publicValidation": "Full root build passes. A 681-byte independent Python XML/ZIP fixture passes six compiled public SDK/command ODF exports across strict/extended profiles and before/after A3=10. Python independently verifies New Sales label text, native SUM spelling and CSV F8 values 5/15. The first readback harness incorrectly treated the expected CSV label-loss warning as fatal; corrected readbacks require that exact warning and no others. Command transcript screenshot inspected. No native application proof is claimed."
+          "remaining": "Full maintained integration gate, remote delivery and publication remain pending. Native application readback, wider iterative/matrix/post-import profiles and the full label/BIFF/format families remain open.",
+          "publicValidation": "Full root build passes. A 681-byte independent Python XML/ZIP fixture passes six compiled public SDK/command ODF exports across strict/extended profiles and before/after A3=10. Python independently verifies New Sales label text, native SUM spelling and CSV F8 values 5/15. The first readback harness incorrectly treated the expected CSV label-loss warning as fatal; corrected readbacks require that exact warning and no others. Command transcript screenshot inspected. No native application proof is claimed.",
+          "installedValidation": "The final packed root SDK exports both ODF profiles; root/scoped Shells export both profiles before/after A3=10. All ten outputs pass independent Python ZIP/XML checks for refreshed New Sales text and native SUM spelling. All ten installed readbacks recalculate F8 to 5 or edited 15 and emit only the expected CSV label-loss warning. Native application qualification is separate."
         },
         "mixedRangeSourceAudit": {
           "issue": 3654,
@@ -2424,9 +2425,22 @@
       "implemented": "Singular/plural/plugin factories and options/limits types belong to safe-bash-command-ssconvert; core is a one-line re-export. Private workspace bundles share private contracts and filesystem runtimes. The root builds its public SDK separately at dist/ssconvert/index.js, with the unchanged poe-code/ssconvert API and shared public contracts/FS routes; root packages include private declarations only. Scoped packaging maps contracts and filesystem imports to canonical runtimes.",
       "evidence": "Factory regression failed before extraction. Focused command, package-policy and browser tests pass. Actual root/scoped packages installed outside the checkout expose all factories and preserve edited numeric B2=8, independently decoded with Python ZIP/XML. Strict NodeNext consumers pass. Installed root/scoped Shell output caps preserve the existing destination and remove staging; raw argv and frozen budgets pass. Installed scoped Worker conversion has no external/Node imports. Transcript screenshot inspected.",
       "qa": "../plans/ssconvert-audit-qa.md#qa-command-package-ownership",
-      "remaining": "Full maintained test run and final build/delivery/publication remain pending. XLSX reexport emits seven worksheet-record warnings tracked separately in #3686; the format family remains open.",
-      "integrationFollowup": "The full unit run exposed the previous shared output file resolving a private Shell through root-only FS entries after workspace rebuilds. Separate private/public bundles repair the actual Node import, private Shell CSV conversion, output limit identity and staging cleanup. Four failing document CLI cases now pass; 44 unselected cases were skipped. All 417 guarded build tests pass after updating the exact public runtime entry contract. Full maintained test/build and installed-artifact requalification remain pending.",
-      "validationFollowup": "Full root build passes with separate public/workspace bundles. All 251 focused public/private bundle, browser, scoped recipe and root export checks pass, including raw bytes, frozen cleanup budgets, caps and Worker initialization. The fresh full unit run is in progress; installed artifacts and release delivery remain pending."
+      "remaining": "Full maintained test run, rebase over incoming main, remote delivery and publication remain pending. XLSX reexport emits seven worksheet-record warnings tracked separately in #3686; the format family remains open.",
+      "integrationFollowup": "The full unit run exposed the previous shared output file resolving a private Shell through root-only FS entries after workspace rebuilds. Separate private/public bundles repair the actual Node import, private Shell CSV conversion, output limit identity and staging cleanup. Four failing document CLI cases now pass; 44 unselected cases were skipped. All 417 guarded build tests pass after updating the exact public runtime entry contract. Full root build and final installed-artifact requalification pass; the full maintained test run remains in progress.",
+      "validationFollowup": "Full root build and lint pass; final ESLint reports 18,428 files and zero errors/warnings. All 251 focused public/private bundle, browser, scoped recipe and root export checks pass. Final actual root/scoped tarballs installed outside the checkout pass eight omitted/empty-option CSV-to-XLSX/edit/readback cases, independently decoded with Python ZIP/XML. Four Shell routes preserve destinations under output caps and remove staging. Both installed Worker graphs pass raw invalid UTF-8 arguments, frozen cleanup budget binding, exact false cancellation and conversion with zero external imports. Strict NodeNext consumers pass. Public runtime is packed at dist/ssconvert/index.js; the private dist contributes declarations only, and private packages cannot resolve. Full maintained tests and release delivery remain pending.",
+      "candidatePackages": {
+        "root": {
+          "compressedBytes": 49787309,
+          "unpackedBytes": 248492031,
+          "sha1": "77e095c9caa5157c98659aff64f3d73ac9ef2f31"
+        },
+        "scopedSafeBash": {
+          "compressedBytes": 26254453,
+          "unpackedBytes": 129564697,
+          "sha1": "a294360f4b5b7367f444f43ca5d305a92801c3df"
+        },
+        "cleanup": "237,598,053 bytes of consumed package archives, staging trees and spreadsheet outputs removed after compact receipts; temporary installed consumer retained for delivery verification."
+      }
     }
   },
   "cases": [

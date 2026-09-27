@@ -1320,6 +1320,21 @@ describe("single-operation loader admission", () => {
   }
   it("authenticates the actual integrated512 census within the unchanged cap", () => {
     const state = inventoryModel(512, 24);
+    // The census fixture is immutable. Keep every guarded admission/count, but
+    // avoid repeating memfs ancestor walks for the same filesystem observation.
+    for (const method of ["lstatSync", "realpathSync", "readdirSync"] as const) {
+      const read = state.fileSystem[method] as (...args: unknown[]) => unknown;
+      const values = new Map<string, unknown>();
+      Object.defineProperty(state.fileSystem, method, { value(...args: unknown[]) {
+        const key = JSON.stringify(args);
+        let value = values.get(key);
+        if (value === undefined) {
+          value = read(...args);
+          values.set(key, value);
+        }
+        return value;
+      } });
+    }
     const result = verifyLintInventory(root, state.inventory, boundaries, state.guard.fileSystem);
     expect(result.files).toEqual(state.paths);
     expect(state.guard.snapshot()).toMatchObject({ opens: 513, closes: 513, failed: false });

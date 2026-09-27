@@ -433,8 +433,12 @@ pub fn parse_receive_pack_response(packfile: &[u8]) -> Result<PushResult, GitErr
         if line.trim().is_empty() {
             continue;
         }
-        let status = &line[..2.min(line.len())];
-        let rest = if line.len() > 3 { &line[3..] } else { "" };
+        let Some((status, rest)) = line.split_once(' ') else {
+            return Err(GitError::parse("ok <ref> or ng <ref> <reason>", &line));
+        };
+        if status != "ok" && status != "ng" {
+            return Err(GitError::parse("ok or ng", status));
+        }
         let (r#ref, err_msg) = match rest.find(' ') {
             Some(sp) => (&rest[..sp], &rest[sp + 1..]),
             None => (rest, ""),

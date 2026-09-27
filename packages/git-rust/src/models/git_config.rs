@@ -290,7 +290,7 @@ fn extract_section_line(line: &str) -> Option<(String, Option<String>)> {
     }
     let inner = &line[1..line.len() - 1];
     if let Some(quote_start) = inner.find(" \"") {
-        if !inner.ends_with('"') {
+        if !inner.ends_with('"') || inner.len() < quote_start + 3 {
             return None;
         }
         let sec = &inner[..quote_start];

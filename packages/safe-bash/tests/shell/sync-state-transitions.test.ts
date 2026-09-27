@@ -72,3 +72,9 @@ for (const [condition, tail, expected] of [
     assert.equal(result.stdout, expected);
   });
 }
+test("break in a compound while condition exits without replay", async () => {
+  const result = await execute(`${"true; ".repeat(40)}{ while break; do echo wrong; done; echo done; }`);
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "done\n");
+});

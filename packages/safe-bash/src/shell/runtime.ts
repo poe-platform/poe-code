@@ -7781,7 +7781,6 @@ export class Runtime {
             const condRes = this.trySyncScript(command.condition, state, io, true);
             if (typeof condRes !== "number") return undefined;
             if (this._syncPendingReturnStatus !== undefined) return this._syncPendingReturnStatus;
-        if (this._syncPendingBreak > 0 || this._syncPendingContinue > 0) return syncStatus;
             if (this._syncPendingBreak > 0) {
               this._syncPendingBreak--;
               lastStatus = 0;

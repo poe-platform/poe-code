@@ -49,3 +49,12 @@ it.each([
 it.each([Inches, Cm, Mm, Pt, Centipoints])("rejects implicit scalar coercion %s", (Constructor) =>
   expect(() => new Constructor("1" as never)).toThrow()
 );
+
+it.each([Inches, Cm, Mm, Pt, Emu, Centipoints])("supports callable lengths with constructor identity %s", (Constructor) => {
+  const value = Constructor(1);
+  expect(value).toBeInstanceOf(Constructor);
+  expect(value).toBeInstanceOf(Length);
+  expect(value).toEqual(new Constructor(1));
+  expect(Object.isFrozen(value)).toBe(true);
+  expect(() => Constructor("1" as never)).toThrow();
+});

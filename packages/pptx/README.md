@@ -13,6 +13,8 @@ Schema declarations alone do not establish complete PowerPoint compatibility.
 
 No environment variables or configuration files are exposed. Filesystem,
 publication, time, author and font metrics are explicit caller capabilities.
+Length helpers (`Inches`, `Pt`, `Cm`, `Mm`, `Emu`, `Centipoints`) and `RGBColor`
+accept both factory calls and `new`.
 `PresentationContext` accepts `timestamp`, `author`, `fontMetrics`, `signal`,
 and four optional limit groups. Resources are unlimited by default; setting one
 limit leaves the others unlimited. Chunk sizes control I/O and default to 65536:

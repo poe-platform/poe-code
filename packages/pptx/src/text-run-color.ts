@@ -1,3 +1,4 @@
+import { callableConstructor } from "./callable-constructor.js";
 import { readXmlPercentage } from "./xml-scalars.js";
 import {
   IndexError,
@@ -121,7 +122,7 @@ export function readRunColor(parent: XmlElement): RunColorRecord | null {
     brightness: off ?? (mod === undefined ? 0 : mod - 1)
   };
 }
-export class RGBColor implements Iterable<number> {
+class RGBColorValue implements Iterable<number> {
   readonly length = 3;
   readonly 0: number;
   readonly 1: number;
@@ -290,3 +291,6 @@ export class ColorFormat {
     this.#xml = xml.merge(color, colorBrightnessMerge(value, color.name.namespace));
   }
 }
+
+export type RGBColor = RGBColorValue;
+export const RGBColor = callableConstructor(RGBColorValue);

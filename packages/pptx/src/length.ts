@@ -1,3 +1,4 @@
+import { callableConstructor } from "./callable-constructor.js";
 import { TypeError as ModelTypeError, ValueError } from "./errors.js";
 export class Length {
   readonly emu: number;
@@ -26,34 +27,52 @@ export class Length {
     return Math.floor(this.emu / 127);
   }
 }
-export class Emu extends Length {}
-export class Inches extends Length {
+class EmuValue extends Length {}
+class InchesValue extends Length {
   constructor(value: number) {
     if (typeof value !== "number") throw new ModelTypeError("Length must be numeric.");
     super(value * 914400);
   }
 }
-export class Cm extends Length {
+class CmValue extends Length {
   constructor(value: number) {
     if (typeof value !== "number") throw new ModelTypeError("Length must be numeric.");
     super(value * 360000);
   }
 }
-export class Mm extends Length {
+class MmValue extends Length {
   constructor(value: number) {
     if (typeof value !== "number") throw new ModelTypeError("Length must be numeric.");
     super(value * 36000);
   }
 }
-export class Pt extends Length {
+class PtValue extends Length {
   constructor(value: number) {
     if (typeof value !== "number") throw new ModelTypeError("Length must be numeric.");
     super(value * 12700);
   }
 }
-export class Centipoints extends Length {
+class CentipointsValue extends Length {
   constructor(value: number) {
     if (typeof value !== "number") throw new ModelTypeError("Length must be numeric.");
     super(value * 127);
   }
 }
+
+export type Emu = EmuValue;
+export const Emu = callableConstructor(EmuValue);
+
+export type Inches = InchesValue;
+export const Inches = callableConstructor(InchesValue);
+
+export type Cm = CmValue;
+export const Cm = callableConstructor(CmValue);
+
+export type Mm = MmValue;
+export const Mm = callableConstructor(MmValue);
+
+export type Pt = PtValue;
+export const Pt = callableConstructor(PtValue);
+
+export type Centipoints = CentipointsValue;
+export const Centipoints = callableConstructor(CentipointsValue);

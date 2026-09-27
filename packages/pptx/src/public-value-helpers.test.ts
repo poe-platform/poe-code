@@ -160,3 +160,13 @@ it("distinguishes nonstring RGB parsing inputs from malformed hexadecimal", () =
       expect.objectContaining({ name: "ValueError", code: "invalid-value" })
     );
 });
+
+it("supports callable RGBColor with static helpers and constructor identity", () => {
+  const value = RGBColor(255, 0, 17);
+  expect(value).toBeInstanceOf(RGBColor);
+  expect(value.equals(new RGBColor(255, 0, 17))).toBe(true);
+  expect([...value]).toEqual([255, 0, 17]);
+  expect(RGBColor.from_string("FF0011").equals(value)).toBe(true);
+  expect(Object.isFrozen(value)).toBe(true);
+  expect(() => RGBColor(256, 0, 0)).toThrow();
+});

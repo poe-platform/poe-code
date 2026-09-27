@@ -44,7 +44,14 @@ function parseSafeIntegerFast(text: string): number | undefined {
   return negative ? -value : value;
 }
 
-export function tryFastPredicate(name: string, rawArgs: readonly string[], offset = 0): number | undefined {
+const fastFileUnaryOps = new Set(["-e", "-a", "-f", "-d", "-s", "-L", "-h", "-r", "-w", "-x"]);
+
+export function tryFastPredicate(
+  name: string,
+  rawArgs: readonly string[],
+  offset = 0,
+  fileUnaryEval?: (op: string, target: string) => boolean | undefined,
+): number | undefined {
   const totalLen = rawArgs.length - offset;
   const rawLen = name === "[" ? totalLen - 1 : totalLen;
   if (name === "[") {
@@ -58,12 +65,24 @@ export function tryFastPredicate(name: string, rawArgs: readonly string[], offse
     if (a0 === "!") return a1 === "" ? 0 : 1;
     if (a0 === "-n") return a1 !== "" ? 0 : 1;
     if (a0 === "-z") return a1 === "" ? 0 : 1;
+    if (fastFileUnaryOps.has(a0)) {
+      const res = fileUnaryEval?.(a0, a1);
+      return res === undefined ? undefined : (res ? 0 : 1);
+    }
     return undefined;
   }
   if (rawLen === 3) {
     const a0 = rawArgs[offset]!;
     const op = rawArgs[offset + 1]!;
     const a2 = rawArgs[offset + 2]!;
+    if (a0 === "!") {
+      if (op === "-n") return a2 !== "" ? 1 : 0;
+      if (op === "-z") return a2 === "" ? 1 : 0;
+      if (fastFileUnaryOps.has(op)) {
+        const res = fileUnaryEval?.(op, a2);
+        return res === undefined ? undefined : (res ? 1 : 0);
+      }
+    }
     if (op === "=" || op === "==") return a0 === a2 ? 0 : 1;
     if (op === "!=") return a0 !== a2 ? 0 : 1;
     if (numeric.has(op)) {
@@ -115,6 +134,12 @@ export function tryFastPredicate(name: string, rawArgs: readonly string[], offse
         const operand = rawArgs[cursor + 1]!;
         cursor += 2;
         return t0 === "-n" ? operand !== "" : operand === "";
+      }
+      if (fastFileUnaryOps.has(t0)) {
+        if (cursor + 1 >= end) return undefined;
+        const operand = rawArgs[cursor + 1]!;
+        cursor += 2;
+        return fileUnaryEval?.(t0, operand);
       }
       if (unary.has(t0)) return undefined;
       cursor++;

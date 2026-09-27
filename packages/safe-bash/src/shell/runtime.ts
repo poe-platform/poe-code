@@ -671,6 +671,14 @@ export class Budget {
     return this._fileSystemOperations < this.maxFileSystemOperationsSmi || this._fileSystemOperations < this.limits.maxFileSystemOperations;
   }
 
+  get fsOperations(): number {
+    return this._fileSystemOperations;
+  }
+
+  set fsOperations(value: number) {
+    this._fileSystemOperations = value;
+  }
+
   reservePipelineStages(count: number): () => void {
     this.signal.throwIfAborted();
     if (count > this.limits.maxPipelineStages - this._pipelineStages) this.fail("maxPipelineStages");
@@ -3858,6 +3866,9 @@ function fastStringHexIdentity(str: string): string {
   }
   return Buffer.from(str).toString("hex");
 }
+
+const letProgramCache = new Map<string, { prog: ArithmeticProgram; unitsCharged: number }>();
+const syncConditionalFileUnaryOps = new Set(["-e", "-a", "-f", "-d", "-s", "-L", "-h", "-r", "-w", "-x"]);
 
 interface CachedSingleEvalUnit {
   readonly script: Script;
@@ -8272,6 +8283,9 @@ export class Runtime {
           w0Plain !== "shift" &&
           w0Plain !== "read" &&
           w0Plain !== "eval" &&
+          w0Plain !== "unset" &&
+          w0Plain !== "export" &&
+          w0Plain !== "let" &&
           !(command.words[1]?.plain === "read" && w0.parts[0]?.kind === "text" && w0.parts[0].value.startsWith("IFS=")) &&
           !(w0Plain !== undefined && state.functions.has(w0Plain))
         ) {
@@ -8320,6 +8334,7 @@ export class Runtime {
       }
       if (command.words.length === 2) {
         if (w0Plain === "return") return true;
+        if (w0Plain === "unset" || w0Plain === "export" || w0Plain === "let" || w0Plain === "shift") return true;
         if (w0Plain === "local") {
           const assignment = !getArrayAssignment(command.words[1]!) ? this.assignment(command.words[1]!) : undefined;
           return Boolean(assignment && !assignment.append && assignment.name !== "OPTIND" && assignment.name !== "PIPESTATUS" && !assignment.name.includes("[") &&
@@ -8417,7 +8432,7 @@ export class Runtime {
     if (depth > 8) return false;
     if (expr.kind === "nonempty") return !Runtime.wordMayMutate(expr.operand);
     if (expr.kind === "unary") {
-      return (expr.operator === "-n" || expr.operator === "-z") && !Runtime.wordMayMutate(expr.operand);
+      return (expr.operator === "-n" || expr.operator === "-z" || syncConditionalFileUnaryOps.has(expr.operator)) && !Runtime.wordMayMutate(expr.operand);
     }
     if (expr.kind === "binary") {
       if (Runtime.wordMayMutate(expr.left) || Runtime.wordMayMutate(expr.right)) return false;
@@ -8447,6 +8462,56 @@ export class Runtime {
     return false;
   }
 
+  private tryEvalFastMemoryFileUnary(op: string, rawVal: string, rawState: State): boolean | undefined {
+    if (
+      !this.canFastMemoryRedirect ||
+      !this.budget.canFileSystemOperation() ||
+      (this._fileWrites !== undefined && this._fileWrites.size !== 0) ||
+      (this._outputFiles !== undefined && this._outputFiles.size !== 0)
+    ) {
+      return undefined;
+    }
+    if (rawVal === "") return false;
+    const resolved = pathOf(rawState, rawVal);
+    if (resolved === "/dev" || resolved.startsWith("/dev/")) return undefined;
+    const mem = this.backingFs as unknown as {
+      _owner?: unknown;
+      capabilities?: { permissions?: boolean };
+      resolveNode?: (path: string, syscall: string, follow: boolean) => { type: string; data?: Uint8Array; target?: string };
+      permission?: (node: unknown, mask: number, syscall: string, path: string) => void;
+    };
+    if (!mem._owner || typeof mem.resolveNode !== "function" || typeof mem.permission !== "function") return undefined;
+    const isAccess = op === "-r" || op === "-w" || op === "-x";
+    if (isAccess && mem.capabilities?.permissions !== true) return undefined;
+    this.budget.fileSystemOperation();
+    try {
+      const follow = op !== "-L" && op !== "-h";
+      const syscall = isAccess ? "access" : follow ? "stat" : "lstat";
+      const node = mem.resolveNode(resolved, syscall, follow);
+      if (isAccess) {
+        mem.permission(node, op === "-r" ? 4 : op === "-w" ? 2 : 1, "access", resolved);
+        return true;
+      }
+      if (op === "-e" || op === "-a") return true;
+      if (op === "-f") return node.type === "file";
+      if (op === "-d") return node.type === "directory";
+      if (op === "-L" || op === "-h") return node.type === "symlink";
+      if (op === "-s") {
+        if (node.type === "file") return (node.data?.byteLength ?? 0) > 0;
+        if (node.type === "symlink") return Buffer.byteLength(node.target ?? "") > 0;
+        return false;
+      }
+      return undefined;
+    } catch (error) {
+      this.signal.throwIfAborted();
+      const code = (error as { code?: string })?.code;
+      if (code === "ENOENT" || code === "ENOTDIR" || code === "EACCES" || code === "EPERM" || code === "ELOOP" || (isAccess && code === "EROFS")) {
+        return false;
+      }
+      return undefined;
+    }
+  }
+
   private tryEvalConditionalSync(
     expr: ConditionalExpression,
     rawState: State,
@@ -8469,7 +8534,6 @@ export class Runtime {
       return val.length > 0 ? 0 : 1;
     }
     if (expr.kind === "unary") {
-      if (expr.operator !== "-n" && expr.operator !== "-z") return undefined;
       let val: ShellValue | undefined;
       try {
         val = this.fastValueWord(expr.operand, rawState, io, false, false, false, false, undefined, diagnosticLine);
@@ -8478,7 +8542,13 @@ export class Runtime {
         return undefined;
       }
       if (typeof val !== "string") return undefined;
-      return expr.operator === "-n" ? (val.length > 0 ? 0 : 1) : (val.length === 0 ? 0 : 1);
+      if (expr.operator === "-n") return val.length > 0 ? 0 : 1;
+      if (expr.operator === "-z") return val.length === 0 ? 0 : 1;
+      if (syncConditionalFileUnaryOps.has(expr.operator)) {
+        const fileRes = this.tryEvalFastMemoryFileUnary(expr.operator, val, rawState);
+        return fileRes === undefined ? undefined : (fileRes ? 0 : 1);
+      }
+      return undefined;
     }
     if (expr.kind === "binary") {
       if (expr.operator === "=~") {
@@ -8646,8 +8716,12 @@ export class Runtime {
       ) {
         return undefined;
       }
+      const savedFsOps = this.budget.fsOperations;
       const condStatus = this.tryEvalConditionalSync(command.expression, rawState, monitor, store, io, diagnosticLine);
-      if (condStatus === undefined) return undefined;
+      if (condStatus === undefined) {
+        this.budget.fsOperations = savedFsOps;
+        return undefined;
+      }
       if (rawState.extensions && !rawState.extensions.eventDepth) {
         publishCommandSpelling(rawState, commandSpelling(command));
       }
@@ -9786,6 +9860,174 @@ export class Runtime {
       if (command.redirects.length !== 0) return undefined;
       if (
         command.words.length === 2 &&
+        (w0Plain === "unset" || w0Plain === "export" || w0Plain === "let") &&
+        canMutatePipeStatus &&
+        !pipeline.negate &&
+        rawState.locals.length === 0 &&
+        !hasActiveVariableAttributes(rawState) &&
+        !hasShellFunction(rawState, w0Plain) &&
+        !rawState.extensions?.builtins.has(w0Plain)
+      ) {
+        const w1 = command.words[1]!;
+        if (w0Plain === "unset") {
+          const targetName = w1.plain;
+          if (
+            targetName &&
+            isShellIdentifier(targetName) &&
+            !targetName.startsWith("-") &&
+            !rawState.readonlyVariables?.has(targetName) &&
+            !store?.get(targetName) &&
+            !rawState.functions.has(targetName) &&
+            !monitor.hasOverlay(targetName) &&
+            targetName !== "OPTIND" &&
+            targetName !== "PIPESTATUS" &&
+            targetName !== "_" &&
+            targetName !== "IFS" &&
+            targetName !== "PATH"
+          ) {
+            if (rawState.extensions && !rawState.extensions.eventDepth) {
+              publishCommandSpelling(rawState, commandSpelling(command));
+            }
+            delete rawState.variables[targetName];
+            rawState.exported.delete(targetName);
+            monitor.values.invalidate(targetName);
+            const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+            this.budget.tick();
+            rawState.substitutionStatus = 0;
+            if (rawState.variables._ !== undefined) delete rawState.variables._;
+            rawState.lastArgument = targetName;
+            if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+            if (!existing) {
+              monitor.lazyPipeStatus = singleStatusZero;
+              monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+            } else {
+              elem0!.text.shellValue = "0";
+              store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+            }
+            rawState.status = 0;
+            monitor.epoch = restEpoch;
+            if (store) store.epoch = restEpoch;
+            return 0;
+          }
+        } else if (w0Plain === "export") {
+          const assign = !getArrayAssignment(w1) ? this.assignment(w1) : undefined;
+          const targetName = assign ? assign.name : w1.plain;
+          if (
+            targetName &&
+            isShellIdentifier(targetName) &&
+            !targetName.startsWith("-") &&
+            !rawState.readonlyVariables?.has(targetName) &&
+            !store?.get(targetName) &&
+            !monitor.hasOverlay(targetName) &&
+            targetName !== "OPTIND" &&
+            targetName !== "PIPESTATUS" &&
+            targetName !== "_"
+          ) {
+            let nextVal: string | undefined;
+            if (assign) {
+              try {
+                const fv = this.fastValueWord(assign.value, rawState, io, false, false, false, false, 0, diagnosticLine);
+                if (typeof fv === "string") {
+                  nextVal = assign.append
+                    ? `${monitor.values.get(targetName, rawState.variables[targetName] ?? "") ?? rawState.variables[targetName] ?? ""}${fv}`
+                    : fv;
+                }
+              } catch {
+                nextVal = undefined;
+              }
+            } else {
+              nextVal = rawState.variables[targetName];
+            }
+            if (assign ? nextVal !== undefined : true) {
+              if (rawState.extensions && !rawState.extensions.eventDepth) {
+                publishCommandSpelling(rawState, commandSpelling(command));
+              }
+              if (assign && nextVal !== undefined) {
+                monitor.publishStringVariable(targetName, nextVal);
+              }
+              monitor.proxy.exported.add(targetName);
+              const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+              this.budget.tick();
+              rawState.substitutionStatus = 0;
+              if (rawState.variables._ !== undefined) delete rawState.variables._;
+              rawState.lastArgument = assign ? `${targetName}=${nextVal!}` : targetName;
+              if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+              if (!existing) {
+                monitor.lazyPipeStatus = singleStatusZero;
+                monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+              } else {
+                elem0!.text.shellValue = "0";
+                store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+              }
+              rawState.status = 0;
+              monitor.epoch = restEpoch;
+              if (store) store.epoch = restEpoch;
+              return 0;
+            }
+          }
+        } else if (w0Plain === "let" && !rawState.nounset && !rawState.readonlyVariables?.size && (!ignored ? !rawState.errexit : true)) {
+          let exprStr: ShellValue | undefined;
+          try {
+            exprStr = w1.plain ?? this.fastValueWord(w1, rawState, io, true, false, false, true, undefined, diagnosticLine);
+          } catch {
+            exprStr = undefined;
+          }
+          if (typeof exprStr === "string" && exprStr.length > 0 && exprStr.length <= 128 && !exprStr.startsWith("-")) {
+            const cachedLet = letProgramCache.get(exprStr);
+            let prog: ArithmeticProgram;
+            if (cachedLet) {
+              this.budget.parsing.admit(cachedLet.unitsCharged);
+              prog = cachedLet.prog;
+            } else {
+              const beforeUnits = this.budget.parsing.admittedUnits;
+              prog = prepareArithmetic(exprStr, this.budget.parsing);
+              const unitsCharged = this.budget.parsing.admittedUnits - beforeUnits;
+              if (letProgramCache.size >= 256) letProgramCache.clear();
+              letProgramCache.set(exprStr, { prog, unitsCharged });
+            }
+            if (!prog.error && !prog.hasSubscript && !arithTreeTouchesArray(prog.tree, store) && (!guestArrays(rawState) || isSafeSmiProgram(prog))) {
+              let nonZero: boolean | undefined;
+              const snap = this.budget.parsing.snapshot();
+              try {
+                nonZero = this.syncShellArithmeticNonZero(prog, rawState, diagnosticLine);
+              } catch {
+                this.budget.parsing.restore(snap);
+                this.signal.throwIfAborted();
+                nonZero = undefined;
+              }
+              if (nonZero !== undefined && (nonZero || ignored || !rawState.errexit)) {
+                if (rawState.extensions && !rawState.extensions.eventDepth) {
+                  publishCommandSpelling(rawState, commandSpelling(command));
+                }
+                const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+                this.budget.tick();
+                rawState.substitutionStatus = 0;
+                if (rawState.variables._ !== undefined) delete rawState.variables._;
+                rawState.lastArgument = exprStr;
+                if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+                const finalStatus = nonZero ? 0 : 1;
+                if (!existing) {
+                  if (store) {
+                    if (publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined;
+                  } else {
+                    monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne;
+                    monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+                  }
+                } else {
+                  elem0!.text.shellValue = finalStatus === 0 ? "0" : "1";
+                  store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+                }
+                rawState.status = finalStatus;
+                monitor.epoch = restEpoch;
+                if (store) store.epoch = restEpoch;
+                return finalStatus;
+              }
+            }
+          }
+        }
+      }
+      if (
+        command.words.length === 2 &&
         w0Plain === "local" &&
         rawState.locals.length > 0 &&
         !hasShellFunction(rawState, "local") &&
@@ -10113,12 +10355,18 @@ export class Runtime {
             return undefined;
           }
           const lastPredArg = predicateScratchWords[predicateScratchWords.length - 1] ?? w0Plain;
-          const fastPred = tryFastPredicate(w0Plain, predicateScratchWords, 1);
+          const savedPredFsOps = this.budget.fsOperations;
+          const fastPred = tryFastPredicate(w0Plain, predicateScratchWords, 1, (op, target) => this.tryEvalFastMemoryFileUnary(op, target, rawState));
           predicateScratchWords.length = 0;
-          if (fastPred === undefined) return undefined;
+          if (fastPred === undefined) {
+            this.budget.fsOperations = savedPredFsOps;
+            return undefined;
+          }
           const statusChar = fastPred === 0 ? "0" : "1";
-          if (!canMutatePipeStatus && elem0!.text.shellValue !== statusChar) return undefined;
-          if (fastPred !== 0 && !ignored && rawState.errexit) return undefined;
+          if ((!canMutatePipeStatus && elem0!.text.shellValue !== statusChar) || (fastPred !== 0 && !ignored && rawState.errexit)) {
+            this.budget.fsOperations = savedPredFsOps;
+            return undefined;
+          }
           const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
           this.budget.tick();
           rawState.substitutionStatus = 0;
@@ -12339,6 +12587,10 @@ export class Runtime {
   async runCommandIsolated(command: Command, state: State, io: IO, fileShortcut = false): Promise<number> {
     try {
       if (!this.tryStartExtensionsSync(state)) await this.startExtensions(state, io);
+      if (!fileShortcut && (command.kind === "arithmetic-for" || command.kind === "for") && command.redirects.length === 0) {
+        const syncLoopRes = this.executeSyncPipelineBody({ commands: [command], negate: false }, command, state, io, Boolean(io.execution?.ignoreErrexit));
+        if (syncLoopRes !== undefined) return syncLoopRes;
+      }
       return await this.command(command, state, io, fileShortcut);
     }
     catch (error) {
@@ -18493,7 +18745,6 @@ export class Runtime {
         const arrayBinding = activeArrayStore?.get(part.name);
         if (selector !== undefined || arrayBinding !== undefined) {
           if (
-            part.substring ||
             selector === undefined ||
             !arrayBinding ||
             rawState.nounset ||
@@ -18505,12 +18756,71 @@ export class Runtime {
             return undefined;
           }
           if (selector.kind === "members") {
-            if (part.length && part.operator === undefined) {
+            if (!part.substring && part.length && part.operator === undefined) {
               out += String(arrayBinding.values.size);
               continue;
             }
+            if (
+              !part.length &&
+              part.operator === undefined &&
+              !part.keys &&
+              !arrayBinding.associative &&
+              !split &&
+              this.budget.limits.maxExpansionBytes === Infinity &&
+              arrayBinding.values.size === arrayBinding.maximum + 1 &&
+              (rawState.depth + (io.parameterDepth ?? 0)) < 60
+            ) {
+              const ifsVal = monitor?.values.get("IFS", rawVars.IFS ?? " ") ?? rawVars.IFS ?? " ";
+              if (typeof ifsVal === "string" && (ifsVal.length === 0 || ifsVal.charCodeAt(0) < 128)) {
+                const sep = ifsVal.length > 0 ? ifsVal[0]! : "";
+                const evalSliceInt = (w: Word): number | undefined => {
+                  if (w.parts.length === 0) return 0;
+                  const expanded = this.fastValueWord(w, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
+                  if (typeof expanded !== "string") return undefined;
+                  const trimmed = expanded.trim();
+                  if (trimmed.length === 0) return 0;
+                  const syncTouched = this._syncArithRawWriteOnly ? this._syncArithTouched : undefined;
+                  const directOp = resolveSimpleArithOperand(trimmed, rawState, monitor, activeArrayStore, syncTouched);
+                  if (directOp !== undefined) return directOp;
+                  const simpleExpr = tryEvalSimpleExpandedArith(trimmed, rawState, monitor, activeArrayStore, syncTouched);
+                  if (simpleExpr !== undefined) return Number(simpleExpr);
+                  return undefined;
+                };
+                let startIdx = 0;
+                let endIdx = arrayBinding.maximum + 1;
+                let validSlice = true;
+                if (part.substring) {
+                  const offNum = evalSliceInt(part.substring.offset);
+                  if (offNum === undefined || offNum < 0) {
+                    validSlice = false;
+                  } else {
+                    startIdx = offNum;
+                    if (part.substring.length) {
+                      const lenNum = evalSliceInt(part.substring.length);
+                      if (lenNum === undefined || lenNum < 0) validSlice = false;
+                      else endIdx = Math.min(endIdx, startIdx + lenNum);
+                    }
+                  }
+                }
+                if (validSlice && endIdx - startIdx <= 512) {
+                  let sliceOut = "";
+                  let allStrings = true;
+                  for (let k = startIdx; k < endIdx; k++) {
+                    const ev = arrayBinding.getValue(k);
+                    if (typeof ev !== "string") { allStrings = false; break; }
+                    if (k > startIdx) sliceOut += sep;
+                    sliceOut += ev;
+                  }
+                  if (allStrings) {
+                    out += sliceOut;
+                    continue;
+                  }
+                }
+              }
+            }
             return undefined;
           }
+          if (part.substring) return undefined;
           if (selector.kind === "element") {
             const cachedSub = selector.index as { _cachedWord?: Word; _cachedSyntax?: unknown };
             let subWord = selector.index.word ?? (cachedSub._cachedSyntax === rawState.extensions?.syntax ? cachedSub._cachedWord : undefined);

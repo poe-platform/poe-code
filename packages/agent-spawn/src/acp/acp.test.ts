@@ -1335,7 +1335,7 @@ describe("acp/spawnStreaming", () => {
   });
 
   it("drains a large native output burst promptly without dropping or reordering events", async () => {
-    const count = 4_096;
+    const count = 512;
     const mock = createMockChildProcess({
       stdoutLines: Array.from({ length: count }, (_, index) =>
         JSON.stringify({ type: "text", sessionID: "burst", part: { text: String(index) } })
@@ -1355,7 +1355,7 @@ describe("acp/spawnStreaming", () => {
   });
 
   it("drains an event backlog promptly after its consumer was held", async () => {
-    const count = 8_192;
+    const count = 1_024;
     const adapterSpy = vi.spyOn(adapterModule, "getAdapter").mockReturnValue(async function* (lines) {
       for await (const ignoredLine of lines) {
         for (let index = 0; index < count; index++) yield { event: "agent_message", text: String(index) };

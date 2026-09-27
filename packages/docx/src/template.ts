@@ -109,8 +109,13 @@ export async function applyDocumentTemplate(input: Uint8Array, options: DocxOper
     }
   }
   const changes: ControlTemplateData["changes"][number][] = [];
+  let inventory = initial, inventoryGeneration = session.generation;
   const current = async (location: Location): Promise<ControlSnapshot> => {
-    const item = (await inspectDocumentControls(input, {}, staged)).items.find(item => item.location.value.part === location.value.part && item.location.value.path.length === location.value.path.length && pathContains(location.value.path, item.location.value.path));
+    if (inventoryGeneration !== session.generation) {
+      inventory = (await inspectDocumentControls(input, {}, staged)).items;
+      inventoryGeneration = session.generation;
+    }
+    const item = inventory.find(item => item.location.value.part === location.value.part && item.location.value.path.length === location.value.path.length && pathContains(location.value.path, item.location.value.path));
     if (!item) throw new UnsupportedEditError("A staged template declaration disappeared.");
     return item;
   };

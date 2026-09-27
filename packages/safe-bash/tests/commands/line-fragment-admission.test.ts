@@ -65,7 +65,8 @@ test("sort preserves borrowed input when a repeated prefix is followed by anothe
   const commands = textCommands();
   const signal = new AbortController().signal;
   const prefix = "b\n" + "a\n".repeat(128);
-  const first = await run("sort", [], { commands, signal, stdin: { ...synchronousFragments([prefix]), abortSignal: signal } });
+  const initialInput = { ...synchronousFragments([prefix]), abortSignal: signal };
+  const first = await run("sort", [], { commands, signal, stdin: initialInput });
   assert.equal(first.stdout, "a\n".repeat(128) + "b\n");
   const borrowed = Buffer.from(prefix);
   let index = 0;
@@ -77,7 +78,8 @@ test("sort preserves borrowed input when a repeated prefix is followed by anothe
     },
     async next(): Promise<IteratorResult<Uint8Array>> { return this.tryNextSync(); },
   };
-  const result = await run("sort", [], { commands, signal, stdin: { abortSignal: signal, [Symbol.asyncIterator]: () => iterator } });
+  const stdin = { abortSignal: signal, [Symbol.asyncIterator]: () => iterator };
+  const result = await run("sort", [], { commands, signal, stdin });
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, "a\n".repeat(128) + "b\nc\n");
 });
@@ -88,14 +90,16 @@ test("sort preserves a repeated input result across a reentrant EOF pull", async
   const signal = new AbortController().signal;
   const input = "b\n" + "a\n".repeat(128);
   const expected = "a\n".repeat(128) + "b\n";
-  const first = await run("sort", [], { fs, commands, signal, stdin: { ...synchronousFragments([input]), abortSignal: signal } });
+  const initialInput = { ...synchronousFragments([input]), abortSignal: signal };
+  const first = await run("sort", [], { fs, commands, signal, stdin: initialInput });
   assert.equal(first.stdout, expected);
   let nested: ReturnType<typeof run> | undefined;
   const stdin = {
     ...synchronousFragments([input], index => {
-      if (index === 1 && !nested) nested = run("sort", [], {
-        fs, commands, signal, stdin: { ...synchronousFragments(["z\n".repeat(128)]), abortSignal: signal },
-      });
+      if (index === 1 && !nested) {
+        const nestedInput = { ...synchronousFragments(["z\n".repeat(128)]), abortSignal: signal };
+        nested = run("sort", [], { fs, commands, signal, stdin: nestedInput });
+      }
     }),
     abortSignal: signal,
   };

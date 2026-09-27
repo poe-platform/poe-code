@@ -367,7 +367,10 @@ export class SharpInstance extends Duplex {
       }
     }
     validateInputOptions(this.inputOptions);
-    this.on("error", (error: Error) => { this.streamFailure = error; });
+    this.on("error", (error: Error) => {
+      this.streamFailure = error;
+      for (const child of this.clonedStreams) { child.streamFailure = error; child.destroy(error); }
+    });
     if (this.streamIn) {
       this.on("finish", () => {
         this.flattenStreamInput();
@@ -502,6 +505,7 @@ export class SharpInstance extends Duplex {
       copy.nodes.push(...this.nodes);
       copy.outputOptions = { ...this.outputOptions };
       this.clonedStreams.push(copy);
+      if (this.streamFailure) { copy.streamFailure = this.streamFailure; copy.destroy(this.streamFailure); }
       return copy;
     }
     const copy =

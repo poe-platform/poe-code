@@ -18,12 +18,13 @@ export async function run(): Promise<boolean> {
   try { await missing.readable.getReader().read(); } catch { missingRejected = true; }
   if (!missingRejected) throw new Error("missing file must reject the readable stream");
   const cancelled = sharp();
+  const pendingClone = cancelled.clone();
   await (cancelled as unknown as { writable: WritableStream<Uint8Array> }).writable.abort(new Error("caller stop"));
   const result = await Promise.race([
-    cancelled.toBuffer().then(() => "resolved", error => (error as Error).message),
+    Promise.all([cancelled, pendingClone, cancelled.clone()].map(image => image.toBuffer().then(() => "resolved", error => (error as Error).message))).then(results => results.join(",")),
     new Promise<string>(resolve => setTimeout(() => resolve("pending"), 100)),
   ]);
-  if (result !== "caller stop") throw new Error(`cancelled output: ${result}`);
+  if (result !== "caller stop,caller stop,caller stop") throw new Error(`cancelled output: ${result}`);
   const invalid = sharp();
   const invalidWeb = invalid as unknown as { writable: WritableStream<unknown>; readable: ReadableStream<Uint8Array> };
   try { await invalidWeb.writable.getWriter().write("invalid bytes"); } catch { /* Expected write failure. */ }

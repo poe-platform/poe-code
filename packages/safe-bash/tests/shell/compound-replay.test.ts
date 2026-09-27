@@ -4,6 +4,8 @@ import { basicCommands } from "../../src/commands/basic.js";
 import { setup } from "./helpers.js";
 
 const cases: [string, string, string][] = [
+  ["isolated unsupported for body", 'for item in a b; do echo "$item"; say "$item"; done | pass', "a\na\nb\nb\n"],
+  ["isolated unsupported arithmetic-for body", 'for ((j=0; j<2; j++)); do echo "$j"; say "$j"; done | pass', "0\n0\n1\n1\n"],
   ["while condition break", 'while break; do echo body; done; echo "status:$?"', "status:0\n"],
   ["until condition break", 'until break; do echo body; done; echo "status:$?"', "status:0\n"],
   ["nested condition break", 'for outer in a b; do while break 2; do echo wrong; done; echo wrong; done; echo done', "done\n"],

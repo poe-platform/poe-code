@@ -8364,7 +8364,7 @@ export class Runtime {
     if (store) store.epoch = restEpoch;
     return finalStatus;
   }
-  private executeSyncPipelineBody( pipeline: Pipeline, command: Extract<Command, { kind: "simple" | "function" | "arithmetic" | "conditional" | "arithmetic-for" | "for" | "if" | "case" | "group" | "while" | "until" }>, state: State, io: IO, ignored: boolean, ): number | undefined {
+  private executeSyncPipelineBody( pipeline: Pipeline, command: Extract<Command, { kind: "simple" | "function" | "arithmetic" | "conditional" | "arithmetic-for" | "for" | "if" | "case" | "group" }>, state: State, io: IO, ignored: boolean, ): number | undefined {
     const scope = io[invocationScope];
     if (scope.hasFailures || this.budget.limits.maxExpansionFields !== Infinity || this.budget.limits.maxExpansionBytes !== Infinity || this.budget.limits.maxParseUnits !== Infinity) return undefined;
     // Caller cancellation needs the async loop path. Refuse before redirects
@@ -8714,11 +8714,9 @@ export class Runtime {
         }
         return res;
       }
-      if (!(command as { _skipTrySyncLoop?: boolean })._skipTrySyncLoop) {
-        const fastLoopRes = this.trySyncLoop(command, pipeline, rawState, monitor, store, existing, elem0, canMutatePipeStatus, io, diagnosticLine);
-        if (fastLoopRes !== undefined) return fastLoopRes;
-        (command as { _skipTrySyncLoop?: boolean })._skipTrySyncLoop = true;
-      }
+      // The bounded loop optimizer either completes or declines before the
+      // general loop executor takes ownership of iteration state.
+      return this.trySyncLoop(command, pipeline, rawState, monitor, store, existing, elem0, canMutatePipeStatus, io, diagnosticLine);
     }
     if (command.kind === "while" || command.kind === "until" || command.kind === "for" || command.kind === "arithmetic-for") return undefined;
     // Loops use the specialized fast path above or the async executor.

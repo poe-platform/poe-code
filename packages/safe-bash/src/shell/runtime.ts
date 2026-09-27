@@ -10616,7 +10616,13 @@ export class Runtime {
           if (fastRes.terminated) return fastRes.exitCode;
           continue;
         }
-        const completion = stateMonitor(state)?.restoration();
+        let completion: Restoration | undefined;
+        try { completion = stateMonitor(state)?.restoration(); }
+        catch (error) {
+          if (!(error instanceof ArrayFailure)) throw error;
+          await this.diagnostic(io, error.message);
+          throw completedExit(1);
+        }
         try {
           const status = await this.pipeline(pipeline, state, ignored ? { ...io, execution: { ignoreErrexit: true } } : io);
           if (completion) completion.completeStatus(status);

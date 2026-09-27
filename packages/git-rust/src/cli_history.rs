@@ -563,16 +563,19 @@ pub(crate) fn execute(
         };
         let mut excluded = BTreeSet::new();
         let mut tips = Vec::new();
-        if let Some((left, right)) = revision.split_once("...") {
-            let a = ancestors(left)?;
-            let b = ancestors(right)?;
-            excluded.extend(a.intersection(&b).cloned());
-            tips.extend([left, right]);
-        } else if let Some((left, right)) = revision.split_once("..") {
-            excluded = ancestors(left)?;
-            tips.push(right);
-        } else {
-            tips.push(revision);
+        let walk_range = !first_parent && !all_refs && revision.contains("..");
+        if !walk_range {
+            if let Some((left, right)) = revision.split_once("...") {
+                let a = ancestors(left)?;
+                let b = ancestors(right)?;
+                excluded.extend(a.intersection(&b).cloned());
+                tips.extend([left, right]);
+            } else if let Some((left, right)) = revision.split_once("..") {
+                excluded = ancestors(left)?;
+                tips.push(right);
+            } else {
+                tips.push(revision);
+            }
         }
         let mut commits = Vec::new();
         if all_refs {
@@ -580,16 +583,20 @@ pub(crate) fn execute(
                 if let Ok(list) = history(&format!("refs/{r}")) { commits.extend(list); }
             }
         }
-        for tip in tips {
-            if !first_parent && !all_refs && !revision.contains("..") {
-                let follow_path = if follow && paths.len() == 1 { Some(paths[0].as_str()) } else { None };
-                commits.extend(log(fs, gitdir, Some(&resolve(fs, gitdir, tip)?), follow_path, unfiltered_depth, None, false, follow && follow_path.is_some())?);
-            } else {
-                commits.extend(history(tip)?);
+        if walk_range {
+            commits.extend(log_revision_range(fs, gitdir, revision, None)?);
+        } else {
+            for tip in tips {
+                if !first_parent && !all_refs && !revision.contains("..") {
+                    let follow_path = if follow && paths.len() == 1 { Some(paths[0].as_str()) } else { None };
+                    commits.extend(log(fs, gitdir, Some(&resolve(fs, gitdir, tip)?), follow_path, unfiltered_depth, None, false, follow && follow_path.is_some())?);
+                } else {
+                    commits.extend(history(tip)?);
+                }
             }
         }
         commits.retain(|c| !excluded.contains(&c.oid));
-        if all_refs || revision.contains("...") {
+        if all_refs || (!walk_range && revision.contains("...")) {
             commits.sort_by_key(|c| std::cmp::Reverse(c.commit.committer.timestamp));
         }
         let mut seen = BTreeSet::new();
@@ -806,4 +813,101 @@ pub(crate) fn previous_branch(fs: &MemoryFs, gitdir: &str, nth: usize) -> Option
         }
     }
     None
+}
+
+// Empty range endpoints name HEAD, as in Git's revision syntax.
+fn revision_range(revision: &str) -> Option<(&str, &str, bool)> {
+    let (left, right, symmetric) = if let Some((left, right)) = revision.split_once("...") {
+        (left, right, true)
+    } else {
+        let (left, right) = revision.split_once("..")?;
+        (left, right, false)
+    };
+    Some((
+        if left.is_empty() { "HEAD" } else { left },
+        if right.is_empty() { "HEAD" } else { right },
+        symmetric,
+    ))
+}
+
+fn log_revision_range(
+    fs: &MemoryFs,
+    gitdir: &str,
+    revision: &str,
+    depth: Option<usize>,
+) -> Result<Vec<crate::commands::plumbing::ReadCommitResult>, crate::GitError> {
+    let Some((left, right, symmetric)) = revision_range(revision) else {
+        return log(fs, gitdir, Some(revision), None, depth, None, false, false);
+    };
+    let left = resolve(fs, gitdir, left)?;
+    let right = resolve(fs, gitdir, right)?;
+    let shallow = crate::GitShallowManager::read(fs, gitdir);
+    let mut left_history = std::collections::BTreeMap::new();
+    let mut right_history = std::collections::BTreeMap::new();
+    for (tip, history) in [(&left, &mut left_history), (&right, &mut right_history)] {
+        let mut pending = vec![tip.clone()];
+        while let Some(oid) = pending.pop() {
+            if history.contains_key(&oid) {
+                continue;
+            }
+            let c = crate::commands::plumbing::read_commit(fs, gitdir, &oid)?;
+            if !shallow.contains(&oid) {
+                pending.extend(c.commit.parent.iter().cloned());
+            }
+            history.insert(oid, c);
+        }
+    }
+    let tips = if symmetric {
+        vec![left, right]
+    } else {
+        vec![right]
+    };
+    let left_ids: std::collections::BTreeSet<_> = left_history.keys().cloned().collect();
+    let right_ids: std::collections::BTreeSet<_> = right_history.keys().cloned().collect();
+    let mut remaining: std::collections::BTreeMap<_, _> = right_history
+        .into_iter()
+        .filter(|(oid, _)| !left_ids.contains(oid))
+        .collect();
+    if symmetric {
+        remaining.extend(
+            left_history
+                .into_iter()
+                .filter(|(oid, _)| !right_ids.contains(oid)),
+        );
+    }
+    let mut pending = std::collections::BinaryHeap::new();
+    let mut scheduled = std::collections::BTreeSet::new();
+    for oid in tips {
+        if let Some(c) = remaining.get(&oid)
+            && scheduled.insert(oid.clone())
+        {
+            pending.push((
+                c.commit.committer.timestamp,
+                std::cmp::Reverse(scheduled.len()),
+                oid,
+            ));
+        }
+    }
+    let mut commits = Vec::new();
+    while let Some((_, _, oid)) = pending.pop() {
+        let c = remaining.remove(&oid).expect("scheduled commits exist");
+        if !shallow.contains(&oid) {
+            for parent in &c.commit.parent {
+                if let Some(p) = remaining.get(parent)
+                    && scheduled.insert(parent.clone())
+                {
+                    pending.push((
+                        p.commit.committer.timestamp,
+                        std::cmp::Reverse(scheduled.len()),
+                        parent.clone(),
+                    ));
+                }
+            }
+        }
+        commits.push(c);
+        if depth.is_some_and(|depth| commits.len() >= depth) {
+            break;
+        }
+    }
+    Ok(commits)
 }

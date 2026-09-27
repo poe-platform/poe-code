@@ -19,6 +19,8 @@ Full-featured Rust Git implementation with both a standalone native CLI binary (
 | **Network & Wire Transport** | `fetch`, `pull`, `push`, `remote`, `ls-remote`, `upload-pack`, `receive-pack`, `bundle`, `archive`, `format-patch`, `am`, `apply` |
 | **Hooks Lifecycle** | `pre-commit`, `prepare-commit-msg`, `commit-msg`, `post-commit`, `post-rewrite`, `post-checkout`, `post-merge`, `pre-rebase`, `pre-push`, `pre-receive`, `update`, `post-receive` |
 
+Branch deletion refuses the checked-out branch. Use `branch -d` for merged branches or `branch -D` to delete an unmerged branch.
+
 ## Using `git-rust` as Your Local `git` CLI
 
 Build and install the native `git-rust` binary to `~/.local/bin`:

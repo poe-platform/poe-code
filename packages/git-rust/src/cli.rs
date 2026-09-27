@@ -1114,6 +1114,34 @@ pub fn execute_git_cli_with_input(
                 }
                 let mut out = String::new();
                 for name in names {
+                    if curr.as_deref() == Some(name) {
+                        return CliResult::err(
+                            1,
+                            format!(
+                                "error: Cannot delete branch '{name}' checked out at '{repo_root}'\n"
+                            ),
+                        );
+                    }
+                    if !force {
+                        let merged = resolve_ref(fs, &gitdir, name, None).and_then(|tip| {
+                            let head = resolve_ref(fs, &gitdir, "HEAD", None)?;
+                            if tip == head {
+                                Ok(true)
+                            } else {
+                                crate::commands::plumbing::is_descendent(fs, &gitdir, &head, &tip, None)
+                            }
+                        });
+                        match merged {
+                            Ok(true) => {}
+                            Ok(false) => {
+                                return CliResult::err(
+                                    1,
+                                    format!("error: The branch '{name}' is not fully merged.\n"),
+                                );
+                            }
+                            Err(e) => return CliResult::err(1, format!("error: {}\n", e.message)),
+                        }
+                    }
                     if let Err(e) = delete_branch(fs, &gitdir, name) {
                         return CliResult::err(128, format!("fatal: {}\n", e.message));
                     }

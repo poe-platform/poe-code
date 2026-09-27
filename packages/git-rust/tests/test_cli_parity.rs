@@ -135,3 +135,127 @@ fn branch_rename_works_before_the_first_commit() {
     assert_ne!(run(&fs, &["branch", "-m", "missing", "other"]).exit_code, 0);
     assert_eq!(ok(&fs, &["branch", "--show-current"]), "new-main\n");
 }
+
+#[test]
+fn named_oneline_and_message_formats() {
+    let fs = repo();
+    let head = commit(&fs, "second\n", "second\n\nbody");
+    for flag in ["--pretty=oneline", "--format=oneline"] {
+        assert_eq!(ok(&fs, &["log", "-1", flag]), format!("{head} second\n"));
+    }
+    assert_eq!(ok(&fs, &["log", "-1", "--format=%B"]), "second\n\nbody\n\n");
+    assert_eq!(ok(&fs, &["log", "-1", "--format=%b"]), "body\n\n");
+}
+
+#[test]
+fn short_status_includes_requested_branch() {
+    let fs = repo();
+    fs.write_str("/repo/a.txt", "changed\n");
+    for flags in [
+        vec!["-sb"],
+        vec!["-bs"],
+        vec!["-s", "-b"],
+        vec!["--short", "--branch"],
+        vec!["--porcelain", "-b"],
+    ] {
+        let mut args = vec!["status"];
+        args.extend(flags);
+        assert_eq!(ok(&fs, &args), "## main\n M a.txt\n");
+    }
+}
+
+#[test]
+fn revision_ranges_use_reachable_commit_sets_and_merge_base() {
+    let fs = repo();
+    ok(&fs, &["branch", "feature"]);
+    let main = commit(&fs, "main\n", "main");
+    ok(&fs, &["checkout", "feature"]);
+    let feature = commit(&fs, "feature\n", "feature");
+    assert_eq!(
+        ok(&fs, &["diff", "main..feature"]),
+        ok(&fs, &["diff", "main", "feature"])
+    );
+    assert_eq!(
+        ok(&fs, &["diff", "main...feature"]),
+        ok(&fs, &["diff", "HEAD~1", "feature"])
+    );
+    assert_eq!(
+        ok(&fs, &["log", "main..feature", "--format=%H"]),
+        format!("{feature}\n")
+    );
+    let abbreviated = format!("{}..{}", &main[..7], &feature[..7]);
+    assert_eq!(
+        ok(&fs, &["diff", &abbreviated]),
+        ok(&fs, &["diff", "main", "feature"])
+    );
+    assert_eq!(
+        ok(&fs, &["log", &abbreviated, "--format=%H"]),
+        format!("{feature}\n")
+    );
+    let symmetric = ok(&fs, &["log", "main...feature", "--format=%H"]);
+    assert_eq!(symmetric, format!("{main}\n{feature}\n"));
+    assert_eq!(
+        symmetric.lines().collect::<std::collections::BTreeSet<_>>(),
+        [main.as_str(), feature.as_str()].into_iter().collect()
+    );
+    assert_eq!(
+        ok(&fs, &["log", "HEAD~1..HEAD", "--oneline"]),
+        format!("{} feature\n", &feature[..7])
+    );
+    assert_eq!(ok(&fs, &["log", "HEAD..HEAD", "--oneline"]), "");
+    assert_eq!(
+        ok(&fs, &["diff", "..HEAD"]),
+        ok(&fs, &["diff", "HEAD", "HEAD"])
+    );
+}
+
+#[test]
+fn branch_deletion_preserves_checked_out_and_unmerged_branches() {
+    let fs = repo();
+    for flag in ["-d", "-D"] {
+        assert_eq!(run(&fs, &["branch", flag, "main"]).exit_code, 1);
+        assert_eq!(ok(&fs, &["branch", "--show-current"]), "main\n");
+    }
+    ok(&fs, &["branch", "merged"]);
+    ok(&fs, &["branch", "feature"]);
+    ok(&fs, &["checkout", "feature"]);
+    commit(&fs, "feature\n", "feature");
+    ok(&fs, &["checkout", "main"]);
+    commit(&fs, "main change\n", "main change");
+    assert_eq!(run(&fs, &["branch", "-d", "feature"]).exit_code, 1);
+    ok(&fs, &["rev-parse", "feature"]);
+    ok(&fs, &["branch", "-D", "feature"]);
+    ok(&fs, &["branch", "-d", "merged"]);
+}
+
+#[test]
+fn log_ranges_preserve_merge_parent_order_without_duplicates() {
+    let fs = repo();
+    let base = ok(&fs, &["rev-parse", "HEAD"]).trim().to_string();
+    ok(&fs, &["branch", "feature"]);
+    let main = commit(&fs, "main\n", "main");
+    ok(&fs, &["checkout", "feature"]);
+    let feature = commit(&fs, "feature\n", "feature");
+    let mut merged = git_rust::read_commit(&fs, "/repo/.git", &main)
+        .unwrap()
+        .commit;
+    merged.parent = vec![main.clone(), feature.clone()];
+    merged.message = "merge\n".to_string();
+    let merge = git_rust::write_commit(&fs, "/repo/.git", &merged).unwrap();
+    fs.write_str("/repo/.git/refs/heads/merged", &format!("{merge}\n"));
+    assert_eq!(
+        ok(&fs, &["log", &format!("{base}..merged"), "--format=%H"]),
+        format!("{merge}\n{main}\n{feature}\n")
+    );
+    assert_eq!(
+        ok(&fs, &["log", "main...merged", "--format=%H"]),
+        format!("{merge}\n{feature}\n")
+    );
+    assert_eq!(
+        ok(
+            &fs,
+            &["log", "main..merged", "--max-count=1", "--format=%H"]
+        ),
+        format!("{merge}\n")
+    );
+}

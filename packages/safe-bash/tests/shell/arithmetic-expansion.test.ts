@@ -381,40 +381,35 @@ test("wave 43: static (( ... )) in functions/while, dynamic [[ == ]]/case globs,
   assert.equal(actual.exitCode, expected.status, actual.stderr);
   assert.equal(actual.stdout, expected.stdout);
 
-  it("wave 48: fast-paths compound while/for loops with break/continue, associative array local/declare -A, [[ -v ]], unset map[k], and element pattern ops", async () => {
-    const shell = createShell();
-    const res = await shell.run(`
-      work() {
-        local -A map=([a]="foo_bar" [b]="baz_qux" [c]="skip_me")
-        local -a arr=("pre_one_suf" "pre_two_suf")
-        local sum=0
-        local i=0
-        while (( i < 4 )); do
-          (( i += 1 ))
-          if (( i == 2 )); then
-            continue
-          fi
-          if (( i == 4 )); then
-            break
-          fi
-          (( sum += i ))
-        done
-        if [[ -v map[c] ]]; then
-          unset "map[c]"
-        fi
-        local out=""
-        for k in a b c; do
-          if [[ -v map[$k] ]]; then
-            out="${out}${k}:${map[$k]/_/=},"
-          fi
-        done
-        local p0="${arr[0]#pre_}"
-        local p1="${p0%_suf}"
-        printf '%s|%s|%s\\n' "$sum" "$out" "$p1"
-      }
-      work
-    `);
-    expect(res.exitCode).toBe(0);
-    expect(res.stdout).toBe("4|a:foo=bar,b:baz=qux,|one\n");
-  });
+});
+
+test("wave 48: compound loop control and associative element operations", async context => {
+  const { shell } = setup();
+  context.after(() => shell.dispose());
+  for (const command of basicCommands()) shell.commands.register(command, { replace: true });
+  const result = await shell.exec([
+    "work() {",
+    "  local -A map=([a]=\"foo_bar\" [b]=\"baz_qux\" [c]=\"skip_me\")",
+    "  local -a arr=(\"pre_one_suf\" \"pre_two_suf\")",
+    "  local sum=0",
+    "  local i=0",
+    "  while (( i < 4 )); do",
+    "    (( i += 1 ))",
+    "    if (( i == 2 )); then continue; fi",
+    "    if (( i == 4 )); then break; fi",
+    "    (( sum += i ))",
+    "  done",
+    "  if [[ -v map[c] ]]; then unset \"map[c]\"; fi",
+    "  local out=\"\"",
+    "  for k in a b c; do",
+    "    if [[ -v map[$k] ]]; then out=\"${out}${k}:${map[$k]/_/=},\"; fi",
+    "  done",
+    "  local p0=\"${arr[0]#pre_}\"",
+    "  local p1=\"${p0%_suf}\"",
+    "  printf '%s|%s|%s\\n' \"$sum\" \"$out\" \"$p1\"",
+    "}",
+    "work"
+  ].join("\n"));
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "4|a:foo=bar,b:baz=qux,|one\n");
 });

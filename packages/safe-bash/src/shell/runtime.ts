@@ -3419,7 +3419,11 @@ export class Runtime {
     this._canFastMemoryRedirect = undefined;
     this.sourceFs = runtimeFileSystems.get(fs) ?? fs;
     this.backingFs = getRuntimeBackingFileSystem(this.sourceFs) ?? this.sourceFs;
-    this._isMemoryBackingFs = this.backingFs.constructor?.name === "MemoryFileSystem" && !Object.hasOwn(this.backingFs, "chdir") && !Object.hasOwn(this.backingFs, "readFile") && !Object.hasOwn(this.backingFs, "readStream") && !Object.hasOwn(this.backingFs, "stat") && !Object.hasOwn(this.backingFs, "open");
+    this._isMemoryBackingFs = Object.getPrototypeOf(this.backingFs) === MemoryFileSystem.prototype &&
+      Object.getOwnPropertyNames(this.backingFs).every(name => {
+        const method = Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, name)?.value;
+        return typeof method !== "function" || Object.getOwnPropertyDescriptor(this.backingFs, name)?.value === method;
+      });
     if (this._isMemoryBackingFs) (this.backingFs as { _activeRuntimeBudget?: Budget })._activeRuntimeBudget = budget;
     registerInternalYieldCheckpoint(signal, budget.yieldCheckpoint);
     if (commandSignal !== signal) {

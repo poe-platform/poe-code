@@ -47,6 +47,7 @@ for (const [source, stdout] of [
   ['arr=(a b c); IFS=:; x=${arr[*]}; echo "$x"', 'a:b:c\n'],
   ['arr=(a b c); IFS=:; x="${arr[*]}"; echo "$x"', 'a:b:c\n'],
   ['arr=(a b c); IFS=:; [[ ${arr[*]} == "a b c" ]] && echo ok; case ${arr[*]} in "a b c") echo ok;; esac', ''],
+  ['arr=(a b c); IFS=:; [[ ${arr[*]} == "a:b:c" ]] && echo ok; case ${arr[*]} in "a:b:c") echo ok;; esac', 'ok\nok\n'],
   ['HOME=/home; arr=(/home/a /home/b); x=${arr[@]#~/}; echo "$x"', 'a b\n'],
   ['HOME=/home; arr=(/home/a /home/b); x=${arr[@]/~/X}; echo "$x"', 'X/a X/b\n'],
   ['IFS=:; HOME=/home; arr=(/home/a /home/b); x=${arr[*]#~/}; echo "$x"', 'a:b\n'],

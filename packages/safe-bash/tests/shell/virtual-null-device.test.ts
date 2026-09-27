@@ -47,19 +47,20 @@ for (const deviceView of ["invalid", null, false, 0]) test(`invalid device view 
   assert.throws(() => new Shell({ fs, deviceView } as never), { message: "deviceView must be default or provided" });
 });
 
-for (const override of [false, true]) test(`provided device view preserves supplied ordinary null through nested execution: override=${override}`, async context => {
+for (const operator of [">", ">>", ">|"]) for (const override of [false, true]) test(`provided device view preserves supplied ordinary null through nested execution: ${operator}, override=${override}`, async context => {
   const initial = new MemoryFileSystem();
   const fs = override ? new MemoryFileSystem() : initial;
   await fs.mkdir("/dev");
   await fs.writeFile("/dev/null", new TextEncoder().encode("provided"));
-  await fs.writeFile("/job", new TextEncoder().encode("cat /dev/null; printf changed >/dev/null"));
+  await fs.writeFile("/job", new TextEncoder().encode(`cat /dev/null; printf changed ${operator}/dev/null`));
   const shell = new Shell({ fs: initial, deviceView: "provided" }).use(standardCommands());
   context.after(() => shell.dispose());
   const result = await shell.exec("(sh /job); cat /dev/null", override ? { fs } : {});
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stderr, "");
-  assert.equal(result.stdout, "providedchanged");
-  assert.equal(new TextDecoder().decode(await fs.readFile("/dev/null")), "changed");
+  const content = operator === ">>" ? "providedchanged" : "changed";
+  assert.equal(result.stdout, `provided${content}`);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/dev/null")), content);
   if (override) await assert.rejects(initial.stat("/dev"), { code: "ENOENT" });
 });
 
@@ -70,6 +71,20 @@ test("provided device view does not manufacture a missing null entry", async con
   const result = await shell.exec("test -e /dev/null");
   assert.equal(result.exitCode, 1);
   await assert.rejects(fs.stat("/dev/null"), { code: "ENOENT" });
+});
+
+test("provided null redirects preserve parent admission and ordinary file creation", async context => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs, deviceView: "provided" }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const missing = await shell.exec("printf rejected >/dev/null");
+  assert.equal(missing.exitCode, 1);
+  assert.equal(missing.stderr, "shell: line 1: /dev/null: No such file or directory\n");
+  await fs.mkdir("/dev");
+  const created = await shell.exec("{ printf created; } >/dev/null; cat /dev/null");
+  assert.equal(created.exitCode, 0, created.stderr);
+  assert.equal(created.stdout, "created");
+  assert.equal((await fs.stat("/dev/null")).type, "file");
 });
 
 test("provided device view retains canonical output accounting", async context => {

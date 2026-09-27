@@ -66,8 +66,8 @@ function setup(extensions: readonly ShellExtension[] = [readExtension(), arraysE
   return { shell, fs };
 }
 
-function body(entry: ReadCase): string {
-  return `value=OLD; fixed=LOCK; values=(KEEP STAY); ${entry.before ?? ""} read -r ${entry.args}; result=$?; printf 'read=%s value=<%s> fixed=<%s> count=%s array=<%s>;' "$result" "$value" "$fixed" "\${#values[@]}" "\${values[*]}"; IFS= read -r tail; printf 'next=%s:<%s>' "$?" "$tail"`;
+function body(entry: ReadCase, untimedProbe = false): string {
+  return `value=OLD; fixed=LOCK; values=(KEEP STAY); ${entry.before ?? ""} read -r ${entry.args}; result=$?; printf 'read=%s value=<%s> fixed=<%s> count=%s array=<%s>;' "$result" "$value" "$fixed" "\${#values[@]}" "\${values[*]}"; ${untimedProbe ? "TMOUT=0 " : ""}IFS= read -r tail; printf 'next=%s:<%s>' "$?" "$tail"`;
 }
 
 function pipe(bodySource: string): string {
@@ -91,8 +91,10 @@ function expected(patch: Partial<Expected>) {
 
 for (const profile of ["null", "pipe"] as const) for (const entry of cases) {
   test(`descriptor order native/${profile}: ${entry.name}`, async context => {
-    const source = profile === "pipe" ? pipe(body(entry)) : `{ ${body(entry)}; } 3>/dev/null`;
-    const oracle = nativeReference(profile === "pipe" ? body(entry) : source, profile === "pipe");
+    const nativeSource = profile === "pipe" ? body(entry) : `{ ${body(entry)}; } 3>/dev/null`;
+    const oracle = nativeReference(nativeSource, profile === "pipe");
+    // The target read keeps its timeout; observing the remaining input must not inherit it.
+    const source = profile === "pipe" ? pipe(body(entry, true)) : `{ ${body(entry, true)}; } 3>/dev/null`;
     const capture = expected({ ...entry.expected, ...(profile === "pipe" ? entry.pipe : {}) });
     assert.equal(oracle.status, 0);
     assert.deepEqual(oracle.stdout, capture.stdout);
@@ -102,6 +104,7 @@ for (const profile of ["null", "pipe"] as const) for (const entry of cases) {
     assert.equal((await subject.fs.stat("/dev/null")).type, "character");
     const actual = await subject.shell.exec(source, { stdin: Buffer.from(input), env: { LC_ALL: "C" } });
     context.diagnostic(JSON.stringify({ source, nativeSource: oracle.source,
+      observation: "TMOUT=0 only for the subsequent input probe; target read timing and frozen primary capture remain unchanged",
       native: { status: oracle.status, stdoutHex: oracle.stdout.toString("hex"), stderrHex: oracle.stderr.toString("hex") },
       actual: { status: actual.exitCode, stdoutHex: Buffer.from(actual.stdoutBytes).toString("hex"), stderrHex: Buffer.from(actual.stderrBytes).toString("hex") },
     }));

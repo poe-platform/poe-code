@@ -582,6 +582,29 @@ impl MemoryFs {
         }
         Ok(())
     }
+    pub fn rm(&self, filepath: &str) -> Result<(), FsError> {
+        self.rm_recursive(filepath)
+    }
+
+    pub fn readdir_deep(&self, filepath: &str) -> Vec<String> {
+        let state = self.state.read().unwrap();
+        let Ok(resolved) = Self::resolve_path_internal(&state, filepath, true, 0) else {
+            return Vec::new();
+        };
+        let prefix = if resolved == "/" {
+            "/".to_string()
+        } else {
+            format!("{resolved}/")
+        };
+        let mut results = Vec::new();
+        for (k, v) in &state.entries {
+            if k != &resolved && k.starts_with(&prefix) && matches!(v, VfsEntry::File { .. } | VfsEntry::Symlink { .. }) {
+                let rel = &k[prefix.len()..];
+                results.push(format!("{filepath}/{rel}"));
+            }
+        }
+        results
+    }
 }
 
 pub fn mkdirp<F>(mut mkdir_fn: F, filepath: &str, retries: usize) -> Result<(), FsError>

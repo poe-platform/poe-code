@@ -275,3 +275,31 @@ test("git integrates with ssh-keygen, gpg, openssl, SSH transport, and hooks in 
   assert.match(verifyOut.stdout + verifyOut.stderr, /Good "git" signature for alice@example\.com/);
   await execCmd(gitCmd, ["push", "origin", "main"], "/work/app");
 });
+
+test('Rust WASM exposes corrected log, range, status and branch semantics', async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir('/repo', { recursive: true });
+  const command = createGitCommand();
+  const run = async (args: string[]) => {
+    let stdout = '', stderr = '';
+    const result = await command.execute({ command: 'git', args, cwd: '/repo', env: {}, fs,
+      signal: new AbortController().signal, stdin: (async function* () {})(),
+      stdout: { write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } },
+      stderr: { write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } },
+    } as CommandContext);
+    return { exitCode: result.exitCode, stdout, stderr };
+  };
+  assert.equal((await run(['init', '-b', 'main'])).exitCode, 0);
+  for (const message of ['first', 'second']) {
+    await fs.writeFile('/repo/a', new TextEncoder().encode(message + '\n'));
+    assert.equal((await run(['add', '.'])).exitCode, 0);
+    assert.equal((await run(['commit', '-m', message])).exitCode, 0);
+  }
+  const head = (await run(['rev-parse', 'HEAD'])).stdout.trim();
+  assert.equal((await run(['log', '-1', '--pretty=oneline'])).stdout, `${head} second\n`);
+  assert.equal((await run(['log', 'HEAD~1..HEAD', '--format=%B'])).stdout, 'second\n\n');
+  assert.equal((await run(['status', '-sb'])).stdout, '## main\n');
+  assert.equal((await run(['diff', 'HEAD~1..HEAD'])).exitCode, 0);
+  assert.equal((await run(['branch', '-D', 'main'])).exitCode, 1);
+  assert.equal((await run(['branch', '--show-current'])).stdout, 'main\n');
+});

@@ -21,7 +21,9 @@
     "build": "node ../../scripts/guard-package-dist.mjs && mkdir -p dist && node scripts/build-wasm.mjs && tsc",
     "test": "node --import tsx --test src/*.test.ts",
     "test:unit": "node --import tsx --test src/*.test.ts",
-    "lint": "eslint src --ignore-pattern wasm.generated.ts && tsc --noEmit"
+    "lint": "eslint src --ignore-pattern wasm.generated.ts && tsc --noEmit",
+    "pretest": "npm run build",
+    "pretest:unit": "npm run build"
   },
   "dependencies": {},
   "devDependencies": {

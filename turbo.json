@@ -401,6 +401,16 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "mcp-protocol-rust#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-git#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

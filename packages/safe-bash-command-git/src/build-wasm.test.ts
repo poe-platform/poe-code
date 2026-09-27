@@ -20,6 +20,10 @@ for (const installed of [false, true]) test(`WASM build selects stable and decod
       }
       return Buffer.alloc(0);
     },
+    mkdirSync: (url: URL, options: { recursive: boolean }) => {
+      assert.equal(url.href, new URL("../dist/", import.meta.url).href);
+      assert.equal(options.recursive, true);
+    },
     readFileSync: () => bytes,
     writeFileSync: (url: URL, content: string | Uint8Array) => written.set(url.pathname, content)
   });

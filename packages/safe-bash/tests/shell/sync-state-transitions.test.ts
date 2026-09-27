@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { Shell } from "../../src/shell/index.js";
 import { basicCommands } from "../../src/commands/basic.js";
@@ -113,7 +114,7 @@ test("nested eval calling function resumes without replaying prefix across scala
 });
 
 test("compound loops preserve multi-arg unset, export, let, and quoted array expansion", async () => {
-  const res = await execute(`
+  const source = `
     arr=(foo_1 bar_2 foo_3 baz_4)
     acc=0
     for ((i=1; i<=20; i++)); do
@@ -127,10 +128,16 @@ test("compound loops preserve multi-arg unset, export, let, and quoted array exp
       (( acc += \${#EXP_A} + \${#EXP_B} + \${#s1} + \${#s2} + \${a:-0} + \${b:-0} ))
     done
     echo "$acc:$last:$EXP_A:$EXP_B"
-  `);
-  assert.equal(res.exitCode, 0);
-  assert.equal(res.stderr, "");
-  assert.equal(res.stdout, "992:40:v20:w20\n");
+  `;
+  const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], {
+    encoding: "utf8", env: { PATH: process.env.PATH, LC_ALL: "C" }, timeout: 5000,
+  });
+  assert.ifError(native.error);
+  assert.equal(native.status, 0, native.stderr);
+  const result = await execute(source);
+  assert.equal(result.exitCode, native.status, result.stderr);
+  assert.equal(result.stderr, native.stderr);
+  assert.equal(result.stdout, native.stdout);
 });
 
 test("compound loops execute multi-arg array unset, glob array trims, declare/typeset scalars, and assoc/keyed compound assignments synchronously", async () => {

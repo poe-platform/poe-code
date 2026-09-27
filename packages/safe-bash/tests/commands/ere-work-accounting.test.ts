@@ -68,8 +68,8 @@ test("ERE initialization, reset, close and result copies admit work before stora
   const program = await compileEre("((a|b))", ledger);
   ledger.admissions.length = 0;
   assert.deepEqual((await matchEre(program, "a", ledger)).values, ["a", "a", "a"]);
-  // Reset combines its three-entry copy and one visit in a single work charge.
-  for (const [allocation, work, count] of [[7, 6, 1], [6, 4, 1], [12, 6, 2], [13, 9, 1]]) {
+  // Reset admits its three-entry copy before storage and charges visits separately.
+  for (const [allocation, work, count] of [[7, 6, 1], [6, 3, 1], [12, 6, 2], [13, 9, 1]]) {
     const indices = ledger.admissions.flatMap((admission, index) => admission.resource === "allocationUnits" && admission.amount === allocation ? [index] : []);
     assert.equal(indices.length, count, `allocation ${allocation}`);
     for (const index of indices) assert.deepEqual(ledger.admissions[index - 1], { resource: "work", amount: work });

@@ -731,9 +731,10 @@ function member(value: number, name: string): boolean {
 export function* searchBreSteps(descriptor: BreSearchDescriptor, subject: Uint8Array, options: { readonly ownedUnits?: number } = {}): Generator<void, BreSearchResult> {
   const work = new Work(descriptor.limits);
   const program = yield* prepareSearch(descriptor, subject, work, options);
-  const unbounded = descriptor.limits.maxStates === Infinity && descriptor.limits.maxAllocatedUnits === Infinity;
+  // The work ceiling must not change the path: reported steps must suffice on replay.
+  const canSkipCandidates = descriptor.limits.maxStates === Infinity && descriptor.limits.maxAllocatedUnits === Infinity;
   const inst0 = program.instructions[0];
-  if (unbounded && (inst0?.kind === "start" || inst0?.kind === "begbuf")) {
+  if (canSkipCandidates && (inst0?.kind === "start" || inst0?.kind === "begbuf")) {
     const inst1 = program.instructions[1];
     if (inst1?.kind === "literal" && program.input.values[0] !== inst1.value) {
       work.charge(6);
@@ -743,7 +744,7 @@ export function* searchBreSteps(descriptor: BreSearchDescriptor, subject: Uint8A
     if (end !== undefined) return { offsetUnit: "byte", matched: true, overall: { start: program.input.boundaries[0]!, end: program.input.boundaries[end]! }, steps: work.steps };
     return { offsetUnit: "byte", matched: false, overall: null, steps: work.steps };
   }
-  const literalFirst = unbounded && inst0?.kind === "literal" ? inst0.value : undefined;
+  const literalFirst = canSkipCandidates && inst0?.kind === "literal" ? inst0.value : undefined;
   for (let candidate = 0; candidate <= program.input.values.length; candidate++) {
     if (literalFirst !== undefined && program.input.values[candidate] !== literalFirst) {
       work.charge(1);

@@ -40,11 +40,11 @@ for (const profile of ["byte", "utf8-scalar"] as const) {
   });
 }
 
-test("candidate search shares its total work rather than resetting per candidate", () => {
-  const selected = descriptor("z");
+for (const pattern of ["z", "^z", "\\`z", "^a", "a*"]) test(`search preserves its cumulative work at the exact step ceiling: ${pattern}`, () => {
+  const selected = descriptor(pattern);
   const subject = Buffer.from("aaaaaaaaaaaaaaaaaaaaaaaa");
   const completed = finish(searchBreSteps(selected, subject));
-  assert.equal(completed.matched, false);
+  if (pattern === "z") assert.equal(completed.matched, false);
   assert.throws(() => finish(searchBreSteps({ ...selected, limits: { ...selected.limits, maxSteps: completed.steps - 1 } }, subject)), { category: "limit" });
   assert.deepEqual(finish(searchBreSteps({ ...selected, limits: { ...selected.limits, maxSteps: completed.steps } }, subject)), completed);
 });

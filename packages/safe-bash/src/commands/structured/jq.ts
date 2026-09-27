@@ -7,7 +7,7 @@ import { createSyncSingleChunkByteSource } from "../search/requirements.js";
 import { joinPath } from "../../contracts/path.js";
 import { escapeText, writeDiagnostic } from "../../escaping.js";
 import { Budget, copyObject, interruptible, JqHalt, JqError, JqLimitError, object, put, resolveJqLimits, truth, wellFormed, type InputLocation, type JqLimits, type Json, type StructuredCommandsOptions } from "./limits.js";
-import { getLastFastSelectProjectSavedOutBuf, jsonValues, parseJson, rawValues, stringify, tryProcessFlatJsonChunkSync, tryProcessFlatSelectProjectChunkSync, tryStringifyCompactSync, tryWriteCompactSync, type FlatSchemaPlan, type JsonFormat } from "./input.js";
+import { getLastFastSelectProjectSavedOutBuf, jsonValues, parseJson, rawValues, stringify, tryProcessFlatJsonChunkSync, tryProcessFlatSelectProjectChunkSync, tryWriteCompactSync, type FlatSchemaPlan, type JsonFormat } from "./input.js";
 import { Interpreter } from "./interpreter.js";
 import { moduleProgram, parse, type Ast } from "./parser.js";
 import { sortObjectKeys } from "./values.js";
@@ -745,7 +745,8 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
   };
   const flushStdout = (): Promise<void> | void => {
     if (outPos > 0 && outBuf) {
-      const slice = outBuf.subarray(0, outPos);
+      // Sinks may retain admitted bytes after write settles; the staging slab is reusable.
+      const slice = new Uint8Array(outBuf.subarray(0, outPos));
       outPos = 0;
       try {
         const pending = writeBytes(context.stdout, slice, context.signal);
@@ -817,16 +818,16 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
       }
       if (isRawStr) {
         const str = result as string;
+        const chunkLen = str.length + suffix.length;
+        // A declined probe neither writes nor charges work that the fallback repeats.
+        if (outPos + chunkLen > OUT_BUF_SIZE) return false;
         for (let i = 0; i < str.length; i++) {
           if (str.charCodeAt(i) >= 0x80) return false;
         }
         const remaining = limits.maxOutputBytes - budget.outputBytes;
-        const chunkLen = str.length + suffix.length;
         // A zero-byte result still needs a sink write to preserve backpressure.
         if (chunkLen === 0) return false;
         if (chunkLen > remaining) throw new JqLimitError("maxOutputBytes");
-        if (chunkLen > OUT_BUF_SIZE) return false;
-        if (outPos + chunkLen > OUT_BUF_SIZE) return false;
         budget.step();
         budget.value(str);
         budget.results++;
@@ -851,27 +852,12 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
         outPos = newPos;
         return true;
       }
-      budget.step();
-      budget.value(result);
-      const remaining = limits.maxOutputBytes - budget.outputBytes;
-      const text = tryStringifyCompactSync(result, budget, Math.max(0, remaining - suffix.length), "maxOutputBytes");
-      if (text === undefined) return false;
-      const chunkLen = text.length + suffix.length;
-      if (chunkLen > remaining) throw new JqLimitError("maxOutputBytes");
-      if (chunkLen > OUT_BUF_SIZE) return false;
-      if (outPos + chunkLen > OUT_BUF_SIZE) return false;
-      budget.results++;
-      budget.outputBytes += chunkLen;
-      let pos = outPos;
-      for (let i = 0; i < text.length; i++) buf[pos++] = text.charCodeAt(i);
-      for (let i = 0; i < suffix.length; i++) buf[pos++] = suffix.charCodeAt(i);
-      outPos = pos;
-      return true;
+      return false;
     };
     const publishResult = async (result: Json): Promise<void> => {
+      await flushStdout();
       const pt = budget.tickSync();
       if (pt) await pt;
-      if (tryPublishSync(result)) return;
       budget.value(result);
       if (++budget.results > limits.maxResults) throw new JqLimitError("maxResults");
       const remaining = limits.maxOutputBytes - budget.outputBytes;
@@ -885,7 +871,6 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
       const byteLen = chunkBuf.byteLength;
       if (byteLen > remaining) throw new JqLimitError("maxOutputBytes");
       budget.outputBytes += byteLen;
-      await flushStdout();
       try { await writeBytes(context.stdout, chunkBuf, context.signal); }
       catch (error) { stdoutWriteFailed = true; throw error; }
     };

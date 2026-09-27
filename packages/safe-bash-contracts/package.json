@@ -101,5 +101,10 @@
   },
   "dependencies": {
     "@poe-code/safe-fs": "*"
+  },
+  "poeCode": {
+    "bundle": {
+      "sharedRuntime": true
+    }
   }
 }

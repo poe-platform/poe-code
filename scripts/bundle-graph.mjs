@@ -1,8 +1,23 @@
 import path from "node:path";
 import { readFile } from "node:fs/promises";
 
-export function resolveConsumerGraph(graph, canonical) {
+export function resolveConsumerGraph(graph, canonical, sharedWorkspaces = []) {
+  const targets = new Map();
+  for (const { directory, pkg } of sharedWorkspaces) {
+    for (const [route, target] of Object.entries(pkg.exports)) {
+      const specifier = pkg.name + (route === "." ? "" : route.slice(1));
+      const runtime = path.resolve(directory, target.import);
+      targets.set(specifier, runtime);
+      if (graph.alias[specifier]) targets.set(graph.alias[specifier], runtime);
+    }
+  }
   return {
+    ...(targets.size ? { plugins: [{ name: "shared-workspace-runtime", setup(builder) {
+      builder.onResolve({ filter: /.*/ }, args => {
+        const target = targets.get(args.path) ?? targets.get(path.join(args.path, "index.ts"));
+        return target ? { path: target, namespace: "file", external: true } : undefined;
+      });
+    } }] } : {}),
     alias: Object.fromEntries(
       Object.entries(graph.alias).map(([specifier, source]) => [
         specifier,

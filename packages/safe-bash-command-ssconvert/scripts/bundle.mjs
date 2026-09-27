@@ -1,4 +1,7 @@
 import { build } from "esbuild";
+import { readFile } from "node:fs/promises";
+
+const manifest = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
 
 await build({
   entryPoints: [new URL("../src/index.ts", import.meta.url).pathname],
@@ -7,6 +10,7 @@ await build({
   platform: "node",
   target: "node22",
   format: "esm",
+  external: ["@poe-code/safe-fs", "poe-code/safe-fs", ...Object.keys(manifest.devDependencies ?? {})],
   sourcemap: true
 });
 

@@ -1,3 +1,7 @@
+import { build } from "esbuild";
+import { createContext, runInContext } from "node:vm";
+import * as commandContracts from "../packages/safe-bash-contracts/src/command.js";
+import * as filesystem from "../packages/safe-fs/src/core.js";
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it } from "vitest";
 import { canonicalFs } from "../packages/package-lint/src/bundle-policy.js";
@@ -7,6 +11,32 @@ import {
   resolveBundleGraph,
   resolveConsumerGraph
 } from "./bundle-graph.mjs";
+
+it("shares owned arguments between independently bundled shell and command SDK entries", async () => {
+  const contractRoot = { directory: "/repo/packages/safe-bash-contracts", pkg: {
+    name: "safe-bash-contracts", exports: { "./command": { import: "./dist/command.js" } }
+  } };
+  const graph = resolveConsumerGraph({ alias: {
+    "safe-bash-contracts/command": new URL("../packages/safe-bash-contracts/src/command.ts", import.meta.url).pathname,
+    "@poe-code/safe-fs/core": new URL("../packages/safe-fs/src/core.ts", import.meta.url).pathname,
+  }, external: [] }, canonicalFs, [contractRoot]);
+  const modules = [];
+  for (const name of ["createCommandArguments", "getCommandArguments"]) {
+    const output = await build({ ...graph, stdin: { contents: `export { ${name} } from "safe-bash-contracts/command";`, resolveDir: process.cwd() },
+      outfile: "/repo/dist/sdk.js", bundle: true, write: false, platform: "node", format: "cjs", target: "node22" });
+    const module = { exports: {} as typeof commandContracts };
+    const context = createContext({ module, exports: module.exports, TextEncoder, TextDecoder, Uint8Array, Buffer,
+      require(specifier: string) {
+        if (specifier === "../packages/safe-bash-contracts/dist/command.js") return commandContracts;
+        if (specifier === "poe-code/safe-fs/core") return filesystem;
+        throw new Error(`Unexpected dependency: ${specifier}`);
+      } });
+    runInContext(output.outputFiles[0]!.text, context);
+    modules.push(module.exports);
+  }
+  const carrier = modules[0]!.createCommandArguments(["value"]);
+  expect(modules[1]!.getCommandArguments({ args: carrier.args, argumentValues: carrier })).toBe(carrier);
+});
 
 function createFileSystem(rootPackageJson: object) {
   const volume = Volume.fromJSON({

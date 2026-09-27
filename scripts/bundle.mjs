@@ -36,18 +36,32 @@ for (const dir of workspaceDirs.filter((d) => d.isDirectory())) {
 }
 
 const workspaceGraph = await resolveBundleGraph(rootDir, packageJsons);
+const sharedWorkspaces = packageJsons.filter(({ pkg }) => pkg.poeCode?.bundle?.sharedRuntime === true)
+  .map(({ dir, pkg }) => ({ directory: path.join(packagesDir, dir), pkg }));
 const {
   alias: workspaceAliases,
   external: externalDeps,
+  plugins: sharedRuntimePlugins = [],
   workspacePackageNames
-} = { ...resolveConsumerGraph(workspaceGraph, canonicalFs), workspacePackageNames: workspaceGraph.workspacePackageNames };
+} = { ...resolveConsumerGraph(workspaceGraph, canonicalFs, sharedWorkspaces), workspacePackageNames: workspaceGraph.workspacePackageNames };
 const consumerBuildOptions = {
   alias: workspaceAliases,
   external: externalDeps,
   absWorkingDir: rootDir,
-  metafile: true
+  metafile: true,
+  plugins: sharedRuntimePlugins
 };
 const consumerBuilds = [];
+for (const { directory, pkg } of sharedWorkspaces) {
+  const graph = resolveConsumerGraph(workspaceGraph, canonicalFs);
+  const entryPoints = Object.fromEntries(Object.values(pkg.exports).map(target => {
+    const entry = target.import.slice("./dist/".length, -3);
+    return [entry, path.join(directory, "src", entry + ".ts")];
+  }));
+  consumerBuilds.push(await esbuild.build({ ...graph, entryPoints, outdir: path.join(directory, "dist"), bundle: true, splitting: true,
+    platform: "neutral", format: "esm", target: "es2022", sourcemap: true, metafile: true }));
+}
+
 
 // Root package.json is reused below to verify external imports are declared.
 const packageJson = JSON.parse(await readFile(path.join(rootDir, "package.json"), "utf8"));
@@ -127,7 +141,7 @@ const mainBuild = await esbuild.build({
   ...consumerBuildOptions,
   banner: undefined,
   sourcemap: true,
-  plugins: [stripShebangPlugin],
+  plugins: [...consumerBuildOptions.plugins, stripShebangPlugin],
   loader: { ".md": "text", ".mustache": "text", ".log": "text" },
   metafile: true
 });
@@ -139,6 +153,7 @@ await publishBundleOutputs(mainBuild, {
 });
 consumerBuilds.push(mainBuild);
 const browserShellOptions = resolveBrowserShellBuild(rootDir);
+browserShellOptions.plugins.unshift(...sharedRuntimePlugins);
 browserShellOptions.alias = { ...workspaceAliases, ...browserShellOptions.alias };
 browserShellOptions.external = [...new Set([...browserShellOptions.external, ...canonicalFsRoutes.map(route => route.specifier)])];
 const browserShellBuild = await esbuild.build(browserShellOptions);
@@ -157,7 +172,7 @@ consumerBuilds.push(
     outfile: path.join(rootDir, "dist/agent.js"),
     ...consumerBuildOptions,
     sourcemap: true,
-    plugins: [stripShebangPlugin],
+    plugins: [...consumerBuildOptions.plugins, stripShebangPlugin],
     loader: { ".md": "text", ".mustache": "text", ".log": "text" }
   })
 );
@@ -172,7 +187,7 @@ consumerBuilds.push(
     outfile: path.join(rootDir, "dist/credentials.js"),
     ...consumerBuildOptions,
     sourcemap: true,
-    plugins: [stripShebangPlugin]
+    plugins: [...consumerBuildOptions.plugins, stripShebangPlugin]
   })
 );
 
@@ -187,7 +202,7 @@ for (const entryPoint of ["config", "config-testing"]) {
       outfile: path.join(rootDir, `dist/${entryPoint}.js`),
       ...consumerBuildOptions,
       sourcemap: true,
-      plugins: [stripShebangPlugin]
+      plugins: [...consumerBuildOptions.plugins, stripShebangPlugin]
     })
   );
 }
@@ -202,7 +217,7 @@ consumerBuilds.push(
     outfile: path.join(rootDir, "dist/skills.js"),
     ...consumerBuildOptions,
     sourcemap: true,
-    plugins: [stripShebangPlugin],
+    plugins: [...consumerBuildOptions.plugins, stripShebangPlugin],
     loader: { ".md": "text", ".mustache": "text", ".log": "text" }
   })
 );
@@ -221,7 +236,7 @@ if (providerEntryPoints.length > 0) {
       ...consumerBuildOptions,
       banner: undefined,
       sourcemap: true,
-      plugins: [stripShebangPlugin],
+      plugins: [...consumerBuildOptions.plugins, stripShebangPlugin],
       loader: { ".md": "text", ".mustache": "text", ".log": "text" }
     })
   );
@@ -239,21 +254,21 @@ consumerBuilds.push(
     outfile: path.join(rootDir, "packages/memory/dist/index.js"),
     ...consumerBuildOptions,
     sourcemap: true,
-    plugins: [stripShebangPlugin]
+    plugins: [...consumerBuildOptions.plugins, stripShebangPlugin]
   })
 );
 
-// The public CSV SDK must inline its private office-package implementation.
-for (const entryPoint of ["index", "codecs/utf8", "codecs/python"]) {
+// Public spreadsheet SDKs inline their engines while sharing invocation contracts.
+for (const [workspace, entries] of [["safe-bash-command-csvkit", ["index", "codecs/utf8", "codecs/python"]], ["safe-bash-command-ssconvert", ["index"]]]) for (const entryPoint of entries) {
   consumerBuilds.push(await esbuild.build({
-    entryPoints: [path.join(rootDir, "packages/safe-bash-command-csvkit/src", entryPoint + ".ts")],
+    entryPoints: [path.join(rootDir, "packages", workspace, "src", entryPoint + ".ts")],
     bundle: true,
     platform: "node",
     target: "node22",
     format: "esm",
-    outfile: path.join(rootDir, "packages/safe-bash-command-csvkit/dist", entryPoint + ".js"),
+    outfile: path.join(rootDir, "packages", workspace, "dist", entryPoint + ".js"),
     ...consumerBuildOptions,
-    external: Object.keys({ ...packageJson.dependencies, ...packageJson.optionalDependencies }),
+    external: [...Object.keys({ ...packageJson.dependencies, ...packageJson.optionalDependencies }), ...canonicalFs.routes.map(route => route.specifier)],
     sourcemap: true,
   }));
 }
@@ -270,7 +285,7 @@ consumerBuilds.push(
     outfile: path.join(rootDir, "packages/superintendent/dist/mcp.js"),
     ...consumerBuildOptions,
     sourcemap: true,
-    plugins: [stripShebangPlugin],
+    plugins: [...consumerBuildOptions.plugins, stripShebangPlugin],
     loader: { ".md": "text", ".mustache": "text", ".log": "text" },
     banner: { js: "#!/usr/bin/env node" }
   })
@@ -296,7 +311,7 @@ for (const { entryPoint, outfile } of [
       outfile: path.join(rootDir, outfile),
       ...consumerBuildOptions,
       sourcemap: false,
-      plugins: [stripShebangPlugin],
+      plugins: [...consumerBuildOptions.plugins, stripShebangPlugin],
       loader: { ".json": "json" },
       banner: { js: "#!/usr/bin/env node" }
     })

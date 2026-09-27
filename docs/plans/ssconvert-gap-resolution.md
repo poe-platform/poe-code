@@ -456,6 +456,13 @@ open. XLSX still refuses raw-NUL formula expressions without publishing output.
 CSV import/export have separate lossy NUL policies; inspect both before changing
 either. See `reference.biffNulStrings`; no family is closed.
 
+LibreOffice's formula-cache path is now traced separately: ordinary string
+results use `t="str"`; its inline-string branch handles invalid/default results.
+The loader interns raw cached text only for known-good generators and requests
+recalculation for line breaks. This does not establish the shared-string escape
+contract for formulas or their caches. Preserve that distinction and the open
+NUL gaps; see `reference.xlsxCellStringEscapes.formulaCacheSource`.
+
 Windows Works v3 references now use the signed column/row widths and target
 wrapping identified in libwps. Six regressions failed before correction; all
 303 Lotus checks pass, including the WK1/WK2 controls. Public recalculating

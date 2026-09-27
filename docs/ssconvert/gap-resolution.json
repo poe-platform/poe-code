@@ -971,7 +971,19 @@
       "literalPreservation": "Protect each original underscore that begins an escape, including overlapping tokens and literal _x005F_xHHHH_. LibreOffice's shared serializer has assumptions for already-escaped text and _x0020_; those are not safe for raw workbook cell strings. Single-pass readback exposed loss when copying that overlap shortcut, so the candidate preserves each literal token explicitly.",
       "validation": "Sixteen of nineteen focused regressions failed before implementation; all 221 tests in eleven XLSX files pass after repair. Covers NUL/C0/C1, U+FFFE/U+FFFF, escaped surrogate pairs, malformed and uppercase-X literals, single-pass/overlapping escapes, UTF-8 rich-run offsets, shared/inline storage and both XLSX editions. Generic XML escaping remains strict.",
       "publicQualification": "Maintained package lint, source/test/consumer types and selected build pass. Compiled public SDK preserves eight strings and rich-run offsets in each edition; XLSX/XLSX2 outputs are 4515/4518 bytes. Python zipfile/ElementTree independently parses all ten XML members per output and verifies sixteen decoded values. This is structural/source-contract verification, not a LibreOffice application run. The first SDK probe compared object prototypes rather than run fields; correcting that probe required no product change.",
-      "remaining": "Qualify native workbook application readback and other ST_Xstring fields. Formula cached strings use a distinct path in both candidate and inspected Calc source; generic formulas/attributes must not acquire string escaping blindly. Rich-text unpaired UTF-16 units, BIFF/CSV NUL semantics and complete format coverage remain open. No family is closed."
+      "remaining": "Qualify native workbook application readback and other ST_Xstring fields. Formula cached strings use a distinct path in both candidate and inspected Calc source; generic formulas/attributes must not acquire string escaping blindly. Rich-text unpaired UTF-16 units, BIFF/CSV NUL semantics and complete format coverage remain open. No family is closed.",
+      "formulaCacheSource": {
+        "revision": "bce0998afefdbc355585ca324285661a2170ba77",
+        "files": {
+          "sc/source/filter/excel/xetable.cxx": "80e2100a4f38eb195e8e7a8d4035586f4df820743b2904a4bc0cd3947064ac9a",
+          "sc/source/filter/excel/xestream.cxx": "a41dc92dea58ee9b12db9a719ee04995f0a6df0624d4262c8c1d6cc852bfca9f",
+          "sc/source/filter/oox/worksheethelper.cxx": "1f773758eea0fb11851e6cfb3c619b03a6c1129cae7e37d9f504e989829a1a48",
+          "sc/source/filter/oox/formulabuffer.cxx": "3a879878e983b23b8af5f26cac45dc426fcd181e82b0e3fb5807f4185c68ad6a"
+        },
+        "finding": "GetFormulaTypeAndValue (xestream.cxx 676-703) selects t=str for ordinary string results; inlineStr is the Invalid/default result branch, not the ordinary cache path. XclExpFormulaCell::SaveXml (xetable.cxx 943-1097) writes formula text and cached v through writeEscaped. Switching all formula caches to inline strings is not justified by that branch.",
+        "reader": "SheetDataContext buffers raw v character content and WorksheetHelper forwards it to FormulaBuffer. Shared and ordinary string-cache paths intern the raw value only for a known-good generator (formulabuffer.cxx 210-220,314-377); neither path calls decodeXString. Ordinary cached strings containing line breaks also request an on-load recalculation. This differs from RichStringPortion decoding and does not establish lossless native string-cache roundtrips.",
+        "remaining": "Raw-NUL formula expressions and unique formula string caches remain open. Establish primary format semantics and qualify actual formula/cache readbacks before choosing an encoding; do not apply shared-string decoding to generic formula text or infer native cache fidelity from shared/inline cell strings."
+      }
     },
     "lotusControlCharacters": {
       "status": "implemented C0/C1 control group and literal system-range marker import",

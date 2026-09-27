@@ -10,7 +10,7 @@ import { captureIgnoredTrapSignals } from "./trap.js";
 import { writeDiagnostic } from "../escaping.js";
 import { cancelTurn, hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, registerInternalYieldCheckpoint, runYieldCheckpoint, scheduleTurn, yieldTurn, type TurnHandle } from "../contracts/yield.js";
 import {
-  ACCESS_MODES, FsError, composeMiddleware, createBytePipe, normalizePath, pipeBytes, resolvePath, validateExitCode, writeBytes, writeText, } from "../contracts/index.js";
+  ACCESS_MODES, FsError, basename, composeMiddleware, createBytePipe, dirname, normalizePath, pipeBytes, resolvePath, validateExitCode, writeBytes, writeText, } from "../contracts/index.js";
 import type {
   ByteSink, ByteSource, CommandContext, CommandDefinition, CommandInvoker, CommandRegistry, CommandResult, FileSystem, Middleware, } from "../contracts/index.js";
 import { createBcCommands } from "../commands/bc/index.js";
@@ -17407,7 +17407,7 @@ export class Runtime {
     if (w0Plain === "dirname" && cmd.words.length === 2) {
       const wVal = this.fastValueWord(cmd.words[1]!, state, io, true, false, false, true, undefined, part.line);
       if (typeof wVal !== "string" || wVal.startsWith("-") || wVal.includes("\0")) return undefined;
-      const parent = path.posix.dirname(wVal);
+      const parent = dirname(wVal);
       let pEnd = parent.length;
       while (pEnd > 1 && parent[pEnd - 1] === "/") pEnd--;
       let res = parent.slice(0, pEnd);
@@ -17431,7 +17431,7 @@ export class Runtime {
         if (typeof v2 !== "string" || v2.includes("\0")) return undefined;
         wVal2 = v2;
       }
-      let res = /^\/+$/u.test(wVal1) ? "/" : path.posix.basename(wVal1);
+      let res = /^\/+$/u.test(wVal1) ? "/" : basename(wVal1);
       if (wVal2 && res !== wVal2 && res.endsWith(wVal2)) res = res.slice(0, -wVal2.length);
       while (res.endsWith("\n")) res = res.slice(0, -1);
       const byteLength = (res.length * 3 > 127 ? shellValueByteLength(res) : res.length) + 1;

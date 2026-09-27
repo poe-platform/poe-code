@@ -367,6 +367,15 @@ targets even when the underlying token is relative. Native operation qualificati
 BIFF persistence, deleted-sheet behavior and the Lotus endpoint-bit disagreement
 remain open.
 
+The BIFF exporter audit now records pinned LibreOffice `xeformula.cxx` under
+`reference.sheetReferenceSemantics.biffExportSource`. Its cell/range exporter
+resolves relative sheets at the base position and writes fixed EXTERNSHEET links;
+row/column relativity is encoded separately. A missing base position can instead
+produce an invalid tab. Next implement a diagnosed fixed-target export for known
+anchors and qualify it independently. This does not preserve relative-sheet copy
+semantics or establish lossless relative named-expression roundtrips.
+
+
 LibreOffice's separate WK3/WK4 reader also exposed a missing BOF version:
 `0x1000`, subtype 4, with a 26-byte header. The importer now detects that WK3
 profile and decodes its cell/name references and two-byte numeric formula

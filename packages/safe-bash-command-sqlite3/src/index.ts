@@ -153,8 +153,8 @@ function formatSqlQuote(v: SqlValue): string {
   if (typeof v === "number") {
     return String(v);
   }
-  if (typeof v === "string") {
-    return `'${v.replace(/'/g, "''")}'`;
+  if (typeof v === "string" || v instanceof String) {
+    return `'${String(v).replace(/'/g, "''")}'`;
   }
   let hex = "";
   for (const b of v) {

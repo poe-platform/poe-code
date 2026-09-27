@@ -1,8 +1,8 @@
 const SQLITE_MAGIC = "SQLite format 3\0";
 const DEFAULT_PAGE_SIZE = 4096;
 
-// eslint-disable-next-line @typescript-eslint/no-wrapper-object-types -- Boxed numbers preserve REAL storage for integral values.
-export type SqlValue = null | number | bigint | Number | string | Uint8Array;
+// eslint-disable-next-line @typescript-eslint/no-wrapper-object-types -- Boxed numbers preserve REAL storage; boxed strings preserve JSON expression subtype.
+export type SqlValue = null | number | bigint | Number | String | string | Uint8Array;
 
 export interface StoredTableMeta {
   type: "table" | "index" | "view" | "trigger";
@@ -164,8 +164,8 @@ function encodeRecordValue(val: SqlValue): { serialType: number; body: Uint8Arra
     view.setFloat64(0, val, false);
     return { serialType: 7, body: b };
   }
-  if (typeof val === "string") {
-    const encoded = textEncoder.encode(val);
+  if (typeof val === "string" || val instanceof String) {
+    const encoded = textEncoder.encode(String(val));
     return { serialType: encoded.byteLength * 2 + 13, body: encoded };
   }
   const u8 = val as Uint8Array;
@@ -549,7 +549,7 @@ function compareSqlValuesForBTree(a: SqlValue, b: SqlValue): number {
   const rank = (v: SqlValue): number => {
     if (v === null || v === undefined) return 0;
     if (typeof v === "number" || typeof v === "bigint" || v instanceof Number) return 1;
-    if (typeof v === "string") return 2;
+    if (typeof v === "string" || v instanceof String) return 2;
     return 3;
   };
   const ra = rank(a);

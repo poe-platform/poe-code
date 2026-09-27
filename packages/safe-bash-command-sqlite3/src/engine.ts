@@ -7,6 +7,8 @@ import {
 } from "./btree.js";
 
 export function serializeSqlJson(value: unknown, preserveRealType = true): string {
+  if (value instanceof JsonText && preserveRealType) return value.valueOf();
+  if (value instanceof String) return JSON.stringify(value.valueOf());
   if (typeof value === "bigint") return value.toString();
   if (value instanceof Number) {
     const number = value.valueOf();
@@ -22,6 +24,8 @@ export function serializeSqlJson(value: unknown, preserveRealType = true): strin
 }
 
 export type { SqlValue };
+
+class JsonText extends String {}
 
 export interface QueryResultSet {
   columns: string[];
@@ -935,7 +939,7 @@ function typeRank(v: SqlValue): number {
   if (typeof v === "number" || typeof v === "bigint" || v instanceof Number) {
     return 1;
   }
-  if (typeof v === "string") {
+  if (typeof v === "string" || v instanceof String) {
     return 2;
   }
   return 3; // Uint8Array blob
@@ -959,8 +963,8 @@ export function compareSqlValues(a: SqlValue, b: SqlValue, collation = "BINARY")
     return nA < nB ? -1 : nA > nB ? 1 : 0;
   }
   if (rA === 2) {
-    let sA = a as string;
-    let sB = b as string;
+    let sA = String(a);
+    let sB = String(b);
     const col = collation.toUpperCase();
     if (col === "RTRIM") {
       sA = sA.replace(/ +$/, "");
@@ -995,8 +999,8 @@ function toSqlNumber(v: SqlValue): number {
   if (typeof v === "number") {
     return v;
   }
-  if (typeof v === "string") {
-    const trimmed = v.trim();
+  if (typeof v === "string" || v instanceof String) {
+    const trimmed = String(v).trim();
     const m = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/.exec(trimmed);
     return m ? Number(m[0]) : 0;
   }
@@ -1050,7 +1054,8 @@ function arithmeticNumber(value: SqlValue): SqlValue {
 }
 
 // SQLite derives affinity from the declared type in this precedence order.
-function applyColumnAffinity(value: SqlValue, declaredType: string): SqlValue {
+function applyColumnAffinity(storedValue: SqlValue, declaredType: string): SqlValue {
+  let value = storedValue instanceof String ? storedValue.valueOf() : storedValue;
   if (value === null || value instanceof Uint8Array) return value;
   const type = declaredType.toUpperCase();
   const integer = type.includes("INT");
@@ -1084,8 +1089,8 @@ export function toSqlString(v: SqlValue): string {
   if (v === null || v === undefined) {
     return "";
   }
-  if (typeof v === "string") {
-    return v;
+  if (typeof v === "string" || v instanceof String) {
+    return String(v);
   }
   if (typeof v === "bigint") {
     return v.toString();
@@ -2828,9 +2833,12 @@ export class SqliteDatabase {
         : null;
       for (const r of tbl.rows) {
         yield;
-        r.data[colDef.name] = defVal;
+        r.data[colDef.name] = applyColumnAffinity(defVal, colDef.type);
       }
-      tbl.sql = tbl.sql.replace(/\)\s*$/, `, ${colDef.name} ${colDef.type})`);
+      const schemaTokens = tokenizeSql(tbl.sql);
+      const closingIndex = schemaTokens.map((token) => token.value).lastIndexOf(")");
+      schemaTokens.splice(closingIndex, 0, ...tokenizeSql(","), ...tokens.slice(idx));
+      tbl.sql = reconstructTokensSql(schemaTokens);
       return;
     }
 
@@ -2922,8 +2930,8 @@ export class SqliteDatabase {
       const n = val.valueOf();
       return Number.isFinite(n) && Number.isInteger(n) ? `${n}.0` : String(n);
     }
-    if (typeof val === "string") {
-      return `'${val.replace(/'/g, "''")}'`;
+    if (typeof val === "string" || val instanceof String) {
+      return `'${String(val).replace(/'/g, "''")}'`;
     }
     let hex = "";
     for (const b of val as Uint8Array) {
@@ -4642,12 +4650,8 @@ export class SqliteDatabase {
     }
 
     return {
-      columns: selectTargets.map((t) => {
-        return t.alias;
-      }),
-      rows: finalProjected.map((p) => {
-        return p.values;
-      })
+      columns: selectTargets.map((t) => t.alias),
+      rows: finalProjected.map((p) => p.values.map((value) => value instanceof String ? value.valueOf() : value))
     };
   }
 
@@ -5994,16 +5998,16 @@ export class SqliteDatabase {
     }
 
     if (u === "JSON_GROUP_OBJECT") {
-      const obj: Record<string, unknown> = {};
+      const entries: string[] = [];
       for (const r of filteredGroup) {
         yield;
         const k = yield* this.evalExprSteps(expr.args[0]!, r, positionalParams, cteScope);
         const v = yield* this.evalExprSteps(expr.args[1]!, r, positionalParams, cteScope);
         if (k !== null && k !== undefined) {
-          obj[toSqlString(k)] = this.sqlValToJsJson(v);
+          entries.push(`${JSON.stringify(toSqlString(k))}:${serializeSqlJson(v)}`);
         }
       }
-      return serializeSqlJson(obj);
+      return new JsonText(`{${entries.join(",")}}`);
     }
 
     let vals = yield* stepMap(filteredGroup, function* (r) {
@@ -6024,11 +6028,7 @@ export class SqliteDatabase {
           return true;
         }, this);
       }
-      return serializeSqlJson(
-        vals.map((v) => {
-          return this.sqlValToJsJson(v);
-        })
-      );
+      return new JsonText(serializeSqlJson(vals));
     }
 
     const nonNull = vals.filter((v): v is Exclude<SqlValue, null> => v !== null && v !== undefined);
@@ -6135,24 +6135,6 @@ export class SqliteDatabase {
     }
 
     return null;
-  }
-
-  private sqlValToJsJson(v: SqlValue): unknown {
-    if (v === null || v === undefined) {
-      return null;
-    }
-    if (typeof v === "string") {
-      const trimmed = v.trim();
-      if ((trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith("[") && trimmed.endsWith("]"))) {
-        try {
-          return JSON.parse(trimmed);
-        } catch {
-          return v;
-        }
-      }
-      return v;
-    }
-    return v;
   }
 
   private *validateColumns(
@@ -6534,7 +6516,8 @@ export class SqliteDatabase {
               ? toSqlString(r)
               : `$.${toSqlString(r)}`;
         const extracted = extractByJsonPath(parsed, path);
-        return jsonValueToSql(extracted, op === "->>");
+        const value = jsonValueToSql(extracted, op === "->>");
+        return op === "->" && typeof value === "string" ? new JsonText(value) : value;
       } catch {
         return null;
       }
@@ -6646,6 +6629,13 @@ export class SqliteDatabase {
   }
 
   private *evalScalarFunction(name: string, args: SqlValue[]): SqlSteps<SqlValue> {
+    const value = yield* this.evalScalarFunctionValue(name, args);
+    const u = name.toUpperCase();
+    const jsonResult = ["JSON", "JSON_ARRAY", "JSON_OBJECT", "JSON_QUOTE", "JSON_PATCH", "JSON_REMOVE", "JSON_SET", "JSON_INSERT", "JSON_REPLACE"].includes(u);
+    return jsonResult && typeof value === "string" ? new JsonText(value) : value;
+  }
+
+  private *evalScalarFunctionValue(name: string, args: SqlValue[]): SqlSteps<SqlValue> {
     const u = name.toUpperCase();
     const a0 = args[0] ?? null;
     const a1 = args[1] ?? null;
@@ -6678,7 +6668,7 @@ export class SqliteDatabase {
         if (typeof a0 === "number") {
           return Number.isInteger(a0) ? "integer" : "real";
         }
-        if (typeof a0 === "string") {
+        if (typeof a0 === "string" || a0 instanceof String) {
           return "text";
         }
         return "blob";
@@ -7035,7 +7025,17 @@ export class SqliteDatabase {
         if (a0 === null) {
           return null;
         }
-        return JSON.stringify(JSON.parse(toSqlString(a0)));
+        const text = toSqlString(a0);
+        JSON.parse(text);
+        let quoted = false;
+        let escaped = false;
+        let compact = "";
+        for (const char of text) {
+          if (quoted || ![" ", "\n", "\r", "\t"].includes(char)) compact += char;
+          if (!escaped && char === '"') quoted = !quoted;
+          escaped = quoted && !escaped && char === "\\";
+        }
+        return compact;
       }
       case "JSON_VALID": {
         if (a0 === null) {
@@ -7049,22 +7049,18 @@ export class SqliteDatabase {
         }
       }
       case "JSON_QUOTE":
-        return a0 === null ? "null" : serializeSqlJson(this.sqlValToJsJson(a0));
+        return a0 === null ? "null" : serializeSqlJson(a0);
       case "JSON_ARRAY":
-        return serializeSqlJson(
-          args.map((x) => {
-            return this.sqlValToJsJson(x);
-          })
-        );
+        return serializeSqlJson(args);
       case "JSON_OBJECT": {
-        const obj: Record<string, unknown> = {};
+        const entries: string[] = [];
         for (let i = 0; i + 1 < args.length; i += 2) {
           yield;
           if (args[i] !== null && args[i] !== undefined) {
-            obj[toSqlString(args[i]!)] = this.sqlValToJsJson(args[i + 1] ?? null);
+            entries.push(`${JSON.stringify(toSqlString(args[i]!))}:${serializeSqlJson(args[i + 1] ?? null)}`);
           }
         }
-        return serializeSqlJson(obj);
+        return `{${entries.join(",")}}`;
       }
       case "JSON_EXTRACT": {
         if (a0 === null) {
@@ -7074,13 +7070,14 @@ export class SqliteDatabase {
           const parsed = JSON.parse(toSqlString(a0));
           if (args.length <= 2) {
             const extracted = extractByJsonPath(parsed, toSqlString(a1 ?? "$"));
-            return jsonValueToSql(extracted, true);
+            const value = jsonValueToSql(extracted, true);
+            return extracted !== null && typeof extracted === "object" && typeof value === "string" ? new JsonText(value) : value;
           }
           const arr = args.slice(1).map((p) => {
             const v = extractByJsonPath(parsed, toSqlString(p ?? "$"));
             return v === undefined ? null : v;
           });
-          return JSON.stringify(arr);
+          return new JsonText(JSON.stringify(arr));
         } catch {
           return null;
         }
@@ -7141,7 +7138,8 @@ export class SqliteDatabase {
           for (let i = 1; i + 1 < args.length; i += 2) {
             yield;
             const p = toSqlString(args[i] ?? "$");
-            const v = this.sqlValToJsJson(args[i + 1] ?? null);
+            const value = args[i + 1] ?? null;
+            const v = value instanceof JsonText ? JSON.parse(value.valueOf()) : value;
             cur = setByJsonPath(cur, p, v, mode);
           }
           return serializeSqlJson(cur);

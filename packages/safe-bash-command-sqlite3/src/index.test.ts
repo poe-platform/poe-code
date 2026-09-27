@@ -383,7 +383,7 @@ test('sqlite3 REAL affinity survives persistence and preserves nonnumeric values
 test('sqlite3 JSON aggregates preserve REAL numbers and escaped strings', async () => {
   const result = await runSqlite3(createMemoryFileSystem(), [':memory:', `CREATE TABLE r(x REAL); INSERT INTO r VALUES (4),(5); SELECT json_group_array(x),json_group_object('r',x) FROM r; SELECT json_array('quote"',NULL,4.5);`]);
   assert.equal(result.code, 0, result.stderr);
-  assert.equal(result.stdout, '[4.0,5.0]|{"r":5.0}\n["quote\\"",null,4.5]\n');
+  assert.equal(result.stdout, '[4.0,5.0]|{"r":4.0,"r":5.0}\n["quote\\"",null,4.5]\n');
 });
 
 
@@ -691,4 +691,67 @@ test("maxRows bounds joins before aggregation and prevents saving earlier writes
   assert.match(result.stderr, /maxRows/);
   assert.equal(result.stdout, "");
   await assert.rejects(fs.readFile("/db"));
+});
+
+test('sqlite3 applies REAL affinity on UPDATE and ALTER defaults', async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [':memory:', "CREATE TABLE r(x REAL); INSERT INTO r VALUES(1); UPDATE r SET x='4'; ALTER TABLE r ADD y DOUBLE DEFAULT 5; SELECT x,typeof(x),y,typeof(y) FROM r;"]);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout, '4.0|real|5.0|real\n');
+});
+
+test('sqlite3 JSON constructors distinguish text and JSON and preserve duplicate keys', async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [':memory:', `SELECT json_array('[1]',json('[1]')),json_object('a',1,'a',2); CREATE TABLE t(x TEXT); INSERT INTO t VALUES('[1]'),('[2]'); SELECT json_group_array(x),json_group_object('a',x) FROM t;`]);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout, '["[1]",[1]]|{"a":1,"a":2}\n["[1]","[2]"]|{"a":"[1]","a":"[2]"}\n');
+});
+
+for (const expression of ['(SELECT missing FROM b)', 'id IN (SELECT missing FROM b)', 'EXISTS(SELECT missing FROM b)', '(SELECT id FROM b WHERE missing = a.id)']) {
+  test(`sqlite3 validates subquery columns with empty outer rows: ${expression}`, async () => {
+    const result = await runSqlite3(createMemoryFileSystem(), [':memory:', `CREATE TABLE a(id INT); CREATE TABLE b(id INT); SELECT ${expression} FROM a;`]);
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /no such column: missing/);
+  });
+}
+
+test('sqlite3 accepts correlated schema references with empty outer rows', async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [':memory:', 'CREATE TABLE a(outer_id INT); CREATE TABLE b(id INT); SELECT (SELECT outer_id FROM b),outer_id IN (SELECT id FROM b WHERE id=a.outer_id),(SELECT (SELECT outer_id) FROM b) FROM a;']);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout, '');
+});
+
+
+test('sqlite3 JSON subtype is cleared by stored and derived tables and scalar subqueries', async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [':memory:', `CREATE TABLE t(x TEXT); INSERT INTO t VALUES(json('[1]')); SELECT json_array(x),typeof(x) FROM t; SELECT json_array(x) FROM (SELECT json('[1]') AS x); SELECT json_array((SELECT json('[1]'))); SELECT json_array(json_extract('{"x":"[1]"}','$.x'),json_extract('{"x":[1]}','$.x')); SELECT json_array(json('{"a":1,"a":2}')); SELECT json('[1]')='[1]',typeof(json('[1]')),quote(json('[1]'));`]);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout, '["[1]"]|text\n["[1]"]\n["[1]"]\n["[1]",[1]]\n[{"a":1,"a":2}]\n1|text|\'[1]\'\n');
+});
+
+
+test('sqlite3 preserves ALTER REAL column defaults across database reopen and later inserts', async () => {
+  const fs = createMemoryFileSystem();
+  const created = await runSqlite3(fs, ['/alter.db', 'CREATE TABLE r(x INTEGER); INSERT INTO r VALUES(1); ALTER TABLE r ADD y DOUBLE DEFAULT 5;']);
+  assert.equal(created.code, 0, created.stderr);
+  const reopened = await runSqlite3(fs, ['/alter.db', 'INSERT INTO r(x) VALUES(2); SELECT x,y,typeof(y) FROM r ORDER BY x;']);
+  assert.equal(reopened.code, 0, reopened.stderr);
+  assert.equal(reopened.stdout, '1|5.0|real\n2|5.0|real\n');
+});
+
+
+test('sqlite3 applies REAL affinity to integer and numeric TEXT updates and REAL ALTER defaults', async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [':memory:', "CREATE TABLE r(x REAL); INSERT INTO r VALUES(1); UPDATE r SET x=6; SELECT x,typeof(x) FROM r; UPDATE r SET x='7'; ALTER TABLE r ADD y REAL DEFAULT 5; SELECT x,typeof(x),y,typeof(y) FROM r;"]);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout, '6.0|real\n7.0|real|5.0|real\n');
+});
+
+test('sqlite3 quotes JSON-looking TEXT literals in quote, array, and object constructors', async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [':memory:', `SELECT json_quote('[1, 2]'),json_array('[1, 2]'),json_object('k','{"a":1}');`]);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout, `"[1, 2]"|["[1, 2]"]|{"k":"{\\"a\\":1}"}\n`);
+});
+
+
+test('sqlite3 checks unboxed JSON text before applying REAL affinity', async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [':memory:', `CREATE TABLE r(x REAL); INSERT INTO r VALUES(json('7')),(json('"x"')); SELECT x,typeof(x) FROM r;`]);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout, '7.0|real\n"x"|text\n');
 });

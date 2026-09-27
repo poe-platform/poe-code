@@ -9,7 +9,7 @@ import { serializeExpression } from "../formulas/serialization.js";
 import { rewriteReferences, visitFormula } from "../formulas/rewriting.js";
 import { xlsxSchemas, xlsxNamespaces, xlsxNamespaceScanElements, type XlsxSchemaNode } from "./xlsx-schema.js";
 import { converterLocale } from "../locale/runtime.js";
-import { readXlsxMetadata } from "./xlsx-metadata.js";
+import { readXlsxMetadata, readXlsxComments } from "./xlsx-metadata.js";
 import { xlsxColumnWidthPoints } from "./xlsx-sheet-settings.js";
 import { readXlsxStyles, readXlsxString } from "./xlsx-styles.js";
 import { decodeXlsxString, encodeXlsxString } from "./xlsx-strings.js";
@@ -413,7 +413,8 @@ export async function readXlsx(bytes: Uint8Array, context: CapabilityContext): P
       const commentsPart = sheetRelations.find(part => !part.external && part.type === relationships + "/comments");
       let comments = commentsPart ? await opc.document(commentsPart.target) : undefined;
       if (comments) comments = await recognize(comments, "xlsx_comments_dtd", context);
-      records.push(...readXlsxMetadata(source, comments));
+      records.push(...readXlsxMetadata(source));
+      if (comments) records.push(readXlsxComments(comments, context));
       for (const extension of children(child(source, "extLst"), "ext")) {
         if (attr(extension, "uri") === undefined) await context.diagnostic?.({ severity: "warning", code: "xlsx-extension",
           message: `${name}!${formatA1(nextRow, cells.length ? cells[cells.length - 1]!.column + 1 : 0)} : Encountered uninterpretable "ext" extension with missing namespace` });

@@ -3,9 +3,10 @@ import { createZipCodec } from "@poe-code/office-package";
 import { parseXml } from "@poe-code/safe-fs/xml";
 import type { CapabilityContext } from "../contracts.js";
 import type { Workbook } from "../workbook.js";
-import { readXlsxMetadata } from "./xlsx-metadata.js";
+import { readXlsxComments } from "./xlsx-metadata.js";
 import { metadataNode } from "./xlsx-write-support.js";
 import { createXlsxWriter, readXlsx } from "./xlsx.js";
+import { readGnumeric, writeGnumeric } from "./gnumeric.js";
 
 const context: CapabilityContext = { signal: new AbortController().signal, own() {},
   environment: { env: {}, locale: "C", timezone: "UTC" },
@@ -21,15 +22,51 @@ it.each([
   ['<t>_x0000__xD800__xFFFE_</t>', "\0\ud800\ufffe"],
   ['<t xml:space="preserve"> note &amp; text </t>', " note & text "],
 ])("imports comment string portions without trimming or rescanning: %s", (text, value) => {
-  const records = readXlsxMetadata(parseXml(`<worksheet xmlns="${namespace}"/>`), parseXml(
-    `<comments xmlns="${namespace}"><authors><author> Author _x0041_ </author></authors><commentList><comment ref="A1" authorId="0"><text>${text}</text></comment></commentList></comments>`));
-  expect(metadataNode(records[0]!.data)).toMatchObject({ children: [{ attributes: { Author: " Author A ", Text: value } }] });
+  const record = readXlsxComments(parseXml(
+    `<comments xmlns="${namespace}"><authors><author> Author _x0041_ </author></authors><commentList><comment ref="A1" authorId="0"><text>${text}</text></comment></commentList></comments>`), context);
+  expect(metadataNode(record.data)).toMatchObject({ children: [{ attributes: { Author: " Author A ", Text: value } }] });
 });
 
 it("preserves an explicitly empty comment author", () => {
-  const records = readXlsxMetadata(parseXml(`<worksheet xmlns="${namespace}"/>`), parseXml(
-    `<comments xmlns="${namespace}"><authors><author/></authors><commentList><comment ref="A1" authorId="0"><text><t/></text></comment></commentList></comments>`));
-  expect(metadataNode(records[0]!.data)).toMatchObject({ children: [{ attributes: { Author: "", Text: "" } }] });
+  const record = readXlsxComments(parseXml(
+    `<comments xmlns="${namespace}"><authors><author/></authors><commentList><comment ref="A1" authorId="0"><text><t/></text></comment></commentList></comments>`), context);
+  expect(metadataNode(record.data)).toMatchObject({ children: [{ attributes: { Author: "", Text: "" } }] });
+});
+
+// Gnumeric sheet-object-cell-comment.c:333-370 transports Pango markup in
+// TextFormat. LibreOffice imports comment text through RichStringContext.
+it("imports comment formatting with UTF-8 offsets after XString decoding", () => {
+  const record = readXlsxComments(parseXml(
+    `<comments xmlns="${namespace}"><authors><author>Ada</author></authors><commentList><comment ref="B2" authorId="0"><text><r><rPr><b/></rPr><t>é</t></r><r><rPr><i/></rPr><t>_xD83D__xDE00_</t></r><t>z</t></text></comment></commentList></comments>`), context);
+  expect(metadataNode(record.data)).toMatchObject({ children: [{ attributes: {
+    ObjectBound: "B2", Author: "Ada", Text: "é😀z", TextFormat: "@[bold=1:0:2][italic=1:2:6]"
+  } }] });
+});
+
+it.each(["2006", "2008"] as const)("preserves comment markup through Gnumeric and XLSX transport (%s)", async edition => {
+  const format = "@[bold=1:0:2][italic=1:2:6]";
+  const source = `<g:Workbook xmlns:g="http://www.gnumeric.org/v10.dtd"><g:Sheets><g:Sheet><g:Name>S</g:Name><g:Objects><g:CellComment ObjectBound="B2" Author="Ada" Text="é😀z" TextFormat="${format}"/></g:Objects><g:Cells/></g:Sheet></g:Sheets></g:Workbook>`;
+  const book = await readGnumeric(new TextEncoder().encode(source), context);
+  const before = structuredClone(book);
+  const bytes = await createXlsxWriter(edition)(book, [], context);
+  const zip = createZipCodec();
+  const limits = { maxArchiveBytes: 1000000, maxEntryBytes: 1000000, maxTotalBytes: 1000000,
+    maxMembers: 100, maxPathBytes: 1024, maxDepth: 32, maxPaxBytes: 10000, maxTextBytes: 1000000, chunkSize: 4096 };
+  const archive = await zip.readZipArchive(bytes, limits, context.signal);
+  const entry = archive.entries.find(entry => entry.name === "xl/comments1.xml")!;
+  const decoder = new TextDecoder(); let content = "";
+  for await (const chunk of zip.decodeZipEntry(entry, limits, context.signal)) content += decoder.decode(chunk, { stream: true });
+  const comments = parseXml(content + decoder.decode());
+  const text = comments.children.find(node => node.localName === "commentList")!.children[0]!.children[0]!;
+  expect(text.children.map(run => ({ text: run.children.find(node => node.localName === "t")?.text,
+    properties: run.children.find(node => node.localName === "rPr")?.children.map(property => property.localName) ?? [] }))).toEqual([
+    { text: "é", properties: ["b"] }, { text: "😀", properties: ["i"] }, { text: "z", properties: [] }
+  ]);
+  const read = await readXlsx(bytes, context);
+  const objects = read.sheets[0]!.unsupportedRecords!.find(record => record.kind === "Objects")!;
+  expect(metadataNode(objects.data)).toMatchObject({ children: [{ attributes: { Text: "é😀z", TextFormat: format } }] });
+  expect(new TextDecoder().decode(await writeGnumeric(read, [], context))).toContain(`TextFormat="${format}"`);
+  expect(book).toEqual(before);
 });
 
 for (const edition of ["2006", "2008"] as const) {

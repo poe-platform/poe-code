@@ -2,7 +2,7 @@ import { parseXmlSteps, XmlLimitError, type XmlElement } from "@poe-code/safe-fs
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import { cellValueFormat } from "../workbook/value-format.js";
 import { DEFAULT_SHEET_SIZE, formatA1, parseA1, validSheetSize, type AxisMetadata, type Cell, type CellValue,
-  type ImportedValue, type NamedExpression, type Range, type RichTextRun, type Sheet, type UnsupportedRecord, type Workbook } from "../workbook.js";
+  type ImportedValue, type NamedExpression, type Range, type Sheet, type UnsupportedRecord, type Workbook } from "../workbook.js";
 import { gnumericChildren, gnumericAttributes, objectChildren } from "./gnumeric-schema.js";
 import { parseExpression } from "../formulas/parser.js";
 import { gnumericGrammar } from "../formulas/conventions.js";
@@ -11,6 +11,7 @@ import { rewriteReferences, visitFormula } from "../formulas/rewriting.js";
 import { encodingName } from "../encoding/names.js";
 import { singleByteTables } from "../encoding/tables.js";
 import { gnumericNumber } from "./gnumeric-number.js";
+import { readGnumericRichText, writeGnumericRichText } from "./gnumeric-rich-text.js";
 import { objectKinds } from "../objects/registry.js";
 import { clipboardStyles } from "../conversion/clipboard-styles.js";
 import { clipboardObjectRecords } from "../conversion/clipboard-objects.js";
@@ -189,35 +190,6 @@ function value(type: string | undefined, text: string): CellValue {
   }
   if (type === "10") return { kind: "blank" };
   return { kind: "string", value: text };
-}
-
-const richAttributes = new Set(["family", "size", "rise", "scale", "italic", "bold", "strikethrough", "underline", "color", "subscript", "superscript"]);
-function richText(format: string | undefined): RichTextRun[] | undefined {
-  if (!format?.startsWith("@[")) return undefined;
-  const runs: RichTextRun[] = []; let offset = 1;
-  while (offset < format.length) {
-    if (format[offset] !== "[") return undefined;
-    const close = format.indexOf("]", offset), equal = format.indexOf("=", offset);
-    if (close < 0 || equal < offset || equal > close) return undefined;
-    const key = format.slice(offset + 1, equal), parts = format.slice(equal + 1, close).split(":");
-    if (parts.length !== 3) return undefined;
-    const start = Number(parts[1]), end = Number(parts[2]);
-    if (richAttributes.has(key) && Number.isSafeInteger(start) && Number.isSafeInteger(end) && start >= 0 && start < end && end <= 4294967295) {
-      const raw = parts[0]!; const numeric = Number(raw);
-      runs.push({ start, end, attributes: { [key]: ["family", "underline", "color"].includes(key) ? raw : Number.isFinite(numeric) ? numeric : 0 } });
-    }
-    offset = close + 1;
-  }
-  return runs;
-}
-function richFormat(runs: readonly RichTextRun[]): string {
-  let result = "@";
-  for (const run of runs) for (const [key, val] of Object.entries(run.attributes)) {
-    if (!richAttributes.has(key) || typeof val !== "string" && typeof val !== "number") invalid("unsupported rich text attribute");
-    if (String(val).includes(":") || String(val).includes("]")) invalid("invalid rich text attribute value");
-    result += `[${key}=${val}:${run.start}:${run.end}]`;
-  }
-  return result;
 }
 
 /** Owned, namespace-aware records keep print/style/object surfaces independently of cells. */
@@ -490,7 +462,7 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
       }
       if (id && formula && !shared.has(id)) shared.set(id, { formula, row, column, sheet: name, ...semantics });
       const stored = formula ? cached === undefined ? { kind: "blank" } as const : value(type, cached) : value(type, text);
-      const valueFormat = attribute(item, "ValueFormat"); const runs = richText(valueFormat);
+      const valueFormat = attribute(item, "ValueFormat"); const runs = readGnumericRichText(valueFormat);
       let style: ImportedValue | undefined; let format = valueFormat;
       for (const region of styles) {
         tick();
@@ -800,7 +772,7 @@ export function writeClipboardGnumeric(book: Workbook, sheet: Sheet, range: impo
     if (array) { attrs.Rows = array.range.endRow - array.range.startRow + 1; attrs.Cols = array.range.endColumn - array.range.startColumn + 1; }
     if (repeated) { cells += writer.element("gnm:Cell", attrs, "", "", 2); continue; }
     attrs.ValueType = types[value.kind];
-    const format = cell.richText ? richFormat(cell.richText) : cellValueFormat(cell);
+    const format = cell.richText ? writeGnumericRichText(cell.richText) : cellValueFormat(cell);
     if (format) attrs.ValueFormat = format;
     if (cell.formula && value.kind !== "byte-string") attrs.Value = valueText(value, context);
     cells += writer.element("gnm:Cell", attrs, cell.formula ? nativeOpenFormula(cell.formula, { sheet: sheet.id, row: cell.row, column: cell.column }, context, cell.arrayStringLiterals) : valueText(value, context), "", 2, true);
@@ -918,7 +890,7 @@ export async function writeGnumeric(book: Workbook, _options: readonly string[],
       if (group) { cellAttrs.Rows = group.range.endRow - group.range.startRow + 1; cellAttrs.Cols = group.range.endColumn - group.range.startColumn + 1; }
       // Released normal writer deliberately omits formula caches.
       if (!cell.formula) { cellAttrs.ValueType = types[cell.value.kind];
-        const format = cell.richText ? richFormat(cell.richText) : cellValueFormat(cell);
+        const format = cell.richText ? writeGnumericRichText(cell.richText) : cellValueFormat(cell);
         if (format) cellAttrs.ValueFormat = format;
       }
       cellXml += writer.element("gnm:Cell", cellAttrs, cell.formula ? nativeOpenFormula(cell.formula, { sheet: sheet.id, row: cell.row, column: cell.column }, context, cell.arrayStringLiterals) : valueText(cell.value, context), "", 4);

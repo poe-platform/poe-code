@@ -1,9 +1,11 @@
 import type { XmlElement } from "@poe-code/safe-fs/xml";
 import { parseA1, formatA1, type ImportedValue, type UnsupportedRecord } from "../workbook.js";
-import { SsconvertError } from "../contracts.js";
+import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import { gnumericNumber } from "./gnumeric-number.js";
 import { decodeXlsxString } from "./xlsx-strings.js";
 import type { MetadataNode } from "./xlsx-write-support.js";
+import { readXlsxString } from "./xlsx-styles.js";
+import { writeGnumericRichText } from "./gnumeric-rich-text.js";
 
 type SourceNode = XmlElement | MetadataNode;
 function nodeName(node: SourceNode): string { return "localName" in node ? node.localName : node.name; }
@@ -41,8 +43,8 @@ function header(source: string): Readonly<Record<string, string>> {
   }
   return sections;
 }
-/** Translate measured print and comment metadata into the existing workbook codec model. */
-export function readXlsxMetadata(sheet: SourceNode, comments?: SourceNode): readonly UnsupportedRecord[] {
+/** Translate measured sheet metadata into the existing workbook codec model. */
+export function readXlsxMetadata(sheet: SourceNode): readonly UnsupportedRecord[] {
   const records: UnsupportedRecord[] = [];
   const margins = element(sheet, "pageMargins"), setup = element(sheet, "pageSetup"), hf = element(sheet, "headerFooter");
   const options = element(sheet, "printOptions");
@@ -94,21 +96,6 @@ export function readXlsxMetadata(sheet: SourceNode, comments?: SourceNode): read
     }
     records.push({ source: "Gnumeric_XmlIO:sax", kind: "PrintInformation", disposition: "retained", data: gnode("PrintInformation", {}, print) });
   }
-  if (comments) {
-    const authors = element(comments, "authors")?.children.filter(c => nodeName(c) === "author").map(c => decodeXlsxString(c.text)) ?? [];
-    const objects: ImportedValue[] = [];
-    for (const comment of element(comments, "commentList")?.children ?? []) {
-      if (nodeName(comment) !== "comment") continue;
-      const ref = attribute(comment, "ref"); if (!ref) continue;
-      const author = authors[numeric(attribute(comment, "authorId"), 0)];
-      const text = element(comment, "text"); let value = "";
-      for (const node of text?.children ?? []) if (nodeName(node) === "t") value += decodeXlsxString(node.text);
-        else if (nodeName(node) === "r") value += decodeXlsxString(element(node, "t")?.text ?? "");
-      objects.push(gnode("CellComment", { ObjectBound: ref.split(":")[0]!, ObjectOffset: "1 0 1 0", Direction: 17, Print: 1,
-        ...(author !== undefined ? { Author: author } : {}), Text: value }));
-    }
-    records.push({ source: "Gnumeric_XmlIO:sax", kind: "Objects", disposition: "retained", data: gnode("Objects", {}, objects) });
-  }
   const filter = element(sheet, "autoFilter");
   const area = attribute(filter, "ref");
   if (filter && area) {
@@ -148,4 +135,21 @@ export function readXlsxMetadata(sheet: SourceNode, comments?: SourceNode): read
       data: gnode("SheetLayout", { TopLeft: pane && attribute(pane, "state") === "frozen" ? attribute(pane, "topLeftCell") ?? topLeft : topLeft }, layout) });
   }
   return records;
+}
+
+export function readXlsxComments(comments: XmlElement, context: CapabilityContext): UnsupportedRecord {
+  const authors = comments.children.find(c => c.localName === "authors")?.children
+    .filter(c => c.localName === "author").map(c => decodeXlsxString(c.text)) ?? [];
+  const objects: ImportedValue[] = [];
+  for (const comment of comments.children.find(c => c.localName === "commentList")?.children ?? []) {
+    context.signal.throwIfAborted();
+    if (comment.localName !== "comment") continue;
+    const ref = attribute(comment, "ref"); if (!ref) continue;
+    const author = authors[numeric(attribute(comment, "authorId"), 0)];
+    const text = readXlsxString(comment.children.find(c => c.localName === "text"), context);
+    objects.push(gnode("CellComment", { ObjectBound: ref.split(":")[0]!, ObjectOffset: "1 0 1 0", Direction: 17, Print: 1,
+      ...(author !== undefined ? { Author: author } : {}), Text: text.value,
+      ...(text.richText?.length ? { TextFormat: writeGnumericRichText(text.richText) } : {}) }));
+  }
+  return { source: "Gnumeric_XmlIO:sax", kind: "Objects", disposition: "retained", data: gnode("Objects", {}, objects) };
 }

@@ -6,6 +6,7 @@ import { escapeXlsx, metadataNode, writeRichString, type ElementWriter, type Met
 import { encodeXlsxString } from "./xlsx-strings.js";
 import { gnumericNumber } from "./gnumeric-number.js";
 import { writeXlsxSheetSettings } from "./xlsx-sheet-settings.js";
+import { readGnumericRichText } from "./gnumeric-rich-text.js";
 
 function child(node: MetadataNode | undefined, name: string): MetadataNode | undefined { return node?.children.find(n => n.name === name); }
 export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: ElementWriter, context: CapabilityContext, namespace: string,
@@ -128,7 +129,7 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
     if (comments.length) parts.push({ name: `comments${number}.xml`, relation: "comments", type: "application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml",
       content: xml("comments", { xmlns: namespace }, xml("authors", {}, authors.map(a => xml("author", {}, escapeXlsx(encodeXlsxString(a)))).join("")) + xml("commentList", {}, comments.map(comment =>
         xml("comment", { ref: comment.attributes.ObjectBound?.split(":")[0] ?? "A1", authorId: comment.attributes.Author === undefined ? undefined : authors.indexOf(comment.attributes.Author) },
-          xml("text", {}, writeRichString(comment.attributes.Text ?? "", undefined, xml)))).join(""))) });
+          xml("text", {}, writeRichString(comment.attributes.Text ?? "", readGnumericRichText(comment.attributes.TextFormat, charge), xml, charge)))).join(""))) });
     if (comments.length) parts.push({ name: `drawings/vmlDrawing${number}.vml`, relation: "vmlDrawing", type: "application/vnd.openxmlformats-officedocument.vmlDrawing",
       content: xml("xml", { "xmlns:v": "urn:schemas-microsoft-com:vml", "xmlns:o": "urn:schemas-microsoft-com:office:office", "xmlns:x": "urn:schemas-microsoft-com:office:excel" },
         xml("v:shapetype", { id: "_x0000_t202" }) + comments.map((comment, index) => {

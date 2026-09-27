@@ -1337,7 +1337,7 @@ export class DocumentXmlEditor {
   }
 
   #stage(token: Token, value: string, original: string, escape: boolean): void {
-    if (value.length > (this.#limits.maxBytes ?? 32 * 1024 * 1024))
+    if (value.length > (this.#limits.maxBytes ?? Infinity))
       throw new ResourceLimitError("XML output byte limit exceeded.");
     this.#budget.charge("work", value.length * 8);
     this.#budget.charge("retainedBytes", value.length * 12);
@@ -1385,7 +1385,7 @@ export class DocumentXmlEditor {
     }
     const patches = [...this.#patches].map(([token, value]) => ({ ...this.#spans.get(token)!, value }));
     patches.sort((a, b) => a.start - b.start);
-    const maxBytes = this.#limits.maxBytes ?? 32 * 1024 * 1024;
+    const maxBytes = this.#limits.maxBytes ?? Infinity;
     let length = this.#source.length;
     for (const patch of patches) length += patch.value.length - (patch.end - patch.start);
     const utf8 = this.#document.encoding === "UTF-8";

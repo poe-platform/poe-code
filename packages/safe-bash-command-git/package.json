@@ -1,0 +1,38 @@
+{
+  "name": "safe-bash-command-git",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && mkdir -p dist && node scripts/build-wasm.mjs && tsc",
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts",
+    "lint": "eslint src --ignore-pattern wasm.generated.ts && tsc --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "safe-bash-contracts": "*",
+    "@poe-code/safe-fs": "*",
+    "@poe-code/git-rust": "*"
+  },
+  "imports": {
+    "#git-wasm": {
+      "types": "./src/runtime.ts",
+      "workerd": "./dist/runtime.workerd.js",
+      "default": "./dist/runtime.js"
+    }
+  }
+}

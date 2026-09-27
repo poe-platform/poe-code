@@ -576,6 +576,10 @@
     "./commands/sqlite3": {
       "types": "./dist/commands/sqlite3/index.d.ts",
       "import": "./dist/commands/sqlite3/index.js"
+    },
+    "./commands/git": {
+      "types": "./dist/commands/git/index.d.ts",
+      "import": "./dist/commands/git/index.js"
     }
   },
   "files": [
@@ -731,7 +735,8 @@
     "safe-bash-command-bzip2": "*",
     "safe-bash-command-locale": "*",
     "safe-bash-command-df": "*",
-    "safe-bash-command-sqlite3": "*"
+    "safe-bash-command-sqlite3": "*",
+    "safe-bash-command-git": "*"
   },
   "poeCode": {
     "packageLint": {
@@ -1317,6 +1322,16 @@
           "devDependencies": {
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-git": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "@poe-code/git-rust": "*"
           },
           "portable": true
         }

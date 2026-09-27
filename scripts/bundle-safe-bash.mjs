@@ -44,6 +44,7 @@ export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alia
     absWorkingDir: rootDir, entryPoints, alias, external,
     outdir: path.join(rootDir, "packages"), allowOverwrite: true,
     bundle: true, splitting: true, chunkNames: "safe-bash/dist/command-chunks/[name]-[hash]",
+    loader: { ".wasm": "copy" },
     platform: portable ? "browser" : "node", format: "esm", target: portable ? "es2022" : "node22", sourcemap: true, write: false,
     ...(portable ? { conditions: ["workerd", "worker", "browser"], inject: [path.join(rootDir, "packages/safe-bash/browser/buffer.mjs")] } : {}),
   };

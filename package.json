@@ -442,7 +442,8 @@
     "packages/safe-bash-command-bzip2/dist",
     "packages/safe-bash-command-locale/dist",
     "packages/safe-bash-command-df/dist",
-    "packages/safe-bash-command-sqlite3/dist"
+    "packages/safe-bash-command-sqlite3/dist",
+    "packages/safe-bash-command-git/dist"
   ],
   "engines": {
     "node": ">=18.18"
@@ -659,7 +660,8 @@
     "safe-bash-command-bzip2": "*",
     "safe-bash-command-locale": "*",
     "safe-bash-command-df": "*",
-    "safe-bash-command-sqlite3": "*"
+    "safe-bash-command-sqlite3": "*",
+    "safe-bash-command-git": "*"
   },
   "repository": {
     "type": "git",

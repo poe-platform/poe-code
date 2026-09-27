@@ -11,4 +11,3 @@ fn malformed_config_and_unicode_push_status_do_not_panic() {
     response.extend(b"0000");
     assert!(parse_receive_pack_response(&response).is_err());
 }
-

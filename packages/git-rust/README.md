@@ -1,6 +1,6 @@
 # `@poe-code/git-rust` (`git-rust`)
 
-Zero-dependency, in-memory-capable Git engine and CLI dispatcher in pure Rust with full [`isomorphic-git`](https://github.com/isomorphic-git/isomorphic-git) API parity and `safe-bash` integration.
+In-memory-capable Git engine and CLI dispatcher in pure Rust, with a portable WebAssembly boundary for `@poe-code/safe-fs` and the `safe-bash-command-git` plugin.
 
 ## Feature Index
 
@@ -12,7 +12,7 @@ Zero-dependency, in-memory-capable Git engine and CLI dispatcher in pure Rust wi
 | **Worktree & Index** | `status`, `status_matrix`, `is_ignored`, `list_files`, `add`, `remove`, `reset_index`, `update_index`, `checkout`, `commit` |
 | **History, Merge & Stash** | `log`, `is_descendent`, `find_merge_base`, `merge`, `fast_forward`, `abort_merge`, `cherry_pick`, `stash`, `add_note`, `read_note`, `remove_note`, `list_notes` |
 | **Remotes & Smart HTTP** | `add_remote`, `delete_remote`, `list_remotes`, `get_remote_info`, `get_remote_info2`, `list_server_refs`, `fetch`, `clone`, `pull`, `push` |
-| **`safe-bash` CLI** | `execute_git_cli(&MemoryFs, cwd, args)` (`git init`, `status`, `add`, `rm`, `commit`, `log`, `branch`, `checkout`, `tag`, `merge`, `cherry-pick`, `stash`, `remote`, `config`, `rev-parse`, `cat-file`, `hash-object`, `ls-files`, `clone`, `fetch`, `pull`, `push`) |
+| **`safe-bash` CLI** | `execute_git_cli(&MemoryFs, cwd, args)` (`git init`, `status`, `add`, `rm`, `mv`, `diff`, `show`, `reset`, `restore`, `commit`, `log`, `branch`, `checkout`, `tag`, `merge`, `cherry-pick`, `stash`, `remote`, `config`, `rev-parse`, `cat-file`, `hash-object`, `ls-files`, `clone`, `fetch`, `pull`, `push`) |
 
 ## Quick Start
 

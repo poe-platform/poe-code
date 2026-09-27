@@ -3,6 +3,7 @@
 pub mod commands;
 pub mod cli;
 mod cli_files;
+pub mod portable;
 pub mod errors;
 pub mod fixtures;
 pub mod fs;

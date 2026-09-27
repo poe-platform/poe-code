@@ -7,6 +7,7 @@ license = "MIT"
 description = "Full-featured Rust Git implementation modeled on isomorphic-git with virtual filesystem support for safe-bash"
 
 [lib]
+crate-type = ["rlib", "cdylib"]
 path = "src/lib.rs"
 
 [dependencies]

@@ -3312,6 +3312,8 @@ function fastStringHexIdentity(str: string): string {
   return bytesToHex(fastSharedTextEncoder.encode(str));
 }
 const syncConditionalFileUnaryOps = new Set(["-e", "-a", "-f", "-d", "-s", "-L", "-h", "-r", "-w", "-x"]);
+const memoryFilePredicateImplementation = Object.getOwnPropertyDescriptors(MemoryFileSystem.prototype);
+
 interface CachedSingleEvalUnit {
   readonly script: Script;
   readonly unitsCharged: number;
@@ -8141,8 +8143,6 @@ export class Runtime {
     if ( !this.canFastMemoryRedirect || !this.budget.canFileSystemOperation() || (this._fileWrites !== undefined && this._fileWrites.size !== 0) || (this._outputFiles !== undefined && this._outputFiles.size !== 0)) {
       return undefined;
     }
-    const prototype = MemoryFileSystem.prototype;
-    if (this.backingFs.stat !== prototype.stat || this.backingFs.lstat !== prototype.lstat || this.backingFs.access !== prototype.access) return undefined;
     if (rawVal === "") return false;
     const resolved = pathOf(rawState, rawVal);
     if (resolved === "/dev" || resolved.startsWith("/dev/")) return undefined;
@@ -8155,10 +8155,17 @@ export class Runtime {
     if (Object.hasOwn(mem, "stat") || Object.hasOwn(mem, "lstat") || Object.hasOwn(mem, "access")) return undefined;
     const isAccess = op === "-r" || op === "-w" || op === "-x";
     if (isAccess && mem.capabilities?.permissions !== true) return undefined;
+    const follow = op !== "-L" && op !== "-h";
+    const syscall = isAccess ? "access" : follow ? "stat" : "lstat";
+    const prototype = Object.getPrototypeOf(mem);
+    if (prototype !== MemoryFileSystem.prototype) return undefined;
+    // A direct node lookup must not bypass host metadata or access overrides.
+    for (const method of ["stat", "lstat", "access", "snapshot"]) {
+      const descriptor = Object.getOwnPropertyDescriptor(mem, method) ?? Object.getOwnPropertyDescriptor(prototype, method);
+      if (!descriptor || !("value" in descriptor) || descriptor.value !== memoryFilePredicateImplementation[method]?.value) return undefined;
+    }
     this.budget.fileSystemOperation();
     try {
-      const follow = op !== "-L" && op !== "-h";
-      const syscall = isAccess ? "access" : follow ? "stat" : "lstat";
       const node = mem.resolveNode(resolved, syscall, follow);
       if (isAccess) {
         mem.permission(node, op === "-r" ? 4 : op === "-w" ? 2 : 1, "access", resolved);

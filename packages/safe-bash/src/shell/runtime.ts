@@ -2748,7 +2748,11 @@ function sameRedirectTargetWord(a: Word, b: Word): boolean {
     const pa = a.parts[i]!;
     const pb = b.parts[i]!;
     if (pa.kind !== pb.kind || pa.quoted !== pb.quoted) return false;
-    if (pa.kind === "text" && pb.kind === "text") if (pa.value !== pb.value) return false; else if (pa.kind === "variable" && pb.kind === "variable") if (pa.name !== pb.name) return false; else return false;
+    if (pa.kind === "text" && pb.kind === "text") {
+      if (pa.value !== pb.value) return false;
+    } else if (pa.kind === "variable" && pb.kind === "variable") {
+      if (pa.name !== pb.name) return false;
+    } else return false;
   }
   return true;
 }
@@ -7363,7 +7367,7 @@ export class Runtime {
     }
     return undefined;
   }
-  private finishSyncPipeStatus(rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, store: ReturnType<typeof guestArrays>, existing: ReturnType<NonNullable<ReturnType<typeof guestArrays>>["get"]>, elem0: { text: { shellValue: string } } | undefined, scope: InvocationScope, finalStatus: number, restEpoch: number): number | undefined {
+  private finishSyncPipeStatus(rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, store: ReturnType<typeof guestArrays>, existing: ReturnType<NonNullable<ReturnType<typeof guestArrays>>["get"]>, elem0: { text: { shellValue: ShellValue } } | undefined, scope: InvocationScope, finalStatus: number, restEpoch: number): number | undefined {
     if (!existing) {
       if (store) { if (publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined; } else { monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne; monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets); }
     } else {
@@ -11318,7 +11322,9 @@ export class Runtime {
                 else runYieldCheckpoint(this.signal);
               }
               const condOrPromise = evaluateSyncNonZero(command.expressions[1]);
-              if (typeof condOrPromise === "boolean") if (!condOrPromise) break; else {
+              if (typeof condOrPromise === "boolean") {
+                if (!condOrPromise) break;
+              } else {
                 const condition = await condOrPromise;
                 if (condition === undefined) return { status: 1, io, diagnosticFailure };
                 if (condition === 0n) break;
@@ -13606,7 +13612,9 @@ export class Runtime {
         else if (flag === "f") state.noglob = enabled;
         else if (flag === "C") state.noclobber = enabled;
         else if (flag === "n") state.noexec = enabled;
-        else if ([...state.extensions?.options.values() ?? []].some(option => option.flag === flag)) for (const option of state.extensions!.options.values()) if (option.flag === flag) option.enabled = enabled;
+        else if ([...state.extensions?.options.values() ?? []].some(option => option.flag === flag)) {
+          for (const option of state.extensions!.options.values()) if (option.flag === flag) option.enabled = enabled;
+        }
         else if (flag === "B") state.braceexpand = enabled;
         else if (flag === "o" && position === option.length - 1) {
           const name = args[index + 1];

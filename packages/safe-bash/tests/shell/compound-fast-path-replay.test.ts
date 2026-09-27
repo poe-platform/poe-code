@@ -77,6 +77,28 @@ test("arithmetic expansion fault does not replay earlier effects", async () => {
     assert.equal(result.exitCode, 1);
   } finally { await shell.dispose(); }
 });
+
+test("named shell options remain outside extension option loops", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of basicCommands()) shell.commands.register(command);
+  try {
+    const result = await shell.exec('set -o pipefail; false | true; echo "$?"');
+    assert.equal(result.stdout, "1\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally { await shell.dispose(); }
+});
+
+test("arithmetic loop awaits asynchronous conditions", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of basicCommands()) shell.commands.register(command);
+  try {
+    const result = await shell.exec('for ((i=0; i<$(printf 2); i++)); do echo "$i"; done', { limits: { maxLoopIterations: 8 } });
+    assert.equal(result.stdout, "0\n1\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally { await shell.dispose(); }
+});
 for (const [body, expected] of bodies) {
   for (const wrap of [
     (s: string) => `{ ${s}; }`,

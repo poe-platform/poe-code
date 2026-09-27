@@ -113,7 +113,11 @@ const string = (value: Value): string => Array.isArray(value) ? value[0] ?? "" :
 const number = (value: Value): number => {
   if (typeof value === "number") return value;
   if (typeof value === "boolean") return value ? 1 : 0;
-  const text = string(value).trim();
+  const source = string(value);
+  let start = 0, end = source.length;
+  while (start < end && whitespace(source[start]!)) start++;
+  while (end > start && whitespace(source[end - 1]!)) end--;
+  const text = source.slice(start, end);
   if (!text || [...text].some(c => !digit(c) && c !== "." && c !== "-")) return NaN;
   return Number(text);
 };

@@ -58,3 +58,10 @@ test("XPath predicate nesting is iterative and obeys configured depth", async ()
   const bounded = new XmlBudget(resolveXmlQueryLimits({maxDepth: 3}), new AbortController().signal, async () => {});
   await assert.rejects(parseQuery(source, bounded), /maxDepth/);
 });
+
+test("XPath numeric coercion accepts XML whitespace only", async () => {
+  const budget = new XmlBudget(resolveXmlQueryLimits(), new AbortController().signal, async () => {});
+  const query = await parseQuery('//item[@n=1]', budget);
+  const nodes = await evaluate(query, parseXml('<root><item n="&#160;1"/><item n=" 1 "/></root>'), budget);
+  assert.equal(nodes.length, 1);
+});

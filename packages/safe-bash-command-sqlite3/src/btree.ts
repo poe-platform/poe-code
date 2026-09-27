@@ -1,6 +1,7 @@
 const SQLITE_MAGIC = "SQLite format 3\0";
 const DEFAULT_PAGE_SIZE = 4096;
 
+// eslint-disable-next-line @typescript-eslint/no-wrapper-object-types -- Boxed numbers preserve REAL storage for integral values.
 export type SqlValue = null | number | bigint | Number | string | Uint8Array;
 
 export interface StoredTableMeta {

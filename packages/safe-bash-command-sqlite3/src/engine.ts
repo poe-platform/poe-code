@@ -5396,7 +5396,7 @@ export class SqliteDatabase {
         }
         const s = toSqlString(a0);
         const chars = Array.from(s);
-        let pos = Math.trunc(toSqlNumber(a1));
+        const pos = Math.trunc(toSqlNumber(a1));
         const len = args[2] !== undefined && args[2] !== null ? Math.trunc(toSqlNumber(args[2])) : chars.length;
         let startIdx: number;
         if (pos > 0) {

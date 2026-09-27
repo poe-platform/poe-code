@@ -613,7 +613,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
       return new SqliteDatabase();
     };
 
-    let db: SqliteEngineInstance = await createDbInstance(state.dbPath, state.readonly);
+    const db: SqliteEngineInstance = await createDbInstance(state.dbPath, state.readonly);
 
     const execSingleStmt = async (stmt: string): Promise<QueryResultSet | null> => {
       if (typeof db.executeStatement === "function") {

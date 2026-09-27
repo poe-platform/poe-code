@@ -4,11 +4,12 @@ import { Volume } from "memfs";
 import { Document, DocumentBudget, createDocxInspectionCommandEngine, editDocumentLists, executeDocumentBatch, extractDocumentText, readDocumentArchive } from "../../src/index.js";
 import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
 import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
-import { textFixture, textContext, w } from "./text.js";
+import { textFixture, textContext as fixtureContext, w } from "./text.js";
 import { readPackage } from "../assertions.js";
 
 export async function run(args: readonly string[]) {
 const strict = args[0] === "strict", depth = 4096;
+const textContext = { ...fixtureContext, signal: new AbortController().signal };
 const text = "Original 日本 עברית ẹ́ 🌊 𠀀";
 const body = `<w:p xmlns:f="urn:original:deep-numbering-carrier" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="f" mc:ProcessContent="f:p">${"<f:p>".repeat(depth)}<w:r><w:rPr><w:rtl/></w:rPr><w:t>${text}</w:t></w:r>${"</f:p>".repeat(depth)}</w:p>`;
 const scenario = args[1] ?? "story";

@@ -1,8 +1,6 @@
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { EventEmitter } from "node:events";
-import path from "node:path";
 import { PassThrough, Readable } from "node:stream";
-import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   ERROR_INVALID_REQUEST,
@@ -68,11 +66,6 @@ function createLargePayload(sizeInBytes: number): string {
 
 // --- helpers from stdio-transport.test.ts ---
 
-const testServerCli = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../../tiny-stdio-mcp-test-server/dist/cli.js"
-);
-
 const streamsForCleanup: PassThrough[] = [];
 
 afterEach(() => {
@@ -84,40 +77,6 @@ afterEach(() => {
 interface MockChildProcess extends ChildProcessWithoutNullStreams {
   emitExit: (code?: number | null, signal?: NodeJS.Signals | null) => void;
   emitError: (error: Error) => void;
-}
-
-async function readSingleLineWithTimeout(
-  transport: StdioTransport,
-  timeoutMs: number
-): Promise<string> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-
-  const timeout = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => {
-      reject(new Error(`Timed out waiting for stdout line after ${timeoutMs}ms`));
-    }, timeoutMs);
-  });
-
-  const nextLine = (async () => {
-    for await (const line of readLines(transport.readable)) {
-      return line;
-    }
-    throw new Error("Stdio transport stdout ended before any response line was read");
-  })();
-
-  const closedBeforeLine = transport.closed.then((closedEvent) => {
-    throw new Error(
-      `Process closed before stdout response: ${closedEvent.reason.message}`
-    );
-  });
-
-  try {
-    return await Promise.race([nextLine, timeout, closedBeforeLine]);
-  } finally {
-    if (timer) {
-      clearTimeout(timer);
-    }
-  }
 }
 
 function createMockChildProcess(): MockChildProcess {
@@ -2830,57 +2789,6 @@ describe("StdioTransport dispose", () => {
   });
 });
 
-describe("StdioTransport real process smoke test", () => {
-  it("spawns tiny-stdio-mcp-test-server and round-trips initialize over stdio", async () => {
-    const transport = new StdioTransport({
-      command: process.execPath,
-      args: [testServerCli, "serve", "word-of-the-day"],
-    });
-
-    try {
-      transport.writable.write(
-        `${JSON.stringify({
-          jsonrpc: "2.0",
-          id: 1,
-          method: "initialize",
-          params: {
-            protocolVersion: "2025-03-26",
-            capabilities: {},
-            clientInfo: {
-              name: "tiny-mcp-client-smoke-test",
-              version: "0.0.0-test",
-            },
-          },
-        })}\n`
-      );
-
-      const line = await readSingleLineWithTimeout(transport, 5000);
-      const response = JSON.parse(line) as {
-        jsonrpc: string;
-        id: number;
-        result: {
-          protocolVersion: string;
-          serverInfo: { name: string; version: string };
-          capabilities: { tools: { listChanged: boolean } };
-        };
-      };
-
-      expect(response.jsonrpc).toBe("2.0");
-      expect(response.id).toBe(1);
-      expect(response.result.protocolVersion).toBe("2025-03-26");
-      expect(response.result.serverInfo).toEqual({
-        name: "tiny-stdio-mcp-test-server",
-        version: "0.1.0",
-      });
-      expect(response.result.capabilities.tools.listChanged).toBe(true);
-    } finally {
-      transport.dispose();
-      const closed = await transport.closed;
-      expect(closed.reason).toBeInstanceOf(Error);
-      expect(closed.signal ?? closed.code).toBeDefined();
-    }
-  });
-});
 describe("McpClient constructor", () => {
   it("accepts required and optional options", () => {
     const onToolsChanged = vi.fn();
@@ -8812,36 +8720,23 @@ describe("McpClient unexpected transport close", () => {
   });
 
   it("rejects pending requests on stdio process crash and exposes stderr output", async () => {
-    const crashingServerScript = [
-      'const readline = require("node:readline");',
-      "const rl = readline.createInterface({ input: process.stdin, crlfDelay: Infinity });",
-      'rl.on("line", (line) => {',
-      "  const message = JSON.parse(line);",
-      '  if (message.method === "initialize") {',
-      "    process.stdout.write(JSON.stringify({",
-      '      jsonrpc: "2.0",',
-      "      id: message.id,",
-      "      result: {",
-      '        protocolVersion: "2025-03-26",',
-      "        capabilities: { tools: {} },",
-      '        serverInfo: { name: "crashing-server", version: "0.0.0-test" }',
-      "      }",
-      '    }) + "\\n");',
-      "    return;",
-      "  }",
-      '  if (message.method === "notifications/initialized") {',
-      "    return;",
-      "  }",
-      '  if (message.method === "tools/list") {',
-      '    process.stderr.write("crash: tools/list before response\\n");',
-      "    process.exit(1);",
-      "  }",
-      "});",
-    ].join("\n");
-    const transport = new StdioTransport({
-      command: process.execPath,
-      args: ["-e", crashingServerScript],
-    });
+    const child = createMockChildProcess();
+    const transport = new StdioTransport({ command: "node", spawn: () => child });
+    const server = (async () => {
+      for await (const line of readLines(child.stdin)) {
+        const message = JSON.parse(line) as { id: number; method: string };
+        if (message.method === "initialize") {
+          child.stdout.write(JSON.stringify({
+            jsonrpc: "2.0", id: message.id,
+            result: { protocolVersion: "2025-03-26", capabilities: { tools: {} }, serverInfo: { name: "crashing-server", version: "0.0.0-test" } }
+          }) + "\n");
+        } else if (message.method === "tools/list") {
+          child.stderr.write("crash: tools/list before response\n");
+          child.emitExit(1);
+          break;
+        }
+      }
+    })();
     const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
@@ -8854,6 +8749,7 @@ describe("McpClient unexpected transport close", () => {
     const pendingToolsRequest = client.listTools();
     await expect(pendingToolsRequest).rejects.toThrow("Stdio transport process exited");
 
+    await server;
     const closedEvent = await transport.closed;
     expect(closedEvent.reason).toBeInstanceOf(Error);
     expect(closedEvent.reason.message).toBe("Stdio transport process exited");

@@ -2727,7 +2727,7 @@
     {
       "id": "public-packed-artifacts",
       "status": "open",
-      "currentFinding": "Earlier installed root/scoped BIFF7/8 controls remain recorded. Current isolated root/scoped artifacts pass strict NodeNext browser/Node declarations, SDK/command XLSX/ODF conversions, Shell CSV/XLSX edits, raw argv, explicit file-output budgets, falsey cancellation and cleanup. Installed-native Calc/Gnumeric comment readback and Calc live-label recalculation pass for the unchanged ssconvert source tree; see delivery.currentIntegration.installed. Registry-installed, actual browser/worker and wider service qualification remain open."
+      "currentFinding": "Earlier installed root/scoped BIFF7/8 controls remain recorded. Current isolated root/scoped artifacts pass strict NodeNext browser/Node declarations, SDK/command XLSX/ODF conversions, Shell CSV/XLSX edits, raw argv, explicit file-output budgets, falsey cancellation and cleanup. Installed-native Calc/Gnumeric comment readback and Calc live-label recalculation pass for the unchanged ssconvert source tree; see delivery.currentIntegration.installed. Real Chrome page and dedicated Web Worker profiles now also pass for both installed package routes, including SDK/Shell conversions, budgets, raw bytes and cleanup. Registry-installed and wider service qualification remain open."
     }
   ],
   "delivery": {
@@ -2756,8 +2756,21 @@
         "packagingHead": "43227158c0",
         "profiles": "Isolated root/scoped tarballs outside checkout; four strict NodeNext profiles; SDK/command conversions; Shell CSV-to-XLSX and edited XLSX-to-CSV; raw bytes, explicit output budgets, falsey cancellation and cleanup pass. Native commands absent from conversion PATH.",
         "native": "Installed outputs: eight XLSX files read by signed Calc 26.8.0.3 and Gnumeric 1.12.61 preserve four comment text/style cases. Sixteen ODF files independently decoded; 32 Calc conversions recalculate deliberately stale 999 caches to 5/15 and preserve formula-generated labels and declarations. Gnumeric author wire spelling and unsupported VML Note remain limitations.",
-        "remaining": "Registry-installed and actual browser/worker qualification; refresh Shell/runtime artifact checks after newer incoming runtime changes.",
-        "cleanupBytes": 245434028
+        "remaining": "Registry-installed qualification and refreshed Shell/runtime artifact checks after newer incoming runtime changes.",
+        "cleanupBytes": 909091918,
+        "browser": {
+          "runtime": "HeadlessChrome/154.0.0.0 on macOS",
+          "profiles": [
+            "root page",
+            "root dedicated Worker",
+            "scoped page",
+            "scoped dedicated Worker"
+          ],
+          "bundle": "Actual isolated installed exports, browser resolution, no source aliases or external imports; 342 root and 215 scoped inputs.",
+          "result": "All four profiles pass SDK CSV-to-XLSX, Shell CSV-to-XLSX and B2=9 XLSX-to-CSV with exact A,B\\nx,9\\n output and original input retained. Each checks 21-byte output admission, exact refusal identity, false cancellation identity, no leftover failure outputs, raw argv ownership and absence of global process/Buffer/require.",
+          "probeCorrections": "Bare require checked an esbuild lexical shim; corrected to globalThis. Shell constructor expects CommandRegistry, so commands registered through Shell.register. Neither probe mistake is a product defect.",
+          "cleanup": "Workers terminated; browser and loopback servers closed; screenshot inspected then removed. Only console error was missing favicon.ico."
+        }
       }
     }
   },

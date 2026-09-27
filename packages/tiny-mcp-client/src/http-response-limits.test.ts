@@ -144,3 +144,26 @@ it("keeps a receive-stream failure primary when final initialization and deletio
 });
 
 it("accepts an unlimited byte budget", () => { const transport = new HttpTransport({ url: "https://mcp.invalid/limits", maxResponseBytes: Infinity }); transport.dispose(); });
+
+it.each(["application/json", "text/event-stream"])("reads %s with an unlimited byte budget", async contentType => {
+  const transport = new HttpTransport({
+    url: "https://mcp.invalid/limits",
+    maxResponseBytes: Infinity,
+    fetch: async (_url, init) => {
+      const request = JSON.parse(String(init?.body));
+      const message = JSON.stringify({ jsonrpc: "2.0", id: request.id, result: { accepted: true } });
+      return new Response(contentType === "application/json" ? message : `data: ${message}\n\n`, {
+        headers: { "Content-Type": contentType }
+      });
+    }
+  });
+  const layer = new JsonRpcMessageLayer(transport.readable, transport.writable);
+  void transport.closed.then(({ reason }) => layer.dispose(reason));
+  try {
+    await expect(layer.sendRequest("tools/list", {})).resolves.toEqual({ accepted: true });
+  } finally {
+    layer.dispose();
+    transport.dispose();
+    await transport.closed;
+  }
+});

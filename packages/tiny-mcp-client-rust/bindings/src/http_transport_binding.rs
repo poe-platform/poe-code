@@ -113,9 +113,10 @@ impl NativeHttpTransport {
         } else {
             f64::NAN
         };
-        if !number.is_finite()
-            || number.fract() != 0.0
-            || !(1.0..=9_007_199_254_740_991.0).contains(&number)
+        if number != f64::INFINITY
+            && (!number.is_finite()
+                || number.fract() != 0.0
+                || !(1.0..=9_007_199_254_740_991.0).contains(&number))
         {
             return Err(napi::Error::from_reason(
                 "HTTP response byte limit must be a positive safe integer",

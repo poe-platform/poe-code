@@ -19,8 +19,10 @@ cache metadata and normative protocol fields in Rust. `input_required` results i
 registered roots, sampling or elicitation callbacks, validate their responses, then
 retry with fresh IDs and snapshotted arguments. Retry rounds and per-round inputs
 are bounded, and missing capabilities or handlers reject before callbacks run.
-One deadline covers wire requests, input callbacks and continuation rounds. Timers
-above 2147483647 milliseconds are rejected; `timeoutMs: null` is unlimited.
+One deadline covers wire requests, input callbacks and continuation rounds. Finite
+timers above 2147483647 milliseconds are rejected. `requestTimeoutMs: Infinity`
+disables the default request deadline; per-request `timeoutMs: null` or `Infinity`
+is also unlimited. Explicit cancellation remains available.
 
 ```ts
 import { parseJsonRpcMessage } from "tiny-mcp-client-rust";
@@ -71,7 +73,8 @@ dependencies. Metadata bodies have a 1 MiB limit and a 10-second candidate deadl
 sessions and modern request headers. It mirrors schema-annotated tool arguments,
 supports OAuth providers and isolates cancellation to each modern request. Closing
 the transport aborts active fetches, cancels readers and bounds legacy session
-termination to one second. Response and SSE event limits default to 16 MiB.
+termination to one second. Response and SSE event limits default to 16 MiB;
+`maxResponseBytes: Infinity` disables those byte ceilings.
 Before parsing, HTTP JSON is limited to 64 nesting levels, 100,000 tokens,
 4 MiB of decoded UTF-16 strings and an 8 MiB allocation estimate, including
 duplicate object keys.

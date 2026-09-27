@@ -19,7 +19,7 @@ test("native SSE framing matches reference for every split of field and line-end
   for (const fixture of fixtures) for (let split = 0; split <= fixture.length; split++) compare([fixture.slice(0, split), "", fixture.slice(split)]);
 });
 test("native SSE bounds lines, metadata and accumulated data with reference diagnostics", () => {
-  for (const limit of [0, -1, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => new NativeSseParser(limit), { message: "SSE event byte limit must be a positive safe integer" });
+  for (const limit of [0, -1, 0.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => new NativeSseParser(limit), { message: "SSE event byte limit must be a positive safe integer" });
   for (const chunks of [["data: " + "😃".repeat(3)], ["data: 12345678\n", "data: 12345678\n"], ["event: 1234567890\n", "id: 1234567890\n"], [":" + "x".repeat(16) + "\n"]]) {
     for (const Factory of [NativeSseParser, ReferenceParser]) {
       const parser = new Factory(16);
@@ -27,6 +27,7 @@ test("native SSE bounds lines, metadata and accumulated data with reference diag
     }
   }
   compare([":ping\n".repeat(1024), "data: 12345678\n\n".repeat(128)], 16);
+  compare(["id: unlimited\ndata: one\n", "data: two\n\n"], Infinity);
 });
 test("seeded UTF16 event streams preserve filtering, raw values and cursor across arbitrary chunks", () => {
   let seed = 0x64ee3a10;

@@ -42,17 +42,35 @@ it("retains the largest supported timer and explicit unlimited requests", async 
   } finally { layer.dispose(); input.destroy(); output.destroy(); }
 });
 
-it("uses no timer for an unlimited default deadline and still supports cancellation", async () => {
+it.each(["default", "per-request"])("uses no timer for an unlimited %s deadline and still supports cancellation", async mode => {
   const input = new PassThrough(), output = new PassThrough();
   const timer = vi.spyOn(globalThis, "setTimeout");
   let layer: JsonRpcMessageLayer | undefined;
   try {
-    layer = new JsonRpcMessageLayer(input, output, Infinity);
+    layer = new JsonRpcMessageLayer(input, output, mode === "default" ? Infinity : 30_000);
     const controller = new AbortController();
-    const request = layer.sendRequest("tools/list", {}, { signal: controller.signal });
+    const request = layer.sendRequest("tools/list", {}, {
+      signal: controller.signal,
+      ...(mode === "per-request" ? { timeoutMs: Infinity } : {})
+    });
     const rejected = expect(request).rejects.toThrow("cancelled");
     controller.abort(new Error("cancelled"));
     await rejected;
     expect(timer).not.toHaveBeenCalled();
   } finally { timer.mockRestore(); layer?.dispose(); input.destroy(); output.destroy(); }
+});
+
+it("initializes HTTP with an unlimited deadline without creating a timer", async () => {
+  const fetch = vi.fn(async () => new Response(null, { status: 202 }));
+  const transport = new HttpTransport({ url: "https://mcp.example/tools", fetch });
+  const timer = vi.spyOn(AbortSignal, "timeout");
+  try {
+    await transport.completeInitialization({ timeoutMs: Infinity });
+    expect(fetch).toHaveBeenCalled();
+    expect(timer).not.toHaveBeenCalled();
+  } finally {
+    timer.mockRestore();
+    transport.dispose();
+    await transport.closed;
+  }
 });

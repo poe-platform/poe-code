@@ -114,7 +114,7 @@ export class JsonRpcMessageLayer {
       rejectAbort(controller.signal.reason);
     };
     controller.signal.addEventListener("abort", cancel, { once: true });
-    const timeout = timeoutMs === null ? undefined : setTimeout(() => {
+    const timeout = timeoutMs === null || timeoutMs === Infinity ? undefined : setTimeout(() => {
       let reason = new Error(`JSON-RPC request "${method}" timed out after ${timeoutMs}ms`);
       try {
         options.onTimeout?.(id);

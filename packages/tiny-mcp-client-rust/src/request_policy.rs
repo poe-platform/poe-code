@@ -1,7 +1,8 @@
 /// Node timers clamp overflowing values to one millisecond. Reject those values
 /// before starting an exchange so a configured deadline cannot silently shrink.
+/// Positive infinity explicitly disables the timer.
 pub fn valid_timeout(value: f64) -> bool {
-    value.is_finite() && (0.0..=2_147_483_647.0).contains(&value)
+    value == f64::INFINITY || (value.is_finite() && (0.0..=2_147_483_647.0).contains(&value))
 }
 
 pub fn valid_protocol_pin(value: &str) -> bool {

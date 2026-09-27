@@ -763,15 +763,21 @@ impl NativeSseParser {
         accept_all: Option<bool>,
     ) -> Result<Self> {
         let limit = limit.unwrap_or(16.0 * 1024.0 * 1024.0);
-        if !limit.is_finite()
-            || limit.fract() != 0.0
-            || !(1.0..=9_007_199_254_740_991.0).contains(&limit)
+        if limit != f64::INFINITY
+            && (!limit.is_finite()
+                || limit.fract() != 0.0
+                || !(1.0..=9_007_199_254_740_991.0).contains(&limit))
         {
             return Err(napi::Error::from_reason(
                 "SSE event byte limit must be a positive safe integer",
             ));
         }
-        let mut parser = SseParser::new(limit as usize).map_err(napi::Error::from_reason)?;
+        let byte_limit = if limit == f64::INFINITY {
+            usize::MAX
+        } else {
+            limit as usize
+        };
+        let mut parser = SseParser::new(byte_limit).map_err(napi::Error::from_reason)?;
         if accept_all.unwrap_or(false) {
             parser = parser.with_all_events();
         }

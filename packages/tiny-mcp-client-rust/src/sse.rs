@@ -32,7 +32,11 @@ fn text_is(text: &[u16], expected: &str) -> bool {
 }
 impl SseParser {
     pub fn new(max_event_bytes: usize) -> Result<Self, String> {
-        if max_event_bytes == 0 || max_event_bytes as u64 > 9_007_199_254_740_991 {
+        // Infinity at the JS boundary uses the addressable byte range. Checked
+        // accounting still rejects host integer overflow.
+        if max_event_bytes == 0
+            || (max_event_bytes != usize::MAX && max_event_bytes as u64 > 9_007_199_254_740_991)
+        {
             return Err("SSE event byte limit must be a positive safe integer".into());
         }
         Ok(Self {

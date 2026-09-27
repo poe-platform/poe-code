@@ -78,7 +78,7 @@ export class HttpTransport {
     if (options.timeoutMs !== null) validateRequestTimeout(options.timeoutMs, "timeoutMs");
     if (options.protocolVersion !== undefined) this.#state.setLegacyVersion(options.protocolVersion);
     this.#maybeStartGet();
-    const deadline = options.timeoutMs > 0 ? AbortSignal.timeout(Math.ceil(options.timeoutMs)) : undefined;
+    const deadline = options.timeoutMs !== Infinity && options.timeoutMs > 0 ? AbortSignal.timeout(Math.ceil(options.timeoutMs)) : undefined;
     const signals = [options.signal, deadline].filter(signal => signal !== undefined);
     const signal = signals.length === 0 ? new AbortController().signal : AbortSignal.any(signals);
     signal.throwIfAborted();

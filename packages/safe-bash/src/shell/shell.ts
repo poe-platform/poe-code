@@ -1208,6 +1208,9 @@ export class Shell implements PluginHost {
         !budget.signal.aborted &&
         stdin &&
         runtime &&
+        // Host runtimes own native signals tied to the current Worker request.
+        // Only the direct memory path can retain an invocation for a later call.
+        runtime._isMemoryBackingFs &&
         state &&
         this.#isDefaultExecOptions(options, scope)
       ) {

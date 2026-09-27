@@ -650,7 +650,7 @@ export async function testWorkspaces(rootDirectory, options = {}) {
     buildCache = prepareBuildCache(plan, plan.buildStages, { cacheStore, cacheFiles, environment: childEnvironment, fileSystem });
   }
   const started = performance.now();
-  const builds = await executeStages({ ...plan, stages: plan.buildStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency: 2, dependencyOrder: true, taskCache: buildCache });
+  const builds = await executeStages({ ...plan, stages: plan.buildStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency: Math.min(concurrency, 2), dependencyOrder: true, taskCache: buildCache });
   buildCache?.flush();
   let unitCache;
   if (caching && testStages.some(stage => stage.path !== null && stage.event === "test:unit")) {

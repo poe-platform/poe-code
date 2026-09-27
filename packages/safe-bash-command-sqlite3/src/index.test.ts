@@ -337,3 +337,56 @@ test("sqlite3 REAL arithmetic preserves affinity without changing integer divisi
   assert.equal(result.code, 0, result.stderr);
   assert.equal(result.stdout, "-4.0|4.0|4.0|254|3.0|8.0|2.0|1.0|2|2.5\n");
 });
+
+for (const [name, sql, expected] of [
+  ['SUM preserves REAL', 'CREATE TABLE r(x REAL); INSERT INTO r VALUES (1.0),(2.0); SELECT SUM(x),typeof(SUM(x)) FROM r;', '3.0|real\n'],
+  ['ABS preserves REAL', 'SELECT ABS(-4.0),typeof(ABS(-4.0)),typeof(ABS(-4));', '4.0|real|integer\n'],
+  ['JSON preserves REAL', `SELECT json_array(4.0,4),json_object('r',4.0,'i',4);`, '[4.0,4]|{"r":4.0,"i":4}\n'],
+  ['INSERT applies REAL affinity', `CREATE TABLE r(x REAL,y FLOAT,z DOUBLE); INSERT INTO r VALUES (4,'5',6); SELECT x,typeof(x),y,typeof(y),z,typeof(z) FROM r;`, '4.0|real|5.0|real|6.0|real\n'],
+  ['unqualified correlated columns', 'CREATE TABLE a(outer_id INT); CREATE TABLE b(aid INT,score INT); INSERT INTO a VALUES (1),(2); INSERT INTO b VALUES (1,99),(2,88); SELECT (SELECT score FROM b WHERE aid=outer_id) FROM a;', '99\n88\n'],
+  ['inner columns shadow outer columns', 'CREATE TABLE a(id INT); CREATE TABLE b(id INT); INSERT INTO a VALUES (1); INSERT INTO b VALUES (2); SELECT (SELECT id FROM b), (SELECT a.id FROM b), (SELECT \'a.id\' FROM b) FROM a;', '2|1|a.id\n'],
+] as const) {
+  test(`sqlite3 ${name}`, async () => {
+    const result = await runSqlite3(createMemoryFileSystem(), [':memory:', sql]);
+    assert.equal(result.code, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+  });
+}
+
+test('sqlite3 validates JOIN ON identifiers before visiting rows', async () => {
+  for (const join of ['JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'FULL JOIN']) {
+    const result = await runSqlite3(createMemoryFileSystem(), [':memory:', `CREATE TABLE a(id INT); CREATE TABLE b(id INT); SELECT * FROM a ${join} b ON a.id=b.no_such_col;`]);
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /no such column: b.no_such_col/);
+  }
+});
+
+
+test('sqlite3 resolves nested, EXISTS, and IN correlations', async () => {
+  const fs = createMemoryFileSystem();
+  const result = await runSqlite3(fs, [':memory:', `CREATE TABLE a(outer_id INT); CREATE TABLE b(aid INT); INSERT INTO a VALUES (1),(2); INSERT INTO b VALUES (1); SELECT outer_id,EXISTS(SELECT aid FROM b WHERE aid=outer_id),outer_id IN (SELECT aid FROM b WHERE aid=outer_id),(SELECT (SELECT outer_id) FROM b) FROM a;`]);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout, '1|1|1|1\n2|0|0|2\n');
+});
+
+test('sqlite3 REAL affinity survives persistence and preserves nonnumeric values', async () => {
+  const fs = createMemoryFileSystem();
+  const inserted = await runSqlite3(fs, ['/real.db', `CREATE TABLE r(x REAL); INSERT INTO r VALUES (4),(NULL),('text');`]);
+  assert.equal(inserted.code, 0, inserted.stderr);
+  const result = await runSqlite3(fs, ['/real.db', 'SELECT x,typeof(x) FROM r;']);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout, '4.0|real\n|null\ntext|text\n');
+});
+
+test('sqlite3 JSON aggregates preserve REAL numbers and escaped strings', async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [':memory:', `CREATE TABLE r(x REAL); INSERT INTO r VALUES (4),(5); SELECT json_group_array(x),json_group_object('r',x) FROM r; SELECT json_array('quote"',NULL,4.5);`]);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout, '[4.0,5.0]|{"r":5.0}\n["quote\\"",null,4.5]\n');
+});
+
+
+test('sqlite3 emits valid JSON for exponential REAL numbers', async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [':memory:', 'SELECT json_array(1e21,1e-20);']);
+  assert.equal(result.code, 0, result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout), [1e21, 1e-20]);
+});

@@ -7,7 +7,7 @@ Run interactive or scripted SQLite 3 workloads inside @poe-platform/safe-bash wi
 ## Features
 
 - `sqlite3 [OPTIONS] [FILENAME] [SQL]` — Execute SQL statements and dot-commands over in-memory or VFS-backed SQLite Format 3 databases
-- **SQL values** — Missing column identifiers report errors; double-quoted text falls back to a string when no column matches. REAL literals, casts, averages, and arithmetic retain their numeric type, including `.0` in JSON output.
+- **SQL values** — Missing column identifiers report errors; double-quoted text falls back to a string when no column matches. REAL literals, column affinity, sums, absolute values, casts, averages, and arithmetic retain their numeric type, including `.0` in JSON output. Correlated subqueries resolve qualified and unqualified outer columns; JOIN conditions validate columns even on empty tables.
 - **Output Modes** — `-csv`, `-json`, `-line`, `-list`, `-column`, `-table`, `-box`, `-markdown`, `-tabs`, `-html`, `-quote`, `-ascii`, and `.mode insert`
 - **Dot-Commands** — `.mode`, `.headers`, `.separator`, `.nullvalue`, `.tables`, `.schema`, `.dump`, `.import`, `.output`, `.once`, `.read`, `.databases`, `.indexes`, `.parameter`, `.backup`, `.restore`
 - **Full SQL Engine** — DDL (`CREATE/ALTER/DROP`), DML (`INSERT ... ON CONFLICT`, `RETURNING`), Joins, Recursive CTEs, Window Functions, `json_each` / `json_tree`, and `PRAGMA` introspection

@@ -1449,6 +1449,7 @@ export class SqliteDatabase {
   public lastChanges = 0;
   public totalChanges = 0;
   public inTransaction = false;
+  private outerRows: Record<string, SqlValue>[] = [];
   private txSnapshot: SnapshotState | null = null;
   private savepoints = new Map<string, SnapshotState>();
 
@@ -2936,6 +2937,18 @@ export class SqliteDatabase {
         }
       }
 
+      for (const col of tbl.columns) {
+        const type = col.type.toUpperCase();
+        const value = data[col.name];
+        // INTEGER and TEXT affinity take precedence over REAL in SQLite.
+        if (!type.includes("INT") && !["CHAR", "CLOB", "TEXT", "BLOB"].some((part) => type.includes(part))
+          && ["REAL", "FLOA", "DOUB"].some((part) => type.includes(part))
+          && value !== null && value !== undefined && !(value instanceof Uint8Array)
+          && (typeof value !== "string" || (value.trim() !== "" && [...value.trim()].every((char) => "0123456789.+-eE".includes(char)) && Number.isFinite(Number(value))))) {
+          data[col.name] = new Number(toSqlNumber(value));
+        }
+      }
+
       const candidate: TableRow = { rowid, data };
       this.fireTriggers(tbl.name, "BEFORE", "INSERT", undefined, candidate.data);
 
@@ -3724,23 +3737,14 @@ export class SqliteDatabase {
         bindings[`${source.tableAlias}.${column}`] = null;
       }
     }
-    const validateColumns = (node: unknown, scope: Record<string, SqlValue>): void => {
-      if (!node || typeof node !== "object") return;
-      if ("kind" in node && node.kind === "column") {
-        const column = node as Extract<ExprNode, { kind: "column" }>;
-        this.lookupColInRow(scope, column.table, column.name, column.doubleQuoted);
-        return;
-      }
-      for (const child of Object.values(node)) validateColumns(child, scope);
-    };
-    for (const target of selectTargets) validateColumns(target.expr, bindings);
+    for (const target of selectTargets) this.validateColumns(target.expr, bindings);
     const aliasBindings = { ...bindings };
     for (const target of selectTargets) aliasBindings[target.alias] = null;
-    validateColumns(whereExpr, aliasBindings);
+    this.validateColumns(whereExpr, aliasBindings);
     for (const clause of [groupByTokens, havingTokens, orderByTokens]) {
       if (clause) {
         for (const expression of this.splitTopLevelComma(clause)) {
-          validateColumns(new ExprParser(expression).parseExpression(), aliasBindings);
+          this.validateColumns(new ExprParser(expression).parseExpression(), aliasBindings);
         }
       }
     }
@@ -4129,6 +4133,14 @@ export class SqliteDatabase {
       // Perform join between currentRows and resolved
       const nextRows: Record<string, SqlValue>[] = [];
       const onExpr = item.onTokens ? new ExprParser(item.onTokens).parseExpression() : undefined;
+      const joinBindings: Record<string, SqlValue> = {};
+      for (const source of schema) {
+        for (const column of [...source.columns, "rowid", "_rowid_", "oid"]) {
+          joinBindings[column] = null;
+          joinBindings[`${source.tableAlias}.${column}`] = null;
+        }
+      }
+      this.validateColumns(onExpr, joinBindings);
       const usingList = item.natural
         ? resolved.columns.filter((c) => prevCols.has(c.toLowerCase()))
         : item.usingCols;
@@ -4980,7 +4992,7 @@ export class SqliteDatabase {
           obj[toSqlString(k)] = this.sqlValToJsJson(v);
         }
       }
-      return JSON.stringify(obj);
+      return this.serializeJson(obj);
     }
 
     let vals = filteredGroup.map((r) =>
@@ -4999,7 +5011,7 @@ export class SqliteDatabase {
           return true;
         });
       }
-      return JSON.stringify(vals.map((v) => this.sqlValToJsJson(v)));
+      return this.serializeJson(vals.map((v) => this.sqlValToJsJson(v)));
     }
 
     const nonNull = vals.filter((v): v is Exclude<SqlValue, null> => v !== null && v !== undefined);
@@ -5020,7 +5032,9 @@ export class SqliteDatabase {
       if (activeVals.length === 0) {
         return null;
       }
-      return activeVals.reduce<number>((sum, v) => sum + toSqlNumber(v), 0);
+      const sum = activeVals.reduce<number>((total, v) => total + toSqlNumber(v), 0);
+      return activeVals.some((value) => value instanceof Number || !Number.isInteger(toSqlNumber(value)))
+        ? new Number(sum) : sum;
     }
     if (u === "TOTAL") {
       return new Number(activeVals.reduce<number>((sum, v) => sum + toSqlNumber(v), 0.0));
@@ -5075,6 +5089,30 @@ export class SqliteDatabase {
     return v;
   }
 
+  private validateColumns(node: unknown, scope: Record<string, SqlValue>): void {
+    if (!node || typeof node !== "object") return;
+    if ("kind" in node && node.kind === "column") {
+      const column = node as Extract<ExprNode, { kind: "column" }>;
+      this.lookupColInRow(scope, column.table, column.name, column.doubleQuoted);
+      return;
+    }
+    for (const child of Object.values(node)) this.validateColumns(child, scope);
+  }
+
+  private serializeJson(value: unknown): string {
+    if (value instanceof Number) {
+      const number = value.valueOf();
+      if (!Number.isFinite(number)) return "null";
+      const text = String(number);
+      return Number.isInteger(number) && !text.includes("e") ? `${text}.0` : text;
+    }
+    if (Array.isArray(value)) return `[${value.map((item) => this.serializeJson(item)).join(",")}]`;
+    if (value !== null && typeof value === "object") {
+      return `{${Object.entries(value).map(([key, item]) => `${JSON.stringify(key)}:${this.serializeJson(item)}`).join(",")}}`;
+    }
+    return JSON.stringify(value) ?? "null";
+  }
+
   private lookupColInRow(row: Record<string, SqlValue>, table: string | undefined, name: string, doubleQuoted = false): SqlValue {
     if (table) {
       const exact = `${table}.${name}`;
@@ -5096,6 +5134,13 @@ export class SqliteDatabase {
       if (!table && (k.toLowerCase() === lowerName || k.toLowerCase().endsWith(`.${lowerName}`))) {
         return v;
       }
+    }
+    for (let i = this.outerRows.length - 1; i >= 0; i -= 1) {
+      const outer = this.outerRows[i]!;
+      const key = Object.keys(outer).find((key) => table
+        ? key.toLowerCase() === `${table}.${name}`.toLowerCase()
+        : key.toLowerCase() === lowerName);
+      if (key !== undefined) return outer[key]!;
     }
     if (doubleQuoted && !table) return name;
     throw new Error(`in prepare, no such column: ${table ? `${table}.` : ""}${name}`);
@@ -5219,8 +5264,13 @@ export class SqliteDatabase {
       }
       case "in_subquery": {
         const v = this.evalExpr(expr.expr, row, positionalParams, cteScope);
-        const subSql = this.substituteCorrelatedColumns(expr.subquerySql, row);
-        const res = this.executeStatement(subSql, positionalParams, cteScope) ?? { columns: [], rows: [] };
+        this.outerRows.push(row);
+        let res: QueryResultSet;
+        try {
+          res = this.executeStatement(expr.subquerySql, positionalParams, cteScope) ?? { columns: [], rows: [] };
+        } finally {
+          this.outerRows.pop();
+        }
         if (v === null) {
           return res.rows.length === 0 ? (expr.not ? 1 : 0) : null;
         }
@@ -5258,8 +5308,13 @@ export class SqliteDatabase {
         return this.applyCast(v, expr.targetType);
       }
       case "subquery": {
-        const subSql = this.substituteCorrelatedColumns(expr.sql, row);
-        const res = this.executeStatement(subSql, positionalParams, cteScope) ?? { columns: [], rows: [] };
+        this.outerRows.push(row);
+        let res: QueryResultSet;
+        try {
+          res = this.executeStatement(expr.sql, positionalParams, cteScope) ?? { columns: [], rows: [] };
+        } finally {
+          this.outerRows.pop();
+        }
         if (expr.exists) {
           const has = res.rows.length > 0;
           return (expr.notExists ? !has : has) ? 1 : 0;
@@ -5289,25 +5344,6 @@ export class SqliteDatabase {
         return this.evalScalarFunction(expr.name, args);
       }
     }
-  }
-
-  private substituteCorrelatedColumns(subSql: string, outerRow: Record<string, SqlValue>): string {
-    if (Object.keys(outerRow).length === 0) {
-      return subSql;
-    }
-    return subSql.replace(/\b([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\b/g, (full, tbl: string, col: string) => {
-      const key = `${tbl}.${col}`;
-      if (key in outerRow) {
-        return this.toSqlLiteral(outerRow[key]!);
-      }
-      const lower = key.toLowerCase();
-      for (const [k, v] of Object.entries(outerRow)) {
-        if (k.toLowerCase() === lower) {
-          return this.toSqlLiteral(v);
-        }
-      }
-      return full;
-    });
   }
 
   private applyUnary(op: string, v: SqlValue): SqlValue {
@@ -5627,7 +5663,7 @@ export class SqliteDatabase {
       case "QUOTE":
         return this.toSqlLiteral(a0);
       case "ABS":
-        return a0 === null ? null : Math.abs(toSqlNumber(a0));
+        return a0 === null ? null : a0 instanceof Number ? new Number(Math.abs(a0.valueOf())) : Math.abs(toSqlNumber(a0));
       case "ROUND": {
         if (a0 === null) {
           return null;
@@ -5784,9 +5820,9 @@ export class SqliteDatabase {
         }
       }
       case "JSON_QUOTE":
-        return a0 === null ? "null" : JSON.stringify(this.sqlValToJsJson(a0));
+        return a0 === null ? "null" : this.serializeJson(this.sqlValToJsJson(a0));
       case "JSON_ARRAY":
-        return JSON.stringify(args.map((x) => this.sqlValToJsJson(x)));
+        return this.serializeJson(args.map((x) => this.sqlValToJsJson(x)));
       case "JSON_OBJECT": {
         const obj: Record<string, unknown> = {};
         for (let i = 0; i + 1 < args.length; i += 2) {
@@ -5794,7 +5830,7 @@ export class SqliteDatabase {
             obj[toSqlString(args[i]!)] = this.sqlValToJsJson(args[i + 1] ?? null);
           }
         }
-        return JSON.stringify(obj);
+        return this.serializeJson(obj);
       }
       case "JSON_EXTRACT": {
         if (a0 === null) {

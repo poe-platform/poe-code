@@ -8,6 +8,31 @@ import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";
 import { execute } from "./harness.js";
 
+test("jq retains full output buffers until an asynchronous sink releases them", { timeout: 3000 }, async () => {
+  const values = Array.from({ length: 80 }, (_, i) => String(i).padStart(1024, "x"));
+  let entered!: () => void, release!: () => void;
+  const ready = new Promise<void>(resolve => { entered = resolve; });
+  const held = new Promise<void>(resolve => { release = resolve; });
+  let writes = 0, settled = false;
+  let borrowed: Uint8Array | undefined, snapshot: Buffer | undefined;
+  const chunks: Buffer[] = [];
+  const running = execute(["-r", ".[]"], JSON.stringify(values), { limits: { maxOutputBytes: 100000, maxSteps: 1000000 } }, {
+    stdout: { async write(bytes) {
+      if (++writes === 1) { borrowed = bytes; snapshot = Buffer.from(bytes); entered(); await held; }
+      chunks.push(Buffer.from(bytes));
+    } }
+  });
+  void running.then(() => { settled = true; }, () => { settled = true; });
+  try {
+    await ready;
+    await setImmediate();
+    assert.equal(writes, 1, "later output must await the admitted write");
+    assert.equal(settled, false);
+    assert.deepEqual(Buffer.from(borrowed!), snapshot, "borrowed output bytes must remain stable");
+  } finally { release(); await running; }
+  assert.equal(Buffer.concat(chunks).toString(), values.join("\n") + "\n");
+});
+
 function filesystem(overrides: { [Key in keyof FileSystem]?: FileSystem[Key] | undefined }): FileSystem {
   return new Proxy(new MemoryFileSystem(), { get(target, property) {
     if (Object.hasOwn(overrides, property)) return Reflect.get(overrides, property);

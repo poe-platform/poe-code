@@ -802,6 +802,8 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
       const isRawStr = options.raw && typeof result === "string";
       const isScalar = result === null || typeof result !== "object";
       if (!isCompactPlain && !isScalar) return false;
+      // The compact writers only accept objects; scalar JSON uses stringify.
+      if (isScalar && !isRawStr) return false;
       if (budget.results + 1 > budget.maxResultsSmi && budget.results + 1 > limits.maxResults) throw new JqLimitError("maxResults");
       let buf = outBuf;
       if (!buf) {
@@ -818,15 +820,15 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
         for (let i = 0; i < str.length; i++) {
           if (str.charCodeAt(i) >= 0x80) return false;
         }
-        budget.step();
-        budget.value(str);
         const remaining = limits.maxOutputBytes - budget.outputBytes;
         const chunkLen = str.length + suffix.length;
+        // A zero-byte result still needs a sink write to preserve backpressure.
+        if (chunkLen === 0) return false;
         if (chunkLen > remaining) throw new JqLimitError("maxOutputBytes");
         if (chunkLen > OUT_BUF_SIZE) return false;
-        if (outPos + chunkLen > OUT_BUF_SIZE) {
-          if (flushStdout()) return false;
-        }
+        if (outPos + chunkLen > OUT_BUF_SIZE) return false;
+        budget.step();
+        budget.value(str);
         budget.results++;
         budget.outputBytes += chunkLen;
         let pos = outPos;
@@ -839,9 +841,7 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
       const maxChunkSmi = remSmi > suffix.length
         ? remSmi - suffix.length
         : (limits.maxOutputBytes === Infinity ? 0x3fffffff : Math.max(0, limits.maxOutputBytes - budget.outputBytes - suffix.length));
-      if (outPos + 512 > OUT_BUF_SIZE && outPos > 0) {
-        if (flushStdout()) return false;
-      }
+      if (outPos + 512 > OUT_BUF_SIZE && outPos > 0) return false;
       const newPos = tryWriteCompactSync(result, budget, buf, outPos, suffix, maxChunkSmi, interpreter.getScratchKeys(result));
       if (newPos >= 0) {
         const chunkLen = newPos - outPos;
@@ -859,9 +859,7 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
       const chunkLen = text.length + suffix.length;
       if (chunkLen > remaining) throw new JqLimitError("maxOutputBytes");
       if (chunkLen > OUT_BUF_SIZE) return false;
-      if (outPos + chunkLen > OUT_BUF_SIZE) {
-        if (flushStdout()) return false;
-      }
+      if (outPos + chunkLen > OUT_BUF_SIZE) return false;
       budget.results++;
       budget.outputBytes += chunkLen;
       let pos = outPos;
@@ -967,6 +965,10 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
           if (next.done) break;
           const result = next.value;
           if (!tryPublishSync(result)) await publishResult(result);
+          // An asynchronous generator can do unbounded work on its next step.
+          // Publish this result and respect its sink before asking for another.
+          const pending = flushStdout();
+          if (pending) await pending;
           invocationLast = result;
           status = options.exitStatus ? truth(result) ? 0 : 1 : 0;
         }
@@ -992,6 +994,8 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
     } else for await (const value of inputs(context, options, budget, convert, emitSyncOrAsync, flushStdout, () => diagnostics.length > 0)) {
       const p = emitSyncOrAsync(value);
       if (p) await p;
+      const pending = flushStdout();
+      if (pending) await pending;
     }
     const pFlush = flushStdout();
     if (pFlush) await pFlush;

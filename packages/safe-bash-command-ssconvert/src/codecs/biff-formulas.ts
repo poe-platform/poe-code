@@ -126,15 +126,17 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       } else { text = biffDecode(data.slice(offset, length), context.codepage); offset += length; }
       push('"' + text.split('"').join('""') + '"', 99, text);
     } else if (token === 0x19) {
-      const flags = data.u8(offset), value = data.u16(offset + 1); offset += 3;
-      if (flags & 4) { data.check(offset, (value + 1) * 2); offset += (value + 1) * 2; }
-      if (flags & 16) push("SUM(" + pop().text + ")");
+      const width = context.revision === 2 ? 1 : 2;
+      const flags = data.u8(offset), value = width === 1 ? data.u8(offset + 1) : data.u16(offset + 1); offset += 1 + width;
+      if (flags & 4) { data.check(offset, (value + 1) * width); offset += (value + 1) * width; }
+      else if (flags & 16) push("SUM(" + pop().text + ")");
     } else if (token === 0x1c) push(biffErrors[data.u8(offset++)] ?? "#UNKNOWN!");
     else if (token === 0x1d) push(data.u8(offset++) ? "TRUE" : "FALSE");
     else if (token === 0x1e) { push(String(data.u16(offset))); offset += 2; }
     else if (token === 0x1f) { const value = data.f64(offset); if (!Number.isFinite(value)) invalidBiff("invalid formula number"); push(String(value)); offset += 8; }
     else if (token === 0x20 && context.readArray) {
-      data.check(offset, 7); offset += 7; push(context.readArray());
+      const size = context.revision === 2 ? 6 : 7;
+      data.check(offset, size); offset += size; push(context.readArray());
     }
     else if (token === 0x21 || token === 0x22) {
       const argc = token === 0x22 ? data.u8(offset++) & 0x7f : undefined;
@@ -203,7 +205,8 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       const sheet = binding === null ? context.nameSheets?.[resolved - 1] ?? context.currentSheet : typeof binding === "string" ? binding : binding[0];
       push(nameText(resolved, sheet), 99, resolution === undefined ? name : resolution.functionName);
     } else if (token === 0x23) {
-      const index = context.revision >= 8 ? data.u32(offset) : data.u16(offset), width = context.revision >= 8 ? 4 : context.revision >= 5 ? 14 : 10;
+      const index = context.revision >= 8 ? data.u32(offset) : data.u16(offset),
+        width = context.revision >= 8 ? 4 : context.revision >= 5 ? 14 : context.revision === 2 ? 7 : 10;
       data.check(offset, width); offset += width;
       const resolution = context.resolveName?.(index, false), resolved = resolution?.value ?? index;
       if (typeof resolved === "string") { push(resolved, 99, resolution?.functionName); continue; }
@@ -257,10 +260,14 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       const qualifier = endpoints.map(name => external ? quoteFormulaString(name, "'", gnumericGrammar) : "'" + name.split("'").join("''") + "'").join(":");
       push((external ? "[" + quoteFormulaString(external.workbook, "'", gnumericGrammar) + "]" : "") + (qualifier ? qualifier + "!" : "") + ref);
     } else if (token === 0x26 || token === 0x27 || token === 0x28) {
-      data.check(offset, 6); offset += 6;
+      const size = context.revision === 2 ? 4 : 6;
+      data.check(offset, size); offset += size;
       if (token === 0x26) context.readMemory?.();
     }
-    else if (token === 0x29) { data.check(offset, 2); offset += 2; }
+    else if (token === 0x29 || token === 0x2e || token === 0x2f) {
+      const size = context.revision === 2 ? 1 : 2;
+      data.check(offset, size); offset += size;
+    }
     else throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: BIFF formula token 0x${raw.toString(16)}`);
   }
   if (stack.length !== 1) invalidBiff("formula stack did not resolve");

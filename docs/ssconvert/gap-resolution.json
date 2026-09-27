@@ -1337,6 +1337,36 @@
       },
       "relativeValidation": "Eight initial regressions failed, plus later boundary, text-update and serializer-guard failures. Full package: 440 files / 24,426 tests passed before final two guards; final focused formula/codec/legacy cohort: 42 passed. Maintained lint, source/test/consumer types and selected build passed. Six compiled public SDK/command XML/XLSX/ODF conversions retained mixed flags and calculated 23 after readback/copy. No native LibreOffice execution was available.",
       "remaining": "Modern Lotus direct references now retain relative-sheet bits; qualify other token profiles and implement applicable BIFF persistence. Qualify native copy modes, named-expression anchors, external ranges, deleted sheets and Lotus range-bit disagreement. XML/XLSX annotation roundtrips do not establish native copy-semantics interoperability. Source-derived behavior and candidate tests are not native-application qualification. All 19 gap families remain open."
+    },
+    "biffCompactFormulaTokens": {
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/excel/excform.cxx",
+          "sha256": "813d35f21f88d87e4a4cadbbd632c9c676d7a8744c07db09b56133efc23e6eb3",
+          "lines": "365-390,460-465,513-526,615-628,674-683"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/excel/excform8.cxx",
+          "sha256": "d170e34001710f2b27a42770faecb0117c7f6828d938c7fcb320ec4589459cac",
+          "lines": "565-578,629-638"
+        }
+      ],
+      "finding": "BIFF2 uses 7-byte NAME, 6-byte ARRAY, 4-byte constant-cache and 1-byte variable/name-cache payloads; later versions use their wider fields. ATTR data and CHOOSE jump entries are one byte in BIFF2, two thereafter. MemAreaN/MemNoMemN are skipped reference-subexpression metadata, not operands or extra cached-range payloads. Only MemArea consumes PtgExtraMem. All token operand classes follow the same widths.",
+      "implementation": "Corrected BIFF2 framing and added MemAreaN/MemNoMemN import. Before correction, 46 of 104 focused cases failed; one NAME/ATTR expression silently lost SUM. All 104 now pass, including an original in-memory BIFF2 name/cache/array workbook recalculating to 43 through BIFF7/8 reexport. Final surrounding cohort: 59 files / 1413 tests passed. Final maintained lint/source/test/consumer types passed, as did the selected workspace build.",
+      "remaining": "Independent native application readback, other unsupported BIFF tokens and broader version/record fidelity remain open. Source-derived support is not whole-family qualification.",
+      "publishedSpecification": {
+        "url": "https://www.openoffice.org/sc/excelfileformat.pdf",
+        "sha256": "af25dee84bd186225a241cafc07ab9f2ea60149f4e2836d3f44a10107949ab4e",
+        "version": "1.42, 2008-04-02",
+        "sections": "3.4, 3.9.1, 3.9.12-13",
+        "pagesInspected": [
+          43,
+          54,
+          59
+        ],
+        "finding": "BIFF2 tName is eight bytes including its opcode, versus eleven in BIFF3/4. MemAreaN/MemNoMemN have no appended cell-range list and remain accepted in BIFF5/8 even though no longer generated. Corrected the previous test that followed Gnumeric\u2019s undifferentiated pre-BIFF5 ten-byte NAME payload."
+      },
+      "publicValidation": "Compiled SDK and command conversions with explicit recalculation retained values [43,42] through BIFF7 and BIFF8; command CSV output was 43 followed by 42. All five conversions completed without diagnostics. The initial SDK probe omitted recalc and retained its cached zero; corrected probe options passed without another production change. Actual compiled command screenshot inspected."
     }
   },
   "cases": [

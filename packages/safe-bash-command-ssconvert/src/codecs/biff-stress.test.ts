@@ -74,8 +74,10 @@ it("checks formula stacks, payloads, names, and work budget", () => {
     expect(() => translateBiffFormula(bytes, formulaContext)).toThrow("Invalid Excel BIFF");
   expect(() => translateBiffFormula(new Uint8Array([0x1e, 123, 0]), { ...formulaContext, limit: 1 })).toThrow("work limit");
 });
-it.each([2, 3, 4])("reads the source-defined ten-byte Name token payload in BIFF revision %i", revision => {
-  const bytes = new Uint8Array(11); bytes[0] = 0x23; bytes[1] = 1;
+// Excel File Format 1.42, 3.9.1: BIFF2 has a seven-byte NAME payload;
+// BIFF3/4 have ten. Gnumeric's shared pre-BIFF5 width misses this distinction.
+it.each([2, 3, 4])("reads the versioned Name token payload in BIFF revision %i", revision => {
+  const bytes = new Uint8Array(revision === 2 ? 8 : 11); bytes[0] = 0x23; bytes[1] = 1;
   expect(translateBiffFormula(bytes, { revision, codepage: 1252, row: 0, column: 0,
     names: ["NamedValue"], externalSheets: [], limit: 100 })).toBe("=NamedValue");
 });

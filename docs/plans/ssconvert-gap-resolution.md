@@ -321,6 +321,19 @@ LibreOffice shifts modern range endpoint flags by three bits, whereas libwps
 shifts by four. Independent application qualification remains open; source
 agreement on one record profile does not settle the others.
 
+The BIFF token audit in `reference.biffCompactFormulaTokens` traces LibreOffice
+legacy and BIFF8 importers. BIFF2 now uses compact NAME, ATTR/CHOOSE, ARRAY and
+reference-cache payloads; MemAreaN/MemNoMemN import as reference-subexpression
+metadata. Only MemArea consumes cached-range auxiliary data. Forty-six of 104
+focused cases failed before correction, including a silently discarded SUM. All
+104 pass, and an original BIFF2 name/cache/array workbook recalculates to 43 after
+BIFF7/8 reexport. The published Excel File Format 1.42 sections 3.4, 3.9.1 and
+3.9.12-13 confirm these layouts; the former ten-byte BIFF2 NAME test followed
+Gnumeric’s incorrect shared pre-BIFF5 width and is corrected. The 1,413-test
+cohort, final package lint/types, selected build and five compiled SDK/command
+conversions pass; actual command output was visually inspected. Native application
+and remaining token qualification stay open.
+
 The Calc reference-model audit is recorded under `reference.sheetReferenceSemantics`.
 Its parser and writer preserve ODF sheet `$` markers; external sheet references
 are absolute. Moves resolve the old target and rebind at the new formula position.

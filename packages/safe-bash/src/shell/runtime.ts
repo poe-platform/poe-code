@@ -3380,8 +3380,6 @@ export class Runtime {
   declare private _fastSubPositional: readonly string[] | undefined;
   private _syncReturnDepth = 0;
   private _syncPendingReturnStatus: number | undefined;
-  private _syncPendingBreak = 0;
-  private _syncPendingContinue = 0;
   private _syncPendingFunctionResumes: Array<{
     name: string;
     body: Extract<Command, { kind: "group" }>;
@@ -6613,18 +6611,6 @@ export class Runtime {
               this._syncPendingReturnStatus = undefined;
               throw completedExit(retStatus, "return", 1, retStatus);
             }
-            if (this._syncPendingBreak > 0) {
-              const brk = this._syncPendingBreak;
-              this._syncPendingBreak = 0;
-              const st = syncStatus ?? state.status;
-              throw completedExit(st, "break", brk, st);
-            }
-            if (this._syncPendingContinue > 0) {
-              const cont = this._syncPendingContinue;
-              this._syncPendingContinue = 0;
-              const st = syncStatus ?? state.status;
-              throw completedExit(st, "continue", cont, st);
-            }
             if (syncStatus !== undefined) {
               if (script.lists.length === 1 && list.pipelines.length === 1 && !pipeline.negate && pipeline.commands.length === 1) {
                 const cc = (pipeline.commands[0]! as { _cachedConstEchoRedirect?: { arg0: string; targetPath: string; dirPrefix: string | undefined; fileName: string | undefined; encoded: Uint8Array; append: boolean } | null })._cachedConstEchoRedirect;
@@ -7388,7 +7374,7 @@ export class Runtime {
       return undefined;
     }
     const command = pipeline.commands[0]!;
-    if ( (command.kind !== "simple" && command.kind !== "function" && command.kind !== "arithmetic" && command.kind !== "conditional" && command.kind !== "arithmetic-for" && command.kind !== "for" && command.kind !== "if" && command.kind !== "case" && command.kind !== "group" && command.kind !== "while" && command.kind !== "until") || command.redirects.length > 1) {
+    if ( (command.kind !== "simple" && command.kind !== "function" && command.kind !== "arithmetic" && command.kind !== "conditional" && command.kind !== "if" && command.kind !== "case" && command.kind !== "group") || command.redirects.length > 1) {
       (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
       return undefined;
     }
@@ -7917,38 +7903,9 @@ export class Runtime {
       return checkCondNoFile(command.expression);
     }
     if (command.kind === "group") return this.canSyncScriptCompound(command.body, rawState, depth + 1, loopDepth);
-    if (command.kind === "while" || command.kind === "until") {
-      if (command.redirects.length !== 0 || this.budget.limits.maxLoopIterations < 1000) return false;
-      return this.canSyncScriptCompound(command.condition, rawState, depth + 1, loopDepth + 1) && this.canSyncScriptCompound(command.body, rawState, depth + 1, loopDepth + 1) && this.canSyncLoopScriptsWithoutTransition([command.condition, command.body], rawState);
-    }
-    if (command.kind === "arithmetic-for") {
-      if (command.redirects.length !== 0 || this.budget.limits.maxLoopIterations < 1000) return false;
-      for (const expr of command.expressions) {
-        if (!expr) continue;
-        if (expr.error || !isSafeSmiProgram(expr) || expr.source.includes("/") || expr.source.includes("%") || expr.source.includes("<<") || expr.source.includes(">>") || expr.source.includes("**")) return false;
-      }
-      return this.canSyncScriptCompound(command.body, rawState, depth + 1, loopDepth + 1) && this.canSyncLoopScriptsWithoutTransition([command.body], rawState);
-    }
-    if (command.kind === "for") {
-      if (rawState.variableAttributes?.get(command.name) || command.redirects.length !== 0 || this.budget.limits.maxLoopIterations < 1000 || !isShellIdentifier(command.name) || command.name === "OPTIND" || command.name === "PIPESTATUS" || rawState.readonlyVariables?.has(command.name) || stateMonitor(rawState)?.store?.get(command.name)) return false;
-      if (command.words) {
-        if (command.words.length === 1) {
-          const w0 = command.words[0]!;
-          const nonEmpty0 = w0.parts.filter(p => !(p.kind === "text" && p.value === ""));
-          const p0 = nonEmpty0.length === 1 ? nonEmpty0[0]! : undefined;
-          const sel0 = p0?.kind === "variable" ? getArraySelector(p0) : undefined;
-          const isArrAt = Boolean(p0?.kind === "variable" && p0.quoted && !p0.indirect && !p0.prefixNames && !p0.length && !p0.substring && !p0.transform && p0.operator === undefined && (sel0?.kind === "members" || sel0?.kind === "keys") && sel0.separator === "@");
-          const isBraceRange = Boolean(p0?.kind === "text" && !p0.quoted && /^\{-?\d+\.\.-?\d+(?:\.\.-?\d+)?\}$/.test(p0.value));
-          if (!isArrAt && !isBraceRange && !this.canSyncArrayMembersWord(w0, rawState) && !(this.isPureSyncValueWord(w0, rawState) && w0.parts.every(p => p.quoted || (p.kind === "text" && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true))))) return false;
-        } else {
-          for (let i = 0; i < command.words.length; i++) {
-            const w = command.words[i]!;
-            if (!this.canSyncArrayMembersWord(w, rawState) && (!this.isPureSyncValueWord(w, rawState) || !w.parts.every(p => p.quoted || (p.kind === "text" && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true))))) return false;
-          }
-        }
-      }
-      return this.canSyncScriptCompound(command.body, rawState, depth + 1, loopDepth + 1) && this.canSyncLoopScriptsWithoutTransition([command.body], rawState);
-    }
+    // Loops own their iteration state in the resumable executor. A compound
+    // fast path cannot restart a loop after a body or checkpoint suspends.
+    if (command.kind === "while" || command.kind === "until" || command.kind === "arithmetic-for" || command.kind === "for") return false;
     if (command.kind === "if") {
       for (let i = 0; i < command.branches.length; i++) {
         const b = command.branches[i]!;
@@ -8796,7 +8753,7 @@ export class Runtime {
               (command as { _resumeSyncIfCondition?: { branchIndex: number; listIndex: number; pipelineIndex: number } })._resumeSyncIfCondition = { branchIndex: i, ...condRes };
               return undefined;
             }
-            if (this._syncPendingReturnStatus !== undefined || this._syncPendingBreak > 0 || this._syncPendingContinue > 0) return condRes;
+            if (this._syncPendingReturnStatus !== undefined) return condRes;
             if (condRes === 0) {
               const bodyRes = this.trySyncScript(b.body, state, io, ignored);
               if (typeof bodyRes === "number") return bodyRes;
@@ -10116,25 +10073,6 @@ export class Runtime {
       }
       if (command.redirects.length !== 0) return undefined;
       if (
-        (w0Plain === "break" || w0Plain === "continue") &&
-        (command.words.length === 1 || command.words.length === 2) &&
-        rawState.loopDepth > 0 &&
-        this._syncReturnDepth > 0 &&
-        canMutatePipeStatus &&
-        !pipeline.negate &&
-        !hasShellFunction(rawState, w0Plain) &&
-        !rawState.extensions?.builtins.has(w0Plain)
-      ) {
-        const lvl = command.words.length === 1 ? 1 : (command.words[1]?.plain && /^[1-9]$/.test(command.words[1].plain) ? Number(command.words[1].plain) : 0);
-        if (lvl >= 1 && lvl <= rawState.loopDepth) {
-          if (w0Plain === "break") this._syncPendingBreak = lvl;
-          else this._syncPendingContinue = lvl;
-          this.budget.tick();
-          rawState.status = 0;
-          return 0;
-        }
-      }
-      if (
         command.words.length >= 2 &&
         command.words.length <= 16 &&
         w0Plain === "unset" &&
@@ -11191,7 +11129,6 @@ export class Runtime {
         const syncStatus = this.trySyncPipeline(pipeline, state, io, ignored);
         if (syncStatus === undefined) return { listIndex, pipelineIndex: index };
         if (this._syncPendingReturnStatus !== undefined) return this._syncPendingReturnStatus;
-        if (this._syncPendingBreak > 0 || this._syncPendingContinue > 0) return syncStatus;
       }
     }
     return script.lists.length ? state.status : 0;
@@ -12535,18 +12472,6 @@ export class Runtime {
           const retStatus = this._syncPendingReturnStatus;
           this._syncPendingReturnStatus = undefined;
           throw completedExit(retStatus, "return", 1, retStatus);
-        }
-        if (this._syncPendingBreak > 0) {
-          const brk = this._syncPendingBreak;
-          this._syncPendingBreak = 0;
-          const st = syncStatus ?? state.status;
-          throw completedExit(st, "break", brk, st);
-        }
-        if (this._syncPendingContinue > 0) {
-          const cont = this._syncPendingContinue;
-          this._syncPendingContinue = 0;
-          const st = syncStatus ?? state.status;
-          throw completedExit(st, "continue", cont, st);
         }
         if (syncStatus !== undefined) continue;
         const fastUnit = this.tryFastSinglePipelineUnit(pipeline, state, io, Boolean(ignored));

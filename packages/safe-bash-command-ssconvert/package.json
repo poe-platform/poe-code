@@ -62,5 +62,8 @@
     "htmlparser2": "^10.0.0",
     "jpeg-js": "0.4.4",
     "pdf-lib": "1.17.1"
+  },
+  "devDependencies": {
+    "safe-bash-contracts": "*"
   }
 }

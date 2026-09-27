@@ -46,3 +46,5 @@ export type * from './sdk-settings.js';
 export { WorkbookInput } from './operations/workbook-input.js';
 export type { CsvkitWorkbook, CsvkitWorksheet, CsvkitWorkbookCell } from './workbook.js';
 export { Runtime, type Settings } from './runtime.js';
+
+export * from "./command.js";

@@ -1,5 +1,7 @@
 # wkhtmltopdf command and SDK
 
+`createWkhtmltopdfCommand(options?)` creates one command, `createWkhtmltopdfCommands(options?)` returns the command family, and `wkhtmltopdfCommands(options?)` registers it as a shell plugin. `WkhtmltopdfCommandsOptions` describes configuration; all three factories accept no arguments.
+
 Use the opt-in HTML-to-PDF invocation parser and byte adapter through
 `@poe-platform/safe-bash/commands/wkhtmltopdf`. The built-in PDF AST renderer converts static HTML by default.
 Supply `renderer` to override it with a trusted first-party static renderer.

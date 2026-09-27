@@ -74,6 +74,18 @@
     "./filesystem-identity": {
       "types": "./dist/filesystem-identity.d.ts",
       "import": "./dist/filesystem-identity.js"
+    },
+    "./filesystem-output": {
+      "types": "./dist/filesystem-output.d.ts",
+      "import": "./dist/filesystem-output.js"
+    },
+    "./filesystem-descriptor": {
+      "types": "./dist/filesystem-descriptor.d.ts",
+      "import": "./dist/filesystem-descriptor.js"
+    },
+    "./runtime-control": {
+      "types": "./dist/runtime-control.d.ts",
+      "import": "./dist/runtime-control.js"
     }
   },
   "files": [

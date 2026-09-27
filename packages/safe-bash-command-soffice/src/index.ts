@@ -970,15 +970,19 @@ export function createLibreofficeCommand(_options: SofficeCommandOptions = {}): 
 
 export const libreofficeCommand: CommandDefinition = createLibreofficeCommand();
 
-export function sofficeCommands(options: SofficeCommandOptions = {}): VirtualShellPlugin {
-  const command = createSofficeCommand(options);
-  const loCmd = createLibreofficeCommand(options);
+export function sofficeCommands(options: SofficeCommandsOptions = {}): VirtualShellPlugin {
+  const commands = createSofficeCommands(options);
   const replace = options.replace ?? false;
   return {
     name: "soffice",
     setup(host) {
-      host.commands.register(command, { replace });
-      host.commands.register(loCmd, { replace });
+      for (const command of commands) host.commands.register(command, { replace });
     }
   };
+}
+
+export type SofficeCommandsOptions = SofficeCommandOptions;
+
+export function createSofficeCommands(options: SofficeCommandsOptions = {}): readonly CommandDefinition[] {
+  return Object.freeze([createSofficeCommand(options), createLibreofficeCommand(options)]);
 }

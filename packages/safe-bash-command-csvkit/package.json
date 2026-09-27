@@ -51,5 +51,8 @@
         "./THIRD_PARTY_NOTICES.txt"
       ]
     }
+  },
+  "devDependencies": {
+    "safe-bash-contracts": "*"
   }
 }

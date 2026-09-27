@@ -361,7 +361,19 @@ export function createWkhtmltopdfCommand(options: WkhtmltopdfCommandOptions = { 
 
 export const wkhtmltopdfCommand: CommandDefinition = createWkhtmltopdfCommand();
 
-export function wkhtmltopdfCommands(options: WkhtmltopdfCommandOptions = { limits: wkhtmltopdfLimits }): VirtualShellPlugin {
-  const command = createWkhtmltopdfCommand(options);
-  return { name: "wkhtmltopdf-commands", setup(host) { host.commands.register(command, { replace: options.replace ?? false }); } };
+export function wkhtmltopdfCommands(options: WkhtmltopdfCommandsOptions = {}): VirtualShellPlugin {
+  const commands = createWkhtmltopdfCommands(options);
+  const replace = options.replace ?? false;
+  return {
+    name: "wkhtmltopdf-commands",
+    setup(host) {
+      for (const command of commands) host.commands.register(command, { replace });
+    }
+  };
+}
+
+export type WkhtmltopdfCommandsOptions = WkhtmltopdfCommandOptions;
+
+export function createWkhtmltopdfCommands(options: WkhtmltopdfCommandsOptions = {}): readonly CommandDefinition[] {
+  return Object.freeze([createWkhtmltopdfCommand(options)]);
 }

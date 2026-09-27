@@ -64,3 +64,5 @@ export type { DatasourceCapability, DatasourceTransport, DatasourceSession } fro
 
 export { createDatabaseFunctions } from "./formulas/database-functions.js";
 export type { DatabaseQuery, DatabaseQueryRequest, DatabaseQueryResult } from "./formulas/database-functions.js";
+
+export * from "./command.js";

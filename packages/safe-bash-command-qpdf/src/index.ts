@@ -2528,13 +2528,19 @@ export function createQpdfCommand(_options: QpdfCommandOptions = {}): CommandDef
 
 export const qpdfCommand: CommandDefinition = createQpdfCommand();
 
-export function qpdfCommands(options: QpdfCommandOptions = {}): VirtualShellPlugin {
-  const command = createQpdfCommand(options);
+export function qpdfCommands(options: QpdfCommandsOptions = {}): VirtualShellPlugin {
+  const commands = createQpdfCommands(options);
   const replace = options.replace ?? false;
   return {
     name: "qpdf",
     setup(host) {
-      host.commands.register(command, { replace });
+      for (const command of commands) host.commands.register(command, { replace });
     }
   };
+}
+
+export type QpdfCommandsOptions = QpdfCommandOptions;
+
+export function createQpdfCommands(options: QpdfCommandsOptions = {}): readonly CommandDefinition[] {
+  return Object.freeze([createQpdfCommand(options)]);
 }

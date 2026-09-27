@@ -928,17 +928,21 @@ export function createPdftocairoCommand(_options: PdftoppmCommandOptions = {}): 
 
 export const pdftocairoCommand: CommandDefinition = createPdftocairoCommand();
 
-export function pdftoppmPlugin(options: PdftoppmCommandOptions = {}): VirtualShellPlugin {
-  const cmd = createPdftoppmCommand(options);
-  const cairoCmd = createPdftocairoCommand(options);
+export function pdftoppmPlugin(options: PdftoppmCommandsOptions = {}): VirtualShellPlugin {
+  const commands = createPdftoppmCommands(options);
   const replace = options.replace ?? false;
   return {
     name: "pdftoppm",
     setup(host) {
-      host.commands.register(cmd, { replace });
-      host.commands.register(cairoCmd, { replace });
-    },
+      for (const command of commands) host.commands.register(command, { replace });
+    }
   };
 }
 
 export const pdftoppmCommands = pdftoppmPlugin;
+
+export type PdftoppmCommandsOptions = PdftoppmCommandOptions;
+
+export function createPdftoppmCommands(options: PdftoppmCommandsOptions = {}): readonly CommandDefinition[] {
+  return Object.freeze([createPdftoppmCommand(options), createPdftocairoCommand(options)]);
+}

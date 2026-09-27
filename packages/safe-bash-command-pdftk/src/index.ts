@@ -2073,15 +2073,21 @@ export function createPdftkCommand(_options: PdftkCommandOptions = {}): CommandD
 
 export const pdftkCommand: CommandDefinition = createPdftkCommand();
 
-export function pdftkPlugin(options: PdftkCommandOptions = {}): VirtualShellPlugin {
-  const cmd = createPdftkCommand(options);
+export function pdftkPlugin(options: PdftkCommandsOptions = {}): VirtualShellPlugin {
+  const commands = createPdftkCommands(options);
   const replace = options.replace ?? false;
   return {
     name: "pdftk",
     setup(host) {
-      host.commands.register(cmd, { replace });
-    },
+      for (const command of commands) host.commands.register(command, { replace });
+    }
   };
 }
 
 export const pdftkCommands = pdftkPlugin;
+
+export type PdftkCommandsOptions = PdftkCommandOptions;
+
+export function createPdftkCommands(options: PdftkCommandsOptions = {}): readonly CommandDefinition[] {
+  return Object.freeze([createPdftkCommand(options)]);
+}

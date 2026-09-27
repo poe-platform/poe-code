@@ -9,3 +9,5 @@ export {
   type CsvgrepResult
 } from "./command.js";
 export { CsvError, type CsvLimits, type CsvDialect } from "safe-bash-csv-engine";
+
+export { createCsvgrepCommands, type CsvgrepCommandsOptions } from "./command.js";

@@ -1,5 +1,7 @@
 # `@poe-platform/safe-bash/commands/pdftk`
 
+`createPdftkCommand(options?)` creates one command, `createPdftkCommands(options?)` returns the command family, and `pdftkCommands(options?)` registers it as a shell plugin. `PdftkCommandsOptions` describes configuration; all three factories accept no arguments.
+
 Zero-dependency `pdftk` (PDF Toolkit) CLI for `@poe-platform/safe-bash` powered by `@poe-code/pdf-ast`. Assemble multi-handle page ranges, inspect and fill AcroForm fields from FDF/XFDF, flatten annotations into page content, burst documents, and apply backgrounds or stamps in memory.
 
 ## Features

@@ -1,5 +1,7 @@
 # `safe-bash-command-mmdc`
 
+`createMmdcCommand(options?)` creates one command, `createMmdcCommands(options?)` returns the command family, and `mmdcCommands(options?)` registers it as a shell plugin. `MmdcCommandsOptions` describes configuration; all three factories accept no arguments.
+
 Deterministic, zero-DOM Mermaid-to-SVG and Mermaid-to-PNG diagram renderer for `@poe-platform/safe-bash` and Node.js applications.
 
 Render crisp architecture flowcharts, sequence interactions, state machines, UML class hierarchies, and entity-relationship diagrams directly inside a sandboxed virtual shell or TypeScript SDK—without headless browsers, native canvas bindings, or network requests.

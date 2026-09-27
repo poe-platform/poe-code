@@ -229,7 +229,19 @@ export function createCsvcutCommand(options: CsvcutCommandOptions = {}): Omit<Co
     execute(context: CommandContext) { return csvcut(context, undefined, configuration); } });
 }
 export const csvcutCommand = createCsvcutCommand();
-export function csvcutCommands(options: CsvcutCommandOptions = {}): VirtualShellPlugin {
-  const command = createCsvcutCommand(options), replace = options.replace ?? false;
-  return { name: 'csvcut', setup(host) { host.commands.register(command, { replace }); } };
+export function csvcutCommands(options: CsvcutCommandsOptions = {}): VirtualShellPlugin {
+  const commands = createCsvcutCommands(options);
+  const replace = options.replace ?? false;
+  return {
+    name: "csvcut",
+    setup(host) {
+      for (const command of commands) host.commands.register(command, { replace });
+    }
+  };
+}
+
+export type CsvcutCommandsOptions = CsvcutCommandOptions;
+
+export function createCsvcutCommands(options: CsvcutCommandsOptions = {}): readonly CommandDefinition[] {
+  return Object.freeze([createCsvcutCommand(options)]);
 }

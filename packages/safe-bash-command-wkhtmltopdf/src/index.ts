@@ -22,3 +22,5 @@ export {
   pdfAstWkhtmltopdfCommand,
   pdfAstWkhtmltopdfCommands,
 } from "./pdf-renderer.js";
+
+export { createWkhtmltopdfCommands, type WkhtmltopdfCommandsOptions } from "./command.js";

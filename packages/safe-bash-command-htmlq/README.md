@@ -1,5 +1,7 @@
 # htmlq: select and extract inert HTML
 
+`createHtmlqCommand(options?)` creates one command, `createHtmlqCommands(options?)` returns the command family, and `htmlqCommands(options?)` registers it as a shell plugin. `HtmlqCommandsOptions` describes configuration; all three factories accept no arguments.
+
 Select elements with CSS selectors and extract HTML, descendant text or attributes.
 SVG/MathML namespaces and attribute insertion order are preserved.
 I/O uses byte streams and the configured VFS only. There is no script execution,

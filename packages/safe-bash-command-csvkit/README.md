@@ -1,5 +1,7 @@
 # CSV tools
 
+`createCsvkitCommands(options?)` creates the csvkit command family; `csvkitCommands(options?)` registers it as a shell plugin. `createCsvkitCommand({ name?, ...options }?)` selects one command, defaulting to `csvclean`. `CsvkitCommandsOptions` exposes portable defaults and optional host bindings. All factories accept no arguments.
+
 Select, filter, sort, join, format and inspect CSV data through the
 `poe-code/csvkit` SDK on Node.js 22 or newer. The SDK also provides JSON,
 spreadsheet and SQL conversion APIs with documented capability limits.

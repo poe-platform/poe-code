@@ -1,5 +1,7 @@
 # CSV column projection
 
+`createCsvcutCommand(options?)` creates one command, `createCsvcutCommands(options?)` returns the command family, and `csvcutCommands(options?)` registers it as a shell plugin. `CsvcutCommandsOptions` describes configuration; all three factories accept no arguments.
+
 Select, reorder and repeat CSV columns, list headers, or remove empty projected
 rows using bounded byte streams and literal VFS paths. Import the bundled API
 from `@poe-platform/safe-bash/commands/csvcut`; this private workspace is never

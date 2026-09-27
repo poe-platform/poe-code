@@ -752,13 +752,19 @@ export function createMmdcCommand(settings?: MmdcSettings): CommandDefinition {
 export const mmdcCommand: CommandDefinition = createMmdcCommand();
 
 export function mmdcCommands(settings?: MmdcSettings): MmdcPlugin {
-  const command = createMmdcCommand(settings);
+  const commands = createMmdcCommands(settings);
   const replace = settings?.replace ?? false;
-  const plugin = Object.assign([command], {
+  const plugin = Object.assign([...commands], {
     name: "mmdc-commands",
     setup(host: { commands: { register(cmd: CommandDefinition, opts?: { replace?: boolean }): void } }) {
-      host.commands.register(command, { replace });
+      for (const command of commands) host.commands.register(command, { replace });
     }
   });
   return Object.freeze(plugin) as MmdcPlugin;
+}
+
+export type MmdcCommandsOptions = MmdcSettings;
+
+export function createMmdcCommands(options: MmdcCommandsOptions = {}): readonly CommandDefinition[] {
+  return Object.freeze([createMmdcCommand(options)]);
 }

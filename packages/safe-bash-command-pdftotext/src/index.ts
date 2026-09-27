@@ -1428,15 +1428,19 @@ export function createPdftohtmlCommand(_options: PdftotextCommandOptions = {}): 
 
 export const pdftohtmlCommand: CommandDefinition = createPdftohtmlCommand();
 
-export function pdftotextCommands(options: PdftotextCommandOptions = {}): VirtualShellPlugin {
-  const command = createPdftotextCommand(options);
-  const htmlCmd = createPdftohtmlCommand(options);
+export function pdftotextCommands(options: PdftotextCommandsOptions = {}): VirtualShellPlugin {
+  const commands = createPdftotextCommands(options);
   const replace = options.replace ?? false;
   return {
     name: "pdftotext",
     setup(host) {
-      host.commands.register(command, { replace });
-      host.commands.register(htmlCmd, { replace });
+      for (const command of commands) host.commands.register(command, { replace });
     }
   };
+}
+
+export type PdftotextCommandsOptions = PdftotextCommandOptions;
+
+export function createPdftotextCommands(options: PdftotextCommandsOptions = {}): readonly CommandDefinition[] {
+  return Object.freeze([createPdftotextCommand(options), createPdftohtmlCommand(options)]);
 }

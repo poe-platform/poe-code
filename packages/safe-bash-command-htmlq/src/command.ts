@@ -388,13 +388,19 @@ export function createHtmlqCommand(options: HtmlqCommandOptions = {}): CommandDe
   });
 }
 export const htmlqCommand = createHtmlqCommand();
-export function htmlqCommands(options: HtmlqCommandOptions = {}): VirtualShellPlugin {
-  const command = createHtmlqCommand(options),
-    replace = options.replace ?? false;
+export function htmlqCommands(options: HtmlqCommandsOptions = {}): VirtualShellPlugin {
+  const commands = createHtmlqCommands(options);
+  const replace = options.replace ?? false;
   return {
     name: "htmlq",
     setup(host) {
-      host.commands.register(command, { replace });
+      for (const command of commands) host.commands.register(command, { replace });
     }
   };
+}
+
+export type HtmlqCommandsOptions = HtmlqCommandOptions;
+
+export function createHtmlqCommands(options: HtmlqCommandsOptions = {}): readonly CommandDefinition[] {
+  return Object.freeze([createHtmlqCommand(options)]);
 }

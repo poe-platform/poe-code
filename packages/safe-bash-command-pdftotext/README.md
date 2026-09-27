@@ -1,5 +1,7 @@
 # `@poe-platform/safe-bash/commands/pdftotext`
 
+`createPdftotextCommand(options?)` creates one command, `createPdftotextCommands(options?)` returns the command family, and `pdftotextCommands(options?)` registers it as a shell plugin. `PdftotextCommandsOptions` describes configuration; all three factories accept no arguments.
+
 Extract structured, layout-preserving, raw, XHTML bounding-box, HTML metadata, or TSV text from PDF documents inside `safe-bash` virtual shells or directly from TypeScript.
 
 ## Features

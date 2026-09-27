@@ -24,3 +24,5 @@ export {
   type HtmlqRunOptions,
   type HtmlqResult
 } from "./command.js";
+
+export { createHtmlqCommands, type HtmlqCommandsOptions } from "./command.js";

@@ -567,13 +567,19 @@ export function createCsvgrepCommand(options: CsvgrepCommandOptions = {}): Omit<
   });
 }
 export const csvgrepCommand = createCsvgrepCommand();
-export function csvgrepCommands(options: CsvgrepCommandOptions = {}): VirtualShellPlugin {
-  const command = createCsvgrepCommand(options),
-    replace = options.replace ?? false;
+export function csvgrepCommands(options: CsvgrepCommandsOptions = {}): VirtualShellPlugin {
+  const commands = createCsvgrepCommands(options);
+  const replace = options.replace ?? false;
   return {
     name: "csvgrep",
     setup(host) {
-      host.commands.register(command, { replace });
+      for (const command of commands) host.commands.register(command, { replace });
     }
   };
+}
+
+export type CsvgrepCommandsOptions = CsvgrepCommandOptions;
+
+export function createCsvgrepCommands(options: CsvgrepCommandsOptions = {}): readonly CommandDefinition[] {
+  return Object.freeze([createCsvgrepCommand(options)]);
 }

@@ -1,5 +1,7 @@
 # Compare and merge three byte streams
 
+`createDiff3Command(options?)` creates one command, `createDiff3Commands(options?)` returns the command family, and `diff3Commands(options?)` registers it as a shell plugin. `Diff3CommandsOptions` describes configuration; all three factories accept no arguments.
+
 Compare three byte inputs without changing encoding, line endings or file content.
 Import the bundled API from `@poe-platform/safe-bash/commands/diff3`; this private
 workspace is not an installation dependency.

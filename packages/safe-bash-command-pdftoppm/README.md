@@ -1,5 +1,7 @@
 # `@poe-platform/safe-bash/commands/pdftoppm`
 
+`createPdftoppmCommand(options?)` creates one command, `createPdftoppmCommands(options?)` returns the command family, and `pdftoppmCommands(options?)` registers it as a shell plugin. `PdftoppmCommandsOptions` describes configuration; all three factories accept no arguments.
+
 Zero-dependency Poppler `pdftoppm` page renderer for `@poe-platform/safe-bash` powered by `@poe-code/pdf-ast`. Render PDF pages to PNG, PPM, PGM, PBM, or SVG inside the in-memory virtual filesystem without native Poppler binaries.
 
 ## Features

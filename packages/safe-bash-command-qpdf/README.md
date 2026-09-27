@@ -1,5 +1,7 @@
 # `@poe-platform/safe-bash/commands/qpdf`
 
+`createQpdfCommand(options?)` creates one command, `createQpdfCommands(options?)` returns the command family, and `qpdfCommands(options?)` registers it as a shell plugin. `QpdfCommandsOptions` describes configuration; all three factories accept no arguments.
+
 Inspect, check, encrypt, decrypt, merge, split, rotate, and transform PDFs at the COS and page-tree level inside `safe-bash` virtual shells or directly from TypeScript. Use `-` as the input to read a PDF from stdin or as the output to write a PDF to stdout. `qpdf @args.txt` reads one argument per line and resolves referenced files from the shell working directory.
 
 ## Features

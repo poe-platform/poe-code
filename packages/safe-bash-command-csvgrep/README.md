@@ -1,5 +1,7 @@
 # csvgrep
 
+`createCsvgrepCommand(options?)` creates one command, `createCsvgrepCommands(options?)` returns the command family, and `csvgrepCommands(options?)` registers it as a shell plugin. `CsvgrepCommandsOptions` describes configuration; all three factories accept no arguments.
+
 Filter CSV rows in a virtual filesystem or pipeline without installing a native tool. Empty input produces a single LF when filtering (including headerless mode); `--names` fails with status 1 and a concise diagnostic when no header is available.
 
 ```ts

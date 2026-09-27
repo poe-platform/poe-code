@@ -199,8 +199,19 @@ export function createDiff3Command(options: Diff3CommandOptions = {}): CommandDe
   return Object.freeze({ name: 'diff3', runtimeIdentity: commandRuntimeIdentity, description: 'Compare or merge three VFS byte streams', execute(context: CommandContext) { return executeDiff3(context, configuration); } });
 }
 export const diff3Command = createDiff3Command();
-export function diff3Commands(options: Diff3CommandOptions = {}): VirtualShellPlugin {
-  const command = createDiff3Command(options);
+export function diff3Commands(options: Diff3CommandsOptions = {}): VirtualShellPlugin {
+  const commands = createDiff3Commands(options);
   const replace = options.replace ?? false;
-  return { name: 'diff3', setup(host) { host.commands.register(command, { replace }); } };
+  return {
+    name: "diff3",
+    setup(host) {
+      for (const command of commands) host.commands.register(command, { replace });
+    }
+  };
+}
+
+export type Diff3CommandsOptions = Diff3CommandOptions;
+
+export function createDiff3Commands(options: Diff3CommandsOptions = {}): readonly CommandDefinition[] {
+  return Object.freeze([createDiff3Command(options)]);
 }

@@ -167,6 +167,22 @@ test("mapfile raw element zero survives scalar-style append", async () => {
   } finally { await shell.dispose(); }
 });
 
+for (const length of [3, 512, 513]) {
+  for (const finiteBudget of [false, true]) test(`mapfile retains ${length}-byte records with finite expansion budget=${finiteBudget}`, async () => {
+    const { shell } = setup();
+    const record = "x".repeat(length);
+    try {
+      const result = await shell.exec('mapfile -t -n 1 A; args "${A[@]}"; pass', {
+        stdin: `${record}\nnext\n`,
+        limits: finiteBudget ? { maxExpansionBytes: 65536 } : {},
+      });
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, `${JSON.stringify([record])}next\n`);
+    } finally { await shell.dispose(); }
+  });
+}
+
 test("mapfile callback source inherits caller loop flow", async () => {
   const { shell } = setup();
   try {

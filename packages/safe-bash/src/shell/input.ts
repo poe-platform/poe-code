@@ -1448,6 +1448,7 @@ export class ShellInput implements ByteSource, CommandInput {
     cursor.position += recLen;
     cursor.remainder = recLen < rem.length ? rem.subarray(recLen) : undefined;
     const slice = rem.subarray(0, finalLen);
+    let value: ShellValue;
     if (isAscii && finalLen <= 512) {
       let strVal = "";
       if (finalLen > 0 && finalLen <= 64) {
@@ -1455,10 +1456,14 @@ export class ShellInput implements ByteSource, CommandInput {
       } else if (finalLen > 64) {
         strVal = latin1Text(slice);
       }
-      return { value: strVal, present: true };
+      value = strVal;
+    } else {
+      if (!allocation) return undefined;
+      value = shellValueFromBytes(slice, allocation);
     }
-    if (!allocation) return undefined;
-    return { value: shellValueFromBytes(slice, allocation), present: true };
+    cursor.position += recLen;
+    cursor.remainder = recLen < rem.length ? rem.subarray(recLen) : undefined;
+    return { value, present: true };
   }
 
   mapfileRecord(delimiter: number, strip: boolean, allocation: ValueAllocation): Promise<{ value: ShellValue; present: boolean }> {

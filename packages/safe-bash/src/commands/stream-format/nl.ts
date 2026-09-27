@@ -213,7 +213,7 @@ export function createNlCommand(limits: StreamFormatLimits): CommandDefinition {
               await session.text(label);
             }
             await session.output(separator);
-            await session.output(record);
+            await session.output(new Uint8Array(record));
             await session.text("\n");
           }
           number += increment;
@@ -232,7 +232,7 @@ export function createNlCommand(limits: StreamFormatLimits): CommandDefinition {
           } else {
             if (outUsed > 0) await flushOut();
             await padding(padLen);
-            await session.output(record);
+            await session.output(new Uint8Array(record));
             await session.text("\n");
           }
         }

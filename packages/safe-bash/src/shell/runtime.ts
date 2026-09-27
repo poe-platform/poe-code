@@ -3765,7 +3765,7 @@ function tryCompileTrimGlobToRegex(pat: string, op: "#" | "##" | "%" | "%%", ext
 }
 const SIMPLE_SCALAR_MUT_RE = /^\s*([a-zA-Z_][a-zA-Z_0-9]*)\s*(\+=|-=|=)\s*(-?(?:0|[1-9][0-9]{0,12}))(?:\s*([+\-*])\s*(-?(?:0|[1-9][0-9]{0,12})))?\s*$/;
 const readArrayScratchFields: string[] = [];
-const SIMPLE_EXPANDED_ARITH_RE = /^\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*([+\-*])\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*$/;
+const SIMPLE_EXPANDED_ARITH_RE = /^\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*([+\-*/%])\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*$/;
 const SIMPLE_ARITH_OPERAND_RE = /^(?:-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)$/;
 function resolveSimpleArithOperand(tok: string, rawState: State, monitor: ReturnType<typeof stateMonitor>, activeArrayStore: ReturnType<typeof arrayStore>): number | undefined {
   if (!SIMPLE_ARITH_OPERAND_RE.test(tok)) return undefined;
@@ -3780,18 +3780,41 @@ function resolveSimpleArithOperand(tok: string, rawState: State, monitor: Return
   if (typeof v !== "string" || !/^-?(?:0|[1-9][0-9]{0,12})$/.test(v)) return undefined;
   return Number(v);
 }
+const SIMPLE_ADDSUB_CHAIN_RE = /^\s*(?:-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)(?:\s+[+\-]\s+(?:-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)){2,6}\s*$/;
 function tryEvalSimpleExpandedArith(src: string, rawState: State, monitor: ReturnType<typeof stateMonitor>, activeArrayStore: ReturnType<typeof arrayStore>): string | undefined {
-  if (src.length > 64) return undefined;
+  if (src.length > 96) return undefined;
   const m = SIMPLE_EXPANDED_ARITH_RE.exec(src);
-  if (!m) return undefined;
-  const lhs = resolveSimpleArithOperand(m[1]!, rawState, monitor, activeArrayStore);
-  if (lhs === undefined) return undefined;
-  const rhs = resolveSimpleArithOperand(m[3]!, rawState, monitor, activeArrayStore);
-  if (rhs === undefined) return undefined;
-  const op = m[2]!;
-  const res = op === "+" ? lhs + rhs : op === "-" ? lhs - rhs : lhs * rhs;
-  if (!Number.isSafeInteger(res)) return undefined;
-  return String(res);
+  if (m) {
+    const lhs = resolveSimpleArithOperand(m[1]!, rawState, monitor, activeArrayStore);
+    if (lhs === undefined) return undefined;
+    const rhs = resolveSimpleArithOperand(m[3]!, rawState, monitor, activeArrayStore);
+    if (rhs === undefined) return undefined;
+    const op = m[2]!;
+    if ((op === "/" || op === "%") && rhs === 0) return undefined;
+    const res =
+      op === "+" ? lhs + rhs :
+      op === "-" ? lhs - rhs :
+      op === "*" ? lhs * rhs :
+      op === "/" ? Math.trunc(lhs / rhs) :
+      (lhs % rhs);
+    if (!Number.isSafeInteger(res)) return undefined;
+    return Object.is(res, -0) ? "0" : String(res);
+  }
+  if (SIMPLE_ADDSUB_CHAIN_RE.test(src)) {
+    const parts = src.trim().split(/\s+/);
+    const first = resolveSimpleArithOperand(parts[0]!, rawState, monitor, activeArrayStore);
+    if (first === undefined) return undefined;
+    let total = first;
+    for (let i = 1; i < parts.length; i += 2) {
+      const op = parts[i]!;
+      const val = resolveSimpleArithOperand(parts[i + 1]!, rawState, monitor, activeArrayStore);
+      if (val === undefined) return undefined;
+      total = op === "+" ? total + val : total - val;
+      if (!Number.isSafeInteger(total)) return undefined;
+    }
+    return Object.is(total, -0) ? "0" : String(total);
+  }
+  return undefined;
 }
 function arithTreeTouchesArray(tree: ArithmeticProgram["tree"], store: ReturnType<typeof arrayStore>): boolean {
   if (!tree || !store || store.bindings.size === 0) return false;
@@ -9999,10 +10022,7 @@ export class Runtime {
           part.indirect ||
           part.prefixNames ||
           part.specialParameter ||
-          part.length ||
-          part.substring ||
           part.transform ||
-          part.operator !== undefined ||
           part.name === "@" ||
           part.name === "*" ||
           part.name === "PIPESTATUS" ||
@@ -10014,10 +10034,69 @@ export class Runtime {
         ) {
           return false;
         }
+        if (part.length || part.substring || part.operator !== undefined) {
+          if (
+            this.budget.limits.maxExpansionBytes !== Infinity ||
+            rawState.depth >= 32 ||
+            rawState.nounset ||
+            rawState.nocasematch ||
+            byteLocale(rawState.variables) !== false
+          ) {
+            return false;
+          }
+          if (part.length) {
+            if (part.operator !== undefined || part.substring) return false;
+          } else if (part.substring) {
+            if (
+              part.operator !== undefined ||
+              !part.substring.offset.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring && !p.length)) ||
+              (part.substring.length && !part.substring.length.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring && !p.length)))
+            ) {
+              return false;
+            }
+          } else if (part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") {
+            if (part.alternate?.parts.length !== 1 || part.alternate.parts[0]!.kind !== "text" || part.alternate.parts[0]!.byteValue) return false;
+            const pat = part.alternate.parts[0]!.value;
+            if (!part.alternate.parts[0]!.quoted && hasGlobOrEscape(pat, !!rawState.extglob)) {
+              if (!tryCompileTrimGlobToRegex(pat, part.operator, !!rawState.extglob)) return false;
+            }
+          } else if (part.operator === "/" || part.operator === "//" || part.operator === "/#" || part.operator === "/%") {
+            if (
+              part.alternate?.parts.length !== 1 ||
+              part.alternate.parts[0]!.kind !== "text" ||
+              part.alternate.parts[0]!.byteValue ||
+              (part.replacement && part.replacement.parts.length > 0 && (part.replacement.parts.length !== 1 || part.replacement.parts[0]!.kind !== "text" || part.replacement.parts[0]!.byteValue))
+            ) {
+              return false;
+            }
+            const pat = part.alternate.parts[0]!.value;
+            if (!part.alternate.parts[0]!.quoted && hasGlobOrEscape(pat, !!rawState.extglob)) {
+              if (!tryCompileFixedGlobToRegex(pat, part.operator, !!rawState.extglob)) return false;
+            }
+          } else {
+            return false;
+          }
+        }
         continue;
       }
       if (part.kind === "arithmetic") {
-        if (part.expression.error || part.expression.hasSubscript || !isSafeSmiProgram(part.expression)) return false;
+        if (part.expression.error) {
+          if (byteLocale(rawState.variables) || rawState.depth !== 0 || /[+]{2}|--|<<|>>|[!~?:&,^|=]/.test(part.expression.source)) return false;
+          const cachedExpr = part.expression as { _cachedArithWord?: Word | null; _cachedArithSyntax?: unknown };
+          let expWord = cachedExpr._cachedArithSyntax === rawState.extensions?.syntax ? cachedExpr._cachedArithWord : undefined;
+          if (expWord === undefined) {
+            try {
+              expWord = parseArithmeticExpansion(part.expression.source, this.budget.parsing, false, 0, part.line, rawState.extensions?.syntax);
+            } catch {
+              expWord = null;
+            }
+            cachedExpr._cachedArithWord = expWord;
+            cachedExpr._cachedArithSyntax = rawState.extensions?.syntax;
+          }
+          if (!expWord || !this.isPureSyncValueWord(expWord, rawState)) return false;
+          continue;
+        }
+        if (part.expression.hasSubscript || !isSafeSmiProgram(part.expression)) return false;
         continue;
       }
       if (part.kind === "substitution") {
@@ -10425,6 +10504,13 @@ export class Runtime {
     if (guestArrays(rawState) || !this.canSyncLoopBody(command.body, rawState)) {
       return undefined;
     }
+    for (const v of Object.values(rawState.variables)) {
+      if (typeof v === "string") {
+        for (let k = 0; k < v.length; k++) {
+          if (v.charCodeAt(k) >= 128) return undefined;
+        }
+      }
+    }
     const { steps: bodyAssignments, redirectCount } = this.buildSyncLoopBody(command, io);
     if (bodyAssignments.length > 30) return undefined;
     const touched = sharedSyncLoopTouched;
@@ -10464,13 +10550,13 @@ export class Runtime {
         e0.tree?.kind !== "binary" || e0.tree.operator !== "=" ||
         e0.tree.left.kind !== "name" ||
         e0.tree.right.kind !== "literal" ||
-        e0.tree.right.value < 0n || e0.tree.right.value > 1500n ||
+        e0.tree.right.value < 0n || e0.tree.right.value > 2000n ||
         e1.tree?.kind !== "binary" ||
         (e1.tree.operator !== "<" && e1.tree.operator !== "<=") ||
         e1.tree.left.kind !== "name" || e1.tree.left.name !== e0.tree.left.name ||
         e1.tree.right.kind !== "literal" ||
         e1.tree.right.value < 0n ||
-        e1.tree.right.value > 1500n ||
+        e1.tree.right.value > 2000n ||
         e2.tree?.kind !== "unary" || e2.tree.operator !== "++" ||
         e2.tree.operand.kind !== "name" || e2.tree.operand.name !== e0.tree.left.name
       ) {
@@ -10478,7 +10564,7 @@ export class Runtime {
         return undefined;
       }
       const iterations = Math.max(0, Number(e1.tree.right.value - e0.tree.right.value) + (e1.tree.operator === "<=" ? 1 : 0));
-      if (iterations * bodyAssignments.length > 1600) {
+      if (iterations * bodyAssignments.length > 8000) {
         (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan = null;
         return undefined;
       }
@@ -10510,6 +10596,13 @@ export class Runtime {
             const part = step.value.parts[i]!;
             if (part.kind === "text" || part.kind === "variable") continue;
             if (part.kind === "arithmetic") {
+              if (part.expression.error) {
+                const idMatches = part.expression.source.match(/[a-zA-Z_][a-zA-Z0-9_]*/g);
+                if (idMatches) {
+                  for (let mIdx = 0; mIdx < idMatches.length; mIdx++) arithNames.add(idMatches[mIdx]!);
+                }
+                continue;
+              }
               if (!collectPureReadOnlySmiNames(part.expression, arithNames)) {
                 (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan = null;
                 return undefined;
@@ -10532,7 +10625,7 @@ export class Runtime {
           step.value !== undefined &&
           step.name !== inductionName &&
           !arithNames.has(step.name) &&
-          step.value.parts.every(p => p.kind === "text" || p.kind === "variable")
+          step.value.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.length && !p.substring && p.operator === undefined))
         ) {
           let readAnywhere = false;
           for (let b2 = 0; b2 < bodyAssignments.length; b2++) {
@@ -17987,8 +18080,23 @@ export class Runtime {
               const existingKey = arrayBinding.keys.get(fastStringHexIdentity(subVal));
               elemVal = existingKey !== undefined ? arrayBinding.getValue(existingKey.index) : undefined;
             } else {
-              if (!/^(?:0|[1-9][0-9]{0,8})$/.test(subVal)) return undefined;
-              elemVal = arrayBinding.getValue(Number(subVal));
+              let subIdx: number | undefined;
+              if (/^(?:0|[1-9][0-9]{0,8})$/.test(subVal)) {
+                subIdx = Number(subVal);
+              } else {
+                const directOp = resolveSimpleArithOperand(subVal.trim(), rawState, monitor, activeArrayStore);
+                if (directOp !== undefined && directOp >= 0) {
+                  subIdx = directOp;
+                } else {
+                  const exprStr = tryEvalSimpleExpandedArith(subVal, rawState, monitor, activeArrayStore);
+                  if (exprStr !== undefined) {
+                    const n = Number(exprStr);
+                    if (n >= 0) subIdx = n;
+                  }
+                }
+              }
+              if (subIdx === undefined) return undefined;
+              elemVal = arrayBinding.getValue(subIdx);
             }
             if (elemVal !== undefined && typeof elemVal !== "string") return undefined;
             if (part.length) {
@@ -18031,8 +18139,8 @@ export class Runtime {
             part.operator !== undefined ||
             this.budget.limits.maxExpansionBytes !== Infinity ||
             rawState.depth + (io.parameterDepth ?? 0) >= 60 ||
-            !part.substring.offset.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring)) ||
-            (part.substring.length && !part.substring.length.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring))) ||
+            !part.substring.offset.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring)) ||
+            (part.substring.length && !part.substring.length.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring))) ||
             ValueScope.prototype.reserve !== defaultValueScopeReserve ||
             String.prototype.codePointAt !== defaultStringCodePointAt ||
             globalThis.Float64Array !== defaultFloat64Array ||
@@ -18046,16 +18154,10 @@ export class Runtime {
             if (typeof expanded !== "string") return undefined;
             const trimmed = expanded.trim();
             if (trimmed.length === 0) return 0;
-            if (/^[+-]?(?:0|[1-9][0-9]{0,8})$/.test(trimmed)) return Number(trimmed);
-            if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(trimmed)) {
-              if (rawState.nounset || activeArrayStore?.get(trimmed) || rawState.variableAttributes?.get(trimmed)) return undefined;
-              const vRaw = rawVars[trimmed];
-              const vStr = vRaw === undefined ? "0" : (this._syncArithRawWriteOnly && this._syncArithTouched?.has(trimmed) ? vRaw : (monitor?.values.get(trimmed, vRaw) ?? vRaw));
-              if (typeof vStr !== "string") return undefined;
-              const vTrim = vStr.trim();
-              if (vTrim.length === 0) return 0;
-              if (/^[+-]?(?:0|[1-9][0-9]{0,8})$/.test(vTrim)) return Number(vTrim);
-            }
+            const directOp = resolveSimpleArithOperand(trimmed, rawState, monitor, activeArrayStore);
+            if (directOp !== undefined) return directOp;
+            const simpleExpr = tryEvalSimpleExpandedArith(trimmed, rawState, monitor, activeArrayStore);
+            if (simpleExpr !== undefined) return Number(simpleExpr);
             return undefined;
           };
           const offsetNum = evalSubInt(part.substring.offset);

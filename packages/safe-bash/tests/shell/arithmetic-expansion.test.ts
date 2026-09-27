@@ -160,3 +160,23 @@ test("arithmetic expansion resolves scalar indirection", async () => {
     assert.equal(result.stderr, "");
   } finally { await shell.dispose(); }
 });
+
+test("substring arithmetic offsets, indexed array variable subscripts, and multi-term add/sub chains match bash", async () => {
+  const { shell } = setup();
+  try {
+    const result = await shell.exec(`
+      s="abcdefghijklmnopqrstuvwxyz0123456789"
+      arr=(10 20 30 40 50)
+      acc=0
+      for ((i=0; i<20; i++)); do
+        sub="\${s:i%10:4}"
+        elem="\${arr[i%5]}"
+        acc=\$((acc + \${#sub} + elem + 1 + 2))
+      done
+      args "\$acc"
+    `);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "[\"740\"]");
+  } finally { await shell.dispose(); }
+});

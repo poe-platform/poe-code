@@ -275,6 +275,7 @@ function policyConfig(safeBashInputs, compatibility = []) {
     ignores: [
       'dist/**',
       '**/dist/**',
+      'packages/git-rust/target/**',
       'docs/**',
       '.snapshots/**',
       '.github/**',

@@ -574,6 +574,9 @@ export class RegexExecutor {
           }
         }
         const asyncSignal = session._ensureAsyncState();
+        clearTimeout(readySlot.idleTimer);
+        readySlot.idleTimer = undefined;
+        readySlot.worker.ref?.();
         const onAbort = () => readySlot.fail(asyncSignal.reason);
         asyncSignal.addEventListener("abort", onAbort, { once: true });
         if (asyncSignal.aborted) onAbort();
@@ -583,15 +586,19 @@ export class RegexExecutor {
             asyncSignal.throwIfAborted();
             return validated;
           }
-        ).catch(error => {
+        ).catch(async error => {
           const retirement = readySlot.retire();
           session._getRetirements().add(retirement);
+          try { await retirement; } catch {}
           throw asyncSignal.aborted ? asyncSignal.reason : error;
         }).finally(() => {
           asyncSignal.removeEventListener("abort", onAbort);
           readySlot.busy = false;
           if (readySlot.retired) this.retired(readySlot);
-          else readySlot.armIdleTimer(this.options.idleTimeoutMs);
+          else {
+            readySlot.worker.unref?.();
+            readySlot.armIdleTimer(this.options.idleTimeoutMs);
+          }
           if (this.queue.length > 0) this.pump();
         });
       }
@@ -755,11 +762,10 @@ export class RegexSession {
     if (!(result instanceof Promise)) return result;
     return this.trackPending(result);
   }
-  run(descriptor: Descriptor, rows: readonly Row[]): Promise<Match[][]> {
-    const res = this.runSync(descriptor, rows);
-    return res instanceof Promise ? res : Promise.resolve(res);
+  async run(descriptor: Descriptor, rows: readonly Row[]): Promise<Match[][]> {
+    return this.runSync(descriptor, rows);
   }
-  matchExpr(descriptor: ExprMatchDescriptor, subject: Uint8Array): Promise<ExprMatchResult> {
+  async matchExpr(descriptor: ExprMatchDescriptor, subject: Uint8Array): Promise<ExprMatchResult> {
     this.signal.throwIfAborted();
     if (this.closed) throw new RegexExecutionError("CLOSED", "invocation is closed");
     if (this.onUse) { const fn = this.onUse; this.onUse = undefined; fn(); }
@@ -776,8 +782,7 @@ export class RegexSession {
     return this.trackPending(syncOrAsync);
   }
   async searchBre(descriptor: BreSearchDescriptor, subject: Uint8Array): Promise<BreSearchResult> {
-    const res = this.searchBreSync(descriptor, subject);
-    return res;
+    return this.searchBreSync(descriptor, subject);
   }
   canCloseSync(): boolean {
     return !this.pending?.size && !this.retirements?.size && this.executor.canCloseSync();

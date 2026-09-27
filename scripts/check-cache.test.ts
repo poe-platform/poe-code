@@ -201,4 +201,39 @@ describe("content-addressed check cache", () => {
     expect(state.fileSystem.existsSync("/copy/dist/stale.js")).toBe(false);
     expect(() => cache.restore("/copy", ["dist/**"], [{ path: "../escape", bytes: "", mode: 0o644 }])).toThrow();
   });
+  it("keeps workspace unit test fingerprints unaffected by unimported root source or test edits", () => {
+    const state = fixture();
+    state.fileSystem.mkdirSync("/repo/src", { recursive: true });
+    state.fileSystem.writeFileSync("/repo/src/unrelated-cli.ts", "export const cli = 1;");
+    state.fileSystem.writeFileSync("/repo/tests/unrelated.test.ts", "export const test = 1;");
+    const files = [...state.files, "src/unrelated-cli.ts", "tests/unrelated.test.ts"];
+    const key = () => createTaskFingerprints(state.plan, { files, fileSystem: state.fileSystem, environment: {}, runtime: "node-test", event: "test:unit" }).get("alpha");
+    const before = key();
+    state.fileSystem.writeFileSync("/repo/src/unrelated-cli.ts", "export const cli = 2;");
+    state.fileSystem.writeFileSync("/repo/tests/unrelated.test.ts", "export const test = 2;");
+    expect(key()).toBe(before);
+    state.fileSystem.writeFileSync("/repo/tests/setup.ts", "changed global setup");
+    expect(key()).not.toBe(before);
+  });
+
+  it("reads through from a read-only primary cache and writes new entries to the shared fallback directory", () => {
+    const state = fixture();
+    const primaryCache = createCheckCache({ directory: "/cache", fileSystem: state.fileSystem });
+    primaryCache.write("a".repeat(64), { success: true, durationMs: 12 });
+    const readOnlyFs = {
+      ...state.fileSystem,
+      mkdirSync(target: string, ...args: unknown[]) {
+        if (String(target).startsWith("/cache")) throw Object.assign(new Error("read-only cache"), { code: "EPERM" });
+        return state.fileSystem.mkdirSync(target, ...(args as [any]));
+      },
+      writeFileSync(target: string, ...args: unknown[]) {
+        if (String(target).startsWith("/cache")) throw Object.assign(new Error("read-only cache"), { code: "EPERM" });
+        return state.fileSystem.writeFileSync(target, ...(args as [any, any]));
+      }
+    } as typeof state.fileSystem;
+    const sharedCache = createCheckCache({ directory: "/cache", fallbackDirectory: "/tmp/shared-cache", fileSystem: readOnlyFs });
+    expect(sharedCache.read("a".repeat(64))).toEqual({ success: true, durationMs: 12 });
+    sharedCache.write("b".repeat(64), { success: true, durationMs: 34 });
+    expect(sharedCache.read("b".repeat(64))).toEqual({ success: true, durationMs: 34 });
+  });
 });

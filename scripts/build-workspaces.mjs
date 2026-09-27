@@ -352,8 +352,8 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
       const workspace = plan.workspaces.find(candidate => candidate.name === name);
       const scripts = workspace?.manifest.scripts ?? {};
       const commands = ["", "--config vitest.config.ts "].flatMap(config => {
-        const command = `cd ../.. && vitest run ${config}${workspace?.path}/src`;
-        return [command, `${command}/`];
+        const command = `cd ../.. && vitest run ${config}${workspace?.path}`;
+        return [`${command}/src`, `${command}/src/`, command, `${command}/`];
       });
       assert.ok(name !== "@poe-platform/safe-bash" && workspace && commands.includes(scripts["test:unit"])
         && scripts["pretest:unit"] === undefined && scripts["posttest:unit"] === undefined, `Workspace is not cacheable: ${name}`);
@@ -653,8 +653,7 @@ export async function testWorkspaces(rootDirectory, options = {}) {
   const builds = await executeStages({ ...plan, stages: plan.buildStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency: 2, dependencyOrder: true, taskCache: buildCache });
   buildCache?.flush();
   let unitCache;
-  if (caching && testStages.some(stage => stage.path !== null && stage.event === "test:unit"
-    && plan.workspaces.find(workspace => workspace.name === stage.name).manifest.scripts["test:unit"].split(" ").includes("vitest"))) {
+  if (caching && testStages.some(stage => stage.path !== null && stage.event === "test:unit")) {
     const { prepareNativeUnitCache } = await import("./check-cache.mjs");
     unitCache = prepareNativeUnitCache(plan, testStages, { cacheStore, cacheFiles, environment: childEnvironment, fileSystem });
   }

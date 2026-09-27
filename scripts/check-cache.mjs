@@ -12,13 +12,40 @@ export function checkCacheDirectory(environment = process.env) {
   return path.resolve(environment.POE_CHECK_CACHE_DIR ?? path.join(environment.XDG_CACHE_HOME ?? path.join(os.homedir(), ".cache"), "poe-code", "checks-v1"));
 }
 
+function defaultCheckFiles(plan, environment, fileSystem, selected) {
+  const cached = execFileSync("git", ["ls-files", "--cached", "-z", "--", ".", ":!packages/safe-bash/tests", ":!packages/safe-bash/benchmarks", ":!docs"], { cwd: plan.root, env: environment, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 }).split("\0").filter(Boolean);
+  const byName = new Map(plan.workspaces.map(workspace => [workspace.name, workspace]));
+  const edges = new Map(plan.workspaces.map(workspace => [workspace.name, []]));
+  for (const edge of plan.edges) edges.get(edge.from)?.push(edge.to);
+  const closure = new Set();
+  const visit = name => {
+    if (closure.has(name) || !byName.has(name)) return;
+    closure.add(name);
+    for (const dependency of edges.get(name) ?? []) visit(dependency);
+  };
+  for (const name of selected) visit(name);
+  const otherPaths = [
+    "src", "tests", "scripts",
+    ...[...closure].map(name => {
+      const workspace = byName.get(name);
+      return workspace.path === "packages/safe-bash" ? "packages/safe-bash/src" : workspace.path;
+    })
+  ].filter(relative => {
+    try { return fileSystem.existsSync(path.join(plan.root, relative)); } catch { return false; }
+  });
+  const others = otherPaths.length
+    ? execFileSync("git", ["ls-files", "--others", "--exclude-standard", "-z", "--", ...otherPaths], { cwd: plan.root, env: environment, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 }).split("\0").filter(Boolean)
+    : [];
+  return [...cached, ...others];
+}
+
 export function createTaskFingerprints(plan, {
   fileSystem = fs,
   environment = process.env,
-  files = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard", "-z"], { cwd: plan.root, env: environment, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 }).split("\0").filter(Boolean),
+  selected = plan.workspaces.map(workspace => workspace.name),
+  files = defaultCheckFiles(plan, environment, fileSystem, selected),
   runtime = { versions: process.versions, platform: process.platform, arch: process.arch },
-  event = "test:unit",
-  selected = plan.workspaces.map(workspace => workspace.name)
+  event = "test:unit"
 } = {}) {
   const volatile = new Set(["PWD", "OLDPWD", "INIT_CWD", "SHLVL", "_", "TMPDIR", "TEMP", "TMP", "TEST", "VITEST", "NODE_UNIQUE_ID", "VITEST_WORKER_ID", "VITEST_POOL_ID", "POE_CHECK_CACHE", "POE_CHECK_CACHE_DIR", "TURBO_FORCE"]);
   const relevantEnvironment = Object.entries(environment).filter(([name, value]) => value !== undefined
@@ -71,9 +98,10 @@ export function createTaskFingerprints(plan, {
     inputFiles.add(file);
     const owner = ownerOf(file);
     if (owner) grouped.get(owner).push(file);
-    else if (event === "build"
-      ? ["package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", "turbo.json", "scripts/guard-package-dist.mjs", "scripts/check-cache.mjs", "scripts/build-workspaces.mjs"].includes(file)
-      : !file.includes("/") || ["src/", "tests/", "scripts/", ".github/"].some(prefix => file.startsWith(prefix))) common.update(read(file));
+    else if ((event === "build"
+      ? ["package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", "turbo.json", "scripts/guard-package-dist.mjs", "scripts/check-cache.mjs", "scripts/build-workspaces.mjs"]
+      : ["package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", "turbo.json", "vitest.config.ts", "vitest.root.config.ts", "tests/setup.ts", "tests/test-env.ts", "scripts/guard-package-dist.mjs", "scripts/check-cache.mjs", "scripts/build-workspaces.mjs", "scripts/test-vitest-workspaces.mjs", "scripts/workspace-test-ownership.mjs", "scripts/run-vitest-batch.mjs", "scripts/vitest-batch-worker.mjs", "scripts/vitest-immediate-reporter.mjs"]
+    ).includes(file)) common.update(read(file));
   }
   const importedPackages = (file, visited = new Set(), rootInputs) => {
     if (visited.has(file)) return new Set();
@@ -101,35 +129,63 @@ export function createTaskFingerprints(plan, {
   };
   const globalImports = new Set();
   for (const file of event === "build" ? [] : ["vitest.config.ts", "vitest.root.config.ts", "tests/setup.ts", "tests/test-env.ts"]) {
-    if (inputFiles.has(file)) for (const name of importedPackages(file)) globalImports.add(name);
+    if (inputFiles.has(file)) for (const name of importedPackages(file, new Set(), common)) globalImports.add(name);
   }
-  const own = new Map();
-  const prepare = name => {
+  const isWorkspaceTestFile = file => {
+    const segments = file.split("/").slice(2);
+    return segments[0] === "tests" || segments[0] === "test" || segments.includes("__tests__") || /\.(test|spec)\.[cm]?[jt]sx?$/.test(file);
+  };
+  const ownSource = new Map();
+  const ownTests = new Map();
+  const testDependencies = new Map(plan.workspaces.map(workspace => [workspace.name, new Set()]));
+  const prepareSource = name => {
     assert.ok(grouped.has(name), "Unknown cache workspace: " + name);
-    if (own.has(name)) return;
+    if (ownSource.has(name)) return;
     const hash = createHash("sha256");
     for (const file of grouped.get(name)) {
+      if (isWorkspaceTestFile(file)) continue;
       hash.update(read(file));
       for (const dependency of importedPackages(file, new Set(), hash)) if (dependency !== name) dependencies.get(name).add(dependency);
     }
-    own.set(name, hash.digest("hex"));
-    for (const dependency of dependencies.get(name)) prepare(dependency);
+    ownSource.set(name, hash.digest("hex"));
+    for (const dependency of dependencies.get(name)) prepareSource(dependency);
   };
-  for (const name of [...selected, ...globalImports]) prepare(name);
+  const prepareTests = name => {
+    assert.ok(grouped.has(name), "Unknown cache workspace: " + name);
+    if (ownTests.has(name)) return;
+    prepareSource(name);
+    const hash = createHash("sha256");
+    for (const file of grouped.get(name)) {
+      if (!isWorkspaceTestFile(file)) continue;
+      hash.update(read(file));
+      for (const dependency of importedPackages(file, new Set(), hash)) if (dependency !== name) testDependencies.get(name).add(dependency);
+    }
+    ownTests.set(name, hash.digest("hex"));
+    for (const dependency of testDependencies.get(name)) prepareSource(dependency);
+  };
+  for (const name of selected) {
+    if (event === "build") prepareSource(name);
+    else prepareTests(name);
+  }
+  for (const name of globalImports) prepareSource(name);
   const shared = common.digest("hex");
   const fingerprints = new Map();
   for (const name of selected) {
     const closure = new Set();
-    const visit = name => {
-      if (closure.has(name)) return;
-      closure.add(name);
-      for (const dependency of dependencies.get(name)) visit(dependency);
+    const visit = current => {
+      if (closure.has(current)) return;
+      closure.add(current);
+      for (const dependency of dependencies.get(current)) visit(dependency);
+      if (event !== "build" && current === name) {
+        for (const dependency of testDependencies.get(current)) visit(dependency);
+      }
     };
     visit(name);
-    for (const name of globalImports) visit(name);
-    if (uncacheable.has("*") || [...closure].some(name => uncacheable.has(name))) continue;
+    for (const globalName of globalImports) visit(globalName);
+    if (uncacheable.has("*") || [...closure].some(current => uncacheable.has(current))) continue;
     const hash = createHash("sha256").update(shared).update("\0" + name + "\0");
-    for (const name of [...closure].sort()) hash.update(name).update(own.get(name));
+    if (event !== "build") hash.update(ownTests.get(name));
+    for (const current of [...closure].sort()) hash.update(current).update(ownSource.get(current));
     fingerprints.set(name, hash.digest("hex"));
   }
   return fingerprints;
@@ -140,7 +196,28 @@ export function taskCacheKey(fingerprint, event, args = []) {
 }
 
 export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, environment, fileSystem = fs }) {
-  const commands = new Set(["tsc", "tsc -p tsconfig.json", "node ../../scripts/guard-package-dist.mjs && tsc", "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json", "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.build.json"]);
+  const commands = new Set([
+    "tsc",
+    "tsc -p tsconfig.json",
+    "rm -rf dist && tsc",
+    "rm -rf dist && tsc && cp src/composition.json dist/composition.json",
+    "tsc && node ./scripts/copy-corpus.mjs",
+    "node ../../scripts/guard-package-dist.mjs && tsc",
+    "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json",
+    "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.build.json",
+    "node ../../scripts/guard-package-dist.mjs && rm -rf dist && tsc -p tsconfig.json",
+    "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json && node scripts/native-assets.mjs",
+    "node ../../scripts/guard-package-dist.mjs && tsc && node scripts/copy-templates.mjs",
+    "node ../../scripts/guard-package-dist.mjs && tsc && node scripts/copy-assets.mjs",
+    "node ../../scripts/guard-package-dist.mjs && tsc && cp LICENSE dist/",
+    "node ../../scripts/guard-package-dist.mjs && tsc && cp LICENSE COPYING COPYING.LESSER dist/ && cp src/width-data.ts dist/width-data.ts",
+    "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=neutral --format=esm --target=es2022 --outfile=dist/index.js --metafile=dist/metafile.json",
+    "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js",
+    "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js && esbuild src/portable.ts --bundle --platform=browser --format=esm --target=es2022 --outfile=dist/portable.js",
+    "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=browser --format=esm --target=es2022 --external:safe-bash-contracts --external:safe-bash-contracts/* --outfile=dist/index.js",
+    "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --external:safe-bash-contracts --external:safe-bash-contracts/* --outfile=dist/index.js",
+    "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --external:safe-bash-contracts --external:safe-bash-contracts/* --external:@poe-code/safe-fs --external:@poe-code/safe-fs/* --outfile=dist/index.js"
+  ]);
   const eligible = stages.filter(stage => {
     const event = stage.event ?? "build";
     const scripts = stage.manifest.scripts ?? {};
@@ -228,10 +305,34 @@ export function prepareNativeUnitCache(plan, stages, { cacheStore, cacheFiles, e
   };
 }
 
-export function createCheckCache({ directory = checkCacheDirectory(), fileSystem = fs } = {}) {
-  const filename = key => {
+export function createCheckCache({
+  directory = checkCacheDirectory(),
+  fileSystem = fs,
+  fallbackDirectory = fileSystem === fs ? path.resolve(os.tmpdir(), "poe-code", "checks-v1") : undefined
+} = {}) {
+  let writableDirectory = directory;
+  const filename = (key, baseDirectory = directory) => {
     assert.ok(typeof key === "string" && key.length === 64 && [...key].every(character => "0123456789abcdef".includes(character)), "Invalid cache key");
-    return path.join(directory, key + ".json.gz");
+    return path.join(baseDirectory, key + ".json.gz");
+  };
+  const readFrom = (key, baseDirectory) => {
+    try {
+      return JSON.parse(gunzipSync(fileSystem.readFileSync(filename(key, baseDirectory)), { maxOutputLength: 128 * 1024 * 1024 }).toString("utf8"));
+    } catch (error) {
+      if (error.code === "EACCES" || error.code === "EPERM") throw error;
+      return null;
+    }
+  };
+  const writeTo = (key, value, baseDirectory) => {
+    const destination = filename(key, baseDirectory);
+    fileSystem.mkdirSync(baseDirectory, { recursive: true });
+    const temporary = destination + "." + randomUUID() + ".tmp";
+    try {
+      fileSystem.writeFileSync(temporary, gzipSync(Buffer.from(JSON.stringify(value))), { flag: "wx", mode: 0o600 });
+      fileSystem.renameSync(temporary, destination);
+    } finally {
+      try { fileSystem.rmSync(temporary, { force: true }); } catch {}
+    }
   };
   const outputRoots = patterns => patterns.map(pattern => {
     assert.ok(pattern.endsWith("/**"), "Unsupported cached output pattern");
@@ -241,22 +342,22 @@ export function createCheckCache({ directory = checkCacheDirectory(), fileSystem
   });
   return {
     read(key) {
-      try {
-        return JSON.parse(gunzipSync(fileSystem.readFileSync(filename(key)), { maxOutputLength: 128 * 1024 * 1024 }).toString("utf8"));
-      } catch (error) {
-        if (error.code === "EACCES" || error.code === "EPERM") throw error;
-        return null;
+      if (fallbackDirectory && fallbackDirectory !== directory) {
+        const hit = readFrom(key, fallbackDirectory);
+        if (hit !== null) return hit;
       }
+      return readFrom(key, directory);
     },
     write(key, value) {
-      const destination = filename(key);
-      fileSystem.mkdirSync(directory, { recursive: true });
-      const temporary = destination + "." + randomUUID() + ".tmp";
       try {
-        fileSystem.writeFileSync(temporary, gzipSync(Buffer.from(JSON.stringify(value))), { flag: "wx", mode: 0o600 });
-        fileSystem.renameSync(temporary, destination);
-      } finally {
-        fileSystem.rmSync(temporary, { force: true });
+        writeTo(key, value, writableDirectory);
+      } catch (error) {
+        if ((error.code === "EACCES" || error.code === "EPERM") && fallbackDirectory && fallbackDirectory !== writableDirectory) {
+          writableDirectory = fallbackDirectory;
+          writeTo(key, value, writableDirectory);
+          return;
+        }
+        throw error;
       }
     },
     capture(root, patterns) {

@@ -53,4 +53,18 @@ describe("native Vitest workspace result cache", () => {
     await testWorkspaces("/repo", state);
     expect(state.spawn).toHaveBeenCalledTimes(8);
   });
+  it("caches eligible node --import tsx --test workspaces without requiring a Vitest stage", async () => {
+    const state = fixture();
+    state.fileSystem.mkdirSync("/repo/packages/tsx-native/src", { recursive: true });
+    state.fileSystem.writeFileSync("/repo/packages/tsx-native/package.json", JSON.stringify({
+      name: "tsx-native",
+      scripts: { "test:unit": "node --import tsx --test src/*.test.ts" }
+    }), { flag: "w" });
+    state.fileSystem.writeFileSync("/repo/packages/tsx-native/src/unit.test.ts", "export {};");
+    state.cacheFiles.push("packages/tsx-native/package.json", "packages/tsx-native/src/unit.test.ts");
+    const first = await testWorkspaces("/repo", { ...state, workspaces: ["tsx-native"] });
+    expect(first).toMatchObject({ unitCacheHits: 0, unitCacheMisses: 1 });
+    const second = await testWorkspaces("/repo", { ...state, workspaces: ["tsx-native"] });
+    expect(second).toMatchObject({ unitCacheHits: 1, unitCacheMisses: 0 });
+  });
 });

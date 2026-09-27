@@ -37,7 +37,15 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm clean-install
+      - name: Restore workspace build cache
+        uses: actions/cache@v6.1.0
+        with:
+          path: .turbo/ci-cache
+          key: ${{ runner.os }}-${{ runner.arch }}-build-v1-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: ${{ runner.os }}-${{ runner.arch }}-build-v1-${{ hashFiles('package-lock.json') }}-
       - name: Build workspace and CLI outputs
+        env:
+          POE_CHECK_CACHE_DIR: .turbo/ci-cache/checks-v1
         run: npm run build
       - name: Archive fresh build outputs
         id: archive
@@ -204,6 +212,7 @@ jobs:
           restore-keys: ${{ runner.os }}-${{ runner.arch }}-unit-v1-${{ hashFiles('package-lock.json') }}-
       - name: Run cache-eligible unit checks
         env:
+          POE_CHECK_CACHE_DIR: .turbo/ci-cache/checks-v1
           TURBO_FORCE: ${{ inputs.cold_cache && 'true' || 'false' }}
         run: npm exec -- turbo run test:ci:cached --filter=// --cache-dir=.turbo/ci-cache --cache=local:rw --output-logs=new-only --summarize
   bash:

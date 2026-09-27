@@ -305,6 +305,76 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "safe-bash-command-bc#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-exiftool#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-fd#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-less#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-mmdc#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-od#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-pdfinfo#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-pdftotext#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-qpdf#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-soffice#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-sponge#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-wkhtmltopdf#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-xxd#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-contracts#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

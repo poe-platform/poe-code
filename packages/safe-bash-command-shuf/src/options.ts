@@ -4,7 +4,7 @@ export interface ShufCommandsOptions {
   readonly maxSampleSize?: number;
 }
 
-export function settings(options: ShufCommandsOptions) {
+export function settings(options: ShufCommandsOptions = {}) {
   const limits = { maxInputBytes: options.maxInputBytes ?? Infinity, maxSampleSize: options.maxSampleSize ?? Infinity };
   for (const [name, value] of Object.entries(options)) {
     if (name === "replace") continue;

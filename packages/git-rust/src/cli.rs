@@ -1,8 +1,7 @@
 use crate::commands::network::{clone, fetch, pull, push};
 use crate::commands::plumbing::{
     add_remote, annotated_tag, branch, delete_branch, delete_remote, delete_tag, find_root,
-    get_config, init, list_remotes, log, read_blob, read_commit, read_tag, read_tree, set_config,
-    tag, write_blob,
+    get_config, init, list_remotes, log, read_tree, set_config, tag, write_blob,
 };
 use crate::commands::worktree::{
     abort_merge, add, checkout, cherry_pick, commit, list_files, merge, remove, reset_index, stash,
@@ -10,7 +9,7 @@ use crate::commands::worktree::{
 };
 use crate::fs::MemoryFs;
 use crate::http::{HttpClient, MockHttpServer};
-use crate::utils::{join, Author};
+use crate::utils::{Author, join};
 use crate::{
     current_branch, discover_gitdir, expand_oid, list_branches, list_tags, resolve_ref, version,
 };
@@ -72,6 +71,11 @@ pub fn execute_git_cli_with_http(
         return CliResult::err(1, "usage: git <command> [<args>]\n");
     };
     let sub_args = &filtered[1..];
+    let positionals: Vec<&str> = sub_args
+        .iter()
+        .copied()
+        .filter(|a| !a.starts_with('-'))
+        .collect();
 
     if subcmd == "--version" || subcmd == "version" {
         return CliResult::ok(format!("git version {}\n", version()));
@@ -101,7 +105,9 @@ pub fn execute_git_cli_with_http(
             i += 1;
         }
         return match init(fs, Some(&target_dir), None, bare, Some(default_branch)) {
-            Ok(()) => CliResult::ok(format!("Initialized empty Git repository in {target_dir}/.git/\n")),
+            Ok(()) => CliResult::ok(format!(
+                "Initialized empty Git repository in {target_dir}/.git/\n"
+            )),
             Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
         };
     }
@@ -179,9 +185,9 @@ pub fn execute_git_cli_with_http(
                                 continue;
                             }
                             let idx_char = match (head, stage) {
-                                (0, 2) => 'A',
+                                (0, 2 | 3) => 'A',
                                 (1, 0) => 'D',
-                                (1, 2) => 'M',
+                                (1, 2 | 3) => 'M',
                                 (0, 0) => '?',
                                 _ => ' ',
                             };
@@ -221,37 +227,143 @@ pub fn execute_git_cli_with_http(
             let mut paths = Vec::new();
             for &a in sub_args {
                 if !a.starts_with('-') {
-                    paths.push(a.to_string());
+                    paths.push(repository_path(&repo_root, &effective_cwd, a));
                 } else if a == "-A" || a == "--all" {
                     paths.push(".".to_string());
                 }
             }
-            if paths.is_empty() {
+            if paths.is_empty() && (sub_args.contains(&"-u") || sub_args.contains(&"--update")) {
                 paths.push(".".to_string());
             }
-            match add(fs, &repo_root, Some(&gitdir), &paths, false) {
+            if paths.is_empty() {
+                return CliResult::ok("");
+            }
+            let force = sub_args.contains(&"-f") || sub_args.contains(&"--force");
+            if sub_args.contains(&"-u") || sub_args.contains(&"--update") {
+                let tracked = list_files(fs, &gitdir, None).unwrap_or_default();
+                paths = tracked
+                    .into_iter()
+                    .filter(|p| {
+                        paths
+                            .iter()
+                            .any(|f| f == "." || p == f || p.starts_with(&format!("{f}/")))
+                    })
+                    .collect();
+            }
+            let tracked = list_files(fs, &gitdir, None).unwrap_or_default();
+            for path in &tracked {
+                if paths
+                    .iter()
+                    .any(|f| f == "." || path == f || path.starts_with(&format!("{f}/")))
+                    && !fs.exists(&join(&[&repo_root, path]))
+                    && let Err(e) = remove(fs, &gitdir, path)
+                {
+                    return CliResult::err(128, format!("fatal: {}\n", e.message));
+                }
+            }
+            for path in &paths {
+                if !fs.exists(&join(&[&repo_root, path])) && !tracked.contains(path) {
+                    return CliResult::err(
+                        128,
+                        format!("fatal: pathspec '{path}' did not match any files\n"),
+                    );
+                }
+            }
+            paths.retain(|p| fs.exists(&join(&[&repo_root, p])));
+            match add(fs, &repo_root, Some(&gitdir), &paths, force) {
                 Ok(()) => CliResult::ok(""),
                 Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
             }
         }
         "rm" => {
-            for &a in sub_args {
-                if !a.starts_with('-') {
-                    if let Err(e) = remove(fs, &gitdir, a) {
-                        return CliResult::err(128, format!("fatal: {}\n", e.message));
-                    }
-                    let _ = fs.rm(&join(&[&repo_root, a]));
+            let files = list_files(fs, &gitdir, None).unwrap_or_default();
+            let mut selected = Vec::new();
+            for &arg in &positionals {
+                let path = repository_path(&repo_root, &effective_cwd, arg);
+                let matches: Vec<_> = files
+                    .iter()
+                    .filter(|p| **p == path || p.starts_with(&format!("{path}/")))
+                    .cloned()
+                    .collect();
+                if matches.is_empty() {
+                    return CliResult::err(
+                        128,
+                        format!("fatal: pathspec '{arg}' did not match any files\n"),
+                    );
+                }
+                if matches.iter().any(|p| p != &path) && !sub_args.contains(&"-r") {
+                    return CliResult::err(
+                        128,
+                        format!("fatal: not removing '{arg}' recursively without -r\n"),
+                    );
+                }
+                selected.extend(matches);
+            }
+            for path in selected {
+                if let Err(e) = remove(fs, &gitdir, &path) {
+                    return CliResult::err(128, format!("fatal: {}\n", e.message));
+                }
+                if !sub_args.contains(&"--cached") {
+                    let _ = fs.unlink(&join(&[&repo_root, &path]));
                 }
             }
             CliResult::ok("")
         }
         "reset" => {
-            for &a in sub_args {
-                if !a.starts_with('-') && a != "HEAD" {
-                    let _ = reset_index(fs, Some(&repo_root), &gitdir, a, None);
-                }
+            let separator = sub_args.iter().position(|a| *a == "--");
+            let target = positionals.first().copied().filter(|a| {
+                resolve_ref(fs, &gitdir, a, None)
+                    .or_else(|_| expand_oid(fs, &gitdir, a))
+                    .is_ok()
+            });
+            if target.is_none()
+                && !positionals.is_empty()
+                && separator.is_none()
+                && sub_args
+                    .iter()
+                    .any(|a| matches!(*a, "--hard" | "--soft" | "--mixed"))
+            {
+                return CliResult::err(
+                    128,
+                    format!("fatal: invalid revision '{}'\n", positionals[0]),
+                );
             }
-            CliResult::ok("")
+            let paths: Vec<String> = if let Some(i) = separator {
+                sub_args[i + 1..]
+                    .iter()
+                    .map(|p| repository_path(&repo_root, &effective_cwd, p))
+                    .collect()
+            } else {
+                positionals
+                    .iter()
+                    .skip(usize::from(target.is_some()))
+                    .map(|p| repository_path(&repo_root, &effective_cwd, p))
+                    .collect()
+            };
+            let result = if !paths.is_empty() {
+                let files = list_files(fs, &gitdir, None).unwrap_or_default();
+                files
+                    .into_iter()
+                    .filter(|p| {
+                        paths
+                            .iter()
+                            .any(|f| f == "." || p == f || p.starts_with(&format!("{f}/")))
+                    })
+                    .try_for_each(|p| reset_index(fs, Some(&repo_root), &gitdir, &p, target))
+            } else {
+                reset_repository(
+                    fs,
+                    &repo_root,
+                    &gitdir,
+                    target.unwrap_or("HEAD"),
+                    sub_args.contains(&"--hard"),
+                    sub_args.contains(&"--soft"),
+                )
+            };
+            match result {
+                Ok(()) => CliResult::ok(""),
+                Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+            }
         }
         "commit" => {
             let mut msg = None;
@@ -347,7 +459,172 @@ pub fn execute_git_cli_with_http(
                 }
             }
         }
+        "diff" | "show" | "restore" | "clean" | "mv" => {
+            let result = match subcmd {
+                "diff" => {
+                    let cached = sub_args.contains(&"--cached") || sub_args.contains(&"--staged");
+                    let sep = sub_args.iter().position(|a| *a == "--");
+                    let revision = positionals.first().copied().filter(|_| sep != Some(0));
+                    let paths: Vec<_> = sep
+                        .map(|i| {
+                            sub_args[i + 1..]
+                                .iter()
+                                .map(|p| repository_path(&repo_root, &effective_cwd, p))
+                                .collect()
+                        })
+                        .unwrap_or_default();
+                    crate::cli_files::diff(
+                        fs,
+                        &repo_root,
+                        &gitdir,
+                        revision.unwrap_or(if cached { "HEAD" } else { ":index" }),
+                        if cached { ":index" } else { ":worktree" },
+                        &paths,
+                    )
+                }
+                "show" => crate::cli_files::show(
+                    fs,
+                    &repo_root,
+                    &gitdir,
+                    positionals.first().copied().unwrap_or("HEAD"),
+                ),
+                "restore" => {
+                    let source = sub_args
+                        .windows(2)
+                        .find(|w| w[0] == "--source" || w[0] == "-s")
+                        .map(|w| w[1]);
+                    let staged = sub_args.contains(&"--staged") || sub_args.contains(&"-S");
+                    let paths: Vec<_> = positionals
+                        .iter()
+                        .filter(|p| Some(**p) != source)
+                        .map(|p| repository_path(&repo_root, &effective_cwd, p))
+                        .collect();
+                    crate::cli_files::restore(
+                        fs,
+                        &repo_root,
+                        &gitdir,
+                        &paths,
+                        source.unwrap_or(if staged { "HEAD" } else { ":index" }),
+                        staged,
+                        !staged || sub_args.contains(&"--worktree") || sub_args.contains(&"-W"),
+                    )
+                    .map(|_| String::new())
+                }
+                "mv" => {
+                    if positionals.len() != 2 {
+                        return CliResult::err(129, "usage: git mv <source> <destination>\n");
+                    }
+                    let src = repository_path(&repo_root, &effective_cwd, positionals[0]);
+                    let mut dst = repository_path(&repo_root, &effective_cwd, positionals[1]);
+                    if fs
+                        .stat(&join(&[&repo_root, &dst]))
+                        .is_ok_and(|s| s.is_directory())
+                    {
+                        dst = join(&[&dst, src.rsplit('/').next().unwrap_or(&src)]);
+                    }
+                    let full_src = join(&[&repo_root, &src]);
+                    let full_dst = join(&[&repo_root, &dst]);
+                    if fs.exists(&full_dst) && !sub_args.contains(&"-f") {
+                        return CliResult::err(128, "fatal: destination exists\n");
+                    }
+                    let files = list_files(fs, &gitdir, None).unwrap_or_default();
+                    if !files
+                        .iter()
+                        .any(|p| p == &src || p.starts_with(&format!("{src}/")))
+                    {
+                        return CliResult::err(128, "fatal: source is not tracked\n");
+                    }
+                    fs.cp_recursive(&full_src, &full_dst)
+                        .map_err(|e| crate::GitError::internal(&e.message))
+                        .and_then(|_| {
+                            fs.rm(&full_src)
+                                .map_err(|e| crate::GitError::internal(&e.message))?;
+                            crate::GitIndexManager::acquire(fs, &gitdir, |index| {
+                                let moved: Vec<_> = index
+                                    .entries()
+                                    .into_iter()
+                                    .filter(|e| {
+                                        e.path == src || e.path.starts_with(&format!("{src}/"))
+                                    })
+                                    .collect();
+                                for entry in moved {
+                                    let path = format!("{}{}", dst, &entry.path[src.len()..]);
+                                    let mut stat = fs
+                                        .lstat(&join(&[&repo_root, &path]))
+                                        .map_err(|e| crate::GitError::internal(&e.message))?;
+                                    stat.mode = entry.mode;
+                                    index.delete(&entry.path);
+                                    index.insert(&path, Some(&stat), &entry.oid, 0);
+                                }
+                                Ok(())
+                            })
+                        })
+                        .map(|_| String::new())
+                }
+                _ => {
+                    let dry = sub_args.contains(&"-n") || sub_args.contains(&"--dry-run");
+                    if !dry && !sub_args.contains(&"-f") && !sub_args.contains(&"--force") {
+                        return CliResult::err(128, "fatal: clean requires -f or -n\n");
+                    }
+                    let files = list_files(fs, &gitdir, None).unwrap_or_default();
+                    let base = format!("{repo_root}/");
+                    let mut out = String::new();
+                    for full in fs.readdir_deep(&effective_cwd) {
+                        let Some(path) = full.strip_prefix(&base) else {
+                            continue;
+                        };
+                        if path.starts_with(".git/") || files.iter().any(|f| f == path) {
+                            continue;
+                        }
+                        if !sub_args.contains(&"-x")
+                            && crate::GitIgnoreManager::is_ignored(
+                                fs,
+                                &repo_root,
+                                Some(&gitdir),
+                                path,
+                            )
+                        {
+                            continue;
+                        }
+                        out.push_str(&format!(
+                            "{} {}\n",
+                            if dry { "Would remove" } else { "Removing" },
+                            path
+                        ));
+                        if !dry {
+                            let _ = fs.unlink(&full);
+                        }
+                    }
+                    Ok(out)
+                }
+            };
+            match result {
+                Ok(out) => CliResult::ok(out),
+                Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+            }
+        }
         "checkout" | "switch" => {
+            if subcmd == "checkout"
+                && let Some(i) = sub_args.iter().position(|a| *a == "--")
+            {
+                let paths: Vec<_> = sub_args[i + 1..]
+                    .iter()
+                    .map(|p| repository_path(&repo_root, &effective_cwd, p))
+                    .collect();
+                let source = sub_args[..i].iter().find(|p| !p.starts_with('-')).copied();
+                return match crate::cli_files::restore(
+                    fs,
+                    &repo_root,
+                    &gitdir,
+                    &paths,
+                    source.unwrap_or(":index"),
+                    source.is_some(),
+                    true,
+                ) {
+                    Ok(()) => CliResult::ok(""),
+                    Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+                };
+            }
             let mut create_new = false;
             let mut force = false;
             let mut target = None;
@@ -356,10 +633,9 @@ pub fn execute_git_cli_with_http(
                 match sub_args[i] {
                     "-b" | "-c" => create_new = true,
                     "-f" | "--force" => force = true,
-                    arg if !arg.starts_with('-')
-                        && target.is_none() => {
-                            target = Some(arg);
-                        }
+                    arg if !arg.starts_with('-') && target.is_none() => {
+                        target = Some(arg);
+                    }
                     _ => {}
                 }
                 i += 1;
@@ -367,10 +643,9 @@ pub fn execute_git_cli_with_http(
             let Some(ref_target) = target else {
                 return CliResult::err(128, "fatal: missing branch or commit argument\n");
             };
-            if create_new
-                && let Err(e) = branch(fs, &gitdir, ref_target, None, true, false) {
-                    return CliResult::err(128, format!("fatal: {}\n", e.message));
-                }
+            if create_new && let Err(e) = branch(fs, &gitdir, ref_target, None, true, false) {
+                return CliResult::err(128, format!("fatal: {}\n", e.message));
+            }
             match checkout(
                 fs,
                 &repo_root,
@@ -414,7 +689,16 @@ pub fn execute_git_cli_with_http(
                     timestamp: 1502484200,
                     timezone_offset: 0.0,
                 };
-                match annotated_tag(fs, &gitdir, name, Some(msg), None, Some(tagger), None, false) {
+                match annotated_tag(
+                    fs,
+                    &gitdir,
+                    name,
+                    Some(msg),
+                    None,
+                    Some(tagger),
+                    None,
+                    false,
+                ) {
                     Ok(()) => CliResult::ok(""),
                     Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
                 }
@@ -525,7 +809,10 @@ pub fn execute_git_cli_with_http(
                 let mut out = String::new();
                 for r in remotes {
                     if sub_args.contains(&"-v") {
-                        out.push_str(&format!("{}\t{} (fetch)\n{}\t{} (push)\n", r.remote, r.url, r.remote, r.url));
+                        out.push_str(&format!(
+                            "{}\t{} (fetch)\n{}\t{} (push)\n",
+                            r.remote, r.url, r.remote, r.url
+                        ));
                     } else {
                         out.push_str(&format!("{}\n", r.remote));
                     }
@@ -547,7 +834,11 @@ pub fn execute_git_cli_with_http(
             _ => CliResult::ok(""),
         },
         "config" => {
-            let non_flags: Vec<&str> = sub_args.iter().copied().filter(|a| !a.starts_with('-')).collect();
+            let non_flags: Vec<&str> = sub_args
+                .iter()
+                .copied()
+                .filter(|a| !a.starts_with('-'))
+                .collect();
             if non_flags.len() == 1 {
                 match get_config(fs, &gitdir, non_flags[0]) {
                     Some(v) => CliResult::ok(format!("{}\n", v.as_str())),
@@ -563,38 +854,71 @@ pub fn execute_git_cli_with_http(
             }
         }
         "rev-parse" => {
-            let Some(&target) = sub_args.last() else {
+            if sub_args.contains(&"--show-toplevel") {
+                return CliResult::ok(format!("{repo_root}\n"));
+            }
+            if sub_args.contains(&"--git-dir") {
+                return CliResult::ok(format!(
+                    "{}\n",
+                    if effective_cwd == repo_root {
+                        ".git"
+                    } else {
+                        &gitdir
+                    }
+                ));
+            }
+            if sub_args.contains(&"--is-inside-work-tree") {
+                return CliResult::ok(format!("{}\n", fs.exists(&gitdir)));
+            }
+            let Some(&target) = positionals.last() else {
                 return CliResult::err(128, "fatal: missing revision\n");
             };
-            if let Ok(oid) = resolve_ref(fs, &gitdir, target, None) {
-                CliResult::ok(format!("{oid}\n"))
-            } else if let Ok(oid) = expand_oid(fs, &gitdir, target) {
-                CliResult::ok(format!("{oid}\n"))
-            } else {
-                CliResult::err(128, format!("fatal: ambiguous argument '{target}'\n"))
+            if sub_args.contains(&"--abbrev-ref") {
+                return match current_branch(fs, &gitdir, false, false) {
+                    Ok(branch) if target == "HEAD" => CliResult::ok(format!(
+                        "{}\n",
+                        branch.unwrap_or_else(|| "HEAD".to_string())
+                    )),
+                    _ => CliResult::ok(format!("{}\n", target.trim_start_matches("refs/heads/"))),
+                };
+            }
+            match resolve_ref(fs, &gitdir, target, None)
+                .or_else(|_| expand_oid(fs, &gitdir, target))
+            {
+                Ok(oid) => CliResult::ok(format!(
+                    "{}\n",
+                    if sub_args.contains(&"--short") {
+                        &oid[..7]
+                    } else {
+                        &oid
+                    }
+                )),
+                Err(_) => CliResult::err(128, format!("fatal: ambiguous argument '{target}'\n")),
             }
         }
         "cat-file" => {
-            let Some(&oid_arg) = sub_args.last() else {
+            let Some(&target) = positionals.last() else {
                 return CliResult::err(128, "fatal: missing object\n");
             };
-            let oid = resolve_ref(fs, &gitdir, oid_arg, None)
-                .or_else(|_| expand_oid(fs, &gitdir, oid_arg))
-                .unwrap_or_else(|_| oid_arg.to_string());
-            if let Ok(b) = read_blob(fs, &gitdir, &oid, None) {
-                CliResult::ok(String::from_utf8_lossy(&b.blob).to_string())
-            } else if let Ok(c) = read_commit(fs, &gitdir, &oid) {
-                CliResult::ok(format!("tree {}\n\n{}", c.commit.tree, c.commit.message))
-            } else if let Ok(t) = read_tree(fs, &gitdir, &oid, None) {
-                let mut out = String::new();
-                for e in t.tree {
-                    out.push_str(&format!("{} {} {}\t{}\n", e.mode, e.entry_type, e.oid, e.path));
+            let result = resolve_ref(fs, &gitdir, target, None)
+                .or_else(|_| expand_oid(fs, &gitdir, target))
+                .and_then(|oid| crate::read_object(fs, &gitdir, &oid, Some("content"), None, None));
+            match result {
+                Ok(obj) if sub_args.contains(&"-t") => CliResult::ok(format!("{}\n", obj.obj_type)),
+                Ok(obj) if sub_args.contains(&"-s") => {
+                    CliResult::ok(format!("{}\n", obj.object.len()))
                 }
-                CliResult::ok(out)
-            } else if let Ok(tg) = read_tag(fs, &gitdir, &oid) {
-                CliResult::ok(format!("object {}\ntag {}\n\n{}", tg.tag.object, tg.tag.tag, tg.tag.message))
-            } else {
-                CliResult::err(128, format!("fatal: Not a valid object name {oid}\n"))
+                Ok(obj) if obj.obj_type == "tree" => match read_tree(fs, &gitdir, &obj.oid, None) {
+                    Ok(tree) => CliResult::ok(
+                        tree.tree
+                            .into_iter()
+                            .map(|e| format!("{} {} {}\t{}\n", e.mode, e.entry_type, e.oid, e.path))
+                            .collect::<String>(),
+                    ),
+                    Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+                },
+                Ok(obj) => CliResult::ok(String::from_utf8_lossy(&obj.object).to_string()),
+                Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
             }
         }
         "hash-object" => {
@@ -602,7 +926,7 @@ pub fn execute_git_cli_with_http(
             let Some(&file_arg) = sub_args.iter().find(|a| !a.starts_with('-')) else {
                 return CliResult::err(128, "fatal: missing file\n");
             };
-            let full = join(&[&repo_root, file_arg]);
+            let full = absolute_path(&effective_cwd, file_arg);
             let Some(bytes) = fs.read(&full) else {
                 return CliResult::err(128, format!("fatal: Cannot open '{file_arg}'\n"));
             };
@@ -626,8 +950,8 @@ pub fn execute_git_cli_with_http(
             Some(&repo_root),
             Some(&gitdir),
             None,
-            sub_args.first().copied(),
-            sub_args.get(1).copied(),
+            positionals.first().copied(),
+            positionals.get(1).copied(),
             false,
             true,
             None,
@@ -650,9 +974,9 @@ pub fn execute_git_cli_with_http(
                 http,
                 &repo_root,
                 Some(&gitdir),
-                sub_args.get(1).copied(),
+                positionals.get(1).copied(),
                 None,
-                sub_args.first().copied(),
+                positionals.first().copied(),
                 false,
                 true,
                 sub_args.contains(&"--ff-only"),
@@ -670,9 +994,9 @@ pub fn execute_git_cli_with_http(
             http,
             Some(&repo_root),
             Some(&gitdir),
-            sub_args.get(1).copied(),
+            positionals.get(1).copied(),
             None,
-            sub_args.first().copied(),
+            positionals.first().copied(),
             None,
             sub_args.contains(&"-f") || sub_args.contains(&"--force"),
             sub_args.contains(&"--delete") || sub_args.contains(&"-d"),
@@ -680,9 +1004,94 @@ pub fn execute_git_cli_with_http(
             None,
             None,
         ) {
-            Ok(_) => CliResult::ok(""),
+            Ok(_) => {
+                if sub_args.contains(&"-u") || sub_args.contains(&"--set-upstream") {
+                    let remote = positionals.first().copied().unwrap_or("origin");
+                    let branch = positionals
+                        .get(1)
+                        .map(|s| s.to_string())
+                        .or_else(|| current_branch(fs, &gitdir, false, false).ok().flatten());
+                    if let Some(branch) = branch {
+                        let name = branch.trim_start_matches("refs/heads/");
+                        for (key, value) in [
+                            (format!("branch.{name}.remote"), remote.to_string()),
+                            (format!("branch.{name}.merge"), format!("refs/heads/{name}")),
+                        ] {
+                            if let Err(e) = set_config(fs, &gitdir, &key, Some(&value), false) {
+                                return CliResult::err(128, format!("fatal: {}\n", e.message));
+                            }
+                        }
+                    }
+                }
+                CliResult::ok("")
+            }
             Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
         },
         other => CliResult::err(1, format!("git: '{other}' is not a git command.\n")),
     }
+}
+
+fn absolute_path(cwd: &str, path: &str) -> String {
+    if path.starts_with('/') {
+        crate::utils::normalize_path(path)
+    } else {
+        join(&[cwd, path])
+    }
+}
+
+fn repository_path(root: &str, cwd: &str, path: &str) -> String {
+    let full = absolute_path(cwd, path);
+    if full == root {
+        ".".to_string()
+    } else {
+        full.strip_prefix(&format!("{}/", root.trim_end_matches('/')))
+            .unwrap_or(&full)
+            .to_string()
+    }
+}
+
+fn reset_repository(
+    fs: &MemoryFs,
+    root: &str,
+    gitdir: &str,
+    target: &str,
+    hard: bool,
+    soft: bool,
+) -> Result<(), crate::GitError> {
+    let oid = resolve_ref(fs, gitdir, target, None).or_else(|_| expand_oid(fs, gitdir, target))?;
+    if hard {
+        let tracked = list_files(fs, gitdir, None)?;
+        let target_files = list_files(fs, gitdir, Some(&oid))?;
+        checkout(
+            fs,
+            root,
+            Some(gitdir),
+            Some(&oid),
+            None,
+            None,
+            false,
+            true,
+            false,
+            true,
+            false,
+        )?;
+        for path in tracked {
+            if !target_files.contains(&path) {
+                let _ = fs.unlink(&join(&[root, &path]));
+            }
+        }
+    } else if !soft {
+        let mut tree = std::collections::BTreeMap::new();
+        crate::commands::worktree::collect_tree_map(fs, gitdir, &oid, "", &mut tree)?;
+        crate::GitIndexManager::acquire(fs, gitdir, |index| {
+            index.clear();
+            for (path, entry) in tree {
+                index.insert(&path, None, &entry.oid, 0);
+            }
+            Ok(())
+        })?;
+    }
+    let head = fs.read_str(&join(&[gitdir, "HEAD"])).unwrap_or_default();
+    let ref_name = head.trim().strip_prefix("ref: ").unwrap_or("HEAD");
+    crate::GitRefManager::write_ref(fs, gitdir, ref_name, &oid)
 }

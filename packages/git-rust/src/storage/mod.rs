@@ -475,6 +475,9 @@ pub fn has_object(fs: &MemoryFs, raw_gitdir: &str, oid: &str) -> Result<bool, Gi
 }
 
 pub fn expand_oid(fs: &MemoryFs, raw_gitdir: &str, short: &str) -> Result<String, GitError> {
+    if !short.bytes().all(|b| b.is_ascii_hexdigit()) {
+        return Err(GitError::not_found(&format!("an object matching \"{short}\"")));
+    }
     let gitdir_buf = discover_gitdir(fs, raw_gitdir);
     let gitdir = gitdir_buf.as_str();
     let mut results: Vec<String> = Vec::new();

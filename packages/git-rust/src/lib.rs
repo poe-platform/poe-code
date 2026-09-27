@@ -2,6 +2,7 @@
 
 pub mod commands;
 pub mod cli;
+mod cli_files;
 pub mod errors;
 pub mod fixtures;
 pub mod fs;

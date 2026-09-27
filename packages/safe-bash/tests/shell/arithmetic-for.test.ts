@@ -247,7 +247,8 @@ for (const source of [
   'for ((i=0;i<2;i++)); do echo x > /file$((i=0)); done',
   "j='i=0'; for ((i=0;i<2;i++)); do echo x > /file$((j)); done",
 ]) test(`arithmetic loop redirect targets still yield to cancellation: ${source}`, async () => {
-  const { shell } = setup({ limits: { maxCommands: 200000, maxLoopIterations: 100000, maxCpuMs: 2000 } });
+  // Two loop quanta bound a missing yield without racing the host clock against setImmediate.
+  const { shell } = setup({ limits: { maxCommands: 8192, maxLoopIterations: 4096 } });
   shell.register(basicCommands().find(command => command.name === "echo")!);
   const controller = new AbortController();
   const pending = setImmediate(() => controller.abort(false));

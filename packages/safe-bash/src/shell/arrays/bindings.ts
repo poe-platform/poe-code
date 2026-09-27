@@ -119,6 +119,11 @@ export class IndexedBinding {
     const admission = owner.reserve({ payload: length * 5, metadata: 64 + length * 16, work: length + 2 });
     try {
     const bytes = shellValueBytes(value);
+    if (bytes.length <= 4096) {
+      const p = owner.ledger.checkpoint(signal, bytes.length);
+      if (p) await p;
+      return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("hex");
+    }
     const parts: string[] = [];
     for (const byte of bytes) {
       parts.push(byte.toString(16).padStart(2, "0"));
@@ -146,6 +151,48 @@ export class IndexedBinding {
     this.keyByIndex.set(index, identity);
     this.maximum = index;
     return index;
+  }
+
+  async stageKeyIndex(
+    value: ShellValue,
+    owner: ArrayOwner,
+    signal: AbortSignal,
+    nextMaximum = this.maximum,
+  ): Promise<{
+    index: number;
+    pendingKey?: {
+      identity: string;
+      index: number;
+      text: OwnedText;
+      admission: Admission;
+    };
+  }> {
+    const identity = await this.keyIdentity(value, owner, signal);
+    const existing = this.keys.get(identity);
+    if (existing) return { index: existing.index };
+    const index = nextMaximum + 1;
+    const admission = this.owner.reserve({ metadata: 128 + identity.length * 2, work: 8 });
+    let text: OwnedText;
+    try { text = await valueToken(this.owner, value, signal); }
+    catch (error) { admission.release(); throw error; }
+    return { index, pendingKey: { identity, index, text, admission } };
+  }
+
+  commitStagedKey(pending: {
+    identity: string;
+    index: number;
+    text: OwnedText;
+    admission: Admission;
+  }): void {
+    const { identity, index, text, admission } = pending;
+    const entry = { index, text, admission };
+    admission.cleanup = () => {
+      if (this.keys.get(identity) === entry) { this.keys.delete(identity); this.keyByIndex.delete(index); }
+      text.release();
+    };
+    this.keys.set(identity, entry);
+    this.keyByIndex.set(index, identity);
+    if (index > this.maximum) this.maximum = index;
   }
 
   remove(index: number): void {

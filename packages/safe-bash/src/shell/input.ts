@@ -1497,6 +1497,26 @@ export class ShellInput implements ByteSource, CommandInput {
         let pulls = 0;
         let terminated = count === 0;
         const outcome: { reason: ReadLine["reason"] } = { reason: terminated ? "count" : "eof" };
+        let fastRawBytes: Uint8Array | undefined;
+        if (!terminated && raw && count === undefined && !exact && !deadline && this._cursor.remainder && this._cursor.remainder.length > 0) {
+          const rem = this._cursor.remainder;
+          const delimIdx = rem.indexOf(delimiter);
+          if (delimIdx !== -1 && delimIdx <= this.budget.limits.maxOutputBytes) {
+            let hasNul = false;
+            for (let i = 0; i < delimIdx; i++) {
+              if (rem[i] === 0) { hasNul = true; break; }
+            }
+            if (!hasNul) {
+              this._cursor.admitBoundedRead();
+              this._cursor.position += delimIdx + 1;
+              this._cursor.remainder = delimIdx + 1 < rem.length ? rem.subarray(delimIdx + 1) : undefined;
+              scope.reserve(delimIdx + 64, 1);
+              fastRawBytes = rem.subarray(0, delimIdx);
+              terminated = true;
+              outcome.reason = "delimiter";
+            }
+          }
+        }
         const nextByte = async (): Promise<number | undefined> => {
           this.signal.throwIfAborted();
           if (deadline?.expired()) { outcome.reason = "timeout"; return undefined; }
@@ -1526,7 +1546,9 @@ export class ShellInput implements ByteSource, CommandInput {
         };
         while (!terminated) {
           if (consumed - checkpoint >= 1024) { checkpoint = consumed; await yieldTurn(this.signal); }
-          const first = await nextByte();
+          const first = offset < chunk.length && !deadline
+            ? (this.signal.throwIfAborted(), this._cursor.position++, chunk[offset++]!)
+            : await nextByte();
           if (first === undefined) {
             if (escaping && visible && !buffer.length && outcome.reason === "eof") buffer.append(1);
             break;
@@ -1549,7 +1571,9 @@ export class ShellInput implements ByteSource, CommandInput {
           const width = byteCount ? 1 : utf8Length(first);
           const committedLength = buffer.length;
           for (let position = 1; position < width; position++) {
-            const next = await nextByte();
+            const next = offset < chunk.length && !deadline
+              ? (this.signal.throwIfAborted(), this._cursor.position++, chunk[offset++]!)
+              : await nextByte();
             if (next === undefined) break;
             account();
             if (next === 0) visible = false;
@@ -1564,7 +1588,7 @@ export class ShellInput implements ByteSource, CommandInput {
         this.signal.throwIfAborted();
         deadline?.close();
         const reason = outcome.reason;
-        let bytes = buffer.bytes();
+        let bytes = fastRawBytes ?? buffer.bytes();
         if (reason === "timeout" && (escapedByteOffsets.length || escaping && visible)) {
           const projected = new ReadBuffer(scope, this.budget.limits.maxOutputBytes);
           let escape = 0;
@@ -1584,12 +1608,15 @@ export class ShellInput implements ByteSource, CommandInput {
           bytes = projected.bytes();
         }
         const shellValue = shellValueFromBytes(bytes, scope);
+        const asciiStringValue = typeof shellValue === "string" && shellValue.length === bytes.length ? shellValue : undefined;
         const escaped = new Set<number>();
-        let escapeIndex = 0;
-        let characters = 0;
-        for (let start = 0; start < bytes.length; start += displayWidth(bytes, start)) {
-          if (escapedByteOffsets[escapeIndex] === start) { escaped.add(characters); escapeIndex++; }
-          if (++characters % 1024 === 0) await yieldTurn(this.signal);
+        if (escapedByteOffsets.length > 0) {
+          let escapeIndex = 0;
+          let characters = 0;
+          for (let start = 0; start < bytes.length; start += displayWidth(bytes, start)) {
+            if (escapedByteOffsets[escapeIndex] === start) { escaped.add(characters); escapeIndex++; }
+            if (++characters % 1024 === 0) await yieldTurn(this.signal);
+          }
         }
         Object.freeze(escapedByteOffsets);
         const result: ReadLine = {
@@ -1599,6 +1626,46 @@ export class ShellInput implements ByteSource, CommandInput {
             active++;
             try {
             if (maximum !== undefined && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("Invalid read field count");
+            if (asciiStringValue !== undefined && escapedByteOffsets.length === 0 && typeof ifs === "string") {
+              let asciiIfs = true;
+              for (let i = 0; i < ifs.length; i++) {
+                if (ifs.charCodeAt(i) >= 128) { asciiIfs = false; break; }
+              }
+              if (asciiIfs) {
+                scope.reserve(128, 2);
+                const isSep = (c: number): boolean => {
+                  for (let i = 0; i < ifs.length; i++) {
+                    if (ifs.charCodeAt(i) === c) return true;
+                  }
+                  return false;
+                };
+                const isWhite = (c: number): boolean => (c === 32 || c === 9 || c === 10) && isSep(c);
+                const s = asciiStringValue;
+                let end = s.length;
+                while (end > 0 && isWhite(s.charCodeAt(end - 1))) end--;
+                let position = 0;
+                while (position < end && isWhite(s.charCodeAt(position))) position++;
+                const fields: ReadField[] = [];
+                const maxFields = maximum ?? Number.MAX_SAFE_INTEGER;
+                let steps = 0;
+                while (position < end && fields.length < maxFields) {
+                  const start = position;
+                  while (position < end && !isSep(s.charCodeAt(position))) {
+                    position++;
+                    if (++steps % 1024 === 0) { await yieldTurn(this.signal); assertOpen(); }
+                  }
+                  let fieldEnd = position;
+                  while (position < end && isWhite(s.charCodeAt(position))) position++;
+                  if (position < end && isSep(s.charCodeAt(position))) position++;
+                  while (position < end && isWhite(s.charCodeAt(position))) position++;
+                  if (maximum !== undefined && fields.length === maximum - 1 && position < end) fieldEnd = end;
+                  scope.reserve(64, 1);
+                  fields.push(Object.freeze({ start, end: fieldEnd, value: s.slice(start, fieldEnd) }));
+                }
+                assertOpen();
+                return Object.freeze(fields);
+              }
+            }
             const separators = shellValueBytes(ifs, scope);
             scope.reserve(128, 2);
             const keys = new Set<number>();
@@ -1661,7 +1728,10 @@ export class ShellInput implements ByteSource, CommandInput {
               while (position < end && whitespace(position)) { const pending = advance(); if (pending) await pending; }
               if (maximum !== undefined && fields.length === maximum - 1 && position < end) fieldEnd = end;
               scope.reserve(64, 1);
-              fields.push(Object.freeze({ start, end: fieldEnd, value: shellValueFromBytes(bytes.subarray(start, fieldEnd), scope) }));
+              const fieldValue = asciiStringValue !== undefined
+                ? asciiStringValue.slice(start, fieldEnd)
+                : shellValueFromBytes(bytes.subarray(start, fieldEnd), scope);
+              fields.push(Object.freeze({ start, end: fieldEnd, value: fieldValue }));
             }
             assertOpen();
             return Object.freeze(fields);

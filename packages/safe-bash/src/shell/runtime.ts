@@ -3992,7 +3992,7 @@ export class Runtime {
     if (state.readonlyVariables?.has(name)) throw new PublicDiagnostic(`${name}: readonly variable`);
     const maxBytes = this.budget.limits.maxExpansionBytes;
     if ((typeof value !== "string" || value.length * 3 > maxBytes) && shellValueByteLength(value) > maxBytes) this.budget.fail("maxExpansionBytes");
-    if (state.variableAttributes?.size) value = await this.attributeValue(state, name, value, io, origin);
+    if (state.variableAttributes?.get(name)) value = await this.attributeValue(state, name, value, io, origin);
     if (name === "OPTIND" && (state.getopts === undefined || state.getopts.integer) && origin !== "arithmetic") {
       try { value = String(evaluateArithmetic(prepareArithmetic(shellValueText(value) || "0", this.budget.parsing), this.arithmeticVariables(state), this.budget.parsing)); }
       catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error, this.budget.onInternalError)); }
@@ -4095,6 +4095,7 @@ export class Runtime {
       isSync: true,
       resolve: variable => {
         this.signal.throwIfAborted();
+        if (this._syncArithState!.variableAttributes?.get(variable)?.includes("n")) throw new ArrayFailure("nameref in sync arithmetic");
         return variable;
       },
       read: reference => {
@@ -4119,6 +4120,7 @@ export class Runtime {
         }
         if (arrayStore(st)?.get(reference)) throw new ArrayFailure("indexed arithmetic is unsupported");
         const raw = stateMonitor(st)?.raw ?? st;
+        if (raw.variableAttributes?.get(reference)) throw new ArrayFailure("attribute in sync arithmetic");
         if (raw.readonlyVariables?.has(reference)) throw new PublicDiagnostic(`${reference}: readonly variable`);
         publishVariable(st, reference, value);
         if (raw.allexport) st.exported.add(reference);
@@ -4179,8 +4181,8 @@ export class Runtime {
   }
 
   private async shellArithmetic(program: ArithmeticProgram, state: State, io: IO, variables?: Record<string, string>): Promise<bigint> {
-    if (!program.hasSubscript && !state.namerefVariables?.size && !state.variableAttributes?.size && variables === undefined) {
-      if (!guestArrays(state)) {
+    if (!program.hasSubscript && !state.namerefVariables?.size && variables === undefined) {
+      if (!guestArrays(state) && !state.variableAttributes?.size) {
         return this.syncShellArithmetic(program, state, io.diagnosticLine);
       }
       try {
@@ -4253,8 +4255,8 @@ export class Runtime {
   }
 
   private async expandedArithmeticValue(program: ArithmeticProgram, state: State, io: IO): Promise<bigint> {
-    if (!program.error && !program.hasSubscript && !state.namerefVariables?.size && !state.variableAttributes?.size) {
-      if (!guestArrays(state)) {
+    if (!program.error && !program.hasSubscript && !state.namerefVariables?.size) {
+      if (!guestArrays(state) && !state.variableAttributes?.size) {
         return this.syncShellArithmetic(program, state, io.diagnosticLine);
       }
       try {
@@ -4579,8 +4581,8 @@ export class Runtime {
     if (!binding?.associative) {
       if (index.source === "") throw new ArrayFailure("bad array subscript");
       const word = index.word ?? parseArraySubscript(index.source ?? index.decimal, this.budget.parsing, byteLocale(state.variables), state.depth);
-      const fields = await this.valueWord(word, state, io, false);
-      const source = shellValueText(concatShellValues(fields, io[valueScope]));
+      const fast = this.fastValueWord(word, state, io, false, false, false, false);
+      const source = fast !== undefined ? shellValueText(fast) : shellValueText(concatShellValues(await this.valueWord(word, state, io, false), io[valueScope]));
       owner.reserve({ work: source.length + 1 }).release();
       let number = await this.arithmeticValue(prepareArithmetic(source || "0", this.budget.parsing), state, io);
       if (number < 0n) number += BigInt(relativeMaximum + 1);
@@ -4589,14 +4591,17 @@ export class Runtime {
       return Number(number);
     }
     const word = index.word ?? parseArraySubscript(index.source ?? index.decimal, this.budget.parsing, byteLocale(state.variables), state.depth);
-    const fields = await this.valueWord(word, state, io, false);
-    const value = fields.length === 1 ? fields[0]! : concatShellValues(fields, io[valueScope]);
-    if (shellValueByteLength(value) === 0) {
+    const fast = this.fastValueWord(word, state, io, false, false, false, false);
+    const resolvedValue = fast !== undefined ? fast : await (async () => {
+      const fields = await this.valueWord(word, state, io, false);
+      return fields.length === 1 ? fields[0]! : concatShellValues(fields, io[valueScope]);
+    })();
+    if (shellValueByteLength(resolvedValue) === 0) {
       await this.diagnostic(io, "associative array: bad array subscript");
       if (create) throw completedExit(1);
       return undefined;
     }
-    return binding.keyIndex(value, owner, this.signal, create);
+    return binding.keyIndex(resolvedValue, owner, this.signal, create);
   }
 
   async arrayAssignment(assignment: ArrayAssignment, state: State, io: IO, declaration?: "readonly", origin: "assignment" | "declaration" = "assignment", associative?: boolean): Promise<void> {
@@ -4655,9 +4660,14 @@ export class Runtime {
         preserve &&
         current !== undefined &&
         current.references === 1 &&
-        !isAssociative &&
-        (assignment.kind === "element" || (assignment.append && assignment.entries.every(e => !e.index)));
+        (assignment.kind === "element" || (!isAssociative && assignment.append && assignment.entries.every(e => !e.index)));
       const pendingInPlace: Array<{ index: number; token: import("./arrays/bindings.js").OwnedText; slot: Admission }> = [];
+      const pendingKeys: Array<{
+        identity: string;
+        index: number;
+        text: import("./arrays/bindings.js").OwnedText;
+        admission: Admission;
+      }> = [];
       try {
         staged = canReviseInPlace ? undefined : preserve && current ? await current.copy(this.signal) : IndexedBinding.create(store.owner, isAssociative);
         if (preserve && !current && state.variables[name] !== undefined) {
@@ -4671,7 +4681,11 @@ export class Runtime {
           if (index > 2147483647) throw new ArrayFailure("index outside 0..2147483647");
           const previous = append ? targetBinding.getValue(index) ?? "" : undefined;
           if (append && !state.variableAttributes?.get(name)?.includes("i")) value = await join([previous!, value]);
-          value = await this.attributeValue(state, name, value, io, "assignment", previous);
+          if (state.variableAttributes?.get(name)) {
+            value = await this.attributeValue(state, name, value, io, "assignment", previous);
+          } else if (shellValueByteLength(value) > this.budget.limits.maxExpansionBytes) {
+            this.budget.fail("maxExpansionBytes");
+          }
           const token = await valueToken(targetBinding.owner, value, this.signal);
           if (canReviseInPlace) {
             let slot: Admission | undefined;
@@ -4692,9 +4706,28 @@ export class Runtime {
         const join = async (values: readonly ShellValue[]): Promise<ShellValue> => values.every(value => typeof value === "string")
           ? this.arrayJoin(operation, values as readonly string[], "") : concatShellValues(values, io[valueScope]);
         if (assignment.kind === "element") {
-          const index = selectedIndex ?? (await this.arrayIndex(targetBinding, assignment.index, state, io, operation, true))!;
-          const fields = await this.valueWord(assignment.value, state, io, false, false, false, false, undefined, false, false, 0);
-          const value = await join(fields);
+          let index: number;
+          if (selectedIndex !== undefined) {
+            index = selectedIndex;
+          } else if (canReviseInPlace && targetBinding.associative) {
+            const word = assignment.index.word ?? parseArraySubscript(assignment.index.source ?? assignment.index.decimal, this.budget.parsing, byteLocale(state.variables), state.depth);
+            const fastKey = this.fastValueWord(word, state, io, false, false, false, false);
+            const keyValue = fastKey !== undefined ? fastKey : await (async () => {
+              const keyFields = await this.valueWord(word, state, io, false);
+              return keyFields.length === 1 ? keyFields[0]! : concatShellValues(keyFields, io[valueScope]);
+            })();
+            if (shellValueByteLength(keyValue) === 0) {
+              await this.diagnostic(io, "associative array: bad array subscript");
+              throw completedExit(1);
+            }
+            const stagedKey = await targetBinding.stageKeyIndex(keyValue, operation, this.signal);
+            if (stagedKey.pendingKey) pendingKeys.push(stagedKey.pendingKey);
+            index = stagedKey.index;
+          } else {
+            index = (await this.arrayIndex(targetBinding, assignment.index, state, io, operation, true))!;
+          }
+          const fastVal = this.fastValueWord(assignment.value, state, io, false, false, false, false, 0);
+          const value = fastVal !== undefined ? fastVal : await join(await this.valueWord(assignment.value, state, io, false, false, false, false, undefined, false, false, 0));
           await insert(index, value, assignment.append);
         } else for (const entry of assignment.entries) {
           const original = compoundEntryWords.get(entry);
@@ -4726,6 +4759,10 @@ export class Runtime {
             stateMonitor(state)!.publish(tickets, name, () => {
               supersede();
               delete state.variables[name];
+              for (const keyItem of pendingKeys) {
+                current!.commitStagedKey(keyItem);
+              }
+              pendingKeys.length = 0;
               for (const item of pendingInPlace) {
                 current!.insert(item.index, item.token, item.slot);
               }
@@ -4750,6 +4787,10 @@ export class Runtime {
           }
         }
       } finally {
+        for (const keyItem of pendingKeys) {
+          keyItem.admission.release();
+          keyItem.text.release();
+        }
         for (const item of pendingInPlace) {
           item.slot.release();
           item.token.release();
@@ -9865,7 +9906,6 @@ export class Runtime {
       command.redirects.length === 0 &&
       !fileShortcut &&
       !terminal &&
-      !state.variableAttributes?.size &&
       !state.namerefVariables?.size
     ) {
       if (command.words.length === 1) {
@@ -9877,6 +9917,7 @@ export class Runtime {
           assignment.name !== "OPTIND" &&
           !assignment.name.includes("[") &&
           !state.readonlyVariables?.has(assignment.name) &&
+          !state.variableAttributes?.get(assignment.name) &&
           !arrayStore(state)?.get(assignment.name)
         ) {
           let fastAssigned: ShellValue | undefined;
@@ -10388,9 +10429,10 @@ export class Runtime {
           };
           const evaluateSyncNonZero = (program: ArithmeticProgram | undefined): boolean | Promise<bigint | undefined> => {
             if (!program) return true;
-            if (!program.error && !program.hasSubscript && !guestArrays(rawArithState) && !rawArithState.variableAttributes?.size) {
+            if (!program.error && !program.hasSubscript && !rawArithState.namerefVariables?.size) {
               try { return this.syncShellArithmeticNonZero(program, rawArithState, io.diagnosticLine); }
               catch (error) {
+                if (error instanceof ArrayFailure) return evaluate(program);
                 this.rethrowArithmeticControl(error);
                 return this.diagnostic(io, `((: ${message(error, this.budget.onInternalError)}`).then(() => undefined);
               }
@@ -11113,10 +11155,17 @@ export class Runtime {
         if (previous && !previous.has(assignment.name)) {
           const saved = saveVariable(state, assignment.name);
           previous.set(assignment.name, saved);
-          if (words.length && (guestArrays(state) || (assignment.name === "PIPESTATUS" && arrayStore(state)?.get(assignment.name)))) {
+          const existingArray = arrayStore(state)?.get(assignment.name);
+          const canSkipTypedScalarOverlay =
+            !existingArray &&
+            words[0] === "read" &&
+            !state.functions.has("read") &&
+            !state.extensions?.builtins.has("read") &&
+            !words.some(w => w.startsWith("-a") || (w.startsWith("-") && !w.startsWith("--") && w.includes("a")));
+          if (words.length && !canSkipTypedScalarOverlay && (guestArrays(state) || (assignment.name === "PIPESTATUS" && existingArray))) {
             const store = requireArrays(state);
-            await this.prepareVariable(state, assignment.name, saved, !store.get(assignment.name));
-            if (store.get(assignment.name)) {
+            await this.prepareVariable(state, assignment.name, saved, !existingArray);
+            if (existingArray) {
               const publication = store.tickets(assignment.name);
               await store.remove(assignment.name, publication);
               publication.release();
@@ -11227,11 +11276,25 @@ export class Runtime {
       throw new ExecutionFailure(error, io);
     } finally {
       if (overlayOpen) {
-        for (const [key, saved] of previous!) await originalIO[invocationScope].cleanup(async () => {
-          if (saved.superseded) await this.discardVariable(saved);
-          else await restoreVariable(state, key, saved);
-        });
-        await originalIO[invocationScope].cleanup(() => stateMonitor(state)?.closeOverlay(previous!));
+        let canRestoreSync = true;
+        for (const [key, saved] of previous!) {
+          if (saved.superseded || typedSavedVariables.has(saved) || arrayStore(state)?.get(key)) {
+            canRestoreSync = false;
+            break;
+          }
+        }
+        if (canRestoreSync) {
+          for (const [key, saved] of previous!) {
+            await restoreVariable(state, key, saved);
+          }
+          stateMonitor(state)?.closeOverlay(previous!);
+        } else {
+          for (const [key, saved] of previous!) await originalIO[invocationScope].cleanup(async () => {
+            if (saved.superseded) await this.discardVariable(saved);
+            else await restoreVariable(state, key, saved);
+          });
+          await originalIO[invocationScope].cleanup(() => stateMonitor(state)?.closeOverlay(previous!));
+        }
       } else if (previous) {
         for (const saved of previous.values()) saved.heldValue?.release();
       }
@@ -11360,6 +11423,61 @@ export class Runtime {
           const targetSink = io.descriptors?.get(1)?.output ?? io.stdout;
           await writeBytes(targetSink, fastSharedTextEncoder.encode(text), this.commandSignal);
           return 0;
+        }
+      } else if (name === "read" && !state.namerefVariables?.size && io.stdin instanceof ShellInput) {
+        let raw = false;
+        let argIdx = 0;
+        let simpleRead = true;
+        while (argIdx < args.length && args[argIdx]!.startsWith("-") && args[argIdx] !== "--" && args[argIdx] !== "-") {
+          const opt = args[argIdx++]!;
+          for (let k = 1; k < opt.length; k++) {
+            if (opt[k] === "r") raw = true;
+            else if (opt[k] === "s") { /* no-op */ }
+            else { simpleRead = false; break; }
+          }
+          if (!simpleRead) break;
+        }
+        if (simpleRead && args[argIdx] === "--") argIdx++;
+        if (simpleRead) {
+          const varNames = args.slice(argIdx);
+          for (let i = 0; i < varNames.length; i++) {
+            const vn = varNames[i]!;
+            if (
+              !isShellIdentifier(vn) ||
+              state.readonlyVariables?.has(vn) ||
+              arrayStore(state)?.get(vn) ||
+              state.variableAttributes?.get(vn) ||
+              vn === "OPTIND"
+            ) {
+              simpleRead = false;
+              break;
+            }
+          }
+          if (simpleRead && varNames.length === 0) {
+            if (state.readonlyVariables?.has("REPLY") || arrayStore(state)?.get("REPLY") || state.variableAttributes?.get("REPLY")) {
+              simpleRead = false;
+            }
+          }
+          if (simpleRead) {
+            const line = await io.stdin.line(raw, { byteCount: byteLocale(state.variables) });
+            try {
+              if (varNames.length === 0) {
+                publishVariable(state, "REPLY", line.shellValue);
+                if (state.allexport) state.exported.add("REPLY");
+              } else {
+                const separators = stateMonitor(state)?.values.get("IFS", state.variables.IFS ?? " \t\n") ?? state.variables.IFS ?? " \t\n";
+                const fields = await line.fields(separators, varNames.length);
+                for (let i = 0; i < varNames.length; i++) {
+                  const v = fields[i]?.value ?? "";
+                  publishVariable(state, varNames[i]!, v);
+                  if (state.allexport) state.exported.add(varNames[i]!);
+                }
+              }
+              return line.terminated ? 0 : 1;
+            } finally {
+              line.release();
+            }
+          }
         }
       }
     }
@@ -15128,7 +15246,7 @@ export class Runtime {
   private fastValueWord(word: Word, state: State, io: IO, split: boolean, pattern: boolean, hereDocument: boolean, braces: boolean, assignmentStart?: number, overrideDiagnosticLine?: number): ShellValue | undefined {
     const monitor = stateMonitor(state);
     const rawState = monitor ? monitor.raw : state;
-    if (pattern || word.parts.length === 0 || rawState.variableAttributes?.size || rawState.namerefVariables?.size) return undefined;
+    if (pattern || word.parts.length === 0 || rawState.namerefVariables?.size) return undefined;
     const activeArrayStore = arrayStore(state);
     const rawVars = rawState.variables;
     this.signal.throwIfAborted();
@@ -15144,6 +15262,7 @@ export class Runtime {
         }
         out += part.value;
       } else if (part.kind === "variable") {
+        if (rawState.variableAttributes?.get(part.name)?.includes("n")) return undefined;
         if (split && !part.quoted && ((rawVars.IFS !== undefined && rawVars.IFS !== " \t\n") || (this.budget.maxExpansionBytesSmi < 0x3fffffff && this.budget.limits.maxExpansionBytes !== Infinity))) return undefined;
         if (part.indirect || part.prefixNames || part.specialParameter || part.length || part.substring || part.transform) return undefined;
         if (part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME") return undefined;

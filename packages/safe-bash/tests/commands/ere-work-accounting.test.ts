@@ -64,7 +64,8 @@ test("ERE initial capture storage is work-admitted before allocation", async () 
 
 test("ERE initialization, reset, close and result copies admit work before storage", async () => {
   const ledger = new ObservedLedger(bounds);
-  const program = await compileEre("((a))", ledger);
+  // Alternation retains the general matcher path instead of the linear-chain shortcut.
+  const program = await compileEre("((a|b))", ledger);
   ledger.admissions.length = 0;
   assert.deepEqual((await matchEre(program, "a", ledger)).values, ["a", "a", "a"]);
   // Reset combines its three-entry copy and one visit in a single work charge.

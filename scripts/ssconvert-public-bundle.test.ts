@@ -18,7 +18,7 @@ beforeAll(async () => {
 
 it("starts the bundled spreadsheet SDK in a Worker without Node module initialization", () => {
   const compiled = readFileSync(new URL("../packages/safe-bash-command-ssconvert/dist/testing/worker-runtime-fixture.js", import.meta.url), "utf8");
-  const worker: Record<string, unknown> = { TextEncoder, TextDecoder, atob };
+  const worker: Record<string, unknown> = { TextEncoder, TextDecoder, atob, AbortController, AbortSignal };
   runInNewContext(compiled, worker);
   expect(worker.snapshot).toEqual({});
   expect(Object.isFrozen(worker.snapshot)).toBe(true);

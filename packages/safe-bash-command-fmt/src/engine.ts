@@ -250,7 +250,7 @@ class Formatter {
       let length = (start === 0 ? firstIndent : otherIndent) + word.length;
       let best = Infinity;
       for (let end = start + 1; ; end++) {
-        if (budget.tick()) yield undefined, budget.check();
+        if (budget.tick()) { yield undefined; budget.check(); }
         let cost = costs[end]!;
         if (end !== count) {
           const dg = goal - length;

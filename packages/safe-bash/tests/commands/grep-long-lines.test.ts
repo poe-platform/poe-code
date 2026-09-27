@@ -74,11 +74,12 @@ test("long nonmatching scans preserve live cancellation after subject preparatio
   const program = await compileEre(pattern, ledger, controller.signal, true);
   await matchEre(program, "", ledger, controller.signal);
   const scan = await createEreSpanMatcher(program, "x".repeat(16384), ledger, controller.signal);
-  const pending = scan(0);
-  const rejected = assert.rejects(pending, reason => reason === false);
-  await new Promise<void>(resolve => setImmediate(resolve));
-  controller.abort(false);
-  await rejected;
+  // Queue the caller before the scan's host yield. The scan may finish on that
+  // first turn, so scheduling cancellation after scan(0) races with completion.
+  const cancellation = setImmediate(() => controller.abort(false));
+  try {
+    await assert.rejects(scan(0), reason => reason === false);
+  } finally { clearImmediate(cancellation); }
 });
 
 for (const [options, diagnostic] of [

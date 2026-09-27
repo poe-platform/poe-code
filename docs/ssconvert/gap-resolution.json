@@ -849,7 +849,27 @@
       "rangeSourceReview": "LibreOffice lotform.hxx:100-106 shifts the second endpoint by three bits, agreeing with Gnumeric lotus-formula.c:758. libwps LotusSpreadsheet.cpp:2846 uses four bits. The candidate keeps the three-bit layout; selecting another layout requires primary format or native-authored evidence, not a majority vote among parsers.",
       "relativeSheetSourceReview": "LibreOffice lotform.cxx:336-342 stores bit 2 as sheet relativity (same-sheet references are also relative) and SetAddress converts the physical sheet coordinate relative to the formula position. Pinned source SHA256 was reverified before implementation. Lines 552-557 retain a decoded NUL-terminated literal as a string value; output-grammar escaping is separate from decoding.",
       "relativeSheetImplementation": "Direct WK3/modern cell and range tokens preserve bit 2 independently per endpoint; physical owner-sheet endpoints are relative even when the bit is clear. Decoder-owned reference placeholders are replaced as AST nodes before standard OpenFormula serialization, so repeated physical targets and literal strings remain distinct. Five of six initial sheet controls and two literal controls failed; all eight now pass. Existing three-sheet sums retain 41 with explicit owner-sheet relativity. Range endpoint packing remains the existing three-bit layout, not a resolution of the source disagreement. All 441 package files / 24,436 tests, maintained lint/types and selected build pass. Six compiled SDK/command XML/XLSX/ODF conversions preserve literal strings and calculate 23 after readback/copy; input 158 bytes, outputs 735/5940/3410 bytes, no diagnostics.",
-      "remaining": "Legacy WK1/WK2, Windows Works and DOS Symphony offsets are addressed separately. Modern direct references now persist independent sheet flags through the shared OpenFormula representation. Qualify conflicting range layouts against primary/native-authored records, applicable BIFF persistence, other token profiles and native copy modes. Ambiguous DOS Works profiles and independent application qualification remain open. Source review is not an application pass."
+      "remaining": "Legacy WK1/WK2, Windows Works and DOS Symphony offsets are addressed separately. Modern direct references now persist independent sheet flags through the shared OpenFormula representation. Qualify conflicting range layouts against primary/native-authored records, applicable BIFF persistence, other token profiles and native copy modes. Ambiguous DOS Works profiles and independent application qualification remain open. Source review is not an application pass.",
+      "namedReferenceSourceReview": {
+        "sources": [
+          {
+            "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/lotus/lotimpop.cxx",
+            "sha256": "3dc571015c984668df55735d88261e3b45a57b7c89c447700be91680713f6f6f",
+            "lines": "157-178"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/inc/namebuff.hxx",
+            "sha256": "34daa989f064ada8fcab0c80f64080f08956ee3a5756ae7a96c9379b9a34a721",
+            "lines": "73-122"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/lotus/tool.cxx",
+            "sha256": "ee7385baeaf6c04ff755143fa4753eedfa122c2943fb18751978dc0819c574df",
+            "lines": "439-525"
+          }
+        ],
+        "finding": "Userrange reads physical ScRange coordinates. Add(ScRange) initializes both endpoints with InitAddress and 3D flags; FindRel returns the stored index. FindAbs strips the leading dollar and changes row/column flags to absolute but sheet flags to relative. The shown Add/FindAbs bodies build private token arrays and indexes without installing a document name. These paths alone do not establish a working native named-expression or copy result. Keep the existing libwps-derived physical-coordinate expansion pending independent native-authored evidence; no decoder change or family closure."
+      }
     },
     "lotusWorksWindowsReferences": {
       "status": "implemented source-defined Windows Works v3 reference offsets",

@@ -366,6 +366,12 @@ Calc's optional `AdjustCrossSheetRefs` clone mode preserves nonzero cross-sheet
 targets even when the underlying token is relative. Native operation qualification,
 BIFF persistence, deleted-sheet behavior and the Lotus endpoint-bit disagreement
 remain open.
+The named-range audit in `reference.lotusReferenceFlags.namedReferenceSourceReview`
+traces LibreOffice Userrange through Add/FindRel/FindAbs. The absolute-name path
+sets relative sheet flags, while its declaration starts from physical coordinates;
+the shown private token/index construction alone does not establish document-name
+installation or a working native copy result. Keep the existing libwps-derived
+expansion until independent native-authored evidence resolves this discrepancy.
 
 The BIFF exporter audit now records pinned LibreOffice `xeformula.cxx` under
 `reference.sheetReferenceSemantics.biffExportSource`. Its cell/range exporter

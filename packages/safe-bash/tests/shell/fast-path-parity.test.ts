@@ -85,3 +85,13 @@ for (const [pipeline, expected] of [
     await shell.dispose();
   }
 });
+
+test("compound arithmetic fallback keeps diagnostics in shell stderr", async context => {
+  const log = context.mock.method(console, "log", () => {});
+  const shell = createShell();
+  try {
+    const result = await shell.exec("if true; then (( 1 / 0 )); fi");
+    assert.match(result.stderr, /division by 0/u);
+    assert.equal(log.mock.callCount(), 0);
+  } finally { await shell.dispose(); }
+});

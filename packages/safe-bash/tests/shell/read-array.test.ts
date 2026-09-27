@@ -131,7 +131,7 @@ test("while IFS=, read -r -d \";\" and glob/bracket prefix/suffix trims match ba
         ((total += v))
         acc="\${acc}\${b}:"
       done < /delim.txt
-      args "\$total" "\$acc"
+      args "$total" "$acc"
     `);
     assert.equal(result.exitCode, 0);
     assert.equal(result.stderr, "");

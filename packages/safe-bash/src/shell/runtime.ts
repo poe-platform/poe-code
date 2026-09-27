@@ -2399,7 +2399,23 @@ function shellCharacterWidth(bytes: Uint8Array, offset: number, byteCount: boole
   return length;
 }
 
+const UNSET_SAVED_VARIABLE: SavedVariable = Object.freeze({
+  attributes: undefined,
+  value: undefined,
+  exported: false,
+  readOnly: false,
+});
+
 function saveVariable(state: State, name: string): SavedVariable {
+  if (
+    state.variables[name] === undefined &&
+    !state.variableAttributes?.get(name) &&
+    !state.exported.has(name) &&
+    !state.readonlyVariables?.has(name) &&
+    name !== "OPTIND"
+  ) {
+    return UNSET_SAVED_VARIABLE;
+  }
   const monitor = stateMonitor(state);
   const value = monitor?.values.get(name, state.variables[name] ?? "");
   const heldValue = state.variables[name] !== undefined && value !== undefined ? monitor!.values.scope.hold(value) : undefined;
@@ -2430,6 +2446,21 @@ function publishVariable(state: State, name: string, value: ShellValue): void {
 }
 
 function tryRestoreVariableSync(state: State, name: string, saved: SavedVariable): boolean {
+  if (saved === UNSET_SAVED_VARIABLE) {
+    const monitor = stateMonitor(state);
+    if (monitor) {
+      const tickets = monitor.mutation(name);
+      delete monitor.raw.variables[name];
+      monitor.values.invalidate(name);
+      monitor.finish(tickets, name);
+    } else {
+      delete state.variables[name];
+    }
+    state.variableAttributes?.delete(name);
+    state.exported.delete(name);
+    state.readonlyVariables?.delete(name);
+    return true;
+  }
   if (typedSavedVariables.has(saved)) return false;
   try {
     const monitor = stateMonitor(state);
@@ -3613,6 +3644,8 @@ const ZERO_PIPE_STATUSES: readonly (readonly number[])[] = [
 
 const HEX_BYTE_TABLE: readonly string[] = Array.from({ length: 128 }, (_, i) => i.toString(16).padStart(2, "0"));
 const SIMPLE_SUBSCRIPT_MUT_RE = /^\s*([a-zA-Z_][a-zA-Z_0-9]*)\[([a-zA-Z0-9_.\-/:@]+)\]\s*(?:(\+=|-=|=)\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)|(\+\+|--))\s*$/;
+const SIMPLE_SCALAR_MUT_RE = /^\s*([a-zA-Z_][a-zA-Z_0-9]*)\s*(\+=|-=|=)\s*(-?(?:0|[1-9][0-9]{0,12}))\s*$/;
+const readArrayScratchFields: string[] = [];
 const SIMPLE_EXPANDED_ARITH_RE = /^\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*([+\-*])\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*$/;
 const SIMPLE_ARITH_OPERAND_RE = /^(?:-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)$/;
 function resolveSimpleArithOperand(tok: string, rawState: State, monitor: ReturnType<typeof stateMonitor>, activeArrayStore: ReturnType<typeof arrayStore>): number | undefined {
@@ -3647,10 +3680,20 @@ function arithTreeTouchesArray(tree: ArithmeticProgram["tree"], store: ReturnTyp
     case "literal":
       return false;
     case "name":
-      return store.bindings.has(tree.name);
+      return tree.subscript === undefined && store.bindings.has(tree.name);
     case "unary":
+      if ((tree.operator === "++" || tree.operator === "--") && tree.operand.kind === "name" && tree.operand.subscript !== undefined) {
+        return true;
+      }
       return arithTreeTouchesArray(tree.operand, store);
     case "binary":
+      if (
+        (tree.operator === "=" || tree.operator === "+=" || tree.operator === "-=" || tree.operator === "*=" || tree.operator === "/=" || tree.operator === "%=" || tree.operator === "<<=" || tree.operator === ">>=" || tree.operator === "&=" || tree.operator === "^=" || tree.operator === "|=") &&
+        tree.left.kind === "name" &&
+        tree.left.subscript !== undefined
+      ) {
+        return true;
+      }
       return arithTreeTouchesArray(tree.left, store) || arithTreeTouchesArray(tree.right, store);
     case "conditional":
       return arithTreeTouchesArray(tree.condition, store) || arithTreeTouchesArray(tree.yes, store) || arithTreeTouchesArray(tree.no, store);
@@ -7986,7 +8029,7 @@ export class Runtime {
   private canSyncCommandCompound(command: Command, rawState: State, depth = 0): boolean {
     if (depth > 6 || command.redirects.length !== 0) return false;
     if (command.kind === "arithmetic") {
-      return (!command.expression.error && (!command.expression.hasMutation || !arithTreeTouchesArray(command.expression.tree, arrayStore(rawState))) && (!command.expression.hasSubscript || isSafeSmiProgram(command.expression)) || command.expression.error !== undefined) && !rawState.nounset && !rawState.readonlyVariables?.size;
+      return (!command.expression.error && !arithTreeTouchesArray(command.expression.tree, arrayStore(rawState)) && (!guestArrays(rawState) || isSafeSmiProgram(command.expression)) || command.expression.error !== undefined) && !rawState.nounset && !rawState.readonlyVariables?.size;
     }
     if (command.kind === "conditional") {
       return this.canSyncConditional(command.expression);
@@ -8393,6 +8436,51 @@ export class Runtime {
           return undefined;
         }
         if (typeof fastSrc !== "string") return undefined;
+        const scalarMutMatch = fastSrc.length <= 64 ? SIMPLE_SCALAR_MUT_RE.exec(fastSrc) : null;
+        if (scalarMutMatch) {
+          const varName = scalarMutMatch[1]!;
+          const binOp = scalarMutMatch[2]!;
+          const rhsNum = Number(scalarMutMatch[3]!);
+          if (
+            varName !== "OPTIND" &&
+            varName !== "PIPESTATUS" &&
+            !store?.get(varName) &&
+            !hasActiveVariableAttributes(rawState)
+          ) {
+            const curVal = monitor.values.get(varName, rawState.variables[varName] ?? "0") ?? rawState.variables[varName] ?? "0";
+            if (typeof curVal === "string" && (curVal === "" || /^-?(?:0|[1-9][0-9]{0,12})$/.test(curVal))) {
+              const curNum = curVal === "" ? 0 : Number(curVal);
+              const nextNum = binOp === "=" ? rhsNum : binOp === "+=" ? curNum + rhsNum : curNum - rhsNum;
+              if (Number.isSafeInteger(nextNum)) {
+                this.budget.parsing.admit(4);
+                if (rawState.extensions && !rawState.extensions.eventDepth) {
+                  publishCommandSpelling(rawState, commandSpelling(command));
+                }
+                const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+                this.budget.tick();
+                if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "((";
+                monitor.publishStringVariable(varName, String(nextNum));
+                const rawStatus = nextNum !== 0 ? 0 : 1;
+                const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
+                if (!existing) {
+                  if (store) {
+                    if (publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined;
+                  } else {
+                    monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne;
+                    monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+                  }
+                } else {
+                  elem0!.text.shellValue = finalStatus === 0 ? "0" : "1";
+                  store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+                }
+                rawState.status = finalStatus;
+                monitor.epoch = restEpoch;
+                if (store) store.epoch = restEpoch;
+                return finalStatus;
+              }
+            }
+          }
+        }
         const mutMatch = fastSrc.length <= 96 ? SIMPLE_SUBSCRIPT_MUT_RE.exec(fastSrc) : null;
         if (mutMatch) {
           const arrName = mutMatch[1]!;
@@ -8459,7 +8547,7 @@ export class Runtime {
         if (expr.error) return undefined;
       }
       const canSyncSubscriptMut = expr.hasSubscript && expr.tree && ((expr.tree.kind === "binary" && (expr.tree.operator === "=" || expr.tree.operator === "+=" || expr.tree.operator === "-=") && expr.tree.left.kind === "name" && expr.tree.left.subscript !== undefined && (expr.tree.right.kind === "literal" || expr.tree.right.kind === "name")) || (expr.tree.kind === "unary" && (expr.tree.operator === "++" || expr.tree.operator === "--") && expr.tree.operand.kind === "name" && expr.tree.operand.subscript !== undefined));
-      if (((guestArrays(rawState) || expr.hasSubscript) && !isSafeSmiProgram(expr) && !canSyncSubscriptMut) || (expr.hasMutation && !canSyncSubscriptMut && (expr.hasSubscript || arithTreeTouchesArray(expr.tree, arrayStore(rawState))))) return undefined;
+      if ((guestArrays(rawState) && !isSafeSmiProgram(expr) && !canSyncSubscriptMut) || (!canSyncSubscriptMut && arithTreeTouchesArray(expr.tree, arrayStore(rawState)))) return undefined;
       let nonZero: boolean;
       const snap = this.budget.parsing.snapshot();
       try {
@@ -9049,6 +9137,7 @@ export class Runtime {
           if (asciiIfs) {
             let raw = false;
             let simpleRead = true;
+            let arrayTarget: string | undefined;
             while (readWordIdx < command.words.length) {
               const p = command.words[readWordIdx]!.plain;
               if (p === undefined) { simpleRead = false; break; }
@@ -9057,6 +9146,18 @@ export class Runtime {
                 for (let k = 1; k < p.length; k++) {
                   if (p[k] === "r") raw = true;
                   else if (p[k] === "s") { /* no-op */ }
+                  else if (p[k] === "a") {
+                    if (k + 1 < p.length) {
+                      arrayTarget = p.slice(k + 1);
+                      break;
+                    } else if (readWordIdx + 1 < command.words.length && command.words[readWordIdx + 1]!.plain !== undefined) {
+                      arrayTarget = command.words[++readWordIdx]!.plain!;
+                      break;
+                    } else {
+                      simpleRead = false;
+                      break;
+                    }
+                  }
                   else { simpleRead = false; break; }
                 }
                 if (!simpleRead) break;
@@ -9067,7 +9168,30 @@ export class Runtime {
             }
             if (simpleRead) {
               const varCount = command.words.length - readWordIdx;
-              if (varCount === 0) {
+              let existingArrayBinding: ReturnType<NonNullable<typeof store>["get"]> | undefined;
+              if (arrayTarget !== undefined) {
+                if (
+                  varCount !== 0 ||
+                  !isShellIdentifier(arrayTarget) ||
+                  rawState.readonlyVariables?.has(arrayTarget) ||
+                  rawState.exported.has(arrayTarget) ||
+                  rawState.variableAttributes?.get(arrayTarget) ||
+                  controlNames.has(arrayTarget)
+                ) {
+                  simpleRead = false;
+                } else {
+                  existingArrayBinding = store?.get(arrayTarget);
+                  if (
+                    !existingArrayBinding ||
+                    existingArrayBinding.associative ||
+                    existingArrayBinding.references !== 1 ||
+                    store!.watches.has(arrayTarget) ||
+                    monitor.hasOverlay(arrayTarget)
+                  ) {
+                    simpleRead = false;
+                  }
+                }
+              } else if (varCount === 0) {
                 if (rawState.readonlyVariables?.has("REPLY") || store?.get("REPLY") || rawState.variableAttributes?.get("REPLY")) simpleRead = false;
               } else {
                 for (let i = readWordIdx; i < command.words.length; i++) {
@@ -9093,7 +9217,60 @@ export class Runtime {
                   if (rawState.extensions && !rawState.extensions.eventDepth) {
                     publishCommandSpelling(rawState, commandSpelling(command));
                   }
-                  if (varCount === 0) {
+                  if (arrayTarget !== undefined && existingArrayBinding) {
+                    const isSep = (c: number): boolean => {
+                      for (let i = 0; i < ifs.length; i++) {
+                        if (ifs.charCodeAt(i) === c) return true;
+                      }
+                      return false;
+                    };
+                    const isWhite = (c: number): boolean => (c === 32 || c === 9 || c === 10) && isSep(c);
+                    let end = lineStr.length;
+                    while (end > 0 && isWhite(lineStr.charCodeAt(end - 1))) end--;
+                    let pos = 0;
+                    while (pos < end && isWhite(lineStr.charCodeAt(pos))) pos++;
+                    readArrayScratchFields.length = 0;
+                    while (pos < end) {
+                      const start = pos;
+                      while (pos < end && !isSep(lineStr.charCodeAt(pos))) pos++;
+                      const fieldEnd = pos;
+                      while (pos < end && isWhite(lineStr.charCodeAt(pos))) pos++;
+                      if (pos < end && isSep(lineStr.charCodeAt(pos))) pos++;
+                      while (pos < end && isWhite(lineStr.charCodeAt(pos))) pos++;
+                      readArrayScratchFields.push(lineStr.slice(start, fieldEnd));
+                    }
+                    const fieldLen = readArrayScratchFields.length;
+                    try {
+                      const tickets = store!.owner.charge({ generation: true, version: true, epoch: true, work: 8 + fieldLen * 4 });
+                      if (existingArrayBinding.values.size !== fieldLen || existingArrayBinding.maximum !== fieldLen - 1) {
+                        for (const k of [...existingArrayBinding.values.keys()]) {
+                          if (k >= fieldLen) existingArrayBinding.remove(k);
+                        }
+                        existingArrayBinding.maximum = fieldLen - 1;
+                      }
+                      for (let idx = 0; idx < fieldLen; idx++) {
+                        const val = readArrayScratchFields[idx]!;
+                        const byteLen = val.length;
+                        const slot = existingArrayBinding.values.get(idx);
+                        if (slot && slot.text.references === 1 && slot.text.bytes === byteLen) {
+                          existingArrayBinding.owner.chargeWork(byteLen);
+                          slot.text.shellValue = val;
+                        } else {
+                          existingArrayBinding.owner.chargeWork(byteLen);
+                          const token = new OwnedText(val, byteLen, existingArrayBinding.owner.reserve({ payload: byteLen, metadata: 32, work: 4 }));
+                          existingArrayBinding.insert(idx, token);
+                        }
+                      }
+                      readArrayScratchFields.length = 0;
+                      delete rawState.variables[arrayTarget];
+                      monitor.epoch = tickets.epoch;
+                      store!.revise(arrayTarget, existingArrayBinding, tickets);
+                    } catch (error) {
+                      readArrayScratchFields.length = 0;
+                      if (error instanceof ArrayFailure) return undefined;
+                      throw error;
+                    }
+                  } else if (varCount === 0) {
                     monitor.publishStringVariable("REPLY", lineStr);
                   } else {
                     const isSep = (c: number): boolean => {
@@ -9272,10 +9449,17 @@ export class Runtime {
             if (rawState.variables._ !== undefined) delete rawState.variables._;
             rawState.lastArgument = fnArgs.length > 0 ? fnArgs[fnArgs.length - 1]! : w0Plain;
             const positional = rawState.positional;
-            const savedPositionals = monitor.positionals.clone();
+            const fastPosOnly = monitor.positionals.arena.hasInfiniteBytes;
+            const savedPositionals = fastPosOnly ? undefined : monitor.positionals.clone();
+            const prevFastSubPos = this._fastSubPositional;
             const positionalSetVersion = rawState.positionalSetVersion ?? 0;
             const locals = new Map<string, SavedVariable>();
-            this.replacePositionals(state, fnArgs, () => { rawState.positional = fnArgs; });
+            if (fastPosOnly) {
+              this._fastSubPositional = fnArgs;
+              rawState.positional = fnArgs;
+            } else {
+              this.replacePositionals(state, fnArgs, () => { rawState.positional = fnArgs; });
+            }
             rawState.functionDepth++;
             rawState.depth++;
             rawState.locals.push(locals);
@@ -9293,8 +9477,13 @@ export class Runtime {
                 throw error;
               }
             } finally {
-              monitor.positionals.restore(savedPositionals, () => { rawState.positional = positional; });
-              savedPositionals.close();
+              if (fastPosOnly) {
+                this._fastSubPositional = prevFastSubPos;
+                rawState.positional = positional;
+              } else {
+                monitor.positionals.restore(savedPositionals!, () => { rawState.positional = positional; });
+                savedPositionals!.close();
+              }
               rawState.positionalSetVersion = positionalSetVersion;
               rawState.functionDepth--;
               rawState.loopDepth = callerLoopDepth;
@@ -17619,7 +17808,17 @@ export class Runtime {
           ) {
             const patPart = part.alternate.parts[0]!;
             const pat = patPart.value;
-            if (!patPart.quoted && hasGlobOrEscape(pat, !!rawState.extglob)) return undefined;
+            const isPrefixTrim = part.operator === "#" || part.operator === "##";
+            let starWildcardLit: string | undefined;
+            if (!patPart.quoted && hasGlobOrEscape(pat, !!rawState.extglob)) {
+              if (isPrefixTrim && pat.charCodeAt(0) === 42 && !hasGlobOrEscape(pat.slice(1), !!rawState.extglob)) {
+                starWildcardLit = pat.slice(1);
+              } else if (!isPrefixTrim && pat.charCodeAt(pat.length - 1) === 42 && !hasGlobOrEscape(pat.slice(0, -1), !!rawState.extglob)) {
+                starWildcardLit = pat.slice(0, -1);
+              } else {
+                return undefined;
+              }
+            }
             const raw = rawVars[part.name];
             this.requireParameter(raw, part.name, state, io, part.line ?? overrideDiagnosticLine);
             if (raw === undefined) {
@@ -17634,9 +17833,22 @@ export class Runtime {
             for (let k = 0; k < pat.length; k++) {
               if (pat.charCodeAt(k) >= 128) return undefined;
             }
-            const sliced = part.operator === "#" || part.operator === "##"
-              ? (val.startsWith(pat) ? val.slice(pat.length) : val)
-              : (val.endsWith(pat) ? val.slice(0, val.length - pat.length) : val);
+            let sliced: string;
+            if (starWildcardLit !== undefined) {
+              if (starWildcardLit.length === 0) {
+                sliced = (part.operator === "##" || part.operator === "%%") ? "" : val;
+              } else if (isPrefixTrim) {
+                const idx = part.operator === "#" ? val.indexOf(starWildcardLit) : val.lastIndexOf(starWildcardLit);
+                sliced = idx === -1 ? val : val.slice(idx + starWildcardLit.length);
+              } else {
+                const idx = part.operator === "%" ? val.lastIndexOf(starWildcardLit) : val.indexOf(starWildcardLit);
+                sliced = idx === -1 ? val : val.slice(0, idx);
+              }
+            } else {
+              sliced = isPrefixTrim
+                ? (val.startsWith(pat) ? val.slice(pat.length) : val)
+                : (val.endsWith(pat) ? val.slice(0, val.length - pat.length) : val);
+            }
             if (split && !part.quoted) {
               if (sliced.length === 0 || sliced.includes(" ") || sliced.includes("\t") || sliced.includes("\n") || (!rawState.noglob && hasGlobOrEscape(sliced, !!rawState.extglob))) {
                 return undefined;

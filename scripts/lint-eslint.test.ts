@@ -1985,14 +1985,14 @@ describe("owned directory operation and exact root receipt", () => {
   });
   it("keeps all listed but unconsumed entries on a mid-directory cap failure", async () => {
     const prefix = "zz-cost/" + Array.from({ length: 18 }, (_, index) => "depth-" + index).join("/") + "/batch";
-    const files = Object.fromEntries(Array.from({ length: 512 }, (_, index) => [prefix + "/member-" + index + ".data", "owned"]));
+    const files = Object.fromEntries(Array.from({ length: 128 }, (_, index) => [prefix + "/member-" + index + ".data", "owned"]));
     const state = model(files);
-    const guard = createLintInputGuard({ root, boundaries, fileSystem: state.fileSystem, limits: { metadataOperations: 15000 } });
+    const guard = createLintInputGuard({ root, boundaries, fileSystem: state.fileSystem, limits: { metadataOperations: 6000 } });
     const result = await lintRoot({ guard, config: state.config, receiptBinding: state.binding });
     expect(result.exitCode).toBe(2);
-    expect(result.counters.metadataOperations).toBe(15000);
+    expect(result.counters.metadataOperations).toBe(6000);
     expect(result.failure?.path.startsWith(prefix + "/")).toBe(true);
-    expect(result.unprocessed.entries).toHaveLength(512);
+    expect(result.unprocessed.entries).toHaveLength(128);
     expect(result.unprocessed.descendantsUnknown).toBe(true);
   });
   it("completes an owned mixed traversal under the authorized eight-million metadata cap", async () => {

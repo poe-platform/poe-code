@@ -7011,7 +7011,7 @@ export class Runtime {
           !rawState.extensions?.builtins.has("unset")
         ) {
           const uArg = command.words[1]?.plain ?? (command.words[1]?.parts.length === 1 && command.words[1]!.parts[0]!.kind === "text" ? command.words[1]!.parts[0]!.value : undefined);
-          if (uArg !== undefined && /^[a-zA-Z_][a-zA-Z0-9_]*(?:\[(?:0|[1-9][0-9]{0,8}|[^\]$\x60\"']+)\])?$/.test(uArg)) return true;
+          if (uArg !== undefined && /^[a-zA-Z_][a-zA-Z0-9_]*(?:\[(?:0|[1-9][0-9]{0,8}|[^\]$\x60"']+)\])?$/.test(uArg)) return true;
           const w1 = command.words[1]!;
           const p0 = w1.parts[0];
           const pLast = w1.parts[w1.parts.length - 1];
@@ -7291,7 +7291,7 @@ export class Runtime {
           return (b ? b.values.size > 0 : this.variable(rawState, base) !== undefined) ? 0 : 1;
         }
         if (b?.associative) {
-          if (sub.length === 0 || sub.length > 4096 || /[\$\x60\\"']/.test(sub)) return undefined;
+          if (sub.length === 0 || sub.length > 4096 || /[$\x60\\"']/.test(sub)) return undefined;
           const ek = b.keys.get(fastStringHexIdentity(sub));
           return (ek !== undefined && b.getValue(ek.index) !== undefined) ? 0 : 1;
         }
@@ -8799,7 +8799,7 @@ export class Runtime {
             const binding = isShellIdentifier(arrName) ? arrStore?.get(arrName) : undefined;
             if (arrStore && binding && binding.references === 1 && !rawState.readonlyVariables?.has(arrName) && !arrStore.watches.has(arrName) && !monitor.hasOverlay(arrName)) {
               if (binding.associative) {
-                if (subStr.length > 0 && subStr.length <= 4096 && !/[\$\x60\\"']/.test(subStr)) {
+                if (subStr.length > 0 && subStr.length <= 4096 && !/[$\x60\\"']/.test(subStr)) {
                   const ek = binding.keys.get(fastStringHexIdentity(subStr));
                   if (ek !== undefined && binding.values.has(ek.index)) {
                     const tickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
@@ -8962,6 +8962,7 @@ export class Runtime {
       if (
         command.words.length >= 2 &&
         command.words.length <= 16 &&
+        w0Plain !== undefined &&
         (w0Plain === "local" ? rawState.locals.length > 0 : (w0Plain === "declare" || w0Plain === "typeset")) &&
         !hasShellFunction(rawState, w0Plain) &&
         !rawState.extensions?.builtins.has(w0Plain) &&
@@ -16600,7 +16601,7 @@ export class Runtime {
             } else if (!rawState.nocasematch && this.budget.limits.maxExpansionBytes === Infinity && (part.operator === "/" || part.operator === "//" || part.operator === "/#" || part.operator === "/%") && part.alternate && part.alternate.parts.length === 1 && part.alternate.parts[0]!.kind === "text" && part.alternate.parts[0]!.value.length > 0 && !hasGlobOrEscape(part.alternate.parts[0]!.value, true) && (!part.replacement || part.replacement.parts.length === 0 || (part.replacement.parts.length === 1 && part.replacement.parts[0]!.kind === "text" && !part.replacement.parts[0]!.value.includes("&") && !part.replacement.parts[0]!.value.includes("\\") && !part.replacement.parts[0]!.value.startsWith("~")))) {
               const s = elemVal ?? "";
               const pVal = part.alternate.parts[0]!.value;
-              const rVal = part.replacement && part.replacement.parts.length === 1 ? part.replacement.parts[0]!.value : "";
+              const rVal = part.replacement?.parts.length === 1 && part.replacement.parts[0]?.kind === "text" ? part.replacement.parts[0].value : "";
               if (part.operator === "//") resolvedElem = s.includes(pVal) ? s.split(pVal).join(rVal) : s;
               else if (part.operator === "/") {
                 const idx = s.indexOf(pVal);

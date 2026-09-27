@@ -17,6 +17,8 @@ const cases = [
   ['a=(x y); i=1; printf "%s:%s" "${a[i]}" "${a[$i-1]}"', 'y:x'],
   ['a=(x y); i=0; printf "%s:%s" "${a[i++]}" "$i"', 'x:1'],
   ['a=(x y); printf "%s:%s" "${a[-1]}" "${a[-2]}"', 'y:x'],
+  ['a=(x y); printf "<%s>" "${a[4294967295]}"', '<>'],
+  ['a=(x y); i=4294967295; printf "%s" "${a[i]:-missing}"', 'missing'],
   ['a=(x y); a[-1]=z; a[1-1]=q; printf "<%s>" "${a[@]}"', '<q><z>'],
   ['a[3]=x; printf "%s" "${a[1]:-default}"', 'default'],
   ['a=(x ""); set -u; printf "%s:%s:%s:%s" "${a[1]:-d}" "${a[1]:+s}" "${a[0]:+s}" "${a[2]-d}"', 'd::s:d'],
@@ -43,6 +45,9 @@ for (const source of [
   'a=(x y); a[-3]=z',
   'a=(x y); a[2147483648]=z',
   'a=(x y); printf "%s" "${a[4294967296]}"',
+  'a=(x y); i=4294967296; printf "%s" "${a[i]}"',
+  'a=(x y); printf "%s" "${a[4294967295+1]:-missing}"',
+  'a=(x y); printf "%s" "${#a[4294967296]}"',
   'a=(x y); printf "%s" "${a[@]:0:-1}"',
 ]) test(`indexed array compatibility keeps bounds: ${source}`, async context => {
   const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [arraysExtension()] });

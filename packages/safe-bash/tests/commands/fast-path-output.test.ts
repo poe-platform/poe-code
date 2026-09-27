@@ -9,6 +9,19 @@ import { jqCommand } from "../../src/commands/structured/jq.js";
 import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
 import { rgCommand } from "../../src/commands/search/rg.js";
 
+test("synchronous command warmup preserves output at the exact byte limit", async t => {
+  t.mock.method(performance, "now", () => 0);
+  const fs = new MemoryFileSystem();
+  const expected = '{"a":1}\n';
+  await fs.writeFile("/data", new TextEncoder().encode(expected));
+  const shell = new Shell({ fs, limits: { maxOutputBytes: expected.length } });
+  shell.commands.register(jqCommand());
+  t.after(() => shell.dispose());
+  const result = await shell.exec("jq -c . /data");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, expected);
+});
+
 for (const scenario of ["late multiple matches", "checkpoint", "late long line"]) {
   test(`sed emits each line once after ${scenario}`, async () => {
     const fs = new MemoryFileSystem();

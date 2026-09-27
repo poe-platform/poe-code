@@ -1,4 +1,5 @@
 import path from "node:path";
+import "../providers/poe-agent.js";
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it, vi } from "vitest";
 import { ProviderResolutionError } from "@poe-code/poe-agent";

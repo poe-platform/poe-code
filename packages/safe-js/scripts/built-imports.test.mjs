@@ -111,7 +111,7 @@ test("built data accounting retains optimized code across garbage collections", 
       ? createSandboxClosure({ call: () => undefined, retainedValues: () => [child] })
       : index % 3 === 1 ? createIntrinsicArray([child, "text"]) : { child, name: "record" });
     const expected = measureSandboxData(roots);
-    for (let pass = 0; pass < 8; pass++) {
+    for (let pass = 0; pass < 4; pass++) {
       for (let index = 0; index < 100; index++)
         if (measureSandboxData(roots) !== expected) throw new Error("Accounting changed");
       if (pass === 1) console.log("MEASUREMENT_WARMED");

@@ -7448,6 +7448,9 @@ export class Runtime {
     if (rawState.readonlyVariables?.has("PIPESTATUS")) return undefined;
     const store = monitor.store;
     const existing = store?.get("PIPESTATUS");
+    // A missing array-backed status needs asynchronous admission. Bail out
+    // before executing the command rather than starting a discarded promise.
+    if (store && !existing) return undefined;
     const psTarget = existing ? "indexed" : pipelineStatusTarget(rawState);
     if (psTarget !== "indexed" && psTarget !== "absent") return undefined;
     if (store?.watches.has("PIPESTATUS") || monitor.hasOverlay("PIPESTATUS")) return undefined;

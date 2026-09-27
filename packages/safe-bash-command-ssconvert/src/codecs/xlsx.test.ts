@@ -28,6 +28,34 @@ export function parts(sheet: string, workbook = `<workbook xmlns="${ss}" xmlns:r
     "xl/_rels/workbook.xml.rels": `<Relationships xmlns="${pkg}"><Relationship Id="s" Type="${rel}/worksheet" Target="worksheets/sheet1.xml"/></Relationships>`,
     "xl/worksheets/sheet1.xml": `<worksheet xmlns="${ss}">${sheet}</worksheet>` };
 }
+// ISO/IEC 29500-1: the cached <v> uses ST_Xstring, including when t="str".
+it.each([
+  ["A_x0000_Z", "A\0Z"],
+  ["_x0001__x001f__x0085_", "\x01\x1f\x85"],
+  ["_xFFFE__xffff_", "\ufffe\uffff"],
+  ["_xD83D__xDE00_", "😀"],
+  ["_xD800_", "\ud800"],
+  ["_x005F_x0000_", "_x0000_"],
+  ["_x0000_x0041_", "\0x0041_"],
+  ["_X0000_ _x000g_ _x001_", "_X0000_ _x000g_ _x001_"],
+  ["", ""],
+])("decodes formula string caches once, without decoding formula syntax: %j", async (wire, value) => {
+  const bytes = await fixture(parts(`<sheetData><row><c r="A1" t="str"><f>"_x0000_"</f><v>${wire}</v></c></row></sheetData>`));
+  const cell = (await readXlsx(bytes, context)).sheets[0]!.cells[0]!;
+  expect(cell.formula).toBe('="_x0000_"');
+  expect(cell.value).toEqual({ kind: "string", value });
+  expect(cell.cachedResult).toEqual({ kind: "string", value });
+  expect(cell.formulaDirty).toBe(false);
+});
+
+it("distinguishes an empty string cache from a missing cache and an empty numeric cell", async () => {
+  const bytes = await fixture(parts('<sheetData><row><c r="A1" t="str"><f>""</f><v/></c><c r="B1" t="str"><f>""</f></c><c r="C1"><v/></c></row></sheetData>'));
+  const cells = (await readXlsx(bytes, context)).sheets[0]!.cells;
+  expect(cells.map(cell => cell.value)).toEqual([
+    { kind: "string", value: "" }, { kind: "blank" }, { kind: "blank" }
+  ]);
+  expect(cells.map(cell => cell.formulaDirty)).toEqual([false, true, undefined]);
+});
 it.each(["store", "deflate"] as const)("imports an OOXML template using injected memfs bytes (%s)", async compression => {
   const bytes = await fixture(parts('<sheetData><row r="2"><c r="B2" t="inlineStr"><is><t>a&amp;b</t></is></c><c r="C2"><f>1+2</f><v>3</v></c></row></sheetData><mergeCells><mergeCell ref="A4:B5"/></mergeCells>'), compression);
   const volume = new Volume(); volume.writeFileSync("/book.xltx", bytes);

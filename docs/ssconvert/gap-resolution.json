@@ -977,7 +977,7 @@
       "remaining": "Native applications and BIFF7 long-LABEL interoperability, raw-NUL XLSX formula expressions/caches, metadata loss warnings and CSV behavior remain open. CSV source diverges: candidate text-export.ts intentionally follows Gnumeric strlen; pinned LibreOffice ScDocShell::AsciiSave writes explicit encoded lengths (docsh.cxx SHA256 961609efad0a0851e4b99a6ee861d778a61d83a5620b96323888335b8060d2c2, lines 2233-2391). Candidate text import also replaces NUL with spaces and warns; changing only CSV export would not establish roundtrip preservation. No family is closed."
     },
     "xlsxCellStringEscapes": {
-      "status": "implemented shared/inline string escapes; formula caches and other string fields remain open",
+      "status": "implemented shared/inline strings and formula caches; wider string fields and qualification open",
       "source": {
         "repository": "https://github.com/LibreOffice/core",
         "revision": "bce0998afefdbc355585ca324285661a2170ba77",
@@ -994,7 +994,7 @@
       "literalPreservation": "Protect each original underscore that begins an escape, including overlapping tokens and literal _x005F_xHHHH_. LibreOffice's shared serializer has assumptions for already-escaped text and _x0020_; those are not safe for raw workbook cell strings. Single-pass readback exposed loss when copying that overlap shortcut, so the candidate preserves each literal token explicitly.",
       "validation": "Sixteen of nineteen focused regressions failed before implementation; all 221 tests in eleven XLSX files pass after repair. Covers NUL/C0/C1, U+FFFE/U+FFFF, escaped surrogate pairs, malformed and uppercase-X literals, single-pass/overlapping escapes, UTF-8 rich-run offsets, shared/inline storage and both XLSX editions. Generic XML escaping remains strict.",
       "publicQualification": "Maintained package lint, source/test/consumer types and selected build pass. Compiled public SDK preserves eight strings and rich-run offsets in each edition; XLSX/XLSX2 outputs are 4515/4518 bytes. Python zipfile/ElementTree independently parses all ten XML members per output and verifies sixteen decoded values. This is structural/source-contract verification, not a LibreOffice application run. The first SDK probe compared object prototypes rather than run fields; correcting that probe required no product change.",
-      "remaining": "Qualify native workbook application readback and other ST_Xstring fields. Formula cached strings use a distinct path in both candidate and inspected Calc source; generic formulas/attributes must not acquire string escaping blindly. Rich-text unpaired UTF-16 units, BIFF/CSV NUL semantics and complete format coverage remain open. No family is closed.",
+      "remaining": "Qualify native workbook application readback and other ST_Xstring fields. Formula string caches are addressed in xlsxFormulaStringCaches; generic formulas/attributes must not acquire string escaping blindly. Rich-text unpaired UTF-16 units and complete format coverage remain open. No family is closed.",
       "formulaCacheSource": {
         "revision": "bce0998afefdbc355585ca324285661a2170ba77",
         "files": {
@@ -1005,7 +1005,7 @@
         },
         "finding": "GetFormulaTypeAndValue (xestream.cxx 676-703) selects t=str for ordinary string results; inlineStr is the Invalid/default result branch, not the ordinary cache path. XclExpFormulaCell::SaveXml (xetable.cxx 943-1097) writes formula text and cached v through writeEscaped. Switching all formula caches to inline strings is not justified by that branch.",
         "reader": "SheetDataContext buffers raw v character content and WorksheetHelper forwards it to FormulaBuffer. Shared and ordinary string-cache paths intern the raw value only for a known-good generator (formulabuffer.cxx 210-220,314-377); neither path calls decodeXString. Ordinary cached strings containing line breaks also request an on-load recalculation. This differs from RichStringPortion decoding and does not establish lossless native string-cache roundtrips.",
-        "remaining": "Raw-NUL formula expressions and unique formula string caches remain open. Establish primary format semantics and qualify actual formula/cache readbacks before choosing an encoding; do not apply shared-string decoding to generic formula text or infer native cache fidelity from shared/inline cell strings."
+        "remaining": "The later xlsxFormulaStringCaches record resolves cached values using the primary ST_Xstring contract. Raw-NUL formula expressions and native application fidelity remain open; shared-string decoding must not be applied to generic formula text."
       }
     },
     "lotusControlCharacters": {
@@ -1502,6 +1502,25 @@
         "implementation": "Import deleted inputs as TABLE(#REF!,...), retaining the active slot and other input identity. An explicit reference-error marker, including parentheses, broadcasts #REF! before TABLE substitution. Omitted/numeric/other-error inputs retain existing semantics. BIFF8 export restores deletion bits and sentinels; BIFF7/dual-stream export refuses the unsupported state. Malformed deleted coordinates are rejected; an unused second input remains ignored.",
         "validation": "Twelve initial memory regressions failed before correction. Final five-file cohort passes 187 tests, covering all five mode/deletion combinations, malformed sentinels, neighboring omission behavior, XML/XLSX transport back to BIFF8 and BIFF7 refusal. Maintained package lint, source/test/public-consumer types and selected build pass. Ten compiled SDK/command XLSX conversions preserve 40 reference errors without diagnostics. Probe corrections accounted for engine-owned workbooks and null-prototype values; no product change was needed for those corrections. Native application qualification remains open. Actual compiled command CSV screenshot inspected."
       }
+    },
+    "xlsxFormulaStringCaches": {
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.spreadsheet.cellvalue?view=openxml-3.0.1",
+          "sha256": "a4b9e4fbbcbc4a0d8bd8828b1391a63a297b0f54ff0929316221379fdc31d2fa",
+          "section": "ISO/IEC 29500-1 v (Cell Value), ST_Xstring 22.9.2.19"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/excel/xetable.cxx",
+          "sha256": "80e2100a4f38eb195e8e7a8d4035586f4df820743b2904a4bc0cd3947064ac9a",
+          "lines": "943-1097"
+        }
+      ],
+      "finding": "The primary format documentation assigns ST_Xstring to v, including the last calculated formula result. Calc writes the formula cache through writeEscaped. Its separate raw string-cache import path does not establish lossless native readback; this repair follows the format contract, not a claim of Calc cache parity. The candidate previously retained escape text on import, refused control characters on unique-cache export, and treated a present empty string cache as missing.",
+      "implementation": "Decode t=str value content once with the existing ST_Xstring decoder. Encode unique formula string caches before XML escaping. A present empty v with t=str remains a string cache and is not marked dirty; absent v and empty numeric v retain their existing behavior. Formula syntax and generic XML escaping are unchanged.",
+      "validation": "Eleven initial regressions failed. The final six-file cohort passes 139 tests, including controls, NUL, unpaired surrogate code units, literal and overlapping escape sequences, unchanged formula syntax, empty versus absent caches, both XLSX editions, output limits and cancellation. Maintained package lint, source/test/public-consumer type checks and selected workspace build pass.",
+      "publicValidation": "Compiled SDK and command conversions preserve eight caches in each edition (32 observations), with formula spelling and clean cache state intact. Independent Python zipfile/ElementTree parses all nine XML members in each of four artifacts and independently decodes all 32 ST_Xstring values. Explicit command recalculation yields the literal _x0000_ in all sixteen results. The command reexports retain seven pre-existing raw sheet-metadata warnings per edition. Screenshot of the compiled command probe inspected.",
+      "remaining": "Current native application and installed-package readback, raw-NUL formula expressions, other string-bearing fields and metadata preservation remain open. No family closure; containing publication is pending."
     }
   },
   "cases": [
@@ -1578,7 +1597,7 @@
     {
       "id": "format-record-roundtrip",
       "status": "open",
-      "currentFinding": "All 48 directional services have implementation owners; public listings expose 20 importers and 27 exporters. Registration is not semantic completion. Version/subformat/record preservation and independent roundtrip closure remain open."
+      "currentFinding": "All 48 directional services have implementation owners; public listings expose 20 importers and 27 exporters. Registration is not semantic completion. Version/subformat/record preservation and independent roundtrip closure remain open. XLSX formula string caches now encode/decode ST_Xstring and preserve empty cached results without forced recalculation. The 139-test cohort and 32 compiled SDK/command cache observations pass; native application readback and raw-NUL formula text remain open."
     },
     {
       "id": "rendering-font-print-fidelity",

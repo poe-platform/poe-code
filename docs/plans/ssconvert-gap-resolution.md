@@ -196,7 +196,9 @@ tasks:
       metadata through independent parse/edit/export/readback. Reduce every defect to original small
       memory fixtures and repair before marking the row complete. Resolve generated/conditional
       semantic inventory omissions and unknown case counts rather than claiming full support from
-      exporter listings.
+      exporter listings. XLSX formula string caches now follow ST_Xstring, including empty caches,
+      with literal formula text preserved. Native application readback and wider string-bearing
+      fields remain open; use reference.xlsxFormulaStringCaches in the gap ledger for scoped proof.
     status:
       reproduce: open
       implement: open

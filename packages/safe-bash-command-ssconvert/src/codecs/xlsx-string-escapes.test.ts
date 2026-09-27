@@ -58,3 +58,14 @@ it("keeps generic XML escaping strict and does not interpret string escapes ther
   expect(escapeXlsx("_x0000_")).toBe("_x0000_");
   expect(() => escapeXlsx("\0")).toThrow("non-XML XLSX character");
 });
+
+it.each(["2006", "2008"] as const)("preserves unique formula string caches in %s", async edition => {
+  const values = ["A\0Z", "\x01\x1f\ufffe\uffff", "_x0000_", "_x005F_x0000_", "_x0000_x0041_", "\ud800", "😀\r\n\t", ""];
+  const book: Workbook = { calculationMode: "manual", sheets: [{ id: "s", name: "S", cells: values.map((value, row) => ({
+    row, column: 0, formula: '="_x0000_"', value: { kind: "blank" }, cachedResult: { kind: "string", value }
+  })) }] };
+  const bytes = await createXlsxWriter(edition)(book, [], context);
+  const cells = (await readXlsx(bytes, context)).sheets[0]!.cells;
+  expect(cells.map(cell => cell.cachedResult)).toEqual(values.map(value => ({ kind: "string", value })));
+  expect(cells.map(cell => cell.formula)).toEqual(values.map(() => '="_x0000_"'));
+});

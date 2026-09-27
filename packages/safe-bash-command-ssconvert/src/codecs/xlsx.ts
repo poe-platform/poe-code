@@ -11,6 +11,7 @@ import { xlsxSchemas, xlsxNamespaces, xlsxNamespaceScanElements, type XlsxSchema
 import { converterLocale } from "../locale/runtime.js";
 import { readXlsxMetadata } from "./xlsx-metadata.js";
 import { readXlsxStyles, readXlsxString } from "./xlsx-styles.js";
+import { decodeXlsxString, encodeXlsxString } from "./xlsx-strings.js";
 import { createXlsxXml, escapeXlsx, writeRichString, metadataNode } from "./xlsx-write-support.js";
 import { createXlsxStyles, styleRecord } from "./xlsx-write-styles.js";
 import { writeXlsxSheetMetadata, writeXlsxProperties } from "./xlsx-write-metadata.js";
@@ -316,6 +317,7 @@ export async function readXlsx(bytes: Uint8Array, context: CapabilityContext): P
           const raw = child(node, "v")?.text, type = attr(node, "t");
           let value: CellValue = { kind: "blank" }, richText: readonly RichTextRun[] | undefined;
           if (type === "inlineStr") { const string = readXlsxString(child(node, "is"), context); value = { kind: "string", value: string.value }; richText = string.richText; }
+          else if (type === "str" && raw !== undefined) value = { kind: "string", value: decodeXlsxString(raw) };
           else if (raw !== undefined && raw !== "") {
             if (type === "s") {
               const index = sharedStringIndex(raw), string = index === undefined ? undefined : strings[index];
@@ -328,7 +330,6 @@ export async function readXlsx(bytes: Uint8Array, context: CapabilityContext): P
             }
             else if (type === "b") value = { kind: "boolean", value: raw[0] !== "0" };
             else if (type === "e") value = { kind: "error", value: raw };
-            else if (type === "str") value = { kind: "string", value: raw };
             else {
               if (type && type !== "n") await context.diagnostic?.({ code: "xlsx-cell-type", severity: "warning",
                 message: `${name}!${formatA1(position.row, position.column)} : Unknown enum value '${type}' for attribute t` });
@@ -362,8 +363,9 @@ export async function readXlsx(bytes: Uint8Array, context: CapabilityContext): P
               if (kind === "array") { groupId = `array-${position.row}-${position.column}`; groups.push({ id: groupId, kind: "array", expression, range: range(attr(f, "ref")), ...semantics }); }
             }
           }
-          cells.push({ ...position, value, ...(expression === undefined ? {} : { formula: expression, ...semantics, formulaDirty: raw === undefined || raw === "",
-            ...(raw === undefined || raw === "" ? {} : { cachedResult: value }) }), ...(groupId ? { formulaGroup: groupId } : {}),
+          const hasCache = raw !== undefined && (raw !== "" || type === "str");
+          cells.push({ ...position, value, ...(expression === undefined ? {} : { formula: expression, ...semantics, formulaDirty: !hasCache,
+            ...(hasCache ? { cachedResult: value } : {}) }), ...(groupId ? { formulaGroup: groupId } : {}),
             ...(style ?? {}), ...(richText ? { richText } : {}) });
         }
       }
@@ -643,7 +645,7 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
               type = "s"; let id = sharedIds.get(stringKey);
               if (id === undefined) { id = shared.length; sharedIds.set(stringKey, id); shared.push({ ...cell, value }); }
               body += xml("v", {}, String(id));
-            } else if (cell.formula) { type = "str"; body += xml("v", {}, escapeXlsx(value.value)); }
+            } else if (cell.formula) { type = "str"; body += xml("v", {}, escapeXlsx(encodeXlsxString(value.value))); }
             else { type = "inlineStr"; body += xml("is", {}, writeRichString(value.value, cell.richText, xml, charge)); }
           } else if (value.kind !== "blank") {
             type = value.kind === "boolean" ? "b" : value.kind === "error" ? "e" : undefined;

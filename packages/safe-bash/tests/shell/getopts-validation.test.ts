@@ -74,7 +74,7 @@ for (const clustered of [false, true]) {
       try { return await builtin.apply(this, args); }
       finally { active = false; }
     });
-    for (const count of [16, 32, 64, 128]) {
+    for (const count of [16, 32, 64, 128, 256]) {
       argument = clustered ? `-${"a".repeat(count)}` : "-a";
       const args = clustered ? [argument] : Array.from({ length: count }, () => argument);
       const { shell } = setup();
@@ -91,8 +91,14 @@ for (const clustered of [false, true]) {
       } finally { await shell.dispose(); }
     }
     context.diagnostic(JSON.stringify({ clustered, totals }));
-    for (const total of totals) {
-      assert.ok(total.charCodes <= 16 * total.count + 256, `charCodeAt work must be linear: ${JSON.stringify(total)}`);
+    for (const [index, total] of totals.entries()) {
+      assert.ok(total.charCodes > 0, `character-work instrumentation is active: ${JSON.stringify(total)}`);
+      const previous = totals[index - 1];
+      if (previous) {
+        // Runtime bookkeeping can change the slope; repeated full admission grows quadratically.
+        assert.equal(total.count, 2 * previous.count);
+        assert.ok(total.charCodes <= 2 * previous.charCodes + 32, `doubling positionals must not exceed linear character-work growth: ${JSON.stringify({ previous, total })}`);
+      }
       assert.ok(total.argumentBytes <= 8 * total.count + 32, `runtime admission bytes must be linear: ${JSON.stringify(total)}`);
       assert.equal(total.argumentReads, clustered ? 1 : total.count, `unchanged positionals are copied exactly once: ${JSON.stringify(total)}`);
     }

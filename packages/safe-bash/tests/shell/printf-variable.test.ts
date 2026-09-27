@@ -430,13 +430,38 @@ for (const format of ["%10000s", "\\000%10000s"]) {
   });
 }
 
-test("printf -v capture shares the existing value-slot budget", async context => {
+test("printf -v string formatting fits the existing value-slot budget", async () => {
+  const { shell } = fixture({ limits: { maxExpansionFields: 8 } });
+  try {
+    const result = await shell.exec('value=old; printf -v value "a%%b%%c%%d%%e%%f"; printf %s "$value"');
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "a%b%c%d%e%f");
+  } finally { await shell.dispose(); }
+});
+
+const retainedByteFormat = "\\377%10000s\\376%10000s";
+
+test("printf -v byte capture shares the existing value-slot budget before publication", async context => {
   const { shell } = fixture({ limits: { maxExpansionFields: 8 } });
   const strings = context.mock.method(ValueStore.prototype, "publishString");
   const values = context.mock.method(ValueStore.prototype, "publish");
   try {
-    await assert.rejects(shell.exec('value=old; printf -v value "a%%b%%c%%d%%e%%f"'), error => error instanceof ShellLimitError && error.limit === "maxExpansionFields");
+    await assert.rejects(shell.exec(`value=old; printf -v value '${retainedByteFormat}'`), error => error instanceof ShellLimitError && error.limit === "maxExpansionFields");
     assert.deepEqual([...strings.mock.calls, ...values.mock.calls].filter(call => call.arguments[0] === "value").map(call => call.arguments[1]), ["old"]);
+  } finally { await shell.dispose(); }
+});
+
+test("printf -v byte capture succeeds with sufficient finite value slots", async () => {
+  const { shell } = fixture({ limits: { maxExpansionFields: 64 } });
+  try {
+    const result = await shell.exec(`value=old; printf -v value '${retainedByteFormat}'; printf %s "$value"`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    const expected = new Uint8Array(20002).fill(32);
+    expected[0] = 255;
+    expected[10001] = 254;
+    assert.deepEqual(result.stdoutBytes, expected);
   } finally { await shell.dispose(); }
 });
 

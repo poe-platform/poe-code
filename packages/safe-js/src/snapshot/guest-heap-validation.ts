@@ -81,7 +81,7 @@ function absent(value: unknown): boolean {
   return node.kind === "undefined" && Object.keys(node).length === 1;
 }
 
-export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown>, maxArrayLength = 0xffffffff): boolean {
+export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown>, maxArrayLength = Infinity): boolean {
   if (record(raw).kind === "guest-script") {
     const source = record(raw);
     fields(source, ["kind", "body", "context"]);

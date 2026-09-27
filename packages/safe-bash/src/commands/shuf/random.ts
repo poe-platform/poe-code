@@ -74,6 +74,38 @@ export class RandomIntegers {
     return this.bytes[this.offset++]!;
   }
 
+  chooseSync(size: bigint): bigint {
+    if (size < 1n || size > wordMax) throw new RangeError("shuf choice size out of range");
+    const target = size - 1n;
+    while (true) {
+      this.signal.throwIfAborted();
+      if (this.closed) throw new Error("shuf random source is closed");
+      while (this.maximum < target) {
+        if (this.offset === this.bytes.length) {
+          this.bytes = randomFillSync(this.bytes.length === 4096 ? this.bytes : new Uint8Array(4096));
+          this.offset = 0;
+        }
+        this.value = ((this.value << 8n) + BigInt(this.bytes[this.offset++]!)) & wordMax;
+        this.maximum = ((this.maximum << 8n) + 255n) & wordMax;
+      }
+      if (this.maximum === target) {
+        const chosen = this.value;
+        this.value = this.maximum = 0n;
+        return chosen;
+      }
+      const excess = this.maximum - target;
+      const unusable = excess % size;
+      const remainder = this.value % size;
+      if (this.value <= this.maximum - unusable) {
+        this.value /= size;
+        this.maximum = excess / size;
+        return remainder;
+      }
+      this.value = remainder;
+      this.maximum = unusable - 1n;
+    }
+  }
+
   async choose(size: bigint): Promise<bigint> {
     if (size < 1n || size > wordMax) throw new RangeError("shuf choice size out of range");
     const target = size - 1n;

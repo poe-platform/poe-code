@@ -1,3 +1,4 @@
+const sharedTextEncoder = new TextEncoder();
 import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { FsError, getCommandArguments, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { shellValueByteLength } from "../../contracts/value.js";

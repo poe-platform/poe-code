@@ -112,8 +112,12 @@ function formatted(coefficient: bigint, scale: number, format: Format, negativeZ
   return format.prefix + text + format.suffix;
 }
 
+const sharedFloatView = new DataView(new ArrayBuffer(8));
 function binaryDecimal(value: number): { coefficient: bigint; scale: number } {
-  const view = new DataView(new ArrayBuffer(8));
+  if (Number.isSafeInteger(value) && !Object.is(value, -0)) {
+    return { coefficient: BigInt(value), scale: 0 };
+  }
+  const view = sharedFloatView;
   view.setFloat64(0, value);
   const bits = view.getBigUint64(0);
   const exponent = Number(bits >> 52n & 2047n);
@@ -138,10 +142,12 @@ async function floatingSequence(first: number, increment: number, last: number, 
   const scale = Math.max(firstDecimal.scale, incrementDecimal.scale);
   const firstCoefficient = firstDecimal.coefficient * 10n ** BigInt(scale - firstDecimal.scale);
   const incrementCoefficient = incrementDecimal.coefficient * 10n ** BigInt(scale - incrementDecimal.scale);
+  const canBatch = session.limits.maxOutputBytes === Infinity && session.limits.maxChunkBytes >= 16384 && session.limits.maxSteps === Infinity;
+  let batch = "";
   let previous = "";
   for (let index = 0;; index++) {
     { const s = session.step(); if (s) await s; }
-    const current = index ? Number(fixed(firstCoefficient + BigInt(index) * incrementCoefficient, scale, scale)) : first;
+    const current = index ? (scale === 0 ? first + index * increment : Number(fixed(firstCoefficient + BigInt(index) * incrementCoefficient, scale, scale))) : first;
     if (!Number.isFinite(current)) break;
     const outside = increment > 0 ? current > last : current < last;
     const text = render(current);
@@ -149,11 +155,21 @@ async function floatingSequence(first: number, increment: number, last: number, 
       const numeric = text.slice(format.prefix.length, text.length - format.suffix.length);
       if (Number(numeric) !== last || text === previous) break;
     }
-    await session.text((index ? separator : "") + text);
+    if (canBatch) {
+      batch += (index ? separator : "") + text;
+      if (batch.length >= 16384) { await session.text(batch); batch = ""; }
+    } else {
+      await session.text((index ? separator : "") + text);
+    }
     previous = text;
     if (outside) break;
   }
-  await session.text("\n");
+  if (canBatch) {
+    batch += "\n";
+    await session.text(batch);
+  } else {
+    await session.text("\n");
+  }
 }
 
 async function parseFormat(text: string, session: Session): Promise<Format> {
@@ -257,16 +273,28 @@ export function createSeqCommand(limits: StreamFormatLimits): CommandDefinition 
       const widthFinish = discarded >= finishDigits ? 0n : finish / 10n ** BigInt(discarded);
       width = Math.max(firstText.length, ((last.negativeZero ? "-" : "") + fixed(widthFinish, precision, precision)).length, first.width + (precision ? precision + 1 : 0), last.width + (precision ? precision + 1 : 0));
     }
+    const canBatch = limits.maxOutputBytes === Infinity && limits.maxChunkBytes >= 16384 && limits.maxSteps === Infinity;
+    let batch = "";
     let written = false;
     while (step > 0n ? current <= finish : current >= finish) {
       { const s = session.step(); if (s) await s; }
       let text = (!written && first.negativeZero ? "-" : "") + fixed(current, scale, precision);
       if (equalWidth) text = text.startsWith("-") ? "-" + text.slice(1).padStart(width - 1, "0") : text.padStart(width, "0");
       session.check(Buffer.byteLength(text), limits.maxRecordBytes, "record");
-      await session.text((written ? separator : "") + text);
+      if (canBatch) {
+        batch += (written ? separator : "") + text;
+        if (batch.length >= 16384) { await session.text(batch); batch = ""; }
+      } else {
+        await session.text((written ? separator : "") + text);
+      }
       written = true;
       current += step;
     }
-    if (written) await session.text("\n");
+    if (written) {
+      if (canBatch) { batch += "\n"; await session.text(batch); }
+      else await session.text("\n");
+    } else if (batch) {
+      await session.text(batch);
+    }
   });
 }

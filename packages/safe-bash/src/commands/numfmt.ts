@@ -263,8 +263,20 @@ function integer(value: Binary): bigint {
 }
 
 function compare(left: Binary, right: Binary): number {
-  const difference = add(left, { ...right, coefficient: -right.coefficient }).coefficient;
-  return difference < 0n ? -1 : difference > 0n ? 1 : 0;
+  const lc = left.coefficient, rc = right.coefficient;
+  if (lc === 0n && rc === 0n) return 0;
+  if (lc <= 0n && rc >= 0n) return lc < 0n ? -1 : 1;
+  if (lc >= 0n && rc <= 0n) return 1;
+  const diffExp = left.exponent - right.exponent;
+  if (diffExp === 0) return lc < rc ? -1 : lc > rc ? 1 : 0;
+  if (diffExp > 0) {
+    if (diffExp > 128) return lc > 0n ? 1 : -1;
+    const scaledL = lc << BigInt(diffExp);
+    return scaledL < rc ? -1 : scaledL > rc ? 1 : 0;
+  }
+  if (diffExp < -128) return rc > 0n ? -1 : 1;
+  const scaledR = rc << BigInt(-diffExp);
+  return lc < scaledR ? -1 : lc > scaledR ? 1 : 0;
 }
 
 const BINARY_0: Binary = { coefficient: 0n, exponent: 0 };
@@ -621,7 +633,7 @@ class Converter {
   private lastYield = monotonicNow();
   private signalAborted: boolean;
   private readonly pollSignal: boolean;
-  constructor(readonly settings: Settings, private context: CommandContext, private output: { readonly remaining: number; emit(text: string, error?: boolean): Promise<void> }) {
+  constructor(readonly settings: Settings, private context: CommandContext, private output: { readonly remaining: number; emit(text: string, error?: boolean): void | Promise<void> }) {
     this.signalAborted = context.signal.aborted;
     this.pollSignal = Object.prototype.hasOwnProperty.call(context.signal, "aborted");
     if (!this.signalAborted && !this.pollSignal) {
@@ -629,13 +641,19 @@ class Converter {
     }
   }
 
+  canTickSync(maxTicks: number): boolean {
+    if (this.pollSignal ? this.context.signal.aborted : this.signalAborted) return false;
+    if (this.work + maxTicks > 16 * 1024 * 1024) return false;
+    return (this.work % 1024) + maxTicks < 1024;
+  }
+
   tick(amount = 1): void | Promise<void> {
     this.work += amount;
     if (this.work > 16 * 1024 * 1024) throw new PublicDiagnostic("numfmt work limit exceeded");
-    if (this.work % 256 < amount) {
+    if (this.work % 1024 < amount) {
       const count = ++this.tickCount;
       const now = monotonicNow();
-      if (count === 1 || (count & 15) === 0 || now - this.lastYield >= 16 || hasYieldCheckpoint(this.context.signal)) {
+      if (count === 1 || (count & 63) === 0 || now - this.lastYield >= 16 || hasYieldCheckpoint(this.context.signal)) {
         this.lastYield = now;
         return yieldTurn(this.context.signal);
       }
@@ -869,7 +887,119 @@ class Converter {
     if (this.settings.left) await spaces();
   }
 
-  async line(line: string, newline: boolean, backing = textBytes(line + "\0")): Promise<void> {
+  private trySimpleLineSync(line: string, newline: boolean, backing: Uint8Array): boolean {
+    const settings = this.settings;
+    if (
+      settings.developer ||
+      settings.suffix ||
+      settings.padding > 128n ||
+      settings.zeroPadding > 0n ||
+      settings.grouping ||
+      settings.format !== undefined ||
+      settings.from !== "none" ||
+      settings.fromUnit !== 1n ||
+      settings.toUnit !== 1n ||
+      (settings.to !== "iec" && settings.to !== "iec-i" && settings.to !== "si" && settings.to !== "none") ||
+      line.indexOf("\0") >= 0 ||
+      !this.canTickSync(line.length * 2 + 16)
+    ) {
+      return false;
+    }
+    let start = 0;
+    let field = 0n;
+    let lineOut = "";
+    while (true) {
+      field++;
+      let end = start;
+      if (settings.delimiter !== undefined) {
+        while (end < line.length && line[end] !== settings.delimiter) end++;
+      } else {
+        while (blank(line[end]) || line[end] === "\n") end++;
+        while (end < line.length && !blank(line[end]) && line[end] !== "\n") end++;
+      }
+      const t = this.tick((settings.fields?.length ?? 0) + 1);
+      if (t) return false;
+      const selected = settings.fields ? settings.fields.some(([low, high]) => low <= field && field <= high) : field === 1n;
+      const text = line.slice(start, end);
+      if (selected) {
+        let skipped = 0;
+        while (blank(text[skipped])) skipped++;
+        const numPart = text.slice(skipped);
+        if (!numPart || numPart.length > 18) return false;
+        let idx = 0;
+        const neg = numPart[0] === "-";
+        if (neg) idx++;
+        if (idx >= numPart.length) return false;
+        let val = 0n;
+        for (; idx < numPart.length; idx++) {
+          const c = numPart.charCodeAt(idx) - 48;
+          if (c < 0 || c > 9) return false;
+          val = val * 10n + BigInt(c);
+          const tk = this.tick();
+          if (tk) return false;
+        }
+        if (neg) val = -val;
+        backing[end] = 0;
+        // Use human() only if it would not need developer output
+        const binVal = binary(val);
+        let printedValue = binVal;
+        const base = settings.to === "iec" || settings.to === "iec-i" ? 1024 : 1000;
+        const baseBinary = base === 1024 ? BINARY_1024 : BINARY_1000;
+        let powerIndex = 0;
+        if (settings.to !== "none") {
+          while (compare(absolute(printedValue), baseBinary) >= 0 && powerIndex < unitPrefixes.length) {
+            printedValue = divide(printedValue, baseBinary);
+            powerIndex++;
+          }
+          const adjustment = settings.precision === undefined ? (compare(absolute(printedValue), BINARY_10) < 0 ? 1 : 0) : Number(settings.precision < BigInt(powerIndex * 3) ? settings.precision : BigInt(powerIndex * 3));
+          const factor = power(10, adjustment);
+          printedValue = divide(round(multiply(printedValue, factor), settings.rounding), factor);
+          if (compare(absolute(printedValue), baseBinary) >= 0) {
+            printedValue = divide(printedValue, baseBinary);
+            powerIndex++;
+          }
+          let outputPrecision = settings.precision === undefined ? (printedValue.coefficient !== 0n && compare(absolute(printedValue), BINARY_10) < 0 && powerIndex > 0 ? 1n : 0n) : BigInt.asIntN(32, settings.precision);
+          if (outputPrecision < 0n || outputPrecision > 126n) return false;
+          let rendered = fixed(printedValue, Number(outputPrecision));
+          if (powerIndex) {
+            rendered += (settings.unitSeparator ?? "") + (settings.to === "si" && powerIndex === 1 ? "k" : unitPrefixes[powerIndex - 1] ?? "(error)");
+            if (settings.to === "iec-i") rendered += "i";
+          }
+          if (rendered.length >= 127) return false;
+          const padTarget = this.autoPadding ? (skipped > 0 || field > 1n ? text.length : 0) : Number(settings.padding);
+          if (this.autoPadding) settings.padding = BigInt(padTarget);
+          const padLen = Math.max(0, padTarget - rendered.length);
+          const padded = padLen > 0 ? (settings.left ? rendered + " ".repeat(padLen) : " ".repeat(padLen) + rendered) : rendered;
+          lineOut += settings.prefix + padded + settings.postfix;
+        } else {
+          const outPrec = settings.precision === undefined ? 0 : Number(settings.precision);
+          if (outPrec < 0 || outPrec > 126) return false;
+          const rendered = fixed(round(printedValue, settings.rounding), outPrec);
+          if (rendered.length >= 128) return false;
+          const padTarget = this.autoPadding ? (skipped > 0 || field > 1n ? text.length : 0) : Number(settings.padding);
+          if (this.autoPadding) settings.padding = BigInt(padTarget);
+          const padLen = Math.max(0, padTarget - rendered.length);
+          const padded = padLen > 0 ? (settings.left ? rendered + " ".repeat(padLen) : " ".repeat(padLen) + rendered) : rendered;
+          lineOut += settings.prefix + padded + settings.postfix;
+        }
+      } else {
+        lineOut += text;
+      }
+      if (end >= line.length) break;
+      lineOut += settings.delimiter ?? " ";
+      start = end + 1;
+    }
+    if (newline) lineOut += settings.separator;
+    const em = this.output.emit(lineOut);
+    return em === undefined;
+  }
+
+  line(line: string, newline: boolean, backing = textBytes(line + "\0")): void | Promise<void> {
+    if (this.trySimpleLineSync(line, newline, backing)) return;
+    return this.lineSlow(line, newline, backing);
+  }
+
+  private async lineSlow(line: string, newline: boolean, backing = textBytes(line + "\0")): Promise<void> {
     const settings = this.settings;
     const nul = line.indexOf("\0");
     if (nul >= 0) line = line.slice(0, nul);
@@ -885,7 +1015,7 @@ class Converter {
       }
       backing[end] = 0;
       let text = line.slice(start, end);
-      await this.tick((settings.fields?.length ?? 0) + 1);
+      { const t = this.tick((settings.fields?.length ?? 0) + 1); if (t) await t; }
       if (settings.fields ? settings.fields.some(([low, high]) => low <= field && field <= high) : field === 1n) {
         if (settings.suffix && text.length > settings.suffix.length) {
           if (text.endsWith(settings.suffix)) { text = text.slice(0, -settings.suffix.length); backing[start + text.length] = 0; if (settings.developer) await this.output.emit(`trimming suffix ${quote(settings.suffix, settings.unicode)}\n`, true); }
@@ -946,20 +1076,22 @@ export function numfmtCommand(): CommandDefinition {
           await writeBytes(destination, textBytes(chunk.slice(offset, offset + 65536)), local.signal);
         }
       },
-      async emit(text: string, error = false): Promise<void> {
+      emit(text: string, error = false): void | Promise<void> {
+        if (!text && !error) return;
         const total = error ? errorBytes : outputBytes;
         if (text.length > bufferLimit - total) throw outputLimit;
-        if (error) {
-          if (pendingStdout.length) await output.flush();
-          errorBytes += text.length;
-        } else {
+        if (!error) {
           outputBytes += text.length;
           pendingStdout += text;
-          if (pendingStdout.length >= 16384) await output.flush();
+          if (pendingStdout.length >= 16384) return output.flush();
           return;
         }
-        const destination = error ? stderr?.output ?? context.stderr : stdout?.output ?? context.stdout;
-        for (let offset = 0; offset < text.length; offset += 65536) await writeBytes(destination, textBytes(text.slice(offset, offset + 65536)), local.signal);
+        return (async () => {
+          if (pendingStdout.length) await output.flush();
+          errorBytes += text.length;
+          const destination = stderr?.output ?? context.stderr;
+          for (let offset = 0; offset < text.length; offset += 65536) await writeBytes(destination, textBytes(text.slice(offset, offset + 65536)), local.signal);
+        })();
       },
     };
     const retire = (): Promise<void> => retirement ??= Promise.resolve().then(async () => { if (!finished) await iterator?.return?.(); });
@@ -994,7 +1126,7 @@ export function numfmtCommand(): CommandDefinition {
           let empty = 0;
           let readFailure: string | undefined;
           let backing: Uint8Array = new Uint8Array(0);
-          const process = async (bytes: Uint8Array, terminated: boolean): Promise<void> => {
+          const process = (bytes: Uint8Array, terminated: boolean): void | Promise<void> => {
             const initialized = bytes.length + (terminated ? 2 : 1);
             if (backing.length < initialized) backing = new Uint8Array(initialized);
             backing.set(bytes);
@@ -1005,11 +1137,10 @@ export function numfmtCommand(): CommandDefinition {
               settings.header--;
               const header = line + (terminated ? settings.separator : "");
               const nul = header.indexOf("\0");
-              await output.emit(nul < 0 ? header : header.slice(0, nul));
-            } else {
-              backing[bytes.length] = 0;
-              await converter.line(line, terminated, backing);
+              return output.emit(nul < 0 ? header : header.slice(0, nul));
             }
+            backing[bytes.length] = 0;
+            return converter.line(line, terminated, backing);
           };
           while (true) {
             { const t = converter.tick(); if (t) await t; }
@@ -1038,7 +1169,7 @@ export function numfmtCommand(): CommandDefinition {
               }
               { const t = converter.tick(); if (t) await t; }
               if (offset - start > record.capacity - record.size) throw new PublicDiagnostic("line buffer limit exceeded");
-              await process(record.finish(undefined, chunk, start, offset), true);
+              { const pr = process(record.finish(undefined, chunk, start, offset), true); if (pr) await pr; }
               start = offset + 1;
             }
             if (chunk.length - start > record.capacity - record.size) throw new PublicDiagnostic("line buffer limit exceeded");

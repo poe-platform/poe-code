@@ -64,19 +64,25 @@ export async function* records(source: ByteSource, delimiter: number, limit: num
       const end = boundary < 0 ? chunk.length : boundary + 1;
       const needed = used + end - start;
       if (needed > limit) throw new Diagnostic("shuf: maxInputBytes limit exceeded\n");
-      if (pending.length < needed) {
-        const grown = new Uint8Array(Math.min(limit, Math.max(needed, pending.length * 2)));
-        grown.set(pending.subarray(0, used));
-        pending = grown;
+      if (boundary >= 0 && used === 0) {
+        const rec = Uint8Array.prototype.slice.call(chunk, start, end);
+        start = end;
+        yield rec;
+      } else {
+        if (pending.length < needed) {
+          const grown = new Uint8Array(Math.min(limit, Math.max(needed, pending.length * 2)));
+          grown.set(pending.subarray(0, used));
+          pending = grown;
+        }
+        pending.set(chunk.subarray(start, end), used);
+        used = needed;
+        start = end;
+        if (boundary >= 0) {
+          yield pending.slice(0, used);
+          used = 0;
+        }
       }
-      pending.set(chunk.subarray(start, end), used);
-      used = needed;
-      start = end;
-      if (boundary >= 0) {
-        yield pending.slice(0, used);
-        used = 0;
-      }
-      if (++scanned % 1024 === 0) await yieldTurn(signal);
+      if (++scanned % 8192 === 0) await yieldTurn(signal);
     }
   }
   if (used) {

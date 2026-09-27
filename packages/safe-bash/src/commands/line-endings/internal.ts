@@ -89,7 +89,7 @@ export class Budget {
     this.quantum = 0;
     const count = ++this.checkpointCount;
     const now = monotonicNow();
-    if (count === 1 || (count & 15) === 0 || now - this.lastYield >= 16 || hasYieldCheckpoint(this.caller)) {
+    if (count === 1 || (count & 127) === 0 || now - this.lastYield >= 16 || hasYieldCheckpoint(this.caller)) {
       this.lastYield = now;
       return yieldTurn(this.caller).then(() => { this.assertOpen(); });
     }

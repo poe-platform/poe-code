@@ -854,6 +854,38 @@ describe("finite unit execution and ownership", () => {
   });
 });
 
+describe("finite unit npm lifecycle failures", () => {
+  for (const failedEvent of ["none", "prebuild", "postbuild", "pretest:unit", "posttest:unit"]) it(failedEvent, async () => {
+    const root = path.dirname(path.dirname(runnerFilename)), mock = mockExecution();
+    const scripts = { prebuild: "record", build: "record", postbuild: "record", "pretest:unit": "record", "test:unit": "record", "posttest:unit": "record" };
+    const fileSystem = Volume.fromJSON({
+      [path.join(root, "package.json")]: JSON.stringify({ name: "owned-root", workspaces: ["packages/*"], scripts: { "pretest:unit": "record", "test:unit": "record", "posttest:unit": "record" } }),
+      [path.join(root, "turbo.json")]: JSON.stringify({ tasks: { build: { dependsOn: ["^build"] }, "@poe-platform/safe-bash#test:unit": { dependsOn: ["build"] } } }),
+      [path.join(root, "packages/bash/package.json")]: JSON.stringify({ name: "@poe-platform/safe-bash", scripts }),
+    });
+    // npm owns pre/post hooks and reports their failure on its build/unit child.
+    mock.start.mockImplementation((_command, args) => {
+      const child = Object.assign(new EventEmitter(), { pid: 9000 + mock.children.length });
+      mock.children.push(child);
+      const failed = args.includes("--workspace=packages/bash") && args[4] === (failedEvent.endsWith("build") ? "build" : "test:unit") && failedEvent !== "none";
+      queueMicrotask(() => child.emit("close", failed ? 7 : 0, null));
+      return child as unknown as ReturnType<typeof spawn>;
+    });
+    const execution = workspaceRunner.testWorkspaces(root, { ...mock, fileSystem });
+    if (failedEvent === "none") await expect(execution).resolves.toMatchObject({ builds: 1, tests: 2 });
+    else await expect(execution).rejects.toMatchObject({ exitCode: 7 });
+    const events = mock.start.mock.calls.map(call => call[1][4]);
+    expect(events).toEqual(failedEvent.endsWith("build") ? ["build"] : ["build", "test:unit", "test:unit"]);
+    for (const call of mock.start.mock.calls) {
+      expect(call[0]).toBe(process.execPath);
+      expect(call[1][0]).toBe(mock.environment.npm_execpath);
+      expect(call[1]).toContain("--if-present=false");
+    }
+    if (!failedEvent.endsWith("build")) expect(mock.start.mock.calls[1][1]).toContain("--workspaces=false");
+    expect(mock.host.listenerCount("SIGTERM")).toBe(0);
+  });
+});
+
 describe("finite unit late failure and cleanup ordering", () => {
   for (const [index, primary] of primaryValues.entries()) it('retains the original primary through late STOP ' + index, async () => {
     const owned = unitFixture(), host = mockHost(), children: Array<EventEmitter & { pid: number }> = [];

@@ -10,6 +10,8 @@ runs:
         oracle_root=$(mktemp -d "${RUNNER_TEMP:?}/poe-bash-oracle.XXXXXX")
         oracle_archive="$oracle_root/bash-5.2.37.tar.gz"
         curl --fail --location --silent --show-error --proto '=https' --tlsv1.2 \
+          --connect-timeout 15 --max-time 120 --retry 3 --retry-delay 2 \
+          --retry-max-time 120 --retry-connrefused \
           https://ftp.gnu.org/gnu/bash/bash-5.2.37.tar.gz --output "$oracle_archive"
         printf '%s  %s\n' 9599b22ecd1d5787ad7d3b7bf0c59f312b3396d1e281175dd1f8a4014da621ff "$oracle_archive" | sha256sum --check --status
         tar --extract --gzip --file "$oracle_archive" --directory "$oracle_root"

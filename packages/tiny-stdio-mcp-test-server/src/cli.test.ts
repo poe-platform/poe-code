@@ -8,7 +8,7 @@ const run = promisify(execFile);
 
 describe("tiny-stdio-mcp-test-server CLI", () => {
   it("reports the package version", async () => {
-    const { stdout } = await run(process.execPath, ["--import", "tsx", "src/cli.ts", "--version"], {
+    const { stdout } = await run(process.execPath, ["dist/cli.js", "--version"], {
       cwd: new URL("..", import.meta.url)
     });
 
@@ -16,7 +16,7 @@ describe("tiny-stdio-mcp-test-server CLI", () => {
   });
 
   it("rejects inherited prototype tool names", async () => {
-    await expect(run(process.execPath, ["--import", "tsx", "src/cli.ts", "serve", "constructor"], {
+    await expect(run(process.execPath, ["dist/cli.js", "serve", "constructor"], {
       cwd: new URL("..", import.meta.url)
     })).rejects.toMatchObject({
       code: 1,
@@ -25,7 +25,7 @@ describe("tiny-stdio-mcp-test-server CLI", () => {
   });
 
   it("rejects unknown tools before waiting on startup gates", async () => {
-    await expect(run(process.execPath, ["--import", "tsx", "src/cli.ts", "serve", "missing"], {
+    await expect(run(process.execPath, ["dist/cli.js", "serve", "missing"], {
       cwd: new URL("..", import.meta.url),
       env: {
         ...process.env,

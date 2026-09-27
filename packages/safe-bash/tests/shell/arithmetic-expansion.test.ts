@@ -189,27 +189,27 @@ test("wave 41: indirect expansion, :+/:= defaults, array element case conversion
       v0=10; v1=20; v2=30; v3=40
       arr=(alpha beta gamma delta)
       fmt_item() {
-        local id="\$1" tag="\$2"
-        if [[ "\$id" -lt 2 ]]; then
-          printf "low:%s:%s" "\$id" "\${tag:-none}"
+        local id="$1" tag="$2"
+        if [[ "$id" -lt 2 ]]; then
+          printf "low:%s:%s" "$id" "\${tag:-none}"
           return 0
         fi
-        printf "high:%s:%s" "\$id" "\${tag^^}"
+        printf "high:%s:%s" "$id" "\${tag^^}"
       }
       acc=0
       buf=""
       for ((i = 0; i < 8; i++)); do
-        idx=\$((i & 3))
-        k="v\$idx"
-        a="\${i:+set_\$i}"
+        idx=$((i & 3))
+        k="v$idx"
+        a="\${i:+set_$i}"
         unset b
-        c="\${b:=def_\$idx}"
-        fn_out="\$(fmt_item "\$idx" "\${arr[idx]^^}")"
-        case_out="\$(case \$idx in 0) echo zero;; 1) echo one;; *) echo other;; esac)"
+        c="\${b:=def_$idx}"
+        fn_out="$(fmt_item "$idx" "\${arr[idx]^^}")"
+        case_out="$(case $idx in 0) echo zero;; 1) echo one;; *) echo other;; esac)"
         buf+="x"
-        acc=\$((acc + \${!k} + \${#a} + \${#c} + \${#fn_out} + \${#case_out}))
+        acc=$((acc + \${!k} + \${#a} + \${#c} + \${#fn_out} + \${#case_out}))
       done
-      args "\$acc:\${#buf}:\$b"
+      args "$acc:\${#buf}:$b"
     `);
     assert.equal(result.exitCode, 0);
     assert.equal(result.stderr, "");

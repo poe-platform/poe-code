@@ -73,7 +73,7 @@ it.each([
     // workspace SafeJS rebuild can remove that root-generated filesystem entry.
     alias: { [filesystem]: new URL("../packages/safe-fs/src/core.ts", import.meta.url).pathname },
   });
-  const worker: Record<string, unknown> = { TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, AbortController, URL, URLSearchParams, atob, crypto: webcrypto, setTimeout, clearTimeout, queueMicrotask };
+  const worker: Record<string, unknown> = { TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, AbortController, AbortSignal, URL, URLSearchParams, atob, crypto: webcrypto, setTimeout, clearTimeout, queueMicrotask };
   runInNewContext(result.outputFiles[0]!.text, worker);
   const actual = await worker.result as { observations: unknown[]; rawExit: number; diagnostic: string };
   expect(actual.observations).toEqual([

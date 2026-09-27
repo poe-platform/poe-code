@@ -1,7 +1,20 @@
 import { build } from "esbuild";
 import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
-import { expect, it } from "vitest";
+import { beforeAll, expect, it } from "vitest";
+
+let result: Awaited<ReturnType<typeof build>>;
+beforeAll(async () => {
+  result = await build({
+    entryPoints: [new URL("../packages/safe-bash-command-ssconvert/dist/index.js", import.meta.url).pathname],
+    bundle: true,
+    packages: "external",
+    platform: "node",
+    format: "esm",
+    write: false,
+    metafile: true
+  });
+});
 
 it("starts the bundled spreadsheet SDK in a Worker without Node module initialization", () => {
   const compiled = readFileSync(new URL("../packages/safe-bash-command-ssconvert/dist/testing/worker-runtime-fixture.js", import.meta.url), "utf8");
@@ -11,17 +24,8 @@ it("starts the bundled spreadsheet SDK in a Worker without Node module initializ
   expect(Object.isFrozen(worker.snapshot)).toBe(true);
 });
 
-it("ships the spreadsheet SDK without unavailable private runtime dependencies", async () => {
+it("ships the spreadsheet SDK without unavailable private runtime dependencies", () => {
   const manifest = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
-  const result = await build({
-    entryPoints: [new URL("../packages/safe-bash-command-ssconvert/dist/index.js", import.meta.url).pathname],
-    bundle: true,
-    packages: "external",
-    platform: "node",
-    format: "esm",
-    write: false,
-    metafile: true
-  });
   const available = new Set(Object.keys({ ...manifest.dependencies, ...manifest.optionalDependencies }));
   const unavailable = Object.values(result.metafile!.outputs).flatMap(output => output.imports)
     .filter(entry => entry.external && !entry.path.startsWith("node:"))

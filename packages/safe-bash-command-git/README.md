@@ -6,7 +6,7 @@ Run Git against `@poe-code/safe-fs` in Safe Bash, including Cloudflare Workers w
 import { gitCommands } from '@poe-platform/safe-bash/commands/git';
 
 shell.use(gitCommands());
-await shell.run('git init -b main; git add .; git commit -m "Initial commit"');
+await shell.exec('git init -b main; git add .; git commit -m "Initial commit"');
 ```
 
 | Commands | Purpose |

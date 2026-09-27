@@ -54,3 +54,15 @@ test('HTTP is supplied explicitly by the host', async () => {
   assert.match(url,/^https:\/\/git\.example\/repo\.git\/info\/refs/u);
   assert.match(stderr,/host denied network/u);
 });
+
+test('Git works with the Shell default device filesystem', async () => {
+  const {createDeviceFileSystem}=await import('@poe-code/safe-fs/core');
+  const memory=new MemoryFileSystem();
+  await memory.mkdir('/repo',{recursive:true});
+  const fs=createDeviceFileSystem(memory);
+  let stderr='';
+  const result=await createGitCommand().execute({command:'git',args:['init'],cwd:'/repo',env:{},fs,signal:new AbortController().signal,
+    stdin:(async function*(){})(),stdout:{write(){}},stderr:{write(bytes:Uint8Array){stderr+=new TextDecoder().decode(bytes);}}} as CommandContext);
+  assert.equal(result.exitCode,0,stderr);
+  assert.equal((await memory.stat('/repo/.git')).type,'directory');
+});

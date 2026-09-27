@@ -26,6 +26,7 @@ async function snapshot(fs:FileSystem, limits:GitLimits, signal:AbortSignal):Pro
       if(entries.length>=limits.maxEntries) throw new Error('Git filesystem entry limit exceeded');
       const full=path==='/' ? `/${child.name}` : `${path}/${child.name}`;
       const stat=await fs.lstat(full,{signal});
+      if(stat.type==='character') continue;
       total+=encoder.encode(full).length;
       if(stat.type==='file' && total+stat.size>limits.maxBytes) throw new Error('Git filesystem byte limit exceeded');
       let bytes:Uint8Array=new Uint8Array();

@@ -380,7 +380,7 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
       let startMonth = month;
       if (spanAround && spanMonths > 1) {
         const offset = Math.floor((spanMonths - 1) / 2);
-        let totalMonths = startYear * 12 + (startMonth - 1) - offset;
+        const totalMonths = startYear * 12 + (startMonth - 1) - offset;
         startYear = Math.floor(totalMonths / 12);
         startMonth = (totalMonths % 12) + 1;
       }

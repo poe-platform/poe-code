@@ -36,7 +36,7 @@ test("cal renders month, year, -3, -M Monday first, -j Julian, and September 175
   assert.match(monFirst.stdout, /Mo Tu We Th Fr Sa Su/);
 
   const sep1752 = await runCal(["9", "1752"]);
-  assert.match(sep1752.stdout, /1  2 14 15 16/);
+  assert.match(sep1752.stdout, /1 {2}2 14 15 16/);
 
   const three = await runCal(["-3", "9", "2026"]);
   assert.match(three.stdout, /August 2026.*September 2026.*October 2026/);

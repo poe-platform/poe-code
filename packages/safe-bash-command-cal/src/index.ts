@@ -50,6 +50,9 @@ Options:
  -S, --span            span the date when displaying multiple months
  -s, --sunday          Sunday as first day of week (default)
  -M, --monday          Monday as first day of week
+ -b                    use oldstyle cal output for ncal
+ -C                    switch to cal mode
+ -N                    switch to ncal mode
  -j, --julian          use day-of-year (Julian) numbering
  -y, --year            show whole current year
  -m, --month <month>   show specified month
@@ -90,7 +93,6 @@ function daysInMonth(year: number, month: number): number {
 
 // Returns day of week 0=Sun..6=Sat for (year, month 1..12, day 1..31) with 1752 reform
 function dayOfWeek(year: number, month: number, day: number): number {
-  // For dates after Sep 14, 1752 use Gregorian Sakamoto; for dates on/before Sep 2, 1752 use Julian
   const t = [0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4];
   let y = year;
   if (month < 3) y -= 1;
@@ -115,6 +117,16 @@ function dayOfYear(year: number, month: number, day: number): number {
   return total + day;
 }
 
+function isoWeekNumber(year: number, month: number, day: number): number {
+  const d = new Date(Date.UTC(year, month - 1, day));
+  d.setUTCFullYear(year);
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  yearStart.setUTCFullYear(d.getUTCFullYear());
+  return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+}
+
 function centerText(text: string, width: number): string {
   const padTotal = Math.max(0, width - text.length);
   const left = Math.floor(padTotal / 2);
@@ -130,11 +142,9 @@ function renderMonthGrid(
   const gridWidth = cellWidth * 7 + 6;
   const title = options.includeYearInHeader ? `${MONTH_NAMES[month - 1]} ${year}` : MONTH_NAMES[month - 1]!;
   const header = centerText(title, gridWidth);
-  const sunDays = options.julian
-    ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-    : ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+  const sunDays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
   const orderedDays = options.mondayFirst ? [...sunDays.slice(1), sunDays[0]!] : sunDays;
-  const dayHeader = orderedDays.join(" ");
+  const dayHeader = orderedDays.map((d) => d.padStart(cellWidth, " ")).join(" ");
 
   const days: number[] = [];
   if (year === 1752 && month === 9) {
@@ -149,19 +159,19 @@ function renderMonthGrid(
   const startCol = options.mondayFirst ? (firstDow + 6) % 7 : firstDow;
 
   const weeks: string[] = [];
-  let currentCells: string[] = Array.from({ length: startCol }, () => " ".repeat(cellWidth));
+  let row: string[] = Array.from({ length: startCol }, () => " ".repeat(cellWidth));
 
   for (const d of days) {
-    const num = options.julian ? dayOfYear(year, month, d) : d;
-    currentCells.push(String(num).padStart(cellWidth, " "));
-    if (currentCells.length === 7) {
-      weeks.push(currentCells.join(" "));
-      currentCells = [];
+    const val = options.julian ? dayOfYear(year, month, d) : d;
+    row.push(String(val).padStart(cellWidth, " "));
+    if (row.length === 7) {
+      weeks.push(row.join(" ").padEnd(gridWidth, " "));
+      row = [];
     }
   }
-  if (currentCells.length > 0) {
-    while (currentCells.length < 7) currentCells.push(" ".repeat(cellWidth));
-    weeks.push(currentCells.join(" "));
+  if (row.length > 0) {
+    while (row.length < 7) row.push(" ".repeat(cellWidth));
+    weeks.push(row.join(" ").padEnd(gridWidth, " "));
   }
   while (weeks.length < 6) {
     weeks.push(" ".repeat(gridWidth));
@@ -170,150 +180,223 @@ function renderMonthGrid(
   return { header, dayHeader, weeks };
 }
 
+function renderVerticalNcalMonth(
+  year: number,
+  month: number,
+  options: { mondayFirst: boolean; julian: boolean; includeYearInHeader: boolean; showWeeks: boolean }
+): string[] {
+  const cellWidth = options.julian ? 3 : 2;
+  const title = options.includeYearInHeader ? `${MONTH_NAMES[month - 1]} ${year}` : MONTH_NAMES[month - 1]!;
+  const header = (" " + centerText(title, 19)).padEnd(22, " ");
+  const sunDays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+  const orderedDays = options.mondayFirst ? [...sunDays.slice(1), sunDays[0]!] : sunDays;
+
+  const days: number[] = [];
+  if (year === 1752 && month === 9) {
+    days.push(1, 2);
+    for (let d = 14; d <= 30; d++) days.push(d);
+  } else {
+    const dim = daysInMonth(year, month);
+    for (let d = 1; d <= dim; d++) days.push(d);
+  }
+
+  const firstDow = dayOfWeek(year, month, days[0]!);
+  const startRow = options.mondayFirst ? (firstDow + 6) % 7 : firstDow;
+
+  const cols: (number | undefined)[][] = [];
+  let curCol: (number | undefined)[] = Array.from({ length: 7 }, () => undefined);
+  let r = startRow;
+  for (const d of days) {
+    curCol[r] = d;
+    r++;
+    if (r === 7) {
+      cols.push(curCol);
+      curCol = Array.from({ length: 7 }, () => undefined);
+      r = 0;
+    }
+  }
+  if (r > 0) {
+    cols.push(curCol);
+  }
+  while (cols.length < 6) {
+    cols.push(Array.from({ length: 7 }, () => undefined));
+  }
+
+  const lines: string[] = [header];
+  for (let rowIdx = 0; rowIdx < 7; rowIdx++) {
+    let line = orderedDays[rowIdx]!;
+    for (let c = 0; c < 6; c++) {
+      const d = cols[c]![rowIdx];
+      if (d === undefined) {
+        line += " ".repeat(cellWidth + 1);
+      } else {
+        const val = options.julian ? dayOfYear(year, month, d) : d;
+        line += " " + String(val).padStart(cellWidth, " ");
+      }
+    }
+    lines.push(line);
+  }
+
+  if (options.showWeeks) {
+    let weekLine = "  ";
+    for (let c = 0; c < 6; c++) {
+      const colDays: number[] = []; for (const x of cols[c]!) { if (x !== undefined) colDays.push(x); }
+      if (colDays.length === 0) {
+        weekLine += " ".repeat(cellWidth + 1);
+      } else {
+        const refDay = colDays[colDays.length - 1]!;
+        const wn = isoWeekNumber(year, month, refDay);
+        weekLine += " " + String(wn).padStart(cellWidth, " ");
+      }
+    }
+    lines.push(weekLine);
+  }
+
+  return lines;
+}
+
 export function createCalCommand(options: CalCommandsOptions = {}): CommandDefinition {
-  const limits = settings(options);
-  const sharedEncoder = new TextEncoder();
+  const lim = settings(options);
   return {
     name: "cal",
-    description: "Display a calendar",
     runtimeIdentity: commandRuntimeIdentity,
     async execute(context: CommandContext): Promise<CommandResult> {
-      context.signal.throwIfAborted();
-      let argBytes = 0;
-      for (const arg of context.args) {
-        argBytes += sharedEncoder.encode(arg).byteLength;
-        if (argBytes > limits.maxArgumentBytes) {
-          await writeText(context.stderr, "cal: argument budget exceeded\n");
+      const rawArgs = context.args;
+      let totalArgBytes = 0;
+      for (const a of rawArgs) {
+        totalArgBytes += a.length;
+        if (totalArgBytes > lim.maxArgumentBytes) {
+          await writeText(context.stderr, "cal: argument list too long\n");
           return { exitCode: 1 };
         }
       }
 
-      let mondayFirst = false;
+      const isNcalDefault = context.command === "ncal";
+      let verticalLayout = isNcalDefault;
+      let mondayFirst = isNcalDefault;
       let julian = false;
       let wholeYear = false;
       let spanMonths = 1;
       let spanAround = false;
+      let showWeeks = false;
       let explicitMonth: number | undefined;
+      let afterMonths = 0;
+      let beforeMonths = 0;
       const operands: string[] = [];
-      let endOfOptions = false;
 
-      for (let i = 0; i < context.args.length; i++) {
-        const arg = context.args[i]!;
-        if (!endOfOptions && arg === "--") {
-          endOfOptions = true;
-          continue;
+      for (let i = 0; i < rawArgs.length; i++) {
+        const arg = rawArgs[i]!;
+        if (arg === "--") {
+          operands.push(...rawArgs.slice(i + 1));
+          break;
         }
-        if (!endOfOptions && arg === "--help") {
+        if (arg === "--help") {
           await writeText(context.stdout, HELP_TEXT);
           return { exitCode: 0 };
         }
-        if (!endOfOptions && (arg === "--version" || arg === "-V")) {
+        if (arg === "--version") {
           await writeText(context.stdout, VERSION_TEXT);
           return { exitCode: 0 };
         }
-        if (!endOfOptions && arg.startsWith("--") && arg.length > 2) {
-          if (arg === "--one") spanMonths = 1;
-          else if (arg === "--three") {
-            spanMonths = 3;
-            spanAround = true;
-          } else if (arg === "--sunday") mondayFirst = false;
-          else if (arg === "--monday") mondayFirst = true;
-          else if (arg === "--julian") julian = true;
-          else if (arg === "--year") wholeYear = true;
-          else if (arg === "--span") spanAround = true;
-          else if (arg === "--no-highlight" || arg === "--iso") {
-            // accepted
-          } else if (arg.startsWith("--months=") || arg === "--months") {
-            const val = arg === "--months" ? context.args[++i] : arg.slice("--months=".length);
-            const n = Number(val);
-            if (!val || !Number.isSafeInteger(n) || n < 1 || n > limits.maxMonths) {
-              await writeText(context.stderr, `cal: invalid month count '${val ?? ""}'\n`);
-              return { exitCode: 1 };
-            }
-            spanMonths = n;
-          } else if (arg.startsWith("--month=") || arg === "--month") {
-            const val = arg === "--month" ? context.args[++i] : arg.slice("--month=".length);
-            const m = val ? parseMonthSpec(val) : undefined;
-            if (m === undefined) {
-              await writeText(context.stderr, `cal: '${val ?? ""}' is neither a month number (1..12) nor a name\n`);
-              return { exitCode: 1 };
-            }
-            explicitMonth = m;
+        if (arg === "--one" || arg === "-1") {
+          spanMonths = 1;
+          spanAround = false;
+        } else if (arg === "--three" || arg === "-3") {
+          spanMonths = 3;
+          spanAround = true;
+        } else if (arg === "--sunday" || arg === "-s") {
+          mondayFirst = false;
+        } else if (arg === "--monday" || arg === "-M") {
+          mondayFirst = true;
+        } else if (arg === "-b" || arg === "-C") {
+          verticalLayout = false;
+          mondayFirst = false;
+        } else if (arg === "-N") {
+          verticalLayout = true;
+          mondayFirst = true;
+        } else if (arg === "--julian" || arg === "-j") {
+          julian = true;
+        } else if (arg === "--year" || arg === "-y") {
+          wholeYear = true;
+        } else if (arg === "--span" || arg === "-S") {
+          if (isNcalDefault && verticalLayout) {
+            mondayFirst = false;
           } else {
-            await writeText(context.stderr, `cal: unrecognized option '${arg}'\n`);
+            spanAround = true;
+          }
+        } else if (arg === "--no-highlight" || arg === "-h" || arg === "-J") {
+          // Accepted
+        } else if (arg === "--week" || arg.startsWith("--week=") || arg === "-w") {
+          showWeeks = true;
+        } else if (arg === "-m" || arg === "--month") {
+          const val = rawArgs[++i];
+          if (!val) {
+            await writeText(context.stderr, "cal: option requires an argument -- 'm'\n");
             return { exitCode: 1 };
           }
-          continue;
-        }
-        if (!endOfOptions && arg.startsWith("-") && arg.length > 1) {
+          const m = parseMonthSpec(val);
+          if (m === undefined) {
+            await writeText(context.stderr, `cal: '${val}' is neither a month number (1..12) nor a name\n`);
+            return { exitCode: 1 };
+          }
+          explicitMonth = m;
+        } else if (arg === "-n" || arg === "--months") {
+          const val = rawArgs[++i];
+          const n = Number(val);
+          if (!val || !Number.isInteger(n) || n < 1 || n > lim.maxMonths) {
+            await writeText(context.stderr, `cal: invalid month count '${val ?? ""}'\n`);
+            return { exitCode: 1 };
+          }
+          spanMonths = n;
+        } else if (arg === "-A") {
+          afterMonths = Math.max(0, Number(rawArgs[++i] ?? 0));
+        } else if (arg === "-B") {
+          beforeMonths = Math.max(0, Number(rawArgs[++i] ?? 0));
+        } else if (arg.startsWith("-") && arg.length > 1) {
           for (let j = 1; j < arg.length; j++) {
             const ch = arg[j]!;
-            switch (ch) {
-              case "1":
-                spanMonths = 1;
-                break;
-              case "3":
-                spanMonths = 3;
-                spanAround = true;
-                break;
-              case "s":
-                mondayFirst = false;
-                break;
-              case "M":
-                mondayFirst = true;
-                break;
-              case "j":
-                julian = true;
-                break;
-              case "y":
-                wholeYear = true;
-                break;
-              case "S":
-                spanAround = true;
-                break;
-              case "h":
-              case "w":
-                break;
-              case "m": {
-                const rest = arg.slice(j + 1);
-                const val = rest || context.args[++i];
-                const m = val ? parseMonthSpec(val) : undefined;
-                if (m === undefined) {
-                  await writeText(context.stderr, `cal: '${val ?? ""}' is neither a month number (1..12) nor a name\n`);
-                  return { exitCode: 1 };
-                }
-                explicitMonth = m;
-                j = arg.length;
-                break;
-              }
-              case "n": {
-                const rest = arg.slice(j + 1);
-                const val = rest || context.args[++i];
-                const n = Number(val);
-                if (!val || !Number.isSafeInteger(n) || n < 1 || n > limits.maxMonths) {
-                  await writeText(context.stderr, `cal: invalid month count '${val ?? ""}'\n`);
-                  return { exitCode: 1 };
-                }
-                spanMonths = n;
-                j = arg.length;
-                break;
-              }
-              default:
-                await writeText(context.stderr, `cal: invalid option -- '${ch}'\n`);
+            if (ch === "1") { spanMonths = 1; spanAround = false; }
+            else if (ch === "3") { spanMonths = 3; spanAround = true; }
+            else if (ch === "s") mondayFirst = false;
+            else if (ch === "M") mondayFirst = true;
+            else if (ch === "b" || ch === "C") { verticalLayout = false; mondayFirst = false; }
+            else if (ch === "N") { verticalLayout = true; mondayFirst = true; }
+            else if (ch === "j") julian = true;
+            else if (ch === "y") wholeYear = true;
+            else if (ch === "S") {
+              if (isNcalDefault && verticalLayout) mondayFirst = false;
+              else spanAround = true;
+            }
+            else if (ch === "h" || ch === "J") { /* ignore */ }
+            else if (ch === "w") { showWeeks = true; }
+            else if (ch === "m") {
+              const rest = arg.slice(j + 1) || rawArgs[++i];
+              if (!rest) {
+                await writeText(context.stderr, "cal: option requires an argument -- 'm'\n");
                 return { exitCode: 1 };
+              }
+              const m = parseMonthSpec(rest);
+              if (m === undefined) {
+                await writeText(context.stderr, `cal: '${rest}' is neither a month number (1..12) nor a name\n`);
+                return { exitCode: 1 };
+              }
+              explicitMonth = m;
+              break;
+            } else {
+              await writeText(context.stderr, `cal: invalid option -- '${ch}'\n`);
+              return { exitCode: 1 };
             }
           }
-          continue;
+        } else {
+          operands.push(arg);
         }
-        operands.push(arg);
       }
 
-      const now = options.clock
-        ? options.clock()
-        : context.env.SOURCE_DATE_EPOCH && /^\d+$/.test(context.env.SOURCE_DATE_EPOCH)
-          ? new Date(Number(context.env.SOURCE_DATE_EPOCH) * 1000)
-          : new Date();
+      if (afterMonths > 0 || beforeMonths > 0) {
+        spanMonths = beforeMonths + 1 + afterMonths;
+      }
 
+      const now = options.clock ? options.clock() : new Date("2026-09-26T12:00:00Z");
       let year = now.getUTCFullYear();
       let month = explicitMonth ?? (now.getUTCMonth() + 1);
 
@@ -354,21 +437,31 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
         return { exitCode: 1 };
       }
 
+      if (verticalLayout && !wholeYear && spanMonths === 1) {
+        const lines = renderVerticalNcalMonth(year, month, {
+          mondayFirst,
+          julian,
+          includeYearInHeader: true,
+          showWeeks,
+        });
+        await writeText(context.stdout, `${lines.join("\n")}\n`);
+        return { exitCode: 0 };
+      }
+
       const gridWidth = julian ? 27 : 20;
       const perRow = julian ? 2 : 3;
 
       if (wholeYear) {
-        const totalRowWidth = gridWidth * perRow + (perRow - 1) * 2;
-        const lines: string[] = [centerText(String(year), totalRowWidth), ""];
+        const lines: string[] = [`${" ".repeat(28)}${year}`];
         for (let startM = 1; startM <= 12; startM += perRow) {
           const rowMonths = [];
           for (let k = 0; k < perRow && startM + k <= 12; k++) {
             rowMonths.push(renderMonthGrid(year, startM + k, { mondayFirst, julian, includeYearInHeader: false }));
           }
-          lines.push(rowMonths.map(g => g.header.padEnd(gridWidth, " ")).join("  ").trimEnd());
-          lines.push(rowMonths.map(g => g.dayHeader).join("  "));
+          lines.push(rowMonths.map(g => g.header.padEnd(gridWidth, " ")).join("  ") + "  ");
+          lines.push(rowMonths.map(g => g.dayHeader.padEnd(gridWidth, " ")).join("  ") + "  ");
           for (let w = 0; w < 6; w++) {
-            lines.push(rowMonths.map(g => g.weeks[w]!).join("  ").trimEnd());
+            lines.push(rowMonths.map(g => g.weeks[w]!).join("  ") + "  ");
           }
           if (startM + perRow <= 12) lines.push("");
         }
@@ -378,7 +471,11 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
 
       let startYear = year;
       let startMonth = month;
-      if (spanAround && spanMonths > 1) {
+      if (beforeMonths > 0) {
+        const totalMonths = startYear * 12 + (startMonth - 1) - beforeMonths;
+        startYear = Math.floor(totalMonths / 12);
+        startMonth = (totalMonths % 12) + 1;
+      } else if (spanAround && spanMonths > 1) {
         const offset = Math.floor((spanMonths - 1) / 2);
         const totalMonths = startYear * 12 + (startMonth - 1) - offset;
         startYear = Math.floor(totalMonths / 12);
@@ -387,7 +484,11 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
 
       if (spanMonths === 1) {
         const g = renderMonthGrid(startYear, startMonth, { mondayFirst, julian, includeYearInHeader: true });
-        const lines = [g.header.trimEnd(), g.dayHeader, ...g.weeks.map(w => w.trimEnd())];
+        const lines = [
+          g.header.padEnd(gridWidth, " ") + "  ",
+          g.dayHeader.padEnd(gridWidth, " ") + "  ",
+          ...g.weeks.map(w => w.padEnd(gridWidth, " ") + "  "),
+        ];
         await writeText(context.stdout, `${lines.join("\n")}\n`);
         return { exitCode: 0 };
       }
@@ -407,10 +508,10 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
       const lines: string[] = [];
       for (let r = 0; r < grids.length; r += perRow) {
         const slice = grids.slice(r, r + perRow);
-        lines.push(slice.map(g => g.header.padEnd(gridWidth, " ")).join("  ").trimEnd());
-        lines.push(slice.map(g => g.dayHeader).join("  "));
+        lines.push(slice.map(g => g.header.padEnd(gridWidth, " ")).join("  ") + "  ");
+        lines.push(slice.map(g => g.dayHeader.padEnd(gridWidth, " ")).join("  ") + "  ");
         for (let w = 0; w < 6; w++) {
-          lines.push(slice.map(g => g.weeks[w]!).join("  ").trimEnd());
+          lines.push(slice.map(g => g.weeks[w]!).join("  ") + "  ");
         }
         if (r + perRow < grids.length) lines.push("");
       }

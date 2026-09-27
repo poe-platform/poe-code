@@ -6,11 +6,12 @@ import { createFsFromVolume, Volume } from "memfs";
 import { build, type BuildResult } from "esbuild";
 import { beforeAll, expect, it } from "vitest";
 import { resolveBrowserOpBuild, resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
-import { rewriteModuleSpecifiers } from "./package-safe.mjs";
 import { publishBundleOutputs } from "./publish-bundle.mjs";
 
+import type { LlmProvider, LlmRequest } from "../packages/safe-bash/src/commands/llm/types.js";
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-// Build and rewrite once per test-file run; consumer builds and VMs stay separate.
+// Build the public browser graph once and reuse its evaluated exports in workflows.
 let portableBuild: BuildResult;
 let filesystemBuild: BuildResult;
 let browserFixtureBuild: BuildResult;
@@ -51,6 +52,7 @@ async function bundlePublicConsumer(contents: string) {
     plugins: [{
       name: "public-built-shell-entries",
       setup(builder) {
+        builder.onResolve({ filter: /^poe-code\/safe-fs\/core$/ }, () => ({ path: "@poe-platform/safe-fs/core", external: true }));
         builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/commands\/(?:xml|yq|network|node|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings|llm(?:\/providers)?))?$/ }, args => ({
           path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
           namespace: "built-shell",
@@ -67,7 +69,7 @@ async function bundlePublicConsumer(contents: string) {
   return consumer.outputFiles![0]!.text;
 }
 
-const commandFactories = [["xml", "createXmlCommands"], ["yq", "createYqCommands"], ["network", "createNetworkCommands"], ["llm", "createLlmCommands"], ["llm", "llmCommands"], ["llm", "createOpenAiProvider"], ["llm", "createElevenLabsProvider"], ["csplit", "createCsplitCommands"], ["pr", "createPrCommands"], ["tsort", "createTsortCommands"], ["factor", "createFactorCommands"], ["getopt", "createGetoptCommands"], ["hexdump", "createHexdumpCommands"], ["iconv", "createIconvCommands"], ["line-endings", "createDos2unixCommand"], ["line-endings", "createUnix2dosCommand"], ["line-endings", "createLineEndingCommands"], ["line-endings", "lineEndingCommands"]];
+const commandFactories = [["node", "nodeCommands"], ["node", "createNodeCommands"], ["node", "createNodeCommand"], ["xml", "createXmlCommands"], ["yq", "createYqCommands"], ["network", "createNetworkCommands"], ["llm", "createLlmCommands"], ["llm", "llmCommands"], ["llm", "createOpenAiProvider"], ["llm", "createElevenLabsProvider"], ["csplit", "createCsplitCommands"], ["pr", "createPrCommands"], ["tsort", "createTsortCommands"], ["factor", "createFactorCommands"], ["getopt", "createGetoptCommands"], ["hexdump", "createHexdumpCommands"], ["iconv", "createIconvCommands"], ["line-endings", "createDos2unixCommand"], ["line-endings", "createUnix2dosCommand"], ["line-endings", "createLineEndingCommands"], ["line-endings", "lineEndingCommands"]];
 let factoryIdentity: boolean[];
 
 it.each(commandFactories.map(([command, factory], index) => [command, factory, index] as const))("shares the public %s command factory across portable root and subpath entries", async (command, _factory, index) => {
@@ -77,46 +79,28 @@ it.each(commandFactories.map(([command, factory], index) => [command, factory, i
   expect(factoryIdentity[index]).toBe(true);
 });
 
-it.each(["nodeCommands", "safeJsCommands"])("registers only sandboxed node through the portable %s API", async factory => {
-  const compiled = await bundlePublicConsumer(`
-    import { Shell, createMemoryFileSystem, ${factory} as configure, nodeCommands, createNodeCommands, createNodeCommand } from "@poe-platform/safe-bash";
-    import { nodeCommands as leafPlugin, createNodeCommands as leafCommands, createNodeCommand as leafCommand } from "@poe-platform/safe-bash/commands/node";
-    export async function run() {
-      const sources = [];
-      const imports = [];
-      const runtime = {
-        createBudget: options => options,
-        makeFsModule: () => ({ readFile: async () => "virtual" }),
-        declareHostOperation: operation => operation,
-        async run(source, options) {
-          sources.push(source);
-          imports.push({ names: options.importSpecifiers, aliases: ["fs/promises", "node:fs/promises"].every(name => options.modules[name].readFile === options.modules.fs.promises.readFile) });
-          options.sink.log(3);
-          return { ok: true };
-        },
-      };
-      const shell = new Shell({ fs: createMemoryFileSystem() }).use(configure({ runtime }));
-      try {
-        const result = await shell.exec("node -p '1 + 2'");
-        const missing = await shell.exec("safejs --help");
-        return {
-          result, missing, sources, imports, names: shell.commands.list().map(command => command.name),
-          shared: nodeCommands === leafPlugin && createNodeCommands === leafCommands && createNodeCommand === leafCommand,
-        };
-      } finally { await shell.dispose(); }
-    }
-  `);
-  const sandbox = createContext({
-    TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
-    AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
-    require(name: string) {
-      if (name !== "@poe-platform/safe-fs/core") throw new Error(name);
-      return filesystem;
-    },
-  });
-  const consumer = runInContext(`(function(){ const module = { exports: {} }; ${compiled}; return module.exports; })()`, sandbox);
-  const result = await consumer.run();
-  expect(result.shared).toBe(true);
+it.each(["nodeCommands", "safeJsCommands"] as const)("registers only sandboxed node through the portable %s API", async factory => {
+  const result = await runInContext(`(async () => {
+    const sources = [];
+    const imports = [];
+    const runtime = {
+      createBudget: options => options,
+      makeFsModule: () => ({ readFile: async () => "virtual" }),
+      declareHostOperation: operation => operation,
+      async run(source, options) {
+        sources.push(source);
+        imports.push({ names: options.importSpecifiers, aliases: ["fs/promises", "node:fs/promises"].every(name => options.modules[name].readFile === options.modules.fs.promises.readFile) });
+        options.sink.log(3);
+        return { ok: true };
+      },
+    };
+    const shell = new browser.Shell({ fs: browser.createMemoryFileSystem() }).use(browser[${JSON.stringify(factory)}]({ runtime }));
+    try {
+      const result = await shell.exec("node -p '1 + 2'");
+      const missing = await shell.exec("safejs --help");
+      return { result, missing, sources, imports, names: shell.commands.list().map(command => command.name) };
+    } finally { await shell.dispose(); }
+  })()`, browserRealm);
   expect(result.names).toEqual(["node"]);
   expect(result.result).toMatchObject({ exitCode: 0, stdout: "3\n", stderr: "" });
   expect(result.missing).toMatchObject({ exitCode: 127, stdout: "" });
@@ -125,41 +109,24 @@ it.each(["nodeCommands", "safeJsCommands"])("registers only sandboxed node throu
 });
 
 it("runs injected llm providers and binary pipelines through the browser command subpath", async () => {
-  const compiled = await bundlePublicConsumer(`
-    import { Shell, agentCommands, createMemoryFileSystem } from "@poe-platform/safe-bash";
-    import { llmCommands } from "@poe-platform/safe-bash/commands/llm";
-    export async function run() {
-      const requests = [];
-      const providers = [{
-        name: "captions", models: [{ id: "describe", attachmentTypes: ["image/*"] }],
-        async *complete(request) { requests.push(request); yield "a fox"; }
-      }, {
-        name: "audio", models: [{ id: "voice", aliases: ["tts"], outputType: "audio/mpeg" }],
-        async *complete(request) { requests.push(request); yield new Uint8Array([255, 0, 128]); }
-      }];
-      const fs = createMemoryFileSystem();
-      await fs.writeFile("/fox.png", new Uint8Array([137,80,78,71,13,10,26,10]));
-      const shell = new Shell({ fs }).use(agentCommands()).use(llmCommands({ providers, defaultModel: "describe" }));
-      try {
-        const result = await shell.exec("llm -a /fox.png 'caption' | llm -m tts > /voice.mp3; base64 /voice.mp3");
-        return { result, requests };
-      } finally { await shell.dispose(); }
-    }
-  `);
-  const sandbox = createContext({
-    TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
-    AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
-    require(name: string) {
-      if (name !== "@poe-platform/safe-fs/core") throw new Error(name);
-      return filesystem;
-    },
-  });
-  const consumer = runInContext(`(function(){ const module = { exports: {} }; ${compiled}; return module.exports; })()`, sandbox);
-  const { result, requests } = await consumer.run();
-  expect(result).toMatchObject({ exitCode: 0, stdout: "/wCA\n", stderr: "" });
-  expect(requests).toHaveLength(2);
-  expect(requests[0]).toMatchObject({ model: "describe", prompt: "caption", attachments: [{ mimeType: "image/png" }] });
-  expect(requests[1]).toMatchObject({ model: "voice", prompt: "a fox\n" });
+  const requests: LlmRequest[] = [];
+  const providers: LlmProvider[] = [{
+    name: "captions", models: [{ id: "describe", attachmentTypes: ["image/*"] }],
+    async *complete(request) { requests.push(request); yield "a fox"; }
+  }, {
+    name: "audio", models: [{ id: "voice", aliases: ["tts"], outputType: "audio/mpeg" }],
+    async *complete(request) { requests.push(request); yield new Uint8Array([255, 0, 128]); }
+  }];
+  const fs = browser.createMemoryFileSystem();
+  await fs.writeFile("/fox.png", new Uint8Array([137,80,78,71,13,10,26,10]));
+  const shell = new browser.Shell({ fs }).use(browser.agentCommands()).use(browser.llmCommands({ providers, defaultModel: "describe" }));
+  try {
+    const result = await shell.exec("llm -a /fox.png 'caption' | llm -m tts > /voice.mp3; base64 /voice.mp3");
+    expect(result).toMatchObject({ exitCode: 0, stdout: "/wCA\n", stderr: "" });
+    expect(requests).toHaveLength(2);
+    expect(requests[0]).toMatchObject({ model: "describe", prompt: "caption", attachments: [{ mimeType: "image/png" }] });
+    expect(requests[1]).toMatchObject({ model: "voice", prompt: "a fox\n" });
+  } finally { await shell.dispose(); }
 });
 
 it("runs both reference llm transports without Node globals in a browser consumer", async () => {
@@ -356,6 +323,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
 type BrowserShell = typeof import("../packages/safe-bash/src/core.js");
 type CoreFs = typeof import("../packages/safe-fs/src/core.js");
 let browser: BrowserShell;
+let browserRealm: ReturnType<typeof createContext>;
 let filesystem: CoreFs;
 
 beforeAll(async () => {
@@ -374,11 +342,7 @@ beforeAll(async () => {
 beforeAll(async () => {
   for (const output of portableBuild.outputFiles!.filter(output => output.path.endsWith(".js"))) {
     artifacts.mkdirSync(path.dirname(output.path), { recursive: true });
-    const metadata = portableBuild.metafile!.outputs[path.relative(root, output.path).split(path.sep).join("/")]!;
-    const contents = metadata.imports.some(item => item.path === "poe-code/safe-fs/core")
-      ? rewriteModuleSpecifiers(output.path, output.text, specifier => specifier === "poe-code/safe-fs/core" ? "@poe-platform/safe-fs/core" : specifier)
-      : output.text;
-    artifacts.writeFileSync(output.path, contents);
+    artifacts.writeFileSync(output.path, output.contents);
   }
 });
 
@@ -399,6 +363,8 @@ beforeAll(async () => {
   filesystem = runInContext(`(function(){ const module = { exports: {} }; ${filesystemBuild.outputFiles![0]!.text}; return module.exports; })()`, sandbox) as CoreFs;
   sandbox.canonical = filesystem;
   browser = runInContext(`(function(){ const module = { exports: {} }; const require = name => { if (name !== "@poe-platform/safe-fs/core") throw new Error(name); return canonical; }; ${compiled}; return module.exports; })()`, sandbox) as BrowserShell;
+  browserRealm = sandbox;
+  sandbox.browser = browser;
   factoryIdentity = (browser as BrowserShell & { factoryIdentity: boolean[] }).factoryIdentity;
   expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof setImmediate", sandbox)).toBe("undefined:undefined:undefined");
 });
@@ -428,19 +394,22 @@ beforeAll(async () => {
       setup(builder) {
         builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/.*)?$/ }, args => ({
           path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
-          namespace: "built-shell",
+          namespace: "evaluated-shell",
         }));
-        builder.onResolve({ filter: /^@poe-platform\/(?:safe-fs\/core|safe-js\/fs\/core)$/ }, () => ({
-          path: path.join(root, "packages/safe-fs/src/core.ts"),
+        builder.onLoad({ filter: /.*/, namespace: "evaluated-shell" }, args => {
+          const output = portableBuild.metafile!.outputs[path.relative(root, args.path)];
+          if (!output) throw new Error(`Missing browser entry: ${args.path}`);
+          for (const name of output.exports) {
+            if (!(name in browser)) throw new Error(`Missing evaluated browser export: ${name}`);
+          }
+          return { contents: output.exports.map(name => `export const ${name} = globalThis.browser.${name};`).join("\n"), loader: "js" };
+        });
+        builder.onResolve({ filter: /^@poe-platform\/(?:safe-fs\/core|safe-js\/fs\/core)$/ }, () => ({ path: "core", namespace: "evaluated-fs" }));
+        builder.onLoad({ filter: /.*/, namespace: "evaluated-fs" }, () => ({
+          contents: Object.keys(filesystem).map(name => `export const ${name} = globalThis.canonical.${name};`).join("\n"), loader: "js",
         }));
         builder.onResolve({ filter: /^@poe-platform\/safe-fs\/testing\/atomic$/ }, () => ({
           path: path.join(root, "packages/safe-fs/src/testing/atomic-filesystem.ts"),
-        }));
-        builder.onResolve({ filter: /^\./, namespace: "built-shell" }, args => ({
-          path: path.resolve(path.dirname(args.importer), args.path), namespace: "built-shell",
-        }));
-        builder.onLoad({ filter: /.*/, namespace: "built-shell" }, args => ({
-          contents: artifacts.readFileSync(args.path, "utf8").toString(), loader: "js",
         }));
       },
     }],
@@ -451,11 +420,8 @@ it("executes the maintained browser fixture with all top-level workflows in a No
   const result = browserFixtureBuild;
   expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
   expect(Object.values(result.metafile!.outputs).flatMap(output => output.exports)).toEqual([]);
-  const sandbox = createContext({
-    TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
-    AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, URL, TypeError,
-    crypto: globalThis.crypto, performance, console,
-  });
+  const sandbox = browserRealm;
+  Object.assign(sandbox, { URL, TypeError, console });
   factoryIdentity = (browser as BrowserShell & { factoryIdentity: boolean[] }).factoryIdentity;
   expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof require", sandbox)).toBe("undefined:undefined:undefined");
   await runInContext(`(async () => { ${result.outputFiles![0]!.text} })()`, sandbox);

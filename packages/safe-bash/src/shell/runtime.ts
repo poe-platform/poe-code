@@ -4410,20 +4410,22 @@ export class Runtime {
     let out = "";
     for (let i = 0; i < word.parts.length; i++) {
       const p = word.parts[i]!;
+      let val: ShellValue | undefined;
       if (p.kind === "text") {
         if (p.byteValue || (!p.quoted && i === 0 && p.value.startsWith("~"))) return undefined;
-        out += p.quoted ? p.value.replace(/[\\*?[\]()!^-]/g, "\\$&") : p.value;
+        val = p.value;
       } else if (p.kind === "variable") {
-        let val: ShellValue | undefined;
         try {
           val = this.fastValueWord({ parts: [p] } as Word, rawState, io, false, false, false, false, undefined, diagnosticLine);
         } catch {
           this.signal.throwIfAborted();
           return undefined;
         }
-        if (typeof val !== "string") return undefined;
-        out += p.quoted ? val.replace(/[\\*?[\]()!^-]/g, "\\$&") : val;
       } else return undefined;
+      if (typeof val !== "string") return undefined;
+      if (p.quoted) {
+        for (const character of val) out += "\\*?[]-^()|+!@:".includes(character) ? "\\" + character : character;
+      } else out += val;
     }
     return out;
   }
@@ -21789,7 +21791,12 @@ export class Runtime {
       return await trimParameter(value, parts, part.operator!, byteLocale(state.variables), work, io[valueScope], limit, !!state.extglob);
     }
     const text = shellValueText(value);
-    const patternFields = await this.word(part.alternate!, state, this.parameterOperandIO(part.alternate!, state, io), false, true, hereString);
+    // The anchor precedes the lexical pattern, so Bash does not expand a following tilde.
+    const anchored = part.operator === "/#" || part.operator === "/%";
+    const patternWord: Word = anchored
+      ? { ...part.alternate!, parts: [{ kind: "text", value: "", quoted: true }, ...part.alternate!.parts] }
+      : part.alternate!;
+    const patternFields = await this.word(patternWord, state, this.parameterOperandIO(part.alternate!, state, io), false, true, hereString);
     let patternUnits = 0;
     for (const field of patternFields) {
       const pending = stringCheckpoint(work, field.length + 1);
@@ -21925,6 +21932,8 @@ export class Runtime {
       } else if (part.kind === "variable") {
         // Default operands containing name lists need the field-preserving evaluator.
         if (split && part.alternate?.parts.some(entry => entry.kind === "variable" && entry.prefixNames === "@")) return undefined;
+        const alternateStart = part.alternate?.parts[0];
+        if (alternateStart?.kind === "text" && !alternateStart.quoted && alternateStart.value.startsWith("~") && part.operator !== "/#" && part.operator !== "/%") return undefined;
         if (split && !part.quoted && (rawVars.IFS !== undefined && rawVars.IFS !== " \t\n")) return undefined;
         if ( !part.indirect && !part.prefixNames && !part.length && !part.substring && !part.transform && part.operator === undefined && getArraySelector(part) === undefined && (part.name === "?" || part.name === "#" || (part.name.length === 1 && part.name >= "1" && part.name <= "9"))) {
           let val: ShellValue | undefined;

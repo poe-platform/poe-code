@@ -125,6 +125,11 @@ test("issue 3813 Bash parity regressions remain in active discovery", () => {
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/fast-path-parity.test.ts"));
 });
 
+test("fast pattern and printf parity regressions remain in active discovery", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/fast-pattern-printf-parity.test.ts"));
+});
+
 test("compound fast-path replay regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const active = discoverTests(root, loadBoundaries(root));

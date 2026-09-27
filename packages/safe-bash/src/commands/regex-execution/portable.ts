@@ -1,4 +1,4 @@
-import { combineManagedSignals } from "../../fs/creation-mask.js";
+import { combineManagedSignals, isManagedAbortSignal } from "../../fs/creation-mask.js";
 import type { BoundedRegexProvider, RegexWorker } from "./provider.js";
 import type { CommandContext, CommandResult } from "../../contracts/command.js";
 import type { ByteSource } from "../../contracts/io.js";
@@ -727,7 +727,9 @@ export class RegexSession {
     if (!this.controller) {
       this.controller = new AbortController();
       if (this.closed) this.controller.abort(this.signal.aborted ? this.signal.reason : closedSessionError);
-      this.requestSignal = combineManagedSignals(this.signal, this.controller.signal);
+      this.requestSignal = isManagedAbortSignal(this.signal)
+        ? combineManagedSignals(this.signal, this.controller.signal)
+        : AbortSignal.any([this.signal, this.controller.signal]);
       this.retirements = new Set();
     }
     return this.requestSignal;

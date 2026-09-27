@@ -84,7 +84,7 @@ test("ncal renders vertical month layout by default, supports -w ISO week number
 
   const feb2024Weeks = await runNcal(["-h", "-w", "2", "2024"]);
   assert.equal(feb2024Weeks.exitCode, 0);
-  assert.match(feb2024Weeks.stdout, /\n    5  6  7  8  9   \n$/);
+  assert.ok(feb2024Weeks.stdout.endsWith("\n    5  6  7  8  9   \n"));
 
   const feb2024Horizontal = await runNcal(["-h", "-b", "2", "2024"]);
   assert.equal(feb2024Horizontal.exitCode, 0);

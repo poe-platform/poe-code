@@ -7134,7 +7134,7 @@ export class Runtime {
         const w2Plain = w2?.plain ?? (w2?.parts.length === 1 && w2.parts[0]!.kind === "text" ? w2.parts[0]!.value : undefined);
         const isPrintfV = command.words.length >= 4 && command.words[1]?.plain === "-v" && w2 !== undefined && (
           (w2Plain !== undefined && /^[a-zA-Z_][a-zA-Z_0-9]*(?:\[[^\]$\x60"']+\])?$/.test(w2Plain) && !w2Plain.startsWith("OPTIND") && !w2Plain.startsWith("PIPESTATUS")) ||
-          (w2.parts[0]?.kind === "text" && /^[a-zA-Z_][a-zA-Z_0-9]*\[/.test(w2.parts[0].value) && w2.parts[w2.parts.length - 1]?.kind === "text" && w2.parts[w2.parts.length - 1]!.value.endsWith("]") && isNoBraceSyncWord(w2))
+          (w2.parts[0]?.kind === "text" && /^[a-zA-Z_][a-zA-Z_0-9]*\[/.test(w2.parts[0].value) && w2.parts[w2.parts.length - 1]?.kind === "text" && (w2.parts[w2.parts.length - 1] as { value: string }).value.endsWith("]") && isNoBraceSyncWord(w2))
         );
         const fmtIdx = isPrintfV ? 3 : 1;
         const fmtWord = command.words[fmtIdx];
@@ -10628,7 +10628,7 @@ export class Runtime {
           rawState.lastArgument = lastArg;
           if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
           if (!existing) {
-            if (store) { if (publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined; } else {
+            if (store) { if (publishPipelineStatus(rawState, singleStatusZero, this.signal, io[invocationScope])) return undefined; } else {
               monitor.lazyPipeStatus = singleStatusZero;
               monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
             }
@@ -17035,7 +17035,7 @@ export class Runtime {
               }
               const ifsVal = monitor?.values.get("IFS", rawVars.IFS ?? " ") ?? rawVars.IFS ?? " ";
               if (validElemOp && typeof ifsVal === "string" && (ifsVal.length === 0 || ifsVal.charCodeAt(0) < 128)) {
-                const sep = selector.separator === "@" ? " " : ifsVal.length > 0 ? ifsVal[0]! : "";
+                const sep = (selector.separator as string) === "@" ? " " : ifsVal.length > 0 ? ifsVal[0]! : "";
                 const evalSliceInt = (w: Word): number | undefined => {
                   if (w.parts.length === 0) return 0;
                   const expanded = this.fastValueWord(w, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);

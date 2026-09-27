@@ -1,0 +1,21 @@
+# safe-bash-command-id
+
+Deterministic user and group identity reporting for sandboxed shell scripts.
+
+Provide GNU coreutils-compatible `id` output (`uid`, `gid`, supplementary `groups`, and `Sandbox` security context) so build and setup scripts run unmodified.
+
+## Features
+
+- `-u` / `--user`, `-g` / `--group`, `-G` / `--groups` — Query effective or real numeric IDs
+- `-n` / `--name` — Resolve symbolic user and group names (`sandbox`)
+- `-Z` / `--context` — Report the `Sandbox` VFS-ish/GNU security context
+- `-z` / `--zero` — Delimit entries with NUL bytes for pipeline safety
+
+## Quick Start
+
+```ts
+import { createMemoryFileSystem, Shell, agentCommands } from "@poe-platform/safe-bash";
+
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+const res = await shell.exec("id -un"); // "sandbox\n"
+```

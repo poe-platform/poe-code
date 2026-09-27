@@ -368,6 +368,132 @@
       ],
       "safe-bash-compression-engine/native/generated/zstd": [
         "../safe-bash-compression-engine/src/native/zstd.ts"
+      ],
+      "safe-bash-command-id": [
+        "../safe-bash-command-id/src/index.ts"
+      ],
+      "safe-bash-command-id/*": [
+        "../safe-bash-command-id/src/*.ts",
+        "../safe-bash-command-id/src/*"
+      ],
+      "safe-bash-command-whoami": [
+        "../safe-bash-command-whoami/src/index.ts"
+      ],
+      "safe-bash-command-whoami/*": [
+        "../safe-bash-command-whoami/src/*.ts",
+        "../safe-bash-command-whoami/src/*"
+      ],
+      "safe-bash-command-uname": [
+        "../safe-bash-command-uname/src/index.ts"
+      ],
+      "safe-bash-command-uname/*": [
+        "../safe-bash-command-uname/src/*.ts",
+        "../safe-bash-command-uname/src/*"
+      ],
+      "safe-bash-command-hostname": [
+        "../safe-bash-command-hostname/src/index.ts"
+      ],
+      "safe-bash-command-hostname/*": [
+        "../safe-bash-command-hostname/src/*.ts",
+        "../safe-bash-command-hostname/src/*"
+      ],
+      "safe-bash-command-nproc": [
+        "../safe-bash-command-nproc/src/index.ts"
+      ],
+      "safe-bash-command-nproc/*": [
+        "../safe-bash-command-nproc/src/*.ts",
+        "../safe-bash-command-nproc/src/*"
+      ],
+      "safe-bash-command-shuf": [
+        "../safe-bash-command-shuf/src/index.ts"
+      ],
+      "safe-bash-command-shuf/*": [
+        "../safe-bash-command-shuf/src/*.ts",
+        "../safe-bash-command-shuf/src/*"
+      ],
+      "safe-bash-command-yes": [
+        "../safe-bash-command-yes/src/index.ts"
+      ],
+      "safe-bash-command-yes/*": [
+        "../safe-bash-command-yes/src/*.ts",
+        "../safe-bash-command-yes/src/*"
+      ],
+      "safe-bash-command-dd": [
+        "../safe-bash-command-dd/src/index.ts"
+      ],
+      "safe-bash-command-dd/*": [
+        "../safe-bash-command-dd/src/*.ts",
+        "../safe-bash-command-dd/src/*"
+      ],
+      "safe-bash-command-numfmt": [
+        "../safe-bash-command-numfmt/src/index.ts"
+      ],
+      "safe-bash-command-numfmt/*": [
+        "../safe-bash-command-numfmt/src/*.ts",
+        "../safe-bash-command-numfmt/src/*"
+      ],
+      "safe-bash-command-envsubst": [
+        "../safe-bash-command-envsubst/src/index.ts"
+      ],
+      "safe-bash-command-envsubst/*": [
+        "../safe-bash-command-envsubst/src/*.ts",
+        "../safe-bash-command-envsubst/src/*"
+      ],
+      "safe-bash-command-cal": [
+        "../safe-bash-command-cal/src/index.ts"
+      ],
+      "safe-bash-command-cal/*": [
+        "../safe-bash-command-cal/src/*.ts",
+        "../safe-bash-command-cal/src/*"
+      ],
+      "safe-bash-command-pathchk": [
+        "../safe-bash-command-pathchk/src/index.ts"
+      ],
+      "safe-bash-command-pathchk/*": [
+        "../safe-bash-command-pathchk/src/*.ts",
+        "../safe-bash-command-pathchk/src/*"
+      ],
+      "safe-bash-command-getconf": [
+        "../safe-bash-command-getconf/src/index.ts"
+      ],
+      "safe-bash-command-getconf/*": [
+        "../safe-bash-command-getconf/src/*.ts",
+        "../safe-bash-command-getconf/src/*"
+      ],
+      "safe-bash-command-sha512sum": [
+        "../safe-bash-command-sha512sum/src/index.ts"
+      ],
+      "safe-bash-command-sha512sum/*": [
+        "../safe-bash-command-sha512sum/src/*.ts",
+        "../safe-bash-command-sha512sum/src/*"
+      ],
+      "safe-bash-command-bzip2": [
+        "../safe-bash-command-bzip2/src/index.ts"
+      ],
+      "safe-bash-command-bzip2/*": [
+        "../safe-bash-command-bzip2/src/*.ts",
+        "../safe-bash-command-bzip2/src/*"
+      ],
+      "safe-bash-command-locale": [
+        "../safe-bash-command-locale/src/index.ts"
+      ],
+      "safe-bash-command-locale/*": [
+        "../safe-bash-command-locale/src/*.ts",
+        "../safe-bash-command-locale/src/*"
+      ],
+      "safe-bash-command-df": [
+        "../safe-bash-command-df/src/index.ts"
+      ],
+      "safe-bash-command-df/*": [
+        "../safe-bash-command-df/src/*.ts",
+        "../safe-bash-command-df/src/*"
+      ],
+      "safe-bash-command-sqlite3": [
+        "../safe-bash-command-sqlite3/src/index.ts"
+      ],
+      "safe-bash-command-sqlite3/*": [
+        "../safe-bash-command-sqlite3/src/*.ts",
+        "../safe-bash-command-sqlite3/src/*"
       ]
     },
     "baseUrl": "."

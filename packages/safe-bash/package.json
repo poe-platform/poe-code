@@ -516,6 +516,66 @@
     "./worker-entry": {
       "types": "./dist/worker/entry.d.ts",
       "import": "./dist/worker/entry.js"
+    },
+    "./commands/id": {
+      "types": "./dist/commands/id/index.d.ts",
+      "import": "./dist/commands/id/index.js"
+    },
+    "./commands/whoami": {
+      "types": "./dist/commands/whoami/index.d.ts",
+      "import": "./dist/commands/whoami/index.js"
+    },
+    "./commands/uname": {
+      "types": "./dist/commands/uname/index.d.ts",
+      "import": "./dist/commands/uname/index.js"
+    },
+    "./commands/hostname": {
+      "types": "./dist/commands/hostname/index.d.ts",
+      "import": "./dist/commands/hostname/index.js"
+    },
+    "./commands/nproc": {
+      "types": "./dist/commands/nproc/index.d.ts",
+      "import": "./dist/commands/nproc/index.js"
+    },
+    "./commands/numfmt": {
+      "types": "./dist/commands/numfmt/index.d.ts",
+      "import": "./dist/commands/numfmt/index.js"
+    },
+    "./commands/envsubst": {
+      "types": "./dist/commands/envsubst/index.d.ts",
+      "import": "./dist/commands/envsubst/index.js"
+    },
+    "./commands/cal": {
+      "types": "./dist/commands/cal/index.d.ts",
+      "import": "./dist/commands/cal/index.js"
+    },
+    "./commands/pathchk": {
+      "types": "./dist/commands/pathchk/index.d.ts",
+      "import": "./dist/commands/pathchk/index.js"
+    },
+    "./commands/getconf": {
+      "types": "./dist/commands/getconf/index.d.ts",
+      "import": "./dist/commands/getconf/index.js"
+    },
+    "./commands/sha512sum": {
+      "types": "./dist/commands/sha512sum/index.d.ts",
+      "import": "./dist/commands/sha512sum/index.js"
+    },
+    "./commands/bzip2": {
+      "types": "./dist/commands/bzip2/index.d.ts",
+      "import": "./dist/commands/bzip2/index.js"
+    },
+    "./commands/locale": {
+      "types": "./dist/commands/locale/index.d.ts",
+      "import": "./dist/commands/locale/index.js"
+    },
+    "./commands/df": {
+      "types": "./dist/commands/df/index.d.ts",
+      "import": "./dist/commands/df/index.js"
+    },
+    "./commands/sqlite3": {
+      "types": "./dist/commands/sqlite3/index.d.ts",
+      "import": "./dist/commands/sqlite3/index.js"
     }
   },
   "files": [
@@ -653,7 +713,25 @@
     "safe-bash-command-ffmpeg": "*",
     "safe-bash-compression-engine": "*",
     "safe-bash-command-xz": "*",
-    "safe-bash-command-ssconvert": "*"
+    "safe-bash-command-ssconvert": "*",
+    "safe-bash-command-id": "*",
+    "safe-bash-command-whoami": "*",
+    "safe-bash-command-uname": "*",
+    "safe-bash-command-hostname": "*",
+    "safe-bash-command-nproc": "*",
+    "safe-bash-command-shuf": "*",
+    "safe-bash-command-yes": "*",
+    "safe-bash-command-dd": "*",
+    "safe-bash-command-numfmt": "*",
+    "safe-bash-command-envsubst": "*",
+    "safe-bash-command-cal": "*",
+    "safe-bash-command-pathchk": "*",
+    "safe-bash-command-getconf": "*",
+    "safe-bash-command-sha512sum": "*",
+    "safe-bash-command-bzip2": "*",
+    "safe-bash-command-locale": "*",
+    "safe-bash-command-df": "*",
+    "safe-bash-command-sqlite3": "*"
   },
   "poeCode": {
     "packageLint": {
@@ -1076,6 +1154,169 @@
             "memfs": "4.56.10",
             "tsx": ">=4.21.0",
             "typescript": "^5.9.3"
+          },
+          "portable": true
+        },
+        "safe-bash-command-id": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-whoami": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-uname": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-hostname": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-nproc": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-shuf": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-yes": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-dd": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-numfmt": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-envsubst": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-cal": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-pathchk": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-getconf": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-sha512sum": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-bzip2": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-compression-engine": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-locale": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-df": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-sqlite3": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
           },
           "portable": true
         }

@@ -42,6 +42,22 @@ import { createBcCommands, type BcCommandsOptions } from "../commands/bc/index.j
 import { createSpongeCommands, type SpongeCommandsOptions } from "../commands/sponge/index.js";
 import { createFdCommands, type FdCommandsOptions } from "../commands/fd/index.js";
 import { createLessCommands, type LessCommandsOptions } from "../commands/less/index.js";
+import { createIdCommands } from "../commands/id/index.js";
+import { createWhoamiCommands } from "../commands/whoami/index.js";
+import { createUnameCommands } from "../commands/uname/index.js";
+import { createHostnameCommands } from "../commands/hostname/index.js";
+import { createNprocCommands } from "../commands/nproc/index.js";
+import { createShufCommands } from "safe-bash-command-shuf";
+import { createYesCommands } from "safe-bash-command-yes";
+import { createDdCommands } from "safe-bash-command-dd";
+import { createNumfmtCommands } from "../commands/numfmt/index.js";
+import { createEnvsubstCommands } from "../commands/envsubst/index.js";
+import { createCalCommands } from "../commands/cal/index.js";
+import { createPathchkCommands } from "../commands/pathchk/index.js";
+import { createGetconfCommands } from "../commands/getconf/index.js";
+import { createLocaleCommands } from "../commands/locale/index.js";
+import { createDfCommands } from "../commands/df/index.js";
+import { createSqlite3Commands, type Sqlite3CommandsOptions } from "../commands/sqlite3/index.js";
 import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
 import type { BoundedRegexProvider } from "../commands/regex-execution/provider.js";
 
@@ -52,8 +68,8 @@ function getExtraAgentCommand(name: string): CommandDefinition | undefined {
   return defaultMuscleMemoryLookup.get(name);
 }
 
-function createExtraAgentCommands(options?: { bc?: Omit<BcCommandsOptions, "replace">; sponge?: Omit<SpongeCommandsOptions, "replace">; fd?: Omit<FdCommandsOptions, "replace">; less?: Omit<LessCommandsOptions, "replace"> }): readonly CommandDefinition[] {
-  return [...createBcCommands(options?.bc), ...createSpongeCommands(options?.sponge), ...createFdCommands(options?.fd), ...createLessCommands(options?.less)];
+function createExtraAgentCommands(options?: { bc?: Omit<BcCommandsOptions, "replace">; sponge?: Omit<SpongeCommandsOptions, "replace">; fd?: Omit<FdCommandsOptions, "replace">; less?: Omit<LessCommandsOptions, "replace">; sqlite3?: Omit<Sqlite3CommandsOptions, "replace"> }): readonly CommandDefinition[] {
+  return [...createBcCommands(options?.bc), ...createSpongeCommands(options?.sponge), ...createFdCommands(options?.fd), ...createLessCommands(options?.less), ...createIdCommands(), ...createWhoamiCommands(), ...createUnameCommands(), ...createHostnameCommands(), ...createNprocCommands(), ...createShufCommands(), ...createYesCommands(), ...createDdCommands(), ...createNumfmtCommands(), ...createEnvsubstCommands(), ...createCalCommands(), ...createPathchkCommands(), ...createGetconfCommands(), ...createLocaleCommands(), ...createDfCommands(), ...createSqlite3Commands(options?.sqlite3)];
 }
 
 export interface AgentCommandsOptions {
@@ -77,6 +93,7 @@ export interface AgentCommandsOptions {
   readonly sponge?: Omit<SpongeCommandsOptions, "replace">;
   readonly fd?: Omit<FdCommandsOptions, "replace">;
   readonly less?: Omit<LessCommandsOptions, "replace">;
+  readonly sqlite3?: Omit<Sqlite3CommandsOptions, "replace">;
   readonly muscleMemory?: boolean;
   readonly du?: Omit<DuCommandsOptions, "replace">;
   readonly htmlToMarkdown?: Omit<HtmlToMarkdownCommandsOptions, "replace">;
@@ -196,6 +213,11 @@ function hasCustomFamilyOptions(options: AgentCommandsOptions): boolean {
     options.hexdump !== undefined ||
     options.iconv !== undefined ||
     options.lineEndings !== undefined ||
+    options.bc !== undefined ||
+    options.sponge !== undefined ||
+    options.fd !== undefined ||
+    options.less !== undefined ||
+    options.sqlite3 !== undefined ||
     options.muscleMemory !== undefined
   );
 }
@@ -271,7 +293,7 @@ export function composeRawAgentCommands(options: AgentCommandsOptions, executors
     ...createHexdumpCommands({ ...(hexdumpLimits === undefined ? {} : { limits: hexdumpLimits }), ...(hexdumpDialect === undefined ? {} : { dialect: hexdumpDialect }) }),
     ...createIconvCommands(iconvLimits === undefined ? {} : { limits: iconvLimits }),
     ...createLineEndingCommands(lineEndingLimits === undefined ? {} : { limits: lineEndingLimits }),
-    ...(options.muscleMemory ? createExtraAgentCommands(options) : []),
+    ...(options.muscleMemory ? createExtraAgentCommands(options) : options.sqlite3 ? createSqlite3Commands(options.sqlite3) : []),
   );
   return commands;
 }

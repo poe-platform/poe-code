@@ -18,6 +18,22 @@ import { createBcCommands } from "../commands/bc/index.js";
 import { createSpongeCommands } from "../commands/sponge/index.js";
 import { createFdCommands } from "../commands/fd/index.js";
 import { createLessCommands } from "../commands/less/index.js";
+import { createIdCommands } from "../commands/id/index.js";
+import { createWhoamiCommands } from "../commands/whoami/index.js";
+import { createUnameCommands } from "../commands/uname/index.js";
+import { createHostnameCommands } from "../commands/hostname/index.js";
+import { createNprocCommands } from "../commands/nproc/index.js";
+import { createShufCommands } from "safe-bash-command-shuf";
+import { createYesCommands } from "safe-bash-command-yes";
+import { createDdCommands } from "safe-bash-command-dd";
+import { createNumfmtCommands } from "../commands/numfmt/index.js";
+import { createEnvsubstCommands } from "../commands/envsubst/index.js";
+import { createCalCommands } from "../commands/cal/index.js";
+import { createPathchkCommands } from "../commands/pathchk/index.js";
+import { createGetconfCommands } from "../commands/getconf/index.js";
+import { createLocaleCommands } from "../commands/locale/index.js";
+import { createDfCommands } from "../commands/df/index.js";
+import { createSqlite3Commands } from "../commands/sqlite3/index.js";
 import { concatShellValues, shellValueByteLength, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ShellValue, ValueReservation } from "../contracts/value.js";
 import { createCommandArguments, getCommandArguments } from "../contracts/command.js";
@@ -3143,7 +3159,7 @@ let nextProcessSubstitutionId = 0;
 let defaultRuntimeMuscleMemoryMap: ReadonlyMap<string, CommandDefinition> | undefined;
 
 function getRuntimeMuscleMemoryCommand(name: string): CommandDefinition | undefined {
-  defaultRuntimeMuscleMemoryMap ??= new Map([...createBcCommands(), ...createSpongeCommands(), ...createFdCommands(), ...createLessCommands()].map(cmd => [cmd.name, cmd]));
+  defaultRuntimeMuscleMemoryMap ??= new Map([...createBcCommands(), ...createSpongeCommands(), ...createFdCommands(), ...createLessCommands(), ...createIdCommands(), ...createWhoamiCommands(), ...createUnameCommands(), ...createHostnameCommands(), ...createNprocCommands(), ...createShufCommands(), ...createYesCommands(), ...createDdCommands(), ...createNumfmtCommands(), ...createEnvsubstCommands(), ...createCalCommands(), ...createPathchkCommands(), ...createGetconfCommands(), ...createLocaleCommands(), ...createDfCommands(), ...createSqlite3Commands()].map(cmd => [cmd.name, cmd]));
   return defaultRuntimeMuscleMemoryMap.get(name);
 }
 const fastSubScratchArgs: string[] = [];

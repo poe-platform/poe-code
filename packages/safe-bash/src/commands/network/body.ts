@@ -1,5 +1,5 @@
 import { collectNetworkBytes as collectBytes } from "./shared.js";
-import { randomBytes } from "./platform.js";
+import { randomBytes } from "#safe-bash-network-platform";
 import { posixPath as posix } from "../../contracts/path.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { readBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
@@ -24,6 +24,12 @@ interface Part {
 export interface RequestBody {
   readonly contentType?: string;
   open(signal: AbortSignal): ByteSource;
+}
+
+function multipartBoundary(): string {
+  let boundary = "virtual-bash-";
+  for (const byte of randomBytes(18)) boundary += byte.toString(16).padStart(2, "0");
+  return boundary;
 }
 
 function percent(bytes: Uint8Array): Uint8Array {
@@ -138,7 +144,7 @@ function multipart(argument: DataArgument, boundary: string): Part[] {
     start = end + 1;
   } while (start <= input.length);
   const mixed = entries.length > 1;
-  const childBoundary = mixed ? `virtual-bash-${randomBytes(18).toString("hex")}` : boundary;
+  const childBoundary = mixed ? multipartBoundary() : boundary;
   const disposition = `form-data${name ? `; name="${name}"` : ""}`;
   const parts: Part[] = [];
   if (mixed) parts.push({ bytes: encode(`--${boundary}\r\nContent-Disposition: ${disposition}\r\nContent-Type: multipart/mixed; boundary=${childBoundary}\r\n\r\n`) });
@@ -216,7 +222,7 @@ export function createBody(context: CommandContext, args: CurlArguments, limits:
   let contentType: string | undefined;
   const form = args.data.some(part => part.kind.startsWith("form"));
   if (form) {
-    const boundary = `virtual-bash-${randomBytes(18).toString("hex")}`;
+    const boundary = multipartBoundary();
     contentType = `multipart/form-data; boundary=${boundary}`;
     for (const argument of args.data) parts.push(...multipart(argument, boundary));
     parts.push({ bytes: encode(`--${boundary}--\r\n`) });

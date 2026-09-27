@@ -10,6 +10,12 @@
       "workerd": "./dist/commands/archive/zip/aes-primitives-unavailable.js",
       "browser": "./dist/commands/archive/zip/aes-primitives-unavailable.js",
       "default": "./dist/commands/archive/zip/aes-primitives.js"
+    },
+    "#safe-bash-network-platform": {
+      "types": "./src/commands/network/platform.ts",
+      "workerd": "./dist/commands/network/platform-portable.js",
+      "browser": "./dist/commands/network/platform-portable.js",
+      "default": "./dist/commands/network/platform.js"
     }
   },
   "sideEffects": [

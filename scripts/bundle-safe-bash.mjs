@@ -163,10 +163,8 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [] } 
           const subpath = args.path === "safe-bash-contracts" ? "index" : args.path.slice("safe-bash-contracts/".length);
           return { path: path.join(rootDir, "packages/safe-bash-contracts/src", subpath + ".ts") };
         });
-        builder.onResolve({ filter: /platform\.js$/ }, args =>
-          path.resolve(args.resolveDir, args.path) === path.join(directory, "src/commands/network/platform.js")
-            ? { path: path.join(directory, "browser/network.mjs") }
-            : undefined);
+        builder.onResolve({ filter: /^#safe-bash-network-platform$/ }, () =>
+          ({ path: path.join(directory, "src/commands/network/platform-portable.ts") }));
         builder.onResolve({ filter: /regex-execution\/ere\/transport\/root\.js$/ }, args =>
           path.resolve(args.resolveDir, args.path) === transport
             ? { path: path.join(directory, "browser/regex.mjs") }

@@ -14,7 +14,7 @@ import { createBody, queryData } from "./body.js";
 import { decodeContent } from "./decode.js";
 import { dumpHeaders, responseHeaders, writeOutput, writeOutFormat } from "./output.js";
 import { delay, diagnostic, encode, header, limitsFor, networkError, withSignal } from "./shared.js";
-import { createDefaultHttpTransport, requiresFiniteUrlLimits } from "./platform.js";
+import { createDefaultHttpTransport, requiresFiniteUrlLimits } from "#safe-bash-network-platform";
 import { CurlError, type HttpHeaders, type HttpResponse, type NetworkCommandsOptions, type NetworkLimits } from "./types.js";
 
 const retryStatuses = new Set([408, 429, 500, 502, 503, 504]);

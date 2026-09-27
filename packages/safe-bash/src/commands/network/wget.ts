@@ -5,7 +5,7 @@ import { shellValueByteLength, shellValueBytes } from "../../contracts/value.js"
 import { yieldTurn } from "../../contracts/yield.js";
 import { validateRequestHeader, type CurlArguments } from "./args.js";
 import { createTransferCommand } from "./curl.js";
-import { validateHeaderName } from "./platform.js";
+import { validateHeaderName } from "#safe-bash-network-platform";
 import { CurlError, type NetworkCommandsOptions, type NetworkLimits } from "./types.js";
 
 async function parseWget(context: CommandContext, limits: NetworkLimits): Promise<CurlArguments> {

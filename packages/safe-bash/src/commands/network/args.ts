@@ -1,4 +1,4 @@
-import { validateHeaderName, validateHeaderValue } from "./platform.js";
+import { validateHeaderName, validateHeaderValue } from "#safe-bash-network-platform";
 import { CurlError, type NetworkLimits } from "./types.js";
 
 export interface DataArgument {

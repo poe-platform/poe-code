@@ -264,6 +264,48 @@ test("wave 42: dynamic pattern trim/replace, printf -v %x/%X/%o/%u, shift in fun
   assert.equal(result.stdout.trim(), "1258|039:BAR_item_39_BAR:270:270:47:39|1150|BETA:14:28");
 });
 
+  test("wave 45: compound/element array assignments in groups/functions, IFS read <<<, and awk/grep/sort -u command substitutions", async () => {
+    const { shell } = setup();
+    for (const c of basicCommands()) shell.register(c);
+    const { textCommands } = await import("../../src/commands/text.js");
+    const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+    const { grepCommands } = await import("../../src/commands/grep.js");
+    const { streamCommands } = await import("../../src/commands/streams.js");
+    for (const c of [...textCommands(), ...createTextProgramCommands(), ...grepCommands(), ...streamCommands()]) shell.commands.register(c, { replace: true });
+    const script = [
+      "{ echo first; arr=(1 2); echo \"${arr[@]}\"; }",
+      "arr2=(10 20); { echo second; arr2[1]=99; echo \"${arr2[@]}\"; }",
+      "declare -A counts=()",
+      "step_arr() {",
+      "  row=(\"$1\" \"$2\" \"$3\" \"$4\")",
+      "  row+=(\"tail_$1\")",
+      "  row[1]=\"mid_$2\"",
+      "  local slice=\"${row[*]:1:3}\"",
+      "  counts[\"$2\"]+=\"x\"",
+      "  out=\"$slice:${#row[@]}\"",
+      "}",
+      "for (( i = 0; i < 16; i++ )); do step_arr \"$i\" \"k$((i & 3))\" \"v$i\" \"z\"; done",
+      "echo \"$out|${#counts[@]}|${#counts[k0]}\"",
+      "parse_kv() { local k v extra; IFS=: read -r k v extra <<< \"$1\"; acc+=\"${k}=${v};\"; }",
+      "acc=\"\"; parse_kv \"a:1:x\"; parse_kv \"b:2:y\"; echo \"$acc\"",
+      "f1=$(echo \"svc_9:port_8009:ok\" | awk -F: '{print $2}')",
+      "f2=$(echo \"$f1\" | grep -oE '[0-9]+')",
+      "f3=$(printf '%s\\n' \"b\" \"a\" \"b\" \"c\" \"#skip\" | grep -v '^#' | sort -u | tr '\\n' ',')",
+      "echo \"$f1:$f2|$f3\"",
+    ].join("\n");
+    const res = await shell.exec(script);
+    assert.equal(res.exitCode, 0);
+    assert.equal(res.stdout, [
+      "first",
+      "1 2",
+      "second",
+      "10 99",
+      "mid_k3 v15 z:5|4|4",
+      "a=1;b=2;",
+      "port_8009:8009|a,b,c,",
+      "",
+    ].join("\n"));
+  });
 test("wave 43: static (( ... )) in functions/while, dynamic [[ == ]]/case globs, and tr -d/-s + uniq command substitution pipelines", async () => {
   const { shell } = setup();
   for (const c of basicCommands()) shell.register(c);

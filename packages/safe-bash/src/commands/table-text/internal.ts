@@ -285,7 +285,7 @@ export class Inputs {
   }
   async close(): Promise<void> {
     let flushError: unknown;
-    if (this.budget.hasPendingOutput()) {
+    if (!this.signal.aborted && this.budget.hasPendingOutput()) {
       try { await this.budget.flushOutput(); } catch (err) { flushError = err; }
     }
     this.controller.abort(new FsError("EPIPE", { message: "table-text input transfer ended" }));

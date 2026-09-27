@@ -147,7 +147,7 @@ function prefixSyncOrAsync(context: CommandContext, source: ByteSource, count: n
         if (remaining) {
           if (bytes) { offset = Math.min(chunk.length, remaining); remaining -= offset; }
           else {
-            for (; offset < chunk.length && remaining; offset++) if (chunk[offset] === delimiter) remaining--;
+            while (remaining > 0) { const nl = chunk.indexOf(delimiter, offset); if (nl === -1) { offset = chunk.length; break; } remaining--; offset = nl + 1; }
           }
         }
         if (skip) {
@@ -285,7 +285,7 @@ async function prefixContinueAsync(
       if (remaining) {
         if (bytes) { offset = Math.min(chunk.length, remaining); remaining -= offset; }
         else {
-          for (; offset < chunk.length && remaining; offset++) if (chunk[offset] === delimiter) remaining--;
+          while (remaining > 0) { const nl = chunk.indexOf(delimiter, offset); if (nl === -1) { offset = chunk.length; break; } remaining--; offset = nl + 1; }
         }
       }
       if (skip) {
@@ -339,7 +339,7 @@ async function prefix(context: CommandContext, source: ByteSource, count: number
       if (remaining) {
         if (bytes) { offset = Math.min(chunk.length, remaining); remaining -= offset; }
         else {
-          for (; offset < chunk.length && remaining; offset++) if (chunk[offset] === delimiter) remaining--;
+          while (remaining > 0) { const nl = chunk.indexOf(delimiter, offset); if (nl === -1) { offset = chunk.length; break; } remaining--; offset = nl + 1; }
         }
       }
       if (skip) {
@@ -376,39 +376,72 @@ async function suffix(context: CommandContext, source: ByteSource, count: number
     let start = 0;
     let size = 0;
     const pending = new RecordBuffer(bufferLimit);
-    const pushLine = async (lineBytes: Uint8Array, terminated: boolean): Promise<void> => {
+    const pushLine = (lineBytes: Uint8Array, terminated: boolean): void | Promise<void> => {
       const lineLength = lineBytes.length + (terminated ? 1 : 0);
       pendingLines.push({ bytes: lineBytes, terminated });
       size += lineLength;
-      while (pendingLines.length - start > count) {
-        const first = pendingLines[start++]!;
-        size -= first.bytes.length + (first.terminated ? 1 : 0);
-        if (omit) await output(context, first.terminated ? concatenate([first.bytes, delimiterByte]) : first.bytes);
+      if (!omit) {
+        while (pendingLines.length - start > count) {
+          const first = pendingLines[start++]!;
+          size -= first.bytes.length + (first.terminated ? 1 : 0);
+        }
+        if (size > bufferLimit) throw new FsError("EFBIG", { message: "tail buffer limit exceeded" });
+        if (start > 1024) { pendingLines = pendingLines.slice(start); start = 0; }
+        return;
       }
-      if (size > bufferLimit) throw new FsError("EFBIG", { message: "tail buffer limit exceeded" });
-      if (start > 1024) { pendingLines = pendingLines.slice(start); start = 0; }
+      return (async () => {
+        while (pendingLines.length - start > count) {
+          const first = pendingLines[start++]!;
+          size -= first.bytes.length + (first.terminated ? 1 : 0);
+          await output(context, first.terminated ? concatenate([first.bytes, delimiterByte]) : first.bytes);
+        }
+        if (size > bufferLimit) throw new FsError("EFBIG", { message: "tail buffer limit exceeded" });
+        if (start > 1024) { pendingLines = pendingLines.slice(start); start = 0; }
+      })();
     };
     try {
       for await (const chunk of source) {
         context.signal.throwIfAborted();
         let lineStart = 0;
         for (let offset = chunk.indexOf(delimiter); offset !== -1; offset = chunk.indexOf(delimiter, lineStart)) {
-          await pushLine(pending.finish(undefined, chunk, lineStart, offset), true);
+          const pl = pushLine(pending.finish(undefined, chunk, lineStart, offset), true);
+          if (pl) await pl;
           lineStart = offset + 1;
         }
         if (lineStart < chunk.length) pending.append(chunk, lineStart);
       }
       if (pending.size) {
         context.signal.throwIfAborted();
-        await pushLine(pending.finish(), false);
+        const pl = pushLine(pending.finish(), false);
+        if (pl) await pl;
       }
     } finally {
       pending.clear();
     }
     if (!omit) {
+      const batch = new Uint8Array(16384);
+      let batchUsed = 0;
       for (let index = start; index < pendingLines.length; index++) {
         const line = pendingLines[index]!;
-        await output(context, line.terminated ? concatenate([line.bytes, delimiterByte]) : line.bytes);
+        const needed = line.bytes.length + (line.terminated ? 1 : 0);
+        if (needed > batch.length) {
+          if (batchUsed > 0) {
+            await output(context, batch.subarray(0, batchUsed));
+            batchUsed = 0;
+          }
+          await output(context, line.terminated ? concatenate([line.bytes, delimiterByte]) : line.bytes);
+          continue;
+        }
+        if (batchUsed + needed > batch.length) {
+          await output(context, batch.subarray(0, batchUsed));
+          batchUsed = 0;
+        }
+        batch.set(line.bytes, batchUsed);
+        batchUsed += line.bytes.length;
+        if (line.terminated) batch[batchUsed++] = delimiter;
+      }
+      if (batchUsed > 0) {
+        await output(context, batch.subarray(0, batchUsed));
       }
     }
     return;
@@ -478,6 +511,7 @@ function wcUtf8(consume: (point: number | undefined) => void) {
         } else consume(undefined);
       }
     },
+    hasRemaining(): boolean { return remaining > 0; },
     finish(): void { if (remaining) consume(undefined); remaining = 0; },
   };
 }
@@ -1290,13 +1324,61 @@ async function executeWcSlow(context: Parameters<CommandDefinition["execute"]>[0
               }
               continue;
             }
-            for (const byte of chunk) {
-              if (byte === 10) counts.l!++;
-              if (singleByte) word(byte === 32 || byte >= 9 && byte <= 13, byte >= 32 && byte < 127);
-              if (singleByte && parsed.flags.has("L")) lineWidth(byte);
+            const hasL = parsed.flags.has("L");
+            if (singleByte) {
+              let l = counts.l!, w = counts.w!, maxL = counts.L!;
+              for (let i = 0; i < chunk.length; i++) {
+                const byte = chunk[i]!;
+                if (byte === 10) {
+                  l++;
+                  inWord = false;
+                  if (hasL) { if (columns > maxL) maxL = columns; columns = 0; }
+                } else if (byte === 32 || (byte >= 9 && byte <= 13)) {
+                  inWord = false;
+                  if (hasL) {
+                    if (byte === 9) columns += 8 - (columns & 7);
+                    else if (byte === 13 || byte === 12) { if (columns > maxL) maxL = columns; columns = 0; }
+                    else if (byte === 32) columns++;
+                  }
+                } else if (byte >= 33 && byte < 127) {
+                  if (!inWord) { w++; inWord = true; }
+                  if (hasL) columns++;
+                }
+              }
+              counts.l = l; counts.w = w; counts.L = maxL;
+              counts.m! += chunk.length;
+            } else {
+              let isAscii = true;
+              for (let i = 0; i < chunk.length; i++) {
+                if (chunk[i]! >= 0x80) { isAscii = false; break; }
+              }
+              if (isAscii && !utf8!.hasRemaining()) {
+                let l = counts.l!, w = counts.w!, maxL = counts.L!;
+                for (let i = 0; i < chunk.length; i++) {
+                  const byte = chunk[i]!;
+                  if (byte === 10) {
+                    l++;
+                    inWord = false;
+                    if (hasL) { if (columns > maxL) maxL = columns; columns = 0; }
+                  } else if (byte === 32 || (byte >= 9 && byte <= 13)) {
+                    inWord = false;
+                    if (hasL) {
+                      if (byte === 9) columns += 8 - (columns & 7);
+                      else if (byte === 13 || byte === 12) { if (columns > maxL) maxL = columns; columns = 0; }
+                      else if (byte === 32) columns++;
+                    }
+                  } else if (byte >= 33 && byte < 127) {
+                    if (!inWord) { w++; inWord = true; }
+                    if (hasL) columns++;
+                  }
+                }
+                counts.l = l; counts.w = w; counts.L = maxL;
+                counts.m! += chunk.length;
+              } else {
+                for (let i = 0; i < chunk.length; i++) if (chunk[i] === 10) counts.l!++;
+                utf8!.write(chunk);
+              }
             }
-            if (singleByte) counts.m! += chunk.length;
-            else utf8!.write(chunk);
           }
           } finally {
             if (!done) {

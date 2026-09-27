@@ -84,8 +84,7 @@ export function fields(text: string, separator: Set<string> | undefined, budget:
       if (text.charCodeAt(i) >= 128) { ascii = false; break; }
     }
     if (ascii) {
-      const w = text.length > 0 ? budget.work(text.length) : undefined;
-      if (!w) {
+      const parseAscii = (): string[] => {
         const result: string[] = [];
         let start = 0;
         const append = (end: number): void => {
@@ -104,7 +103,9 @@ export function fields(text: string, separator: Set<string> | undefined, budget:
         }
         if (text.length > start) append(text.length);
         return result;
-      }
+      };
+      const w = text.length > 0 ? budget.work(text.length) : undefined;
+      return w ? w.then(parseAscii) : parseAscii();
     }
   }
   return fieldsSlow(text, separator, budget, remainingCells, columnLimit, outputSeparatorBytes);

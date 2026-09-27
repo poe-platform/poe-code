@@ -33,6 +33,13 @@ function tabStops(specifications: readonly string[], session: Session): (column:
   const relative = relativeRepeat !== 0;
   if (!stops.length && !repeat) repeat = 8;
   if (stops.length === 1 && !repeat) repeat = stops.pop()!;
+  if (!stops.length && repeat > 0 && !relative) {
+    return column => {
+      const next = column + repeat - (column % repeat);
+      if (next > Number.MAX_SAFE_INTEGER) session.check(next, Number.MAX_SAFE_INTEGER, "column");
+      return next;
+    };
+  }
   return column => {
     let lower = 0, upper = stops.length;
     while (lower < upper) {

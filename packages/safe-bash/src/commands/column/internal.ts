@@ -192,9 +192,14 @@ export class ColumnInputs {
     if (this.completion) return this.completion;
     this.closed = true;
     this.completion = Promise.resolve().then(async () => {
+      let flushError: { error: unknown } | undefined;
+      if (!this.signal.aborted && this.budget.hasPendingOutput()) {
+        try { await this.budget.flushOutput(); } catch (error) { flushError = { error }; }
+      }
       this.controller.abort(new FsError("EPIPE", { message: "column input transfer ended" }));
       await Promise.allSettled(this.opening);
       const results = await Promise.allSettled([this.inputs.close(), ...this.acquired.map(close => close())]);
+      if (flushError) throw flushError.error;
       const failure = results.find(result => result.status === "rejected");
       if (failure?.status === "rejected") throw failure.reason;
     });

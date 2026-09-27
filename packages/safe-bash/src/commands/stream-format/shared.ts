@@ -84,7 +84,7 @@ export class Session {
       const c = ++this.yieldCount;
       if (hasYieldCheckpoint(this.signal)) return runYieldCheckpoint(this.signal);
       const now = monotonicNow();
-      if (c === 1 || (c & 15) === 0 || now - this.lastYieldMs >= 4) {
+      if (c === 1 || (c & 63) === 0 || now - this.lastYieldMs >= 16) {
         this.lastYieldMs = now;
         return yieldTurn().then(() => {
           this.signal.throwIfAborted();

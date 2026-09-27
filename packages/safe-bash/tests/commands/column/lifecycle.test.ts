@@ -302,3 +302,11 @@ test("actual Shell exec/dispose await column-owned VFS cooperative cleanup", asy
   opaque.reject(new Error("observed late next"));
   await new Promise<void>(resolve => setImmediate(resolve));
 });
+
+test("multi-chunk column -t flushes trailing buffered output before closing input signal", async () => {
+  const lines = Array.from({ length: 600 }, (_, i) => `row_${i}\tval_${i}\tdescription_field_${i}`).join("\n") + "\n";
+  const result = await run(["-t"], lines);
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout.trim().split("\n").length, 600);
+});

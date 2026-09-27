@@ -28,7 +28,7 @@ export const platform = Object.freeze({
     return errno;
   },
   callbackAuthorities: true,
-  randomUUID
+  randomUUID: randomUUID as () => string
 });
 
 export const comparisonContext = Object.freeze({

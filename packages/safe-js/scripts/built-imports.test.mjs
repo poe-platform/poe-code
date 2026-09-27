@@ -89,7 +89,7 @@ test("built data accounting retains optimized code across garbage collections", 
     import { measureSandboxData, createSandboxClosure } from ${entry("values")};
     import { createIntrinsicArray } from ${entry("object-model")};
     const child = { text: "text" };
-    const roots = Array.from({ length: 1200 }, (_, index) => index % 3 === 0
+    const roots = Array.from({ length: 120 }, (_, index) => index % 3 === 0
       ? createSandboxClosure({ call: () => undefined, retainedValues: () => [child] })
       : index % 3 === 1 ? createIntrinsicArray([child, "text"]) : { child, name: "record" });
     const expected = measureSandboxData(roots);

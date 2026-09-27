@@ -639,8 +639,7 @@ class Converter {
         this.lastYield = now;
         return yieldTurn(this.context.signal);
       }
-      const p = runYieldCheckpoint(this.context.signal);
-      if (p) return p;
+      runYieldCheckpoint(this.context.signal);
     }
     if (this.pollSignal ? this.context.signal.aborted : this.signalAborted) this.context.signal.throwIfAborted();
   }

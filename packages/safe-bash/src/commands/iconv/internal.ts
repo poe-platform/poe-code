@@ -91,8 +91,8 @@ export class Budget {
         this.assertOpen();
       });
     }
-    const p = runYieldCheckpoint(this.callerSignal);
-    if (p) return p.then(() => { this.assertOpen(); });
+    runYieldCheckpoint(this.callerSignal);
+    this.assertOpen();
   }
   retain(amount: number): void {
     this.check(this.retained + amount, this.limits.maxBufferedBytes, "buffered bytes"); this.retained += amount;

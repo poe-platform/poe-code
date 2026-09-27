@@ -1250,8 +1250,13 @@ class Parser {
   }
 
   private parseConditionalExpression(): ParsedExpression {
+    const token = this.currentToken();
+    const test = this.parseCoalesceExpression();
+    if (this.consumePunctuator("?") === undefined) {
+      return test;
+    }
+
     if (this.conditionalExpressionDepth >= (this.compilation?.owner?.budget.limits.maxCallDepth ?? Infinity)) {
-      const token = this.currentToken();
       throw new Error(
         `Conditional expression nesting limit exceeded at line ${token.start.line}, column ${token.start.column}.`
       );
@@ -1259,10 +1264,6 @@ class Parser {
 
     this.conditionalExpressionDepth += 1;
     try {
-      const test = this.parseCoalesceExpression();
-      if (this.consumePunctuator("?") === undefined) {
-        return test;
-      }
 
       const consequent = this.parseExpression();
       this.expectPunctuator(":");

@@ -3,23 +3,27 @@ import type { PlaywrightContext, PlaywrightTraceCapture } from './adapter.js';
 import { capabilityArtifact, capabilityOutputPath, capabilityResult, requireSession, unsupported } from './capability-result.js';
 import { PlaywrightResourceLimitError } from './resource-limit.js';
 
-interface TraceRecording { started: Promise<void>; active: boolean; directory: string; name?: string; stopping?: Promise<void>; releasing?: Promise<void> }
+interface TraceRecording { started: Promise<void>; active: boolean; directory: string; name?: string; stopping?: { work: Promise<void>; exportsArtifact: boolean }; releasing?: Promise<void> }
 const recordings = new WeakMap<PlaywrightContext, TraceRecording>();
 let sequence = 0;
 
 function stopTrace(context: PlaywrightContext, recording: TraceRecording, path?: string): Promise<void> {
-  recording.stopping ??= recording.started.catch(() => {}).then(async () => {
+  recording.stopping ??= { exportsArtifact: path !== undefined, work: recording.started.catch(() => {}).then(async () => {
     if (!recording.active) return;
     recording.active = false;
     await context.tracing!.stop(path === undefined ? undefined : { path });
-  });
-  return recording.stopping;
+  }) };
+  return recording.stopping.work;
 }
 
 export function preparePlaywrightTraceRelease(context: PlaywrightContext): Promise<void> {
   const recording = recordings.get(context);
   if (!recording) return Promise.resolve();
-  recording.releasing ??= stopTrace(context, recording).finally(() => {
+  // A rejected archive operation is already reported by its command. Cleanup
+  // still needs a fresh discard, whose own failure must remain observable.
+  recording.releasing ??= (recording.stopping?.exportsArtifact
+    ? recording.stopping.work.catch(() => context.tracing!.stop())
+    : stopTrace(context, recording)).finally(() => {
     if (recordings.get(context) === recording) recordings.delete(context);
   });
   return recording.releasing;

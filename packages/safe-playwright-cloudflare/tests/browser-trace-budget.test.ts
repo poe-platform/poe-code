@@ -50,6 +50,96 @@ test("rejects aggregate raw resources before the provider can retain a queue lar
   } finally { await f.resource.release(); }
 });
 
+test.each(["before", "during"] as const)("discard retires a recording that exceeds its budget %s stop and permits a fresh trace", async timing => {
+  const f = await acquire();
+  try {
+    await f.context.tracing.start();
+    const recorder = f.recorders.at(-1)!;
+    const directory = recorder._state!.tracesDir;
+    const overflow = () => recorder._appendResource("overflow", new Uint8Array(2048));
+    if (timing === "before") {
+      overflow();
+      await expect(f.check()).rejects.toThrow("Browser trace byte limit exceeded");
+    } else {
+      const stopChunk = recorder.stopChunk.bind(recorder);
+      let overflowing = true;
+      vi.spyOn(recorder, "stopChunk").mockImplementation((progress, options) => {
+        if (overflowing) { overflowing = false; overflow(); }
+        return stopChunk(progress, options);
+      });
+    }
+    await f.context.tracing.stop();
+    expect(vol.existsSync(directory)).toBe(false);
+    expect(f.localUtils._stackSessions.size).toBe(0);
+    await f.check();
+    await f.context.tracing.start();
+    f.recorders.at(-1)!._appendResource("healthy", Uint8Array.of(7));
+    await f.check();
+    await f.context.tracing.stop({ path: "/tmp/restarted-after-discard.zip" });
+    expect(vol.existsSync("/tmp/restarted-after-discard.zip")).toBe(true);
+  } finally { await f.resource.release(); }
+});
+
+test.each(["har", "producer", "stop"] as const)("failed-recording discard preserves an actual %s cleanup failure", async phase => {
+  const f = await acquire();
+  const failure = new Error(`${phase} cleanup failed`);
+  const containsFailure = (error: unknown): boolean => error === failure
+    || error instanceof AggregateError && error.errors.some(containsFailure);
+  try {
+    await f.context.tracing.start();
+    const recorder = f.recorders.at(-1)!;
+    const overflow = () => recorder._appendResource("overflow", new Uint8Array(2048));
+    if (phase === "har") vi.spyOn(recorder._harTracer, "stop").mockImplementation(() => { throw failure; });
+    else vi.spyOn(recorder, "stopChunk").mockImplementationOnce(async () => {
+      if (phase === "stop") overflow();
+      throw failure;
+    });
+    if (phase !== "stop") {
+      overflow();
+      await expect(f.check()).rejects.toThrow("Browser trace byte limit exceeded");
+    }
+    const stopped = await f.context.tracing.stop().then(() => undefined, error => error);
+    expect(containsFailure(stopped)).toBe(true);
+  } finally {
+    const released = await f.resource.release().then(() => undefined, error => error);
+    expect(containsFailure(released)).toBe(true);
+  }
+});
+
+test("overlapping failed-trace discard and release both drain the native producer stop", async () => {
+  const f = await acquire();
+  const entered = Promise.withResolvers<void>();
+  const resume = Promise.withResolvers<void>();
+  const pending: Promise<unknown>[] = [];
+  try {
+    await f.context.tracing.start();
+    const recorder = f.recorders.at(-1)!;
+    const stopChunk = recorder.stopChunk.bind(recorder);
+    vi.spyOn(recorder, "stopChunk").mockImplementationOnce(async (...args) => {
+      entered.resolve();
+      await resume.promise;
+      return stopChunk(...args);
+    });
+    recorder._appendResource("overflow", new Uint8Array(2048));
+    await entered.promise;
+    let discarded = false, released = false;
+    pending.push(f.context.tracing.stop().finally(() => { discarded = true; }));
+    pending.push(f.resource.release().finally(() => { released = true; }));
+    for (const operation of pending) void operation.catch(() => {});
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(discarded).toBe(false);
+    expect(released).toBe(false);
+    resume.resolve();
+    await Promise.all(pending);
+    expect(vol.readdirSync("/tmp")).toEqual([]);
+  } finally {
+    resume.resolve();
+    await Promise.allSettled(pending);
+    await f.resource.release();
+  }
+});
+
 test("admits the exact UTF-8 boundary and refuses the next byte before a buffered append", async () => {
   const f = await acquire({ maxBytes: 64, maxFiles: 32, maxArchiveBytes: 1024 });
   try {

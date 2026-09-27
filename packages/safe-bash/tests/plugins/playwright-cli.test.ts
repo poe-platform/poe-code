@@ -5,7 +5,7 @@ import { createPlaywrightCli } from '../../src/commands/playwright/index.js';
 import { Shell } from '../../src/shell/index.js';
 import { agentCommands } from '../../src/plugins/index.js';
 import { MemoryFileSystem } from '../../src/fs/memory/index.js';
-import type { PlaywrightAdapter, PlaywrightPage } from '../../src/playwright/index.js';
+import { PlaywrightResourceLimitError, type PlaywrightAdapter, type PlaywrightPage } from '../../src/playwright/index.js';
 import type { PlaywrightDownload, PlaywrightFileChooser, PlaywrightFrame, SnapshotNode } from '../../src/playwright/adapter.js';
 import { createSnapshotFrame } from '../helpers/playwright-snapshot.js';
 
@@ -104,6 +104,58 @@ test('CLI errors preserve original execution and cleanup causes in plain and JSO
       assert.match(message, /tracing cleanup closed/);
     }
   } finally { await shell.dispose(); }
+});
+
+for (const discardFails of [false, true]) test(`a failed trace export receives fresh discard cleanup (discard fails: ${discardFails})`, async () => {
+  const f = fixture();
+  const stops: (string | undefined)[] = [];
+  const failure = new PlaywrightResourceLimitError('Browser trace archive byte limit exceeded');
+  const cleanupFailure = new Error('Native trace discard failed');
+  const containsCleanupFailure = (error: unknown): boolean => error === cleanupFailure
+    || error instanceof AggregateError && error.errors.some(containsCleanupFailure);
+  const cli = createPlaywrightCli({ adapter: { ...f.adapter, async acquire(options) {
+    const lease = await f.adapter.acquire(options);
+    return { ...lease, context: { ...lease.context, tracing: {
+      async start() {},
+      async stop(options?: { path?: string }) {
+        stops.push(options?.path);
+        if (options?.path) throw failure;
+        if (discardFails) throw cleanupFailure;
+      },
+    } }, async captureArtifact(produce) {
+      await produce('/private/trace.zip');
+      return Uint8Array.of(80, 75);
+    } };
+  } } });
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(cli.plugin);
+  let completed = false;
+  try {
+    assert.equal((await shell.exec('playwright-cli open')).exitCode, 0);
+    assert.equal((await shell.exec('playwright-cli tracing-start')).exitCode, 0);
+    if (discardFails) {
+      let stderr = '';
+      await assert.rejects(shell.exec('playwright-cli tracing-stop', {
+        stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+      }), containsCleanupFailure);
+      assert.match(stderr, /Browser trace archive byte limit exceeded/);
+      assert.match(stderr, /Native trace discard failed/);
+    } else {
+      const result = await shell.exec('playwright-cli tracing-stop');
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /Browser trace archive byte limit exceeded/);
+    }
+    assert.deepEqual(stops, ['/private/trace.zip', undefined]);
+    assert.equal(f.releases, 1);
+    assert.deepEqual(cli.inspectSessions(), []);
+    if (!discardFails) for (const command of ['open', 'goto https://example.test/recovered', 'close'])
+      assert.equal((await shell.exec(`playwright-cli ${command}`)).exitCode, 0);
+    completed = true;
+  } finally {
+    // Preserve the original regression assertion when failed retirement also poisons disposal.
+    if (completed && discardFails) await assert.rejects(shell.dispose(), containsCleanupFailure);
+    else if (completed) await shell.dispose();
+    else await shell.dispose().catch(() => {});
+  }
 });
 
 test('command help accepts standard prefix and suffix forms without arguments or browser capabilities', async () => {

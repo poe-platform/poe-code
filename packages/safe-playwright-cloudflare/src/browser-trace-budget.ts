@@ -109,6 +109,7 @@ class Recording {
   private producerStop?: Promise<void>;
   private disposal?: Promise<void>;
   private readonly captureStopErrors = new Map<string, unknown>();
+  private readonly stopErrors = new Set<unknown>();
   failure?: Error;
 
   constructor(readonly native: NativeRecorder, readonly directory: string, readonly limits: TraceLimits, readonly local: LocalUtils, readonly dispatcher: DispatcherGuard) {
@@ -276,7 +277,10 @@ class Recording {
     // listeners immediately after its first trace append.
     this.producerStop ??= Promise.resolve().then(async () => {
       if (!this.native._isStopping) await this.native.stopChunk(undefined, { mode: "discard" });
-    }).catch(error => { this.failure ??= error instanceof Error ? error : new Error("Browser trace producer shutdown failed", { cause: error }); });
+    }).catch(error => {
+      this.stopErrors.add(error);
+      this.failure ??= error instanceof Error ? error : new Error("Browser trace producer shutdown failed", { cause: error });
+    });
   }
   private stopCapture() {
     const stop = (phase: string, operation: () => void) => {
@@ -297,6 +301,21 @@ class Recording {
     try { const result = await work; this.throwIfFailed(); return result; }
     catch (error) { this.throwIfFailed(); throw error; }
     finally { this.operations.delete(work); }
+  }
+  async stop<T>(operation: () => Promise<T>): Promise<T | undefined> {
+    if (this.failure) { await this.dispose(); return; }
+    const work = Promise.resolve().then(operation);
+    this.operations.add(work);
+    let result: T | undefined;
+    try { result = await work; }
+    catch (error) {
+      if (!this.failure) throw error;
+      this.stopErrors.add(error);
+    } finally { this.operations.delete(work); }
+    // A recording limit rejects capture, but cannot prevent no-output teardown.
+    // Retire after unenrolling this stop; disposal must never wait on itself.
+    if (this.failure) await this.dispose();
+    return result;
   }
   finish() { this.accepting = false; }
 
@@ -396,8 +415,10 @@ class Recording {
       this.signal.abort(new Error("Browser trace recording closed"));
       this.stopCapture();
       await this.producerStop;
-      await Promise.allSettled([...this.operations]);
-      const errors: unknown[] = [...this.captureStopErrors.values()];
+      while (this.operations.size) await Promise.allSettled([...this.operations]);
+      // An export can fail and schedule producer shutdown while it is draining.
+      await this.producerStop;
+      const errors: unknown[] = [...this.captureStopErrors.values(), ...this.stopErrors];
       try { await this.native.stopChunk(undefined, { mode: "discard" }); } catch (error) { errors.push(error); }
       this.native._pendingHarEntries?.clear();
       try { await this.native.stop(); } catch (error) { errors.push(error); }
@@ -472,14 +493,19 @@ export function prepareBrowserTraceBudget(context: BrowserContext, limits: Trace
   });
   native.start = options => { const recording = requireRecording(); recording.native.start(options); recording.throwIfFailed(); };
   native.startChunk = (progress, options) => { const recording = requireRecording(); return recording.run(() => recording.native.startChunk(progress, options)); };
-  native.stopChunk = (progress, options) => {
+  native.stopChunk = async (progress, options) => {
     const recording = active;
-    return recording ? recording.run(() => recording.native.stopChunk(progress, options)) : Promise.resolve({});
+    if (!recording) return {};
+    if (options.mode !== "discard") return recording.run(() => recording.native.stopChunk(progress, options));
+    const result = await recording.stop(() => recording.native.stopChunk(progress, options));
+    if (recording.failure && active === recording) active = undefined;
+    return result ?? {};
   };
   native.stop = async progress => {
     if (!active) return;
     const recording = active;
-    await recording.run(() => recording.native.stop(progress));
+    await recording.stop(() => recording.native.stop(progress));
+    if (recording.failure && active === recording) active = undefined;
     recording.finish();
   };
   native.group = (...args) => { if (active) { active.native.group(...args); active.throwIfFailed(); } };

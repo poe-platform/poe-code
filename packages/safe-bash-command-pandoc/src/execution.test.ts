@@ -6,6 +6,27 @@ const encode = (text: string) => new TextEncoder().encode(text);
 const immediate = async () => {};
 
 describe("original execution-context fixtures", () => {
+  it("yields on every work quantum with frozen clocks and accepts later cancellation", async () => {
+    const clock = vi.spyOn(performance, "now").mockReturnValue(0);
+    const date = vi.spyOn(Date, "now").mockReturnValue(0);
+    const controller = new AbortController();
+    const context = createExecutionContext("read", { signal: controller.signal });
+    try {
+      for (let quantum = 0; quantum < 3; quantum++) {
+        let observed = false;
+        const host = new Promise<void>(resolve => setImmediate(() => { observed = true; resolve(); }));
+        await context.cooperate(256);
+        expect(observed).toBe(true);
+        await host;
+      }
+      setImmediate(() => controller.abort());
+      await expect(context.cooperate(256)).rejects.toMatchObject({ code: "E_CANCELLED" });
+    } finally {
+      clock.mockRestore();
+      date.mockRestore();
+      await context.close();
+    }
+  });
   it("retains reader format and source location through capability error normalization", async () => {
     const context = createExecutionContext("convert", { yield: immediate });
     await expect(context.call(async () => {

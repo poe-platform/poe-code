@@ -3,7 +3,7 @@ import {
   type ByteSource, type CommandContext, type CommandDefinition,
 } from "safe-bash-contracts";
 import { openFileOutput, type FileOutput } from "./filesystem-output.js";
-import { hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
+import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { countMax, Diagnostic, fileQuote, parse, quote, unicodeLocale } from "./args.js";
 import { FileInput, ownedBytes, readAllRecords, records, virtualPath } from "./input.js";
 import { settings, type ShufCommandsOptions } from "./options.js";
@@ -31,8 +31,6 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
     runtimeIdentity: commandRuntimeIdentity,
     description: "Write a random permutation of input records",
     async execute(context: CommandContext) {
-      let lastYield = monotonicNow();
-      let yieldChecks = 0;
       let random: RandomIntegers | undefined;
       let output: FileOutput | undefined;
       let source: AsyncGenerator<Uint8Array> | undefined;
@@ -143,12 +141,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
               }
               seen++;
               if (seen % 1024n === 0n) {
-                if (++yieldChecks % 16 === 0 || hasYieldCheckpoint(context.signal) || monotonicNow() - lastYield >= 25) {
-                  await yieldTurn(context.signal); lastYield = monotonicNow();
-                } else {
-                  runYieldCheckpoint(context.signal);
-                  context.signal.throwIfAborted();
-                }
+                await yieldTurn(context.signal);
               }
             }
           }
@@ -172,12 +165,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
             swaps.set(chosen, swaps.get(index) ?? index);
             swaps.delete(index);
             if (index % 1024n === 1023n) {
-              if (++yieldChecks % 16 === 0 || hasYieldCheckpoint(context.signal) || monotonicNow() - lastYield >= 25) {
-                await yieldTurn(context.signal); lastYield = monotonicNow();
-              } else {
-                runYieldCheckpoint(context.signal);
-                context.signal.throwIfAborted();
-              }
+              await yieldTurn(context.signal);
             }
           }
         }
@@ -208,12 +196,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
           await sink.write(line);
           if (parsed.repeat && parsed.random !== undefined) await sink.flush();
           if (index % 256n === 255n) {
-            if (++yieldChecks % 16 === 0 || hasYieldCheckpoint(context.signal) || monotonicNow() - lastYield >= 25) {
-              await yieldTurn(context.signal); lastYield = monotonicNow();
-            } else {
-              runYieldCheckpoint(context.signal);
-              context.signal.throwIfAborted();
-            }
+            await yieldTurn(context.signal);
           }
         }
         await sink.flush();

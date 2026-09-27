@@ -15,7 +15,7 @@ function getTreeSignalWaiters(signal: AbortSignal): Set<() => void> {
   return waiters;
 }
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
-import { hasYieldCheckpoint, monotonicNow, yieldTurn } from "safe-bash-contracts/yield";
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { escapeText } from "safe-bash-contracts/escaping";
 import { FsError, writeBytes, type ByteSink, type CommandContext } from "safe-bash-contracts";
 import type { TreeLimits } from "./options.js";
@@ -63,7 +63,6 @@ export class WalkBudget {
   private output = 0;
   private steps = 0;
   private operations = 0;
-  private lastYield = monotonicNow();
   private nameCharset: Charset | undefined;
   constructor(readonly context: CommandContext, readonly limits: TreeLimits) {}
 
@@ -100,9 +99,8 @@ export class WalkBudget {
   async fs<Result>(operation: () => Promise<Result>): Promise<Result> {
     this.step();
     const { signal } = this.context;
-    if (++this.operations % 64 === 0 && (this.operations === 64 || this.operations % 1024 === 0 || hasYieldCheckpoint(signal) || monotonicNow() - this.lastYield >= 16)) {
+    if (++this.operations % 64 === 0) {
       await yieldTurn(signal);
-      this.lastYield = monotonicNow();
     }
     signal.throwIfAborted();
     const waiters = getTreeSignalWaiters(signal);

@@ -704,7 +704,8 @@ through `maxArguments`, `maxArgumentBytes`, and `maxOutputBytes`.
 `timeEnv.maxTimerMilliseconds` and `timeout.maxTimerMilliseconds` accept `Infinity`;
 host timer calls remain capped at 2147483647 ms and progress with frozen clocks.
 Use the [typed options and linked family interfaces](src/plugins/index.ts) for
-their individual limits and hooks, including clocks and schedulers. Family budgets
+their individual limits and hooks, including clocks and schedulers. Command and
+shell work quanta yield to the host even when its clock is frozen. Family budgets
 are separate from shell counters; `limits.commandLimits.archive` supplies
 invocation ceilings. Per-execution family overrides merge with the shell's
 profile, and non-Worker hosts can configure larger limits. `replace` applies

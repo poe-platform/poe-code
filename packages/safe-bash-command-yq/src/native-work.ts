@@ -1,5 +1,5 @@
 import { createOutputOperation, type ByteSource, type CommandContext, type InvocationCleanup } from "safe-bash-contracts";
-import { yieldTurn } from "safe-bash-contracts/yield";
+import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 
 export const mikeLimits = Object.freeze({
   maxInputBytes: Infinity, maxDocumentBytes: Infinity,
@@ -46,6 +46,7 @@ export class NativeWork {
   #documents = 0;
 
   constructor(readonly context: CommandContext, readonly limits: MikeLimits) {
+    inheritYieldCheckpoint(context.signal, this.signal);
     context.registerCleanup?.(() => this.close());
     const abort = () => { this.#aborted = true; this.controller.abort(context.signal.reason); };
     this.signal.addEventListener("abort", () => { this.#aborted = true; }, { once: true });

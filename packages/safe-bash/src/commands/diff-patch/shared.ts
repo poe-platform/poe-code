@@ -1,7 +1,7 @@
 import { byteLength, concatBytes, decodeBytes, encodeBytes } from "../../byte-encoding.js";
 import { PublicDiagnostic, publicDiagnosticMessage } from "../../diagnostics.js";
 import { writeDiagnostic } from "../../escaping.js";
-import { monotonicNow, yieldTurn } from "../../contracts/yield.js";
+import { yieldTurn } from "../../contracts/yield.js";
 import {
   collectBytes, isFsError, readBytes,
   type ByteSource, type CommandContext, type CommandDefinition, type FileStat,
@@ -33,8 +33,6 @@ export class Budget {
   private lines = 0;
   private work = 0;
   private nextYield = 4096;
-  private yieldChecks = 0;
-  private nextYieldTime = monotonicNow() + 8;
   private files = 0;
   private hunks = 0;
   private signalAborted: boolean;
@@ -74,15 +72,8 @@ export class Budget {
   checkpoint(): void | Promise<void> {
     if (this.pollSignal ? this.context.signal.aborted : this.signalAborted) this.context.signal.throwIfAborted();
     if (this.work >= this.nextYield) {
-      const firstYield = this.nextYield === 4096;
       this.nextYield = this.work + 4096;
-      const now = monotonicNow();
-      if (++this.yieldChecks % 16 === 0 || firstYield || now >= this.nextYieldTime) {
-        this.nextYieldTime = now + 16;
-        return yieldTurn(this.context.signal).then(() => {
-          this.nextYieldTime = monotonicNow() + 16;
-        });
-      }
+      return yieldTurn(this.context.signal);
     }
   }
 

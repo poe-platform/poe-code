@@ -1,6 +1,6 @@
 import { getCommandArguments, type CommandContext } from "safe-bash-contracts";
 import { shellValueByteLength, shellValueBytes } from "safe-bash-contracts/value";
-import { hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
+import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 
 export interface PrLimits {
@@ -105,8 +105,6 @@ export function fileQuote(value: string): string {
 export class Budget {
   private work = 0;
   private checkpoint = 0;
-  private yieldChecks = 0;
-  private lastYield = monotonicNow();
   private retained = 0;
   private input = 0;
   private lines = 0;
@@ -138,13 +136,7 @@ export class Budget {
     this.assertSignalOpen();
     if (this.work - this.checkpoint < 4096) return;
     this.checkpoint = this.work;
-    if (++this.yieldChecks % 16 !== 0 && !hasYieldCheckpoint(this.signal) && monotonicNow() - this.lastYield < 25) {
-      runYieldCheckpoint(this.signal);
-      this.assertSignalOpen();
-      return;
-    }
     return yieldTurn(this.signal).then(() => {
-      this.lastYield = monotonicNow();
       this.assertSignalOpen();
     });
   }

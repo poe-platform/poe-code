@@ -1,7 +1,7 @@
 import { utf8ByteLength } from "safe-bash-byte-engine";
 import { UsageError } from "./format.js";
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
-import { cancelTurn, hasYieldCheckpoint, monotonicNow, scheduleTurn, type TurnHandle } from "safe-bash-contracts/yield";
+import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { escapeText } from "safe-bash-contracts/escaping";
 import { FsError, writeBytes, type ByteSink, type CommandContext } from "safe-bash-contracts";
 import type { DuLimits } from "./options.js";
@@ -18,7 +18,6 @@ export class Budget {
   private metadata = 0;
   private output = 0;
   private operations = 0;
-  private lastYield = monotonicNow();
   private closed = false;
   private completion: Promise<void> | undefined;
   private readonly cancellation = new AbortController();
@@ -26,7 +25,6 @@ export class Budget {
   private outputSignal: AbortSignal | undefined;
   private readonly work = new Set<Promise<unknown>>();
   private readonly pending = new Set<() => void>();
-  private readonly timers = new Set<TurnHandle>();
   private boundSignal: AbortSignal | undefined;
   private readonly onSignalAbort = (): void => {
     const callbacks = [...this.pending];
@@ -36,6 +34,7 @@ export class Budget {
 
   constructor(readonly context: CommandContext, readonly limits: DuLimits, readonly caller: CommandContext = context) {
     this.ioSignal = AbortSignal.any([caller.signal, this.cancellation.signal]);
+    inheritYieldCheckpoint(context.signal, this.ioSignal);
   }
 
   private bindSignal(signal: AbortSignal): void {
@@ -51,8 +50,6 @@ export class Budget {
     this.boundSignal?.removeEventListener("abort", this.onSignalAbort);
     this.boundSignal = undefined;
     this.cancellation.abort(this.context.signal.aborted ? this.context.signal.reason : new Error("du invocation closed"));
-    for (const timer of this.timers) cancelTurn(timer);
-    this.timers.clear();
     for (const cancel of this.pending) {
       cancel();
     }
@@ -120,12 +117,8 @@ export class Budget {
 
   async fs<Result>(operation: () => Promise<Result>): Promise<Result> {
     this.step();
-    if (++this.operations % 64 === 0 && (this.operations === 64 || this.operations % 1024 === 0 || hasYieldCheckpoint(this.context.signal) || monotonicNow() - this.lastYield >= 16)) {
-      await this.wait(() => new Promise<void>(resolve => {
-        const timer = scheduleTurn(() => { this.timers.delete(timer); resolve(); });
-        this.timers.add(timer);
-      }));
-      this.lastYield = monotonicNow();
+    if (++this.operations % 64 === 0) {
+      await this.wait(() => yieldTurn(this.ioSignal));
     }
     return this.wait(operation);
   }

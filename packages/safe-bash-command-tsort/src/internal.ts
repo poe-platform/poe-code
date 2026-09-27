@@ -1,6 +1,6 @@
 import { getCommandArguments, type CommandContext } from "safe-bash-contracts";
 import { shellValueByteLength, shellValueBytes } from "safe-bash-contracts/value";
-import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 
 export interface TsortLimits {
@@ -99,8 +99,6 @@ export function fileQuote(value: string): string {
 export class Budget {
   private work = 0;
   private checkpoint = 0;
-  private checkpointCount = 0;
-  private lastYield = monotonicNow();
   private retained = 0;
   private input = 0;
   private output = 0;
@@ -129,15 +127,7 @@ export class Budget {
     this.assertSignalOpen();
     if (this.work - this.checkpoint < 4096) return;
     this.checkpoint = this.work;
-    const count = ++this.checkpointCount;
-    const now = monotonicNow();
-    if (count === 1 || count % 16 === 0 || now - this.lastYield >= 16 || hasYieldCheckpoint(this.signal)) {
-      this.lastYield = now;
-      return yieldTurn(this.signal).then(() => {
-        this.lastYield = monotonicNow();
-      });
-    }
-    return runYieldCheckpoint(this.signal);
+    return yieldTurn(this.signal);
   }
   retain(amount: number): void {
     this.check(this.retained + amount, this.limits.maxBufferedBytes, "buffered bytes");

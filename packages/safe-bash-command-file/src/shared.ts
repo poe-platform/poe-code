@@ -1,5 +1,5 @@
 import { utf8ByteLength } from "safe-bash-byte-engine";
-import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
+import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { writeBytes, type ByteSink, type CommandContext } from "safe-bash-contracts";
 
 export interface FileLimits {
@@ -63,8 +63,6 @@ export class SharedBudget {
   private steps = 0;
   private failureUnits = 64;
   private untilYield = 128;
-  private yieldChecks = 0;
-  private lastYield = monotonicNow();
   private readonly controller = new AbortController();
   private timer: ReturnType<typeof setTimeout> | undefined;
   private readonly deadline: number;
@@ -72,6 +70,7 @@ export class SharedBudget {
 
   constructor(readonly context: CommandContext, readonly limits: FileLimits) {
     this.signal = AbortSignal.any([context.signal, this.controller.signal]);
+    inheritYieldCheckpoint(context.signal, this.signal);
     this.deadline = performance.now() + limits.maxDurationMs;
     if (Number.isFinite(limits.maxDurationMs)) {
       const expire = (): void => {
@@ -105,13 +104,7 @@ export class SharedBudget {
     this.work(count);
     if (--this.untilYield <= 0) {
       this.untilYield = 128;
-      const now = monotonicNow();
-      if (++this.yieldChecks % 16 === 0 || hasYieldCheckpoint(this.signal) || now - this.lastYield >= 16) {
-        await yieldTurn(this.signal);
-        this.lastYield = monotonicNow();
-      } else {
-        runYieldCheckpoint(this.signal);
-      }
+      await yieldTurn(this.signal);
       this.checkTime();
     }
   }

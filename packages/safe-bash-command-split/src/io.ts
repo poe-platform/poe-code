@@ -1,6 +1,6 @@
-import { hasYieldCheckpoint, monotonicNow, yieldTurn } from "safe-bash-contracts/yield";
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { FsError, readBytes, type ByteSource, type CommandContext } from "safe-bash-contracts";
-import { pathOf } from "safe-bash-io-engine/internal";
+import { pathOf } from "../internal.js";
 import type { SplitLimits } from "./options.js";
 
 const splitSignalWaiters = new WeakMap<AbortSignal, Set<() => void>>();
@@ -36,8 +36,6 @@ export class Budget {
   private outputBytes = 0;
   private steps = 0;
   private untilYield = 65536;
-  private yieldChecks = 0;
-  private lastYield = monotonicNow();
   constructor(readonly limits: SplitLimits, readonly signal: AbortSignal) {}
   check(value: number, maximum: number, label: string): void {
     if (value > maximum) throw new FsError("EFBIG", { message: `split ${label} limit exceeded` });
@@ -58,10 +56,7 @@ export class Budget {
     this.untilYield -= count;
     if (this.untilYield > 0) return;
     this.untilYield = 65536;
-    if (++this.yieldChecks % 16 !== 0 && !hasYieldCheckpoint(this.signal) && monotonicNow() - this.lastYield < 16) return;
-    this.lastYield = monotonicNow();
     return yieldTurn(this.signal).catch(error => { this.signal.throwIfAborted(); throw error; }).then(() => {
-      this.lastYield = monotonicNow();
       this.signal.throwIfAborted();
     });
   }

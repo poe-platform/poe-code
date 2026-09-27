@@ -1,5 +1,5 @@
 import { FsError, readBytes, type ByteSource, type CommandContext, type FileReadHandle, type FileStat } from "safe-bash-contracts";
-import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { Diagnostic } from "./args.js";
 
 export function virtualPath(cwd: string, name: string): string {
@@ -151,8 +151,6 @@ export async function* records(source: ByteSource, delimiter: number, limit: num
   let pending = new Uint8Array(Math.min(256, limit));
   let used = 0;
   let scanned = 0;
-  let lastYield = monotonicNow();
-  let yieldChecks = 0;
   for await (const rawChunk of source) {
     const chunk = Uint8Array.prototype.slice.call(rawChunk);
     let start = 0;
@@ -181,12 +179,7 @@ export async function* records(source: ByteSource, delimiter: number, limit: num
         }
       }
       if (++scanned % 8192 === 0) {
-        if (++yieldChecks % 16 === 0 || hasYieldCheckpoint(signal) || monotonicNow() - lastYield >= 25) {
-          await yieldTurn(signal); lastYield = monotonicNow();
-        } else {
-          runYieldCheckpoint(signal);
-          signal.throwIfAborted();
-        }
+        await yieldTurn(signal);
       }
     }
   }
@@ -211,8 +204,6 @@ export async function readAllRecords(
   let used = 0;
   let scanned = 0;
   let totalBytes = 0;
-  let lastYield = monotonicNow();
-  let yieldChecks = 0;
   for await (const rawChunk of source) {
     const chunk = Uint8Array.prototype.slice.call(rawChunk);
     let start = 0;
@@ -246,13 +237,7 @@ export async function readAllRecords(
         }
       }
       if (++scanned % 8192 === 0) {
-        const now = monotonicNow();
-        if (++yieldChecks % 16 === 0 || hasYieldCheckpoint(signal) || now - lastYield >= 16) {
-          await yieldTurn(signal);
-          lastYield = monotonicNow();
-        } else {
-          runYieldCheckpoint(signal);
-        }
+        await yieldTurn(signal);
       }
     }
   }

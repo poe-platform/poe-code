@@ -4,15 +4,13 @@ import { createBufferedOutput, FsError, type ByteSource, type CommandContext, ty
 import { RETURN_EXIT_ONE, RETURN_EXIT_TWO, RETURN_EXIT_ZERO, assertInputRequirements, bufferLimit, codeOf, concatenate, define, diagnostic, encoder, input, integer, lines, options, output, outputRange, pathOf, requireOperands, RESOLVED_EXIT_ZERO, UsageError, value } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { inputRequirements, textOutputRequirements } from "./portable-requirements.js";
-import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../contracts/yield.js";
+import { hasYieldCheckpoint, yieldTurn } from "../contracts/yield.js";
 import { RecordBuffer } from "./record-buffer.js";
 import { SortRecordBudget } from "./sort-admission.js";
 import { compareObservedEntries } from "./copy-identity.js";
 
 class SortWork {
   #pending = 0;
-  #syncTurns = 0;
-  #lastYield = monotonicNow();
 
   constructor(readonly signal: AbortSignal) {
     this.signal.throwIfAborted();
@@ -21,31 +19,8 @@ class SortWork {
   charge(units = 1): Promise<void> | undefined {
     this.#pending += units;
     if (this.#pending >= 4096) {
-      if (!hasYieldCheckpoint(this.signal)) {
-        while (this.#pending >= 4096) {
-          this.#pending -= 4096;
-          runYieldCheckpoint(this.signal);
-          this.signal.throwIfAborted();
-          if (++this.#syncTurns % 8 === 0) {
-            const now = monotonicNow();
-            // A fast or coarse host clock must not suppress every host turn.
-            if (this.#syncTurns >= 256 || now - this.#lastYield >= 16) {
-              this.#syncTurns = 0;
-              this.#lastYield = now;
-              return this.#checkpointOnce();
-            }
-          }
-        }
-        return undefined;
-      }
       return this.#checkpoint();
     }
-  }
-
-  async #checkpointOnce(): Promise<void> {
-    await yieldTurn(this.signal);
-    this.#lastYield = monotonicNow();
-    this.signal.throwIfAborted();
   }
 
   async #checkpoint(): Promise<void> {

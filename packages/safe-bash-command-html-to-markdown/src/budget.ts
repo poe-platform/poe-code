@@ -1,5 +1,5 @@
 import { utf8ByteLength, bytesFrom } from "safe-bash-byte-engine";
-import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { FsError, writeBytes, type CommandContext } from "safe-bash-contracts";
 import type { HtmlToMarkdownLimits } from "./options.js";
 
@@ -19,14 +19,10 @@ export class Budget {
   cells = 0;
   private workUsed = 0;
   private sinceYield = 0;
-  private checkpoints = 0;
-  private lastYieldTime = monotonicNow();
-  private readonly hasExtYield: boolean;
   private aborted: boolean;
   private readonly pollSignal: boolean;
   constructor(readonly context: CommandContext, readonly limits: HtmlToMarkdownLimits) {
     const signal = context.signal;
-    this.hasExtYield = hasYieldCheckpoint(signal);
     this.aborted = Boolean(signal.aborted);
     this.pollSignal = typeof signal.addEventListener !== "function" || Object.prototype.hasOwnProperty.call(signal, "aborted");
     if (!this.aborted && !this.pollSignal) {
@@ -51,18 +47,9 @@ export class Budget {
     if (this.aborted || (this.pollSignal && this.context.signal.aborted)) this.context.signal.throwIfAborted();
     if (this.sinceYield >= 4096) {
       this.sinceYield = 0;
-      const count = ++this.checkpoints;
-      const now = monotonicNow();
-      if (!this.hasExtYield && count > 1 && count % 16 !== 0 && now - this.lastYieldTime < 16) {
-        runYieldCheckpoint(this.context.signal);
-        return;
-      }
-      this.lastYieldTime = now;
       return yieldTurn(this.context.signal).then(() => {
-        this.lastYieldTime = monotonicNow();
         if (this.aborted || (this.pollSignal && this.context.signal.aborted)) this.context.signal.throwIfAborted();
       }, error => {
-        this.lastYieldTime = monotonicNow();
         if (this.aborted || (this.pollSignal && this.context.signal.aborted)) this.context.signal.throwIfAborted();
         throw error;
       });

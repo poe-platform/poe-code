@@ -1,7 +1,7 @@
 import { FsError, getCommandArguments, readBytes, writeBytes, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
 import { createOutputOperation, type OutputOperation } from "safe-bash-contracts/output";
 import { shellValueByteLength } from "safe-bash-contracts/value";
-import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { PublicDiagnostic, publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 const encoder = new TextEncoder();
 import { RecordBuffer } from "./record-buffer.js";
@@ -647,9 +647,6 @@ class Converter {
   invalid = false;
   private autoPadding = false;
   private work = 0;
-  private tickCount = 0;
-  private lastYieldWork = 0;
-  private lastYield = monotonicNow();
   private signalAborted: boolean;
   private readonly pollSignal: boolean;
   constructor(readonly settings: Settings, private limits: NumfmtLimits, private context: CommandContext, private output: { readonly remaining: number; emit(text: string, error?: boolean): void | Promise<void> }) {
@@ -662,25 +659,16 @@ class Converter {
 
   canTickSync(maxTicks: number): boolean {
     if (this.pollSignal ? this.context.signal.aborted : this.signalAborted) return false;
-    if (this.work + maxTicks > this.limits.maxWork || this.work + maxTicks - this.lastYieldWork >= 16384) return false;
+    if (this.work + maxTicks > this.limits.maxWork) return false;
     if ((this.work % 1024) + maxTicks < 1024) return true;
-    return this.tickCount >= 1 && !hasYieldCheckpoint(this.context.signal) && monotonicNow() - this.lastYield < 16;
+    return false;
   }
 
   tick(amount = 1): void | Promise<void> {
     this.work += amount;
     if (this.work > this.limits.maxWork) throw new PublicDiagnostic("numfmt work limit exceeded");
     if (this.work % 1024 < amount) {
-      const count = ++this.tickCount;
-      const now = monotonicNow();
-      if (count === 1 || this.work - this.lastYieldWork >= 16384 || now - this.lastYield >= 16 || hasYieldCheckpoint(this.context.signal)) {
-        this.lastYield = now;
-        this.lastYieldWork = this.work;
-        return yieldTurn(this.context.signal).then(() => {
-          this.lastYield = monotonicNow();
-        });
-      }
-      runYieldCheckpoint(this.context.signal);
+      return yieldTurn(this.context.signal);
     }
     if (this.pollSignal ? this.context.signal.aborted : this.signalAborted) this.context.signal.throwIfAborted();
   }
@@ -929,11 +917,9 @@ class Converter {
       return false;
     }
     const savedWork = this.work;
-    const savedTickCount = this.tickCount;
     const savedPadding = settings.padding;
     const bail = (): false => {
       this.work = savedWork;
-      this.tickCount = savedTickCount;
       settings.padding = savedPadding;
       return false;
     };

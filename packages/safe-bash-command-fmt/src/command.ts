@@ -2,7 +2,7 @@ import { commandRuntimeIdentity, CommandArgumentIdentityError, FsError, getComma
 import { isAbsolutePath, validatePath } from '@poe-code/safe-fs/core';
 import { assertCommandRequirements } from 'safe-bash-contracts/command-requirements';
 import { createOutputOperation, type OutputOperation } from 'safe-bash-contracts/output';
-import { hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn as contractYieldTurn } from 'safe-bash-contracts/yield';
+import { inheritYieldCheckpoint, yieldTurn as contractYieldTurn } from 'safe-bash-contracts/yield';
 import { FmtError, defaultFmtLimits, validateFmtLimits, type FmtLimits, type FmtProfile } from './contracts.js';
 import { parseFmtArguments } from './arguments.js';
 import { createFmtEngine, type FmtEngine } from './engine.js';
@@ -215,18 +215,6 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
         let emptyChunks = 0;
         let chunks = 0;
         let checkpoints = 0;
-        let lastYield = monotonicNow();
-        let yieldChecks = 0;
-        const maybeYield = async (signal: AbortSignal): Promise<void> => {
-          const now = monotonicNow();
-          if (++yieldChecks % 16 === 0 || now - lastYield >= 25 || hasYieldCheckpoint(signal)) {
-            lastYield = now;
-            await contractYieldTurn(signal);
-            lastYield = monotonicNow();
-          } else {
-            await runYieldCheckpoint(signal);
-          }
-        };
         let exitCode = 0;
         for (const { name, bytes: nameBytes } of settings.files) {
           local.signal.throwIfAborted();
@@ -274,7 +262,7 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
                   }
                 }
                 if (bytes?.length === 0 && ++emptyChunks > (limits.emptyChunks ?? Infinity)) throw new FmtError("LIMIT", "empty input chunk limit exceeded");
-                if (++chunks % 64 === 0) await maybeYield(local.signal);
+                if (++chunks % 64 === 0) await contractYieldTurn(local.signal);
                 step = machine.next(bytes);
               } else {
                 if (step.value) {
@@ -289,7 +277,7 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
                   } else {
                     await output(outputContext, step.value);
                   }
-                } else if (++checkpoints % 64 === 0) await maybeYield(local.signal);
+                } else if (++checkpoints % 64 === 0) await contractYieldTurn(local.signal);
                 step = machine.next();
               }
             }

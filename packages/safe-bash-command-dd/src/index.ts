@@ -6,7 +6,7 @@ import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import { FsError } from "@poe-code/safe-fs/core";
 import { writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
-import { hasYieldCheckpoint, monotonicNow, yieldTurn } from "safe-bash-contracts/yield";
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { DdConverter } from "./conversions.js";
 import { errorMessage, openDdFile, writeDdOutput, type DdFileHandle, type DdFileOpener, type DdFileRequest } from "./io.js";
 import { DdError, parseDd, quote, type DdPlan } from "./options.js";
@@ -229,15 +229,6 @@ export function createDdCommand(options: DdCommandsOptions = {}): CommandDefinit
       let previousShort = 0;
       let partialRecord = 0;
       let warned = false;
-      let lastYieldTime = monotonicNow();
-      let yieldChecks = 0;
-      const maybeYield = async (): Promise<void> => {
-        context.signal.throwIfAborted();
-        if (++yieldChecks % 16 === 0 || hasYieldCheckpoint(context.signal) || monotonicNow() - lastYieldTime >= 16) {
-          await yieldTurn(context.signal);
-          lastYieldTime = monotonicNow();
-        }
-      };
       const read = async (size: number): Promise<Uint8Array> => {
         context.signal.throwIfAborted();
         if (++readOperations > limits.maxReadOperations) throw new DdError("input operation limit exceeded");
@@ -271,7 +262,7 @@ export function createDdCommand(options: DdCommandsOptions = {}): CommandDefinit
           skipped += BigInt(consumed);
           if (skipRecords) skipRecords--;
           else skipRemainder = 0n;
-          await maybeYield();
+          await yieldTurn(context.signal);
         }
         if (skipped < skipOffset && plan.status !== "none") await diagnostic(`${quote(plan.input ?? "standard input")}: cannot skip to specified offset`);
       }
@@ -318,7 +309,7 @@ export function createDdCommand(options: DdCommandsOptions = {}): CommandDefinit
             else if (written) report.stats.outputPartial++;
           }
         }
-        await maybeYield();
+        await yieldTurn(context.signal);
       };
       const outputBuffer = new Uint8Array(copying && plan.twoBuffers ? obs : 0);
       let used = 0;
@@ -381,7 +372,7 @@ export function createDdCommand(options: DdCommandsOptions = {}): CommandDefinit
         const chunk = block.subarray(0, plan.convert.has("sync") ? ibs : length);
         if (converter) await converter.push(chunk);
         else await emit(chunk);
-        await maybeYield();
+        await yieldTurn(context.signal);
       }
       await converter?.finish();
       if (used) { await writeRecord(outputBuffer.subarray(0, used)); used = 0; }

@@ -155,6 +155,8 @@ function approvedCompilerConfiguration(): CompilerConfiguration {
         "safe-bash-compression-engine/native/generated/bz2": ["../safe-bash-compression-engine/src/native/bz2.ts"],
         "safe-bash-compression-engine/native/generated/xz": ["../safe-bash-compression-engine/src/native/xz.ts"],
         "safe-bash-compression-engine/native/generated/zstd": ["../safe-bash-compression-engine/src/native/zstd.ts"],
+        "poe-code/safe-bash/contracts": ["../safe-bash-contracts/src/index.ts"],
+        "poe-code/safe-bash/contracts/*": ["../safe-bash-contracts/src/*.ts"],
         "poe-code/safe-bash": [
           "./dist/index.d.ts"
         ],

@@ -1,13 +1,14 @@
 import { AsyncLocalStorage, AsyncResource } from "node:async_hooks";
 import { EventEmitter } from "node:events";
 import { vol } from "memfs";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   Budget,
   declareHostOperation,
   dump,
   restore,
   run,
+  type HostCallRecord,
   type HostCallResumeRequest
 } from "../src/index.js";
 import { runCli } from "../src/cli.js";
@@ -40,9 +41,9 @@ afterEach(() => {
 });
 
 describe("independent ordered PPR2 fresh writer continuations", () => {
-  it.each(originalScenarios)(
-    "$id: native trace, public/signal/completed checkpoints and recapture",
-    async (scenario) => {
+  describe.each(originalScenarios)("$id", (scenario) => {
+    let prepared: { captures: string[]; native: unknown; receipts: HostCallRecord[] };
+    beforeAll(async () => {
       const nativeHost = makeFixture(scenario.id, true, scenario.policy);
       const AsyncFunction = Object.getPrototypeOf(async () => undefined).constructor;
       const nativeExecution = new AsyncFunction(
@@ -76,21 +77,9 @@ describe("independent ordered PPR2 fresh writer continuations", () => {
             throw Error("No pending boundary");
           })
         ]);
-        await vi.waitFor(
-          async () => {
-            expect(host.calls).toEqual(scenario.callsAtBoundary);
-            if (scenario.id.startsWith("retry")) {
-              // Starting the retry does not mean its guest finally block has run.
-              const snapshot = JSON.parse(await dump(execution, { mode: "replay" }));
-              const trace = snapshot.heap[snapshot.bindings.trace.id];
-              const properties = new Map<string, { value: unknown }>(
-                trace.state.properties.properties
-              );
-              expect(properties.get("length")).toMatchObject({ value: native.trace.length - 1 });
-            }
-          },
-          { interval: 1, timeout: 1000 }
-        );
+        await vi.waitFor(() => expect(host.calls).toEqual(scenario.callsAtBoundary), {
+          interval: 1, timeout: 1000
+        });
         if (scenario.id.startsWith("retry")) await waitForRetryEffects(execution);
         expect(() => dump(execution)).toThrow(expect.objectContaining({ code: "reentry" }));
         captures.push(await dump(execution, { mode: "replay" }));
@@ -120,7 +109,12 @@ describe("independent ordered PPR2 fresh writer continuations", () => {
       expect(original.returnValue).toEqual(native);
       expect(host.calls).toEqual(nativeHost.calls);
       captures.push(await dump(execution));
-      for (const [index, bytes] of captures.entries()) {
+      prepared = { captures, native, receipts: original.snapshot.hostCalls ?? [] };
+    });
+    describe.each([0, 1, 2] as const)("checkpoint %i", (index) => {
+      let recapturedBytes: string;
+      beforeAll(async () => {
+        const bytes = prepared.captures[index]!;
         const snapshot = restore(JSON.parse(bytes), { source: scenario.source });
         expect(snapshot.executionSemantics).toBe(expectedFresh);
         expect(snapshot.version).toBe(2);
@@ -129,7 +123,7 @@ describe("independent ordered PPR2 fresh writer continuations", () => {
         const rebound = makeFixture(scenario.id, holdReplay, scenario.policy);
         const requests: HostCallResumeRequest[] = [];
         const receiptGate = deferred<void>();
-        const provideReceipt = receiptsProvider(original.snapshot.hostCalls ?? [], requests);
+        const provideReceipt = receiptsProvider(prepared.receipts, requests);
         const resumedExecution = run(scenario.source, {
           snapshot,
           bindings: rebound.bindings,
@@ -148,11 +142,14 @@ describe("independent ordered PPR2 fresh writer continuations", () => {
         const resumed = await resumedExecution;
         expect(resumed.ok).toBe(true);
         if (!resumed.ok) throw Error(resumed.error.message);
-        expect(resumed.returnValue).toEqual(native);
+        expect(resumed.returnValue).toEqual(prepared.native);
         expect(rebound.calls).toEqual(index === 2 ? [] : scenario.resumeCalls);
         expect(requests).toHaveLength(index < 2 && scenario.policy === "read-side-effect" ? 1 : 0);
         expect(JSON.stringify(snapshot)).toBe(before);
-        const recaptured = restore(JSON.parse(await dump(resumed)), { source: scenario.source });
+        recapturedBytes = await dump(resumed);
+      });
+      it("replays its completed recapture without repeating native effects", async () => {
+        const recaptured = restore(JSON.parse(recapturedBytes), { source: scenario.source });
         expect(recaptured.executionSemantics).toBe(expectedFresh);
         const finalHost = makeFixture(scenario.id, false, scenario.policy);
         const finalProvider = vi.fn();
@@ -163,12 +160,12 @@ describe("independent ordered PPR2 fresh writer continuations", () => {
         });
         expect(final.ok).toBe(true);
         if (!final.ok) throw Error(final.error.message);
-        expect(final.returnValue).toEqual(native);
+        expect(final.returnValue).toEqual(prepared.native);
         expect(finalHost.calls).toEqual([]);
         expect(finalProvider).not.toHaveBeenCalled();
-      }
-    }
-  );
+      });
+    });
+  });
 
   it.each(["re-issue", "read-side-effect"] as const)(
     "pending %s: strict writer marker and exactly observed consumption",

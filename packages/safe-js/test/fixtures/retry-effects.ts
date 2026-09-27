@@ -1,14 +1,17 @@
-import { vi, expect } from "vitest";
+import { expect } from "vitest";
 import { dump, type RunPromise } from "../../src/index.js";
 
 export async function waitForRetryEffects(execution: RunPromise): Promise<void> {
   // Host-call logs advance before the guest records the other worker's finally effect.
-  await vi.waitFor(async () => {
+  // Yield between captures so snapshot polling cannot crowd out runnable guest jobs.
+  let length: unknown;
+  for (let attempt = 0; attempt < 20; attempt++) {
+    await new Promise<void>(resolve => setImmediate(resolve));
     const pending = JSON.parse(await dump(execution, { mode: "replay" }));
     const trace = pending.heap[pending.bindings.trace.id];
+    length = trace.state.properties.properties.find(([key]: [string]) => key === "length")?.[1].value;
     // Eight events include b's final retry; c's final event remains gated.
-    expect(trace.state.properties.properties).toContainEqual([
-      "length", expect.objectContaining({ value: 8 })
-    ]);
-  }, { interval: 1, timeout: 1000 });
+    if (length === 8) return;
+  }
+  expect(length).toBe(8);
 }

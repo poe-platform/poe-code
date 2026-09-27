@@ -1,7 +1,7 @@
 import { waitForRetryEffects } from "../test/fixtures/retry-effects.js";
 import { EventEmitter } from "node:events";
 import { vol } from "memfs";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -359,9 +359,12 @@ afterEach(() => {
 });
 
 describe("independent AR-001 original workflows", () => {
-  it.each(originalScenarios)(
-    "captures externally and by signal while $id remains pending",
-    async (scenario) => {
+  describe.each(originalScenarios)("$id", (scenario) => {
+    let prepared: {
+      snapshots: Record<"public" | "signal" | "completed", string>;
+      receipts: HostCallRecord[];
+    };
+    beforeAll(async () => {
       const host = makeFixture(scenario.id, true, scenario.policy);
       const execution = run(scenario.source, {
         bindings: host.bindings,
@@ -418,57 +421,58 @@ describe("independent AR-001 original workflows", () => {
       expect(JSON.parse(JSON.stringify(original.returnValue))).toEqual(scenario.expected);
       expect(host.calls).toEqual(scenario.calls);
       const completedSnapshot = await dump(execution);
-      for (const [phase, serialized] of [
-        ["public", publicSnapshot],
-        ["signal", signalSnapshot],
-        ["completed", completedSnapshot]
-      ]) {
-        const restored = restore(JSON.parse(serialized!), { source: scenario.source });
-        expect(restored.executionSemantics).toBe("jobs-v9");
-        expect(restored.version).toBe(2);
-        const holdReplay = phase !== "completed" && scenario.id.startsWith("retry");
-        const rebound = makeFixture(scenario.id, holdReplay, scenario.policy);
-        const requests: HostCallResumeRequest[] = [];
-        const receiptGate = deferred<void>();
-        const provideReceipt = receiptsProvider(original.snapshot.hostCalls ?? [], requests);
-        const resumedExecution = run(scenario.source, {
-          bindings: rebound.bindings,
-          snapshot: restored,
-          budget: new Budget({ maxSteps: 150_000 }),
-          hostCallResumeProvider:
-            scenario.policy === "read-side-effect"
-              ? async (request) => {
-                  // Match the original host schedule: c completes after b's guest finally.
-                  if (holdReplay) await receiptGate.promise;
-                  return provideReceipt(request);
-                }
-              : undefined
-        });
-        const replaySettled = vi.fn();
-        void resumedExecution.then(replaySettled, replaySettled);
-        try {
-          if (phase !== "completed" && scenario.id.startsWith("retry")) {
-            await waitForRetryEffects(resumedExecution);
-            expect(replaySettled).not.toHaveBeenCalled();
-          }
-        } finally {
-          rebound.release();
-          receiptGate.resolve();
+      prepared = {
+        snapshots: { public: publicSnapshot, signal: signalSnapshot, completed: completedSnapshot },
+        receipts: original.snapshot.hostCalls ?? []
+      };
+    });
+    it.each(["public", "signal", "completed"] as const)("restores the %s snapshot", async (phase) => {
+      const serialized = prepared.snapshots[phase];
+      const restored = restore(JSON.parse(serialized!), { source: scenario.source });
+      expect(restored.executionSemantics).toBe("jobs-v9");
+      expect(restored.version).toBe(2);
+      const holdReplay = phase !== "completed" && scenario.id.startsWith("retry");
+      const rebound = makeFixture(scenario.id, holdReplay, scenario.policy);
+      const requests: HostCallResumeRequest[] = [];
+      const receiptGate = deferred<void>();
+      const provideReceipt = receiptsProvider(prepared.receipts, requests);
+      const resumedExecution = run(scenario.source, {
+        bindings: rebound.bindings,
+        snapshot: restored,
+        budget: new Budget({ maxSteps: 150_000 }),
+        hostCallResumeProvider:
+          scenario.policy === "read-side-effect"
+            ? async (request) => {
+                // Match the original host schedule: c completes after b's guest finally.
+                if (holdReplay) await receiptGate.promise;
+                return provideReceipt(request);
+              }
+            : undefined
+      });
+      const replaySettled = vi.fn();
+      void resumedExecution.then(replaySettled, replaySettled);
+      try {
+        if (phase !== "completed" && scenario.id.startsWith("retry")) {
+          await waitForRetryEffects(resumedExecution);
+          expect(replaySettled).not.toHaveBeenCalled();
         }
-        const resumed = await resumedExecution;
-        expect(resumed.ok).toBe(true);
-        if (!resumed.ok) throw new Error(resumed.error.message);
-        expect(JSON.parse(JSON.stringify(resumed.returnValue))).toEqual(scenario.expected);
-        if (phase === "completed") {
-          expect(rebound.calls).toEqual([]);
-          expect(requests).toEqual([]);
-        } else {
-          expect(rebound.calls).toEqual(scenario.resumeCalls);
-          expect(requests).toHaveLength(scenario.policy === "read-side-effect" ? 1 : 0);
-        }
+      } finally {
+        rebound.release();
+        receiptGate.resolve();
       }
-    }
-  );
+      const resumed = await resumedExecution;
+      expect(resumed.ok).toBe(true);
+      if (!resumed.ok) throw new Error(resumed.error.message);
+      expect(JSON.parse(JSON.stringify(resumed.returnValue))).toEqual(scenario.expected);
+      if (phase === "completed") {
+        expect(rebound.calls).toEqual([]);
+        expect(requests).toEqual([]);
+      } else {
+        expect(rebound.calls).toEqual(scenario.resumeCalls);
+        expect(requests).toHaveLength(scenario.policy === "read-side-effect" ? 1 : 0);
+      }
+    });
+  });
 });
 
 describe("independent external checkpoint contracts", () => {

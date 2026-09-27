@@ -10,11 +10,9 @@ import { captureIgnoredTrapSignals } from "./trap.js";
 import { writeDiagnostic } from "../escaping.js";
 import { cancelTurn, hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, registerInternalYieldCheckpoint, runYieldCheckpoint, scheduleTurn, yieldTurn, type TurnHandle } from "../contracts/yield.js";
 import {
-  ACCESS_MODES, FsError, composeMiddleware, createBytePipe, normalizePath, pipeBytes, resolvePath, validateExitCode, writeBytes, writeText,
-} from "../contracts/index.js";
+  ACCESS_MODES, FsError, composeMiddleware, createBytePipe, normalizePath, pipeBytes, resolvePath, validateExitCode, writeBytes, writeText, } from "../contracts/index.js";
 import type {
-  ByteSink, ByteSource, CommandContext, CommandDefinition, CommandInvoker, CommandRegistry, CommandResult, FileSystem, Middleware,
-} from "../contracts/index.js";
+  ByteSink, ByteSource, CommandContext, CommandDefinition, CommandInvoker, CommandRegistry, CommandResult, FileSystem, Middleware, } from "../contracts/index.js";
 import { createBcCommands } from "../commands/bc/index.js";
 import { createSpongeCommands } from "../commands/sponge/index.js";
 import { createFdCommands } from "../commands/fd/index.js";
@@ -80,12 +78,9 @@ import { builtInDirectContextExecutors, pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT
 import { cloneGetoptsState, createGetoptsInput, createGetoptsState, GetoptsError, getoptsInputAllocationSize, scanGetopts, withGetoptsIndex } from "./getopts.js";
 import type { GetoptsState } from "./getopts.js";
 import {
-  activateChildCancellation, admitCancellationSubscriptionCapacity, prepareChildCancellation, selectRuntimeCancellationOutcome, subscribeCancellationOwner, unsubscribeCancellationOwner,
-} from "./cancellation.js";
+  activateChildCancellation, admitCancellationSubscriptionCapacity, prepareChildCancellation, selectRuntimeCancellationOutcome, subscribeCancellationOwner, unsubscribeCancellationOwner, } from "./cancellation.js";
 import type {
-  CancellationAdmissionSnapshot, CancellationBoundary, CancellationControlOriginInput, CancellationOrigin,
-  CancellationOwnerSubscriber, CancellationReport, CancellationSelection, CapturedCancellationOutcome, PreparedChildCancellation,
-} from "./cancellation.js";
+  CancellationAdmissionSnapshot, CancellationBoundary, CancellationControlOriginInput, CancellationOrigin, CancellationOwnerSubscriber, CancellationReport, CancellationSelection, CapturedCancellationOutcome, PreparedChildCancellation, } from "./cancellation.js";
 import { variablePresence } from "../commands/variable-presence.js";
 import { getArrayAssignment, getArraySelector, copyArraySelector, numericIndex, literalIndex, stringIndex, isQuoteMarker, prefixNameQuoteGroups, setArraySelector } from "./arrays/syntax.js";
 import type { ArrayAssignment } from "./arrays/syntax.js";
@@ -105,22 +100,18 @@ import type { EreFragment } from "../commands/regex-execution/ere/types.js";
 import { PathLookup, pathTargets } from "./path-lookup.js";
 import { transformParameter } from "./parameter-transforms.js";
 import { creationFileSystem, umaskBuiltin } from "./umask.js";
-
 function hasActiveExtensions(state: State): state is State & { extensions: ShellExtensionState } {
   const ext = state.extensions;
   if (!ext) return false;
   return !(ext as { isIdleTrapState?: boolean }).isIdleTrapState;
 }
-
 const memberPatternOperators = ["#", "##", "%", "%%", "/", "//", "/#", "/%", "^", "^^", ",", ",,"];
 const defaultParameterOperators = ["-", "+", "=", "?", ":-", ":+", ":=", ":?"];
-
 async function signedLong(argument: string, budget: Budget, signal: AbortSignal): Promise<bigint | "overflow" | undefined> {
   const checkpoint = async (): Promise<void> => {
     budget.cpuCheckpoint();
     signal.throwIfAborted();
-    await yieldTurn(signal);
-  };
+    await yieldTurn(signal);};
   let start = 0, end = argument.length;
   while (start < end && " \t\n\r\v\f".includes(argument[start]!)) {
     if (start % 1024 === 0) await checkpoint();
@@ -141,54 +132,26 @@ async function signedLong(argument: string, budget: Budget, signal: AbortSignal)
     if (digit < 0 || digit > 9) return undefined;
     if (overflow) continue;
     value = value * 10n + BigInt(digit);
-    // Keep arithmetic bounded even for arbitrarily long decimal arguments.
     overflow = value > (negative ? 9223372036854775808n : 9223372036854775807n);
   }
   if (overflow) return "overflow";
   return negative ? -value : value;
 }
-
 type ResolvedShellLimits = Required<Omit<ShellLimits, "commandLimits">> & Pick<ShellLimits, "commandLimits">;
-
 export const defaultLimits: ResolvedShellLimits = {
-  maxParseUnits: Infinity,
-  maxInputBytes: Infinity,
-  maxOutputBytes: Infinity,
-  maxCommands: Infinity,
-  maxFileSystemOperations: Infinity,
-  maxPathComponents: Infinity,
-  maxPathnameComponents: Infinity,
-  maxRedirects: Infinity,
-  maxPipelineStages: Infinity,
-  maxLoopIterations: Infinity,
-  maxSubstitutionDepth: Infinity,
-  maxSourceBytes: Infinity,
-  maxExpansionFields: Infinity,
-  maxExpansionBytes: Infinity,
-  maxWallClockMs: Infinity,
-  maxCpuMs: Infinity,
-  pipeHighWaterMark: 64 * 1024,
-};
-
+  maxParseUnits: Infinity, maxInputBytes: Infinity, maxOutputBytes: Infinity, maxCommands: Infinity, maxFileSystemOperations: Infinity, maxPathComponents: Infinity, maxPathnameComponents: Infinity, maxRedirects: Infinity, maxPipelineStages: Infinity, maxLoopIterations: Infinity, maxSubstitutionDepth: Infinity, maxSourceBytes: Infinity, maxExpansionFields: Infinity, maxExpansionBytes: Infinity, maxWallClockMs: Infinity, maxCpuMs: Infinity, pipeHighWaterMark: 64 * 1024, };
 const shellBuiltinNames = new Set([
-  ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read", "declare", "typeset", "mapfile", "readarray", "umask",
-  "exit", "return", "break", "continue", "command", "builtin", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "getopts", "let", "pushd", "dirs", "popd", "shopt", "hash",
-]);
-
+  ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read", "declare", "typeset", "mapfile", "readarray", "umask", "exit", "return", "break", "continue", "command", "builtin", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "getopts", "let", "pushd", "dirs", "popd", "shopt", "hash", ]);
 const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
 const extensionExitFailures = new WeakMap<ShellExtensionState, { reason: unknown }>();
 const specialBuiltinNames = new Set([":", ".", "break", "continue", "eval", "exit", "export", "readonly", "return", "set", "shift", "unset"]);
 const defaultCommandPath = "/bin:/usr/bin";
 const zeroPositionKey = "-1";
 const unsupportedSetOptionNames = new Set([
-  "emacs", "errtrace", "functrace", "hashall", "histexpand", "history",
-  "ignoreeof", "interactive-comments", "keyword", "monitor", "nolog",
-  "notify", "onecmd", "physical", "posix", "privileged", "verbose", "vi", "xtrace",
-]);
+  "emacs", "errtrace", "functrace", "hashall", "histexpand", "history", "ignoreeof", "interactive-comments", "keyword", "monitor", "nolog", "notify", "onecmd", "physical", "posix", "privileged", "verbose", "vi", "xtrace", ]);
 const shellKeywords = new Set(["if", "then", "else", "elif", "fi", "for", "while", "until", "do", "done", "case", "esac", "in", "function", "{", "}", "!", "[[", "]]", "time", "select", "coproc"]);
 type Discovery = { kind: "keyword" | "function" | "builtin" | "command" | "interpreter" | "file"; name: string };
 const commandSpellingSymbol = Symbol("safe-bash.commandSpelling");
-
 function commandSpelling(command: Extract<Command, { kind: "simple" | "arithmetic" | "conditional" }>): string {
   const cached = (command as unknown as Record<symbol, string | undefined>)[commandSpellingSymbol];
   if (cached !== undefined) return cached;
@@ -207,8 +170,7 @@ function commandSpelling(command: Extract<Command, { kind: "simple" | "arithmeti
       const target = redirect.target.spelling ?? redirect.target.plain ?? "";
       if (redirect.operator === ">&" || redirect.operator === "<&") return `${redirect.descriptor}${redirect.operator}${target}`;
       const implicit = redirect.operator.startsWith("<") ? 0 : 1;
-      return `${redirect.descriptor === implicit ? "" : redirect.descriptor}${redirect.operator} ${target}`;
-    });
+      return `${redirect.descriptor === implicit ? "" : redirect.descriptor}${redirect.operator} ${target}`;});
     computed = [...command.words.map(word => word.spelling ?? word.plain ?? ""), ...redirects].join(" ");
   }
   if (Object.isExtensible(command)) {
@@ -216,14 +178,11 @@ function commandSpelling(command: Extract<Command, { kind: "simple" | "arithmeti
   }
   return computed;
 }
-
 function publishCommandSpelling(state: State, description: string): void {
   const monitor = stateMonitor(state);
   monitor?.values.invalidate("BASH_COMMAND");
-  // Source admission bounds automatic text; charge its use during expansion.
   (monitor?.raw ?? state).variables.BASH_COMMAND = description;
 }
-
 export function resolveLimits(...limits: (ShellLimits | undefined)[]): ResolvedShellLimits {
   const result = Object.assign({}, defaultLimits, ...limits) as ResolvedShellLimits;
   const commandLimits = resolveCommandLimits(...limits.map(value => value?.commandLimits));
@@ -235,7 +194,6 @@ export function resolveLimits(...limits: (ShellLimits | undefined)[]): ResolvedS
   }
   return { ...result, ...(commandLimits === undefined ? {} : { commandLimits }) };
 }
-
 const budgetedSinkSymbol = Symbol("safe-bash.budgetedSink");
 const syncSinkSymbol = Symbol("safe-bash.syncSink");
 type BudgetedSinkEntry = { self: ByteSink; budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> };
@@ -244,44 +202,28 @@ const fallbackBudgetedSinks = new WeakMap<ByteSink, { budget: Budget; write: Byt
 const fallbackSyncSinks = new WeakMap<ByteSink, (chunk: Uint8Array) => void>();
 const budgetedSinks = {
   get(sink: ByteSink) {
-    if (
-      (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) ||
-      (sink instanceof Capture && sink.budget !== undefined && sink.write === Capture.prototype.write) ||
-      (sink instanceof MemoryRedirectSink && sink.write === MemoryRedirectSink.prototype.write) ||
-      (sink instanceof BudgetedPipeStageSink && sink.write === BudgetedPipeStageSink.prototype.write)
-    ) {
+    if ( (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) || (sink instanceof Capture && sink.budget !== undefined && sink.write === Capture.prototype.write) || (sink instanceof MemoryRedirectSink && sink.write === MemoryRedirectSink.prototype.write) || (sink instanceof BudgetedPipeStageSink && sink.write === BudgetedPipeStageSink.prototype.write)) {
       return sink as { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> };
     }
     const entry = (sink as unknown as Record<symbol, BudgetedSinkEntry | undefined>)[budgetedSinkSymbol];
     return entry?.self === sink ? entry : fallbackBudgetedSinks.get(sink);
-  },
-  set(sink: ByteSink, value: { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> }) {
+  }, set(sink: ByteSink, value: { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> }) {
     if (Object.isExtensible(sink)) (sink as unknown as Record<symbol, BudgetedSinkEntry>)[budgetedSinkSymbol] = { ...value, self: sink };
     else fallbackBudgetedSinks.set(sink, value);
-  },
-};
+  }, };
 const syncSinks = {
   get(sink: ByteSink) {
-    if (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) {
-      return (chunk: Uint8Array) => sink.writeSync(chunk);
-    }
-    if (sink instanceof MemoryRedirectSink && sink.write === MemoryRedirectSink.prototype.write) {
-      return (chunk: Uint8Array) => sink.writeSync(chunk);
-    }
-    if (sink instanceof Capture && sink.write === Capture.prototype.write) {
-      return (chunk: Uint8Array) => sink.writeSync(chunk);
-    }
+    if (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) return (chunk: Uint8Array) => sink.writeSync(chunk);
+    if (sink instanceof MemoryRedirectSink && sink.write === MemoryRedirectSink.prototype.write) return (chunk: Uint8Array) => sink.writeSync(chunk);
+    if (sink instanceof Capture && sink.write === Capture.prototype.write) return (chunk: Uint8Array) => sink.writeSync(chunk);
     const entry = (sink as unknown as Record<symbol, SyncSinkEntry | undefined>)[syncSinkSymbol];
     return entry?.self === sink ? entry.fn : fallbackSyncSinks.get(sink);
-  },
-  set(sink: ByteSink, fn: (chunk: Uint8Array) => void) {
+  }, set(sink: ByteSink, fn: (chunk: Uint8Array) => void) {
     if (Object.isExtensible(sink)) (sink as unknown as Record<symbol, SyncSinkEntry>)[syncSinkSymbol] = { self: sink, fn };
     else fallbackSyncSinks.set(sink, fn);
-  },
-};
+  }, };
 const syncResolved = Symbol.for("safe-bash.syncResolved");
 const resolvedVoid: Promise<void> = Object.defineProperty(Promise.resolve(), syncResolved, { value: true });
-
 async function sortExpansionStrings(values: string[], work: StringWork, utf8 = false): Promise<void> {
   if (values.length <= 1) return;
   const compareSyncOrAsync = (left: string, right: string): number | Promise<number> => {
@@ -313,8 +255,7 @@ async function sortExpansionStrings(values: string[], work: StringWork, utf8 = f
       first += utf8 && a > 0xffff ? 2 : 1;
       second += utf8 && b > 0xffff ? 2 : 1;
     }
-    return (left.length - first) - (right.length - second);
-  };
+    return (left.length - first) - (right.length - second);};
   const sift = async (root: number, end: number): Promise<void> => {
     while (root * 2 + 1 < end) {
       let child = root * 2 + 1;
@@ -328,8 +269,7 @@ async function sortExpansionStrings(values: string[], work: StringWork, utf8 = f
       values[root] = values[child]!;
       values[child] = saved;
       root = child;
-    }
-  };
+    }};
   for (let index = Math.floor(values.length / 2) - 1; index >= 0; index--) await sift(index, values.length);
   for (let end = values.length - 1; end > 0; end--) {
     const saved = values[0]!;
@@ -338,7 +278,6 @@ async function sortExpansionStrings(values: string[], work: StringWork, utf8 = f
     await sift(0, end);
   }
 }
-
 class ExecutionCleanup {
   private _controller: AbortController | undefined;
   readonly failures: unknown[] = [];
@@ -346,13 +285,10 @@ class ExecutionCleanup {
   private _closed = false;
   private _drain: Promise<void> | undefined;
   private _failure: { reason: unknown } | undefined;
-
   constructor(private readonly budget: Budget) {}
-
   get controller(): AbortController {
     return (this._controller ??= new AbortController());
   }
-
   register(cleanup: () => void | Promise<void>): void {
     this.budget.signal.throwIfAborted();
     if (this._failure) throw this._failure.reason;
@@ -365,12 +301,10 @@ class ExecutionCleanup {
       this._pending.push({ cleanup, allocation });
     } catch (reason) { allocation.close(); throw reason; }
   }
-
   abort(reason: unknown): void {
     this._failure ??= { reason };
     if (this._pending.length || this._drain) this.controller.abort(reason);
   }
-
   drain(): Promise<void> {
     if (!this._drain && this._pending.length === 0) {
       this._closed = true;
@@ -393,17 +327,14 @@ class ExecutionCleanup {
       } finally {
         this._closed = true;
         for (const allocation of retained) allocation.close();
-      }
-    });
+      }});
   }
 }
-
 const defaultSetTimeout = setTimeout;
 const defaultDateNow = Date.now;
 const sharedWallClockBudgets: { primary: Budget | undefined; extra: Budget[] } = { primary: undefined, extra: [] };
 let sharedWallClockTimer: ReturnType<typeof setTimeout> | undefined;
 let sharedWallClockTimerDeadline = 0;
-
 function tickSharedWallClockBudgets(): void {
   sharedWallClockTimer = undefined;
   sharedWallClockTimerDeadline = 0;
@@ -411,9 +342,7 @@ function tickSharedWallClockBudgets(): void {
   let minDeadline = Infinity;
   while (sharedWallClockBudgets.primary !== undefined) {
     const d = sharedWallClockBudgets.primary._checkSharedWallClock(now);
-    if (d <= 0) {
-      sharedWallClockBudgets.primary = sharedWallClockBudgets.extra.pop();
-    } else {
+    if (d <= 0) sharedWallClockBudgets.primary = sharedWallClockBudgets.extra.pop(); else {
       minDeadline = d;
       break;
     }
@@ -421,15 +350,9 @@ function tickSharedWallClockBudgets(): void {
   for (let i = sharedWallClockBudgets.extra.length - 1; i >= 0; i--) {
     const b = sharedWallClockBudgets.extra[i]!;
     const d = b._checkSharedWallClock(now);
-    if (d <= 0) {
-      sharedWallClockBudgets.extra.splice(i, 1);
-    } else if (d < minDeadline) {
-      minDeadline = d;
-    }
+    if (d <= 0) sharedWallClockBudgets.extra.splice(i, 1); else if (d < minDeadline) minDeadline = d;
   }
-  if (sharedWallClockBudgets.primary === undefined && sharedWallClockBudgets.extra.length > 0) {
-    sharedWallClockBudgets.primary = sharedWallClockBudgets.extra.pop();
-  }
+  if (sharedWallClockBudgets.primary === undefined && sharedWallClockBudgets.extra.length > 0) sharedWallClockBudgets.primary = sharedWallClockBudgets.extra.pop();
   if (minDeadline !== Infinity) {
     const delay = Math.min(Math.max(1, minDeadline - now), 2_147_483_647);
     sharedWallClockTimerDeadline = now + delay;
@@ -437,7 +360,6 @@ function tickSharedWallClockBudgets(): void {
     (sharedWallClockTimer as ReturnType<typeof setTimeout> & { unref?: () => void }).unref?.();
   }
 }
-
 export class Budget {
   declare readonly limits: ResolvedShellLimits;
   declare readonly onInternalError: InternalErrorHandler | undefined;
@@ -482,7 +404,6 @@ export class Budget {
   declare readonly hasInfiniteFsOps: boolean;
   declare readonly canRedirect1: boolean;
   declare readonly maxSourceBytesSmi: number;
-
   constructor(limits: ResolvedShellLimits, signal?: AbortSignal, onInternalError?: InternalErrorHandler) {
     this.limits = limits;
     this._arraySession = undefined;
@@ -520,39 +441,30 @@ export class Budget {
     this.parsing = new ParseBudget(limits.maxParseUnits === Infinity ? undefined : limits.maxParseUnits, this.signal, this);
     if (limits.maxWallClockMs !== Infinity) this._armWallClock();
   }
-
   get yieldCheckpoint(): () => void {
     return this._yieldCheckpoint ??= () => { this.cpuCheckpoint(); };
   }
-
   get values(): ValueArena {
     return this._values ??= new ValueArena(this.limits.maxExpansionBytes, this.limits.maxExpansionFields, this);
   }
-
   get hasValues(): boolean {
     return this._values !== undefined;
   }
-
   get chargeFs(): () => void {
     return this._chargeFs ??= () => { this.fileSystemOperation(); };
   }
-
   get cleanupChargeFs(): () => void {
     return this._cleanupChargeFs ??= () => { this.fileSystemCleanupOperation(); };
   }
-
   get executionScope(): object {
     return this._executionScope ??= Object.freeze({});
   }
-
   get hasExecutionCleanup(): boolean {
     return this._executionCleanup !== undefined;
   }
-
   get executionCleanup(): ExecutionCleanup {
     return this._executionCleanup ??= new ExecutionCleanup(this);
   }
-
   get pathLookup(): PathLookup {
     if (!this._pathLookup) {
       this._pathLookup = new PathLookup();
@@ -560,29 +472,20 @@ export class Budget {
     }
     return this._pathLookup;
   }
-
   beginPathLookupSuspension(): void {
     this._pathLookupSuspensions++;
     this._pathLookup?.beginSuspension();
   }
-
   endPathLookupSuspension(): void {
     this._pathLookupSuspensions--;
     this._pathLookup?.endSuspension();
   }
-
   abort(reason: unknown): void {
     this._aborted = true;
     abortManagedController(this.controller, reason);
   }
-
   private _armWallClock(): void {
-    if (
-      this._wallClockTimer === undefined &&
-      setTimeout === defaultSetTimeout &&
-      Date.now === defaultDateNow &&
-      this.limits.maxWallClockMs >= 100
-    ) {
+    if ( this._wallClockTimer === undefined && setTimeout === defaultSetTimeout && Date.now === defaultDateNow && this.limits.maxWallClockMs >= 100) {
       const deadline = this._wallClockDeadline;
       const now = defaultDateNow();
       if (deadline <= now) {
@@ -590,7 +493,6 @@ export class Budget {
         return;
       }
       this._wallClockTimer = true;
-      // The shared timer retains its single budget owner until retirement.
       if (sharedWallClockBudgets.primary === undefined) sharedWallClockBudgets.primary = this;
       else sharedWallClockBudgets.extra.push(this);
       if (sharedWallClockTimer === undefined || deadline < sharedWallClockTimerDeadline) {
@@ -611,7 +513,6 @@ export class Budget {
     const timer = this._wallClockTimer as ReturnType<typeof setTimeout> & { unref?: () => void };
     timer.unref?.();
   }
-
   _checkSharedWallClock(now: number): number {
     if (this._wallClockDeadline <= now) {
       this._wallClockTimer = undefined;
@@ -620,66 +521,52 @@ export class Budget {
     }
     return this._wallClockDeadline;
   }
-
   close(): void {
     const timer = this._wallClockTimer;
     if (timer === undefined) return;
     if (timer === true) {
-      if (sharedWallClockBudgets.primary === this) {
-        sharedWallClockBudgets.primary = sharedWallClockBudgets.extra.pop();
-      } else {
+      if (sharedWallClockBudgets.primary === this) sharedWallClockBudgets.primary = sharedWallClockBudgets.extra.pop(); else {
         const idx = sharedWallClockBudgets.extra.indexOf(this);
         if (idx >= 0) {
           const last = sharedWallClockBudgets.extra.pop()!;
           if (idx < sharedWallClockBudgets.extra.length) sharedWallClockBudgets.extra[idx] = last;
         }
       }
-    } else {
-      clearTimeout(timer);
-    }
+    } else clearTimeout(timer);
     this._wallClockTimer = undefined;
   }
-
   fail(limit: keyof ShellLimits): never {
     const error = new ShellLimitError(limit);
     this.abort(error);
     throw error;
   }
-
   cpuCheckpoint(): void {
     if (this._aborted || (this._hasExternalSignal && this.signal.aborted)) this.signal.throwIfAborted();
     if (this.hasCpuLimit && monotonicNow() - this._cpuStarted > this.limits.maxCpuMs) this.fail("maxCpuMs");
   }
-
   tick(): void {
     this.cpuCheckpoint();
     const next = (this.commands + 1) | 0;
     this.commands = next;
     if (next > this.maxCommandsSmi && next > this.limits.maxCommands) this.fail("maxCommands");
   }
-
   fileSystemOperation(): void {
     this.cpuCheckpoint();
     this.fileSystemCleanupOperation();
   }
-
   fileSystemCleanupOperation(): void {
     if (this._fileSystemOperations >= this.maxFileSystemOperationsSmi && this._fileSystemOperations >= this.limits.maxFileSystemOperations) this.fail("maxFileSystemOperations");
     this._fileSystemOperations++;
   }
-
   canFileSystemOperation(): boolean {
     return this._fileSystemOperations < this.maxFileSystemOperationsSmi || this._fileSystemOperations < this.limits.maxFileSystemOperations;
   }
-
   get fsOperations(): number {
     return this._fileSystemOperations;
   }
-
   set fsOperations(value: number) {
     this._fileSystemOperations = value;
   }
-
   reservePipelineStages(count: number): () => void {
     this.signal.throwIfAborted();
     if (count > this.limits.maxPipelineStages - this._pipelineStages) this.fail("maxPipelineStages");
@@ -688,10 +575,8 @@ export class Budget {
     return () => {
       if (released) return;
       released = true;
-      this._pipelineStages -= count;
-    };
+      this._pipelineStages -= count;};
   }
-
   enterPipelineStages(count: number): void {
     this.signal.throwIfAborted();
     const next = (this._pipelineStages + (count | 0)) | 0;
@@ -702,18 +587,15 @@ export class Budget {
     if (count > this.limits.maxPipelineStages - this._pipelineStages) this.fail("maxPipelineStages");
     this._pipelineStages += count;
   }
-
   leavePipelineStages(count: number): void {
     this._pipelineStages -= count;
   }
-
   loop(): void {
     if (this._aborted || (this._hasExternalSignal && this.signal.aborted)) this.signal.throwIfAborted();
     const next = (this.iterations + 1) | 0;
     this.iterations = next;
     if (next > this.maxLoopIterationsSmi && next > this.limits.maxLoopIterations) this.fail("maxLoopIterations");
   }
-
   source(bytes: number): void {
     this.signal.throwIfAborted();
     const next = (this.sourceBytes + (bytes | 0)) | 0;
@@ -724,7 +606,6 @@ export class Budget {
     if (bytes > this.limits.maxSourceBytes - this.sourceBytes) this.fail("maxSourceBytes");
     this.sourceBytes += bytes;
   }
-
   async writeCounted(chunk: Uint8Array, write: () => Promise<number>, signal = this.signal, preserveReceipt = false): Promise<number> {
     signal.throwIfAborted();
     if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
@@ -742,7 +623,6 @@ export class Budget {
       throw error;
     }
   }
-
   sink(sink: ByteSink, signal = this.signal): ByteSink {
     if (sink instanceof Capture && sink.write === Capture.prototype.write) {
       if (sink.budget === undefined) {
@@ -753,19 +633,12 @@ export class Budget {
       if (sink.budget === this && sink.signal === signal) return sink;
       return new BudgetedSyncSink(this, sink, signal);
     }
-    if (sink instanceof BudgetedSyncSink && sink.budget === this && sink.write === BudgetedSyncSink.prototype.write) {
-      return sink.signal === signal ? sink : new BudgetedSyncSink(this, sink.target, signal, sink.file);
-    }
+    if (sink instanceof BudgetedSyncSink && sink.budget === this && sink.write === BudgetedSyncSink.prototype.write) return sink.signal === signal ? sink : new BudgetedSyncSink(this, sink.target, signal, sink.file);
     const ownership = budgetedSinks.get(sink);
     if (ownership?.budget === this && ownership.write === sink.write) return signalSink(sink, signal);
     return this.createBudgetedSink(sink, signal, ownership);
   }
-
-  private createBudgetedSink(
-    sink: ByteSink,
-    signal: AbortSignal,
-    ownership: ReturnType<typeof budgetedSinks.get>,
-  ): ByteSink {
+  private createBudgetedSink( sink: ByteSink, signal: AbortSignal, ownership: ReturnType<typeof budgetedSinks.get>, ): ByteSink {
     const syncWrite = syncSinks.get(sink);
     const countedSyncWrite = syncWrite
       ? (chunk: Uint8Array): void => {
@@ -777,10 +650,8 @@ export class Budget {
         }
       : undefined;
     const output: ByteSink = {
-      ...(sink[outputFailure] ? { [outputFailure]: sink[outputFailure] } : {}),
-      ...(sink.ownedOutput ? { ownedOutput: {
-        get consumerClosed() { return sink.ownedOutput!.consumerClosed; },
-        write: (chunk: Uint8Array): Promise<void> => {
+      ...(sink[outputFailure] ? { [outputFailure]: sink[outputFailure] } : {}), ...(sink.ownedOutput ? { ownedOutput: {
+        get consumerClosed() { return sink.ownedOutput!.consumerClosed; }, write: (chunk: Uint8Array): Promise<void> => {
           try {
             signal.throwIfAborted();
             if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
@@ -792,16 +663,11 @@ export class Budget {
             this.bytes += chunk.byteLength;
             const res = Reflect.apply(write, capability, [chunk]);
             if (isSyncResolved(res)) return resolvedVoid;
-            return Promise.resolve(res).then(
-              () => undefined,
-              (error: unknown) => { signal.throwIfAborted(); throw error; },
-            );
+            return Promise.resolve(res).then( () => undefined, (error: unknown) => { signal.throwIfAborted(); throw error; }, );
           } catch (error) {
             return Promise.reject(signal.aborted ? signal.reason : error);
           }
-        },
-      } } : {}),
-      write: countedSyncWrite
+        }, } } : {}), write: countedSyncWrite
         ? (chunk) => {
             try {
               countedSyncWrite(chunk);
@@ -825,35 +691,17 @@ export class Budget {
             } catch (error) {
               return Promise.reject(error);
             }
-          },
-    };
+          }, };
     budgetedSinks.set(output, { budget: this, write: output.write, ...(ownership?.write === sink.write && ownership.file ? { file: ownership.file } : {}) });
     if (countedSyncWrite) syncSinks.set(output, countedSyncWrite);
     return output;
   }
 }
 Object.assign(Budget.prototype, {
-  onInternalError: undefined,
-  _yieldCheckpoint: undefined,
-  _values: undefined,
-  _executionScope: undefined,
-  _pathLookup: undefined,
-  _pathLookupSuspensions: 0,
-  _executionCleanup: undefined,
-  globstarEntries: 0,
-  globstarStates: 0,
-  _cleanupChargeFs: undefined,
-  _wallClockTimer: undefined,
-  _aborted: false,
-  _cpuStarted: 0,
-  _hasExternalSignal: false,
-});
-
-
+  onInternalError: undefined, _yieldCheckpoint: undefined, _values: undefined, _executionScope: undefined, _pathLookup: undefined, _pathLookupSuspensions: 0, _executionCleanup: undefined, globstarEntries: 0, globstarStates: 0, _cleanupChargeFs: undefined, _wallClockTimer: undefined, _aborted: false, _cpuStarted: 0, _hasExternalSignal: false, });
 const EMPTY_CAPTURE_BYTES = new Uint8Array(0);
 const sharedCaptureStdoutScratch = new Uint8Array(65536);
 const sharedCaptureStderrScratch = new Uint8Array(65536);
-
 export class Capture implements ByteSink {
   declare private _chunks: Uint8Array[] | undefined;
   declare private _first: Uint8Array | undefined;
@@ -865,7 +713,6 @@ export class Capture implements ByteSink {
   declare budget: Budget | undefined;
   declare signal: AbortSignal | undefined;
   declare file?: NonNullable<CommandContext["stdoutFile"]> | undefined;
-
   constructor(budget?: Budget, signal?: AbortSignal) {
     this._chunks = undefined;
     this._first = undefined;
@@ -878,15 +725,12 @@ export class Capture implements ByteSink {
     this.signal = signal;
     this.file = undefined;
   }
-
   enableScratchBuffer(isStderr = false): void {
     this._scratch4k ??= isStderr ? sharedCaptureStderrScratch : sharedCaptureStdoutScratch;
   }
-
   get self(): ByteSink {
     return this;
   }
-
   get chunks(): Uint8Array[] {
     if (this._scratchLen > 0 && this._scratch4k) {
       this._first = this._scratch4k.slice(0, this._scratchLen);
@@ -898,7 +742,6 @@ export class Capture implements ByteSink {
     }
     return this._chunks;
   }
-
   writeSync(chunk: Uint8Array): boolean {
     if (this.budget !== undefined) {
       this.signal!.throwIfAborted();
@@ -909,7 +752,6 @@ export class Capture implements ByteSink {
     }
     return this.writeRawSync(chunk);
   }
-
   writeRangeSync(src: Uint8Array, len: number): boolean {
     if (this.budget !== undefined) {
       this.signal!.throwIfAborted();
@@ -928,7 +770,6 @@ export class Capture implements ByteSink {
     }
     return this.writeRawSync(src.subarray(0, len));
   }
-
   writeRawSync(chunk: Uint8Array): boolean {
     if (!chunk.byteLength) return true;
     if (this._scratch4k && !this._chunks && !this._first) {
@@ -974,7 +815,6 @@ export class Capture implements ByteSink {
     this.length += chunk.byteLength;
     return true;
   }
-
   write(chunk: Uint8Array): Promise<void> {
     try {
       this.writeSync(chunk);
@@ -983,12 +823,9 @@ export class Capture implements ByteSink {
       return Promise.reject(error);
     }
   }
-
   bytes(): Uint8Array {
     if (this.length === 0) return EMPTY_CAPTURE_BYTES;
-    if (this._scratchLen > 0 && this._scratch4k && !this._chunks && !this._first) {
-      return this._scratch4k.slice(0, this._scratchLen);
-    }
+    if (this._scratchLen > 0 && this._scratch4k && !this._chunks && !this._first) return this._scratch4k.slice(0, this._scratchLen);
     if (this._first && !this._chunks) return new Uint8Array(this._first);
     const bytes = new Uint8Array(this.length);
     let offset = 0;
@@ -1000,7 +837,6 @@ export class Capture implements ByteSink {
     }
     return bytes;
   }
-
   takeBytes(): Uint8Array {
     if (this.length === 0) return EMPTY_CAPTURE_BYTES;
     if (this._scratchLen > 0 && this._scratch4k && !this._chunks && !this._first) {
@@ -1025,7 +861,6 @@ export class Capture implements ByteSink {
     this._tailLength = 0;
     return bytes;
   }
-
   takeUtf8Output(): string | Uint8Array {
     if (this.length === 0) return "";
     if (this._scratchLen > 0 && this._scratch4k && !this._chunks && !this._first) {
@@ -1034,8 +869,6 @@ export class Capture implements ByteSink {
       this._scratchLen = 0;
       this.length = 0;
       for (let i = 0; i < len; i++) {
-        // The scratch buffer is reused by subsequent executions. Retain owned
-        // bytes before decoding any output that cannot round-trip as ASCII.
         if (buf[i]! >= 0x80) return new Uint8Array(buf.subarray(0, len));
       }
       if (len === cachedCaptureAsciiLen) {
@@ -1058,7 +891,6 @@ export class Capture implements ByteSink {
     }
     return this.takeBytes();
   }
-
   resetEmpty(): void {
     if (this._chunks) this._chunks.length = 0;
     this._first = undefined;
@@ -1069,23 +901,11 @@ export class Capture implements ByteSink {
   }
 }
 Object.assign(Capture.prototype, {
-  _chunks: undefined,
-  _first: undefined,
-  _scratch4k: undefined,
-  _scratchLen: 0,
-  length: 0,
-  _tail: undefined,
-  _tailLength: 0,
-  budget: undefined,
-  signal: undefined,
-  file: undefined,
-});
-
+  _chunks: undefined, _first: undefined, _scratch4k: undefined, _scratchLen: 0, length: 0, _tail: undefined, _tailLength: 0, budget: undefined, signal: undefined, file: undefined, });
 interface GetoptsBinding {
   cursor: GetoptsState;
   integer: boolean;
 }
-
 interface SavedVariable {
   attributes?: string | undefined;
   value: string | undefined;
@@ -1095,7 +915,6 @@ interface SavedVariable {
   getopts?: GetoptsBinding;
   superseded?: boolean;
 }
-
 interface TypedSavedVariable {
   readonly owner: ArrayOwner;
   readonly binding: IndexedBinding | undefined;
@@ -1105,13 +924,11 @@ interface TypedSavedVariable {
   overlayVersion?: number;
   readonly scalarLegacy: boolean;
 }
-
 const typedSavedVariables = new WeakMap<SavedVariable, TypedSavedVariable>();
 const valueScope = Symbol("shell value allocation scope");
 const invokedValues = new WeakMap<WordPart, ShellValue>();
 const functionDiagnostics = new WeakMap<Command, Readonly<{ offset: number; lines?: ReadonlyMap<Command, number> }>>();
 const childIdentities = new WeakMap<Budget, number>();
-
 export interface State {
   variableAttributes?: Map<string, string>;
   namerefVariables?: Set<string> | undefined;
@@ -1161,9 +978,7 @@ export interface State {
   functionNames?: string[];
   hashedCommands?: Map<string, string>;
 }
-
 const declarationArrays = Symbol("declarationArrays");
-
 interface IO {
   /** Zeroth argument identity; command remains the name used for lookup. */
   readonly argv0?: string | undefined;
@@ -1200,7 +1015,6 @@ interface IO {
   } | undefined;
   descriptors?: ReadonlyMap<number, Descriptor>;
 }
-
 interface Descriptor {
   closed?: boolean;
   readonly input?: ByteSource;
@@ -1210,16 +1024,13 @@ interface Descriptor {
   readonly pipe?: PipeDescriptorReference;
   readonly lifetime?: DescriptorLifetime;
 }
-
 class DescriptorLifetime {
   private _references = 1;
   private _ownerReleased = false;
   private _closing: Promise<void> | undefined;
   private _settled: Promise<void> | undefined;
   private _resolveSettled: (() => void) | undefined;
-
   constructor(private readonly finalize?: () => void | Promise<void>) {}
-
   releaseSyncIfIdle(): boolean {
     if (this._references === 1 && !this._ownerReleased && !this.finalize) {
       this._ownerReleased = true;
@@ -1228,14 +1039,11 @@ class DescriptorLifetime {
     }
     return false;
   }
-
   settled(): Promise<void> | undefined {
     if (this._references === 0) return this._closing;
     return this._settled ??= new Promise<void>(resolve => {
-      this._resolveSettled = resolve;
-    });
+      this._resolveSettled = resolve;});
   }
-
   acquire(): () => Promise<void> {
     if (!this._references) throw new FsError("EBADF");
     this._references++;
@@ -1243,16 +1051,13 @@ class DescriptorLifetime {
     return () => {
       if (released) return this._closing ?? resolvedVoid;
       released = true;
-      return this._release();
-    };
+      return this._release();};
   }
-
   release(): Promise<void> {
     if (this._ownerReleased) return this._closing ?? resolvedVoid;
     this._ownerReleased = true;
     return this._release();
   }
-
   private _release(): Promise<void> {
     if (--this._references) return resolvedVoid;
     if (!this.finalize) {
@@ -1260,21 +1065,17 @@ class DescriptorLifetime {
       return resolvedVoid;
     }
     return this._closing ??= resolvedVoid.then(this.finalize).finally(() => {
-      this._resolveSettled?.();
-    });
+      this._resolveSettled?.();});
   }
 }
-
 class PreparedDescriptorFrame {
   private _bindings: Map<number, { lifetime: DescriptorLifetime; release(): Promise<void> }> | undefined;
   private _work: Promise<void> = resolvedVoid;
   private _closing: Promise<void> | undefined;
   private readonly _retireCleanup: () => void;
-
   constructor(private readonly references: PipeDescriptorFrame, private readonly budget: Budget) {
     this._retireCleanup = references.scope.register(() => this.close());
   }
-
   closeSyncIfIdle(): boolean {
     if (this._closing) return false;
     if ((!this._bindings || this._bindings.size === 0) && this._work === resolvedVoid) {
@@ -1284,7 +1085,6 @@ class PreparedDescriptorFrame {
     }
     return false;
   }
-
   acquire(descriptors: ReadonlyMap<number, Descriptor>): void {
     if (this._closing) throw new FsError("EBADF");
     for (const [number, descriptor] of descriptors) {
@@ -1299,7 +1099,6 @@ class PreparedDescriptorFrame {
       } catch (reason) { allocation.close(); throw reason; }
     }
   }
-
   reconcile(descriptors: ReadonlyMap<number, Descriptor>): Promise<void> {
     if (this._closing) return Promise.reject(new FsError("EBADF"));
     if ((!this._bindings || this._bindings.size === 0) && this._work === resolvedVoid) {
@@ -1328,15 +1127,11 @@ class PreparedDescriptorFrame {
     const activePipes = new Set([...descriptors.values()].filter(descriptor => !descriptor.closed).map(descriptor => descriptor.pipe));
     this._work = this._work.then(async () => {
       const retired = await Promise.allSettled([
-        ...(previous ? [...previous.values()].map(binding => binding.release()) : []),
-        ...[...this.references.references].filter(reference => !activePipes.has(reference)).map(reference => reference.close()),
-      ]);
+        ...(previous ? [...previous.values()].map(binding => binding.release()) : []), ...[...this.references.references].filter(reference => !activePipes.has(reference)).map(reference => reference.close()), ]);
       failures.push(...retired.filter(result => result.status === "rejected").map(result => result.reason));
-      throwCleanupFailures(failures);
-    });
+      throwCleanupFailures(failures);});
     return this._work;
   }
-
   close(): Promise<void> {
     if (this.closeSyncIfIdle()) return resolvedVoid;
     return this._closing ??= Promise.resolve().then(async () => {
@@ -1346,11 +1141,9 @@ class PreparedDescriptorFrame {
       this._bindings?.clear();
       failures.push(...retired.filter(result => result.status === "rejected").map(result => result.reason));
       throwCleanupFailures(failures);
-      this._retireCleanup();
-    });
+      this._retireCleanup();});
   }
 }
-
 function isolateIO(io: IO, references: PipeDescriptorFrame): IO {
   const descriptors = new Map<number, Descriptor>();
   for (const [number, descriptor] of io.descriptors ?? []) {
@@ -1366,25 +1159,18 @@ function isolateIO(io: IO, references: PipeDescriptorFrame): IO {
   if (!descriptors.has(2)) descriptors.set(2, { output: io.stderr });
   return { ...io, nameExpansionContext: undefined, descriptors, ...(io.assignmentDiagnosticContext === undefined ? {} : { assignmentDiagnosticContext: { ...io.assignmentDiagnosticContext } }) };
 }
-
 function activeIO(io: IO): IO {
   const input = io.descriptors?.get(0);
   const output = io.descriptors?.get(1);
   const error = io.descriptors?.get(2);
   if (!(input?.closed && input.input === io.stdin) && !(output?.closed && output.output === io.stdout) && !(error?.closed && error.output === io.stderr)) return io;
   return {
-    ...io,
-    ...(input?.closed && input.input === io.stdin ? { stdin: closedSource, stdinIsDefault: false } : {}),
-    ...(output?.closed && output.output === io.stdout ? { stdout: closedSink } : {}),
-    ...(error?.closed && error.output === io.stderr ? { stderr: closedSink } : {}),
-  };
+    ...io, ...(input?.closed && input.input === io.stdin ? { stdin: closedSource, stdinIsDefault: false } : {}), ...(output?.closed && output.output === io.stdout ? { stdout: closedSink } : {}), ...(error?.closed && error.output === io.stderr ? { stderr: closedSink } : {}), };
 }
-
 interface OutputFile {
   data: Uint8Array | undefined;
   references: number;
 }
-
 function appendOutputBytes(current: Uint8Array, chunk: Uint8Array): Uint8Array {
   const length = current.length + chunk.length;
   const bytes = current.buffer.byteLength - current.byteOffset >= length
@@ -1394,19 +1180,15 @@ function appendOutputBytes(current: Uint8Array, chunk: Uint8Array): Uint8Array {
   bytes.set(chunk, current.length);
   return bytes.subarray(0, length);
 }
-
 type OutputCompletion = { reason: unknown } | { status: number };
-
 interface OutputFinalizer {
   (completion: OutputCompletion): void | Promise<void>;
   readonly descriptor?: CommandFileDescriptor;
 }
-
 interface OutputFailureTracker {
   list?: { descriptor: CommandFileDescriptor; reason: unknown }[];
   outputStatus?: number;
 }
-
 class Flow {
   readonly name = "Flow";
   readonly message: string;
@@ -1414,56 +1196,42 @@ class Flow {
     this.message = kind;
   }
 }
-
 const completedFlows = new WeakSet<Flow>();
-
 function completedExit(status: number, kind: Flow["kind"] = "exit", levels = 1, previousStatus?: number, expansionFailure = false): Flow {
   const flow = new Flow(kind, status, levels, previousStatus, expansionFailure);
   completedFlows.add(flow);
   return flow;
 }
-
 class ExecutionFailure extends Error {
   constructor(readonly original: unknown, readonly io: IO, readonly diagnostic?: string) { super(message(original)); }
 }
-
 class ExpansionFailure extends Error {
   constructor(message: string, readonly line?: number) { super(message); }
 }
-
 class CommandFailure extends Error {
   constructor(message: string, readonly status: number) { super(message); }
 }
-
 class FatalCommandFailure extends CommandFailure {}
-
 class DiscardCommandFailure extends CommandFailure {
   constructor(readonly variableName: string, status: number, readonly origin: "assignment" | "declaration") { super(`${variableName}: readonly variable`, status); }
 }
-
 class ParameterExpansionFailure extends ExpansionFailure {}
-
 class NounsetFailure extends ExpansionFailure {}
-
 class NounsetDiagnosticFailure extends Flow {
   constructor(readonly reason: unknown) { super("exit", 1); }
 }
-
 class ExtensionCheckpointFailure extends NounsetDiagnosticFailure {}
-
 class PipelineClosed extends Error {
   readonly code = "EPIPE";
   constructor() { super("Pipeline consumer exited"); }
 }
 const SHARED_PIPELINE_CLOSED = new PipelineClosed();
-
 class BudgetedSyncSink implements ByteSink {
   declare readonly self: ByteSink;
   declare readonly budget: Budget;
   declare readonly target: Capture;
   declare readonly signal: AbortSignal;
   declare file?: NonNullable<CommandContext["stdoutFile"]>;
-
   constructor(budget: Budget, target: Capture, signal: AbortSignal, file?: NonNullable<CommandContext["stdoutFile"]>) {
     this.self = this;
     this.budget = budget;
@@ -1471,7 +1239,6 @@ class BudgetedSyncSink implements ByteSink {
     this.signal = signal;
     if (file !== undefined) this.file = file;
   }
-
   writeSync(chunk: Uint8Array): boolean {
     this.signal.throwIfAborted();
     if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
@@ -1482,7 +1249,6 @@ class BudgetedSyncSink implements ByteSink {
     this.target.writeRawSync(chunk);
     return true;
   }
-
   writeRangeSync(src: Uint8Array, len: number): boolean {
     this.signal.throwIfAborted();
     if (this.target.budget === this.budget) return this.target.writeRangeSync(src, len);
@@ -1491,7 +1257,6 @@ class BudgetedSyncSink implements ByteSink {
     budget.bytes += len;
     return this.target.writeRangeSync(src, len);
   }
-
   write(chunk: Uint8Array): Promise<void> {
     try {
       this.writeSync(chunk);
@@ -1501,7 +1266,6 @@ class BudgetedSyncSink implements ByteSink {
     }
   }
 }
-
 class MemoryRedirectSink implements ByteSink {
   declare readonly self: ByteSink;
   declare budget: Budget;
@@ -1510,14 +1274,7 @@ class MemoryRedirectSink implements ByteSink {
   declare signal: AbortSignal;
   declare file: NonNullable<CommandContext["stdoutFile"]>;
   declare failedError: unknown;
-
-  constructor(
-    budget: Budget,
-    handle: MemoryRedirectHandle,
-    path: string,
-    signal: AbortSignal,
-    file?: NonNullable<CommandContext["stdoutFile"]>,
-  ) {
+  constructor( budget: Budget, handle: MemoryRedirectHandle, path: string, signal: AbortSignal, file?: NonNullable<CommandContext["stdoutFile"]>, ) {
     this.self = this;
     this.budget = budget;
     this.handle = handle;
@@ -1525,14 +1282,7 @@ class MemoryRedirectSink implements ByteSink {
     this.signal = signal;
     this.file = file ?? Object.freeze({ path });
   }
-
-  reset(
-    budget: Budget,
-    handle: MemoryRedirectHandle,
-    path: string,
-    signal: AbortSignal,
-    file: NonNullable<CommandContext["stdoutFile"]>,
-  ): void {
+  reset( budget: Budget, handle: MemoryRedirectHandle, path: string, signal: AbortSignal, file: NonNullable<CommandContext["stdoutFile"]>, ): void {
     this.budget = budget;
     this.handle = handle;
     this.path = path;
@@ -1540,7 +1290,6 @@ class MemoryRedirectSink implements ByteSink {
     this.file = file;
     this.failedError = undefined;
   }
-
   writeSync(chunk: Uint8Array): boolean {
     this.signal.throwIfAborted();
     if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
@@ -1557,7 +1306,6 @@ class MemoryRedirectSink implements ByteSink {
     }
     return true;
   }
-
   writeImmutableSync(immutableData: Uint8Array): boolean {
     this.signal.throwIfAborted();
     const len = immutableData.byteLength;
@@ -1574,7 +1322,6 @@ class MemoryRedirectSink implements ByteSink {
     }
     return true;
   }
-
   writeRangeSync(src: Uint8Array, len: number): boolean {
     this.signal.throwIfAborted();
     const budget = this.budget;
@@ -1590,7 +1337,6 @@ class MemoryRedirectSink implements ByteSink {
     }
     return true;
   }
-
   write(chunk: Uint8Array): Promise<void> {
     try {
       this.writeSync(chunk);
@@ -1601,9 +1347,7 @@ class MemoryRedirectSink implements ByteSink {
   }
 }
 Object.assign(MemoryRedirectSink.prototype, {
-  failedError: undefined,
-});
-
+  failedError: undefined, });
 class BudgetedPipeStageOwnedSink {
   declare readonly parent: BudgetedPipeStageSink;
   constructor(parent: BudgetedPipeStageSink) {
@@ -1616,7 +1360,6 @@ class BudgetedPipeStageOwnedSink {
     return this.parent.writeOwned(chunk);
   }
 }
-
 class BudgetedPipeStageSink implements ByteSink {
   readonly isPipeStage = true;
   declare readonly self: ByteSink;
@@ -1628,15 +1371,7 @@ class BudgetedPipeStageSink implements ByteSink {
   declare readonly controller: { readonly signal: AbortSignal; abort(reason?: unknown): void };
   declare private _ownedOutput: NonNullable<ByteSink["ownedOutput"]> | undefined;
   declare file?: NonNullable<CommandContext["stdoutFile"]>;
-
-  constructor(
-    budget: Budget,
-    writable: ByteSink,
-    signal: AbortSignal,
-    written: Set<number> | undefined,
-    index: number,
-    controller: { readonly signal: AbortSignal; abort(reason?: unknown): void },
-  ) {
+  constructor( budget: Budget, writable: ByteSink, signal: AbortSignal, written: Set<number> | undefined, index: number, controller: { readonly signal: AbortSignal; abort(reason?: unknown): void }, ) {
     this.self = this;
     this.budget = budget;
     this.writable = writable;
@@ -1646,16 +1381,13 @@ class BudgetedPipeStageSink implements ByteSink {
     this.controller = controller;
     this._ownedOutput = undefined;
   }
-
   get ownedOutput(): NonNullable<ByteSink["ownedOutput"]> {
     return (this.writable.ownedOutput ? (this._ownedOutput ??= new BudgetedPipeStageOwnedSink(this)) : undefined) as NonNullable<ByteSink["ownedOutput"]>;
   }
-
   [outputFailure](reason: unknown): Promise<void> {
     const fn = this.writable[outputFailure];
     return fn ? fn.call(this.writable, reason) : resolvedVoid;
   }
-
   writeOwned(chunk: Uint8Array): Promise<void> {
     try {
       const signal = this.signal;
@@ -1670,15 +1402,11 @@ class BudgetedPipeStageSink implements ByteSink {
       budget.bytes += chunk.byteLength;
       const res = Reflect.apply(write, capability, [chunk]);
       if (isSyncResolved(res)) return resolvedVoid;
-      return Promise.resolve(res).then(
-        () => undefined,
-        (error: unknown) => { signal.throwIfAborted(); throw error; },
-      );
+      return Promise.resolve(res).then( () => undefined, (error: unknown) => { signal.throwIfAborted(); throw error; }, );
     } catch (error) {
       return Promise.reject(this.signal.aborted ? this.signal.reason : error);
     }
   }
-
   canWriteSync(): boolean {
     if (this.signal.aborted) return false;
     const w = this.writable as unknown as {
@@ -1689,27 +1417,15 @@ class BudgetedPipeStageSink implements ByteSink {
         readerReferences?: number;
         writes?: { size: number };
         availableBytes?: number;
-        highWaterMark?: number;
-      };
-    };
+        highWaterMark?: number;};};
     const pipe = w._pipe;
-    return Boolean(
-      w.open &&
-      pipe &&
-      !pipe.failed &&
-      !pipe.signal?.aborted &&
-      pipe.readerReferences &&
-      (!pipe.writes || pipe.writes.size === 0) &&
-      (pipe.availableBytes ?? 0) < (pipe.highWaterMark ?? 0),
-    );
+    return Boolean( w.open && pipe && !pipe.failed && !pipe.signal?.aborted && pipe.readerReferences && (!pipe.writes || pipe.writes.size === 0) && (pipe.availableBytes ?? 0) < (pipe.highWaterMark ?? 0), );
   }
-
   writeSync(chunk: Uint8Array): void {
     this.budget.bytes += chunk.byteLength;
     this.writable.write(chunk);
     if (chunk.byteLength && this.written) this.written.add(this.index);
   }
-
   write(chunk: Uint8Array): Promise<void> {
     try {
       const signal = this.signal;
@@ -1734,38 +1450,27 @@ class BudgetedPipeStageSink implements ByteSink {
         signal.throwIfAborted();
         return resolvedVoid;
       }
-      const handled = res.then(
-        () => { if (chunk.byteLength && this.written) this.written.add(this.index); },
-        (error) => {
+      const handled = res.then( () => { if (chunk.byteLength && this.written) this.written.add(this.index); }, (error) => {
           if (errorCode(error) === "EPIPE") {
             const closed = SHARED_PIPELINE_CLOSED;
             abortManagedController(this.controller, closed);
             throw closed;
           }
           throw error;
-        },
-      );
+        }, );
       return interruptible(handled, signal);
     } catch (error) {
       return Promise.reject(error);
     }
   }
 }
-
 function pollIncomingPipe(this: { incoming: { _readiness?: () => "ready" | "eof" | "blocked" | "unknown"; readiness(): "ready" | "eof" | "blocked" | "unknown" } }): "ready" | "eof" | "blocked" | "unknown" {
   return this.incoming._readiness ? this.incoming._readiness() : this.incoming.readiness();
 }
-
 function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
-  if (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) {
-    return sink.signal === signal ? sink : new BudgetedSyncSink(sink.budget, sink.target, signal, sink.file);
-  }
-  if (sink instanceof Capture && sink.budget !== undefined && sink.write === Capture.prototype.write) {
-    return sink.signal === signal ? sink : new BudgetedSyncSink(sink.budget, sink, signal);
-  }
-  if (sink instanceof MemoryRedirectSink && sink.write === MemoryRedirectSink.prototype.write) {
-    return sink.signal === signal ? sink : new MemoryRedirectSink(sink.budget, sink.handle, sink.path, signal, sink.file);
-  }
+  if (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) return sink.signal === signal ? sink : new BudgetedSyncSink(sink.budget, sink.target, signal, sink.file);
+  if (sink instanceof Capture && sink.budget !== undefined && sink.write === Capture.prototype.write) return sink.signal === signal ? sink : new BudgetedSyncSink(sink.budget, sink, signal);
+  if (sink instanceof MemoryRedirectSink && sink.write === MemoryRedirectSink.prototype.write) return sink.signal === signal ? sink : new MemoryRedirectSink(sink.budget, sink.handle, sink.path, signal, sink.file);
   const ownership = budgetedSinks.get(sink);
   const owned = ownership?.write === sink.write ? ownership : undefined;
   const write = owned ? owned.write.bind(sink) : (chunk: Uint8Array) => sink.write(chunk);
@@ -1777,10 +1482,8 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
       }
     : undefined;
   const output: ByteSink = {
-    ...(sink[outputFailure] ? { [outputFailure]: sink[outputFailure] } : {}),
-    ...(sink.ownedOutput ? { ownedOutput: {
-      get consumerClosed() { return sink.ownedOutput!.consumerClosed; },
-      write(chunk: Uint8Array): Promise<void> {
+    ...(sink[outputFailure] ? { [outputFailure]: sink[outputFailure] } : {}), ...(sink.ownedOutput ? { ownedOutput: {
+      get consumerClosed() { return sink.ownedOutput!.consumerClosed; }, write(chunk: Uint8Array): Promise<void> {
         try {
           signal.throwIfAborted();
           const capability = sink.ownedOutput!;
@@ -1788,16 +1491,11 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
           signal.throwIfAborted();
           const res = Reflect.apply(write, capability, [chunk]);
           if (isSyncResolved(res)) return resolvedVoid;
-          return Promise.resolve(res).then(
-            () => undefined,
-            (error: unknown) => { signal.throwIfAborted(); throw error; },
-          );
+          return Promise.resolve(res).then( () => undefined, (error: unknown) => { signal.throwIfAborted(); throw error; }, );
         } catch (error) {
           return Promise.reject(signal.aborted ? signal.reason : error);
         }
-      },
-    } } : {}),
-    write: signaledSyncWrite
+      }, } } : {}), write: signaledSyncWrite
       ? (chunk) => {
           try {
             signaledSyncWrite(chunk);
@@ -1818,16 +1516,13 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
           } catch (error) {
             return Promise.reject(error);
           }
-        },
-  };
+        }, };
   if (owned) budgetedSinks.set(output, { ...owned, write: output.write });
   if (signaledSyncWrite) syncSinks.set(output, signaledSyncWrite);
   return output;
 }
-
 const admissionGetterSymbol = Symbol("safe-bash.descriptorAdmissionGetter");
 const descriptorByteLength = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype), "byteLength")!.get!;
-
 function bindCommandIO(context: CommandContext, io?: IO): void {
   const existingHandlesDesc = Object.getOwnPropertyDescriptor(context, "admittedHandles");
   if (io?.descriptors && (!existingHandlesDesc || (existingHandlesDesc.get ? Boolean((existingHandlesDesc.get as unknown as Record<symbol, unknown>)[admissionGetterSymbol]) : (!existingHandlesDesc.value || shellDescriptorAdmissions.has(existingHandlesDesc.value))))) {
@@ -1838,8 +1533,7 @@ function bindCommandIO(context: CommandContext, io?: IO): void {
       if (!finalizerRegistered) {
         finalizerRegistered = true;
         io[invocationScope].registerFinalizer(() => {
-          closed = true;
-        });
+          closed = true;});
       }
       if (!handleManager) {
         let leases: Set<() => Promise<void>> | undefined;
@@ -1854,7 +1548,6 @@ function bindCommandIO(context: CommandContext, io?: IO): void {
             if (!Array.isArray(requestedRights) || !requestedRights.length || requestedRights.length > 4) throw new FsError("EINVAL");
             const rights = Array.from({ length: requestedRights.length }, (_, index) => requestedRights[index]!);
             if (new Set(rights).size !== rights.length || rights.some(right => !["read", "write", "seek", "stat"].includes(right))) throw new FsError("EINVAL");
-            // Accessors may retire the frame or acquire more leases while read.
             signal.throwIfAborted(); context.signal.throwIfAborted();
             if (closed) throw new FsError("EBADF");
             io[invocationScope].assertOpen();
@@ -1877,17 +1570,14 @@ function bindCommandIO(context: CommandContext, io?: IO): void {
                 closed = true;
                 closing ??= Promise.allSettled([...leases!].map(close => close())).then(results => {
                   const failures = results.filter(result => result.status === "rejected");
-                  if (failures.length) throw new AggregateError(failures.map(result => result.reason), "Descriptor lease cleanup failed");
-                });
-                return closing;
-              });
+                  if (failures.length) throw new AggregateError(failures.map(result => result.reason), "Descriptor lease cleanup failed");});
+                return closing;});
             }
             const close = () => {
               ended = true;
               lifetime.abort(new FsError("EBADF"));
               completion ??= Promise.allSettled([...pending]).then(() => { leases!.delete(close); });
-              return completion;
-            };
+              return completion;};
             leases.add(close);
             async function work<T>(callerSignal: AbortSignal, operation: (signal: AbortSignal) => Promise<T>): Promise<T> {
               callerSignal.throwIfAborted(); context.signal.throwIfAborted();
@@ -1900,13 +1590,10 @@ function bindCommandIO(context: CommandContext, io?: IO): void {
               return task;
             }
             const lease = {
-              identity: input?.identity ?? file ?? descriptor.output!,
-              ...(rights.includes("write") && descriptor.output?.ownedOutput ? { consumerClosed: descriptor.output.ownedOutput.consumerClosed } : {}),
-              ...(rights.includes("read") ? { read: (count: number, caller: AbortSignal) => work(caller, async combined => {
+              identity: input?.identity ?? file ?? descriptor.output!, ...(rights.includes("write") && descriptor.output?.ownedOutput ? { consumerClosed: descriptor.output.ownedOutput.consumerClosed } : {}), ...(rights.includes("read") ? { read: (count: number, caller: AbortSignal) => work(caller, async combined => {
                 if (!Number.isSafeInteger(count) || count < 0 || count > 65536) throw new FsError("EINVAL");
                 return input!.readAvailable(count, combined);
-              }) } : {}),
-              ...(rights.includes("write") ? { write: async (bytes: Uint8Array, caller: AbortSignal) => {
+              }) } : {}), ...(rights.includes("write") ? { write: async (bytes: Uint8Array, caller: AbortSignal) => {
                 if (!(bytes instanceof Uint8Array) || descriptorByteLength.call(bytes) > 65536) throw new FsError("EINVAL");
                 const owned = new Uint8Array(bytes);
                 return work(caller, async combined => {
@@ -1916,38 +1603,24 @@ function bindCommandIO(context: CommandContext, io?: IO): void {
                     output.ownedOutput.consumerClosed.throwIfAborted();
                     await output.ownedOutput.write(owned);
                   } else await writeBytes(output, owned, combined);
-                  return owned.byteLength;
-                });
-              } } : {}),
-              ...(rights.includes("seek") ? { seek: (position: number, caller: AbortSignal) => work(caller, combined => input!.seek!(position, combined)) } : {}),
-              ...(rights.includes("stat") ? { stat: (caller: AbortSignal) => work(caller, combined => file!.stat({ signal: combined })) } : {}),
-              close,
-            };
+                  return owned.byteLength;});
+              } } : {}), ...(rights.includes("seek") ? { seek: (position: number, caller: AbortSignal) => work(caller, combined => input!.seek!(position, combined)) } : {}), ...(rights.includes("stat") ? { stat: (caller: AbortSignal) => work(caller, combined => file!.stat({ signal: combined })) } : {}), close, };
             if (input) Object.defineProperty(lease, "position", { enumerable: true, get: () => input.position });
             return lease;
-          },
-        };
+          }, };
       }
       shellDescriptorAdmissions.set(handleManager, [...io.descriptors!.entries()].every(([fd, descriptor]) => (fd >= 0 && fd <= 2) || descriptor.closed === true));
-      return handleManager;
-    };
+      return handleManager;};
     (getAdmittedHandles as unknown as Record<symbol, boolean>)[admissionGetterSymbol] = true;
     Object.defineProperty(context, "admittedHandles", {
-      configurable: true,
-      enumerable: true,
-      get: getAdmittedHandles,
-      set(v: CommandContext["admittedHandles"]) { handleManager = v; },
-    });
+      configurable: true, enumerable: true, get: getAdmittedHandles, set(v: CommandContext["admittedHandles"]) { handleManager = v; }, });
   }
   Object.defineProperties(context, {
-    stdinInput: { enumerable: true, get: () => context.stdin instanceof ShellInput ? context.stdin : undefined },
-    stdoutFile: { enumerable: true, get: () => {
+    stdinInput: { enumerable: true, get: () => context.stdin instanceof ShellInput ? context.stdin : undefined }, stdoutFile: { enumerable: true, get: () => {
       const ownership = budgetedSinks.get(context.stdout);
       return ownership?.write === context.stdout.write ? ownership.file : undefined;
-    } },
-  });
+    } }, });
 }
-
 class FastShellCommandContext {
   declare stdin: ByteSource;
   declare stdinIsDefault?: boolean | undefined;
@@ -1979,18 +1652,7 @@ class FastShellCommandContext {
   declare private _argumentValues: CommandArguments | undefined;
   declare private _registerCleanup: NonNullable<CommandContext["registerCleanup"]> | undefined;
   declare private _invoke: ShellCommandContext["invoke"] | undefined;
-
-  constructor(
-    runtime: Runtime,
-    state: State,
-    io: IO,
-    scope: InvocationScope,
-    name: string,
-    args: readonly string[],
-    argumentValues: CommandArguments | undefined,
-    env: Record<string, string> | undefined,
-    signalIsScoped: boolean,
-  ) {
+  constructor( runtime: Runtime, state: State, io: IO, scope: InvocationScope, name: string, args: readonly string[], argumentValues: CommandArguments | undefined, env: Record<string, string> | undefined, signalIsScoped: boolean, ) {
     const directContext = FAST_DIRECT_CONTEXT_COMMANDS.has(name) || (name === "find" && !args.includes("-exec") && !args.includes("-ok"));
     if (!directContext) {
       const { [invocationScope]: _scope, [valueScope]: _allocation, [declarationArrays]: _arrays, argumentValues: _arguments, ...publicIO } = io as IO & { argumentValues?: unknown };
@@ -2019,38 +1681,17 @@ class FastShellCommandContext {
     this.processSignals = io.processSignals;
     this.diagnosticLine = io.diagnosticLine;
     this.scriptName = io.scriptName;
-    if (directContext) {
-      return;
-    }
+    if (directContext) return;
     workerRuntimeContexts.set(this as unknown as CommandContext, {
-      budget: runtime.budget, umask: state.umask ?? 0o022,
-      ignoredSignals: captureIgnoredTrapSignals(state.extensions),
-      get fs() { return runtime.getContextFsForFast(0, combineManagedSignals(runtime.signal, scope.signal)); },
-    });
+      budget: runtime.budget, umask: state.umask ?? 0o022, ignoredSignals: captureIgnoredTrapSignals(state.extensions), get fs() { return runtime.getContextFsForFast(0, combineManagedSignals(runtime.signal, scope.signal)); }, });
     for (const [key, descriptor] of fastShellCommandAccessors) {
       Object.defineProperty(this, key, {
-        ...descriptor,
-        enumerable: true,
-        get: descriptor.get!.bind(this),
-        ...(descriptor.set ? { set: descriptor.set.bind(this) } : {}),
-      });
+        ...descriptor, enumerable: true, get: descriptor.get!.bind(this), ...(descriptor.set ? { set: descriptor.set.bind(this) } : {}), });
     }
     bindCommandIO(this as unknown as CommandContext, { ...io, [invocationScope]: scope });
     void this.registerCleanup;
   }
-
-  resetDirectStage(
-    runtime: Runtime,
-    state: State,
-    io: IO,
-    scope: InvocationScope,
-    name: string,
-    args: readonly string[],
-    stdin: ByteSource,
-    stdinIsDefault: boolean,
-    stdout: ByteSink,
-    signal: AbortSignal,
-  ): void {
+  resetDirectStage( runtime: Runtime, state: State, io: IO, scope: InvocationScope, name: string, args: readonly string[], stdin: ByteSource, stdinIsDefault: boolean, stdout: ByteSink, signal: AbortSignal, ): void {
     this._runtime = runtime;
     this._state = state;
     this._io = io;
@@ -2079,7 +1720,6 @@ class FastShellCommandContext {
     this.diagnosticLine = io.diagnosticLine;
     this.scriptName = io.scriptName;
   }
-
   releaseDirectStage(): void {
     this._runtime = undefined!;
     this._state = undefined!;
@@ -2107,110 +1747,73 @@ class FastShellCommandContext {
     this.diagnosticLine = undefined;
     this.scriptName = undefined;
   }
-
   static {
     Object.assign(FastShellCommandContext.prototype, {
-      _self: undefined,
-      _env: undefined,
-      _scopedSignal: undefined,
-      _contextFs: undefined,
-      _cachedPredicates: undefined,
-      _cachedInputBudget: undefined,
-      _argumentValues: undefined,
-      _registerCleanup: undefined,
-      _invoke: undefined,
-      descriptors: undefined,
-      onInternalError: undefined,
-      argv0: undefined,
-      processSignals: undefined,
-      diagnosticLine: undefined,
-      scriptName: undefined,
-    });
+      _self: undefined, _env: undefined, _scopedSignal: undefined, _contextFs: undefined, _cachedPredicates: undefined, _cachedInputBudget: undefined, _argumentValues: undefined, _registerCleanup: undefined, _invoke: undefined, descriptors: undefined, onInternalError: undefined, argv0: undefined, processSignals: undefined, diagnosticLine: undefined, scriptName: undefined, });
   }
-
   registerScopeCleanup(cleanup: Parameters<NonNullable<CommandContext["registerCleanup"]>>[0]): () => void {
     return (this._self ?? this)._scope.register(cleanup);
   }
-
   registerScopeCleanupDirect(cleanup: Parameters<NonNullable<CommandContext["registerCleanup"]>>[0]): void {
     (this._self ?? this)._scope.registerDirect(cleanup);
   }
-
   unregisterScopeCleanupDirect(cleanup: Parameters<NonNullable<CommandContext["registerCleanup"]>>[0]): void {
     (this._self ?? this)._scope.unregisterDirect(cleanup);
   }
-
   get _fastMemoryBackingFs(): FileSystem | undefined {
     const self = this._self ?? this;
     return !self._contextFs && self._runtime._isMemoryBackingFs
       ? (self._runtime as unknown as { backingFs: FileSystem }).backingFs
       : undefined;
   }
-
   _chargeFastFsOp(): void {
     const self = this._self ?? this;
     self._getScopedSignal().throwIfAborted();
     self._runtime.budget.fileSystemOperation();
   }
-
   get _hasInfiniteFsOpsLimit(): boolean {
     return (this._self ?? this)._runtime.budget.hasInfiniteFsOps;
   }
-
   get argumentValues(): CommandArguments | undefined {
     return (this._self ?? this)._argumentValues;
   }
-
   set argumentValues(replacement: CommandArguments | undefined) {
     (this._self ?? this)._argumentValues = replacement;
   }
-
   get registerCleanup(): NonNullable<CommandContext["registerCleanup"]> {
     const self = this._self ?? this;
     if (!self._registerCleanup) {
       const scope = self._scope;
       const runtime = self._runtime;
       self._registerCleanup = cleanup => scope.register(cleanup);
-      bindFileOutputBudget(
-        self as unknown as Pick<CommandContext, "registerCleanup">,
-        sink => runtime.budget.sink(sink, self._getScopedSignal()),
-        (chunk, write) => runtime.budget.writeCounted(chunk, write, self._getScopedSignal()),
-      );
+      bindFileOutputBudget( self as unknown as Pick<CommandContext, "registerCleanup">, sink => runtime.budget.sink(sink, self._getScopedSignal()), (chunk, write) => runtime.budget.writeCounted(chunk, write, self._getScopedSignal()), );
     }
     return self._registerCleanup;
   }
-
   set registerCleanup(replacement: NonNullable<CommandContext["registerCleanup"]>) {
     (this._self ?? this)._registerCleanup = replacement;
   }
-
   get invoke(): ShellCommandContext["invoke"] {
     const self = this._self ?? this;
     return self._invoke ??= (cmdName, cmdArgs, options) =>
       self._runtime.invokeFromFastContext(cmdName, cmdArgs, options, self as unknown as ShellCommandContext, self._state, self._scope);
   }
-
   set invoke(replacement: ShellCommandContext["invoke"]) {
     (this._self ?? this)._invoke = replacement;
   }
-
   private _getScopedSignal(): AbortSignal {
     return this._scopedSignal ??= combineManagedSignals(this._runtime.signal, this._scope.signal);
   }
-
   get executionScope(): CommandContext["executionScope"] {
     return (this._self ?? this)._runtime.budget.executionScope;
   }
-
   get stderr(): ByteSink {
     const self = this._self ?? this;
     return self._stderr ??= (self._scopedSignal ? signalSink(self._io.stderr, self._scopedSignal) : self._io.stderr);
   }
-
   set stderr(value: ByteSink) {
     (this._self ?? this)._stderr = value;
   }
-
   get env(): Record<string, string> {
     const self = this._self ?? this;
     if (!self._env) {
@@ -2236,39 +1839,27 @@ class FastShellCommandContext {
     }
     return self._env;
   }
-
   set env(value: Record<string, string>) {
     (this._self ?? this)._env = value;
   }
-
   get fs(): FileSystem {
     const self = this._self ?? this;
     self.signal = toNativeAbortSignal(self.signal);
-    if (!self._contextFs && self._runtime._isMemoryBackingFs) {
-      return self._runtime.getContextFsForFast(self._state.umask ?? 0o022, self._getScopedSignal());
-    }
-    if (!self._contextFs) {
-      self._contextFs = self._runtime.getContextFsForFast(self._state.umask ?? 0o022, self._getScopedSignal());
-    }
+    if (!self._contextFs && self._runtime._isMemoryBackingFs) return self._runtime.getContextFsForFast(self._state.umask ?? 0o022, self._getScopedSignal());
+    if (!self._contextFs) self._contextFs = self._runtime.getContextFsForFast(self._state.umask ?? 0o022, self._getScopedSignal());
     return self._contextFs;
   }
-
   set fs(replacement: FileSystem) {
     (this._self ?? this)._contextFs = replacement;
   }
-
   get shellPredicates(): NonNullable<CommandContext["shellPredicates"]> {
     const self = this._self ?? this;
-    if (!self._cachedPredicates) {
-      self._cachedPredicates = self._runtime.createShellPredicatesForFast(self._state, self._io);
-    }
+    if (!self._cachedPredicates) self._cachedPredicates = self._runtime.createShellPredicatesForFast(self._state, self._io);
     return self._cachedPredicates;
   }
-
   set shellPredicates(replacement: NonNullable<CommandContext["shellPredicates"]>) {
     (this._self ?? this)._cachedPredicates = replacement;
   }
-
   _checkFastInputBytes(totalBytes: number): void {
     const self = this._self ?? this;
     if (self._cachedInputBudget !== undefined) {
@@ -2280,49 +1871,25 @@ class FastShellCommandContext {
     if (!Number.isSafeInteger(totalBytes) || totalBytes < 0) throw new RangeError("Input byte total must be a nonnegative safe integer");
     if (totalBytes > runtime.budget.limits.maxInputBytes) runtime.budget.fail("maxInputBytes");
   }
-
   get inputBudget(): NonNullable<CommandContext["inputBudget"]> {
     const self = this._self ?? this;
     return self._cachedInputBudget ??= self._runtime.createInputBudgetForFast();
   }
-
   set inputBudget(replacement: NonNullable<CommandContext["inputBudget"]>) {
     (this._self ?? this)._cachedInputBudget = replacement;
   }
-
   get stdinInput(): ShellInput | undefined {
     return this.stdin instanceof ShellInput ? this.stdin : undefined;
   }
-
   get stdoutFile(): CommandContext["stdoutFile"] {
     const ownership = budgetedSinks.get(this.stdout);
     return ownership?.write === this.stdout.write ? ownership.file : undefined;
   }
-
 }
 Object.assign(FastShellCommandContext.prototype, {
-  _self: undefined,
-  _stderr: undefined,
-  stdinIsDefault: undefined,
-  descriptors: undefined,
-  onInternalError: undefined,
-  argv0: undefined,
-  capabilities: undefined,
-  processSignals: undefined,
-  diagnosticLine: undefined,
-  scriptName: undefined,
-  _scopedSignal: undefined,
-  _contextFs: undefined,
-  _cachedPredicates: undefined,
-  _cachedInputBudget: undefined,
-  _argumentValues: undefined,
-  _registerCleanup: undefined,
-  _invoke: undefined,
-});
-
+  _self: undefined, _stderr: undefined, stdinIsDefault: undefined, descriptors: undefined, onInternalError: undefined, argv0: undefined, capabilities: undefined, processSignals: undefined, diagnosticLine: undefined, scriptName: undefined, _scopedSignal: undefined, _contextFs: undefined, _cachedPredicates: undefined, _cachedInputBudget: undefined, _argumentValues: undefined, _registerCleanup: undefined, _invoke: undefined, });
 const FAST_DIRECT_CONTEXT_COMMANDS = new Set([
-  "rm", "mkdir", "rg", "sed", "awk", "jq", "sort", "head", "tr", "grep", "cut", "wc", "uniq",
-]);
+  "rm", "mkdir", "rg", "sed", "awk", "jq", "sort", "head", "tr", "grep", "cut", "wc", "uniq", ]);
 function isFastDirectCommand(name: string, words: readonly Word[]): boolean {
   if (FAST_DIRECT_CONTEXT_COMMANDS.has(name)) return true;
   if (name !== "find") return false;
@@ -2332,39 +1899,20 @@ function isFastDirectCommand(name: string, words: readonly Word[]): boolean {
   }
   return true;
 }
-
-const fastShellCommandAccessors = ["env", "fs", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues"].map(
-  key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const,
-);
-
+const fastShellCommandAccessors = ["env", "fs", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues"].map( key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const, );
 function cloneRawState(raw: State, hasLocals: boolean): State {
   const variables = Object.assign(Object.create(null) as Record<string, string>, raw.variables);
   const exported = raw.exported.size ? new Set(raw.exported) : new Set<string>();
   const hasFunctions = raw instanceof RootShellState ? Boolean(raw._functions?.size) : raw.functions.size > 0;
-  const cloned: State = Object.assign(
-    new RootShellState(raw.cwd, variables, exported, raw.extensions),
-    raw,
-  );
-  // Root accessors must resolve against the clone while installing its collections.
+  const cloned: State = Object.assign( new RootShellState(raw.cwd, variables, exported, raw.extensions), raw, );
   (cloned as unknown as Record<symbol, unknown>)[monitorSymbol] = undefined;
-  Object.assign(
-    cloned,
-    {
-      variables,
-      exported,
-      _functions: hasFunctions ? new Map(raw.functions) : undefined,
-      positional: [...raw.positional],
-      directoryStack: raw.directoryStack
+  Object.assign( cloned, {
+      variables, exported, _functions: hasFunctions ? new Map(raw.functions) : undefined, positional: [...raw.positional], directoryStack: raw.directoryStack
         ? {
-            entries: raw.directoryStack.entries.length ? [...raw.directoryStack.entries] : [],
-            bytes: raw.directoryStack.bytes,
-          }
-        : undefined,
-      locals: hasLocals
+            entries: raw.directoryStack.entries.length ? [...raw.directoryStack.entries] : [], bytes: raw.directoryStack.bytes, }
+        : undefined, locals: hasLocals
         ? raw.locals.map((scope) => new Map([...scope].map(([name, saved]) => [name, { ...saved, ...(saved.getopts ? { getopts: { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) } } : {}) }])))
-        : [],
-    },
-  );
+        : [], }, );
   if (raw.exportedFunctions) cloned.exportedFunctions = new Set(raw.exportedFunctions);
   if (raw.readonlyVariables) cloned.readonlyVariables = new Set(raw.readonlyVariables);
   if (raw.readonlyFunctions) cloned.readonlyFunctions = new Set(raw.readonlyFunctions);
@@ -2373,13 +1921,11 @@ function cloneRawState(raw: State, hasLocals: boolean): State {
   if (raw.functionNames) cloned.functionNames = [...raw.functionNames];
   return cloned;
 }
-
 function tryCloneStateSync(state: State, scope?: InvocationScope, inheritLocals = true): State | undefined {
   const raw = stateMonitor(state)?.raw ?? state;
   if (scope || inheritLocals && raw.locals.length > 0) return undefined;
   return trySnapshotStateSync(state, () => cloneRawState(raw, false));
 }
-
 async function cloneState(state: State, signal: AbortSignal, scope?: InvocationScope, inheritLocals = true): Promise<State> {
   const syncClone = tryCloneStateSync(state, scope, inheritLocals);
   if (syncClone) return syncClone;
@@ -2407,8 +1953,7 @@ async function cloneState(state: State, signal: AbortSignal, scope?: InvocationS
             binding = typed.binding?.retain();
             typedSavedVariables.set(copied, { owner: savedOwner, binding, tickets, prepared: { name: token, admission }, watch, scalarLegacy: typed.scalarLegacy });
             tickets.cleanup = () => {
-              if (typedSavedVariables.delete(copied) && scope) releaseBinding = scope.cleanup(async () => { await binding?.release(); });
-            };
+              if (typedSavedVariables.delete(copied) && scope) releaseBinding = scope.cleanup(async () => { await binding?.release(); });};
           } catch (error) { await binding?.release(); await savedOwner.close(); throw error; }
         }
         await owner.ledger.checkpoint(signal);
@@ -2422,11 +1967,9 @@ async function cloneState(state: State, signal: AbortSignal, scope?: InvocationS
     return destination;
   } catch (error) { stateMonitor(destination)?.closeValues(); throw error; }
 }
-
 function cloneGetoptsBinding(state: State): GetoptsBinding {
   return { cursor: state.getopts ? cloneGetoptsState(state.getopts.cursor) : createGetoptsState(), integer: state.getopts?.integer ?? true };
 }
-
 function shellCharacterWidth(bytes: Uint8Array, offset: number, byteCount: boolean): number {
   if (byteCount) return 1;
   const first = bytes[offset]!;
@@ -2438,14 +1981,12 @@ function shellCharacterWidth(bytes: Uint8Array, offset: number, byteCount: boole
   }
   return length;
 }
-
 function saveVariable(state: State, name: string): SavedVariable {
   const monitor = stateMonitor(state);
   const value = monitor?.values.get(name, state.variables[name] ?? "");
   const heldValue = state.variables[name] !== undefined && value !== undefined ? monitor!.values.scope.hold(value) : undefined;
   return { attributes: state.variableAttributes?.get(name), value: state.variables[name], ...(heldValue ? { heldValue } : {}), exported: state.exported.has(name), readOnly: state.readonlyVariables?.has(name) ?? false, ...(name === "OPTIND" ? { getopts: cloneGetoptsBinding(state) } : {}) };
 }
-
 function hasActiveVariableAttributes(state: State): boolean {
   const attrs = state.variableAttributes;
   if (!attrs || attrs.size === 0) return false;
@@ -2454,7 +1995,6 @@ function hasActiveVariableAttributes(state: State): boolean {
   }
   return false;
 }
-
 function publishVariable(state: State, name: string, value: ShellValue): void {
   const monitor = stateMonitor(state);
   if (monitor) {
@@ -2468,7 +2008,6 @@ function publishVariable(state: State, name: string, value: ShellValue): void {
   }
   state.variables[name] = shellValueText(value);
 }
-
 function tryRestoreVariableSync(state: State, name: string, saved: SavedVariable): boolean {
   if (typedSavedVariables.has(saved)) return false;
   try {
@@ -2476,15 +2015,12 @@ function tryRestoreVariableSync(state: State, name: string, saved: SavedVariable
     if (saved.attributes !== undefined) {
       state.variableAttributes ??= new Map();
       state.variableAttributes.set(name, saved.attributes);
-    } else {
-      state.variableAttributes?.delete(name);
-    }
+    } else state.variableAttributes?.delete(name);
     const store = monitor?.values;
     if (saved.value === undefined) {
       if (monitor) delete monitor.proxy.variables[name];
       else delete state.variables[name];
-    }
-    else if (saved.heldValue && store) {
+    } else if (saved.heldValue && store) {
       store.restoreHeld(name, saved.heldValue, () => { state.variables[name] = saved.value!; });
       delete saved.heldValue;
     } else publishVariable(state, name, saved.value);
@@ -2502,19 +2038,16 @@ function tryRestoreVariableSync(state: State, name: string, saved: SavedVariable
   }
   return true;
 }
-
 async function restoreVariable(state: State, name: string, saved: SavedVariable): Promise<void> {
   try {
-  if (saved.attributes !== undefined) { state.variableAttributes ??= new Map(); state.variableAttributes.set(name, saved.attributes); }
-  else state.variableAttributes?.delete(name);
+  if (saved.attributes !== undefined) { state.variableAttributes ??= new Map(); state.variableAttributes.set(name, saved.attributes); } else state.variableAttributes?.delete(name);
   const restoreScalar = (): void => {
     const store = stateMonitor(state)?.values;
     if (saved.value === undefined) delete state.variables[name];
     else if (saved.heldValue && store) {
       store.restoreHeld(name, saved.heldValue, () => { state.variables[name] = saved.value!; });
       delete saved.heldValue;
-    } else publishVariable(state, name, saved.value);
-  };
+    } else publishVariable(state, name, saved.value);};
   const typed = typedSavedVariables.get(saved);
   if (typed) {
     typedSavedVariables.delete(saved);
@@ -2531,11 +2064,9 @@ async function restoreVariable(state: State, name: string, saved: SavedVariable)
       if (saved.exported) state.exported.add(name);
       else state.exported.delete(name);
       if (!typed.scalarLegacy || name === "OPTIND") {
-        if (saved.readOnly) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
-        else state.readonlyVariables?.delete(name);
+        if (saved.readOnly) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); } else state.readonlyVariables?.delete(name);
       }
-      if (name === "OPTIND" && saved.getopts) state.getopts = saved.getopts;
-    });
+      if (name === "OPTIND" && saved.getopts) state.getopts = saved.getopts;});
     typed.watch.close();
     await released;
     await typed.owner.close();
@@ -2551,7 +2082,6 @@ async function restoreVariable(state: State, name: string, saved: SavedVariable)
   }
   } finally { saved.heldValue?.release(); delete saved.heldValue; }
 }
-
 function isShellIdentifier(name: string): boolean {
   if (!name) return false;
   for (let index = 0; index < name.length; index++) {
@@ -2561,7 +2091,6 @@ function isShellIdentifier(name: string): boolean {
   }
   return true;
 }
-
 function decimalIndex(value: string): number {
   let position = 0;
   while (position < value.length && /[\t\n\v\f\r ]/u.test(value[position]!)) position++;
@@ -2575,24 +2104,19 @@ function decimalIndex(value: string): number {
   }
   return negative ? -index | 0 : index;
 }
-
 function saturatedProduct(left: number, right: number): number {
   return right !== 0 && left > Math.floor(Number.MAX_SAFE_INTEGER / right) ? Number.MAX_SAFE_INTEGER : left * right;
 }
-
 function saturatedSum(left: number, right: number): number {
   return left > Number.MAX_SAFE_INTEGER - right ? Number.MAX_SAFE_INTEGER : left + right;
 }
-
 function errorCode(error: unknown): string | undefined {
   return typeof error === "object" && error !== null && "code" in error ? String(error.code) : undefined;
 }
-
 function message(error: unknown, onInternalError?: InternalErrorHandler): string {
   if (error instanceof ExpansionFailure || error instanceof CommandFailure || error instanceof ArrayFailure || error instanceof BraceExpansionFailure) return error.message;
   return publicDiagnosticMessage(error, onInternalError);
 }
-
 function filesystemDiagnostic(error: unknown, target: string, onInternalError?: InternalErrorHandler): string | undefined {
   const descriptions: Readonly<Record<string, string>> = { ENOENT: "No such file or directory", EACCES: "Permission denied", EPERM: "Operation not permitted", ENOTDIR: "Not a directory", EISDIR: "Is a directory", ELOOP: "Too many levels of symbolic links", ENOSPC: "No space left on device", EROFS: "Read-only file system" };
   const description = descriptions[errorCode(error) ?? ""];
@@ -2600,11 +2124,9 @@ function filesystemDiagnostic(error: unknown, target: string, onInternalError?: 
   publicDiagnosticMessage(error, onInternalError);
   return `${target}: ${description}`;
 }
-
 function cdUtf8Width(codePoint: number): number {
   return codePoint <= 0x7f ? 1 : codePoint <= 0x7ff ? 2 : codePoint <= 0xffff ? 3 : 4;
 }
-
 function cdDiagnostic(fragments: readonly string[]): string {
   const chunks: string[] = [];
   let bytes = 0;
@@ -2629,13 +2151,10 @@ function cdDiagnostic(fragments: readonly string[]): string {
   }
   return chunks.join("");
 }
-
 class CdLookup {
   private spent = 0;
   private probes = 0;
-
   constructor(private readonly signal: AbortSignal) {}
-
   async charge(amount: number): Promise<void> {
     this.signal.throwIfAborted();
     if (amount > 8_388_608 - this.spent) throw new PublicDiagnostic("cd: helper work limit exceeded");
@@ -2650,7 +2169,6 @@ class CdLookup {
       }
     }
   }
-
   private async scan(value: string, search = false): Promise<{
     bytes: number; components: { start: number; end: number; bytes: number }[];
   }> {
@@ -2676,7 +2194,6 @@ class CdLookup {
     if (search) components.push({ start, end: value.length, bytes: bytes - startBytes });
     return { bytes, components };
   }
-
   async find(fs: FileSystem, cwd: string, target: string, cdpath: string | undefined, physical: boolean): Promise<{ path: string; print?: string }> {
     const targetBytes = (await this.scan(target)).bytes;
     const absolute = target.startsWith("/");
@@ -2696,8 +2213,6 @@ class CdLookup {
         for (const component of raw.split("/")) {
           await this.charge(1);
           if (component === "..") {
-            // A logical parent removes the preceding component only after
-            // checking that it names a directory, including links.
             await this.charge(rawBytes);
             const parent = `/${components.join("/")}`;
             const stat = await fs.stat(parent, { signal: this.signal });
@@ -2726,10 +2241,7 @@ class CdLookup {
         await this.scan(path);
       }
       return {
-        path,
-        ...(component ? { print: physical ? `${component}${component.endsWith("/") ? "" : "/"}${target}` : path } : {}),
-      };
-    };
+        path, ...(component ? { print: physical ? `${component}${component.endsWith("/") ? "" : "/"}${target}` : path } : {}), };};
     for (const component of search?.components ?? []) {
       try {
         return await probe(cdpath!.slice(component.start, component.end), component.bytes);
@@ -2741,20 +2253,16 @@ class CdLookup {
     return probe("", 0);
   }
 }
-
 class DirectoryStackWork {
   private spent = 0;
   private flushed = 0;
   private outputBytes = 0;
   private chunk = "";
   private chunkBytes = 0;
-
   constructor(private readonly name: string, private readonly signal: AbortSignal, private readonly stdout: ByteSink) {}
-
   fail(text: string, status = 1): never {
     throw new CommandFailure(cdDiagnostic([this.name, ": ", text]), status);
   }
-
   async charge(amount: number): Promise<void> {
     this.signal.throwIfAborted();
     if (!Number.isSafeInteger(amount) || amount < 0 || amount > 8_388_608 - this.spent) this.fail("helper work limit exceeded");
@@ -2765,7 +2273,6 @@ class DirectoryStackWork {
       if (this.spent % 128 === 0) await this.flushWork();
     }
   }
-
   async flushWork(): Promise<void> {
     this.signal.throwIfAborted();
     if (this.flushed === this.spent) return;
@@ -2773,7 +2280,6 @@ class DirectoryStackWork {
     this.signal.throwIfAborted();
     this.flushed = this.spent;
   }
-
   async scan(value: string, kind: "argument" | "path" | "HOME"): Promise<number> {
     let bytes = 0;
     for (let offset = 0; offset < value.length;) {
@@ -2786,7 +2292,6 @@ class DirectoryStackWork {
     }
     return bytes;
   }
-
   async number(token: string): Promise<bigint> {
     let phase: "leading" | "sign" | "digits" | "trailing" = "leading";
     let negative = false;
@@ -2814,7 +2319,6 @@ class DirectoryStackWork {
     if (!digits) this.fail("invalid directory stack index", 2);
     return negative ? -value : value;
   }
-
   async emit(text: string): Promise<void> {
     for (let offset = 0; offset < text.length;) {
       const point = text.codePointAt(offset)!;
@@ -2829,7 +2333,6 @@ class DirectoryStackWork {
       offset += units;
     }
   }
-
   async flushOutput(): Promise<void> {
     this.signal.throwIfAborted();
     if (!this.chunkBytes) return;
@@ -2839,7 +2342,6 @@ class DirectoryStackWork {
     await writeText(this.stdout, text);
     this.signal.throwIfAborted();
   }
-
   async display(cwd: string, entries: readonly string[], options: { long: boolean; lines: boolean; verbose: boolean; index?: number }, home: string | undefined): Promise<void> {
     await this.scan(cwd, "path");
     const homeBytes = !options.long && home !== undefined ? await this.scan(home, "HOME") : 0;
@@ -2868,7 +2370,6 @@ class DirectoryStackWork {
     await this.flushOutput();
   }
 }
-
 const closedSink: ByteSink = { async write() { throw Object.assign(new PublicDiagnostic("Bad file descriptor"), { code: "EBADF" }); } };
 const closedSource: ByteSource = { [Symbol.asyncIterator]() {
   let closed = false;
@@ -2876,27 +2377,19 @@ const closedSource: ByteSource = { [Symbol.asyncIterator]() {
   const enqueue = <Value>(operation: () => Value | PromiseLike<Value>): Promise<Value> => {
     const pending = completion.then(operation);
     completion = pending.then(() => {}, () => {});
-    return pending;
-  };
+    return pending;};
   const iterator: AsyncIterableIterator<Uint8Array> = {
     next() {
       return enqueue<IteratorResult<Uint8Array>>(() => {
         if (closed) return { done: true, value: undefined };
         closed = true;
-        throw Object.assign(new PublicDiagnostic("Bad file descriptor"), { code: "EBADF" });
-      });
-    },
-    return(value?: unknown) { return enqueue(async () => { closed = true; return { done: true, value: await value }; }); },
-    throw(error?: unknown) { return enqueue(() => { closed = true; throw error; }); },
-    [Symbol.asyncIterator]() { return this; },
-  };
+        throw Object.assign(new PublicDiagnostic("Bad file descriptor"), { code: "EBADF" });});
+    }, return(value?: unknown) { return enqueue(async () => { closed = true; return { done: true, value: await value }; }); }, throw(error?: unknown) { return enqueue(() => { closed = true; throw error; }); }, [Symbol.asyncIterator]() { return this; }, };
   return iterator;
 } };
-
 interface RuntimeOutcomeFrame {
   report?: CancellationReport | undefined;
 }
-
 interface InvokeOutcomeRecord {
   readonly promise: Promise<CommandResult>;
   readonly boundary: CancellationBoundary;
@@ -2904,17 +2397,14 @@ interface InvokeOutcomeRecord {
   consumed: boolean;
   selection?: CancellationSelection<CommandResult> | undefined;
 }
-
 /** Internal to the shell/runtime pair; it is not exported by the package root. */
 export class RuntimeCancellationState {
   private _records: Set<InvokeOutcomeRecord> | undefined;
   private _diagnostics: WeakMap<object, NounsetDiagnosticFailure> | undefined;
   private _closed = false;
-
   recordDiagnostic(promise: Promise<CommandResult>, failure: NounsetDiagnosticFailure): void {
     if (!this._closed) (this._diagnostics ??= new WeakMap()).set(promise, failure);
   }
-
   consumeDiagnostic(rawReturn: unknown): NounsetDiagnosticFailure | undefined {
     if (!this._diagnostics) return undefined;
     if (rawReturn === null || typeof rawReturn !== "object" && typeof rawReturn !== "function") return undefined;
@@ -2922,20 +2412,17 @@ export class RuntimeCancellationState {
     this._diagnostics.delete(rawReturn);
     return failure;
   }
-
   bind(promise: Promise<CommandResult>, boundary: CancellationBoundary): InvokeOutcomeRecord {
     if (this._closed) throw new Error("Cancellation outcome admission is closed");
     const record: InvokeOutcomeRecord = { promise, boundary, finalized: false, consumed: false };
     (this._records ??= new Set()).add(record);
     return record;
   }
-
   finalize(record: InvokeOutcomeRecord, selection: CancellationSelection<CommandResult>): void {
     if (record.consumed || !this._records?.has(record)) return;
     record.selection = selection;
     record.finalized = true;
   }
-
   consume(rawReturn: unknown, capturedReason: unknown): CancellationReport | undefined {
     if (!this._records) return undefined;
     for (const record of this._records) {
@@ -2949,13 +2436,11 @@ export class RuntimeCancellationState {
     }
     return undefined;
   }
-
   discard(record: InvokeOutcomeRecord | undefined): void {
     if (!record) return;
     record.consumed = true;
     this._records?.delete(record);
   }
-
   close(): void {
     this._closed = true;
     if (this._records) {
@@ -2965,11 +2450,9 @@ export class RuntimeCancellationState {
     this._diagnostics = undefined;
   }
 }
-
 interface CancellationAdmissionOwner {
   assertAdmissionOpen(): void;
 }
-
 class InvocationCancellationOwner implements CancellationAdmissionOwner, CancellationOwnerSubscriber {
   declare readonly kind: "callback";
   declare active: boolean;
@@ -2991,20 +2474,13 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner, Cancell
   declare private _settled: boolean;
   declare private _queuedOrigin: boolean;
   declare private _finish: Promise<CancellationSelection<CommandResult>> | undefined;
-
-  constructor(
-    parent: InvocationScope,
-    prepared: PreparedChildCancellation,
-    outcomes: RuntimeCancellationState,
-    publicPromise?: Promise<CommandResult>,
-  ) {
+  constructor( parent: InvocationScope, prepared: PreparedChildCancellation, outcomes: RuntimeCancellationState, publicPromise?: Promise<CommandResult>, ) {
     this._parent = parent;
     this.prepared = prepared;
     this._outcomes = outcomes;
     this._publicPromise = publicPromise;
     parent.addChildOwner(this);
   }
-
   _onScopeClose(): Promise<void> | undefined {
     this.requestClose();
     if (!this._completed) {
@@ -3012,23 +2488,16 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner, Cancell
     }
     return undefined;
   }
-
   assertAdmissionOpen(): void {
     if (!this._admissionOpen) throw new Error("Cancellation invocation admission is closed");
   }
-
   requestClose(): void { this._admissionOpen = false; }
-
   activate(subscribe = true): CancellationBoundary {
     this.assertAdmissionOpen();
     const boundary = activateChildCancellation(this.prepared);
     this._boundary = boundary;
     try {
-      if (subscribe) {
-        subscribeCancellationOwner(boundary, this);
-      } else {
-        admitCancellationSubscriptionCapacity(boundary);
-      }
+      if (subscribe) subscribeCancellationOwner(boundary, this); else admitCancellationSubscriptionCapacity(boundary);
       if (this._publicPromise) this._record = this._outcomes.bind(this._publicPromise, boundary);
       return boundary;
     } catch (error) {
@@ -3036,7 +2505,6 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner, Cancell
       throw error;
     }
   }
-
   callback(origin: CancellationOrigin): void {
     if (!this._resolveCapture || this._settled || this._queuedOrigin) return;
     this._queuedOrigin = true;
@@ -3048,10 +2516,8 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner, Cancell
       this._resolveCapture = undefined;
       this._outcomeFrame = undefined;
       resolve?.({ kind: "throw", reason: origin.signal.reason });
-      void this._rawPromise?.catch(() => undefined);
-    });
+      void this._rawPromise?.catch(() => undefined);});
   }
-
   private _settleReturn(value: CommandResult): void {
     if (this._settled) return;
     this._settled = true;
@@ -3060,7 +2526,6 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner, Cancell
     this._outcomeFrame = undefined;
     resolve?.({ kind: "return", value });
   }
-
   private _settleThrow(reason: unknown): void {
     if (this._settled) return;
     this._settled = true;
@@ -3072,11 +2537,7 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner, Cancell
       ? { kind: "throw", reason, report: frame.report }
       : { kind: "throw", reason });
   }
-
-  capture(
-    execute: () => Promise<CommandResult>,
-    frame: RuntimeOutcomeFrame,
-  ): Promise<CapturedCancellationOutcome<CommandResult>> {
+  capture( execute: () => Promise<CommandResult>, frame: RuntimeOutcomeFrame, ): Promise<CapturedCancellationOutcome<CommandResult>> {
     this._outcomeFrame = frame;
     let raw: Promise<CommandResult>;
     try { raw = Promise.resolve(execute()); }
@@ -3088,19 +2549,13 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner, Cancell
     this._rawPromise = raw;
     return new Promise(resolve => {
       this._resolveCapture = resolve;
-      void raw.then(
-        value => { this._settleReturn(value); },
-        reason => { this._settleThrow(reason); },
-      );
-      if (this._settled) void raw.catch(() => undefined);
-    });
+      void raw.then( value => { this._settleReturn(value); }, reason => { this._settleThrow(reason); }, );
+      if (this._settled) void raw.catch(() => undefined);});
   }
-
   finish(barrier: Promise<void>, captured: CapturedCancellationOutcome<CommandResult>): Promise<CancellationSelection<CommandResult>> {
     this._finish ??= this._finishOnce(barrier, captured);
     return this._finish;
   }
-
   finishSync(captured: CapturedCancellationOutcome<CommandResult>): CancellationSelection<CommandResult> {
     this.requestClose();
     try {
@@ -3114,7 +2569,6 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner, Cancell
       this._parent.removeChildOwner(this);
     }
   }
-
   async abandon(barrier: Promise<void>): Promise<void> {
     this.requestClose();
     try { await barrier; }
@@ -3126,7 +2580,6 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner, Cancell
       this._parent.removeChildOwner(this);
     }
   }
-
   private async _finishOnce(barrier: Promise<void>, captured: CapturedCancellationOutcome<CommandResult>): Promise<CancellationSelection<CommandResult>> {
     this.requestClose();
     try {
@@ -3141,7 +2594,6 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner, Cancell
       this._parent.removeChildOwner(this);
     }
   }
-
   private _closeBoundary(): void {
     if (!this._boundary || this._boundaryClosed) return;
     this._boundaryClosed = true;
@@ -3153,47 +2605,16 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner, Cancell
   }
 }
 Object.assign(InvocationCancellationOwner.prototype, {
-  kind: "callback",
-  active: false,
-  _finalizedPromise: undefined,
-  _resolveFinalized: undefined,
-  _completed: false,
-  _admissionOpen: true,
-  _boundary: undefined,
-  _boundaryClosed: false,
-  _record: undefined,
-  _observedOrigin: undefined,
-  _resolveCapture: undefined,
-  _rawPromise: undefined,
-  _outcomeFrame: undefined,
-  _settled: false,
-  _queuedOrigin: false,
-  _finish: undefined,
-});
-
+  kind: "callback", active: false, _finalizedPromise: undefined, _resolveFinalized: undefined, _completed: false, _admissionOpen: true, _boundary: undefined, _boundaryClosed: false, _record: undefined, _observedOrigin: undefined, _resolveCapture: undefined, _rawPromise: undefined, _outcomeFrame: undefined, _settled: false, _queuedOrigin: false, _finish: undefined, });
 const mapfileCallbackStates = new WeakSet<State>();
 const runtimeFileSystems = new WeakMap<FileSystem, FileSystem>();
 const reusableDefaultContextFsBySourceFs = new WeakMap<FileSystem, { scoped: FileSystem; inUseBy: Runtime | undefined }>();
 const noopFsCharge = (): void => {};
 const NEVER_ABORTED_SIGNAL = Object.freeze({
-  aborted: false,
-  reason: undefined,
-  onabort: null,
-  throwIfAborted(): void {},
-  addEventListener(): void {},
-  removeEventListener(): void {},
-  dispatchEvent(): boolean { return true; },
-}) as unknown as AbortSignal;
-
+  aborted: false, reason: undefined, onabort: null, throwIfAborted(): void {}, addEventListener(): void {}, removeEventListener(): void {}, dispatchEvent(): boolean { return true; }, }) as unknown as AbortSignal;
 export function warmDefaultRuntimeContextFs(sourceFs: FileSystem, backingFs: FileSystem): void {
   if (reusableDefaultContextFsBySourceFs.has(sourceFs)) return;
-  const created = scopeFileSystem(
-    creationFileSystem(sourceFs, 0o022),
-    noopFsCharge,
-    NEVER_ABORTED_SIGNAL,
-    noopFsCharge,
-    { maxPathComponents: 256 },
-  );
+  const created = scopeFileSystem( creationFileSystem(sourceFs, 0o022), noopFsCharge, NEVER_ABORTED_SIGNAL, noopFsCharge, { maxPathComponents: 256 }, );
   runtimeFileSystems.set(created, sourceFs);
   registerRuntimeBackingFileSystem(created, backingFs);
   void created.capabilities;
@@ -3234,16 +2655,11 @@ const assignmentCache = {
   get(word: Word): { name: string; value: Word; append: boolean } | null | undefined {
     const val = (word as unknown as Record<symbol, { name: string; value: Word; append: boolean } | null | undefined>)[assignmentCacheSymbol];
     return val !== undefined ? val : fallbackAssignmentCache?.get(word);
-  },
-  set(word: Word, value: { name: string; value: Word; append: boolean } | null): void {
+  }, set(word: Word, value: { name: string; value: Word; append: boolean } | null): void {
     if (Object.isExtensible(word)) {
       (word as unknown as Record<symbol, { name: string; value: Word; append: boolean } | null>)[assignmentCacheSymbol] = value;
-    } else {
-      (fallbackAssignmentCache ??= new WeakMap()).set(word, value);
-    }
-  },
-};
-
+    } else (fallbackAssignmentCache ??= new WeakMap()).set(word, value);
+  }, };
 function hasGlobOrEscape(text: string, extglob = false): boolean {
   for (let i = 0; i < text.length; i++) {
     const code = text.charCodeAt(i);
@@ -3255,10 +2671,8 @@ function hasGlobOrEscape(text: string, extglob = false): boolean {
   }
   return false;
 }
-
 let nextProcessSubstitutionId = 0;
 let defaultRuntimeMuscleMemoryMap: ReadonlyMap<string, CommandDefinition> | undefined;
-
 function getRuntimeMuscleMemoryCommand(name: string): CommandDefinition | undefined {
   defaultRuntimeMuscleMemoryMap ??= new Map([...createBcCommands(), ...createSpongeCommands(), ...createFdCommands(), ...createLessCommands(), ...createIdCommands(), ...createWhoamiCommands(), ...createUnameCommands(), ...createHostnameCommands(), ...createNprocCommands(), ...createShufCommands(), ...createDdCommands(), ...createNumfmtCommands(), ...createEnvsubstCommands(), ...createCalCommands(), ...createPathchkCommands(), ...createGetconfCommands(), ...createLocaleCommands(), ...createDfCommands(), ...createSqlite3Commands()].map(cmd => [cmd.name, cmd]));
   return defaultRuntimeMuscleMemoryMap.get(name);
@@ -3270,7 +2684,6 @@ const defaultFloat64Array = globalThis.Float64Array;
 const fastMkdirRmPaths: string[] = new Array<string>(32).fill("");
 const fastRedirectScratchBytes = new Uint8Array(8192);
 const fastRedirectScratchViews: Uint8Array[] = Array.from({ length: 129 }, (_, len) => fastRedirectScratchBytes.subarray(0, len));
-
 function encodeRedirectTextToScratch(formatted: string): Uint8Array {
   const len = formatted.length;
   if (len <= 128) {
@@ -3289,7 +2702,6 @@ function encodeRedirectTextToScratch(formatted: string): Uint8Array {
     ? fastRedirectScratchBytes.subarray(0, fastSharedTextEncoder.encodeInto(formatted, fastRedirectScratchBytes).written)
     : Buffer.from(formatted, "utf8");
 }
-
 function encodeRedirectTextWithNewlineToScratch(arg0: string): Uint8Array | undefined {
   const len = arg0.length;
   if (len < 128) {
@@ -3303,7 +2715,6 @@ function encodeRedirectTextWithNewlineToScratch(arg0: string): Uint8Array | unde
   }
   return undefined;
 }
-
 interface IntLoopStep {
   readonly name: string;
   readonly program: ArithmeticProgram;
@@ -3313,7 +2724,6 @@ interface IntLoopStep {
   readonly isSub: boolean;
   readonly extraNewlineByte: number;
 }
-
 function intDecimalLength(n: number): number {
   let v = n;
   let len = 0;
@@ -3331,7 +2741,6 @@ function intDecimalLength(n: number): number {
   if (v < 100000000) return len + 8;
   return len + 9;
 }
-
 function sameRedirectTargetWord(a: Word, b: Word): boolean {
   if (a === b) return true;
   if (a.parts.length !== b.parts.length) return false;
@@ -3339,17 +2748,10 @@ function sameRedirectTargetWord(a: Word, b: Word): boolean {
     const pa = a.parts[i]!;
     const pb = b.parts[i]!;
     if (pa.kind !== pb.kind || pa.quoted !== pb.quoted) return false;
-    if (pa.kind === "text" && pb.kind === "text") {
-      if (pa.value !== pb.value) return false;
-    } else if (pa.kind === "variable" && pb.kind === "variable") {
-      if (pa.name !== pb.name) return false;
-    } else {
-      return false;
-    }
+    if (pa.kind === "text" && pb.kind === "text") if (pa.value !== pb.value) return false; else if (pa.kind === "variable" && pb.kind === "variable") if (pa.name !== pb.name) return false; else return false;
   }
   return true;
 }
-
 type SyncLoopStep = {
   readonly cmd: Extract<Command, { kind: "simple" }>;
   readonly name: string | undefined;
@@ -3361,9 +2763,7 @@ type SyncLoopStep = {
   readonly targetNamePrefix?: string | undefined;
   readonly append: boolean;
   readonly line: number;
-  coalesceNext?: boolean;
-};
-
+  coalesceNext?: boolean;};
 const intLoopStepCache = new WeakMap<Command, IntLoopStep | null>();
 const sharedSyncLoopTouched = new Set<string>();
 const sharedSyncLoopArithNames = new Set<string>();
@@ -3372,10 +2772,8 @@ const sharedSyncLoopIntSteps: (IntLoopStep | undefined)[] = [];
 let cachedRedirectNamePrefix = "";
 let cachedRedirectNameSuffix = "";
 let cachedRedirectNameTable: (string | undefined)[] = new Array(256);
-
 const SYNC_UNIT_ZERO: { readonly exitCode: number; readonly terminated: boolean } = Object.freeze({ exitCode: 0, terminated: false });
 const SYNC_UNIT_ONE: { readonly exitCode: number; readonly terminated: boolean } = Object.freeze({ exitCode: 1, terminated: false });
-
 const EMPTY_BYTES = new Uint8Array(0);
 const SYNC_PIPE_DONE_RESULT: IteratorResult<Uint8Array> = Object.freeze({ done: true, value: undefined });
 const sharedSyncPipeBuf0 = new Uint8Array(65536);
@@ -3393,14 +2791,7 @@ let lastPureFindFirstKey = "";
 let lastPureFindLastKey = "";
 const lastPureFindOutBuf = new Uint8Array(64);
 let lastPureFindOutLen = 0;
-
-function finishSyncPurePipelineAsync(
-  resPromise: CommandResult | Promise<CommandResult>,
-  budget: Budget,
-  n: number,
-  negate: boolean,
-  rawState: State,
-): Promise<{ exitCode: number; terminated: boolean }> {
+function finishSyncPurePipelineAsync( resPromise: CommandResult | Promise<CommandResult>, budget: Budget, n: number, negate: boolean, rawState: State, ): Promise<{ exitCode: number; terminated: boolean }> {
   return Promise.resolve(resPromise).then(res => {
     budget.leavePipelineStages(n);
     const rawStatus = res.exitCode;
@@ -3409,8 +2800,7 @@ function finishSyncPurePipelineAsync(
     return { exitCode: finalStatus, terminated: false };
   }, err => {
     budget.leavePipelineStages(n);
-    throw err;
-  });
+    throw err;});
 }
 function isSimpleAsciiGrepPattern(pat: string): boolean {
   const start = pat.length >= 2 && pat.charCodeAt(0) === 94 ? 1 : 0;
@@ -3418,13 +2808,10 @@ function isSimpleAsciiGrepPattern(pat: string): boolean {
   for (let i = start; i < pat.length; i++) {
     const c = pat.charCodeAt(i);
     if (c < 32 || c > 126) return false;
-    if (c === 36 || c === 40 || c === 41 || c === 42 || c === 43 || c === 46 || c === 63 || c === 91 || c === 92 || c === 93 || c === 94 || c === 123 || c === 124 || c === 125) {
-      return false;
-    }
+    if (c === 36 || c === 40 || c === 41 || c === 42 || c === 43 || c === 46 || c === 63 || c === 91 || c === 92 || c === 93 || c === 94 || c === 123 || c === 124 || c === 125) return false;
   }
   return true;
 }
-
 class PooledSyncPipeReader implements ByteSource, AsyncIterator<Uint8Array> {
   private buf: Uint8Array = EMPTY_BYTES;
   rawBuf: Uint8Array = EMPTY_BYTES;
@@ -3441,7 +2828,6 @@ class PooledSyncPipeReader implements ByteSource, AsyncIterator<Uint8Array> {
   private viewRaw3: Uint8Array = EMPTY_BYTES;
   private view3: Uint8Array = EMPTY_BYTES;
   private viewCursor = 0;
-
   clearViews(): void {
     this.viewRaw0 = EMPTY_BYTES;
     this.view0 = EMPTY_BYTES;
@@ -3456,9 +2842,7 @@ class PooledSyncPipeReader implements ByteSource, AsyncIterator<Uint8Array> {
     this.rawBuf = EMPTY_BYTES;
     this.abortSignal = undefined;
   }
-
   knownLineCount = -1;
-
   reset(buf: Uint8Array, len: number, signal?: AbortSignal, knownLineCount = -1): void {
     this.rawBuf = buf;
     this.rawLen = len;
@@ -3467,11 +2851,9 @@ class PooledSyncPipeReader implements ByteSource, AsyncIterator<Uint8Array> {
     this.abortSignal = signal;
     this.knownLineCount = knownLineCount;
   }
-
   [Symbol.asyncIterator](): this {
     return this;
   }
-
   tryCountLinesOrBytesSync(countLines: boolean): number {
     this.abortSignal?.throwIfAborted();
     this.yielded = true;
@@ -3485,7 +2867,6 @@ class PooledSyncPipeReader implements ByteSource, AsyncIterator<Uint8Array> {
     }
     return count;
   }
-
   private getSubarrayView(): Uint8Array {
     const len = this.rawLen;
     if (len === 0) return EMPTY_BYTES;
@@ -3512,19 +2893,14 @@ class PooledSyncPipeReader implements ByteSource, AsyncIterator<Uint8Array> {
     this.buf = view;
     const slot = this.viewCursor;
     this.viewCursor = (slot + 1) & 3;
-    if (slot === 0) { this.viewRaw0 = raw; this.view0 = view; }
-    else if (slot === 1) { this.viewRaw1 = raw; this.view1 = view; }
-    else if (slot === 2) { this.viewRaw2 = raw; this.view2 = view; }
-    else { this.viewRaw3 = raw; this.view3 = view; }
+    if (slot === 0) { this.viewRaw0 = raw; this.view0 = view; } else if (slot === 1) { this.viewRaw1 = raw; this.view1 = view; } else if (slot === 2) { this.viewRaw2 = raw; this.view2 = view; } else { this.viewRaw3 = raw; this.view3 = view; }
     return view;
   }
-
   tryReadAllSync(): Uint8Array {
     this.abortSignal?.throwIfAborted();
     this.yielded = true;
     return this.getSubarrayView();
   }
-
   tryNextSync(): IteratorResult<Uint8Array> {
     this.abortSignal?.throwIfAborted();
     if (this.yielded) return SYNC_PIPE_DONE_RESULT;
@@ -3533,21 +2909,17 @@ class PooledSyncPipeReader implements ByteSource, AsyncIterator<Uint8Array> {
     box.value = this.getSubarrayView();
     return box;
   }
-
   syncReturn(): void {
     this.yielded = true;
   }
-
   next(): Promise<IteratorResult<Uint8Array>> {
     return Promise.resolve(this.tryNextSync());
   }
-
   return(): Promise<IteratorResult<Uint8Array>> {
     this.yielded = true;
     return Promise.resolve(SYNC_PIPE_DONE_RESULT);
   }
 }
-
 class PooledSyncPipeWriter implements ByteSink {
   readonly isPipeStage = false;
   budget!: Budget;
@@ -3556,7 +2928,6 @@ class PooledSyncPipeWriter implements ByteSink {
   used = 0;
   overflowed = false;
   lineCountOnly = -1;
-
   reset(budget: Budget, signal: AbortSignal, target: Uint8Array, lineCountOnly = -1): void {
     this.budget = budget;
     this.signal = signal;
@@ -3565,7 +2936,6 @@ class PooledSyncPipeWriter implements ByteSink {
     this.overflowed = false;
     this.lineCountOnly = lineCountOnly;
   }
-
   writeLineCountSync(count: number, totalBytes: number): boolean {
     this.signal.throwIfAborted();
     if (totalBytes > 0) {
@@ -3581,7 +2951,6 @@ class PooledSyncPipeWriter implements ByteSink {
     this.lineCountOnly = count;
     return true;
   }
-
   writeSync(chunk: Uint8Array): boolean {
     this.signal.throwIfAborted();
     const len = chunk.byteLength;
@@ -3597,7 +2966,6 @@ class PooledSyncPipeWriter implements ByteSink {
     budget.bytes += len;
     return true;
   }
-
   writeRangeSync(src: Uint8Array, len: number): boolean {
     this.signal.throwIfAborted();
     if (len === 0) return true;
@@ -3614,7 +2982,6 @@ class PooledSyncPipeWriter implements ByteSink {
     budget.bytes += len;
     return true;
   }
-
   write(chunk: Uint8Array): Promise<void> {
     try {
       if (this.writeSync(chunk)) return resolvedVoid;
@@ -3624,7 +2991,6 @@ class PooledSyncPipeWriter implements ByteSink {
     }
   }
 }
-
 const sharedSyncPipeReader = new PooledSyncPipeReader();
 const sharedSyncPipeWriter = new PooledSyncPipeWriter();
 let pooledFastSingleContext: FastShellCommandContext | undefined;
@@ -3642,17 +3008,7 @@ export function clearRuntimePools(): void {
   pooledMemoryRedirectSink = undefined;
 }
 const ZERO_PIPE_STATUSES: readonly (readonly number[])[] = [
-  Object.freeze([]),
-  singleStatusZero,
-  Object.freeze([0, 0]),
-  Object.freeze([0, 0, 0]),
-  Object.freeze([0, 0, 0, 0]),
-  Object.freeze([0, 0, 0, 0, 0]),
-  Object.freeze([0, 0, 0, 0, 0, 0]),
-  Object.freeze([0, 0, 0, 0, 0, 0, 0]),
-  Object.freeze([0, 0, 0, 0, 0, 0, 0, 0]),
-];
-
+  Object.freeze([]), singleStatusZero, Object.freeze([0, 0]), Object.freeze([0, 0, 0]), Object.freeze([0, 0, 0, 0]), Object.freeze([0, 0, 0, 0, 0]), Object.freeze([0, 0, 0, 0, 0, 0]), Object.freeze([0, 0, 0, 0, 0, 0, 0]), Object.freeze([0, 0, 0, 0, 0, 0, 0, 0]), ];
 const HEX_BYTE_TABLE: readonly string[] = Array.from({ length: 128 }, (_, i) => i.toString(16).padStart(2, "0"));
 const SIMPLE_SUBSCRIPT_MUT_RE = /^\s*([a-zA-Z_][a-zA-Z_0-9]*)\[([a-zA-Z0-9_.\-/:@]+)\]\s*(?:(\+=|-=|=)\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)|(\+\+|--))\s*$/;
 const fixedGlobParamRegexCache = new Map<string, RegExp | null>();
@@ -3670,9 +3026,7 @@ function tryCompileFixedGlobToRegex(pat: string, op: string, extglob: boolean): 
       return undefined;
     }
     const ch = pat[i]!;
-    if (ch === "?") {
-      reSrc += ".";
-    } else if (ch === "[") {
+    if (ch === "?") reSrc += "."; else if (ch === "[") {
       let j = i + 1;
       if (j < pat.length && (pat[j] === "!" || pat[j] === "^")) j++;
       if (j < pat.length && pat[j] === "]") j++;
@@ -3694,9 +3048,7 @@ function tryCompileFixedGlobToRegex(pat: string, op: string, extglob: boolean): 
       i = j;
     } else if (".^$+()|{}".includes(ch)) {
       reSrc += "\\" + ch;
-    } else {
-      reSrc += ch;
-    }
+    } else reSrc += ch;
   }
   if (op === "/%") reSrc += "$";
   let compiled: RegExp | null = null;
@@ -3755,9 +3107,7 @@ function tryCompileTrimGlobToRegex(pat: string, op: "#" | "##" | "%" | "%%", ext
       i = closeIdx;
     } else if (code === 94 || code === 36 || code === 46 || code === 43 || code === 40 || code === 41 || code === 124 || code === 123 || code === 125) {
       bodySrc += "\\" + ch;
-    } else {
-      bodySrc += ch;
-    }
+    } else bodySrc += ch;
   }
   const reSrc = op === "#" || op === "##"
     ? "^(" + bodySrc + ")"
@@ -3782,9 +3132,7 @@ const SIMPLE_ARITH_OPERAND_RE = /^(?:-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0
 function resolveSimpleArithOperand(tok: string, rawState: State, monitor: ReturnType<typeof stateMonitor>, activeArrayStore: ReturnType<typeof arrayStore>, syncTouched?: Set<string>): number | undefined {
   if (!SIMPLE_ARITH_OPERAND_RE.test(tok)) return undefined;
   const c0 = tok.charCodeAt(0);
-  if ((c0 >= 48 && c0 <= 57) || c0 === 45) {
-    return Number(tok);
-  }
+  if ((c0 >= 48 && c0 <= 57) || c0 === 45) return Number(tok);
   if (rawState.nounset || activeArrayStore?.bindings.has(tok) || monitor?.hasOverlay(tok) || activeArrayStore?.watches.has(tok)) return undefined;
   const raw = rawState.variables[tok];
   if (raw === undefined || raw === "") return 0;
@@ -3803,8 +3151,7 @@ function tryEvalSimpleExpandedArith(src: string, rawState: State, monitor: Retur
     if (rhs === undefined) return undefined;
     const op = m[2]!;
     if ((op === "/" || op === "%") && rhs === 0) return undefined;
-    const res =
-      op === "+" ? lhs + rhs :
+    const res = op === "+" ? lhs + rhs :
       op === "-" ? lhs - rhs :
       op === "*" ? lhs * rhs :
       op === "/" ? Math.trunc(lhs / rhs) :
@@ -3828,29 +3175,20 @@ function tryEvalSimpleExpandedArith(src: string, rawState: State, monitor: Retur
   }
   return undefined;
 }
-function arithTreeTouchesArray(tree: ArithmeticProgram["tree"], store: ReturnType<typeof arrayStore>): boolean {
+function arithTreeTouchesArray(tree: ArithmeticProgram["tree"], store: ReturnType<typeof arrayStore>, depth = 0): boolean {
   if (!tree || !store || store.bindings.size === 0) return false;
+  if (depth > 128) return true;
   switch (tree.kind) {
-    case "literal":
-      return false;
-    case "name":
-      return tree.subscript === undefined && store.bindings.has(tree.name);
+    case "literal": return false;
+    case "name": return tree.subscript === undefined && store.bindings.has(tree.name);
     case "unary":
-      if ((tree.operator === "++" || tree.operator === "--") && tree.operand.kind === "name" && tree.operand.subscript !== undefined) {
-        return true;
-      }
-      return arithTreeTouchesArray(tree.operand, store);
+      if ((tree.operator === "++" || tree.operator === "--") && tree.operand.kind === "name" && tree.operand.subscript !== undefined) return true;
+      return arithTreeTouchesArray(tree.operand, store, depth + 1);
     case "binary":
-      if (
-        (tree.operator === "=" || tree.operator === "+=" || tree.operator === "-=" || tree.operator === "*=" || tree.operator === "/=" || tree.operator === "%=" || tree.operator === "<<=" || tree.operator === ">>=" || tree.operator === "&=" || tree.operator === "^=" || tree.operator === "|=") &&
-        tree.left.kind === "name" &&
-        tree.left.subscript !== undefined
-      ) {
-        return true;
-      }
-      return arithTreeTouchesArray(tree.left, store) || arithTreeTouchesArray(tree.right, store);
+      if ((tree.operator === "=" || tree.operator === "+=" || tree.operator === "-=" || tree.operator === "*=" || tree.operator === "/=" || tree.operator === "%=" || tree.operator === "<<=" || tree.operator === ">>=" || tree.operator === "&=" || tree.operator === "^=" || tree.operator === "|=") && tree.left.kind === "name" && tree.left.subscript !== undefined) return true;
+      return arithTreeTouchesArray(tree.left, store, depth + 1) || arithTreeTouchesArray(tree.right, store, depth + 1);
     case "conditional":
-      return arithTreeTouchesArray(tree.condition, store) || arithTreeTouchesArray(tree.yes, store) || arithTreeTouchesArray(tree.no, store);
+      return arithTreeTouchesArray(tree.condition, store, depth + 1) || arithTreeTouchesArray(tree.yes, store, depth + 1) || arithTreeTouchesArray(tree.no, store, depth + 1);
     default:
       return false;
   }
@@ -3867,10 +3205,8 @@ function fastStringHexIdentity(str: string): string {
   }
   return bytesToHex(fastSharedTextEncoder.encode(str));
 }
-
 const letProgramCache = new Map<string, { prog: ArithmeticProgram; unitsCharged: number }>();
 const syncConditionalFileUnaryOps = new Set(["-e", "-a", "-f", "-d", "-s", "-L", "-h", "-r", "-w", "-x"]);
-
 interface CachedSingleEvalUnit {
   readonly script: Script;
   readonly unitsCharged: number;
@@ -3879,13 +3215,7 @@ interface CachedSingleEvalUnit {
 const evalSingleUnitCache = new Map<string, CachedSingleEvalUnit>();
 function isDefaultShellSyntax(syntax: NonNullable<State["extensions"]>["syntax"] | undefined): boolean {
   if (!syntax) return true;
-  return (
-    !syntax.listTerminators?.length &&
-    !syntax.specialParameters?.length &&
-    !syntax.arrayKeys &&
-    !syntax.indexedDeclarations?.length &&
-    !syntax.indexedElementOperators
-  );
+  return ( !syntax.listTerminators?.length && !syntax.specialParameters?.length && !syntax.arrayKeys && !syntax.indexedDeclarations?.length && !syntax.indexedElementOperators);
 }
 function checkScriptSafeForSyncEval(script: Script): boolean {
   for (let i = 0; i < script.lists.length; i++) {
@@ -3895,9 +3225,7 @@ function checkScriptSafeForSyncEval(script: Script): boolean {
       const p = list.pipelines[j]!;
       if (p.commands.length !== 1 || p.negate) return false;
       const c = p.commands[0]!;
-      if (c.kind === "arithmetic" && (c.expression.error !== undefined || c.expression.source.includes("/") || c.expression.source.includes("%"))) {
-        return false;
-      }
+      if (c.kind === "arithmetic" && (c.expression.error !== undefined || c.expression.source.includes("/") || c.expression.source.includes("%"))) return false;
     }
   }
   return true;
@@ -3919,10 +3247,7 @@ function getOrParseSingleEvalUnit(source: string, unitLocale: boolean, parseBudg
   }
   const unitsCharged = parseBudget.admittedUnits - beforeUnits;
   const entry: CachedSingleEvalUnit = {
-    script: unit.script,
-    unitsCharged,
-    safeForSyncEval: checkScriptSafeForSyncEval(unit.script),
-  };
+    script: unit.script, unitsCharged, safeForSyncEval: checkScriptSafeForSyncEval(unit.script), };
   if (evalSingleUnitCache.size >= 512) {
     const oldest = evalSingleUnitCache.keys().next().value;
     if (oldest !== undefined) evalSingleUnitCache.delete(oldest);
@@ -3930,7 +3255,6 @@ function getOrParseSingleEvalUnit(source: string, unitLocale: boolean, parseBudg
   evalSingleUnitCache.set(key, entry);
   return entry;
 }
-
 export class Runtime {
   static clearStaticPools(): void { clearRuntimePools(); }
   declare readonly commands: CommandRegistry;
@@ -3964,27 +3288,10 @@ export class Runtime {
   declare private _syncArithRawWriteOnly: boolean;
   declare private _syncArithTouched: Set<string> | undefined;
   declare private _fastSubPositional: readonly string[] | undefined;
-  // Only synchronous function callers own deferred return propagation.
   private _syncReturnDepth = 0;
   private _syncPendingReturnStatus: number | undefined;
   declare private _syncArithRefs: ArithmeticReferences | undefined;
-  constructor(
-    fs: FileSystem,
-    commands: CommandRegistry,
-    middleware: readonly Middleware[],
-    budget: Budget,
-    signal: AbortSignal = budget.signal,
-    fileWrites: Map<string, Promise<void>> | undefined = undefined,
-    outputFiles: Map<string, OutputFile> | undefined = undefined,
-    commandSignal: AbortSignal = signal,
-    cancellation: CancellationBoundary,
-    cancellationState: RuntimeCancellationState,
-    cancellationOwner: CancellationAdmissionOwner | undefined,
-    cancellationDepth: number,
-    cancellationMaxDepth: number,
-    outcomeFrame: RuntimeOutcomeFrame | undefined = undefined,
-    inputProfile: Pick<FileSystem, "readStream" | "capabilities"> = fs,
-  ) {
+  constructor( fs: FileSystem, commands: CommandRegistry, middleware: readonly Middleware[], budget: Budget, signal: AbortSignal = budget.signal, fileWrites: Map<string, Promise<void>> | undefined = undefined, outputFiles: Map<string, OutputFile> | undefined = undefined, commandSignal: AbortSignal = signal, cancellation: CancellationBoundary, cancellationState: RuntimeCancellationState, cancellationOwner: CancellationAdmissionOwner | undefined, cancellationDepth: number, cancellationMaxDepth: number, outcomeFrame: RuntimeOutcomeFrame | undefined = undefined, inputProfile: Pick<FileSystem, "readStream" | "capabilities"> = fs, ) {
     this.commands = commands;
     this.middleware = middleware;
     this.budget = budget;
@@ -4014,21 +3321,16 @@ export class Runtime {
       registerInternalYieldCheckpoint(commandSignal, budget.yieldCheckpoint);
     }
     if (!this._isMemoryBackingFs) {
-      // Runtime builtins, expansions and redirects call the host filesystem
-      // directly, outside the public command-context signal conversion.
       this.signal = toNativeAbortSignal(signal);
       this.commandSignal = toNativeAbortSignal(commandSignal);
     }
   }
-
   get fileWrites(): Map<string, Promise<void>> {
     return this._fileWrites ??= new Map();
   }
-
   get outputFiles(): Map<string, OutputFile> {
     return this._outputFiles ??= new Map();
   }
-
   releaseAnchorResources(): void {
     if (this._contextFs !== undefined) {
       const reusableEntry = reusableDefaultContextFsBySourceFs.get(this.sourceFs);
@@ -4048,7 +3350,6 @@ export class Runtime {
       this._redirectFs = undefined;
     }
   }
-
   get fs(): FileSystem {
     if (!this._fs) {
       this._fs = scopeFileSystem(this._rawFs, this.budget.chargeFs, this.signal, this.budget.cleanupChargeFs, { maxPathComponents: this.budget.limits.maxPathnameComponents });
@@ -4057,11 +3358,8 @@ export class Runtime {
     }
     return this._fs;
   }
-
   private getContextFsFor(umask: number, sig: AbortSignal): FileSystem {
-    if (this._contextFs && this._contextFsMask === umask && this._contextFsSignal === sig) {
-      return this._contextFs;
-    }
+    if (this._contextFs && this._contextFsMask === umask && this._contextFsSignal === sig) return this._contextFs;
     if (umask === 0o022 && !this._contextFs) {
       const entry = reusableDefaultContextFsBySourceFs.get(this.sourceFs);
       if (entry && (entry.inUseBy === undefined || entry.inUseBy === this)) {
@@ -4074,13 +3372,7 @@ export class Runtime {
         }
       }
     }
-    const created = scopeFileSystem(
-      creationFileSystem(this.sourceFs, umask),
-      this.budget.chargeFs,
-      sig,
-      this.budget.cleanupChargeFs,
-      { maxPathComponents: this.budget.limits.maxPathnameComponents },
-    );
+    const created = scopeFileSystem( creationFileSystem(this.sourceFs, umask), this.budget.chargeFs, sig, this.budget.cleanupChargeFs, { maxPathComponents: this.budget.limits.maxPathnameComponents }, );
     runtimeFileSystems.set(created, this.sourceFs);
     registerRuntimeBackingFileSystem(created, this.backingFs);
     this._contextFsMask = umask;
@@ -4088,19 +3380,11 @@ export class Runtime {
     this._contextFs = created;
     return created;
   }
-
   private getRedirectFs(umask: number): FileSystem {
     if (this._redirectFs && this._redirectFsMask === umask) return this._redirectFs;
     this._redirectFsMask = umask;
-    return (this._redirectFs = scopeFileSystem(
-      creationFileSystem(this.sourceFs, umask),
-      this.budget.chargeFs,
-      this.commandSignal,
-      this.budget.cleanupChargeFs,
-      { preserveDescriptorWriteReceipt: true, maxPathComponents: this.budget.limits.maxPathnameComponents },
-    ));
+    return (this._redirectFs = scopeFileSystem( creationFileSystem(this.sourceFs, umask), this.budget.chargeFs, this.commandSignal, this.budget.cleanupChargeFs, { preserveDescriptorWriteReceipt: true, maxPathComponents: this.budget.limits.maxPathnameComponents }, ));
   }
-
   private async ereDiagnostic(io: IO, detail: string): Promise<void> {
     try { await this.diagnostic(io, detail); }
     catch (reason) {
@@ -4109,7 +3393,6 @@ export class Runtime {
       throw new NounsetDiagnosticFailure(reason);
     }
   }
-
   private extractSimpleErePattern(pattern: Word): { text: string; literal: boolean } | undefined {
     const cached = (pattern as { _cachedSimpleEre?: { text: string; literal: boolean } | null })._cachedSimpleEre;
     if (cached !== undefined) return cached ?? undefined;
@@ -4140,59 +3423,29 @@ export class Runtime {
     (pattern as { _cachedSimpleEre?: { text: string; literal: boolean } | null })._cachedSimpleEre = res;
     return res;
   }
-
   private trySyncEre(subject: string, pattern: Word, state: State, ignoreYield = false): number | undefined {
     const pat = this.extractSimpleErePattern(pattern);
     if (!pat) return undefined;
     const monitor = stateMonitor(state);
     const existingStore = monitor?.store;
     const existingRematch = existingStore?.get("BASH_REMATCH");
-    if (
-      !monitor ||
-      !existingStore ||
-      !existingRematch ||
-      existingRematch.associative ||
-      existingRematch.references !== 1 ||
-      existingStore.watches.has("BASH_REMATCH") ||
-      monitor.hasOverlay("BASH_REMATCH") ||
-      state.readonlyVariables?.has("BASH_REMATCH") ||
-      state.exported.has("BASH_REMATCH") ||
-      (!ignoreYield && hasYieldCheckpoint(this.signal))
-    ) {
+    if ( !monitor || !existingStore || !existingRematch || existingRematch.associative || existingRematch.references !== 1 || existingStore.watches.has("BASH_REMATCH") || monitor.hasOverlay("BASH_REMATCH") || state.readonlyVariables?.has("BASH_REMATCH") || state.exported.has("BASH_REMATCH") || (!ignoreYield && hasYieldCheckpoint(this.signal))) {
       return undefined;
     }
     const collation = state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C";
     const characters = state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C";
     if (![collation, characters].every(locale => cCollation(locale) || utf8Locale(locale))) return undefined;
     let fastMatchValues: string[] | null | undefined;
-    if (
-      !pat.literal &&
-      !state.nocasematch &&
-      this.budget.limits.maxExpansionBytes === Infinity &&
-      this.budget.limits.maxExpansionFields === Infinity &&
-      cCollation(collation) &&
-      !utf8Locale(characters)
-    ) {
+    if ( !pat.literal && !state.nocasematch && this.budget.limits.maxExpansionBytes === Infinity && this.budget.limits.maxExpansionFields === Infinity && cCollation(collation) && !utf8Locale(characters)) {
       const patWithCache = pat as { text: string; literal: boolean; _fastAnchoredRe?: RegExp | null };
       if (patWithCache._fastAnchoredRe === undefined) {
-        if (
-          pat.text.startsWith("^") &&
-          pat.text.endsWith("$") &&
-          /^[\^a-zA-Z0-9_.\-/:@()\[\]+?]+\$/.test(pat.text) &&
-          !pat.text.includes("[:") &&
-          !pat.text.includes("[.") &&
-          !pat.text.includes("[=") &&
-          !pat.text.includes(")(") &&
-          !pat.text.includes("][")
-        ) {
+        if ( pat.text.startsWith("^") && pat.text.endsWith("$") && /^[\^a-zA-Z0-9_.\-/:@()\[\]+?]+\$/.test(pat.text) && !pat.text.includes("[:") && !pat.text.includes("[.") && !pat.text.includes("[=") && !pat.text.includes(")(") && !pat.text.includes("][")) {
           try {
             patWithCache._fastAnchoredRe = new RegExp(pat.text);
           } catch {
             patWithCache._fastAnchoredRe = null;
           }
-        } else {
-          patWithCache._fastAnchoredRe = null;
-        }
+        } else patWithCache._fastAnchoredRe = null;
       }
       if (patWithCache._fastAnchoredRe) {
         let asciiSubj = true;
@@ -4214,14 +3467,11 @@ export class Runtime {
       getCapValue = (index: number) => fastMatchValues![index]!;
     } else {
       const ledger = new EreLedger({
-        maxExpansionBytes: this.budget.limits.maxExpansionBytes,
-        maxExpansionFields: this.budget.limits.maxExpansionFields,
-      });
+        maxExpansionBytes: this.budget.limits.maxExpansionBytes, maxExpansionFields: this.budget.limits.maxExpansionFields, });
       let result: ReturnType<typeof tryMatchEreSync>;
       try {
         const program = tryCompileEreSync([{ text: pat.text, literal: pat.literal }], ledger, this.signal, !!state.nocasematch, {
-          ranges: cCollation(collation), classes: !utf8Locale(characters),
-        });
+          ranges: cCollation(collation), classes: !utf8Locale(characters), });
         if (!program) return undefined;
         result = tryMatchEreSync(program, subject, ledger, this.signal);
       } catch {
@@ -4232,8 +3482,7 @@ export class Runtime {
       capLen = result.matched ? result.captures.length : 0;
       getCapValue = (index: number) => {
         const span = result!.captures[index]!;
-        return span === null ? "" : subject.slice(span.start, span.end);
-      };
+        return span === null ? "" : subject.slice(span.start, span.end);};
     }
     if (existingRematch.values.size > capLen) {
       for (const key of existingRematch.values.keys()) {
@@ -4245,9 +3494,7 @@ export class Runtime {
       const value = getCapValue(index);
       const byteLen = fastMatchValues !== undefined ? value.length : shellValueByteLength(value);
       const elem = existingRematch.values.get(index);
-      if (elem && elem.text.references === 1 && elem.text.bytes === byteLen) {
-        elem.text.shellValue = value;
-      } else {
+      if (elem && elem.text.references === 1 && elem.text.bytes === byteLen) elem.text.shellValue = value; else {
         existingRematch.owner.chargeWork(byteLen);
         const token = new OwnedText(value, byteLen, existingRematch.owner.reserve({ payload: byteLen, metadata: 32, work: 4 }));
         try { existingRematch.insert(index, token); }
@@ -4260,7 +3507,6 @@ export class Runtime {
     existingStore.changed(tickets, "BASH_REMATCH");
     return status;
   }
-
   private async ere(subject: string, pattern: Word, state: State, io: IO): Promise<number> {
     const scope = io[invocationScope];
     scope.assertOpen();
@@ -4270,40 +3516,22 @@ export class Runtime {
     const existingStore = monitor?.store;
     const existingRematch = existingStore?.get("BASH_REMATCH");
     const simplePat = this.extractSimpleErePattern(pattern);
-    if (
-      monitor &&
-      existingStore &&
-      existingRematch &&
-      !existingRematch.associative &&
-      existingRematch.references === 1 &&
-      !existingStore.watches.has("BASH_REMATCH") &&
-      !monitor.hasOverlay("BASH_REMATCH") &&
-      !state.readonlyVariables?.has("BASH_REMATCH") &&
-      !state.exported.has("BASH_REMATCH") &&
-      simplePat
-    ) {
+    if ( monitor && existingStore && existingRematch && !existingRematch.associative && existingRematch.references === 1 && !existingStore.watches.has("BASH_REMATCH") && !monitor.hasOverlay("BASH_REMATCH") && !state.readonlyVariables?.has("BASH_REMATCH") && !state.exported.has("BASH_REMATCH") && simplePat) {
       const collation = state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C";
       const characters = state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C";
       if ([collation, characters].every(locale => cCollation(locale) || utf8Locale(locale))) {
         const p0 = { value: simplePat.text, quoted: simplePat.literal };
         const ledger = new EreLedger({
-          maxExpansionBytes: this.budget.limits.maxExpansionBytes,
-          maxExpansionFields: this.budget.limits.maxExpansionFields,
-        });
+          maxExpansionBytes: this.budget.limits.maxExpansionBytes, maxExpansionFields: this.budget.limits.maxExpansionFields, });
         let result: Awaited<ReturnType<typeof matchEre>> | undefined;
         let syntaxErr = false;
         try {
           const program = await compileEre([{ text: p0.value, literal: !!p0.quoted }], ledger, this.signal, !!state.nocasematch, {
-            ranges: cCollation(collation), classes: !utf8Locale(characters),
-          });
+            ranges: cCollation(collation), classes: !utf8Locale(characters), });
           result = await matchEre(program, subject, ledger, this.signal);
         } catch (error) {
           this.signal.throwIfAborted();
-          if (error instanceof EreSyntaxError || error instanceof EreUnsupportedError) {
-            syntaxErr = true;
-          } else {
-            throw error;
-          }
+          if (error instanceof EreSyntaxError || error instanceof EreUnsupportedError) syntaxErr = true; else throw error;
         }
         if (!syntaxErr && result !== undefined && !existingStore.watches.has("BASH_REMATCH") && !monitor.hasOverlay("BASH_REMATCH") && existingRematch.references === 1) {
           const status = result.matched ? 0 : 1;
@@ -4317,9 +3545,7 @@ export class Runtime {
             const value = span === null ? "" : subject.slice(span.start, span.end);
             const byteLen = shellValueByteLength(value);
             const elem = existingRematch.values.get(index);
-            if (elem && elem.text.references === 1 && elem.text.bytes === byteLen) {
-              elem.text.shellValue = value;
-            } else {
+            if (elem && elem.text.references === 1 && elem.text.bytes === byteLen) elem.text.shellValue = value; else {
               existingRematch.owner.chargeWork(byteLen);
               const token = new OwnedText(value, byteLen, existingRematch.owner.reserve({ payload: byteLen, metadata: 32, work: 4 }));
               try { existingRematch.insert(index, token); }
@@ -4340,8 +3566,7 @@ export class Runtime {
     let staged: IndexedBinding | undefined;
     let closing: Promise<void> | undefined;
     const close = (): Promise<void> => closing ??= Promise.resolve().then(async () => {
-      try { await staged?.release(); } finally { try { await operation?.close(); } finally { holding?.release(); } }
-    });
+      try { await staged?.release(); } finally { try { await operation?.close(); } finally { holding?.release(); } }});
     let primary = false;
     try {
       operation = ArrayOwner.create(store.owner.ledger, store.owner);
@@ -4349,20 +3574,14 @@ export class Runtime {
       await this.prepareArrayObservers(state, operation);
       operation.reserve({ metadata: 64, allocatedSlots: 1, work: 2 });
       const fragments: EreFragment[] = [];
-      if (
-        pattern.parts.length === 1 &&
-        pattern.parts[0]!.kind === "text" &&
-        !pattern.parts[0]!.value.includes("\\") &&
-        !pattern.parts[0]!.value.includes("~")
-      ) {
+      if ( pattern.parts.length === 1 && pattern.parts[0]!.kind === "text" && !pattern.parts[0]!.value.includes("\\") && !pattern.parts[0]!.value.includes("~")) {
         const p0 = pattern.parts[0]!;
         operation.reserve({ metadata: 64, allocatedSlots: 1, payload: shellValueByteLength(p0.value), work: p0.value.length + 2 });
         fragments.push({ text: p0.value, literal: !!p0.quoted });
       } else {
         await this.word(pattern, state, io, false, false, false, false, (text, literal) => {
           operation!.reserve({ metadata: 64, allocatedSlots: 1, payload: shellValueByteLength(text), work: text.length + 2 });
-          fragments.push({ text, literal });
-        });
+          fragments.push({ text, literal });});
       }
       const collation = state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C";
       const characters = state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C";
@@ -4374,14 +3593,11 @@ export class Runtime {
       const name = "BASH_REMATCH";
       const watch = await store.watch(name, operation, this.signal);
       const ledger = new EreLedger({
-        maxExpansionBytes: this.budget.limits.maxExpansionBytes,
-        maxExpansionFields: this.budget.limits.maxExpansionFields,
-      });
+        maxExpansionBytes: this.budget.limits.maxExpansionBytes, maxExpansionFields: this.budget.limits.maxExpansionFields, });
       let result: Awaited<ReturnType<typeof matchEre>>;
       try {
         const program = await compileEre(fragments, ledger, this.signal, !!state.nocasematch, {
-          ranges: cCollation(collation), classes: !utf8Locale(characters),
-        });
+          ranges: cCollation(collation), classes: !utf8Locale(characters), });
         result = await matchEre(program, subject, ledger, this.signal);
       }
       catch (error) {
@@ -4419,8 +3635,7 @@ export class Runtime {
       stateMonitor(state)!.publish(tickets, name, () => {
         supersede();
         delete state.variables[name];
-        released = store.publish(name, staged!, tickets, prepared);
-      });
+        released = store.publish(name, staged!, tickets, prepared);});
       staged = undefined;
       watch.close();
       await released;
@@ -4429,74 +3644,44 @@ export class Runtime {
     finally {
       await close().catch(error => {
         if (primary) scope.failures.push(error);
-        else throw new NounsetDiagnosticFailure(error);
-      });
+        else throw new NounsetDiagnosticFailure(error);});
     }
   }
-
   static rootCancellationAdmission(budget: Budget): CancellationAdmissionSnapshot {
     const maxDepth = saturatedSum(budget.limits.maxCommands, saturatedSum(budget.limits.maxSubstitutionDepth, 1));
     return {
-      depth: 0,
-      maxDepth,
-      resourceLimit: Runtime.cancellationResourceLimit(budget, 0, maxDepth, 2),
-    };
+      depth: 0, maxDepth, resourceLimit: Runtime.cancellationResourceLimit(budget, 0, maxDepth, 2), };
   }
-
   private static cancellationResourceLimit(budget: Budget, depth: number, maxDepth: number, controls: number): number {
     const remainingCommands = Math.max(0, budget.limits.maxCommands - budget.commands);
     const remainingDepth = Math.max(0, maxDepth - depth);
     return saturatedSum(saturatedSum(4, controls), saturatedSum(remainingCommands, remainingDepth));
   }
-
   private cancellationAdmission(depth: number, controls = 0): CancellationAdmissionSnapshot {
     return {
-      depth,
-      maxDepth: this.cancellationMaxDepth,
-      resourceLimit: Runtime.cancellationResourceLimit(this.budget, depth, this.cancellationMaxDepth, controls),
-    };
+      depth, maxDepth: this.cancellationMaxDepth, resourceLimit: Runtime.cancellationResourceLimit(this.budget, depth, this.cancellationMaxDepth, controls), };
   }
-
-  private observeRuntimeReturn<Value>(
-    rawReturn: Value | PromiseLike<Value>,
-    frame: RuntimeOutcomeFrame,
-    downstream: () => Promise<CommandResult> | undefined = () => undefined,
-  ): Promise<Value> {
+  private observeRuntimeReturn<Value>( rawReturn: Value | PromiseLike<Value>, frame: RuntimeOutcomeFrame, downstream: () => Promise<CommandResult> | undefined = () => undefined, ): Promise<Value> {
     const raw = rawReturn as unknown;
-    return Promise.resolve(rawReturn).then(
-      value => {
+    return Promise.resolve(rawReturn).then( value => {
         if (raw !== downstream()) frame.report = undefined;
         return value;
-      },
-      reason => {
+      }, reason => {
         const report = this.cancellationState.consume(raw, reason);
         if (report) frame.report = report;
         else if (raw !== downstream()) frame.report = undefined;
         const diagnostic = this.cancellationState.consumeDiagnostic(raw);
         if (diagnostic) throw diagnostic;
         throw reason;
-      },
-    );
+      }, );
   }
-
-  private invokeChild(
-    options: ShellInvokeOptions,
-    state: State,
-    parent: InvocationScope,
-    validate: () => void,
-    execute: (runtime: Runtime, scope: InvocationScope) => Promise<CommandResult>,
-  ): Promise<CommandResult> {
+  private invokeChild( options: ShellInvokeOptions, state: State, parent: InvocationScope, validate: () => void, execute: (runtime: Runtime, scope: InvocationScope) => Promise<CommandResult>, ): Promise<CommandResult> {
     const publicPromise: Promise<CommandResult> = Promise.resolve().then(async () => {
       if (!this.cancellation.deliverySignal.aborted) parent.assertOpen();
       const childDepth = this.cancellationDepth + 1;
-      const prepared = prepareChildCancellation(
-        this.cancellation,
-        options,
-        this.cancellationAdmission(childDepth),
-      );
+      const prepared = prepareChildCancellation( this.cancellation, options, this.cancellationAdmission(childDepth), );
       this.cancellationOwner?.assertAdmissionOpen();
       validate();
-
       let scope: InvocationScope | undefined;
       let boundary: CancellationBoundary;
       let owner: InvocationCancellationOwner | undefined;
@@ -4514,25 +3699,8 @@ export class Runtime {
         else await scope?.close();
         throw error;
       }
-
       const frame: RuntimeOutcomeFrame = {};
-      const runtime = new Runtime(
-        this.fs,
-        this.commands,
-        this.middleware,
-        this.budget,
-        combineManagedSignals(boundary.deliverySignal, scope.signal),
-        this.fileWrites,
-        this.outputFiles,
-        boundary.deliverySignal,
-        boundary,
-        this.cancellationState,
-        owner ?? this.cancellationOwner,
-        prepared.owned ? childDepth : this.cancellationDepth,
-        this.cancellationMaxDepth,
-        frame,
-        this.inputProfile,
-      );
+      const runtime = new Runtime( this.fs, this.commands, this.middleware, this.budget, combineManagedSignals(boundary.deliverySignal, scope.signal), this.fileWrites, this.outputFiles, boundary.deliverySignal, boundary, this.cancellationState, owner ?? this.cancellationOwner, prepared.owned ? childDepth : this.cancellationDepth, this.cancellationMaxDepth, frame, this.inputProfile, );
       let captured: CapturedCancellationOutcome<CommandResult>;
       const executeChild = (): Promise<CommandResult> => execute(runtime, scope);
       if (owner) captured = await owner.capture(executeChild, frame);
@@ -4544,7 +3712,6 @@ export class Runtime {
             : { kind: "throw", reason };
         }
       }
-
       let selection: CancellationSelection<CommandResult>;
       if (owner) selection = await owner.finish(scope.close(), captured);
       else {
@@ -4561,15 +3728,12 @@ export class Runtime {
         }
         throw reason;
       }
-      return selection.outcome.value;
-    });
+      return selection.outcome.value;});
     return publicPromise;
   }
-
   private clearOutcomeReport(): void {
     if (this.outcomeFrame) this.outcomeFrame.report = undefined;
   }
-
   async diagnostic(io: IO, text: ShellValue): Promise<void> {
     const prefix = `${io.scriptName ?? "shell"}: line ${io.diagnosticLine ?? 1}: `;
     if (typeof text === "string") return writeDiagnostic(io.stderr, `${prefix}${text}\n`, this.signal);
@@ -4579,14 +3743,11 @@ export class Runtime {
       await io.stderr.write(shellValueBytes(value, allocation));
     } finally { allocation.close(); }
   }
-
   async writeVariable(state: State, name: string, value: ShellValue, io: IO, origin: "assignment" | "arithmetic" | "getopts" = "assignment", dereference = true): Promise<void> {
     if (dereference) name = this.referenceName(state, name);
     const target = name.includes("[") ? this.variableTarget(name) : undefined;
     if (target?.subscript !== undefined) {
-      await this.arrayAssignment({ kind: "element", name: target.name, append: false,
-        index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth)),
-        value: { offset: 0, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } }, state, io);
+      await this.arrayAssignment({ kind: "element", name: target.name, append: false, index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth)), value: { offset: 0, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } }, state, io);
       return;
     }
     if (arrayStore(state)?.get(name)) throw new ArrayFailure(origin === "arithmetic" ? "indexed arithmetic is unsupported" : "indexed write requires prepared publication");
@@ -4602,7 +3763,6 @@ export class Runtime {
     if (state.allexport) state.exported.add(name);
     if (name === "OPTIND" && origin !== "getopts") this.syncGetopts(state);
   }
-
   private declareAttributes(state: State, name: string, enabled: Set<string>, disabled: Set<string>): void {
     let attributes = state.variableAttributes?.get(name) ?? "";
     for (const flag of disabled) attributes = attributes.split(flag).join("");
@@ -4612,7 +3772,6 @@ export class Runtime {
     state.variableAttributes ??= new Map();
     state.variableAttributes.set(name, attributes);
   }
-
   private async attributeValue(state: State, name: string, value: ShellValue, io: IO, origin = "assignment", previous?: ShellValue): Promise<ShellValue> {
     const attributes = state.variableAttributes?.get(name) ?? "";
     if (attributes.includes("i") && origin !== "arithmetic") {
@@ -4621,7 +3780,6 @@ export class Runtime {
     }
     return this.caseAttributeValue(state, name, value);
   }
-
   private caseAttributeValue(state: State, name: string, value: ShellValue): ShellValue {
     const attributes = state.variableAttributes?.get(name) ?? "";
     if (attributes.includes("l") || attributes.includes("u")) {
@@ -4636,7 +3794,6 @@ export class Runtime {
     if (shellValueByteLength(value) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
     return value;
   }
-
   private syncGetopts(state: State): void {
     state.getopts ??= cloneGetoptsBinding(state);
     const value = state.variables.OPTIND;
@@ -4645,11 +3802,9 @@ export class Runtime {
       state.getopts.cursor = createGetoptsState();
     } else state.getopts.cursor = withGetoptsIndex(state.getopts.cursor, decimalIndex(value));
   }
-
   private reconcileGetopts(state: State, previous: string | undefined): void {
     if (state.variables.OPTIND !== previous) this.syncGetopts(state);
   }
-
   private unsetVariable(state: State, name: string, internal = false, dereference = true): void {
     if (dereference) name = this.referenceName(state, name);
     if (state.readonlyVariables?.has(name)) throw new PublicDiagnostic(`${name}: readonly variable`);
@@ -4658,43 +3813,24 @@ export class Runtime {
     state.variableAttributes?.delete(name);
     if (name === "OPTIND" && !internal) this.syncGetopts(state);
   }
-
   private rethrowArithmeticControl(error: unknown): void {
     this.signal.throwIfAborted();
     if (error instanceof NounsetFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
   }
-
   private arithmeticValue(program: ArithmeticProgram, state: State, io: IO): Promise<bigint> {
     if (!program.source.includes("$")) return this.shellArithmetic(program, state, io);
     return evaluatePositionalArithmetic(program, {
-      parseBudget: this.budget.parsing,
-      positional: state.positional, arg0: state.arg0 ?? "virtual-bash", owner: arrayStore(state)?.owner,
-      maximumBytes: this.budget.limits.maxExpansionBytes,
-      checkpoint: () => this.signal.throwIfAborted(),
-      requireParameter: (name, value) => this.requireParameter(value, name, state, io),
-      limit: () => this.budget.fail("maxExpansionBytes"),
-    }, prepared => this.shellArithmetic(prepared, state, io));
+      parseBudget: this.budget.parsing, positional: state.positional, arg0: state.arg0 ?? "virtual-bash", owner: arrayStore(state)?.owner, maximumBytes: this.budget.limits.maxExpansionBytes, checkpoint: () => this.signal.throwIfAborted(), requireParameter: (name, value) => this.requireParameter(value, name, state, io), limit: () => this.budget.fail("maxExpansionBytes"), }, prepared => this.shellArithmetic(prepared, state, io));
   }
-
   get canFastMemoryRedirect(): boolean {
-    return this._canFastMemoryRedirect ??= (
-      this.budget.limits.maxPathnameComponents === Infinity &&
-      !this.backingFs.capabilitiesFor &&
-      this.sourceFs.capabilities.open === true &&
-      this.sourceFs.capabilities.preferStreamingRedirection !== true &&
-      this.sourceFs.capabilities.readOnly !== true &&
-      this.sourceFs.capabilities.write !== false &&
-      this.sourceFs.capabilities.append !== false
-    );
+    return this._canFastMemoryRedirect ??= ( this.budget.limits.maxPathnameComponents === Infinity && !this.backingFs.capabilitiesFor && this.sourceFs.capabilities.open === true && this.sourceFs.capabilities.preferStreamingRedirection !== true && this.sourceFs.capabilities.readOnly !== true && this.sourceFs.capabilities.write !== false && this.sourceFs.capabilities.append !== false);
   }
   private get syncArithRefs(): ArithmeticReferences {
     return this._syncArithRefs ??= this.createSyncArithRefs();
   }
-
   private createSyncArithRefs(): ArithmeticReferences {
     return {
-      isSync: true,
-      resolve: (variable, subscript) => {
+      isSync: true, resolve: (variable, subscript) => {
         this.signal.throwIfAborted();
         if (this._syncArithState!.variableAttributes?.get(variable)?.includes("n")) throw new ArrayFailure("nameref in sync arithmetic");
         if (subscript !== undefined) {
@@ -4702,9 +3838,7 @@ export class Runtime {
           if (resolvedSub.charCodeAt(0) === 36 && /^\$[a-zA-Z_][a-zA-Z_0-9]*$/.test(resolvedSub)) {
             const subVar = resolvedSub.slice(1);
             const st = this._syncArithState!;
-            if (st.nounset || arrayStore(st)?.get(subVar) || stateMonitor(st)?.hasOverlay(subVar)) {
-              throw new ArrayFailure("complex var subscript in sync arithmetic");
-            }
+            if (st.nounset || arrayStore(st)?.get(subVar) || stateMonitor(st)?.hasOverlay(subVar)) throw new ArrayFailure("complex var subscript in sync arithmetic");
             const rawSub = this._syncArithRawVars![subVar];
             if (typeof rawSub !== "string" || rawSub.length === 0) throw new ArrayFailure("empty var subscript in sync arithmetic");
             resolvedSub = shellValueText(stateMonitor(st)?.values.get(subVar, rawSub) ?? rawSub);
@@ -4712,21 +3846,16 @@ export class Runtime {
             const st = this._syncArithState!;
             const binding = arrayStore(st)?.get(variable);
             if (!binding || !binding.associative) {
-              if (st.nounset || arrayStore(st)?.get(resolvedSub) || stateMonitor(st)?.hasOverlay(resolvedSub)) {
-                throw new ArrayFailure("complex indexed ident subscript in sync arithmetic");
-              }
+              if (st.nounset || arrayStore(st)?.get(resolvedSub) || stateMonitor(st)?.hasOverlay(resolvedSub)) throw new ArrayFailure("complex indexed ident subscript in sync arithmetic");
               const rawSub = this._syncArithRawVars![resolvedSub];
               resolvedSub = rawSub === undefined || rawSub === "" ? "0" : shellValueText(stateMonitor(st)?.values.get(resolvedSub, rawSub) ?? rawSub);
             }
           }
-          if (resolvedSub.length === 0 || resolvedSub.length > 128 || !/^[a-zA-Z0-9_.\-/:@]+$/.test(resolvedSub)) {
-            throw new ArrayFailure("complex subscript in sync arithmetic");
-          }
+          if (resolvedSub.length === 0 || resolvedSub.length > 128 || !/^[a-zA-Z0-9_.\-/:@]+$/.test(resolvedSub)) throw new ArrayFailure("complex subscript in sync arithmetic");
           return `[idx]${variable}:${resolvedSub}`;
         }
         return variable;
-      },
-      read: reference => {
+      }, read: reference => {
         this.signal.throwIfAborted();
         if (reference.startsWith("[idx]")) {
           const colon = reference.indexOf(":", 5);
@@ -4735,9 +3864,7 @@ export class Runtime {
           const st = this._syncArithState!;
           const mon = stateMonitor(st);
           const store = arrayStore(st);
-          if (mon?.hasOverlay(name) || store?.watches.has(name)) {
-            throw new ArrayFailure("watched array in sync arithmetic");
-          }
+          if (mon?.hasOverlay(name) || store?.watches.has(name)) throw new ArrayFailure("watched array in sync arithmetic");
           const binding = store?.get(name);
           if (binding) {
             let val: ShellValue | undefined;
@@ -4779,19 +3906,14 @@ export class Runtime {
         if (this._syncArithState!.nounset && value === undefined) {
           throw new NounsetFailure(`${reference}: unbound variable`, this._syncArithLine);
         }
-        if (value !== undefined && stMon && (!this._syncArithRawWriteOnly || !this._syncArithTouched?.has(reference))) {
-          return shellValueText(stMon.values.get(reference, value));
-        }
+        if (value !== undefined && stMon && (!this._syncArithRawWriteOnly || !this._syncArithTouched?.has(reference))) return shellValueText(stMon.values.get(reference, value));
         return value;
-      },
-      write: (reference, value) => {
+      }, write: (reference, value) => {
         if (reference.startsWith("[idx]")) {
           const colon = reference.indexOf(":", 5);
           const name = reference.slice(5, colon);
           const sub = reference.slice(colon + 1);
-          if (!this.tryFastArraySubscriptWriteSync(this._syncArithState!, name, sub, value)) {
-            throw new ArrayFailure("subscript write in sync arithmetic");
-          }
+          if (!this.tryFastArraySubscriptWriteSync(this._syncArithState!, name, sub, value)) throw new ArrayFailure("subscript write in sync arithmetic");
           return;
         }
         const st = this._syncArithState!;
@@ -4807,10 +3929,8 @@ export class Runtime {
         publishVariable(st, reference, value);
         if (raw.allexport) st.exported.add(reference);
         if (reference === "OPTIND") this.syncGetopts(st);
-      },
-    };
+      }, };
   }
-
   private syncShellArithmetic(program: ArithmeticProgram, state: State, line: number | undefined): bigint {
     const raw = stateMonitor(state)?.raw ?? state;
     const prevState = this._syncArithState;
@@ -4827,7 +3947,6 @@ export class Runtime {
       this._syncArithLine = prevLine;
     }
   }
-
   private syncShellArithmeticNonZero(program: ArithmeticProgram, state: State, line: number | undefined): boolean {
     const raw = stateMonitor(state)?.raw ?? state;
     const prevState = this._syncArithState;
@@ -4844,7 +3963,6 @@ export class Runtime {
       this._syncArithLine = prevLine;
     }
   }
-
   private syncShellArithmeticString(program: ArithmeticProgram, state: State, line: number | undefined): string {
     const raw = stateMonitor(state)?.raw ?? state;
     const prevState = this._syncArithState;
@@ -4861,11 +3979,8 @@ export class Runtime {
       this._syncArithLine = prevLine;
     }
   }
-
-  // Scalar syntax can hide array writes in recursively evaluated variable values.
-  // Admit only plain scalar operands before any arithmetic mutation runs.
-  private canSyncArithmeticOperands(tree: ArithmeticProgram["tree"], state: State, line?: number): boolean {
-    if (!tree || hasActiveVariableAttributes(state) || state.readonlyVariables?.size) return false;
+  private canSyncArithmeticOperands(tree: ArithmeticProgram["tree"], state: State, line?: number, depth = 0): boolean {
+    if (!tree || depth > 128 || hasActiveVariableAttributes(state) || state.readonlyVariables?.size) return false;
     switch (tree.kind) {
       case "literal": return true;
       case "name": {
@@ -4887,13 +4002,11 @@ export class Runtime {
         }
         return true;
       }
-      case "unary": return this.canSyncArithmeticOperands(tree.operand, state, line);
-      case "binary": return this.canSyncArithmeticOperands(tree.left, state, line) && this.canSyncArithmeticOperands(tree.right, state, line);
-      case "conditional": return this.canSyncArithmeticOperands(tree.condition, state, line) &&
-        this.canSyncArithmeticOperands(tree.yes, state, line) && this.canSyncArithmeticOperands(tree.no, state, line);
+      case "unary": return this.canSyncArithmeticOperands(tree.operand, state, line, depth + 1);
+      case "binary": return this.canSyncArithmeticOperands(tree.left, state, line, depth + 1) && this.canSyncArithmeticOperands(tree.right, state, line, depth + 1);
+      case "conditional": return this.canSyncArithmeticOperands(tree.condition, state, line, depth + 1) && this.canSyncArithmeticOperands(tree.yes, state, line, depth + 1) && this.canSyncArithmeticOperands(tree.no, state, line, depth + 1);
     }
   }
-
   private canSyncArithmeticWithoutFault(tree: ArithmeticProgram["tree"], state: State, line?: number): boolean {
     if (!tree || !this.canSyncArithmeticOperands(tree, state, line)) return false;
     const checkNoFault = (node: NonNullable<ArithmeticProgram["tree"]>): boolean => {
@@ -4904,27 +4017,15 @@ export class Runtime {
         case "unary":
           return checkNoFault(node.operand);
         case "binary":
-          if (
-            node.operator === "/" ||
-            node.operator === "%" ||
-            node.operator === "/=" ||
-            node.operator === "%=" ||
-            node.operator === "**" ||
-            node.operator === "<<" ||
-            node.operator === ">>" ||
-            node.operator === "<<=" ||
-            node.operator === ">>="
-          ) {
+          if ( node.operator === "/" || node.operator === "%" || node.operator === "/=" || node.operator === "%=" || node.operator === "**" || node.operator === "<<" || node.operator === ">>" || node.operator === "<<=" || node.operator === ">>=") {
             if (node.right.kind !== "literal" || node.right.value <= 0n || node.right.value > 30n) return false;
           }
           return checkNoFault(node.left) && checkNoFault(node.right);
         case "conditional":
           return checkNoFault(node.condition) && checkNoFault(node.yes) && checkNoFault(node.no);
-      }
-    };
+      }};
     return checkNoFault(tree);
   }
-
   private canSyncPatternWordParts(word: Word, rawState: State): boolean {
     if (word.parts.length === 0) return false;
     for (let i = 0; i < word.parts.length; i++) {
@@ -4941,7 +4042,6 @@ export class Runtime {
     }
     return true;
   }
-
   private tryBuildSyncPatternWord(word: Word, rawState: State, io: IO, diagnosticLine?: number): string | undefined {
     if (word.parts.length === 0) return undefined;
     let out = "";
@@ -4960,13 +4060,10 @@ export class Runtime {
         }
         if (typeof val !== "string") return undefined;
         out += p.quoted ? val.replace(/[\\*?[\]()]/g, "\\\$&") : val;
-      } else {
-        return undefined;
-      }
+      } else return undefined;
     }
     return out;
   }
-
   private async shellArithmetic(program: ArithmeticProgram, state: State, io: IO, variables?: Record<string, string>): Promise<bigint> {
     if (variables === undefined && this.canSyncArithmeticOperands(program.tree, state, io.diagnosticLine)) {
       const snap = this.budget.parsing.snapshot();
@@ -4980,9 +4077,7 @@ export class Runtime {
     const resolvedVariables = variables ?? this.arithmeticVariables(state, io.diagnosticLine);
     let depth = 0;
     const references: ArithmeticReferences = {
-      // Recursive variable values may introduce async subscript resolution.
-      isSync: false,
-      resolve: (variable, subscript) => {
+      isSync: false, resolve: (variable, subscript) => {
         this.signal.throwIfAborted();
         const target = this.variableTarget(this.referenceName(state, variable))!;
         const name = target.name;
@@ -5017,8 +4112,7 @@ export class Runtime {
           }
           return JSON.stringify([name, index ?? null, key]);
         })();
-      },
-      read: reference => {
+      }, read: reference => {
         this.signal.throwIfAborted();
         if (!reference.startsWith("[")) return resolvedVariables[reference];
         const [name, index, key] = JSON.parse(reference) as [string, number | null, string?];
@@ -5027,20 +4121,14 @@ export class Runtime {
         if (state.nounset && value === undefined) throw new NounsetFailure(`${name}[${key ?? index}]: unbound variable`, io.diagnosticLine);
         if (value !== undefined && shellValueByteLength(value) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
         return value;
-      },
-      write: (reference, value) => {
+      }, write: (reference, value) => {
         if (!reference.startsWith("[")) { resolvedVariables[reference] = value; return; }
         const [name, index, key] = JSON.parse(reference) as [string, number | null, string?];
         return this.arrayAssignment({
-          kind: "element", name, append: false,
-          index: { decimal: String(index ?? 0), ...(key == null ? {} : { word: { offset: 0, parts: [{ kind: "text", value: key, quoted: true }] } }) },
-          value: { offset: 0, parts: [{ kind: "text", value, quoted: true }] },
-        }, state, io);
-      },
-    };
+          kind: "element", name, append: false, index: { decimal: String(index ?? 0), ...(key == null ? {} : { word: { offset: 0, parts: [{ kind: "text", value: key, quoted: true }] } }) }, value: { offset: 0, parts: [{ kind: "text", value, quoted: true }] }, }, state, io);
+      }, };
     return evaluateArithmeticReferences(program, references, this.budget.parsing);
   }
-
   private async expandedArithmeticValue(program: ArithmeticProgram, state: State, io: IO): Promise<bigint> {
     if (this.canSyncArithmeticOperands(program.tree, state, io.diagnosticLine)) {
       const snap = this.budget.parsing.snapshot();
@@ -5058,8 +4146,7 @@ export class Runtime {
         const cachedProg = program as { _cachedArithWord?: Word; _cachedArithSyntax?: unknown };
         let word = canCacheWord && cachedProg._cachedArithSyntax === state.extensions?.syntax ? cachedProg._cachedArithWord : undefined;
         if (!word) {
-          word = parseArithmeticExpansion(program.source, this.budget.parsing, byteLocale(state.variables),
-            state.depth + (io.parameterDepth ?? 0), io.diagnosticLine ?? 1, state.extensions?.syntax);
+          word = parseArithmeticExpansion(program.source, this.budget.parsing, byteLocale(state.variables), state.depth + (io.parameterDepth ?? 0), io.diagnosticLine ?? 1, state.extensions?.syntax);
           if (canCacheWord) { cachedProg._cachedArithWord = word; cachedProg._cachedArithSyntax = state.extensions?.syntax; }
         }
         const fastSource = this.fastValueWord(word, state, io, false, false, true, false, undefined, io.diagnosticLine);
@@ -5085,7 +4172,6 @@ export class Runtime {
       return await this.shellArithmetic(program, state, { ...io, [valueScope]: allocation });
     } finally { allocation.close(); }
   }
-
   arithmeticVariables(state: State, line?: number): Record<string, string> {
     return new Proxy(state.variables, {
       get: (target, key) => {
@@ -5099,8 +4185,7 @@ export class Runtime {
             : undefined);
         if (state.nounset && typeof key === "string" && value === undefined) throw new NounsetFailure(`${key}: unbound variable`, line);
         return value;
-      },
-      set: (_target, key, value: string) => {
+      }, set: (_target, key, value: string) => {
         const name = this.referenceName(state, String(key));
         if (arrayStore(state)?.get(name)) throw new ArrayFailure("indexed arithmetic is unsupported");
         if (state.readonlyVariables?.has(name)) throw new PublicDiagnostic(`${name}: readonly variable`);
@@ -5108,10 +4193,8 @@ export class Runtime {
         if (state.allexport) state.exported.add(name);
         if (name === "OPTIND") this.syncGetopts(state);
         return true;
-      },
-    });
+      }, });
   }
-
   private referenceName(state: State, name: string): string {
     if (!hasActiveVariableAttributes(state)) return name;
     const seen = new Set<string>();
@@ -5126,14 +4209,12 @@ export class Runtime {
     }
     return name;
   }
-
   private variableTarget(name: string): { name: string; subscript?: string } | undefined {
     const bracket = name.indexOf("[");
     const base = bracket < 0 ? name : name.slice(0, bracket);
     if (!isShellIdentifier(base) || bracket >= 0 && (!name.endsWith("]") || bracket === name.length - 2)) return undefined;
     return bracket < 0 ? { name: base } : { name: base, subscript: name.slice(bracket + 1, -1) };
   }
-
   variable(state: State, name: string): string | undefined {
     name = this.referenceName(state, name);
     const binding = arrayStore(state)?.get(name);
@@ -5142,7 +4223,6 @@ export class Runtime {
     if (name === "_" && state.variables._ === undefined) return state.lastArgument ?? "";
     return state.variables[name];
   }
-
   private async variablePresent(state: State, name: string, io: IO): Promise<boolean> {
     name = this.referenceName(state, name);
     const bracket = name.indexOf("[");
@@ -5155,26 +4235,21 @@ export class Runtime {
     const binding = arrayStore(state)?.get(resolved);
     if (bracket < 0) return this.variable(state, base) !== undefined;
     const selector = name.slice(bracket + 1, -1);
-    if (!binding?.associative && (selector === "@" || selector === "*")) {
-      return binding ? binding.values.size > 0 : this.variable(state, base) !== undefined;
-    }
+    if (!binding?.associative && (selector === "@" || selector === "*")) return binding ? binding.values.size > 0 : this.variable(state, base) !== undefined;
     const store = arrayStore(state);
     if (!store) return selector === "0" && this.variable(state, base) !== undefined;
     const index = await this.arrayIndex(binding, { decimal: selector, source: selector }, state, io, store.owner);
     return index !== undefined && (binding ? binding.getValue(index) !== undefined
       : index === 0 && this.variable(state, base) !== undefined);
   }
-
   private requireParameter(value: string | undefined, name: string, state: State, io: IO, line?: number): void {
     if (value === undefined && state.nounset) throw new NounsetFailure(`${name}: unbound variable`, io.diagnosticLine ?? line);
   }
-
   async assignVariable(state: State, name: string, value: ShellValue, io: IO, origin: "assignment" | "getopts" = "assignment"): Promise<void> {
     name = this.referenceName(state, name);
     if (!arrayStore(state)?.get(name)) { await this.writeVariable(state, name, value, io, origin); return; }
     await this.arrayZero(state, name, io, async () => value);
   }
-
   async prepareVariable(state: State, name: string, saved: SavedVariable, scalarLegacy = false): Promise<void> {
     const store = requireArrays(state);
     const failures = stateMonitor(state)!.session.scope.failures;
@@ -5188,8 +4263,7 @@ export class Runtime {
       catch (error) {
         if (primaryPresent) failures.push(error);
         else { primaryPresent = true; primary = error; }
-      }
-    };
+      }};
     try {
       holding = store.owner.hold();
       const watch = await store.watch(name, owner, this.signal);
@@ -5209,7 +4283,6 @@ export class Runtime {
     } finally { await cleanup(() => holding?.release()); }
     if (primaryPresent) throw primary;
   }
-
   async prepareArrayObservers(state: State, owner: ArrayOwner): Promise<void> {
     owner.reserve({ metadata: 128, work: 6 });
     for (const frame of state.locals) for (const [name, saved] of frame) {
@@ -5222,7 +4295,6 @@ export class Runtime {
       await owner.ledger.checkpoint(this.signal);
     }
   }
-
   async discardVariable(saved: SavedVariable): Promise<void> {
     saved.heldValue?.release();
     delete saved.heldValue;
@@ -5233,7 +4305,6 @@ export class Runtime {
     await typed.binding?.release();
     await typed.owner.close();
   }
-
   async indexedEnvironment(state: State, env: Readonly<Record<string, string>>): Promise<void> {
     const store = requireArrays(state);
     const operation = ArrayOwner.create(store.owner.ledger, store.owner);
@@ -5258,18 +4329,15 @@ export class Runtime {
       if (stateMonitor(state)!.epoch !== epoch) throw new ArrayFailure("stale state snapshot");
       stateMonitor(state)!.publish(controls, undefined, () => {
         for (const key of state.exported) delete state.variables[key];
-        state.exported = new Set(keys);
-      });
+        state.exported = new Set(keys);});
       for (const key of keys) {
         const tickets = publications.get(key)!;
         stateMonitor(state)!.publish(tickets, key, () => {
           void store.remove(key, tickets);
-          publishVariable(state, key, env[key]!);
-        });
+          publishVariable(state, key, env[key]!);});
       }
     } finally { try { await operation.close(); } finally { holding.release(); } }
   }
-
   async unsetIndexed(state: State, name: string, index?: number | "members"): Promise<void> {
     const store = requireArrays(state);
     const operation = ArrayOwner.create(store.owner.ledger, store.owner);
@@ -5302,20 +4370,17 @@ export class Runtime {
           released = store.remove(name, tickets);
           delete state.variables[name];
           state.exported.delete(name);
-        } else if (index === 0 || index === "members") delete state.variables[name];
-      });
+        } else if (index === 0 || index === "members") delete state.variables[name];});
       staged = undefined;
       watch.close();
       await released;
     } finally { try { await staged?.release(); await operation.close(); } finally { holding.release(); } }
   }
-
   private assertArrayWritable(state: State, name: string, origin: "assignment" | "declaration" = "assignment"): void {
     if (!state.readonlyVariables?.has(name)) return;
     if (state.extensions?.syntax.indexedDeclarations?.includes("readonly")) throw new DiscardCommandFailure(name, 1, origin);
     throw new ArrayFailure("readonly binding");
   }
-
   async arrayZero(state: State, name: string, io: IO, expand: () => Promise<ShellValue>, append = false, freeze = false): Promise<void> {
     const store = requireArrays(state);
     const operation = ArrayOwner.create(store.owner.ledger, store.owner);
@@ -5353,14 +4418,12 @@ export class Runtime {
       stateMonitor(state)!.publish(tickets, name, () => {
         supersede();
         released = store.publish(name, staged!, tickets);
-        if (freeze) { state.readonlyVariables ??= frozenAttributes!; state.readonlyVariables.add(name); }
-      });
+        if (freeze) { state.readonlyVariables ??= frozenAttributes!; state.readonlyVariables.add(name); }});
       staged = undefined;
       watch.close();
       await released;
     } finally { try { await staged?.release(); await operation.close(); } finally { valueAllocation.close(); holding.release(); } }
   }
-
   async arrayJoin(owner: ArrayOwner, values: readonly string[], separator: string): Promise<string>;
   async arrayJoin(owner: ArrayOwner, values: readonly ShellValue[], separator: ShellValue): Promise<ShellValue>;
   async arrayJoin(owner: ArrayOwner, values: readonly ShellValue[], separator: ShellValue): Promise<ShellValue> {
@@ -5382,7 +4445,6 @@ export class Runtime {
       return result;
     } finally { allocation?.close(); }
   }
-
   private async arrayIndex(binding: IndexedBinding | undefined, index: { decimal: string; source?: string; word?: Word }, state: State, io: IO, owner: ArrayOwner, create = false, relativeMaximum = binding?.maximum ?? -1): Promise<number | undefined> {
     if (!binding?.associative) {
       if (index.source === "") throw new ArrayFailure("bad array subscript");
@@ -5409,29 +4471,16 @@ export class Runtime {
     }
     return binding.keyIndex(resolvedValue, owner, this.signal, create);
   }
-
   private tryFastArraySubscriptWriteSync(state: State, name: string, sub: string, val: string): boolean {
     this._syncArithTouched?.delete(name);
     const monitor = stateMonitor(state);
     const rawState = monitor ? monitor.raw : state;
-    if (
-      rawState.readonlyVariables?.has(name) ||
-      rawState.variableAttributes?.get(name) ||
-      rawState.exported.has(name) ||
-      controlNames.has(name)
-    ) {
+    if ( rawState.readonlyVariables?.has(name) || rawState.variableAttributes?.get(name) || rawState.exported.has(name) || controlNames.has(name)) {
       return false;
     }
     const store = monitor?.store;
     const current = store?.get(name);
-    if (
-      !monitor ||
-      !store ||
-      !current ||
-      current.references !== 1 ||
-      store.watches.has(name) ||
-      monitor.hasOverlay(name)
-    ) {
+    if ( !monitor || !store || !current || current.references !== 1 || store.watches.has(name) || monitor.hasOverlay(name)) {
       return false;
     }
     const valByteLen = shellValueByteLength(val);
@@ -5464,9 +4513,7 @@ export class Runtime {
       let slotAdmission: ReturnType<typeof current.owner.reserve> | undefined;
       let tickets: ReturnType<typeof store.owner.charge>;
       try {
-        if (existingKey) {
-          index = existingKey.index;
-        } else {
+        if (existingKey) index = existingKey.index; else {
           index = current.maximum + 1;
           const admission = current.owner.reserve({ metadata: 128 + identity.length * 2, work: 8 });
           try {
@@ -5545,7 +4592,6 @@ export class Runtime {
       }
     }
   }
-
   private tryFastArrayAssignmentSync(assignment: ArrayAssignment, state: State, io: IO, diagnosticLine?: number, declaration?: "readonly", associative?: boolean, ignoreYield = false): boolean {
     if (!ignoreYield && hasYieldCheckpoint(this.signal)) return false;
     if (declaration) return false;
@@ -5553,24 +4599,12 @@ export class Runtime {
     this._syncArithTouched?.delete(name);
     const monitor = stateMonitor(state);
     const rawState = monitor ? monitor.raw : state;
-    if (
-      rawState.readonlyVariables?.has(name) ||
-      rawState.variableAttributes?.get(name) ||
-      rawState.exported.has(name) ||
-      controlNames.has(name)
-    ) {
+    if ( rawState.readonlyVariables?.has(name) || rawState.variableAttributes?.get(name) || rawState.exported.has(name) || controlNames.has(name)) {
       return false;
     }
     const store = monitor?.store ?? (monitor ? requireArrays(rawState) : undefined);
     let current = store?.get(name);
-    if (
-      !monitor ||
-      !store ||
-      store.watches.has(name) ||
-      monitor.hasOverlay(name) ||
-      (current && (current.references !== 1 || (associative !== undefined && current.associative !== associative))) ||
-      (!current && rawState.variables[name] !== undefined)
-    ) {
+    if ( !monitor || !store || store.watches.has(name) || monitor.hasOverlay(name) || (current && (current.references !== 1 || (associative !== undefined && current.associative !== associative))) || (!current && rawState.variables[name] !== undefined)) {
       return false;
     }
     const ensureBinding = (isAssoc: boolean): IndexedBinding | undefined => {
@@ -5591,23 +4625,13 @@ export class Runtime {
       } catch (error) {
         if (error instanceof ArrayFailure) return undefined;
         throw error;
-      }
-    };
-    if (
-      assignment.kind === "compound" &&
-      !associative &&
-      (!current || !current.associative) &&
-      assignment.entries.length <= 32
-    ) {
+      }};
+    if ( assignment.kind === "compound" && !associative && (!current || !current.associative) && assignment.entries.length <= 32) {
       const vals: string[] = [];
       const byteLens: number[] = [];
       for (let i = 0; i < assignment.entries.length; i++) {
         const entry = assignment.entries[i]!;
-        if (
-          entry.index !== undefined ||
-          entry.value.parts.length === 0 ||
-          !entry.value.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))
-        ) {
+        if ( entry.index !== undefined || entry.value.parts.length === 0 || !entry.value.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))) {
           return false;
         }
         let val: ShellValue | undefined;
@@ -5666,11 +4690,7 @@ export class Runtime {
         throw error;
       }
     }
-    if (
-      assignment.kind === "element" &&
-      !associative &&
-      (!current || !current.associative)
-    ) {
+    if ( assignment.kind === "element" && !associative && (!current || !current.associative)) {
       const subSrc = (assignment.index.source ?? assignment.index.decimal).trim();
       const syncTouched = this._syncArithRawWriteOnly ? this._syncArithTouched : undefined;
       let idxNum: number | undefined;
@@ -5727,11 +4747,7 @@ export class Runtime {
       if (typeof val !== "string") return false;
       const keyByteLen = shellValueByteLength(keyVal);
       const valByteLen = shellValueByteLength(val);
-      if (
-        keyByteLen > 4096 ||
-        keyByteLen > this.budget.limits.maxExpansionBytes ||
-        valByteLen > this.budget.limits.maxExpansionBytes
-      ) {
+      if ( keyByteLen > 4096 || keyByteLen > this.budget.limits.maxExpansionBytes || valByteLen > this.budget.limits.maxExpansionBytes) {
         return false;
       }
       const identity = fastStringHexIdentity(keyVal);
@@ -5767,9 +4783,7 @@ export class Runtime {
       let slotAdmission: ReturnType<typeof current.owner.reserve> | undefined;
       let tickets: ReturnType<typeof store.owner.charge>;
       try {
-        if (existingKey) {
-          index = existingKey.index;
-        } else {
+        if (existingKey) index = existingKey.index; else {
           index = current.maximum + 1;
           const admission = current.owner.reserve({ metadata: 128 + identity.length * 2, work: 8 });
           try {
@@ -5808,7 +4822,6 @@ export class Runtime {
     }
     return false;
   }
-
   async arrayAssignment(assignment: ArrayAssignment, state: State, io: IO, declaration?: "readonly", origin: "assignment" | "declaration" = "assignment", associative?: boolean): Promise<void> {
     if (this.tryFastArrayAssignmentSync(assignment, state, io, io.diagnosticLine, declaration, associative, false)) return;
     if (!declaration) {
@@ -5847,14 +4860,11 @@ export class Runtime {
         } else {
           const quotedScalar = (part: WordPart): boolean => {
             const selector = getArraySelector(part);
-            return part.quoted && !(part.kind === "variable" && (part.name === "@" || selector && selector.kind !== "element" && selector.separator === "@"));
-          };
+            return part.quoted && !(part.kind === "variable" && (part.name === "@" || selector && selector.kind !== "element" && selector.separator === "@"));};
           const certain = entry.value.parts.every(part => part.kind === "text" ? part.quoted || !/[*?[]/u.test(part.value) : quotedScalar(part));
           const demanded = entry.value.parts.some(part => part.kind === "text" ? part.quoted || part.value.length > 0 : quotedScalar(part));
           if (demanded && planned !== null && planned > 2147483647) throw new ArrayFailure("index outside 0..2147483647");
-          if (certain && planned !== null) {
-            planned++;
-          } else planned = null;
+          if (certain && planned !== null) planned++; else planned = null;
         }
         await operation.ledger.checkpoint(this.signal, entry.value.parts.length + 2);
       }
@@ -5889,11 +4899,7 @@ export class Runtime {
           if (index > 2147483647) throw new ArrayFailure("index outside 0..2147483647");
           const previous = append ? targetBinding.getValue(index) ?? "" : undefined;
           if (append && !state.variableAttributes?.get(name)?.includes("i")) value = await join([previous!, value]);
-          if (state.variableAttributes?.get(name)) {
-            value = await this.attributeValue(state, name, value, io, "assignment", previous);
-          } else if (shellValueByteLength(value) > this.budget.limits.maxExpansionBytes) {
-            this.budget.fail("maxExpansionBytes");
-          }
+          if (state.variableAttributes?.get(name)) value = await this.attributeValue(state, name, value, io, "assignment", previous); else if (shellValueByteLength(value) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
           const token = await valueToken(targetBinding.owner, value, this.signal);
           if (canReviseInPlace) {
             let slot: Admission | undefined;
@@ -5909,15 +4915,12 @@ export class Runtime {
           } else {
             try { staged!.insert(index, token); } catch (error) { token.release(); throw error; }
           }
-          writes++;
-        };
+          writes++;};
         const join = async (values: readonly ShellValue[]): Promise<ShellValue> => values.every(value => typeof value === "string")
           ? this.arrayJoin(operation, values as readonly string[], "") : concatShellValues(values, io[valueScope]);
         if (assignment.kind === "element") {
           let index: number;
-          if (selectedIndex !== undefined) {
-            index = selectedIndex;
-          } else if (canReviseInPlace && targetBinding.associative) {
+          if (selectedIndex !== undefined) index = selectedIndex; else if (canReviseInPlace && targetBinding.associative) {
             const word = assignment.index.word ?? parseArraySubscript(assignment.index.source ?? assignment.index.decimal, this.budget.parsing, byteLocale(state.variables), state.depth);
             const fastKey = this.fastValueWord(word, state, io, false, false, false, false);
             const keyValue = fastKey !== undefined ? fastKey : await (async () => {
@@ -5931,9 +4934,7 @@ export class Runtime {
             const stagedKey = await targetBinding.stageKeyIndex(keyValue, operation, this.signal);
             if (stagedKey.pendingKey) pendingKeys.push(stagedKey.pendingKey);
             index = stagedKey.index;
-          } else {
-            index = (await this.arrayIndex(targetBinding, assignment.index, state, io, operation, true))!;
-          }
+          } else index = (await this.arrayIndex(targetBinding, assignment.index, state, io, operation, true))!;
           const value = await join(await this.valueWord(assignment.value, state, io, false, false, false, false, undefined, false, false, 0));
           await insert(index, value, assignment.append);
         } else for (const entry of assignment.entries) {
@@ -5970,9 +4971,7 @@ export class Runtime {
         }
         this.signal.throwIfAborted();
         this.assertArrayWritable(state, name, origin);
-        if (!watch.valid() || (canReviseInPlace && (store.get(name) !== current || current!.references !== 1))) {
-          throw new ArrayFailure("stale binding");
-        }
+        if (!watch.valid() || (canReviseInPlace && (store.get(name) !== current || current!.references !== 1))) throw new ArrayFailure("stale binding");
         if (canReviseInPlace) {
           if (declaration || !(assignment.kind === "compound" && assignment.append && writes === 0 && current!.assigned)) {
             stateMonitor(state)!.publish(tickets, name, () => {
@@ -5988,8 +4987,7 @@ export class Runtime {
               pendingInPlace.length = 0;
               current!.assigned = true;
               store.revise(name, current!, tickets);
-              if (declaration) { state.readonlyVariables ??= frozenAttributes!; state.readonlyVariables.add(name); }
-            });
+              if (declaration) { state.readonlyVariables ??= frozenAttributes!; state.readonlyVariables.add(name); }});
           }
         } else {
           staged!.assigned = true;
@@ -5999,8 +4997,7 @@ export class Runtime {
               supersede();
               delete state.variables[name];
               released = store.publish(name, staged!, tickets, prepared);
-              if (declaration) { state.readonlyVariables ??= frozenAttributes!; state.readonlyVariables.add(name); }
-            });
+              if (declaration) { state.readonlyVariables ??= frozenAttributes!; state.readonlyVariables.add(name); }});
             staged = undefined;
             await released;
           }
@@ -6018,11 +5015,9 @@ export class Runtime {
       watch.close();
     } finally { try { await staged?.release(); await operation.close(); } finally { holding.release(); } }
   }
-
   async run(script: Script, state: State, io: IO): Promise<number> {
     return this.finishShell(state, io, (await this.runUnit(script, state, io)).exitCode);
   }
-
   private extensionContext(state: State, io: IO, command = "", args: readonly string[] = [], argumentValues: readonly ShellValue[] = args): ShellExtensionContext {
     const frame = state.extensions!;
     let bindings: ShellExtensionBindings | undefined;
@@ -6031,14 +5026,7 @@ export class Runtime {
     const createInput = this.extensionInput.bind(this, state, io);
     const signal = AbortSignal.any([this.signal, this.budget.executionCleanup.controller.signal]);
     return {
-      command, args, argumentValues, status: state.status, functionDepth: state.functionDepth, sourceDepth: state.sourceDepth ?? 0,
-      stdin: io.stdin, stdout: io.stdout, stderr: io.stderr, signal, scope: frame,
-      get bindings() { return bindings ??= createBindings(); },
-      get input() { return input ??= createInput(); },
-      variable: name => state.variables[name],
-      accountSource: source => this.budget.source(shellValueByteLength(source)),
-      diagnostic: message => this.diagnostic(io, message),
-      evaluate: async (source, options) => {
+      command, args, argumentValues, status: state.status, functionDepth: state.functionDepth, sourceDepth: state.sourceDepth ?? 0, stdin: io.stdin, stdout: io.stdout, stderr: io.stderr, signal, scope: frame, get bindings() { return bindings ??= createBindings(); }, get input() { return input ??= createInput(); }, variable: name => state.variables[name], accountSource: source => this.budget.source(shellValueByteLength(source)), diagnostic: message => this.diagnostic(io, message), evaluate: async (source, options) => {
         this.signal.throwIfAborted();
         if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
         this.budget.source(shellValueByteLength(source));
@@ -6052,22 +5040,18 @@ export class Runtime {
           if (restoration) restoration.apply(() => { state.depth--; });
           else state.depth--;
         }
-      },
-      registerCleanup: cleanup => {
+      }, registerCleanup: cleanup => {
         let completion: Promise<void> | undefined;
         const close = (): Promise<void> => completion ??= Promise.resolve().then(cleanup);
         frame.cleanup.push(close);
         io[invocationScope].register(close);
-      },
-      registerExecutionCleanup: cleanup => {
+      }, registerExecutionCleanup: cleanup => {
         this.budget.executionCleanup.register(cleanup);
         return AbortSignal.any([this.commandSignal, this.budget.signal, this.budget.executionCleanup.controller.signal]);
-      },
-      interruptWait: status => {
+      }, interruptWait: status => {
         validateExitCode(status);
         return !signal.aborted && (frame.waiting?.(status) ?? false);
-      },
-      waitInterruptibly: async operation => {
+      }, waitInterruptibly: async operation => {
         signal.throwIfAborted();
         const scope = io[invocationScope];
         scope.assertOpen();
@@ -6080,8 +5064,7 @@ export class Runtime {
           if (interruption || signal.aborted || scope.signal.aborted) return false;
           interruption = { status };
           controller.abort(reason);
-          return true;
-        };
+          return true;};
         const close = (): void => { if (frame.waiting === interrupt) delete frame.waiting; };
         scope.register(close);
         frame.waiting = interrupt;
@@ -6094,10 +5077,8 @@ export class Runtime {
           if (interruption && error === reason) return { kind: "interrupted", status: interruption.status };
           throw error;
         } finally { close(); }
-      },
-    };
+      }, };
   }
-
   private extensionBindings(state: State, io: IO): ShellExtensionBindings {
     const scope = io[invocationScope];
     scope.assertOpen();
@@ -6105,39 +5086,32 @@ export class Runtime {
     const references = new Set<() => Promise<void>>();
     scope.register(async () => {
       try { await Promise.all([...references].map(close => close())); }
-      finally { allocation.close(); }
-    });
+      finally { allocation.close(); }});
     const assertOpen = (): void => { this.signal.throwIfAborted(); scope.assertOpen(); allocation.assertOpen(); };
     const checkName = (name: string): void => {
       assertOpen();
-      if (typeof name !== "string" || !/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) throw new TypeError("Invalid binding name");
-    };
+      if (typeof name !== "string" || !/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) throw new TypeError("Invalid binding name");};
     const checkIndex = (index: number, maximum: 2147483647 | 4294967295 = 2147483647): void => {
-      if (!Number.isSafeInteger(index) || index < 0 || index > maximum) throw new RangeError(`Binding index outside 0..${maximum}`);
-    };
+      if (!Number.isSafeInteger(index) || index < 0 || index > maximum) throw new RangeError(`Binding index outside 0..${maximum}`);};
     const retain = (value: ShellValue | undefined): ShellValue | undefined => {
       if (value !== undefined && typeof value !== "string") allocation.hold(value);
-      return value;
-    };
+      return value;};
     return Object.freeze({
       describe: (name: string) => {
         checkName(name);
         const kind = arrayStore(state)?.get(name) ? "indexed" : state.variables[name] === undefined ? "unset" : "scalar";
         return Object.freeze({ kind, readonly: state.readonlyVariables?.has(name) ?? false, exported: state.exported.has(name) });
-      },
-      get: (name: string, index = 0) => {
+      }, get: (name: string, index = 0) => {
         checkName(name);
         checkIndex(index, 4294967295);
         const binding = arrayStore(state)?.get(name);
         const scalar = state.variables[name];
         return retain(binding ? binding.getValue(index) : index === 0 && scalar !== undefined ? stateMonitor(state)?.values.get(name, scalar) ?? scalar : undefined);
-      },
-      assign: async (name: string, value: ShellValue) => {
+      }, assign: async (name: string, value: ShellValue) => {
         checkName(name);
         await scope.run(() => this.assignVariable(state, name, value, io));
         assertOpen();
-      },
-      prepareReference: async (reference: ShellValue): Promise<ShellBindingResult<ShellBindingReference>> => {
+      }, prepareReference: async (reference: ShellValue): Promise<ShellBindingResult<ShellBindingReference>> => {
         assertOpen();
         let owned: ValueScope | undefined;
         let closed = false;
@@ -6148,15 +5122,12 @@ export class Runtime {
           return completion ??= Promise.resolve().then(async () => {
             await Promise.allSettled([...work]);
             try { owned?.close(); }
-            finally { references.delete(close); }
-          });
-        };
+            finally { references.delete(close); }});};
         references.add(close);
         const failure = (value: ShellValue, suffix: string, prefix = ""): ShellBindingResult<never> => {
           const diagnostic = concatShellValues([prefix, value, suffix], allocation);
           allocation.hold(diagnostic);
-          return Object.freeze({ ok: false, diagnostic });
-        };
+          return Object.freeze({ ok: false, diagnostic });};
         try {
           owned = this.budget.values.scope();
           owned.hold(reference);
@@ -6182,30 +5153,24 @@ export class Runtime {
               work.add(pending);
               void pending.then(() => { work.delete(pending); }, () => { work.delete(pending); });
               return pending;
-            } catch (error) { return Promise.reject(error); }
-          };
+            } catch (error) { return Promise.reject(error); }};
           const handle: ShellBindingReference = Object.freeze({
             unbindName: () => run(async () => {
               if (state.readonlyVariables?.has(text)) return failure(reference, ": cannot unset: readonly variable");
               if (arrayStore(state)?.get(text)) await this.unsetIndexed(state, text);
               else this.unsetVariable(state, text);
               return Object.freeze({ ok: true, value: undefined });
-            }),
-            assignInteger: (value: number) => run(async () => {
+            }), assignInteger: (value: number) => run(async () => {
               if (!Number.isSafeInteger(value)) throw new TypeError("Binding integer must be a safe integer");
               if (state.readonlyVariables?.has(name)) return failure(name, ": readonly variable");
               if (subscript === undefined) await this.assignVariable(state, name, String(value), io);
               else {
                 const index = literalIndex(subscript, name.length + 1);
                 await this.arrayAssignment({
-                  kind: "element", name, index, append: false,
-                  value: { offset: 0, parts: [{ kind: "text", value: String(value), quoted: true }] },
-                }, state, io);
+                  kind: "element", name, index, append: false, value: { offset: 0, parts: [{ kind: "text", value: String(value), quoted: true }] }, }, state, io);
               }
               return Object.freeze({ ok: true, value: undefined });
-            }),
-            close,
-          });
+            }), close, });
           reservation.commit(handle);
           return Object.freeze({ ok: true, value: handle });
         } catch (error) {
@@ -6213,14 +5178,12 @@ export class Runtime {
           catch (cleanup) { scope.failures.push(cleanup); }
           throw error;
         }
-      },
-      openIndexed: async (name: string, options: { readonly clear?: boolean } = {}) => {
+      }, openIndexed: async (name: string, options: { readonly clear?: boolean } = {}) => {
         checkName(name);
         const clear = options.clear;
         if (clear !== undefined && typeof clear !== "boolean") throw new TypeError("Invalid indexed writer options");
         return this.incrementalIndexed(state, io, name, clear === true);
-      },
-      prepare: async (name: string, options: { readonly kind: "indexed"; readonly clear?: boolean }) => {
+      }, prepare: async (name: string, options: { readonly kind: "indexed"; readonly clear?: boolean }) => {
         checkName(name);
         if (options.kind !== "indexed" || options.clear !== undefined && typeof options.clear !== "boolean") throw new TypeError("Unsupported binding preparation");
         if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
@@ -6238,16 +5201,14 @@ export class Runtime {
           return completion ??= (async () => {
             await Promise.allSettled([preparing, active]);
             await prepared?.close();
-          })();
-        };
+          })();};
         scope.register(close);
         const validate = (): void => {
           assertOpen();
           if (closed) throw new ArrayFailure("binding transaction is closed");
           if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
           if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
-          prepared!.validate();
-        };
+          prepared!.validate();};
         const run = (action: () => Promise<void>): Promise<void> => {
           try {
             validate();
@@ -6256,8 +5217,7 @@ export class Runtime {
             active = work;
             void work.then(() => { if (active === work) active = undefined; }, () => { if (active === work) active = undefined; });
             return work;
-          } catch (error) { return Promise.reject(error); }
-        };
+          } catch (error) { return Promise.reject(error); }};
         try {
           preparing = scope.run(async () => {
             prepared = await store.prepare(name, this.signal, !clear);
@@ -6268,18 +5228,15 @@ export class Runtime {
               try { validate(); prepared.binding.insert(0, token); }
               catch (error) { token.release(); throw error; }
             }
-            validate();
-          });
+            validate();});
           await preparing;
           return Object.freeze({
-            get: (index: number) => { validate(); checkIndex(index); return retain(prepared!.binding.getValue(index)); },
-            set: (index: number, value: ShellValue) => run(async () => {
+            get: (index: number) => { validate(); checkIndex(index); return retain(prepared!.binding.getValue(index)); }, set: (index: number, value: ShellValue) => run(async () => {
               checkIndex(index);
               const token = await textToken(prepared!.binding.owner, value, this.signal);
               try { validate(); prepared!.binding.insert(index, token); }
               catch (error) { token.release(); throw error; }
-            }),
-            unset: (index: number) => run(async () => {
+            }), unset: (index: number) => run(async () => {
               checkIndex(index);
               const binding = prepared!.binding;
               binding.values.get(index)?.slot.release();
@@ -6290,8 +5247,7 @@ export class Runtime {
                 validate();
               }
               binding.maximum = maximum;
-            }),
-            commit: () => run(async () => {
+            }), commit: () => run(async () => {
               await this.prepareArrayObservers(state, prepared!.binding.owner);
               const supersede = await stateMonitor(state)!.prepareTypedPublication(name, prepared!.binding.owner, this.signal);
               validate();
@@ -6299,18 +5255,13 @@ export class Runtime {
               stateMonitor(state)!.publish(prepared!.tickets, name, () => {
                 supersede();
                 delete state.variables[name];
-                retirement = prepared!.publish();
-              });
+                retirement = prepared!.publish();});
               await retirement;
               this.signal.throwIfAborted();
-            }),
-            close,
-          });
+            }), close, });
         } catch (error) { await close(); throw error; }
-      },
-    });
+      }, });
   }
-
   private async incrementalIndexed(state: State, io: IO, name: string, clear: boolean): Promise<ShellIndexedWriter> {
     const scope = io[invocationScope];
     scope.assertOpen();
@@ -6334,8 +5285,7 @@ export class Runtime {
         await Promise.allSettled([preparing, active]);
         try { await lifetime?.close(); }
         finally { holding?.release(); }
-      })();
-    };
+      })();};
     scope.register(close);
     const localIdentity = (): SavedVariable | undefined => {
       for (let index = state.locals.length - 1; index >= 0; index--) {
@@ -6343,16 +5293,14 @@ export class Runtime {
         const saved = state.locals[index]!.get(name);
         if (saved) return saved;
       }
-      return undefined;
-    };
+      return undefined;};
     const validate = (): void => {
       this.signal.throwIfAborted();
       scope.assertOpen();
       if (closed) throw new ArrayFailure("indexed writer is closed");
       owner.assertOpen();
       if (arrayStore(state) !== store || store.owner !== owner || identity !== undefined && store.bindings.get(name) !== identity) throw new ArrayFailure("incremental target identity changed");
-      if (localIdentity() !== admittedLocal) throw new ArrayFailure("incremental target local identity changed");
-    };
+      if (localIdentity() !== admittedLocal) throw new ArrayFailure("incremental target local identity changed");};
     try {
       admittedLocal = localIdentity();
       preparing = scope.run(async () => {
@@ -6382,16 +5330,14 @@ export class Runtime {
               let retirement: Promise<void> | undefined;
               monitor.publish(prepared.tickets, name, () => {
                 delete state.variables[name];
-                retirement = prepared.publish();
-              });
+                retirement = prepared.publish();});
               await retirement;
             } finally { await prepared.close(); }
           }
           identity = store.bindings.get(name);
           if (!identity) throw new ArrayFailure("incremental target is not indexed");
           validate();
-        } finally { watch.close(); }
-      });
+        } finally { watch.close(); }});
       await preparing;
     } catch (error) {
       try { await close(); } catch (cleanup) { scope.failures.push(cleanup); }
@@ -6407,22 +5353,14 @@ export class Runtime {
             await resolvedVoid;
             validate();
             const fastCurrent = store.get(name);
-            if (
-              fastCurrent &&
-              !fastCurrent.associative &&
-              fastCurrent.references === 1 &&
-              state.locals.length === 0 &&
-              !monitor.hasAnyOverlays() &&
-              store.watches.size === 0
-            ) {
+            if ( fastCurrent && !fastCurrent.associative && fastCurrent.references === 1 && state.locals.length === 0 && !monitor.hasAnyOverlays() && store.watches.size === 0) {
               const fastToken = tryTextTokenSync(fastCurrent.owner, value, this.signal);
               if (fastToken) {
                 try {
                   const tickets = fastCurrent.owner.ledger.charge({ generation: true, version: true, epoch: true, metadata: 128, work: 14 });
                   monitor.publish(tickets, name, () => {
                     fastCurrent.insert(index, fastToken);
-                    store.revise(name, fastCurrent, tickets);
-                  });
+                    store.revise(name, fastCurrent, tickets);});
                   return resolvedVoid;
                 } catch (error) {
                   fastToken.release();
@@ -6453,8 +5391,7 @@ export class Runtime {
                 target.insert(index, token!);
                 token = undefined;
                 if (staged) retirement = store.publish(name, staged, tickets);
-                else store.revise(name, current, tickets);
-              });
+                else store.revise(name, current, tickets);});
               staged = undefined;
               watch.close();
               await retirement;
@@ -6466,25 +5403,20 @@ export class Runtime {
                 try { if (retained) await current.release(); }
                 finally { await operation.close(); }
               }
-            }
-          });
+            }});
           active = work;
           void work.then(() => { if (active === work) active = undefined; }, () => { if (active === work) active = undefined; });
           return work;
         } catch (error) { return Promise.reject(error); }
-      },
-      close,
-    });
+      }, close, });
   }
-
   private extensionInput(state: State, io: IO): ShellExtensionInput {
     const scope = io[invocationScope];
     const assertOpen = (): void => { this.signal.throwIfAborted(); scope.assertOpen(); };
     assertOpen();
     const checkDescriptor = (descriptor: number): void => {
       assertOpen();
-      if (!Number.isSafeInteger(descriptor) || descriptor < 0) throw new RangeError("Invalid input descriptor");
-    };
+      if (!Number.isSafeInteger(descriptor) || descriptor < 0) throw new RangeError("Invalid input descriptor");};
     return Object.freeze({ validateOpen: (descriptor: number): void => {
       checkDescriptor(descriptor);
       const entry = io.descriptors?.get(descriptor);
@@ -6525,15 +5457,13 @@ export class Runtime {
       let completion: Promise<void> | undefined;
       const release = (): Promise<void> => {
         closed = true;
-        return completion ??= Promise.resolve().then(() => resource.input?.close());
-      };
+        return completion ??= Promise.resolve().then(() => resource.input?.close());};
       scope.register(release);
       const input = new ShellInput(source, this.budget, this.signal);
       resource.input = input;
       const stdinIsDefault = entry?.stdinIsDefault ?? (descriptor === 0 ? io.stdinIsDefault : undefined);
       return Object.freeze({
-        ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),
-        read: async (raw: boolean, options: { readonly count?: number; readonly delimiter?: number; readonly exact?: boolean; readonly timeoutMs?: number } = {}) => {
+        ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }), read: async (raw: boolean, options: { readonly count?: number; readonly delimiter?: number; readonly exact?: boolean; readonly timeoutMs?: number } = {}) => {
           assertOpen();
           if (closed) throw new Error("Input borrow is closed");
           const { count, delimiter, exact, timeoutMs } = options;
@@ -6541,8 +5471,7 @@ export class Runtime {
           if (closed) throw new Error("Input borrow is closed");
           if (typeof raw !== "boolean" || count !== undefined && (!Number.isSafeInteger(count) || count < 0) || delimiter !== undefined && (!Number.isInteger(delimiter) || delimiter < 0 || delimiter > 255) || exact !== undefined && typeof exact !== "boolean" || timeoutMs !== undefined && (!Number.isFinite(timeoutMs) || timeoutMs <= 0)) throw new TypeError("Invalid input read options");
           return scope.run(() => input.line(raw, { ...(count === undefined ? {} : { count }), ...(delimiter === undefined ? {} : { delimiter }), ...(exact === undefined ? {} : { exact }), ...(timeoutMs === undefined ? {} : { timeoutMs }), byteCount: byteLocale(state.variables) }));
-        },
-        record: async (options: { readonly delimiter?: number } = {}) => {
+        }, record: async (options: { readonly delimiter?: number } = {}) => {
           assertOpen();
           if (closed) throw new Error("Input borrow is closed");
           const { delimiter } = options;
@@ -6550,17 +5479,13 @@ export class Runtime {
           if (closed) throw new Error("Input borrow is closed");
           if (delimiter !== undefined && (!Number.isInteger(delimiter) || delimiter < 0 || delimiter > 255)) throw new TypeError("Invalid input record options");
           return scope.run(() => input.record(delimiter === undefined ? {} : { delimiter }));
-        },
-        readiness: () => {
+        }, readiness: () => {
           assertOpen();
           if (closed) throw new Error("Input borrow is closed");
           return input.readiness();
-        },
-        release,
-      });
+        }, release, });
     } });
   }
-
   private async startExtensions(state: State, io: IO): Promise<void> {
     const frame = state.extensions;
     if (!frame || frame.started) return;
@@ -6569,7 +5494,6 @@ export class Runtime {
     for (const [name, builtin] of frame.builtins) if (shellBuiltinNames.has(name) && builtin.replace !== true) throw new TypeError(`Extension builtin conflicts with existing builtin: ${name}`);
     for (const entry of frame.entries) if (entry.instance.start) await entry.instance.start(this.extensionContext(state, io));
   }
-
   private tryStartExtensionsSync(state: State): boolean {
     const frame = state.extensions;
     if (!frame || frame.started) return true;
@@ -6579,7 +5503,6 @@ export class Runtime {
     }
     return false;
   }
-
   private async extensionEvent(event: ShellExtensionEvent, state: State, io: IO, status: number, command = ""): Promise<boolean> {
     if (!hasActiveExtensions(state)) return false;
     this.signal.throwIfAborted();
@@ -6603,7 +5526,6 @@ export class Runtime {
       if (!this.signal.aborted) state.status = previous;
     }
   }
-
   private async extensionCheckpoint(point: ShellExecutionCheckpoint, state: State, io: IO): Promise<void> {
     try {
       for (const checkpoint of state.extensions!.checkpoints) {
@@ -6620,7 +5542,6 @@ export class Runtime {
       throw new ExtensionCheckpointFailure(reason);
     }
   }
-
   private async beginShellExit(state: State, io: IO, status: number): Promise<number> {
     const frame = state.extensions;
     if (!frame || frame.exiting) return status;
@@ -6642,7 +5563,6 @@ export class Runtime {
     frame.exitStatus = status;
     return status;
   }
-
   tryFinishShellSync(state: State): boolean {
     const frame = state.extensions;
     if (!frame || frame.exiting) return true;
@@ -6653,7 +5573,6 @@ export class Runtime {
     }
     return false;
   }
-
   private releaseExtensionsSyncIfEmpty(state: State): boolean {
     if (!state.extensions?.cleanup.length) {
       this.signal.throwIfAborted();
@@ -6661,7 +5580,6 @@ export class Runtime {
     }
     return false;
   }
-
   async finishShell(state: State, io: IO, status: number): Promise<number> {
     if (this.tryFinishShellSync(state)) return status;
     const frame = state.extensions;
@@ -6684,7 +5602,6 @@ export class Runtime {
     if (failure) throw failure.reason instanceof ExtensionCheckpointFailure && !state.isolated ? failure.reason.reason : failure.reason;
     return status;
   }
-
   private async releaseExtensions(state: State): Promise<void> {
     if (!state.extensions?.cleanup.length) {
       this.signal.throwIfAborted();
@@ -6694,7 +5611,6 @@ export class Runtime {
     this.signal.throwIfAborted();
     throwCleanupFailures(cleanup.filter(result => result.status === "rejected").map(result => result.reason));
   }
-
   private async finishReturn(event: "function-return" | "source-return", state: State, io: IO, status: number, previous = status): Promise<number> {
     while (true) {
       try { await this.extensionEvent(event, state, io, previous); return status; }
@@ -6706,13 +5622,7 @@ export class Runtime {
       }
     }
   }
-
-  tryRunFastConstEchoBatch<T extends { unit: { script: Script; next: number }; nextCached?: T | undefined; locale: boolean; unitsCharged: number }>(
-    entryCachedUnit: T,
-    sourceLength: number,
-    state: State,
-    io: IO,
-  ): T | undefined {
+  tryRunFastConstEchoBatch<T extends { unit: { script: Script; next: number }; nextCached?: T | undefined; locale: boolean; unitsCharged: number }>( entryCachedUnit: T, sourceLength: number, state: State, io: IO, ): T | undefined {
     if (state.noexec) return undefined;
     let leadingMkdirUnit: T | undefined;
     let leadingMkdirPaths: readonly string[] | undefined;
@@ -6747,37 +5657,12 @@ export class Runtime {
       leadingMkdirPaths = mPaths;
       firstCachedUnit = nextU;
     }
-    if (
-      this.middleware.length > 0 ||
-      io.terminal !== undefined ||
-      io.asyncDefaultInput !== undefined ||
-      io.admittedHandles !== undefined ||
-      (this._fileWrites !== undefined && this._fileWrites.size > 0) ||
-      !this._isMemoryBackingFs ||
-      !this.backingFs ||
-      !this.budget.canRedirect1 ||
-      !this.budget.hasInfiniteFsOps ||
-      (io.descriptors &&
-        (io.descriptors.size > 3 ||
-          io.descriptors.get(0)?.closed ||
-          io.descriptors.get(1)?.closed ||
-          io.descriptors.get(2)?.closed))
-    ) {
+    if ( this.middleware.length > 0 || io.terminal !== undefined || io.asyncDefaultInput !== undefined || io.admittedHandles !== undefined || (this._fileWrites !== undefined && this._fileWrites.size > 0) || !this._isMemoryBackingFs || !this.backingFs || !this.budget.canRedirect1 || !this.budget.hasInfiniteFsOps || (io.descriptors && (io.descriptors.size > 3 || io.descriptors.get(0)?.closed || io.descriptors.get(1)?.closed || io.descriptors.get(2)?.closed))) {
       return undefined;
     }
     const monitor = ensureStateMonitor(state, this.budget, io[invocationScope]);
     const rawState = monitor.raw;
-    if (
-      !this.tryStartExtensionsSync(state) ||
-      hasActiveExtensions(rawState) ||
-      rawState.externalInvocation ||
-      hasActiveVariableAttributes(rawState) ||
-      guestArrays(state) ||
-      rawState.noclobber ||
-      rawState.readonlyVariables?.has("PIPESTATUS") ||
-      hasShellFunction(rawState, "echo") ||
-      rawState.extensions?.builtins.has("echo")
-    ) {
+    if ( !this.tryStartExtensionsSync(state) || hasActiveExtensions(rawState) || rawState.externalInvocation || hasActiveVariableAttributes(rawState) || guestArrays(state) || rawState.noclobber || rawState.readonlyVariables?.has("PIPESTATUS") || hasShellFunction(rawState, "echo") || rawState.extensions?.builtins.has("echo")) {
       return undefined;
     }
     const def = this.commands.get("echo");
@@ -6790,11 +5675,7 @@ export class Runtime {
     const elem0 = existing?.values.get(0);
     if (existing && (!elem0 || elem0.text.bytes !== 1 || existing.references !== 1 || elem0.text.references !== 1)) return undefined;
     const byteLength0 = firstCc.encoded.byteLength;
-    if (
-      (this.budget.bytes + byteLength0 > this.budget.maxOutputBytesSmi && byteLength0 > this.budget.limits.maxOutputBytes - this.budget.bytes) ||
-      !this.budget.canFileSystemOperation() ||
-      (this.budget.commands + 1 > this.budget.maxCommandsSmi && this.budget.commands + 1 > this.budget.limits.maxCommands)
-    ) {
+    if ( (this.budget.bytes + byteLength0 > this.budget.maxOutputBytesSmi && byteLength0 > this.budget.limits.maxOutputBytes - this.budget.bytes) || !this.budget.canFileSystemOperation() || (this.budget.commands + 1 > this.budget.maxCommandsSmi && this.budget.commands + 1 > this.budget.limits.maxCommands)) {
       return undefined;
     }
     const umask = rawState.umask ?? 0o022;
@@ -6825,9 +5706,7 @@ export class Runtime {
     }
     const mode = 0o666 & ~umask;
     try {
-      if (!tryWriteMemoryFileInDirSync(this.backingFs, firstCc.dirPrefix, firstCc.fileName, firstCc.encoded, firstCc.append, mode, this.commandSignal)) {
-        return undefined;
-      }
+      if (!tryWriteMemoryFileInDirSync(this.backingFs, firstCc.dirPrefix, firstCc.fileName, firstCc.encoded, firstCc.append, mode, this.commandSignal)) return undefined;
     } catch {
       this.signal.throwIfAborted();
       return undefined;
@@ -6843,8 +5722,7 @@ export class Runtime {
     const mem = this.backingFs as unknown as {
       symlinkCount: number;
       writeMemoryFileInDirFast(d: string, n: string, data: Uint8Array, a: boolean, m: number, h?: number): void;
-      writeMemoryFilesInDirBatchFast(firstFn: string, d: string, fns: readonly string[], hashes: Int32Array, payloads: readonly Uint8Array[], totalNameBytes: number, payloadBytesSum: number, m: number): void;
-    };
+      writeMemoryFilesInDirBatchFast(firstFn: string, d: string, fns: readonly string[], hashes: Int32Array, payloads: readonly Uint8Array[], totalNameBytes: number, payloadBytesSum: number, m: number): void;};
     let deadRmTarget: string | undefined;
     let deadRmTargetLen = 0;
     if (mem.symlinkCount === 0 && curLocale === false) {
@@ -6866,9 +5744,7 @@ export class Runtime {
             const cmd0 = list0.pipelines[0]!.commands[0]!;
             if (cmd0.kind === "simple" && cmd0.redirects.length === 0 && cmd0.words.length === 3 && cmd0.words[0]!.plain === "rm" && (cmd0.words[1]!.plain === "-rf" || cmd0.words[1]!.plain === "-fr")) {
               const t = cmd0.words[2]!.plain;
-              if (t && t.length > 1 && t.charCodeAt(0) === 47 && t.charCodeAt(t.length - 1) !== 47 && !t.includes("/.")) {
-                target = t;
-              }
+              if (t && t.length > 1 && t.charCodeAt(0) === 47 && t.charCodeAt(t.length - 1) !== 47 && !t.includes("/.")) target = t;
             }
           }
         }
@@ -6890,30 +5766,12 @@ export class Runtime {
       readonly nameHashes: Int32Array;
       readonly payloads: readonly Uint8Array[];
       readonly totalNameBytes: number;
-      readonly payloadBytesSum: number;
-    };
+      readonly payloadBytesSum: number;};
     const cachedBatchPlan = deadRmTarget !== undefined ? (firstCc as { _cachedEchoBatch?: EchoBatchPlan | null })._cachedEchoBatch : undefined;
-    if (
-      cachedBatchPlan !== undefined &&
-      cachedBatchPlan !== null &&
-      mem.symlinkCount === 0 &&
-      !this.signal.aborted &&
-      this.budget.bytes + cachedBatchPlan.totalBytes <= this.budget.maxOutputBytesSmi &&
-      (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations + cachedBatchPlan.totalCount <= this.budget.maxFileSystemOperationsSmi &&
-      this.budget.commands + cachedBatchPlan.totalCount <= this.budget.maxCommandsSmi
-    ) {
+    if ( cachedBatchPlan !== undefined && cachedBatchPlan !== null && mem.symlinkCount === 0 && !this.signal.aborted && this.budget.bytes + cachedBatchPlan.totalBytes <= this.budget.maxOutputBytesSmi && (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations + cachedBatchPlan.totalCount <= this.budget.maxFileSystemOperationsSmi && this.budget.commands + cachedBatchPlan.totalCount <= this.budget.maxCommandsSmi) {
       this.budget.parsing.admit(cachedBatchPlan.totalUnitsCharged);
       try {
-        mem.writeMemoryFilesInDirBatchFast(
-          firstCc.fileName,
-          firstCc.dirPrefix,
-          cachedBatchPlan.fileNames,
-          cachedBatchPlan.nameHashes,
-          cachedBatchPlan.payloads,
-          cachedBatchPlan.totalNameBytes,
-          cachedBatchPlan.payloadBytesSum,
-          mode,
-        );
+        mem.writeMemoryFilesInDirBatchFast( firstCc.fileName, firstCc.dirPrefix, cachedBatchPlan.fileNames, cachedBatchPlan.nameHashes, cachedBatchPlan.payloads, cachedBatchPlan.totalNameBytes, cachedBatchPlan.payloadBytesSum, mode, );
         this.budget.commands += cachedBatchPlan.totalCount;
         (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations += cachedBatchPlan.totalCount;
         this.budget.bytes += cachedBatchPlan.totalBytes;
@@ -6942,11 +5800,7 @@ export class Runtime {
       const nextCc = (next.unit.script as { _fastConstEcho?: typeof firstCc })._fastConstEcho;
       if (!nextCc) break;
       const bLen = nextCc.encoded.byteLength;
-      if (
-        this.budget.bytes + bLen > this.budget.maxOutputBytesSmi ||
-        (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations + 1 > this.budget.maxFileSystemOperationsSmi ||
-        this.budget.commands + 1 > this.budget.maxCommandsSmi
-      ) {
+      if ( this.budget.bytes + bLen > this.budget.maxOutputBytesSmi || (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations + 1 > this.budget.maxFileSystemOperationsSmi || this.budget.commands + 1 > this.budget.maxCommandsSmi) {
         break;
       }
       this.budget.parsing.admit(next.unitsCharged);
@@ -6981,9 +5835,7 @@ export class Runtime {
           bTotalCount++;
           bTotalBytes += bLen;
           bTotalUnits += next.unitsCharged;
-        } else {
-          bCanCache = false;
-        }
+        } else bCanCache = false;
       }
       this.budget.commands++;
       (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations++;
@@ -6995,29 +5847,11 @@ export class Runtime {
       if (buildBatchStart) {
         (firstCc as { _cachedEchoBatch?: EchoBatchPlan | null })._cachedEchoBatch = bCanCache && bTotalCount > 0
           ? {
-              endUnit: cur,
-              totalCount: bTotalCount,
-              totalBytes: bTotalBytes,
-              totalUnitsCharged: bTotalUnits,
-              lastArg,
-              fileNames: bFileNames!,
-              nameHashes: new Int32Array(bHashes!),
-              payloads: bPayloads!,
-              totalNameBytes: bTotalNameBytes,
-              payloadBytesSum: bPayloadBytesSum,
-            }
+              endUnit: cur, totalCount: bTotalCount, totalBytes: bTotalBytes, totalUnitsCharged: bTotalUnits, lastArg, fileNames: bFileNames!, nameHashes: new Int32Array(bHashes!), payloads: bPayloads!, totalNameBytes: bTotalNameBytes, payloadBytesSum: bPayloadBytesSum, }
           : null;
       }
     }
-    if (
-      deadRmTarget !== undefined &&
-      cur.nextCached !== undefined &&
-      !this.signal.aborted &&
-      mem.symlinkCount === 0 &&
-      (this._outputFiles === undefined || this._outputFiles.size === 0) &&
-      !hasShellFunction(rawState, "rm") &&
-      !rawState.extensions?.builtins.has("rm")
-    ) {
+    if ( deadRmTarget !== undefined && cur.nextCached !== undefined && !this.signal.aborted && mem.symlinkCount === 0 && (this._outputFiles === undefined || this._outputFiles.size === 0) && !hasShellFunction(rawState, "rm") && !rawState.extensions?.builtins.has("rm")) {
       const rmDef = this.commands.get("rm");
       const rmUnit = cur.nextCached;
       const rmCmd0 = rmUnit.unit.script.lists[0]?.pipelines[0]?.commands[0];
@@ -7038,33 +5872,10 @@ export class Runtime {
           lastArg = deadRmTarget;
           cur = rmUnit;
           const findUnit = cur.nextCached;
-          if (
-            findUnit !== undefined &&
-            findUnit.unit.next >= sourceLength &&
-            findUnit.locale === false &&
-            (!findUnit.unit.script.warnings || findUnit.unit.script.warnings.length === 0) &&
-            findUnit.unit.script.lists.length === 1 &&
-            findUnit.unit.script.lists[0]!.pipelines.length === 1 &&
-            findUnit.unit.script.lists[0]!.pipelines[0] === lastPureFindPipeAst &&
-            Date.now === defaultDateNow &&
-            io.stdout instanceof Capture &&
-            io.stdout.write === Capture.prototype.write &&
-            !hasShellFunction(rawState, "find") &&
-            !hasShellFunction(rawState, "wc") &&
-            !rawState.extensions?.builtins.has("find") &&
-            !rawState.extensions?.builtins.has("wc") &&
-            this.budget.commands + 2 <= this.budget.maxCommandsSmi
-          ) {
+          if ( findUnit !== undefined && findUnit.unit.next >= sourceLength && findUnit.locale === false && (!findUnit.unit.script.warnings || findUnit.unit.script.warnings.length === 0) && findUnit.unit.script.lists.length === 1 && findUnit.unit.script.lists[0]!.pipelines.length === 1 && findUnit.unit.script.lists[0]!.pipelines[0] === lastPureFindPipeAst && Date.now === defaultDateNow && io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write && !hasShellFunction(rawState, "find") && !hasShellFunction(rawState, "wc") && !rawState.extensions?.builtins.has("find") && !rawState.extensions?.builtins.has("wc") && this.budget.commands + 2 <= this.budget.maxCommandsSmi) {
             const dirPath = (firstCc as { _dirPath?: string })._dirPath ?? ((firstCc as { _dirPath?: string })._dirPath = firstCc.dirPrefix.slice(0, -1));
             const de = tryGetMemoryDirectoryEntryNamesSync(this.backingFs, dirPath) as { readonly size: number; readonly _next?: number; readonly _keys?: string[] } | undefined;
-            if (
-              de !== undefined &&
-              de.size === lastPureFindDirSize &&
-              de._next === de.size &&
-              de._keys !== undefined &&
-              de._keys[0] === lastPureFindFirstKey &&
-              de._keys[lastPureFindDirSize - 1] === lastPureFindLastKey
-            ) {
+            if ( de !== undefined && de.size === lastPureFindDirSize && de._next === de.size && de._keys !== undefined && de._keys[0] === lastPureFindFirstKey && de._keys[lastPureFindDirSize - 1] === lastPureFindLastKey) {
               this.budget.parsing.admit(findUnit.unitsCharged);
               this.budget.enterPipelineStages(2);
               this.budget.commands += 2;
@@ -7104,40 +5915,17 @@ export class Runtime {
     if (store) store.epoch = restEpoch;
     return cur;
   }
-
-  private tryRunCachedSyncForScript(
-    script: Script,
-    monitor: ReturnType<typeof ensureStateMonitor>,
-    io: IO,
-  ): { exitCode: number; terminated: boolean } | undefined {
+  private tryRunCachedSyncForScript( script: Script, monitor: ReturnType<typeof ensureStateMonitor>, io: IO, ): { exitCode: number; terminated: boolean } | undefined {
     type SyncForScriptPlan = {
       initAssigns: { name: string; strVal: string; intVal: number }[];
       forCmd: Extract<Command, { kind: "for" }>;
       echoVar: string | undefined;
-      publishNames: string[];
-    };
+      publishNames: string[];};
     const rawScript = script as { _cachedSyncForScriptPlan?: SyncForScriptPlan | null };
     let plan = rawScript._cachedSyncForScriptPlan;
     if (plan === null) return undefined;
     const rawState = monitor.raw;
-    if (
-      this.middleware.length > 0 ||
-      io[invocationScope].hasFailures ||
-      io.terminal ||
-      io.asyncDefaultInput ||
-      hasActiveExtensions(rawState) ||
-      hasActiveVariableAttributes(rawState) ||
-      guestArrays(rawState) ||
-      rawState.errexit ||
-      rawState.nounset ||
-      rawState.readonlyVariables?.size ||
-      rawState.allexport ||
-      rawState.braceexpand === false ||
-      this.budget.hasCpuLimit ||
-      io[valueScope] !== undefined ||
-      hasYieldCheckpoint(this.signal) ||
-      (io.descriptors && (io.descriptors.get(0)?.closed || io.descriptors.get(1)?.closed || io.descriptors.get(2)?.closed))
-    ) {
+    if ( this.middleware.length > 0 || io[invocationScope].hasFailures || io.terminal || io.asyncDefaultInput || hasActiveExtensions(rawState) || hasActiveVariableAttributes(rawState) || guestArrays(rawState) || rawState.errexit || rawState.nounset || rawState.readonlyVariables?.size || rawState.allexport || rawState.braceexpand === false || this.budget.hasCpuLimit || io[valueScope] !== undefined || hasYieldCheckpoint(this.signal) || (io.descriptors && (io.descriptors.get(0)?.closed || io.descriptors.get(1)?.closed || io.descriptors.get(2)?.closed))) {
       return undefined;
     }
     if (plan === undefined) {
@@ -7223,14 +6011,11 @@ export class Runtime {
       bodyStepCount: number;
     } })._cachedForPlan;
     const fastSyncSink = plan.echoVar !== undefined
-      ? ((io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) ||
-         (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write) ? io.stdout : undefined)
+      ? ((io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) || (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write) ? io.stdout : undefined)
       : undefined;
     if (plan.echoVar !== undefined) {
       const def = this.commands.get("echo");
-      if (!fastSyncSink || !def || !defaultEchoExecutors.has(def.execute) || hasShellFunction(rawState, "echo") || rawState.extensions?.builtins.has("echo") || (io.descriptors && io.descriptors.get(1)?.output !== io.stdout)) {
-        return undefined;
-      }
+      if (!fastSyncSink || !def || !defaultEchoExecutors.has(def.execute) || hasShellFunction(rawState, "echo") || rawState.extensions?.builtins.has("echo") || (io.descriptors && io.descriptors.get(1)?.output !== io.stdout)) return undefined;
     }
     const store = monitor.store;
     const existing = store?.get("PIPESTATUS");
@@ -7245,12 +6030,7 @@ export class Runtime {
     }
     const wordCount = forPlan.fastLoopWords.length;
     const totalCmds = plan.initAssigns.length + wordCount * forPlan.bodyStepCount + (plan.echoVar !== undefined ? 1 : 0);
-    if (
-      wordCount > this.budget.maxExpansionFieldsSmi ||
-      wordCount * 16 > this.budget.maxExpansionBytesSmi ||
-      this.budget.commands + totalCmds >= this.budget.maxCommandsSmi ||
-      this.budget.iterations + wordCount >= this.budget.maxLoopIterationsSmi
-    ) {
+    if ( wordCount > this.budget.maxExpansionFieldsSmi || wordCount * 16 > this.budget.maxExpansionBytesSmi || this.budget.commands + totalCmds >= this.budget.maxCommandsSmi || this.budget.iterations + wordCount >= this.budget.maxLoopIterationsSmi) {
       return undefined;
     }
     for (let i = 0; i < plan.initAssigns.length; i++) {
@@ -7305,7 +6085,6 @@ export class Runtime {
     if (store) store.epoch = restEpoch;
     return SYNC_UNIT_ZERO;
   }
-
   runUnit(script: Script, state: State, io: IO): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> {
     if (state.noexec) return SYNC_UNIT_ZERO;
     const monitor = ensureStateMonitor(state, this.budget, io[invocationScope]);
@@ -7319,9 +6098,7 @@ export class Runtime {
         }
         for (let listIndex = 0; listIndex < script.lists.length; listIndex++) {
           const list = script.lists[listIndex]!;
-          if (list.terminator) {
-            return this.runUnitFrom(script, monitor.proxy, io, listIndex, 0, false);
-          }
+          if (list.terminator) return this.runUnitFrom(script, monitor.proxy, io, listIndex, 0, false);
           for (let index = 0; index < list.pipelines.length; index++) {
             if (state.noexec) throw new Flow("discard", 0);
             const operator = index > 0 ? list.operators[index - 1] : undefined;
@@ -7344,9 +6121,7 @@ export class Runtime {
                 if (fastUnit.terminated) return fastUnit;
                 continue;
               }
-              if (listIndex === script.lists.length - 1 && index === list.pipelines.length - 1) {
-                return fastUnit;
-              }
+              if (listIndex === script.lists.length - 1 && index === list.pipelines.length - 1) return fastUnit;
               return this.continueRunUnitAfterFastPromise(fastUnit, script, monitor.proxy, io, listIndex, index);
             }
             return this.runUnitFrom(script, monitor.proxy, io, listIndex, index, false);
@@ -7374,25 +6149,13 @@ export class Runtime {
     }
     return this.runUnitFrom(script, monitor.proxy, io, 0, 0, true);
   }
-
-  private async continueRunUnitAfterFastPromise(
-    fastPromise: Promise<{ exitCode: number; terminated: boolean }>,
-    script: Script,
-    state: State,
-    io: IO,
-    listIndex: number,
-    pipelineIndex: number,
-  ): Promise<{ exitCode: number; terminated: boolean }> {
+  private async continueRunUnitAfterFastPromise( fastPromise: Promise<{ exitCode: number; terminated: boolean }>, script: Script, state: State, io: IO, listIndex: number, pipelineIndex: number, ): Promise<{ exitCode: number; terminated: boolean }> {
     try {
       const res = await fastPromise;
       if (res.terminated) return res;
       const list = script.lists[listIndex]!;
-      if (pipelineIndex + 1 < list.pipelines.length) {
-        return await this.runUnitFrom(script, state, io, listIndex, pipelineIndex + 1, false);
-      }
-      if (listIndex + 1 < script.lists.length) {
-        return await this.runUnitFrom(script, state, io, listIndex + 1, 0, false);
-      }
+      if (pipelineIndex + 1 < list.pipelines.length) return await this.runUnitFrom(script, state, io, listIndex, pipelineIndex + 1, false);
+      if (listIndex + 1 < script.lists.length) return await this.runUnitFrom(script, state, io, listIndex + 1, 0, false);
       return res;
     } catch (error) {
       if (error instanceof NounsetDiagnosticFailure) {
@@ -7403,7 +6166,6 @@ export class Runtime {
       throw error;
     }
   }
-
   private async runUnitFrom(script: Script, state: State, io: IO, startListIndex: number, startPipelineIndex: number, needStartExtensions: boolean): Promise<{ exitCode: number; terminated: boolean }> {
     try {
       if (needStartExtensions) await this.startExtensions(state, io);
@@ -7417,35 +6179,14 @@ export class Runtime {
       throw error;
     }
   }
-
-  private tryFastSinglePipelineUnit(
-    pipeline: Pipeline,
-    state: State,
-    io: IO,
-    ignored: boolean,
-  ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> | undefined {
-    if (
-      this.middleware.length > 0 ||
-      io.terminal !== undefined ||
-      io.asyncDefaultInput !== undefined ||
-      (io.descriptors &&
-        (io.descriptors.size > 3 ||
-          io.descriptors.get(0)?.closed ||
-          io.descriptors.get(1)?.closed ||
-          io.descriptors.get(2)?.closed))
-    ) {
+  private tryFastSinglePipelineUnit( pipeline: Pipeline, state: State, io: IO, ignored: boolean, ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> | undefined {
+    if ( this.middleware.length > 0 || io.terminal !== undefined || io.asyncDefaultInput !== undefined || (io.descriptors && (io.descriptors.size > 3 || io.descriptors.get(0)?.closed || io.descriptors.get(1)?.closed || io.descriptors.get(2)?.closed))) {
       return undefined;
     }
     const monitor = stateMonitor(state);
     if (!monitor) return undefined;
     const rawState = monitor.raw;
-    if (
-      hasActiveExtensions(rawState) ||
-      rawState.externalInvocation ||
-      hasActiveVariableAttributes(rawState) ||
-      guestArrays(state) ||
-      rawState.readonlyVariables?.has("PIPESTATUS")
-    ) {
+    if ( hasActiveExtensions(rawState) || rawState.externalInvocation || hasActiveVariableAttributes(rawState) || guestArrays(state) || rawState.readonlyVariables?.has("PIPESTATUS")) {
       return undefined;
     }
     const store = monitor.store;
@@ -7467,58 +6208,28 @@ export class Runtime {
       let args: string[];
       let lastArg: string;
       const diagnosticLine = io.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0);
-      if (
-        cSingle !== undefined &&
-        !customRegisteredRegistries.has(this.commands) &&
-        !hasShellFunction(rawState, cSingle.w0Plain) &&
-        !rawState.extensions?.builtins.has(cSingle.w0Plain) &&
-        command.words.length <= this.budget.maxExpansionFieldsSmi &&
-        (this.budget.commands + 1 <= this.budget.maxCommandsSmi || this.budget.commands + 1 <= this.budget.limits.maxCommands)
-      ) {
+      if ( cSingle !== undefined && !customRegisteredRegistries.has(this.commands) && !hasShellFunction(rawState, cSingle.w0Plain) && !rawState.extensions?.builtins.has(cSingle.w0Plain) && command.words.length <= this.budget.maxExpansionFieldsSmi && (this.budget.commands + 1 <= this.budget.maxCommandsSmi || this.budget.commands + 1 <= this.budget.limits.maxCommands)) {
         w0Plain = cSingle.w0Plain;
         const extD = this.getExternalCommand(w0Plain);
-        if (!extD || !builtInDirectContextExecutors.has(extD.execute) || customRegisteredCommands.has(extD.execute)) {
-          return undefined;
-        }
+        if (!extD || !builtInDirectContextExecutors.has(extD.execute) || customRegisteredCommands.has(extD.execute)) return undefined;
         externalDef = extD;
         args = cSingle.args;
         lastArg = cSingle.lastArg;
         if (command.redirects.length === 1) {
           const r0 = command.redirects[0]!;
-          if (
-            !this.budget.canRedirect1 ||
-            !this.budget.hasInfiniteFsOps ||
-            io.admittedHandles !== undefined ||
-            (this._fileWrites !== undefined && this._fileWrites.size > 0) ||
-            (this._outputFiles !== undefined && this._outputFiles.size > 0) ||
-            !this.canFastMemoryRedirect ||
-            (r0.operator === ">" && rawState.noclobber)
-          ) {
+          if ( !this.budget.canRedirect1 || !this.budget.hasInfiniteFsOps || io.admittedHandles !== undefined || (this._fileWrites !== undefined && this._fileWrites.size > 0) || (this._outputFiles !== undefined && this._outputFiles.size > 0) || !this.canFastMemoryRedirect || (r0.operator === ">" && rawState.noclobber)) {
             return undefined;
           }
         }
       } else {
         if (command.words.length === 0 || command.redirects.length > 1) return undefined;
         const w0P = command.words[0]!.plain;
-        if (
-          !w0P ||
-          !isFastDirectCommand(w0P, command.words) ||
-          implementedBuiltins.has(w0P) ||
-          hasShellFunction(rawState, w0P) ||
-          rawState.extensions?.builtins.has(w0P)
-        ) {
+        if ( !w0P || !isFastDirectCommand(w0P, command.words) || implementedBuiltins.has(w0P) || hasShellFunction(rawState, w0P) || rawState.extensions?.builtins.has(w0P)) {
           return undefined;
         }
         w0Plain = w0P;
         const extD = this.getExternalCommand(w0Plain);
-        if (
-          !extD ||
-          !builtInDirectContextExecutors.has(extD.execute) ||
-          customRegisteredCommands.has(extD.execute) ||
-          customRegisteredRegistries.has(this.commands) ||
-          command.words.length > this.budget.maxExpansionFieldsSmi ||
-          (this.budget.commands + 1 > this.budget.maxCommandsSmi && this.budget.commands + 1 > this.budget.limits.maxCommands)
-        ) {
+        if ( !extD || !builtInDirectContextExecutors.has(extD.execute) || customRegisteredCommands.has(extD.execute) || customRegisteredRegistries.has(this.commands) || command.words.length > this.budget.maxExpansionFieldsSmi || (this.budget.commands + 1 > this.budget.maxCommandsSmi && this.budget.commands + 1 > this.budget.limits.maxCommands)) {
           return undefined;
         }
         externalDef = extD;
@@ -7527,20 +6238,7 @@ export class Runtime {
         }
         if (command.redirects.length === 1) {
           const r0 = command.redirects[0]!;
-          if (
-            !this.budget.canRedirect1 ||
-            !this.budget.hasInfiniteFsOps ||
-            io.admittedHandles !== undefined ||
-            (this._fileWrites !== undefined && this._fileWrites.size > 0) ||
-            (this._outputFiles !== undefined && this._outputFiles.size > 0) ||
-            !this.canFastMemoryRedirect ||
-            r0.descriptor !== 1 ||
-            r0.move ||
-            r0.document ||
-            !(r0.operator === ">" || r0.operator === ">>" || (r0.operator === ">|" && rawState.noclobber)) ||
-            (r0.operator === ">" && rawState.noclobber) ||
-            !this.isPureArgWord(r0.target, rawState)
-          ) {
+          if ( !this.budget.canRedirect1 || !this.budget.hasInfiniteFsOps || io.admittedHandles !== undefined || (this._fileWrites !== undefined && this._fileWrites.size > 0) || (this._outputFiles !== undefined && this._outputFiles.size > 0) || !this.canFastMemoryRedirect || r0.descriptor !== 1 || r0.move || r0.document || !(r0.operator === ">" || r0.operator === ">>" || (r0.operator === ">|" && rawState.noclobber)) || (r0.operator === ">" && rawState.noclobber) || !this.isPureArgWord(r0.target, rawState)) {
             return undefined;
           }
         }
@@ -7568,10 +6266,7 @@ export class Runtime {
             (command as { _cachedConstArgs?: string[] })._cachedConstArgs = args;
             if (command.redirects.length === 0 || (command.redirects[0]!.target.plain !== undefined && (command.redirects[0]!.operator === ">" || command.redirects[0]!.operator === ">>"))) {
               (command as { _cachedFastSingle?: typeof cSingle })._cachedFastSingle = {
-                w0Plain,
-                args,
-                lastArg,
-              };
+                w0Plain, args, lastArg, };
             }
           }
         }
@@ -7590,9 +6285,7 @@ export class Runtime {
         if (typeof targetVal !== "string" || !targetVal || targetVal.includes("\0")) return undefined;
         let cachedFile = (r0 as { _cachedRedirectFile?: { path: string } })._cachedRedirectFile;
         let resolved: string;
-        if (cachedFile !== undefined && r0.target.plain !== undefined && r0.target.plain.charCodeAt(0) === 47 && cachedFile.path === r0.target.plain) {
-          resolved = cachedFile.path;
-        } else {
+        if (cachedFile !== undefined && r0.target.plain !== undefined && r0.target.plain.charCodeAt(0) === 47 && cachedFile.path === r0.target.plain) resolved = cachedFile.path; else {
           resolved = normalizePath(targetVal, rawState.cwd);
           if (resolved === "/dev" || resolved.startsWith("/dev/")) return undefined;
           if (!cachedFile || cachedFile.path !== resolved) {
@@ -7602,13 +6295,7 @@ export class Runtime {
         }
         let handle: MemoryRedirectHandle | undefined;
         try {
-          handle = tryOpenMemoryRedirectHandleSync(
-            this.backingFs,
-            resolved,
-            r0.operator === ">>",
-            0o666 & ~(rawState.umask ?? 0o022),
-            this.signal,
-          );
+          handle = tryOpenMemoryRedirectHandleSync( this.backingFs, resolved, r0.operator === ">>", 0o666 & ~(rawState.umask ?? 0o022), this.signal, );
         } catch {
           return undefined;
         }
@@ -7618,13 +6305,9 @@ export class Runtime {
           redirectSink = pooledMemoryRedirectSink;
           pooledMemoryRedirectSink = undefined;
           redirectSink.reset(this.budget, handle, resolved, this.commandSignal, cachedFile);
-        } else {
-          redirectSink = new MemoryRedirectSink(this.budget, handle, resolved, this.commandSignal, cachedFile);
-        }
+        } else redirectSink = new MemoryRedirectSink(this.budget, handle, resolved, this.commandSignal, cachedFile);
       }
-      if (rawState.extensions && !rawState.extensions.eventDepth) {
-        publishCommandSpelling(rawState, commandSpelling(command));
-      }
+      if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
       this.budget.tick();
       rawState.substitutionStatus = 0;
       if (rawState.variables._ !== undefined) delete rawState.variables._;
@@ -7635,18 +6318,7 @@ export class Runtime {
       if (pooledFastSingleContext) {
         context = pooledFastSingleContext;
         pooledFastSingleContext = undefined;
-        context.resetDirectStage(
-          this,
-          rawState,
-          io,
-          scope,
-          w0Plain,
-          args,
-          io.stdin,
-          io.stdinIsDefault === true,
-          redirectSink ?? io.stdout,
-          this.commandSignal,
-        );
+        context.resetDirectStage( this, rawState, io, scope, w0Plain, args, io.stdin, io.stdinIsDefault === true, redirectSink ?? io.stdout, this.commandSignal, );
         if (!this._isMemoryBackingFs) {
           (context as unknown as { _scopedSignal: AbortSignal | undefined })._scopedSignal = undefined;
         }
@@ -7659,47 +6331,12 @@ export class Runtime {
         descriptors.set(1, { output: redirectSink });
         context.descriptors = descriptors;
       }
-      return this.finishFastSingleExternalUnit(
-        externalDef,
-        context,
-        redirectSink,
-        diagnosticLine,
-        pipeline.negate,
-        ignored || pipeline.negate,
-        monitor,
-        rawState,
-        existing,
-        elem0,
-        store,
-        state,
-        io,
-      );
+      return this.finishFastSingleExternalUnit( externalDef, context, redirectSink, diagnosticLine, pipeline.negate, ignored || pipeline.negate, monitor, rawState, existing, elem0, store, state, io, );
     }
     if (pipeline.commands.length >= 2 && !existing) {
       const n = pipeline.commands.length;
       if ((this.budget.commands + n > this.budget.maxCommandsSmi && this.budget.commands + n > this.budget.limits.maxCommands)) return undefined;
-      if (
-        pipeline === lastPurePipeAst &&
-        !syncPurePipelineSlotInUse &&
-        this._isMemoryBackingFs &&
-        this.backingFs &&
-        this.backingFs.capabilitiesFor === undefined &&
-        this.commands === lastPurePipeRegistry &&
-        (!rawState.functions || rawState.functions.size === 0) &&
-        !rawState.extensions?.builtins.size &&
-        io.stdinIsDefault &&
-        !this.signal.aborted &&
-        !hasYieldCheckpoint(this.signal) &&
-        this.budget.canSyncPurePipe &&
-        Date.now === defaultDateNow &&
-        io.stdout instanceof Capture &&
-        (io.stdout as unknown as { _scratch4k?: Uint8Array })._scratch4k !== undefined &&
-        io.stdout.length === 0 &&
-        io.stdout.write === Capture.prototype.write &&
-        io.stderr instanceof Capture &&
-        io.stderr.length === 0 &&
-        io.stderr.write === Capture.prototype.write
-      ) {
+      if ( pipeline === lastPurePipeAst && !syncPurePipelineSlotInUse && this._isMemoryBackingFs && this.backingFs && this.backingFs.capabilitiesFor === undefined && this.commands === lastPurePipeRegistry && (!rawState.functions || rawState.functions.size === 0) && !rawState.extensions?.builtins.size && io.stdinIsDefault && !this.signal.aborted && !hasYieldCheckpoint(this.signal) && this.budget.canSyncPurePipe && Date.now === defaultDateNow && io.stdout instanceof Capture && (io.stdout as unknown as { _scratch4k?: Uint8Array })._scratch4k !== undefined && io.stdout.length === 0 && io.stdout.write === Capture.prototype.write && io.stderr instanceof Capture && io.stderr.length === 0 && io.stderr.write === Capture.prototype.write) {
         const rootEntry = (this.backingFs as unknown as { root?: { entries?: Map<string, { type: string; mode?: number; revision?: number; sourceRef?: Uint8Array }> } }).root?.entries?.get(lastPurePipeSlice1);
         if (rootEntry && rootEntry.type === "file" && rootEntry.revision === 0 && rootEntry.mode !== undefined && ((rootEntry.mode >> 6) & 4) === 4 && rootEntry.sourceRef && lastPurePipeSrcRefs.has(rootEntry.sourceRef)) {
           this.budget.enterPipelineStages(n);
@@ -7720,30 +6357,13 @@ export class Runtime {
       }
       for (let i = 0; i < n; i++) {
         const cmd = pipeline.commands[i]!;
-        if (cmd.kind !== "simple" || !this.isPureExternalStageCommand(cmd, rawState) || cmd.words.length > this.budget.maxExpansionFieldsSmi) {
-          return undefined;
-        }
+        if (cmd.kind !== "simple" || !this.isPureExternalStageCommand(cmd, rawState) || cmd.words.length > this.budget.maxExpansionFieldsSmi) return undefined;
       }
       return this.executeFastPurePipelineUnit(pipeline, state, rawState, monitor, io, ignored || pipeline.negate);
     }
     return undefined;
   }
-
-  private finishFastSingleExternalUnit(
-    definition: NonNullable<ReturnType<CommandRegistry["get"]>>,
-    context: FastShellCommandContext,
-    redirectSink: MemoryRedirectSink | undefined,
-    diagnosticLine: number,
-    negate: boolean,
-    ignored: boolean,
-    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
-    rawState: State,
-    existing: ReturnType<NonNullable<typeof monitor.store>["get"]>,
-    elem0: IndexedBinding["values"] extends Map<number, infer E> ? E | undefined : never,
-    store: typeof monitor.store,
-    state: State,
-    io: IO,
-  ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> {
+  private finishFastSingleExternalUnit( definition: NonNullable<ReturnType<CommandRegistry["get"]>>, context: FastShellCommandContext, redirectSink: MemoryRedirectSink | undefined, diagnosticLine: number, negate: boolean, ignored: boolean, monitor: NonNullable<ReturnType<typeof stateMonitor>>, rawState: State, existing: ReturnType<NonNullable<typeof monitor.store>["get"]>, elem0: IndexedBinding["values"] extends Map<number, infer E> ? E | undefined : never, store: typeof monitor.store, state: State, io: IO, ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> {
     const scope = io[invocationScope];
     const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
     scope.enterWork();
@@ -7785,33 +6405,11 @@ export class Runtime {
         return finalStatus === 0 ? SYNC_UNIT_ZERO : SYNC_UNIT_ONE;
       }
     } catch (error) {
-      return this.finishFastSingleExternalUnitAsync(
-        undefined, error, true, redirectSink, diagnosticLine, negate, ignored, monitor, rawState, existing, elem0, store, state, io, scope, restEpoch,
-      );
+      return this.finishFastSingleExternalUnitAsync( undefined, error, true, redirectSink, diagnosticLine, negate, ignored, monitor, rawState, existing, elem0, store, state, io, scope, restEpoch, );
     }
-    return this.finishFastSingleExternalUnitAsync(
-      raw, undefined, false, redirectSink, diagnosticLine, negate, ignored, monitor, rawState, existing, elem0, store, state, io, scope, restEpoch,
-    );
+    return this.finishFastSingleExternalUnitAsync( raw, undefined, false, redirectSink, diagnosticLine, negate, ignored, monitor, rawState, existing, elem0, store, state, io, scope, restEpoch, );
   }
-
-  private async finishFastSingleExternalUnitAsync(
-    raw: CommandResult | Promise<CommandResult> | undefined,
-    initialError: unknown,
-    hasInitialError: boolean,
-    redirectSink: MemoryRedirectSink | undefined,
-    diagnosticLine: number,
-    negate: boolean,
-    ignored: boolean,
-    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
-    rawState: State,
-    existing: ReturnType<NonNullable<typeof monitor.store>["get"]>,
-    elem0: IndexedBinding["values"] extends Map<number, infer E> ? E | undefined : never,
-    store: typeof monitor.store,
-    state: State,
-    io: IO,
-    scope: InvocationScope,
-    restEpoch: number,
-  ): Promise<{ exitCode: number; terminated: boolean }> {
+  private async finishFastSingleExternalUnitAsync( raw: CommandResult | Promise<CommandResult> | undefined, initialError: unknown, hasInitialError: boolean, redirectSink: MemoryRedirectSink | undefined, diagnosticLine: number, negate: boolean, ignored: boolean, monitor: NonNullable<ReturnType<typeof stateMonitor>>, rawState: State, existing: ReturnType<NonNullable<typeof monitor.store>["get"]>, elem0: IndexedBinding["values"] extends Map<number, infer E> ? E | undefined : never, store: typeof monitor.store, state: State, io: IO, scope: InvocationScope, restEpoch: number, ): Promise<{ exitCode: number; terminated: boolean }> {
     let rawStatus = 0;
     try {
       if (hasInitialError) throw initialError;
@@ -7825,9 +6423,7 @@ export class Runtime {
       this.signal.throwIfAborted();
       if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
       this.clearOutcomeReport();
-      if (errorCode(error) === "EPIPE") {
-        rawStatus = 141;
-      } else {
+      if (errorCode(error) === "EPIPE") rawStatus = 141; else {
         try {
           await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: line ${diagnosticLine}: ${message(error, this.budget.onInternalError)}\n`);
         } catch (failure) {
@@ -7847,9 +6443,7 @@ export class Runtime {
     } else if (rawStatus < 10) {
       elem0!.text.shellValue = String(rawStatus);
       store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
-    } else {
-      await publishPipelineStatus(state, [rawStatus], this.signal, scope);
-    }
+    } else await publishPipelineStatus(state, [rawStatus], this.signal, scope);
     const finalStatus = negate ? Number(rawStatus === 0) : rawStatus;
     rawState.status = finalStatus;
     monitor.epoch = restEpoch;
@@ -7860,41 +6454,12 @@ export class Runtime {
     }
     return finalStatus === 0 ? SYNC_UNIT_ZERO : finalStatus === 1 ? SYNC_UNIT_ONE : { exitCode: finalStatus, terminated: false };
   }
-
-  private executeFastPurePipelineUnit(
-    pipeline: Pipeline,
-    state: State,
-    rawState: State,
-    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
-    io: IO,
-    ignored: boolean,
-  ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> | undefined {
+  private executeFastPurePipelineUnit( pipeline: Pipeline, state: State, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, io: IO, ignored: boolean, ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> | undefined {
     return this.tryExecuteSyncPurePipelineUnit(pipeline, state, rawState, monitor, io, ignored);
   }
-
-  private tryExecuteSyncPurePipelineUnit(
-    pipeline: Pipeline,
-    state: State,
-    rawState: State,
-    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
-    io: IO,
-    ignored: boolean,
-  ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> | undefined {
+  private tryExecuteSyncPurePipelineUnit( pipeline: Pipeline, state: State, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, io: IO, ignored: boolean, ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> | undefined {
     const backing = this.backingFs;
-    if (
-      syncPurePipelineSlotInUse ||
-      !this._isMemoryBackingFs ||
-      !backing ||
-      backing.capabilitiesFor !== undefined ||
-      this.middleware.length > 0 ||
-      customRegisteredRegistries.has(this.commands) ||
-      !io.stdinIsDefault ||
-      this.signal.aborted ||
-      hasYieldCheckpoint(this.signal) ||
-      !this.budget.canSyncPurePipe ||
-      !(io.stdout instanceof Capture && (io.stdout as unknown as { _scratch4k?: Uint8Array })._scratch4k !== undefined && io.stdout.length === 0 && io.stdout.write === Capture.prototype.write) ||
-      !(io.stderr instanceof Capture && io.stderr.length === 0 && io.stderr.write === Capture.prototype.write)
-    ) {
+    if ( syncPurePipelineSlotInUse || !this._isMemoryBackingFs || !backing || backing.capabilitiesFor !== undefined || this.middleware.length > 0 || customRegisteredRegistries.has(this.commands) || !io.stdinIsDefault || this.signal.aborted || hasYieldCheckpoint(this.signal) || !this.budget.canSyncPurePipe || !(io.stdout instanceof Capture && (io.stdout as unknown as { _scratch4k?: Uint8Array })._scratch4k !== undefined && io.stdout.length === 0 && io.stdout.write === Capture.prototype.write) || !(io.stderr instanceof Capture && io.stderr.length === 0 && io.stderr.write === Capture.prototype.write)) {
       return undefined;
     }
     const n = pipeline.commands.length;
@@ -7904,11 +6469,7 @@ export class Runtime {
       const cmd = pipeline.commands[i]! as Extract<Command, { kind: "simple" }>;
       const name = cmd.words[0]!.plain!;
       const extDef = this.getExternalCommand(name);
-      if (
-        !extDef ||
-        !builtInDirectContextExecutors.has(extDef.execute) ||
-        customRegisteredCommands.has(extDef.execute)
-      ) {
+      if ( !extDef || !builtInDirectContextExecutors.has(extDef.execute) || customRegisteredCommands.has(extDef.execute)) {
         return undefined;
       }
       let stageArgs = (cmd as { _cachedPlainArgs?: string[] })._cachedPlainArgs;
@@ -7931,9 +6492,7 @@ export class Runtime {
             const slice1 = (cmd as { _cachedSlice1?: string })._cachedSlice1 ?? ((cmd as { _cachedSlice1?: string })._cachedSlice1 = fileArg.slice(1));
             const rootEntry = (backing as unknown as { root?: { entries?: Map<string, { type: string; mode?: number; revision?: number; sourceRef?: Uint8Array; data?: Uint8Array }> } }).root?.entries?.get(slice1);
             if (!rootEntry || rootEntry.type !== "file" || (rootEntry.data && rootEntry.data.byteLength > 65536)) return undefined;
-            if (rootEntry.revision === 0 && rootEntry.mode !== undefined && ((rootEntry.mode >> 6) & 4) === 4 && rootEntry.data && rootEntry.data.byteLength >= 1024) {
-              firstStageRootSourceRef = rootEntry.sourceRef;
-            }
+            if (rootEntry.revision === 0 && rootEntry.mode !== undefined && ((rootEntry.mode >> 6) & 4) === 4 && rootEntry.data && rootEntry.data.byteLength >= 1024) firstStageRootSourceRef = rootEntry.sourceRef;
           }
         } else if (name === "find") {
           if (stageArgs.length !== 3 || stageArgs[1] !== "-name" || stageArgs[0]!.startsWith("-") || stageArgs[0]!.startsWith("/dev")) return undefined;
@@ -7943,15 +6502,11 @@ export class Runtime {
             if (!rootEntry || rootEntry.type !== "directory") return undefined;
           } else if (n === 2 && stageArgs[0]!.charCodeAt(0) === 47) {
             const de = tryGetMemoryDirectoryEntryNamesSync(backing, stageArgs[0]!) as { readonly size: number; readonly _next?: number; readonly _keys?: string[] } | undefined;
-            if (de && de.size >= 32 && de._next === de.size && de._keys) {
-              firstStageFindDirEntries = de;
-            }
+            if (de && de.size >= 32 && de._next === de.size && de._keys) firstStageFindDirEntries = de;
           }
         } else if (name === "sed") {
           if (stageArgs.length !== 2 || stageArgs[0]!.startsWith("-") || stageArgs[0] === "-" || stageArgs[1] === "-" || stageArgs[1]!.startsWith("-") || stageArgs[1]!.startsWith("/dev")) return undefined;
-        } else {
-          return undefined;
-        }
+        } else return undefined;
       } else {
         if (name === "cut") {
           const validCut2 = stageArgs.length === 2 && stageArgs[0]!.length === 3 && stageArgs[0]!.startsWith("-d") && stageArgs[1]!.length >= 3 && stageArgs[1]!.startsWith("-f");
@@ -7965,20 +6520,10 @@ export class Runtime {
           if (stageArgs.length !== 0 && !(stageArgs.length === 2 && stageArgs[0] === "-n" && stageArgs[1]!.length >= 1 && stageArgs[1]!.charCodeAt(0) >= 48 && stageArgs[1]!.charCodeAt(0) <= 57)) return undefined;
         } else if (name === "wc") {
           if (stageArgs.length !== 1 || (stageArgs[0] !== "-l" && stageArgs[0] !== "-c")) return undefined;
-        } else {
-          return undefined;
-        }
+        } else return undefined;
       }
     }
-    if (
-      n === 2 &&
-      pipeline === lastPureFindPipeAst &&
-      firstStageFindDirEntries !== undefined &&
-      firstStageFindDirEntries.size === lastPureFindDirSize &&
-      firstStageFindDirEntries._keys![0] === lastPureFindFirstKey &&
-      firstStageFindDirEntries._keys![lastPureFindDirSize - 1] === lastPureFindLastKey &&
-      Date.now === defaultDateNow
-    ) {
+    if ( n === 2 && pipeline === lastPureFindPipeAst && firstStageFindDirEntries !== undefined && firstStageFindDirEntries.size === lastPureFindDirSize && firstStageFindDirEntries._keys![0] === lastPureFindFirstKey && firstStageFindDirEntries._keys![lastPureFindDirSize - 1] === lastPureFindLastKey && Date.now === defaultDateNow) {
       this.budget.enterPipelineStages(2);
       this.budget.commands += 2;
       try {
@@ -7994,13 +6539,7 @@ export class Runtime {
       monitor.epoch = restEpoch;
       return SYNC_UNIT_ZERO;
     }
-    if (
-      n >= 3 &&
-      pipeline === lastPurePipeAst &&
-      firstStageRootSourceRef !== undefined &&
-      lastPurePipeSrcRefs.has(firstStageRootSourceRef) &&
-      Date.now === defaultDateNow
-    ) {
+    if ( n >= 3 && pipeline === lastPurePipeAst && firstStageRootSourceRef !== undefined && lastPurePipeSrcRefs.has(firstStageRootSourceRef) && Date.now === defaultDateNow) {
       this.budget.enterPipelineStages(n);
       this.budget.commands += n;
       try {
@@ -8033,17 +6572,13 @@ export class Runtime {
         const isFirst = index === 0;
         const isLast = index === n - 1;
         let inputSource: ByteSource;
-        if (isFirst) {
-          inputSource = io.stdin;
-        } else {
+        if (isFirst) inputSource = io.stdin; else {
           sharedSyncPipeReader.reset(prevBuf, prevLen, this.signal, sharedSyncPipeWriter.lineCountOnly);
           inputSource = sharedSyncPipeReader;
         }
         const nextBuf = (index & 1) === 0 ? sharedSyncPipeBuf0 : sharedSyncPipeBuf1;
         let stageStdout: ByteSink;
-        if (isLast) {
-          stageStdout = io.stdout;
-        } else {
+        if (isLast) stageStdout = io.stdout; else {
           const nextCmd = pipeline.commands[index + 1]! as Extract<Command, { kind: "simple" }>;
           const isNextWcL = nextCmd.words[0]!.plain === "wc" && (nextCmd as { _cachedPlainArgs?: string[] })._cachedPlainArgs?.length === 1 && (nextCmd as { _cachedPlainArgs?: string[] })._cachedPlainArgs![0] === "-l";
           sharedSyncPipeWriter.reset(this.budget, this.signal, nextBuf, isNextWcL ? 0 : -1);
@@ -8064,9 +6599,7 @@ export class Runtime {
           this.budget.endPathLookupSuspension();
           scope.leaveWork();
         }
-        if (resPromise !== RESOLVED_EXIT_ZERO && resPromise !== RESOLVED_EXIT_ONE) {
-          return finishSyncPurePipelineAsync(resPromise, this.budget, n, pipeline.negate, rawState);
-        }
+        if (resPromise !== RESOLVED_EXIT_ZERO && resPromise !== RESOLVED_EXIT_ONE) return finishSyncPurePipelineAsync(resPromise, this.budget, n, pipeline.negate, rawState);
         this.signal.throwIfAborted();
         if (resPromise !== RESOLVED_EXIT_ZERO) {
           statuses ??= new Array<number>(n).fill(0);
@@ -8079,9 +6612,7 @@ export class Runtime {
       this.budget.leavePipelineStages(n);
       throw err;
     } finally {
-      if (context) {
-        context.releaseDirectStage();
-      }
+      if (context) context.releaseDirectStage();
       sharedSyncPipeWriter.budget = undefined!;
       sharedSyncPipeWriter.signal = undefined!;
       sharedSyncPipeWriter.target = EMPTY_BYTES;
@@ -8089,14 +6620,7 @@ export class Runtime {
       syncPurePipelineSlotInUse = false;
     }
     this.budget.leavePipelineStages(n);
-    if (
-      n >= 3 &&
-      statuses === undefined &&
-      firstStageRootSourceRef !== undefined &&
-      io.stderr.length === 0 &&
-      io.stdout.length <= 256 &&
-      Date.now === defaultDateNow
-    ) {
+    if ( n >= 3 && statuses === undefined && firstStageRootSourceRef !== undefined && io.stderr.length === 0 && io.stdout.length <= 256 && Date.now === defaultDateNow) {
       const scratch = (io.stdout as unknown as { _scratch4k?: Uint8Array })._scratch4k;
       if (scratch) {
         const outLen = io.stdout.length;
@@ -8108,14 +6632,7 @@ export class Runtime {
         lastPurePipeSrcRefs.add(firstStageRootSourceRef);
       }
     }
-    if (
-      n === 2 &&
-      statuses === undefined &&
-      firstStageFindDirEntries !== undefined &&
-      io.stderr.length === 0 &&
-      io.stdout.length <= 64 &&
-      Date.now === defaultDateNow
-    ) {
+    if ( n === 2 && statuses === undefined && firstStageFindDirEntries !== undefined && io.stderr.length === 0 && io.stdout.length <= 64 && Date.now === defaultDateNow) {
       const scratch = (io.stdout as unknown as { _scratch4k?: Uint8Array })._scratch4k;
       if (scratch) {
         const outLen = io.stdout.length;
@@ -8141,15 +6658,7 @@ export class Runtime {
     }
     return finalStatus === 0 ? SYNC_UNIT_ZERO : finalStatus === 1 ? SYNC_UNIT_ONE : { exitCode: finalStatus, terminated: false };
   }
-
-  private executeFastPurePipelineUnitSlow(
-    pipeline: Pipeline,
-    state: State,
-    rawState: State,
-    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
-    io: IO,
-    ignored: boolean,
-  ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> {
+  private executeFastPurePipelineUnitSlow( pipeline: Pipeline, state: State, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, io: IO, ignored: boolean, ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> {
     const n = pipeline.commands.length;
     this.budget.enterPipelineStages(n);
     this.budget.commands += n;
@@ -8163,15 +6672,13 @@ export class Runtime {
       controllers[i] = createManagedControlController();
     }
     const onParentAbort = (reason: unknown) => {
-      for (let i = 0; i < n; i++) abortManagedController(controllers[i]!, reason);
-    };
+      for (let i = 0; i < n; i++) abortManagedController(controllers[i]!, reason);};
     addAbortSignalWaiter(this.signal, onParentAbort);
     const scope = io[invocationScope];
     const onScopeSeal = () => {
       const closedReason = new Error("Invocation is closed");
       for (let i = 0; i < n; i++) abortManagedController(controllers[i]!, closedReason);
-      for (let i = 0; i < n - 1; i++) void pipes[i]!.abort(closedReason);
-    };
+      for (let i = 0; i < n - 1; i++) void pipes[i]!.abort(closedReason);};
     scope.addSealCallback(onScopeSeal);
     const statuses = new Array<number>(n);
     let asyncTasks: Promise<number>[] | undefined;
@@ -8198,11 +6705,7 @@ export class Runtime {
         if (incoming) {
           (reading as unknown as { abortSignal?: AbortSignal }).abortSignal = stageSignal;
           input = reading! as unknown as ByteSource;
-        } else if (io.stdinIsDefault) {
-          input = io.stdin;
-        } else {
-          input = new ShellInput(io.stdin, this.budget, stageSignal, undefined, true);
-        }
+        } else if (io.stdinIsDefault) input = io.stdin; else input = new ShellInput(io.stdin, this.budget, stageSignal, undefined, true);
         const writable = writing?.writable ?? outgoing?.writable;
         const stageStdout = outgoing
           ? new BudgetedPipeStageSink(this.budget, writable!, stageSignal, undefined, index, controllers[index]!)
@@ -8228,9 +6731,7 @@ export class Runtime {
             } else if (resPromise === RESOLVED_EXIT_ONE) {
               stageSignal.throwIfAborted();
               syncExitCode = 1;
-            } else {
-              pendingRes = Promise.resolve(resPromise);
-            }
+            } else pendingRes = Promise.resolve(resPromise);
           } catch (error) {
             hasSyncErr = true;
             syncErr = error;
@@ -8266,21 +6767,15 @@ export class Runtime {
           }
           asyncTasks = new Array<Promise<number>>(n);
           for (let prev = 0; prev < index; prev++) asyncTasks[prev] = Promise.resolve(statuses[prev]!);
-          asyncTasks[index] = this.finishFastPurePipelineStageAsync(
-            cmd, context, incoming, outgoing, reading, writing, input, stageSignal, scope, io, pendingRes, hasSyncErr, syncErr,
-          );
+          asyncTasks[index] = this.finishFastPurePipelineStageAsync( cmd, context, incoming, outgoing, reading, writing, input, stageSignal, scope, io, pendingRes, hasSyncErr, syncErr, );
           continue;
         }
         scope.enterWork();
         this.budget.beginPathLookupSuspension();
-        asyncTasks[index] = this.finishFastPurePipelineStageAsync(
-          cmd, context, incoming, outgoing, reading, writing, input, stageSignal, scope, io, undefined, false, undefined, extDef,
-        );
+        asyncTasks[index] = this.finishFastPurePipelineStageAsync( cmd, context, incoming, outgoing, reading, writing, input, stageSignal, scope, io, undefined, false, undefined, extDef, );
       }
       if (asyncTasks !== undefined) {
-        return this.finishFastPurePipelineUnitAsync(
-          asyncTasks, n, pipes, controllers, onParentAbort, onScopeSeal, scope, monitor, rawState, pipeline, state, io, ignored,
-        );
+        return this.finishFastPurePipelineUnitAsync( asyncTasks, n, pipes, controllers, onParentAbort, onScopeSeal, scope, monitor, rawState, pipeline, state, io, ignored, );
       }
     } catch (syncFatal) {
       scope.removeSealCallback(onScopeSeal);
@@ -8312,24 +6807,7 @@ export class Runtime {
     }
     return finalStatus === 0 ? SYNC_UNIT_ZERO : finalStatus === 1 ? SYNC_UNIT_ONE : { exitCode: finalStatus, terminated: false };
   }
-
-
-  private async finishFastPurePipelineStageAsync(
-    cmd: Extract<Command, { kind: "simple" }>,
-    context: FastShellCommandContext,
-    incoming: ReturnType<typeof createBytePipe> | undefined,
-    outgoing: ReturnType<typeof createBytePipe> | undefined,
-    reading: NonNullable<ReturnType<typeof createBytePipe>["endpoints"]>["read"] | undefined,
-    writing: NonNullable<ReturnType<typeof createBytePipe>["endpoints"]>["write"] | undefined,
-    input: ByteSource,
-    stageSignal: AbortSignal,
-    scope: InvocationScope,
-    io: IO,
-    pendingRes: Promise<CommandResult> | undefined,
-    hasSyncErr: boolean,
-    syncErr: unknown,
-    extDef?: CommandDefinition,
-  ): Promise<number> {
+  private async finishFastPurePipelineStageAsync( cmd: Extract<Command, { kind: "simple" }>, context: FastShellCommandContext, incoming: ReturnType<typeof createBytePipe> | undefined, outgoing: ReturnType<typeof createBytePipe> | undefined, reading: NonNullable<ReturnType<typeof createBytePipe>["endpoints"]>["read"] | undefined, writing: NonNullable<ReturnType<typeof createBytePipe>["endpoints"]>["write"] | undefined, input: ByteSource, stageSignal: AbortSignal, scope: InvocationScope, io: IO, pendingRes: Promise<CommandResult> | undefined, hasSyncErr: boolean, syncErr: unknown, extDef?: CommandDefinition, ): Promise<number> {
     let exitCode = 0;
     try {
       if (hasSyncErr) throw syncErr;
@@ -8337,11 +6815,7 @@ export class Runtime {
       stageSignal.throwIfAborted();
       exitCode = validateExitCode(res.exitCode);
     } catch (error) {
-      if (error instanceof PipelineClosed || (stageSignal.aborted && Object.is(stageSignal.reason, SHARED_PIPELINE_CLOSED))) {
-        exitCode = 141;
-      } else if (errorCode(error) === "EPIPE" && !this.signal.aborted) {
-        exitCode = 141;
-      } else {
+      if (error instanceof PipelineClosed || (stageSignal.aborted && Object.is(stageSignal.reason, SHARED_PIPELINE_CLOSED))) exitCode = 141; else if (errorCode(error) === "EPIPE" && !this.signal.aborted) exitCode = 141; else {
         this.signal.throwIfAborted();
         if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
         const line = io.diagnosticCommandLines?.get(cmd) ?? (cmd.line ?? 1) + (io.diagnosticOffset ?? 0);
@@ -8377,22 +6851,7 @@ export class Runtime {
     }
     return exitCode;
   }
-
-  private async finishFastPurePipelineUnitAsync(
-    tasks: Promise<number>[],
-    n: number,
-    pipes: ReturnType<typeof createBytePipe>[],
-    controllers: ManagedControlController[],
-    onParentAbort: (reason: unknown) => void,
-    onScopeSeal: () => void,
-    scope: InvocationScope,
-    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
-    rawState: State,
-    pipeline: Pipeline,
-    state: State,
-    io: IO,
-    ignored: boolean,
-  ): Promise<{ exitCode: number; terminated: boolean }> {
+  private async finishFastPurePipelineUnitAsync( tasks: Promise<number>[], n: number, pipes: ReturnType<typeof createBytePipe>[], controllers: ManagedControlController[], onParentAbort: (reason: unknown) => void, onScopeSeal: () => void, scope: InvocationScope, monitor: NonNullable<ReturnType<typeof stateMonitor>>, rawState: State, pipeline: Pipeline, state: State, io: IO, ignored: boolean, ): Promise<{ exitCode: number; terminated: boolean }> {
     let statuses: number[];
     try {
       statuses = this.budget._hasExternalSignal
@@ -8423,7 +6882,6 @@ export class Runtime {
     }
     return finalStatus === 0 ? SYNC_UNIT_ZERO : finalStatus === 1 ? SYNC_UNIT_ONE : { exitCode: finalStatus, terminated: false };
   }
-
   private async inputUnit(script: Script, state: State, io: IO, startListIndex = 0, startPipelineIndex = 0, skipFirstSync = false): Promise<number> {
     try { return await this.script(script, state, io, startListIndex, startPipelineIndex, skipFirstSync); }
     catch (error) {
@@ -8434,7 +6892,6 @@ export class Runtime {
       return error.status;
     }
   }
-
   private trySyncPipeline(pipeline: Pipeline, state: State, io: IO, ignored: boolean): number | undefined {
     if (this.budget.limits.maxExpansionBytes < 65536 || this.budget.limits.maxCommands < 1000 || this.script !== Runtime.prototype.script) return undefined;
     if (this.middleware.length > 0) return undefined;
@@ -8443,10 +6900,7 @@ export class Runtime {
       return undefined;
     }
     const command = pipeline.commands[0]!;
-    if (
-      (command.kind !== "simple" && command.kind !== "arithmetic" && command.kind !== "conditional" && command.kind !== "arithmetic-for" && command.kind !== "for" && command.kind !== "if" && command.kind !== "case" && command.kind !== "group") ||
-      command.redirects.length > 1
-    ) {
+    if ( (command.kind !== "simple" && command.kind !== "arithmetic" && command.kind !== "conditional" && command.kind !== "arithmetic-for" && command.kind !== "for" && command.kind !== "if" && command.kind !== "case" && command.kind !== "group") || command.redirects.length > 1) {
       (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
       return undefined;
     }
@@ -8466,68 +6920,24 @@ export class Runtime {
           return undefined;
         }
       } else if (wordsLen >= 2) {
-        if (
-          w0Plain !== "echo" &&
-          w0Plain !== "printf" &&
-          w0Plain !== "[" &&
-          w0Plain !== "test" &&
-          w0Plain !== "mkdir" &&
-          w0Plain !== "rm" &&
-          w0Plain !== "local" &&
-          w0Plain !== "return" &&
-          w0Plain !== "shift" &&
-          w0Plain !== "read" &&
-          w0Plain !== "eval" &&
-          w0Plain !== "unset" &&
-          w0Plain !== "export" &&
-          w0Plain !== "let" &&
-          !(command.words[1]?.plain === "read" && w0.parts[0]?.kind === "text" && w0.parts[0].value.startsWith("IFS=")) &&
-          !(w0Plain !== undefined && state.functions.has(w0Plain))
-        ) {
+        if ( w0Plain !== "echo" && w0Plain !== "printf" && w0Plain !== "[" && w0Plain !== "test" && w0Plain !== "mkdir" && w0Plain !== "rm" && w0Plain !== "local" && w0Plain !== "return" && w0Plain !== "shift" && w0Plain !== "read" && w0Plain !== "eval" && w0Plain !== "unset" && w0Plain !== "export" && w0Plain !== "let" && !(command.words[1]?.plain === "read" && w0.parts[0]?.kind === "text" && w0.parts[0].value.startsWith("IFS=")) && !(w0Plain !== undefined && state.functions.has(w0Plain))) {
           return undefined;
         }
-      } else if (
-        w0Plain !== "echo" &&
-        w0Plain !== "printf" &&
-        w0Plain !== ":" &&
-        w0Plain !== "true" &&
-        w0Plain !== "false" &&
-        w0Plain !== "return" &&
-        w0Plain !== "shift" &&
-        w0Plain !== "eval" &&
-        !(w0Plain !== undefined && state.functions.has(w0Plain)) &&
-        !(w0.parts[0]?.kind === "text" && w0.parts[0].value.includes("=")) && !getArrayAssignment(w0)
-      ) {
+      } else if ( w0Plain !== "echo" && w0Plain !== "printf" && w0Plain !== ":" && w0Plain !== "true" && w0Plain !== "false" && w0Plain !== "return" && w0Plain !== "shift" && w0Plain !== "eval" && !(w0Plain !== undefined && state.functions.has(w0Plain)) && !(w0.parts[0]?.kind === "text" && w0.parts[0].value.includes("=")) && !getArrayAssignment(w0)) {
         return undefined;
       }
     }
     return this.executeSyncPipelineBody(pipeline, command, state, io, ignored);
   }
-
   private canSyncCommandCompound(command: Command, rawState: State, depth = 0): boolean {
     if (depth > 6) return false;
     if (command.redirects.length !== 0) {
-      if (
-        command.kind === "simple" &&
-        command.redirects.length === 1 &&
-        command.redirects[0]!.operator === "<<<" &&
-        !command.redirects[0]!.move &&
-        !command.redirects[0]!.document &&
-        (command.redirects[0]!.descriptor === undefined || command.redirects[0]!.descriptor === 0) &&
-        command.words.length >= 2 &&
-        this.isPureSyncValueWord(command.redirects[0]!.target, rawState) &&
-        !command.redirects[0]!.target.parts.some(part => rawState.braceexpand !== false && part.kind === "text" && !part.quoted && part.value.includes("{")) &&
-        !command.redirects[0]!.target.parts.some(part => part.kind === "substitution")
-      ) {
+      if ( command.kind === "simple" && command.redirects.length === 1 && command.redirects[0]!.operator === "<<<" && !command.redirects[0]!.move && !command.redirects[0]!.document && (command.redirects[0]!.descriptor === undefined || command.redirects[0]!.descriptor === 0) && command.words.length >= 2 && this.isPureSyncValueWord(command.redirects[0]!.target, rawState) && !command.redirects[0]!.target.parts.some(part => rawState.braceexpand !== false && part.kind === "text" && !part.quoted && part.value.includes("{")) && !command.redirects[0]!.target.parts.some(part => part.kind === "substitution")) {
         const w0 = command.words[0]!;
         const w0Plain = w0.plain;
         const isIfsRead = command.words[1]?.plain === "read" && w0.parts.length === 1 && w0.parts[0]!.kind === "text" && /^IFS=[: ,;|\t-]$/.test(w0.parts[0]!.value) && !rawState.readonlyVariables?.has("IFS") && !stateMonitor(rawState)?.store?.get("IFS");
         const isPlainRead = w0Plain === "read";
-        if (
-          (isPlainRead || isIfsRead) &&
-          !hasShellFunction(rawState, "read") &&
-          !rawState.extensions?.builtins.has("read")
-        ) {
+        if ( (isPlainRead || isIfsRead) && !hasShellFunction(rawState, "read") && !rawState.extensions?.builtins.has("read")) {
           let idx = isPlainRead ? 1 : 2;
           if (command.words[idx]?.plain === "-r") idx++;
           if (idx < command.words.length) {
@@ -8546,26 +6956,16 @@ export class Runtime {
       }
       return false;
     }
-    // A compound may only fall back before any statement has run. Runtime
-    // expansion can change eligibility between statements, so leave commands
-    // with state-dependent eligibility to the resumable asynchronous executor.
-    // Individual commands still use their synchronous fast paths there.
     if (command.kind === "simple") {
       if (command.words.length === 0) return false;
       const w0 = command.words[0]!;
       const w0Plain = w0.plain;
       const isNoBraceSyncAssignWord = (w: Word) =>
-        this.isPureSyncValueWord(w, rawState) &&
-        !w.parts.some(part => rawState.braceexpand !== false && part.kind === "text" && !part.quoted && part.value.includes("{"));
+        this.isPureSyncValueWord(w, rawState) && !w.parts.some(part => rawState.braceexpand !== false && part.kind === "text" && !part.quoted && part.value.includes("{"));
       const isNoBraceSyncWord = (w: Word) =>
-        isNoBraceSyncAssignWord(w) &&
-        !w.parts.some(part => part.kind === "substitution");
+        isNoBraceSyncAssignWord(w) && !w.parts.some(part => part.kind === "substitution");
       if (command.words.length === 1) {
-        if (
-          (w0Plain === ":" || w0Plain === "true" || w0Plain === "false" || w0Plain === "return" || w0Plain === "shift") &&
-          !hasShellFunction(rawState, w0Plain) &&
-          !rawState.extensions?.builtins.has(w0Plain)
-        ) {
+        if ( (w0Plain === ":" || w0Plain === "true" || w0Plain === "false" || w0Plain === "return" || w0Plain === "shift") && !hasShellFunction(rawState, w0Plain) && !rawState.extensions?.builtins.has(w0Plain)) {
           return true;
         }
         if (w0Plain !== undefined && rawState.functions.has(w0Plain)) {
@@ -8575,95 +6975,39 @@ export class Runtime {
         const st = stateMonitor(rawState)?.store;
         const arrayAssign = getArrayAssignment(w0);
         if (arrayAssign) {
-          if (
-            rawState.readonlyVariables?.has(arrayAssign.name) ||
-            rawState.exported.has(arrayAssign.name) ||
-            rawState.variableAttributes?.get(arrayAssign.name) ||
-            controlNames.has(arrayAssign.name) ||
-            (!st?.get(arrayAssign.name) && rawState.variables[arrayAssign.name] !== undefined)
-          ) {
+          if ( rawState.readonlyVariables?.has(arrayAssign.name) || rawState.exported.has(arrayAssign.name) || rawState.variableAttributes?.get(arrayAssign.name) || controlNames.has(arrayAssign.name) || (!st?.get(arrayAssign.name) && rawState.variables[arrayAssign.name] !== undefined)) {
             return false;
           }
           if (arrayAssign.kind === "compound") {
-            return (
-              !st?.get(arrayAssign.name)?.associative &&
-              arrayAssign.entries.length <= 32 &&
-              arrayAssign.entries.every(e =>
-                e.index === undefined &&
-                isNoBraceSyncWord(e.value) &&
-                e.value.parts.length > 0 &&
-                e.value.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))
-              )
-            );
+            return ( !st?.get(arrayAssign.name)?.associative && arrayAssign.entries.length <= 32 && arrayAssign.entries.every(e =>
+                e.index === undefined && isNoBraceSyncWord(e.value) && e.value.parts.length > 0 && e.value.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))));
           }
           return isNoBraceSyncWord(arrayAssign.value);
         }
         const assignment = this.assignment(w0);
-        return Boolean(
-          assignment &&
-          assignment.name !== "OPTIND" &&
-          assignment.name !== "PIPESTATUS" &&
-          !assignment.name.includes("[") &&
-          !rawState.readonlyVariables?.has(assignment.name) &&
-          !st?.get(assignment.name) &&
-          isNoBraceSyncAssignWord(assignment.value),
-        );
+        return Boolean( assignment && assignment.name !== "OPTIND" && assignment.name !== "PIPESTATUS" && !assignment.name.includes("[") && !rawState.readonlyVariables?.has(assignment.name) && !st?.get(assignment.name) && isNoBraceSyncAssignWord(assignment.value), );
       }
       if (command.words.length === 2) {
-        if (
-          (w0Plain === "return" || w0Plain === "shift") &&
-          !hasShellFunction(rawState, w0Plain) &&
-          !rawState.extensions?.builtins.has(w0Plain) &&
-          isNoBraceSyncWord(command.words[1]!)
-        ) {
+        if ( (w0Plain === "return" || w0Plain === "shift") && !hasShellFunction(rawState, w0Plain) && !rawState.extensions?.builtins.has(w0Plain) && isNoBraceSyncWord(command.words[1]!)) {
           return true;
         }
-        if (
-          w0Plain === "unset" &&
-          !hasShellFunction(rawState, "unset") &&
-          !rawState.extensions?.builtins.has("unset") &&
-          command.words[1]?.plain !== undefined &&
-          /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(command.words[1]!.plain!)
-        ) {
+        if ( w0Plain === "unset" && !hasShellFunction(rawState, "unset") && !rawState.extensions?.builtins.has("unset") && command.words[1]?.plain !== undefined && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(command.words[1]!.plain!)) {
           return true;
         }
-        if (
-          w0Plain === "export" &&
-          !hasShellFunction(rawState, "export") &&
-          !rawState.extensions?.builtins.has("export")
-        ) {
+        if ( w0Plain === "export" && !hasShellFunction(rawState, "export") && !rawState.extensions?.builtins.has("export")) {
           const assignment = !getArrayAssignment(command.words[1]!) ? this.assignment(command.words[1]!) : undefined;
-          if (
-            assignment &&
-            !assignment.append &&
-            assignment.name !== "OPTIND" &&
-            assignment.name !== "PIPESTATUS" &&
-            !assignment.name.includes("[") &&
-            isNoBraceSyncWord(assignment.value)
-          ) {
+          if ( assignment && !assignment.append && assignment.name !== "OPTIND" && assignment.name !== "PIPESTATUS" && !assignment.name.includes("[") && isNoBraceSyncWord(assignment.value)) {
             return true;
           }
         }
       }
-      if (
-        command.words.length >= 2 &&
-        command.words.length <= 16 &&
-        w0Plain === "local" &&
-        !hasShellFunction(rawState, "local") &&
-        !rawState.extensions?.builtins.has("local")
-      ) {
+      if ( command.words.length >= 2 && command.words.length <= 16 && w0Plain === "local" && !hasShellFunction(rawState, "local") && !rawState.extensions?.builtins.has("local")) {
         let allValidLocal = true;
         for (let idx = 1; idx < command.words.length; idx++) {
           const wArg = command.words[idx]!;
           const assignment = !getArrayAssignment(wArg) ? this.assignment(wArg) : undefined;
           if (assignment) {
-            if (
-              assignment.append ||
-              assignment.name === "OPTIND" ||
-              assignment.name === "PIPESTATUS" ||
-              assignment.name.includes("[") ||
-              !isNoBraceSyncAssignWord(assignment.value)
-            ) {
+            if ( assignment.append || assignment.name === "OPTIND" || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || !isNoBraceSyncAssignWord(assignment.value)) {
               allValidLocal = false;
               break;
             }
@@ -8674,45 +7018,19 @@ export class Runtime {
         }
         if (allValidLocal) return true;
       }
-      if (
-        w0Plain === "echo" &&
-        !hasShellFunction(rawState, "echo") &&
-        !rawState.extensions?.builtins.has("echo")
-      ) {
+      if ( w0Plain === "echo" && !hasShellFunction(rawState, "echo") && !rawState.extensions?.builtins.has("echo")) {
         const w1Plain = command.words[1]?.plain;
-        if (w1Plain === undefined || !w1Plain.startsWith("-") || w1Plain === "-n" || w1Plain === "-e" || w1Plain === "-ne" || w1Plain === "-en") {
-          if (command.words.slice(1).every(isNoBraceSyncWord)) return true;
-        }
+        if (w1Plain === undefined || !w1Plain.startsWith("-") || w1Plain === "-n" || w1Plain === "-e" || w1Plain === "-ne" || w1Plain === "-en") if (command.words.slice(1).every(isNoBraceSyncWord)) return true;
       }
-      if (
-        w0Plain === "printf" &&
-        !hasShellFunction(rawState, "printf") &&
-        !rawState.extensions?.builtins.has("printf")
-      ) {
-        const isPrintfV =
-          command.words.length >= 4 &&
-          command.words[1]?.plain === "-v" &&
-          command.words[2]?.plain !== undefined &&
-          /^[a-zA-Z_][a-zA-Z_0-9]*$/.test(command.words[2]!.plain!) &&
-          command.words[2]!.plain !== "OPTIND" &&
-          command.words[2]!.plain !== "PIPESTATUS";
+      if ( w0Plain === "printf" && !hasShellFunction(rawState, "printf") && !rawState.extensions?.builtins.has("printf")) {
+        const isPrintfV = command.words.length >= 4 && command.words[1]?.plain === "-v" && command.words[2]?.plain !== undefined && /^[a-zA-Z_][a-zA-Z_0-9]*$/.test(command.words[2]!.plain!) && command.words[2]!.plain !== "OPTIND" && command.words[2]!.plain !== "PIPESTATUS";
         const fmtIdx = isPrintfV ? 3 : 1;
         const fmtPlain = command.words[fmtIdx]?.plain;
-        if (
-          fmtPlain !== undefined &&
-          !fmtPlain.startsWith("-") &&
-          /^(?:[^%]|%%|%[-0]*\d*[sdxXou])*$/.test(fmtPlain) &&
-          command.words.slice(fmtIdx + 1).every(isNoBraceSyncWord)
-        ) {
+        if ( fmtPlain !== undefined && !fmtPlain.startsWith("-") && /^(?:[^%]|%%|%[-0]*\d*[sdxXou])*$/.test(fmtPlain) && command.words.slice(fmtIdx + 1).every(isNoBraceSyncWord)) {
           return true;
         }
       }
-      if (
-        command.words.length >= 3 &&
-        (w0Plain === "[" || w0Plain === "test") &&
-        !hasShellFunction(rawState, w0Plain) &&
-        !rawState.extensions?.builtins.has(w0Plain)
-      ) {
+      if ( command.words.length >= 3 && (w0Plain === "[" || w0Plain === "test") && !hasShellFunction(rawState, w0Plain) && !rawState.extensions?.builtins.has(w0Plain)) {
         const isBracket = w0Plain === "[";
         const argCount = isBracket ? command.words.length - 2 : command.words.length - 1;
         if ((!isBracket || command.words[command.words.length - 1]?.plain === "]") && command.words.slice(1).every(isNoBraceSyncWord)) {
@@ -8728,22 +7046,13 @@ export class Runtime {
     }
     if (command.kind === "arithmetic") {
       const expr = command.expression;
-      if (!expr.error) {
-        return isSafeSmiProgram(expr) && this.canSyncArithmeticWithoutFault(expr.tree, rawState);
-      }
+      if (!expr.error) return isSafeSmiProgram(expr) && this.canSyncArithmeticWithoutFault(expr.tree, rawState);
       const mPosMut = /^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*(=|\+=|-=)\s*\$(?:([1-9])|\{([1-9])\})\s*$/.exec(expr.source);
       if (mPosMut) {
         const varName = mPosMut[1]!;
         const posIdx = Number(mPosMut[3] ?? mPosMut[4]) - 1;
         const posVal = rawState.positional[posIdx];
-        if (
-          varName !== "OPTIND" &&
-          varName !== "PIPESTATUS" &&
-          !arrayStore(rawState)?.get(varName) &&
-          !hasActiveVariableAttributes(rawState) &&
-          posVal !== undefined &&
-          /^-?(?:0|[1-9][0-9]{0,12})$/.test(posVal)
-        ) {
+        if ( varName !== "OPTIND" && varName !== "PIPESTATUS" && !arrayStore(rawState)?.get(varName) && !hasActiveVariableAttributes(rawState) && posVal !== undefined && /^-?(?:0|[1-9][0-9]{0,12})$/.test(posVal)) {
           const curVal = rawState.variables[varName] ?? "0";
           if (typeof curVal === "string" && (curVal === "" || /^-?(?:0|[1-9][0-9]{0,12})$/.test(curVal))) {
             return true;
@@ -8760,14 +7069,10 @@ export class Runtime {
         if (e.kind === "binary") return this.isPureSyncValueWord(e.left, rawState) && (e.operator === "==" || e.operator === "=" || e.operator === "!=" ? this.canSyncPatternWordParts(e.right, rawState) : this.isPureSyncValueWord(e.right, rawState));
         if (e.kind === "not") return checkCondNoFile(e.operand);
         if (e.kind === "and" || e.kind === "or") return checkCondNoFile(e.left) && checkCondNoFile(e.right);
-        return false;
-      };
+        return false;};
       return checkCondNoFile(command.expression);
     }
-    if (command.kind === "group") {
-      return this.canSyncScriptCompound(command.body, rawState, depth + 1);
-    }
-    // Predicate loops need the asynchronous executor to yield without replay.
+    if (command.kind === "group") return this.canSyncScriptCompound(command.body, rawState, depth + 1);
     if (command.kind === "while" || command.kind === "until") return false;
     if (command.kind === "arithmetic-for") return false;
     if (command.kind === "if") {
@@ -8790,28 +7095,16 @@ export class Runtime {
     }
     return false;
   }
-
   private canSyncScriptCompound(script: Script, rawState: State, depth = 0): boolean {
     if (depth > 6 || rawState.noexec) return false;
     type CachedScriptCompound = {
       fnCount: number;
       braceexpand: boolean;
       arithTrees: NonNullable<ArithmeticProgram["tree"]>[];
-      posMutVars: Array<{ varName: string; posIdx: number }>;
-    };
+      posMutVars: Array<{ varName: string; posIdx: number }>;};
     const cached = depth === 0 ? (script as { _cachedSyncCompound?: CachedScriptCompound | null })._cachedSyncCompound : undefined;
     if (cached !== undefined) {
-      if (
-        cached !== null &&
-        !rawState.nocasematch &&
-        !rawState.extglob &&
-        !rawState.nounset &&
-        !hasActiveVariableAttributes(rawState) &&
-        !rawState.readonlyVariables?.size &&
-        (!rawState.extensions || rawState.extensions.builtins.size === 0) &&
-        rawState.functions.size === cached.fnCount &&
-        (rawState.braceexpand !== false) === cached.braceexpand
-      ) {
+      if ( cached !== null && !rawState.nocasematch && !rawState.extglob && !rawState.nounset && !hasActiveVariableAttributes(rawState) && !rawState.readonlyVariables?.size && (!rawState.extensions || rawState.extensions.builtins.size === 0) && rawState.functions.size === cached.fnCount && (rawState.braceexpand !== false) === cached.braceexpand) {
         let ok = true;
         for (let i = 0; i < cached.arithTrees.length; i++) {
           if (!this.canSyncArithmeticOperands(cached.arithTrees[i]!, rawState)) { ok = false; break; }
@@ -8821,15 +7114,7 @@ export class Runtime {
             const pm = cached.posMutVars[i]!;
             const posVal = rawState.positional[pm.posIdx];
             const curVal = rawState.variables[pm.varName] ?? "0";
-            if (
-              arrayStore(rawState)?.get(pm.varName) ||
-              posVal === undefined ||
-              posVal.length === 0 ||
-              posVal.length > 12 ||
-              !Number.isSafeInteger(Number(posVal)) ||
-              typeof curVal !== "string" ||
-              (curVal !== "" && !Number.isSafeInteger(Number(curVal)))
-            ) {
+            if ( arrayStore(rawState)?.get(pm.varName) || posVal === undefined || posVal.length === 0 || posVal.length > 12 || !Number.isSafeInteger(Number(posVal)) || typeof curVal !== "string" || (curVal !== "" && !Number.isSafeInteger(Number(curVal)))) {
               ok = false;
               break;
             }
@@ -8847,25 +7132,14 @@ export class Runtime {
         if (!this.canSyncCommandCompound(p.commands[0]!, rawState, depth)) return false;
       }
     }
-    if (
-      depth === 0 &&
-      (script as { _cachedSyncCompound?: unknown })._cachedSyncCompound === undefined &&
-      !rawState.nocasematch &&
-      !rawState.extglob &&
-      !rawState.nounset &&
-      !hasActiveVariableAttributes(rawState) &&
-      !rawState.readonlyVariables?.size &&
-      (!rawState.extensions || rawState.extensions.builtins.size === 0)
-    ) {
+    if ( depth === 0 && (script as { _cachedSyncCompound?: unknown })._cachedSyncCompound === undefined && !rawState.nocasematch && !rawState.extglob && !rawState.nounset && !hasActiveVariableAttributes(rawState) && !rawState.readonlyVariables?.size && (!rawState.extensions || rawState.extensions.builtins.size === 0)) {
       const arithTrees: NonNullable<ArithmeticProgram["tree"]>[] = [];
       const posMutVars: Array<{ varName: string; posIdx: number }> = [];
       let canCache = true;
       const collect = (sc: Script) => {
         for (const l of sc.lists) for (const p of l.pipelines) {
           const c = p.commands[0]!;
-          if (c.kind === "simple" && c.words[0]?.plain && rawState.functions.has(c.words[0].plain)) {
-            canCache = false;
-          } else if (c.kind === "arithmetic") {
+          if (c.kind === "simple" && c.words[0]?.plain && rawState.functions.has(c.words[0].plain)) canCache = false; else if (c.kind === "arithmetic") {
             if (!c.expression.error && c.expression.tree) arithTrees.push(c.expression.tree);
             else {
               const m = /^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*(=|\+=|-=)\s*\$(?:([1-9])|\{([1-9])\})\s*$/.exec(c.expression.source);
@@ -8876,11 +7150,8 @@ export class Runtime {
           else if (c.kind === "if") {
             for (const b of c.branches) { collect(b.condition); collect(b.body); }
             if (c.otherwise) collect(c.otherwise);
-          } else if (c.kind === "case") {
-            for (const cl of c.clauses) collect(cl.body);
-          }
-        }
-      };
+          } else if (c.kind === "case") for (const cl of c.clauses) collect(cl.body);
+        }};
       collect(script);
       (script as { _cachedSyncCompound?: unknown })._cachedSyncCompound = canCache
         ? { fnCount: rawState.functions.size, braceexpand: rawState.braceexpand !== false, arithTrees, posMutVars }
@@ -8888,75 +7159,41 @@ export class Runtime {
     }
     return true;
   }
-
   private static wordMayMutate(word: Word): boolean {
     for (let i = 0; i < word.parts.length; i++) {
       const p = word.parts[i]!;
       if (p.kind === "arithmetic") {
-        if (p.expression.hasMutation || (p.expression.error && (p.expression.source.includes("=") || p.expression.source.includes("++") || p.expression.source.includes("--")))) {
-          return true;
-        }
-      } else if (p.kind === "substitution") {
-        return true;
-      } else if (p.kind === "variable" && (p.operator === "=" || p.operator === ":=" || p.operator === "?" || p.operator === ":?")) {
-        return true;
-      }
+        if (p.expression.hasMutation || (p.expression.error && (p.expression.source.includes("=") || p.expression.source.includes("++") || p.expression.source.includes("--")))) return true;
+      } else if (p.kind === "substitution") return true; else if (p.kind === "variable" && (p.operator === "=" || p.operator === ":=" || p.operator === "?" || p.operator === ":?")) return true;
     }
     return false;
   }
-
   private canSyncConditional(expr: ConditionalExpression, depth = 0): boolean {
     if (depth > 8) return false;
     if (expr.kind === "nonempty") return !Runtime.wordMayMutate(expr.operand);
-    if (expr.kind === "unary") {
-      return (expr.operator === "-n" || expr.operator === "-z" || syncConditionalFileUnaryOps.has(expr.operator)) && !Runtime.wordMayMutate(expr.operand);
-    }
+    if (expr.kind === "unary") return (expr.operator === "-n" || expr.operator === "-z" || syncConditionalFileUnaryOps.has(expr.operator)) && !Runtime.wordMayMutate(expr.operand);
     if (expr.kind === "binary") {
       if (Runtime.wordMayMutate(expr.left) || Runtime.wordMayMutate(expr.right)) return false;
-      if (expr.operator === "=~") {
-        return depth === 0 && this.extractSimpleErePattern(expr.right) !== undefined;
-      }
+      if (expr.operator === "=~") return depth === 0 && this.extractSimpleErePattern(expr.right) !== undefined;
       if (expr.operator === "==" || expr.operator === "=" || expr.operator === "!=") {
         if (expr.right.parts.length > 0 && expr.right.parts.every(p => p.quoted)) return true;
         if (expr.right.parts.length > 0 && expr.right.parts.every((p, idx) =>
-          (p.kind === "text" && !p.byteValue && (p.quoted || idx > 0 || !p.value.startsWith("~"))) ||
-          (p.kind === "variable" && !p.indirect && !p.prefixNames && !p.length && !p.substring && !p.transform && p.operator === undefined && getArraySelector(p) === undefined)
+          (p.kind === "text" && !p.byteValue && (p.quoted || idx > 0 || !p.value.startsWith("~"))) || (p.kind === "variable" && !p.indirect && !p.prefixNames && !p.length && !p.substring && !p.transform && p.operator === undefined && getArraySelector(p) === undefined)
         )) return true;
         return false;
       }
-      return (
-        expr.operator === "<" ||
-        expr.operator === ">" ||
-        expr.operator === "-eq" ||
-        expr.operator === "-ne" ||
-        expr.operator === "-lt" ||
-        expr.operator === "-le" ||
-        expr.operator === "-gt" ||
-        expr.operator === "-ge"
-      );
+      return ( expr.operator === "<" || expr.operator === ">" || expr.operator === "-eq" || expr.operator === "-ne" || expr.operator === "-lt" || expr.operator === "-le" || expr.operator === "-gt" || expr.operator === "-ge");
     }
     if (expr.kind === "not") return this.canSyncConditional(expr.operand, depth + 1);
-    if (expr.kind === "and" || expr.kind === "or") {
-      return this.canSyncConditional(expr.left, depth + 1) && this.canSyncConditional(expr.right, depth + 1);
-    }
+    if (expr.kind === "and" || expr.kind === "or") return this.canSyncConditional(expr.left, depth + 1) && this.canSyncConditional(expr.right, depth + 1);
     return false;
   }
-
   private tryEvalFastMemoryFileUnary(op: string, rawVal: string, rawState: State): boolean | undefined {
-    if (
-      !this.canFastMemoryRedirect ||
-      !this.budget.canFileSystemOperation() ||
-      (this._fileWrites !== undefined && this._fileWrites.size !== 0) ||
-      (this._outputFiles !== undefined && this._outputFiles.size !== 0)
-    ) {
+    if ( !this.canFastMemoryRedirect || !this.budget.canFileSystemOperation() || (this._fileWrites !== undefined && this._fileWrites.size !== 0) || (this._outputFiles !== undefined && this._outputFiles.size !== 0)) {
       return undefined;
     }
-    // Direct node access must not bypass a host's overridden metadata/access
-    // methods (which may enforce policy or cancellation).
     const prototype = MemoryFileSystem.prototype;
-    if (this.backingFs.stat !== prototype.stat ||
-        this.backingFs.lstat !== prototype.lstat ||
-        this.backingFs.access !== prototype.access) return undefined;
+    if (this.backingFs.stat !== prototype.stat || this.backingFs.lstat !== prototype.lstat || this.backingFs.access !== prototype.access) return undefined;
     if (rawVal === "") return false;
     const resolved = pathOf(rawState, rawVal);
     if (resolved === "/dev" || resolved.startsWith("/dev/")) return undefined;
@@ -8964,8 +7201,7 @@ export class Runtime {
       _owner?: unknown;
       capabilities?: { permissions?: boolean };
       resolveNode?: (path: string, syscall: string, follow: boolean) => { type: string; data?: Uint8Array; target?: string };
-      permission?: (node: unknown, mask: number, syscall: string, path: string) => void;
-    };
+      permission?: (node: unknown, mask: number, syscall: string, path: string) => void;};
     if (!mem._owner || typeof mem.resolveNode !== "function" || typeof mem.permission !== "function") return undefined;
     if (Object.hasOwn(mem, "stat") || Object.hasOwn(mem, "lstat") || Object.hasOwn(mem, "access")) return undefined;
     const isAccess = op === "-r" || op === "-w" || op === "-x";
@@ -8992,23 +7228,12 @@ export class Runtime {
     } catch (error) {
       this.signal.throwIfAborted();
       const code = (error as { code?: string })?.code;
-      if (code === "ENOENT" || code === "ENOTDIR") {
-        return false;
-      }
+      if (code === "ENOENT" || code === "ENOTDIR") return false;
       this.budget.fsOperations--;
       return undefined;
     }
   }
-
-  private tryEvalConditionalSync(
-    expr: ConditionalExpression,
-    rawState: State,
-    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
-    store: ReturnType<typeof arrayStore>,
-    io: IO,
-    diagnosticLine: number,
-    depth = 0,
-  ): number | undefined {
+  private tryEvalConditionalSync( expr: ConditionalExpression, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, store: ReturnType<typeof arrayStore>, io: IO, diagnosticLine: number, depth = 0, ): number | undefined {
     if (depth > 8) return undefined;
     if (expr.kind === "nonempty") {
       let val: ShellValue | undefined;
@@ -9082,14 +7307,7 @@ export class Runtime {
         }
         return undefined;
       }
-      if (
-        expr.operator === "-eq" ||
-        expr.operator === "-ne" ||
-        expr.operator === "-lt" ||
-        expr.operator === "-le" ||
-        expr.operator === "-gt" ||
-        expr.operator === "-ge"
-      ) {
+      if ( expr.operator === "-eq" || expr.operator === "-ne" || expr.operator === "-lt" || expr.operator === "-le" || expr.operator === "-gt" || expr.operator === "-ge") {
         let left: ShellValue | undefined;
         let right: ShellValue | undefined;
         try {
@@ -9156,14 +7374,19 @@ export class Runtime {
     }
     return undefined;
   }
-
-  private executeSyncPipelineBody(
-    pipeline: Pipeline,
-    command: Extract<Command, { kind: "simple" | "arithmetic" | "conditional" | "arithmetic-for" | "for" | "if" | "case" | "group" }>,
-    state: State,
-    io: IO,
-    ignored: boolean,
-  ): number | undefined {
+  private finishSyncPipeStatus(rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, store: ReturnType<typeof guestArrays>, existing: ReturnType<NonNullable<ReturnType<typeof guestArrays>>["get"]>, elem0: { text: { shellValue: string } } | undefined, scope: InvocationScope, finalStatus: number, restEpoch: number): number | undefined {
+    if (!existing) {
+      if (store) { if (publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined; } else { monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne; monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets); }
+    } else {
+      elem0!.text.shellValue = finalStatus === 0 ? "0" : "1";
+      store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+    }
+    rawState.status = finalStatus;
+    monitor.epoch = restEpoch;
+    if (store) store.epoch = restEpoch;
+    return finalStatus;
+  }
+  private executeSyncPipelineBody( pipeline: Pipeline, command: Extract<Command, { kind: "simple" | "arithmetic" | "conditional" | "arithmetic-for" | "for" | "if" | "case" | "group" }>, state: State, io: IO, ignored: boolean, ): number | undefined {
     const scope = io[invocationScope];
     if (scope.hasFailures) return undefined;
     const monitor = stateMonitor(state) ?? stateMonitor(trackState(state, this.budget, scope));
@@ -9184,10 +7407,7 @@ export class Runtime {
     const psTarget = existing ? "indexed" : pipelineStatusTarget(rawState);
     if (psTarget !== "indexed" && psTarget !== "absent") return undefined;
     if (store?.watches.has("PIPESTATUS") || monitor.hasOverlay("PIPESTATUS")) return undefined;
-    if (
-      existing &&
-      (existing.associative || existing.values.size !== 1 || existing.maximum !== 0)
-    ) {
+    if ( existing && (existing.associative || existing.values.size !== 1 || existing.maximum !== 0)) {
       return undefined;
     }
     const elem0 = existing?.values.get(0);
@@ -9195,13 +7415,7 @@ export class Runtime {
     const canMutatePipeStatus = !existing || (existing.references === 1 && elem0!.text.references === 1);
     const diagnosticLine = io.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0);
     if (command.kind === "conditional") {
-      if (
-        command.redirects.length !== 0 ||
-        !canMutatePipeStatus ||
-        (!ignored && rawState.errexit) ||
-        rawState.nounset ||
-        !this.canSyncConditional(command.expression)
-      ) {
+      if ( command.redirects.length !== 0 || !canMutatePipeStatus || (!ignored && rawState.errexit) || rawState.nounset || !this.canSyncConditional(command.expression)) {
         return undefined;
       }
       const savedFsOps = this.budget.fsOperations;
@@ -9210,9 +7424,7 @@ export class Runtime {
         this.budget.fsOperations = savedFsOps;
         return undefined;
       }
-      if (rawState.extensions && !rawState.extensions.eventDepth) {
-        publishCommandSpelling(rawState, commandSpelling(command));
-      }
+      if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
       const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
       this.budget.tick();
       if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "[[";
@@ -9220,9 +7432,7 @@ export class Runtime {
       const activeStore = monitor.store;
       const activeExisting = activeStore?.get("PIPESTATUS");
       if (!activeExisting) {
-        if (activeStore) {
-          if (publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined;
-        } else {
+        if (activeStore) if (publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined; else {
           monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne;
           monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
         }
@@ -9236,13 +7446,7 @@ export class Runtime {
       return finalStatus;
     }
     if (command.kind === "arithmetic") {
-      if (
-        command.redirects.length !== 0 ||
-        !canMutatePipeStatus ||
-        (!ignored && rawState.errexit) ||
-        rawState.nounset ||
-        rawState.readonlyVariables?.size
-      ) {
+      if ( command.redirects.length !== 0 || !canMutatePipeStatus || (!ignored && rawState.errexit) || rawState.nounset || rawState.readonlyVariables?.size) {
         return undefined;
       }
       const expr = command.expression;
@@ -9267,36 +7471,18 @@ export class Runtime {
                 const nextNum = posMut.op === "=" ? rhsNum : posMut.op === "+=" ? curNum + rhsNum : curNum - rhsNum;
                 if (Number.isSafeInteger(nextNum)) {
                   this.budget.parsing.admit(4);
-                  if (rawState.extensions && !rawState.extensions.eventDepth) {
-                    publishCommandSpelling(rawState, commandSpelling(command));
-                  }
+                  if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
                   const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
                   this.budget.tick();
                   if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "((";
                   if (this._syncArithRawWriteOnly && this._syncArithTouched) {
                     rawState.variables[posMut.varName] = String(nextNum);
                     this._syncArithTouched.add(posMut.varName);
-                  } else {
-                    monitor.publishStringVariable(posMut.varName, String(nextNum));
-                  }
+                  } else monitor.publishStringVariable(posMut.varName, String(nextNum));
                   if (rawState.allexport) rawState.exported.add(posMut.varName);
                   const rawStatus = nextNum !== 0 ? 0 : 1;
                   const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
-                  if (!existing) {
-                    if (store) {
-                      if (publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined;
-                    } else {
-                      monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne;
-                      monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
-                    }
-                  } else {
-                    elem0!.text.shellValue = finalStatus === 0 ? "0" : "1";
-                    store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
-                  }
-                  rawState.status = finalStatus;
-                  monitor.epoch = restEpoch;
-                  if (store) store.epoch = restEpoch;
-                  return finalStatus;
+                  return this.finishSyncPipeStatus(rawState, monitor, store, existing, elem0, scope, finalStatus, restEpoch);
                 }
               }
             }
@@ -9307,14 +7493,7 @@ export class Runtime {
         let expWord = canCacheWord && cachedExpr._cachedArithSyntax === rawState.extensions?.syntax ? cachedExpr._cachedArithWord : undefined;
         if (expWord === undefined) {
           try {
-            expWord = parseArithmeticExpansion(
-              expr.source,
-              this.budget.parsing,
-              byteLocale(rawState.variables),
-              rawState.depth + (io.parameterDepth ?? 0),
-              diagnosticLine,
-              rawState.extensions?.syntax,
-            );
+            expWord = parseArithmeticExpansion( expr.source, this.budget.parsing, byteLocale(rawState.variables), rawState.depth + (io.parameterDepth ?? 0), diagnosticLine, rawState.extensions?.syntax, );
           } catch {
             expWord = null;
           }
@@ -9338,29 +7517,13 @@ export class Runtime {
             const op = cmpMatch[2]!;
             const nonZero = op === "<=" ? lhs <= rhs : op === ">=" ? lhs >= rhs : op === "<" ? lhs < rhs : op === ">" ? lhs > rhs : op === "==" ? lhs === rhs : lhs !== rhs;
             this.budget.parsing.admit(4);
-            if (rawState.extensions && !rawState.extensions.eventDepth) {
-              publishCommandSpelling(rawState, commandSpelling(command));
-            }
+            if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
             const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
             this.budget.tick();
             if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "((";
             const rawStatus = nonZero ? 0 : 1;
             const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
-            if (!existing) {
-              if (store) {
-                if (publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined;
-              } else {
-                monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne;
-                monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
-              }
-            } else {
-              elem0!.text.shellValue = finalStatus === 0 ? "0" : "1";
-              store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
-            }
-            rawState.status = finalStatus;
-            monitor.epoch = restEpoch;
-            if (store) store.epoch = restEpoch;
-            return finalStatus;
+            return this.finishSyncPipeStatus(rawState, monitor, store, existing, elem0, scope, finalStatus, restEpoch);
           }
         }
         const scalarMutMatch = fastSrc.length <= 64 ? SIMPLE_SCALAR_MUT_RE.exec(fastSrc) : null;
@@ -9371,12 +7534,7 @@ export class Runtime {
           const rhsOp = scalarMutMatch[4];
           const rhs2 = scalarMutMatch[5] !== undefined ? Number(scalarMutMatch[5]) : 0;
           const rhsNum = rhsOp === "+" ? rhs1 + rhs2 : rhsOp === "-" ? rhs1 - rhs2 : rhsOp === "*" ? rhs1 * rhs2 : rhs1;
-          if (
-            varName !== "OPTIND" &&
-            varName !== "PIPESTATUS" &&
-            !store?.get(varName) &&
-            !hasActiveVariableAttributes(rawState)
-          ) {
+          if ( varName !== "OPTIND" && varName !== "PIPESTATUS" && !store?.get(varName) && !hasActiveVariableAttributes(rawState)) {
             const curVal = (this._syncArithRawWriteOnly && this._syncArithTouched?.has(varName))
               ? (rawState.variables[varName] ?? "0")
               : (monitor.values.get(varName, rawState.variables[varName] ?? "0") ?? rawState.variables[varName] ?? "0");
@@ -9385,36 +7543,18 @@ export class Runtime {
               const nextNum = binOp === "=" ? rhsNum : binOp === "+=" ? curNum + rhsNum : curNum - rhsNum;
               if (Number.isSafeInteger(nextNum)) {
                 this.budget.parsing.admit(4);
-                if (rawState.extensions && !rawState.extensions.eventDepth) {
-                  publishCommandSpelling(rawState, commandSpelling(command));
-                }
+                if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
                 const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
                 this.budget.tick();
                 if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "((";
                 if (this._syncArithRawWriteOnly && this._syncArithTouched) {
                   rawState.variables[varName] = String(nextNum);
                   this._syncArithTouched.add(varName);
-                } else {
-                  monitor.publishStringVariable(varName, String(nextNum));
-                }
+                } else monitor.publishStringVariable(varName, String(nextNum));
                 if (rawState.allexport) rawState.exported.add(varName);
                 const rawStatus = nextNum !== 0 ? 0 : 1;
                 const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
-                if (!existing) {
-                  if (store) {
-                    if (publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined;
-                  } else {
-                    monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne;
-                    monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
-                  }
-                } else {
-                  elem0!.text.shellValue = finalStatus === 0 ? "0" : "1";
-                  store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
-                }
-                rawState.status = finalStatus;
-                monitor.epoch = restEpoch;
-                if (store) store.epoch = restEpoch;
-                return finalStatus;
+                return this.finishSyncPipeStatus(rawState, monitor, store, existing, elem0, scope, finalStatus, restEpoch);
               }
             }
           }
@@ -9435,9 +7575,7 @@ export class Runtime {
               curVal = ek !== undefined ? binding.getValue(ek.index) : undefined;
             } else if (/^(?:0|[1-9][0-9]{0,8})$/.test(subKey)) {
               curVal = binding.getValue(Number(subKey));
-            } else {
-              validKey = false;
-            }
+            } else validKey = false;
             if (validKey && (curVal === undefined || (typeof curVal === "string" && /^-?(?:0|[1-9][0-9]{0,12})$/.test(curVal)))) {
               const curNum = curVal === undefined || curVal === "" ? 0 : Number(curVal);
               let nextNum: number | undefined;
@@ -9454,29 +7592,13 @@ export class Runtime {
               }
               if (nextNum !== undefined && Number.isSafeInteger(nextNum) && this.tryFastArraySubscriptWriteSync(rawState, arrName, subKey, String(nextNum))) {
                 this.budget.parsing.admit(6);
-                if (rawState.extensions && !rawState.extensions.eventDepth) {
-                  publishCommandSpelling(rawState, commandSpelling(command));
-                }
+                if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
                 const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
                 this.budget.tick();
                 if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "((";
                 const rawStatus = evalNonZero! ? 0 : 1;
                 const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
-                if (!existing) {
-                  if (store) {
-                    if (publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined;
-                  } else {
-                    monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne;
-                    monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
-                  }
-                } else {
-                  elem0!.text.shellValue = finalStatus === 0 ? "0" : "1";
-                  store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
-                }
-                rawState.status = finalStatus;
-                monitor.epoch = restEpoch;
-                if (store) store.epoch = restEpoch;
-                return finalStatus;
+                return this.finishSyncPipeStatus(rawState, monitor, store, existing, elem0, scope, finalStatus, restEpoch);
               }
             }
           }
@@ -9484,29 +7606,13 @@ export class Runtime {
       }
       if (!expr.error && isSafeSmiProgram(expr) && this.canSyncArithmeticWithoutFault(expr.tree, rawState, diagnosticLine)) {
         const nonZero = this.syncShellArithmeticNonZero(expr, rawState, diagnosticLine);
-        if (rawState.extensions && !rawState.extensions.eventDepth) {
-          publishCommandSpelling(rawState, commandSpelling(command));
-        }
+        if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
         const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
         this.budget.tick();
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "((";
         const rawStatus = nonZero ? 0 : 1;
         const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
-        if (!existing) {
-          if (store) {
-            if (publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined;
-          } else {
-            monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne;
-            monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
-          }
-        } else {
-          elem0!.text.shellValue = finalStatus === 0 ? "0" : "1";
-          store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
-        }
-        rawState.status = finalStatus;
-        monitor.epoch = restEpoch;
-        if (store) store.epoch = restEpoch;
-        return finalStatus;
+        return this.finishSyncPipeStatus(rawState, monitor, store, existing, elem0, scope, finalStatus, restEpoch);
       }
       return undefined;
     }
@@ -9514,19 +7620,7 @@ export class Runtime {
       if (command.redirects.length === 1) {
         const r0 = command.redirects[0]!;
         const loopMode = 0o666 & ~(rawState.umask ?? 0o022);
-        if (
-          (r0.descriptor !== undefined && r0.descriptor !== 1) ||
-          r0.move ||
-          r0.document ||
-          (r0.operator !== ">" && r0.operator !== ">>") ||
-          (r0.operator === ">" && rawState.noclobber) ||
-          !this.canFastMemoryRedirect ||
-          !this.budget.canRedirect1 ||
-          (this._fileWrites !== undefined && this._fileWrites.size !== 0) ||
-          (this._outputFiles !== undefined && this._outputFiles.size !== 0) ||
-          !this.isPureArgWord(r0.target, rawState) ||
-          !this.budget.canFileSystemOperation()
-        ) {
+        if ( (r0.descriptor !== undefined && r0.descriptor !== 1) || r0.move || r0.document || (r0.operator !== ">" && r0.operator !== ">>") || (r0.operator === ">" && rawState.noclobber) || !this.canFastMemoryRedirect || !this.budget.canRedirect1 || (this._fileWrites !== undefined && this._fileWrites.size !== 0) || (this._outputFiles !== undefined && this._outputFiles.size !== 0) || !this.isPureArgWord(r0.target, rawState) || !this.budget.canFileSystemOperation()) {
           return undefined;
         }
         let targetVal: ShellValue | undefined;
@@ -9547,9 +7641,7 @@ export class Runtime {
         const { steps: checkSteps, redirectCount: innerRedirs } = this.buildSyncLoopBody(command, loopIO);
         if (innerRedirs > 0 || checkSteps.length === 0 || !checkSteps.every(s => s.isStdoutEcho === true)) return undefined;
         try {
-          if (!tryWriteMemoryFileSync(this.backingFs, resolvedPath, new Uint8Array(0), r0.operator === ">>", loopMode, this.commandSignal)) {
-            return undefined;
-          }
+          if (!tryWriteMemoryFileSync(this.backingFs, resolvedPath, new Uint8Array(0), r0.operator === ">>", loopMode, this.commandSignal)) return undefined;
         } catch {
           this.signal.throwIfAborted();
           return undefined;
@@ -9558,25 +7650,14 @@ export class Runtime {
         if (res !== undefined) {
           this.budget.fileSystemOperation();
           const capturedBytes = loopRedirectCapture.takeBytes();
-          if (capturedBytes.byteLength > 0) {
-            tryWriteMemoryFileSync(this.backingFs, resolvedPath, capturedBytes, true, loopMode, this.commandSignal);
-          }
+          if (capturedBytes.byteLength > 0) tryWriteMemoryFileSync(this.backingFs, resolvedPath, capturedBytes, true, loopMode, this.commandSignal);
         }
         return res;
       }
       return this.trySyncLoop(command, pipeline, rawState, monitor, store, existing, elem0, canMutatePipeStatus, io, diagnosticLine);
     }
     if (command.kind === "group" || command.kind === "if" || command.kind === "case") {
-      if (
-        command.redirects.length !== 0 ||
-        pipeline.negate ||
-        !canMutatePipeStatus ||
-        (!ignored && rawState.errexit) ||
-        rawState.nounset ||
-        rawState.readonlyVariables?.size ||
-        hasYieldCheckpoint(this.signal) ||
-        (this._syncReturnDepth === 0 && (((this.budget.commands + 32) & 8191) < 32 || !this.canSyncCommandCompound(command, rawState, 0)))
-      ) {
+      if ( command.redirects.length !== 0 || pipeline.negate || !canMutatePipeStatus || (!ignored && rawState.errexit) || rawState.nounset || rawState.readonlyVariables?.size || hasYieldCheckpoint(this.signal) || (this._syncReturnDepth === 0 && (((this.budget.commands + 32) & 8191) < 32 || !this.canSyncCommandCompound(command, rawState, 0)))) {
         return undefined;
       }
       if (command.kind === "group") {
@@ -9607,7 +7688,6 @@ export class Runtime {
         rawState.status = 0;
         return 0;
       }
-      // command.kind === "case"
       let fastSubject: ShellValue | undefined;
       try {
         fastSubject = this.fastValueWord(command.subject, rawState, io, false, false, false, false, undefined, diagnosticLine);
@@ -9641,62 +7721,32 @@ export class Runtime {
     if (command.redirects.length === 1 && command.redirects[0]!.operator !== "<<<") {
       if (!canMutatePipeStatus && elem0!.text.shellValue !== "0") return undefined;
       if (pipeline.negate && !ignored && rawState.errexit) return undefined;
-      if (
-        command.words.length === 0 ||
-        !this.budget.canRedirect1 ||
-        (this._fileWrites !== undefined && this._fileWrites.size !== 0) ||
-        (this._outputFiles !== undefined && this._outputFiles.size !== 0) ||
-        !this.canFastMemoryRedirect
-      ) {
+      if ( command.words.length === 0 || !this.budget.canRedirect1 || (this._fileWrites !== undefined && this._fileWrites.size !== 0) || (this._outputFiles !== undefined && this._outputFiles.size !== 0) || !this.canFastMemoryRedirect) {
         return undefined;
       }
       const r0 = command.redirects[0]!;
       const w0Plain = command.words[0]!.plain;
-      if (
-        r0.descriptor !== 1 ||
-        r0.move ||
-        r0.document ||
-        (r0.operator !== ">" && r0.operator !== ">>" && !(r0.operator === ">|" && rawState.noclobber)) ||
-        (r0.operator === ">" && rawState.noclobber) ||
-        (w0Plain !== "echo" && w0Plain !== "printf") ||
-        hasShellFunction(rawState, w0Plain) ||
-        rawState.extensions?.builtins.has(w0Plain)
-      ) {
+      if ( r0.descriptor !== 1 || r0.move || r0.document || (r0.operator !== ">" && r0.operator !== ">>" && !(r0.operator === ">|" && rawState.noclobber)) || (r0.operator === ">" && rawState.noclobber) || (w0Plain !== "echo" && w0Plain !== "printf") || hasShellFunction(rawState, w0Plain) || rawState.extensions?.builtins.has(w0Plain)) {
         return undefined;
       }
       const def = this.commands.get(w0Plain);
-      if (
-        !def ||
-        (w0Plain === "printf" ? def.execute !== printfCommand.execute : !defaultEchoExecutors.has(def.execute)) ||
-        command.words.length > this.budget.maxExpansionFieldsSmi ||
-        !this.isPureArgWord(r0.target, rawState) ||
-        !this.arePureArgWords(command.words, rawState)
-      ) {
+      if ( !def || (w0Plain === "printf" ? def.execute !== printfCommand.execute : !defaultEchoExecutors.has(def.execute)) || command.words.length > this.budget.maxExpansionFieldsSmi || !this.isPureArgWord(r0.target, rawState) || !this.arePureArgWords(command.words, rawState)) {
         return undefined;
       }
-      if (rawState.extensions && !rawState.extensions.eventDepth) {
-        publishCommandSpelling(rawState, commandSpelling(command));
-      }
+      if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
       type CachedConstEchoRedirect = {
         arg0: string;
         targetPath: string;
         dirPrefix: string | undefined;
         fileName: string | undefined;
         encoded: Uint8Array;
-        append: boolean;
-      };
+        append: boolean;};
       let cachedConst = (command as { _cachedConstEchoRedirect?: CachedConstEchoRedirect | null })._cachedConstEchoRedirect;
       if (cachedConst === undefined && w0Plain === "echo" && command.words.length === 2) {
         const w1 = command.words[1]!;
         const p1 = w1.parts.length === 1 ? w1.parts[0]! : undefined;
         const pt = r0.target.parts.length === 1 ? r0.target.parts[0]! : undefined;
-        if (
-          p1?.kind === "text" && !p1.byteValue && !p1.value.startsWith("-") && !p1.value.includes("\0") &&
-          (!p1.value.includes("{") && !p1.value.startsWith("~") && !hasGlobOrEscape(p1.value, true)) &&
-          pt?.kind === "text" && !pt.byteValue && pt.value.startsWith("/") && !pt.value.includes("\0") &&
-          (!pt.value.includes("{") && !hasGlobOrEscape(pt.value, true)) &&
-          isCleanAbsolutePath(pt.value) && pt.value !== "/dev" && !pt.value.startsWith("/dev/")
-        ) {
+        if ( p1?.kind === "text" && !p1.byteValue && !p1.value.startsWith("-") && !p1.value.includes("\0") && (!p1.value.includes("{") && !p1.value.startsWith("~") && !hasGlobOrEscape(p1.value, true)) && pt?.kind === "text" && !pt.byteValue && pt.value.startsWith("/") && !pt.value.includes("\0") && (!pt.value.includes("{") && !hasGlobOrEscape(pt.value, true)) && isCleanAbsolutePath(pt.value) && pt.value !== "/dev" && !pt.value.startsWith("/dev/")) {
           const lastSlash = pt.value.lastIndexOf("/");
           let dirPrefix: string | undefined;
           let fileName: string | undefined;
@@ -9705,13 +7755,7 @@ export class Runtime {
             fileName = pt.value.slice(lastSlash + 1);
           }
           cachedConst = {
-            arg0: p1.value,
-            targetPath: pt.value,
-            dirPrefix,
-            fileName,
-            encoded: fastSharedTextEncoder.encode(`${p1.value}\n`),
-            append: r0.operator === ">>",
-          };
+            arg0: p1.value, targetPath: pt.value, dirPrefix, fileName, encoded: fastSharedTextEncoder.encode(`${p1.value}\n`), append: r0.operator === ">>", };
           (command as { _cachedConstEchoRedirect?: CachedConstEchoRedirect | null })._cachedConstEchoRedirect = cachedConst;
         } else {
           cachedConst = null;
@@ -9725,8 +7769,7 @@ export class Runtime {
         const mode = 0o666 & ~(rawState.umask ?? 0o022);
         try {
           const wrote = cachedConst.dirPrefix !== undefined && cachedConst.fileName !== undefined
-            ? (tryWriteMemoryFileInDirSync(this.backingFs, cachedConst.dirPrefix, cachedConst.fileName, cachedConst.encoded, cachedConst.append, mode, this.commandSignal) ||
-               tryWriteMemoryFileSync(this.backingFs, cachedConst.targetPath, cachedConst.encoded, cachedConst.append, mode, this.commandSignal))
+            ? (tryWriteMemoryFileInDirSync(this.backingFs, cachedConst.dirPrefix, cachedConst.fileName, cachedConst.encoded, cachedConst.append, mode, this.commandSignal) || tryWriteMemoryFileSync(this.backingFs, cachedConst.targetPath, cachedConst.encoded, cachedConst.append, mode, this.commandSignal))
             : tryWriteMemoryFileSync(this.backingFs, cachedConst.targetPath, cachedConst.encoded, cachedConst.append, mode, this.commandSignal);
           if (!wrote) return undefined;
         } catch {
@@ -9783,27 +7826,19 @@ export class Runtime {
           }
           if (allStrings) {
             if (fastSubScratchArgs.length > 0) lastArg = fastSubScratchArgs[fastSubScratchArgs.length - 1]!;
-            if (w0Plain === "printf") {
-              formatted = tryFastPrintf(fastSubScratchArgs);
-            } else if (!fastSubScratchArgs[0]?.startsWith("-")) {
+            if (w0Plain === "printf") formatted = tryFastPrintf(fastSubScratchArgs); else if (!fastSubScratchArgs[0]?.startsWith("-")) {
               const joined = `${fastSubScratchArgs.join(" ")}\n`;
               if (!joined.includes("\0")) formatted = joined;
             }
             fastSubScratchArgs.length = 0;
-            if (formatted !== undefined) {
-              targetVal = this.fastValueWord(r0.target, rawState, io, true, false, false, true, undefined, diagnosticLine);
-            }
-          } else {
-            fastSubScratchArgs.length = 0;
-          }
+            if (formatted !== undefined) targetVal = this.fastValueWord(r0.target, rawState, io, true, false, false, true, undefined, diagnosticLine);
+          } else fastSubScratchArgs.length = 0;
         }
       } catch {
         fastSubScratchArgs.length = 0;
         return undefined;
       }
-      if ((preEncoded === undefined && formatted === undefined) || typeof targetVal !== "string" || targetVal.length === 0 || targetVal.includes("\0")) {
-        return undefined;
-      }
+      if ((preEncoded === undefined && formatted === undefined) || typeof targetVal !== "string" || targetVal.length === 0 || targetVal.includes("\0")) return undefined;
       const path = isCleanAbsolutePath(targetVal) ? targetVal : pathOf(rawState, targetVal);
       if (path.startsWith("/dev/") || path === "/dev") return undefined;
       const encoded = preEncoded ?? encodeRedirectTextToScratch(formatted!);
@@ -9812,9 +7847,7 @@ export class Runtime {
       if (!this.budget.canFileSystemOperation()) return undefined;
       const mode = 0o666 & ~(rawState.umask ?? 0o022);
       try {
-        if (!tryWriteMemoryFileSync(this.backingFs, path, encoded, r0.operator === ">>", mode, this.commandSignal)) {
-          return undefined;
-        }
+        if (!tryWriteMemoryFileSync(this.backingFs, path, encoded, r0.operator === ">>", mode, this.commandSignal)) return undefined;
       } catch {
         this.signal.throwIfAborted();
         return undefined;
@@ -9843,15 +7876,7 @@ export class Runtime {
     if (command.words.length === 1) {
       const w0 = command.words[0]!;
       const w0Plain = w0.plain;
-      if (
-        w0Plain === "return" &&
-        (rawState.functionDepth > 0 || rawState.sourceDepth) &&
-        !hasActiveExtensions(rawState) &&
-        !hasShellFunction(rawState, "return") &&
-        !rawState.extensions?.builtins.has("return") &&
-        !pipeline.negate &&
-        canMutatePipeStatus
-      ) {
+      if ( w0Plain === "return" && (rawState.functionDepth > 0 || rawState.sourceDepth) && !hasActiveExtensions(rawState) && !hasShellFunction(rawState, "return") && !rawState.extensions?.builtins.has("return") && !pipeline.negate && canMutatePipeStatus) {
         const retStatus = rawState.status;
         const statusStr = retStatus === 0 ? "0" : retStatus === 1 ? "1" : String(retStatus);
         if (existing && elem0!.text.bytes !== statusStr.length) return undefined;
@@ -9877,14 +7902,7 @@ export class Runtime {
         }
         throw completedExit(retStatus, "return", 1, retStatus);
       }
-      if (
-        w0Plain === "shift" &&
-        canMutatePipeStatus &&
-        !pipeline.negate &&
-        !hasShellFunction(rawState, "shift") &&
-        !rawState.extensions?.builtins.has("shift") &&
-        rawState.positional.length >= 1
-      ) {
+      if ( w0Plain === "shift" && canMutatePipeStatus && !pipeline.negate && !hasShellFunction(rawState, "shift") && !rawState.extensions?.builtins.has("shift") && rawState.positional.length >= 1) {
         const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
         this.budget.tick();
         rawState.substitutionStatus = 0;
@@ -9894,9 +7912,7 @@ export class Runtime {
           const nextPos = rawState.positional.slice(1);
           this._fastSubPositional = nextPos;
           rawState.positional = nextPos;
-        } else {
-          this.replacePositionals(state, this.positionalValues(state).slice(1));
-        }
+        } else this.replacePositionals(state, this.positionalValues(state).slice(1));
         if (!existing) {
           monitor.lazyPipeStatus = singleStatusZero;
           monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
@@ -9909,19 +7925,13 @@ export class Runtime {
         if (store) store.epoch = restEpoch;
         return 0;
       }
-      if (
-        (w0Plain === ":" || w0Plain === "true" || w0Plain === "false" || w0Plain === "eval") &&
-        !hasShellFunction(rawState, w0Plain) &&
-        !rawState.extensions?.builtins.has(w0Plain)
-      ) {
+      if ( (w0Plain === ":" || w0Plain === "true" || w0Plain === "false" || w0Plain === "eval") && !hasShellFunction(rawState, w0Plain) && !rawState.extensions?.builtins.has(w0Plain)) {
         const rawStatus = w0Plain === "false" ? 1 : 0;
         const statusChar = rawStatus === 0 ? "0" : "1";
         if (!canMutatePipeStatus && elem0!.text.shellValue !== statusChar) return undefined;
         const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
         if (finalStatus !== 0 && !ignored && rawState.errexit) return undefined;
-        if (rawState.extensions && !rawState.extensions.eventDepth) {
-          publishCommandSpelling(rawState, commandSpelling(command));
-        }
+        if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
         const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
         this.budget.tick();
         rawState.substitutionStatus = 0;
@@ -9946,9 +7956,7 @@ export class Runtime {
       if (arrayAssign) {
         if (!canMutatePipeStatus) return undefined;
         if (!this.tryFastArrayAssignmentSync(arrayAssign, rawState, io, diagnosticLine)) return undefined;
-        if (rawState.extensions && !rawState.extensions.eventDepth) {
-          publishCommandSpelling(rawState, commandSpelling(command));
-        }
+        if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
         const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
         this.budget.tick();
         rawState.substitutionStatus = 0;
@@ -9958,9 +7966,7 @@ export class Runtime {
         const activeStore = monitor.store;
         const activeExisting = activeStore?.get("PIPESTATUS");
         if (!activeExisting) {
-          if (activeStore) {
-            if (publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined;
-          } else {
+          if (activeStore) if (publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined; else {
             monitor.lazyPipeStatus = singleStatusZero;
             monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
           }
@@ -9976,20 +7982,10 @@ export class Runtime {
       }
       const assignment = this.assignment(w0);
       const hasSubPart = assignment?.value.parts.some(part => part.kind === "substitution") ?? false;
-      if (
-        !assignment ||
-        assignment.name === "OPTIND" ||
-        assignment.name === "PIPESTATUS" ||
-        assignment.name.includes("[") ||
-        (hasSubPart && !this.isPureSyncValueWord(assignment.value, rawState)) ||
-        rawState.readonlyVariables?.has(assignment.name) ||
-        store?.get(assignment.name)
-      ) {
+      if ( !assignment || assignment.name === "OPTIND" || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || (hasSubPart && !this.isPureSyncValueWord(assignment.value, rawState)) || rawState.readonlyVariables?.has(assignment.name) || store?.get(assignment.name)) {
         return undefined;
       }
-      if (rawState.extensions && !rawState.extensions.eventDepth) {
-        publishCommandSpelling(rawState, commandSpelling(command));
-      }
+      if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
       let fastAssigned: ShellValue | undefined;
       try {
         fastAssigned = this.fastValueWord(assignment.value, rawState, io, false, false, false, false, 0, diagnosticLine);
@@ -10003,9 +7999,7 @@ export class Runtime {
         const curStr = curRaw === undefined ? "" : (monitor.values.get(assignment.name, curRaw) ?? curRaw);
         if (typeof curStr !== "string") return undefined;
         finalAssigned = curStr + finalAssigned;
-        if (finalAssigned.length > this.budget.limits.maxExpansionBytes || (finalAssigned.length * 3 > this.budget.limits.maxExpansionBytes && shellValueByteLength(finalAssigned) > this.budget.limits.maxExpansionBytes)) {
-          return undefined;
-        }
+        if (finalAssigned.length > this.budget.limits.maxExpansionBytes || (finalAssigned.length * 3 > this.budget.limits.maxExpansionBytes && shellValueByteLength(finalAssigned) > this.budget.limits.maxExpansionBytes)) return undefined;
       }
       const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
       this.budget.tick();
@@ -10015,9 +8009,7 @@ export class Runtime {
       if (this._syncArithRawWriteOnly && this._syncArithTouched) {
         rawState.variables[assignment.name] = finalAssigned;
         this._syncArithTouched.add(assignment.name);
-      } else {
-        monitor.publishStringVariable(assignment.name, finalAssigned);
-      }
+      } else monitor.publishStringVariable(assignment.name, finalAssigned);
       if (rawState.allexport) monitor.proxy.exported.add(assignment.name);
       if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
       if (!existing) {
@@ -10035,32 +8027,10 @@ export class Runtime {
     }
     if (command.words.length >= 1) {
       const w0Plain = command.words[0]!.plain;
-      if (
-        command.words.length >= 4 &&
-        w0Plain === "printf" &&
-        command.words[1]?.plain === "-v" &&
-        command.redirects.length === 0 &&
-        canMutatePipeStatus &&
-        (!pipeline.negate || ignored || !rawState.errexit) &&
-        !hasShellFunction(rawState, "printf") &&
-        !rawState.extensions?.builtins.has("printf")
-      ) {
+      if ( command.words.length >= 4 && w0Plain === "printf" && command.words[1]?.plain === "-v" && command.redirects.length === 0 && canMutatePipeStatus && (!pipeline.negate || ignored || !rawState.errexit) && !hasShellFunction(rawState, "printf") && !rawState.extensions?.builtins.has("printf")) {
         const targetVar = command.words[2]?.plain;
         const def = this.commands.get("printf");
-        if (
-          targetVar &&
-          isShellIdentifier(targetVar) &&
-          targetVar !== "OPTIND" &&
-          targetVar !== "PIPESTATUS" &&
-          targetVar !== "_" &&
-          !rawState.readonlyVariables?.has(targetVar) &&
-          !store?.get(targetVar) &&
-          !monitor.hasOverlay(targetVar) &&
-          def &&
-          def.execute === printfCommand.execute &&
-          command.words.length <= this.budget.maxExpansionFieldsSmi &&
-          this.arePureArgWords(command.words, rawState)
-        ) {
+        if ( targetVar && isShellIdentifier(targetVar) && targetVar !== "OPTIND" && targetVar !== "PIPESTATUS" && targetVar !== "_" && !rawState.readonlyVariables?.has(targetVar) && !store?.get(targetVar) && !monitor.hasOverlay(targetVar) && def && def.execute === printfCommand.execute && command.words.length <= this.budget.maxExpansionFieldsSmi && this.arePureArgWords(command.words, rawState)) {
           fastSubScratchArgs.length = 0;
           let allStrings = true;
           try {
@@ -10078,14 +8048,8 @@ export class Runtime {
           const lastArg = fastSubScratchArgs.length > 0 ? fastSubScratchArgs[fastSubScratchArgs.length - 1]! : targetVar;
           const formatted = allStrings ? tryFastPrintf(fastSubScratchArgs) : undefined;
           fastSubScratchArgs.length = 0;
-          if (
-            formatted !== undefined &&
-            formatted.length <= this.budget.limits.maxExpansionBytes &&
-            (formatted.length * 3 <= this.budget.limits.maxExpansionBytes || Buffer.byteLength(formatted) <= this.budget.limits.maxExpansionBytes)
-          ) {
-            if (rawState.extensions && !rawState.extensions.eventDepth) {
-              publishCommandSpelling(rawState, commandSpelling(command));
-            }
+          if ( formatted !== undefined && formatted.length <= this.budget.limits.maxExpansionBytes && (formatted.length * 3 <= this.budget.limits.maxExpansionBytes || Buffer.byteLength(formatted) <= this.budget.limits.maxExpansionBytes)) {
+            if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
             const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
             this.budget.tick();
             rawState.substitutionStatus = 0;
@@ -10094,9 +8058,7 @@ export class Runtime {
             if (this._syncArithRawWriteOnly && this._syncArithTouched) {
               rawState.variables[targetVar] = formatted;
               this._syncArithTouched.add(targetVar);
-            } else {
-              monitor.publishStringVariable(targetVar, formatted);
-            }
+            } else monitor.publishStringVariable(targetVar, formatted);
             if (rawState.allexport) monitor.proxy.exported.add(targetVar);
             if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
             if (!existing) {
@@ -10114,15 +8076,7 @@ export class Runtime {
           }
         }
       }
-      if (
-        command.words.length === 2 &&
-        w0Plain === "shift" &&
-        command.redirects.length === 0 &&
-        canMutatePipeStatus &&
-        !pipeline.negate &&
-        !hasShellFunction(rawState, "shift") &&
-        !rawState.extensions?.builtins.has("shift")
-      ) {
+      if ( command.words.length === 2 && w0Plain === "shift" && command.redirects.length === 0 && canMutatePipeStatus && !pipeline.negate && !hasShellFunction(rawState, "shift") && !rawState.extensions?.builtins.has("shift")) {
         let argVal: ShellValue | undefined;
         try {
           argVal = command.words[1]!.plain ?? this.fastValueWord(command.words[1]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
@@ -10143,9 +8097,7 @@ export class Runtime {
                 const nextPos = activePos.slice(shiftCount);
                 this._fastSubPositional = nextPos;
                 rawState.positional = nextPos;
-              } else {
-                this.replacePositionals(state, this.positionalValues(state).slice(shiftCount));
-              }
+              } else this.replacePositionals(state, this.positionalValues(state).slice(shiftCount));
             }
             if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
             if (!existing) {
@@ -10162,38 +8114,17 @@ export class Runtime {
           }
         }
       }
-      if (
-        (w0Plain === "echo" || w0Plain === "printf") &&
-        !hasShellFunction(rawState, w0Plain) &&
-        !rawState.extensions?.builtins.has(w0Plain) &&
-        (!io.descriptors || io.descriptors.get(1)?.output === io.stdout)
-      ) {
-        const fastSyncSink =
-          (io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) ||
-          (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write)
+      if ( (w0Plain === "echo" || w0Plain === "printf") && !hasShellFunction(rawState, w0Plain) && !rawState.extensions?.builtins.has(w0Plain) && (!io.descriptors || io.descriptors.get(1)?.output === io.stdout)) {
+        const fastSyncSink = (io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) || (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write)
             ? io.stdout
             : undefined;
-        const fastPipeSink =
-          !fastSyncSink &&
-          io.stdout instanceof BudgetedPipeStageSink &&
-          io.stdout.write === BudgetedPipeStageSink.prototype.write &&
-          io.stdout.canWriteSync()
+        const fastPipeSink = !fastSyncSink && io.stdout instanceof BudgetedPipeStageSink && io.stdout.write === BudgetedPipeStageSink.prototype.write && io.stdout.canWriteSync()
             ? io.stdout
             : undefined;
         const syncOut = (fastSyncSink || fastPipeSink) ? undefined : syncSinks.get(io.stdout);
         const def = (fastSyncSink || fastPipeSink || syncOut) ? this.commands.get(w0Plain) : undefined;
-        if (
-          (fastSyncSink || fastPipeSink || syncOut) &&
-          def &&
-          (w0Plain === "printf" ? def.execute === printfCommand.execute : defaultEchoExecutors.has(def.execute)) &&
-          command.words.length <= this.budget.maxExpansionFieldsSmi &&
-          this.arePureArgWords(command.words, rawState) &&
-          (canMutatePipeStatus || elem0!.text.shellValue === "0") &&
-          (!pipeline.negate || ignored || !rawState.errexit)
-        ) {
-          if (rawState.extensions && !rawState.extensions.eventDepth) {
-            publishCommandSpelling(rawState, commandSpelling(command));
-          }
+        if ( (fastSyncSink || fastPipeSink || syncOut) && def && (w0Plain === "printf" ? def.execute === printfCommand.execute : defaultEchoExecutors.has(def.execute)) && command.words.length <= this.budget.maxExpansionFieldsSmi && this.arePureArgWords(command.words, rawState) && (canMutatePipeStatus || elem0!.text.shellValue === "0") && (!pipeline.negate || ignored || !rawState.errexit)) {
+          if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
           let formatted: string | undefined;
           let preEncoded: Uint8Array | undefined;
           let lastArg = w0Plain;
@@ -10220,9 +8151,7 @@ export class Runtime {
               }
               if (allStrings) {
                 if (fastSubScratchArgs.length > 0) lastArg = fastSubScratchArgs[fastSubScratchArgs.length - 1]!;
-                if (w0Plain === "printf") {
-                  formatted = tryFastPrintf(fastSubScratchArgs);
-                } else if (!fastSubScratchArgs[0]?.startsWith("-")) {
+                if (w0Plain === "printf") formatted = tryFastPrintf(fastSubScratchArgs); else if (!fastSubScratchArgs[0]?.startsWith("-")) {
                   const joined = `${fastSubScratchArgs.join(" ")}\n`;
                   if (!joined.includes("\0")) formatted = joined;
                 }
@@ -10244,18 +8173,12 @@ export class Runtime {
                   this.budget.bytes += byteLength;
                   if (fastSyncSink instanceof Capture) fastSyncSink.writeRawSync(encoded);
                   else fastSyncSink.target.writeRawSync(encoded);
-                } else {
-                  fastSyncSink.writeSync(encoded);
-                }
+                } else fastSyncSink.writeSync(encoded);
               } else if (fastPipeSink) {
-                if (fastPipeSink.budget !== this.budget) {
-                  this.budget.bytes += byteLength;
-                }
+                if (fastPipeSink.budget !== this.budget) this.budget.bytes += byteLength;
                 fastPipeSink.writeSync(encoded);
               } else {
-                if (budgetedSinks.get(io.stdout)?.budget !== this.budget) {
-                  this.budget.bytes += byteLength;
-                }
+                if (budgetedSinks.get(io.stdout)?.budget !== this.budget) this.budget.bytes += byteLength;
                 syncOut!(encoded);
               }
               rawState.substitutionStatus = 0;
@@ -10282,21 +8205,8 @@ export class Runtime {
     if (command.words.length >= 2) {
       const w0 = command.words[0]!;
       const w0Plain = w0.plain;
-      const isHereStringRead =
-        command.redirects.length === 1 &&
-        command.redirects[0]!.operator === "<<<" &&
-        !command.redirects[0]!.move &&
-        !command.redirects[0]!.document &&
-        (command.redirects[0]!.descriptor === undefined || command.redirects[0]!.descriptor === 0);
-      if (
-        (w0Plain === "read" || (command.words[1]?.plain === "read" && w0.parts[0]?.kind === "text" && w0.parts[0].value.startsWith("IFS="))) &&
-        canMutatePipeStatus &&
-        !pipeline.negate &&
-        !rawState.allexport &&
-        !hasShellFunction(rawState, "read") &&
-        !rawState.extensions?.builtins.has("read") &&
-        (command.redirects.length === 0 ? io.stdin instanceof ShellInput : isHereStringRead)
-      ) {
+      const isHereStringRead = command.redirects.length === 1 && command.redirects[0]!.operator === "<<<" && !command.redirects[0]!.move && !command.redirects[0]!.document && (command.redirects[0]!.descriptor === undefined || command.redirects[0]!.descriptor === 0);
+      if ( (w0Plain === "read" || (command.words[1]?.plain === "read" && w0.parts[0]?.kind === "text" && w0.parts[0].value.startsWith("IFS="))) && canMutatePipeStatus && !pipeline.negate && !rawState.allexport && !hasShellFunction(rawState, "read") && !rawState.extensions?.builtins.has("read") && (command.redirects.length === 0 ? io.stdin instanceof ShellInput : isHereStringRead)) {
         let ifs: ShellValue | undefined;
         let readWordIdx = 1;
         if (w0Plain === "read") {
@@ -10329,16 +8239,11 @@ export class Runtime {
               if (p.startsWith("-") && p !== "-") {
                 for (let k = 1; k < p.length; k++) {
                   if (p[k] === "r") raw = true;
-                  else if (p[k] === "s") { /* no-op */ }
-                  else if (p[k] === "d") {
+                  else if (p[k] === "s") { /* no-op */ } else if (p[k] === "d") {
                     let delimStr: string | undefined;
-                    if (k + 1 < p.length) {
-                      delimStr = p.slice(k + 1);
-                    } else if (readWordIdx + 1 < command.words.length) {
+                    if (k + 1 < p.length) delimStr = p.slice(k + 1); else if (readWordIdx + 1 < command.words.length) {
                       const nextW = command.words[++readWordIdx]!;
-                      if (nextW.plain !== undefined) {
-                        delimStr = nextW.plain;
-                      } else {
+                      if (nextW.plain !== undefined) delimStr = nextW.plain; else {
                         try {
                           const fv = this.fastValueWord(nextW, rawState, io, false, false, false, false, 0, diagnosticLine);
                           if (typeof fv === "string") delimStr = fv;
@@ -10353,8 +8258,7 @@ export class Runtime {
                     }
                     simpleRead = false;
                     break;
-                  }
-                  else if (p[k] === "a") {
+                  } else if (p[k] === "a") {
                     if (k + 1 < p.length) {
                       arrayTarget = p.slice(k + 1);
                       break;
@@ -10365,37 +8269,21 @@ export class Runtime {
                       simpleRead = false;
                       break;
                     }
-                  }
-                  else { simpleRead = false; break; }
+                  } else { simpleRead = false; break; }
                 }
                 if (!simpleRead) break;
                 readWordIdx++;
-              } else {
-                break;
-              }
+              } else break;
             }
             if (simpleRead) {
               const varCount = command.words.length - readWordIdx;
               let existingArrayBinding: ReturnType<NonNullable<typeof store>["get"]> | undefined;
               if (arrayTarget !== undefined) {
-                if (
-                  varCount !== 0 ||
-                  !isShellIdentifier(arrayTarget) ||
-                  rawState.readonlyVariables?.has(arrayTarget) ||
-                  rawState.exported.has(arrayTarget) ||
-                  rawState.variableAttributes?.get(arrayTarget) ||
-                  controlNames.has(arrayTarget)
-                ) {
+                if ( varCount !== 0 || !isShellIdentifier(arrayTarget) || rawState.readonlyVariables?.has(arrayTarget) || rawState.exported.has(arrayTarget) || rawState.variableAttributes?.get(arrayTarget) || controlNames.has(arrayTarget)) {
                   simpleRead = false;
                 } else {
                   existingArrayBinding = store?.get(arrayTarget);
-                  if (
-                    !existingArrayBinding ||
-                    existingArrayBinding.associative ||
-                    existingArrayBinding.references !== 1 ||
-                    store!.watches.has(arrayTarget) ||
-                    monitor.hasOverlay(arrayTarget)
-                  ) {
+                  if ( !existingArrayBinding || existingArrayBinding.associative || existingArrayBinding.references !== 1 || store!.watches.has(arrayTarget) || monitor.hasOverlay(arrayTarget)) {
                     simpleRead = false;
                   }
                 }
@@ -10404,16 +8292,7 @@ export class Runtime {
               } else {
                 for (let i = readWordIdx; i < command.words.length; i++) {
                   const vn = command.words[i]!.plain;
-                  if (
-                    !vn ||
-                    !isShellIdentifier(vn) ||
-                    rawState.readonlyVariables?.has(vn) ||
-                    store?.get(vn) ||
-                    rawState.variableAttributes?.get(vn) ||
-                    vn === "OPTIND" ||
-                    vn === "PIPESTATUS" ||
-                    vn === "_"
-                  ) {
+                  if ( !vn || !isShellIdentifier(vn) || rawState.readonlyVariables?.has(vn) || store?.get(vn) || rawState.variableAttributes?.get(vn) || vn === "OPTIND" || vn === "PIPESTATUS" || vn === "_") {
                     simpleRead = false;
                     break;
                   }
@@ -10425,11 +8304,7 @@ export class Runtime {
                   if (readDelim === 10) {
                     try {
                       const hv = this.fastValueWord(command.redirects[0]!.target, rawState, io, false, false, false, false, undefined, diagnosticLine);
-                      if (
-                        typeof hv === "string" &&
-                        hv.length + 1 < this.budget.limits.maxExpansionBytes &&
-                        hv.length + 1 <= this.budget.limits.maxInputBytes
-                      ) {
+                      if ( typeof hv === "string" && hv.length + 1 < this.budget.limits.maxExpansionBytes && hv.length + 1 <= this.budget.limits.maxInputBytes) {
                         let ok = true;
                         for (let k = 0; k < hv.length; k++) {
                           const c = hv.charCodeAt(k);
@@ -10444,20 +8319,15 @@ export class Runtime {
                       lineStr = undefined;
                     }
                   }
-                } else {
-                  lineStr = (io.stdin as ShellInput).tryReadSimpleRawAsciiLineSync(readDelim, raw);
-                }
+                } else lineStr = (io.stdin as ShellInput).tryReadSimpleRawAsciiLineSync(readDelim, raw);
                 if (lineStr !== undefined) {
-                  if (rawState.extensions && !rawState.extensions.eventDepth) {
-                    publishCommandSpelling(rawState, commandSpelling(command));
-                  }
+                  if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
                   if (arrayTarget !== undefined && existingArrayBinding) {
                     const isSep = (c: number): boolean => {
                       for (let i = 0; i < ifs.length; i++) {
                         if (ifs.charCodeAt(i) === c) return true;
                       }
-                      return false;
-                    };
+                      return false;};
                     const isWhite = (c: number): boolean => (c === 32 || c === 9 || c === 10) && isSep(c);
                     let end = lineStr.length;
                     while (end > 0 && isWhite(lineStr.charCodeAt(end - 1))) end--;
@@ -10504,15 +8374,12 @@ export class Runtime {
                       if (error instanceof ArrayFailure) return undefined;
                       throw error;
                     }
-                  } else if (varCount === 0) {
-                    monitor.publishStringVariable("REPLY", lineStr);
-                  } else {
+                  } else if (varCount === 0) monitor.publishStringVariable("REPLY", lineStr); else {
                     const isSep = (c: number): boolean => {
                       for (let i = 0; i < ifs.length; i++) {
                         if (ifs.charCodeAt(i) === c) return true;
                       }
-                      return false;
-                    };
+                      return false;};
                     const isWhite = (c: number): boolean => (c === 32 || c === 9 || c === 10) && isSep(c);
                     let end = lineStr.length;
                     while (end > 0 && isWhite(lineStr.charCodeAt(end - 1))) end--;
@@ -10524,9 +8391,7 @@ export class Runtime {
                         if (this._syncArithRawWriteOnly && this._syncArithTouched) {
                           rawState.variables[vn] = "";
                           this._syncArithTouched.add(vn);
-                        } else {
-                          monitor.publishStringVariable(vn, "");
-                        }
+                        } else monitor.publishStringVariable(vn, "");
                         continue;
                       }
                       const start = pos;
@@ -10540,9 +8405,7 @@ export class Runtime {
                       if (this._syncArithRawWriteOnly && this._syncArithTouched) {
                         rawState.variables[vn] = sliceVal;
                         this._syncArithTouched.add(vn);
-                      } else {
-                        monitor.publishStringVariable(vn, sliceVal);
-                      }
+                      } else monitor.publishStringVariable(vn, sliceVal);
                     }
                   }
                   const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
@@ -10569,36 +8432,12 @@ export class Runtime {
         }
       }
       if (command.redirects.length !== 0) return undefined;
-      if (
-        command.words.length === 2 &&
-        (w0Plain === "unset" || w0Plain === "export" || w0Plain === "let") &&
-        canMutatePipeStatus &&
-        !pipeline.negate &&
-        rawState.locals.length === 0 &&
-        !hasActiveVariableAttributes(rawState) &&
-        !hasShellFunction(rawState, w0Plain) &&
-        !rawState.extensions?.builtins.has(w0Plain)
-      ) {
+      if ( command.words.length === 2 && (w0Plain === "unset" || w0Plain === "export" || w0Plain === "let") && canMutatePipeStatus && !pipeline.negate && rawState.locals.length === 0 && !hasActiveVariableAttributes(rawState) && !hasShellFunction(rawState, w0Plain) && !rawState.extensions?.builtins.has(w0Plain)) {
         const w1 = command.words[1]!;
         if (w0Plain === "unset") {
           const targetName = w1.plain;
-          if (
-            targetName &&
-            isShellIdentifier(targetName) &&
-            !targetName.startsWith("-") &&
-            !rawState.readonlyVariables?.has(targetName) &&
-            !store?.get(targetName) &&
-            !rawState.functions.has(targetName) &&
-            !monitor.hasOverlay(targetName) &&
-            targetName !== "OPTIND" &&
-            targetName !== "PIPESTATUS" &&
-            targetName !== "_" &&
-            targetName !== "IFS" &&
-            targetName !== "PATH"
-          ) {
-            if (rawState.extensions && !rawState.extensions.eventDepth) {
-              publishCommandSpelling(rawState, commandSpelling(command));
-            }
+          if ( targetName && isShellIdentifier(targetName) && !targetName.startsWith("-") && !rawState.readonlyVariables?.has(targetName) && !store?.get(targetName) && !rawState.functions.has(targetName) && !monitor.hasOverlay(targetName) && targetName !== "OPTIND" && targetName !== "PIPESTATUS" && targetName !== "_" && targetName !== "IFS" && targetName !== "PATH") {
+            if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
             delete rawState.variables[targetName];
             rawState.exported.delete(targetName);
             monitor.values.invalidate(targetName);
@@ -10623,17 +8462,7 @@ export class Runtime {
         } else if (w0Plain === "export") {
           const assign = !getArrayAssignment(w1) ? this.assignment(w1) : undefined;
           const targetName = assign ? assign.name : w1.plain;
-          if (
-            targetName &&
-            isShellIdentifier(targetName) &&
-            !targetName.startsWith("-") &&
-            !rawState.readonlyVariables?.has(targetName) &&
-            !store?.get(targetName) &&
-            !monitor.hasOverlay(targetName) &&
-            targetName !== "OPTIND" &&
-            targetName !== "PIPESTATUS" &&
-            targetName !== "_"
-          ) {
+          if ( targetName && isShellIdentifier(targetName) && !targetName.startsWith("-") && !rawState.readonlyVariables?.has(targetName) && !store?.get(targetName) && !monitor.hasOverlay(targetName) && targetName !== "OPTIND" && targetName !== "PIPESTATUS" && targetName !== "_") {
             let nextVal: string | undefined;
             if (assign) {
               try {
@@ -10646,16 +8475,10 @@ export class Runtime {
               } catch {
                 nextVal = undefined;
               }
-            } else {
-              nextVal = rawState.variables[targetName];
-            }
+            } else nextVal = rawState.variables[targetName];
             if (assign ? nextVal !== undefined : true) {
-              if (rawState.extensions && !rawState.extensions.eventDepth) {
-                publishCommandSpelling(rawState, commandSpelling(command));
-              }
-              if (assign && nextVal !== undefined) {
-                monitor.publishStringVariable(targetName, nextVal);
-              }
+              if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
+              if (assign && nextVal !== undefined) monitor.publishStringVariable(targetName, nextVal);
               monitor.proxy.exported.add(targetName);
               const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
               this.budget.tick();
@@ -10707,9 +8530,7 @@ export class Runtime {
                 nonZero = undefined;
               }
               if (nonZero !== undefined && (nonZero || ignored || !rawState.errexit)) {
-                if (rawState.extensions && !rawState.extensions.eventDepth) {
-                  publishCommandSpelling(rawState, commandSpelling(command));
-                }
+                if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
                 const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
                 this.budget.tick();
                 rawState.substitutionStatus = 0;
@@ -10717,50 +8538,20 @@ export class Runtime {
                 rawState.lastArgument = exprStr;
                 if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
                 const finalStatus = nonZero ? 0 : 1;
-                if (!existing) {
-                  if (store) {
-                    if (publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined;
-                  } else {
-                    monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne;
-                    monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
-                  }
-                } else {
-                  elem0!.text.shellValue = finalStatus === 0 ? "0" : "1";
-                  store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
-                }
-                rawState.status = finalStatus;
-                monitor.epoch = restEpoch;
-                if (store) store.epoch = restEpoch;
-                return finalStatus;
+                return this.finishSyncPipeStatus(rawState, monitor, store, existing, elem0, scope, finalStatus, restEpoch);
               }
             }
           }
         }
       }
-      if (
-        command.words.length >= 2 &&
-        command.words.length <= 16 &&
-        w0Plain === "local" &&
-        rawState.locals.length > 0 &&
-        !hasShellFunction(rawState, "local") &&
-        !rawState.extensions?.builtins.has("local") &&
-        !pipeline.negate &&
-        canMutatePipeStatus
-      ) {
+      if ( command.words.length >= 2 && command.words.length <= 16 && w0Plain === "local" && rawState.locals.length > 0 && !hasShellFunction(rawState, "local") && !rawState.extensions?.builtins.has("local") && !pipeline.negate && canMutatePipeStatus) {
         const parsedLocals: Array<{ name: string; val: string | undefined; lastArg: string }> = [];
         let allValidLocal = true;
         for (let idx = 1; idx < command.words.length; idx++) {
           const wArg = command.words[idx]!;
           const assignment = !getArrayAssignment(wArg) ? this.assignment(wArg) : undefined;
           if (assignment) {
-            if (
-              assignment.append ||
-              assignment.name === "OPTIND" ||
-              assignment.name === "PIPESTATUS" ||
-              assignment.name.includes("[") ||
-              rawState.readonlyVariables?.has(assignment.name) ||
-              store?.get(assignment.name)
-            ) {
+            if ( assignment.append || assignment.name === "OPTIND" || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || rawState.readonlyVariables?.has(assignment.name) || store?.get(assignment.name)) {
               allValidLocal = false;
               break;
             }
@@ -10775,14 +8566,7 @@ export class Runtime {
               break;
             }
             parsedLocals.push({ name: assignment.name, val: fastAssigned, lastArg: `${assignment.name}=${fastAssigned}` });
-          } else if (
-            wArg.plain &&
-            /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(wArg.plain) &&
-            wArg.plain !== "OPTIND" &&
-            wArg.plain !== "PIPESTATUS" &&
-            !rawState.readonlyVariables?.has(wArg.plain) &&
-            !store?.get(wArg.plain)
-          ) {
+          } else if ( wArg.plain && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(wArg.plain) && wArg.plain !== "OPTIND" && wArg.plain !== "PIPESTATUS" && !rawState.readonlyVariables?.has(wArg.plain) && !store?.get(wArg.plain)) {
             parsedLocals.push({ name: wArg.plain, val: undefined, lastArg: wArg.plain });
           } else {
             allValidLocal = false;
@@ -10804,17 +8588,13 @@ export class Runtime {
                   ? rawState.variables[item.name]
                   : (rawState.variables[item.name] === undefined ? undefined : (monitor.values.get(item.name, rawState.variables[item.name]!) ?? rawState.variables[item.name]));
                 locals.set(item.name, { attributes: undefined, value: typeof curVal === "string" ? curVal : undefined, exported: false, readOnly: false });
-              } else {
-                locals.set(item.name, saveVariable(state, item.name));
-              }
+              } else locals.set(item.name, saveVariable(state, item.name));
             }
             if (item.val !== undefined) {
               if (this._syncArithRawWriteOnly && this._syncArithTouched) {
                 rawState.variables[item.name] = item.val;
                 this._syncArithTouched.add(item.name);
-              } else {
-                monitor.publishStringVariable(item.name, item.val);
-              }
+              } else monitor.publishStringVariable(item.name, item.val);
               if (rawState.allexport) monitor.proxy.exported.add(item.name);
             } else if (isNewLocal) {
               delete rawState.variables[item.name];
@@ -10837,20 +8617,9 @@ export class Runtime {
           return 0;
         }
       }
-      if (
-        (command.words.length === 1 || command.words.length === 2) &&
-        w0Plain === "return" &&
-        (rawState.functionDepth > 0 || rawState.sourceDepth) &&
-        !hasActiveExtensions(rawState) &&
-        !hasShellFunction(rawState, "return") &&
-        !rawState.extensions?.builtins.has("return") &&
-        !pipeline.negate &&
-        canMutatePipeStatus
-      ) {
+      if ( (command.words.length === 1 || command.words.length === 2) && w0Plain === "return" && (rawState.functionDepth > 0 || rawState.sourceDepth) && !hasActiveExtensions(rawState) && !hasShellFunction(rawState, "return") && !rawState.extensions?.builtins.has("return") && !pipeline.negate && canMutatePipeStatus) {
         let fastArg: ShellValue | undefined;
-        if (command.words.length === 1) {
-          fastArg = String(rawState.status);
-        } else {
+        if (command.words.length === 1) fastArg = String(rawState.status); else {
           try {
             fastArg = this.fastValueWord(command.words[1]!, rawState, io, false, false, false, false, 0, diagnosticLine);
           } catch {
@@ -10887,18 +8656,7 @@ export class Runtime {
           }
         }
       }
-      if (
-        w0Plain !== undefined &&
-        !rawState.externalInvocation &&
-        rawState.functions.has(w0Plain) &&
-        this.firstInternalDiscovery(w0Plain, rawState, false) === "function" &&
-        !pipeline.negate &&
-        canMutatePipeStatus &&
-        (!ignored && rawState.errexit ? false : true) &&
-        rawState.depth < this.budget.limits.maxSubstitutionDepth &&
-        !hasYieldCheckpoint(this.signal) &&
-        (this._syncReturnDepth > 0 || ((this.budget.commands + 32) & 8191) >= 32)
-      ) {
+      if ( w0Plain !== undefined && !rawState.externalInvocation && rawState.functions.has(w0Plain) && this.firstInternalDiscovery(w0Plain, rawState, false) === "function" && !pipeline.negate && canMutatePipeStatus && (!ignored && rawState.errexit ? false : true) && rawState.depth < this.budget.limits.maxSubstitutionDepth && !hasYieldCheckpoint(this.signal) && (this._syncReturnDepth > 0 || ((this.budget.commands + 32) & 8191) >= 32)) {
         const fnBody = rawState.functions.get(w0Plain)!;
         if (fnBody.kind === "group" && fnBody.redirects.length === 0) {
           const fnArgs: string[] = [];
@@ -10958,11 +8716,7 @@ export class Runtime {
                 exitStatus = bodyRes;
               }
             } catch (error) {
-              if (error instanceof Flow && error.kind === "return") {
-                exitStatus = error.status;
-              } else {
-                throw error;
-              }
+              if (error instanceof Flow && error.kind === "return") exitStatus = error.status; else throw error;
             } finally {
               this._syncReturnDepth--;
               if (fastPosOnly) {
@@ -10983,9 +8737,7 @@ export class Runtime {
                   if (previous.value === undefined) delete rawState.variables[k];
                   else rawState.variables[k] = shellValueText(previous.value);
                   this._syncArithTouched.add(k);
-                } else {
-                  tryRestoreVariableSync(state, k, previous);
-                }
+                } else tryRestoreVariableSync(state, k, previous);
               }
             }
             const statusStr = exitStatus === 0 ? "0" : exitStatus === 1 ? "1" : String(exitStatus);
@@ -11001,19 +8753,7 @@ export class Runtime {
           }
         }
       }
-      if (
-        w0Plain === "eval" &&
-        canMutatePipeStatus &&
-        !pipeline.negate &&
-        !hasShellFunction(rawState, "eval") &&
-        !rawState.extensions?.builtins.has("eval") &&
-        isDefaultShellSyntax(rawState.extensions?.syntax) &&
-        !rawState.nounset &&
-        !rawState.readonlyVariables?.size &&
-        rawState.depth < this.budget.limits.maxSubstitutionDepth &&
-        !hasYieldCheckpoint(this.signal) &&
-        ((this.budget.commands + 32) & 2047) >= 32
-      ) {
+      if ( w0Plain === "eval" && canMutatePipeStatus && !pipeline.negate && !hasShellFunction(rawState, "eval") && !rawState.extensions?.builtins.has("eval") && isDefaultShellSyntax(rawState.extensions?.syntax) && !rawState.nounset && !rawState.readonlyVariables?.size && rawState.depth < this.budget.limits.maxSubstitutionDepth && !hasYieldCheckpoint(this.signal) && ((this.budget.commands + 32) & 2047) >= 32) {
         const evalArgs: string[] = [];
         let argsOk = true;
         try {
@@ -11027,11 +8767,7 @@ export class Runtime {
         }
         if (argsOk) {
           const lastCmdArg = evalArgs.length > 0 ? evalArgs[evalArgs.length - 1]! : "eval";
-          if (evalArgs[0] === "--") {
-            evalArgs.shift();
-          } else if (evalArgs[0] !== undefined && evalArgs[0].startsWith("-") && evalArgs[0] !== "-") {
-            argsOk = false;
-          }
+          if (evalArgs[0] === "--") evalArgs.shift(); else if (evalArgs[0] !== undefined && evalArgs[0].startsWith("-") && evalArgs[0] !== "-") argsOk = false;
           if (argsOk) {
             const evalSource = evalArgs.length === 0 ? "" : evalArgs.length === 1 ? evalArgs[0]! : evalArgs.join(" ");
             for (let i = 0; i < evalSource.length; i++) {
@@ -11071,11 +8807,7 @@ export class Runtime {
                 if (error instanceof ShellLimitError) throw error;
                 cachedUnit = undefined;
               }
-              if (
-                cachedUnit &&
-                cachedUnit.safeForSyncEval &&
-                this.canSyncScriptCompound(cachedUnit.script, rawState, 0)
-              ) {
+              if ( cachedUnit && cachedUnit.safeForSyncEval && this.canSyncScriptCompound(cachedUnit.script, rawState, 0)) {
                 const prevCommands = this.budget.commands;
                 this.budget.tick();
                 rawState.substitutionStatus = 0;
@@ -11109,24 +8841,16 @@ export class Runtime {
               } else if (cachedUnit) {
                 this.budget.parsing.restore(snapParse);
                 this.budget.sourceBytes = prevSourceBytes;
-              } else {
-                this.budget.sourceBytes = prevSourceBytes;
-              }
+              } else this.budget.sourceBytes = prevSourceBytes;
             }
           }
         }
       }
-      if (
-        (w0Plain === "[" || w0Plain === "test") &&
-        !hasShellFunction(rawState, w0Plain) &&
-        !rawState.extensions?.builtins.has(w0Plain)
-      ) {
+      if ( (w0Plain === "[" || w0Plain === "test") && !hasShellFunction(rawState, w0Plain) && !rawState.extensions?.builtins.has(w0Plain)) {
         const cmd = this.commands.get(w0Plain);
         if (cmd && defaultPredicateExecutors.has(cmd.execute)) {
           if (command.words.length > this.budget.maxExpansionFieldsSmi) return undefined;
-          if (rawState.extensions && !rawState.extensions.eventDepth) {
-            publishCommandSpelling(rawState, commandSpelling(command));
-          }
+          if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
           predicateScratchWords.length = 0;
           try {
             predicateScratchWords.push(w0Plain);
@@ -11165,9 +8889,7 @@ export class Runtime {
           rawState.lastArgument = lastPredArg;
           if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
           if (!existing) {
-            if (store) {
-              if (publishPipelineStatus(rawState, fastPred === 0 ? singleStatusZero : fastPred === 1 ? singleStatusOne : [fastPred], this.signal, scope)) return undefined;
-            } else {
+            if (store) if (publishPipelineStatus(rawState, fastPred === 0 ? singleStatusZero : fastPred === 1 ? singleStatusOne : [fastPred], this.signal, scope)) return undefined; else {
               monitor.lazyPipeStatus = fastPred === 0 ? singleStatusZero : fastPred === 1 ? singleStatusOne : [fastPred];
               monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
             }
@@ -11182,31 +8904,10 @@ export class Runtime {
           return finalStatus;
         }
       }
-      if (
-        w0Plain === "printf" &&
-        command.words.length >= 4 &&
-        command.words[1]?.plain === "-v" &&
-        this.budget.limits.maxExpansionFields === Infinity &&
-        this.writeVariable === Runtime.prototype.writeVariable &&
-        !rawState.externalInvocation &&
-        !hasShellFunction(rawState, "printf") &&
-        !rawState.extensions?.builtins.has("printf") &&
-        !rawState.readonlyVariables?.size &&
-        !hasActiveVariableAttributes(rawState) &&
-        !hasActiveExtensions(rawState) &&
-        canMutatePipeStatus
-      ) {
+      if ( w0Plain === "printf" && command.words.length >= 4 && command.words[1]?.plain === "-v" && this.budget.limits.maxExpansionFields === Infinity && this.writeVariable === Runtime.prototype.writeVariable && !rawState.externalInvocation && !hasShellFunction(rawState, "printf") && !rawState.extensions?.builtins.has("printf") && !rawState.readonlyVariables?.size && !hasActiveVariableAttributes(rawState) && !hasActiveExtensions(rawState) && canMutatePipeStatus) {
         const varName = command.words[2]?.plain;
         const def = this.commands.get("printf");
-        if (
-          def?.execute === printfCommand.execute &&
-          varName !== undefined &&
-          /^[a-zA-Z_][a-zA-Z_0-9]*$/.test(varName) &&
-          varName !== "OPTIND" &&
-          varName !== "PIPESTATUS" &&
-          !store?.get(varName) &&
-          command.words.length <= this.budget.maxExpansionFieldsSmi
-        ) {
+        if ( def?.execute === printfCommand.execute && varName !== undefined && /^[a-zA-Z_][a-zA-Z_0-9]*$/.test(varName) && varName !== "OPTIND" && varName !== "PIPESTATUS" && !store?.get(varName) && command.words.length <= this.budget.maxExpansionFieldsSmi) {
           fastSubScratchArgs.length = 0;
           let allStrings = true;
           try {
@@ -11237,9 +8938,7 @@ export class Runtime {
               if (rawState.allexport) monitor.proxy.exported.add(varName);
               if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
               if (!existing) {
-                if (store) {
-                  if (publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined;
-                } else {
+                if (store) if (publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined; else {
                   monitor.lazyPipeStatus = singleStatusZero;
                   monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
                 }
@@ -11253,62 +8952,30 @@ export class Runtime {
               if (store) store.epoch = restEpoch;
               return finalStatus;
             }
-          } else {
-            fastSubScratchArgs.length = 0;
-          }
+          } else fastSubScratchArgs.length = 0;
         }
       }
-      if (
-        (w0Plain === "mkdir" || w0Plain === "rm") &&
-        command.words.length >= 3 &&
-        (this._fileWrites === undefined || this._fileWrites.size === 0) &&
-        (this._outputFiles === undefined || this._outputFiles.size === 0) &&
-        this.canFastMemoryRedirect &&
-        // A later operand can retry the whole command; scoped admission owns finite budgets.
-        this.budget.hasInfiniteFsOps &&
-        !hasShellFunction(rawState, w0Plain) &&
-        !rawState.extensions?.builtins.has(w0Plain) &&
-        (canMutatePipeStatus || elem0!.text.shellValue === "0") &&
-        (!pipeline.negate || ignored || !rawState.errexit) &&
-        command.words.length <= this.budget.maxExpansionFieldsSmi &&
-        this.arePureArgWords(command.words, rawState)
-      ) {
+      if ( (w0Plain === "mkdir" || w0Plain === "rm") && command.words.length >= 3 && (this._fileWrites === undefined || this._fileWrites.size === 0) && (this._outputFiles === undefined || this._outputFiles.size === 0) && this.canFastMemoryRedirect && this.budget.hasInfiniteFsOps && !hasShellFunction(rawState, w0Plain) && !rawState.extensions?.builtins.has(w0Plain) && (canMutatePipeStatus || elem0!.text.shellValue === "0") && (!pipeline.negate || ignored || !rawState.errexit) && command.words.length <= this.budget.maxExpansionFieldsSmi && this.arePureArgWords(command.words, rawState)) {
         const w1Plain = command.words[1]!.plain;
         const isMkdir = w0Plain === "mkdir" && w1Plain === "-p";
         const isRmRf = w0Plain === "rm" && (w1Plain === "-rf" || w1Plain === "-fr");
         const umask = rawState.umask ?? 0o022;
         const def = (isMkdir || isRmRf) ? this.commands.get(w0Plain) : undefined;
-        if (
-          def &&
-          (isMkdir ? defaultMkdirExecutors.has(def.execute) && (umask & 0o300) === 0 : defaultRmExecutors.has(def.execute)) &&
-          (this.budget.hasInfiniteFsOps || this.budget.fileSystemOperations + (command.words.length - 2) <= this.budget.limits.maxFileSystemOperations)
-        ) {
+        if ( def && (isMkdir ? defaultMkdirExecutors.has(def.execute) && (umask & 0o300) === 0 : defaultRmExecutors.has(def.execute)) && (this.budget.hasInfiniteFsOps || this.budget.fileSystemOperations + (command.words.length - 2) <= this.budget.limits.maxFileSystemOperations)) {
           let pathCount = 0;
           let lastArg = w1Plain!;
           let valid = true;
           try {
             for (let i = 2; i < command.words.length; i++) {
               const v = this.fastValueWord(command.words[i]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
-              if (
-                typeof v !== "string" ||
-                v.length === 0 ||
-                v.startsWith("-") ||
-                v.includes("\0") ||
-                (isRmRf && (v.endsWith(".") || v.endsWith("/")))
-              ) {
+              if ( typeof v !== "string" || v.length === 0 || v.startsWith("-") || v.includes("\0") || (isRmRf && (v.endsWith(".") || v.endsWith("/")))) {
                 valid = false;
                 break;
               }
               lastArg = v;
               const cleanV = isCleanAbsolutePath(v);
               const path = cleanV ? v : pathOf(rawState, v);
-              if (
-                path === "/" ||
-                path === "/dev" ||
-                path.startsWith("/dev/") ||
-                (!cleanV && !isCleanAbsolutePath(path)) ||
-                tryResolveMemoryDevicePath(this.backingFs, path) === undefined
-              ) {
+              if ( path === "/" || path === "/dev" || path.startsWith("/dev/") || (!cleanV && !isCleanAbsolutePath(path)) || tryResolveMemoryDevicePath(this.backingFs, path) === undefined) {
                 valid = false;
                 break;
               }
@@ -11340,9 +9007,7 @@ export class Runtime {
           }
           for (let i = 0; i < pathCount; i++) fastMkdirRmPaths[i] = "";
           if (valid) {
-            if (rawState.extensions && !rawState.extensions.eventDepth) {
-              publishCommandSpelling(rawState, commandSpelling(command));
-            }
+            if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
             const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
             this.budget.tick();
             rawState.substitutionStatus = 0;
@@ -11367,7 +9032,6 @@ export class Runtime {
     }
     return undefined;
   }
-
   private trySyncScript(script: Script, state: State, io: IO, ignoreErrexit: boolean): number | { listIndex: number; pipelineIndex: number } {
     if (state.noexec) return { listIndex: 0, pipelineIndex: 0 };
     for (let listIndex = 0; listIndex < script.lists.length; listIndex++) {
@@ -11385,7 +9049,6 @@ export class Runtime {
     }
     return script.lists.length ? state.status : 0;
   }
-
   private isPureSyncValueWord(word: Word, rawState: State): boolean {
     if (word.parts.length === 0) return false;
     for (let i = 0; i < word.parts.length; i++) {
@@ -11395,35 +9058,15 @@ export class Runtime {
         continue;
       }
       if (part.kind === "variable") {
-        if (
-          !part.indirect &&
-          !part.prefixNames &&
-          !part.length &&
-          !part.substring &&
-          !part.transform &&
-          part.operator === undefined &&
-          getArraySelector(part) === undefined &&
-          (part.name === "?" || part.name === "#" || (part.name.length === 1 && part.name >= "1" && part.name <= "9"))
-        ) {
+        if ( !part.indirect && !part.prefixNames && !part.length && !part.substring && !part.transform && part.operator === undefined && getArraySelector(part) === undefined && (part.name === "?" || part.name === "#" || (part.name.length === 1 && part.name >= "1" && part.name <= "9"))) {
           if (rawState.nounset && part.name >= "1" && part.name <= "9" && rawState.positional[part.name.charCodeAt(0) - 49] === undefined) return false;
           continue;
         }
-        if (
-          part.prefixNames ||
-          part.specialParameter ||
-          part.transform ||
-          part.name === "@" ||
-          part.name === "*" ||
-          part.name === "PIPESTATUS" ||
-          part.name === "LINENO" ||
-          part.name === "_" ||
-          part.name === "FUNCNAME" ||
-          !isShellIdentifier(part.name)
-        ) {
+        if ( part.prefixNames || part.specialParameter || part.transform || part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME" || !isShellIdentifier(part.name)) {
           return false;
         }
         if (part.indirect) {
-          if (part.length || part.substring || part.operator !== undefined || getArraySelector(part) !== undefined || rawState.nounset) return false;
+          if (this.budget.limits.maxExpansionBytes !== Infinity || part.length || part.substring || part.operator !== undefined || getArraySelector(part) !== undefined || rawState.nounset) return false;
           continue;
         }
         const sel = getArraySelector(part);
@@ -11435,16 +9078,8 @@ export class Runtime {
               if (part.substring) return false;
               continue;
             }
-            if (
-              part.quoted &&
-              sel.separator === "*" &&
-              this.budget.limits.maxExpansionBytes === Infinity &&
-              (!part.substring || (
-                sel.kind === "members" &&
-                part.substring.offset.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring && !p.length)) &&
-                (!part.substring.length || part.substring.length.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring && !p.length)))
-              ))
-            ) {
+            if ( part.quoted && sel.separator === "*" && this.budget.limits.maxExpansionBytes === Infinity && (!part.substring || ( sel.kind === "members" && part.substring.offset.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring && !p.length)) && (!part.substring.length || part.substring.length.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring && !p.length)))
+              ))) {
               continue;
             }
             return false;
@@ -11459,23 +9094,13 @@ export class Runtime {
           return false;
         }
         if (part.length || part.substring || part.operator !== undefined) {
-          if (
-            this.budget.limits.maxExpansionBytes !== Infinity ||
-            rawState.depth >= 32 ||
-            rawState.nounset ||
-            rawState.nocasematch ||
-            byteLocale(rawState.variables) !== false
-          ) {
+          if ( this.budget.limits.maxExpansionBytes !== Infinity || rawState.depth >= 32 || rawState.nounset || rawState.nocasematch || byteLocale(rawState.variables) !== false) {
             return false;
           }
           if (part.length) {
             if (part.operator !== undefined || part.substring) return false;
           } else if (part.substring) {
-            if (
-              part.operator !== undefined ||
-              !part.substring.offset.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring && !p.length)) ||
-              (part.substring.length && !part.substring.length.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring && !p.length)))
-            ) {
+            if ( part.operator !== undefined || !part.substring.offset.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring && !p.length)) || (part.substring.length && !part.substring.length.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring && !p.length)))) {
               return false;
             }
           } else if (part.operator === "^" || part.operator === "^^" || part.operator === "," || part.operator === ",,") {
@@ -11486,9 +9111,7 @@ export class Runtime {
             if (!part.alternate || part.alternate.parts.length === 0) return false;
             const q0 = part.alternate.parts[0]!.quoted;
             const trimOp = part.operator;
-            if (!part.alternate.parts.every(p => p.quoted === q0 && (
-              (p.kind === "text" && !p.byteValue && (p.quoted || !hasGlobOrEscape(p.value, !!rawState.extglob) || (part.alternate!.parts.length === 1 && Boolean(tryCompileTrimGlobToRegex(p.value, trimOp, !!rawState.extglob))))) ||
-              (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))
+            if (!part.alternate.parts.every(p => p.quoted === q0 && ( (p.kind === "text" && !p.byteValue && (p.quoted || !hasGlobOrEscape(p.value, !!rawState.extglob) || (part.alternate!.parts.length === 1 && Boolean(tryCompileTrimGlobToRegex(p.value, trimOp, !!rawState.extglob))))) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))
             ))) {
               return false;
             }
@@ -11496,23 +9119,17 @@ export class Runtime {
             if (!part.alternate || part.alternate.parts.length === 0) return false;
             const q0 = part.alternate.parts[0]!.quoted;
             const repOp = part.operator;
-            if (!part.alternate.parts.every(p => p.quoted === q0 && (
-              (p.kind === "text" && !p.byteValue && (p.quoted || !hasGlobOrEscape(p.value, !!rawState.extglob) || (part.alternate!.parts.length === 1 && Boolean(tryCompileFixedGlobToRegex(p.value, repOp, !!rawState.extglob))))) ||
-              (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))
+            if (!part.alternate.parts.every(p => p.quoted === q0 && ( (p.kind === "text" && !p.byteValue && (p.quoted || !hasGlobOrEscape(p.value, !!rawState.extglob) || (part.alternate!.parts.length === 1 && Boolean(tryCompileFixedGlobToRegex(p.value, repOp, !!rawState.extglob))))) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))
             ))) {
               return false;
             }
             if (part.replacement && part.replacement.parts.length > 0) {
-              if (!part.replacement.parts.every(p => (
-                (p.kind === "text" && !p.byteValue && !p.value.includes("&") && !p.value.includes("\\") && (p.quoted || !p.value.startsWith("~"))) ||
-                (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))
+              if (!part.replacement.parts.every(p => ( (p.kind === "text" && !p.byteValue && !p.value.includes("&") && !p.value.includes("\\") && (p.quoted || !p.value.startsWith("~"))) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))
               ))) {
                 return false;
               }
             }
-          } else {
-            return false;
-          }
+          } else return false;
         }
         continue;
       }
@@ -11566,7 +9183,6 @@ export class Runtime {
     }
     return true;
   }
-
   private canSyncLoopBody(script: Script, rawState: State, io?: IO): boolean {
     if (script.lists.length === 0) return false;
     const store = stateMonitor(rawState)?.store;
@@ -11579,13 +9195,7 @@ export class Runtime {
         const cmd = pipeline.commands[0]!;
         if (cmd.kind !== "simple") return false;
         if (cmd.redirects.length === 1) {
-          if (
-            cmd.words.length !== 2 ||
-            !this.budget.canRedirect1 ||
-            (this._fileWrites !== undefined && this._fileWrites.size !== 0) ||
-            (this._outputFiles !== undefined && this._outputFiles.size !== 0) ||
-            !this.canFastMemoryRedirect
-          ) {
+          if ( cmd.words.length !== 2 || !this.budget.canRedirect1 || (this._fileWrites !== undefined && this._fileWrites.size !== 0) || (this._outputFiles !== undefined && this._outputFiles.size !== 0) || !this.canFastMemoryRedirect) {
             return false;
           }
           const r0 = cmd.redirects[0]!;
@@ -11593,71 +9203,28 @@ export class Runtime {
           const argPart0 = cmd.words[1]!.parts[0];
           const targetPart0 = r0.target.parts[0];
           const def = w0Plain === "echo" ? this.commands.get("echo") : undefined;
-          if (
-            r0.descriptor !== 1 ||
-            r0.move ||
-            r0.document ||
-            (r0.operator !== ">" && r0.operator !== ">>") ||
-            rawState.noclobber ||
-            w0Plain !== "echo" ||
-            hasShellFunction(rawState, "echo") ||
-            rawState.extensions?.builtins.has("echo") ||
-            !def ||
-            !defaultEchoExecutors.has(def.execute) ||
-            !argPart0 ||
-            argPart0.kind !== "text" ||
-            argPart0.value.length === 0 ||
-            argPart0.value.startsWith("-") ||
-            !targetPart0 ||
-            targetPart0.kind !== "text" ||
-            !targetPart0.value.startsWith("/") ||
-            targetPart0.value === "/dev" ||
-            targetPart0.value.startsWith("/dev/") ||
-            !this.isPureSyncValueWord(cmd.words[1]!, rawState) ||
-            !this.isPureSyncValueWord(r0.target, rawState)
-          ) {
+          if ( r0.descriptor !== 1 || r0.move || r0.document || (r0.operator !== ">" && r0.operator !== ">>") || rawState.noclobber || w0Plain !== "echo" || hasShellFunction(rawState, "echo") || rawState.extensions?.builtins.has("echo") || !def || !defaultEchoExecutors.has(def.execute) || !argPart0 || argPart0.kind !== "text" || argPart0.value.length === 0 || argPart0.value.startsWith("-") || !targetPart0 || targetPart0.kind !== "text" || !targetPart0.value.startsWith("/") || targetPart0.value === "/dev" || targetPart0.value.startsWith("/dev/") || !this.isPureSyncValueWord(cmd.words[1]!, rawState) || !this.isPureSyncValueWord(r0.target, rawState)) {
             return false;
           }
           for (const word of [cmd.words[1]!, r0.target]) {
             for (let i = 0; i < word.parts.length; i++) {
               const part = word.parts[i]!;
               if (part.kind !== "text" && (part.kind !== "variable" || !part.quoted)) return false;
-              if (part.kind === "text" && !part.quoted && (
-                rawState.braceexpand !== false && part.value.includes("{") ||
-                i === 0 && part.value.startsWith("~") ||
-                !rawState.noglob && hasGlobOrEscape(part.value, !!rawState.extglob)
+              if (part.kind === "text" && !part.quoted && ( rawState.braceexpand !== false && part.value.includes("{") || i === 0 && part.value.startsWith("~") || !rawState.noglob && hasGlobOrEscape(part.value, !!rawState.extglob)
               )) return false;
             }
           }
           const lastSlash = targetPart0.value.lastIndexOf("/");
           const parentDir = lastSlash <= 0 ? "/" : targetPart0.value.slice(0, lastSlash);
-          if (!tryGetMemoryDirectoryEntryNamesSync(this.backingFs, parentDir)) {
-            return false;
-          }
+          if (!tryGetMemoryDirectoryEntryNamesSync(this.backingFs, parentDir)) return false;
           continue;
         }
         if (cmd.redirects.length === 0 && cmd.words.length === 2 && cmd.words[0]!.plain === "echo") {
           const def = this.commands.get("echo");
           const w1 = cmd.words[1]!;
           const p0 = w1.parts[0];
-          const fastSinkOk = io && (!io.descriptors || io.descriptors.get(1)?.output === io.stdout) && (
-            (io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) ||
-            (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write) ||
-            (io.stdout instanceof BudgetedPipeStageSink && io.stdout.write === BudgetedPipeStageSink.prototype.write && io.stdout.canWriteSync())
-          );
-          if (
-            !fastSinkOk ||
-            hasShellFunction(rawState, "echo") ||
-            rawState.extensions?.builtins.has("echo") ||
-            !def ||
-            !defaultEchoExecutors.has(def.execute) ||
-            !p0 ||
-            p0.kind !== "text" ||
-            p0.value.length === 0 ||
-            p0.value.startsWith("-") ||
-            !this.isPureSyncValueWord(w1, rawState) ||
-            !w1.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))
-          ) {
+          const fastSinkOk = io && (!io.descriptors || io.descriptors.get(1)?.output === io.stdout) && ( (io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) || (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write) || (io.stdout instanceof BudgetedPipeStageSink && io.stdout.write === BudgetedPipeStageSink.prototype.write && io.stdout.canWriteSync()));
+          if ( !fastSinkOk || hasShellFunction(rawState, "echo") || rawState.extensions?.builtins.has("echo") || !def || !defaultEchoExecutors.has(def.execute) || !p0 || p0.kind !== "text" || p0.value.length === 0 || p0.value.startsWith("-") || !this.isPureSyncValueWord(w1, rawState) || !w1.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))) {
             return false;
           }
           continue;
@@ -11665,20 +9232,11 @@ export class Runtime {
         if (cmd.redirects.length !== 0 || cmd.words.length !== 1) return false;
         const w0 = cmd.words[0]!;
         const w0Plain = w0.plain;
-        if ((w0Plain === ":" || w0Plain === "true") && !rawState.functions.has(w0Plain) && !rawState.extensions?.builtins.has(w0Plain)) {
-          continue;
-        }
+        if ((w0Plain === ":" || w0Plain === "true") && !rawState.functions.has(w0Plain) && !rawState.extensions?.builtins.has(w0Plain)) continue;
         const arrAssign = getArrayAssignment(w0);
         if (arrAssign) {
           const curArr = store?.get(arrAssign.name);
-          if (
-            !curArr ||
-            curArr.references !== 1 ||
-            store!.watches.has(arrAssign.name) ||
-            rawState.readonlyVariables?.has(arrAssign.name) ||
-            rawState.exported.has(arrAssign.name) ||
-            controlNames.has(arrAssign.name)
-          ) {
+          if ( !curArr || curArr.references !== 1 || store!.watches.has(arrAssign.name) || rawState.readonlyVariables?.has(arrAssign.name) || rawState.exported.has(arrAssign.name) || controlNames.has(arrAssign.name)) {
             return false;
           }
           if (arrAssign.kind === "compound" && arrAssign.append && !curArr.associative && arrAssign.entries.length === 1 && !arrAssign.entries[0]!.index) {
@@ -11695,36 +9253,21 @@ export class Runtime {
           return false;
         }
         const assignment = this.assignment(w0);
-        if (
-          !assignment ||
-          (assignment.append && this.budget.limits.maxExpansionBytes !== Infinity) ||
-          assignment.name === "OPTIND" ||
-          assignment.name === "PIPESTATUS" ||
-          assignment.name.includes("[") ||
-          rawState.readonlyVariables?.has(assignment.name) ||
-          store?.get(assignment.name) ||
-          !this.isPureSyncValueWord(assignment.value, rawState)
-        ) {
+        if ( !assignment || (assignment.append && this.budget.limits.maxExpansionBytes !== Infinity) || assignment.name === "OPTIND" || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || rawState.readonlyVariables?.has(assignment.name) || store?.get(assignment.name) || !this.isPureSyncValueWord(assignment.value, rawState)) {
           return false;
         }
       }
     }
     return true;
   }
-
-  private extractIntLoopStep(
-    step: {
+  private extractIntLoopStep( step: {
       readonly cmd: Extract<Command, { kind: "simple" }>;
       readonly name: string | undefined;
       readonly value: Word | undefined;
       readonly targetWord: Word | undefined;
       readonly append?: boolean;
-    },
-    rawState: State,
-  ): IntLoopStep | undefined {
-    if (step.targetWord !== undefined || step.name === undefined || step.value === undefined || step.append) {
-      return undefined;
-    }
+    }, rawState: State, ): IntLoopStep | undefined {
+    if (step.targetWord !== undefined || step.name === undefined || step.value === undefined || step.append) return undefined;
     const cached = intLoopStepCache.get(step.cmd);
     if (cached !== undefined) {
       if (cached === null) return undefined;
@@ -11732,8 +9275,7 @@ export class Runtime {
       return cached;
     }
     const parts = step.value.parts;
-    const p0 =
-      parts.length === 1
+    const p0 = parts.length === 1
         ? parts[0]!
         : parts.length === 2 && parts[0]!.kind === "text" && parts[0]!.value === ""
           ? parts[1]!
@@ -11771,15 +9313,7 @@ export class Runtime {
         if (this.middleware.length > 0 || rawState.depth >= this.budget.maxSubstitutionDepthSmi) return undefined;
         return res;
       }
-      if (
-        w0Plain === "printf" &&
-        cmd.words.length === 3 &&
-        cmd.words[1]!.parts.length === 1 &&
-        cmd.words[1]!.parts[0]!.kind === "text" &&
-        cmd.words[1]!.parts[0]!.value === "%d" &&
-        cmd.words[2]!.parts.length === 1 &&
-        cmd.words[2]!.parts[0]!.kind === "arithmetic"
-      ) {
+      if ( w0Plain === "printf" && cmd.words.length === 3 && cmd.words[1]!.parts.length === 1 && cmd.words[1]!.parts[0]!.kind === "text" && cmd.words[1]!.parts[0]!.value === "%d" && cmd.words[2]!.parts.length === 1 && cmd.words[2]!.parts[0]!.kind === "arithmetic") {
         const expr = cmd.words[2]!.parts[0]!.expression;
         const compiled = compilePureSmiProgram(expr, sharedSyncLoopArithNames);
         if (!compiled) {
@@ -11795,11 +9329,7 @@ export class Runtime {
     intLoopStepCache.set(step.cmd, null);
     return undefined;
   }
-
-  private buildSyncLoopBody(
-    command: Extract<Command, { kind: "arithmetic-for" | "for" }>,
-    io: IO,
-  ): { steps: SyncLoopStep[]; redirectCount: number } {
+  private buildSyncLoopBody( command: Extract<Command, { kind: "arithmetic-for" | "for" }>, io: IO, ): { steps: SyncLoopStep[]; redirectCount: number } {
     const canCache = !io.diagnosticCommandLines && !io.diagnosticOffset;
     if (canCache) {
       const cached = (command as { _cachedSyncLoopBody?: { steps: SyncLoopStep[]; redirectCount: number } })._cachedSyncLoopBody;
@@ -11830,15 +9360,7 @@ export class Runtime {
             }
           }
           bodyAssignments.push({
-            cmd,
-            name: undefined,
-            value: cmd.words[1]!,
-            targetWord: r0.target,
-            targetDirPrefix,
-            targetNamePrefix,
-            append: r0.operator === ">>",
-            line,
-          });
+            cmd, name: undefined, value: cmd.words[1]!, targetWord: r0.target, targetDirPrefix, targetNamePrefix, append: r0.operator === ">>", line, });
         } else if (cmd.words.length === 2 && w0.plain === "echo") {
           bodyAssignments.push({ cmd, name: undefined, value: cmd.words[1]!, isStdoutEcho: true, targetWord: undefined, append: false, line });
         } else {
@@ -11851,15 +9373,7 @@ export class Runtime {
     for (let b = 0; b + 1 < bodyAssignments.length; b++) {
       const curr = bodyAssignments[b]!;
       const next = bodyAssignments[b + 1]!;
-      if (
-        curr.targetWord !== undefined &&
-        curr.value !== undefined &&
-        !curr.append &&
-        next.targetWord !== undefined &&
-        next.value !== undefined &&
-        next.append &&
-        sameRedirectTargetWord(curr.targetWord, next.targetWord)
-      ) {
+      if ( curr.targetWord !== undefined && curr.value !== undefined && !curr.append && next.targetWord !== undefined && next.value !== undefined && next.append && sameRedirectTargetWord(curr.targetWord, next.targetWord)) {
         curr.coalesceNext = true;
         b++;
       }
@@ -11870,7 +9384,6 @@ export class Runtime {
     }
     return res;
   }
-
   private _lastBraceReservation: ValueReservation | undefined;
   private expandBraceRangeWithScope(word: Word, scope: NonNullable<IO[typeof valueScope]>): readonly string[] | undefined {
     let res: ValueReservation | undefined;
@@ -11878,41 +9391,20 @@ export class Runtime {
     this._lastBraceReservation = res;
     return words;
   }
-
-  private tryFastCachedForLoop(
-    command: Extract<Command, { kind: "for" }>,
-    forPlan: {
+  private tryFastCachedForLoop( command: Extract<Command, { kind: "for" }>, forPlan: {
       intSteps: (IntLoopStep | undefined)[];
       regNames: string[];
       touchedIntNamesList: string[];
       fastLoopWords: readonly string[];
       bodyStepCount: number;
       lastCmd: Extract<Command, { kind: "simple" }> | undefined;
-    },
-    rawState: State,
-    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
-    store: ReturnType<typeof arrayStore>,
-    existing: ReturnType<NonNullable<ReturnType<typeof arrayStore>>["get"]>,
-    elem0: { text: { shellValue: ShellValue } } | undefined,
-    io: IO,
-  ): number | undefined {
-    if (
-      rawState.braceexpand === false ||
-      this.budget.hasCpuLimit ||
-      io[valueScope] !== undefined ||
-      this.budget.maxExpansionFieldsSmi < 1 ||
-      this.budget.maxExpansionBytesSmi < 32
-    ) {
+    }, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, store: ReturnType<typeof arrayStore>, existing: ReturnType<NonNullable<ReturnType<typeof arrayStore>>["get"]>, elem0: { text: { shellValue: ShellValue } } | undefined, io: IO, ): number | undefined {
+    if ( rawState.braceexpand === false || this.budget.hasCpuLimit || io[valueScope] !== undefined || this.budget.maxExpansionFieldsSmi < 1 || this.budget.maxExpansionBytesSmi < 32) {
       return undefined;
     }
     const fastLoopWords = forPlan.fastLoopWords;
     const wordCount = fastLoopWords.length;
-    if (
-      wordCount > this.budget.maxExpansionFieldsSmi ||
-      wordCount * 16 > this.budget.maxExpansionBytesSmi ||
-      this.budget.commands + wordCount * 4 >= this.budget.maxCommandsSmi ||
-      this.budget.iterations + wordCount >= this.budget.maxLoopIterationsSmi
-    ) {
+    if ( wordCount > this.budget.maxExpansionFieldsSmi || wordCount * 16 > this.budget.maxExpansionBytesSmi || this.budget.commands + wordCount * 4 >= this.budget.maxCommandsSmi || this.budget.iterations + wordCount >= this.budget.maxLoopIterationsSmi) {
       return undefined;
     }
     const regNames = forPlan.regNames;
@@ -11944,9 +9436,7 @@ export class Runtime {
       }
     }
     if (forPlan.lastCmd) {
-      if (rawState.extensions && !rawState.extensions.eventDepth) {
-        publishCommandSpelling(rawState, commandSpelling(forPlan.lastCmd));
-      }
+      if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(forPlan.lastCmd));
       rawState.substitutionStatus = 0;
       if (rawState.variables._ !== undefined) delete rawState.variables._;
       rawState.lastArgument = "";
@@ -11965,30 +9455,8 @@ export class Runtime {
     if (store) store.epoch = restEpoch;
     return 0;
   }
-
-  private trySyncLoop(
-    command: Extract<Command, { kind: "arithmetic-for" | "for" }>,
-    pipeline: Pipeline,
-    rawState: State,
-    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
-    store: ReturnType<typeof arrayStore>,
-    existing: ReturnType<NonNullable<ReturnType<typeof arrayStore>>["get"]>,
-    elem0: { text: { shellValue: ShellValue } } | undefined,
-    canMutatePipeStatus: boolean,
-    io: IO,
-    diagnosticLine: number,
-    allowRedirect = false,
-  ): number | undefined {
-    if (
-      (!allowRedirect && command.redirects.length !== 0) ||
-      pipeline.negate ||
-      !canMutatePipeStatus ||
-      rawState.errexit ||
-      rawState.nounset ||
-      rawState.readonlyVariables?.size ||
-      rawState.extensions?.checkpoints.length ||
-      hasYieldCheckpoint(this.signal)
-    ) {
+  private trySyncLoop( command: Extract<Command, { kind: "arithmetic-for" | "for" }>, pipeline: Pipeline, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, store: ReturnType<typeof arrayStore>, existing: ReturnType<NonNullable<ReturnType<typeof arrayStore>>["get"]>, elem0: { text: { shellValue: ShellValue } } | undefined, canMutatePipeStatus: boolean, io: IO, diagnosticLine: number, allowRedirect = false, ): number | undefined {
+    if ( (!allowRedirect && command.redirects.length !== 0) || pipeline.negate || !canMutatePipeStatus || rawState.errexit || rawState.nounset || rawState.readonlyVariables?.size || rawState.extensions?.checkpoints.length || hasYieldCheckpoint(this.signal)) {
       return undefined;
     }
     if (command.kind === "for") {
@@ -12006,9 +9474,7 @@ export class Runtime {
         if (fastRes !== undefined) return fastRes;
       }
     }
-    if ((guestArrays(rawState) && (guestArrays(rawState)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) || !this.canSyncLoopBody(command.body, rawState, io)) {
-      return undefined;
-    }
+    if ((guestArrays(rawState) && (guestArrays(rawState)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) || !this.canSyncLoopBody(command.body, rawState, io)) return undefined;
     for (const v of Object.values(rawState.variables)) {
       if (typeof v === "string") {
         for (let k = 0; k < v.length; k++) {
@@ -12039,32 +9505,14 @@ export class Runtime {
         hasSubIntStep: boolean;
         hasDeferredSteps: boolean;
         deferredMask: number;
-        touchedIntNamesList: string[];
-      };
+        touchedIntNamesList: string[];};
       let plan = (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan;
       if (plan === null) return undefined;
       if (plan === undefined) {
       const e0 = command.expressions[0];
       const e1 = command.expressions[1];
       const e2 = command.expressions[2];
-      if (
-        !e0 || !e1 || !e2 ||
-        e0.error || e0.hasSubscript || !isSafeSmiProgram(e0) ||
-        e1.error || e1.hasSubscript || !isSafeSmiProgram(e1) ||
-        e2.error || e2.hasSubscript || !isSafeSmiProgram(e2) ||
-        e0.tree?.kind !== "binary" || e0.tree.operator !== "=" ||
-        e0.tree.left.kind !== "name" ||
-        e0.tree.right.kind !== "literal" ||
-        e0.tree.right.value < 0n || e0.tree.right.value > 2000n ||
-        e1.tree?.kind !== "binary" ||
-        (e1.tree.operator !== "<" && e1.tree.operator !== "<=") ||
-        e1.tree.left.kind !== "name" || e1.tree.left.name !== e0.tree.left.name ||
-        e1.tree.right.kind !== "literal" ||
-        e1.tree.right.value < 0n ||
-        e1.tree.right.value > 2000n ||
-        e2.tree?.kind !== "unary" || e2.tree.operator !== "++" ||
-        e2.tree.operand.kind !== "name" || e2.tree.operand.name !== e0.tree.left.name
-      ) {
+      if ( !e0 || !e1 || !e2 || e0.error || e0.hasSubscript || !isSafeSmiProgram(e0) || e1.error || e1.hasSubscript || !isSafeSmiProgram(e1) || e2.error || e2.hasSubscript || !isSafeSmiProgram(e2) || e0.tree?.kind !== "binary" || e0.tree.operator !== "=" || e0.tree.left.kind !== "name" || e0.tree.right.kind !== "literal" || e0.tree.right.value < 0n || e0.tree.right.value > 2000n || e1.tree?.kind !== "binary" || (e1.tree.operator !== "<" && e1.tree.operator !== "<=") || e1.tree.left.kind !== "name" || e1.tree.left.name !== e0.tree.left.name || e1.tree.right.kind !== "literal" || e1.tree.right.value < 0n || e1.tree.right.value > 2000n || e2.tree?.kind !== "unary" || e2.tree.operator !== "++" || e2.tree.operand.kind !== "name" || e2.tree.operand.name !== e0.tree.left.name) {
         (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan = null;
         return undefined;
       }
@@ -12120,9 +9568,7 @@ export class Runtime {
               }
               continue;
             }
-            if (part.kind === "substitution") {
-              continue;
-            }
+            if (part.kind === "substitution") continue;
             (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan = null;
             return undefined;
           }
@@ -12134,21 +9580,11 @@ export class Runtime {
       let deferredMask = 0;
       if (!hasAnyArrayAssign) for (let b = 0; b < bodyAssignments.length; b++) {
         const step = bodyAssignments[b]!;
-        if (
-          !step.append &&
-          step.targetWord === undefined &&
-          step.name !== undefined &&
-          step.value !== undefined &&
-          step.name !== inductionName &&
-          !arithNames.has(step.name) &&
-          !paramReadNames.has(step.name) &&
-          step.value.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.indirect && !p.length && !p.substring && p.operator === undefined && getArraySelector(p) === undefined))
-        ) {
+        if ( !step.append && step.targetWord === undefined && step.name !== undefined && step.value !== undefined && step.name !== inductionName && !arithNames.has(step.name) && !paramReadNames.has(step.name) && step.value.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.indirect && !p.length && !p.substring && p.operator === undefined && getArraySelector(p) === undefined))) {
           let readAnywhere = false;
           for (let b2 = 0; b2 < bodyAssignments.length; b2++) {
             const other = bodyAssignments[b2]!;
-            if (other.value?.parts.some(p => p.kind === "variable" && p.name === step.name) ||
-                other.targetWord?.parts.some(p => p.kind === "variable" && p.name === step.name)) {
+            if (other.value?.parts.some(p => p.kind === "variable" && p.name === step.name) || other.targetWord?.parts.some(p => p.kind === "variable" && p.name === step.name)) {
               readAnywhere = true;
               break;
             }
@@ -12172,42 +9608,17 @@ export class Runtime {
       const touchedSet = new Set<string>([inductionName]);
       for (let b = 0; b < bodyAssignments.length; b++) {
         if (deferredMask & (1 << b)) continue;
-        if (!intSteps[b]) {
-          allIntStepsReady = false;
-        } else {
-          touchedSet.add(intSteps[b]!.name);
-        }
+        if (!intSteps[b]) allIntStepsReady = false; else touchedSet.add(intSteps[b]!.name);
       }
       plan = {
-        e0,
-        e1,
-        e2,
-        iterations,
-        inductionName,
-        startVal: Number(e0.tree.right.value) | 0,
-        limitVal: Number(e1.tree.right.value) | 0,
-        isLe: e1.tree.operator === "<=",
-        arithNamesList,
-        intSteps,
-        allIntStepsReady,
-        hasSubIntStep,
-        hasDeferredSteps,
-        deferredMask,
-        touchedIntNamesList: [...touchedSet],
-      };
+        e0, e1, e2, iterations, inductionName, startVal: Number(e0.tree.right.value) | 0, limitVal: Number(e1.tree.right.value) | 0, isLe: e1.tree.operator === "<=", arithNamesList, intSteps, allIntStepsReady, hasSubIntStep, hasDeferredSteps, deferredMask, touchedIntNamesList: [...touchedSet], };
       (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan = plan;
       }
-      if (
-        (this.budget.commands + plan.iterations * bodyAssignments.length + 64) >= this.budget.limits.maxCommands ||
-        (this.budget.iterations + plan.iterations + 64) >= this.budget.limits.maxLoopIterations ||
-        (redirectCount > 0 && (this.budget.fileSystemOperations + plan.iterations * redirectCount + 64) >= this.budget.limits.maxFileSystemOperations)
-      ) {
+      if ( (this.budget.commands + plan.iterations * bodyAssignments.length + 64) >= this.budget.limits.maxCommands || (this.budget.iterations + plan.iterations + 64) >= this.budget.limits.maxLoopIterations || (redirectCount > 0 && (this.budget.fileSystemOperations + plan.iterations * redirectCount + 64) >= this.budget.limits.maxFileSystemOperations)) {
         return undefined;
       }
       const {
-        e0, e1, e2, iterations, inductionName, startVal, limitVal, isLe,
-        arithNamesList, intSteps, allIntStepsReady, hasSubIntStep, hasDeferredSteps, deferredMask, touchedIntNamesList,
-      } = plan;
+        e0, e1, e2, iterations, inductionName, startVal, limitVal, isLe, arithNamesList, intSteps, allIntStepsReady, hasSubIntStep, hasDeferredSteps, deferredMask, touchedIntNamesList, } = plan;
       if (arithNamesList.length > 0) {
         for (let a = 0; a < arithNamesList.length; a++) {
           const refName = arithNamesList[a]!;
@@ -12216,11 +9627,7 @@ export class Runtime {
           if (initial !== undefined && initial !== "" && !/^-?[0-9]+$/.test(initial)) return undefined;
           for (let b = 0; b < bodyAssignments.length; b++) {
             const step = bodyAssignments[b]!;
-            if (
-              step.name === refName &&
-              !intSteps[b] &&
-              (!step.value || !step.value.parts.some(p => p.kind === "arithmetic") || step.value.parts.some(p => p.kind !== "arithmetic" && (p.kind !== "text" || p.value !== "")))
-            ) {
+            if ( step.name === refName && !intSteps[b] && (!step.value || !step.value.parts.some(p => p.kind === "arithmetic") || step.value.parts.some(p => p.kind !== "arithmetic" && (p.kind !== "text" || p.value !== "")))) {
               const isArrDefaultZero = step.value?.parts.length === 1 && step.value.parts[0]!.kind === "variable" && getArraySelector(step.value.parts[0]!)?.kind === "element" && step.value.parts[0]!.operator === ":-" && step.value.parts[0]!.alternate?.plain === "0";
               if (!isArrDefaultZero) return undefined;
             }
@@ -12238,26 +9645,11 @@ export class Runtime {
       try {
         let lastInductionVal: string | undefined;
         const intBudgetSnapshot = this.budget.parsing.snapshot();
-        let canUseIntRegisters =
-          allIntStepsReady &&
-          (!hasSubIntStep || (this.middleware.length === 0 && rawState.depth < this.budget.maxSubstitutionDepthSmi)) &&
-          !this.budget.hasCpuLimit &&
-          this.budget.maxExpansionFieldsSmi >= 1 &&
-          this.budget.maxExpansionBytesSmi >= 32 &&
-          !store?.get(inductionName) &&
-          inductionName !== "LINENO" &&
-          inductionName !== "_" &&
-          inductionName !== "FUNCNAME";
+        let canUseIntRegisters = allIntStepsReady && (!hasSubIntStep || (this.middleware.length === 0 && rawState.depth < this.budget.maxSubstitutionDepthSmi)) && !this.budget.hasCpuLimit && this.budget.maxExpansionFieldsSmi >= 1 && this.budget.maxExpansionBytesSmi >= 32 && !store?.get(inductionName) && inductionName !== "LINENO" && inductionName !== "_" && inductionName !== "FUNCNAME";
         if (canUseIntRegisters && arithNamesList.length > 0) {
           for (let a = 0; a < arithNamesList.length; a++) {
             const refName = arithNamesList[a]!;
-            if (
-              store?.get(refName) ||
-              refName === "LINENO" ||
-              refName === "_" ||
-              refName === "FUNCNAME" ||
-              (rawState.nounset && refName !== inductionName && rawState.variables[refName] === undefined)
-            ) {
+            if ( store?.get(refName) || refName === "LINENO" || refName === "_" || refName === "FUNCNAME" || (rawState.nounset && refName !== inductionName && rawState.variables[refName] === undefined)) {
               canUseIntRegisters = false;
               break;
             }
@@ -12303,27 +9695,15 @@ export class Runtime {
         }
         if (canUseIntRegisters) {
           lastCmd = bodyAssignments[bodyAssignments.length - 1]?.cmd;
-          const { ok, lastInductionInt, subBytes, subCount } = runIntArithForLoop(
-            startVal,
-            limitVal,
-            isLe,
-            bodyAssignments.length,
-            deferredMask,
-            intSteps,
-            this.budget.parsing,
-          );
-          if (!ok) {
-            canUseIntRegisters = false;
-          } else {
+          const { ok, lastInductionInt, subBytes, subCount } = runIntArithForLoop( startVal, limitVal, isLe, bodyAssignments.length, deferredMask, intSteps, this.budget.parsing, );
+          if (!ok) canUseIntRegisters = false; else {
             usedFastIntPath = true;
             this.budget.parsing.admit(limitVal < 0 ? 4 : 2);
             this.budget.iterations += iterations + 1;
             this.budget.commands += iterations * bodyAssignments.length + subCount;
             if (subCount > 0) {
               const nextBytes = this.budget.bytes + subBytes;
-              if (nextBytes > this.budget.maxOutputBytesSmi && subBytes > this.budget.limits.maxOutputBytes - this.budget.bytes) {
-                this.budget.fail("maxOutputBytes");
-              }
+              if (nextBytes > this.budget.maxOutputBytesSmi && subBytes > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
               this.budget.bytes = nextBytes;
               rawState.substitutionStatus = 0;
               rawState.status = 0;
@@ -12333,18 +9713,13 @@ export class Runtime {
               rawState.variables[regNames[r]!] = intToStr(sharedLoopIntRegs[r]!);
             }
             regNames.length = 0;
-            if (hasDeferredSteps && lastInductionInt !== undefined) {
-              lastInductionVal = intToStr(lastInductionInt);
-            }
+            if (hasDeferredSteps && lastInductionInt !== undefined) lastInductionVal = intToStr(lastInductionInt);
           }
         }
         if (!canUseIntRegisters) {
           this.budget.parsing.restore(intBudgetSnapshot);
           regNames.length = 0;
-          const fb = this.runSyncArithForFallback(
-            e0, e1, e2, inductionName, hasDeferredSteps, deferredMask,
-            bodyAssignments, rawState, io, monitor, touched, mode, diagnosticLine,
-          );
+          const fb = this.runSyncArithForFallback( e0, e1, e2, inductionName, hasDeferredSteps, deferredMask, bodyAssignments, rawState, io, monitor, touched, mode, diagnosticLine, );
           lastCmd = fb.lastCmd;
           lastArg = fb.lastArg;
           lastInductionVal = fb.lastInductionVal;
@@ -12397,9 +9772,7 @@ export class Runtime {
           }
         }
         if (lastCmd) {
-          if (rawState.extensions && !rawState.extensions.eventDepth) {
-            publishCommandSpelling(rawState, commandSpelling(lastCmd));
-          }
+          if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(lastCmd));
           rawState.substitutionStatus = 0;
           if (rawState.variables._ !== undefined && !touched.has("_") && !(usedFastIntPath && touchedIntNamesList.includes("_"))) delete rawState.variables._;
           rawState.lastArgument = lastArg;
@@ -12419,14 +9792,7 @@ export class Runtime {
       if (store) store.epoch = restEpoch;
       return 0;
     }
-    if (
-      !isShellIdentifier(command.name) ||
-      command.name === "OPTIND" ||
-      command.name.includes("[") ||
-      store?.get(command.name) ||
-      command.words?.length !== 1 ||
-      rawState.braceexpand === false
-    ) {
+    if ( !isShellIdentifier(command.name) || command.name === "OPTIND" || command.name.includes("[") || store?.get(command.name) || command.words?.length !== 1 || rawState.braceexpand === false) {
       return undefined;
     }
     const activeValScope = io[valueScope];
@@ -12435,14 +9801,7 @@ export class Runtime {
       : tryFastExpandBraceRange(command.words[0]!, this.budget, undefined);
     const braceReservation = activeValScope ? this._lastBraceReservation : undefined;
     if (activeValScope) this._lastBraceReservation = undefined;
-    if (
-      !fastLoopWords ||
-      fastLoopWords.length > 1500 ||
-      fastLoopWords.length * bodyAssignments.length > 1600 ||
-      (this.budget.commands + fastLoopWords.length * 4) >= this.budget.limits.maxCommands ||
-      (this.budget.iterations + fastLoopWords.length) >= this.budget.limits.maxLoopIterations ||
-      (redirectCount > 0 && (this.budget.fileSystemOperations + fastLoopWords.length * redirectCount) >= this.budget.limits.maxFileSystemOperations)
-    ) {
+    if ( !fastLoopWords || fastLoopWords.length > 1500 || fastLoopWords.length * bodyAssignments.length > 1600 || (this.budget.commands + fastLoopWords.length * 4) >= this.budget.limits.maxCommands || (this.budget.iterations + fastLoopWords.length) >= this.budget.limits.maxLoopIterations || (redirectCount > 0 && (this.budget.fileSystemOperations + fastLoopWords.length * redirectCount) >= this.budget.limits.maxFileSystemOperations)) {
       braceReservation?.release();
       return undefined;
     }
@@ -12463,8 +9822,7 @@ export class Runtime {
       regNames?: string[];
       fastLoopWords?: readonly string[];
       bodyStepCount?: number;
-      lastCmd?: Extract<Command, { kind: "simple" }> | undefined;
-    };
+      lastCmd?: Extract<Command, { kind: "simple" }> | undefined;};
     let forPlan = (command as { _cachedForPlan?: CachedForPlan })._cachedForPlan;
     if (!forPlan) {
       const arithNames = sharedSyncLoopArithNames;
@@ -12512,31 +9870,13 @@ export class Runtime {
       }
       const fastReady = regOk && allIntStepsReady && !hasSubIntStep && redirectCount === 0 && !activeValScope && fastLoopWords.length <= 1500 && fastLoopWords.length * bodyAssignments.length <= 1600;
       forPlan = {
-        intSteps,
-        allIntStepsReady,
-        hasSubIntStep,
-        arithNamesList,
-        touchedIntNamesList,
-        fastReady,
-        regNames,
-        fastLoopWords,
-        bodyStepCount: bodyAssignments.length,
-        lastCmd: bodyAssignments[bodyAssignments.length - 1]?.cmd,
-      };
+        intSteps, allIntStepsReady, hasSubIntStep, arithNamesList, touchedIntNamesList, fastReady, regNames, fastLoopWords, bodyStepCount: bodyAssignments.length, lastCmd: bodyAssignments[bodyAssignments.length - 1]?.cmd, };
       (command as { _cachedForPlan?: CachedForPlan })._cachedForPlan = forPlan;
     }
     let usedFastIntFor = false;
     try {
       const intBudgetSnapshot = this.budget.parsing.snapshot();
-      let canUseIntRegisters =
-        forPlan.allIntStepsReady &&
-        (!forPlan.hasSubIntStep || (this.middleware.length === 0 && rawState.depth < this.budget.maxSubstitutionDepthSmi)) &&
-        !this.budget.hasCpuLimit &&
-        this.budget.maxExpansionFieldsSmi >= 1 &&
-        this.budget.maxExpansionBytesSmi >= 32 &&
-        command.name !== "LINENO" &&
-        command.name !== "_" &&
-        command.name !== "FUNCNAME";
+      let canUseIntRegisters = forPlan.allIntStepsReady && (!forPlan.hasSubIntStep || (this.middleware.length === 0 && rawState.depth < this.budget.maxSubstitutionDepthSmi)) && !this.budget.hasCpuLimit && this.budget.maxExpansionFieldsSmi >= 1 && this.budget.maxExpansionBytesSmi >= 32 && command.name !== "LINENO" && command.name !== "_" && command.name !== "FUNCNAME";
       const intSteps = canUseIntRegisters ? forPlan.intSteps : undefined;
       const regNames = sharedSyncLoopRegNames;
       regNames.length = 0;
@@ -12546,13 +9886,7 @@ export class Runtime {
         for (let a = 0; a < arithNamesList.length; a++) {
           const refName = arithNamesList[a]!;
           if (refName === command.name) continue;
-          if (
-            store?.get(refName) ||
-            refName === "LINENO" ||
-            refName === "_" ||
-            refName === "FUNCNAME" ||
-            (rawState.nounset && rawState.variables[refName] === undefined)
-          ) {
+          if ( store?.get(refName) || refName === "LINENO" || refName === "_" || refName === "FUNCNAME" || (rawState.nounset && rawState.variables[refName] === undefined)) {
             canUseIntRegisters = false;
             break;
           }
@@ -12585,18 +9919,14 @@ export class Runtime {
       }
       if (canUseIntRegisters && intSteps) {
         const { ok, subBytes, subCount } = runIntForLoop(fastLoopWords, bodyAssignments.length, intSteps, this.budget.parsing);
-        if (!ok) {
-          canUseIntRegisters = false;
-        } else {
+        if (!ok) canUseIntRegisters = false; else {
           usedFastIntFor = true;
           lastCmd = bodyAssignments[bodyAssignments.length - 1]?.cmd;
           this.budget.iterations += fastLoopWords.length;
           this.budget.commands += fastLoopWords.length * bodyAssignments.length + subCount;
           if (subCount > 0) {
             const nextBytes = this.budget.bytes + subBytes;
-            if (nextBytes > this.budget.maxOutputBytesSmi && subBytes > this.budget.limits.maxOutputBytes - this.budget.bytes) {
-              this.budget.fail("maxOutputBytes");
-            }
+            if (nextBytes > this.budget.maxOutputBytesSmi && subBytes > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
             this.budget.bytes = nextBytes;
             rawState.substitutionStatus = 0;
             rawState.status = 0;
@@ -12612,9 +9942,7 @@ export class Runtime {
         touched.add(command.name);
         this.budget.parsing.restore(intBudgetSnapshot);
         regNames.length = 0;
-        const fb = this.runSyncForFallback(
-          command.name, fastLoopWords, bodyAssignments, rawState, io, monitor, touched, mode,
-        );
+        const fb = this.runSyncForFallback( command.name, fastLoopWords, bodyAssignments, rawState, io, monitor, touched, mode, );
         lastCmd = fb.lastCmd;
         lastArg = fb.lastArg;
       }
@@ -12648,9 +9976,7 @@ export class Runtime {
         }
       }
       if (lastCmd) {
-        if (rawState.extensions && !rawState.extensions.eventDepth) {
-          publishCommandSpelling(rawState, commandSpelling(lastCmd));
-        }
+        if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(lastCmd));
         rawState.substitutionStatus = 0;
         if (rawState.variables._ !== undefined && !touched.has("_") && !(usedFastIntFor && forPlan.touchedIntNamesList.includes("_"))) delete rawState.variables._;
         rawState.lastArgument = lastArg;
@@ -12670,44 +9996,24 @@ export class Runtime {
     if (store) store.epoch = restEpoch;
     return 0;
   }
-
-  private evalSyncRedirectWord(
-    word: Word,
-    rawState: State,
-    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
-    touched: Set<string>,
-  ): string {
+  private evalSyncRedirectWord( word: Word, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, ): string {
     this.signal.throwIfAborted();
     const rawVars = rawState.variables;
     const parts = word.parts;
     let out = "";
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i]!;
-      if (part.kind === "text") {
-        out += part.value;
-      } else {
+      if (part.kind === "text") out += part.value; else {
         const name = (part as Extract<WordPart, { kind: "variable" }>).name;
         const raw = rawVars[name];
-        if (raw !== undefined) {
-          out += touched.has(name) ? raw : shellValueText(monitor.values.get(name, raw) ?? raw);
-        }
+        if (raw !== undefined) out += touched.has(name) ? raw : shellValueText(monitor.values.get(name, raw) ?? raw);
       }
     }
     if (this.budget.maxExpansionFieldsSmi < 1 && 1 > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
-    if (out.length * 3 > this.budget.maxExpansionBytesSmi && shellValueByteLength(out) > this.budget.limits.maxExpansionBytes) {
-      this.budget.fail("maxExpansionBytes");
-    }
+    if (out.length * 3 > this.budget.maxExpansionBytesSmi && shellValueByteLength(out) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
     return out;
   }
-
-  private evalSyncRedirectSuffix(
-    word: Word,
-    dirPrefix: string,
-    namePrefix: string,
-    rawState: State,
-    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
-    touched: Set<string>,
-  ): string {
+  private evalSyncRedirectSuffix( word: Word, dirPrefix: string, namePrefix: string, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, ): string {
     this.signal.throwIfAborted();
     const rawVars = rawState.variables;
     const parts = word.parts;
@@ -12738,38 +10044,23 @@ export class Runtime {
           cachedRedirectNameTable = new Array(256);
         }
         out = cachedRedirectNameTable[n] ??= namePrefix + val + suffix;
-      } else {
-        out = namePrefix + val + suffix;
-      }
+      } else out = namePrefix + val + suffix;
     } else {
       for (let i = 1; i < parts.length; i++) {
         const part = parts[i]!;
-        if (part.kind === "text") {
-          out += part.value;
-        } else {
+        if (part.kind === "text") out += part.value; else {
           const name = (part as Extract<WordPart, { kind: "variable" }>).name;
           const raw = rawVars[name];
-          if (raw !== undefined) {
-            out += touched.has(name) ? raw : shellValueText(monitor.values.get(name, raw) ?? raw);
-          }
+          if (raw !== undefined) out += touched.has(name) ? raw : shellValueText(monitor.values.get(name, raw) ?? raw);
         }
       }
     }
     if (this.budget.maxExpansionFieldsSmi < 1 && 1 > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
     const totalChars = dirPrefix.length + out.length;
-    if (totalChars * 3 > this.budget.maxExpansionBytesSmi && (shellValueByteLength(dirPrefix) + shellValueByteLength(out)) > this.budget.limits.maxExpansionBytes) {
-      this.budget.fail("maxExpansionBytes");
-    }
+    if (totalChars * 3 > this.budget.maxExpansionBytesSmi && (shellValueByteLength(dirPrefix) + shellValueByteLength(out)) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
     return out;
   }
-
-  private encodeSyncRedirectWordsToScratch(
-    word0: Word,
-    word1: Word | undefined,
-    rawState: State,
-    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
-    touched: Set<string>,
-  ): Uint8Array {
+  private encodeSyncRedirectWordsToScratch( word0: Word, word1: Word | undefined, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, ): Uint8Array {
     this.signal.throwIfAborted();
     const rawVars = rawState.variables;
     let pos = 0;
@@ -12782,14 +10073,10 @@ export class Runtime {
       for (let i = 0; i < parts.length; i++) {
         const part = parts[i]!;
         let str: string | undefined;
-        if (part.kind === "text") {
-          str = part.value;
-        } else {
+        if (part.kind === "text") str = part.value; else {
           const name = (part as Extract<WordPart, { kind: "variable" }>).name;
           const raw = rawVars[name];
-          if (raw !== undefined) {
-            str = touched.has(name) ? raw : shellValueText(monitor.values.get(name, raw) ?? raw);
-          }
+          if (raw !== undefined) str = touched.has(name) ? raw : shellValueText(monitor.values.get(name, raw) ?? raw);
         }
         if (str !== undefined && str.length > 0) {
           const sLen = str.length;
@@ -12817,50 +10104,22 @@ export class Runtime {
       }
       const wordBytes = pos - wordStart;
       if (this.budget.maxExpansionFieldsSmi < 1 && 1 > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
-      if (wordBytes > this.budget.maxExpansionBytesSmi && wordBytes > this.budget.limits.maxExpansionBytes) {
-        this.budget.fail("maxExpansionBytes");
-      }
+      if (wordBytes > this.budget.maxExpansionBytesSmi && wordBytes > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
       fastRedirectScratchBytes[pos++] = 10;
     }
     return pos <= 128 ? fastRedirectScratchViews[pos]! : fastRedirectScratchBytes.subarray(0, pos);
   }
-
-  private writeSyncRedirectStep(
-    step: SyncLoopStep,
-    encoded: Uint8Array,
-    append: boolean,
-    mode: number,
-    rawState: State,
-    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
-    touched: Set<string>,
-  ): void {
+  private writeSyncRedirectStep( step: SyncLoopStep, encoded: Uint8Array, append: boolean, mode: number, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, ): void {
     if (step.targetDirPrefix !== undefined && step.targetNamePrefix !== undefined) {
       const fileName = this.evalSyncRedirectSuffix(step.targetWord!, step.targetDirPrefix, step.targetNamePrefix, rawState, monitor, touched);
-      if (tryWriteMemoryFileInDirSync(this.backingFs, step.targetDirPrefix, fileName, encoded, append, mode, this.commandSignal)) {
-        return;
-      }
+      if (tryWriteMemoryFileInDirSync(this.backingFs, step.targetDirPrefix, fileName, encoded, append, mode, this.commandSignal)) return;
       tryWriteMemoryFileSync(this.backingFs, step.targetDirPrefix + fileName, encoded, append, mode, this.commandSignal);
       return;
     }
     const targetVal = this.evalSyncRedirectWord(step.targetWord!, rawState, monitor, touched);
     tryWriteMemoryFileSync(this.backingFs, targetVal, encoded, append, mode, this.commandSignal);
   }
-
-  private runSyncArithForFallback(
-    e0: ArithmeticProgram,
-    e1: ArithmeticProgram,
-    e2: ArithmeticProgram,
-    inductionName: string,
-    hasDeferredSteps: boolean,
-    deferredMask: number,
-    bodyAssignments: readonly SyncLoopStep[],
-    rawState: State,
-    io: IO,
-    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
-    touched: Set<string>,
-    mode: number,
-    diagnosticLine: number,
-  ): { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string; lastInductionVal: string | undefined } {
+  private runSyncArithForFallback( e0: ArithmeticProgram, e1: ArithmeticProgram, e2: ArithmeticProgram, inductionName: string, hasDeferredSteps: boolean, deferredMask: number, bodyAssignments: readonly SyncLoopStep[], rawState: State, io: IO, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, mode: number, diagnosticLine: number, ): { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string; lastInductionVal: string | undefined } {
     let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
     let lastArg = "";
     let lastValueWord: Word | undefined;
@@ -12871,8 +10130,7 @@ export class Runtime {
       if (stdoutEchoBatch.length === 0) return;
       const chunk = Buffer.from(stdoutEchoBatch, "utf8");
       stdoutEchoBatch = "";
-      if ((io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) ||
-          (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write)) {
+      if ((io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) || (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write)) {
         if (io.stdout.budget !== this.budget) {
           if (chunk.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
           this.budget.bytes += chunk.byteLength;
@@ -12885,8 +10143,7 @@ export class Runtime {
         const syncFn = syncSinks.get(io.stdout);
         if (syncFn) syncFn(chunk);
         else void io.stdout.write(chunk);
-      }
-    };
+      }};
     this.syncShellArithmeticNonZero(e0, rawState, diagnosticLine);
     let loopTurn = 0;
     while (true) {
@@ -12935,9 +10192,7 @@ export class Runtime {
             const curRaw = rawState.variables[step.name];
             const curStr = curRaw === undefined ? "" : (touched.has(step.name) ? curRaw : (monitor.values.get(step.name, curRaw) ?? curRaw));
             rawState.variables[step.name] = (typeof curStr === "string" ? curStr : "") + val;
-          } else {
-            rawState.variables[step.name] = val;
-          }
+          } else rawState.variables[step.name] = val;
           touched.add(step.name);
           lastArg = "";
           lastValueWord = undefined;
@@ -12960,17 +10215,7 @@ export class Runtime {
     }
     return { lastCmd, lastArg, lastInductionVal };
   }
-
-  private runSyncForFallback(
-    varName: string,
-    fastLoopWords: readonly string[],
-    bodyAssignments: readonly SyncLoopStep[],
-    rawState: State,
-    io: IO,
-    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
-    touched: Set<string>,
-    mode: number,
-  ): { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string } {
+  private runSyncForFallback( varName: string, fastLoopWords: readonly string[], bodyAssignments: readonly SyncLoopStep[], rawState: State, io: IO, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, mode: number, ): { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string } {
     let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
     let lastArg = "";
     let lastValueWord: Word | undefined;
@@ -13005,9 +10250,7 @@ export class Runtime {
             const curRaw = rawState.variables[step.name];
             const curStr = curRaw === undefined ? "" : (touched.has(step.name) ? curRaw : (monitor.values.get(step.name, curRaw) ?? curRaw));
             rawState.variables[step.name] = (typeof curStr === "string" ? curStr : "") + val;
-          } else {
-            rawState.variables[step.name] = val;
-          }
+          } else rawState.variables[step.name] = val;
           touched.add(step.name);
           lastArg = "";
           lastValueWord = undefined;
@@ -13017,12 +10260,9 @@ export class Runtime {
         }
       }
     }
-    if (lastValueWord !== undefined) {
-      lastArg = this.evalSyncRedirectWord(lastValueWord, rawState, monitor, touched);
-    }
+    if (lastValueWord !== undefined) lastArg = this.evalSyncRedirectWord(lastValueWord, rawState, monitor, touched);
     return { lastCmd, lastArg };
   }
-
   async script(script: Script, state: State, io: IO, startListIndex = 0, startPipelineIndex = 0, skipFirstSync = false): Promise<number> {
     if (state.extensions?.syntax.indexedDeclarations?.includes("readonly")) io.assignmentDiagnosticContext ??= { name: undefined };
     for (let listIndex = startListIndex; listIndex < script.lists.length; listIndex++) {
@@ -13037,14 +10277,12 @@ export class Runtime {
         let status = 0;
         try {
           status = validateExitCode(await hook.execute({
-            ...this.extensionContext(state, io),
-            prepareChild: options => {
+            ...this.extensionContext(state, io), prepareChild: options => {
               if (!admissionOpen || preparation) return Promise.reject(this.commandSignal.aborted ? this.commandSignal.reason : new TypeError("Shell child preparation is single-use and dispatch-scoped"));
               preparation = this.prepareListChild(list, script, state, io, options);
               void preparation.catch(() => undefined);
               return preparation;
-            },
-          }));
+            }, }));
         } catch (reason) { failure = { reason }; }
         finally { admissionOpen = false; }
         await preparation?.catch(() => undefined);
@@ -13080,7 +10318,6 @@ export class Runtime {
     }
     return script.lists.length ? state.status : 0;
   }
-
   private async prepareListChild(list: AndOr, script: Script, state: State, io: IO, options: ShellChildPreparation): Promise<PreparedShellChild> {
     this.signal.throwIfAborted();
     if (!options || !(options.signal instanceof AbortSignal) || typeof options.registerCleanup !== "function"
@@ -13104,9 +10341,7 @@ export class Runtime {
         await execution?.catch(() => undefined);
         await scope.close();
         if (child) stateMonitor(child)?.closeValues();
-        throwCleanupFailures(scope.failures);
-      });
-    };
+        throwCleanupFailures(scope.failures);});};
     try {
       options.registerCleanup(close);
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
@@ -13125,12 +10360,10 @@ export class Runtime {
         const input = new ShellInput((async function* () {})(), this.budget, signal);
         scope.register(async () => {
           try { await input.close(); }
-          catch (reason) { if (!signal.aborted || !Object.is(reason, signal.reason)) throw reason; }
-        });
+          catch (reason) { if (!signal.aborted || !Object.is(reason, signal.reason)) throw reason; }});
         Object.assign(childIO, { asyncDefaultInput: input });
       }
-      runtime = new Runtime(this.sourceFs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles,
-        signal, this.cancellation, this.cancellationState, this.cancellationOwner, this.cancellationDepth, this.cancellationMaxDepth);
+      runtime = new Runtime(this.sourceFs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles, signal, this.cancellation, this.cancellationState, this.cancellationOwner, this.cancellationDepth, this.cancellationMaxDepth);
       const processId = (childIdentities.get(this.budget) ?? 1000) + 1;
       if (!Number.isSafeInteger(processId)) throw new RangeError("Shell child identity exhausted");
       childIdentities.set(this.budget, processId);
@@ -13144,8 +10377,7 @@ export class Runtime {
             if (reason instanceof Flow && reason.kind === "return") return runtime!.finishShell(child!, childIO, reason.status);
             if (reason instanceof NounsetDiagnosticFailure) throw reason.reason;
             throw reason;
-          }
-        });
+          }});
         return execution;
       } });
     } catch (reason) {
@@ -13154,13 +10386,11 @@ export class Runtime {
       throw reason;
     } finally { ready(); }
   }
-
   async pipeline(pipeline: Pipeline, state: State, io: IO): Promise<number> {
     this.signal.throwIfAborted();
     const terminal = io.terminal?.target === pipeline ? io.terminal : undefined;
     let status: number;
-    if (pipeline.commands.length === 1) status = await this.command(pipeline.commands[0]!, state,
-      terminal ? { ...io, terminal: { target: pipeline.commands[0]!, frame: terminal.frame } } : io, false, pipeline.negate);
+    if (pipeline.commands.length === 1) status = await this.command(pipeline.commands[0]!, state, terminal ? { ...io, terminal: { target: pipeline.commands[0]!, frame: terminal.frame } } : io, false, pipeline.negate);
     else {
       const release = this.budget.reservePipelineStages(pipeline.commands.length);
       const retained = new Set<Promise<unknown>>();
@@ -13169,10 +10399,8 @@ export class Runtime {
         retained.add(work);
         const settled = (): void => {
           retained.delete(work);
-          if (setupClosed && !retained.size) release();
-        };
-        void work.then(settled, settled);
-      };
+          if (setupClosed && !retained.size) release();};
+        void work.then(settled, settled);};
       const pipes: ReturnType<typeof createBytePipe>[] = [];
       const controllers: ManagedControlController[] = [];
       const written = new Set<number>();
@@ -13183,21 +10411,17 @@ export class Runtime {
       try {
         if (hasActiveExtensions(state) && !state.extensions!.eventDepth) {
           for (const command of pipeline.commands) {
-            if (command.kind === "simple" || command.kind === "arithmetic" || command.kind === "conditional") {
-              publishCommandSpelling(state, commandSpelling(command));
-            }
+            if (command.kind === "simple" || command.kind === "arithmetic" || command.kind === "conditional") publishCommandSpelling(state, commandSpelling(command));
           }
         }
         for (let index = 1; index < pipeline.commands.length; index++) pipes.push(createBytePipe({
-          highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal,
-        }));
+          highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal, }));
         for (let index = 0; index < pipeline.commands.length; index++) {
           controllers.push(createManagedControlController());
         }
         unsealScope = io[invocationScope].onSeal(() => {
           const closedReason = new Error("Invocation is closed");
-          for (const controller of controllers) abortManagedController(controller, closedReason);
-        });
+          for (const controller of controllers) abortManagedController(controller, closedReason);});
         let transferred: (() => void) | undefined;
         let pendingTransfers = pipeline.commands.length;
         const retireBaseline = terminal
@@ -13226,32 +10450,21 @@ export class Runtime {
           const admit = (): void => {
             if (admitted) return;
             admitted = true;
-            if (--pendingTransfers === 0) transferred?.();
-          };
+            if (--pendingTransfers === 0) transferred?.();};
           try {
           const incoming = pipes[index - 1];
           const outgoing = pipes[index];
           const childDepth = this.cancellationDepth + 1;
           const controls: readonly CancellationControlOriginInput[] = [
-            { role: "pipeline-control", signal: controllers[index]!.signal },
-          ];
-          const prepared = prepareChildCancellation(
-            this.cancellation,
-            undefined,
-            this.cancellationAdmission(childDepth, controls.length),
-            controls,
-          );
+            { role: "pipeline-control", signal: controllers[index]!.signal }, ];
+          const prepared = prepareChildCancellation( this.cancellation, undefined, this.cancellationAdmission(childDepth, controls.length), controls, );
           const owner = new InvocationCancellationOwner(io[invocationScope], prepared, this.cancellationState);
           let boundary: CancellationBoundary;
           try { boundary = owner.activate(false); }
           catch (error) { await owner.abandon(Promise.resolve()); throw error; }
           const signal = boundary.deliverySignal;
           const frame: RuntimeOutcomeFrame = {};
-          const runtime = new Runtime(
-            this.sourceFs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles,
-            boundary.deliverySignal, boundary, this.cancellationState, owner,
-            childDepth, this.cancellationMaxDepth, frame, this.inputProfile,
-          );
+          const runtime = new Runtime( this.sourceFs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles, boundary.deliverySignal, boundary, this.cancellationState, owner, childDepth, this.cancellationMaxDepth, frame, this.inputProfile, );
           let captured: CapturedCancellationOutcome<CommandResult>;
           let cleanupRefs: PipeDescriptorFrame | undefined;
           let cleanupDescFrame: PreparedDescriptorFrame | undefined;
@@ -13259,10 +10472,7 @@ export class Runtime {
           let stageOwnsCleanup = false;
           try {
           const rawStateForChild = stateMonitor(state)?.raw ?? state;
-          const isPureStage =
-            !terminal &&
-            !(io.descriptors && (io.descriptors.size > 3 || io.descriptors.get(0)?.closed || io.descriptors.get(1)?.closed || io.descriptors.get(2)?.closed)) &&
-            runtime.isPureExternalStageCommand(command, rawStateForChild);
+          const isPureStage = !terminal && !(io.descriptors && (io.descriptors.size > 3 || io.descriptors.get(0)?.closed || io.descriptors.get(1)?.closed || io.descriptors.get(2)?.closed)) && runtime.isPureExternalStageCommand(command, rawStateForChild);
           const references = isPureStage ? undefined : (cleanupRefs = new PipeDescriptorFrame(io[invocationScope]));
           const descriptorFrame = isPureStage ? undefined : (cleanupDescFrame = new PreparedDescriptorFrame(references!, this.budget));
           const reading = incoming?.endpoints?.read;
@@ -13287,15 +10497,8 @@ export class Runtime {
                 const isFastPure = isPureStage || runtime.isPureExternalStageCommand(command, rawStateForChild);
                 const forkedExt = isFastPure ? forkExtensions(state.extensions, "pipeline") : undefined;
                 const child: State = isFastPure
-                  ? Object.assign(
-                      new RootShellState(rawStateForChild.cwd, rawStateForChild.variables, rawStateForChild.exported, forkedExt),
-                      rawStateForChild,
-                      {
-                        extensions: forkedExt,
-                        isolated: true,
-                        _readOnlyStage: true,
-                      },
-                    )
+                  ? Object.assign( new RootShellState(rawStateForChild.cwd, rawStateForChild.variables, rawStateForChild.exported, forkedExt), rawStateForChild, {
+                        extensions: forkedExt, isolated: true, _readOnlyStage: true, }, )
                   : (tryCloneStateSync(state) ?? await cloneState(state, this.signal));
                 preparedChild = child;
                 if (!child._readOnlyStage) {
@@ -13306,26 +10509,11 @@ export class Runtime {
                 let childIO: IO;
                 if (isPureStage) {
                   childIO = {
-                    ...io,
-                    nameExpansionContext: undefined,
-                    descriptors: undefined,
-                    terminal: undefined,
-                    stdin: input,
-                    ...(incoming ? { asyncDefaultInput: undefined, stdinIsDefault: false } : {}),
-                    stdout: outgoing ? new BudgetedPipeStageSink(this.budget, writable!, signal, written, index, controllers[index]!) : signalSink(io.stdout, signal),
-                    stderr: signalSink(io.stderr, signal),
-                  } as unknown as IO;
+                    ...io, nameExpansionContext: undefined, descriptors: undefined, terminal: undefined, stdin: input, ...(incoming ? { asyncDefaultInput: undefined, stdinIsDefault: false } : {}), stdout: outgoing ? new BudgetedPipeStageSink(this.budget, writable!, signal, written, index, controllers[index]!) : signalSink(io.stdout, signal), stderr: signalSink(io.stderr, signal), } as unknown as IO;
                 } else {
                   const inherited = isolateIO(io, references!);
                   childIO = {
-                    ...inherited,
-                    stdin: input,
-                    ...(incoming ? { asyncDefaultInput: undefined } : {}),
-                    ...(incoming ? { stdinIsDefault: false } : {}),
-                    stdout: outgoing ? new BudgetedPipeStageSink(this.budget, writable!, signal, written, index, controllers[index]!) : signalSink(io.stdout, signal),
-                    stderr: signalSink(io.stderr, signal),
-                    terminal: { target: command, frame: descriptorFrame! },
-                  };
+                    ...inherited, stdin: input, ...(incoming ? { asyncDefaultInput: undefined } : {}), ...(incoming ? { stdinIsDefault: false } : {}), stdout: outgoing ? new BudgetedPipeStageSink(this.budget, writable!, signal, written, index, controllers[index]!) : signalSink(io.stdout, signal), stderr: signalSink(io.stderr, signal), terminal: { target: command, frame: descriptorFrame! }, };
                   const descriptors = inherited.descriptors as Map<number, Descriptor>;
                   descriptors.set(0, incoming ? { input, stdinIsDefault: false, ...(readReference ? { pipe: readReference } : {}) } : { ...descriptors.get(0), input });
                   descriptors.set(1, outgoing ? { output: childIO.stdout, ...(writeReference ? { pipe: writeReference } : {}) } : { ...descriptors.get(1), output: childIO.stdout });
@@ -13364,16 +10552,14 @@ export class Runtime {
                 const child = preparedChild;
                 await io[invocationScope].cleanup(async () => {
                   try { await runtime.releaseExtensions(child); }
-                  finally { stateMonitor(child)?.closeValues(); }
-                });
+                  finally { stateMonitor(child)?.closeValues(); }});
               }
               completed.add(index);
               if (incoming && !reading) {
                 const upstream = index - 1;
                 const close = scheduleTurn(() => {
                   closing.delete(close);
-                  if (written.has(upstream) && !completed.has(upstream)) abortManagedController(controllers[upstream]!, SHARED_PIPELINE_CLOSED);
-                });
+                  if (written.has(upstream) && !completed.has(upstream)) abortManagedController(controllers[upstream]!, SHARED_PIPELINE_CLOSED);});
                 closing.add(close);
                 try { await incoming.abort(); }
                 catch (reason) { cleanupFailures.push(reason); }
@@ -13440,8 +10626,7 @@ export class Runtime {
           } catch (reason) {
             rejectPreparation?.(reason);
             throw reason;
-          } finally { admit(); }
-        });
+          } finally { admit(); }});
         for (const task of tasks) retain(task);
         statuses = await interruptible(Promise.all(tasks), this.signal);
       } finally {
@@ -13463,7 +10648,6 @@ export class Runtime {
     if (pipeline.commands.length > 1) await this.errexit(status, state, io);
     return pipeline.negate && !terminal ? Number(status === 0) : status;
   }
-
   async runCommandIsolated(command: Command, state: State, io: IO, fileShortcut = false): Promise<number> {
     try {
       if (!this.tryStartExtensionsSync(state)) await this.startExtensions(state, io);
@@ -13480,21 +10664,12 @@ export class Runtime {
       throw error;
     }
   }
-
-  async runPipelineStageWork(
-    command: Command,
-    child: State,
-    childIO: IO,
-    io: IO,
-    onCheckpointFailure: (reason: ExtensionCheckpointFailure) => void,
-  ): Promise<number> {
+  async runPipelineStageWork( command: Command, child: State, childIO: IO, io: IO, onCheckpointFailure: (reason: ExtensionCheckpointFailure) => void, ): Promise<number> {
     let stageOutcome: CapturedCancellationOutcome<number>;
     let hadCheckpointFailure = false;
     try {
       let stageStatus = await this.runCommandIsolated(command, child, childIO);
-      if (!this.tryFinishShellSync(child)) {
-        stageStatus = await this.finishShell(child, childIO, stageStatus);
-      }
+      if (!this.tryFinishShellSync(child)) stageStatus = await this.finishShell(child, childIO, stageStatus);
       stageOutcome = { kind: "return", value: stageStatus };
     } catch (reason) {
       if (reason instanceof ExtensionCheckpointFailure) {
@@ -13504,9 +10679,7 @@ export class Runtime {
       stageOutcome = { kind: "throw", reason };
     }
     try {
-      if (!this.releaseExtensionsSyncIfEmpty(child)) {
-        await this.releaseExtensions(child);
-      }
+      if (!this.releaseExtensionsSyncIfEmpty(child)) await this.releaseExtensions(child);
     } catch (cleanup) {
       if (hadCheckpointFailure) io[invocationScope].failures.push(cleanup);
       else stageOutcome = { kind: "throw", reason: cleanup };
@@ -13516,8 +10689,6 @@ export class Runtime {
     if (stageOutcome.kind === "throw") throw stageOutcome.reason;
     return stageOutcome.value;
   }
-
-
   async errexit(status: number, state: State, io: IO): Promise<void> {
     this.signal.throwIfAborted();
     if (status !== 0 && !io.execution?.ignoreErrexit) {
@@ -13525,25 +10696,12 @@ export class Runtime {
       if (state.errexit) throw new Flow("exit", status);
     }
   }
-
   isPureExternalStageCommand(command: Command, rawState: State): boolean {
-    if (
-      command.kind !== "simple" ||
-      command.redirects.length > 0 ||
-      command.words.length === 0 ||
-      rawState.externalInvocation ||
-      this.middleware.length > 0 ||
-      hasActiveExtensions(rawState)
-    ) {
+    if ( command.kind !== "simple" || command.redirects.length > 0 || command.words.length === 0 || rawState.externalInvocation || this.middleware.length > 0 || hasActiveExtensions(rawState)) {
       return false;
     }
     const firstName = command.words[0]!.plain;
-    if (
-      firstName === undefined ||
-      !isFastDirectCommand(firstName, command.words) ||
-      hasShellFunction(rawState, firstName) ||
-      rawState.extensions?.builtins.has(firstName)
-    ) {
+    if ( firstName === undefined || !isFastDirectCommand(firstName, command.words) || hasShellFunction(rawState, firstName) || rawState.extensions?.builtins.has(firstName)) {
       return false;
     }
     for (let i = 0; i < command.words.length; i++) {
@@ -13560,24 +10718,14 @@ export class Runtime {
     const extDef = this.getExternalCommand(firstName);
     return extDef !== undefined && !customRegisteredCommands.has(extDef.execute) && !customRegisteredRegistries.has(this.commands);
   }
-
   private publishStatus(state: State, statuses: readonly number[], io: IO, terminal?: IO["terminal"]): Promise<void> | void {
     this.signal.throwIfAborted();
     try { throwCleanupFailures(io[invocationScope].failures); }
     catch (error) { throw new NounsetDiagnosticFailure(error); }
-    if (state._readOnlyStage || (state.isolated === true && terminal && !hasActiveExtensions(state))) {
-      return;
-    }
+    if (state._readOnlyStage || (state.isolated === true && terminal && !hasActiveExtensions(state))) return;
     return publishPipelineStatus(trackState(state, this.budget, io[invocationScope]), statuses, this.signal, io[invocationScope]);
   }
-
-  private runTerminalBeforeExit(
-    command: Command,
-    state: State,
-    terminal: NonNullable<IO["terminal"]>,
-    status: number,
-    completionIO: IO,
-  ): Promise<void> | void {
+  private runTerminalBeforeExit( command: Command, state: State, terminal: NonNullable<IO["terminal"]>, status: number, completionIO: IO, ): Promise<void> | void {
     const publishes = command.kind === "simple" || command.kind === "subshell" || command.kind === "arithmetic" || command.kind === "conditional";
     if (!publishes) return;
     const reported = terminal.publicationNegate && (command.kind === "conditional" || command.kind === "arithmetic") ? Number(status === 0) : status;
@@ -13594,12 +10742,9 @@ export class Runtime {
       await this.errexit(status, state, completionIO);
     })();
   }
-
   async command(command: Command, state: State, io: IO, fileShortcut = false, publicationNegate = false): Promise<number> {
     io.descriptors ??= new Map<number, Descriptor>([
-      [0, { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) }],
-      [1, { output: io.stdout }], [2, { output: io.stderr }],
-    ]);
+      [0, { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) }], [1, { output: io.stdout }], [2, { output: io.stderr }], ]);
     io[invocationScope].assertOpen();
     if (state.extensions && (command.kind === "simple" || command.kind === "arithmetic" || command.kind === "conditional")) {
       const description = commandSpelling(command);
@@ -13637,7 +10782,6 @@ export class Runtime {
     }
     return status;
   }
-
   async executeCommand(command: Command, state: State, originalIO: IO, fileShortcut = false): Promise<number> {
     const terminal = originalIO.terminal?.target === command ? originalIO.terminal : undefined;
     if (!state._readOnlyStage) state = trackState(state, this.budget, originalIO[invocationScope]);
@@ -13658,23 +10802,11 @@ export class Runtime {
       else runYieldCheckpoint(this.signal);
     }
     this.signal.throwIfAborted();
-    if (
-      this.middleware.length === 0 &&
-      command.kind === "simple" &&
-      command.redirects.length === 0 &&
-      !fileShortcut &&
-      !terminal &&
-      !hasActiveVariableAttributes(state)
-    ) {
+    if ( this.middleware.length === 0 && command.kind === "simple" && command.redirects.length === 0 && !fileShortcut && !terminal && !hasActiveVariableAttributes(state)) {
       if (command.words.length === 1) {
         const w0 = command.words[0]!;
         const w0Plain = w0.plain;
-        if (
-          (w0Plain === ":" || w0Plain === "true" || w0Plain === "false") &&
-          !hasShellFunction(state, w0Plain) &&
-          !state.extensions?.builtins.has(w0Plain) &&
-          !state.externalInvocation
-        ) {
+        if ( (w0Plain === ":" || w0Plain === "true" || w0Plain === "false") && !hasShellFunction(state, w0Plain) && !state.extensions?.builtins.has(w0Plain) && !state.externalInvocation) {
           state.substitutionStatus = 0;
           const rawState = stateMonitor(state)?.raw ?? state;
           if (rawState.variables._ !== undefined) delete rawState.variables._;
@@ -13683,14 +10815,7 @@ export class Runtime {
           if (originalIO.assignmentDiagnosticContext) originalIO.assignmentDiagnosticContext.name = undefined;
           return w0Plain === "false" ? 1 : 0;
         }
-        if (
-          w0Plain === "return" &&
-          (state.functionDepth > 0 || state.sourceDepth) &&
-          !hasActiveExtensions(state) &&
-          !hasShellFunction(state, "return") &&
-          !state.extensions?.builtins.has("return") &&
-          !state.externalInvocation
-        ) {
+        if ( w0Plain === "return" && (state.functionDepth > 0 || state.sourceDepth) && !hasActiveExtensions(state) && !hasShellFunction(state, "return") && !state.extensions?.builtins.has("return") && !state.externalInvocation) {
           state.substitutionStatus = 0;
           const rawState = stateMonitor(state)?.raw ?? state;
           if (rawState.variables._ !== undefined) delete rawState.variables._;
@@ -13699,13 +10824,7 @@ export class Runtime {
           if (originalIO.assignmentDiagnosticContext) originalIO.assignmentDiagnosticContext.name = undefined;
           throw completedExit(state.status, "return", 1, state.status);
         }
-        if (
-          (w0Plain === "break" || w0Plain === "continue") &&
-          state.loopDepth > 0 &&
-          !hasShellFunction(state, w0Plain) &&
-          !state.extensions?.builtins.has(w0Plain) &&
-          !state.externalInvocation
-        ) {
+        if ( (w0Plain === "break" || w0Plain === "continue") && state.loopDepth > 0 && !hasShellFunction(state, w0Plain) && !state.extensions?.builtins.has(w0Plain) && !state.externalInvocation) {
           state.substitutionStatus = 0;
           const rawState = stateMonitor(state)?.raw ?? state;
           if (rawState.variables._ !== undefined) delete rawState.variables._;
@@ -13715,16 +10834,7 @@ export class Runtime {
           throw completedExit(0, w0Plain, 1);
         }
         const assignment = !getArrayAssignment(w0) ? this.assignment(w0) : undefined;
-        if (
-          assignment &&
-          !assignment.append &&
-          assignment.name !== "OPTIND" &&
-          !assignment.name.includes("[") &&
-          !assignment.value.parts.some(part => part.kind === "substitution") &&
-          !state.readonlyVariables?.has(assignment.name) &&
-          !state.variableAttributes?.get(assignment.name) &&
-          !arrayStore(state)?.get(assignment.name)
-        ) {
+        if ( assignment && !assignment.append && assignment.name !== "OPTIND" && !assignment.name.includes("[") && !assignment.value.parts.some(part => part.kind === "substitution") && !state.readonlyVariables?.has(assignment.name) && !state.variableAttributes?.get(assignment.name) && !arrayStore(state)?.get(assignment.name)) {
           let fastAssigned: ShellValue | undefined;
           let fastFailed = false;
           try {
@@ -13743,25 +10853,10 @@ export class Runtime {
             return 0;
           }
         }
-      } else if (
-        command.words.length === 2 &&
-        command.words[0]!.plain === "local" &&
-        state.locals.length > 0 &&
-        !hasShellFunction(state, "local") &&
-        !state.extensions?.builtins.has("local") &&
-        (!guestArrays(state) || (guestArrays(state)!.watches.size === 0 && guestArrays(state)!.bindings.size === 1 && guestArrays(state)!.bindings.has("BASH_REMATCH")))
-      ) {
+      } else if ( command.words.length === 2 && command.words[0]!.plain === "local" && state.locals.length > 0 && !hasShellFunction(state, "local") && !state.extensions?.builtins.has("local") && (!guestArrays(state) || (guestArrays(state)!.watches.size === 0 && guestArrays(state)!.bindings.size === 1 && guestArrays(state)!.bindings.has("BASH_REMATCH")))) {
         const w1 = command.words[1]!;
         const assignment = !getArrayAssignment(w1) ? this.assignment(w1) : undefined;
-        if (
-          assignment &&
-          !assignment.append &&
-          assignment.name !== "OPTIND" &&
-          !assignment.name.includes("[") &&
-          !state.readonlyVariables?.has(assignment.name) &&
-          !state.variableAttributes?.get(assignment.name) &&
-          !arrayStore(state)?.get(assignment.name)
-        ) {
+        if ( assignment && !assignment.append && assignment.name !== "OPTIND" && !assignment.name.includes("[") && !state.readonlyVariables?.has(assignment.name) && !state.variableAttributes?.get(assignment.name) && !arrayStore(state)?.get(assignment.name)) {
           let fastAssigned: ShellValue | undefined;
           let fastFailed = false;
           try {
@@ -13771,9 +10866,7 @@ export class Runtime {
           }
           if (!fastFailed && fastAssigned !== undefined) {
             const locals = state.locals[state.locals.length - 1]!;
-            if (!locals.has(assignment.name)) {
-              locals.set(assignment.name, saveVariable(state, assignment.name));
-            }
+            if (!locals.has(assignment.name)) locals.set(assignment.name, saveVariable(state, assignment.name));
             state.substitutionStatus = 0;
             const rawState = stateMonitor(state)?.raw ?? state;
             if (rawState.variables._ !== undefined) delete rawState.variables._;
@@ -13787,15 +10880,7 @@ export class Runtime {
         }
       } else if (command.words.length >= 2) {
         const w0Plain = command.words[0]!.plain;
-        if (
-          command.words.length === 2 &&
-          w0Plain === "return" &&
-          (state.functionDepth > 0 || state.sourceDepth) &&
-          !hasActiveExtensions(state) &&
-          !hasShellFunction(state, "return") &&
-          !state.extensions?.builtins.has("return") &&
-          !state.externalInvocation
-        ) {
+        if ( command.words.length === 2 && w0Plain === "return" && (state.functionDepth > 0 || state.sourceDepth) && !hasActiveExtensions(state) && !hasShellFunction(state, "return") && !state.extensions?.builtins.has("return") && !state.externalInvocation) {
           let fastArg: ShellValue | undefined;
           let fastFailed = false;
           try {
@@ -13816,11 +10901,7 @@ export class Runtime {
             }
           }
         }
-        if (
-          (w0Plain === "[" || w0Plain === "test") &&
-          !hasShellFunction(state, w0Plain) &&
-          !state.extensions?.builtins.has(w0Plain)
-        ) {
+        if ( (w0Plain === "[" || w0Plain === "test") && !hasShellFunction(state, w0Plain) && !state.extensions?.builtins.has(w0Plain)) {
           const cmd = this.commands.get(w0Plain);
           if (cmd && defaultPredicateExecutors.has(cmd.execute)) {
             let wordValues: ShellValue[] | undefined;
@@ -13843,19 +10924,7 @@ export class Runtime {
             }
           }
         }
-        if (
-          w0Plain !== undefined &&
-          command.words.length <= 64 &&
-          this.budget.limits.maxExpansionBytes >= 65536 &&
-          this.budget.limits.maxCommands >= 1000 &&
-          this.script === Runtime.prototype.script &&
-          !state.externalInvocation &&
-          state.functions.has(w0Plain) &&
-          this.firstInternalDiscovery(w0Plain, state, false) === "function" &&
-          !hasActiveExtensions(state) &&
-          !guestArrays(state) &&
-          !mapfileCallbackStates.has(state)
-        ) {
+        if ( w0Plain !== undefined && command.words.length <= 64 && this.budget.limits.maxExpansionBytes >= 65536 && this.budget.limits.maxCommands >= 1000 && this.script === Runtime.prototype.script && !state.externalInvocation && state.functions.has(w0Plain) && this.firstInternalDiscovery(w0Plain, state, false) === "function" && !hasActiveExtensions(state) && !guestArrays(state) && !mapfileCallbackStates.has(state)) {
           let wordValues: ShellValue[] | undefined;
           let fastFailed = false;
           try {
@@ -13874,14 +10943,7 @@ export class Runtime {
         }
       }
     }
-    if (
-      this.middleware.length === 0 &&
-      (command.kind === "group" || command.kind === "case") &&
-      command.redirects.length === 0 &&
-      !fileShortcut &&
-      !terminal &&
-      !hasActiveExtensions(state)
-    ) {
+    if ( this.middleware.length === 0 && (command.kind === "group" || command.kind === "case") && command.redirects.length === 0 && !fileShortcut && !terminal && !hasActiveExtensions(state)) {
       if (command.kind === "group") {
         const resume = (command as { _resumeSyncCursor?: { listIndex: number; pipelineIndex: number } })._resumeSyncCursor;
         if (resume) {
@@ -13923,40 +10985,13 @@ export class Runtime {
         }
       }
     }
-    if (
-      this.middleware.length === 0 &&
-      command.kind === "simple" &&
-      command.redirects.length === 1 &&
-      command.words.length >= 1 &&
-      this.budget.limits.maxRedirects >= 1 &&
-      !fileShortcut &&
-      !terminal &&
-      !hasActiveVariableAttributes(state) &&
-      !guestArrays(state) &&
-      (this._fileWrites === undefined || this._fileWrites.size === 0) &&
-      (this._outputFiles === undefined || this._outputFiles.size === 0) &&
-      this.canFastMemoryRedirect
-    ) {
+    if ( this.middleware.length === 0 && command.kind === "simple" && command.redirects.length === 1 && command.words.length >= 1 && this.budget.limits.maxRedirects >= 1 && !fileShortcut && !terminal && !hasActiveVariableAttributes(state) && !guestArrays(state) && (this._fileWrites === undefined || this._fileWrites.size === 0) && (this._outputFiles === undefined || this._outputFiles.size === 0) && this.canFastMemoryRedirect) {
       const r0 = command.redirects[0]!;
       const w0Plain = command.words[0]!.plain;
-      if (
-        r0.descriptor === 1 &&
-        !r0.move &&
-        !r0.document &&
-        (r0.operator === ">" || r0.operator === ">>" || (r0.operator === ">|" && state.noclobber)) &&
-        !(r0.operator === ">" && state.noclobber) &&
-        (w0Plain === "echo" || w0Plain === "printf") &&
-        !hasShellFunction(state, w0Plain) &&
-        !state.extensions?.builtins.has(w0Plain)
-      ) {
+      if ( r0.descriptor === 1 && !r0.move && !r0.document && (r0.operator === ">" || r0.operator === ">>" || (r0.operator === ">|" && state.noclobber)) && !(r0.operator === ">" && state.noclobber) && (w0Plain === "echo" || w0Plain === "printf") && !hasShellFunction(state, w0Plain) && !state.extensions?.builtins.has(w0Plain)) {
         const def = this.commands.get(w0Plain);
         const rawState = stateMonitor(state)?.raw ?? state;
-        if (
-          def &&
-          (w0Plain === "printf" ? def.execute === printfCommand.execute : defaultEchoExecutors.has(def.execute)) &&
-          this.isPureArgWord(r0.target, rawState) &&
-          command.words.every(w => this.isPureArgWord(w, rawState))
-        ) {
+        if ( def && (w0Plain === "printf" ? def.execute === printfCommand.execute : defaultEchoExecutors.has(def.execute)) && this.isPureArgWord(r0.target, rawState) && command.words.every(w => this.isPureArgWord(w, rawState))) {
           let targetVal: ShellValue | undefined;
           let formatted: string | undefined;
           let lastArg = w0Plain;
@@ -13986,19 +11021,13 @@ export class Runtime {
                 }
                 if (allStrings) {
                   if (fastSubScratchArgs.length > 0) lastArg = fastSubScratchArgs[fastSubScratchArgs.length - 1]!;
-                  if (w0Plain === "printf") {
-                    formatted = tryFastPrintf(fastSubScratchArgs);
-                  } else if (!fastSubScratchArgs[0]?.startsWith("-")) {
+                  if (w0Plain === "printf") formatted = tryFastPrintf(fastSubScratchArgs); else if (!fastSubScratchArgs[0]?.startsWith("-")) {
                     const joined = `${fastSubScratchArgs.join(" ")}\n`;
                     if (!joined.includes("\0")) formatted = joined;
                   }
                   fastSubScratchArgs.length = 0;
-                  if (formatted !== undefined) {
-                    targetVal = this.fastValueWord(r0.target, state, originalIO, true, false, false, true, undefined, diagnosticLine);
-                  }
-                } else {
-                  fastSubScratchArgs.length = 0;
-                }
+                  if (formatted !== undefined) targetVal = this.fastValueWord(r0.target, state, originalIO, true, false, false, true, undefined, diagnosticLine);
+                } else fastSubScratchArgs.length = 0;
               }
             }
           } catch {
@@ -14008,8 +11037,7 @@ export class Runtime {
           if (!fastFailed && formatted !== undefined && typeof targetVal === "string" && targetVal.length > 0 && !targetVal.includes("\0")) {
             const path = pathOf(state, targetVal);
             if (!path.startsWith("/dev/") && path !== "/dev") {
-              const encoded =
-                formatted.length * 3 <= fastRedirectScratchBytes.byteLength
+              const encoded = formatted.length * 3 <= fastRedirectScratchBytes.byteLength
                   ? fastRedirectScratchBytes.subarray(0, fastSharedTextEncoder.encodeInto(formatted, fastRedirectScratchBytes).written)
                   : Buffer.from(formatted, "utf8");
               const byteLength = encoded.byteLength;
@@ -14017,14 +11045,7 @@ export class Runtime {
                 let writeSucceeded = false;
                 const mode = 0o666 & ~(state.umask ?? 0o022);
                 try {
-                  writeSucceeded = tryWriteMemoryFileSync(
-                    this.backingFs,
-                    path,
-                    encoded,
-                    r0.operator === ">>",
-                    mode,
-                    this.commandSignal,
-                  );
+                  writeSucceeded = tryWriteMemoryFileSync( this.backingFs, path, encoded, r0.operator === ">>", mode, this.commandSignal, );
                   if (writeSucceeded) {
                     this.budget.fileSystemOperation();
                     this.budget.bytes += byteLength;
@@ -14051,13 +11072,7 @@ export class Runtime {
     const processSubstitutions: (() => Promise<void>)[] = [];
     const allocation = this.budget.values.scope();
     originalIO = {
-      ...originalIO,
-      terminal: undefined,
-      diagnosticLine,
-      substitutionDiagnosticLine: originalIO.substitutionDiagnosticLines?.get(command) ?? diagnosticLine,
-      [valueScope]: allocation,
-      processSubstitutions,
-    };
+      ...originalIO, terminal: undefined, diagnosticLine, substitutionDiagnosticLine: originalIO.substitutionDiagnosticLines?.get(command) ?? diagnosticLine, [valueScope]: allocation, processSubstitutions, };
     let io = originalIO;
     let diagnosticFailure: NounsetDiagnosticFailure | undefined;
     let outputTracker: OutputFailureTracker | undefined;
@@ -14076,9 +11091,7 @@ export class Runtime {
       if (terminal) {
         const before = this.runTerminalBeforeExit(command, state, terminal, status, terminal.io ?? io);
         if (before) await before;
-        if (!this.tryFinishShellSync(state)) {
-          status = await this.finishShell(state, terminal.io ?? io, status);
-        }
+        if (!this.tryFinishShellSync(state)) status = await this.finishShell(state, terminal.io ?? io, status);
         terminal.completed = true;
       }
       if (outputs.size > 0 || inputs.size > 0 || processSubstitutions.length > 0) {
@@ -14086,40 +11099,19 @@ export class Runtime {
       }
       return status;
     } catch (caught) {
-      const errResult = await this.handleExecuteCommandError(
-        caught,
-        command,
-        state,
-        io,
-        terminal,
-        outputs,
-        inputs,
-        processSubstitutions,
-        outputTracker,
-      );
+      const errResult = await this.handleExecuteCommandError( caught, command, state, io, terminal, outputs, inputs, processSubstitutions, outputTracker, );
       if (errResult.diagnosticFailure) diagnosticFailure = errResult.diagnosticFailure;
       return errResult.status;
     } finally {
       try {
-        if (!references && outputs.size === 0 && inputs.size === 0 && processSubstitutions.length === 0) {
-          allocation.close();
-        } else {
-          await this.cleanupCommandResources(references, outputs, inputs, processSubstitutions, allocation, diagnosticFailure, io);
-        }
+        if (!references && outputs.size === 0 && inputs.size === 0 && processSubstitutions.length === 0) allocation.close(); else await this.cleanupCommandResources(references, outputs, inputs, processSubstitutions, allocation, diagnosticFailure, io);
       } finally {
         snapshotHolder.finish?.();
         if (snapshotHolder.scope) await snapshotHolder.scope.close();
       }
     }
   }
-
-  private async finishCommandResources(
-    status: number,
-    outputs: Set<OutputFinalizer>,
-    inputs: Set<{ close(): void | Promise<void> }>,
-    processSubstitutions: (() => Promise<void>)[],
-    outputFailuresOut?: OutputFailureTracker,
-  ): Promise<void> {
+  private async finishCommandResources( status: number, outputs: Set<OutputFinalizer>, inputs: Set<{ close(): void | Promise<void> }>, processSubstitutions: (() => Promise<void>)[], outputFailuresOut?: OutputFailureTracker, ): Promise<void> {
     if (outputs.size > 0) {
       const pending = [...outputs];
       outputs.clear();
@@ -14143,37 +11135,16 @@ export class Runtime {
       for (const callback of pending) await callback();
     }
   }
-
-  private async cleanupCommandResources(
-    references: PipeDescriptorFrame | undefined,
-    outputs: Set<OutputFinalizer>,
-    inputs: Set<{ close(): void | Promise<void> }>,
-    processSubstitutions: (() => Promise<void>)[],
-    allocation: ReturnType<Runtime["budget"]["values"]["scope"]>,
-    diagnosticFailure: NounsetDiagnosticFailure | undefined,
-    io: IO,
-  ): Promise<void> {
+  private async cleanupCommandResources( references: PipeDescriptorFrame | undefined, outputs: Set<OutputFinalizer>, inputs: Set<{ close(): void | Promise<void> }>, processSubstitutions: (() => Promise<void>)[], allocation: ReturnType<Runtime["budget"]["values"]["scope"]>, diagnosticFailure: NounsetDiagnosticFailure | undefined, io: IO, ): Promise<void> {
     await Promise.allSettled([
-      ...(references ? [references.close()] : []),
-      ...[...outputs].map(async close => close({ reason: new FsError("ECANCELED", { syscall: "redirect" }) })),
-      ...[...inputs].map(async input => input.close()),
-    ]).then(async results => {
+      ...(references ? [references.close()] : []), ...[...outputs].map(async close => close({ reason: new FsError("ECANCELED", { syscall: "redirect" }) })), ...[...inputs].map(async input => input.close()), ]).then(async results => {
       if (processSubstitutions.length > 0) await Promise.allSettled(processSubstitutions.splice(0).map(callback => callback()));
       const failures = results.filter(result => result.status === "rejected").map(result => result.reason);
       if (diagnosticFailure) io[invocationScope].failures.push(...failures);
       else throwCleanupFailures(failures);
     }).finally(() => allocation.close());
   }
-
-  private async executeCompoundCommand(
-    command: Exclude<Command, { kind: "simple" }>,
-    state: State,
-    io: IO,
-    inputs: Set<{ close(): void | Promise<void> }>,
-    outputs: Set<OutputFinalizer>,
-    allocation: ReturnType<Runtime["budget"]["values"]["scope"]>,
-    terminal: IO["terminal"],
-  ): Promise<{ status: number; io: IO; diagnosticFailure: NounsetDiagnosticFailure | undefined }> {
+  private async executeCompoundCommand( command: Exclude<Command, { kind: "simple" }>, state: State, io: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, allocation: ReturnType<Runtime["budget"]["values"]["scope"]>, terminal: IO["terminal"], ): Promise<{ status: number; io: IO; diagnosticFailure: NounsetDiagnosticFailure | undefined }> {
     let status = 0;
     let diagnosticFailure: NounsetDiagnosticFailure | undefined;
     if (command.kind === "function") {
@@ -14204,24 +11175,11 @@ export class Runtime {
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "[[";
         try {
           status = await evaluateConditional(command.expression, {
-            fs: this.fs, cwd: state.cwd, signal: this.signal,
-            predicateIdentity: io.capabilities?.predicateIdentity,
-            reference: name => state.variableAttributes?.get(name)?.includes("n") ?? false,
-            locale: state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C",
-            characterLocale: state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C",
-            ignoreCase: !!state.nocasematch,
-            extglob: true,
-            work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation },
-            expand: async (word, pattern = false) => {
+            fs: this.fs, cwd: state.cwd, signal: this.signal, predicateIdentity: io.capabilities?.predicateIdentity, reference: name => state.variableAttributes?.get(name)?.includes("n") ?? false, locale: state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C", characterLocale: state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C", ignoreCase: !!state.nocasematch, extglob: true, work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation }, expand: async (word, pattern = false) => {
               const fast = !pattern ? this.fastValueWord(word, state, io, false, false, false, false) : undefined;
               if (typeof fast === "string") return fast;
               return (await this.word(word, state, { ...io, nameExpansionContext: "conditional" }, false, pattern, false, pattern)).join("");
-            },
-            arithmetic: value => this.arithmeticValue(prepareArithmetic(value || "0", this.budget.parsing), state, io),
-            regex: (subject, pattern) => this.ere(subject, pattern, state, { ...io, nameExpansionContext: "conditional" }),
-            option: name => name === "allexport" ? !!state.allexport : name === "braceexpand" ? state.braceexpand !== false : name === "noexec" ? !!state.noexec : name === "noglob" ? !!state.noglob : name === "noclobber" ? !!state.noclobber : name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : state.extensions?.options.get(name)?.enabled ?? false,
-            present: name => this.variablePresent(state, name, io),
-          });
+            }, arithmetic: value => this.arithmeticValue(prepareArithmetic(value || "0", this.budget.parsing), state, io), regex: (subject, pattern) => this.ere(subject, pattern, state, { ...io, nameExpansionContext: "conditional" }), option: name => name === "allexport" ? !!state.allexport : name === "braceexpand" ? state.braceexpand !== false : name === "noexec" ? !!state.noexec : name === "noglob" ? !!state.noglob : name === "noclobber" ? !!state.noclobber : name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : state.extensions?.options.get(name)?.enabled ?? false, present: name => this.variablePresent(state, name, io), });
         } catch (error) {
           this.signal.throwIfAborted();
           if (error instanceof NounsetDiagnosticFailure) { diagnosticFailure = error; throw error; }
@@ -14264,9 +11222,7 @@ export class Runtime {
             if (!started && child.extensions?.cleanup.length) await io[invocationScope].cleanup(() => this.releaseExtensions(child));
           } finally { stateMonitor(child)?.closeValues(); }
         }
-      } else if (command.kind === "group") {
-        status = await this.script(command.body, state, io);
-      } else if (command.kind === "if") {
+      } else if (command.kind === "group") status = await this.script(command.body, state, io); else if (command.kind === "if") {
         let matchedBranch = false;
         for (const branch of command.branches) {
           if (await this.script(branch.condition, state, { ...io, execution: { ignoreErrexit: true } }) === 0) {
@@ -14328,14 +11284,7 @@ export class Runtime {
             : undefined;
           const values = fastLoopWords ?? (command.words ? await this.valueWords(command.words, state, io) : this.positionalValues(state));
           const bodyIgnoreErrexit = Boolean(io.execution?.ignoreErrexit);
-          const canFastAssignLoopVar =
-            isShellIdentifier(command.name) &&
-            command.name !== "OPTIND" &&
-            !command.name.includes("[") &&
-            !rawLoopState.readonlyVariables?.has(command.name) &&
-            !hasActiveVariableAttributes(rawLoopState) &&
-            !guestArrays(rawLoopState) &&
-            !arrayStore(rawLoopState)?.get(command.name);
+          const canFastAssignLoopVar = isShellIdentifier(command.name) && command.name !== "OPTIND" && !command.name.includes("[") && !rawLoopState.readonlyVariables?.has(command.name) && !hasActiveVariableAttributes(rawLoopState) && !guestArrays(rawLoopState) && !arrayStore(rawLoopState)?.get(command.name);
           let loopTurn = 0;
           for (const value of values) {
             this.budget.loop();
@@ -14351,9 +11300,7 @@ export class Runtime {
             } else if (canFastAssignLoopVar && !rawLoopState.readonlyVariables?.has(command.name) && !arrayStore(rawLoopState)?.get(command.name)) {
               publishVariable(rawLoopState, command.name, value);
               if (rawLoopState.allexport) state.exported.add(command.name);
-            } else {
-              await this.assignVariable(state, command.name, value, io);
-            }
+            } else await this.assignVariable(state, command.name, value, io);
             if (hasActiveExtensions(rawLoopState)) {
               const description = `for ${command.name} in ${command.words?.map(word => word.spelling ?? word.plain ?? "").join(" ") ?? '"$@"'}`;
               if (!rawLoopState.extensions?.eventDepth) publishCommandSpelling(state, description);
@@ -14383,36 +11330,26 @@ export class Runtime {
               this.rethrowArithmeticControl(error);
               await this.diagnostic(io, `((: ${message(error, this.budget.onInternalError)}`);
               return undefined;
-            }
-          };
+            }};
           const evaluateSyncNonZero = (program: ArithmeticProgram | undefined): boolean | Promise<bigint | undefined> => {
             if (!program) return true;
             if (!program.error && (!guestArrays(rawArithState) || isSafeSmiProgram(program)) && (!program.hasMutation || !arithTreeTouchesArray(program.tree, arrayStore(rawArithState))) && (!program.hasSubscript || isSafeSmiProgram(program)) && !hasActiveVariableAttributes(rawArithState)) {
               const snap = this.budget.parsing.snapshot();
               try { return this.syncShellArithmeticNonZero(program, rawArithState, io.diagnosticLine); }
               catch (error) {
-                if (error instanceof ArrayFailure) {
-                  this.budget.parsing.restore(snap);
-                } else {
+                if (error instanceof ArrayFailure) this.budget.parsing.restore(snap); else {
                   this.rethrowArithmeticControl(error);
                   return this.diagnostic(io, `((: ${message(error, this.budget.onInternalError)}`).then(() => undefined);
                 }
               }
             }
-            return evaluate(program);
-          };
+            return evaluate(program);};
           const initOrPromise = evaluateSyncNonZero(command.expressions[0]);
           if ((typeof initOrPromise === "boolean" ? initOrPromise : await initOrPromise) === undefined) return { status: 1, io, diagnosticFailure };
           const bodyIgnoreErrexit = Boolean(io.execution?.ignoreErrexit);
           let loopTurn = 0;
           const arithMonitor = stateMonitor(state);
-          const enableArithForBatch =
-            !this._syncArithRawWriteOnly &&
-            Boolean(arithMonitor) &&
-            !hasActiveExtensions(rawArithState) &&
-            !hasActiveVariableAttributes(rawArithState) &&
-            !rawArithState.readonlyVariables?.size &&
-            !rawArithState.allexport;
+          const enableArithForBatch = !this._syncArithRawWriteOnly && Boolean(arithMonitor) && !hasActiveExtensions(rawArithState) && !hasActiveVariableAttributes(rawArithState) && !rawArithState.readonlyVariables?.size && !rawArithState.allexport;
           const batchTouched = enableArithForBatch ? new Set<string>() : undefined;
           if (enableArithForBatch) {
             this._syncArithRawWriteOnly = true;
@@ -14426,18 +11363,14 @@ export class Runtime {
                 else runYieldCheckpoint(this.signal);
               }
               const condOrPromise = evaluateSyncNonZero(command.expressions[1]);
-              if (typeof condOrPromise === "boolean") {
-                if (!condOrPromise) break;
-              } else {
+              if (typeof condOrPromise === "boolean") if (!condOrPromise) break; else {
                 const condition = await condOrPromise;
                 if (condition === undefined) return { status: 1, io, diagnosticFailure };
                 if (condition === 0n) break;
               }
               if (!rawArithState.extensions?.checkpoints.length) {
                 const syncBody = this.trySyncScript(command.body, rawArithState, io, bodyIgnoreErrexit);
-                if (typeof syncBody === "number") {
-                  status = syncBody;
-                } else {
+                if (typeof syncBody === "number") status = syncBody; else {
                   const result = await this.loopBody(command.body, state, io, syncBody.listIndex, syncBody.pipelineIndex);
                   status = result.status;
                   if (result.stop) break;
@@ -14544,18 +11477,7 @@ export class Runtime {
       }
       return { status, io, diagnosticFailure };
   }
-
-  private async handleExecuteCommandError(
-    caught: unknown,
-    command: Command,
-    state: State,
-    io: IO,
-    terminal: IO["terminal"],
-    outputs: Set<OutputFinalizer>,
-    inputs: Set<{ close(): void | Promise<void> }>,
-    processSubstitutions: (() => Promise<void>)[],
-    outputTracker: OutputFailureTracker = {},
-  ): Promise<{ status: number; diagnosticFailure: NounsetDiagnosticFailure | undefined }> {
+  private async handleExecuteCommandError( caught: unknown, command: Command, state: State, io: IO, terminal: IO["terminal"], outputs: Set<OutputFinalizer>, inputs: Set<{ close(): void | Promise<void> }>, processSubstitutions: (() => Promise<void>)[], outputTracker: OutputFailureTracker = {}, ): Promise<{ status: number; diagnosticFailure: NounsetDiagnosticFailure | undefined }> {
       let diagnosticFailure: NounsetDiagnosticFailure | undefined;
       const diagnostic = caught instanceof ExecutionFailure ? caught.diagnostic : undefined;
       const error = caught instanceof ExecutionFailure ? caught.original : caught;
@@ -14620,7 +11542,6 @@ export class Runtime {
       if (command.kind !== "simple" && command.kind !== "subshell" && command.kind !== "arithmetic" && command.kind !== "conditional") await this.errexit(status, state, io);
       return { status, diagnosticFailure };
   }
-
   async loopBody(body: Script, state: State, io: IO, startListIndex = 0, startPipelineIndex = 0): Promise<{ status: number; stop: boolean }> {
     let status = 0;
     let control: Flow | undefined;
@@ -14634,7 +11555,6 @@ export class Runtime {
     if (control && --control.levels > 0) throw control;
     return { status, stop: control?.kind === "break" };
   }
-
   async document(document: HereDocument, state: State, io: IO, line = document.endLine): Promise<ShellValue> {
     this.signal.throwIfAborted();
     let value = "";
@@ -14670,25 +11590,16 @@ export class Runtime {
       } finally { allocation.close(); }
     }
   }
-
   async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number): Promise<IO> {
     this.signal.throwIfAborted();
     if (redirects.length > this.budget.limits.maxRedirects) this.budget.fail("maxRedirects");
     io.descriptors ??= new Map<number, Descriptor>([
-      [0, { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) }],
-      [1, { output: io.stdout }], [2, { output: io.stderr }],
-    ]);
+      [0, { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) }], [1, { output: io.stdout }], [2, { output: io.stderr }], ]);
     if (redirects.length === 0 && !fileShortcut) {
       const d0 = io.descriptors.get(0);
       const d1 = io.descriptors.get(1);
       const d2 = io.descriptors.get(2);
-      if (
-        (io.stdin === closedSource ? (!d0 || d0.closed) : (d0 && !d0.closed && d0.input === io.stdin && d0.stdinIsDefault === io.stdinIsDefault)) &&
-        io.stdout !== closedSink &&
-        io.stderr !== closedSink &&
-        d1 && !d1.closed && d1.output === io.stdout &&
-        d2 && !d2.closed && d2.output === io.stderr
-      ) {
+      if ( (io.stdin === closedSource ? (!d0 || d0.closed) : (d0 && !d0.closed && d0.input === io.stdin && d0.stdinIsDefault === io.stdinIsDefault)) && io.stdout !== closedSink && io.stderr !== closedSink && d1 && !d1.closed && d1.output === io.stdout && d2 && !d2.closed && d2.output === io.stderr) {
         return io;
       }
     }
@@ -14697,11 +11608,7 @@ export class Runtime {
     const outputDescriptor = io.descriptors.get(1);
     const errorDescriptor = io.descriptors.get(2);
     const descriptors = new Map<number, Descriptor>([
-      ...io.descriptors ?? [],
-      [0, inputDescriptor?.input === io.stdin ? inputDescriptor : { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) }],
-      [1, outputDescriptor?.output === io.stdout ? outputDescriptor : { output: io.stdout }],
-      [2, errorDescriptor?.output === io.stderr ? errorDescriptor : { output: io.stderr }],
-    ]);
+      ...io.descriptors ?? [], [0, inputDescriptor?.input === io.stdin ? inputDescriptor : { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) }], [1, outputDescriptor?.output === io.stdout ? outputDescriptor : { output: io.stdout }], [2, errorDescriptor?.output === io.stderr ? errorDescriptor : { output: io.stderr }], ]);
     const replaced = new Set<number>();
     const references = new PipeDescriptorFrame(io[invocationScope]);
     inputs.add(references);
@@ -14709,8 +11616,7 @@ export class Runtime {
       const previous = descriptors.get(number)?.pipe;
       if (previous && references.references.has(previous)) await previous.close();
       if (next) descriptors.set(number, next);
-      else descriptors.delete(number);
-    };
+      else descriptors.delete(number);};
     let errorTarget: string | undefined;
     if (io.stdin === closedSource) descriptors.delete(0);
     if (io.stdout === closedSink) descriptors.delete(1);
@@ -14719,29 +11625,7 @@ export class Runtime {
       const descriptor = descriptors.get(0)?.closed ? undefined : descriptors.get(0);
       const stdinIsDefault = descriptor?.input ? descriptor.stdinIsDefault : false;
       return {
-        capabilities: io.capabilities,
-        ...(io.argv0 === undefined ? {} : { argv0: io.argv0 }),
-        [invocationScope]: io[invocationScope],
-        ...(io.admittedHandles === undefined ? {} : { admittedHandles: io.admittedHandles }),
-        ...(io.processSignals === undefined ? {} : { processSignals: io.processSignals }),
-        ...(io[valueScope] === undefined ? {} : { [valueScope]: io[valueScope] }),
-        ...(io.execution === undefined ? {} : { execution: io.execution }),
-        ...(io.diagnosticLine === undefined ? {} : { diagnosticLine: io.diagnosticLine }),
-        ...(io.diagnosticOffset === undefined ? {} : { diagnosticOffset: io.diagnosticOffset }),
-        ...(io.assignmentDiagnosticContext === undefined ? {} : { assignmentDiagnosticContext: io.assignmentDiagnosticContext }),
-        ...(io.functionCommandLines === undefined ? {} : { functionCommandLines: io.functionCommandLines }),
-        ...(io.diagnosticCommandLines === undefined ? {} : { diagnosticCommandLines: io.diagnosticCommandLines }),
-        ...(io.scriptName === undefined ? {} : { scriptName: io.scriptName }),
-        ...(io.substitutionDiagnosticLine === undefined ? {} : { substitutionDiagnosticLine: io.substitutionDiagnosticLine }),
-        ...(io.substitutionDiagnosticLines === undefined ? {} : { substitutionDiagnosticLines: io.substitutionDiagnosticLines }),
-        ...(io.processSubstitutions === undefined ? {} : { processSubstitutions: io.processSubstitutions }),
-        stdin: descriptor?.input ?? closedSource,
-        ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),
-        stdout: descriptors.get(1)?.closed ? closedSink : descriptors.get(1)?.output ?? closedSink,
-        stderr: descriptors.get(2)?.closed ? closedSink : descriptors.get(2)?.output ?? closedSink,
-        descriptors,
-      };
-    };
+        capabilities: io.capabilities, ...(io.argv0 === undefined ? {} : { argv0: io.argv0 }), [invocationScope]: io[invocationScope], ...(io.admittedHandles === undefined ? {} : { admittedHandles: io.admittedHandles }), ...(io.processSignals === undefined ? {} : { processSignals: io.processSignals }), ...(io[valueScope] === undefined ? {} : { [valueScope]: io[valueScope] }), ...(io.execution === undefined ? {} : { execution: io.execution }), ...(io.diagnosticLine === undefined ? {} : { diagnosticLine: io.diagnosticLine }), ...(io.diagnosticOffset === undefined ? {} : { diagnosticOffset: io.diagnosticOffset }), ...(io.assignmentDiagnosticContext === undefined ? {} : { assignmentDiagnosticContext: io.assignmentDiagnosticContext }), ...(io.functionCommandLines === undefined ? {} : { functionCommandLines: io.functionCommandLines }), ...(io.diagnosticCommandLines === undefined ? {} : { diagnosticCommandLines: io.diagnosticCommandLines }), ...(io.scriptName === undefined ? {} : { scriptName: io.scriptName }), ...(io.substitutionDiagnosticLine === undefined ? {} : { substitutionDiagnosticLine: io.substitutionDiagnosticLine }), ...(io.substitutionDiagnosticLines === undefined ? {} : { substitutionDiagnosticLines: io.substitutionDiagnosticLines }), ...(io.processSubstitutions === undefined ? {} : { processSubstitutions: io.processSubstitutions }), stdin: descriptor?.input ?? closedSource, ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }), stdout: descriptors.get(1)?.closed ? closedSink : descriptors.get(1)?.output ?? closedSink, stderr: descriptors.get(2)?.closed ? closedSink : descriptors.get(2)?.output ?? closedSink, descriptors, };};
     try { for (const redirect of redirects) {
       replaced.add(redirect.descriptor);
       if (redirect.document || redirect.operator === "<<<") {
@@ -14846,16 +11730,14 @@ export class Runtime {
             file = this.outputFiles.get(key) ?? { data: undefined, references: 0 };
             if (!random && capabilities.independentWriteStreams !== true && file.references) throw new FsError("ENOTSUP", { path, message: "Conflicting sequential output descriptors" });
             file.references++;
-            this.outputFiles.set(key, file);
-          });
+            this.outputFiles.set(key, file);});
           let closed = false;
           let offset = 0;
           const incremental = async (): Promise<ByteSink> => {
             await this.fileOperation(key, async () => {
               if (append) await resourceFs.appendFile(path, new Uint8Array(), options);
               else await resourceFs.writeFile(path, new Uint8Array(), { ...options, flag: "w" });
-              if (!append) file.data = new Uint8Array();
-            });
+              if (!append) file.data = new Uint8Array();});
             return { write: (chunk) => {
               const copy = new Uint8Array(chunk);
               return this.fileOperation(key, async () => {
@@ -14866,13 +11748,11 @@ export class Runtime {
                   try {
                     atEOF = (await interruptible(this.fs.stat(path, options), this.signal)).size === offset;
                   } catch {
-                    // Metadata is optional for this optimization; writes need no read access.
                     this.signal.throwIfAborted();
                   }
                   this.signal.throwIfAborted();
                 }
                 if (append || atEOF) {
-                  // Preparing a larger view only touches the unpublished tail of current.
                   const bytes = current ? appendOutputBytes(current, copy) : undefined;
                   await resourceFs.appendFile(path, copy, options);
                   file.data = bytes;
@@ -14883,18 +11763,15 @@ export class Runtime {
                   await resourceFs.writeFile(path, bytes, options);
                   file.data = bytes;
                 }
-                if (!append) offset += copy.length;
-              });
-            } };
-          };
+                if (!append) offset += copy.length;});
+            } };};
           this.budget.beginPathLookupSuspension();
           const release = (): void => {
             if (closed) return;
             closed = true;
             this.budget.endPathLookupSuspension();
             if (canonical) return;
-            if (--file.references === 0 && this.outputFiles.get(key) === file) this.outputFiles.delete(key);
-          };
+            if (--file.references === 0 && this.outputFiles.get(key) === file) this.outputFiles.delete(key);};
           let target;
           let outputScope: InvocationScope | undefined;
           const retireOutputCleanups: (() => void)[] = [];
@@ -14931,8 +11808,7 @@ export class Runtime {
             } finally {
               try { await outputScope?.close(); }
               finally { release(); }
-            }
-          };
+            }};
           let completion: Parameters<OutputFinalizer>[0] | undefined;
           const lifetime = new DescriptorLifetime(() => finalize(completion ?? { status: 0 }));
           const ownerFinalize: OutputFinalizer = value => { completion ??= value; return lifetime.release(); };
@@ -14954,7 +11830,6 @@ export class Runtime {
     }
     return currentIO();
   }
-
   async fileOperation(path: string, operation: () => Promise<void>): Promise<void> {
     const previous = this.fileWrites.get(path) ?? Promise.resolve();
     const pending = previous.catch(() => undefined).then(() => { this.signal.throwIfAborted(); return operation(); });
@@ -14962,7 +11837,6 @@ export class Runtime {
     try { await interruptible(pending, this.signal); }
     finally { if (this.fileWrites.get(path) === pending) this.fileWrites.delete(path); }
   }
-
   assignment(word: Word): { name: string; value: Word; append: boolean } | undefined {
     const cached = assignmentCache.get(word);
     if (cached !== undefined) return cached ?? undefined;
@@ -14980,17 +11854,7 @@ export class Runtime {
     assignmentCache.set(word, result);
     return result;
   }
-
-  async simple(
-    command: Extract<Command, { kind: "simple" }>,
-    state: State,
-    originalIO: IO,
-    inputs: Set<{ close(): void | Promise<void> }>,
-    outputs: Set<OutputFinalizer>,
-    snapshotHolder: { scope?: InvocationScope; finish?: () => void },
-    fileShortcut = false,
-    terminal?: IO["terminal"],
-  ): Promise<number> {
+  async simple( command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, snapshotHolder: { scope?: InvocationScope; finish?: () => void }, fileShortcut = false, terminal?: IO["terminal"], ): Promise<number> {
     state.substitutionStatus = 0;
     const firstAssignment = command.words.length > 0 ? (getArrayAssignment(command.words[0]!) ?? this.assignment(command.words[0]!)) : undefined;
     if (!firstAssignment && command.redirects.length === 0 && !fileShortcut) {
@@ -15039,9 +11903,7 @@ export class Runtime {
             }
             this.signal.throwIfAborted();
             const original = error instanceof ExecutionFailure ? error.original : error;
-            if (special && !(original instanceof ShellLimitError) && !(original instanceof ExpansionFailure) && !(original instanceof Flow) && !(original instanceof ShellSyntaxError)) {
-              throw new ExecutionFailure(new FatalCommandFailure(message(original, this.budget.onInternalError), 1), error instanceof ExecutionFailure ? error.io : originalIO, error instanceof ExecutionFailure ? error.diagnostic : undefined);
-            }
+            if (special && !(original instanceof ShellLimitError) && !(original instanceof ExpansionFailure) && !(original instanceof Flow) && !(original instanceof ShellSyntaxError)) throw new ExecutionFailure(new FatalCommandFailure(message(original, this.budget.onInternalError), 1), error instanceof ExecutionFailure ? error.io : originalIO, error instanceof ExecutionFailure ? error.diagnostic : undefined);
             if (error instanceof ExecutionFailure) throw error;
             throw new ExecutionFailure(error, originalIO);
           }
@@ -15058,17 +11920,7 @@ export class Runtime {
     }
     return this.simpleWithSetup(command, state, originalIO, inputs, outputs, snapshotHolder, fileShortcut, terminal);
   }
-
-  private async simpleWithSetup(
-    command: Extract<Command, { kind: "simple" }>,
-    state: State,
-    originalIO: IO,
-    inputs: Set<{ close(): void | Promise<void> }>,
-    outputs: Set<OutputFinalizer>,
-    snapshotHolder: { scope?: InvocationScope; finish?: () => void },
-    fileShortcut = false,
-    terminal?: IO["terminal"],
-  ): Promise<number> {
+  private async simpleWithSetup( command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, snapshotHolder: { scope?: InvocationScope; finish?: () => void }, fileShortcut = false, terminal?: IO["terminal"], ): Promise<number> {
     const assignments: ({ name: string; value: Word; append: boolean; kind?: undefined } | ArrayAssignment)[] = [];
     let wordIndex = 0;
     for (; wordIndex < command.words.length; wordIndex++) {
@@ -15112,9 +11964,7 @@ export class Runtime {
         const assignment = refName === original.name ? original : { ...original, name: refName };
         const target = !assignment.kind && !assignment.name.includes("[") ? { name: assignment.name } : this.variableTarget(assignment.name)!;
         if (!assignment.kind && target.subscript !== undefined) {
-          await this.arrayAssignment({ kind: "element", name: target.name, append: assignment.append,
-            index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth)),
-            value: assignment.value }, state, io);
+          await this.arrayAssignment({ kind: "element", name: target.name, append: assignment.append, index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth)), value: assignment.value }, state, io);
           continue;
         }
         if (assignment.kind) { await this.arrayAssignment(assignment, state, io); continue; }
@@ -15143,12 +11993,7 @@ export class Runtime {
           const saved = saveVariable(state, assignment.name);
           previous.set(assignment.name, saved);
           const existingArray = arrayStore(state)?.get(assignment.name);
-          const canSkipTypedScalarOverlay =
-            !existingArray &&
-            words[0] === "read" &&
-            !state.functions.has("read") &&
-            !state.extensions?.builtins.has("read") &&
-            !words.some(w => w.startsWith("-a") || (w.startsWith("-") && !w.startsWith("--") && w.includes("a")));
+          const canSkipTypedScalarOverlay = !existingArray && words[0] === "read" && !state.functions.has("read") && !state.extensions?.builtins.has("read") && !words.some(w => w.startsWith("-a") || (w.startsWith("-") && !w.startsWith("--") && w.includes("a")));
           if (words.length && !canSkipTypedScalarOverlay && (guestArrays(state) || (assignment.name === "PIPESTATUS" && existingArray))) {
             const store = requireArrays(state);
             await this.prepareVariable(state, assignment.name, saved, !existingArray);
@@ -15161,8 +12006,7 @@ export class Runtime {
         }
         await this.writeVariable(state, assignment.name, value, io);
         if (words.length) state.exported.add(assignment.name);
-      }
-    };
+      }};
     let overlayOpen = false;
     try {
       if (snapshotScope) state = await cloneState(state, this.signal, snapshotScope);
@@ -15256,9 +12100,7 @@ export class Runtime {
       }
       this.signal.throwIfAborted();
       const original = error instanceof ExecutionFailure ? error.original : error;
-      if (special && !(original instanceof ShellLimitError) && !(original instanceof ExpansionFailure) && !(original instanceof Flow) && !(original instanceof ShellSyntaxError)) {
-        throw new ExecutionFailure(new FatalCommandFailure(message(original, this.budget.onInternalError), 1), error instanceof ExecutionFailure ? error.io : io, error instanceof ExecutionFailure ? error.diagnostic : undefined);
-      }
+      if (special && !(original instanceof ShellLimitError) && !(original instanceof ExpansionFailure) && !(original instanceof Flow) && !(original instanceof ShellSyntaxError)) throw new ExecutionFailure(new FatalCommandFailure(message(original, this.budget.onInternalError), 1), error instanceof ExecutionFailure ? error.io : io, error instanceof ExecutionFailure ? error.diagnostic : undefined);
       if (error instanceof ExecutionFailure) throw error;
       throw new ExecutionFailure(error, io);
     } finally {
@@ -15278,88 +12120,49 @@ export class Runtime {
         } else {
           for (const [key, saved] of previous!) await originalIO[invocationScope].cleanup(async () => {
             if (saved.superseded) await this.discardVariable(saved);
-            else await restoreVariable(state, key, saved);
-          });
+            else await restoreVariable(state, key, saved);});
           await originalIO[invocationScope].cleanup(() => stateMonitor(state)?.closeOverlay(previous!));
         }
-      } else if (previous) {
-        for (const saved of previous.values()) saved.heldValue?.release();
-      }
+      } else if (previous) for (const saved of previous.values()) saved.heldValue?.release();
     }
   }
-
   getContextFsForFast(umask: number, signal: AbortSignal): FileSystem {
     return this.getContextFsFor(umask, signal);
   }
-
   createShellPredicatesForFast(state: State, io: IO): NonNullable<CommandContext["shellPredicates"]> {
     const predicates: NonNullable<CommandContext["shellPredicates"]> = {
-      variable: name => this.variable(state, name) !== undefined,
-      reference: name => state.variableAttributes?.get(name)?.includes("n") ?? false,
-      option: name => {
+      variable: name => this.variable(state, name) !== undefined, reference: name => state.variableAttributes?.get(name)?.includes("n") ?? false, option: name => {
         const extension = state.extensions?.options.get(name);
         if (extension) return extension.enabled;
         if (name === "braceexpand") return state.braceexpand !== false;
         if (name === "allexport") return !!state.allexport;
         if (["errexit", "noclobber", "noglob", "noexec", "nounset", "pipefail"].includes(name)) return !!state[name as "nounset"];
         return false;
-      },
-      terminal: () => false,
-    };
+      }, terminal: () => false, };
     variablePresence.set(predicates, name => this.variablePresent(state, name, io));
     return predicates;
   }
-
   createInputBudgetForFast(): NonNullable<CommandContext["inputBudget"]> {
     return {
-      maxBytes: this.budget.limits.maxInputBytes,
-      check: totalBytes => {
+      maxBytes: this.budget.limits.maxInputBytes, check: totalBytes => {
         this.commandSignal.throwIfAborted();
         if (!Number.isSafeInteger(totalBytes) || totalBytes < 0) throw new RangeError("Input byte total must be a nonnegative safe integer");
         if (totalBytes > this.budget.limits.maxInputBytes) this.budget.fail("maxInputBytes");
-      },
-    };
+      }, };
   }
-
-  private tryFastExternalInvoke(
-    name: string,
-    args: readonly string[],
-    options: ShellInvokeOptions | undefined,
-    context: ShellCommandContext,
-    state: State,
-    parent: InvocationScope,
-  ): Promise<CommandResult> | undefined {
-    if (
-      options?.externalInvocation !== true ||
-      this.middleware.length > 0 ||
-      hasActiveExtensions(state) ||
-      typeof name !== "string" ||
-      (name !== "echo" && name !== "printf") ||
-      !Array.isArray(args) ||
-      args.length + 1 > this.budget.limits.maxExpansionFields ||
-      state.depth >= this.budget.limits.maxSubstitutionDepth ||
-      this.cancellationDepth + 1 > this.cancellationMaxDepth ||
-      options.argv0 !== undefined ||
-      state.functions.has(name) ||
-      state.exportedFunctions?.has(name) ||
-      (options.argumentValues && !options.argumentValues.values.every((v, idx) => typeof v === "string" || (v instanceof Uint8Array && v.byteLength === args[idx]?.length && v.every(b => b > 0 && b < 128)))) ||
-      (options.env && options.env !== context.env && !Object.entries(options.env).every(([k, v]) => !k.includes("\0") && !k.includes("=") && typeof v === "string" && !v.includes("\0")))
-    ) {
+  private tryFastExternalInvoke( name: string, args: readonly string[], options: ShellInvokeOptions | undefined, context: ShellCommandContext, state: State, parent: InvocationScope, ): Promise<CommandResult> | undefined {
+    if ( options?.externalInvocation !== true || this.middleware.length > 0 || hasActiveExtensions(state) || typeof name !== "string" || (name !== "echo" && name !== "printf") || !Array.isArray(args) || args.length + 1 > this.budget.limits.maxExpansionFields || state.depth >= this.budget.limits.maxSubstitutionDepth || this.cancellationDepth + 1 > this.cancellationMaxDepth || options.argv0 !== undefined || state.functions.has(name) || state.exportedFunctions?.has(name) || (options.argumentValues && !options.argumentValues.values.every((v, idx) => typeof v === "string" || (v instanceof Uint8Array && v.byteLength === args[idx]?.length && v.every(b => b > 0 && b < 128)))) || (options.env && options.env !== context.env && !Object.entries(options.env).every(([k, v]) => !k.includes("\0") && !k.includes("=") && typeof v === "string" && !v.includes("\0")))) {
       return undefined;
     }
     for (let i = 0; i < args.length; i++) {
       const a = args[i]!;
-      if (typeof a !== "string" || a.includes("\0") || shellValueByteLength(a) > this.budget.limits.maxExpansionBytes) {
-        return undefined;
-      }
+      if (typeof a !== "string" || a.includes("\0") || shellValueByteLength(a) > this.budget.limits.maxExpansionBytes) return undefined;
     }
     const def = this.commands.get(name);
     let fastOut: string | undefined;
     if (name === "echo" && def && defaultEchoExecutors.has(def.execute) && (args.length === 0 || !args[0]!.startsWith("-"))) {
       fastOut = args.join(" ") + "\n";
-    } else if (name === "printf" && def?.execute === printfCommand.execute && args.length >= 1 && !args[0]!.startsWith("-")) {
-      fastOut = tryFastPrintf(args);
-    }
+    } else if (name === "printf" && def?.execute === printfCommand.execute && args.length >= 1 && !args[0]!.startsWith("-")) fastOut = tryFastPrintf(args);
     if (fastOut === undefined) return undefined;
     return Promise.resolve().then(async () => {
       if (!this.cancellation.deliverySignal.aborted) parent.assertOpen();
@@ -15371,42 +12174,20 @@ export class Runtime {
         const targetStdout = options.stdout && options.stdout !== context.stdout ? this.budget.sink(options.stdout, this.signal) : context.stdout;
         await writeText(targetStdout, fastOut);
       }
-      return { exitCode: 0 };
-    });
+      return { exitCode: 0 };});
   }
-
-  invokeFromFastContext(
-    name: string,
-    args: readonly string[],
-    options: Parameters<ShellCommandContext["invoke"]>[2],
-    context: ShellCommandContext,
-    state: State,
-    scope: InvocationScope,
-  ): Promise<CommandResult> {
+  invokeFromFastContext( name: string, args: readonly string[], options: Parameters<ShellCommandContext["invoke"]>[2], context: ShellCommandContext, state: State, scope: InvocationScope, ): Promise<CommandResult> {
     const fast = this.tryFastExternalInvoke(name, args, options, context, state, scope);
     if (fast) {
       void fast.catch(() => undefined);
       return fast;
     }
-    const invRuntime = new Runtime(
-      this.sourceFs, this.commands, this.middleware, this.budget,
-      this.signal, this.fileWrites, this.outputFiles, this.commandSignal,
-      this.cancellation, this.cancellationState, this.cancellationOwner,
-      this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile,
-    );
+    const invRuntime = new Runtime( this.sourceFs, this.commands, this.middleware, this.budget, this.signal, this.fileWrites, this.outputFiles, this.commandSignal, this.cancellation, this.cancellationState, this.cancellationOwner, this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile, );
     const invocation = invRuntime.invoke(name, args, options, context, state, scope);
     void invocation.catch(() => undefined);
     return invocation;
   }
-
-  private async dispatchFastCommand(
-    name: string,
-    definition: NonNullable<ReturnType<CommandRegistry["get"]>>,
-    values: readonly ShellValue[],
-    state: State,
-    io: IO,
-    scope: InvocationScope,
-  ): Promise<number> {
+  private async dispatchFastCommand( name: string, definition: NonNullable<ReturnType<CommandRegistry["get"]>>, values: readonly ShellValue[], state: State, io: IO, scope: InvocationScope, ): Promise<number> {
     this.budget.values.assertOpen();
     const env = Object.create(null) as Record<string, string>;
     for (const key of state.exported) {
@@ -15430,23 +12211,14 @@ export class Runtime {
       const res = await interruptible(observed, this.signal);
       return validateExitCode(res.exitCode);
     } catch (error) {
-      if (runtimeFrame.report && Object.is(runtimeFrame.report.origin.signal.reason, error) && this.outcomeFrame) {
-        this.outcomeFrame.report = runtimeFrame.report;
-      }
+      if (runtimeFrame.report && Object.is(runtimeFrame.report.origin.signal.reason, error) && this.outcomeFrame) this.outcomeFrame.report = runtimeFrame.report;
       throw error;
     } finally {
       this.budget.endPathLookupSuspension();
       scope.leaveWork();
     }
   }
-
-  private async dispatchFastFunction(
-    name: string,
-    body: Command,
-    args: readonly string[],
-    state: State,
-    io: IO,
-  ): Promise<number> {
+  private async dispatchFastFunction( name: string, body: Command, args: readonly string[], state: State, io: IO, ): Promise<number> {
     if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     const scope = io[invocationScope].child();
     try {
@@ -15494,19 +12266,10 @@ export class Runtime {
         for (const [k, previous] of locals) await scope.cleanup(async () => {
           const typed = typedSavedVariables.has(previous);
           await restoreVariable(state, k, previous);
-          if (!typed && !previous.readOnly) state.readonlyVariables?.delete(k);
-        });
-      };
+          if (!typed && !previous.readOnly) state.readonlyVariables?.delete(k);});};
       const diagnostic = functionDiagnostics.get(body);
       const funcIO: IO = {
-        ...io,
-        [invocationScope]: scope,
-        scriptName: body.sourceName ?? io.scriptName ?? "shell",
-        diagnosticOffset: diagnostic?.offset ?? 0,
-        assignmentDiagnosticContext: { name },
-        functionCommandLines: diagnostic?.lines,
-        diagnosticCommandLines: diagnostic?.lines,
-      };
+        ...io, [invocationScope]: scope, scriptName: body.sourceName ?? io.scriptName ?? "shell", diagnosticOffset: diagnostic?.offset ?? 0, assignmentDiagnosticContext: { name }, functionCommandLines: diagnostic?.lines, diagnosticCommandLines: diagnostic?.lines, };
       let primaryFailure = false;
       let exitStatus = 0;
       let thrownError: unknown;
@@ -15542,8 +12305,7 @@ export class Runtime {
             catch (error) {
               if (error instanceof ExtensionCheckpointFailure && !primaryFailure) checkpointFailure = error;
               else throw error;
-            }
-          });
+            }});
         }
         const restoreControls = () => {
           monitor!.positionals.restore(savedPositionals, () => { state.positional = positional; });
@@ -15554,8 +12316,7 @@ export class Runtime {
           state.depth--;
           state.locals.pop();
           const rawState = monitor?.raw ?? state;
-          rawState.functionNames?.shift();
-        };
+          rawState.functionNames?.shift();};
         if (!activeExt && !this.signal.aborted && scope.failures.length === 0 && !locals.has("OPTIND")) {
           if (functionRestoration) functionRestoration.apply(restoreControls, false);
           else restoreControls();
@@ -15565,17 +12326,14 @@ export class Runtime {
         } else {
           await scope.cleanup(() => {
             if (functionRestoration) functionRestoration.apply(restoreControls, false);
-            else restoreControls();
-          });
+            else restoreControls();});
           await restoreLocals();
           if (locals.has("OPTIND")) await scope.cleanup(() => {
             const restoreGetopts = () => {
               state.getopts ??= getoptsEntry;
-              state.getopts.cursor = getoptsEntry.cursor;
-            };
+              state.getopts.cursor = getoptsEntry.cursor;};
             if (getoptsRestoration) getoptsRestoration.apply(restoreGetopts);
-            else restoreGetopts();
-          });
+            else restoreGetopts();});
           await scope.cleanup(() => getoptsRestoration?.close());
           await scope.cleanup(() => functionRestoration?.close());
         }
@@ -15590,33 +12348,11 @@ export class Runtime {
       await scope.close();
     }
   }
-
   async dispatch(name: ShellValue, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions = false, values: readonly ShellValue[] = args, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>, defaultPath = false): Promise<number> {
-    if (
-      !state.externalInvocation &&
-      this.middleware.length === 0 &&
-      typeof name === "string" &&
-      !state.extensions?.builtins.has(name) &&
-      !bypassFunctions &&
-      state.functions.has(name) &&
-      this.firstInternalDiscovery(name, state, false) === "function" &&
-      !hasActiveExtensions(state) &&
-      !guestArrays(state) &&
-      !mapfileCallbackStates.has(state) &&
-      assignments.size === 0 &&
-      !temporaryEnvironment &&
-      (values === args || !values.some(value => typeof value !== "string"))
-    ) {
+    if ( !state.externalInvocation && this.middleware.length === 0 && typeof name === "string" && !state.extensions?.builtins.has(name) && !bypassFunctions && state.functions.has(name) && this.firstInternalDiscovery(name, state, false) === "function" && !hasActiveExtensions(state) && !guestArrays(state) && !mapfileCallbackStates.has(state) && assignments.size === 0 && !temporaryEnvironment && (values === args || !values.some(value => typeof value !== "string"))) {
       return await this.dispatchFastFunction(name, state.functions.get(name)!, args, state, io);
     }
-    if (
-      !state.externalInvocation &&
-      this.middleware.length === 0 &&
-      typeof name === "string" &&
-      !state.extensions?.builtins.has(name) &&
-      !(!bypassFunctions && state.functions.has(name)) &&
-      (values === args || !values.some(value => typeof value !== "string"))
-    ) {
+    if ( !state.externalInvocation && this.middleware.length === 0 && typeof name === "string" && !state.extensions?.builtins.has(name) && !(!bypassFunctions && state.functions.has(name)) && (values === args || !values.some(value => typeof value !== "string"))) {
       if (name === "[" || name === "test") {
         const def = this.commands.get(name);
         if (def && defaultPredicateExecutors.has(def.execute)) {
@@ -15626,11 +12362,7 @@ export class Runtime {
       } else if (name === ":") {
         if (state.profile === "sh" && !bypassFunctions) assignments.clear();
         return 0;
-      } else if (name === "true") {
-        return 0;
-      } else if (name === "false") {
-        return 1;
-      } else if (name === "echo" && (args.length === 0 || !args[0]!.startsWith("-"))) {
+      } else if (name === "true") return 0; else if (name === "false") return 1; else if (name === "echo" && (args.length === 0 || !args[0]!.startsWith("-"))) {
         const def = this.commands.get("echo");
         if (def && defaultEchoExecutors.has(def.execute)) {
           const text = args.length === 0 ? "\n" : args.length === 1 ? `${args[0]!}\n` : `${args.join(" ")}\n`;
@@ -15646,8 +12378,7 @@ export class Runtime {
           const opt = args[argIdx++]!;
           for (let k = 1; k < opt.length; k++) {
             if (opt[k] === "r") raw = true;
-            else if (opt[k] === "s") { /* no-op */ }
-            else { simpleRead = false; break; }
+            else if (opt[k] === "s") { /* no-op */ } else { simpleRead = false; break; }
           }
           if (!simpleRead) break;
         }
@@ -15656,21 +12387,13 @@ export class Runtime {
           const varNames = args.slice(argIdx);
           for (let i = 0; i < varNames.length; i++) {
             const vn = varNames[i]!;
-            if (
-              !isShellIdentifier(vn) ||
-              state.readonlyVariables?.has(vn) ||
-              arrayStore(state)?.get(vn) ||
-              state.variableAttributes?.get(vn) ||
-              vn === "OPTIND"
-            ) {
+            if ( !isShellIdentifier(vn) || state.readonlyVariables?.has(vn) || arrayStore(state)?.get(vn) || state.variableAttributes?.get(vn) || vn === "OPTIND") {
               simpleRead = false;
               break;
             }
           }
           if (simpleRead && varNames.length === 0) {
-            if (state.readonlyVariables?.has("REPLY") || arrayStore(state)?.get("REPLY") || state.variableAttributes?.get("REPLY")) {
-              simpleRead = false;
-            }
+            if (state.readonlyVariables?.has("REPLY") || arrayStore(state)?.get("REPLY") || state.variableAttributes?.get("REPLY")) simpleRead = false;
           }
           if (simpleRead) {
             const line = await io.stdin.line(raw, { byteCount: byteLocale(state.variables) });
@@ -15697,21 +12420,8 @@ export class Runtime {
     }
     const scope = io[invocationScope].child();
     const externalDef = typeof name === "string" ? this.getExternalCommand(name) : undefined;
-    const fastInline =
-      !state.externalInvocation &&
-      this.middleware.length === 0 &&
-      typeof name === "string" &&
-      (!externalDef || (!customRegisteredCommands.has(externalDef.execute) && !customRegisteredRegistries.has(this.commands))) &&
-      !(!bypassFunctions && state.functions.has(name)) &&
-      !state.extensions?.builtins.has(name) &&
-      name !== "." && name !== "source" && name !== "eval" && name !== "command" && name !== "builtin" && name !== "type" && name !== "read" && name !== "mapfile" && name !== "readarray";
-    if (
-      fastInline &&
-      externalDef !== undefined &&
-      values.every(value => typeof value === "string") &&
-      !implementedBuiltins.has(name) &&
-      !(name === "printf" && externalDef.execute === printfCommand.execute && args[0]?.startsWith("-v"))
-    ) {
+    const fastInline = !state.externalInvocation && this.middleware.length === 0 && typeof name === "string" && (!externalDef || (!customRegisteredCommands.has(externalDef.execute) && !customRegisteredRegistries.has(this.commands))) && !(!bypassFunctions && state.functions.has(name)) && !state.extensions?.builtins.has(name) && name !== "." && name !== "source" && name !== "eval" && name !== "command" && name !== "builtin" && name !== "type" && name !== "read" && name !== "mapfile" && name !== "readarray";
+    if ( fastInline && externalDef !== undefined && values.every(value => typeof value === "string") && !implementedBuiltins.has(name) && !(name === "printf" && externalDef.execute === printfCommand.execute && args[0]?.startsWith("-v"))) {
       try {
         return await this.dispatchFastCommand(name, externalDef, values, state, io, scope);
       } finally {
@@ -15720,16 +12430,10 @@ export class Runtime {
     }
     const runtime = fastInline
       ? this
-      : new Runtime(
-          this.sourceFs, this.commands, this.middleware, this.budget,
-          combineManagedSignals(this.signal, scope.signal), this.fileWrites, this.outputFiles, this.commandSignal,
-          this.cancellation, this.cancellationState, this.cancellationOwner,
-          this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile,
-        );
+      : new Runtime( this.sourceFs, this.commands, this.middleware, this.budget, combineManagedSignals(this.signal, scope.signal), this.fileWrites, this.outputFiles, this.commandSignal, this.cancellation, this.cancellationState, this.cancellationOwner, this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile, );
     try { return await runtime.dispatchScoped(name, values, state, { ...io, [invocationScope]: scope }, assignments, bypassFunctions, temporaryEnvironment, defaultPath, !fastInline || this._isMemoryBackingFs); }
     finally { await scope.close(); }
   }
-
   private async dispatchScoped(nameValue: ShellValue, values: readonly ShellValue[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions: boolean, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>, defaultPath = false, signalIsScoped = false): Promise<number> {
     const { [invocationScope]: scope, [valueScope]: _vs, [declarationArrays]: _da, argumentValues: _av, ...publicIO } = io as IO & { argumentValues?: unknown };
     const allocation = this.budget.values.scope();
@@ -15762,77 +12466,42 @@ export class Runtime {
     const getScopedSignal = (): AbortSignal => (scopedSignal ??= combineManagedSignals(this.signal, scope.signal));
     let contextFs: FileSystem | undefined;
     const getContextFs = (): FileSystem => {
-      if (!contextFs) {
-        contextFs = this.getContextFsFor(state.umask ?? 0o022, getScopedSignal());
-      }
-      return contextFs;
-    };
+      if (!contextFs) contextFs = this.getContextFsFor(state.umask ?? 0o022, getScopedSignal());
+      return contextFs;};
     let cachedPredicates: NonNullable<CommandContext["shellPredicates"]> | undefined;
     let cachedInputBudget: NonNullable<CommandContext["inputBudget"]> | undefined;
     const getShellPredicates = (): NonNullable<CommandContext["shellPredicates"]> => {
       if (!cachedPredicates) {
         cachedPredicates = {
-          variable: name => this.variable(state, name) !== undefined,
-          reference: name => state.variableAttributes?.get(name)?.includes("n") ?? false,
-          option: name => {
+          variable: name => this.variable(state, name) !== undefined, reference: name => state.variableAttributes?.get(name)?.includes("n") ?? false, option: name => {
             const extension = state.extensions?.options.get(name);
             if (extension) return extension.enabled;
             if (name === "braceexpand") return state.braceexpand !== false;
             if (name === "allexport") return !!state.allexport;
             if (["errexit", "noclobber", "noglob", "noexec", "nounset", "pipefail"].includes(name)) return !!state[name as "nounset"];
             return false;
-          },
-          // Shell byte streams and virtual descriptors have no terminal capability.
-          terminal: () => false,
-        };
+          }, terminal: () => false, };
         variablePresence.set(cachedPredicates, name => this.variablePresent(state, name, io));
       }
-      return cachedPredicates;
-    };
+      return cachedPredicates;};
     const getInputBudget = (): NonNullable<CommandContext["inputBudget"]> => (cachedInputBudget ??= {
-      maxBytes: this.budget.limits.maxInputBytes,
-      check: totalBytes => {
+      maxBytes: this.budget.limits.maxInputBytes, check: totalBytes => {
         this.commandSignal.throwIfAborted();
         if (!Number.isSafeInteger(totalBytes) || totalBytes < 0) throw new RangeError("Input byte total must be a nonnegative safe integer");
         if (totalBytes > this.budget.limits.maxInputBytes) this.budget.fail("maxInputBytes");
-      },
-    });
+      }, });
     const context: ShellCommandContext = {
-      ...publicIO, command: name, args: argumentValues.args, ...(allStrings ? {} : { argumentValues }), env, cwd: state.cwd,
-      get shellPredicates(): NonNullable<CommandContext["shellPredicates"]> { return getShellPredicates(); },
-      set shellPredicates(replacement: NonNullable<CommandContext["shellPredicates"]>) { cachedPredicates = replacement; },
-      get fs() { return getContextFs(); },
-      set fs(replacement: FileSystem) { contextFs = replacement; },
-      signal: toNativeAbortSignal(this.commandSignal),
-      executionScope: this.budget.executionScope,
-      onInternalError: this.budget.onInternalError,
-      get inputBudget(): NonNullable<CommandContext["inputBudget"]> { return getInputBudget(); },
-      set inputBudget(replacement: NonNullable<CommandContext["inputBudget"]>) { cachedInputBudget = replacement; },
-      registerCleanup: (cleanup) => { scope.register(cleanup); },
-      invoke: (name, args, options) => {
-        const invRuntime = new Runtime(
-          this.sourceFs, this.commands, this.middleware, this.budget,
-          this.signal, this.fileWrites, this.outputFiles, this.commandSignal,
-          this.cancellation, this.cancellationState, this.cancellationOwner,
-          this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile,
-        );
+      ...publicIO, command: name, args: argumentValues.args, ...(allStrings ? {} : { argumentValues }), env, cwd: state.cwd, get shellPredicates(): NonNullable<CommandContext["shellPredicates"]> { return getShellPredicates(); }, set shellPredicates(replacement: NonNullable<CommandContext["shellPredicates"]>) { cachedPredicates = replacement; }, get fs() { return getContextFs(); }, set fs(replacement: FileSystem) { contextFs = replacement; }, signal: toNativeAbortSignal(this.commandSignal), executionScope: this.budget.executionScope, onInternalError: this.budget.onInternalError, get inputBudget(): NonNullable<CommandContext["inputBudget"]> { return getInputBudget(); }, set inputBudget(replacement: NonNullable<CommandContext["inputBudget"]>) { cachedInputBudget = replacement; }, registerCleanup: (cleanup) => { scope.register(cleanup); }, invoke: (name, args, options) => {
+        const invRuntime = new Runtime( this.sourceFs, this.commands, this.middleware, this.budget, this.signal, this.fileWrites, this.outputFiles, this.commandSignal, this.cancellation, this.cancellationState, this.cancellationOwner, this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile, );
         const invocation = invRuntime.invoke(name, args, options, context, state, scope);
         void invocation.catch(() => undefined);
         return invocation;
-      },
-    };
-    // The lazy snapshot getter has its own receiver; retain the invocation runtime.
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
+      }, };
     const workerRuntime = this;
     workerRuntimeContexts.set(context, {
-      budget: this.budget, umask: state.umask ?? 0o022,
-      ignoredSignals: captureIgnoredTrapSignals(state.extensions),
-      get fs() { return workerRuntime.getContextFsForFast(0, getScopedSignal()); },
-    });
+      budget: this.budget, umask: state.umask ?? 0o022, ignoredSignals: captureIgnoredTrapSignals(state.extensions), get fs() { return workerRuntime.getContextFsForFast(0, getScopedSignal()); }, });
     if (typeof nameValue !== "string") Object.defineProperty(context, "command", {
-      configurable: true, enumerable: true, get: readName,
-      set(replacement: string) { currentName = replacement; },
-    });
+      configurable: true, enumerable: true, get: readName, set(replacement: string) { currentName = replacement; }, });
     bindCommandIO(context, io);
     bindFileOutputBudget(context, sink => this.budget.sink(sink, getScopedSignal()), (chunk, write) => this.budget.writeCounted(chunk, write, getScopedSignal()));
     const middleware = hasMiddleware ? this.middleware.map<Middleware>((handler) => (context, next) => {
@@ -15841,8 +12510,7 @@ export class Runtime {
       let downstream: Promise<CommandResult> | undefined;
       const raw = handler(context, () => {
         downstream = next();
-        return downstream;
-      });
+        return downstream;});
       return this.observeRuntimeReturn(raw, runtimeFrame, () => downstream);
     }) : [];
     const terminalHandler = (forwarded: CommandContext): Promise<CommandResult> => scope.run(async () => {
@@ -15852,28 +12520,20 @@ export class Runtime {
       const admitted = forwardedValues === argumentValues ? argumentValues : this.admitArguments(forwardedValues.values, allocation);
       const context = (hasMiddleware
         ? Object.create(Object.getPrototypeOf(forwarded), {
-          ...Object.getOwnPropertyDescriptors(forwarded),
-          ...Object.getOwnPropertyDescriptors({
-            args: admitted.args,
-            argumentValues: admitted,
-            [invocationScope]: scope,
-            ...(io[valueScope] === undefined ? {} : { [valueScope]: io[valueScope] }),
-          }),
-        })
+          ...Object.getOwnPropertyDescriptors(forwarded), ...Object.getOwnPropertyDescriptors({
+            args: admitted.args, argumentValues: admitted, [invocationScope]: scope, ...(io[valueScope] === undefined ? {} : { [valueScope]: io[valueScope] }), }), })
         : forwarded) as ShellCommandContext & {
         args: readonly string[];
         argumentValues: CommandArguments;
         [invocationScope]: InvocationScope;
-        [valueScope]?: ValueScope;
-      };
+        [valueScope]?: ValueScope;};
       const ensureRuntimeContext = (): void => {
         if (!hasMiddleware && context[invocationScope] === undefined) {
           context.args = admitted.args;
           context.argumentValues = admitted;
           context[invocationScope] = scope;
           if (io[valueScope] !== undefined) context[valueScope] = io[valueScope];
-        }
-      };
+        }};
       const previous = hasMiddleware ? new Map<string, SavedVariable & { overlay: string | undefined }>() : undefined;
       const cwd = state.cwd;
       const directoryStackCwdPublication = state.directoryStackCwdPublication;
@@ -15915,10 +12575,8 @@ export class Runtime {
             const publication = publications.get(key)!;
             stateMonitor(state)!.publish(publication, key, () => {
               void store.remove(key, publication);
-              if (saved.overlay === undefined) { delete state.variables[key]; state.exported.delete(key); }
-              else { publishVariable(state, key, saved.overlay); state.exported.add(key); }
-              if (key === "OPTIND") this.reconcileGetopts(state, saved.value);
-            });
+              if (saved.overlay === undefined) { delete state.variables[key]; state.exported.delete(key); } else { publishVariable(state, key, saved.overlay); state.exported.add(key); }
+              if (key === "OPTIND") this.reconcileGetopts(state, saved.value);});
             typedSavedVariables.get(saved)!.overlayVersion = publication.version;
             publication.release();
           }
@@ -15936,8 +12594,7 @@ export class Runtime {
         const value = context.env[key];
         if (key.includes("\0") || key.includes("=") || (value !== undefined && (typeof value !== "string" || value.includes("\0")))) throw new TypeError("Invalid middleware environment value");
         prevMap.set(key, { ...saveVariable(state, key), overlay: value });
-        if (value === undefined) { delete state.variables[key]; state.exported.delete(key); }
-        else { publishVariable(state, key, value); state.exported.add(key); }
+        if (value === undefined) { delete state.variables[key]; state.exported.delete(key); } else { publishVariable(state, key, value); state.exported.add(key); }
         if (key === "OPTIND") this.reconcileGetopts(state, prevMap.get(key)!.value);
       }
       }
@@ -15972,8 +12629,7 @@ export class Runtime {
               stack.push(preparedLocals);
               const rawState = stateMonitor(state)?.raw ?? state;
               (rawState.functionNames ??= []).unshift(context.command);
-              if (rawState !== state) state.functionNames = rawState.functionNames;
-            };
+              if (rawState !== state) state.functionNames = rawState.functionNames;};
             if (frameOwner) {
               const tickets = frameOwner.reserve({ epoch: true, work: 8 });
               monitor!.publish(tickets, undefined, entry);
@@ -16001,9 +12657,7 @@ export class Runtime {
             for (const [name, previous] of locals) await scope.cleanup(async () => {
               const typed = typedSavedVariables.has(previous);
               await restoreVariable(state, name, previous);
-              if (!typed && !previous.readOnly) state.readonlyVariables?.delete(name);
-            });
-          };
+              if (!typed && !previous.readOnly) state.readonlyVariables?.delete(name);});};
           let primaryFailure = false;
           const activeExt = hasActiveExtensions(state);
           let outcome: CapturedCancellationOutcome<CommandResult>;
@@ -16015,11 +12669,7 @@ export class Runtime {
               else {
                 const diagnostic = functionDiagnostics.get(body);
                 const status = await this.command(body, state, {
-                  ...io, ...context, scriptName: body.sourceName ?? io.scriptName ?? "shell",
-                  diagnosticOffset: diagnostic?.offset ?? 0,
-                  assignmentDiagnosticContext: { name: context.command },
-                  functionCommandLines: diagnostic?.lines, diagnosticCommandLines: diagnostic?.lines,
-                });
+                  ...io, ...context, scriptName: body.sourceName ?? io.scriptName ?? "shell", diagnosticOffset: diagnostic?.offset ?? 0, assignmentDiagnosticContext: { name: context.command }, functionCommandLines: diagnostic?.lines, diagnosticCommandLines: diagnostic?.lines, });
                 outcome = { kind: "return", value: { exitCode: hasActiveExtensions(state) ? await this.finishReturn("function-return", state, { ...io, ...context }, status) : status } };
               }
             }
@@ -16046,8 +12696,7 @@ export class Runtime {
                 catch (error) {
                   if (error instanceof ExtensionCheckpointFailure && !primaryFailure) checkpointFailure = error;
                   else throw error;
-                }
-              });
+                }});
             }
             const restoreControls = () => {
               stateMonitor(state)!.positionals.restore(savedPositionals, () => { state.positional = positional; });
@@ -16058,8 +12707,7 @@ export class Runtime {
               state.depth--;
               state.locals.pop();
               const rawState = stateMonitor(state)?.raw ?? state;
-              rawState.functionNames?.shift();
-            };
+              rawState.functionNames?.shift();};
             if (!activeExt && !this.signal.aborted && scope.failures.length === 0 && !locals.has("OPTIND")) {
               if (functionRestoration) functionRestoration.apply(restoreControls, false);
               else restoreControls();
@@ -16069,17 +12717,14 @@ export class Runtime {
             } else {
               await scope.cleanup(() => {
                 if (functionRestoration) functionRestoration.apply(restoreControls, false);
-                else restoreControls();
-              });
+                else restoreControls();});
               await restoreLocals();
               if (locals.has("OPTIND")) await scope.cleanup(() => {
                 const restoreGetopts = () => {
                   state.getopts ??= getoptsEntry;
-                  state.getopts.cursor = getoptsEntry.cursor;
-                };
+                  state.getopts.cursor = getoptsEntry.cursor;};
                 if (getoptsRestoration) getoptsRestoration.apply(restoreGetopts);
-                else restoreGetopts();
-              });
+                else restoreGetopts();});
               await scope.cleanup(() => getoptsRestoration?.close());
               await scope.cleanup(() => functionRestoration?.close());
             }
@@ -16125,17 +12770,14 @@ export class Runtime {
           const localeValue = (key: string) => temporaryEnvironment?.has(key) && !previous?.has(key)
             ? temporaryEnvironment.get(key)!.value ?? "" : state.variables[key] ?? "";
           const displayed = diagnosticCommandName(commandName, byteLocale({
-            LC_ALL: localeValue("LC_ALL"), LC_CTYPE: localeValue("LC_CTYPE"), LANG: localeValue("LANG"),
-          }), allocation);
+            LC_ALL: localeValue("LC_ALL"), LC_CTYPE: localeValue("LC_CTYPE"), LANG: localeValue("LANG"), }), allocation);
           await this.diagnostic({ ...io, ...context }, concatShellValues([displayed, ": command not found"], allocation));
           return { exitCode: 127 };
         }
         this.budget.beginPathLookupSuspension();
         const executionContext = state.externalInvocation
           ? Object.create(Object.getPrototypeOf(forwarded), {
-            ...Object.getOwnPropertyDescriptors(forwarded),
-            externalInvocation: { value: true, configurable: true },
-          }) as ShellCommandContext
+            ...Object.getOwnPropertyDescriptors(forwarded), externalInvocation: { value: true, configurable: true }, }) as ShellCommandContext
           : forwarded;
         try {
           const raw = definition.execute(executionContext);
@@ -16148,12 +12790,10 @@ export class Runtime {
         if (hasMiddleware) {
         const prevMap = previous!;
         const restoreCwd = () => {
-          if (context.command !== "cd" && state.cwd === context.cwd && state.directoryStackCwdPublication === directoryStackCwdPublication) state.cwd = cwd;
-        };
+          if (context.command !== "cd" && state.cwd === context.cwd && state.directoryStackCwdPublication === directoryStackCwdPublication) state.cwd = cwd;};
         await scope.cleanup(() => {
           if (cwdRestoration) cwdRestoration.apply(restoreCwd, false);
-          else restoreCwd();
-        });
+          else restoreCwd();});
         for (const [key, saved] of prevMap) await scope.cleanup(async () => {
           const typed = typedSavedVariables.get(saved);
           if (typed) {
@@ -16163,27 +12803,22 @@ export class Runtime {
             return;
           }
           if (saved.superseded || state.variables[key] !== saved.overlay) { await this.discardVariable(saved); return; }
-          await restoreVariable(state, key, saved);
-        });
+          await restoreVariable(state, key, saved);});
         await scope.cleanup(() => stateMonitor(state)?.closeOverlay(prevMap));
         await scope.cleanup(() => cwdRestoration?.close());
         }
-      }
-    });
+      }});
     const execute = hasMiddleware ? composeMiddleware(middleware, terminalHandler) : terminalHandler;
     try { return validateExitCode((await interruptible(execute(context), this.signal)).exitCode); }
     catch (error) {
       if (builtinFailure && error === builtinFailure.error) throw new ExecutionFailure(error, io, builtinFailure.diagnostic);
-      if (runtimeFrame.report && Object.is(runtimeFrame.report.origin.signal.reason, error) && this.outcomeFrame) {
-        this.outcomeFrame.report = runtimeFrame.report;
-      }
+      if (runtimeFrame.report && Object.is(runtimeFrame.report.origin.signal.reason, error) && this.outcomeFrame) this.outcomeFrame.report = runtimeFrame.report;
       throw error;
     }
     } finally {
       allocation.close();
     }
   }
-
   internalDiscovery(name: string, state: State, bypassFunctions = false): Discovery[] {
     const matches: Discovery[] = [];
     if (!bypassFunctions && state.functions.has(name)) matches.push({ kind: "function", name });
@@ -16193,28 +12828,21 @@ export class Runtime {
     if (state.profile === "sh" && (specialBuiltinNames.has(name) || state.extensions?.builtins.get(name)?.special)) matches.sort((left, right) => Number(right.kind === "builtin") - Number(left.kind === "builtin"));
     return matches;
   }
-
   firstInternalDiscovery(name: string, state: State, bypassFunctions = false): Discovery["kind"] | undefined {
     const isBuiltin = implementedBuiltins.has(name) || Boolean(state.extensions?.builtins.has(name));
-    if (isBuiltin && state.profile === "sh" && (specialBuiltinNames.has(name) || state.extensions?.builtins.get(name)?.special)) {
-      return "builtin";
-    }
+    if (isBuiltin && state.profile === "sh" && (specialBuiltinNames.has(name) || state.extensions?.builtins.get(name)?.special)) return "builtin";
     if (!bypassFunctions && state.functions.has(name)) return "function";
     if (isBuiltin) return "builtin";
     if (this.hasExternalCommand(name)) return "command";
     if (name === "bash" || name === "sh") return "interpreter";
     return undefined;
   }
-
   private getExternalCommand(name: string): CommandDefinition | undefined {
     const direct = this.commands.get(name);
     if (direct) return direct;
-    if (this.commands.has("rg") || this.commands.has("grep")) {
-      return getRuntimeMuscleMemoryCommand(name);
-    }
+    if (this.commands.has("rg") || this.commands.has("grep")) return getRuntimeMuscleMemoryCommand(name);
     return undefined;
   }
-
   private hasExternalCommand(name: string): boolean {
     return this.getExternalCommand(name) !== undefined;
   }
@@ -16233,13 +12861,11 @@ export class Runtime {
       if (option === "--") break;
       if (builtin) { await this.diagnostic({ ...io, ...context }, `builtin: ${option}: invalid option`); return 2; }
       for (const flag of option.slice(1)) {
-        if (command && (flag === "v" || flag === "V")) { discover = true; mode = flag === "v" ? "name" : "describe"; }
-        else if (command && flag === "p") defaultPath = true;
+        if (command && (flag === "v" || flag === "V")) { discover = true; mode = flag === "v" ? "name" : "describe"; } else if (command && flag === "p") defaultPath = true;
         else if (!command && flag === "a") all = true;
         else if (!command && flag === "f") skipFunctions = true;
         else if (!command && flag === "t") mode = "kind";
-        else if (!command && (flag === "p" || flag === "P")) { mode = "path"; if (flag === "P") forcePath = true; }
-        else {
+        else if (!command && (flag === "p" || flag === "P")) { mode = "path"; if (flag === "P") forcePath = true; } else {
           if (command) {
             await this.diagnostic({ ...io, ...context }, `command: -${flag}: invalid option`);
             await writeDiagnostic(context.stderr, "command: usage: command [-pVv] command [arg ...]\n");
@@ -16262,7 +12888,6 @@ export class Runtime {
       const restoration = stateMonitor(state)?.restoration(true);
       try { state.depth++; }
       catch (error) { restoration?.close(); throw error; }
-      // Nested command execution retains -p; discovery and other builtins use their own options.
       try { return await this.dispatch(targetValue, args, state, { ...io, ...context }, assignments, true, getCommandArguments(context).values.slice(context.args.length - args.length), undefined, command && (defaultPath || inheritedDefaultPath)); }
       finally {
         const restore = () => { state.depth--; };
@@ -16296,13 +12921,10 @@ export class Runtime {
         if (mode === "path" && match.kind !== "file") continue;
         let text: string;
         if (mode === "kind") {
-          // Dispatch distinguishes registry commands and virtual interpreters;
-          // Bash discovery exposes only shell builtin or file for these entries.
           const kind = match.kind === "command" ? (shellBuiltinNames.has(name) ? "builtin" : "file")
             : match.kind === "interpreter" ? "file" : match.kind;
           text = `${kind}\n`;
-        }
-        else if (mode === "name" || mode === "path") text = `${match.name}\n`;
+        } else if (mode === "name" || mode === "path") text = `${match.name}\n`;
         else if (match.kind === "function") text = `${name} is a function\n${functionDisplay(name, state.functions.get(name)!)}`;
         else text = `${name} is ${match.kind === "keyword" ? "a shell keyword" : match.kind === "builtin" ? "a shell builtin" : match.kind === "command" ? "a registered command" : match.kind === "interpreter" ? "a virtual shell interpreter" : match.name}\n`;
         await writeText(context.stdout, text);
@@ -16310,7 +12932,6 @@ export class Runtime {
     }
     return (command ? found > 0 || args.length === 0 : found === args.length) ? 0 : 1;
   }
-
   async searchPaths(name: string, state: State, all = false, discovery = false, defaultPath = false): Promise<string[]> {
     if (!name) return [];
     let denied: CommandFailure | undefined;
@@ -16339,7 +12960,6 @@ export class Runtime {
     if (denied && !matches.length && !discovery) throw denied;
     return matches;
   }
-
   processState(context: CommandContext, state: State, io: IO, arg0: ShellValue, args: readonly string[]): State {
     if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     const variables = Object.assign(Object.create(null) as Record<string, string>, context.env, { PWD: state.cwd });
@@ -16347,18 +12967,7 @@ export class Runtime {
     variables.OPTIND = "1";
     variables.OPTERR = "1";
     const child = trackState({
-      umask: state.umask ?? 0o022,
-      extensions: forkExtensions(state.extensions, "process"),
-      cwd: state.cwd, variables, exported, functions: new Map(), getopts: { cursor: createGetoptsState(), integer: true },
-      directoryStack: { entries: [], bytes: 0 },
-      dotglob: false,
-      globstar: false,
-      positional: [], arg0: shellValueText(arg0), profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1,
-      loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true,
-      errexit: false,
-    }, this.budget, io[invocationScope]);
-    // Carry owned syntax only when the function's environment entry survives
-    // middleware and env replacement. Never evaluate environment text as code.
+      umask: state.umask ?? 0o022, extensions: forkExtensions(state.extensions, "process"), cwd: state.cwd, variables, exported, functions: new Map(), getopts: { cursor: createGetoptsState(), integer: true }, directoryStack: { entries: [], bytes: 0 }, dotglob: false, globstar: false, positional: [], arg0: shellValueText(arg0), profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true, errexit: false, }, this.budget, io[invocationScope]);
     for (const name of state.exportedFunctions ?? []) {
       const body = state.functions.get(name);
       const key = `BASH_FUNC_${name}%%`;
@@ -16372,7 +12981,6 @@ export class Runtime {
     this.replacePositionals(child, getCommandArguments(context).values.slice(context.args.length - args.length), undefined, arg0);
     return child;
   }
-
   async interpreter(context: CommandContext, state: State, io: IO, loadedSource?: { path: string; source: string }): Promise<number> {
     const args = [...context.args];
     let commandString = false;
@@ -16422,7 +13030,6 @@ export class Runtime {
     return await this.finishShell(child, inputIO, await this.runStandardInput(input, child, inputIO));
     } finally { await references.close(); }
   }
-
   async syntaxFailure(error: ShellSyntaxError, source: string, io: IO, commandString: boolean, includeContext = true): Promise<number> {
     const offset = io.diagnosticOffset ?? 0;
     const line = source.slice(0, error.offset).split("\n").length;
@@ -16437,7 +13044,6 @@ export class Runtime {
     }
     return error.exitCode;
   }
-
   async runCommandString(source: string, state: State, io: IO): Promise<number> {
     const lineIndex = new SourceLineIndex(source, this.budget.parsing);
     let position = 0;
@@ -16460,13 +13066,11 @@ export class Runtime {
       return this.syntaxFailure(error, source, io, true);
     }
   }
-
   sourceText(bytes: Uint8Array, name: string): string {
     if (bytes.some(byte => byte < 9 || byte > 10 && byte < 13 || byte > 13 && byte < 32 || byte === 127)) throw new CommandFailure(`${name}: cannot execute binary script`, 126);
     try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes); }
     catch { throw new CommandFailure(`${name}: cannot execute binary or non-UTF-8 script`, 126); }
   }
-
   async runStandardInput(input: ShellInput, state: State, io: IO): Promise<number> {
     let source = "";
     let lineIndex = new SourceLineIndex(source, this.budget.parsing);
@@ -16503,9 +13107,7 @@ export class Runtime {
       if (eof) return status;
     }
   }
-
   private static readonly envShebangCommand = executionCommands(() => { throw new Error("Unreserved shebang invocation"); }).find(command => command.name === "env");
-
   private async shebangState(context: CommandContext, state: State): Promise<State> {
     const child = await cloneState(state, this.signal);
     child.cwd = resolvePath("/", context.cwd);
@@ -16527,22 +13129,10 @@ export class Runtime {
     this.reconcileGetopts(child, state.variables.OPTIND);
     return child;
   }
-
-  private async shebangStage(
-    incoming: CommandContext, state: State, io: IO,
-    terminal: (runtime: Runtime, context: ShellCommandContext, child: State, childIO: IO) => Promise<CommandResult>,
-    prepare?: (runtime: Runtime, context: ShellCommandContext, child: State, childIO: IO) => CommandInvoker,
-    replacementInput?: ByteSource,
-    existingScope?: InvocationScope,
-  ): Promise<number> {
+  private async shebangStage( incoming: CommandContext, state: State, io: IO, terminal: (runtime: Runtime, context: ShellCommandContext, child: State, childIO: IO) => Promise<CommandResult>, prepare?: (runtime: Runtime, context: ShellCommandContext, child: State, childIO: IO) => CommandInvoker, replacementInput?: ByteSource, existingScope?: InvocationScope, ): Promise<number> {
     const scope = existingScope ?? io[invocationScope].child();
     const ownsScope = existingScope === undefined;
-    const runtime = new Runtime(
-      this.fs, this.commands, this.middleware, this.budget,
-      combineManagedSignals(this.signal, scope.signal), this.fileWrites, this.outputFiles, this.commandSignal,
-      this.cancellation, this.cancellationState, this.cancellationOwner,
-      this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile,
-    );
+    const runtime = new Runtime( this.fs, this.commands, this.middleware, this.budget, combineManagedSignals(this.signal, scope.signal), this.fileWrites, this.outputFiles, this.commandSignal, this.cancellation, this.cancellationState, this.cancellationOwner, this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile, );
     let input: ShellInput | undefined;
     try {
       const allocation = this.budget.values.scope();
@@ -16550,24 +13140,15 @@ export class Runtime {
       const argumentValues = this.admitArguments(getCommandArguments(incoming).values, allocation);
       scope.register(async () => {
         try { await input?.close(); }
-        catch (error) { if (!this.signal.aborted || error !== this.signal.reason) throw error; }
-      });
+        catch (error) { if (!this.signal.aborted || error !== this.signal.reason) throw error; }});
       if (replacementInput !== undefined) input = new ShellInput(replacementInput, this.budget, this.signal);
       const invocationOverride: { current: CommandInvoker | undefined } = { current: undefined };
       const context: ShellCommandContext = {
-        ...incoming, args: argumentValues.args, argumentValues,
-        executionScope: this.budget.executionScope,
-        onInternalError: this.budget.onInternalError,
-        env: Object.assign(Object.create(null) as Record<string, string>, incoming.env),
-        stdin: input ?? incoming.stdin,
-        stdout: this.budget.sink(incoming.stdout, runtime.signal), stderr: this.budget.sink(incoming.stderr, runtime.signal),
-        signal: toNativeAbortSignal(this.commandSignal), registerCleanup: cleanup => { scope.register(cleanup); },
-        invoke: (name, args, options) => {
+        ...incoming, args: argumentValues.args, argumentValues, executionScope: this.budget.executionScope, onInternalError: this.budget.onInternalError, env: Object.assign(Object.create(null) as Record<string, string>, incoming.env), stdin: input ?? incoming.stdin, stdout: this.budget.sink(incoming.stdout, runtime.signal), stderr: this.budget.sink(incoming.stderr, runtime.signal), signal: toNativeAbortSignal(this.commandSignal), registerCleanup: cleanup => { scope.register(cleanup); }, invoke: (name, args, options) => {
           const invocation = invocationOverride.current ? invocationOverride.current(name, args, options) : runtime.invoke(name, args, options, context, child, scope);
           void invocation.catch(() => undefined);
           return invocation;
-        },
-      };
+        }, };
       Reflect.deleteProperty(context, invocationScope);
       Reflect.deleteProperty(context, valueScope);
       bindCommandIO(context, { ...io, [invocationScope]: scope });
@@ -16575,10 +13156,7 @@ export class Runtime {
       if (argumentValues.values.every(value => typeof value === "string")) Reflect.deleteProperty(context, "argumentValues");
       const child = await runtime.shebangState(context, state);
       workerRuntimeContexts.set(context, {
-        budget: this.budget, umask: child.umask ?? 0o022,
-        ignoredSignals: captureIgnoredTrapSignals(child.extensions),
-        get fs() { return runtime.getContextFsForFast(0, runtime.signal); },
-      });
+        budget: this.budget, umask: child.umask ?? 0o022, ignoredSignals: captureIgnoredTrapSignals(child.extensions), get fs() { return runtime.getContextFsForFast(0, runtime.signal); }, });
       const childIO = { ...io, ...context, [invocationScope]: scope };
       invocationOverride.current = prepare?.(runtime, context, child, childIO);
       const runtimeFrame: RuntimeOutcomeFrame = {};
@@ -16588,10 +13166,8 @@ export class Runtime {
         let downstream: Promise<CommandResult> | undefined;
         const raw = handler(context, () => {
           downstream = next();
-          return downstream;
-        });
-        return runtime.observeRuntimeReturn(raw, runtimeFrame, () => downstream);
-      });
+          return downstream;});
+        return runtime.observeRuntimeReturn(raw, runtimeFrame, () => downstream);});
       const execute = composeMiddleware(middleware, async () => {
         scope.assertOpen();
         const forwardedValues = getCommandArguments(context);
@@ -16600,21 +13176,17 @@ export class Runtime {
         const forwarded = await runtime.shebangState(selected, child);
         selected.cwd = forwarded.cwd;
         const raw = terminal(runtime, selected, forwarded, { ...childIO, ...selected });
-        return await runtime.observeRuntimeReturn(raw, runtimeFrame);
-      });
+        return await runtime.observeRuntimeReturn(raw, runtimeFrame);});
       try {
         const result = await interruptible(execute(context), runtime.signal);
         runtime.signal.throwIfAborted();
         return validateExitCode(result.exitCode);
       } catch (error) {
-        if (runtimeFrame.report && Object.is(runtimeFrame.report.origin.signal.reason, error) && runtime.outcomeFrame) {
-          runtime.outcomeFrame.report = runtimeFrame.report;
-        }
+        if (runtimeFrame.report && Object.is(runtimeFrame.report.origin.signal.reason, error) && runtime.outcomeFrame) runtime.outcomeFrame.report = runtimeFrame.report;
         throw error;
       }
     } finally { if (ownsScope) await scope.close(); }
   }
-
   private shebangTarget(context: CommandContext, state: State, io: IO, command: string, args: readonly string[], options: ShellInvokeOptions, target: string, loadedSource: { path: string; source: string }): Promise<CommandResult> {
     return this.invokeChild(options, state, io[invocationScope], () => {
       this.signal.throwIfAborted();
@@ -16630,7 +13202,6 @@ export class Runtime {
       }
     }, (runtime, scope) => runtime.shebangTargetScoped(context, state, io, command, args, options, target, loadedSource, scope));
   }
-
   private async shebangTargetScoped(context: CommandContext, state: State, io: IO, command: string, args: readonly string[], options: ShellInvokeOptions, target: string, loadedSource: { path: string; source: string }, scope: InvocationScope): Promise<CommandResult> {
     const reserved = command === "bash" || command === "sh";
     const direct = command.includes("/");
@@ -16648,14 +13219,7 @@ export class Runtime {
     const stdinIsDefault = options.stdin === undefined ? context.stdinIsDefault : options.stdinIsDefault ?? false;
     const argumentValues = getCommandArguments({ args, ...(options.argumentValues ? { argumentValues: options.argumentValues } : {}) });
     const selected: CommandContext = {
-      ...context, command, args: argumentValues.args, argumentValues, cwd: child.cwd,
-      ...(options.admittedHandles === undefined ? {} : { admittedHandles: options.admittedHandles }),
-      ...(options.processSignals === undefined ? {} : { processSignals: options.processSignals }),
-      env: options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.cwd },
-      stdin: options.stdin ?? context.stdin,
-      stdout: options.stdout ?? context.stdout, stderr: options.stderr ?? context.stderr,
-      ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),
-    };
+      ...context, command, args: argumentValues.args, argumentValues, cwd: child.cwd, ...(options.admittedHandles === undefined ? {} : { admittedHandles: options.admittedHandles }), ...(options.processSignals === undefined ? {} : { processSignals: options.processSignals }), env: options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.cwd }, stdin: options.stdin ?? context.stdin, stdout: options.stdout ?? context.stdout, stderr: options.stderr ?? context.stderr, ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }), };
     const exitCode = await this.shebangStage(selected, child, io, async (runtime, forwarded, state, childIO) => {
       if (reserved) {
         if (definition) {
@@ -16674,7 +13238,6 @@ export class Runtime {
     }, undefined, options.stdin !== context.stdin ? options.stdin : undefined, scope);
     return { exitCode };
   }
-
   private async envShebang(context: CommandContext, state: State, io: IO, optionalArgument: string | undefined, target: string, args: readonly string[], loadedSource: { path: string; source: string }): Promise<number> {
     const definition = Runtime.envShebangCommand;
     if (!definition) throw new CommandFailure(`${target}: env interpreter is unavailable`, 126);
@@ -16683,24 +13246,20 @@ export class Runtime {
     const incoming = getCommandArguments({ args, ...(context.argumentValues ? { argumentValues: context.argumentValues } : {}) });
     const argumentValues = this.admitArguments([...(optionalArgument === undefined ? [] : [optionalArgument]), target, ...incoming.values], allocation);
     return this.shebangStage({
-      ...context, command: "env", args: argumentValues.args, argumentValues,
-    }, state, io, async (runtime, forwarded) => {
+      ...context, command: "env", args: argumentValues.args, argumentValues, }, state, io, async (runtime, forwarded) => {
       runtime.budget.pathLookup.suspendUntilClosed(io[invocationScope]);
       let failed = false;
       let failure: unknown;
       let failureReport: CancellationReport | undefined;
       const result = await interruptible(Promise.resolve(definition.execute({
-        ...forwarded,
-        invoke: (command, arguments_, options) => {
+        ...forwarded, invoke: (command, arguments_, options) => {
           const raw = forwarded.invoke(command, arguments_, options);
           return raw.catch(error => {
             failed = true;
             failure = error;
             failureReport = runtime.cancellationState.consume(raw, error);
-            return { exitCode: 1 };
-          });
-        },
-      })), runtime.signal);
+            return { exitCode: 1 };});
+        }, })), runtime.signal);
       runtime.signal.throwIfAborted();
       if (failed) {
         if (failureReport && runtime.outcomeFrame) runtime.outcomeFrame.report = failureReport;
@@ -16710,7 +13269,6 @@ export class Runtime {
     }, (runtime, forwarded, child, childIO) => (command, arguments_, options = {}) =>
       runtime.shebangTarget(forwarded, child, childIO, command, arguments_, options, target, loadedSource));
   }
-
   async scriptFile(context: CommandContext, state: State, io: IO, target: string, args: readonly string[], direct: boolean, errexit = false, loadedSource?: { path: string; source: string }, braceexpand = true, noexec = false, nounset = false, options?: Pick<State, "allexport" | "noclobber" | "noglob" | "pipefail">): Promise<number> {
     if (target === "") throw new CommandFailure(`${context.command}: : No such file or directory`, 127);
     if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
@@ -16815,15 +13373,12 @@ export class Runtime {
     return await this.finishShell(child, childIO, status);
     } finally { await references.close(); }
   }
-
   async runCurrentText(source: string, state: State, io: IO, fatalSyntax: boolean, syntaxName?: string, byteSource = false, includeSyntaxContext = true, sourceValues?: OwnedShellSource["values"]): Promise<number> {
     if (!sourceValues && !byteSource && isDefaultShellSyntax(state.extensions?.syntax) && source.length <= 4096) {
       try {
         const cachedUnit = getOrParseSingleEvalUnit(source, byteLocale(state.variables), this.budget.parsing);
         if (cachedUnit) {
-          if (cachedUnit.script.lists.length) {
-            return await this.inputUnit(cachedUnit.script, state, io);
-          }
+          if (cachedUnit.script.lists.length) return await this.inputUnit(cachedUnit.script, state, io);
           return 0;
         }
       } catch (error) {
@@ -16856,7 +13411,6 @@ export class Runtime {
       return status;
     }
   }
-
   async evalBuiltin(context: CommandContext, state: State, io: IO, special: boolean): Promise<number> {
     const args = [...context.args];
     if (args[0] === "--") args.shift();
@@ -16890,7 +13444,6 @@ export class Runtime {
     }
     } finally { allocation.close(); }
   }
-
   async sourceBuiltin(context: CommandContext, state: State, io: IO, special: boolean): Promise<number> {
     const args = [...context.args];
     if (args[0] === "--") args.shift();
@@ -16963,8 +13516,7 @@ export class Runtime {
       const entry = () => {
         if (args.length) this.replacePositionals(state, getCommandArguments(context).values.slice(context.args.length - args.length), () => { state.positional = args; });
         state.sourceDepth = (state.sourceDepth ?? 0) + 1;
-        state.depth++;
-      };
+        state.depth++;};
       if (owner) {
         const tickets = owner.reserve({ epoch: true, work: 8 });
         monitor!.publish(tickets, undefined, entry);
@@ -16999,10 +13551,8 @@ export class Runtime {
         if (savedPositionals && (state.functionDepth > 0 || (state.positionalSetVersion ?? 0) === version)) {
           monitor!.positionals.restore(savedPositionals, () => {
             state.positional = positional;
-            state.positionalSetVersion = version;
-          });
-        }
-      };
+            state.positionalSetVersion = version;});
+        }};
       try {
         if (restoration) restoration.apply(restore);
         else restore();
@@ -17019,7 +13569,6 @@ export class Runtime {
     if (outcome.kind === "throw") throw outcome.reason;
     return outcome.value;
   }
-
   invoke(name: string, args: readonly string[], options: ShellInvokeOptions = {}, context: ShellCommandContext, state: State, parent: InvocationScope): Promise<{ exitCode: number }> {
     const fast = this.tryFastExternalInvoke(name, args, options, context, state, parent);
     if (fast) return fast;
@@ -17032,7 +13581,6 @@ export class Runtime {
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     }, (runtime, scope) => runtime.invokeScoped(name, args, options, context, state, scope));
   }
-
   private async invokeScoped(name: string, args: readonly string[], options: ShellInvokeOptions, context: ShellCommandContext, state: State, scope: InvocationScope): Promise<{ exitCode: number }> {
     this.signal.throwIfAborted();
     const allocation = this.budget.values.scope();
@@ -17056,9 +13604,7 @@ export class Runtime {
       if (!body || env[`BASH_FUNC_${key}%%`] !== functionDisplay(key, body).slice(key.length + 1).trimEnd()) child.exportedFunctions?.delete(key);
     }
     child.externalInvocation = options.externalInvocation === true;
-    if (child.externalInvocation) {
-      for (const key of child.functions.keys()) if (!child.exportedFunctions?.has(key)) child.functions.delete(key);
-    }
+    if (child.externalInvocation) for (const key of child.functions.keys()) if (!child.exportedFunctions?.has(key)) child.functions.delete(key);
     this.reconcileGetopts(child, state.variables.OPTIND);
     child.depth++;
     child.loopDepth = 0;
@@ -17069,24 +13615,13 @@ export class Runtime {
     const stdinIsDefault = options.stdin === undefined ? context.stdinIsDefault : (options.stdinIsDefault ?? false);
     const references = new PipeDescriptorFrame(scope);
     const io = isolateIO({
-      ...context,
-      argv0: options.argv0,
-      ...(options.admittedHandles === undefined ? {} : { admittedHandles: options.admittedHandles }),
-      ...(options.processSignals === undefined ? {} : { processSignals: options.processSignals }),
-      [invocationScope]: scope,
-      stdin: input ?? context.stdin,
-      ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),
-      stdout: options.stdout ? this.budget.sink(options.stdout, this.signal) : context.stdout,
-      stderr: options.stderr ? this.budget.sink(options.stderr, this.signal) : context.stderr,
-    }, references);
+      ...context, argv0: options.argv0, ...(options.admittedHandles === undefined ? {} : { admittedHandles: options.admittedHandles }), ...(options.processSignals === undefined ? {} : { processSignals: options.processSignals }), [invocationScope]: scope, stdin: input ?? context.stdin, ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }), stdout: options.stdout ? this.budget.sink(options.stdout, this.signal) : context.stdout, stderr: options.stderr ? this.budget.sink(options.stderr, this.signal) : context.stderr, }, references);
     const command: Command = {
-      kind: "simple", redirects: [],
-      words: [name, ...carrier.values].map((value) => {
+      kind: "simple", redirects: [], words: [name, ...carrier.values].map((value) => {
         const part: WordPart = { kind: "text", value: shellValueText(value), quoted: true };
         if (typeof value !== "string") invokedValues.set(part, value);
         return { offset: 0, parts: [part] };
-      }),
-    };
+      }), };
     try { return { exitCode: await this.runCommandIsolated(command, child, io) }; }
     finally {
       try { await this.releaseExtensions(child); }
@@ -17096,7 +13631,6 @@ export class Runtime {
       }
     }
   }
-
   private async setOptions(context: CommandContext & IO, state: State): Promise<number> {
     const { args, stdout, stderr } = context;
     let index = 0;
@@ -17117,9 +13651,7 @@ export class Runtime {
         else if (flag === "f") state.noglob = enabled;
         else if (flag === "C") state.noclobber = enabled;
         else if (flag === "n") state.noexec = enabled;
-        else if ([...state.extensions?.options.values() ?? []].some(option => option.flag === flag)) {
-          for (const option of state.extensions!.options.values()) if (option.flag === flag) option.enabled = enabled;
-        }
+        else if ([...state.extensions?.options.values() ?? []].some(option => option.flag === flag)) for (const option of state.extensions!.options.values()) if (option.flag === flag) option.enabled = enabled;
         else if (flag === "B") state.braceexpand = enabled;
         else if (flag === "o" && position === option.length - 1) {
           const name = args[index + 1];
@@ -17155,19 +13687,16 @@ export class Runtime {
     if (state.noexec) throw new Flow("discard", 0);
     return 0;
   }
-
   private async letBuiltin(context: CommandContext & IO, state: State): Promise<number> {
     this.signal.throwIfAborted();
     const { maxExpansionBytes: bytes, maxExpansionFields: fields } = this.budget.limits;
     const admit = (value: unknown): void => {
       if (typeof value !== "string" || value.includes("\0")) throw new CommandFailure("let: arguments must be strings without NUL", 2);
-      if (value.length > bytes || shellValueByteLength(value) > bytes) this.budget.fail("maxExpansionBytes");
-    };
+      if (value.length > bytes || shellValueByteLength(value) > bytes) this.budget.fail("maxExpansionBytes");};
     const checkpoint = async (): Promise<void> => {
       this.signal.throwIfAborted();
       await yieldTurn(this.signal);
-      this.signal.throwIfAborted();
-    };
+      this.signal.throwIfAborted();};
     const { args } = context;
     if (!Array.isArray(args)) throw new CommandFailure("let: argument array required", 2);
     if (args.length + 1 > fields) this.budget.fail("maxExpansionFields");
@@ -17192,8 +13721,7 @@ export class Runtime {
       try {
         let program = prepareArithmetic(args[index]!, this.budget.parsing);
         if (program.error) {
-          const word = parseArithmeticExpansion(args[index]!, this.budget.parsing, byteLocale(state.variables),
-            state.depth + (context.parameterDepth ?? 0), context.diagnosticLine ?? 1, state.extensions?.syntax);
+          const word = parseArithmeticExpansion(args[index]!, this.budget.parsing, byteLocale(state.variables), state.depth + (context.parameterDepth ?? 0), context.diagnosticLine ?? 1, state.extensions?.syntax);
           const operandIO = this.parameterOperandIO(word, state, context);
           const fields = await this.valueWord(word, state, operandIO, false, false, true);
           const source = shellValueText(concatShellValues(fields, context[valueScope]));
@@ -17211,20 +13739,17 @@ export class Runtime {
     this.signal.throwIfAborted();
     return Number(value === 0n);
   }
-
   private async getoptsBuiltin(context: CommandContext & IO, state: State): Promise<number> {
     this.signal.throwIfAborted();
     const { maxExpansionBytes: bytes, maxExpansionFields: fields } = this.budget.limits;
     const admit = (value: unknown): void => {
       if (typeof value !== "string") throw new CommandFailure("getopts: arguments must be strings without NUL", 2);
       if (value.length > bytes || shellValueByteLength(value) > bytes) this.budget.fail("maxExpansionBytes");
-      if (value.includes("\0")) throw new CommandFailure("getopts: arguments must be strings without NUL", 2);
-    };
+      if (value.includes("\0")) throw new CommandFailure("getopts: arguments must be strings without NUL", 2);};
     const checkpoint = async (): Promise<void> => {
       this.signal.throwIfAborted();
       await yieldTurn(this.signal);
-      this.signal.throwIfAborted();
-    };
+      this.signal.throwIfAborted();};
     if (!Array.isArray(context.args)) throw new CommandFailure("getopts: argument array required", 2);
     if (context.args.length + 1 > fields) this.budget.fail("maxExpansionFields");
     admit(context.command);
@@ -17275,9 +13800,7 @@ export class Runtime {
       state.getopts ??= cloneGetoptsBinding(state);
       try {
         result = await scanGetopts(state.getopts.cursor, optstring, input ?? args, {
-          reportErrors: state.variables.OPTERR === undefined || state.variables.OPTERR === "" || decimalIndex(state.variables.OPTERR) !== 0,
-          work,
-        });
+          reportErrors: state.variables.OPTERR === undefined || state.variables.OPTERR === "" || decimalIndex(state.variables.OPTERR) !== 0, work, });
       } catch (error) {
         this.signal.throwIfAborted();
         if (error instanceof GetoptsError && (error.code === "NON_ASCII_OPTION" || error.code === "INVALID_INPUT")) throw new CommandFailure(`getopts: ${error.message}`, 2);
@@ -17301,14 +13824,12 @@ export class Runtime {
     await this.assignVariable(state, name, result.option, context, "getopts");
     return result.status;
   }
-
   private async changeDirectory(context: CommandContext & IO, state: State, args: readonly string[], diagnose?: (error: unknown, diagnostic: string) => void, stackHooks?: { name: string; onCwdPublished(): void; emit(text: string): Promise<void> }): Promise<number> {
     const name = stackHooks?.name ?? "cd";
     this.signal.throwIfAborted();
     const lookup = new CdLookup(this.signal);
     let offset = 0;
     let physical = false;
-    // Directory-stack callers have already parsed their options and pass a path.
     if (!stackHooks) for (; offset < args.length; offset++) {
       await lookup.charge(1);
       const option = args[offset]!;
@@ -17351,7 +13872,6 @@ export class Runtime {
     }
     return 0;
   }
-
   private async directoryStackBuiltin(context: CommandContext & IO, state: State, diagnose?: (error: unknown, diagnostic: string) => void): Promise<number> {
     const { command, args } = context;
     const work = new DirectoryStackWork(command, this.signal, context.stdout);
@@ -17367,12 +13887,10 @@ export class Runtime {
     let targetBytes: number | undefined;
     const boundedIndex = (index: bigint): number => {
       if (index < 0n || index > BigInt(count)) work.fail("directory stack index out of range");
-      return Number(index);
-    };
+      return Number(index);};
     const field = async (value: string): Promise<number> => {
       await work.charge(1);
-      return work.scan(value, "argument");
-    };
+      return work.scan(value, "argument");};
     const plan = async (length: number, removed: number | undefined, added: string | undefined, addedBytes: number | undefined, entry: (index: number) => string): Promise<NonNullable<State["directoryStack"]>> => {
       if (length > 4096) work.fail("directory stack exceeds 4096 entries");
       const removedBytes = removed === undefined ? 0 : await work.scan(tail.entries[removed]!, "path");
@@ -17382,23 +13900,16 @@ export class Runtime {
       await work.charge(length);
       const entries = new Array<string>(length);
       for (let index = 0; index < length; index++) entries[index] = entry(index);
-      return { entries, bytes };
-    };
+      return { entries, bytes };};
     const publish = async (next: NonNullable<State["directoryStack"]>): Promise<void> => {
       await work.flushWork();
-      state.directoryStack = next;
-    };
+      state.directoryStack = next;};
     const cd = async (path: string): Promise<number> => {
       await work.flushWork();
       return this.changeDirectory(context, state, [path], diagnose, {
-        name: command,
-        onCwdPublished() { state.directoryStackCwdPublication = Symbol(); },
-        async emit(text) { await work.emit(text); await work.flushOutput(); },
-      });
-    };
+        name: command, onCwdPublished() { state.directoryStackCwdPublication = Symbol(); }, async emit(text) { await work.emit(text); await work.flushOutput(); }, });};
     const display = async (index?: number): Promise<void> => {
-      await work.display(state.cwd, state.directoryStack?.entries ?? [], { long, lines, verbose, ...(index !== undefined ? { index } : {}) }, state.variables.HOME);
-    };
+      await work.display(state.cwd, state.directoryStack?.entries ?? [], { long, lines, verbose, ...(index !== undefined ? { index } : {}) }, state.variables.HOME);};
     try {
       for (let offset = 0; offset < args.length; offset++) {
         const token = args[offset]!;
@@ -17443,8 +13954,7 @@ export class Runtime {
           if (!(noCd && index === 0)) {
             const cwd = state.cwd;
             const at = (fullIndex: number): string => fullIndex === 0 ? cwd : tail.entries[fullIndex - 1]!;
-            const next = await plan(count, index === 0 ? undefined : index - 1, index === 0 ? undefined : cwd, undefined,
-              slot => at((index + slot + 1) % (count + 1)));
+            const next = await plan(count, index === 0 ? undefined : index - 1, index === 0 ? undefined : cwd, undefined, slot => at((index + slot + 1) % (count + 1)));
             await publish(next);
             if (!noCd) {
               const status = await cd(at(index));
@@ -17454,8 +13964,7 @@ export class Runtime {
           }
         } else if (target !== undefined) {
           const saved = noCd ? target : state.cwd;
-          const next = await plan(count + 1, undefined, saved, noCd ? targetBytes : undefined,
-            slot => slot === 0 ? saved : tail.entries[slot - 1]!);
+          const next = await plan(count + 1, undefined, saved, noCd ? targetBytes : undefined, slot => slot === 0 ? saved : tail.entries[slot - 1]!);
           if (!noCd) {
             const status = await cd(target);
             if (status !== 0) return status;
@@ -17475,8 +13984,7 @@ export class Runtime {
         const index = boundedIndex(selected ?? 0n);
         if (!count) work.fail("directory stack empty");
         const removed = Math.max(0, index - 1);
-        const next = await plan(count - 1, removed, undefined, undefined,
-          slot => tail.entries[slot < removed ? slot : slot + 1]!);
+        const next = await plan(count - 1, removed, undefined, undefined, slot => tail.entries[slot < removed ? slot : slot + 1]!);
         if (index === 0 && !noCd) {
           const status = await cd(tail.entries[0]!);
           if (status !== 0) return status;
@@ -17489,7 +13997,6 @@ export class Runtime {
       await work.flushWork();
     }
   }
-
   private async shoptBuiltin(context: CommandContext & IO, state: State): Promise<number> {
     let setNamespace = false;
     let print = false;
@@ -17523,14 +14030,11 @@ export class Runtime {
     const options = new Map<string, { enabled: boolean }>();
     for (const name of setNamespace ? ["allexport", "braceexpand", "errexit", "noclobber", "noexec", "noglob", "nounset", "pipefail"] as const : ["dotglob", "extglob", "globstar", "nocaseglob", "nocasematch", "nullglob"] as const) {
       options.set(name, {
-        get enabled() { return name === "braceexpand" ? state.braceexpand !== false : !!state[name]; },
-        set enabled(value) { state[name] = value; },
-      });
+        get enabled() { return name === "braceexpand" ? state.braceexpand !== false : !!state[name]; }, set enabled(value) { state[name] = value; }, });
     }
     for (const [name, option] of (setNamespace ? state.extensions?.options : state.extensions?.shoptOptions) ?? []) options.set(name, option);
     const emit = async (name: string, enabled: boolean): Promise<void> => {
-      if (!quiet) await writeText(context.stdout, print ? setNamespace ? `set ${enabled ? "-" : "+"}o ${name}\n` : `shopt -${enabled ? "s" : "u"} ${name}\n` : `${name.padEnd(20)}\t${enabled ? "on" : "off"}\n`);
-    };
+      if (!quiet) await writeText(context.stdout, print ? setNamespace ? `set ${enabled ? "-" : "+"}o ${name}\n` : `shopt -${enabled ? "s" : "u"} ${name}\n` : `${name.padEnd(20)}\t${enabled ? "on" : "off"}\n`);};
     if (index === context.args.length) {
       for (const [name, option] of options) if ((!set || option.enabled) && (!unset || !option.enabled)) await emit(name, option.enabled);
       return 0;
@@ -17551,7 +14055,6 @@ export class Runtime {
     }
     return status;
   }
-
   private async printDeclarationValue(value: ShellValue, state: State, io: IO): Promise<void> {
     const allocation = this.budget.values.scope();
     try {
@@ -17584,7 +14087,6 @@ export class Runtime {
       await writeText(io.stdout, quoted);
     } finally { allocation.close(); }
   }
-
   private async printfVariable(context: CommandContext & IO, state: State, assignments: Map<string, SavedVariable>): Promise<number> {
     const incoming = getCommandArguments(context);
     let offset = 0;
@@ -17660,8 +14162,7 @@ export class Runtime {
             this.signal.throwIfAborted();
             if (!(error instanceof TypeError)) throw error;
             return undefined;
-          }
-        };
+          }};
         let text = decode(shellValueBytes(value, allocation));
         if (text !== undefined && index && numericIndex(index) !== 0 && !arrayStore(state)?.get(name) && state.variables[name] !== undefined) {
           const previous = stateMonitor(state)!.values.get(name, state.variables[name]!);
@@ -17683,7 +14184,6 @@ export class Runtime {
       return status;
     } finally { allocation.close(); }
   }
-
   private async mapfileBuiltin(context: CommandContext & IO, state: State): Promise<number> {
     const allocation = this.budget.values.scope();
     const work = { remaining: this.budget.limits.maxExpansionBytes * 8, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
@@ -17705,21 +14205,12 @@ export class Runtime {
       const input = context.stdin instanceof ShellInput ? context.stdin : new ShellInput(context.stdin, this.budget, this.signal);
       let pendingFlow: Flow | undefined;
       await collectMapfile(options, input, {
-        allocation: () => this.budget.values.scope(),
-        loop: () => this.budget.loop(),
-        tryWriteSync: (index, value) => {
+        allocation: () => this.budget.values.scope(), loop: () => this.budget.loop(), tryWriteSync: (index, value) => {
           if (pendingFlow) return true;
           const current = pinned!;
           const attached = store.bindings.get(options.name) === entry;
           const mon = stateMonitor(state);
-          if (
-            !mon ||
-            current.associative ||
-            current.references > (attached ? 2 : 1) ||
-            state.locals.length > 0 ||
-            mon.hasAnyOverlays() ||
-            store.watches.size > 0
-          ) {
+          if ( !mon || current.associative || current.references > (attached ? 2 : 1) || state.locals.length > 0 || mon.hasAnyOverlays() || store.watches.size > 0) {
             return false;
           }
           const fastToken = tryTextTokenSync(current.owner, value, this.signal);
@@ -17729,18 +14220,14 @@ export class Runtime {
             if (attached) {
               mon.publish(tickets, options.name, () => {
                 current.insert(index, fastToken);
-                store.revise(options.name, current, tickets);
-              });
-            } else {
-              current.insert(index, fastToken);
-            }
+                store.revise(options.name, current, tickets);});
+            } else current.insert(index, fastToken);
             return true;
           } catch (error) {
             fastToken.release();
             throw error;
           }
-        },
-        write: async (index, value) => {
+        }, write: async (index, value) => {
           if (pinned !== entry.binding) { const previous = pinned!; pinned = entry.binding.retain(); await previous.release(); }
           const operation = ArrayOwner.create(store.owner.ledger, store.owner);
           let staged: IndexedBinding | undefined;
@@ -17751,7 +14238,6 @@ export class Runtime {
             const supersede = attached ? await stateMonitor(state)!.prepareTypedPublication(options.name, operation, this.signal) : undefined;
             if (attached) await this.prepareArrayObservers(state, operation);
             const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
-            // Exclude the mapfile pin and the live name's reference from COW.
             staged = current.references > (attached ? 2 : 1) ? await current.copy(this.signal) : current.retain();
             const token = await valueToken(staged.owner, value, this.signal);
             try {
@@ -17763,8 +14249,7 @@ export class Runtime {
               let released: Promise<void> | undefined;
               stateMonitor(state)!.publish(tickets, options.name, () => {
                 supersede!();
-                released = store.publish(options.name, staged!, tickets);
-              });
+                released = store.publish(options.name, staged!, tickets);});
               staged = undefined;
               await released;
             } else {
@@ -17775,8 +14260,7 @@ export class Runtime {
               await previous.release();
             }
           } finally { try { await staged?.release(); } finally { await operation.close(); } }
-        },
-        callback: async (source, index, value) => {
+        }, callback: async (source, index, value) => {
           if (pendingFlow) return;
           const callbackAllocation = this.budget.values.scope();
           const nested = mapfileCallbackStates.has(state);
@@ -17793,8 +14277,7 @@ export class Runtime {
             if (!nested) mapfileCallbackStates.delete(state);
             callbackAllocation.close();
           }
-        },
-      });
+        }, });
       if (pendingFlow) throw pendingFlow;
       return 0;
     } catch (error) {
@@ -17879,16 +14362,13 @@ export class Runtime {
           continue;
         }
         const [resolved] = await this.searchPaths(name, state, false, true, false);
-        if (resolved !== undefined) {
-          table.set(name, resolved);
-        } else if (!shellBuiltinNames.has(name) && !this.commands.has(name) && name !== "bash" && name !== "sh") {
+        if (resolved !== undefined) table.set(name, resolved); else if (!shellBuiltinNames.has(name) && !this.commands.has(name) && name !== "bash" && name !== "sh") {
           await this.diagnostic(context, `hash: ${name}: not found`);
           status = 1;
         }
       }
       return status;
     }
-
     if (command === "shopt") return this.shoptBuiltin(context, state);
     if (command === "let") return this.letBuiltin(context, state);
     if (command === "mapfile" || command === "readarray") return this.mapfileBuiltin(context, state);
@@ -18217,8 +14697,7 @@ export class Runtime {
         const append = arg[name.length] === "+";
         const assignedValue = (): ShellValue => {
           const original = declarationValues[declarationOffset + declarationIndex]!;
-          return typeof original === "string" ? match[2]! : shellValueFromBytes(shellValueBytes(original, context[valueScope]).subarray(name.length + (append ? 2 : 1)), context[valueScope]);
-        };
+          return typeof original === "string" ? match[2]! : shellValueFromBytes(shellValueBytes(original, context[valueScope]).subarray(name.length + (append ? 2 : 1)), context[valueScope]);};
         if (state.readonlyVariables?.has(name) && (match[2] !== undefined || localDeclaration)) {
           const provenance = readonlySyntax && (command === "readonly" || command === "local" && indexedLocal) ? `${command}: ` : "";
           await this.diagnostic(context, `${provenance}${name}: readonly variable`); status = 1; continue;
@@ -18235,8 +14714,7 @@ export class Runtime {
             await this.arrayAssignment({ kind: "compound", name, append, entries }, state, context, "readonly");
           } else if (assigned !== undefined) {
             await this.arrayAssignment({ kind: "element", name, append, index: { decimal: "0" }, value: {
-              offset: 0, parts: [{ kind: "text", value: shellValueText(assigned), quoted: true, ...(typeof assigned === "string" ? {} : { byteValue: assigned }) }],
-            } }, state, context, "readonly");
+              offset: 0, parts: [{ kind: "text", value: shellValueText(assigned), quoted: true, ...(typeof assigned === "string" ? {} : { byteValue: assigned }) }], } }, state, context, "readonly");
           } else if (!arrayStore(state)?.get(name) && Object.hasOwn(state.variables, name) && !state.readonlyVariables?.has(name)) {
             await this.arrayAssignment({ kind: "compound", name, append: true, entries: [] }, state, context, "readonly");
           } else {
@@ -18273,8 +14751,6 @@ export class Runtime {
             if (saved && !enabled.has("I")) state.variableAttributes?.delete(name);
             this.declareAttributes(state, name, enabled, disabled);
             if (compound) {
-              // Retain the visible outer binding while expanding the initializer.
-              // The saved local participates in the shared publication observers.
               if (saved) locals!.set(name, saved);
               await this.arrayAssignment(compound, state, context, enabled.has("r") ? "readonly" : undefined, "declaration", indexedLocal ? associativeDeclaration : undefined);
               published = true;
@@ -18308,8 +14784,7 @@ export class Runtime {
               stateMonitor(state)!.publish(tickets, name, () => {
                 if (saved) locals!.set(name, saved);
                 delete state.variables[name];
-                released = store.publish(name, shadow!, tickets, prepared);
-              });
+                released = store.publish(name, shadow!, tickets, prepared);});
               shadow = undefined;
               published = true;
               watch.close();
@@ -18325,8 +14800,7 @@ export class Runtime {
               catch (error) {
                 if (primaryPresent) context[invocationScope].failures.push(error);
                 else { primaryPresent = true; primary = error; }
-              }
-            };
+              }};
             if (preparedSaved && saved && !locals!.has(name)) await cleanup(() => this.discardVariable(saved));
             if (preparedExisting && existingLocal && !published) await cleanup(() => this.discardVariable(existingLocal));
             await cleanup(() => shadow?.release());
@@ -18355,8 +14829,7 @@ export class Runtime {
               stateMonitor(state)!.publish(tickets, name, () => {
                 locals!.set(name, saved);
                 released = store.remove(name, tickets);
-                state.variables[name] = value;
-              });
+                state.variables[name] = value;});
               await released;
             } finally { try { await operation.close(); } finally { holding.release(); } }
             assignments.delete(name);
@@ -18381,8 +14854,7 @@ export class Runtime {
               let released: Promise<void> | undefined;
               stateMonitor(state)!.publish(tickets, name, () => {
                 locals!.set(name, saved);
-                released = store.publish(name, shadow!, tickets);
-              });
+                released = store.publish(name, shadow!, tickets);});
               shadow = undefined;
               await released;
             } finally { try { await shadow?.release(); await operation.close(); } finally { holding.release(); } }
@@ -18415,9 +14887,7 @@ export class Runtime {
             const target = this.referenceName(state, name);
             const element = this.variableTarget(target)!;
             if (element.subscript !== undefined && append) {
-              await this.arrayAssignment({ kind: "element", name: element.name, append: true,
-                index: stringIndex(element.subscript, this.budget.parsing, parseArraySubscript(element.subscript, this.budget.parsing, byteLocale(state.variables), state.depth)),
-                value: { offset: 0, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } }, state, context);
+              await this.arrayAssignment({ kind: "element", name: element.name, append: true, index: stringIndex(element.subscript, this.budget.parsing, parseArraySubscript(element.subscript, this.budget.parsing, byteLocale(state.variables), state.depth)), value: { offset: 0, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } }, state, context);
             } else {
               if (append) value = state.variableAttributes?.get(target)?.includes("i")
                 ? concatShellValues([`(${state.variables[target] || "0"})+(`, value, ")"], context[valueScope])
@@ -18425,8 +14895,7 @@ export class Runtime {
               await this.assignVariable(state, name, value, context);
             }
           }
-        }
-        else if (command === "local" && name === "OPTIND") this.syncGetopts(state);
+        } else if (command === "local" && name === "OPTIND") this.syncGetopts(state);
         if (command === "export" && !enabled.has("n") || enabled.has("x")) state.exported.add(attributeName);
         if (command === "export" && enabled.has("n")) state.exported.delete(attributeName);
         if (disabled.has("x")) state.exported.delete(attributeName);
@@ -18529,23 +14998,18 @@ export class Runtime {
         for (let index = 1; index < option.length; index++) {
           const flag = option[index];
           if (flag === "r") { raw = true; continue; }
-          // Input is nonterminal: silent has no effect and prompts are not emitted.
           if (flag === "s") continue;
           if (flag !== "n" && flag !== "N" && flag !== "d" && flag !== "a" && flag !== "p" && flag !== "u") { invalid = true; break; }
           if (flag === "N") exact = true;
           const value = option.slice(index + 1) || names.shift();
           if (value === undefined) invalid = true;
-          else if (flag === "p") { /* Consume the prompt without terminal output. */ }
-          else if (flag === "u") {
-            // The default builtin only selects the supplied standard input.
+          else if (flag === "p") { /* Consume the prompt without terminal output. */ } else if (flag === "u") {
             const descriptor = value.trim();
             const digits = descriptor.startsWith("+") || descriptor.startsWith("-") ? descriptor.slice(1) : descriptor;
             if (!digits.length || [...digits].some(character => character !== "0")) invalid = true;
-          }
-          else if (flag === "a") array = value;
+          } else if (flag === "a") array = value;
           else if (flag === "d") delimiter = new TextEncoder().encode(value)[0] ?? 0;
           else {
-            // Bash 5.3 permits an optional sign and surrounding ASCII whitespace.
             let start = 0;
             let end = value.length;
             while (start < end && " \t\n\r\v\f".includes(value[start]!)) start++;
@@ -18584,8 +15048,7 @@ export class Runtime {
       const input = context.stdin instanceof ShellInput ? context.stdin : new ShellInput(context.stdin, this.budget, this.signal);
       const line = count === 0 && context.stdin === closedSource ? undefined
         : await input.line(raw, {
-          ...(count === undefined ? {} : { count }), ...(delimiter === undefined ? {} : { delimiter }), byteCount: byteLocale(state.variables), exact,
-        });
+          ...(count === undefined ? {} : { count }), ...(delimiter === undefined ? {} : { delimiter }), byteCount: byteLocale(state.variables), exact, });
       try {
       if (array !== undefined) {
         array = this.referenceName(state, array);
@@ -18596,12 +15059,10 @@ export class Runtime {
           const fields = await line?.fields(separators) ?? [];
           for (let index = 0; index < fields.length; index++) await writer.set(index, fields[index]!.value);
         } finally { await writer.close(); }
-      }
-      else if (!names.length) {
+      } else if (!names.length) {
         if (state.readonlyVariables?.has("REPLY")) { await this.diagnostic(context, "REPLY: readonly variable"); return 1; }
         await this.writeVariable(state, "REPLY", line?.shellValue ?? "", context);
-      }
-      else {
+      } else {
         const separators = exact ? "" : stateMonitor(state)?.values.get("IFS", state.variables.IFS ?? " \t\n") ?? state.variables.IFS ?? " \t\n";
         const fields = await line?.fields(separators, names.length) ?? [];
         for (let index = 0; index < names.length; index++) {
@@ -18648,11 +15109,9 @@ export class Runtime {
     }
     return undefined;
   }
-
   async words(words: readonly Word[], state: State, io: IO, declaration = false): Promise<string[]> {
     return (await this.valueWords(words, state, io, declaration)).map(shellValueText);
   }
-
   private fastValueWords(words: readonly Word[], state: State, io: IO, declaration = false, indexedDeclaration = false, overrideDiagnosticLine?: number): ShellValue[] | undefined {
     if (indexedDeclaration) return undefined;
     const fields: ShellValue[] = [];
@@ -18668,7 +15127,6 @@ export class Runtime {
     }
     return fields;
   }
-
   private async valueWords(words: readonly Word[], state: State, io: IO, declaration = false, indexedDeclaration = false, compounds?: Map<number, ArrayAssignment>, argumentOffset = 1): Promise<ShellValue[]> {
     const fields: ShellValue[] = [];
     for (const word of words) {
@@ -18705,11 +15163,9 @@ export class Runtime {
     }
     return fields;
   }
-
   async part(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString = false): Promise<string> {
     return shellValueText(await this.valuePart(part, state, io, hereString));
   }
-
   private async *prefixNames(prefix: string, state: State): AsyncGenerator<string> {
     const allocation = this.budget.values.scope();
     const store = arrayStore(state);
@@ -18736,12 +15192,9 @@ export class Runtime {
         bytes += scanned.bytes;
         allocation.reserveBytes(name.length * 2 + 64);
         seen.add(name);
-        names.push(name);
-      };
+        names.push(name);};
       for (const name in state.variables) if (Object.hasOwn(state.variables, name)) await consider(name, state.variables[name] !== undefined);
       if (store) for (const [name, entry] of store.bindings) await consider(name, entry.binding.assigned);
-      // Bash lists initialized names from dynamically enclosing local scopes,
-      // even when the current local value shadows them with an unset value.
       for (const frame of state.locals) for (const [name, saved] of frame) {
         await consider(name, saved.value !== undefined || typedSavedVariables.get(saved)?.binding?.assigned === true);
       }
@@ -18753,9 +15206,7 @@ export class Runtime {
       }
     } finally { allocation.close(); holding?.release(); }
   }
-
   private async resolveParameter<T extends WordPart>(part: T, state: State, io: IO): Promise<T> {
-    // Indirection of a nameref exposes its target name, not the target's value.
     if (part.kind === "variable" && part.indirect && state.variableAttributes?.get(part.name)?.includes("n")) return part;
     if (part.kind === "variable" && part.indirect) {
       const referencePart: Extract<WordPart, { kind: "variable" }> = { kind: "variable", name: part.name, quoted: true, ...(part.line === undefined ? {} : { line: part.line }) };
@@ -18812,7 +15263,6 @@ export class Runtime {
     setArraySelector(resolved, { kind: "element", index: { decimal: String(index) } });
     return resolved;
   }
-
   private async valuePart(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString = false, split = false, hereDocument = false): Promise<ShellValue> {
     part = await this.resolveParameter(part, state, io);
     if (part.kind === "variable" && part.length && (part.name === "@" || part.name === "*")) return String(state.positional.length);
@@ -18863,9 +15313,7 @@ export class Runtime {
       if (part.operator) return this.parameterPattern(part, value ?? "", state, io, hereString);
       return value ?? "";
     }
-    if (part.kind === "variable" && (part.transform === "a" || part.transform === "A" || part.transform === "K" || part.transform === "k")) {
-      return this.variableMetaTransform(part, state, io);
-    }
+    if (part.kind === "variable" && (part.transform === "a" || part.transform === "A" || part.transform === "K" || part.transform === "k")) return this.variableMetaTransform(part, state, io);
     if (part.kind === "variable" && (part.transform || memberPatternOperators.includes(part.operator ?? ""))) {
       const selector = getArraySelector(part);
       if (selector?.kind === "members" || part.name === "@" || part.name === "*") {
@@ -18946,14 +15394,12 @@ export class Runtime {
       return value;
     } finally { token?.release(); holding?.release(); }
   }
-
   private parameterOperandIO(word: Word, state: State, io: IO): IO {
     this.signal.throwIfAborted();
     const parameterDepth = (io.parameterDepth ?? 0) + 1;
     if (state.depth + parameterDepth > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", word.offset);
     return { ...io, parameterDepth };
   }
-
   private async variableMetaTransform(part: Extract<WordPart, { kind: "variable" }>, state: State, io: IO): Promise<ShellValue> {
     const name = this.referenceName(state, part.name);
     const binding = arrayStore(state)?.get(name);
@@ -18966,9 +15412,7 @@ export class Runtime {
       : attributes.includes(flag)
     ).join("");
     const hasBindingOrVar = Boolean(binding) || Object.hasOwn(state.variables, name) || state.variableAttributes?.has(name) || state.exported.has(name) || state.readonlyVariables?.has(name);
-    if (part.transform === "a") {
-      return hasBindingOrVar ? flags : "";
-    }
+    if (part.transform === "a") return hasBindingOrVar ? flags : "";
     if (part.transform === "A") {
       if (!hasBindingOrVar) return "";
       if (binding) {
@@ -18995,20 +15439,15 @@ export class Runtime {
         if (part.transform === "K") {
           const qk = binding.associative ? shellValueText(await this.transformValue(k, "Q", state, io)) : k;
           pairs.push(`${qk} ${JSON.stringify(v)}`);
-        } else {
-          pairs.push(k, v);
-        }
+        } else pairs.push(k, v);
       }
       return pairs.join(" ");
     }
     const rawVal = this.variable(state, name);
     if (rawVal === undefined) return "";
-    if (selector?.kind === "members") {
-      return part.transform === "K" ? `0 ${JSON.stringify(rawVal)}` : `0 ${rawVal}`;
-    }
+    if (selector?.kind === "members") return part.transform === "K" ? `0 ${JSON.stringify(rawVal)}` : `0 ${rawVal}`;
     return part.transform === "K" ? this.transformValue(rawVal, "Q", state, io) : rawVal;
   }
-
   private async transformValue(value: ShellValue, operator: NonNullable<Extract<WordPart, { kind: "variable" }>["transform"]>, state: State, io: IO): Promise<ShellValue> {
     if (operator === "u" || operator === "U" || operator === "L") {
       const text = shellValueText(value);
@@ -19034,12 +15473,9 @@ export class Runtime {
     const allocation = io[valueScope] ?? this.budget.values.scope();
     try {
       return await transformParameter(value, operator === "E" ? "E" : "Q", {
-        maximumBytes: this.budget.limits.maxExpansionBytes, byteLocale: byteLocale(state.variables), allocation,
-        work: { remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 8 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") },
-      });
+        maximumBytes: this.budget.limits.maxExpansionBytes, byteLocale: byteLocale(state.variables), allocation, work: { remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 8 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") }, });
     } finally { if (!io[valueScope]) allocation.close(); }
   }
-
   private async partValue(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString: boolean, split: boolean, hereDocument: boolean): Promise<ShellValue> {
     this.signal.throwIfAborted();
     if (part.kind === "compound-substitution-eof") {
@@ -19062,8 +15498,7 @@ export class Runtime {
       this.signal.throwIfAborted();
       const tempPath = `/.procsub-${++nextProcessSubstitutionId}`;
       io[invocationScope].register(async () => {
-        try { await this.sourceFs.rm(tempPath, { force: true }); } catch {}
-      });
+        try { await this.sourceFs.rm(tempPath, { force: true }); } catch {}});
       if (part.direction === "<") {
         const capture = new Capture();
         const child = await cloneState(state, this.signal);
@@ -19076,10 +15511,7 @@ export class Runtime {
         const references = new PipeDescriptorFrame(io[invocationScope]);
         const lifetime = new DescriptorLifetime();
         const captureIO = isolateIO({
-          ...io,
-          stdout: this.budget.sink(capture, this.signal),
-          processSubstitutions: undefined,
-        }, references);
+          ...io, stdout: this.budget.sink(capture, this.signal), processSubstitutions: undefined, }, references);
         (captureIO.descriptors as Map<number, Descriptor>).set(1, { output: captureIO.stdout, lifetime });
         try {
           await this.run(part.script, child, captureIO);
@@ -19095,8 +15527,7 @@ export class Runtime {
         if (pendingCapture) await pendingCapture;
         await this.sourceFs.writeFile(tempPath, capture.takeBytes());
         io.processSubstitutions?.push(async () => {
-          try { await this.sourceFs.rm(tempPath, { force: true }); } catch {}
-        });
+          try { await this.sourceFs.rm(tempPath, { force: true }); } catch {}});
         return tempPath;
       }
       await this.sourceFs.writeFile(tempPath, new Uint8Array(0));
@@ -19119,15 +15550,10 @@ export class Runtime {
         const input = new ShellInput(prepared.source, this.budget, this.commandSignal, prepared.options);
         const lifetime = new DescriptorLifetime(async () => {
           try { await input.close(); }
-          finally { await prepared.close(); }
-        });
+          finally { await prepared.close(); }});
         const references = new PipeDescriptorFrame(io[invocationScope]);
         const childIO = isolateIO({
-          ...io,
-          stdin: input,
-          stdinIsDefault: false,
-          processSubstitutions: undefined,
-        }, references);
+          ...io, stdin: input, stdinIsDefault: false, processSubstitutions: undefined, }, references);
         (childIO.descriptors as Map<number, Descriptor>).set(0, { input, stdinIsDefault: false, lifetime });
         try {
           await this.run(part.script, child, childIO);
@@ -19138,8 +15564,7 @@ export class Runtime {
           } finally {
             stateMonitor(child)?.closeValues();
           }
-        }
-      });
+        }});
       return tempPath;
     }
     if (part.kind === "substitution") {
@@ -19170,10 +15595,7 @@ export class Runtime {
       if (part.script.printedLines?.size) {
         substitutionDiagnosticLines = new Map<Command, number>();
         for (const [command, line] of part.script.printedLines) {
-          substitutionDiagnosticLines.set(
-            command,
-            part.sourceLine === undefined ? warningLine + (command.line ?? part.line) - part.line : warningLine + line - 1,
-          );
+          substitutionDiagnosticLines.set( command, part.sourceLine === undefined ? warningLine + (command.line ?? part.line) - part.line : warningLine + line - 1, );
         }
       }
       const reprintedLines = part.sourceLine === undefined ? undefined : functionReprintedLines(part.script);
@@ -19181,11 +15603,7 @@ export class Runtime {
       const references = new PipeDescriptorFrame(io[invocationScope]);
       const lifetime = new DescriptorLifetime();
       const captureIO = isolateIO({
-        ...io,
-        ...(substitutionDiagnosticLines === undefined ? { substitutionDiagnosticLines: undefined } : { substitutionDiagnosticLines }),
-        diagnosticOffset: (io.diagnosticLine ?? part.line) - (part.sourceLine ?? part.line),
-        functionCommandLines, diagnosticCommandLines: undefined, stdout: this.budget.sink(capture, this.signal),
-      }, references);
+        ...io, ...(substitutionDiagnosticLines === undefined ? { substitutionDiagnosticLines: undefined } : { substitutionDiagnosticLines }), diagnosticOffset: (io.diagnosticLine ?? part.line) - (part.sourceLine ?? part.line), functionCommandLines, diagnosticCommandLines: undefined, stdout: this.budget.sink(capture, this.signal), }, references);
       (captureIO.descriptors as Map<number, Descriptor>).set(1, { output: captureIO.stdout, lifetime });
       try { state.substitutionStatus = fileShortcut ? await this.runCommandIsolated(command, child, captureIO, true) : await this.run(part.script, child, captureIO); }
       finally {
@@ -19269,8 +15687,7 @@ export class Runtime {
         const binding = arrayStore(state)?.get(name);
         const index = binding?.associative ? binding.keys.get("30")?.index ?? -1 : 0;
         retained = binding?.getValue(index) ?? stateMonitor(state)?.values.get(name, value) ?? value;
-      }
-      else if (/^0+$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get(zeroPositionKey, value) ?? value;
+      } else if (/^0+$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get(zeroPositionKey, value) ?? value;
       else if (/^[0-9]+$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get(String(Number(part.name) - 1), value) ?? value;
       else if (part.name === "@" || part.name === "*") {
         const separator = hereString && (part.name === "@" || !part.quoted) ? " " : this.ifsSeparator(state, io);
@@ -19296,8 +15713,7 @@ export class Runtime {
           alternate = "";
           await this.arrayZero(state, part.name, io, async () => {
             retained = await this.arrayJoin(requireArrays(state).owner, await this.valueWord(part.alternate!, state, operandIO, false, false, hereString, false, undefined, hereDocument), "");
-            return retained;
-          });
+            return retained;});
           value = shellValueText(retained!);
           return part.length ? this.valueLength(retained!, state, io) : retained!;
         }
@@ -19313,7 +15729,6 @@ export class Runtime {
     } else this.requireParameter(value, part.name, state, io, part.line);
     return part.length ? this.valueLength(retained ?? "", state, io) : retained ?? "";
   }
-
   private async valueLength(value: ShellValue, state: State, io: IO): Promise<string> {
     const limit = this.budget.limits.maxExpansionBytes;
     const work = { remaining: Math.min(Number.MAX_SAFE_INTEGER, limit * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
@@ -19333,7 +15748,6 @@ export class Runtime {
     }
     return String(length);
   }
-
   private ifsSeparator(state: State, io: IO): ShellValue {
     const text = state.variables.IFS ?? " ";
     const value = stateMonitor(state)?.values.get("IFS", text) ?? text;
@@ -19342,7 +15756,6 @@ export class Runtime {
     const bytes = shellValueBytes(value, io[valueScope]);
     return bytes.length ? shellValueFromBytes(bytes.subarray(0, shellCharacterWidth(bytes, 0, byteCount)), io[valueScope]) : "";
   }
-
   async substring(part: Extract<WordPart, { kind: "variable" }>, value: string | undefined, state: State, io: IO): Promise<string> {
     const owner = arrayStore(state)?.get(part.name) ? requireArrays(state).owner : undefined;
     const expression = part.substring!;
@@ -19384,8 +15797,7 @@ export class Runtime {
         this.rethrowArithmeticControl(error);
         throw new ExpansionFailure(`${part.name}: ${message(error, this.budget.onInternalError)}`, line);
       }
-      finally { retained?.release(); }
-    };
+      finally { retained?.release(); }};
     const offsetExpression = await arithmetic(expression.offset);
     let bytes: Buffer | undefined;
     if (byteLocale(state.variables)) {
@@ -19414,17 +15826,8 @@ export class Runtime {
     catch { throw new ExpansionFailure("substring expansion splits a UTF-8 character in a byte locale", line); }
     } finally { scratch.close(); }
   }
-
   private tryFastParameterPatternSync(part: Extract<WordPart, { kind: "variable" }>, value: ShellValue, state: State, io: IO): string | undefined {
-    if (
-      typeof value !== "string" ||
-      state.nocasematch ||
-      this.budget.limits.maxExpansionBytes !== Infinity ||
-      state.depth + (io.parameterDepth ?? 0) >= 60 ||
-      ValueScope.prototype.reserve !== defaultValueScopeReserve ||
-      String.prototype.codePointAt !== defaultStringCodePointAt ||
-      globalThis.Float64Array !== defaultFloat64Array
-    ) {
+    if ( typeof value !== "string" || state.nocasematch || this.budget.limits.maxExpansionBytes !== Infinity || state.depth + (io.parameterDepth ?? 0) >= 60 || ValueScope.prototype.reserve !== defaultValueScopeReserve || String.prototype.codePointAt !== defaultStringCodePointAt || globalThis.Float64Array !== defaultFloat64Array) {
       return undefined;
     }
     const op = part.operator;
@@ -19471,7 +15874,6 @@ export class Runtime {
     }
     return undefined;
   }
-
   async parameterPattern(part: Extract<WordPart, { kind: "variable" }>, value: ShellValue, state: State, io: IO, hereString: boolean): Promise<ShellValue> {
     const fastRes = this.tryFastParameterPatternSync(part, value, state, io);
     if (fastRes !== undefined) {
@@ -19487,8 +15889,7 @@ export class Runtime {
       const parts: { value: ShellValue; literal: boolean }[] = [];
       await this.valueWord(part.alternate!, state, this.parameterOperandIO(part.alternate!, state, io), false, true, hereString, false, (_text, literal, original) => {
         scratch.reserveBytes(64);
-        parts.push({ value: original, literal });
-      });
+        parts.push({ value: original, literal });});
       return await trimParameter(value, parts, part.operator!, byteLocale(state.variables), work, io[valueScope], limit, !!state.extglob);
     }
     const text = shellValueText(value);
@@ -19535,8 +15936,7 @@ export class Runtime {
       result += value.slice(start, end);
       fragment.release();
       retained?.release();
-      retained = next;
-    };
+      retained = next;};
     const ends = await boundaries(text, false, operator === "/%");
     let position = 0;
     while (position <= text.length) {
@@ -19591,11 +15991,9 @@ export class Runtime {
     return result;
     } finally { scratch.close(); }
   }
-
   async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean, value: ShellValue) => void): Promise<string[]> {
     return (await this.valueWord(word, state, io, split, pattern, hereString, conditionalPattern, regexAppend)).map(shellValueText);
   }
-
   private fastValueWord(word: Word, state: State, io: IO, split: boolean, pattern: boolean, hereDocument: boolean, braces: boolean, assignmentStart?: number, overrideDiagnosticLine?: number): ShellValue | undefined {
     const monitor = stateMonitor(state);
     const rawState = monitor ? monitor.raw : state;
@@ -19618,22 +16016,9 @@ export class Runtime {
       } else if (part.kind === "variable") {
         if (rawState.variableAttributes?.get(part.name)?.includes("n")) return undefined;
         if (split && !part.quoted && (rawVars.IFS !== undefined && rawVars.IFS !== " \t\n")) return undefined;
-        if (
-          !part.indirect &&
-          !part.prefixNames &&
-          !part.length &&
-          !part.substring &&
-          !part.transform &&
-          part.operator === undefined &&
-          getArraySelector(part) === undefined &&
-          (part.name === "?" || part.name === "#" || (part.name.length === 1 && part.name >= "1" && part.name <= "9"))
-        ) {
+        if ( !part.indirect && !part.prefixNames && !part.length && !part.substring && !part.transform && part.operator === undefined && getArraySelector(part) === undefined && (part.name === "?" || part.name === "#" || (part.name.length === 1 && part.name >= "1" && part.name <= "9"))) {
           let val: ShellValue | undefined;
-          if (part.name === "?") {
-            val = String(rawState.status);
-          } else if (part.name === "#") {
-            val = String((this._fastSubPositional ?? rawState.positional).length);
-          } else {
+          if (part.name === "?") val = String(rawState.status); else if (part.name === "#") val = String((this._fastSubPositional ?? rawState.positional).length); else {
             const idx = part.name.charCodeAt(0) - 49;
             const activePos = this._fastSubPositional ?? rawState.positional;
             const rawPos = activePos[idx];
@@ -19642,46 +16027,23 @@ export class Runtime {
           }
           if (typeof val !== "string") return undefined;
           if (split && !part.quoted) {
-            if (val.length === 0 || val.includes(" ") || val.includes("\t") || val.includes("\n") || (!rawState.noglob && hasGlobOrEscape(val, !!rawState.extglob))) {
-              return undefined;
-            }
+            if (val.length === 0 || val.includes(" ") || val.includes("\t") || val.includes("\n") || (!rawState.noglob && hasGlobOrEscape(val, !!rawState.extglob))) return undefined;
           }
           out += val;
           continue;
         }
-        if (
-          part.indirect &&
-          !part.prefixNames &&
-          !part.specialParameter &&
-          !part.length &&
-          !part.substring &&
-          !part.transform &&
-          part.operator === undefined &&
-          getArraySelector(part) === undefined &&
-          !rawState.nounset &&
-          isShellIdentifier(part.name) &&
-          !activeArrayStore?.get(part.name)
-        ) {
+        if ( part.indirect && this.budget.limits.maxExpansionBytes === Infinity && !part.prefixNames && !part.specialParameter && !part.length && !part.substring && !part.transform && part.operator === undefined && getArraySelector(part) === undefined && !rawState.nounset && isShellIdentifier(part.name) && !activeArrayStore?.get(part.name)) {
           const refRaw = rawVars[part.name];
           const refName = refRaw === undefined ? undefined : (this._syncArithRawWriteOnly && this._syncArithTouched?.has(part.name) ? refRaw : (monitor?.values.get(part.name, refRaw) ?? refRaw));
           if (typeof refName !== "string" || !isShellIdentifier(refName)) return undefined;
-          if (
-            activeArrayStore?.get(refName) ||
-            rawState.variableAttributes?.get(refName) ||
-            refName === "PIPESTATUS" ||
-            refName === "LINENO" ||
-            refName === "_" ||
-            refName === "FUNCNAME"
-          ) {
+          if ( activeArrayStore?.get(refName) || rawState.variableAttributes?.get(refName) || refName === "PIPESTATUS" || refName === "LINENO" || refName === "_" || refName === "FUNCNAME") {
             return undefined;
           }
           const targetRaw = rawVars[refName];
           const targetVal = targetRaw === undefined ? "" : (this._syncArithRawWriteOnly && this._syncArithTouched?.has(refName) ? targetRaw : (monitor?.values.get(refName, targetRaw) ?? targetRaw));
           if (typeof targetVal !== "string") return undefined;
           if (split && !part.quoted) {
-            if (targetVal.length === 0 || targetVal.includes(" ") || targetVal.includes("\t") || targetVal.includes("\n") || (!rawState.noglob && hasGlobOrEscape(targetVal, !!rawState.extglob))) {
-              return undefined;
-            }
+            if (targetVal.length === 0 || targetVal.includes(" ") || targetVal.includes("\t") || targetVal.includes("\n") || (!rawState.noglob && hasGlobOrEscape(targetVal, !!rawState.extglob))) return undefined;
           }
           out += targetVal;
           continue;
@@ -19692,15 +16054,7 @@ export class Runtime {
         const selector = getArraySelector(part);
         const arrayBinding = activeArrayStore?.get(part.name);
         if (selector !== undefined || arrayBinding !== undefined) {
-          if (
-            selector === undefined ||
-            !arrayBinding ||
-            rawState.nounset ||
-            activeArrayStore!.watches.has(part.name) ||
-            monitor?.hasOverlay(part.name) ||
-            ValueScope.prototype.reserve !== defaultValueScopeReserve ||
-            String.prototype.codePointAt !== defaultStringCodePointAt
-          ) {
+          if ( selector === undefined || !arrayBinding || rawState.nounset || activeArrayStore!.watches.has(part.name) || monitor?.hasOverlay(part.name) || ValueScope.prototype.reserve !== defaultValueScopeReserve || String.prototype.codePointAt !== defaultStringCodePointAt) {
             return undefined;
           }
           if (selector.kind === "members" || selector.kind === "keys") {
@@ -19709,16 +16063,7 @@ export class Runtime {
               out += String(arrayBinding.values.size);
               continue;
             }
-            if (
-              !part.length &&
-              part.operator === undefined &&
-              (!part.substring || !isKeys) &&
-              !arrayBinding.associative &&
-              (!split || (part.quoted && selector.separator === "*")) &&
-              this.budget.limits.maxExpansionBytes === Infinity &&
-              arrayBinding.values.size === arrayBinding.maximum + 1 &&
-              (rawState.depth + (io.parameterDepth ?? 0)) < 60
-            ) {
+            if ( !part.length && part.operator === undefined && (!part.substring || !isKeys) && !arrayBinding.associative && (!split || (part.quoted && selector.separator === "*")) && this.budget.limits.maxExpansionBytes === Infinity && arrayBinding.values.size === arrayBinding.maximum + 1 && (rawState.depth + (io.parameterDepth ?? 0)) < 60) {
               const ifsVal = monitor?.values.get("IFS", rawVars.IFS ?? " ") ?? rawVars.IFS ?? " ";
               if (typeof ifsVal === "string" && (ifsVal.length === 0 || ifsVal.charCodeAt(0) < 128)) {
                 const sep = selector.separator === "@" ? " " : ifsVal.length > 0 ? ifsVal[0]! : "";
@@ -19733,16 +16078,13 @@ export class Runtime {
                   if (directOp !== undefined) return directOp;
                   const simpleExpr = tryEvalSimpleExpandedArith(trimmed, rawState, monitor, activeArrayStore, syncTouched);
                   if (simpleExpr !== undefined) return Number(simpleExpr);
-                  return undefined;
-                };
+                  return undefined;};
                 let startIdx = 0;
                 let endIdx = arrayBinding.maximum + 1;
                 let validSlice = true;
                 if (part.substring) {
                   const offNum = evalSliceInt(part.substring.offset);
-                  if (offNum === undefined || offNum < 0) {
-                    validSlice = false;
-                  } else {
+                  if (offNum === undefined || offNum < 0) validSlice = false; else {
                     startIdx = offNum;
                     if (part.substring.length) {
                       const lenNum = evalSliceInt(part.substring.length);
@@ -19797,9 +16139,7 @@ export class Runtime {
               } else {
                 const syncTouched = this._syncArithRawWriteOnly ? this._syncArithTouched : undefined;
                 const directOp = resolveSimpleArithOperand(subVal.trim(), rawState, monitor, activeArrayStore, syncTouched);
-                if (directOp !== undefined && directOp >= 0) {
-                  subIdx = directOp;
-                } else {
+                if (directOp !== undefined && directOp >= 0) subIdx = directOp; else {
                   const exprStr = tryEvalSimpleExpandedArith(subVal, rawState, monitor, activeArrayStore, syncTouched);
                   if (exprStr !== undefined) {
                     const n = Number(exprStr);
@@ -19821,30 +16161,21 @@ export class Runtime {
               continue;
             }
             let resolvedElem: string;
-            if (part.operator === undefined) {
-              resolvedElem = elemVal ?? "";
-            } else if ((part.operator === "-" || part.operator === ":-") && part.alternate) {
+            if (part.operator === undefined) resolvedElem = elemVal ?? ""; else if ((part.operator === "-" || part.operator === ":-") && part.alternate) {
               const isMissing = elemVal === undefined || (part.operator === ":-" && elemVal === "");
               if (isMissing) {
                 const altVal = this.fastValueWord(part.alternate, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
                 if (typeof altVal !== "string") return undefined;
                 resolvedElem = altVal;
-              } else {
-                resolvedElem = elemVal!;
-              }
+              } else resolvedElem = elemVal!;
             } else if ((part.operator === "+" || part.operator === ":+") && part.alternate) {
               const isPresent = elemVal !== undefined && (part.operator === "+" || elemVal !== "");
               if (isPresent) {
                 const altVal = this.fastValueWord(part.alternate, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
                 if (typeof altVal !== "string") return undefined;
                 resolvedElem = altVal;
-              } else {
-                resolvedElem = "";
-              }
-            } else if (
-              (part.operator === "^" || part.operator === "^^" || part.operator === "," || part.operator === ",,") &&
-              (!part.alternate || part.alternate.parts.length === 0)
-            ) {
+              } else resolvedElem = "";
+            } else if ( (part.operator === "^" || part.operator === "^^" || part.operator === "," || part.operator === ",,") && (!part.alternate || part.alternate.parts.length === 0)) {
               const s = elemVal ?? "";
               for (let k = 0; k < s.length; k++) {
                 if (s.charCodeAt(k) >= 128) return undefined;
@@ -19858,13 +16189,9 @@ export class Runtime {
                     : part.operator === "^"
                       ? s[0]!.toUpperCase() + s.slice(1)
                       : s[0]!.toLowerCase() + s.slice(1);
-            } else {
-              return undefined;
-            }
+            } else return undefined;
             if (split && !part.quoted) {
-              if (resolvedElem.length === 0 || resolvedElem.includes(" ") || resolvedElem.includes("\t") || resolvedElem.includes("\n") || (!rawState.noglob && hasGlobOrEscape(resolvedElem, !!rawState.extglob))) {
-                return undefined;
-              }
+              if (resolvedElem.length === 0 || resolvedElem.includes(" ") || resolvedElem.includes("\t") || resolvedElem.includes("\n") || (!rawState.noglob && hasGlobOrEscape(resolvedElem, !!rawState.extglob))) return undefined;
             }
             out += resolvedElem;
             continue;
@@ -19872,18 +16199,7 @@ export class Runtime {
           return undefined;
         }
         if (part.substring) {
-          if (
-            part.length ||
-            part.operator !== undefined ||
-            this.budget.limits.maxExpansionBytes !== Infinity ||
-            rawState.depth + (io.parameterDepth ?? 0) >= 60 ||
-            !part.substring.offset.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring)) ||
-            (part.substring.length && !part.substring.length.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring))) ||
-            ValueScope.prototype.reserve !== defaultValueScopeReserve ||
-            String.prototype.codePointAt !== defaultStringCodePointAt ||
-            globalThis.Float64Array !== defaultFloat64Array ||
-            (!part.substring.offset.parts.length && !part.substring.length)
-          ) {
+          if ( part.length || part.operator !== undefined || this.budget.limits.maxExpansionBytes !== Infinity || rawState.depth + (io.parameterDepth ?? 0) >= 60 || !part.substring.offset.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring)) || (part.substring.length && !part.substring.length.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring))) || ValueScope.prototype.reserve !== defaultValueScopeReserve || String.prototype.codePointAt !== defaultStringCodePointAt || globalThis.Float64Array !== defaultFloat64Array || (!part.substring.offset.parts.length && !part.substring.length)) {
             return undefined;
           }
           const evalSubInt = (w: Word): number | undefined => {
@@ -19897,8 +16213,7 @@ export class Runtime {
             if (directOp !== undefined) return directOp;
             const simpleExpr = tryEvalSimpleExpandedArith(trimmed, rawState, monitor, activeArrayStore, syncTouched);
             if (simpleExpr !== undefined) return Number(simpleExpr);
-            return undefined;
-          };
+            return undefined;};
           const offsetNum = evalSubInt(part.substring.offset);
           if (offsetNum === undefined) return undefined;
           const lenNum = part.substring.length ? evalSubInt(part.substring.length) : undefined;
@@ -19927,9 +16242,7 @@ export class Runtime {
             sliced = val.slice(start, end);
           }
           if (split && !part.quoted) {
-            if (sliced.length === 0 || sliced.includes(" ") || sliced.includes("\t") || sliced.includes("\n") || (!rawState.noglob && hasGlobOrEscape(sliced, !!rawState.extglob))) {
-              return undefined;
-            }
+            if (sliced.length === 0 || sliced.includes(" ") || sliced.includes("\t") || sliced.includes("\n") || (!rawState.noglob && hasGlobOrEscape(sliced, !!rawState.extglob))) return undefined;
           }
           out += sliced;
           continue;
@@ -19948,13 +16261,7 @@ export class Runtime {
         }
         if (part.operator !== undefined) {
           if (this.budget.limits.maxExpansionBytes !== Infinity || rawState.depth + (io.parameterDepth ?? 0) >= 60 || ValueScope.prototype.reserve !== defaultValueScopeReserve || String.prototype.codePointAt !== defaultStringCodePointAt || globalThis.Float64Array !== defaultFloat64Array) return undefined;
-          if (
-            !rawState.nocasematch &&
-            (part.operator === "/" || part.operator === "//" || part.operator === "/#" || part.operator === "/%") &&
-            part.alternate &&
-            part.alternate.parts.length >= 1 &&
-            part.alternate.parts.every(p => p.quoted === part.alternate!.parts[0]!.quoted && ((p.kind === "text" && !p.byteValue) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name)))) &&
-            (!part.replacement || part.replacement.parts.length === 0 || part.replacement.parts.every(p => (p.kind === "text" && !p.byteValue) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))))
+          if ( !rawState.nocasematch && (part.operator === "/" || part.operator === "//" || part.operator === "/#" || part.operator === "/%") && part.alternate && part.alternate.parts.length >= 1 && part.alternate.parts.every(p => p.quoted === part.alternate!.parts[0]!.quoted && ((p.kind === "text" && !p.byteValue) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name)))) && (!part.replacement || part.replacement.parts.length === 0 || part.replacement.parts.every(p => (p.kind === "text" && !p.byteValue) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))))
           ) {
             const patQuoted = part.alternate.parts[0]!.quoted;
             const pat = (part.alternate.parts.length === 1 && part.alternate.parts[0]!.kind === "text")
@@ -19999,31 +16306,18 @@ export class Runtime {
             if (fixedGlobRe) {
               fixedGlobRe.lastIndex = 0;
               replaced = val.replace(fixedGlobRe, () => rep);
-            } else if (part.operator === "//") {
-              replaced = val.includes(pat) ? val.split(pat).join(rep) : val;
-            } else if (part.operator === "/") {
+            } else if (part.operator === "//") replaced = val.includes(pat) ? val.split(pat).join(rep) : val; else if (part.operator === "/") {
               const idx = val.indexOf(pat);
               replaced = idx === -1 ? val : val.slice(0, idx) + rep + val.slice(idx + pat.length);
-            } else if (part.operator === "/#") {
-              replaced = val.startsWith(pat) ? rep + val.slice(pat.length) : val;
-            } else {
-              replaced = val.endsWith(pat) ? val.slice(0, val.length - pat.length) + rep : val;
-            }
+            } else if (part.operator === "/#") replaced = val.startsWith(pat) ? rep + val.slice(pat.length) : val; else replaced = val.endsWith(pat) ? val.slice(0, val.length - pat.length) + rep : val;
             if (replaced.length > this.budget.limits.maxExpansionBytes || shellValueByteLength(replaced) > this.budget.limits.maxExpansionBytes) return undefined;
             if (split && !part.quoted) {
-              if (replaced.length === 0 || replaced.includes(" ") || replaced.includes("\t") || replaced.includes("\n") || (!rawState.noglob && hasGlobOrEscape(replaced, !!rawState.extglob))) {
-                return undefined;
-              }
+              if (replaced.length === 0 || replaced.includes(" ") || replaced.includes("\t") || replaced.includes("\n") || (!rawState.noglob && hasGlobOrEscape(replaced, !!rawState.extglob))) return undefined;
             }
             out += replaced;
             continue;
           }
-          if (
-            (part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") &&
-            part.alternate &&
-            part.alternate.parts.length >= 1 &&
-            part.alternate.parts.every(p => p.quoted === part.alternate!.parts[0]!.quoted && ((p.kind === "text" && !p.byteValue) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))))
-          ) {
+          if ( (part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") && part.alternate && part.alternate.parts.length >= 1 && part.alternate.parts.every(p => p.quoted === part.alternate!.parts[0]!.quoted && ((p.kind === "text" && !p.byteValue) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))))) {
             const patQuoted = part.alternate.parts[0]!.quoted;
             const pat = (part.alternate.parts.length === 1 && part.alternate.parts[0]!.kind === "text")
               ? part.alternate.parts[0]!.value
@@ -20034,11 +16328,7 @@ export class Runtime {
             let trimGlobRe: RegExp | undefined;
             if (!patQuoted && hasGlobOrEscape(pat, !!rawState.extglob)) {
               if (rawState.nocasematch || byteLocale(rawVars)) return undefined;
-              if (isPrefixTrim && pat.charCodeAt(0) === 42 && !hasGlobOrEscape(pat.slice(1), !!rawState.extglob)) {
-                starWildcardLit = pat.slice(1);
-              } else if (!isPrefixTrim && pat.charCodeAt(pat.length - 1) === 42 && !hasGlobOrEscape(pat.slice(0, -1), !!rawState.extglob)) {
-                starWildcardLit = pat.slice(0, -1);
-              } else {
+              if (isPrefixTrim && pat.charCodeAt(0) === 42 && !hasGlobOrEscape(pat.slice(1), !!rawState.extglob)) starWildcardLit = pat.slice(1); else if (!isPrefixTrim && pat.charCodeAt(pat.length - 1) === 42 && !hasGlobOrEscape(pat.slice(0, -1), !!rawState.extglob)) starWildcardLit = pat.slice(0, -1); else {
                 trimGlobRe = tryCompileTrimGlobToRegex(pat, part.operator, !!rawState.extglob);
                 if (!trimGlobRe) return undefined;
               }
@@ -20060,13 +16350,7 @@ export class Runtime {
             let sliced: string;
             if (trimGlobRe !== undefined) {
               const m = trimGlobRe.exec(val);
-              if (!m) {
-                sliced = val;
-              } else if (isPrefixTrim) {
-                sliced = val.slice(m[1]!.length);
-              } else {
-                sliced = val.slice(0, val.length - m[1]!.length);
-              }
+              if (!m) sliced = val; else if (isPrefixTrim) sliced = val.slice(m[1]!.length); else sliced = val.slice(0, val.length - m[1]!.length);
             } else if (starWildcardLit !== undefined) {
               if (starWildcardLit.length === 0) {
                 sliced = (part.operator === "##" || part.operator === "%%") ? "" : val;
@@ -20083,17 +16367,12 @@ export class Runtime {
                 : (val.endsWith(pat) ? val.slice(0, val.length - pat.length) : val);
             }
             if (split && !part.quoted) {
-              if (sliced.length === 0 || sliced.includes(" ") || sliced.includes("\t") || sliced.includes("\n") || (!rawState.noglob && hasGlobOrEscape(sliced, !!rawState.extglob))) {
-                return undefined;
-              }
+              if (sliced.length === 0 || sliced.includes(" ") || sliced.includes("\t") || sliced.includes("\n") || (!rawState.noglob && hasGlobOrEscape(sliced, !!rawState.extglob))) return undefined;
             }
             out += sliced;
             continue;
           }
-          if (
-            (part.operator === "^" || part.operator === "^^" || part.operator === "," || part.operator === ",,") &&
-            (!part.alternate || part.alternate.parts.length === 0)
-          ) {
+          if ( (part.operator === "^" || part.operator === "^^" || part.operator === "," || part.operator === ",,") && (!part.alternate || part.alternate.parts.length === 0)) {
             const raw = rawVars[part.name];
             this.requireParameter(raw, part.name, state, io, part.line ?? overrideDiagnosticLine);
             if (raw === undefined) {
@@ -20115,23 +16394,14 @@ export class Runtime {
                     ? val[0]!.toUpperCase() + val.slice(1)
                     : val[0]!.toLowerCase() + val.slice(1);
             if (split && !part.quoted) {
-              if (converted.length === 0 || converted.includes(" ") || converted.includes("\t") || converted.includes("\n") || (!rawState.noglob && hasGlobOrEscape(converted, !!rawState.extglob))) {
-                return undefined;
-              }
+              if (converted.length === 0 || converted.includes(" ") || converted.includes("\t") || converted.includes("\n") || (!rawState.noglob && hasGlobOrEscape(converted, !!rawState.extglob))) return undefined;
             }
             out += converted;
             continue;
           }
-          if (
-            (part.operator === "-" || part.operator === ":-" || part.operator === "+" || part.operator === ":+" || part.operator === "=" || part.operator === ":=") &&
-            part.alternate &&
-            !rawState.nounset &&
-            part.alternate.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring))
-          ) {
+          if ( (part.operator === "-" || part.operator === ":-" || part.operator === "+" || part.operator === ":+" || part.operator === "=" || part.operator === ":=") && part.alternate && !rawState.nounset && part.alternate.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring))) {
             const isAssignOp = part.operator === "=" || part.operator === ":=";
-            if (isAssignOp && (!monitor || rawState.readonlyVariables?.has(part.name) || activeArrayStore?.get(part.name) || hasActiveVariableAttributes(rawState) || part.name === "OPTIND" || part.name === "PIPESTATUS")) {
-              return undefined;
-            }
+            if (isAssignOp && (!monitor || rawState.readonlyVariables?.has(part.name) || activeArrayStore?.get(part.name) || hasActiveVariableAttributes(rawState) || part.name === "OPTIND" || part.name === "PIPESTATUS")) return undefined;
             const raw = rawVars[part.name];
             const cur = raw === undefined ? undefined : (this._syncArithRawWriteOnly && this._syncArithTouched?.has(part.name) ? raw : (monitor?.values.get(part.name, raw) ?? raw));
             if (cur !== undefined && typeof cur !== "string") return undefined;
@@ -20142,9 +16412,7 @@ export class Runtime {
                 const altVal = this.fastValueWord(part.alternate, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
                 if (typeof altVal !== "string") return undefined;
                 resolvedScalar = altVal;
-              } else {
-                resolvedScalar = "";
-              }
+              } else resolvedScalar = "";
             } else {
               const isMissing = cur === undefined || ((part.operator === ":-" || part.operator === ":=") && cur === "");
               if (isMissing) {
@@ -20155,20 +16423,14 @@ export class Runtime {
                   if (this._syncArithRawWriteOnly) {
                     rawVars[part.name] = altVal;
                     this._syncArithTouched?.add(part.name);
-                  } else {
-                    monitor!.publishStringVariable(part.name, altVal);
-                  }
+                  } else monitor!.publishStringVariable(part.name, altVal);
                   if (rawState.allexport) monitor!.proxy.exported.add(part.name);
                 }
                 resolvedScalar = altVal;
-              } else {
-                resolvedScalar = cur!;
-              }
+              } else resolvedScalar = cur!;
             }
             if (split && !part.quoted) {
-              if (resolvedScalar.length === 0 || resolvedScalar.includes(" ") || resolvedScalar.includes("\t") || resolvedScalar.includes("\n") || (!rawState.noglob && hasGlobOrEscape(resolvedScalar, !!rawState.extglob))) {
-                return undefined;
-              }
+              if (resolvedScalar.length === 0 || resolvedScalar.includes(" ") || resolvedScalar.includes("\t") || resolvedScalar.includes("\n") || (!rawState.noglob && hasGlobOrEscape(resolvedScalar, !!rawState.extglob))) return undefined;
             }
             out += resolvedScalar;
             continue;
@@ -20180,9 +16442,7 @@ export class Runtime {
         const val = raw === undefined ? "" : (this._syncArithRawWriteOnly && this._syncArithTouched?.has(part.name) ? raw : (monitor?.values.get(part.name, raw) ?? raw));
         if (typeof val !== "string") return undefined;
         if (split && !part.quoted) {
-          if (val.length === 0 || val.length >= 4096 || val.includes(" ") || val.includes("\t") || val.includes("\n") || (!rawState.noglob && hasGlobOrEscape(val, !!rawState.extglob))) {
-            return undefined;
-          }
+          if (val.length === 0 || val.length >= 4096 || val.includes(" ") || val.includes("\t") || val.includes("\n") || (!rawState.noglob && hasGlobOrEscape(val, !!rawState.extglob))) return undefined;
         }
         out += val;
       } else if (part.kind === "arithmetic") {
@@ -20193,19 +16453,10 @@ export class Runtime {
           const canCacheWord = !byteLocale(rawVars) && (rawState.depth + (io.parameterDepth ?? 0)) < 32;
           const cachedExpr = expr as { _cachedArithWord?: Word | null; _cachedArithSyntax?: unknown; _cachedArithUnits?: number };
           let expWord = canCacheWord && cachedExpr._cachedArithSyntax === rawState.extensions?.syntax ? cachedExpr._cachedArithWord : undefined;
-          if (expWord !== undefined) {
-            if (cachedExpr._cachedArithUnits) this.budget.parsing.admit(cachedExpr._cachedArithUnits);
-          } else {
+          if (expWord !== undefined) if (cachedExpr._cachedArithUnits) this.budget.parsing.admit(cachedExpr._cachedArithUnits); else {
             const beforeUnits = this.budget.parsing.admittedUnits;
             try {
-              expWord = parseArithmeticExpansion(
-                expr.source,
-                this.budget.parsing,
-                byteLocale(rawVars),
-                rawState.depth + (io.parameterDepth ?? 0),
-                line,
-                rawState.extensions?.syntax,
-              );
+              expWord = parseArithmeticExpansion( expr.source, this.budget.parsing, byteLocale(rawVars), rawState.depth + (io.parameterDepth ?? 0), line, rawState.extensions?.syntax, );
             } catch {
               expWord = null;
             }
@@ -20247,63 +16498,35 @@ export class Runtime {
         const substVal = this.tryFastPureSubstitution(part, state, rawState, io);
         if (substVal === undefined) return undefined;
         out += substVal;
-      } else {
-        return undefined;
-      }
+      } else return undefined;
     }
     if (this.budget.maxExpansionFieldsSmi < 1 && 1 > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
     const maxBytesSmi = this.budget.maxExpansionBytesSmi;
     if (out.length * 3 > maxBytesSmi && shellValueByteLength(out) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
     return out;
   }
-
   private arePureArgWords(words: readonly Word[], rawState: State): boolean {
     for (let i = 0; i < words.length; i++) {
       if (!this.isPureArgWord(words[i]!, rawState)) return false;
     }
     return true;
   }
-
   private isPureArgWord(word: Word, rawState: State): boolean {
     if (word.parts.length === 0) return false;
     for (let i = 0; i < word.parts.length; i++) {
       const p = word.parts[i]!;
       if (p.kind === "text") continue;
       if (p.kind === "variable") {
-        if (
-          !p.indirect &&
-          !p.prefixNames &&
-          !p.length &&
-          !p.substring &&
-          !p.transform &&
-          p.operator === undefined &&
-          getArraySelector(p) === undefined &&
-          (p.name === "?" || p.name === "#" || (p.name.length === 1 && p.name >= "1" && p.name <= "9"))
-        ) {
+        if ( !p.indirect && !p.prefixNames && !p.length && !p.substring && !p.transform && p.operator === undefined && getArraySelector(p) === undefined && (p.name === "?" || p.name === "#" || (p.name.length === 1 && p.name >= "1" && p.name <= "9"))) {
           const activePos = this._fastSubPositional ?? rawState.positional;
           if (rawState.nounset && p.name >= "1" && p.name <= "9" && activePos[p.name.charCodeAt(0) - 49] === undefined) return false;
           continue;
         }
-        if (
-          p.prefixNames ||
-          p.specialParameter ||
-          p.transform ||
-          p.name === "@" ||
-          p.name === "*" ||
-          p.name === "PIPESTATUS" ||
-          p.name === "LINENO" ||
-          p.name === "_" ||
-          p.name === "FUNCNAME" ||
-          !isShellIdentifier(p.name)
-        ) {
+        if ( p.prefixNames || p.specialParameter || p.transform || p.name === "@" || p.name === "*" || p.name === "PIPESTATUS" || p.name === "LINENO" || p.name === "_" || p.name === "FUNCNAME" || !isShellIdentifier(p.name)) {
           return false;
         }
-        if (p.operator !== undefined && (p.operator === "=" || p.operator === ":=" || p.operator === "?" || p.operator === ":?")) {
-          return false;
-        }
-        if (rawState.nounset && (p.indirect || getArraySelector(p) !== undefined || rawState.variables[p.name] === undefined)) {
-          return false;
-        }
+        if (p.operator !== undefined && (p.operator === "=" || p.operator === ":=" || p.operator === "?" || p.operator === ":?")) return false;
+        if (rawState.nounset && (p.indirect || getArraySelector(p) !== undefined || rawState.variables[p.name] === undefined)) return false;
         continue;
       }
       if (p.kind === "arithmetic") {
@@ -20315,7 +16538,6 @@ export class Runtime {
     }
     return true;
   }
-
   private canSyncPureFunctionBody(script: Script, rawState: State, localVars: Set<string> = new Set()): boolean {
     if (script.lists.length === 0) return false;
     for (let l = 0; l < script.lists.length; l++) {
@@ -20387,11 +16609,7 @@ export class Runtime {
               if (assign) {
                 if (assign.append || assign.name.includes("[") || rawState.readonlyVariables?.has(assign.name)) return false;
                 localVars.add(assign.name);
-              } else if (wArg.plain && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(wArg.plain) && !rawState.readonlyVariables?.has(wArg.plain)) {
-                localVars.add(wArg.plain);
-              } else {
-                return false;
-              }
+              } else if (wArg.plain && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(wArg.plain) && !rawState.readonlyVariables?.has(wArg.plain)) localVars.add(wArg.plain); else return false;
             }
             continue;
           }
@@ -20402,21 +16620,13 @@ export class Runtime {
     }
     return true;
   }
-
   private tryFastPureSubstitution(part: Extract<WordPart, { kind: "substitution" }>, state: State, rawState: State, io: IO): string | undefined {
     if (this.middleware.length > 0) return undefined;
     if (rawState.depth >= this.budget.maxSubstitutionDepthSmi && rawState.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     this.signal.throwIfAborted();
     const parameterDepth = io.parameterDepth ?? 0;
     if (parameterDepth > 0 && rawState.depth + parameterDepth + 1 > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", 0);
-    if (
-      rawState.noexec ||
-      hasActiveExtensions(rawState) ||
-      rawState.extensions?.checkpoints.length ||
-      hasActiveVariableAttributes(rawState) ||
-      (guestArrays(state) && (guestArrays(state)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) ||
-      rawState.redirectAssignments?.size
-    ) {
+    if ( rawState.noexec || hasActiveExtensions(rawState) || rawState.extensions?.checkpoints.length || hasActiveVariableAttributes(rawState) || (guestArrays(state) && (guestArrays(state)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) || rawState.redirectAssignments?.size) {
       return undefined;
     }
     if (((this.budget.commands + 1) & 127) === 0) {
@@ -20429,23 +16639,13 @@ export class Runtime {
     const pipeline = list.pipelines[0]!;
     if (pipeline.negate) return undefined;
     if (pipeline.commands.length >= 2 && pipeline.commands.length <= 5) {
-      if (
-        syncPurePipelineSlotInUse ||
-        !this.budget.canSyncPurePipe ||
-        customRegisteredRegistries.has(this.commands) ||
-        hasYieldCheckpoint(this.signal) ||
-        rawState.errexit ||
-        rawState.nounset ||
-        (this.budget.commands + pipeline.commands.length) > this.budget.limits.maxCommands
-      ) {
+      if ( syncPurePipelineSlotInUse || !this.budget.canSyncPurePipe || customRegisteredRegistries.has(this.commands) || hasYieldCheckpoint(this.signal) || rawState.errexit || rawState.nounset || (this.budget.commands + pipeline.commands.length) > this.budget.limits.maxCommands) {
         return undefined;
       }
       const cmd0 = pipeline.commands[0]!;
       if (cmd0.kind !== "simple" || cmd0.redirects.length !== 0) return undefined;
       const w0Plain0 = cmd0.words[0]?.plain;
-      if (!w0Plain0 || (w0Plain0 !== "echo" && w0Plain0 !== "printf") || hasShellFunction(rawState, w0Plain0) || rawState.extensions?.builtins.has(w0Plain0)) {
-        return undefined;
-      }
+      if (!w0Plain0 || (w0Plain0 !== "echo" && w0Plain0 !== "printf") || hasShellFunction(rawState, w0Plain0) || rawState.extensions?.builtins.has(w0Plain0)) return undefined;
       const def0 = this.commands.get(w0Plain0);
       if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : !defaultEchoExecutors.has(def0.execute))) return undefined;
       if (!this.arePureArgWords(cmd0.words, rawState)) return undefined;
@@ -20497,9 +16697,7 @@ export class Runtime {
           else if (sArgs.length === 2 && sArgs[0]!.startsWith("-F") && sArgs[0]!.length === 3) awkProg = sArgs[1];
           else if (sArgs.length === 3 && sArgs[0] === "-F" && sArgs[1]!.length === 1) awkProg = sArgs[2];
           if (!awkProg || !/^\s*\{\s*print\s+\$(?:[0-9]|NF)(?:\s*,\s*\$(?:[0-9]|NF))*\s*;?\s*\}\s*$/.test(awkProg)) return undefined;
-        } else {
-          return undefined;
-        }
+        } else return undefined;
         stageDefs.push(extDef);
         stageNames.push(sName);
         stageArgsList.push(sArgs);
@@ -20511,9 +16709,7 @@ export class Runtime {
         subArgs0.push(val);
       }
       let stage0Formatted: string | undefined;
-      if (w0Plain0 === "printf") {
-        stage0Formatted = tryFastPrintf(subArgs0);
-      } else if (!subArgs0[0]?.startsWith("-")) {
+      if (w0Plain0 === "printf") stage0Formatted = tryFastPrintf(subArgs0); else if (!subArgs0[0]?.startsWith("-")) {
         stage0Formatted = `${subArgs0.join(" ")}\n`;
         if (stage0Formatted.includes("\0")) stage0Formatted = undefined;
       }
@@ -20521,9 +16717,7 @@ export class Runtime {
       const stage0ByteLen = stage0Formatted.length * 3 > 127 ? shellValueByteLength(stage0Formatted) : stage0Formatted.length;
       if (stage0ByteLen > sharedSyncPipeBuf0.byteLength) return undefined;
       const nextBytes0 = this.budget.bytes + stage0ByteLen;
-      if (nextBytes0 > this.budget.maxOutputBytesSmi && stage0ByteLen > this.budget.limits.maxOutputBytes - this.budget.bytes) {
-        this.budget.fail("maxOutputBytes");
-      }
+      if (nextBytes0 > this.budget.maxOutputBytesSmi && stage0ByteLen > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
       this.budget.bytes = nextBytes0;
       syncPurePipelineSlotInUse = true;
       this.budget.enterPipelineStages(n);
@@ -20539,11 +16733,7 @@ export class Runtime {
           const extDef = stageDefs[index - 1]!;
           const stageArgs = stageArgsList[index - 1]!;
           const nextBuf = (index & 1) === 0 ? sharedSyncPipeBuf0 : sharedSyncPipeBuf1;
-          if (
-            firstName === "awk" ||
-            firstName === "grep" ||
-            (firstName === "sort" && stageArgs.length === 1 && stageArgs[0] !== "-r")
-          ) {
+          if ( firstName === "awk" || firstName === "grep" || (firstName === "sort" && stageArgs.length === 1 && stageArgs[0] !== "-r")) {
             const inStr = prevLen === 0 ? "" : Buffer.from(prevBuf.buffer, prevBuf.byteOffset, prevLen).toString("utf8");
             const rawLines = inStr.length === 0 ? [] : (inStr.endsWith("\n") ? inStr.slice(0, -1).split("\n") : inStr.split("\n"));
             let outLines: string[] = [];
@@ -20564,8 +16754,7 @@ export class Runtime {
                 } else {
                   cmp = a < b ? -1 : a > b ? 1 : 0;
                 }
-                return isRev ? -cmp : cmp;
-              });
+                return isRev ? -cmp : cmp;});
               if (isUniq && sorted.length > 1) {
                 outLines.push(sorted[0]!);
                 for (let k = 1; k < sorted.length; k++) {
@@ -20575,13 +16764,9 @@ export class Runtime {
                     const na = Number.parseFloat(prevL.trimStart());
                     const nb = Number.parseFloat(curL.trimStart());
                     if ((Number.isNaN(na) ? 0 : na) !== (Number.isNaN(nb) ? 0 : nb)) outLines.push(curL);
-                  } else if (curL !== prevL) {
-                    outLines.push(curL);
-                  }
+                  } else if (curL !== prevL) outLines.push(curL);
                 }
-              } else {
-                outLines = sorted;
-              }
+              } else outLines = sorted;
             } else if (firstName === "grep") {
               const flags = stageArgs.length === 2 ? stageArgs[0]!.slice(1) : "";
               const pat = stageArgs[stageArgs.length - 1]!;
@@ -20624,9 +16809,7 @@ export class Runtime {
             } else {
               let sep: string | undefined;
               let prog: string;
-              if (stageArgs.length === 1) {
-                prog = stageArgs[0]!;
-              } else if (stageArgs.length === 2) {
+              if (stageArgs.length === 1) prog = stageArgs[0]!; else if (stageArgs.length === 2) {
                 sep = stageArgs[0]!.slice(2);
                 prog = stageArgs[1]!;
               } else {
@@ -20637,8 +16820,7 @@ export class Runtime {
               if (!bodyMatch) return undefined;
               const fieldSpecs = bodyMatch[1]!.split(",").map(tok => {
                 const t = tok.trim().slice(1);
-                return t === "NF" ? ("NF" as const) : Number(t);
-              });
+                return t === "NF" ? ("NF" as const) : Number(t);});
               for (let k = 0; k < rawLines.length; k++) {
                 const line = rawLines[k]!;
                 const cols = sep !== undefined ? line.split(sep) : (line.trim().length === 0 ? [] : line.trim().split(/[ \t]+/));
@@ -20659,9 +16841,7 @@ export class Runtime {
             const outByteLen = outStr.length * 3 > 127 ? shellValueByteLength(outStr) : outStr.length;
             if (outByteLen > nextBuf.byteLength) return undefined;
             const nextTotalBytes = this.budget.bytes + outByteLen;
-            if (nextTotalBytes > this.budget.maxOutputBytesSmi && outByteLen > this.budget.limits.maxOutputBytes - this.budget.bytes) {
-              this.budget.fail("maxOutputBytes");
-            }
+            if (nextTotalBytes > this.budget.maxOutputBytesSmi && outByteLen > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
             this.budget.bytes = nextTotalBytes;
             const written = outStr.length === 0 ? 0 : Buffer.from(nextBuf.buffer, nextBuf.byteOffset, nextBuf.byteLength).write(outStr, "utf8");
             prevBuf = nextBuf;
@@ -20723,18 +16903,7 @@ export class Runtime {
         const store = arrayStore(rawState);
         const existing = store?.get("PIPESTATUS");
         const elem0 = existing ? existing.values.get(0) : undefined;
-        const canMutatePipeStatus = !existing || (
-          !existing.associative &&
-          existing.references === 1 &&
-          existing.values.size === 1 &&
-          existing.maximum === 0 &&
-          elem0 !== undefined &&
-          elem0.text.references === 1 &&
-          elem0.text.bytes === 1 &&
-          !store!.watches.has("PIPESTATUS") &&
-          !monitor.hasOverlay("PIPESTATUS") &&
-          !rawState.readonlyVariables?.has("PIPESTATUS")
-        );
+        const canMutatePipeStatus = !existing || ( !existing.associative && existing.references === 1 && existing.values.size === 1 && existing.maximum === 0 && elem0 !== undefined && elem0.text.references === 1 && elem0.text.bytes === 1 && !store!.watches.has("PIPESTATUS") && !monitor.hasOverlay("PIPESTATUS") && !rawState.readonlyVariables?.has("PIPESTATUS"));
         if (canMutatePipeStatus) {
           const capture = new Capture();
           capture.budget = this.budget;
@@ -20757,9 +16926,7 @@ export class Runtime {
                 } finally {
                   rawState.depth--;
                   if (prevLastArg !== undefined) rawState.lastArgument = prevLastArg; else delete rawState.lastArgument;
-                  if (hadInd && prevInd !== undefined) {
-                    monitor.publishStringVariable(indName, prevInd);
-                  } else {
+                  if (hadInd && prevInd !== undefined) monitor.publishStringVariable(indName, prevInd); else {
                     delete rawState.variables[indName];
                     monitor.values.invalidate(indName);
                   }
@@ -20780,15 +16947,7 @@ export class Runtime {
         }
       }
     }
-    if (
-      (cmd.kind === "case" || cmd.kind === "if") &&
-      cmd.redirects.length === 0 &&
-      !rawState.errexit &&
-      !rawState.nounset &&
-      rawState.depth + 1 < 24 &&
-      (this.budget.commands + 64) < this.budget.limits.maxCommands &&
-      this.canSyncPureFunctionBody(part.script, rawState)
-    ) {
+    if ( (cmd.kind === "case" || cmd.kind === "if") && cmd.redirects.length === 0 && !rawState.errexit && !rawState.nounset && rawState.depth + 1 < 24 && (this.budget.commands + 64) < this.budget.limits.maxCommands && this.canSyncPureFunctionBody(part.script, rawState)) {
       const prevStatus = rawState.status;
       const cap = new Capture(this.budget, this.signal);
       const { descriptors: _ignoredDesc, ...restIO } = io;
@@ -20829,31 +16988,12 @@ export class Runtime {
         if (typeof argVal !== "string") return undefined;
         fnPositional.push(argVal);
       }
-      const isSingleEchoOrPrintf =
-        fnBody.body.lists.length === 1 &&
-        !fnBody.body.lists[0]!.terminator &&
-        fnBody.body.lists[0]!.pipelines.length === 1 &&
-        !fnBody.body.lists[0]!.pipelines[0]!.negate &&
-        fnBody.body.lists[0]!.pipelines[0]!.commands.length === 1 &&
-        fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.kind === "simple" &&
-        fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.redirects.length === 0 &&
-        (fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.words[0]?.plain === "echo" ||
-         fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.words[0]?.plain === "printf") &&
-        !rawState.functions.has(fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.words[0]!.plain!) &&
-        !rawState.extensions?.builtins.has(fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.words[0]!.plain!);
+      const isSingleEchoOrPrintf = fnBody.body.lists.length === 1 && !fnBody.body.lists[0]!.terminator && fnBody.body.lists[0]!.pipelines.length === 1 && !fnBody.body.lists[0]!.pipelines[0]!.negate && fnBody.body.lists[0]!.pipelines[0]!.commands.length === 1 && fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.kind === "simple" && fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.redirects.length === 0 && (fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.words[0]?.plain === "echo" || fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.words[0]?.plain === "printf") && !rawState.functions.has(fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.words[0]!.plain!) && !rawState.extensions?.builtins.has(fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.words[0]!.plain!);
       if (isSingleEchoOrPrintf) {
         cmd = fnBody.body.lists[0]!.pipelines[0]!.commands[0] as Extract<Command, { kind: "simple" }>;
         w0Plain = cmd.words[0]!.plain!;
       } else {
-        if (
-          rawState.depth + 1 >= 24 ||
-          rawState.functionDepth + 1 >= 24 ||
-          rawState.errexit ||
-          rawState.nounset ||
-          (this.budget.commands + 64) >= this.budget.limits.maxCommands ||
-          rawState.functionDepth + 1 >= this.budget.limits.maxSubstitutionDepth ||
-          !this.canSyncPureFunctionBody(fnBody.body, rawState)
-        ) {
+        if ( rawState.depth + 1 >= 24 || rawState.functionDepth + 1 >= 24 || rawState.errexit || rawState.nounset || (this.budget.commands + 64) >= this.budget.limits.maxCommands || rawState.functionDepth + 1 >= this.budget.limits.maxSubstitutionDepth || !this.canSyncPureFunctionBody(fnBody.body, rawState)) {
           return undefined;
         }
         const prevPos = rawState.positional;
@@ -20875,9 +17015,7 @@ export class Runtime {
         this._syncReturnDepth++;
         try {
           syncStatus = this.trySyncScript(fnBody.body, state, subIO, false);
-          if (this._syncPendingReturnStatus !== undefined) {
-            syncStatus = this._syncPendingReturnStatus;
-          }
+          if (this._syncPendingReturnStatus !== undefined) syncStatus = this._syncPendingReturnStatus;
         } finally {
           this._syncPendingReturnStatus = savedPendingRet;
           this._syncReturnDepth--;
@@ -20924,9 +17062,7 @@ export class Runtime {
       }
       const byteLength = (val.length * 3 > 127 ? shellValueByteLength(val) : val.length) + 1;
       const nextBytes = this.budget.bytes + byteLength;
-      if (nextBytes > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) {
-        this.budget.fail("maxOutputBytes");
-      }
+      if (nextBytes > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
       this.budget.bytes = nextBytes;
       this.budget.tick();
       if (fnPositional !== undefined) this.budget.tick();
@@ -20936,21 +17072,11 @@ export class Runtime {
       while (end > 0 && val.charCodeAt(end - 1) === 10) end--;
       return end === val.length ? val : val.slice(0, end);
     }
-    if (
-      w0Plain === "printf" &&
-      cmd.words.length === 3 &&
-      cmd.words[1]!.parts.length === 1 &&
-      cmd.words[1]!.parts[0]!.kind === "text" &&
-      cmd.words[1]!.parts[0]!.value === "%d" &&
-      cmd.words[2]!.parts.length === 1 &&
-      cmd.words[2]!.parts[0]!.kind === "arithmetic"
-    ) {
+    if ( w0Plain === "printf" && cmd.words.length === 3 && cmd.words[1]!.parts.length === 1 && cmd.words[1]!.parts[0]!.kind === "text" && cmd.words[1]!.parts[0]!.value === "%d" && cmd.words[2]!.parts.length === 1 && cmd.words[2]!.parts[0]!.kind === "arithmetic") {
       const val = this.fastValueWord(cmd.words[2]!, state, io, true, false, false, true, undefined, part.line);
       if (typeof val !== "string") return undefined;
       const nextBytes = this.budget.bytes + val.length;
-      if (nextBytes > this.budget.maxOutputBytesSmi && val.length > this.budget.limits.maxOutputBytes - this.budget.bytes) {
-        this.budget.fail("maxOutputBytes");
-      }
+      if (nextBytes > this.budget.maxOutputBytesSmi && val.length > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
       this.budget.bytes = nextBytes;
       this.budget.tick();
       rawState.substitutionStatus = 0;
@@ -20960,27 +17086,19 @@ export class Runtime {
     const subArgs: string[] = [];
     for (let i = 1; i < cmd.words.length; i++) {
       const val = this.fastValueWord(cmd.words[i]!, state, io, true, false, false, true, undefined, part.line);
-      if (typeof val !== "string") {
-        return undefined;
-      }
+      if (typeof val !== "string") return undefined;
       subArgs.push(val);
     }
     let formatted: string | undefined;
-    if (w0Plain === "printf") {
-      formatted = tryFastPrintf(subArgs);
-    } else {
-      if (subArgs[0]?.startsWith("-")) {
-        return undefined;
-      }
+    if (w0Plain === "printf") formatted = tryFastPrintf(subArgs); else {
+      if (subArgs[0]?.startsWith("-")) return undefined;
       formatted = `${subArgs.join(" ")}\n`;
       if (formatted.includes("\0")) return undefined;
     }
     if (formatted === undefined) return undefined;
     const byteLength = formatted.length * 3 > 127 ? shellValueByteLength(formatted) : formatted.length;
     const nextBytes = this.budget.bytes + byteLength;
-    if (nextBytes > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) {
-      this.budget.fail("maxOutputBytes");
-    }
+    if (nextBytes > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
     this.budget.bytes = nextBytes;
     this.budget.tick();
     rawState.substitutionStatus = 0;
@@ -20993,7 +17111,6 @@ export class Runtime {
       this._fastSubPositional = prevFastSubPos;
     }
   }
-
   private async valueWord(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean, value: ShellValue) => void, hereDocument = false, braces = split && !pattern && !hereString && !hereDocument, assignmentStart?: number): Promise<ShellValue[]> {
     if (!conditionalPattern && !regexAppend) {
       const fast = this.fastValueWord(word, state, io, split, pattern, hereDocument, braces, assignmentStart);
@@ -21046,8 +17163,7 @@ export class Runtime {
       if (fields.length >= this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
       scratch?.reserve(32, 0);
       owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
-      fields.push({ fragments: [], bytes: false, patterns: undefined, present: false, independentPresence: false });
-    };
+      fields.push({ fragments: [], bytes: false, patterns: undefined, present: false, independentPresence: false });};
     addField();
     let expansionBytes = 0;
     const append = (value: ShellValue, glob: boolean, present: boolean) => {
@@ -21087,8 +17203,7 @@ export class Runtime {
           field.quoteGroups ??= [];
           field.quoteGroups.push(quoteGroup);
         }
-      }
-    };
+      }};
     const appendSplit = async (value: ShellValue): Promise<void> => {
       this.budget.cpuCheckpoint();
       if (shellValueByteLength(value) === 0) return;
@@ -21105,8 +17220,7 @@ export class Runtime {
       if (typeof value !== "string" || typeof retainedSeparators !== "string" || byteSeparators) {
         for await (const piece of this.splitRawValue(value, retainedSeparators, io, byteLocale(state.variables))) {
           if (piece.separator) {
-            if (!piece.whitespace) { splitBoundary = false; fields.at(-1)!.present = true; addField(); }
-            else if (fields.at(-1)!.present) splitBoundary = true;
+            if (!piece.whitespace) { splitBoundary = false; fields.at(-1)!.present = true; addField(); } else if (fields.at(-1)!.present) splitBoundary = true;
           } else {
             if (splitBoundary) addField();
             splitBoundary = false;
@@ -21122,8 +17236,7 @@ export class Runtime {
       const addSeparator = (point: number): void => {
         if (points.has(point)) return;
         separatorScope.reserve(32, 0);
-        points.add(point);
-      };
+        points.add(point);};
       let asciiSeparators = true;
       const work = this.splitWork ??= { scanned: 0 };
       for (let index = 0; index < separators.length; index++) {
@@ -21150,8 +17263,7 @@ export class Runtime {
           append(piece, true, true);
         }
       }
-      } finally { separatorScope.close(); }
-    };
+      } finally { separatorScope.close(); }};
     const parts = (hereDocument ? word.parts : expandTildes(word.parts, state.variables, this.budget, assignmentStart)).map((part) => ({ part, splitText: false, io }));
     for (let index = 0; index < parts.length; index++) {
       let { part } = parts[index]!;
@@ -21209,9 +17321,7 @@ export class Runtime {
               const v = shellValueText(binding.getValue(idx) ?? "");
               tokens.push(k, v);
             }
-          } else if (state.variables[name] !== undefined) {
-            tokens.push("0", state.variables[name]!);
-          }
+          } else if (state.variables[name] !== undefined) tokens.push("0", state.variables[name]!);
           for (let pos = 0; pos < tokens.length; pos++) {
             if (pos > 0) addField();
             append(tokens[pos]!, !part.quoted, true);
@@ -21224,7 +17334,6 @@ export class Runtime {
       } else if (part.kind === "variable" && split && expandMembers && (selector && selector.kind !== "element" && !part.length && (selector.kind === "members" ? !part.quoted || selector.separator === "@" : selector.separator === "@" && (part.quoted || state.variables.IFS === "")) || (part.transform || memberPatternOperators.includes(part.operator ?? "")) && part.name === "@" || (part.substring || !part.operator && !part.transform && !part.length) && !part.quoted && state.variables.IFS === "" && (part.name === "@" || part.name === "*"))) {
         const members = selector && selector.kind !== "element" ? await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring) : part.substring ? await this.positionalSlice(part, state, partIO) : this.positionalValues(state);
         if (selector?.kind === "members" && !part.quoted && state.variables.IFS !== "" && !part.transform && !part.operator) {
-          // Split the joined expansion so non-whitespace IFS retains empty member fields.
           await appendSplit(await this.arrayJoin(requireArrays(state).owner, members, this.ifsSeparator(state, partIO)));
           continue;
         }
@@ -21296,9 +17405,7 @@ export class Runtime {
     return result;
     } finally { scratch?.close(); holding?.release(); }
   }
-
   private splitWork?: { scanned: number };
-
   private async *splitValue(value: ShellValue, separators: ReadonlySet<number>, asciiSeparators: boolean, io: IO, scratch?: ValueScope): AsyncGenerator<ShellValue> {
     this.budget.cpuCheckpoint();
     const work = this.splitWork ??= { scanned: 0 };
@@ -21307,8 +17414,7 @@ export class Runtime {
       const slice = (start: number, end: number): string => {
         if (start === 0 && end === text.length) return text;
         scratch?.reserve((end - start) * 2, 0);
-        return text.slice(start, end);
-      };
+        return text.slice(start, end);};
       let start = 0;
       for (let index = 0; index < text.length;) {
         const point = text.codePointAt(index)!;
@@ -21347,7 +17453,6 @@ export class Runtime {
     }
     if (start < bytes.length) yield start === 0 ? value : shellValueFromBytes(bytes.subarray(start), io[valueScope]);
   }
-
   private async *splitRawValue(value: ShellValue, separators: ShellValue, io: IO, byteCount: boolean): AsyncGenerator<{ value: ShellValue; separator: boolean; whitespace: boolean }> {
     if (typeof value === "string" && typeof separators === "string" && !byteCount) {
       for (const character of value) yield { value: character, separator: separators.includes(character), whitespace: " \t\n".includes(character) };
@@ -21359,8 +17464,7 @@ export class Runtime {
     const key = (input: Uint8Array, offset: number, length: number): number => {
       let result = 1;
       for (let index = offset; index < offset + length; index++) result = result * 257 + input[index]!;
-      return result;
-    };
+      return result;};
     const keys = new Set<number>();
     for (let offset = 0; offset < delimiters.length;) {
       const length = shellCharacterWidth(delimiters, offset, byteCount);
@@ -21388,13 +17492,11 @@ export class Runtime {
     }
     if (start < bytes.length) yield { value: start === 0 ? value : shellValueFromBytes(bytes.subarray(start), io[valueScope]), separator: false, whitespace: false };
   }
-
   private positionalValues(state: State): ShellValue[] {
     const store = stateMonitor(state)?.positionals;
     if (!store || !store.hasObjectValues()) return state.positional.slice();
     return state.positional.map((text, index) => store.get(String(index), text));
   }
-
   private replacePositionals(state: State, values: readonly ShellValue[], action?: () => void, initialArg0?: ShellValue): void {
     const publish = action ?? (() => { state.positional = values.map(shellValueText); });
     const store = stateMonitor(state)?.positionals;
@@ -21413,23 +17515,19 @@ export class Runtime {
       const entries: (readonly [string, ShellValue])[] = values.map((value, index) => [String(index), value] as const);
       if (typeof zero !== "string") entries.push([zeroPositionKey, zero]);
       store.replace(entries, publish);
-    }
-    else publish();
+    } else publish();
   }
-
   private admitArguments(values: readonly ShellValue[], allocation: ValueScope): CommandArguments {
     if (!values.some(value => typeof value !== "string")) return createCommandArguments(values);
     if (values.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
     for (const value of values) if (typeof value !== "string") allocation.hold(value);
     return createCommandArguments(values, allocation);
   }
-
   private async positionalSlice(part: Extract<WordPart, { kind: "variable" }>, state: State, io: IO): Promise<ShellValue[]> {
     const evaluate = async (word: Word): Promise<bigint> => {
       const fields = await this.valueWord(word, state, this.parameterOperandIO(word, state, io), false);
       const source = shellValueText(concatShellValues(fields, io[valueScope]));
-      return this.arithmeticValue(prepareArithmetic(source || "0", this.budget.parsing), state, io);
-    };
+      return this.arithmeticValue(prepareArithmetic(source || "0", this.budget.parsing), state, io);};
     let offset = await evaluate(part.substring!.offset);
     if (offset < 0n) offset += BigInt(state.positional.length + 1);
     if (offset < 0n || offset > BigInt(state.positional.length)) return [];
@@ -21447,7 +17545,6 @@ export class Runtime {
     }
     return values;
   }
-
   async arrayMembers(name: string, state: State, io: IO, keys = false, substring?: Extract<WordPart, { kind: "variable" }>["substring"]): Promise<ShellValue[]> {
     const store = requireArrays(state);
     const holding = store.owner.hold();
@@ -21459,8 +17556,7 @@ export class Runtime {
       const evaluate = async (word: Word): Promise<bigint> => {
         const fields = await this.valueWord(word, state, this.parameterOperandIO(word, state, io), false);
         const source = shellValueText(concatShellValues(fields, io[valueScope]));
-        return this.arithmeticValue(prepareArithmetic(source || "0", this.budget.parsing), state, io);
-      };
+        return this.arithmeticValue(prepareArithmetic(source || "0", this.budget.parsing), state, io);};
       offset = await evaluate(substring.offset);
       if (offset < 0n) offset += BigInt((binding?.maximum ?? (state.variables[name] === undefined ? -1 : 0)) + 1);
       if (substring.length) {
@@ -21502,15 +17598,11 @@ export class Runtime {
     } finally { await binding.release(); }
     } finally { holding.release(); }
   }
-
   private async recursiveGlob(value: string, pattern: string, state: State): Promise<string[]> {
-    // Entry/state limits are invocation-wide, including hidden and nonmatching
-    // entries. They are separate from the number of emitted expansion fields.
     const failWalk = (message: string): never => {
       const error = new FsError("EFBIG", { syscall: "glob", message });
       this.budget.abort(error);
-      throw error;
-    };
+      throw error;};
     const work: StringWork = { remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
     const scratch = this.budget.values.scope();
     work.allocation = scratch;
@@ -21536,17 +17628,13 @@ export class Runtime {
         if (size > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
         if (++this.budget.globstarStates > 100_000) failWalk("globstar traversal state limit exceeded");
         if (depth > 128) failWalk("globstar directory depth limit exceeded");
-        // Includes the candidate, queue/map/set slots and later segment-array
-        // references. Reservations remain cumulative until this glob settles.
         scratch.reserveBytes(size * 2 + 128);
-        return { path: parent.path + separator + suffix, bytes: size, descend, depth };
-      };
+        return { path: parent.path + separator + suffix, bytes: size, descend, depth };};
       const empty: Candidate = { path: "", bytes: 0, descend: true, depth: 0 };
       let candidates = [make(empty, pattern.startsWith("/") ? "/" : "", pattern.startsWith("/") ? 1 : 0, true, 0)];
       const ignored = (error: unknown): boolean => {
         this.signal.throwIfAborted();
-        return ["ENOENT", "ENOTDIR", "EACCES", "EINVAL"].includes(errorCode(error) ?? "");
-      };
+        return ["ENOENT", "ENOTDIR", "EACCES", "EINVAL"].includes(errorCode(error) ?? "");};
       const read = async (candidate: Candidate) => {
         const maxEntries = 100_000 - this.budget.globstarEntries;
         let entries;
@@ -21559,8 +17647,7 @@ export class Runtime {
         this.signal.throwIfAborted();
         if (entries.length > maxEntries) failWalk("globstar directory entry limit exceeded");
         this.budget.globstarEntries += entries.length;
-        return entries;
-      };
+        return entries;};
       let wildcardPrefix = false;
       for (let index = 0; index < segments.length; index++) {
         const segment = segments[index]!;
@@ -21568,8 +17655,7 @@ export class Runtime {
         const next = new Map<string, Candidate>();
         const add = (candidate: Candidate): void => {
           const prior = next.get(candidate.path);
-          if (!prior || candidate.descend && !prior.descend) next.set(candidate.path, candidate);
-        };
+          if (!prior || candidate.descend && !prior.descend) next.set(candidate.path, candidate);};
         if (segment === "**") {
           const visited = new Set<string>();
           for (const root of candidates) {
@@ -21578,8 +17664,6 @@ export class Runtime {
               if ((await interruptible(this.fs.stat(pathOf(state, root.path || "."), { signal: this.signal }), this.signal)).type !== "directory") continue;
             } catch (error) { if (ignored(error)) continue; throw error; }
             if (!terminal || root.path) {
-              // A literal prefix retains its separator in the zero-depth
-              // terminal match; expanded prefixes do not (GNU Bash 5.2).
               add(terminal && !wildcardPrefix && root.path !== "/" ? make(root, "", 0, root.descend, root.depth) : root);
             }
             const queue = root.descend ? [root] : [];
@@ -21615,9 +17699,7 @@ export class Runtime {
             for (const entry of entries) {
               const pending = stringCheckpoint(work);
               if (pending) await pending;
-              if (entry.name !== "." && entry.name !== ".." && (state.dotglob || !entry.name.startsWith(".") || segment.startsWith(".")) && await matches(entry.name)) {
-                add(make(candidate, entry.name, (await scanString(entry.name, work)).bytes, true, candidate.depth));
-              }
+              if (entry.name !== "." && entry.name !== ".." && (state.dotglob || !entry.name.startsWith(".") || segment.startsWith(".")) && await matches(entry.name)) add(make(candidate, entry.name, (await scanString(entry.name, work)).bytes, true, candidate.depth));
             }
           }
           wildcardPrefix = true;
@@ -21640,13 +17722,10 @@ export class Runtime {
           found.push(candidate.path + slash);
         } catch (error) { if (!ignored(error)) throw error; }
       }
-      // In-place heap sort uses C UTF-8 pathname order while
-      // charging comparisons, including long common prefixes, and yielding.
       await sortExpansionStrings(found, work, true);
       return found.length ? found : state.nullglob ? [] : [value];
     } finally { scratch.close(); }
   }
-
   async glob(value: string, pattern: string, state: State): Promise<string[]> {
     if (state.noglob) return [value];
     if (!(state.extglob ? /(?:^|[^\\])(?:\\\\)*(?:[*?[]|[?*+@!]\()/u.test(pattern) : /(?:^|[^\\])(?:\\\\)*[*?[]/u.test(pattern))) return [value];
@@ -21672,8 +17751,7 @@ export class Runtime {
         if (size > this.budget.limits.maxExpansionBytes - candidateBytes) this.budget.fail("maxExpansionBytes");
         candidateBytes += size;
         next.push(candidate);
-        if (next.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
-      };
+        if (next.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");};
       if (segment === "." || segment === ".." || !state.nocaseglob && !(state.extglob ? /(?:^|[^\\])(?:\\\\)*(?:[*?[]|[?*+@!]\()/u.test(segment) : /(?:^|[^\\])(?:\\\\)*[*?[]/u.test(segment))) {
         const literal = segment.replace(/\\(.)/gu, "$1");
         for (const candidate of candidates) addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${literal}`);
@@ -21715,42 +17793,16 @@ export class Runtime {
         if (!["ENOENT", "ENOTDIR", "EACCES", "EINVAL"].includes(errorCode(error) ?? "")) throw error;
       }
     }
-    // Heap sort inspects at most O(output bytes * log(fields)) characters.
-    // Keep sorting work separate from the pattern-matching allowance.
     const sortingWork: StringWork = {
-      remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 4 * (Math.ceil(Math.log2(found.length + 1)) + 1) + 1024),
-      signal: this.signal,
-      exhausted: (): never => this.budget.fail("maxExpansionBytes"),
-    };
+      remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 4 * (Math.ceil(Math.log2(found.length + 1)) + 1) + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), };
     await sortExpansionStrings(found, sortingWork, true);
     return found.length ? found : state.nullglob ? [] : [value];
   }
 }
 Object.assign(Budget.prototype, {
-  hasInfiniteFsOps: true,
-  canRedirect1: true,
-  maxSourceBytesSmi: 0x3fffffff,
-  maxPipelineStagesSmi: 0x3fffffff,
-  canSyncPurePipe: true,
-});
+  hasInfiniteFsOps: true, canRedirect1: true, maxSourceBytesSmi: 0x3fffffff, maxPipelineStagesSmi: 0x3fffffff, canSyncPurePipe: true, });
 Object.assign(Runtime.prototype, {
-  outcomeFrame: undefined,
-  _fs: undefined,
-  _contextFsMask: -1,
-  _contextFsSignal: undefined,
-  _contextFs: undefined,
-  _redirectFsMask: -1,
-  _redirectFs: undefined,
-  _fileWrites: undefined,
-  _outputFiles: undefined,
-  _syncArithState: undefined,
-  _canFastMemoryRedirect: undefined,
-  _syncArithRawVars: undefined,
-  _syncArithLine: undefined,
-  _syncArithRawWriteOnly: false,
-  _syncArithTouched: undefined,
-  _syncArithRefs: undefined,
-});
+  outcomeFrame: undefined, _fs: undefined, _contextFsMask: -1, _contextFsSignal: undefined, _contextFs: undefined, _redirectFsMask: -1, _redirectFs: undefined, _fileWrites: undefined, _outputFiles: undefined, _syncArithState: undefined, _canFastMemoryRedirect: undefined, _syncArithRawVars: undefined, _syncArithLine: undefined, _syncArithRawWriteOnly: false, _syncArithTouched: undefined, _syncArithRefs: undefined, });
 export class RootShellState implements State {
   declare umask: number;
   declare extensions: ShellExtensionState | undefined;
@@ -21772,13 +17824,7 @@ export class RootShellState implements State {
   declare _locals: Map<string, SavedVariable>[] | undefined;
   declare pipefail: boolean;
   declare profile: "bash";
-
-  constructor(
-    cwd: string,
-    variables: Record<string, string>,
-    exported: Set<string> | undefined,
-    extensions: ShellExtensionState | undefined,
-  ) {
+  constructor( cwd: string, variables: Record<string, string>, exported: Set<string> | undefined, extensions: ShellExtensionState | undefined, ) {
     this.cwd = cwd;
     this.variables = variables;
     this._exported = exported;
@@ -21787,7 +17833,6 @@ export class RootShellState implements State {
     this.substitutionStatus = 0;
     this.lastArgument = "";
   }
-
   get exported(): Set<string> {
     const raw = stateMonitor(this)?.raw as RootShellState | undefined;
     const target = raw ?? this;
@@ -21802,7 +17847,6 @@ export class RootShellState implements State {
     const raw = stateMonitor(this)?.raw as RootShellState | undefined;
     (raw ?? this)._exported = value;
   }
-
   get positional(): string[] {
     const raw = stateMonitor(this)?.raw as RootShellState | undefined;
     return (raw ?? this)._positional ??= [];
@@ -21811,7 +17855,6 @@ export class RootShellState implements State {
     const raw = stateMonitor(this)?.raw as RootShellState | undefined;
     (raw ?? this)._positional = value;
   }
-
   get locals(): Map<string, SavedVariable>[] {
     const raw = stateMonitor(this)?.raw as RootShellState | undefined;
     return (raw ?? this)._locals ??= [];
@@ -21820,9 +17863,7 @@ export class RootShellState implements State {
     const raw = stateMonitor(this)?.raw as RootShellState | undefined;
     (raw ?? this)._locals = value;
   }
-
   get functions(): Map<string, Command> {
-    // Materializing an empty map is a read; guest mutations still use the state proxy.
     const raw = stateMonitor(this)?.raw as RootShellState | undefined;
     return (raw ?? this)._functions ??= new Map();
   }
@@ -21831,31 +17872,8 @@ export class RootShellState implements State {
   }
 }
 Object.assign(RootShellState.prototype, {
-  [monitorSymbol]: undefined,
-  umask: 0o022,
-  extensions: undefined,
-  cwd: "/",
-  variables: undefined,
-  _exported: undefined,
-  _positional: undefined,
-  _locals: undefined,
-  _functions: undefined,
-  getopts: undefined,
-  directoryStack: undefined,
-  dotglob: false,
-  globstar: false,
-  status: 0,
-  substitutionStatus: 0,
-  depth: 0,
-  loopDepth: 0,
-  functionDepth: 0,
-  pipefail: false,
-  profile: "bash",
-});
-
+  [monitorSymbol]: undefined, umask: 0o022, extensions: undefined, cwd: "/", variables: undefined, _exported: undefined, _positional: undefined, _locals: undefined, _functions: undefined, getopts: undefined, directoryStack: undefined, dotglob: false, globstar: false, status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, pipefail: false, profile: "bash", });
 function hasShellFunction(state: State, name: string): boolean {
-  if (state instanceof RootShellState) {
-    return state._functions !== undefined && state._functions.has(name);
-  }
+  if (state instanceof RootShellState) return state._functions !== undefined && state._functions.has(name);
   return state.functions.has(name);
 }

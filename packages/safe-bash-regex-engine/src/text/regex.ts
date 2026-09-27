@@ -422,7 +422,7 @@ export class Pattern {
         if (reference !== undefined && "bByY<>".includes(reference)) {
           offset++;
           if (dialect === "awk" && reference === "b") {
-            return { type: "alternate", nodes: [{ type: "boundary", boundary: "word" }, characterNode("\b")] };
+            return characterNode("\b");
           }
           const boundary: BoundaryKind = (reference === "b" || reference === "y") ? "word"
             : (reference === "B" || reference === "Y") ? "nonWord"

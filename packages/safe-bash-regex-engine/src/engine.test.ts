@@ -58,6 +58,21 @@ test("query regex preserves named captures without host regex execution", async 
   await assert.rejects(pattern.find("baa", { step() {}, async checkpoint() {}, maxBufferBytes: 1 }), ProgramError);
 });
 
+test("AWK backspace escapes consume a character while word boundaries stay zero-width", async () => {
+  const budget = { step() {}, checkpoint() {}, maxBufferBytes: 4096 };
+  const backspace = new Pattern("\\btarget\\b", true, false, "awk");
+  assert.equal(await backspace.find("target", budget), undefined);
+  const match = await backspace.find("\btarget\b", budget);
+  assert.deepEqual([match?.start, match?.end, match?.groups[0]], [0, 8, "\btarget\b"]);
+
+  for (const [dialect, source] of [["awk", "\\ytarget\\y"], ["sed", "\\btarget\\b"]] as const) {
+    const boundary = new Pattern(source, true, false, dialect);
+    assert.equal(await boundary.find("target_2", budget), undefined);
+    const word = await boundary.find("hit target now", budget);
+    assert.deepEqual([word?.start, word?.end, word?.groups[0]], [4, 10, "target"]);
+  }
+});
+
 test("regex errors retain the canonical public diagnostic constructor", () => {
   assert.ok(new ProgramError("bounded") instanceof PublicDiagnostic);
   assert.throws(() => new Pattern("[", true, false, "jq"), ProgramError);

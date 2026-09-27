@@ -1,12 +1,29 @@
+# Native DOCX live comment-style XML QA
+
+Run this complete native stress matrix separately from the fast unit route. A broad run reproduced a ten-second native startup-hook timeout; the original 36 cases and posttest passed independently with unchanged deadlines on 27 September 2026.
+
+1. Build the maintained DOCX and safe-bash dependencies. Put the exact fixture below in a temporary TypeScript file under `out`, and start it with real Node and `--import tsx`. All document archives and shell files stay in memory.
+2. Read the `{ "ready": true }` response within ten seconds. Keep each subsequent prepare, execute and verify request within its original five-second deadline; investigate latency rather than extending the bounds.
+3. For every transitional/strict XML combination, DOCX/DOTX kind and model/SDK/CLI route, send sufficient-capacity cases with 1,024 and 65,536 ignored physical children, then insufficient-capacity cases with 65,536 children. These are 36 workflows and 108 phase requests.
+4. For each workflow, send `{ strict, kind, count, route, capacity, phase }` in prepare → execute → verify order. Require the exact successful response `{ ok: true, phase, strict, kind, count, route, capacity }`. Any error, failed assertion, incomplete phase, process crash or timeout fails QA.
+5. Close stdin, require exit zero without signal, and remove the temporary fixture and evidence.
+
+The fixture retains all original source model, SDK batch, shell CLI, built public-reader, raw archive fidelity, ignored-node ownership, cumulative admission, scalar text, unchanged source/destination and atomic refusal assertions. Each workflow owns fresh bytes, filesystem, signal and budgets. Smaller comment-style admission and ownership controls remain in the maintained unit route.
+
+## Exact native fixture
+
+The imports below resolve from the temporary file under `out`.
+
+```ts
 import assert from "node:assert/strict";
 import { createInterface } from "node:readline";
 import { Volume } from "memfs";
 import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
 import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import * as publicApi from "docx";
-import * as api from "../../src/index.js";
-import { textContext, textFixture } from "./text.js";
-import { readPackage } from "../assertions.js";
+import * as api from "../packages/docx/src/index.js";
+import { textContext, textFixture } from "../packages/docx/tests/fixtures/text.js";
+import { readPackage } from "../packages/docx/tests/assertions.js";
 
 type Request = {
   strict: boolean; kind: "docx" | "dotx"; count: number; route: "model" | "sdk" | "cli";
@@ -153,3 +170,5 @@ for await (const raw of createInterface({ input: process.stdin })) {
   }
 }
 assert.equal(current, undefined, "Every prepared workflow must be verified");
+
+```

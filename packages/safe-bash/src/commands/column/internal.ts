@@ -95,6 +95,9 @@ export class ColumnBudget extends Budget {
     this.checkOutput(bytes.length, "output");
     this.emittedBytes += bytes.length;
     await this.output([bytes]);
+    // Column's admitted chunks are also its backpressure boundaries. Do not
+    // let the shared table-text buffer combine them into larger sink writes.
+    await this.flushOutput();
   }
   async padding(size: number, character = " "): Promise<void> {
     this.checkOutput(size);

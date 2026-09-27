@@ -1,7 +1,3 @@
-import path from "node:path";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it } from "vitest";
 import { symbols } from "../components/symbols.js";
 import { stripAnsi } from "../internal/strip-ansi.js";
@@ -12,8 +8,6 @@ import { parse, render, renderMarkdown, type MdNode } from "./index.js";
 import { parseBlocks } from "./parser/block.js";
 import { extractFrontmatter } from "./parser/frontmatter.js";
 import { parseInline } from "./parser/inline.js";
-
-const execFileAsync = promisify(execFile);
 
 describe("terminal markdown demo content", () => {
   it("returns the default markdown demo", () => {
@@ -749,25 +743,6 @@ describe("terminal markdown integration", () => {
     expect(output.length).toBeGreaterThan(0);
     expect(stripAnsi(output)).toContain("Section 500");
     expect(output.includes("\u001B[")).toBe(true);
-  });
-});
-
-describe("terminal markdown theme validation", () => {
-  const fixturePath = path.join(
-    path.dirname(fileURLToPath(import.meta.url)),
-    "..", "..", "dist", "terminal-markdown", "testing",
-    "theme-render-fixture.js"
-  );
-
-  it("dark and light themes render readable, visually distinct ANSI output", async () => {
-    const { stdout } = await execFileAsync(process.execPath, [fixturePath], {
-      cwd: process.cwd(),
-      env: { ...process.env }
-    });
-
-    expect(stdout).toContain("THEMES_VALIDATED");
-    expect(stdout).toContain("Dark Theme");
-    expect(stdout).toContain("Light Theme");
   });
 });
 

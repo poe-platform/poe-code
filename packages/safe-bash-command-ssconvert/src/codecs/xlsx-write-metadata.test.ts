@@ -2,6 +2,7 @@ import { expect, it } from "vitest";
 import { readGnumeric } from "./gnumeric.js";
 import { createXlsxWriter } from "./xlsx.js";
 import { createZipCodec } from "@poe-code/office-package";
+import { parseXml } from "@poe-code/safe-fs/xml";
 import type { CapabilityContext } from "../contracts.js";
 const context: CapabilityContext = { signal: new AbortController().signal, own() {},
   environment: { env: {}, locale: "C", timezone: "UTC" },
@@ -20,6 +21,16 @@ it.each(["2006", "2008"] as const)("exports measured style regions, validation, 
   expect(sheet).toContain('hyperlink ref="C1" r:id="rId3" location="location" tooltip="go"');
   expect(sheet).toContain('legacyDrawing r:id="rId2"');
   expect(parts.get("xl/comments1.xml")).toContain('hello &amp; world');
+  const drawing = parseXml(parts.get("xl/drawings/vmlDrawing1.vml")!);
+  const shapeTypes = drawing.children.filter(node => node.localName === "shapetype");
+  const shapes = drawing.children.filter(node => node.localName === "shape");
+  expect(shapes).toHaveLength(1);
+  const shapeTypeIds = shapeTypes.map(node => node.attributes.find(attribute => attribute.localName === "id")?.value);
+  for (const shape of shapes) {
+    const reference = shape.attributes.find(attribute => attribute.localName === "type")!.value;
+    expect(reference).toBe("#_x0000_t202");
+    expect(shapeTypeIds).toContain(reference.slice(1));
+  }
   expect(parts.get("xl/worksheets/_rels/sheet1.xml.rels")).toContain('Target="https://example.com/path"');
   expect(parts.get("xl/styles.xml")).toContain('<dxfs count="1">');
   const types = parts.get("[Content_Types].xml")!;

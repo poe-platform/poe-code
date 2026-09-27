@@ -2573,6 +2573,19 @@
         "implementation": "Decode each plain/rich comment text node independently and authors once. Preserve author whitespace and explicit empty authors. Encode author strings and use the existing rich-string writer for comment text, including xml:space preservation. Generic XML escaping remains strict.",
         "validation": "81 tests in four files, package lint/source/test/consumer types and selected maintained build pass. Four compiled codec/command conversions across both editions preserve values and leave the input model unchanged; independent Python ZIP/XML parsing verifies all 48 members and exact encoded author/text.",
         "remaining": "Existing raw comments-record warning remains: complete rich formatting/metadata retention is not implemented. Native author decoding is not established by the inspected LibreOffice functions; ST_Xstring defines the correction. Native application, installed release, remote delivery and publication remain unverified. No family closure."
+      },
+      "commentShapeReference": {
+        "status": "implemented; focused tests and package checks pass; compiled delivery pending",
+        "source": {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/oox/source/export/vmlexport.cxx",
+          "sha256": "ce656db22669132d3e1c0f179c5d0013c1aa7cb43fe8121468a2001721bddb88",
+          "bytes": 69651,
+          "lines": "1276-1283, 1475-1482"
+        },
+        "finding": "VML shape declarations use a plain ID and references use # plus that ID. The writer declared #_x0000_t201 but referenced #_x0000_t202, leaving every generated comment shape reference unresolved.",
+        "implementation": "Declare _x0000_t202 to match the existing #_x0000_t202 references.",
+        "validation": "Both XLSX editions fail the parsed declaration/reference check before the fix; all 22 tests in the comment-string and writer-metadata files pass after it. Package lint and source/test/consumer type checks pass.",
+        "remaining": "This corrects the broken identifier only. Complete shape geometry, rich comment metadata, native rendering, compiled/installed delivery and publication remain unverified."
       }
     }
   },

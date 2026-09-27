@@ -131,7 +131,7 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
           xml("text", {}, writeRichString(comment.attributes.Text ?? "", undefined, xml)))).join(""))) });
     if (comments.length) parts.push({ name: `drawings/vmlDrawing${number}.vml`, relation: "vmlDrawing", type: "application/vnd.openxmlformats-officedocument.vmlDrawing",
       content: xml("xml", { "xmlns:v": "urn:schemas-microsoft-com:vml", "xmlns:o": "urn:schemas-microsoft-com:office:office", "xmlns:x": "urn:schemas-microsoft-com:office:excel" },
-        xml("v:shapetype", { id: "#_x0000_t201" }) + comments.map((comment, index) => {
+        xml("v:shapetype", { id: "_x0000_t202" }) + comments.map((comment, index) => {
           const position = parseA1(comment.attributes.ObjectBound?.split(":")[0] ?? "A1");
           return xml("v:shape", { type: "#_x0000_t202", fillcolor: "#ffffc0", style: `position:absolute;margin-left:${((position.column + 1) * 48).toFixed(2)}pt;margin-top:${(position.row * 12.75).toFixed(2)}pt;width:0.00pt;height:0.00pt;z-index:${index + 1};visibility:hidden;` },
             xml("x:ClientData", { ObjectType: "Note" }, xml("x:Anchor", {}, `${position.column + 1}, 15, ${position.row}, 10, ${position.column + 3}, 15, ${position.row + 4}, 4`) + xml("x:MoveWithCells") + xml("x:SizeWithCells") + xml("x:AutoFill", {}, "False") +

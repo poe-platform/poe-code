@@ -7027,10 +7027,8 @@ export class Runtime {
         !hasShellFunction(rawState, "local") &&
         !rawState.extensions?.builtins.has("local")
       ) {
-        if (command.words[1]?.plain === "-a" && command.words.length >= 3) {
-          const st = stateMonitor(rawState)?.store;
-          if (command.words.slice(2).every(w => w.plain !== undefined && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(w.plain!) && !rawState.readonlyVariables?.has(w.plain!) && !st?.get(w.plain!)?.associative)) return true;
-        }
+        // Array locals require the typed declaration and restoration lifecycle.
+        if (command.words[1]?.plain === "-a") return false;
         let allValidLocal = true;
         for (let idx = 1; idx < command.words.length; idx++) {
           const wArg = command.words[idx]!;
@@ -8671,47 +8669,7 @@ export class Runtime {
         !pipeline.negate &&
         canMutatePipeStatus
       ) {
-        if (command.words[1]?.plain === "-a" && command.words.length >= 3) {
-          const arrStore = monitor.store ?? requireArrays(rawState);
-          const arrNames: string[] = [];
-          let okLocalArr = true;
-          for (let idx = 2; idx < command.words.length; idx++) {
-            const an = command.words[idx]!.plain;
-            if (!an || !isShellIdentifier(an) || rawState.readonlyVariables?.has(an) || rawState.exported.has(an) || rawState.variableAttributes?.get(an) || controlNames.has(an)) { okLocalArr = false; break; }
-            const eb = arrStore.get(an);
-            if ((eb && (eb.associative || eb.references !== 1 || arrStore.watches.has(an) || monitor.hasOverlay(an))) || (!eb && rawState.variables[an] !== undefined)) { okLocalArr = false; break; }
-            arrNames.push(an);
-          }
-          if (okLocalArr) {
-            const locals = rawState.locals[rawState.locals.length - 1]!;
-            for (let idx = 0; idx < arrNames.length; idx++) {
-              const an = arrNames[idx]!;
-              let eb = arrStore.get(an);
-              if (!locals.has(an)) {
-                const sv: SavedVariable & { _localArrayClear?: boolean } = { attributes: undefined, value: undefined, exported: false, readOnly: false, _localArrayClear: true };
-                locals.set(an, sv);
-              }
-              if (!eb) {
-                const created = IndexedBinding.create(arrStore.owner, false);
-                const prepared = arrStore.prepareExistingName(an, shellValueByteLength(an), arrStore.owner, this.signal);
-                if (!prepared) { void created.release(); return undefined; }
-                const initTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
-                arrStore.publish(an, created, initTickets, prepared, false, arrStore.owner);
-                monitor.epoch = initTickets.epoch;
-                eb = created;
-              } else if (eb.values.size > 0) {
-                for (const k of [...eb.values.keys()]) eb.remove(k);
-                eb.maximum = -1;
-              }
-            }
-            this.budget.tick();
-            rawState.substitutionStatus = 0;
-            if (rawState.variables._ !== undefined) delete rawState.variables._;
-            rawState.lastArgument = arrNames[arrNames.length - 1]!;
-            rawState.status = 0;
-            return 0;
-          }
-        }
+        if (command.words[1]?.plain === "-a") return undefined;
         const parsedLocals: Array<{ name: string; val: string | undefined; lastArg: string }> = [];
         let allValidLocal = true;
         for (let idx = 1; idx < command.words.length; idx++) {
@@ -8900,14 +8858,6 @@ export class Runtime {
               rawState.locals.pop();
               rawState.functionNames?.shift();
               for (const [k, previous] of locals) {
-                if ((previous as { _localArrayClear?: boolean })._localArrayClear) {
-                  const b = monitor.store?.get(k);
-                  if (b && !b.associative && b.values.size > 0) {
-                    for (const idx of [...b.values.keys()]) b.remove(idx);
-                    b.maximum = -1;
-                  }
-                  continue;
-                }
                 if (this._syncArithRawWriteOnly && this._syncArithTouched && !previous.heldValue && !previous.attributes && !previous.exported && !previous.readOnly && k !== "OPTIND") {
                   if (previous.value === undefined) delete rawState.variables[k];
                   else rawState.variables[k] = shellValueText(previous.value);

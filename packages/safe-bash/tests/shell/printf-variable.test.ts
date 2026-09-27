@@ -17,6 +17,31 @@ function fixture(options: Parameters<typeof setup>[0] = {}) {
   return result;
 }
 
+for (const [name, script, expected] of [
+  ["outer indexed binding", 'value=(outer tail); f(){ local -a value; value[0]=inner; }; f; printf "<%s:%s>" "${value[0]}" "${value[1]}"', "<outer:tail>"],
+  ["repeated declaration", 'f(){ local -a value; value[2]=inner; local -a value; printf "<%s>" "${value[2]}"; }; f', "<inner>"],
+  ["previously absent binding", 'f(){ local -a value; value[0]=inner; }; f; declare -p value >/dev/null 2>&1; printf %s "$?"', "1"],
+  ["nested sparse bindings", 'value=([2]=outer [5]=tail); inner(){ local -a value; value[2]=inner; }; outer(){ local -a value; value[2]=middle; inner; printf "<%s>" "${value[2]}"; }; outer; printf "<%s:%s>" "${value[2]}" "${value[5]}"', "<middle><outer:tail>"],
+  ["return cleanup", 'value=(outer tail); f(){ local -a value; value[0]=inner; return 7; }; f; printf "<%s:%s:%s>" "$?" "${value[0]}" "${value[1]}"', "<7:outer:tail>"],
+  ["multiple local names", 'left=(left); right=(right); f(){ local -a left right; left[0]=one; right[0]=two; }; f; printf "<%s:%s>" "${left[0]}" "${right[0]}"', "<left:right>"],
+] as const) {
+  test(`local -a restores scope: ${name}`, async () => {
+    const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", script], { env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000 });
+    assert.ifError(oracle.error);
+    assert.equal(oracle.signal, null);
+    assert.equal(oracle.status, 0);
+    assert.equal(oracle.stderr.length, 0);
+    assert.equal(oracle.stdout.toString(), expected);
+    const { shell } = fixture();
+    try {
+      const result = await shell.exec(script);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(result.stdoutBytes, new Uint8Array(oracle.stdout));
+    } finally { await shell.dispose(); }
+  });
+}
+
 const cases = [
   ["associative printf destinations", 'declare -A map; printf -v "map[foo]" %s hello; printf -v "map[01]" %s leading; printf "<%s:%s>" "${map[foo]}" "${map[01]}"'],
   ["arithmetic printf destinations", 'arr=(a b c); i=1; printf -v "arr[i]" %s updated; printf -v "arr[i+1]" %s last; printf "<%s:%s>" "${arr[1]}" "${arr[2]}"'],

@@ -398,9 +398,9 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
       }
       const portableDependencies = Object.keys(manifest.dependencies ?? {}).length
         ? manifest.dependencies
-        : Object.fromEntries(Object.entries(manifest.devDependencies ?? {}).filter(([name]) => ["@noble/hashes", "pako", "@poe-code/office-package"].includes(name)));
+        : Object.fromEntries(Object.entries(manifest.devDependencies ?? {}).filter(([name]) => ["@noble/hashes", "@noble/ciphers", "pako", "@poe-code/office-package"].includes(name)));
       if (Object.keys(portableDependencies).length) {
-        const dependencies = { "@noble/hashes": "2.4.0", pako: "3.0.1" };
+        const dependencies = { "@noble/hashes": "2.4.0", "@noble/ciphers": "2.4.0", pako: "3.0.1" };
         const sharedArchive = Object.hasOwn(portableDependencies, "@poe-code/office-package");
         assert.deepEqual(portableDependencies, { ...dependencies, ...(sharedArchive ? { "@poe-code/office-package": "*" } : {}) }, "portable dependency contract");
         const dependencyBase = manifest.poeCode?.integration?.peerProfile === "checkout-root" ? resolve(root, "../..") : root;

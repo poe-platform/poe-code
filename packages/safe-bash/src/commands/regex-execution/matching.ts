@@ -1,6 +1,5 @@
 import { decodeBytes, encodeBytes } from "../../byte-encoding.js";
 import { PublicDiagnostic } from "../../public-diagnostic.js";
-import { isAscii } from "node:buffer";
 import { matchRangeLimits, type Descriptor, type GrepDescriptor, type SearchDescriptor, type Match, type Row } from "./protocol.js";
 
 class SearchError extends PublicDiagnostic {}
@@ -80,7 +79,7 @@ class SearchMatcher {
       if (length > matchRangeLimits.perRow) throw new SearchError("matches per line limit exceeded");
       return Array.from({ length }, (_value, offset) => ({ start: offset, end: offset }));
     }
-    const { text, offsets, invalid } = isAscii(bytes) ? { text: decodeBytes(encodeBytes(bytes), "ascii"), offsets: undefined, invalid: [] } : decode(bytes);
+    const { text, offsets, invalid } = bytes.every(byte => byte < 128) ? { text: decodeBytes(encodeBytes(bytes), "ascii"), offsets: undefined, invalid: [] } : decode(bytes);
     const matches: Match[] = [];
     let previousEnd = -1;
     let fragmentStart = 0;

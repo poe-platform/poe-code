@@ -149,6 +149,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], i
       "commands/llm/index.browser": path.join(directory, "src/commands/llm/index.ts"),
       "commands/llm/providers/index.browser": path.join(directory, "src/commands/llm/providers/index.ts"),
       "core.browser": path.join(directory, "src/core.browser.ts"),
+      "trap.browser": path.join(directory, "src/trap.browser.ts"),
       "portable-buffer": path.join(directory, "src/portable-buffer.ts"),
       "shell-entry.browser": path.join(directory, "src/shell-entry.ts"),
       "registry-entry.browser": path.join(directory, "src/registry-entry.ts"),

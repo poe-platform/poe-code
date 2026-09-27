@@ -1860,8 +1860,14 @@
       "import": "./dist/opt-in/entrypoints/read.js"
     },
     "./trap": {
-      "types": "./dist/opt-in/entrypoints/trap.d.ts",
-      "import": "./dist/opt-in/entrypoints/trap.js"
+      "types": {
+        "workerd": "./dist/trap.browser.d.ts",
+        "browser": "./dist/trap.browser.d.ts",
+        "default": "./dist/opt-in/entrypoints/trap.d.ts"
+      },
+      "import": "./dist/opt-in/entrypoints/trap.js",
+      "workerd": "./dist/trap.browser.js",
+      "browser": "./dist/trap.browser.js"
     },
     "./playwright": {
       "types": "./dist/commands/playwright/index.d.ts",
@@ -2465,16 +2471,11 @@
     "@poe-code/spreadsheet-format-dbf": "*",
     "safe-bash-command-docx": "*",
     "safe-bash-command-pptx": "*",
-    "safe-bash-command-llm": "*"
+    "safe-bash-command-llm": "*",
+    "@noble/ciphers": "2.4.0"
   },
   "main": "./dist/index.js",
   "imports": {
-    "#safe-bash-zip-aes-crypto": {
-      "types": "./src/commands/archive/zip/aes-primitives.ts",
-      "workerd": "./dist/commands/archive/zip/aes-primitives-unavailable.js",
-      "browser": "./dist/commands/archive/zip/aes-primitives-unavailable.js",
-      "default": "./dist/commands/archive/zip/aes-primitives.js"
-    },
     "#safe-bash-network-platform": {
       "types": "./src/commands/network/platform.ts",
       "workerd": "./dist/commands/network/platform-portable.js",

@@ -377,6 +377,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     "commands/llm/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/index.ts"),
     "commands/llm/providers/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/providers/index.ts"),
     "core.browser": path.join(root, "packages/safe-bash/src/core.browser.ts"),
+    "trap.browser": path.join(root, "packages/safe-bash/src/trap.browser.ts"),
     "portable-buffer": path.join(root, "packages/safe-bash/src/portable-buffer.ts"),
     "shell-entry.browser": path.join(root, "packages/safe-bash/src/shell-entry.ts"),
     "registry-entry.browser": path.join(root, "packages/safe-bash/src/registry-entry.ts"),
@@ -484,6 +485,7 @@ beforeAll(async () => {
   const routes = [...new Set(["core", "jobs", "optional-host", "commands/node", ...commandFactories.map(([command]) => `commands/${command}`)])];
   browserConsumerSource = await bundlePublicConsumer(`
     export * from "@poe-platform/safe-bash";
+    export { trapExtension as PortableTrapExtension } from "@poe-platform/safe-bash/trap";
     import * as root from "@poe-platform/safe-bash";
     import * as core from "@poe-platform/safe-bash/core";
     export const coreIdentity = Object.keys(core).every(name => root[name] === core[name]);
@@ -689,3 +691,22 @@ it("portable network factories require transport injection and preserve HTTP hea
   const consumer = createBrowserProbes();
   expect(await consumer.probeNetwork()).toEqual({ refused: true, valid: 0, invalid: 2, value: 2, multipart: 0, requests: 2, output: [111, 107, 111, 107] });
 });
+
+it("uses the public portable trap subpath without the Node signal catalog", async () => {
+  const trap = Reflect.get(browser, "PortableTrapExtension") as () => NonNullable<import("../packages/safe-bash/src/shell/types.js").ShellOptions["extensions"]>[number];
+  const shell = new browser.Shell({fs: filesystem.createMemoryFileSystem(), extensions: [trap()]}).use(browser.agentCommands());
+  try {
+    expect(await shell.exec("trap 'printf done' EXIT; printf body")).toMatchObject({exitCode: 0, stdout: "bodydone", stderr: ""});
+  } finally { await shell.dispose(); }
+});
+
+it("round-trips authenticated ZIP AES in the portable shell without Node crypto or Buffer", async () => {
+  const fs = filesystem.createMemoryFileSystem();
+  await fs.writeFile("/file", new TextEncoder().encode("secret payload"));
+  const shell = new browser.Shell({ fs }).use(browser.archiveCommands({ zip: { compression: "store", encryption: "aes-256-ae2" }, zipHost: { entropy: length => new Uint8Array(length).fill(42) } }));
+  try {
+    expect(await shell.exec("zip -P test /archive.zip /file")).toMatchObject({exitCode: 0, stderr: ""});
+    expect(await shell.exec("unzip -p -P test /archive.zip")).toMatchObject({exitCode: 0, stdout: "secret payload", stderr: ""});
+  } finally { await shell.dispose(); }
+});
+

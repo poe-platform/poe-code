@@ -1,4 +1,8 @@
-import * as crypto from "#safe-bash-zip-aes-crypto";
+import { ecb } from "@noble/ciphers/aes.js";
+import { equalBytes } from "@noble/ciphers/utils.js";
+import { hmac } from "@noble/hashes/hmac.js";
+import { pbkdf2 } from "@noble/hashes/pbkdf2.js";
+import { sha1 } from "@noble/hashes/legacy.js";
 import { collectBytes, type ByteSource } from "../../../contracts/index.js";
 import { yieldTurn } from "../../../contracts/yield.js";
 import { fail } from "../internal.js";
@@ -6,15 +10,6 @@ import type { ZipEncryption } from "./crypto.js";
 
 /** WinZip AES encryption specification 1.04, AE-1 and AE-2. */
 export interface ZipAes { readonly strength: 128 | 192 | 256; readonly version: 1 | 2 }
-
-function aesPrimitives(): Pick<typeof crypto, "createCipheriv" | "createHmac" | "pbkdf2Sync" | "timingSafeEqual"> {
-  // Some legitimate non-Node hosts expose only hashes/randomness. Reflective
-  // admission keeps plain ZIP loadable there without requiring absent exports.
-  const names = ["createCipheriv", "createHmac", "pbkdf2Sync", "timingSafeEqual"] as const;
-  const entries = names.map(name => [name, Reflect.get(crypto, name)] as const);
-  if (entries.some(([, value]) => typeof value !== "function")) fail("ZIP AES vetted crypto primitives are unavailable");
-  return Object.fromEntries(entries) as ReturnType<typeof aesPrimitives>;
-}
 
 export function zipEncryptionProfile(profile: string): ZipAes | undefined {
   if (profile === "zipcrypto") return undefined;
@@ -32,16 +27,14 @@ export function aesParameters(aes: ZipAes): { keyBytes: number; saltBytes: numbe
 function keys(password: Uint8Array, salt: Uint8Array, aes: ZipAes, signal: AbortSignal): Uint8Array {
   signal.throwIfAborted();
   const { keyBytes } = aesParameters(aes);
-  // A fixed 1000-iteration native call introduces no asynchronous resource to
-  // outlive invocation cleanup. Cancellation is checked at native boundaries.
-  const derived = aesPrimitives().pbkdf2Sync(password, salt, 1000, keyBytes * 2 + 2, "sha1");
+  // The fixed 1000-iteration derivation creates no asynchronous resource to
+  // outlive invocation cleanup. Check cancellation before and after derivation.
+  const derived = pbkdf2(sha1, password, salt, { c: 1000, dkLen: keyBytes * 2 + 2 });
   if (signal.aborted) { derived.fill(0); signal.throwIfAborted(); }
   return derived;
 }
 
-async function transform(input: Uint8Array, key: Uint8Array, aes: ZipAes, signal: AbortSignal): Promise<Uint8Array> {
-  const cipher = aesPrimitives().createCipheriv(`aes-${aes.strength}-ecb`, key, null);
-  cipher.setAutoPadding(false);
+async function transform(input: Uint8Array, key: Uint8Array, signal: AbortSignal): Promise<Uint8Array> {
   const output = new Uint8Array(input.length);
   try {
     // The extension uses AES(counter), with a 128-bit little-endian counter
@@ -52,20 +45,17 @@ async function transform(input: Uint8Array, key: Uint8Array, aes: ZipAes, signal
       const counters = new Uint8Array(Math.ceil(length / 16) * 16);
       const view = new DataView(counters.buffer);
       for (let block = 0; block < counters.length; block += 16) view.setBigUint64(block, BigInt((offset + block) / 16 + 1), true);
-      const stream = cipher.update(counters);
+      const stream = ecb(key, { disablePadding: true }).encrypt(counters);
       for (let i = 0; i < length; i++) output[offset + i] = input[offset + i]! ^ stream[i]!;
       stream.fill(0);
       await yieldTurn(signal);
     }
-    cipher.final();
     return output;
   } catch (error) { output.fill(0); throw error; }
-  finally { cipher.destroy(); }
 }
 
 export async function encryptAesPayload(source: ByteSource, encryption: ZipEncryption & { aes: ZipAes }, maxBytes: number, signal: AbortSignal): Promise<Uint8Array> {
   signal.throwIfAborted();
-  const primitives = aesPrimitives();
   const { keyBytes, saltBytes } = aesParameters(encryption.aes);
   const aes = { ...encryption.aes };
   const password = new Uint8Array(encryption.password);
@@ -80,8 +70,8 @@ export async function encryptAesPayload(source: ByteSource, encryption: ZipEncry
     if (!(supplied instanceof Uint8Array) || supplied.length !== saltBytes) fail("ZIP invalid AES entropy bytes");
     const salt = new Uint8Array(supplied);
     derived = keys(password, salt, aes, signal);
-    const encrypted = await transform(plaintext, derived.subarray(0, keyBytes), aes, signal);
-    const tag = primitives.createHmac("sha1", derived.subarray(keyBytes, keyBytes * 2)).update(encrypted).digest();
+    const encrypted = await transform(plaintext, derived.subarray(0, keyBytes), signal);
+    const tag = hmac(sha1, derived.subarray(keyBytes, keyBytes * 2), encrypted);
     const wire = new Uint8Array(saltBytes + 2 + encrypted.length + 10);
     wire.set(salt);
     wire.set(derived.subarray(keyBytes * 2), saltBytes);
@@ -95,7 +85,6 @@ export async function encryptAesPayload(source: ByteSource, encryption: ZipEncry
 
 export async function decryptAesPayload(wire: Uint8Array, password: Uint8Array, aes: ZipAes, maxBytes: number, signal: AbortSignal): Promise<Uint8Array> {
   signal.throwIfAborted();
-  const primitives = aesPrimitives();
   const { keyBytes, saltBytes } = aesParameters(aes);
   aes = { ...aes };
   if (maxBytes !== Infinity && (!Number.isSafeInteger(maxBytes) || maxBytes < 0)) throw new RangeError("maxBytes must be a nonnegative safe integer");
@@ -108,13 +97,13 @@ export async function decryptAesPayload(wire: Uint8Array, password: Uint8Array, 
   let derived: Uint8Array | undefined;
   try {
     derived = keys(secret, owned.subarray(0, saltBytes), aes, signal);
-    if (!primitives.timingSafeEqual(derived.subarray(keyBytes * 2), owned.subarray(saltBytes, saltBytes + 2))) fail("ZIP incorrect password");
+    if (!equalBytes(derived.subarray(keyBytes * 2), owned.subarray(saltBytes, saltBytes + 2))) fail("ZIP incorrect password");
     const encrypted = owned.subarray(saltBytes + 2, owned.length - 10);
-    const tag = primitives.createHmac("sha1", derived.subarray(keyBytes, keyBytes * 2)).update(encrypted).digest();
-    const authentic = primitives.timingSafeEqual(tag.subarray(0, 10), owned.subarray(owned.length - 10));
+    const tag = hmac(sha1, derived.subarray(keyBytes, keyBytes * 2), encrypted);
+    const authentic = equalBytes(tag.subarray(0, 10), owned.subarray(owned.length - 10));
     tag.fill(0);
     if (!authentic) fail("ZIP AES authentication failed");
-    return await transform(encrypted, derived.subarray(0, keyBytes), aes, signal);
+    return await transform(encrypted, derived.subarray(0, keyBytes), signal);
   } finally { derived?.fill(0); secret.fill(0); owned.fill(0); }
 }
 

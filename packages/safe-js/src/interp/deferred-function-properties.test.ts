@@ -6,7 +6,6 @@ import { dump } from "../dump.js";
 import { restore } from "../restore.js";
 import { encodeReplayData } from "../snapshot/replay-data.js";
 import { restoreSandboxArrayIterator } from "./array-iterator.js";
-import { MAX_DATA_DEPTH } from "../graph-depth.js";
 import {
   deferFunctionProperties,
   hasGuestObjectState,
@@ -115,17 +114,13 @@ it("preserves table mutations during its own closure collector and reentrant acc
   expect(measureSandboxData([value, value.properties])).toBe(after);
 });
 
-it("preserves the property table depth boundary before materialization", () => {
+it("measures a deeply nested property table before and after materialization", () => {
   const value = method();
   let root: SandboxValue = value;
-  for (let i = 0; i < MAX_DATA_DEPTH; i++) root = { next: root };
-  expect(() => measureSandboxData([root])).toThrow(
-    expect.objectContaining({ code: "budgetExceeded", budget: "dataDepth" })
-  );
+  for (let i = 0; i < 1_024; i++) root = { next: root };
+  expect(measureSandboxData([root])).toBe(6_162);
   materializeFunctionProperties(value);
-  expect(() => measureSandboxData([root])).toThrow(
-    expect.objectContaining({ code: "budgetExceeded", budget: "dataDepth" })
-  );
+  expect(measureSandboxData([root])).toBe(6_162);
 });
 
 it("keeps constructors and already materialized tables on their ordinary path", () => {

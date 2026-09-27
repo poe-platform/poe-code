@@ -1,6 +1,5 @@
 import { expect, it } from "vitest";
 import { setImmediate } from "node:timers/promises";
-import { MAX_DATA_DEPTH } from "../graph-depth.js";
 import { Budget } from "./budget.js";
 import { registerIndexedClosureCaptures } from "./indexed-closure-captures.js";
 import {
@@ -15,20 +14,11 @@ function nestedRoot(value: unknown): unknown {
   return value;
 }
 
-it.each([false, true])("measures deep closure-property chains (exceeds=%s)", (exceeds) => {
-  const count = MAX_DATA_DEPTH / 2 + (exceeds ? 1 : 0);
+it.each([512, 513])("measures deep closure-property chains of %s nodes", (count) => {
   let root;
   for (let index = 0; index < count; index++)
     root = createSandboxClosure({ call: () => undefined, properties: { next: root } });
-  if (exceeds)
-    expect(() => measureSandboxData([root])).toThrow(
-      expect.objectContaining({
-        code: "budgetExceeded",
-        budget: "dataDepth",
-        current: MAX_DATA_DEPTH + 1
-      })
-    );
-  else expect(measureSandboxData([root])).toBe(count * 7);
+  expect(measureSandboxData([root])).toBe(count * 7);
 });
 
 it.each([false, true])("observes collectors replaced by property descendants (held=%s)", (held) => {

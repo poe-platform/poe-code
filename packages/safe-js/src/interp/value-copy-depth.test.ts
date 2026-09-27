@@ -1,5 +1,4 @@
 import { expect, it } from "vitest";
-import { MAX_DATA_DEPTH } from "../graph-depth.js";
 import { deepCopyFromSandbox, deepCopyToSandbox } from "./values.js";
 
 function nested(depth: number): unknown {
@@ -17,9 +16,9 @@ function nested(depth: number): unknown {
   return value;
 }
 
-it("round-trips mixed containers and collection properties through the supported depth", () => {
-  let value = deepCopyFromSandbox(deepCopyToSandbox(nested(MAX_DATA_DEPTH)));
-  for (let index = 0; index < MAX_DATA_DEPTH; index++) {
+it.each([1_024, 1_025])("round-trips mixed containers and collection properties at depth %s", (depth) => {
+  let value = deepCopyFromSandbox(deepCopyToSandbox(nested(depth)));
+  for (let index = 0; index < depth; index++) {
     if (Array.isArray(value)) value = value[0];
     else if (value !== null && typeof value === "object" && Object.hasOwn(value, "child"))
       value = (value as { child: unknown }).child;
@@ -28,13 +27,4 @@ it("round-trips mixed containers and collection properties through the supported
     else throw new Error("Container shape changed");
   }
   expect(value).toBe("leaf");
-});
-
-it("reports typed depth failures for mixed imports and exports", () => {
-  const expected = expect.objectContaining({
-    name: "SandboxError", budget: "dataDepth", current: MAX_DATA_DEPTH + 1, limit: MAX_DATA_DEPTH
-  });
-  expect(() => deepCopyToSandbox(nested(MAX_DATA_DEPTH + 1))).toThrow(expected);
-  const value = deepCopyToSandbox(nested(MAX_DATA_DEPTH));
-  expect(() => deepCopyFromSandbox([value])).toThrow(expected);
 });

@@ -117,7 +117,7 @@ async function cutRanges(list: string, work: SortWork): Promise<CutRange[]> {
       if (openEnd) end = Infinity;
       if (!Number.isSafeInteger(start) || start < 1) throw new UsageError(`invalid number '${list.slice(tokenStart, dash < 0 ? index : dash)}'`);
       if (!openEnd && (!Number.isSafeInteger(end) || end < 1)) throw new UsageError(`invalid number '${list.slice(dash < 0 ? tokenStart : dash + 1, index)}'`);
-      if (end < start) throw new UsageError(`decreasing range '${list.slice(tokenStart, index)}'`);
+      if (end < start) throw new PublicDiagnostic(`invalid decreasing range '${list.slice(tokenStart, index)}'`);
       ranges.push({ start, end });
       needsRange = character === ",";
       tokenStart = index + 1;

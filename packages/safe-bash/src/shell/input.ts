@@ -1,3 +1,4 @@
+import { latin1Text } from "../byte-encoding.js";
 import { FsError, toByteSource } from "../contracts/index.js";
 import type { ByteSource, CommandInput, FileReadHandle, FileStat, FileSystem, FileSystemCapabilities, InvocationCleanup } from "../contracts/index.js";
 import { hasRegisteredYieldCheckpoint } from "../contracts/yield.js";
@@ -1452,7 +1453,7 @@ export class ShellInput implements ByteSource, CommandInput {
       if (finalLen > 0 && finalLen <= 64) {
         for (let k = 0; k < finalLen; k++) strVal += String.fromCharCode(slice[k]!);
       } else if (finalLen > 64) {
-        strVal = Buffer.from(slice.buffer, slice.byteOffset, slice.byteLength).toString("latin1");
+        strVal = latin1Text(slice);
       }
       return { value: strVal, present: true };
     }
@@ -1529,7 +1530,7 @@ export class ShellInput implements ByteSource, CommandInput {
     cursor.admitBoundedRead();
     cursor.position += delimIdx + 1;
     cursor.remainder = delimIdx + 1 < rem.length ? rem.subarray(delimIdx + 1) : undefined;
-    return Buffer.from(rem.buffer, rem.byteOffset, delimIdx).toString("latin1");
+    return latin1Text(rem.subarray(0, delimIdx));
   }
 
   async line(raw: boolean, options: ReadLineOptions = {}): Promise<ReadLine> {

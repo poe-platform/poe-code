@@ -1,4 +1,4 @@
-import { bytesToHex } from "../byte-encoding.js";
+import { bytesToHex, latin1Text } from "../byte-encoding.js";
 const sharedCaptureDecoder = new TextDecoder();
 const cachedCaptureAsciiBytes = new Uint8Array(4096);
 let cachedCaptureAsciiLen = 0;
@@ -1987,6 +1987,12 @@ function saveVariable(state: State, name: string): SavedVariable {
   const heldValue = state.variables[name] !== undefined && value !== undefined ? monitor!.values.scope.hold(value) : undefined;
   return { attributes: state.variableAttributes?.get(name), value: state.variables[name], ...(heldValue ? { heldValue } : {}), exported: state.exported.has(name), readOnly: state.readonlyVariables?.has(name) ?? false, ...(name === "OPTIND" ? { getopts: cloneGetoptsBinding(state) } : {}) };
 }
+function hasUnpreparedLocals(state: State): boolean {
+  for (const frame of state.locals) for (const saved of frame.values()) {
+    if (!typedSavedVariables.has(saved)) return true;
+  }
+  return false;
+}
 function hasActiveVariableAttributes(state: State): boolean {
   const attrs = state.variableAttributes;
   if (!attrs || attrs.size === 0) return false;
@@ -2700,7 +2706,7 @@ function encodeRedirectTextToScratch(formatted: string): Uint8Array {
   }
   return len * 3 <= fastRedirectScratchBytes.byteLength
     ? fastRedirectScratchBytes.subarray(0, fastSharedTextEncoder.encodeInto(formatted, fastRedirectScratchBytes).written)
-    : Buffer.from(formatted, "utf8");
+    : fastSharedTextEncoder.encode(formatted);
 }
 function encodeRedirectTextWithNewlineToScratch(arg0: string): Uint8Array | undefined {
   const len = arg0.length;
@@ -4594,6 +4600,8 @@ export class Runtime {
   private tryFastArrayAssignmentSync(assignment: ArrayAssignment, state: State, io: IO, diagnosticLine?: number, declaration?: "readonly", associative?: boolean, ignoreYield = false): boolean {
     if (!ignoreYield && hasYieldCheckpoint(this.signal)) return false;
     if (declaration) return false;
+    // Array writes must prepare scope observers before creating or mutating bindings.
+    if (hasUnpreparedLocals(state)) return false;
     const name = assignment.name;
     this._syncArithTouched?.delete(name);
     const monitor = stateMonitor(state);
@@ -5030,7 +5038,7 @@ export class Runtime {
         if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
         this.budget.source(shellValueByteLength(source));
         const byteSource = typeof source !== "string";
-        const text = byteSource ? Buffer.from(shellValueBytes(source)).toString("latin1") : source;
+        const text = byteSource ? latin1Text(shellValueBytes(source)) : source;
         const restoration = stateMonitor(state)?.restoration(true);
         try {
           state.depth++;
@@ -8334,7 +8342,7 @@ export class Runtime {
           const lastArg = fastSubScratchArgs.length > 0 ? fastSubScratchArgs[fastSubScratchArgs.length - 1]! : targetVar;
           const formatted = allStrings ? tryFastPrintf(fastSubScratchArgs) : undefined;
           fastSubScratchArgs.length = 0;
-          if ( formatted !== undefined && formatted.length <= this.budget.limits.maxExpansionBytes && (formatted.length * 3 <= this.budget.limits.maxExpansionBytes || Buffer.byteLength(formatted) <= this.budget.limits.maxExpansionBytes)) {
+          if ( formatted !== undefined && formatted.length <= this.budget.limits.maxExpansionBytes && (formatted.length * 3 <= this.budget.limits.maxExpansionBytes || shellValueByteLength(formatted) <= this.budget.limits.maxExpansionBytes)) {
             if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
             const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
             this.budget.tick();
@@ -8579,6 +8587,7 @@ export class Runtime {
               const varCount = command.words.length - readWordIdx;
               let existingArrayBinding: ReturnType<NonNullable<typeof store>["get"]> | undefined;
               if (arrayTarget !== undefined) {
+                if (hasUnpreparedLocals(rawState)) return undefined;
                 if ( varCount !== 0 || !isShellIdentifier(arrayTarget) || rawState.readonlyVariables?.has(arrayTarget) || rawState.exported.has(arrayTarget) || rawState.variableAttributes?.get(arrayTarget) || controlNames.has(arrayTarget)) {
                   simpleRead = false;
                 } else {
@@ -9544,6 +9553,7 @@ export class Runtime {
         if ((w0Plain === ":" || w0Plain === "true") && !rawState.functions.has(w0Plain) && !rawState.extensions?.builtins.has(w0Plain)) continue;
         const arrAssign = getArrayAssignment(w0);
         if (arrAssign) {
+          if (hasUnpreparedLocals(rawState)) return false;
           const curArr = store?.get(arrAssign.name);
           if ( !curArr || curArr.references !== 1 || store!.watches.has(arrAssign.name) || rawState.readonlyVariables?.has(arrAssign.name) || rawState.exported.has(arrAssign.name) || controlNames.has(arrAssign.name)) {
             return false;
@@ -10437,7 +10447,7 @@ export class Runtime {
     let stdoutEchoBatch = "";
     const flushStdoutEchoBatch = (): void => {
       if (stdoutEchoBatch.length === 0) return;
-      const chunk = Buffer.from(stdoutEchoBatch, "utf8");
+      const chunk = fastSharedTextEncoder.encode(stdoutEchoBatch);
       stdoutEchoBatch = "";
       if ((io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) || (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write)) {
         if (io.stdout.budget !== this.budget) {
@@ -11359,7 +11369,7 @@ export class Runtime {
             if (!path.startsWith("/dev/") && path !== "/dev") {
               const encoded = formatted.length * 3 <= fastRedirectScratchBytes.byteLength
                   ? fastRedirectScratchBytes.subarray(0, fastSharedTextEncoder.encodeInto(formatted, fastRedirectScratchBytes).written)
-                  : Buffer.from(formatted, "utf8");
+                  : fastSharedTextEncoder.encode(formatted);
               const byteLength = encoded.byteLength;
               if (byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes && this.budget.canFileSystemOperation()) {
                 let writeSucceeded = false;
@@ -13778,7 +13788,7 @@ export class Runtime {
     try {
     allocation.reserve(64 + values.length * 32, 0);
     const value = concatShellValues(values.flatMap((entry, index) => index ? [" ", entry] : [entry]), allocation);
-    const source = typeof value === "string" ? { text: this.sourceText(Buffer.from(value), "eval"), values: undefined } : ownedShellSource(value, this.budget.parsing, allocation);
+    const source = typeof value === "string" ? { text: this.sourceText(fastSharedTextEncoder.encode(value), "eval"), values: undefined } : ownedShellSource(value, this.budget.parsing, allocation);
     if (/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/u.test(source.text)) throw new CommandFailure("eval: cannot execute binary script", 126);
     const restoration = stateMonitor(state)?.restoration(true);
     try { state.depth++; }
@@ -15059,7 +15069,7 @@ export class Runtime {
           const assigned = match[2] !== undefined ? assignedValue() : undefined;
           if (match[2]?.startsWith("(")) {
             this.budget.source(shellValueByteLength(assigned!));
-            const source = typeof assigned === "string" ? assigned : Buffer.from(shellValueBytes(assigned!, context[valueScope])).toString("latin1");
+            const source = typeof assigned === "string" ? assigned : latin1Text(shellValueBytes(assigned!, context[valueScope]));
             const entries = parseCompoundArrayValue(source, byteLocale(state.variables), typeof assigned !== "string", state.extensions?.syntax, this.budget.parsing);
             await this.arrayAssignment({ kind: "compound", name, append, entries }, state, context, "readonly");
           } else if (assigned !== undefined) {
@@ -15669,7 +15679,7 @@ export class Runtime {
       if (selector?.kind === "members" || part.name === "@" || part.name === "*") {
         const members = selector ? await this.arrayMembers(part.name, state, io, part.keys) : this.positionalValues(state);
         const ifs = state.variables.IFS ?? " ";
-        const separator = ifs.length ? String.fromCodePoint(ifs.codePointAt(0)!) : "";
+        const separator = selector?.kind === "members" && !split && (selector.separator === "@" || !part.quoted) ? " " : ifs.length ? String.fromCodePoint(ifs.codePointAt(0)!) : "";
         const fragments: ShellValue[] = [];
         let bytes = 0;
         for (const member of members) {
@@ -16010,7 +16020,7 @@ export class Runtime {
       }
       if (part.length) return String(binding?.values.size ?? (part.name === "FUNCNAME" && state.variables.FUNCNAME === undefined ? state.functionNames?.length ?? 0 : state.variables[part.name] === undefined ? 0 : 1));
       const values = await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring);
-      const space = selector.separator === "@" && !split || selector.kind === "keys" && (hereDocument || (selector.separator === "@"
+      const space = !split && (selector.separator === "@" || !part.quoted) || selector.kind === "keys" && (hereDocument || (selector.separator === "@"
         ? !part.quoted && !split || state.variables.IFS === ""
         : !part.quoted && split && state.variables.IFS === ""));
       return this.arrayJoin(store.owner, values, space ? " " : this.ifsSeparator(state, io));
@@ -16149,10 +16159,10 @@ export class Runtime {
       }
       finally { retained?.release(); }};
     const offsetExpression = await arithmetic(expression.offset);
-    let bytes: Buffer | undefined;
+    let bytes: Uint8Array | undefined;
     if (byteLocale(state.variables)) {
       scratch.reserve(shellValueByteLength(value), 0);
-      bytes = Buffer.from(value);
+      bytes = fastSharedTextEncoder.encode(value);
     }
     const size = BigInt(bytes?.byteLength ?? (await scanString(value, work)).count);
     const offset = offsetExpression.value < 0n ? size + offsetExpression.value : offsetExpression.value;
@@ -16194,7 +16204,7 @@ export class Runtime {
     const patPart = part.alternate.parts[0]!;
     if (patPart.kind !== "text" || patPart.byteValue) return undefined;
     const pat = patPart.value;
-    if (pat.length === 0 || (!patPart.quoted && hasGlobOrEscape(pat, !!state.extglob))) return undefined;
+    if (pat.length === 0 || (!patPart.quoted && (pat.startsWith("~") || hasGlobOrEscape(pat, !!state.extglob)))) return undefined;
     for (let i = 0; i < value.length; i++) if (value.charCodeAt(i) >= 128) return undefined;
     for (let i = 0; i < pat.length; i++) if (pat.charCodeAt(i) >= 128) return undefined;
     if (op === "/" || op === "//" || op === "/#" || op === "/%") {
@@ -16427,10 +16437,10 @@ export class Runtime {
               if (!validElemOp && !isKeys && !rawState.nocasematch) {
                 if ((part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") && part.alternate && part.alternate.parts.length === 1 && part.alternate.parts[0]!.kind === "text") {
                   const pVal = part.alternate.parts[0]!.value;
-                  if (!hasGlobOrEscape(pVal, true)) { elemOpPat = pVal; validElemOp = true; }
+                  if (!pVal.startsWith("~") && !hasGlobOrEscape(pVal, true)) { elemOpPat = pVal; validElemOp = true; }
                 } else if ((part.operator === "/" || part.operator === "//" || part.operator === "/#" || part.operator === "/%") && part.alternate && part.alternate.parts.length === 1 && part.alternate.parts[0]!.kind === "text") {
                   const pVal = part.alternate.parts[0]!.value;
-                  if (pVal.length > 0 && !hasGlobOrEscape(pVal, true)) {
+                  if (pVal.length > 0 && !pVal.startsWith("~") && !hasGlobOrEscape(pVal, true)) {
                     if (!part.replacement || part.replacement.parts.length === 0) { elemOpPat = pVal; validElemOp = true; }
                     else if (part.replacement.parts.length === 1 && part.replacement.parts[0]!.kind === "text") {
                       const rVal = part.replacement.parts[0]!.value;
@@ -16443,7 +16453,7 @@ export class Runtime {
               }
               const ifsVal = monitor?.values.get("IFS", rawVars.IFS ?? " ") ?? rawVars.IFS ?? " ";
               if (validElemOp && typeof ifsVal === "string" && (ifsVal.length === 0 || ifsVal.charCodeAt(0) < 128)) {
-                const sep = selector.separator === "@" ? " " : ifsVal.length > 0 ? ifsVal[0]! : "";
+                const sep = selector.separator === "@" || !part.quoted && !split ? " " : ifsVal.length > 0 ? ifsVal[0]! : "";
                 const evalSliceInt = (w: Word): number | undefined => {
                   if (w.parts.length === 0) return 0;
                   const expanded = this.fastValueWord(w, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
@@ -17099,6 +17109,11 @@ export class Runtime {
           const validCut2 = sArgs.length === 2 && ((sArgs[0]!.length === 3 && sArgs[0]!.startsWith("-d") && sArgs[1]!.length >= 3 && sArgs[1]!.startsWith("-f")) || (sArgs[0] === "-c" && /^[1-9][0-9]*-[1-9][0-9]*$/.test(sArgs[1]!)));
           const validCut1 = sArgs.length === 1 && sArgs[0]!.length >= 3 && sArgs[0]!.startsWith("-f");
           if (!validCut2 && !validCut1) return undefined;
+          if (sArgs[0] === "-c") {
+            if (byteLocale(rawState.variables)) return undefined;
+            const [start, end] = sArgs[1]!.split("-").map(Number);
+            if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start! > end!) return undefined;
+          }
         } else if (sName === "tr") {
           const validTr2 = sArgs.length === 2 && ((!sArgs[0]!.startsWith("-") && !sArgs[1]!.startsWith("-")) || ((sArgs[0] === "-d" || sArgs[0] === "-s") && !sArgs[1]!.startsWith("-")));
           const validTr3 = sArgs.length === 3 && (sArgs[0] === "-ds" || sArgs[0] === "-sd" || sArgs[0] === "-s") && !sArgs[1]!.startsWith("-") && !sArgs[2]!.startsWith("-");
@@ -17201,7 +17216,7 @@ export class Runtime {
               outLines = nTail === 0 ? [] : rawLines.slice(-nTail);
             } else if (firstName === "cut") {
               const [cStart, cEnd] = stageArgs[1]!.split("-").map(Number);
-              outLines = rawLines.map(l => l.slice(cStart! - 1, cEnd!));
+              outLines = rawLines.map(l => Array.from(l).slice(cStart! - 1, cEnd!).join(""));
             } else if (firstName === "wc") {
               if (stageArgs[0] === "-l") {
                 let nl = 0;
@@ -17312,7 +17327,10 @@ export class Runtime {
                 }
               }
             }
-            const outStr = outLines.length > 0 ? outLines.join("\n") + "\n" : "";
+            // These filters preserve the terminator of the final selected input line.
+            const preservesTerminator = firstName === "head" || firstName === "tail" || firstName === "rev";
+            const terminated = !preservesTerminator || inStr.endsWith("\n") || firstName === "head" && outLines.length < rawLines.length;
+            const outStr = outLines.length > 0 ? outLines.join("\n") + (terminated ? "\n" : "") : "";
             const outByteLen = outStr.length * 3 > 127 ? shellValueByteLength(outStr) : outStr.length;
             if (outByteLen > nextBuf.byteLength) return undefined;
             const nextTotalBytes = this.budget.bytes + outByteLen;
@@ -17410,7 +17428,7 @@ export class Runtime {
                   rawState.substitutionStatus = loopRes;
                   rawState.status = loopRes;
                   const bytes = capture.takeBytes();
-                  let str = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("utf8");
+                  let str = sharedSyncPipeDecoder.decode(bytes);
                   let end = str.length;
                   while (end > 0 && str.charCodeAt(end - 1) === 10) end--;
                   if (end < str.length) str = str.slice(0, end);
@@ -17441,7 +17459,7 @@ export class Runtime {
       rawState.substitutionStatus = syncStatus;
       rawState.status = syncStatus;
       const rawBytes = cap.bytes();
-      const val = Buffer.from(rawBytes.buffer, rawBytes.byteOffset, rawBytes.byteLength).toString("utf8");
+      const val = sharedSyncPipeDecoder.decode(rawBytes);
       let end = val.length;
       while (end > 0 && val.charCodeAt(end - 1) === 10) end--;
       return end === val.length ? val : val.slice(0, end);
@@ -17510,7 +17528,7 @@ export class Runtime {
         rawState.substitutionStatus = syncStatus;
         rawState.status = syncStatus;
         const rawBytes = cap.bytes();
-        const val = Buffer.from(rawBytes.buffer, rawBytes.byteOffset, rawBytes.byteLength).toString("utf8");
+        const val = sharedSyncPipeDecoder.decode(rawBytes);
         let end = val.length;
         while (end > 0 && val.charCodeAt(end - 1) === 10) end--;
         return end === val.length ? val : val.slice(0, end);

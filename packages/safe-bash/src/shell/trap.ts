@@ -32,14 +32,17 @@ export function isIdlePortableTrapInstance(instance: ShellExtensionInstance): bo
 
 function quote(source: ShellValue): Uint8Array {
   const bytes = shellValueBytes(source);
-  const parts: Uint8Array[] = [Buffer.from("'")];
+  const parts: Uint8Array[] = [new TextEncoder().encode("'")];
   let start = 0;
   for (let index = 0; index < bytes.length; index++) if (bytes[index] === 39) {
-    parts.push(bytes.subarray(start, index), Buffer.from("'\\''"));
+    parts.push(bytes.subarray(start, index), new TextEncoder().encode("'\\''"));
     start = index + 1;
   }
-  parts.push(bytes.subarray(start), Buffer.from("'"));
-  return Buffer.concat(parts);
+  parts.push(bytes.subarray(start), new TextEncoder().encode("'"));
+  const result = new Uint8Array(parts.reduce((length, part) => length + part.byteLength, 0));
+  let offset = 0;
+  for (const part of parts) { result.set(part, offset); offset += part.byteLength; }
+  return result;
 }
 
 export function portableTrapExtension(configuration: TrapExtensionOptions = {}): ShellExtension {
@@ -145,7 +148,11 @@ export function portableTrapExtension(configuration: TrapExtensionOptions = {}):
             if (number === undefined) { await context.diagnostic(`trap: ${target}: invalid signal specification`); status = 1; continue; }
             if (print) {
               const current = actions?.get(number);
-              if (current) await context.stdout.write(Buffer.concat([Buffer.from("trap -- "), quote(current.source), Buffer.from(` ${names.get(number)}\n`)]));
+              if (current) {
+                await context.stdout.write(new TextEncoder().encode("trap -- "));
+                await context.stdout.write(quote(current.source));
+                await context.stdout.write(new TextEncoder().encode(` ${names.get(number)}\n`));
+              }
             } else if (inheritedIgnored.has(number)) continue;
             else if (action === undefined || shellValueText(action) === "-") actions?.delete(number);
             else { actions ??= new Map<number, Action>(); actions.set(number, { source: action, active: true }); }

@@ -4,15 +4,15 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createBytePipe, createCommandArguments } from "safe-bash-contracts";
 import { createCalCommand, createNcalCommand } from "./index.js";
 
-async function runCal(args: string[]) {
+async function runCal(args: string[], env: Record<string, string> = {}, clock: (() => Date) | null = () => new Date("2026-09-26T12:00:00Z")) {
   const stdout = createBytePipe();
   const stderr = createBytePipe();
-  const cmd = createCalCommand({ clock: () => new Date("2026-09-26T12:00:00Z") });
+  const cmd = createCalCommand({ clock: clock ?? undefined });
   const res = await cmd.execute({
     command: "cal",
     args: createCommandArguments(args).args,
     cwd: "/",
-    env: {},
+    env,
     fs: createMemoryFileSystem(),
     stdin: createBytePipe().readable,
     stdout: stdout.writable,
@@ -89,4 +89,35 @@ test("ncal renders vertical month layout by default, supports -w ISO week number
   const feb2024Horizontal = await runNcal(["-h", "-b", "2", "2024"]);
   assert.equal(feb2024Horizontal.exitCode, 0);
   assert.match(feb2024Horizontal.stdout, /Su Mo Tu We Th Fr Sa/);
+});
+
+test("cal uses SOURCE_DATE_EPOCH and the current date without an injected clock", async () => {
+  assert.ok((await runCal([], { SOURCE_DATE_EPOCH: "0" }, null)).stdout.includes("January 1970"));
+  const now = new Date();
+  const title = now.toLocaleString("en-US", { month: "long", timeZone: "UTC" }) + " " + now.getUTCFullYear();
+  assert.ok((await runCal([], {}, null)).stdout.includes(title));
+});
+
+test("ncal keeps weekday rows for multi-month and whole-year calendars", async () => {
+  for (const args of [["-3", "9", "2026"], ["-A", "1", "9", "2026"], ["-B", "1", "9", "2026"], ["2026"], ["-y"]]) {
+    const result = await runNcal(args);
+    assert.equal(result.exitCode, 0);
+    assert.ok(result.stdout.split("\n").some(line => line.startsWith("Mo ")), args.join(" "));
+    assert.ok(!result.stdout.includes("Mo Tu We Th Fr Sa Su"));
+  }
+});
+
+
+test("ncal month spans cross years and preserve Julian and week rows", async () => {
+  const span = await runNcal(["-3", "1", "2026"]);
+  assert.ok(span.stdout.includes("December 2025"));
+  assert.ok(span.stdout.includes("January 2026"));
+  assert.ok(span.stdout.includes("February 2026"));
+  assert.equal(span.stdout.split("\n").filter(line => line.startsWith("Mo ")).length, 1);
+  const year = await runNcal(["2026"]);
+  assert.equal(year.stdout.split("\n").filter(line => line.startsWith("Mo ")).length, 3);
+  const julian = await runNcal(["-j", "-w", "-A", "1", "12", "2026"]);
+  assert.ok(julian.stdout.includes("January 2027"));
+  assert.ok(julian.stdout.includes("365"));
+  assert.equal(julian.stdout.split("\n").length, 10);
 });

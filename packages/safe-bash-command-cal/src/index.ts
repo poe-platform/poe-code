@@ -396,7 +396,8 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
         spanMonths = beforeMonths + 1 + afterMonths;
       }
 
-      const now = options.clock ? options.clock() : new Date("2026-09-26T12:00:00Z");
+      const epoch = context.env.SOURCE_DATE_EPOCH;
+      const now = options.clock ? options.clock() : epoch !== undefined ? new Date(Number(epoch) * 1000) : new Date();
       let year = now.getUTCFullYear();
       let month = explicitMonth ?? (now.getUTCMonth() + 1);
 
@@ -437,19 +438,35 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
         return { exitCode: 1 };
       }
 
-      if (verticalLayout && !wholeYear && spanMonths === 1) {
-        const lines = renderVerticalNcalMonth(year, month, {
-          mondayFirst,
-          julian,
-          includeYearInHeader: true,
-          showWeeks,
-        });
-        await writeText(context.stdout, `${lines.join("\n")}\n`);
-        return { exitCode: 0 };
-      }
-
       const gridWidth = julian ? 27 : 20;
       const perRow = julian ? 2 : 3;
+
+      if (verticalLayout) {
+        const count = wholeYear ? 12 : spanMonths;
+        const offset = wholeYear ? 0 : beforeMonths || (spanAround ? Math.floor((spanMonths - 1) / 2) : 0);
+        const first = year * 12 + (wholeYear ? 0 : month - 1) - offset;
+        const grids = Array.from({ length: count }, (_, index) => {
+          const total = first + index;
+          return renderVerticalNcalMonth(Math.floor(total / 12), total % 12 + 1, {
+            mondayFirst, julian, includeYearInHeader: !wholeYear, showWeeks,
+          });
+        });
+        const verticalPerRow = wholeYear ? (julian ? 3 : 4) : perRow;
+        const lines: string[] = wholeYear ? [centerText(String(year), (julian ? 26 : 22) * verticalPerRow)] : [];
+        for (let start = 0; start < grids.length; start += verticalPerRow) {
+          const group = grids.slice(start, start + verticalPerRow);
+          for (let line = 0; line < group[0]!.length; line++) {
+            lines.push(group.map((grid, index) => {
+              const text = line === 0 || index === 0 ? grid[line]! : "  " + grid[line]!.slice(2);
+              return text.padEnd(julian ? 26 : 22);
+            }).join(""));
+          }
+          if (start + verticalPerRow < grids.length) lines.push("");
+        }
+        // Preserve the established single-month spacing.
+        await writeText(context.stdout, `${(count === 1 && !wholeYear ? grids[0]! : lines).join("\n")}\n`);
+        return { exitCode: 0 };
+      }
 
       if (wholeYear) {
         const lines: string[] = [`${" ".repeat(28)}${year}`];

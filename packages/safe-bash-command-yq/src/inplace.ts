@@ -1,4 +1,3 @@
-import { randomBytes } from "node:crypto";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { dirname } from "@poe-code/safe-fs/core";
 import { type FileStat, type FileStaging, type FileStagingEntry } from "safe-bash-contracts";
@@ -47,7 +46,8 @@ export async function publishInPlace(target: InPlaceTarget, data: Uint8Array, wo
     let receipt!: FileStaging;
     try {
       await writeFileOutputCounted({ signal: work.signal, preserveWriteReceipt: true, ...(work.context.registerCleanup ? { registerCleanup: work.context.registerCleanup } : {}) }, data, async () => {
-        receipt = await fs.createStagedFile!(`${directory === "/" ? "" : directory}/.yq-${randomBytes(12).toString("hex")}`, "file", {
+        const token = Array.from(globalThis.crypto.getRandomValues(new Uint8Array(12)), byte => byte.toString(16).padStart(2, "0")).join("");
+        receipt = await fs.createStagedFile!(`${directory === "/" ? "" : directory}/.yq-${token}`, "file", {
           type: "file", data,
         }, { parent, mode: target.original.mode & 0o7777, signal: work.signal });
         owned = receipt;

@@ -191,7 +191,7 @@ test("stateful pretty formatting and argument validation", async () => {
     "\n<div><span>X</span>\n</div>\n"
   );
   assert.equal(await run("<pre> \n </pre>", ["pre", "-p"]), "\n<pre>\n</pre>\n");
-  for (const argv of [["--attribute", "id"], ["--tex"], ["p", "file"]])
+  for (const argv of [["--unknown", "id"], ["--tex"], ["p", "--attribute"]])
     await assert.rejects(run("<p>X</p>", argv));
 });
 test("escaped identifiers and strict nth token boundaries", async () => {

@@ -135,3 +135,9 @@ const matrix: readonly [string, string, readonly string[], string][] = [
 ];
 for (const [id, source, argv, expected] of matrix)
   test(`acceptance ${id}`, async () => assert.equal(await run(source, argv), expected));
+
+test("htmlq standard attribute and whitespace flags and selector operands", async () => {
+  assert.equal(await run('<a href="/one">One</a>', ['a', '--attribute', 'href']), '/one\n');
+  assert.equal(await run('<p> <b>A</b> </p>', ['p', '-t', '-w']), 'A\n\n');
+  assert.equal(await run('<p>P</p><h2>H</h2>', ['h2', 'p', '-t']), 'P\nH\n');
+});

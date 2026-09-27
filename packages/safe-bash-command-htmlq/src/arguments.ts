@@ -29,8 +29,8 @@ export function parseHtmlqArguments(argv: readonly string[], options: HtmlOption
     attributes: [] as string[],
     removeNodes: [] as string[]
   };
-  let positional = false,
-    literal = false;
+  const selectors: string[] = [];
+  let literal = false;
   const seen = new Set<string>();
   for (let i = 0; i < argv.length && !result.help && !result.version; i++) {
     let arg = argv[i]!;
@@ -61,6 +61,7 @@ export function parseHtmlqArguments(argv: readonly string[], options: HtmlOption
             "-b": "base",
             "--base": "base",
             "-a": "attributes",
+            "--attribute": "attributes",
             "--attributes": "attributes",
             "-r": "removeNodes",
             "--remove-nodes": "removeNodes"
@@ -94,6 +95,7 @@ export function parseHtmlqArguments(argv: readonly string[], options: HtmlOption
               "-t": "text",
               "--text": "text",
               "-i": "ignoreWhitespace",
+              "-w": "ignoreWhitespace",
               "--ignore-whitespace": "ignoreWhitespace",
               "-p": "pretty",
               "--pretty": "pretty",
@@ -112,11 +114,12 @@ export function parseHtmlqArguments(argv: readonly string[], options: HtmlOption
         if (!short || result.help || result.version) break;
       }
     } else {
-      if (positional) throw new HtmlError("E_ARGUMENT", "Only one selector operand is accepted");
-      result.selector = arg;
-      positional = true;
+      selectors.push(arg);
     }
   }
+  if (selectors.length) result.selector = selectors.join(",");
+  budget.charge("retainedBytes", result.selector.length * 2);
+  budget.charge("work", result.selector.length);
   return Object.freeze({
     ...result,
     attributes: Object.freeze(result.attributes),

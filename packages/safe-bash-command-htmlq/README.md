@@ -74,7 +74,7 @@ CLI examples (paths refer only to the configured VFS):
 
 ```sh
 htmlq p -t -f /input.html               # descendant text, one final LF per result
-htmlq a --attributes href -f /input.html # present href values, one LF each
+htmlq a --attribute href -f /input.html # present href values, one LF each
 htmlq div -r span -f /input.html -o /selected.html
 htmlq --help                           # usage and supported options
 htmlq --version                        # safe-bash implementation and compatibility profile
@@ -87,18 +87,18 @@ htmlq --version                        # safe-bash implementation and compatibil
 | `-b`, `--base` | Base URL for inert link rewriting |
 | `-B`, `--detect-base` | Detect the document's first base href |
 | `-t`, `--text` | Descendant text projection |
-| `-i`, `--ignore-whitespace` | Skip whitespace-only text nodes |
+| `-w`, `-i`, `--ignore-whitespace` | Skip whitespace-only text nodes |
 | `-p`, `--pretty` | Stateful pretty HTML projection |
-| `-a`, `--attributes` | Attribute name; repeatable |
+| `-a`, `--attribute`, `--attributes` | Attribute name; repeatable |
 | `-r`, `--remove-nodes` | Removal selector; repeatable |
 | `-h`, `--help` | Print help without reading HTML or accessing VFS paths |
 | `-V`, `--version` | Print the compatibility version and virtual implementation identity |
 
 Short flags can be grouped (`-tip`); short value options accept attached values
 (`-aid`, `-a=id`). Long value options accept `=VALUE`.
-The optional selector defaults to `html`; input/output default to `-`.
-Unknown flags (including `--attribute`), abbreviations
-and extra positional operands fail. `--` ends option parsing.
+Selector operands form a comma-separated CSS union in document order; with no
+selector, the default is `html`. Input/output default to `-`. Unknown flags and
+abbreviations fail. `--` ends option parsing.
 Help and version return status 0 without reading stdin or accessing VFS paths,
 including when `-f` or `-o` is present. The first help/version flag ends option
 parsing; invalid options before it still fail. The SDK accepts `{ help: true }`

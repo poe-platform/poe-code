@@ -466,7 +466,7 @@ test("grouped and attached options preserve CLI and typed SDK parity", async () 
   assert.equal(text.text(), "A\n\n");
 });
 test("literal operands and unknown grouped flags fail consistently", async () => {
-  for (const argv of [["-tx"], ["--attribute=id"], ["--tex"], ["-a"]]) {
+  for (const argv of [["-tx"], ["--unknown=id"], ["--tex"], ["-a"]]) {
     const f = fixture(argv);
     assert.equal((await createHtmlqCommand().execute(f.context)).exitCode, 2);
     assert.equal(new TextDecoder().decode(f.errors[0]), "htmlq: E_ARGUMENT\n");

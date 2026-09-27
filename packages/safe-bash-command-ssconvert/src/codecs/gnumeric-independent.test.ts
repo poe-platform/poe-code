@@ -191,6 +191,13 @@ it("preserves cancellation when an admitted record supplies its text", async () 
   await expect(writeGnumeric(book, [], { ...context(), signal: controller.signal })).rejects.toBe(false);
 });
 
+it.each([{ xmlDepth: 8 }, { workbookWork: 8 }])("admits deeply retained SDK records before descending: %j", async limits => {
+  let node: ImportedValue = { name: "Attribute", namespace: ns, text: "leaf" };
+  for (let depth = 0; depth < 16; depth++) node = { name: "Attribute", namespace: ns, children: [node] };
+  const book = { sheets: [], unsupportedRecords: [{ source: "Gnumeric_XmlIO:sax", kind: "Attributes", disposition: "retained" as const, data: node }] };
+  await expect(writeGnumeric(book, [], context(limits))).rejects.toMatchObject({ code: "resource-limit" });
+});
+
 it("reads nonzero integer axis flags with the native integer convention", async () => {
   // xml_sax_colrow uses gnm_xml_attr_int, then !hidden/is_collapsed.
   const book = await readGnumeric(xml('<g:Rows><g:RowInfo No="1" Unit="12" Hidden="2" Collapsed="-1"/></g:Rows>'), context());

@@ -1,12 +1,22 @@
 // Reader states derived from Gnumeric 1.12.61 plugins/openoffice/openoffice-read.c
 // Archive SHA-256: 2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12
-// Native label-ranges added from LibreOffice sc/source/filter/xml/xmllabri.cxx.
+// Native label-ranges added from LibreOffice sc/source/filter/xml/xmllabri.cxx;
+// content page-layouts follow ODF 1.2 office-automatic-styles.
 export const odfReaderStates: Readonly<Record<string, string>> = {
   opendoc_content_dtd: `START OFFICE OO_NS_OFFICE document-content
 OFFICE SCRIPT OO_NS_OFFICE scripts
 OFFICE OFFICE_FONTS OO_NS_OFFICE font-face-decls
 OFFICE_FONTS FONT_FACE OO_NS_STYLE font-face
 OFFICE OFFICE_STYLES OO_NS_OFFICE automatic-styles
+OFFICE_STYLES PAGE_LAYOUT OO_NS_STYLE page-layout
+PAGE_LAYOUT PAGE_LAYOUT_PROPS OO_NS_STYLE page-layout-properties
+PAGE_LAYOUT_PROPS BACK_IMAGE OO_NS_STYLE background-image
+PAGE_LAYOUT HEADER_STYLE OO_NS_STYLE header-style
+HEADER_STYLE HEADER_PROPERTIES OO_NS_STYLE header-footer-properties
+HEADER_PROPERTIES HF_BACK_IMAGE OO_NS_STYLE background-image
+PAGE_LAYOUT FOOTER_STYLE OO_NS_STYLE footer-style
+FOOTER_STYLE FOOTER_PROPERTIES OO_NS_STYLE header-footer-properties
+FOOTER_PROPERTIES HF_BACK_IMAGE OO_NS_STYLE background-image
 OFFICE_STYLES STYLE OO_NS_STYLE style
 STYLE TABLE_CELL_PROPS OO_NS_STYLE table-cell-properties
 STYLE TABLE_COL_PROPS OO_NS_STYLE table-column-properties

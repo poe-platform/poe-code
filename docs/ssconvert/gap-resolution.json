@@ -1853,7 +1853,7 @@
           "orderedPairs": 3,
           "recalculated": 5,
           "independent": "Python ZIP/XML inspection confirms all three outputs retain the ordered row/column/row declarations, apostrophe quoting, explicit row 70001 endpoint and enabled lookup.",
-          "visual": "Actual compiled command screenshot inspected: expected CSV loss warning and unchanged values. Reopening repeated-export output also exposes two page-layout warnings, tracked separately as hey-boss #3627."
+          "visual": "Actual compiled command screenshot inspected: expected CSV label-loss warning and unchanged values. The two page-layout warnings exposed during repeated export were repaired under hey-boss #3627; the rebuilt command emits only the expected loss warning."
         },
         "remaining": "Cross-sheet label/data pairs, live formula identity in ODF/XML/XLSX, inferred BIFF labels and native application qualification remain open. Current host has no LibreOffice, ssconvert or Docker executable; no native readback pass is claimed. This partial implementation closes no family.",
         "qa": "docs/plans/ssconvert-odf-label-metadata-qa.md"
@@ -1863,6 +1863,36 @@
       "url": "https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.spreadsheet.cellformula?view=openxml-3.0.1",
       "sha256": "df7449b987ee458e57489bae8f69da7a369a23d53f254fb4e1cdc375f9f9e625",
       "finding": "The primary API documentation reproduces the ISO cell-formula definition as formula text in the element character node; unlike CellValue, CellFormula is not derived from XstringType. This does not establish a lossless encoding for XML-forbidden characters inside formula literals. Keep this separate from the proven ST_Xstring cache repair; no generic formula decoding change or resolution claim."
+    },
+    "odfPageLayoutReadback": {
+      "issue": 3627,
+      "source": {
+        "url": "https://docs.oasis-open.org/office/v1.2/os/OpenDocument-v1.2-os-schema.rng",
+        "sha256": "ca5d2510858c6f922b20cd27dc76d34959c1a976b9dfc6b5caeadbebfc83dbbb",
+        "definitions": [
+          "office-automatic-styles",
+          "style-page-layout",
+          "style-page-layout-content"
+        ]
+      },
+      "finding": "ODF permits style:page-layout in content.xml automatic styles. The reader accepted it only in styles.xml, so repeated export dropped the retained layout and emitted two unknown-element warnings.",
+      "implementation": "Content reader states admit native page-layout properties, page backgrounds, header/footer properties and backgrounds. Existing metadata extraction retains orientation and margins; passive references do not fetch resources.",
+      "validation": "Both independent strict/extended regression fixtures failed before repair. Final ODF/BIFF-label/evaluator cohort: 19 files / 802 tests pass; package lint/source/test/consumer types and selected workspace build pass. Two read/export/read cycles preserve landscape orientation, 11-point left margin, header/footer dimensions and all three background paths.",
+      "publicValidation": {
+        "inputBytes": 868,
+        "outputBytes": [
+          3300,
+          3339,
+          3325,
+          3363,
+          3325
+        ],
+        "sdkCycles": 4,
+        "commandExports": 1,
+        "diagnostics": 0,
+        "independent": "Python ZIP/XML reads all five compiled outputs: native layout retained with landscape orientation, 11pt margin and 12pt/13pt header/footer heights. Actual rebuilt command screenshot confirms the page-layout warnings are gone."
+      },
+      "remaining": "This repairs the native page-layout recognition and readback issue only. Complete rendering, native application visual comparison and the 19-family goal remain open."
     }
   },
   "cases": [

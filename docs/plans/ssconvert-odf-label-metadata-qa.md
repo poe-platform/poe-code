@@ -24,7 +24,12 @@ lookup settings, not live formula transport or the complete BIFF/format family.
    back to native BIFF8 records and compare them.
 5. Inspect an actual command screenshot for the existing CSV label-loss warning
    and unchanged CSV values. Record additional diagnostics as defects. The
-   current repeated-export page-layout warning has separate follow-up tracking.
+   repeated-export page-layout warning was repaired under hey-boss #3627.
+   Verify an independent ODF fixture with its page layout in content automatic
+   styles: two strict/extended read/export/read cycles must preserve landscape
+   orientation, an 11-point left margin, header/footer dimensions and passive
+   background paths with no unknown-element warnings. Check the actual compiled
+   SDK/command outputs with an independent ZIP/XML parser.
 6. When an authenticated LibreOffice runtime is available, open and save the
    files and compare native `XLabelRanges` label/data areas, order and lookup
    setting. Native runtime absence is an unresolved qualification dependency.

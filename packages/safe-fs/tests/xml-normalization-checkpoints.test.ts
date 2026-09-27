@@ -2,6 +2,33 @@ import { Volume } from "memfs";
 import { expect, it } from "vitest";
 import { parseXml, parseXmlSteps } from "../src/xml.js";
 
+for (const length of [1, 511, 512, 513])
+it(`repeated XML names retain every validation checkpoint at length ${length}`, () => {
+  const name = "x".repeat(length);
+  const source = `<${name}><${name}/><${name}/></${name}>`;
+  const parser = parseXmlSteps(source);
+  const expected: number[] = [];
+  for (let bytes = source.length; bytes > 0; bytes -= 512) expected.push(Math.min(bytes, 512));
+  const nameWork = length <= 512 ? [length] : [512, 1];
+  for (let opening = 0; opening < 3; opening++) expected.push(1, ...nameWork, ...nameWork, ...nameWork);
+  expected.push(1, ...nameWork, ...nameWork);
+  for (const value of expected) expect(parser.next()).toEqual({ done: false, value });
+  const result = parser.next();
+  expect(result.done).toBe(true);
+  if (!result.done) throw new Error("Expected a complete XML parse");
+  expect(result.value.name).toBe(name);
+  expect(result.value.children.map(child => child.name)).toEqual([name, name]);
+});
+
+it("repeated qualified names resolve each element's namespace scope", () => {
+  const root = parseXml('<r xmlns:p="urn:first"><p:x/><p:x xmlns:p="urn:second"/><p:x/></r>');
+  expect(root.children.map(child => [child.name, child.localName, child.namespace])).toEqual([
+    ["p:x", "x", "urn:first"], ["p:x", "x", "urn:second"], ["p:x", "x", "urn:first"]
+  ]);
+  for (const invalid of ["x:", "x::y", ":x", "1x"])
+    expect(() => parseXml(`<r><x/><${invalid}/></r>`)).toThrow("invalid qualified name");
+});
+
 const cases = [
   { padding: 0, input: "\r", text: "\n", checkpoints: [8] },
   { padding: 0, input: "\r\n", text: "\n", checkpoints: [8] },

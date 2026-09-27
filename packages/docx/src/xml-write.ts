@@ -303,6 +303,7 @@ export class DocumentXmlEditor {
     const elements = new Set<XmlElement>();
     const namespaces = new Map<ReadonlyMap<string, string>, ReadonlyMap<string, string>>();
     const stack: XmlContent[] = [this.#document.root];
+    const immutable = budget[documentXmlCache].immutableRoots?.has(this.#document.root) === true;
     while (stack.length) {
       const node = stack.pop()!;
       if (node.kind === "element") {
@@ -310,14 +311,19 @@ export class DocumentXmlEditor {
         if (!this.#guardCompatibility && hasCompatibilityMarkup(node, this.#profile)) this.#guardCompatibility = true;
         if (!namespaces.has(node.namespaces))
           namespaces.set(node.namespaces, new Map(node.namespaces));
-        for (const attribute of node.attributes) Object.freeze(attribute);
-        for (const children of [node.content, node.children, node.attributes, node.prolog, node.epilog])
-          if (children) Object.freeze(children);
+        if (!immutable) {
+          for (const attribute of node.attributes) Object.freeze(attribute);
+          Object.freeze(node.content);
+          Object.freeze(node.children);
+          Object.freeze(node.attributes);
+          if (node.prolog) Object.freeze(node.prolog);
+          if (node.epilog) Object.freeze(node.epilog);
+        }
         for (const child of node.content) stack.push(child);
-        for (const child of node.prolog ?? []) stack.push(child);
-        for (const child of node.epilog ?? []) stack.push(child);
+        if (node.prolog) for (const child of node.prolog) stack.push(child);
+        if (node.epilog) for (const child of node.epilog) stack.push(child);
       }
-      Object.freeze(node);
+      if (!immutable) Object.freeze(node);
     }
     this.#elements = elements;
     this.#namespaces = namespaces;

@@ -205,7 +205,8 @@ function retainDocumentXml(key: string | undefined, document: DocumentXml, budge
           });
           namespaces.set(node.namespaces, view);
         }
-        Object.defineProperty(node, "namespaces", { value: view });
+        // The parser owns these mutable nodes until this retention pass freezes them.
+        (node as { namespaces: ReadonlyMap<string, string> }).namespaces = view;
         for (const attribute of node.attributes) Object.freeze(attribute);
         Object.freeze(node.content);
         Object.freeze(node.children);

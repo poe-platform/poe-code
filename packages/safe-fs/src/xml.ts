@@ -75,7 +75,13 @@ function namePart(point: number): boolean {
     || (point >= 0x203f && point <= 0x2040);
 }
 
-function qualifiedNameSync(name: string): [string, string] {
+interface QualifiedNameCache {
+  name: string | undefined;
+  parts: [string, string] | undefined;
+}
+
+function qualifiedNameSync(name: string, cache: QualifiedNameCache): [string, string] {
+  if (cache.name === name) return cache.parts!;
   let prefix = "";
   let start = 0;
   let first = true;
@@ -93,33 +99,13 @@ function qualifiedNameSync(name: string): [string, string] {
     offset += point > 0xffff ? 2 : 1;
   }
   if (first) invalid("invalid qualified name");
-  return [prefix, name.slice(start)];
-}
-
-function* qualifiedName(name: string): Generator<number, [string, string], void> {
-  let prefix = "";
-  let start = 0;
-  let first = true;
-  let work = 0;
-  for (let offset = 0; offset < name.length;) {
-    const point = name.codePointAt(offset)!;
-    if (point === 58) {
-      if (start !== 0 || first) invalid("invalid qualified name");
-      prefix = name.slice(0, offset);
-      start = offset + 1;
-      first = true;
-    } else {
-      if (!(first ? nameStart(point) : namePart(point))) invalid("invalid qualified name");
-      first = false;
-    }
-    const width = point > 0xffff ? 2 : 1;
-    offset += width;
-    work += width;
-    if (work >= 512) { yield work; work = 0; }
+  const parts: [string, string] = [prefix, name.slice(start)];
+  // Retain only one short name; namespace resolution still happens per element.
+  if (name.length <= 512) {
+    cache.name = name;
+    cache.parts = parts;
   }
-  if (first) invalid("invalid qualified name");
-  if (work) yield work;
-  return [prefix, name.slice(start)];
+  return parts;
 }
 
 function* entities(text: string): Generator<number, string, void> {
@@ -267,6 +253,7 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
   let attributeCount = 0;
   let contentNodes = 0;
   let previousEmpty: { suffix: string; name: string; prefix: string; localName: string } | undefined;
+  const qualifiedNames: QualifiedNameCache = { name: undefined, parts: undefined };
   const admitContent = (): void => {
     if (++contentNodes > maxContentNodes) throw new XmlLimitError("maxContentNodes", "XML content node limit exceeded");
   };
@@ -288,7 +275,7 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
       offset++;
     }
     const name = source.slice(start, offset);
-    const [prefix, localName] = qualifiedNameSync(name);
+    const [prefix, localName] = qualifiedNameSync(name, qualifiedNames);
     return [name, prefix, localName, (offset - start) * 2];
   };
   while (offset < source.length) {
@@ -410,10 +397,9 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
         const [attribute, attrPrefix, attrLocal, wAttr] = scanName();
         pendingWork += wAttr;
         while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
-        attributes ??= new Map<string, string>();
-        if (attributes.has(attribute)) invalid("duplicate attribute");
+        if (attributes?.has(attribute)) invalid("duplicate attribute");
         if (++attributeCount > maxAttributes) throw new XmlLimitError("maxAttributes", "XML attribute limit exceeded");
-        if (attributes.size >= maxAttributesPerElement) throw new XmlLimitError("maxAttributesPerElement", "XML attribute limit exceeded");
+        if ((attributes?.size ?? 0) >= maxAttributesPerElement) throw new XmlLimitError("maxAttributesPerElement", "XML attribute limit exceeded");
         pendingWork += skipWhitespace();
         if (source[offset++] !== "=") invalid("missing attribute equals");
         pendingWork += skipWhitespace();
@@ -432,7 +418,7 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
         const value = normalized.indexOf("&") < 0 ? (pendingWork += normalized.length, normalized) : yield* entities(normalized);
         while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
         admitText(value);
-        attributes.set(attribute, value);
+        (attributes ??= new Map()).set(attribute, value);
         attrMeta.push([attribute, attrPrefix, attrLocal]);
         offset = end + 1;
         if (attribute === "xmlns" || attribute.startsWith("xmlns:")) {

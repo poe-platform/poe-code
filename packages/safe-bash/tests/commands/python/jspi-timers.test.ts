@@ -15,7 +15,7 @@ class Flags:
   return getattr(original_flags, name)
 sys.flags = Flags()
 for source in ['pass', 'raise ValueError("example")']:
- scope = {}
+ scope = {"__name__": "__main__"}
  exec(bundle['timers'], scope)
  loop = asyncio.get_event_loop()
  handles = [loop.call_later(60, lambda: None)]

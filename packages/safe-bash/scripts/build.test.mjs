@@ -275,17 +275,30 @@ for (const profile of ["dependencies", "devDependencies"]) for (const defect of 
   assert.equal(owned.descriptors.size, 0);
 });
 
-test("build admits the explicitly declared spreadsheet workspace alias", async () => {
+for (const runtime of ["./dist/ssconvert/index.js", "./packages/safe-bash-command-ssconvert/dist/index.js"]) test(`build admits the explicitly declared spreadsheet workspace alias: ${runtime}`, async () => {
   const owned = fixture({
     "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../..", "safe-bash-command-ssconvert": "*" }, poeCode: { integration: { peerProfile: "checkout-root" } } }),
     "src/index.ts": 'import type { Engine } from "safe-bash-command-ssconvert"; export const engine: Engine = { spreadsheet: true };',
-    "../../package.json": JSON.stringify({ name: "poe-code", type: "module", exports: { "./ssconvert": { types: "./packages/safe-bash-command-ssconvert/dist/index.d.ts", import: "./dist/ssconvert/index.js" } } }),
+    "../../package.json": JSON.stringify({ name: "poe-code", type: "module", exports: { "./ssconvert": { types: "./packages/safe-bash-command-ssconvert/dist/index.d.ts", import: runtime } } }),
     "../../packages/safe-fs/dist/index.d.ts": "export interface FileSystem {}",
     "../../packages/safe-bash-command-ssconvert/dist/index.d.ts": "export interface Engine { spreadsheet: true; }",
   });
   const result = await owned.run();
   assert.equal(result.status, 0, owned.output.join(""));
   assert.ok(owned.reads.includes("/packages/safe-bash-command-ssconvert/dist/index.d.ts"));
+});
+
+for (const runtime of ["./dist/csvkit/index.js", "./packages/safe-bash-command-csvkit/dist/index.js"]) test(`build admits the explicitly declared CSV workspace alias: ${runtime}`, async () => {
+  const owned = fixture({
+    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../..", "safe-bash-command-csvkit": "*" }, poeCode: { integration: { peerProfile: "checkout-root" } } }),
+    "src/index.ts": 'import type { Engine } from "safe-bash-command-csvkit"; export const engine: Engine = { csv: true };',
+    "../../package.json": JSON.stringify({ name: "poe-code", type: "module", exports: { "./csvkit": { types: "./packages/safe-bash-command-csvkit/dist/index.d.ts", import: runtime } } }),
+    "../../packages/safe-fs/dist/index.d.ts": "export interface FileSystem {}",
+    "../../packages/safe-bash-command-csvkit/dist/index.d.ts": "export interface Engine { csv: true; }",
+  });
+  const result = await owned.run();
+  assert.equal(result.status, 0, owned.output.join(""));
+  assert.ok(owned.reads.includes("/packages/safe-bash-command-csvkit/dist/index.d.ts"));
 });
 
 for (const defect of ["none", "detached", "declaration", "runtime"]) test(`build portable SafeFS declaration admission: ${defect}`, async () => {

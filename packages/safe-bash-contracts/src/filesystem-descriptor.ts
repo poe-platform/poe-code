@@ -207,7 +207,7 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
     };
   } catch (error) {
     settleAcquisition();
-    try { await close(); } catch {}
+    try { await close(); } catch { /* Preserve the acquisition failure after attempting cleanup. */ }
     check();
     throw error;
   }

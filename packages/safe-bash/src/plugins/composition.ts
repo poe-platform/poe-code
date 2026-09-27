@@ -259,7 +259,8 @@ export function composeRawAgentCommands(options: AgentCommandsOptions, executors
   const applyPatchLimits = options.applyPatch?.limits;
   const xmlLimits = options.xml?.limits;
   commands.push(
-    ...createStandardCommandsWithGrep({ execute: options.execute ?? commandExecutor(name => commands.find(command => command.name === name)), ...(options.execution === undefined ? {} : { execution: options.execution }), ...(options.regex === undefined ? {} : { regex: options.regex }), ...(options.maxDirectoryEntries === undefined ? {} : { maxDirectoryEntries: options.maxDirectoryEntries }), ...(options.maxTeeTargets === undefined ? {} : { maxTeeTargets: options.maxTeeTargets }), ...(options.maxTailFollowHandles === undefined ? {} : { maxTailFollowHandles: options.maxTailFollowHandles }) }, grep),
+    // Explicit muscle-memory registration selects its shuf and numfmt definitions.
+    ...createStandardCommandsWithGrep({ execute: options.execute ?? commandExecutor(name => commands.find(command => command.name === name)), ...(options.execution === undefined ? {} : { execution: options.execution }), ...(options.regex === undefined ? {} : { regex: options.regex }), ...(options.maxDirectoryEntries === undefined ? {} : { maxDirectoryEntries: options.maxDirectoryEntries }), ...(options.maxTeeTargets === undefined ? {} : { maxTeeTargets: options.maxTeeTargets }), ...(options.maxTailFollowHandles === undefined ? {} : { maxTailFollowHandles: options.maxTailFollowHandles }) }, grep).filter(command => !options.muscleMemory || (command.name !== "shuf" && command.name !== "numfmt")),
     ...createTextProgramCommands({ ...options.text }),
     ...createStructuredCommands({ ...options.structured }),
     createRgCommand(executors.search, options.search),

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { Shell, createMemoryFileSystem, agentCommands, createAgentCommands, bcCommands, spongeCommands, fdCommands, lessCommands } from "../../src/index.js";
+import { Shell, CommandRegistry, createMemoryFileSystem, agentCommands, createAgentCommands, bcCommands, spongeCommands, fdCommands, lessCommands } from "../../src/index.js";
 
 test("xxd and od hex/byte inspection and roundtrip reversal", async () => {
   const fs = createMemoryFileSystem();
@@ -143,6 +143,49 @@ test("muscleMemoryCommands plugin and agentCommands({ muscleMemory: true }) regi
     await shell.dispose();
   }
 });
+
+for (const muscleMemory of [false, true]) for (const route of ["factory", "plugin"] as const) {
+  test(`agent ${route} selects one command implementation with muscleMemory=${muscleMemory}`, async () => {
+    const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry(route === "factory" ? createAgentCommands({ muscleMemory }) : []) });
+    try {
+      if (route === "plugin") shell.use(agentCommands({ muscleMemory }));
+      await shell.exec("");
+      for (const name of ["shuf", "numfmt"]) {
+        assert.equal(shell.commands.list().filter(command => command.name === name).length, 1);
+      }
+      assert.equal(shell.commands.list().filter(command => command.name === "yes").length, muscleMemory ? 1 : 0);
+      const version = muscleMemory ? "shuf (virtual-bash, GNU coreutils 9.7 profile)\n" : "shuf (virtual-bash)\n";
+      for (const script of ["shuf --version", "env shuf --version"]) {
+        const result = await shell.exec(script);
+        assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, version, ""]);
+      }
+      const formatted = await shell.exec("printf '1000 2000' | xargs numfmt --to=si");
+      assert.deepEqual([formatted.exitCode, formatted.stdout, formatted.stderr], [0, "1.0k\n2.0k\n", ""]);
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const name of ["shuf", "numfmt"]) {
+  test(`explicit agent composition preserves ${name} collision atomicity and replacement`, async () => {
+    const original = { name, execute: async () => ({ exitCode: 42 }) };
+    const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry([original]) });
+    try {
+      const before = shell.commands.list();
+      assert.throws(() => agentCommands({ muscleMemory: true }).setup({
+        commands: shell.commands,
+        use() { throw new Error("Unexpected middleware installation"); },
+        registerFileSystem() { throw new Error("Unexpected filesystem installation"); },
+      }), { message: `Command already registered: ${name}` });
+      assert.deepEqual(shell.commands.list(), before);
+      shell.use(agentCommands({ muscleMemory: true, replace: true }));
+      const result = await shell.exec("shuf --version");
+      assert.equal(shell.commands.list().filter(command => command.name === name).length, 1);
+      assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "shuf (virtual-bash, GNU coreutils 9.7 profile)\n", ""]);
+      const formatted = await shell.exec("numfmt --to=si 1000");
+      assert.deepEqual([formatted.exitCode, formatted.stdout, formatted.stderr], [0, "1.0k\n", ""]);
+    } finally { await shell.dispose(); }
+  });
+}
 
 test("fd -q, -S, -C, --strip-cwd-prefix, --and, and bc -e / less -p parity", async () => {
   const fs = createMemoryFileSystem();

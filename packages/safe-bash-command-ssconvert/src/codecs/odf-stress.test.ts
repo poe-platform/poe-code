@@ -137,8 +137,14 @@ it("matches native hyperlink URI-prefix classes and current-workbook target conv
   expect(serialized).toContain('"value":"GnmHLinkExternal"');
 });
 it("admits annotation space expansion to the shared work budget before allocating it", async () => {
-  const bytes = await fixture('<t:table t:name="S"><t:table-row><t:table-cell><o:annotation><tx:p><tx:s tx:c="100000001"/></tx:p></o:annotation></t:table-cell></t:table-row></t:table>');
-  await expect(readOdf(bytes, context)).rejects.toMatchObject({ code: "resource-limit" });
+  const bytes = await fixture('<t:table t:name="S"><t:table-row><t:table-cell><o:annotation><tx:p><tx:s tx:c="10001"/></tx:p></o:annotation></t:table-cell></t:table-row></t:table>');
+  const bounded = { ...context, limits: { ...context.limits, workbookWork: 10000 } };
+  await expect(readOdf(bytes, bounded)).rejects.toMatchObject({ code: "resource-limit" });
+  // Omitted work limits are unlimited; exercise that contract without a huge
+  // failure diff or a hundred-million-character temporary annotation.
+  const book = await readOdf(bytes, context);
+  const comments = JSON.stringify(book.sheets[0]!.unsupportedRecords);
+  expect(comments.includes(" ".repeat(10001))).toBe(true);
 });
 const drawing = 'urn:oasis:names:tc:opendocument:xmlns:drawing:1.0';
 function drawingSheet(relationships: string) {

@@ -25,10 +25,11 @@ class SortWork {
           this.#pending -= 4096;
           runYieldCheckpoint(this.signal);
           this.signal.throwIfAborted();
-          if (++this.#syncTurns >= 64) {
-            this.#syncTurns = 0;
+          if (++this.#syncTurns % 8 === 0) {
             const now = monotonicNow();
-            if (now - this.#lastYield >= 16) {
+            // A fast or coarse host clock must not suppress every host turn.
+            if (this.#syncTurns >= 32 || now - this.#lastYield >= 16) {
+              this.#syncTurns = 0;
               this.#lastYield = now;
               return this.#checkpointOnce();
             }
@@ -1208,22 +1209,32 @@ async function executeSortGeneral(
               src = dst;
               dst = tmp;
             }
-            const outBuf = new Uint8Array(firstChunk.length);
+            const capacity = Math.min(firstChunk.length, 65536);
+            let outBuf = new Uint8Array(capacity);
             let used = 0;
             for (let i = 0; i < count; i++) {
               const idx = src[i]!;
-              const s = sortStarts[idx]!;
+              let s = sortStarts[idx]!;
               const e = sortEnds[idx]!;
-              const len = e - s;
-              if (len <= 32) {
-                for (let p = s; p < e; p++) outBuf[used++] = firstChunk[p]!;
-              } else {
-                outBuf.set(firstChunk.subarray(s, e), used);
-                used += len;
+              while (s < e) {
+                const length = Math.min(e - s, capacity - used);
+                outBuf.set(firstChunk.subarray(s, s + length), used);
+                used += length;
+                s += length;
+                if (used === capacity) {
+                  await output(context, outBuf);
+                  outBuf = new Uint8Array(capacity);
+                  used = 0;
+                }
               }
               outBuf[used++] = delimiter;
+              if (used === capacity) {
+                await output(context, outBuf);
+                outBuf = new Uint8Array(capacity);
+                used = 0;
+              }
             }
-            await output(context, outBuf);
+            if (used) await output(context, outBuf.subarray(0, used));
             return { exitCode: 0 };
           }
         }
@@ -1691,7 +1702,7 @@ async function executeSortGeneral(
       let allCounted = true;
       for (let i = 0; i < ordered.length; i++) {
         estBytes += ordered[i]!.length + 1;
-        if (estBytes >= 512 * 1024) { allCounted = false; break; }
+        if (estBytes > 64 * 1024) { allCounted = false; break; }
       }
       if (outPath === undefined && !parsed.flags.has("u") && allCounted) {
         if (estBytes > 0) {

@@ -18,11 +18,11 @@ async function context(input: string, stdout: CommandContext["stdout"], signal =
 }
 const sort = createStandardCommands().find(command => command.name === "sort")!;
 
-test("sort batches completed output without mutating chunks or exceeding 64KiB", async () => {
+for (const args of [[], ["-f"]]) test(`sort ${args.join(" ")} batches completed output without mutating chunks or exceeding 64KiB`, async () => {
   const records = Array.from({ length: 5000 }, (_, index) => `record-${5000 - index}-${"x".repeat(40)}`);
   const expected = Buffer.from(records.sort().join("\n") + "\n");
   const writes: Uint8Array[] = [];
-  const result = await sort.execute(await context(records.reverse().join("\n") + "\n", { async write(bytes) { writes.push(bytes); await Promise.resolve(); } }));
+  const result = await sort.execute({ ...await context(records.reverse().join("\n") + "\n", { async write(bytes) { writes.push(bytes); await Promise.resolve(); } }), args });
   assert.equal(result.exitCode, 0); assert.deepEqual(Buffer.concat(writes), expected);
   assert.equal(writes.length, Math.ceil(expected.length / 65536));
   for (const bytes of writes) assert.ok(bytes.length <= 65536);

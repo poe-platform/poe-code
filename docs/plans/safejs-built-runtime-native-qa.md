@@ -106,7 +106,7 @@ const source = `
     import { measureSandboxData, createSandboxClosure } from ${entry("values")};
     import { createIntrinsicArray } from ${entry("object-model")};
     const child = { text: "text" };
-    const roots = Array.from({ length: 1200 }, (_, index) => index % 3 === 0
+    const roots = Array.from({ length: 120 }, (_, index) => index % 3 === 0
       ? createSandboxClosure({ call: () => undefined, retainedValues: () => [child] })
       : index % 3 === 1 ? createIntrinsicArray([child, "text"]) : { child, name: "record" });
     const expected = measureSandboxData(roots);
@@ -118,12 +118,12 @@ const source = `
       await new Promise(resolve => setImmediate(resolve));
     }
   `;
-const result = spawnSync(process.execPath, ["--expose-gc", "--trace-opt", "--input-type=module", "-e", source], { encoding: "utf8", timeout: 10000 });
+const result = spawnSync(process.execPath, ["--expose-gc", "--trace-opt", "--no-concurrent-recompilation", "--input-type=module", "-e", source], { encoding: "utf8", timeout: 10000 });
 assert.equal(result.status, 0, result.stderr || String(result.error));
 const sections = result.stdout.split("MEASUREMENT_WARMED");
 assert.equal(sections.length, 2, "Missing warmup boundary");
 const optimizations = output => output.split("\n").filter(line =>
-    line.includes("completed optimizing") && line.includes("<JSFunction visit ")).length;
+    (line.includes("completed optimizing") || (line.includes("completed compiling") && line.includes("target TURBOFAN"))) && line.includes("<JSFunction visit ")).length;
 assert.ok(optimizations(sections[0]) > 0, "Visitor did not optimize during warmup");
 assert.ok(optimizations(sections[1]) <= 1, `Visitor reoptimized ${optimizations(sections[1])} times after warmup`);
 ```

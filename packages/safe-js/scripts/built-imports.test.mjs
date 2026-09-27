@@ -101,15 +101,15 @@ test("built data accounting retains optimized code across garbage collections", 
       await new Promise(resolve => setImmediate(resolve));
     }
   `;
-  const result = spawnSync(process.execPath, ["--expose-gc", "--trace-opt", "--input-type=module", "-e", source], { encoding: "utf8", timeout: 30000 });
+  const result = spawnSync(process.execPath, ["--expose-gc", "--trace-opt", "--no-concurrent-recompilation", "--input-type=module", "-e", source], { encoding: "utf8", timeout: 30000 });
   assert.equal(result.status, 0, result.stderr || String(result.error));
   const sections = result.stdout.split("MEASUREMENT_WARMED");
   assert.equal(sections.length, 2, "Missing warmup boundary");
   const optimizations = output => output.split("\n").filter(line =>
-    line.includes("completed optimizing") && line.includes("<JSFunction visit ")).length;
+    (line.includes("completed optimizing") || (line.includes("completed compiling") && line.includes("target TURBOFAN"))) && line.includes("<JSFunction visit ")).length;
   assert.ok(optimizations(sections[0]) > 0, "Visitor did not optimize during warmup");
-  // One final warmup compilation may finish asynchronously. Recompiling after
-  // every collection makes the large live browser graph repeatedly pay for JIT.
+  // Compile synchronously so host scheduling cannot move warmup completion
+  // past the marker. Recompiling after every collection still fails the check.
   assert.ok(optimizations(sections[1]) <= 1, `Visitor reoptimized ${optimizations(sections[1])} times after warmup`);
 });
 

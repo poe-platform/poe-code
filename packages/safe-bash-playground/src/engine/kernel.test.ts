@@ -609,6 +609,7 @@ describe("real safe-bash browser kernel", () => {
         "sed",
         "awk",
         "jq",
+        "mdq",
         "gzip",
         "bzip2",
         "bunzip2",
@@ -633,7 +634,7 @@ describe("real safe-bash browser kernel", () => {
         "iconv"
       ])
     );
-    expect(kernel.supportedCommands).toHaveLength(110);
+    expect(kernel.supportedCommands).toHaveLength(111);
     expect(kernel.supportedCommands).toEqual(expect.arrayContaining(["sha512sum", "sha384sum", "sha224sum"]));
   });
 });

@@ -29,6 +29,11 @@ it("ships the spreadsheet SDK without unavailable private runtime dependencies",
   const available = new Set(Object.keys({ ...manifest.dependencies, ...manifest.optionalDependencies }));
   const unavailable = Object.values(result.metafile!.outputs).flatMap(output => output.imports)
     .filter(entry => entry.external && !entry.path.startsWith("node:"))
+    .filter(entry => {
+      if (entry.path !== manifest.name && !entry.path.startsWith(`${manifest.name}/`)) return true;
+      const key = entry.path === manifest.name ? "." : `.${entry.path.slice(manifest.name.length)}`;
+      return !Object.hasOwn(manifest.exports, key);
+    })
     .map(entry => entry.path.startsWith("@") ? entry.path.split("/").slice(0, 2).join("/") : entry.path.split("/")[0])
     .filter(name => !available.has(name));
   expect([...new Set(unavailable)]).toEqual([]);

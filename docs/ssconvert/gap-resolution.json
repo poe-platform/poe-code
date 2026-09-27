@@ -53,7 +53,7 @@
           "book.xls",
           "dir/book.xls",
           "https://example.test/a[b].xls",
-          "\u8868] book.xls"
+          "表] book.xls"
         ],
         "outputSha256": [
           "778b0666a30cff97240da6b0a04ecf3b9b7d9d3fdc47d7c8a4dc332f4d732d27",
@@ -794,7 +794,7 @@
           "remaining": "Encrypted-property export, unknown ancillary reexport, additional applicable profiles and native application qualification remain open."
         },
         "exportImplementation": {
-          "change": "Explicit rc4-cryptoapi-<bits>-properties profiles (40\u2013128 by 8) share provider-derived CLI/SDK options. The exporter admits ancillary work before password acquisition, reuses the Workbook key, restarts payload blocks from zero, separately resets header/table block zero, clears both fDocProps bits, omits plaintext SummaryInformation and emits the empty DocumentSummaryInformation placeholder. Cipher buffers and owned containers are cleared on failure/disposal. Workbook-only profiles retain plaintext properties.",
+          "change": "Explicit rc4-cryptoapi-<bits>-properties profiles (40–128 by 8) share provider-derived CLI/SDK options. The exporter admits ancillary work before password acquisition, reuses the Workbook key, restarts payload blocks from zero, separately resets header/table block zero, clears both fDocProps bits, omits plaintext SummaryInformation and emits the empty DocumentSummaryInformation placeholder. Cipher buffers and owned containers are cleared on failure/disposal. Workbook-only profiles retain plaintext properties.",
           "validation": "56 BIFF files / 1270 tests passed; maintained package lint/source/test/consumer types and selected four-workspace build passed. Original OpenSSL 52-byte vector and a 3034-byte container SHA256 verify exact ciphertext and no Workbook-style payload rekeying. Property edits, one password/entropy request, pre-secret resource/name admission and disposal controls pass.",
           "remaining": "Additional profile and native application qualification remain open; broader encryption family is not complete. Workbook-only export still diagnoses unknown ancillary loss.",
           "cli": "Compiled public createEngine/runCommand exported a title and named custom property with one password and entropy request, no diagnostics and no plaintext summary. Independent SheetJS CFB parsing plus OpenSSL decryption matched both plaintext property streams exactly. Encrypted output reopened through the SDK; terminal screenshot inspected. Native application qualification remains separate."
@@ -1187,7 +1187,7 @@
         }
       ],
       "validation": "Ten of fourteen original memory regressions failed. All 317 tests in sixteen Lotus files pass after correction, including WK1/WK2/Windows Works controls, independent range endpoints, conditional column wrapping, signed row boundaries and preserved absolute coordinates. Maintained package lint, source/test/consumer types and selected build pass.",
-      "publicQualification": "Nine compiled public --recalc WK1-to-XLSX conversions and SDK readbacks retain the expected formulas and values with no diagnostics. Four backward references recalculate to 42. A preserved absolute IW8193 reference evaluates to #REF! because the imported sheet has only 256 columns; the initial probe's zero expectation was corrected without changing product bounds. Inputs are 46 bytes; outputs are 4074\u20134092 bytes and remain in memory.",
+      "publicQualification": "Nine compiled public --recalc WK1-to-XLSX conversions and SDK readbacks retain the expected formulas and values with no diagnostics. Four backward references recalculate to 42. A preserved absolute IW8193 reference evaluates to #REF! because the imported sheet has only 256 columns; the initial probe's zero expectation was corrected without changing product bounds. Inputs are 46 bytes; outputs are 4074–4092 bytes and remain in memory.",
       "remaining": "Native Symphony/Works application readback, ambiguous DOS Works profiles, relative-sheet identity, modern range flag packing and wider format qualification remain open. No family is closed."
     },
     "lotusDirectSheetSpans": {
@@ -1423,7 +1423,7 @@
           54,
           59
         ],
-        "finding": "BIFF2 tName is eight bytes including its opcode, versus eleven in BIFF3/4. MemAreaN/MemNoMemN have no appended cell-range list and remain accepted in BIFF5/8 even though no longer generated. Corrected the previous test that followed Gnumeric\u2019s undifferentiated pre-BIFF5 ten-byte NAME payload."
+        "finding": "BIFF2 tName is eight bytes including its opcode, versus eleven in BIFF3/4. MemAreaN/MemNoMemN have no appended cell-range list and remain accepted in BIFF5/8 even though no longer generated. Corrected the previous test that followed Gnumeric’s undifferentiated pre-BIFF5 ten-byte NAME payload."
       },
       "publicValidation": "Compiled SDK and command conversions with explicit recalculation retained values [43,42] through BIFF7 and BIFF8; command CSV output was 43 followed by 42. All five conversions completed without diagnostics. The initial SDK probe omitted recalc and retained its cached zero; corrected probe options passed without another production change. Actual compiled command screenshot inspected."
     },
@@ -2132,7 +2132,7 @@
             "destination": "unchanged"
           }
         },
-        "independent": "Original Python ZIP/XML fixture: 715 bytes. Eight compiled SDK/command exports cover strict and extended, original and edited inputs. Python independently verifies exact native formula text, named-expression and H8 base, and sixteen CSV readbacks: 7 before edits, 19 after. Actual command screenshot inspected. A conflicting Sales\u2192West rename fails with exit 1 and preserves the existing destination. An earlier QA argv included literal double quotes in the renamed text; corrected argv was rerun and XML checked. Native LibreOffice/ssconvert/Docker remain unavailable.",
+        "independent": "Original Python ZIP/XML fixture: 715 bytes. Eight compiled SDK/command exports cover strict and extended, original and edited inputs. Python independently verifies exact native formula text, named-expression and H8 base, and sixteen CSV readbacks: 7 before edits, 19 after. Actual command screenshot inspected. A conflicting Sales→West rename fails with exit 1 and preserves the existing destination. An earlier QA argv included literal double quotes in the renamed text; corrected argv was rerun and XML checked. Native LibreOffice/ssconvert/Docker remain unavailable.",
         "remaining": "Native application readback; locale/transliteration/proximity profiles; ambiguous, empty/non-text/formula-generated and deleted label identities; mixed relative-sheet/live-label formulas; direct textual formula lifecycle; BIFF/radical/value-class labels and other format transports remain open. This resolves supported native ODF export profiles, not the complete family; all 19 families remain open. Cross-sheet label/data identity is now implemented; see reference.odfCrossSheetLabelRanges for the current source and qualification evidence.",
         "qa": "docs/plans/ssconvert-odf-label-metadata-qa.md",
         "formulaResultLabels": {
@@ -2386,7 +2386,7 @@
       "sources": {
         "sc/source/ui/unoobj/nameuno.cxx": {
           "sha256": "2cee81e0d7eccf6a45fee5fef665ef390deee162c6007316c31684a7671a930c",
-          "lines": "922\u2013956, 1039\u20131070"
+          "lines": "922–956, 1039–1070"
         },
         "sc/source/core/tool/compiler.cxx": {
           "sha256": "84dfe1e52b8b632d8fd9d687d64857c779283bb3de660063664b916c7d458e83",
@@ -2397,10 +2397,10 @@
       "validation": "Original memory regressions reproduced wrong-sheet results, cross-sheet import rejection and lifecycle/data-loss failures. 289 executed tests across 11 focused files passed (shared fixture tests included); maintained package lint, product/test/consumer types and selected workspace build passed. Independently generated Python ODF fixtures passed 16 compiled SDK/command exports across both axes/profiles before/after edits: 32 live formulas, distinct addresses, sums 5/15 and scalar 2. Edit inputs put data first for the native --set active-view contract. Command transcript screenshot inspected.",
       "remaining": "Native Calc/Gnumeric recalculation remains unqualified. No family closed.",
       "automaticCalcBoundaries": {
-        "source": "Same pinned compiler.cxx, GetRefColRowNames lines 5867\u20135885 and 5907\u20135923: scan the global row/column pair list, with no data-sheet Tab filter. The inferred range stays on the anchor sheet.",
+        "source": "Same pinned compiler.cxx, GetRefColRowNames lines 5867–5885 and 5907–5923: scan the global row/column pair list, with no data-sheet Tab filter. The inferred range stays on the anchor sheet.",
         "implementation": "Automatic Calc/BIFF labels inspect declarations on all workbook sheets. OpenFormula automatic labels retain their separate contiguous-data rules. No dependency on remote cell values is introduced: the boundary uses declaration geometry only.",
         "validation": "Two original regressions returned 60 instead of source-derived 10. 24 axis/owner/data-sheet/dialect combinations pass; complete focused cohort 135 executed tests across four files, with imported fixture tests included. Maintained package lint, product/test/consumer types and selected build pass. Four compiled SDK/command BIFF8-to-CSV conversions return 10 and retain 10/20/30 local data; inputs were seeded through the product writer, output independently parsed with Python. Transcript screenshot inspected.",
-        "remaining": "Native application recalculation still unqualified. #3670 command-factory requirements remain open; the report\u2019s requested data-sheet filter is absent from the pinned Calc source."
+        "remaining": "Native application recalculation still unqualified. #3670 command-factory requirements remain open; the report’s requested data-sheet filter is absent from the pinned Calc source."
       },
       "automaticSelfExclusion": {
         "issue": 3646,
@@ -2637,7 +2637,7 @@
     {
       "id": "encrypted-paradox",
       "status": "open",
-      "currentFinding": "On-file-key encrypted imports match native records. Explicit encryption=paradox export now uses a host-supplied 1\u2013256-byte password, native NUL termination, bounded work and cancellation, without entropy or implicit password acquisition. Empty effective passwords are refused; plaintext stays default. All seven compiled SDK profiles and the Shell export reopen in native Gnumeric byte-exact with empty stderr. This is legacy obfuscation with a recoverable key and readable schema, not authenticated password security. Wider profiles, companions and final delivery qualification remain open. Owned decrypted buffers now clear on disposal and cancellation, including concurrent abort/cleanup. Physical block 65535 and the five neighboring retained pxlib vectors pass through the compiled decoder with explicit finite limits; no large fixture retained."
+      "currentFinding": "On-file-key encrypted imports match native records. Explicit encryption=paradox export now uses a host-supplied 1–256-byte password, native NUL termination, bounded work and cancellation, without entropy or implicit password acquisition. Empty effective passwords are refused; plaintext stays default. All seven compiled SDK profiles and the Shell export reopen in native Gnumeric byte-exact with empty stderr. This is legacy obfuscation with a recoverable key and readable schema, not authenticated password security. Wider profiles, companions and final delivery qualification remain open. Owned decrypted buffers now clear on disposal and cancellation, including concurrent abort/cleanup. Physical block 65535 and the five neighboring retained pxlib vectors pass through the compiled decoder with explicit finite limits; no large fixture retained."
     },
     {
       "id": "perl-date",
@@ -2689,7 +2689,7 @@
         "red": "out/ssconvert-xlsx-metadata/rich-font-red.log",
         "green": "out/ssconvert-xlsx-metadata/rich-font-final.log",
         "packageLint": "out/ssconvert-xlsx-metadata/rich-font-lint.log",
-        "nativeCalc": "Both XLSX editions from the current source public codec preserve the used A2 font name Font _x0041_ and rich \u00e9 span typeface Noto _x0041_ & Serif through official Calc 26.8.0.3 read/export. Independent XML resolves A2 cell style/font indexes and rich shared-string properties; native wire escaping remains _x005F_x0041_. This does not qualify rendering, every font property, conditional fonts or compiled/installed native composition. Receipts: out/ssconvert-calc-current/font-comment-calc.json and font-comment-source-proof.json."
+        "nativeCalc": "Both XLSX editions from the current source public codec preserve the used A2 font name Font _x0041_ and rich é span typeface Noto _x0041_ & Serif through official Calc 26.8.0.3 read/export. Independent XML resolves A2 cell style/font indexes and rich shared-string properties; native wire escaping remains _x005F_x0041_. This does not qualify rendering, every font property, conditional fonts or compiled/installed native composition. Receipts: out/ssconvert-calc-current/font-comment-calc.json and font-comment-source-proof.json."
       },
       "commentRichText": {
         "implementation": "8aecc7f3aa shares the Gnumeric rich-text codec between cell values and comment TextFormat; XLSX import/export retains supported span attributes and UTF-8 offsets. b169158279 preserves unchanged original XLSX rich text when font delimiters cannot fit that markup codec, avoiding an import refusal introduced by the first change. Edited text is regenerated. Full comment properties, geometry, rendering and all-format transport remain open.",
@@ -2698,12 +2698,12 @@
         "nativeReadback": "Both XLSX editions produced from source at 8aecc7f3aa reopen in the rebuilt Gnumeric with exact Ada author, text and bold/italic byte ranges. Each emits Unhandled object of type Note: the pinned reader maps that VML type to G_TYPE_NONE. This verifies comment text formatting, not drawing fidelity, compiled public bundles, registry delivery or rendering.",
         "receipts": "out/ssconvert-native-current/comment-rich-native.json; native-identity.json; out/ssconvert-xlsx-metadata/comment-rich-red.log; comment-rich-first.log; comment-unrepresentable-red.log; comment-unrepresentable-final.log",
         "nativeCalcReadback": {
-          "preserved": "Both editions preserve Ada _x0041_ author and \u00e9\ud83d\ude00z text through signed Calc 26.8.0.3 native read/export.",
+          "preserved": "Both editions preserve Ada _x0041_ author and é😀z text through signed Calc 26.8.0.3 native read/export.",
           "source": "Pinned LibreOffice bce0998a commentsbuffer.cxx uses RichString::convert(XText). richstring.cxx:84-106 and 380-397 sets first/single portion properties on whole XText and appends later portions through getEnd. stylesbuffer.cxx initializes non-DXF Font flags to defaults; richstringcontext.cxx creates that Font for empty rPr. The exporter therefore prefixes an empty run and emits rPr for each visible comment segment, leaving cell serialization unchanged.",
           "controls": "Four independent XML variants retain first-run bold loss: explicit b/i resets, explicit font/size, both, and positive VML dimensions. Reset/font variants isolate the trailing plain z correctly. These controls do not establish a complete exporter repair; no production workaround was applied.",
           "remaining": "Current compiled/installed public composition and release, full comment metadata/geometry/rendering, unrepresentable-font retained markup and other rich properties remain open. Gnumeric escaped-author behavior is a native profile limitation, not a passing decoded-author check. All 19 families stay open.",
           "receipts": "out/ssconvert-calc-current/comment-final-native.json; comment-final-source.json; comment-defaults-native.json; comment-single-red.log; comment-final-green.log; comment-single-lint.log; native-identity.json",
-          "previousFailure": "Expected bold \u00e9 / italic \ud83d\ude00 / plain z returns plain \u00e9 / italic \ud83d\ude00z. Native comment formatting qualification fails, despite the passing Gnumeric span readbacks.",
+          "previousFailure": "Expected bold é / italic 😀 / plain z returns plain é / italic 😀z. Native comment formatting qualification fails, despite the passing Gnumeric span readbacks.",
           "implementation": "Comment-only rich serialization prefixes an empty run for both single and multiple segments and emits empty rPr on plain segments. No synthetic zero-valued attributes are added to canonical TextFormat. Four regression failures (two mixed-span defaults, two single-span cases) precede their fixes.",
           "currentNative": "Both XLSX editions from the current source codec pass independent Calc XML checks for mixed bold/italic/plain Unicode spans, an entirely bold comment, an interior bold span, strike/double-underline/superscript/red/plain spans and author escaping. Gnumeric preserves the four TextFormat cases, normalizing color hex to lowercase; it retains the escaped author wire spelling rather than decoding the literal _x0041_ author, and still warns on VML Note."
         }
@@ -2727,7 +2727,7 @@
     {
       "id": "public-packed-artifacts",
       "status": "open",
-      "currentFinding": "Fresh local root/scoped packages built at 5aaf8a8bc7 pass installed CSV/XLSX editing, worksheet width/header settings, ODF label refresh/ranges/self-exclusion, strict NodeNext declarations, raw argv, output budgets, exact cancellation and staging cleanup. Independent ZIP/XML verifies 24 outputs and 152 XML members. Installed root browser graph passes a VM without Node APIs. Earlier BIFF qualification remains profile-specific evidence. Full integration, remote delivery/publication, actual registry installs, actual browser/Worker engines and wider service qualification remain open."
+      "currentFinding": "Earlier installed root/scoped BIFF7/8 controls remain recorded. Current isolated root/scoped artifacts pass strict NodeNext browser/Node declarations, SDK/command XLSX/ODF conversions, Shell CSV/XLSX edits, raw argv, explicit file-output budgets, falsey cancellation and cleanup. Installed-native Calc/Gnumeric comment readback and Calc live-label recalculation pass for the unchanged ssconvert source tree; see delivery.currentIntegration.installed. Registry-installed, actual browser/worker and wider service qualification remain open."
     }
   ],
   "delivery": {
@@ -2745,11 +2745,20 @@
     },
     "currentIntegration": {
       "state": "rebased locally; not pushed or published",
-      "onto": "8120dccbf5f6cd5949adb635883139d062c86ea6",
-      "localHead": "6fec9470be",
+      "onto": "7edb0128e1",
+      "localHead": "eb40250be5",
       "runtime": "Root shared contracts now emit under dist/shared, independently of private workspace builds. Public ssconvert stays under dist/ssconvert. Incoming portable path and compressed-control-flow repairs retained. New arithmetic-loop regressions cover awaited conditions; optimized substitutions count actual UTF-8 before trimming trailing newlines.",
-      "checks": "Shared output: 822 packaging tests and root build passed before later main updates; private contracts rebuild preserved all 74 public files, with four public bundle tests passing before/after. Loop conditions: two failing-before cases pass with incoming repair. UTF-8 accounting: ten failing-before boundaries; 20 final boundary cases and 115 focused tests pass, two existing skips; root ESLint passes. Last full build reached SafeJS native import probes and failed on two chain(Infinity) loops after the default-depth change. Incoming 9b91601b15 retains finite 1024/1025 qualification; selected 23-workspace build passes, including all 15 native import checks. Rebased seven-file shell checks pass 295 tests with two existing skips, and root ESLint passes. Complete integrated build/test and installed qualification remain pending.",
-      "remaining": "Complete maintained root build, full npm test and current lint; fresh compiled/isolated installed qualification; push, verify remote main and containing publication. Native Calc comment/live-label proofs remain recorded, but all 19 families are open."
+      "checks": "Root build/types/package lint and 33 public-bundle checks passed before the latest rebase. Full npm test then crashed after 200 files/4393 tests: an obsolete workerd implicit-budget assertion tried to render a resolved 17 MiB array. A 17-byte reproducer exposed the wrong expectation; explicit-budget repair passes 13 collector tests and the original 100-file/2018-test batch. After rebasing, native Bash verified unquoted array-star spacing and the correct loop sum 145. Two original shared-text snapshot tests fail with unlimited publication; invalidating prior cached text repairs stale loop formatting while preserving cloned snapshots. The current five-file shell cohort passes 239 tests with two existing skips; guarded root ESLint passes with zero errors/warnings. Missing array-backed PIPESTATUS admission now falls back before loop effects. Latest complete build/test refresh is pending.",
+      "remaining": "Complete maintained root build and full npm test on the integrated tree, then current types/package checks and runtime artifact refresh; push, verify remote main and containing publication. All 19 gap families remain open.",
+      "installed": {
+        "sourceTree": "38b1859c896721f3ddaf11d7233941d1cffb928b",
+        "version": "0.0.0-ssconvert-current.d6b6a11148",
+        "packagingHead": "43227158c0",
+        "profiles": "Isolated root/scoped tarballs outside checkout; four strict NodeNext profiles; SDK/command conversions; Shell CSV-to-XLSX and edited XLSX-to-CSV; raw bytes, explicit output budgets, falsey cancellation and cleanup pass. Native commands absent from conversion PATH.",
+        "native": "Installed outputs: eight XLSX files read by signed Calc 26.8.0.3 and Gnumeric 1.12.61 preserve four comment text/style cases. Sixteen ODF files independently decoded; 32 Calc conversions recalculate deliberately stale 999 caches to 5/15 and preserve formula-generated labels and declarations. Gnumeric author wire spelling and unsupported VML Note remain limitations.",
+        "remaining": "Registry-installed and actual browser/worker qualification; refresh Shell/runtime artifact checks after newer incoming runtime changes.",
+        "cleanupBytes": 245434028
+      }
     }
   },
   "history": {

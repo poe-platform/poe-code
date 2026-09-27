@@ -484,7 +484,7 @@ test("session close cancels active request; queued sibling receives independent 
     assert.equal(workers[from]!.closed, true);
     assert.equal(workers[from + 1]!.closed, false);
     assert.equal(getEventListeners(caller.signal, "abort").length, 0);
-    assert.throws(() => first.run(descriptor, rows), error => { assertClosed(error); return true; });
+    await assert.rejects(first.run(descriptor, rows), error => { assertClosed(error); return true; });
   } finally { await Promise.all([first.close(), second.close()]); }
   clean(from);
 });

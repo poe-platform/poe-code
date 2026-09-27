@@ -117,7 +117,7 @@ test("idle messageerror retires promptly, holds capacity and close awaits cleanu
     const closePromise = second.close();
     const closing = closePromise.then(() => { closed = true; });
     assert.equal(second.close(), closePromise);
-    assert.throws(() => second.run(descriptor, rows), {
+    await assert.rejects(second.run(descriptor, rows), {
       code: "CLOSED", message: "regex CLOSED: invocation is closed",
     });
     await tick();
@@ -134,7 +134,7 @@ test("idle messageerror retires promptly, holds capacity and close awaits cleanu
     assert.equal(closed, true);
     assert.equal(workers.length, 1);
     assert.equal(workers[0]!.posts.length, 1);
-    assert.throws(() => second.run(descriptor, rows), {
+    await assert.rejects(second.run(descriptor, rows), {
       code: "CLOSED", message: "regex CLOSED: invocation is closed",
     });
     clean(controller.signal);

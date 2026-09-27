@@ -94,7 +94,7 @@ test("idle messageerror plus queued close rejects CLOSED and awaits the exact re
     await first.close();
     const closing = second.close();
     assert.equal(second.close(), closing);
-    assert.throws(() => second.run(descriptor, rows), closed);
+    await assert.rejects(second.run(descriptor, rows), closed);
     let finished = false;
     void closing.then(() => { finished = true; });
     await tick();
@@ -108,7 +108,7 @@ test("idle messageerror plus queued close rejects CLOSED and awaits the exact re
     await closing;
     assert.equal(finished, true);
     assert.equal(workers.length, 1);
-    assert.throws(() => second.run(descriptor, rows), closed);
+    await assert.rejects(second.run(descriptor, rows), closed);
     await second.close();
     clean(caller.signal);
     console.log(JSON.stringify({ code: "CLOSED", message: (reason as Error).message, sameOwnerReasonIdentity: true, status: "not applicable: direct session rejection" }));
@@ -219,7 +219,7 @@ for (const reason of [Object.assign(new Error("prior caller reason"), { code: "E
       workers[0]!.release();
       assert.equal(failure(await pending), reason);
       await closing;
-      assert.throws(() => session.run(descriptor, rows), error => error === reason);
+      await assert.rejects(session.run(descriptor, rows), error => error === reason);
       clean(caller.signal);
     } finally {
       for (const worker of workers) worker.release();

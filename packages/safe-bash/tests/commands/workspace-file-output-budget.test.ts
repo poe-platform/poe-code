@@ -7,6 +7,7 @@ import { createCommandArguments, type CommandContext, type CommandDefinition } f
 import { bindFileOutputBudget } from "safe-bash-contracts/filesystem-output-budget";
 import { createSpongeCommand } from "../../../safe-bash-command-sponge/src/index.js";
 import { createSqlite3Command } from "../../../safe-bash-command-sqlite3/src/index.js";
+import { SqliteDatabase } from "../../../safe-bash-command-sqlite3/src/engine.js";
 import { createQpdfCommand } from "../../../safe-bash-command-qpdf/src/index.js";
 import { createSofficeCommand } from "../../../safe-bash-command-soffice/src/index.js";
 import { createMmdcCommand } from "../../../safe-bash-command-mmdc/src/index.js";
@@ -38,6 +39,11 @@ const fixtures: Record<string, Uint8Array> = {
   "/out": encoder.encode("old"),
 };
 
+function createSqliteWithoutSerializer(): CommandDefinition {
+  const database = new SqliteDatabase();
+  return createSqlite3Command({ engine: { exec: database.exec.bind(database) } });
+}
+
 const cases: [string, () => CommandDefinition, string[], string?][] = [
   ["sponge overwrite", createSpongeCommand, ["/out"], "é🌊"],
   ["sponge append", createSpongeCommand, ["-a", "/out"], "é🌊"],
@@ -46,6 +52,9 @@ const cases: [string, () => CommandDefinition, string[], string?][] = [
   ["sqlite output", createSqlite3Command, [":memory:"], ".output /out\nSELECT 123;\nSELECT 456;\n"],
   ["sqlite save", createSqlite3Command, [":memory:"], "CREATE TABLE t (a);\n.save /db\n"],
   ["sqlite backup", createSqlite3Command, [":memory:"], "CREATE TABLE t (a);\n.backup /db\n"],
+  ["sqlite injected persistence", createSqliteWithoutSerializer, ["/db", "CREATE TABLE t (a); INSERT INTO t VALUES (1);"]],
+  ["sqlite injected save", createSqliteWithoutSerializer, [":memory:"], "CREATE TABLE t (a);\n.save /db\n"],
+  ["sqlite injected backup", createSqliteWithoutSerializer, [":memory:"], "CREATE TABLE t (a);\n.backup /db\n"],
   ["qpdf", createQpdfCommand, ["/in.pdf", "/out.pdf"]],
   ["soffice", createSofficeCommand, ["--convert-to", "txt", "/in.csv"]],
   ["mmdc conditional", createMmdcCommand, ["-i", "/in.mmd", "-o", "/out.svg"]],
@@ -115,6 +124,12 @@ for (const [name, create, args, input = ""] of cases) {
     if (name === "sqlite output") {
       assert.equal(new TextDecoder().decode(await success.fs.readFile("/out")), "123\n456\n");
       assert.equal(success.charged, 8, "each statement must consume only its new output bytes");
+    }
+    if (name.startsWith("sqlite injected")) {
+      const saved = new SqliteDatabase();
+      saved.loadFromBytes(await success.fs.readFile("/db"));
+      assert.ok(saved.tables.has("t"), "fallback persistence must retain the schema");
+      if (name === "sqlite injected persistence") assert.deepEqual(saved.exec("SELECT a FROM t;")[0]!.rows, [[1]]);
     }
     const denied = await run(0);
     assert.ok(denied.attempts > 0, "the bound budget must be consulted");

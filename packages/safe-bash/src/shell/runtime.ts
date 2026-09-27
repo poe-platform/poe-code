@@ -8643,6 +8643,51 @@ export class Runtime {
 
   private canSyncScriptCompound(script: Script, rawState: State, depth = 0): boolean {
     if (depth > 6 || rawState.noexec) return false;
+    type CachedScriptCompound = {
+      fnCount: number;
+      braceexpand: boolean;
+      arithTrees: NonNullable<ArithmeticProgram["tree"]>[];
+      posMutVars: Array<{ varName: string; posIdx: number }>;
+    };
+    const cached = depth === 0 ? (script as { _cachedSyncCompound?: CachedScriptCompound | null })._cachedSyncCompound : undefined;
+    if (cached !== undefined) {
+      if (
+        cached !== null &&
+        !rawState.nocasematch &&
+        !rawState.extglob &&
+        !rawState.nounset &&
+        !hasActiveVariableAttributes(rawState) &&
+        !rawState.readonlyVariables?.size &&
+        (!rawState.extensions || rawState.extensions.builtins.size === 0) &&
+        rawState.functions.size === cached.fnCount &&
+        (rawState.braceexpand !== false) === cached.braceexpand
+      ) {
+        let ok = true;
+        for (let i = 0; i < cached.arithTrees.length; i++) {
+          if (!this.canSyncArithmeticOperands(cached.arithTrees[i]!, rawState)) { ok = false; break; }
+        }
+        if (ok) {
+          for (let i = 0; i < cached.posMutVars.length; i++) {
+            const pm = cached.posMutVars[i]!;
+            const posVal = rawState.positional[pm.posIdx];
+            const curVal = rawState.variables[pm.varName] ?? "0";
+            if (
+              arrayStore(rawState)?.get(pm.varName) ||
+              posVal === undefined ||
+              posVal.length === 0 ||
+              posVal.length > 12 ||
+              !Number.isSafeInteger(Number(posVal)) ||
+              typeof curVal !== "string" ||
+              (curVal !== "" && !Number.isSafeInteger(Number(curVal)))
+            ) {
+              ok = false;
+              break;
+            }
+          }
+        }
+        if (ok) return true;
+      }
+    }
     for (let i = 0; i < script.lists.length; i++) {
       const list = script.lists[i]!;
       if (list.terminator) return false;
@@ -8651,6 +8696,45 @@ export class Runtime {
         if (p.commands.length !== 1 || p.negate) return false;
         if (!this.canSyncCommandCompound(p.commands[0]!, rawState, depth)) return false;
       }
+    }
+    if (
+      depth === 0 &&
+      (script as { _cachedSyncCompound?: unknown })._cachedSyncCompound === undefined &&
+      !rawState.nocasematch &&
+      !rawState.extglob &&
+      !rawState.nounset &&
+      !hasActiveVariableAttributes(rawState) &&
+      !rawState.readonlyVariables?.size &&
+      (!rawState.extensions || rawState.extensions.builtins.size === 0)
+    ) {
+      const arithTrees: NonNullable<ArithmeticProgram["tree"]>[] = [];
+      const posMutVars: Array<{ varName: string; posIdx: number }> = [];
+      let canCache = true;
+      const collect = (sc: Script) => {
+        for (const l of sc.lists) for (const p of l.pipelines) {
+          const c = p.commands[0]!;
+          if (c.kind === "simple" && c.words[0]?.plain && rawState.functions.has(c.words[0].plain)) {
+            canCache = false;
+          } else if (c.kind === "arithmetic") {
+            if (!c.expression.error && c.expression.tree) arithTrees.push(c.expression.tree);
+            else {
+              const m = /^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*(=|\+=|-=)\s*\$(?:([1-9])|\{([1-9])\})\s*$/.exec(c.expression.source);
+              if (m) posMutVars.push({ varName: m[1]!, posIdx: Number(m[3] ?? m[4]) - 1 });
+              else canCache = false;
+            }
+          } else if (c.kind === "group") collect(c.body);
+          else if (c.kind === "if") {
+            for (const b of c.branches) { collect(b.condition); collect(b.body); }
+            if (c.otherwise) collect(c.otherwise);
+          } else if (c.kind === "case") {
+            for (const cl of c.clauses) collect(cl.body);
+          }
+        }
+      };
+      collect(script);
+      (script as { _cachedSyncCompound?: unknown })._cachedSyncCompound = canCache
+        ? { fnCount: rawState.functions.size, braceexpand: rawState.braceexpand !== false, arithTrees, posMutVars }
+        : null;
     }
     return true;
   }
@@ -9013,6 +9097,61 @@ export class Runtime {
       }
       const expr = command.expression;
       if (expr.error) {
+        const cachedPosMut = (expr as { _cachedPosMut?: { varName: string; op: string; posIdx: number } | null })._cachedPosMut;
+        let posMut = cachedPosMut;
+        if (posMut === undefined) {
+          const m = /^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*(=|\+=|-=)\s*\$(?:([1-9])|\{([1-9])\})\s*$/.exec(expr.source);
+          posMut = m ? { varName: m[1]!, op: m[2]!, posIdx: Number(m[3] ?? m[4]) - 1 } : null;
+          (expr as { _cachedPosMut?: typeof posMut })._cachedPosMut = posMut;
+        }
+        if (posMut !== null && posMut.varName !== "OPTIND" && posMut.varName !== "PIPESTATUS" && !store?.get(posMut.varName)) {
+          const posVal = (this._fastSubPositional ?? rawState.positional)[posMut.posIdx];
+          if (posVal !== undefined && posVal.length > 0 && posVal.length <= 12) {
+            const rhsNum = Number(posVal);
+            if (Number.isSafeInteger(rhsNum)) {
+              const curVal = (this._syncArithRawWriteOnly && this._syncArithTouched?.has(posMut.varName))
+                ? (rawState.variables[posMut.varName] ?? "0")
+                : (monitor.values.get(posMut.varName, rawState.variables[posMut.varName] ?? "0") ?? rawState.variables[posMut.varName] ?? "0");
+              const curNum = curVal === "" ? 0 : Number(curVal);
+              if (typeof curVal === "string" && Number.isSafeInteger(curNum)) {
+                const nextNum = posMut.op === "=" ? rhsNum : posMut.op === "+=" ? curNum + rhsNum : curNum - rhsNum;
+                if (Number.isSafeInteger(nextNum)) {
+                  this.budget.parsing.admit(4);
+                  if (rawState.extensions && !rawState.extensions.eventDepth) {
+                    publishCommandSpelling(rawState, commandSpelling(command));
+                  }
+                  const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+                  this.budget.tick();
+                  if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "((";
+                  if (this._syncArithRawWriteOnly && this._syncArithTouched) {
+                    rawState.variables[posMut.varName] = String(nextNum);
+                    this._syncArithTouched.add(posMut.varName);
+                  } else {
+                    monitor.publishStringVariable(posMut.varName, String(nextNum));
+                  }
+                  if (rawState.allexport) rawState.exported.add(posMut.varName);
+                  const rawStatus = nextNum !== 0 ? 0 : 1;
+                  const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
+                  if (!existing) {
+                    if (store) {
+                      if (publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined;
+                    } else {
+                      monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne;
+                      monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+                    }
+                  } else {
+                    elem0!.text.shellValue = finalStatus === 0 ? "0" : "1";
+                    store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+                  }
+                  rawState.status = finalStatus;
+                  monitor.epoch = restEpoch;
+                  if (store) store.epoch = restEpoch;
+                  return finalStatus;
+                }
+              }
+            }
+          }
+        }
         const canCacheWord = !byteLocale(rawState.variables) && (rawState.depth + (io.parameterDepth ?? 0)) < 32;
         const cachedExpr = expr as { _cachedArithWord?: Word | null; _cachedArithSyntax?: unknown };
         let expWord = canCacheWord && cachedExpr._cachedArithSyntax === rawState.extensions?.syntax ? cachedExpr._cachedArithWord : undefined;
@@ -9286,7 +9425,7 @@ export class Runtime {
         rawState.nounset ||
         rawState.readonlyVariables?.size ||
         hasYieldCheckpoint(this.signal) ||
-        ((this._syncReturnDepth === 0 && ((this.budget.commands + 32) & 8191) < 32) || !this.canSyncCommandCompound(command, rawState, 0))
+        (this._syncReturnDepth === 0 && (((this.budget.commands + 32) & 8191) < 32 || !this.canSyncCommandCompound(command, rawState, 0)))
       ) {
         return undefined;
       }

@@ -259,6 +259,47 @@ it("preserves public contract exports when the browser bundle externalizes their
   for (const name of names) expect(output.exports.api[name]).toBe(output.exports.canonical[name]);
 });
 
+it.each([false, true])("keeps copied command WASM inside the standalone artifact (portable=%s)", async portable => {
+  const { volume, options } = optionalLeftovers();
+  const name = "safe-bash-command-wasm";
+  const manifest = structuredClone(bashManifest);
+  manifest.devDependencies[name] = "*";
+  manifest.poeCode.integration.privateWorkspaces = {
+    [name]: { version: "0.0.1", dependencies: {}, devDependencies: {}, ...(portable ? { portable: true } : {}) },
+  };
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
+  volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
+  volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify({
+    name, version: "0.0.1", private: true, type: "module", dependencies: {}, devDependencies: {},
+    exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+  }));
+  const wasm = Buffer.from([0, 97, 115, 109, 1, 0, 0, 0]);
+  volume.writeFileSync(`/repo/packages/${name}/dist/engine.wasm`, wasm);
+  volume.writeFileSync(`/repo/packages/${name}/dist/index.js`, 'import engine from "./engine.wasm"; export { engine };');
+  volume.writeFileSync(`/repo/packages/${name}/dist/index.d.ts`, "export declare const engine: unknown;");
+  for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/exiftool/index.${suffix}`, `export * from "${name}";`);
+  volume.mkdirSync("/repo/packages/safe-bash/browser", { recursive: true });
+  volume.writeFileSync("/repo/packages/safe-bash/browser/buffer.mjs", "export {};\n");
+  const plugin: Plugin = { name: "copied-wasm-fixture", setup(builder) {
+    builder.onResolve({ filter: /.*/ }, args => ({ path: path.resolve(args.resolveDir, args.path), namespace: "fixture" }));
+    builder.onLoad({ filter: /.*/, namespace: "fixture" }, args => ({
+      contents: Buffer.from(volume.readFileSync(args.path)), resolveDir: path.dirname(args.path),
+      loader: args.path.endsWith(".wasm") ? "copy" : "js",
+    }));
+  } };
+  await packageSafeLibraries({ ...options, outDir: "/output", bundle: async (settings: BuildOptions) =>
+    settings.outdir === "/repo/packages" ? build({ ...settings, plugins: [plugin] }) : options.bundle(settings),
+  });
+  const entry = `/output/safe-bash/dist/${name}/index.js`;
+  const source = ts.createSourceFile(entry, volume.readFileSync(entry, "utf8").toString(), ts.ScriptTarget.Latest);
+  const reference = source.statements.find(statement => ts.isImportDeclaration(statement) &&
+    ts.isStringLiteral(statement.moduleSpecifier) && statement.moduleSpecifier.text.endsWith(".wasm"));
+  if (!reference || !ts.isImportDeclaration(reference) || !ts.isStringLiteral(reference.moduleSpecifier)) throw new Error("Packaged command lost its WASM import");
+  const asset = path.resolve(path.dirname(entry), reference.moduleSpecifier.text);
+  expect(asset.startsWith("/output/safe-bash/dist/")).toBe(true);
+  expect(volume.readFileSync(asset)).toEqual(wasm);
+});
+
 it("ships the ExifTool implementation and declarations without an unpublished dependency", async () => {
   const { volume, options } = optionalLeftovers();
   const name = "safe-bash-command-exiftool";

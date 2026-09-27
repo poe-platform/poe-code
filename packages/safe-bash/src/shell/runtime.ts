@@ -8409,20 +8409,9 @@ export class Runtime {
     if (command.kind === "while" || command.kind === "until") {
       return this.canSyncScriptCompound(command.condition, rawState, depth + 1) && this.canSyncScriptCompound(command.body, rawState, depth + 1);
     }
-    if (command.kind === "arithmetic-for") {
-      const [e0, e1, e2] = command.expressions;
-      if (
-        !e0 || !e1 || !e2 ||
-        e0.error || e0.hasSubscript || arithTreeTouchesArray(e0.tree, arrayStore(rawState)) || (guestArrays(rawState) && !isSafeSmiProgram(e0)) ||
-        e1.error || e1.hasSubscript || arithTreeTouchesArray(e1.tree, arrayStore(rawState)) || (guestArrays(rawState) && !isSafeSmiProgram(e1)) ||
-        e2.error || e2.hasSubscript || arithTreeTouchesArray(e2.tree, arrayStore(rawState)) || (guestArrays(rawState) && !isSafeSmiProgram(e2)) ||
-        rawState.nounset ||
-        rawState.readonlyVariables?.size
-      ) {
-        return false;
-      }
-      return this.canSyncScriptCompound(command.body, rawState, depth + 1);
-    }
+    // Arithmetic loops need either trySyncLoop's proved work bound or the
+    // asynchronous executor, which can yield without replaying mutations.
+    if (command.kind === "arithmetic-for") return false;
     if (command.kind === "if") {
       for (let i = 0; i < command.branches.length; i++) {
         const b = command.branches[i]!;
@@ -9126,60 +9115,6 @@ export class Runtime {
       }
       const fastLoopRes = this.trySyncLoop(command, pipeline, rawState, monitor, store, existing, elem0, canMutatePipeStatus, io, diagnosticLine);
       if (fastLoopRes !== undefined) return fastLoopRes;
-      if (
-        command.kind === "arithmetic-for" &&
-        command.redirects.length === 0 &&
-        !pipeline.negate &&
-        canMutatePipeStatus &&
-        (!ignored && rawState.errexit ? false : true) &&
-        !rawState.nounset &&
-        !rawState.readonlyVariables?.size &&
-        !rawState.extensions?.checkpoints.length &&
-        !hasYieldCheckpoint(this.signal) &&
-        this.canSyncCommandCompound(command, rawState, 0)
-      ) {
-        const [e0, e1, e2] = command.expressions;
-        this.budget.tick();
-        rawState.loopDepth++;
-        this._syncReturnDepth++;
-        let loopStatus = 0;
-        try {
-          this.syncShellArithmeticNonZero(e0!, rawState, diagnosticLine);
-          let turn = 0;
-          while (true) {
-            this.budget.loop();
-            if ((++turn & 127) === 0) {
-              if (hasYieldCheckpoint(this.signal)) return undefined;
-              runYieldCheckpoint(this.signal);
-            }
-            if (!this.syncShellArithmeticNonZero(e1!, rawState, diagnosticLine)) break;
-            const bodyRes = this.trySyncScript(command.body, state, io, ignored);
-            if (typeof bodyRes !== "number") return undefined;
-            loopStatus = bodyRes;
-            if (this._syncPendingReturnStatus !== undefined) {
-              loopStatus = this._syncPendingReturnStatus;
-              break;
-            }
-            this.syncShellArithmeticNonZero(e2!, rawState, diagnosticLine);
-          }
-        } catch {
-          this.signal.throwIfAborted();
-          return undefined;
-        } finally {
-          rawState.loopDepth--;
-          this._syncReturnDepth--;
-        }
-        const statusStr = loopStatus === 0 ? "0" : loopStatus === 1 ? "1" : String(loopStatus);
-        if (!existing) {
-          monitor.lazyPipeStatus = loopStatus === 0 ? singleStatusZero : loopStatus === 1 ? singleStatusOne : [loopStatus];
-          monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
-        } else if (elem0!.text.bytes === statusStr.length) {
-          elem0!.text.shellValue = statusStr;
-          store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
-        }
-        rawState.status = loopStatus;
-        return loopStatus;
-      }
       return undefined;
     }
     if (command.kind === "while" || command.kind === "until") {

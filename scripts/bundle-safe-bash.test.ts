@@ -14,7 +14,6 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 let portableBuild: BuildResult;
 let filesystemBuild: BuildResult;
 let browserFixtureBuild: BuildResult;
-let referenceLlmConsumer: { run(): Promise<Record<string, unknown>> };
 const artifacts = new Map<string, string>();
 
 it("publishes the op entry and live compression chunks in one browser output graph", async () => {

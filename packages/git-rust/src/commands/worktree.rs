@@ -9,7 +9,7 @@ use crate::managers::{
     GitConfigManager, GitIgnoreManager, GitIndexManager, GitRefManager, GitStashManager,
 };
 use crate::models::{CommitObject, GitIndex, GitTree, TreeEntry};
-use crate::storage::{_write_object, hash_object, resolve_filepath};
+use crate::storage::{_write_object, hash_object, resolve_filepath_entry};
 use crate::utils::{
     is_binary, join, merge_file, Author,
 };
@@ -366,11 +366,8 @@ pub fn reset_index(
             None
         }
     };
-    let blob_oid = if let Some(ref c_oid) = commit_oid {
-        resolve_filepath(fs, &gdir, c_oid, filepath).ok()
-    } else {
-        None
-    };
+    let entry = commit_oid.as_ref().and_then(|oid| resolve_filepath_entry(fs, &gdir, oid, filepath).ok());
+    let blob_oid = entry.as_ref().map(|entry| entry.oid.clone());
 
     let mut stat = FileStat {
         kind: NodeKind::File,
@@ -391,6 +388,10 @@ pub fn reset_index(
             && &w_oid == target_oid {
                 stat = w_stat;
             }
+
+    if let Some(entry) = entry {
+        stat.mode = u32::from_str_radix(&entry.mode, 8).map_err(|_| GitError::internal("invalid tree mode"))?;
+    }
 
     GitIndexManager::acquire(fs, &gdir, |index| {
         index.delete(filepath);

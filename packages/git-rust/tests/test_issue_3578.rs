@@ -304,3 +304,84 @@ fn rm_rejects_untracked_and_outside_paths() {
     );
     assert!(fs.exists("/repo/untracked"));
 }
+
+#[test]
+fn mixed_reset_preserves_executable_and_symlink_modes() {
+    let fs = committed_repo();
+    fs.write_with_mode("/repo/executable", b"run\n", 0o100755);
+    fs.symlink("a", "/repo/link").unwrap();
+    execute_git_cli(&fs, "/repo", &["add", "."]);
+    execute_git_cli(&fs, "/repo", &["commit", "-m", "modes"]);
+    let head = execute_git_cli(&fs, "/repo", &["rev-parse", "HEAD"]).stdout;
+    let tree = git_rust::read_commit(&fs, "/repo/.git", head.trim())
+        .unwrap()
+        .commit
+        .tree;
+    assert_eq!(
+        execute_git_cli(&fs, "/repo", &["reset", "--mixed", "HEAD"]).exit_code,
+        0
+    );
+    execute_git_cli(&fs, "/repo", &["commit", "-m", "preserve modes"]);
+    let next = execute_git_cli(&fs, "/repo", &["rev-parse", "HEAD"]).stdout;
+    assert_eq!(
+        git_rust::read_commit(&fs, "/repo/.git", next.trim())
+            .unwrap()
+            .commit
+            .tree,
+        tree
+    );
+}
+
+#[test]
+fn reset_path_restores_a_staged_deletion_and_link_mode() {
+    let fs = committed_repo();
+    fs.symlink("a", "/repo/link").unwrap();
+    execute_git_cli(&fs, "/repo", &["add", "link"]);
+    execute_git_cli(&fs, "/repo", &["commit", "-m", "link"]);
+    let head = execute_git_cli(&fs, "/repo", &["rev-parse", "HEAD"]).stdout;
+    let tree = git_rust::read_commit(&fs, "/repo/.git", head.trim())
+        .unwrap()
+        .commit
+        .tree;
+    execute_git_cli(&fs, "/repo", &["rm", "--cached", "link"]);
+    fs.unlink("/repo/link").unwrap();
+    fs.symlink("different", "/repo/link").unwrap();
+    assert_eq!(
+        execute_git_cli(&fs, "/repo", &["reset", "--", "/repo/link"]).exit_code,
+        0
+    );
+    assert!(
+        execute_git_cli(&fs, "/repo", &["ls-files"])
+            .stdout
+            .contains("link")
+    );
+    execute_git_cli(&fs, "/repo", &["commit", "-m", "reset path"]);
+    let next = execute_git_cli(&fs, "/repo", &["rev-parse", "HEAD"]).stdout;
+    assert_eq!(
+        git_rust::read_commit(&fs, "/repo/.git", next.trim())
+            .unwrap()
+            .commit
+            .tree,
+        tree
+    );
+}
+
+#[test]
+fn clean_combined_flags_remove_untracked_directories_only() {
+    let fs = committed_repo();
+    fs.write_str("/repo/trash/nested/file", "trash");
+    fs.write_str("/repo/ignored/file", "ignore");
+    fs.write_str("/repo/.gitignore", "ignored/\n");
+    assert_eq!(
+        execute_git_cli(&fs, "/repo", &["clean", "-nd"]).exit_code,
+        0
+    );
+    assert!(fs.exists("/repo/trash"));
+    assert_eq!(
+        execute_git_cli(&fs, "/repo", &["clean", "-fd"]).exit_code,
+        0
+    );
+    assert!(!fs.exists("/repo/trash"));
+    assert!(fs.exists("/repo/ignored/file"));
+    assert!(fs.exists("/repo/a"));
+}

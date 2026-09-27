@@ -341,7 +341,13 @@ pub fn execute_git_cli_with_http(
                     .collect()
             };
             let result = if !paths.is_empty() {
-                let files = list_files(fs, &gitdir, None).unwrap_or_default();
+                let files: std::collections::BTreeSet<_> = list_files(fs, &gitdir, None)
+                    .unwrap_or_default()
+                    .into_iter()
+                    .chain(
+                        list_files(fs, &gitdir, Some(target.unwrap_or("HEAD"))).unwrap_or_default(),
+                    )
+                    .collect();
                 files
                     .into_iter()
                     .filter(|p| {
@@ -562,40 +568,18 @@ pub fn execute_git_cli_with_http(
                         .map(|_| String::new())
                 }
                 _ => {
-                    let dry = sub_args.contains(&"-n") || sub_args.contains(&"--dry-run");
-                    if !dry && !sub_args.contains(&"-f") && !sub_args.contains(&"--force") {
-                        return CliResult::err(128, "fatal: clean requires -f or -n\n");
-                    }
-                    let files = list_files(fs, &gitdir, None).unwrap_or_default();
-                    let base = format!("{repo_root}/");
-                    let mut out = String::new();
-                    for full in fs.readdir_deep(&effective_cwd) {
-                        let Some(path) = full.strip_prefix(&base) else {
-                            continue;
-                        };
-                        if path.starts_with(".git/") || files.iter().any(|f| f == path) {
-                            continue;
-                        }
-                        if !sub_args.contains(&"-x")
-                            && crate::GitIgnoreManager::is_ignored(
-                                fs,
-                                &repo_root,
-                                Some(&gitdir),
-                                path,
-                            )
-                        {
-                            continue;
-                        }
-                        out.push_str(&format!(
-                            "{} {}\n",
-                            if dry { "Would remove" } else { "Removing" },
-                            path
-                        ));
-                        if !dry {
-                            let _ = fs.unlink(&full);
-                        }
-                    }
-                    Ok(out)
+                    let paths: Vec<_> = positionals
+                        .iter()
+                        .map(|p| repository_path(&repo_root, &effective_cwd, p))
+                        .collect();
+                    crate::cli_files::clean(
+                        fs,
+                        &repo_root,
+                        &gitdir,
+                        &effective_cwd,
+                        sub_args,
+                        &paths,
+                    )
                 }
             };
             match result {
@@ -1086,7 +1070,21 @@ fn reset_repository(
         crate::GitIndexManager::acquire(fs, gitdir, |index| {
             index.clear();
             for (path, entry) in tree {
-                index.insert(&path, None, &entry.oid, 0);
+                let stat = crate::fs::FileStat {
+                    kind: crate::fs::NodeKind::File,
+                    mode: u32::from_str_radix(&entry.mode, 8)
+                        .map_err(|_| crate::GitError::internal("invalid tree mode"))?,
+                    size: 0,
+                    ino: 0,
+                    dev: 0,
+                    uid: 0,
+                    gid: 0,
+                    ctime_seconds: 0,
+                    ctime_nanoseconds: 0,
+                    mtime_seconds: 0,
+                    mtime_nanoseconds: 0,
+                };
+                index.insert(&path, Some(&stat), &entry.oid, 0);
             }
             Ok(())
         })?;

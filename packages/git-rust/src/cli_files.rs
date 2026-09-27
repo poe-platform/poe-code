@@ -244,3 +244,106 @@ pub fn restore(
     }
     Ok(())
 }
+
+pub fn clean(
+    fs: &MemoryFs,
+    root: &str,
+    gitdir: &str,
+    cwd: &str,
+    args: &[&str],
+    paths: &[String],
+) -> Result<String, GitError> {
+    let flag = |short: char, long: &str| {
+        args.iter().any(|a| {
+            *a == long || (a.starts_with('-') && !a.starts_with("--") && a[1..].contains(short))
+        })
+    };
+    let dry = flag('n', "--dry-run");
+    if !dry && !flag('f', "--force") {
+        return Err(GitError::internal("clean requires -f or -n"));
+    }
+    let directories = flag('d', "--directories") || !paths.is_empty();
+    let ignored = flag('x', "--ignored");
+    let tracked = list_files(fs, gitdir, None)?;
+    let base = format!("{}/", root.trim_end_matches('/'));
+    let display_base = format!("{}/", cwd.trim_end_matches('/'));
+    let mut pending = vec![cwd.to_string()];
+    let mut candidates = Vec::new();
+    while let Some(directory) = pending.pop() {
+        for name in fs
+            .readdir(&directory)
+            .map_err(|e| GitError::internal(&e.message))?
+        {
+            if name == ".git" {
+                continue;
+            }
+            let full = join(&[&directory, &name]);
+            let Some(path) = full.strip_prefix(&base) else {
+                continue;
+            };
+            let stat = fs
+                .lstat(&full)
+                .map_err(|e| GitError::internal(&e.message))?;
+            let selected = paths.is_empty()
+                || paths
+                    .iter()
+                    .any(|f| f == "." || path == f || path.starts_with(&format!("{f}/")));
+            let tracked_entry = tracked
+                .iter()
+                .any(|p| p == path || p.starts_with(&format!("{path}/")));
+            let ignored_path = if stat.is_directory() {
+                format!("{path}/")
+            } else {
+                path.to_string()
+            };
+            if !tracked_entry
+                && !ignored
+                && crate::GitIgnoreManager::is_ignored(fs, root, Some(gitdir), &ignored_path)
+            {
+                continue;
+            }
+            if stat.is_directory() {
+                let nested_repo = fs.exists(&join(&[&full, ".git"]))
+                    || fs
+                        .readdir_deep(&full)
+                        .iter()
+                        .any(|p| p.split('/').any(|part| part == ".git"));
+                if nested_repo {
+                    continue;
+                }
+                if !tracked_entry && selected && directories {
+                    candidates.push((
+                        full.clone(),
+                        format!("{}/", full.strip_prefix(&display_base).unwrap_or(path)),
+                        true,
+                    ));
+                } else if tracked_entry || directories {
+                    pending.push(full);
+                }
+            } else if !tracked_entry && selected {
+                candidates.push((
+                    full.clone(),
+                    full.strip_prefix(&display_base).unwrap_or(path).to_string(),
+                    false,
+                ));
+            }
+        }
+    }
+    candidates.sort_by(|a, b| a.1.cmp(&b.1));
+    let mut output = String::new();
+    for (full, display, directory) in candidates {
+        output.push_str(&format!(
+            "{} {display}\n",
+            if dry { "Would remove" } else { "Removing" }
+        ));
+        if !dry {
+            if directory {
+                fs.rm_recursive(&full)
+            } else {
+                fs.unlink(&full)
+            }
+            .map_err(|e| GitError::internal(&e.message))?;
+        }
+    }
+    Ok(output)
+}

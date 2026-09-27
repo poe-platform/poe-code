@@ -385,7 +385,7 @@ export function fastSafeInt(text: string | undefined, budget: ParseBudget): numb
 function canEvalSafeSmiTree(node: Arithmetic, depth = 0): boolean {
   if (depth > 32) return false;
   if (node.kind === "literal") return node.value >= -94906265n && node.value <= 94906265n;
-  if (node.kind === "name") return node.subscript === undefined;
+  if (node.kind === "name") return node.subscript === undefined || /^[0-9]{1,7}$/.test(node.subscript);
   if (node.kind === "unary") {
     if (node.operator === "+" || node.operator === "-" || node.operator === "!") return canEvalSafeSmiTree(node.operand, depth + 1);
     if (node.operator === "++" || node.operator === "--") return node.operand.kind === "name" && node.operand.subscript === undefined && depth === 0;
@@ -413,7 +413,7 @@ function evalSafeSmi(node: Arithmetic, refs: ArithmeticReferences, budget: Parse
   budget.admit(0);
   if (node.kind === "literal") return Number(node.value);
   if (node.kind === "name") {
-    const ref = refs.resolve(node.name, undefined) as string;
+    const ref = refs.resolve(node.name, node.subscript) as string;
     const text = refs.read(ref) as string | undefined;
     return fastSafeInt(text, budget);
   }

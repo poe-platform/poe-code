@@ -551,21 +551,21 @@ export class Shell implements PluginHost {
     }
     try {
       const enc = new TextEncoder();
-      const dBytes = enc.encode(Array.from({ length: 2000 }, (_, i) => `${i % 3 === 0 ? "alpha" : i % 3 === 1 ? "beta" : "gamma"}:val_${(i * 17) % 97}:${i}\n`).join(""));
-      const jBytes = enc.encode(Array.from({ length: 1000 }, (_, i) => `{"id":${i},"active":${i % 2 === 0},"score":${(i * 7) % 100},"tag":"t_${i % 10}"}\n`).join(""));
+      const dBytes = enc.encode(Array.from({ length: 120 }, (_, i) => `${i % 3 === 0 ? "alpha" : i % 3 === 1 ? "beta" : "gamma"}:val_${(i * 17) % 97}:${i}\n`).join(""));
+      const jBytes = enc.encode(Array.from({ length: 60 }, (_, i) => `{"id":${i},"active":${i % 2 === 0},"score":${(i * 7) % 100},"tag":"t_${i % 10}"}\n`).join(""));
       const sandboxFs = new MemoryFileSystem();
       await sandboxFs.writeFile("/data.txt", dBytes);
       await sandboxFs.writeFile("/items.jsonl", jBytes);
-      for (let d = 0; d < 8; d++) {
+      for (let d = 0; d < 2; d++) {
         await sandboxFs.mkdir(`/src/pkg_${d}`, { recursive: true });
-        for (let f = 0; f < 8; f++) {
-          await sandboxFs.writeFile(`/src/pkg_${d}/mod_${f}.ts`, enc.encode(Array.from({ length: 40 }, (_, l) => `export const v_${d}_${f}_${l} = "${(d + f + l) % 11 === 0 ? "NEEDLE_TOKEN" : "normal"}_${l}";\n`).join("")));
+        for (let f = 0; f < 2; f++) {
+          await sandboxFs.writeFile(`/src/pkg_${d}/mod_${f}.ts`, enc.encode(Array.from({ length: 20 }, (_, l) => `export const v_${d}_${f}_${l} = "${(d + f + l) % 11 === 0 ? "NEEDLE_TOKEN" : "normal"}_${l}";\n`).join("")));
         }
       }
       const fsScript = [
         "mkdir -p /work/a /work/b",
-        ...Array.from({ length: 50 }, (_, i) => `echo "item_${i}" > /work/a/f_${i}.txt`),
-        ...Array.from({ length: 50 }, (_, i) => `echo "item_${i}" >> /work/b/f_${i}.txt`),
+        ...Array.from({ length: 12 }, (_, i) => `echo "item_${i}" > /work/a/f_${i}.txt`),
+        ...Array.from({ length: 12 }, (_, i) => `echo "item_${i}" >> /work/b/f_${i}.txt`),
         "rm -rf /work/b",
         "find /work/a -name 'f_1*.txt' | wc -l",
       ].join("\n");
@@ -576,7 +576,8 @@ export class Shell implements PluginHost {
         "awk -F: '/^alpha/ { sum += $3; cnt++ } END { print cnt, sum }' /data.txt",
         "jq -c 'select(.active) | {id, score}' /items.jsonl > /filtered.jsonl",
         fsScript,
-        "acc=0; i=0; for i in {1..500}; do acc=$((acc + i)); done; echo $acc",
+        "acc=0; i=0; for i in {1..80}; do acc=$((acc + i)); done; echo $acc",
+        "declare -a arr=(); declare -A map=(); fn() { local x=\"$1\"; case \"$x\" in *0) return 0;; *) return 1;; esac; }; for ((i=0; i<40; i++)); do s=\"p_m_${i}_s_e\"; a=\"${s#p_}\"; b=\"${a%_e}\"; c=\"${b//_/}\"; arr+=(\"e_$i\"); map[\"k_$i\"]=$((i + ${#c})); if [[ \"$s\" =~ ^p_m_([0-9]+)_s_e$ ]]; then fn \"${BASH_REMATCH[1]}\"; fi; done",
       ];
       const sandboxShell = new Shell({ fs: sandboxFs });
       for (const plugin of this.#plugins) {
@@ -586,7 +587,7 @@ export class Shell implements PluginHost {
         const isFs = s === fsScript;
         const isSed = s.startsWith("sed ");
         const isJq = s.startsWith("jq ");
-        for (let i = 0; i < 24; i++) {
+        for (let i = 0; i < 4; i++) {
           if (isFs && i > 0) await sandboxFs.rm("/work", { recursive: true, force: true });
           else if (isSed && i > 0) await sandboxFs.rm("/out.txt", { force: true });
           else if (isJq && i > 0) await sandboxFs.rm("/filtered.jsonl", { force: true });

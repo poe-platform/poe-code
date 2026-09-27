@@ -315,6 +315,40 @@ export async function compileEre(input: string | readonly EreFragment[], ledger:
   return program;
 }
 
+export function tryCompileEreSync(
+  input: string | readonly EreFragment[],
+  ledger: EreLedger,
+  signal?: AbortSignal,
+  asciiInsensitive = false,
+  localeProfile: { ranges: boolean; classes: boolean } = { ranges: true, classes: true },
+): EreProgram | undefined {
+  let cacheKey: string | undefined;
+  if (typeof input === "string" && input.length <= 128) {
+    cacheKey = `S:${asciiInsensitive ? 1 : 0}:${localeProfile.ranges ? 1 : 0}:${localeProfile.classes ? 1 : 0}:${input}`;
+  } else if (Array.isArray(input) && input.length === 1 && typeof input[0]?.text === "string" && typeof input[0]?.literal === "boolean" && input[0].text.length <= 128) {
+    cacheKey = `F:${asciiInsensitive ? 1 : 0}:${localeProfile.ranges ? 1 : 0}:${localeProfile.classes ? 1 : 0}:${input[0].literal ? 1 : 0}:${input[0].text}`;
+  }
+  if (cacheKey === undefined) return undefined;
+  const cached = ereCompilationCache.get(cacheKey);
+  if (
+    !cached ||
+    ledger.workAllowanceUntilCheckpoint(signal) < cached.work + 16 ||
+    cached.patternBytes > ledger.limits.patternBytes ||
+    cached.states > ledger.limits.states - ledger.usage.states ||
+    cached.allocationUnits > ledger.limits.allocationUnits - ledger.usage.allocationUnits
+  ) {
+    return undefined;
+  }
+  ledger.admitInput("patternBytes", cached.patternBytes, signal);
+  if (cached.work > 0) ledger.chargeWork(cached.work, signal);
+  if (cached.states > 0) ledger.charge("states", cached.states, signal);
+  if (cached.allocationUnits > 0) ledger.charge("allocationUnits", cached.allocationUnits, signal);
+  if (ledger.checkpoint(signal)) return undefined;
+  const program = Object.freeze({ pattern: cached.pattern, groups: cached.groups });
+  programs.set(program, { root: cached.root, ledger });
+  return program;
+}
+
 export function resolveEreProgram(program: EreProgram, ledger: EreLedger): EreNode {
   const entry = programs.get(program);
   if (!entry || entry.ledger !== ledger) throw new TypeError("ERE program is not bound to this invocation ledger");

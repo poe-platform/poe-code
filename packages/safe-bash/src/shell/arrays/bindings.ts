@@ -178,6 +178,23 @@ export class IndexedBinding {
     return { index, pendingKey: { identity, index, text, admission } };
   }
 
+  resolveOrInsertKeySync(identity: string, keyText: string, keyByteLen: number): number {
+    const existing = this.keys.get(identity);
+    if (existing) return existing.index;
+    const index = this.maximum + 1;
+    const admission = this.owner.reserve({ metadata: 128 + identity.length * 2, work: 8 });
+    let text: OwnedText;
+    try {
+      this.owner.chargeWork(keyByteLen);
+      text = new OwnedText(keyText, keyByteLen, this.owner.reserve({ payload: keyByteLen, metadata: 32, work: 4 }));
+    } catch (error) {
+      admission.release();
+      throw error;
+    }
+    this.commitStagedKey({ identity, index, text, admission });
+    return index;
+  }
+
   commitStagedKey(pending: {
     identity: string;
     index: number;

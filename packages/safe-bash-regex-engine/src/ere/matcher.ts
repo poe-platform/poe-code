@@ -767,12 +767,234 @@ function resetDescendants(node: EreNode, previous: readonly (EreSpan | null)[], 
   })();
 }
 
+type EreAtomNode = Extract<EreNode, { kind: "literal" | "set" }>;
+type EreChainStep =
+  | { readonly kind: "groupOpen"; readonly index: number }
+  | { readonly kind: "groupClose"; readonly index: number }
+  | { readonly kind: "char"; readonly atom: EreAtomNode }
+  | { readonly kind: "repeat"; readonly atom: EreAtomNode; readonly min: number };
+
+interface CompiledEreLinearChain {
+  readonly anchoredStart: boolean;
+  readonly anchoredEnd: boolean;
+  readonly steps: readonly EreChainStep[];
+  readonly firstAtom: EreAtomNode | undefined;
+}
+
+const ereLinearChainCache = new WeakMap<EreNode, CompiledEreLinearChain | null>();
+
+function ereAtomMatchesCode(atom: EreAtomNode, code: number): boolean {
+  if (atom.kind === "literal") {
+    return atom.insensitive ? foldAscii(atom.code) === foldAscii(code) : atom.code === code;
+  }
+  return code < 128 ? atom.members[code]! : atom.nonAscii;
+}
+
+function ereAtomsDisjoint(a: EreAtomNode, b: EreAtomNode): boolean {
+  for (let code = 0; code <= 128; code++) {
+    if (ereAtomMatchesCode(a, code) && ereAtomMatchesCode(b, code)) return false;
+  }
+  return true;
+}
+
+function compileEreLinearChain(root: EreNode): CompiledEreLinearChain | null {
+  const cached = ereLinearChainCache.get(root);
+  if (cached !== undefined) return cached;
+  let anchoredStart = false;
+  let anchoredEnd = false;
+  let seenConsuming = false;
+  const steps: EreChainStep[] = [];
+  const visit = (node: EreNode): boolean => {
+    switch (node.kind) {
+      case "start":
+        if (seenConsuming || steps.length > 0) return false;
+        anchoredStart = true;
+        return true;
+      case "end":
+        anchoredEnd = true;
+        return true;
+      case "sequence":
+        for (const child of node.children) {
+          if (!visit(child)) return false;
+        }
+        return true;
+      case "group":
+        if (anchoredEnd) return false;
+        steps.push({ kind: "groupOpen", index: node.index });
+        if (!visit(node.child)) return false;
+        steps.push({ kind: "groupClose", index: node.index });
+        return true;
+      case "literal":
+      case "set":
+        if (anchoredEnd) return false;
+        seenConsuming = true;
+        steps.push({ kind: "char", atom: node });
+        return true;
+      case "repeat":
+        if (anchoredEnd || node.min < 1 || node.max !== Infinity) return false;
+        if (node.child.kind !== "literal" && node.child.kind !== "set") return false;
+        seenConsuming = true;
+        steps.push({ kind: "repeat", atom: node.child, min: node.min });
+        return true;
+      default:
+        return false;
+    }
+  };
+  if (!visit(root) || !seenConsuming) {
+    ereLinearChainCache.set(root, null);
+    return null;
+  }
+  let firstAtom: EreAtomNode | undefined;
+  for (let i = 0; i < steps.length; i++) {
+    const step = steps[i]!;
+    if ((step.kind === "char" || step.kind === "repeat") && !firstAtom) {
+      firstAtom = step.atom;
+    }
+    if (step.kind === "repeat") {
+      let nextAtom: EreAtomNode | undefined;
+      for (let j = i + 1; j < steps.length; j++) {
+        const nextStep = steps[j]!;
+        if (nextStep.kind === "char" || nextStep.kind === "repeat") {
+          nextAtom = nextStep.atom;
+          break;
+        }
+      }
+      if (nextAtom && !ereAtomsDisjoint(step.atom, nextAtom)) {
+        ereLinearChainCache.set(root, null);
+        return null;
+      }
+    }
+  }
+  const compiled: CompiledEreLinearChain = { anchoredStart, anchoredEnd, steps, firstAtom };
+  ereLinearChainCache.set(root, compiled);
+  return compiled;
+}
+
+function tryMatchEreLinearChainSync(
+  program: EreProgram,
+  root: EreNode,
+  subject: string,
+  ledger: EreLedger,
+  signal?: AbortSignal,
+): EreResult | undefined {
+  const chain = compileEreLinearChain(root);
+  if (!chain) return undefined;
+  const width = program.groups + 1;
+  const estimatedWork = subject.length * 3 + chain.steps.length * 4 + width * 4 + 32;
+  if (
+    ledger.workAllowanceUntilCheckpoint(signal) < estimatedWork ||
+    ledger.limits.states - ledger.usage.states < subject.length + chain.steps.length + 8 ||
+    ledger.limits.allocationUnits - ledger.usage.allocationUnits < width * 4 + 32 ||
+    ledger.limits.captureSlots < width
+  ) {
+    return undefined;
+  }
+  const groupStarts = new Int32Array(width);
+  const groupEnds = new Int32Array(width);
+  const maxStart = chain.anchoredStart ? 0 : subject.length;
+  const steps = chain.steps;
+  const stepsLen = steps.length;
+  for (let start = 0; start <= maxStart; start++) {
+    if (chain.firstAtom) {
+      if (start >= subject.length) break;
+      if (!ereAtomMatchesCode(chain.firstAtom, subject.charCodeAt(start))) {
+        if (!chain.anchoredStart && chain.firstAtom.kind === "literal" && !chain.firstAtom.insensitive) {
+          const nextIdx = subject.indexOf(String.fromCharCode(chain.firstAtom.code), start + 1);
+          if (nextIdx === -1) break;
+          start = nextIdx - 1;
+        }
+        continue;
+      }
+    }
+    groupStarts.fill(-1);
+    groupEnds.fill(-1);
+    let pos = start;
+    let ok = true;
+    for (let s = 0; s < stepsLen; s++) {
+      const step = steps[s]!;
+      if (step.kind === "groupOpen") {
+        groupStarts[step.index] = pos;
+      } else if (step.kind === "groupClose") {
+        groupEnds[step.index] = pos;
+      } else if (step.kind === "char") {
+        if (pos >= subject.length || !ereAtomMatchesCode(step.atom, subject.charCodeAt(pos))) {
+          ok = false;
+          break;
+        }
+        pos++;
+      } else {
+        let count = 0;
+        while (pos < subject.length && ereAtomMatchesCode(step.atom, subject.charCodeAt(pos))) {
+          pos++;
+          count++;
+        }
+        if (count < step.min) {
+          ok = false;
+          break;
+        }
+      }
+    }
+    if (!ok || (chain.anchoredEnd && pos !== subject.length)) continue;
+    let bytes = pos - start;
+    for (let g = 1; g < width; g++) {
+      if (groupStarts[g]! >= 0 && groupEnds[g]! >= groupStarts[g]!) {
+        bytes += groupEnds[g]! - groupStarts[g]!;
+      }
+    }
+    if (bytes > ledger.limits.captureBytes) return undefined;
+    ledger.chargeWork(Math.max(1, pos - start + stepsLen + width * 2), signal);
+    ledger.charge("states", Math.max(1, pos - start + stepsLen), signal);
+    ledger.charge("captureSlots", width, signal);
+    ledger.charge("captureBytes", bytes, signal);
+    ledger.charge("allocationUnits", width * 2 + bytes + 6, signal);
+    if (ledger.checkpoint(signal)) return undefined;
+    const captures = new Array<EreSpan | null>(width);
+    const values = new Array<string>(width);
+    captures[0] = Object.freeze({ start, end: pos });
+    values[0] = subject.slice(start, pos);
+    for (let g = 1; g < width; g++) {
+      const gs = groupStarts[g]!;
+      const ge = groupEnds[g]!;
+      if (gs >= 0 && ge >= gs) {
+        captures[g] = Object.freeze({ start: gs, end: ge });
+        values[g] = subject.slice(gs, ge);
+      } else {
+        captures[g] = null;
+        values[g] = "";
+      }
+    }
+    ledger.check(signal);
+    return Object.freeze({ matched: true, captures: Object.freeze(captures), values: Object.freeze(values) });
+  }
+  ledger.chargeWork(Math.max(1, subject.length + 1), signal);
+  ledger.charge("states", Math.max(1, maxStart + 1), signal);
+  ledger.charge("allocationUnits", 4, signal);
+  if (ledger.checkpoint(signal)) return undefined;
+  ledger.check(signal);
+  return Object.freeze({ matched: false, captures: Object.freeze([] as const), values: Object.freeze([] as const) });
+}
+
+export function tryMatchEreSync(program: EreProgram, subject: string, ledger: EreLedger, signal?: AbortSignal): EreResult | undefined {
+  ledger.check(signal);
+  const root = resolveEreProgram(program, ledger);
+  if (subject.length > ledger.limits.subjectBytes || ledger.workAllowanceUntilCheckpoint(signal) < subject.length + 16) {
+    return undefined;
+  }
+  ledger.admitInput("subjectBytes", subject.length, signal);
+  const adm = admitAscii(subject, ledger, signal);
+  if (adm) return undefined;
+  return tryMatchEreLinearChainSync(program, root, subject, ledger, signal);
+}
+
 export async function matchEre(program: EreProgram, subject: string, ledger: EreLedger, signal?: AbortSignal): Promise<EreResult> {
   ledger.check(signal);
   resolveEreProgram(program, ledger);
   ledger.admitInput("subjectBytes", subject.length, signal);
+  const root = resolveEreProgram(program, ledger);
   const adm = admitAscii(subject, ledger, signal);
   if (adm) await adm;
+  const fastLinear = tryMatchEreLinearChainSync(program, root, subject, ledger, signal);
+  if (fastLinear !== undefined) return fastLinear;
   return runMatcher(program, subject, ledger, signal, 0, true);
 }
 

@@ -397,8 +397,9 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
         lastFormula.cell.column < range.startColumn || lastFormula.cell.column > range.endColumn ||
         range.endRow >= (ver >= 8 ? 65536 : 16384)) invalidBiff("invalid shared/array formula group");
       if (++groupCount > context.limits.operations) throw new SsconvertError("resource-limit", "ssconvert BIFF formula group limit exceeded");
-      const kind = opcode === 0x4bc ? "shared" : "array", start = ver > 4 && kind === "array" ? 14 : 10;
-      const tokens = data.slice(start, data.u16(start - 2));
+      const kind = opcode === 0x4bc ? "shared" : "array";
+      const start = kind === "shared" ? 10 : ver === 2 ? 8 : ver <= 4 ? 10 : 14;
+      const tokens = data.slice(start, ver === 2 && kind === "array" ? data.u8(start - 1) : data.u16(start - 2));
       const arrays = stringParts(index, start + tokens.length); index = arrays.next;
       sheet.groups.push({ id: `biff-${sheet.offset}-${record.offset}`, kind, range, tokens, arrays: arrays.parts, keyRow: lastFormula.cell.row, keyColumn: lastFormula.cell.column }); continue;
     }

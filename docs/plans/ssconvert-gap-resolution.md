@@ -342,6 +342,13 @@ tests, maintained lint/types and the selected build passing. Twelve compiled
 SDK/command BIFF2/3/4-to-BIFF7/8 conversions retain all 56 expected values without
 diagnostics. Native application and broader BIFF qualification remain open.
 
+The ARRAY record audit in `reference.biffCompactArrayRecord` confirms that BIFF2
+uses an eight-byte header, distinct from later versions. Correcting its token
+offset and one-byte length restores numeric and string array formula groups.
+Two of fourteen original regressions failed; all now pass, alongside 1,501 BIFF
+tests, maintained lint/types, selected build and 24 compiled SDK/command
+conversions retaining 48 values without diagnostics. Native qualification remains open.
+
 The Calc reference-model audit is recorded under `reference.sheetReferenceSemantics`.
 Its parser and writer preserve ODF sheet `$` markers; external sheet references
 are absolute. Moves resolve the old target and rebind at the new formula position.

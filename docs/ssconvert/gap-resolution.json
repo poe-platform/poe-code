@@ -1391,6 +1391,25 @@
       "validation": "Baseline 59/82 failed; all 82 pass after correction. Original in-memory BIFF2/3/4 workbooks cover all six functions, numeric and text results, and real two-dimensional lookup ranges through BIFF7/8 readback. Final surrounding cohort: 63 files / 1795 tests passed. Maintained package lint/source/test/consumer types and selected workspace build passed.",
       "publicValidation": "Twelve compiled SDK/command conversions from BIFF2/3/4 to BIFF7/8 retained 56 expected scalar/text results without diagnostics. Original inputs are 219-245 bytes; all output workbooks are 3584 bytes and remain in memory. Actual compiled command screenshot inspected.",
       "remaining": "Native application qualification and wider token/version fidelity remain open. These six repaired functions do not establish complete BIFF compatibility; all 19 gap families remain open."
+    },
+    "biffCompactArrayRecord": {
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/excel/impop.cxx",
+          "sha256": "2cc624e5c93b88de03fdd435afc74b93459a0c6ea8511b038c2f1e0782dc0589",
+          "lines": "503-537,1055-1084"
+        },
+        {
+          "url": "https://www.openoffice.org/sc/excelfileformat.pdf",
+          "sha256": "af25dee84bd186225a241cafc07ab9f2ea60149f4e2836d3f44a10107949ab4e",
+          "sections": "3.1.1,5.4,5.102"
+        }
+      ],
+      "finding": "BIFF2 ARRAY has a six-byte range, one option byte, one token-length byte and tokens at offset eight. BIFF3/4 use offset ten with a two-byte length; BIFF5/8 use offset fourteen. LibreOffice Array25 and Array34 confirm all three layouts. The importer previously used offset ten for BIFF2 and rejected valid numeric/string array formula groups.",
+      "implementation": "Select the compact BIFF2 ARRAY token offset and length width while retaining shared-formula and later array layouts.",
+      "validation": "Two of fourteen original memory cases failed before the repair; all pass after it. Controls cover BIFF2/3/4/7/8, numeric/string auxiliary arrays, separate cached formula strings, multi-cell group identities, BIFF7/8 reexport and truncated headers/token data. An initial fixture incorrectly gave BIFF3/4/7 cached STRING records an 8-bit length; source section 5.102 corrected it before recording the production baseline. The surrounding 61-file/1501-test BIFF cohort, maintained package lint/source/test/consumer types and selected build pass.",
+      "publicValidation": "Twenty-four compiled SDK/command BIFF2/3/4-to-BIFF7/8 conversions preserve all 48 expected numeric/string results and array group identity, with no diagnostics. Inputs are 102-111 bytes; outputs are 3072-3584 bytes and remain in memory. Actual compiled command screenshot inspected.",
+      "remaining": "Native application and wider BIFF record/token qualification remain open; no gap family is closed."
     }
   },
   "cases": [

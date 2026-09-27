@@ -14,6 +14,11 @@ const result = await shell.exec("xmllint --xpath 'count(/root/item)'", {
 await shell.dispose();
 ```
 
+Standalone `createXmllintCommand()` and `createXmllintCommands()` factories use
+the same default runtime as `xmllintCommands()`. XPath predicates support numeric
+and string comparisons (`=`, `!=`, `<`, `<=`, `>`, `>=`), `and`, `or`, `not`,
+`contains`, `starts-with` and `normalize-space`, alongside positional selection.
+
 Supported modes include `--noout`, `--format`, `--c14n`, and `--xpath`. Inputs come
 from stdin or the configured virtual filesystem. XML limits bound input, output,
 query bytes, depth, nodes, attributes, namespaces, steps and results. The XML

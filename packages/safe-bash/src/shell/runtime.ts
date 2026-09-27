@@ -5374,7 +5374,7 @@ export class Runtime {
     let cur = firstCachedUnit;
     const vars = rawState.variables;
     const curLocale = (vars.LC_ALL || vars.LC_CTYPE || vars.LANG) ? byteLocale(vars) : false;
-    const mem = this.backingFs as unknown as { symlinkCount: number; writeMemoryFileInDirFast(d: string, n: string, data: Uint8Array, a: boolean, m: number): void };
+    const mem = this.backingFs as unknown as { symlinkCount: number; writeMemoryFileInDirFast(d: string, n: string, data: Uint8Array, a: boolean, m: number, h?: number): void };
     let deadRmTarget: string | undefined;
     let deadRmTargetLen = 0;
     if (mem.symlinkCount === 0 && curLocale === false) {
@@ -5425,8 +5425,15 @@ export class Runtime {
       }
       this.budget.parsing.admit(next.unitsCharged);
       if (!(deadRmTarget !== undefined && nextCc.dirPrefix.length === deadRmTargetLen + 1 && nextCc.dirPrefix.charCodeAt(deadRmTargetLen) === 47 && nextCc.dirPrefix.startsWith(deadRmTarget))) {
+        let nameHash = (nextCc as { _nameHash?: number })._nameHash;
+        if (nameHash === undefined) {
+          const fn = nextCc.fileName;
+          let h = 5381;
+          for (let ci = 0; ci < fn.length; ci++) h = (((h & 0x1fffff) * 33) ^ fn.charCodeAt(ci)) & 0x3fffffff;
+          (nextCc as { _nameHash?: number })._nameHash = nameHash = h;
+        }
         try {
-          mem.writeMemoryFileInDirFast(nextCc.dirPrefix, nextCc.fileName, nextCc.encoded, nextCc.append, mode);
+          mem.writeMemoryFileInDirFast(nextCc.dirPrefix, nextCc.fileName, nextCc.encoded, nextCc.append, mode, nameHash);
         } catch {
           this.signal.throwIfAborted();
           break;
@@ -5465,6 +5472,53 @@ export class Runtime {
           (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations++;
           lastArg = deadRmTarget;
           cur = rmUnit;
+          const findUnit = cur.nextCached;
+          if (
+            findUnit !== undefined &&
+            findUnit.unit.next >= sourceLength &&
+            findUnit.locale === false &&
+            (!findUnit.unit.script.warnings || findUnit.unit.script.warnings.length === 0) &&
+            findUnit.unit.script.lists.length === 1 &&
+            findUnit.unit.script.lists[0]!.pipelines.length === 1 &&
+            findUnit.unit.script.lists[0]!.pipelines[0] === lastPureFindPipeAst &&
+            Date.now === defaultDateNow &&
+            io.stdout instanceof Capture &&
+            io.stdout.write === Capture.prototype.write &&
+            !hasShellFunction(rawState, "find") &&
+            !hasShellFunction(rawState, "wc") &&
+            !rawState.extensions?.builtins.has("find") &&
+            !rawState.extensions?.builtins.has("wc") &&
+            this.budget.commands + 2 <= this.budget.maxCommandsSmi
+          ) {
+            const dirPath = (firstCc as { _dirPath?: string })._dirPath ?? ((firstCc as { _dirPath?: string })._dirPath = firstCc.dirPrefix.slice(0, -1));
+            const de = tryGetMemoryDirectoryEntryNamesSync(this.backingFs, dirPath) as { readonly size: number; readonly _next?: number; readonly _keys?: string[] } | undefined;
+            if (
+              de !== undefined &&
+              de.size === lastPureFindDirSize &&
+              de._next === de.size &&
+              de._keys !== undefined &&
+              de._keys[0] === lastPureFindFirstKey &&
+              de._keys[lastPureFindDirSize - 1] === lastPureFindLastKey
+            ) {
+              this.budget.parsing.admit(findUnit.unitsCharged);
+              this.budget.enterPipelineStages(2);
+              this.budget.commands += 2;
+              this.budget.fileSystemOperation();
+              io.stdout.writeRangeSync(lastPureFindOutBuf, lastPureFindOutLen);
+              this.budget.leavePipelineStages(2);
+              const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+              rawState.substitutionStatus = 0;
+              if (rawState.variables._ !== undefined) delete rawState.variables._;
+              rawState.lastArgument = lastArg;
+              if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+              monitor.lazyPipeStatus = ZERO_PIPE_STATUSES[2]!;
+              monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+              rawState.status = 0;
+              monitor.epoch = restEpoch;
+              if (store) store.epoch = restEpoch;
+              return findUnit;
+            }
+          }
         }
       }
     }
@@ -5486,6 +5540,207 @@ export class Runtime {
     return cur;
   }
 
+  private tryRunCachedSyncForScript(
+    script: Script,
+    monitor: ReturnType<typeof ensureStateMonitor>,
+    io: IO,
+  ): { exitCode: number; terminated: boolean } | undefined {
+    type SyncForScriptPlan = {
+      initAssigns: { name: string; strVal: string; intVal: number }[];
+      forCmd: Extract<Command, { kind: "for" }>;
+      echoVar: string | undefined;
+      publishNames: string[];
+    };
+    const rawScript = script as { _cachedSyncForScriptPlan?: SyncForScriptPlan | null };
+    let plan = rawScript._cachedSyncForScriptPlan;
+    if (plan === null) return undefined;
+    const rawState = monitor.raw;
+    if (
+      this.middleware.length > 0 ||
+      io[invocationScope].hasFailures ||
+      io.terminal ||
+      io.asyncDefaultInput ||
+      hasActiveExtensions(rawState) ||
+      rawState.variableAttributes?.size ||
+      guestArrays(rawState) ||
+      rawState.errexit ||
+      rawState.nounset ||
+      rawState.readonlyVariables?.size ||
+      rawState.allexport ||
+      rawState.braceexpand === false ||
+      this.budget.hasCpuLimit ||
+      io[valueScope] !== undefined ||
+      hasYieldCheckpoint(this.signal) ||
+      (io.descriptors && (io.descriptors.get(0)?.closed || io.descriptors.get(1)?.closed || io.descriptors.get(2)?.closed))
+    ) {
+      return undefined;
+    }
+    if (plan === undefined) {
+      const lists = script.lists;
+      if (lists.length < 2 || lists.length > 8) {
+        rawScript._cachedSyncForScriptPlan = null;
+        return undefined;
+      }
+      for (let i = 0; i < lists.length; i++) {
+        const l = lists[i]!;
+        if (l.terminator || l.pipelines.length !== 1 || l.pipelines[0]!.negate || l.pipelines[0]!.commands.length !== 1) {
+          rawScript._cachedSyncForScriptPlan = null;
+          return undefined;
+        }
+      }
+      let forIdx = -1;
+      for (let i = 0; i < lists.length; i++) {
+        if (lists[i]!.pipelines[0]!.commands[0]!.kind === "for") {
+          forIdx = i;
+          break;
+        }
+      }
+      if (forIdx < 1 || (forIdx !== lists.length - 1 && forIdx !== lists.length - 2)) {
+        rawScript._cachedSyncForScriptPlan = null;
+        return undefined;
+      }
+      const forCmd = lists[forIdx]!.pipelines[0]!.commands[0] as Extract<Command, { kind: "for" }>;
+      const forPlan = (forCmd as { _cachedForPlan?: { fastReady?: boolean; touchedIntNamesList: string[] } })._cachedForPlan;
+      if (!forPlan) return undefined;
+      if (!forPlan.fastReady) {
+        rawScript._cachedSyncForScriptPlan = null;
+        return undefined;
+      }
+      const initAssigns: { name: string; strVal: string; intVal: number }[] = [];
+      const pubSet = new Set<string>(forPlan.touchedIntNamesList);
+      for (let i = 0; i < forIdx; i++) {
+        const cmd = lists[i]!.pipelines[0]!.commands[0]!;
+        if (cmd.kind !== "simple" || cmd.redirects.length !== 0 || cmd.words.length !== 1) {
+          rawScript._cachedSyncForScriptPlan = null;
+          return undefined;
+        }
+        const w0 = cmd.words[0]!;
+        if (!w0.plain || w0.parts.length !== 1 || w0.parts[0]!.kind !== "text") {
+          rawScript._cachedSyncForScriptPlan = null;
+          return undefined;
+        }
+        const eq = w0.plain.indexOf("=");
+        if (eq <= 0 || w0.plain.charCodeAt(eq - 1) === 43 || w0.plain.includes("[")) {
+          rawScript._cachedSyncForScriptPlan = null;
+          return undefined;
+        }
+        const vName = w0.plain.slice(0, eq);
+        const vStr = w0.plain.slice(eq + 1);
+        if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(vName) || vName === "_" || vName === "LINENO" || vName === "FUNCNAME" || !/^-?[0-9]{1,8}$/.test(vStr)) {
+          rawScript._cachedSyncForScriptPlan = null;
+          return undefined;
+        }
+        initAssigns.push({ name: vName, strVal: vStr, intVal: Number(vStr) | 0 });
+        pubSet.add(vName);
+      }
+      let echoVar: string | undefined;
+      if (forIdx === lists.length - 2) {
+        const echoCmd = lists[lists.length - 1]!.pipelines[0]!.commands[0]!;
+        if (echoCmd.kind !== "simple" || echoCmd.redirects.length !== 0 || echoCmd.words.length !== 2 || echoCmd.words[0]!.plain !== "echo") {
+          rawScript._cachedSyncForScriptPlan = null;
+          return undefined;
+        }
+        const argW = echoCmd.words[1]!;
+        if (argW.parts.length !== 1 || argW.parts[0]!.kind !== "variable" || argW.parts[0]!.quoted || !this.isPureSyncValueWord(argW, rawState)) {
+          rawScript._cachedSyncForScriptPlan = null;
+          return undefined;
+        }
+        echoVar = argW.parts[0]!.name;
+      }
+      plan = { initAssigns, forCmd, echoVar, publishNames: [...pubSet] };
+      rawScript._cachedSyncForScriptPlan = plan;
+    }
+    const forPlan = (plan.forCmd as unknown as { _cachedForPlan: {
+      intSteps: (IntLoopStep | undefined)[];
+      regNames: string[];
+      touchedIntNamesList: string[];
+      fastLoopWords: readonly string[];
+      bodyStepCount: number;
+    } })._cachedForPlan;
+    const fastSyncSink = plan.echoVar !== undefined
+      ? ((io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) ||
+         (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write) ? io.stdout : undefined)
+      : undefined;
+    if (plan.echoVar !== undefined) {
+      const def = this.commands.get("echo");
+      if (!fastSyncSink || !def || !defaultEchoExecutors.has(def.execute) || hasShellFunction(rawState, "echo") || rawState.extensions?.builtins.has("echo") || (io.descriptors && io.descriptors.get(1)?.output !== io.stdout)) {
+        return undefined;
+      }
+    }
+    const store = monitor.store;
+    const existing = store?.get("PIPESTATUS");
+    const psTarget = existing ? "indexed" : pipelineStatusTarget(rawState);
+    if ((psTarget !== "indexed" && psTarget !== "absent") || store?.watches.has("PIPESTATUS") || monitor.hasOverlay("PIPESTATUS")) return undefined;
+    if (existing && (existing.associative || existing.values.size !== 1 || existing.maximum !== 0 || existing.references !== 1)) return undefined;
+    const elem0 = existing?.values.get(0);
+    if (existing && (!elem0 || elem0.text.bytes !== 1 || elem0.text.references !== 1)) return undefined;
+    const publishNames = plan.publishNames;
+    for (let i = 0; i < publishNames.length; i++) {
+      if (store?.get(publishNames[i]!)) return undefined;
+    }
+    const wordCount = forPlan.fastLoopWords.length;
+    const totalCmds = plan.initAssigns.length + wordCount * forPlan.bodyStepCount + (plan.echoVar !== undefined ? 1 : 0);
+    if (
+      wordCount > this.budget.maxExpansionFieldsSmi ||
+      wordCount * 16 > this.budget.maxExpansionBytesSmi ||
+      this.budget.commands + totalCmds >= this.budget.maxCommandsSmi ||
+      this.budget.iterations + wordCount >= this.budget.maxLoopIterationsSmi
+    ) {
+      return undefined;
+    }
+    for (let i = 0; i < plan.initAssigns.length; i++) {
+      const a = plan.initAssigns[i]!;
+      rawState.variables[a.name] = a.strVal;
+    }
+    const regNames = forPlan.regNames;
+    for (let r = 1; r < regNames.length; r++) {
+      const refName = regNames[r]!;
+      const parsed = fastSafeInt(rawState.variables[refName], this.budget.parsing);
+      if (parsed === undefined) return undefined;
+      sharedLoopIntRegs[r] = parsed | 0;
+    }
+    const { ok } = runIntForLoop(forPlan.fastLoopWords, forPlan.bodyStepCount, forPlan.intSteps, this.budget.parsing);
+    if (!ok) return undefined;
+    for (let r = 0; r < regNames.length; r++) {
+      rawState.variables[regNames[r]!] = intToStr(sharedLoopIntRegs[r]!);
+    }
+    for (let i = 0; i < publishNames.length; i++) {
+      const varName = publishNames[i]!;
+      const finalVal = rawState.variables[varName];
+      if (finalVal !== undefined) monitor.publishStringVariable(varName, finalVal);
+    }
+    let lastArg = "";
+    if (plan.echoVar !== undefined) {
+      const echoVal = rawState.variables[plan.echoVar] ?? "";
+      if (echoVal.startsWith("-") || echoVal.includes("\0")) return undefined;
+      const encoded = encodeRedirectTextWithNewlineToScratch(echoVal);
+      if (!encoded) return undefined;
+      const bLen = encoded.byteLength;
+      if (this.budget.bytes + bLen > this.budget.maxOutputBytesSmi) return undefined;
+      if (!fastSyncSink!.writeSync(encoded)) return undefined;
+      this.budget.bytes += bLen;
+      lastArg = echoVal;
+    }
+    this.budget.iterations += wordCount;
+    this.budget.commands += totalCmds;
+    rawState.substitutionStatus = 0;
+    if (rawState.variables._ !== undefined) delete rawState.variables._;
+    rawState.lastArgument = lastArg;
+    if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+    if (!existing) {
+      monitor.lazyPipeStatus = singleStatusZero;
+      monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+    } else {
+      elem0!.text.shellValue = "0";
+      store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+    }
+    rawState.status = 0;
+    const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+    monitor.epoch = restEpoch;
+    if (store) store.epoch = restEpoch;
+    return SYNC_UNIT_ZERO;
+  }
+
   runUnit(script: Script, state: State, io: IO): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> {
     if (state.noexec) return SYNC_UNIT_ZERO;
     const monitor = ensureStateMonitor(state, this.budget, io[invocationScope]);
@@ -5493,6 +5748,10 @@ export class Runtime {
       if (state.extensions?.syntax.indexedDeclarations?.includes("readonly")) io.assignmentDiagnosticContext ??= { name: undefined };
       try {
         const ignoreErrexit = Boolean(io.execution?.ignoreErrexit);
+        if (!ignoreErrexit && script.lists.length >= 2) {
+          const fastScriptRes = this.tryRunCachedSyncForScript(script, monitor, io);
+          if (fastScriptRes !== undefined) return fastScriptRes;
+        }
         for (let listIndex = 0; listIndex < script.lists.length; listIndex++) {
           const list = script.lists[listIndex]!;
           if (list.terminator) {

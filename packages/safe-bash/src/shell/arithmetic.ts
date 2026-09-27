@@ -1008,6 +1008,44 @@ export function runIntArithForLoop(
   return sharedIntLoopResult;
 }
 
+const parsedLoopWordsCache = new WeakMap<readonly string[], Int32Array | null>();
+
+function getOrParsePositiveLoopWords(words: readonly string[]): Int32Array | null {
+  let cached = parsedLoopWordsCache.get(words);
+  if (cached !== undefined) return cached;
+  const len = words.length;
+  if (len === 0 || len > 65536) {
+    parsedLoopWordsCache.set(words, null);
+    return null;
+  }
+  const arr = new Int32Array(len);
+  for (let idx = 0; idx < len; idx++) {
+    const word = words[idx]!;
+    const wLen = word.length;
+    if (wLen < 1 || wLen > 8) {
+      parsedLoopWordsCache.set(words, null);
+      return null;
+    }
+    const c0 = word.charCodeAt(0);
+    if (c0 < 49 || c0 > 57) {
+      parsedLoopWordsCache.set(words, null);
+      return null;
+    }
+    let num = c0 - 48;
+    for (let k = 1; k < wLen; k++) {
+      const ck = word.charCodeAt(k);
+      if (ck < 48 || ck > 57) {
+        parsedLoopWordsCache.set(words, null);
+        return null;
+      }
+      num = (num * 10 + (ck - 48)) | 0;
+    }
+    arr[idx] = num;
+  }
+  parsedLoopWordsCache.set(words, arr);
+  return arr;
+}
+
 export function runIntForLoop(
   words: readonly string[],
   stepCount: number,
@@ -1019,6 +1057,40 @@ export function runIntForLoop(
   let subBytes = 0;
   let subCount = 0;
   let totalAdmitUnits = 0;
+  const cachedInts = getOrParsePositiveLoopWords(words);
+  if (cachedInts !== null && stepCount === 1) {
+    const s0 = intSteps[0]!;
+    const ops = s0.compiled.ops;
+    if (!s0.isSub && ops.length === 3 && ops[0] === 1 && ops[1] === 1 && ops[2] === 5) {
+      const args = s0.compiled.args;
+      const vMap = s0.varRegMap;
+      const r0 = vMap[args[0]!]!;
+      const r1 = vMap[args[1]!]!;
+      const targetReg = s0.targetReg;
+      const len = cachedInts.length;
+      for (let idx = 0; idx < len; idx++) {
+        sharedLoopIntRegs[0] = cachedInts[idx]!;
+        const v0 = sharedLoopIntRegs[r0]!;
+        const v1 = sharedLoopIntRegs[r1]!;
+        const res = v0 + v1;
+        if ((res | 0) !== res || res < -1073741824 || res > 1073741823) {
+          for (let r = 0; r < 32; r++) sharedLoopIntRegs[r] = sharedSavedLoopIntRegs[r]!;
+          parseBudget.restore(savedBudget);
+          sharedIntLoopResult.ok = false;
+          sharedIntLoopResult.subBytes = 0;
+          sharedIntLoopResult.subCount = 0;
+          return sharedIntLoopResult;
+        }
+        totalAdmitUnits = (totalAdmitUnits + 2 + (v0 < 0 ? 4 : 2) + (v1 < 0 ? 4 : 2)) | 0;
+        sharedLoopIntRegs[targetReg] = res | 0;
+      }
+      parseBudget.admit(totalAdmitUnits);
+      sharedIntLoopResult.ok = true;
+      sharedIntLoopResult.subBytes = 0;
+      sharedIntLoopResult.subCount = 0;
+      return sharedIntLoopResult;
+    }
+  }
   for (let idx = 0; idx < words.length; idx++) {
     const word = words[idx]!;
     let iVal: number | undefined;

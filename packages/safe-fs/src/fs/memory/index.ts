@@ -112,11 +112,11 @@ const lastFastMapMiss: { map: FastDirectoryEntriesMap | undefined; key: string; 
 };
 
 class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
-  private _table: Int16Array | Int32Array = new Int16Array(128).fill(-1);
-  private _mask = 127;
-  private _keys: string[] = new Array<string>(64).fill("");
-  private _vals: MemoryNode[] = new Array<MemoryNode>(64).fill(DUMMY_POOL_FILE_NODE);
-  private _next = 0;
+  _table: Int16Array | Int32Array = new Int16Array(128).fill(-1);
+  _mask = 127;
+  _keys: string[] = new Array<string>(64).fill("");
+  _vals: MemoryNode[] = new Array<MemoryNode>(64).fill(DUMMY_POOL_FILE_NODE);
+  _next = 0;
   size = 0;
   readonly [Symbol.toStringTag] = "Map";
 
@@ -143,7 +143,11 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   }
 
   getForWrite(k: string): MemoryNode | undefined {
-    let slot = this._hash(k);
+    return this.getForWriteWithHash(k, this._hash(k));
+  }
+
+  getForWriteWithHash(k: string, h: number): MemoryNode | undefined {
+    let slot = h & this._mask;
     if (this.size === 0) {
       lastFastMapMiss.map = this;
       lastFastMapMiss.key = k;
@@ -1761,8 +1765,58 @@ export class MemoryFileSystem implements FileSystem {
     }
   }
 
-  writeMemoryFileInDirFast(dirPrefix: string, name: string, data: Uint8Array, append: boolean, mode: number): void {
+  writeMemoryFileInDirFast(dirPrefix: string, name: string, data: Uint8Array, append: boolean, mode: number, nameHash?: number): void {
     const cache = this._cache;
+    if (
+      !append &&
+      dirPrefix === cache.lastFastDirPrefix &&
+      cache.lastFastDirNode !== undefined &&
+      cache.lastFastDirNode.nlink !== 0 &&
+      (cache.lastFastDirNode.mode & 0o300) === 0o300 &&
+      name.length <= 85 &&
+      this.ledger.hasInfiniteRetained &&
+      this.ledger.hasInfiniteFileBytes &&
+      this.ledger.limits.maxBytes === undefined &&
+      sharedFileNodePoolLen > 0
+    ) {
+      const parent = cache.lastFastDirNode;
+      const entries = parent.entries as FastDirectoryEntriesMap;
+      const existing = nameHash !== undefined ? entries.getForWriteWithHash(name, nameHash) : entries.getForWrite(name);
+      if (existing === undefined && entries._next < entries._keys.length) {
+        const now = fastWriteCachedNow;
+        const length = data.byteLength;
+        const node = sharedFileNodePool[--sharedFileNodePoolLen]!;
+        sharedFileNodePool[sharedFileNodePoolLen] = DUMMY_POOL_FILE_NODE;
+        node.mode = typeModes.file | mode;
+        node.ino = this.nextInode++;
+        if (node.nlink !== 1) node.nlink = 1;
+        if (node.references !== 0) node.references = 0;
+        if (node.revision !== 0) node.revision = 0;
+        node.atimeMs = now;
+        node.mtimeMs = now;
+        node.ctimeMs = now;
+        node.birthtimeMs = now;
+        node.byteLength = length;
+        node.view = data;
+        node.allocation = DUMMY_POOL_ALLOCATION;
+        node.sourceRef = data;
+        const entryIdx = entries._next++;
+        entries._table[lastFastMapMiss.slot] = entryIdx;
+        entries._keys[entryIdx] = name;
+        entries._vals[entryIdx] = node;
+        entries.size++;
+        lastFastMapMiss.map = undefined;
+        lastFastMapMiss.key = "";
+        this.ledger.reserve(name.length * 2, 2, "writeFile", name);
+        this.totalBytes += length;
+        parent.revision = parent.revision < 1073741823 ? (parent.revision + 1) | 0 : Math.min(Number.MAX_SAFE_INTEGER + 1, parent.revision + 1);
+        parent.mtimeMs = parent.ctimeMs = now;
+        cache.lastFastFilePath = "";
+        cache.lastFastFileName = name;
+        cache.lastFastFileNode = node;
+        return;
+      }
+    }
     const syscall = append ? "appendFile" : "writeFile";
     try {
       if (

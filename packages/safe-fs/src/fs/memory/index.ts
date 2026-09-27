@@ -107,9 +107,9 @@ const defaultDateNow = Date.now;
 let fastWriteCachedNow: number = Date.now();
 let fastWriteNowTick = 0;
 
-let lastFastMapMissMap: FastDirectoryEntriesMap | undefined;
-let lastFastMapMissKey = "";
-let lastFastMapMissSlot = -1;
+const lastFastMapMiss: { map: FastDirectoryEntriesMap | undefined; key: string; slot: number } = {
+  map: undefined, key: "", slot: -1,
+};
 
 class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   private _table: Int16Array | Int32Array = new Int16Array(128).fill(-1);
@@ -145,9 +145,9 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   getForWrite(k: string): MemoryNode | undefined {
     let slot = this._hash(k);
     if (this.size === 0) {
-      lastFastMapMissMap = this;
-      lastFastMapMissKey = k;
-      lastFastMapMissSlot = slot;
+      lastFastMapMiss.map = this;
+      lastFastMapMiss.key = k;
+      lastFastMapMiss.slot = slot;
       return undefined;
     }
     const mask = this._mask;
@@ -157,9 +157,9 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
     while (true) {
       const idx = table[slot]!;
       if (idx === -1) {
-        lastFastMapMissMap = this;
-        lastFastMapMissKey = k;
-        lastFastMapMissSlot = firstDeleted !== -1 ? firstDeleted : slot;
+        lastFastMapMiss.map = this;
+        lastFastMapMiss.key = k;
+        lastFastMapMiss.slot = firstDeleted !== -1 ? firstDeleted : slot;
         return undefined;
       }
       if (idx === -2) {
@@ -246,13 +246,13 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   }
 
   set(k: string, v: MemoryNode): this {
-    if (this === lastFastMapMissMap && k === lastFastMapMissKey && this._next < this._keys.length) {
+    if (this === lastFastMapMiss.map && k === lastFastMapMiss.key && this._next < this._keys.length) {
       const entryIdx = this._next++;
-      this._table[lastFastMapMissSlot] = entryIdx;
+      this._table[lastFastMapMiss.slot] = entryIdx;
       this._keys[entryIdx] = k;
       this._vals[entryIdx] = v;
       this.size++;
-      lastFastMapMissMap = undefined;
+      lastFastMapMiss.map = undefined;
       return this;
     }
     if (this._next >= this._keys.length) {
@@ -1865,11 +1865,11 @@ export class MemoryFileSystem implements FileSystem {
             cache.lastFastFilePath = "";
             cache.lastFastFileName = name;
             cache.lastFastFileNode = node;
-            lastFastMapMissMap = undefined;
-            lastFastMapMissKey = "";
+            lastFastMapMiss.map = undefined;
+            lastFastMapMiss.key = "";
           } catch (error) {
-            lastFastMapMissMap = undefined;
-            lastFastMapMissKey = "";
+            lastFastMapMiss.map = undefined;
+            lastFastMapMiss.key = "";
             this.ledger.release(nameBytes, 2);
             throw error;
           }

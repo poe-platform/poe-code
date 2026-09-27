@@ -52,6 +52,21 @@ describe("owned directory operation and exact root receipt", () => {
       for (let member = 0; member < 256; member++) files[parents + "/group-" + group + "/member-" + member + (member % 16 === 0 ? ".mjs" : ".data")] = member % 16 === 0 ? "export const value = 1;" : "owned noncode";
     }
     const state = model(files, "opens");
+    // This fixture never mutates: avoid repeating memfs ancestor walks while the
+    // guard still accounts for every metadata operation at the full scale.
+    for (const method of ["lstatSync", "realpathSync", "readdirSync"] as const) {
+      const read = state.fileSystem[method] as (...args: unknown[]) => unknown;
+      const values = new Map<string, unknown>();
+      Object.defineProperty(state.fileSystem, method, { value(...args: unknown[]) {
+        const key = JSON.stringify(args);
+        let value = values.get(key);
+        if (value === undefined) {
+          value = read(...args);
+          values.set(key, value);
+        }
+        return value;
+      } });
+    }
     const result = await lintRoot({ guard: state.guard, config: state.config, receiptBinding: state.binding });
     expect(result.complete).toBe(true);
     expect(result.scope.linted).toBe(1029);

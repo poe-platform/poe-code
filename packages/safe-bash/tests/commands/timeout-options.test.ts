@@ -199,7 +199,17 @@ test("virtual signal names round-trip supported numbers for jobs", () => {
     "TTOU", "URG", "XCPU", "XFSZ", "VTALRM", "PROF", "WINCH", "IO", "PWR", "SYS",
   ]);
   for (let number = 0; number <= 64; number++) {
-    assert.equal(parseSignal(signalName(number)), number);
+    assert.equal(parseSignal(String(number)), number);
+    const name = signalName(number);
+    if ([0, 32, 33].includes(number)) {
+      assert.equal(name, undefined);
+    } else {
+      assert.ok(name);
+      assert.equal(parseSignal(name), number);
+    }
   }
-  for (const number of [-1, 65, 1.5, NaN]) assert.equal(parseSignal(signalName(number)), undefined);
+  for (const number of [-1, 65, 1.5, NaN]) {
+    assert.equal(signalName(number), undefined);
+    assert.equal(parseSignal(String(number)), undefined);
+  }
 });

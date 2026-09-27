@@ -300,12 +300,13 @@ it("ships the ExifTool implementation and declarations without an unpublished de
   const scalar = readFileSync(new URL(`../packages/${name}/src/scalar.ts`, import.meta.url), "utf8");
   volume.writeFileSync(`/repo/packages/${name}/dist/index.js`, 'export { encodeJsonScalar } from "./scalar.js";');
   volume.writeFileSync(`/repo/packages/${name}/dist/index.d.ts`, 'export { encodeJsonScalar } from "./scalar.js";');
-  volume.writeFileSync(`/repo/packages/${name}/dist/scalar.js`, ts.transpileModule(scalar, {
-    compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 },
-  }).outputText);
-  volume.writeFileSync(`/repo/packages/${name}/dist/scalar.d.ts`, ts.transpileDeclaration(scalar, {
-    compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 },
-  }).outputText);
+  const scalarJs = new URL(`../packages/${name}/dist/scalar.js`, import.meta.url);
+  volume.writeFileSync(`/repo/packages/${name}/dist/scalar.js`, existsSync(scalarJs)
+    ? readFileSync(scalarJs, "utf8") : transformSync(scalar, { loader: "ts", format: "esm", target: "es2022" }).code);
+  volume.writeFileSync(`/repo/packages/${name}/dist/scalar.d.ts`, getCachedDeclaration(
+    fileURLToPath(new URL(`../packages/${name}/dist/scalar.d.ts`, import.meta.url)), scalar,
+    { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 },
+  ));
   for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/exiftool/index.${suffix}`, `export * from "${name}";`);
   const bundle = async (settings: BuildOptions) => {
     if (settings.outdir !== "/repo/packages") return options.bundle(settings);
@@ -441,9 +442,9 @@ it.each([false, true])("admits asset-only contract owners against the full priva
         const distJs = path.join(directory, "dist", `${filename.slice(0, -3)}.js`);
         if (existsSync(distJs)) volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.js`, readFileSync(distJs, "utf8"));
         else {
-        modules.push(transform(source, { loader: "ts", format: "esm", target: "es2022" }).then(({ code }) => {
-          volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.js`, code);
-        }));
+          modules.push(transform(source, { loader: "ts", format: "esm", target: "es2022" }).then(({ code }) => {
+            volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.js`, code);
+          }));
         }
         const distDts = path.join(directory, "dist", `${filename.slice(0, -3)}.d.ts`);
         const dtsText = getCachedDeclaration(distDts, source, compilerOptions);
@@ -453,7 +454,7 @@ it.each([false, true])("admits asset-only contract owners against the full priva
     await Promise.all(modules);
     volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
     const portable = resolveBrowserShellBuild(repository, { external: ["safe-bash-contracts", "@poe-platform/safe-fs"] });
-    const shell = await build({ ...portable, splitting: false, sourcemap: false,
+    const shell = await build({ ...portable, splitting: false, sourcemap: false, minify: true,
       entryPoints: undefined,
       stdin: { contents: 'export { Shell } from "./src/shell/shell.ts"; export * from "safe-bash-contracts/command"; export * from "safe-bash-contracts/errors";', resolveDir: path.join(repository, "packages/safe-bash") },
       outdir: "/repo/packages/safe-bash/dist",

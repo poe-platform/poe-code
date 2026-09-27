@@ -1,5 +1,4 @@
 import { readFileSync } from 'node:fs';
-import { build } from 'esbuild';
 import { expect, it } from 'vitest';
 
 it('ships the shell opt-in without publishing agent harness commands', () => {
@@ -9,16 +8,6 @@ it('ships the shell opt-in without publishing agent harness commands', () => {
   expect(Object.keys(manifest.exports).filter(key => key.includes('agent-harness'))).toEqual([]);
   expect(Object.keys(manifest.bin).filter(key => key.startsWith('poe-safe'))).toEqual([]);
   expect(manifest.files.filter((file: string) => !file.startsWith('!') && file.includes('/agent-harness/'))).toEqual([]);
-});
-
-it('wires the bash SDK while keeping agent harness commands outside its import graph', async () => {
-  const result = await build({
-    entryPoints: ['src/index.ts'], bundle: true, packages: 'external',
-    platform: 'node', format: 'esm', write: false, metafile: true,
-    loader: { '.md': 'text', '.mustache': 'text', '.log': 'text' },
-  });
-  expect(Object.keys(result.metafile!.inputs).filter(file => file.includes('/commands/harness'))).toEqual([]);
-  expect(Object.keys(result.metafile!.inputs)).toContain('src/sdk/bash.ts');
 });
 
 

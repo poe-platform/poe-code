@@ -89,11 +89,74 @@ const overlappingDefaults = new Set(["cmp", "shuf", "truncate"]);
 for (const [name] of factories) {
   assert.equal(defaultNames.includes(name), overlappingDefaults.has(name), name);
 }
-for (const name of [...extensionNames, "createDeviceFileSystem", "createYesCommand", "createCmpCommand", "createDdCommand", "createShufCommand", "createTruncateCommand", "createInstallCommand"]) {
+for (const name of [...extensionNames, "createDeviceFileSystem"]) {
   assert.equal(Object.hasOwn(core, name), false, name);
 }
-assert.equal(typeof core.createYqCommand, "function");
-assert.notEqual(core.createYqCommand, optional.createYqCommand);
+// Public factories and default registration are separate contracts. The promoted
+// factories coexist with the opt-in profiles; yes/dd stay outside the default registry.
+for (const [stem, publicFactory] of [
+  ["Yes", true], ["Cmp", false], ["Dd", true], ["Shuf", true], ["Truncate", false], ["Install", false], ["Yq", true],
+  ["Id", true], ["Whoami", true], ["Uname", true], ["Hostname", true], ["Nproc", true], ["Numfmt", true],
+  ["Envsubst", true], ["Cal", true], ["Pathchk", true], ["Getconf", true], ["Sha512sum", true],
+  ["Bzip2", true], ["Locale", true], ["Df", true], ["Sqlite3", true],
+]) {
+  for (const name of [`create${stem}Command`, `create${stem}Commands`, `${stem.toLowerCase()}Commands`]) {
+    assert.equal(Object.hasOwn(core, name), publicFactory, name);
+    if (publicFactory) assert.equal(typeof core[name], "function", name);
+  }
+  if (publicFactory) {
+    const definition = core[`create${stem}Command`]();
+    assert.equal(definition.name, stem.toLowerCase());
+    assert.equal(definition.runtimeIdentity, core.commandRuntimeIdentity, stem);
+    const many = core[`create${stem}Commands`]();
+    const names = { Cal: ["cal", "ncal"], Bzip2: ["bzip2", "bunzip2", "bzcat"] }[stem] ?? [definition.name];
+    assert.deepEqual(many.map(command => command.name).sort(), [...names].sort(), stem);
+    for (const command of many) assert.equal(command.runtimeIdentity, core.commandRuntimeIdentity, command.name);
+    assert.deepEqual(new core.CommandRegistry(many).list().map(command => command.name).sort(), [...names].sort(), stem);
+  }
+}
+for (const name of ["createYqCommand", "createYqCommands", "yqCommands"]) {
+  assert.notEqual(core[name], optional[name], name);
+}
+
+for (const [name, create, createMany, plugin] of [
+  ["yes", core.createYesCommand, core.createYesCommands, core.yesCommands],
+  ["dd", core.createDdCommand, core.createDdCommands, core.ddCommands],
+  ["shuf", core.createShufCommand, core.createShufCommands, core.shufCommands],
+]) {
+  const definition = create();
+  assert.equal(definition.name, name);
+  assert.equal(definition.runtimeIdentity, core.commandRuntimeIdentity);
+  const many = createMany();
+  assert.deepEqual(many.map(command => command.name), [name]);
+  assert.equal(many[0].runtimeIdentity, core.commandRuntimeIdentity);
+  const commands = new core.CommandRegistry([definition]);
+  const registered = commands.get(name);
+  assert.equal(registered.execute, definition.execute);
+  assert.throws(() => commands.register(many[0]), /already registered/i);
+  assert.equal(commands.get(name), registered);
+  commands.register(many[0], { replace: true });
+  assert.notEqual(commands.get(name), registered);
+  assert.equal(commands.get(name).execute, many[0].execute);
+  const optionalPlugin = factories.find(([optionalName]) => optionalName === name)[3];
+  const duplicate = new core.Shell({ fs: createMemoryFileSystem() }).use(plugin()).use(optionalPlugin());
+  try { await assert.rejects(duplicate.exec("true"), /already registered/i); }
+  finally { await duplicate.dispose(); }
+  const shell = new core.Shell({ fs: createMemoryFileSystem() }).use(core.agentCommands())
+    .use(plugin({ replace: overlappingDefaults.has(name) }));
+  try {
+    const source = { yes: "yes public | head -c 7", dd: "printf public | dd bs=2 count=3 status=none", shuf: "shuf -e public" }[name];
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, name === "dd" ? "public" : "public\n");
+    shell.use(optionalPlugin({ replace: true }));
+    const replaced = await shell.exec(source);
+    assert.equal(replaced.exitCode, 0, replaced.stderr);
+    assert.equal(replaced.stderr, "");
+    assert.deepEqual(replaced.stdoutBytes, result.stdoutBytes);
+  } finally { await shell.dispose(); }
+}
 
 for (const [name, , , plugin] of factories) {
   if (!overlappingDefaults.has(name)) continue;

@@ -1,4 +1,9 @@
 import { Shell, CommandRegistry, agentCommands } from "@poe-platform/safe-bash";
+import {
+  createYesCommand as publicYesCommand, createYesCommands as publicYesCommands, yesCommands as publicYesPlugin,
+  createDdCommand as publicDdCommand, createDdCommands as publicDdCommands, ddCommands as publicDdPlugin,
+  createShufCommand as publicShufCommand, createShufCommands as publicShufCommands, shufCommands as publicShufPlugin,
+} from "@poe-platform/safe-bash";
 import { parsePlaywrightOperationOutcome, validatePlaywrightSessionName, type PlaywrightOperationOutcome } from "@poe-platform/safe-bash/playwright";
 
 declare const storedSessionName: unknown;
@@ -61,6 +66,8 @@ export type InstalledOptions = [
 
 export async function installedOptionalConsumer(signalHost: TrapSignalHost): Promise<void> {
   const definitions: readonly CommandDefinition[] = [
+    publicYesCommand(), publicDdCommand(), publicShufCommand(),
+    ...publicYesCommands(), ...publicDdCommands(), ...publicShufCommands(),
     createYesCommand(), createCmpCommand(), createDdCommand(), createShufCommand(),
     createTruncateCommand(), createInstallCommand(), createYqCommand(),
     ...createYesCommands(), ...createCmpCommands(), ...createDdCommands(), ...createShufCommands(),
@@ -69,6 +76,7 @@ export async function installedOptionalConsumer(signalHost: TrapSignalHost): Pro
   const registry = new CommandRegistry();
   for (const definition of definitions) registry.register(definition, { replace: true });
   const plugins: readonly VirtualShellPlugin[] = [
+    publicYesPlugin(), publicDdPlugin(), publicShufPlugin(),
     yesCommands(), cmpCommands(), ddCommands(), shufCommands(), truncateCommands(),
     installCommands(), yqCommands(),
   ];

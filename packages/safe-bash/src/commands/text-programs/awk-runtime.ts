@@ -1682,6 +1682,33 @@ export class AwkRuntime {
       if (this.stdoutBuffer.length >= 16384) return this.flushStdout();
       return undefined;
     }
+    if (statement.kind === "print" && !statement.redirect && statement.formatted) {
+      const args = statement.args;
+      if (args.length > 0) {
+        this.budget.step();
+        const fmtVal = this.scalarExpression(args[0]!);
+        if (!(fmtVal instanceof Promise)) {
+          const rest: Scalar[] = [];
+          let syncOk = true;
+          for (let i = 1; i < args.length; i++) {
+            const v = this.scalarExpression(args[i]!);
+            if (v instanceof Promise) {
+              syncOk = false;
+              break;
+            }
+            rest.push(v);
+          }
+          if (syncOk) {
+            const output = this.budget.check(
+              formatted(this.asText(fmtVal), rest, value => this.asText(value), this.budget),
+            );
+            this.stdoutBuffer += output;
+            if (this.stdoutBuffer.length >= 16384) return this.flushStdout();
+            return undefined;
+          }
+        }
+      }
+    }
     return this.execute(statement);
   }
 

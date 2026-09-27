@@ -57,10 +57,9 @@ export function createUnexpandCommand(limits: StreamFormatLimits): CommandDefini
     const output = new ByteOutput(session);
     let column = 0, initial = true, active = true;
     let pendingStart = 0, pendingCount = 0, pendingTab = false;
-    const flushBlanks = async (): Promise<void> => {
-      if (!pendingCount) return;
-      let position = pendingStart;
-      const convertSingle = initial || pendingCount > 1 || pendingTab;
+    const flushBlanksSlow = async (startPos: number, convertSingle: boolean, firstWait: Promise<void>): Promise<void> => {
+      await firstWait;
+      let position = startPos;
       while (position < column) {
         const s = session.step();
         if (s) await s;
@@ -77,9 +76,30 @@ export function createUnexpandCommand(limits: StreamFormatLimits): CommandDefini
       }
       pendingCount = 0; pendingTab = false;
     };
+    const flushBlanks = (): void | Promise<void> => {
+      if (!pendingCount) return;
+      let position = pendingStart;
+      const convertSingle = initial || pendingCount > 1 || pendingTab;
+      while (position < column) {
+        const s = session.step();
+        if (s) return flushBlanksSlow(position, convertSingle, s);
+        const stop = nextTab(position);
+        if (stop !== undefined && stop <= column && (stop - position > 1 || convertSingle)) {
+          position = stop;
+          const b = output.byte(9);
+          if (b) return flushBlanksSlow(position, convertSingle, b);
+        } else {
+          position++;
+          const b = output.byte(32);
+          if (b) return flushBlanksSlow(position, convertSingle, b);
+        }
+      }
+      pendingCount = 0; pendingTab = false;
+    };
     await session.files(session.names(parsed.operands), async source => {
       for await (const chunk of source) {
-        for (const byte of chunk) {
+        for (let i = 0; i < chunk.length; i++) {
+          const byte = chunk[i]!;
           const s = session.step();
           if (s) await s;
           if (active && (byte === 32 || byte === 9)) {
@@ -92,8 +112,13 @@ export function createUnexpandCommand(limits: StreamFormatLimits): CommandDefini
               session.check(column, Number.MAX_SAFE_INTEGER, "column");
               continue;
             }
-            await flushBlanks(); active = false;
-          } else if (pendingCount) await flushBlanks();
+            const fb = flushBlanks();
+            if (fb) await fb;
+            active = false;
+          } else if (pendingCount) {
+            const fb = flushBlanks();
+            if (fb) await fb;
+          }
           const b = output.byte(byte);
           if (b) await b;
           if (byte === 10) { column = 0; initial = true; active = true; }
@@ -107,7 +132,8 @@ export function createUnexpandCommand(limits: StreamFormatLimits): CommandDefini
         await output.flush();
       }
     });
-    await flushBlanks();
+    const fb = flushBlanks();
+    if (fb) await fb;
     await output.flush();
   });
 }

@@ -881,6 +881,136 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
       return val;
     };
 
+    const getVarScalarSync = (name: string): DecimalValue => {
+      if (name === "scale") return { coeff: BigInt(scale), scale: 0 };
+      if (name === "ibase") return { coeff: BigInt(ibase), scale: 0 };
+      if (name === "obase") return { coeff: BigInt(obase), scale: 0 };
+      if (name === "last") return last;
+      for (let i = callStack.length - 1; i >= 0; i--) {
+        const frame = callStack[i]!;
+        if (frame.has(name)) return frame.get(name)!;
+      }
+      return globals.get(name) ?? ZERO;
+    };
+
+    const setVarScalarSync = (name: string, val: DecimalValue): DecimalValue => {
+      if (name === "scale") {
+        const s = Number(truncToInt(val));
+        if (s < 0 || s > maxScale) throw new Error(`scale (${s}) out of bounds [0, ${maxScale}]`);
+        scale = s;
+        return { coeff: BigInt(scale), scale: 0 };
+      }
+      if (name === "ibase") {
+        const b = Number(truncToInt(val));
+        if (b < 2 || b > 16) throw new Error(`ibase (${b}) must be between 2 and 16`);
+        ibase = b;
+        return { coeff: BigInt(ibase), scale: 0 };
+      }
+      if (name === "obase") {
+        const b = Number(truncToInt(val));
+        if (b < 2 || b > 1000) throw new Error(`obase (${b}) out of bounds`);
+        obase = b;
+        return { coeff: BigInt(obase), scale: 0 };
+      }
+      if (name === "last") {
+        last = val;
+        return val;
+      }
+      for (let i = callStack.length - 1; i >= 0; i--) {
+        const frame = callStack[i]!;
+        if (frame.has(name)) {
+          frame.set(name, val);
+          return val;
+        }
+      }
+      globals.set(name, val);
+      return val;
+    };
+
+    const evalExprSync = (expr: Expr): DecimalValue | null => {
+      if (steps + 1 >= maxSteps || ((steps + 1) & 4095) === 0) return null;
+      steps++;
+      switch (expr.kind) {
+        case "num":
+          return parseLiteralInBase(expr.raw, ibase);
+        case "str":
+          outBuffer += expr.value;
+          return ZERO;
+        case "var":
+          if (expr.index) return null;
+          return getVarScalarSync(expr.name);
+        case "assign": {
+          if (expr.target.index) return null;
+          const r = evalExprSync(expr.right);
+          if (r === null) return null;
+          if (expr.op === "=") return setVarScalarSync(expr.target.name, r);
+          const cur = getVarScalarSync(expr.target.name);
+          let next: DecimalValue;
+          if (expr.op === "+=") next = addDec(cur, r);
+          else if (expr.op === "-=") next = subDec(cur, r);
+          else if (expr.op === "*=") next = mulDec(cur, r, scale);
+          else if (expr.op === "/=") next = divDec(cur, r, scale);
+          else if (expr.op === "%=") next = modDec(cur, r, scale);
+          else next = powDec(cur, r, scale);
+          return setVarScalarSync(expr.target.name, next);
+        }
+        case "unary": {
+          if (expr.op === "++" || expr.op === "--") {
+            if (expr.arg.kind !== "var" || expr.arg.index) return null;
+            const cur = getVarScalarSync(expr.arg.name);
+            const next = expr.op === "++" ? addDec(cur, ONE) : subDec(cur, ONE);
+            setVarScalarSync(expr.arg.name, next);
+            return expr.prefix ? next : cur;
+          }
+          const v = evalExprSync(expr.arg);
+          if (v === null) return null;
+          if (expr.op === "-") return { coeff: -v.coeff, scale: v.scale };
+          if (expr.op === "+") return v;
+          if (expr.op === "!") return isNonZero(v) ? ZERO : ONE;
+          return v;
+        }
+        case "binary": {
+          if (expr.op === "&&") {
+            const l = evalExprSync(expr.left);
+            if (l === null) return null;
+            if (!isNonZero(l)) return ZERO;
+            const r = evalExprSync(expr.right);
+            if (r === null) return null;
+            return isNonZero(r) ? ONE : ZERO;
+          }
+          if (expr.op === "||") {
+            const l = evalExprSync(expr.left);
+            if (l === null) return null;
+            if (isNonZero(l)) return ONE;
+            const r = evalExprSync(expr.right);
+            if (r === null) return null;
+            return isNonZero(r) ? ONE : ZERO;
+          }
+          const l = evalExprSync(expr.left);
+          if (l === null) return null;
+          const r = evalExprSync(expr.right);
+          if (r === null) return null;
+          switch (expr.op) {
+            case "+": return addDec(l, r);
+            case "-": return subDec(l, r);
+            case "*": return mulDec(l, r, scale);
+            case "/": return divDec(l, r, scale);
+            case "%": return modDec(l, r, scale);
+            case "^": return powDec(l, r, scale);
+            case "==": return cmpDec(l, r) === 0 ? ONE : ZERO;
+            case "!=": return cmpDec(l, r) !== 0 ? ONE : ZERO;
+            case "<": return cmpDec(l, r) < 0 ? ONE : ZERO;
+            case "<=": return cmpDec(l, r) <= 0 ? ONE : ZERO;
+            case ">": return cmpDec(l, r) > 0 ? ONE : ZERO;
+            case ">=": return cmpDec(l, r) >= 0 ? ONE : ZERO;
+          }
+          return ZERO;
+        }
+        default:
+          return null;
+      }
+    };
+
     const evalExpr = async (expr: Expr): Promise<DecimalValue> => {
       { const p = tick(); if (p) await p; }
       switch (expr.kind) {
@@ -1089,6 +1219,25 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
 
     try {
       for (const s of stmts) {
+        if (s.kind === "expr" && (steps & 4095) < 4060 && steps + 32 < maxSteps) {
+          const savedSteps = steps;
+          const savedOutLen = outBuffer.length;
+          steps++;
+          if (s.expr.kind === "str") {
+            outBuffer += s.expr.value;
+            continue;
+          }
+          const syncVal = evalExprSync(s.expr);
+          if (syncVal !== null) {
+            if (s.expr.kind !== "assign") {
+              last = syncVal;
+              outBuffer += formatDecimalInBase(syncVal, obase) + "\n";
+            }
+            continue;
+          }
+          steps = savedSteps;
+          outBuffer = outBuffer.slice(0, savedOutLen);
+        }
         await execStmt(s);
       }
     } catch (sig) {

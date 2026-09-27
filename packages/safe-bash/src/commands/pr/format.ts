@@ -81,10 +81,15 @@ export class Formatter {
     return value.repeat(count);
   }
   private async flush(): Promise<void> {
+    const p = this.flushSyncOrAsync();
+    if (p) await p;
+  }
+  private flushSyncOrAsync(): void | Promise<void> {
     const text = this.rendered;
+    if (!text) return;
     this.rendered = "";
     this.budget.retain(-text.length * 2);
-    if (text) await this.lifecycle.write(text);
+    return this.lifecycle.writeSyncOrAsync(text);
   }
   private white(): void {
     let position = this.outputPosition;
@@ -188,6 +193,23 @@ export class Formatter {
     this.hold(column);
   }
   private async rest(column: Column): Promise<void> {
+    const p = this.restSyncOrAsync(column);
+    if (p) await p;
+  }
+  private restSyncOrAsync(column: Column): void | Promise<void> {
+    for (;;) {
+      const r = column.reader.get();
+      if (typeof r !== "number") return this.restSlow(column, r);
+      if (r === 10) return;
+      if (r === 12) return this.feed(column).then(() => { if (this.options.keepFF) this.printFeed = true; });
+      if (r < 0) { this.close(column); return; }
+    }
+  }
+  private async restSlow(column: Column, firstPending: Promise<number>): Promise<void> {
+    let firstByte = await firstPending;
+    if (firstByte === 10) return;
+    if (firstByte === 12) { await this.feed(column); if (this.options.keepFF) this.printFeed = true; return; }
+    if (firstByte < 0) { this.close(column); return; }
     for (;;) {
       const r = column.reader.get();
       const byte = typeof r === "number" ? r : await r;
@@ -223,7 +245,69 @@ export class Formatter {
     this.outputPosition = 0;
   }
   private async read(column: Column, date: string, name: string): Promise<void> {
+    const p = this.readSyncOrAsync(column, date, name);
+    if (p) await p;
+  }
+  private readSyncOrAsync(column: Column, date: string, name: string): void | Promise<void> {
     const r0 = column.reader.get();
+    if (typeof r0 === "number" && r0 !== 12) {
+      column.full = false;
+      if (r0 < 0) { this.close(column); return; }
+      let clump = r0 === 10 ? "" : this.clump(r0);
+      if (this.options.truncate && this.inputPosition > this.columnWidth) {
+        this.inputPosition = 0;
+        return this.restSyncOrAsync(column);
+      }
+      if (!this.storing) {
+        this.vertical = true;
+        if (this.needHeader && !this.store) this.header(date, name);
+        if (this.options.merge && this.alignEmpty) {
+          const pending = this.separators;
+          this.separators = 0;
+          for (let index = 0; index < pending; index++) { this.align(this.columns[index]!); this.separators++; }
+          this.padding = column.start;
+          this.spaces = this.options.truncate ? this.columnWidth : 0;
+          this.alignEmpty = false;
+        }
+        if (this.options.separator.length < this.padding) { this.pad(this.padding - this.options.separator.length); this.padding = 0; }
+        if (this.options.useSeparator) this.separator();
+      }
+      if (column.numbered) this.number(column);
+      this.empty = false;
+      if (r0 === 10) return;
+      for (let i = 0; i < clump.length; i++) this.character(clump[i]!);
+      for (;;) {
+        const rn = column.reader.get();
+        if (typeof rn !== "number") return this.readRemainderSlow(column, rn);
+        if (rn === 10) return;
+        if (rn === 12) return this.feed(column).then(() => { if (this.options.keepFF) this.printFeed = true; });
+        if (rn < 0) { this.close(column); return; }
+        const previous = this.inputPosition;
+        clump = this.clump(rn);
+        if (this.options.truncate && this.inputPosition > this.columnWidth) {
+          this.inputPosition = previous;
+          return this.restSyncOrAsync(column);
+        }
+        for (let i = 0; i < clump.length; i++) this.character(clump[i]!);
+      }
+    }
+    return this.readSlow(column, date, name, r0);
+  }
+  private async readRemainderSlow(column: Column, firstPending: Promise<number>): Promise<void> {
+    let byte = await firstPending;
+    for (;;) {
+      if (byte === 10) return;
+      if (byte === 12) { await this.feed(column); if (this.options.keepFF) this.printFeed = true; return; }
+      if (byte < 0) { this.close(column); return; }
+      const previous = this.inputPosition;
+      const clump = this.clump(byte);
+      if (this.options.truncate && this.inputPosition > this.columnWidth) { this.inputPosition = previous; await this.rest(column); return; }
+      for (let i = 0; i < clump.length; i++) this.character(clump[i]!);
+      const rn = column.reader.get();
+      byte = typeof rn === "number" ? rn : await rn;
+    }
+  }
+  private async readSlow(column: Column, date: string, name: string, r0: number | Promise<number>): Promise<void> {
     let byte = typeof r0 === "number" ? r0 : await r0;
     if (byte === 12 && column.full) {
       const r1 = column.reader.get();
@@ -288,7 +372,8 @@ export class Formatter {
         for (let count = 0; count < this.body && column.status === "open"; count++) {
           this.stored = "";
           this.inputPosition = 0;
-          await this.read(column, date, name);
+          const rp = this.readSyncOrAsync(column, date, name);
+          if (rp) await rp;
           if (column.status === "open" || this.stored.length) {
             this.budget.retain(32);
             this.pageRetained += 32;
@@ -353,7 +438,10 @@ export class Formatter {
             this.feedOnly = false;
             this.padding = column.start;
             if (this.store) this.storedLine(column, date, name);
-            else await this.read(column, date, name);
+            else {
+              const rp = this.readSyncOrAsync(column, date, name);
+              if (rp) await rp;
+            }
             printed ||= this.vertical;
             column.remaining--;
             if (column.remaining <= 0 && !this.ready()) break;
@@ -365,9 +453,10 @@ export class Formatter {
           if (this.options.useSeparator) this.separators++;
         }
         if (this.vertical) { this.append("\n"); left--; }
-        if (!this.ready() && !this.options.extremities) { await this.flush(); break; }
+        if (!this.ready() && !this.options.extremities) { const fp = this.flushSyncOrAsync(); if (fp) await fp; break; }
         if (this.options.doubleSpace && printed) { this.append("\n"); left--; }
-        await this.flush();
+        const fp = this.flushSyncOrAsync();
+        if (fp) await fp;
       }
       if (left === 0) for (const column of this.columns) if (column.status === "open") column.full = true;
       if (printed && this.options.extremities) this.append(this.options.formFeed ? "\f" : this.repeat("\n", left + 5));

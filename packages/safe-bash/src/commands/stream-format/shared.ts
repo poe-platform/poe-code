@@ -254,6 +254,67 @@ export async function* records(source: ByteSource, session: Session, onChunkEnd?
   if (size) yield { bytes: buffer.slice(0, size), terminated: false };
 }
 
+export async function forEachRecord(
+  source: ByteSource,
+  session: Session,
+  onRecord: (record: Uint8Array, terminated: boolean) => void | Promise<void>,
+): Promise<void> {
+  let buffer = new Uint8Array(Math.min(1024, session.limits.maxRecordBytes));
+  let size = 0;
+  for await (const chunk of source) {
+    let start = 0;
+    while (start < chunk.length) {
+      const nl = chunk.indexOf(10, start);
+      if (nl >= 0) {
+        const segLen = nl - start;
+        if (size + segLen > session.limits.maxRecordBytes) {
+          const allowed = Math.max(0, session.limits.maxRecordBytes - size);
+          const s = session.step(allowed + 1);
+          if (s) await s;
+          session.check(size + segLen, session.limits.maxRecordBytes, "record");
+        }
+        const s = session.step(segLen + 1);
+        if (s) await s;
+        let rec: Uint8Array;
+        if (size === 0) {
+          rec = chunk.subarray(start, nl);
+        } else {
+          const out = new Uint8Array(size + segLen);
+          out.set(buffer.subarray(0, size), 0);
+          out.set(chunk.subarray(start, nl), size);
+          size = 0;
+          rec = out;
+        }
+        start = nl + 1;
+        const r = onRecord(rec, true);
+        if (r) await r;
+      } else {
+        const segLen = chunk.length - start;
+        if (size + segLen > session.limits.maxRecordBytes) {
+          const allowed = Math.max(0, session.limits.maxRecordBytes - size);
+          const s = session.step(allowed + 1);
+          if (s) await s;
+          session.check(size + segLen, session.limits.maxRecordBytes, "record");
+        }
+        const s = session.step(segLen);
+        if (s) await s;
+        while (size + segLen > buffer.length) {
+          const grown = new Uint8Array(Math.min(Math.max(buffer.length * 2, size + segLen), session.limits.maxRecordBytes));
+          grown.set(buffer.subarray(0, size));
+          buffer = grown;
+        }
+        buffer.set(chunk.subarray(start), size);
+        size += segLen;
+        break;
+      }
+    }
+  }
+  if (size) {
+    const r = onRecord(buffer.slice(0, size), false);
+    if (r) await r;
+  }
+}
+
 export class ByteOutput {
   private readonly bytes: Uint8Array;
   private size = 0;

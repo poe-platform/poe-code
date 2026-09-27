@@ -39,8 +39,6 @@ export class Lifecycle {
     this.pendingStdout = "";
     const { budget } = this;
     try {
-      // Emission already charged this data. Flushing it must remain possible
-      // when reporting the work limit that stopped the formatter.
       await this.operation(async () => {
         const sink = budget.context.stdout;
         this.assertOpen();
@@ -53,18 +51,27 @@ export class Lifecycle {
     } finally { budget.retain(-chunk.length * 3); }
   }
   async write(value: string, diagnostic = false): Promise<void> {
+    const p = this.writeSyncOrAsync(value, diagnostic);
+    if (p) await p;
+  }
+  writeSyncOrAsync(value: string, diagnostic = false): void | Promise<void> {
     const { budget } = this;
-    if (diagnostic && this.pendingStdout.length) await this.flush();
-    budget.emitted(value.length, diagnostic);
     if (!diagnostic) {
+      budget.emitted(value.length, false);
       this.assertOpen();
+      budget.charge();
       if (!value.length) return;
       budget.retain(value.length * 3);
       this.pendingStdout += value;
-      // Finite budgets must leave room for the next input/format allocation.
-      if (Number.isFinite(budget.limits.maxBufferedBytes) || this.pendingStdout.length >= 16384) await this.flush();
+      if (Number.isFinite(budget.limits.maxBufferedBytes) || this.pendingStdout.length >= 16384) return this.flush();
       return;
     }
+    return this.writeDiagnosticSlow(value);
+  }
+  private async writeDiagnosticSlow(value: string): Promise<void> {
+    const { budget } = this;
+    if (this.pendingStdout.length) await this.flush();
+    budget.emitted(value.length, true);
     await this.operation(async () => {
       const sink = budget.context.stderr;
       this.assertOpen();
@@ -73,7 +80,7 @@ export class Lifecycle {
       const write = destination.write;
       this.assertOpen();
       await Reflect.apply(write, destination, [bytes(value)]);
-    }, diagnostic);
+    }, true);
   }
 }
 

@@ -1641,6 +1641,37 @@ async function executeCutGeneral(context: CommandContext): Promise<{ exitCode: n
               totalCharge += 1;
               return work.charge(totalCharge);
             };
+            const sharedUtf8Decoder = new TextDecoder("utf-8", { ignoreBOM: true });
+            const canFastSliceCut = (byteSelection || mode === "c") && !complement && ranges.length <= 16;
+            const processFastSliceRange = (buf: Uint8Array, lineStart: number, lineEnd: number): Promise<void> | undefined | null => {
+              const lineLen = lineEnd - lineStart;
+              if (writer.remaining <= lineLen * (outDelimLen > 1 ? outDelimLen : 1) + 1) {
+                return null;
+              }
+              if (!byteSelection) {
+                for (let i = lineStart; i < lineEnd; i++) {
+                  if (buf[i]! >= 0x80) return null;
+                }
+              }
+              context.signal.throwIfAborted();
+              let totalCharge = lineLen + 1;
+              let emitted = false;
+              for (let rIdx = 0; rIdx < ranges.length; rIdx++) {
+                const r = ranges[rIdx]!;
+                const s = lineStart + r.start - 1;
+                if (s >= lineEnd) break;
+                const e = Math.min(lineEnd, lineStart + r.end);
+                if (e > s) {
+                  if (emitted && outputDelimiter !== undefined) {
+                    totalCharge += writer.writeRangeUncharged(outputDelimiterBytes, 0, outDelimLen);
+                  }
+                  totalCharge += writer.writeRangeUncharged(buf, s, e);
+                  emitted = true;
+                }
+              }
+              writer.writeByteUncharged(recordDelimiter);
+              return work.charge(totalCharge);
+            };
             const processLineBytes = async (lineBytes: Uint8Array) => {
               context.signal.throwIfAborted();
               let cursor = 0;
@@ -1700,7 +1731,7 @@ async function executeCutGeneral(context: CommandContext): Promise<{ exitCode: n
                   if (start >= 0) await writer.write(lineBytes.subarray(start, end));
                 }
               } else {
-                const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
+                const decoder = sharedUtf8Decoder;
                 let index = 0;
                 let emitted = false;
                 let previousRange = -1;
@@ -1740,6 +1771,13 @@ async function executeCutGeneral(context: CommandContext): Promise<{ exitCode: n
                   if (fastSingleByteField && pending.size === 0 && offset - start <= 4096) {
                     const p = processFastFieldRange(chunk, start, offset);
                     if (p) await p;
+                  } else if (canFastSliceCut && pending.size === 0 && offset - start <= 4096) {
+                    const p = processFastSliceRange(chunk, start, offset);
+                    if (p === null) {
+                      await processLineBytes(chunk.subarray(start, offset));
+                    } else if (p) {
+                      await p;
+                    }
                   } else {
                     await processLineBytes(pending.finish(undefined, chunk, start, offset));
                   }

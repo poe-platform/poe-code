@@ -31,13 +31,21 @@ export function virtualPath(context: CommandContext, path: string): string {
 export function write(context: CommandContext, text: string): Promise<void> {
   context.signal.throwIfAborted();
   const len = text.length;
-  if (len <= 256) {
-    const stdoutSink = context.stdout as { isPipeStage?: boolean; writeRangeSync?: (src: Uint8Array, len: number) => boolean };
-    if (!stdoutSink.isPipeStage && typeof stdoutSink.writeRangeSync === "function") {
+  const stdoutSink = context.stdout as {
+    isPipeStage?: boolean;
+    writeSync?: (chunk: Uint8Array) => boolean;
+    writeRangeSync?: (src: Uint8Array, len: number) => boolean;
+  };
+  if (!stdoutSink.isPipeStage) {
+    if (len <= 256 && typeof stdoutSink.writeRangeSync === "function") {
       for (let i = 0; i < len; i++) {
         sharedSmallWriteBuf[i] = text.charCodeAt(i) & 0xff;
       }
       if (stdoutSink.writeRangeSync(sharedSmallWriteBuf, len) !== false) {
+        return RESOLVED_VOID_SYNC;
+      }
+    } else if (typeof stdoutSink.writeSync === "function") {
+      if (stdoutSink.writeSync(bytes(text)) !== false) {
         return RESOLVED_VOID_SYNC;
       }
     }

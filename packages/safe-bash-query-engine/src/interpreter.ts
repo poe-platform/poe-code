@@ -172,6 +172,11 @@ export class Interpreter {
       case "binary": {
         this.budget.step();
         const op = ast.operator;
+        if (op === "|") {
+          const leftVal = this.tryEvalSingle(ast.left, input, depth + 1, false);
+          if (leftVal === NOT_SINGLE) return NOT_SINGLE;
+          return this.tryEvalSingle(ast.right, leftVal, depth + 1, allowScratch);
+        }
         if (op === "and" || op === "or") {
           const left = this.tryEvalSingle(ast.left, input, depth + 1, allowScratch);
           if (left === NOT_SINGLE) return NOT_SINGLE;
@@ -207,6 +212,14 @@ export class Interpreter {
         if (op === "+" || op === "-" || op === "*" || op === "==" || op === "!=" || op === "<" || op === "<=" || op === ">" || op === ">=") {
           const rightVal = this.tryEvalSingle(ast.right, input, depth + 1, allowScratch);
           if (rightVal === NOT_SINGLE) return NOT_SINGLE;
+          if (op === "+" && typeof rightVal === "string") {
+            const leftVal = this.tryEvalSingle(ast.left, input, depth + 1, allowScratch);
+            if (typeof leftVal !== "string") return NOT_SINGLE;
+            this.budget.step();
+            const res = leftVal + rightVal;
+            this.budget.value(res);
+            return res;
+          }
           const right = exactFiniteNumber(rightVal);
           if (right === undefined) return NOT_SINGLE;
           const leftVal = this.tryEvalSingle(ast.left, input, depth + 1, allowScratch);
@@ -270,6 +283,33 @@ export class Interpreter {
         if (canScratch) this.scratchInUse = true;
         this.budget.checkValue(result);
         return result;
+      }
+      case "call": {
+        if (ast.args.length === 0 && !this.filters.has(ast)) {
+          const name = ast.name;
+          if (name === "ascii_downcase" || name === "ascii_upcase") {
+            if (typeof input !== "string") return NOT_SINGLE;
+            this.budget.step(input.length + 1);
+            if (this.budget.needsYield()) return NOT_SINGLE;
+            let result = "";
+            const lower = name === "ascii_downcase";
+            for (let index = 0; index < input.length; index++) {
+              const code = input.charCodeAt(index);
+              result += String.fromCharCode(code >= (lower ? 65 : 97) && code <= (lower ? 90 : 122) ? code + (lower ? 32 : -32) : code);
+            }
+            this.budget.value(result);
+            return result;
+          }
+          if (name === "not") {
+            this.budget.step();
+            return !truth(input);
+          }
+          if (name === "type") {
+            this.budget.step();
+            return type(input);
+          }
+        }
+        return NOT_SINGLE;
       }
       default:
         return NOT_SINGLE;

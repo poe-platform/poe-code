@@ -141,3 +141,10 @@ test("htmlq standard attribute and whitespace flags and selector operands", asyn
   assert.equal(await run('<p> <b>A</b> </p>', ['p', '-t', '-w']), 'A\n\n');
   assert.equal(await run('<p>P</p><h2>H</h2>', ['h2', 'p', '-t']), 'P\nH\n');
 });
+
+test("htmlq help advertises standard flag spellings and multiple selectors", async () => {
+  const help = await run("", ["--help"]);
+  assert.ok(help.includes("[SELECTOR]..."));
+  assert.ok(help.includes("-w, --ignore-whitespace"));
+  assert.ok(help.includes("-a, --attribute"));
+});

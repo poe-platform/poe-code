@@ -7,7 +7,9 @@ The compatibility target is 1Password CLI 2.39.0, not a claim of full parity.
 
 ## Use with safe-bash
 
-Register it explicitly, like other optional command plugins:
+Register it explicitly, like other optional command plugins.
+`createOpCommands(options)` returns shell definitions; `createOpShellCommand(options)`
+returns one. The existing `createOpCommand` remains the standalone CLI factory:
 
 ```ts
 import { Shell, createMemoryFileSystem, standardCommands } from "poe-code/safe-bash";

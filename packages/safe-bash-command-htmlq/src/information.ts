@@ -3,10 +3,10 @@ import type { HtmlqArguments } from "./arguments.js";
 
 const help = `Like jq, but for HTML.
 
-Usage: htmlq [OPTIONS] [SELECTOR]
+Usage: htmlq [OPTIONS] [SELECTOR]...
 
 Arguments:
-  [SELECTOR]  What CSS selector to filter with [default: html]
+  [SELECTOR]...  CSS selectors to combine in document order [default: html]
 
 Options:
   -f, --filename <INPUT_PATH>        Where to read HTML input from [default: -]
@@ -14,10 +14,10 @@ Options:
   -b, --base <BASE>                  What URL to prepend to links without an origin, i.e. starting with a slash (/)
   -B, --detect-base                  Look for the \`<base>\` tag in input for the base
   -t, --text                         Output only the contained text of the filtered nodes, not the entire HTML
-  -i, --ignore-whitespace            Skip over text nodes whose text that is solely whitespace
+  -w, --ignore-whitespace            Skip over text nodes whose text that is solely whitespace
   -p, --pretty                       If to reformat the HTML to be more nicely user-readable
   -r, --remove-nodes <REMOVE_NODES>  Do not output the nodes matching any of these selectors
-  -a, --attributes <ATTRIBUTES>      Output only the contents of the given attributes
+  -a, --attribute <ATTRIBUTE>       Output only the contents of the given attributes
   -h, --help                         Print help
   -V, --version                      Print version
 `;

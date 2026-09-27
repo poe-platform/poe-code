@@ -2778,6 +2778,7 @@ const EMPTY_BYTES = new Uint8Array(0);
 const SYNC_PIPE_DONE_RESULT: IteratorResult<Uint8Array> = Object.freeze({ done: true, value: undefined });
 const sharedSyncPipeBuf0 = new Uint8Array(65536);
 const sharedSyncPipeBuf1 = new Uint8Array(65536);
+const sharedSyncPipeDecoder = new TextDecoder("utf-8", { ignoreBOM: true });
 let syncPurePipelineSlotInUse = false;
 let lastPurePipeAst: unknown;
 const lastPurePipeSrcRefs = new WeakSet<Uint8Array>();
@@ -16679,7 +16680,7 @@ export class Runtime {
       const scope = io[invocationScope];
       let context = pooledSyncPipeContext;
       let prevBuf = sharedSyncPipeBuf0;
-      let prevLen = Buffer.from(sharedSyncPipeBuf0.buffer, sharedSyncPipeBuf0.byteOffset, sharedSyncPipeBuf0.byteLength).write(stage0Formatted, "utf8");
+      let prevLen = fastSharedTextEncoder.encodeInto(stage0Formatted, sharedSyncPipeBuf0).written;
       let lastStageExitCode = 0;
       try {
         for (let index = 1; index < n; index++) {
@@ -16688,7 +16689,7 @@ export class Runtime {
           const stageArgs = stageArgsList[index - 1]!;
           const nextBuf = (index & 1) === 0 ? sharedSyncPipeBuf0 : sharedSyncPipeBuf1;
           if ( firstName === "awk" || firstName === "grep" || (firstName === "sort" && stageArgs.length === 1 && stageArgs[0] !== "-r")) {
-            const inStr = prevLen === 0 ? "" : Buffer.from(prevBuf.buffer, prevBuf.byteOffset, prevLen).toString("utf8");
+            const inStr = prevLen === 0 ? "" : sharedSyncPipeDecoder.decode(prevBuf.subarray(0, prevLen));
             const rawLines = inStr.length === 0 ? [] : (inStr.endsWith("\n") ? inStr.slice(0, -1).split("\n") : inStr.split("\n"));
             let outLines: string[] = [];
             let stageExit = 0;
@@ -16797,7 +16798,7 @@ export class Runtime {
             const nextTotalBytes = this.budget.bytes + outByteLen;
             if (nextTotalBytes > this.budget.maxOutputBytesSmi && outByteLen > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
             this.budget.bytes = nextTotalBytes;
-            const written = outStr.length === 0 ? 0 : Buffer.from(nextBuf.buffer, nextBuf.byteOffset, nextBuf.byteLength).write(outStr, "utf8");
+            const written = outStr.length === 0 ? 0 : fastSharedTextEncoder.encodeInto(outStr, nextBuf).written;
             prevBuf = nextBuf;
             prevLen = written;
             lastStageExitCode = stageExit;
@@ -16842,7 +16843,7 @@ export class Runtime {
         syncPurePipelineSlotInUse = false;
         this.budget.leavePipelineStages(n);
       }
-      const outStr = Buffer.from(prevBuf.buffer, prevBuf.byteOffset, prevLen).toString("utf8");
+      const outStr = sharedSyncPipeDecoder.decode(prevBuf.subarray(0, prevLen));
       rawState.substitutionStatus = 0;
       rawState.status = 0;
       let end = outStr.length;

@@ -33,6 +33,40 @@ const bodies = [
   ['x=$(echo hi)', 'x:hi'],
 ] as const;
 
+test("pure substitution pipeline works without Node Buffer", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of basicCommands()) shell.commands.register(command);
+  for (const command of textCommands()) shell.commands.register(command, { replace: true });
+  for (const command of streamCommands()) shell.commands.register(command, { replace: true });
+  const previous = globalThis.Buffer;
+  try {
+    // Browser/worker hosts expose Uint8Array, TextEncoder and TextDecoder.
+    Object.defineProperty(globalThis, "Buffer", { value: undefined, writable: true, configurable: true });
+    const result = await shell.exec('x=$(printf "héllo\\n" | tr a-z A-Z); echo "$x"');
+    assert.equal(result.stdout, "HéLLO\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+    const sorted = await shell.exec('x=$(printf "hi\\nhi\\n" | sort -u); echo "$x"');
+    assert.equal(sorted.stdout, "hi\n");
+    assert.equal(sorted.stderr, "");
+    assert.equal(sorted.exitCode, 0);
+  } finally {
+    globalThis.Buffer = previous;
+    await shell.dispose();
+  }
+});
+
+test("pure substitution pipeline preserves a leading UTF-8 BOM", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of [...basicCommands(), ...streamCommands()]) shell.commands.register(command);
+  try {
+    const result = await shell.exec(`x=$(printf "\uFEFFhello\\n" | tr a-z A-Z); echo "$x"`);
+    assert.equal(result.stdout, "\uFEFFHELLO\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally { await shell.dispose(); }
+});
+
 test("arithmetic expansion fault does not replay earlier effects", async () => {
   const shell = new Shell({ fs: createMemoryFileSystem() });
   for (const command of basicCommands()) shell.commands.register(command);

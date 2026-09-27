@@ -997,33 +997,29 @@ describe("@poe-code/agent-child-process", () => {
     await expect(handle.result).rejects.toThrow("bad spawn");
   });
 
-  it("runs fast real child processes", async () => {
-    const success = await execFile(
-      process.execPath,
-      ["-e", "process.stdout.write('out'); process.stderr.write('err')"],
-      { spawnProcess: nodeSpawn }
-    );
-
-    const failure = await execFile(process.execPath, ["-e", "process.exit(3)"], {
-      spawnProcess: nodeSpawn
-    });
-
-    expect(success).toMatchObject({ stdout: "out", stderr: "err", exitCode: 0 });
-    expect(failure).toMatchObject({ exitCode: 3 });
+  it("captures process output and non-zero exits through the process port", async () => {
+    const { children, spawnProcess } = createSpawnHarness();
+    const success = execFile(process.execPath, ["-e", "output"], { spawnProcess });
+    finish(children[0]!, { stdout: "out", stderr: "err" });
+    const failure = execFile(process.execPath, ["-e", "exit"], { spawnProcess });
+    finish(children[1]!, { exitCode: 3 });
+    await expect(success).resolves.toMatchObject({ stdout: "out", stderr: "err", exitCode: 0 });
+    await expect(failure).resolves.toMatchObject({ exitCode: 3 });
   });
 
-  it("runs a real child process and uses an injected agent follow-up", async () => {
+  it("uses an injected agent follow-up after process completion", async () => {
+    const { children, spawnProcess } = createSpawnHarness();
     const runAgent = vi.fn<AgentChildProcessRunAgent>().mockResolvedValue({
       stdout: "agent follow-up",
       stderr: "",
       exitCode: 0
     });
 
-    const result = await execFile(
+    const resultPromise = execFile(
       process.execPath,
       ["-e", "process.stdout.write('out'); process.stderr.write('err'); process.exit(4)"],
       {
-        spawnProcess: nodeSpawn,
+        spawnProcess,
         runAgent,
         context: "Integration follow-up context.",
         onExit: {
@@ -1033,6 +1029,8 @@ describe("@poe-code/agent-child-process", () => {
       }
     );
 
+    finish(children[0]!, { stdout: "out", stderr: "err", exitCode: 4 });
+    const result = await resultPromise;
     expect(result).toMatchObject({
       stdout: "out",
       stderr: "err",
@@ -1076,25 +1074,24 @@ describe("@poe-code/agent-child-process", () => {
     });
   });
 
-  it("supports stdin for real spawned child processes", async () => {
-    const handle = spawn(process.execPath, ["-e", "process.stdin.pipe(process.stdout)"], {
-      spawnProcess: nodeSpawn
-    });
-
+  it("supports stdin through the process port", async () => {
+    const { children, spawnProcess } = createSpawnHarness();
+    const handle = spawn(process.execPath, ["-e", "stdin echo"], { spawnProcess });
+    let input = "";
+    children[0]!.stdin.on("data", chunk => { input += String(chunk); });
     expect(handle.stdin).not.toBeNull();
     handle.stdin!.end("input");
-
-    await expect(handle.result).resolves.toMatchObject({
-      stdout: "input",
-      exitCode: 0
-    });
+    await new Promise<void>(resolve => children[0]!.stdin.once("finish", resolve));
+    finish(children[0]!, { stdout: input });
+    await expect(handle.result).resolves.toMatchObject({ stdout: "input", exitCode: 0 });
   });
 
-  it("keeps real spawned stdout readable while also capturing the result", async () => {
+  it("keeps spawned stdout readable while also capturing the result", async () => {
+    const { children, spawnProcess } = createSpawnHarness();
     const handle = spawn(
       process.execPath,
       ["-e", "process.stdout.write('out'); process.stderr.write('err')"],
-      { spawnProcess: nodeSpawn }
+      { spawnProcess }
     );
     const stdoutChunks: string[] = [];
     const stderrChunks: string[] = [];
@@ -1102,6 +1099,7 @@ describe("@poe-code/agent-child-process", () => {
     handle.stdout?.on("data", (chunk) => stdoutChunks.push(String(chunk)));
     handle.stderr?.on("data", (chunk) => stderrChunks.push(String(chunk)));
 
+    finish(children[0]!, { stdout: "out", stderr: "err" });
     await expect(handle.result).resolves.toMatchObject({
       stdout: "out",
       stderr: "err",

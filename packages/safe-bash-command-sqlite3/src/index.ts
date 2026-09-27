@@ -488,7 +488,7 @@ export const settings = {
 export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): CommandDefinition {
   return {
     name: settings.commandName,
-    ...commandRuntimeIdentity,
+    runtimeIdentity: commandRuntimeIdentity,
     async execute(context: CommandContext): Promise<CommandResult> {
     const state: CliSessionState = {
       mode: "list",

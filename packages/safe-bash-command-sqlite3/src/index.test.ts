@@ -1,8 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem, type FileSystem } from "@poe-code/safe-fs";
-import { createBytePipe, createCommandArguments, writeText } from "safe-bash-contracts";
-import { createSqlite3Command } from "./index.js";
+import { CommandRegistry, commandRuntimeIdentity, createBytePipe, createCommandArguments, writeText } from "safe-bash-contracts";
+import { createSqlite3Command, createSqlite3Commands } from "./index.js";
+
+test("sqlite3 factories cannot cross runtime registries", async () => {
+  const foreign = await import(new URL("../../safe-bash-contracts/src/command.ts?sqlite3-foreign-runtime", import.meta.url).href) as typeof import("safe-bash-contracts");
+  assert.notEqual(foreign.commandRuntimeIdentity, commandRuntimeIdentity);
+  for (const command of [createSqlite3Command(), ...createSqlite3Commands()]) {
+    assert.equal(new CommandRegistry([command]).has("sqlite3"), true);
+    assert.throws(() => new foreign.CommandRegistry([command]), /matching shell runtime/);
+  }
+});
 
 async function runSqlite3(
   fs: FileSystem,

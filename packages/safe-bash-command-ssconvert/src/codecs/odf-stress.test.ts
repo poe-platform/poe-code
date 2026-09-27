@@ -186,7 +186,9 @@ it("preserves both native parser passes' unknown-element warning ordering", asyn
 });
 it("preserves cancellation reason while an embedded resource is pending after the main parser", async () => {
   const body = drawingSheet('<d:object xl:href="Object"/>').replace('</t:table>', '<t:unknown/></t:table>');
-  const embedded = `<o:document-content xmlns:o="${office}"><o:body>${'<o:body/>'.repeat(200)}</o:body></o:document-content>`;
+  // Exceed the decoder/parser work quantum so the pending host cancellation
+  // gets a turn even when small XML elements are batched by the parser.
+  const embedded = `<o:document-content xmlns:o="${office}"><o:body>${'embedded'.repeat(5000)}</o:body></o:document-content>`;
   const bytes = await fixture(body, { 'Object/content.xml': embedded }), controller = new AbortController(), reason = new Error('embedded cancelled');
   let warnings = 0, timer: ReturnType<typeof setTimeout> | undefined;
   try {

@@ -95,14 +95,17 @@ export function metadataNode(value: ImportedValue | undefined, charge?: (amount?
   }
   return visit(value);
 }
-export function writeRichString(value: string, runs: readonly RichTextRun[] | undefined, xml: ElementWriter, charge?: (amount?: number) => void): string {
+export function writeRichString(value: string, runs: readonly RichTextRun[] | undefined, xml: ElementWriter, charge?: (amount?: number) => void,
+  target: "cell" | "comment" = "cell"): string {
   charge?.(value.length);
   const t = (text: string) => xml("t", text.trim() !== text ? { "xml:space": "preserve" } : {}, escapeXlsx(encodeXlsxString(text)));
   if (!runs?.length) return t(value);
   charge?.(runs.length);
   const bytes = new TextEncoder().encode(value), decoder = new TextDecoder("UTF-8", { fatal: true });
   const points = [...new Set([0, bytes.length, ...runs.flatMap(run => [run.start, run.end])])].sort((a, b) => a - b);
-  let result = "";
+  // Calc's XText comment path applies the first portion to the whole shape.
+  // Keep it empty so every visible portion receives its own range formatting.
+  let result = target === "comment" ? xml("r", {}, t("")) : "";
   for (let i = 0; i + 1 < points.length; i++) {
     charge?.(runs.length);
     const start = points[i]!, end = points[i + 1]!; const attrs: Record<string, ImportedValue> = {};
@@ -117,7 +120,9 @@ export function writeRichString(value: string, runs: readonly RichTextRun[] | un
     if (typeof attrs.color === "string") properties += xml("color", { rgb: "FF" + attrs.color.split("x").join("").toUpperCase() });
     if (typeof attrs.underline === "string") properties += xml("u", { val: attrs.underline === "low" ? "singleAccounting" : attrs.underline === "error" ? "single" : attrs.underline });
     if (attrs.subscript || attrs.superscript) properties += xml("vertAlign", { val: attrs.subscript ? "subscript" : "superscript" });
-    result += xml("r", {}, (properties ? xml("rPr", {}, properties) : "") + t(decoder.decode(bytes.subarray(start, end))));
+    // An empty rPr creates the default font in Calc instead of inheriting the
+    // preceding comment portion. It adds no attributes to our canonical spans.
+    result += xml("r", {}, (properties || target === "comment" ? xml("rPr", {}, properties) : "") + t(decoder.decode(bytes.subarray(start, end))));
   }
   return result;
 }

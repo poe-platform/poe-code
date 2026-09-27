@@ -145,7 +145,7 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
         }
         if (text && requiresOriginal && decoded === value) return render(text);
       }
-      return xml("text", {}, writeRichString(value, readGnumericRichText(comment.attributes.TextFormat, charge), xml, charge));
+      return xml("text", {}, writeRichString(value, readGnumericRichText(comment.attributes.TextFormat, charge), xml, charge, "comment"));
     };
     if (comments.length) parts.push({ name: `comments${number}.xml`, relation: "comments", type: "application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml",
       content: xml("comments", { xmlns: namespace }, xml("authors", {}, authors.map(a => xml("author", {}, escapeXlsx(encodeXlsxString(a)))).join("")) + xml("commentList", {}, comments.map(comment =>

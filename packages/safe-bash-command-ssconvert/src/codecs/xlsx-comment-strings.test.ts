@@ -43,8 +43,8 @@ it("imports comment formatting with UTF-8 offsets after XString decoding", () =>
   } }] });
 });
 
-it.each(["2006", "2008"] as const)("preserves comment markup through Gnumeric and XLSX transport (%s)", async edition => {
-  const format = "@[bold=1:0:2][italic=1:2:6]";
+for (const edition of ["2006", "2008"] as const)
+it.each(["@[bold=1:0:2][italic=1:2:6]", "@[bold=1:0:7]"])(`preserves comment markup through Gnumeric and XLSX transport (${edition}): %s`, async format => {
   const source = `<g:Workbook xmlns:g="http://www.gnumeric.org/v10.dtd"><g:Sheets><g:Sheet><g:Name>S</g:Name><g:Objects><g:CellComment ObjectBound="B2" Author="Ada" Text="é😀z" TextFormat="${format}"/></g:Objects><g:Cells/></g:Sheet></g:Sheets></g:Workbook>`;
   const book = await readGnumeric(new TextEncoder().encode(source), context);
   const before = structuredClone(book);
@@ -58,10 +58,17 @@ it.each(["2006", "2008"] as const)("preserves comment markup through Gnumeric an
   for await (const chunk of zip.decodeZipEntry(entry, limits, context.signal)) content += decoder.decode(chunk, { stream: true });
   const comments = parseXml(content + decoder.decode());
   const text = comments.children.find(node => node.localName === "commentList")!.children[0]!.children[0]!;
-  expect(text.children.map(run => ({ text: run.children.find(node => node.localName === "t")?.text,
-    properties: run.children.find(node => node.localName === "rPr")?.children.map(property => property.localName) ?? [] }))).toEqual([
+  // Calc applies the first portion to the caption shape, including single-run
+  // comments. Keep that portion empty and format the visible text as a range.
+  expect(text.children[0]!.children.find(node => node.localName === "t")?.text).toBe("");
+  const portions = text.children.filter(run => run.children.find(node => node.localName === "t")?.text);
+  expect(portions.map(run => ({ text: run.children.find(node => node.localName === "t")?.text,
+    properties: run.children.find(node => node.localName === "rPr")?.children.map(property => property.localName) ?? [] }))).toEqual(format === "@[bold=1:0:7]" ? [{ text: "é😀z", properties: ["b"] }] : [
     { text: "é", properties: ["b"] }, { text: "😀", properties: ["i"] }, { text: "z", properties: [] }
   ]);
+  // Calc's comment XText append path inherits the prior font without rPr.
+  // An explicit empty rPr restores defaults without inventing markup values.
+  if (portions.length === 3) expect(portions[2]!.children.find(node => node.localName === "rPr")).toMatchObject({ children: [] });
   const read = await readXlsx(bytes, context);
   const objects = read.sheets[0]!.unsupportedRecords!.find(record => record.kind === "Objects")!;
   expect(metadataNode(objects.data)).toMatchObject({ children: [{ attributes: { Text: "é😀z", TextFormat: format } }] });

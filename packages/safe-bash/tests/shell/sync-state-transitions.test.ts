@@ -5,7 +5,7 @@ import { basicCommands } from "../../src/commands/basic.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 
 async function execute(source: string) {
-  const shell = new Shell({ fs: new MemoryFileSystem(), stdin: "" });
+  const shell = new Shell({ fs: new MemoryFileSystem() });
   for (const command of basicCommands()) shell.commands.register(command);
   try { return await shell.exec(source, { stdin: "" }); }
   finally { await shell.dispose(); }

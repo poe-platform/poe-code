@@ -4,10 +4,17 @@ import { Session, records, settings } from "../../src/commands/stream-format/sha
 import { Budget, settings as tableSettings } from "../../src/commands/table-text/internal.js";
 import type { CommandContext } from "../../src/contracts/index.js";
 import { registerYieldCheckpoint } from "../../src/contracts/yield.js";
+import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 
 function context(signal = new AbortController().signal) {
   const chunks: Uint8Array[] = [];
-  return { chunks, command: { args: [], signal, stdout: { async write(bytes: Uint8Array) { chunks.push(bytes.slice()); } } } as CommandContext };
+  const command: CommandContext = {
+    command: "output-buffering", args: [], cwd: "/", env: {}, fs: createMemoryFileSystem(), signal,
+    stdin: (async function* () { yield* []; })(),
+    stdout: { async write(bytes) { chunks.push(bytes.slice()); } },
+    stderr: { async write() { assert.fail("unexpected stderr"); } },
+  };
+  return { chunks, command };
 }
 
 test("stream records scan slices and preserve byte charging across reused input chunks", async t => {
@@ -52,5 +59,5 @@ test("stream checkpoints propagate from the caller and preserve exact cancellati
   const reason = new Error("checkpoint stopped");
   registerYieldCheckpoint(controller.signal, () => { controller.abort(reason); });
   const session = new Session(context(controller.signal).command, settings({}));
-  await assert.rejects(session.step(4096), error => error === reason);
+  await assert.rejects(async () => session.step(4096), error => error === reason);
 });

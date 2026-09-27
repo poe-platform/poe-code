@@ -7,7 +7,7 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 
 for (const suffix of ["efgh", "é", "abcdef"]) {
   test(`associative append charges full value bytes with ${suffix}`, async context => {
-    const shell = new Shell({ fs: new MemoryFileSystem(), stdin: "" });
+    const shell = new Shell({ fs: new MemoryFileSystem() });
     shell.commands.register({ name: "inspect", execute() { return { exitCode: 0 }; } });
     const observed: Array<{ value: string; bytes: number; payload: number }> = [];
     const simple = Runtime.prototype.simple;

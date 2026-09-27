@@ -1050,8 +1050,11 @@ describe("@poe-code/agent-child-process", () => {
     );
   });
 
-  it("passes env exactly to real child processes without merging process.env", async () => {
-    const result = await execFile(
+  it("passes env exactly to the process port without merging process.env", async () => {
+    const { children, spawnProcess } = createSpawnHarness();
+    vi.stubEnv("PARENT_ONLY", "must not reach the child");
+    const env = { EXACT_ONLY: "yes" };
+    const resultPromise = execFile(
       process.execPath,
       [
         "-e",
@@ -1063,15 +1066,18 @@ describe("@poe-code/agent-child-process", () => {
         ].join("")
       ],
       {
-        spawnProcess: nodeSpawn,
-        env: { EXACT_ONLY: "yes" }
+        spawnProcess,
+        env
       }
     );
 
-    expect(JSON.parse(result.stdout)).toEqual({
-      exact: "yes",
-      path: null
-    });
+    const options = spawnProcess.mock.calls[0]![2]!;
+    expect(options.env).toBe(env);
+    expect(options.env).toEqual({ EXACT_ONLY: "yes" });
+    expect(options.env).not.toHaveProperty("PATH");
+    expect(options.env).not.toHaveProperty("PARENT_ONLY");
+    finish(children[0]!);
+    await expect(resultPromise).resolves.toMatchObject({ exitCode: 0 });
   });
 
   it("supports stdin through the process port", async () => {

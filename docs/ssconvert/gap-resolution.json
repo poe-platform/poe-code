@@ -2303,6 +2303,14 @@
           "description": "Python independently constructs ODF and inspects SDK/command XML plus subsequent strict/extended ODF. Three local Total targets remain qualified and are not replaced by fixed ranges or the distinct global Total=999. Actual command screenshot inspected."
         },
         "remaining": "Native navigation and cross-application scoped-name export spelling remain unqualified: Calc UI marks and Gnumeric qualified-expression fragments are distinct profiles."
+      },
+      "calcLocalNameExport": {
+        "source": "Reverified pinned tabvwsh3.cxx SHA256 6de8125654f5a903bd5da738e26bec65f5437ee7e396d226c36ae8d798638cf1 and rangeutl.cxx SHA256 ff2ee0577e5c807b26f1ca0426ec9395b42a84abeb055fbbdbee08c742e4eb67. SID_JUMPTOMARK decodes URI fragments and calls MakeRangeFromName, which recognizes name (Sheet), not Sheet.Name.",
+        "implementation": "Both ODF export paths use Calc local-name marks for declared sheets, retaining the named destination rather than replacing it with a fixed range. Bounded case-folded sheet lookup uses actual display names. Global, external and missing-sheet targets retain their existing handling.",
+        "validation": "Four original href mismatches reproduced after correcting a fixture assertion for built-in names. Five files / 113 tests pass, including strict/extended, style-region/cell-only and edited-text regeneration. Maintained package lint, source/test/consumer types and selected build pass.",
+        "independent": "Python-generated Gnumeric XML: 2183 bytes, SHA256 0308b449492d1e59946fb90b8f1506f8b3bad568f80f5119aebec0062e54cabd. Eight compiled SDK/command packages contain 40 checked links, 32 local destinations and eight distinct global destinations. Python ZIP/XML/URI decoding verifies native marks, values and edited display text, accounting for text:s. No diagnostics; actual command screenshot inspected. Initial QA omitted the required codecs array and an initial XML text check omitted text:s; corrected QA ran successfully.",
+        "remaining": "Actual native navigation and relative-name cursor behavior, Gnumeric application interoperability and ambiguous dotted global names remain unqualified. Source-defined dispatch spelling is not an application execution pass. All 19 families remain open.",
+        "qa": "docs/plans/ssconvert-odf-label-metadata-qa.md, step 15"
       }
     }
   },

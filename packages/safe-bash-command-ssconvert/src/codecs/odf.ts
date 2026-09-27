@@ -694,6 +694,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
       maxEntryBytes: context.limits.outputBytes, maxTotalBytes: context.limits.outputBytes };
     let count = 0;
     if (!book.sheets.length || book.sheets.length > context.limits.sheets) limit("sheets");
+    const sheetNames = book.sheets.map(sheet => { xml.charge(sheet.name.length); return sheet.name; });
     function coordinate(value: number, maximum: number) {
       xml.charge(); if (!Number.isSafeInteger(value) || value < 0 || value >= maximum)
         throw new SsconvertError("invalid-request", "Invalid OpenDocument cell coordinate");
@@ -819,7 +820,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
           xml.charge(); const a = odfAttributes(region), style = odfChildren(region).find(n => odfObject(n)?.name === "Style");
           if (!style) continue;
           const r = { startRow: Number(a.startRow), endRow: Number(a.endRow), startColumn: Number(a.startCol), endColumn: Number(a.endCol) }; range(r);
-          const metadata = await writeOdfRegion(style,r,`rg${index}_${cellMetadata.length}`,sheet,xml,cellStyles,context,expression);
+          const metadata = await writeOdfRegion(style,r,`rg${index}_${cellMetadata.length}`,sheet,xml,cellStyles,context,expression,sheetNames);
           automatic += metadata.styleXml;
           validations += metadata.validationXml;
           cellMetadata.push({ range: r, style: metadata.styleName, validation: metadata.validationName, link: metadata.link });
@@ -842,7 +843,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
       for (const cell of addresses.values()) {
         const node = cell.style?.gnumeric;
         const link = odfChildren(node).find(n => odfObject(n)?.name === "HyperLink"), a = odfAttributes(link);
-        if (a.target) links.set(`${cell.row}:${cell.column}`, { "xlink:href": a.type === "GnmHLinkCurWB" ? translateOdfHyperlink(a.target, "export", xml.charge) : a.target,
+        if (a.target) links.set(`${cell.row}:${cell.column}`, { "xlink:href": a.type === "GnmHLinkCurWB" ? translateOdfHyperlink(a.target, "export", xml.charge, sheetNames) : a.target,
           "xlink:type": "simple", "office:title": a.tip });
       }
       const events = new Set<number>([0]);

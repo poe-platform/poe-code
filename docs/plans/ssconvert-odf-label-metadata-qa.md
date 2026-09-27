@@ -139,3 +139,19 @@ Unqualified label exports and the complete BIFF/format family remain open.
     missing sheets and malformed marks remain passive text. Native Calc accepts
     UI mark notation while Gnumeric exports qualified-expression notation;
     do not claim native navigation from these transport checks alone.
+
+15. Follow Calc's `SID_JUMPTOMARK` call to `MakeRangeFromName` before exporting
+    sheet-local named links. Construct Gnumeric XML with Links first, four later
+    sheets named Data, `O'Brien`, `Data (Q1)` and `Path\Rate%20`, local Total
+    ranges at A1 with distinct values, and global Total pointing to Links.B1=999.
+    Export using compiled SDK and command, strict and extended ODF; reopen and
+    edit all five link texts before exporting again. Independently parse all
+    eight packages and decode URI fragments: local targets must be
+    `#Total (Sheet)`, with literal sheet names, and the global target `#Total`.
+    Require the local/global declarations and values to remain distinct. Decode
+    `text:s` when comparing display text. Cover both style-region and cell-only
+    exports in memory tests, and preserve missing-sheet passive targets.
+    Inspect the actual command transcript screenshot. This verifies the native
+    dispatch spelling and transported identity; actual Calc and Gnumeric
+    navigation, relative-name cursor behavior and ambiguous dotted globals
+    remain separate application qualifications.

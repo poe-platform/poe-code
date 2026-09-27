@@ -10,7 +10,7 @@ import { translateOdfHyperlink } from "./odf-hyperlinks.js";
 /** Translate original Gnumeric regions without materializing a sheet-sized grid. */
 export async function writeOdfRegion(node: ImportedValue, r: Range, id: string, sheet: Sheet,
   xml: ReturnType<typeof createOdfXml>, styles: ReturnType<typeof createOdfStyles>, context: CapabilityContext,
-  formula: (source: string, sheet: Sheet, row: number, column: number) => string) {
+  formula: (source: string, sheet: Sheet, row: number, column: number) => string, sheetNames: readonly string[]) {
   const e = xml.element, a = odfAttributes(node), base = styles.register({ style: { gnumeric: node }, ...(a.Format ? { format: a.Format } : {}) });
   const children = odfChildren(node), baseAddress = quoteFormulaString(sheet.name, "'", odfGrammar) + "." + formatA1(r.startRow,r.startColumn);
   function expression(source: ImportedValue | undefined, name: string) {
@@ -59,6 +59,6 @@ export async function writeOdfRegion(node: ImportedValue, r: Range, id: string, 
   }
   const link = children.find(n => odfObject(n)?.name === "HyperLink"), linkAttributes = odfAttributes(link);
   return { styleName, styleXml, validationName, validationXml, ...(linkAttributes.target ? { link: {
-    "xlink:href": linkAttributes.type === "GnmHLinkCurWB" ? translateOdfHyperlink(linkAttributes.target, "export", xml.charge) : linkAttributes.target,
+    "xlink:href": linkAttributes.type === "GnmHLinkCurWB" ? translateOdfHyperlink(linkAttributes.target, "export", xml.charge, sheetNames) : linkAttributes.target,
     "xlink:type": "simple", "office:title": linkAttributes.tip } } : {}) };
 }

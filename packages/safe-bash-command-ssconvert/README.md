@@ -113,6 +113,9 @@ still selects the same anchor, orientation and relative coordinates. Ambiguous,
 deleted, non-text and formula-generated labels, mixed relative-sheet expressions,
 and BIFF-specific label semantics remain unsupported in ODF output. Label/data
 pairs on different sheets and native application qualification remain open.
+ODF hyperlinks to sheet-local names use Calc's `Total (Sheet)` destination
+syntax and retain the named target through link-text edits; global names remain
+unqualified. Native application navigation is not yet qualified.
 BIFF7 and data endpoints that BIFF8 cannot encode are refused; the public engine
 warns when other exporters omit this metadata. Live BIFF8 row/column label tokens
 (`02`, `03`, `06`, `07`) recalculate and reexport with their anchor, reference

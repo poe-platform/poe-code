@@ -1,7 +1,7 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
-import { McpClient, StdioTransport, createSdkTestPair } from "tiny-mcp-client";
+import { McpClient, createSdkTestPair } from "tiny-mcp-client";
 import { defineCommand, defineGroup, S } from "toolcraft";
 import { createMCPServer } from "toolcraft/mcp";
 
@@ -13,31 +13,17 @@ async function connectToServerScript(source: string): Promise<{
   client: McpClient;
   cleanup: () => Promise<void>;
 }> {
-  const transport = new StdioTransport({
-    command: process.execPath,
-    args: ["--input-type=module", "--eval", source],
-    cwd: root,
-    env: { ...process.env },
-  });
-  const client = new McpClient({
+  const { default: server } = await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
+  return createSdkTestPair(server, () => new McpClient({
     protocolVersion: "2026-07-28",
     clientInfo: {
       name: "typed-output-workflow-test",
       version: "1.0.0",
     },
-  });
-
-  const connection = await client.connect(transport);
-  expect(connection.protocolVersion).toBe("2026-07-28");
-  return {
-    client,
-    cleanup: async () => {
-      await client.close();
-    },
-  };
+  }));
 }
 
-describe("MCP typed output real stdio workflows", () => {
+describe("MCP typed output SDK transport workflows", () => {
   it("round-trips typed stdio tools and exposes non-happy paths over MCP", async () => {
     const source = `
       import { createServer, defineSchema } from ${JSON.stringify(tinyStdioEntry)};
@@ -72,7 +58,7 @@ describe("MCP typed output real stdio workflows", () => {
         defineSchema({}),
         () => ({ content: [], structuredContent: "not an object" })
       );
-      await server.listen();
+      export default { connect: server.connectSDK };
     `;
     const { client, cleanup } = await connectToServerScript(source);
 

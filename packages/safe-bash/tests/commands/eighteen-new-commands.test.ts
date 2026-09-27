@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createMemoryFileSystem, Shell, agentCommands } from "../../src/index.js";
+import { createMemoryFileSystem, Shell, agentCommands, yesCommands } from "../../src/index.js";
 
 test("Shell executes all 18 new commands end-to-end over VFS", async () => {
-  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands()).use(yesCommands());
 
   // 1. Identity & platform shims (mentioning Sandbox and VFS-ish/GNU)
   const idOut = await shell.exec("id && whoami && uname -a && hostname && nproc");

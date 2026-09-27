@@ -42,7 +42,8 @@ async function fixture(body: string, mime = "application/vnd.oasis.opendocument.
   const bounds = { maxArchiveBytes: 100000, maxEntryBytes: 100000, maxTotalBytes: 100000,
     maxMembers: 20, maxPathBytes: 1024, maxDepth: 32, maxPaxBytes: 10000, maxTextBytes: 100000, chunkSize: 4096 };
   const urn = "urn:oasis:names:tc:opendocument:xmlns:";
-  const content = `<o:document-content xmlns:o="${urn}office:1.0" xmlns:t="${urn}table:1.0" xmlns:x="${urn}text:1.0" xmlns:s="${urn}style:1.0" xmlns:n="${urn}datastyle:1.0"><o:automatic-styles>${styles}</o:automatic-styles><o:body><o:spreadsheet>${body}</o:spreadsheet></o:body></o:document-content>`;
+  const calc = body.includes("calculation-settings") ? "" : '<t:calculation-settings t:automatic-find-labels="false"/>';
+  const content = `<o:document-content xmlns:o="${urn}office:1.0" xmlns:t="${urn}table:1.0" xmlns:x="${urn}text:1.0" xmlns:s="${urn}style:1.0" xmlns:n="${urn}datastyle:1.0"><o:automatic-styles>${styles}</o:automatic-styles><o:body><o:spreadsheet>${calc}${body}</o:spreadsheet></o:body></o:document-content>`;
   const entries = [];
   for (const [name, source] of Object.entries({ mimetype: mime, "content.xml": content })) entries.push(await zip.makeZipEntry(name, new TextEncoder().encode(source),
     { modified: new Date("2000-01-01Z"), mode: 0o644, directory: false, symlink: false, compression: "deflate" }, bounds, signal));

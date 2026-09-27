@@ -48,17 +48,22 @@ export class Lifecycle {
       if (failures.length > 1) throw new AggregateError(failures, "tsort cleanup failed");
     });
   }
-  async write(value: string, diagnostic = false): Promise<void> {
-    if (diagnostic && this.pendingStdout.length) await this.flush();
-    this.budget.emitted(value.length, diagnostic);
+  write(value: string, diagnostic = false): void | Promise<void> {
     if (!diagnostic) {
+      this.budget.emitted(value.length, false);
       this.assertOpen();
       if (!value.length) return;
       this.budget.retain(value.length * 3);
       this.pendingStdout += value;
-      if (Number.isFinite(this.budget.limits.maxBufferedBytes) || this.pendingStdout.length >= 16384) await this.flush();
+      if (Number.isFinite(this.budget.limits.maxBufferedBytes) || this.pendingStdout.length >= 16384) return this.flush();
       return;
     }
+    return this.writeDiagnostic(value);
+  }
+  private async writeDiagnostic(value: string): Promise<void> {
+    const diagnostic = true;
+    if (this.pendingStdout.length) await this.flush();
+    this.budget.emitted(value.length, true);
     await this.operation(async () => {
       const sink = this.budget.context.stderr;
       this.assertOpen();

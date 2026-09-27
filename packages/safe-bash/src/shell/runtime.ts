@@ -4179,8 +4179,15 @@ export class Runtime {
   }
 
   private async shellArithmetic(program: ArithmeticProgram, state: State, io: IO, variables?: Record<string, string>): Promise<bigint> {
-    if (!program.hasSubscript && !guestArrays(state) && !state.variableAttributes?.size && variables === undefined) {
-      return this.syncShellArithmetic(program, state, io.diagnosticLine);
+    if (!program.hasSubscript && !state.namerefVariables?.size && !state.variableAttributes?.size && variables === undefined) {
+      if (!guestArrays(state)) {
+        return this.syncShellArithmetic(program, state, io.diagnosticLine);
+      }
+      try {
+        return this.syncShellArithmetic(program, state, io.diagnosticLine);
+      } catch (err) {
+        if (!(err instanceof ArrayFailure)) throw err;
+      }
     }
     const resolvedVariables = variables ?? this.arithmeticVariables(state, io.diagnosticLine);
     let depth = 0;
@@ -4246,8 +4253,15 @@ export class Runtime {
   }
 
   private async expandedArithmeticValue(program: ArithmeticProgram, state: State, io: IO): Promise<bigint> {
-    if (!program.error && !program.hasSubscript && !guestArrays(state) && !state.variableAttributes?.size) {
-      return this.syncShellArithmetic(program, state, io.diagnosticLine);
+    if (!program.error && !program.hasSubscript && !state.namerefVariables?.size && !state.variableAttributes?.size) {
+      if (!guestArrays(state)) {
+        return this.syncShellArithmetic(program, state, io.diagnosticLine);
+      }
+      try {
+        return this.syncShellArithmetic(program, state, io.diagnosticLine);
+      } catch (err) {
+        if (!(err instanceof ArrayFailure)) throw err;
+      }
     }
     const allocation = this.budget.values.scope();
     try {
@@ -4637,63 +4651,109 @@ export class Runtime {
       }
       const prepared = await store.prepareName(name, operation, this.signal);
       const preserve = assignment.kind === "element" || assignment.append;
-      staged = preserve && current ? await current.copy(this.signal) : IndexedBinding.create(store.owner, isAssociative);
-      if (preserve && !current && state.variables[name] !== undefined) {
-        const token = await textToken(staged.owner, stateMonitor(state)?.values.get(name, state.variables[name]!) ?? state.variables[name]!, this.signal);
-        try { staged.insert(0, token); } catch (error) { token.release(); throw error; }
-      }
-      let writes = 0;
-      let cursor = assignment.append && assignment.kind === "compound" ? initialMaximum + 1 : 0;
-      const insert = async (index: number, value: ShellValue, append = false) => {
-        if (index > 2147483647) throw new ArrayFailure("index outside 0..2147483647");
-        const previous = append ? staged!.getValue(index) ?? "" : undefined;
-        if (append && !state.variableAttributes?.get(name)?.includes("i")) value = await join([previous!, value]);
-        value = await this.attributeValue(state, name, value, io, "assignment", previous);
-        const token = await valueToken(staged!.owner, value, this.signal);
-        try { staged!.insert(index, token); } catch (error) { token.release(); throw error; }
-        writes++;
-      };
-      const join = async (values: readonly ShellValue[]): Promise<ShellValue> => values.every(value => typeof value === "string")
-        ? this.arrayJoin(operation, values as readonly string[], "") : concatShellValues(values, io[valueScope]);
-      if (assignment.kind === "element") {
-        const index = selectedIndex ?? (await this.arrayIndex(staged, assignment.index, state, io, operation, true))!;
-        const fields = await this.valueWord(assignment.value, state, io, false, false, false, false, undefined, false, false, 0);
-        const value = await join(fields);
-        await insert(index, value, assignment.append);
-      } else for (const entry of assignment.entries) {
-        const original = compoundEntryWords.get(entry);
-        if (entry.index && original && state.braceexpand !== false && original.parts.some(part => part.kind === "text" && !part.quoted && part.value.includes("{"))) {
-          let expandedEntry = false;
-          for await (const expanded of expandBraces(original, this.budget, this.signal)) {
-            if (expanded === original) break;
-            expandedEntry = true;
-            const values = await this.valueWord(expanded, state, io, true, false, false, false, undefined, false, false);
-            for (const value of values) { await insert(cursor, value); cursor++; }
-          }
-          if (expandedEntry) continue;
+      const canReviseInPlace =
+        preserve &&
+        current !== undefined &&
+        current.references === 1 &&
+        !isAssociative &&
+        (assignment.kind === "element" || (assignment.append && assignment.entries.every(e => !e.index)));
+      const pendingInPlace: Array<{ index: number; token: import("./arrays/bindings.js").OwnedText; slot: Admission }> = [];
+      try {
+        staged = canReviseInPlace ? undefined : preserve && current ? await current.copy(this.signal) : IndexedBinding.create(store.owner, isAssociative);
+        if (preserve && !current && state.variables[name] !== undefined) {
+          const token = await textToken(staged!.owner, stateMonitor(state)?.values.get(name, state.variables[name]!) ?? state.variables[name]!, this.signal);
+          try { staged!.insert(0, token); } catch (error) { token.release(); throw error; }
         }
-        const index = entry.index ? (await this.arrayIndex(staged, entry.index, state, io, operation, true))! : undefined;
-        const fields = await this.valueWord(entry.value, state, io, entry.index === undefined);
-        if (index !== undefined) {
+        let writes = 0;
+        let cursor = assignment.append && assignment.kind === "compound" ? initialMaximum + 1 : 0;
+        const targetBinding = canReviseInPlace ? current! : staged!;
+        const insert = async (index: number, value: ShellValue, append = false) => {
+          if (index > 2147483647) throw new ArrayFailure("index outside 0..2147483647");
+          const previous = append ? targetBinding.getValue(index) ?? "" : undefined;
+          if (append && !state.variableAttributes?.get(name)?.includes("i")) value = await join([previous!, value]);
+          value = await this.attributeValue(state, name, value, io, "assignment", previous);
+          const token = await valueToken(targetBinding.owner, value, this.signal);
+          if (canReviseInPlace) {
+            let slot: Admission | undefined;
+            try {
+              slot = targetBinding.owner.reserve({ slots: 1, metadata: 32, work: 5 });
+              targetBinding.owner.share(token.admission);
+              pendingInPlace.push({ index, token, slot });
+            } catch (error) {
+              slot?.release();
+              token.release();
+              throw error;
+            }
+          } else {
+            try { staged!.insert(index, token); } catch (error) { token.release(); throw error; }
+          }
+          writes++;
+        };
+        const join = async (values: readonly ShellValue[]): Promise<ShellValue> => values.every(value => typeof value === "string")
+          ? this.arrayJoin(operation, values as readonly string[], "") : concatShellValues(values, io[valueScope]);
+        if (assignment.kind === "element") {
+          const index = selectedIndex ?? (await this.arrayIndex(targetBinding, assignment.index, state, io, operation, true))!;
+          const fields = await this.valueWord(assignment.value, state, io, false, false, false, false, undefined, false, false, 0);
           const value = await join(fields);
-          await insert(index, value, entry.append);
-          cursor = index + 1;
-        } else for (const value of fields) { await insert(cursor, value); cursor++; }
-      }
-      this.signal.throwIfAborted();
-      this.assertArrayWritable(state, name, origin);
-      if (!watch.valid()) throw new ArrayFailure("stale binding");
-      staged.assigned = true;
-      if (declaration || !(assignment.kind === "compound" && assignment.append && writes === 0 && current?.assigned)) {
-        let released: Promise<void> | undefined;
-        stateMonitor(state)!.publish(tickets, name, () => {
-          supersede();
-          delete state.variables[name];
-          released = store.publish(name, staged!, tickets, prepared);
-          if (declaration) { state.readonlyVariables ??= frozenAttributes!; state.readonlyVariables.add(name); }
-        });
-        staged = undefined;
-        await released;
+          await insert(index, value, assignment.append);
+        } else for (const entry of assignment.entries) {
+          const original = compoundEntryWords.get(entry);
+          if (entry.index && original && state.braceexpand !== false && original.parts.some(part => part.kind === "text" && !part.quoted && part.value.includes("{"))) {
+            let expandedEntry = false;
+            for await (const expanded of expandBraces(original, this.budget, this.signal)) {
+              if (expanded === original) break;
+              expandedEntry = true;
+              const values = await this.valueWord(expanded, state, io, true, false, false, false, undefined, false, false);
+              for (const value of values) { await insert(cursor, value); cursor++; }
+            }
+            if (expandedEntry) continue;
+          }
+          const index = entry.index ? (await this.arrayIndex(targetBinding, entry.index, state, io, operation, true))! : undefined;
+          const fields = await this.valueWord(entry.value, state, io, entry.index === undefined);
+          if (index !== undefined) {
+            const value = await join(fields);
+            await insert(index, value, entry.append);
+            cursor = index + 1;
+          } else for (const value of fields) { await insert(cursor, value); cursor++; }
+        }
+        this.signal.throwIfAborted();
+        this.assertArrayWritable(state, name, origin);
+        if (!watch.valid() || (canReviseInPlace && (store.get(name) !== current || current!.references !== 1))) {
+          throw new ArrayFailure("stale binding");
+        }
+        if (canReviseInPlace) {
+          if (declaration || !(assignment.kind === "compound" && assignment.append && writes === 0 && current!.assigned)) {
+            stateMonitor(state)!.publish(tickets, name, () => {
+              supersede();
+              delete state.variables[name];
+              for (const item of pendingInPlace) {
+                current!.insert(item.index, item.token, item.slot);
+              }
+              pendingInPlace.length = 0;
+              current!.assigned = true;
+              store.revise(name, current!, tickets);
+              if (declaration) { state.readonlyVariables ??= frozenAttributes!; state.readonlyVariables.add(name); }
+            });
+          }
+        } else {
+          staged!.assigned = true;
+          if (declaration || !(assignment.kind === "compound" && assignment.append && writes === 0 && current?.assigned)) {
+            let released: Promise<void> | undefined;
+            stateMonitor(state)!.publish(tickets, name, () => {
+              supersede();
+              delete state.variables[name];
+              released = store.publish(name, staged!, tickets, prepared);
+              if (declaration) { state.readonlyVariables ??= frozenAttributes!; state.readonlyVariables.add(name); }
+            });
+            staged = undefined;
+            await released;
+          }
+        }
+      } finally {
+        for (const item of pendingInPlace) {
+          item.slot.release();
+          item.token.release();
+        }
       }
       watch.close();
     } finally { try { await staged?.release(); await operation.close(); } finally { holding.release(); } }
@@ -9794,7 +9854,10 @@ export class Runtime {
     const references = command.kind === "subshell" ? new PipeDescriptorFrame(originalIO[invocationScope]) : undefined;
     if (command.kind === "subshell") originalIO = isolateIO(originalIO, references!);
     this.budget.tick();
-    if (this.budget.commands % 128 === 0) await yieldTurn(this.signal);
+    if (this.budget.commands % 128 === 0) {
+      if (hasYieldCheckpoint(this.signal) || this.budget.commands % 2048 === 0) await yieldTurn(this.signal);
+      else runYieldCheckpoint(this.signal);
+    }
     this.signal.throwIfAborted();
     if (
       this.middleware.length === 0 &&
@@ -9803,7 +9866,7 @@ export class Runtime {
       !fileShortcut &&
       !terminal &&
       !state.variableAttributes?.size &&
-      !guestArrays(state)
+      !state.namerefVariables?.size
     ) {
       if (command.words.length === 1) {
         const w0 = command.words[0]!;
@@ -15065,7 +15128,8 @@ export class Runtime {
   private fastValueWord(word: Word, state: State, io: IO, split: boolean, pattern: boolean, hereDocument: boolean, braces: boolean, assignmentStart?: number, overrideDiagnosticLine?: number): ShellValue | undefined {
     const monitor = stateMonitor(state);
     const rawState = monitor ? monitor.raw : state;
-    if (pattern || word.parts.length === 0 || rawState.variableAttributes?.size || guestArrays(state)) return undefined;
+    if (pattern || word.parts.length === 0 || rawState.variableAttributes?.size || rawState.namerefVariables?.size) return undefined;
+    const activeArrayStore = arrayStore(state);
     const rawVars = rawState.variables;
     this.signal.throwIfAborted();
     let out = "";
@@ -15083,7 +15147,7 @@ export class Runtime {
         if (split && !part.quoted && ((rawVars.IFS !== undefined && rawVars.IFS !== " \t\n") || (this.budget.maxExpansionBytesSmi < 0x3fffffff && this.budget.limits.maxExpansionBytes !== Infinity))) return undefined;
         if (part.indirect || part.prefixNames || part.specialParameter || part.length || part.substring || part.transform) return undefined;
         if (part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME") return undefined;
-        if (getArraySelector(part) !== undefined || !isShellIdentifier(part.name)) return undefined;
+        if (getArraySelector(part) !== undefined || !isShellIdentifier(part.name) || activeArrayStore?.get(part.name) !== undefined) return undefined;
         if (part.operator !== undefined) {
           if (
             (part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") &&

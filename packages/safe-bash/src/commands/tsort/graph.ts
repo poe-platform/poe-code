@@ -100,7 +100,7 @@ export async function sort(reader: Reader, lifecycle: Lifecycle): Promise<number
     while (head) {
       const node: Node = head;
       budget.check(node.name.length + 1, budget.limits.maxOutputBytes, "output bytes");
-      await lifecycle.write(`${node.name}\n`);
+      { const w = lifecycle.write(`${node.name}\n`); if (w) await w; }
       node.printed = true;
       remaining--;
       for (let edge = node.top; edge; edge = edge.next) {

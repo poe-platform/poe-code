@@ -32,7 +32,7 @@ export async function textToken(owner: ArrayOwner, value: ShellValue, signal: Ab
   if (typeof value !== "string") {
     const bytes = shellValueByteLength(value);
     const metadata = exactSum(32, shellValueRetainedBytes(value) - bytes);
-    await owner.ledger.checkpoint(signal, 4);
+    { const p = owner.ledger.checkpoint(signal, 4); if (p) await p; }
     signal.throwIfAborted();
     const admission = owner.reserve({ payload: bytes, metadata, work: 4 });
     return new OwnedText(value, bytes, admission);
@@ -50,7 +50,7 @@ export async function textToken(owner: ArrayOwner, value: ShellValue, signal: Ab
     const pending = owner.ledger.checkpoint(signal, step);
     if (pending) await pending;
   }
-  await owner.ledger.checkpoint(signal, 0);
+  { const p = owner.ledger.checkpoint(signal, 0); if (p) await p; }
   signal.throwIfAborted();
   const admission = owner.reserve({ payload: bytes, metadata: 32, work: 4 });
   return new OwnedText(value, bytes, admission);
@@ -122,7 +122,7 @@ export class IndexedBinding {
     const parts: string[] = [];
     for (const byte of bytes) {
       parts.push(byte.toString(16).padStart(2, "0"));
-      await owner.ledger.checkpoint(signal);
+      { const p = owner.ledger.checkpoint(signal); if (p) await p; }
     }
     return parts.join("");
     } finally { admission.release(); }
@@ -172,9 +172,9 @@ export class IndexedBinding {
     return undefined;
   }
 
-  insert(index: number, text: OwnedText): void {
+  insert(index: number, text: OwnedText, preallocatedSlot?: Admission): void {
     if (!text.references || text.admission.released) throw new ArrayFailure("cell ownership is released");
-    const slot = this.owner.reserve({ slots: 1, metadata: 32, work: 5 });
+    const slot = preallocatedSlot ?? this.owner.reserve({ slots: 1, metadata: 32, work: 5 });
     try { this.owner.share(text.admission); }
     catch (error) { slot.release(); throw error; }
     const previous = this.values.get(index);
@@ -205,14 +205,14 @@ export class IndexedBinding {
         const cloned = { index: entry.index, text, admission };
         admission.cleanup = () => { if (keyCopy.keys.get(identity) === cloned) { keyCopy.keys.delete(identity); keyCopy.keyByIndex.delete(entry.index); } text.release(); };
         copy.keys.set(identity, cloned); copy.keyByIndex.set(entry.index, identity);
-        await copy.owner.ledger.checkpoint(signal, identity.length + 8);
+        { const p = copy.owner.ledger.checkpoint(signal, identity.length + 8); if (p) await p; }
       }
       for (const [index, element] of this.values) {
         copy.owner.chargeWork(2);
         const text = element.text.retain();
         try { copy.insert(index, text); }
         catch (error) { text.release(); throw error; }
-        await copy.owner.ledger.checkpoint(signal, 2);
+        { const p = copy.owner.ledger.checkpoint(signal, 2); if (p) await p; }
       }
       signal.throwIfAborted();
       return copy;
@@ -227,7 +227,7 @@ export class IndexedBinding {
     let scratch: number[] = [];
     for (const index of this.values.keys()) {
       indices.push(index);
-      await owner.ledger.checkpoint(signal);
+      { const p = owner.ledger.checkpoint(signal); if (p) await p; }
     }
     for (let width = 1; width < size; width *= 2) {
       for (let start = 0; start < size; start += width * 2) {
@@ -238,7 +238,7 @@ export class IndexedBinding {
         for (let destination = start; destination < rightEnd; destination++) {
           owner.chargeWork(2);
           scratch[destination] = left < leftEnd && (right >= rightEnd || indices[left]! <= indices[right]!) ? indices[left++]! : indices[right++]!;
-          await owner.ledger.checkpoint(signal, 2);
+          { const p = owner.ledger.checkpoint(signal, 2); if (p) await p; }
         }
       }
       const temporary = indices;

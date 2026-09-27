@@ -224,34 +224,55 @@ class Formatter {
   }
 
   private *optimize(): FmtMachine {
-    const count = this.words.length;
-    this.costs[count] = 0;
+    const words = this.words;
+    const count = words.length;
+    const costs = this.costs;
+    const breaks = this.breaks;
+    const lengths = this.lengths;
+    const goal = this.settings.goal;
+    const maxLen = this.settings.profile === 'gnu-coreutils-8.30-C-bytes' ? this.settings.width - 1 : this.settings.width;
+    const firstIndent = this.firstIndent;
+    const otherIndent = this.otherIndent;
+    const lastLength = this.lastLength;
+    const budget = this.budget;
+    costs[count] = 0;
     for (let start = count - 1; start >= 0; start--) {
-      const word = this.words[start]!;
+      const word = words[start]!;
       let penalty = 4900;
-      const previous = this.words[start - 1];
-      if (previous?.period) penalty += previous.final ? -2500 : 360000;
-      else if (previous?.punctuation) penalty -= 1600;
-      else if (previous && this.words[start - 2]?.final) penalty += Math.trunc(40000 / (previous.length + 2));
+      const previous = words[start - 1];
+      if (previous !== undefined) {
+        if (previous.period) penalty += previous.final ? -2500 : 360000;
+        else if (previous.punctuation) penalty -= 1600;
+        else if (words[start - 2]?.final) penalty += (40000 / (previous.length + 2)) | 0;
+      }
       if (word.opening) penalty -= 1600;
-      else if (word.final) penalty += Math.trunc(22500 / (word.length + 2));
-      let length = (start === 0 ? this.firstIndent : this.otherIndent) + word.length;
+      else if (word.final) penalty += (22500 / (word.length + 2)) | 0;
+      let length = (start === 0 ? firstIndent : otherIndent) + word.length;
       let best = Infinity;
       for (let end = start + 1; ; end++) {
-        if (this.budget.tick()) yield* this.budget.checkpoint();
-        let cost = this.costs[end]!;
+        if (budget.tick()) yield undefined, budget.check();
+        let cost = costs[end]!;
         if (end !== count) {
-          cost += 100 * (this.settings.goal - length) ** 2;
-          if (this.breaks[end] !== count) cost += 50 * (length - this.lengths[end]!) ** 2;
+          const dg = goal - length;
+          cost += 100 * dg * dg;
+          if (breaks[end] !== count) {
+            const dl = length - lengths[end]!;
+            cost += 50 * dl * dl;
+          }
         }
-        if (start === 0 && this.lastLength > 0) cost += 50 * (length - this.lastLength) ** 2;
-        this.budget.exact(cost);
-        if (cost < best) { best = cost; this.breaks[start] = end; this.lengths[start] = length; }
+        if (start === 0 && lastLength > 0) {
+          const dll = length - lastLength;
+          cost += 50 * dll * dll;
+        }
+        if ((cost | 0) !== cost && !Number.isSafeInteger(cost)) budget.exact(cost);
+        if (cost < best) { best = cost; breaks[start] = end; lengths[start] = length; }
         if (end === count) break;
-        length += this.words[end - 1]!.space + this.words[end]!.length;
-        if (this.settings.profile === 'gnu-coreutils-8.30-C-bytes' ? length >= this.settings.width : length > this.settings.width) break;
+        length += words[end - 1]!.space + words[end]!.length;
+        if (length > maxLen) break;
       }
-      this.costs[start] = this.budget.exact(best + penalty);
+      const totalCost = best + penalty;
+      if ((totalCost | 0) !== totalCost && !Number.isSafeInteger(totalCost)) budget.exact(totalCost);
+      costs[start] = totalCost;
     }
   }
 

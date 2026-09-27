@@ -1,4 +1,4 @@
-import { yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 export class ArrayFailure extends Error {
   constructor(detail: string) { super(`indexed array: ${detail}`); }
 }
@@ -118,6 +118,7 @@ export class ArrayLedger {
   declare private u6Smi: number;
   declare private sequence: { lastIssued: number };
   declare private checkpointCount: number;
+  declare private lastYieldMs: number;
   declare private freeAdmissions: Admission[] | undefined;
 
   constructor(bytes: number, fields: number, initialTicket = 0, sharedSequence?: { lastIssued: number }) {
@@ -156,6 +157,7 @@ export class ArrayLedger {
     this.u6Smi = 0;
     this.sequence = sharedSequence ?? { lastIssued: initialTicket };
     this.checkpointCount = 0;
+    this.lastYieldMs = 0;
     this.freeAdmissions = undefined;
   }
 
@@ -449,7 +451,15 @@ export class ArrayLedger {
     this.checkpointCount += units;
     if (this.checkpointCount >= 128) {
       this.checkpointCount %= 128;
-      return yieldTurn(signal);
+      if (hasYieldCheckpoint(signal)) {
+        return yieldTurn(signal);
+      }
+      runYieldCheckpoint(signal);
+      const now = monotonicNow();
+      if (now - this.lastYieldMs >= 16) {
+        this.lastYieldMs = now;
+        return yieldTurn(signal);
+      }
     }
   }
 }

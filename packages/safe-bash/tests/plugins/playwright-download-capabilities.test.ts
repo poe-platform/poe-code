@@ -79,3 +79,17 @@ test('download retention overflow stops admission before later native events can
   assert.equal(cancelled, 2);
   assert.equal(deleted, 2);
 });
+
+test('omitted download retention quotas allow more than 128 downloads and 1 MB metadata', async () => {
+  const context = new EventEmitter() as EventEmitter & PlaywrightContext;
+  const page = new EventEmitter() as EventEmitter & PlaywrightPage;
+  context.pages = () => [page];
+  const cleanups: (() => Promise<void>)[] = [];
+  observePlaywrightDownloads(context, close => cleanups.push(close));
+  const download = { suggestedFilename: () => 'x'.repeat(8193), saveAs: async () => {}, cancel: async () => {}, delete: async () => {} };
+  for (let index = 0; index < 129; index++) page.emit('download', download);
+  try {
+    const captured = await collectPlaywrightDownloads(page, undefined, { signal: new AbortController().signal, maxBytes: Infinity }, async () => Uint8Array.of(1));
+    assert.equal(captured.length, 129);
+  } finally { await Promise.all(cleanups.map(close => close())); }
+});

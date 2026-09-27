@@ -8252,7 +8252,7 @@ export class Runtime {
     }
     const command = pipeline.commands[0]!;
     if (
-      (command.kind !== "simple" && command.kind !== "arithmetic" && command.kind !== "conditional" && command.kind !== "arithmetic-for" && command.kind !== "for" && command.kind !== "if" && command.kind !== "case" && command.kind !== "group" && command.kind !== "while" && command.kind !== "until") ||
+      (command.kind !== "simple" && command.kind !== "arithmetic" && command.kind !== "conditional" && command.kind !== "arithmetic-for" && command.kind !== "for" && command.kind !== "if" && command.kind !== "case" && command.kind !== "group") ||
       command.redirects.length > 1
     ) {
       (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
@@ -8335,7 +8335,9 @@ export class Runtime {
       }
       if (command.words.length === 2) {
         if (w0Plain === "return") return true;
-        if (w0Plain === "unset" || w0Plain === "export" || w0Plain === "let" || w0Plain === "shift") return true;
+        if (w0Plain === "unset" || w0Plain === "export" || w0Plain === "let" || w0Plain === "shift") {
+          return !(rawState.braceexpand !== false && command.words[1]!.parts.some(part => part.kind === "text" && !part.quoted && part.value.includes("{")));
+        }
       }
       if (
         command.words.length >= 2 &&
@@ -8408,11 +8410,6 @@ export class Runtime {
     if (command.kind === "group") {
       return this.canSyncScriptCompound(command.body, rawState, depth + 1);
     }
-    if (command.kind === "while" || command.kind === "until") {
-      return this.canSyncScriptCompound(command.condition, rawState, depth + 1) && this.canSyncScriptCompound(command.body, rawState, depth + 1);
-    }
-    // Arithmetic loops need either trySyncLoop's proved work bound or the
-    // asynchronous executor, which can yield without replaying mutations.
     if (command.kind === "arithmetic-for") return false;
     if (command.kind === "if") {
       for (let i = 0; i < command.branches.length; i++) {
@@ -8517,6 +8514,7 @@ export class Runtime {
       permission?: (node: unknown, mask: number, syscall: string, path: string) => void;
     };
     if (!mem._owner || typeof mem.resolveNode !== "function" || typeof mem.permission !== "function") return undefined;
+    if (Object.hasOwn(mem, "stat") || Object.hasOwn(mem, "lstat") || Object.hasOwn(mem, "access")) return undefined;
     const isAccess = op === "-r" || op === "-w" || op === "-x";
     if (isAccess && mem.capabilities?.permissions !== true) return undefined;
     this.budget.fileSystemOperation();
@@ -8541,9 +8539,10 @@ export class Runtime {
     } catch (error) {
       this.signal.throwIfAborted();
       const code = (error as { code?: string })?.code;
-      if (code === "ENOENT" || code === "ENOTDIR" || code === "EACCES" || code === "EPERM" || code === "ELOOP" || (isAccess && code === "EROFS")) {
+      if (code === "ENOENT" || code === "ENOTDIR") {
         return false;
       }
+      this.budget.fsOperations--;
       return undefined;
     }
   }
@@ -9071,135 +9070,7 @@ export class Runtime {
         }
         return res;
       }
-      const fastLoopRes = this.trySyncLoop(command, pipeline, rawState, monitor, store, existing, elem0, canMutatePipeStatus, io, diagnosticLine);
-      if (fastLoopRes !== undefined) return fastLoopRes;
-      if (
-        command.kind === "arithmetic-for" &&
-        command.redirects.length === 0 &&
-        !pipeline.negate &&
-        canMutatePipeStatus &&
-        (!ignored && rawState.errexit ? false : true) &&
-        !rawState.nounset &&
-        !rawState.readonlyVariables?.size &&
-        !rawState.extensions?.checkpoints.length &&
-        !hasYieldCheckpoint(this.signal) &&
-        this.canSyncCommandCompound(command, rawState, 0)
-      ) {
-        const [e0, e1, e2] = command.expressions;
-        this.budget.tick();
-        rawState.loopDepth++;
-        const enableRawBatch = !this._syncArithRawWriteOnly && rawState.locals.length === 0 && this.budget.limits.maxExpansionBytes === Infinity;
-        const batchTouched = enableRawBatch ? new Set<string>() : undefined;
-        if (enableRawBatch) {
-          this._syncArithRawWriteOnly = true;
-          this._syncArithTouched = batchTouched;
-        }
-        let loopStatus = 0;
-        try {
-          this.syncShellArithmeticNonZero(e0!, rawState, diagnosticLine);
-          let turn = 0;
-          while (true) {
-            this.budget.loop();
-            if ((++turn & 127) === 0) {
-              if (hasYieldCheckpoint(this.signal)) return undefined;
-              runYieldCheckpoint(this.signal);
-            }
-            if (!this.syncShellArithmeticNonZero(e1!, rawState, diagnosticLine)) break;
-            const bodyRes = this.trySyncScript(command.body, state, io, ignored);
-            if (typeof bodyRes !== "number") return undefined;
-            loopStatus = bodyRes;
-            if (this._syncPendingReturnStatus !== undefined) {
-              loopStatus = this._syncPendingReturnStatus;
-              break;
-            }
-            this.syncShellArithmeticNonZero(e2!, rawState, diagnosticLine);
-          }
-        } catch (error) {
-          if (error instanceof Flow) throw error;
-          this.signal.throwIfAborted();
-          return undefined;
-        } finally {
-          if (enableRawBatch && batchTouched) {
-            this._syncArithRawWriteOnly = false;
-            this._syncArithTouched = undefined;
-            for (const varName of batchTouched) {
-              const v = rawState.variables[varName];
-              if (v !== undefined) {
-                monitor.publishStringVariable(varName, v);
-                if (rawState.allexport) monitor.proxy.exported.add(varName);
-              } else {
-                monitor.values.invalidate(varName);
-              }
-            }
-          }
-          rawState.loopDepth--;
-        }
-        const statusStr = loopStatus === 0 ? "0" : loopStatus === 1 ? "1" : String(loopStatus);
-        if (!existing) {
-          monitor.lazyPipeStatus = loopStatus === 0 ? singleStatusZero : loopStatus === 1 ? singleStatusOne : [loopStatus];
-          monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
-        } else if (elem0!.text.bytes === statusStr.length) {
-          elem0!.text.shellValue = statusStr;
-          store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
-        }
-        rawState.status = loopStatus;
-        return loopStatus;
-      }
-      return undefined;
-    }
-    if (command.kind === "while" || command.kind === "until") {
-      if (
-        command.redirects.length !== 0 ||
-        pipeline.negate ||
-        !canMutatePipeStatus ||
-        (!ignored && rawState.errexit) ||
-        rawState.nounset ||
-        rawState.readonlyVariables?.size ||
-        rawState.extensions?.checkpoints.length ||
-        hasYieldCheckpoint(this.signal) ||
-        !this.canSyncCommandCompound(command, rawState, 0)
-      ) {
-        return undefined;
-      }
-      this.budget.tick();
-      rawState.loopDepth++;
-      let loopStatus = 0;
-      try {
-        let turn = 0;
-        while (true) {
-          this.budget.loop();
-          if ((++turn & 127) === 0) {
-            if (hasYieldCheckpoint(this.signal)) return undefined;
-            runYieldCheckpoint(this.signal);
-          }
-          const condRes = this.trySyncScript(command.condition, state, io, true);
-          if (typeof condRes !== "number") return undefined;
-          if (this._syncPendingReturnStatus !== undefined) {
-            loopStatus = this._syncPendingReturnStatus;
-            break;
-          }
-          if ((condRes === 0) !== (command.kind === "while")) break;
-          const bodyRes = this.trySyncScript(command.body, state, io, ignored);
-          if (typeof bodyRes !== "number") return undefined;
-          loopStatus = bodyRes;
-          if (this._syncPendingReturnStatus !== undefined) {
-            loopStatus = this._syncPendingReturnStatus;
-            break;
-          }
-        }
-      } finally {
-        rawState.loopDepth--;
-      }
-      const statusStr = loopStatus === 0 ? "0" : loopStatus === 1 ? "1" : String(loopStatus);
-      if (!existing) {
-        monitor.lazyPipeStatus = loopStatus === 0 ? singleStatusZero : loopStatus === 1 ? singleStatusOne : [loopStatus];
-        monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
-      } else if (elem0!.text.bytes === statusStr.length) {
-        elem0!.text.shellValue = statusStr;
-        store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
-      }
-      rawState.status = loopStatus;
-      return loopStatus;
+      return this.trySyncLoop(command, pipeline, rawState, monitor, store, existing, elem0, canMutatePipeStatus, io, diagnosticLine);
     }
     if (command.kind === "group" || command.kind === "if" || command.kind === "case") {
       if (
@@ -10129,7 +10000,7 @@ export class Runtime {
             let nextVal: string | undefined;
             if (assign) {
               try {
-                const fv = this.fastValueWord(assign.value, rawState, io, false, false, false, false, 0, diagnosticLine);
+                const fv = this.fastValueWord(assign.value, rawState, io, false, false, false, rawState.braceexpand !== false, 0, diagnosticLine);
                 if (typeof fv === "string") {
                   nextVal = assign.append
                     ? `${monitor.values.get(targetName, rawState.variables[targetName] ?? "") ?? rawState.variables[targetName] ?? ""}${fv}`

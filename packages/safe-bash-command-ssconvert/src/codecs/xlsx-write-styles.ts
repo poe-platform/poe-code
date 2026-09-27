@@ -1,6 +1,7 @@
 import type { Cell, ImportedValue } from "../workbook.js";
 import { cellValueFormat } from "../workbook/value-format.js";
 import { metadataNode, type ElementWriter, type MetadataNode } from "./xlsx-write-support.js";
+import { encodeXlsxString } from "./xlsx-strings.js";
 
 const builtinFormats = new Map<string, number>(Object.entries({ General: 0, "0": 1, "0.00": 2, "#,##0": 3, "#,##0.00": 4,
   "0%": 9, "0.00%": 10, "0.00E+00": 11, "# ?/?": 12, "# ??/??": 13, "d-mmm-yy": 15, "d-mmm": 16, "mmm-yy": 17,
@@ -43,7 +44,7 @@ export function createXlsxStyles(xml: ElementWriter, edition: "2006" | "2008", n
       charge(); const a = style.node?.attributes ?? {}, f = style.node?.children.find(n => n.name === "Font"), fa = f?.attributes ?? {};
       const font = xml("font", {}, xml("b", { val: Number(fa.Bold ?? 0) }) + xml("i", { val: Number(fa.Italic ?? 0) }) +
         xml("u", { val: ["none", "single", "double", "singleAccounting", "doubleAccounting"][Number(fa.Underline ?? 0)] ?? "none" }) +
-        xml("color", { rgb: rgb(a.Fore, "FF000000") }) + xml("name", { val: f?.text || "Sans" }) +
+        xml("color", { rgb: rgb(a.Fore, "FF000000") }) + xml("name", { val: encodeXlsxString(f?.text || "Sans") }) +
         xml("vertAlign", { val: Number(fa.Script) > 0 ? "superscript" : Number(fa.Script) < 0 ? "subscript" : "baseline" }) +
         xml("sz", { val: Number(fa.Unit ?? 10) }) + xml("strike", { val: Number(fa.StrikeThrough ?? 0) }));
       const shade = Number(a.Shade ?? 0);
@@ -70,7 +71,7 @@ export function createXlsxStyles(xml: ElementWriter, edition: "2006" | "2008", n
         const a = node.attributes; let content = "";
         if (a.Back !== undefined || a.Shade !== undefined) content += xml("fill", {}, xml("patternFill", { patternType: patterns[Number(a.Shade ?? 1)] ?? "solid" }, xml("bgColor", { rgb: rgb(a.Back, "FFFFFFFF") })));
         const font = node.children.find(n => n.name === "Font"), fa = font?.attributes ?? {};
-        if (font || a.Fore !== undefined) content += xml("font", {}, (font?.text ? xml("name", { val: font.text }) : "") +
+        if (font || a.Fore !== undefined) content += xml("font", {}, (font?.text ? xml("name", { val: encodeXlsxString(font.text) }) : "") +
           (fa.Bold === undefined ? "" : xml("b", { val: Number(fa.Bold) })) + (fa.Italic === undefined ? "" : xml("i", { val: Number(fa.Italic) })) +
           (fa.Unit === undefined ? "" : xml("sz", { val: Number(fa.Unit) })) + (a.Fore === undefined ? "" : xml("color", { rgb: rgb(a.Fore, "FF000000") })));
         return xml("dxf", {}, content);

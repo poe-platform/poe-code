@@ -123,7 +123,7 @@ export async function readXlsxStyles(root: XmlElement | undefined, theme: XmlEle
     const fontId = attribute(xf, "fontId"), font = fontId === undefined ? undefined : fonts[number(fontId)];
     for (const p of font?.children ?? []) {
       const val = attribute(p, "val");
-      if (p.localName === "name" && val !== undefined) result.family = val;
+      if (p.localName === "name" && val !== undefined) result.family = decodeXlsxString(val);
       else if (p.localName === "sz") result.font.Unit = number(val);
       else if (p.localName === "b") result.font.Bold = boolean(val, true) ? 1 : 0;
       else if (p.localName === "i") result.font.Italic = boolean(val, true) ? 1 : 0;

@@ -2,6 +2,8 @@ import { expect, it } from "vitest";
 import { parseXmlSteps, type XmlElement } from "@poe-code/safe-fs/xml";
 import type { CapabilityContext } from "../contracts.js";
 import { readXlsxStyles, readXlsxString } from "./xlsx-styles.js";
+import { createXlsxStyles } from "./xlsx-write-styles.js";
+import { createXlsxXml } from "./xlsx-write-support.js";
 
 const ss = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
 const context: CapabilityContext = { signal: new AbortController().signal, own() {},
@@ -34,6 +36,34 @@ it.each([
   const result = readXlsxString(xml(`<si xmlns="${ss}"><r><rPr>${properties}<b/></rPr><t>é</t></r></si>`), context);
   expect(result).toEqual({ value: "é", richText: [{ start: 0, end: 2, attributes: { bold: 1, ...(family === undefined ? {} : { family }) } }] });
 });
+it.each([
+  ["Font _x0041_", "Font A"],
+  ["Font _x005F_x0041_", "Font _x0041_"],
+  ["Font _x0000_", "Font \0"],
+])("decodes ordinary cell font names as XString: %s", async (wire, name) => {
+  const result = await readXlsxStyles(xml(`<styleSheet xmlns="${ss}"><fonts><font><name val="${wire}"/></font></fonts><cellXfs><xf fontId="0"/></cellXfs></styleSheet>`), undefined, context);
+  expect(result[0]!.style.gnumeric).toMatchObject({ children: [{ name: "Font", text: name }] });
+});
+for (const edition of ["2006", "2008"] as const) {
+  it.each([
+    ["Font _x0041_", "Font _x005F_x0041_"],
+    ["Font \0", "Font _x0000_"],
+  ])(`escapes ordinary and conditional font names on export (${edition}): %j`, (name, wire) => {
+    const style = { name: "Style", namespace: "http://www.gnumeric.org/v10.dtd", attributes: {}, text: "", children: [
+      { name: "Font", namespace: "http://www.gnumeric.org/v10.dtd", attributes: {}, text: name, children: [] }
+    ] };
+    const { element, charge } = createXlsxXml(context);
+    const styles = createXlsxStyles(element, edition, ss, charge);
+    styles.register({ style: { gnumeric: style } });
+    styles.differential(style);
+    const output = xml(styles.serialize());
+    const fonts = output.children.find(node => node.localName === "fonts")!;
+    const differential = output.children.find(node => node.localName === "dxfs")!.children[0]!;
+    for (const font of [fonts.children[1]!, differential.children[0]!]) {
+      expect(font.children.find(node => node.localName === "name")!.attributes.find(attribute => attribute.localName === "val")!.value).toBe(wire);
+    }
+  });
+}
 it("ignores attempts to redefine native builtin number formats", async () => {
   const messages: string[] = [];
   const styles = await readXlsxStyles(xml(`<styleSheet xmlns="${ss}"><numFmts><numFmt numFmtId="2" formatCode="0.000"/></numFmts><cellXfs><xf numFmtId="2"/></cellXfs></styleSheet>`), undefined, { ...context, async diagnostic(d) { messages.push(d.message); } });

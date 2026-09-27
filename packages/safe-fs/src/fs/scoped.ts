@@ -12,6 +12,11 @@ import { createStagingCleanup, snapshotStagingCreation } from "./staging-cleanup
 import { inspectStagingBindings, runStagingGuard, snapshotDirectoryAncestry, snapshotStagingResolution } from "./staging-ancestry.js";
 
 const originals = new WeakMap<FileSystem, { filesystem: FileSystem; signal: AbortSignal; cleanupCharge: () => void; creationMask: number | undefined; maxPathComponents: number | undefined }>();
+const retainedCleanupSymbol = Symbol.for("safe-fs.retainedCleanup");
+interface RetainedCleanupBinding {
+  readonly filesystem: FileSystem;
+  readonly retain: typeof retainFileSystemCleanup;
+}
 const retargeters = new WeakMap<
   FileSystem,
   (charge: () => void, signal: AbortSignal, cleanupCharge: () => void, maxPathComponents?: number) => void
@@ -203,12 +208,13 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
   let cachedCreateStaged: unknown;
   let cachedOpenResize: unknown;
   let cachedComputedCaps: FileSystem["capabilities"] | undefined;
-  const view = new Proxy(Object.create(original) as FileSystem, {
+  const view: FileSystem = new Proxy(Object.create(original) as FileSystem, {
     set(_target, property, value) {
       cachedComputedCaps = undefined;
       return Reflect.set(original, property, value, original);
     },
     get(_target, property) {
+      if (property === retainedCleanupSymbol) return cleanupBinding;
       if (property === "capabilities") {
         const rawCaps = original.capabilities;
         if (
@@ -450,6 +456,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       return scoped;
     },
   });
+  const cleanupBinding: RetainedCleanupBinding = Object.freeze({ filesystem: view, retain: retainFileSystemCleanup });
   const originalRecord = { filesystem: original, signal, cleanupCharge, creationMask, maxPathComponents };
   originals.set(view, originalRecord);
   retargeters.set(view, (nextCharge, nextSignal, nextCleanupCharge, nextMaxPathComponents) => {
@@ -494,6 +501,13 @@ export function retainFileSystemCleanup(
   if (options?.maxOperations !== undefined && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("cleanup maxOperations must be a nonnegative safe integer");
   if (typeof cleanupCallback !== "function") throw new TypeError("cleanup callback must be a function");
   const scope = originals.get(filesystem);
+  if (!scope) {
+    // Bundled commands can hold another module copy. Delegate only for this
+    // exact view, never through a wrapper that happens to forward its symbols.
+    const binding = Reflect.get(filesystem, retainedCleanupSymbol) as RetainedCleanupBinding | undefined;
+    if (binding?.filesystem === filesystem && typeof binding.retain === "function" && binding.retain !== retainFileSystemCleanup)
+      return binding.retain(filesystem, cleanupCallback, options);
+  }
   scope?.signal.throwIfAborted();
   const backing = scope?.filesystem ?? filesystem;
   const pending = new Set<Promise<PromiseSettledResult<void>>>();

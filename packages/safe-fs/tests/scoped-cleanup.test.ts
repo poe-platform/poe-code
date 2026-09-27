@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { test } from "vitest";
+import { test, vi } from "vitest";
 import type { FileSystem, FsOptions, RemoveOptions } from "../src/contracts/filesystem.js";
 import { MemoryFileSystem } from "../src/fs/memory/index.js";
 import { ReadOnlyFileSystem } from "../src/fs/readonly/index.js";
@@ -49,6 +49,33 @@ test("retained cleanup survives parent abort without reopening ordinary scoped o
   assert.equal(ordinary, 0);
   assert.equal(cleanup, 3);
   await assert.rejects(memory.lstat("/temporary"), { code: "ENOENT" });
+});
+
+test("a separate module copy retains scoped cleanup ownership and operation limits", async () => {
+  vi.resetModules();
+  const other = await import("../src/fs/scoped.js");
+  assert.notEqual(other.retainFileSystemCleanup, retainFileSystemCleanup);
+  const memory = new MemoryFileSystem();
+  await memory.writeFile("/temporary", new Uint8Array([1]));
+  await memory.writeFile("/kept", new Uint8Array([2]));
+  const controller = new AbortController();
+  let cleanups = 0;
+  const scoped = scopeFileSystem(memory, () => {}, controller.signal, () => { cleanups++; });
+  const close = other.retainFileSystemCleanup(scoped, async view => {
+    await view.rm("/temporary");
+    await assert.rejects(view.rm("/kept"), { code: "EFBIG" });
+  }, { maxOperations: 1 });
+  const denied = new Error("wrapper refuses deletion");
+  const restricted = wrapped(scoped, { async rm() { throw denied; } });
+  const closeRestricted = other.retainFileSystemCleanup(restricted, view => view.rm("/kept"));
+  controller.abort(false);
+  await assert.rejects(scoped.rm("/kept"), error => error === false);
+  assert.throws(() => other.retainFileSystemCleanup(scoped, () => {}), error => error === false);
+  await close();
+  await assert.rejects(closeRestricted(), error => error === denied);
+  assert.equal(cleanups, 1);
+  await assert.rejects(memory.lstat("/temporary"), { code: "ENOENT" });
+  assert.equal((await memory.lstat("/kept")).type, "file");
 });
 
 for (const reason of [null, false, 0, "", NaN]) test(`retained cleanup cannot be captured after falsey abort ${String(reason)}`, () => {

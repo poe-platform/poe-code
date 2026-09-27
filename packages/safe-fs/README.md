@@ -113,6 +113,11 @@ call `staging.cleanup.close()` in `finally`. Memory and its supported wrappers
 retain only the owned staging entries; replacement entries remain protected.
 See the [staging contract](src/contracts/filesystem.md#atomic-owned-staging).
 
+Capture `retainFileSystemCleanup(scoped, callback, { maxOperations })` before
+cancellation to clean up through a bounded view after ordinary scoped operations
+close. Cleanup preserves its owning scope and limits across separately bundled
+command runtimes, including restrictions added by filesystem wrappers.
+
 | Backend or wrapper | Use it for |
 | --- | --- |
 | `createMemoryFileSystem()` | Isolated, nonpersistent storage with links, permissions, timestamps, and streams; each path resolution admits at most 65,536 cumulative UTF-16 code units across the input and followed symlink targets, rejecting excess with `ENAMETOOLONG` before component allocation |

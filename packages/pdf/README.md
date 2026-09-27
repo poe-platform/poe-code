@@ -32,7 +32,7 @@ Horizontal rules contain `kind: "rule"` and optional `indent`. All blocks accept
 `onPlacement` receives top-down placement boxes with one-based page numbers.
 `charge` permits a host to enforce shared budgets before admitted work.
 
-All resource limits, exported as `defaultPdfLimits`, default to `Infinity`.
+All resource limits, exported as `defaultPdfLimits`, default to `Infinity`, including `imagePixels` for the total pixels in embedded images.
 Supply nonnegative safe integers to opt into finite ceilings; explicit `Infinity`
 keeps a resource unbounded. PNG scanlines are checked against their declared
 dimensions and the configured image/work budgets.

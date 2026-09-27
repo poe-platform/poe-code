@@ -70,7 +70,7 @@ export function loadSolverParameters(book: Workbook, context: CapabilityContext)
         const matched = matchNumber(text, { context, book, tick });
         if (typeof matched === 'number') return matched;
       }
-      const parsed = parseExpression(text, { position: { sheet: sheet.id, row: 0, column: 0 }, workbook: book, signal: context.signal, maximumNodes: maximum - work, maximumLength: context.limits.inputBytes });
+      const parsed = parseExpression(text, { maximumDepth: context.limits.formulaDepth, position: { sheet: sheet.id, row: 0, column: 0 }, workbook: book, signal: context.signal, maximumNodes: maximum - work, maximumLength: context.limits.inputBytes });
       if (!parsed.ok) return undefined;
       let root = parsed.document.root;
       while (root.kind === 'parentheses') { tick(); root = root.child; }

@@ -11,7 +11,7 @@ export interface FmtAccounting {
   readonly peakRetainedBytes: number;
 }
 export interface FmtEngine {
-  /** Single-use coroutine: send <=4096 owned/admitted bytes on 'input', or null for EOF.
+  /** Single-use coroutine: send owned/admitted bytes on 'input', or null for EOF.
    * Uint8Array events are owned output; undefined events are cooperative checkpoints.
    * Do not send bytes on output/checkpoint events. */
   run(): FmtMachine;
@@ -23,6 +23,8 @@ class WorkBudget {
   output = 0;
   input = 0;
   closed = false;
+  retained = 0;
+  peakRetained = 0;
   private sinceCheckpoint = 0;
   private signalAborted: boolean;
   private readonly pollSignal: boolean;
@@ -59,7 +61,7 @@ class WorkBudget {
   }
   admitInput(size: number): void {
     this.check();
-    if (size > 4096 || size > this.limits.inputBytes - this.input) throw new FmtError('LIMIT', 'input byte or bounded-call limit exceeded');
+    if (size > (this.limits.chunkBytes ?? Infinity) || size > this.limits.inputBytes - this.input) throw new FmtError('LIMIT', 'input byte or bounded-call limit exceeded');
     this.input += size;
   }
   admitOutput(): void {
@@ -126,6 +128,13 @@ class Formatter {
       // input; a checkpoint must never hand control back before ownership.
       this.budget.charge(view.length + 1);
       this.budget.admitInput(view.length);
+      if (view.length > this.chunk.length) {
+        const retained = this.budget.retained - this.chunk.length + view.length;
+        if (this.budget.retained + view.length > this.budget.limits.retainedBytes) throw new FmtError('LIMIT', 'fmt buffer retention limit exceeded');
+        this.budget.peakRetained = Math.max(this.budget.peakRetained, this.budget.retained + view.length);
+        this.chunk = new Uint8Array(view.length);
+        this.budget.retained = retained;
+      }
       let position = 0;
       for (const byte of view.values) this.chunk[position++] = byte;
       this.chunkUsed = view.length;
@@ -442,6 +451,7 @@ export function createFmtEngine(options: FmtOptions, configuration: Partial<FmtL
   if (retained > limits.retainedBytes) throw new FmtError('LIMIT', 'fmt buffer retention limit exceeded');
   let prefix = ownedBytes(options.prefix, limits.argumentBytes);
   const budget = new WorkBudget(Object.freeze({ ...limits }), signal);
+  budget.retained = budget.peakRetained = retained;
   const formatter = new Formatter({ ...options, prefix, files: [] }, budget);
   let started = false;
   const dispose = (): void => { budget.closed = true; formatter.dispose(); prefix.fill(0); prefix = new Uint8Array(); };
@@ -452,6 +462,6 @@ export function createFmtEngine(options: FmtOptions, configuration: Partial<FmtL
       try { budget.check(); yield* formatter.run(); budget.check(); } finally { dispose(); }
     },
     dispose,
-    accounting: () => Object.freeze({ inputBytes: budget.input, decodedBytes: 0, outputBytes: budget.output, work: budget.operations, retainedBytes: budget.closed ? 0 : retained, peakRetainedBytes: retained }),
+    accounting: () => Object.freeze({ inputBytes: budget.input, decodedBytes: 0, outputBytes: budget.output, work: budget.operations, retainedBytes: budget.closed ? 0 : budget.retained, peakRetainedBytes: budget.peakRetained }),
   };
 }

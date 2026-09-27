@@ -24,7 +24,7 @@ export function capabilityActionCode(request: PlaywrightAbilityRequest, action: 
     return fallback;
   }
   const code = session.generateActionCode({ language, action });
-  if (typeof code !== 'string' || new TextEncoder().encode(code).byteLength > (request.limits?.maxCommandBytes ?? 1048576)) throw new PlaywrightResourceLimitError('Playwright generated code byte limit exceeded');
+  if (typeof code !== 'string' || new TextEncoder().encode(code).byteLength > (request.limits?.maxCommandBytes ?? Infinity)) throw new PlaywrightResourceLimitError('Playwright generated code byte limit exceeded');
   return code;
 }
 

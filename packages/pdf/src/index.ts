@@ -15,7 +15,7 @@ export {decodePng} from "./png.js";
 export function pdfCapabilities() {
   return {profile: "PDF-1.7-supplied-fonts-ltr", reference: "Adobe PDF Reference sixth edition, November 2006", scripts: ["Latin", "Greek", "Cyrillic"], fonts: ["sfnt-TrueType-glyf"], png: "static-noninterlaced-8bit", jpeg: "8bit-gray-rgb-adobe-cmyk", images: ["png", "jpeg"], tables: "rectangular-unspanned", encryption: false, javascript: false, attachments: false, accessibility: {tagged: false, readingOrder: "not-guaranteed", pdfUA: false}, conformance: {pdfA: false}, text: {unicodeMapping: "supported-scalars", extraction: "not-guaranteed", searchable: "not-guaranteed"}} as const;
 }
-export const defaultPdfLimits: Readonly<PdfLimits> = Object.freeze({fontBytes: Infinity, fonts: Infinity, glyphs: Infinity, pages: Infinity, objects: Infinity, images: Infinity, imageBytes: Infinity, decodedImageBytes: Infinity, layoutWork: Infinity, outputBytes: Infinity});
+export const defaultPdfLimits: Readonly<PdfLimits> = Object.freeze({fontBytes: Infinity, fonts: Infinity, glyphs: Infinity, pages: Infinity, objects: Infinity, images: Infinity, imageBytes: Infinity, imagePixels: Infinity, decodedImageBytes: Infinity, layoutWork: Infinity, outputBytes: Infinity});
 function unsupported(message: string): never { throw new PdfError("E_CAPABILITY", message); }
 function positive(value: number): boolean { return Number.isFinite(value) && value > 0; }
 interface Glyph { text: string; code: string; font: PDFFont; size: number; width: number; ascent: number; descent: number; link?: string; bold: boolean; italic: boolean; strikeout: boolean; underline: boolean }
@@ -276,7 +276,7 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
       charge("images", 1); charge("imageBytes", block.bytes.length); charge("objects", 3);
       const bytes = block.bytes;
       const {width, height, pixels} = imageBox(block, box, unsupported, () => charge("layoutWork", 1));
-      if (pixels > 4_000_000) throw new PdfError("E_LIMIT", "Image pixel limit exceeded");
+      charge("imagePixels", pixels);
       charge("decodedImageBytes", pixels * 16 + 65536);
       let imageRef;
       if (block.media === "png") {

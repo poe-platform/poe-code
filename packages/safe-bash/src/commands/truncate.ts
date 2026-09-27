@@ -204,8 +204,8 @@ function number(text: string, unicode: boolean): bigint {
   return value;
 }
 
-function parse(context: CommandContext, argumentLimit: number): Settings {
-  if (context.args.length > 4096) throw new PublicDiagnostic("argument limit exceeded");
+function parse(context: CommandContext, argumentLimit: number, maximumArguments: number): Settings {
+  if (context.args.length > maximumArguments) throw new PublicDiagnostic("argument limit exceeded");
   let total = 0;
   for (const argument of context.args) {
     if (context.argumentValues !== undefined) {
@@ -402,7 +402,7 @@ export function truncateCommand(options: MetadataCommandsOptions = {}): CommandD
     };
     let outcome: { exitCode: number } | { error: unknown };
     try {
-      const settings = parse(context, argumentLimit);
+      const settings = parse(context, argumentLimit, configured.limits.maxArguments ?? Infinity);
       const unicode = unicodeLocale(context);
       if (settings.information) {
         await emit(settings.information === "help" ? helpText : "truncate (virtual-bash)\n", false);

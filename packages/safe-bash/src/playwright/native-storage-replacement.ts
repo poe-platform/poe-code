@@ -99,6 +99,8 @@ export async function bindPlaywrightStorageContext(context: PlaywrightContext, p
 export interface PlaywrightStorageOperationOptions {
   readonly signal: AbortSignal;
   readonly maxBytes: number;
+  readonly maxNodes?: number | undefined;
+  readonly maxDepth?: number | undefined;
   registerCleanup(cleanup: () => Promise<void>): void;
 }
 
@@ -160,7 +162,7 @@ async function censusState(context: PlaywrightContext, binding: Binding, options
   if (!context.storageState) throw new Error('Native storage census is required');
   // Provider IndexedDB collectors may leave live-page connections open. Read
   // databases only in owned targets, whose collector closes every connection.
-  const census = parsePlaywrightStorageState(await context.storageState(), { maxBytes: options.maxBytes });
+  const census = parsePlaywrightStorageState(await context.storageState(), { maxBytes: options.maxBytes, maxNodes: options.maxNodes, maxDepth: options.maxDepth });
   binding.refreshOrigins();
   const origins = new Set([...census.origins.map(item => item.origin), ...binding.origins]);
   for (const origin of origins) {
@@ -169,16 +171,16 @@ async function censusState(context: PlaywrightContext, binding: Binding, options
     signal.throwIfAborted();
     const remainingBytes = options.maxBytes - new TextEncoder().encode(JSON.stringify({ ...census, origins: census.origins.filter(item => item.origin !== origin) })).length;
     if (remainingBytes <= 0) throw new PlaywrightResourceLimitError('Browser storage state byte limit exceeded');
-    const result = await inOrigin(binding, context, origin, signal, `(${collectStorageOriginSource})(${JSON.stringify({ origin, indexedDB, ...(Number.isFinite(remainingBytes) ? { maxBytes: remainingBytes } : {}) })})`);
+    const result = await inOrigin(binding, context, origin, signal, `(${collectStorageOriginSource})(${JSON.stringify({ origin, indexedDB, ...(Number.isFinite(remainingBytes) ? { maxBytes: remainingBytes } : {}), ...(Number.isFinite(options.maxNodes) ? { maxNodes: options.maxNodes } : {}), ...(Number.isFinite(options.maxDepth) ? { maxDepth: options.maxDepth } : {}) })})`);
     if (result === false) throw new PlaywrightResourceLimitError('Browser storage state byte limit exceeded');
     if (typeof result !== 'string') throw new Error('Invalid native storage readback');
-    const current = parsePlaywrightStorageState({ cookies: [], origins: [JSON.parse(result)] }, { maxBytes: options.maxBytes }).origins[0]!;
+    const current = parsePlaywrightStorageState({ cookies: [], origins: [JSON.parse(result)] }, { maxBytes: options.maxBytes, maxNodes: options.maxNodes, maxDepth: options.maxDepth }).origins[0]!;
     if (existing !== -1) census.origins.splice(existing, 1);
     if (current.localStorage.length || current.indexedDB?.length) census.origins.push(current);
-    parsePlaywrightStorageState(census, { maxBytes: options.maxBytes });
+    parsePlaywrightStorageState(census, { maxBytes: options.maxBytes, maxNodes: options.maxNodes, maxDepth: options.maxDepth });
   }
   signal.throwIfAborted();
-  return parsePlaywrightStorageState(census, { maxBytes: options.maxBytes });
+  return parsePlaywrightStorageState(census, { maxBytes: options.maxBytes, maxNodes: options.maxNodes, maxDepth: options.maxDepth });
 }
 
 export async function readPlaywrightStorageState(context: PlaywrightContext, options: PlaywrightStorageOperationOptions & { readonly indexedDB?: boolean }): Promise<PlaywrightStorageState> {
@@ -192,13 +194,13 @@ export async function replacePlaywrightStorageState(context: PlaywrightContext, 
   const binding = bindings.get(context);
   if (!binding) throw new Error('Same-context storage restoration requires trusted acquired native storage control');
   await storageOperation(binding, options, async signal => {
-    const state = parsePlaywrightStorageState(input, { maxBytes: options.maxBytes });
+    const state = parsePlaywrightStorageState(input, { maxBytes: options.maxBytes, maxNodes: options.maxNodes, maxDepth: options.maxDepth });
     if (!context.clearCookies || !context.addCookies) throw new Error('Native storage cookie controls are required');
     const census = await censusState(context, binding, options, true, signal);
     const origins = new Map(census.origins.map(item => [item.origin, { origin: item.origin, localStorage: [] } as PlaywrightStorageState['origins'][number]]));
     for (const origin of binding.origins) if (!origins.has(origin)) origins.set(origin, { origin, localStorage: [] });
     for (const origin of state.origins) origins.set(origin.origin, origin);
-    parsePlaywrightStorageState({ cookies: [], origins: [...origins.keys()].map(origin => ({ origin, localStorage: [] })) }, { maxBytes: options.maxBytes });
+    parsePlaywrightStorageState({ cookies: [], origins: [...origins.keys()].map(origin => ({ origin, localStorage: [] })) }, { maxBytes: options.maxBytes, maxNodes: options.maxNodes, maxDepth: options.maxDepth });
     for (const origin of state.origins) binding.origins.add(origin.origin);
     await context.clearCookies();
     signal.throwIfAborted();

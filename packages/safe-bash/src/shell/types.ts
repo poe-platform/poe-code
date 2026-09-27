@@ -63,6 +63,15 @@ export interface ShellLimits {
   readonly maxExpansionBytes?: number;
   readonly maxWallClockMs?: number;
   readonly maxCpuMs?: number;
+  readonly maxCdWork?: number;
+  readonly maxCdPathBytes?: number;
+  readonly maxCdProbes?: number;
+  readonly maxGlobstarStates?: number;
+  readonly maxGlobstarDepth?: number;
+  readonly maxGlobstarEntries?: number;
+  readonly maxCdPathComponents?: number;
+  readonly maxDirectoryStackEntries?: number;
+  readonly maxDirectoryStackOutputBytes?: number;
   readonly pipeHighWaterMark?: number;
 }
 

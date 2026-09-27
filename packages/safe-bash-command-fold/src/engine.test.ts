@@ -135,7 +135,7 @@ test('checked underflow and oversized calls retire the invocation without synthe
   // Proposed checked-JS boundary, not an observed native unsigned-wrap result.
   assert.throws(() => underflow.push(Uint8Array.of(8)), (e: unknown) => e instanceof FoldError && e.code === 'ARITHMETIC');
   assert.throws(() => underflow.endFile(), (e: unknown) => e instanceof FoldError && e.code === 'CLOSED');
-  const oversized = createFoldEngine(options, 'C', limits);
+  const oversized = createFoldEngine(options, 'C', { ...limits, chunkBytes: 4096 });
   assert.throws(() => oversized.push(new Uint8Array(4097)), (e: unknown) => e instanceof FoldError && e.code === 'LIMIT');
   assert.throws(() => oversized.endFile(), (e: unknown) => e instanceof FoldError && e.code === 'CLOSED');
 });
@@ -211,4 +211,9 @@ test('width boundaries, indivisible too-wide glyph, LF and missing final LF are 
   assert.deepEqual(fold('ab\rcdef', ['-w3'], 'C'), expected('ab\rcde\nf'));
   assert.deepEqual(fold('ab\bcde', ['-w3'], 'C'), expected('ab\bcd\ne'));
   assert.deepEqual(fold('ab\rcdef', ['-b', '-w3'], 'C'), expected('ab\r\ncde\nf'));
+});
+
+test('engine accepts input chunks above the former bounded-call ceiling', () => {
+  const input = 'word\n'.repeat(1000);
+  assert.deepEqual(fold(input, [], 'C', 5000), fold(input, [], 'C', 4096));
 });

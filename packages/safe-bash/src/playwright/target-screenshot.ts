@@ -5,6 +5,7 @@ export async function capturePlaywrightTargetScreenshot(target: PlaywrightElemen
   readonly scale: 'css' | 'device';
   readonly timeout: number;
   readonly maxArtifactBytes: number;
+  readonly maxPixels?: number | undefined;
   readonly signal: AbortSignal;
 }): Promise<Uint8Array> {
   options.signal.throwIfAborted();
@@ -19,7 +20,7 @@ export async function capturePlaywrightTargetScreenshot(target: PlaywrightElemen
   const block = options.type === 'jpeg' ? 8 : 1;
   const width = Math.ceil(box.width * ratio / block) * block;
   const height = Math.ceil(box.height * ratio / block) * block;
-  const maxPixels = Math.min(Math.floor(options.maxArtifactBytes / 4), options.type === 'jpeg' ? 1_000_000 : 4_000_000);
+  const maxPixels = Math.min(Math.floor(options.maxArtifactBytes / 4), options.maxPixels ?? Infinity);
   if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width > Math.floor(maxPixels / height)) throw new PlaywrightResourceLimitError('Screenshot pixel limit exceeded');
   const bytes = await target.screenshot({ type: options.type, ...(options.type === 'jpeg' ? { quality: 90 } : {}), scale: options.scale, timeout: options.timeout });
   options.signal.throwIfAborted();

@@ -119,3 +119,11 @@ it("copies only genuine byte views without using customized iteration or propert
     expect(() => copyDocxBytes(value as Uint8Array)).toThrow(DocxUsageError);
   }
 });
+
+it('accepts shared template records and rejects recursive data without a fixed depth ceiling', () => {
+  const leaf = { values: [{ binding: 'name', value: 'a' }] };
+  expect(validateTemplateData([leaf, leaf], true)).toBe(true);
+  const cyclic: { values: { binding: string; value: unknown }[] } = { values: [] };
+  cyclic.values.push({ binding: 'children', value: [cyclic] });
+  expect(validateTemplateData(cyclic, true)).toBe(false);
+});

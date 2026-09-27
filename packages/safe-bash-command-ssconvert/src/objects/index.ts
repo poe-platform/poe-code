@@ -60,7 +60,7 @@ export function sheetObjects(sheet: Sheet, context: CapabilityContext): readonly
   };
   const node = (value: ImportedValue | undefined, depth = 0): ObjectNode | undefined => {
     charge();
-    if (depth > maximum) throw new SsconvertError("resource-limit", "ssconvert object depth limit exceeded");
+    if (depth > (context.limits.objectDepth ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert object depth limit exceeded");
     if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
     const record = value as Readonly<Record<string, ImportedValue>>;
     if (typeof record.name !== "string" || typeof record.namespace !== "string" || typeof record.text !== "string") return undefined;

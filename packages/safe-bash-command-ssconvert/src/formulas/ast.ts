@@ -95,6 +95,7 @@ export interface FormulaParseOptions extends FormulaSemantics {
   readonly position: ParsePosition;
   readonly workbook?: Workbook;
   readonly signal?: AbortSignal;
+  readonly maximumDepth?: number | undefined;
   /** Optional node and label lookup quota; defaults to Infinity. */
   readonly maximumNodes?: number;
   /** Optional formula source length quota; defaults to Infinity. */

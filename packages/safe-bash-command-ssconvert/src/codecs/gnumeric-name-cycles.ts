@@ -13,7 +13,7 @@ export async function rejectGnumericNameCycles(
   for (let at = declarations.length - 1; at >= 0; at--) {
     tick();
     const name = declarations[at]!, index = indices.get(name)!;
-    const parsed = parseExpression(name.expression, { workbook: book,
+    const parsed = parseExpression(name.expression, { maximumDepth: context.limits.formulaDepth, workbook: book,
       position: name.position ?? { sheet: name.sheet ?? book.sheets[0]?.id ?? "", row: 0, column: 0 },
       signal: context.signal, maximumLength: context.limits.inputBytes,
       ...(context.limits.workbookNodes === undefined ? {} : { maximumNodes: context.limits.workbookNodes }) });

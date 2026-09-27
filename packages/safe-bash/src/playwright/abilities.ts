@@ -1,3 +1,4 @@
+import type { PlaywrightStructureLimits } from './resource-limit.js';
 import type { PlaywrightContext, PlaywrightElementHandle, PlaywrightPage, PlaywrightStorageState, PlaywrightArtifactCapture, PlaywrightCodeExecutor, PlaywrightTraceCapture, PlaywrightActionCodeGenerator } from './adapter.js';
 import type { PlaywrightCommandResult } from './response.js';
 import type { PlaywrightSessionConfiguration } from './session-configuration.js';
@@ -11,7 +12,7 @@ export interface PlaywrightAbilityRequest {
   readonly args: readonly string[];
   readonly options: Readonly<Record<string, string | boolean | readonly string[]>>;
   readonly signal: AbortSignal;
-  readonly limits?: { readonly maxCommandBytes: number; readonly maxArtifactBytes: number; readonly actionTimeoutMs?: number; readonly codeExecutionTimeoutMs?: number; readonly navigationTimeoutMs?: number; readonly maxPages?: number };
+  readonly limits?: PlaywrightStructureLimits & { readonly maxCommandBytes: number; readonly maxArtifactBytes: number; readonly actionTimeoutMs?: number; readonly codeExecutionTimeoutMs?: number; readonly navigationTimeoutMs?: number; readonly maxPages?: number };
   readonly browserSession?: {
     readonly configuration?: PlaywrightSessionConfiguration;
     readonly context: PlaywrightContext;

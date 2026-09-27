@@ -85,7 +85,7 @@ export class BiffNameBindings {
       this.slots.delete(index);
       return;
     }
-    const parsed = parseExpression(expression, { position: { sheet: "", row: 0, column: 0 },
+    const parsed = parseExpression(expression, { maximumDepth: this.context.limits.formulaDepth, position: { sheet: "", row: 0, column: 0 },
       signal: this.context.signal, maximumLength: this.context.limits.inputBytes,
       ...(this.context.limits.workbookNodes === undefined ? {} : { maximumNodes: this.context.limits.workbookNodes }) });
     let root = parsed.ok ? parsed.document.root : undefined;

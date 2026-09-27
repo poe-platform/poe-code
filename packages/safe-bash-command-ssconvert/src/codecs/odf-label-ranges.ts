@@ -28,7 +28,7 @@ export function readOdfLabelRanges(parent: XmlElement, sheets: readonly Sheet[],
   function address(source: string | undefined): { sheet: Sheet; range: Range } {
     if (!source) return invalid();
     charge(source.length);
-    const parsed = parseExpression("=[" + source + "]", { grammar: odfGrammar,
+    const parsed = parseExpression("=[" + source + "]", { maximumDepth: context.limits.formulaDepth, grammar: odfGrammar,
       position: { sheet: sheets[0]?.id ?? "", row: 0, column: 0 }, signal: context.signal,
       maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes,
       maximumNodes: context.limits.workbookNodes ?? Infinity });

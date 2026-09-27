@@ -222,6 +222,8 @@ function extendedSource(source: string): string {
 
 export interface PatternLimits {
   readonly maxPatternInstructions?: number;
+  readonly maxPatternSource?: number;
+  readonly maxPatternDepth?: number;
 }
 
 export interface Match { readonly start: number; readonly end: number; readonly groups: readonly (string | undefined)[] }
@@ -393,6 +395,8 @@ export class Pattern {
   readonly groupNames = new Map<string, number>();
   private code: Instruction[] = [];
   private compiledSteps = 0;
+  private sourceLength = 0;
+  private patternDepth = 0;
   private readonly instructionCount: number;
   private budgetPrepared = false;
   private parsed: { root: Node; counts: Map<Node, number> } | undefined;
@@ -414,12 +418,13 @@ export class Pattern {
   private fastPrefixInfo: { readonly anchoredStart: boolean; readonly anchoredEnd: boolean; readonly prefix: string } | undefined;
 
   constructor(source: string, extended = true, private readonly ignoreCase = false, private readonly dialect: "sed" | "awk" | "jq" | "rust" = "sed", private readonly modifiers = "", limits: PatternLimits = {}) {
+    this.sourceLength = source.length;
     const prefix = dialect === "jq" || dialect === "rust" ? dialect + " " : "";
-    const maximumInstructions = limits.maxPatternInstructions ?? (dialect === "rust" ? 16384 : Infinity);
-    if (maximumInstructions !== Infinity && (!Number.isSafeInteger(maximumInstructions) || maximumInstructions < 1)) throw new ProgramError("limits must be positive safe integers");
+    const maximumInstructions = limits.maxPatternInstructions ?? Infinity;
+    if ([maximumInstructions, limits.maxPatternSource ?? Infinity, limits.maxPatternDepth ?? Infinity].some(value => value !== Infinity && (!Number.isSafeInteger(value) || value < 1))) throw new ProgramError("limits must be positive safe integers");
+    if (source.length > (limits.maxPatternSource ?? Infinity)) throw new ProgramError(`${prefix}regular expression source limit exceeded`);
     if (dialect === "rust") {
-      if (source.length > 8192) throw new ProgramError(`${prefix}regular expression source limit exceeded`);
-      const parsed = parseRustPattern(source, ignoreCase), counts = instructionCounts(parsed.root);
+      const parsed = parseRustPattern(source, ignoreCase, limits.maxPatternDepth), counts = instructionCounts(parsed.root);
       if (!Number.isSafeInteger(counts.get(parsed.root)! + 1) || counts.get(parsed.root)! + 1 > maximumInstructions) throw new ProgramError(`${prefix}regular expression program limit exceeded`);
       this.instructionCount = counts.get(parsed.root)! + 1;
       this.groupCount = parsed.groupCount;
@@ -582,6 +587,8 @@ export class Pattern {
           : frame.index ? { type: "group", index: frame.index, lastCapture: groups, node: inner } : inner;
         frames[frames.length - 1]!.nodes.push(repeated(node));
       } else if (source[offset] === "(") {
+        if (frames.length > (limits.maxPatternDepth ?? Infinity)) throw new ProgramError(`${prefix}regular expression depth limit exceeded`);
+        this.patternDepth = Math.max(this.patternDepth, frames.length);
         offset++;
         let name: string | undefined;
         let capturing = true;
@@ -625,6 +632,8 @@ export class Pattern {
   }
 
   private assertInstructionLimit(budget: Pick<PatternBudget, "options">): void {
+    if (this.sourceLength > (budget.options?.maxPatternSource ?? Infinity)) throw new ProgramError("regular expression source limit exceeded");
+    if (this.patternDepth > (budget.options?.maxPatternDepth ?? Infinity)) throw new ProgramError("regular expression depth limit exceeded");
     if (this.instructionCount > (budget.options?.maxPatternInstructions ?? Infinity)) throw new ProgramError(`${this.dialect === "jq" ? "jq " : ""}regular expression program limit exceeded`);
   }
 

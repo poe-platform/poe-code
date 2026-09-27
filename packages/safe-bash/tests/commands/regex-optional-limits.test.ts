@@ -41,6 +41,8 @@ test("text regex compilation admits former fixed boundaries through caller quota
     await assert.doesNotReject(pattern.prepare(new Budget(context, {})));
   }
   assert.throws(() => new Pattern("a{16384}", true, false, "sed", "", { maxPatternInstructions: 16384 }), /regular expression program limit exceeded/);
+  assert.throws(() => new Pattern("a".repeat(8193), true, false, "sed", "", { maxPatternSource: 8192 }), /source limit exceeded/);
+  assert.throws(() => new Pattern("(".repeat(65) + "a" + ")".repeat(65), true, false, "sed", "", { maxPatternDepth: 64 }), /depth limit exceeded/);
 });
 
 test("ERE compilation admits patterns beyond former grammar caps", async () => {

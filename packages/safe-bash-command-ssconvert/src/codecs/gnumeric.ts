@@ -318,7 +318,7 @@ function bindCellNames(root: XmlElement, context: CapabilityContext, tick: () =>
           if (!formula.startsWith("=") || attribute(cell, "ValueType") !== undefined && attribute(cell, "Value") === undefined) continue;
           const row = number(cell, "Row", -1), column = number(cell, "Col", -1);
           if (!Number.isSafeInteger(row) || !Number.isSafeInteger(column) || row < 0 || column < 0) continue;
-          const parsed = parseExpression(formula, { position: { sheet: name, row, column }, signal: context.signal });
+          const parsed = parseExpression(formula, { maximumDepth: context.limits.formulaDepth, position: { sheet: name, row, column }, signal: context.signal });
           if (!parsed.ok) continue;
           const changes = new Map<number, { end: number; text: string }>();
           let rejection: string | undefined;
@@ -445,7 +445,7 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
       if (!text && id && shared.has(id)) {
         const original = shared.get(id)!;
         semantics = original.arrayStringLiterals ? { arrayStringLiterals: true } : {};
-        const parsed = parseExpression(original.formula, { position: original, ...semantics, signal: context.signal });
+        const parsed = parseExpression(original.formula, { maximumDepth: context.limits.formulaDepth, position: original, ...semantics, signal: context.signal });
         if (!parsed.ok) invalid("invalid shared expression");
         formula = rewriteReferences(parsed.document, { position: { sheet: name, row, column }, translation: "copy", signal: context.signal });
       }

@@ -39,14 +39,17 @@ export interface NativeStorageGlobals {
   };
 }
 
-export async function collectStorageOrigin(input: { origin: string; indexedDB: boolean; maxBytes: number }): Promise<string | false> {
+export async function collectStorageOrigin(input: { origin: string; indexedDB: boolean; maxBytes?: number; maxNodes?: number; maxDepth?: number }): Promise<string | false> {
   const { location, localStorage, indexedDB } = globalThis as unknown as NativeStorageGlobals;
   if (location.origin !== input.origin) throw new Error('Native storage origin changed');
+  const maxBytes = input.maxBytes ?? Infinity;
+  const maxNodes = input.maxNodes ?? Infinity;
+  const maxDepth = input.maxDepth ?? Infinity;
   let size = 0;
   let nodes = 0;
   const limit = new Error('Native storage read limit');
   const charge = (value: string, overhead = 2) => {
-    if (value.length > input.maxBytes || (size += new TextEncoder().encode(value).length + overhead) > input.maxBytes) throw limit;
+    if (value.length > maxBytes || (size += new TextEncoder().encode(value).length + overhead) > maxBytes) throw limit;
   };
   const helpers = {
     request<Result>(request: NativeStorageRequest<Result>): Promise<Result> {
@@ -57,7 +60,7 @@ export async function collectStorageOrigin(input: { origin: string; indexedDB: b
       });
     },
     encode(value: unknown, refs = new Map<object, number>(), depth = 0): unknown {
-      if (++nodes > input.maxBytes || depth > 100) throw limit;
+      if (++nodes > maxNodes || depth > maxDepth) throw limit;
       if (value === undefined) return { v: 'undefined' };
       if (value === null) return { v: 'null' };
       if (typeof value === 'string') { charge(value); return value; }
@@ -71,7 +74,7 @@ export async function collectStorageOrigin(input: { origin: string; indexedDB: b
       if (value instanceof Error) return { e: { n: value.name, m: value.message, s: value.stack } };
       const constructors: Record<string, new (buffer: ArrayBuffer) => ArrayBufferView> = { i8: Int8Array, ui8: Uint8Array, ui8c: Uint8ClampedArray, i16: Int16Array, ui16: Uint16Array, i32: Int32Array, ui32: Uint32Array, f32: Float32Array, f64: Float64Array, bi64: BigInt64Array, bui64: BigUint64Array };
       for (const [kind, Constructor] of Object.entries(constructors)) if (value instanceof Constructor) {
-        if (value.byteLength > input.maxBytes) throw limit;
+        if (value.byteLength > maxBytes) throw limit;
         let binary = '';
         for (const byte of new Uint8Array(value.buffer, value.byteOffset, value.byteLength)) binary += String.fromCharCode(byte);
         const encoded = btoa(binary); charge(encoded);
@@ -80,7 +83,7 @@ export async function collectStorageOrigin(input: { origin: string; indexedDB: b
       if (refs.has(value)) return { ref: refs.get(value) };
       const id = refs.size + 1; refs.set(value, id);
       if (Array.isArray(value)) {
-        if (value.length > input.maxBytes - nodes) throw limit;
+        if (value.length > maxNodes - nodes) throw limit;
         return { a: value.map(child => this.encode(child, refs, depth + 1)), id };
       }
       const entries: { k: string; v: unknown }[] = [];
@@ -144,7 +147,7 @@ export async function collectStorageOrigin(input: { origin: string; indexedDB: b
       }
     }
     const serialized = JSON.stringify(result);
-    if (new TextEncoder().encode(serialized).length > input.maxBytes) return false;
+    if (new TextEncoder().encode(serialized).length > maxBytes) return false;
     return serialized;
   } catch (error) { if (error === limit) return false; throw error; }
 }

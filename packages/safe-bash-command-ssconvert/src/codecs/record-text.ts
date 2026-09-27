@@ -35,7 +35,7 @@ export function recordInput(bytes: Uint8Array, context: CapabilityContext, name:
 export function enteredRecord(text: string, row: number, column: number, context: CapabilityContext): Cell {
   const book: Workbook = { sheets: [] };
   if (text.startsWith("=")) {
-    const parsed = parseExpression(text, { position: { sheet: "Sheet1", row, column }, signal: context.signal,
+    const parsed = parseExpression(text, { maximumDepth: context.limits.formulaDepth, position: { sheet: "Sheet1", row, column }, signal: context.signal,
       maximumNodes: context.limits.operations, maximumLength: context.limits.inputBytes });
     if (parsed.ok) return { row, column, value: { kind: "blank" }, cachedResult: { kind: "blank" }, formula: serializeExpression(parsed.document, gnumericGrammar, false, true), formulaDirty: false };
   }

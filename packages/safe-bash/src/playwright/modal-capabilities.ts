@@ -78,7 +78,7 @@ const dialog: PlaywrightAbility = { scope: 'session', async execute(request) {
 } };
 
 export async function readPlaywrightFiles(request: PlaywrightAbilityRequest, paths: readonly string[]): Promise<{ name: string; mimeType: string; buffer: Uint8Array }[]> {
-  const maximum = Math.min(request.limits?.maxArtifactBytes ?? 8 * 1024 * 1024, request.limits?.maxCommandBytes ?? 1048576);
+  const maximum = Math.min(request.limits?.maxArtifactBytes ?? Infinity, request.limits?.maxCommandBytes ?? Infinity);
   const files: { name: string; mimeType: string; buffer: Uint8Array }[] = [];
   let total = 0;
   for (const path of paths) {

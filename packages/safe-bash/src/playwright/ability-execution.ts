@@ -1,3 +1,4 @@
+import type { PlaywrightStructureLimits } from './resource-limit.js';
 import type { PlaywrightAbilityRequest, RegisteredPlaywrightAbility } from './abilities.js';
 import type { PlaywrightPage } from './adapter.js';
 import type { ParsedInvocation, PlaywrightInvocation } from './invocation.js';
@@ -14,6 +15,7 @@ function freezeConfiguration<T>(value: T): T {
 
 export async function executePlaywrightAbility(ability: RegisteredPlaywrightAbility, parsed: ParsedInvocation, invocation: PlaywrightInvocation, context: {
   readonly signal: AbortSignal;
+  readonly structureLimits?: PlaywrightStructureLimits | undefined;
   readonly maxCommandBytes: number;
   readonly maxArtifactBytes: number;
   readonly commandBudget?: ReturnType<typeof createPlaywrightCommandBudget>;
@@ -44,7 +46,7 @@ export async function executePlaywrightAbility(ability: RegisteredPlaywrightAbil
   const browserSession = context.browserSession;
   const request: PlaywrightAbilityRequest = Object.freeze({
     command: parsed.command, session: parsed.session, args: parsed.args, options: parsed.options, signal: context.signal,
-    limits: Object.freeze({ maxCommandBytes: context.maxCommandBytes, maxArtifactBytes: context.maxArtifactBytes, actionTimeoutMs: context.actionTimeoutMs ?? 5000, codeExecutionTimeoutMs: context.codeExecutionTimeoutMs ?? 30000, navigationTimeoutMs: context.navigationTimeoutMs ?? 60000, maxPages: context.maxPages ?? Infinity }),
+    limits: Object.freeze({ ...context.structureLimits, maxCommandBytes: context.maxCommandBytes, maxArtifactBytes: context.maxArtifactBytes, actionTimeoutMs: context.actionTimeoutMs ?? 5000, codeExecutionTimeoutMs: context.codeExecutionTimeoutMs ?? 30000, navigationTimeoutMs: context.navigationTimeoutMs ?? 60000, maxPages: context.maxPages ?? Infinity }),
     ...(browserSession ? { browserSession: Object.freeze({
       context: browserSession.context,
       page: browserSession.page,

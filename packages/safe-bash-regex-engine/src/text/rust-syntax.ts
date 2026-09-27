@@ -39,13 +39,13 @@ function property(name: string, insensitive: boolean): (char: string) => boolean
   throw new ProgramError(`Unicode property not found: ${name}`);
 }
 
-export function parseRustPattern(source: string, ignoreCase: boolean): { root: Node; groupCount: number; groupNames: Map<string, number> } {
+export function parseRustPattern(source: string, ignoreCase: boolean, maximumDepth = Infinity): { root: Node; groupCount: number; groupNames: Map<string, number> } {
   let at = 0, depth = 0, groupCount = 0;
   let flags = new Set(ignoreCase ? ["u", "i"] : ["u"]);
   const groupNames = new Map<string, number>(), references = new Set<number>();
   let numberedReferences = false;
   function fail(message: string, offset = at, compilation = false): never { throw new RustPatternError(message, offset, compilation); }
-  const enter = (): void => { if (++depth > 64) throw new ProgramError("rust regular expression depth limit exceeded"); };
+  const enter = (): void => { if (++depth > maximumDepth) throw new ProgramError("rust regular expression depth limit exceeded"); };
   const skip = (): void => {
     if (!flags.has("x")) return;
     while (at < source.length) {

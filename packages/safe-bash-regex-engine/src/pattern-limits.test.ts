@@ -46,3 +46,22 @@ test("callers can bound parsing before eager instruction emission", () => {
     assert.throws(() => new Pattern("a", true, false, "sed", "", { maxPatternInstructions }), /limits must be positive/u);
   }
 });
+
+test('regex source and group nesting are unlimited by default', () => {
+  assert.doesNotThrow(() => new Pattern('a'.repeat(8193)));
+  assert.doesNotThrow(() => new Pattern('('.repeat(65) + 'a' + ')'.repeat(65)));
+});
+
+test('regex source and group nesting accept explicit host limits', () => {
+  assert.throws(() => new Pattern('abc', true, false, 'sed', '', { maxPatternSource: 2 }), /source limit/u);
+  assert.throws(() => new Pattern('((a))', true, false, 'sed', '', { maxPatternDepth: 1 }), /depth limit/u);
+});
+
+test('caller budgets enforce source, depth and instructions on reused patterns', async () => {
+  const context = { signal: new AbortController().signal } as CommandContext;
+  const nested = new Pattern('((a))');
+  await nested.prepare(new Budget(context, {}));
+  await assert.rejects(nested.find('a', new Budget(context, { maxPatternDepth: 1 })), /depth limit/u);
+  await assert.rejects(nested.find('a', new Budget(context, { maxPatternSource: 2 })), /source limit/u);
+  assert.throws(() => new Pattern('a{20000}', true, false, 'sed', '', { maxPatternInstructions: 19000 }), /program limit/u);
+});

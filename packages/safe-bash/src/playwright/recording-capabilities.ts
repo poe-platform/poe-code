@@ -11,7 +11,7 @@ const start: PlaywrightAbility = { scope: 'session', async execute(request) {
   if (recordings.has(context)) throw new Error('Recording is already in progress.');
   const modern = Boolean(context._startRecording && context._stopRecording);
   if (!modern && !(context._enableRecorder && context._disableRecorder)) unsupported('native action recording');
-  const maximum = request.limits?.maxCommandBytes ?? 1048576;
+  const maximum = request.limits?.maxCommandBytes ?? Infinity;
   let bytes = 0, admitted = false;
   let started: Promise<void> = Promise.resolve(), stopping: Promise<void> | undefined;
   const recording: Recording = { actions: [], stop() {
@@ -32,7 +32,7 @@ const start: PlaywrightAbility = { scope: 'session', async execute(request) {
     const previous = update && recording.actions.length ? recording.actions.at(-1)! : undefined;
     const size = new TextEncoder().encode(code).byteLength;
     const next = bytes + size - (previous === undefined ? 0 : new TextEncoder().encode(previous).byteLength);
-    if (next > maximum || previous === undefined && recording.actions.length >= 4096) { recording.failure = new PlaywrightResourceLimitError('Playwright recording byte limit exceeded'); return; }
+    if (next > maximum || previous === undefined && recording.actions.length >= (request.limits?.maxRecordingActions ?? Infinity)) { recording.failure = new PlaywrightResourceLimitError('Playwright recording byte limit exceeded'); return; }
     bytes = next;
     if (previous === undefined) recording.actions.push(code);
     else recording.actions[recording.actions.length - 1] = code;

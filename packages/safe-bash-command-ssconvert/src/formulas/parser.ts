@@ -15,6 +15,9 @@ const whitespace = (c: string | undefined): boolean => c !== undefined && " \t\r
 export function parseExpression(source: string, options: FormulaParseOptions): FormulaParseResult {
   const grammar = options.grammar ?? (source.startsWith("of:=") ? internalOdfGrammar : gnumericGrammar);
   const internalLabels = grammar.id === "gnumeric" || grammar.internalLabels === true;
+  for (const value of [options.maximumDepth, options.maximumLength, options.maximumNodes]) {
+    if (value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) || value < 0)) throw new SsconvertError("invalid-request", "Invalid formula limit");
+  }
   options.signal?.throwIfAborted();
   if (source.length > (options.maximumLength ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert formula length limit exceeded");
   const origin = options.workbook?.sheets.find(sheet => sheet.id === options.position.sheet) ??
@@ -25,6 +28,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
     if (!Number.isSafeInteger(value) || value < 0) throw new SsconvertError("invalid-request", "Invalid formula parse position");
   let offset = 0, depth = 0, nodes = 0, labelWork = 0, hasLabels = false;
   for (const prefix of grammar.prefixes) if (source.startsWith(prefix)) { offset = prefix.length; break; }
+  const heights = new WeakMap<FormulaNode, number>();
   const syntax = {};
   let diagnostic = { code: "syntax" as const, message: "Invalid formula", start: offset, end: offset };
   function fail(message = "Invalid formula", start = offset, end = Math.min(source.length, offset + 1)): never {
@@ -36,7 +40,12 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
     options.signal?.throwIfAborted();
     options.onWork?.();
     if (++nodes > (options.maximumNodes ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert formula node limit exceeded");
-    return value;
+    const children = value.kind === "binary" ? [value.left, value.right] : value.kind === "unary" || value.kind === "parentheses" ? [value.child] :
+      value.kind === "call" ? value.args : value.kind === "array" ? value.rows.flat() : [];
+    let height = 1;
+    for (const child of children) height = Math.max(height, 1 + (heights.get(child) ?? 1));
+    if (height > (options.maximumDepth ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert formula depth limit exceeded");
+    heights.set(value, height); return value;
   }
   function space(): boolean {
     const start = offset;
@@ -227,7 +236,8 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
   }
   function primary(stopSeparator: boolean, allowLabelIntersection = true): FormulaNode {
     space(); const start = offset;
-    if (++depth > (options.maximumNodes ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert formula node limit exceeded");
+    if (++depth > (options.maximumDepth ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert formula depth limit exceeded");
+    if (depth > (options.maximumNodes ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert formula node limit exceeded");
     try {
       const c = source[offset];
       if (c === "@" && !internalLabels) fail("Internal label reference in native formula");

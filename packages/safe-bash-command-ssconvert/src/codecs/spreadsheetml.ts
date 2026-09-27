@@ -231,7 +231,7 @@ export async function readSpreadsheetML(bytes: Uint8Array, context: CapabilityCo
   }
   async function formula(source: string, sheet: string, row: number, column: number, warningColumn = column): Promise<FormulaDocument | undefined> {
     if (!source.startsWith("=")) { await warning(`Invalid formula '${source}' does not begin with '='`, sheet || undefined, row, warningColumn); return undefined; }
-    const parsed = parseExpression("=" + source.slice(1).trimStart(), { grammar, position: { sheet, row, column }, signal: context.signal,
+    const parsed = parseExpression("=" + source.slice(1).trimStart(), { maximumDepth: context.limits.formulaDepth, grammar, position: { sheet, row, column }, signal: context.signal,
       maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? Infinity });
     if (!parsed.ok) { await warning(`'${source.slice(1)}' ${parsed.diagnostic.message}`, sheet || undefined, row, warningColumn); return undefined; }
     if (sheet && !await knownReferences(parsed.document.root, source, { sheet, row, column: warningColumn })) return undefined;

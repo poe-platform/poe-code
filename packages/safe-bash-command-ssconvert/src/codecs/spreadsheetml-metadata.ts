@@ -20,7 +20,7 @@ export function readSpreadsheetMLMetadata(worksheet: XmlElement, sheet: string, 
     if (++work > (context.limits.workbookWork ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert SpreadsheetML metadata work limit exceeded");
   }
   function range(source: string): Range | undefined {
-    charge(); const parsed = parseExpression("=" + source, { grammar: { ...excelGrammar, address: "r1c1" }, position: { sheet, row: 0, column: 0 }, signal: context.signal,
+    charge(); const parsed = parseExpression("=" + source, { maximumDepth: context.limits.formulaDepth, grammar: { ...excelGrammar, address: "r1c1" }, position: { sheet, row: 0, column: 0 }, signal: context.signal,
       maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? Infinity });
     if (!parsed.ok || parsed.document.root.kind !== "reference") return undefined;
     const first = parsed.document.root.first, last = parsed.document.root.last ?? first;

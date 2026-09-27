@@ -379,7 +379,7 @@ test("globstar bounds directory admission before reading oversized provider entr
   }
   const fs = new Oversized();
   await fs.mkdir("/work");
-  const { shell } = setup({ fs, cwd: "/work" });
+  const { shell } = setup({ fs, cwd: "/work", limits: { maxGlobstarEntries: 100_000 } });
   try { await assert.rejects(shell.exec("shopt -s globstar; args **"), error => error instanceof FsError && error.code === "EFBIG"); }
   finally { await shell.dispose(); }
 });
@@ -394,7 +394,7 @@ test("a provider's directory admission refusal terminates traversal with its ori
   }
   const fs = new Admitting();
   await fs.mkdir("/work");
-  const { shell } = setup({ fs, cwd: "/work" });
+  const { shell } = setup({ fs, cwd: "/work", limits: { maxGlobstarEntries: 100_000 } });
   let effects = 0;
   shell.register({ name: "effect", execute() { effects++; return { exitCode: 0 }; } });
   try {
@@ -413,7 +413,7 @@ test("hidden nonmatches consume invocation-wide entry admission without consumin
   }
   const fs = new Hidden();
   await fs.mkdir("/work");
-  const { shell } = setup({ fs, cwd: "/work", limits: { maxExpansionFields: 20 } });
+  const { shell } = setup({ fs, cwd: "/work", limits: { maxExpansionFields: 20, maxGlobstarEntries: 100_000 } });
   try {
     await assert.rejects(shell.exec("shopt -s globstar; args **; args **; args **"), error => error instanceof FsError && error.code === "EFBIG");
     assert.deepEqual(fs.limits, [100_000, 50_000, 0]);
@@ -427,14 +427,14 @@ test("recursive directory depth is independently bounded", async () => {
     override async stat() { return super.stat("/"); }
     override async readdir() { return [{ name: "d", type: "directory" as const }]; }
   }
-  const { shell } = setup({ fs: new Endless(), limits: { maxPathComponents: 1000 } });
+  const { shell } = setup({ fs: new Endless(), limits: { maxPathComponents: 1000, maxGlobstarDepth: 128 } });
   try { await assert.rejects(shell.exec("shopt -s globstar; args **/missing"), error => error instanceof FsError && error.message.includes("depth limit")); }
   finally { await shell.dispose(); }
 });
 
 test("files at the admitted recursive directory depth do not add another directory level", async () => {
   const fs = new MemoryFileSystem();
-  const directory = "/work/" + Array.from({ length: 128 }, () => "d").join("/");
+  const directory = "/work/" + Array.from({ length: 129 }, () => "d").join("/");
   await fs.mkdir(directory, { recursive: true });
   await fs.writeFile(`${directory}/leaf`, new Uint8Array());
   const { shell } = setup({ fs, cwd: "/work", limits: { maxPathComponents: 1000 } });

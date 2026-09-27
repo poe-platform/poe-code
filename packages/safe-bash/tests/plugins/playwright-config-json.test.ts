@@ -5,7 +5,7 @@ import { createPlaywrightController } from '../../src/playwright/index.js';
 
 test('open refuses the reported 5.7 MiB object bomb without acquiring a browser', async () => {
   let acquisitions = 0;
-  const controller = createPlaywrightController({ adapter: {
+  const controller = createPlaywrightController({ limits: { maxConfigBytes: 128 * 1024 }, adapter: {
     browsers: { chromium: { headed: false } }, async acquire() { acquisitions++; throw new Error('unexpected acquisition'); },
   } });
   const bytes = new TextEncoder().encode('{"junk":[' + '{},'.repeat(1_900_000) + '{}]}');
@@ -34,7 +34,7 @@ test('config admission counts duplicate properties and primitive array entries b
     '{' + '"browser":{},'.repeat(2100) + '"browser":{}}',
     '{"browser":{"contextOptions":{"permissions":[' + 'null,'.repeat(4096) + 'null]}}}',
     '{"browser":' + '{"x":'.repeat(32) + '0' + '}'.repeat(32) + '}',
-  ]) assert.throws(() => parsePlaywrightConfigJSON(source), /structure limit/);
+  ]) assert.throws(() => parsePlaywrightConfigJSON(source, { maxConfigEntries: 4096, maxConfigDepth: 32 }), /structure limit/);
 });
 
 test('config admission refuses prohibited arrays and unknown escaped top-level keys', () => {

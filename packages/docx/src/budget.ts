@@ -53,12 +53,14 @@ export const documentLimitDefaults = Object.freeze({
   tableRows: Infinity,
   tableColumns: Infinity,
   diagnosticBytes: Infinity,
+  templateRepeatDepth: Infinity,
+  templateRepeatItems: Infinity,
   work: Infinity
 });
 export type DocumentLimitName = keyof typeof documentLimitDefaults;
 export type DocumentLimits = Readonly<Record<DocumentLimitName, number>>;
 const perDocument = new Set<DocumentLimitName>(["compressedInput", "expandedPackage", "zipEntries"]);
-const zeroCapacity = new Set<DocumentLimitName>(["embeddedMediaBytes", "batchOperations", "matches", "insertedNodes"]);
+const zeroCapacity = new Set<DocumentLimitName>(["embeddedMediaBytes", "batchOperations", "matches", "insertedNodes", "templateRepeatDepth", "templateRepeatItems"]);
 
 function settings(values: Partial<DocumentLimits>, ceilings: DocumentLimits): DocumentLimits {
   if (!values || typeof values !== "object" || Array.isArray(values))

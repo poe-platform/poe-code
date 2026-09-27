@@ -14,7 +14,7 @@ test('WebMCP parameter preflight bounds nodes and depth before native parsing', 
   let parsed = false;
   JSON.parse = () => { parsed = true; throw new Error('must reject before parsing'); };
   try {
-    for (const source of sources) assert.throws(() => parseWebMCPParams(source), PlaywrightResourceLimitError);
+    for (const source of sources) assert.throws(() => parseWebMCPParams(source, Infinity, { maxWebMCPParameterNodes: 10000, maxWebMCPParameterDepth: 64 }), PlaywrightResourceLimitError);
     assert.equal(parsed, false);
   } finally { JSON.parse = parse; }
 });
@@ -24,7 +24,7 @@ test('WebMCP parameter preflight enforces UTF-8 bytes and smaller command budget
   const bytes = new TextEncoder().encode(source).byteLength;
   assert.deepEqual(parseWebMCPParams(source, bytes), { text: 'é' });
   assert.throws(() => parseWebMCPParams(source, bytes - 1), /parameter byte limit/);
-  assert.throws(() => parseWebMCPParams('{"text":"' + 'x'.repeat(1024 * 1024) + '"}', 16 * 1024 * 1024), /parameter byte limit/);
+  assert.throws(() => parseWebMCPParams('{"text":"' + 'x'.repeat(1024 * 1024) + '"}', 16 * 1024 * 1024, { maxWebMCPParameterBytes: 1024 * 1024 }), /parameter byte limit/);
 });
 
 test('WebMCP parameter preflight accepts boundary graphs and escaped string punctuation', () => {

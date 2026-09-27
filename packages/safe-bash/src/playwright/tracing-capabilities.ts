@@ -30,11 +30,11 @@ export function preparePlaywrightTraceRelease(context: PlaywrightContext): Promi
 }
 
 export async function flushPlaywrightTrace(context: PlaywrightContext, capture: PlaywrightTraceCapture | undefined,
-  options: { signal: AbortSignal; maxBytes: number; writeArtifact(bytes: Uint8Array, filename?: string): Promise<void>; mkdir?(path: string): Promise<void> }): Promise<string[]> {
+  options: { signal: AbortSignal; maxBytes: number; maxFiles?: number | undefined; writeArtifact(bytes: Uint8Array, filename?: string): Promise<void>; mkdir?(path: string): Promise<void> }): Promise<string[]> {
   const recording = recordings.get(context);
   if (!recording?.name || !capture) return [];
   const result = await capture(context, { signal: options.signal, maxBytes: options.maxBytes });
-  if (!Array.isArray(result.files) || result.files.length > 1024) throw new PlaywrightResourceLimitError('Playwright trace file count limit exceeded');
+  if (!Array.isArray(result.files) || result.files.length > (options.maxFiles ?? Infinity)) throw new PlaywrightResourceLimitError('Playwright trace file count limit exceeded');
   let total = 0;
   const paths = new Set<string>();
   for (const file of result.files) {
@@ -84,7 +84,7 @@ export const playwrightTracingStop: PlaywrightAbility = { scope: 'session', asyn
     return capabilityResult('', 'Trace recording stopped.');
   }
   const bytes = await session.captureArtifact!(path => stopTrace(session.context, recording, path), {
-    signal: request.signal, maxBytes: request.limits?.maxArtifactBytes ?? 1048576, extension: 'zip',
+    signal: request.signal, maxBytes: request.limits?.maxArtifactBytes ?? Infinity, extension: 'zip',
   });
   recordings.delete(session.context);
   return capabilityArtifact(request, bytes, 'trace', 'zip', 'Trace', () => '');

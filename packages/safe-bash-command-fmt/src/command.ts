@@ -272,7 +272,7 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
                     readError = !received && name !== "-" && error instanceof FsError && ["ENOENT", "EACCES", "ENOTDIR", "ELOOP"].includes(error.code) ? fileError(error, name, nameBytes, true, context) : error;
                   }
                 }
-                if (bytes?.length === 0 && ++emptyChunks > 4096) throw new FmtError("LIMIT", "empty input chunk limit exceeded");
+                if (bytes?.length === 0 && ++emptyChunks > (limits.emptyChunks ?? Infinity)) throw new FmtError("LIMIT", "empty input chunk limit exceeded");
                 if (++chunks % 64 === 0) await maybeYield(local.signal);
                 step = machine.next(bytes);
               } else {

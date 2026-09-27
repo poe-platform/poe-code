@@ -84,7 +84,7 @@ export async function readSylk(bytes: Uint8Array, context: CapabilityContext): P
   async function warn(message: string) { await context.diagnostic?.({ code: "sylk-record", severity: "warning", message: `${input.line}:${message}` }); context.signal.throwIfAborted(); }
   function expression(text: string): string | undefined {
     const discovered: NamedExpression[] = [];
-    const parsed = parseExpression(text.startsWith("=") ? text : "=" + text, { grammar: sylkGrammar, position: { sheet: "Sheet1", row, column },
+    const parsed = parseExpression(text.startsWith("=") ? text : "=" + text, { maximumDepth: context.limits.formulaDepth, grammar: sylkGrammar, position: { sheet: "Sheet1", row, column },
       signal: context.signal, maximumNodes: context.limits.workbookNodes ?? context.limits.operations, maximumLength: context.limits.inputBytes,
       onName(name, sheet) { discovered.push({ name, expression: "=#NAME?", position: { sheet: "Sheet1", row, column }, ...(sheet ? { sheet } : {}) }); } });
     for (const name of discovered) {
@@ -334,7 +334,7 @@ export async function writeSylk(book: Workbook, _options: readonly string[], con
     const formula = cell.formula ?? (group && !follower ? group.expression : undefined);
     if (follower) line += ";I";
     else if (formula) {
-      const parsed = parseExpression(formula, { position: { sheet: sheet.name, row: cell.row, column: cell.column }, signal: context.signal,
+      const parsed = parseExpression(formula, { maximumDepth: context.limits.formulaDepth, position: { sheet: sheet.name, row: cell.row, column: cell.column }, signal: context.signal,
         maximumNodes: context.limits.workbookNodes ?? context.limits.operations, maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes });
       if (!parsed.ok) throw new SsconvertError("invalid-request", `Invalid SYLK formula: ${formula}`);
       line += (group ? `;R${group.range.endRow + 1};C${group.range.endColumn + 1};M` : ";E") + escaped(serializeExpression(parsed.document, writerGrammar, false, true).slice(1));

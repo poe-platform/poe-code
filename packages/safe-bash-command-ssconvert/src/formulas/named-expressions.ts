@@ -1,3 +1,4 @@
+import { SsconvertError } from "../contracts.js";
 import { resolveName, type NamedExpression, type Workbook } from "../workbook.js";
 import { foldSheetName } from "../workbook/case-fold.js";
 import type { FormulaNode, ParsePosition } from "./ast.js";
@@ -9,15 +10,17 @@ export function parseNamedExpression(
   name: NamedExpression,
   book: Workbook,
   parse: (source: string, position: ParsePosition, arrayStringLiterals?: boolean) => FormulaNode,
-  tick: () => void
+  tick: () => void,
+  maximumDepth = Infinity
 ): FormulaNode {
   if (name.expression === "" || name.expression === "=") {
     tick();
     return { kind: "literal", value: { kind: "blank" }, start: 0, end: 0 };
   }
   const position = name.position ?? { sheet: name.sheet ?? book.sheets[0]?.id ?? "", row: 0, column: 0 };
-  function bind(node: FormulaNode): FormulaNode {
+  function bind(node: FormulaNode, depth = 0): FormulaNode {
     tick();
+    if (depth > maximumDepth) throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded");
     if (node.kind === "name" && (node.workbook === undefined || node.workbook === "" && node.sheet !== undefined)) {
       const scope = node.sheet === undefined ? name.sheet : book.sheets.find(sheet => foldSheetName(sheet.name) === foldSheetName(node.sheet!))?.id;
       const target = resolveName(book, node.name, scope);
@@ -25,10 +28,10 @@ export function parseNamedExpression(
       const sheet = book.sheets.find(sheet => sheet.id === target.sheet);
       return sheet ? { ...node, sheet: sheet.name } : node;
     }
-    if (node.kind === "parentheses" || node.kind === "unary") return { ...node, child: bind(node.child) };
-    if (node.kind === "binary") return { ...node, left: bind(node.left), right: bind(node.right) };
-    if (node.kind === "call") return { ...node, args: node.args.map(child => bind(child)) };
-    if (node.kind === "array") return { ...node, rows: node.rows.map(row => row.map(child => bind(child))) };
+    if (node.kind === "parentheses" || node.kind === "unary") return { ...node, child: bind(node.child, depth + 1) };
+    if (node.kind === "binary") return { ...node, left: bind(node.left, depth + 1), right: bind(node.right, depth + 1) };
+    if (node.kind === "call") return { ...node, args: node.args.map(child => bind(child, depth + 1)) };
+    if (node.kind === "array") return { ...node, rows: node.rows.map(row => row.map(child => bind(child, depth + 1))) };
     return node;
   }
   return bind(parse(name.expression, position, name.arrayStringLiterals));

@@ -133,7 +133,7 @@ export function createFoldEngine(options: FoldOptions, locale: string, configura
         try { values = byteValues.call(bytes); }
         catch { throw new FoldError('INPUT', 'Input byte storage is unavailable'); }
         const length = byteLength.call(bytes) as number;
-        if (length > 4096 || length > inputBytes - input) throw new FoldError('LIMIT', 'Input byte or bounded-call limit exceeded');
+        if (length > (limits.chunkBytes ?? Infinity) || length > inputBytes - input) throw new FoldError('LIMIT', 'Input byte or bounded-call limit exceeded');
         input += length;
         for (const b of values) {
           if (

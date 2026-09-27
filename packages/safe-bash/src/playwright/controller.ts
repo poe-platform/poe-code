@@ -1,3 +1,4 @@
+import { playwrightStructureDefaults, type PlaywrightStructureLimits } from './resource-limit.js';
 import type { PlaywrightAdapter, PlaywrightCodegenAction, PlaywrightContext, PlaywrightContextOptions, PlaywrightLease, PlaywrightPage } from './adapter.js';
 import { createSnapshotEngine, SnapshotCleanupError } from './snapshot.js';
 import { capturePlaywrightScreenshot } from './screenshot.js';
@@ -51,7 +52,7 @@ export interface PlaywrightControllerOptions {
   readonly persistence?: PlaywrightSessionPersistence;
   /** Opt in only when this controller and persistence are bound to one authenticated owner. */
   readonly namedSessionAttachment?: boolean;
-  readonly limits?: { readonly maxSessions?: number; readonly actionTimeoutMs?: number; readonly codeExecutionTimeoutMs?: number;
+  readonly limits?: PlaywrightStructureLimits & { readonly maxSessions?: number; readonly actionTimeoutMs?: number; readonly codeExecutionTimeoutMs?: number;
     /** @deprecated Ignored. Snapshots have no byte limit. */
     readonly maxSnapshotBytes?: number;
     readonly maxSnapshotRefs?: number; readonly maxArtifactBytes?: number; readonly maxTabs?: number; readonly maxCommandBytes?: number };
@@ -178,20 +179,24 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   if (options.persistence?.close !== undefined && typeof options.persistence.close !== 'function') throw new TypeError('Invalid Playwright persistence close');
   if (options.persistence?.list !== undefined && typeof options.persistence.list !== 'function') throw new TypeError('Invalid Playwright persistence list');
   for (const key of ['inspectRecovery', 'recordOperation'] as const) if (options.persistence?.[key] !== undefined && typeof options.persistence[key] !== 'function') throw new TypeError('Invalid Playwright recovery persistence');
-  if (options.limits !== undefined && (!options.limits || typeof options.limits !== 'object' || Object.keys(options.limits).some(key => !['maxSessions', 'actionTimeoutMs', 'codeExecutionTimeoutMs', 'maxSnapshotBytes', 'maxSnapshotRefs', 'maxArtifactBytes', 'maxTabs', 'maxCommandBytes'].includes(key)))) throw new TypeError('Unsupported Playwright limits');
+  if (options.limits !== undefined && (!options.limits || typeof options.limits !== 'object' || Object.keys(options.limits).some(key => !['maxSessions', 'actionTimeoutMs', 'codeExecutionTimeoutMs', 'maxSnapshotBytes', 'maxSnapshotRefs', 'maxArtifactBytes', 'maxTabs', 'maxCommandBytes', ...Object.keys(playwrightStructureDefaults)].includes(key)))) throw new TypeError('Unsupported Playwright limits');
   if (options.billing !== undefined) throw new Error('Live billing is not implemented');
   const maxSessions = options.limits?.maxSessions ?? Infinity;
   const actionTimeoutMs = options.limits?.actionTimeoutMs ?? 5_000;
   // Isolated startup and multiple native actions share this host budget, not one action's timeout.
   const codeExecutionTimeoutMs = options.limits?.codeExecutionTimeoutMs ?? 30_000;
   const maxSnapshotRefs = options.limits?.maxSnapshotRefs ?? Infinity;
-  const snapshotLimits = { ...(options.limits?.maxSnapshotRefs === undefined ? {} : { maxSnapshotRefs }) };
+  const snapshotLimits = { maxSnapshotDepth: options.limits?.maxSnapshotDepth, ...(options.limits?.maxSnapshotRefs === undefined ? {} : { maxSnapshotRefs }) };
   const maxArtifactBytes = options.limits?.maxArtifactBytes ?? Infinity;
   const maxTabs = options.limits?.maxTabs ?? Infinity;
   const maxCommandBytes = options.limits?.maxCommandBytes ?? Infinity;
   const abilities = registerPlaywrightAbilities(options.abilities, options.adapter !== undefined);
   let refSequence = 0;
-  for (const value of [options.limits?.maxSessions, actionTimeoutMs, codeExecutionTimeoutMs, options.limits?.maxSnapshotRefs, options.limits?.maxArtifactBytes, options.limits?.maxTabs, options.limits?.maxCommandBytes]) if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid Playwright limit');
+  for (const value of [options.limits?.maxSessions, actionTimeoutMs, codeExecutionTimeoutMs, options.limits?.maxSnapshotRefs, options.limits?.maxArtifactBytes, options.limits?.maxTabs, options.limits?.maxCommandBytes]) if (value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid Playwright limit');
+  for (const key of Object.keys(playwrightStructureDefaults) as (keyof PlaywrightStructureLimits)[]) {
+    const value = options.limits?.[key];
+    if (value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) || value < 0)) throw new RangeError('Invalid Playwright structure limit');
+  }
   const sessions = new Map<string, Session>();
   const pendingRestores = new Set<string>();
   const occupiedSessions = (except?: string) => new Set([
@@ -379,7 +384,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     };
     observePlaywrightCapabilities(context, cleanup => cleanups.push(cleanup), { maxCommandBytes, maxArtifactBytes });
     observePlaywrightModals(context, cleanup => cleanups.push(cleanup));
-    observePlaywrightDownloads(context, cleanup => cleanups.push(cleanup), { maxMetadataBytes: maxCommandBytes });
+    observePlaywrightDownloads(context, cleanup => cleanups.push(cleanup), { ...(options.limits?.maxDownloads === undefined ? {} : { maxCount: options.limits.maxDownloads }), maxMetadataBytes: maxCommandBytes });
     context.on('page', onPage);
   };
   const observeSession = (session: Session): void => {
@@ -825,9 +830,9 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       const workspace = invocation.workspace;
       if (!workspace?.listFiles || !workspace.removeFile) throw new Error('Playwright outputMaxSize requires virtual workspace retention support');
       const directory = resolvePath(workspace.cwd, active?.configuration?.outputDir ?? '.playwright-cli');
-      const files = await workspace.listFiles(directory, 4096);
+      const files = await workspace.listFiles(directory, options.limits?.maxOutputFiles ?? Infinity);
       check();
-      if (!Array.isArray(files) || files.length > 4096) throw new PlaywrightResourceLimitError('Playwright output directory entry limit exceeded');
+      if (!Array.isArray(files) || files.length > (options.limits?.maxOutputFiles ?? Infinity)) throw new PlaywrightResourceLimitError('Playwright output directory entry limit exceeded');
       const unique = new Set<string>();
       let total = 0;
       for (const entry of files) {
@@ -854,7 +859,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       if (session.lease?.checkTrace) await session.lease.checkTrace(session.lease.context, { signal: local.signal });
       if (!session.lease?.captureTrace) return [];
       return flushPlaywrightTrace(session.lease.context, session.lease.captureTrace, {
-        signal: local.signal, maxBytes: Math.min(maxArtifactBytes, commandBudget.remaining), writeArtifact,
+        signal: local.signal, maxBytes: Math.min(maxArtifactBytes, commandBudget.remaining), maxFiles: options.limits?.maxTraceFiles, writeArtifact,
         ...(invocation.workspace ? { mkdir: (path: string) => invocation.workspace!.mkdir(path) } : {}),
       });
     };
@@ -1268,7 +1273,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
                 },
               });
             }
-            const executeAbility = () => executePlaywrightAbility(ability, parsed, invocation, { signal: local.signal, maxCommandBytes, maxArtifactBytes, commandBudget, actionTimeoutMs: sessionActionTimeout(active), codeExecutionTimeoutMs, navigationTimeoutMs: sessionNavigationTimeout(active), maxPages: maxTabs, ...(browserSession ? { browserSession } : {}), check: () => active ? checkSession(active) : check() });
+            const executeAbility = () => executePlaywrightAbility(ability, parsed, invocation, { signal: local.signal, structureLimits: options.limits, maxCommandBytes, maxArtifactBytes, commandBudget, actionTimeoutMs: sessionActionTimeout(active), codeExecutionTimeoutMs, navigationTimeoutMs: sessionNavigationTimeout(active), maxPages: maxTabs, ...(browserSession ? { browserSession } : {}), check: () => active ? checkSession(active) : check() });
             let result: void | PlaywrightCommandResult;
             try { result = active ? await active.snapshot.withReferences(executeAbility) : await executeAbility(); }
             catch (error) {
@@ -1336,7 +1341,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             return;
           }
           if (parsed.command === 'open') {
-            const openOptions = await resolvePlaywrightOpenOptions(parsed.options, invocation, options.adapter!, Math.min(maxArtifactBytes, maxCommandBytes));
+            const openOptions = await resolvePlaywrightOpenOptions(parsed.options, invocation, options.adapter!, Math.min(maxArtifactBytes, maxCommandBytes), options.limits);
             explicitlyClosed.delete(parsed.session);
             const previous = sessions.get(parsed.session);
             if (previous && previous.state !== 'closed') await retireForCommand(previous);
@@ -1510,7 +1515,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
               await runAction(session, () => page!.keyboard.press(parsed.value!));
             } else if (parsed.command === 'screenshot') {
               const bytes = parsed.ref
-                ? await capturePlaywrightTargetScreenshot(await resolveTarget(session, parsed.ref), { type: parsed.imageType, scale: parsed.scale, timeout: sessionActionTimeout(session), maxArtifactBytes: Math.min(maxArtifactBytes, Number.MAX_SAFE_INTEGER), signal: local.signal })
+                ? await capturePlaywrightTargetScreenshot(await resolveTarget(session, parsed.ref), { type: parsed.imageType, scale: parsed.scale, maxPixels: options.limits?.maxScreenshotPixels, timeout: sessionActionTimeout(session), maxArtifactBytes: Math.min(maxArtifactBytes, Number.MAX_SAFE_INTEGER), signal: local.signal })
                 : await capturePlaywrightScreenshot(page!, { type: parsed.imageType, fullPage: parsed.fullPage, scale: parsed.scale, timeout: sessionActionTimeout(session), maxArtifactBytes: Math.min(maxArtifactBytes, Number.MAX_SAFE_INTEGER), signal: local.signal });
               checkSession(session);
               // Uint8Array constructor copies even when bytes is a Buffer view.

@@ -57,7 +57,7 @@ const formatter = engine.run();
 ```
 
 `run()` is a single-use pure coroutine. Start with `next()`. On an `'input'`
-event, resume with a `Uint8Array` of at most 4096 bytes, or `null` for EOF.
+event, resume with a `Uint8Array` of any size admitted by its budgets, or `null` for EOF.
 Input is copied before control returns. A `Uint8Array` event is owned output;
 await its destination write before resuming with `next()`. An `undefined` event
 is a cooperative checkpoint; yield to your scheduler before resuming. Do not
@@ -103,8 +103,8 @@ Parsing/prefix capture and diagnostic decoding are bounded by argument limits.
 close the engine.
 
 All resource quotas are unlimited by default. Set independent input/output,
-retained-byte, work, argument-byte and `maxArguments` quotas through `limits`.
-Explicit quotas must be nonnegative safe integers.
+retained-byte, work, argument-byte, `maxArguments`, `chunkBytes` and `emptyChunks` quotas through `limits`.
+Explicit quotas must be nonnegative safe integers or `Infinity`.
 
 Caller-owned argument/output memory is outside engine retention accounting;
 diagnostics are outside formatting-output accounting. Source chunks and fallback

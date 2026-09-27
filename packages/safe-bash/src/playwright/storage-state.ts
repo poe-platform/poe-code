@@ -1,11 +1,11 @@
 import { PlaywrightResourceLimitError } from './resource-limit.js';
 import type { PlaywrightStorageState } from './adapter.js';
 
-const storageMaxNodes = 100000;
-const storageMaxDepth = 64;
+const storageMaxNodes = Infinity;
+const storageMaxDepth = Infinity;
 
 /** Count JSON values without allocating their graph. JSON.parse still checks syntax. */
-export function parsePlaywrightStorageStateJson(source: string, maxBytes = Infinity, options: { maxTraversalBytes?: number; maxNodes?: number; maxDepth?: number } = {}): PlaywrightStorageState {
+export function parsePlaywrightStorageStateJson(source: string, maxBytes = Infinity, options: { maxTraversalBytes?: number; maxNodes?: number | undefined; maxDepth?: number | undefined } = {}): PlaywrightStorageState {
   if (maxBytes !== Infinity && (!Number.isSafeInteger(maxBytes) || maxBytes <= 0)) throw new TypeError("Invalid storage state limits");
   if (new TextEncoder().encode(source).byteLength > maxBytes) throw new PlaywrightResourceLimitError("Browser storage state byte limit exceeded");
   let nodes = 0, depth = 0;
@@ -28,13 +28,13 @@ export function parsePlaywrightStorageStateJson(source: string, maxBytes = Infin
     } else {
       do { index++; } while (index < source.length && !whitespace(source[index]) && !',:[]{}'.includes(source[index]!));
     }
-    if (++nodes > storageMaxNodes || valueDepth > storageMaxDepth) throw new PlaywrightResourceLimitError('Browser storage state structure limit exceeded');
+    if (++nodes > (options.maxNodes ?? Infinity) || valueDepth > (options.maxDepth ?? Infinity)) throw new PlaywrightResourceLimitError('Browser storage state structure limit exceeded');
   }
   return parsePlaywrightStorageState(JSON.parse(source), { maxBytes, ...options });
 }
 
 /** Validate the portable native storage-state format before handing it to a browser. */
-export function parsePlaywrightStorageState(value: unknown, options: { maxBytes?: number; maxTraversalBytes?: number; maxNodes?: number; maxDepth?: number } = {}): PlaywrightStorageState {
+export function parsePlaywrightStorageState(value: unknown, options: { maxBytes?: number; maxTraversalBytes?: number; maxNodes?: number | undefined; maxDepth?: number | undefined } = {}): PlaywrightStorageState {
   const maxBytes = options.maxBytes ?? Infinity;
   const maxTraversalBytes = options.maxTraversalBytes ?? (Number.isFinite(maxBytes) ? Math.min(Number.MAX_SAFE_INTEGER, maxBytes * 4 + 65536) : Infinity);
   const maxNodes = options.maxNodes ?? storageMaxNodes;

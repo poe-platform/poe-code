@@ -9,6 +9,7 @@ export interface SnapshotLimits {
   /** @deprecated Ignored. Snapshots have no byte limit. */
   readonly maxSnapshotBytes?: number;
   readonly maxSnapshotRefs?: number;
+  readonly maxSnapshotDepth?: number | undefined;
 }
 
 interface SnapshotResource { dispose(): Promise<void> }
@@ -72,7 +73,8 @@ async function captureStable<Result, Options extends { timeout?: number; root?: 
 }
 
 export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => string) {
-  for (const value of [limits?.maxSnapshotRefs]) if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid snapshot limit');
+  for (const value of [limits?.maxSnapshotRefs]) if (value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid snapshot limit');
+  if (limits.maxSnapshotDepth !== undefined && limits.maxSnapshotDepth !== Infinity && (!Number.isSafeInteger(limits.maxSnapshotDepth) || limits.maxSnapshotDepth < 0)) throw new RangeError('Invalid snapshot depth limit');
   const maxSnapshotRefs = limits.maxSnapshotRefs ?? Infinity;
   let sequence = 0;
   let epoch = 0;
@@ -395,7 +397,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
   const captureJSON = async (page: PlaywrightPage, signal?: AbortSignal, options: { depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number; captureJSON?: PlaywrightSnapshotJSONCapture; captureReferences?: PlaywrightSnapshotReferenceCapture } = {}) => captureStable(async options => {
     const capturedEpoch = epoch;
     const native = prepareNativeCapture(page, options.captureReferences, options.timeout ?? 5000, signal);
-    const captured = await captureNativePlaywrightJSON(page, { maxRefs: maxSnapshotRefs,
+    const captured = await captureNativePlaywrightJSON(page, { maxDepth: limits.maxSnapshotDepth, maxRefs: maxSnapshotRefs,
       nextRef: native.nextRef, ...(native.prepareRefs ? { prepareRefs: native.prepareRefs } : {}), ...(signal ? { signal } : {}), ...options });
     signal?.throwIfAborted();
     if (capturedEpoch !== epoch) throw new SnapshotStaleCaptureError();

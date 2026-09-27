@@ -168,7 +168,7 @@ export const playwrightStandardAbilities: Partial<Record<PlaywrightCommand, Play
       ? new TextDecoder('utf-8', { fatal: true }).decode(await request.readFile(request.options.filename as string))
       : request.args[0];
     if (typeof source !== 'string' || !source.trim()) throw new Error('Code or --filename is required');
-    const maxOutputBytes = request.limits?.maxCommandBytes ?? 1048576;
+    const maxOutputBytes = request.limits?.maxCommandBytes ?? Infinity;
     if (new TextEncoder().encode(source).byteLength > maxOutputBytes) throw new PlaywrightResourceLimitError('Playwright code source byte limit exceeded');
     const session = requireSession(request);
     if (!session.executeCode) unsupported('native code execution');

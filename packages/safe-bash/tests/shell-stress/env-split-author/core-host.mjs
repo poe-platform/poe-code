@@ -4,7 +4,7 @@ import { EnvSplitError, parseEnvOptions } from '../../../src/commands/env-split.
 
 let checks = 0;
 const signal = new AbortController().signal;
-const parse = (source, env = {}) => parseEnvOptions(['-S', source], env, signal);
+const parse = (source, env = {}) => parseEnvOptions(['-S', source], env, signal, undefined, { bytes: 131072, arguments: 10000, expansions: 32, work: 1048576 });
 const exact = await parse(`rec ${'x'.repeat(65532)}`);
 assert.equal(exact.operands[1].length, 65532);
 checks++;

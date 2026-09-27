@@ -159,7 +159,27 @@ async function signedLong(argument: string, budget: Budget, signal: AbortSignal)
 }
 type ResolvedShellLimits = Required<Omit<ShellLimits, "commandLimits">> & Pick<ShellLimits, "commandLimits">;
 export const defaultLimits: ResolvedShellLimits = {
-  maxParseUnits: Infinity, maxInputBytes: Infinity, maxOutputBytes: Infinity, maxCommands: Infinity, maxFileSystemOperations: Infinity, maxPathComponents: Infinity, maxPathnameComponents: Infinity, maxRedirects: Infinity, maxPipelineStages: Infinity, maxLoopIterations: Infinity, maxSubstitutionDepth: Infinity, maxSourceBytes: Infinity, maxExpansionFields: Infinity, maxExpansionBytes: Infinity, maxWallClockMs: Infinity, maxCpuMs: Infinity, pipeHighWaterMark: 64 * 1024, };
+  maxParseUnits: Infinity,
+  maxInputBytes: Infinity,
+  maxOutputBytes: Infinity,
+  maxCommands: Infinity,
+  maxFileSystemOperations: Infinity,
+  maxPathComponents: Infinity,
+  maxPathnameComponents: Infinity,
+  maxRedirects: Infinity,
+  maxPipelineStages: Infinity,
+  maxLoopIterations: Infinity,
+  maxSubstitutionDepth: Infinity,
+  maxSourceBytes: Infinity,
+  maxExpansionFields: Infinity,
+  maxExpansionBytes: Infinity,
+  maxWallClockMs: Infinity,
+  maxCpuMs: Infinity,
+  maxCdWork: Infinity, maxCdPathBytes: Infinity, maxCdProbes: Infinity, maxGlobstarStates: Infinity, maxGlobstarDepth: Infinity,
+  maxGlobstarEntries: Infinity, maxCdPathComponents: Infinity, maxDirectoryStackEntries: Infinity, maxDirectoryStackOutputBytes: Infinity,
+  pipeHighWaterMark: 64 * 1024,
+};
+
 const shellBuiltinNames = new Set([
   ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read", "declare", "typeset", "mapfile", "readarray", "umask", "exit", "return", "break", "continue", "command", "builtin", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "getopts", "let", "pushd", "dirs", "popd", "shopt", "hash", ]);
 const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
@@ -208,7 +228,7 @@ export function resolveLimits(...limits: (ShellLimits | undefined)[]): ResolvedS
   const commandLimits = resolveCommandLimits(...limits.map(value => value?.commandLimits));
   for (const [key, value] of Object.entries(Object.assign({}, ...limits) as ShellLimits)) {
     if (key === "commandLimits") continue;
-    if (!Number.isSafeInteger(value) || value < (key === "pipeHighWaterMark" ? 1 : 0)) {
+    if ((value !== Infinity || key === "pipeHighWaterMark") && (!Number.isSafeInteger(value) || value < (key === "pipeHighWaterMark" ? 1 : 0))) {
       throw new RangeError(`${key} must be a ${key === "pipeHighWaterMark" ? "positive" : "nonnegative"} safe integer`);
     }
   }
@@ -2210,10 +2230,12 @@ function cdDiagnostic(fragments: readonly string[]): string {
 class CdLookup {
   private spent = 0;
   private probes = 0;
-  constructor(private readonly signal: AbortSignal) {}
+
+  constructor(private readonly signal: AbortSignal, private readonly limits: ResolvedShellLimits) {}
+
   async charge(amount: number): Promise<void> {
     this.signal.throwIfAborted();
-    if (amount > 8_388_608 - this.spent) throw new PublicDiagnostic("cd: helper work limit exceeded");
+    if (amount > this.limits.maxCdWork - this.spent) throw new PublicDiagnostic("cd: helper work limit exceeded");
     while (amount > 0) {
       const step = Math.min(amount, 128 - this.spent % 128);
       this.spent += step;
@@ -2236,8 +2258,8 @@ class CdLookup {
     for (let index = 0; index < value.length;) {
       const codePoint = value.codePointAt(index)!;
       const width = cdUtf8Width(codePoint);
-      if (bytes + width > 65_536) throw new PublicDiagnostic(search ? "cd: CDPATH exceeds 65536 UTF-8 bytes" : "cd: path exceeds 65536 UTF-8 bytes");
-      if (search && codePoint === 58 && ++slots > 4096) throw new PublicDiagnostic("cd: CDPATH exceeds 4096 components");
+      if (bytes + width > this.limits.maxCdPathBytes) throw new PublicDiagnostic(search ? "cd: CDPATH byte limit exceeded" : "cd: path byte limit exceeded");
+      if (search && codePoint === 58 && ++slots > this.limits.maxCdPathComponents) throw new PublicDiagnostic("cd: CDPATH component limit exceeded");
       await this.charge(width);
       if (search && codePoint === 58) {
         components.push({ start, end: index, bytes: bytes - startBytes });
@@ -2259,7 +2281,7 @@ class CdLookup {
     const probe = async (component: string, componentBytes: number): Promise<{ path: string; print?: string }> => {
       const rawBytes = absolute ? targetBytes : component.startsWith("/") ? componentBytes + 1 + targetBytes
         : cwdBytes + 1 + (component ? componentBytes + 1 : 0) + targetBytes;
-      if (rawBytes > 65_536) throw new PublicDiagnostic("cd: path exceeds 65536 UTF-8 bytes");
+      if (rawBytes > this.limits.maxCdPathBytes) throw new PublicDiagnostic("cd: path byte limit exceeded");
       await this.charge(2 * rawBytes);
       const raw = absolute ? target : pathOf({ cwd }, component ? `${component}/${target}` : target);
       let path = normalizePath(raw, cwd);
@@ -2280,7 +2302,7 @@ class CdLookup {
       }
       await this.scan(path);
       this.signal.throwIfAborted();
-      if (++this.probes > 4097) throw new PublicDiagnostic("cd: probe limit exceeded");
+      if (++this.probes > this.limits.maxCdProbes) throw new PublicDiagnostic("cd: probe limit exceeded");
       await this.charge(1);
       this.signal.throwIfAborted();
       const stat = await fs.stat(operand, { signal: this.signal });
@@ -2315,13 +2337,15 @@ class DirectoryStackWork {
   private outputBytes = 0;
   private chunk = "";
   private chunkBytes = 0;
-  constructor(private readonly name: string, private readonly signal: AbortSignal, private readonly stdout: ByteSink) {}
+
+  constructor(private readonly name: string, private readonly signal: AbortSignal, private readonly stdout: ByteSink, private readonly limits: ResolvedShellLimits) {}
+
   fail(text: string, status = 1): never {
     throw new CommandFailure(cdDiagnostic([this.name, ": ", text]), status);
   }
   async charge(amount: number): Promise<void> {
     this.signal.throwIfAborted();
-    if (!Number.isSafeInteger(amount) || amount < 0 || amount > 8_388_608 - this.spent) this.fail("helper work limit exceeded");
+    if (!Number.isSafeInteger(amount) || amount < 0 || amount > this.limits.maxCdWork - this.spent) this.fail("helper work limit exceeded");
     while (amount > 0) {
       const step = Math.min(amount, 128 - this.spent % 128);
       this.spent += step;
@@ -2341,7 +2365,7 @@ class DirectoryStackWork {
     for (let offset = 0; offset < value.length;) {
       const point = value.codePointAt(offset)!;
       const width = cdUtf8Width(point);
-      if (width > 65_536 - bytes) this.fail(`${kind} exceeds 65536 UTF-8 bytes`);
+      if (width > this.limits.maxCdPathBytes - bytes) this.fail(`${kind} byte limit exceeded`);
       await this.charge(width);
       bytes += width;
       offset += point > 0xffff ? 2 : 1;
@@ -2379,7 +2403,7 @@ class DirectoryStackWork {
     for (let offset = 0; offset < text.length;) {
       const point = text.codePointAt(offset)!;
       const width = cdUtf8Width(point);
-      if (width > 8_388_608 - this.outputBytes) this.fail("display exceeds 8388608 UTF-8 bytes");
+      if (width > this.limits.maxDirectoryStackOutputBytes - this.outputBytes) this.fail("display byte limit exceeded");
       await this.charge(width);
       if (width > 16_384 - this.chunkBytes) await this.flushOutput();
       const units = point > 0xffff ? 2 : 1;
@@ -19549,7 +19573,7 @@ export class Runtime {
   private async changeDirectory(context: CommandContext & IO, state: State, args: readonly string[], diagnose?: (error: unknown, diagnostic: string) => void, stackHooks?: { name: string; onCwdPublished(): void; emit(text: string): Promise<void> }): Promise<number> {
     const name = stackHooks?.name ?? "cd";
     this.signal.throwIfAborted();
-    const lookup = new CdLookup(this.signal);
+    const lookup = new CdLookup(this.signal, this.budget.limits);
     let offset = 0;
     let physical = false;
     if (!stackHooks) for (; offset < args.length; offset++) {
@@ -19596,7 +19620,7 @@ export class Runtime {
   }
   private async directoryStackBuiltin(context: CommandContext & IO, state: State, diagnose?: (error: unknown, diagnostic: string) => void): Promise<number> {
     const { command, args } = context;
-    const work = new DirectoryStackWork(command, this.signal, context.stdout);
+    const work = new DirectoryStackWork(command, this.signal, context.stdout, this.budget.limits);
     const tail = state.directoryStack ?? { entries: [], bytes: 0 };
     const count = tail.entries.length;
     let noCd = false;
@@ -19614,7 +19638,7 @@ export class Runtime {
       await work.charge(1);
       return work.scan(value, "argument");};
     const plan = async (length: number, removed: number | undefined, added: string | undefined, addedBytes: number | undefined, entry: (index: number) => string): Promise<NonNullable<State["directoryStack"]>> => {
-      if (length > 4096) work.fail("directory stack exceeds 4096 entries");
+      if (length > this.budget.limits.maxDirectoryStackEntries) work.fail("directory stack entry limit exceeded");
       const removedBytes = removed === undefined ? 0 : await work.scan(tail.entries[removed]!, "path");
       const extraBytes = added === undefined ? 0 : addedBytes ?? await work.scan(added, "path");
       const bytes = tail.bytes - removedBytes + extraBytes;
@@ -28501,7 +28525,7 @@ export class Runtime {
         if (end !== pattern.length && pattern[end] !== "/") continue;
         if (end > start) {
           const bytes = (await scanString(pattern, work, start, end)).bytes;
-          if (++this.budget.globstarStates > 100_000) failWalk("globstar traversal state limit exceeded");
+          if (++this.budget.globstarStates > this.budget.limits.maxGlobstarStates) failWalk("globstar traversal state limit exceeded");
           scratch.reserveBytes(bytes * 2 + 64);
           segments.push(pattern.slice(start, end));
         }
@@ -28511,8 +28535,10 @@ export class Runtime {
         const separator = parent.path && parent.path !== "/" ? "/" : "";
         const size = parent.bytes + separator.length + bytes;
         if (size > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
-        if (++this.budget.globstarStates > 100_000) failWalk("globstar traversal state limit exceeded");
-        if (depth > 128) failWalk("globstar directory depth limit exceeded");
+        if (++this.budget.globstarStates > this.budget.limits.maxGlobstarStates) failWalk("globstar traversal state limit exceeded");
+        if (depth > this.budget.limits.maxGlobstarDepth) failWalk("globstar directory depth limit exceeded");
+        // Includes the candidate, queue/map/set slots and later segment-array
+        // references. Reservations remain cumulative until this glob settles.
         scratch.reserveBytes(size * 2 + 128);
         return { path: parent.path + separator + suffix, bytes: size, descend, depth };};
       const empty: Candidate = { path: "", bytes: 0, descend: true, depth: 0 };
@@ -28521,9 +28547,9 @@ export class Runtime {
         this.signal.throwIfAborted();
         return ["ENOENT", "ENOTDIR", "EACCES", "EINVAL"].includes(errorCode(error) ?? "");};
       const read = async (candidate: Candidate) => {
-        const maxEntries = 100_000 - this.budget.globstarEntries;
+        const maxEntries = this.budget.limits.maxGlobstarEntries - this.budget.globstarEntries;
         let entries;
-        try { entries = await interruptible(this.fs.readdir(pathOf(state, candidate.path || "."), { signal: this.signal, maxEntries }), this.signal); }
+        try { entries = await interruptible(this.fs.readdir(pathOf(state, candidate.path || "."), { signal: this.signal, ...(Number.isFinite(maxEntries) ? { maxEntries } : {}) }), this.signal); }
         catch (error) {
           this.signal.throwIfAborted();
           if (errorCode(error) === "EFBIG") this.budget.abort(error);

@@ -4,7 +4,7 @@ import { grepCommands } from "./grep.js";
 import { diagnostic } from "./internal.js";
 import { createStandardCommandsWithGrep, type StandardCommandsOptions } from "./standard.js";
 
-export type { StandardCommandsOptions, ExecutionCommandsOptions } from "./standard.js";
+export type { StandardCommandsOptions, ExecutionCommandsOptions, EnvSplitLimits } from "./standard.js";
 
 export function createStandardCommands(options: StandardCommandsOptions = {}): readonly CommandDefinition[] {
   return createStandardCommandsWithGrep(options, grepCommands({ ...options.regex, ...(options.regexExecutor === undefined ? {} : { regexExecutor: options.regexExecutor }) }));

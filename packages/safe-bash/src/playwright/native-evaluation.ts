@@ -45,8 +45,9 @@ async function evaluateElement(element: unknown, expression: string): Promise<Ca
   } catch (error) { return { failed: true, error, isFunction: false }; }
 }
 
-function serializeCapsule(capsule: Capsule, limits: { maxBytes: number; maxEntries: number }): Serialized {
+function serializeCapsule(capsule: Capsule, limits: { maxBytes: number | null; maxEntries: number | null; maxDepth: number | null }): Serialized {
   'use strict';
+  const maxBytes = limits.maxBytes ?? Infinity, maxEntries = limits.maxEntries ?? Infinity, maxDepth = limits.maxDepth ?? Infinity;
   const stringify = JSON.stringify;
   const objectKeys = Object.keys;
   const globals = globalThis as unknown as { Window?: new () => object; Document?: new () => object; Node?: new () => object };
@@ -56,10 +57,10 @@ function serializeCapsule(capsule: Capsule, limits: { maxBytes: number; maxEntri
   let exceeded = false;
   const operations = {
     normalize(value: unknown, depth = 0): unknown {
-      if (++entries > limits.maxEntries || depth > 100) { exceeded = true; throw null; }
+      if (++entries > maxEntries || depth > maxDepth) { exceeded = true; throw null; }
       if (typeof value === 'string') {
         characters += value.length;
-        if (characters > limits.maxBytes) { exceeded = true; throw null; }
+        if (characters > maxBytes) { exceeded = true; throw null; }
         return value;
       }
       if (typeof value === 'function' || typeof value === 'symbol') return undefined;
@@ -73,7 +74,7 @@ function serializeCapsule(capsule: Capsule, limits: { maxBytes: number; maxEntri
       if (value instanceof RegExp || value instanceof ArrayBuffer) return {};
       if (value instanceof Error) return { name: this.normalize(value.name, depth + 1) };
       if (Array.isArray(value)) {
-        if (value.length > limits.maxEntries - entries) { exceeded = true; throw null; }
+        if (value.length > maxEntries - entries) { exceeded = true; throw null; }
         const array: unknown[] = [];
         seen.set(value, array);
         for (let index = 0; index < value.length; index++) array.push(this.normalize(value[index], depth + 1));
@@ -82,12 +83,12 @@ function serializeCapsule(capsule: Capsule, limits: { maxBytes: number; maxEntri
       const object: Record<string, unknown> = {};
       seen.set(value, object);
       const keys = objectKeys(value);
-      if (keys.length > limits.maxEntries - entries) { exceeded = true; throw null; }
+      if (keys.length > maxEntries - entries) { exceeded = true; throw null; }
       for (const key of keys) {
         let child: unknown;
         try { child = (value as Record<string, unknown>)[key]; } catch { continue; }
         characters += key.length;
-        if (characters > limits.maxBytes) { exceeded = true; throw null; }
+        if (characters > maxBytes) { exceeded = true; throw null; }
         if (key === '__proto__') continue;
         object[key] = key === 'toJSON' && typeof child === 'function' ? {} : this.normalize(child, depth + 1);
       }
@@ -111,7 +112,7 @@ function serializeCapsule(capsule: Capsule, limits: { maxBytes: number; maxEntri
     status = 'error';
     text = exceeded ? '' : error instanceof Error ? error.message : String(error);
   }
-  if (exceeded || typeof text !== 'string' || text.length > limits.maxBytes) return { status: 'limit', text: 'Evaluation result byte/entry limit exceeded', isFunction: capsule.isFunction, executed: !capsule.failed };
+  if (exceeded || typeof text !== 'string' || text.length > maxBytes) return { status: 'limit', text: 'Evaluation result byte/entry limit exceeded', isFunction: capsule.isFunction, executed: !capsule.failed };
   let bytes = 0;
   for (let index = 0; index < text.length; index++) {
     const character = text[index]!;
@@ -119,15 +120,15 @@ function serializeCapsule(capsule: Capsule, limits: { maxBytes: number; maxEntri
     else if (character <= '\u07ff') bytes += 2;
     else if (character >= '\ud800' && character <= '\udbff' && text[index + 1]! >= '\udc00' && text[index + 1]! <= '\udfff') { bytes += 4; index++; }
     else bytes += 3;
-    if (bytes > limits.maxBytes) return { status: 'limit', text: 'Evaluation result byte limit exceeded', isFunction: capsule.isFunction, executed: !capsule.failed };
+    if (bytes > maxBytes) return { status: 'limit', text: 'Evaluation result byte limit exceeded', isFunction: capsule.isFunction, executed: !capsule.failed };
   }
   return { status, text, isFunction: capsule.isFunction, executed: !capsule.failed };
 }
 
 export async function evaluateNativeExpression(request: PlaywrightAbilityRequest): Promise<NativeEvaluationValue | undefined> {
   request.signal.throwIfAborted();
-  const maxInputBytes = Math.min(65_536, request.limits?.maxCommandBytes ?? 1048576);
-  const maxBytes = Math.min(1048576, request.limits?.maxCommandBytes ?? 1048576, request.options.filename ? request.limits?.maxArtifactBytes ?? 1048576 : 1048576);
+  const maxInputBytes = Math.min(request.limits?.maxEvaluationInputBytes ?? Infinity, request.limits?.maxCommandBytes ?? Infinity);
+  const maxBytes = Math.min(request.limits?.maxEvaluationBytes ?? Infinity, request.limits?.maxCommandBytes ?? Infinity, request.options.filename ? request.limits?.maxArtifactBytes ?? Infinity : Infinity);
   let inputBytes = 0;
   for (const input of [...request.args, ...(typeof request.options.filename === 'string' ? [request.options.filename] : [])]) {
     if (typeof input !== 'string' || input.length > maxInputBytes - inputBytes) throw new PlaywrightResourceLimitError('Evaluation input byte limit exceeded');
@@ -183,7 +184,7 @@ export async function evaluateNativeExpression(request: PlaywrightAbilityRequest
         if (typeof evaluator.evaluateHandle !== 'function') throw new Error('Native page evaluateHandle is required for eval');
         await call(async () => { handle = await evaluator.evaluateHandle(evaluatePage, expression); });
       }
-      const result = await call(() => handle!.evaluate(serializeCapsule, { maxBytes, maxEntries: 10000 }));
+      const result = await call(() => handle!.evaluate(serializeCapsule, { maxBytes: maxBytes === Infinity ? null : maxBytes, maxEntries: request.limits?.maxEvaluationEntries === undefined || request.limits.maxEvaluationEntries === Infinity ? null : request.limits.maxEvaluationEntries, maxDepth: request.limits?.maxEvaluationDepth === undefined || request.limits.maxEvaluationDepth === Infinity ? null : request.limits.maxEvaluationDepth }));
       if (!result || typeof result.text !== 'string' || typeof result.isFunction !== 'boolean' || typeof result.executed !== 'boolean' || !['value', 'error', 'limit'].includes(result.status)) throw new Error('Invalid native evaluation envelope');
       if (result.status === 'limit' || result.text.length > maxBytes || new TextEncoder().encode(result.text).byteLength > maxBytes) throw new PlaywrightResourceLimitError('Evaluation result byte/entry limit exceeded');
       return { status: result.status, text: result.text, isFunction: result.isFunction, executed: result.executed };

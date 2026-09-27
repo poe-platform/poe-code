@@ -407,7 +407,7 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
   if (stack.length) await context.diagnostic?.({ code: "lotus", severity: "warning", message: `${formatA1(row, column)}: args remain on stack` });
   context.signal.throwIfAborted();
   if (relativeReferences.size) {
-    const parsed = parseExpression(`=${result}`, { position: { sheet: sheetName(sheetIndex), row, column }, signal: context.signal,
+    const parsed = parseExpression(`=${result}`, { maximumDepth: context.limits.formulaDepth, position: { sheet: sheetName(sheetIndex), row, column }, signal: context.signal,
       maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? Infinity });
     if (!parsed.ok) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: Lotus relative-sheet formula");
     const substitute = (node: FormulaNode): FormulaNode => {

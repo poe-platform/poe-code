@@ -53,6 +53,12 @@ export interface RuntimeLimits {
   readonly zipEntries?: number;
   readonly zipRatio?: number;
   readonly xmlDepth?: number;
+  readonly formulaDepth?: number;
+  readonly formulaDependencyDepth?: number;
+  readonly patternDepth?: number;
+  readonly objectDepth?: number;
+  readonly workbookDepth?: number;
+  readonly outputSymlinks?: number;
   readonly splitOutputs?: number;
   readonly workbookNodes?: number;
   readonly workbookTextBytes?: number;

@@ -255,3 +255,9 @@ it.each([
 ])("folds class members without expanding endpoints %j %j", (input, range, output) => {
   expect(calculate(expression([input, "(?i)" + range, "X"]))).toEqual({ kind: "string", value: output });
 });
+
+it('admits patterns deeper than sixty-four groups unless a host depth is configured', () => {
+  const formula = expression(['a', '('.repeat(65) + 'a' + ')'.repeat(65), 'X']);
+  expect(calculate(formula)).toEqual({ kind: 'string', value: 'X' });
+  expect(() => calculate(formula, { ...context, limits: { ...context.limits, patternDepth: 64 } })).toThrow('pattern depth limit');
+});

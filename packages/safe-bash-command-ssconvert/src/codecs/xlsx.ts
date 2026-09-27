@@ -243,7 +243,7 @@ function record(node: XmlElement, source: string): UnsupportedRecord {
   return { source, kind: node.localName, disposition: "retained", data: data(node) };
 }
 function formula(source: string, sheet: string, row: number, column: number, context: CapabilityContext, arrayStringLiterals = false): string {
-  const parsed = parseExpression("=" + source, { grammar: excelGrammar, position: { sheet, row, column }, arrayStringLiterals, signal: context.signal,
+  const parsed = parseExpression("=" + source, { maximumDepth: context.limits.formulaDepth, grammar: excelGrammar, position: { sheet, row, column }, arrayStringLiterals, signal: context.signal,
     maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? Infinity });
   if (!parsed.ok) return "=" + source;
   let simpleSheets = true;
@@ -356,7 +356,7 @@ export async function readXlsx(bytes: Uint8Array, context: CapabilityContext): P
                 if (attr(f, "ref")) groups.push({ id: groupId, kind: "shared", expression, range: range(attr(f, "ref")), ...semantics });
               } else if (existing) {
                 semantics = existing.arrayStringLiterals ? { arrayStringLiterals: true } : {};
-                const parsed = parseExpression(existing.expression, { position: { sheet: id, row: existing.row, column: existing.column }, ...semantics, signal: context.signal });
+                const parsed = parseExpression(existing.expression, { maximumDepth: context.limits.formulaDepth, position: { sheet: id, row: existing.row, column: existing.column }, ...semantics, signal: context.signal });
                 if (!parsed.ok) invalid("invalid shared formula");
                 expression = rewriteReferences(parsed.document, { position: { sheet: id, ...position }, translation: "copy", signal: context.signal }); groupId = existing.id;
               } else invalid("shared formula has no preceding definition");
@@ -460,7 +460,7 @@ export async function readXlsx(bytes: Uint8Array, context: CapabilityContext): P
       if (importedName.startsWith("_xlnm.") && name === "Print_Area" && node.text === "!#REF!") continue;
       const sheetIndex = attr(node, "localSheetId"), sheet = sheetIndex === undefined ? undefined : sheets[integer(sheetIndex)];
       const position = { sheet: sheet?.id ?? sheets[0]?.id ?? "sheet-1", row: 0, column: 0 };
-      if (node.text && !parseExpression("=" + node.text, { grammar: excelGrammar, position, signal: context.signal }).ok) {
+      if (node.text && !parseExpression("=" + node.text, { maximumDepth: context.limits.formulaDepth, grammar: excelGrammar, position, signal: context.signal }).ok) {
         const message = `At A1: '${node.text}' Invalid expression\n`;
         await context.diagnostic?.({ code: "xlsx-name-expression", severity: "warning", message,
           bytes: warningBytes(message, context) }); continue;
@@ -806,7 +806,7 @@ function exportXlsxFormula(book: Workbook, source: string, sheet: Sheet, row: nu
     if (++work > (context.limits.workbookNodes ?? Infinity))
       throw new SsconvertError("resource-limit", "ssconvert XLSX formula node limit exceeded");
   };
-  const parsed = parseExpression(source.startsWith("=") || source.startsWith("of:=") ? source : "=" + source, { position, arrayStringLiterals,
+  const parsed = parseExpression(source.startsWith("=") || source.startsWith("of:=") ? source : "=" + source, { maximumDepth: context.limits.formulaDepth, position, arrayStringLiterals,
     workbook: book, signal: context.signal, maximumLength: context.limits.workbookTextBytes ?? context.limits.outputBytes,
     maximumNodes: context.limits.workbookNodes ?? Infinity });
   if (!parsed.ok) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: unparsed XLSX formula");

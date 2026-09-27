@@ -1,12 +1,14 @@
-import { PlaywrightResourceLimitError } from './resource-limit.js';
+import { PlaywrightResourceLimitError, type PlaywrightStructureLimits } from './resource-limit.js';
 
-/** Config is small even when the caller admits large artifacts or scripts. */
-export const playwrightConfigMaxBytes = 128 * 1024;
+/** Default configuration byte ceiling; host limits may opt into a finite value. */
+export const playwrightConfigMaxBytes = Infinity;
 const topKeys = new Set(['browser', 'timeouts', 'network', 'console', 'snapshot', 'outputDir', 'outputMaxSize', 'testIdAttribute', 'codegen']);
 
 /** Scan without constructing containers; native parsing only sees admitted graphs. */
-export function parsePlaywrightConfigJSON(text: string): unknown {
-  if (text.length > playwrightConfigMaxBytes) throw new PlaywrightResourceLimitError('Playwright configuration byte limit exceeded');
+export function parsePlaywrightConfigJSON(text: string, limits: PlaywrightStructureLimits = {}): unknown {
+  const maxBytes = limits.maxConfigBytes ?? Infinity;
+  if (text.length > maxBytes || maxBytes !== Infinity && new TextEncoder().encode(text).byteLength > maxBytes) throw new PlaywrightResourceLimitError('Playwright configuration byte limit exceeded');
+  for (const value of Object.values(limits)) if (value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) || value < 0)) throw new RangeError('Invalid Playwright configuration limit');
   let index = 0;
   let entries = 0;
   const space = () => { while (' \t\r\n'.includes(text[index] ?? '\0')) index++; };
@@ -26,7 +28,7 @@ export function parsePlaywrightConfigJSON(text: string): unknown {
     path.length === 3 && path[0] === 'browser' && path[1] === 'contextOptions' && path[2] === 'permissions' ||
     path.length >= 3 && path[0] === 'browser' && path[1] === 'contextOptions' && path[2] === 'storageState';
   const value = (path: readonly string[], depth: number): void => {
-    if (++entries > 4096 || depth > 32) throw new PlaywrightResourceLimitError('Playwright configuration structure limit exceeded');
+    if (++entries > (limits.maxConfigEntries ?? Infinity) || depth > (limits.maxConfigDepth ?? Infinity)) throw new PlaywrightResourceLimitError('Playwright configuration structure limit exceeded');
     space();
     const character = text[index];
     if (character === '{' || character === '[') {
@@ -38,7 +40,7 @@ export function parsePlaywrightConfigJSON(text: string): unknown {
       while (index < text.length) {
         let childPath = isObject ? path : [...path, '[]'];
         if (isObject) {
-          if (++entries > 4096) throw new PlaywrightResourceLimitError('Playwright configuration structure limit exceeded');
+          if (++entries > (limits.maxConfigEntries ?? Infinity)) throw new PlaywrightResourceLimitError('Playwright configuration structure limit exceeded');
           if (text[index] !== '"') invalid();
           const key: string = JSON.parse(string());
           if (path.length === 0 && !topKeys.has(key)) throw new Error(`Unsupported Playwright configuration: ${key}`);

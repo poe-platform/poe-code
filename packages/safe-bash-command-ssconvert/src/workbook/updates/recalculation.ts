@@ -21,7 +21,7 @@ export function dirtyWorkbook(book: Workbook, changes: readonly CellRange[], con
   const dirty = new Set<Cell>();
   function parse(source: string, position: ParsePosition, arrayStringLiterals = false): FormulaNode {
     tick();
-    const parsed = parseExpression(source, { position, arrayStringLiterals, workbook: book, signal: context.signal,
+    const parsed = parseExpression(source, { maximumDepth: context.limits.formulaDepth, position, arrayStringLiterals, workbook: book, signal: context.signal,
       maximumLength: context.limits.inputBytes, maximumNodes: context.limits.workbookWork ?? context.limits.cells * 32 + context.limits.inputBytes });
     if (!parsed.ok) throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: formula syntax at ${parsed.diagnostic.start}:${parsed.diagnostic.end}`);
     return parsed.document.root;

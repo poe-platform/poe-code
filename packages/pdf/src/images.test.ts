@@ -61,3 +61,15 @@ it("preserves JPEG gray, RGB and Adobe CMYK dictionaries independently", async (
     else expect(image.dict.has(PDFName.of("Decode"))).toBe(false);
   }
 });
+
+it('admits embedded images above four megapixels and enforces explicit pixel limits', async () => {
+  const bytes = jpeg(3);
+  // The SOF height and width precede the component table; JPEG is embedded without decoding.
+  const marker = bytes.findIndex((byte, index) => byte === 0xff && bytes[index + 1] === 0xc0);
+  const dimensions = new DataView(bytes.buffer);
+  dimensions.setUint16(marker + 5, 2001);
+  dimensions.setUint16(marker + 7, 2000);
+  const document = { fonts, blocks: [{ ...block(bytes), media: 'jpeg' as const }] };
+  await expect(renderPdf(document)).resolves.toBeInstanceOf(Uint8Array);
+  await expect(renderPdf(document, { limits: { imagePixels: 4_000_000 } })).rejects.toMatchObject({ code: 'E_LIMIT' });
+});

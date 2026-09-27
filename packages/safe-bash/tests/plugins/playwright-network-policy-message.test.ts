@@ -19,8 +19,8 @@ test('protocol message limits validate before effects and reject oversized UTF-8
   };
   const options = { socket, directNetwork: 'blocked-by-host' as const,
     retire: async () => { retired++; }, fetch: async () => ({ status: 200, headers: [], body: new Uint8Array() }) };
-  for (const cap of [0, 32 * 1024 * 1024 + 1]) {
-    await assert.rejects(installPlaywrightNetworkPolicy({ ...options, maxProtocolMessageBytes: cap }), /protocol message limit/i);
+  for (const cap of [0, NaN, -1, 0.5]) {
+    await assert.rejects(installPlaywrightNetworkPolicy({ ...options, maxProtocolMessageBytes: cap }), /network policy limit/i);
   }
   assert.equal(sent, 0);
   assert.equal(retired, 0);

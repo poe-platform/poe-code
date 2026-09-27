@@ -22,7 +22,7 @@ export function legacyCells(context: CapabilityContext, name: string) {
 
 export function legacyExpression(source: string, grammar: FormulaGrammar, position: ParsePosition,
   context: CapabilityContext, workbook?: Workbook) {
-  const parsed = parseExpression(source, { grammar, position, ...(workbook ? { workbook } : {}), signal: context.signal,
+  const parsed = parseExpression(source, { maximumDepth: context.limits.formulaDepth, grammar, position, ...(workbook ? { workbook } : {}), signal: context.signal,
     maximumLength: context.limits.inputBytes, maximumNodes: context.limits.operations });
   if (!parsed.ok) return parsed;
   return { ...parsed, formula: serializeExpression(parsed.document, { ...gnumericGrammar, quoteSheetName: quoteNativeSheet }, false, true) };

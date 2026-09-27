@@ -56,9 +56,10 @@ export function createVfsOutput(fs: PublicationFileSystem,
       context.own(retainCleanup ? retainCleanup(abort) : abort);
       check();
       let mode = 0o666 & ~(context.environment.umask ?? 0o022);
+      const visited = new Set<string>();
       for (let links = 0; ; links++) {
         check();
-        if (links > 40) throw new SsconvertError("resource-limit", "ssconvert output symlink limit exceeded");
+        if (links > (context.limits.outputSymlinks ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert output symlink limit exceeded");
         let stat: Stat;
         try { stat = await fs.lstat(path, options); }
         catch (error) {
@@ -68,6 +69,9 @@ export function createVfsOutput(fs: PublicationFileSystem,
         }
         check();
         if (stat.type === "symlink") {
+          const identity = resourceUri(path, context.environment.cwd ?? context.environment.env.PWD ?? "/");
+          if (visited.has(identity)) throw new FileWriteError(uri, `${path}: Symlink cycle`);
+          visited.add(identity);
           if (!fs.readlink) throw new SsconvertError("capability-denied", "Filesystem readlink capability is required for output aliases");
           const target = await fs.readlink(path, options);
           check();

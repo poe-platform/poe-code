@@ -14,6 +14,10 @@ export interface PlaywrightRoutePolicyLimits {
   readonly maxRetainedBytes?: number;
   readonly maxConcurrentRequests?: number;
   readonly maxPatternSteps?: number;
+  readonly maxPatternLength?: number;
+  readonly maxPatternVariants?: number;
+  readonly maxHeaders?: number;
+  readonly maxRoutes?: number;
 }
 
 export interface PlaywrightRoutePolicyBinding {
@@ -23,8 +27,8 @@ export interface PlaywrightRoutePolicyBinding {
 
 type Token = { literal: string } | { repeat: 'segment' | 'all' | 'directory' | 'optionalDirectory' };
 
-function compilePattern(pattern: string): Token[][] {
-  if (pattern.length > 4096) throw new Error('Network route pattern limit exceeded');
+function compilePattern(pattern: string, limits: Required<PlaywrightRoutePolicyLimits>): Token[][] {
+  if (pattern.length > limits.maxPatternLength) throw new Error('Network route pattern limit exceeded');
   let variants = [''];
   let group: string[] | undefined;
   for (let index = 0; index < pattern.length; index++) {
@@ -38,7 +42,7 @@ function compilePattern(pattern: string): Token[][] {
       group = [''];
     } else if (character === '}') {
       if (!group) throw new Error('Unmatched route glob group');
-      if (variants.length * group.length > 256) throw new Error('Network route pattern limit exceeded');
+      if (variants.length * group.length > limits.maxPatternVariants) throw new Error('Network route pattern limit exceeded');
       variants = variants.flatMap(prefix => group!.map(suffix => prefix + suffix));
       group = undefined;
     } else if (character === ',' && group) group.push('');
@@ -95,9 +99,9 @@ function matches(tokens: Token[][], url: string, budget: { remaining: number }):
 
 export function createPlaywrightRoutePolicyBackend(host: PlaywrightRoutePolicyHost, options: PlaywrightRoutePolicyLimits = {}) {
   if (!host || ['ownsRequest', 'admit', 'fetch'].some(key => typeof host[key as keyof PlaywrightRoutePolicyHost] !== 'function')) throw new TypeError('Invalid route policy host');
-  const defaults = { maxRequestBytes: 1024 * 1024, maxResponseBytes: 8 * 1024 * 1024, maxHeaderBytes: 65536, maxRetainedBytes: 16 * 1024 * 1024, maxConcurrentRequests: 64, maxPatternSteps: 4_000_000 };
+  const defaults = { maxRequestBytes: Infinity, maxResponseBytes: Infinity, maxHeaderBytes: Infinity, maxRetainedBytes: Infinity, maxConcurrentRequests: Infinity, maxPatternSteps: Infinity, maxPatternLength: Infinity, maxPatternVariants: Infinity, maxHeaders: Infinity, maxRoutes: Infinity };
   const limits = { ...defaults, ...options };
-  if (Object.entries(limits).some(([key, value]) => !Object.hasOwn(defaults, key) || !Number.isSafeInteger(value) || value < 1)) throw new TypeError('Invalid route policy limits');
+  if (Object.entries(limits).some(([key, value]) => !Object.hasOwn(defaults, key) || value !== Infinity && (!Number.isSafeInteger(value) || value < 1))) throw new TypeError('Invalid route policy limits');
   const encoder = new TextEncoder();
   const controller = new AbortController();
   const routes = new Map<PlaywrightRouteHandler, { tokens: Token[][]; handler: PlaywrightRouteHandler; bytes: number }>();
@@ -117,7 +121,7 @@ export function createPlaywrightRoutePolicyBackend(host: PlaywrightRoutePolicyHo
     return bytes;
   };
   const headersCopy = (headers: PlaywrightPolicyRequest['headers']) => {
-    if (!Array.isArray(headers) || headers.length > 1024) throw new Error('Network header limit exceeded');
+    if (!Array.isArray(headers) || headers.length > limits.maxHeaders) throw new Error('Network header limit exceeded');
     let bytes = 0;
     const copy = headers.map(({ name, value }) => {
       bytes += textBytes(name) + textBytes(value);
@@ -210,10 +214,10 @@ export function createPlaywrightRoutePolicyBackend(host: PlaywrightRoutePolicyHo
     fetch,
     add(pattern: string, handler: PlaywrightRouteHandler, bytes: number) {
       controller.signal.throwIfAborted();
-      if (routes.size >= 64 || routes.has(handler)) throw new Error('Network route count limit exceeded');
+      if (routes.size >= limits.maxRoutes || routes.has(handler)) throw new Error('Network route count limit exceeded');
       charge(bytes);
       try {
-        const tokens = compilePattern(pattern);
+        const tokens = compilePattern(pattern, limits);
         const tokenBytes = tokens.reduce((total, variant) => total + variant.length * 16, 0);
         charge(tokenBytes);
         routes.set(handler, { tokens, handler, bytes: bytes + tokenBytes });

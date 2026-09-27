@@ -22,7 +22,7 @@ function fixture() {
   const context = { pages: () => [page] };
   const request: PlaywrightAbilityRequest = {
     command: 'eval', session: 'owner', args: ['1 + 2'], options: {}, signal: new AbortController().signal,
-    limits: { maxCommandBytes: 1048576, maxArtifactBytes: 1048576 },
+    limits: { maxCommandBytes: 1048576, maxArtifactBytes: 1048576, maxEvaluationInputBytes: 65536, maxEvaluationBytes: 1048576, maxEvaluationEntries: 10000, maxEvaluationDepth: 100 },
     browserSession: { context: context as never, page: page as never, async resolveTarget() { throw new Error('Unused'); }, async selectPage() {}, registerCleanup: cleanup => cleanups.push(cleanup) },
     async write() { throw new Error('No output before response'); }, async readFile() { throw new Error('No file reads'); }, async writeArtifact() { throw new Error('Result hook belongs to capability'); }, registerCleanup: cleanup => cleanups.push(cleanup),
   };
@@ -65,7 +65,7 @@ test('oversized input and foreign selected pages fail before native acquisition'
 test('filename output retains the native one MiB cap even with larger host allowances', async () => {
   for (const expression of ['"x".repeat(2 * 1024 * 1024)', 'Promise.reject("x".repeat(2 * 1024 * 1024))']) {
     const state = fixture();
-    await assert.rejects(evaluateNativeExpression({ ...state.request, args: [expression], options: { filename: 'overflow.json' }, limits: { maxCommandBytes: 8 * 1024 * 1024, maxArtifactBytes: 8 * 1024 * 1024 } }), /byte.*limit/);
+    await assert.rejects(evaluateNativeExpression({ ...state.request, args: [expression], options: { filename: 'overflow.json' }, limits: { maxCommandBytes: 8 * 1024 * 1024, maxArtifactBytes: 8 * 1024 * 1024, maxEvaluationBytes: 1048576 } }), /byte.*limit/);
     assert.deepEqual(state.events, ['acquire', 'serialize', 'dispose']);
   }
 });

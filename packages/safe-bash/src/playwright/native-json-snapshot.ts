@@ -6,6 +6,7 @@ import { isPlaywrightSnapshotRef } from './targets.js';
 export async function captureNativePlaywrightJSON(page: PlaywrightPage, options: {
   /** @deprecated Ignored. Snapshots have no byte limit. */
   maxBytes?: number;
+  maxDepth?: number | undefined;
   maxRefs: number; nextRef(native?: string): string; signal?: AbortSignal;
   prepareNextRef?: () => Promise<(native?: string) => string>;
   depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number; captureJSON?: PlaywrightSnapshotJSONCapture;
@@ -73,7 +74,7 @@ export async function captureNativePlaywrightJSON(page: PlaywrightPage, options:
   const nextRef = await options.prepareNextRef?.() ?? options.nextRef;
   const issued = new Map<string, string>();
   const rewrite = (nodes: readonly (PlaywrightSnapshotJSONNode | string)[], depth: number): (PlaywrightSnapshotJSONNode | string)[] => {
-    if (depth > 1024) throw new PlaywrightSnapshotLimitError('Snapshot depth limit exceeded');
+    if (depth > (options.maxDepth ?? Infinity)) throw new PlaywrightSnapshotLimitError('Snapshot depth limit exceeded');
     return nodes.map(node => {
       if (typeof node === 'string') return node;
       const { children, ref, ...fields } = node;

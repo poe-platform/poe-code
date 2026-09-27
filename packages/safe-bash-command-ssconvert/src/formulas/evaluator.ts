@@ -79,7 +79,7 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
   }
   function parse(source: string, position: ParsePosition, arrayStringLiterals = false): FormulaNode {
     tick();
-    const parsed = parseExpression(source, { position, arrayStringLiterals, workbook: book, signal: context.signal, maximumLength: context.limits.inputBytes, maximumNodes: maximumWork - work, onWork: tick });
+    const parsed = parseExpression(source, { position, arrayStringLiterals, workbook: book, signal: context.signal, maximumDepth: context.limits.formulaDepth, maximumLength: context.limits.inputBytes, maximumNodes: maximumWork - work, onWork: tick });
     if (!parsed.ok) throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: formula syntax at ${parsed.diagnostic.start}:${parsed.diagnostic.end}`);
     return parsed.document.root;
   }
@@ -137,7 +137,7 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
   }
   function indirectRange(node: FormulaNode, position: ParsePosition, names: Set<object>, depth = 0): Value {
     tick();
-    if (depth > maximumWork) throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded");
+    if (depth > (context.limits.formulaDependencyDepth ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded");
     if (node.kind === "reference") return reference(node, position);
     if (node.kind === "parentheses") return indirectRange(node.child, position, names, depth + 1);
     if (node.kind !== "name" || node.workbook !== undefined && node.workbook !== "") return error("#REF!");
@@ -145,7 +145,7 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
     const matches = (entry: NonNullable<Workbook["names"]>[number]) => entry.name === node.name;
     const name = book.names?.find(entry => entry.sheet === sheet && matches(entry)) ?? book.names?.find(entry => entry.sheet === undefined && matches(entry));
     if (!name || names.has(name)) return error("#REF!");
-    return indirectRange(parseNamedExpression(name, book, parse, tick), position, new Set([...names, name]), depth + 1);
+    return indirectRange(parseNamedExpression(name, book, parse, tick, context.limits.formulaDependencyDepth ?? Infinity), position, new Set([...names, name]), depth + 1);
   }
   function scalar(value: Value, position: ParsePosition): CellValue {
     // OpenFormula §5.10.4 selects at the formula position when the consumer
@@ -191,7 +191,7 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
   }
   function evaluate(node: FormulaNode, position: ParsePosition, array = false, names = new Set<object>(), wantReference = true): Value {
     tick();
-    if (++depth > maximumWork) { depth--; throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded"); }
+    if (++depth > (context.limits.formulaDependencyDepth ?? Infinity)) { depth--; throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded"); }
     try {
       if (node.kind === "literal") return node.value;
       if (node.kind === "omitted") return blank;
@@ -208,7 +208,7 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
         const matches = (entry: NonNullable<Workbook["names"]>[number]) => entry.name === node.name;
         const name = book.names?.find(entry => entry.sheet === sheet && matches(entry)) ?? book.names?.find(entry => entry.sheet === undefined && matches(entry));
         if (!name || names.has(name)) return error("#NAME?");
-        return evaluate(parseNamedExpression(name, book, parse, tick), position, array, new Set([...names, name]), wantReference);
+        return evaluate(parseNamedExpression(name, book, parse, tick, context.limits.formulaDependencyDepth ?? Infinity), position, array, new Set([...names, name]), wantReference);
       }
       if (node.kind === "unary") {
         const apply = (value: CellValue) => {
@@ -360,7 +360,7 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
         },
         indirect: (text, a1) => {
           const parsed = parseExpression(text, { grammar: a1 ? gnumericGrammar : sylkGrammar, position, workbook: book,
-            signal: context.signal, maximumLength: context.limits.inputBytes, maximumNodes: maximumWork - work });
+            signal: context.signal, maximumDepth: context.limits.formulaDepth, maximumLength: context.limits.inputBytes, maximumNodes: maximumWork - work });
           return parsed.ok ? indirectRange(parsed.document.root, position, new Set()) : error("#REF!");
         }
       };
@@ -479,7 +479,7 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
       cleared.add(cell);
       return currentValues.get(cell) ?? cell.cachedResult ?? cell.value;
     }
-    if (visiting.size >= maximumWork) throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded");
+    if (visiting.size >= (context.limits.formulaDependencyDepth ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded");
     visiting.add(cell);
     const previousCell = activeCell;
     activeCell = cell;
@@ -513,7 +513,7 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
   }
   const currentValues = new Map<Cell, CellValue>();
   const dependencyRanges: [Cell, CalculationRange][] = [];
-  const graph = buildDependencyGraph(book, expressions, (node, position) => localReferenceRange(book, node, position), parse, tick, (cell, range) => dependencyRanges.push([cell, range]));
+  const graph = buildDependencyGraph(book, expressions, (node, position) => localReferenceRange(book, node, position), parse, tick, (cell, range) => dependencyRanges.push([cell, range]), context.limits.formulaDependencyDepth ?? Infinity);
   const pending = new Set<Cell>();
   const queue: Cell[] = [];
   const queueVolatile = typeof options === "boolean" || options.queueVolatile !== false;

@@ -9,6 +9,7 @@ export interface MetadataLimits {
   readonly maxOutputBytes: number;
   readonly maxArgumentBytes: number;
   readonly maxAttempts: number;
+  readonly maxArguments?: number;
 }
 
 export interface MetadataCommandsOptions {
@@ -18,7 +19,7 @@ export interface MetadataCommandsOptions {
 }
 
 export function settings(options: MetadataCommandsOptions = {}) {
-  const limits: MetadataLimits = { maxEntries: Infinity, maxDepth: Infinity, maxOutputBytes: Infinity, maxArgumentBytes: Infinity, maxAttempts: Infinity, ...options.limits };
+  const limits: MetadataLimits = { maxEntries: Infinity, maxDepth: Infinity, maxOutputBytes: Infinity, maxArgumentBytes: Infinity, maxAttempts: Infinity, maxArguments: Infinity, ...options.limits };
   for (const [key, value] of Object.entries(limits)) {
     if (value !== Infinity && (!Number.isSafeInteger(value) || value < (key === "maxDepth" ? 0 : 1))) throw new RangeError(`Invalid metadata limit: ${key}`);
   }

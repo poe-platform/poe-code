@@ -295,7 +295,7 @@ async function formula(source: string, legacy: boolean, position: { sheet: strin
   else if (!legacy && source.startsWith("of:")) source = source.slice(3);
   else if (!legacy && source.startsWith("msoxl:")) { grammar = { ...gnumericGrammar, leftAssociativePower: true }; source = source.slice(6); }
   if (source === "=") return undefined;
-  const parsed = parseExpression(source, { grammar, position, workbook, onWork, signal: context.signal,
+  const parsed = parseExpression(source, { maximumDepth: context.limits.formulaDepth, grammar, position, workbook, onWork, signal: context.signal,
     maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? Infinity });
   if (!parsed.ok) {
     await warning(`${position.sheet}!${formatA1(position.row, position.column)} : Unable to parse '${source}'\n`, context);
@@ -441,7 +441,7 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
             const formulaAttribute = c.attributes.findIndex(a => a.localName === "formula" && table.includes(a.namespace));
             if (expression && errorFlag >= 0 && errorFlag < formulaAttribute) {
               const msoxl = expression.startsWith("msoxl:");
-              const parsed = parseExpression(msoxl ? expression.slice(6) : expression, { grammar: msoxl ? gnumericGrammar : legacy ? legacyOpenOfficeGrammar : odfGrammar, position: { sheet: id, row, column: cellColumn }, signal: context.signal,
+              const parsed = parseExpression(msoxl ? expression.slice(6) : expression, { maximumDepth: context.limits.formulaDepth, grammar: msoxl ? gnumericGrammar : legacy ? legacyOpenOfficeGrammar : odfGrammar, position: { sheet: id, row, column: cellColumn }, signal: context.signal,
                 maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? Infinity });
               if (parsed.ok && parsed.document.root.kind === "literal" && parsed.document.root.value.kind === "error") {
                 value = parsed.document.root.value; expression = undefined;
@@ -560,7 +560,7 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
         if (!source) continue;
         const initialSheet = sheet ?? sheets[0]?.id ?? (tables[0] ? attr(tables[0], "name") : undefined) ?? "Sheet1";
         const base = attr(n, "base-cell-address");
-        const parsedBase = base ? parseExpression("=[" + base + "]", { grammar: odfGrammar,
+        const parsedBase = base ? parseExpression("=[" + base + "]", { maximumDepth: context.limits.formulaDepth, grammar: odfGrammar,
           position: { sheet: initialSheet, row: 0, column: 0 }, signal: context.signal,
           maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes,
           maximumNodes: context.limits.workbookNodes ?? Infinity }) : undefined;
@@ -729,7 +729,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
     function expression(source: string, sheet: Sheet, row: number, column: number) {
       xml.charge(source.length);
       const captured = preparedLabels.documents.get(JSON.stringify([sheet.id, row, column, source]));
-      const parsed = captured ? { ok: true as const, document: captured } : parseExpression(source, { position: { sheet: sheet.id, row, column }, workbook: book,
+      const parsed = captured ? { ok: true as const, document: captured } : parseExpression(source, { maximumDepth: context.limits.formulaDepth, position: { sheet: sheet.id, row, column }, workbook: book,
         signal: context.signal, onWork: xml.charge, maximumLength: context.limits.workbookTextBytes ?? context.limits.outputBytes,
         maximumNodes: context.limits.workbookNodes ?? Infinity });
       if (!parsed.ok) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: invalid OpenDocument formula");
@@ -760,7 +760,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
         coordinate(row, MAX_SHEET_SIZE.rows); coordinate(column, MAX_SHEET_SIZE.columns);
         const formula = expression(n.expression, sheet, row, column);
         const address = formatA1(row, column), base = quoteFormulaString(sheet.name, "'", odfGrammar) + ".$" + address.slice(0, address.length - String(row + 1).length) + "$" + (row + 1);
-        const parsed = parseExpression(n.expression, { position: { sheet: sheet.id, row, column }, workbook: book,
+        const parsed = parseExpression(n.expression, { maximumDepth: context.limits.formulaDepth, position: { sheet: sheet.id, row, column }, workbook: book,
           signal: context.signal, onWork: xml.charge, maximumLength: context.limits.workbookTextBytes ?? context.limits.outputBytes,
           maximumNodes: context.limits.workbookNodes ?? Infinity });
         body += parsed.ok && parsed.document.root.kind === "reference" && !parsed.document.root.label ? e("table:named-range", {
@@ -859,7 +859,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
         } else if (record.kind === "Objects") for (const object of odfChildren(record.data)) {
           xml.charge(); const n = odfObject(object), a = odfAttributes(object);
           if ((n?.name === "CellComment" || n?.name === "GnmCellComment") && a.ObjectBound) {
-            const address = parseExpression("=" + a.ObjectBound.split(":")[0], { position: { sheet: sheet.id, row: 0, column: 0 }, signal: context.signal });
+            const address = parseExpression("=" + a.ObjectBound.split(":")[0], { maximumDepth: context.limits.formulaDepth, position: { sheet: sheet.id, row: 0, column: 0 }, signal: context.signal });
             if (address.ok && address.document.root.kind === "reference") {
               const ref = address.document.root.first, row = ref.row?.value ?? 0, column = ref.column?.value ?? 0, key = `${row}:${column}`;
               coordinate(row, MAX_SHEET_SIZE.rows); coordinate(column, MAX_SHEET_SIZE.columns);

@@ -26,7 +26,7 @@ export class SolverProgram {
       let index = indexes.get(addressKey(lhs));
       const cell = this.cell(this.book, lhs);
       if (index === undefined && cell?.formula) {
-        const parsed = parseExpression(cell.formula, { position: lhs, workbook: this.book, signal: context.signal, maximumLength: context.limits.inputBytes });
+        const parsed = parseExpression(cell.formula, { maximumDepth: context.limits.formulaDepth, position: lhs, workbook: this.book, signal: context.signal, maximumLength: context.limits.inputBytes });
         if (parsed.ok && parsed.document.root.kind === 'reference') {
           const r = localReferenceRange(this.book, parsed.document.root, lhs);
           if (r?.sheets.length === 1 && r.firstRow === r.lastRow && r.firstColumn === r.lastColumn) index = indexes.get(addressKey({ sheet: r.sheets[0]!.id, row: r.firstRow, column: r.firstColumn }));

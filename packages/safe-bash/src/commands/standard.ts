@@ -15,7 +15,7 @@ import { builtInDirectContextExecutors, diagnostic } from "./internal.js";
 import type { RegexExecutionOptions } from "./regex-execution/protocol.js";
 import type { BoundedRegexProvider } from "./regex-execution/provider.js";
 
-export type { ExecutionCommandsOptions } from "./execution.js";
+export type { ExecutionCommandsOptions, EnvSplitLimits } from "./execution.js";
 
 export interface StandardCommandsOptions {
   readonly predicateIdentity?: Parameters<typeof predicateCommands>[0];

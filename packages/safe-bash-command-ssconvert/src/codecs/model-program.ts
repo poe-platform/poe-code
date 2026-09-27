@@ -37,7 +37,7 @@ export async function writeModelProgram(book: Workbook, context: CapabilityConte
   const tick = (amount = 1) => { context.signal.throwIfAborted(); if ((work += amount) > maximum) throw new SsconvertError('resource-limit', 'ssconvert workbook work limit exceeded'); };
   const side = (text: string | undefined, resolveNames = true): (Address | number)[] => {
     if (text === undefined) return [];
-    const parsed = parseExpression(text, { position: { sheet: sheet.id, row: 0, column: 0 }, workbook: book, signal: context.signal, maximumNodes: maximum - work, maximumLength: context.limits.inputBytes });
+    const parsed = parseExpression(text, { maximumDepth: context.limits.formulaDepth, position: { sheet: sheet.id, row: 0, column: 0 }, workbook: book, signal: context.signal, maximumNodes: maximum - work, maximumLength: context.limits.inputBytes });
     if (!parsed.ok) return [];
     let root = parsed.document.root;
     if (root.kind === 'name') {
@@ -45,7 +45,7 @@ export async function writeModelProgram(book: Workbook, context: CapabilityConte
       const nameText = root.name;
       const name = book.names?.find(n => n.name.toLowerCase() === nameText.toLowerCase() && (!n.sheet || n.sheet === sheet.id));
       if (!name) return [];
-      const resolved = parseExpression(name.expression, { position: { sheet: sheet.id, row: 0, column: 0 }, workbook: book, signal: context.signal, maximumNodes: maximum - work });
+      const resolved = parseExpression(name.expression, { maximumDepth: context.limits.formulaDepth, position: { sheet: sheet.id, row: 0, column: 0 }, workbook: book, signal: context.signal, maximumNodes: maximum - work });
       if (!resolved.ok) return []; root = resolved.document.root;
     }
     if (root.kind === 'literal' && root.value.kind === 'number') return [root.value.value];
@@ -93,7 +93,7 @@ export async function writeModelProgram(book: Workbook, context: CapabilityConte
   const variableIndex = (address: Address): number | undefined => {
     const direct = indexes.get(key(address)); if (direct !== undefined) return direct;
     const formula = cell(address)?.formula; if (!formula) return undefined;
-    const parsed = parseExpression(formula, { position: address, workbook: book, signal: context.signal, maximumNodes: maximum - work });
+    const parsed = parseExpression(formula, { maximumDepth: context.limits.formulaDepth, position: address, workbook: book, signal: context.signal, maximumNodes: maximum - work });
     if (!parsed.ok || parsed.document.root.kind !== 'reference') return undefined;
     const range = localReferenceRange(book, parsed.document.root, address);
     if (!range || range.sheets.length !== 1 || range.firstRow !== range.lastRow || range.firstColumn !== range.lastColumn) return undefined;

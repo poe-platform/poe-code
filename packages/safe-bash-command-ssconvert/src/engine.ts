@@ -55,6 +55,7 @@ export const defaultSsconvertLimits: Readonly<RuntimeLimits> = Object.freeze({
   zipEntries: Infinity,
   zipRatio: Infinity,
   xmlDepth: Infinity,
+  formulaDepth: Infinity, formulaDependencyDepth: Infinity, patternDepth: Infinity, objectDepth: Infinity, workbookDepth: Infinity, outputSymlinks: Infinity,
   splitOutputs: Infinity,
 });
 
@@ -97,7 +98,7 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
     if (value !== Infinity && (!Number.isSafeInteger(value) || value < 0))
       throw new TypeError(`Invalid ssconvert limit: ${name}`);
   }
-  for (const name of ["workbookNodes", "workbookTextBytes", "workbookWork", "argumentBytes", "commandOutputBytes", "compressedBytes", "inflatedBytes", "encryptionMemoryBytes", "zipEntries", "zipRatio", "xmlDepth", "splitOutputs"] as const) {
+  for (const name of ["workbookNodes", "workbookTextBytes", "workbookWork", "argumentBytes", "commandOutputBytes", "compressedBytes", "inflatedBytes", "encryptionMemoryBytes", "zipEntries", "zipRatio", "xmlDepth", "splitOutputs", "formulaDepth", "formulaDependencyDepth", "patternDepth", "objectDepth", "workbookDepth", "outputSymlinks"] as const) {
     const value = config.limits[name];
     if (value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) || value < 0))
       throw new TypeError(`Invalid ssconvert limit: ${name}`);

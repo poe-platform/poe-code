@@ -63,7 +63,7 @@ it("admits zero-field empty records without changing unrelated content", async (
 it("refuses inserted-node and item cardinality overruns", async () => {
   const body = region("people", `<w:p>${field("name")}</w:p>`);
   await expect(apply(body, [record("name", "a")], { insertedNodes: 0 })).rejects.toMatchObject({ code: "limit-exceeded" });
-  await expect(apply(body, Array.from({ length: 1001 }, () => record("name", "a")))).rejects.toMatchObject({ code: "limit-exceeded" });
+  await expect(apply(body, Array.from({ length: 1001 }, () => record("name", "a")), { templateRepeatItems: 1000 })).rejects.toMatchObject({ code: "limit-exceeded" });
 });
 it("implements shared CLI data-file and dry-run output without publication", async () => {
   const input = await textFixture(`<w:p>${field("name")}</w:p>`), fs = Volume.fromJSON({ '/data.json': JSON.stringify(record('name', 'Привет')), '/out': '' });
@@ -85,7 +85,7 @@ it("supports nested row templates in sections, empty children and varied prior i
   expect((await inspectDocumentControls(empty.bytes, {}, textContext)).items.filter(item => item.kind === "repeating-item")).toHaveLength(2);
   expect((await extractDocumentText(empty.bytes, textContext)).text).toBe('\n');
 });
-it("accepts four declared repeat levels and refuses a fifth", async () => {
+it("accepts four declared repeat levels and enforces an explicit depth ceiling", async () => {
   const nested = (levels: number) => {
     let body = `<w:p>${field("label")}</w:p>`, data: unknown = record("label", "Leaf");
     for (let level = levels; level > 0; level--) { body = region(`level${level}`, body); data = record(`level${level}`, [data]); }
@@ -94,7 +94,7 @@ it("accepts four declared repeat levels and refuses a fifth", async () => {
   const allowed = nested(4);
   expect((await extractDocumentText((await apply(allowed.body, allowed.data)).bytes, textContext)).text).toBe('Leaf');
   const refused = nested(5);
-  await expect(apply(refused.body, [])).rejects.toMatchObject({ code: 'limit-exceeded' });
+  await expect(apply(refused.body, [], { templateRepeatDepth: 4 })).rejects.toMatchObject({ code: 'limit-exceeded' });
 });
 it("preserves false and empty text and uses declared choice/date display semantics", async () => {
   const check = '<c:checkbox xmlns:c="http://schemas.microsoft.com/office/word/2010/wordml"><c:checked c:val="1"/><c:checkedState c:val="2612" c:font="Symbol"/><c:uncheckedState c:val="2610" c:font="Symbol"/></c:checkbox>';
@@ -229,4 +229,23 @@ it("refuses malformed native item containers in later discarded nested regions",
   const outer = region('people', inner), item = outer.slice(outer.indexOf('<w:sdt><w:sdtPr><w:id w:val="20"/>'), outer.lastIndexOf('</w:sdtContent></w:sdt>'));
   const body = outer.slice(0, outer.lastIndexOf('</w:sdtContent></w:sdt>')) + item.replace(inner, malformed) + '</w:sdtContent></w:sdt>';
   await expect(apply(body, [record('places', [record('name', 'Bay')])])).rejects.toMatchObject({ code: 'unsupported-edit' });
+});
+
+it('admits nesting beyond four repeats and enforces explicit template depth', async () => {
+  let body = `<w:p>${field('name')}</w:p>`;
+  let data: unknown = record('name', 'Deep');
+  for (let index = 0; index < 5; index++) {
+    body = region(`level${index}`, body);
+    data = record(`level${index}`, [data]);
+  }
+  const result = await apply(body, data);
+  expect((await extractDocumentText(result.bytes, textContext)).text).toBe('Deep');
+  await expect(apply(body, data, { templateRepeatDepth: 4 })).rejects.toMatchObject({ code: 'limit-exceeded' });
+});
+
+it('admits repeat cardinality beyond one thousand before validating record bindings', async () => {
+  const body = region('people', `<w:p>${field('name')}</w:p>`);
+  const data = Array.from({ length: 1001 }, () => record('unbound', 'a'));
+  await expect(apply(body, data)).rejects.toMatchObject({ code: 'usage' });
+  await expect(apply(body, data, { templateRepeatItems: 1000 })).rejects.toMatchObject({ code: 'limit-exceeded' });
 });

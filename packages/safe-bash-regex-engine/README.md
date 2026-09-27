@@ -12,4 +12,4 @@ retried without exposing a partial program.
 Use commands through `@poe-platform/safe-bash` and its existing command exports. This
 private workspace is bundled into Safe Bash and is not independently published.
 
-`Pattern` accepts an optional sixth argument, `PatternLimits`, to bound instructions before eager compilation. `TextProgramOptions.maxPatternInstructions` bounds expanded regex instructions during preparation and matching. Omission or `Infinity` disables this quota; a finite limit includes the final match instruction and applies to reused and eagerly compiled patterns.
+`Pattern` accepts an optional sixth argument, `PatternLimits`, to bound instructions, source length (`maxPatternSource`) and group depth (`maxPatternDepth`) before eager compilation. `TextProgramOptions.maxPatternInstructions` bounds expanded regex instructions during preparation and matching. The same limits apply through `TextProgramOptions` on preparation and matching. Omission or `Infinity` disables each quota; a finite limit includes the final match instruction and applies to reused and eagerly compiled patterns.

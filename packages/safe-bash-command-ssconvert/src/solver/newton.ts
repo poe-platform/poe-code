@@ -39,7 +39,7 @@ export function analyticObjective(program: SolverProgram, coordinates: readonly 
     if (!source?.formula) return !source || source.value.kind === 'blank' ? constant(0) : source.value.kind === 'number' ? constant(source.value.value) : undefined;
     visiting.add(key);
     budget.tick(source.formula.length);
-    const parsed = parseExpression(source.formula, { workbook: program.book, position: address, signal: program.context.signal, maximumLength: program.context.limits.inputBytes, maximumNodes: source.formula.length + 1 });
+    const parsed = parseExpression(source.formula, { maximumDepth: program.context.limits.formulaDepth, workbook: program.book, position: address, signal: program.context.signal, maximumLength: program.context.limits.inputBytes, maximumNodes: source.formula.length + 1 });
     const result = parsed.ok ? expression(parsed.document.root, address, depth + 1) : undefined;
     visiting.delete(key);
     return result;

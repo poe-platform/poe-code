@@ -53,29 +53,31 @@ export interface PlaywrightNetworkPolicyOptions {
   readonly requestTimeoutMs?: number;
   readonly maxResponseBytes?: number;
   readonly maxRequestBytes?: number;
-  /** Incoming UTF-8 CDP JSON cap, default 8 MiB; at most 32 MiB. */
+  /** Incoming UTF-8 CDP JSON cap; unlimited when omitted. */
   readonly maxProtocolMessageBytes?: number;
   readonly maxConcurrentRequests?: number;
   readonly maxTargets?: number;
+  readonly maxHeaders?: number;
+  readonly maxHeaderBytes?: number;
 }
 
 type Message = { id?: number; method?: string; params?: any; result?: any; error?: { message?: string }; sessionId?: string };
 type Target = { targetId: string; type: string; browserContextId?: string };
 type Operation = { controller: AbortController; networkId: string; sessionId: string; nativeCanceled: boolean };
 
-function boundedHeaders(entries: readonly { name: string; value: string }[]): { name: string; value: string }[] {
-  if (!Array.isArray(entries) || entries.length > 1024) throw new Error('Host header limit exceeded');
+function boundedHeaders(entries: readonly { name: string; value: string }[], maxHeaders: number, maxBytes: number): { name: string; value: string }[] {
+  if (!Array.isArray(entries) || entries.length > maxHeaders) throw new Error('Host header limit exceeded');
   const encoder = new TextEncoder();
   let bytes = 0;
   return entries.map(({ name, value }) => {
-    if (typeof name !== 'string' || typeof value !== 'string' || name.length + value.length > 65536) throw new Error('Invalid or oversized host header');
+    if (typeof name !== 'string' || typeof value !== 'string' || name.length + value.length > maxBytes) throw new Error('Invalid or oversized host header');
     bytes += encoder.encode(name).length + encoder.encode(value).length;
-    if (bytes > 65536) throw new Error('Host header limit exceeded');
+    if (bytes > maxBytes) throw new Error('Host header limit exceeded');
     return { name, value };
   });
 }
 
-function parseRequestPayload(native: any, maxRequest: number): Pick<PlaywrightPolicyRequest, 'url' | 'method' | 'headers' | 'body'> {
+function parseRequestPayload(native: any, maxRequest: number, maxHeaders: number, maxHeaderBytes: number): Pick<PlaywrightPolicyRequest, 'url' | 'method' | 'headers' | 'body'> {
   try {
     const url = new URL(native.url);
     if (url.protocol !== 'https:' && url.protocol !== 'http:') throw new Error('Unsupported browser network protocol');
@@ -98,7 +100,7 @@ function parseRequestPayload(native: any, maxRequest: number): Pick<PlaywrightPo
       for (const piece of pieces) for (let index = 0; index < piece.length; index++) body[offset++] = piece.charCodeAt(index);
     }
     return { url: native.url, method: native.method,
-      headers: boundedHeaders(Object.entries(native.headers as Record<string, string>).map(([name, value]) => ({ name, value }))),
+      headers: boundedHeaders(Object.entries(native.headers as Record<string, string>).map(([name, value]) => ({ name, value })), maxHeaders, maxHeaderBytes),
       ...(body ? { body } : {}) };
   } finally {
     delete native?.postData;
@@ -114,18 +116,17 @@ export async function installPlaywrightNetworkPolicy(options: PlaywrightNetworkP
   }
   const positive = (value: number | undefined, fallback: number) => {
     const selected = value ?? fallback;
-    if (!Number.isSafeInteger(selected) || selected < 1) throw new TypeError('Invalid network policy limit');
+    if (selected !== Infinity && (!Number.isSafeInteger(selected) || selected < 1)) throw new TypeError('Invalid network policy limit');
     return selected;
   };
   const timeout = positive(options.requestTimeoutMs, 30000);
-  const maxResponse = positive(options.maxResponseBytes, 8 * 1024 * 1024);
-  const maxRequest = positive(options.maxRequestBytes, 1024 * 1024);
-  const maxMessage = options.maxProtocolMessageBytes ?? 8 * 1024 * 1024;
-  if (!Number.isSafeInteger(maxMessage) || maxMessage < 1 || maxMessage > 32 * 1024 * 1024) {
-    throw new TypeError('Invalid protocol message limit (maximum 32 MiB)');
-  }
-  const maxConcurrent = positive(options.maxConcurrentRequests, 64);
-  const maxTargets = positive(options.maxTargets, 64);
+  const maxResponse = positive(options.maxResponseBytes, Infinity);
+  const maxRequest = positive(options.maxRequestBytes, Infinity);
+  const maxMessage = positive(options.maxProtocolMessageBytes, Infinity);
+  const maxConcurrent = positive(options.maxConcurrentRequests, Infinity);
+  const maxTargets = positive(options.maxTargets, Infinity);
+  const maxHeaders = positive(options.maxHeaders, Infinity);
+  const maxHeaderBytes = positive(options.maxHeaderBytes, Infinity);
   const { socket } = options;
   const pending = new Map<number, { resolve(value: any): void; reject(error: unknown): void; timer: ReturnType<typeof setTimeout> }>();
   const targets = new Map<string, Target>();
@@ -217,7 +218,7 @@ export async function installPlaywrightNetworkPolicy(options: PlaywrightNetworkP
     operations.add(operation);
     let release: (() => void | Promise<void>) | undefined;
     try {
-      const response = await options.fetch({ ...identity, ...parseRequestPayload(params.request, maxRequest), signal: controller.signal });
+      const response = await options.fetch({ ...identity, ...parseRequestPayload(params.request, maxRequest, maxHeaders, maxHeaderBytes), signal: controller.signal });
       const releaseResponse = response.release;
       if (releaseResponse !== undefined) {
         if (typeof releaseResponse !== 'function') throw new Error('Invalid host response release');
@@ -229,7 +230,7 @@ export async function installPlaywrightNetworkPolicy(options: PlaywrightNetworkP
         || !(response.body instanceof Uint8Array) || response.body.byteLength > maxResponse) throw new Error('Invalid or oversized host response');
       let binary = '';
       for (let offset = 0; offset < response.body.length; offset += 8192) binary += String.fromCharCode(...response.body.subarray(offset, offset + 8192));
-      await send('Fetch.fulfillRequest', { requestId: params.requestId, responseCode: response.status, responseHeaders: boundedHeaders(response.headers), body: btoa(binary) }, sessionId);
+      await send('Fetch.fulfillRequest', { requestId: params.requestId, responseCode: response.status, responseHeaders: boundedHeaders(response.headers, maxHeaders, maxHeaderBytes), body: btoa(binary) }, sessionId);
     } catch (error) {
       controller.abort(error);
       const message = (error instanceof Error ? error.message : 'Host network request failed').slice(0, 1024);

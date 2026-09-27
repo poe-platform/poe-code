@@ -133,7 +133,7 @@ export const subtotalSpecialForm: SpecialForm = (nodes, host) => {
       for (let column = value.firstColumn; column <= value.lastColumn; column++) {
         host.tick(); const cell = host.cell(sheet,row,column);
         if (cell?.formula) {
-          const parsed = parseExpression(cell.formula,{position:{sheet:sheet.id,row,column},workbook:host.book,signal:host.context.signal,maximumLength:host.context.limits.inputBytes,maximumNodes:host.context.limits.workbookWork ?? host.context.limits.cells * 32 + host.context.limits.inputBytes});
+          const parsed = parseExpression(cell.formula,{ maximumDepth: host.context.limits.formulaDepth,position:{sheet:sheet.id,row,column},workbook:host.book,signal:host.context.signal,maximumLength:host.context.limits.inputBytes,maximumNodes:host.context.limits.workbookWork ?? host.context.limits.cells * 32 + host.context.limits.inputBytes});
           if (parsed.ok && containsSubtotal(parsed.document.root)) continue;
         }
         append(host.read(sheet,row,column));

@@ -28,7 +28,7 @@ export const playwrightDrop: PlaywrightAbility = {
       if (index === -1) throw new Error(`--data must be in "mime/type=value" format, got: ${entry}`);
       data[entry.slice(0, index)] = entry.slice(index + 1);
     }
-    const maximum = request.limits?.maxCommandBytes ?? 1048576;
+    const maximum = request.limits?.maxCommandBytes ?? Infinity;
     let transportBytes = new TextEncoder().encode(JSON.stringify(data)).byteLength;
     const files = await readPlaywrightFiles(request, paths);
     // Numeric byte arrays use at most four JSON bytes per byte. Admit before

@@ -38,7 +38,7 @@ export function observePlaywrightDownloads(context: PlaywrightContext, registerC
       try {
         const suggestion = native.suggestedFilename();
         metadata += new TextEncoder().encode(suggestion).byteLength;
-        if (state.closed || state.failure || ++count > (limits.maxCount ?? 128) || metadata > (limits.maxMetadataBytes ?? 1048576)) throw new PlaywrightResourceLimitError('Playwright download retention limit exceeded');
+        if (state.closed || state.failure || ++count > (limits.maxCount ?? Infinity) || metadata > (limits.maxMetadataBytes ?? Infinity)) throw new PlaywrightResourceLimitError('Playwright download retention limit exceeded');
         const basename = suggestion.replaceAll('\\', '/').split('/').at(-1) ?? '';
         const safe = [...basename].map(character => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-'.includes(character) ? character : '_').join('');
         entry.filename = `download-${Date.now()}-${++sequence}-${safe && safe !== '.' && safe !== '..' ? safe : 'download.bin'}`;

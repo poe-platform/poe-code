@@ -342,3 +342,8 @@ test('unexpected input on output or checkpoint events fails and releases invocat
     }
   }
 });
+
+test('engine accepts input chunks above the former bounded-call ceiling', () => {
+  const input = 'word\n'.repeat(1000);
+  assert.deepEqual(format(input, [], 5000), format(input, [], 4096));
+});

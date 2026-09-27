@@ -2,11 +2,14 @@ import { FsError, getCommandArguments, readBytes, type ByteSource, type CommandD
 import { writeDiagnostic } from "../escaping.js";
 import { shellValueByteLength } from "../contracts/value.js";
 import { define, emptyInput, encoder, escapeBytes, integer, input as fileInput, options, output, pathOf, UsageError, value } from "./internal.js";
-import { EnvSplitError, parseEnvOptions } from "./env-split.js";
+import { EnvSplitError, parseEnvOptions, type EnvSplitLimits } from "./env-split.js";
 import { delimitedArguments, replaceXargsArguments, xargsDisplay } from "./xargs-bytes.js";
+
+export type { EnvSplitLimits } from "./env-split.js";
 
 export interface ExecutionCommandsOptions {
   readonly maxParallelProcesses?: number;
+  readonly envSplitLimits?: EnvSplitLimits;
 }
 
 export function directExecutor(fallback: CommandHandler): CommandHandler {
@@ -85,7 +88,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       let cwd = context.cwd;
       let argv0: string | undefined;
       try {
-        parsed = await parseEnvOptions(argumentValues.args, context.env, context.signal, argumentValues);
+        parsed = await parseEnvOptions(argumentValues.args, context.env, context.signal, argumentValues, configuration.envSplitLimits);
         debug = parsed.flags.has("v");
         if (debug && parsed.flags.has("i")) await writeDiagnostic(context.stderr, "cleaning environ\n", context.signal);
         env = Object.assign(Object.create(null) as Record<string, string>, parsed.flags.has("i") ? {} : context.env);

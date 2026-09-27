@@ -11,7 +11,7 @@ const stateSave: PlaywrightAbility = { scope: 'session', options: 'all', async e
   if (!context.storageState) unsupported('storageState');
   // CLI 0.1.20 does not request IndexedDB. Its state-load accepts explicitly
   // supplied state and passes all supported state fields to the native browser.
-  const state = await readPlaywrightStorageState(context, { signal: request.signal, maxBytes: request.limits?.maxArtifactBytes ?? Infinity, registerCleanup: cleanup => request.registerCleanup(cleanup) });
+  const state = await readPlaywrightStorageState(context, { signal: request.signal, maxBytes: request.limits?.maxArtifactBytes ?? Infinity, maxNodes: request.limits?.maxStorageNodes, maxDepth: request.limits?.maxStorageDepth, registerCleanup: cleanup => request.registerCleanup(cleanup) });
   request.signal.throwIfAborted();
   return capabilityArtifact(request, new TextEncoder().encode(JSON.stringify(state, null, 2)), 'storage-state', 'json', 'Storage state', filename => `await page.context().storageState({ path: ${JSON.stringify(filename)} });`, request.args[0]);
 } };
@@ -21,10 +21,10 @@ const stateLoad: PlaywrightAbility = { scope: 'session', async execute(request) 
   const bytes = await request.readFile(request.args[0]!);
   const maxBytes = request.limits?.maxCommandBytes ?? Infinity;
   if (bytes.byteLength > maxBytes) throw new PlaywrightResourceLimitError('Browser storage state byte limit exceeded');
-  const state = parsePlaywrightStorageStateJson(new TextDecoder('utf-8', { fatal: true }).decode(bytes), maxBytes);
+  const state = parsePlaywrightStorageStateJson(new TextDecoder('utf-8', { fatal: true }).decode(bytes), maxBytes, { ...(request.limits?.maxStorageNodes === undefined ? {} : { maxNodes: request.limits.maxStorageNodes }), ...(request.limits?.maxStorageDepth === undefined ? {} : { maxDepth: request.limits.maxStorageDepth }) });
   request.signal.throwIfAborted();
   if (session.context.setStorageState) await session.context.setStorageState(state);
-  else await replacePlaywrightStorageState(session.context, state, { signal: request.signal, maxBytes: request.limits?.maxCommandBytes ?? Infinity, registerCleanup: cleanup => request.registerCleanup(cleanup) });
+  else await replacePlaywrightStorageState(session.context, state, { signal: request.signal, maxBytes: request.limits?.maxCommandBytes ?? Infinity, maxNodes: request.limits?.maxStorageNodes, maxDepth: request.limits?.maxStorageDepth, registerCleanup: cleanup => request.registerCleanup(cleanup) });
   return capabilityResult(`await page.context().setStorageState(${JSON.stringify(request.args[0])});`, `Storage state restored from ${request.args[0]}`);
 } };
 

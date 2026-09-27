@@ -381,7 +381,7 @@ test('aggregate current readback across imported origins cannot spend the limit 
 });
 
 test('native IndexedDB collection charges serialized record bytes once for large strings and binary values', async () => {
-  const runRealmRecord = async (recordValue: unknown, maxBytes: number) => {
+  const runRealmRecord = async (recordValue: unknown, maxBytes: number, maxDepth = Infinity) => {
     const item = fixture();
     item.setCensus(empty);
     let closedDatabases = 0;
@@ -466,12 +466,17 @@ test('native IndexedDB collection charges serialized record bytes once for large
     };
     const retire = await bindPlaywrightStorageContext(item.context, item.prepare, item.controller.signal, [origin]);
     try {
-      const state = await readPlaywrightStorageState(item.context, { ...item.options, maxBytes, indexedDB: true });
+      const state = await readPlaywrightStorageState(item.context, { ...item.options, maxBytes, maxDepth, indexedDB: true });
       return { state, closedDatabases, abortedTransactions };
     } finally {
       await retire();
     }
   };
+
+  let nested: unknown = 'leaf';
+  for (let depth = 0; depth < 101; depth++) nested = { child: nested };
+  await runRealmRecord(nested, Infinity);
+  await assert.rejects(runRealmRecord(nested, Infinity, 100), /limit/);
 
   const largeString = 's'.repeat(3000);
   const stringResult = await runRealmRecord(largeString, 4096);

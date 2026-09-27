@@ -38,7 +38,9 @@ provide `registerCleanup`. Archive limits are `maxArchiveBytes`, `maxEntryBytes`
 The [usage guide](../../docs/docx/usage.md#host-limits-and-publication) describes
 host limits and document budgets. CLI `--limit NAME=VALUE` uses the same document
 settings as the SDK and can raise or lower an earlier setting. Capabilities lists
-finite limits; resources omitted from that list are unlimited.
+finite limits; resources omitted from that list are unlimited. Template repeats
+use `templateRepeatDepth` and `templateRepeatItems` in the document budget; both
+default to `Infinity` and accept `--limit` overrides.
 
 Filesystem and publication authority must be explicitly supplied. Linked content
 is inert; no ambient filesystem, network or native Office process is acquired.

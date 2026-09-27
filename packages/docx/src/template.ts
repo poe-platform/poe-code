@@ -1,4 +1,4 @@
-import { archiveSettings, documentSession, ResourceLimitError } from "./archive.js";
+import { archiveSettings, documentSession } from "./archive.js";
 import type { DocumentBudget } from "./budget.js";
 import { DocxUsageError } from "./argument-json.js";
 import { validateDocxInvocation } from "./command.js";
@@ -23,7 +23,7 @@ function declarations(items: readonly ControlSnapshot[], budget: DocumentBudget,
   for (const item of items) pathLength = Math.max(pathLength, item.location.value.path.length);
   budget.charge("work", (items.length + 1) * (items.length + 1) * (32 + pathLength * 8));
   budget.charge("retainedBytes", (items.length + 1) * 512);
-  if (depth > 4) throw new ResourceLimitError("Template repeat nesting limit exceeded.");
+  budget.check("templateRepeatDepth", depth);
   const candidates = items.filter(item => (!owner || inside(owner.location, item.location) && owner !== item) && item.tag !== null && item.kind !== "repeating-item");
   const direct = candidates.filter(item => !candidates.some(parent => parent !== item && parent.kind === "repeating-section" && inside(parent.location, item.location)));
   const result: Declaration[] = [];
@@ -61,7 +61,7 @@ function validateRecord(record: DocxTemplateRecord, fields: readonly Declaration
     const value = record.values.find(value => value.binding === field.control.tag)!.value;
     if (field.control.kind === "repeating-section") {
       if (!Array.isArray(value)) throw new DocxUsageError("A declared repeat requires a record array.");
-      if (value.length > 1000) throw new ResourceLimitError("Template repeat item limit exceeded.");
+      budget.check("templateRepeatItems", value.length);
       budget.charge("matches", Math.max(1, value.length));
       for (const record of value) validateRecord(record, field.fields, budget);
     } else scalarOptions(field.control, value);

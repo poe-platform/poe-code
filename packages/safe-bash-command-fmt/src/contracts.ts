@@ -15,10 +15,12 @@ export interface FmtLimits {
   readonly work: number;
   readonly argumentBytes: number;
   readonly maxArguments?: number;
+  readonly chunkBytes?: number;
+  readonly emptyChunks?: number;
 }
 export const defaultFmtLimits: FmtLimits = Object.freeze({
   inputBytes: Infinity, outputBytes: Infinity,
-  retainedBytes: Infinity, work: Infinity, argumentBytes: Infinity, maxArguments: Infinity,
+  retainedBytes: Infinity, work: Infinity, argumentBytes: Infinity, maxArguments: Infinity, chunkBytes: Infinity, emptyChunks: Infinity,
 });
 export interface FmtOptions {
   readonly profile: FmtProfile;

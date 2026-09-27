@@ -232,7 +232,7 @@ export async function readHtml(bytes: Uint8Array, context: CapabilityContext): P
     const inferred = inferText(text, { sheets: [] });
     let cell: Cell = { row, column, ...inferred, ...(style ? { style } : {}) };
     if (text.startsWith("=")) {
-      const parsed = parseExpression(text, { position: { sheet: target.name, row, column }, signal: context.signal });
+      const parsed = parseExpression(text, { maximumDepth: context.limits.formulaDepth, position: { sheet: target.name, row, column }, signal: context.signal });
       if (parsed.ok) cell = { ...cell, value: { kind: "blank" }, formula: text, formulaDirty: true };
     }
     if (["#NULL!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#NUM!", "#N/A"].includes(text)) cell = { ...cell, value: { kind: "error", value: text } };

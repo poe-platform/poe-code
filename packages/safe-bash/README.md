@@ -644,7 +644,14 @@ time/environment commands, metadata, diff/patch, LLM providers, `yes`, `less`,
 `sponge`, `bc`, `htmlq`, `which`, `getopt`, `factor`, and `tsort`
 have unlimited resource budgets by default. Set individual family limits to opt
 in; setting one limit leaves the others unlimited. Explicit `Infinity` also
-disables a limit. `xargs -s Infinity` and `--max-chars=Infinity` explicitly remove
+disables a limit. Shell helpers expose `maxCdWork`, `maxCdProbes`,
+`maxCdPathBytes`, `maxCdPathComponents`, `maxDirectoryStackEntries`,
+`maxDirectoryStackOutputBytes`, `maxGlobstarStates`, `maxGlobstarDepth` and
+`maxGlobstarEntries`. Env split limits are supplied through
+`execution.envSplitLimits`; truncate uses `metadata.limits.maxArguments`.
+Browser controller structural ceilings (configuration, snapshots, output files,
+recording, traces, routes and WebMCP) are also optional `limits`; network and
+route-policy byte/count ceilings default to `Infinity`. `xargs -s Infinity` and `--max-chars=Infinity` explicitly remove
 the command-size quota. Stream chunk sizes and polling intervals control execution
 independently of these quotas. `diff -u /dev/null FILE` and its reverse produce
 creation/deletion patches; top-level readable character and FIFO inputs are

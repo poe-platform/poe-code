@@ -15,6 +15,12 @@ test("native YAML rejects many short lines below the document byte cap", async (
   assert.match(result.stderr, /LIMIT_MAX_SOURCE_LINES/u);
 });
 
+test("native YAML admits lines beyond the former default quota", async () => {
+  const result = await run(["-o", "json", "-c", "."], "\n".repeat(65_536) + "a: b\n");
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stdout, '{"a":"b"}\n');
+});
+
 for (const line of ["\n", "\r", "\r\n", "# x\n"]) {
   test(`native YAML counts ${JSON.stringify(line)} lines at the source quota`, async () => {
     const accepted = await run(["-o", "json", "-c", "."], line.repeat(65_535) + "a: b", { limits: { maxSourceLines: 65_536 } });

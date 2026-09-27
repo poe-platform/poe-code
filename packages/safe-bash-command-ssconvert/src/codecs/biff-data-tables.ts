@@ -29,7 +29,7 @@ export function readBiffDataTable(data: Binary, revision: number, opcode: number
 export function writeBiffDataTable(group: FormulaGroup, sheet: string, book: Workbook,
   context: CapabilityContext, maxRows: number): Uint8Array | undefined {
   const position = { sheet, row: group.range.startRow, column: group.range.startColumn };
-  const parsed = parseExpression(group.expression, { workbook: book, position, signal: context.signal,
+  const parsed = parseExpression(group.expression, { maximumDepth: context.limits.formulaDepth, workbook: book, position, signal: context.signal,
     maximumNodes: context.limits.workbookNodes ?? context.limits.cells,
     maximumLength: context.limits.workbookTextBytes ?? context.limits.outputBytes });
   if (!parsed.ok) return undefined;

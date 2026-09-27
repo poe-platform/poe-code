@@ -203,7 +203,7 @@ function compile(pattern: string, host: FunctionHost): Node {
     } });
   }
   function group(mode: Flags): Node {
-    if (++depth > host.context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert PERL_SED pattern depth limit exceeded");
+    if (++depth > (host.context.limits.patternDepth ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert PERL_SED pattern depth limit exceeded");
     let assertion: boolean | undefined;
     let behind = false;
     let atomic = false;

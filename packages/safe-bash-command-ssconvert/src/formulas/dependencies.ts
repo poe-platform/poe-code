@@ -1,3 +1,4 @@
+import { SsconvertError } from "../contracts.js";
 import type { Cell, NamedExpression, Sheet, Workbook } from "../workbook.js";
 import type { FormulaNode, ParsePosition } from "./ast.js";
 import { foldSheetName } from "../workbook/case-fold.js";
@@ -27,7 +28,8 @@ export function buildDependencyGraph(
   resolve: (node: Extract<FormulaNode, { kind: "reference" }>, position: ParsePosition) => CalculationRange | undefined,
   parse: (source: string, position: ParsePosition, arrayStringLiterals?: boolean) => FormulaNode,
   tick: () => void,
-  onRange?: (cell: Cell, value: CalculationRange) => void
+  onRange?: (cell: Cell, value: CalculationRange) => void,
+  maximumDepth = Infinity
 ): DependencyGraph {
   const precedents = new Map<Cell, Set<Cell>>(), dependents = new Map<Cell, Set<Cell>>(), volatile = new Set<Cell>();
   const link = (cell: Cell, precedent: Cell) => {
@@ -51,6 +53,7 @@ export function buildDependencyGraph(
   // Construct only statically known ranges. Never evaluate functions or acquire host authority.
   function staticScalar(node: FormulaNode | undefined, position: ParsePosition, depth = 0): CellValue | undefined {
     tick();
+    if (depth > maximumDepth) throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded");
     if (node?.kind === "literal") return node.value;
     if (node?.kind === "parentheses") return staticScalar(node.child, position, depth + 1);
     if (node?.kind === "reference") {
@@ -71,12 +74,13 @@ export function buildDependencyGraph(
   }
   function staticRanges(node: FormulaNode, position: ParsePosition, names: Set<NamedExpression>, depth: number): readonly CalculationRange[] {
     tick();
+    if (depth > maximumDepth) throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded");
     if (node.kind === "reference") { const value = resolve(node, position); return value ? [value] : []; }
     if (node.kind === "parentheses") return staticRanges(node.child, position, names, depth + 1);
     if (node.kind === "name") {
       const name = named(node, position);
       if (!name || names.has(name)) return [];
-      return staticRanges(parseNamedExpression(name, book, parse, tick), position, new Set([...names, name]), depth + 1);
+      return staticRanges(parseNamedExpression(name, book, parse, tick, maximumDepth), position, new Set([...names, name]), depth + 1);
     }
     if (node.kind === "call" && (node.name === "IF" || node.name === "CHOOSE")) {
       const ranges: CalculationRange[] = [];
@@ -118,6 +122,7 @@ export function buildDependencyGraph(
     const pending = [{ node: root, position, names, depth: 1 }];
     while (pending.length) {
       const { node, position, names, depth } = pending.pop()!;
+      if (depth > maximumDepth) throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded");
       tick();
       if (node.kind === "call" && ["RAND", "NOW", "TODAY"].includes(node.name) || node.kind === "reference" && node.label && node.label.kind !== "radical") volatile.add(cell);
       if (node.kind === "reference") {
@@ -157,7 +162,7 @@ export function buildDependencyGraph(
       if (node.kind === "name" && (node.workbook === undefined || node.workbook === "")) {
         const name = named(node, position);
         if (name && !names.has(name)) {
-          pending.push({ node: parseNamedExpression(name, book, parse, tick), position, names: new Set([...names, name]), depth: depth + 1 });
+          pending.push({ node: parseNamedExpression(name, book, parse, tick, maximumDepth), position, names: new Set([...names, name]), depth: depth + 1 });
         }
       }
       const children = node.kind === "unary" || node.kind === "parentheses" ? [node.child] : node.kind === "binary" ? [node.left, node.right] : node.kind === "call" ? node.args : node.kind === "array" ? node.rows.flat() : [];

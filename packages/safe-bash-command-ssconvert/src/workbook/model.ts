@@ -146,12 +146,13 @@ function ownershipBudgets(limits: RuntimeLimits) {
     "operations",
     "workbookNodes",
     "workbookTextBytes",
-    "workbookWork"
+    "workbookWork",
+    "workbookDepth"
   ]) {
     const value = ownField(limits, key);
     if (
       value === undefined &&
-      (key === "workbookNodes" || key === "workbookTextBytes" || key === "workbookWork")
+      (key === "workbookNodes" || key === "workbookTextBytes" || key === "workbookWork" || key === "workbookDepth")
     )
       continue;
     if (typeof value !== "number" || (value !== Infinity && !Number.isSafeInteger(value)) || value < 0)
@@ -170,6 +171,7 @@ function ownershipBudgets(limits: RuntimeLimits) {
     nodeLimit,
     textLimit,
     workLimit: admitted.workbookWork ?? nodeLimit,
+    depthLimit: admitted.workbookDepth ?? Infinity,
     cells: admitted.cells!,
     sheets: admitted.sheets!,
     operations: admitted.operations!
@@ -179,10 +181,10 @@ function ownershipBudgets(limits: RuntimeLimits) {
 export function snapshotRecords<T>(records: T, limits: RuntimeLimits): T {
   let nodes = 0,
     textBytes = 0;
-  const { nodeLimit, textLimit } = ownershipBudgets(limits);
+  const { nodeLimit, textLimit, depthLimit } = ownershipBudgets(limits);
   const ancestors = new Set<object>();
   function copy(value: unknown, depth = 0): unknown {
-    if (depth > nodeLimit)
+    if (depth > depthLimit)
       throw new SsconvertError("resource-limit", "ssconvert workbook depth limit exceeded");
     if (++nodes > nodeLimit)
       throw new SsconvertError("resource-limit", "ssconvert workbook nodes limit exceeded");

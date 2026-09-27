@@ -12,7 +12,7 @@ test('state-load rejects compact huge arrays before JSON.parse or native storage
   const request = {
     command: 'state-load', session: 'owned', args: ['state.json'], options: {},
     signal: new AbortController().signal,
-    limits: { maxCommandBytes: 16 * 1024 * 1024, maxArtifactBytes: 16 * 1024 * 1024 },
+    limits: { maxCommandBytes: 16 * 1024 * 1024, maxArtifactBytes: 16 * 1024 * 1024, maxStorageNodes: 100000 },
     browserSession: { context: { async setStorageState() { writes++; } } },
     async readFile() { return bytes; },
   } as unknown as PlaywrightAbilityRequest;
@@ -24,7 +24,7 @@ test('state-load rejects compact huge arrays before JSON.parse or native storage
 test('oversized storage arrays reject before ownKeys enumeration', () => {
   let enumerations = 0;
   const cookies = new Proxy(new Array(100001), { ownKeys(target) { enumerations++; return Reflect.ownKeys(target); } });
-  assert.throws(() => parsePlaywrightStorageState({ cookies, origins: [] }), /structure limit/);
+  assert.throws(() => parsePlaywrightStorageState({ cookies, origins: [] }, { maxNodes: 100000 }), /structure limit/);
   assert.equal(enumerations, 0);
 });
 
@@ -43,7 +43,7 @@ test('source admission bounds object values, primitives and nesting before parsi
     '[' + '0,'.repeat(100000) + '0]',
     '{' + '"key":{},'.repeat(100000) + '"key":{}}',
     '['.repeat(66) + ']'.repeat(66),
-  ]) assert.throws(() => parsePlaywrightStorageStateJson(source, 16 * 1024 * 1024), /structure limit/);
+  ]) assert.throws(() => parsePlaywrightStorageStateJson(source, 16 * 1024 * 1024, { maxNodes: 100000, maxDepth: 64 }), /structure limit/);
   assert.equal(parses, 0);
 });
 

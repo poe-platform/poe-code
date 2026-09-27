@@ -14,12 +14,8 @@ declare const document: { modelContext?: ModelContext };
 declare const navigator: { modelContext?: ModelContext };
 declare const window: unknown;
 
-// Independent of command limits: page metadata must remain cheap to parse and render.
-const metadataMaxBytes = 128 * 1024;
-const metadataMaxStructure = 4096;
-const metadataMaxDepth = 32;
 
-function scanMetadata(text: string, budget: { remaining: number }): void {
+function scanMetadata(text: string, budget: { remaining: number; maxDepth: number }): void {
   let depth = 0;
   let quoted = false;
   let escaped = false;
@@ -37,7 +33,7 @@ function scanMetadata(text: string, budget: { remaining: number }): void {
       if (--budget.remaining < 0) throw new PlaywrightResourceLimitError('WebMCP metadata structure limit exceeded');
     }
     if (character === '{' || character === '[') {
-      if (++depth > metadataMaxDepth) throw new PlaywrightResourceLimitError('WebMCP metadata depth limit exceeded');
+      if (++depth > budget.maxDepth) throw new PlaywrightResourceLimitError('WebMCP metadata depth limit exceeded');
     } else if (character === '}' || character === ']') depth--;
   }
 }
@@ -45,9 +41,9 @@ function scanMetadata(text: string, budget: { remaining: number }): void {
 async function listTools(request: PlaywrightAbilityRequest) {
   const page = requirePage(request);
   const frames: (PlaywrightFrame | PlaywrightPage)[] = page.frames?.() ?? [page];
-  if (frames.length > 256) throw new PlaywrightResourceLimitError('WebMCP frame limit exceeded');
-  let remaining = Math.min(request.limits?.maxCommandBytes ?? 1048576, metadataMaxBytes);
-  const structure = { remaining: metadataMaxStructure };
+  if (frames.length > (request.limits?.maxWebMCPFrames ?? Infinity)) throw new PlaywrightResourceLimitError('WebMCP frame limit exceeded');
+  let remaining = Math.min(request.limits?.maxCommandBytes ?? Infinity, request.limits?.maxWebMCPMetadataBytes ?? Infinity);
+  const structure = { remaining: request.limits?.maxWebMCPMetadataEntries ?? Infinity, maxDepth: request.limits?.maxWebMCPMetadataDepth ?? Infinity };
   const counts = new Map<string, number>();
   for (const frame of frames) { const url = frame.url?.() ?? page.url(); counts.set(url, (counts.get(url) ?? 0) + 1); }
   const listings: { frame: PlaywrightFrame | PlaywrightPage; url: string; label: string; tools: WebTool[] }[] = [];
@@ -71,9 +67,9 @@ async function listTools(request: PlaywrightAbilityRequest) {
         } } : {}),
       }));
       const text = JSON.stringify(visible);
-      if (text.length > maximum || new TextEncoder().encode(text).byteLength > maximum) return null;
+      if (maximum !== null && (text.length > maximum || new TextEncoder().encode(text).byteLength > maximum)) return null;
       return text;
-    }, { maximum: remaining });
+    }, { maximum: remaining === Infinity ? null : remaining });
     if (serialized === null) throw new PlaywrightResourceLimitError('WebMCP result byte limit exceeded');
     if (typeof serialized !== 'string') throw new Error('Invalid WebMCP tool metadata');
     if (serialized.length > remaining) throw new PlaywrightResourceLimitError('WebMCP result byte limit exceeded');
@@ -108,7 +104,7 @@ const list: PlaywrightAbility = { scope: 'session', async execute(request) {
 } };
 
 const call: PlaywrightAbility = { scope: 'session', options: 'all', async execute(request) {
-  const params = parseWebMCPParams(request.options.params as string ?? '{}', request.limits?.maxCommandBytes);
+  const params = parseWebMCPParams(request.options.params as string ?? '{}', request.limits?.maxCommandBytes, request.limits);
   const name = request.args[0]!;
   const listings = await listTools(request);
   const matches = listings.filter(listing => (!request.options.frame || listing.url === request.options.frame || listing.label === request.options.frame) && listing.tools.some(tool => tool.name === name));
@@ -130,9 +126,9 @@ const call: PlaywrightAbility = { scope: 'session', options: 'all', async execut
         value = await context.invokeTool(name, JSON.parse(inputJson));
       }
       const text = typeof value === 'string' ? value : JSON.stringify(value) ?? 'null';
-      if (text.length > maximum || new TextEncoder().encode(text).byteLength > maximum) return null;
+      if (maximum !== null && (text.length > maximum || new TextEncoder().encode(text).byteLength > maximum)) return null;
       return text;
-    }, { name, inputJson: JSON.stringify(params), maximum: request.limits?.maxCommandBytes ?? 1048576 });
+    }, { name, inputJson: JSON.stringify(params), maximum: request.limits?.maxCommandBytes === Infinity || request.limits?.maxCommandBytes === undefined ? null : request.limits.maxCommandBytes });
     if (result === null) throw new PlaywrightResourceLimitError('WebMCP result byte limit exceeded');
   });
   if (result == null) return capabilityResult('');

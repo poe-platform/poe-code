@@ -60,8 +60,8 @@ Partial output is possible. Redirecting onto an input, including a symlink alias
 truncates it before reading; streaming output is not an atomic replacement.
 
 All quotas are unlimited by default. Override independent input, decoded-byte,
-output, retained-storage, work and argument-byte quotas via `limits`; explicit
-values must be nonnegative safe integers. Limits accumulate across files;
+output, retained-storage, work, argument-byte and `chunkBytes` quotas via `limits`; explicit
+values must be nonnegative safe integers or `Infinity`. Limits accumulate across files;
 argument admission also consumes work. Retention accounts encoded storage, owned fallback
 file input and output reservations, not total JS heap. At least 8196 bytes are
 required for the 8192-byte line buffer and decoder; operands/output need additional

@@ -17,7 +17,7 @@ export function rewriteWorkbook(book: Workbook, context: CapabilityContext, rewr
     context.signal.throwIfAborted();
     work += source.length + 1;
     if (work > maximum) throw new SsconvertError("resource-limit", "ssconvert workbook work limit exceeded");
-    const parsed = parseExpression(source, { position, arrayStringLiterals, workbook: book, signal: context.signal });
+    const parsed = parseExpression(source, { maximumDepth: context.limits.formulaDepth, position, arrayStringLiterals, workbook: book, signal: context.signal });
     if (!parsed.ok) throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: formula syntax at ${parsed.diagnostic.start}:${parsed.diagnostic.end}`);
     return rewrite(parsed.document, namedExpression);
   };
@@ -125,7 +125,7 @@ export function translateFormulaGroup(group: FormulaGroup, target: ParsePosition
   if (!Number.isSafeInteger(target.row) || !Number.isSafeInteger(target.column) || target.row < group.range.startRow || target.row > group.range.endRow || target.column < group.range.startColumn || target.column > group.range.endColumn)
     throw new SsconvertError("invalid-request", "Invalid formula group member");
   if (group.kind === "array") return group.expression;
-  const result = parseExpression(group.expression, { position: { sheet: target.sheet, row: group.range.startRow, column: group.range.startColumn }, arrayStringLiterals: group.arrayStringLiterals ?? false, signal: context.signal });
+  const result = parseExpression(group.expression, { maximumDepth: context.limits.formulaDepth, position: { sheet: target.sheet, row: group.range.startRow, column: group.range.startColumn }, arrayStringLiterals: group.arrayStringLiterals ?? false, signal: context.signal });
   if (!result.ok) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: shared formula syntax");
   return rewriteReferences(result.document, { position: target, translation: "copy", signal: context.signal });
 }

@@ -5,6 +5,13 @@ import { decoder, encoder, UsageError, type ParsedOptions } from "./internal.js"
 
 export class EnvSplitError extends Error {}
 
+export interface EnvSplitLimits {
+  readonly bytes?: number;
+  readonly arguments?: number;
+  readonly expansions?: number;
+  readonly work?: number;
+}
+
 class SplitWork {
   private bytes = 0;
   private arguments = 0;
@@ -12,30 +19,32 @@ class SplitWork {
   private work = 0;
   private nextYield = 4096;
 
-  constructor(private readonly signal: AbortSignal) {}
+  constructor(private readonly signal: AbortSignal, private readonly limits: EnvSplitLimits) {
+    for (const value of Object.values(limits)) if (value !== Infinity && (!Number.isSafeInteger(value) || value < 0)) throw new EnvSplitError("Invalid split-string limit");
+  }
 
   account(text: string | Uint8Array): void {
     this.signal.throwIfAborted();
-    if (text.length > 131072 - this.bytes) throw new EnvSplitError("split-string byte limit exceeded (131072)");
+    if (text.length > (this.limits.bytes ?? Infinity) - this.bytes) throw new EnvSplitError(`split-string byte limit exceeded (${this.limits.bytes})`);
     this.bytes += typeof text === "string" ? Buffer.byteLength(text) : text.byteLength;
-    if (this.bytes > 131072) throw new EnvSplitError("split-string byte limit exceeded (131072)");
+    if (this.bytes > (this.limits.bytes ?? Infinity)) throw new EnvSplitError(`split-string byte limit exceeded (${this.limits.bytes})`);
     if (typeof text === "string" ? text.includes("\0") : text.includes(0)) throw new EnvSplitError("NUL is not supported in -S strings");
   }
 
   argument(): void {
-    if (++this.arguments > 10000) throw new EnvSplitError("split-string argument limit exceeded (10000)");
+    if (++this.arguments > (this.limits.arguments ?? Infinity)) throw new EnvSplitError(`split-string argument limit exceeded (${this.limits.arguments})`);
   }
 
   expansion(): void {
     this.signal.throwIfAborted();
-    if (++this.expansions > 32) throw new EnvSplitError("split-string expansion limit exceeded (32)");
-    if (this.work > 1048576) throw new EnvSplitError("split-string work limit exceeded (1048576)");
+    if (++this.expansions > (this.limits.expansions ?? Infinity)) throw new EnvSplitError(`split-string expansion limit exceeded (${this.limits.expansions})`);
+    if (this.work > (this.limits.work ?? Infinity)) throw new EnvSplitError(`split-string work limit exceeded (${this.limits.work})`);
   }
 
   tick(amount = 1): boolean {
     this.signal.throwIfAborted();
     this.work += amount;
-    if (this.expansions && this.work > 1048576) throw new EnvSplitError("split-string work limit exceeded (1048576)");
+    if (this.expansions && this.work > (this.limits.work ?? Infinity)) throw new EnvSplitError(`split-string work limit exceeded (${this.limits.work})`);
     return this.work >= this.nextYield;
   }
 
@@ -193,9 +202,9 @@ async function splitBytes(source: Uint8Array, environment: Readonly<Record<strin
 }
 
 export async function parseEnvOptions(
-  args: readonly string[], environment: Readonly<Record<string, string>>, signal: AbortSignal, argumentValues?: CommandArguments,
+  args: readonly string[], environment: Readonly<Record<string, string>>, signal: AbortSignal, argumentValues?: CommandArguments, limits: EnvSplitLimits = {},
 ): Promise<ParsedOptions & { readonly operandValues?: CommandArguments }> {
-  const work = new SplitWork(signal);
+  const work = new SplitWork(signal, limits);
   const incoming = argumentValues === undefined ? createCommandArguments(args) : getCommandArguments({ args, argumentValues });
   const frames: { arguments: CommandArguments; offset: number }[] = [{ arguments: incoming, offset: 0 }];
   let currentValue: ShellValue = "";

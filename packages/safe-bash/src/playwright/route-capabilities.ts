@@ -34,7 +34,6 @@ interface Registry {
   backend?: ReturnType<typeof createPlaywrightRoutePolicyBackend>;
 }
 const registries = new WeakMap<PlaywrightContext, Registry>();
-const MAX_ROUTES = 64;
 
 /** Retire owned native handlers before closing their context. */
 export async function preparePlaywrightRouteRelease(context: PlaywrightContext, cleanups: Set<() => Promise<void>>): Promise<void> {
@@ -148,7 +147,7 @@ const route: PlaywrightAbility = { scope: 'session', options: 'all', async execu
   const contentType = request.options['content-type'] as string | undefined;
   const status = request.options.status === undefined ? undefined : Number(request.options.status);
   if (status !== undefined && (!Number.isInteger(status) || status < 100 || status > 599)) throw new Error('Invalid route status');
-  if (!pattern || pattern.length > 4096) throw new Error('Invalid route pattern');
+  if (!pattern || pattern.length > (request.limits?.maxRoutePatternLength ?? Infinity)) throw new Error('Invalid route pattern');
   const headers = request.options.header;
   let addHeaders: Record<string, string> | undefined;
   if (headers !== undefined) {
@@ -166,8 +165,8 @@ const route: PlaywrightAbility = { scope: 'session', options: 'all', async execu
   const removeHeaders = typeof request.options['remove-header'] === 'string' ? request.options['remove-header'].split(',').map(name => name.trim().toLowerCase()) : undefined;
   const data = { pattern, status, body, contentType, addHeaders, removeHeaders };
   const bytes = new TextEncoder().encode(JSON.stringify(data)).byteLength;
-  if (registry.entries.length >= MAX_ROUTES) throw new PlaywrightResourceLimitError('Playwright route count limit exceeded');
-  if (bytes + registry.entries.reduce((sum, entry) => sum + entry.bytes, 0) > (request.limits?.maxCommandBytes ?? 1048576)) throw new PlaywrightResourceLimitError('Playwright route byte limit exceeded');
+  if (registry.entries.length >= (request.limits?.maxRoutes ?? Infinity)) throw new PlaywrightResourceLimitError('Playwright route count limit exceeded');
+  if (bytes + registry.entries.reduce((sum, entry) => sum + entry.bytes, 0) > (request.limits?.maxCommandBytes ?? Infinity)) throw new PlaywrightResourceLimitError('Playwright route byte limit exceeded');
   const handler: PlaywrightRouteHandler = async native => {
     if (body !== undefined || status !== undefined) {
       await native.fulfill({ status: status ?? 200, ...(body === undefined ? {} : { body }), ...(contentType === undefined ? {} : { contentType }) });

@@ -165,7 +165,7 @@ function observed(request: PlaywrightAbilityRequest) {
 }
 
 async function textResult(request: PlaywrightAbilityRequest, text: string, label: string, prefix: string) {
-  const max = request.limits?.maxCommandBytes ?? 1048576;
+  const max = request.limits?.maxCommandBytes ?? Infinity;
   if (text.length > max || new TextEncoder().encode(text).length > max) throw new PlaywrightResourceLimitError('Playwright result byte limit exceeded');
   if (request.options.filename) return capabilityArtifact(request, new TextEncoder().encode(text), prefix, 'txt', label, () => '', request.options.filename as string);
   return capabilityResult('', text);

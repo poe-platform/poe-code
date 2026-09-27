@@ -160,12 +160,12 @@ test("recursive function with local command substitutions and arithmetic compari
   try {
     const result = await shell.exec(`
       fib() {
-        if (( \$1 <= 1 )); then
-          echo \$1
+        if (( $1 <= 1 )); then
+          echo $1
         else
-          local a=\$(fib \$(( \$1 - 1 )))
-          local b=\$(fib \$(( \$1 - 2 )))
-          echo \$((a + b))
+          local a=$(fib $(( $1 - 1 )))
+          local b=$(fib $(( $1 - 2 )))
+          echo $((a + b))
         fi
       }
       fib 10

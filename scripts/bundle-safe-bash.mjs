@@ -107,8 +107,8 @@ export function resolveBrowserYqBuild(rootDir, { alias = {}, external = [] } = {
     bundle: true, splitting: true, chunkNames: "chunks/[name]-[hash]",
     platform: "browser", conditions: ["workerd", "worker", "browser"],
     format: "esm", target: "es2022", sourcemap: true, metafile: true, write: false,
-    alias: { "@poe-code/safe-fs": "poe-code/safe-fs", ...alias },
-    external: [...new Set(["poe-code/safe-fs/core", "safe-bash-contracts", ...external.filter(name => !name.startsWith("safe-bash-") || name === "safe-bash-contracts")])],
+    alias: { ...(!external.includes("safe-bash-contracts") ? { "safe-bash-contracts": path.join(rootDir, "packages/safe-bash-contracts/src") } : {}), "@poe-code/safe-fs": "poe-code/safe-fs", ...alias },
+    external: [...new Set(["poe-code/safe-fs/core", ...external.filter(name => !name.startsWith("safe-bash-") || name === "safe-bash-contracts")])],
     inject: [path.join(directory, "browser/buffer.mjs")],
   };
 }

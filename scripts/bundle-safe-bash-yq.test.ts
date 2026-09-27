@@ -9,13 +9,20 @@ import { resolveBrowserShellBuild, resolveBrowserYqBuild } from "./bundle-safe-b
 const root = process.cwd();
 const artifacts = new Volume();
 let yq: BuildResult;
+let rootYq: BuildResult;
 
 beforeAll(async () => {
-  yq = await build({ ...resolveBrowserYqBuild(root), sourcemap: false });
+  rootYq = await build({ ...resolveBrowserYqBuild(root), sourcemap: false });
+  yq = await build({ ...resolveBrowserYqBuild(root, { external: ["safe-bash-contracts"] }), sourcemap: false });
   for (const output of yq.outputFiles!) {
     artifacts.mkdirSync(path.dirname(output.path), { recursive: true });
     artifacts.writeFileSync(output.path, output.contents);
   }
+});
+
+it("inlines private contracts in the root optional YQ bundle", () => {
+  const imports = Object.values(rootYq.metafile!.outputs).flatMap(output => output.imports);
+  expect(imports.filter(item => item.external && item.path.startsWith("safe-bash-contracts"))).toEqual([]);
 });
 
 it.each(["browser", "workerd"])("runs public optional YQ staged writes without Node globals under %s", async condition => {

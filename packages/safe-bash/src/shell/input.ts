@@ -1500,8 +1500,13 @@ export class ShellInput implements ByteSource, CommandInput {
 
   tryReadSimpleRawAsciiLineSync(delimiter = 10, raw = true): string | undefined {
     if (this._viewClosed || (this._reads && this._reads.size > 0)) return undefined;
-    const cursor = this._lazyCursor;
-    if (!cursor) return undefined;
+    const cursor = this._cursor;
+    if (!cursor.remainder && cursor.canTakeRemainderSync()) {
+      const ready = cursor.tryTakeReadySync();
+      if (ready && !ready.done && ready.value.length > 0) {
+        cursor.remainder = ready.value;
+      }
+    }
     const rem = cursor.remainder;
     if (!rem || rem.length === 0) return undefined;
     const delimIdx = rem.indexOf(delimiter);

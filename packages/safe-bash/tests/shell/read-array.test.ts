@@ -117,3 +117,24 @@ test("while IFS=: read -r fields work in synchronous ((...)) arithmetic on first
     assert.equal(result.stdout, "[\"18\"]");
   } finally { await shell.dispose(); }
 });
+
+test("while IFS=, read -r -d \";\" and glob/bracket prefix/suffix trims match bash in tight loops", async () => {
+  const { shell, fs: vfs } = setup();
+  try {
+    await vfs.writeFile("/delim.txt", Buffer.from("123:alpha:abc,10;456:beta:xyz,20;789:gamma:def,30;"));
+    const result = await shell.exec(`
+      total=0
+      acc=""
+      while IFS=, read -r -d ";" k v; do
+        a="\${k#[0-9]*:}"
+        b="\${a%:[a-z]*}"
+        ((total += v))
+        acc="\${acc}\${b}:"
+      done < /delim.txt
+      args "\$total" "\$acc"
+    `);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "[\"60\",\"alpha:beta:gamma:\"]");
+  } finally { await shell.dispose(); }
+});

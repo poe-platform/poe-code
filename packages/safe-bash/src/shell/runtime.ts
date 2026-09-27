@@ -3698,6 +3698,71 @@ function tryCompileFixedGlobToRegex(pat: string, op: string, extglob: boolean): 
   fixedGlobParamRegexCache.set(key, compiled);
   return compiled ?? undefined;
 }
+const trimGlobParamRegexCache = new Map<string, RegExp | null>();
+function tryCompileTrimGlobToRegex(pat: string, op: "#" | "##" | "%" | "%%", extglob: boolean): RegExp | undefined {
+  if (pat.length === 0 || pat.length > 64) return undefined;
+  if (extglob && pat.includes("(")) return undefined;
+  const key = op + ":" + pat;
+  const cached = trimGlobParamRegexCache.get(key);
+  if (cached !== undefined) return cached ?? undefined;
+  let starCount = 0;
+  let bodySrc = "";
+  for (let i = 0; i < pat.length; i++) {
+    const code = pat.charCodeAt(i);
+    if (code >= 128 || code === 92) {
+      trimGlobParamRegexCache.set(key, null);
+      return undefined;
+    }
+    const ch = pat[i]!;
+    if (ch === "*") {
+      starCount++;
+      if ((op === "#" || op === "##") && starCount > 1) {
+        trimGlobParamRegexCache.set(key, null);
+        return undefined;
+      }
+      bodySrc += op === "#" || op === "%" ? "[\\s\\S]*?" : "[\\s\\S]*";
+    } else if (ch === "?") {
+      bodySrc += "[\\s\\S]";
+    } else if (ch === "[") {
+      const closeIdx = pat.indexOf("]", i + 1);
+      if (closeIdx === -1) {
+        trimGlobParamRegexCache.set(key, null);
+        return undefined;
+      }
+      const inner = pat.slice(i + 1, closeIdx);
+      if (inner.length === 0 || inner.includes("[") || inner.includes("\\") || inner.includes(":")) {
+        trimGlobParamRegexCache.set(key, null);
+        return undefined;
+      }
+      const neg = inner[0] === "!" || inner[0] === "^" ? "^" : "";
+      const rest = neg ? inner.slice(1) : inner;
+      if (rest.length === 0 || rest.includes("^")) {
+        trimGlobParamRegexCache.set(key, null);
+        return undefined;
+      }
+      bodySrc += "[" + neg + rest + "]";
+      i = closeIdx;
+    } else if (code === 94 || code === 36 || code === 46 || code === 43 || code === 40 || code === 41 || code === 124 || code === 123 || code === 125) {
+      bodySrc += "\\" + ch;
+    } else {
+      bodySrc += ch;
+    }
+  }
+  const reSrc = op === "#" || op === "##"
+    ? "^(" + bodySrc + ")"
+    : op === "%"
+      ? "^[\\s\\S]*(" + bodySrc + ")\u0024"
+      : "^[\\s\\S]*?(" + bodySrc + ")\u0024";
+  let compiled: RegExp | null = null;
+  try {
+    compiled = new RegExp(reSrc);
+  } catch {
+    compiled = null;
+  }
+  if (trimGlobParamRegexCache.size >= 256) trimGlobParamRegexCache.clear();
+  trimGlobParamRegexCache.set(key, compiled);
+  return compiled ?? undefined;
+}
 const SIMPLE_SCALAR_MUT_RE = /^\s*([a-zA-Z_][a-zA-Z_0-9]*)\s*(\+=|-=|=)\s*(-?(?:0|[1-9][0-9]{0,12}))(?:\s*([+\-*])\s*(-?(?:0|[1-9][0-9]{0,12})))?\s*$/;
 const readArrayScratchFields: string[] = [];
 const SIMPLE_EXPANDED_ARITH_RE = /^\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*([+\-*])\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*$/;
@@ -9263,6 +9328,7 @@ export class Runtime {
           if (asciiIfs) {
             let raw = false;
             let simpleRead = true;
+            let readDelim = 10;
             let arrayTarget: string | undefined;
             while (readWordIdx < command.words.length) {
               const p = command.words[readWordIdx]!.plain;
@@ -9272,6 +9338,30 @@ export class Runtime {
                 for (let k = 1; k < p.length; k++) {
                   if (p[k] === "r") raw = true;
                   else if (p[k] === "s") { /* no-op */ }
+                  else if (p[k] === "d") {
+                    let delimStr: string | undefined;
+                    if (k + 1 < p.length) {
+                      delimStr = p.slice(k + 1);
+                    } else if (readWordIdx + 1 < command.words.length) {
+                      const nextW = command.words[++readWordIdx]!;
+                      if (nextW.plain !== undefined) {
+                        delimStr = nextW.plain;
+                      } else {
+                        try {
+                          const fv = this.fastValueWord(nextW, rawState, io, false, false, false, false, 0, diagnosticLine);
+                          if (typeof fv === "string") delimStr = fv;
+                        } catch {
+                          delimStr = undefined;
+                        }
+                      }
+                    }
+                    if (delimStr !== undefined && delimStr.length >= 1 && delimStr.charCodeAt(0) > 0 && delimStr.charCodeAt(0) < 128) {
+                      readDelim = delimStr.charCodeAt(0);
+                      break;
+                    }
+                    simpleRead = false;
+                    break;
+                  }
                   else if (p[k] === "a") {
                     if (k + 1 < p.length) {
                       arrayTarget = p.slice(k + 1);
@@ -9338,7 +9428,7 @@ export class Runtime {
                 }
               }
               if (simpleRead) {
-                const lineStr = io.stdin.tryReadSimpleRawAsciiLineSync(10, raw);
+                const lineStr = io.stdin.tryReadSimpleRawAsciiLineSync(readDelim, raw);
                 if (lineStr !== undefined) {
                   if (rawState.extensions && !rawState.extensions.eventDepth) {
                     publishCommandSpelling(rawState, commandSpelling(command));
@@ -18086,13 +18176,16 @@ export class Runtime {
             const pat = patPart.value;
             const isPrefixTrim = part.operator === "#" || part.operator === "##";
             let starWildcardLit: string | undefined;
+            let trimGlobRe: RegExp | undefined;
             if (!patPart.quoted && hasGlobOrEscape(pat, !!rawState.extglob)) {
+              if (rawState.nocasematch || byteLocale(rawVars)) return undefined;
               if (isPrefixTrim && pat.charCodeAt(0) === 42 && !hasGlobOrEscape(pat.slice(1), !!rawState.extglob)) {
                 starWildcardLit = pat.slice(1);
               } else if (!isPrefixTrim && pat.charCodeAt(pat.length - 1) === 42 && !hasGlobOrEscape(pat.slice(0, -1), !!rawState.extglob)) {
                 starWildcardLit = pat.slice(0, -1);
               } else {
-                return undefined;
+                trimGlobRe = tryCompileTrimGlobToRegex(pat, part.operator, !!rawState.extglob);
+                if (!trimGlobRe) return undefined;
               }
             }
             const raw = rawVars[part.name];
@@ -18110,7 +18203,16 @@ export class Runtime {
               if (pat.charCodeAt(k) >= 128) return undefined;
             }
             let sliced: string;
-            if (starWildcardLit !== undefined) {
+            if (trimGlobRe !== undefined) {
+              const m = trimGlobRe.exec(val);
+              if (!m) {
+                sliced = val;
+              } else if (isPrefixTrim) {
+                sliced = val.slice(m[1]!.length);
+              } else {
+                sliced = val.slice(0, val.length - m[1]!.length);
+              }
+            } else if (starWildcardLit !== undefined) {
               if (starWildcardLit.length === 0) {
                 sliced = (part.operator === "##" || part.operator === "%%") ? "" : val;
               } else if (isPrefixTrim) {

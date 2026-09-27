@@ -4,7 +4,7 @@ import { compareSyncJqStrings, splitSyncJqExpression } from "./sync-jq-expressio
 import { wcDisplayWidth } from "../commands/wc-width.js";
 import { text as awkValueText, compare as awkCompare, inputValue as awkInputValue, numeric as awkNumeric, number as awkNumber, string as awkString } from "../commands/text-programs/awk-values.js";
 import { bytesToHex, latin1Text } from "../byte-encoding.js";
-const sharedCaptureDecoder = new TextDecoder();
+const sharedCaptureDecoder = new TextDecoder("utf-8", { ignoreBOM: true });
 const cachedCaptureAsciiBytes = new Uint8Array(4096);
 let cachedCaptureAsciiLen = 0;
 let cachedCaptureAsciiStr = "";
@@ -7771,7 +7771,7 @@ export class Runtime {
         }
         if (w0Plain !== undefined && rawState.functions.has(w0Plain)) {
           const fnBody = rawState.functions.get(w0Plain)!;
-          return fnBody.kind === "group" && fnBody.redirects.length === 0 && this.canSyncScriptCompound(fnBody.body, rawState, depth + 1);
+          return fnBody.kind === "group" && fnBody.redirects.length === 0 && this.isSingleSyncLeaf(fnBody.body) && this.canSyncScriptCompound(fnBody.body, rawState, depth + 1);
         }
         const st = stateMonitor(rawState)?.store ?? (stateMonitor(rawState) && (this.budget.limits.maxExpansionBytes === Infinity && this.budget.limits.maxExpansionFields === Infinity) ? requireArrays(rawState) : undefined);
         const arrayAssign = getArrayAssignment(w0);
@@ -8523,6 +8523,18 @@ export class Runtime {
     }
     return true;
   }
+  // A speculative function must not execute a prefix before falling back.
+  // Longer bodies use the executor that resumes at the first async statement.
+  private isSingleSyncLeaf(script: Script): boolean {
+    if (script.lists.length !== 1) return false;
+    const list = script.lists[0]!;
+    if (list.terminator || list.pipelines.length !== 1) return false;
+    const pipeline = list.pipelines[0]!;
+    if (pipeline.negate || pipeline.commands.length !== 1) return false;
+    const command = pipeline.commands[0]!;
+    return command.kind === "simple" || command.kind === "arithmetic" || command.kind === "conditional";
+  }
+
   private canSyncScriptCompound(script: Script, rawState: State, depth = 0, loopDepth = 0): boolean {
     if (depth > 6 || rawState.noexec) return false;
     // Eligibility depends on current array, scalar, export and extension state.
@@ -8960,16 +8972,16 @@ export class Runtime {
           posMut = m ? { varName: m[1]!, op: m[2]!, posIdx: Number(m[3] ?? m[4]) - 1 } : null;
           (expr as { _cachedPosMut?: typeof posMut })._cachedPosMut = posMut;
         }
-        if (posMut !== null && posMut.varName !== "OPTIND" && posMut.varName !== "PIPESTATUS" && !store?.get(posMut.varName)) {
+        if (!hasActiveVariableAttributes(rawState) && posMut !== null && posMut.varName !== "OPTIND" && posMut.varName !== "PIPESTATUS" && !store?.get(posMut.varName)) {
           const posVal = (this._fastSubPositional ?? rawState.positional)[posMut.posIdx];
-          if (posVal !== undefined && posVal.length > 0 && posVal.length <= 12) {
+          if (posVal !== undefined && /^-?(?:0|[1-9][0-9]{0,12})$/.test(posVal)) {
             const rhsNum = Number(posVal);
             if (Number.isSafeInteger(rhsNum)) {
               const curVal = (this._syncArithRawWriteOnly && this._syncArithTouched?.has(posMut.varName))
                 ? (rawState.variables[posMut.varName] ?? "0")
                 : (monitor.values.get(posMut.varName, rawState.variables[posMut.varName] ?? "0") ?? rawState.variables[posMut.varName] ?? "0");
               const curNum = curVal === "" ? 0 : Number(curVal);
-              if (typeof curVal === "string" && Number.isSafeInteger(curNum)) {
+              if (typeof curVal === "string" && (curVal === "" || /^-?(?:0|[1-9][0-9]{0,12})$/.test(curVal)) && Number.isSafeInteger(curNum)) {
                 const nextNum = posMut.op === "=" ? rhsNum : posMut.op === "+=" ? curNum + rhsNum : curNum - rhsNum;
                 if (Number.isSafeInteger(nextNum)) {
                   this.budget.parsing.admit(4);
@@ -11223,7 +11235,7 @@ export class Runtime {
         (this._syncReturnDepth > 0 || ((this.budget.commands + 32) & 2047) >= 32)
       ) {
         const fnBody = rawState.functions.get(w0Plain)!;
-        if (fnBody.kind === "group" && fnBody.redirects.length === 0) {
+        if (fnBody.kind === "group" && fnBody.redirects.length === 0 && this.isSingleSyncLeaf(fnBody.body)) {
           const fnArgs: string[] = [];
           let argsOk = true;
           try {

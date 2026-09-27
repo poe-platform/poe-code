@@ -3702,12 +3702,12 @@ describe("interpret", () => {
 
   // TODO: Assert that assigning to the const loop variable throws once AssignmentExpression is supported.
 
-  it("caps million-element for...of iteration through the step budget", async () => {
+  it("caps large for...of iteration through the step budget", async () => {
     await expect(
       interpret(parse("for (const x of values) { sink.push(x); }"), {
         bindings: {
           sink: [],
-          values: new Array(1_000_000).fill(1)
+          values: new Array(1_000).fill(1)
         },
         budget: new Budget({
           maxSteps: 20

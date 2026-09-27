@@ -15,6 +15,7 @@ export interface FileTarget {
   recursive: boolean;
   canonicalPath?: string | undefined;
   memoryView?: Uint8Array | undefined;
+  sourceRef?: Uint8Array | undefined;
   dirLabel?: string | undefined;
   entryName?: string | undefined;
   _label?: string | undefined;
@@ -32,6 +33,7 @@ class ReusableFileTarget implements FileTarget {
   explicit = false;
   recursive = true;
   memoryView: Uint8Array | undefined;
+  sourceRef: Uint8Array | undefined;
 
   get path(): string {
     return this._path ??= `${this.dirPath}/${this.entryName!}`;
@@ -795,13 +797,17 @@ export class Walker {
             ((entryObj.mode >> 6) & 4) === 4 &&
             (entryObj.data.byteLength <= this.limits.maxFileBytesSmi || entryObj.data.byteLength <= this.limits.maxFileBytes)
           ) {
-            if (customClock || (entryObj as { revision?: number }).revision !== 0) entryObj.atimeMs = this.syncWalkNow;
+            const rev = (entryObj as { revision?: number }).revision;
+            if (customClock || rev !== 0) entryObj.atimeMs = this.syncWalkNow;
             t.memoryView = entryObj.data;
+            t.sourceRef = rev === 0 ? (entryObj as { sourceRef?: Uint8Array }).sourceRef : undefined;
           } else {
             t.memoryView = undefined;
+            t.sourceRef = undefined;
           }
           const res = onTarget(t);
           t.memoryView = undefined;
+          t.sourceRef = undefined;
           if (res instanceof Promise) return null;
           if (!res) return false;
         }

@@ -39,6 +39,7 @@ interface Metadata {
 
 interface FileNode extends Metadata {
   type: "file";
+  sourceRef?: Uint8Array | undefined;
   byteLength: number;
   view: Uint8Array | undefined;
   data: Uint8Array;
@@ -59,8 +60,9 @@ class MemoryFileNode implements FileNode {
   declare byteLength: number;
   declare view: Uint8Array | undefined;
   declare allocation: MemoryAllocation;
+  declare sourceRef?: Uint8Array | undefined;
 
-  constructor(mode: number, ino: number, now: number, byteLength: number, allocation: MemoryAllocation, view?: Uint8Array) {
+  constructor(mode: number, ino: number, now: number, byteLength: number, allocation: MemoryAllocation, view?: Uint8Array, sourceRef?: Uint8Array) {
     this.revision = 0;
     this.mode = mode;
     this.ino = ino;
@@ -73,6 +75,7 @@ class MemoryFileNode implements FileNode {
     this.byteLength = byteLength;
     this.allocation = allocation;
     this.view = view;
+    this.sourceRef = sourceRef;
   }
 
   get data(): Uint8Array {
@@ -89,6 +92,7 @@ Object.assign(MemoryFileNode.prototype, {
   revision: 0,
   nlink: 1,
   references: 0,
+  sourceRef: undefined,
 });
 
 const EMPTY_ALLOC_BYTES = new Uint8Array(0);
@@ -931,6 +935,7 @@ export class MemoryFileSystem implements FileSystem {
       this.totalBytes -= node.byteLength;
       const alloc = node.allocation;
       node.view = undefined;
+      node.sourceRef = undefined;
       node.allocation = DUMMY_POOL_ALLOCATION;
       alloc.release();
       if (alloc.isReleased64()) {
@@ -1472,9 +1477,10 @@ export class MemoryFileSystem implements FileSystem {
             pooled.byteLength = length;
             pooled.view = view;
             pooled.allocation = allocation;
+            pooled.sourceRef = data;
             return pooled;
           }
-          return new MemoryFileNode(fileMode, this.nextInode++, now, length, allocation, view);
+          return new MemoryFileNode(fileMode, this.nextInode++, now, length, allocation, view, data);
         }, syscall, path);
       } catch (error) {
         allocation.release();
@@ -1659,8 +1665,9 @@ export class MemoryFileSystem implements FileSystem {
             node.byteLength = length;
             node.view = view;
             node.allocation = allocation;
+            node.sourceRef = data;
           } else {
-            node = new MemoryFileNode(fileMode, this.nextInode++, now, length, allocation, view);
+            node = new MemoryFileNode(fileMode, this.nextInode++, now, length, allocation, view, data);
           }
           const prevNlink = parent.cachedNlinkRev === parent.revision ? parent.cachedNlink : (parent.entries.size === 0 ? 2 : undefined);
           parent.entries.set(name, node);
@@ -1800,8 +1807,9 @@ export class MemoryFileSystem implements FileSystem {
               node.byteLength = length;
               node.view = view;
               node.allocation = allocation;
+              node.sourceRef = data;
             } else {
-              node = new MemoryFileNode(fileMode, this.nextInode++, now, length, allocation, view);
+              node = new MemoryFileNode(fileMode, this.nextInode++, now, length, allocation, view, data);
             }
             const prevNlink = parent.cachedNlinkRev === parent.revision ? parent.cachedNlink : (parent.entries.size === 0 ? 2 : undefined);
             parent.entries.set(name, node);

@@ -19,6 +19,11 @@ const DEFAULT_CWD_PATHS: readonly string[] = Object.freeze(["."]);
 const DEFAULT_STDIN_PATHS: readonly string[] = Object.freeze(["-"]);
 const defaultLimitsTick = Limits.prototype.tick;
 const sharedReadState: ReadState = { bytesRead: 0, bytesSearched: 0, binaryOffset: null, skipped: false };
+const srcRefSlotKeys = new Array<Uint8Array | undefined>(64).fill(undefined);
+const srcRefSlotCounts = new Int32Array(64);
+let srcRefCacheLit0 = -1;
+let srcRefCacheLitLen = -1;
+let srcRefCacheLitLast = -1;
 const BATCH_SIZE_1: () => number = () => 1;
 const BATCH_SIZE_128: () => number = () => 128;
 const RETURN_TRUE = () => true;
@@ -83,7 +88,7 @@ function trySearchFileSync(
     args.hasInfiniteMaxCount !== false &&
     !hasExtYield &&
     (view.length <= limits.maxLineBytesSmi || view.length <= limits.maxLineBytes) &&
-    view.indexOf(0) === -1
+    ((target.sourceRef !== undefined && srcRefSlotKeys[totals.searches & 63] === target.sourceRef) || view.indexOf(0) === -1)
   ) {
     const firstByte = lit[0]!;
     const litLen = lit.length;
@@ -97,24 +102,42 @@ function trySearchFileSync(
       lit.indexOf(10) === -1
     ) {
       bytesSearched = view.length;
-      const searchEnd = view.length - litLen;
-      let pos = 0;
-      while (pos <= searchEnd) {
-        const index = view.indexOf(firstByte, pos);
-        if (index < 0 || index > searchEnd) break;
-        let equal = true;
-        for (let offset = 1; offset < litLen; offset++) {
-          if (view[index + offset] !== lit[offset]) { equal = false; break; }
+      const slot = totals.searches & 63;
+      const srcRef = target.sourceRef;
+      const lastByte = lit[litLen - 1]!;
+      if (srcRefCacheLitLen !== litLen || srcRefCacheLit0 !== firstByte || srcRefCacheLitLast !== lastByte) {
+        srcRefCacheLitLen = litLen;
+        srcRefCacheLit0 = firstByte;
+        srcRefCacheLitLast = lastByte;
+        srcRefSlotKeys.fill(undefined);
+      }
+      if (srcRef !== undefined && srcRefSlotKeys[slot] === srcRef && args.mode === "count") {
+        matchedLines = srcRefSlotCounts[slot]!;
+        matchesCount = matchedLines;
+      } else {
+        const searchEnd = view.length - litLen;
+        let pos = 0;
+        while (pos <= searchEnd) {
+          const index = view.indexOf(firstByte, pos);
+          if (index < 0 || index > searchEnd) break;
+          let equal = true;
+          for (let offset = 1; offset < litLen; offset++) {
+            if (view[index + offset] !== lit[offset]) { equal = false; break; }
+          }
+          if (equal) {
+            matchedLines++;
+            matchesCount++;
+            if (args.quiet || args.mode === "with" || args.mode === "without") break;
+            const nl = view.indexOf(10, index + litLen);
+            if (nl < 0) break;
+            pos = nl + 1;
+          } else {
+            pos = index + 1;
+          }
         }
-        if (equal) {
-          matchedLines++;
-          matchesCount++;
-          if (args.quiet || args.mode === "with" || args.mode === "without") break;
-          const nl = view.indexOf(10, index + litLen);
-          if (nl < 0) break;
-          pos = nl + 1;
-        } else {
-          pos = index + 1;
+        if (srcRef !== undefined && args.mode === "count") {
+          srcRefSlotKeys[slot] = srcRef;
+          srcRefSlotCounts[slot] = matchedLines;
         }
       }
     } else {

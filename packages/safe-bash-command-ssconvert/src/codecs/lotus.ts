@@ -152,7 +152,7 @@ function lotusExternalVariable(name: string): string | undefined {
 
 async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", group: number, row: number, column: number,
   sheetIndex: number, sheetName: (index: number) => string, context: CapabilityContext,
-  consumeOperation: () => void, functions: typeof lotusFunctions = lotusFunctions, names?: ReadonlyMap<string, LotusNamedRange>, legacyRowBits?: 11 | 13): Promise<string> {
+  consumeOperation: () => void, functions: typeof lotusFunctions = lotusFunctions, names?: ReadonlyMap<string, LotusNamedRange>, legacyReferenceLayout?: "wk1" | "wk2" | "works3"): Promise<string> {
   const b = new Binary(bytes), stack: string[] = [], modern = format !== "wk1";
   let at = 0;
   const pop = async () => {
@@ -166,10 +166,22 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
   };
   const oldRef = (p: number) => {
     const c = b.u16(p), r = b.u16(p + 2), cr = !!(c & 32768), rr = !!(r & 32768);
-    if (legacyRowBits !== undefined) {
+    if (legacyReferenceLayout === "works3") {
+      // libwps WKS4Spreadsheet::readCell: Windows Works uses signed 15-bit
+      // columns and 14-bit rows, folding positive targets at each half-range.
+      const axis = (raw: number, origin: number, bits: number) => {
+        if (!(raw & 0x8000)) return raw;
+        const shift = 32 - bits, boundary = 2 ** (bits - 1);
+        let delta = raw << shift >> shift;
+        if (delta + origin >= boundary) delta -= boundary;
+        return origin + delta;
+      };
+      return ref(axis(r, row, 14), axis(c, column, 15), rr, cr);
+    }
+    if (legacyReferenceLayout !== undefined) {
       // LibreOffice LotusRelToScRel: signed offsets, with version-specific rows.
-      const shift = 32 - legacyRowBits;
-      return ref(rr ? (r << shift >> shift) + row : r & (legacyRowBits === 11 ? 0x7ff : 0x3fff),
+      const shift = 32 - (legacyReferenceLayout === "wk1" ? 11 : 13);
+      return ref(rr ? (r << shift >> shift) + row : r & (legacyReferenceLayout === "wk1" ? 0x7ff : 0x3fff),
         cr ? (c << 24 >> 24) + column : c & 0xff, rr, cr);
     }
     return ref((r & 4095) * (rr && r & 4096 ? -1 : 1) + (rr ? row : 0),
@@ -336,7 +348,7 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
   if (bytes.length > context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert input bytes limit exceeded");
   const b = new Binary(new Uint8Array(bytes));
   if (bytes.length >= 6 && b.u16(0) === 255 && b.u16(4) === 0x404) return readLotusWorks(b.bytes, context,
-    (tokens, row, column, index, name, tick) => lotusFormula(tokens, "wk1", 1, row, column, index, name, context, tick, worksFunctions),
+    (tokens, row, column, index, name, tick) => lotusFormula(tokens, "wk1", 1, row, column, index, name, context, tick, worksFunctions, undefined, "works3"),
     text => lmbcs(text, 1, context));
   if (bytes.length < 6 || b.u16(0) !== 0 || b.u16(2) < 2) throw new SsconvertError("io", "Error while reading lotus workbook.");
   const version = b.u16(4), modern = ![0x404, 0x405, 0x406].includes(version);
@@ -634,8 +646,8 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
       if (id === 16) {
         const n = data.u16(13); if (15 + n > length) continue;
         // ScanVersion qualifies these Lotus layouts, but not Works or 0x0405.
-        const legacyRowBits = version === 0x404 ? 11 : version === 0x406 ? 13 : undefined;
-        formula = await lotusFormula(data.bytes.subarray(15, 15 + n), "wk1", group, row, column, index, i => sheet(i).name, context, consumeOperation, lotusFunctions, undefined, legacyRowBits);
+        const legacyReferenceLayout = version === 0x404 ? "wk1" : version === 0x406 ? "wk2" : undefined;
+        formula = await lotusFormula(data.bytes.subarray(15, 15 + n), "wk1", group, row, column, index, i => sheet(i).name, context, consumeOperation, lotusFunctions, undefined, legacyReferenceLayout);
         if ((data.u16(11) & 0x7ff8) === 0x7ff0) {
           value = { kind: "error", value: "#VALUE!" };
           if (at + 4 <= bytes.length && b.u16(at) === 0x33) {

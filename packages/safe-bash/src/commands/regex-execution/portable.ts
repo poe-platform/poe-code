@@ -574,6 +574,9 @@ export class RegexExecutor {
           }
         }
         const asyncSignal = session._ensureAsyncState();
+        const onAbort = () => readySlot.fail(asyncSignal.reason);
+        asyncSignal.addEventListener("abort", onAbort, { once: true });
+        if (asyncSignal.aborted) onAbort();
         return ex.promise.then(
           reply => {
             const validated = validateBreSearchReply(reply, id, descriptor, subject, asyncSignal);
@@ -585,6 +588,7 @@ export class RegexExecutor {
           session._getRetirements().add(retirement);
           throw asyncSignal.aborted ? asyncSignal.reason : error;
         }).finally(() => {
+          asyncSignal.removeEventListener("abort", onAbort);
           readySlot.busy = false;
           if (readySlot.retired) this.retired(readySlot);
           else readySlot.armIdleTimer(this.options.idleTimeoutMs);
@@ -771,9 +775,9 @@ export class RegexSession {
     if (!(syncOrAsync instanceof Promise)) return syncOrAsync;
     return this.trackPending(syncOrAsync);
   }
-  searchBre(descriptor: BreSearchDescriptor, subject: Uint8Array): Promise<BreSearchResult> {
+  async searchBre(descriptor: BreSearchDescriptor, subject: Uint8Array): Promise<BreSearchResult> {
     const res = this.searchBreSync(descriptor, subject);
-    return res instanceof Promise ? res : Promise.resolve(res);
+    return res;
   }
   canCloseSync(): boolean {
     return !this.pending?.size && !this.retirements?.size && this.executor.canCloseSync();

@@ -16,6 +16,7 @@ export function parseArguments(args: readonly string[], limits: ResourceLimits):
   for (const arg of args) { extent += arg.length * 2; if (extent > limits.maxDecodedBytes) throw new RangeError("ExifTool argument decoded budget exceeded"); }
   const result: Invocation = { files: [], tags: [], assignments: [], json: false, csv: false, quoteScalars: false, duplicates: false,
     binary: false, missing: false, style: "short", overwrite: "backup", destination: undefined, tagsFromFile: undefined, groupFamily: undefined, xml: false, tabular: false, template: undefined };
+  let shortLevel = 0;
   let literal = false;
   let valueConvSelector = false;
   for (let index = 0; index < args.length; index++) {
@@ -37,9 +38,11 @@ export function parseArguments(args: readonly string[], limits: ResourceLimits):
     if (option === "-a") { result.duplicates = true; continue; }
     if (option === "-b") { result.binary = true; continue; }
     if (option === "-f") { result.missing = true; continue; }
-    if (arg === "-S" || option === "-s2") { result.style = "compact"; continue; }
-    if (option === "-s" || option === "-s1") { result.style = "short"; continue; }
-    if (option === "-s3") { result.style = "values"; continue; }
+    if (["-s", "-ss", "-sss", "-s1", "-s2", "-s3"].includes(option)) {
+      shortLevel = arg === "-S" || option === "-s2" ? 2 : option === "-s1" ? 1 : option === "-s3" ? 3 : Math.min(3, shortLevel + arg.length - 1);
+      result.style = shortLevel >= 3 ? "values" : shortLevel === 2 ? "compact" : "short";
+      continue;
+    }
     if (option === "-n") continue; // admitted PNG tags have no PrintConv
     if (option === "-overwrite_original") { result.overwrite = "replace"; continue; }
     if (option === "-overwrite_original_in_place") { result.overwrite = "in-place"; continue; }

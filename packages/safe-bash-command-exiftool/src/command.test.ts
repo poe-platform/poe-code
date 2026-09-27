@@ -728,3 +728,22 @@ test("JPEG reads, EXIF writes, replacement and deletion preserve image segments"
   assert.equal(clear.exitCode, 0, clear.stderr);
   assert.deepEqual(await fs.readFile("/img.jpg"), jpeg);
 });
+
+test("cumulative short flags produce compact and values-only output", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/image.png", fixture("Alice"));
+  for (const [flags, expected] of [
+    [["-s", "-s"], "Title: Alice\n"],
+    [["-ss"], "Title: Alice\n"],
+    [["-s", "-s", "-s"], "Alice\n"],
+    [["-sss"], "Alice\n"],
+    [["-ss", "-s"], "Alice\n"],
+    [["-s2", "-s"], "Alice\n"],
+    [["-S", "-s"], "Alice\n"],
+    [["-s", "-s", "-s", "-s"], "Alice\n"],
+  ] as const) {
+    const result = await invoke([...flags, "-Title", "image.png"], fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+  }
+});

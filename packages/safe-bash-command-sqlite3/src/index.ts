@@ -266,7 +266,7 @@ function normalizeInjectedEngine(raw: InjectableSqliteEngine): SqliteEngineInsta
           return columns.length === 0 && rows.length === 0 ? null : { columns, rows };
         }
         if (typeof cursor[Symbol.iterator] === "function") {
-          const objs = Array.from(cursor);
+          const objs = Array.from(cursor as Iterable<Record<string, unknown>>);
           const columns = Array.isArray(cursor.columnNames)
             ? [...cursor.columnNames]
             : objs.length > 0

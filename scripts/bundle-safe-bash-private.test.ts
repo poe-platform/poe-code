@@ -3,6 +3,29 @@ import { expect, it } from "vitest";
 import { resolvePrivateCommandBuild, resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import { build } from "esbuild";
 import { runInNewContext } from "node:vm";
+import path from "node:path";
+
+it.each([false, true])("keeps copied private runtime assets inside a publishable workspace (portable=%s)", async portable => {
+  const name = "safe-bash-command-example";
+  const profile = { version: "0.0.1", dependencies: {}, devDependencies: {}, portable };
+  const pkg = { name, version: profile.version, dependencies: {}, devDependencies: {}, private: true, type: "module",
+    exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } } };
+  const options = resolvePrivateCommandBuild("/repo", { [name]: profile }, [{ dir: name, pkg }], { alias: {}, external: [], portable });
+  const bytes = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]);
+  const result = await build({ ...options, metafile: true, plugins: [{ name: "fixture", setup(builder) {
+    builder.onResolve({ filter: /.*/ }, args => ({ path: args.path, namespace: "fixture" }));
+    builder.onLoad({ filter: /.*/, namespace: "fixture" }, args => args.path.endsWith(".wasm")
+      ? { contents: bytes, loader: "copy" }
+      : { contents: args.path.endsWith("buffer.mjs") ? "" : 'import binary from "./engine.wasm"; export { binary };', loader: "js" });
+  } }] });
+  const asset = result.outputFiles!.find(file => file.path.endsWith(".wasm"))!;
+  expect(asset.contents).toEqual(bytes);
+  const relative = path.posix.relative("/repo/packages", asset.path).split("/");
+  expect(["safe-bash", name]).toContain(relative[0]);
+  expect(relative[1]).toBe("dist");
+  const entry = result.outputFiles!.find(file => file.path.endsWith("/dist/index.js"))!;
+  expect(entry.text).toContain(path.posix.relative(path.posix.dirname(entry.path), asset.path));
+});
 
 it.each(["browser", "workerd", "require"])("rejects an unprepared private command %s export", condition => {
   const name = "safe-bash-command-example";

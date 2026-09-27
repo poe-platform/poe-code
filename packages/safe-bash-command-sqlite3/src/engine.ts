@@ -2671,7 +2671,7 @@ export class SqliteDatabase {
     }
     let hex = "";
     for (const b of val as Uint8Array) {
-      hex += b.toString(16).padStart(2, "0");
+      hex += b.toString(16).padStart(2, "0").toUpperCase();
     }
     return `X'${hex}'`;
   }
@@ -4855,6 +4855,23 @@ export class SqliteDatabase {
       ) {
         return this.evalAggregateFunction(expr, group, positionalParams, cteScope);
       }
+      if (u === "COALESCE" || u === "IFNULL") {
+        for (const a of expr.args) {
+          const v = this.evalExprWithAgg(a, rep, group, positionalParams, cteScope);
+          if (v !== null && v !== undefined) {
+            return v;
+          }
+        }
+        return null;
+      }
+      if (u === "IIF") {
+        const cond = this.evalExprWithAgg(expr.args[0]!, rep, group, positionalParams, cteScope);
+        return isTruthy(cond)
+          ? this.evalExprWithAgg(expr.args[1]!, rep, group, positionalParams, cteScope)
+          : expr.args[2]
+            ? this.evalExprWithAgg(expr.args[2], rep, group, positionalParams, cteScope)
+            : null;
+      }
       const args = expr.args.map((a) => this.evalExprWithAgg(a, rep, group, positionalParams, cteScope));
       return this.evalScalarFunction(expr.name, args);
     }
@@ -4975,7 +4992,7 @@ export class SqliteDatabase {
       return activeVals.reduce<number>((sum, v) => sum + toSqlNumber(v), 0);
     }
     if (u === "TOTAL") {
-      return activeVals.reduce<number>((sum, v) => sum + toSqlNumber(v), 0.0);
+      return new Number(activeVals.reduce<number>((sum, v) => sum + toSqlNumber(v), 0.0));
     }
     if (u === "AVG") {
       if (activeVals.length === 0) {
@@ -5399,9 +5416,26 @@ export class SqliteDatabase {
     switch (u) {
       case "NULLIF":
         return sqlEquals(a0, a1) === true ? null : a0;
+      case "COALESCE":
+      case "IFNULL": {
+        for (const a of args) {
+          if (a !== null && a !== undefined) {
+            return a;
+          }
+        }
+        return null;
+      }
+      case "IIF":
+        return isTruthy(a0) ? (a1 ?? null) : (args[2] ?? null);
       case "TYPEOF":
         if (a0 === null || a0 === undefined) {
           return "null";
+        }
+        if (typeof a0 === "bigint") {
+          return "integer";
+        }
+        if (a0 instanceof Number) {
+          return "real";
         }
         if (typeof a0 === "number") {
           return Number.isInteger(a0) ? "integer" : "real";
@@ -5565,9 +5599,12 @@ export class SqliteDatabase {
         if (a0 === null) {
           return null;
         }
+        const num = toSqlNumber(a0);
         const digits = a1 !== null && a1 !== undefined ? Math.trunc(toSqlNumber(a1)) : 0;
         const factor = 10 ** digits;
-        return Math.round(toSqlNumber(a0) * factor) / factor;
+        const scaled = num * factor;
+        const rounded = (scaled < 0 ? -Math.round(-scaled) : Math.round(scaled)) / factor;
+        return new Number(Object.is(rounded, -0) ? 0 : rounded);
       }
       case "CEIL":
       case "CEILING":

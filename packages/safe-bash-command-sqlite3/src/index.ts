@@ -258,11 +258,11 @@ function formatQueryResult(res: QueryResultSet, state: CliSessionState): string 
       }
       const lines: string[] = [];
       if (state.showHeaders) {
-        lines.push(`<TR>${columns.map((c) => `<TH>${escapeHtml(c)}</TH>`).join("")}</TR>`);
+        lines.push(`<TR>${columns.map((c) => `<TH>${escapeHtml(c)}</TH>\n`).join("")}</TR>`);
       }
       for (const r of rows) {
         lines.push(
-          `<TR>${r.map((v) => `<TD>${escapeHtml(formatCellValue(v, state.nullValue))}</TD>`).join("")}</TR>`
+          `<TR>${r.map((v) => `<TD>${escapeHtml(formatCellValue(v, state.nullValue))}</TD>\n`).join("")}</TR>`
         );
       }
       return `${lines.join("\n")}\n`;

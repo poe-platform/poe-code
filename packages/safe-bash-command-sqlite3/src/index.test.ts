@@ -151,3 +151,29 @@ test("sqlite3 supports INSERT INTO ... WITH RECURSIVE and CREATE TABLE ... AS WI
   assert.equal(res.code, 0, res.stderr);
   assert.equal(res.stdout, "1|n-1\n2|n-2\n3|n-3\n4|n-4\n5|n-5\n5|15\n");
 });
+
+test("sqlite3 matches native /usr/bin/sqlite3 for COALESCE/IFNULL/IIF projections, ROUND/TOTAL REAL formatting, QUOTE(blob) uppercase, and -html output", async () => {
+  const fs = createMemoryFileSystem();
+  const sql = [
+    "SELECT COALESCE(NULL, NULL, 'fallback'), IFNULL(NULL, 99), IIF(1 > 0, 'yes', 'no'), IIF(0, 'yes', 'no'), IIF(NULL, 'yes', 'no');",
+    "SELECT QUOTE(NULL), QUOTE(42), QUOTE(3.14), QUOTE('it''s'), QUOTE(X'deadbeef');",
+    "SELECT ROUND(3.14159, 2), ROUND(3.5), ROUND(-3.5), typeof(ROUND(3.5));",
+    "CREATE TABLE empty_t(x INT); SELECT TOTAL(x), typeof(TOTAL(x)) FROM empty_t;",
+  ].join(" ");
+  const r1 = await runSqlite3(fs, [":memory:", sql]);
+  assert.equal(r1.code, 0, r1.stderr);
+  assert.equal(
+    r1.stdout,
+    [
+      "fallback|99|yes|no|no",
+      "NULL|42|3.14|'it''s'|X'DEADBEEF'",
+      "3.14|4.0|-4.0|real",
+      "0.0|real",
+      "",
+    ].join("\n")
+  );
+
+  const rHtml = await runSqlite3(fs, ["-html", "-header", ":memory:", "SELECT 1 AS id, 'alice' AS name;"]);
+  assert.equal(rHtml.code, 0, rHtml.stderr);
+  assert.equal(rHtml.stdout, "<TR><TH>id</TH>\n<TH>name</TH>\n</TR>\n<TR><TD>1</TD>\n<TD>alice</TD>\n</TR>\n");
+});

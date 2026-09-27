@@ -1007,6 +1007,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/jq-control-flow-limits.test.ts"));
   assert.ok(files.includes("tests/commands/structured/sort-keys.test.ts"));
   assert.ok(files.includes("tests/commands/structured/output-options.test.ts"));
+  assert.ok(files.includes("tests/commands/structured-stress/jq-output-ownership.test.ts"));
   assert.ok(files.includes("tests/commands/structured/file-bindings.test.ts"));
   assert.ok(files.includes("tests/commands/structured/positional-args.test.ts"));
   assert.ok(files.includes("tests/commands/structured/capture.test.ts"));

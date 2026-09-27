@@ -13,7 +13,10 @@ const cases = [
   ["escapes-across-boundary", "a".repeat(511) + '"\\\u0000海🌊'],
   ["repeated-pair-boundaries", ("a".repeat(511) + "🌊").repeat(4)],
   ["empty-array", []], ["nested-values", { values: [null, false, 0, "海🌊", { empty: "", absent: undefined }] }],
-  ["escaped-keys", { '海"\\🌊': "\ud800\n", empty: {} }]
+  ["escaped-keys", { '海"\\🌊': "\ud800\n", empty: {} }],
+  ["numbers-511", Array(511).fill(0)], ["numbers-512", Array(512).fill(10)],
+  ["numbers-513", Array(513).fill(-2.25)], ["numbers-1025", Array(1025).fill(1e21)],
+  ["mixed-number-runs", [...Array(511).fill(0), "海🌊", ...Array(513).fill(-2.25), null, false, [1, 10]]]
 ] as const;
 
 for (const [name, value] of cases) for (const capacity of ["exact", "one-below"] as const)
@@ -36,4 +39,13 @@ it("inventory JSON measurement retains the original complete string work reserva
   expect(budget.usage.work).toBe(514);
   const insufficient = new DocumentBudget({ work: 513 });
   expect(() => measurePackageResourceSerialization("a".repeat(512), insufficient)).toThrowError(expect.objectContaining({ code: "limit-exceeded" }));
+});
+
+it("inventory JSON measurement retains exact numeric and mixed-value work reservations", () => {
+  const value = [Array(513).fill(0), "海", { values: [1, 10, -2.25] }];
+  const budget = new DocumentBudget({ work: 530 });
+  expect(measurePackageResourceSerialization(value, budget)).toBe(new TextEncoder().encode(JSON.stringify(value)).length);
+  expect(budget.usage.work).toBe(530);
+  const insufficient = new DocumentBudget({ work: 529 });
+  expect(() => measurePackageResourceSerialization(value, insufficient)).toThrowError(expect.objectContaining({ code: "limit-exceeded" }));
 });

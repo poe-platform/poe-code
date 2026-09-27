@@ -93,7 +93,38 @@ export function measurePackageResourceSerialization(value: unknown, budget: Docu
       add(amount);
     }
   };
-  const visit = (value: unknown): void => { budget.charge("work", 1); if (typeof value === "string") string(value); else if (value === null) add(4); else if (typeof value === "boolean") add(value ? 4 : 5); else if (typeof value === "number") add(String(value).length); else if (Array.isArray(value)) { add(2); for (let index = 0; index < value.length; index++) { if (index) add(1); visit(value[index]); } } else if (value && typeof value === "object") { add(2); let count = 0; for (const key in value) if (Object.hasOwn(value, key) && (value as Record<string, unknown>)[key] !== undefined) { if (count++) add(1); string(key); add(1); visit((value as Record<string, unknown>)[key]); } } };
+  const visit = (value: unknown): void => {
+    budget.charge("work", 1);
+    if (typeof value === "string") string(value);
+    else if (value === null) add(4);
+    else if (typeof value === "boolean") add(value ? 4 : 5);
+    else if (typeof value === "number") add(String(value).length);
+    else if (Array.isArray(value)) {
+      add(2);
+      for (let index = 0; index < value.length;) {
+        if (typeof value[index] === "number") {
+          // Ancestor inventories contain millions of path indexes. Reserve and
+          // measure bounded runs without changing their per-value work charge.
+          const start = index, end = Math.min(value.length, index + 512);
+          while (index < end && typeof value[index] === "number") index++;
+          budget.charge("work", index - start);
+          let amount = index - start - (start === 0 ? 1 : 0);
+          for (let item = start; item < index; item++) amount += String(value[item]).length;
+          add(amount);
+        } else {
+          if (index) add(1);
+          visit(value[index++]);
+        }
+      }
+    } else if (value && typeof value === "object") {
+      add(2);
+      let count = 0;
+      for (const key in value) if (Object.hasOwn(value, key) && (value as Record<string, unknown>)[key] !== undefined) {
+        if (count++) add(1);
+        string(key); add(1); visit((value as Record<string, unknown>)[key]);
+      }
+    }
+  };
   visit(value); return bytes;
 }
 

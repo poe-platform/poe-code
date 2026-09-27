@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "plan": "../plans/ssconvert-gap-resolution.md",
+  "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
     "target": "Gnumeric 1.12.61",

@@ -74,7 +74,8 @@ export class Budget {
   private lastStepYield = monotonicNow();
   private signalAborted: boolean;
   private readonly pollBaseSignal: boolean;
-  constructor(readonly context: CommandContext, readonly limits: TableTextLimits) {
+  constructor(readonly context: CommandContext, readonly limits: TableTextLimits, outputChunkBytes = 16384) {
+    this.outBuf = new Uint8Array(outputChunkBytes);
     this.signalAborted = context.signal.aborted;
     this.pollBaseSignal = Object.prototype.hasOwnProperty.call(context.signal, "aborted");
     if (!this.signalAborted && !this.pollBaseSignal) {
@@ -107,7 +108,7 @@ export class Budget {
   admitOutput(size: bigint): void {
     this.check(BigInt(this.outputBytes) + size, this.limits.maxOutputBytes, "output");
   }
-  private outBuf = new Uint8Array(16384);
+  private outBuf: Uint8Array;
   private outUsed = 0;
   private firstFlushed = false;
   hasPendingOutput(): boolean { return this.outUsed > 0; }
@@ -127,7 +128,7 @@ export class Budget {
     this.outputBytes += totalLen;
     this.check(this.outputBytes, this.limits.maxOutputBytes, "output");
     if (!step && totalLen === 0) return;
-    if (!step && this.firstFlushed && this.outUsed + totalLen <= 16384) {
+    if (!step && this.firstFlushed && this.outUsed + totalLen <= this.outBuf.length) {
       for (let i = 0; i < parts.length; i++) {
         const part = parts[i]!;
         if (part.length) {
@@ -144,7 +145,7 @@ export class Budget {
     if (totalLen === 0) return;
     if (!this.firstFlushed) {
       this.firstFlushed = true;
-      if (totalLen <= 16384) {
+      if (totalLen <= this.outBuf.length) {
         const combined = new Uint8Array(totalLen);
         let offset = 0;
         for (let i = 0; i < parts.length; i++) {
@@ -160,10 +161,10 @@ export class Budget {
       for (const part of parts) if (part.length) await writeBytes(this.context.stdout, part, this.context.signal);
       return;
     }
-    if (this.outUsed + totalLen > 16384) {
+    if (this.outUsed + totalLen > this.outBuf.length) {
       await this.flushOutput();
     }
-    if (totalLen <= 16384) {
+    if (totalLen <= this.outBuf.length) {
       for (let i = 0; i < parts.length; i++) {
         const part = parts[i]!;
         if (part.length) {

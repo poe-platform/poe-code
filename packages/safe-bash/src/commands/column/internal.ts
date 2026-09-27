@@ -37,7 +37,7 @@ export class ColumnBudget extends Budget {
   private aborted = false;
   private readonly pollSignal: boolean;
   constructor(context: CommandContext, readonly columnLimits: ColumnLimits) {
-    super(context, readerSettings(columnLimits));
+    super(context, readerSettings(columnLimits), ColumnBudget.outputChunkBytes);
     const sig = context.signal;
     this.pollSignal = typeof sig.addEventListener !== "function" || Object.prototype.hasOwnProperty.call(sig, "aborted");
     if (sig.aborted) this.aborted = true;

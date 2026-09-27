@@ -122,4 +122,5 @@ export async function tableOutput(rows: readonly Cell[][], widths: readonly numb
     }
   }
   if (batch) await budget.text(batch);
+  await budget.flushOutput();
 }

@@ -264,6 +264,45 @@ test("wave 42: dynamic pattern trim/replace, printf -v %x/%X/%o/%u, shift in fun
   assert.equal(result.stdout.trim(), "1258|039:BAR_item_39_BAR:270:270:47:39|1150|BETA:14:28");
 });
 
+
+  test("wave 46: sparse array keys in groups, local -a + IFS read -a + unset element, array element trim/replace, and dirname/basename/seq/rev/head/tail/wc substitutions", async () => {
+    const { shell } = setup();
+    for (const c of basicCommands()) shell.commands.register(c, { replace: true });
+    const { textCommands } = await import("../../src/commands/text.js");
+    const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+    const { grepCommands } = await import("../../src/commands/grep.js");
+    const { streamCommands } = await import("../../src/commands/streams.js");
+    for (const c of [...textCommands(), ...createTextProgramCommands(), ...grepCommands(), ...streamCommands()]) shell.commands.register(c, { replace: true });
+    const script = [
+      'parts=(a b c); unset "parts[1]"; cnt=0; { (( cnt++ )); sparse_keys="${!parts[*]}"; }; echo "$cnt:$sparse_keys"',
+      'step_read_a() { local -a row; IFS=: read -r -a row <<< "$1"; unset "row[1]"; out_a="${row[0]}-${row[2]}:${#row[@]}:${!row[*]}"; }',
+      'for (( i = 0; i < 16; i++ )); do step_read_a "k${i}:drop:v${i}:tail"; done',
+      'echo "$out_a"',
+      'arr=("pre_alpha_suf" "pre_beta_suf")',
+      'step_arr_ops() { local s1="${arr[*]#pre_}"; local s2="${arr[*]%_suf}"; local s3="${arr[*]/pre_/clean_}"; out_ops="${s1}|${s2}|${s3}"; }',
+      'for (( i = 0; i < 16; i++ )); do step_arr_ops; done',
+      'echo "$out_ops"',
+      'step_pipe() {',
+      '  local d=$(dirname "$1")',
+      '  local b=$(basename "$1" .log)',
+      '  local top=$(printf "%s\\n" "a" "b" "c" "d" | head -n 2 | tail -n 1)',
+      '  local lc=$(printf "%s\\n" "x" "y" "z" | wc -l | tr -d " ")',
+      '  local sq=$(seq 1 4 | tr "\\n" ",")',
+      '  local rv=$(echo "$b" | rev)',
+      '  out_p="${d}/${b}:${top}:${lc}:${sq}:${rv}"',
+      '}',
+      'for (( i = 0; i < 8; i++ )); do step_pipe "/var/log/app_${i}.log"; done',
+      'echo "$out_p"',
+    ].join("\n");
+    const expected = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", script], {
+      encoding: "utf8",
+      env: { PATH: "/usr/bin:/bin", LC_ALL: "C" },
+    });
+    const actual = await shell.exec(script);
+    assert.equal(actual.exitCode, expected.status, actual.stderr);
+    assert.equal(actual.stdout, expected.stdout);
+  });
+
   test("wave 45: compound/element array assignments in groups/functions, IFS read <<<, and awk/grep/sort -u command substitutions", async () => {
     const { shell } = setup();
     for (const c of basicCommands()) shell.register(c);

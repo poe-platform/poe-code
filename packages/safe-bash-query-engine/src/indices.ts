@@ -1,3 +1,4 @@
+import { encoder } from "./encoding.js";
 import { Budget, isObject, JqError, JqLimitError, type Json } from "./limits.js";
 import { isNumber, numberValue } from "./numbers.js";
 import { equal, indexValue, sliceValue } from "./values.js";
@@ -8,8 +9,8 @@ export async function indices(input: Json, sought: Json, budget: Budget): Promis
   if (typeof input === "string" && typeof sought === "string") {
     { const _p = budget.tickSync(input.length + sought.length); if (_p) await _p; }
     // jq's string search returns UTF-8 byte offsets, including overlapping matches.
-    source = Buffer.from(input);
-    pattern = Buffer.from(sought);
+    source = encoder.encode(input);
+    pattern = encoder.encode(sought);
   } else if (isObject(sought) && (input === null || Array.isArray(input) || typeof input === "string")) {
     if (input === null) return null;
     const start = Object.hasOwn(sought, "start") ? sought.start! : undefined;

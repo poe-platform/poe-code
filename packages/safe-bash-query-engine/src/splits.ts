@@ -1,3 +1,4 @@
+import { utf8ByteLength } from "./encoding.js";
 import { Pattern } from "safe-bash-regex-engine/text/regex";
 import { Budget, JqError, type Json } from "./limits.js";
 import { regexError } from "./regex.js";
@@ -26,7 +27,7 @@ export async function* splitRegex(input: Json, source: Json, budget: Budget): As
       if (match.start === match.end) {
         const character = String.fromCodePoint(input.codePointAt(search) ?? 0);
         search += character.length;
-        const repeats = match.end < input.length ? Buffer.byteLength(character) - 1 : 0;
+        const repeats = match.end < input.length ? utf8ByteLength(character) - 1 : 0;
         if (repeats) {
           // jq resumes empty matches at each interior UTF-8 byte. Those byte
           // positions slice at the following Unicode boundary in jq strings.

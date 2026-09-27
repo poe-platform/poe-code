@@ -1,3 +1,4 @@
+import { utf8ByteLength } from "./encoding.js";
 const ONCE_ABORT_OPTIONS = Object.freeze({ once: true });
 const defaultPerfNow = performance.now;
 import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
@@ -172,7 +173,7 @@ export class Budget {
     if (size > this.maxCollectionSizeSmi && size > this.limits.maxCollectionSize) throw new JqLimitError("maxCollectionSize");
   }
   text(text: string): void {
-    if (text.length > this.maxValueBytesSmi || (text.length * 3 > this.maxValueBytesSmi && Buffer.byteLength(text) > this.limits.maxValueBytes)) throw new JqLimitError("maxValueBytes");
+    if (text.length > this.maxValueBytesSmi || (text.length * 3 > this.maxValueBytesSmi && utf8ByteLength(text) > this.limits.maxValueBytes)) throw new JqLimitError("maxValueBytes");
   }
   checkValue(value: Json): void {
     if (this.unlimitedValueCheck) {
@@ -345,16 +346,16 @@ function scalarJsonByteLength(value: null | boolean | number | Decimal | string,
   if (value === null || value === true) return 4;
   if (value === false) return 5;
   if (typeof value === "number") {
-    return Number.isFinite(value) ? (Object.is(value, -0) ? 2 : String(value).length) : Buffer.byteLength(scalarJson(value, budget));
+    return Number.isFinite(value) ? (Object.is(value, -0) ? 2 : String(value).length) : utf8ByteLength(scalarJson(value, budget));
   }
   if (value instanceof Decimal) {
     budget.step(Math.ceil(value.text.length / 32));
-    return Buffer.byteLength(numberText(value));
+    return utf8ByteLength(numberText(value));
   }
   let extra = 2;
   for (let index = 0; index < value.length; index++) {
     const code = value.charCodeAt(index);
-    if (code >= 0x80) return Buffer.byteLength(JSON.stringify(value));
+    if (code >= 0x80) return utf8ByteLength(JSON.stringify(value));
     if (code === 34 || code === 92 || code === 8 || code === 9 || code === 10 || code === 12 || code === 13) extra++;
     else if (code < 32) extra += 5;
   }

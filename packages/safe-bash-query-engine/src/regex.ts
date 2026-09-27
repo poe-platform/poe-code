@@ -1,3 +1,4 @@
+import { utf8ByteLength } from "./encoding.js";
 import { Pattern } from "safe-bash-regex-engine/text/regex";
 import { ProgramError } from "safe-bash-regex-engine/text/budget";
 import { Budget, JqError, JqLimitError, object, put, type Json } from "./limits.js";
@@ -29,7 +30,7 @@ export async function* substituteRegex(input: Json, source: Json, flags: Json,
         budget.collection(index + 1);
         const prefix = results[index] ?? "";
         const fragment = input.slice(copied, match.start);
-        const bytes = Buffer.byteLength(prefix) + Buffer.byteLength(fragment) + Buffer.byteLength(value ?? "");
+        const bytes = utf8ByteLength(prefix) + utf8ByteLength(fragment) + utf8ByteLength(value ?? "");
         if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
         const result = prefix + fragment + (value ?? "");
         budget.value(result);
@@ -44,7 +45,7 @@ export async function* substituteRegex(input: Json, source: Json, flags: Json,
       search = match.end > match.start ? match.end : match.end + ((input.codePointAt(match.end) ?? 0) > 0xffff ? 2 : 1);
     }
     for (const prefix of results) {
-      if (Buffer.byteLength(prefix) + Buffer.byteLength(input.slice(copied)) > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+      if (utf8ByteLength(prefix) + utf8ByteLength(input.slice(copied)) > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
       const result = prefix + input.slice(copied);
       budget.value(result);
       yield result;
@@ -69,7 +70,7 @@ export async function* scanRegex(input: Json, source: Json, budget: Budget): Asy
   if (typeof source !== "string") throw new JqError(`${describe(source, budget)} is not a string`);
   if (typeof input !== "string") throw new JqError(`${describe(input, budget)} cannot be matched, as it is not a string`);
   if (source === "") {
-    const boundaries = Buffer.byteLength(input) + 1;
+    const boundaries = utf8ByteLength(input) + 1;
     for (let index = 0; index < boundaries; index++) { { const _p = budget.tickSync(); if (_p) await _p; } yield ""; }
     return;
   }

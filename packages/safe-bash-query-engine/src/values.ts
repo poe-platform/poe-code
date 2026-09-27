@@ -1,3 +1,4 @@
+import { utf8ByteLength, encoder, decoder } from "./encoding.js";
 import { Budget, copyObject, isObject, JqError, JqLimitError, object, objectKeyIterator, objectKeys, put, type Json } from "./limits.js";
 import { compareNumbers, isNumber, numberValue, type Numeric } from "./numbers.js";
 import { jsonFragments, renderJsonFragment } from "./input.js";
@@ -12,14 +13,16 @@ export function describe(value: Json, budget: Budget): string {
   for (const fragment of jsonFragments(value, budget)) {
     const text = renderJsonFragment(fragment, budget);
     budget.step(text.length);
-    const bytes = Buffer.from(text);
+    const bytes = encoder.encode(text);
     const retained = Math.min(15 - length, bytes.length);
     parts.push(bytes.subarray(0, retained));
     length += retained;
     if (length === 15) break;
   }
-  const bytes = Buffer.concat(parts, length);
-  const text = length < 15 ? bytes.toString() : `${bytes.subarray(0, 11).toString()}...`;
+  const bytes = new Uint8Array(length);
+  let offset = 0;
+  for (const part of parts) { bytes.set(part, offset); offset += part.length; }
+  const text = length < 15 ? decoder.decode(bytes) : `${decoder.decode(bytes.subarray(0, 11))}...`;
   return `${type(value)} (${text})`;
 }
 export function stringCompareMaybeSync(left: string, right: string, budget: Budget): number | Promise<number> {
@@ -203,7 +206,7 @@ export function indexValue(value: Json, index: Json): Json {
     const integer = Math.trunc(numberValue(index));
     if (Array.isArray(value)) return value[integer < 0 ? value.length + integer : integer] ?? null;
   }
-  throw new JqError(`Cannot index ${type(value)} with ${type(index)}${typeof index === "string" && Buffer.byteLength(index) < 30 ? ` ${JSON.stringify(index)}` : ""}`);
+  throw new JqError(`Cannot index ${type(value)} with ${type(index)}${typeof index === "string" && utf8ByteLength(index) < 30 ? ` ${JSON.stringify(index)}` : ""}`);
 }
 export async function sliceValue(value: Json, start: Json, end: Json, budget: Budget): Promise<Json> {
   if (start !== null && (!isNumber(start) || !Number.isFinite(numberValue(start)))) throw new JqError("slice start must be a finite number or null");
@@ -281,7 +284,7 @@ export async function binary(operator: string, left: Json, right: Json, budget: 
     const count = numberValue(isNumber(left) ? left : right as Numeric);
     if (count < 0 || Number.isNaN(count)) return null;
     if (text === "") return "";
-    if (!Number.isFinite(count) || Buffer.byteLength(text) * Math.floor(count) > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+    if (!Number.isFinite(count) || utf8ByteLength(text) * Math.floor(count) > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
     const result = text.repeat(Math.floor(count)); budget.text(result); return result;
   }
   if (operator === "/" && typeof left === "string" && typeof right === "string") {

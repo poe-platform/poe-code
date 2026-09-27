@@ -1,3 +1,4 @@
+import { utf8ByteLength } from "./encoding.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { Interpreter } from "./interpreter.js";
 import {
@@ -83,7 +84,7 @@ function throwSignal(signal: AbortSignal): void {
 }
 
 function scalarBytes(value: null | boolean | number | Decimal): number {
-  return Buffer.byteLength(isNumber(value) ? numberText(value) : JSON.stringify(value));
+  return utf8ByteLength(isNumber(value) ? numberText(value) : JSON.stringify(value));
 }
 
 function validateNumber(value: number | Decimal): void {
@@ -213,7 +214,7 @@ class OwnedWork implements YqOwnedWork {
         }
         if (typeof value === "number" || value instanceof Decimal) {
           validateNumber(value);
-          return this.#addMeasured(0, Buffer.byteLength(numberText(value)));
+          return this.#addMeasured(0, utf8ByteLength(numberText(value)));
         }
         if (typeof value === "string") {
           const p2 = value.length > 0 ? this.chargeSync(value.length) : undefined;
@@ -265,7 +266,7 @@ class OwnedWork implements YqOwnedWork {
         const text = numberText(current);
         await this.#visitText(text, false);
         this.assertOpen();
-        bytes = this.#addMeasured(bytes, Buffer.byteLength(text));
+        bytes = this.#addMeasured(bytes, utf8ByteLength(text));
       } else if (typeof current === "string") {
         if (!wellFormed(current)) throw new YqValueFailure("ENCODE_INVALID_UNICODE");
         const escaped = await this.#visitText(current, true);
@@ -312,7 +313,7 @@ class OwnedWork implements YqOwnedWork {
     const fragments: string[] = [];
     let bytes = 0;
     const append = async (fragment: string): Promise<void> => {
-      const fragmentBytes = Buffer.byteLength(fragment);
+      const fragmentBytes = utf8ByteLength(fragment);
       if (fragmentBytes > options.maxBytes - bytes) throw new JqLimitError(options.limitName);
       if (fragmentBytes > 0) await this.charge(Math.ceil(fragmentBytes / 1024));
       this.assertOpen();
@@ -326,7 +327,7 @@ class OwnedWork implements YqOwnedWork {
       bytes += projectedBytes;
     };
     const appendReserved = async (fragment: string, projectedBytes: number): Promise<void> => {
-      if (Buffer.byteLength(fragment) !== projectedBytes) throw new Error("escaped fragment projection mismatch");
+      if (utf8ByteLength(fragment) !== projectedBytes) throw new Error("escaped fragment projection mismatch");
       if (projectedBytes > 0) await this.charge(Math.ceil(projectedBytes / 1024));
       this.assertOpen();
       fragments.push(fragment);
@@ -517,10 +518,10 @@ class OwnedWork implements YqOwnedWork {
     let codePoints = 0;
     for (const character of text) {
       const fragment = escaped ? jsonEscape(character.codePointAt(0)!) : character;
-      const bytes = Buffer.byteLength(fragment);
+      const bytes = utf8ByteLength(fragment);
       if (bytes > this.#budget.limits.maxValueBytes - encodedBytes) throw new JqLimitError("maxValueBytes");
       encodedBytes += bytes;
-      payloadBytes += Buffer.byteLength(character);
+      payloadBytes += utf8ByteLength(character);
       codePoints++;
       if (codePoints === 256) {
         { const _p = this.chargeSync(codePoints); if (_p) await _p; }

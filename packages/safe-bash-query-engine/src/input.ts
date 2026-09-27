@@ -1,3 +1,4 @@
+import { utf8ByteLength, encoder, byteString, latin1Bytes } from "./encoding.js";
 import { readBytes, type ByteSource } from "safe-bash-contracts";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { Budget, hasCustomKeyOrder, invalidateCachedValueMetrics, JqError, JqLimitError, object, objectKeyIterator, objectSize, put, scalarJson, type Json } from "./limits.js";
@@ -60,11 +61,11 @@ function shortSliceString(bytes: Uint8Array, start: number, end: number): string
     if (cached !== undefined && cached.length === len && matchAsciiBytes(bytes, start, cached)) {
       return cached;
     }
-    const s = Buffer.from(bytes.buffer, bytes.byteOffset + start, len).toString("latin1");
+    const s = byteString(bytes.subarray(start, start + len));
     SHORT_JSON_STRINGS[slot] = s;
     return s;
   }
-  return Buffer.from(bytes.buffer, bytes.byteOffset + start, len).toString("latin1");
+  return byteString(bytes.subarray(start, start + len));
 }
 
 class JsonParser {
@@ -599,7 +600,7 @@ class JsonParser {
   }
 }
 export function parseJson(input: string, budget: Budget, byteEncoded = false): Json {
-  const text = byteEncoded ? input : Buffer.from(input).toString("latin1");
+  const text = byteEncoded ? input : byteString(encoder.encode(input));
   if (text.length > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
   const parser = new JsonParser(budget);
   let value: Json | undefined;
@@ -683,7 +684,7 @@ function getOrCreateFlatSchemaPlan(
       pos++;
     }
     if (pos >= firstLineEnd - 1) return undefined;
-    const key = Buffer.from(rawChunk.buffer, rawChunk.byteOffset + kStart, pos - kStart).toString("latin1");
+    const key = byteString(rawChunk.subarray(kStart, pos));
     if (rKeys.includes(key)) return undefined;
     rKeys.push(key);
     if (rKeys.length > 16) return undefined;
@@ -715,14 +716,14 @@ function getOrCreateFlatSchemaPlan(
   const cacheKey = rKeys.join("\0") + "|" + (condKey ?? "") + "|" + outKeys.join(",") + "|" + srcKeys.join(",");
   let plan = flatSchemaPlanCache.get(cacheKey);
   if (plan) return plan;
-  const fieldHeaders = rKeys.map((k, idx) => Buffer.from((idx === 0 ? "{\"" : ",\"") + k + "\":", "latin1"));
+  const fieldHeaders = rKeys.map((k, idx) => latin1Bytes((idx === 0 ? "{\"" : ",\"") + k + "\":"));
   const condFieldIdx = condKey === undefined ? -1 : (rKeys.indexOf(condKey) >= 0 ? rKeys.indexOf(condKey) : -2);
   const projCount = outKeys.length;
   const projSrcIdx = new Int32Array(projCount);
   const projHeaders: Uint8Array[] = new Array(projCount);
   for (let p = 0; p < projCount; p++) {
     projSrcIdx[p] = rKeys.indexOf(srcKeys[p]!);
-    projHeaders[p] = Buffer.from((p === 0 ? "{\"" : ",\"") + outKeys[p]! + "\":", "latin1");
+    projHeaders[p] = latin1Bytes((p === 0 ? "{\"" : ",\"") + outKeys[p]! + "\":");
   }
   plan = { numFields: rKeys.length, fieldHeaders, condFieldIdx, projCount, projSrcIdx, projHeaders };
   if (flatSchemaPlanCache.size < 64) flatSchemaPlanCache.set(cacheKey, plan);
@@ -833,7 +834,7 @@ function stepFlatSelectProjectLine(
 }
 
 let lastSpPlan: FlatSchemaPlan | undefined;
-let lastSpInBuf: Buffer | undefined;
+let lastSpInBuf: Uint8Array | undefined;
 let lastSpSourceRefs = new WeakSet<Uint8Array>();
 let lastSpB0 = 0;
 let lastSpBMid = 0;
@@ -883,7 +884,7 @@ export function tryProcessFlatSelectProjectChunkSync(
     rawChunk[len >> 1] === lastSpBMid &&
     rawChunk[len - 1] === lastSpBEnd &&
     outBuf.byteLength >= lastSpOutPos &&
-    ((sourceRef !== undefined && lastSpSourceRefs.has(sourceRef) && sourceRef[0] === lastSpB0 && sourceRef[len >> 1] === lastSpBMid && sourceRef[len - 1] === lastSpBEnd) || lastSpInBuf.equals(rawChunk))
+    ((sourceRef !== undefined && lastSpSourceRefs.has(sourceRef) && sourceRef[0] === lastSpB0 && sourceRef[len >> 1] === lastSpBMid && sourceRef[len - 1] === lastSpBEnd) || lastSpInBuf.every((byte, index) => byte === rawChunk[index]))
   ) {
     if (sourceRef !== undefined) lastSpSourceRefs.add(sourceRef);
     budget.step(lastSpSteps);
@@ -924,13 +925,13 @@ export function tryProcessFlatSelectProjectChunkSync(
   if (outPos > budget.maxOutputBytesSmi && outPos > budget.limits.maxOutputBytes) return -1;
   if (len >= 512 && len <= 262144 && outPos <= 65536) {
     lastSpPlan = plan;
-    lastSpInBuf = Buffer.from(rawChunk);
+    lastSpInBuf = new Uint8Array(rawChunk);
     lastSpSourceRefs = new WeakSet<Uint8Array>();
     if (sourceRef !== undefined) lastSpSourceRefs.add(sourceRef);
     lastSpB0 = rawChunk[0]!;
     lastSpBMid = rawChunk[len >> 1]!;
     lastSpBEnd = rawChunk[len - 1]!;
-    lastSpSavedOutBuf = Buffer.from(outBuf.subarray(0, outPos));
+    lastSpSavedOutBuf = new Uint8Array(outBuf.subarray(0, outPos));
     lastSpDirectOutBuf = outBuf;
     lastSpOutBufIntact = true;
     lastSpOutPos = outPos;
@@ -1085,9 +1086,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
             }
           }
         }
-        fullText ??= Buffer.isBuffer(rawChunk)
-          ? rawChunk.toString("latin1")
-          : Buffer.from(rawChunk.buffer, rawChunk.byteOffset, rawChunk.byteLength).toString("latin1");
+        fullText ??= byteString(rawChunk);
         for (let index = chunkOffset; index < segEnd; index++) {
           if ((++scanned & 1023) === 0) {
             const p = budget.tickSync();
@@ -1214,7 +1213,7 @@ export async function* rawValues(sources: AsyncIterable<ByteSource>, budget: Bud
   let buffer = "";
   let bytes = 2;
   const append = (text: string): void => {
-    bytes += Buffer.byteLength(JSON.stringify(text)) - 2;
+    bytes += utf8ByteLength(JSON.stringify(text)) - 2;
     if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
     buffer += text;
   };
@@ -1238,7 +1237,7 @@ export async function* rawValues(sources: AsyncIterable<ByteSource>, budget: Bud
     let pending = "";
     for await (const chunk of readChunks(source, budget)) {
       { const _p = budget.tickSync(); if (_p) await _p; }
-      pending += Buffer.from(chunk).toString("latin1");
+      pending += byteString(chunk);
       if (pending.length + bytes - (!slurp && pending.endsWith("\n") ? 1 : 0) > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
       if (pending.endsWith("\n")) {
         await appendDecoded(slurp ? pending : pending.slice(0, -1));

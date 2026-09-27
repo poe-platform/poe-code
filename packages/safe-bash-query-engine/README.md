@@ -2,7 +2,8 @@
 
 The internal structured-query engine keeps jq and the restricted yq profile on
 the same parser, decimal values, interpreter and bounded query sessions. It
-preserves streaming order, cooperative cancellation and byte accounting.
+preserves streaming order, cooperative cancellation and UTF-8 byte accounting
+without requiring the Node.js `Buffer` global.
 
 Use `structuredCommands` from `@poe-platform/safe-bash` and `yqCommands` from
 `@poe-platform/safe-bash/commands/yq` to register commands. This private

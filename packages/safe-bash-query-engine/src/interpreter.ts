@@ -1,3 +1,4 @@
+import { utf8ByteLength } from "./encoding.js";
 import { Budget, invalidateCachedValueMetrics, copyObject, hasCustomKeyOrder, isObject, JqHalt, JqError, JqLimitError, object, objectKeyIterator, objectKeys, put, remove as removeKey, truth, type Json } from "./limits.js";
 import { Decimal, isNumber, numberValue, type Numeric } from "./numbers.js";
 import { JqParseError, measureValue, parseJson, stringify } from "./input.js";
@@ -1086,7 +1087,7 @@ export class Interpreter {
         if (!isNumber(code)) throw new JqError(`${describe(input, budget)} halt_error/1: number required`);
         const stderr = input === null ? "" : typeof input === "string" ? input
           : `${await stringify(input, budget, { indent: "", ascii: false, color: false }, budget.limits.maxOutputBytes, "maxOutputBytes")}\n`;
-        if (budget.outputBytes + Buffer.byteLength(stderr) > budget.limits.maxOutputBytes) throw new JqLimitError("maxOutputBytes");
+        if (budget.outputBytes + utf8ByteLength(stderr) > budget.limits.maxOutputBytes) throw new JqLimitError("maxOutputBytes");
         // jq clamps negative statuses and the process exposes the low byte.
         const status = Math.max(0, Math.trunc(numberValue(code))) % 256;
         throw new JqHalt(status, stderr);
@@ -1297,7 +1298,7 @@ export class Interpreter {
       const result: Json = name === "map_values" && isObject(input) ? object() : [];
       let bytes = 2;
       for await (const [key, value] of entries(input, budget)) for await (const mapped of this.run(args[0]!, value)) {
-        bytes += budget.value(mapped) + 1 + (Array.isArray(result) ? 0 : Buffer.byteLength(JSON.stringify(String(key))) + 1);
+        bytes += budget.value(mapped) + 1 + (Array.isArray(result) ? 0 : utf8ByteLength(JSON.stringify(String(key))) + 1);
         if (bytes - 1 > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
         if (Array.isArray(result)) { budget.collection(result.length + 1); result.push(mapped); }
         else put(result, String(key), mapped);

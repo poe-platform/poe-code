@@ -1,3 +1,4 @@
+import { utf8ByteLength } from "./encoding.js";
 import { JqError, JqLimitError, wellFormed, type Budget, type Json } from "./limits.js";
 import { decimalNumber } from "./numbers.js";
 
@@ -145,7 +146,7 @@ function isPath(ast: Ast): boolean {
   return true;
 }
 export function moduleProgram(source: string, budget: Budget): { source: string; imports: { name: string; alias?: string }[] } {
-  if (Buffer.byteLength(source) > budget.limits.maxSourceBytes) throw new JqLimitError("maxSourceBytes");
+  if (utf8ByteLength(source) > budget.limits.maxSourceBytes) throw new JqLimitError("maxSourceBytes");
   const tokens = tokenize(source, budget);
   const imports: { name: string; alias?: string }[] = [];
   let position = 0;
@@ -170,7 +171,7 @@ export function moduleProgram(source: string, budget: Budget): { source: string;
 
 export function parse(source: string, variables: ReadonlyMap<string, Json>, budget: Budget, definitions: Map<string, Ast> = new Map(), module = false): Ast {
   const limits = budget.limits;
-  if (Buffer.byteLength(source) > limits.maxSourceBytes) throw new JqLimitError("maxSourceBytes");
+  if (utf8ByteLength(source) > limits.maxSourceBytes) throw new JqLimitError("maxSourceBytes");
   const tokens = tokenize(source, budget);
   let position = 0;
   let nesting = 0;
@@ -189,7 +190,7 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
     const start = prefix.lastIndexOf("\n") + 1;
     const end = source.indexOf("\n", start);
     const context = source.slice(start, end < 0 ? source.length : end);
-    return `error: ${message} at <top-level>, line ${line}:\n${context}${" ".repeat(Buffer.byteLength(prefix.slice(start)))}`;
+    return `error: ${message} at <top-level>, line ${line}:\n${context}${" ".repeat(utf8ByteLength(prefix.slice(start)))}`;
   };
   const syntaxError = (token: Token, expectEnd = false): never => {
     const name = token.kind === "end" ? "end of file" : token.kind === "name" ? "IDENT" : token.kind === "number" || token.kind === "string" ? "LITERAL" : `'${token.text}'`;
@@ -460,7 +461,7 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
     const token = unresolved.get(node);
     if (token && node.kind === "call") {
       const message = diagnostic(token, `${node.name}/${node.args.length} is not defined`);
-      errorBytes += Buffer.byteLength(message) + 5;
+      errorBytes += utf8ByteLength(message) + 5;
       if (errorBytes > limits.maxOutputBytes) throw new JqLimitError("maxOutputBytes");
       errors.push(message);
       continue;

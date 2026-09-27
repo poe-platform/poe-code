@@ -9,7 +9,7 @@ import type { YqOwnedWork } from "../../../src/commands/structured/query-core.js
 test("native YAML rejects many short lines below the document byte cap", async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/payload", new TextEncoder().encode("\n".repeat(1_600_000) + "a: b\n"));
-  const result = await run(["-o", "json", "-c", ".", "/payload"], "", { fs });
+  const result = await run(["-o", "json", "-c", ".", "/payload"], "", { fs, limits: { maxSourceLines: 65_536 } });
   assert.equal(result.status, 5);
   assert.equal(result.stdout, "");
   assert.match(result.stderr, /LIMIT_MAX_SOURCE_LINES/u);
@@ -17,10 +17,10 @@ test("native YAML rejects many short lines below the document byte cap", async (
 
 for (const line of ["\n", "\r", "\r\n", "# x\n"]) {
   test(`native YAML counts ${JSON.stringify(line)} lines at the source quota`, async () => {
-    const accepted = await run(["-o", "json", "-c", "."], line.repeat(65_535) + "a: b");
+    const accepted = await run(["-o", "json", "-c", "."], line.repeat(65_535) + "a: b", { limits: { maxSourceLines: 65_536 } });
     assert.equal(accepted.status, 0, accepted.stderr);
     assert.equal(accepted.stdout, '{"a":"b"}\n');
-    const rejected = await run(["-o", "json", "-c", "."], line.repeat(65_536) + "a: b");
+    const rejected = await run(["-o", "json", "-c", "."], line.repeat(65_536) + "a: b", { limits: { maxSourceLines: 65_536 } });
     assert.equal(rejected.status, 5);
     assert.match(rejected.stderr, /LIMIT_MAX_SOURCE_LINES/u);
   });

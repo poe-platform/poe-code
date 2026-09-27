@@ -4,10 +4,10 @@ import { toByteSource, type ByteSource, type CommandContext } from "../../src/co
 import { numfmtCommand } from "../../src/commands/numfmt.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 
-async function format(args: readonly string[], input: string | ByteSource, overrides: Partial<CommandContext> = {}) {
+async function format(args: readonly string[], input: string | ByteSource, overrides: Partial<CommandContext> = {}, limits?: Parameters<typeof numfmtCommand>[0]) {
   const stdout: Uint8Array[] = [];
   const stderr: Uint8Array[] = [];
-  const result = await numfmtCommand().execute({
+  const result = await numfmtCommand(limits).execute({
     command: "numfmt", args, cwd: "/work", env: { LC_ALL: "C" }, fs: new MemoryFileSystem(),
     stdin: typeof input === "string" ? toByteSource(input) : input,
     stdout: { async write(bytes) { stdout.push(new Uint8Array(bytes)); } },
@@ -97,7 +97,7 @@ test("numfmt bounds repeated initialized-tail scans with its existing work budge
   const result = await format(["--from=auto", "-d,", "--field=-", "--invalid=warn"], source, {
     stdout: { async write() {} },
     stderr: { async write(bytes) { stderrBytes += bytes.length; last = Buffer.from(bytes).toString("utf8"); } },
-  });
+  }, { limits: { maxWork: 2_000_000 } });
   assert.equal(result.status, 1);
   assert.equal(last, "numfmt: numfmt work limit exceeded\n");
   assert.ok(stderrBytes < 32 * 1024 * 1024);

@@ -3312,14 +3312,14 @@ export class Runtime {
     this._canFastMemoryRedirect = undefined;
     this.sourceFs = runtimeFileSystems.get(fs) ?? fs;
     this.backingFs = getRuntimeBackingFileSystem(this.sourceFs) ?? this.sourceFs;
-    this._isMemoryBackingFs = this.backingFs.constructor?.name === "MemoryFileSystem";
+    this._isMemoryBackingFs = this.backingFs.constructor?.name === "MemoryFileSystem" && Object.keys(this.backingFs).length === 0;
     if (this._isMemoryBackingFs) (this.backingFs as { _activeRuntimeBudget?: Budget })._activeRuntimeBudget = budget;
     registerInternalYieldCheckpoint(signal, budget.yieldCheckpoint);
     if (commandSignal !== signal) {
       inheritYieldCheckpoint(signal, commandSignal);
       registerInternalYieldCheckpoint(commandSignal, budget.yieldCheckpoint);
     }
-    if (!this._isMemoryBackingFs) {
+    if (!this._isMemoryBackingFs || commandSignal !== signal) {
       this.signal = toNativeAbortSignal(signal);
       this.commandSignal = toNativeAbortSignal(commandSignal);
     }
@@ -3359,7 +3359,7 @@ export class Runtime {
   }
   private getContextFsFor(umask: number, sig: AbortSignal): FileSystem {
     if (this._contextFs && this._contextFsMask === umask && this._contextFsSignal === sig) return this._contextFs;
-    if (umask === 0o022 && !this._contextFs) {
+    if (umask === 0o022 && !this._contextFs && this._isMemoryBackingFs) {
       const entry = reusableDefaultContextFsBySourceFs.get(this.sourceFs);
       if (entry && (entry.inUseBy === undefined || entry.inUseBy === this)) {
         if (retargetScopedFileSystem(entry.scoped, this.budget.chargeFs, sig, this.budget.cleanupChargeFs, this.budget.limits.maxPathnameComponents)) {
@@ -6955,7 +6955,7 @@ export class Runtime {
     }
     return this.executeSyncPipelineBody(pipeline, command, state, io, ignored);
   }
-  private canSyncCommandCompound(command: Command, rawState: State, depth = 0, loopDepth = 0): boolean { const _res = this._canSyncCommandCompoundInner(command, rawState, depth, loopDepth); if (!_res) if (command.kind === "arithmetic") console.log("REJECT ARITH:", command.expression.source, "err:", Boolean(command.expression.error), "smi:", isSafeSmiProgram(command.expression), "nofault:", this.canSyncArithmeticWithoutFault(command.expression.tree, rawState)); return _res; }
+  private canSyncCommandCompound(command: Command, rawState: State, depth = 0, loopDepth = 0): boolean { if (this.budget.limits.maxExpansionFields !== Infinity || this.budget.limits.maxExpansionBytes !== Infinity || this.budget.limits.maxParseUnits !== Infinity) return false; return this._canSyncCommandCompoundInner(command, rawState, depth, loopDepth); }
   private _canSyncCommandCompoundInner(command: Command, rawState: State, depth = 0, loopDepth = 0): boolean {
     if (depth > 6) return false;
     if (command.redirects.length !== 0) {
@@ -7473,7 +7473,7 @@ export class Runtime {
   }
   private executeSyncPipelineBody( pipeline: Pipeline, command: Extract<Command, { kind: "simple" | "arithmetic" | "conditional" | "arithmetic-for" | "for" | "if" | "case" | "group" | "while" | "until" }>, state: State, io: IO, ignored: boolean, ): number | undefined {
     const scope = io[invocationScope];
-    if (scope.hasFailures) return undefined;
+    if (scope.hasFailures || this.budget.limits.maxExpansionFields !== Infinity || this.budget.limits.maxExpansionBytes !== Infinity || this.budget.limits.maxParseUnits !== Infinity) return undefined;
     const monitor = stateMonitor(state) ?? stateMonitor(trackState(state, this.budget, scope));
     if (!monitor) return undefined;
     const rawState = monitor.raw;
@@ -16140,9 +16140,7 @@ export class Runtime {
       }
       if (part.length) return String(binding?.values.size ?? (part.name === "FUNCNAME" && state.variables.FUNCNAME === undefined ? state.functionNames?.length ?? 0 : state.variables[part.name] === undefined ? 0 : 1));
       const values = await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring);
-      const space = !split && (selector.separator === "@" || !part.quoted) || selector.kind === "keys" && (hereDocument || (selector.separator === "@"
-        ? !part.quoted && !split || state.variables.IFS === ""
-        : !part.quoted && split && state.variables.IFS === ""));
+      const space = (selector.kind === "keys" || part.keys === true) && state.extensions?.syntax?.arrayKeys ? Boolean(hereDocument || (selector.separator === "@" ? !part.quoted && !split || state.variables.IFS === "" : !part.quoted && split && state.variables.IFS === "")) : (!split && (selector.separator === "@" || !part.quoted));
       return this.arrayJoin(store.owner, values, space ? " " : this.ifsSeparator(state, io));
     }
     if (part.substring && (part.name === "@" || part.name === "*")) {
@@ -16546,7 +16544,7 @@ export class Runtime {
             if (
               !part.length &&
               (!part.substring || (!isKeys && !arrayBinding.associative && part.operator === undefined)) &&
-              (!split || (part.quoted && selector.separator === "*")) &&
+              (selector.separator === "*" && (!isKeys ? (!split || part.quoted) : part.quoted)) &&
               this.budget.limits.maxExpansionBytes === Infinity &&
               arrayBinding.maximum < 2048 &&
               (rawState.depth + (io.parameterDepth ?? 0)) < 60
@@ -16573,7 +16571,7 @@ export class Runtime {
               }
               const ifsVal = monitor?.values.get("IFS", rawVars.IFS ?? " ") ?? rawVars.IFS ?? " ";
               if (validElemOp && typeof ifsVal === "string" && (ifsVal.length === 0 || ifsVal.charCodeAt(0) < 128)) {
-                const sep = selector.separator === "@" || !part.quoted && !split ? " " : ifsVal.length > 0 ? ifsVal[0]! : "";
+                const sep = selector.separator === "@" ? " " : ifsVal.length > 0 ? ifsVal[0]! : "";
                 const evalSliceInt = (w: Word): number | undefined => {
                   if (w.parts.length === 0) return 0;
                   const expanded = this.fastValueWord(w, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);

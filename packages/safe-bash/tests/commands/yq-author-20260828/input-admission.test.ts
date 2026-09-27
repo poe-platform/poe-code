@@ -35,7 +35,7 @@ test("yq and jq resource quotas default to unlimited", () => {
     maxScalarBytes: Infinity, maxQuerySourceBytes: Infinity, maxDepth: Infinity, maxAstDepth: Infinity,
     maxSteps: Infinity, maxResults: Infinity, maxCollectionSize: Infinity,
     maxDocuments: Infinity, maxAnchorsPerDocument: Infinity, maxAliasReferences: Infinity,
-    maxDocumentNodes: Infinity, maxOutputBytes: Infinity, diagnosticReserveBytes: Infinity,
+    maxSourceLines: Infinity, maxDocumentNodes: Infinity, maxOutputBytes: Infinity, diagnosticReserveBytes: Infinity,
     stdoutCapBytes: Infinity, maxDisplayedFilenameBytes: Infinity,
   });
   assert.deepEqual(defaultJqLimits, {

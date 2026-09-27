@@ -748,6 +748,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
         const name = path === "." ? "./safe-bash" : `./safe-bash${path.slice(1)}`;
         const expected = mirrorArchiveExportTargets(conditions);
         if (path === "./commands/pandoc") expected.import = "./packages/safe-bash-command-pandoc/dist/public/command.js";
+        if (path === "./contracts") { expected.types = "./packages/safe-bash-contracts/dist/index.d.ts"; expected.import = "./packages/safe-bash-contracts/dist/index.js"; }
         assert.deepEqual(rootManifest.exports[name], detached ? undefined : facades ? facadeExports[name] : expected, `root export mismatch: ${name}`);
         if (detached) assert.ok(!rootManifest.files.includes("packages/safe-bash/dist"), "private shell must not be shipped by root");
       }

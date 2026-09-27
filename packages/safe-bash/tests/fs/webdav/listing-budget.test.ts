@@ -24,7 +24,7 @@ test("root plus 256 locally namespaced DAV children fit the advertised listing b
 test("metadata-rich listings retain XML structural admission when byte and entry budgets permit them", async () => {
   const body = listing(12_000);
   const maxXmlBytes = Buffer.byteLength(body);
-  const options = { baseUrl: "https://example.test/dav/", fetch: async () => xmlResponse(body), maxXmlBytes, maxEntries: 12_001 };
+  const options = { baseUrl: "https://example.test/dav/", fetch: async () => xmlResponse(body), maxXmlBytes, maxEntries: 12_001, xmlLimits: { maxContentNodes: 100_000 } };
   await assert.rejects(new WebDavFileSystem(options).readdir("/"), { code: "EFBIG", message: /XML content node limit exceeded/ });
 });
 
@@ -38,6 +38,6 @@ test("minimal listings retain XML structural admission independently of byte and
   }));
   const maxXmlBytes = Buffer.byteLength(body);
   assert.ok(maxXmlBytes > 2 * 1024 * 1024);
-  const options = { baseUrl: "https://example.test/dav/", fetch: async () => xmlResponse(body), maxXmlBytes, maxEntries: 12_001 };
+  const options = { baseUrl: "https://example.test/dav/", fetch: async () => xmlResponse(body), maxXmlBytes, maxEntries: 12_001, xmlLimits: { maxContentNodes: 100_000 } };
   await assert.rejects(new WebDavFileSystem(options).readdir("/"), { code: "EFBIG", message: /XML content node limit exceeded/ });
 });

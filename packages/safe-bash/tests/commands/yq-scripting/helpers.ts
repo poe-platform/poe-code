@@ -5,10 +5,10 @@ import { createYqCommand } from "../../../src/commands/yq/index.js";
 import { toByteSource, type CommandContext } from "../../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 
-export async function run(args: readonly string[], input = "", overrides: Partial<CommandContext> = {}) {
+export async function run(args: readonly string[], input = "", overrides: Partial<CommandContext> & { limits?: Record<string, number> } = {}) {
   const stdout: Uint8Array[] = [];
   const stderr: Uint8Array[] = [];
-  const result = await createYqCommand().execute({
+  const result = await createYqCommand(overrides.limits ? { limits: overrides.limits } : {}).execute({
     command: "yq", args, cwd: "/", env: {}, fs: createMemoryFileSystem(),
     signal: new AbortController().signal, stdin: toByteSource(input),
     stdout: { async write(chunk) { stdout.push(new Uint8Array(chunk)); } },

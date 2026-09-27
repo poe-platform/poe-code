@@ -1,5 +1,5 @@
 import { Volume } from "memfs";
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { SaxesParser } from "saxes";
 import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
 import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
@@ -7,6 +7,13 @@ import * as api from "./index.js";
 import { compiledPublicRuntime } from "../tests/compiled-public-runtime.js";
 import { textContext, textFixture, w } from "../tests/fixtures/text.js";
 import { readPackage, assertPackageLinks } from "../tests/assertions.js";
+
+// XML fidelity does not depend on host task latency. The compiled runtime
+// continues to exercise real cooperative scheduling in every native case.
+vi.mock("@poe-code/office-package", async importOriginal => ({
+  ...await importOriginal<typeof import("@poe-code/office-package")>(),
+  yieldEventLoop: async () => {}
+}));
 
 const native = await compiledPublicRuntime, encode = (value: string) => new TextEncoder().encode(value);
 const quote = (value: string) => "'" + value.split("'").join("'\\''") + "'";

@@ -56,15 +56,17 @@ it.each(["password", "tag", "ciphertext"])("authenticates the entire package bef
 });
 
 it.each([
-  ["work", declaration().replace('argon2-iterations="2"', 'argon2-iterations="1000000"'), "resource-limit"],
-  ["memory", declaration().replace('argon2-memory="32"', 'argon2-memory="1000000"'), "resource-limit"],
+  ["work", declaration().replace('argon2-iterations="2"', 'argon2-iterations="100"'), "resource-limit"],
+  ["memory", declaration().replace('argon2-memory="32"', 'argon2-memory="128"'), "resource-limit"],
   ["size", declaration().replace(`m:size="${innerPackageBytes}"`, 'm:size="1000000"'), "resource-limit"],
   ["zero lanes", declaration().replace('argon2-lanes="1"', 'argon2-lanes="0"'), "io"],
   ["unsupported KDF", declaration().replace('manifest:argon2id', 'manifest:argon2i'), "unsupported-feature"],
   ["foreign parameters", declaration().replace('xmlns:loext:1.0', 'xmlns:foreign:1.0'), "io"]
 ])("admits %s before requesting a password", async (_name, manifest, code) => {
   const read = vi.fn(async () => packageVectors[0].password);
-  await expect(readOdf(await fixture(manifest), { ...context, password: { read } })).rejects.toMatchObject({ code });
+  await expect(readOdf(await fixture(manifest), { ...context,
+    limits: { ...context.limits, workbookWork: 1000000, encryptionMemoryBytes: 65536 },
+    password: { read } })).rejects.toMatchObject({ code });
   expect(read).not.toHaveBeenCalled();
 });
 

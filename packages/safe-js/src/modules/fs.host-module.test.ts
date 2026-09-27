@@ -20,6 +20,21 @@ const VOLUME: Readonly<Record<string, string>> = {
 };
 
 describe("fs host module bridge behavior", () => {
+  it.each([
+    'import fs from "node:fs"; export const text = await fs.promises.readFile("/repo/alpha.txt", "utf8");',
+    'import { promises } from "node:fs"; export const text = await promises.default.readFile("/repo/alpha.txt", "utf8");',
+    'import fs from "node:fs/promises"; export const text = await fs.default.promises.readFile("/repo/alpha.txt", "utf8");'
+  ])("resolves nested filesystem aliases in guest ESM: %s", async (source) => {
+    const fs = createFsModule();
+    expect(fs.default).toBe(fs);
+    expect(fs.promises).toBe(fs);
+    expect(fs.promises.default).toBe(fs);
+    await expect(run(source, {
+      sourceType: "module",
+      modules: { "node:fs": fs, "node:fs/promises": fs }
+    })).resolves.toMatchObject({ ok: true, returnValue: { text: "alpha-body" } });
+  });
+
   it("resolves concurrent readFile calls to their own results", async () => {
     const source = [
       'import { readFile } from "fs";',

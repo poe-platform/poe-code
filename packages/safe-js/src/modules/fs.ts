@@ -359,7 +359,9 @@ export type FsModule = Pick<FsImplementation, FsPassthroughName> & {
 
 
 
-export function makeFsModule(options: FsModuleOptions = {}): FsModule & { default: FsModule; promises: FsModule } {
+export type FsModuleExports = FsModule & { default: FsModuleExports; promises: FsModuleExports };
+
+export function makeFsModule(options: FsModuleOptions = {}): FsModuleExports {
   assertSupportedPlatform();
   const hostReadMemoryLimit = options.hostReadMemoryLimit ?? Infinity;
   const readFileMaxBytes = options.readFileMaxBytes ?? Infinity;
@@ -474,7 +476,7 @@ export function makeFsModule(options: FsModuleOptions = {}): FsModule & { defaul
       COPYFILE_EXCL: nodeFsConstants.COPYFILE_EXCL
     }
   };
-  return { ...module, default: module, promises: module };
+  return Object.assign(module, { default: module, promises: module }) as FsModuleExports;
 }
 
 // The module forwards node's error rather than translating it, which makes node's answer the

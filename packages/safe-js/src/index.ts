@@ -103,6 +103,7 @@ export type { FsConfig, ResolveFsConfigOptions } from "./modules/fs-config.js";
 export type {
   FsImplementation,
   FsModule,
+  FsModuleExports,
   FsModuleOptions,
   SandboxDirent,
   SandboxStats

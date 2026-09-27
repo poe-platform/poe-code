@@ -107,6 +107,10 @@ const defaultDateNow = Date.now;
 let fastWriteCachedNow: number = Date.now();
 let fastWriteNowTick = 0;
 
+let lastFastMapMissMap: FastDirectoryEntriesMap | undefined;
+let lastFastMapMissKey = "";
+let lastFastMapMissSlot = -1;
+
 class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   private _table: Int16Array | Int32Array = new Int16Array(128).fill(-1);
   private _mask = 127;
@@ -125,15 +129,30 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   }
 
   get(k: string): MemoryNode | undefined {
-    if (this.size === 0) return undefined;
     let slot = this._hash(k);
+    if (this.size === 0) {
+      lastFastMapMissMap = this;
+      lastFastMapMissKey = k;
+      lastFastMapMissSlot = slot;
+      return undefined;
+    }
     const mask = this._mask;
     const table = this._table;
     const keys = this._keys;
+    let firstDeleted = -1;
     while (true) {
       const idx = table[slot]!;
-      if (idx === -1) return undefined;
-      if (idx >= 0 && keys[idx] === k) return this._vals[idx];
+      if (idx === -1) {
+        lastFastMapMissMap = this;
+        lastFastMapMissKey = k;
+        lastFastMapMissSlot = firstDeleted !== -1 ? firstDeleted : slot;
+        return undefined;
+      }
+      if (idx === -2) {
+        if (firstDeleted === -1) firstDeleted = slot;
+      } else if (keys[idx] === k) {
+        return this._vals[idx];
+      }
       slot = (slot + 1) & mask;
     }
   }
@@ -213,6 +232,15 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   }
 
   set(k: string, v: MemoryNode): this {
+    if (this === lastFastMapMissMap && k === lastFastMapMissKey && this._next < this._keys.length) {
+      const entryIdx = this._next++;
+      this._table[lastFastMapMissSlot] = entryIdx;
+      this._keys[entryIdx] = k;
+      this._vals[entryIdx] = v;
+      this.size++;
+      lastFastMapMissMap = undefined;
+      return this;
+    }
     if (this._next >= this._keys.length) {
       this._rebuild(this.size * 2 <= this._keys.length ? this._keys.length : this._keys.length * 2);
     }
@@ -1533,7 +1561,7 @@ export class MemoryFileSystem implements FileSystem {
     try {
       const storage = allocation.data;
       if (allocation !== node.allocation && curLen > 0) {
-        storage.set(node.allocation.data.subarray(0, curLen));
+        storage.set((node.view ?? node.allocation.data).subarray(0, curLen));
       }
       if (position > curLen) storage.fill(0, curLen, position);
       if (dataLen === data.byteLength) {
@@ -1778,15 +1806,16 @@ export class MemoryFileSystem implements FileSystem {
         return;
       }
       if (!current) {
-        const capacity = length > 0 && length < 64 && this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes ? 64 : length;
-        const allocation = this.allocate(capacity, syscall, name);
+        const zeroCopyConst = this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && this.ledger.limits.maxBytes === undefined;
+        const capacity = zeroCopyConst ? 0 : (length > 0 && length < 64 && this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes ? 64 : length);
+        const allocation = zeroCopyConst ? DUMMY_POOL_ALLOCATION : this.allocate(capacity, syscall, name);
         try {
-          allocation.data.set(data);
+          if (!zeroCopyConst) allocation.data.set(data);
           this.ledger.reserve(nameBytes, 2, syscall, name);
           try {
             const now = fastWriteCachedNow;
             const fileMode = typeModes.file | mode;
-            const view = capacity === length ? allocation.data : undefined;
+            const view = zeroCopyConst ? data : (capacity === length ? allocation.data : undefined);
             let node: MemoryFileNode | undefined;
             if (sharedFileNodePoolLen > 0) {
               node = sharedFileNodePool[--sharedFileNodePoolLen]!;
@@ -2246,6 +2275,41 @@ export class MemoryFileSystem implements FileSystem {
       result[idx++] = { name, type: entry.type };
     }
     return result.sort((left, right) => left.name < right.name ? -1 : left.name > right.name ? 1 : 0);
+  }
+
+  tryMkdirFastSync(path: string, recursive: boolean, mode: number | undefined): boolean {
+    try {
+      this.validatePath(path, "mkdir");
+      const resolvedMode = this.mode(mode, 0o777, "mkdir", path);
+      if (recursive) {
+        const node = this.resolve(path, "mkdir", { createDirectories: resolvedMode }).node!;
+        return node.type === "directory";
+      }
+      const location = this.resolve(path.replace(/\/+$/, "") || "/", "mkdir", { allowMissing: true, followFinal: false });
+      if (location.node) return false;
+      this.permission(location.parent, 3, "mkdir", path);
+      this.addNode(location.parent, location.name, () => this.directory(resolvedMode), "mkdir", path);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  tryRmFastSync(path: string, recursive: boolean, force: boolean): boolean {
+    if (activeConditionalMutations.has(this.identityScope)) return false;
+    try {
+      let location: Location;
+      try {
+        location = this.entry(path, "rm", false);
+      } catch (error) {
+        if (force && error instanceof FsError && error.code === "ENOENT") return true;
+        return false;
+      }
+      this.removeLocation(location, path, "rm", recursive);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   mkdir(path: string, options: MkdirOptions = {}): Promise<void> {

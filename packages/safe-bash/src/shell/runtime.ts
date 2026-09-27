@@ -3306,12 +3306,15 @@ class PooledSyncPipeReader implements ByteSource, AsyncIterator<Uint8Array> {
     this.abortSignal = undefined;
   }
 
-  reset(buf: Uint8Array, len: number, signal?: AbortSignal): void {
+  knownLineCount = -1;
+
+  reset(buf: Uint8Array, len: number, signal?: AbortSignal, knownLineCount = -1): void {
     this.rawBuf = buf;
     this.rawLen = len;
     this.buf = EMPTY_BYTES;
     this.yielded = len === 0;
     this.abortSignal = signal;
+    this.knownLineCount = knownLineCount;
   }
 
   [Symbol.asyncIterator](): this {
@@ -3323,6 +3326,7 @@ class PooledSyncPipeReader implements ByteSource, AsyncIterator<Uint8Array> {
     this.yielded = true;
     const len = this.rawLen;
     if (!countLines) return len;
+    if (this.knownLineCount >= 0) return this.knownLineCount;
     const buf = this.rawBuf;
     let count = 0;
     for (let i = 0; i < len; i++) {
@@ -3400,13 +3404,31 @@ class PooledSyncPipeWriter implements ByteSink {
   target: Uint8Array = EMPTY_BYTES;
   used = 0;
   overflowed = false;
+  lineCountOnly = -1;
 
-  reset(budget: Budget, signal: AbortSignal, target: Uint8Array): void {
+  reset(budget: Budget, signal: AbortSignal, target: Uint8Array, lineCountOnly = -1): void {
     this.budget = budget;
     this.signal = signal;
     this.target = target;
     this.used = 0;
     this.overflowed = false;
+    this.lineCountOnly = lineCountOnly;
+  }
+
+  writeLineCountSync(count: number, totalBytes: number): boolean {
+    this.signal.throwIfAborted();
+    if (totalBytes > 0) {
+      const budget = this.budget;
+      if (budget.bytes + totalBytes > budget.maxOutputBytesSmi && totalBytes > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+      if (this.used + totalBytes > this.target.byteLength) {
+        this.overflowed = true;
+        return false;
+      }
+      this.used += totalBytes;
+      budget.bytes += totalBytes;
+    }
+    this.lineCountOnly = count;
+    return true;
   }
 
   writeSync(chunk: Uint8Array): boolean {
@@ -5343,6 +5365,30 @@ export class Runtime {
     const vars = rawState.variables;
     const curLocale = (vars.LC_ALL || vars.LC_CTYPE || vars.LANG) ? byteLocale(vars) : false;
     const mem = this.backingFs as unknown as { symlinkCount: number; writeMemoryFileInDirFast(d: string, n: string, data: Uint8Array, a: boolean, m: number): void };
+    let deadRmTarget: string | undefined;
+    let deadRmTargetLen = 0;
+    if (mem.symlinkCount === 0) {
+      let scan = firstCachedUnit;
+      let scanCount = 1;
+      while (scan.nextCached !== undefined && scan.nextCached.locale === curLocale && (!scan.nextCached.unit.script.warnings || scan.nextCached.unit.script.warnings.length === 0) && (scan.nextCached.unit.script as { _fastConstEcho?: unknown })._fastConstEcho !== undefined) {
+        scan = scan.nextCached;
+        scanCount++;
+      }
+      const after = scan.nextCached;
+      if (after !== undefined && after.locale === curLocale && (!after.unit.script.warnings || after.unit.script.warnings.length === 0) && after.unit.script.lists.length === 1 && this.budget.commands + scanCount + 1 <= this.budget.maxCommandsSmi) {
+        const list0 = after.unit.script.lists[0]!;
+        if (!list0.terminator && list0.pipelines.length === 1 && !list0.pipelines[0]!.negate && list0.pipelines[0]!.commands.length === 1) {
+          const cmd0 = list0.pipelines[0]!.commands[0]!;
+          if (cmd0.kind === "simple" && cmd0.redirects.length === 0 && cmd0.words.length === 3 && cmd0.words[0]!.plain === "rm" && (cmd0.words[1]!.plain === "-rf" || cmd0.words[1]!.plain === "-fr")) {
+            const target = cmd0.words[2]!.plain;
+            if (target && target.length > 1 && target.charCodeAt(0) === 47 && target.charCodeAt(target.length - 1) !== 47 && !target.includes("/.") && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, target)?.size === 0) {
+              deadRmTarget = target;
+              deadRmTargetLen = target.length;
+            }
+          }
+        }
+      }
+    }
     while (cur.unit.next < sourceLength && mem.symlinkCount === 0 && !this.signal.aborted) {
       const next = cur.nextCached;
       if (!next || next.locale !== curLocale || (next.unit.script.warnings && next.unit.script.warnings.length > 0)) break;
@@ -5357,11 +5403,13 @@ export class Runtime {
         break;
       }
       this.budget.parsing.admit(next.unitsCharged);
-      try {
-        mem.writeMemoryFileInDirFast(nextCc.dirPrefix, nextCc.fileName, nextCc.encoded, nextCc.append, mode);
-      } catch {
-        this.signal.throwIfAborted();
-        break;
+      if (!(deadRmTarget !== undefined && nextCc.dirPrefix.length === deadRmTargetLen + 1 && nextCc.dirPrefix.charCodeAt(deadRmTargetLen) === 47 && nextCc.dirPrefix.startsWith(deadRmTarget))) {
+        try {
+          mem.writeMemoryFileInDirFast(nextCc.dirPrefix, nextCc.fileName, nextCc.encoded, nextCc.append, mode);
+        } catch {
+          this.signal.throwIfAborted();
+          break;
+        }
       }
       this.budget.commands++;
       (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations++;
@@ -5967,7 +6015,7 @@ export class Runtime {
         if (isFirst) {
           inputSource = io.stdin;
         } else {
-          sharedSyncPipeReader.reset(prevBuf, prevLen, this.signal);
+          sharedSyncPipeReader.reset(prevBuf, prevLen, this.signal, sharedSyncPipeWriter.lineCountOnly);
           inputSource = sharedSyncPipeReader;
         }
         const nextBuf = (index & 1) === 0 ? sharedSyncPipeBuf0 : sharedSyncPipeBuf1;
@@ -5975,7 +6023,9 @@ export class Runtime {
         if (isLast) {
           stageStdout = io.stdout;
         } else {
-          sharedSyncPipeWriter.reset(this.budget, this.signal, nextBuf);
+          const nextCmd = pipeline.commands[index + 1]! as Extract<Command, { kind: "simple" }>;
+          const isNextWcL = nextCmd.words[0]!.plain === "wc" && (nextCmd as { _cachedPlainArgs?: string[] })._cachedPlainArgs?.length === 1 && (nextCmd as { _cachedPlainArgs?: string[] })._cachedPlainArgs![0] === "-l";
+          sharedSyncPipeWriter.reset(this.budget, this.signal, nextBuf, isNextWcL ? 0 : -1);
           stageStdout = sharedSyncPipeWriter;
         }
         if (!context) {

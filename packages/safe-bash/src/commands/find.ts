@@ -162,6 +162,44 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
             const match = getCachedFindPattern(context.args[2]!, context.args[1] === "-iname");
             const memDirEntries = match !== undefined ? tryGetMemoryDirectoryEntryNamesSync(backing, path) : undefined;
             if (match !== undefined && memDirEntries !== undefined && memDirEntries.size <= (maxDirectoryEntries ?? Infinity)) {
+              const stdoutPipe = context.stdout as { lineCountOnly?: number; writeLineCountSync?: (count: number, totalBytes: number) => boolean };
+              if (stdoutPipe.lineCountOnly === 0 && typeof stdoutPipe.writeLineCountSync === "function") {
+                const fastMap = memDirEntries as { _next?: number; _keys?: string[]; _vals?: ({ readonly type?: string } | undefined)[] };
+                if (typeof fastMap._next === "number" && fastMap._keys !== undefined && fastMap._vals !== undefined) {
+                  let parent = rootDisplay;
+                  while (parent.endsWith("/") && parent.length > 1) parent = parent.slice(0, -1);
+                  const pLen = parent === "/" ? 0 : escapeText(parent, "display").length;
+                  const rootName = basename(rootDisplay) || "/";
+                  let matchCount = 0;
+                  let totalBytes = 0;
+                  let allFiles = true;
+                  if (match(rootName)) {
+                    matchCount = 1;
+                    totalBytes = escapeText(rootDisplay, "display").length + 1;
+                  }
+                  const next = fastMap._next;
+                  const keys = fastMap._keys;
+                  const vals = fastMap._vals;
+                  for (let i = 0; i < next; i++) {
+                    const v = vals[i];
+                    if (v !== undefined) {
+                      if (v.type !== "file") { allFiles = false; break; }
+                      const k = keys[i]!;
+                      if (match(k)) {
+                        matchCount++;
+                        totalBytes += pLen + k.length + 2;
+                      }
+                    }
+                  }
+                  if (allFiles) {
+                    assertCommandRequirements(context, filesystemCommandRequirements.ls, FIND_DIR_REQUIREMENTS, backing.capabilities);
+                    if (fastBacking !== undefined) (context as unknown as { _chargeFastFsOp(): void })._chargeFastFsOp();
+                    if (stdoutPipe.writeLineCountSync(matchCount, totalBytes)) {
+                      return RESOLVED_EXIT_ZERO;
+                    }
+                  }
+                }
+              }
               const keyBase = findKeyScratchTop;
               const keyEnd = stageAndSortFindKeys(memDirEntries, keyBase, match);
               if (findKeyAllFiles) {

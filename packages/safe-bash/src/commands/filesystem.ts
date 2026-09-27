@@ -3,7 +3,13 @@ import {
   basename, dirname, FsError, isPathWithin, joinPath, normalizePath, relativePath,
   readBytes, writeBytes, type CommandContext, type CommandDefinition, type CommandHandler, type FileStat, type FileSystem,
 } from "../contracts/index.js";
-import { codeOf, define, diagnostic, eachOperand, lines, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
+import { assertCommandRequirements } from "../contracts/command-requirements.js";
+import { codeOf, define, diagnostic, eachOperand, lines, options, output, pathOf, requireOperands, RESOLVED_EXIT_ZERO, UsageError, value } from "./internal.js";
+
+const MKDIR_PARENTS_MODES = ["parents"] as const;
+const MKDIR_DIR_MODES = ["directory"] as const;
+const RM_RECURSIVE_MODES = ["recursive"] as const;
+const RM_FILE_MODES = ["file"] as const;
 import { escapeText, quoteShellOperand } from "../escaping.js";
 import { compareCopyIdentity, compareObservedEntries } from "./copy-identity.js";
 import { copyCheckedSource, admitCopySource, admitCopyDestination } from "./copy-source.js";
@@ -443,7 +449,70 @@ export const defaultRmExecutors = new WeakSet<CommandHandler>();
 export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinition[] {
   const readDirectory = createDirectoryReader(maxDirectoryEntries);
   const commands = [
-    define("mkdir", async context => {
+    define("mkdir", context => {
+      if (!context.argumentValues && !context.signal.aborted && context.args.length >= 1) {
+        const fastCtx = context as { _fastMemoryBackingFs?: FileSystem & { symlinkCount?: number; tryMkdirFastSync?: (path: string, recursive: boolean, mode: number | undefined) => boolean }; _fastUmask?: number; _chargeFastFsOp?: () => void; _hasInfiniteFsOpsLimit?: boolean };
+        const backingMem = fastCtx._fastMemoryBackingFs;
+        const umask = (fastCtx as { _state?: { umask?: number } })._state?.umask ?? 0o022;
+        if (
+          fastCtx._hasInfiniteFsOpsLimit === true &&
+          backingMem !== undefined &&
+          typeof backingMem.tryMkdirFastSync === "function" &&
+          backingMem.capabilitiesFor === undefined &&
+          backingMem.symlinkCount === 0 &&
+          !backingMem.capabilities.readOnly &&
+          backingMem.capabilities.implicitDirectories !== true &&
+          (umask & 0o300) === 0 &&
+          Object.getPrototypeOf(backingMem)?.constructor?.name === "MemoryFileSystem" &&
+          !Object.prototype.hasOwnProperty.call(backingMem, "mkdir") &&
+          !Object.prototype.hasOwnProperty.call(backingMem, "lstat") &&
+          !Object.prototype.hasOwnProperty.call(backingMem, "stat")
+        ) {
+          const rawArgs = context.args;
+          let recursive = false;
+          let ended = false;
+          let operandCount = 0;
+          let fastOk = true;
+          for (let i = 0; i < rawArgs.length; i++) {
+            const a = rawArgs[i]!;
+            if (!ended) {
+              if (a === "--") { ended = true; continue; }
+              if (a === "-p" || a === "--parents") { recursive = true; continue; }
+              if (a.length > 1 && a.charCodeAt(0) === 45) { fastOk = false; break; }
+            }
+            if (!a) { fastOk = false; break; }
+            const p = pathOf(context, a);
+            if (p === "/dev" || p.startsWith("/dev/") || p.length > 512) { fastOk = false; break; }
+            operandCount++;
+          }
+          if (fastOk && operandCount > 0 && (operandCount === 1 || recursive)) {
+            let admitted = false;
+            try {
+              assertCommandRequirements(context, filesystemCommandRequirements.mkdir, recursive ? MKDIR_PARENTS_MODES : MKDIR_DIR_MODES, backingMem.capabilities);
+              admitted = true;
+            } catch {
+              admitted = false;
+            }
+            if (admitted) {
+              const effectiveMode = backingMem.capabilities.permissions !== false ? 0o777 & ~umask : undefined;
+              let allCreated = true;
+              for (let i = 0; i < rawArgs.length; i++) {
+                const a = rawArgs[i]!;
+                if (a === "--" || a === "-p" || a === "--parents") continue;
+                if (!backingMem.tryMkdirFastSync(pathOf(context, a), recursive, effectiveMode)) {
+                  allCreated = false;
+                  break;
+                }
+              }
+              if (allCreated) {
+                for (let c = 0; c < operandCount; c++) fastCtx._chargeFastFsOp!();
+                return RESOLVED_EXIT_ZERO;
+              }
+            }
+          }
+        }
+      }
+      return (async () => {
       const parsed = options(context.args, "pm:v", MKDIR_LONG_OPTIONS);
       requireOperands(parsed.operands);
       const mode = value(parsed, "m");
@@ -544,6 +613,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       };
       await preflightOperands(context, parsed.operands, operand => createDirectory(operand, true));
       return eachOperand(context, parsed.operands, operand => createDirectory(operand, false));
+      })();
     }),
     define("touch", async context => {
       const parsed = options(context.args, "cafhmr:d:t:", TOUCH_LONG_OPTIONS);
@@ -781,7 +851,58 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         return { exitCode: declined ? 1 : result.exitCode };
       } finally { await answers.return(undefined); }
     }),
-    define("rm", async context => {
+    define("rm", context => {
+      if (!context.argumentValues && !context.signal.aborted && (context.args.length === 1 || context.args.length === 2)) {
+        const fastCtx = context as { _fastMemoryBackingFs?: FileSystem & { symlinkCount?: number; tryRmFastSync?: (path: string, recursive: boolean, force: boolean) => boolean }; _chargeFastFsOp?: () => void; _hasInfiniteFsOpsLimit?: boolean };
+        const backingMem = fastCtx._fastMemoryBackingFs;
+        if (
+          fastCtx._hasInfiniteFsOpsLimit === true &&
+          backingMem !== undefined &&
+          typeof backingMem.tryRmFastSync === "function" &&
+          backingMem.capabilitiesFor === undefined &&
+          backingMem.symlinkCount === 0 &&
+          !backingMem.capabilities.readOnly &&
+          backingMem.capabilities.remove !== false &&
+          backingMem.capabilities.recursiveRemove !== false &&
+          backingMem.capabilities.removeDirectory !== false &&
+          Object.getPrototypeOf(backingMem)?.constructor?.name === "MemoryFileSystem" &&
+          !Object.prototype.hasOwnProperty.call(backingMem, "lstat") &&
+          !Object.prototype.hasOwnProperty.call(backingMem, "stat") &&
+          !Object.prototype.hasOwnProperty.call(backingMem, "realpath") &&
+          !Object.prototype.hasOwnProperty.call(backingMem, "rm") &&
+          !Object.prototype.hasOwnProperty.call(backingMem, "rmdir")
+        ) {
+          let recursive = false;
+          let force = false;
+          let operand: string | undefined;
+          let fastOk = true;
+          for (let i = 0; i < context.args.length; i++) {
+            const a = context.args[i]!;
+            if (a === "-rf" || a === "-fr" || a === "-Rf" || a === "-fR") { recursive = true; force = true; }
+            else if (a === "-r" || a === "-R") { recursive = true; }
+            else if (a === "-f") { force = true; }
+            else if (a.length > 0 && a.charCodeAt(0) !== 45 && operand === undefined) { operand = a; }
+            else { fastOk = false; break; }
+          }
+          if (fastOk && operand !== undefined) {
+            const path = pathOf(context, operand);
+            if (path !== "/" && path !== "/dev" && !path.startsWith("/dev/") && path.length <= 512 && !operand.endsWith(".") && !operand.endsWith("/")) {
+              let admitted = false;
+              try {
+                assertCommandRequirements(context, filesystemCommandRequirements.rm, recursive ? RM_RECURSIVE_MODES : RM_FILE_MODES, backingMem.capabilities);
+                admitted = true;
+              } catch {
+                admitted = false;
+              }
+              if (admitted && backingMem.tryRmFastSync(path, recursive, force)) {
+                fastCtx._chargeFastFsOp!();
+                return RESOLVED_EXIT_ZERO;
+              }
+            }
+          }
+        }
+      }
+      return (async () => {
       let interactive: "never" | "once" | "always" = "never";
       let force = false;
       let ended = false;
@@ -941,6 +1062,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         };
         return await eachOperand(context, parsed.operands, async operand => { await remove(operand); });
       } finally { if (answers) await answers.return(undefined); }
+      })();
     }),
     define("rmdir", async context => {
       const parsed = options(context.args, "pv", RMDIR_LONG_OPTIONS);

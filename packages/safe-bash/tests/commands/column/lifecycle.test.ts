@@ -106,6 +106,7 @@ test("cleanup closes admission during a pending stat and observes late host reje
 test("sink writes are awaited, owned, and sequential", async () => {
   const entered = deferred(), release = deferred();
   const received: Uint8Array[] = [];
+  const expected = Buffer.from("a     b\nlong  z\n");
   let calls = 0, concurrent = 0;
   const pending = run(["-t"], "a b\nlong z\n", {}, { stdout: { async write(bytes) {
     concurrent++;
@@ -116,12 +117,18 @@ test("sink writes are awaited, owned, and sequential", async () => {
     concurrent--;
   } } });
   await entered.promise;
-  await new Promise<void>(resolve => setImmediate(resolve));
-  assert.equal(calls, 1);
-  assert.equal(Buffer.from(received[0]!).toString(), "a     b\nlong  z\n");
-  release.resolve();
+  const firstWrite = Uint8Array.from(received[0]!);
+  try {
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.equal(calls, 1);
+    // Rendering may emit a prefix; ByteSink does not promise row-sized writes.
+    assert.ok(firstWrite.length > 0 && firstWrite.length <= 8192);
+    assert.deepEqual(Buffer.from(firstWrite), expected.subarray(0, firstWrite.length));
+  } finally { release.resolve(); }
   assert.equal((await pending).exitCode, 0);
-  assert.equal(Buffer.concat(received).toString(), "a     b\nlong  z\n");
+  assert.deepEqual(received[0], firstWrite);
+  assert.deepEqual(Buffer.concat(received), expected);
+  for (const bytes of received) assert.ok(bytes.length > 0 && bytes.length <= 8192);
 });
 
 test("stdout errors stop further writes and stderr errors preserve identity", async () => {

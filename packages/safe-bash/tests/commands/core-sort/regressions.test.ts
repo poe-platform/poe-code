@@ -22,10 +22,21 @@ for (const args of [[], ["-f"]]) test(`sort ${args.join(" ")} batches completed 
   const records = Array.from({ length: 5000 }, (_, index) => `record-${5000 - index}-${"x".repeat(40)}`);
   const expected = Buffer.from(records.sort().join("\n") + "\n");
   const writes: Uint8Array[] = [];
-  const result = await sort.execute({ ...await context(records.reverse().join("\n") + "\n", { async write(bytes) { writes.push(bytes); await Promise.resolve(); } }), args });
+  const snapshots: Uint8Array[] = [];
+  let activeWrites = 0;
+  const result = await sort.execute({ ...await context(records.reverse().join("\n") + "\n", { async write(bytes) {
+    assert.equal(++activeWrites, 1);
+    writes.push(bytes);
+    snapshots.push(Uint8Array.from(bytes));
+    await Promise.resolve();
+    activeWrites--;
+  } }), args });
   assert.equal(result.exitCode, 0); assert.deepEqual(Buffer.concat(writes), expected);
-  assert.equal(writes.length, Math.ceil(expected.length / 65536));
-  for (const bytes of writes) assert.ok(bytes.length <= 65536);
+  assert.deepEqual(writes, snapshots);
+  // Batching must combine records, but downstream buffering may split a batch.
+  assert.ok(writes.length > 0 && writes.length < records.length);
+  assert.ok(writes.some(bytes => bytes.length > Math.max(...records.map(record => Buffer.byteLength(record) + 1))));
+  for (const bytes of writes) assert.ok(bytes.length > 0 && bytes.length <= 65536);
 });
 
 test("sort awaits backpressure and aborts a blocked output without later writes", async () => {

@@ -5,13 +5,14 @@ import { copyFile, mkdir, readFile, readdir, rm, stat, writeFile, lstat, realpat
 import { versionGateSnippet } from "./node-version-gate.mjs";
 import { resolveGithubWorkflowAssetCopies } from "./bundle-assets.mjs";
 import { assertSafeBundleOutputs, assertSafeOutputDirectory } from "./guard-package-dist.mjs";
-import { resolveBundleGraph, resolveConsumerGraph } from "./bundle-graph.mjs";
+import { resolveBundleGraph, resolveConsumerGraph, resolveSharedRuntimeBuilds } from "./bundle-graph.mjs";
 import { publishBundleOutputs } from "./publish-bundle.mjs";
 import { collectPackageFiles, findBundleIssues, canonicalFs, canonicalFsRoutes, collectCanonicalDeclarations, collectCanonicalNativeAssets } from "../packages/package-lint/dist/bundle-policy.js";
 import { rewriteWorkspaceDts } from "./rewrite-workspace-dts.mjs";
 import { resolveCanonicalFsBuilds } from "./bundle-fs.mjs";
 import { readBuiltNativeAssets, copyNativeAssets } from "../packages/safe-fs/scripts/native-assets.mjs";
 import { resolveBrowserShellBuild, resolveBrowserYqBuild } from "./bundle-safe-bash.mjs";
+import { resolveSpreadsheetSdkBuilds } from "./bundle-spreadsheets.mjs";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(currentDir, "..");
@@ -52,14 +53,8 @@ const consumerBuildOptions = {
   plugins: sharedRuntimePlugins
 };
 const consumerBuilds = [];
-for (const { directory, pkg } of sharedWorkspaces) {
-  const graph = resolveConsumerGraph(workspaceGraph, canonicalFs);
-  const entryPoints = Object.fromEntries(Object.values(pkg.exports).map(target => {
-    const entry = target.import.slice("./dist/".length, -3);
-    return [entry, path.join(directory, "src", entry + ".ts")];
-  }));
-  consumerBuilds.push(await esbuild.build({ ...graph, entryPoints, outdir: path.join(directory, "dist"), bundle: true, splitting: true,
-    platform: "neutral", format: "esm", target: "es2022", sourcemap: true, metafile: true }));
+for (const options of resolveSharedRuntimeBuilds(workspaceGraph, canonicalFs, sharedWorkspaces)) {
+  consumerBuilds.push(await esbuild.build(options));
 }
 
 
@@ -264,19 +259,8 @@ consumerBuilds.push(
   })
 );
 
-// Public spreadsheet SDKs inline their engines while sharing invocation contracts.
-for (const [workspace, entries] of [["safe-bash-command-csvkit", ["index", "codecs/utf8", "codecs/python"]], ["safe-bash-command-ssconvert", ["index"]]]) for (const entryPoint of entries) {
-  consumerBuilds.push(await esbuild.build({
-    entryPoints: [path.join(rootDir, "packages", workspace, "src", entryPoint + ".ts")],
-    bundle: true,
-    platform: "node",
-    target: "node22",
-    format: "esm",
-    outfile: path.join(rootDir, "packages", workspace, "dist", entryPoint + ".js"),
-    ...consumerBuildOptions,
-    external: [...Object.keys({ ...packageJson.dependencies, ...packageJson.optionalDependencies }), ...canonicalFs.routes.map(route => route.specifier)],
-    sourcemap: true,
-  }));
+for (const options of resolveSpreadsheetSdkBuilds(rootDir, consumerBuildOptions, packageJson)) {
+  consumerBuilds.push(await esbuild.build(options));
 }
 
 // The superintendent MCP entry is shipped as a root bin, so inline its

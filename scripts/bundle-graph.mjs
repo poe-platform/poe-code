@@ -2,6 +2,19 @@ import path from "node:path";
 import { readFile, writeFile } from "node:fs/promises";
 import { rewriteModuleSpecifiers } from "./module-specifiers.mjs";
 
+export function resolveSharedRuntimeBuilds(workspaceGraph, canonical, sharedWorkspaces) {
+  const graph = resolveConsumerGraph(workspaceGraph, canonical);
+  return sharedWorkspaces.map(({ directory, pkg }) => ({
+    ...graph,
+    entryPoints: Object.fromEntries(Object.values(pkg.exports).map(target => {
+      const entry = target.import.slice("./dist/".length, -3);
+      return [entry, path.join(directory, "src", entry + ".ts")];
+    })),
+    outdir: path.join(directory, "dist"), bundle: true, splitting: true,
+    platform: "neutral", format: "esm", target: "es2022", sourcemap: true, metafile: true,
+  }));
+}
+
 export function resolveConsumerGraph(graph, canonical, sharedWorkspaces = []) {
   const targets = new Map();
   for (const { directory, pkg } of sharedWorkspaces) {

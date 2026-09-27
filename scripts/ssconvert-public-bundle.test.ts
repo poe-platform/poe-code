@@ -6,7 +6,8 @@ import { runInNewContext } from "node:vm";
 import glob from "fast-glob";
 import { beforeAll, expect, it } from "vitest";
 import { canonicalFs, collectPackageFiles } from "../packages/package-lint/src/bundle-policy.js";
-import { resolveBundleGraph, resolveConsumerGraph } from "./bundle-graph.mjs";
+import { resolveBundleGraph, resolveConsumerGraph, resolveSharedRuntimeBuilds } from "./bundle-graph.mjs";
+import { resolveSpreadsheetSdkBuilds } from "./bundle-spreadsheets.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const manifest = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
@@ -20,20 +21,36 @@ beforeAll(async () => {
     }));
   const shared = packages.filter(({ pkg }) => pkg.poeCode?.bundle?.sharedRuntime === true)
     .map(({ dir, pkg }) => ({ directory: resolve(root, "packages", dir), pkg }));
-  const graph = resolveConsumerGraph(await resolveBundleGraph(root, packages), canonicalFs, shared);
-  // Workspace preparation rebuilds dist for local imports; publication uses the consumer graph.
+  const workspaceGraph = await resolveBundleGraph(root, packages);
+  const graph = resolveConsumerGraph(workspaceGraph, canonicalFs, shared);
+  const entryPoint = resolve(root, manifest.exports["./ssconvert"].import);
+  const options = resolveSpreadsheetSdkBuilds(root, { ...graph, absWorkingDir: root }, manifest)
+    .find(options => options.outfile === entryPoint)!;
+  expect(options).toBeDefined();
+  const artifacts = new Map<string, string>();
+  for (const recipe of [...resolveSharedRuntimeBuilds(workspaceGraph, canonicalFs, shared), options]) {
+    const published = await build({ ...recipe, write: false });
+    for (const output of published.outputFiles!) artifacts.set(output.path, output.text);
+  }
   result = await build({
-    ...graph,
-    absWorkingDir: root,
-    entryPoints: [resolve(root, "packages/safe-bash-command-ssconvert/src/index.ts")],
-    outfile: resolve(root, "packages/safe-bash-command-ssconvert/dist/index.js"),
+    entryPoints: [entryPoint],
+    outfile: entryPoint,
     bundle: true,
     external: [...Object.keys({ ...manifest.dependencies, ...manifest.optionalDependencies }), ...canonicalFs.routes.map(route => route.specifier)],
     platform: "node",
     target: "node22",
     format: "esm",
     write: false,
-    metafile: true
+    metafile: true,
+    plugins: [{ name: "published-spreadsheet-sdk", setup(builder) {
+      builder.onResolve({ filter: /^\./ }, args => {
+        const target = resolve(args.resolveDir, args.path);
+        return artifacts.has(target) ? { path: target } : undefined;
+      });
+      builder.onLoad({ filter: /\.js$/ }, args => artifacts.has(args.path)
+        ? { contents: artifacts.get(args.path), loader: "js", resolveDir: dirname(args.path) }
+        : undefined);
+    } }],
   });
   packed = await collectPackageFiles(root, manifest.files, {
     readdir: directory => readdir(directory, { withFileTypes: true }), stat

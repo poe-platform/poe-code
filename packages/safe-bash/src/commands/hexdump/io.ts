@@ -176,6 +176,16 @@ export class Reader {
     });
   }
   hasBufferedBytes(): boolean { return this.offset < this.chunk.length; }
+  canReadBlockSync(size: number): boolean {
+    const { budget } = this.lifecycle;
+    return this.offset + size <= this.chunk.length && budget.canChargeWithoutCheckpoint(size);
+  }
+  readBlockSync(target: Uint8Array, size: number): void {
+    const { budget } = this.lifecycle;
+    budget.charge(size);
+    for (let i = 0; i < size; i++) target[i] = this.chunk[this.offset + i]!;
+    this.offset += size;
+  }
   get(): number | Promise<number> {
     const { budget } = this.lifecycle;
     budget.charge();

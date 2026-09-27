@@ -87,6 +87,11 @@ export class Budget {
     this.check(this.work + amount, this.limits.maxWork, "work");
     this.work += amount;
   }
+  canChargeWithoutCheckpoint(amount: number): boolean {
+    if (this.aborted || (this.pollSignal && this.signal.aborted) || this.admission.closed) return false;
+    if (this.work + amount > this.limits.maxWork) return false;
+    return (this.work + amount) - this.checkpoint < 4096;
+  }
   checkpointWork(): void | Promise<void> {
     this.assertOpen();
     if (this.work - this.checkpoint < 4096) return;

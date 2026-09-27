@@ -98,6 +98,14 @@ async function dump(options: Parsed, lifecycle: Lifecycle, name: string): Promis
     }
     if (opened) {
       while (count > 0) {
+        if (skip === 0 && used === 0 && count >= 16 && reader.canReadBlockSync(16)) {
+          reader.readBlockSync(block, 16);
+          used = 16;
+          count -= 16;
+          const p = emit();
+          if (p) await p;
+          continue;
+        }
         let byte: number;
         try { const b = reader.get(); byte = typeof b === "number" ? b : await b; }
         catch (error) {

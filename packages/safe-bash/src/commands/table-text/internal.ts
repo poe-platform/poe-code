@@ -91,7 +91,7 @@ export class Budget {
     if (this.steps % 1024 !== 0) return;
     const count = ++this.stepYields;
     const now = monotonicNow();
-    if (count === 1 || (count & 15) === 0 || now - this.lastStepYield >= 16 || hasYieldCheckpoint(this.context.signal)) {
+    if (count === 1 || (count & 63) === 0 || now - this.lastStepYield >= 16 || hasYieldCheckpoint(this.context.signal)) {
       this.lastStepYield = now;
       return yieldTurn(this.context.signal).then(() => {
         this.context.signal.throwIfAborted();

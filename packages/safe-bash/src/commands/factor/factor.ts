@@ -50,13 +50,49 @@ async function prime64(value: bigint, budget: Budget): Promise<boolean> {
   return true;
 }
 
+function prime32Sync(n: number): boolean {
+  if (n < 2) return false;
+  if (n === 2 || n === 3 || n === 5 || n === 7) return true;
+  if ((n & 1) === 0 || n % 3 === 0) return false;
+  const bn = BigInt(n);
+  let odd = bn - 1n;
+  let powers = 0;
+  while ((odd & 1n) === 0n) { odd >>= 1n; powers++; }
+  for (const witness of [2n, 7n, 61n]) {
+    if (bn <= witness) break;
+    let base = witness % bn;
+    if (base === 0n) continue;
+    let exp = odd;
+    let res = 1n;
+    while (exp > 0n) {
+      if ((exp & 1n) === 1n) res = (res * base) % bn;
+      base = (base * base) % bn;
+      exp >>= 1n;
+    }
+    if (res === 1n || res === bn - 1n) continue;
+    let passed = false;
+    for (let r = 1; r < powers; r++) {
+      res = (res * res) % bn;
+      if (res === bn - 1n) { passed = true; break; }
+    }
+    if (!passed) return false;
+  }
+  return true;
+}
+
 export async function factorRecord(value: bigint, budget: Budget, exponents: boolean): Promise<string> {
   let remaining = value;
   const factors: bigint[] = [];
   let retained = 512, checkPrime = true;
+  const unlimitedWork = budget.limits.maxWork === Infinity;
   budget.retain(retained);
   try {
     for (let divisor = 2n; divisor * divisor <= remaining; divisor = divisor === 2n ? 3n : divisor + 2n) {
+      if (checkPrime && unlimitedWork && remaining > 256n && remaining <= 4_294_967_295n && prime32Sync(Number(remaining))) {
+        budget.charge(1024);
+        { const cp = budget.checkpointWork(); if (cp) await cp; }
+        break;
+      }
       if (checkPrime && remaining > 4_294_967_295n && await prime64(remaining, budget)) break;
       checkPrime = false;
       for (;;) {

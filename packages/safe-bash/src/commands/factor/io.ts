@@ -145,7 +145,7 @@ export class RecordWriter {
   constructor(readonly lifecycle: Lifecycle) {
     lifecycle.budget.retain(1024);
     this.retained = true;
-    this.buffer = new Uint8Array(16384);
+    this.buffer = new Uint8Array(1024);
     lifecycle.cleanup(async () => {
       if (this.retained) { lifecycle.budget.retain(-1024); this.retained = false; }
       this.buffer = new Uint8Array();
@@ -165,8 +165,8 @@ export class RecordWriter {
       return;
     }
     for (let offset = 0; offset < record.length; offset++) this.buffer[this.used++] = record.charCodeAt(offset);
-    if (this.used >= 15872) {
-      let end = 15872;
+    if (this.used >= 512) {
+      let end = 512;
       while (this.buffer[end - 1] !== 10) end--;
       await this.lifecycle.write(this.buffer.subarray(0, end));
       this.buffer.copyWithin(0, end, this.used);

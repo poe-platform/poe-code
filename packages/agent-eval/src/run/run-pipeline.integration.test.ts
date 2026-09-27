@@ -54,6 +54,32 @@ vi.mock("./clone.js", () => ({
   })
 }));
 
+vi.mock("node:fs/promises", async (importOriginal) => {
+  const native = await importOriginal<typeof import("node:fs/promises")>();
+  const path = await import("node:path");
+  const { createFsFromVolume, Volume } = await import("memfs");
+  const files = createFsFromVolume(new Volume()).promises;
+  const seed = async (directory: string): Promise<void> => {
+    await files.mkdir(directory, { recursive: true });
+    for (const entry of await native.readdir(directory, { withFileTypes: true })) {
+      const filename = path.join(directory, entry.name);
+      if (entry.isDirectory()) await seed(filename);
+      else await files.writeFile(filename, await native.readFile(filename));
+    }
+  };
+  await seed(new URL("../__fixtures__/source/example-pipeline", import.meta.url).pathname);
+  await seed(new URL("../__fixtures__/clone-target", import.meta.url).pathname);
+  await files.mkdir((await import("node:os")).tmpdir(), { recursive: true });
+  return { ...files, default: files };
+});
+
+vi.mock("./scorer.js", () => ({
+  runScorer: vi.fn(async () => ({
+    passed: 1, total: 1,
+    cases: [{ name: "fixture scorer", passed: true, durationMs: 0 }],
+  })),
+}));
+
 const { runEval } = await import("./run.js");
 
 registerRunIntegrationCleanup();

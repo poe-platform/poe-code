@@ -321,6 +321,23 @@ LibreOffice shifts modern range endpoint flags by three bits, whereas libwps
 shifts by four. Independent application qualification remains open; source
 agreement on one record profile does not settle the others.
 
+The Calc reference-model audit is recorded under `reference.sheetReferenceSemantics`.
+Its parser and writer preserve ODF sheet `$` markers; external sheet references
+are absolute. Moves resolve the old target and rebind at the new formula position.
+The candidate's cross-sheet origin move now qualifies implicit local references,
+including both range endpoints, while retaining original display names and applying
+simultaneous renames. All seven baseline failures and 109 neighboring checks pass.
+
+For the remaining sheet-relative work, retain per-endpoint relativity through cells,
+names and shared/array groups before changing Lotus decoding. ODF import currently
+canonicalizes to Gnumeric strings, so an AST-only flag would be lost immediately.
+Then wire snapshots, rewriting, recalculation and codec readback to that storage;
+preserve ODF markers and define explicit loss handling for grammars without them.
+Qualify origin moves separately from moved cell ranges, tab reordering and copying:
+Calc's optional `AdjustCrossSheetRefs` clone mode preserves nonzero cross-sheet
+targets even when the underlying token is relative. Native operation qualification
+and the Lotus endpoint-bit disagreement remain open.
+
 LibreOffice's separate WK3/WK4 reader also exposed a missing BOF version:
 `0x1000`, subtype 4, with a 26-byte header. The importer now detects that WK3
 profile and decodes its cell/name references and two-byte numeric formula

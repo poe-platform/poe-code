@@ -27,7 +27,9 @@ export function rewriteReferences(document: FormulaDocument, edit: ReferenceRewr
   const target = edit.position ?? document.position;
   const endpoint = (ref: ReferenceEndpoint): ReferenceEndpoint => {
     let next: ReferenceEndpoint = ref;
-    if (ref.workbook === undefined && ref.sheet && edit.sheets?.has(ref.sheet)) next = { ...ref, sheet: edit.sheets.get(ref.sheet)! };
+    if (edit.translation === "move" && target.sheet !== document.position.sheet && ref.workbook === undefined && ref.sheet === undefined)
+      next = { ...ref, sheet: document.sheetNames?.[document.position.sheet] ?? document.position.sheet };
+    if (next.workbook === undefined && next.sheet && edit.sheets?.has(next.sheet)) next = { ...next, sheet: edit.sheets.get(next.sheet)! };
     if (edit.translation === "move") for (const kind of ["row", "column"] as const) {
       const axis = next[kind];
       if (axis?.relative) next = { ...next, [kind]: { ...axis, value: axis.value + document.position[kind] - target[kind] } };

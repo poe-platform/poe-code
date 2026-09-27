@@ -1255,6 +1255,53 @@
       "priorHighQ": "The compiled engine before this change matched all 120 immutable high-q cases exactly. Historical 47-mismatch reports remain historical evidence; they are not current failures.",
       "accuracy": "A separate mpmath 1.4.1 comparison at 100 decimal digits covered the sixteen initial large-x cases. Source-component results differ from correctly rounded high-precision results in ten cases, by relative errors no larger than 3.572e-16. This change qualifies source parity, not universal correct rounding.",
       "remaining": "Arguments above 2^52, broader phase/order domains, other runtime profiles, full application qualification and containing publication remain open. No family is closed."
+    },
+    "sheetReferenceSemantics": {
+      "status": "source audit and cross-sheet formula-origin move repair implemented; sheet-relative persistence remains open",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/core/tool/refdata.cxx",
+          "sha256": "b300819ef5139f758144675e36219f2d465478ee24692bccddcf851ed33c02f6",
+          "lines": "193-239"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/core/tool/address.cxx",
+          "sha256": "8cb729f76ca00c2cb38c356aeeef2f8107aa4613d2185056cc65b185ba80e09d",
+          "lines": "1248-1257,1778-1783"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/core/tool/compiler.cxx",
+          "sha256": "84dfe1e52b8b632d8fd9d687d64857c779283bb3de660063664b916c7d458e83",
+          "lines": "891-917,1133-1181,3497-3521,3582-3601"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/core/tool/token.cxx",
+          "sha256": "4b95423a6a2bd1db86eacd1ebce66aa54c205c9009d775b707b906c858bb05d1",
+          "lines": "2611-2658,3414-3472,4478-4523,4564-4695"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/core/data/formulacell.cxx",
+          "sha256": "52a88db58871186d1486e2bb879e4abac7a292a6119693b7488bedddfec7e7ae",
+          "lines": "863-880"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/core/data/documen2.cxx",
+          "sha256": "89bd1d72f22279cd4e229615a560cc592afc18f5da46183d7e9ff0b7cffe18ed",
+          "lines": "839-869,968-978"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/inc/global.hxx",
+          "sha256": "e590e3314be2d0eaee00c282c849a93f1240297f8f98a634a53518a222f1e11b",
+          "lines": "271-289"
+        }
+      ],
+      "storage": "Calc ScSingleRefData stores sheet relativity independently of row/column and 3D display. SetAddress subtracts the formula sheet index only for a relative sheet; toAbs adds the evaluation sheet index. Each range endpoint has its own flags.",
+      "odf": "Calc preserves the leading sheet $ through TAB_ABS, SetTabRel and MakeOneRefStrImpl, including quoted names. Its address parser forces external sheets absolute. An omitted second-endpoint sheet inherits an absolute first-sheet flag; an explicitly named second endpoint has its own flag. Gnumeric-compatible marker stripping is a candidate limitation, not ODF semantics.",
+      "relocation": "AdjustReferenceOnMovedOrigin resolves at the old position and rebinds at the new one. AdjustReferenceOnMove additionally tracks references into the moved cell range. AdjustReferenceOnMovedTab remaps actual tabs before rebinding offsets. These are distinct operations; moving a sheet must not retarget relative references by keeping an old numeric offset.",
+      "copyCaveat": "Ordinary token offsets and AdjustReferenceOnCopy support relative translation, but the formula-cell clone path may request AdjustCrossSheetRefs. AdjustRelativeTabRefs then preserves nonzero cross-sheet targets while leaving same-sheet offset zero unchanged. Do not infer every UI copy operation from the token flags alone. The concrete caller ScDocument::OverwriteContent requests AdjustCrossSheetRefs; CopyTab instead performs a separate updateReferencesAfterTabInsertion pass. The clone flag declaration explicitly distinguishes these modes.",
+      "candidate": "ReferenceEndpoint has no sheet relativity. ODF import canonicalizes cells/names to Gnumeric strings and export reparses those strings. FormulaSemantics currently carries only arrayStringLiterals. A parser-only flag would therefore disappear before export. Names, shared/array groups, rewrites, recalculation, snapshots and XML/XLSX annotations all need explicit persistence review.",
+      "moveRepair": "rewriteReferences(move) now qualifies an implicit local endpoint with its original sheet before adjusting row/column offsets. Uses the captured display-name map and simultaneous renames. Seven baseline failures cover Gnumeric/Excel/ODF/R1C1, mixed endpoints, quoted display names and external controls; all 116 focused checks, all 438 package files / 24,391 tests, package lint/types and the selected build pass. Compiled public SDK recalculation preserves 42 after a move and reads destination 99 after a copy; readback compares public kind/value fields because workbook snapshots use null-prototype records.",
+      "remaining": "Implement durable per-endpoint sheet relativity through shared formula storage and applicable codecs, with explicit behavior when an export grammar cannot represent it. Qualify native copy modes, named-expression anchors, external ranges, deleted sheets and Lotus range-bit disagreement. Source-derived behavior and candidate tests are not native-application qualification."
     }
   },
   "cases": [

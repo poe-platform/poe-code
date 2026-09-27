@@ -413,3 +413,37 @@ test("wave 48: compound loop control and associative element operations", async 
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, "4|a:foo=bar,b:baz=qux,|one\n");
 });
+
+test("wave 49: propagates multi-level continue/break across sync/async loops and fast-paths printf -v array subscripts and >/dev/null", async context => {
+  const { shell } = setup();
+  context.after(() => shell.dispose());
+  for (const command of basicCommands()) shell.commands.register(command, { replace: true });
+  const result = await shell.exec([
+    "declare -A map",
+    "declare -a arr",
+    "work() {",
+    "  local sum=0",
+    "  for a in 1 2 3; do",
+    "    for b in 1 2 3; do",
+    "      if (( b == 2 )); then continue; fi",
+    "      if (( a == 2 && b == 3 )); then continue 2; fi",
+    "      if (( a == 3 && b == 1 )); then break 2; fi",
+    "      (( sum += a * 10 + b ))",
+    "    done",
+    "    (( sum += 100 ))",
+    "  done",
+    "  local i=0",
+    "  while (( i < 3 )); do",
+    "    printf -v \"arr[i]\" \"v%02d\" \"$i\"",
+    "    printf -v \"map[k_$i]\" \"m%02d\" \"$i\"",
+    "    (( i += 1 ))",
+    "  done",
+    "  printf \"%d|%s|%s\\n\" \"$sum\" \"${arr[1]}\" \"${map[k_2]}\"",
+    "}",
+    "work >/dev/null",
+    "out=$(work)",
+    "printf \"%s\\n\" \"$out\""
+  ].join("\n"));
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "143|v01|m02\n");
+});

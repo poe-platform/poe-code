@@ -110,7 +110,8 @@ export function publishPipelineStatus(
           return;
         }
       }
-    } else if (target === "absent") {
+    } else if (target === "absent" || (target === "indexed" && monitor.store && !monitor.store.get(name))) {
+      monitor.lazyPipeStatus = undefined;
       const store = monitor.activate(true);
       const owner = monitor.internalOwner();
       if (!store.watches.has(name) && !owner.ledger.checkpoint(signal, 0)) {

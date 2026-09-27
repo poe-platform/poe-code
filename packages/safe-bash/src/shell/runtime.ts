@@ -6113,6 +6113,23 @@ export class Runtime {
             const pipeline = list.pipelines[index]!;
             const ignored = ignoreErrexit || index < list.pipelines.length - 1 || pipeline.negate;
             const syncStatus = (pipeline as { _skipTrySync?: boolean })._skipTrySync ? undefined : this.trySyncPipeline(pipeline, state, io, ignored);
+            if (this._syncPendingReturnStatus !== undefined) {
+              const retStatus = this._syncPendingReturnStatus;
+              this._syncPendingReturnStatus = undefined;
+              throw completedExit(retStatus, "return", 1, retStatus);
+            }
+            if (this._syncPendingBreak > 0) {
+              const brk = this._syncPendingBreak;
+              this._syncPendingBreak = 0;
+              const st = syncStatus ?? state.status;
+              throw completedExit(st, "break", brk, st);
+            }
+            if (this._syncPendingContinue > 0) {
+              const cont = this._syncPendingContinue;
+              this._syncPendingContinue = 0;
+              const st = syncStatus ?? state.status;
+              throw completedExit(st, "continue", cont, st);
+            }
             if (syncStatus !== undefined) {
               if (script.lists.length === 1 && list.pipelines.length === 1 && !pipeline.negate && pipeline.commands.length === 1) {
                 const cc = (pipeline.commands[0]! as { _cachedConstEchoRedirect?: { arg0: string; targetPath: string; dirPrefix: string | undefined; fileName: string | undefined; encoded: Uint8Array; append: boolean } | null })._cachedConstEchoRedirect;
@@ -6920,9 +6937,11 @@ export class Runtime {
       const w0 = command.words[0]!;
       const w0Plain = w0.plain;
       if (command.redirects.length === 1) {
-        const rOp = command.redirects[0]!.operator;
+        const r0 = command.redirects[0]!;
+        const rOp = r0.operator;
+        const isDevNull = (r0.descriptor === undefined || r0.descriptor === 1) && !r0.move && !r0.document && (rOp === ">" || rOp === ">>" || rOp === ">|") && r0.target.plain === "/dev/null";
         const isReadCmd = w0Plain === "read" || (command.words[1]?.plain === "read" && w0.parts[0]?.kind === "text" && w0.parts[0].value.startsWith("IFS="));
-        if (w0Plain !== "echo" && w0Plain !== "printf" && !(isReadCmd && rOp === "<<<")) {
+        if (!isDevNull && w0Plain !== "echo" && w0Plain !== "printf" && !(isReadCmd && rOp === "<<<")) {
           (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
           return undefined;
         }
@@ -6936,9 +6955,16 @@ export class Runtime {
     }
     return this.executeSyncPipelineBody(pipeline, command, state, io, ignored);
   }
-  private canSyncCommandCompound(command: Command, rawState: State, depth = 0, loopDepth = 0): boolean {
+  private canSyncCommandCompound(command: Command, rawState: State, depth = 0, loopDepth = 0): boolean { const _res = this._canSyncCommandCompoundInner(command, rawState, depth, loopDepth); if (!_res) if (command.kind === "arithmetic") console.log("REJECT ARITH:", command.expression.source, "err:", Boolean(command.expression.error), "smi:", isSafeSmiProgram(command.expression), "nofault:", this.canSyncArithmeticWithoutFault(command.expression.tree, rawState)); return _res; }
+  private _canSyncCommandCompoundInner(command: Command, rawState: State, depth = 0, loopDepth = 0): boolean {
     if (depth > 6) return false;
     if (command.redirects.length !== 0) {
+      if (command.redirects.length === 1 && this.budget.limits.maxRedirects >= 1 && this.budget.limits.maxFileSystemOperations >= 1000 && this.canFastMemoryRedirect) {
+        const r0 = command.redirects[0]!;
+        if ((r0.descriptor === undefined || r0.descriptor === 1) && !r0.move && !r0.document && (r0.operator === ">" || r0.operator === ">>" || r0.operator === ">|") && r0.target.plain === "/dev/null") {
+          return this.canSyncCommandCompound({ ...command, redirects: [] }, rawState, depth, loopDepth);
+        }
+      }
       if ( command.kind === "simple" && command.redirects.length === 1 && command.redirects[0]!.operator === "<<<" && !command.redirects[0]!.move && !command.redirects[0]!.document && (command.redirects[0]!.descriptor === undefined || command.redirects[0]!.descriptor === 0) && command.words.length >= 2 && this.isPureSyncValueWord(command.redirects[0]!.target, rawState) && !command.redirects[0]!.target.parts.some(part => rawState.braceexpand !== false && part.kind === "text" && !part.quoted && part.value.includes("{")) && !command.redirects[0]!.target.parts.some(part => part.kind === "substitution")) {
         const w0 = command.words[0]!;
         const w0Plain = w0.plain;
@@ -7035,7 +7061,8 @@ export class Runtime {
       if (
         command.words.length >= 3 &&
         command.words.length <= 16 &&
-        (w0Plain === "local" || w0Plain === "declare" || w0Plain === "typeset") &&
+        (w0Plain === "declare" || w0Plain === "typeset") &&
+        rawState.locals.length === 0 &&
         (command.words[1]?.plain === "-a" || command.words[1]?.plain === "-A") &&
         !hasShellFunction(rawState, w0Plain) &&
         !rawState.extensions?.builtins.has(w0Plain)
@@ -7074,10 +7101,16 @@ export class Runtime {
         if (w1Plain === undefined || !w1Plain.startsWith("-") || w1Plain === "-n" || w1Plain === "-e" || w1Plain === "-ne" || w1Plain === "-en") if (command.words.slice(1).every(isNoBraceSyncWord)) return true;
       }
       if ( w0Plain === "printf" && !hasShellFunction(rawState, "printf") && !rawState.extensions?.builtins.has("printf")) {
-        const isPrintfV = command.words.length >= 4 && command.words[1]?.plain === "-v" && command.words[2]?.plain !== undefined && /^[a-zA-Z_][a-zA-Z_0-9]*$/.test(command.words[2]!.plain!) && command.words[2]!.plain !== "OPTIND" && command.words[2]!.plain !== "PIPESTATUS";
+        const w2 = command.words[2];
+        const w2Plain = w2?.plain ?? (w2?.parts.length === 1 && w2.parts[0]!.kind === "text" ? w2.parts[0]!.value : undefined);
+        const isPrintfV = command.words.length >= 4 && command.words[1]?.plain === "-v" && w2 !== undefined && (
+          (w2Plain !== undefined && /^[a-zA-Z_][a-zA-Z_0-9]*(?:\[[^\]$\x60"']+\])?$/.test(w2Plain) && !w2Plain.startsWith("OPTIND") && !w2Plain.startsWith("PIPESTATUS")) ||
+          (w2.parts[0]?.kind === "text" && /^[a-zA-Z_][a-zA-Z_0-9]*\[/.test(w2.parts[0].value) && w2.parts[w2.parts.length - 1]?.kind === "text" && w2.parts[w2.parts.length - 1]!.value.endsWith("]") && isNoBraceSyncWord(w2))
+        );
         const fmtIdx = isPrintfV ? 3 : 1;
-        const fmtPlain = command.words[fmtIdx]?.plain;
-        if ( fmtPlain !== undefined && !fmtPlain.startsWith("-") && /^(?:[^%]|%%|%[-0]*\d*[sdxXou])*$/.test(fmtPlain) && command.words.slice(fmtIdx + 1).every(isNoBraceSyncWord)) {
+        const fmtWord = command.words[fmtIdx];
+        const fmtPlain = fmtWord?.plain ?? (fmtWord?.parts.length === 1 && fmtWord.parts[0]!.kind === "text" ? fmtWord.parts[0]!.value : undefined);
+        if ( fmtPlain !== undefined && !fmtPlain.startsWith("-") && /^(?:[^%]|%%|%[-0]*\d*(?:\.\d+)?[sdxXouc])*$/.test(fmtPlain) && command.words.slice(fmtIdx + 1).every(isNoBraceSyncWord)) {
           return true;
         }
       }
@@ -7469,6 +7502,21 @@ export class Runtime {
     if (existing && (!elem0 || elem0.text.bytes !== 1)) return undefined;
     const canMutatePipeStatus = !existing || (existing.references === 1 && elem0!.text.references === 1);
     const diagnosticLine = io.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0);
+    if (command.redirects.length === 1) {
+      const r0 = command.redirects[0]!;
+      if ((r0.descriptor === undefined || r0.descriptor === 1) && !r0.move && !r0.document && (r0.operator === ">" || r0.operator === ">>" || r0.operator === ">|") && r0.target.plain === "/dev/null") {
+        if (!this.budget.canRedirect1 || !this.budget.canFileSystemOperation() || !this.canFastMemoryRedirect || (this._fileWrites !== undefined && this._fileWrites.size !== 0) || (this._outputFiles !== undefined && this._outputFiles.size !== 0)) {
+          return undefined;
+        }
+        this.budget.fileSystemOperation();
+        const devNullCapture = new Capture();
+        devNullCapture.budget = this.budget;
+        devNullCapture.signal = this.signal;
+        const { descriptors: _d, ...ioRest } = io;
+        io = { ...ioRest, stdout: devNullCapture };
+        command = { ...command, redirects: [] };
+      }
+    }
     if (command.kind === "conditional") {
       if ( command.redirects.length !== 0 || !canMutatePipeStatus || (!ignored && rawState.errexit) || rawState.nounset || !this.canSyncConditional(command.expression)) {
         return undefined;
@@ -9075,8 +9123,10 @@ export class Runtime {
           }
           if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
           if (!existing) {
-            monitor.lazyPipeStatus = singleStatusZero;
-            monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+            if (store) { if (publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined; } else {
+              monitor.lazyPipeStatus = singleStatusZero;
+              monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+            }
           } else {
             elem0!.text.shellValue = "0";
             store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
@@ -9187,9 +9237,24 @@ export class Runtime {
         }
       }
       if ( w0Plain === "printf" && command.words.length >= 4 && command.words[1]?.plain === "-v" && this.budget.limits.maxExpansionFields === Infinity && this.writeVariable === Runtime.prototype.writeVariable && !rawState.externalInvocation && !hasShellFunction(rawState, "printf") && !rawState.extensions?.builtins.has("printf") && !rawState.readonlyVariables?.size && !hasActiveVariableAttributes(rawState) && !hasActiveExtensions(rawState) && canMutatePipeStatus) {
-        const varName = command.words[2]?.plain;
+        const w2 = command.words[2]!;
+        let targetSpec = w2.plain;
+        if (targetSpec === undefined) {
+          try {
+            const tv = this.fastValueWord(w2, rawState, io, false, false, false, false, undefined, diagnosticLine);
+            if (typeof tv === "string") targetSpec = tv;
+          } catch {
+            this.signal.throwIfAborted();
+            return undefined;
+          }
+        }
         const def = this.commands.get("printf");
-        if ( def?.execute === printfCommand.execute && varName !== undefined && /^[a-zA-Z_][a-zA-Z_0-9]*$/.test(varName) && varName !== "OPTIND" && varName !== "PIPESTATUS" && !store?.get(varName) && command.words.length <= this.budget.maxExpansionFieldsSmi) {
+        const isScalarTarget = targetSpec !== undefined && /^[a-zA-Z_][a-zA-Z_0-9]*$/.test(targetSpec) && targetSpec !== "OPTIND" && targetSpec !== "PIPESTATUS" && !store?.get(targetSpec);
+        const brkIdx = targetSpec !== undefined && !isScalarTarget && targetSpec.endsWith("]") ? targetSpec.indexOf("[") : -1;
+        const arrName = brkIdx > 0 ? targetSpec!.slice(0, brkIdx) : undefined;
+        const subExpr = brkIdx > 0 ? targetSpec!.slice(brkIdx + 1, -1) : undefined;
+        const isArrayTarget = arrName !== undefined && /^[a-zA-Z_][a-zA-Z_0-9]*$/.test(arrName) && !controlNames.has(arrName) && subExpr !== undefined && subExpr.length > 0 && !subExpr.includes("$") && !subExpr.includes("\x60");
+        if ( def?.execute === printfCommand.execute && (isScalarTarget || isArrayTarget) && command.words.length <= this.budget.maxExpansionFieldsSmi) {
           fastSubScratchArgs.length = 0;
           let allStrings = true;
           try {
@@ -9211,27 +9276,59 @@ export class Runtime {
             const formatted = tryFastPrintf(fastSubScratchArgs);
             fastSubScratchArgs.length = 0;
             if (formatted !== undefined && formatted.length <= this.budget.limits.maxExpansionBytes) {
+              if (isArrayTarget) {
+                const arrStore = monitor.store ?? requireArrays(rawState);
+                let curB = arrStore.get(arrName!);
+                let writeKey: string | undefined;
+                if (curB?.associative) {
+                  writeKey = subExpr!;
+                } else {
+                  const idxNum = /^(?:0|[1-9][0-9]{0,8})$/.test(subExpr!) ? Number(subExpr!) : resolveSimpleArithOperand(subExpr!, rawState, monitor, arrStore, this._syncArithRawWriteOnly ? this._syncArithTouched : undefined);
+                  if (idxNum !== undefined && idxNum >= 0 && idxNum <= 2147483647) {
+                    if (!curB && rawState.variables[arrName!] === undefined && !arrStore.watches.has(arrName!) && !monitor.hasOverlay(arrName!)) {
+                      const created = IndexedBinding.create(arrStore.owner, false);
+                      const prepared = arrStore.prepareExistingName(arrName!, shellValueByteLength(arrName!), arrStore.owner, this.signal);
+                      if (prepared) {
+                        const initTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+                        arrStore.publish(arrName!, created, initTickets, prepared, false, arrStore.owner);
+                        monitor.epoch = initTickets.epoch;
+                        curB = created;
+                      } else void created.release();
+                    }
+                    if (curB && !curB.associative) writeKey = String(idxNum);
+                  }
+                }
+                if (writeKey === undefined || !this.tryFastArraySubscriptWriteSync(rawState, arrName!, writeKey, formatted)) {
+                  return undefined;
+                }
+              }
               const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
               this.budget.tick();
               rawState.substitutionStatus = 0;
               if (rawState.variables._ !== undefined) delete rawState.variables._;
               rawState.lastArgument = lastPrintfArg;
-              monitor.publishStringVariable(varName, formatted);
-              if (rawState.allexport) monitor.proxy.exported.add(varName);
+              if (isScalarTarget) {
+                monitor.publishStringVariable(targetSpec!, formatted);
+                if (rawState.allexport) monitor.proxy.exported.add(targetSpec!);
+              }
               if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
-              if (!existing) {
-                if (store) if (publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined; else {
+              const activeStore = monitor.store;
+              const activeExisting = activeStore?.get("PIPESTATUS");
+              if (!activeExisting) {
+                if (activeStore) {
+                  if (publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined;
+                } else {
                   monitor.lazyPipeStatus = singleStatusZero;
                   monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
                 }
               } else {
-                elem0!.text.shellValue = "0";
-                store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+                activeExisting.values.get(0)!.text.shellValue = "0";
+                activeStore!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
               }
               const finalStatus = pipeline.negate ? 1 : 0;
               rawState.status = finalStatus;
               monitor.epoch = restEpoch;
-              if (store) store.epoch = restEpoch;
+              if (activeStore) activeStore.epoch = restEpoch;
               return finalStatus;
             }
           } else fastSubScratchArgs.length = 0;
@@ -9793,7 +9890,11 @@ export class Runtime {
         if (fastRes !== undefined) return fastRes;
       }
     }
-    if ((guestArrays(rawState) && (guestArrays(rawState)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) || !this.canSyncLoopBody(command.body, rawState, io)) return undefined;
+    if ((command as { _skipTrySyncLoop?: boolean })._skipTrySyncLoop) return undefined;
+    if ((guestArrays(rawState) && (guestArrays(rawState)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) || !this.canSyncLoopBody(command.body, rawState, io)) {
+      (command as { _skipTrySyncLoop?: boolean })._skipTrySyncLoop = true;
+      return undefined;
+    }
     for (const v of Object.values(rawState.variables)) {
       if (typeof v === "string") {
         for (let k = 0; k < v.length; k++) {
@@ -10097,8 +10198,10 @@ export class Runtime {
           rawState.lastArgument = lastArg;
           if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
           if (!existing) {
-            monitor.lazyPipeStatus = singleStatusZero;
-            monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+            if (store) { if (publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined; } else {
+              monitor.lazyPipeStatus = singleStatusZero;
+              monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+            }
           } else {
             elem0!.text.shellValue = "0";
             store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
@@ -10620,6 +10723,23 @@ export class Runtime {
         const syncStatus = (skipFirstSync && listIndex === startListIndex && index === startPipelineIndex)
           ? undefined
           : this.trySyncPipeline(pipeline, state, io, Boolean(ignored));
+        if (this._syncPendingReturnStatus !== undefined) {
+          const retStatus = this._syncPendingReturnStatus;
+          this._syncPendingReturnStatus = undefined;
+          throw completedExit(retStatus, "return", 1, retStatus);
+        }
+        if (this._syncPendingBreak > 0) {
+          const brk = this._syncPendingBreak;
+          this._syncPendingBreak = 0;
+          const st = syncStatus ?? state.status;
+          throw completedExit(st, "break", brk, st);
+        }
+        if (this._syncPendingContinue > 0) {
+          const cont = this._syncPendingContinue;
+          this._syncPendingContinue = 0;
+          const st = syncStatus ?? state.status;
+          throw completedExit(st, "continue", cont, st);
+        }
         if (syncStatus !== undefined) continue;
         const fastUnit = this.tryFastSinglePipelineUnit(pipeline, state, io, Boolean(ignored));
         if (fastUnit !== undefined) {

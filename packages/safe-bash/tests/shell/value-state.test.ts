@@ -33,6 +33,28 @@ function fixture(bytes = 4096, fields = 64) {
   return { arena, scope, store };
 }
 
+for (const bytes of [4096, Infinity]) {
+  for (const replacement of ["", "next"]) {
+    test(`optimized string publication replaces a shared text snapshot: ${bytes}, ${JSON.stringify(replacement)}`, () => {
+      const { arena, store } = fixture(bytes);
+      const variables = { value: "prior" };
+      store.publish("value", variables.value, () => true);
+      const snapshot = store.clone();
+      try {
+        store.publishString("value", replacement, variables);
+        assert.equal(variables.value, replacement);
+        assert.equal(store.get("value", variables.value), replacement);
+        assert.equal(snapshot.get("value", "prior"), "prior");
+      } finally {
+        store.close();
+        snapshot.close();
+        assert.deepEqual(arena.usage, { bytes: 0, slots: 0 });
+        arena.close();
+      }
+    });
+  }
+}
+
 test("retained scalar survives producer scope closure and releases on overwrite", () => {
   const { arena, scope, store } = fixture();
   const value = shellValueFromBytes(Uint8Array.of(255), scope);

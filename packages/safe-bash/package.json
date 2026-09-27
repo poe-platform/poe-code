@@ -210,6 +210,12 @@
       "browser": "./dist/commands/xml/index.browser.js",
       "import": "./dist/commands/xml/index.js"
     },
+    "./commands/xmllint": {
+      "types": "./dist/commands/xml/index.d.ts",
+      "workerd": "./dist/commands/xml/index.browser.js",
+      "browser": "./dist/commands/xml/index.browser.js",
+      "import": "./dist/commands/xml/index.js"
+    },
     "./commands/yq": {
       "types": "./dist/commands/yq/index.d.ts",
       "workerd": "./dist/commands/yq/index.browser.js",

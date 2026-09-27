@@ -6,7 +6,7 @@ import {
   type CommandDefinition,
   type VirtualShellPlugin
 } from "../../contracts/index.js";
-import { createXmllintCommand } from "safe-bash-command-xmllint";
+import { createXmllintCommand as createXmllintCommandInternal } from "safe-bash-command-xmllint";
 import { readXmlInput } from "safe-bash-xml-engine/io";
 import { yieldTurn } from "../../contracts/yield.js";
 import { shellValueByteLength } from "../../contracts/value.js";
@@ -110,11 +110,33 @@ async function executeXq(
   }
 }
 
+export function createXmllintCommand(options: XmlCommandsOptions = {}): CommandDefinition {
+  const limits = resolveXmlQueryLimits(options.limits);
+  return createXmllintCommandInternal({ limits }, runtime);
+}
+export function createXmllintCommands(options: XmlCommandsOptions = {}): readonly CommandDefinition[] {
+  return [createXmllintCommand(options)];
+}
+export function xmllintCommands(options: XmlCommandsOptions = {}): VirtualShellPlugin {
+  const definitions = createXmllintCommands(options);
+  const replace = options.replace ?? false;
+  return {
+    name: "xmllint-commands",
+    setup(host) {
+      if (!replace)
+        for (const definition of definitions) {
+          if (host.commands.has(definition.name))
+            throw new Error(`Command already registered: ${definition.name}`);
+        }
+      for (const definition of definitions) host.commands.register(definition, { replace });
+    }
+  };
+}
 export function createXmlCommands(options: XmlCommandsOptions = {}): readonly CommandDefinition[] {
   const limits = resolveXmlQueryLimits(options.limits);
   return [
     { name: "xq", execute: (context) => executeXq(context, limits) },
-    createXmllintCommand({ limits }, runtime)
+    createXmllintCommandInternal({ limits }, runtime)
   ];
 }
 export function xmlCommands(options: XmlCommandsOptions = {}): VirtualShellPlugin {

@@ -20,6 +20,10 @@ test("root exposes delivered wrapper constructors and package subpaths", async (
   assert.equal(manifest.name, "@poe-platform/safe-bash");
   assert.equal(manifest.private, true);
   assert.deepEqual(manifest.dependencies ?? {}, {});
+  assert.deepEqual(manifest.exports["./commands/xmllint"], manifest.exports["./commands/xml"]);
+  assert.equal(root.createXmllintCommand().name, "xmllint");
+  assert.equal(root.createXmllintCommands()[0]?.name, "xmllint");
+  assert.equal(root.xmllintCommands().name, "xmllint-commands");
   for (const [name, version] of Object.entries({ "@noble/hashes": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*" }))
     assert.equal(manifest.devDependencies[name], version);
   assert.equal(root.createStructuredCommands()[0]?.name, "jq");

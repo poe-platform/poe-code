@@ -64,7 +64,7 @@ const frozenFactories: typeof factories = [
   ["du", context => { const budget = new DuBudget(context, duSettings({})); return async () => { for (let step = 0; step < 64; step++) await budget.fs(async () => undefined); }; }],
   ["tree", context => { const budget = new WalkBudget(context, treeSettings({})); return async () => { for (let step = 0; step < 64; step++) await budget.fs(async () => undefined); }; }],
   ["split", context => { const budget = new SplitBudget(splitSettings({}), context.signal); return () => budget.step(65536); }],
-  ["archive input", context => { const source = (async function* () { for (let step = 0; step < 640; step++) yield new Uint8Array(); })(); const input = bounded(source, Infinity, context.signal, 1024); let first = true; return async () => { const count = first ? 129 : 128; first = false; for (let step = 0; step < count; step++) await input.next(); }; }],
+  ["archive input", context => { const source = (async function* () { for (let step = 0; step < 640; step++) yield new Uint8Array(); })(); const input = bounded(source, Infinity, context.signal, 1024)[Symbol.asyncIterator](); let first = true; return async () => { const count = first ? 129 : 128; first = false; for (let step = 0; step < count; step++) await input.next(); }; }],
 ];
 for (const scheduler of ["setImmediate", "setTimeout"] as const) {
 for (const [name, factory] of frozenFactories) {

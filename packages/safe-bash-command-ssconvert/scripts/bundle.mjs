@@ -11,7 +11,7 @@ await build({
   conditions: ["browser"],
   target: "es2022",
   format: "esm",
-  external: ["@poe-code/safe-fs", "poe-code/safe-fs", ...Object.keys(manifest.devDependencies ?? {})],
+  external: ["safe-bash-contracts", "safe-bash-contracts/*", "@poe-code/safe-fs/core", "@poe-code/safe-fs", "poe-code/safe-fs", ...Object.keys(manifest.devDependencies ?? {})],
   sourcemap: true
 });
 

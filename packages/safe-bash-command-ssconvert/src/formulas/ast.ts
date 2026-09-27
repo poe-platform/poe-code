@@ -1,7 +1,12 @@
 import type { CellValue, FormulaSemantics, Workbook } from "../workbook.js";
 
 export interface Span { readonly start: number; readonly end: number }
-export interface ParsePosition { readonly sheet: string; readonly row: number; readonly column: number }
+export interface ParsePosition {
+  /** Workbook sheet ID; parsing and rewriting also accept display names, with IDs taking precedence. */
+  readonly sheet: string;
+  readonly row: number;
+  readonly column: number;
+}
 export interface Axis { readonly value: number; readonly relative: boolean }
 export interface ReferenceEndpoint {
   readonly row?: Axis;

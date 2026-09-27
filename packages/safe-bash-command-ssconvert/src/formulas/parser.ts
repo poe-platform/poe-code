@@ -15,7 +15,9 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
   const grammar = options.grammar ?? (source.startsWith("of:=") ? odfGrammar : gnumericGrammar);
   options.signal?.throwIfAborted();
   if (source.length > (options.maximumLength ?? 1_048_576)) throw new SsconvertError("resource-limit", "ssconvert formula length limit exceeded");
-  const position = options.position;
+  const origin = options.workbook?.sheets.find(sheet => sheet.id === options.position.sheet) ??
+    options.workbook?.sheets.find(sheet => foldSheetName(sheet.name) === foldSheetName(options.position.sheet));
+  const position = origin ? { ...options.position, sheet: origin.id } : options.position;
   const rangeSeparator = grammar.rangeSeparator ?? ":";
   for (const value of [position.row, position.column])
     if (!Number.isSafeInteger(value) || value < 0) throw new SsconvertError("invalid-request", "Invalid formula parse position");

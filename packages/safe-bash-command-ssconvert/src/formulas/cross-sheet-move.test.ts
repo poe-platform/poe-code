@@ -41,5 +41,5 @@ it("preserves external targets and source strings during cross-sheet moves", () 
   const parsed = parseExpression('=F(A1,[book.xlsx]Remote!B2,"A1")', { position, grammar: excelGrammar });
   if (!parsed.ok) throw new Error(parsed.diagnostic.message);
   expect(rewriteReferences(parsed.document, { position: { sheet: "Other", row: 9, column: 4 }, translation: "move" }))
-    .toBe('=F(\'Local\'!A1,[book.xlsx]\'Remote\'!B2,"A1")');
+    .toBe('=F(\'Local\'!A1,[book.xlsx]Remote!B2,"A1")');
 });

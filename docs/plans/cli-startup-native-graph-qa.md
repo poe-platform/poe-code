@@ -1,3 +1,11 @@
+# CLI startup native graph QA
+
+1. Run the original Vitest control below independently from a temporary fixture in `scripts`, keeping the ten-second hook deadline and five-second test deadline.
+2. Verify that every eagerly reachable CLI startup chunk, including the dynamically selected program entry, excludes filesystem implementation imports.
+3. Execute the maintained normal build to verify the complete publication graph alongside this control.
+4. Store temporary evidence under `out` and remove the temporary fixture after verification.
+
+```ts
 import path from "node:path";
 import { build, type BuildResult } from "esbuild";
 import { beforeAll, expect, it } from "vitest";
@@ -55,3 +63,4 @@ it("keeps filesystem imports out of the CLI startup graph", () => {
     }
   }
 });
+```

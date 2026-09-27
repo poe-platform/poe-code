@@ -7695,12 +7695,16 @@ export class Runtime {
           if (this._syncPendingReturnStatus !== undefined) return this._syncPendingReturnStatus;
           if (condRes === 0) {
             const bodyRes = this.trySyncScript(b.body, state, io, ignored);
-            return typeof bodyRes === "number" ? bodyRes : undefined;
+            if (typeof bodyRes === "number") return bodyRes;
+            if (this._syncReturnDepth === 0) (command as { _resumeSyncScript?: { script: Script; listIndex: number; pipelineIndex: number } })._resumeSyncScript = { script: b.body, listIndex: bodyRes.listIndex, pipelineIndex: bodyRes.pipelineIndex };
+            return undefined;
           }
         }
         if (command.otherwise) {
           const elseRes = this.trySyncScript(command.otherwise, state, io, ignored);
-          return typeof elseRes === "number" ? elseRes : undefined;
+          if (typeof elseRes === "number") return elseRes;
+          if (this._syncReturnDepth === 0) (command as { _resumeSyncScript?: { script: Script; listIndex: number; pipelineIndex: number } })._resumeSyncScript = { script: command.otherwise, listIndex: elseRes.listIndex, pipelineIndex: elseRes.pipelineIndex };
+          return undefined;
         }
         rawState.status = 0;
         return 0;
@@ -7729,8 +7733,11 @@ export class Runtime {
       this.budget.tick();
       rawState.substitutionStatus = 0;
       if (matchedClauseIndex >= 0) {
-        const bodyRes = this.trySyncScript(command.clauses[matchedClauseIndex]!.body, state, io, ignored);
-        return typeof bodyRes === "number" ? bodyRes : undefined;
+        const cBody = command.clauses[matchedClauseIndex]!.body;
+        const bodyRes = this.trySyncScript(cBody, state, io, ignored);
+        if (typeof bodyRes === "number") return bodyRes;
+        if (this._syncReturnDepth === 0) (command as { _resumeSyncScript?: { script: Script; listIndex: number; pipelineIndex: number } })._resumeSyncScript = { script: cBody, listIndex: bodyRes.listIndex, pipelineIndex: bodyRes.pipelineIndex };
+        return undefined;
       }
       rawState.status = 0;
       return 0;
@@ -9337,6 +9344,18 @@ export class Runtime {
         const def = this.commands.get(w0Plain);
         if (!def || (w0Plain === "printf" ? def.execute !== printfCommand.execute : w0Plain === "echo" ? !defaultEchoExecutors.has(def.execute) : w0Plain === "seq" ? (customRegisteredCommands.has(def.execute) || customRegisteredRegistries.has(this.commands)) : !builtInDirectContextExecutors.has(def.execute))) return false;
         if (!cmd.words.slice(1).every(w => this.isPureSyncValueWord(w, rawState))) return false;
+        if (w0Plain === "printf") {
+          const fmtP = cmd.words[1]?.plain;
+          if (fmtP === undefined || fmtP.startsWith("-") || !/^(?:[^%]|%%|%[-0]*\d*[sdxXou]|%s\\n)*$/.test(fmtP)) return false;
+        } else if (w0Plain === "echo") {
+          if (cmd.words.length > 1 && (cmd.words[1]!.plain === undefined ? cmd.words[1]!.parts[0]?.kind === "text" && cmd.words[1]!.parts[0]!.value.startsWith("-") : cmd.words[1]!.plain!.startsWith("-"))) return false;
+        } else if (w0Plain === "dirname") {
+          if (cmd.words.length !== 2) return false;
+        } else if (w0Plain === "basename") {
+          if (cmd.words.length !== 2 && cmd.words.length !== 3) return false;
+        } else if (w0Plain === "seq") {
+          if (cmd.words.length < 2 || cmd.words.length > 4 || !cmd.words.slice(1).every(w => w.plain !== undefined && /^-?[0-9]{1,7}$/.test(w.plain!))) return false;
+        }
         if (p.commands.length >= 2) {
           if ((w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "seq") || syncPurePipelineSlotInUse || !this.budget.canSyncPurePipe || rawState.errexit || rawState.nounset) return false;
           for (let sIdx = 1; sIdx < p.commands.length; sIdx++) {
@@ -9347,7 +9366,23 @@ export class Runtime {
             const sDef = this.commands.get(sName);
             if (!sDef || customRegisteredCommands.has(sDef.execute) || (sName !== "awk" && sName !== "rev" && !builtInDirectContextExecutors.has(sDef.execute))) return false;
             if (rawState.functions.has(sName) || rawState.extensions?.builtins.has(sName)) return false;
-            if (!sCmd.words.slice(1).every(w => this.isPureSyncValueWord(w, rawState))) return false;
+            const sArgWords = sCmd.words.slice(1);
+            const sPlainArgs: string[] = [];
+            let allPlainStageArgs = true;
+            for (let k = 0; k < sArgWords.length; k++) {
+              const sw = sArgWords[k]!;
+              const sp = sw.plain ?? (sw.parts.length === 1 && sw.parts[0]!.kind === "text" ? sw.parts[0]!.value : undefined);
+              if (sp === undefined) { allPlainStageArgs = false; break; }
+              sPlainArgs.push(sp);
+            }
+            if (!allPlainStageArgs) return false;
+            if (sName === "wc" && (sPlainArgs.length !== 1 || (sPlainArgs[0] !== "-l" && sPlainArgs[0] !== "-c" && sPlainArgs[0] !== "-w"))) return false;
+            if ((sName === "head" || sName === "tail") && (sPlainArgs.length !== 2 || sPlainArgs[0] !== "-n" || !/^[0-9]+$/.test(sPlainArgs[1]!))) return false;
+            if (sName === "cut") {
+              const vc2 = sPlainArgs.length === 2 && ((sPlainArgs[0]!.length === 3 && sPlainArgs[0]!.startsWith("-d") && sPlainArgs[1]!.length >= 3 && sPlainArgs[1]!.startsWith("-f")) || (sPlainArgs[0] === "-c" && /^[1-9][0-9]*-[1-9][0-9]*$/.test(sPlainArgs[1]!)));
+              const vc1 = sPlainArgs.length === 1 && sPlainArgs[0]!.length >= 3 && sPlainArgs[0]!.startsWith("-f");
+              if (!vc1 && !vc2) return false;
+            }
           }
         }
         continue;
@@ -11125,6 +11160,11 @@ export class Runtime {
         }
         return this.script(command.body, state, originalIO);
       }
+      const caseResume = (command as { _resumeSyncScript?: { script: Script; listIndex: number; pipelineIndex: number } })._resumeSyncScript;
+      if (caseResume) {
+        (command as { _resumeSyncScript?: undefined })._resumeSyncScript = undefined;
+        return this.script(caseResume.script, state, originalIO, caseResume.listIndex, caseResume.pipelineIndex, true);
+      }
       if (!state.nocasematch && !state.extglob) {
         let fastSubject: ShellValue | undefined;
         let subjectFailed = false;
@@ -11404,16 +11444,27 @@ export class Runtime {
           status = await this.script(command.body, state, io);
         }
       } else if (command.kind === "if") {
-        let matchedBranch = false;
-        for (const branch of command.branches) {
-          if (await this.script(branch.condition, state, { ...io, execution: { ignoreErrexit: true } }) === 0) {
-            status = await this.script(branch.body, state, io);
-            matchedBranch = true;
-            break;
+        const ifResume = (command as { _resumeSyncScript?: { script: Script; listIndex: number; pipelineIndex: number } })._resumeSyncScript;
+        if (ifResume) {
+          (command as { _resumeSyncScript?: undefined })._resumeSyncScript = undefined;
+          status = await this.script(ifResume.script, state, io, ifResume.listIndex, ifResume.pipelineIndex, true);
+        } else {
+          let matchedBranch = false;
+          for (const branch of command.branches) {
+            if (await this.script(branch.condition, state, { ...io, execution: { ignoreErrexit: true } }) === 0) {
+              status = await this.script(branch.body, state, io);
+              matchedBranch = true;
+              break;
+            }
           }
+          if (!matchedBranch) status = command.otherwise ? await this.script(command.otherwise, state, io) : 0;
         }
-        if (!matchedBranch) status = command.otherwise ? await this.script(command.otherwise, state, io) : 0;
       } else if (command.kind === "case") {
+        const caseResumeSlow = (command as { _resumeSyncScript?: { script: Script; listIndex: number; pipelineIndex: number } })._resumeSyncScript;
+        if (caseResumeSlow) {
+          (command as { _resumeSyncScript?: undefined })._resumeSyncScript = undefined;
+          status = await this.script(caseResumeSlow.script, state, io, caseResumeSlow.listIndex, caseResumeSlow.pipelineIndex, true);
+        } else
         if (hasActiveExtensions(state)) {
           const description = `case ${command.subject.spelling ?? command.subject.plain ?? ""} in `;
           if (!state.extensions.eventDepth) publishCommandSpelling(state, description);
@@ -16919,7 +16970,7 @@ export class Runtime {
           sArgs.push(v);
         }
         if (sName === "cut") {
-          const validCut2 = sArgs.length === 2 && sArgs[0]!.length === 3 && sArgs[0]!.startsWith("-d") && sArgs[1]!.length >= 3 && sArgs[1]!.startsWith("-f");
+          const validCut2 = sArgs.length === 2 && ((sArgs[0]!.length === 3 && sArgs[0]!.startsWith("-d") && sArgs[1]!.length >= 3 && sArgs[1]!.startsWith("-f")) || (sArgs[0] === "-c" && /^[1-9][0-9]*-[1-9][0-9]*$/.test(sArgs[1]!)));
           const validCut1 = sArgs.length === 1 && sArgs[0]!.length >= 3 && sArgs[0]!.startsWith("-f");
           if (!validCut2 && !validCut1) return undefined;
         } else if (sName === "tr") {
@@ -16933,7 +16984,7 @@ export class Runtime {
         } else if (sName === "head" || sName === "tail") {
           if (sArgs.length !== 2 || sArgs[0] !== "-n" || !/^[0-9]+$/.test(sArgs[1]!)) return undefined;
         } else if (sName === "wc") {
-          if (sArgs.length !== 1 || (sArgs[0] !== "-l" && sArgs[0] !== "-c")) return undefined;
+          if (sArgs.length !== 1 || (sArgs[0] !== "-l" && sArgs[0] !== "-c" && sArgs[0] !== "-w")) return undefined;
         } else if (sName === "sed") {
           const validSed1 = sArgs.length === 1 && sArgs[0]!.startsWith("s");
           const validSed2 = sArgs.length === 2 && sArgs[0] === "-e" && sArgs[1]!.startsWith("s");
@@ -17008,6 +17059,7 @@ export class Runtime {
             firstName === "head" ||
             firstName === "tail" ||
             firstName === "wc" ||
+            (firstName === "cut" && stageArgs.length === 2 && stageArgs[0] === "-c") ||
             (firstName === "sort" && stageArgs.length === 1 && stageArgs[0] !== "-r")
           ) {
             const inStr = prevLen === 0 ? "" : sharedSyncPipeDecoder.decode(prevBuf.subarray(0, prevLen));
@@ -17021,11 +17073,17 @@ export class Runtime {
             } else if (firstName === "tail") {
               const nTail = Number(stageArgs[1]!);
               outLines = nTail === 0 ? [] : rawLines.slice(-nTail);
+            } else if (firstName === "cut") {
+              const [cStart, cEnd] = stageArgs[1]!.split("-").map(Number);
+              outLines = rawLines.map(l => l.slice(cStart! - 1, cEnd!));
             } else if (firstName === "wc") {
               if (stageArgs[0] === "-l") {
                 let nl = 0;
                 for (let k = 0; k < inStr.length; k++) if (inStr.charCodeAt(k) === 10) nl++;
                 outLines = [String(nl)];
+              } else if (stageArgs[0] === "-w") {
+                const trimmed = inStr.trim();
+                outLines = [String(trimmed.length === 0 ? 0 : trimmed.split(/[ \t\n\r\f\v]+/).length)];
               } else {
                 outLines = [String(prevLen)];
               }

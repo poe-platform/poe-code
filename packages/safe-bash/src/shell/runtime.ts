@@ -4642,11 +4642,7 @@ export class Runtime {
       }
       const prepared = await store.prepareName(name, operation, this.signal);
       const preserve = assignment.kind === "element" || assignment.append;
-      const canReviseInPlace =
-        preserve &&
-        current !== undefined &&
-        current.references === 1 &&
-        (assignment.kind === "element" || (!isAssociative && assignment.append && assignment.entries.every(e => !e.index)));
+      const canReviseInPlace = false;
       const pendingInPlace: Array<{ index: number; token: import("./arrays/bindings.js").OwnedText; slot: Admission }> = [];
       const pendingKeys: Array<{
         identity: string;
@@ -4712,8 +4708,7 @@ export class Runtime {
           } else {
             index = (await this.arrayIndex(targetBinding, assignment.index, state, io, operation, true))!;
           }
-          const fastVal = this.fastValueWord(assignment.value, state, io, false, false, false, false, 0);
-          const value = fastVal !== undefined ? fastVal : await join(await this.valueWord(assignment.value, state, io, false, false, false, false, undefined, false, false, 0));
+          const value = await join(await this.valueWord(assignment.value, state, io, false, false, false, false, undefined, false, false, 0));
           await insert(index, value, assignment.append);
         } else for (const entry of assignment.entries) {
           const original = compoundEntryWords.get(entry);

@@ -32,7 +32,7 @@ export async function textToken(owner: ArrayOwner, value: ShellValue, signal: Ab
   if (typeof value !== "string") {
     const bytes = shellValueByteLength(value);
     const metadata = exactSum(32, shellValueRetainedBytes(value) - bytes);
-    { const p = owner.ledger.checkpoint(signal, 4); if (p) await p; }
+    await owner.ledger.checkpoint(signal, 4);
     signal.throwIfAborted();
     const admission = owner.reserve({ payload: bytes, metadata, work: 4 });
     return new OwnedText(value, bytes, admission);
@@ -50,7 +50,7 @@ export async function textToken(owner: ArrayOwner, value: ShellValue, signal: Ab
     const pending = owner.ledger.checkpoint(signal, step);
     if (pending) await pending;
   }
-  { const p = owner.ledger.checkpoint(signal, 0); if (p) await p; }
+  await owner.ledger.checkpoint(signal, 0);
   signal.throwIfAborted();
   const admission = owner.reserve({ payload: bytes, metadata: 32, work: 4 });
   return new OwnedText(value, bytes, admission);
@@ -259,7 +259,7 @@ export class IndexedBinding {
         const text = element.text.retain();
         try { copy.insert(index, text); }
         catch (error) { text.release(); throw error; }
-        { const p = copy.owner.ledger.checkpoint(signal, 2); if (p) await p; }
+        await copy.owner.ledger.checkpoint(signal, 2);
       }
       signal.throwIfAborted();
       return copy;

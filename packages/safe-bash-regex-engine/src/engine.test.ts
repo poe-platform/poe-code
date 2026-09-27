@@ -107,12 +107,13 @@ for (const yields of [false, true]) test(`regex supports a cooperatively yieldin
 
 for (const dialect of ["sed", "awk", "jq"] as const) {
   for (const [source, input, expected] of [
-    ["\\bword\\b", "sword word!", "word"],
+    ["\\bword\\b", "sword word!", dialect === "awk" ? undefined : "word"],
+    ["\\bword\\b", "\bword\b", dialect === "awk" ? "\bword\b" : "word"],
     ["\\<word\\>", "sword word!", "word"],
     ["\\Bord\\B", "words", "ord"],
     ["\\yword\\y", "sword word!", "word"],
     ["\\Yord\\Y", "words", "ord"],
-  ] as const) test(`${dialect} boundaries agree between small and deferred programs: ${source}`, async () => {
+  ] as const) test(`${dialect} escapes and boundaries agree between small and deferred programs: ${source} on ${JSON.stringify(input)}`, async () => {
     const budget = { step() {}, checkpoint() {}, maxBufferBytes: 65536 };
     for (const expression of [source, `(?:x{70})?${source}`]) {
       const pattern = new Pattern(expression, true, false, dialect);

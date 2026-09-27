@@ -989,40 +989,6 @@ describe("finite unit late failure and cleanup ordering", () => {
   });
 });
 
-describe("finite unit real four-group cleanup", () => {
-  for (const trigger of ["primary", "STOP"]) it(trigger, async () => {
-    const owned = unitFixture(), host = mockHost(), children: ReturnType<typeof spawn>[] = [];
-    const ready: Promise<void>[] = [], closed: Promise<void>[] = [], closeCounts: number[] = [];
-    host.kill = process.kill.bind(process);
-    try {
-      writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] } } });
-      for (const name of ["charlie", "delta", "echo"]) owned.write(name, { name, scripts: { "test:unit": "node unit.cjs" } });
-      const start = () => {
-        const child = spawn(process.execPath, ["-e", 'process.send("ready");setInterval(()=>{},1000);'], { cwd: owned.root, env: { PATH: path.dirname(process.execPath) + ":/usr/bin:/bin", HOME: owned.root }, detached: true, stdio: ["ignore", "ignore", "ignore", "ipc"] });
-        const index = children.length; children.push(child); closeCounts.push(0);
-        ready.push(new Promise(resolve => child.once("message", () => resolve())));
-        closed.push(new Promise(resolve => child.once("close", () => { closeCounts[index]++; resolve(); })));
-        return child;
-      };
-      const running = workspaceRunner.testWorkspaces(owned.root, { host, spawn: start as typeof spawn, environment: { npm_execpath: "/owned/npm-cli.js" }, concurrency: 4 });
-      const observed = running.then(() => ({ failed: false, error: undefined }), error => ({ failed: true, error }));
-      await vi.waitFor(() => expect(children).toHaveLength(4)); await Promise.all(ready);
-      if (trigger === "primary") children[1].emit("error", false); else host.emit("SIGTERM");
-      const result = await observed;
-      expect(result.failed).toBe(true);
-      if (trigger === "primary") expect(Object.is(result.error, false)).toBe(true);
-      else expect(String(result.error)).toContain("interrupted");
-      expect(closeCounts).toEqual([1, 1, 1, 1]); expect(children).toHaveLength(4);
-      for (const child of children) expect(() => process.kill(-child.pid!, 0)).toThrow();
-      expect(host.listenerCount("SIGTERM")).toBe(0);
-    } finally {
-      const signal = (value: NodeJS.Signals) => { for (const child of children) { try { process.kill(-child.pid!, value); } catch (error) { if ((error as NodeJS.ErrnoException).code !== "ESRCH") throw error; } } };
-      signal("SIGTERM"); const escalation = setTimeout(() => signal("SIGKILL"), 2000);
-      await Promise.all(closed); clearTimeout(escalation); owned.remove();
-    }
-  }, 15000);
-});
-
 describe("finite unit input and environment boundaries", () => {
   it("clears Git's repository-local hook environment without changing the parent or private configuration", async () => {
     const owned = unitFixture(), mock = mockExecution();

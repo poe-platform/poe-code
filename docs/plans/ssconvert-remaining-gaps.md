@@ -49,6 +49,14 @@ Safe Bash adapter thin. Use structured parser/model nodes and vetted cryptograph
 primitives. Each code fix needs a current failing original memory test or other
 concrete evidence, neighboring controls and narrowly maintained verification.
 
+Complete the standard singular/plural/plugin command exports in that package.
+Keep file-output budget and cancellation ownership in `safe-bash-contracts`.
+The root SDK needs a small contracts entrypoint built in the same graph as the
+Shell, for both Node and browser profiles; its standalone bundle must reference
+that shared entrypoint. Scoped packaging must map the reference back to its
+canonical private contracts runtime. Verify cross-bundle raw arguments, file
+budgets, cancellation and installed consumers before claiming extraction complete.
+
 | Family | Required completion scope |
 | --- | --- |
 | PWD/resource identity | Actual cwd and logical aliases, symlink identity, GETENV preservation, paths, input/export/write diagnostics, staging/split/graph outputs, cancellation, supported platforms and public consumers. |

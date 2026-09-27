@@ -1,5 +1,4 @@
 import { FsError } from "./errors.js";
-import type { CommandContext } from "./command.js";
 import type { FsOptions } from "./filesystem.js";
 import { createBytePipe, outputFailure, type BytePipe, type ByteSink, type ByteSource } from "./io.js";
 import { createOutputOperation } from "./output.js";
@@ -7,28 +6,8 @@ import { abortManagedController, addAbortSignalWaiter, isManagedAbortSignal, reg
 
 import { filesystemOutputBudgets, type FileOutputContext } from "./filesystem-output-budget.js";
 import { openCommandFile, type CommandFileDescriptor } from "./filesystem-descriptor.js";
-export { bindFileOutputBudget, assertCountedFileOutput, writeFileOutputCounted } from "./filesystem-output-budget.js";
+export { writeFileOutput, bindFileOutputBudget, assertCountedFileOutput, writeFileOutputCounted } from "./filesystem-output-budget.js";
 export type { CountedFileWrite, FileOutputContext } from "./filesystem-output-budget.js";
-
-
-export async function writeFileOutput(context: Pick<CommandContext, "signal" | "registerCleanup">, bytes: Uint8Array, write: (bytes: Uint8Array) => Promise<void>): Promise<void> {
-  context.signal.throwIfAborted();
-  const budget = context.registerCleanup && filesystemOutputBudgets.get(context.registerCleanup);
-  let pending: Promise<void> | undefined;
-  const destination: ByteSink = { write(chunk) {
-    context.signal.throwIfAborted();
-    return pending = (async () => { await write(chunk); })();
-  } };
-  try { await (budget?.sinkBudget(destination) ?? destination).write(bytes); }
-  catch (error) {
-    // Shell sink cancellation may win its race before the direct host call.
-    // Keep the original awaited-write lifetime without a retained cleanup hook.
-    await pending?.catch(() => {});
-    context.signal.throwIfAborted();
-    throw error;
-  }
-  context.signal.throwIfAborted();
-}
 
 export interface FileOutput {
   readonly sink: ByteSink;

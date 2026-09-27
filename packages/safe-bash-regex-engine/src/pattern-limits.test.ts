@@ -23,8 +23,8 @@ test("explicit regex instruction limits include small eagerly compiled patterns"
   await assert.rejects(pattern.prepare(budget), /regular expression program limit exceeded/u);
 });
 
-test("matching cannot bypass a finite limit with an eagerly compiled pattern", async () => {
-  const pattern = new Pattern("a");
+for (const dialect of ["sed", "awk", "jq", "rust"] as const) test(`${dialect} matching cannot bypass a finite instruction limit`, async () => {
+  const pattern = new Pattern("a", true, false, dialect);
   const budget = new Budget({ signal: new AbortController().signal } as CommandContext, { maxPatternInstructions: 1 });
   await assert.rejects(pattern.find("a", budget), /regular expression program limit exceeded/u);
   assert.throws(() => pattern.tryFindSync("a", budget), /regular expression program limit exceeded/u);

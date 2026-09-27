@@ -415,12 +415,13 @@ export class Pattern {
 
   constructor(source: string, extended = true, private readonly ignoreCase = false, private readonly dialect: "sed" | "awk" | "jq" | "rust" = "sed", private readonly modifiers = "", limits: PatternLimits = {}) {
     const prefix = dialect === "jq" || dialect === "rust" ? dialect + " " : "";
-    const maximumInstructions = limits.maxPatternInstructions ?? Infinity;
+    const maximumInstructions = limits.maxPatternInstructions ?? (dialect === "rust" ? 16384 : Infinity);
     if (maximumInstructions !== Infinity && (!Number.isSafeInteger(maximumInstructions) || maximumInstructions < 1)) throw new ProgramError("limits must be positive safe integers");
     if (dialect === "rust") {
       if (source.length > 8192) throw new ProgramError(`${prefix}regular expression source limit exceeded`);
       const parsed = parseRustPattern(source, ignoreCase), counts = instructionCounts(parsed.root);
       if (!Number.isSafeInteger(counts.get(parsed.root)! + 1) || counts.get(parsed.root)! + 1 > maximumInstructions) throw new ProgramError(`${prefix}regular expression program limit exceeded`);
+      this.instructionCount = counts.get(parsed.root)! + 1;
       this.groupCount = parsed.groupCount;
       for (const [name, index] of parsed.groupNames) this.groupNames.set(name, index);
       this.anchored = false;

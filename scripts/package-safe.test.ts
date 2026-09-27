@@ -108,16 +108,16 @@ it("embeds the declared ssconvert SDK behind its legacy CLI subpath without a CL
 it("ships the spreadsheet command SDK without a CLI dependency", async () => {
   const { volume, options } = optionalLeftovers();
   const command = ts.createSourceFile("index.ts", readFileSync(new URL("../packages/safe-bash/src/commands/ssconvert/index.ts", import.meta.url), "utf8"), ts.ScriptTarget.Latest, true);
-  const imported = command.statements.find(ts.isExportDeclaration)!.moduleSpecifier as ts.StringLiteral;
+  const exported = command.statements.find(ts.isExportDeclaration)!.moduleSpecifier as ts.StringLiteral;
   volume.mkdirSync("/repo/packages/safe-bash-command-ssconvert/dist", { recursive: true });
   volume.writeFileSync("/repo/packages/safe-bash-command-ssconvert/package.json", JSON.stringify({
     ...JSON.parse(readFileSync(new URL("../packages/safe-bash-command-ssconvert/package.json", import.meta.url), "utf8")),
     files: ["dist"],
     exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
   }));
-  volume.writeFileSync("/repo/packages/safe-bash-command-ssconvert/dist/index.js", "export const createEngine = () => ({});");
-  volume.writeFileSync("/repo/packages/safe-bash-command-ssconvert/dist/index.d.ts", "export declare const createEngine: () => object;");
-  for (const suffix of ["js", "d.ts"]) volume.writeFileSync("/repo/packages/safe-bash/dist/commands/ssconvert/index." + suffix, `export { createEngine } from ${JSON.stringify(imported.text)};`);
+  volume.writeFileSync("/repo/packages/safe-bash-command-ssconvert/dist/index.js", 'export const createSsconvertCommand = () => ({ name: "ssconvert" });');
+  volume.writeFileSync("/repo/packages/safe-bash-command-ssconvert/dist/index.d.ts", "export declare const createSsconvertCommand: () => { name: string };");
+  for (const suffix of ["js", "d.ts"]) volume.writeFileSync("/repo/packages/safe-bash/dist/commands/ssconvert/index." + suffix, `export { createSsconvertCommand } from ${JSON.stringify(exported.text)};`);
   await packageSafeLibraries({ ...options, outDir: "/output" });
   expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/commands/ssconvert/index.js", "utf8")).toContain('"../../../safe-bash-command-ssconvert/index.js"');
   expect(JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8")).dependencies).not.toHaveProperty("poe-code");

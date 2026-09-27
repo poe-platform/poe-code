@@ -22,6 +22,7 @@ it("starts the bundled spreadsheet SDK in a Worker without Node module initializ
   runInNewContext(compiled, worker);
   expect(worker.snapshot).toEqual({});
   expect(Object.isFrozen(worker.snapshot)).toBe(true);
+  expect(worker.command).toMatchObject({ name: "ssconvert", execute: expect.any(Function) });
 });
 
 it("ships the spreadsheet SDK without unavailable private runtime dependencies", () => {

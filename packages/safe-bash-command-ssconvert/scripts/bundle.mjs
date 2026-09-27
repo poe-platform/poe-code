@@ -17,6 +17,7 @@ await build({
   outfile: new URL("../dist/index.js", import.meta.url).pathname,
   bundle: true,
   platform: "node",
+  conditions: ["browser"],
   target: "node22",
   format: "esm",
   plugins: [{
@@ -35,7 +36,7 @@ await build({
 
 await build({
   stdin: {
-    contents: 'import { snapshotRuntimeFunctions } from "./index.js"; globalThis.snapshot = snapshotRuntimeFunctions({});',
+    contents: 'import { snapshotRuntimeFunctions, createSsconvertCommand } from "./index.js"; globalThis.snapshot = snapshotRuntimeFunctions({}); globalThis.command = createSsconvertCommand();',
     resolveDir: new URL("../dist/", import.meta.url).pathname,
   },
   outfile: new URL("../dist/testing/worker-runtime-fixture.js", import.meta.url).pathname,

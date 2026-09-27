@@ -330,11 +330,11 @@ test("a writer admitted to a local rejects deeper shadows but survives unshadowe
   assert.equal(result.stdout, "<inner><local><nested><tail><outer>");
 });
 
-test("close drains an admitted write and prevents its late publication", async context => {
+for (const [kind, value] of [["string", "two"], ["bytes", shellValueFromBytes(Uint8Array.of(255))]] as const) test(`close drains an admitted ${kind} write and prevents its late publication`, async context => {
   const shell = setup(async command => {
     const writer = await command.bindings.openIndexed("a", { clear: true });
     await writer.set(0, "one");
-    const pending = writer.set(1, shellValueFromBytes(Uint8Array.of(255)));
+    const pending = writer.set(1, value);
     const closing = writer.close();
     await assert.rejects(pending, /closed/u);
     await closing;

@@ -6045,31 +6045,33 @@ export class Runtime {
           validate();
           if (!Number.isSafeInteger(index) || index < 0 || index > 4294967295) throw new ArrayFailure("index outside 0..4294967295");
           if (active) throw new ArrayFailure("indexed writer is busy");
-          const fastCurrent = store.get(name);
-          if (
-            fastCurrent &&
-            !fastCurrent.associative &&
-            fastCurrent.references === 1 &&
-            state.locals.length === 0 &&
-            !monitor.hasAnyOverlays() &&
-            store.watches.size === 0
-          ) {
-            const fastToken = tryTextTokenSync(fastCurrent.owner, value, this.signal);
-            if (fastToken) {
-              try {
-                const tickets = fastCurrent.owner.ledger.charge({ generation: true, version: true, epoch: true, metadata: 128, work: 14 });
-                monitor.publish(tickets, name, () => {
-                  fastCurrent.insert(index, fastToken);
-                  store.revise(name, fastCurrent, tickets);
-                });
-                return resolvedVoid;
-              } catch (error) {
-                fastToken.release();
-                throw error;
+          const work = scope.run(async () => {
+            await resolvedVoid;
+            validate();
+            const fastCurrent = store.get(name);
+            if (
+              fastCurrent &&
+              !fastCurrent.associative &&
+              fastCurrent.references === 1 &&
+              state.locals.length === 0 &&
+              !monitor.hasAnyOverlays() &&
+              store.watches.size === 0
+            ) {
+              const fastToken = tryTextTokenSync(fastCurrent.owner, value, this.signal);
+              if (fastToken) {
+                try {
+                  const tickets = fastCurrent.owner.ledger.charge({ generation: true, version: true, epoch: true, metadata: 128, work: 14 });
+                  monitor.publish(tickets, name, () => {
+                    fastCurrent.insert(index, fastToken);
+                    store.revise(name, fastCurrent, tickets);
+                  });
+                  return resolvedVoid;
+                } catch (error) {
+                  fastToken.release();
+                  throw error;
+                }
               }
             }
-          }
-          const work = scope.run(async () => {
             const current = store.get(name)!;
             const operation = ArrayOwner.create(owner.ledger, lifetime!);
             let retained = false;

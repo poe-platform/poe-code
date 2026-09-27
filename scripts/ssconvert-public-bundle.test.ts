@@ -1,7 +1,7 @@
 import { build } from "esbuild";
 import { readFileSync } from "node:fs";
 import { readdir, stat } from "node:fs/promises";
-import { dirname, relative, resolve } from "node:path";
+import { dirname, isAbsolute, relative, resolve } from "node:path";
 import { runInNewContext } from "node:vm";
 import glob from "fast-glob";
 import { beforeAll, expect, it } from "vitest";
@@ -43,7 +43,12 @@ beforeAll(async () => {
     write: false,
     metafile: true,
     plugins: [{ name: "published-spreadsheet-sdk", setup(builder) {
-      builder.onResolve({ filter: /^\./ }, args => {
+      builder.onResolve({ filter: /.*/ }, args => {
+        // The publication directory may exist only in memory. Preserve every
+        // bare import for dependency validation without disk-based resolution.
+        if (args.kind !== "entry-point" && !args.path.startsWith(".") && !isAbsolute(args.path)) {
+          return { path: args.path, external: true };
+        }
         const target = resolve(args.resolveDir, args.path);
         return artifacts.has(target) ? { path: target } : undefined;
       });

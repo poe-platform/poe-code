@@ -429,14 +429,24 @@ describe("bounded registry reads", () => {
 
 describe("bounded child execution", () => {
   it("preserves a nonzero child exit at the process boundary", async () => {
+    const error = Object.assign(new Error("Command failed with exit 7"), { code: 7 });
     vi.mocked(execFile).mockImplementationOnce((...parameters) => {
       expect(parameters.slice(0, 2)).toEqual(["/bin/sh", ["-c", "exit 7"]]);
       expect(parameters[2]).toMatchObject({ timeout: 1_000, maxBuffer: 1_048_576, killSignal: "SIGKILL" });
       const callback = parameters[3] as (error: Error, stdout: string) => void;
-      callback(Object.assign(new Error("Command failed with exit 7"), { code: 7 }), "");
+      callback(error, "");
       return {} as ReturnType<typeof execFile>;
     });
-    await expect(runCommand("/bin/sh", ["-c", "exit 7"], { timeout: 1_000 })).rejects.toMatchObject({ code: 7 });
+    await expect(runCommand("/bin/sh", ["-c", "exit 7"], { timeout: 1_000 })).rejects.toBe(error);
+  });
+
+  it("returns successful child output", async () => {
+    vi.mocked(execFile).mockImplementationOnce((...parameters) => {
+      const callback = parameters[3] as (error: null, stdout: string) => void;
+      callback(null, "owned output");
+      return {} as ReturnType<typeof execFile>;
+    });
+    await expect(runCommand("owned-command", [], { timeout: 50 })).resolves.toBe("owned output");
   });
 
   it("kills a stalled package manager or import", async () => {

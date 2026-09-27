@@ -5,7 +5,7 @@ import { matchExprSteps, searchBreSteps } from "../expr/bre-engine.js";
 import { EreSyntaxError, EreUnsupportedError, EreProfileLimitError, EreUsageUnknownError } from "./ere/errors.js";
 import { EreLedger } from "./ere/limits.js";
 import { compileEre } from "./ere/syntax.js";
-import { prepareUtf8EreSubject, tryMatchEreAsciiRangeSync, warmEreProgram } from "./ere/matcher.js";
+import { canFastSyncEreProgram, prepareUtf8EreSubject, tryMatchEreAsciiRangeSync, warmEreProgram } from "./ere/matcher.js";
 import { validateUtf8 } from "./utf8.js";
 import { executeBoundedGlobs } from "./bounded-glob.js";
 import type { EreFragment, EreProgram } from "./ere/types.js";
@@ -689,8 +689,14 @@ function tryExecuteEreSync(input: OwnedRequest, signal: AbortSignal, fold: boole
     return undefined;
   }
   const programs = lastEreCache.programs;
-  for (let p = 0; p < programs.length; p++) {
-    if (programs[p]!.groups !== 0) return undefined;
+  const unboundedLedger =
+    ledger.limits.work === Infinity &&
+    ledger.limits.states === Infinity &&
+    ledger.limits.allocationUnits === Infinity;
+  if (!unboundedLedger) {
+    for (let p = 0; p < programs.length; p++) {
+      if (programs[p]!.groups !== 0) return undefined;
+    }
   }
   const patLen = pattern0.length;
   let maxSubjectLen = 0;
@@ -706,7 +712,7 @@ function tryExecuteEreSync(input: OwnedRequest, signal: AbortSignal, fold: boole
   }
   const estimatedWork = lastEreCache.work + batchWork + 256;
   if (ledger.workAllowanceUntilCheckpoint(signal) < estimatedWork) {
-    if (estimatedWork > 32768 || !ledger.advanceSyncCheckpointIfNoExternalYield?.(signal) || ledger.workAllowanceUntilCheckpoint(signal) < Math.min(estimatedWork, 16384)) {
+    if ((!unboundedLedger && estimatedWork > 32768) || !ledger.advanceSyncCheckpointIfNoExternalYield?.(signal)) {
       return undefined;
     }
   }
@@ -1159,10 +1165,52 @@ async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply>
     programs.push(await compileEre(fragments, ledger, signal, fold));
   }
   const snapAfterEre = ereKey !== undefined ? ledger.usage : undefined;
+  const unboundedLedger =
+    ledger.limits.work === Infinity &&
+    ledger.limits.states === Infinity &&
+    ledger.limits.allocationUnits === Infinity;
+  const canFastSync = rows.length > 1 && unboundedLedger && programs.every(canFastSyncEreProgram);
+  if (canFastSync) {
+    for (const prog of programs) await warmEreProgram(prog);
+  }
   ledger.charge("allocationUnits", 3, signal);
   const results: Float64Array[] = [];
   const usage: MatchUsage = { count: 0 };
+  const leftmostFirst = selected.kind === "rg";
   for (const row of rows) {
+    if (!row.all && canFastSync) {
+      const rWithRange = row as Row & { chunk?: Uint8Array; start?: number; searchEnd?: number };
+      const hasRange = rWithRange.chunk !== undefined && typeof rWithRange.start === "number" && typeof rWithRange.searchEnd === "number";
+      const buf = hasRange ? rWithRange.chunk! : row.bytes;
+      const rStart = hasRange ? rWithRange.start! : 0;
+      const rEnd = hasRange ? rWithRange.searchEnd! : buf.length;
+      let ascii = true;
+      for (let i = rStart; i < rEnd; i++) {
+        const b = buf[i]!;
+        if (b === 0 || b >= 0x80) { ascii = false; break; }
+      }
+      if (ascii) {
+        let fastOk = true;
+        let fastSpan: { readonly start: number; readonly end: number } | undefined;
+        for (let p = 0; p < programs.length; p++) {
+          const candidate = tryMatchEreAsciiRangeSync(programs[p]!, buf, rStart, rEnd, ledger, signal, leftmostFirst, selected.word, true);
+          if (candidate === null) { fastOk = false; break; }
+          if (!candidate) continue;
+          if (selected.kind === "grep") { fastSpan = candidate; break; }
+          if (!fastSpan || candidate.start < fastSpan.start) fastSpan = candidate;
+        }
+        if (fastOk) {
+          const pending = ledger.checkpoint(signal);
+          if (pending) await pending;
+          if (fastSpan) {
+            if (usage.count >= input.limits.maxTotalMatches || usage.count >= Math.floor(input.limits.maxResultBytes / 16)) fail("limit", "total match or result byte limit exceeded");
+            usage.count++;
+          }
+          results.push(fastSpan ? new Float64Array([fastSpan.start, fastSpan.end]) : emptyFloat64);
+          continue;
+        }
+      }
+    }
     if (selected.kind === "rg" && (selected.word || fold) && row.bytes.some(byte => byte >= 128)) fail("unsupported", "rg word matching and case folding support ASCII subjects only");
     const subject = await prepareUtf8EreSubject(row.bytes, ledger, signal, selected.kind === "rg", selected.word);
     if (row.all) {
@@ -1189,7 +1237,7 @@ async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply>
   }
   if (ereKey !== undefined && snapAfterEre !== undefined) {
     for (const prog of programs) {
-      if (prog.groups === 0) await warmEreProgram(prog);
+      if (canFastSyncEreProgram(prog)) await warmEreProgram(prog);
     }
     lastEreCache = {
       key: ereKey,

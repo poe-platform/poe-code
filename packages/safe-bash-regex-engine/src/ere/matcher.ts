@@ -36,6 +36,90 @@ interface FastEreLiteralSeq {
 }
 const fastLiteralSeqs = new WeakMap<EreNode, FastEreLiteralSeq | null>();
 
+interface FastErePrefixAlt {
+  readonly anchoredStart: boolean;
+  readonly anchoredEnd: boolean;
+  readonly prefix: Uint8Array;
+  readonly alts: readonly Uint8Array[] | null;
+}
+const fastPrefixAlts = new WeakMap<EreNode, FastErePrefixAlt | null>();
+
+function extractLiteralBytes(node: EreNode): Uint8Array | null {
+  if (node.kind === "literal") {
+    return node.insensitive ? null : Uint8Array.of(node.code);
+  }
+  if (node.kind === "group") {
+    return extractLiteralBytes(node.child);
+  }
+  if (node.kind === "sequence") {
+    const out: number[] = [];
+    for (const c of node.children) {
+      if (c.kind === "literal" && !c.insensitive) out.push(c.code);
+      else return null;
+    }
+    return out.length > 0 ? Uint8Array.from(out) : null;
+  }
+  return null;
+}
+
+function getFastErePrefixAlt(root: EreNode): FastErePrefixAlt | null {
+  const existing = fastPrefixAlts.get(root);
+  if (existing !== undefined) return existing;
+  let anchoredStart = false;
+  let anchoredEnd = false;
+  const prefixBytes: number[] = [];
+  let alts: Uint8Array[] | null = null;
+  const nodes: readonly EreNode[] = root.kind === "sequence" ? root.children : [root];
+  let idx = 0;
+  let endIdx = nodes.length;
+  if (idx < endIdx && nodes[idx]!.kind === "start") {
+    anchoredStart = true;
+    idx++;
+  }
+  if (idx < endIdx && nodes[endIdx - 1]!.kind === "end") {
+    anchoredEnd = true;
+    endIdx--;
+  }
+  while (idx < endIdx) {
+    const n = nodes[idx]!;
+    if (n.kind === "literal" && !n.insensitive) {
+      prefixBytes.push(n.code);
+      idx++;
+    } else {
+      break;
+    }
+  }
+  if (idx === endIdx - 1) {
+    let tail = nodes[idx]!;
+    while (tail.kind === "group") tail = tail.child;
+    if (tail.kind === "alternative" && tail.children.length > 0) {
+      const branches: Uint8Array[] = [];
+      let ok = true;
+      for (const b of tail.children) {
+        const bytes = extractLiteralBytes(b);
+        if (!bytes || bytes.length === 0) { ok = false; break; }
+        branches.push(bytes);
+      }
+      if (ok) {
+        alts = branches;
+        idx++;
+      }
+    }
+  }
+  if (idx !== endIdx || (prefixBytes.length === 0 && alts === null)) {
+    fastPrefixAlts.set(root, null);
+    return null;
+  }
+  const created: FastErePrefixAlt = {
+    anchoredStart,
+    anchoredEnd,
+    prefix: Uint8Array.from(prefixBytes),
+    alts,
+  };
+  fastPrefixAlts.set(root, created);
+  return created;
+}
+
 function getFastEreLiteralSeq(root: EreNode): FastEreLiteralSeq | null {
   const existing = fastLiteralSeqs.get(root);
   if (existing !== undefined) return existing;
@@ -109,6 +193,13 @@ export async function warmEreProgram(program: EreProgram): Promise<void> {
   await prepareInitialCharacters(root, warmLedger);
 }
 
+export function canFastSyncEreProgram(program: EreProgram): boolean {
+  if (program.groups === 0) return true;
+  const root = resolveEreProgramUnchecked(program);
+  const fastPA = getFastErePrefixAlt(root);
+  return fastPA !== null && fastPA.prefix.length > 0;
+}
+
 export function tryMatchEreAsciiRangeSync(
   program: EreProgram,
   buf: Uint8Array,
@@ -120,8 +211,18 @@ export function tryMatchEreAsciiRangeSync(
   word = false,
   skipPerRowLedgerCharge = false,
 ): EreSpan | undefined | null {
-  if (program.groups !== 0) return null;
   const root = resolveEreProgramUnchecked(program);
+  if (program.groups !== 0) {
+    if (
+      ledger.limits.work !== Infinity ||
+      ledger.limits.states !== Infinity ||
+      ledger.limits.allocationUnits !== Infinity
+    ) {
+      return null;
+    }
+    const fastPA = getFastErePrefixAlt(root);
+    if (fastPA === null || fastPA.prefix.length === 0) return null;
+  }
   const initial = root.nullable ? undefined : initialCharacters.get(root);
   if (!root.nullable && !initial) return null;
   const rLen = rEnd - rStart;
@@ -166,6 +267,59 @@ export function tryMatchEreAsciiRangeSync(
         }
       }
       return start === 0 ? spanAtZero : { start, end: rLen };
+    }
+  }
+  if (
+    ledger.limits.work === Infinity &&
+    ledger.limits.states === Infinity &&
+    ledger.limits.allocationUnits === Infinity
+  ) {
+    const fastPA = getFastErePrefixAlt(root);
+    if (fastPA !== null && fastPA.prefix.length > 0) {
+      const { anchoredStart, anchoredEnd, prefix, alts } = fastPA;
+      const pLen = prefix.length;
+      const p0 = prefix[0]!;
+      let searchPos = rStart;
+      const maxSearch = anchoredStart ? rStart : rEnd - pLen;
+      while (searchPos <= maxSearch) {
+        const foundAbs = anchoredStart ? (buf[rStart] === p0 ? rStart : -1) : buf.indexOf(p0, searchPos);
+        if (foundAbs < 0 || foundAbs > maxSearch) break;
+        const relStart = foundAbs - rStart;
+        let prefixOk = true;
+        for (let k = 1; k < pLen; k++) {
+          if (buf[foundAbs + k] !== prefix[k]) { prefixOk = false; break; }
+        }
+        if (prefixOk && (!word || relStart === 0 || !isAsciiWord(buf[foundAbs - 1]!))) {
+          if (alts === null) {
+            const relEnd = relStart + pLen;
+            if ((!anchoredEnd || relEnd === rLen) && (!word || relEnd === rLen || !isAsciiWord(buf[rStart + relEnd]!))) {
+              return { start: relStart, end: relEnd };
+            }
+          } else {
+            let bestEnd = -1;
+            const afterPrefixAbs = foundAbs + pLen;
+            for (let a = 0; a < alts.length; a++) {
+              const alt = alts[a]!;
+              const aLen = alt.length;
+              if (afterPrefixAbs + aLen > rEnd) continue;
+              let altOk = true;
+              for (let k = 0; k < aLen; k++) {
+                if (buf[afterPrefixAbs + k] !== alt[k]) { altOk = false; break; }
+              }
+              if (!altOk) continue;
+              const relEnd = relStart + pLen + aLen;
+              if (anchoredEnd && relEnd !== rLen) continue;
+              if (word && relEnd < rLen && isAsciiWord(buf[rStart + relEnd]!)) continue;
+              if (leftmostFirst) { bestEnd = relEnd; break; }
+              if (relEnd > bestEnd) bestEnd = relEnd;
+            }
+            if (bestEnd >= 0) return { start: relStart, end: bestEnd };
+          }
+        }
+        if (anchoredStart) break;
+        searchPos = foundAbs + 1;
+      }
+      return undefined;
     }
   }
   return tryMatchEreAsciiRangeNfaSync(root, initial, buf, rStart, rLen, ledger, signal, leftmostFirst, word);
@@ -233,7 +387,7 @@ function tryMatchEreAsciiRangeNfaSync(
     }
     let bestPos = -1;
     while (pending.length > 0) {
-      if (ledger.workAllowanceUntilCheckpoint(signal) < 64) return null;
+      if (ledger.workAllowanceUntilCheckpoint(signal) < 64 && !ledger.advanceSyncCheckpointIfNoExternalYield(signal)) return null;
       ledger.chargeWork(1, signal);
       const state = pending.pop()!;
       const current = state.task;
@@ -276,7 +430,7 @@ function tryMatchEreAsciiRangeNfaSync(
           break;
         }
         case "sequence": {
-          if (ledger.workAllowanceUntilCheckpoint(signal) < node.children.length + 4) return null;
+          if (ledger.workAllowanceUntilCheckpoint(signal) < node.children.length + 4 && !ledger.advanceSyncCheckpointIfNoExternalYield(signal)) return null;
           ledger.chargeWork(node.children.length, signal);
           ledger.charge("allocationUnits", node.children.length * 5, signal);
           if (current.next === null) {
@@ -291,7 +445,7 @@ function tryMatchEreAsciiRangeNfaSync(
           break;
         }
         case "alternative":
-          if (ledger.workAllowanceUntilCheckpoint(signal) < node.children.length + 4) return null;
+          if (ledger.workAllowanceUntilCheckpoint(signal) < node.children.length + 4 && !ledger.advanceSyncCheckpointIfNoExternalYield(signal)) return null;
           for (let index = node.children.length - 1; index >= 0; index--) {
             ledger.chargeWork(1, signal);
             ledger.charge("allocationUnits", 5, signal);
@@ -299,7 +453,9 @@ function tryMatchEreAsciiRangeNfaSync(
           }
           break;
         case "group":
-          return null;
+          ledger.charge("allocationUnits", 5, signal);
+          push(state.position, { kind: "node", node: node.child, next: current.next });
+          break;
         case "repeat":
           ledger.charge("allocationUnits", 5, signal);
           push(state.position, { kind: "repeat", node, count: 0, previous: -1, next: current.next });

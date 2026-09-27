@@ -696,7 +696,6 @@ export class Pattern {
         const repeatNode = rawInner?.type === "sequence" && rawInner.nodes.length === 1 ? rawInner.nodes[0] : rawInner;
         if (
           prefixValid &&
-          (anchoredStart || prefix.length > 0) &&
           repeatNode?.type === "repeat" &&
           repeatNode.minimum >= 1 &&
           repeatNode.maximum === Infinity &&
@@ -717,7 +716,9 @@ export class Pattern {
             accepts: acceptsFn,
             ascii,
           };
-          this.fastPrefixInfo = { anchoredStart, anchoredEnd, prefix };
+          if (anchoredStart || prefix.length > 0) {
+            this.fastPrefixInfo = { anchoredStart, anchoredEnd, prefix };
+          }
         }
       }
     }
@@ -871,6 +872,31 @@ export class Pattern {
             groupStart = pos;
             groupEnd = cursor;
           }
+        }
+      } else if (prefix.length === 0) {
+        let searchFrom = from;
+        const maxStart = textEnd - minimum;
+        while (searchFrom <= maxStart) {
+          const c0 = text.charCodeAt(searchFrom);
+          if (c0 < 128 ? ascii[c0] === 0 : !accepts(text[searchFrom]!)) {
+            searchFrom++;
+            continue;
+          }
+          const idx = searchFrom;
+          let cursor = idx + 1;
+          while (cursor < textEnd) {
+            const code = text.charCodeAt(cursor);
+            if (code < 128 ? ascii[code] === 0 : !accepts(text[cursor]!)) break;
+            cursor++;
+          }
+          if (cursor - idx >= minimum && (!anchoredEnd || cursor === textEnd)) {
+            found = idx;
+            matchEnd = cursor;
+            groupStart = idx;
+            groupEnd = cursor;
+            break;
+          }
+          searchFrom = cursor + 1;
         }
       } else {
         let searchFrom = from;

@@ -343,28 +343,32 @@ async function reverseNormal(context: CommandContext, files: readonly string[], 
       await output(context, chunk);
     }
   };
-  const emitLine = async (): Promise<void> => {
-    if (!line.trim()) {
-      line = "";
-      return;
+  const rowScratch = new Uint8Array(Math.max(columns, 256));
+  const parseLineBytesInto = (buf: Uint8Array, startPos: number, endPos: number): number => {
+    let nonSpace = false;
+    for (let i = startPos; i < endPos; i++) {
+      const c = buf[i]!;
+      if (c !== 32 && !(c >= 9 && c <= 13)) { nonSpace = true; break; }
     }
-    const colon = line.indexOf(":");
+    if (!nonSpace) return 0;
+    const colonAbs = buf.indexOf(58, startPos);
+    const colon = colonAbs >= 0 && colonAbs < endPos ? colonAbs - startPos : -1;
     if (colon < 1 || colon > 14) throw new PublicDiagnostic("invalid input: expected hexadecimal address and colon");
     let address = 0;
     for (let index = 0; index < colon; index++) {
-      const digit = hexDigit(line.charCodeAt(index));
+      const digit = hexDigit(buf[startPos + index]!);
       if (digit < 0) throw new PublicDiagnostic("invalid input: expected hexadecimal address and colon");
       address = address * 16 + digit;
     }
     if (!Number.isSafeInteger(address) || address !== offset) throw new PublicDiagnostic("invalid input: reverse requires contiguous addresses starting at zero");
-    const pending: number[] = [];
+    let count = 0;
     let high = -1;
     let spaces = 0;
-    for (let index = colon + 1; index < line.length; index++) {
-      const byte = line.charCodeAt(index);
+    for (let index = startPos + colon + 1; index < endPos; index++) {
+      const byte = buf[index]!;
       if (byte === 32 || byte === 9 || byte === 13) {
         spaces++;
-        if (pending.length && spaces >= 2) break;
+        if (count > 0 && spaces >= 2) break;
         continue;
       }
       const digit = hexDigit(byte);
@@ -372,25 +376,53 @@ async function reverseNormal(context: CommandContext, files: readonly string[], 
       spaces = 0;
       if (high < 0) high = digit;
       else {
-        pending.push((high << 4) | digit);
+        rowScratch[count++] = (high << 4) | digit;
         high = -1;
-        if (pending.length === columns) break;
+        if (count === columns) break;
       }
     }
-    if (!pending.length) throw new PublicDiagnostic("invalid input: malformed hexadecimal data field");
-    offset = addOffset(offset, pending.length);
-    if (outUsed + pending.length > outBuf.length) await flushOut();
-    for (let i = 0; i < pending.length; i++) outBuf[outUsed++] = pending[i]!;
-    if (!flushedFirst || outUsed >= outBuf.length) await flushOut();
-    line = "";
+    if (count === 0) throw new PublicDiagnostic("invalid input: malformed hexadecimal data field");
+    offset = addOffset(offset, count);
+    return count;
   };
   for await (const chunk of sources(context, files, maxInputBytes)) {
-    for (const byte of chunk) {
-      if (byte === 10) await emitLine();
-      else line += String.fromCharCode(byte);
+    let start = 0;
+    while (start < chunk.length) {
+      const nl = chunk.indexOf(10, start);
+      if (nl < 0) {
+        for (let i = start; i < chunk.length; i++) line += String.fromCharCode(chunk[i]!);
+        break;
+      }
+      let count = 0;
+      if (line.length === 0) {
+        count = parseLineBytesInto(chunk, start, nl);
+      } else {
+        for (let i = start; i < nl; i++) line += String.fromCharCode(chunk[i]!);
+        const lineBytes = new Uint8Array(line.length);
+        for (let i = 0; i < line.length; i++) lineBytes[i] = line.charCodeAt(i);
+        line = "";
+        count = parseLineBytesInto(lineBytes, 0, lineBytes.length);
+      }
+      start = nl + 1;
+      if (count > 0) {
+        if (outUsed + count > outBuf.length) await flushOut();
+        outBuf.set(rowScratch.subarray(0, count), outUsed);
+        outUsed += count;
+        if (!flushedFirst || outUsed >= outBuf.length) await flushOut();
+      }
+    }
+    if (outUsed > 0) await flushOut();
+  }
+  if (line) {
+    const lineBytes = new Uint8Array(line.length);
+    for (let i = 0; i < line.length; i++) lineBytes[i] = line.charCodeAt(i);
+    const count = parseLineBytesInto(lineBytes, 0, lineBytes.length);
+    if (count > 0) {
+      if (outUsed + count > outBuf.length) await flushOut();
+      outBuf.set(rowScratch.subarray(0, count), outUsed);
+      outUsed += count;
     }
   }
-  if (line) await emitLine();
   await flushOut();
 }
 

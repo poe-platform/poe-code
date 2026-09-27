@@ -1087,7 +1087,7 @@ async function executeSortGeneral(
         !parsed.flags.has("m") &&
         !parsed.flags.has("u") &&
         outPath === undefined &&
-        (parsed.operands.length === 0 || (parsed.operands.length === 1 && parsed.operands[0] === "-")) &&
+        parsed.operands.length <= 1 &&
         SortRecordBudget.prototype.admit === defaultSortAdmit &&
         Uint8Array === defaultUint8Array &&
         (simple || (
@@ -1096,21 +1096,15 @@ async function executeSortGeneral(
           numericKeyFlags.has("n") &&
           !numericKeyFlags.has("h") &&
           !["b", "f", "d", "i", "M", "V", "g"].some(flag => numericKeyFlags.has(flag)) &&
-          !["b", "f", "d", "i", "n", "h", "M", "V", "g"].some(flag => parsed.flags.has(flag)) &&
+          !["b", "f", "d", "i", "h", "M", "V", "g"].some(flag => parsed.flags.has(flag)) &&
           numericKey.startCharacter === 1 &&
           (numericKey.endCharacter === undefined || numericKey.endCharacter === 0)
         ));
       if (canFastIndexSort) {
-        // This path yields during comparisons, so its indexes must be invocation-owned.
-        const sortStarts = new Int32Array(4096);
-        const sortEnds = new Int32Array(4096);
-        const sortIndices = new Int32Array(4096);
-        const sortScratchIndices = new Int32Array(4096);
-        const sortKeyNums = new Int32Array(4096);
         let firstChunk: Uint8Array | undefined;
         const pendingInput = new RecordBuffer(bufferLimit);
         try {
-          for await (const ch of input(context, "-")) {
+          for await (const ch of input(context, parsed.operands[0] ?? "-")) {
             pendingInput.append(ch);
           }
           if (pendingInput.size) firstChunk = pendingInput.finish();
@@ -1122,16 +1116,33 @@ async function executeSortGeneral(
         }
         if (!firstChunk) return { exitCode: 0 };
         if (
-          firstChunk.length <= 65536 &&
+          firstChunk.length <= 1048576 &&
           firstChunk[firstChunk.length - 1] === delimiter &&
           recordBudget.canAdmitChunk(firstChunk.length)
         ) {
+          const maxFastLines = 32768;
+          let cap = Math.min(maxFastLines, Math.max(1024, (firstChunk.length >> 4) + 64));
+          let sortStarts = new Int32Array(cap);
+          let sortEnds = new Int32Array(cap);
+          let sortIndices = new Int32Array(cap);
+          let sortKeyNums = new Int32Array(simple ? 0 : cap);
           let start = 0;
           let count = 0;
           let validLines = true;
           while (start < firstChunk.length) {
             const offset = firstChunk.indexOf(delimiter, start);
-            if (offset < 0 || count >= 4096 || offset - start > bufferLimit) {
+            if (offset < 0 || count >= maxFastLines || offset - start > bufferLimit) {
+              validLines = false;
+              break;
+            }
+            if (count >= cap) {
+              cap = Math.min(maxFastLines, cap * 2);
+              const ns = new Int32Array(cap); ns.set(sortStarts); sortStarts = ns;
+              const ne = new Int32Array(cap); ne.set(sortEnds); sortEnds = ne;
+              const ni = new Int32Array(cap); ni.set(sortIndices); sortIndices = ni;
+              if (!simple) { const nk = new Int32Array(cap); nk.set(sortKeyNums); sortKeyNums = nk; }
+            }
+            if (false) {
               validLines = false;
               break;
             }
@@ -1155,6 +1166,7 @@ async function executeSortGeneral(
               recordBudget.admit(sortEnds[i]! - sortStarts[i]!);
             }
             const revScale = numericKeyFlags?.has("r") ? -1 : 1;
+            const sortScratchIndices = new Int32Array(count);
             let src = sortIndices;
             let dst = sortScratchIndices;
             for (let width = 1; width < count; width *= 2) {
@@ -1201,7 +1213,13 @@ async function executeSortGeneral(
               const idx = src[i]!;
               const s = sortStarts[idx]!;
               const e = sortEnds[idx]!;
-              for (let p = s; p < e; p++) outBuf[used++] = firstChunk[p]!;
+              const len = e - s;
+              if (len <= 32) {
+                for (let p = s; p < e; p++) outBuf[used++] = firstChunk[p]!;
+              } else {
+                outBuf.set(firstChunk.subarray(s, e), used);
+                used += len;
+              }
               outBuf[used++] = delimiter;
             }
             await output(context, outBuf);

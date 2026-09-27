@@ -164,17 +164,28 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
     try {
       const readers = [await inputs.open(options.files[0]!), await inputs.open(options.files[1]!)];
       const previous: (Uint8Array | undefined)[] = [undefined, undefined];
-      const next = async (file: number, reset = false): Promise<Row | undefined> => {
-        const bytes = await readers[file]!.next();
+      const finishRow = (bytes: Uint8Array | undefined, file: number, reset: boolean): Row | undefined | Promise<Row | undefined> => {
         if (bytes === undefined) return undefined;
         const fields = split(bytes, options, budget), key = fields[options.fields[file]!] ?? empty;
-        if (!reset) { const oc = order.check(previous[file], key, file + 1, options.fold); if (oc) await oc; }
+        if (!reset) {
+          const oc = order.check(previous[file], key, file + 1, options.fold);
+          if (oc) return oc.then(() => { previous[file] = key; return { bytes, fields, key }; });
+        }
         previous[file] = key;
         return { bytes, fields, key };
       };
-      const rows = [await next(0), await next(1)];
+      const next = (file: number, reset = false): Row | undefined | Promise<Row | undefined> => {
+        const b = readers[file]!.next();
+        if (b instanceof Promise) return b.then(bytes => finishRow(bytes, file, reset));
+        return finishRow(b, file, reset);
+      };
+      const r0 = next(0);
+      const row0 = r0 instanceof Promise ? await r0 : r0;
+      const r1 = next(1);
+      const row1 = r1 instanceof Promise ? await r1 : r1;
+      const rows: (Row | undefined)[] = [row0, row1];
       const counts = rows.map(row => row?.fields.length ?? 0);
-      const outputParts = async (left: Row | undefined, right: Row | undefined): Promise<Uint8Array[]> => {
+      const outputPartsSlow = async (left: Row | undefined, right: Row | undefined): Promise<Uint8Array[]> => {
         const pair = [left, right], fields: Uint8Array[] = [];
         const key = (left ?? right)?.key ?? empty;
         if (Array.isArray(options.format)) {
@@ -200,8 +211,43 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
         }
         parts.push(terminator); return parts;
       };
-      const emit = async (left: Row | undefined, right: Row | undefined): Promise<void> => {
-        await budget.output(await outputParts(left, right));
+      const outputParts = (left: Row | undefined, right: Row | undefined): Uint8Array[] | Promise<Uint8Array[]> => {
+        if (!Array.isArray(options.format)) {
+          const c0 = options.format === "auto" ? counts[0]! : left?.fields.length ?? 0;
+          const c1 = options.format === "auto" ? counts[1]! : right?.fields.length ?? 0;
+          const totalSteps = (c0 + c1) * 2 + 2;
+          if ((budget.steps % 1024) + totalSteps < 1024) {
+            const key = (left ?? right)?.key ?? empty;
+            const parts: Uint8Array[] = [key.length ? key : options.replacement];
+            budget.step();
+            const f0 = options.fields[0];
+            for (let index = 0; index < c0; index++) {
+              budget.step();
+              if (index !== f0) {
+                budget.step();
+                const val = left?.fields[index] ?? empty;
+                parts.push(delimiter, val.length ? val : options.replacement);
+              }
+            }
+            const f1 = options.fields[1];
+            for (let index = 0; index < c1; index++) {
+              budget.step();
+              if (index !== f1) {
+                budget.step();
+                const val = right?.fields[index] ?? empty;
+                parts.push(delimiter, val.length ? val : options.replacement);
+              }
+            }
+            parts.push(terminator);
+            return parts;
+          }
+        }
+        return outputPartsSlow(left, right);
+      };
+      const emit = (left: Row | undefined, right: Row | undefined): void | Promise<void> => {
+        const parts = outputParts(left, right);
+        if (parts instanceof Promise) return parts.then(p => budget.output(p));
+        return budget.output(parts);
       };
       if (options.header && (rows[0] || rows[1])) {
         await emit(rows[0], rows[1]);
@@ -213,7 +259,7 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
         if (comparison !== 0) {
           const file = comparison < 0 ? 0 : 1;
           if (options.unpaired.has(file)) await emit(file === 0 ? rows[file] : undefined, file === 1 ? rows[file] : undefined);
-          rows[file] = await next(file); order.unpaired = true;
+          { const nr = next(file); rows[file] = nr instanceof Promise ? await nr : nr; } order.unpaired = true;
           continue;
         }
         const key = rows[0].key, groups: Row[][] = [[], []];
@@ -224,7 +270,7 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
             groupBytes += row.bytes.length;
             budget.check(groupBytes, limits.maxGroupBytes, "join group byte");
             budget.check(++groupRecords, limits.maxGroupRecords, "join group record");
-            groups[file]!.push(row); rows[file] = await next(file);
+            groups[file]!.push(row); { const nr = next(file); rows[file] = nr instanceof Promise ? await nr : nr; }
           }
         }
         if (options.paired) {
@@ -241,7 +287,7 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
             for (const right of groups[1]!) rightDifference += await size(firstLeft, right) - baseline;
             budget.admitOutput(leftBytes * BigInt(groups[1]!.length) + rightDifference * BigInt(groups[0]!.length));
           }
-          for (const left of groups[0]!) for (const right of groups[1]!) await emit(left, right);
+          for (const left of groups[0]!) for (const right of groups[1]!) { const ep = emit(left, right); if (ep) await ep; }
         }
       }
       for (let file = 0; file < 2; file++) {

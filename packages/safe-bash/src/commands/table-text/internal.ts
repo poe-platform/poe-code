@@ -69,7 +69,7 @@ export function compare(left: Uint8Array, right: Uint8Array, fold = false): numb
 export class Budget {
   private inputBytes = 0;
   private outputBytes = 0;
-  private steps = 0;
+  steps = 0;
   private stepYields = 0;
   private lastStepYield = monotonicNow();
   private signalAborted: boolean;
@@ -107,38 +107,70 @@ export class Budget {
   admitOutput(size: bigint): void {
     this.check(BigInt(this.outputBytes) + size, this.limits.maxOutputBytes, "output");
   }
-  async output(parts: readonly Uint8Array[]): Promise<void> {
+  private outBuf = new Uint8Array(16384);
+  private outUsed = 0;
+  private firstFlushed = false;
+  hasPendingOutput(): boolean { return this.outUsed > 0; }
+  async flushOutput(): Promise<void> {
+    if (this.outUsed === 0) return;
+    this.firstFlushed = true;
+    const slice = this.outBuf.slice(0, this.outUsed);
+    this.outUsed = 0;
+    await writeBytes(this.context.stdout, slice, this.context.signal);
+  }
+  output(parts: readonly Uint8Array[]): void | Promise<void> {
     const step = this.step();
-    if (step) await step;
     let totalLen = 0;
-    let nonEmptyCount = 0;
-    let singlePart: Uint8Array | undefined;
     for (let i = 0; i < parts.length; i++) {
-      const part = parts[i]!;
-      if (part.length) {
-        totalLen += part.length;
-        nonEmptyCount++;
-        singlePart = part;
-      }
+      totalLen += parts[i]!.length;
     }
     this.outputBytes += totalLen;
     this.check(this.outputBytes, this.limits.maxOutputBytes, "output");
-    if (totalLen === 0) return;
-    if (nonEmptyCount === 1) {
-      await writeBytes(this.context.stdout, singlePart!, this.context.signal);
-      return;
-    }
-    if (totalLen <= 16384) {
-      const combined = new Uint8Array(totalLen);
-      let offset = 0;
+    if (!step && totalLen === 0) return;
+    if (!step && this.firstFlushed && this.outUsed + totalLen <= 16384) {
       for (let i = 0; i < parts.length; i++) {
         const part = parts[i]!;
         if (part.length) {
-          combined.set(part, offset);
-          offset += part.length;
+          this.outBuf.set(part, this.outUsed);
+          this.outUsed += part.length;
         }
       }
-      await writeBytes(this.context.stdout, combined, this.context.signal);
+      return;
+    }
+    return this.outputSlow(parts, totalLen, step);
+  }
+  private async outputSlow(parts: readonly Uint8Array[], totalLen: number, step: void | Promise<void>): Promise<void> {
+    if (step) await step;
+    if (totalLen === 0) return;
+    if (!this.firstFlushed) {
+      this.firstFlushed = true;
+      if (totalLen <= 16384) {
+        const combined = new Uint8Array(totalLen);
+        let offset = 0;
+        for (let i = 0; i < parts.length; i++) {
+          const part = parts[i]!;
+          if (part.length) {
+            combined.set(part, offset);
+            offset += part.length;
+          }
+        }
+        await writeBytes(this.context.stdout, combined, this.context.signal);
+        return;
+      }
+      for (const part of parts) if (part.length) await writeBytes(this.context.stdout, part, this.context.signal);
+      return;
+    }
+    if (this.outUsed + totalLen > 16384) {
+      await this.flushOutput();
+    }
+    if (totalLen <= 16384) {
+      for (let i = 0; i < parts.length; i++) {
+        const part = parts[i]!;
+        if (part.length) {
+          this.outBuf.set(part, this.outUsed);
+          this.outUsed += part.length;
+        }
+      }
       return;
     }
     for (const part of parts) if (part.length) await writeBytes(this.context.stdout, part, this.context.signal);
@@ -183,6 +215,7 @@ export class RecordReader {
         if (step) await step;
       }
       if (this.offset === this.chunk.length) {
+        if (this.budget.hasPendingOutput()) await this.budget.flushOutput();
         const result = await this.iterator.next();
         if (result.done) { this.done = true; this.chunk = empty; break; }
         this.budget.input(result.value.length);
@@ -251,7 +284,12 @@ export class Inputs {
     return reader;
   }
   async close(): Promise<void> {
+    let flushError: unknown;
+    if (this.budget.hasPendingOutput()) {
+      try { await this.budget.flushOutput(); } catch (err) { flushError = err; }
+    }
     this.controller.abort(new FsError("EPIPE", { message: "table-text input transfer ended" }));
+    if (flushError) { await Promise.all(this.readers.map(reader => reader.close())); throw flushError; }
     await Promise.all(this.readers.map(reader => reader.close()));
   }
 }

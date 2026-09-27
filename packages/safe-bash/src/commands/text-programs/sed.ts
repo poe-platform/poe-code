@@ -675,7 +675,9 @@ async function execute(program: readonly Instruction[], context: CommandContext,
               if (nextInst.kind === "s" && !nextInst.first && !nextInst.second && !nextInst.negate && !nextInst.print && !nextInst.file && nextInst.pattern) {
                 const nextExpr = nextInst.pattern;
                 if (nextInst.replacementGroupCount! <= nextExpr.groupCount) {
+                  const canPairAnchored = expression.getFastPrefixInfo()?.anchoredStart === true;
                   if (
+                    canPairAnchored &&
                     pc === 0 &&
                     program.length === 2 &&
                     !quiet &&
@@ -762,7 +764,68 @@ async function execute(program: readonly Instruction[], context: CommandContext,
                       continue;
                     }
                   }
-                  const pairedOrPromise = trySubstitutePairSync(
+                  if (
+                    !canPairAnchored &&
+                    pc === 0 &&
+                    program.length === 2 &&
+                    !quiet &&
+                    !deleted &&
+                    appended.length === 0 &&
+                    record.terminated &&
+                    !outputState.stdoutUnterminated &&
+                    expression.canFindSync() &&
+                    nextExpr.canFindSync()
+                  ) {
+                    const g1 = instruction.global ?? false;
+                    const o1 = instruction.occurrence ?? 1;
+                    const r1 = instruction.replacement!;
+                    const g2 = nextInst.global ?? false;
+                    const o2 = nextInst.occurrence ?? 1;
+                    const r2 = nextInst.replacement!;
+                    const c1OrP = trySubstituteSync(pattern, expression, r1, budget, g1, o1);
+                    const c1 = c1OrP instanceof Promise ? await c1OrP : c1OrP;
+                    const c2OrP = trySubstituteSync(c1.text, nextExpr, r2, budget, g2, o2);
+                    const c2 = c2OrP instanceof Promise ? await c2OrP : c2OrP;
+                    lastPattern = nextExpr;
+                    appendStdout(c2.text);
+                    appendStdoutSep();
+                    if (!useBatches || stdoutLen >= STDOUT_FLUSH) {
+                      const p = flushStdout();
+                      if (p) await p;
+                    }
+                    if (batchSource && currentBatch && followingRecord === undefined) {
+                      const batchText = currentBatch.text;
+                      const batchEnds = currentBatch.ends;
+                      const endsLen = batchEnds.length;
+                      while (batchIndex < endsLen) {
+                        if (batchIndex === 0 && currentBatch.firstLinePrefix) break;
+                        const lStart = batchIndex === 0 ? 0 : batchEnds[batchIndex - 1]! + 1;
+                        const lEnd = batchEnds[batchIndex]!;
+                        const lineStr = batchText.slice(lStart, lEnd);
+                        const s1OrP = trySubstituteSync(lineStr, expression, r1, budget, g1, o1);
+                        const s1 = s1OrP instanceof Promise ? await s1OrP : s1OrP;
+                        const s2OrP = trySubstituteSync(s1.text, nextExpr, r2, budget, g2, o2);
+                        const s2 = s2OrP instanceof Promise ? await s2OrP : s2OrP;
+                        batchIndex++;
+                        number++;
+                        budget.step(3);
+                        if ((number & 31) === 0) {
+                          const pendingCheck = budget.checkpointSync();
+                          if (pendingCheck) await pendingCheck;
+                        }
+                        appendStdout(s2.text);
+                        appendStdoutSep();
+                        if (stdoutLen >= STDOUT_FLUSH) {
+                          const p = flushStdout();
+                          if (p) await p;
+                        }
+                      }
+                    }
+                    deleted = true;
+                    pc += 2;
+                    continue;
+                  }
+                  const pairedOrPromise = !canPairAnchored ? undefined : trySubstitutePairSync(
                     pattern,
                     expression,
                     instruction.replacement!,

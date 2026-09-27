@@ -66,6 +66,10 @@ class WorkBudget {
     if (this.output === this.limits.outputBytes) throw new FmtError('LIMIT', 'output limit exceeded');
     this.output++;
   }
+  admitOutputBytes(count: number): void {
+    if (count > this.limits.outputBytes - this.output) throw new FmtError('LIMIT', 'output limit exceeded');
+    this.output += count;
+  }
   exact(value: number): number {
     if ((value | 0) !== value && !Number.isSafeInteger(value)) throw new FmtError('ARITHMETIC', 'fmt exact arithmetic limit exceeded');
     return value;
@@ -257,7 +261,15 @@ class Formatter {
       const end = this.breaks[start]!;
       for (let index = start; index < end; index++) {
         const word = this.words[index]!;
-        for (let position = word.start; position < word.start + word.length; position++) { const _b = this.text[position]!; const _cp = this.budget.tick(); this.budget.admitOutput(); this.pending[this.pendingUsed++] = _b; if (_cp || this.pendingUsed === this.pending.length) yield* this.flushEmit(_cp); }
+        if (this.pendingUsed + word.length < this.pending.length && word.length <= this.budget.limits.outputBytes - this.budget.output) {
+          const _cp = this.budget.tick(word.length);
+          this.budget.admitOutputBytes(word.length);
+          this.pending.set(this.text.subarray(word.start, word.start + word.length), this.pendingUsed);
+          this.pendingUsed += word.length;
+          if (_cp) yield* this.flushEmit(true);
+        } else {
+          for (let position = word.start; position < word.start + word.length; position++) { const _b = this.text[position]!; const _cp = this.budget.tick(); this.budget.admitOutput(); this.pending[this.pendingUsed++] = _b; if (_cp || this.pendingUsed === this.pending.length) yield* this.flushEmit(_cp); }
+        }
         this.outColumn += word.length;
         if (index + 1 !== end) { if (!this.tabs && word.space === 1) { this.budget.exact(this.outColumn + 1); const _cp = this.budget.tick(); this.budget.admitOutput(); this.pending[this.pendingUsed++] = 32; if (_cp || this.pendingUsed === this.pending.length) yield* this.flushEmit(_cp); this.outColumn++; } else yield* this.spaces(word.space); }
       }
@@ -296,11 +308,27 @@ class Formatter {
   private *readLine(byte: number): FmtMachine<number> {
     do {
       const word: Word = { start: this.used, length: 0, space: 0, opening: false, period: false, punctuation: false, final: false };
-      do {
+      while (true) {
         if (this.used === this.text.length) yield* this.makeRoom(word);
         this.text[this.used++] = byte;
+        const maxFast = Math.min(this.chunkUsed - this.offset, this.text.length - this.used);
+        if (maxFast > 0) {
+          let scan = 0;
+          while (scan < maxFast) {
+            const b = this.chunk[this.offset + scan]!;
+            if (b === 32 || (b >= 9 && b <= 13)) break;
+            this.text[this.used + scan] = b;
+            scan++;
+          }
+          if (scan > 0) {
+            this.used += scan;
+            this.offset += scan;
+            if (this.budget.tick(scan)) yield* this.budget.checkpoint();
+          }
+        }
         byte = (this.offset < this.chunkUsed && !this.budget.tick()) ? this.chunk[this.offset++]! : yield* this.readSlow(this.offset < this.chunkUsed);
-      } while (byte !== -1 && byte !== 32 && !(byte >= 9 && byte <= 13));
+        if (byte === -1 || byte === 32 || (byte >= 9 && byte <= 13)) break;
+      }
       word.length = this.used - word.start;
       this.column = this.budget.exact(this.column + word.length);
       const first = this.text[word.start]!;

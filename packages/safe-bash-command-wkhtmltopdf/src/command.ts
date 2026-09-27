@@ -377,9 +377,3 @@ export type WkhtmltopdfCommandsOptions = WkhtmltopdfCommandOptions;
 export function createWkhtmltopdfCommands(options: WkhtmltopdfCommandsOptions = {}): readonly CommandDefinition[] {
   return Object.freeze([createWkhtmltopdfCommand(options)]);
 }
-
-export type WkhtmltopdfCommandsOptions = WkhtmltopdfCommandOptions;
-
-export function createWkhtmltopdfCommands(options: WkhtmltopdfCommandsOptions = {}): readonly CommandDefinition[] {
-    return [createWkhtmltopdfCommand(options)];
-}

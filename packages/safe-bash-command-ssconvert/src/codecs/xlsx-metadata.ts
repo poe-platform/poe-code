@@ -2,6 +2,7 @@ import type { XmlElement } from "@poe-code/safe-fs/xml";
 import { parseA1, formatA1, type ImportedValue, type UnsupportedRecord } from "../workbook.js";
 import { SsconvertError } from "../contracts.js";
 import { gnumericNumber } from "./gnumeric-number.js";
+import { decodeXlsxString } from "./xlsx-strings.js";
 import type { MetadataNode } from "./xlsx-write-support.js";
 
 type SourceNode = XmlElement | MetadataNode;
@@ -84,7 +85,7 @@ export function readXlsxMetadata(sheet: SourceNode, comments?: SourceNode): read
       if (errors) print.push(gnode("errors", { PrintErrorsAs: errors }));
     }
     for (const [source, target] of [["oddHeader", "Header"], ["oddFooter", "Footer"]] as const) {
-      const value = element(hf, source); if (value) print.push(gnode(target, header(value.text)));
+      const value = element(hf, source); if (value) print.push(gnode(target, header(decodeXlsxString(value.text))));
     }
     for (const [source, name] of [[rowBreaks, "hPageBreaks"], [colBreaks, "vPageBreaks"]] as const) if (source) {
       const breaks = source.children.filter(c => nodeName(c) === "brk").map(node => gnode("break", {

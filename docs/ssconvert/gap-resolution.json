@@ -2513,6 +2513,28 @@
         "validation": "Maintained regressions: two initial failures and 80 passing controls; after the correction all 104 checks in three files pass. Package lint, source/test/consumer types and selected maintained build pass. An isolated 20-case matrix covers both editions, implicit and explicit widths, raw absence/zero/native widths and positive base-width fallback.",
         "compiledValidation": "Four conversions from the maintained build cover both XLSX editions through the codec and command API, with empty command diagnostics. Independent Python ZIP/XML inspection parses all 36 XML members and verifies equal default/explicit widths and unchanged cell values. Eight additional isolated-candidate archives and 72 XML members pass raw-record controls.",
         "remaining": "Native application readback, installed-release qualification, remote delivery and containing publication remain open; no family closure."
+      },
+      "headerFooterStrings": {
+        "status": "implemented and locally qualified; remote, publication and native application gates pending",
+        "sources": [
+          {
+            "url": "https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.spreadsheet.oddheader?view=openxml-3.0.1",
+            "sha256": "ad5e8e68d047261528380fe5fdd078ce62b5546a1871941d71d19c060eee68c5",
+            "finding": "The possible values for this element are defined by the ST_Xstring simple type (22.9.2.19).",
+            "bytes": 134314
+          },
+          {
+            "url": "https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.spreadsheet.oddfooter?view=openxml-3.0.1",
+            "sha256": "c0eec86e3032df7c14d5ab56b93f9ead3309bf5549225b75efb695f20a3c3646",
+            "finding": "The possible values for this element are defined by the ST_Xstring simple type (22.9.2.19).",
+            "bytes": 134334
+          }
+        ],
+        "libreOffice": "Pinned pagesettings.cxx:214-225 appends all six header/footer character streams; this function alone does not establish native ST_Xstring decoding. Format behavior follows the primary type documentation; native execution remains unverified.",
+        "reproduction": "8 targeted failures and 82 controls before the fix: escapes remained literal; edited controls were rejected as non-XML characters.",
+        "implementation": "Decode odd header/footer strings before normalized field parsing; encode generated strings before comparing against the normalized baseline and merging raw records. Untouched odd/even/first-page wire strings remain exact.",
+        "validation": "112 tests in three files, package lint/source/test/consumer types and selected maintained build pass. Four actual compiled codec/command conversions preserve normalized controls and literal escapes with empty command diagnostics; Python independently parses 36 XML members and verifies both headers in every output.",
+        "remaining": "Native application and installed release qualification, remote delivery and publication; all 19 families stay open."
       }
     }
   },

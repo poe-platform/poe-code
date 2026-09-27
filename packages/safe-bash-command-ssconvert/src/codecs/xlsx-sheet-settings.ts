@@ -2,6 +2,7 @@ import type { CapabilityContext } from "../contracts.js";
 import type { ImportedValue, Sheet, UnsupportedRecord } from "../workbook.js";
 import { readXlsxMetadata } from "./xlsx-metadata.js";
 import { xlsxNamespaces } from "./xlsx-schema.js";
+import { encodeXlsxString } from "./xlsx-strings.js";
 import { escapeXlsx, metadataNode, type Attributes, type ElementWriter, type MetadataNode } from "./xlsx-write-support.js";
 
 // The existing XLSX column-width convention, shared by explicit and default widths.
@@ -83,7 +84,7 @@ export async function writeXlsxSheetSettings(sheet: Sheet,
         fitToHeight: fitToPage ? Number(scale?.attributes.rows ?? 0) : 0, fitToWidth: fitToPage ? Number(scale?.attributes.cols ?? 0) : 0,
         orientation: child(pi, "orientation")?.text ?? "portrait", pageOrder: child(pi, "order")?.text === "r_then_d" ? "overThenDown" : "downThenOver",
         paperSize: child(pi, "paper")?.text === "na_letter" ? 1 : 9, scale: Number(scale?.attributes.percentage ?? 100), firstPageNumber: firstPage, useFirstPageNumber: firstPage === undefined ? 0 : 1
-      }), node("headerFooter", {}, [node("oddHeader", {}, [], header(child(pi, "Header"), "&C&A", charge)), node("oddFooter", {}, [], header(child(pi, "Footer"), "&CPage &P", charge))])];
+      }), node("headerFooter", {}, [node("oddHeader", {}, [], encodeXlsxString(header(child(pi, "Header"), "&C&A", charge))), node("oddFooter", {}, [], encodeXlsxString(header(child(pi, "Footer"), "&CPage &P", charge)))])];
     return values;
   }
   const baseline = printNodes(originalPrint), current = printNodes(currentPrint);

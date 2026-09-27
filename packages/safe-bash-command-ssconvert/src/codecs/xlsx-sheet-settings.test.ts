@@ -100,6 +100,29 @@ function updateRecord(book: Workbook, kind: string, update: (node: MetadataNode)
 function attributes(node: XmlElement): Record<string, string> {
   return Object.fromEntries(node.attributes.map(a => [a.name, a.value]));
 }
+for (const edition of ["2006", "2008"] as const) for (const [wireName, modelName] of [["oddHeader", "Header"], ["oddFooter", "Footer"]] as const) {
+  it(`decodes ${edition} ${wireName} escapes once while retaining untouched wire text`, async () => {
+    const source = `<headerFooter differentFirst="1" differentOddEven="1"><${wireName}>&amp;C_x0041_ _x005F_x0000_ _x0000_ _x0026_P</${wireName}><evenHeader>_x0042_</evenHeader><evenFooter>_x0043_</evenFooter><firstHeader>_x0044_</firstHeader><firstFooter>_x0045_</firstFooter></headerFooter>`;
+    const input = await readXlsx(await fixture(parts(cells + source)), context);
+    const print = metadataNode(input.sheets[0]!.unsupportedRecords!.find(record => record.kind === "PrintInformation")!.data)!;
+    expect(print.children.find(node => node.name === modelName)!.attributes.Middle).toBe("A _x0000_ \0 &[PAGE]");
+    const output = await worksheet(await createXlsxWriter(edition)(edited(input), [], context));
+    expect(shape(output.children.find(node => node.localName === "headerFooter"))).toEqual(shape(xml(source)));
+  });
+  it(`encodes edited ${edition} ${wireName} controls and literal escape tokens`, async () => {
+    const source = "Literal _x0041_ \0\u0001\ufffe\ud800 &[PAGE] & text";
+    const book = updateRecord(await original(), "PrintInformation", node => ({ ...node, children: node.children.map(child =>
+      child.name === modelName ? { ...child, attributes: { Left: "", Middle: source, Right: "" } } : child) }));
+    const bytes = await createXlsxWriter(edition)(book, [], context);
+    const hf = (await worksheet(bytes)).children.find(node => node.localName === "headerFooter")!;
+    expect(hf.children.find(node => node.localName === wireName)!.text).toBe("&CLiteral _x005F_x0041_ _x0000__x0001__xFFFE__xD800_ &P && text");
+    for (const name of ["evenHeader", "evenFooter", "firstHeader", "firstFooter"])
+      expect(shape(hf.children.find(node => node.localName === name))).toEqual(shape(xml(records.headerFooter).children.find(node => node.localName === name)));
+    const readback = await readXlsx(bytes, context);
+    const print = metadataNode(readback.sheets[0]!.unsupportedRecords!.find(record => record.kind === "PrintInformation")!.data)!;
+    expect(print.children.find(node => node.name === modelName)!.attributes.Middle).toBe(source);
+  });
+}
 it("retains raw print records when no normalized print model is supplied", async () => {
   const input = await original();
   const book: Workbook = { ...input, sheets: input.sheets.map(sheet => ({ ...sheet,

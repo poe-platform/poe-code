@@ -2663,7 +2663,14 @@
     {
       "id": "format-record-roundtrip",
       "status": "open",
-      "currentFinding": "All 48 directional services have implementation owners; public listings expose 20 importers and 27 exporters. Registration is not semantic completion. Version/subformat/record preservation and independent roundtrip closure remain open. XLSX formula string caches now encode/decode ST_Xstring and preserve empty cached results without forced recalculation. The 139-test cohort and 32 compiled SDK/command cache observations pass; native application readback and raw-NUL formula text remain open. Issue #3863 records source-derived glossary timestamp parity for four explicit TZif profiles (1970–2037); wider timezone/date profiles and native glossary plugin activation/format qualification remain open."
+      "glossaryTimestampFinding": "Issue #3863 records source-derived glossary timestamp parity for four explicit TZif profiles (1970\u20132037); wider timezone/date profiles and native glossary plugin activation/format qualification remain open.",
+      "currentFinding": "All 48 directional services have implementation owners; public listings expose 20 importers and 27 exporters. Registration is not semantic completion. Version/subformat/record preservation and independent roundtrip closure remain open. XLSX formula string caches encode/decode ST_Xstring and preserve empty cached results without forced recalculation; the 139-test cohort and 32 compiled SDK/command observations passed. Comment author/text escapes and VML type references are repaired; rich comment metadata and native rendering remain open. At 89dd9aa4ba, rich cell font names use rFont with XString decoding/encoding, rather than treating numeric family classification as a typeface. LibreOffice bce0998a stylesbuffer.cxx:605-617 establishes this correction; it intentionally replaces the old Gnumeric-family-handler expectation. Seven failing-before checks become 111 passing focused checks, with package and root lint passing. Current compiled/native font qualification and raw-NUL formula text remain open.",
+      "richFontEvidence": {
+        "source": "out/ssconvert-xlsx-metadata/rich-font-source.json",
+        "red": "out/ssconvert-xlsx-metadata/rich-font-red.log",
+        "green": "out/ssconvert-xlsx-metadata/rich-font-final.log",
+        "packageLint": "out/ssconvert-xlsx-metadata/rich-font-lint.log"
+      }
     },
     {
       "id": "rendering-font-print-fidelity",

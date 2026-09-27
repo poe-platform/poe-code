@@ -242,7 +242,10 @@ export interface CompositeLayer {
 
 export interface SharpInputOptions {
   /** Explicit virtual filesystem for path inputs and outputs. */
-  readonly filesystem?: Pick<import("@poe-code/safe-fs/core").FileSystem, "readFile" | "writeFile">;
+  readonly filesystem?: {
+    readFile(path: string): Promise<Uint8Array>;
+    writeFile(path: string, data: Uint8Array): Promise<void>;
+  };
   readonly density?: number;
   readonly page?: number;
   readonly pages?: number;

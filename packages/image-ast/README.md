@@ -4,7 +4,8 @@ Zero-dependency image processing AST and pixel pipeline with a `sharp`-compatibl
 
 The main export selects a Web Streams Sharp API in browsers and Workers without
 Node builtins. Node retains its Duplex stream API. File paths require an explicit
-`filesystem` from safe-fs and an asynchronous output method; byte inputs also
+`filesystem` with asynchronous `readFile` and `writeFile` methods (such as safe-fs)
+and an asynchronous output method; byte inputs also
 support synchronous output. `@poe-code/image-ast/portable` exposes codecs and
 pixel operations; `compositeImage` accepts an explicit `readFile` capability.
 

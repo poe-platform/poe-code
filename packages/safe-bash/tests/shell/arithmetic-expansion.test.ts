@@ -263,3 +263,38 @@ test("wave 42: dynamic pattern trim/replace, printf -v %x/%X/%o/%u, shift in fun
   assert.equal(result.exitCode, 0);
   assert.equal(result.stdout.trim(), "1258|039:BAR_item_39_BAR:270:270:47:39|1150|BETA:14:28");
 });
+
+test("wave 43: static (( ... )) in functions/while, dynamic [[ == ]]/case globs, and tr -d/-s + uniq command substitution pipelines", async () => {
+  const { shell } = setup();
+  for (const c of basicCommands()) shell.register(c);
+  const { textCommands } = await import("../../src/commands/text.js");
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  const { streamCommands } = await import("../../src/commands/streams.js");
+  for (const c of [...textCommands(), ...createTextProgramCommands(), ...streamCommands()]) shell.commands.register(c, { replace: true });
+  const script = [
+    'step() { (( acc += $1 )); (( count++ )); if (( acc > 50 )); then (( acc -= 25 )); fi; }',
+    'acc=0; count=0; i=0; pfx="item_"; sub="_ok"; tag="alpha"; hits=0; c1=0; c2=0',
+    'classify() { case "$1" in "$tag"_*_[0-9]*) (( c1++ )) ;; *beta*gamma*) (( c2++ )) ;; esac; }',
+    'run_row() {',
+    '  local cleaned=$(printf "%s\\n" "$1" | sed "s/raw/clean/g" | tr -d " " | cut -d: -f1,3)',
+    '  local dedup=$(printf "%s\\n" "x" "x" "y" "y" "z" | uniq)',
+    '  row_out="${cleaned}|${dedup//$\x27\\n\x27/,}"',
+    '}',
+    'while (( i < 20 )); do',
+    '  step "$i"',
+    '  s="item_${i}_ok"',
+    '  if [[ $s == "$pfx"* && $s == *"$sub" && $s == *_[0-9]*_ok ]]; then (( hits++ )); fi',
+    '  classify "alpha_mid_${i}"',
+    '  (( i++ ))',
+    'done',
+    'run_row "  raw_42 : skip : val_99  "',
+    'echo "$acc:$count:$hits:$c1:$c2:$row_out"',
+  ].join("\n");
+  const expected = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", script], {
+    encoding: "utf8",
+    env: { PATH: "/usr/bin:/bin", LC_ALL: "C" },
+  });
+  const actual = await shell.exec(script);
+  assert.equal(actual.exitCode, expected.status, actual.stderr);
+  assert.equal(actual.stdout, expected.stdout);
+});

@@ -248,13 +248,27 @@ function getCompiledSyncPatternRegex(pattern: string): RegExp | null {
   let starCount = 0;
   for (let i = 0; i < pattern.length; i++) {
     const c = pattern.charCodeAt(i);
-    if (c >= 128 || c === 92) {
+    if (c >= 128) {
       syncPatternRegexCache.set(pattern, null);
       return null;
     }
+    if (c === 92) {
+      if (i + 1 >= pattern.length) {
+        syncPatternRegexCache.set(pattern, null);
+        return null;
+      }
+      const nextCh = pattern[++i]!;
+      if (nextCh.charCodeAt(0) >= 128) {
+        syncPatternRegexCache.set(pattern, null);
+        return null;
+      }
+      if (".+^${}()|[]*?-\\".includes(nextCh)) regexBody += `\\${nextCh}`;
+      else regexBody += nextCh;
+      continue;
+    }
     if (c === 42) {
       if (i === 0 || pattern.charCodeAt(i - 1) !== 42) {
-        if (++starCount > 2) {
+        if (++starCount > 4) {
           syncPatternRegexCache.set(pattern, null);
           return null;
         }
@@ -322,8 +336,8 @@ export function tryMatchesPatternSync(pattern: string, value: string, work: Stri
   let hasBracketOrQmark = false;
   for (let i = 0; i < pattern.length; i++) {
     const c = pattern.charCodeAt(i);
-    if (c === 92 || (extglob && c === 40)) return undefined;
-    if (c === 91 || c === 63) hasBracketOrQmark = true;
+    if (extglob && c === 40) return undefined;
+    if (c === 91 || c === 63 || c === 92) hasBracketOrQmark = true;
   }
   work.signal.throwIfAborted();
   work.remaining -= pattern.length + value.length + 1;
@@ -347,7 +361,8 @@ export function tryMatchesPatternSync(pattern: string, value: string, work: Stri
   if (firstStar === 0 && nextStar === pattern.length - 1) {
     return value.includes(pattern.slice(1, -1));
   }
-  return undefined;
+  const re = getCompiledSyncPatternRegex(pattern);
+  return re ? re.test(value) : undefined;
 }
 
 export async function matchesPattern(pattern: string, value: string, work: StringWork, ignoreCase = false, extglob = false): Promise<boolean> {

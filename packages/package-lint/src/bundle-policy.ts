@@ -228,10 +228,12 @@ export function findBundleIssues(
       const suffix = specifier.slice("poe-code/safe-bash/contracts".length);
       const entry = suffix ? suffix.slice(1) : "index";
       const route = record(exported[suffix ? "./safe-bash/contracts/*" : "./safe-bash/contracts"]);
-      const runtime = `packages/safe-bash-contracts/dist/${entry}.js`;
+      const runtimeRoot = ["packages/safe-bash-contracts/dist", "dist/shared/safe-bash-contracts"]
+        .find(root => route.import === `./${root}/${suffix ? "*" : "index"}.js`);
+      const runtime = `${runtimeRoot}/${entry}.js`;
       const types = `packages/safe-bash-contracts/dist/${entry}.d.ts`;
       if (entry.split("/").every(part => part && part !== "." && part !== "..") &&
-          route.import === `./packages/safe-bash-contracts/dist/${suffix ? "*" : "index"}.js` &&
+          runtimeRoot !== undefined &&
           route.types === `./packages/safe-bash-contracts/dist/${suffix ? "*" : "index"}.d.ts` &&
           Object.hasOwn(metafile.outputs ?? {}, runtime) && packedFiles.has(runtime) && packedFiles.has(types)) continue;
     }

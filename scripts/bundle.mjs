@@ -38,7 +38,7 @@ for (const dir of workspaceDirs.filter((d) => d.isDirectory())) {
 
 const workspaceGraph = await resolveBundleGraph(rootDir, packageJsons);
 const sharedWorkspaces = packageJsons.filter(({ pkg }) => pkg.poeCode?.bundle?.sharedRuntime === true)
-  .map(({ dir, pkg }) => ({ directory: path.join(packagesDir, dir), pkg }));
+  .map(({ dir, pkg }) => ({ directory: path.join(packagesDir, dir), outdir: path.join(rootDir, "dist/shared", dir), pkg }));
 const {
   alias: workspaceAliases,
   external: externalDeps,

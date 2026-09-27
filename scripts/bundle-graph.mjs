@@ -4,23 +4,24 @@ import { rewriteModuleSpecifiers } from "./module-specifiers.mjs";
 
 export function resolveSharedRuntimeBuilds(workspaceGraph, canonical, sharedWorkspaces) {
   const graph = resolveConsumerGraph(workspaceGraph, canonical);
-  return sharedWorkspaces.map(({ directory, pkg }) => ({
+  return sharedWorkspaces.map(({ directory, pkg, outdir = path.join(directory, "dist") }) => ({
     ...graph,
     entryPoints: Object.fromEntries(Object.values(pkg.exports).map(target => {
       const entry = target.import.slice("./dist/".length, -3);
       return [entry, path.join(directory, "src", entry + ".ts")];
     })),
-    outdir: path.join(directory, "dist"), bundle: true, splitting: true,
+    outdir, bundle: true, splitting: true,
     platform: "neutral", format: "esm", target: "es2022", sourcemap: true, metafile: true,
   }));
 }
 
 export function resolveConsumerGraph(graph, canonical, sharedWorkspaces = []) {
   const targets = new Map();
-  for (const { directory, pkg } of sharedWorkspaces) {
+  for (const { directory, pkg, outdir = path.join(directory, "dist") } of sharedWorkspaces) {
     for (const [route, target] of Object.entries(pkg.exports)) {
       const specifier = pkg.name + (route === "." ? "" : route.slice(1));
-      const runtime = path.resolve(directory, target.import);
+      const entry = path.relative(path.join(directory, "dist"), path.resolve(directory, target.import));
+      const runtime = path.resolve(outdir, entry);
       targets.set(specifier, runtime);
       if (graph.alias[specifier]) targets.set(graph.alias[specifier], runtime);
     }

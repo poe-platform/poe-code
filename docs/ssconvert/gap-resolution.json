@@ -2745,11 +2745,11 @@
     },
     "currentIntegration": {
       "state": "rebased locally; not pushed or published",
-      "onto": "e6fd6ccb0e",
-      "localHead": "12f2e55f5b",
-      "runtime": "Incoming generic shared-workspace contracts runtime retained. Public ssconvert bundle remains separate under dist/ssconvert; private workspace output is not overwritten. Equivalent upstream mapfile repair retained instead of replaying the local duplicate.",
-      "checks": "Final comment change: 85 focused checks, package lint, source-native Calc/Gnumeric readbacks. DOCX deep numbering: all 54 cases and package lint/types pass. Integrated build/checks in progress; previous full root run failed on two numbering timeouts.",
-      "remaining": "Current compiled/installed public qualification, full integrated acceptance, remote main delivery and containing release. All 19 families remain open."
+      "onto": "cfae5636f2",
+      "localHead": "8e27c46af8",
+      "runtime": "Incoming generic shared-workspace contracts retained. A private workspace rebuild overwrites shared public runtime in packages/safe-bash-contracts/dist; current repair emits root-owned runtime to dist/shared/safe-bash-contracts. Root declarations retain private declaration paths.",
+      "checks": "Calc source-directed comments: 85 focused checks and compiled SDK/command native readbacks pass. Live ODF labels: 8 compiled SDK/command outputs and 16 Calc conversions retain live labels and recalculate stale 999 to 5/15. Full npm test failed with 1811 passes and one unavailable-private-import shipment failure. Shared runtime output repair: 3 failing-before regressions, 29 focused passes; broader 20-file/822-test packaging cohort and root ESLint pass. Maintained root build passed. Rebuilding the two-workspace private contracts closure leaves all 74 public files byte-identical; all four public SDK bundle checks pass before and after. Package lint reports two image-ast unresolved-import violations already repaired by incoming main commit 299af2edd5; current rebase will include it.",
+      "remaining": "Rebase current main, fresh isolated installed qualification, complete full integrated acceptance, push and verify containing publication. All 19 families remain open."
     }
   },
   "history": {

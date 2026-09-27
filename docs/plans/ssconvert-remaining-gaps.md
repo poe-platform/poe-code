@@ -54,7 +54,8 @@ Keep file-output budget and cancellation ownership in `safe-bash-contracts`.
 The root SDK and Shell use the declared shared-workspace contracts runtime for
 both Node and browser profiles. Preserve that canonical identity through the
 root bundler and scoped packaging. Emit the public ssconvert SDK under
-`dist/ssconvert`, separately from its private workspace output. Verify cross-bundle
+`dist/ssconvert` and shared runtime under `dist/shared`, separately from private
+workspace output. Verify that workspace rebuilds preserve public runtime imports. Verify cross-bundle
 raw arguments, file budgets, cancellation and installed consumers before claiming
 extraction complete.
 

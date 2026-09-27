@@ -216,11 +216,11 @@
     },
     "./safe-bash/contracts": {
       "types": "./packages/safe-bash-contracts/dist/index.d.ts",
-      "import": "./packages/safe-bash-contracts/dist/index.js"
+      "import": "./dist/shared/safe-bash-contracts/index.js"
     },
     "./safe-bash/contracts/*": {
       "types": "./packages/safe-bash-contracts/dist/*.d.ts",
-      "import": "./packages/safe-bash-contracts/dist/*.js"
+      "import": "./dist/shared/safe-bash-contracts/*.js"
     }
   },
   "workspaces": [
@@ -397,7 +397,7 @@
     "!packages/safe-bash/dist/commands/op/op.test.js.map",
     "!packages/safe-bash/dist/commands/op/op.test.d.ts",
     "!packages/safe-bash/dist/commands/op/op.test.d.ts.map",
-    "packages/safe-bash-contracts/dist",
+    "packages/safe-bash-contracts/dist/**/*.d.ts",
     "packages/media-cli/dist",
     "packages/remote-execution/dist",
     "packages/safe-bash-command-exiftool/dist",

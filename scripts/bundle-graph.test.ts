@@ -13,8 +13,8 @@ import {
   resolveConsumerGraph
 } from "./bundle-graph.mjs";
 
-it("shares owned arguments between independently bundled shell and command SDK entries", async () => {
-  const contractRoot = { directory: "/repo/packages/safe-bash-contracts", pkg: {
+it.each([undefined, "/repo/dist/shared/safe-bash-contracts"])("shares owned arguments between independently bundled entries (runtime output=%s)", async outdir => {
+  const contractRoot = { directory: "/repo/packages/safe-bash-contracts", ...(outdir ? { outdir } : {}), pkg: {
     name: "safe-bash-contracts", exports: { "./command": { import: "./dist/command.js" } }
   } };
   const graph = resolveConsumerGraph({ alias: {
@@ -28,7 +28,7 @@ it("shares owned arguments between independently bundled shell and command SDK e
     const module = { exports: {} as typeof commandContracts };
     const context = createContext({ module, exports: module.exports, TextEncoder, TextDecoder, Uint8Array, Buffer,
       require(specifier: string) {
-        if (specifier === "../packages/safe-bash-contracts/dist/command.js") return commandContracts;
+        if (specifier === (outdir ? "./shared/safe-bash-contracts/command.js" : "../packages/safe-bash-contracts/dist/command.js")) return commandContracts;
         if (specifier === "poe-code/safe-fs/core") return filesystem;
         throw new Error(`Unexpected dependency: ${specifier}`);
       } });
@@ -368,14 +368,16 @@ it("rejects external workspaces without a declared runtime dependency", async ()
   await expect(resolveBundleGraph("/repo", [], createFileSystem({devDependencies: {tokenfill: "*"}, poeCode: {bundle: {external: ["tokenfill"]}}}))).rejects.toThrow("must be declared as a runtime dependency");
 });
 
-it("links shared runtime entries relative to each nested split output", async () => {
-  const graph = resolveConsumerGraph({ alias: {}, external: [] }, canonicalFs, [{ directory: "/repo/packages/contracts", pkg: { name: "contracts", exports: { "./command": { import: "./dist/command.js" }, "./errors": { import: "./dist/errors.js" } } } }]);
+it.each([undefined, "/repo/dist/shared/contracts"])("links shared entries relative to nested outputs (runtime output=%s)", async outdir => {
+  const graph = resolveConsumerGraph({ alias: {}, external: [] }, canonicalFs, [{ directory: "/repo/packages/contracts", ...(outdir ? { outdir } : {}), pkg: { name: "contracts", exports: { "./command": { import: "./dist/command.js" }, "./errors": { import: "./dist/errors.js" } } } }]);
   const result = await build({ ...graph, entryPoints: { index: "entry-root", "nested/index": "entry-nested" }, outdir: "/repo/dist", bundle: true, splitting: true, write: false, metafile: true, format: "esm", plugins: [...graph.plugins, { name: "entry", setup(builder) {
     builder.onResolve({ filter: /^entry-/ }, args => ({ path: args.path, namespace: "fixture" }));
     builder.onLoad({ filter: /.*/, namespace: "fixture" }, args => ({ contents: `export { value } from "contracts/${args.path === 'entry-root' ? 'command' : 'errors'}";` }));
   } }] });
   for (const output of result.outputFiles.filter(file => file.path.endsWith(".js"))) {
-    const expected = output.path.includes("/nested/") ? "../../packages/contracts/dist/errors.js" : "../packages/contracts/dist/command.js";
+    const expected = outdir
+      ? output.path.includes("/nested/") ? "../shared/contracts/errors.js" : "./shared/contracts/command.js"
+      : output.path.includes("/nested/") ? "../../packages/contracts/dist/errors.js" : "../packages/contracts/dist/command.js";
     expect(output.text).toContain(JSON.stringify(expected));
     const metadata = Object.entries(result.metafile.outputs).find(([filename]) => output.path === path.resolve(filename))?.[1];
     expect(metadata?.imports.some(edge => edge.external && edge.path === expected)).toBe(true);

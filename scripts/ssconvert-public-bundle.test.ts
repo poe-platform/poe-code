@@ -96,7 +96,7 @@ beforeAll(async () => {
       pkg: JSON.parse(readFileSync(resolve(root, file), "utf8"))
     }));
   const shared = packages.filter(({ pkg }) => pkg.poeCode?.bundle?.sharedRuntime === true)
-    .map(({ dir, pkg }) => ({ directory: resolve(root, "packages", dir), pkg }));
+    .map(({ dir, pkg }) => ({ directory: resolve(root, "packages", dir), outdir: resolve(root, "dist/shared", dir), pkg }));
   const workspaceGraph = await resolveBundleGraph(root, packages);
   const graph = resolveConsumerGraph(workspaceGraph, canonicalFs, shared);
   const entryPoint = resolve(root, manifest.exports["./ssconvert"].import);

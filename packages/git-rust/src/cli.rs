@@ -470,7 +470,10 @@ pub fn execute_git_cli_with_http(
                 "diff" => {
                     let cached = sub_args.contains(&"--cached") || sub_args.contains(&"--staged");
                     let sep = sub_args.iter().position(|a| *a == "--");
-                    let revision = positionals.first().copied().filter(|_| sep != Some(0));
+                    let revision = sub_args[..sep.unwrap_or(sub_args.len())]
+                        .iter()
+                        .copied()
+                        .find(|arg| !arg.starts_with('-'));
                     let paths: Vec<_> = sep
                         .map(|i| {
                             sub_args[i + 1..]

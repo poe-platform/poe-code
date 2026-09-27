@@ -451,3 +451,27 @@ fn clean_preserves_ignored_children_in_untracked_directories() {
     assert!(fs.exists("/repo/trash/nested/file"));
     assert!(fs.exists("/repo/a"));
 }
+
+#[test]
+fn diff_flags_before_path_separator_keep_paths_out_of_revisions() {
+    let fs = committed_repo();
+    fs.write_str("/repo/a", "staged a\n");
+    fs.write_str("/repo/b", "staged b\n");
+    assert_eq!(
+        execute_git_cli(&fs, "/repo", &["add", "a", "b"]).exit_code,
+        0
+    );
+    for flag in ["--cached", "--staged"] {
+        let diff = execute_git_cli(&fs, "/repo", &["diff", flag, "--", "a"]);
+        assert_eq!(diff.exit_code, 0, "{}", diff.stderr);
+        assert!(diff.stdout.contains("diff --git a/a b/a\n"));
+        assert!(!diff.stdout.contains("diff --git a/b b/b\n"));
+    }
+    fs.write_str("/repo/a", "worktree a\n");
+    let diff = execute_git_cli(&fs, "/repo", &["diff", "--no-color", "--", "a"]);
+    assert_eq!(diff.exit_code, 0, "{}", diff.stderr);
+    assert!(diff.stdout.contains("+worktree a\n"));
+    let diff = execute_git_cli(&fs, "/repo", &["diff", "HEAD", "--", "a"]);
+    assert_eq!(diff.exit_code, 0, "{}", diff.stderr);
+    assert!(diff.stdout.contains("+worktree a\n"));
+}

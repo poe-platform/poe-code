@@ -4054,7 +4054,7 @@ export class Runtime {
       const p = word.parts[i]!;
       if (p.kind === "text") {
         if (p.byteValue || (!p.quoted && i === 0 && p.value.startsWith("~"))) return undefined;
-        out += p.quoted ? p.value.replace(/[\\*?[\]()]/g, "\\\$&") : p.value;
+        out += p.quoted ? p.value.replace(/[\\*?[\]()]/g, "\\$&") : p.value;
       } else if (p.kind === "variable") {
         let val: ShellValue | undefined;
         try {
@@ -4064,7 +4064,7 @@ export class Runtime {
           return undefined;
         }
         if (typeof val !== "string") return undefined;
-        out += p.quoted ? val.replace(/[\\*?[\]()]/g, "\\\$&") : val;
+        out += p.quoted ? val.replace(/[\\*?[\]()]/g, "\\$&") : val;
       } else return undefined;
     }
     return out;
@@ -12458,9 +12458,11 @@ export class Runtime {
         void invocation.catch(() => undefined);
         return invocation;
       }, };
-    const workerRuntime = this;
-    workerRuntimeContexts.set(context, {
-      budget: this.budget, umask: state.umask ?? 0o022, ignoredSignals: captureIgnoredTrapSignals(state.extensions), get fs() { return workerRuntime.getContextFsForFast(0, getScopedSignal()); }, });
+    workerRuntimeContexts.set(context, Object.defineProperty({
+      budget: this.budget, umask: state.umask ?? 0o022, ignoredSignals: captureIgnoredTrapSignals(state.extensions),
+    }, "fs", {
+      configurable: true, enumerable: true, get: () => this.getContextFsForFast(0, getScopedSignal()),
+    }) as NonNullable<ReturnType<typeof workerRuntimeContexts.get>>);
     if (typeof nameValue !== "string") Object.defineProperty(context, "command", {
       configurable: true, enumerable: true, get: readName, set(replacement: string) { currentName = replacement; }, });
     bindCommandIO(context, io);

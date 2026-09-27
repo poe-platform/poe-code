@@ -185,3 +185,14 @@ it("retains the host environment warning in portable runtimes with Node compatib
   expect(warnings).toHaveLength(1);
   expect(warnings[0]).toContain("secret bindings");
 });
+
+
+it("keeps portable private Git factories importable outside Workers", async () => {
+  const name = "safe-bash-command-git";
+  const { default: pkg } = await import("../packages/safe-bash-command-git/package.json", { with: { type: "json" } });
+  const profile = { version: pkg.version, dependencies: pkg.dependencies, devDependencies: pkg.devDependencies, portable: true };
+  const options = resolvePrivateCommandBuild(import.meta.dirname + "/..", { [name]: profile }, [{ dir: name, pkg }], { alias: {}, external: ["safe-bash-contracts", "@poe-code/safe-fs/core"], portable: true });
+  const result = await build({ ...options, metafile: true });
+  const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
+  expect(imports.filter(entry => entry.path.endsWith(".wasm"))).toEqual([]);
+});

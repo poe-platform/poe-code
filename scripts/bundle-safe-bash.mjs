@@ -63,7 +63,7 @@ export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alia
     assetNames: "safe-bash/dist/command-assets/[name]-[hash]",
     loader: { ".wasm": "copy" },
     platform: portable ? "browser" : "node", format: "esm", target: portable ? "es2022" : "node22", sourcemap: true, write: false,
-    ...(portable ? { define: portableEnvironment, plugins: [portableLuaLibraries], conditions: ["workerd", "worker", "browser"], inject: [path.join(rootDir, "packages/safe-bash/browser/buffer.mjs")] } : {}),
+    ...(portable ? { define: portableEnvironment, plugins: [portableLuaLibraries], conditions: ["browser"], inject: [path.join(rootDir, "packages/safe-bash/browser/buffer.mjs")] } : {}),
   };
 }
 

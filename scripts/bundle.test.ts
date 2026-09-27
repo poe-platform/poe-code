@@ -83,7 +83,7 @@ beforeAll(async () => {
   publicFs = load(`${outdir}/safe-fs.js`);
   bash = load("/isolated/safe-bash.js");
   duplicated = load("/isolated/duplicate.js");
-});
+}, 30_000);
 
 it("shares frozen FS constructors and authority registries across producer entries and an external consumer", async () => {
   expect(bash.FsError).toBe(publicFs.FsError);

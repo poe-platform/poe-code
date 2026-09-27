@@ -118,7 +118,7 @@ test("stress & parity: sed/awk ergonomic regexes, uniq chunked buffering, base64
   assert.equal(fdRes.stdout, "src::utils::Readme.MD\n");
 
   const sedAwkRes = await shell.exec(
-    "printf 'id_10:  500\nid_20: 1500\nignore_me\n' | sed -E 's/\\b(?:id)_(\\d+):\\s+(\\d+)\\b/KEY=\\1 VAL=\\2/g' | awk '/\\bKEY=\\d+\\s+VAL=\\d+\\b/ { print $1, $2 }'"
+    "printf 'id_10:  500\nid_20: 1500\nignore_me\n' | sed -E 's/\\b(?:id)_(\\d+):\\s+(\\d+)\\b/KEY=\\1 VAL=\\2/g' | awk '/\\yKEY=\\d+\\s+VAL=\\d+\\y/ { print $1, $2 }'"
   );
   assert.equal(sedAwkRes.exitCode, 0, sedAwkRes.stderr);
   assert.equal(sedAwkRes.stdout, "KEY=10 VAL=500\nKEY=20 VAL=1500\n");

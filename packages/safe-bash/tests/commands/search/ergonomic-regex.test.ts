@@ -143,11 +143,18 @@ test("sed and awk support ergonomic shorthand classes (\\d, \\w, \\s) and non-ca
     assert.equal(sedWordBoundary.exitCode, 0, sedWordBoundary.stderr);
     assert.equal(sedWordBoundary.stdout, "BAR foobar barfoo DOG catfish\n");
 
-    const awkWordBoundary = await shell.exec("awk '/\\btarget\\b/ { print $1 }'", {
+    // AWK uses \y for word boundaries; \b remains a literal backspace.
+    const awkWordBoundary = await shell.exec("awk '/\\ytarget\\y/ { print $1 }'", {
       stdin: "hit target now\nskip target_2 now\n",
     });
     assert.equal(awkWordBoundary.exitCode, 0, awkWordBoundary.stderr);
     assert.equal(awkWordBoundary.stdout, "hit\n");
+
+    const awkBackspace = await shell.exec("awk '/\\btarget\\b/ { print $1 }'", {
+      stdin: "skip target now\nskip target_2 now\nhit \btarget\b now\n",
+    });
+    assert.equal(awkBackspace.exitCode, 0, awkBackspace.stderr);
+    assert.equal(awkBackspace.stdout, "hit\n");
   } finally {
     await shell.dispose();
   }

@@ -46,11 +46,11 @@ export type ParsedInvocation = {
   scale: 'css' | 'device';
 };
 
-export function validatePlaywrightSessionName(session: unknown): asserts session is string {
-  if (typeof session !== 'string' || !session || session.length > 128 || [...session].some(char => !'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-'.includes(char))) throw new Error('Invalid session name');
+export function validatePlaywrightSessionName(session: unknown, maxBytes = Infinity): asserts session is string {
+  if (typeof session !== 'string' || !session || session.length > maxBytes || [...session].some(char => !'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-'.includes(char))) throw new Error('Invalid session name');
 }
 
-export function parseInvocation(invocation: PlaywrightInvocation, abilities: ReadonlyMap<PlaywrightCommand, RegisteredPlaywrightAbility>, adapter?: PlaywrightAdapter): ParsedInvocation | { command: 'help'; topic?: PlaywrightCommand | 'tab'; json: boolean; raw: boolean } | { command: 'version'; json: boolean; raw: boolean } {
+export function parseInvocation(invocation: PlaywrightInvocation, abilities: ReadonlyMap<PlaywrightCommand, RegisteredPlaywrightAbility>, adapter?: PlaywrightAdapter, maxSessionNameBytes = Infinity): ParsedInvocation | { command: 'help'; topic?: PlaywrightCommand | 'tab'; json: boolean; raw: boolean } | { command: 'version'; json: boolean; raw: boolean } {
   const positional: string[] = [];
   const supplied = new Map<string, (string | boolean)[]>();
   const knownOptions = new Map(Object.values(playwrightCommandCatalog).flatMap(command => Object.entries(command.options)));
@@ -104,7 +104,7 @@ export function parseInvocation(invocation: PlaywrightInvocation, abilities: Rea
   const sessionValues = supplied.get('session');
   if (sessionValues && sessionValues.length !== 1) throw new Error('Repeated option: --session');
   const session = (sessionValues?.[0] as string | undefined) ?? invocation.env.PLAYWRIGHT_CLI_SESSION ?? 'default';
-  validatePlaywrightSessionName(session);
+  validatePlaywrightSessionName(session, maxSessionNameBytes);
   supplied.delete('session');
   const options: Record<string, string | boolean | readonly string[]> = {};
   for (const [flag, values] of supplied) {

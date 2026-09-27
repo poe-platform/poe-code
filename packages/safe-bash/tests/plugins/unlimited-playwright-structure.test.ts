@@ -43,3 +43,25 @@ test('element screenshots admit more than four megapixels with unlimited host bu
   await assert.rejects(capturePlaywrightTargetScreenshot(target, { ...options, maxPixels: 4_000_000 }), /pixel limit/);
   assert.equal(captures, 1);
 });
+
+import { validatePlaywrightSessionName } from '../../src/playwright/invocation.js';
+test('session names have no implicit length ceiling', () => {
+  assert.doesNotThrow(() => validatePlaywrightSessionName('s'.repeat(129)));
+  assert.throws(() => validatePlaywrightSessionName('s'.repeat(129), 128), /session name/);
+});
+import { updatePlaywrightHighlight } from '../../src/playwright/highlight.js';
+import type { PlaywrightPage } from '../../src/playwright/adapter.js';
+test('highlights admit more than 128 targets with unlimited budgets', async t => {
+  const key = Symbol.for('safe-bash.playwright.highlights');
+  const saved = Object.getOwnPropertyDescriptor(globalThis, key);
+  const document = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  const overlay = { style: {}, setAttribute() {}, remove() {} };
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: { createElement: () => overlay, documentElement: { appendChild() {} } } });
+  const entries = new Map(Array.from({length:128},()=>[{}, {overlay}]));
+  Reflect.set(globalThis,key,{entries,refresh() {}});
+  t.after(()=>{ if(saved)Object.defineProperty(globalThis,key,saved);else Reflect.deleteProperty(globalThis,key);if(document)Object.defineProperty(globalThis,'document',document);else Reflect.deleteProperty(globalThis,'document'); });
+  const target = { async evaluate(callback: (node: unknown, input: unknown)=>unknown,input: unknown) {return callback({isConnected:true},JSON.parse(JSON.stringify(input)));} } as unknown as PlaywrightElementHandle;
+  await updatePlaywrightHighlight({} as PlaywrightPage,target,{hide:false});
+  assert.equal(entries.size,129);
+  await assert.rejects(updatePlaywrightHighlight({} as PlaywrightPage,target,{hide:false,maxEntries:128}),/retention limit/);
+});

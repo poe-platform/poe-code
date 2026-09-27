@@ -3,8 +3,8 @@ import { PlaywrightResourceLimitError } from './resource-limit.js';
 
 /** Older Cloudflare clients have only a single temporary native highlight. This
  * page-owned overlay supplies persistent styling/removal with no host state. */
-export async function updatePlaywrightHighlight(page: PlaywrightPage, target: PlaywrightElementHandle | undefined, options: { hide: boolean; style?: string }): Promise<void> {
-  const update = (input: { target: unknown; hide: boolean; style?: string }): boolean => {
+export async function updatePlaywrightHighlight(page: PlaywrightPage, target: PlaywrightElementHandle | undefined, options: { hide: boolean; style?: string; maxEntries?: number | undefined }): Promise<void> {
+  const update = (input: { target: unknown; hide: boolean; style?: string; maxEntries?: number | null }): boolean => {
     type Rectangle = { x: number; y: number; width: number; height: number };
     type Node = { isConnected: boolean; getBoundingClientRect(): Rectangle; style: { cssText: string; left: string; top: string; width: string; height: string }; remove(): void; setAttribute(name: string, value: string): void };
     type Highlight = { target: Node; overlay: Node };
@@ -39,7 +39,7 @@ export async function updatePlaywrightHighlight(page: PlaywrightPage, target: Pl
       state = holder; Reflect.set(globalThis, key, state);
       browser.addEventListener('scroll', holder.refresh, true); browser.addEventListener('resize', holder.refresh);
     }
-    if (!state.entries.has(element) && state.entries.size >= 128) return false;
+    if (!state.entries.has(element) && state.entries.size >= (input.maxEntries ?? Infinity)) return false;
     let entry = state.entries.get(element);
     if (!entry) {
       const overlay = browser.document.createElement('div');
@@ -52,13 +52,13 @@ export async function updatePlaywrightHighlight(page: PlaywrightPage, target: Pl
     return true;
   };
   let result: boolean;
-  if (target) result = await target.evaluate((node, { source, hide, style }) => {
-    const operation = eval(`(${source})`) as (input: { target: unknown; hide: boolean; style?: string }) => boolean;
-    return operation({ target: node, hide, ...(style === undefined ? {} : { style }) });
-  }, { source: update.toString(), hide: options.hide, style: options.style });
+  if (target) result = await target.evaluate((node, { source, hide, style, maxEntries }) => {
+    const operation = eval(`(${source})`) as (input: { target: unknown; hide: boolean; style?: string; maxEntries?: number | null }) => boolean;
+    return operation({ target: node, hide, maxEntries, ...(style === undefined ? {} : { style }) });
+  }, { source: update.toString(), hide: options.hide, style: options.style, maxEntries: options.maxEntries === Infinity || options.maxEntries === undefined ? null : options.maxEntries });
   else {
     if (!page.evaluate) throw new Error('Browser highlight evaluation unavailable');
-    const input = { target: undefined, hide: options.hide, ...(options.style === undefined ? {} : { style: options.style }) };
+    const input = { maxEntries: options.maxEntries === Infinity || options.maxEntries === undefined ? null : options.maxEntries, target: undefined, hide: options.hide, ...(options.style === undefined ? {} : { style: options.style }) };
     const frames = page.frames?.();
     if (frames?.length && frames.every(frame => frame.evaluate)) {
       result = true;

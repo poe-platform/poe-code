@@ -66,7 +66,7 @@ function record(value: unknown): value is Record<string, unknown> {
 }
 
 function identity(value: unknown): value is string {
-  return typeof value === 'string' && value.length > 0 && value.length <= 1024 && !value.includes('\0');
+  return typeof value === 'string' && value.length > 0 && !value.includes('\0');
 }
 
 interface GraphStats {
@@ -286,7 +286,7 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
   function validateMessageEnvelope(message: unknown): asserts message is Message {
     if (!record(message) || (message.id !== undefined && !Number.isSafeInteger(message.id)) ||
       (message.sessionId !== undefined && !identity(message.sessionId)) ||
-      (message.method !== undefined && (typeof message.method !== 'string' || !message.method || message.method.length > 256)) ||
+      (message.method !== undefined && (typeof message.method !== 'string' || !message.method)) ||
       (message.id === undefined && message.method === undefined)) throw new Error('Invalid CDP message');
     for (const key of ['params', 'result', 'error']) {
       if (message[key] !== undefined && !record(message[key])) throw new Error('Invalid CDP message payload');

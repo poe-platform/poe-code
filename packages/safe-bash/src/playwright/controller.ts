@@ -382,7 +382,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       if (errors.length === 1) throw errors[0];
       if (errors.length) throw new AggregateError(errors, 'Browser observation cleanup failed');
     };
-    observePlaywrightCapabilities(context, cleanup => cleanups.push(cleanup), { maxCommandBytes, maxArtifactBytes });
+    observePlaywrightCapabilities(context, cleanup => cleanups.push(cleanup), { maxCommandBytes, maxArtifactBytes, maxEventEntries: options.limits?.maxEventEntries });
     observePlaywrightModals(context, cleanup => cleanups.push(cleanup));
     observePlaywrightDownloads(context, cleanup => cleanups.push(cleanup), { ...(options.limits?.maxDownloads === undefined ? {} : { maxCount: options.limits.maxDownloads }), maxMetadataBytes: maxCommandBytes });
     context.on('page', onPage);
@@ -736,7 +736,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       if (filename !== undefined) writtenFiles.add(resolvePath(original.workspace?.cwd ?? '/', filename));
     } };
     if (lifetime.signal.aborted) throw new Error('Playwright controller is disposed');
-    const parsed = parseInvocation(invocation, abilities, options.adapter);
+    const parsed = parseInvocation(invocation, abilities, options.adapter, options.limits?.maxSessionNameBytes);
     const defaultSelection = invocation.env.PLAYWRIGHT_CLI_SESSION ?? 'default';
     if ('session' in parsed && options.namedSessionAttachment && parsed.command !== 'attach' && !parsed.explicitSession && attachedSession?.selection === defaultSelection) parsed.session = attachedSession.name;
     if (invocation.operationId !== undefined) validatePlaywrightSessionName(invocation.operationId);
@@ -859,7 +859,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       if (session.lease?.checkTrace) await session.lease.checkTrace(session.lease.context, { signal: local.signal });
       if (!session.lease?.captureTrace) return [];
       return flushPlaywrightTrace(session.lease.context, session.lease.captureTrace, {
-        signal: local.signal, maxBytes: Math.min(maxArtifactBytes, commandBudget.remaining), maxFiles: options.limits?.maxTraceFiles, writeArtifact,
+        signal: local.signal, maxBytes: Math.min(maxArtifactBytes, commandBudget.remaining), maxFiles: options.limits?.maxTraceFiles, maxPathBytes: options.limits?.maxTracePathBytes, writeArtifact,
         ...(invocation.workspace ? { mkdir: (path: string) => invocation.workspace!.mkdir(path) } : {}),
       });
     };
@@ -1457,7 +1457,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
               const style = parsed.options.style as string | undefined;
               if (!target) {
                 if (page!.hideHighlight) await page!.hideHighlight();
-                else await updatePlaywrightHighlight(page!, undefined, { hide });
+                else await updatePlaywrightHighlight(page!, undefined, { hide, maxEntries: options.limits?.maxHighlights });
                 await writeResult({ sections: [{ title: 'Result', content: 'Hid page highlight' }] });
               } else {
                 const handle = await resolveTarget(session, target);
@@ -1469,7 +1469,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
                 if (page!.hideHighlight && locator.hideHighlight && locator.highlight) {
                   if (hide) await locator.hideHighlight();
                   else await locator.highlight(style === undefined ? {} : { style });
-                } else await updatePlaywrightHighlight(page!, handle, { hide, ...(style === undefined ? {} : { style }) });
+                } else await updatePlaywrightHighlight(page!, handle, { hide, maxEntries: options.limits?.maxHighlights, ...(style === undefined ? {} : { style }) });
                 await writeResult({ sections: [{ title: 'Result', content: hide ? `Hid highlight for ${description}` : `Highlighted ${description}` }] });
               }
             } else if (parsed.command === 'generate-locator') {

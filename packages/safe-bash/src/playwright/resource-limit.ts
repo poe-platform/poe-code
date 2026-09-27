@@ -12,6 +12,10 @@ export function isPlaywrightResourceLimitError(error: unknown): boolean {
 
 /** Optional resource ceilings. Omitted values and Infinity disable the ceiling. */
 export interface PlaywrightStructureLimits {
+  readonly maxHighlights?: number | undefined;
+  readonly maxEventEntries?: number | undefined;
+  readonly maxTracePathBytes?: number | undefined;
+  readonly maxSessionNameBytes?: number | undefined;
   readonly maxConfigBytes?: number | undefined;
   readonly maxConfigEntries?: number | undefined;
   readonly maxConfigDepth?: number | undefined;
@@ -38,6 +42,7 @@ export interface PlaywrightStructureLimits {
   readonly maxWebMCPMetadataDepth?: number | undefined;
 }
 export const playwrightStructureDefaults: Required<PlaywrightStructureLimits> = Object.freeze({
+  maxHighlights: Infinity, maxEventEntries: Infinity, maxTracePathBytes: Infinity, maxSessionNameBytes: Infinity,
   maxConfigBytes: Infinity, maxConfigEntries: Infinity, maxConfigDepth: Infinity,
   maxOutputFiles: Infinity, maxSnapshotDepth: Infinity, maxRecordingActions: Infinity,
   maxEvaluationInputBytes: Infinity, maxEvaluationBytes: Infinity, maxEvaluationEntries: Infinity, maxEvaluationDepth: Infinity, maxScreenshotPixels: Infinity, maxStorageNodes: Infinity, maxStorageDepth: Infinity, maxDownloads: Infinity,

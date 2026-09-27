@@ -30,7 +30,7 @@ export function preparePlaywrightTraceRelease(context: PlaywrightContext): Promi
 }
 
 export async function flushPlaywrightTrace(context: PlaywrightContext, capture: PlaywrightTraceCapture | undefined,
-  options: { signal: AbortSignal; maxBytes: number; maxFiles?: number | undefined; writeArtifact(bytes: Uint8Array, filename?: string): Promise<void>; mkdir?(path: string): Promise<void> }): Promise<string[]> {
+  options: { signal: AbortSignal; maxBytes: number; maxFiles?: number | undefined; maxPathBytes?: number | undefined; writeArtifact(bytes: Uint8Array, filename?: string): Promise<void>; mkdir?(path: string): Promise<void> }): Promise<string[]> {
   const recording = recordings.get(context);
   if (!recording?.name || !capture) return [];
   const result = await capture(context, { signal: options.signal, maxBytes: options.maxBytes });
@@ -38,7 +38,7 @@ export async function flushPlaywrightTrace(context: PlaywrightContext, capture: 
   let total = 0;
   const paths = new Set<string>();
   for (const file of result.files) {
-    if (typeof file.path !== 'string' || file.path.length > 256 || paths.has(file.path)) throw new Error('Invalid native trace path');
+    if (typeof file.path !== 'string' || new TextEncoder().encode(file.path).byteLength > (options.maxPathBytes ?? Infinity) || paths.has(file.path)) throw new Error('Invalid native trace path');
     const resource = file.path.startsWith('resources/') ? file.path.slice('resources/'.length) : undefined;
     if (resource !== undefined ? !resource || resource === '.' || resource === '..' || [...resource].some(char => !'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-@'.includes(char))
       : ![`${recording.name}.trace`, `${recording.name}.network`].includes(file.path)) throw new Error('Invalid native trace path');

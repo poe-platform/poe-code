@@ -36,7 +36,7 @@ export function getPlaywrightMainFrameNavigation(context: PlaywrightContext, pag
 function pageIdentity(page: PlaywrightPage): object { return page.mainFrame?.() ?? page; }
 
 export function observePlaywrightCapabilities(context: PlaywrightContext, registerCleanup: (cleanup: () => Promise<void>) => void,
-  limits: { maxCommandBytes: number; maxArtifactBytes: number }): void {
+  limits: { maxCommandBytes: number; maxArtifactBytes: number; maxEventEntries?: number | undefined }): void {
   if (states.has(context)) return;
   const requests = new WeakMap<PlaywrightNetworkRequest, RequestRecord>();
   const history = new Map<object, { bytes: number; evict(): void }>();
@@ -54,7 +54,7 @@ export function observePlaywrightCapabilities(context: PlaywrightContext, regist
     bytes += size - (previous?.bytes ?? 0);
     history.set(record, { bytes: size, evict });
     if (size > state.maxBytes) forget(record);
-    while (history.size > 4096 || bytes > state.maxBytes) forget(history.keys().next().value!);
+    while (history.size > (limits.maxEventEntries ?? Infinity) || bytes > state.maxBytes) forget(history.keys().next().value!);
   };
   const byteLength = (text: string) => new TextEncoder().encode(text).byteLength;
   const pageEvents = (page: PlaywrightPage): PageEvents => {

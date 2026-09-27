@@ -193,7 +193,7 @@ test('large uploads and repeated requests roll diagnostics without imposing a tr
   const context = new EventEmitter() as EventEmitter & PlaywrightContext;
   const page = {} as PlaywrightPage;
   const closes: (() => Promise<void>)[] = [];
-  observePlaywrightCapabilities(context, close => closes.push(close), { maxCommandBytes: 1024 * 1024, maxArtifactBytes: 4096 });
+  observePlaywrightCapabilities(context, close => closes.push(close), { maxCommandBytes: 1024 * 1024, maxArtifactBytes: 4096, maxEventEntries: 4096 });
   let bodyReads = 0;
   const emit = (index: number, body: string | null) => {
     const native = { url: () => `https://example.com/upload/${index}`, method: () => 'POST', resourceType: () => 'fetch', headers: () => ({}), postData: () => { bodyReads++; return body; }, failure: () => null, frame: () => ({ page: () => page, parentFrame: () => null }), isNavigationRequest: () => false };

@@ -1,4 +1,4 @@
-import { expect, it, beforeAll, afterAll, vi } from "vitest";
+import { expect, it, beforeAll, vi } from "vitest";
 import { convert, readDocument, writeDocument } from "./engine.js";
 import type { Document } from "./types.js";
 import type { Block } from "./ast-types.js";

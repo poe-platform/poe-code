@@ -163,10 +163,11 @@ export class LazyInput {
     if (nl >= 0) {
       const end = nl + 1;
       const line = this.#pending.slice(this.#cursor, end);
+      const stripLineNul = stripNul && this.#pendingHasNul;
       this.#cursor = end;
       if (this.#cursor === this.#pending.length) { this.#pending = ""; this.#pendingHasNul = false; this.#cursor = 0; }
       else if (this.#cursor >= 65536) { this.#pending = this.#pending.slice(this.#cursor); this.#cursor = 0; }
-      return stripNul && this.#pendingHasNul && line.includes("\0") ? line.replaceAll("\0", "") : line;
+      return stripLineNul && line.includes("\0") ? line.replaceAll("\0", "") : line;
     }
     if (this.#done) {
       if (this.#cursor >= this.#pending.length) { this.#pending = ""; this.#cursor = 0; return null; }

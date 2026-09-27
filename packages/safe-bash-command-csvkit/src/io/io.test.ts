@@ -5,6 +5,7 @@ import { defaultLimits, execute } from "../engine.js";
 import { OwnedArguments } from "../argv.js";
 import { utf8Codec } from "../codecs/utf8.js";
 import type { CsvkitContext } from "../contracts.js";
+import { LazyInput } from "./index.js";
 
 function setup(input: string, argv: string[] = []) {
   const reads: string[] = [], cleanups: (() => Promise<void>)[] = [];
@@ -37,6 +38,23 @@ test("named CSV iteration strips NUL while stdin iteration and bulk read preserv
   for await (const record of runtime.records("-")) stdin.push(record.cells);
   expect(stdin).toEqual([["a\0", "b"], ["x\0", "y"]]);
   await runtime.close();
+});
+
+test.each([
+  { chunks: ["x\0\n"], lines: ["x\n"] },
+  { chunks: ["x\0", "\n"], lines: ["x\n"] },
+  { chunks: ["x\0\n", "y\0\n"], lines: ["x\n", "y\n"] },
+  { chunks: ["x\0\ny\0\n"], lines: ["x\n", "y\n"] },
+  { chunks: ["x\0"], lines: ["x"] }
+])("named line iteration removes NUL across decoded buffer boundaries: $chunks", async ({ chunks, lines }) => {
+  const input = new LazyInput("data.csv", () => ({ async *[Symbol.asyncIterator]() {
+    for (const chunk of chunks) yield new TextEncoder().encode(chunk);
+  } }), utf8Codec, "utf-8", new AbortController().signal, () => {}, () => {});
+  try {
+    const actual = [];
+    for await (const line of input.lines()) actual.push(line);
+    expect(actual).toEqual(lines);
+  } finally { await input.close(); }
 });
 
 test("stdin has one cursor even when injected source is reusable", async () => {

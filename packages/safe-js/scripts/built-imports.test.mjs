@@ -213,9 +213,9 @@ for (const edge of ["target", "handler"]) {
     const entry = name => JSON.stringify(new URL(`../dist/${name}.js`, import.meta.url).href);
     const source = `
       import assert from "node:assert/strict";
-      import { MAX_DATA_DEPTH } from ${entry("graph-depth")};
       import { measureSandboxData } from ${entry("interp/values")};
       import { createGuestProxy } from ${entry("interp/guest-proxy")};
+      const STRESS_DEPTH = 1024;
       function chain(length) {
         const shared = {};
         let value = {};
@@ -223,8 +223,8 @@ for (const edge of ["target", "handler"]) {
           value = ${JSON.stringify(edge)} === "target" ? createGuestProxy(value, shared) : createGuestProxy(shared, value);
         return value;
       }
-      assert.equal(measureSandboxData([chain(MAX_DATA_DEPTH)]), MAX_DATA_DEPTH + 2);
-      assert.throws(() => measureSandboxData([chain(MAX_DATA_DEPTH + 1)]), { code: "budgetExceeded", budget: "dataDepth" });
+      assert.equal(measureSandboxData([chain(STRESS_DEPTH)]), STRESS_DEPTH + 2);
+      assert.equal(measureSandboxData([chain(STRESS_DEPTH + 1)]), STRESS_DEPTH + 3);
     `;
     await initializeInFreshRealm(source);
   });

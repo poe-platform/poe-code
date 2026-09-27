@@ -65,6 +65,28 @@ test('failed output retires the producer once and repeated cleanup shares comple
   assert.equal(first, second); await first;
   assert.equal(run.returned(), 1);
 });
+test('output exhaustion publishes the already admitted prefix', async () => {
+  const run = fixture(['-w20'], 'A'.repeat(10001) + ' end');
+  assert.equal((await fmt(run.context, { limits: { outputBytes: 1500 } })).exitCode, 1);
+  assert.ok(run.stdout.length > 0 && run.stdout.length <= 1500);
+  assert.ok(run.stdout.every(byte => byte === 65));
+  assert.match(new TextDecoder().decode(Uint8Array.from(run.stderr)), /limit exceeded/);
+});
+test('a failing prefix flush preserves both failures and does not retry the sink', async () => {
+  const run = fixture(['-w20'], 'A'.repeat(10001) + ' end');
+  const failure = new Error('prefix sink failed');
+  let writes = 0;
+  let reported: unknown;
+  const context = { ...run.context,
+    stdout: { async write() { writes++; throw failure; } },
+    onInternalError(error: unknown) { reported = error; },
+  };
+  assert.equal((await fmt(context, { limits: { outputBytes: 1500 } })).exitCode, 1);
+  assert.equal(writes, 1);
+  assert.ok(reported instanceof AggregateError);
+  assert.match(reported.errors[0].message, /limit exceeded/);
+  assert.equal(reported.errors[1], failure);
+});
 test('cleanup closes resource admission without waiting for VFS metadata', async () => {
   const run = fixture(['file'], '');
   let admit!: () => void;

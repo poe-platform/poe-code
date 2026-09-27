@@ -249,40 +249,52 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
             outBatchUsed = 0;
             await output(outputContext, slice);
           };
-          while (!step.done) {
-            local.signal.throwIfAborted();
-            if (step.value === "input") {
-              if (outBatchUsed) await flushOutBatch();
-              let bytes: Uint8Array | null = null;
-              if (!readFailed) {
-                try { bytes = await current.next(); if (bytes?.length) received = true; }
-                catch (error) {
-                  local.signal.throwIfAborted();
-                  if (isFsError(error, "EFBIG")) throw new FmtError("LIMIT", "byte command input limit exceeded");
-                  readFailed = true;
-                  readError = !received && name !== "-" && error instanceof FsError && ["ENOENT", "EACCES", "ENOTDIR", "ELOOP"].includes(error.code) ? fileError(error, name, nameBytes, true, context) : error;
-                }
-              }
-              if (bytes?.length === 0 && ++emptyChunks > 4096) throw new FmtError("LIMIT", "empty input chunk limit exceeded");
-              if (++chunks % 64 === 0) await maybeYield(local.signal);
-              step = machine.next(bytes);
-            } else {
-              if (step.value) {
-                if (outBatch) {
-                  if (outBatchUsed + step.value.length > outBatch.length) await flushOutBatch();
-                  if (step.value.length >= outBatch.length) await output(outputContext, step.value);
-                  else {
-                    outBatch.set(step.value, outBatchUsed);
-                    outBatchUsed += step.value.length;
+          try {
+            while (!step.done) {
+              local.signal.throwIfAborted();
+              if (step.value === "input") {
+                if (outBatchUsed) await flushOutBatch();
+                let bytes: Uint8Array | null = null;
+                if (!readFailed) {
+                  try { bytes = await current.next(); if (bytes?.length) received = true; }
+                  catch (error) {
+                    local.signal.throwIfAborted();
+                    if (isFsError(error, "EFBIG")) throw new FmtError("LIMIT", "byte command input limit exceeded");
+                    readFailed = true;
+                    readError = !received && name !== "-" && error instanceof FsError && ["ENOENT", "EACCES", "ENOTDIR", "ELOOP"].includes(error.code) ? fileError(error, name, nameBytes, true, context) : error;
                   }
-                } else {
-                  await output(outputContext, step.value);
                 }
-              } else if (++checkpoints % 64 === 0) await maybeYield(local.signal);
-              step = machine.next();
+                if (bytes?.length === 0 && ++emptyChunks > 4096) throw new FmtError("LIMIT", "empty input chunk limit exceeded");
+                if (++chunks % 64 === 0) await maybeYield(local.signal);
+                step = machine.next(bytes);
+              } else {
+                if (step.value) {
+                  if (outBatch) {
+                    if (outBatchUsed + step.value.length > outBatch.length) await flushOutBatch();
+                    if (step.value.length >= outBatch.length) await output(outputContext, step.value);
+                    else {
+                      outBatch.set(step.value, outBatchUsed);
+                      outBatchUsed += step.value.length;
+                    }
+                  } else {
+                    await output(outputContext, step.value);
+                  }
+                } else if (++checkpoints % 64 === 0) await maybeYield(local.signal);
+                step = machine.next();
+              }
             }
+            if (outBatchUsed) await flushOutBatch();
+          } catch (error) {
+            local.signal.throwIfAborted();
+            // The engine already admitted these bytes before the failure.
+            // A failed write clears the batch first, so it is never retried.
+            try { await flushOutBatch(); }
+            catch (flushError) {
+              local.signal.throwIfAborted();
+              throw new AggregateError([error, flushError], 'fmt failed while flushing partial output');
+            }
+            throw error;
           }
-          if (outBatchUsed) await flushOutBatch();
           try { await current.close(); }
           catch (error) { if (!readFailed) throw error; }
           current = undefined;

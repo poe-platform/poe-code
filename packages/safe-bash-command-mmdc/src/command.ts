@@ -682,7 +682,7 @@ export async function runMmdc(
     if (outPath === "-") {
       await writeBytes(stdout.output, outputBytes, signal);
     } else {
-      await writeFileOutput({ ...context, signal }, outputBytes, async bytes => {
+      await writeFileOutput({ signal, ...(context.registerCleanup ? { registerCleanup: context.registerCleanup } : {}) }, outputBytes, async bytes => {
         if (context.fs.writeFileConditional && parentOutStat) {
           await context.fs.writeFileConditional(outPath, bytes, {
             expected: expectedOutStat, parent: parentOutStat, signal

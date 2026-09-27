@@ -49,6 +49,7 @@ const cases: [string, () => CommandDefinition, string[], string?][] = [
   ["qpdf", createQpdfCommand, ["/in.pdf", "/out.pdf"]],
   ["soffice", createSofficeCommand, ["--convert-to", "txt", "/in.csv"]],
   ["mmdc conditional", createMmdcCommand, ["-i", "/in.mmd", "-o", "/out.svg"]],
+  ["mmdc non-enumerable budget owner", createMmdcCommand, ["-i", "/in.mmd", "-o", "/out.svg"]],
   ["mmdc publish", createMmdcCommand, ["-i", "/in.mmd", "-o", "/out.svg"]],
   ["mmdc fallback", createMmdcCommand, ["-i", "/in.mmd", "-o", "/out.svg"]],
   ["pdfimages", createPdfimagesCommand, ["-png", "/in.pdf", "/image"]],
@@ -91,6 +92,7 @@ for (const [name, create, args, input = ""] of cases) {
         stdin: (async function* () { yield encoder.encode(input); })(),
         stdout: { async write() {} }, stderr: { async write(bytes) { errors.push(new TextDecoder().decode(bytes)); } },
       };
+      if (name === "mmdc non-enumerable budget owner") Object.defineProperty(context, "registerCleanup", { enumerable: false });
       bindFileOutputBudget(context, sink => ({ async write(bytes) {
         attempts++;
         if (bytes.length > limit - charged) throw new Error("bound file-output budget exceeded");

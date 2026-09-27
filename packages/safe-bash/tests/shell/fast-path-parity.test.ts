@@ -46,6 +46,7 @@ const cases = [
   'echo "${PIPESTATUS[*]}"; x=$(printf "abc\\n" | grep xyz); printf "%s|%s\\n" "$?" "${PIPESTATUS[*]}"',
   'x=$(printf "abc\\n" | grep xyz)$(printf ok); printf "%s|%s\\n" "$?" "$x"',
   'x=$(printf ok)$(printf "abc\\n" | grep xyz); printf "%s|%s\\n" "$?" "$x"',
+  'while break; do echo wrong; done; echo done',
 ];
 
 for (const source of cases) test(`fast-path Bash parity: ${source}`, async () => {

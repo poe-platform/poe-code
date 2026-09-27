@@ -51,6 +51,7 @@ export interface PlaywrightNetworkPolicyOptions {
   readonly retire: () => Promise<void>;
   readonly onRequestFailure?: (failure: PlaywrightPolicyFailure) => void;
   readonly requestTimeoutMs?: number;
+  readonly commandTimeoutMs?: number;
   readonly maxResponseBytes?: number;
   readonly maxRequestBytes?: number;
   /** Incoming UTF-8 CDP JSON cap; unlimited when omitted. */
@@ -119,7 +120,9 @@ export async function installPlaywrightNetworkPolicy(options: PlaywrightNetworkP
     if (selected !== Infinity && (!Number.isSafeInteger(selected) || selected < 1)) throw new TypeError('Invalid network policy limit');
     return selected;
   };
-  const timeout = positive(options.requestTimeoutMs, 30000);
+  const timeout = positive(options.requestTimeoutMs, Infinity);
+  const commandTimeout = positive(options.commandTimeoutMs, Infinity);
+  for (const deadline of [timeout, commandTimeout]) if (deadline !== Infinity && deadline > 2147483647) throw new TypeError("Invalid network policy timeout");
   const maxResponse = positive(options.maxResponseBytes, Infinity);
   const maxRequest = positive(options.maxRequestBytes, Infinity);
   const maxMessage = positive(options.maxProtocolMessageBytes, Infinity);
@@ -128,7 +131,7 @@ export async function installPlaywrightNetworkPolicy(options: PlaywrightNetworkP
   const maxHeaders = positive(options.maxHeaders, Infinity);
   const maxHeaderBytes = positive(options.maxHeaderBytes, Infinity);
   const { socket } = options;
-  const pending = new Map<number, { resolve(value: any): void; reject(error: unknown): void; timer: ReturnType<typeof setTimeout> }>();
+  const pending = new Map<number, { resolve(value: any): void; reject(error: unknown): void; timer: ReturnType<typeof setTimeout> | undefined }>();
   const targets = new Map<string, Target>();
   const operations = new Set<Operation>();
   const work = new Set<Promise<void>>();
@@ -167,11 +170,11 @@ export async function installPlaywrightNetworkPolicy(options: PlaywrightNetworkP
     if (pending.size >= maxConcurrent + maxTargets + 1) { void dispose().catch(() => {}); return Promise.reject(new Error('CDP command capacity exceeded')); }
     const id = ++nextId;
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
+      const timer = commandTimeout === Infinity ? undefined : setTimeout(() => {
         pending.delete(id);
         reject(new Error(`CDP ${method} timed out`));
         void dispose().catch(() => {});
-      }, Math.min(timeout, 10000));
+      }, commandTimeout);
       pending.set(id, { resolve, reject, timer });
       try { socket.send(JSON.stringify({ id, method, params, ...(sessionId ? { sessionId } : {}) })); }
       catch (error) { clearTimeout(timer); pending.delete(id); reject(error); lost(); }
@@ -214,7 +217,7 @@ export async function installPlaywrightNetworkPolicy(options: PlaywrightNetworkP
     const controller = new AbortController();
     const operation = { controller, networkId: params.networkId ?? params.requestId, sessionId, nativeCanceled: false };
     const identity = { targetId: target.targetId, ...(typeof target.browserContextId === 'string' ? { browserContextId: target.browserContextId } : {}), frameId: params.frameId ?? '', requestId: operation.networkId, resourceType: params.resourceType ?? '' };
-    const timer = setTimeout(() => controller.abort(new Error('Host request deadline exceeded')), timeout);
+    const timer = timeout === Infinity ? undefined : setTimeout(() => controller.abort(new Error('Host request deadline exceeded')), timeout);
     operations.add(operation);
     let release: (() => void | Promise<void>) | undefined;
     try {

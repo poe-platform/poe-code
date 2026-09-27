@@ -161,7 +161,7 @@ for (const scenario of [
     let fetched = 0;
     const fixtureState = await fixture(context, async () => {
       fetched++; return { status: 200, headers: [], body: bytes };
-    }, scenario.maxRequestBytes === undefined ? {} : { maxRequestBytes: scenario.maxRequestBytes });
+    }, { maxHeaderBytes: 65536, ...(scenario.maxRequestBytes === undefined ? {} : { maxRequestBytes: scenario.maxRequestBytes }) });
     try {
       fixtureState.paused('invalid', { ...upload(), ...scenario.request });
       await tick();
@@ -218,7 +218,7 @@ test('upload cancellation preserves network identity and ignores a canceled fail
 });
 
 test('held upload failure acknowledgements still time out and retire the browser', async context => {
-  const fixtureState = await fixture(context, async () => { throw new Error('Host rejected upload'); });
+  const fixtureState = await fixture(context, async () => { throw new Error('Host rejected upload'); }, { commandTimeoutMs: 10000 });
   context.mock.timers.enable({ apis: ['setTimeout'] });
   try {
     fixtureState.paused('timeout');

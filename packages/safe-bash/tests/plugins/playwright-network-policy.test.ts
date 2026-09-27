@@ -143,7 +143,7 @@ test('header and body limits reject before protocol fulfillment', async () => {
   const failures: any[] = [];
   let oversizedBody = false;
   const policy = await installPlaywrightNetworkPolicy({
-    socket, directNetwork: 'blocked-by-host', maxResponseBytes: 2, retire: async () => {},
+    socket, directNetwork: 'blocked-by-host', maxResponseBytes: 2, maxHeaderBytes: 65536, retire: async () => {},
     onRequestFailure: failure => failures.push(failure),
     fetch: async () => ({ status: 200, headers: [{ name: 'x-fixture', value: oversizedBody ? 'ok' : 'x'.repeat(65537) }], body: new Uint8Array(oversizedBody ? 3 : 0) }),
   });

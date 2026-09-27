@@ -244,7 +244,7 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
     clearTimeout(commandTimer);
     commandTimer = undefined;
     timedCommandId = first?.[0];
-    if (!first) return;
+    if (!first || limits.commandTimeoutMs === Infinity) return;
     const [id, command] = first;
     commandTimer = setTimeout(() => retire(new Error(
       `CDP ${command.method} timed out (command ${id}, pending ${pending.size}, deadline ${limits.commandTimeoutMs}ms, elapsed ${Math.round(performance.now() - command.started)}ms)`,

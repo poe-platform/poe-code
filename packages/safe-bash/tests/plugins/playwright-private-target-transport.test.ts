@@ -820,3 +820,15 @@ test('#731: default private transport accepts 33 MiB messages in both directions
     state.transport.close();
   }
 });
+
+test('private transport deadlines default to unlimited and accept explicit Infinity', context => {
+  context.mock.timers.enable({ apis: ['setTimeout'] });
+  for (const limits of [{}, { commandTimeoutMs: Infinity, creationTimeoutMs: Infinity }]) {
+    const state = fixture(limits);
+    const creation = state.beginCreation();
+    context.mock.timers.tick(60_000);
+    assert.equal(state.reasons.length, 0);
+    creation.rollback();
+    state.transport.close();
+  }
+});

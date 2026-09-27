@@ -149,7 +149,9 @@ export class Limits {
       }
       if (now - this.lastYieldMs >= 25) {
         this.lastYieldMs = now;
-        return yieldTurn(this.context.signal);
+        return yieldTurn(this.context.signal).then(() => {
+          this.lastYieldMs = monotonicNow();
+        });
       }
     }
     return undefined;

@@ -28,7 +28,7 @@ class SortWork {
           if (++this.#syncTurns % 8 === 0) {
             const now = monotonicNow();
             // A fast or coarse host clock must not suppress every host turn.
-            if (this.#syncTurns >= 32 || now - this.#lastYield >= 16) {
+            if (this.#syncTurns >= 256 || now - this.#lastYield >= 16) {
               this.#syncTurns = 0;
               this.#lastYield = now;
               return this.#checkpointOnce();
@@ -43,6 +43,7 @@ class SortWork {
 
   async #checkpointOnce(): Promise<void> {
     await yieldTurn(this.signal);
+    this.#lastYield = monotonicNow();
     this.signal.throwIfAborted();
   }
 

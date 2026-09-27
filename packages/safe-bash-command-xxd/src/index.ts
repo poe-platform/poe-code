@@ -267,9 +267,11 @@ async function* rows(source: ByteSource, width: number): ByteSource {
         used = 0;
       }
     }
-    while (offset + width <= chunk.length) {
-      yield chunk.subarray(offset, offset + width);
-      offset += width;
+    const available = chunk.length - offset;
+    if (available >= width) {
+      const fullBytes = available - (available % width);
+      yield chunk.subarray(offset, offset + fullBytes);
+      offset += fullBytes;
     }
     if (offset < chunk.length) {
       const rem = chunk.length - offset;
@@ -539,47 +541,67 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
       : columns * (binary ? 8 : 2) + (group ? Math.floor((columns - 1) / group) : 0);
     let outBuf = "";
     let flushedFirst = false;
-    const writeOut = async (text: string) => {
-      outBuf += text;
-      if (!flushedFirst || outBuf.length >= 8192) {
+    const flushOut = async () => {
+      if (outBuf) {
         flushedFirst = true;
         const chunk = outBuf;
         outBuf = "";
         await output(context, chunk);
       }
     };
+    const writeOut = async (text: string) => {
+      outBuf += text;
+      if (!flushedFirst || outBuf.length >= 16384) await flushOut();
+    };
     if (include && includeName !== undefined) await writeOut(`unsigned char ${identifier}[] = {\n`);
-    for await (const row of rows(source, plain && !columns ? 4096 : columns)) {
+    const rowWidth = plain && !columns ? 4096 : columns;
+    for await (const batch of rows(source, rowWidth)) {
       any = true;
-      if (include) {
-        if (includeRow) await writeOut(includeRow + ",\n");
-        const includePrefix = upper ? "0X" : "0x";
-        includeRow = "  " + Array.from(row, byte => includePrefix + hexTable[byte]!).join(", ");
-        includeLength = addOffset(includeLength, row.length);
-        continue;
-      }
-      let data = "";
-      let ascii = "";
-      for (let index = 0; index < row.length; index++) {
-        if (!plain && !littleEndian && group && index && index % group === 0) data += " ";
-        const byte = row[index]!;
-        if (!littleEndian) data += byteTable[byte]!;
-        if (!plain) ascii += ASCII_CHAR[byte]!;
-      }
-      if (littleEndian) {
-        for (let start = 0; start < row.length; start += octets) {
-          if (start) data += " ";
-          for (let index = start + octets - 1; index >= start; index--) {
-            data += index < row.length ? hexTable[row[index]!]! : "  ";
+      for (let rowStart = 0; rowStart < batch.length; rowStart += rowWidth) {
+        const row = batch.subarray(rowStart, Math.min(batch.length, rowStart + rowWidth));
+        if (include) {
+          if (includeRow) outBuf += includeRow + ",\n";
+          const includePrefix = upper ? "0X" : "0x";
+          includeRow = "  " + Array.from(row, byte => includePrefix + hexTable[byte]!).join(", ");
+          includeLength = addOffset(includeLength, row.length);
+          if (!flushedFirst && outBuf || outBuf.length >= 16384) await flushOut();
+          continue;
+        }
+        if (!plain && !littleEndian && !binary && columns === 16 && group === 2 && row.length === 16) {
+          const b0 = row[0]!, b1 = row[1]!, b2 = row[2]!, b3 = row[3]!;
+          const b4 = row[4]!, b5 = row[5]!, b6 = row[6]!, b7 = row[7]!;
+          const b8 = row[8]!, b9 = row[9]!, b10 = row[10]!, b11 = row[11]!;
+          const b12 = row[12]!, b13 = row[13]!, b14 = row[14]!, b15 = row[15]!;
+          const address = offset.toString(decimalAddress ? 10 : 16).padStart(8, "0");
+          outBuf += `${address}: ${hexTable[b0]}${hexTable[b1]} ${hexTable[b2]}${hexTable[b3]} ${hexTable[b4]}${hexTable[b5]} ${hexTable[b6]}${hexTable[b7]} ${hexTable[b8]}${hexTable[b9]} ${hexTable[b10]}${hexTable[b11]} ${hexTable[b12]}${hexTable[b13]} ${hexTable[b14]}${hexTable[b15]}  ${ASCII_CHAR[b0]}${ASCII_CHAR[b1]}${ASCII_CHAR[b2]}${ASCII_CHAR[b3]}${ASCII_CHAR[b4]}${ASCII_CHAR[b5]}${ASCII_CHAR[b6]}${ASCII_CHAR[b7]}${ASCII_CHAR[b8]}${ASCII_CHAR[b9]}${ASCII_CHAR[b10]}${ASCII_CHAR[b11]}${ASCII_CHAR[b12]}${ASCII_CHAR[b13]}${ASCII_CHAR[b14]}${ASCII_CHAR[b15]}\n`;
+          offset = addOffset(offset, 16);
+          if (!flushedFirst || outBuf.length >= 16384) await flushOut();
+          continue;
+        }
+        let data = "";
+        let ascii = "";
+        for (let index = 0; index < row.length; index++) {
+          if (!plain && !littleEndian && group && index && index % group === 0) data += " ";
+          const byte = row[index]!;
+          if (!littleEndian) data += byteTable[byte]!;
+          if (!plain) ascii += ASCII_CHAR[byte]!;
+        }
+        if (littleEndian) {
+          for (let start = 0; start < row.length; start += octets) {
+            if (start) data += " ";
+            for (let index = start + octets - 1; index >= start; index--) {
+              data += index < row.length ? hexTable[row[index]!]! : "  ";
+            }
           }
         }
+        if (plain) outBuf += data + (columns ? "\n" : "");
+        else {
+          const address = offset.toString(decimalAddress ? 10 : 16).padStart(8, "0");
+          outBuf += `${address}: ${data.padEnd(width)}  ${ascii}\n`;
+        }
+        offset = addOffset(offset, row.length);
+        if (!flushedFirst || outBuf.length >= 16384) await flushOut();
       }
-      if (plain) await writeOut(data + (columns ? "\n" : ""));
-      else {
-        const address = offset.toString(decimalAddress ? 10 : 16).padStart(8, "0");
-        await writeOut(`${address}: ${data.padEnd(width)}  ${ascii}\n`);
-      }
-      offset = addOffset(offset, row.length);
     }
     if (include) {
       if (includeRow) await writeOut(includeRow + "\n");

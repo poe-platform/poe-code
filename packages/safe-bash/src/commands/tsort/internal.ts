@@ -131,9 +131,11 @@ export class Budget {
     this.checkpoint = this.work;
     const count = ++this.checkpointCount;
     const now = monotonicNow();
-    if (count === 1 || (count & 15) === 0 || now - this.lastYield >= 16 || hasYieldCheckpoint(this.signal)) {
+    if (count === 1 || now - this.lastYield >= 16 || hasYieldCheckpoint(this.signal)) {
       this.lastYield = now;
-      return yieldTurn(this.signal);
+      return yieldTurn(this.signal).then(() => {
+        this.lastYield = monotonicNow();
+      });
     }
     return runYieldCheckpoint(this.signal);
   }

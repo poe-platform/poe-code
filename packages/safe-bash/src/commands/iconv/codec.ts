@@ -100,7 +100,29 @@ export async function convert(input: Uint8Array, options: Parsed, state: Convers
       if (input[0] === 0xfe && input[1] === 0xff) { state.swap = true; offset = 2; }
       else if (input[0] === 0xff && input[1] === 0xfe) offset = 2;
     }
+    const asciiDirect = (options.from === "utf8" || options.from === "ascii" || options.from === "latin1")
+      && (options.to === "utf8" || options.to === "ascii" || options.to === "latin1");
     while (offset < input.length) {
+      if (asciiDirect && input[offset]! < 128 && used < buffer.length && batchCount < 8160) {
+        const maxRun = Math.min(input.length - offset, buffer.length - used, 8160 - batchCount, 256);
+        let run = 1;
+        while (run < maxRun && input[offset + run]! < 128) run++;
+        budget.charge(run * 16);
+        { const cp = budget.checkpointWork(); if (cp) await cp; }
+        buffer.set(input.subarray(offset, offset + run), used);
+        used += run;
+        offset += run;
+        batchCount += run;
+        started = true;
+        if (batchCount === 8160) {
+          batchCount = 0;
+          firstTargetBatch = false;
+          if (targetSuppressed) {
+            status = 1; await flush(); suppressed = false; targetSuppressed = false;
+          }
+        }
+        continue;
+      }
       budget.charge(16);
       { const cp = budget.checkpointWork(); if (cp) await cp; }
       const decoded = decode(input, offset, options.from, state.swap);

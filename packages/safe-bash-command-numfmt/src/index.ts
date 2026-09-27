@@ -654,9 +654,11 @@ class Converter {
     if (this.work % 1024 < amount) {
       const count = ++this.tickCount;
       const now = monotonicNow();
-      if (count === 1 || (count & 63) === 0 || now - this.lastYield >= 16 || hasYieldCheckpoint(this.context.signal)) {
+      if (count === 1 || now - this.lastYield >= 16 || hasYieldCheckpoint(this.context.signal)) {
         this.lastYield = now;
-        return yieldTurn(this.context.signal);
+        return yieldTurn(this.context.signal).then(() => {
+          this.lastYield = monotonicNow();
+        });
       }
       runYieldCheckpoint(this.context.signal);
     }

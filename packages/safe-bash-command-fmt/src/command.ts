@@ -219,9 +219,10 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
         const maybeYield = async (signal: AbortSignal): Promise<void> => {
           const count = ++yieldCount;
           const now = monotonicNow();
-          if (count === 1 || (count & 15) === 0 || now - lastYield >= 16 || hasYieldCheckpoint(signal)) {
+          if (count === 1 || now - lastYield >= 16 || hasYieldCheckpoint(signal)) {
             lastYield = now;
             await contractYieldTurn(signal);
+            lastYield = monotonicNow();
           } else {
             await runYieldCheckpoint(signal);
           }

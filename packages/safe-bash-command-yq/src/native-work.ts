@@ -1,5 +1,5 @@
 import { createOutputOperation, type ByteSource, type CommandContext, type InvocationCleanup } from "safe-bash-contracts";
-import { yieldTurn } from "safe-bash-contracts/yield";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 
 export const mikeLimits = Object.freeze({
   maxInputBytes: Infinity, maxDocumentBytes: Infinity,
@@ -39,6 +39,8 @@ export class NativeWork {
   #aborted = false;
   #steps = 0;
   #yieldAt = 1024;
+  #yieldedOnce = false;
+  #lastYield = monotonicNow();
   #input = 0;
   #nodes = 0;
   #aliases = 0;
@@ -68,7 +70,18 @@ export class NativeWork {
     if (!Number.isSafeInteger(this.#steps) || this.#steps > this.limits.maxSteps) throw new MikeError("yq limit exceeded: maxSteps");
     if (this.#steps >= this.#yieldAt) {
       this.#yieldAt = this.#steps + 1024;
-      return yieldTurn(this.signal).then(() => { this.assertOpen(); });
+      const now = monotonicNow();
+      if (!hasYieldCheckpoint(this.signal) && this.#yieldedOnce && now - this.#lastYield < 16) {
+        runYieldCheckpoint(this.signal);
+        this.assertOpen();
+        return;
+      }
+      this.#yieldedOnce = true;
+      this.#lastYield = now;
+      return yieldTurn(this.signal).then(() => {
+        this.#lastYield = monotonicNow();
+        this.assertOpen();
+      });
     }
   }
 

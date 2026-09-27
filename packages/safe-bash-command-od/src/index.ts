@@ -262,9 +262,11 @@ async function* rows(source: ByteSource, width: number): ByteSource {
         used = 0;
       }
     }
-    while (offset + width <= chunk.length) {
-      yield chunk.subarray(offset, offset + width);
-      offset += width;
+    const available = chunk.length - offset;
+    if (available >= width) {
+      const fullBytes = available - (available % width);
+      yield chunk.subarray(offset, offset + fullBytes);
+      offset += fullBytes;
     }
     if (offset < chunk.length) {
       const rem = chunk.length - offset;
@@ -730,41 +732,48 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
     const isBigEndian = endian === "big";
     let outBuf = "";
     let flushedFirst = false;
-    const writeOut = async (text: string) => {
-      outBuf += text;
-      if (!flushedFirst || outBuf.length >= 8192) {
+    const flushOut = async () => {
+      if (outBuf) {
         flushedFirst = true;
         const chunk = outBuf;
         outBuf = "";
         await output(context, chunk);
       }
     };
-    for await (const row of rows(range(sources(context, parsed.operands, maxInputBytes), skip, count), width)) {
-      let same = false;
-      if (!verbose && previous !== undefined && previous.length === row.length) {
-        same = true;
-        for (let i = 0; i < row.length; i++) {
-          if (previous[i] !== row[i]) {
-            same = false;
-            break;
+    const writeOut = async (text: string) => {
+      outBuf += text;
+      if (!flushedFirst || outBuf.length >= 16384) await flushOut();
+    };
+    for await (const batch of rows(range(sources(context, parsed.operands, maxInputBytes), skip, count), width)) {
+      for (let rowStart = 0; rowStart < batch.length; rowStart += width) {
+        const row = batch.subarray(rowStart, Math.min(batch.length, rowStart + width));
+        let same = false;
+        if (!verbose && previous !== undefined && previous.length === row.length) {
+          same = true;
+          for (let i = 0; i < row.length; i++) {
+            if (previous[i] !== row[i]) {
+              same = false;
+              break;
+            }
           }
         }
-      }
-      if (same) {
-        if (!suppressed) await writeOut("*\n");
-        suppressed = true;
-      } else {
-        const addr = address();
-        const pad = selected.length > 1 ? " ".repeat(addr.length) : "";
-        for (let index = 0; index < selected.length; index++) {
-          const prefix = index === 0 ? addr : pad;
-          await writeOut(`${prefix}${formatRow(row, selected[index]!, isBigEndian)}\n`);
+        if (same) {
+          if (!suppressed) outBuf += "*\n";
+          suppressed = true;
+        } else {
+          const addr = address();
+          const pad = selected.length > 1 ? " ".repeat(addr.length) : "";
+          for (let index = 0; index < selected.length; index++) {
+            const prefix = index === 0 ? addr : pad;
+            outBuf += `${prefix}${formatRow(row, selected[index]!, isBigEndian)}\n`;
+          }
+          if (previous === undefined || previous.length !== row.length) previous = row.slice();
+          else previous.set(row);
+          suppressed = false;
         }
-        if (previous === undefined || previous.length !== row.length) previous = row.slice();
-        else previous.set(row);
-        suppressed = false;
+        offset = addOffset(offset, row.length);
+        if (!flushedFirst && outBuf || outBuf.length >= 16384) await flushOut();
       }
-      offset = addOffset(offset, row.length);
     }
     if (radix !== "n") await writeOut(`${address()}\n`);
     if (outBuf) await output(context, outBuf);

@@ -1018,14 +1018,14 @@ test("csvjson nonstream serialization awaits backpressure at each byte sink writ
   } finally { release(); await execution; await shell.dispose(); }
 });
 
-for (const maxOutputBytes of [3, 40024]) test(`csvjson nonstream output refusal keeps admitted batches within byte budget ${maxOutputBytes}`, async () => {
+for (const maxOutputBytes of [3, 40024]) test(`csvjson nonstream output refusal keeps admitted tokens within byte budget ${maxOutputBytes}`, async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(csvkitCommands({ ...options, limits: { maxOutputBytes } }));
   const value = "x".repeat(20000);
   const prefix = `[{"a": "${value}"}, {"a": "${value}"}`;
   try {
     const result = await shell.exec("csvjson -I -y0", { stdin: `a\n${value}\n${value}\nlast\n` });
     assert.equal(result.exitCode, 78);
-    assert.equal(result.stdout, maxOutputBytes === 3 ? "" : prefix);
+    assert.equal(result.stdout, maxOutputBytes === 3 ? "[{" : prefix + ", {");
     assert.ok(Buffer.byteLength(result.stdout) <= maxOutputBytes);
     assert.equal(result.stderr, "");
   } finally { await shell.dispose(); }

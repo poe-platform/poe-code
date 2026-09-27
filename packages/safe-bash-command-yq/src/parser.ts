@@ -4,6 +4,11 @@ import type { YqOwnedWork } from "safe-bash-query-engine/query-core";
 import { aliasFailure, copyAlias, YqLedger, yqCaps } from "./accounting.js";
 import { YqError, limit, type YqCode } from "./errors.js";
 
+const encoder = new TextEncoder();
+function utf8Bytes(text: string): number {
+  return typeof Buffer === "undefined" ? encoder.encode(text).byteLength : Buffer.byteLength(text);
+}
+
 type ScalarStyle = "plain" | "single" | "double" | "literal" | "folded";
 
 interface ParsedNode {
@@ -74,15 +79,15 @@ function compactStringBytes(text: string): number {
     const point = character.codePointAt(0)!;
     if (point === 0x22 || point === 0x5c || point === 0x08 || point === 0x0c || point === 0x0a || point === 0x0d || point === 0x09) bytes += 2;
     else if (point < 0x20) bytes += 6;
-    else bytes += Buffer.byteLength(character);
+    else bytes += utf8Bytes(character);
   }
   return bytes;
 }
 
 function compactScalarBytes(value: Json): number {
   if (typeof value === "string") return compactStringBytes(value);
-  if (isNumber(value)) return Buffer.byteLength(numberText(value));
-  return Buffer.byteLength(JSON.stringify(value));
+  if (isNumber(value)) return utf8Bytes(numberText(value));
+  return utf8Bytes(JSON.stringify(value));
 }
 
 function indentation(line: string): number {
@@ -834,7 +839,7 @@ class Composer {
     { const _p = this.work.chargeSync ? this.work.chargeSync(1) : this.work.charge(1); if (_p) await _p; }
     this.work.assertOpen();
     this.ledger.admitNode();
-    const bytes = Buffer.byteLength(text);
+    const bytes = utf8Bytes(text);
     if (!admitted) this.ledger.admitScalar(bytes);
     let codePoints = 0;
     for (const unused of text) {
@@ -1202,10 +1207,7 @@ class BlockParser {
   }
 }
 
-// Bound retained line metadata to a few MiB independently of the byte cap.
-const maxYamlSourceLines = 65_536;
-
-async function* documents(text: string, work: YqOwnedWork, lineOffset = 0): AsyncGenerator<RawDocument> {
+async function* documents(text: string, work: YqOwnedWork, maxSourceLines: number, lineOffset = 0): AsyncGenerator<RawDocument> {
   let current: SourceLine[] = [];
   let explicit = false;
   let ended = false;
@@ -1234,12 +1236,12 @@ async function* documents(text: string, work: YqOwnedWork, lineOffset = 0): Asyn
     const character = text[index];
     const hadBreak = character === "\r" || character === "\n";
     if (!hadBreak && index + 1 < text.length) continue;
-    if (++count > maxYamlSourceLines) throw limit("LIMIT_MAX_SOURCE_LINES");
+    if (++count > maxSourceLines - lineOffset) throw limit("LIMIT_MAX_SOURCE_LINES");
     work.assertOpen();
     const rawLine = text.slice(start, hadBreak ? index : index + 1);
     if (character === "\r" && text[index + 1] === "\n") index++;
     start = index + 1;
-    const original: SourceLine = { text: rawLine, number: lineOffset + count, rawBytes: Buffer.byteLength(rawLine) + (hadBreak ? 1 : 0), hadBreak };
+    const original: SourceLine = { text: rawLine, number: lineOffset + count, rawBytes: utf8Bytes(rawLine) + (hadBreak ? 1 : 0), hadBreak };
     let line = original;
     if (line.number === 1 && line.text.startsWith("\ufeff")) line = { ...line, text: line.text.slice(1) };
     if (ended && line.text.startsWith("\ufeff")) line = { ...line, text: line.text.slice(1) };
@@ -1300,7 +1302,7 @@ function futureAnchorNames(lines: readonly SourceLine[]): string[] {
 export async function* parseYamlDocuments(text: string, work: YqOwnedWork, ledger: YqLedger, admittedRawBytes?: number, lineOffset = 0): AsyncGenerator<Json> {
   if (!wellFormed(text)) throw new YqError("input", "INPUT_INVALID_UTF8", 5);
   let admitted = false;
-  for await (const document of documents(text, work, lineOffset)) {
+  for await (const document of documents(text, work, ledger.limits.maxSourceLines, lineOffset)) {
     ledger.beginDocument(admittedRawBytes !== undefined && !admitted ? admittedRawBytes : document.rawBytes);
     admitted = true;
     let singleQuoted = false;

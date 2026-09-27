@@ -20,6 +20,7 @@ export const yqCaps = Object.freeze({
   maxDocuments: Infinity,
   maxAnchorsPerDocument: Infinity,
   maxAliasReferences: Infinity,
+  maxSourceLines: Infinity,
   maxDocumentNodes: Infinity,
   maxOutputBytes: Infinity,
   diagnosticReserveBytes: Infinity,
@@ -29,6 +30,7 @@ export const yqCaps = Object.freeze({
 
 export interface YqLimits {
   readonly maxAliasReferences: number;
+  readonly maxSourceLines: number;
   readonly maxDocumentNodes: number;
   readonly maxValueBytes: number;
   readonly maxSteps: number;
@@ -38,6 +40,7 @@ export function resolveYqLimits(overrides: Partial<YqLimits> = {}): Readonly<YqL
   if (typeof overrides !== "object" || overrides === null) throw new TypeError("limits must be an object");
   const limits: YqLimits = {
     maxAliasReferences: yqCaps.maxAliasReferences,
+    maxSourceLines: yqCaps.maxSourceLines,
     maxDocumentNodes: yqCaps.maxDocumentNodes,
     maxValueBytes: yqCaps.maxValueBytes,
     maxSteps: yqCaps.maxSteps,

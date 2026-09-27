@@ -3,7 +3,9 @@
 Safe Bash includes a YAML/TOML query profile and an optional Mike-yq
 profile with document, comment, alias and in-place editing support. Both execute
 against the shell's virtual filesystem. Resource quotas default to `Infinity`;
-configure finite byte, work, node, alias or depth limits when needed. Explicit
+configure finite byte, work, node, alias or depth limits when needed.
+The query profile also accepts `limits.maxSourceLines` to bound YAML lines,
+including comments and document separators; it defaults to `Infinity`. Explicit
 `Infinity` disables an individual quota. The optional profile requires the
 optional `yaml@2.9.0` peer.
 

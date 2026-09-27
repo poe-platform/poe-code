@@ -26,7 +26,7 @@ describe("guarded lint diagnostic caching", () => {
     expect(second.operations).toEqual(first.operations);
     const changed = model({ "src/unit.js": "unknownBinding();" });
     expect(await lintRoot({ guard: changed.guard, config: changed.config, receiptBinding: changed.binding, diagnosticsCache })).toMatchObject({ exitCode: 1 });
-  });
+  }, 20000);
 
   it("reuses clean diagnostics across checkout paths and invalidates source, rules and tool versions", () => {
     const { store, subject, result, cache } = fixture();

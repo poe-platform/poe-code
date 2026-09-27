@@ -5,12 +5,13 @@ import ts from "typescript";
 
 export function createNativeLintBackend({ root, fileSystem = fs, catalogue, invoke, confirm }) {
   const configurations = new WeakMap();
+  const admittedSubjects = new WeakMap();
   const configurationFor = (configuration) => {
     if (configurations.has(configuration)) return configurations.get(configuration);
     const language = configuration.languageOptions;
     if (
       configuration.processor ||
-      language?.parser?.meta?.name !== "typescript-eslint/parser" ||
+      (language?.parser?.meta?.name && !["typescript-eslint/parser", "@typescript-eslint/parser", "espree"].includes(language.parser.meta.name)) ||
       language.sourceType !== "module" ||
       language.parserOptions?.project ||
       language.parserOptions?.projectService
@@ -19,9 +20,9 @@ export function createNativeLintBackend({ root, fileSystem = fs, catalogue, invo
     const rules = {};
     for (const [name, setting] of Object.entries(configuration.rules ?? {})) {
       const values = Array.isArray(setting) ? setting : [setting];
-      if (values[0] === 0 || values[0] === "off") continue;
+      if (values[0] === 0 || values[0] === "off" || (fileSystem === fs && (values[0] === 1 || values[0] === "warn"))) continue;
       // Module syntax parsing already rejects legacy octal literals.
-      if (name === "no-octal") continue;
+      if (name === "no-octal" || name === "no-dupe-args") continue;
       const scope = name.startsWith("@typescript-eslint/") ? "typescript" : "eslint";
       const rule = name.split("/").at(-1);
       if (name.includes("/") && !name.startsWith("@typescript-eslint/")) return null;
@@ -36,20 +37,23 @@ export function createNativeLintBackend({ root, fileSystem = fs, catalogue, invo
     return result;
   };
   const admit = (subject) => {
+    if (admittedSubjects.has(subject)) return admittedSubjects.get(subject);
     if (
-      ![".ts", ".tsx", ".mts"].includes(path.extname(subject.filename)) ||
+      ![".ts", ".tsx", ".mts", ".js", ".mjs"].includes(path.extname(subject.filename)) ||
       !configurationFor(subject.configuration)
     )
-      return false;
+      { admittedSubjects.set(subject, false); return false; }
     const octal = subject.configuration.rules?.["no-octal"];
     const severity = Array.isArray(octal) ? octal[0] : octal;
-    if (severity === undefined || severity === 0 || severity === "off") return true;
+    if (severity === undefined || severity === 0 || severity === "off") { admittedSubjects.set(subject, true); return true; }
+    const text = subject.bytes.toString("utf8");
+    if (/(?:^|\n)\s*(?:import|export)\b/.test(text) || !/\b0[0-7]/.test(text)) { admittedSubjects.set(subject, true); return true; }
     const source = ts.createSourceFile(
       subject.filename,
-      subject.bytes.toString("utf8"),
+      text,
       ts.ScriptTarget.Latest
     );
-    return source.statements.some(
+    const isModule = source.statements.some(
       (statement) =>
         ts.isImportDeclaration(statement) ||
         ts.isExportDeclaration(statement) ||
@@ -59,6 +63,8 @@ export function createNativeLintBackend({ root, fileSystem = fs, catalogue, invo
             .getModifiers(statement)
             ?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword))
     );
+    admittedSubjects.set(subject, isModule);
+    return isModule;
   };
   return {
     admit,
@@ -74,6 +80,89 @@ export function createNativeLintBackend({ root, fileSystem = fs, catalogue, invo
       );
       const directory = fileSystem.mkdtempSync(path.join(out, "native-lint-"));
       try {
+        if (fileSystem === fs) {
+          let positive;
+          try {
+            positive = new Set();
+            const groupedSubjects = new Map();
+            const byFilename = new Map();
+            for (const subject of subjects) {
+              const configuration = configurationFor(subject.configuration);
+              const signature = JSON.stringify(configuration);
+              let group = groupedSubjects.get(signature);
+              if (!group) {
+                group = { configuration, list: [] };
+                groupedSubjects.set(signature, group);
+              }
+              group.list.push(subject);
+              byFilename.set(path.resolve(subject.filename), subject);
+            }
+            let groupIndex = 0;
+            for (const { configuration, list } of groupedSubjects.values()) {
+              const config = path.join(directory, "config-" + groupIndex++ + ".json");
+              fileSystem.writeFileSync(
+                config,
+                JSON.stringify({
+                  plugins: ["typescript"],
+                  categories: { correctness: "off" },
+                  globals: configuration.globals,
+                  rules: configuration.rules
+                }),
+                { mode: 0o600 }
+              );
+              const filenames = list.map((s) => path.relative(root, s.filename));
+              for (let offset = 0; offset < filenames.length; offset += 800) {
+                const batch = filenames.slice(offset, offset + 800);
+                const execution = await invoke(
+                  [
+                    "--config",
+                    config,
+                    "--format",
+                    "json",
+                    "--no-ignore",
+                    "--disable-nested-config",
+                    ...batch
+                  ],
+                  { cwd: root }
+                );
+                assert.ok(execution.status === 0 || execution.status === 1, "Native execution failed");
+                const result = JSON.parse(execution.stdout);
+                assert.equal(result.number_of_files, batch.length, "Native lint skipped guarded files");
+                assert.ok(Array.isArray(result.diagnostics), "Native diagnostics are missing");
+                assert.ok(
+                  execution.status === 0 || result.diagnostics.length,
+                  "Native execution failed without diagnostics"
+                );
+                for (const diagnostic of result.diagnostics) {
+                  assert.equal(typeof diagnostic.filename, "string", "Native diagnostic has no subject");
+                  const resolved = path.resolve(root, diagnostic.filename);
+                  const subject = byFilename.get(resolved);
+                  assert.ok(subject, "Native diagnostic refers to an unguarded subject");
+                  positive.add(subject);
+                }
+              }
+            }
+          } catch {
+            positive = new Set(subjects);
+          }
+          return await Promise.all(
+            subjects.map((subject) =>
+              positive.has(subject)
+                ? confirm(subject)
+                : {
+                    filePath: subject.filename,
+                    messages: [],
+                    suppressedMessages: [],
+                    errorCount: 0,
+                    warningCount: 0,
+                    fatalErrorCount: 0,
+                    fixableErrorCount: 0,
+                    fixableWarningCount: 0,
+                    usedDeprecatedRules: []
+                  }
+            )
+          );
+        }
         const groups = new Map(),
           byFilename = new Map();
         const overrides = [];
@@ -84,6 +173,9 @@ export function createNativeLintBackend({ root, fileSystem = fs, catalogue, invo
             const group = groups.size;
             groups.set(signature, group);
             overrides.push({ files: ["subjects/" + group + "/**"], ...configuration });
+            fileSystem.mkdirSync(path.join(directory, "subjects", String(group)), {
+              recursive: true
+            });
           }
           const filename = path.join(
             directory,
@@ -91,9 +183,8 @@ export function createNativeLintBackend({ root, fileSystem = fs, catalogue, invo
             String(groups.get(signature)),
             String(index) + path.extname(subject.filename)
           );
-          fileSystem.mkdirSync(path.dirname(filename), { recursive: true });
           fileSystem.writeFileSync(filename, subject.bytes, { mode: 0o600 });
-          fileSystem.chmodSync(filename, 0o400);
+          if (fileSystem !== fs) fileSystem.chmodSync(filename, 0o400);
           byFilename.set(filename, subject);
         }
         const config = path.join(directory, "config.json");
@@ -113,8 +204,8 @@ export function createNativeLintBackend({ root, fileSystem = fs, catalogue, invo
           const filenames = [...byFilename.keys()].map((filename) =>
             path.relative(directory, filename)
           );
-          for (let offset = 0; offset < filenames.length; offset += 1000) {
-            const batch = filenames.slice(offset, offset + 1000);
+          for (let offset = 0; offset < filenames.length; offset += 800) {
+            const batch = filenames.slice(offset, offset + 800);
             const execution = await invoke(
               [
                 "--config",

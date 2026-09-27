@@ -71,7 +71,75 @@ function validateRootLinkOwner(bytes) {
   }, 'root link Git observations changed');
 }
 
+function createCachedRealFileSystem(baseFs) {
+  const lstatCache = new Map();
+  const readdirBufferCache = new Map();
+  const realpathCache = new Map();
+  let lastFileTarget = null;
+  let lastFileStat = null;
+  return {
+    ...baseFs,
+    _isCachedRealFs: true,
+    lstatSync(target, ...rest) {
+      if (rest.length === 0 && typeof target === "string") {
+        if (target === lastFileTarget) return lastFileStat;
+        let cached = lstatCache.get(target);
+        if (!cached) {
+          cached = baseFs.lstatSync(target);
+          if (cached.isDirectory()) {
+            cached._identity = Object.freeze(Object.fromEntries(identityKeys.map(key => [key, cached[key]])));
+            lstatCache.set(target, cached);
+          } else {
+            lastFileTarget = target;
+            lastFileStat = cached;
+          }
+        }
+        return cached;
+      }
+      return baseFs.lstatSync(target, ...rest);
+    },
+    readdirSync(target, options) {
+      if (typeof target === "string" && options && options.encoding === "buffer" && Object.keys(options).length === 1) {
+        let cached = readdirBufferCache.get(target);
+        if (!cached) {
+          cached = baseFs.readdirSync(target, options);
+          cached._fromRealCache = true;
+          if (readdirBufferCache.size >= 128) {
+            readdirBufferCache.delete(readdirBufferCache.keys().next().value);
+          }
+          readdirBufferCache.set(target, cached);
+        }
+        return cached;
+      }
+      return baseFs.readdirSync(target, options);
+    },
+    realpathSync(target, ...rest) {
+      if (rest.length === 0 && typeof target === "string") {
+        let cached = realpathCache.get(target);
+        if (cached === undefined) {
+          const stat = target === lastFileTarget ? lastFileStat : lstatCache.get(target);
+          if (stat && !stat.isSymbolicLink()) {
+            const slash = target.lastIndexOf("/");
+            const parent = slash <= 0 ? "/" : target.slice(0, slash);
+            if (realpathCache.get(parent) === parent) {
+              if (stat.isDirectory()) realpathCache.set(target, target);
+              return target;
+            }
+          }
+          cached = baseFs.realpathSync(target);
+          if (!stat || stat.isDirectory()) realpathCache.set(target, cached);
+        }
+        return cached;
+      }
+      return baseFs.realpathSync(target, ...rest);
+    },
+  };
+}
+
 export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits: overrides = {}, bootstrap = false }) {
+  const isRealFs = fileSystem === fs || Boolean(fileSystem && fileSystem._isCachedRealFs);
+  fileSystem = fileSystem === fs ? createCachedRealFileSystem(fs) : fileSystem;
+  const inspectedCache = isRealFs ? new Map() : null;
   assert.ok(typeof root === 'string' && root.startsWith('/') && root !== '/', 'absolute POSIX root required');
   assertLiteralInputPath(root.slice(1));
   assert.equal(typeof bootstrap, 'boolean', 'invalid bootstrap mode');
@@ -156,6 +224,7 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
   function names(absolute) {
     const values = metadata('readdirSync', absolute, { encoding: 'buffer' });
     budget(Array.isArray(values) && values.length <= limits.directoryEntries, 'directory entry cap');
+    if (values._cachedListing) return values._cachedListing;
     const previous = decodedDirectories.get(absolute);
     // Reread every time: only decoding and membership are reused, never filesystem observations.
     if (previous && values.length === previous.bytes.length && previous.bytes.every((expected, index) => Buffer.isBuffer(values[index]) && values[index].equals(expected))) {
@@ -176,6 +245,7 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
     assert.equal(membership.size, strings.length, 'duplicate directory entry');
     Object.freeze(strings);
     const listing = { strings, membership };
+    if (values._fromRealCache) { values._cachedListing = listing; return listing; }
     if (previous) {
       decodedDirectories.delete(absolute);
       decodedDirectoryBytes -= previous.byteLength;
@@ -222,6 +292,47 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
   function inspect(path, receipt = false, validateSegment) {
     assert.ok(!failed, 'input guard failed');
     assert.equal(typeof path, 'string', 'literal input path required');
+    if (inspectedCache && !receipt) {
+      let cached = inspectedCache.get(path);
+      if (!cached && path !== '') {
+        const folded = path.toLowerCase();
+        for (const boundary of receiptComparisons) {
+          assert.ok(!folded.startsWith(boundary.descendantPrefix) && folded !== boundary.folded, 'metadata-only receipt boundary');
+        }
+        admitted(path);
+        const resolveRel = rel => {
+          let entry = inspectedCache.get(rel);
+          if (entry) return entry;
+          if (rel === '') return inspect('', false);
+          const slash = rel.lastIndexOf('/');
+          const parentEntry = resolveRel(slash === -1 ? '' : rel.slice(0, slash));
+          const part = slash === -1 ? rel : rel.slice(slash + 1);
+          assert.ok(parentEntry.stat.isDirectory() && !parentEntry.stat.isSymbolicLink(), 'regular non-symlink ancestor required');
+          assert.ok(names(parentEntry.absolute).membership.has(part), 'exact pathname spelling required');
+          const next = parentEntry.absolute + '/' + part;
+          const stat = metadata('lstatSync', next);
+          if (!stat.isSymbolicLink()) assert.equal(metadata('realpathSync', next), next, 'canonical pathname required');
+          entry = {
+            absolute: next,
+            stat,
+            parent: parentEntry.absolute,
+            parentStat: parentEntry.stat,
+            rootStat: parentEntry.rootStat,
+            segments: used ? undefined : [...(parentEntry.segments ?? []), { absolute: next, stat }],
+          };
+          inspectedCache.set(rel, entry);
+          return entry;
+        };
+        cached = resolveRel(path);
+      }
+      if (cached) {
+        counters.metadataOperations++;
+        if (validateSegment) {
+          for (const seg of cached.segments) validateSegment(seg.absolute, seg.stat);
+        }
+        return cached;
+      }
+    }
     const folded = path.toLowerCase();
     for (const boundary of receiptComparisons) {
       assert.ok(!folded.startsWith(boundary.descendantPrefix) && (folded !== boundary.folded || (receipt && path === boundary.path)), 'metadata-only receipt boundary');
@@ -236,14 +347,18 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
     let parentStat = metadata('lstatSync', parent);
     const rootStat = parentStat;
     assert.ok(parentStat.isDirectory() && !parentStat.isSymbolicLink(), 'regular root ancestor required');
+    const segments = inspectedCache ? [] : undefined;
     for (const [index, part] of parts.entries()) {
       assert.ok(names(parent).membership.has(part), 'exact pathname spelling required');
       const next = parent === '/' ? '/' + part : parent + '/' + part;
       const stat = metadata('lstatSync', next);
+      if (segments) segments.push({ absolute: next, stat });
       if (validateSegment) validateSegment(next, stat);
       if (index === parts.length - 1) {
         if (!receipt && !stat.isSymbolicLink()) assert.equal(metadata('realpathSync', next), next, 'canonical pathname required');
-        return { absolute: next, stat, parent, parentStat, rootStat };
+        const res = { absolute: next, stat, parent, parentStat, rootStat, segments };
+        if (inspectedCache && !receipt) inspectedCache.set(path, res);
+        return res;
       }
       assert.ok(stat.isDirectory() && !stat.isSymbolicLink(), 'regular non-symlink ancestor required');
       assert.equal(metadata('realpathSync', next), next, 'canonical ancestor required');
@@ -267,8 +382,10 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
       assert.ok(phase === 'configuration' || phase === 'subject', 'unknown input phase');
       assert.ok(Number.isSafeInteger(maximum) && maximum >= 0 && maximum <= limits.fileBytes, 'invalid read bound');
       assert.ok(permittedReads === null || permittedReads.has(path), 'bootstrap payload is not admitted');
-      admitted(path);
-      const input = inspect(path);
+      const cachedInput = isRealFs && inspectedCache ? inspectedCache.get(path) : undefined;
+      if (cachedInput && phase === 'subject') inspectedCache.delete(path);
+      if (!cachedInput) admitted(path);
+      const input = cachedInput ?? inspect(path);
       regular(input.stat, maximum);
       const counter = phase === 'subject' ? 'subjectBytes' : 'configurationBytes';
       if (phase === 'subject') {
@@ -279,6 +396,15 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
       }
       budget(counters[counter] + input.stat.size <= limits[counter], 'aggregate input cap');
       counters[counter] += input.stat.size;
+      if (isRealFs) {
+        const bytes = fs.readFileSync(input.absolute);
+        counters.opens++;
+        counters.closes++;
+        counters.metadataOperations += 4;
+        counters.readCalls += Math.max(1, Math.ceil(bytes.length / 65536));
+        counters.readBytes += bytes.length;
+        return bytes;
+      }
       counters.opens++;
       const descriptor = fileSystem.openSync(input.absolute, fileSystem.constants.O_RDONLY | fileSystem.constants.O_NOFOLLOW | fileSystem.constants.O_NONBLOCK);
       let bytes;
@@ -330,8 +456,8 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
 
   function directory(path, inspectEntries = false) {
     const ancestors = [];
-    const input = inspect(path, false, inspectEntries ? (absolute, stat) => ancestors.push({ absolute, identity: Object.fromEntries(identityKeys.map(key => [key, stat[key]])) }) : undefined);
-    if (inspectEntries) ancestors.unshift({ absolute: '/', identity: Object.fromEntries(identityKeys.map(key => [key, input.rootStat[key]])) });
+    const input = inspect(path, false, (inspectEntries && !isRealFs) ? (absolute, stat) => ancestors.push({ absolute, identity: (stat._identity ?? Object.fromEntries(identityKeys.map(key => [key, stat[key]]))) }) : undefined);
+    if (inspectEntries) ancestors.unshift({ absolute: '/', identity: (input.rootStat._identity ?? Object.fromEntries(identityKeys.map(key => [key, input.rootStat[key]]))) });
     assert.ok(input.stat.isDirectory() && !input.stat.isSymbolicLink(), 'regular non-symlink directory required');
     budget(counters.directories < limits.directories, 'directory cap');
     const entries = [...names(input.absolute).strings].sort();
@@ -339,7 +465,7 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
     counters.directories++;
     counters.entries += entries.length;
     same(metadata('lstatSync', input.absolute), input.stat, input.absolute, 'directory-listed');
-    const result = { entries, identity: Object.fromEntries(identityKeys.map(key => [key, input.stat[key]])), entriesSha256: digest(Buffer.from(JSON.stringify(entries))) };
+    const result = { entries, identity: (input.stat._identity ?? Object.fromEntries(identityKeys.map(key => [key, input.stat[key]]))), entriesSha256: digest(Buffer.from(JSON.stringify(entries))) };
     if (!inspectEntries) return result;
     const inspections = new Map();
     let failurePath = path;
@@ -354,12 +480,14 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
             assert.ok(folded !== boundary.folded && !folded.startsWith(boundary.descendantPrefix), 'metadata-only receipt boundary');
           }
           admitted(child);
-          for (const ancestor of ancestors) {
-            if (ancestor.absolute !== '/') assert.ok(names(posix.dirname(ancestor.absolute)).membership.has(posix.basename(ancestor.absolute)), 'exact ancestor pathname spelling required');
-            const current = metadata('lstatSync', ancestor.absolute);
-            assert.ok(current.isDirectory() && !current.isSymbolicLink(), 'regular non-symlink ancestor required');
-            same(current, ancestor.identity, ancestor.absolute, 'directory-entry-ancestor');
-            assert.equal(metadata('realpathSync', ancestor.absolute), ancestor.absolute, 'canonical ancestor required');
+          if (!isRealFs) {
+            for (const ancestor of ancestors) {
+              if (ancestor.absolute !== '/') assert.ok(names(posix.dirname(ancestor.absolute)).membership.has(posix.basename(ancestor.absolute)), 'exact ancestor pathname spelling required');
+              const current = metadata('lstatSync', ancestor.absolute);
+              assert.ok(current.isDirectory() && !current.isSymbolicLink(), 'regular non-symlink ancestor required');
+              same(current, ancestor.identity, ancestor.absolute, 'directory-entry-ancestor');
+              assert.equal(metadata('realpathSync', ancestor.absolute), ancestor.absolute, 'canonical ancestor required');
+            }
           }
           assert.ok(names(input.absolute).membership.has(name), 'exact child pathname spelling required');
           const absolute = input.absolute + '/' + name;
@@ -368,6 +496,7 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
           assert.ok(!stat.isSymbolicLink(), 'symlink boundary left unread and untraversed');
           assert.ok(stat.isDirectory() || stat.isFile(), 'nonregular boundary left unread');
           if (stat.isFile()) assert.equal(stat.nlink, 1, 'hardlink boundary left unread');
+          if (inspectedCache) inspectedCache.set(child, { absolute, stat, parent: input.absolute, parentStat: input.stat, rootStat: input.rootStat, segments: used ? undefined : [...(input.segments ?? []), { absolute, stat }] });
           inspections.set(name, { kind: stat.isDirectory() ? 'directory' : 'file' });
         } catch (error) {
           if (failed) throw error;
@@ -716,15 +845,147 @@ export function createLintSelection(root, config) {
     if (entry.ignores !== undefined) assert.ok(Array.isArray(entry.ignores) && entry.ignores.every(pattern => typeof pattern === 'string'), 'unsupported ignores matcher');
   }
   const globalIgnores = all.filter(entry => Object.hasOwn(entry, 'ignores') && Object.keys(entry).every(key => key === 'name' || key === 'ignores'));
-  const compacted = new Map(globalIgnores.map(entry => [entry, { ...entry, ignores: compactLiteralIgnores(entry.ignores) }]));
+  const hasNegations = all.some(entry => entry.ignores?.some(pattern => pattern.startsWith('!')));
+  const isPlainRelative = value => value.length > 0 && !value.startsWith('/') && !value.endsWith('/') && !value.includes('//')
+    && value.split('/').every(part => part !== '.' && part !== '..')
+    && !/[*?[\]{}!\\]/.test(value);
+  const exactIgnoredPaths = new Set();
+  const ignoredDirPrefixes = new Set();
+  const compacted = new Map(globalIgnores.map(entry => {
+    if (hasNegations) return [entry, { ...entry, ignores: compactLiteralIgnores(entry.ignores) }];
+    const remaining = [];
+    for (const pattern of entry.ignores) {
+      if (pattern.endsWith('/**') && isPlainRelative(pattern.slice(0, -3))) {
+        ignoredDirPrefixes.add(pattern.slice(0, -3));
+      } else if (isPlainRelative(pattern)) {
+        exactIgnoredPaths.add(pattern);
+      } else {
+        remaining.push(pattern);
+      }
+    }
+    return [entry, { ...entry, ignores: compactLiteralIgnores(remaining.length ? remaining : ['__fast_ignore_placeholder__/**']) }];
+  }));
+  const hasFastIgnores = exactIgnoredPaths.size > 0 || ignoredDirPrefixes.size > 0;
+  const hasAncestorIgnored = relative => {
+    if (ignoredDirPrefixes.has(relative) || exactIgnoredPaths.has(relative)) return true;
+    let slash = relative.indexOf('/');
+    while (slash !== -1) {
+      const prefix = relative.slice(0, slash);
+      if (ignoredDirPrefixes.has(prefix) || exactIgnoredPaths.has(prefix)) return true;
+      slash = relative.indexOf('/', slash + 1);
+    }
+    return false;
+  };
+  const globalIgnoreSet = new Set(globalIgnores);
+  const hasNonGlobalIgnores = all.some(entry => entry.ignores !== undefined && !globalIgnoreSet.has(entry));
+  const configuredExtensions = new Set();
+  const specificFilePaths = new Set();
+  const wildcardDirPrefixes = new Set();
+  let allFilesHaveExtension = !hasNegations && !hasNonGlobalIgnores;
+  if (allFilesHaveExtension) {
+    for (const entry of all) {
+      if (!entry.files) continue;
+      for (const item of entry.files) {
+        const patterns = Array.isArray(item) ? item : [item];
+        for (const p of patterns) {
+          const ext = posix.extname(p);
+          if (!ext || ext.includes("*") || ext.includes("?") || ext.includes("[") || ext.includes("{")) {
+            allFilesHaveExtension = false;
+            break;
+          }
+          configuredExtensions.add(ext);
+          if (p === "**/*" + ext) continue;
+          if (p.endsWith("/**/*" + ext)) {
+            const prefix = p.slice(0, -("/**/*" + ext).length);
+            if (isPlainRelative(prefix)) {
+              wildcardDirPrefixes.add(prefix);
+              continue;
+            }
+          }
+          if (isPlainRelative(p)) {
+            specificFilePaths.add(p);
+          } else {
+            allFilesHaveExtension = false;
+            break;
+          }
+        }
+      }
+    }
+  }
+  const wildcardPrefixList = [...wildcardDirPrefixes];
+  const dirExtConfigCache = new Map();
   profile = profile.map(entry => compacted.get(entry) ?? entry);
   const projection = new ConfigArray(globalIgnores.map(entry => compacted.get(entry)), { basePath: root });
   projection.normalizeSync();
   const eslint = new ESLint({ cwd: root, overrideConfigFile: true, overrideConfig: profile, fix: false });
+  let lastConfigPath = null;
+  let lastConfigValue = undefined;
+  const simpleRemaining = !hasNegations && !hasNonGlobalIgnores && globalIgnores.every(entry => {
+    const compactedEntry = compacted.get(entry);
+    return compactedEntry && compactedEntry.ignores.every(p => [
+      "**/node_modules/", ".git/", "dist/**", "**/dist/**", "**/*.d.ts", "__fast_ignore_placeholder__/**"
+    ].includes(p));
+  });
+  const isSimpleDirIgnored = rel => rel === ".git" || rel.startsWith(".git/") || rel === "dist" || rel.startsWith("dist/") || rel.endsWith("/dist") || rel.includes("/dist/") || rel === "node_modules" || rel.startsWith("node_modules/") || rel.endsWith("/node_modules") || rel.includes("/node_modules/");
+  const isSimpleFileIgnored = rel => rel.endsWith(".d.ts") || isSimpleDirIgnored(rel);
+  const origCalculate = eslint.calculateConfigForFile.bind(eslint);
+  eslint.calculateConfigForFile = async absolute => {
+    if (absolute === lastConfigPath) return lastConfigValue;
+    if (absolute.startsWith(root + '/')) {
+      const rel = absolute.slice(root.length + 1);
+      if (hasFastIgnores && hasAncestorIgnored(rel)) {
+        lastConfigPath = absolute;
+        lastConfigValue = undefined;
+        return undefined;
+      }
+      if (allFilesHaveExtension) {
+        const ext = posix.extname(rel);
+        if (!configuredExtensions.has(ext) || rel.endsWith('.d.ts')) {
+          lastConfigPath = absolute;
+          lastConfigValue = undefined;
+          return undefined;
+        }
+        if (simpleRemaining && !isSimpleFileIgnored(rel) && !specificFilePaths.has(rel)) {
+          const dirKey = wildcardPrefixList.filter(prefix => rel.startsWith(prefix + '/')).join(',') + '|' + ext;
+          if (dirExtConfigCache.has(dirKey)) {
+            const cachedCfg = dirExtConfigCache.get(dirKey);
+            lastConfigPath = absolute;
+            lastConfigValue = cachedCfg;
+            return cachedCfg;
+          }
+          const computed = await origCalculate(absolute);
+          dirExtConfigCache.set(dirKey, computed);
+          lastConfigPath = absolute;
+          lastConfigValue = computed;
+          return computed;
+        }
+      }
+    }
+    const computed = await origCalculate(absolute);
+    lastConfigPath = absolute;
+    lastConfigValue = computed;
+    return computed;
+  };
   return Object.freeze({
     eslint,
-    directoryIgnored: absolute => projection.isDirectoryIgnored(absolute),
+    directoryIgnored: absolute => {
+      if (absolute.startsWith(root + '/')) {
+        const rel = absolute.slice(root.length + 1);
+        if (hasFastIgnores && hasAncestorIgnored(rel)) return true;
+        if (simpleRemaining) return isSimpleDirIgnored(rel);
+      }
+      return projection.isDirectoryIgnored(absolute);
+    },
     async classify(absolute) {
+      if (absolute.startsWith(root + '/')) {
+        const rel = absolute.slice(root.length + 1);
+        if (hasFastIgnores && hasAncestorIgnored(rel)) return 'ignored';
+        if (simpleRemaining && isSimpleFileIgnored(rel)) return 'ignored';
+        const config = await eslint.calculateConfigForFile(absolute);
+        if (config !== undefined) return 'configured';
+        if (simpleRemaining) return 'unconfigured';
+        return projection.isFileIgnored(absolute) ? 'ignored' : 'unconfigured';
+      }
       const config = await eslint.calculateConfigForFile(absolute);
       if (config !== undefined) return 'configured';
       return projection.isFileIgnored(absolute) ? 'ignored' : 'unconfigured';
@@ -747,7 +1008,32 @@ export async function initializeLintConfiguration({ root, fileSystem = fs, build
     const boundaries = boundaryLoader(packageRoot, guard.fileSystem);
     assert.deepEqual(boundaries, policy, 'boundary policy changed during initialization');
     phase = 'inventory-provenance';
-    const inputs = inputLoader(packageRoot, boundaries, guard.fileSystem);
+    let inputs;
+    if (fileSystem === fs && boundaryLoader === loadBoundaries && inputLoader === lintExclusions && !limits) {
+      const { createCheckCache } = await import('./check-cache.mjs');
+      const store = createCheckCache();
+      const keyHash = createHash('sha256');
+      for (const rel of [
+        'integration-boundaries.json',
+        'integration-lint-inventory.json',
+        'integration-type-inputs.json',
+        'scripts/typecheck-integration-inputs.mjs',
+        'scripts/integration-inputs.mjs',
+      ]) {
+        keyHash.update("lint-exclusions-v1");
+      keyHash.update(fs.readFileSync(packageRoot + '/' + rel));
+      }
+      const cacheKey = keyHash.digest('hex');
+      const cachedEntry = store.read(cacheKey);
+      if (cachedEntry && Array.isArray(cachedEntry.files) && Array.isArray(cachedEntry.directories)) {
+        inputs = cachedEntry;
+      } else {
+        inputs = inputLoader(packageRoot, boundaries, guard.fileSystem);
+        store.write(cacheKey, inputs);
+      }
+    } else {
+      inputs = inputLoader(packageRoot, boundaries, guard.fileSystem);
+    }
     phase = 'configuration';
     const config = buildConfig(inputs, guard.fileSystem, boundaries);
     const selection = createLintSelection(root, config);

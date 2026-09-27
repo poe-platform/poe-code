@@ -1,3 +1,4 @@
+import { nonCodeDirectoryIgnores } from './scripts/lint-noncode-ignores.mjs';
 import js from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import globals from 'globals';
@@ -274,6 +275,12 @@ function policyConfig(safeBashInputs, compatibility = []) {
     ignores: [
       'dist/**',
       '**/dist/**',
+      'docs/**',
+      '.snapshots/**',
+      '.github/**',
+      '.claude/**',
+      '.husky/**',
+      '.poe-code/**',
       '.codex/**',
       '.cursor/**',
       '.tmp/**',
@@ -289,6 +296,7 @@ function policyConfig(safeBashInputs, compatibility = []) {
       ...safeBashInputs.files.map(path => `packages/safe-bash/${path}`),
       ...safeBashInputs.directories.map(path => `packages/safe-bash/${path}/**`),
       'output/**',
+      ...nonCodeDirectoryIgnores,
     ],
   },
   {

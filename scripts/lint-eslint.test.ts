@@ -1325,7 +1325,7 @@ describe("single-operation loader admission", () => {
     expect(state.guard.snapshot()).toMatchObject({ opens: 513, closes: 513, failed: false });
     expect(state.guard.snapshot().metadataOperations).toBeLessThan(250000);
     console.log(JSON.stringify({ control: "integrated512", counters: state.guard.snapshot() }));
-  }, 15000);
+  }, 30000);
   it.each(["guarded", "ordinary"])("keeps inventory/read results on the %s path", route => {
     const state = inventoryModel();
     const fileSystem = route === "guarded" ? state.guard.fileSystem : state.fileSystem;

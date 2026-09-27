@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { createMemoryFileSystem } from "poe-code/safe-fs";
 import * as core from "../../src/index.js";
+import { latin1Text } from "../../src/byte-encoding.js";
 import { codeOf, output, pathOf } from "../../src/commands/internal.js";
 import { compareCopyIdentity, compareObservedEntries } from "../../src/commands/copy-identity.js";
 import { EreLedger } from "../../src/commands/regex-execution/ere/limits.js";
@@ -52,9 +53,9 @@ for (const profile of [
   assert.equal(Object.hasOwn(manifest.exports, profile.key.replace("optional-host", "optional")), false);
 });
 
-test("optional host re-exports exactly eighteen canonical helpers and twenty canonical types", async () => {
+test("optional host re-exports exactly nineteen canonical helpers and twenty canonical types", async () => {
   const host = await import("../../src/optional-host.js");
-  const expected = { codeOf, compareCopyIdentity, compareObservedEntries, output, pathOf, EreLedger, EreSyntaxError, EreUnsupportedError, EreProfileLimitError, compileEre, prepareUtf8EreSubject, parseTomlDocument, YqLedger, Decimal, numberText, portableTrapExtension, jobsExtension, signalName };
+  const expected = { latin1Text, codeOf, compareCopyIdentity, compareObservedEntries, output, pathOf, EreLedger, EreSyntaxError, EreUnsupportedError, EreProfileLimitError, compileEre, prepareUtf8EreSubject, parseTomlDocument, YqLedger, Decimal, numberText, portableTrapExtension, jobsExtension, signalName };
   assert.deepEqual(Object.keys(host).sort(), Object.keys(expected).sort());
   for (const name of Object.keys(expected) as (keyof typeof expected)[]) {
     assert.equal(host[name], expected[name], name);

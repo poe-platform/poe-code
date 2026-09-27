@@ -1,4 +1,5 @@
 export { signalName } from "./commands/timeout/signal.js";
+export { latin1Text } from "./byte-encoding.js";
 export { jobsExtension } from "./shell/extensions/jobs/index.js";
 export { codeOf, output, pathOf } from "./commands/internal.js";
 export { portableTrapExtension } from "./shell/trap.js";

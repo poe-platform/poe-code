@@ -35,6 +35,12 @@ export function tryTextTokenSync(owner: ArrayOwner, value: ShellValue, signal: A
   owner.chargeWork(value.length);
   let bytes = 0;
   for (let offset = 0; offset < value.length;) {
+    const c0 = value.charCodeAt(offset);
+    if (c0 <= 0x7f) {
+      bytes++;
+      offset++;
+      continue;
+    }
     const code = value.codePointAt(offset)!;
     bytes = exactSum(bytes, code <= 0x7f ? 1 : code <= 0x7ff ? 2 : code <= 0xffff ? 3 : 4);
     offset += code > 0xffff ? 2 : 1;

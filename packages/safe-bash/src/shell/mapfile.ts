@@ -100,6 +100,20 @@ export async function collectMapfile(options: MapfileOptions, input: ShellInput,
   let written = 0;
   while (!options.count || written < options.count) {
     hooks.loop();
+    if (options.callback === undefined && hooks.tryWriteSync) {
+      const fastRec = input.tryMapfileRecordSync(options.delimiter, options.strip);
+      if (fastRec !== undefined) {
+        if (!fastRec.present) break;
+        if (skipped < options.skip) { skipped++; continue; }
+        const index = options.origin + written;
+        if (index > 2147483647) throw new MapfileUsageError("array index exceeds 2147483647", 1);
+        if (!hooks.tryWriteSync(index, fastRec.value)) {
+          await hooks.write(index, fastRec.value);
+        }
+        written++;
+        continue;
+      }
+    }
     const allocation = hooks.allocation();
     try {
       const syncRec = options.callback === undefined && hooks.tryWriteSync

@@ -8253,7 +8253,9 @@ export class Runtime {
       const w0 = command.words[0]!;
       const w0Plain = w0.plain;
       if (command.redirects.length === 1) {
-        if (w0Plain !== "echo" && w0Plain !== "printf") {
+        const rOp = command.redirects[0]!.operator;
+        const isReadCmd = w0Plain === "read" || (command.words[1]?.plain === "read" && w0.parts[0]?.kind === "text" && w0.parts[0].value.startsWith("IFS="));
+        if (w0Plain !== "echo" && w0Plain !== "printf" && !(isReadCmd && rOp === "<<<")) {
           (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
           return undefined;
         }
@@ -8892,6 +8894,59 @@ export class Runtime {
       return finalStatus;
     }
     if (command.kind === "arithmetic-for" || command.kind === "for") {
+      if (command.redirects.length === 1) {
+        const r0 = command.redirects[0]!;
+        const loopMode = 0o666 & ~(rawState.umask ?? 0o022);
+        if (
+          (r0.descriptor !== undefined && r0.descriptor !== 1) ||
+          r0.move ||
+          r0.document ||
+          (r0.operator !== ">" && r0.operator !== ">>") ||
+          (r0.operator === ">" && rawState.noclobber) ||
+          !this.canFastMemoryRedirect ||
+          !this.budget.canRedirect1 ||
+          (this._fileWrites !== undefined && this._fileWrites.size !== 0) ||
+          (this._outputFiles !== undefined && this._outputFiles.size !== 0) ||
+          !this.isPureArgWord(r0.target, rawState) ||
+          !this.budget.canFileSystemOperation()
+        ) {
+          return undefined;
+        }
+        let targetVal: ShellValue | undefined;
+        try {
+          targetVal = this.fastValueWord(r0.target, rawState, io, true, false, false, true, undefined, diagnosticLine);
+        } catch {
+          return undefined;
+        }
+        if (typeof targetVal !== "string" || targetVal.length === 0) return undefined;
+        const resolvedPath = pathOf(rawState, targetVal);
+        if (resolvedPath === "/dev/null" || resolvedPath.startsWith("/dev/")) return undefined;
+        const loopRedirectCapture = new Capture();
+        loopRedirectCapture.budget = this.budget;
+        loopRedirectCapture.signal = this.signal;
+        const { descriptors: _d, ...ioRest } = io;
+        const loopIO: IO = { ...ioRest, stdout: loopRedirectCapture };
+        if (guestArrays(rawState) || !this.canSyncLoopBody(command.body, rawState, loopIO)) return undefined;
+        const { steps: checkSteps, redirectCount: innerRedirs } = this.buildSyncLoopBody(command, loopIO);
+        if (innerRedirs > 0 || checkSteps.length === 0 || !checkSteps.every(s => s.isStdoutEcho === true)) return undefined;
+        try {
+          if (!tryWriteMemoryFileSync(this.backingFs, resolvedPath, new Uint8Array(0), r0.operator === ">>", loopMode, this.commandSignal)) {
+            return undefined;
+          }
+        } catch {
+          this.signal.throwIfAborted();
+          return undefined;
+        }
+        const res = this.trySyncLoop(command, pipeline, rawState, monitor, store, existing, elem0, canMutatePipeStatus, loopIO, diagnosticLine, true);
+        if (res !== undefined) {
+          this.budget.fileSystemOperation();
+          const capturedBytes = loopRedirectCapture.takeBytes();
+          if (capturedBytes.byteLength > 0) {
+            tryWriteMemoryFileSync(this.backingFs, resolvedPath, capturedBytes, true, loopMode, this.commandSignal);
+          }
+        }
+        return res;
+      }
       return this.trySyncLoop(command, pipeline, rawState, monitor, store, existing, elem0, canMutatePipeStatus, io, diagnosticLine);
     }
     if (command.kind === "group" || command.kind === "if" || command.kind === "case") {
@@ -8962,7 +9017,7 @@ export class Runtime {
       rawState.status = 0;
       return 0;
     }
-    if (command.redirects.length === 1) {
+    if (command.redirects.length === 1 && command.redirects[0]!.operator !== "<<<") {
       if (!canMutatePipeStatus && elem0!.text.shellValue !== "0") return undefined;
       if (pipeline.negate && !ignored && rawState.errexit) return undefined;
       if (
@@ -9453,6 +9508,12 @@ export class Runtime {
     if (command.words.length >= 2) {
       const w0 = command.words[0]!;
       const w0Plain = w0.plain;
+      const isHereStringRead =
+        command.redirects.length === 1 &&
+        command.redirects[0]!.operator === "<<<" &&
+        !command.redirects[0]!.move &&
+        !command.redirects[0]!.document &&
+        (command.redirects[0]!.descriptor === undefined || command.redirects[0]!.descriptor === 0);
       if (
         (w0Plain === "read" || (command.words[1]?.plain === "read" && w0.parts[0]?.kind === "text" && w0.parts[0].value.startsWith("IFS="))) &&
         canMutatePipeStatus &&
@@ -9460,7 +9521,7 @@ export class Runtime {
         !rawState.allexport &&
         !hasShellFunction(rawState, "read") &&
         !rawState.extensions?.builtins.has("read") &&
-        io.stdin instanceof ShellInput
+        (command.redirects.length === 0 ? io.stdin instanceof ShellInput : isHereStringRead)
       ) {
         let ifs: ShellValue | undefined;
         let readWordIdx = 1;
@@ -9585,7 +9646,33 @@ export class Runtime {
                 }
               }
               if (simpleRead) {
-                const lineStr = io.stdin.tryReadSimpleRawAsciiLineSync(readDelim, raw);
+                let lineStr: string | undefined;
+                if (isHereStringRead) {
+                  if (readDelim === 10) {
+                    try {
+                      const hv = this.fastValueWord(command.redirects[0]!.target, rawState, io, false, false, false, false, undefined, diagnosticLine);
+                      if (
+                        typeof hv === "string" &&
+                        hv.length + 1 < this.budget.limits.maxExpansionBytes &&
+                        hv.length + 1 <= this.budget.limits.maxInputBytes
+                      ) {
+                        let ok = true;
+                        for (let k = 0; k < hv.length; k++) {
+                          const c = hv.charCodeAt(k);
+                          if (c >= 128 || c === 10 || c === 0 || (!raw && c === 92)) {
+                            ok = false;
+                            break;
+                          }
+                        }
+                        if (ok) lineStr = hv;
+                      }
+                    } catch {
+                      lineStr = undefined;
+                    }
+                  }
+                } else {
+                  lineStr = (io.stdin as ShellInput).tryReadSimpleRawAsciiLineSync(readDelim, raw);
+                }
                 if (lineStr !== undefined) {
                   if (rawState.extensions && !rawState.extensions.eventDepth) {
                     publishCommandSpelling(rawState, commandSpelling(command));
@@ -9696,6 +9783,7 @@ export class Runtime {
           }
         }
       }
+      if (command.redirects.length !== 0) return undefined;
       if (
         command.words.length === 2 &&
         w0Plain === "local" &&
@@ -10777,9 +10865,10 @@ export class Runtime {
     canMutatePipeStatus: boolean,
     io: IO,
     diagnosticLine: number,
+    allowRedirect = false,
   ): number | undefined {
     if (
-      command.redirects.length !== 0 ||
+      (!allowRedirect && command.redirects.length !== 0) ||
       pipeline.negate ||
       !canMutatePipeStatus ||
       rawState.errexit ||

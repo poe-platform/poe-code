@@ -1407,7 +1407,7 @@ export class ShellInput implements ByteSource, CommandInput {
     });
   }
 
-  tryMapfileRecordSync(delimiter: number, strip: boolean, allocation: ValueAllocation): { value: ShellValue; present: boolean } | undefined {
+  tryMapfileRecordSync(delimiter: number, strip: boolean, allocation?: ValueAllocation): { value: ShellValue; present: boolean } | undefined {
     if (this._viewClosed || (this._reads && this._reads.size > 0)) return undefined;
     const cursor = this._cursor;
     if (!cursor.canTakeRemainderSync()) return undefined;
@@ -1441,12 +1441,22 @@ export class ShellInput implements ByteSource, CommandInput {
       if (b >= 128) isAscii = false;
     }
     const finalLen = nulIdx >= 0 ? nulIdx : endIdx;
-    allocation.reserve(finalLen + 96, 0);
+    if (allocation) {
+      allocation.reserve(finalLen + 96, 0);
+    } else if (!this.budget.values.hasInfiniteBytes) {
+      return undefined;
+    }
     const slice = rem.subarray(0, finalLen);
     if (isAscii && finalLen <= 512) {
-      const strVal = finalLen === 0 ? "" : Buffer.from(slice.buffer, slice.byteOffset, slice.byteLength).toString("latin1");
+      let strVal = "";
+      if (finalLen > 0 && finalLen <= 64) {
+        for (let k = 0; k < finalLen; k++) strVal += String.fromCharCode(slice[k]!);
+      } else if (finalLen > 64) {
+        strVal = Buffer.from(slice.buffer, slice.byteOffset, slice.byteLength).toString("latin1");
+      }
       return { value: strVal, present: true };
     }
+    if (!allocation) return undefined;
     return { value: shellValueFromBytes(slice, allocation), present: true };
   }
 

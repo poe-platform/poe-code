@@ -90,7 +90,7 @@ export class Budget {
     this.bindSignal(signal);
     this.steps = 0;
     this.lastYieldSteps = 0;
-    if (hasYieldCheckpoint(signal)) this.yieldTimes[0] = monotonicNow();
+    this.yieldTimes[0] = monotonicNow();
     this.inputBytes = 0;
     this.outputBytes = 0;
     this.results = 0;

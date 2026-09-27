@@ -1,5 +1,5 @@
 import { Budget, UnrtfError, type UnrtfOptions } from './contracts.js';
-import { extractRtf } from './extract.js';
+import { createRtfExtractor, extractRtf } from './extract.js';
 import { personalities } from './personalities.js';
 
 export interface UnrtfRenderOptions extends UnrtfOptions { format: 'text' | 'html' | 'latex'; quiet?:boolean; noremap?:boolean }
@@ -18,11 +18,39 @@ export async function* renderRtf(source:AsyncIterable<Uint8Array>, options:Unrtf
     // Buffered runs and their encoded markup are charged before allocation.
     budget.charge('work',text.length,offset);
     let length = 0;
-    for (const char of text) { const code = char.codePointAt(0)!; length += code <= 0x7f ? 1 : code <= 0x7ff ? 2 : code <= 0xffff ? 3 : 4; }
+    for (let i = 0; i < text.length; i++) {
+      const code = text.charCodeAt(i);
+      if (code <= 0x7f) length += 1;
+      else if (code <= 0x7ff) length += 2;
+      else if (code >= 0xd800 && code <= 0xdbff) { length += 4; i++; }
+      else length += 3;
+    }
     budget.charge('outputBytes',length,offset);
     const working = text.length * 2 + length;
     budget.charge('retainedBytes',working,offset);
     try { return encoder.encode(text); } finally { budget.release('retainedBytes',working); }
+  };
+  let textBuf = '';
+  const queueText = (text:string, offset:number):void => {
+    budget.charge('work',text.length,offset);
+    let length = 0;
+    for (let i = 0; i < text.length; i++) {
+      const code = text.charCodeAt(i);
+      if (code <= 0x7f) length += 1;
+      else if (code <= 0x7ff) length += 2;
+      else if (code >= 0xd800 && code <= 0xdbff) { length += 4; i++; }
+      else length += 3;
+    }
+    budget.charge('outputBytes',length,offset);
+    const working = text.length * 2 + length;
+    budget.charge('retainedBytes',working,offset);
+    budget.release('retainedBytes',working);
+    textBuf += text;
+  };
+  const flushTextBuf = ():Uint8Array => {
+    const s = textBuf;
+    textBuf = '';
+    return encoder.encode(s);
   };
   const endParagraph = ():string => { if (!paragraph) return ''; paragraph = false; return '</p>'; };
   const beginText = ():string => {
@@ -61,12 +89,27 @@ export async function* renderRtf(source:AsyncIterable<Uint8Array>, options:Unrtf
     runStyle.underline === style.underline && runStyle.strike === style.strike &&
     runStyle.font === (style.font ?? defaultFont) && runStyle.size === style.size && runStyle.color === style.color;
   let preamble:Uint8Array | undefined;
+  let failed = false;
+  const extractor = createRtfExtractor(source, options, budget, false);
   try {
     // Admit markup before input acquisition, but do not publish a document
     // until the source has produced an event (opening a VFS file can fail).
     preamble = html ? emit('<!DOCTYPE html><html><body>',0) : undefined;
     if (preamble) budget.charge('retainedBytes',preamble.length,0);
-    for await (const event of extractRtf(source, options, budget, false)) {
+    for (;;) {
+      const next = extractor.next();
+      let event;
+      if (next instanceof Promise) {
+        if (textBuf) {
+          next.catch(() => {});
+          yield flushTextBuf();
+          budget.check(0);
+        }
+        event = await next;
+      } else {
+        event = next;
+      }
+      if (!event) break;
       if (preamble) {
         const bytes = preamble;
         budget.release('retainedBytes',bytes.length); preamble = undefined;
@@ -82,7 +125,11 @@ export async function* renderRtf(source:AsyncIterable<Uint8Array>, options:Unrtf
       } else if (event.kind === 'color') {
         colors.set(event.index,event.rgb);
       } else if (event.kind === 'text') {
-        if (!html) { yield emit(event.text,event.offset); continue; }
+        if (!html) {
+          queueText(event.text,event.offset);
+          if (textBuf.length >= 4096) { yield flushTextBuf(); budget.check(event.offset); }
+          continue;
+        }
         if (table && !row) {
           const bytes = flush(); if (bytes) yield bytes;
           yield emit('</tbody></table>',event.offset); table = false;
@@ -132,23 +179,30 @@ export async function* renderRtf(source:AsyncIterable<Uint8Array>, options:Unrtf
         } else if (name === 'cell') {
           if (!row) throw new UnrtfError('E_PARSE','Cell outside table row',offset);
           if (html) { yield emit(cell ? '</td>' : '<td></td>',offset); cell = false; }
-          else yield emit('\t',offset);
+          else { queueText('\t',offset); if (textBuf.length >= 4096) { yield flushTextBuf(); budget.check(offset); } }
         } else if (name === 'row') {
           if (!row) throw new UnrtfError('E_PARSE','Row end outside table',offset);
           if (html) { yield emit((cell ? '</td>' : '') + '</tr>',offset); cell = false; }
-          else yield emit('\n',offset);
+          else { queueText('\n',offset); if (textBuf.length >= 4096) { yield flushTextBuf(); budget.check(offset); } }
           row = false;
         }
       }
     }
+    if (textBuf) { yield flushTextBuf(); budget.check(0); }
     const bytes = flush(); if (bytes) yield bytes;
     if (row) throw new UnrtfError('E_PARSE','Unterminated table row',0);
     if (html) yield emit(endParagraph() + (table ? '</tbody></table>' : '') + '</body></html>',0);
+  } catch (error) {
+    failed = true;
+    if (textBuf) yield flushTextBuf();
+    throw error;
   } finally {
+    textBuf = '';
     budget.release('retainedBytes',run.length * 2); run = '';
     if (preamble) budget.release('retainedBytes',preamble.length);
     budget.release('retainedBytes',stack.length * 32);
     stack.length = 0; fonts.clear(); colors.clear();
+    await extractor.close(failed);
   }
 }
 

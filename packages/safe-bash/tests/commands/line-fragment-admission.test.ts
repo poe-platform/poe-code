@@ -178,6 +178,34 @@ for (const args of [[], ["-r"], ["-s"], ["-k1,1n"]]) {
   });
 }
 
+for (const fragments of [["b"], ["b\n", "a\n"]]) {
+  test(`sort preserves a short synchronous input before fallback: ${JSON.stringify(fragments)}`, async () => {
+    const signal = new AbortController().signal;
+    const stdin = {
+      abortSignal: signal,
+      [Symbol.asyncIterator]() {
+        let index = 0;
+        return {
+          tryNextSync() {
+            if (index === 0) return { done: false as const, value: Buffer.from(fragments[index++]!) };
+            return index === fragments.length ? { done: true as const, value: undefined } : undefined;
+          },
+          async next() {
+            return index < fragments.length
+              ? { done: false as const, value: Buffer.from(fragments[index++]!) }
+              : { done: true as const, value: undefined };
+          },
+        };
+      },
+    };
+    const result = await run("sort", [], { stdin, signal, commands: textCommands() });
+    const expected = fragments.length === 1 ? "b\n" : "a\nb\n";
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout.length, expected.length);
+    assert.equal(result.stdout, expected);
+  });
+}
+
 for (const count of [8, 16]) {
   for (const command of ["lines", "sort", "sort -c"] as const) {
     test(`${command} directly finalizes ${count} complete short records without scratch segments`, async () => {

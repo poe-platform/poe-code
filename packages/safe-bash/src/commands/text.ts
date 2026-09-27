@@ -1142,10 +1142,6 @@ async function executeSortGeneral(
               const ni = new Int32Array(cap); ni.set(sortIndices); sortIndices = ni;
               if (!simple) { const nk = new Int32Array(cap); nk.set(sortKeyNums); sortKeyNums = nk; }
             }
-            if (false) {
-              validLines = false;
-              break;
-            }
             sortStarts[count] = start;
             sortEnds[count] = offset;
             sortIndices[count] = count;

@@ -7,7 +7,6 @@ import { CompressedDataError } from "./errors.js";
 function unavailable(): never { throw new Error("codec attempted an unavailable host operation"); }
 
 const cachedFactories: Partial<Record<BoundedCodecOptions["format"], RawCodecFactory>> = {};
-const idleModules: Record<BoundedCodecOptions["format"], ReturnType<RawCodecFactory>[]> = { bzip2: [], xz: [], zstd: [] };
 
 const wasi = Object.freeze({
   fd_prestat_get: () => 8,
@@ -66,7 +65,6 @@ export async function createCodec(
   if (lzma && (options.format !== "xz" || !Number.isInteger(lzma.dictionary) || lzma.dictionary < 0 || lzma.dictionary > 0xffffffff ||
       !Number.isInteger(lzma.properties) || lzma.properties < 0 || lzma.properties >= 225 || lzma.properties % 9 + Math.floor(lzma.properties / 9) % 5 > 4 ||
       typeof lzma.eos !== "boolean" || !Number.isSafeInteger(lzma.size) || lzma.size < 0)) throw new PublicDiagnostic("invalid LZMA properties or dictionary limit exceeded");
-  const useDefaultFactory = !factory;
   if (!factory) {
     factory = cachedFactories[options.format];
     if (!factory) {
@@ -79,21 +77,16 @@ export async function createCodec(
     }
   }
   signal.throwIfAborted();
-  const pool = useDefaultFactory ? idleModules[options.format] : undefined;
-  const pooled = pool?.pop();
-  const module = pooled ?? factory(wasi);
-  let closed = false;
+  // Factories contain immutable generated code; module memory belongs to one
+  // invocation even after bridge_destroy has released its live allocations.
+  let module: ReturnType<RawCodecFactory> | undefined = factory(wasi);
   const close = (): void => {
-    if (!closed) {
-      closed = true;
-      module.bridge_destroy();
-      if (pool && pool.length < 2 && (module.bridge_used?.() ?? 0) === 0) {
-        pool.push(module);
-      }
-    }
+    const closing = module;
+    module = undefined;
+    closing?.bridge_destroy();
   };
   try {
-    if (!pooled) module._initialize?.();
+    module._initialize?.();
     const custom = options.format === "xz" && (options.xzFormat === "raw" || options.xzFilters !== undefined);
     if (custom) new Uint8Array(module.memory.buffer, module.bridge_input(), filterBytes.length).set(filterBytes);
     const initialized = custom
@@ -118,19 +111,20 @@ export async function createCodec(
     return {
       step(input, output, finish, flush) {
         signal.throwIfAborted();
-        if (closed) throw new Error("codec is closed");
+        const active = module;
+        if (!active) throw new Error("codec is closed");
         if (input.length > 65536 || output.length < 1 || output.length > 65536) throw new RangeError("invalid codec buffer size");
-        new Uint8Array(module.memory.buffer, inputPointer, input.length).set(input);
-        const status = module.bridge_step(inputPointer, input.length, outputPointer, output.length, flush === "block" ? 2 : flush === "sync" ? 3 : Number(finish));
+        new Uint8Array(active.memory.buffer, inputPointer, input.length).set(input);
+        const status = active.bridge_step(inputPointer, input.length, outputPointer, output.length, flush === "block" ? 2 : flush === "sync" ? 3 : Number(finish));
         signal.throwIfAborted();
         if (status === -4) throw new CompressedDataError("unexpected end of file");
         if (status === -2 || status === -3) throw new CompressedDataError("invalid compressed data or codec memory limit exceeded");
         if (status !== 1 && status !== 2 && status !== 3 && status !== 4) throw new Error(`invalid codec status ${status}`);
-        const consumed = module.bridge_consumed();
-        const produced = module.bridge_produced();
+        const consumed = active.bridge_consumed();
+        const produced = active.bridge_produced();
         if (!Number.isSafeInteger(consumed) || consumed < 0 || consumed > input.length ||
             !Number.isSafeInteger(produced) || produced < 0 || produced > output.length) throw new Error("invalid codec progress");
-        output.set(new Uint8Array(module.memory.buffer, outputPointer, produced));
+        output.set(new Uint8Array(active.memory.buffer, outputPointer, produced));
         return { consumed, produced, status: status === 1 ? "end" : status === 4 ? "flushed" : status === 3 ? "output" : "input" };
       },
       close,

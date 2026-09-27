@@ -27,7 +27,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --external:@poe-code/safe-fs/core --platform=node --format=esm --target=node22 --outfile=dist/index.js && esbuild src/portable.ts --bundle --external:@poe-code/safe-fs/core --platform=browser --format=esm --target=es2022 --outfile=dist/portable.js && esbuild src/index.ts --bundle --external:@poe-code/safe-fs/core --platform=browser --conditions=workerd --format=esm --target=es2022 --outfile=dist/index.browser.js && tsc -p tsconfig.browser.json",
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --alias:@poe-code/safe-fs/core=poe-code/safe-fs/core --external:poe-code/safe-fs/core --platform=node --format=esm --target=node22 --outfile=dist/index.js && esbuild src/portable.ts --bundle --alias:@poe-code/safe-fs/core=poe-code/safe-fs/core --external:poe-code/safe-fs/core --platform=browser --format=esm --target=es2022 --outfile=dist/portable.js && esbuild src/index.ts --bundle --alias:@poe-code/safe-fs/core=poe-code/safe-fs/core --external:poe-code/safe-fs/core --platform=browser --conditions=workerd --format=esm --target=es2022 --outfile=dist/index.browser.js && tsc -p tsconfig.browser.json",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json && tsc -p tsconfig.browser.json --emitDeclarationOnly false --noEmit",
     "lint": "eslint src && npm run typecheck",
     "test": "cd ../.. && vitest run packages/image-ast",

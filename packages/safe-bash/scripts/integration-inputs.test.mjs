@@ -2982,7 +2982,7 @@ test("published root exposes supported shell SDKs while preserving private works
   const root = JSON.parse(readFileSync(new URL("../../../package.json", import.meta.url), "utf8"));
   const build = JSON.parse(readFileSync(new URL("../tsconfig.build.json", import.meta.url), "utf8"));
   assert.deepEqual(Object.keys(root.exports).filter(key => key.startsWith("./safe")).sort(), [
-    "./safe-bash", "./safe-bash/commands/media", "./safe-bash/image-ast",
+    "./safe-bash", "./safe-bash/commands/media", "./safe-bash/contracts", "./safe-bash/contracts/*", "./safe-bash/image-ast",
     "./safe-bash/pdf-ast", "./safe-bash/sharp", "./safe-fs", "./safe-fs/core",
     "./safe-fs/node", "./safe-fs/node/filesystem", "./safe-js", "./safe-js/cli",
     "./safe-js/core", "./safe-playwright", "./safe-playwright/adapter",

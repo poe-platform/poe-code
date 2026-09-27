@@ -5,7 +5,8 @@ import * as core from "poe-code/safe-js/core";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { makeSafeJsFsModule } from "../../../src/integrations/safejs/index.js";
 
-for (const operation of ["appendFile", "writeFile"] as const) {
+// Shared functions keep the first identity encountered in sorted module exports.
+for (const [operation, expectedOperation] of [["appendFile", "appendFile"], ["writeFile", "default.writeFile"]] as const) {
   for (const [route, recipient] of [["index", sdk.run], ["core", core.run]] as const) {
     test(`published ${route} retains ${operation} policy across shell adapter recovery`, { timeout: 5000 }, async () => {
       const adapter = new MemoryFileSystem();
@@ -30,6 +31,9 @@ for (const operation of ["appendFile", "writeFile"] as const) {
         const serialized = await sdk.dump(first, { mode: "replay" });
         const snapshot = JSON.parse(serialized);
         assert.ok(serialized.includes("read-side-effect"));
+        assert.equal(snapshot.hostCalls.length, 1);
+        const call = snapshot.hostCalls[0];
+        assert.deepEqual([call.moduleId, call.operation, call.policy], ["fs", expectedOperation, "read-side-effect"]);
         await assert.rejects(recipient(source, { modules: { fs: module }, snapshot: sdk.restore(snapshot, { source }) }),
           error => error instanceof sdk.HostCallResumabilityError && error.action === "external-reconciliation");
         assert.equal(effects, 1);
@@ -40,7 +44,11 @@ for (const operation of ["appendFile", "writeFile"] as const) {
           hostCallResumeProvider(request) {
             reconciliations++;
             assert.equal(request.moduleId, "fs");
-            assert.equal(request.operation, operation);
+            assert.equal(request.operation, expectedOperation);
+            assert.deepEqual(
+              [request.callId, request.sourceHash, request.moduleId, request.operation, request.argumentDigest],
+              [call.id, call.sourceHash, call.moduleId, call.operation, call.argumentDigest],
+            );
             return { callId: request.callId, sourceHash: request.sourceHash, moduleId: request.moduleId,
               operation: request.operation, argumentDigest: request.argumentDigest,
               outcome: { status: "fulfilled", value: undefined } };

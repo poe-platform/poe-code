@@ -83,11 +83,11 @@ async function webStorage(request: PlaywrightAbilityRequest) {
       const value = target.getItem(name);
       if (value === null) continue;
       bytes += new TextEncoder().encode(name).length + new TextEncoder().encode(value).length + 2;
-      if (bytes > maxBytes) return false;
+      if (bytes > (maxBytes ?? Infinity)) return false;
       values.push({ name, value });
     }
     return values;
-  }, { storage, operation, key, value, maxBytes: request.limits?.maxCommandBytes ?? Infinity });
+  }, { storage, operation, key, value, maxBytes: request.limits?.maxCommandBytes === Infinity || request.limits?.maxCommandBytes === undefined ? null : request.limits.maxCommandBytes });
   if (result === false) throw new PlaywrightResourceLimitError('Playwright storage result byte limit exceeded');
   const method = { list: 'items', get: 'getItem', set: 'setItem', delete: 'removeItem', clear: 'clear' }[operation];
   const args = ['get', 'set', 'delete'].includes(operation) ? [key, ...(operation === 'set' ? [value] : [])].map(item => JSON.stringify(item)).join(', ') : '';

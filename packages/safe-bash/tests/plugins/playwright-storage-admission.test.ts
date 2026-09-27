@@ -92,3 +92,15 @@ test('state-load has no implicit byte cap and enforces configured limits', async
  assert.deepEqual(restored, state);
  await assert.rejects(playwrightStorageAbilities['state-load']!.execute({ ...request, limits: { maxCommandBytes: 1048576 } } as PlaywrightAbilityRequest), /byte limit/);
 });
+
+test('unlimited web storage budgets survive browser JSON transport', async t => {
+  const saved = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  Object.defineProperty(globalThis, 'localStorage', { value: { length: 1, key: () => 'key', getItem: () => 'value' }, configurable: true });
+  t.after(() => { if (saved) Object.defineProperty(globalThis, 'localStorage', saved); else Reflect.deleteProperty(globalThis, 'localStorage'); });
+  const page = { async evaluate(callback: (input: unknown) => unknown, input: unknown) { return callback(JSON.parse(JSON.stringify(input))); } };
+  const request = { command: 'localstorage-list', args: [], options: {}, signal: new AbortController().signal,
+    browserSession: { page, configuration: {} }, limits: { maxCommandBytes: Infinity } } as unknown as PlaywrightAbilityRequest;
+  const result = await playwrightStorageAbilities['localstorage-list']!.execute(request);
+  assert.ok(JSON.stringify(result).includes('key=value'));
+  await assert.rejects(playwrightStorageAbilities['localstorage-list']!.execute({ ...request, limits: { maxCommandBytes: 1 } }), /byte limit/);
+});

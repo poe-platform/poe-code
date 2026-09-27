@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_arguments, clippy::should_implement_trait)]
+
 pub mod commands;
 pub mod cli;
 pub mod errors;

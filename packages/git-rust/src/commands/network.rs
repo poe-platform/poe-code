@@ -249,7 +249,7 @@ pub fn get_remote_info2(
                 }
             }
             let pairs: Vec<(String, String)> =
-                refs.into_iter().map(|(k, v)| (k, v)).collect();
+                refs.into_iter().collect();
             let refs_list = format_info_refs(&pairs, &symrefs, "", true, true);
             Ok(RemoteInfo2 {
                 protocol_version: 1,
@@ -299,11 +299,10 @@ pub fn list_server_refs(
     let info = get_remote_info2(http, url, cors_proxy, for_push, 1, headers)?;
     let mut out = Vec::new();
     for mut r in info.refs.unwrap_or_default() {
-        if let Some(p) = prefix {
-            if !r.r#ref.starts_with(p) {
+        if let Some(p) = prefix
+            && !r.r#ref.starts_with(p) {
                 continue;
             }
-        }
         if !symrefs {
             r.target = None;
         }
@@ -408,22 +407,20 @@ pub fn fetch(
         }
     }
 
-    if wants.is_empty() {
-        if let Some(head_sr) = server_refs.iter().find(|r| r.r#ref == "HEAD") {
+    if wants.is_empty()
+        && let Some(head_sr) = server_refs.iter().find(|r| r.r#ref == "HEAD") {
             wants.push(head_sr.oid.clone());
             selected_refs.push(head_sr.clone());
         }
-    }
 
     let mut fetch_head = None;
     let mut fetch_head_desc = None;
-    if let Some(tf) = &target_ref_full {
-        if let Some(sr) = server_refs.iter().find(|r| &r.r#ref == tf) {
+    if let Some(tf) = &target_ref_full
+        && let Some(sr) = server_refs.iter().find(|r| &r.r#ref == tf) {
             fetch_head = Some(sr.oid.clone());
             let short = tf.trim_start_matches("refs/heads/");
             fetch_head_desc = Some(format!("branch '{short}' of {resolved_url}"));
         }
-    }
 
     if !wants.is_empty() {
         let req_body = write_upload_pack_request(&UploadPackRequest {
@@ -746,11 +743,10 @@ pub fn push(
         .map(|r| r.oid.clone())
         .unwrap_or_else(|| "0000000000000000000000000000000000000000".to_string());
 
-    if !delete && !force && old_oid != "0000000000000000000000000000000000000000" && old_oid != new_oid {
-        if !crate::commands::plumbing::is_descendent(fs, &gdir, &new_oid, &old_oid, None).unwrap_or(false) {
+    if !delete && !force && old_oid != "0000000000000000000000000000000000000000" && old_oid != new_oid
+        && !crate::commands::plumbing::is_descendent(fs, &gdir, &new_oid, &old_oid, None).unwrap_or(false) {
             return Err(GitError::push_rejected("not-fast-forward"));
         }
-    }
 
     let packfile = if delete {
         Vec::new()

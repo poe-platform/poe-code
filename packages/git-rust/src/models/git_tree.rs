@@ -153,7 +153,7 @@ pub fn validate_tree_entry_name(path: &str) -> Result<(), GitError> {
     let ntfs_clean = hfs_clean.split(':').next().unwrap_or("");
     let normalized = ntfs_clean
         .to_ascii_lowercase()
-        .trim_end_matches(|c| c == '.' || c == ' ')
+        .trim_end_matches(['.', ' '])
         .to_string();
 
     let is_ntfs_short_git = {

@@ -342,7 +342,7 @@ pub fn zlib_inflate_with_consumed(input: &[u8]) -> Result<(Vec<u8>, usize), GitE
     let cmf = input[0];
     let flg = input[1];
     let is_zlib_header =
-        (cmf & 0x0f) == 8 && (cmf >> 4) <= 7 && (((cmf as u16) << 8 | flg as u16) % 31 == 0);
+        (cmf & 0x0f) == 8 && (cmf >> 4) <= 7 && ((cmf as u16) << 8 | flg as u16).is_multiple_of(31);
 
     if is_zlib_header {
         let fdict = (flg & 0x20) != 0;

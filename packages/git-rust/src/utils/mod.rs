@@ -118,12 +118,11 @@ fn normalize_string(path: &str, allow_above_root: bool) -> String {
             continue;
         }
         if seg == ".." {
-            if let Some(&last) = parts.last() {
-                if last != ".." {
+            if let Some(&last) = parts.last()
+                && last != ".." {
                     parts.pop();
                     continue;
                 }
-            }
             if allow_above_root {
                 parts.push("..");
             }
@@ -264,7 +263,7 @@ pub fn extract_auth_from_url(url: &str) -> ExtractedUrlAuth {
 
     let after_scheme = &url[scheme_len..];
     let authority_end = after_scheme
-        .find(|c| c == '/' || c == '?' || c == '#')
+        .find(['/', '?', '#'])
         .unwrap_or(after_scheme.len());
     let authority = &after_scheme[..authority_end];
 
@@ -372,11 +371,10 @@ pub fn format_info_refs(
             continue;
         }
         if let Some(stripped) = key.strip_suffix("^{}") {
-            if peel_tags {
-                if let Some(target_ref) = out.iter_mut().rev().find(|r| r.r#ref == stripped) {
+            if peel_tags
+                && let Some(target_ref) = out.iter_mut().rev().find(|r| r.r#ref == stripped) {
                     target_ref.peeled = Some(value.clone());
                 }
-            }
             continue;
         }
         let target = if include_symrefs {
@@ -464,13 +462,11 @@ pub fn flat_file_list_to_directory_structure<M: Clone>(
             };
             inodes.insert(name.to_string(), dir);
             ensure_dir(&parent_name, inodes);
-            if parent_name != name {
-                if let Some(p) = inodes.get_mut(&parent_name) {
-                    if !p.children.contains(&name.to_string()) {
+            if parent_name != name
+                && let Some(p) = inodes.get_mut(&parent_name)
+                    && !p.children.contains(&name.to_string()) {
                         p.children.push(name.to_string());
                     }
-                }
-            }
         }
     }
 
@@ -636,8 +632,8 @@ pub fn merge_file(branches: [&str; 3], contents: [&str; 3]) -> MergeFileResult {
     let mut b_cur = 0;
 
     while o_cur < base_lines.len() {
-        if let (Some(a_sync), Some(b_sync)) = (oa_map[o_cur], ob_map[o_cur]) {
-            if a_sync >= a_cur && b_sync >= b_cur {
+        if let (Some(a_sync), Some(b_sync)) = (oa_map[o_cur], ob_map[o_cur])
+            && a_sync >= a_cur && b_sync >= b_cur {
                 if a_sync > a_cur || b_sync > b_cur {
                     // Unstable hunk before sync line
                     emit_hunk(
@@ -656,16 +652,14 @@ pub fn merge_file(branches: [&str; 3], contents: [&str; 3]) -> MergeFileResult {
                 b_cur = b_sync + 1;
                 continue;
             }
-        }
         // Find next sync point where both oa_map and ob_map exist and are monotonic
         let mut next_sync = None;
         for probe in (o_cur + 1)..base_lines.len() {
-            if let (Some(a_p), Some(b_p)) = (oa_map[probe], ob_map[probe]) {
-                if a_p >= a_cur && b_p >= b_cur {
+            if let (Some(a_p), Some(b_p)) = (oa_map[probe], ob_map[probe])
+                && a_p >= a_cur && b_p >= b_cur {
                     next_sync = Some((probe, a_p, b_p));
                     break;
                 }
-            }
         }
         if let Some((o_next, a_next, b_next)) = next_sync {
             emit_hunk(

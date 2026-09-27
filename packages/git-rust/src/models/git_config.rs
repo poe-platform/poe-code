@@ -350,7 +350,7 @@ fn has_odd_unescaped_quotes(text: &str) -> bool {
             count += 1;
         }
     }
-    count % 2 != 0
+    !count.is_multiple_of(2)
 }
 
 fn remove_quotes(text: &str) -> String {

@@ -82,11 +82,10 @@ pub fn load_pack_indexes(
         } else {
             GitPackIndex::from_pack(&pack_bytes, Some(&get_ext))?
         };
-        if p.pack.is_none() {
-            if let Some(pb) = fs.read(&pack_path) {
+        if p.pack.is_none()
+            && let Some(pb) = fs.read(&pack_path) {
                 p.load(pb);
             }
-        }
         let source = format!("objects/pack/{pack_name}");
         result.push((source, p));
     }
@@ -148,8 +147,8 @@ pub fn _read_object(
         });
     }
 
-    if result.is_none() {
-        if let Some((bytes, source)) = read_object_loose(fs, gitdir, oid) {
+    if result.is_none()
+        && let Some((bytes, source)) = read_object_loose(fs, gitdir, oid) {
             result = Some(ReadObjectResult {
                 oid: oid.to_string(),
                 obj_type: "deflated".to_string(),
@@ -159,7 +158,6 @@ pub fn _read_object(
                 source: Some(source),
             });
         }
-    }
 
     if result.is_none() {
         if let Some(packed) = read_object_packed(fs, gitdir, oid)? {

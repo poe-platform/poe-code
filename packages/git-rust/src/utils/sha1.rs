@@ -156,7 +156,7 @@ pub fn to_hex(bytes: &[u8]) -> String {
 }
 
 pub fn from_hex(hex: &str) -> Result<Vec<u8>, GitError> {
-    if hex.len() % 2 != 0 {
+    if !hex.len().is_multiple_of(2) {
         return Err(GitError::invalid_oid(hex));
     }
     let mut out = Vec::with_capacity(hex.len() / 2);

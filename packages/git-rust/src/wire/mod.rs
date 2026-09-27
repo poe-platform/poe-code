@@ -79,11 +79,10 @@ pub fn parse_refs_ad_response(stream: &[u8], service: &str) -> Result<RefsAdResp
         }
     }
     for cap in &capabilities {
-        if let Some(rest) = cap.strip_prefix("symref=") {
-            if let Some(colon) = rest.find(':') {
+        if let Some(rest) = cap.strip_prefix("symref=")
+            && let Some(colon) = rest.find(':') {
                 symrefs.insert(rest[..colon].to_string(), rest[colon + 1..].to_string());
             }
-        }
     }
     Ok(RefsAdResponse::V1 {
         protocol_version: 1,
@@ -351,11 +350,7 @@ pub fn parse_upload_pack_response(stream: &[u8]) -> Result<UploadPackResponse, G
             let oid = parts.get(1).copied().unwrap_or("").to_string();
             let status = parts.get(2).map(|s| s.to_string());
             acks.push(AckEntry { oid, status });
-        } else if line.starts_with("NAK") {
-            nak = true;
-        } else {
-            nak = true;
-        }
+        } else { line.starts_with("NAK"); nak = true; }
     }
 
     Ok(UploadPackResponse {

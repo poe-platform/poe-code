@@ -128,11 +128,10 @@ pub fn status(
             .map(|e| e.oid))
     })?;
 
-    if tree_oid.is_none() && index_oid.is_none() {
-        if GitIgnoreManager::is_ignored(fs, dir, Some(&gdir), filepath) {
+    if tree_oid.is_none() && index_oid.is_none()
+        && GitIgnoreManager::is_ignored(fs, dir, Some(&gdir), filepath) {
             return Ok("ignored".to_string());
         }
-    }
 
     let workdir_info = compute_workdir_oid(fs, dir, &gdir, filepath);
     let h = tree_oid.is_some();
@@ -387,13 +386,11 @@ pub fn reset_index(
         mtime_nanoseconds: 0,
     };
 
-    if let (Some(d), Some(target_oid)) = (dir, blob_oid.as_ref()) {
-        if let Some((w_oid, w_stat)) = compute_workdir_oid(fs, d, &gdir, filepath) {
-            if &w_oid == target_oid {
+    if let (Some(d), Some(target_oid)) = (dir, blob_oid.as_ref())
+        && let Some((w_oid, w_stat)) = compute_workdir_oid(fs, d, &gdir, filepath)
+            && &w_oid == target_oid {
                 stat = w_stat;
             }
-        }
-    }
 
     GitIndexManager::acquire(fs, &gdir, |index| {
         index.delete(filepath);
@@ -419,14 +416,13 @@ pub fn update_index(
     let gdir = discover_gitdir(fs, gitdir);
     if remove {
         return GitIndexManager::acquire(fs, &gdir, |index| {
-            if !force {
-                if let Ok(st) = fs.lstat(&join(&[dir, filepath])) {
+            if !force
+                && let Ok(st) = fs.lstat(&join(&[dir, filepath])) {
                     if st.is_directory() {
                         return Err(GitError::invalid_filepath(Some("directory")));
                     }
                     return Ok(None);
                 }
-            }
             index.delete(filepath);
             Ok(None)
         });
@@ -740,11 +736,10 @@ pub fn checkout(
         if !force {
             let mut conflicts = Vec::new();
             for (path, target_entry) in &target_map {
-                if let Some(filters) = filepaths {
-                    if !filters.iter().any(|f| path == f || path.starts_with(&format!("{f}/"))) {
+                if let Some(filters) = filepaths
+                    && !filters.iter().any(|f| path == f || path.starts_with(&format!("{f}/"))) {
                         continue;
                     }
-                }
                 if let Some((w_oid, _)) = compute_workdir_oid(fs, dir, &gdir, path) {
                     let h_oid = head_map.get(path).map(|e| e.oid.as_str());
                     if Some(w_oid.as_str()) != h_oid && w_oid != target_entry.oid {
@@ -753,13 +748,11 @@ pub fn checkout(
                 }
             }
             for (path, h_entry) in &head_map {
-                if !target_map.contains_key(path) {
-                    if let Some((w_oid, _)) = compute_workdir_oid(fs, dir, &gdir, path) {
-                        if w_oid != h_entry.oid {
+                if !target_map.contains_key(path)
+                    && let Some((w_oid, _)) = compute_workdir_oid(fs, dir, &gdir, path)
+                        && w_oid != h_entry.oid {
                             conflicts.push(path.clone());
                         }
-                    }
-                }
             }
             if !conflicts.is_empty() {
                 conflicts.sort();
@@ -769,7 +762,7 @@ pub fn checkout(
         }
 
         if !dry_run {
-            for (_, target_entry) in &target_map {
+            for target_entry in target_map.values() {
                 assert_no_symlink_in_leading_path(fs, dir, &target_entry.path)?;
             }
 
@@ -786,11 +779,10 @@ pub fn checkout(
                     index.clear();
                 }
                 for (path, entry) in &target_map {
-                    if let Some(filters) = filepaths {
-                        if !filters.iter().any(|f| path == f || path.starts_with(&format!("{f}/"))) {
+                    if let Some(filters) = filepaths
+                        && !filters.iter().any(|f| path == f || path.starts_with(&format!("{f}/"))) {
                             continue;
                         }
-                    }
                     let full_path = join(&[dir, path]);
                     let blob = read_blob(fs, &gdir, &entry.oid, None)?.blob;
                     if entry.mode == "120000" {
@@ -1102,8 +1094,8 @@ fn merge_trees_3way(
     }
 
     if !conflicts.is_empty() {
-        if !abort_on_conflict && !dry_run {
-            if let Some(d) = dir {
+        if !abort_on_conflict && !dry_run
+            && let Some(d) = dir {
                 GitIndexManager::acquire(fs, gitdir, |index| {
                     for (path, entry) in &final_entries {
                         if entry.entry_type == "blob" {
@@ -1118,13 +1110,12 @@ fn merge_trees_3way(
                     Ok(())
                 })?;
             }
-        }
         return Ok((EMPTY_TREE_OID.to_string(), conflicts));
     }
 
     let merged_tree_oid = write_directory_tree_recursive(fs, gitdir, &final_entries, "", dry_run)?;
-    if !dry_run {
-        if let Some(d) = dir {
+    if !dry_run
+        && let Some(d) = dir {
             GitIndexManager::acquire(fs, gitdir, |index| {
                 index.clear();
                 for (path, entry) in &final_entries {
@@ -1139,7 +1130,6 @@ fn merge_trees_3way(
                 Ok(())
             })?;
         }
-    }
 
     Ok((merged_tree_oid, Vec::new()))
 }
@@ -1381,8 +1371,8 @@ pub fn stash(
 
             let mut workdir_entries = Vec::new();
             for (path, _, w, _) in &matrix {
-                if *w != 0 {
-                    if let Some((_, st)) = compute_workdir_oid(fs, dir, &gdir, path) {
+                if *w != 0
+                    && let Some((_, st)) = compute_workdir_oid(fs, dir, &gdir, path) {
                         let bytes = fs.read(&join(&[dir, path])).unwrap_or_default();
                         let b_oid = write_blob(fs, &gdir, &bytes)?;
                         workdir_entries.push((
@@ -1395,7 +1385,6 @@ pub fn stash(
                             },
                         ));
                     }
-                }
             }
             let stash_tree = write_directory_tree_recursive(fs, &gdir, &workdir_entries, "", false)?;
             let msg_prefix = message.unwrap_or("").trim();

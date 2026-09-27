@@ -164,8 +164,8 @@ impl HttpClient for MockHttpServer {
         }
 
         // Check custom advertisement
-        if sub_route == "info/refs" {
-            if let Some(custom) = self
+        if sub_route == "info/refs"
+            && let Some(custom) = self
                 .custom_advertisements
                 .lock()
                 .unwrap()
@@ -186,7 +186,6 @@ impl HttpClient for MockHttpServer {
                     body: custom,
                 });
             }
-        }
 
         let Some((fs, gitdir)) = self.get_or_load_repo(repo_segment) else {
             return Ok(GitHttpResponse {
@@ -387,25 +386,22 @@ fn build_v1_ref_advertisement(fs: &MemoryFs, gitdir: &str, service: &str) -> Vec
     let mut entries: Vec<(String, String)> = Vec::new();
     let mut head_target: Option<String> = None;
     if let Ok(head_oid) = GitRefManager::resolve(fs, gitdir, "HEAD", None) {
-        if let Ok(target) = GitRefManager::resolve(fs, gitdir, "HEAD", Some(2)) {
-            if target.starts_with("refs/") {
+        if let Ok(target) = GitRefManager::resolve(fs, gitdir, "HEAD", Some(2))
+            && target.starts_with("refs/") {
                 head_target = Some(target);
             }
-        }
         entries.push(("HEAD".to_string(), head_oid));
     }
     for r in GitRefManager::list_refs(fs, gitdir, "refs") {
         let full = format!("refs/{r}");
         if let Ok(oid) = GitRefManager::resolve(fs, gitdir, &full, None) {
             entries.push((full.clone(), oid.clone()));
-            if full.starts_with("refs/tags/") {
-                if let Ok(res) = _read_object(fs, gitdir, &oid, "content") {
-                    if res.obj_type == "tag" {
+            if full.starts_with("refs/tags/")
+                && let Ok(res) = _read_object(fs, gitdir, &oid, "content")
+                    && res.obj_type == "tag" {
                         let tag = crate::models::GitAnnotatedTag::from_bytes(&res.object).parse();
                         entries.push((format!("{full}^{{}}"), tag.object));
                     }
-                }
-            }
         }
     }
 
@@ -463,14 +459,12 @@ fn handle_v2_ls_refs(fs: &MemoryFs, gitdir: &str, req_body: &[u8]) -> Vec<u8> {
                 .ok()
                 .filter(|t| t.starts_with("refs/"));
             let mut peeled = None;
-            if full.starts_with("refs/tags/") {
-                if let Ok(res) = _read_object(fs, gitdir, &oid, "content") {
-                    if res.obj_type == "tag" {
+            if full.starts_with("refs/tags/")
+                && let Ok(res) = _read_object(fs, gitdir, &oid, "content")
+                    && res.obj_type == "tag" {
                         let tag = crate::models::GitAnnotatedTag::from_bytes(&res.object).parse();
                         peeled = Some(tag.object);
                     }
-                }
-            }
             all_refs.push((full, oid, sym_target, peeled));
         }
     }
@@ -481,16 +475,14 @@ fn handle_v2_ls_refs(fs: &MemoryFs, gitdir: &str, req_body: &[u8]) -> Vec<u8> {
             continue;
         }
         let mut line = format!("{oid} {ref_name}");
-        if want_symrefs {
-            if let Some(t) = sym_target {
+        if want_symrefs
+            && let Some(t) = sym_target {
                 line.push_str(&format!(" symref-target:{t}"));
             }
-        }
-        if want_peel {
-            if let Some(p) = peeled {
+        if want_peel
+            && let Some(p) = peeled {
                 line.push_str(&format!(" peeled:{p}"));
             }
-        }
         line.push('\n');
         out.extend_from_slice(&GitPktLine::encode_str(&line));
     }

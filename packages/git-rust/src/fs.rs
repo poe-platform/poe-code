@@ -306,11 +306,10 @@ impl MemoryFs {
 
     pub fn read_file_auto_crlf(&self, filepath: &str, autocrlf: bool) -> Option<Vec<u8>> {
         let mut bytes = self.read_file(filepath).ok()?;
-        if autocrlf {
-            if let Ok(text) = std::str::from_utf8(&bytes) {
+        if autocrlf
+            && let Ok(text) = std::str::from_utf8(&bytes) {
                 bytes = text.replace("\r\n", "\n").into_bytes();
             }
-        }
         Some(bytes)
     }
 
@@ -490,11 +489,10 @@ impl MemoryFs {
         for key in state.entries.keys() {
             if key != &resolved && key.starts_with(&prefix) {
                 let rem = &key[prefix.len()..];
-                if let Some(first) = rem.split('/').next() {
-                    if !first.is_empty() {
+                if let Some(first) = rem.split('/').next()
+                    && !first.is_empty() {
                         children.insert(first.to_string());
                     }
-                }
             }
         }
         Ok(children.into_iter().collect())
@@ -655,8 +653,8 @@ pub fn discover_gitdir(fs: &MemoryFs, dotgit: &str) -> String {
         if stat.is_directory() {
             return dotgit.to_string();
         }
-        if stat.is_file() {
-            if let Some(contents) = fs.read_str(dotgit) {
+        if stat.is_file()
+            && let Some(contents) = fs.read_str(dotgit) {
                 let trimmed = contents.trim_end();
                 if let Some(rest) = trimmed.strip_prefix("gitdir: ") {
                     let is_abs = rest.starts_with('/')
@@ -670,7 +668,6 @@ pub fn discover_gitdir(fs: &MemoryFs, dotgit: &str) -> String {
                     return join(&[&dirname(dotgit), rest]);
                 }
             }
-        }
     }
     dotgit.to_string()
 }
@@ -688,11 +685,10 @@ pub fn assert_no_symlink_in_leading_path(
             continue;
         }
         current = format!("{current}/{part}");
-        if let Ok(stats) = fs.lstat(&current) {
-            if stats.is_symbolic_link() {
+        if let Ok(stats) = fs.lstat(&current)
+            && stats.is_symbolic_link() {
                 return Err(GitError::unsafe_filepath(fullpath));
             }
-        }
     }
     Ok(())
 }

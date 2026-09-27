@@ -35,13 +35,12 @@ impl GitPackedRefs {
                 continue;
             }
             if let Some(peeled_oid) = trimmed.strip_prefix('^') {
-                if let Some(last) = lines.last_mut() {
-                    if let Some(ref rname) = last.ref_name {
+                if let Some(last) = lines.last_mut()
+                    && let Some(ref rname) = last.ref_name {
                         let peeled_clean = peeled_oid.trim().to_string();
                         last.peeled = Some(peeled_clean.clone());
                         refs.insert(format!("{rname}^{{}}"), peeled_clean);
                     }
-                }
                 continue;
             }
             if let Some(space_idx) = trimmed.find(' ') {
@@ -84,7 +83,7 @@ impl std::fmt::Display for GitPackedRefs {
         if out.is_empty() {
             write!(f, "")
         } else {
-            write!(f, "{}\n", out.join("\n"))
+            writeln!(f, "{}", out.join("\n"))
         }
     }
 }

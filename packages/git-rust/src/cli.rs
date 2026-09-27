@@ -356,11 +356,10 @@ pub fn execute_git_cli_with_http(
                 match sub_args[i] {
                     "-b" | "-c" => create_new = true,
                     "-f" | "--force" => force = true,
-                    arg if !arg.starts_with('-') => {
-                        if target.is_none() {
+                    arg if !arg.starts_with('-')
+                        && target.is_none() => {
                             target = Some(arg);
                         }
-                    }
                     _ => {}
                 }
                 i += 1;
@@ -368,11 +367,10 @@ pub fn execute_git_cli_with_http(
             let Some(ref_target) = target else {
                 return CliResult::err(128, "fatal: missing branch or commit argument\n");
             };
-            if create_new {
-                if let Err(e) = branch(fs, &gitdir, ref_target, None, true, false) {
+            if create_new
+                && let Err(e) = branch(fs, &gitdir, ref_target, None, true, false) {
                     return CliResult::err(128, format!("fatal: {}\n", e.message));
                 }
-            }
             match checkout(
                 fs,
                 &repo_root,

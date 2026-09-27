@@ -410,12 +410,11 @@ impl GitRefManager {
         let symref_keys: Vec<&str> = symrefs.keys().map(|s| s.as_str()).collect();
         let mut symref_translations = Vec::new();
         for (server_ref, translated_ref) in refspec_set.translate(&symref_keys) {
-            if let Some(target) = symrefs.get(&server_ref) {
-                if let Some(symtarget) = refspec_set.translate_one(target) {
+            if let Some(target) = symrefs.get(&server_ref)
+                && let Some(symtarget) = refspec_set.translate_one(target) {
                     assert_writable_ref(&symtarget)?;
                     symref_translations.push((translated_ref, format!("ref: {symtarget}")));
                 }
-            }
         }
 
         let tag_refs_to_write: Vec<String> = if tags {
@@ -447,11 +446,10 @@ impl GitRefManager {
 
         let mut actual_refs_to_write = BTreeMap::new();
         for server_ref in tag_refs_to_write {
-            if !Self::exists(fs, gitdir, &server_ref) {
-                if let Some(oid) = refs.get(&server_ref) {
+            if !Self::exists(fs, gitdir, &server_ref)
+                && let Some(oid) = refs.get(&server_ref) {
                     actual_refs_to_write.insert(server_ref, oid.clone());
                 }
-            }
         }
 
         for (server_ref, translated_ref) in ref_translations {
@@ -568,15 +566,14 @@ impl GitShallowManager {
 }
 
 pub fn translate_ssh_to_http(url: &str) -> String {
-    if let Some((user_host, rest)) = url.split_once(':') {
-        if !user_host.contains('/')
+    if let Some((user_host, rest)) = url.split_once(':')
+        && !user_host.contains('/')
             && let Some((_user, host)) = user_host.split_once('@')
             && !host.is_empty()
             && !host.contains('@')
         {
             return format!("https://{host}/{rest}");
         }
-    }
     if let Some(rest) = url.strip_prefix("ssh://") {
         return format!("https://{rest}");
     }
@@ -611,8 +608,8 @@ impl GitRemoteManager {
 }
 
 fn parse_remote_url(url: &str) -> Option<RemoteHelper> {
-    if let Some((before_colon, _after_colon)) = url.split_once(':') {
-        if !before_colon.contains('/')
+    if let Some((before_colon, _after_colon)) = url.split_once(':')
+        && !before_colon.contains('/')
             && let Some((user, host)) = before_colon.split_once('@')
             && !user.is_empty()
             && !host.is_empty()
@@ -623,10 +620,9 @@ fn parse_remote_url(url: &str) -> Option<RemoteHelper> {
                 address: url.to_string(),
             });
         }
-    }
 
-    if let Some((scheme, rest)) = url.split_once("://") {
-        if !scheme.is_empty()
+    if let Some((scheme, rest)) = url.split_once("://")
+        && !scheme.is_empty()
             && scheme
                 .bytes()
                 .all(|b| b.is_ascii_alphanumeric() || b == b'_')
@@ -636,10 +632,9 @@ fn parse_remote_url(url: &str) -> Option<RemoteHelper> {
                 address: format!("{scheme}://{rest}"),
             });
         }
-    }
 
-    if let Some((scheme, rest)) = url.split_once("::") {
-        if !scheme.is_empty()
+    if let Some((scheme, rest)) = url.split_once("::")
+        && !scheme.is_empty()
             && scheme
                 .bytes()
                 .all(|b| b.is_ascii_alphanumeric() || b == b'_')
@@ -649,7 +644,6 @@ fn parse_remote_url(url: &str) -> Option<RemoteHelper> {
                 address: rest.to_string(),
             });
         }
-    }
 
     None
 }
@@ -692,8 +686,8 @@ impl GitIgnoreManager {
             let rules = parse_ignore_rules(&format!("{excludes}\n{file_content}"));
 
             let trimmed_rel = rel_filepath.trim_end_matches('/');
-            if let Some((parent_dir, _)) = trimmed_rel.rsplit_once('/') {
-                if !parent_dir.is_empty() && parent_dir != "." {
+            if let Some((parent_dir, _)) = trimmed_rel.rsplit_once('/')
+                && !parent_dir.is_empty() && parent_dir != "." {
                     let mut p_parts = Vec::new();
                     for seg in parent_dir.split('/') {
                         p_parts.push(seg);
@@ -703,7 +697,6 @@ impl GitIgnoreManager {
                         }
                     }
                 }
-            }
 
             let is_dir = rel_filepath.ends_with('/');
             let (ignored, unignored) = evaluate_ignore(&rules, trimmed_rel, is_dir);

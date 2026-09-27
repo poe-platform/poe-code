@@ -695,22 +695,20 @@ pub fn log(
     let mut is_ok = false;
 
     while let Some(commit) = tips.pop() {
-        if let Some(since_ts) = since_timestamp {
-            if commit.commit.committer.timestamp <= since_ts {
+        if let Some(since_ts) = since_timestamp
+            && commit.commit.committer.timestamp <= since_ts {
                 break;
             }
-        }
 
         if let Some(ref fp) = current_filepath.clone() {
             match resolve_filepath_entry(fs, &gdir, &commit.commit.tree, fp) {
                 Ok(v_file_entry) => {
-                    if let Some(ref lc) = last_commit {
-                        if last_file_oid.as_deref() != Some(&v_file_entry.oid)
-                            || last_file_mode.as_deref() != Some(&v_file_entry.mode)
+                    if let Some(ref lc) = last_commit
+                        && (last_file_oid.as_deref() != Some(&v_file_entry.oid)
+                            || last_file_mode.as_deref() != Some(&v_file_entry.mode))
                         {
                             commits.push(lc.clone());
                         }
-                    }
                     last_file_oid = Some(v_file_entry.oid);
                     last_file_mode = Some(v_file_entry.mode);
                     last_commit = Some(commit.clone());
@@ -718,8 +716,8 @@ pub fn log(
                 }
                 Err(e) if e.code == crate::errors::ErrorCode::NotFoundError => {
                     let mut found_rename = false;
-                    if follow {
-                        if let Some(ref l_oid) = last_file_oid {
+                    if follow
+                        && let Some(ref l_oid) = last_file_oid {
                             let found_list =
                                 resolve_file_id_in_tree(fs, &gdir, &commit.commit.tree, l_oid)?;
                             if found_list.len() == 1 {
@@ -728,8 +726,8 @@ pub fn log(
                                     commits.push(lc.clone());
                                 }
                                 found_rename = true;
-                            } else if found_list.len() > 1 {
-                                if let Some(ref lc) = last_commit {
+                            } else if found_list.len() > 1
+                                && let Some(ref lc) = last_commit {
                                     let last_found = resolve_file_id_in_tree(
                                         fs,
                                         &gdir,
@@ -749,9 +747,7 @@ pub fn log(
                                         break;
                                     }
                                 }
-                            }
                         }
-                    }
                     if !found_rename {
                         if is_ok && last_file_oid.is_some() {
                             if let Some(ref lc) = last_commit {
@@ -774,14 +770,13 @@ pub fn log(
             commits.push(commit.clone());
         }
 
-        if let Some(max_d) = depth {
-            if commits.len() == max_d {
+        if let Some(max_d) = depth
+            && commits.len() == max_d {
                 if is_ok && current_filepath.is_some() {
                     commits.push(commit.clone());
                 }
                 break;
             }
-        }
 
         if !shallow_commits.contains(&commit.oid) {
             for parent_oid in &commit.commit.parent {

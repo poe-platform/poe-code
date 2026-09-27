@@ -21,7 +21,7 @@ impl GitPackIndex {
         if idx.len() < 8 {
             return Ok(None);
         }
-        if &idx[0..4] != &[0xff, 0x74, 0x4f, 0x63] {
+        if idx[0..4] != [0xff, 0x74, 0x4f, 0x63] {
             return Ok(None);
         }
         let version = u32::from_be_bytes([idx[4], idx[5], idx[6], idx[7]]);

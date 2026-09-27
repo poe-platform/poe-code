@@ -117,8 +117,9 @@ intersects one row label and one column label, retaining both live anchors;
 it returns an error unless their data ranges intersect in exactly one cell.
 Both ODF writers export these live OpenFormula labels using the current label
 text, including `!!`, arrays and named expressions. Export verifies that the text
-still selects the same anchor, orientation and relative coordinates. Ambiguous,
-deleted, non-text and formula-generated labels, mixed relative-sheet expressions,
+still selects the same anchor, orientation and relative coordinates. Formula-generated
+labels retain their cell anchor and refresh dirty results according to calculation
+mode. Ambiguous, deleted and non-text labels, mixed relative-sheet expressions,
 and BIFF-specific label semantics remain unsupported in ODF output. Declared label
 ranges can read data on another sheet through import, recalculation, edits and ODF
 export. SDK `LabelRange.dataSheet` is the stable data-sheet ID; omission uses the

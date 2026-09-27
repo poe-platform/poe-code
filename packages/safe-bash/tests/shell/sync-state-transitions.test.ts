@@ -78,3 +78,10 @@ test("break in a compound while condition exits without replay", async () => {
   assert.equal(result.exitCode, 0);
   assert.equal(result.stdout, "done\n");
 });
+
+test("nested eval calling function resumes without replaying prefix across scalar to array transition", async () => {
+  const result = await execute('f() { (( count += 1 )); echo "in-f:$count"; shift; x=1; x=(1 "$1"); z=${x[1]}; }; unset x z; count=0; eval \'echo "in-eval"; f 5 99\'; echo "$count:$z"');
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "in-eval\nin-f:1\n1:99\n");
+});

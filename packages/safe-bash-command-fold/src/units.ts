@@ -1,7 +1,8 @@
 export interface FoldUnit { cp: number; length: number; valid: boolean }
+export const ASCII_UNITS: readonly FoldUnit[] = Array.from({ length: 128 }, (_, cp) => ({ cp, length: 1, valid: true }));
 export function decodeFoldUnit(bytes: ArrayLike<number>, offset: number, available: number, eof: boolean): FoldUnit | undefined {
   const first = bytes[offset]!;
-  if (first < 128) return { cp: first, length: 1, valid: true };
+  if (first < 128) return ASCII_UNITS[first]!;
   const length = first >= 0xc2 && first <= 0xdf ? 2 : first >= 0xe0 && first <= 0xef ? 3 : first >= 0xf0 && first <= 0xf4 ? 4 : 1;
   const invalid = { cp: first, length: 1, valid: false };
   if (length === 1) return invalid;

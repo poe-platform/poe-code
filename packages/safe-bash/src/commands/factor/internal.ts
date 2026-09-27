@@ -1,6 +1,6 @@
 import { getCommandArguments, type CommandContext } from "../../contracts/index.js";
 import { shellValueByteLength, shellValueBytes } from "../../contracts/value.js";
-import { yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { PublicDiagnostic } from "../../diagnostics.js";
 
 export interface FactorLimits {
@@ -47,7 +47,9 @@ export function raw(value: Uint8Array): string {
 }
 
 export function bytes(value: string): Uint8Array {
-  return Uint8Array.from(value, character => character.charCodeAt(0));
+  const out = new Uint8Array(value.length);
+  for (let i = 0; i < value.length; i++) out[i] = value.charCodeAt(i);
+  return out;
 }
 
 const escapes: Readonly<Record<string, string>> = { "\x07": "\\a", "\b": "\\b", "\f": "\\f", "\n": "\\n", "\r": "\\r", "\t": "\\t", "\v": "\\v", "\\": "\\\\", "'": "\\'" };
@@ -70,25 +72,47 @@ export function quote(value: string, budget: Budget, suffixLength: number): stri
 export class Budget {
   private work = 0;
   private checkpoint = 0;
+  private checkpointCount = 0;
+  private lastYieldMs = monotonicNow();
   private retained = 0;
   private input = 0;
   private numbers = 0;
   private output = 0;
   private diagnostics = 0;
-  constructor(readonly context: CommandContext, readonly limits: FactorLimits, readonly signal: AbortSignal) {}
+  private signalAborted = false;
+  private readonly pollSignal: boolean;
+  constructor(readonly context: CommandContext, readonly limits: FactorLimits, readonly signal: AbortSignal) {
+    this.pollSignal = Object.prototype.hasOwnProperty.call(signal, "aborted");
+    if (signal.aborted) {
+      this.signalAborted = true;
+    } else if (!this.pollSignal) {
+      signal.addEventListener("abort", () => { this.signalAborted = true; }, { once: true });
+    }
+  }
   check(value: number, maximum: number, label: string): void {
+    if ((value | 0) === value && value >= 0) {
+      if (value <= maximum) return;
+      throw new FactorError(`${label} limit exceeded`);
+    }
     if (!Number.isSafeInteger(value) || value < 0 || value > maximum) throw new FactorError(`${label} limit exceeded`);
   }
   charge(amount = 1): void {
-    this.signal.throwIfAborted();
-    this.check(this.work + amount, this.limits.maxWork, "work");
-    this.work += amount;
+    if (this.signalAborted || (this.pollSignal && this.signal.aborted)) this.signal.throwIfAborted();
+    const next = this.work + amount;
+    this.check(next, this.limits.maxWork, "work");
+    this.work = next;
   }
   checkpointWork(): void | Promise<void> {
-    this.signal.throwIfAborted();
+    if (this.signalAborted || (this.pollSignal && this.signal.aborted)) this.signal.throwIfAborted();
     if (this.work - this.checkpoint < 1024) return;
     this.checkpoint = this.work;
-    return yieldTurn(this.signal);
+    const count = ++this.checkpointCount;
+    if (hasYieldCheckpoint(this.signal)) return runYieldCheckpoint(this.signal);
+    const now = monotonicNow();
+    if (count === 1 || (count & 15) === 0 || now - this.lastYieldMs >= 4) {
+      this.lastYieldMs = now;
+      return yieldTurn(this.signal);
+    }
   }
   retain(amount: number): void {
     this.check(this.retained + amount, this.limits.maxBufferedBytes, "buffered bytes");

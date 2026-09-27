@@ -30,7 +30,29 @@ export function validateScalar(character: string, allowTab = false): void {
   }
 }
 
-export async function cell(text: string, budget: ColumnBudget): Promise<Cell> {
+export function cell(text: string, budget: ColumnBudget): Cell | Promise<Cell> {
+  let fastAscii = true;
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i);
+    if (c < 0x20 || c >= 0x7f) { fastAscii = false; break; }
+  }
+  if (fastAscii) {
+    if (text.length > 0) {
+      const w = budget.work(text.length);
+      if (w) {
+        return w.then(() => {
+          budget.check(text.length, budget.columnLimits.maxWidth, "display width");
+          return { text, width: text.length };
+        });
+      }
+      budget.check(text.length, budget.columnLimits.maxWidth, "display width");
+    }
+    return { text, width: text.length };
+  }
+  return cellSlow(text, budget);
+}
+
+async function cellSlow(text: string, budget: ColumnBudget): Promise<Cell> {
   let width = 0, start = 0, offset = 0;
   const parts: string[] = [];
   for (const character of text) {
@@ -55,7 +77,40 @@ export function decode(bytes: Uint8Array): string {
   catch { throw new FsError("EINVAL", { message: "invalid UTF-8 input" }); }
 }
 
-export async function fields(text: string, separator: Set<string> | undefined, budget: ColumnBudget, remainingCells: number, columnLimit = 0, outputSeparatorBytes?: number): Promise<string[]> {
+export function fields(text: string, separator: Set<string> | undefined, budget: ColumnBudget, remainingCells: number, columnLimit = 0, outputSeparatorBytes?: number): string[] | Promise<string[]> {
+  if (!separator && !columnLimit) {
+    let ascii = true;
+    for (let i = 0; i < text.length; i++) {
+      if (text.charCodeAt(i) >= 128) { ascii = false; break; }
+    }
+    if (ascii) {
+      const w = text.length > 0 ? budget.work(text.length) : undefined;
+      if (!w) {
+        const result: string[] = [];
+        let start = 0;
+        const append = (end: number): void => {
+          if (outputSeparatorBytes !== undefined) budget.project(result.length ? outputSeparatorBytes : 1);
+          budget.check(result.length + 1, budget.columnLimits.maxFields, "fields per row");
+          budget.check(result.length + 1, remainingCells, "cells");
+          budget.retain(end - start);
+          result.push(text.slice(start, end));
+        };
+        for (let offset = 0; offset < text.length; offset++) {
+          const code = text.charCodeAt(offset);
+          if (code === 32 || (code >= 9 && code <= 13 && code !== 10)) {
+            if (offset > start) append(offset);
+            start = offset + 1;
+          }
+        }
+        if (text.length > start) append(text.length);
+        return result;
+      }
+    }
+  }
+  return fieldsSlow(text, separator, budget, remainingCells, columnLimit, outputSeparatorBytes);
+}
+
+async function fieldsSlow(text: string, separator: Set<string> | undefined, budget: ColumnBudget, remainingCells: number, columnLimit = 0, outputSeparatorBytes?: number): Promise<string[]> {
   const result: string[] = [];
   let start = 0, offset = 0;
   const append = (end: number): void => {

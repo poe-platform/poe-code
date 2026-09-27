@@ -35,12 +35,19 @@ export class Budget {
   private nextYieldTime = monotonicNow() + 8;
   private files = 0;
   private hunks = 0;
+  private signalAborted: boolean;
+  private readonly pollSignal: boolean;
 
   get maxBufferBytes(): number { return this.limits.maxInputBytes; }
   get remainingWork(): number { return this.limits.maxWork - this.work; }
   get remainingFiles(): number { return this.limits.maxFiles - this.files; }
 
   constructor(readonly context: CommandContext, options: DiffPatchOptions) {
+    this.signalAborted = context.signal.aborted;
+    this.pollSignal = Object.prototype.hasOwnProperty.call(context.signal, "aborted");
+    if (!this.signalAborted && !this.pollSignal) {
+      context.signal.addEventListener("abort", () => { this.signalAborted = true; }, { once: true });
+    }
     this.limits = {
       maxInputBytes: options.maxInputBytes ?? Infinity,
       maxOutputBytes: options.maxOutputBytes ?? Infinity,
@@ -57,13 +64,13 @@ export class Budget {
     }
   }
   step(amount = 1): void {
-    this.context.signal.throwIfAborted();
+    if (this.pollSignal ? this.context.signal.aborted : this.signalAborted) this.context.signal.throwIfAborted();
     this.work += amount;
     if (this.work > this.limits.maxWork) throw new ToolError("work limit exceeded");
   }
 
   checkpoint(): void | Promise<void> {
-    this.context.signal.throwIfAborted();
+    if (this.pollSignal ? this.context.signal.aborted : this.signalAborted) this.context.signal.throwIfAborted();
     if (this.work >= this.nextYield) {
       this.nextYield = this.work + 4096;
       const now = monotonicNow();

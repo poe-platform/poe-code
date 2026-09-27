@@ -141,10 +141,15 @@ export class TokenReader {
 export class RecordWriter {
   private buffer: Uint8Array;
   private used = 0;
+  private retained = false;
   constructor(readonly lifecycle: Lifecycle) {
     lifecycle.budget.retain(1024);
-    this.buffer = new Uint8Array(1024);
-    lifecycle.cleanup(async () => { lifecycle.budget.retain(-this.buffer.length); this.buffer = new Uint8Array(); });
+    this.retained = true;
+    this.buffer = new Uint8Array(16384);
+    lifecycle.cleanup(async () => {
+      if (this.retained) { lifecycle.budget.retain(-1024); this.retained = false; }
+      this.buffer = new Uint8Array();
+    });
   }
   async append(record: string): Promise<void> {
     const { budget } = this.lifecycle;
@@ -160,8 +165,8 @@ export class RecordWriter {
       return;
     }
     for (let offset = 0; offset < record.length; offset++) this.buffer[this.used++] = record.charCodeAt(offset);
-    if (this.used >= 512) {
-      let end = 512;
+    if (this.used >= 15872) {
+      let end = 15872;
       while (this.buffer[end - 1] !== 10) end--;
       await this.lifecycle.write(this.buffer.subarray(0, end));
       this.buffer.copyWithin(0, end, this.used);

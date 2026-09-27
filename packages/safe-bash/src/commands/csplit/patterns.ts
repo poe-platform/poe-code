@@ -14,24 +14,41 @@ export interface Pattern {
 }
 
 export class Matcher {
-  constructor(readonly session: RegexSession, readonly budget: Budget) {}
-  async search(pattern: Uint8Array, subject: Uint8Array): Promise<boolean> {
-    const { limits, context } = this.budget;
-    this.budget.charge();
+  private readonly profile: "byte" | "utf8-scalar" | "unsupported";
+  constructor(readonly session: RegexSession, readonly budget: Budget) {
+    const { context } = budget;
     const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C";
     const collate = context.env.LC_ALL || context.env.LC_COLLATE || context.env.LANG || "C";
     const supported = ["C", "POSIX", "C.UTF-8", "C.utf8"];
-    if (!supported.includes(locale) || !supported.includes(collate)) throw new CsplitError("BRE requires C/POSIX or C.UTF-8/C.utf8 locale");
+    if (!supported.includes(locale) || !supported.includes(collate)) {
+      this.profile = "unsupported";
+    } else {
+      this.profile = locale === "C" || locale === "POSIX" ? "byte" : "utf8-scalar";
+    }
+  }
+  search(pattern: Uint8Array, subject: Uint8Array): boolean | Promise<boolean> {
+    const { limits } = this.budget;
+    this.budget.charge();
+    if (this.profile === "unsupported") throw new CsplitError("BRE requires C/POSIX or C.UTF-8/C.utf8 locale");
     if (this.budget.remaining() < 1) throw new CsplitError("work limit exceeded");
-    const result = await this.session.searchBre({ kind: "bre-search", pattern, profile: locale === "C" || locale === "POSIX" ? "byte" : "utf8-scalar", limits: {
+    const r = this.session.searchBreSync({ kind: "bre-search", pattern, profile: this.profile, limits: {
       maxPatternBytes: limits.maxRegexPatternBytes, maxSubjectBytes: Math.min(limits.maxLineBytes, exprMatchCeilings.maxSubjectBytes),
       maxNodes: limits.maxRegexNodes, maxDepth: limits.maxRegexDepth,
       maxSteps: Math.min(this.budget.remaining(), exprMatchCeilings.maxSteps), maxStates: limits.maxRegexStates,
       maxAllocatedUnits: limits.maxRegexAllocatedUnits,
     } }, subject);
-    this.budget.charge(result.steps);
-    { const cp = this.budget.checkpointWork(); if (cp) await cp; }
-    return result.matched;
+    if (r instanceof Promise) {
+      return r.then(async result => {
+        this.budget.charge(result.steps);
+        const cp = this.budget.checkpointWork();
+        if (cp) await cp;
+        return result.matched;
+      });
+    }
+    this.budget.charge(r.steps);
+    const cp = this.budget.checkpointWork();
+    if (cp) return cp.then(() => r.matched);
+    return r.matched;
   }
 }
 

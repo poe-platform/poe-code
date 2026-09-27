@@ -1,4 +1,4 @@
-import { decodeFoldUnit, type FoldUnit } from "./units.js";
+import { ASCII_UNITS, decodeFoldUnit, type FoldUnit } from "./units.js";
 import { FoldError, defaultFoldLimits, validateLimits, type FoldLimits, type FoldOptions } from './contracts.js';
 import { adjustFoldColumn } from './column.js';
 // Inspect intrinsic slots across realms; producer properties must not change
@@ -54,6 +54,20 @@ export function createFoldEngine(options: FoldOptions, locale: string, configura
   };
   const adjust = (unit: FoldUnit, rescan = false): number => {
     check();
+    if (unit.valid && unit.length === 1) {
+      const cp = unit.cp;
+      if (cp >= 32 && cp < 127) {
+        lastWidth = 1;
+        const nextCol = column + 1;
+        if ((nextCol | 0) !== nextCol && !Number.isSafeInteger(nextCol)) throw new FoldError('ARITHMETIC', 'Column addition exceeds safe integer arithmetic');
+        return nextCol;
+      }
+      if (cp === 9) {
+        const nextCol = mode === 'bytes' ? column + 1 : column + (8 - (column % 8));
+        if ((nextCol | 0) !== nextCol && !Number.isSafeInteger(nextCol)) throw new FoldError('ARITHMETIC', 'Column addition exceeds safe integer arithmetic');
+        return nextCol;
+      }
+    }
     // mbbuf input errors have invalid width; mcel remainder scans use ch=0.
     // A malformed byte must never inherit the Unicode width of its byte value.
     const next = adjustFoldColumn({ column, lastWidth }, { codePoint: unit.valid ? unit.cp : rescan ? 0 : 1, byteLength: unit.length }, mode, locale);
@@ -106,6 +120,7 @@ export function createFoldEngine(options: FoldOptions, locale: string, configura
     }
   };
   const dispose = (): void => { closed = true; used = lastBlank = 0; pending.length = 0; emitted = []; line.fill(0); };
+  const singleByte = [0];
   return {
     push(bytes) {
       try {
@@ -117,7 +132,22 @@ export function createFoldEngine(options: FoldOptions, locale: string, configura
         const length = byteLength.call(bytes) as number;
         if (length > 4096 || length > inputBytes - input) throw new FoldError('LIMIT', 'Input byte or bounded-call limit exceeded');
         input += length;
-        for (const b of values) { check(); pending.push(b); peakRetained = Math.max(peakRetained, used + pending.length); drain(false); }
+        for (const b of values) {
+          check();
+          if (pending.length === 0 && b < 128) {
+            if (used + 1 > peakRetained) peakRetained = used + 1;
+            if (1 > decodedLimit - decoded) throw new FoldError('LIMIT', 'Decoded byte limit exceeded');
+            check(1);
+            decoded += 1;
+            singleByte[0] = b;
+            consume(ASCII_UNITS[b]!, singleByte);
+            if (used > peakRetained) peakRetained = used;
+          } else {
+            pending.push(b);
+            if (used + pending.length > peakRetained) peakRetained = used + pending.length;
+            drain(false);
+          }
+        }
         return emitted;
       } catch (error) { dispose(); throw error; }
     },

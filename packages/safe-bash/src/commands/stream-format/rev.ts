@@ -22,18 +22,31 @@ async function validPrefix(bytes: Uint8Array, session: Session): Promise<number>
   return bytes.length;
 }
 
-async function reversed(bytes: Uint8Array, utf8: boolean, session: Session): Promise<Uint8Array> {
-  const result = new Uint8Array(bytes.length);
+async function reversed(bytes: Uint8Array, utf8: boolean, session: Session, appendNewline = false): Promise<Uint8Array> {
+  const result = new Uint8Array(bytes.length + (appendNewline ? 1 : 0));
+  if (!utf8) {
+    const s = session.step(bytes.length);
+    if (s) await s;
+    for (let i = 0, j = bytes.length - 1; i < bytes.length; i++, j--) result[i] = bytes[j]!;
+    if (appendNewline) result[bytes.length] = 10;
+    return result;
+  }
   let destination = 0;
   for (let end = bytes.length; end > 0;) {
     const s = session.step();
     if (s) await s;
     let start = end - 1;
-    if (utf8) while (start > 0 && (bytes[start]! & 192) === 128) start--;
-    result.set(bytes.subarray(start, end), destination);
-    destination += end - start;
+    while (start > 0 && (bytes[start]! & 192) === 128) start--;
+    const width = end - start;
+    if (width === 1) {
+      result[destination++] = bytes[start]!;
+    } else {
+      result.set(bytes.subarray(start, end), destination);
+      destination += width;
+    }
     end = start;
   }
+  if (appendNewline) result[destination] = 10;
   return result;
 }
 
@@ -44,18 +57,41 @@ export function createRevCommand(limits: StreamFormatLimits): CommandDefinition 
     const utf8 = /(?:^|[._-])utf-?8(?:@.*)?$/iu.test(locale);
     if (!utf8 && locale !== "C" && locale !== "POSIX") throw new UsageError(`unsupported character encoding locale: '${locale}'`);
     await session.files(session.names(parsed.operands), async (source, name) => {
-      for await (const { bytes: record, terminated } of records(source, session)) {
+      const canBatch = limits.maxOutputBytes === Infinity && limits.maxChunkBytes >= 16384;
+      const outBuf = new Uint8Array(16384);
+      let outLen = 0;
+      let flushedFirst = false;
+      const flushOut = async (): Promise<void> => {
+        if (outLen > 0) {
+          flushedFirst = true;
+          const slice = outBuf.subarray(0, outLen);
+          outLen = 0;
+          await session.output(slice);
+        }
+      };
+      for await (const { bytes: record, terminated } of records(source, session, flushOut)) {
         const length = utf8 ? await validPrefix(record, session) : record.length;
         if (length || length === record.length) {
-          await session.output(await reversed(record.subarray(0, length), utf8, session));
-          if (terminated || length !== record.length) await session.text("\n");
+          const hasNl = terminated || length !== record.length;
+          const revBytes = await reversed(record.subarray(0, length), utf8, session, hasNl);
+          if (canBatch && revBytes.length <= 8192) {
+            if (outLen + revBytes.length > 16384) await flushOut();
+            outBuf.set(revBytes, outLen);
+            outLen += revBytes.length;
+            if (!flushedFirst || outLen >= 8192) await flushOut();
+          } else {
+            await flushOut();
+            await session.output(revBytes);
+          }
         }
         if (length !== record.length) {
+          await flushOut();
           await diagnostic(session.context, new PublicDiagnostic(`${name === "-" && !parsed.operands.length ? "stdin" : name}: Illegal byte sequence`));
           session.failed = true;
           break;
         }
       }
+      await flushOut();
     }, parsed.operands.length > 0);
   });
 }

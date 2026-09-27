@@ -64,7 +64,8 @@ export class Splitter {
         return true;
       }
       const subject = line.at(-1) === 10 ? line.subarray(0, -1) : line;
-      if (await this.matcher.search(pattern.expression!, subject)) break;
+      const mRes = this.matcher.search(pattern.expression!, subject);
+      if (typeof mRes === "boolean" ? mRes : await mRes) break;
       if (pattern.offset >= 0n) {
         const rRem = this.remove();
         const removed = rRem instanceof Promise ? await rRem : rRem;

@@ -87,7 +87,8 @@ export function createColumnCommand(options: ColumnCommandsOptions = {}): Comman
               continue;
             }
             while (true) {
-              const bytes = await reader.next();
+              const rBytes = reader.next();
+              const bytes = rBytes instanceof Promise ? await rBytes : rBytes;
               if (bytes === undefined) break;
               budget.check(++rowCount, limits.maxRows, "rows");
               { const w = budget.work(bytes.length); if (w) await w; }
@@ -109,7 +110,8 @@ export function createColumnCommand(options: ColumnCommandsOptions = {}): Comman
                 }
                 continue;
               }
-              const values = parsed.table ? await fields(text, parsed.separator, budget, limits.maxCells - cellCount, parsed.columnLimit, separatorBytes) : [text];
+              const rValues = parsed.table ? fields(text, parsed.separator, budget, limits.maxCells - cellCount, parsed.columnLimit, separatorBytes) : [text];
+              const values = rValues instanceof Promise ? await rValues : rValues;
               if (parsed.table && !values.length) {
                 if (parsed.keepEmpty) rows.push([]);
                 continue;
@@ -132,7 +134,8 @@ export function createColumnCommand(options: ColumnCommandsOptions = {}): Comman
               cellCount += values.length;
               const row: Cell[] = [];
               for (let index = 0; index < values.length; index++) {
-                const entry = await cell(values[index]!, budget);
+                const rEntry = cell(values[index]!, budget);
+                const entry = rEntry instanceof Promise ? await rEntry : rEntry;
                 row.push(parsed.json ? { text: values[index]!, width: entry.width } : entry);
                 widths[index] = Math.max(widths[index] ?? 0, entry.width);
               }

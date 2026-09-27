@@ -1,6 +1,6 @@
 import { FsError, getCommandArguments, writeBytes, type CommandContext } from "../../contracts/index.js";
 import { shellValueByteLength, shellValueBytes } from "../../contracts/value.js";
-import { yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { PublicDiagnostic } from "../../diagnostics.js";
 import type { RegexExecutionOptions } from "../regex-execution/portable.js";
 import type { BoundedRegexProvider } from "../regex-execution/provider.js";
@@ -77,7 +77,9 @@ export function raw(bytes: Uint8Array): string {
 }
 
 export function bytes(value: string): Uint8Array {
-  return Uint8Array.from(value, character => character.charCodeAt(0));
+  const out = new Uint8Array(value.length);
+  for (let i = 0; i < value.length; i++) out[i] = value.charCodeAt(i);
+  return out;
 }
 
 export function pathText(value: string): string {
@@ -94,9 +96,21 @@ export class Budget {
   private readonly buffers = new Map<object, number>();
   private work = 0;
   private checkpoint = 0;
+  private checkpointCount = 0;
+  private lastYieldMs = monotonicNow();
   private diagnostics = 0;
   private output = 0;
-  constructor(readonly context: CommandContext, readonly limits: CsplitLimits) {}
+  private signalAborted = false;
+  private readonly pollSignal: boolean;
+  constructor(readonly context: CommandContext, readonly limits: CsplitLimits) {
+    const signal = context.signal;
+    this.pollSignal = Object.prototype.hasOwnProperty.call(signal, "aborted");
+    if (signal.aborted) {
+      this.signalAborted = true;
+    } else if (!this.pollSignal) {
+      signal.addEventListener("abort", () => { this.signalAborted = true; }, { once: true });
+    }
+  }
   reserveBuffered(owner: object, bytes: number): void {
     let total = bytes;
     for (const [key, value] of this.buffers) if (key !== owner) total += value;
@@ -111,10 +125,14 @@ export class Budget {
     return quoteBytes(value, locale === "C.UTF-8" || locale === "C.utf8");
   }
   check(value: number, maximum: number, label: string): void {
+    if ((value | 0) === value && value >= 0) {
+      if (value <= maximum) return;
+      throw new CsplitError(`${label} limit exceeded`);
+    }
     if (!Number.isSafeInteger(value) || value < 0 || value > maximum) throw new CsplitError(`${label} limit exceeded`);
   }
   charge(amount = 1): void {
-    this.context.signal.throwIfAborted();
+    if (this.signalAborted || (this.pollSignal && this.context.signal.aborted)) this.context.signal.throwIfAborted();
     this.work += amount;
     this.check(this.work, this.limits.maxWork, "work");
   }
@@ -123,7 +141,13 @@ export class Budget {
     this.charge();
     if (this.work - this.checkpoint < 4096) return;
     this.checkpoint = this.work;
-    return yieldTurn(this.context.signal);
+    const count = ++this.checkpointCount;
+    if (hasYieldCheckpoint(this.context.signal)) return runYieldCheckpoint(this.context.signal);
+    const now = monotonicNow();
+    if (count === 1 || (count & 15) === 0 || now - this.lastYieldMs >= 4) {
+      this.lastYieldMs = now;
+      return yieldTurn(this.context.signal);
+    }
   }
   arguments(): string[] {
     this.check(this.context.args.length, this.limits.maxArguments, "argument count");

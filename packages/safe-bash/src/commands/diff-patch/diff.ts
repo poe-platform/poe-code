@@ -70,13 +70,23 @@ async function edits(oldLines: string[], newLines: string[], oldKeys: string[], 
   };
   const oldIds = matrix ? await intern(oldKeys, oldCount) : undefined;
   const newIds = matrix ? await intern(newKeys, newCount) : undefined;
-  if (matrix) for (let oldIndex = oldCount - 1; oldIndex >= 0; oldIndex--) {
-    for (let newIndex = newCount - 1; newIndex >= 0; newIndex--) {
-      const position = oldIndex * width + newIndex;
-      budget.step();
-      matrix[position] = oldIds![oldIndex] === newIds![newIndex]
-        ? 1 + matrix[position + width + 1]!
-        : Math.max(matrix[position + width]!, matrix[position + 1]!);
+  if (matrix) {
+    for (let oldIndex = oldCount - 1; oldIndex >= 0; oldIndex--) {
+      budget.step(newCount);
+      const oldId = oldIds![oldIndex]!;
+      const rowOffset = oldIndex * width;
+      const nextRowOffset = rowOffset + width;
+      for (let newIndex = newCount - 1; newIndex >= 0; newIndex--) {
+        const position = rowOffset + newIndex;
+        const nextPos = nextRowOffset + newIndex;
+        if (oldId === newIds![newIndex]) {
+          matrix[position] = 1 + matrix[nextPos + 1]!;
+        } else {
+          const down = matrix[nextPos]!;
+          const right = matrix[position + 1]!;
+          matrix[position] = down >= right ? down : right;
+        }
+      }
       const checkpoint = budget.checkpoint();
       if (checkpoint) await checkpoint;
     }

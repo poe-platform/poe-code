@@ -1,6 +1,6 @@
 import { PublicDiagnostic } from "../../public-diagnostic.js";
 import { foldAscii, isAsciiWord } from "./ascii.js";
-import { runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { matchExprSteps, searchBreSteps } from "../expr/bre-engine.js";
 import { EreSyntaxError, EreUnsupportedError, EreProfileLimitError, EreUsageUnknownError } from "./ere/errors.js";
 import { EreLedger } from "./ere/limits.js";
@@ -247,7 +247,36 @@ function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderO
   return { id: input.id, descriptor: ownedDescriptor, rows, ledger, limits } as OwnedRequest | OwnedGlobRequest;
 }
 
-function admitExpr(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderOptions>, signal: AbortSignal): OwnedExprRequest {
+function admitExpr(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderOptions>, signal: AbortSignal, isTrusted = false): OwnedExprRequest {
+  if (isTrusted) {
+    signal.throwIfAborted();
+    const selected = input.descriptor as ExprMatchDescriptor | BreSearchDescriptor;
+    const row = input.rows[0]!;
+    const requested = selected.limits;
+    const allowance: ExprMatchLimits = {
+      maxPatternBytes: Math.min(requested.maxPatternBytes, limits.maxPatternBytes),
+      maxSubjectBytes: Math.min(requested.maxSubjectBytes, limits.maxInputBytes),
+      maxNodes: requested.maxNodes,
+      maxDepth: requested.maxDepth,
+      maxSteps: Math.min(requested.maxSteps, limits.maxWork),
+      maxStates: Math.min(requested.maxStates, limits.maxStates),
+      maxAllocatedUnits: Math.min(requested.maxAllocatedUnits, limits.maxAllocationUnits),
+    };
+    const patternLength = selected.pattern.byteLength;
+    const subjectLength = row.bytes.byteLength;
+    if (patternLength > allowance.maxPatternBytes) throw new ExprMatchError("limit", "bounded regex pattern byte limit exceeded");
+    if (subjectLength > allowance.maxSubjectBytes) throw new ExprMatchError("limit", "bounded regex input byte limit exceeded");
+    if (limits.maxResultBytes < 32) throw new ExprMatchError("limit", "bounded regex result byte limit exceeded");
+    const ownedUnits = patternLength + subjectLength + 64;
+    if (ownedUnits > allowance.maxSteps) throw new ExprMatchError("limit", "bounded regex work limit exceeded");
+    if (ownedUnits > allowance.maxAllocatedUnits) throw new ExprMatchError("limit", "bounded regex allocation limit exceeded");
+    return {
+      id: input.id,
+      descriptor: { kind: selected.kind, pattern: selected.pattern, profile: selected.profile, limits: allowance },
+      subject: row.bytes,
+      ownedUnits,
+    };
+  }
   signal.throwIfAborted();
   record(input, ["id", "descriptor", "rows"]);
   const selected: unknown = input.descriptor;
@@ -1245,12 +1274,50 @@ class CooperativeWorker implements RegexWorker {
     let failure: string | undefined;
     let category: ExprMatchError["category"] = "unsupported";
     try {
-      owned = expression ? admitExpr(input, this.limits, signal) : admit(input, this.limits, signal);
+      owned = expression ? admitExpr(input, this.limits, signal, isTrusted) : admit(input, this.limits, signal);
     }
     catch (error) {
       if (!(error instanceof ExprMatchError || error instanceof PublicDiagnostic || error instanceof EreSyntaxError || error instanceof EreUnsupportedError || error instanceof EreProfileLimitError || error instanceof EreUsageUnknownError)) throw error;
       if (error instanceof ExprMatchError) category = error.category;
       failure = error.message.slice(0, 512);
+    }
+    if (isTrusted && owned && "subject" in owned && !hasYieldCheckpoint(signal)) {
+      try {
+        signal.throwIfAborted();
+        const exprOwned = owned as OwnedExprRequest;
+        const execution = exprOwned.descriptor.kind === "bre-search"
+          ? searchBreSteps(exprOwned.descriptor, exprOwned.subject, { ownedUnits: exprOwned.ownedUnits })
+          : matchExprSteps(exprOwned.descriptor, exprOwned.subject, { asciiOnly: true, ownedUnits: exprOwned.ownedUnits });
+        let yields = 0;
+        let syncReply: ExprMatchReply | BreSearchReply | undefined;
+        while (true) {
+          signal.throwIfAborted();
+          const step = execution.next();
+          if (step.done) {
+            syncReply = exprOwned.descriptor.kind === "bre-search"
+              ? { id, operation: "bre-search", result: step.value as any }
+              : { id, operation: "expr-match", result: step.value as any };
+            break;
+          }
+          if (++yields > 64) break;
+        }
+        if (syncReply !== undefined) {
+          trustedWorkerReplies.add(syncReply);
+          owned = undefined;
+          if (!this.closing) this.emit(syncReply);
+          return;
+        }
+      } catch (error) {
+        if (error instanceof ExprMatchError || error instanceof PublicDiagnostic || error instanceof EreSyntaxError || error instanceof EreUnsupportedError || error instanceof EreProfileLimitError || error instanceof EreUsageUnknownError) {
+          const cat = error instanceof ExprMatchError ? error.category : "unsupported";
+          const errReply: ExprMatchReply | BreSearchReply = operation === "bre-search"
+            ? { id, operation: "bre-search", category: cat, error: error.message.slice(0, 512) }
+            : { id, operation: "expr-match", category: cat, error: error.message.slice(0, 512) };
+          owned = undefined;
+          if (!this.closing) this.emit(errReply);
+          return;
+        }
+      }
     }
     // Only the in-process executor consumes private direct-match replies.
     // Public worker requests retain the wire protocol's owned span arrays.

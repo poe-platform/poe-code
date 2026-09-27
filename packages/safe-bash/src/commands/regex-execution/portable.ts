@@ -1,7 +1,7 @@
 import type { BoundedRegexProvider, RegexWorker } from "./provider.js";
 import type { CommandContext, CommandResult } from "../../contracts/command.js";
 import type { ByteSource } from "../../contracts/io.js";
-import { inProcessRegexProviders, inProcessRegexWorkers, inputBytes, policy, RegexExecutionError, reusableTrustedRequest, trustedInputRows, trustedWorkerRequests, validateReply, validateExprInput, validateExprReply, validateBreSearchInput, validateBreSearchReply, type BreSearchDescriptor, type BreSearchResult, type ExprMatchDescriptor, type ExprMatchResult, type Descriptor, type Match, type RegexExecutionOptions, type Row } from "./protocol.js";
+import { inProcessRegexProviders, inProcessRegexWorkers, inputBytes, policy, RegexExecutionError, reusableTrustedRequest, trustedInputRows, trustedWorkerReplies, trustedWorkerRequests, validateReply, validateExprInput, validateExprReply, validateBreSearchInput, validateBreSearchReply, type BreSearchDescriptor, type BreSearchResult, type ExprMatchDescriptor, type ExprMatchResult, type Descriptor, type Match, type RegexExecutionOptions, type Row } from "./protocol.js";
 
 export type { RegexExecutionOptions } from "./protocol.js";
 export { RegexExecutionError } from "./protocol.js";
@@ -275,7 +275,7 @@ class Slot {
       this.idleTimer?.unref?.();
     }
   }
-  postInProcessSync(message: { id: number; descriptor: Descriptor; rows: readonly Row[] }, timeout: number, signal: AbortSignal): { sync: true; value: unknown } | { sync: false; promise: Promise<unknown> } {
+  postInProcessSync(message: { id: number; descriptor: Descriptor | ExprMatchDescriptor | BreSearchDescriptor; rows: readonly Row[] }, timeout: number, signal: AbortSignal): { sync: true; value: unknown } | { sync: false; promise: Promise<unknown> } {
     signal.throwIfAborted();
     if (this.terminal !== undefined) return { sync: false, promise: Promise.reject(this.terminal) };
     this.syncSettled = false;
@@ -539,6 +539,62 @@ export class RegexExecutor {
     const asyncSignal = session._ensureAsyncState();
     return this.request(descriptor, rows, asyncSignal, session._getRetirements());
   }
+  requestBreSyncOrAsync(descriptor: BreSearchDescriptor, subject: Uint8Array, session: RegexSession): BreSearchResult | Promise<BreSearchResult> {
+    const signal = session.signal;
+    signal.throwIfAborted();
+    if (this.disposed) return Promise.reject(new RegexExecutionError("CLOSED", "executor is disposed"));
+    const rows: readonly Row[] = [{ bytes: subject, all: false, terminated: false }];
+    if (this.queue.length === 0) {
+      const readySlot = this.findReadySlot();
+      if (readySlot && readySlot.inProcess) {
+        validateBreSearchInput(descriptor, rows, signal);
+        const id = ++this.sequence;
+        readySlot.busy = true;
+        const message = { id, descriptor, rows };
+        trustedWorkerRequests.add(message);
+        const ex = readySlot.postInProcessSync(message, this.options.requestTimeoutMs, signal);
+        if (ex.sync) {
+          try {
+            if (ex.value && typeof ex.value === "object" && trustedWorkerReplies.has(ex.value as object) && !("error" in (ex.value as object))) {
+              signal.throwIfAborted();
+              return (ex.value as { result: BreSearchResult }).result;
+            }
+            const validated = validateBreSearchReply(ex.value, id, descriptor, subject, signal);
+            signal.throwIfAborted();
+            return validated;
+          } catch (error) {
+            const retirement = readySlot.retire();
+            session._getRetirements().add(retirement);
+            throw signal.aborted ? signal.reason : error;
+          } finally {
+            readySlot.busy = false;
+            if (readySlot.retired) this.retired(readySlot);
+            else readySlot.armIdleTimer(this.options.idleTimeoutMs);
+            if (this.queue.length > 0) this.pump();
+          }
+        }
+        const asyncSignal = session._ensureAsyncState();
+        return ex.promise.then(
+          reply => {
+            const validated = validateBreSearchReply(reply, id, descriptor, subject, asyncSignal);
+            asyncSignal.throwIfAborted();
+            return validated;
+          }
+        ).catch(error => {
+          const retirement = readySlot.retire();
+          session._getRetirements().add(retirement);
+          throw asyncSignal.aborted ? asyncSignal.reason : error;
+        }).finally(() => {
+          readySlot.busy = false;
+          if (readySlot.retired) this.retired(readySlot);
+          else readySlot.armIdleTimer(this.options.idleTimeoutMs);
+          if (this.queue.length > 0) this.pump();
+        });
+      }
+    }
+    const asyncSignal = session._ensureAsyncState();
+    return this.request(descriptor, rows, asyncSignal, session._getRetirements());
+  }
   request(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal, retirements?: Set<Promise<void>>): Promise<Match[][]>;
   request(descriptor: ExprMatchDescriptor, rows: readonly Row[], signal: AbortSignal, retirements?: Set<Promise<void>>): Promise<ExprMatchResult>;
   request(descriptor: BreSearchDescriptor, rows: readonly Row[], signal: AbortSignal, retirements?: Set<Promise<void>>): Promise<BreSearchResult>;
@@ -707,13 +763,17 @@ export class RegexSession {
     const result = this.executor.request(descriptor, [{ bytes: subject, all: false, terminated: false }], sig, this.retirements);
     return this.trackPending(result);
   }
-  searchBre(descriptor: BreSearchDescriptor, subject: Uint8Array): Promise<BreSearchResult> {
+  searchBreSync(descriptor: BreSearchDescriptor, subject: Uint8Array): BreSearchResult | Promise<BreSearchResult> {
     this.signal.throwIfAborted();
     if (this.closed) throw new RegexExecutionError("CLOSED", "invocation is closed");
     if (this.onUse) { const fn = this.onUse; this.onUse = undefined; fn(); }
-    const sig = this._ensureAsyncState();
-    const result = this.executor.request(descriptor, [{ bytes: subject, all: false, terminated: false }], sig, this.retirements);
-    return this.trackPending(result);
+    const syncOrAsync = this.executor.requestBreSyncOrAsync(descriptor, subject, this);
+    if (!(syncOrAsync instanceof Promise)) return syncOrAsync;
+    return this.trackPending(syncOrAsync);
+  }
+  searchBre(descriptor: BreSearchDescriptor, subject: Uint8Array): Promise<BreSearchResult> {
+    const res = this.searchBreSync(descriptor, subject);
+    return res instanceof Promise ? res : Promise.resolve(res);
   }
   canCloseSync(): boolean {
     return !this.pending?.size && !this.retirements?.size && this.executor.canCloseSync();

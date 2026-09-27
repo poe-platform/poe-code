@@ -1,4 +1,4 @@
-import { yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { diagnostic, pathOf } from "../internal.js";
 import { gnuInformation } from "../gnu-information.js";
@@ -40,6 +40,10 @@ export class Session {
   private outputBytes = 0;
   private steps = 0;
   private untilYield = 4096;
+  private yieldCount = 0;
+  private lastYieldMs = monotonicNow();
+  private signalAborted = false;
+  private readonly pollSignal: boolean;
   private stdin: AsyncIterator<Uint8Array> | undefined;
   private controller = new AbortController();
   readonly signal: AbortSignal;
@@ -47,6 +51,12 @@ export class Session {
 
   constructor(readonly context: CommandContext, readonly limits: StreamInspectionLimits) {
     this.signal = AbortSignal.any([context.signal, this.controller.signal]);
+    this.pollSignal = Object.prototype.hasOwnProperty.call(context.signal, "aborted");
+    if (this.signal.aborted) {
+      this.signalAborted = true;
+    } else if (!this.pollSignal) {
+      this.signal.addEventListener("abort", () => { this.signalAborted = true; }, { once: true });
+    }
     this.check(context.args.reduce((size, value) => size + Buffer.byteLength(value), 0), limits.maxArgumentBytes, "argument");
   }
 
@@ -55,15 +65,21 @@ export class Session {
   }
 
   step(count = 1): void | Promise<void> {
-    this.signal.throwIfAborted();
+    if (this.signalAborted || (this.pollSignal && this.signal.aborted)) this.signal.throwIfAborted();
     this.steps += count;
     this.check(this.steps, this.limits.maxSteps, "step");
     this.untilYield -= count;
     if (this.untilYield <= 0) {
       this.untilYield = 4096;
-      return yieldTurn().then(() => {
-        this.signal.throwIfAborted();
-      });
+      const c = ++this.yieldCount;
+      if (hasYieldCheckpoint(this.signal)) return runYieldCheckpoint(this.signal);
+      const now = monotonicNow();
+      if (c === 1 || (c & 15) === 0 || now - this.lastYieldMs >= 4) {
+        this.lastYieldMs = now;
+        return yieldTurn().then(() => {
+          this.signal.throwIfAborted();
+        });
+      }
     }
   }
 

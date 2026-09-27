@@ -17,6 +17,13 @@ class Work {
   private states = 0;
   private checkpointSteps = 0;
   constructor(readonly limits: ExprMatchLimits) {}
+  get allocatedValue(): number { return this.allocated; }
+  get nodesValue(): number { return this.nodes; }
+  replayCompiled(steps: number, allocated: number, nodes: number): void {
+    this.steps += steps;
+    this.allocated += allocated;
+    this.nodes += nodes;
+  }
   charge(amount = 1): void {
     if (amount > this.limits.maxSteps - this.steps) throw new ExprMatchError("limit", "regex work limit exceeded");
     this.steps += amount;
@@ -724,7 +731,24 @@ function member(value: number, name: string): boolean {
 export function* searchBreSteps(descriptor: BreSearchDescriptor, subject: Uint8Array, options: { readonly ownedUnits?: number } = {}): Generator<void, BreSearchResult> {
   const work = new Work(descriptor.limits);
   const program = yield* prepareSearch(descriptor, subject, work, options);
+  const unbounded = descriptor.limits.maxStates === Infinity && descriptor.limits.maxSteps >= 1_000_000 && descriptor.limits.maxAllocatedUnits === Infinity;
+  const inst0 = program.instructions[0];
+  if (unbounded && (inst0?.kind === "start" || inst0?.kind === "begbuf")) {
+    const inst1 = program.instructions[1];
+    if (inst1?.kind === "literal" && program.input.values[0] !== inst1.value) {
+      work.charge(6);
+      return { offsetUnit: "byte", matched: false, overall: null, steps: work.steps };
+    }
+    const end = yield* searchCandidate(program, 0, work);
+    if (end !== undefined) return { offsetUnit: "byte", matched: true, overall: { start: program.input.boundaries[0]!, end: program.input.boundaries[end]! }, steps: work.steps };
+    return { offsetUnit: "byte", matched: false, overall: null, steps: work.steps };
+  }
+  const literalFirst = unbounded && inst0?.kind === "literal" ? inst0.value : undefined;
   for (let candidate = 0; candidate <= program.input.values.length; candidate++) {
+    if (literalFirst !== undefined && program.input.values[candidate] !== literalFirst) {
+      work.charge(1);
+      continue;
+    }
     const end = yield* searchCandidate(program, candidate, work);
     if (end !== undefined) return { offsetUnit: "byte", matched: true, overall: { start: program.input.boundaries[candidate]!, end: program.input.boundaries[end]! }, steps: work.steps };
   }
@@ -744,10 +768,44 @@ export function* reverseEmacsSteps(descriptor: BreSearchDescriptor, subject: Uin
   }
 }
 
+interface CachedBreSearch {
+  readonly instructions: readonly Instruction[];
+  readonly groups: number;
+  readonly closes: readonly (readonly number[])[];
+  readonly compileSteps: number;
+  readonly compileAllocated: number;
+  readonly compileNodes: number;
+}
+const breSearchCache = new Map<string, CachedBreSearch>();
+
+function breCacheKey(pattern: Uint8Array, unicode: boolean, emacs: boolean): string | undefined {
+  if (pattern.length > 256) return undefined;
+  let key = (unicode ? "u:" : "b:") + (emacs ? "e:" : "s:");
+  for (let i = 0; i < pattern.length; i++) key += String.fromCharCode(pattern[i]!);
+  return key;
+}
+
 function* prepareSearch(descriptor: BreSearchDescriptor, subject: Uint8Array, work: Work, options: { readonly ownedUnits?: number; readonly emacs?: boolean }): Generator<void, SearchProgram> {
   if (descriptor.pattern.length > descriptor.limits.maxPatternBytes || subject.length > descriptor.limits.maxSubjectBytes) throw new ExprMatchError("limit", "regex input bytes limit exceeded");
   if (options.ownedUnits) work.allocate(options.ownedUnits);
   const unicode = descriptor.profile === "utf8-scalar";
+  const emacs = Boolean(options.emacs);
+  const key = breCacheKey(descriptor.pattern, unicode, emacs);
+  const cached = key !== undefined ? breSearchCache.get(key) : undefined;
+  if (
+    cached !== undefined &&
+    work.limits.maxDepth >= 64 &&
+    cached.compileNodes <= work.limits.maxNodes &&
+    cached.compileSteps <= work.limits.maxSteps - work.steps &&
+    cached.compileAllocated <= work.limits.maxAllocatedUnits - work.allocatedValue
+  ) {
+    work.replayCompiled(cached.compileSteps, cached.compileAllocated, cached.compileNodes);
+    const input = yield* searchSymbols(subject, unicode, work);
+    return { instructions: cached.instructions, input, groups: cached.groups, unicode, emacs, closes: cached.closes };
+  }
+  const stepsBefore = work.steps;
+  const allocatedBefore = work.allocatedValue;
+  const nodesBefore = work.nodesValue;
   const pattern = yield* searchSymbols(descriptor.pattern, unicode, work);
   work.allocate(pattern.values.length);
   const tokens: string[] = [];
@@ -757,7 +815,6 @@ function* prepareSearch(descriptor: BreSearchDescriptor, subject: Uint8Array, wo
   }
   const parser = new Parser(tokens, work, true, unicode, options.emacs);
   const instructions = yield* compile(yield* parser.parse(), work, true);
-  const input = yield* searchSymbols(subject, unicode, work);
   work.allocate(parser.groups * 2 + 4);
   const closes: number[][] = Array.from({ length: parser.groups }, () => []);
   for (let index = 0; index < instructions.length; index++) {
@@ -769,7 +826,22 @@ function* prepareSearch(descriptor: BreSearchDescriptor, subject: Uint8Array, wo
       closes[Math.floor(instruction.slot / 2)]!.push(index);
     }
   }
-  return { instructions, input, groups: parser.groups, unicode, emacs: Boolean(options.emacs), closes };
+  if (key !== undefined && work.limits.maxDepth >= 64) {
+    if (breSearchCache.size >= 32) {
+      const oldest = breSearchCache.keys().next().value;
+      if (oldest !== undefined) breSearchCache.delete(oldest);
+    }
+    breSearchCache.set(key, {
+      instructions,
+      groups: parser.groups,
+      closes,
+      compileSteps: work.steps - stepsBefore,
+      compileAllocated: work.allocatedValue - allocatedBefore,
+      compileNodes: work.nodesValue - nodesBefore,
+    });
+  }
+  const input = yield* searchSymbols(subject, unicode, work);
+  return { instructions, input, groups: parser.groups, unicode, emacs, closes };
 }
 
 interface SearchProgram {
@@ -787,7 +859,7 @@ function* searchCandidate(program: SearchProgram, candidate: number, work: Work,
   work.allocate(program.groups * 3 + 4);
   work.state();
   const stack: State[] = [{ program: 0, position: candidate, captures: new Array<number>(program.groups * 3).fill(-1), visited: [] }];
-  const closingCache = new Map<string, boolean>();
+  let closingCache: Map<string, boolean> | undefined;
   let end: number | undefined;
   while (stack.length) {
     const state = stack.pop()!;
@@ -839,11 +911,11 @@ function* searchCandidate(program: SearchProgram, candidate: number, work: Work,
             if (earlier >= closing) break;
             const key = earlier + ":" + finish;
             work.allocate(key.length);
-            let reachable = closingCache.get(key);
+            let reachable = (closingCache ??= new Map<string, boolean>()).get(key);
             if (reachable === undefined) {
               work.allocate(4);
               reachable = (yield* searchCandidate(program, candidate, work, { program: earlier, position: finish }, maximum)) !== undefined;
-              closingCache.set(key, reachable);
+              (closingCache ??= new Map<string, boolean>()).set(key, reachable);
             }
             if (reachable) { shadowed = true; break; }
           }

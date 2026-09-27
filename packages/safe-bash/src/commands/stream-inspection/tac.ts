@@ -60,6 +60,22 @@ export function createTacCommand(limits: StreamInspectionLimits): CommandDefinit
         await session.output(bytes.subarray(0, end));
         return;
       }
+      const outChunkMax = Math.min(16384, limits.maxChunkBytes);
+      const outBuf = new Uint8Array(outChunkMax);
+      let outLen = 0;
+      const emitSlice = async (slice: Uint8Array): Promise<void> => {
+        if (slice.length >= outChunkMax) {
+          if (outLen > 0) { await session.output(outBuf.subarray(0, outLen)); outLen = 0; }
+          await session.output(slice);
+          return;
+        }
+        if (outLen + slice.length > outChunkMax) {
+          await session.output(outBuf.subarray(0, outLen));
+          outLen = 0;
+        }
+        outBuf.set(slice, outLen);
+        outLen += slice.length;
+      };
       for (let index = size - 1; index >= 0; index--) {
         const s1 = session.step();
         if (s1) await s1;
@@ -72,12 +88,13 @@ export function createTacCommand(limits: StreamInspectionLimits): CommandDefinit
         if (matched !== reversed.length) continue;
         const boundary = parsed.flags.has("b") ? index : index + separator.length;
         session.check(end - boundary, limits.maxRecordBytes, "record");
-        await session.output(bytes.subarray(boundary, end));
+        await emitSlice(bytes.subarray(boundary, end));
         end = boundary;
         matched = 0;
       }
       session.check(end, limits.maxRecordBytes, "record");
-      await session.output(bytes.subarray(0, end));
+      await emitSlice(bytes.subarray(0, end));
+      if (outLen > 0) await session.output(outBuf.subarray(0, outLen));
     });
   });
 }

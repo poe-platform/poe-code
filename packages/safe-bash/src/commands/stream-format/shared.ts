@@ -1,4 +1,4 @@
-import { yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { FsError, getCommandArguments, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { shellValueByteLength } from "../../contracts/value.js";
 import { diagnostic, pathOf } from "../internal.js";
@@ -42,6 +42,10 @@ export class Session {
   private outputBytes = 0;
   private steps = 0;
   private untilYield = 4096;
+  private yieldCount = 0;
+  private lastYieldMs = monotonicNow();
+  private signalAborted = false;
+  private readonly pollSignal: boolean;
   private stdin: AsyncIterator<Uint8Array> | undefined;
   private readonly controller = new AbortController();
   readonly signal: AbortSignal;
@@ -49,15 +53,25 @@ export class Session {
 
   constructor(readonly context: CommandContext, readonly limits: StreamFormatLimits) {
     this.signal = AbortSignal.any([context.signal, this.controller.signal]);
+    this.pollSignal = Object.prototype.hasOwnProperty.call(context.signal, "aborted");
+    if (this.signal.aborted) {
+      this.signalAborted = true;
+    } else if (!this.pollSignal) {
+      this.signal.addEventListener("abort", () => { this.signalAborted = true; }, { once: true });
+    }
     this.check(getCommandArguments(context).values.reduce((size, argument) => size + shellValueByteLength(argument), 0), limits.maxArgumentBytes, "argument");
   }
 
   check(size: number, maximum: number, label: string): void {
+    if ((size | 0) === size && size >= 0) {
+      if (size <= maximum) return;
+      throw new FsError("EFBIG", { message: `stream-format ${label} limit exceeded` });
+    }
     if (!Number.isSafeInteger(size) || size > maximum) throw new FsError("EFBIG", { message: `stream-format ${label} limit exceeded` });
   }
 
   charge(count = 1): void {
-    this.signal.throwIfAborted();
+    if (this.signalAborted || (this.pollSignal && this.signal.aborted)) this.signal.throwIfAborted();
     this.steps += count;
     this.check(this.steps, this.limits.maxSteps, "step");
     this.untilYield -= count;
@@ -67,9 +81,15 @@ export class Session {
     this.charge(count);
     if (this.untilYield <= 0) {
       this.untilYield = 4096;
-      return yieldTurn().then(() => {
-        this.signal.throwIfAborted();
-      });
+      const c = ++this.yieldCount;
+      if (hasYieldCheckpoint(this.signal)) return runYieldCheckpoint(this.signal);
+      const now = monotonicNow();
+      if (c === 1 || (c & 15) === 0 || now - this.lastYieldMs >= 4) {
+        this.lastYieldMs = now;
+        return yieldTurn().then(() => {
+          this.signal.throwIfAborted();
+        });
+      }
     }
   }
 
@@ -182,25 +202,54 @@ export function command(name: string, limits: StreamFormatLimits, run: (session:
   } };
 }
 
-export async function* records(source: ByteSource, session: Session): AsyncGenerator<{ bytes: Uint8Array; terminated: boolean }> {
+export async function* records(source: ByteSource, session: Session, onChunkEnd?: () => Promise<void>): AsyncGenerator<{ bytes: Uint8Array; terminated: boolean }> {
   let buffer = new Uint8Array(Math.min(1024, session.limits.maxRecordBytes));
   let size = 0;
   for await (const chunk of source) {
-    for (const byte of chunk) {
-      const s = session.step();
-      if (s) await s;
-      if (byte === 10) {
-        yield { bytes: buffer.slice(0, size), terminated: true };
-        size = 0;
-      } else {
-        session.check(size + 1, session.limits.maxRecordBytes, "record");
-        if (size === buffer.length) {
-          const grown = new Uint8Array(Math.min(buffer.length * 2, session.limits.maxRecordBytes));
-          grown.set(buffer); buffer = grown;
+    let start = 0;
+    while (start < chunk.length) {
+      const nl = chunk.indexOf(10, start);
+      if (nl >= 0) {
+        const segLen = nl - start;
+        if (size + segLen > session.limits.maxRecordBytes) {
+          const allowed = Math.max(0, session.limits.maxRecordBytes - size);
+          const s = session.step(allowed + 1);
+          if (s) await s;
+          session.check(size + segLen, session.limits.maxRecordBytes, "record");
         }
-        buffer[size++] = byte;
+        const s = session.step(segLen + 1);
+        if (s) await s;
+        if (size === 0) {
+          yield { bytes: chunk.slice(start, nl), terminated: true };
+        } else {
+          const out = new Uint8Array(size + segLen);
+          out.set(buffer.subarray(0, size), 0);
+          out.set(chunk.subarray(start, nl), size);
+          size = 0;
+          yield { bytes: out, terminated: true };
+        }
+        start = nl + 1;
+      } else {
+        const segLen = chunk.length - start;
+        if (size + segLen > session.limits.maxRecordBytes) {
+          const allowed = Math.max(0, session.limits.maxRecordBytes - size);
+          const s = session.step(allowed + 1);
+          if (s) await s;
+          session.check(size + segLen, session.limits.maxRecordBytes, "record");
+        }
+        const s = session.step(segLen);
+        if (s) await s;
+        while (size + segLen > buffer.length) {
+          const grown = new Uint8Array(Math.min(Math.max(buffer.length * 2, size + segLen), session.limits.maxRecordBytes));
+          grown.set(buffer.subarray(0, size));
+          buffer = grown;
+        }
+        buffer.set(chunk.subarray(start), size);
+        size += segLen;
+        break;
       }
     }
+    if (onChunkEnd) await onChunkEnd();
   }
   if (size) yield { bytes: buffer.slice(0, size), terminated: false };
 }

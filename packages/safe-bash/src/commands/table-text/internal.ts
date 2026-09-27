@@ -1,5 +1,5 @@
 import { PublicDiagnostic } from "../../diagnostics.js";
-import { yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition, type CommandHandler } from "../../contracts/index.js";
 import { diagnostic, pathOf } from "../internal.js";
 import { gnuInformation } from "../gnu-information.js";
@@ -70,19 +70,34 @@ export class Budget {
   private inputBytes = 0;
   private outputBytes = 0;
   private steps = 0;
+  private stepYields = 0;
+  private lastStepYield = monotonicNow();
+  private signalAborted: boolean;
+  private readonly pollBaseSignal: boolean;
   constructor(readonly context: CommandContext, readonly limits: TableTextLimits) {
+    this.signalAborted = context.signal.aborted;
+    this.pollBaseSignal = Object.prototype.hasOwnProperty.call(context.signal, "aborted");
+    if (!this.signalAborted && !this.pollBaseSignal) {
+      context.signal.addEventListener("abort", () => { this.signalAborted = true; }, { once: true });
+    }
     this.check(context.args.reduce((size, value) => size + Buffer.byteLength(value), 0), limits.maxArgumentBytes, "argument");
   }
   check(value: number | bigint, maximum: number, label: string): void {
     if (value > maximum) throw new FsError("EFBIG", { message: `table-text ${label} limit exceeded` });
   }
   step(): void | Promise<void> {
-    this.context.signal.throwIfAborted();
+    if (this.pollBaseSignal ? this.context.signal.aborted : this.signalAborted) this.context.signal.throwIfAborted();
     this.check(++this.steps, this.limits.maxSteps, "step");
     if (this.steps % 1024 !== 0) return;
-    return yieldTurn().then(() => {
-      this.context.signal.throwIfAborted();
-    });
+    const count = ++this.stepYields;
+    const now = monotonicNow();
+    if (count === 1 || (count & 15) === 0 || now - this.lastStepYield >= 16 || hasYieldCheckpoint(this.context.signal)) {
+      this.lastStepYield = now;
+      return yieldTurn(this.context.signal).then(() => {
+        this.context.signal.throwIfAborted();
+      });
+    }
+    runYieldCheckpoint(this.context.signal);
   }
   input(size: number): void {
     this.check(size, this.limits.maxChunkBytes, "chunk");
@@ -139,12 +154,34 @@ export class RecordReader {
   constructor(source: ByteSource, readonly separator: number, readonly budget: Budget, signal: AbortSignal) {
     this.iterator = readBytes(source, signal);
   }
-  async next(): Promise<Uint8Array | undefined> {
+  next(): Uint8Array | undefined | Promise<Uint8Array | undefined> {
+    if (!this.done && this.offset < this.chunk.length) {
+      const end = this.chunk.indexOf(this.separator, this.offset);
+      if (end >= 0) {
+        const step = this.budget.step();
+        if (!step) {
+          const fragment = this.chunk.subarray(this.offset, end);
+          this.budget.check(fragment.length, this.budget.limits.maxRecordBytes, "record");
+          this.offset = end + 1;
+          return fragment;
+        }
+        return this.nextSlow(step);
+      }
+    }
+    return this.nextSlow();
+  }
+  private async nextSlow(firstStep?: Promise<void>): Promise<Uint8Array | undefined> {
+    if (firstStep) await firstStep;
     let parts: Uint8Array[] | undefined;
     let size = 0;
+    let skipFirstStep = Boolean(firstStep);
     while (!this.done) {
-      const step = this.budget.step();
-      if (step) await step;
+      if (skipFirstStep) {
+        skipFirstStep = false;
+      } else {
+        const step = this.budget.step();
+        if (step) await step;
+      }
       if (this.offset === this.chunk.length) {
         const result = await this.iterator.next();
         if (result.done) { this.done = true; this.chunk = empty; break; }

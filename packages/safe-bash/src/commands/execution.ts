@@ -293,7 +293,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
         slots.add(slot);
         const pending = Promise.resolve().then(() => {
           childSignal.throwIfAborted();
-          const env = { ...context.env, ...(slotVariable === undefined ? {} : { [slotVariable]: String(slot) }) };
+          const env = slotVariable === undefined ? context.env : { ...context.env, [slotVariable]: String(slot) };
           if (context.invoke) return context.invoke(command, args, {
             argumentValues: childArguments, externalInvocation: true, stdin: childInput, ...(childInputIsDefault === undefined ? {} : { stdinIsDefault: childInputIsDefault }),
             cwd: context.cwd, env, stdout: context.stdout, stderr: context.stderr, signal: childSignal,

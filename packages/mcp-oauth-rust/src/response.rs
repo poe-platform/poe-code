@@ -36,9 +36,6 @@ impl ResponseBudget {
         )
     }
     pub fn check_content_length(&mut self, length: Option<&[u16]>) -> Result<(), String> {
-        let Some(limit) = self.limit else {
-            return Ok(());
-        };
         if self.exceeded {
             return Err(self.error());
         }
@@ -64,9 +61,6 @@ impl ResponseBudget {
         Ok(())
     }
     pub fn admit(&mut self, bytes: u64) -> Result<(), String> {
-        let Some(limit) = self.limit else {
-            return Ok(());
-        };
         if self.exceeded {
             return Err(self.error());
         }

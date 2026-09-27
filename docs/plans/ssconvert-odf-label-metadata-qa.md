@@ -155,3 +155,13 @@ Unqualified label exports and the complete BIFF/format family remain open.
     dispatch spelling and transported identity; actual Calc and Gnumeric
     navigation, relative-name cursor behavior and ambiguous dotted globals
     remain separate application qualifications.
+
+16. Repeat the local-name conversion with native ODF input containing unchanged
+    rich text: a bold span with `#Data.Total`, `#Total`, `#Data.A1`, a missing
+    sheet, a malformed percent escape, an HTTPS URL and an already native
+    `#Total%20(Data)` target. Export directly through compiled SDK and command
+    into both ODF profiles. Independently verify that only `#Data.Total` changes,
+    all seven links survive, and text, spaces, nested spans and bold styles remain.
+    Exercise both top-level and nested links in memory tests; keep depth, cycle,
+    namespace and resource guards intact. Inspect the command transcript and
+    purge the four generated packages after recording their observations.

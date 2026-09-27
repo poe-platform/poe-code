@@ -1,7 +1,8 @@
 import { expect, it } from "vitest";
 import { createZipCodec } from "@poe-code/office-package";
 import type { CapabilityContext } from "../contracts.js";
-import { readOdf } from "./odf.js";
+import { createOdfWriter, readOdf } from "./odf.js";
+import { unpackOdf } from "./odf-write.test.js";
 
 const context: CapabilityContext = { signal: new AbortController().signal, own() {},
   environment: { env: {}, locale: "C", timezone: "UTC" },
@@ -25,6 +26,31 @@ async function fixture(body: string, extra: Readonly<Record<string, string>> = {
 it("rejects an invalid styles root instead of silently treating it as empty styles", async () => {
   await expect(readOdf(await fixture('<t:table t:name="S"/>', { "styles.xml": '<unrelated/>' }), context))
     .rejects.toMatchObject({ code: "io" });
+});
+it.each([false, true])("normalizes local-name marks in retained ODF text (nested=%s)", async nested => {
+  const links = '<tx:a xl:href="#Data.Total">local</tx:a><tx:s/><tx:a xl:href="#Total">global</tx:a>' +
+    '<tx:a xl:href="#Data.A1">cell</tx:a><tx:a xl:href="#Missing.Total">missing</tx:a>' +
+    '<tx:a xl:href="#bad%2">malformed</tx:a><tx:a xl:href="https://example.invalid/#Data.Total">external</tx:a>' +
+    '<tx:a xl:href="#Total%20(Data)">native</tx:a>';
+  const body = '<t:table t:name="Links"><t:table-row><t:table-cell o:value-type="string"><tx:p>before' +
+    (nested ? '<tx:span tx:style-name="Emphasis">' + links + '</tx:span>' : links) +
+    'after</tx:p></t:table-cell></t:table-row></t:table><t:table t:name="Data"><t:named-expressions>' +
+    '<t:named-range t:name="Total" t:cell-range-address="Data.A1" t:base-cell-address="Data.A1"/>' +
+    '</t:named-expressions></t:table>';
+  const bytes = await fixture(body, { "content.xml": content(body,
+    '<s:style s:name="Emphasis" s:family="text"><s:text-properties f:font-weight="bold"/></s:style>') });
+  const book = await readOdf(bytes, context);
+  for (const profile of ["strict", "extended"] as const) {
+    const exported = await createOdfWriter(profile)(book, [], context);
+    const xml = (await unpackOdf(exported)).parts.get("content.xml")!;
+    expect(xml).toContain('xlink:href="#Total%20(Data)"');
+    expect(xml).not.toContain('xlink:href="#Data.Total"');
+    for (const target of ["#Total", "#Data.A1", "#Missing.Total", "#bad%2", "https://example.invalid/#Data.Total"])
+      expect(xml).toContain(`xlink:href="${target}"`);
+    if (nested) expect(xml).toContain('<text:span text:style-name="Emphasis">');
+    const reopened = await readOdf(exported, context);
+    expect(reopened.sheets[0]!.cells[0]!.value).toEqual(book.sheets[0]!.cells[0]!.value);
+  }
 });
 it("associates cached interior cells and implicit blank cells with their array group", async () => {
   const book = await readOdf(await fixture('<t:table t:name="S"><t:table-row><t:table-cell t:formula="of:=1" t:number-matrix-columns-spanned="2" t:number-matrix-rows-spanned="2" o:value="1"/><t:table-cell o:value="2"/></t:table-row><t:table-row><t:table-cell/><t:table-cell o:value="4"/></t:table-row></t:table>'), context);

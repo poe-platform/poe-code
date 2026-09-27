@@ -808,7 +808,8 @@ export function createOdfWriter(profile: "strict" | "extended") {
           } else if (record.kind === "p" && typeof v.sourceText === "string") {
             const rows = typeof v.rows === "number" ? v.rows : 1, columns = typeof v.columns === "number" ? v.columns : 1;
             const r = { startRow: v.row, startColumn: v.column, endRow: v.row + rows - 1, endColumn: v.column + columns - 1 }; range(r);
-            const previous = originalParagraphs.get(key); originalParagraphs.set(key,{ text: v.sourceText, xml: (previous?.xml ?? "") + xml.retained(node), range: r });
+            const previous = originalParagraphs.get(key); originalParagraphs.set(key,{ text: v.sourceText,
+              xml: (previous?.xml ?? "") + xml.retained(node, 0, href => translateOdfHyperlink(href, "normalize", xml.charge, sheetNames)), range: r });
           } else {
             passive.set(key,(passive.get(key) ?? "") + xml.retained(node));
             if (!addresses.has(key)) {

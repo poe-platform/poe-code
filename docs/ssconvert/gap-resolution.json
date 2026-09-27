@@ -2310,7 +2310,15 @@
         "validation": "Four original href mismatches reproduced after correcting a fixture assertion for built-in names. Five files / 113 tests pass, including strict/extended, style-region/cell-only and edited-text regeneration. Maintained package lint, source/test/consumer types and selected build pass.",
         "independent": "Python-generated Gnumeric XML: 2183 bytes, SHA256 0308b449492d1e59946fb90b8f1506f8b3bad568f80f5119aebec0062e54cabd. Eight compiled SDK/command packages contain 40 checked links, 32 local destinations and eight distinct global destinations. Python ZIP/XML/URI decoding verifies native marks, values and edited display text, accounting for text:s. No diagnostics; actual command screenshot inspected. Initial QA omitted the required codecs array and an initial XML text check omitted text:s; corrected QA ran successfully.",
         "remaining": "Actual native navigation and relative-name cursor behavior, Gnumeric application interoperability and ambiguous dotted global names remain unqualified. Source-defined dispatch spelling is not an application execution pass. All 19 families remain open.",
-        "qa": "docs/plans/ssconvert-odf-label-metadata-qa.md, step 15"
+        "qa": "docs/plans/ssconvert-odf-label-metadata-qa.md, step 15",
+        "retainedParagraphs": {
+          "finding": "Unchanged imported paragraphs bypassed regenerated cell hyperlinks and retained Sheet.Name marks verbatim. Two original direct/nested ODF export cases reproduced the mismatch.",
+          "implementation": "The retained XML serializer accepts a paragraph-scoped hyperlink transform. It normalizes only valid local-name marks on declared sheets; existing native marks, global/range/missing/malformed/external targets remain exact. Recursive mixed content, styles, depth/cycle checks, namespaces and work accounting remain active.",
+          "validation": "Five ODF files / 135 executed tests plus two resource/metadata files / 25 tests pass. Maintained package lint/source/test/consumer types and selected build pass.",
+          "independent": "Python-generated ODF input: 810 bytes, SHA256 cd4fc8b604fe5ac53504996f44bffbaab02f40a9cd06ba939dbe7150e0811fac. Four compiled SDK/command exports independently decoded with Python ZIP/XML: 28 links, four normalized marks, 24 exact controls, four retained bold spans/styles, unchanged display text and spaces. No diagnostics; command screenshot inspected.",
+          "remaining": "Actual application navigation remains unqualified; the source-defined dispatch and exported structure are verified.",
+          "qa": "docs/plans/ssconvert-odf-label-metadata-qa.md, step 16"
+        }
       }
     }
   },

@@ -23,17 +23,24 @@ export async function writeFileOutput(context: Pick<CommandContext, "signal" | "
 
 export type CountedFileWrite = (chunk: Uint8Array, write: () => Promise<number>, preserveReceipt?: boolean) => Promise<number>;
 
-const fileOutputBudgetSymbol = Symbol("safe-bash.fileOutputBudget");
-const fallbackOutputBudgets = new WeakMap<NonNullable<CommandContext["registerCleanup"]>, {
+type FileOutputBudget = {
   readonly sinkBudget: (sink: ByteSink) => ByteSink;
   readonly countedWrite?: CountedFileWrite;
-}>();
+};
+
+// SDK bundles and the shell must address the same invocation-owned budget.
+const fileOutputBudgetSymbol = Symbol.for("safe-bash.fileOutputBudget");
+const fallbackOutputBudgetsSymbol = Symbol.for("safe-bash.fileOutputBudget.fallback");
+const shared = globalThis as typeof globalThis & {
+  [fallbackOutputBudgetsSymbol]?: WeakMap<NonNullable<CommandContext["registerCleanup"]>, FileOutputBudget>;
+};
+const fallbackOutputBudgets = shared[fallbackOutputBudgetsSymbol] ??= new WeakMap();
 
 export const filesystemOutputBudgets = {
-  get(key: NonNullable<CommandContext["registerCleanup"]>): { readonly sinkBudget: (sink: ByteSink) => ByteSink; readonly countedWrite?: CountedFileWrite } | undefined {
-    return (key as unknown as Record<symbol, { readonly sinkBudget: (sink: ByteSink) => ByteSink; readonly countedWrite?: CountedFileWrite } | undefined>)[fileOutputBudgetSymbol] ?? fallbackOutputBudgets.get(key);
+  get(key: NonNullable<CommandContext["registerCleanup"]>): FileOutputBudget | undefined {
+    return (key as unknown as Record<symbol, FileOutputBudget | undefined>)[fileOutputBudgetSymbol] ?? fallbackOutputBudgets.get(key);
   },
-  set(key: NonNullable<CommandContext["registerCleanup"]>, value: { readonly sinkBudget: (sink: ByteSink) => ByteSink; readonly countedWrite?: CountedFileWrite }): void {
+  set(key: NonNullable<CommandContext["registerCleanup"]>, value: FileOutputBudget): void {
     if (Object.isExtensible(key)) {
       (key as unknown as Record<symbol, unknown>)[fileOutputBudgetSymbol] = value;
     } else {

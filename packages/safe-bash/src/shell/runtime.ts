@@ -1,3 +1,4 @@
+import { bytesToHex } from "../byte-encoding.js";
 const sharedCaptureDecoder = new TextDecoder();
 const cachedCaptureAsciiBytes = new Uint8Array(4096);
 let cachedCaptureAsciiLen = 0;
@@ -49,7 +50,7 @@ import type { PreparedShellChild, ShellBindingReference, ShellBindingResult, She
 import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { SourceLineIndex } from "./source-line-index.js";
-import { isCleanAbsolutePath, retargetScopedFileSystem, scopeFileSystem, tryGetMemoryDirectoryEntryNamesSync, tryMkdirMemorySync, tryReadMemoryFileViewSync, tryOpenMemoryRedirectHandleSync, tryResolveMemoryDevicePath, tryRmRfMemorySync, tryWriteMemoryFileInDirSync, tryWriteMemoryFileSync, type MemoryRedirectHandle } from "@poe-code/safe-fs/core";
+import { MemoryFileSystem, isCleanAbsolutePath, retargetScopedFileSystem, scopeFileSystem, tryGetMemoryDirectoryEntryNamesSync, tryMkdirMemorySync, tryReadMemoryFileViewSync, tryOpenMemoryRedirectHandleSync, tryResolveMemoryDevicePath, tryRmRfMemorySync, tryWriteMemoryFileInDirSync, tryWriteMemoryFileSync, type MemoryRedirectHandle } from "@poe-code/safe-fs/core";
 import { collectPureReadOnlySmiNames, compilePureSmiProgram, evalCompiledSmi, evaluateArithmetic, evaluateArithmeticReferences, evaluateArithmeticSync, evaluateArithmeticSyncNonZero, evaluateArithmeticSyncString, fastSafeInt, intToStr, isSafeSmiProgram, prepareArithmetic, runIntArithForLoop, runIntForLoop, sharedLoopIntRegs, type ArithmeticProgram, type ArithmeticReferences, type CompiledSmiExpr } from "./arithmetic.js";
 import { ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces, tryFastExpandBraceRange } from "./brace-expansion.js";
@@ -3859,12 +3860,12 @@ function fastStringHexIdentity(str: string): string {
     let out = "";
     for (let i = 0; i < str.length; i++) {
       const c = str.charCodeAt(i);
-      if (c >= 128) return Buffer.from(str).toString("hex");
+      if (c >= 128) return bytesToHex(fastSharedTextEncoder.encode(str));
       out += HEX_BYTE_TABLE[c]!;
     }
     return out;
   }
-  return Buffer.from(str).toString("hex");
+  return bytesToHex(fastSharedTextEncoder.encode(str));
 }
 
 const letProgramCache = new Map<string, { prog: ArithmeticProgram; unitsCharged: number }>();
@@ -4242,7 +4243,7 @@ export class Runtime {
     existingRematch.maximum = capLen - 1;
     for (let index = 0; index < capLen; index++) {
       const value = getCapValue(index);
-      const byteLen = fastMatchValues !== undefined ? value.length : Buffer.byteLength(value);
+      const byteLen = fastMatchValues !== undefined ? value.length : shellValueByteLength(value);
       const elem = existingRematch.values.get(index);
       if (elem && elem.text.references === 1 && elem.text.bytes === byteLen) {
         elem.text.shellValue = value;
@@ -4314,7 +4315,7 @@ export class Runtime {
           for (let index = 0; index < capLen; index++) {
             const span = result.captures[index]!;
             const value = span === null ? "" : subject.slice(span.start, span.end);
-            const byteLen = Buffer.byteLength(value);
+            const byteLen = shellValueByteLength(value);
             const elem = existingRematch.values.get(index);
             if (elem && elem.text.references === 1 && elem.text.bytes === byteLen) {
               elem.text.shellValue = value;
@@ -4355,11 +4356,11 @@ export class Runtime {
         !pattern.parts[0]!.value.includes("~")
       ) {
         const p0 = pattern.parts[0]!;
-        operation.reserve({ metadata: 64, allocatedSlots: 1, payload: Buffer.byteLength(p0.value), work: p0.value.length + 2 });
+        operation.reserve({ metadata: 64, allocatedSlots: 1, payload: shellValueByteLength(p0.value), work: p0.value.length + 2 });
         fragments.push({ text: p0.value, literal: !!p0.quoted });
       } else {
         await this.word(pattern, state, io, false, false, false, false, (text, literal) => {
-          operation!.reserve({ metadata: 64, allocatedSlots: 1, payload: Buffer.byteLength(text), work: text.length + 2 });
+          operation!.reserve({ metadata: 64, allocatedSlots: 1, payload: shellValueByteLength(text), work: text.length + 2 });
           fragments.push({ text, literal });
         });
       }
@@ -4918,7 +4919,7 @@ export class Runtime {
         const binding = arrayStore(state)?.get(name);
         const value = binding ? binding.get(index ?? -1) : index === 0 ? state.variables[name] : undefined;
         if (state.nounset && value === undefined) throw new NounsetFailure(`${name}[${key ?? index}]: unbound variable`, io.diagnosticLine);
-        if (value !== undefined && Buffer.byteLength(value) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+        if (value !== undefined && shellValueByteLength(value) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
         return value;
       },
       write: (reference, value) => {
@@ -5327,10 +5328,10 @@ export class Runtime {
     ) {
       return false;
     }
-    const valByteLen = Buffer.byteLength(val);
+    const valByteLen = shellValueByteLength(val);
     if (valByteLen > this.budget.limits.maxExpansionBytes) return false;
     if (current.associative) {
-      const keyByteLen = Buffer.byteLength(sub);
+      const keyByteLen = shellValueByteLength(sub);
       if (keyByteLen === 0 || keyByteLen > 4096 || keyByteLen > this.budget.limits.maxExpansionBytes) return false;
       const identity = fastStringHexIdentity(sub);
       const existingKey = current.keys.get(identity);
@@ -5487,7 +5488,7 @@ export class Runtime {
         return false;
       }
       if (typeof val !== "string") return false;
-      const byteLen = Buffer.byteLength(val);
+      const byteLen = shellValueByteLength(val);
       if (byteLen > this.budget.limits.maxExpansionBytes) {
         return false;
       }
@@ -5540,8 +5541,8 @@ export class Runtime {
         return false;
       }
       if (typeof val !== "string") return false;
-      const keyByteLen = Buffer.byteLength(keyVal);
-      const valByteLen = Buffer.byteLength(val);
+      const keyByteLen = shellValueByteLength(keyVal);
+      const valByteLen = shellValueByteLength(val);
       if (
         keyByteLen > 4096 ||
         keyByteLen > this.budget.limits.maxExpansionBytes ||
@@ -5763,7 +5764,7 @@ export class Runtime {
             await insert(index, value, entry.append);
             cursor = index + 1;
           } else for (const value of fields) {
-            if (!canReviseInPlace && !state.variableAttributes?.get(name) && typeof value === "string" && value.length <= 64 && cursor <= 2147483647 && Buffer.byteLength(value) <= this.budget.limits.maxExpansionBytes) {
+            if (!canReviseInPlace && !state.variableAttributes?.get(name) && typeof value === "string" && value.length <= 64 && cursor <= 2147483647 && shellValueByteLength(value) <= this.budget.limits.maxExpansionBytes) {
               const fastTok = tryTextTokenSync(targetBinding.owner, value, this.signal);
               if (fastTok) {
                 try { staged!.insert(cursor, fastTok); } catch (error) { fastTok.release(); throw error; }
@@ -8314,98 +8315,16 @@ export class Runtime {
 
   private canSyncCommandCompound(command: Command, rawState: State, depth = 0): boolean {
     if (depth > 6 || command.redirects.length !== 0) return false;
-    if (command.kind === "arithmetic") {
-      return (!command.expression.error && !arithTreeTouchesArray(command.expression.tree, arrayStore(rawState)) && (!guestArrays(rawState) || isSafeSmiProgram(command.expression)) || command.expression.error !== undefined) && !rawState.nounset && !rawState.readonlyVariables?.size;
-    }
-    if (command.kind === "conditional") {
-      return this.canSyncConditional(command.expression);
-    }
+    // A compound may only fall back before any statement has run. Runtime
+    // expansion can change eligibility between statements, so leave commands
+    // with state-dependent eligibility to the resumable asynchronous executor.
+    // Individual commands still use their synchronous fast paths there.
     if (command.kind === "simple") {
-      if (command.words.length === 0) return false;
-      const w0 = command.words[0]!;
-      const w0Plain = w0.plain;
-      if (command.words.length === 1) {
-        // trySyncCommand handles function calls only in its multi-word path.
-        if (w0Plain !== undefined && rawState.functions.has(w0Plain)) return false;
-        if (w0Plain === ":" || w0Plain === "true" || w0Plain === "false" || w0Plain === "return") return true;
-        const arrayAssign = getArrayAssignment(w0);
-        if (arrayAssign) return true;
-        const assignment = this.assignment(w0);
-        return Boolean(assignment && !assignment.value.parts.some(part => part.kind === "substitution") && assignment.name !== "OPTIND" && assignment.name !== "PIPESTATUS" && !assignment.name.includes("["));
-      }
-      if (command.words.length === 2) {
-        if (w0Plain === "return") return true;
-        if (w0Plain === "unset" || w0Plain === "export" || w0Plain === "let" || w0Plain === "shift") {
-          return !(rawState.braceexpand !== false && command.words[1]!.parts.some(part => part.kind === "text" && !part.quoted && part.value.includes("{")));
-        }
-      }
-      if (
-        command.words.length >= 2 &&
-        command.words.length <= 16 &&
-        w0Plain === "local" &&
-        !hasShellFunction(rawState, "local") &&
-        !rawState.extensions?.builtins.has("local")
-      ) {
-        // Eligibility must be stable before any body effects. Dynamic values
-        // can cease to be fast-expandable after earlier statements run.
-        let allValidLocal = true;
-        for (let idx = 1; idx < command.words.length; idx++) {
-          const wArg = command.words[idx]!;
-          const assignment = !getArrayAssignment(wArg) ? this.assignment(wArg) : undefined;
-          if (assignment) {
-            if (
-              assignment.append ||
-              assignment.name === "OPTIND" ||
-              assignment.name === "PIPESTATUS" ||
-              assignment.name.includes("[") ||
-              rawState.readonlyVariables?.has(assignment.name) ||
-              arrayStore(rawState)?.get(assignment.name) ||
-              assignment.value.parts.some(part => part.kind !== "text" || part.byteValue !== undefined || (!part.quoted && part.value.includes("~"))) ||
-              (rawState.braceexpand !== false && assignment.value.parts.some(part => part.kind === "text" && !part.quoted && part.value.includes("{")))
-            ) {
-              allValidLocal = false;
-              break;
-            }
-          } else if (!wArg.plain || !isShellIdentifier(wArg.plain) || wArg.plain === "OPTIND" || wArg.plain === "PIPESTATUS" || rawState.readonlyVariables?.has(wArg.plain) || arrayStore(rawState)?.get(wArg.plain)) {
-            allValidLocal = false;
-            break;
-          }
-        }
-        if (allValidLocal) return true;
-      }
-            if (
-        (w0Plain === "echo" || w0Plain === "printf") &&
-        !hasShellFunction(rawState, w0Plain) &&
-        !rawState.extensions?.builtins.has(w0Plain)
-      ) {
-        return true;
-      }
-      if (
-        command.words.length >= 2 &&
-        (w0Plain === "[" || w0Plain === "test") &&
-        !hasShellFunction(rawState, w0Plain) &&
-        !rawState.extensions?.builtins.has(w0Plain)
-      ) {
-        return true;
-      }
-      if (
-        command.words.length >= 4 &&
-        w0Plain === "printf" &&
-        command.words[1]?.plain === "-v" &&
-        command.words[2]?.plain !== undefined &&
-        /^[a-zA-Z_][a-zA-Z_0-9]*$/.test(command.words[2]!.plain!) &&
-        command.words[2]!.plain !== "OPTIND" &&
-        command.words[2]!.plain !== "PIPESTATUS" &&
-        !hasShellFunction(rawState, "printf") &&
-        !rawState.extensions?.builtins.has("printf")
-      ) {
-        return true;
-      }
-      if (w0Plain !== undefined && rawState.functions.has(w0Plain)) {
-        const fnBody = rawState.functions.get(w0Plain)!;
-        return fnBody.kind === "group" && fnBody.redirects.length === 0 && this.canSyncScriptCompound(fnBody.body, rawState, depth + 1);
-      }
-      return false;
+      const name = command.words[0]?.plain;
+      return command.words.length === 1 &&
+        (name === ":" || name === "true" || name === "false") &&
+        !hasShellFunction(rawState, name) &&
+        !rawState.extensions?.builtins.has(name);
     }
     if (command.kind === "group") {
       return this.canSyncScriptCompound(command.body, rawState, depth + 1);
@@ -8504,6 +8423,12 @@ export class Runtime {
     ) {
       return undefined;
     }
+    // Direct node access must not bypass a host's overridden metadata/access
+    // methods (which may enforce policy or cancellation).
+    const prototype = MemoryFileSystem.prototype;
+    if (this.backingFs.stat !== prototype.stat ||
+        this.backingFs.lstat !== prototype.lstat ||
+        this.backingFs.access !== prototype.access) return undefined;
     if (rawVal === "") return false;
     const resolved = pathOf(rawState, rawVal);
     if (resolved === "/dev" || resolved.startsWith("/dev/")) return undefined;
@@ -8532,7 +8457,7 @@ export class Runtime {
       if (op === "-L" || op === "-h") return node.type === "symlink";
       if (op === "-s") {
         if (node.type === "file") return (node.data?.byteLength ?? 0) > 0;
-        if (node.type === "symlink") return Buffer.byteLength(node.target ?? "") > 0;
+        if (node.type === "symlink") return shellValueByteLength(node.target ?? "") > 0;
         return false;
       }
       return undefined;
@@ -8792,7 +8717,7 @@ export class Runtime {
       ) {
         return undefined;
       }
-      let expr = command.expression;
+      const expr = command.expression;
       if (expr.error) {
         const canCacheWord = !byteLocale(rawState.variables) && (rawState.depth + (io.parameterDepth ?? 0)) < 32;
         const cachedExpr = expr as { _cachedArithWord?: Word | null; _cachedArithSyntax?: unknown };
@@ -8881,6 +8806,7 @@ export class Runtime {
                 this.budget.tick();
                 if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "((";
                 monitor.publishStringVariable(varName, String(nextNum));
+                if (rawState.allexport) rawState.exported.add(varName);
                 const rawStatus = nextNum !== 0 ? 0 : 1;
                 const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
                 if (!existing) {
@@ -8964,57 +8890,11 @@ export class Runtime {
             }
           }
         }
-        if (fastSrc.length <= 128) {
-          const cachedArith = letProgramCache.get(fastSrc);
-          if (cachedArith) {
-            this.budget.parsing.admit(cachedArith.unitsCharged);
-            expr = cachedArith.prog;
-          } else {
-            const beforeUnits = this.budget.parsing.admittedUnits;
-            expr = prepareArithmetic(fastSrc, this.budget.parsing);
-            const unitsCharged = this.budget.parsing.admittedUnits - beforeUnits;
-            if (letProgramCache.size >= 256) letProgramCache.clear();
-            letProgramCache.set(fastSrc, { prog: expr, unitsCharged });
-          }
-        } else {
-          expr = prepareArithmetic(fastSrc, this.budget.parsing);
-        }
-        if (expr.error) return undefined;
       }
-      const canSyncSubscriptMut = expr.hasSubscript && expr.tree && ((expr.tree.kind === "binary" && (expr.tree.operator === "=" || expr.tree.operator === "+=" || expr.tree.operator === "-=") && expr.tree.left.kind === "name" && expr.tree.left.subscript !== undefined && (expr.tree.right.kind === "literal" || expr.tree.right.kind === "name")) || (expr.tree.kind === "unary" && (expr.tree.operator === "++" || expr.tree.operator === "--") && expr.tree.operand.kind === "name" && expr.tree.operand.subscript !== undefined));
-      if ((guestArrays(rawState) && !isSafeSmiProgram(expr) && !canSyncSubscriptMut) || (!canSyncSubscriptMut && arithTreeTouchesArray(expr.tree, arrayStore(rawState)))) return undefined;
-      let nonZero: boolean;
-      const snap = this.budget.parsing.snapshot();
-      try {
-        nonZero = this.syncShellArithmeticNonZero(expr, rawState, diagnosticLine);
-      } catch {
-        this.budget.parsing.restore(snap);
-        this.signal.throwIfAborted();
-        return undefined;
-      }
-      if (rawState.extensions && !rawState.extensions.eventDepth) {
-        publishCommandSpelling(rawState, commandSpelling(command));
-      }
-      const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
-      this.budget.tick();
-      if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "((";
-      const rawStatus = nonZero ? 0 : 1;
-      const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
-      if (!existing) {
-        if (store) {
-          if (publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined;
-        } else {
-          monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne;
-          monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
-        }
-      } else {
-        elem0!.text.shellValue = finalStatus === 0 ? "0" : "1";
-        store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
-      }
-      rawState.status = finalStatus;
-      monitor.epoch = restEpoch;
-      if (store) store.epoch = restEpoch;
-      return finalStatus;
+      // The proved scalar/subscript shortcuts above finish without speculative
+      // evaluation. General arithmetic can mutate before either an error or a
+      // sync-only unsupported operand; evaluate it once at the async boundary.
+      return undefined;
     }
     if (command.kind === "arithmetic-for" || command.kind === "for") {
       if (command.redirects.length === 1) {
@@ -9504,7 +9384,7 @@ export class Runtime {
         const curStr = curRaw === undefined ? "" : (monitor.values.get(assignment.name, curRaw) ?? curRaw);
         if (typeof curStr !== "string") return undefined;
         finalAssigned = curStr + finalAssigned;
-        if (finalAssigned.length > this.budget.limits.maxExpansionBytes || (finalAssigned.length * 3 > this.budget.limits.maxExpansionBytes && Buffer.byteLength(finalAssigned) > this.budget.limits.maxExpansionBytes)) {
+        if (finalAssigned.length > this.budget.limits.maxExpansionBytes || (finalAssigned.length * 3 > this.budget.limits.maxExpansionBytes && shellValueByteLength(finalAssigned) > this.budget.limits.maxExpansionBytes)) {
           return undefined;
         }
       }
@@ -14599,7 +14479,7 @@ export class Runtime {
     }
     for (let i = 0; i < args.length; i++) {
       const a = args[i]!;
-      if (typeof a !== "string" || a.includes("\0") || Buffer.byteLength(a) > this.budget.limits.maxExpansionBytes) {
+      if (typeof a !== "string" || a.includes("\0") || shellValueByteLength(a) > this.budget.limits.maxExpansionBytes) {
         return undefined;
       }
     }
@@ -15662,7 +15542,7 @@ export class Runtime {
     const childIO = isolateIO({ ...io, ...context, argv0: undefined, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, assignmentDiagnosticContext: undefined, scriptName: shellValueText(arg0) }, references);
     try {
     if (source !== undefined) {
-      this.budget.source(Buffer.byteLength(source));
+      this.budget.source(shellValueByteLength(source));
       return await this.finishShell(child, childIO, await this.runCommandString(source, child, childIO));
     }
     const input = new ShellInput(context.stdin, this.budget, this.signal);
@@ -15876,7 +15756,7 @@ export class Runtime {
       this.budget.tick();
       if (args.length + 1 > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
       for (const argument of [command, ...args]) {
-        if (Buffer.byteLength(argument) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+        if (shellValueByteLength(argument) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
       }
     }, (runtime, scope) => runtime.shebangTargetScoped(context, state, io, command, args, options, target, loadedSource, scope));
   }
@@ -16411,7 +16291,7 @@ export class Runtime {
     const { maxExpansionBytes: bytes, maxExpansionFields: fields } = this.budget.limits;
     const admit = (value: unknown): void => {
       if (typeof value !== "string" || value.includes("\0")) throw new CommandFailure("let: arguments must be strings without NUL", 2);
-      if (value.length > bytes || Buffer.byteLength(value) > bytes) this.budget.fail("maxExpansionBytes");
+      if (value.length > bytes || shellValueByteLength(value) > bytes) this.budget.fail("maxExpansionBytes");
     };
     const checkpoint = async (): Promise<void> => {
       this.signal.throwIfAborted();
@@ -16433,7 +16313,7 @@ export class Runtime {
     const variables = new Proxy(this.arithmeticVariables(state, context.diagnosticLine), { get: (target, key) => {
       this.signal.throwIfAborted();
       const value: unknown = Reflect.get(target, key);
-      if (typeof value === "string" && (value.length > bytes || Buffer.byteLength(value) > bytes)) this.budget.fail("maxExpansionBytes");
+      if (typeof value === "string" && (value.length > bytes || shellValueByteLength(value) > bytes)) this.budget.fail("maxExpansionBytes");
       return value;
     } });
     let value = 0n;
@@ -16467,7 +16347,7 @@ export class Runtime {
     const { maxExpansionBytes: bytes, maxExpansionFields: fields } = this.budget.limits;
     const admit = (value: unknown): void => {
       if (typeof value !== "string") throw new CommandFailure("getopts: arguments must be strings without NUL", 2);
-      if (value.length > bytes || Buffer.byteLength(value) > bytes) this.budget.fail("maxExpansionBytes");
+      if (value.length > bytes || shellValueByteLength(value) > bytes) this.budget.fail("maxExpansionBytes");
       if (value.includes("\0")) throw new CommandFailure("getopts: arguments must be strings without NUL", 2);
     };
     const checkpoint = async (): Promise<void> => {
@@ -16950,7 +16830,7 @@ export class Runtime {
       releaseHolding = () => holding.release();
       if (!options.preserve || !store.get(options.name)) await this.arrayAssignment({ kind: "compound", name: options.name, append: options.preserve, entries: [] }, state, context);
       const entry = store.bindings.get(options.name)!;
-      allocation.reserve(128 + Buffer.byteLength(options.name) * 2, 0);
+      allocation.reserve(128 + shellValueByteLength(options.name) * 2, 0);
       pinned = entry.binding.retain();
       const input = context.stdin instanceof ShellInput ? context.stdin : new ShellInput(context.stdin, this.budget, this.signal);
       let pendingFlow: Flow | undefined;
@@ -17032,7 +16912,7 @@ export class Runtime {
           const nested = mapfileCallbackStates.has(state);
           try {
             const quoted = shellValueText(await transformParameter(value, "Q", { maximumBytes: this.budget.limits.maxExpansionBytes, byteLocale: byteLocale(state.variables), work, allocation: callbackAllocation }));
-            if (Buffer.byteLength(source) + Buffer.byteLength(quoted) + String(index).length + 2 > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+            if (shellValueByteLength(source) + shellValueByteLength(quoted) + String(index).length + 2 > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
             const argumentValues = createCommandArguments([source, String(index), quoted], callbackAllocation);
             mapfileCallbackStates.add(state);
             await this.evalBuiltin({ ...context, args: argumentValues.args, argumentValues }, state, context, false);
@@ -18126,7 +18006,7 @@ export class Runtime {
         let bytes = 0;
         for (const member of members) {
           const value = part.transform ? await this.transformValue(member, part.transform, state, io) : await this.parameterPattern(part, member, state, io, hereString);
-          bytes += shellValueByteLength(value) + (fragments.length ? Buffer.byteLength(separator) : 0);
+          bytes += shellValueByteLength(value) + (fragments.length ? shellValueByteLength(separator) : 0);
           if (bytes > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
           io[valueScope]?.reserve(32, 0);
           if (fragments.length) fragments.push(separator);
@@ -18165,7 +18045,7 @@ export class Runtime {
       let bytes = 0;
       for await (const name of this.prefixNames(part.name, state)) {
         const join = fragments.length ? separator : "";
-        bytes += Buffer.byteLength(name) + Buffer.byteLength(join);
+        bytes += shellValueByteLength(name) + shellValueByteLength(join);
         if (bytes > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
         io[valueScope]?.reserve((name.length + join.length) * 2 + 32, 0);
         fragments.push(join, name);
@@ -18600,14 +18480,14 @@ export class Runtime {
     if (!expression.offset.parts.length && !expression.length) throw new ExpansionFailure(`${expression.source}: bad substitution`, line);
     if (value === undefined) return "";
     const limit = this.budget.limits.maxExpansionBytes;
-    if (Buffer.byteLength(value) > limit) this.budget.fail("maxExpansionBytes");
+    if (shellValueByteLength(value) > limit) this.budget.fail("maxExpansionBytes");
     const scratch = this.budget.values.scope();
     const work = { remaining: Math.min(Number.MAX_SAFE_INTEGER, limit * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
     try {
     const variables = new Proxy(this.arithmeticVariables(state, line), { get: (target, key) => {
       this.signal.throwIfAborted();
       const value: unknown = Reflect.get(target, key);
-      if (typeof value === "string" && Buffer.byteLength(value) > limit) this.budget.fail("maxExpansionBytes");
+      if (typeof value === "string" && shellValueByteLength(value) > limit) this.budget.fail("maxExpansionBytes");
       return value;
     } });
     const arithmetic = async (word: Word): Promise<{ value: bigint; source: string }> => {
@@ -18618,7 +18498,7 @@ export class Runtime {
       for (const entry of word.parts) {
         this.signal.throwIfAborted();
         const text = entry.kind === "text" ? entry.value : await this.part(entry, state, operandIO);
-        bytes += Buffer.byteLength(text);
+        bytes += shellValueByteLength(text);
         if (bytes > limit) this.budget.fail("maxExpansionBytes");
         owner?.reserve({ metadata: 32, payload: bytes, work: text.length + 4 });
         const pending = stringCheckpoint(work, text.length + 1);
@@ -18639,7 +18519,7 @@ export class Runtime {
     const offsetExpression = await arithmetic(expression.offset);
     let bytes: Buffer | undefined;
     if (byteLocale(state.variables)) {
-      scratch.reserve(Buffer.byteLength(value), 0);
+      scratch.reserve(shellValueByteLength(value), 0);
       bytes = Buffer.from(value);
     }
     const size = BigInt(bytes?.byteLength ?? (await scanString(value, work)).count);
@@ -18765,7 +18645,7 @@ export class Runtime {
         scratch.reserve((home.length + value.length - 1) * 2, 0);
         value = home + value.slice(1);
       }
-      replacementBytes += Buffer.byteLength(value);
+      replacementBytes += shellValueByteLength(value);
       if (replacementBytes > limit) this.budget.fail("maxExpansionBytes");
       const pending = stringCheckpoint(work, value.length + 1);
       if (pending) await pending;
@@ -19248,7 +19128,7 @@ export class Runtime {
             } else {
               replaced = val.endsWith(pat) ? val.slice(0, val.length - pat.length) + rep : val;
             }
-            if (replaced.length > this.budget.limits.maxExpansionBytes || Buffer.byteLength(replaced) > this.budget.limits.maxExpansionBytes) return undefined;
+            if (replaced.length > this.budget.limits.maxExpansionBytes || shellValueByteLength(replaced) > this.budget.limits.maxExpansionBytes) return undefined;
             if (split && !part.quoted) {
               if (replaced.length === 0 || replaced.includes(" ") || replaced.includes("\t") || replaced.includes("\n") || (!rawState.noglob && hasGlobOrEscape(replaced, !!rawState.extglob))) {
                 return undefined;
@@ -19387,7 +19267,7 @@ export class Runtime {
                 const altVal = this.fastValueWord(part.alternate, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
                 if (typeof altVal !== "string") return undefined;
                 if (isAssignOp) {
-                  if (altVal.length > this.budget.limits.maxExpansionBytes || Buffer.byteLength(altVal) > this.budget.limits.maxExpansionBytes) return undefined;
+                  if (altVal.length > this.budget.limits.maxExpansionBytes || shellValueByteLength(altVal) > this.budget.limits.maxExpansionBytes) return undefined;
                   if (this._syncArithRawWriteOnly) {
                     rawVars[part.name] = altVal;
                     this._syncArithTouched?.add(part.name);
@@ -19732,7 +19612,7 @@ export class Runtime {
         if (stage0Formatted.includes("\0")) stage0Formatted = undefined;
       }
       if (stage0Formatted === undefined || stage0Formatted.length > 8192) return undefined;
-      const stage0ByteLen = stage0Formatted.length * 3 > 127 ? Buffer.byteLength(stage0Formatted) : stage0Formatted.length;
+      const stage0ByteLen = stage0Formatted.length * 3 > 127 ? shellValueByteLength(stage0Formatted) : stage0Formatted.length;
       if (stage0ByteLen > sharedSyncPipeBuf0.byteLength) return undefined;
       const nextBytes0 = this.budget.bytes + stage0ByteLen;
       if (nextBytes0 > this.budget.maxOutputBytesSmi && stage0ByteLen > this.budget.limits.maxOutputBytes - this.budget.bytes) {
@@ -19999,7 +19879,7 @@ export class Runtime {
         if (typeof wVal !== "string" || wVal.startsWith("-") || wVal.includes("\0")) return undefined;
         val = wVal;
       }
-      const byteLength = (val.length * 3 > 127 ? Buffer.byteLength(val) : val.length) + 1;
+      const byteLength = (val.length * 3 > 127 ? shellValueByteLength(val) : val.length) + 1;
       const nextBytes = this.budget.bytes + byteLength;
       if (nextBytes > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) {
         this.budget.fail("maxOutputBytes");
@@ -20053,7 +19933,7 @@ export class Runtime {
       if (formatted.includes("\0")) return undefined;
     }
     if (formatted === undefined) return undefined;
-    const byteLength = formatted.length * 3 > 127 ? Buffer.byteLength(formatted) : formatted.length;
+    const byteLength = formatted.length * 3 > 127 ? shellValueByteLength(formatted) : formatted.length;
     const nextBytes = this.budget.bytes + byteLength;
     if (nextBytes > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) {
       this.budget.fail("maxOutputBytes");
@@ -20745,7 +20625,7 @@ export class Runtime {
       const next: string[] = [];
       let candidateBytes = 0;
       const addCandidate = (candidate: string): void => {
-        const size = Buffer.byteLength(candidate);
+        const size = shellValueByteLength(candidate);
         if (size > this.budget.limits.maxExpansionBytes - candidateBytes) this.budget.fail("maxExpansionBytes");
         candidateBytes += size;
         next.push(candidate);

@@ -1,3 +1,4 @@
+import { latin1Text } from "../../../byte-encoding.js";
 import { commandRuntimeIdentity } from "../../../contracts/command.js";
 import { FsError } from "../../../contracts/errors.js";
 import { concatShellValues, shellValueByteLength, shellValueBytes, shellValueFromBytes, shellValueText, type ShellValue } from "../../../contracts/value.js";
@@ -247,7 +248,7 @@ async function execute(context: ShellExtensionContext): Promise<number> {
             }
           }
           lineValue = isAscii
-            ? Buffer.from(line.buffer, line.byteOffset, line.byteLength).toString("latin1")
+            ? latin1Text(line)
             : shellValueFromBytes(line);
         } else {
           lineValue = shellValueFromBytes(line);

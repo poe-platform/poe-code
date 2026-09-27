@@ -1,3 +1,4 @@
+import { shellValueByteLength } from "../contracts/value.js";
 import { shellValueBytes, shellValueFromBytes, type ShellValue, type ValueAllocation } from "../contracts/value.js";
 import { compilePattern, compilePatternBoundaries } from "./pattern.js";
 import { nextCodePointOffset, previousCodePointOffset, stringCheckpoint, type StringWork } from "./string-operations.js";
@@ -199,7 +200,7 @@ export async function trimParameter(value: ShellValue, parts: readonly { value: 
             if (nextCodePointOffset(mapped, 0) === mapped.length) converted = mapped;
           }
         }
-        const length = converted === character ? end - start : Buffer.byteLength(converted);
+        const length = converted === character ? end - start : shellValueByteLength(converted);
         if (size + length > maximumBytes) work.exhausted();
         if (output) {
           if (converted === character) output.set(bytes.subarray(start, end), size);

@@ -1,3 +1,4 @@
+import { latin1Bytes } from "../byte-encoding.js";
 import { ShellSyntaxError } from "./types.js";
 import type { ShellParseOptions } from "./types.js";
 import { ParseBudget } from "./parse-budget.js";
@@ -479,11 +480,11 @@ class Lexer {
       const current = this.source[this.position]!;
       const opaque = this.sourceValues?.get(this.sourceOffset + this.position);
       if (opaque !== undefined) {
-        if (text) { this.budget.admit(2); yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true, ...(this.byteSource ? { byteValue: shellValueFromBytes(Buffer.from(text, "latin1")) } : {}) }] }; text = ""; }
+        if (text) { this.budget.admit(2); yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true, ...(this.byteSource ? { byteValue: shellValueFromBytes(latin1Bytes(text)) } : {}) }] }; text = ""; }
         this.budget.admit(2);
         yield { offset: this.position++, parts: [{ kind: "text", value: shellValueText(opaque), byteValue: opaque, quoted: true }] };
       } else if (current === "$" || current === "`") {
-        if (text) { this.budget.admit(2); yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true, ...(this.byteSource ? { byteValue: shellValueFromBytes(Buffer.from(text, "latin1")) } : {}) }] }; text = ""; }
+        if (text) { this.budget.admit(2); yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true, ...(this.byteSource ? { byteValue: shellValueFromBytes(latin1Bytes(text)) } : {}) }] }; text = ""; }
         const offset = this.position;
         this.budget.admit();
         const parts: WordPart[] = [];
@@ -503,9 +504,9 @@ class Lexer {
         text += current;
         this.position++;
       }
-      if (text.length >= 1024) { this.budget.admit(2); yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true, ...(this.byteSource ? { byteValue: shellValueFromBytes(Buffer.from(text, "latin1")) } : {}) }] }; text = ""; }
+      if (text.length >= 1024) { this.budget.admit(2); yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true, ...(this.byteSource ? { byteValue: shellValueFromBytes(latin1Bytes(text)) } : {}) }] }; text = ""; }
     }
-    if (text) { this.budget.admit(2); yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true, ...(this.byteSource ? { byteValue: shellValueFromBytes(Buffer.from(text, "latin1")) } : {}) }] }; }
+    if (text) { this.budget.admit(2); yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true, ...(this.byteSource ? { byteValue: shellValueFromBytes(latin1Bytes(text)) } : {}) }] }; }
   }
 
   documentSubstitutionError(source: string, error: ShellSyntaxError, backtick = false): HereDocumentSyntaxError {
@@ -587,7 +588,7 @@ class Lexer {
     const conditionalPattern = terminator === undefined ? this.conditionalPattern : undefined;
     let plain = true;
     const text = (value: ShellValue, quoted: boolean, synthetic = false, start = this.position, end = start + shellValueText(value).length, ansi = false) => {
-      if (this.byteSource && typeof value === "string" && [...value].some(character => character.charCodeAt(0) > 127)) value = shellValueFromBytes(Buffer.from(value, "latin1"));
+      if (this.byteSource && typeof value === "string" && [...value].some(character => character.charCodeAt(0) > 127)) value = shellValueFromBytes(latin1Bytes(value));
       const projection = shellValueText(value);
       if (conditionalPattern === "regex" && regexBracket && quoted && projection.length) { regexBracketFirst = false; regexBracketNegation = false; }
       const previous = parts.at(-1);
@@ -835,7 +836,7 @@ class Lexer {
           return shellValueFromBytes(raw);
         }
       }
-      if (character !== "\\") { bytes.push(...(this.byteSource ? Buffer.from(character, "latin1") : encoder.encode(character))); continue; }
+      if (character !== "\\") { bytes.push(...(this.byteSource ? latin1Bytes(character) : encoder.encode(character))); continue; }
       const escape = this.source[this.position++];
       if (escape === undefined) this.error("Unterminated ANSI-C quote", { quote: "'", line: quoteLine });
       if (escapes[escape] !== undefined) { bytes.push(escapes[escape]!); continue; }
@@ -1469,12 +1470,12 @@ export function hereDocumentWords(document: HereDocument, line: number, byteLoca
     let start = 0;
     for (const [position, value] of values ?? []) {
       budget.admit(4);
-      if (start < position) yield { offset: document.offset, parts: [{ kind: "text", value: document.body.slice(start, position), quoted: true, ...(document.byteSource ? { byteValue: shellValueFromBytes(Buffer.from(document.body.slice(start, position), "latin1")) } : {}) }] };
+      if (start < position) yield { offset: document.offset, parts: [{ kind: "text", value: document.body.slice(start, position), quoted: true, ...(document.byteSource ? { byteValue: shellValueFromBytes(latin1Bytes(document.body.slice(start, position))) } : {}) }] };
       yield { offset: document.offset, parts: [{ kind: "text", value: shellValueText(value), byteValue: value, quoted: true }] };
       start = position + 1;
     }
     budget.admit(2);
-    yield { offset: document.offset, parts: [{ kind: "text", value: document.body.slice(start), quoted: true, ...(document.byteSource ? { byteValue: shellValueFromBytes(Buffer.from(document.body.slice(start), "latin1")) } : {}) }] };
+    yield { offset: document.offset, parts: [{ kind: "text", value: document.body.slice(start), quoted: true, ...(document.byteSource ? { byteValue: shellValueFromBytes(latin1Bytes(document.body.slice(start))) } : {}) }] };
   } else { budget.admit(); yield* new Lexer(budget, document.body, document.depth, warnings, line - 1, byteLocale, line, false, undefined, 0, false, values, document.byteSource, captured).documentWords(); }
   })();
 }

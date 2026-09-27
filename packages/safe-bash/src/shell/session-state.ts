@@ -1,3 +1,4 @@
+import { shellValueByteLength } from "../contracts/value.js";
 import { resolvePath } from "../contracts/index.js";
 import { ArrayOwner } from "./arrays/ledger.js";
 import { IndexedBinding, valueToken } from "./arrays/bindings.js";
@@ -186,7 +187,7 @@ export async function restoreShellSessionState(
 
   if (snapshot.directoryStack && snapshot.directoryStack.length > 0) {
     const entries = [...snapshot.directoryStack];
-    const bytes = entries.reduce((sum, entry) => sum + Buffer.byteLength(entry), 0);
+    const bytes = entries.reduce((sum, entry) => sum + shellValueByteLength(entry), 0);
     state.directoryStack = { entries, bytes };
   }
 

@@ -1,3 +1,4 @@
+import { compareUtf8 } from "../byte-encoding.js";
 import { FsError, type CommandContext, type CommandDefinition, type CommandHandler, type FileStat } from "../contracts/index.js";
 import { codeOf, define, pathOf, UsageError } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
@@ -264,7 +265,9 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
     let offset = 0;
     const number = (text: string): bigint => {
       if (!/^[ \t]*[+-]?[0-9]+[ \t]*$/u.test(text)) throw new UsageError(`integer expression expected: '${text}'`);
-      return BigInt(text.trim());
+      const value = BigInt(text.trim());
+      if (value < -9223372036854775808n || value > 9223372036854775807n) throw new UsageError(`integer expression expected: '${text}'`);
+      return value;
     };
     const primary = (): Predicate => {
       const token = args[offset++];
@@ -293,7 +296,7 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
           if (operator === "=" || operator === "==") return token === right;
           if (operator === "!=") return token !== right;
           if (operator === "<" || operator === ">") {
-            const order = Buffer.compare(Buffer.from(token), Buffer.from(right));
+            const order = compareUtf8(token, right);
             return operator === "<" ? order < 0 : order > 0;
           }
           if (["-nt", "-ot", "-ef"].includes(operator)) {
@@ -366,7 +369,7 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
         const shortGroup = token === "(" && (args.length > 3 && args[offset + 2] === ")"
           || args[offset + 1] === "!" && args[offset + 3] === ")");
         if (!shortGroup && (token === "!" || token === "(")
-          && !(binary.has(args[offset + 1] ?? "") && !binary.has(args[offset + 2] ?? ""))) {
+          && !((args.length - offset <= 4 || args[offset + 3] === ")") && binary.has(args[offset + 1] ?? "") && !binary.has(args[offset + 2] ?? ""))) {
           offset++;
           if (token === "!") frame.pendingNot = !frame.pendingNot;
           else {

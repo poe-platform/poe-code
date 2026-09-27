@@ -1,3 +1,5 @@
+import { compareUtf8 } from "../byte-encoding.js";
+import { shellValueByteLength } from "../contracts/value.js";
 import { yieldTurn } from "../contracts/yield.js";
 import type { FileSystem } from "../contracts/index.js";
 import { isFsError } from "../contracts/index.js";
@@ -155,8 +157,8 @@ async function leaf(node: Extract<ConditionalExpression, { kind: "nonempty" | "u
   }
   if (node.operator === "<" || node.operator === ">") {
     cLocale(context);
-    await charge(context, Buffer.byteLength(left) + Buffer.byteLength(right));
-    const order = Buffer.compare(Buffer.from(left), Buffer.from(right));
+    await charge(context, shellValueByteLength(left) + shellValueByteLength(right));
+    const order = compareUtf8(left, right);
     return node.operator === "<" ? order < 0 : order > 0;
   }
   await charge(context, left.length + right.length);

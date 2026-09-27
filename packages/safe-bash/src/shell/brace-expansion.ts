@@ -126,8 +126,8 @@ export function tryFastExpandBraceRange(
   if (count > budget.limits.maxExpansionFields) return undefined;
   const prefix = text.slice(0, open);
   const suffix = text.slice(close + 1);
-  const prefixBytes = Buffer.byteLength(prefix);
-  const suffixBytes = Buffer.byteLength(suffix);
+  const prefixBytes = shellValueByteLength(prefix);
+  const suffixBytes = shellValueByteLength(suffix);
   const maxTermBytes = prefixBytes + suffixBytes + Math.max(startStr.length, endStr.length);
   if (count * maxTermBytes > budget.limits.maxExpansionBytes) return undefined;
   budget.cpuCheckpoint();

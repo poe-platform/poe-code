@@ -1,3 +1,4 @@
+import { bytesToHex } from "../../byte-encoding.js";
 import { Admission, ArrayFailure, ArrayOwner, exactSum } from "./ledger.js";
 import type { Tickets } from "./ledger.js";
 import { shellValueByteLength, shellValueBytes, shellValueFromBytes, shellValueRetainedBytes, shellValueText } from "../../contracts/value.js";
@@ -145,7 +146,7 @@ export class IndexedBinding {
     if (bytes.length <= 4096) {
       const p = owner.ledger.checkpoint(signal, bytes.length);
       if (p) await p;
-      return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("hex");
+      return bytesToHex(bytes);
     }
     const parts: string[] = [];
     for (const byte of bytes) {
@@ -455,7 +456,7 @@ export class BindingStore {
     if (!watch) {
       signal.throwIfAborted();
       owner.chargeWork(name.length);
-      const bytes = Buffer.byteLength(name);
+      const bytes = shellValueByteLength(name);
       const token = new OwnedText(name, bytes, owner.reserve({ metadata: 32, payload: bytes, work: 4 }));
       try {
         const admission = owner.reserve({ slots: 1, metadata: 96, generation: true, version: true, work: 9 });

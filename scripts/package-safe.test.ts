@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { createContext, runInContext } from "node:vm";
 import path from "node:path";
@@ -6,7 +6,7 @@ import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createFsFromVolume, Volume } from "memfs";
 import ts from "typescript";
-import { build, transformSync, type BuildOptions, type Plugin } from "esbuild";
+import { build, transform, type BuildOptions, type Plugin } from "esbuild";
 import { packageSafeLibraries, parsePackageSafeArguments, rewriteModuleSpecifiers } from "./package-safe.mjs";
 
 const bashManifest = JSON.parse(readFileSync(new URL("../packages/safe-bash/package.json", import.meta.url), "utf8"));
@@ -285,7 +285,8 @@ it("ships the ExifTool implementation and declarations without an unpublished de
   expect(consumer.encodeJsonScalar("a\0b\x7f")).toBe('"ab\\u007F"');
 });
 
-it("bundles a real private command behind its packed subpath", async () => {
+{
+  // Prepare the real package graph once before the timed consumer assertions.
   const { volume, options } = optionalLeftovers();
   const name = "safe-bash-command-exiftool";
   const manifest = structuredClone(bashManifest);
@@ -314,6 +315,7 @@ it("bundles a real private command behind its packed subpath", async () => {
     } }] });
   };
   await packageSafeLibraries({ ...options, bundle, outDir: "/output" });
+  it("bundles a real private command behind its packed subpath", async () => {
   const prefix = `/output/safe-bash/dist/${name}/`;
   // Runtime source is bundled; declarations retain their rewritten relative closure.
   expect(volume.existsSync(prefix + "scalar.js")).toBe(false);
@@ -338,7 +340,8 @@ it("bundles a real private command behind its packed subpath", async () => {
     return source === undefined ? undefined : ts.createSourceFile(filename, source, languageVersion);
   };
   expect(ts.getPreEmitDiagnostics(ts.createProgram(["/consumer/index.mts"], compilerOptions, host)).map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"))).toEqual([]);
-});
+  });
+}
 
 it.each(["missing", "symlink", "excluded", "traversal", "outside-dist"])("refuses inadmissible declared private assets: %s", async kind => {
   const { volume, options } = optionalLeftovers();
@@ -409,18 +412,19 @@ it.each([false, true])("admits asset-only contract owners against the full priva
   expect(volume.existsSync(`/output/safe-bash/dist/${name}/profile.bin`)).toBe(false);
 });
 
-describe("isolated packed private command graph", () => {
-  let volume: Volume;
-  let plugin: Plugin;
+{
 
   // Build the package fixture separately from its consumer type and runtime checks.
-  beforeAll(async () => {
     const fixture = optionalLeftovers();
-    volume = fixture.volume;
-    const { options } = fixture;
+    const { volume, options } = fixture;
     const repository = fileURLToPath(new URL("../", import.meta.url));
     const manifest = structuredClone(bashManifest);
     manifest.poeCode.integration.privateWorkspaces = {};
+    manifest.exports = Object.fromEntries(Object.entries(manifest.exports).filter(([route]) => [".", "./contracts/*", "./commands/exiftool", "./commands/csvgrep", "./commands/csvcut"].includes(route)));
+    volume.rmSync("/repo/packages/safe-bash/dist", { recursive: true });
+    volume.mkdirSync("/repo/packages/safe-bash/dist", { recursive: true });
+    for (const filename of ["index.d.ts", "core.d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/${filename}`, "export {};\n");
+    const modules: Promise<void>[] = [];
     for (const name of ["safe-bash-contracts", "safe-bash-command-exiftool", "safe-bash-csv-engine", "safe-bash-command-csvgrep", "safe-bash-command-csvcut"]) {
       const directory = path.join(repository, "packages", name);
       const pkg = JSON.parse(readFileSync(path.join(directory, "package.json"), "utf8"));
@@ -434,12 +438,15 @@ describe("isolated packed private command graph", () => {
         if (!filename.endsWith(".ts") || filename.endsWith(".test.ts") || filename === "fixtures.ts") continue;
         const source = readFileSync(path.join(directory, "src", filename), "utf8");
         const compilerOptions = { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 };
-        volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.js`, transformSync(source, { loader: "ts", format: "esm", target: "es2022" }).code);
+        modules.push(transform(source, { loader: "ts", format: "esm", target: "es2022" }).then(({ code }) => {
+          volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.js`, code);
+        }));
         const distDts = path.join(directory, "dist", `${filename.slice(0, -3)}.d.ts`);
         const dtsText = getCachedDeclaration(distDts, source, compilerOptions);
         volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.d.ts`, dtsText);
       }
     }
+    await Promise.all(modules);
     volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
     const portable = resolveBrowserShellBuild(repository, { external: ["safe-bash-contracts", "@poe-platform/safe-fs"] });
     const shell = await build({ ...portable, splitting: false, sourcemap: false,
@@ -477,11 +484,13 @@ describe("isolated packed private command graph", () => {
         }
       }
     }
+    volume.mkdirSync("/repo/packages/safe-bash/dist/contracts", { recursive: true });
+    for (const name of ["exiftool", "csvgrep", "csvcut"]) volume.mkdirSync(`/repo/packages/safe-bash/dist/commands/${name}`, { recursive: true });
     for (const subpath of ["command", "value", "errors", "plugin"]) {
       for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/contracts/${subpath}.${suffix}`, `export * from "safe-bash-contracts/${subpath}";`);
     }
     for (const name of ["exiftool", "csvgrep", "csvcut"]) for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${name}/index.${suffix}`, `export * from "safe-bash-command-${name}";`);
-    plugin = { name: "isolated-packed-files", setup(builder: import("esbuild").PluginBuild) {
+    const plugin: Plugin = { name: "isolated-packed-files", setup(builder: import("esbuild").PluginBuild) {
       builder.onResolve({ filter: /.*/ }, args => {
         if (builder.initialOptions.external?.some(name => args.path === name || args.path.startsWith(name + "/"))) return { path: args.path, external: true };
         if (args.path.startsWith("node:")) throw new Error("Node dependency in portable command consumer: " + args.path);
@@ -498,6 +507,8 @@ describe("isolated packed private command graph", () => {
       });
       builder.onLoad({ filter: /.*/, namespace: "packed" }, args => ({ contents: volume.readFileSync(args.path, "utf8").toString(), resolveDir: path.dirname(args.path) }));
     } };
+
+  // Package the prepared source graph in a separate setup stage.
     await packageSafeLibraries({ ...options, outDir: "/output", bundle: async (settings: BuildOptions) => {
       if (settings.platform === "browser" && settings.entryPoints && "core.browser" in settings.entryPoints) {
         expect(settings.external).toContain("safe-bash-contracts");
@@ -513,7 +524,6 @@ describe("isolated packed private command graph", () => {
     volume.symlinkSync("/output/safe-bash", "/output/node_modules/@poe-platform/safe-bash");
     volume.symlinkSync("/output/safe-fs", "/output/node_modules/@poe-platform/safe-fs");
     volume.writeFileSync("/output/csvcut-consumer.mts", readFileSync(new URL("./fixtures/safe-packages-csvcut-types.mts", import.meta.url)));
-  });
 
   it("admits Shell byte argv through an isolated packed private command graph", async () => {
     // Check the packaged declarations without rechecking TypeScript's own library.
@@ -539,7 +549,7 @@ describe("isolated packed private command graph", () => {
     // Execute fixture top-level await in the Buffer-free isolated realm.
     await runInContext(`(async () => { const module = { exports: {} }; ${consumer.outputFiles[0]!.text}; await module.exports.verification; })()`, sandbox);
   });
-});
+}
 
 it.each(["wkhtmltopdf", "xz"])("packs %s and contract modules into one canonical relative graph", async command => {
   const commandName = `safe-bash-command-${command}`;

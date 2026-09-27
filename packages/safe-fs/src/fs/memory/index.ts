@@ -366,6 +366,8 @@ let sharedAllocationPoolLen = 0;
 const SHARED_LARGE_POOL_CAPACITY = 8;
 const sharedLargeAllocationPool: MemoryAllocation[] = new Array<MemoryAllocation>(SHARED_LARGE_POOL_CAPACITY).fill(DUMMY_POOL_ALLOCATION);
 let sharedLargeAllocationPoolLen = 0;
+const sharedMediumAllocationPool: MemoryAllocation[] = new Array<MemoryAllocation>(SHARED_LARGE_POOL_CAPACITY).fill(DUMMY_POOL_ALLOCATION);
+let sharedMediumAllocationPoolLen = 0;
 const sharedFileNodePool: MemoryFileNode[] = new Array<MemoryFileNode>(SHARED_POOL_CAPACITY).fill(DUMMY_POOL_FILE_NODE);
 let sharedFileNodePoolLen = 0;
 const sharedDirectoryNodePool: MemoryDirectoryNode[] = new Array<MemoryDirectoryNode>(SHARED_DIR_POOL_CAPACITY);
@@ -406,6 +408,12 @@ function replenishSharedMemoryPools(): void {
     const alloc = new MemoryAllocation(new Uint8Array(65536), DUMMY_POOL_LEDGER);
     alloc.release();
     sharedLargeAllocationPool[sharedLargeAllocationPoolLen++] = alloc;
+  }
+  while (sharedMediumAllocationPoolLen < 4) {
+    DUMMY_POOL_LEDGER.reserve(16384, 0, "init", "/");
+    const alloc = new MemoryAllocation(new Uint8Array(16384), DUMMY_POOL_LEDGER);
+    alloc.release();
+    sharedMediumAllocationPool[sharedMediumAllocationPoolLen++] = alloc;
   }
   while (sharedDirectoryNodePoolLen < 16) {
     sharedDirectoryNodePool[sharedDirectoryNodePoolLen++] = new MemoryDirectoryNode(0, 0, fastWriteCachedNow);
@@ -1371,6 +1379,14 @@ export class MemoryFileSystem implements FileSystem {
     if (length === 0) {
       return DUMMY_POOL_ALLOCATION;
     }
+    if (length === 16384) {
+      if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedMediumAllocationPoolLen > 0) {
+        const pooled = sharedMediumAllocationPool[--sharedMediumAllocationPoolLen]!;
+        sharedMediumAllocationPool[sharedMediumAllocationPoolLen] = DUMMY_POOL_ALLOCATION;
+        pooled.reuse(this.ledger);
+        return pooled;
+      }
+    }
     if (length === 65536) {
       if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedLargeAllocationPoolLen > 0) {
         const pooled = sharedLargeAllocationPool[--sharedLargeAllocationPoolLen]!;
@@ -1559,7 +1575,7 @@ export class MemoryFileSystem implements FileSystem {
       this.ledger.check(length, 0, syscall, path);
       let capacity: number;
       if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && this.ledger.limits.maxBytes === undefined) {
-        capacity = curLen === 0 && length >= 8192 && length <= 65536 ? 65536 : Math.max(length, curLen * 2, 64);
+        capacity = curLen === 0 && length >= 8192 && length <= 65536 ? (length <= 16384 ? 16384 : 65536) : Math.max(length, curLen * 2, 64);
       } else {
         const baseCap = curLen === 0 && length >= 8192 && length <= 65536 &&
           this.ledger.limits.maxFileBytes >= 65536 &&
@@ -3161,17 +3177,32 @@ function isStockMemoryMethods(mem: MemoryFileSystem, names: readonly string[], c
   return true;
 }
 
-export function tryReadMemoryFileViewSync(filesystem: FileSystem, path: string, maxBytes?: number, signal?: AbortSignal): Uint8Array | undefined {
+let lastReadViewData: Uint8Array | undefined;
+let lastReadViewSourceRef: Uint8Array | undefined;
+
+export function getLastReadMemoryFileSourceRef(view: Uint8Array): Uint8Array | undefined {
+  const ref = view === lastReadViewData ? lastReadViewSourceRef : undefined;
+  lastReadViewData = undefined;
+  lastReadViewSourceRef = undefined;
+  return ref;
+}
+
+export function tryReadMemoryFileViewSync(filesystem: FileSystem, path: string, maxBytes?: number, signal?: AbortSignal, captureSourceRef = false): Uint8Array | undefined {
   const mem = filesystem as MemoryFileSystem;
   if (mem._owner === undefined || !isStockMemoryMethods(mem, readFileFastMethodNames, false)) return undefined;
   signal?.throwIfAborted();
   if (maxBytes !== undefined) (mem as unknown as { integer: (v: number, s: string, p: string) => void }).integer(maxBytes, "readFile", path);
   const node = (mem as unknown as { file: (p: string, s: string) => FileNode }).file(path, "readFile");
   (mem as unknown as { permission: (n: MemoryNode, m: number, s: string, p: string) => void }).permission(node, 4, "readFile", path);
-  if (maxBytes !== undefined && node.data.byteLength > maxBytes) (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail("EFBIG", "readFile", path);
+  const data = node.data;
+  if (maxBytes !== undefined && data.byteLength > maxBytes) (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail("EFBIG", "readFile", path);
   if (Date.now !== defaultDateNow) node.atimeMs = Date.now();
   else if ((++fastWriteNowTick & 63) === 0) node.atimeMs = fastWriteCachedNow = Date.now();
-  return node.data;
+  if (captureSourceRef && node.revision === 0) {
+    lastReadViewData = data;
+    lastReadViewSourceRef = node.sourceRef;
+  }
+  return data;
 }
 
 

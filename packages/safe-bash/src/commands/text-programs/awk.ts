@@ -85,7 +85,7 @@ function tryExecuteAwkFastSync(
       const resolvedPath = fileArg.charCodeAt(0) === 47 && fileArg.length > 1 && fileArg.charCodeAt(fileArg.length - 1) !== 47 && !fileArg.includes("//") && !fileArg.includes("/.") ? fileArg : virtualPath(context, fileArg);
       if (resolvedPath !== "/dev" && !resolvedPath.startsWith("/dev/")) {
         let rawView: Uint8Array | undefined;
-        try { rawView = tryReadMemoryFileViewSync(fastMem, resolvedPath, undefined, context.signal); } catch { rawView = undefined; }
+        try { rawView = tryReadMemoryFileViewSync(fastMem, resolvedPath, undefined, context.signal, true); } catch { rawView = undefined; }
         if (rawView !== undefined && getCachedLatin1Batch(rawView) === lastMemoBatch) {
           budget.step(lastMemoSteps);
           if (!budget.checkpointSync()) {

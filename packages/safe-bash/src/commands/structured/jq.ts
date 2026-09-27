@@ -1,6 +1,6 @@
 import type { FileSystem } from "@poe-code/safe-fs";
 import { FsError, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
-import { tryReadMemoryFileViewSync, tryResolveMemoryDevicePath } from "@poe-code/safe-fs/core";
+import { getLastReadMemoryFileSourceRef, tryReadMemoryFileViewSync, tryResolveMemoryDevicePath } from "@poe-code/safe-fs/core";
 import { getRuntimeBackingFileSystem } from "../../fs/creation-mask.js";
 import { pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO } from "../internal.js";
 import { createSyncSingleChunkByteSource } from "../search/requirements.js";
@@ -189,7 +189,7 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
   if (absolute === "/dev" || absolute.startsWith("/dev/")) return undefined;
   let rawBytes: Uint8Array | undefined;
   try {
-    rawBytes = tryReadMemoryFileViewSync(fastMemFs, absolute, undefined, context.signal);
+    rawBytes = tryReadMemoryFileViewSync(fastMemFs, absolute, undefined, context.signal, true);
   } catch {
     return undefined;
   }
@@ -197,10 +197,11 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
     return undefined;
   }
   let budget = sharedFastBudget;
+  const rawSourceRef = getLastReadMemoryFileSourceRef(rawBytes);
   if (!budget || budget.limits !== limits) {
     budget = sharedFastBudget = new Budget(limits, context.signal);
   } else {
-    budget.resetForRun(context.signal);
+    budget.resetForSyncFastRun(context.signal);
   }
   if (budget.maxInputBytesSmi < 0x3fffffff && limits.maxInputBytes !== Infinity) {
     const argBytes = 2 + Buffer.byteLength(source) + Buffer.byteLength(file);
@@ -232,7 +233,7 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
     budget.inputLocation.complete = false;
     const spPlan = getFastSelectProjectPlan(cachedAst);
     const fastPos = spPlan
-      ? tryProcessFlatSelectProjectChunkSync(rawBytes, budget, spPlan.condKey, spPlan.outKeys, spPlan.srcKeys, outBuf, spPlan)
+      ? tryProcessFlatSelectProjectChunkSync(rawBytes, budget, spPlan.condKey, spPlan.outKeys, spPlan.srcKeys, outBuf, spPlan, rawSourceRef)
       : -1;
     if (fastPos >= 0) {
       sharedFastJqOutPos = fastPos;

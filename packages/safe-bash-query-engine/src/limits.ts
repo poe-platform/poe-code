@@ -1,4 +1,5 @@
 const ONCE_ABORT_OPTIONS = Object.freeze({ once: true });
+const defaultPerfNow = performance.now;
 import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { Decimal, isNumber, numberText } from "./numbers.js";
 
@@ -98,6 +99,19 @@ export class Budget {
     this.inputLocation.line = 0;
     this.inputLocation.complete = true;
   }
+  resetForSyncFastRun(signal: AbortSignal): void {
+    (this as unknown as { signal: AbortSignal }).signal = signal;
+    this.bindSignal(signal);
+    this.steps = 0;
+    this.lastYieldSteps = 0;
+    this.yieldTimes[0] = (performance.now !== defaultPerfNow || hasYieldCheckpoint(signal)) ? monotonicNow() : -1;
+    this.inputBytes = 0;
+    this.outputBytes = 0;
+    this.results = 0;
+    this.inputLocation.name = "<unknown>";
+    this.inputLocation.line = 0;
+    this.inputLocation.complete = true;
+  }
   step(count = 1): void {
     if (this.aborted || (this.pollSignal && this.signal.aborted)) {
       this.aborted = true;
@@ -117,7 +131,7 @@ export class Budget {
     }
     // Even fast finite workloads must eventually let host timers run.
     if (this.steps - this.lastYieldSteps >= 65536) {
-      if (this.steps < 524288 && monotonicNow() - this.yieldTimes[0]! < 20) {
+      if (this.yieldTimes[0]! >= 0 && this.steps < 524288 && monotonicNow() - this.yieldTimes[0]! < 20) {
         this.lastYieldSteps = this.steps;
         return false;
       }

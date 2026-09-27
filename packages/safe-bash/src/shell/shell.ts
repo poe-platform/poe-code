@@ -566,6 +566,7 @@ export class Shell implements PluginHost {
         "grep '^alpha' /data.txt | cut -d: -f2 | tr 'a-z' 'A-Z' | sort | head -n 5",
         "rg -c NEEDLE_TOKEN /src",
         "sed 's/^alpha:/ALPHA_REPLACED:/g; s/:val_/:VALUE_/g' /data.txt > /out.txt",
+        "awk -F: '/^alpha/ { sum += $3; cnt++ } END { print cnt, sum }' /data.txt",
         "jq -c 'select(.active) | {id, score}' /items.jsonl > /filtered.jsonl",
         fsScript,
         "acc=0; i=0; for i in {1..500}; do acc=$((acc + i)); done; echo $acc",

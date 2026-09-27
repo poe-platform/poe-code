@@ -832,6 +832,7 @@ function stepFlatSelectProjectLine(
 
 let lastSpPlan: FlatSchemaPlan | undefined;
 let lastSpInBuf: Buffer | undefined;
+let lastSpSourceRefs = new WeakSet<Uint8Array>();
 let lastSpB0 = 0;
 let lastSpBMid = 0;
 let lastSpBEnd = 0;
@@ -851,6 +852,7 @@ export function tryProcessFlatSelectProjectChunkSync(
   srcKeys: readonly string[],
   outBuf: Uint8Array,
   planHolder?: { cachedSchemaPlan?: FlatSchemaPlan | undefined },
+  sourceRef?: Uint8Array,
 ): number {
   if (sharedFlatParserInUse || budget.tickSync()) return -1;
   const len = rawChunk.byteLength;
@@ -875,8 +877,9 @@ export function tryProcessFlatSelectProjectChunkSync(
     rawChunk[len >> 1] === lastSpBMid &&
     rawChunk[len - 1] === lastSpBEnd &&
     outBuf.byteLength >= lastSpOutPos &&
-    lastSpInBuf.equals(rawChunk)
+    ((sourceRef !== undefined && lastSpSourceRefs.has(sourceRef) && sourceRef[0] === lastSpB0 && sourceRef[len >> 1] === lastSpBMid && sourceRef[len - 1] === lastSpBEnd) || lastSpInBuf.equals(rawChunk))
   ) {
+    if (sourceRef !== undefined) lastSpSourceRefs.add(sourceRef);
     budget.step(lastSpSteps);
     if (budget.tickSync() || budget.needsYield()) return -1;
     if (lastSpResultCount > budget.maxResultsSmi && lastSpResultCount > budget.limits.maxResults) return -1;
@@ -916,6 +919,8 @@ export function tryProcessFlatSelectProjectChunkSync(
   if (len >= 512 && len <= 262144 && outPos <= 65536) {
     lastSpPlan = plan;
     lastSpInBuf = Buffer.from(rawChunk);
+    lastSpSourceRefs = new WeakSet<Uint8Array>();
+    if (sourceRef !== undefined) lastSpSourceRefs.add(sourceRef);
     lastSpB0 = rawChunk[0]!;
     lastSpBMid = rawChunk[len >> 1]!;
     lastSpBEnd = rawChunk[len - 1]!;

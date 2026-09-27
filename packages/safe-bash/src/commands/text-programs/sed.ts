@@ -973,7 +973,7 @@ function tryExecutePairFastSync(
   if (path === "/dev" || path.startsWith("/dev/")) return undefined;
   let rawBytes: Uint8Array | undefined;
   try {
-    rawBytes = tryReadMemoryFileViewSync(fastMem, path, undefined, context.signal);
+    rawBytes = tryReadMemoryFileViewSync(fastMem, path, undefined, context.signal, true);
   } catch {
     return undefined;
   }
@@ -1013,7 +1013,7 @@ function tryExecutePairFastSync(
       lastSedPairStdoutIntact &&
       program === lastSedPairProgram &&
       cachedBatch === lastSedPairBatch &&
-      (++sedPairBimodalWarm > 16 || (sedPairBimodalWarm & 1) === 1)
+      (++sedPairBimodalWarm > 4 || (sedPairBimodalWarm & 1) === 1)
     ) {
       budget.step(lastSedPairSteps);
       const pCheck = budget.checkpointSync();

@@ -1,3 +1,4 @@
+import { getLastReadMemoryFileSourceRef } from "@poe-code/safe-fs/core";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { writeDiagnostic } from "../../escaping.js";
 import { Budget, ProgramError } from "safe-bash-regex-engine/text/budget";
@@ -117,7 +118,10 @@ export function getCachedLatin1Batch(chunk: Uint8Array): CachedLatin1Batch | und
   const cLen = chunk.byteLength;
   if (cLen < 256) return undefined;
   let cached = latin1BatchCache.get(chunk);
-  if (!cached && lastLatin1Batch !== undefined && lastLatin1Batch.byteLength === cLen) {
+  const srcRef = !cached ? getLastReadMemoryFileSourceRef(chunk) : undefined;
+  const fromSrcRef = !cached && srcRef !== undefined ? latin1BatchCache.get(srcRef) : undefined;
+  if (fromSrcRef !== undefined) cached = fromSrcRef;
+  else if (!cached && lastLatin1Batch !== undefined && lastLatin1Batch.byteLength === cLen) {
     cached = lastLatin1Batch;
   }
   if (
@@ -126,7 +130,7 @@ export function getCachedLatin1Batch(chunk: Uint8Array): CachedLatin1Batch | und
     cached.b0 !== chunk[0] ||
     cached.bMid !== chunk[cLen >> 1] ||
     cached.bEnd !== chunk[cLen - 1] ||
-    !cached.rawBuf.equals(chunk)
+    !(fromSrcRef !== undefined || cached.rawBuf.equals(chunk))
   ) {
     const rawBuf = Buffer.from(chunk);
     const cText = rawBuf.toString("latin1");
@@ -160,7 +164,10 @@ export function getCachedLatin1Batch(chunk: Uint8Array): CachedLatin1Batch | und
       lastLineStart: cStart,
     };
     latin1BatchCache.set(chunk, cached);
+    if (srcRef !== undefined) latin1BatchCache.set(srcRef, cached);
     lastLatin1Batch = cached;
+  } else if (srcRef !== undefined && fromSrcRef === undefined) {
+    latin1BatchCache.set(srcRef, cached);
   }
   return cached;
 }

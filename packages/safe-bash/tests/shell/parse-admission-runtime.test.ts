@@ -131,7 +131,7 @@ for (const source of ['eval "$program"', 'sh -c "$program"', "sh /program", ". /
 }
 
 test("runtime indexed-unset admission is not translated to a subscript diagnostic", async () => {
-  const source = "array=(x); unset 'array[0]'";
+  const source = "array=(x); unset 'array[0+0]'";
   let required = 0;
   for (; required < 256; required++) {
     try { parseShellUnit(source, 0, false, new ParseBudget(required)); break; }
@@ -140,9 +140,8 @@ test("runtime indexed-unset admission is not translated to a subscript diagnosti
   assert.ok(required < 256);
   const { shell } = setup();
   try {
+    // Use arithmetic to require actual runtime parsing even on a warm store.
     await assert.rejects(shell.exec(source, { limits: { maxParseUnits: required } }), parseLimit);
-    // The runtime parses the subscript as both a word and arithmetic. A
-    // source-only allowance plus one unit does not cover those reparses.
     const admitted = await shell.exec(source, { limits: { maxParseUnits: 256 } });
     assert.equal(admitted.exitCode, 0);
     assert.equal(admitted.stderr, "");

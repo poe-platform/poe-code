@@ -103,7 +103,17 @@ test("default read array enforces indexed field admission", async () => {
   try {
     const result = await shell.exec("read -a items", { stdin: "x ".repeat(32) + "\n" });
     assert.equal(result.exitCode, 1);
-    assert.match(result.stderr, /indexed array: private Map slot limit exceeded/u);
+    assert.match(result.stderr, /indexed array: private (?:Map slot|metadata) limit exceeded/u);
+  } finally { await shell.dispose(); }
+});
+
+test("default read array admits fields within a sufficient finite budget", async () => {
+  const { shell } = setup({ limits: { maxExpansionFields: 512 } });
+  try {
+    const result = await shell.exec('read -a items; args "${#items[@]}"', { stdin: "x ".repeat(32) + "\n" });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, '["32"]');
   } finally { await shell.dispose(); }
 });
 

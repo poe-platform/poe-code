@@ -14,7 +14,7 @@ test("bounded readers match strict streaming UTF8, declared and actual byte limi
     assert.equal(await factory.readBoundedResponseText(response([...bytes].map(byte => Uint8Array.of(byte))).response, bytes.length, readers), "🦊é");
     assert.equal(readers.size, 0);
     assert.equal(await factory.readBoundedResponseText(new Response(null), 4), "");
-    for (const limit of [0, -1, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER+1]) await assert.rejects(factory.readBoundedResponseText(new Response(null), limit), { message: "HTTP response byte limit must be a positive safe integer" });
+    for (const limit of [0, -1, 0.5, NaN, Number.MAX_SAFE_INTEGER+1]) await assert.rejects(factory.readBoundedResponseText(new Response(null), limit), { message: "HTTP response byte limit must be a positive safe integer" });
     for (const input of [response([Buffer.from("12345")]).response, response([], { "Content-Length": "000000000000000000005" }).response]) await assert.rejects(factory.readBoundedResponseText(input, 4), { message: "HTTP response exceeds 4 bytes" });
     await assert.rejects(factory.readBoundedResponseText(response([Uint8Array.of(0xc3,0x28)]).response, 4));
     assert.equal(await factory.readBoundedResponseText(response([Buffer.from("1234")], { "Content-Length": "5x" }).response, 4), "1234");
@@ -58,5 +58,13 @@ test("public HTTP validation errors retain the reference Error shape", async () 
       () => factory.fetchMcpResponse(async () => ({ redirected:true, type:"basic", body:null }), "https://example.test")
     ];
     for (const run of operations) await assert.rejects(run(), error => error.name === "Error" && !Object.hasOwn(error, "code"));
+  }
+});
+
+test("explicit infinite response budgets accept declared and streamed bytes", async () => {
+  for (const factory of [native, reference]) {
+    assert.equal(await factory.readBoundedResponseText(new Response("large", { headers: { "Content-Length": "99999999999999999999999999999999999999999" } }), Infinity), "large");
+    assert.equal(await factory.readBoundedResponseText(new Response(null), Infinity), "");
+    await assert.rejects(factory.readBoundedResponseText(response([Uint8Array.of(255)]).response, Infinity), TypeError);
   }
 });

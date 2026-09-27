@@ -1,6 +1,6 @@
 //! Allocation-free response length admission; hosts own readers and byte decoding.
 pub struct ResponseBudget {
-    limit: u64,
+    limit: Option<u64>,
     bytes: u64,
     exceeded: bool,
 }
@@ -12,25 +12,36 @@ pub fn validate_redirect(redirected: bool, response_type: &str) -> Result<(), &'
 }
 impl ResponseBudget {
     pub fn new(limit: f64) -> Result<Self, &'static str> {
-        if !limit.is_finite()
-            || limit.fract() != 0.0
-            || !(1.0..=9_007_199_254_740_991.0).contains(&limit)
+        if limit != f64::INFINITY
+            && (!limit.is_finite()
+                || limit.fract() != 0.0
+                || !(1.0..=9_007_199_254_740_991.0).contains(&limit))
         {
             return Err("HTTP response byte limit must be a positive safe integer");
         }
         Ok(Self {
-            limit: limit as u64,
+            limit: if limit == f64::INFINITY {
+                None
+            } else {
+                Some(limit as u64)
+            },
             bytes: 0,
             exceeded: false,
         })
     }
     fn error(&self) -> String {
-        format!("HTTP response exceeds {} bytes", self.limit)
+        format!(
+            "HTTP response exceeds {} bytes",
+            self.limit.expect("finite limit exceeded")
+        )
     }
     pub fn check_content_length(&mut self, length: Option<&[u16]>) -> Result<(), String> {
         if self.exceeded {
             return Err(self.error());
         }
+        let Some(limit) = self.limit else {
+            return Ok(());
+        };
         let Some(length) = length.filter(|length| !length.is_empty()) else {
             return Ok(());
         };
@@ -43,7 +54,7 @@ impl ResponseBudget {
                 .saturating_mul(10)
                 .saturating_add(u64::from(unit - 48));
         }
-        if value > self.limit {
+        if value > limit {
             self.exceeded = true;
             return Err(self.error());
         }
@@ -53,10 +64,13 @@ impl ResponseBudget {
         if self.exceeded {
             return Err(self.error());
         }
+        let Some(limit) = self.limit else {
+            return Ok(());
+        };
         let Some(total) = self
             .bytes
             .checked_add(bytes)
-            .filter(|total| *total <= self.limit)
+            .filter(|total| *total <= limit)
         else {
             self.exceeded = true;
             return Err(self.error());

@@ -29,14 +29,7 @@ export class OwnedText {
 export function tryTextTokenSync(owner: ArrayOwner, value: ShellValue, signal: AbortSignal): OwnedText | undefined {
   signal.throwIfAborted();
   owner.assertOpen();
-  if (typeof value !== "string") {
-    const bytes = shellValueByteLength(value);
-    if (bytes > 512) return undefined;
-    if (!owner.ledger.tryCheckpointSync(signal, 4)) return undefined;
-    const metadata = exactSum(32, shellValueRetainedBytes(value) - bytes);
-    const admission = owner.reserve({ payload: bytes, metadata, work: 4 });
-    return new OwnedText(value, bytes, admission);
-  }
+  if (typeof value !== "string") return undefined;
   if (value.length > 512) return undefined;
   if (!owner.ledger.tryCheckpointSync(signal, value.length)) return undefined;
   owner.chargeWork(value.length);
@@ -74,8 +67,7 @@ export async function textToken(owner: ArrayOwner, value: ShellValue, signal: Ab
     const pending = owner.ledger.checkpoint(signal, step);
     if (pending) await pending;
   }
-  const pEnd = owner.ledger.checkpoint(signal, 0);
-  if (pEnd) await pEnd;
+  await owner.ledger.checkpoint(signal, 0);
   signal.throwIfAborted();
   const admission = owner.reserve({ payload: bytes, metadata: 32, work: 4 });
   return new OwnedText(value, bytes, admission);

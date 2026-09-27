@@ -1305,37 +1305,6 @@ export class ShellInput implements ByteSource, CommandInput {
     const { delimiter = 10 } = options;
     this.signal.throwIfAborted();
     if (!Number.isInteger(delimiter) || delimiter < 0 || delimiter > 255) throw new RangeError("Invalid raw record delimiter");
-    const cursor = this._cursor;
-    if (cursor.canTakeRemainderSync()) {
-      if (!cursor.remainder) {
-        const ready = cursor.tryTakeReadySync();
-        if (ready && !ready.done && ready.value.length > 0) {
-          cursor.remainder = ready.value;
-        }
-      }
-      const rem = cursor.remainder;
-      if (rem && rem.length > 0) {
-        const delimIdx = rem.indexOf(delimiter);
-        if (delimIdx >= 0 && delimIdx + 1 <= this.budget.limits.maxOutputBytes) {
-          const recLen = delimIdx + 1;
-          const slice = rem.subarray(0, recLen);
-          const fastScope = this.budget.values.scope();
-          fastScope.reserve(128, 2);
-          const shellValue = shellValueFromBytes(slice, fastScope);
-          cursor.position += recLen;
-          cursor.remainder = recLen < rem.length ? rem.subarray(recLen) : undefined;
-          let released = false;
-          const fastRelease = (): Promise<void> => {
-            if (!released) {
-              released = true;
-              fastScope.close();
-            }
-            return resolvedVoid;
-          };
-          return Object.freeze({ shellValue, reason: "delimiter" as const, release: fastRelease });
-        }
-      }
-    }
     const scope = this.budget.values.scope();
     let active = true;
     let completion: Promise<void> | undefined;

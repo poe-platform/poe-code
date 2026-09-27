@@ -2399,23 +2399,7 @@ function shellCharacterWidth(bytes: Uint8Array, offset: number, byteCount: boole
   return length;
 }
 
-const UNSET_SAVED_VARIABLE: SavedVariable = Object.freeze({
-  attributes: undefined,
-  value: undefined,
-  exported: false,
-  readOnly: false,
-});
-
 function saveVariable(state: State, name: string): SavedVariable {
-  if (
-    state.variables[name] === undefined &&
-    !state.variableAttributes?.get(name) &&
-    !state.exported.has(name) &&
-    !state.readonlyVariables?.has(name) &&
-    name !== "OPTIND"
-  ) {
-    return UNSET_SAVED_VARIABLE;
-  }
   const monitor = stateMonitor(state);
   const value = monitor?.values.get(name, state.variables[name] ?? "");
   const heldValue = state.variables[name] !== undefined && value !== undefined ? monitor!.values.scope.hold(value) : undefined;
@@ -2446,21 +2430,6 @@ function publishVariable(state: State, name: string, value: ShellValue): void {
 }
 
 function tryRestoreVariableSync(state: State, name: string, saved: SavedVariable): boolean {
-  if (saved === UNSET_SAVED_VARIABLE) {
-    const monitor = stateMonitor(state);
-    if (monitor) {
-      const tickets = monitor.mutation(name);
-      delete monitor.raw.variables[name];
-      monitor.values.invalidate(name);
-      monitor.finish(tickets, name);
-    } else {
-      delete state.variables[name];
-    }
-    state.variableAttributes?.delete(name);
-    state.exported.delete(name);
-    state.readonlyVariables?.delete(name);
-    return true;
-  }
   if (typedSavedVariables.has(saved)) return false;
   try {
     const monitor = stateMonitor(state);
@@ -17494,12 +17463,15 @@ export class Runtime {
     } finally { scratch.close(); }
   }
 
-  private tryFastParameterPatternSync(part: Extract<WordPart, { kind: "variable" }>, value: ShellValue, state: State): string | undefined {
+  private tryFastParameterPatternSync(part: Extract<WordPart, { kind: "variable" }>, value: ShellValue, state: State, io: IO): string | undefined {
     if (
       typeof value !== "string" ||
       state.nocasematch ||
+      this.budget.limits.maxExpansionBytes !== Infinity ||
+      state.depth + (io.parameterDepth ?? 0) >= 60 ||
       ValueScope.prototype.reserve !== defaultValueScopeReserve ||
-      String.prototype.codePointAt !== defaultStringCodePointAt
+      String.prototype.codePointAt !== defaultStringCodePointAt ||
+      globalThis.Float64Array !== defaultFloat64Array
     ) {
       return undefined;
     }
@@ -17549,7 +17521,7 @@ export class Runtime {
   }
 
   async parameterPattern(part: Extract<WordPart, { kind: "variable" }>, value: ShellValue, state: State, io: IO, hereString: boolean): Promise<ShellValue> {
-    const fastRes = this.tryFastParameterPatternSync(part, value, state);
+    const fastRes = this.tryFastParameterPatternSync(part, value, state, io);
     if (fastRes !== undefined) {
       io[valueScope]?.reserve(fastRes.length * 2 + 32, 0);
       return fastRes;
@@ -17813,6 +17785,10 @@ export class Runtime {
           if (
             part.length ||
             part.operator !== undefined ||
+            this.budget.limits.maxExpansionBytes !== Infinity ||
+            rawState.depth + (io.parameterDepth ?? 0) >= 60 ||
+            !part.substring.offset.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring)) ||
+            (part.substring.length && !part.substring.length.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring))) ||
             ValueScope.prototype.reserve !== defaultValueScopeReserve ||
             String.prototype.codePointAt !== defaultStringCodePointAt ||
             globalThis.Float64Array !== defaultFloat64Array ||
@@ -17874,7 +17850,7 @@ export class Runtime {
           continue;
         }
         if (part.length) {
-          if (part.operator !== undefined || ValueScope.prototype.reserve !== defaultValueScopeReserve || String.prototype.codePointAt !== defaultStringCodePointAt) return undefined;
+          if (part.operator !== undefined || this.budget.limits.maxExpansionBytes !== Infinity || ValueScope.prototype.reserve !== defaultValueScopeReserve || String.prototype.codePointAt !== defaultStringCodePointAt) return undefined;
           const raw = rawVars[part.name];
           this.requireParameter(raw, part.name, state, io, part.line ?? overrideDiagnosticLine);
           const val = raw === undefined ? "" : (this._syncArithRawWriteOnly && this._syncArithTouched?.has(part.name) ? raw : (monitor?.values.get(part.name, raw) ?? raw));
@@ -17886,7 +17862,7 @@ export class Runtime {
           continue;
         }
         if (part.operator !== undefined) {
-          if (ValueScope.prototype.reserve !== defaultValueScopeReserve || String.prototype.codePointAt !== defaultStringCodePointAt || globalThis.Float64Array !== defaultFloat64Array) return undefined;
+          if (this.budget.limits.maxExpansionBytes !== Infinity || rawState.depth + (io.parameterDepth ?? 0) >= 60 || ValueScope.prototype.reserve !== defaultValueScopeReserve || String.prototype.codePointAt !== defaultStringCodePointAt || globalThis.Float64Array !== defaultFloat64Array) return undefined;
           if (
             !rawState.nocasematch &&
             (part.operator === "/" || part.operator === "//" || part.operator === "/#" || part.operator === "/%") &&
@@ -18027,7 +18003,7 @@ export class Runtime {
             out += converted;
             continue;
           }
-          if ((part.operator === "-" || part.operator === ":-") && part.alternate && !rawState.nounset) {
+          if ((part.operator === "-" || part.operator === ":-") && part.alternate && !rawState.nounset && part.alternate.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring))) {
             const raw = rawVars[part.name];
             const cur = raw === undefined ? undefined : (this._syncArithRawWriteOnly && this._syncArithTouched?.has(part.name) ? raw : (monitor?.values.get(part.name, raw) ?? raw));
             if (cur !== undefined && typeof cur !== "string") return undefined;

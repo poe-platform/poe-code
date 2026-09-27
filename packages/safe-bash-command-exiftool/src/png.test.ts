@@ -223,3 +223,30 @@ test("reject truncated lengths, CRC damage, compressed metadata and resource exh
   assert.throws(() => editPng(fixture("x"), [{ name: "Title", operation: "set", value: "new" }], { signal, maxOutputBytes: 10 }), /output/);
   assert.throws(() => inspectPng(fixture(), { signal: AbortSignal.abort("cancel") }), error => error === "cancel");
 });
+
+
+test("all= strips opaque metadata while preserving rendering chunks and independently decoded pixels", async () => {
+  const { crc32, inflateSync } = await import("node:zlib");
+  const base = fixture();
+  const rendering = ["PLTE", "tRNS", "gAMA", "cHRM", "sRGB", "bKGD", "pHYs", "sBIT", "sPLT", "hIST"];
+  const kept = rendering.map(type => pngChunk(type, new Uint8Array([1, 2, 3])));
+  const metadata = ["tEXt", "zTXt", "iTXt", "tIME", "eXIf", "iCCP"].map(type => pngChunk(type, new Uint8Array([1, 2, 3])));
+  const input = new Uint8Array(Buffer.concat([base.subarray(0, 33), ...kept, ...metadata, base.subarray(33)]));
+  const output = editPng(input, [{ name: "all", operation: "set", value: "" }], { signal });
+  assert.deepEqual(output, new Uint8Array(Buffer.concat([base.subarray(0, 33), ...kept, base.subarray(33)])));
+  const decode = (bytes: Uint8Array): Buffer => {
+    const data: Uint8Array[] = [];
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    for (let offset = 8; offset < bytes.length;) {
+      const end = offset + view.getUint32(offset) + 12;
+      assert.equal(view.getUint32(end - 4), crc32(bytes.subarray(offset + 4, end - 4)));
+      if (String.fromCharCode(...bytes.subarray(offset + 4, offset + 8)) === "IDAT") data.push(bytes.subarray(offset + 8, end - 4));
+      offset = end;
+    }
+    return inflateSync(Buffer.concat(data));
+  };
+  assert.deepEqual(decode(output), decode(input));
+  const damaged = input.slice(); damaged[damaged.length - 1] = damaged[damaged.length - 1]! ^ 1;
+  assert.throws(() => editPng(damaged, [{ name: "all", operation: "set", value: "" }], { signal }), /CRC/);
+  assert.throws(() => editPng(input, [{ name: "all", operation: "set", value: "" }], { signal, maxOutputBytes: output.length - 1 }), /output/);
+});

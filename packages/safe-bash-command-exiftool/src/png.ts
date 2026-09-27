@@ -19,6 +19,8 @@ export interface TagAssignment {
   readonly value: string;
 }
 interface Chunk { readonly type: string; readonly bytes: Uint8Array; readonly tag?: MetadataTag }
+const metadataChunks = ["tEXt", "zTXt", "iTXt", "tIME", "eXIf", "iCCP"];
+const renderingChunks = ["IHDR", "PLTE", "IDAT", "IEND", "tRNS", "gAMA", "cHRM", "sRGB", "bKGD", "pHYs", "sBIT", "sPLT", "hIST"];
 const signature = new Uint8Array([137,80,78,71,13,10,26,10]);
 const bitDepths: Readonly<Record<number, readonly number[]>> = Object.freeze({
   0: [1, 2, 4, 8, 16], 2: [8, 16], 3: [1, 2, 4, 8], 4: [8, 16], 6: [8, 16],
@@ -81,7 +83,7 @@ export function pngChunk(type: string, data: Uint8Array, maxBytes = Infinity): U
   return bytes;
 }
 
-function parse(input: Uint8Array, resources: Resources): { chunks: Chunk[]; tags: MetadataTag[] } {
+function parse(input: Uint8Array, resources: Resources, stripMetadata = false): { chunks: Chunk[]; tags: MetadataTag[] } {
   resources.admit("input", input.length);
   resources.admit("retained", input.length);
   resources.admit("work", input.length * 10);
@@ -129,6 +131,11 @@ function parse(input: Uint8Array, resources: Resources): { chunks: Chunk[]; tags
     }
     if (type === "IDAT") imageData = true;
     if (type === "IEND" && !imageData) throw new Error("PNG missing IDAT");
+    if (stripMetadata && metadataChunks.includes(type)) {
+      chunks.push({ type, bytes: bytes.subarray(offset, end) });
+      offset = end;
+      continue;
+    }
     let tag: MetadataTag | undefined;
     let rawName: string | undefined, name = "", value = "";
     let raw: Uint8Array | undefined;
@@ -192,11 +199,11 @@ export function inspectPng(input: Uint8Array, options: EngineOptions | Resources
 /** Selected scalar writes only. Unknown metadata and every other chunk stay exact. */
 export function editPng(input: Uint8Array, assignments: readonly TagAssignment[], options: EngineOptions | Resources): Uint8Array {
   const resources = options instanceof Resources ? options : new Resources(options);
-  const { chunks } = parse(input, resources);
+  const all = assignments.length === 1 && assignments[0]!.name.toLowerCase() === "all" && assignments[0]!.operation === "set" && assignments[0]!.value === "";
+  const { chunks } = parse(input, resources, all);
   resources.admit("retained", assignments.length * 128);
   resources.admit("work", assignments.length * (chunks.length + 1));
-  const all = assignments.length === 1 && assignments[0]!.name.toLowerCase() === "all" && assignments[0]!.operation === "set" && assignments[0]!.value === "";
-  if (all && chunks.some(chunk => !["IHDR", "PLTE", "IDAT", "IEND", "tEXt", "iTXt", "tIME"].includes(chunk.type))) throw new Error("PNG all deletion with unqualified chunks is not yet supported");
+  if (all && chunks.some(chunk => !renderingChunks.includes(chunk.type) && !metadataChunks.includes(chunk.type))) throw new Error("PNG all deletion with unqualified chunks is not yet supported");
   const operations = new Map<string, TagAssignment[]>();
   for (const assignment of assignments) {
     resources.admit("decoded", (assignment.name.length + assignment.value.length) * 2);
@@ -222,7 +229,7 @@ export function editPng(input: Uint8Array, assignments: readonly TagAssignment[]
   const append = (bytes: Uint8Array): void => { resources.admit("output", bytes.length); outputSize += bytes.length; output.push(bytes); };
   let inserted = false;
   for (const chunk of chunks) {
-    if (all && chunk.tag) continue;
+    if (all && metadataChunks.includes(chunk.type)) continue;
     const ops = chunk.tag && exiftoolRegistry.writeChunks[chunk.tag.name]?.includes(chunk.type) ? operations.get(chunk.tag.name) : undefined;
     if (ops?.some(op => op.operation === "set" || op.value === chunk.tag!.value)) continue;
     if (chunk.type === "IDAT" && !inserted) {

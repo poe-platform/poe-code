@@ -15,7 +15,7 @@ exiftool -@ /arguments.txt
 ```
 
 These commands run inside the configured virtual Shell, not a host executable.
-`ImageWidth`, `ImageHeight`, `BitDepth`, `ColorType`, `FileType`, `MIMEType` and `ImageSize` describe the PNG header. JPEG supports dimensions, file type, MIME type, bit depth and image size, plus EXIF `Artist` and `Copyright` reads and writes. PNG supports `Artist` text writes. `-all=` removes admitted PNG metadata or JPEG APP1–APP15 and comment segments while preserving image data. JPEG scalar writes preserve other EXIF entries and segment bytes. Metadata
+`ImageWidth`, `ImageHeight`, `BitDepth`, `ColorType`, `FileType`, `MIMEType` and `ImageSize` describe the PNG header. JPEG supports dimensions, file type, MIME type, bit depth and image size, plus EXIF `Artist` and `Copyright` reads and writes. PNG supports `Artist` text writes. `-all=` strips PNG text (including compressed/qualified text), timestamps, EXIF and ICC profile chunks while retaining rendering chunks, or JPEG APP1–APP15 and comment segments while preserving image data. JPEG scalar writes preserve other EXIF entries and segment bytes. Metadata
 deletion preserves the header and image data.
 The runtime is first-party TypeScript ESM with byte-stream input/output and no
 external runtime dependencies, Perl, native/WASM fallback, network access,
@@ -63,18 +63,18 @@ try {
 | PNG timestamp | `tIME`/ModifyDate inspection, assignment and deletion; fixed-width EXIF/ISO syntax, optional fractions and explicit offsets; native storage discards fractions/offsets without timezone conversion |
 | Duplicate tags | Last repeated text value wins; `-a` emits source order; extracted tags retain raw keyword, chunk/index/offset, instance, bytes and interpreted text |
 | Input | Literal VFS paths, `--` option terminator and one `-` stdin byte stream for extraction; stdin editing and repeated stdin operands are explicitly refused |
-| Presentation | `-s`, `-s2`/`-S`, `-s3`, `-G1`, `-X`, `-T`, literal `-p '$Title'`, `-b`, `-j`, `-csv`, `-f`; text sanitization is separate from stored values |
+| Presentation | `-s` (cumulative), `-ss`/`-s2`/`-S`, `-sss`/`-s3`, `-G1`, `-X`, `-T`, literal `-p '$Title'`, `-b`, `-j`, `-csv`, `-f`; text sanitization is separate from stored values |
 | JSON | Conservative lexical numbers and booleans; `-api StructFormat=JSONQ` quotes every scalar; `1e999` stays lexical text in the SDK |
 | Duplicate JSON | `-j -G4` distinguishes `Copy1:Title` and the primary `:Title`; lowercase `-g4` grouped output is independently unsupported |
 | CSV extraction | Buffers all admitted files for union headers, preserves stored controls, quotes fields and supports `-f`; import, binary and ValueConv-qualified headers remain unsupported |
-| Editing | `=`, empty deletion, matching text `-=`; scalar `+=` and temporal shifts are refused; standalone `-all=` removes text and timestamps in admitted PNGs |
+| Editing | `=`, empty deletion, matching text `-=`; scalar `+=` and temporal shifts are refused; standalone `-all=` removes text, timestamps, EXIF and ICC chunks; unknown chunk types are refused |
 | Copying | `-tagsFromFile SOURCE` copies selected tags, or all admitted tags when no selectors are given, from one regular VFS PNG; absent tags leave target values intact |
 | Publication | Default backup, replacement via `-overwrite_original`, identity-preserving `-overwrite_original_in_place`, exclusive `-o` destination |
 | Limits | Configurable cumulative input, decoded, retained, output and algorithm work admission; explicit cancellation and invocation cleanup |
 | Argument files | VFS `-@` expansion in argument order; initial BOM, physical lines, pinned whitespace/comment/CSTR rules and bounded nested includes |
 
 Accepted flags are exactly `--`, `-config ''`, `-j`/`-json`, `-csv`, `-G1`, `-G4`, `-X`, `-T`, `-p TEMPLATE`,
-`-charset filename=UTF8`, `-api StructFormat=JSONQ`, `-a`, `-b`, `-f`, `-s`/`-s1`, `-S`/`-s2`, `-s3`, `-n`,
+`-charset filename=UTF8`, `-api StructFormat=JSONQ`, `-a`, `-b`, `-f`, `-s`/`-s1`, `-ss`/`-S`/`-s2`, `-sss`/`-s3`, `-n`,
 `-overwrite_original`, `-overwrite_original_in_place`, `-o PATH`, `-tagsFromFile SOURCE` and `-@ PATH`.
 Selectors are `-Title`, `-Author`, `-Description`, `-Comment`, `-Copyright`,
 `-ModifyDate` and the missing-value probe `-MissingTag`; a trailing `#` requests

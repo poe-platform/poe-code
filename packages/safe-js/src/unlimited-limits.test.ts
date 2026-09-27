@@ -3,7 +3,7 @@ import { assertSandboxGraphDepth, assertSnapshotGraphDepth } from "./graph-depth
 import { parseModule } from "./parse/parser.js";
 import { Budget } from "./interp/budget.js";
 import { validateRuntimeSnapshotDescriptors, validateSnapshotData } from "./snapshot/validation.js";
-import { createRealm, defineExtension } from "./core.js";
+import { createRealm, defineExtension, run } from "./core.js";
 
 it("accepts graph and descriptor depths beyond the former default", () => {
   let value: object = {};
@@ -62,3 +62,33 @@ it.each([{}, { maxKeys: undefined, maxKeyCodeUnits: undefined }, { maxKeys: Infi
     finally { await realm.close(); }
   }
 );
+
+it.each([false, true])("counts ternaries nested in tests (binary wrapper: %s)", wrapped => {
+  const budget = new Budget({ maxCallDepth: 4 });
+  const lease = budget.acquireCompileOwner();
+  let expression = "true";
+  try {
+    for (let depth = 1; depth <= 10; depth++) {
+      expression = `(${wrapped ? `true && ${expression}` : expression} ? true : false)`;
+      const parse = () => parseModule(`return ${expression};`, "left-conditional.js", lease.owner);
+      if (depth <= 4) {
+        expect(parse).not.toThrow();
+        const nested = () => parseModule(`return true ? ${expression} : false;`, "mixed.js", lease.owner);
+        if (depth < 4) expect(nested).not.toThrow();
+        else expect(nested).toThrow("Conditional expression nesting limit exceeded");
+      } else expect(parse).toThrow("Conditional expression nesting limit exceeded");
+    }
+    expect(() => parseModule("return (((true && true))) ? true : false;", "plain.js", lease.owner)).not.toThrow();
+    expect(() => parseModule(`return true ? ${expression} : false;`, "mixed.js", lease.owner))
+      .toThrow("Conditional expression nesting limit exceeded");
+  } finally { lease.release(); }
+});
+
+it("rejects left-nested ternaries through the public run API", async () => {
+  let expression = "true";
+  for (let depth = 0; depth < 10; depth++) expression = `(${expression} ? true : false)`;
+  await expect(run(`return ${expression};`, { budget: new Budget({ maxCallDepth: 4 }) }))
+    .rejects.toThrow("Conditional expression nesting limit exceeded");
+  expect(await run("return (((true && true))) ? true : false;", { budget: new Budget({ maxCallDepth: 1 }) }))
+    .toMatchObject({ ok: true, returnValue: true });
+});

@@ -905,6 +905,7 @@ class Parser {
   private allowIn = true;
   private breakableDepth = 0;
   private conditionalExpressionDepth = 0;
+  private readonly conditionalDepths = new WeakMap<object, number>();
   private ifStatementDepth = 0;
   private loopDepth = 0;
   private activeLabels = new Map<string, boolean>();
@@ -1249,6 +1250,33 @@ class Parser {
     });
   }
 
+  // Cache completed subtrees so successive left-nested tests are visited only once.
+  private conditionalDepth(node: object): number {
+    const pending: Array<{ node: object; children?: object[] }> = [{ node }];
+    while (pending.length > 0) {
+      const frame = pending[pending.length - 1]!;
+      if (this.conditionalDepths.has(frame.node)) {
+        pending.pop();
+      } else if (frame.children === undefined) {
+        frame.children = [...compilerElements(frame.node)].filter(
+          (child): child is object => child !== null && typeof child === "object"
+        );
+        for (const child of frame.children) {
+          if (!this.conditionalDepths.has(child)) pending.push({ node: child });
+        }
+      } else {
+        let depth = 0;
+        for (const child of frame.children) {
+          depth = Math.max(depth, this.conditionalDepths.get(child)!);
+        }
+        if (compilerField(frame.node, "type") === "ConditionalExpression") depth += 1;
+        this.conditionalDepths.set(frame.node, depth);
+        pending.pop();
+      }
+    }
+    return this.conditionalDepths.get(node)!;
+  }
+
   private parseConditionalExpression(): ParsedExpression {
     const token = this.currentToken();
     const test = this.parseCoalesceExpression();
@@ -1256,7 +1284,8 @@ class Parser {
       return test;
     }
 
-    if (this.conditionalExpressionDepth >= (this.compilation?.owner?.budget.limits.maxCallDepth ?? Infinity)) {
+    const limit = this.compilation?.owner?.budget.limits.maxCallDepth ?? Infinity;
+    if (limit !== Infinity && this.conditionalExpressionDepth + this.conditionalDepth(test.node) >= limit) {
       throw new Error(
         `Conditional expression nesting limit exceeded at line ${token.start.line}, column ${token.start.column}.`
       );

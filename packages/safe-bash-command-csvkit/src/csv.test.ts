@@ -1,6 +1,36 @@
 import { test } from "vitest";
 import assert from "node:assert/strict";
-import { readCsv, writeCsvRow } from "./csv.js";
+import { readCsv, readCsvStream, writeCsvRow, type CsvRecord } from "./csv.js";
+
+test("streamed plain CSV charges every character before admitting a row", async () => {
+  for (const quoting of [0, 1, 3] as const) {
+    let steps = 0;
+    const admissions: number[] = [];
+    const rows: CsvRecord[] = [];
+    async function* lines() { yield "a,b\n"; yield "c,d\n"; }
+    for await (const row of readCsvStream(lines(), { quoting }, () => { steps++; }, () => { admissions.push(steps); })) rows.push(row);
+    assert.equal(steps, 8);
+    assert.deepEqual(admissions, [4, 8]);
+    assert.deepEqual(rows, [{ cells: ["a", "b"], line: 1 }, { cells: ["c", "d"], line: 2 }]);
+  }
+});
+
+test("streamed plain CSV preserves a step failure before row admission", async () => {
+  for (const reason of [false, new Error("step budget exhausted")]) {
+    let steps = 0;
+    let admissions = 0;
+    let finalized = false;
+    const rows: CsvRecord[] = [];
+    async function* lines() { try { yield "a,b\n"; } finally { finalized = true; } }
+    await assert.rejects(async () => {
+      for await (const row of readCsvStream(lines(), {}, () => { if (++steps === 4) throw reason; }, () => { admissions++; })) rows.push(row);
+    }, error => error === reason);
+    assert.equal(steps, 4);
+    assert.equal(admissions, 0);
+    assert.equal(finalized, true);
+    assert.deepEqual(rows, []);
+  }
+});
 
 // CPython 3.14.2 csv.reader / Agate 1.14.2 Writer, frozen C profile.
 test("CSV reader retains physical line numbers, blank rows and forgiving quotes", () => {

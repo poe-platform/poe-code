@@ -272,7 +272,7 @@ export async function* readCsvStream(lines: AsyncIterable<string>, dialect: CsvD
           if (c === delimCode) fieldCount++;
         }
         if (plainAscii && fieldCount <= colBudget) {
-          step();
+          for (let i = 0; i < len; i++) step();
           admitRow();
           parser.advancePlainLine?.();
           yield { cells: text.slice(0, len - 1).split(delimiter), line: physicalLine };

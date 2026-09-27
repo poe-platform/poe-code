@@ -206,7 +206,7 @@ export class Formatter {
     }
   }
   private async restSlow(column: Column, firstPending: Promise<number>): Promise<void> {
-    let firstByte = await firstPending;
+    const firstByte = await firstPending;
     if (firstByte === 10) return;
     if (firstByte === 12) { await this.feed(column); if (this.options.keepFF) this.printFeed = true; return; }
     if (firstByte < 0) { this.close(column); return; }

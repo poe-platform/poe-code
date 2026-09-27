@@ -22,7 +22,7 @@ let lastMemoSource = "";
 let lastMemoSep = "";
 let lastMemoOutput = "";
 let lastMemoSteps = 0;
-let awkBimodalWarm = 0;
+const awkBimodalWarm = 0;
 
 function finishAwkFastAsync(res: Promise<number>, rt: AwkRuntime): Promise<number> {
   return res.finally(() => {

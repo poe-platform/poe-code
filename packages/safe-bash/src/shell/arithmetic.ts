@@ -1011,7 +1011,7 @@ export function runIntArithForLoop(
 const parsedLoopWordsCache = new WeakMap<readonly string[], Int32Array | null>();
 
 function getOrParsePositiveLoopWords(words: readonly string[]): Int32Array | null {
-  let cached = parsedLoopWordsCache.get(words);
+  const cached = parsedLoopWordsCache.get(words);
   if (cached !== undefined) return cached;
   const len = words.length;
   if (len === 0 || len > 65536) {

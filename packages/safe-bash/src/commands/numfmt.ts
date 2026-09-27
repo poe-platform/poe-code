@@ -958,7 +958,7 @@ class Converter {
             printedValue = divide(printedValue, baseBinary);
             powerIndex++;
           }
-          let outputPrecision = settings.precision === undefined ? (printedValue.coefficient !== 0n && compare(absolute(printedValue), BINARY_10) < 0 && powerIndex > 0 ? 1n : 0n) : BigInt.asIntN(32, settings.precision);
+          const outputPrecision = settings.precision === undefined ? (printedValue.coefficient !== 0n && compare(absolute(printedValue), BINARY_10) < 0 && powerIndex > 0 ? 1n : 0n) : BigInt.asIntN(32, settings.precision);
           if (outputPrecision < 0n || outputPrecision > 126n) return false;
           let rendered = fixed(printedValue, Number(outputPrecision));
           if (powerIndex) {

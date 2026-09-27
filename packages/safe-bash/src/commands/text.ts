@@ -1588,7 +1588,7 @@ async function executeSortGeneral(
           const slices = new Array<Uint8Array>(count);
           return { numeric: false as const, blanks, revScale, key: k, slices };
         });
-        let precomputeOk = true;
+        const precomputeOk = true;
         for (let i = 0; i < count && precomputeOk; i++) {
           const rec = records[i]!;
           for (let ki = 0; ki < keySpecs.length; ki++) {

@@ -1180,6 +1180,50 @@
         }
       ],
       "remaining": "Primary format or native-authored token evidence is required to select the error-constant payload width. Source disagreement does not establish a validated product defect; no blanket width change or interoperability claim."
+    },
+    "besselPhaseBoundary": {
+      "status": "implemented source-qualified phase dispatch through 1 / binary64 epsilon",
+      "source": {
+        "url": "https://raw.githubusercontent.com/GNOME/gnumeric/GNUMERIC_1_12_61/src/sf-bessel.c",
+        "sha256": "7a6d8aa65ac2dfd095ffa8d0bc3e77fc7801cf9adac82c66d276e67072938981",
+        "lines": "2455-2732",
+        "finding": "The phase-domain predicate has no 1e12 cutoff. gnm_quad_reduce_pi warns about reduced accuracy only above 1 / GNM_EPSILON. The candidate switched to other algorithms at 1e12, changing values and making large-order cases exceed a finite work budget. The existing paired phase path now extends through 2^52."
+      },
+      "sourceProbe": {
+        "scope": "Unmodified gnm_bessel_M, gnm_quad_reduce_pi, gnm_bessel_phi and phase/trigonometry wrapper functions, extracted with type/function aliases to installed goffice and Darwin math. This is a source-component probe, not full Gnumeric, LibreOffice or Linux application qualification.",
+        "compiler": "Apple clang 21.0.0 (clang-2100.1.1.101), arm64-apple-darwin25.4.0, -O2 -ffp-contract=fast",
+        "goffice": "0.10.62",
+        "sourceSha256": "5f43045c1ed4811b13d43afc85f6053b919b051b3265da7aa677b2a46789217d",
+        "binarySha256": "49a4916d0c6036489310fed886abfbac088b016b8d94be4973b0455a4628b5d9",
+        "libraries": {
+          "/opt/homebrew/Cellar/goffice/0.10.62/lib/libgoffice-0.10.10.dylib": "c0562060e1efc3bff34a93cfd6b08a1e9ba2bf67f7c7cf3cd446dae6fa948bed",
+          "/opt/homebrew/Cellar/glib/2.90.0/lib/libglib-2.0.0.dylib": "e23a6acee2d81c533320953756b9d5151201b762d6fd12a332b1bd8acc110d14"
+        },
+        "observations": 64,
+        "mismatches": 0,
+        "diagnostics": []
+      },
+      "validation": "Fifteen of twenty memory regressions failed before correction. Extending dispatch initially exposed two half-order work refusals: the all-zero phase recurrence still ran 399 iterations. Stop when its first t term is zero, which makes all following t and s terms identically zero; no budget relaxation. All 175 tests in nine Bessel/numeric files, maintained package lint/source/test/consumer types and selected build pass.",
+      "publicQualification": {
+        "command": "--recalc /in.xlsx /out.xlsx",
+        "cases": 64,
+        "result": "All cached numeric values and fresh recalculation after reopening match the source-component probe. Includes negative, fractional and large orders.",
+        "inputBytes": 4667,
+        "outputBytes": 7101,
+        "diagnostics": [
+          "XLSX writer does not export sheet 'S' record 'sheetPr'\n",
+          "XLSX writer does not export sheet 'S' record 'sheetFormatPr'\n",
+          "XLSX writer does not export sheet 'S' record 'sheetProtection'\n",
+          "XLSX writer does not export sheet 'S' record 'printOptions'\n",
+          "XLSX writer does not export sheet 'S' record 'pageMargins'\n",
+          "XLSX writer does not export sheet 'S' record 'pageSetup'\n",
+          "XLSX writer does not export sheet 'S' record 'headerFooter'\n"
+        ],
+        "scope": "These seven XLSX metadata-loss warnings remain open; numeric equality does not establish format fidelity. All workbook fixtures remain in memory."
+      },
+      "priorHighQ": "The compiled engine before this change matched all 120 immutable high-q cases exactly. Historical 47-mismatch reports remain historical evidence; they are not current failures.",
+      "accuracy": "A separate mpmath 1.4.1 comparison at 100 decimal digits covered the sixteen initial large-x cases. Source-component results differ from correctly rounded high-precision results in ten cases, by relative errors no larger than 3.572e-16. This change qualifies source parity, not universal correct rounding.",
+      "remaining": "Arguments above 2^52, broader phase/order domains, other runtime profiles, full application qualification and containing publication remain open. No family is closed."
     }
   },
   "cases": [
@@ -1251,7 +1295,7 @@
     {
       "id": "numeric-bessel-high-q",
       "status": "open",
-      "currentFinding": "Retained private primitives and public Bessel/numeric cohorts match the qualified Linux profile. Wider arguments, high-q behavior and other profiles remain open."
+      "currentFinding": "Current compiled engine matches all 120 retained high-q cases exactly; historical mismatch receipts are not current failures. Paired phase dispatch now extends from 1e12 through 2^52 using the source-defined accuracy-warning boundary, and an all-zero series terminates without exhausting work. All 175 focused tests and 64 compiled public values/recalculations match the scoped Darwin C source probe. Seven XLSX metadata warnings, larger arguments, wider domains, other runtime/native profiles and publication remain open."
     },
     {
       "id": "format-record-roundtrip",

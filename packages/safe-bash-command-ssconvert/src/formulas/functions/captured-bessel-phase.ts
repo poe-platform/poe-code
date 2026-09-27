@@ -60,6 +60,8 @@ export function capturedBesselPhase(x: number, order: number, secondKind: boolea
     s[n] = coefficient;
     const contribution = divide(coefficient, [1 - 2 * n, 0]), magnitude = Math.abs(t[n]![0] + t[n]![1]);
     if (magnitude > last) break;
+    // If the first t term is zero, every later t and s term is zero too.
+    if (n === 1 && magnitude === 0) break;
     last = magnitude; phase = add(phase, contribution);
     if (Math.abs(contribution[0] + contribution[1]) < Number.EPSILON ** 2 * Math.abs(phase[0] + phase[1])) break;
   }

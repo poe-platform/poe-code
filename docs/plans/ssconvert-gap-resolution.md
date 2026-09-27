@@ -501,6 +501,17 @@ LibreOffice source investigation now takes priority over expanding application m
 
 Packed public consumers were qualified at `51af29f33` outside the repository with no private ssconvert package resolution. The root SDK and scoped Shell pass all 80 BIFF7/8 format/replay controls; strict NodeNext declarations, logical PWD, typed-array XLSX-to-CSV, edited CSV-to-XLSX, cancellation and input-budget controls also pass with native-command PATH empty. Canonical scoped packaging initially failed on four orphaned Tesseract build files whose sources/manifests no longer exist; removing those ignored outputs restored packaging without a source change. Tarball SHA-256 bindings: `poe-code` `1a5bfcfad4a5c9b8e5308b1c81524b483d5aea3f25e6d79c2c9dd178f8405bb9`; `@poe-platform/safe-fs` `7b43bc977e653c323ff615a798f4429e4f00c3536d8f6e22b65c773b75e8cd55`; `@poe-platform/safe-bash` `e1f77240b40f048e56c9409f61952b821f49d2b04ebdf768fab30b747ab998f0`. Installed consumers, staged packages and tarballs are disposable; registry-installed and wider browser/worker/service qualification remains open.
 
+Bessel phase dispatch now extends through `2^52`, the argument boundary beyond
+which Gnumeric warns about reduced reduction accuracy. Fifteen initial failures
+reproduced the prior `1e12` cutoff. The zero first-term case now terminates its
+identically zero recurrence, preserving finite work limits. All 175 focused
+checks, lint/types and selected build pass; 64 compiled public conversions and
+fresh recalculations match unchanged C source components linked to goffice
+0.10.62 on Darwin. Seven XLSX metadata-loss warnings remain open. This is
+component/source qualification, not full native or correctly rounded coverage;
+see `reference.besselPhaseBoundary`. The 120 retained high-q cases already match
+current code; do not present their historical 47 failures as current.
+
 Current priorities:
 
 1. Continue encrypted-format qualification, including broader ODF application profiles and remaining BIFF/Paradox profiles; keep the encryption families open until their full requirements pass.

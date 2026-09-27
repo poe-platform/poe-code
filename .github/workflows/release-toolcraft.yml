@@ -259,6 +259,6 @@ jobs:
           npm audit signatures --omit=optional
         if: steps.release-admission.outputs.publish == 'true'
     concurrency:
-      # Serialize publication without delaying validation; keep the active publisher and newest pending run.
+      queue: max
       group: release-toolcraft
       cancel-in-progress: false

@@ -1,29 +1,98 @@
 name: Release scoped safe packages
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/safe-bash/**"
+      - "packages/safe-fs/**"
+      - "packages/safe-js/**"
+      - "packages/safe-bash-contracts/**"
+      - "packages/safe-bash-csv-engine/**"
+      - "packages/safe-bash-command-*/**"
+      - "packages/safe-playwright/**"
+      - "packages/safe-playwright-cloudflare/**"
+      - "scripts/package-safe.mjs"
+      - "scripts/verify-safe-publication.mjs"
+      - "scripts/verify-safe-cloudflare.mjs"
+      - ".github/workflows/release-safe.yml"
 concurrency:
   queue: max
   group: release-safe
   cancel-in-progress: false
 permissions:
-  contents: read
+  contents: write
   id-token: write
+env:
+  POE_CHECK_CACHE_DIR: .turbo/ci-cache/checks-v1
 jobs:
   publish:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.next }}
+      published: ${{ steps.queue-check.outputs.publish }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
+          fetch-depth: 0
           persist-credentials: false
+      - name: Check release queue position and publication state
+        id: queue-check
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "Commit $GITHUB_SHA is not an ancestor of origin/main." >&2
+            exit 1
+          fi
+          publication_ref=refs/heads/safe-publication
+          remote_head=$(git ls-remote --heads origin "$publication_ref" | cut -f1)
+          if [ -n "$remote_head" ]; then
+            git fetch origin "$publication_ref"
+            if [ "$remote_head" = "$GITHUB_SHA" ] || git merge-base --is-ancestor "$GITHUB_SHA" "$remote_head"; then
+              echo "::notice::Safe-bash publication already completed at or beyond $GITHUB_SHA ($remote_head); skipping."
+              echo "Safe-bash publication already completed at or beyond $GITHUB_SHA ($remote_head); skipping." >> "$GITHUB_STEP_SUMMARY"
+              echo "publish=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+          if [ "${GITHUB_EVENT_NAME}" = "push" ] && [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
+            changed_later=$(git diff --name-only "$GITHUB_SHA" origin/main -- \
+              packages/safe-bash packages/safe-fs packages/safe-js \
+              packages/safe-bash-contracts packages/safe-bash-csv-engine \
+              packages/safe-playwright packages/safe-playwright-cloudflare \
+              scripts/package-safe.mjs scripts/verify-safe-publication.mjs scripts/verify-safe-cloudflare.mjs \
+              .github/workflows/release-safe.yml || true)
+            changed_cmds=$(git diff --name-only "$GITHUB_SHA" origin/main | grep -E "^packages/safe-bash-command-" || true)
+            if [ -n "$changed_later" ] || [ -n "$changed_cmds" ]; then
+              echo "::notice::Queued safe-bash push $GITHUB_SHA superseded by newer safe-bash commit on origin/main ($(git rev-parse --short origin/main)); coalescing into newer queued release."
+              echo "Queued safe-bash push $GITHUB_SHA superseded by newer safe-bash commit on origin/main; coalescing into newer queued release." >> "$GITHUB_STEP_SUMMARY"
+              echo "publish=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+          echo "publish=true" >> "$GITHUB_OUTPUT"
+      - name: Restore check cache
+        if: steps.queue-check.outputs.publish == 'true'
+        uses: actions/cache@v4
+        with:
+          path: .turbo/ci-cache/checks-v1
+          key: safe-release-checks-v1-${{ runner.os }}-${{ hashFiles('package-lock.json', 'turbo.json') }}-${{ github.sha }}
+          restore-keys: |
+            safe-release-checks-v1-${{ runner.os }}-${{ hashFiles('package-lock.json', 'turbo.json') }}-
+            safe-release-checks-v1-${{ runner.os }}-
       - uses: actions/setup-node@v4
+        if: steps.queue-check.outputs.publish == 'true'
         with:
           node-version: 22
           cache: npm
       - uses: oven-sh/setup-bun@v2
+        if: steps.queue-check.outputs.publish == 'true'
       - name: Install dependencies and trusted-publishing npm
+        if: steps.queue-check.outputs.publish == 'true'
         run: |
           npm ci
           npm install --global npm@^11.5.1
@@ -31,6 +100,7 @@ jobs:
           npm --version
           bun --revision
       - name: Compute the next shared version
+        if: steps.queue-check.outputs.publish == 'true'
         id: version
         shell: bash
         run: |
@@ -67,15 +137,21 @@ jobs:
           appendFileSync(process.env.GITHUB_OUTPUT, `next=${next}\n`);
           NODE
       - run: npm run build
+        if: steps.queue-check.outputs.publish == 'true'
       - name: Verify Cloudflare Worker transport and resource lifecycle
+        if: steps.queue-check.outputs.publish == 'true'
         run: npm run test:workers --workspace=@poe-code/safe-playwright-cloudflare
       - run: npx vitest run scripts/package-safe.test.ts scripts/root-optional-package.test.ts scripts/safe-bash-optional-build.test.ts scripts/safe-bash-optional-lifecycle.test.ts scripts/verify-safe-publication.test.ts scripts/safe-command-publication.test.ts scripts/bundle-safe-bash-private.test.ts
+        if: steps.queue-check.outputs.publish == 'true'
       - run: npm run lint:packages
+        if: steps.queue-check.outputs.publish == 'true'
       - name: Prepare scoped artifacts
+        if: steps.queue-check.outputs.publish == 'true'
         env:
           VERSION: ${{ steps.version.outputs.next }}
         run: node scripts/package-safe.mjs --out-dir "$RUNNER_TEMP/safe-npm" --version "$VERSION"
       - name: Verify installed tarballs
+        if: steps.queue-check.outputs.publish == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -143,13 +219,24 @@ jobs:
           cd "$GITHUB_WORKSPACE"
           node scripts/verify-safe-cloudflare.mjs "$CLOUDFLARE_CONSUMER"
       - name: Publish SafeFS with provenance
+        if: steps.queue-check.outputs.publish == 'true'
         run: npm publish "$RUNNER_TEMP/safe-npm/safe-fs" --provenance --access public
       - name: Publish SafeJS with provenance
+        if: steps.queue-check.outputs.publish == 'true'
         run: npm publish "$RUNNER_TEMP/safe-npm/safe-js" --provenance --access public
       - name: Publish Safe Bash with provenance
+        if: steps.queue-check.outputs.publish == 'true'
         run: npm publish "$RUNNER_TEMP/safe-npm/safe-bash" --provenance --access public
+      - name: Record safe-publication ref
+        if: steps.queue-check.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh auth setup-git
+          git push origin "$GITHUB_SHA:refs/heads/safe-publication" --force-with-lease || true
   verify-publication:
     needs: publish
+    if: needs.publish.outputs.published == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read

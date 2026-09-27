@@ -479,11 +479,24 @@ pub fn execute_git_cli_with_http(
                                 .collect()
                         })
                         .unwrap_or_default();
+                    let before = match revision {
+                        Some(revision) => revision,
+                        None if !cached => ":index",
+                        None if current_branch(fs, &gitdir, false, false)
+                            .ok()
+                            .flatten()
+                            .is_some()
+                            && resolve_ref(fs, &gitdir, "HEAD", None).is_err() =>
+                        {
+                            ":empty"
+                        }
+                        None => "HEAD",
+                    };
                     crate::cli_files::diff(
                         fs,
                         &repo_root,
                         &gitdir,
-                        revision.unwrap_or(if cached { "HEAD" } else { ":index" }),
+                        before,
                         if cached { ":index" } else { ":worktree" },
                         &paths,
                     )

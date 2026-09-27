@@ -385,3 +385,37 @@ fn clean_combined_flags_remove_untracked_directories_only() {
     assert!(fs.exists("/repo/ignored/file"));
     assert!(fs.exists("/repo/a"));
 }
+
+#[test]
+fn cached_diff_before_first_commit_shows_staged_addition() {
+    let fs = MemoryFs::new();
+    assert_eq!(execute_git_cli(&fs, "/repo", &["init"]).exit_code, 0);
+    fs.write_str("/repo/a", "first\n");
+    assert_eq!(execute_git_cli(&fs, "/repo", &["add", "a"]).exit_code, 0);
+    for revision in ["HEAD", "missing"] {
+        assert_ne!(
+            execute_git_cli(&fs, "/repo", &["diff", "--cached", revision]).exit_code,
+            0
+        );
+    }
+    for flag in ["--cached", "--staged"] {
+        let diff = execute_git_cli(&fs, "/repo", &["diff", flag]);
+        assert_eq!(diff.exit_code, 0, "{}", diff.stderr);
+        assert!(diff.stdout.contains("new file mode 100644"));
+        assert!(diff.stdout.contains("+first\n"));
+        assert_eq!(
+            execute_git_cli(&fs, "/repo", &["diff", flag, "HEAD"]).exit_code,
+            128
+        );
+        assert_eq!(
+            execute_git_cli(&fs, "/repo", &["diff", flag, "missing"]).exit_code,
+            128
+        );
+    }
+    fs.write_str("/repo/.git/HEAD", "bad ref\n");
+    assert_eq!(
+        execute_git_cli(&fs, "/repo", &["diff", "--cached"]).exit_code,
+        128
+    );
+}
+

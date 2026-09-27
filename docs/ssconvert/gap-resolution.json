@@ -1995,6 +1995,11 @@
         "independent": "Python ZIP/XML reads all five compiled outputs: native layout retained with landscape orientation, 11pt margin and 12pt/13pt header/footer heights. Actual rebuilt command screenshot confirms the page-layout warnings are gone."
       },
       "remaining": "This repairs the native page-layout recognition and readback issue only. Complete rendering, native application visual comparison and the 19-family goal remain open."
+    },
+    "odfIntegrationWarnings": {
+      "trigger": "Terminal release 36307124170, Bash shard 1: four tests in packages/safe-bash/tests/commands/ssconvert-odf.test.ts failed after native ODF default-enabled label lookup was imported.",
+      "validation": "All four failures reproduced on current source. Their expected empty diagnostics omitted the required Gnumeric XML/CSV metadata-loss warning. Assertions now compare exact Shell/SDK warning codes and text, including message-only SDK diagnostics. Original input bytes, output CSV, checkpoint/replay, passive-resource authority and failed-publication checks remain. All six maintained file-selected integration tests pass; guarded root ESLint passes with zero errors/warnings.",
+      "scope": "Test correction only; no warning suppression or product behavior change. XML/CSV label identity preservation and complete native/public qualification remain open. Release publication is separately tracked in hey-boss #3360."
     }
   },
   "cases": [

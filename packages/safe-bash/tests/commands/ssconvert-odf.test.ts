@@ -10,6 +10,8 @@ import { FsError, isErrnoCode } from "../../src/contracts/index.js";
 
 const config = { codecs: [], environment: { env: {}, locale: "C", timezone: "UTC" },
   limits: { inputBytes: 100000, outputBytes: 100000, cells: 1000, sheets: 8, operations: 1000 } };
+const csvLabelLoss = "Label ranges and automatic label lookup are omitted by Gnumeric_stf:stf_csv\n";
+const xmlLabelLoss = "Label ranges and automatic label lookup are omitted by Gnumeric_XmlIO:sax:0\n";
 
 test("ODF savers use the command/SDK engine with distinct profiles and replay bytes", async () => {
   const volume = Volume.fromJSON({ "/original.gnumeric": '<g:Workbook xmlns:g="http://www.gnumeric.org/v10.dtd"><g:Sheets><g:Sheet><g:Name>S</g:Name><g:Cells><g:Cell Row="0" Col="0" ValueType="50">#DIV/0!</g:Cell></g:Cells></g:Sheet></g:Sheets></g:Workbook>', "/keep": "untouched" });
@@ -77,14 +79,15 @@ test("ssconvert OpenCalc uses the SDK engine and preserves memfs input, CSV byte
   const shell = new Shell({ fs: filesystem(volume) }).use(ssconvertCommands(config)), engine = createEngine(config);
   try {
     const command = await shell.exec("ssconvert -T Gnumeric_XmlIO:sax:0 /book.ots /round.xml");
-    assert.equal(command.exitCode, 0, command.stderr); assert.equal(command.stderr, ""); assert.equal(command.stdout, "");
+    assert.equal(command.exitCode, 0, command.stderr); assert.equal(command.stderr, xmlLabelLoss); assert.equal(command.stdout, "");
     const chunks: Uint8Array[] = [];
     const sdk = await engine.convert({ input: { kind: "stream", filename: "book.ots", source: [source] }, exportType: "Gnumeric_XmlIO:sax:0",
       destination: { kind: "stream", sink: { async write(bytes) { chunks.push(new Uint8Array(bytes)); } } } }, { signal: new AbortController().signal });
-    assert.equal(sdk.exitCode, 0); assert.deepEqual(sdk.diagnostics, []);
+    assert.equal(sdk.exitCode, 0); assert.deepEqual(sdk.diagnostics.map(d => d.code), ["label-range-loss-warning"]);
+    assert.equal(sdk.diagnostics.map(d => d.bytes ? new TextDecoder().decode(d.bytes) : d.message + "\n").join(""), command.stderr);
     assert.deepEqual(new Uint8Array(volume.readFileSync("/round.xml") as Uint8Array), chunks[0]);
     const cached = await shell.exec("ssconvert -T Gnumeric_stf:stf_csv /book.ots fd://1");
-    assert.equal(cached.exitCode, 0, cached.stderr); assert.equal(cached.stderr, ""); assert.equal(cached.stdout, "hello,3\n");
+    assert.equal(cached.exitCode, 0, cached.stderr); assert.equal(cached.stderr, csvLabelLoss); assert.equal(cached.stdout, "hello,3\n");
     const replay = await shell.exec("ssconvert --recalc -T Gnumeric_stf:stf_csv /round.xml fd://1");
     assert.equal(replay.exitCode, 0, replay.stderr); assert.equal(replay.stderr, ""); assert.equal(replay.stdout, "hello,3\n");
     assert.deepEqual(new Uint8Array(volume.readFileSync("/book.ots") as Uint8Array), source);
@@ -105,11 +108,12 @@ test("OpenCalc style families survive SDK import, command checkpoint and replay"
   const signal = new AbortController().signal;
   try {
     const imported = await engine.readWorkbook({ kind: "stream", filename: "book.ods", source: [source] }, {}, { signal });
+    assert.equal(imported.automaticLabelLookup, true);
     const original = imported.sheets[0]!;
     assert.equal(original.visibility, "hidden"); assert.equal(original.rows?.[0]?.sizePoints, 18);
     assert.equal(original.columns?.[0]?.sizePoints, 36); assert.equal(original.cells[0]?.format, "0.00");
     const saved = await shell.exec("ssconvert -T Gnumeric_XmlIO:sax:0 /book.ods /checkpoint.xml");
-    assert.equal(saved.exitCode, 0, saved.stderr); assert.equal(saved.stderr, "");
+    assert.equal(saved.exitCode, 0, saved.stderr); assert.equal(saved.stderr, xmlLabelLoss);
     const checkpoint = new Uint8Array(volume.readFileSync("/checkpoint.xml") as Uint8Array);
     const loaded = await engine.readWorkbook({ kind: "stream", filename: "checkpoint.xml", source: [checkpoint] }, {}, { signal });
     const replayed = loaded.sheets[0]!;
@@ -117,7 +121,7 @@ test("OpenCalc style families survive SDK import, command checkpoint and replay"
     assert.equal(replayed.columns?.[0]?.sizePoints, 36); assert.equal(replayed.cells[0]?.format, "0.00");
     for (const input of ["/book.ods", "/checkpoint.xml"]) {
       const result = await shell.exec(`ssconvert -T Gnumeric_stf:stf_csv -O sheet=S ${input} fd://1`);
-      assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stderr, ""); assert.equal(result.stdout, "1.25,FALSE\n");
+      assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stderr, input === "/book.ods" ? csvLabelLoss : ""); assert.equal(result.stdout, "1.25,FALSE\n");
     }
     assert.deepEqual(new Uint8Array(volume.readFileSync("/book.ods") as Uint8Array), source);
     assert.equal(volume.readFileSync("/keep", "utf8"), "unchanged");
@@ -154,7 +158,7 @@ test("OpenCalc passive drawing links confer no virtual filesystem or network aut
   const shell = new Shell({ fs: tracked }).use(ssconvertCommands(config));
   try {
     const result = await shell.exec("ssconvert -T Gnumeric_stf:stf_csv /book.ods fd://1");
-    assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stderr, ""); assert.equal(result.stdout, "safe\n");
+    assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stderr, csvLabelLoss); assert.equal(result.stdout, "safe\n");
     assert.deepEqual(reads, ["/book.ods"]);
     assert.equal(volume.readFileSync("/secret", "utf8"), "must not be read");
     assert.deepEqual(Object.keys(volume.toJSON()).sort(), ["/book.ods", "/secret"]);
@@ -171,8 +175,8 @@ test("OpenCalc warnings precede output and malformed forced input has command/SD
       destination: { kind: "stream", sink: { async write(bytes) { output.push(new Uint8Array(bytes)); } } } }, { signal: new AbortController().signal });
     assert.equal(command.exitCode, sdk.exitCode); assert.equal(command.exitCode, 0);
     assert.equal(command.stdout, new TextDecoder().decode(output[0])); assert.equal(command.stdout, "2\n");
-    assert.equal(command.stderr, sdk.diagnostics.map(d => new TextDecoder().decode(d.bytes)).join(""));
-    assert.equal(command.stderr, "Unexpected element 't:unknown' in state : \n\tdocument-content -> body -> spreadsheet -> table\n".repeat(2));
+    assert.equal(command.stderr, sdk.diagnostics.map(d => d.bytes ? new TextDecoder().decode(d.bytes) : d.message + "\n").join(""));
+    assert.equal(command.stderr, "Unexpected element 't:unknown' in state : \n\tdocument-content -> body -> spreadsheet -> table\n".repeat(2) + csvLabelLoss);
     volume.writeFileSync("/bad.ods", new Uint8Array([1, 2, 3]));
     const bad = await shell.exec("ssconvert -I Gnumeric_OpenCalc:openoffice -T Gnumeric_stf:stf_csv /bad.ods fd://1");
     const malformed = createEngine({ ...config, filesystem: { async read(uri) {

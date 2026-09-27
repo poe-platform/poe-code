@@ -445,6 +445,11 @@ it.each([false, true])("admits asset-only contract owners against the full priva
       volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
       volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify(pkg));
       volume.writeFileSync(`/repo/packages/${name}/LICENSE`, readFileSync(path.join(directory, "LICENSE")));
+      for (const filename of readdirSync(path.join(directory, "dist"))) {
+        if (filename.startsWith("chunk-") && filename.endsWith(".js")) {
+          volume.writeFileSync(`/repo/packages/${name}/dist/${filename}`, readFileSync(path.join(directory, "dist", filename)));
+        }
+      }
       for (const filename of readdirSync(path.join(directory, "src"))) {
         if (!filename.endsWith(".ts") || filename.endsWith(".test.ts") || filename === "fixtures.ts") continue;
         const source = readFileSync(path.join(directory, "src", filename), "utf8");

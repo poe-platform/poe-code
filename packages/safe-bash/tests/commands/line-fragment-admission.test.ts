@@ -59,14 +59,20 @@ test("sort owns its first fragment across a reentrant next-input pull", async ()
   assert.equal(outer.stdout, "a\nb\n");
 });
 
-test("sort retains indexed record boundaries across a cooperative host turn", async () => {
+test("sort retains indexed record boundaries across a cooperative host turn", async t => {
   const fs = await fixture();
   const commands = textCommands();
+  let now = 0;
+  t.mock.method(performance, "now", () => now);
   const records = Array.from({ length: 4096 }, (_, index) => String(index).padStart(4, "0"));
   const expected = records.join("\n") + "\n";
   const input = records.reverse().join("\n") + "\n";
   let outerFinished = false;
-  const outer = run("sort", ["-s"], { fs, stdin: synchronousFragments([input]), commands }).then(result => {
+  const stdin = synchronousFragments([input], index => {
+    // Expire the native-work quantum at EOF, independently of host/JIT speed.
+    if (index === 1) now = 100;
+  });
+  const outer = run("sort", ["-s"], { fs, stdin, commands }).then(result => {
     outerFinished = true;
     return result;
   });

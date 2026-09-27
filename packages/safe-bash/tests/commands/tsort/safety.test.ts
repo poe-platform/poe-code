@@ -179,16 +179,21 @@ test("cancellation scheduled at EOF interrupts in-memory ordering", async t => {
   assert.equal(writes, 0);
 });
 
-test("cycle walk cancellation preserves caller reason after loop header", async () => {
+test("cycle walk cancellation preserves caller reason after loop header", async t => {
   const caller = new AbortController();
   let cancellation: Promise<void> | undefined;
+  let now = 0;
+  t.mock.method(performance, "now", () => now);
   const input = Array.from({ length: 256 }, (_, index) => `${index} ${(index + 1) % 256}`).join(" ");
   let diagnostics = 0;
-  await assert.rejects(run([], input, {}, { signal: caller.signal, stderr: { async write() {
-    diagnostics++;
-    cancellation ??= setImmediate().then(() => { caller.abort(null); });
-  } } }), error => error === null);
-  await cancellation;
+  try {
+    await assert.rejects(run([], input, {}, { signal: caller.signal, stderr: { async write() {
+      diagnostics++;
+      // Expire the cycle-walk quantum after the loop header is published.
+      now = 100;
+      cancellation ??= setImmediate().then(() => { caller.abort(null); });
+    } } }), error => error === null);
+  } finally { await cancellation; }
   assert.ok(diagnostics > 0);
 });
 

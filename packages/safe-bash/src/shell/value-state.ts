@@ -521,18 +521,65 @@ export class ValueStore {
     } catch (error) { copy.close(); throw error; }
   }
 
+  hasObjectValues(): boolean {
+    return (this._values?.size ?? 0) > 0;
+  }
+
+  replaceStrings(values: readonly string[], action: () => void): void {
+    if (this.arena.hasInfiniteBytes) {
+      this.arena.assertOpen();
+      action();
+      this.invalidate();
+      return;
+    }
+    let totalBytes = 0;
+    for (let i = 0; i < values.length; i++) {
+      totalBytes += values[i]!.length * 2;
+    }
+    const record = this.arena.allocate(totalBytes, 0);
+    try {
+      action();
+    } catch (error) {
+      this.arena.release(record);
+      throw error;
+    }
+    this.invalidate();
+    this._stringRecord = record;
+    this._stringBytes = totalBytes;
+  }
+
   replace(entries: Iterable<readonly [string, ShellValue]>, action: () => void): void {
-    const staged = new Map<string, HeldValue>();
+    let staged: Map<string, HeldValue> | undefined;
+    let totalStringBytes = 0;
+    let stringRecord: AllocationRecord | undefined;
     try {
       for (const [name, value] of entries) {
+        if (typeof value === "string") {
+          totalStringBytes += value.length * 2;
+          continue;
+        }
         const held = this.scope.hold(value);
+        staged ??= new Map();
         staged.get(name)?.release();
         staged.set(name, held);
       }
+      if (!this.arena.hasInfiniteBytes && totalStringBytes > 0) {
+        stringRecord = this.arena.allocate(totalStringBytes, 0);
+      } else {
+        this.arena.assertOpen();
+      }
       action();
-    } catch (error) { for (const held of staged.values()) held.release(); throw error; }
+    } catch (error) {
+      if (stringRecord) this.arena.release(stringRecord);
+      if (staged) for (const held of staged.values()) held.release();
+      throw error;
+    }
     this.invalidate();
-    if (staged.size > 0) {
+    if (stringRecord) {
+      this._stringRecord = stringRecord;
+      this._stringBytes = totalStringBytes;
+    }
+    if (staged && staged.size > 0) {
       const values = this._values ??= new Map();
       for (const [name, held] of staged) values.set(name, held);
     }

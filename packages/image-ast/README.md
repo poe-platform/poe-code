@@ -8,6 +8,8 @@ Node builtins. Node retains its Duplex stream API. File paths require an explici
 and an asynchronous output method; byte inputs also
 support synchronous output. `@poe-code/image-ast/portable` exposes codecs and
 pixel operations; `compositeImage` accepts an explicit `readFile` capability.
+Input pixel limits are disabled by default; set `limitInputPixels` to a positive
+integer to enforce a limit.
 
 ```ts
 import sharp from "@poe-code/image-ast";

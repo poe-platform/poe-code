@@ -42,7 +42,7 @@ import {
   readSvgMetadata
 } from "./svg-pdf.js";
 
-const DEFAULT_PIXEL_LIMIT = 268402689; // 16383 * 16383 (matches sharp default)
+const DEFAULT_PIXEL_LIMIT = Infinity;
 
 function checkLimitInputPixels(width: number, height: number, options?: SharpInputOptions): void {
   const limit =

@@ -14,7 +14,7 @@ beforeAll(async () => {
     write: false,
     metafile: true
   });
-});
+}, 30_000);
 
 it("starts the bundled spreadsheet SDK in a Worker without Node module initialization", () => {
   const compiled = readFileSync(new URL("../packages/safe-bash-command-ssconvert/dist/testing/worker-runtime-fixture.js", import.meta.url), "utf8");

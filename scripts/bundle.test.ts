@@ -2,14 +2,18 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import type { BuildOptions, BuildResult } from "esbuild";
-import { expect, it, vi } from "vitest";
+import { beforeAll, expect, it, vi } from "vitest";
 import { resolveConsumerGraph } from "./bundle-graph.mjs";
 
-it("shares frozen FS constructors and authority registries across producer entries and an external consumer", async () => {
+type PublicFs = typeof import("../packages/safe-fs/src/index.js");
+const outdir = "/isolated/packages/safe-js/dist";
+let load: (filename: string) => PublicFs;
+let publicFs: PublicFs, bash: PublicFs, duplicated: PublicFs;
+let consumer: BuildResult;
+beforeAll(async () => {
   const esbuild = await vi.importActual<typeof import("esbuild")>("esbuild");
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   const require = createRequire(import.meta.url);
-  const outdir = "/isolated/packages/safe-js/dist";
   const common: BuildOptions = {
     absWorkingDir: root,
     bundle: true,
@@ -33,7 +37,7 @@ it("shares frozen FS constructors and authority registries across producer entri
     alias: { "@poe-code/safe-fs": path.join(root, "packages/safe-fs/src/index.ts") },
     external: ["node:*"]
   };
-  const consumer = await esbuild.build({
+  consumer = await esbuild.build({
     ...common,
     ...resolveConsumerGraph(sourceGraph, {
       workspace: "@poe-code/safe-fs",
@@ -48,17 +52,11 @@ it("shares frozen FS constructors and authority registries across producer entri
     stdin: { contents: 'export * from "@poe-code/safe-fs";', resolveDir: root },
     outfile: "/isolated/duplicate.js"
   });
-  type PublicFs = typeof import("../packages/safe-fs/src/index.js");
   async function modules(results: BuildResult[]) {
     const compiled = new Map<string, string>();
-    for (const result of results) {
-      for (const output of result.outputFiles!) {
-        compiled.set(
-          output.path,
-          (await esbuild.transform(output.text, { format: "cjs", target: "node18" })).code
-        );
-      }
-    }
+    await Promise.all(results.flatMap(result => result.outputFiles!).map(async output => {
+      compiled.set(output.path, (await esbuild.transform(output.text, { format: "cjs", target: "node18" })).code);
+    }));
     const cache = new Map<string, { exports: PublicFs }>();
     function load(filename: string): PublicFs {
       const existing = cache.get(filename);
@@ -81,10 +79,13 @@ it("shares frozen FS constructors and authority registries across producer entri
     }
     return load;
   }
-  const load = await modules([producer, consumer, duplicate]);
-  const publicFs = load(`${outdir}/safe-fs.js`);
-  const bash = load("/isolated/safe-bash.js");
-  const duplicated = load("/isolated/duplicate.js");
+  load = await modules([producer, consumer, duplicate]);
+  publicFs = load(`${outdir}/safe-fs.js`);
+  bash = load("/isolated/safe-bash.js");
+  duplicated = load("/isolated/duplicate.js");
+});
+
+it("shares frozen FS constructors and authority registries across producer entries and an external consumer", async () => {
   expect(bash.FsError).toBe(publicFs.FsError);
   expect(load(`${outdir}/core.js`).MemoryFileSystem).toBe(publicFs.MemoryFileSystem);
   expect(load(`${outdir}/cli.js`).ReadOnlyFileSystem).toBe(publicFs.ReadOnlyFileSystem);

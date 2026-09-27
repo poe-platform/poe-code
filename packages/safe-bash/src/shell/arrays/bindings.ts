@@ -26,6 +26,23 @@ export class OwnedText {
   }
 }
 
+export function tryTextTokenSync(owner: ArrayOwner, value: string, signal: AbortSignal): OwnedText | undefined {
+  if (value.length > 64) return undefined;
+  signal.throwIfAborted();
+  owner.assertOpen();
+  if (owner.ledger.checkpoint(signal, value.length) !== undefined) return undefined;
+  if (owner.ledger.checkpoint(signal, 0) !== undefined) return undefined;
+  owner.chargeWork(value.length);
+  let bytes = 0;
+  for (let offset = 0; offset < value.length;) {
+    const code = value.codePointAt(offset)!;
+    bytes = exactSum(bytes, code <= 0x7f ? 1 : code <= 0x7ff ? 2 : code <= 0xffff ? 3 : 4);
+    offset += code > 0xffff ? 2 : 1;
+  }
+  const admission = owner.reserve({ payload: bytes, metadata: 32, work: 4 });
+  return new OwnedText(value, bytes, admission);
+}
+
 export async function textToken(owner: ArrayOwner, value: ShellValue, signal: AbortSignal): Promise<OwnedText> {
   signal.throwIfAborted();
   owner.assertOpen();
@@ -50,7 +67,8 @@ export async function textToken(owner: ArrayOwner, value: ShellValue, signal: Ab
     const pending = owner.ledger.checkpoint(signal, step);
     if (pending) await pending;
   }
-  await owner.ledger.checkpoint(signal, 0);
+  const pEnd = owner.ledger.checkpoint(signal, 0);
+  if (pEnd) await pEnd;
   signal.throwIfAborted();
   const admission = owner.reserve({ payload: bytes, metadata: 32, work: 4 });
   return new OwnedText(value, bytes, admission);

@@ -95,7 +95,7 @@ import { arrayStore, ensureStateMonitor, guestArrays, monitorSymbol, requireArra
 import { pipelineStatusTarget, publishPipelineStatus } from "./pipestatus.js";
 import type { Restoration } from "./arrays/state.js";
 import type { Admission } from "./arrays/ledger.js";
-import { OwnedText, type BindingWatch, type PreparedBinding } from "./arrays/bindings.js";
+import { OwnedText, tryTextTokenSync, type BindingWatch, type PreparedBinding } from "./arrays/bindings.js";
 import { EreProfileLimitError, EreSyntaxError, EreUnsupportedError } from "../commands/regex-execution/ere/errors.js";
 import { EreLedger } from "../commands/regex-execution/ere/limits.js";
 import { compileEre, tryCompileEreSync } from "../commands/regex-execution/ere/syntax.js";
@@ -3611,6 +3611,63 @@ const ZERO_PIPE_STATUSES: readonly (readonly number[])[] = [
   Object.freeze([0, 0, 0, 0, 0, 0, 0, 0]),
 ];
 
+const HEX_BYTE_TABLE: readonly string[] = Array.from({ length: 128 }, (_, i) => i.toString(16).padStart(2, "0"));
+const SIMPLE_SUBSCRIPT_MUT_RE = /^\s*([a-zA-Z_][a-zA-Z_0-9]*)\[([a-zA-Z0-9_.\-/:@]+)\]\s*(?:(\+=|-=|=)\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)|(\+\+|--))\s*$/;
+const SIMPLE_EXPANDED_ARITH_RE = /^\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*([+\-*])\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*$/;
+function resolveSimpleArithOperand(tok: string, rawState: State, monitor: ReturnType<typeof stateMonitor>, activeArrayStore: ReturnType<typeof arrayStore>): number | undefined {
+  const c0 = tok.charCodeAt(0);
+  if ((c0 >= 48 && c0 <= 57) || c0 === 45) {
+    return Number(tok);
+  }
+  if (rawState.nounset || activeArrayStore?.bindings.has(tok) || monitor?.hasOverlay(tok) || activeArrayStore?.watches.has(tok)) return undefined;
+  const raw = rawState.variables[tok];
+  if (raw === undefined || raw === "") return 0;
+  const v = monitor?.values.get(tok, raw) ?? raw;
+  if (typeof v !== "string" || !/^-?(?:0|[1-9][0-9]{0,12})$/.test(v)) return undefined;
+  return Number(v);
+}
+function tryEvalSimpleExpandedArith(src: string, rawState: State, monitor: ReturnType<typeof stateMonitor>, activeArrayStore: ReturnType<typeof arrayStore>): string | undefined {
+  if (src.length > 64) return undefined;
+  const m = SIMPLE_EXPANDED_ARITH_RE.exec(src);
+  if (!m) return undefined;
+  const lhs = resolveSimpleArithOperand(m[1]!, rawState, monitor, activeArrayStore);
+  if (lhs === undefined) return undefined;
+  const rhs = resolveSimpleArithOperand(m[3]!, rawState, monitor, activeArrayStore);
+  if (rhs === undefined) return undefined;
+  const op = m[2]!;
+  const res = op === "+" ? lhs + rhs : op === "-" ? lhs - rhs : lhs * rhs;
+  if (!Number.isSafeInteger(res)) return undefined;
+  return String(res);
+}
+function arithTreeTouchesArray(tree: ArithmeticProgram["tree"], store: ReturnType<typeof arrayStore>): boolean {
+  if (!tree || !store || store.bindings.size === 0) return false;
+  switch (tree.kind) {
+    case "literal":
+      return false;
+    case "name":
+      return store.bindings.has(tree.name);
+    case "unary":
+      return arithTreeTouchesArray(tree.operand, store);
+    case "binary":
+      return arithTreeTouchesArray(tree.left, store) || arithTreeTouchesArray(tree.right, store);
+    case "conditional":
+      return arithTreeTouchesArray(tree.condition, store) || arithTreeTouchesArray(tree.yes, store) || arithTreeTouchesArray(tree.no, store);
+    default:
+      return false;
+  }
+}
+function fastStringHexIdentity(str: string): string {
+  if (str.length <= 64) {
+    let out = "";
+    for (let i = 0; i < str.length; i++) {
+      const c = str.charCodeAt(i);
+      if (c >= 128) return Buffer.from(str).toString("hex");
+      out += HEX_BYTE_TABLE[c]!;
+    }
+    return out;
+  }
+  return Buffer.from(str).toString("hex");
+}
 export class Runtime {
   static clearStaticPools(): void { clearRuntimePools(); }
   declare readonly commands: CommandRegistry;
@@ -4320,8 +4377,31 @@ export class Runtime {
         this.signal.throwIfAborted();
         if (this._syncArithState!.variableAttributes?.get(variable)?.includes("n")) throw new ArrayFailure("nameref in sync arithmetic");
         if (subscript !== undefined) {
-          if (!/^[0-9]{1,7}$/.test(subscript)) throw new ArrayFailure("complex subscript in sync arithmetic");
-          return `[idx]${variable}:${subscript}`;
+          let resolvedSub = subscript;
+          if (resolvedSub.charCodeAt(0) === 36 && /^\$[a-zA-Z_][a-zA-Z_0-9]*$/.test(resolvedSub)) {
+            const subVar = resolvedSub.slice(1);
+            const st = this._syncArithState!;
+            if (st.nounset || arrayStore(st)?.get(subVar) || stateMonitor(st)?.hasOverlay(subVar)) {
+              throw new ArrayFailure("complex var subscript in sync arithmetic");
+            }
+            const rawSub = this._syncArithRawVars![subVar];
+            if (typeof rawSub !== "string" || rawSub.length === 0) throw new ArrayFailure("empty var subscript in sync arithmetic");
+            resolvedSub = stateMonitor(st)?.values.get(subVar, rawSub) as string ?? rawSub;
+          } else if (/^[a-zA-Z_][a-zA-Z_0-9]*$/.test(resolvedSub)) {
+            const st = this._syncArithState!;
+            const binding = arrayStore(st)?.get(variable);
+            if (!binding || !binding.associative) {
+              if (st.nounset || arrayStore(st)?.get(resolvedSub) || stateMonitor(st)?.hasOverlay(resolvedSub)) {
+                throw new ArrayFailure("complex indexed ident subscript in sync arithmetic");
+              }
+              const rawSub = this._syncArithRawVars![resolvedSub];
+              resolvedSub = rawSub === undefined || rawSub === "" ? "0" : (stateMonitor(st)?.values.get(resolvedSub, rawSub) as string ?? rawSub);
+            }
+          }
+          if (resolvedSub.length === 0 || resolvedSub.length > 128 || !/^[a-zA-Z0-9_.\-/:@]+$/.test(resolvedSub)) {
+            throw new ArrayFailure("complex subscript in sync arithmetic");
+          }
+          return `[idx]${variable}:${resolvedSub}`;
         }
         return variable;
       },
@@ -4330,28 +4410,45 @@ export class Runtime {
         if (reference.startsWith("[idx]")) {
           const colon = reference.indexOf(":", 5);
           const name = reference.slice(5, colon);
-          const idx = Number(reference.slice(colon + 1));
-          const binding = arrayStore(this._syncArithState!)?.get(name);
+          const sub = reference.slice(colon + 1);
+          const st = this._syncArithState!;
+          const mon = stateMonitor(st);
+          const store = arrayStore(st);
+          if (mon?.hasOverlay(name) || store?.watches.has(name)) {
+            throw new ArrayFailure("watched array in sync arithmetic");
+          }
+          const binding = store?.get(name);
           if (binding) {
-            if (binding.associative) throw new ArrayFailure("associative subscript in sync arithmetic");
-            const val = binding.get(idx);
-            if (this._syncArithState!.nounset && val === undefined) {
-              throw new NounsetFailure(`${name}[${idx}]: unbound variable`, this._syncArithLine);
+            let val: ShellValue | undefined;
+            if (binding.associative) {
+              const existingKey = binding.keys.get(fastStringHexIdentity(sub));
+              val = existingKey !== undefined ? binding.getValue(existingKey.index) : undefined;
+            } else {
+              if (!/^(?:0|[1-9][0-9]{0,8})$/.test(sub)) throw new ArrayFailure("complex indexed subscript in sync arithmetic");
+              val = binding.getValue(Number(sub));
             }
+            if (st.nounset && val === undefined) {
+              throw new NounsetFailure(`${name}[${sub}]: unbound variable`, this._syncArithLine);
+            }
+            if (val !== undefined && typeof val !== "string") throw new ArrayFailure("byte value in sync arithmetic");
             return val;
           }
+          if (!/^(?:0|[1-9][0-9]{0,8})$/.test(sub)) throw new ArrayFailure("complex subscript on scalar in sync arithmetic");
+          const idx = Number(sub);
           if (idx === 0) {
             const val = this._syncArithRawVars![name];
-            if (this._syncArithState!.nounset && val === undefined) {
+            if (st.nounset && val === undefined) {
               throw new NounsetFailure(`${name}[0]: unbound variable`, this._syncArithLine);
             }
             return val;
           }
-          if (this._syncArithState!.nounset) {
+          if (st.nounset) {
             throw new NounsetFailure(`${name}[${idx}]: unbound variable`, this._syncArithLine);
           }
           return undefined;
         }
+        const stMon = stateMonitor(this._syncArithState!);
+        if (stMon && (stMon.hasOverlay(reference) || stMon.store?.watches.has(reference))) throw new ArrayFailure("watched or overlaid variable in sync arithmetic");
         if (arrayStore(this._syncArithState!)?.get(reference)) throw new ArrayFailure("indexed arithmetic is unsupported");
         const value = this._syncArithRawVars![reference]
           ?? (reference === "LINENO" ? String(this._syncArithLine ?? 1)
@@ -4361,10 +4458,21 @@ export class Runtime {
         if (this._syncArithState!.nounset && value === undefined) {
           throw new NounsetFailure(`${reference}: unbound variable`, this._syncArithLine);
         }
+        if (value !== undefined && stMon && (!this._syncArithRawWriteOnly || !this._syncArithTouched?.has(reference))) {
+          return stMon.values.get(reference, value) as string;
+        }
         return value;
       },
       write: (reference, value) => {
-        if (reference.startsWith("[idx]")) throw new ArrayFailure("subscript write in sync arithmetic");
+        if (reference.startsWith("[idx]")) {
+          const colon = reference.indexOf(":", 5);
+          const name = reference.slice(5, colon);
+          const sub = reference.slice(colon + 1);
+          if (!this.tryFastArraySubscriptWriteSync(this._syncArithState!, name, sub, value)) {
+            throw new ArrayFailure("subscript write in sync arithmetic");
+          }
+          return;
+        }
         const st = this._syncArithState!;
         if (this._syncArithRawWriteOnly) {
           st.variables[reference] = value;
@@ -4434,8 +4542,14 @@ export class Runtime {
   }
 
   private async shellArithmetic(program: ArithmeticProgram, state: State, io: IO, variables?: Record<string, string>): Promise<bigint> {
-    if (!program.hasSubscript && (!program.hasMutation || !(arrayStore(state)?.bindings.size)) && !guestArrays(state) && !hasActiveVariableAttributes(state) && variables === undefined) {
-      return this.syncShellArithmetic(program, state, io.diagnosticLine);
+    if (!program.hasSubscript && !arithTreeTouchesArray(program.tree, arrayStore(state)) && (!guestArrays(state) || isSafeSmiProgram(program)) && !hasActiveVariableAttributes(state) && variables === undefined) {
+      const snap = this.budget.parsing.snapshot();
+      try {
+        return this.syncShellArithmetic(program, state, io.diagnosticLine);
+      } catch (error) {
+        if (!(error instanceof ArrayFailure)) throw error;
+        this.budget.parsing.restore(snap);
+      }
     }
     const resolvedVariables = variables ?? this.arithmeticVariables(state, io.diagnosticLine);
     let depth = 0;
@@ -4501,7 +4615,7 @@ export class Runtime {
   }
 
   private async expandedArithmeticValue(program: ArithmeticProgram, state: State, io: IO): Promise<bigint> {
-    if (!program.error && !guestArrays(state) && (!program.hasMutation || !(arrayStore(state)?.bindings.size)) && (!program.hasSubscript || isSafeSmiProgram(program)) && !hasActiveVariableAttributes(state)) {
+    if (!program.error && (!guestArrays(state) || isSafeSmiProgram(program)) && (!program.hasMutation || !arithTreeTouchesArray(program.tree, arrayStore(state))) && (!program.hasSubscript || isSafeSmiProgram(program)) && !hasActiveVariableAttributes(state)) {
       const snap = this.budget.parsing.snapshot();
       try {
         return this.syncShellArithmetic(program, state, io.diagnosticLine);
@@ -4513,17 +4627,18 @@ export class Runtime {
     const allocation = this.budget.values.scope();
     try {
       if (program.error) {
-        const canCacheWord = !state.extensions?.syntax && !byteLocale(state.variables) && (state.depth + (io.parameterDepth ?? 0)) === 0;
-        let word = canCacheWord ? (program as { _cachedArithWord?: Word })._cachedArithWord : undefined;
+        const canCacheWord = !byteLocale(state.variables) && (state.depth + (io.parameterDepth ?? 0)) === 0;
+        const cachedProg = program as { _cachedArithWord?: Word; _cachedArithSyntax?: unknown };
+        let word = canCacheWord && cachedProg._cachedArithSyntax === state.extensions?.syntax ? cachedProg._cachedArithWord : undefined;
         if (!word) {
           word = parseArithmeticExpansion(program.source, this.budget.parsing, byteLocale(state.variables),
             state.depth + (io.parameterDepth ?? 0), io.diagnosticLine ?? 1, state.extensions?.syntax);
-          if (canCacheWord) (program as { _cachedArithWord?: Word })._cachedArithWord = word;
+          if (canCacheWord) { cachedProg._cachedArithWord = word; cachedProg._cachedArithSyntax = state.extensions?.syntax; }
         }
         const fastSource = this.fastValueWord(word, state, io, false, false, true, false, undefined, io.diagnosticLine);
         if (typeof fastSource === "string") {
           program = prepareArithmetic(fastSource, this.budget.parsing);
-          if (!program.error && !guestArrays(state) && (!program.hasMutation || !(arrayStore(state)?.bindings.size)) && isSafeSmiProgram(program) && !hasActiveVariableAttributes(state)) {
+          if (!program.error && (!program.hasMutation || !arithTreeTouchesArray(program.tree, arrayStore(state))) && isSafeSmiProgram(program) && !hasActiveVariableAttributes(state)) {
             const snap = this.budget.parsing.snapshot();
             try {
               return this.syncShellArithmetic(program, state, io.diagnosticLine);
@@ -4868,6 +4983,142 @@ export class Runtime {
     return binding.keyIndex(resolvedValue, owner, this.signal, create);
   }
 
+  private tryFastArraySubscriptWriteSync(state: State, name: string, sub: string, val: string): boolean {
+    if (this._syncArithRawWriteOnly) return false;
+    const monitor = stateMonitor(state);
+    const rawState = monitor ? monitor.raw : state;
+    if (
+      rawState.readonlyVariables?.has(name) ||
+      rawState.variableAttributes?.get(name) ||
+      rawState.exported.has(name) ||
+      controlNames.has(name)
+    ) {
+      return false;
+    }
+    const store = monitor?.store;
+    const current = store?.get(name);
+    if (
+      !monitor ||
+      !store ||
+      !current ||
+      current.references !== 1 ||
+      store.watches.has(name) ||
+      monitor.hasOverlay(name)
+    ) {
+      return false;
+    }
+    const valByteLen = Buffer.byteLength(val);
+    if (valByteLen > this.budget.limits.maxExpansionBytes) return false;
+    if (current.associative) {
+      const keyByteLen = Buffer.byteLength(sub);
+      if (keyByteLen === 0 || keyByteLen > 4096 || keyByteLen > this.budget.limits.maxExpansionBytes) return false;
+      const identity = fastStringHexIdentity(sub);
+      const existingKey = current.keys.get(identity);
+      if (existingKey !== undefined) {
+        const existingSlot = current.values.get(existingKey.index);
+        if (existingSlot !== undefined && existingSlot.text.references === 1 && existingSlot.text.bytes === valByteLen) {
+          try {
+            current.owner.chargeWork(valByteLen + 9);
+            const tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+            existingSlot.text.shellValue = val;
+            delete rawState.variables[name];
+            monitor.epoch = tickets.epoch;
+            store.revise(name, current, tickets);
+            return true;
+          } catch (error) {
+            if (error instanceof ArrayFailure) return false;
+            throw error;
+          }
+        }
+      }
+      let pendingKey: { identity: string; index: number; text: OwnedText; admission: ReturnType<typeof current.owner.reserve> } | undefined;
+      let index: number;
+      let valToken: OwnedText;
+      let slotAdmission: ReturnType<typeof current.owner.reserve> | undefined;
+      let tickets: ReturnType<typeof store.owner.charge>;
+      try {
+        if (existingKey) {
+          index = existingKey.index;
+        } else {
+          index = current.maximum + 1;
+          const admission = current.owner.reserve({ metadata: 128 + identity.length * 2, work: 8 });
+          try {
+            current.owner.chargeWork(keyByteLen);
+            const keyText = new OwnedText(sub, keyByteLen, current.owner.reserve({ payload: keyByteLen, metadata: 32, work: 4 }));
+            pendingKey = { identity, index, text: keyText, admission };
+          } catch (error) {
+            admission.release();
+            throw error;
+          }
+        }
+        current.owner.chargeWork(valByteLen);
+        valToken = new OwnedText(val, valByteLen, current.owner.reserve({ payload: valByteLen, metadata: 32, work: 4 }));
+        try {
+          slotAdmission = current.owner.reserve({ slots: 1, metadata: 32, work: 5 });
+          tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+        } catch (error) {
+          slotAdmission?.release();
+          valToken.release();
+          throw error;
+        }
+      } catch (error) {
+        if (pendingKey) {
+          pendingKey.text.release();
+          pendingKey.admission.release();
+        }
+        if (error instanceof ArrayFailure) return false;
+        throw error;
+      }
+      if (pendingKey) current.commitStagedKey(pendingKey);
+      current.insert(index, valToken, slotAdmission);
+      delete rawState.variables[name];
+      monitor.epoch = tickets.epoch;
+      store.revise(name, current, tickets);
+      return true;
+    } else {
+      if (!/^(?:0|[1-9][0-9]{0,8})$/.test(sub)) return false;
+      const index = Number(sub);
+      if (index > 2147483647) return false;
+      const existingSlot = current.values.get(index);
+      if (existingSlot !== undefined && existingSlot.text.references === 1 && existingSlot.text.bytes === valByteLen) {
+        try {
+          current.owner.chargeWork(valByteLen + 9);
+          const tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+          existingSlot.text.shellValue = val;
+          delete rawState.variables[name];
+          monitor.epoch = tickets.epoch;
+          store.revise(name, current, tickets);
+          return true;
+        } catch (error) {
+          if (error instanceof ArrayFailure) return false;
+          throw error;
+        }
+      }
+      try {
+        current.owner.chargeWork(valByteLen);
+        const valToken = new OwnedText(val, valByteLen, current.owner.reserve({ payload: valByteLen, metadata: 32, work: 4 }));
+        let slotAdmission: ReturnType<typeof current.owner.reserve> | undefined;
+        let tickets: ReturnType<typeof store.owner.charge>;
+        try {
+          slotAdmission = current.owner.reserve({ slots: 1, metadata: 32, work: 5 });
+          tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+        } catch (error) {
+          slotAdmission?.release();
+          valToken.release();
+          throw error;
+        }
+        current.insert(index, valToken, slotAdmission);
+        delete rawState.variables[name];
+        monitor.epoch = tickets.epoch;
+        store.revise(name, current, tickets);
+        return true;
+      } catch (error) {
+        if (error instanceof ArrayFailure) return false;
+        throw error;
+      }
+    }
+  }
+
   private tryFastArrayAssignmentSync(assignment: ArrayAssignment, state: State, io: IO, diagnosticLine?: number, declaration?: "readonly", associative?: boolean, ignoreYield = false): boolean {
     if (!ignoreYield && hasYieldCheckpoint(this.signal)) return false;
     if (declaration) return false;
@@ -4947,12 +5198,14 @@ export class Runtime {
       return true;
     }
     if (assignment.kind === "element" && !assignment.append && current.associative) {
-      let word = assignment.index.word ?? (assignment.index as { _cachedWord?: Word })._cachedWord;
+      const cachedIdx = assignment.index as { _cachedWord?: Word; _cachedSyntax?: unknown };
+      let word = assignment.index.word ?? (cachedIdx._cachedSyntax === rawState.extensions?.syntax ? cachedIdx._cachedWord : undefined);
       if (!word) {
-        if (rawState.extensions?.syntax || byteLocale(rawState.variables) || rawState.depth !== 0) return false;
+        if (byteLocale(rawState.variables) || rawState.depth !== 0) return false;
         try {
-          word = parseArraySubscript(assignment.index.source ?? assignment.index.decimal, this.budget.parsing, false, 0);
-          (assignment.index as { _cachedWord?: Word })._cachedWord = word;
+          word = parseArraySubscript(assignment.index.source ?? assignment.index.decimal, this.budget.parsing, false, 0, false, rawState.extensions?.syntax);
+          cachedIdx._cachedWord = word;
+          cachedIdx._cachedSyntax = rawState.extensions?.syntax;
         } catch {
           return false;
         }
@@ -4976,8 +5229,26 @@ export class Runtime {
       ) {
         return false;
       }
-      const identity = Buffer.from(keyVal).toString("hex");
+      const identity = fastStringHexIdentity(keyVal);
       const existingKey = current.keys.get(identity);
+      if (existingKey !== undefined) {
+        const existingSlot = current.values.get(existingKey.index);
+        if (existingSlot !== undefined && existingSlot.text.references === 1 && existingSlot.text.bytes === valByteLen) {
+          let tickets: ReturnType<typeof store.owner.charge>;
+          try {
+            current.owner.chargeWork(valByteLen + 9);
+            tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+          } catch (error) {
+            if (error instanceof ArrayFailure) return false;
+            throw error;
+          }
+          existingSlot.text.shellValue = val;
+          delete rawState.variables[name];
+          monitor.epoch = tickets.epoch;
+          store.revise(name, current, tickets);
+          return true;
+        }
+      }
       let pendingKey: { identity: string; index: number; text: OwnedText; admission: ReturnType<typeof current.owner.reserve> } | undefined;
       let index: number;
       let valToken: OwnedText;
@@ -5171,7 +5442,19 @@ export class Runtime {
             const value = await join(fields);
             await insert(index, value, entry.append);
             cursor = index + 1;
-          } else for (const value of fields) { await insert(cursor, value); cursor++; }
+          } else for (const value of fields) {
+            if (!canReviseInPlace && !state.variableAttributes?.get(name) && typeof value === "string" && value.length <= 64 && cursor <= 2147483647 && Buffer.byteLength(value) <= this.budget.limits.maxExpansionBytes) {
+              const fastTok = tryTextTokenSync(targetBinding.owner, value, this.signal);
+              if (fastTok) {
+                try { staged!.insert(cursor, fastTok); } catch (error) { fastTok.release(); throw error; }
+                writes++;
+                cursor++;
+                continue;
+              }
+            }
+            await insert(cursor, value);
+            cursor++;
+          }
         }
         this.signal.throwIfAborted();
         this.assertArrayWritable(state, name, origin);
@@ -7831,7 +8114,6 @@ export class Runtime {
     if (command.kind === "arithmetic") {
       if (
         command.redirects.length !== 0 ||
-        (!command.expression.error && command.expression.hasSubscript && !isSafeSmiProgram(command.expression)) ||
         !canMutatePipeStatus ||
         (!ignored && rawState.errexit) ||
         rawState.nounset ||
@@ -7841,8 +8123,9 @@ export class Runtime {
       }
       let expr = command.expression;
       if (expr.error) {
-        const canCacheWord = !rawState.extensions?.syntax && !byteLocale(rawState.variables) && (rawState.depth + (io.parameterDepth ?? 0)) === 0;
-        let expWord = canCacheWord ? (expr as { _cachedArithWord?: Word | null })._cachedArithWord : undefined;
+        const canCacheWord = !byteLocale(rawState.variables) && (rawState.depth + (io.parameterDepth ?? 0)) === 0;
+        const cachedExpr = expr as { _cachedArithWord?: Word | null; _cachedArithSyntax?: unknown };
+        let expWord = canCacheWord && cachedExpr._cachedArithSyntax === rawState.extensions?.syntax ? cachedExpr._cachedArithWord : undefined;
         if (expWord === undefined) {
           try {
             expWord = parseArithmeticExpansion(
@@ -7856,7 +8139,7 @@ export class Runtime {
           } catch {
             expWord = null;
           }
-          if (canCacheWord) (expr as { _cachedArithWord?: Word | null })._cachedArithWord = expWord;
+          if (canCacheWord) { cachedExpr._cachedArithWord = expWord; cachedExpr._cachedArithSyntax = rawState.extensions?.syntax; }
         }
         if (!expWord) return undefined;
         let fastSrc: ShellValue | undefined;
@@ -7867,10 +8150,73 @@ export class Runtime {
           return undefined;
         }
         if (typeof fastSrc !== "string") return undefined;
+        const mutMatch = fastSrc.length <= 96 ? SIMPLE_SUBSCRIPT_MUT_RE.exec(fastSrc) : null;
+        if (mutMatch) {
+          const arrName = mutMatch[1]!;
+          const subKey = mutMatch[2]!;
+          const binOp = mutMatch[3];
+          const rhsTok = mutMatch[4];
+          const unOp = mutMatch[5];
+          const binding = store?.get(arrName);
+          if (binding && !store?.watches.has(arrName) && !monitor.hasOverlay(arrName)) {
+            let curVal: ShellValue | undefined;
+            let validKey = true;
+            if (binding.associative) {
+              const ek = binding.keys.get(fastStringHexIdentity(subKey));
+              curVal = ek !== undefined ? binding.getValue(ek.index) : undefined;
+            } else if (/^(?:0|[1-9][0-9]{0,8})$/.test(subKey)) {
+              curVal = binding.getValue(Number(subKey));
+            } else {
+              validKey = false;
+            }
+            if (validKey && (curVal === undefined || (typeof curVal === "string" && /^-?(?:0|[1-9][0-9]{0,12})$/.test(curVal)))) {
+              const curNum = curVal === undefined || curVal === "" ? 0 : Number(curVal);
+              let nextNum: number | undefined;
+              let evalNonZero: boolean | undefined;
+              if (unOp) {
+                nextNum = unOp === "++" ? curNum + 1 : curNum - 1;
+                evalNonZero = curNum !== 0;
+              } else if (binOp && rhsTok !== undefined) {
+                const rhsNum = resolveSimpleArithOperand(rhsTok, rawState, monitor, store);
+                if (rhsNum !== undefined) {
+                  nextNum = binOp === "=" ? rhsNum : binOp === "+=" ? curNum + rhsNum : curNum - rhsNum;
+                  evalNonZero = nextNum !== 0;
+                }
+              }
+              if (nextNum !== undefined && Number.isSafeInteger(nextNum) && this.tryFastArraySubscriptWriteSync(rawState, arrName, subKey, String(nextNum))) {
+                this.budget.parsing.admit(6);
+                if (rawState.extensions && !rawState.extensions.eventDepth) {
+                  publishCommandSpelling(rawState, commandSpelling(command));
+                }
+                const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+                this.budget.tick();
+                if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "((";
+                const rawStatus = evalNonZero! ? 0 : 1;
+                const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
+                if (!existing) {
+                  if (store) {
+                    if (publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined;
+                  } else {
+                    monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne;
+                    monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+                  }
+                } else {
+                  elem0!.text.shellValue = finalStatus === 0 ? "0" : "1";
+                  store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+                }
+                rawState.status = finalStatus;
+                monitor.epoch = restEpoch;
+                if (store) store.epoch = restEpoch;
+                return finalStatus;
+              }
+            }
+          }
+        }
         expr = prepareArithmetic(fastSrc, this.budget.parsing);
-        if (expr.error || (expr.hasSubscript && !isSafeSmiProgram(expr))) return undefined;
+        if (expr.error) return undefined;
       }
-      if (expr.hasMutation && (expr.hasSubscript || (arrayStore(rawState)?.bindings.size ?? 0) > 0)) return undefined;
+      const canSyncSubscriptMut = expr.hasSubscript && expr.tree && ((expr.tree.kind === "binary" && (expr.tree.operator === "=" || expr.tree.operator === "+=" || expr.tree.operator === "-=") && expr.tree.left.kind === "name" && expr.tree.left.subscript !== undefined && (expr.tree.right.kind === "literal" || expr.tree.right.kind === "name")) || (expr.tree.kind === "unary" && (expr.tree.operator === "++" || expr.tree.operator === "--") && expr.tree.operand.kind === "name" && expr.tree.operand.subscript !== undefined));
+      if (((guestArrays(rawState) || expr.hasSubscript) && !isSafeSmiProgram(expr) && !canSyncSubscriptMut) || (expr.hasMutation && !canSyncSubscriptMut && (expr.hasSubscript || arithTreeTouchesArray(expr.tree, arrayStore(rawState))))) return undefined;
       let nonZero: boolean;
       const snap = this.budget.parsing.snapshot();
       try {
@@ -7889,8 +8235,12 @@ export class Runtime {
       const rawStatus = nonZero ? 0 : 1;
       const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
       if (!existing) {
-        monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne;
-        monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+        if (store) {
+          if (publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined;
+        } else {
+          monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne;
+          monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+        }
       } else {
         elem0!.text.shellValue = finalStatus === 0 ? "0" : "1";
         store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
@@ -11640,7 +11990,7 @@ export class Runtime {
           };
           const evaluateSyncNonZero = (program: ArithmeticProgram | undefined): boolean | Promise<bigint | undefined> => {
             if (!program) return true;
-            if (!program.error && !guestArrays(rawArithState) && (!program.hasMutation || !(arrayStore(rawArithState)?.bindings.size)) && (!program.hasSubscript || isSafeSmiProgram(program)) && !hasActiveVariableAttributes(rawArithState)) {
+            if (!program.error && (!guestArrays(rawArithState) || isSafeSmiProgram(program)) && (!program.hasMutation || !arithTreeTouchesArray(program.tree, arrayStore(rawArithState))) && (!program.hasSubscript || isSafeSmiProgram(program)) && !hasActiveVariableAttributes(rawArithState)) {
               const snap = this.budget.parsing.snapshot();
               try { return this.syncShellArithmeticNonZero(program, rawArithState, io.diagnosticLine); }
               catch (error) {
@@ -16531,7 +16881,57 @@ export class Runtime {
     } finally { scratch.close(); }
   }
 
+  private tryFastParameterPatternSync(part: Extract<WordPart, { kind: "variable" }>, value: ShellValue, state: State): string | undefined {
+    if (
+      typeof value !== "string" ||
+      state.nocasematch ||
+      ValueScope.prototype.reserve !== defaultValueScopeReserve ||
+      String.prototype.codePointAt !== defaultStringCodePointAt
+    ) {
+      return undefined;
+    }
+    const op = part.operator;
+    if (!op || part.alternate?.parts.length !== 1) return undefined;
+    const patPart = part.alternate.parts[0]!;
+    if (patPart.kind !== "text" || patPart.byteValue) return undefined;
+    const pat = patPart.value;
+    if (pat.length === 0 || (!patPart.quoted && hasGlobOrEscape(pat, !!state.extglob))) return undefined;
+    for (let i = 0; i < value.length; i++) if (value.charCodeAt(i) >= 128) return undefined;
+    for (let i = 0; i < pat.length; i++) if (pat.charCodeAt(i) >= 128) return undefined;
+    if (op === "/" || op === "//" || op === "/#" || op === "/%") {
+      let rep = "";
+      if (part.replacement && part.replacement.parts.length > 0) {
+        if (part.replacement.parts.length !== 1) return undefined;
+        const repPart = part.replacement.parts[0]!;
+        if (repPart.kind !== "text" || repPart.byteValue) return undefined;
+        rep = repPart.value;
+        if (!repPart.quoted && (rep.startsWith("~") || rep.includes("&") || rep.includes("\\"))) return undefined;
+        for (let i = 0; i < rep.length; i++) if (rep.charCodeAt(i) >= 128) return undefined;
+      }
+      const replaced = op === "//"
+        ? (value.includes(pat) ? value.split(pat).join(rep) : value)
+        : op === "/"
+          ? (() => { const idx = value.indexOf(pat); return idx === -1 ? value : value.slice(0, idx) + rep + value.slice(idx + pat.length); })()
+          : op === "/#"
+            ? (value.startsWith(pat) ? rep + value.slice(pat.length) : value)
+            : (value.endsWith(pat) ? value.slice(0, value.length - pat.length) + rep : value);
+      if (replaced.length > this.budget.limits.maxExpansionBytes) return undefined;
+      return replaced;
+    }
+    if (op === "#" || op === "##" || op === "%" || op === "%%") {
+      return (op === "#" || op === "##")
+        ? (value.startsWith(pat) ? value.slice(pat.length) : value)
+        : (value.endsWith(pat) ? value.slice(0, value.length - pat.length) : value);
+    }
+    return undefined;
+  }
+
   async parameterPattern(part: Extract<WordPart, { kind: "variable" }>, value: ShellValue, state: State, io: IO, hereString: boolean): Promise<ShellValue> {
+    const fastRes = this.tryFastParameterPatternSync(part, value, state);
+    if (fastRes !== undefined) {
+      io[valueScope]?.reserve(fastRes.length * 2 + 32, 0);
+      return fastRes;
+    }
     const limit = this.budget.limits.maxExpansionBytes;
     if (shellValueByteLength(value) > limit) this.budget.fail("maxExpansionBytes");
     const scratch = this.budget.values.scope();
@@ -16654,7 +17054,7 @@ export class Runtime {
     const monitor = stateMonitor(state);
     const rawState = monitor ? monitor.raw : state;
     if (pattern || word.parts.length === 0 || hasActiveVariableAttributes(rawState)) return undefined;
-    if (guestArrays(state) && word.parts.some(part => part.kind === "arithmetic" && !isSafeSmiProgram(part.expression))) return undefined;
+    if (guestArrays(state) && word.parts.some(part => part.kind === "arithmetic" && !part.expression.error && !isSafeSmiProgram(part.expression))) return undefined;
     const activeArrayStore = arrayStore(state);
     const rawVars = rawState.variables;
     this.signal.throwIfAborted();
@@ -16705,7 +17105,87 @@ export class Runtime {
         }
         if (part.indirect || part.prefixNames || part.specialParameter || part.substring || part.transform) return undefined;
         if (part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME") return undefined;
-        if (getArraySelector(part) !== undefined || !isShellIdentifier(part.name) || activeArrayStore?.get(part.name) !== undefined) return undefined;
+        if (!isShellIdentifier(part.name)) return undefined;
+        const selector = getArraySelector(part);
+        const arrayBinding = activeArrayStore?.get(part.name);
+        if (selector !== undefined || arrayBinding !== undefined) {
+          if (
+            selector === undefined ||
+            !arrayBinding ||
+            rawState.nounset ||
+            activeArrayStore!.watches.has(part.name) ||
+            monitor?.hasOverlay(part.name) ||
+            ValueScope.prototype.reserve !== defaultValueScopeReserve ||
+            String.prototype.codePointAt !== defaultStringCodePointAt
+          ) {
+            return undefined;
+          }
+          if (selector.kind === "members") {
+            if (part.length && part.operator === undefined) {
+              out += String(arrayBinding.values.size);
+              continue;
+            }
+            return undefined;
+          }
+          if (selector.kind === "element") {
+            const cachedSub = selector.index as { _cachedWord?: Word; _cachedSyntax?: unknown };
+            let subWord = selector.index.word ?? (cachedSub._cachedSyntax === rawState.extensions?.syntax ? cachedSub._cachedWord : undefined);
+            if (!subWord) {
+              if (byteLocale(rawVars) || rawState.depth !== 0) return undefined;
+              try {
+                subWord = parseArraySubscript(selector.index.source ?? selector.index.decimal, this.budget.parsing, false, 0, false, rawState.extensions?.syntax);
+                cachedSub._cachedWord = subWord;
+                cachedSub._cachedSyntax = rawState.extensions?.syntax;
+              } catch {
+                return undefined;
+              }
+            }
+            const subVal = this.fastValueWord(subWord, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
+            if (typeof subVal !== "string") return undefined;
+            let elemVal: ShellValue | undefined;
+            if (arrayBinding.associative) {
+              if (subVal.length === 0 || subVal.length > 4096) return undefined;
+              const existingKey = arrayBinding.keys.get(fastStringHexIdentity(subVal));
+              elemVal = existingKey !== undefined ? arrayBinding.getValue(existingKey.index) : undefined;
+            } else {
+              if (!/^(?:0|[1-9][0-9]{0,8})$/.test(subVal)) return undefined;
+              elemVal = arrayBinding.getValue(Number(subVal));
+            }
+            if (elemVal !== undefined && typeof elemVal !== "string") return undefined;
+            if (part.length) {
+              if (part.operator !== undefined) return undefined;
+              const s = elemVal ?? "";
+              for (let k = 0; k < s.length; k++) {
+                if (s.charCodeAt(k) >= 128) return undefined;
+              }
+              out += String(s.length);
+              continue;
+            }
+            let resolvedElem: string;
+            if (part.operator === undefined) {
+              resolvedElem = elemVal ?? "";
+            } else if ((part.operator === "-" || part.operator === ":-") && part.alternate) {
+              const isMissing = elemVal === undefined || (part.operator === ":-" && elemVal === "");
+              if (isMissing) {
+                const altVal = this.fastValueWord(part.alternate, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
+                if (typeof altVal !== "string") return undefined;
+                resolvedElem = altVal;
+              } else {
+                resolvedElem = elemVal!;
+              }
+            } else {
+              return undefined;
+            }
+            if (split && !part.quoted) {
+              if (resolvedElem.length === 0 || resolvedElem.includes(" ") || resolvedElem.includes("\t") || resolvedElem.includes("\n") || (!rawState.noglob && hasGlobOrEscape(resolvedElem, !!rawState.extglob))) {
+                return undefined;
+              }
+            }
+            out += resolvedElem;
+            continue;
+          }
+          return undefined;
+        }
         if (part.length) {
           if (part.operator !== undefined || ValueScope.prototype.reserve !== defaultValueScopeReserve || String.prototype.codePointAt !== defaultStringCodePointAt) return undefined;
           const raw = rawVars[part.name];
@@ -16805,6 +17285,27 @@ export class Runtime {
             out += sliced;
             continue;
           }
+          if ((part.operator === "-" || part.operator === ":-") && part.alternate && !rawState.nounset) {
+            const raw = rawVars[part.name];
+            const cur = raw === undefined ? undefined : (this._syncArithRawWriteOnly && this._syncArithTouched?.has(part.name) ? raw : (monitor?.values.get(part.name, raw) ?? raw));
+            if (cur !== undefined && typeof cur !== "string") return undefined;
+            const isMissing = cur === undefined || (part.operator === ":-" && cur === "");
+            let resolvedScalar: string;
+            if (isMissing) {
+              const altVal = this.fastValueWord(part.alternate, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
+              if (typeof altVal !== "string") return undefined;
+              resolvedScalar = altVal;
+            } else {
+              resolvedScalar = cur!;
+            }
+            if (split && !part.quoted) {
+              if (resolvedScalar.length === 0 || resolvedScalar.includes(" ") || resolvedScalar.includes("\t") || resolvedScalar.includes("\n") || (!rawState.noglob && hasGlobOrEscape(resolvedScalar, !!rawState.extglob))) {
+                return undefined;
+              }
+            }
+            out += resolvedScalar;
+            continue;
+          }
           return undefined;
         }
         const raw = rawVars[part.name];
@@ -16822,8 +17323,9 @@ export class Runtime {
         let expr = part.expression;
         const line = overrideDiagnosticLine ?? io.diagnosticLine ?? part.line;
         if (expr.error) {
-          const canCacheWord = !rawState.extensions?.syntax && !byteLocale(rawVars) && (rawState.depth + (io.parameterDepth ?? 0)) === 0;
-          let expWord = canCacheWord ? (expr as { _cachedArithWord?: Word | null })._cachedArithWord : undefined;
+          const canCacheWord = !byteLocale(rawVars) && (rawState.depth + (io.parameterDepth ?? 0)) === 0;
+          const cachedExpr = expr as { _cachedArithWord?: Word | null; _cachedArithSyntax?: unknown };
+          let expWord = canCacheWord && cachedExpr._cachedArithSyntax === rawState.extensions?.syntax ? cachedExpr._cachedArithWord : undefined;
           if (expWord === undefined) {
             try {
               expWord = parseArithmeticExpansion(
@@ -16837,11 +17339,16 @@ export class Runtime {
             } catch {
               expWord = null;
             }
-            if (canCacheWord) (expr as { _cachedArithWord?: Word | null })._cachedArithWord = expWord;
+            if (canCacheWord) { cachedExpr._cachedArithWord = expWord; cachedExpr._cachedArithSyntax = rawState.extensions?.syntax; }
           }
           if (!expWord) return undefined;
           const fastSrc = this.fastValueWord(expWord, state, io, false, false, true, false, undefined, line);
           if (typeof fastSrc !== "string") return undefined;
+          const directVal = tryEvalSimpleExpandedArith(fastSrc, rawState, monitor, activeArrayStore);
+          if (directVal !== undefined) {
+            out += directVal;
+            continue;
+          }
           const snapParse = this.budget.parsing.snapshot();
           try {
             expr = prepareArithmetic(fastSrc, this.budget.parsing);
@@ -16849,7 +17356,7 @@ export class Runtime {
             this.budget.parsing.restore(snapParse);
           }
         }
-        if (expr.error || (expr.hasMutation && (word.parts.length > 1 || expr.hasSubscript || guestArrays(state) || (activeArrayStore?.bindings.size ?? 0) > 0)) || (expr.hasSubscript && !isSafeSmiProgram(expr))) return undefined;
+        if (expr.error || ((guestArrays(state) || expr.hasSubscript) && !isSafeSmiProgram(expr)) || (expr.hasMutation && (word.parts.length > 1 || expr.hasSubscript || arithTreeTouchesArray(expr.tree, activeArrayStore)))) return undefined;
         const snap = this.budget.parsing.snapshot();
         try {
           out += this.syncShellArithmeticString(expr, state, line);

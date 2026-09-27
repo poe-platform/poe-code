@@ -385,15 +385,15 @@ export function fastSafeInt(text: string | undefined, budget: ParseBudget): numb
 function canEvalSafeSmiTree(node: Arithmetic, depth = 0): boolean {
   if (depth > 32) return false;
   if (node.kind === "literal") return node.value >= -94906265n && node.value <= 94906265n;
-  if (node.kind === "name") return node.subscript === undefined || /^[0-9]{1,7}$/.test(node.subscript);
+  if (node.kind === "name") return node.subscript === undefined || /^[0-9]{1,7}$/.test(node.subscript) || /^\$?[a-zA-Z_][a-zA-Z_0-9]*$/.test(node.subscript);
   if (node.kind === "unary") {
     if (node.operator === "+" || node.operator === "-" || node.operator === "!") return canEvalSafeSmiTree(node.operand, depth + 1);
-    if (node.operator === "++" || node.operator === "--") return node.operand.kind === "name" && node.operand.subscript === undefined && depth === 0;
+    if (node.operator === "++" || node.operator === "--") return node.operand.kind === "name" && canEvalSafeSmiTree(node.operand, depth + 1) && depth === 0;
     return false;
   }
   if (node.kind === "binary") {
     if ((node.operator === "=" || node.operator === "+=" || node.operator === "-=" || node.operator === "*=") && depth === 0) {
-      return node.left.kind === "name" && node.left.subscript === undefined && canEvalSafeSmiTree(node.right, depth + 1);
+      return node.left.kind === "name" && canEvalSafeSmiTree(node.left, depth + 1) && canEvalSafeSmiTree(node.right, depth + 1);
     }
     if (
       node.operator === "+" || node.operator === "-" || node.operator === "*" ||
@@ -420,7 +420,7 @@ function evalSafeSmi(node: Arithmetic, refs: ArithmeticReferences, budget: Parse
   if (node.kind === "unary") {
     if (node.operator === "++" || node.operator === "--") {
       const target = node.operand as Extract<Arithmetic, { kind: "name" }>;
-      const ref = refs.resolve(target.name, undefined) as string;
+      const ref = refs.resolve(target.name, target.subscript) as string;
       const cur = fastSafeInt(refs.read(ref) as string | undefined, budget);
       if (cur === undefined || cur < -94906264 || cur > 94906264) return undefined;
       const next = node.operator === "++" ? cur + 1 : cur - 1;
@@ -439,13 +439,13 @@ function evalSafeSmi(node: Arithmetic, refs: ArithmeticReferences, budget: Parse
       const r = evalSafeSmi(node.right, refs, budget);
       if (r === undefined || r < -94906265 || r > 94906265) return undefined;
       const target = node.left as Extract<Arithmetic, { kind: "name" }>;
-      const ref = refs.resolve(target.name, undefined) as string;
+      const ref = refs.resolve(target.name, target.subscript) as string;
       refs.write(ref, intToStr(r));
       return r;
     }
     if (node.operator === "+=" || node.operator === "-=" || node.operator === "*=") {
       const target = node.left as Extract<Arithmetic, { kind: "name" }>;
-      const ref = refs.resolve(target.name, undefined) as string;
+      const ref = refs.resolve(target.name, target.subscript) as string;
       const l = fastSafeInt(refs.read(ref) as string | undefined, budget);
       if (l === undefined || l < -94906265 || l > 94906265) return undefined;
       const r = evalSafeSmi(node.right, refs, budget);
@@ -551,7 +551,7 @@ export function evalPureSmiWithInts(node: Arithmetic, intVars: Map<string, numbe
 }
 
 export function isSafeSmiProgram(program: ArithmeticProgram): boolean {
-  if (program.error || !program.tree || (program.hasSubscript && program.hasMutation)) return false;
+  if (program.error || !program.tree) return false;
   let cached = (program as unknown as Record<symbol, boolean | undefined>)[safeSmiSymbol];
   if (cached === undefined) {
     cached = canEvalSafeSmiTree(program.tree);

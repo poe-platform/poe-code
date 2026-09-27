@@ -334,6 +334,14 @@ cohort, final package lint/types, selected build and five compiled SDK/command
 conversions pass; actual command output was visually inspected. Native application
 and remaining token qualification stay open.
 
+The versioned function audit in `reference.biffVersionedFunctionArity` identifies
+six old fixed-argument forms rejected by the modern function table: FIXED, TRUNC,
+WEEKDAY, HLOOKUP, VLOOKUP and DAYS360. Their version-specific counts now import.
+The baseline failed 59 of 82 cases; all pass after correction, with 1,795 surrounding
+tests, maintained lint/types and the selected build passing. Twelve compiled
+SDK/command BIFF2/3/4-to-BIFF7/8 conversions retain all 56 expected values without
+diagnostics. Native application and broader BIFF qualification remain open.
+
 The Calc reference-model audit is recorded under `reference.sheetReferenceSemantics`.
 Its parser and writer preserve ODF sheet `$` markers; external sheet references
 are absolute. Moves resolve the old target and rebind at the new formula position.

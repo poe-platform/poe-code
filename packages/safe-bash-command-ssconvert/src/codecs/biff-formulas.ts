@@ -56,6 +56,12 @@ const binaryOperators: Readonly<Record<number, readonly [string, number]>> = {
 export const biffErrors: Readonly<Record<number, string>> = {
   0: "#NULL!", 7: "#DIV/0!", 15: "#VALUE!", 23: "#REF!", 29: "#NAME?", 36: "#NUM!", 42: "#N/A"
 };
+// Excel File Format 1.42 section 3.11: first/last BIFF revision and fixed arity
+// before optional parameters were added. Modern variable tokens keep their count.
+const legacyFixedFunctions: Readonly<Record<number, readonly [number, number, number]>> = {
+  14: [2, 3, 2], 70: [2, 4, 1], 101: [2, 4, 3], 102: [2, 4, 3],
+  197: [2, 2, 1], 220: [3, 4, 2]
+};
 
 export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaContext): string {
   const data = new Binary(bytes), stack: Expression[] = [];
@@ -161,9 +167,13 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
         push(name + "(" + args.join(",") + ")"); continue;
       }
       const descriptor = biffFunctions[index & 0x7fff];
-      if (!descriptor || argc === undefined && descriptor[1] !== descriptor[2])
+      const legacy = legacyFixedFunctions[index & 0x7fff];
+      const fixedCount = legacy && context.revision >= legacy[0] && context.revision <= legacy[1]
+        ? legacy[2] : descriptor && descriptor[1] === descriptor[2] ? descriptor[1] : undefined;
+      const count = argc ?? fixedCount;
+      if (!descriptor || count === undefined)
         throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: BIFF function ${index}`);
-      const count = argc ?? descriptor[1]; if (count < 0 || count > stack.length) invalidBiff("invalid function argument count");
+      if (count < 0 || count > stack.length) invalidBiff("invalid function argument count");
       const args = stack.splice(stack.length - count, count).map(value => value.text);
       push(descriptor[0] + "(" + args.join(",") + ")");
     } else if (token === 0x39) {

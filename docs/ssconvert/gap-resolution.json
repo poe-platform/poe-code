@@ -1367,6 +1367,30 @@
         "finding": "BIFF2 tName is eight bytes including its opcode, versus eleven in BIFF3/4. MemAreaN/MemNoMemN have no appended cell-range list and remain accepted in BIFF5/8 even though no longer generated. Corrected the previous test that followed Gnumeric\u2019s undifferentiated pre-BIFF5 ten-byte NAME payload."
       },
       "publicValidation": "Compiled SDK and command conversions with explicit recalculation retained values [43,42] through BIFF7 and BIFF8; command CSV output was 43 followed by 42. All five conversions completed without diagnostics. The initial SDK probe omitted recalc and retained its cached zero; corrected probe options passed without another production change. Actual compiled command screenshot inspected."
+    },
+    "biffVersionedFunctionArity": {
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/excel/xlformula.cxx",
+          "sha256": "613efe06cb068023df7039dc5d967e5e1dd0bada4da159e073efe196e06b2c42",
+          "lines": "78-225,229-259,346-351,695-713"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/excel/excform.cxx",
+          "sha256": "813d35f21f88d87e4a4cadbbd632c9c676d7a8744c07db09b56133efc23e6eb3",
+          "lines": "480-506"
+        },
+        {
+          "url": "https://www.openoffice.org/sc/excelfileformat.pdf",
+          "sha256": "af25dee84bd186225a241cafc07ab9f2ea60149f4e2836d3f44a10107949ab4e",
+          "sections": "3.7.1-2 and 3.11.1-4, pages 74-78"
+        }
+      ],
+      "finding": "Six functions gained optional parameters in later BIFF versions: FIXED after BIFF3 (two operands), TRUNC after BIFF2 (one), WEEKDAY after BIFF4 (one), HLOOKUP/VLOOKUP after BIFF4 (three), and DAYS360 after BIFF4 (two; introduced in BIFF3). LibreOffice overlays tables by BIFF version and its fixed-token importer consumes the version-specific maximum count. The published format specification identifies these old fixed arities; LibreOffice permits a one-argument variable FIXED form but its old fixed token still consumes two.",
+      "implementation": "The importer now selects the six legacy fixed arities by version, while explicit variable tokens retain their encoded counts. Existing unknown/custom-function and stack-underflow checks remain. No exporter arity table changed: supported BIFF7/8 exports use the modern variable tokens.",
+      "validation": "Baseline 59/82 failed; all 82 pass after correction. Original in-memory BIFF2/3/4 workbooks cover all six functions, numeric and text results, and real two-dimensional lookup ranges through BIFF7/8 readback. Final surrounding cohort: 63 files / 1795 tests passed. Maintained package lint/source/test/consumer types and selected workspace build passed.",
+      "publicValidation": "Twelve compiled SDK/command conversions from BIFF2/3/4 to BIFF7/8 retained 56 expected scalar/text results without diagnostics. Original inputs are 219-245 bytes; all output workbooks are 3584 bytes and remain in memory. Actual compiled command screenshot inspected.",
+      "remaining": "Native application qualification and wider token/version fidelity remain open. These six repaired functions do not establish complete BIFF compatibility; all 19 gap families remain open."
     }
   },
   "cases": [

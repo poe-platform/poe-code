@@ -322,7 +322,12 @@ export function tryMatchEreAsciiRangeSync(
       return undefined;
     }
   }
-  return tryMatchEreAsciiRangeNfaSync(root, initial, buf, rStart, rLen, ledger, signal, leftmostFirst, word);
+  const unbounded =
+    skipPerRowLedgerCharge &&
+    ledger.limits.work === Infinity &&
+    ledger.limits.states === Infinity &&
+    ledger.limits.allocationUnits === Infinity;
+  return tryMatchEreAsciiRangeNfaSync(root, initial, buf, rStart, rLen, ledger, signal, leftmostFirst, word, unbounded);
 }
 
 function tryMatchEreAsciiRangeNfaSync(
@@ -335,16 +340,141 @@ function tryMatchEreAsciiRangeNfaSync(
   signal: AbortSignal | undefined,
   leftmostFirst: boolean,
   word: boolean,
+  unbounded = false,
 ): EreSpan | undefined | null {
+  let firstLitCode = -1;
   let secondLitCode = -1;
   let rootSeqLen = 0;
-  if (root.kind === "sequence" && root.children.length >= 2) {
+  if (root.kind === "sequence" && root.children.length >= 1) {
     const c0 = root.children[0]!;
-    const c1 = root.children[1]!;
-    if (c0.kind === "literal" && !c0.insensitive && c1.kind === "literal" && !c1.insensitive) {
-      secondLitCode = c1.code;
-      rootSeqLen = root.children.length;
+    if (c0.kind === "literal" && !c0.insensitive) {
+      firstLitCode = c0.code;
+      if (root.children.length >= 2) {
+        const c1 = root.children[1]!;
+        if (c1.kind === "literal" && !c1.insensitive) {
+          secondLitCode = c1.code;
+          rootSeqLen = root.children.length;
+        }
+      }
     }
+  }
+  if (unbounded) {
+    if (signal?.aborted) throw signal.reason;
+    const pendingPos: number[] = [];
+    const pendingTask: (Task | null)[] = [];
+    const push = (position: number, next: Task | null): void => {
+      pendingPos.push(position);
+      pendingTask.push(next);
+    };
+    const rootTask: Task = root.kind === "sequence"
+      ? getSequenceNullNextTask(root)
+      : { kind: "node", node: root, next: null };
+    const anchored = root.kind === "start" || (root.kind === "sequence" && root.children[0]?.kind === "start");
+    const maxStart = anchored ? 0 : rLen;
+    for (let start = 0; start <= maxStart; start++) {
+      if (firstLitCode >= 0 && !anchored) {
+        const found = buf.indexOf(firstLitCode, rStart + start);
+        if (found < 0 || found >= rStart + rLen) break;
+        start = found - rStart;
+      } else if (initial) {
+        const firstCode = start < rLen ? buf[rStart + start]! : -1;
+        if (firstCode < 0 || !initial[firstCode]) continue;
+      }
+      if (word && start > 0 && isAsciiWord(buf[rStart + start - 1]!)) continue;
+      if (secondLitCode >= 0 && (start + 1 >= rLen || buf[rStart + start + 1] !== secondLitCode)) continue;
+      push(start, rootTask);
+      let bestPos = -1;
+      while (pendingPos.length > 0) {
+        const statePos = pendingPos.pop()!;
+        const current = pendingTask.pop()!;
+        if (current === null) {
+          if (word && statePos < rLen && isAsciiWord(buf[rStart + statePos]!)) continue;
+          if (leftmostFirst) { bestPos = statePos; pendingPos.length = 0; pendingTask.length = 0; break; }
+          if (statePos > bestPos) bestPos = statePos;
+          continue;
+        }
+        if (current.kind === "repeat") {
+          const { node, count } = current;
+          if (count === 0 && node.child.kind === "dot" && node.max === Infinity) {
+            let maxDotPos = rLen;
+            if (leftmostFirst) {
+              const nl = buf.indexOf(10, rStart + statePos);
+              if (nl >= 0 && nl < rStart + rLen) maxDotPos = nl - rStart;
+            }
+            const minDotPos = statePos + node.min;
+            if (minDotPos <= maxDotPos) {
+              const nextTask = current.next;
+              if (nextTask && nextTask.kind === "node" && nextTask.node.kind === "literal" && !nextTask.node.insensitive) {
+                const targetCode = nextTask.node.code;
+                const afterLit = nextTask.next;
+                for (let p = minDotPos; p < maxDotPos; p++) {
+                  if (buf[rStart + p] === targetCode) push(p + 1, afterLit);
+                }
+              } else {
+                for (let p = minDotPos; p <= maxDotPos; p++) {
+                  push(p, nextTask);
+                }
+              }
+            }
+            continue;
+          }
+          if (count >= node.min) push(statePos, current.next);
+          const noProgress = count > 0 && statePos === current.previous;
+          if (count < node.max && (!noProgress || count < node.min)) {
+            const repeat: Task = { kind: "repeat", node, count: count + 1, previous: statePos, next: current.next };
+            push(statePos, { kind: "node", node: node.child, next: repeat });
+          }
+          continue;
+        }
+        if (current.kind === "close") return null;
+        const node = current.node;
+        switch (node.kind) {
+          case "empty": push(statePos, current.next); break;
+          case "start": if (statePos === 0) push(statePos, current.next); break;
+          case "end": if (statePos === rLen) push(statePos, current.next); break;
+          case "dot":
+          case "literal":
+          case "set": {
+            if (statePos < rLen) {
+              const code = buf[rStart + statePos]!;
+              if (
+                (node.kind === "dot" && (!leftmostFirst || code !== 10)) ||
+                (node.kind === "literal" && (node.insensitive ? foldAscii(node.code) === foldAscii(code) : node.code === code)) ||
+                (node.kind === "set" && (code < 128 ? node.members[code] : node.nonAscii))
+              ) {
+                push(statePos + 1, current.next);
+              }
+            }
+            break;
+          }
+          case "sequence": {
+            if (current.next === null) {
+              push(statePos, getSequenceNullNextTask(node));
+            } else {
+              let next = current.next;
+              for (let index = node.children.length - 1; index >= 0; index--) {
+                next = { kind: "node", node: node.children[index]!, next };
+              }
+              push(statePos, next);
+            }
+            break;
+          }
+          case "alternative":
+            for (let index = node.children.length - 1; index >= 0; index--) {
+              push(statePos, { kind: "node", node: node.children[index]!, next: current.next });
+            }
+            break;
+          case "group":
+            push(statePos, { kind: "node", node: node.child, next: current.next });
+            break;
+          case "repeat":
+            push(statePos, { kind: "repeat", node, count: 0, previous: -1, next: current.next });
+            break;
+        }
+      }
+      if (bestPos >= 0) return { start, end: bestPos };
+    }
+    return undefined;
   }
   const pending: State[] = [];
   const push = (position: number, next: Task | null): void => {

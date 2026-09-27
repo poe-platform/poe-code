@@ -3609,6 +3609,12 @@ export class Runtime {
       inheritYieldCheckpoint(signal, commandSignal);
       registerInternalYieldCheckpoint(commandSignal, budget.yieldCheckpoint);
     }
+    if (!this._isMemoryBackingFs) {
+      // Runtime builtins, expansions and redirects call the host filesystem
+      // directly, outside the public command-context signal conversion.
+      this.signal = toNativeAbortSignal(signal);
+      this.commandSignal = toNativeAbortSignal(commandSignal);
+    }
   }
 
   get fileWrites(): Map<string, Promise<void>> {

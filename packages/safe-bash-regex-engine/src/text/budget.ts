@@ -105,7 +105,7 @@ export class Budget {
     this.signal = context.signal;
     this.checkpoints = 0;
     this.hasExtYield = hasYieldCheckpoint(context.signal);
-    this.yieldTimes[0] = monotonicNow();
+    this.yieldTimes[0] = (performance.now !== defaultPerfNow || this.hasExtYield) ? monotonicNow() : -1;
     const nextMaxBuf = options.maxBufferBytes ?? Infinity;
     if (this.maxBufferBytes !== nextMaxBuf) this.maxBufferBytes = nextMaxBuf;
   }

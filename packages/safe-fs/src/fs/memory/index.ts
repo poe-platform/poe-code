@@ -2974,7 +2974,7 @@ export function tryOpenMemoryRedirectHandleSync(
     parent = next as DirectoryNode;
     start = slash + 1;
   }
-  const existing = parent.entries.get(name);
+  const existing = (parent.entries as FastDirectoryEntriesMap).getForWrite(name);
   const ledger = memInternal.ledger;
   let node: FileNode;
   if (existing !== undefined) {

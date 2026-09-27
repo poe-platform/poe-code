@@ -196,15 +196,15 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
   if (!rawBytes || rawBytes.byteLength === 0 || rawBytes[0] !== 123 || rawBytes[rawBytes.byteLength - 1] !== 10) {
     return undefined;
   }
-  if (limits.maxInputBytes !== Infinity) {
-    const argBytes = 2 + Buffer.byteLength(source) + Buffer.byteLength(file);
-    if (argBytes + rawBytes.byteLength > limits.maxInputBytes) return undefined;
-  }
   let budget = sharedFastBudget;
   if (!budget || budget.limits !== limits) {
     budget = sharedFastBudget = new Budget(limits, context.signal);
   } else {
     budget.resetForRun(context.signal);
+  }
+  if (budget.maxInputBytesSmi < 0x3fffffff && limits.maxInputBytes !== Infinity) {
+    const argBytes = 2 + Buffer.byteLength(source) + Buffer.byteLength(file);
+    if (argBytes + rawBytes.byteLength > limits.maxInputBytes) return undefined;
   }
   // Parse only after eligibility, retaining its work in this invocation's budget.
   // A declined synchronous attempt must not populate the slow route's AST cache.
@@ -213,14 +213,9 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
     catch { return undefined; }
   }
   if (budget.needsYield()) return undefined;
-  let interpreter = sharedFastInterpreter;
-  if (!interpreter) {
-    interpreter = sharedFastInterpreter = new Interpreter(budget, EMPTY_VARS_MAP);
-  } else {
-    interpreter.resetForRun(budget, EMPTY_VARS_MAP);
-  }
-  if (interpreter.run !== DEFAULT_INTERPRETER_RUN) return undefined;
-  const outBuf = (sharedJqOutBuf ??= new Uint8Array(OUT_BUF_SIZE));
+  if (Interpreter.prototype.run !== DEFAULT_INTERPRETER_RUN) return undefined;
+  let interpreter: Interpreter | undefined;
+  const outBuf = (sharedJqOutBuf ??= Buffer.alloc(OUT_BUF_SIZE));
   sharedFastInUse = true;
   sharedJqOutBufInUse = true;
   sharedFastJqAst = cachedAst;
@@ -242,6 +237,13 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
     if (fastPos >= 0) {
       sharedFastJqOutPos = fastPos;
     } else {
+      interpreter = sharedFastInterpreter;
+      if (!interpreter) {
+        interpreter = sharedFastInterpreter = new Interpreter(budget, EMPTY_VARS_MAP);
+      } else {
+        interpreter.resetForRun(budget, EMPTY_VARS_MAP);
+      }
+      if (interpreter.run !== DEFAULT_INTERPRETER_RUN) return undefined;
       const ok = tryProcessFlatJsonChunkSync(rawBytes, budget, sharedFastJqOnValue);
       if (!ok || sharedFastJqAborted) return undefined;
     }
@@ -262,7 +264,7 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
     if (committing) throw error;
     return undefined;
   } finally {
-    interpreter.releaseScratch();
+    if (interpreter) interpreter.releaseScratch();
     sharedFastJqAst = undefined;
     sharedFastJqLimits = undefined;
     (budget as unknown as { signal: AbortSignal }).signal = NEVER_ABORTED_SIGNAL;

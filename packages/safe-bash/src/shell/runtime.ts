@@ -6871,7 +6871,7 @@ export class Runtime {
       const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
       this.budget.tick();
       rawState.substitutionStatus = 0;
-      if (assignment.name !== "_") delete rawState.variables._;
+      if (assignment.name !== "_" && rawState.variables._ !== undefined) delete rawState.variables._;
       rawState.lastArgument = "";
       monitor.publishStringVariable(assignment.name, fastAssigned as string);
       if (rawState.allexport) monitor.proxy.exported.add(assignment.name);
@@ -9216,7 +9216,7 @@ export class Runtime {
           if (!fastFailed && fastAssigned !== undefined) {
             state.substitutionStatus = 0;
             const rawState = stateMonitor(state)?.raw ?? state;
-            if (assignment.name !== "_") delete rawState.variables._;
+            if (assignment.name !== "_" && rawState.variables._ !== undefined) delete rawState.variables._;
             rawState.lastArgument = "";
             publishVariable(state, assignment.name, fastAssigned);
             if (state.allexport) state.exported.add(assignment.name);
@@ -10531,7 +10531,7 @@ export class Runtime {
       }
       if (!snapshotScope) {
         const rawState = stateMonitor(state)?.raw ?? state;
-        if (!assignments.some(assignment => assignment.name === "_")) delete rawState.variables._;
+        if (rawState.variables._ !== undefined && !assignments.some(assignment => assignment.name === "_")) delete rawState.variables._;
         rawState.lastArgument = words.length > 0 ? words[words.length - 1]! : "";
         state.lastArgument = rawState.lastArgument;
       }
@@ -14470,7 +14470,7 @@ export class Runtime {
         }
         out += part.value;
       } else if (part.kind === "variable") {
-        if (split && !part.quoted && ((rawVars.IFS !== undefined && rawVars.IFS !== " \t\n") || this.budget.limits.maxExpansionBytes !== Infinity)) return undefined;
+        if (split && !part.quoted && ((rawVars.IFS !== undefined && rawVars.IFS !== " \t\n") || (this.budget.maxExpansionBytesSmi < 0x3fffffff && this.budget.limits.maxExpansionBytes !== Infinity))) return undefined;
         if (part.indirect || part.prefixNames || part.specialParameter || part.length || part.substring || part.transform) return undefined;
         if (part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME") return undefined;
         if (getArraySelector(part) !== undefined || !isShellIdentifier(part.name)) return undefined;

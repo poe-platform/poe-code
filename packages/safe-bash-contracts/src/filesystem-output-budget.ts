@@ -2,25 +2,6 @@ import type { CommandContext } from "./command.js";
 import { FsError } from "./errors.js";
 import type { ByteSink } from "./io.js";
 
-export async function writeFileOutput(context: Pick<CommandContext, "signal" | "registerCleanup">, bytes: Uint8Array, write: (bytes: Uint8Array) => Promise<void>): Promise<void> {
-  context.signal.throwIfAborted();
-  const budget = context.registerCleanup && filesystemOutputBudgets.get(context.registerCleanup);
-  let pending: Promise<void> | undefined;
-  const destination: ByteSink = { write(chunk) {
-    context.signal.throwIfAborted();
-    return pending = (async () => { await write(chunk); })();
-  } };
-  try { await (budget?.sinkBudget(destination) ?? destination).write(bytes); }
-  catch (error) {
-    // Shell sink cancellation may win its race before the direct host call.
-    // Keep the original awaited-write lifetime without a retained cleanup hook.
-    await pending?.catch(() => {});
-    context.signal.throwIfAborted();
-    throw error;
-  }
-  context.signal.throwIfAborted();
-}
-
 export type CountedFileWrite = (chunk: Uint8Array, write: () => Promise<number>, preserveReceipt?: boolean) => Promise<number>;
 
 type FileOutputBudget = {

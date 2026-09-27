@@ -415,6 +415,42 @@ for (const operation of ["INSERT", "UPDATE", "UPSERT"]) {
   });
 }
 
+for (const query of [
+  "SELECT (SELECT no_such_col FROM b) FROM a",
+  "SELECT * FROM a WHERE EXISTS (SELECT no_such_col FROM b)",
+  "SELECT * FROM a WHERE id IN (SELECT no_such_col FROM b)",
+  "SELECT (SELECT (SELECT no_such_col FROM b)) FROM a"
+]) {
+  test(`sqlite3 prepares empty-table subqueries: ${query}`, async () => {
+    const result = await runSqlite3(createMemoryFileSystem(), [":memory:",
+      `CREATE TABLE a(id INT); CREATE TABLE b(id INT); ${query};`]);
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /no such column: no_such_col/);
+  });
+}
+
+test("sqlite3 prepares correlated and CTE subqueries without evaluating skipped expressions", async () => {
+  for (const rows of ["", "INSERT INTO a VALUES (1);"]) {
+    const result = await runSqlite3(createMemoryFileSystem(), [":memory:",
+      `CREATE TABLE a(id INT); CREATE TABLE b(id INT); ${rows}
+       WITH c(v) AS (SELECT 1) SELECT (SELECT v FROM c WHERE v = a.id),
+       CASE WHEN 0 THEN (SELECT abs(-9223372036854775808)) ELSE 2 END FROM a;`]);
+    assert.equal(result.code, 0, result.stderr);
+    assert.equal(result.stdout, rows ? "1|2\n" : "");
+  }
+});
+
+
+test("sqlite3 preparation validates table-function arguments without executing them", async () => {
+  const valid = await runSqlite3(createMemoryFileSystem(), [":memory:",
+    "CREATE TABLE a(id INT); SELECT (SELECT value FROM json_each('malformed')) FROM a;"]);
+  assert.equal(valid.code, 0, valid.stderr);
+  const invalid = await runSqlite3(createMemoryFileSystem(), [":memory:",
+    "CREATE TABLE a(id INT); SELECT (SELECT value FROM json_each(no_such_col)) FROM a;"]);
+  assert.equal(invalid.code, 1);
+  assert.match(invalid.stderr, /no such column: no_such_col/);
+});
+
 test("sqlite3 affinity respects declared-type precedence and preserves unconvertible values", async () => {
   const result = await runSqlite3(createMemoryFileSystem(), [":memory:",
     `CREATE TABLE t(a CHARINT, b CLOB, c DOUBLE, d BLOB, e, f DECIMAL, g FLOATINGPOINT);
@@ -422,4 +458,18 @@ test("sqlite3 affinity respects declared-type precedence and preserves unconvert
      SELECT a, typeof(a), b, typeof(b), c, typeof(c), d, typeof(d), e, typeof(e), f, typeof(f), g, typeof(g) FROM t;`]);
   assert.equal(result.code, 0, result.stderr);
   assert.equal(result.stdout, "300000|integer|42.0|text|4.5|real|42.0|real|42|text|42|integer|42|integer\n");
+});
+
+test("sqlite3 prepares table-function correlations against preceding FROM sources", async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [":memory:",
+    "CREATE TABLE a(id INT); CREATE TABLE b(doc TEXT); SELECT (SELECT value FROM b, json_each(b.doc)) FROM a;"]);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout, "");
+});
+
+test("sqlite3 prepares recursive CTE terms inside empty-table subqueries", async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [":memory:",
+    "CREATE TABLE a(id INT); SELECT (WITH RECURSIVE c(v) AS (SELECT 1 UNION ALL SELECT no_such_col FROM c) SELECT v FROM c) FROM a;"]);
+  assert.equal(result.code, 1);
+  assert.match(result.stderr, /no such column: no_such_col/);
 });

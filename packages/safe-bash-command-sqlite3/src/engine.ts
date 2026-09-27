@@ -1473,6 +1473,7 @@ export class SqliteDatabase {
   public totalChanges = 0;
   public inTransaction = false;
   private outerRows: Record<string, SqlValue>[] = [];
+  private preparing = false;
   private txSnapshot: SnapshotState | null = null;
   private savepoints = new Map<string, SnapshotState>();
 
@@ -3413,6 +3414,12 @@ export class SqliteDatabase {
 
     const anchorRes = this.executeSelectCompound(anchorTokens, positionalParams, cteMap);
     const cols = explicitCols && explicitCols.length > 0 ? explicitCols : anchorRes.columns;
+    if (this.preparing) {
+      const scope = new Map(cteMap);
+      scope.set(cteName.toLowerCase(), { columns: cols, rows: [] });
+      this.executeSelectCompound(recTokens, positionalParams, scope);
+      return { columns: cols, rows: [] };
+    }
     const allRows: SqlValue[][] = [...anchorRes.rows];
     let workingRows: SqlValue[][] = [...anchorRes.rows];
     const seenKeys = new Set<string>();
@@ -3752,17 +3759,19 @@ export class SqliteDatabase {
         bindings[`${source.tableAlias}.${column}`] = null;
       }
     }
-    for (const target of selectTargets) this.validateColumns(target.expr, bindings);
+    for (const target of selectTargets) this.validateColumns(target.expr, bindings, positionalParams, cteScope);
     const aliasBindings = { ...bindings };
     for (const target of selectTargets) aliasBindings[target.alias] = null;
-    this.validateColumns(whereExpr, aliasBindings);
+    this.validateColumns(whereExpr, aliasBindings, positionalParams, cteScope);
     for (const clause of [groupByTokens, havingTokens, orderByTokens]) {
       if (clause) {
         for (const expression of this.splitTopLevelComma(clause)) {
-          this.validateColumns(new ExprParser(expression).parseExpression(), aliasBindings);
+          this.validateColumns(new ExprParser(expression).parseExpression(), aliasBindings, positionalParams, cteScope);
         }
       }
     }
+
+    if (this.preparing) return { columns: selectTargets.map((target) => target.alias), rows: [] };
 
     // Evaluate WHERE after resolving identifiers
     if (whereExpr) {
@@ -4131,9 +4140,18 @@ export class SqliteDatabase {
 
     for (let itemIdx = 0; itemIdx < items.length; itemIdx += 1) {
       const item = items[itemIdx]!;
+      const preparationScope: Record<string, SqlValue> = {};
+      if (this.preparing) {
+        for (const source of schema) {
+          for (const column of [...source.columns, "rowid", "_rowid_", "oid"]) {
+            preparationScope[column] = null;
+            preparationScope[`${source.tableAlias}.${column}`] = null;
+          }
+        }
+      }
       const resolved = this.resolveSingleTableSource(
         item.sourceTokens,
-        itemIdx === 0 ? [{}] : currentRows,
+        this.preparing ? [preparationScope] : itemIdx === 0 ? [{}] : currentRows,
         positionalParams,
         cteScope
       );
@@ -4155,7 +4173,7 @@ export class SqliteDatabase {
           joinBindings[`${source.tableAlias}.${column}`] = null;
         }
       }
-      this.validateColumns(onExpr, joinBindings);
+      this.validateColumns(onExpr, joinBindings, positionalParams, cteScope);
       const usingList = item.natural
         ? resolved.columns.filter((c) => prevCols.has(c.toLowerCase()))
         : item.usingCols;
@@ -4318,7 +4336,14 @@ export class SqliteDatabase {
       }
       const alias = srcTokens[idx]?.value ?? name;
       const outerCtx = outerRows[0] ?? {};
-      const args = argToks.map((at) => this.evalExpr(new ExprParser(at).parseExpression(), outerCtx, positionalParams, cteScope));
+      const args = argToks.map((at) => {
+        const expression = new ExprParser(at).parseExpression();
+        if (this.preparing) {
+          this.validateColumns(expression, outerCtx, positionalParams, cteScope);
+          return null;
+        }
+        return this.evalExpr(expression, outerCtx, positionalParams, cteScope);
+      });
       const tvf = this.evaluateTableValuedFunction(name, args);
       const rows = tvf.rows.map((r) => {
         const obj: Record<string, SqlValue> = {};
@@ -4473,7 +4498,7 @@ export class SqliteDatabase {
       throw new Error(`no such table: ${name}`);
     }
     const cols = tbl.columns.map((c) => c.name);
-    const rows = tbl.rows.map((r) => {
+    const rows = (this.preparing ? [] : tbl.rows).map((r) => {
       const obj: Record<string, SqlValue> = {
         rowid: r.rowid,
         _rowid_: r.rowid,
@@ -4498,6 +4523,7 @@ export class SqliteDatabase {
   ): { columns: string[]; rows: SqlValue[][] } {
     const lower = fnName.toLowerCase();
     if (lower === "generate_series") {
+      if (this.preparing) return { columns: ["value"], rows: [] };
       const start = Math.trunc(toSqlNumber(args[0] ?? 1));
       const stop = Math.trunc(toSqlNumber(args[1] ?? start));
       const step = args[2] !== undefined ? Math.trunc(toSqlNumber(args[2])) : 1;
@@ -4516,6 +4542,7 @@ export class SqliteDatabase {
 
     if (lower === "json_each" || lower === "json_tree") {
       const cols = ["key", "value", "type", "atom", "id", "parent", "fullkey", "path"];
+      if (this.preparing) return { columns: cols, rows: [] };
       const rawJson = toSqlString(args[0] ?? "");
       const rootPath = args[1] !== undefined ? toSqlString(args[1]) : "$";
       let parsed: unknown;
@@ -5104,14 +5131,31 @@ export class SqliteDatabase {
     return v;
   }
 
-  private validateColumns(node: unknown, scope: Record<string, SqlValue>): void {
+  private validateColumns(
+    node: unknown,
+    scope: Record<string, SqlValue>,
+    positionalParams: SqlValue[],
+    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
+  ): void {
     if (!node || typeof node !== "object") return;
     if ("kind" in node && node.kind === "column") {
       const column = node as Extract<ExprNode, { kind: "column" }>;
       this.lookupColInRow(scope, column.table, column.name, column.doubleQuoted);
       return;
     }
-    for (const child of Object.values(node)) this.validateColumns(child, scope);
+    if ("kind" in node && (node.kind === "subquery" || node.kind === "in_subquery")) {
+      const subquery = node as Extract<ExprNode, { kind: "subquery" | "in_subquery" }>;
+      const preparing = this.preparing;
+      this.preparing = true;
+      this.outerRows.push(scope);
+      try {
+        this.executeStatement(subquery.kind === "subquery" ? subquery.sql : subquery.subquerySql, positionalParams, cteScope);
+      } finally {
+        this.outerRows.pop();
+        this.preparing = preparing;
+      }
+    }
+    for (const child of Object.values(node)) this.validateColumns(child, scope, positionalParams, cteScope);
   }
 
   private serializeJson(value: unknown): string {

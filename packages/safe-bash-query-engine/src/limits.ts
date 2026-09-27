@@ -118,7 +118,7 @@ export class Budget {
     }
     // Even fast finite workloads must eventually let host timers run.
     if (this.steps - this.lastYieldSteps >= 65536) {
-      if (this.steps < 524288 && monotonicNow() - this.lastYield < 20) {
+      if (this.steps < 524288 && monotonicNow() - this.yieldTimes[0]! < 20) {
         this.lastYieldSteps = this.steps;
         return false;
       }

@@ -176,4 +176,8 @@ test("sqlite3 matches native /usr/bin/sqlite3 for COALESCE/IFNULL/IIF projection
   const rHtml = await runSqlite3(fs, ["-html", "-header", ":memory:", "SELECT 1 AS id, 'alice' AS name;"]);
   assert.equal(rHtml.code, 0, rHtml.stderr);
   assert.equal(rHtml.stdout, "<TR><TH>id</TH>\n<TH>name</TH>\n</TR>\n<TR><TD>1</TD>\n<TD>alice</TD>\n</TR>\n");
+
+  const rModeSwitch = await runSqlite3(fs, [":memory:", ".mode csv", "SELECT 1, 2;", ".mode list", "SELECT 3, 4;"]);
+  assert.equal(rModeSwitch.code, 0, rModeSwitch.stderr);
+  assert.equal(rModeSwitch.stdout, "1,2\n3|4\n");
 });

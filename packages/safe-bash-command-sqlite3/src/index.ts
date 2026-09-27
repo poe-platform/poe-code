@@ -545,6 +545,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         state.mode = "line";
       } else if (arg === "-list" || arg === "--list") {
         state.mode = "list";
+        state.colSeparator = "|";
       } else if (arg === "-column" || arg === "--column") {
         state.mode = "column";
         state.showHeaders = true;
@@ -714,7 +715,9 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
           ].includes(newMode)
         ) {
           state.mode = newMode as OutputMode;
-          if (newMode === "csv") {
+          if (newMode === "list") {
+            state.colSeparator = "|";
+          } else if (newMode === "csv") {
             state.colSeparator = ",";
           } else if (newMode === "tabs") {
             state.colSeparator = "\t";

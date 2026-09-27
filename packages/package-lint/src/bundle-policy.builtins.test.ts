@@ -157,3 +157,17 @@ describe("build-independent publication builtin names", () => {
 it("allows a separately published workspace declared as a runtime dependency", () => {
   expect(findBundleIssues({name: "poe-code", dependencies: {tokenfill: "^0.0.14"}}, new Set(["tokenfill"]), nodeMetafile("tokenfill"), new Set())).toEqual([]);
 });
+
+it("accepts shared runtime imports only when every importer resolves to an emitted packed file", () => {
+  const specifier = "../packages/contracts/dist/index.js";
+  const target = "packages/contracts/dist/index.js";
+  const metafile: BundleMetafile = { outputs: {
+    "dist/index.js": { imports: [{ path: specifier, external: true }] },
+    [target]: { imports: [] }
+  } };
+  const check = (files: string[]) => findBundleIssues({ name: "app" }, new Set(), metafile, new Set(files));
+  expect(check(["dist/index.js", target])).toEqual([]);
+  expect(check(["dist/index.js"])).toEqual([{ external: specifier, reason: "invalid-external" }]);
+  metafile.outputs!["dist/nested/index.js"] = { imports: [{ path: specifier, external: true }] };
+  expect(check(["dist/index.js", target])).toEqual([{ external: specifier, reason: "invalid-external" }]);
+});

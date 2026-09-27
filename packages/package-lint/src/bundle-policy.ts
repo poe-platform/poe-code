@@ -190,6 +190,7 @@ export function findBundleIssues(
     ...Object.entries(metafile.canonicalBundle?.metafile.outputs ?? {}),
     ...Object.entries(metafile.browserCanonicalBundle?.metafile.outputs ?? {})
   ];
+  const emittedFiles = new Set(outputs.map(([filename]) => filename));
   const imports = new Set(
     outputs.flatMap(([, output]) =>
       (output.imports ?? [])
@@ -203,6 +204,11 @@ export function findBundleIssues(
   ]);
   for (const specifier of [...imports].sort()) {
     if (publicationNodeBuiltins.has(specifier)) continue;
+    if ((specifier.startsWith("./") || specifier.startsWith("../")) && outputs.every(([filename, output]) => {
+      if (!(output.imports ?? []).some(edge => edge.external && edge.path === specifier)) return true;
+      const target = path.posix.normalize(path.posix.join(path.posix.dirname(filename), specifier));
+      return packedFiles.has(target) && emittedFiles.has(target);
+    })) continue;
     if (
       nativeValid &&
       specifier === native.specifier &&

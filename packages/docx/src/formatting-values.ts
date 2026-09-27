@@ -1,3 +1,4 @@
+import { callableConstructor } from "./callable-constructor.js";
 import { snapshotSequence } from "./numeric-index.js";
 import { InputTypeError, InvalidValueError } from "./archive.js";
 import type { DocxLength, DocxEnumNames, DocxEnumValue } from "./operation-types.js";
@@ -369,7 +370,7 @@ class LengthValue implements Length {
   readonly #emu: number;
   readonly value: number;
   readonly unit: DocxLength["unit"];
-  constructor(value: number, unit: DocxLength["unit"]) {
+  constructor(value: number, unit: DocxLength["unit"] = "emu") {
     if (typeof value !== "number" || !Number.isFinite(value)) throw new InputTypeError("Expected a finite numeric length.");
     const scaled = value * unitScale[unit], rounded = Math.sign(scaled) * Math.round(Math.abs(scaled));
     if (!Number.isSafeInteger(rounded)) throw new InvalidValueError("Length exceeds safe integer EMUs.");
@@ -383,8 +384,17 @@ class LengthValue implements Length {
   get twips(): number { return Math.sign(this.emu) * Math.round(Math.abs(this.emu) / 635); }
   [Symbol.toPrimitive](): never { throw new InputTypeError("Use explicit length accessors instead of numeric coercion."); }
 }
-function lengthConstructor(unit: DocxLength["unit"]): (value: number) => Length { return value => new LengthValue(value, unit); }
-export const Length = lengthConstructor("emu");
+type LengthConstructor = {
+  (value: number): Length;
+  new(value: number): Length;
+  readonly prototype: Length;
+};
+function lengthConstructor(unit: DocxLength["unit"]): LengthConstructor {
+  return callableConstructor(class extends LengthValue {
+    constructor(value: number) { super(value, unit); }
+  });
+}
+export const Length: LengthConstructor = callableConstructor(LengthValue);
 export const Emu = Length;
 export const Inches = lengthConstructor("in");
 export const Cm = lengthConstructor("cm");

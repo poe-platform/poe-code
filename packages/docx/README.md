@@ -11,6 +11,12 @@ const invocation = parseDocxArguments(["schema", "text", "replace"].map(encode))
 console.log(getDocxDiscovery(invocation).data);
 ```
 
+Formatting values support factory and constructor calls: `RGBColor(255, 0, 17)`
+and `new RGBColor(255, 0, 17)`, or `Inches(1)` and `new Inches(1)`.
+`Length`, `Emu`, `Inches`, `Pt`, `Cm`, `Mm`, and `Twips` retain immutable values
+and unit accessors. Both length invocation styles support `instanceof` against
+their helper and `Length`; RGB colors support `instanceof RGBColor`.
+
 [Usage](../../docs/docx/usage.md) covers imports, explicit Safe Bash registration,
 selection, mutation, and publication. Generated `help` and `schema` describe
 operation arguments. The [test index](../../docs/docx/acceptance-matrix.md) links

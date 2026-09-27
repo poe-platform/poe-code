@@ -1,3 +1,4 @@
+import { callableConstructor } from "./callable-constructor.js";
 import { requireComparisonOperand } from "./comparison-operand.js";
 import { storedBoolean } from "./stored-lexical.js";
 import { bindXmlElementView, type XmlElementView, type XmlViewBinding } from "./xml-element-view.js";
@@ -390,7 +391,7 @@ function assertRgbSearchValue(value: unknown): asserts value is number {
   if (typeof value !== "number" || !Number.isFinite(value)) throw new InputTypeError("Expected a finite numeric color search value.");
 }
 
-export class RGBColor implements Iterable<number> {
+class RGBColorValue implements Iterable<number> {
   readonly [index: number]: number;
   readonly length = 3;
   private readonly values: readonly [number, number, number];
@@ -418,6 +419,9 @@ export class RGBColor implements Iterable<number> {
   *reversed(): IterableIterator<number> { for (let index = this.values.length - 1; index >= 0; index--) yield this.values[index]!; }
   equals(other: unknown): boolean { requireComparisonOperand(other); return other instanceof RGBColor && this.values.every((value, index) => value === other.values[index]); }
 }
+export type RGBColor = RGBColorValue;
+export const RGBColor = callableConstructor(RGBColorValue);
+
 export class ColorFormat {
   constructor(readonly owner: FormattingXmlOwner) {}
   get part(): unknown { return this.owner.part ?? null; }

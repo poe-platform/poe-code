@@ -456,6 +456,15 @@ open. XLSX still refuses raw-NUL formula expressions without publishing output.
 CSV import/export have separate lossy NUL policies; inspect both before changing
 either. See `reference.biffNulStrings`; no family is closed.
 
+Lotus range source review: LibreOffice and Gnumeric shift second-endpoint flags
+by three bits; libwps uses four. Keep the current three-bit layout pending primary
+format or native-authored evidence. LibreOffice also retains sheet relativity,
+which the candidate discards. Extend the shared formula reference model first:
+it currently stores only sheet names and also discards ODF absolute-sheet markers.
+Then preserve the distinction through import, relocation and export. A Lotus-only
+decoder change would lose it downstream. See `reference.lotusReferenceFlags`;
+native application qualification remains open.
+
 LibreOffice's formula-cache path is now traced separately: ordinary string
 results use `t="str"`; its inline-string branch handles invalid/default results.
 The loader interns raw cached text only for known-good generators and requests

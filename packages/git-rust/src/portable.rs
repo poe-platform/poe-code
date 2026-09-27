@@ -100,8 +100,16 @@ impl HttpClient for ReplayHttp {
 }
 
 pub fn execute_portable(input: &[u8]) -> Result<Vec<u8>, GitError> {
-    let request = json::parse(input, json::Limits::default())
-        .map_err(|_| GitError::internal("invalid portable request"))?;
+    let request = json::parse(
+        input,
+        json::Limits {
+            max_bytes: usize::MAX,
+            max_nodes: usize::MAX,
+            // Entries are flat; nesting is protocol structure, not filesystem depth.
+            ..json::Limits::default()
+        },
+    )
+    .map_err(|_| GitError::internal("invalid portable request"))?;
     let cwd = string(field(&request, "cwd")?)?;
     let Value::Array(args) = field(&request, "args")? else {
         return Err(GitError::internal("expected args"));

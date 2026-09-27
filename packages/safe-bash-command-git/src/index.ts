@@ -21,7 +21,7 @@ async function snapshot(fs:FileSystem, limits:GitLimits, signal:AbortSignal):Pro
     const {path,depth}=pending.pop()!;
     signal.throwIfAborted();
     if(depth>limits.maxDepth) throw new Error('Git filesystem depth limit exceeded');
-    for(const child of await fs.readdir(path,{signal,maxEntries:limits.maxEntries-entries.length})) {
+    for(const child of await fs.readdir(path,{signal,...(limits.maxEntries===Infinity ? {} : {maxEntries:limits.maxEntries-entries.length})})) {
       signal.throwIfAborted();
       if(entries.length>=limits.maxEntries) throw new Error('Git filesystem entry limit exceeded');
       const full=path==='/' ? `/${child.name}` : `${path}/${child.name}`;
@@ -32,7 +32,7 @@ async function snapshot(fs:FileSystem, limits:GitLimits, signal:AbortSignal):Pro
       let bytes:Uint8Array=new Uint8Array();
       if(stat.type==='directory') pending.push({path:full,depth:depth+1});
       else if(stat.type==='symlink') { if(!fs.readlink) throw new Error('Git requires readlink for symlinks'); bytes=encoder.encode(await fs.readlink(full,{signal})); }
-      else if(stat.type==='file') bytes=await fs.readFile(full,{signal,maxBytes:limits.maxBytes-total});
+      else if(stat.type==='file') bytes=await fs.readFile(full,{signal,...(limits.maxBytes===Infinity ? {} : {maxBytes:limits.maxBytes-total})});
       else throw new Error('Git does not support device entries');
       total+=bytes.length;
       if(total>limits.maxBytes) throw new Error('Git filesystem byte limit exceeded');
@@ -70,8 +70,8 @@ async function publish(fs:FileSystem, before:Entry[], after:Entry[], signal:Abor
 }
 
 export function createGitCommand(options:GitCommandsOptions={}):CommandDefinition {
-  const limits:GitLimits={maxEntries:4096,maxBytes:4*1024*1024,maxDepth:128,maxHttpRequests:16,maxHttpBytes:4*1024*1024,...options.limits};
-  for(const [name,value] of Object.entries(limits)) if(!Number.isSafeInteger(value) || value<1) throw new Error(`${name} must be a positive safe integer`);
+  const limits:GitLimits={maxEntries:Infinity,maxBytes:Infinity,maxDepth:Infinity,maxHttpRequests:Infinity,maxHttpBytes:Infinity,...options.limits};
+  for(const [name,value] of Object.entries(limits)) if(value!==Infinity && (!Number.isSafeInteger(value) || value<1)) throw new Error(`${name} must be a positive safe integer or Infinity`);
   return {name:'git',runtimeIdentity:commandRuntimeIdentity,description:'Git repositories in the virtual filesystem',async execute(context) {
     try {
       const before=await snapshot(context.fs,limits,context.signal);

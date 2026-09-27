@@ -106,3 +106,18 @@ fn portable_http_replay_fetches_objects_without_host_files() {
     }
     panic!("fetch exceeded HTTP replay rounds");
 }
+
+#[test]
+fn portable_request_has_no_implicit_byte_or_node_budget() {
+    // Unknown metadata is ignored, but still goes through the real JSON parser.
+    for padding in [
+        format!("\"{}\"", "x".repeat(16 * 1024 * 1024)),
+        format!("[{}]", vec!["0"; 262_145].join(",")),
+    ] {
+        let input =
+            format!(r#"{{"cwd":"/repo","args":["init"],"entries":[],"metadata":{padding}}}"#);
+        let output = execute_portable(input.as_bytes()).unwrap();
+        let result = json::parse(&output, json::Limits::default()).unwrap();
+        assert_eq!(result.get("exitCode"), Some(&Value::Number(0.0)));
+    }
+}

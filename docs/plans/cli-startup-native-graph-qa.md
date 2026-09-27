@@ -31,9 +31,17 @@ beforeAll(async () => {
     }
   }
   const graph = await resolveBundleGraph(root, workspaces);
+  const consumer = resolveConsumerGraph(graph, canonicalFs);
   result = await build({
-    entryPoints: [path.join(root, "src/cli-entry.ts")],
-    ...resolveConsumerGraph(graph, canonicalFs),
+    entryPoints: [path.join(root, "src/cli-entry.ts"), path.join(root, "src/cli/program.ts")],
+    ...consumer,
+    plugins: [{
+      name: "startup-imports",
+      setup(build) {
+        build.onResolve({ filter: /.*/ }, args => args.kind === "dynamic-import"
+          ? { path: args.path, external: true } : undefined);
+      }
+    }, ...(consumer.plugins ?? [])],
     bundle: true,
     platform: "node",
     format: "esm",
@@ -46,11 +54,11 @@ beforeAll(async () => {
 });
 
 it("keeps filesystem imports out of the CLI startup graph", () => {
-  const pending = ["dist/cli-entry.js"];
+  const pending: string[] = [];
   const visited = new Set<string>();
-  // Include the CLI program, which main loads dynamically before parsing commands.
+  // Follow both startup entries, including the program loaded before parsing commands.
   for (const [filename, output] of Object.entries(result.metafile.outputs)) {
-    if (output.entryPoint?.endsWith("src/cli/program.ts")) pending.push(filename);
+    if (output.entryPoint) pending.push(filename);
   }
   while (pending.length) {
     const filename = pending.pop()!;

@@ -465,6 +465,14 @@ Then preserve the distinction through import, relocation and export. A Lotus-onl
 decoder change would lose it downstream. See `reference.lotusReferenceFlags`;
 native application qualification remains open.
 
+CSV source follow-up: LibreOffice's actual import calls EmbeddedNullTreatment
+before field parsing and removes every NUL. Its length-aware exporter does not
+prove lossless roundtrips. The candidate instead substitutes spaces on import
+and truncates at NUL on export. Implement the requested preservation across both
+paths and document the compatibility difference; another application's loss does
+not resolve this requirement. See `reference.csvNulSourceReview` for immutable
+source hashes and call sites. This investigation changes no product behavior.
+
 LibreOffice's formula-cache path is now traced separately: ordinary string
 results use `t="str"`; its inline-string branch handles invalid/default results.
 The loader interns raw cached text only for known-good generators and requests

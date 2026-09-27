@@ -1183,6 +1183,25 @@
       ],
       "remaining": "Primary format or native-authored token evidence is required to select the error-constant payload width. Source disagreement does not establish a validated product defect; no blanket width change or interoperability claim."
     },
+    "csvNulSourceReview": {
+      "status": "source investigation; lossless NUL import/export remains open",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/ui/docshell/impex.cxx",
+          "sha256": "ec0acc31538e115a4f161e14f07f7ad567e730a69986931f5c982c47a4ca4072",
+          "lines": "1620-1633,1824-1838,2766-2778",
+          "finding": "ExtText2Doc calls EmbeddedNullTreatment before actual field import. It removes every U+0000 with an explicit-length replaceAll. ReadCsvLine skips NUL during quote scanning and defers removal to this higher layer. The comment acknowledges remaining zero-terminated-string assumptions; the writer does not establish importer fidelity."
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/ui/docshell/docsh.cxx",
+          "sha256": "961609efad0a0851e4b99a6ee861d778a61d83a5620b96323888335b8060d2c2",
+          "lines": "2233-2391",
+          "finding": "AsciiSave selects the cell string and writes OUString values or encoded buffers with explicit lengths, including WriteBytes(aStrEnc.getStr(), aStrEnc.getLength()). This is distinct from the importer's deliberate NUL removal."
+        }
+      ],
+      "candidate": "codecs/text.ts:readText replaces each NUL with a space and reports the loss; codecs/text-export.ts:appendField truncates at the first NUL to follow Gnumeric strlen behavior. Thus Calc strips, candidate import substitutes, and candidate export truncates. These are separate loss policies, not lossless roundtrips.",
+      "remaining": "Implement and qualify requested lossless CSV handling through both import and export, with explicit compatibility documentation for the native differences. Cover delimiter/quote scanning, formula-looking text, encoded NULs, cancellation and byte limits. Do not close this requirement merely because native applications also lose NUL. No new product change or application execution is claimed by this source review."
+    },
     "besselPhaseBoundary": {
       "status": "implemented source-qualified phase dispatch through 1 / binary64 epsilon",
       "source": {

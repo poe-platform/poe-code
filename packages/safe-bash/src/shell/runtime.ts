@@ -3963,6 +3963,7 @@ export class Runtime {
   declare private _syncArithRawWriteOnly: boolean;
   declare private _syncArithTouched: Set<string> | undefined;
   declare private _fastSubPositional: readonly string[] | undefined;
+  // Only synchronous function callers own deferred return propagation.
   private _syncReturnDepth = 0;
   private _syncPendingReturnStatus: number | undefined;
   declare private _syncArithRefs: ArithmeticReferences | undefined;
@@ -8325,10 +8326,8 @@ export class Runtime {
       const w0Plain = w0.plain;
       if (command.words.length === 1) {
         if (w0Plain === ":" || w0Plain === "true" || w0Plain === "false" || w0Plain === "return") return true;
-        if (w0Plain !== undefined && rawState.functions.has(w0Plain)) {
-          const fnBody = rawState.functions.get(w0Plain)!;
-          return fnBody.kind === "group" && fnBody.redirects.length === 0 && this.canSyncScriptCompound(fnBody.body, rawState, depth + 1);
-        }
+        // trySyncCommand handles function calls only in its multi-word path.
+        if (w0Plain !== undefined && rawState.functions.has(w0Plain)) return false;
         const arrayAssign = getArrayAssignment(w0);
         if (arrayAssign) return true;
         const assignment = this.assignment(w0);
@@ -8337,7 +8336,6 @@ export class Runtime {
       if (command.words.length === 2) {
         if (w0Plain === "return") return true;
         if (w0Plain === "unset" || w0Plain === "export" || w0Plain === "let" || w0Plain === "shift") return true;
-        if (w0Plain === "local") return true;
       }
       if (
         command.words.length >= 2 &&
@@ -8346,6 +8344,8 @@ export class Runtime {
         !hasShellFunction(rawState, "local") &&
         !rawState.extensions?.builtins.has("local")
       ) {
+        // Eligibility must be stable before any body effects. Dynamic values
+        // can cease to be fast-expandable after earlier statements run.
         let allValidLocal = true;
         for (let idx = 1; idx < command.words.length; idx++) {
           const wArg = command.words[idx]!;
@@ -8356,12 +8356,15 @@ export class Runtime {
               assignment.name === "OPTIND" ||
               assignment.name === "PIPESTATUS" ||
               assignment.name.includes("[") ||
+              rawState.readonlyVariables?.has(assignment.name) ||
+              arrayStore(rawState)?.get(assignment.name) ||
+              assignment.value.parts.some(part => part.kind !== "text" || part.byteValue !== undefined || (!part.quoted && part.value.includes("~"))) ||
               (rawState.braceexpand !== false && assignment.value.parts.some(part => part.kind === "text" && !part.quoted && part.value.includes("{")))
             ) {
               allValidLocal = false;
               break;
             }
-          } else if (!wArg.plain || !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(wArg.plain) || wArg.plain === "OPTIND" || wArg.plain === "PIPESTATUS") {
+          } else if (!wArg.plain || !isShellIdentifier(wArg.plain) || wArg.plain === "OPTIND" || wArg.plain === "PIPESTATUS" || rawState.readonlyVariables?.has(wArg.plain) || arrayStore(rawState)?.get(wArg.plain)) {
             allValidLocal = false;
             break;
           }
@@ -9161,7 +9164,6 @@ export class Runtime {
       }
       this.budget.tick();
       rawState.loopDepth++;
-      this._syncReturnDepth++;
       let loopStatus = 0;
       try {
         let turn = 0;
@@ -9188,7 +9190,6 @@ export class Runtime {
         }
       } finally {
         rawState.loopDepth--;
-        this._syncReturnDepth--;
       }
       const statusStr = loopStatus === 0 ? "0" : loopStatus === 1 ? "1" : String(loopStatus);
       if (!existing) {
@@ -9210,43 +9211,33 @@ export class Runtime {
         rawState.nounset ||
         rawState.readonlyVariables?.size ||
         hasYieldCheckpoint(this.signal) ||
-        (this._syncReturnDepth === 0 && (((this.budget.commands + 32) & 8191) < 32 || !this.canSyncCommandCompound(command, rawState, 0)))
+        ((this._syncReturnDepth === 0 && ((this.budget.commands + 32) & 8191) < 32) || !this.canSyncCommandCompound(command, rawState, 0))
       ) {
         return undefined;
       }
       if (command.kind === "group") {
         this.budget.tick();
-        this._syncReturnDepth++;
-        try {
-          const res = this.trySyncScript(command.body, state, io, ignored);
-          return typeof res === "number" ? res : undefined;
-        } finally {
-          this._syncReturnDepth--;
-        }
+        const res = this.trySyncScript(command.body, state, io, ignored);
+        return typeof res === "number" ? res : undefined;
       }
       if (command.kind === "if") {
         this.budget.tick();
-        this._syncReturnDepth++;
-        try {
-          for (let i = 0; i < command.branches.length; i++) {
-            const b = command.branches[i]!;
-            const condRes = this.trySyncScript(b.condition, state, io, true);
-            if (typeof condRes !== "number") return undefined;
-            if (this._syncPendingReturnStatus !== undefined) return this._syncPendingReturnStatus;
-            if (condRes === 0) {
-              const bodyRes = this.trySyncScript(b.body, state, io, ignored);
-              return typeof bodyRes === "number" ? bodyRes : undefined;
-            }
+        for (let i = 0; i < command.branches.length; i++) {
+          const b = command.branches[i]!;
+          const condRes = this.trySyncScript(b.condition, state, io, true);
+          if (typeof condRes !== "number") return undefined;
+          if (this._syncPendingReturnStatus !== undefined) return this._syncPendingReturnStatus;
+          if (condRes === 0) {
+            const bodyRes = this.trySyncScript(b.body, state, io, ignored);
+            return typeof bodyRes === "number" ? bodyRes : undefined;
           }
-          if (command.otherwise) {
-            const elseRes = this.trySyncScript(command.otherwise, state, io, ignored);
-            return typeof elseRes === "number" ? elseRes : undefined;
-          }
-          rawState.status = 0;
-          return 0;
-        } finally {
-          this._syncReturnDepth--;
         }
+        if (command.otherwise) {
+          const elseRes = this.trySyncScript(command.otherwise, state, io, ignored);
+          return typeof elseRes === "number" ? elseRes : undefined;
+        }
+        rawState.status = 0;
+        return 0;
       }
       // command.kind === "case"
       let fastSubject: ShellValue | undefined;
@@ -10387,7 +10378,7 @@ export class Runtime {
         (this._syncReturnDepth > 0 || ((this.budget.commands + 32) & 8191) >= 32)
       ) {
         const fnBody = rawState.functions.get(w0Plain)!;
-        if (fnBody.kind === "group" && fnBody.redirects.length === 0 && (this._syncReturnDepth > 0 || this.canSyncScriptCompound(fnBody.body, rawState, 0))) {
+        if (fnBody.kind === "group" && fnBody.redirects.length === 0 && this.canSyncScriptCompound(fnBody.body, rawState, 0)) {
           const fnArgs: string[] = [];
           let argsOk = true;
           try {
@@ -18629,7 +18620,7 @@ export class Runtime {
       }
       if (part.length) return String(binding?.values.size ?? (part.name === "FUNCNAME" && state.variables.FUNCNAME === undefined ? state.functionNames?.length ?? 0 : state.variables[part.name] === undefined ? 0 : 1));
       const values = await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring);
-      const space = selector.kind === "keys" && (hereDocument || (selector.separator === "@"
+      const space = selector.separator === "@" && !split || selector.kind === "keys" && (hereDocument || (selector.separator === "@"
         ? !part.quoted && !split || state.variables.IFS === ""
         : !part.quoted && split && state.variables.IFS === ""));
       return this.arrayJoin(store.owner, values, space ? " " : this.ifsSeparator(state, io));
@@ -19108,7 +19099,7 @@ export class Runtime {
             ) {
               const ifsVal = monitor?.values.get("IFS", rawVars.IFS ?? " ") ?? rawVars.IFS ?? " ";
               if (typeof ifsVal === "string" && (ifsVal.length === 0 || ifsVal.charCodeAt(0) < 128)) {
-                const sep = ifsVal.length > 0 ? ifsVal[0]! : "";
+                const sep = selector.separator === "@" ? " " : ifsVal.length > 0 ? ifsVal[0]! : "";
                 const evalSliceInt = (w: Word): number | undefined => {
                   if (w.parts.length === 0) return 0;
                   const expanded = this.fastValueWord(w, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);

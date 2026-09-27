@@ -1,0 +1,50 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { spawnSync } from "node:child_process";
+import { basicCommands } from "../../src/commands/basic.js";
+import { predicateCommands } from "../../src/commands/predicates.js";
+import { setup } from "./helpers.js";
+
+const compounds = [
+  'if true; then return 5; fi',
+  'while true; do return 5; done',
+  'until false; do return 5; done',
+  '{ return 5; }',
+  'for ((i=0; i<3; i++)); do return 5; done',
+];
+const cases: Array<[string, string]> = [];
+for (const body of compounds) {
+  for (const call of ['f 1', 'f > /result', 'res=$(f); saved=$?; echo "res=$res status=$saved"', 'say async; f', `f() { say async; ${body}; echo UNREACHABLE; }; f`]) {
+    cases.push([`return from ${body} via ${call}`, `f() { ${body}; echo UNREACHABLE; }; ${call}; echo status=$?; g() { echo clean; }; g; echo done`]);
+  }
+}
+cases.push(
+  ['bare return in sync function', 'f() { if true; then false; return; fi; echo UNREACHABLE; }; f 1; echo status=$?'],
+  ['nested return stays in inner function', 'inner() { if true; then return 7; fi; echo UNREACHABLE; }; outer() { inner 1; echo inner=$?; return 3; }; outer 1; echo outer=$?'],
+  ['bare arithmetic return executes once', 'cnt=0; f() { for ((i=0;i<3;i++)); do cnt=$((cnt+1)); echo step; return; done; }; f; echo cnt=$cnt'],
+  ['zero argument helper after mutation', 'cnt=0; calls=0; helper() { calls=$((calls+1)); }; while [ $cnt -lt 1 ]; do cnt=$((cnt+1)); echo before; helper; done; echo "$cnt $calls"'],
+  ['nested zero argument helper', 'cnt=0; helper() { echo helper; }; inner() { echo before; helper; }; outer() { inner 1; }; while [ $cnt -lt 1 ]; do outer 1; cnt=$((cnt+1)); done'],
+);
+for (const local of ['local a=1', 'local a=1 b=2', 'local -a arr', 'local arr=(1 2)', 'local a+=1', 'local a=$(echo value)', 'local a b=$(echo value)', 'local a=$value', 'local a=1 b=$value']) {
+  cases.push([`local eligibility ${local}`, `value='two words'; cnt=0; f() { echo before; ${local}; echo after; }; while [ $cnt -lt 1 ]; do f 1; cnt=$((cnt+1)); done; echo cnt=$cnt`]);
+}
+for (const ifs of [':', '', ' ']) {
+  cases.push([`array assignment joining IFS=${ifs}`, `arr=(a b c); IFS='${ifs}'; x=\${!arr[@]}; y="\${!arr[@]}"; z=\${arr[@]}; q="\${arr[@]}"; star="\${arr[*]}"; echo "<$x><$y><$z><$q><$star>"`]);
+}
+for (const maxExpansionBytes of [65536, undefined]) {
+  for (const [name, source] of cases) {
+    test(`${name} (expansion budget ${maxExpansionBytes})`, async () => {
+      // Host Bash is an oracle only; all product execution uses the memory VFS.
+      const oracle = spawnSync('/bin/bash', ['--noprofile', '--norc', '-c', `say() { echo "$@"; }; ${source.replace('> /result', '> /dev/null')}`], { encoding: 'utf8' });
+      assert.equal(oracle.error, undefined);
+      const { shell, commands } = setup({ limits: { maxCommands: 1000, ...(maxExpansionBytes === undefined ? {} : { maxExpansionBytes }) } });
+      for (const command of [...basicCommands(), ...predicateCommands()]) commands.register(command);
+      try {
+        const result = await shell.exec(source);
+        assert.equal(result.stdout, oracle.stdout);
+        assert.equal(result.stderr, oracle.stderr);
+        assert.equal(result.exitCode, oracle.status);
+      } finally { await shell.dispose(); }
+    });
+  }
+}

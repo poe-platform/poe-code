@@ -19,13 +19,8 @@ function replacementPng(color: "rgb" | "rgba") {
   const compressed = joinBytes(Uint8Array.from([120, 1, 1, row.length, 0, 255 - row.length, 255]), row, checksum);
   return joinBytes(Uint8Array.from([137, 80, 78, 71, 13, 10, 26, 10]), pngChunk("IHDR", header), pngChunk("IDAT", compressed), pngChunk("IEND", new Uint8Array()));
 }
-for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
-for (const codec of ["utf8", "utf16le", "utf16be"] as const)
-for (const mode of ["read", "fill"] as const)
-for (const scenario of ["rgb", "foreign-urn-role", "foreign-http-role", "foreign-nonsuffix-role"] as const)
-for (const route of ["sdk", "native-sdk", "cli", "native-cli", "sdk-batch", "native-sdk-batch", "cli-batch", "native-cli-batch"] as const)
-it(`exact native picture relationship role ${scenario}; mode=${mode}; codec=${codec}; strict=${strict}; kind=${kind}; route=${route}`, async () => {
-  const product = route.startsWith("native") ? native : api, context = { signal: textContext.signal, limits: textContext.limits, encoding: { order: "input", compression: "store" } as const };
+async function pictureFixture(strict: boolean, kind: "docx" | "dotx", codec: "utf8" | "utf16le" | "utf16be", scenario: "rgb" | "foreign-urn-role" | "foreign-http-role" | "foreign-nonsuffix-role", product: typeof api | typeof native) {
+  const context = { signal: textContext.signal, limits: textContext.limits, encoding: { order: "input", compression: "store" } as const };
   const w = strict ? "http://purl.oclc.org/ooxml/wordprocessingml/main" : "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
   const r = strict ? "http://purl.oclc.org/ooxml/officeDocument/relationships" : "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
   const a = strict ? "http://purl.oclc.org/ooxml/drawingml/main" : "http://schemas.openxmlformats.org/drawingml/2006/main";
@@ -50,8 +45,24 @@ it(`exact native picture relationship role ${scenario}; mode=${mode}; codec=${co
     if (codec !== "utf8") { const buffer = Buffer.from("\ufeff" + originalXml, "utf16le"); if (codec === "utf16be") buffer.swap16(); parts.set(name, new Uint8Array(buffer)); }
     expect(new TextDecoder(decoding, { fatal: true }).decode(parts.get(name)!)).toBe(originalXml);
   }
-  const memory = Volume.fromJSON({ "/input": "", "/output": "" }); await product.writeArchive({ comment: new Uint8Array(), members: [...parts].map(([name, bytes]) => ({ name, bytes, directory: false, modified: new Date("1980-01-01T00:00:00Z") })) }, { async write(bytes: Uint8Array) { memory.appendFileSync("/input", bytes); } }, context.encoding, context);
-  const input = new Uint8Array(memory.readFileSync("/input") as Buffer), original = input.slice(), rejected = scenario !== "rgb";
+  const memory = Volume.fromJSON({ "/input": "" }); await product.writeArchive({ comment: new Uint8Array(), members: [...parts].map(([name, bytes]) => ({ name, bytes, directory: false, modified: new Date("1980-01-01T00:00:00Z") })) }, { async write(bytes: Uint8Array) { memory.appendFileSync("/input", bytes); } }, context.encoding, context);
+  return { input: new Uint8Array(memory.readFileSync("/input") as Buffer), parts, drawing, pr, r, decoding, pictureBytes, replacement };
+}
+const fixtures = new Map<string, ReturnType<typeof pictureFixture>>();
+
+for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
+for (const codec of ["utf8", "utf16le", "utf16be"] as const)
+for (const mode of ["read", "fill"] as const)
+for (const scenario of ["rgb", "foreign-urn-role", "foreign-http-role", "foreign-nonsuffix-role"] as const)
+for (const route of ["sdk", "native-sdk", "cli", "native-cli", "sdk-batch", "native-sdk-batch", "cli-batch", "native-cli-batch"] as const)
+it(`exact native picture relationship role ${scenario}; mode=${mode}; codec=${codec}; strict=${strict}; kind=${kind}; route=${route}`, async () => {
+  const product = route.startsWith("native") ? native : api, context = { signal: textContext.signal, limits: textContext.limits, encoding: { order: "input", compression: "store" } as const };
+  const key = JSON.stringify([strict, kind, codec, scenario, route.startsWith("native")]);
+  let pendingFixture = fixtures.get(key);
+  if (!pendingFixture) { pendingFixture = pictureFixture(strict, kind, codec, scenario, product); fixtures.set(key, pendingFixture); }
+  const { input: fixtureInput, parts, drawing, pr, r, decoding, pictureBytes, replacement } = await pendingFixture;
+  const input = fixtureInput.slice(), original = input.slice(), rejected = scenario !== "rgb";
+  const memory = Volume.fromJSON({ "/input": Buffer.from(input), "/output": "" });
   if (mode === "read") {
     let result: api.ControlReadData;
     const operations = [{ operation: "controls.list", arguments: { control: 1 } }];

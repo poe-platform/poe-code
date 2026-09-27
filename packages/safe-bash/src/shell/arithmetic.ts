@@ -398,7 +398,9 @@ function canEvalSafeSmiTree(node: Arithmetic, depth = 0): boolean {
     if (
       node.operator === "+" || node.operator === "-" || node.operator === "*" ||
       node.operator === "<" || node.operator === "<=" || node.operator === ">" ||
-      node.operator === ">=" || node.operator === "==" || node.operator === "!="
+      node.operator === ">=" || node.operator === "==" || node.operator === "!=" ||
+      node.operator === "&" || node.operator === "|" || node.operator === "^" ||
+      node.operator === "&&" || node.operator === "||"
     ) {
       return canEvalSafeSmiTree(node.left, depth + 1) && canEvalSafeSmiTree(node.right, depth + 1);
     }
@@ -456,6 +458,18 @@ function evalSafeSmi(node: Arithmetic, refs: ArithmeticReferences, budget: Parse
     }
     const l = evalSafeSmi(node.left, refs, budget);
     if (l === undefined || l < -94906265 || l > 94906265) return undefined;
+    if (node.operator === "&&") {
+      if (l === 0) return 0;
+      const rAnd = evalSafeSmi(node.right, refs, budget);
+      if (rAnd === undefined || rAnd < -94906265 || rAnd > 94906265) return undefined;
+      return rAnd !== 0 ? 1 : 0;
+    }
+    if (node.operator === "||") {
+      if (l !== 0) return 1;
+      const rOr = evalSafeSmi(node.right, refs, budget);
+      if (rOr === undefined || rOr < -94906265 || rOr > 94906265) return undefined;
+      return rOr !== 0 ? 1 : 0;
+    }
     const r = evalSafeSmi(node.right, refs, budget);
     if (r === undefined || r < -94906265 || r > 94906265) return undefined;
     switch (node.operator) {
@@ -470,6 +484,9 @@ function evalSafeSmi(node: Arithmetic, refs: ArithmeticReferences, budget: Parse
       case ">=": return l >= r ? 1 : 0;
       case "==": return l === r ? 1 : 0;
       case "!=": return l !== r ? 1 : 0;
+      case "&": return l & r;
+      case "|": return l | r;
+      case "^": return l ^ r;
     }
   }
   return undefined;
@@ -495,7 +512,8 @@ function collectPureSmiTreeNames(node: Arithmetic, names: Set<string>, depth = 1
     if (
       node.operator === "+" || node.operator === "-" || node.operator === "*" ||
       node.operator === "<" || node.operator === "<=" || node.operator === ">" ||
-      node.operator === ">=" || node.operator === "==" || node.operator === "!="
+      node.operator === ">=" || node.operator === "==" || node.operator === "!=" ||
+      node.operator === "&" || node.operator === "|" || node.operator === "^"
     ) {
       return collectPureSmiTreeNames(node.left, names, depth + 1) && collectPureSmiTreeNames(node.right, names, depth + 1);
     }
@@ -545,6 +563,9 @@ export function evalPureSmiWithInts(node: Arithmetic, intVars: Map<string, numbe
       case ">=": return l >= r ? 1 : 0;
       case "==": return l === r ? 1 : 0;
       case "!=": return l !== r ? 1 : 0;
+      case "&": return l & r;
+      case "|": return l | r;
+      case "^": return l ^ r;
     }
   }
   return undefined;
@@ -868,6 +889,9 @@ export function compilePureSmiProgram(program: ArithmeticProgram, namesOut: Set<
         case ">=": opCode = 13; break;
         case "==": opCode = 14; break;
         case "!=": opCode = 15; break;
+        case "&": opCode = 16; break;
+        case "|": opCode = 17; break;
+        case "^": opCode = 18; break;
         default: return false;
       }
       if ((opCode === 8 || opCode === 9) && (node.right.kind !== "literal" || node.right.value === 0n || node.right.value < -94906265n || node.right.value > 94906265n)) {
@@ -931,6 +955,9 @@ export function evalCompiledSmi(compiled: CompiledSmiExpr, varRegMap: readonly n
         case 13: res = l >= r ? 1 : 0; break;
         case 14: res = l === r ? 1 : 0; break;
         case 15: res = l !== r ? 1 : 0; break;
+        case 16: res = l & r; break;
+        case 17: res = l | r; break;
+        case 18: res = l ^ r; break;
       }
       if ((res | 0) !== res || res < -1073741824 || res > 1073741823) return 0x7fffffff;
       sharedRpnStack[sp - 1] = res | 0;

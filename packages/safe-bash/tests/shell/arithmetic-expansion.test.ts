@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { setup } from "./helpers.js";
 import { ShellLimitError } from "../../src/shell/types.js";
-import { printfCommand } from "../../src/commands/basic.js";
+import { basicCommands, printfCommand } from "../../src/commands/basic.js";
 import { writeText } from "../../src/contracts/index.js";
 
 const cases = [
@@ -178,5 +178,41 @@ test("substring arithmetic offsets, indexed array variable subscripts, and multi
     assert.equal(result.exitCode, 0);
     assert.equal(result.stderr, "");
     assert.equal(result.stdout, "[\"740\"]");
+  } finally { await shell.dispose(); }
+});
+
+test("wave 41: indirect expansion, :+/:= defaults, array element case conversion, and compound command substitutions", async () => {
+  const { shell } = setup();
+  for (const c of basicCommands()) shell.register(c);
+  try {
+    const result = await shell.exec(`
+      v0=10; v1=20; v2=30; v3=40
+      arr=(alpha beta gamma delta)
+      fmt_item() {
+        local id="\$1" tag="\$2"
+        if [[ "\$id" -lt 2 ]]; then
+          printf "low:%s:%s" "\$id" "\${tag:-none}"
+          return 0
+        fi
+        printf "high:%s:%s" "\$id" "\${tag^^}"
+      }
+      acc=0
+      buf=""
+      for ((i = 0; i < 8; i++)); do
+        idx=\$((i & 3))
+        k="v\$idx"
+        a="\${i:+set_\$i}"
+        unset b
+        c="\${b:=def_\$idx}"
+        fn_out="\$(fmt_item "\$idx" "\${arr[idx]^^}")"
+        case_out="\$(case \$idx in 0) echo zero;; 1) echo one;; *) echo other;; esac)"
+        buf+="x"
+        acc=\$((acc + \${!k} + \${#a} + \${#c} + \${#fn_out} + \${#case_out}))
+      done
+      args "\$acc:\${#buf}:\$b"
+    `);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, '["404:8:def_3"]');
   } finally { await shell.dispose(); }
 });

@@ -8333,7 +8333,7 @@ export class Runtime {
         const arrayAssign = getArrayAssignment(w0);
         if (arrayAssign) return true;
         const assignment = this.assignment(w0);
-        return Boolean(assignment && !assignment.append && assignment.name !== "OPTIND" && assignment.name !== "PIPESTATUS" && !assignment.name.includes("["));
+        return Boolean(assignment && assignment.name !== "OPTIND" && assignment.name !== "PIPESTATUS" && !assignment.name.includes("["));
       }
       if (command.words.length === 2) {
         if (w0Plain === "return") return true;
@@ -9115,6 +9115,79 @@ export class Runtime {
       }
       const fastLoopRes = this.trySyncLoop(command, pipeline, rawState, monitor, store, existing, elem0, canMutatePipeStatus, io, diagnosticLine);
       if (fastLoopRes !== undefined) return fastLoopRes;
+      if (
+        command.kind === "arithmetic-for" &&
+        command.redirects.length === 0 &&
+        !pipeline.negate &&
+        canMutatePipeStatus &&
+        (!ignored && rawState.errexit ? false : true) &&
+        !rawState.nounset &&
+        !rawState.readonlyVariables?.size &&
+        !rawState.extensions?.checkpoints.length &&
+        !hasYieldCheckpoint(this.signal) &&
+        this.canSyncCommandCompound(command, rawState, 0)
+      ) {
+        const [e0, e1, e2] = command.expressions;
+        this.budget.tick();
+        rawState.loopDepth++;
+        this._syncReturnDepth++;
+        const enableRawBatch = !this._syncArithRawWriteOnly && rawState.locals.length === 0 && this.budget.limits.maxExpansionBytes === Infinity;
+        const batchTouched = enableRawBatch ? new Set<string>() : undefined;
+        if (enableRawBatch) {
+          this._syncArithRawWriteOnly = true;
+          this._syncArithTouched = batchTouched;
+        }
+        let loopStatus = 0;
+        try {
+          this.syncShellArithmeticNonZero(e0!, rawState, diagnosticLine);
+          let turn = 0;
+          while (true) {
+            this.budget.loop();
+            if ((++turn & 127) === 0) {
+              if (hasYieldCheckpoint(this.signal)) return undefined;
+              runYieldCheckpoint(this.signal);
+            }
+            if (!this.syncShellArithmeticNonZero(e1!, rawState, diagnosticLine)) break;
+            const bodyRes = this.trySyncScript(command.body, state, io, ignored);
+            if (typeof bodyRes !== "number") return undefined;
+            loopStatus = bodyRes;
+            if (this._syncPendingReturnStatus !== undefined) {
+              loopStatus = this._syncPendingReturnStatus;
+              break;
+            }
+            this.syncShellArithmeticNonZero(e2!, rawState, diagnosticLine);
+          }
+        } catch {
+          this.signal.throwIfAborted();
+          return undefined;
+        } finally {
+          if (enableRawBatch && batchTouched) {
+            this._syncArithRawWriteOnly = false;
+            this._syncArithTouched = undefined;
+            for (const varName of batchTouched) {
+              const v = rawState.variables[varName];
+              if (v !== undefined) {
+                monitor.publishStringVariable(varName, v);
+                if (rawState.allexport) monitor.proxy.exported.add(varName);
+              } else {
+                monitor.values.invalidate(varName);
+              }
+            }
+          }
+          rawState.loopDepth--;
+          this._syncReturnDepth--;
+        }
+        const statusStr = loopStatus === 0 ? "0" : loopStatus === 1 ? "1" : String(loopStatus);
+        if (!existing) {
+          monitor.lazyPipeStatus = loopStatus === 0 ? singleStatusZero : loopStatus === 1 ? singleStatusOne : [loopStatus];
+          monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+        } else if (elem0!.text.bytes === statusStr.length) {
+          elem0!.text.shellValue = statusStr;
+          store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+        }
+        rawState.status = loopStatus;
+        return loopStatus;
+      }
       return undefined;
     }
     if (command.kind === "while" || command.kind === "until") {
@@ -9484,6 +9557,10 @@ export class Runtime {
         rawState.status = retStatus;
         monitor.epoch = restEpoch;
         if (store) store.epoch = restEpoch;
+        if (this._syncReturnDepth > 0) {
+          this._syncPendingReturnStatus = retStatus;
+          return retStatus;
+        }
         throw completedExit(retStatus, "return", 1, retStatus);
       }
       if (
@@ -9586,7 +9663,6 @@ export class Runtime {
       const assignment = this.assignment(w0);
       if (
         !assignment ||
-        assignment.append ||
         assignment.name === "OPTIND" ||
         assignment.name === "PIPESTATUS" ||
         assignment.name.includes("[") ||
@@ -9604,13 +9680,28 @@ export class Runtime {
       } catch {
         return undefined;
       }
-      if (fastAssigned === undefined) return undefined;
+      if (typeof fastAssigned !== "string") return undefined;
+      let finalAssigned = fastAssigned;
+      if (assignment.append) {
+        const curRaw = rawState.variables[assignment.name];
+        const curStr = curRaw === undefined ? "" : (monitor.values.get(assignment.name, curRaw) ?? curRaw);
+        if (typeof curStr !== "string") return undefined;
+        finalAssigned = curStr + finalAssigned;
+        if (finalAssigned.length > this.budget.limits.maxExpansionBytes || (finalAssigned.length * 3 > this.budget.limits.maxExpansionBytes && Buffer.byteLength(finalAssigned) > this.budget.limits.maxExpansionBytes)) {
+          return undefined;
+        }
+      }
       const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
       this.budget.tick();
       rawState.substitutionStatus = 0;
       if (assignment.name !== "_" && rawState.variables._ !== undefined) delete rawState.variables._;
       rawState.lastArgument = "";
-      monitor.publishStringVariable(assignment.name, fastAssigned as string);
+      if (this._syncArithRawWriteOnly && this._syncArithTouched) {
+        rawState.variables[assignment.name] = finalAssigned;
+        this._syncArithTouched.add(assignment.name);
+      } else {
+        monitor.publishStringVariable(assignment.name, finalAssigned);
+      }
       if (rawState.allexport) monitor.proxy.exported.add(assignment.name);
       if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
       if (!existing) {
@@ -10821,7 +10912,6 @@ export class Runtime {
       }
       if (part.kind === "variable") {
         if (
-          part.indirect ||
           part.prefixNames ||
           part.specialParameter ||
           part.transform ||
@@ -10831,9 +10921,27 @@ export class Runtime {
           part.name === "LINENO" ||
           part.name === "_" ||
           part.name === "FUNCNAME" ||
-          getArraySelector(part) !== undefined ||
           !isShellIdentifier(part.name)
         ) {
+          return false;
+        }
+        if (part.indirect) {
+          if (part.length || part.substring || part.operator !== undefined || getArraySelector(part) !== undefined || rawState.nounset) return false;
+          continue;
+        }
+        const sel = getArraySelector(part);
+        if (sel !== undefined) {
+          if (rawState.nounset || part.substring) return false;
+          if (sel.kind === "members" || sel.kind === "keys") {
+            if (!part.length || part.operator !== undefined) return false;
+            continue;
+          }
+          if (sel.kind === "element") {
+            if (part.operator === undefined) continue;
+            if ((part.operator === "-" || part.operator === ":-" || part.operator === "+" || part.operator === ":+") && part.alternate && !part.length) continue;
+            if ((part.operator === "^" || part.operator === "^^" || part.operator === "," || part.operator === ",,") && (!part.alternate || part.alternate.parts.length === 0) && !part.length) continue;
+            return false;
+          }
           return false;
         }
         if (part.length || part.substring || part.operator !== undefined) {
@@ -10856,6 +10964,10 @@ export class Runtime {
             ) {
               return false;
             }
+          } else if (part.operator === "^" || part.operator === "^^" || part.operator === "," || part.operator === ",,") {
+            if (part.alternate && part.alternate.parts.length > 0) return false;
+          } else if (part.operator === "-" || part.operator === ":-" || part.operator === "+" || part.operator === ":+") {
+            if (!part.alternate || !part.alternate.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring))) return false;
           } else if (part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") {
             if (part.alternate?.parts.length !== 1 || part.alternate.parts[0]!.kind !== "text" || part.alternate.parts[0]!.byteValue) return false;
             const pat = part.alternate.parts[0]!.value;
@@ -11051,7 +11163,7 @@ export class Runtime {
         const assignment = this.assignment(w0);
         if (
           !assignment ||
-          assignment.append ||
+          (assignment.append && this.budget.limits.maxExpansionBytes !== Infinity) ||
           assignment.name === "OPTIND" ||
           assignment.name === "PIPESTATUS" ||
           assignment.name.includes("[") ||
@@ -11072,10 +11184,11 @@ export class Runtime {
       readonly name: string | undefined;
       readonly value: Word | undefined;
       readonly targetWord: Word | undefined;
+      readonly append?: boolean;
     },
     rawState: State,
   ): IntLoopStep | undefined {
-    if (step.targetWord !== undefined || step.name === undefined || step.value === undefined) {
+    if (step.targetWord !== undefined || step.name === undefined || step.value === undefined || step.append) {
       return undefined;
     }
     const cached = intLoopStepCache.get(step.cmd);
@@ -11197,7 +11310,7 @@ export class Runtime {
         } else {
           const arrAssign = getArrayAssignment(w0);
           const assignment = !arrAssign ? this.assignment(w0) : undefined;
-          bodyAssignments.push({ cmd, name: assignment?.name, value: assignment?.value ?? (arrAssign?.kind === "element" ? arrAssign.value : arrAssign?.entries[0]?.value), arrayAssign: arrAssign, targetWord: undefined, append: false, line });
+          bodyAssignments.push({ cmd, name: assignment?.name, value: assignment?.value ?? (arrAssign?.kind === "element" ? arrAssign.value : arrAssign?.entries[0]?.value), arrayAssign: arrAssign, targetWord: undefined, append: assignment?.append ?? false, line });
         }
       }
     }
@@ -11359,7 +11472,7 @@ export class Runtime {
         if (fastRes !== undefined) return fastRes;
       }
     }
-    if (guestArrays(rawState) || !this.canSyncLoopBody(command.body, rawState, io)) {
+    if ((guestArrays(rawState) && (guestArrays(rawState)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) || !this.canSyncLoopBody(command.body, rawState, io)) {
       return undefined;
     }
     for (const v of Object.values(rawState.variables)) {
@@ -11473,25 +11586,29 @@ export class Runtime {
               }
               continue;
             }
+            if (part.kind === "substitution") {
+              continue;
+            }
             (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan = null;
             return undefined;
           }
         }
       }
       const arithNamesList = [...arithNames];
-      const hasAnyArrayAssign = bodyAssignments.some(s => s.arrayAssign !== undefined || s.isStdoutEcho === true);
+      const hasAnyArrayAssign = bodyAssignments.some(s => s.arrayAssign !== undefined || s.isStdoutEcho === true || s.value?.parts.some(p => p.kind === "substitution" || (p.kind === "variable" && p.indirect)));
       let hasDeferredSteps = false;
       let deferredMask = 0;
       if (!hasAnyArrayAssign) for (let b = 0; b < bodyAssignments.length; b++) {
         const step = bodyAssignments[b]!;
         if (
+          !step.append &&
           step.targetWord === undefined &&
           step.name !== undefined &&
           step.value !== undefined &&
           step.name !== inductionName &&
           !arithNames.has(step.name) &&
           !paramReadNames.has(step.name) &&
-          step.value.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.length && !p.substring && p.operator === undefined))
+          step.value.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.indirect && !p.length && !p.substring && p.operator === undefined && getArraySelector(p) === undefined))
         ) {
           let readAnywhere = false;
           for (let b2 = 0; b2 < bodyAssignments.length; b2++) {
@@ -12280,7 +12397,13 @@ export class Runtime {
           lastValueWord = undefined;
         } else if (step.name !== undefined && step.value !== undefined) {
           const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
-          rawState.variables[step.name] = val;
+          if (step.append) {
+            const curRaw = rawState.variables[step.name];
+            const curStr = curRaw === undefined ? "" : (touched.has(step.name) ? curRaw : (monitor.values.get(step.name, curRaw) ?? curRaw));
+            rawState.variables[step.name] = (typeof curStr === "string" ? curStr : "") + val;
+          } else {
+            rawState.variables[step.name] = val;
+          }
           touched.add(step.name);
           lastArg = "";
           lastValueWord = undefined;
@@ -12344,7 +12467,13 @@ export class Runtime {
           lastValueWord = step.value;
         } else if (step.name !== undefined && step.value !== undefined) {
           const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
-          rawState.variables[step.name] = val;
+          if (step.append) {
+            const curRaw = rawState.variables[step.name];
+            const curStr = curRaw === undefined ? "" : (touched.has(step.name) ? curRaw : (monitor.values.get(step.name, curRaw) ?? curRaw));
+            rawState.variables[step.name] = (typeof curStr === "string" ? curStr : "") + val;
+          } else {
+            rawState.variables[step.name] = val;
+          }
           touched.add(step.name);
           lastArg = "";
           lastValueWord = undefined;
@@ -18952,6 +19081,43 @@ export class Runtime {
           out += val;
           continue;
         }
+        if (
+          part.indirect &&
+          !part.prefixNames &&
+          !part.specialParameter &&
+          !part.length &&
+          !part.substring &&
+          !part.transform &&
+          part.operator === undefined &&
+          getArraySelector(part) === undefined &&
+          !rawState.nounset &&
+          isShellIdentifier(part.name) &&
+          !activeArrayStore?.get(part.name)
+        ) {
+          const refRaw = rawVars[part.name];
+          const refName = refRaw === undefined ? undefined : (this._syncArithRawWriteOnly && this._syncArithTouched?.has(part.name) ? refRaw : (monitor?.values.get(part.name, refRaw) ?? refRaw));
+          if (typeof refName !== "string" || !isShellIdentifier(refName)) return undefined;
+          if (
+            activeArrayStore?.get(refName) ||
+            rawState.variableAttributes?.get(refName) ||
+            refName === "PIPESTATUS" ||
+            refName === "LINENO" ||
+            refName === "_" ||
+            refName === "FUNCNAME"
+          ) {
+            return undefined;
+          }
+          const targetRaw = rawVars[refName];
+          const targetVal = targetRaw === undefined ? "" : (this._syncArithRawWriteOnly && this._syncArithTouched?.has(refName) ? targetRaw : (monitor?.values.get(refName, targetRaw) ?? targetRaw));
+          if (typeof targetVal !== "string") return undefined;
+          if (split && !part.quoted) {
+            if (targetVal.length === 0 || targetVal.includes(" ") || targetVal.includes("\t") || targetVal.includes("\n") || (!rawState.noglob && hasGlobOrEscape(targetVal, !!rawState.extglob))) {
+              return undefined;
+            }
+          }
+          out += targetVal;
+          continue;
+        }
         if (part.indirect || part.prefixNames || part.specialParameter || part.transform) return undefined;
         if (part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME") return undefined;
         if (!isShellIdentifier(part.name)) return undefined;
@@ -19098,6 +19264,32 @@ export class Runtime {
               } else {
                 resolvedElem = elemVal!;
               }
+            } else if ((part.operator === "+" || part.operator === ":+") && part.alternate) {
+              const isPresent = elemVal !== undefined && (part.operator === "+" || elemVal !== "");
+              if (isPresent) {
+                const altVal = this.fastValueWord(part.alternate, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
+                if (typeof altVal !== "string") return undefined;
+                resolvedElem = altVal;
+              } else {
+                resolvedElem = "";
+              }
+            } else if (
+              (part.operator === "^" || part.operator === "^^" || part.operator === "," || part.operator === ",,") &&
+              (!part.alternate || part.alternate.parts.length === 0)
+            ) {
+              const s = elemVal ?? "";
+              for (let k = 0; k < s.length; k++) {
+                if (s.charCodeAt(k) >= 128) return undefined;
+              }
+              resolvedElem = s.length === 0
+                ? ""
+                : part.operator === "^^"
+                  ? s.toUpperCase()
+                  : part.operator === ",,"
+                    ? s.toLowerCase()
+                    : part.operator === "^"
+                      ? s[0]!.toUpperCase() + s.slice(1)
+                      : s[0]!.toLowerCase() + s.slice(1);
             } else {
               return undefined;
             }
@@ -19348,18 +19540,48 @@ export class Runtime {
             out += converted;
             continue;
           }
-          if ((part.operator === "-" || part.operator === ":-") && part.alternate && !rawState.nounset && part.alternate.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring))) {
+          if (
+            (part.operator === "-" || part.operator === ":-" || part.operator === "+" || part.operator === ":+" || part.operator === "=" || part.operator === ":=") &&
+            part.alternate &&
+            !rawState.nounset &&
+            part.alternate.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring))
+          ) {
+            const isAssignOp = part.operator === "=" || part.operator === ":=";
+            if (isAssignOp && (!monitor || rawState.readonlyVariables?.has(part.name) || activeArrayStore?.get(part.name) || hasActiveVariableAttributes(rawState) || part.name === "OPTIND" || part.name === "PIPESTATUS")) {
+              return undefined;
+            }
             const raw = rawVars[part.name];
             const cur = raw === undefined ? undefined : (this._syncArithRawWriteOnly && this._syncArithTouched?.has(part.name) ? raw : (monitor?.values.get(part.name, raw) ?? raw));
             if (cur !== undefined && typeof cur !== "string") return undefined;
-            const isMissing = cur === undefined || (part.operator === ":-" && cur === "");
             let resolvedScalar: string;
-            if (isMissing) {
-              const altVal = this.fastValueWord(part.alternate, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
-              if (typeof altVal !== "string") return undefined;
-              resolvedScalar = altVal;
+            if (part.operator === "+" || part.operator === ":+") {
+              const isPresent = cur !== undefined && (part.operator === "+" || cur !== "");
+              if (isPresent) {
+                const altVal = this.fastValueWord(part.alternate, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
+                if (typeof altVal !== "string") return undefined;
+                resolvedScalar = altVal;
+              } else {
+                resolvedScalar = "";
+              }
             } else {
-              resolvedScalar = cur!;
+              const isMissing = cur === undefined || ((part.operator === ":-" || part.operator === ":=") && cur === "");
+              if (isMissing) {
+                const altVal = this.fastValueWord(part.alternate, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
+                if (typeof altVal !== "string") return undefined;
+                if (isAssignOp) {
+                  if (altVal.length > this.budget.limits.maxExpansionBytes || Buffer.byteLength(altVal) > this.budget.limits.maxExpansionBytes) return undefined;
+                  if (this._syncArithRawWriteOnly) {
+                    rawVars[part.name] = altVal;
+                    this._syncArithTouched?.add(part.name);
+                  } else {
+                    monitor!.publishStringVariable(part.name, altVal);
+                  }
+                  if (rawState.allexport) monitor!.proxy.exported.add(part.name);
+                }
+                resolvedScalar = altVal;
+              } else {
+                resolvedScalar = cur!;
+              }
             }
             if (split && !part.quoted) {
               if (resolvedScalar.length === 0 || resolvedScalar.includes(" ") || resolvedScalar.includes("\t") || resolvedScalar.includes("\n") || (!rawState.noglob && hasGlobOrEscape(resolvedScalar, !!rawState.extglob))) {
@@ -19474,21 +19696,25 @@ export class Runtime {
           continue;
         }
         if (
-          p.indirect ||
           p.prefixNames ||
           p.specialParameter ||
-          p.length ||
-          p.substring ||
           p.transform ||
-          p.operator !== undefined ||
           p.name === "@" ||
           p.name === "*" ||
-          getArraySelector(p) !== undefined ||
+          p.name === "PIPESTATUS" ||
+          p.name === "LINENO" ||
+          p.name === "_" ||
+          p.name === "FUNCNAME" ||
           !isShellIdentifier(p.name)
         ) {
           return false;
         }
-        if (rawState.nounset && rawState.variables[p.name] === undefined) return false;
+        if (p.operator !== undefined && (p.operator === "=" || p.operator === ":=" || p.operator === "?" || p.operator === ":?")) {
+          return false;
+        }
+        if (rawState.nounset && (p.indirect || getArraySelector(p) !== undefined || rawState.variables[p.name] === undefined)) {
+          return false;
+        }
         continue;
       }
       if (p.kind === "arithmetic") {
@@ -19501,7 +19727,7 @@ export class Runtime {
     return true;
   }
 
-  private canSyncPureFunctionBody(script: Script, rawState: State): boolean {
+  private canSyncPureFunctionBody(script: Script, rawState: State, localVars: Set<string> = new Set()): boolean {
     if (script.lists.length === 0) return false;
     for (let l = 0; l < script.lists.length; l++) {
       const list = script.lists[l]!;
@@ -19511,12 +19737,29 @@ export class Runtime {
         if (pipe.negate || pipe.commands.length !== 1) return false;
         const c = pipe.commands[0]!;
         if (c.redirects.length !== 0) return false;
+        if (c.kind === "conditional") {
+          if (!this.canSyncConditional(c.expression)) return false;
+          continue;
+        }
         if (c.kind === "if") {
           for (let cl = 0; cl < c.branches.length; cl++) {
-            if (!this.canSyncPureFunctionBody(c.branches[cl]!.condition, rawState)) return false;
-            if (!this.canSyncPureFunctionBody(c.branches[cl]!.body, rawState)) return false;
+            if (!this.canSyncPureFunctionBody(c.branches[cl]!.condition, rawState, localVars)) return false;
+            if (!this.canSyncPureFunctionBody(c.branches[cl]!.body, rawState, localVars)) return false;
           }
-          if (c.otherwise && !this.canSyncPureFunctionBody(c.otherwise, rawState)) return false;
+          if (c.otherwise && !this.canSyncPureFunctionBody(c.otherwise, rawState, localVars)) return false;
+          continue;
+        }
+        if (c.kind === "case") {
+          if (rawState.nocasematch || rawState.extglob) return false;
+          for (let cl = 0; cl < c.clauses.length; cl++) {
+            const clause = c.clauses[cl]!;
+            if (clause.terminator !== ";;" && clause.terminator !== "esac") return false;
+            if (!this.canSyncPureFunctionBody(clause.body, rawState, localVars)) return false;
+          }
+          continue;
+        }
+        if (c.kind === "while" || c.kind === "until") {
+          if (!this.canSyncPureFunctionBody(c.condition, rawState, localVars) || !this.canSyncPureFunctionBody(c.body, rawState, localVars)) return false;
           continue;
         }
         if (c.kind === "arithmetic") {
@@ -19526,16 +19769,44 @@ export class Runtime {
         if (c.kind === "simple") {
           if (c.words.length === 0) return false;
           const w0p = c.words[0]!.plain;
-          if (!w0p || rawState.extensions?.builtins.has(w0p)) return false;
-          if (w0p === "echo") {
-            const def = this.commands.get("echo");
-            if (hasShellFunction(rawState, "echo") || !def || !defaultEchoExecutors.has(def.execute)) return false;
+          if (!w0p || rawState.extensions?.builtins.has(w0p)) {
+            if (c.words.length === 1 && !getArrayAssignment(c.words[0]!)) {
+              const assign = this.assignment(c.words[0]!);
+              if (assign && !assign.append && localVars.has(assign.name)) continue;
+            }
+            return false;
+          }
+          if (w0p === "echo" || w0p === "printf") {
+            const def = this.commands.get(w0p);
+            if (hasShellFunction(rawState, w0p) || !def || (w0p === "printf" ? def.execute !== printfCommand.execute : !defaultEchoExecutors.has(def.execute))) return false;
+            if (w0p === "printf" && c.words[1]?.plain === "-v") {
+              const target = c.words[2]?.plain;
+              if (!target || !localVars.has(target)) return false;
+            }
             continue;
           }
-          if (w0p === "local" && c.words.length === 2) {
+          if (w0p === "[" || w0p === "test" || w0p === ":" || w0p === "true" || w0p === "false") {
+            if (hasShellFunction(rawState, w0p)) return false;
+            continue;
+          }
+          if (w0p === "return" && c.words.length <= 2) {
+            if (hasShellFunction(rawState, "return")) return false;
+            continue;
+          }
+          if (w0p === "local" && c.words.length >= 2 && c.words.length <= 16) {
             if (hasShellFunction(rawState, "local")) return false;
-            const assign = !getArrayAssignment(c.words[1]!) ? this.assignment(c.words[1]!) : undefined;
-            if (!assign || assign.append || assign.name.includes("[") || rawState.readonlyVariables?.has(assign.name)) return false;
+            for (let idx = 1; idx < c.words.length; idx++) {
+              const wArg = c.words[idx]!;
+              const assign = !getArrayAssignment(wArg) ? this.assignment(wArg) : undefined;
+              if (assign) {
+                if (assign.append || assign.name.includes("[") || rawState.readonlyVariables?.has(assign.name)) return false;
+                localVars.add(assign.name);
+              } else if (wArg.plain && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(wArg.plain) && !rawState.readonlyVariables?.has(wArg.plain)) {
+                localVars.add(wArg.plain);
+              } else {
+                return false;
+              }
+            }
             continue;
           }
           return false;
@@ -19557,20 +19828,153 @@ export class Runtime {
       hasActiveExtensions(rawState) ||
       rawState.extensions?.checkpoints.length ||
       hasActiveVariableAttributes(rawState) ||
-      guestArrays(state) ||
+      (guestArrays(state) && (guestArrays(state)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) ||
       rawState.redirectAssignments?.size
     ) {
       return undefined;
     }
     if (((this.budget.commands + 1) & 127) === 0) {
-      if (hasYieldCheckpoint(this.signal) || ((this.budget.commands + 1) & 2047) === 0) return undefined;
+      if (hasYieldCheckpoint(this.signal) || (this._syncReturnDepth === 0 && ((this.budget.commands + 1) & 8191) === 0)) return undefined;
       runYieldCheckpoint(this.signal);
     }
     if (part.script.lists.length !== 1) return undefined;
     const list = part.script.lists[0]!;
     if (list.terminator || list.pipelines.length !== 1) return undefined;
     const pipeline = list.pipelines[0]!;
-    if (pipeline.negate || pipeline.commands.length !== 1) return undefined;
+    if (pipeline.negate) return undefined;
+    if (pipeline.commands.length >= 2 && pipeline.commands.length <= 5) {
+      if (
+        syncPurePipelineSlotInUse ||
+        !this.budget.canSyncPurePipe ||
+        customRegisteredRegistries.has(this.commands) ||
+        hasYieldCheckpoint(this.signal) ||
+        rawState.errexit ||
+        rawState.nounset ||
+        (this.budget.commands + pipeline.commands.length) > this.budget.limits.maxCommands
+      ) {
+        return undefined;
+      }
+      const cmd0 = pipeline.commands[0]!;
+      if (cmd0.kind !== "simple" || cmd0.redirects.length !== 0) return undefined;
+      const w0Plain0 = cmd0.words[0]?.plain;
+      if (!w0Plain0 || (w0Plain0 !== "echo" && w0Plain0 !== "printf") || hasShellFunction(rawState, w0Plain0) || rawState.extensions?.builtins.has(w0Plain0)) {
+        return undefined;
+      }
+      const def0 = this.commands.get(w0Plain0);
+      if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : !defaultEchoExecutors.has(def0.execute))) return undefined;
+      if (!this.arePureArgWords(cmd0.words, rawState)) return undefined;
+      const n = pipeline.commands.length;
+      const stageDefs: NonNullable<ReturnType<Runtime["getExternalCommand"]>>[] = [];
+      const stageNames: string[] = [];
+      const stageArgsList: string[][] = [];
+      for (let i = 1; i < n; i++) {
+        const sCmd = pipeline.commands[i]!;
+        if (sCmd.kind !== "simple" || sCmd.redirects.length !== 0 || sCmd.words.length === 0) return undefined;
+        const sName = sCmd.words[0]!.plain;
+        if (!sName || hasShellFunction(rawState, sName) || rawState.extensions?.builtins.has(sName)) return undefined;
+        const extDef = this.getExternalCommand(sName);
+        if (!extDef || !builtInDirectContextExecutors.has(extDef.execute) || customRegisteredCommands.has(extDef.execute)) return undefined;
+        if (!this.arePureArgWords(sCmd.words, rawState)) return undefined;
+        const sArgs: string[] = [];
+        for (let w = 1; w < sCmd.words.length; w++) {
+          const v = this.fastValueWord(sCmd.words[w]!, state, io, true, false, false, true, undefined, part.line);
+          if (typeof v !== "string") return undefined;
+          sArgs.push(v);
+        }
+        if (sName === "cut") {
+          const validCut2 = sArgs.length === 2 && sArgs[0]!.length === 3 && sArgs[0]!.startsWith("-d") && sArgs[1]!.length >= 3 && sArgs[1]!.startsWith("-f");
+          const validCut1 = sArgs.length === 1 && sArgs[0]!.length >= 3 && sArgs[0]!.startsWith("-f");
+          if (!validCut2 && !validCut1) return undefined;
+        } else if (sName === "tr") {
+          if (sArgs.length !== 2 || sArgs[0]!.startsWith("-") || sArgs[1]!.startsWith("-")) return undefined;
+        } else if (sName === "sort") {
+          if (sArgs.length > 1 || (sArgs.length === 1 && sArgs[0] !== "-r")) return undefined;
+        } else if (sName === "head" || sName === "tail") {
+          if (sArgs.length !== 2 || sArgs[0] !== "-n" || !/^[0-9]+$/.test(sArgs[1]!)) return undefined;
+        } else if (sName === "wc") {
+          if (sArgs.length !== 1 || (sArgs[0] !== "-l" && sArgs[0] !== "-c")) return undefined;
+        } else {
+          return undefined;
+        }
+        stageDefs.push(extDef);
+        stageNames.push(sName);
+        stageArgsList.push(sArgs);
+      }
+      const subArgs0: string[] = [];
+      for (let i = 1; i < cmd0.words.length; i++) {
+        const val = this.fastValueWord(cmd0.words[i]!, state, io, true, false, false, true, undefined, part.line);
+        if (typeof val !== "string") return undefined;
+        subArgs0.push(val);
+      }
+      let stage0Formatted: string | undefined;
+      if (w0Plain0 === "printf") {
+        stage0Formatted = tryFastPrintf(subArgs0);
+      } else if (!subArgs0[0]?.startsWith("-")) {
+        stage0Formatted = `${subArgs0.join(" ")}\n`;
+        if (stage0Formatted.includes("\0")) stage0Formatted = undefined;
+      }
+      if (stage0Formatted === undefined || stage0Formatted.length > 8192) return undefined;
+      const stage0ByteLen = stage0Formatted.length * 3 > 127 ? Buffer.byteLength(stage0Formatted) : stage0Formatted.length;
+      if (stage0ByteLen > sharedSyncPipeBuf0.byteLength) return undefined;
+      const nextBytes0 = this.budget.bytes + stage0ByteLen;
+      if (nextBytes0 > this.budget.maxOutputBytesSmi && stage0ByteLen > this.budget.limits.maxOutputBytes - this.budget.bytes) {
+        this.budget.fail("maxOutputBytes");
+      }
+      this.budget.bytes = nextBytes0;
+      syncPurePipelineSlotInUse = true;
+      this.budget.enterPipelineStages(n);
+      this.budget.commands += n;
+      const scope = io[invocationScope];
+      let context = pooledSyncPipeContext;
+      let prevBuf = sharedSyncPipeBuf0;
+      let prevLen = Buffer.from(sharedSyncPipeBuf0.buffer, sharedSyncPipeBuf0.byteOffset, sharedSyncPipeBuf0.byteLength).write(stage0Formatted, "utf8");
+      try {
+        for (let index = 1; index < n; index++) {
+          const firstName = stageNames[index - 1]!;
+          const extDef = stageDefs[index - 1]!;
+          const stageArgs = stageArgsList[index - 1]!;
+          sharedSyncPipeReader.reset(prevBuf, prevLen, this.signal, -1);
+          const nextBuf = (index & 1) === 0 ? sharedSyncPipeBuf0 : sharedSyncPipeBuf1;
+          sharedSyncPipeWriter.reset(this.budget, this.signal, nextBuf, -1);
+          if (!context) {
+            context = new FastShellCommandContext(this, rawState, io, scope, firstName, stageArgs, undefined, undefined, true);
+            pooledSyncPipeContext = context;
+          }
+          context.resetDirectStage(this, rawState, io, scope, firstName, stageArgs, sharedSyncPipeReader, false, sharedSyncPipeWriter, this.signal);
+          sharedSyncPipeReader.abortSignal = context.signal;
+          scope.enterWork();
+          this.budget.beginPathLookupSuspension();
+          let resPromise: CommandResult | Promise<CommandResult>;
+          try {
+            resPromise = extDef.execute(context as unknown as ShellCommandContext);
+          } finally {
+            this.budget.endPathLookupSuspension();
+            scope.leaveWork();
+          }
+          if (resPromise !== RESOLVED_EXIT_ZERO) {
+            return undefined;
+          }
+          this.signal.throwIfAborted();
+          prevBuf = nextBuf;
+          prevLen = sharedSyncPipeWriter.used;
+        }
+      } finally {
+        if (context) context.releaseDirectStage();
+        sharedSyncPipeWriter.budget = undefined!;
+        sharedSyncPipeWriter.signal = undefined!;
+        sharedSyncPipeWriter.target = EMPTY_BYTES;
+        sharedSyncPipeReader.reset(EMPTY_BYTES, 0);
+        syncPurePipelineSlotInUse = false;
+        this.budget.leavePipelineStages(n);
+      }
+      const outStr = Buffer.from(prevBuf.buffer, prevBuf.byteOffset, prevLen).toString("utf8");
+      rawState.substitutionStatus = 0;
+      rawState.status = 0;
+      let end = outStr.length;
+      while (end > 0 && outStr.charCodeAt(end - 1) === 10) end--;
+      return end === outStr.length ? outStr : outStr.slice(0, end);
+    }
+    if (pipeline.commands.length !== 1) return undefined;
     let cmd = pipeline.commands[0]!;
     if (cmd.kind === "arithmetic-for" && cmd.redirects.length === 0 && !rawState.errexit && !rawState.nounset && !rawState.readonlyVariables?.size) {
       const monitor = stateMonitor(state);
@@ -19635,6 +20039,38 @@ export class Runtime {
         }
       }
     }
+    if (
+      (cmd.kind === "case" || cmd.kind === "if") &&
+      cmd.redirects.length === 0 &&
+      !rawState.errexit &&
+      !rawState.nounset &&
+      rawState.depth + 1 < 24 &&
+      (this.budget.commands + 64) < this.budget.limits.maxCommands &&
+      this.canSyncPureFunctionBody(part.script, rawState)
+    ) {
+      const prevStatus = rawState.status;
+      const cap = new Capture(this.budget, this.signal);
+      const { descriptors: _ignoredDesc, ...restIO } = io;
+      const subIO: IO = { ...restIO, stdout: cap };
+      rawState.depth++;
+      let syncStatus: number | { listIndex: number; pipelineIndex: number };
+      try {
+        syncStatus = this.trySyncScript(part.script, state, subIO, false);
+      } finally {
+        rawState.depth--;
+      }
+      if (typeof syncStatus !== "number") {
+        rawState.status = prevStatus;
+        return undefined;
+      }
+      rawState.substitutionStatus = syncStatus;
+      rawState.status = syncStatus;
+      const rawBytes = cap.bytes();
+      const val = Buffer.from(rawBytes.buffer, rawBytes.byteOffset, rawBytes.byteLength).toString("utf8");
+      let end = val.length;
+      while (end > 0 && val.charCodeAt(end - 1) === 10) end--;
+      return end === val.length ? val : val.slice(0, end);
+    }
     if (cmd.kind !== "simple" || cmd.redirects.length > 0 || cmd.words.length === 0) return undefined;
     let w0Plain = cmd.words[0]!.plain;
     if (!w0Plain || rawState.extensions?.builtins.has(w0Plain)) return undefined;
@@ -19693,9 +20129,17 @@ export class Runtime {
         const { descriptors: _ignoredDesc, ...restIO } = io;
         const subIO: IO = { ...restIO, stdout: cap };
         let syncStatus: number | { listIndex: number; pipelineIndex: number };
+        const savedPendingRet = this._syncPendingReturnStatus;
+        this._syncPendingReturnStatus = undefined;
+        this._syncReturnDepth++;
         try {
           syncStatus = this.trySyncScript(fnBody.body, state, subIO, false);
+          if (this._syncPendingReturnStatus !== undefined) {
+            syncStatus = this._syncPendingReturnStatus;
+          }
         } finally {
+          this._syncPendingReturnStatus = savedPendingRet;
+          this._syncReturnDepth--;
           for (const [k, saved] of frameLocals) {
             restoreVariable(state, k, saved);
           }

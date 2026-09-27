@@ -21,8 +21,7 @@ export function quotedLabelText(book: Workbook, node: Extract<FormulaNode, { kin
   const size = target.size ?? DEFAULT_SHEET_SIZE;
   if (row < 0 || row >= size.rows || column < 0 || column >= size.columns) return unsupported();
   const cell = target.cells.find(cell => { tick(); return cell.row === row && cell.column === column; });
-  // Formula-generated text needs independent native recalculation qualification.
-  if (!cell || cell.formula || cell.value.kind !== "string" || !cell.value.value) return unsupported();
+  if (!cell || cell.value.kind !== "string" || !cell.value.value) return unsupported();
   const bound = bindQuotedLabel(book, cell.value.value, position, "openformula", tick);
   if (!bound || bound.label.kind === "radical" || bound.label.axis !== label.axis ||
     (bound.first.sheet ?? origin.name) !== target.name) return unsupported();

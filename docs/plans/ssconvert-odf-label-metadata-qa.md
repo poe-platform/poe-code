@@ -4,6 +4,20 @@ Tracking: hey-boss #1748. This procedure covers native label declarations and
 lookup settings, quoted-label import and native OpenFormula label export.
 Unqualified label exports and the complete BIFF/format family remain open.
 
+Formula-result label follow-up: inspect the pinned Calc `IsValue`, `GetString`,
+`NeedsInterpret` and `MaybeInterpret` sources recorded under
+`reference.biffLiveLabelRangeAudit.odfLiveLabelExport.formulaResultLabels`.
+Through compiled SDK and command routes, export a declared label whose dirty
+formula changes Sales to New Sales. Independently inspect the ODF formula and
+label-cell cache, reopen/recalculate to 5, then edit the declared data interval
+and verify the live anchor still responds. Cover strict/extended output,
+clean/manual caches, dirty matrix labels, textual source formulas, shared host
+dependencies called once, unrelated dirty host formulas left unevaluated,
+competing labels, non-text/circular results, cancellation and work limits.
+Inspect the command transcript screenshot. Native Calc readback and wider
+iteration/post-import profiles require separate evidence; do not count cached
+string transport as native recalculation qualification.
+
 1. Inspect the pinned LibreOffice `xmllabri.cxx`, `xmlexprt.cxx` and
    `XMLCalculationSettingsContext.cxx` receipts in the case ledger. Check the
    OASIS ODF 1.2 schema for required orientation/address attributes and its

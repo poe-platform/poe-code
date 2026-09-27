@@ -140,8 +140,10 @@ it("does not publish mixed relative-sheet and live-label formulas without a pres
   await expect(createOdfWriter("strict")(mixed, [], context)).rejects.toMatchObject({ code: "unsupported-feature" });
 });
 
-it("does not treat a formula-generated cached label as native recalculation proof", async () => {
+it("exports a clean formula-generated label without discarding the captured anchor", async () => {
   const original = book(), sheet = original.sheets[0]!;
   const generated = { ...original, sheets: [{ ...sheet, cells: sheet.cells.map(c => c.row === 0 ? { ...c, formula: '="Sales"' } : c) }] };
-  await expect(createOdfWriter("strict")(generated, [], context)).rejects.toMatchObject({ code: "unsupported-feature" });
+  const reopened = await readOdf(await createOdfWriter("strict")(generated, [], context), context);
+  expect(reopened.sheets[0]!.cells.find(c => c.row === 7)?.formula).toBe("=SUM(@column.odf.quoted:B$1)");
+  expect(value(reopened)).toEqual({ kind: "number", value: 9 });
 });

@@ -2136,7 +2136,7 @@
         "remaining": "Native application readback; locale/transliteration/proximity profiles; ambiguous, empty/non-text/formula-generated and deleted label identities; mixed relative-sheet/live-label formulas; direct textual formula lifecycle; BIFF/radical/value-class labels and other format transports remain open. This resolves supported native ODF export profiles, not the complete family; all 19 families remain open. Cross-sheet label/data identity is now implemented; see reference.odfCrossSheetLabelRanges for the current source and qualification evidence.",
         "qa": "docs/plans/ssconvert-odf-label-metadata-qa.md",
         "formulaResultLabels": {
-          "status": "source-confirmed gap; implementation pending",
+          "status": "partial implementation; public/native qualification pending",
           "sourceRevision": "LibreOffice bce0998afefdbc355585ca324285661a2170ba77",
           "sources": {
             "sc/source/core/tool/compiler.cxx": {
@@ -2161,7 +2161,9 @@
             }
           },
           "finding": "ParseColRowName accepts formula cells with compiled code other than the formula currently being compiled. hasString/HasStringData call IsValue, and formula GetString calls MaybeInterpret. NeedsInterpret requires dirty/table-operation state and automatic calculation, a matrix cell, or the qualifying post-import recalculation mode; an iteration cell returns its current value. CreateStringFromSingleRef then quotes the current text. The product quotedLabelText rejects every formula cell, so the existing refusal test confirms a limitation rather than proving native incompatibility.",
-          "next": "Implement current-result label export with coherent output cell caches, captured anchor identity and bounded dependency evaluation. Cover dirty versus clean/manual results, formula dependencies/groups, competing labels, self/cycles, optional-host authority and cancellation. Do not force the entire workbook once per label or merely remove the formula guard; native application qualification remains separate."
+          "implemented": "ODF export captures label references before refreshing formula text, batches candidate-label evaluation with shared dependency results, and writes coherent label caches. Clean/manual scalar caches remain unchanged; dirty automatic and matrix label candidates are evaluated without scheduling unrelated dirty formulas or clean volatile formulas. Explicit host callbacks retain cancellation and enclosing work accounting. Noniterative circular label evaluation is refused rather than publishing its stale string as fresh proof.",
+          "validation": "Seven original positive/cancellation regressions failed before implementation. Two additional regressions exposed circular stale-cache publication and textual lookup against a value different from the output cache. All 16 new cases and the 124-test focused ODF/goal-seek cohort pass; maintained package lint and source/test/strict-consumer type checks pass. No native application result is claimed.",
+          "remaining": "Final build, full package/integration checks, compiled SDK/command XML/cache qualification, remote delivery and publication remain pending. Native application readback, wider iterative/matrix/post-import profiles and the full label/BIFF/format families remain open."
         }
       },
       "inferredMultipleLabelSourceAudit": {

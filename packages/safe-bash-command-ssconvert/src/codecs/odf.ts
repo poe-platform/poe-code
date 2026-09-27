@@ -7,6 +7,7 @@ import { MAX_SHEET_SIZE, DEFAULT_SHEET_SIZE, formatA1, type Workbook, type Sheet
   type NamedExpression, type FormulaGroup } from "../workbook.js";
 import { parseExpression } from "../formulas/parser.js";
 import { quotedLabelText } from "../formulas/quoted-labels.js";
+import { prepareOdfFormulaLabels } from "./odf-formula-labels.js";
 import { visitFormula } from "../formulas/rewriting.js";
 import { gnumericGrammar, odfGrammar, legacyOpenOfficeGrammar } from "../formulas/conventions.js";
 import { serializeExpression, quoteNativeSheet, quoteFormulaString } from "../formulas/serialization.js";
@@ -689,6 +690,8 @@ export function createOdfWriter(profile: "strict" | "extended") {
     }
     const wrapped = encryptionProfile?.cipher === "aes-gcm";
     const extended = profile === "extended", xml = createOdfXml(context, extended), e = xml.element;
+    const preparedLabels = prepareOdfFormulaLabels(book, context, xml.charge);
+    book = preparedLabels.book;
     const cellStyles = createOdfStyles(xml, extended, book, context);
     const zip = createZipCodec(), zipLimits = { ...bounds(context), maxArchiveBytes: context.limits.outputBytes,
       maxEntryBytes: context.limits.outputBytes, maxTotalBytes: context.limits.outputBytes };
@@ -706,7 +709,8 @@ export function createOdfWriter(profile: "strict" | "extended") {
     }
     function expression(source: string, sheet: Sheet, row: number, column: number) {
       xml.charge(source.length);
-      const parsed = parseExpression(source, { position: { sheet: sheet.id, row, column }, workbook: book,
+      const captured = preparedLabels.documents.get(JSON.stringify([sheet.id, row, column, source]));
+      const parsed = captured ? { ok: true as const, document: captured } : parseExpression(source, { position: { sheet: sheet.id, row, column }, workbook: book,
         signal: context.signal, onWork: xml.charge, maximumLength: context.limits.workbookTextBytes ?? context.limits.outputBytes,
         maximumNodes: context.limits.workbookNodes ?? Infinity });
       if (!parsed.ok) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: invalid OpenDocument formula");

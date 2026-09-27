@@ -21,7 +21,8 @@ import { gnumericGrammar, sylkGrammar } from "./conventions.js";
 
 /** A calculation run owns its indexes, traversal state and caches. No host I/O. */
 export function recalculateWorkbook(input: Workbook, context: CapabilityContext, options: boolean | FormulaRecalculationOptions = false, onDiagnostic?: (diagnostic: Diagnostic) => void,
-  cellEvaluation?: { readonly changed: ParsePosition; readonly target: ParsePosition | null; readonly tick?: () => void }): Workbook {
+  cellEvaluation?: { readonly changed?: ParsePosition; readonly target: ParsePosition | readonly ParsePosition[] | null;
+    readonly tick?: () => void; readonly onCycle?: () => void }): Workbook {
   context.signal.throwIfAborted();
   const force = typeof options === "boolean" ? options : options.force;
   if (context.runtimeFunctions !== undefined) context = { ...context, runtimeFunctions: snapshotRuntimeFunctions(context.runtimeFunctions) };
@@ -461,6 +462,7 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
       return value.kind === "number" && format !== undefined ? { ...value, format } : value;
     }
     if (visiting.has(cell)) {
+      cellEvaluation?.onCycle?.();
       if (book.iteration?.enabled && !iterationRoot) { iterationRoot = cell; iterated.add(cell); }
       // dependent_eval clears NEEDS_RECALC even for a recursive cycle bottom.
       cleared.add(cell);
@@ -505,9 +507,10 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
   const queue: Cell[] = [];
   const queueVolatile = typeof options === "boolean" || options.queueVolatile !== false;
   for (const cell of expressions.keys()) if (force || cell.formulaDirty || !cellEvaluation && queueVolatile && graph.volatile.has(cell)) { pending.add(cell); queue.push(cell); }
-  if (cellEvaluation) {
-    const sheet = book.sheets.find(sheet => sheet.id === cellEvaluation.changed.sheet);
-    const changed = sheet && indexes.get(sheet)?.get(`${cellEvaluation.changed.row}:${cellEvaluation.changed.column}`);
+  if (cellEvaluation?.changed) {
+    const position = cellEvaluation.changed;
+    const sheet = book.sheets.find(sheet => sheet.id === position.sheet);
+    const changed = sheet && indexes.get(sheet)?.get(`${position.row}:${position.column}`);
     if (changed) queue.push(changed);
   }
   for (let index = 0; index < queue.length; index++) for (const dependent of graph.dependents.get(queue[index]!) ?? []) {
@@ -515,10 +518,13 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
   }
   // All traversal order is invocation-local; source sheet/cell order is preserved.
   if (cellEvaluation) {
-    const target = cellEvaluation.target;
-    const sheet = target && book.sheets.find(sheet => sheet.id === target.sheet);
-    const cell = sheet && indexes.get(sheet)?.get(`${target!.row}:${target!.column}`);
-    if (cell && sheet) calculate(cell, sheet);
+    const selected = cellEvaluation.target;
+    for (const target of selected && "sheet" in selected ? [selected] : selected ?? []) {
+      tick();
+      const sheet = book.sheets.find(sheet => sheet.id === target.sheet);
+      const cell = sheet && indexes.get(sheet)?.get(`${target.row}:${target.column}`);
+      if (cell && sheet) calculate(cell, sheet);
+    }
   } else for (const sheet of book.sheets) for (const cell of sheet.cells) calculate(cell, sheet);
   const dependencies = [...book.dependencies ?? []].filter(dependency => !dependency.dynamic || !book.sheets.some(sheet => sheet.id === dependency.dependent.sheet && sheet.cells.some(cell =>
     results.has(cell) && pending.has(cell) && cell.row >= dependency.dependent.startRow && cell.row <= dependency.dependent.endRow && cell.column >= dependency.dependent.startColumn && cell.column <= dependency.dependent.endColumn)));

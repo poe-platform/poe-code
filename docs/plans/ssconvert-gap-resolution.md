@@ -448,7 +448,10 @@ LibreOffice's BIFF string buffers use explicit lengths and preserve NUL. The
 two candidate truncations are removed; all 1291 BIFF checks pass. Compiled SDK
 and recalculating command paths preserve eighteen BIFF7/8/DSF observations.
 Independent xlrd confirms seventeen; its long BIFF7 LABEL read stops at the
-first record. Keep that interoperability gap and the BIFF7 metadata warnings
+first record. Deeper LibreOffice source inspection also finds first-record/NUL
+truncation in its legacy reader and NUL substitution in its Unicode reader;
+the length-preserving writer does not establish native roundtrip fidelity.
+Keep those interoperability gaps and the BIFF7 metadata warnings
 open. XLSX still refuses raw-NUL formula expressions without publishing output.
 CSV import/export have separate lossy NUL policies; inspect both before changing
 either. See `reference.biffNulStrings`; no family is closed.

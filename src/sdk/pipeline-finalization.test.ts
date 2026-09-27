@@ -7,6 +7,9 @@ import { describe, expect, it, vi } from "vitest";
 import type { PipelineFileSystem } from "@poe-code/pipeline";
 import { runPipeline, type AgentRunInput, type PipelineRunOptions } from "./pipeline.js";
 
+// Finalization exercises plan state and serialization, not the host terminal.
+vi.mock("@poe-code/terminal-name", () => ({ setTerminalTabName: vi.fn(async () => {}) }));
+
 const planPath = "/repo/custom/plan.md";
 const archivePath = "/repo/custom/archive/plan.md";
 const otherPath = "/repo/docs/plans/plan.md";

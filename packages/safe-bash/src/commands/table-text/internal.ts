@@ -90,9 +90,9 @@ export class Budget {
     if (this.pollBaseSignal ? this.context.signal.aborted : this.signalAborted) this.context.signal.throwIfAborted();
     this.check(++this.steps, this.limits.maxSteps, "step");
     if (this.steps % 1024 !== 0) return;
-    ++this.stepYields;
+    const count = ++this.stepYields;
     const now = monotonicNow();
-    if (now - this.lastStepYield >= 16 || hasYieldCheckpoint(this.context.signal)) {
+    if (count === 1 || (count & 63) === 0 || now - this.lastStepYield >= 16 || hasYieldCheckpoint(this.context.signal)) {
       this.lastStepYield = now;
       return yieldTurn(this.context.signal).then(() => {
         this.lastStepYield = monotonicNow();

@@ -72,9 +72,10 @@ export class Budget {
   checkpoint(): void | Promise<void> {
     if (this.pollSignal ? this.context.signal.aborted : this.signalAborted) this.context.signal.throwIfAborted();
     if (this.work >= this.nextYield) {
+      const firstYield = this.nextYield === 4096;
       this.nextYield = this.work + 4096;
       const now = monotonicNow();
-      if (now >= this.nextYieldTime) {
+      if (firstYield || now >= this.nextYieldTime) {
         this.nextYieldTime = now + 16;
         return yieldTurn(this.context.signal).then(() => {
           this.nextYieldTime = monotonicNow() + 16;

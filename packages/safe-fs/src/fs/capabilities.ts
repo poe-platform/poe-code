@@ -3,31 +3,48 @@ import { FsError, toFsError } from "../contracts/errors.js";
 import { finishCleanup } from "../contracts/cleanup.js";
 import { inspectStagingBindings } from "./staging-ancestry.js";
 
-const signalWaiters = new WeakMap<AbortSignal, Set<() => void>>();
+interface SignalWaiterEntry {
+  readonly waiters: Set<() => void>;
+  readonly listener: () => void;
+}
 
-function getSignalWaiters(signal: AbortSignal): Set<() => void> {
-  let waiters = signalWaiters.get(signal);
-  if (!waiters) {
-    waiters = new Set();
-    signalWaiters.set(signal, waiters);
-    signal.addEventListener("abort", () => {
-      const pending = [...waiters!];
-      waiters!.clear();
+const signalWaiters = new WeakMap<AbortSignal, SignalWaiterEntry>();
+
+function getSignalWaiters(signal: AbortSignal): SignalWaiterEntry {
+  let entry = signalWaiters.get(signal);
+  if (!entry) {
+    const waiters = new Set<() => void>();
+    const listener = (): void => {
+      signalWaiters.delete(signal);
+      signal.removeEventListener("abort", listener);
+      const pending = [...waiters];
+      waiters.clear();
       for (const fn of pending) fn();
-    }, { once: true });
+    };
+    entry = { waiters, listener };
+    signalWaiters.set(signal, entry);
+    signal.addEventListener("abort", listener, { once: true });
   }
-  return waiters;
+  return entry;
+}
+
+function releaseSignalWaiter(signal: AbortSignal, entry: SignalWaiterEntry, abort: () => void): void {
+  entry.waiters.delete(abort);
+  if (entry.waiters.size === 0 && signalWaiters.get(signal) === entry) {
+    signalWaiters.delete(signal);
+    signal.removeEventListener("abort", entry.listener);
+  }
 }
 
 function awaitWithSignal<Value>(promise: Promise<Value>, signal: AbortSignal | undefined): Promise<Value> {
   if (!signal) return promise;
   return new Promise<Value>((resolve, reject) => {
-    const waiters = getSignalWaiters(signal);
-    const abort = (): void => { waiters.delete(abort); reject(signal.reason); };
-    waiters.add(abort);
+    const entry = getSignalWaiters(signal);
+    const abort = (): void => { releaseSignalWaiter(signal, entry, abort); reject(signal.reason); };
+    entry.waiters.add(abort);
     promise.then(
-      value => { waiters.delete(abort); resolve(value); },
-      error => { waiters.delete(abort); reject(error); },
+      value => { releaseSignalWaiter(signal, entry, abort); resolve(value); },
+      error => { releaseSignalWaiter(signal, entry, abort); reject(error); },
     );
     if (signal.aborted) abort();
   });

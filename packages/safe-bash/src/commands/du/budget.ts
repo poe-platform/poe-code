@@ -26,6 +26,7 @@ export class Budget {
   private readonly work = new Set<Promise<unknown>>();
   private readonly pending = new Set<() => void>();
   private readonly timers = new Set<TurnHandle>();
+  private boundSignal: AbortSignal | undefined;
   private readonly onSignalAbort = (): void => {
     const callbacks = [...this.pending];
     this.pending.clear();
@@ -34,13 +35,20 @@ export class Budget {
 
   constructor(readonly context: CommandContext, readonly limits: DuLimits, readonly caller: CommandContext = context) {
     this.ioSignal = AbortSignal.any([caller.signal, this.cancellation.signal]);
-    context.signal.addEventListener("abort", this.onSignalAbort, { once: true });
+  }
+
+  private bindSignal(signal: AbortSignal): void {
+    if (this.boundSignal === signal) return;
+    this.boundSignal?.removeEventListener("abort", this.onSignalAbort);
+    this.boundSignal = signal;
+    signal.addEventListener("abort", this.onSignalAbort, { once: true });
   }
 
   readonly close = (): Promise<void> => {
     if (this.completion) return this.completion;
     this.closed = true;
-    this.context.signal.removeEventListener("abort", this.onSignalAbort);
+    this.boundSignal?.removeEventListener("abort", this.onSignalAbort);
+    this.boundSignal = undefined;
     this.cancellation.abort(this.context.signal.aborted ? this.context.signal.reason : new Error("du invocation closed"));
     for (const timer of this.timers) cancelTurn(timer);
     this.timers.clear();
@@ -94,6 +102,7 @@ export class Budget {
   private async waitTask<Result>(operation: () => Promise<Result>): Promise<Result> {
     this.active();
     const { signal } = this.context;
+    this.bindSignal(signal);
     let cancel!: () => void;
     const aborted = new Promise<never>((_resolve, reject) => {
       cancel = () => reject(signal.aborted ? signal.reason : new Error("du invocation closed"));
@@ -110,7 +119,7 @@ export class Budget {
 
   async fs<Result>(operation: () => Promise<Result>): Promise<Result> {
     this.step();
-    if (++this.operations % 64 === 0 && (hasYieldCheckpoint(this.context.signal) || monotonicNow() - this.lastYield >= 16)) {
+    if (++this.operations % 64 === 0 && (this.operations === 64 || hasYieldCheckpoint(this.context.signal) || monotonicNow() - this.lastYield >= 16)) {
       await this.wait(() => new Promise<void>(resolve => {
         const timer = scheduleTurn(() => { this.timers.delete(timer); resolve(); });
         this.timers.add(timer);

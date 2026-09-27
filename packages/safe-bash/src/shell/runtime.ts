@@ -4774,10 +4774,10 @@ export class Runtime {
       if (valByteLenUpdated > this.budget.limits.maxExpansionBytes) return false;
       if (existingKey !== undefined) {
         const existingSlot = current.values.get(existingKey.index);
-        if (existingSlot !== undefined && existingSlot.text.references === 1 && existingSlot.text.bytes === valByteLen) {
+        if (existingSlot !== undefined && existingSlot.text.references === 1 && existingSlot.text.bytes === valByteLenUpdated) {
           let tickets: ReturnType<typeof store.owner.charge>;
           try {
-            current.owner.chargeWork(valByteLen + 9);
+            current.owner.chargeWork(valByteLenUpdated + 9);
             tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
           } catch (error) {
             if (error instanceof ArrayFailure) return false;
@@ -4808,8 +4808,8 @@ export class Runtime {
             throw error;
           }
         }
-        current.owner.chargeWork(valByteLen);
-        valToken = new OwnedText(val, valByteLen, current.owner.reserve({ payload: valByteLen, metadata: 32, work: 4 }));
+        current.owner.chargeWork(valByteLenUpdated);
+        valToken = new OwnedText(val, valByteLenUpdated, current.owner.reserve({ payload: valByteLenUpdated, metadata: 32, work: 4 }));
         try {
           slotAdmission = current.owner.reserve({ slots: 1, metadata: 32, work: 5 });
           tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });

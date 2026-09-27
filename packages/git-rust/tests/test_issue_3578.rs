@@ -419,3 +419,35 @@ fn cached_diff_before_first_commit_shows_staged_addition() {
     );
 }
 
+#[test]
+fn clean_preserves_ignored_children_in_untracked_directories() {
+    let fs = committed_repo();
+    fs.write_str("/repo/.gitignore", "*.log\nempty/\n");
+    execute_git_cli(&fs, "/repo", &["add", ".gitignore"]);
+    fs.write_str("/repo/trash/ignored.log", "keep\n");
+    fs.write_str("/repo/trash/delete.txt", "delete\n");
+    fs.mkdir("/repo/trash/empty").unwrap();
+    execute_git_cli(&fs, "/repo/trash/nested", &["init"]);
+    fs.write_str("/repo/trash/nested/file", "nested\n");
+    let dry = execute_git_cli(&fs, "/repo", &["clean", "-nd"]);
+    assert_eq!(dry.exit_code, 0, "{}", dry.stderr);
+    assert!(fs.exists("/repo/trash/ignored.log"));
+    assert!(fs.exists("/repo/trash/delete.txt"));
+    assert!(fs.exists("/repo/trash/empty"));
+    assert!(fs.exists("/repo/trash/nested/.git"));
+    assert!(dry.stdout.contains("delete.txt"));
+    let result = execute_git_cli(&fs, "/repo", &["clean", "-fd"]);
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    assert!(fs.exists("/repo/trash/ignored.log"));
+    assert!(fs.exists("/repo/trash/empty"));
+    assert!(fs.exists("/repo/trash/nested/.git"));
+    assert!(fs.exists("/repo/trash/nested/file"));
+    assert!(!fs.exists("/repo/trash/delete.txt"));
+    let ignored = execute_git_cli(&fs, "/repo", &["clean", "-fdx"]);
+    assert_eq!(ignored.exit_code, 0, "{}", ignored.stderr);
+    assert!(!fs.exists("/repo/trash/ignored.log"));
+    assert!(!fs.exists("/repo/trash/empty"));
+    assert!(fs.exists("/repo/trash/nested/.git"));
+    assert!(fs.exists("/repo/trash/nested/file"));
+    assert!(fs.exists("/repo/a"));
+}

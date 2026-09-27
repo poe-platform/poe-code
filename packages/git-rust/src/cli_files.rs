@@ -245,6 +245,48 @@ pub fn restore(
     Ok(())
 }
 
+fn directory_can_be_cleaned(
+    fs: &MemoryFs,
+    root: &str,
+    gitdir: &str,
+    directory: &str,
+    include_ignored: bool,
+) -> Result<bool, GitError> {
+    let base = format!("{}/", root.trim_end_matches('/'));
+    let mut pending = vec![directory.to_string()];
+    while let Some(directory) = pending.pop() {
+        for name in fs
+            .readdir(&directory)
+            .map_err(|e| GitError::internal(&e.message))?
+        {
+            if name == ".git" {
+                return Ok(false);
+            }
+            let full = join(&[&directory, &name]);
+            let stat = fs
+                .lstat(&full)
+                .map_err(|e| GitError::internal(&e.message))?;
+            let path = full
+                .strip_prefix(&base)
+                .ok_or_else(|| GitError::internal("clean path outside repository"))?;
+            let ignored_path = if stat.is_directory() {
+                format!("{path}/")
+            } else {
+                path.to_string()
+            };
+            if !include_ignored
+                && crate::GitIgnoreManager::is_ignored(fs, root, Some(gitdir), &ignored_path)
+            {
+                return Ok(false);
+            }
+            if stat.is_directory() {
+                pending.push(full);
+            }
+        }
+    }
+    Ok(true)
+}
+
 pub fn clean(
     fs: &MemoryFs,
     root: &str,
@@ -303,15 +345,14 @@ pub fn clean(
                 continue;
             }
             if stat.is_directory() {
-                let nested_repo = fs.exists(&join(&[&full, ".git"]))
-                    || fs
-                        .readdir_deep(&full)
-                        .iter()
-                        .any(|p| p.split('/').any(|part| part == ".git"));
-                if nested_repo {
+                if fs.exists(&join(&[&full, ".git"])) {
                     continue;
                 }
-                if !tracked_entry && selected && directories {
+                if !tracked_entry
+                    && selected
+                    && directories
+                    && directory_can_be_cleaned(fs, root, gitdir, &full, ignored)?
+                {
                     candidates.push((
                         full.clone(),
                         format!("{}/", full.strip_prefix(&display_base).unwrap_or(path)),

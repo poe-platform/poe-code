@@ -105,4 +105,29 @@ test("compound loops preserve multi-arg unset, export, let, and quoted array exp
     assert.equal(res.exitCode, 0);
     assert.equal(res.stderr, "");
     assert.equal(res.stdout, "992:40:v20:w20\n");
+=======
+    expect(res.exitCode).toBe(0);
+    expect(res.stdout).toBe("992:40:v20:w20\n");
+  });
+  it("executes multi-arg array unset, glob array trims, declare/typeset scalars, and assoc/keyed compound assignments synchronously", async () => {
+    const shell = createShell();
+    const res = await shell.exec(`
+    arr=(pre_a pre_b pre_c)
+    declare -A map=([x]=1)
+    acc=0
+    for ((i=1; i<=20; i++)); do
+      declare dx="a$i" dy="b$i"
+      map=([a]="v$i" [b]="w$i")
+      map+=([c]="z$i")
+      karr=([1]="p$i" [3]="q$i")
+      unset "karr[1]" "map[b]"
+      s1="${arr[@]#pre_}"
+      s2="${arr[@]%_*}"
+      (( acc += ${#dx} + ${#dy} + ${#map[@]} + ${#karr[@]} + ${#s1} + ${#s2} ))
+    done
+    echo "$acc:${map[a]}:${map[c]}:${karr[3]}"
+  `);
+    expect(res.exitCode).toBe(0);
+    expect(res.stdout).toBe("482:v20:z20:q20\n");
+  });
 });

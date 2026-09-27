@@ -4647,68 +4647,130 @@ export class Runtime {
         if (error instanceof ArrayFailure) return undefined;
         throw error;
       }};
-    if ( assignment.kind === "compound" && !associative && (!current || !current.associative) && assignment.entries.length <= 32) {
-      const vals: string[] = [];
-      const byteLens: number[] = [];
-      for (let i = 0; i < assignment.entries.length; i++) {
-        const entry = assignment.entries[i]!;
-        if ( entry.index !== undefined || entry.value.parts.length === 0 || !entry.value.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))) {
-          return false;
-        }
-        let val: ShellValue | undefined;
-        try {
-          val = this.fastValueWord(entry.value, rawState, io, false, false, false, false, undefined, diagnosticLine);
-        } catch {
-          return false;
-        }
-        if (typeof val !== "string") return false;
-        const bLen = shellValueByteLength(val);
-        if (bLen > this.budget.limits.maxExpansionBytes) return false;
-        vals.push(val);
-        byteLens.push(bLen);
-      }
-      const target = ensureBinding(false);
-      if (!target) return false;
-      const startIndex = assignment.append ? target.maximum + 1 : 0;
-      if (startIndex + vals.length > 2147483647) return false;
-      try {
-        if (!assignment.append && target.values.size > 0) {
-          for (const k of Array.from(target.values.keys())) {
-            if (k >= vals.length) target.remove(k);
-          }
-          target.maximum = vals.length - 1;
-        }
-        for (let i = 0; i < vals.length; i++) {
-          const idx = startIndex + i;
-          const val = vals[i]!;
-          const bLen = byteLens[i]!;
-          const existingSlot = target.values.get(idx);
-          if (existingSlot !== undefined && existingSlot.text.references === 1 && existingSlot.text.bytes === bLen) {
-            target.owner.chargeWork(bLen + 4);
-            existingSlot.text.shellValue = val;
-            if (idx > target.maximum) target.maximum = idx;
-          } else {
-            target.owner.chargeWork(bLen);
-            const token = new OwnedText(val, bLen, target.owner.reserve({ payload: bLen, metadata: 32, work: 4 }));
-            let slotAdmission: ReturnType<typeof target.owner.reserve> | undefined;
+    if (assignment.kind === "compound" && assignment.entries.length <= 32) {
+      const isAssoc = Boolean(associative ?? current?.associative);
+      if (isAssoc) {
+        const pairs: Array<{ key: string; id: string; val: string }> = [];
+        const keepIds = new Set<string>();
+        for (let i = 0; i < assignment.entries.length; i++) {
+          const entry = assignment.entries[i]!;
+          if (!entry.index) return false;
+          const kSrc = entry.index.source ?? entry.index.decimal;
+          if (kSrc.length === 0 || kSrc.length > 4096 || /[$\x60\\"']/.test(kSrc)) return false;
+          let val: ShellValue | undefined = "";
+          if (entry.value.parts.length > 0) {
             try {
-              slotAdmission = target.owner.reserve({ slots: 1, metadata: 32, work: 5 });
-            } catch (error) {
-              token.release();
-              throw error;
+              val = this.fastValueWord(entry.value, rawState, io, false, false, false, false, undefined, diagnosticLine);
+            } catch {
+              return false;
             }
-            target.insert(idx, token, slotAdmission);
           }
+          if (typeof val !== "string" || shellValueByteLength(val) > this.budget.limits.maxExpansionBytes) return false;
+          const id = fastStringHexIdentity(kSrc);
+          keepIds.add(id);
+          pairs.push({ key: kSrc, id, val });
         }
-        target.assigned = true;
-        const tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
-        delete rawState.variables[name];
-        monitor.epoch = tickets.epoch;
-        store.revise(name, target, tickets);
-        return true;
-      } catch (error) {
-        if (error instanceof ArrayFailure) return false;
-        throw error;
+        const target = ensureBinding(true);
+        if (!target) return false;
+        try {
+          if (!assignment.append && target.values.size > 0) {
+            for (const [id, ek] of Array.from(target.keys.entries())) {
+              if (!keepIds.has(id)) target.remove(ek.index);
+            }
+          }
+          for (let i = 0; i < pairs.length; i++) {
+            const p = pairs[i]!;
+            if (!this.tryFastArraySubscriptWriteSync(rawState, name, p.key, p.val)) return false;
+          }
+          target.assigned = true;
+          if (pairs.length === 0) {
+            const tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+            delete rawState.variables[name];
+            monitor.epoch = tickets.epoch;
+            store.revise(name, target, tickets);
+          }
+          return true;
+        } catch (error) {
+          if (error instanceof ArrayFailure) return false;
+          throw error;
+        }
+      } else {
+        const items: Array<{ explicitIdx: number | undefined; val: string; bLen: number }> = [];
+        for (let i = 0; i < assignment.entries.length; i++) {
+          const entry = assignment.entries[i]!;
+          let explicitIdx: number | undefined;
+          if (entry.index !== undefined) {
+            const kSrc = (entry.index.source ?? entry.index.decimal).trim();
+            if (!/^(?:0|[1-9][0-9]{0,8})$/.test(kSrc)) return false;
+            explicitIdx = Number(kSrc);
+          } else if ( entry.value.parts.length === 0 || !entry.value.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))) {
+            return false;
+          }
+          let val: ShellValue | undefined = "";
+          if (entry.value.parts.length > 0) {
+            try {
+              val = this.fastValueWord(entry.value, rawState, io, false, false, false, false, undefined, diagnosticLine);
+            } catch {
+              return false;
+            }
+          }
+          if (typeof val !== "string") return false;
+          const bLen = shellValueByteLength(val);
+          if (bLen > this.budget.limits.maxExpansionBytes) return false;
+          items.push({ explicitIdx, val, bLen });
+        }
+        const target = ensureBinding(false);
+        if (!target) return false;
+        let nextIndex = assignment.append ? target.maximum + 1 : 0;
+        const resolved: Array<{ idx: number; val: string; bLen: number }> = [];
+        const keepIndices = new Set<number>();
+        for (let i = 0; i < items.length; i++) {
+          const it = items[i]!;
+          const idx = it.explicitIdx !== undefined ? it.explicitIdx : nextIndex;
+          if (idx > 2147483647) return false;
+          nextIndex = idx + 1;
+          keepIndices.add(idx);
+          resolved.push({ idx, val: it.val, bLen: it.bLen });
+        }
+        try {
+          if (!assignment.append && target.values.size > 0) {
+            for (const k of Array.from(target.values.keys())) {
+              if (!keepIndices.has(k)) target.remove(k);
+            }
+            let newMax = -1;
+            for (const k of target.values.keys()) { if (k > newMax) newMax = k; }
+            target.maximum = newMax;
+          }
+          for (let i = 0; i < resolved.length; i++) {
+            const { idx, val, bLen } = resolved[i]!;
+            const existingSlot = target.values.get(idx);
+            if (existingSlot !== undefined && existingSlot.text.references === 1 && existingSlot.text.bytes === bLen) {
+              target.owner.chargeWork(bLen + 4);
+              existingSlot.text.shellValue = val;
+              if (idx > target.maximum) target.maximum = idx;
+            } else {
+              target.owner.chargeWork(bLen);
+              const token = new OwnedText(val, bLen, target.owner.reserve({ payload: bLen, metadata: 32, work: 4 }));
+              let slotAdmission: ReturnType<typeof target.owner.reserve> | undefined;
+              try {
+                slotAdmission = target.owner.reserve({ slots: 1, metadata: 32, work: 5 });
+              } catch (error) {
+                token.release();
+                throw error;
+              }
+              target.insert(idx, token, slotAdmission);
+            }
+          }
+          target.assigned = true;
+          const tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+          delete rawState.variables[name];
+          monitor.epoch = tickets.epoch;
+          store.revise(name, target, tickets);
+          return true;
+        } catch (error) {
+          if (error instanceof ArrayFailure) return false;
+          throw error;
+        }
       }
     }
     if ( assignment.kind === "element" && !associative && (!current || !current.associative)) {
@@ -7042,8 +7104,18 @@ export class Runtime {
             return false;
           }
           if (arrayAssign.kind === "compound") {
-            return ( !st?.get(arrayAssign.name)?.associative && arrayAssign.entries.length <= 32 && arrayAssign.entries.every(e =>
-                e.index === undefined && isNoBraceSyncWord(e.value) && e.value.parts.length > 0 && e.value.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))));
+            const isAssoc = Boolean(st?.get(arrayAssign.name)?.associative);
+            return ( arrayAssign.entries.length <= 32 && arrayAssign.entries.every(e => {
+              if (isAssoc) {
+                const kSrc = e.index ? (e.index.source ?? e.index.decimal) : "";
+                return kSrc.length > 0 && !/[$\x60\\"']/.test(kSrc) && isNoBraceSyncAssignWord(e.value);
+              }
+              if (e.index !== undefined) {
+                const kSrc = (e.index.source ?? e.index.decimal).trim();
+                return /^(?:0|[1-9][0-9]{0,8})$/.test(kSrc) && isNoBraceSyncAssignWord(e.value);
+              }
+              return isNoBraceSyncWord(e.value) && e.value.parts.length > 0 && e.value.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)));
+            }));
           }
           return isNoBraceSyncAssignWord(arrayAssign.value);
         }
@@ -7154,9 +7226,10 @@ export class Runtime {
       if (
         command.words.length >= 2 &&
         command.words.length <= 16 &&
-        w0Plain === "local" &&
-        !hasShellFunction(rawState, "local") &&
-        !rawState.extensions?.builtins.has("local")
+        w0Plain !== undefined &&
+        (w0Plain === "local" ? rawState.locals.length > 0 : (w0Plain === "declare" || w0Plain === "typeset")) &&
+        !hasShellFunction(rawState, w0Plain) &&
+        !rawState.extensions?.builtins.has(w0Plain)
       ) {
         // Array locals require the typed declaration and restoration lifecycle.
         if (command.words[1]?.plain === "-a" || command.words[1]?.plain === "-A") return false;
@@ -9045,7 +9118,8 @@ export class Runtime {
         }
       }
       if (
-        command.words.length === 2 &&
+        command.words.length >= 2 &&
+        command.words.length <= 16 &&
         w0Plain === "unset" &&
         canMutatePipeStatus &&
         !pipeline.negate &&
@@ -9053,58 +9127,91 @@ export class Runtime {
         !hasShellFunction(rawState, "unset") &&
         !rawState.extensions?.builtins.has("unset")
       ) {
-        let tExpanded = command.words[1]!.plain ?? (command.words[1]!.parts.length === 1 && command.words[1]!.parts[0]!.kind === "text" ? command.words[1]!.parts[0]!.value : undefined);
-        if (tExpanded === undefined) {
-          try {
-            const fv = this.fastValueWord(command.words[1]!, rawState, io, false, false, false, false, undefined, diagnosticLine);
-            if (typeof fv === "string") tExpanded = fv;
-          } catch {}
-        }
-        if (tExpanded !== undefined) {
-          const bracket = tExpanded.indexOf("[");
-          if (bracket > 0 && tExpanded.endsWith("]")) {
-            const arrName = tExpanded.slice(0, bracket);
-            const subStr = tExpanded.slice(bracket + 1, -1);
-            const arrStore = monitor.store;
-            const binding = isShellIdentifier(arrName) ? arrStore?.get(arrName) : undefined;
-            if (arrStore && binding && binding.references === 1 && !rawState.readonlyVariables?.has(arrName) && !arrStore.watches.has(arrName) && !monitor.hasOverlay(arrName)) {
+        const uStart = command.words[1]?.plain === "-v" ? 2 : 1;
+        const arrStore = monitor.store;
+        if (arrStore && uStart < command.words.length) {
+          let allArrOk = true;
+          let hasAnyArrElem = false;
+          const ops: Array<{ kind: "assoc"; arrName: string; binding: IndexedBinding; subStr: string; rawArg: string } | { kind: "indexed"; arrName: string; binding: IndexedBinding; unsetIdx: number; rawArg: string } | { kind: "scalar"; targetName: string }> = [];
+          for (let ui = uStart; ui < command.words.length; ui++) {
+            const wu = command.words[ui]!;
+            let tExpanded = wu.plain ?? (wu.parts.length === 1 && wu.parts[0]!.kind === "text" ? wu.parts[0]!.value : undefined);
+            if (tExpanded === undefined) {
+              try {
+                const fv = this.fastValueWord(wu, rawState, io, false, false, false, false, undefined, diagnosticLine);
+                if (typeof fv === "string") tExpanded = fv;
+              } catch {}
+            }
+            if (tExpanded === undefined) { allArrOk = false; break; }
+            const bracket = tExpanded.indexOf("[");
+            if (bracket > 0 && tExpanded.endsWith("]")) {
+              hasAnyArrElem = true;
+              const arrName = tExpanded.slice(0, bracket);
+              const subStr = tExpanded.slice(bracket + 1, -1);
+              const binding = isShellIdentifier(arrName) ? arrStore.get(arrName) : undefined;
+              if (!binding || binding.references !== 1 || rawState.readonlyVariables?.has(arrName) || arrStore.watches.has(arrName) || monitor.hasOverlay(arrName)) {
+                allArrOk = false;
+                break;
+              }
               if (binding.associative) {
                 if (subStr.length > 0 && subStr.length <= 4096 && !/[$\x60\\"']/.test(subStr)) {
-                  const ek = binding.keys.get(fastStringHexIdentity(subStr));
-                  if (ek !== undefined && binding.values.has(ek.index)) {
-                    const tickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
-                    binding.remove(ek.index);
-                    monitor.epoch = tickets.epoch;
-                    arrStore.revise(arrName, binding, tickets);
-                  }
-                  this.budget.tick();
-                  rawState.substitutionStatus = 0;
-                  if (rawState.variables._ !== undefined) delete rawState.variables._;
-                  rawState.lastArgument = tExpanded;
-                  rawState.status = 0;
-                  return 0;
+                  ops.push({ kind: "assoc", arrName, binding, subStr, rawArg: tExpanded });
+                  continue;
                 }
               } else if (/^(?:0|[1-9][0-9]{0,8})$/.test(subStr)) {
-                const unsetIdx = Number(subStr);
-                if (binding.values.has(unsetIdx)) {
+                ops.push({ kind: "indexed", arrName, binding, unsetIdx: Number(subStr), rawArg: tExpanded });
+                continue;
+              }
+              allArrOk = false;
+              break;
+            } else if (rawState.locals.length === 0 && isShellIdentifier(tExpanded) && !tExpanded.startsWith("-") && !rawState.readonlyVariables?.has(tExpanded) && !arrStore.get(tExpanded) && !rawState.functions.has(tExpanded) && !monitor.hasOverlay(tExpanded) && tExpanded !== "OPTIND" && tExpanded !== "PIPESTATUS" && tExpanded !== "_" && tExpanded !== "IFS" && tExpanded !== "PATH") {
+              ops.push({ kind: "scalar", targetName: tExpanded });
+              continue;
+            } else {
+              allArrOk = false;
+              break;
+            }
+          }
+          if (allArrOk && hasAnyArrElem && ops.length > 0) {
+            if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
+            let lastArg = "";
+            for (let oi = 0; oi < ops.length; oi++) {
+              const op = ops[oi]!;
+              if (op.kind === "assoc") {
+                const ek = op.binding.keys.get(fastStringHexIdentity(op.subStr));
+                if (ek !== undefined && op.binding.values.has(ek.index)) {
                   const tickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
-                  binding.remove(unsetIdx);
-                  if (unsetIdx === binding.maximum) {
+                  op.binding.remove(ek.index);
+                  monitor.epoch = tickets.epoch;
+                  arrStore.revise(op.arrName, op.binding, tickets);
+                }
+                lastArg = op.rawArg;
+              } else if (op.kind === "indexed") {
+                if (op.binding.values.has(op.unsetIdx)) {
+                  const tickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+                  op.binding.remove(op.unsetIdx);
+                  if (op.unsetIdx === op.binding.maximum) {
                     let newMax = -1;
-                    for (const k of binding.values.keys()) { if (k > newMax) newMax = k; }
-                    binding.maximum = newMax;
+                    for (const k of op.binding.values.keys()) { if (k > newMax) newMax = k; }
+                    op.binding.maximum = newMax;
                   }
                   monitor.epoch = tickets.epoch;
-                  arrStore.revise(arrName, binding, tickets);
+                  arrStore.revise(op.arrName, op.binding, tickets);
                 }
-                this.budget.tick();
-                rawState.substitutionStatus = 0;
-                if (rawState.variables._ !== undefined) delete rawState.variables._;
-                rawState.lastArgument = tExpanded;
-                rawState.status = 0;
-                return 0;
+                lastArg = op.rawArg;
+              } else {
+                delete rawState.variables[op.targetName];
+                rawState.exported.delete(op.targetName);
+                monitor.values.invalidate(op.targetName);
+                lastArg = op.targetName;
               }
             }
+            this.budget.tick();
+            rawState.substitutionStatus = 0;
+            if (rawState.variables._ !== undefined) delete rawState.variables._;
+            rawState.lastArgument = lastArg;
+            rawState.status = 0;
+            return 0;
           }
         }
       }
@@ -9330,7 +9437,6 @@ export class Runtime {
           }
           return undefined;
         }
-        if (w0Plain !== "local" || rawState.locals.length === 0) return undefined;
         const parsedLocals: Array<{ name: string; val: string | undefined; lastArg: string }> = [];
         let allValidLocal = true;
         for (let idx = 1; idx < command.words.length; idx++) {
@@ -9360,15 +9466,15 @@ export class Runtime {
           }
         }
         if (allValidLocal && parsedLocals.length > 0) {
-          const locals = rawState.locals[rawState.locals.length - 1]!;
+          const locals = rawState.locals.length > 0 ? rawState.locals[rawState.locals.length - 1]! : undefined;
           const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
           this.budget.tick();
           rawState.substitutionStatus = 0;
           if (rawState.variables._ !== undefined) delete rawState.variables._;
           for (let idx = 0; idx < parsedLocals.length; idx++) {
             const item = parsedLocals[idx]!;
-            const isNewLocal = !locals.has(item.name);
-            if (isNewLocal) {
+            const isNewLocal = locals ? !locals.has(item.name) : false;
+            if (locals && isNewLocal) {
               if (this._syncArithRawWriteOnly && this._syncArithTouched) {
                 const curVal = this._syncArithTouched.has(item.name)
                   ? rawState.variables[item.name]
@@ -10000,8 +10106,8 @@ export class Runtime {
                 this.budget.limits.maxExpansionBytes === Infinity &&
                 !rawState.nocasematch
               ) {
-                if ((part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") && part.alternate && part.alternate.parts.length === 1 && part.alternate.parts[0]!.kind === "text" && !hasGlobOrEscape(part.alternate.parts[0]!.value, true)) continue;
-                if ((part.operator === "/" || part.operator === "//" || part.operator === "/#" || part.operator === "/%") && part.alternate && part.alternate.parts.length === 1 && part.alternate.parts[0]!.kind === "text" && part.alternate.parts[0]!.value.length > 0 && !hasGlobOrEscape(part.alternate.parts[0]!.value, true) && (!part.replacement || part.replacement.parts.length === 0 || (part.replacement.parts.length === 1 && part.replacement.parts[0]!.kind === "text" && !part.replacement.parts[0]!.value.includes("&") && !part.replacement.parts[0]!.value.includes("\\") && !part.replacement.parts[0]!.value.startsWith("~")))) continue;
+                if ((part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") && part.alternate && part.alternate.parts.length === 1 && part.alternate.parts[0]!.kind === "text" && (!hasGlobOrEscape(part.alternate.parts[0]!.value, true) || (!part.alternate.parts[0]!.quoted && Boolean(tryCompileTrimGlobToRegex(part.alternate.parts[0]!.value, part.operator, !!rawState.extglob))))) continue;
+                if ((part.operator === "/" || part.operator === "//" || part.operator === "/#" || part.operator === "/%") && part.alternate && part.alternate.parts.length === 1 && part.alternate.parts[0]!.kind === "text" && part.alternate.parts[0]!.value.length > 0 && (!hasGlobOrEscape(part.alternate.parts[0]!.value, true) || (!part.alternate.parts[0]!.quoted && Boolean(tryCompileFixedGlobToRegex(part.alternate.parts[0]!.value, part.operator, !!rawState.extglob)))) && (!part.replacement || part.replacement.parts.length === 0 || (part.replacement.parts.length === 1 && part.replacement.parts[0]!.kind === "text" && !part.replacement.parts[0]!.value.includes("&") && !part.replacement.parts[0]!.value.includes("\\") && !part.replacement.parts[0]!.value.startsWith("~")))) continue;
                 if ((part.operator === "^" || part.operator === "^^" || part.operator === "," || part.operator === ",,") && (!part.alternate || part.alternate.parts.length === 0)) continue;
               }
               return false;
@@ -17120,19 +17226,37 @@ export class Runtime {
               (rawState.depth + (io.parameterDepth ?? 0)) < 60
             ) {
               let elemOpPat: string | undefined;
+              let elemOpTrimGlobRe: RegExp | undefined;
+              let elemOpFixedGlobRe: RegExp | undefined;
               let elemOpRep = "";
               let validElemOp = part.operator === undefined;
               if (!validElemOp && !isKeys && !rawState.nocasematch) {
                 if ((part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") && part.alternate && part.alternate.parts.length === 1 && part.alternate.parts[0]!.kind === "text") {
-                  const pVal = part.alternate.parts[0]!.value;
-                  if (!pVal.startsWith("~") && !hasGlobOrEscape(pVal, true)) { elemOpPat = pVal; validElemOp = true; }
+                  const pPart = part.alternate.parts[0]!;
+                  const pVal = pPart.value;
+                  if (!pVal.startsWith("~")) {
+                    if (!hasGlobOrEscape(pVal, true)) { elemOpPat = pVal; validElemOp = true; }
+                    else if (!pPart.quoted) {
+                      elemOpTrimGlobRe = tryCompileTrimGlobToRegex(pVal, part.operator, !!rawState.extglob);
+                      if (elemOpTrimGlobRe) validElemOp = true;
+                    }
+                  }
                 } else if ((part.operator === "/" || part.operator === "//" || part.operator === "/#" || part.operator === "/%") && part.alternate && part.alternate.parts.length === 1 && part.alternate.parts[0]!.kind === "text") {
-                  const pVal = part.alternate.parts[0]!.value;
-                  if (pVal.length > 0 && !pVal.startsWith("~") && !hasGlobOrEscape(pVal, true)) {
-                    if (!part.replacement || part.replacement.parts.length === 0) { elemOpPat = pVal; validElemOp = true; }
+                  const pPart = part.alternate.parts[0]!;
+                  const pVal = pPart.value;
+                  if (pVal.length > 0 && !pVal.startsWith("~")) {
+                    let repOk = false;
+                    if (!part.replacement || part.replacement.parts.length === 0) { repOk = true; }
                     else if (part.replacement.parts.length === 1 && part.replacement.parts[0]!.kind === "text") {
                       const rVal = part.replacement.parts[0]!.value;
-                      if (!rVal.includes("&") && !rVal.includes("\\") && !rVal.startsWith("~")) { elemOpPat = pVal; elemOpRep = rVal; validElemOp = true; }
+                      if (!rVal.includes("&") && !rVal.includes("\\") && !rVal.startsWith("~")) { elemOpRep = rVal; repOk = true; }
+                    }
+                    if (repOk) {
+                      if (!hasGlobOrEscape(pVal, true)) { elemOpPat = pVal; validElemOp = true; }
+                      else if (!pPart.quoted) {
+                        elemOpFixedGlobRe = tryCompileFixedGlobToRegex(pVal, part.operator, !!rawState.extglob);
+                        if (elemOpFixedGlobRe) validElemOp = true;
+                      }
                     }
                   }
                 } else if ((part.operator === "^" || part.operator === "^^" || part.operator === "," || part.operator === ",,") && (!part.alternate || part.alternate.parts.length === 0)) {
@@ -17177,7 +17301,13 @@ export class Runtime {
                     let ev = isKeys ? (arrayBinding.associative ? arrayBinding.keys.get(arrayBinding.keyByIndex.get(k)!)?.text.shellValue : String(k)) : arrayBinding.getValue(k);
                     if (typeof ev !== "string") { allStrings = false; break; }
                     if (part.operator !== undefined) {
-                      if (part.operator === "#" || part.operator === "##") {
+                      if (elemOpTrimGlobRe) {
+                        const m = elemOpTrimGlobRe.exec(ev);
+                        if (m) ev = (part.operator === "#" || part.operator === "##") ? ev.slice(m[1]!.length) : ev.slice(0, ev.length - m[1]!.length);
+                      } else if (elemOpFixedGlobRe) {
+                        elemOpFixedGlobRe.lastIndex = 0;
+                        ev = ev.replace(elemOpFixedGlobRe, () => elemOpRep);
+                      } else if (part.operator === "#" || part.operator === "##") {
                         if (ev.startsWith(elemOpPat!)) ev = ev.slice(elemOpPat!.length);
                       } else if (part.operator === "%" || part.operator === "%%") {
                         if (ev.endsWith(elemOpPat!)) ev = ev.slice(0, ev.length - elemOpPat!.length);

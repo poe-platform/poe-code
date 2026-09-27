@@ -1,10 +1,8 @@
 import { XmlBudget, XmlQueryError, XmlQueryLimitError } from "./limits.js";
 
-export type Predicate =
-  | { kind: "position"; value: number }
-  | { kind: "last" }
-  | { kind: "attribute"; name: string; value?: string }
-  | { kind: "child" | "text" | "self"; name: string; value: string };
+import { parsePredicate, type Instruction } from "./predicate.js";
+
+export type Predicate = readonly Instruction[];
 export interface QueryStep {
   readonly descendant: boolean;
   readonly kind: "element" | "attribute" | "text" | "self" | "parent";
@@ -116,73 +114,17 @@ export async function parseQuery(source: string, budget: XmlBudget): Promise<Que
       while (source[at] === "[") {
         at++;
         space();
-        const integer = (): number => {
-          const start = at;
-          while ((source[at] ?? "") >= "0" && (source[at] ?? "") <= "9") at++;
-          const value = Number(source.slice(start, at));
-          if (start === at || !Number.isSafeInteger(value) || value < 1) fail();
-          return value;
-        };
-        if ((source[at] ?? "") >= "0" && (source[at] ?? "") <= "9") {
-          predicates.push({ kind: "position", value: integer() });
-        } else if (
-          ["last", "position"].some(
-            (value) =>
-              source.startsWith(value, at) &&
-              (() => {
-                let offset = at + value.length;
-                while (offset < source.length && " \t\r\n".includes(source[offset]!)) offset++;
-                return source[offset] === "(";
-              })()
-          )
-        ) {
-          const functionName = name();
-          expect("(");
-          expect(")");
-          if (functionName === "last") predicates.push({ kind: "last" });
-          else if (functionName === "position") {
-            expect("=");
-            space();
-            predicates.push({ kind: "position", value: integer() });
-          } else fail();
-        } else {
-          let predicateKind: "attribute" | "child" | "text" | "self" = "child";
-          let selectedName = "";
-          if (source[at] === "@") {
-            at++;
-            predicateKind = "attribute";
-            selectedName = name();
-          } else if (source[at] === ".") {
-            at++;
-            predicateKind = "self";
-          } else {
-            selectedName = name();
-            space();
-            if (source[at] === "(") {
-              if (selectedName !== "text") fail();
-              expect("(");
-              expect(")");
-              predicateKind = "text";
-            }
-          }
-          space();
-          if (predicateKind === "attribute" && source[at] === "]") {
-            predicates.push({ kind: "attribute", name: selectedName });
-          } else {
-            expect("=");
-            space();
-            const quote = source[at++];
-            if (quote !== "'" && quote !== '"') fail();
-            const start = at;
-            while (at < source.length && source[at] !== quote) at++;
-            if (at === source.length) fail();
-            predicates.push({
-              kind: predicateKind,
-              name: selectedName,
-              value: source.slice(start, at++)
-            });
-          }
+        const start = at;
+        let quote = "";
+        while (at < source.length) {
+          const character = source[at]!;
+          if (quote) { if (character === quote) quote = ""; }
+          else if (character === "'" || character === '"') quote = character;
+          else if (character === "]") break;
+          at++;
         }
+        if (at === source.length) fail();
+        predicates.push(parsePredicate(source.slice(start, at), budget));
         expect("]");
         space();
       }

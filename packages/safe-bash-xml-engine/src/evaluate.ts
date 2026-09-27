@@ -1,3 +1,4 @@
+import { testPredicate } from "./predicate.js";
 import type { XmlAttribute, XmlContent, XmlElement } from "@poe-code/safe-fs/core";
 import type { Query, QueryStep } from "./query.js";
 import { XmlBudget } from "./limits.js";
@@ -114,59 +115,22 @@ export async function evaluate(query: Query, root: XmlElement, budget: XmlBudget
         }
         for (const predicate of step.predicates) {
           { const _p = budget.tick(); if (_p) await _p; }
-          if (predicate.kind === "position")
-            matched = matched[predicate.value - 1] ? [matched[predicate.value - 1]!] : [];
-          else if (predicate.kind === "last")
-            matched = matched.length ? [matched[matched.length - 1]!] : [];
-          else {
-            const filtered: Node[] = [];
-            for (const candidate of matched) {
-              { const _p = budget.tick(); if (_p) await _p; }
-              if (predicate.kind !== "attribute") {
-                const values: Node[] = [];
-                if (predicate.kind === "self") values.push(candidate);
-                else if (candidate.kind === "element" || candidate.kind === "document") {
-                  for (const child of candidate.children) {
-                    { const _p = budget.tick(); if (_p) await _p; }
-                    if (
-                      predicate.kind === "text"
-                        ? child.kind === "text" || child.kind === "cdata"
-                        : child.kind === "element" &&
-                          child.value.namespace === "" &&
-                          child.value.localName === predicate.name
-                    )
-                      values.push(child);
-                  }
-                }
-                for (const value of values) {
-                  { const _p = budget.tick(); if (_p) await _p; }
-                  let text = "";
-                  for await (const part of stringValue(value, budget)) {
-                    { const _p = budget.tick(part.length); if (_p) await _p; }
-                    text += part;
-                  }
-                  if (text === predicate.value) {
-                    filtered.push(candidate);
-                    break;
-                  }
-                }
-                continue;
-              }
-              if (candidate.kind !== "element") continue;
-              for (const attribute of candidate.attributes) {
-                { const _p = budget.tick(attribute.value.value.length + 1); if (_p) await _p; }
-                if (
-                  attribute.value.namespace === "" &&
-                  attribute.value.localName === predicate.name &&
-                  (predicate.value === undefined || attribute.value.value === predicate.value)
-                ) {
-                  filtered.push(candidate);
-                  break;
-                }
-              }
-            }
-            matched = filtered;
+          const first = predicate[0];
+          if (predicate.length === 1 && first?.kind === "literal" && typeof first.value === "number") {
+            matched = matched[first.value - 1] ? [matched[first.value - 1]!] : [];
+            continue;
           }
+          if (predicate.length === 1 && first?.kind === "function" && first.name === "last") {
+            matched = matched.length ? [matched[matched.length - 1]!] : [];
+            continue;
+          }
+          const filtered: Node[] = [];
+          for (let index = 0; index < matched.length; index++) {
+            const candidate = matched[index]!;
+            if (await testPredicate(predicate, candidate, index + 1, matched.length, budget))
+              filtered.push(candidate);
+          }
+          matched = filtered;
         }
         for (const node of matched) {
           { const _p = budget.tick(); if (_p) await _p; }

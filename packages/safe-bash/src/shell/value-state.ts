@@ -549,37 +549,20 @@ export class ValueStore {
   }
 
   replace(entries: Iterable<readonly [string, ShellValue]>, action: () => void): void {
-    let staged: Map<string, HeldValue> | undefined;
-    let totalStringBytes = 0;
-    let stringRecord: AllocationRecord | undefined;
+    const staged = new Map<string, HeldValue>();
     try {
       for (const [name, value] of entries) {
-        if (typeof value === "string") {
-          totalStringBytes += value.length * 2;
-          continue;
-        }
         const held = this.scope.hold(value);
-        staged ??= new Map();
         staged.get(name)?.release();
         staged.set(name, held);
       }
-      if (!this.arena.hasInfiniteBytes && totalStringBytes > 0) {
-        stringRecord = this.arena.allocate(totalStringBytes, 0);
-      } else {
-        this.arena.assertOpen();
-      }
       action();
     } catch (error) {
-      if (stringRecord) this.arena.release(stringRecord);
-      if (staged) for (const held of staged.values()) held.release();
+      for (const held of staged.values()) held.release();
       throw error;
     }
     this.invalidate();
-    if (stringRecord) {
-      this._stringRecord = stringRecord;
-      this._stringBytes = totalStringBytes;
-    }
-    if (staged && staged.size > 0) {
+    if (staged.size > 0) {
       const values = this._values ??= new Map();
       for (const [name, held] of staged) values.set(name, held);
     }

@@ -18548,7 +18548,7 @@ export class Runtime {
                   }
                 }
               }
-              if (subIdx === undefined) return undefined;
+              if (subIdx === undefined || subIdx > 2147483647) return undefined;
               elemVal = arrayBinding.getValue(subIdx);
             }
             if (elemVal !== undefined && typeof elemVal !== "string") return undefined;

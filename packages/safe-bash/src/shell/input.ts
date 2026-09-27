@@ -1694,9 +1694,7 @@ export class ShellInput implements ByteSource, CommandInput {
         for (let i = 0; i < bytes.length; i++) {
           if (bytes[i]! >= 128) { isPureAscii = false; break; }
         }
-        const shellValue = isPureAscii && escapedByteOffsets.length === 0
-          ? Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("latin1")
-          : shellValueFromBytes(bytes, scope);
+        const shellValue = shellValueFromBytes(bytes, scope);
         const shellValueStr = typeof shellValue === "string" ? shellValue : shellValueText(shellValue);
         const asciiStringValue = isPureAscii ? shellValueStr : undefined;
         const escaped = new Set<number>();
@@ -1716,7 +1714,7 @@ export class ShellInput implements ByteSource, CommandInput {
             active++;
             try {
             if (maximum !== undefined && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("Invalid read field count");
-            if (asciiStringValue !== undefined && escapedByteOffsets.length === 0 && typeof ifs === "string") {
+            if (asciiStringValue !== undefined && asciiStringValue.length <= 512 && (maximum === undefined || maximum > 0) && escapedByteOffsets.length === 0 && typeof ifs === "string") {
               let asciiIfs = true;
               for (let i = 0; i < ifs.length; i++) {
                 if (ifs.charCodeAt(i) >= 128) { asciiIfs = false; break; }

@@ -265,14 +265,16 @@ test("wave 42: dynamic pattern trim/replace, printf -v %x/%X/%o/%u, shift in fun
 });
 
 
-  test("wave 46: sparse array keys in groups, local -a + IFS read -a + unset element, array element trim/replace, and dirname/basename/seq/rev/head/tail/wc substitutions", async () => {
+  test("wave 46: sparse array keys in groups, local -a + IFS read -a + unset element, array element trim/replace, and dirname/basename/seq/rev/head/tail/wc substitutions", async context => {
     const { shell } = setup();
+    context.after(() => shell.dispose());
     for (const c of basicCommands()) shell.commands.register(c, { replace: true });
     const { textCommands } = await import("../../src/commands/text.js");
     const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
     const { grepCommands } = await import("../../src/commands/grep.js");
     const { streamCommands } = await import("../../src/commands/streams.js");
-    for (const c of [...textCommands(), ...createTextProgramCommands(), ...grepCommands(), ...streamCommands()]) shell.commands.register(c, { replace: true });
+    const { createStreamFormatCommands } = await import("../../src/commands/stream-format/index.js");
+    for (const c of [...textCommands(), ...createTextProgramCommands(), ...grepCommands(), ...streamCommands(), ...createStreamFormatCommands()]) shell.commands.register(c, { replace: true });
     const script = [
       'parts=(a b c); unset "parts[1]"; cnt=0; { (( cnt++ )); sparse_keys="${!parts[*]}"; }; echo "$cnt:$sparse_keys"',
       'step_read_a() { local -a row; IFS=: read -r -a row <<< "$1"; unset "row[1]"; out_a="${row[0]}-${row[2]}:${#row[@]}:${!row[*]}"; }',

@@ -599,12 +599,11 @@ function tryMatchEreAsciiRangeNfaSync(
   return undefined;
 }
 
-function prepareInitialCharacters(root: EreNode, ledger: EreLedger, signal?: AbortSignal): (readonly boolean[] | undefined) | Promise<readonly boolean[] | undefined> {
+async function prepareInitialCharacters(root: EreNode, ledger: EreLedger, signal?: AbortSignal): Promise<readonly boolean[] | undefined> {
   // Nullable patterns must still try every cursor, including end of input.
   if (root.nullable) return undefined;
   const cached = initialCharacters.get(root);
   if (cached) return cached;
-  return (async () => {
   // ASCII codes plus the normalized non-ASCII subject value (128). This table
   // belongs to the program's ledger and is reused across rows and cursors.
   ledger.charge("work", 129, signal);
@@ -656,7 +655,6 @@ function prepareInitialCharacters(root: EreNode, ledger: EreLedger, signal?: Abo
   ledger.check(signal);
   initialCharacters.set(root, Object.freeze(codes));
   return codes;
-  })();
 }
 
 function spanOrder(left: EreSpan | null, right: EreSpan | null): number {
@@ -706,10 +704,11 @@ async function preferred(candidate: State, incumbent: State, ledger: EreLedger, 
 }
 
 function resetDescendants(node: EreNode, previous: readonly (EreSpan | null)[], ledger: EreLedger, signal?: AbortSignal): readonly (EreSpan | null)[] | Promise<readonly (EreSpan | null)[]> {
-  if (ledger.workAllowanceUntilCheckpoint(signal) >= previous.length + 32) {
-    ledger.chargeWork(previous.length + 1, signal);
+  if (ledger.charge === EreLedger.prototype.charge && ledger.workAllowanceUntilCheckpoint(signal) >= previous.length + 32) {
+    ledger.charge("work", previous.length, signal);
     ledger.charge("allocationUnits", previous.length + 3, signal);
     const captures = previous.slice();
+    ledger.charge("work", 1, signal);
     if (node.kind === "group") {
       captures[node.index] = null;
       if (!node.child.captured) return captures;
@@ -1065,8 +1064,7 @@ async function runMatcher(program: EreProgram, subject: string, ledger: EreLedge
 async function runMatcher(program: EreProgram, subject: string, ledger: EreLedger, signal: AbortSignal | undefined, from: number, materialize: false, leftmostFirst?: boolean, word?: boolean): Promise<EreSpan | undefined>;
 async function runMatcher(program: EreProgram, subject: string, ledger: EreLedger, signal: AbortSignal | undefined, from: number, materialize: boolean, leftmostFirst = false, word = false): Promise<EreResult | EreSpan | undefined> {
   const root = resolveEreProgram(program, ledger);
-  const initialOrPromise = prepareInitialCharacters(root, ledger, signal);
-  const initial = initialOrPromise instanceof Promise ? await initialOrPromise : initialOrPromise;
+  const initial = await prepareInitialCharacters(root, ledger, signal);
   const width = program.groups + 1;
   ledger.charge("work", width * 2, signal);
   ledger.charge("allocationUnits", width * 2 + 1, signal);

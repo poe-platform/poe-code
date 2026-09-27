@@ -38,7 +38,7 @@ function classMember(name: string, code: number): boolean {
 }
 
 export function admitAscii(text: string, ledger: EreLedger, signal?: AbortSignal): void | Promise<void> {
-  if (ledger.workAllowanceUntilCheckpoint(signal) >= text.length + 4) {
+  if (ledger.charge === EreLedger.prototype.charge && ledger.workAllowanceUntilCheckpoint(signal) >= text.length + 4) {
     for (let offset = 0; offset < text.length; offset++) {
       ledger.chargeWork(1, signal);
       const code = text.charCodeAt(offset);
@@ -271,7 +271,7 @@ export async function compileEre(input: string | readonly EreFragment[], ledger:
   } else if (Array.isArray(input) && input.length === 1 && typeof input[0]?.text === "string" && typeof input[0]?.literal === "boolean" && input[0].text.length <= 128) {
     cacheKey = `F:${asciiInsensitive ? 1 : 0}:${localeProfile.ranges ? 1 : 0}:${localeProfile.classes ? 1 : 0}:${input[0].literal ? 1 : 0}:${input[0].text}`;
   }
-  if (cacheKey !== undefined) {
+  if (cacheKey !== undefined && ledger.charge === EreLedger.prototype.charge) {
     const cached = ereCompilationCache.get(cacheKey);
     if (
       cached &&

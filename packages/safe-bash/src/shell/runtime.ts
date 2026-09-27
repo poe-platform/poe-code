@@ -104,15 +104,11 @@ import type { EreFragment } from "../commands/regex-execution/ere/types.js";
 import { PathLookup, pathTargets } from "./path-lookup.js";
 import { transformParameter } from "./parameter-transforms.js";
 import { creationFileSystem, umaskBuiltin } from "./umask.js";
-import { isIdlePortableTrapInstance } from "./trap.js";
 
 function hasActiveExtensions(state: State): state is State & { extensions: ShellExtensionState } {
   const ext = state.extensions;
   if (!ext) return false;
-  if ((ext as { isIdleTrapState?: boolean }).isIdleTrapState) return false;
-  if (ext.entries.length > 1 || ext.checkpoints.length > 0) return true;
-  const first = ext.entries[0];
-  return first ? !isIdlePortableTrapInstance(first.instance) : false;
+  return !(ext as { isIdleTrapState?: boolean }).isIdleTrapState;
 }
 
 const memberPatternOperators = ["#", "##", "%", "%%", "/", "//", "/#", "/%", "^", "^^", ",", ",,"];
@@ -8533,7 +8529,7 @@ export class Runtime {
         ) {
           let fastAssigned: ShellValue | undefined;
           try {
-            fastAssigned = this.fastValueWord(assignment.value, rawState, io, false, false, false, false, 0, diagnosticLine);
+            fastAssigned = this.fastValueWord(assignment.value, rawState, io, false, false, false, rawState.braceexpand !== false, 0, diagnosticLine);
           } catch {
             return undefined;
           }
@@ -8568,6 +8564,7 @@ export class Runtime {
         command.words.length === 2 &&
         w0Plain === "return" &&
         (rawState.functionDepth > 0 || rawState.sourceDepth) &&
+        !hasActiveExtensions(rawState) &&
         !hasShellFunction(rawState, "return") &&
         !rawState.extensions?.builtins.has("return") &&
         !pipeline.negate &&
@@ -10902,6 +10899,7 @@ export class Runtime {
         if (
           w0Plain === "return" &&
           (state.functionDepth > 0 || state.sourceDepth) &&
+          !hasActiveExtensions(state) &&
           !hasShellFunction(state, "return") &&
           !state.extensions?.builtins.has("return") &&
           !state.externalInvocation
@@ -10979,7 +10977,7 @@ export class Runtime {
           let fastAssigned: ShellValue | undefined;
           let fastFailed = false;
           try {
-            fastAssigned = this.fastValueWord(assignment.value, state, originalIO, false, false, false, false, 0, diagnosticLine);
+            fastAssigned = this.fastValueWord(assignment.value, state, originalIO, false, false, false, state.braceexpand !== false, 0, diagnosticLine);
           } catch {
             fastFailed = true;
           }
@@ -11005,6 +11003,7 @@ export class Runtime {
           command.words.length === 2 &&
           w0Plain === "return" &&
           (state.functionDepth > 0 || state.sourceDepth) &&
+          !hasActiveExtensions(state) &&
           !hasShellFunction(state, "return") &&
           !state.extensions?.builtins.has("return") &&
           !state.externalInvocation
@@ -13144,13 +13143,13 @@ export class Runtime {
                   assignmentDiagnosticContext: { name: context.command },
                   functionCommandLines: diagnostic?.lines, diagnosticCommandLines: diagnostic?.lines,
                 });
-                outcome = { kind: "return", value: { exitCode: activeExt ? await this.finishReturn("function-return", state, { ...io, ...context }, status) : status } };
+                outcome = { kind: "return", value: { exitCode: hasActiveExtensions(state) ? await this.finishReturn("function-return", state, { ...io, ...context }, status) : status } };
               }
             }
             catch (error) {
               if (error instanceof NounsetDiagnosticFailure) throw error;
               if (error instanceof Flow && error.kind === "return") {
-                outcome = { kind: "return", value: { exitCode: activeExt ? await this.finishReturn("function-return", state, { ...io, ...context }, error.status, error.previousStatus) : error.status } };
+                outcome = { kind: "return", value: { exitCode: hasActiveExtensions(state) ? await this.finishReturn("function-return", state, { ...io, ...context }, error.status, error.previousStatus) : error.status } };
               } else {
                 if (error instanceof Flow && error.kind === "exit" && state.extensions) {
                   if (error.previousStatus === undefined) await restoreLocals();
@@ -13163,7 +13162,7 @@ export class Runtime {
             primaryFailure = !(error instanceof Flow) || error instanceof NounsetDiagnosticFailure;
             outcome = { kind: "throw", reason: error };
           } finally {
-            if (activeExt) {
+            if (hasActiveExtensions(state)) {
               await scope.cleanup(async () => {
                 try { if (!this.signal.aborted) await this.extensionEvent("function-leave", state, io, state.status); }
                 catch (error) {

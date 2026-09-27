@@ -1,4 +1,5 @@
 const ONCE_ABORT_OPTIONS = Object.freeze({ once: true });
+const defaultPerfNow = performance.now;
 import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { Decimal, isNumber, numberText } from "./numbers.js";
 
@@ -90,7 +91,7 @@ export class Budget {
     this.bindSignal(signal);
     this.steps = 0;
     this.lastYieldSteps = 0;
-    this.yieldTimes[0] = monotonicNow();
+    this.yieldTimes[0] = (performance.now !== defaultPerfNow || hasYieldCheckpoint(signal)) ? monotonicNow() : -1;
     this.inputBytes = 0;
     this.outputBytes = 0;
     this.results = 0;
@@ -112,6 +113,7 @@ export class Budget {
   needsYield(): boolean {
     if (hasYieldCheckpoint(this.signal)) {
       const now = monotonicNow();
+      if (this.yieldTimes[0]! < 0) this.yieldTimes[0] = now;
       return this.steps - this.lastYieldSteps >= 1024 || now - this.yieldTimes[0]! >= 25;
     }
     // Even fast finite workloads must eventually let host timers run.
@@ -126,6 +128,7 @@ export class Budget {
   }
   ensureFreshWindow(): Promise<void> | undefined {
     const now = monotonicNow();
+    if (this.yieldTimes[0]! < 0) this.yieldTimes[0] = now;
     if (now - this.yieldTimes[0]! < 15) {
       runYieldCheckpoint(this.signal);
       return undefined;

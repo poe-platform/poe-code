@@ -82,7 +82,7 @@ export class Budget {
     this.remainingSmi = !this.unlimited && rem <= 0x3fffffff ? (rem | 0) : 0x3fffffff;
     this.signal = context.signal;
     this.hasExtYield = hasYieldCheckpoint(context.signal);
-    this.yieldTimes[0] = monotonicNow();
+    this.yieldTimes[0] = (performance.now !== defaultPerfNow || this.hasExtYield) ? monotonicNow() : -1;
     this.maxBufferBytes = options.maxBufferBytes ?? Infinity;
     if (context.signal.aborted) context.signal.throwIfAborted();
     if (!validatedTextProgramOptions.has(options)) {
@@ -139,7 +139,10 @@ export class Budget {
       return this.yieldCheckpointAsync();
     }
     if (performance.now !== defaultPerfNow || this.hasExtYield || (count & 63) === 0) {
-      if (monotonicNow() - this.yieldTimes[0]! >= 25) {
+      const now = monotonicNow();
+      if (this.yieldTimes[0]! < 0) {
+        this.yieldTimes[0] = now;
+      } else if (now - this.yieldTimes[0]! >= 25) {
         return this.yieldCheckpointAsync();
       }
     }

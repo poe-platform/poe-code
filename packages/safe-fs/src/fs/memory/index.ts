@@ -1799,7 +1799,7 @@ export class MemoryFileSystem implements FileSystem {
           cache.lastFastDirNode = parent;
         }
       }
-      const existing = parent.entries.get(name);
+      const existing = (parent.entries as FastDirectoryEntriesMap).getForWrite ? (parent.entries as FastDirectoryEntriesMap).getForWrite(name) : parent.entries.get(name);
       if (existing) {
         if (existing.type !== "file") this.fail("EISDIR", syscall, name);
         this.permission(existing, 2, syscall, name);

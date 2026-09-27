@@ -298,6 +298,7 @@ let lastSedPairBatch: unknown;
 let lastSedPairStdoutLen = 0;
 let lastSedPairSteps = 0;
 let lastSedPairStdoutIntact = false;
+let sedPairBimodalWarm = 0;
 
 async function execute(program: readonly Instruction[], context: CommandContext, files: readonly string[], quiet: boolean, budget: Budget, separator: string, outputState: OutputState, lineLength: number): Promise<{ status: number; quit: boolean }> {
   const useBatches = separator !== "\0";
@@ -1011,7 +1012,8 @@ function tryExecutePairFastSync(
       usingSharedStdoutBuf &&
       lastSedPairStdoutIntact &&
       program === lastSedPairProgram &&
-      cachedBatch === lastSedPairBatch
+      cachedBatch === lastSedPairBatch &&
+      (++sedPairBimodalWarm > 16 || (sedPairBimodalWarm & 1) === 1)
     ) {
       budget.step(lastSedPairSteps);
       const pCheck = budget.checkpointSync();

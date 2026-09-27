@@ -305,8 +305,8 @@ test("wave 42: dynamic pattern trim/replace, printf -v %x/%X/%o/%u, shift in fun
     const { textCommands } = await import("../../src/commands/text.js");
     const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
     const { grepCommands } = await import("../../src/commands/grep.js");
-    const { streamCommands } = await import("../../src/commands/streams.js");
     const { createStreamFormatCommands } = await import("../../src/commands/stream-format/index.js");
+    const { streamCommands } = await import("../../src/commands/streams.js");
     for (const c of [...textCommands(), ...createTextProgramCommands(), ...grepCommands(), ...streamCommands(), ...createStreamFormatCommands()]) shell.commands.register(c, { replace: true });
     const script = [
       'parts=(a b c); unset "parts[1]"; cnt=0; { (( cnt++ )); sparse_keys="${!parts[*]}"; }; echo "$cnt:$sparse_keys"',

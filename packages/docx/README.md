@@ -2,6 +2,8 @@
 
 Private ESM workspace for DOCX admission, inspection, editing and
 publication. It does not render Word documents and has no standalone binary.
+`RGBColor(red, green, blue)` supports factory calls and `new`, with immutable
+components and the `RGBColor.from_string(hex)` helper.
 
 ```js
 import { parseDocxArguments, getDocxDiscovery } from "docx";

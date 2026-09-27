@@ -132,3 +132,16 @@ it("searches RGB tuple components inside signed half-open index bounds", () => {
   expect(() => color.index(20, 1, -1)).toThrow(RangeError);
   expect(() => color.index(20, 0.5)).toThrow(TypeError);
 });
+
+it("supports callable RGBColor with constructor identity and static helpers", () => {
+  const color = RGBColor(255, 0, 17);
+  expect(color).toBeInstanceOf(RGBColor);
+  expect(color.equals(new RGBColor(255, 0, 17))).toBe(true);
+  expect(color.equals(RGBColor.from_string("FF0011"))).toBe(true);
+  expect(color.toString()).toBe("FF0011");
+  expect([...color]).toEqual([255, 0, 17]);
+  expect(color[0]).toBe(255);
+  expect(Object.isFrozen(color)).toBe(true);
+  expect(() => RGBColor(256, 0, 17)).toThrow(RangeError);
+  expect(() => RGBColor(1.5, 0, 17)).toThrow(TypeError);
+});

@@ -9199,14 +9199,15 @@ export class Runtime {
       }
       if (rawState.allexport) monitor.proxy.exported.add(targetAssignName);
       if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+      const assignmentStatus = hasSubPart ? rawState.substitutionStatus : 0;
       if (!existing) {
-        monitor.lazyPipeStatus = singleStatusZero;
+        monitor.lazyPipeStatus = assignmentStatus === 0 ? singleStatusZero : [assignmentStatus];
         monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
       } else {
-        this.setSyncPipeStatusCell(existing!, "0");
+        this.setSyncPipeStatusCell(existing!, String(assignmentStatus));
         store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
       }
-      const finalStatus = pipeline.negate ? 1 : 0;
+      const finalStatus = pipeline.negate ? (assignmentStatus === 0 ? 1 : 0) : assignmentStatus;
       rawState.status = finalStatus;
       monitor.epoch = restEpoch;
       if (store) store.epoch = restEpoch;
@@ -11289,9 +11290,9 @@ export class Runtime {
             const sCmd = p.commands[sIdx]!;
             if (sCmd.kind !== "simple" || sCmd.redirects.length !== 0 || sCmd.words.length === 0) return false;
             const sName = sCmd.words[0]!.plain;
-            if (!sName || (sName !== "cut" && sName !== "tr" && sName !== "sort" && sName !== "head" && sName !== "tail" && sName !== "wc" && sName !== "sed" && sName !== "uniq" && sName !== "grep" && sName !== "awk" && sName !== "rev")) return false;
+            if (!sName || (sName !== "cut" && sName !== "tr" && sName !== "sort" && sName !== "head" && sName !== "tail" && sName !== "wc" && sName !== "sed" && sName !== "uniq" && sName !== "rev")) return false;
             const sDef = this.commands.get(sName);
-            if (!sDef || customRegisteredCommands.has(sDef.execute) || (sName !== "awk" && sName !== "rev" && !builtInDirectContextExecutors.has(sDef.execute))) return false;
+            if (!sDef || customRegisteredCommands.has(sDef.execute) || (sName !== "rev" && !builtInDirectContextExecutors.has(sDef.execute))) return false;
             if (rawState.functions.has(sName) || rawState.extensions?.builtins.has(sName)) return false;
             const sArgWords = sCmd.words.slice(1);
             const sPlainArgs: string[] = [];
@@ -11303,6 +11304,7 @@ export class Runtime {
               sPlainArgs.push(sp);
             }
             if (!allPlainStageArgs) return false;
+            if (sName === "sort" && (sPlainArgs.length > 1 || (sPlainArgs.length === 1 && sPlainArgs[0] !== "-r"))) return false;
             if (sName === "wc" && (sPlainArgs.length !== 1 || (sPlainArgs[0] !== "-l" && sPlainArgs[0] !== "-c" && sPlainArgs[0] !== "-w"))) return false;
             if ((sName === "head" || sName === "tail") && (sPlainArgs.length !== 2 || sPlainArgs[0] !== "-n" || !/^[0-9]+$/.test(sPlainArgs[1]!))) return false;
             if (sName === "cut") {
@@ -19073,7 +19075,7 @@ export class Runtime {
         const sName = sCmd.words[0]!.plain;
         if (!sName || hasShellFunction(rawState, sName) || rawState.extensions?.builtins.has(sName)) return undefined;
         const extDef = this.getExternalCommand(sName);
-        if (!extDef || (sName !== "awk" && sName !== "rev" && !builtInDirectContextExecutors.has(extDef.execute)) || (sName === "rev" && customRegisteredRegistries.has(this.commands)) || customRegisteredCommands.has(extDef.execute)) return undefined;
+        if (!extDef || (sName !== "rev" && !builtInDirectContextExecutors.has(extDef.execute)) || (sName === "rev" && customRegisteredRegistries.has(this.commands)) || customRegisteredCommands.has(extDef.execute)) return undefined;
         if (!this.arePureArgWords(sCmd.words, rawState)) return undefined;
         const sArgs: string[] = [];
         for (let w = 1; w < sCmd.words.length; w++) {
@@ -19097,9 +19099,7 @@ export class Runtime {
         } else if (sName === "uniq") {
           if (sArgs.length > 1 || (sArgs.length === 1 && sArgs[0] !== "-c" && sArgs[0] !== "-d" && sArgs[0] !== "-u" && sArgs[0] !== "-i")) return undefined;
         } else if (sName === "sort") {
-          if (sArgs.length > 1 || (sArgs.length === 1 && !/^-[rnu]{1,3}$/.test(sArgs[0]!))) return undefined;
-          // Numeric sorting uses the command's exact decimal-prefix comparison.
-          if (sArgs[0]?.includes("n")) return undefined;
+          if (sArgs.length > 1 || (sArgs.length === 1 && sArgs[0] !== "-r")) return undefined;
         } else if (sName === "head" || sName === "tail") {
           if (sArgs.length !== 2 || sArgs[0] !== "-n" || !/^[0-9]+$/.test(sArgs[1]!)) return undefined;
         } else if (sName === "wc") {
@@ -19108,18 +19108,6 @@ export class Runtime {
           const validSed1 = sArgs.length === 1 && sArgs[0]!.startsWith("s");
           const validSed2 = sArgs.length === 2 && sArgs[0] === "-e" && sArgs[1]!.startsWith("s");
           if (!validSed1 && !validSed2) return undefined;
-        } else if (sName === "grep") {
-          const validGrep1 = sArgs.length === 1 && !sArgs[0]!.startsWith("-") && !sArgs[0]!.includes("\\");
-          const validGrep2 = sArgs.length === 2 && /^-[EFvico]+$/.test(sArgs[0]!) && !(sArgs[0]!.includes("o") && (sArgs[0]!.includes("v") || sArgs[0]!.includes("c"))) && !sArgs[1]!.startsWith("-") && (sArgs[0]!.includes("E") || sArgs[0]!.includes("F") || !sArgs[1]!.includes("\\"));
-          if (!validGrep1 && !validGrep2) return undefined;
-          // The command parser owns POSIX bracket expressions; JS RegExp does not.
-          if (!(sArgs.length === 2 && sArgs[0]!.includes("F")) && sArgs[sArgs.length - 1]!.includes("[:")) return undefined;
-        } else if (sName === "awk") {
-          let awkProg: string | undefined;
-          if (sArgs.length === 1) awkProg = sArgs[0];
-          else if (sArgs.length === 2 && sArgs[0]!.startsWith("-F") && sArgs[0]!.length === 3) awkProg = sArgs[1];
-          else if (sArgs.length === 3 && sArgs[0] === "-F" && sArgs[1]!.length === 1) awkProg = sArgs[2];
-          if (!awkProg || !/^\s*\{\s*print\s+\$(?:[0-9]|NF)(?:\s*,\s*\$(?:[0-9]|NF))*\s*;?\s*\}\s*$/.test(awkProg)) return undefined;
         } else if (sName === "rev") {
           if (sArgs.length !== 0) return undefined;
         } else {
@@ -19176,14 +19164,11 @@ export class Runtime {
           const stageArgs = stageArgsList[index - 1]!;
           const nextBuf = (index & 1) === 0 ? sharedSyncPipeBuf0 : sharedSyncPipeBuf1;
           if (
-            firstName === "awk" ||
-            firstName === "grep" ||
             firstName === "rev" ||
             firstName === "head" ||
             firstName === "tail" ||
             firstName === "wc" ||
-            (firstName === "cut" && stageArgs.length === 2 && stageArgs[0] === "-c") ||
-            (firstName === "sort" && stageArgs.length === 1 && stageArgs[0] !== "-r")
+            (firstName === "cut" && stageArgs.length === 2 && stageArgs[0] === "-c")
           ) {
             const inStr = prevLen === 0 ? "" : sharedSyncPipeDecoder.decode(prevBuf.subarray(0, prevLen));
             const rawLines = inStr.length === 0 ? [] : (inStr.endsWith("\n") ? inStr.slice(0, -1).split("\n") : inStr.split("\n"));
@@ -19208,87 +19193,6 @@ export class Runtime {
                 outLines = [String(trimmed.length === 0 ? 0 : trimmed.split(/[ \t\n\r\f\v]+/).length)];
               } else {
                 outLines = [String(prevLen)];
-              }
-            } else if (firstName === "sort") {
-              const flags = stageArgs[0]!;
-              const isRev = flags.includes("r");
-              const isUniq = flags.includes("u");
-              const sorted = rawLines.slice().sort((a, b) => {
-                const cmp = a < b ? -1 : a > b ? 1 : 0;
-                return isRev ? -cmp : cmp;});
-              if (isUniq && sorted.length > 1) {
-                outLines.push(sorted[0]!);
-                for (let k = 1; k < sorted.length; k++) {
-                  const prevL = outLines[outLines.length - 1]!;
-                  const curL = sorted[k]!;
-                  if (curL !== prevL) outLines.push(curL);
-                }
-              } else outLines = sorted;
-            } else if (firstName === "grep") {
-              const flags = stageArgs.length === 2 ? stageArgs[0]!.slice(1) : "";
-              const pat = stageArgs[stageArgs.length - 1]!;
-              let regexSrc = pat;
-              if (flags.includes("F")) {
-                regexSrc = pat.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-              } else if (!flags.includes("E")) {
-                regexSrc = pat.replace(/[()+?|{}]/g, "\\$&");
-              }
-              let re: RegExp;
-              try {
-                re = new RegExp(regexSrc, (flags.includes("o") ? "g" : "") + (flags.includes("i") ? "i" : ""));
-              } catch {
-                return undefined;
-              }
-              const inv = flags.includes("v");
-              if (flags.includes("o")) {
-                for (let k = 0; k < rawLines.length; k++) {
-                  const m = rawLines[k]!.match(re);
-                  if (m) {
-                    for (let j = 0; j < m.length; j++) {
-                      if (m[j]!.length > 0) outLines.push(m[j]!);
-                    }
-                  }
-                }
-              } else if (flags.includes("c")) {
-                let cnt = 0;
-                for (let k = 0; k < rawLines.length; k++) {
-                  if (re.test(rawLines[k]!) !== inv) cnt++;
-                }
-                outLines.push(String(cnt));
-              } else {
-                for (let k = 0; k < rawLines.length; k++) {
-                  if (re.test(rawLines[k]!) !== inv) outLines.push(rawLines[k]!);
-                }
-              }
-            } else {
-              let sep: string | undefined;
-              let prog: string;
-              if (stageArgs.length === 1) prog = stageArgs[0]!; else if (stageArgs.length === 2) {
-                sep = stageArgs[0]!.slice(2);
-                prog = stageArgs[1]!;
-              } else {
-                sep = stageArgs[1]!;
-                prog = stageArgs[2]!;
-              }
-              const bodyMatch = /^\s*\{\s*print\s+([^;}]+)\s*;?\s*\}\s*$/.exec(prog);
-              if (!bodyMatch) return undefined;
-              const fieldSpecs = bodyMatch[1]!.split(",").map(tok => {
-                const t = tok.trim().slice(1);
-                return t === "NF" ? ("NF" as const) : Number(t);});
-              for (let k = 0; k < rawLines.length; k++) {
-                const line = rawLines[k]!;
-                const cols = sep !== undefined && sep !== " " ? line.split(sep) : (line.trim().length === 0 ? [] : line.trim().split(/[ \t]+/));
-                if (fieldSpecs.length === 1) {
-                  const f = fieldSpecs[0]!;
-                  outLines.push(f === 0 ? line : f === "NF" ? (cols.length > 0 ? cols[cols.length - 1]! : "") : (cols[f - 1] ?? ""));
-                } else {
-                  const parts: string[] = [];
-                  for (let j = 0; j < fieldSpecs.length; j++) {
-                    const f = fieldSpecs[j]!;
-                    parts.push(f === 0 ? line : f === "NF" ? (cols.length > 0 ? cols[cols.length - 1]! : "") : (cols[f - 1] ?? ""));
-                  }
-                  outLines.push(parts.join(" "));
-                }
               }
             }
             // These filters preserve the terminator of the final selected input line.

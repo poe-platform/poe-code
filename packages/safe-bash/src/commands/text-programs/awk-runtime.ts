@@ -1,3 +1,6 @@
+import { latin1Bytes, latin1Text } from "../../byte-encoding.js";
+import { shellValueByteLength } from "../../contracts/value.js";
+const textDecoder = new TextDecoder("utf-8", { ignoreBOM: true });
 import { isSyncResolved } from "../../fs/creation-mask.js";
 import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
 import { FsError, writeBytes, type CommandContext } from "../../contracts/index.js";
@@ -37,7 +40,7 @@ function isOperandAssignment(text: string): boolean {
 function ownScalar(value: Scalar): Scalar {
   if (value.kind === "string" || value.kind === "numeric") {
     if (value.text.length < 13 && Object.isFrozen(value)) return value;
-    const ownedText = value.text.length >= 13 ? Buffer.from(value.text, "latin1").toString("latin1") : value.text;
+    const ownedText = value.text.length >= 13 ? latin1Text(latin1Bytes(value.text)) : value.text;
     return value.kind === "numeric"
       ? { kind: "numeric", text: ownedText, number: value.number }
       : { kind: "string", text: ownedText };
@@ -224,7 +227,7 @@ export class AwkRuntime {
   }
   private retainName(path: string): string {
     this.context.signal.throwIfAborted();
-    return this.retention.replace(0, Buffer.byteLength(path, "utf8"), () => Buffer.from(path, "utf16le").toString("utf16le"));
+    return this.retention.replace(0, shellValueByteLength(path), () => path.split("").join(""));
   }
   private storeScalar(store: Map<string, Value>, name: string, value: Scalar): void {
     if (value.kind === "string" || value.kind === "numeric") this.budget.check(value.text);
@@ -311,7 +314,7 @@ export class AwkRuntime {
     if (!existing && this.entries >= (this.budget.options.maxArrayEntries ?? Infinity)) throw new ProgramError("array entry limit exceeded");
     const previous = textSize(existingValue), next = textSize(value) + (existing ? 0 : key.length);
     this.retention.admit(previous, next);
-    const ownedKey = existing || key.length < 13 ? key : Buffer.from(key, "latin1").toString("latin1");
+    const ownedKey = existing || key.length < 13 ? key : latin1Text(latin1Bytes(key));
     array.entries.set(ownedKey, ownScalar(value));
     if (next !== previous) this.arrays.get(array)!.bytes += next - previous;
     if (!existing) this.entries++;
@@ -1102,7 +1105,7 @@ export class AwkRuntime {
       return numeric(1);
     }
     const target = expression.target ? await this.reference(expression.target) : undefined;
-    const file = Buffer.from(this.asText(await this.scalarExpression(expression.file)), "latin1").toString("utf8");
+    const file = textDecoder.decode(latin1Bytes(this.asText(await this.scalarExpression(expression.file))));
     if (!file) throw new ProgramError("getline requires a nonempty filename");
     let path: string;
     try { path = virtualPath(this.context, file); }
@@ -1132,7 +1135,7 @@ export class AwkRuntime {
       try {
         reader = new Reader(source, budget, this.retention);
         inputs.set(name, reader);
-      } catch (error) { this.retention.release(Buffer.byteLength(name, "utf8")); throw error; }
+      } catch (error) { this.retention.release(shellValueByteLength(name)); throw error; }
     }
     let record: string | undefined;
     try { record = await reader.read(this.varText("RS")); }
@@ -1140,7 +1143,7 @@ export class AwkRuntime {
       this.context.signal.throwIfAborted();
       if (!(error instanceof FsError)) throw error;
       inputs.delete(path);
-      this.retention.release(Buffer.byteLength(path, "utf8"));
+      this.retention.release(shellValueByteLength(path));
       await reader.close();
       this.set("ERRNO", string(byteString(error.message)));
       return numeric(-1);
@@ -1245,13 +1248,13 @@ export class AwkRuntime {
     if (name === "tolower") return string(this.asText(first).replace(/[A-Z]/gu, character => character.toLowerCase()));
     if (name === "toupper") return string(this.asText(first).replace(/[a-z]/gu, character => character.toUpperCase()));
     if (name === "close") {
-      const path = virtualPath(this.context, Buffer.from(this.asText(first), "latin1").toString("utf8"));
+      const path = virtualPath(this.context, textDecoder.decode(latin1Bytes(this.asText(first))));
       const reader = this.inputs?.get(path);
       this.inputs?.delete(path);
-      if (reader) this.retention.release(Buffer.byteLength(path, "utf8"));
+      if (reader) this.retention.release(shellValueByteLength(path));
       await reader?.close();
       const output = this.outputs?.delete(path) ?? false;
-      if (output) this.retention.release(Buffer.byteLength(path, "utf8"));
+      if (output) this.retention.release(shellValueByteLength(path));
       return numeric(output || reader !== undefined ? 0 : -1);
     }
     const amount = number(first);
@@ -1459,7 +1462,7 @@ export class AwkRuntime {
           if (this.stdoutBuffer.length >= 16384) await this.flushStdout();
           return;
         }
-        const destination = Buffer.from(this.asText(await this.scalarExpression(statement.redirect.destination)), "latin1").toString("utf8");
+        const destination = textDecoder.decode(latin1Bytes(this.asText(await this.scalarExpression(statement.redirect.destination))));
         if (destination === "/dev/stdout") {
           this.stdoutBuffer += output;
           if (this.stdoutBuffer.length >= 16384) await this.flushStdout();
@@ -1477,7 +1480,7 @@ export class AwkRuntime {
             await writeFileOutput(this.context, bytes(output), chunk => this.context.fs.writeFile(name, chunk, { flag, signal: this.context.signal }));
             this.context.signal.throwIfAborted();
             outputs.add(name);
-          } catch (error) { this.retention.release(Buffer.byteLength(name, "utf8")); throw error; }
+          } catch (error) { this.retention.release(shellValueByteLength(name)); throw error; }
         }
         return;
       }
@@ -1661,13 +1664,13 @@ export class AwkRuntime {
       const readers = [...this.mainReader ? [this.mainReader] : [], ...this.inputs ? this.inputs.values() : []];
       this.mainReader = undefined;
       if (this.inputs) {
-        for (const name of this.inputs.keys()) this.retention.release(Buffer.byteLength(name, "utf8"));
+        for (const name of this.inputs.keys()) this.retention.release(shellValueByteLength(name));
         this.inputs.clear();
       }
       cleanup = await Promise.allSettled(readers.map(async reader => { await reader.close(); }));
     }
     if (this.outputs && this.outputs.size > 0) {
-      for (const name of this.outputs) this.retention.release(Buffer.byteLength(name, "utf8"));
+      for (const name of this.outputs) this.retention.release(shellValueByteLength(name));
       this.outputs.clear();
     }
     const res = this.finishSyncCleanup(status);
@@ -1915,13 +1918,13 @@ export class AwkRuntime {
       const readers = [...this.mainReader ? [this.mainReader] : [], ...this.inputs ? this.inputs.values() : []];
       this.mainReader = undefined;
       if (this.inputs) {
-        for (const name of this.inputs.keys()) this.retention.release(Buffer.byteLength(name, "utf8"));
+        for (const name of this.inputs.keys()) this.retention.release(shellValueByteLength(name));
         this.inputs.clear();
       }
       cleanup = await Promise.allSettled(readers.map(async reader => { await reader.close(); }));
     }
     if (this.outputs && this.outputs.size > 0) {
-      for (const name of this.outputs) this.retention.release(Buffer.byteLength(name, "utf8"));
+      for (const name of this.outputs) this.retention.release(shellValueByteLength(name));
       this.outputs.clear();
     }
     this.releaseStore(this.variables);

@@ -1,3 +1,5 @@
+import { equalBytes, latin1Text } from "../../byte-encoding.js";
+import { shellValueByteLength } from "../../contracts/value.js";
 import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
 import { assertCommandRequirements } from "../../contracts/command-requirements.js";
 import { hasYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
@@ -57,7 +59,7 @@ trustedInputRows.add(EMPTY_GREP_ROWS);
 const sharedGrepOutBuffer = new Uint8Array(64 * 1024);
 let sharedGrepOutInUse = false;
 const cachedGrepOutBuffer = new Uint8Array(32768);
-let lastGrepRawBuf: Buffer | undefined;
+let lastGrepRawBuf: Uint8Array | undefined;
 let lastGrepPat = "";
 let lastGrepAnchored = false;
 let lastGrepMaxLineLen = 0;
@@ -276,7 +278,7 @@ function tryFastGrepAscii(
           pat === lastGrepPat &&
           anchoredStart === lastGrepAnchored &&
           lastGrepMaxLineLen <= Math.min(internalBufferLimit, limits.maxLineBytes ?? Infinity) &&
-          lastGrepRawBuf.equals(raw)
+          equalBytes(lastGrepRawBuf, raw)
         ) {
           context.signal.throwIfAborted();
           if (!lastGrepOutUsed) {
@@ -347,7 +349,7 @@ function tryFastGrepAscii(
           }
           if (!exceededLines) {
             if (raw.byteLength >= 256 && outUsed <= 32768) {
-              lastGrepRawBuf = Buffer.from(raw);
+              lastGrepRawBuf = new Uint8Array(raw);
               lastGrepPat = pat;
               lastGrepAnchored = anchoredStart;
               lastGrepMaxLineLen = maxSeenLineLen;
@@ -696,7 +698,7 @@ inspect the resulting state before repeating the action.
       let patternBytes = 0;
       const admit = (chunk: string | Uint8Array, atStart: boolean): boolean => {
         context.signal.throwIfAborted();
-        const size = typeof chunk === "string" ? Buffer.byteLength(chunk) : chunk.length;
+        const size = typeof chunk === "string" ? shellValueByteLength(chunk) : chunk.length;
         if (size > bufferLimit - patternBytes) throw new UsageError(`pattern byte limit exceeded (${bufferLimit} bytes)`);
         patternBytes += size;
         for (let offset = 0; offset < chunk.length;) {
@@ -715,7 +717,7 @@ inspect the resulting state before repeating the action.
           for (let i = 0; i < pattern.length; i++) {
             if (pattern.charCodeAt(i) >= 128) { ascii = false; break; }
           }
-          const latin1 = ascii ? pattern : Buffer.from(pattern, "utf8").toString("latin1");
+          const latin1 = ascii ? pattern : latin1Text(encoder.encode(pattern));
           let start = 0;
           while (start < latin1.length) {
             const newline = latin1.indexOf("\n", start);
@@ -743,7 +745,7 @@ inspect the resulting state before repeating the action.
       if (ePatterns) for (const pattern of ePatterns) addArgument(pattern);
       for (const name of patternFiles) {
         const source = name === "-" ? input(context) : requiredFileInput(context, grepRequirements, "pattern-file", name, bufferLimit - patternBytes);
-        for await (const line of lines(admitted(source))) patterns.push(Buffer.from(line.bytes).toString("latin1"));
+        for await (const line of lines(admitted(source))) patterns.push(latin1Text(line.bytes));
       }
       if (positionalPattern !== undefined) addArgument(positionalPattern);
       let vmMatcher: ErgonomicVmMatcher | undefined;

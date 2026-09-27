@@ -1,3 +1,6 @@
+import { equalBytes, latin1Bytes as bytes, latin1Text } from "../../byte-encoding.js";
+export { bytes };
+const textEncoder = new TextEncoder();
 import { getLastReadMemoryFileSourceRef } from "@poe-code/safe-fs/core";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { writeDiagnostic } from "../../escaping.js";
@@ -11,11 +14,10 @@ import { requiredFileInput } from "../search/requirements.js";
 export function byteString(text: string): string {
   const len = text.length;
   for (let i = 0; i < len; i++) {
-    if (text.charCodeAt(i) >= 0x80) return Buffer.from(text, "utf8").toString("latin1");
+    if (text.charCodeAt(i) >= 0x80) return latin1Text(textEncoder.encode(text));
   }
   return text;
 }
-export function bytes(text: string): Uint8Array { return Buffer.from(text, "latin1"); }
 const sharedSmallWriteBuf = new Uint8Array(256);
 const RESOLVED_VOID_SYNC: Promise<void> = (() => {
   const p = Promise.resolve();
@@ -62,7 +64,7 @@ export function input(context: CommandContext, file = "-"): ByteSource {
 
 export async function readProgram(context: CommandContext, file: string): Promise<string> {
   const contents = await context.fs.readFile(virtualPath(context, file), { signal: context.signal });
-  return Buffer.from(contents).toString("latin1");
+  return latin1Text(contents);
 }
 
 export interface RecordLine { readonly text: string; readonly terminated: boolean; readonly file: string; readonly fileIndex: number }
@@ -74,7 +76,7 @@ export async function* lineRecords(context: CommandContext, files: readonly stri
     let pending = "";
     for await (const chunk of input(context, file)) {
       budget.step();
-      const text = Buffer.from(chunk).toString("latin1");
+      const text = latin1Text(chunk);
       let start = 0;
       let end: number;
       while ((end = text.indexOf("\n", start)) >= 0) {
@@ -104,7 +106,7 @@ export interface CachedLatin1Batch {
   readonly b0: number;
   readonly bMid: number;
   readonly bEnd: number;
-  readonly rawBuf: Buffer;
+  readonly rawBuf: Uint8Array;
   readonly text: string;
   readonly ends: Int32Array;
   readonly maxLineLen: number;
@@ -130,10 +132,10 @@ export function getCachedLatin1Batch(chunk: Uint8Array): CachedLatin1Batch | und
     cached.b0 !== chunk[0] ||
     cached.bMid !== chunk[cLen >> 1] ||
     cached.bEnd !== chunk[cLen - 1] ||
-    !(fromSrcRef !== undefined || cached.rawBuf.equals(chunk))
+    !(fromSrcRef !== undefined || equalBytes(cached.rawBuf, chunk))
   ) {
-    const rawBuf = Buffer.from(chunk);
-    const cText = rawBuf.toString("latin1");
+    const rawBuf = new Uint8Array(chunk);
+    const cText = latin1Text(rawBuf);
     let cStart = 0;
     let cEnd: number;
     let cEndsCount = 0;
@@ -175,9 +177,7 @@ export function getCachedLatin1Batch(chunk: Uint8Array): CachedLatin1Batch | und
 export function getCachedLatin1Text(chunk: Uint8Array): string {
   const cached = getCachedLatin1Batch(chunk);
   if (cached) return cached.text;
-  return Buffer.isBuffer(chunk)
-    ? chunk.toString("latin1")
-    : Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength).toString("latin1");
+  return latin1Text(chunk);
 }
 
 export async function* lineRecordBatches(context: CommandContext, files: readonly string[], budget: Budget): AsyncGenerator<LineRecordBatch> {
@@ -207,7 +207,7 @@ export async function* lineRecordBatches(context: CommandContext, files: readonl
           continue;
         }
       }
-      const text = Buffer.isBuffer(chunk) ? chunk.toString("latin1") : Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength).toString("latin1");
+      const text = latin1Text(chunk);
       let start = 0;
       let end: number;
       let endsCount = 0;

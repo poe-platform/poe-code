@@ -1,3 +1,4 @@
+import { latin1Bytes, latin1Text } from "../../byte-encoding.js";
 import { ProgramError, type Budget } from "./shared.js";
 
 export type Scalar = { readonly kind: "number"; readonly number: number }
@@ -28,7 +29,7 @@ export const string = (text: string): Scalar => {
     const slot = ((text.charCodeAt(0) * 31 + text.charCodeAt(len - 1) * 17 + len) & 63);
     if (STRING_SCALAR_CACHE_KEYS[slot] === text) return STRING_SCALAR_CACHE_VALS[slot]!;
     // A short substring can otherwise keep its entire input record alive.
-    const flat = Buffer.from(text, "utf16le").toString("utf16le");
+    const flat = text.split("").join("");
     const val: Scalar = Object.freeze({ kind: "string", text: flat });
     STRING_SCALAR_CACHE_KEYS[slot] = flat;
     STRING_SCALAR_CACHE_VALS[slot] = val;
@@ -61,7 +62,7 @@ export function inputValue(text: string): Scalar {
     if (len <= 12) {
       const slot = ((first * 31 + text.charCodeAt(len - 1) * 17 + len) & 63);
       if (INPUT_STRING_CACHE_KEYS[slot] === text) return INPUT_STRING_CACHE_VALS[slot]!;
-      const flat = Buffer.from(text, "latin1").toString("latin1");
+      const flat = latin1Text(latin1Bytes(text));
       const val: Scalar = Object.freeze({ kind: "string", text: flat });
       INPUT_STRING_CACHE_KEYS[slot] = flat;
       INPUT_STRING_CACHE_VALS[slot] = val;
@@ -100,7 +101,7 @@ export function inputValueFromSlice(record: string, start: number, end: number):
       if (cachedKey !== undefined && cachedKey.length === len && record.startsWith(cachedKey, start)) {
         return INPUT_STRING_CACHE_VALS[slot]!;
       }
-      const flat = Buffer.from(record.slice(start, end), "latin1").toString("latin1");
+      const flat = latin1Text(latin1Bytes(record.slice(start, end)));
       const val: Scalar = Object.freeze({ kind: "string", text: flat });
       INPUT_STRING_CACHE_KEYS[slot] = flat;
       INPUT_STRING_CACHE_VALS[slot] = val;

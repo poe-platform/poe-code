@@ -13,9 +13,23 @@ export function latin1Bytes(text: string): Uint8Array {
 }
 
 export function latin1Text(bytes: Uint8Array): string {
+  if (typeof globalThis.Buffer === "function") {
+    return globalThis.Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("latin1");
+  }
   let result = "";
   for (const byte of bytes) result += String.fromCharCode(byte);
   return result;
+}
+
+export function equalBytes(left: Uint8Array, right: Uint8Array): boolean {
+  if (left.byteLength !== right.byteLength) return false;
+  if (typeof globalThis.Buffer === "function") {
+    return globalThis.Buffer.from(left.buffer, left.byteOffset, left.byteLength).equals(right);
+  }
+  for (let index = 0; index < left.byteLength; index++) {
+    if (left[index] !== right[index]) return false;
+  }
+  return true;
 }
 
 export function compareUtf8(left: string, right: string): number {

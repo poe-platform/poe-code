@@ -1,3 +1,4 @@
+import { latin1Text } from "../../byte-encoding.js";
 import { readBytes, type ByteSource } from "../../contracts/index.js";
 import type { AwkRetention } from "./awk-retention.js";
 import { Budget, ProgramError, getCachedLatin1Batch } from "./shared.js";
@@ -19,7 +20,7 @@ export function clearAwkReaderPool(): void { memoryReaderPool.reader = undefined
 
 export class Reader {
   private iterator: AsyncIterator<Uint8Array>;
-  private blocks: (Buffer | undefined)[] = [];
+  private blocks: (Uint8Array | undefined)[] = [];
   readonly blockStrings: (string | undefined)[] = [];
   readonly blockEnds: (Int32Array | undefined)[] = [];
   blocksLen = 0;
@@ -70,9 +71,7 @@ export class Reader {
       retention.admit(0, length);
       try {
         const batch = getCachedLatin1Batch(chunk);
-        const block = batch !== undefined
-          ? (chunk as unknown as Buffer)
-          : (Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk.buffer, chunk.byteOffset, length));
+        const block = chunk;
         reader.blocks[0] = block;
         reader.blockStrings[0] = batch?.text;
         reader.blockEnds[0] = batch?.ends;
@@ -97,7 +96,7 @@ export class Reader {
     if (length === 0) return;
     this.retention.admit(0, length);
     try {
-      const block = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk.buffer, chunk.byteOffset, length);
+      const block = chunk;
       const batch = getCachedLatin1Batch(chunk);
       const idx = this.blocksLen++;
       this.blocks[idx] = block;
@@ -119,7 +118,7 @@ export class Reader {
       this.budget.step();
       if (this.head < this.blocksLen) {
         const lastIdx = this.blocksLen - 1;
-        this.blocks[lastIdx] = Buffer.from(this.blocks[lastIdx]!);
+        this.blocks[lastIdx] = new Uint8Array(this.blocks[lastIdx]!);
       }
       const next = syncIter.tryNextSync();
       if (next === undefined) return false;
@@ -138,7 +137,7 @@ export class Reader {
     const signal = this.budget.context.signal;
     if (this.head < this.blocksLen) {
       const lastIdx = this.blocksLen - 1;
-      this.blocks[lastIdx] = Buffer.from(this.blocks[lastIdx]!);
+      this.blocks[lastIdx] = new Uint8Array(this.blocks[lastIdx]!);
     }
     const next = await this.iterator.next();
     signal.throwIfAborted();
@@ -183,13 +182,13 @@ export class Reader {
   private finish(length: number, consumed: number): string {
     const firstBlock = this.blocks[this.head]!;
     if (length <= firstBlock.length - this.offset) {
-      const str = (this.blockStrings[this.head] ??= firstBlock.toString("latin1"));
+      const str = (this.blockStrings[this.head] ??= latin1Text(firstBlock));
       const record = str.slice(this.offset, this.offset + length);
       this.consume(consumed);
       return record;
     }
     // The returned record is a bounded transient; runtime slots own its charge.
-    const bytes = Buffer.allocUnsafe(length);
+    const bytes = new Uint8Array(length);
     let written = 0;
     for (let index = this.head; written < length; index++) {
       const block = this.blocks[index]!;
@@ -198,7 +197,7 @@ export class Reader {
       bytes.set(block.subarray(start, start + count), written);
       written += count;
     }
-    const record = bytes.toString("latin1");
+    const record = latin1Text(bytes);
     this.consume(consumed);
     return record;
   }
@@ -244,7 +243,7 @@ export class Reader {
       const idx = headBlock.indexOf(separator.charCodeAt(0), this.offset);
       if (idx >= 0 && idx - this.offset < 4096) {
         this.budget.step();
-        const str = (this.blockStrings[this.head] ??= headBlock.toString("latin1"));
+        const str = (this.blockStrings[this.head] ??= latin1Text(headBlock));
         const record = str.slice(this.offset, idx);
         this.consume(idx - this.offset + 1);
         return record;
@@ -271,7 +270,7 @@ export class Reader {
             const idx = cachedEnds[eIdx]!;
             if (idx - this.offset < 4096) {
               this.blockEndIdx = eIdx + 1;
-              out.source = (this.blockStrings[this.head] ??= headBlock.toString("latin1"));
+              out.source = (this.blockStrings[this.head] ??= latin1Text(headBlock));
               out.start = this.offset;
               out.end = idx;
               this.consume(idx - this.offset + 1);
@@ -281,7 +280,7 @@ export class Reader {
         }
         const idx = headBlock.indexOf(sepCode, this.offset);
         if (idx >= 0 && idx - this.offset < 4096) {
-          out.source = (this.blockStrings[this.head] ??= headBlock.toString("latin1"));
+          out.source = (this.blockStrings[this.head] ??= latin1Text(headBlock));
           out.start = this.offset;
           out.end = idx;
           this.consume(idx - this.offset + 1);
@@ -290,7 +289,7 @@ export class Reader {
         if (idx < 0 && this.head + 1 === this.blocksLen && !this.ended) {
           this.tryFillSync();
           if (this.head + 1 === this.blocksLen && this.ended && headBlock.length - this.offset < 4096) {
-            out.source = (this.blockStrings[this.head] ??= headBlock.toString("latin1"));
+            out.source = (this.blockStrings[this.head] ??= latin1Text(headBlock));
             out.start = this.offset;
             out.end = headBlock.length;
             this.consume(headBlock.length - this.offset);
@@ -311,7 +310,7 @@ export class Reader {
       const idx = headBlock.indexOf(separator.charCodeAt(0), this.offset);
       if (idx >= 0 && idx - this.offset < 4096) {
         budget.step();
-        const record = headBlock.toString("latin1", this.offset, idx);
+        const record = latin1Text(headBlock.subarray(this.offset, idx));
         this.consume(idx - this.offset + 1);
         return record;
       }

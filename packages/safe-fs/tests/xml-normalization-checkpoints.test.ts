@@ -3,17 +3,23 @@ import { expect, it } from "vitest";
 import { parseXml, parseXmlSteps } from "../src/xml.js";
 
 for (const length of [1, 511, 512, 513])
-it(`repeated XML names retain every validation checkpoint at length ${length}`, () => {
+it(`repeated XML names retain all validation work in bounded checkpoints at length ${length}`, () => {
   const name = "x".repeat(length);
   const source = `<${name}><${name}/><${name}/></${name}>`;
   const parser = parseXmlSteps(source);
-  const expected: number[] = [];
-  for (let bytes = source.length; bytes > 0; bytes -= 512) expected.push(Math.min(bytes, 512));
-  const nameWork = length <= 512 ? [length] : [512, 1];
-  for (let opening = 0; opening < 3; opening++) expected.push(1, ...nameWork, ...nameWork, ...nameWork);
-  expected.push(1, ...nameWork, ...nameWork);
-  for (const value of expected) expect(parser.next()).toEqual({ done: false, value });
-  const result = parser.next();
+  // Normalization, four tag visits, three opening-name passes and two closing-name
+  // passes retain the same total work when the scanner batches checkpoints.
+  const expectedWork = source.length + 4 + 3 * 3 * length + 2 * length;
+  let work = 0;
+  let result = parser.next();
+  while (!result.done) {
+    expect(result.value).toBeGreaterThan(0);
+    expect(result.value).toBeLessThanOrEqual(512);
+    work += result.value;
+    expect(work).toBeLessThanOrEqual(expectedWork);
+    result = parser.next();
+  }
+  expect(work).toBe(expectedWork);
   expect(result.done).toBe(true);
   if (!result.done) throw new Error("Expected a complete XML parse");
   expect(result.value.name).toBe(name);

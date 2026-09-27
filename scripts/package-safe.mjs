@@ -208,6 +208,15 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
     if (pkg.private) privateNames.add(pkg.name);
     for (const [name, range] of Object.entries(pkg.dependencies ?? {})) ranges[name] ??= range;
   }
+  const rootSharedRuntimeEntries = new Map();
+  for (const { dir, pkg } of workspaces) {
+    if (pkg.poeCode?.bundle?.sharedRuntime !== true) continue;
+    for (const [route, target] of Object.entries(pkg.exports ?? {})) {
+      if (typeof target?.import !== "string" || !target.import.startsWith("./dist/")) continue;
+      rootSharedRuntimeEntries.set(path.resolve(rootDir, "dist/shared", dir, target.import.slice("./dist/".length)),
+        pkg.name + (route === "." ? "" : route.slice(1)));
+    }
+  }
   const exclusionPolicies = new Map();
   const excluded = filename => {
     const absolute = path.resolve(filename);
@@ -514,7 +523,9 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
               return specifier;
             }
           }
-          let publicName = publicSpecifier(specifier);
+          const sharedRuntime = specifier.startsWith(".")
+            ? rootSharedRuntimeEntries.get(path.resolve(path.dirname(filename), specifier)) : undefined;
+          let publicName = publicSpecifier(sharedRuntime ?? specifier);
           if (name === "safe-bash" && optional && !declaration && publicName === "yaml") {
             pending.push(bundledYaml);
             const relative = path.relative(path.dirname(destination), path.join(directory, artifactPath(rootDir, bundledYaml))).split(path.sep).join("/");

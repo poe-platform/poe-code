@@ -40,7 +40,7 @@ it("keeps canonical command functions external in the actual scoped browser reci
   runInContext(consumer.outputFiles[0]!.text, realm);
   expect(realm.module.exports.getCommandArguments).toBe(canonicalArguments);
 });
-it("ships the admitted portable ffmpeg facade and canonical contract edges", async () => {
+it.each(["workspace", "root", "undeclared-root"])("admits only declared portable ffmpeg %s contract edges", async runtime => {
   const { volume, options } = optionalLeftovers();
   const name = "safe-bash-command-ffmpeg";
   const commandManifest = JSON.parse(readFileSync(new URL(`../packages/${name}/package.json`, import.meta.url), "utf8"));
@@ -54,9 +54,10 @@ it("ships the admitted portable ffmpeg facade and canonical contract edges", asy
   volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
   volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify(commandManifest));
   volume.writeFileSync(`/repo/packages/${name}/LICENSE`, "MIT\n");
-  volume.writeFileSync(`/repo/packages/${name}/dist/index.js`, 'export { commandRuntimeIdentity } from "safe-bash-contracts/command";');
+  const runtimeSpecifier = runtime === "workspace" ? "safe-bash-contracts/command" : "../../../dist/shared/safe-bash-contracts/command.js";
+  volume.writeFileSync(`/repo/packages/${name}/dist/index.js`, `export { commandRuntimeIdentity } from ${JSON.stringify(runtimeSpecifier)};`);
   volume.writeFileSync(`/repo/packages/${name}/dist/index.d.ts`, 'export type { CommandDefinition } from "safe-bash-contracts/command";');
-  const contracts = { name: "safe-bash-contracts", version: "0.0.1", private: true, type: "module", dependencies: {}, devDependencies: {}, exports: { "./command": { types: "./dist/command.d.ts", import: "./dist/command.js" } } };
+  const contracts = { name: "safe-bash-contracts", version: "0.0.1", private: true, type: "module", dependencies: {}, devDependencies: {}, poeCode: { bundle: { sharedRuntime: runtime !== "undeclared-root" } }, exports: { "./command": { types: "./dist/command.d.ts", import: "./dist/command.js" } } };
   volume.mkdirSync("/repo/packages/safe-bash-contracts/dist", { recursive: true });
   volume.writeFileSync("/repo/packages/safe-bash-contracts/package.json", JSON.stringify(contracts));
   volume.writeFileSync("/repo/packages/safe-bash-contracts/dist/command.js", "export const commandRuntimeIdentity = {};");
@@ -65,6 +66,10 @@ it("ships the admitted portable ffmpeg facade and canonical contract edges", asy
   manifest.poeCode.integration.privateWorkspaces["safe-bash-contracts"] = { version: "0.0.1", dependencies: {}, devDependencies: {} };
   volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
   for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/ffmpeg/index.${suffix}`, `export * from "${name}";`);
+  if (runtime === "undeclared-root") {
+    await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("Not a built package file");
+    return;
+  }
   await packageSafeLibraries({ ...options, outDir: "/output" });
   const read = (file: string) => volume.readFileSync("/output/safe-bash/" + file, "utf8");
   expect(JSON.parse(read("package.json")).exports["./commands/ffmpeg"]).toEqual({ types: "./dist/safe-bash/commands/ffmpeg/index.d.ts", import: "./dist/safe-bash/commands/ffmpeg/index.js" });

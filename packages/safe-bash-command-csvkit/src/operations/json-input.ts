@@ -80,6 +80,7 @@ export async function jsonConversion(runtime: Runtime, newline: boolean): Promis
   const names = await normalizeHeaders(headers, runtime);
   const table = jsonInputTable(runtime, names, rows.map(row => headers.map(name => row.get(name) ?? null)));
   await runtime.row(table.headers);
-  for (const row of table.rows) await runtime.row(csvifiedRow(row));
+  if (table.rows.length > 0) await runtime.row(csvifiedRow(table.rows[0]!));
+  if (table.rows.length > 1) await runtime.rows(table.rows.slice(1).map(csvifiedRow));
   return 0;
 }

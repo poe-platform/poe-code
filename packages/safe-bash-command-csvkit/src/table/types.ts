@@ -88,6 +88,15 @@ function decimal(text: string, options: InferenceOptions, step: () => void): str
 export function castValue(type: ColumnType, value: string | null, options: InferenceOptions, step: () => void = () => {}): TableValue {
   step();
   if (value === null) return null;
+  if (type === "Text" && (!options.nullValues || options.nullValues.length === 0)) {
+    if (options.blanks) return value;
+    const len = value.length;
+    if (len > 4) {
+      const c0 = value.charCodeAt(0);
+      const cLast = value.charCodeAt(len - 1);
+      if (c0 > 32 && c0 < 0x80 && cLast > 32 && cLast < 0x80) return value;
+    }
+  }
   let text = stripWhitespace(value);
   if (type === "Boolean" && value.includes(",")) text = stripWhitespace(value.replaceAll(",", ""));
   const lowered = lowerText(text);
@@ -158,6 +167,7 @@ export function inferTable(headers: readonly string[], rows: readonly (readonly 
       step();
       if (candidates.size === 1 || row.length <= index) continue;
       for (const type of candidates) {
+        if (type === "Text") { step(); continue; }
         try { castValue(type, row[index]!, options, step); }
         catch (error) { if (!(error instanceof CastError)) throw error; candidates.delete(type); }
       }

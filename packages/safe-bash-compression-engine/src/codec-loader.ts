@@ -6,6 +6,9 @@ import { CompressedDataError } from "./errors.js";
 
 function unavailable(): never { throw new Error("codec attempted an unavailable host operation"); }
 
+const cachedFactories: Partial<Record<BoundedCodecOptions["format"], RawCodecFactory>> = {};
+const idleModules: Record<BoundedCodecOptions["format"], ReturnType<RawCodecFactory>[]> = { bzip2: [], xz: [], zstd: [] };
+
 const wasi = Object.freeze({
   fd_prestat_get: () => 8,
   fd_prestat_dir_name: unavailable,
@@ -63,21 +66,34 @@ export async function createCodec(
   if (lzma && (options.format !== "xz" || !Number.isInteger(lzma.dictionary) || lzma.dictionary < 0 || lzma.dictionary > 0xffffffff ||
       !Number.isInteger(lzma.properties) || lzma.properties < 0 || lzma.properties >= 225 || lzma.properties % 9 + Math.floor(lzma.properties / 9) % 5 > 4 ||
       typeof lzma.eos !== "boolean" || !Number.isSafeInteger(lzma.size) || lzma.size < 0)) throw new PublicDiagnostic("invalid LZMA properties or dictionary limit exceeded");
+  const useDefaultFactory = !factory;
   if (!factory) {
-    switch (options.format) {
-      case "bzip2": factory = (await import("./native/generated/bz2.mjs")).default; break;
-      case "xz": factory = (await import("./native/generated/xz.mjs")).default; break;
-      case "zstd": factory = (await import("./native/generated/zstd.mjs")).default; break;
+    factory = cachedFactories[options.format];
+    if (!factory) {
+      switch (options.format) {
+        case "bzip2": factory = (await import("./native/generated/bz2.mjs")).default; break;
+        case "xz": factory = (await import("./native/generated/xz.mjs")).default; break;
+        case "zstd": factory = (await import("./native/generated/zstd.mjs")).default; break;
+      }
+      cachedFactories[options.format] = factory;
     }
   }
   signal.throwIfAborted();
-  const module = factory(wasi);
+  const pool = useDefaultFactory ? idleModules[options.format] : undefined;
+  const pooled = pool?.pop();
+  const module = pooled ?? factory(wasi);
   let closed = false;
   const close = (): void => {
-    if (!closed) { closed = true; module.bridge_destroy(); }
+    if (!closed) {
+      closed = true;
+      module.bridge_destroy();
+      if (pool && pool.length < 2 && (module.bridge_used?.() ?? 0) === 0) {
+        pool.push(module);
+      }
+    }
   };
   try {
-    module._initialize?.();
+    if (!pooled) module._initialize?.();
     const custom = options.format === "xz" && (options.xzFormat === "raw" || options.xzFilters !== undefined);
     if (custom) new Uint8Array(module.memory.buffer, module.bridge_input(), filterBytes.length).set(filterBytes);
     const initialized = custom

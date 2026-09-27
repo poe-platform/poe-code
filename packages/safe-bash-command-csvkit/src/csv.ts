@@ -86,6 +86,8 @@ function dialectCharacters(dialect: CsvDialect): { delimiter: string; quote: str
 
 interface CsvStateMachine {
   feed(char: string | null | undefined): CsvRecord<CsvCell> | undefined;
+  isIdle?(): boolean;
+  advancePlainLine?(): void;
   readonly done: boolean;
 }
 
@@ -119,6 +121,8 @@ function createCsvParser(dialect: CsvDialect, step: () => void, preserveNewlines
   let lastChar = "";
   return {
     get done() { return finished; },
+    isIdle() { return !finished && !rowStarted && state === "start" && !previousCR && !active && cells.length === 0 && field.length === 0; },
+    advancePlainLine() { lastChar = "\n"; line++; },
     feed(char: string | null | undefined): CsvRecord<CsvCell> | undefined {
       if (finished) return undefined;
       if (char === null) {
@@ -248,9 +252,33 @@ export function readCsvStream(lines: AsyncIterable<string>, dialect: CsvDialect,
 export async function* readCsvStream(lines: AsyncIterable<string>, dialect: CsvDialect = {}, step: () => void = () => {}, admitRow: () => void = () => {}): AsyncGenerator<CsvRecord<CsvCell>> {
   let physicalLine = 0;
   const parser = createCsvParser(dialect, step, true, () => physicalLine, admitRow);
+  const { delimiter, quote, escape } = dialectCharacters(dialect);
+  const quoting = dialect.quoting ?? (dialect.quotechar === null ? 3 : 0);
+  const canFastPlain = (quoting === 0 || quoting === 1 || quoting === 3) && !dialect.skipinitialspace && escape === undefined && delimiter.length === 1;
+  const quoteCode = quote ? quote.charCodeAt(0) : -1;
+  const colBudget = dialect.columnBudget ?? Infinity;
+  const maxFieldLen = Math.min(dialect.fieldBudget ?? Infinity, dialect.fieldLimit ?? Infinity);
   try {
     for await (const text of lines) {
       physicalLine++;
+      const len = text.length;
+      if (canFastPlain && len >= 2 && len <= maxFieldLen && text.charCodeAt(len - 1) === 10 && parser.isIdle?.()) {
+        let plainAscii = true;
+        let fieldCount = 1;
+        const delimCode = delimiter.charCodeAt(0);
+        for (let i = 0; i < len - 1; i++) {
+          const c = text.charCodeAt(i);
+          if (c >= 0x80 || c === 13 || c === 10 || c === quoteCode) { plainAscii = false; break; }
+          if (c === delimCode) fieldCount++;
+        }
+        if (plainAscii && fieldCount <= colBudget) {
+          step();
+          admitRow();
+          parser.advancePlainLine?.();
+          yield { cells: text.slice(0, len - 1).split(delimiter), line: physicalLine };
+          continue;
+        }
+      }
       let offset = 0;
       let completed = false;
       for (const char of text) {

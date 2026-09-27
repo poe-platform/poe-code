@@ -512,9 +512,24 @@ export class Interpreter {
               yield await sliceValue(base, isNumber(start) && Number.isNaN(numberValue(start)) ? null : start, isNumber(end) && Number.isNaN(numberValue(end)) ? null : end, this.budget);
             }
         return;
-      case "iterate":
+      case "iterate": {
+        if (this.budget.unlimitedValueCheck) {
+          const savedSteps = this.budget.currentSteps;
+          const baseVal = this.tryEvalSingle(ast.base, input, 0, false);
+          if (baseVal !== NOT_SINGLE && Array.isArray(baseVal)) {
+            this.budget.step();
+            for (let i = 0; i < baseVal.length; i++) {
+              const _p = this.budget.tickSync();
+              if (_p) await _p;
+              yield baseVal[i]!;
+            }
+            return;
+          }
+          this.budget.restoreSteps(savedSteps);
+        }
         for await (const base of this.run(ast.base, input)) for await (const [, value] of entries(base, this.budget)) { { const _p = this.budget.tickSync(); if (_p) await _p; } yield value; }
         return;
+      }
       case "array": yield ast.body ? await this.collect(ast.body, input) : []; return;
       case "object": {
         if (!ast.fields.length) { yield object(); return; }
@@ -534,7 +549,43 @@ export class Interpreter {
         return;
       case "binary": {
         const operator = ast.operator;
-        if (operator === "|") { for await (const value of this.run(ast.left, input)) yield* this.run(ast.right, value); return; }
+        if (operator === "|") {
+          if (this.budget.unlimitedValueCheck) {
+            const iterPipe = extractIteratePipeline(ast);
+            if (iterPipe) {
+              const savedSteps = this.budget.currentSteps;
+              const baseVal = this.tryEvalSingle(iterPipe.base, input, 0, false);
+              if (baseVal !== NOT_SINGLE && Array.isArray(baseVal)) {
+                this.budget.step();
+                for (let i = 0; i < baseVal.length; i++) {
+                  const _p = this.budget.tickSync();
+                  if (_p) await _p;
+                  const itemRes = this.tryRunSyncNoScratch(iterPipe.tail, baseVal[i]!);
+                  if (itemRes !== undefined) {
+                    for (let j = 0; j < itemRes.length; j++) {
+                      yield itemRes[j]!;
+                    }
+                  } else {
+                    yield* this.run(iterPipe.tail, baseVal[i]!);
+                  }
+                }
+                return;
+              }
+              this.budget.restoreSteps(savedSteps);
+            }
+          }
+          for await (const value of this.run(ast.left, input)) {
+            if (this.budget.unlimitedValueCheck) {
+              const itemRes = this.tryRunSyncNoScratch(ast.right, value);
+              if (itemRes !== undefined) {
+                for (let j = 0; j < itemRes.length; j++) yield itemRes[j]!;
+                continue;
+              }
+            }
+            yield* this.run(ast.right, value);
+          }
+          return;
+        }
         if (operator === ",") { yield* this.run(ast.left, input); yield* this.run(ast.right, input); return; }
         if (operator === "//") {
           let found = false;

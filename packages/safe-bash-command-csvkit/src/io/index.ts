@@ -27,6 +27,7 @@ export function pathExtension(path: string): string {
 export class LazyInput {
   #iterator: AsyncIterator<string> | undefined;
   #pending = "";
+  #pendingHasNul = false;
   #cursor = 0;
   #byteIterator: AsyncIterator<Uint8Array> | undefined;
   #bytePrefix: Uint8Array[] = [];
@@ -152,27 +153,33 @@ export class LazyInput {
     const next = await this.#iterator.next();
     this.signal.throwIfAborted();
     if (next.done) this.#done = true;
-    else this.#pending += next.value;
+    else { if (!this.#pendingHasNul && next.value.includes("\0")) this.#pendingHasNul = true; this.#pending += next.value; }
+  }
+
+  tryNextLineSync(stripNul = !this.borrowed): string | null | undefined {
+    this.signal.throwIfAborted();
+    if (this.#closing) throw new CsvkitDiagnostic("ValueError: I/O operation on closed file.");
+    const nl = this.#pending.indexOf("\n", this.#cursor);
+    if (nl >= 0) {
+      const end = nl + 1;
+      const line = this.#pending.slice(this.#cursor, end);
+      this.#cursor = end;
+      if (this.#cursor === this.#pending.length) { this.#pending = ""; this.#pendingHasNul = false; this.#cursor = 0; }
+      else if (this.#cursor >= 65536) { this.#pending = this.#pending.slice(this.#cursor); this.#cursor = 0; }
+      return stripNul && this.#pendingHasNul && line.includes("\0") ? line.replaceAll("\0", "") : line;
+    }
+    if (this.#done) {
+      if (this.#cursor >= this.#pending.length) { this.#pending = ""; this.#cursor = 0; return null; }
+      const line = this.#pending.slice(this.#cursor); this.#pending = ""; this.#cursor = 0;
+      return stripNul && this.#pendingHasNul && line.includes("\0") ? line.replaceAll("\0", "") : line;
+    }
+    return undefined;
   }
 
   async nextLine(stripNul = !this.borrowed): Promise<string | null> {
     while (true) {
-      this.signal.throwIfAborted();
-      if (this.#closing) throw new CsvkitDiagnostic("ValueError: I/O operation on closed file.");
-      const nl = this.#pending.indexOf("\n", this.#cursor);
-      if (nl >= 0) {
-        const end = nl + 1;
-        const line = this.#pending.slice(this.#cursor, end);
-        this.#cursor = end;
-        if (this.#cursor === this.#pending.length) { this.#pending = ""; this.#cursor = 0; }
-        else if (this.#cursor >= 65536) { this.#pending = this.#pending.slice(this.#cursor); this.#cursor = 0; }
-        return stripNul && line.includes("\0") ? line.replaceAll("\0", "") : line;
-      }
-      if (this.#done) {
-        if (this.#cursor >= this.#pending.length) { this.#pending = ""; this.#cursor = 0; return null; }
-        const line = this.#pending.slice(this.#cursor); this.#pending = ""; this.#cursor = 0;
-        return stripNul && line.includes("\0") ? line.replaceAll("\0", "") : line;
-      }
+      const sync = this.tryNextLineSync(stripNul);
+      if (sync !== undefined) return sync;
       if (this.#cursor > 0) { this.#pending = this.#pending.slice(this.#cursor); this.#cursor = 0; }
       await this.#fill();
     }
@@ -181,7 +188,10 @@ export class LazyInput {
   async read(skipped = 0): Promise<string> {
     this.signal.throwIfAborted();
     if (this.#closing) throw new CsvkitDiagnostic("ValueError: I/O operation on closed file.");
-    for (let count = 0; count < skipped; count++) if (await this.nextLine(false) === null) break;
+    for (let count = 0; count < skipped; count++) {
+      const sync = this.tryNextLineSync(false);
+      if ((sync !== undefined ? sync : await this.nextLine(false)) === null) break;
+    }
     while (!this.#done) await this.#fill();
     const text = this.#cursor > 0 ? this.#pending.slice(this.#cursor) : this.#pending;
     this.#pending = ""; this.#cursor = 0;
@@ -189,8 +199,16 @@ export class LazyInput {
   }
 
   async *lines(skipped = 0): AsyncGenerator<string> {
-    for (let count = 0; count < skipped; count++) if (await this.nextLine() === null) return;
-    while (true) { const line = await this.nextLine(); if (line === null) return; yield line; }
+    for (let count = 0; count < skipped; count++) {
+      const sync = this.tryNextLineSync();
+      if ((sync !== undefined ? sync : await this.nextLine()) === null) return;
+    }
+    while (true) {
+      const sync = this.tryNextLineSync();
+      const line = sync !== undefined ? sync : await this.nextLine();
+      if (line === null) return;
+      yield line;
+    }
   }
 
   readonly close = (): Promise<void> => this.#closing ??= Promise.resolve().then(async () => {

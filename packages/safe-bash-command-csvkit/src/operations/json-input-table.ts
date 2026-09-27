@@ -39,9 +39,23 @@ export function jsonInputTable(runtime: Runtime, headers: readonly string[], row
     return undefined;
   };
   runtime.retain(64 + rows.length * (64 + headers.length * 64));
+  const order = columnTypeOrder(options);
+  const castColumns: TableValue[][] = [];
   const columns = headers.map((name, index) => {
-    const type = columnTypeOrder(options).find(candidate => rows.every(row => cast(candidate, row[index] ?? null) !== undefined))!;
-    return { name, type };
+    for (const candidate of order) {
+      const colValues: TableValue[] = new Array(rows.length);
+      let ok = true;
+      for (let r = 0; r < rows.length; r++) {
+        const casted = cast(candidate, rows[r]![index] ?? null);
+        if (casted === undefined) { ok = false; break; }
+        colValues[r] = casted;
+      }
+      if (ok) {
+        castColumns.push(colValues);
+        return { name, type: candidate };
+      }
+    }
+    throw new CsvkitBlocked("no compatible Agate column type");
   });
-  return { headers, columns, rows: rows.map(row => columns.map((column, index) => cast(column.type, row[index] ?? null)!)) };
+  return { headers, columns, rows: rows.map((_, r) => columns.map((__, c) => castColumns[c]![r]!)) };
 }

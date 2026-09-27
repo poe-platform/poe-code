@@ -795,14 +795,14 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
     let lastTruth: boolean | undefined;
     let status = 0;
     const suffix = options.rawOutput0 ? "\0" : options.joinOutput ? "" : "\n";
-    const isCompactPlain = options.format.indent === "" && !options.format.ascii && !options.format.color && !options.sortKeys && !options.sequence;
+    const isPlainFormat = !options.format.ascii && !options.format.color && !options.sequence && !options.rawOutput0;
+    const isCompactPlain = isPlainFormat && options.format.indent === "" && !options.sortKeys;
     const tryPublishSync = (result: Json): boolean => {
-      if (!isCompactPlain || budget.needsYield()) return false;
+      if (!isPlainFormat || budget.needsYield()) return false;
+      const isRawStr = options.raw && typeof result === "string";
+      const isScalar = result === null || typeof result !== "object";
+      if (!isCompactPlain && !isScalar) return false;
       if (budget.results + 1 > budget.maxResultsSmi && budget.results + 1 > limits.maxResults) throw new JqLimitError("maxResults");
-      const remSmi = budget.maxOutputBytesSmi - budget.outputBytes;
-      const maxChunkSmi = remSmi > suffix.length
-        ? remSmi - suffix.length
-        : (limits.maxOutputBytes === Infinity ? 0x3fffffff : Math.max(0, limits.maxOutputBytes - budget.outputBytes - suffix.length));
       let buf = outBuf;
       if (!buf) {
         if (!sharedJqOutBufInUse) {
@@ -812,6 +812,35 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
         } else {
           buf = outBuf = new Uint8Array(OUT_BUF_SIZE);
         }
+      }
+      if (isRawStr) {
+        const str = result as string;
+        for (let i = 0; i < str.length; i++) {
+          if (str.charCodeAt(i) >= 0x80) return false;
+        }
+        budget.step();
+        budget.value(str);
+        const remaining = limits.maxOutputBytes - budget.outputBytes;
+        const chunkLen = str.length + suffix.length;
+        if (chunkLen > remaining) throw new JqLimitError("maxOutputBytes");
+        if (chunkLen > OUT_BUF_SIZE) return false;
+        if (outPos + chunkLen > OUT_BUF_SIZE) {
+          if (flushStdout()) return false;
+        }
+        budget.results++;
+        budget.outputBytes += chunkLen;
+        let pos = outPos;
+        for (let i = 0; i < str.length; i++) buf[pos++] = str.charCodeAt(i);
+        for (let i = 0; i < suffix.length; i++) buf[pos++] = suffix.charCodeAt(i);
+        outPos = pos;
+        return true;
+      }
+      const remSmi = budget.maxOutputBytesSmi - budget.outputBytes;
+      const maxChunkSmi = remSmi > suffix.length
+        ? remSmi - suffix.length
+        : (limits.maxOutputBytes === Infinity ? 0x3fffffff : Math.max(0, limits.maxOutputBytes - budget.outputBytes - suffix.length));
+      if (outPos + 512 > OUT_BUF_SIZE && outPos > 0) {
+        if (flushStdout()) return false;
       }
       const newPos = tryWriteCompactSync(result, budget, buf, outPos, suffix, maxChunkSmi, interpreter.getScratchKeys(result));
       if (newPos >= 0) {
@@ -830,7 +859,9 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
       const chunkLen = text.length + suffix.length;
       if (chunkLen > remaining) throw new JqLimitError("maxOutputBytes");
       if (chunkLen > OUT_BUF_SIZE) return false;
-      if (outPos + chunkLen > OUT_BUF_SIZE) return false;
+      if (outPos + chunkLen > OUT_BUF_SIZE) {
+        if (flushStdout()) return false;
+      }
       budget.results++;
       budget.outputBytes += chunkLen;
       let pos = outPos;
@@ -842,6 +873,7 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
     const publishResult = async (result: Json): Promise<void> => {
       const pt = budget.tickSync();
       if (pt) await pt;
+      if (tryPublishSync(result)) return;
       budget.value(result);
       if (++budget.results > limits.maxResults) throw new JqLimitError("maxResults");
       const remaining = limits.maxOutputBytes - budget.outputBytes;
@@ -934,7 +966,7 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
           }
           if (next.done) break;
           const result = next.value;
-          await publishResult(result);
+          if (!tryPublishSync(result)) await publishResult(result);
           invocationLast = result;
           status = options.exitStatus ? truth(result) ? 0 : 1 : 0;
         }

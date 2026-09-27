@@ -14,18 +14,32 @@ export function decodeJson(text: string, runtime: Runtime): JsonInput {
     const last = prefix.lastIndexOf("\n");
     throw new CsvkitDiagnostic(`JSONDecodeError: ${message}: line ${line} column ${prefix.length - last} (char ${prefix.length})`);
   };
-  const white = (): void => { while ([" ", "\t", "\r", "\n"].includes(text[position] ?? "!")) { runtime.step(); position++; } };
+  const white = (): void => {
+    while (position < text.length) {
+      const c = text.charCodeAt(position);
+      if (c !== 32 && c !== 9 && c !== 13 && c !== 10) break;
+      runtime.step();
+      position++;
+    }
+  };
   const digit = (): boolean => text[position] !== undefined && text[position]! >= "0" && text[position]! <= "9";
   const string = (): string => {
     const start = position++;
     let characters = 0;
     let precedingHighSurrogate = false;
+    let hasEscape = false;
+    let hasSurrogate = false;
     while (position < text.length) {
       runtime.step();
       const char = text[position++]!;
       if (char === '"') {
         // The token slice and decoded result are each bounded by the raw token.
         runtime.retain(32 + (position - start) * 4);
+        if (!hasEscape && !hasSurrogate) {
+          const result = text.slice(start + 1, position - 1);
+          runtime.step();
+          return result;
+        }
         const result = JSON.parse(text.slice(start, position)) as string;
         for (const decoded of result) {
           runtime.step();
@@ -36,7 +50,7 @@ export function decodeJson(text: string, runtime: Runtime): JsonInput {
       }
       if (char.charCodeAt(0) < 32) error("Invalid control character at", position - 1);
       let unit = char.charCodeAt(0);
-      if (char === "\\") {
+      if (char === "\\") { hasEscape = true;
         const escaped = text[position++];
         if (escaped === undefined) return error("Unterminated string starting at", start);
         if (escaped === "u") {
@@ -53,6 +67,7 @@ export function decodeJson(text: string, runtime: Runtime): JsonInput {
         }
       }
       if (!(precedingHighSurrogate && unit >= 0xdc00 && unit <= 0xdfff)) characters++;
+      if (unit >= 0xd800) hasSurrogate = true;
       precedingHighSurrogate = unit >= 0xd800 && unit <= 0xdbff;
       if (characters > runtime.context.limits.maxFieldCharacters) throw new CsvkitBlocked("JSON string field budget exceeded");
     }

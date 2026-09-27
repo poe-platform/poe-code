@@ -351,6 +351,8 @@
     },
     "./yq": {
       "types": "./dist/opt-in/entrypoints/yq.d.ts",
+      "workerd": "./dist/yq-browser/index.js",
+      "browser": "./dist/yq-browser/index.js",
       "import": "./dist/opt-in/entrypoints/yq.js"
     },
     "./devices": {

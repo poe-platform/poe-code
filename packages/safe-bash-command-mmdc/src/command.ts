@@ -1,3 +1,4 @@
+import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
   getCommandArguments,
@@ -680,26 +681,24 @@ export async function runMmdc(
 
     if (outPath === "-") {
       await writeBytes(stdout.output, outputBytes, signal);
-    } else if (context.fs.writeFileConditional && parentOutStat) {
-      await context.fs.writeFileConditional(outPath, outputBytes, {
-        expected: expectedOutStat,
-        parent: parentOutStat,
-        signal
-      });
-    } else if (context.fs.publishFileConditional && parentOutStat) {
-      const stream = (async function* () {
-        yield outputBytes;
-      })();
-      await context.fs.publishFileConditional(outPath, stream, {
-        expected: expectedOutStat,
-        parent: parentOutStat,
-        signal,
-        maxBytes: hostLimits.maxOutputBytes
-      });
-    } else if (context.fs.writeFile) {
-      await context.fs.writeFile(outPath, outputBytes, { signal });
     } else {
-      throw new MermaidError("E_IO", "Filesystem does not support atomic file publication");
+      await writeFileOutput({ ...context, signal }, outputBytes, async bytes => {
+        if (context.fs.writeFileConditional && parentOutStat) {
+          await context.fs.writeFileConditional(outPath, bytes, {
+            expected: expectedOutStat, parent: parentOutStat, signal
+          });
+        } else if (context.fs.publishFileConditional && parentOutStat) {
+          const stream = (async function* () { yield bytes; })();
+          await context.fs.publishFileConditional(outPath, stream, {
+            expected: expectedOutStat, parent: parentOutStat, signal,
+            maxBytes: hostLimits.maxOutputBytes
+          });
+        } else if (context.fs.writeFile) {
+          await context.fs.writeFile(outPath, bytes, { signal });
+        } else {
+          throw new MermaidError("E_IO", "Filesystem does not support atomic file publication");
+        }
+      });
     }
 
     return {

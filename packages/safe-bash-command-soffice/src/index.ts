@@ -1,3 +1,4 @@
+import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
   getCommandArguments,
@@ -934,7 +935,7 @@ export async function soffice(context: CommandContext): Promise<{ exitCode: numb
         } catch {
           // Directory may already exist
         }
-        await context.fs.writeFile(abs, fileBytes, { signal: invocation.signal });
+        await writeFileOutput(context, fileBytes, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
       }
     }
 

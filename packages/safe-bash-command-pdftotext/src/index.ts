@@ -1,3 +1,4 @@
+import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
   getCommandArguments,
@@ -941,7 +942,7 @@ export async function pdftotext(context: CommandContext): Promise<{ exitCode: nu
         ? res.outputPath
         : `${context.cwd === "/" ? "" : context.cwd}/${res.outputPath}`;
       try {
-        await context.fs.writeFile(outResolved, outBytes, { signal: invocation.signal });
+        await writeFileOutput(context, outBytes, data => context.fs.writeFile(outResolved, data, { signal: invocation.signal }));
       } catch {
         if (!parsed.quiet) {
           const msg = `I/O Error: Couldn't open text file '${res.outputPath}'\n`;
@@ -1406,7 +1407,7 @@ export async function pdftohtml(context: CommandContext): Promise<{ exitCode: nu
       if (existingSnap.get(key) !== val) {
         chargeBytes(val.byteLength);
         const abs = resolveVfsPath(key);
-        await context.fs.writeFile(abs, val, { signal: invocation.signal });
+        await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
       }
     }
     return { exitCode: res.exitCode };

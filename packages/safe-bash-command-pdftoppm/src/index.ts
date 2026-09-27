@@ -1,3 +1,4 @@
+import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
   getCommandArguments,
@@ -509,7 +510,7 @@ async function executePdftoppm(context: CommandContext): Promise<{ exitCode: num
         } catch {
           // Directory already exists
         }
-        await context.fs.writeFile(abs, val, { signal: invocation.signal });
+        await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
       }
     }
     return { exitCode: res.exitCode };
@@ -915,7 +916,7 @@ export function createPdftocairoCommand(_options: PdftoppmCommandOptions = {}): 
             } catch {
               // Directory exists
             }
-            await context.fs.writeFile(abs, val, { signal: invocation.signal });
+            await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
           }
         }
         return { exitCode: res.exitCode };

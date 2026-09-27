@@ -1,3 +1,4 @@
+import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
   getCommandArguments,
@@ -2353,14 +2354,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             budget.checkOutputBytes(segBytes.byteLength);
             await context.fs.mkdir(fullSegPath.slice(0, fullSegPath.lastIndexOf("/")) || "/", { recursive: true, signal: context.signal });
-            await context.fs.writeFile(fullSegPath, segBytes, { signal: context.signal });
+            await writeFileOutput(context, segBytes, data => context.fs.writeFile(fullSegPath, data, { signal: context.signal }));
             playlistLines.push(`#EXTINF:${actualDur.toFixed(6)},`, relSegName);
           }
 
           playlistLines.push("#EXT-X-ENDLIST", "");
           const m3u8Bytes = encodeUtf8(playlistLines.join("\n"));
           await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
-          await context.fs.writeFile(outResolved, m3u8Bytes, { signal: context.signal });
+          await writeFileOutput(context, m3u8Bytes, data => context.fs.writeFile(outResolved, data, { signal: context.signal }));
           options.onMetrics?.(budget.getStats());
           return { exitCode: 0 };
         }
@@ -2393,7 +2394,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               format: imgFmt
             }).data;
             budget.checkOutputBytes(encoded.byteLength);
-            await context.fs.writeFile(fullOutPath, encoded, { signal: context.signal });
+            await writeFileOutput(context, encoded, data => context.fs.writeFile(fullOutPath, data, { signal: context.signal }));
           }
           options.onMetrics?.(budget.getStats());
           return { exitCode: 0 };
@@ -2427,7 +2428,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           await writeBytes(context.stdout, serializedBytes, context.signal);
         } else {
           const fullOutPath = resolvePath(context.cwd, outputTarget);
-          await context.fs.writeFile(fullOutPath, serializedBytes, { signal: context.signal });
+          await writeFileOutput(context, serializedBytes, data => context.fs.writeFile(fullOutPath, data, { signal: context.signal }));
         }
 
         options.onMetrics?.(budget.getStats());

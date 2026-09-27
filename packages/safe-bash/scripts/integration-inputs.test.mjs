@@ -81,6 +81,7 @@ test("multi-tenant search and text regressions remain in active discovery", () =
 test("command resource limit regressions remain in active test discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/optional-resource-limits.test.ts"));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/workspace-file-output-budget.test.ts"));
 });
 
 test("buffered output and cooperative scheduling regressions remain in active discovery", () => {

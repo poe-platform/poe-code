@@ -27,6 +27,7 @@ const pathPosix = {
   },
 };
 
+import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
   getCommandArguments,
@@ -150,12 +151,9 @@ export function createSpongeCommand(options: SpongeCommandsOptions = {}): Comman
           if (existing.byteLength + buffered.byteLength > maxBytes) {
             throw new Error(`combined output exceeds maximum buffered size of ${maxBytes} bytes`);
           }
-          const combined = new Uint8Array(existing.byteLength + buffered.byteLength);
-          combined.set(existing, 0);
-          combined.set(buffered, existing.byteLength);
-          await context.fs.writeFile(targetPath, combined);
+          await writeFileOutput(context, buffered, data => context.fs.appendFile(targetPath, data, { signal: context.signal }));
         } else {
-          await context.fs.writeFile(targetPath, buffered);
+          await writeFileOutput(context, buffered, data => context.fs.writeFile(targetPath, data, { signal: context.signal }));
         }
         return { exitCode: 0 };
       } catch (err) {

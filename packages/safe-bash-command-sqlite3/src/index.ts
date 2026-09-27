@@ -1,3 +1,4 @@
+import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   collectBytes,
   commandRuntimeIdentity,
@@ -820,7 +821,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
       }
       if (typeof db.serializeToBytes === "function") {
         const bytes = await db.serializeToBytes();
-        await context.fs.writeFile(path, bytes);
+        await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));
       } else {
         const tempDb = new SqliteDatabase();
         const masterRes = await execSingleStmt(
@@ -847,7 +848,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
           }
         }
         const bytes = tempDb.serializeToBytes();
-        await context.fs.writeFile(path, bytes);
+        await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));
       }
     };
 
@@ -865,16 +866,12 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
       if (state.onceFile) {
         const target = resolveVfsPath(context.cwd, state.onceFile);
         state.onceFile = null;
-        await context.fs.writeFile(target, textEncoder.encode(text));
+        await writeFileOutput(context, textEncoder.encode(text), data => context.fs.writeFile(target, data, { signal: context.signal }));
         return;
       }
       if (state.outputFile && state.outputFile !== "stdout") {
         const target = resolveVfsPath(context.cwd, state.outputFile);
-        let prev = "";
-        if (await vfsExists(context.fs, target)) {
-          prev = await vfsReadText(context.fs, target);
-        }
-        await context.fs.writeFile(target, textEncoder.encode(prev + text));
+        await writeFileOutput(context, textEncoder.encode(text), data => context.fs.appendFile(target, data, { signal: context.signal }));
         return;
       }
       await writeText(context.stdout, text);
@@ -995,7 +992,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         state.outputFile = target === "stdout" ? null : target;
         if (state.outputFile) {
           const abs = resolveVfsPath(context.cwd, state.outputFile);
-          await context.fs.writeFile(abs, new Uint8Array(0));
+          await writeFileOutput(context, new Uint8Array(0), data => context.fs.writeFile(abs, data, { signal: context.signal }));
         }
         return;
       }

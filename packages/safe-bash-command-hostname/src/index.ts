@@ -1,3 +1,4 @@
+import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
     writeText,
@@ -230,7 +231,7 @@ export function createHostnameCommand(options: HostnameCommandsOptions = {}): Co
         sessionHostname = newHost;
         try {
           await context.fs.mkdir("/etc", { recursive: true, signal: context.signal });
-          await context.fs.writeFile("/etc/hostname", new TextEncoder().encode(`${newHost}\n`), { signal: context.signal });
+          await writeFileOutput(context, new TextEncoder().encode(`${newHost}\n`), data => context.fs.writeFile("/etc/hostname", data, { signal: context.signal }));
         } catch {
           // ignore read-only VFS
         }

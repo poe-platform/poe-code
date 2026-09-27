@@ -1,3 +1,4 @@
+import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
   getCommandArguments,
@@ -2504,7 +2505,7 @@ export async function qpdf(context: CommandContext): Promise<{ exitCode: number 
           await writeBytes(stdout.output, fileBytes, invocation.signal);
         } else {
           const abs = resolveVfsPath(fileKey);
-          await context.fs.writeFile(abs, fileBytes, { signal: invocation.signal });
+          await writeFileOutput(context, fileBytes, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
         }
       }
     }

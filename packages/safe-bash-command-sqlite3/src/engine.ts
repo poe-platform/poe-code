@@ -1000,6 +1000,14 @@ function applyColumnAffinity(value: SqlValue, declaredType: string): SqlValue {
   if (typeof value === "string") {
     const text = value.trim();
     if (!text || ![...text].every((char) => "0123456789.+-eE".includes(char)) || Number.isNaN(Number(text))) return value;
+    const digits = text[0] === "+" || text[0] === "-" ? text.slice(1) : text;
+    if (digits && [...digits].every((char) => "0123456789".includes(char))) {
+      const exact = BigInt(text);
+      if (exact >= -9223372036854775808n && exact <= 9223372036854775807n) {
+        if (real) return new Number(Number(exact));
+        return Number.isSafeInteger(Number(exact)) ? Number(exact) : exact;
+      }
+    }
     value = new Number(Number(text));
   }
   if (typeof value === "bigint") return real ? new Number(Number(value)) : value;
@@ -3024,7 +3032,7 @@ export class SqliteDatabase {
     this.totalChanges += insertedCount;
 
     if (returningIdx !== -1) {
-      return this.evaluateReturning(tbl, affectedRows, tokens.slice(returningIdx + 1), positionalParams);
+      return this.evaluateReturning(tbl, affectedRows, tokens.slice(returningIdx + 1), positionalParams, cteScope);
     }
     return null;
   }
@@ -3114,6 +3122,15 @@ export class SqliteDatabase {
     return { assignments, whereExpr };
   }
 
+  private tableBindings(tbl: TableDef): Record<string, SqlValue> {
+    const bindings: Record<string, SqlValue> = {};
+    for (const column of [...tbl.columns.map((col) => col.name), "rowid", "_rowid_", "oid"]) {
+      bindings[column] = null;
+      bindings[`${tbl.name}.${column}`] = null;
+    }
+    return bindings;
+  }
+
   private executeUpdate(
     tokens: Token[],
     positionalParams: SqlValue[],
@@ -3154,6 +3171,14 @@ export class SqliteDatabase {
 
     const sliceEnd = returningIdx !== -1 ? returningIdx : tokens.length;
     const { assignments, whereExpr } = this.parseSetAssignments(tokens.slice(idx, sliceEnd));
+
+    const bindings = this.tableBindings(tbl);
+    for (const assignment of assignments) {
+      this.validateColumns({ kind: "column", name: assignment.col }, bindings, positionalParams, _cteScope);
+      this.validateColumns(assignment.expr, bindings, positionalParams, _cteScope);
+    }
+    this.validateColumns(whereExpr, bindings, positionalParams, _cteScope);
+    if (returningIdx !== -1) this.evaluateReturning(tbl, [], tokens.slice(returningIdx + 1), positionalParams, _cteScope);
 
     let updated = 0;
     const affectedRows: TableRow[] = [];
@@ -3197,7 +3222,7 @@ export class SqliteDatabase {
     this.totalChanges += updated;
 
     if (returningIdx !== -1) {
-      return this.evaluateReturning(tbl, affectedRows, tokens.slice(returningIdx + 1), positionalParams);
+      return this.evaluateReturning(tbl, affectedRows, tokens.slice(returningIdx + 1), positionalParams, _cteScope);
     }
     return null;
   }
@@ -3240,6 +3265,9 @@ export class SqliteDatabase {
       whereExpr = new ExprParser(tokens.slice(idx + 1, sliceEnd)).parseExpression();
     }
 
+    this.validateColumns(whereExpr, this.tableBindings(tbl), positionalParams, _cteScope);
+    if (returningIdx !== -1) this.evaluateReturning(tbl, [], tokens.slice(returningIdx + 1), positionalParams, _cteScope);
+
     const kept: TableRow[] = [];
     const deletedRows: TableRow[] = [];
 
@@ -3265,7 +3293,7 @@ export class SqliteDatabase {
     this.totalChanges += deletedRows.length;
 
     if (returningIdx !== -1) {
-      return this.evaluateReturning(tbl, deletedRows, tokens.slice(returningIdx + 1), positionalParams);
+      return this.evaluateReturning(tbl, deletedRows, tokens.slice(returningIdx + 1), positionalParams, _cteScope);
     }
     return null;
   }
@@ -3274,7 +3302,8 @@ export class SqliteDatabase {
     tbl: TableDef,
     rows: TableRow[],
     returningTokens: Token[],
-    positionalParams: SqlValue[]
+    positionalParams: SqlValue[],
+    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }> = new Map()
   ): QueryResultSet {
     const items = this.splitTopLevelComma(returningTokens);
     const outCols: string[] = [];
@@ -3291,6 +3320,8 @@ export class SqliteDatabase {
         exprs.push(expr);
       }
     }
+    const bindings = this.tableBindings(tbl);
+    for (const expr of exprs) this.validateColumns(expr, bindings, positionalParams, cteScope);
     const outRows: SqlValue[][] = rows.map((r) => {
       const ctx = { ...r.data, rowid: r.rowid };
       return exprs.map((e) => this.evalExpr(e, ctx, positionalParams));
@@ -3414,12 +3445,16 @@ export class SqliteDatabase {
 
     const anchorRes = this.executeSelectCompound(anchorTokens, positionalParams, cteMap);
     const cols = explicitCols && explicitCols.length > 0 ? explicitCols : anchorRes.columns;
-    if (this.preparing) {
-      const scope = new Map(cteMap);
-      scope.set(cteName.toLowerCase(), { columns: cols, rows: [] });
+    const scope = new Map(cteMap);
+    scope.set(cteName.toLowerCase(), { columns: cols, rows: [] });
+    const preparing = this.preparing;
+    this.preparing = true;
+    try {
       this.executeSelectCompound(recTokens, positionalParams, scope);
-      return { columns: cols, rows: [] };
+    } finally {
+      this.preparing = preparing;
     }
+    if (this.preparing) return { columns: cols, rows: [] };
     const allRows: SqlValue[][] = [...anchorRes.rows];
     let workingRows: SqlValue[][] = [...anchorRes.rows];
     const seenKeys = new Set<string>();
@@ -3767,6 +3802,20 @@ export class SqliteDatabase {
       if (clause) {
         for (const expression of this.splitTopLevelComma(clause)) {
           this.validateColumns(new ExprParser(expression).parseExpression(), aliasBindings, positionalParams, cteScope);
+        }
+      }
+    }
+
+    if (limitTokens) {
+      let depth = 0;
+      let start = 0;
+      for (let i = 0; i <= limitTokens.length; i += 1) {
+        const token = limitTokens[i]?.value;
+        if (token === "(") depth += 1;
+        if (token === ")") depth -= 1;
+        if (i === limitTokens.length || (depth === 0 && (token === "," || token?.toUpperCase() === "OFFSET"))) {
+          this.validateColumns(new ExprParser(limitTokens.slice(start, i)).parseExpression(), {}, positionalParams, cteScope);
+          start = i + 1;
         }
       }
     }
@@ -4141,7 +4190,7 @@ export class SqliteDatabase {
     for (let itemIdx = 0; itemIdx < items.length; itemIdx += 1) {
       const item = items[itemIdx]!;
       const preparationScope: Record<string, SqlValue> = {};
-      if (this.preparing) {
+      if (this.preparing || currentRows.length === 0) {
         for (const source of schema) {
           for (const column of [...source.columns, "rowid", "_rowid_", "oid"]) {
             preparationScope[column] = null;
@@ -4151,9 +4200,10 @@ export class SqliteDatabase {
       }
       const resolved = this.resolveSingleTableSource(
         item.sourceTokens,
-        this.preparing ? [preparationScope] : itemIdx === 0 ? [{}] : currentRows,
+        this.preparing || currentRows.length === 0 ? [preparationScope] : currentRows,
         positionalParams,
-        cteScope
+        cteScope,
+        itemIdx > 0 && currentRows.length === 0
       );
       const prevCols = new Set(schema.flatMap((s) => s.columns.map((c) => c.toLowerCase())));
       schema.push({ tableAlias: resolved.alias, columns: resolved.columns });
@@ -4255,7 +4305,8 @@ export class SqliteDatabase {
     srcTokens: Token[],
     outerRows: Record<string, SqlValue>[],
     positionalParams: SqlValue[],
-    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
+    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>,
+    prepareTvf = false
   ): { alias: string; columns: string[]; rows: Record<string, SqlValue>[]; isCorrelated?: boolean } {
     if (srcTokens.length === 0) {
       return { alias: "", columns: [], rows: [{}] };
@@ -4336,15 +4387,24 @@ export class SqliteDatabase {
       }
       const alias = srcTokens[idx]?.value ?? name;
       const outerCtx = outerRows[0] ?? {};
+      const isCorrelated = argToks.some((at) => at.some((t) => t.type === "word" || t.type === "ident"));
+      const prepare = this.preparing || (prepareTvf && isCorrelated);
       const args = argToks.map((at) => {
         const expression = new ExprParser(at).parseExpression();
-        if (this.preparing) {
+        if (prepare) {
           this.validateColumns(expression, outerCtx, positionalParams, cteScope);
           return null;
         }
         return this.evalExpr(expression, outerCtx, positionalParams, cteScope);
       });
-      const tvf = this.evaluateTableValuedFunction(name, args);
+      const preparing = this.preparing;
+      this.preparing = prepare;
+      let tvf: ReturnType<SqliteDatabase["evaluateTableValuedFunction"]>;
+      try {
+        tvf = this.evaluateTableValuedFunction(name, args);
+      } finally {
+        this.preparing = preparing;
+      }
       const rows = tvf.rows.map((r) => {
         const obj: Record<string, SqlValue> = {};
         tvf.columns.forEach((c, cIdx) => {
@@ -4354,7 +4414,7 @@ export class SqliteDatabase {
         });
         return obj;
       });
-      return { alias, columns: tvf.columns, rows, isCorrelated: argToks.some((at) => at.some((t) => t.type === "word" || t.type === "ident")) };
+      return { alias, columns: tvf.columns, rows, isCorrelated };
     }
 
     if (srcTokens[idx]?.value.toUpperCase() === "AS") {

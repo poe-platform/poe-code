@@ -1753,7 +1753,7 @@ it("keeps canonical private owners external in the packed browser recipe", async
   const { options } = optionalLeftovers();
   await packageSafeLibraries({ ...options, outDir: "/output" });
   const browser = options.bundle.mock.calls.map(([settings]) => settings as BuildOptions)
-    .find(settings => settings.platform === "browser")!;
+    .find(settings => Object.hasOwn(settings.entryPoints ?? {}, "core.browser"))!;
   const specifiers = [
     "safe-bash-contracts/command", "safe-bash-command-op",
     "safe-bash-command-pandoc/lua-filters", "safe-bash-command-pandoc/citeproc-filters",

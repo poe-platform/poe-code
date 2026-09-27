@@ -38,13 +38,18 @@ export async function verifyDos2unix() {
     const cancelled = await shell.exec("dos2unix", { signal: caller.signal }).then(() => ({ ok: true }), reason => ({ reason }));
     assert(Object.hasOwn(cancelled, "reason") && cancelled.reason === false, "line-ending cancellation identity changed");
     const activeCaller = new AbortController();
-    const active = shell.exec("dos2unix", { stdin: "A".repeat(32768), signal: activeCaller.signal })
+    let inputRead = false;
+    const stdin = (async function* () {
+      yield new TextEncoder().encode("A\r\n");
+      inputRead = true;
+      activeCaller.abort(false);
+      yield new TextEncoder().encode("B\r\n");
+    })();
+    const active = shell.exec("dos2unix", { stdin, signal: activeCaller.signal })
       .then(() => ({ ok: true }), reason => ({ reason }));
-    const timer = setTimeout(() => activeCaller.abort(false), 0);
-    try {
-      const cancelled = await active;
-      assert(Object.hasOwn(cancelled, "reason") && cancelled.reason === false, "active line-ending conversion lost cancellation identity");
-    } finally { clearTimeout(timer); }
+    const activeCancelled = await active;
+    assert(inputRead, "line-ending conversion did not start reading stdin");
+    assert(Object.hasOwn(activeCancelled, "reason") && activeCancelled.reason === false, "active line-ending conversion lost cancellation identity");
     shell.commands.register(createDos2unixCommand({ limits: { maxInputBytes: 1 } }), { replace: true });
     const limited = await shell.exec("dos2unix", { stdin: "AB" });
     assert(limited.exitCode === 1 && limited.stderr === "dos2unix: input bytes limit exceeded\n", "line-ending command ignored explicit limits");

@@ -3765,6 +3765,7 @@ function tryCompileTrimGlobToRegex(pat: string, op: "#" | "##" | "%" | "%%", ext
   trimGlobParamRegexCache.set(key, compiled);
   return compiled ?? undefined;
 }
+const SIMPLE_ARITH_CMP_RE = /^\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*(<=|>=|==|!=|<|>)\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*$/;
 const SIMPLE_SCALAR_MUT_RE = /^\s*([a-zA-Z_][a-zA-Z_0-9]*)\s*(\+=|-=|=)\s*(-?(?:0|[1-9][0-9]{0,12}))(?:\s*([+\-*])\s*(-?(?:0|[1-9][0-9]{0,12})))?\s*$/;
 const readArrayScratchFields: string[] = [];
 const SIMPLE_EXPANDED_ARITH_RE = /^\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*([+\-*/%])\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*$/;
@@ -8259,6 +8260,13 @@ export class Runtime {
         }
       }
       if (
+        (w0Plain === "echo" || w0Plain === "printf") &&
+        !hasShellFunction(rawState, w0Plain) &&
+        !rawState.extensions?.builtins.has(w0Plain)
+      ) {
+        return true;
+      }
+      if (
         command.words.length >= 2 &&
         (w0Plain === "[" || w0Plain === "test") &&
         !hasShellFunction(rawState, w0Plain) &&
@@ -8610,7 +8618,7 @@ export class Runtime {
       }
       let expr = command.expression;
       if (expr.error) {
-        const canCacheWord = !byteLocale(rawState.variables) && (rawState.depth + (io.parameterDepth ?? 0)) === 0;
+        const canCacheWord = !byteLocale(rawState.variables) && (rawState.depth + (io.parameterDepth ?? 0)) < 32;
         const cachedExpr = expr as { _cachedArithWord?: Word | null; _cachedArithSyntax?: unknown };
         let expWord = canCacheWord && cachedExpr._cachedArithSyntax === rawState.extensions?.syntax ? cachedExpr._cachedArithWord : undefined;
         if (expWord === undefined) {
@@ -8637,6 +8645,39 @@ export class Runtime {
           return undefined;
         }
         if (typeof fastSrc !== "string") return undefined;
+        const cmpMatch = fastSrc.length <= 64 ? SIMPLE_ARITH_CMP_RE.exec(fastSrc) : null;
+        if (cmpMatch) {
+          const lhs = resolveSimpleArithOperand(cmpMatch[1]!, rawState, monitor, store);
+          const rhs = resolveSimpleArithOperand(cmpMatch[3]!, rawState, monitor, store);
+          if (lhs !== undefined && rhs !== undefined) {
+            const op = cmpMatch[2]!;
+            const nonZero = op === "<=" ? lhs <= rhs : op === ">=" ? lhs >= rhs : op === "<" ? lhs < rhs : op === ">" ? lhs > rhs : op === "==" ? lhs === rhs : lhs !== rhs;
+            this.budget.parsing.admit(4);
+            if (rawState.extensions && !rawState.extensions.eventDepth) {
+              publishCommandSpelling(rawState, commandSpelling(command));
+            }
+            const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+            this.budget.tick();
+            if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "((";
+            const rawStatus = nonZero ? 0 : 1;
+            const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
+            if (!existing) {
+              if (store) {
+                if (publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined;
+              } else {
+                monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne;
+                monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+              }
+            } else {
+              elem0!.text.shellValue = finalStatus === 0 ? "0" : "1";
+              store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+            }
+            rawState.status = finalStatus;
+            monitor.epoch = restEpoch;
+            if (store) store.epoch = restEpoch;
+            return finalStatus;
+          }
+        }
         const scalarMutMatch = fastSrc.length <= 64 ? SIMPLE_SCALAR_MUT_RE.exec(fastSrc) : null;
         if (scalarMutMatch) {
           const varName = scalarMutMatch[1]!;
@@ -18500,7 +18541,7 @@ export class Runtime {
         let expr = part.expression;
         const line = overrideDiagnosticLine ?? io.diagnosticLine ?? part.line;
         if (expr.error) {
-          const canCacheWord = !byteLocale(rawVars) && (rawState.depth + (io.parameterDepth ?? 0)) === 0;
+          const canCacheWord = !byteLocale(rawVars) && (rawState.depth + (io.parameterDepth ?? 0)) < 32;
           const cachedExpr = expr as { _cachedArithWord?: Word | null; _cachedArithSyntax?: unknown };
           let expWord = canCacheWord && cachedExpr._cachedArithSyntax === rawState.extensions?.syntax ? cachedExpr._cachedArithWord : undefined;
           if (expWord === undefined) {
@@ -18615,6 +18656,51 @@ export class Runtime {
     return true;
   }
 
+  private canSyncPureFunctionBody(script: Script, rawState: State): boolean {
+    if (script.lists.length === 0) return false;
+    for (let l = 0; l < script.lists.length; l++) {
+      const list = script.lists[l]!;
+      if (list.terminator) return false;
+      for (let p = 0; p < list.pipelines.length; p++) {
+        const pipe = list.pipelines[p]!;
+        if (pipe.negate || pipe.commands.length !== 1) return false;
+        const c = pipe.commands[0]!;
+        if (c.redirects.length !== 0) return false;
+        if (c.kind === "if") {
+          for (let cl = 0; cl < c.branches.length; cl++) {
+            if (!this.canSyncPureFunctionBody(c.branches[cl]!.condition, rawState)) return false;
+            if (!this.canSyncPureFunctionBody(c.branches[cl]!.body, rawState)) return false;
+          }
+          if (c.otherwise && !this.canSyncPureFunctionBody(c.otherwise, rawState)) return false;
+          continue;
+        }
+        if (c.kind === "arithmetic") {
+          if (/[+]{2}|--|<<|>>|(?<![<>!=])=(?!=)/.test(c.expression.source)) return false;
+          continue;
+        }
+        if (c.kind === "simple") {
+          if (c.words.length === 0) return false;
+          const w0p = c.words[0]!.plain;
+          if (!w0p || rawState.extensions?.builtins.has(w0p)) return false;
+          if (w0p === "echo") {
+            const def = this.commands.get("echo");
+            if (hasShellFunction(rawState, "echo") || !def || !defaultEchoExecutors.has(def.execute)) return false;
+            continue;
+          }
+          if (w0p === "local" && c.words.length === 2) {
+            if (hasShellFunction(rawState, "local")) return false;
+            const assign = !getArrayAssignment(c.words[1]!) ? this.assignment(c.words[1]!) : undefined;
+            if (!assign || assign.append || assign.name.includes("[") || rawState.readonlyVariables?.has(assign.name)) return false;
+            continue;
+          }
+          return false;
+        }
+        return false;
+      }
+    }
+    return true;
+  }
+
   private tryFastPureSubstitution(part: Extract<WordPart, { kind: "substitution" }>, state: State, rawState: State, io: IO): string | undefined {
     if (this.middleware.length > 0) return undefined;
     if (rawState.depth >= this.budget.maxSubstitutionDepthSmi && rawState.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
@@ -18648,22 +18734,7 @@ export class Runtime {
     if (rawState.functions.has(w0Plain)) {
       if (rawState.depth + 1 >= this.budget.limits.maxSubstitutionDepth) return undefined;
       const fnBody = rawState.functions.get(w0Plain)!;
-      if (
-        fnBody.kind !== "group" ||
-        fnBody.redirects.length !== 0 ||
-        fnBody.body.lists.length !== 1 ||
-        fnBody.body.lists[0]!.terminator ||
-        fnBody.body.lists[0]!.pipelines.length !== 1 ||
-        fnBody.body.lists[0]!.pipelines[0]!.negate ||
-        fnBody.body.lists[0]!.pipelines[0]!.commands.length !== 1
-      ) {
-        return undefined;
-      }
-      const innerCmd = fnBody.body.lists[0]!.pipelines[0]!.commands[0]!;
-      if (innerCmd.kind !== "simple" || innerCmd.redirects.length > 0 || innerCmd.words.length === 0) return undefined;
-      const innerW0 = innerCmd.words[0]!.plain;
-      if (!innerW0 || rawState.functions.has(innerW0) || rawState.extensions?.builtins.has(innerW0)) return undefined;
-      if (innerW0 !== "printf" && innerW0 !== "echo") return undefined;
+      if (fnBody.kind !== "group" || fnBody.redirects.length !== 0) return undefined;
       for (let i = 0; i < cmd.words.length; i++) {
         if (!this.isPureArgWord(cmd.words[i]!, rawState)) return undefined;
       }
@@ -18673,8 +18744,71 @@ export class Runtime {
         if (typeof argVal !== "string") return undefined;
         fnPositional.push(argVal);
       }
-      cmd = innerCmd;
-      w0Plain = innerW0;
+      const isSingleEchoOrPrintf =
+        fnBody.body.lists.length === 1 &&
+        !fnBody.body.lists[0]!.terminator &&
+        fnBody.body.lists[0]!.pipelines.length === 1 &&
+        !fnBody.body.lists[0]!.pipelines[0]!.negate &&
+        fnBody.body.lists[0]!.pipelines[0]!.commands.length === 1 &&
+        fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.kind === "simple" &&
+        fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.redirects.length === 0 &&
+        (fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.words[0]?.plain === "echo" ||
+         fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.words[0]?.plain === "printf") &&
+        !rawState.functions.has(fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.words[0]!.plain!) &&
+        !rawState.extensions?.builtins.has(fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.words[0]!.plain!);
+      if (isSingleEchoOrPrintf) {
+        cmd = fnBody.body.lists[0]!.pipelines[0]!.commands[0] as Extract<Command, { kind: "simple" }>;
+        w0Plain = cmd.words[0]!.plain!;
+      } else {
+        if (
+          rawState.depth + 1 >= 24 ||
+          rawState.functionDepth + 1 >= 24 ||
+          rawState.errexit ||
+          rawState.nounset ||
+          (this.budget.commands + 64) >= this.budget.limits.maxCommands ||
+          rawState.functionDepth + 1 >= this.budget.limits.maxSubstitutionDepth ||
+          !this.canSyncPureFunctionBody(fnBody.body, rawState)
+        ) {
+          return undefined;
+        }
+        const prevPos = rawState.positional;
+        const prevFastPos = this._fastSubPositional;
+        const prevStatus = rawState.status;
+        const frameLocals = new Map<string, SavedVariable>();
+        rawState.positional = fnPositional;
+        this._fastSubPositional = fnPositional;
+        rawState.locals.push(frameLocals);
+        rawState.depth++;
+        rawState.functionDepth++;
+        this.budget.tick();
+        const cap = new Capture(this.budget, this.signal);
+        const { descriptors: _ignoredDesc, ...restIO } = io;
+        const subIO: IO = { ...restIO, stdout: cap };
+        let syncStatus: number | { listIndex: number; pipelineIndex: number };
+        try {
+          syncStatus = this.trySyncScript(fnBody.body, state, subIO, false);
+        } finally {
+          for (const [k, saved] of frameLocals) {
+            restoreVariable(state, k, saved);
+          }
+          rawState.locals.pop();
+          rawState.positional = prevPos;
+          this._fastSubPositional = prevFastPos;
+          rawState.functionDepth--;
+          rawState.depth--;
+        }
+        if (typeof syncStatus !== "number") {
+          rawState.status = prevStatus;
+          return undefined;
+        }
+        rawState.substitutionStatus = syncStatus;
+        rawState.status = syncStatus;
+        const rawBytes = cap.bytes();
+        const val = Buffer.from(rawBytes.buffer, rawBytes.byteOffset, rawBytes.byteLength).toString("utf8");
+        let end = val.length;
+        while (end > 0 && val.charCodeAt(end - 1) === 10) end--;
+        return end === val.length ? val : val.slice(0, end);
+      }
     }
     if (w0Plain !== "printf" && w0Plain !== "echo") return undefined;
     const def = this.commands.get(w0Plain);

@@ -153,3 +153,25 @@ test("arithmetic-for echo producer into pipeline with read and awk matches bash"
     assert.equal(result.stdout, "dept_0:3120\ndept_1:3250\ndept_2:3380\ndept_3:3000\n");
   } finally { await shell.dispose(); }
 });
+
+test("recursive function with local command substitutions and arithmetic comparisons matches bash", async () => {
+  const { shell } = setup();
+  shell.use(agentCommands());
+  try {
+    const result = await shell.exec(`
+      fib() {
+        if (( \$1 <= 1 )); then
+          echo \$1
+        else
+          local a=\$(fib \$(( \$1 - 1 )))
+          local b=\$(fib \$(( \$1 - 2 )))
+          echo \$((a + b))
+        fi
+      }
+      fib 10
+    `);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "55\n");
+  } finally { await shell.dispose(); }
+});

@@ -56,6 +56,21 @@ it("binds native automatic labels using the default-enabled document setting", a
   expect(recalculateWorkbook(book, context, true).sheets[0]!.cells.find(cell => cell.formula)?.value).toEqual({ kind: 'number', value: 3 });
 });
 
+it("imports the native automatic-intersection expression with both live label anchors", async () => {
+  const declarations = '<table:label-ranges>' +
+    '<table:label-range table:label-cell-range-address="$S.$B$1" table:data-cell-range-address="$S.$B$2:.$B$6" table:orientation="column"/>' +
+    '<table:label-range table:label-cell-range-address="$S.$A$3" table:data-cell-range-address="$S.$B$3:.$D$3" table:orientation="row"/>' + '</table:label-ranges>';
+  const rows = '<table:table-row><table:table-cell/><table:table-cell office:value-type="string"><text:p>Sales</text:p></table:table-cell></table:table-row>' +
+    '<table:table-row/>' +
+    '<table:table-row><table:table-cell office:value-type="string"><text:p>West</text:p></table:table-cell><table:table-cell office:value="7"/></table:table-row>' +
+    '<table:table-row table:number-rows-repeated="4"/>' +
+    '<table:table-row><table:table-cell table:number-columns-repeated="7"/><table:table-cell table:formula="of:=\'Sales\'!!\'West\'" office:value="999"/></table:table-row>';
+  const bytes = await fixture({ mimetype: 'application/vnd.oasis.opendocument.spreadsheet', 'content.xml': content('<table:table table:name="S">' + rows + '</table:table>' + declarations) });
+  const book = await readOdf(bytes, context);
+  expect(book.sheets[0]!.cells.find(cell => cell.formula)?.formula).toBe('=@column.odf.quoted:B$1!!@row.odf.quoted:$A3');
+  expect(recalculateWorkbook(book, context, true).sheets[0]!.cells.find(cell => cell.formula)?.value).toEqual({ kind: 'number', value: 7 });
+});
+
 it("retains a bound array formula and its covered cells", async () => {
   const book = await readOdf(await source("of:=SUM('Sales')", 'office:value="999" table:number-matrix-columns-spanned="2" table:number-matrix-rows-spanned="1"'), context);
   expect(book.sheets[0]!.formulaGroups).toMatchObject([{ expression: "=SUM(@column.odf.quoted:Data!A$1)", kind: "array" }]);

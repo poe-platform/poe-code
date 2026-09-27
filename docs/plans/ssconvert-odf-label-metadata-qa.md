@@ -50,7 +50,7 @@ complete BIFF/format family remain open.
    and `runCommand --recalc` to CSV; independently parse each CSV and require 5.
    Inspect the captured command transcript as a terminal screenshot. A cached
    formula-generated label value is not native recalculation evidence. Keep
-   unqualified automatic-lookup profiles, automatic intersection, locale-specific text matching,
+   unqualified automatic-lookup profiles, locale-specific text matching,
    duplicate declarations across remote sheets, mixed relative-sheet formulas
    and all unqualified export/native profiles open.
 
@@ -66,3 +66,17 @@ complete BIFF/format family remain open.
    aggregate result 2. Native BIFF export must not discard OpenFormula semantics;
    its identity-preserving transport remains open. Use the compiled SDK/command,
    independent CSV inspection and a captured command screenshot before delivery.
+
+10. Read OpenFormula sections 5.2 and 5.10.6 and Calc's automatic-intersection
+    lowering before changing `!!`. Use a Python ZIP/XML fixture declaring Sales
+    at B1 as a column label for B2:B6 and West at A3 as a row label for B3:D3.
+    Put 7 at B3 and `of:='Sales'!!'West'` at H8 with stale cache 999. The compiled
+    SDK and command must return 7, then 19 after setting B3, and retain the
+    captured anchor after renaming Sales. Independently parse all six CSVs and
+    inspect the actual command transcript screenshot. Check either operand
+    order, automatic lookup, same-axis/disjoint/cross-sheet errors, copy/move,
+    deleted anchors and precedence beside range/postfix operators. Reject native
+    syntax with references, calls, parenthesized operands or chained `!!`.
+    Internal deleted-anchor syntax must not escape into native Gnumeric/ODF
+    formula exports. Identity-preserving export and native application readback
+    remain open.

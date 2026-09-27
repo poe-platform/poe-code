@@ -105,7 +105,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
     };
     let sheet = readSheet(), endSheet: string | undefined;
     if (grammar.sheetSpans !== false && source[offset] === ":") { offset++; endSheet = readSheet(); }
-    if (source[offset] !== grammar.sheetSeparator || !sheet && !grammar.bracketReferences) {
+    if (source[offset] !== grammar.sheetSeparator || grammar.sheetSeparator === "!" && source.startsWith("!!", offset) || !sheet && !grammar.bracketReferences) {
       if (workbook !== undefined) {
         offset = bookEnd!;
         if (source[offset] === grammar.sheetSeparator) offset++;
@@ -215,7 +215,18 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
     }
     offset = start; return undefined;
   }
-  function primary(stopSeparator: boolean): FormulaNode {
+  function labelIntersection(left: FormulaNode, allowed: boolean): FormulaNode {
+    if (!allowed || grammar.quotedLabels !== "openformula" && grammar.id !== "gnumeric") return left;
+    const before = offset; space();
+    if (!source.startsWith("!!", offset)) { offset = before; return left; }
+    offset += 2;
+    const right = primary(false, false);
+    const deleted = grammar.id === "gnumeric" && right.kind === "literal" && right.value.kind === "error";
+    if (!deleted && (right.kind !== "reference" || !right.label || right.label.kind === "radical"))
+      fail("Automatic intersection requires two labels", right.start, right.end);
+    return node({ kind: "binary", op: "label-intersection", start: left.start, end: right.end, left, right });
+  }
+  function primary(stopSeparator: boolean, allowLabelIntersection = true): FormulaNode {
     space(); const start = offset;
     if (++depth > 128) throw new SsconvertError("resource-limit", "ssconvert formula depth limit exceeded");
     try {
@@ -265,7 +276,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
             ...(quoted ? { quoted } : {}), scalar: false } };
         }
         if (referenceClass === "array") fail("Invalid label reference class");
-        return { ...target, start, label: { axis, referenceClass, ...(openFormula ? { semantics: "openformula" } : {}), ...(quoted ? { quoted } : {}), scalar: false } };
+        return labelIntersection({ ...target, start, label: { axis, referenceClass, ...(openFormula ? { semantics: "openformula" } : {}), ...(quoted ? { quoted } : {}), scalar: false } }, allowLabelIntersection);
       }
       if (grammar.bracketReferences) for (const spelling of ["[#REF!]", "[.#REF!]", "[.$#REF!]"]) {
         if (source.startsWith(spelling, offset)) {
@@ -327,7 +338,11 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
       }
       for (const value of ["#NAME?", "#REF!", "#VALUE!", "#NUM!", "#DIV/0!", "#N/A", "#NULL!"])
         if (source.slice(offset, offset + value.length).toUpperCase() === value) {
-          offset += value.length; return node({ kind: "literal", start, end: offset, value: { kind: "error", value } });
+          offset += value.length;
+          const result = node({ kind: "literal", start, end: offset, value: { kind: "error", value } });
+          // Internal syntax keeps deleted-anchor errors beside the surviving
+          // label. Native OpenFormula still requires two QuotedLabel tokens.
+          return grammar.id === "gnumeric" ? labelIntersection(result, allowLabelIntersection) : result;
         }
       // Function spellings such as LOG2 and EXPM1 are also valid A1 addresses.
       // A following argument list takes precedence over address recognition.
@@ -345,7 +360,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
         });
         if (!bound) fail("Unresolved quoted label", start, offset);
         hasLabels = true;
-        return node({ kind: "reference", start, end: offset, ...bound });
+        return labelIntersection(node({ kind: "reference", start, end: offset, ...bound }), allowLabelIntersection);
       }
       if (c === "'" && grammar.singleQuotedStrings) { const value = quoted("'", grammar.stringEscape); return node({ kind: "literal", start, end: offset, value: { kind: "string", value } }); }
       if (digit(c) || c === ".") {
@@ -467,7 +482,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
     } finally { depth--; }
   }
   function referenceLike(value: FormulaNode): boolean {
-    return value.kind === "reference" || value.kind === "name" || value.kind === "call" || value.kind === "parentheses" || value.kind === "binary" && [":", "intersection", "union"].includes(value.op);
+    return value.kind === "reference" || value.kind === "name" || value.kind === "call" || value.kind === "parentheses" || value.kind === "binary" && [":", "intersection", "label-intersection", "union"].includes(value.op);
   }
   function expression(minimum: number, stopSeparator = false): FormulaNode {
     let left = primary(stopSeparator);
@@ -510,7 +525,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
         if (value.kind === "parentheses") return { ...value, child: select(value.child, "other", "other") };
         if (value.kind === "unary") return { ...value, child: select(value.child, value.op === "%" ? before : "other", value.op === "%" ? "other" : after) };
         if (value.kind === "binary") {
-          const neighbor = value.op === "intersection" ? "intersection" : "binary";
+          const neighbor = value.op === "intersection" || value.op === "label-intersection" ? "intersection" : "binary";
           return { ...value, left: select(value.left, before, neighbor), right: select(value.right, neighbor, after) };
         }
         if (value.kind === "call") return { ...value, args: value.args.map(child => select(child, "other", "other")) };

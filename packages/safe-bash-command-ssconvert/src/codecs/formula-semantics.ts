@@ -12,12 +12,14 @@ import { visitFormula } from "../formulas/rewriting.js";
 const namespace = "urn:poe-code:ssconvert:formulas:1";
 
 export function nativeOpenFormula(source: string, position: ParsePosition, context: CapabilityContext, arrayStringLiterals = false): string {
-  if (!source.startsWith("of:=") && !source.includes("@")) return source;
+  if (!source.startsWith("of:=") && !source.includes("@") && !source.includes("!!")) return source;
   const parsed = parseExpression(source, { position, arrayStringLiterals, signal: context.signal,
     maximumLength: context.limits.workbookTextBytes ?? context.limits.outputBytes, maximumNodes: context.limits.workbookNodes ?? Infinity });
   if (!parsed.ok) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: invalid OpenFormula expression");
   visitFormula(parsed.document.root, node => {
     context.signal.throwIfAborted();
+    if (node.kind === "binary" && node.op === "label-intersection")
+      throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: automatic label intersection in Gnumeric output");
     if (node.kind === "reference" && node.label)
       throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: live label reference in Gnumeric output");
   });

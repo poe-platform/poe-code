@@ -226,13 +226,22 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
           };
           collect(a); collect(b); return { kind: "matrix", rows };
         }
-        if (["intersection", ":"].includes(node.op)) {
+        if (["intersection", "label-intersection", ":"].includes(node.op)) {
           const b = evaluate(node.right, position, array, names);
+          const labels = node.op === "label-intersection";
+          if (labels) {
+            if (a.kind === "error") return a;
+            if (b.kind === "error") return b;
+            if (node.left.kind !== "reference" || node.right.kind !== "reference" || !node.left.label || !node.right.label ||
+              node.left.label.kind === "radical" || node.right.label.kind === "radical" || node.left.label.axis === node.right.label.axis)
+              return error("#VALUE!");
+          }
           if (a.kind !== "range" || b.kind !== "range" || a.sheets.length !== 1 || b.sheets.length !== 1 || a.sheets[0] !== b.sheets[0]) return error("#VALUE!");
-          const intersection = node.op === "intersection";
+          const intersection = node.op === "intersection" || labels;
           const r: Reference = { kind: "range", sheets: a.sheets, firstRow: (intersection ? Math.max : Math.min)(a.firstRow, b.firstRow), lastRow: (intersection ? Math.min : Math.max)(a.lastRow, b.lastRow), firstColumn: (intersection ? Math.max : Math.min)(a.firstColumn, b.firstColumn), lastColumn: (intersection ? Math.min : Math.max)(a.lastColumn, b.lastColumn) };
-          if (r.firstRow <= r.lastRow && r.firstColumn <= r.lastColumn) trackRange(r);
-          return r.firstRow > r.lastRow || r.firstColumn > r.lastColumn ? error("#NULL!") : r;
+          if (r.firstRow > r.lastRow || r.firstColumn > r.lastColumn) return error("#NULL!");
+          if (labels && (r.firstRow !== r.lastRow || r.firstColumn !== r.lastColumn)) return error("#VALUE!");
+          trackRange(r); return r;
         }
         // Gnumeric arithmetic rejects left text before evaluating the right expression.
         if (!array || a.kind !== "range" && a.kind !== "matrix") {

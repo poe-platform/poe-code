@@ -151,12 +151,17 @@ export function serializeExpression(document: FormulaDocument, grammar = documen
         return (labels ? precedence < parentPrecedence : precedence <= parentPrecedence) ? "(" + text + ")" : text;
       }
       case "binary": {
+        if (value.op === "label-intersection" && grammar.id !== "gnumeric")
+          throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: automatic label intersection in target grammar");
         if (value.op === "intersection" && !grammar.intersection)
           throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: formula intersection in target grammar");
-        const operator = value.op === "union" ? grammar.union : value.op === "intersection" ? grammar.intersection : value.op === ":" ? grammar.rangeSeparator ?? ":" : value.op;
+        const operator = value.op === "union" ? grammar.union : value.op === "intersection" ? grammar.intersection : value.op === "label-intersection" ? "!!" : value.op === ":" ? grammar.rangeSeparator ?? ":" : value.op;
         if (!canonical && !labels) return "(" + emit(value.left) + operator + emit(value.right) + ")";
-        const precedence = ["=", "<>", "<", ">", "<=", ">="].includes(value.op) ? 1 : value.op === "&" ? 2 : ["+", "-"].includes(value.op) ? 3 : ["*", "/"].includes(value.op) ? 4 : value.op === "^" ? 5 : value.op === "union" ? 8 : value.op === "intersection" ? 9 : 10;
+        const precedence = ["=", "<>", "<", ">", "<=", ">="].includes(value.op) ? 1 : value.op === "&" ? 2 : ["+", "-"].includes(value.op) ? 3 : ["*", "/"].includes(value.op) ? 4 : value.op === "^" ? 5 : value.op === "union" ? 8 : value.op === "intersection" ? 9 : value.op === "label-intersection" ? 11 : 10;
         let left = emit(value.left, value.op === "^" ? precedence : precedence - 1);
+        // Otherwise ':' would be consumed as part of the final internal label
+        // anchor, rather than extending the automatic intersection's cell.
+        if (value.op === ":" && value.left.kind === "binary" && value.left.op === "label-intersection") left = "(" + left + ")";
         if (!labels && value.op === "^" && (left.startsWith("-") || left.startsWith("+"))) left = "(" + left + ")";
         const text = left + operator + emit(value.right, labels && value.op === "^" && !grammar.leftAssociativePower ? precedence - 1 : precedence);
         return precedence <= parentPrecedence ? "(" + text + ")" : text;

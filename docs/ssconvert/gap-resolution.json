@@ -1900,7 +1900,7 @@
           "diagnostics": []
         },
         "independent": "Original Python ZIP/XML fixture: 627 bytes. Compiled SDK engine.convert and runCommand --recalc each emit two-byte CSV 5\\n, independently read with Python csv. Actual command transcript rendered and visually inspected: fresh value 5, no diagnostics. Earlier ad hoc QA attempts had script syntax, null-prototype comparison and engine-ownership harness errors; those are not product failures or qualification evidence.",
-        "remaining": "Automatic quoted-label lookup/ranges, !! automatic intersection, cross-sheet label/data pairs, native formula-result label recalculation, locale-specific transliteration, duplicate-order ties between remote sheets, mixed relative-sheet/live-label formulas, direct textual formula lifecycle and all identity-preserving exports/native application profiles remain open. Current matching uses the existing pinned Unicode default case fold. No family is closed.",
+        "remaining": "Automatic lookup and !! import/evaluation are covered by the subsequent audit entries. Remaining scope: cross-sheet label/data pairs, native formula-result label recalculation, locale-specific transliteration, duplicate-order ties between remote sheets, mixed relative-sheet/live-label formulas, direct textual formula lifecycle and all identity-preserving exports/native application profiles remain open. Current matching uses the existing pinned Unicode default case fold. No family is closed.",
         "qa": "docs/plans/ssconvert-odf-label-metadata-qa.md"
       },
       "odfAutomaticLabels": {
@@ -1957,7 +1957,73 @@
           ]
         },
         "independent": "Original Python ZIP/XML fixtures and independent Python csv readback: compiled SDK produces 3, 15 after filling A5, 3 after renaming the captured label, and scalar ABS result 8; compiled command produces 3/15/8. Actual command transcripts were rendered and visually inspected; only the expected CSV label-metadata loss warning appears.",
-        "remaining": "Automatic !! intersection; exact locale/transliteration and all proximity tie/native profiles; formula-generated label text recalculation; cross-sheet label/data pairs; direct textual formula lifecycle; mixed relative-sheet/live-label expressions; identity-preserving exports and native application qualification. All 19 families remain open.",
+        "remaining": "Automatic !! import/evaluation is covered by odfAutomaticIntersection; remaining scope: exact locale/transliteration and all proximity tie/native profiles; formula-generated label text recalculation; cross-sheet label/data pairs; direct textual formula lifecycle; mixed relative-sheet/live-label expressions; identity-preserving exports and native application qualification. All 19 families remain open.",
+        "qa": "docs/plans/ssconvert-odf-label-metadata-qa.md"
+      },
+      "odfAutomaticIntersection": {
+        "sources": [
+          {
+            "url": "https://docs.oasis-open.org/office/v1.2/os/OpenDocument-v1.2-os-part2.html",
+            "sha256": "962ebd7d05071cc217f7c26a2646837ba613b09922647ed827f3a6e4a86793cc",
+            "sections": "5.2, 5.10.6"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/core/tool/compiler.cxx",
+            "sha256": "84dfe1e52b8b632d8fd9d687d64857c779283bb3de660063664b916c7d458e83",
+            "lines": "2391-2410,3077,5928-5943,6250-6275"
+          }
+        ],
+        "finding": "OpenFormula defines AutomaticIntersection as a primary expression with two direct QuotedLabel operands of opposite orientation and exactly one intersecting data cell. Calc lowers !! to ambiguous UI space and explicitly leaves invalid-use validation as a TODO; ordinary reference intersection is not equivalent.",
+        "implementation": "Parser retains a distinct label-intersection operator and both live implicit anchors; evaluator requires opposite orientations and one intersecting cell. Serialization preserves primary precedence beside range and postfix operators; rewritten deleted anchors retain their errors. Native Gnumeric and ODF export refuse unsupported internal intersections, including both-deleted operands without a live @ anchor; literal !! text is unchanged.",
+        "validation": "Initial suite: ten failures and five passing invalid-syntax controls. Follow-up failing cases exposed deleted-anchor reparsing, range precedence and invalid native export. Final focused tests: 42 pass. Broader ODF, label, formula and edit cohort: 28 files / 959 tests pass. Package lint, source/test/consumer types and selected maintained workspace build pass.",
+        "publicValidation": {
+          "fixtureBytes": 658,
+          "sdk": [
+            {
+              "name": "original",
+              "csv": "7\n",
+              "diagnostics": [
+                "Label ranges and automatic label lookup are omitted by Gnumeric_stf:stf_csv"
+              ]
+            },
+            {
+              "name": "edited",
+              "csv": "19\n",
+              "diagnostics": [
+                "Label ranges and automatic label lookup are omitted by Gnumeric_stf:stf_csv"
+              ]
+            },
+            {
+              "name": "renamed",
+              "csv": "7\n",
+              "diagnostics": [
+                "Label ranges and automatic label lookup are omitted by Gnumeric_stf:stf_csv"
+              ]
+            }
+          ],
+          "command": [
+            {
+              "name": "original",
+              "csv": "7\n",
+              "stderr": "Label ranges and automatic label lookup are omitted by Gnumeric_stf:stf_csv\n",
+              "exitCode": 0
+            },
+            {
+              "name": "edited",
+              "csv": "19\n",
+              "stderr": "Label ranges and automatic label lookup are omitted by Gnumeric_stf:stf_csv\n",
+              "exitCode": 0
+            },
+            {
+              "name": "renamed",
+              "csv": "7\n",
+              "stderr": "Label ranges and automatic label lookup are omitted by Gnumeric_stf:stf_csv\n",
+              "exitCode": 0
+            }
+          ]
+        },
+        "independent": "Original 658-byte Python ZIP/XML fixture. Compiled SDK and runCommand return 7, 19 after editing B3, and 7 after renaming Sales. Python csv independently reads all six outputs. Actual command transcript screenshot inspected; only the expected CSV label-loss warning appears.",
+        "remaining": "Identity-preserving native exports; cross-sheet label/data declarations; locale/transliteration/proximity/native profiles; formula-generated label text recalculation; direct textual formula lifecycle; mixed relative-sheet/live-label expressions and native application qualification remain open. All 19 families remain open.",
         "qa": "docs/plans/ssconvert-odf-label-metadata-qa.md"
       }
     },

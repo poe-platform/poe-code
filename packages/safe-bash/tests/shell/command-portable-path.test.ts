@@ -6,6 +6,24 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell, ShellLimitError } from "../../src/shell/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
 
+for (const [command, expected] of [
+  ["dirname /a/file", "/a"],
+  ["dirname file", "."],
+  ["dirname ///", "/"],
+  ["basename /a/file.txt .txt", "file"],
+  ["basename ///", "/"],
+  ["basename /a/é🌊", "é🌊"],
+]) {
+  test(`path command substitution: ${command}`, async context => {
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`printf '<%s>\\n' "$(${command})"`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, `<${expected}>\n`);
+  });
+}
+
 test("type -t reports Bash command kinds without exposing dispatch kinds", async context => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
   context.after(() => shell.dispose());

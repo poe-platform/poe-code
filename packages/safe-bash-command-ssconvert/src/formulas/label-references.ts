@@ -59,20 +59,26 @@ export function resolveLabelReference(book: Workbook, node: Extract<FormulaNode,
     start = (columnLabel ? row : column) + 1;
     if (start > maximum) return error("#REF!");
     if (label.scalar) {
-      if (ownAxis < start || ownAxis > maximum) return error("#REF!");
+      if (sameAxis || ownAxis < start || ownAxis > maximum) return error("#REF!");
       start = end = ownAxis;
     } else {
+      // Calc excludes a same-axis formula before expanding its data range.
+      // Never clamp an excluded final cell back onto the formula itself.
+      if (sameAxis && ownAxis === start) start++;
+      if (start > maximum) return error("#REF!");
+      const limit = sameAxis && ownAxis > start ? Math.min(maximum, ownAxis - 1) : maximum;
       // OpenFormula §5.10.5: only this row/column, at most one initial blank,
       // then contiguous non-empty cells. Adjacent data cannot bridge a gap.
       const occupied = new Set<number>();
       for (const cell of sheet.cells) {
         tick();
+        if (sameAxis && (columnLabel ? cell.row : cell.column) === ownAxis) continue;
         if ((columnLabel ? cell.column === column : cell.row === row) && (cell.value.kind !== "blank" || cell.formula))
           occupied.add(columnLabel ? cell.row : cell.column);
       }
-      if (!occupied.has(start) && start < maximum && occupied.has(start + 1)) start++;
+      if (!occupied.has(start) && start < limit && occupied.has(start + 1)) start++;
       end = start;
-      if (occupied.has(start)) while (end < maximum && occupied.has(end + 1)) { tick(); end++; }
+      if (occupied.has(start)) while (end < limit && occupied.has(end + 1)) { tick(); end++; }
     }
     return { kind: "range", sheets: [sheet], firstRow: columnLabel ? start : row, lastRow: columnLabel ? end : row,
       firstColumn: columnLabel ? column : start, lastColumn: columnLabel ? column : end };

@@ -111,8 +111,8 @@ labels such as `SUM('Sales')` bind after all sheets load, using declared ranges
 first and enabled automatic lookup on the formula's sheet. Array and named
 expressions use the same binding. The internal `@column.odf.quoted:A$1` form keeps
 the cell anchor and OpenFormula range rules through edits: aggregates stop at a
-gap after skipping at most one initial blank; scalar consumers use the formula
-position. BIFF labels retain Calc's data-area expansion. OpenFormula `!!`
+gap after skipping at most one initial blank and exclude the formula cell itself;
+scalar consumers use the formula position and reject a self-reference. BIFF labels retain Calc's data-area expansion. OpenFormula `!!`
 intersects one row label and one column label, retaining both live anchors;
 it returns an error unless their data ranges intersect in exactly one cell.
 Both ODF writers export these live OpenFormula labels using the current label

@@ -2392,6 +2392,14 @@
         "implementation": "Automatic Calc/BIFF labels inspect declarations on all workbook sheets. OpenFormula automatic labels retain their separate contiguous-data rules. No dependency on remote cell values is introduced: the boundary uses declaration geometry only.",
         "validation": "Two original regressions returned 60 instead of source-derived 10. 24 axis/owner/data-sheet/dialect combinations pass; complete focused cohort 135 executed tests across four files, with imported fixture tests included. Maintained package lint, product/test/consumer types and selected build pass. Four compiled SDK/command BIFF8-to-CSV conversions return 10 and retain 10/20/30 local data; inputs were seeded through the product writer, output independently parsed with Python. Transcript screenshot inspected.",
         "remaining": "Native application recalculation still unqualified. #3670 command-factory requirements remain open; the report’s requested data-sheet filter is absent from the pinned Calc source."
+      },
+      "automaticSelfExclusion": {
+        "issue": 3646,
+        "status": "implemented and locally qualified; delivery pending",
+        "source": "LibreOffice bce0998afefdbc355585ca324285661a2170ba77 compiler.cxx GetRefColRowNames, followed by OpenFormula 5.10.5 contiguous-cell rules.",
+        "implementation": "Automatic labels exclude the same-axis formula before expanding aggregates and reject scalar self-references. Adjacent formulas are skipped; later formulas stop the range. Final-grid exclusion cannot clamp back to the formula cell.",
+        "validation": "33 original regressions failed; all 39 cases pass. Twenty-four compiled SDK/command exports from independent ODF inputs retain native labels and fresh 30 or #REF! results, verified with Python XML. Applied cohort: 871 checks in 34 files, package lint and selected build pass.",
+        "remaining": "Remote delivery, publication and native application readback. No family closed."
       }
     },
     "commandFactoryDefaults": {

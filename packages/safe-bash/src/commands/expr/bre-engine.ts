@@ -731,7 +731,7 @@ function member(value: number, name: string): boolean {
 export function* searchBreSteps(descriptor: BreSearchDescriptor, subject: Uint8Array, options: { readonly ownedUnits?: number } = {}): Generator<void, BreSearchResult> {
   const work = new Work(descriptor.limits);
   const program = yield* prepareSearch(descriptor, subject, work, options);
-  const unbounded = descriptor.limits.maxStates === Infinity && descriptor.limits.maxSteps >= 1_000_000 && descriptor.limits.maxAllocatedUnits === Infinity;
+  const unbounded = descriptor.limits.maxStates === Infinity && descriptor.limits.maxAllocatedUnits === Infinity;
   const inst0 = program.instructions[0];
   if (unbounded && (inst0?.kind === "start" || inst0?.kind === "begbuf")) {
     const inst1 = program.instructions[1];

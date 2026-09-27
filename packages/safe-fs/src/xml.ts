@@ -266,6 +266,7 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
   let nodes = 0;
   let attributeCount = 0;
   let contentNodes = 0;
+  let previousEmpty: { suffix: string; name: string; prefix: string; localName: string } | undefined;
   const admitContent = (): void => {
     if (++contentNodes > maxContentNodes) throw new XmlLimitError("maxContentNodes", "XML content node limit exceeded");
   };
@@ -387,14 +388,19 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
       if (source[offset++] !== ">" || stack.pop()?.name !== name) invalid("mismatched closing tag");
     } else {
       offset++;
-      const [name, prefix, localName, wName] = scanName();
+      const repeated = previousEmpty && source.startsWith(previousEmpty.suffix, offset) ? previousEmpty : undefined;
+      const [name, prefix, localName, wName]: [string, string, string, number] = repeated
+        ? [repeated.name, repeated.prefix, repeated.localName, repeated.name.length * 2]
+        : scanName();
+      if (repeated) offset += name.length;
+      // Preserve scan/validation work while reusing the admitted spelling.
       pendingWork += wName;
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
-      const attributes = new Map<string, string>();
+      let attributes: Map<string, string> | undefined;
       const attrMeta: [string, string, string][] = [];
       let namespaces = stack.at(-1)?.namespaces ?? new Map([["xml", xmlNamespace]]);
       let ownsNamespaces = stack.length === 0;
-      while (true) {
+      while (!repeated) {
         const ws = skipWhitespace();
         pendingWork += ws;
         while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
@@ -404,6 +410,7 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
         const [attribute, attrPrefix, attrLocal, wAttr] = scanName();
         pendingWork += wAttr;
         while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
+        attributes ??= new Map<string, string>();
         if (attributes.has(attribute)) invalid("duplicate attribute");
         if (++attributeCount > maxAttributes) throw new XmlLimitError("maxAttributes", "XML attribute limit exceeded");
         if (attributes.size >= maxAttributesPerElement) throw new XmlLimitError("maxAttributesPerElement", "XML attribute limit exceeded");
@@ -466,7 +473,7 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
       limits.onElement?.({ name, namespace, localName }, stack.at(-1)?.element, stack.length + 1);
       admitContent();
       const retainedAttributes: XmlAttribute[] = [];
-      if (retainContent) {
+      if (retainContent && attributes) {
         for (let i = 0; i < attrMeta.length; i++) {
           const [attribute, attrPrefix, attrLocal] = attrMeta[i]!;
           const value = attributes.get(attribute)!;
@@ -486,6 +493,10 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
       const empty = source[offset] === "/";
       if (empty) offset++;
       if (source[offset++] !== ">") invalid("unterminated start tag");
+      // Only cache compact, attribute-free spellings. Namespace resolution and
+      // every admission counter still run for each distinct physical element.
+      if (empty && !attributes && name.length <= 512 && source.slice(offset - name.length - 3, offset) === `<${name}/>`)
+        previousEmpty = { suffix: name + "/>", name, prefix, localName };
       if (!empty) stack.push({ element, content, name, namespaces });
     }
   }

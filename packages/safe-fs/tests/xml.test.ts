@@ -1,6 +1,38 @@
 import { expect, it } from "vitest";
 import { parseXml, parseXmlSteps } from "../src/xml.js";
 
+it("keeps repeated empty elements distinct and resolves each inherited namespace", () => {
+  const root = parseXml('<r xmlns:p="urn:first"><p:leaf/><p:leaf/><scope xmlns:p="urn:second"><p:leaf/><p:leaf/></scope><p:leaf/></r>');
+  const leaves = [root.children[0]!, root.children[1]!, ...root.children[2]!.children, root.children[3]!];
+  expect(leaves.map(node => node.namespace)).toEqual(["urn:first", "urn:first", "urn:second", "urn:second", "urn:first"]);
+  expect(new Set(leaves).size).toBe(5);
+  leaves[0]!.children.push(parseXml("<added/>"));
+  expect(leaves.slice(1).every(node => node.children.length === 0)).toBe(true);
+  expect(() => parseXml('<r xmlns:p="urn:first"><p:leaf/><p:leaf a="1" a="2"/></r>')).toThrow("duplicate attribute");
+});
+
+it("reserves the same bounded work and admission for repeated empty tags", () => {
+  const work = (source: string) => {
+    const steps = parseXmlSteps(source);
+    let total = 0;
+    for (const step of steps) { expect(step).toBeLessThanOrEqual(1024); total += step; }
+    return total;
+  };
+  expect(work("<r><x/><x/><x/></r>")).toBe(work("<r><x/><y/><z/></r>"));
+  for (const limit of ["maxNodes", "maxContentNodes"] as const)
+    expect(() => parseXml("<r><x/><x/><x/></r>", { [limit]: 3 })).toThrow("limit");
+  const seen: string[] = [];
+  expect(() => parseXml("<r><x/><x/><x/></r>", { onElement(node, parent, depth) {
+    seen.push(node.name);
+    if (seen.length === 3) {
+      expect(parent?.name).toBe("r");
+      expect(depth).toBe(2);
+      throw new Error("stop repeated admission");
+    }
+  } })).toThrow("stop repeated admission");
+  expect(seen).toEqual(["r", "x", "x"]);
+});
+
 it("retains ordered content, expanded attributes and namespace declarations", () => {
   const root = parseXml('<r xmlns:p="urn:p" p:a="&amp;">one<b>two</b><![CDATA[three]]><!--four--><?pi five?>six</r>');
   expect(root.text).toBe("onethreesix");

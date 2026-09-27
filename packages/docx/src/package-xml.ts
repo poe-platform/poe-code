@@ -100,13 +100,21 @@ function* documentXmlSteps(input: Uint8Array, options: DocumentXmlLimits, budget
           const stack = [result.value];
           while (stack.length) {
             const element = stack.pop()!;
-            budget.charge("xmlNodes", element.attributes.length);
-            reservations.xmlNodes += element.attributes.length;
-            for (const content of [element.content, element.prolog ?? [], element.epilog ?? []]) {
+            if (element.attributes.length) {
+              budget.charge("xmlNodes", element.attributes.length);
+              reservations.xmlNodes += element.attributes.length;
+            }
+            const lists = [element.content];
+            if (element.prolog) lists.push(element.prolog);
+            if (element.epilog) lists.push(element.epilog);
+            for (const content of lists) {
               for (const node of content) {
                 if (++work > limits.maxWork) throw new ResourceLimitError("XML work limit exceeded.");
-                if (node.kind === "element") stack.push(node);
-                else { budget.charge("xmlNodes", 1); reservations.xmlNodes++; }
+                if (node.kind === "element") {
+                  // Empty leaves were counted by onElement and have no remaining
+                  // attributes or content to reserve in this second traversal.
+                  if (node.attributes.length || node.content.length || node.prolog?.length || node.epilog?.length) stack.push(node);
+                } else { budget.charge("xmlNodes", 1); reservations.xmlNodes++; }
                 yield 1;
               }
             }
@@ -199,10 +207,15 @@ function retainDocumentXml(key: string | undefined, document: DocumentXml, budge
         }
         Object.defineProperty(node, "namespaces", { value: view });
         for (const attribute of node.attributes) Object.freeze(attribute);
-        for (const list of [node.content, node.children, node.attributes, node.prolog ?? [], node.epilog ?? []]) Object.freeze(list);
+        Object.freeze(node.content);
+        Object.freeze(node.children);
+        Object.freeze(node.attributes);
+        if (node.prolog) Object.freeze(node.prolog);
+        if (node.epilog) Object.freeze(node.epilog);
         budget.charge("retainedBytes", (node.content.length + (node.prolog?.length ?? 0) + (node.epilog?.length ?? 0)) * 8);
-        for (const list of [node.content, node.prolog ?? [], node.epilog ?? []])
-          for (const child of list) pending.push(child);
+        for (const child of node.content) pending.push(child);
+        if (node.prolog) for (const child of node.prolog) pending.push(child);
+        if (node.epilog) for (const child of node.epilog) pending.push(child);
       }
       Object.freeze(node);
     }

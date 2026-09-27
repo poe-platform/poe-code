@@ -102,5 +102,5 @@ test('unlimited web storage budgets survive browser JSON transport', async t => 
     browserSession: { page, configuration: {} }, limits: { maxCommandBytes: Infinity } } as unknown as PlaywrightAbilityRequest;
   const result = await playwrightStorageAbilities['localstorage-list']!.execute(request);
   assert.ok(JSON.stringify(result).includes('key=value'));
-  await assert.rejects(playwrightStorageAbilities['localstorage-list']!.execute({ ...request, limits: { ...request.limits, maxCommandBytes: 1 } }), /byte limit/);
+  await assert.rejects(playwrightStorageAbilities['localstorage-list']!.execute({ ...request, limits: { maxCommandBytes: 1, maxArtifactBytes: Infinity } }), /byte limit/);
 });

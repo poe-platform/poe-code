@@ -4,6 +4,19 @@ Tracking: hey-boss #1748. This procedure covers native label declarations and
 lookup settings, quoted-label import and native OpenFormula label export.
 Unqualified label exports and the complete BIFF/format family remain open.
 
+Range/mixed-reference follow-up (#3654): read pinned Calc `compiler.cxx`
+5924–5954 and `include/formula/opcode.hxx` 91–109 before repairing range
+serialization. `ocRange` is a binary operator; parentheses around a label can
+change scalar selection. Compare `'Sales':[.B5]` with `('Sales'):[.B5]` at a
+formula row inside the declared data range, using different values above that
+row. Internal serialization must preserve each result and the captured anchor,
+not merely become parseable. Also import and export a quoted label combined
+with `[Other.B2]`: retain relative-sheet copy/move behavior, label renames,
+named/array expressions and `!!`. Native ODF output must use quoted label text
+and ordinary bracket references; explicit native parsing must reject internal
+anchor syntax. Verify strict/extended compiled SDK and command readbacks and
+independently inspect ZIP/XML. Native application qualification remains separate.
+
 Formula-result label follow-up: inspect the pinned Calc `IsValue`, `GetString`,
 `NeedsInterpret` and `MaybeInterpret` sources recorded under
 `reference.biffLiveLabelRangeAudit.odfLiveLabelExport.formulaResultLabels`.

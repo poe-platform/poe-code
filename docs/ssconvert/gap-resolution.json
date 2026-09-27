@@ -2165,6 +2165,23 @@
           "validation": "Seven original positive/cancellation regressions failed before implementation. Two additional regressions exposed circular stale-cache publication and textual lookup against a value different from the output cache. All 16 new cases and the 124-test focused ODF/goal-seek cohort pass; maintained package lint and source/test/strict-consumer type checks pass. No native application result is claimed.",
           "remaining": "Full maintained package/integration gate, installed-artifact requalification, remote delivery and publication remain pending. Native application readback, wider iterative/matrix/post-import profiles and the full label/BIFF/format families remain open.",
           "publicValidation": "Full root build passes. A 681-byte independent Python XML/ZIP fixture passes six compiled public SDK/command ODF exports across strict/extended profiles and before/after A3=10. Python independently verifies New Sales label text, native SUM spelling and CSV F8 values 5/15. The first readback harness incorrectly treated the expected CSV label-loss warning as fatal; corrected readbacks require that exact warning and no others. Command transcript screenshot inspected. No native application proof is claimed."
+        },
+        "mixedRangeSourceAudit": {
+          "issue": 3654,
+          "status": "source verified; implementation pending",
+          "sourceRevision": "LibreOffice bce0998afefdbc355585ca324285661a2170ba77",
+          "sources": {
+            "sc/source/core/tool/compiler.cxx": {
+              "sha256": "84dfe1e52b8b632d8fd9d687d64857c779283bb3de660063664b916c7d458e83",
+              "lines": "5924-5954, 6026-6065"
+            },
+            "include/formula/opcode.hxx": {
+              "sha256": "1d2d17d098c00339faafc277796631cb09c62cba2d69d1f304c4846eaa296a69",
+              "lines": "91-109"
+            }
+          },
+          "finding": "Calc selects a scalar when a label has an immediate binary-operator neighbor. ocRange=66 belongs to [ocStartBinaryOperators=50, ocStopBinaryOperators=67). Parenthesizing a single label to delimit its internal anchor can therefore change range values. Native label text and ordinary relative-sheet references are emitted independently.",
+          "next": "Regress ungrouped versus grouped range results and captured identity. Parse internal anchors as single-cell targets without adding semantic grouping; retain an internal OpenFormula grammar with native parsing kept strict. Qualify mixed-label/relative-sheet import, export, editing, copy/move, names, arrays and intersections."
         }
       },
       "inferredMultipleLabelSourceAudit": {

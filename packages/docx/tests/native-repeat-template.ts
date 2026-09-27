@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { build } from "esbuild";
 import { afterAll, beforeAll, expect, onTestFinished } from "vitest";
 import type { ArchiveLimits } from "../src/archive.js";
 import type { DocumentLimits } from "../src/budget.js";
@@ -41,8 +42,15 @@ export function nativeRepeatTemplate<Request = NativeRequest>(fixture = new URL(
   }
 
   beforeAll(async () => {
-    child = spawn(process.execPath, [...(fixture.pathname.endsWith(".ts") ? ["--import", "tsx"] : []), fileURLToPath(fixture)], {
-      stdio: ["ignore", "pipe", "pipe", "ipc"],
+    const compiled = fixture.pathname.endsWith(".ts") ? await build({
+      entryPoints: [fileURLToPath(fixture)],
+      bundle: true, write: false, platform: "node", format: "esm", target: "node22",
+      packages: "external", sourcemap: "inline", sourcesContent: false
+    }) : undefined;
+    child = spawn(process.execPath, compiled
+      ? ["--input-type=module", "--enable-source-maps", "-"]
+      : [fileURLToPath(fixture)], {
+      stdio: [compiled ? "pipe" : "ignore", "pipe", "pipe", "ipc"],
     });
     let resolveReady!: () => void;
     const startup = new Promise<void>((resolve, reject) => { resolveReady = resolve; rejectReady = reject; });
@@ -69,6 +77,10 @@ export function nativeRepeatTemplate<Request = NativeRequest>(fixture = new URL(
       } else failNative(new Error("Duplicate, mismatched or unexpected native response"));
     });
     const timer = setTimeout(() => { failNative(new Error("Native child did not become ready")); }, 5000);
+    if (compiled) {
+      child.stdin!.on("error", failNative);
+      child.stdin!.end(compiled.outputFiles[0]!.contents);
+    }
     try { await startup; }
     catch (error) { failNative(error as Error); await closed; throw error; }
     finally { clearTimeout(timer); }

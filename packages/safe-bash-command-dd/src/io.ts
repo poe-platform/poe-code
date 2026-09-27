@@ -106,7 +106,7 @@ async function openDescriptor(context: CommandContext, path: string, request: Dd
     if (!input) countedHandles.add(handle);
     return handle;
   } catch (error) {
-    try { await descriptor.close(); } catch {}
+    try { await descriptor.close(); } catch { /* Preserve the original failure; cancellation takes precedence below. */ }
     context.signal.throwIfAborted();
     throw error;
   }

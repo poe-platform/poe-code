@@ -157,6 +157,21 @@ pub fn diff(
             }
             _ => {}
         }
+        if old.contains_key(p) && new.contains_key(p) && left == right {
+            continue;
+        }
+        let [old_oid, new_oid] = [old.get(p), new.get(p)].map(|entry| {
+            entry
+                .map(|(_, bytes)| crate::hash_object("blob", bytes)[..7].to_string())
+                .unwrap_or_else(|| "0000000".to_string())
+        });
+        let mode = match (old.get(p), new.get(p)) {
+            (Some((old_mode, _)), Some((new_mode, _))) if old_mode == new_mode => {
+                format!(" {old_mode}")
+            }
+            _ => String::new(),
+        };
+        out.push_str(&format!("index {old_oid}..{new_oid}{mode}\n"));
         if left == right {
             continue;
         }

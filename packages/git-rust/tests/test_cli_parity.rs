@@ -259,3 +259,25 @@ fn log_ranges_preserve_merge_parent_order_without_duplicates() {
         format!("{merge}\n")
     );
 }
+
+#[test]
+fn diff_includes_native_index_headers_for_changed_and_empty_files() {
+    let fs = repo();
+    fs.write_str("/repo/a.txt", "main\n");
+    assert_eq!(
+        ok(&fs, &["diff"]),
+        "diff --git a/a.txt b/a.txt\nindex df967b9..ba2906d 100644\n--- a/a.txt\n+++ b/a.txt\n@@ -1 +1 @@\n-base\n+main\n"
+    );
+    fs.write_str("/repo/empty.txt", "");
+    ok(&fs, &["add", "empty.txt"]);
+    assert_eq!(
+        ok(&fs, &["diff", "--cached", "--", "empty.txt"]),
+        "diff --git a/empty.txt b/empty.txt\nnew file mode 100644\nindex 0000000..e69de29\n"
+    );
+    ok(&fs, &["commit", "-m", "empty"]);
+    ok(&fs, &["rm", "empty.txt"]);
+    assert_eq!(
+        ok(&fs, &["diff", "--cached", "--", "empty.txt"]),
+        "diff --git a/empty.txt b/empty.txt\ndeleted file mode 100644\nindex e69de29..0000000\n"
+    );
+}

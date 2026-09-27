@@ -4,8 +4,6 @@ import { shellValueByteLength } from "safe-bash-contracts/value";
 import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { PublicDiagnostic, publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 const encoder = new TextEncoder();
-const bufferLimit = Infinity;
-const maxSingleChunkBytes = Infinity;
 import { RecordBuffer } from "./record-buffer.js";
 
 const unitPrefixes = "KMGTPEZYRQ";
@@ -504,7 +502,7 @@ function decimal(text: string, offset = 0): { value: bigint; end: number; found:
   return { value: negative ? -value : value, end: offset === digits ? start : offset, found: offset !== digits, overflow: value > unsignedMaximum };
 }
 
-function fields(text: string, unicode: boolean): [bigint, bigint][] {
+function fields(text: string, unicode: boolean, maxFieldRanges: number): [bigint, bigint][] {
   const result: [bigint, bigint][] = [];
   let initial = 1n;
   let value = 0n;
@@ -528,7 +526,7 @@ function fields(text: string, unicode: boolean): [bigint, bigint][] {
         if (!value) throw new NumfmtDiagnostic("fields are numbered from 1", 1, true);
         result.push([value, value]);
       }
-      if (result.length > 4096) throw new PublicDiagnostic("field range limit exceeded");
+      if (result.length > maxFieldRanges) throw new PublicDiagnostic("field range limit exceeded");
       if (character === undefined) break;
       value = 0n; dash = false; left = false; right = false;
     } else if (digit(character)) {
@@ -567,20 +565,20 @@ function unit(text: string, unicode: boolean): bigint {
   return value;
 }
 
-function parse(context: CommandContext): Settings {
+function parse(context: CommandContext, limits: NumfmtLimits): Settings {
   const locale = context.env.LC_ALL || context.env.LC_MESSAGES || context.env.LANG || "C";
   const numericLocale = context.env.LC_ALL || context.env.LC_NUMERIC || context.env.LANG || "C";
   const settings: Settings = { from: "none", to: "none", fromUnit: 1n, toUnit: 1n, rounding: "from-zero", invalid: "abort", padding: 0n, left: false, zeroPadding: 0n, precision: undefined, grouping: false, delimiter: undefined, separator: "\n", suffix: "", header: 0n, fields: undefined, format: undefined, prefix: "", postfix: "", debug: false, developer: false, unicode: locale.toLowerCase().includes("utf"), thousands: numericLocale.toLowerCase().startsWith("en_us."), localeValid: ["c", "posix", "c.utf-8", "c.utf8", "en_us.utf8", "en_us.utf-8"].includes(locale.toLowerCase()), operands: [] };
-  if (context.args.length > 4096) throw new PublicDiagnostic("argument limit exceeded");
+  if (context.args.length > limits.maxArguments) throw new PublicDiagnostic("argument limit exceeded");
   let bytes = 0;
   for (const argument of context.args) {
-    if (argument.length > 65536 - bytes) throw new PublicDiagnostic("argument limit exceeded");
+    if (argument.length > limits.maxArgumentBytes - bytes) throw new PublicDiagnostic("argument limit exceeded");
     bytes += context.argumentValues === undefined ? utf8Size(argument) : argument.length;
-    if (bytes > 65536) throw new PublicDiagnostic("argument limit exceeded");
+    if (bytes > limits.maxArgumentBytes) throw new PublicDiagnostic("argument limit exceeded");
   }
   const argumentsCarrier = getCommandArguments(context);
   bytes = 0;
-  for (const value of argumentsCarrier.values) { bytes += typeof value === "string" ? utf8Size(value) : shellValueByteLength(value); if (bytes > 65536) throw new PublicDiagnostic("argument limit exceeded"); }
+  for (const value of argumentsCarrier.values) { bytes += typeof value === "string" ? utf8Size(value) : shellValueByteLength(value); if (bytes > limits.maxArgumentBytes) throw new PublicDiagnostic("argument limit exceeded"); }
   const args = argumentsCarrier.values.map((value, index) => byteText(typeof value === "string" ? encoder.encode(value) : argumentsCarrier.bytes(index)!));
   const options: Readonly<Record<string, number>> = { from: 1, "from-unit": 1, to: 1, "to-unit": 1, round: 1, padding: 1, suffix: 1, "unit-separator": 1, grouping: 0, delimiter: 1, field: 1, debug: 0, "-debug": 0, header: 2, format: 1, invalid: 1, "zero-terminated": 0, help: 0, version: 0 };
   const match = (name: string, value: string, choices: readonly string[]): string => {
@@ -606,7 +604,7 @@ function parse(context: CommandContext): Settings {
       settings.delimiter = value || "\0";
     } else if (name === "field") {
       if (settings.fields) throw new NumfmtDiagnostic("multiple field specifications");
-      settings.fields = fields(value!, settings.unicode);
+      settings.fields = fields(value!, settings.unicode, limits.maxFieldRanges);
     } else if (name === "suffix") settings.suffix = value!;
     else if (name === "unit-separator") settings.unitSeparator = value!;
     else if (name === "format") settings.format = value!;
@@ -653,7 +651,7 @@ class Converter {
   private lastYield = monotonicNow();
   private signalAborted: boolean;
   private readonly pollSignal: boolean;
-  constructor(readonly settings: Settings, private context: CommandContext, private output: { readonly remaining: number; emit(text: string, error?: boolean): void | Promise<void> }) {
+  constructor(readonly settings: Settings, private limits: NumfmtLimits, private context: CommandContext, private output: { readonly remaining: number; emit(text: string, error?: boolean): void | Promise<void> }) {
     this.signalAborted = context.signal.aborted;
     this.pollSignal = Object.prototype.hasOwnProperty.call(context.signal, "aborted");
     if (!this.signalAborted && !this.pollSignal) {
@@ -663,14 +661,14 @@ class Converter {
 
   canTickSync(maxTicks: number): boolean {
     if (this.pollSignal ? this.context.signal.aborted : this.signalAborted) return false;
-    if (this.work + maxTicks > 16 * 1024 * 1024) return false;
+    if (this.work + maxTicks > this.limits.maxWork) return false;
     if ((this.work % 1024) + maxTicks < 1024) return true;
     return this.tickCount >= 1 && !hasYieldCheckpoint(this.context.signal) && monotonicNow() - this.lastYield < 16;
   }
 
   tick(amount = 1): void | Promise<void> {
     this.work += amount;
-    if (this.work > 16 * 1024 * 1024) throw new PublicDiagnostic("numfmt work limit exceeded");
+    if (this.work > this.limits.maxWork) throw new PublicDiagnostic("numfmt work limit exceeded");
     if (this.work % 1024 < amount) {
       const count = ++this.tickCount;
       const now = monotonicNow();
@@ -1092,7 +1090,8 @@ class Converter {
   }
 }
 
-export function numfmtCommand(): CommandDefinition {
+export function numfmtCommand(options: NumfmtCommandsOptions = {}): CommandDefinition {
+  const limits = settings(options);
   return { name: "numfmt", filesystemRequirements: [{ id: "stdin", description: "Format operands or standard input", capabilities: [] }], async execute(context) {
     context.signal.throwIfAborted();
     const controller = new AbortController();
@@ -1109,7 +1108,7 @@ export function numfmtCommand(): CommandDefinition {
     let pendingStdout = "";
     const outputLimit = new PublicDiagnostic("numfmt output limit exceeded");
     const output = {
-      get remaining() { return bufferLimit - outputBytes; },
+      get remaining() { return limits.maxOutputBytes - outputBytes; },
       async flush(): Promise<void> {
         if (!pendingStdout.length) return;
         const chunk = pendingStdout;
@@ -1122,7 +1121,7 @@ export function numfmtCommand(): CommandDefinition {
       emit(text: string, error = false): void | Promise<void> {
         if (!text && !error) return;
         const total = error ? errorBytes : outputBytes;
-        if (text.length > bufferLimit - total) throw outputLimit;
+        if (text.length > limits.maxOutputBytes - total) throw outputLimit;
         if (!error) {
           outputBytes += text.length;
           pendingStdout += text;
@@ -1151,8 +1150,8 @@ export function numfmtCommand(): CommandDefinition {
     try {
       stdout = createOutputOperation(local, context.stdout);
       stderr = createOutputOperation(local, context.stderr);
-      const settings = parse(context);
-      const converter = new Converter(settings, local, output);
+      const settings = parse(context, limits);
+      const converter = new Converter(settings, limits, local, output);
       if (settings.information) {
         await output.emit(settings.information === "version" ? "numfmt (virtual-bash)\n" : helpText);
         outcome = { exitCode: 0 };
@@ -1164,7 +1163,7 @@ export function numfmtCommand(): CommandDefinition {
           local.signal.throwIfAborted();
           iterator = context.stdin[Symbol.asyncIterator]();
           reader = readBytes({ [Symbol.asyncIterator]: () => ({ next: async () => { const result = await iterator!.next(); if (result.done) finished = true; return result; }, return: async () => { await retire(); return { done: true, value: undefined }; } }) }, local.signal)[Symbol.asyncIterator]();
-          const record = new RecordBuffer(1024 * 1024);
+          const record = new RecordBuffer(limits.maxRecordBytes);
           let received = 0;
           let empty = 0;
           let readFailure: string | undefined;
@@ -1201,9 +1200,9 @@ export function numfmtCommand(): CommandDefinition {
               break;
             }
             if (item.done) break;
-            if (item.value.length > maxSingleChunkBytes || item.value.length > bufferLimit - received) throw new PublicDiagnostic("byte command input limit exceeded");
+            if (item.value.length > limits.maxSingleChunkBytes || item.value.length > limits.maxInputBytes - received) throw new PublicDiagnostic("byte command input limit exceeded");
             received += item.value.length;
-            if (!item.value.length && ++empty > 4096) throw new PublicDiagnostic("empty input chunk limit exceeded");
+            if (!item.value.length && ++empty > limits.maxEmptyChunks) throw new PublicDiagnostic("empty input chunk limit exceeded");
             const chunk = new Uint8Array(item.value);
             const sepByte = settings.separator.charCodeAt(0);
             let start = 0;
@@ -1257,6 +1256,14 @@ import { commandRuntimeIdentity, type VirtualShellPlugin } from "safe-bash-contr
 
 export interface NumfmtLimits {
   readonly maxRecordBytes: number;
+  readonly maxWork: number;
+  readonly maxArguments: number;
+  readonly maxArgumentBytes: number;
+  readonly maxFieldRanges: number;
+  readonly maxEmptyChunks: number;
+  readonly maxSingleChunkBytes: number;
+  readonly maxInputBytes: number;
+  readonly maxOutputBytes: number;
 }
 
 export interface NumfmtCommandsOptions {
@@ -1268,20 +1275,27 @@ export interface NumfmtCommandsOptions {
 export type NumfmtOptions = NumfmtCommandsOptions;
 
 export function settings(options: NumfmtCommandsOptions = {}): NumfmtLimits {
-  const maxRecordBytes = options.limits?.maxRecordBytes ?? options.maxRecordBytes ?? bufferLimit;
-  if (maxRecordBytes !== Infinity && (!Number.isSafeInteger(maxRecordBytes) || maxRecordBytes < 1)) {
-    throw new RangeError("maxRecordBytes must be a positive safe integer or Infinity");
+  const limits: NumfmtLimits = {
+    maxRecordBytes: options.limits?.maxRecordBytes ?? options.maxRecordBytes ?? Infinity,
+    maxWork: options.limits?.maxWork ?? Infinity,
+    maxArguments: options.limits?.maxArguments ?? Infinity,
+    maxArgumentBytes: options.limits?.maxArgumentBytes ?? Infinity,
+    maxFieldRanges: options.limits?.maxFieldRanges ?? Infinity,
+    maxEmptyChunks: options.limits?.maxEmptyChunks ?? Infinity,
+    maxSingleChunkBytes: options.limits?.maxSingleChunkBytes ?? Infinity,
+    maxInputBytes: options.limits?.maxInputBytes ?? Infinity,
+    maxOutputBytes: options.limits?.maxOutputBytes ?? Infinity,
+  };
+  for (const [name, value] of Object.entries(limits)) {
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) {
+      throw new RangeError(`${name} must be a positive safe integer or Infinity`);
+    }
   }
-  return { maxRecordBytes };
+  return limits;
 }
 
 export function createNumfmtCommand(options: NumfmtCommandsOptions = {}): CommandDefinition {
-  settings(options);
-  const base = numfmtCommand();
-  return {
-    ...base,
-    runtimeIdentity: commandRuntimeIdentity,
-  };
+  return { ...numfmtCommand(options), runtimeIdentity: commandRuntimeIdentity };
 }
 
 export function createNumfmtCommands(options: NumfmtCommandsOptions = {}): readonly CommandDefinition[] {

@@ -10,6 +10,7 @@ import { rewriteReferences, visitFormula } from "../formulas/rewriting.js";
 import { xlsxSchemas, xlsxNamespaces, xlsxNamespaceScanElements, type XlsxSchemaNode } from "./xlsx-schema.js";
 import { converterLocale } from "../locale/runtime.js";
 import { readXlsxMetadata } from "./xlsx-metadata.js";
+import { xlsxColumnWidthPoints } from "./xlsx-sheet-settings.js";
 import { readXlsxStyles, readXlsxString } from "./xlsx-styles.js";
 import { decodeXlsxString, encodeXlsxString } from "./xlsx-strings.js";
 import { createXlsxXml, escapeXlsx, writeRichString, metadataNode } from "./xlsx-write-support.js";
@@ -427,6 +428,13 @@ export async function readXlsx(bytes: Uint8Array, context: CapabilityContext): P
           || referencedDrawing && ["drawing", "vmlDrawing"].some(type => part.type === relationships + "/" + type))
           records.push(record(await opc.document(part.target), part.target));
       }
+      const defaultFormat = child(source, "sheetFormatPr");
+      const defaultWidth = attr(defaultFormat, "defaultColWidth"), baseWidth = attr(defaultFormat, "baseColWidth"), defaultHeight = attr(defaultFormat, "defaultRowHeight");
+      const dimensions: Record<string, ImportedValue> = {};
+      for (const value of [defaultWidth, baseWidth, defaultHeight]) if (value !== undefined && number(value) < 0) invalid("negative default dimension");
+      if (defaultWidth !== undefined && number(defaultWidth) > 0) dimensions.defaultColumnWidth = number(defaultWidth) * xlsxColumnWidthPoints;
+      else if (baseWidth !== undefined && number(baseWidth) > 0) dimensions.defaultColumnWidth = number(baseWidth) * xlsxColumnWidthPoints + 3.75;
+      if (defaultHeight !== undefined && number(defaultHeight) > 0) dimensions.defaultRowHeight = number(defaultHeight);
       const visibility = attr(sheetNode, "state");
       const sheetView = child(child(source, "sheetViews"), "sheetView");
       const viewAttributes: Record<string, ImportedValue> = {};
@@ -439,7 +447,7 @@ export async function readXlsx(bytes: Uint8Array, context: CapabilityContext): P
       sheets.push({ id, name, cells, size: { rows: 1048576, columns: 16384 },
         visibility: visibility === "hidden" ? "hidden" : visibility === "veryHidden" ? "very-hidden" : "visible", rows, columns,
         merges: children(child(source, "mergeCells"), "mergeCell").map(node => range(attr(node, "ref"))), formulaGroups: groups,
-        view: { ...(child(source, "sheetViews") ? { xlsx: data(child(source, "sheetViews")!) } : {}),
+        view: { ...dimensions, ...(child(source, "sheetViews") ? { xlsx: data(child(source, "sheetViews")!) } : {}),
           gnumeric: viewAttributes, ...(attr(sheetView, "zoomScale") === undefined ? {} : { zoom: number(attr(sheetView, "zoomScale")) / 100 }) },
         ...(records.length ? { unsupportedRecords: records } : {}) });
     }
@@ -665,22 +673,19 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
         tabSelected: index === active ? 1 : undefined };
       for (const [gnm, xlsx, invert] of [["DisplayFormulas", "showFormulas", false], ["HideZero", "showZeros", true], ["HideGrid", "showGridLines", true], ["HideColHeader", "showRowColHeaders", true], ["DisplayOutlines", "showOutlineSymbols", false], ["RTL_Layout", "rightToLeft", false]] as const)
         if (view[gnm] !== undefined) viewAttrs[xlsx] = (invert ? !Number(view[gnm]) : !!Number(view[gnm])) ? 1 : 0;
+      const metadata = await writeXlsxSheetMetadata(sheet, index + 1, xml, context, namespace, exportXlsxFormula, styles, charge);
       let cols = "", nextColumn = 0;
       for (const c of [...sheet.columns ?? []].sort((a, b) => a.index - b.index)) {
         const importedColumn = metadataNode(c.style?.gnumeric, charge);
-        if (c.index > nextColumn) cols += xml("col", { min: nextColumn + 1, max: c.index, style: columnDefaultStyle, width: 48 / ((130 / 18.5703125) * (72 / 96)) });
+        if (c.index > nextColumn) cols += xml("col", { min: nextColumn + 1, max: c.index, style: columnDefaultStyle, width: metadata.defaultColumnWidth / xlsxColumnWidthPoints });
         cols += xml("col", { min: c.index + 1, max: c.index + 1,
           style: styleRecord(c.style) ? styles.register(c.style ? { style: c.style } : {}) : columnDefaultStyle,
-          width: typeof c.style?.xlsxWidth === "number" ? c.style.xlsxWidth : (c.sizePoints ?? 48) / ((130 / 18.5703125) * (72 / 96)),
+          width: typeof c.style?.xlsxWidth === "number" ? c.style.xlsxWidth : (c.sizePoints ?? metadata.defaultColumnWidth) / xlsxColumnWidthPoints,
           customWidth: c.sizePoints === undefined || importedColumn?.name === "ColInfo" && !Number(importedColumn.attributes.HardSize) ? undefined : 1, hidden: c.hidden ? 1 : undefined, outlineLevel: c.outlineLevel || undefined, collapsed: c.collapsed ? 1 : undefined });
         nextColumn = c.index + 1;
       }
-      if (nextColumn < columns) cols += xml("col", { min: nextColumn + 1, max: columns, style: columnDefaultStyle, width: 48 / ((130 / 18.5703125) * (72 / 96)) });
-      const protection = xml("sheetProtection", { sheet: Number(view.Protected) ? 1 : undefined,
-        formatCells: 0, formatColumns: 0, formatRows: 0, insertColumns: 0, insertRows: 0, insertHyperlinks: 0,
-        deleteColumns: 0, deleteRows: 0, selectLockedCells: 1, sort: 0, autoFilter: 0, pivotTables: 0, selectUnlockedCells: 1 });
+      if (nextColumn < columns) cols += xml("col", { min: nextColumn + 1, max: columns, style: columnDefaultStyle, width: metadata.defaultColumnWidth / xlsxColumnWidthPoints });
       const rels: { id: string; type: string; target: string; external?: boolean }[] = [];
-      const metadata = await writeXlsxSheetMetadata(sheet, index + 1, xml, context, namespace, exportXlsxFormula, styles, charge);
       let legacyDrawing: string | undefined;
       for (const part of metadata.parts) {
         const id = `rId${rels.length + 1}`; rels.push({ id, type: relationships + "/" + part.relation, target: "../" + part.name });
@@ -700,11 +705,9 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
           location, tooltip: link.attributes.tip });
       }
       const sheetXml = xml("worksheet", { xmlns: namespace, "xmlns:r": relationships, "xmlns:gnmx": "http://www.gnumeric.org/ext/spreadsheetml" },
-        xml("sheetPr", {}, xml("pageSetUpPr", { fitToPage: metadata.fitToPage ? 1 : 0 })) + xml("dimension", { ref: dimension }) +
+        metadata.properties + xml("dimension", { ref: dimension }) +
         xml("sheetViews", {}, xml("sheetView", viewAttrs, xml("selection", { activeCell: "A1", sqref: "A1" }))) +
-        xml("sheetFormatPr", { defaultColWidth: 48, defaultRowHeight: 12.75,
-          outlineLevelRow: (sheet.rows ?? []).reduce((maximum, row) => { charge(); return Math.max(maximum, row.outlineLevel ?? 0); }, 0) || undefined,
-          outlineLevelCol: (sheet.columns ?? []).reduce((maximum, column) => { charge(); return Math.max(maximum, column.outlineLevel ?? 0); }, 0) || undefined }) + xml("cols", {}, cols) + xml("sheetData", {}, sheetData) + protection +
+        metadata.format + xml("cols", {}, cols) + xml("sheetData", {}, sheetData) + metadata.protection +
         metadata.filters + (sheet.merges?.length ? xml("mergeCells", {}, sheet.merges.map(r => xml("mergeCell", { ref: rangeText(r) })).join("")) : "") +
         metadata.rules + (hyperlinks ? xml("hyperlinks", {}, hyperlinks) : "") + metadata.print + (legacyDrawing ? xml("legacyDrawing", { "r:id": legacyDrawing }) : ""));
       const partName = `worksheets/sheet${index + 1}.xml`;

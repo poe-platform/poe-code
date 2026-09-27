@@ -4,51 +4,17 @@ import { SsconvertError } from "../contracts.js";
 import type { createXlsxStyles } from "./xlsx-write-styles.js";
 import { escapeXlsx, metadataNode, type ElementWriter, type MetadataNode } from "./xlsx-write-support.js";
 import { gnumericNumber } from "./gnumeric-number.js";
+import { writeXlsxSheetSettings } from "./xlsx-sheet-settings.js";
 
 function child(node: MetadataNode | undefined, name: string): MetadataNode | undefined { return node?.children.find(n => n.name === name); }
-function header(node: MetadataNode | undefined, fallback: string): string {
-  if (!node) return fallback;
-  const codes: Readonly<Record<string, string>> = { PAGE: "P", PAGES: "N", DATE: "D", TIME: "T", TAB: "A", FILE: "F", PATH: "Z" };
-  const text = ["Left", "Middle", "Right"].map((name, index) => {
-    const source = node.attributes[name]; if (!source) return "";
-    let output = "";
-    for (let at = 0; at < source.length; at++) {
-      if (source[at] === "&" && source[at + 1] === "[") {
-        const end = source.indexOf("]", at + 2); const code = codes[source.slice(at + 2, end)];
-        if (end >= 0 && code) { output += "&" + code; at = end; continue; }
-      }
-      output += source[at] === "&" ? "&&" : source[at];
-    }
-    return "&" + ["L", "C", "R"][index] + output;
-  }).join("");
-  return text;
-}
 export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: ElementWriter, context: CapabilityContext, namespace: string,
   formula: (source: string, sheet: Sheet, row: number, column: number, context: CapabilityContext) => string,
   styles: ReturnType<typeof createXlsxStyles>, charge: (amount?: number) => void) {
   const records = (sheet.unsupportedRecords ?? []).map(record => ({ record, node: metadataNode(record.data, charge) }));
+  const settings = await writeXlsxSheetSettings(sheet, records, xml, context, namespace, charge);
+  const child = (node: MetadataNode | undefined, name: string) => node?.children.find(node => node.name === name);
   const pi = records.find(r => r.record.kind === "PrintInformation")?.node;
-  const rawSetup = records.find(r => r.record.kind === "pageSetup" && r.node?.namespace === namespace)?.node;
-  const firstPage = child(pi, "first_page_number")?.attributes.value;
-  const scale = child(pi, "Scale"), margins = child(pi, "Margins");
-  const fitToPage = ["fit", "size_fit"].includes(scale?.attributes.type ?? "");
-  const marginAttrs: Record<string, number> = { left: 1, right: 1, top: 120 / 72, bottom: 120 / 72, header: 1, footer: 1 };
-  for (const node of margins?.children ?? []) if (node.name in marginAttrs) marginAttrs[node.name] = Number(node.attributes.Points) / 72;
-  const comments: Readonly<Record<string, string>> = { GNM_PRINT_COMMENTS_IN_PLACE: "asDisplayed", GNM_PRINT_COMMENTS_AT_END: "atEnd", GNM_PRINT_COMMENTS_NONE: "none" };
-  const errors: Readonly<Record<string, string>> = { GNM_PRINT_ERRORS_AS_BLANK: "blank", GNM_PRINT_ERRORS_AS_DASHES: "dash", GNM_PRINT_ERRORS_AS_NA: "NA", GNM_PRINT_ERRORS_AS_DISPLAYED: "displayed" };
-  let print = xml("printOptions", {
-    headings: Number(child(pi, "titles")?.attributes.value ?? 0) ? 1 : undefined,
-    gridLines: Number(child(pi, "grid")?.attributes.value ?? 0) ? 1 : undefined,
-    horizontalCentered: Number(child(pi, "hcenter")?.attributes.value ?? 0) ? 1 : undefined,
-    verticalCentered: Number(child(pi, "vcenter")?.attributes.value ?? 0) ? 1 : undefined
-  }) + xml("pageMargins", marginAttrs) + xml("pageSetup", {
-    blackAndWhite: Number(child(pi, "monochrome")?.attributes.value ?? 0), cellComments: comments[child(pi, "comments")?.attributes.placement ?? ""] ?? "asDisplayed",
-    draft: Number(child(pi, "draft")?.attributes.value ?? 0), errors: errors[child(pi, "errors")?.attributes.PrintErrorsAs ?? ""] ?? "displayed",
-    fitToHeight: fitToPage ? Number(scale?.attributes.rows ?? 0) : 0, fitToWidth: fitToPage ? Number(scale?.attributes.cols ?? 0) : 0,
-    orientation: child(pi, "orientation")?.text ?? "portrait", pageOrder: child(pi, "order")?.text === "r_then_d" ? "overThenDown" : "downThenOver",
-    paperSize: child(pi, "paper")?.text === "na_letter" ? 1 : 9, scale: Number(scale?.attributes.percentage ?? 100), firstPageNumber: rawSetup?.attributes.firstPageNumber ?? firstPage,
-    useFirstPageNumber: rawSetup?.attributes.useFirstPageNumber ?? (firstPage === undefined ? 0 : 1) }) +
-    xml("headerFooter", {}, xml("oddHeader", {}, escapeXlsx(header(child(pi, "Header"), "&C&A"))) + xml("oddFooter", {}, escapeXlsx(header(child(pi, "Footer"), "&CPage &P"))));
+  let print = settings.print;
   let filters = "", rules = "";
   const parts: { name: string; content: string; type: string; relation: string }[] = [];
   const handled = new Set(["PrintInformation", "SheetLayout", "Styles"]);
@@ -222,7 +188,7 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
   if (validationCount) rules += xml("dataValidations", { count: validationCount }, validations);
   for (const { record, node } of records) {
     context.signal.throwIfAborted();
-    if (handled.has(record.kind) || record.kind === "autoFilter") continue;
+    if (handled.has(record.kind) || settings.handled.has(record) || record.kind === "autoFilter") continue;
     if (record.source === "Gnumeric_XmlIO:sax" && (record.kind === "Rows" && sheet.rows !== undefined || record.kind === "Cols" && sheet.columns !== undefined)) continue;
     if (node?.namespace === namespace && record.kind === "dataValidations") { rules += render(node); continue; }
     // Retained relationship IDs cannot be copied into a new package without their targets.
@@ -235,7 +201,7 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
       await context.diagnostic?.({ code: "xlsx-write-loss", severity: "warning", message: `XLSX writer does not export sheet '${sheet.name}' style '${node.name}'` });
     }
   }
-  return { filters, rules, print, fitToPage, parts };
+  return { filters, rules, parts, ...settings };
 }
 export function writeXlsxProperties(book: Workbook, xml: ElementWriter) {
   const vt = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";

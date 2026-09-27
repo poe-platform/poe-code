@@ -3,6 +3,8 @@
 // Literal parent/state identifiers retain secondary-node reuse; rich-text and
 // color modifier declarations are expanded. This is recognition data, not a
 // claim that every registered node has an importer implementation.
+// Worksheet header/footer recognition also includes first/even pages supported
+// by LibreOffice sc/source/filter/oox/pagesettings.cxx (bce0998afefdbc355585ca324285661a2170ba77).
 export type XlsxSchemaNode = readonly [parent: string, state: string, namespace: string, element: string | null];
 
 // check_children_for_ns in the stable workbook/sheet/string/style/theme/comment
@@ -186,6 +188,10 @@ export const xlsxSchemas: Readonly<Record<string, readonly XlsxSchemaNode[]>> = 
     ["SHEET", "PRINT_HEADER_FOOTER", "XL_NS_SS", "headerFooter"],
     ["PRINT_HEADER_FOOTER", "ODD_HEADER", "XL_NS_SS", "oddHeader"],
     ["PRINT_HEADER_FOOTER", "ODD_FOOTER", "XL_NS_SS", "oddFooter"],
+    ["PRINT_HEADER_FOOTER", "EVEN_HEADER", "XL_NS_SS", "evenHeader"],
+    ["PRINT_HEADER_FOOTER", "EVEN_FOOTER", "XL_NS_SS", "evenFooter"],
+    ["PRINT_HEADER_FOOTER", "FIRST_HEADER", "XL_NS_SS", "firstHeader"],
+    ["PRINT_HEADER_FOOTER", "FIRST_FOOTER", "XL_NS_SS", "firstFooter"],
     ["SHEET", "ROW_BREAKS", "XL_NS_SS", "rowBreaks"],
     ["ROW_BREAKS", "CT_PageBreak", "XL_NS_SS", "brk"],
     ["SHEET", "COL_BREAKS", "XL_NS_SS", "colBreaks"],

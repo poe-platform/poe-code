@@ -2,13 +2,18 @@ import type { XmlElement } from "@poe-code/safe-fs/xml";
 import { parseA1, formatA1, type ImportedValue, type UnsupportedRecord } from "../workbook.js";
 import { SsconvertError } from "../contracts.js";
 import { gnumericNumber } from "./gnumeric-number.js";
+import type { MetadataNode } from "./xlsx-write-support.js";
+
+type SourceNode = XmlElement | MetadataNode;
+function nodeName(node: SourceNode): string { return "localName" in node ? node.localName : node.name; }
 
 const gnumericNamespace = "http://www.gnumeric.org/v10.dtd";
-function attribute(node: XmlElement | undefined, name: string): string | undefined {
-  return node?.attributes.find(a => !a.namespace && a.localName === name)?.value;
+function attribute(node: SourceNode | undefined, name: string): string | undefined {
+  if (!node) return undefined;
+  return "localName" in node ? node.attributes.find(a => !a.namespace && a.localName === name)?.value : node.attributes[name];
 }
-function element(node: XmlElement | undefined, name: string): XmlElement | undefined {
-  return node?.children.find(c => c.localName === name);
+function element(node: SourceNode | undefined, name: string): SourceNode | undefined {
+  return node?.children.find(c => nodeName(c) === name);
 }
 function numeric(source: string | undefined, fallback: number): number {
   const value = source === undefined ? fallback : Number(source);
@@ -36,7 +41,7 @@ function header(source: string): Readonly<Record<string, string>> {
   return sections;
 }
 /** Translate measured print and comment metadata into the existing workbook codec model. */
-export function readXlsxMetadata(sheet: XmlElement, comments?: XmlElement): readonly UnsupportedRecord[] {
+export function readXlsxMetadata(sheet: SourceNode, comments?: SourceNode): readonly UnsupportedRecord[] {
   const records: UnsupportedRecord[] = [];
   const margins = element(sheet, "pageMargins"), setup = element(sheet, "pageSetup"), hf = element(sheet, "headerFooter");
   const options = element(sheet, "printOptions");
@@ -82,22 +87,22 @@ export function readXlsxMetadata(sheet: XmlElement, comments?: XmlElement): read
       const value = element(hf, source); if (value) print.push(gnode(target, header(value.text)));
     }
     for (const [source, name] of [[rowBreaks, "hPageBreaks"], [colBreaks, "vPageBreaks"]] as const) if (source) {
-      const breaks = source.children.filter(c => c.localName === "brk").map(node => gnode("break", {
+      const breaks = source.children.filter(c => nodeName(c) === "brk").map(node => gnode("break", {
         pos: numeric(attribute(node, "id"), 0), type: ["1", "true"].includes(attribute(node, "pt") ?? "") ? "data-slice" : ["1", "true"].includes(attribute(node, "man") ?? "") ? "manual" : "auto" }));
       print.push(gnode(name, { count: breaks.length }, breaks));
     }
     records.push({ source: "Gnumeric_XmlIO:sax", kind: "PrintInformation", disposition: "retained", data: gnode("PrintInformation", {}, print) });
   }
   if (comments) {
-    const authors = element(comments, "authors")?.children.filter(c => c.localName === "author").map(c => c.text.trimEnd()) ?? [];
+    const authors = element(comments, "authors")?.children.filter(c => nodeName(c) === "author").map(c => c.text.trimEnd()) ?? [];
     const objects: ImportedValue[] = [];
     for (const comment of element(comments, "commentList")?.children ?? []) {
-      if (comment.localName !== "comment") continue;
+      if (nodeName(comment) !== "comment") continue;
       const ref = attribute(comment, "ref"); if (!ref) continue;
       const author = authors[numeric(attribute(comment, "authorId"), 0)];
       const text = element(comment, "text"); let value = "";
-      for (const node of text?.children ?? []) if (node.localName === "t") value += node.text;
-        else if (node.localName === "r") value += element(node, "t")?.text ?? "";
+      for (const node of text?.children ?? []) if (nodeName(node) === "t") value += node.text;
+        else if (nodeName(node) === "r") value += element(node, "t")?.text ?? "";
       objects.push(gnode("CellComment", { ObjectBound: ref.split(":")[0]!, ObjectOffset: "1 0 1 0", Direction: 17, Print: 1,
         ...(author ? { Author: author } : {}), Text: value }));
     }
@@ -108,17 +113,17 @@ export function readXlsxMetadata(sheet: XmlElement, comments?: XmlElement): read
   if (filter && area) {
     const fields: ImportedValue[] = [];
     const operators: Readonly<Record<string, string>> = { equal: "eq", notEqual: "ne", greaterThan: "gt", greaterThanOrEqual: "gte", lessThan: "lt", lessThanOrEqual: "lte" };
-    for (const column of filter.children.filter(c => c.localName === "filterColumn")) {
+    for (const column of filter.children.filter(c => nodeName(c) === "filterColumn")) {
       let field: ImportedValue | undefined;
       const index = numeric(attribute(column, "colId"), 0);
       for (const node of column.children) {
-        if (node.localName === "customFilters") for (const custom of node.children.filter(c => c.localName === "customFilter")) {
+        if (nodeName(node) === "customFilters") for (const custom of node.children.filter(c => nodeName(c) === "customFilter")) {
           const value = attribute(custom, "val") ?? ""; const parsed = value.trim() ? Number(value) : NaN;
           // Released Gnumeric's XML writer reverses Value and ValueType attributes.
           field = gnode("Field", { Index: index, Type: "expr", Op0: operators[attribute(custom, "operator") ?? "equal"] ?? "eq",
             Value0: Number.isFinite(parsed) ? 40 : 60, ValueType0: Number.isFinite(parsed) ? String(parsed) : value });
         }
-        else if (node.localName === "top10") field = gnode("Field", { Index: index, Type: "bucket",
+        else if (nodeName(node) === "top10") field = gnode("Field", { Index: index, Type: "bucket",
           top: attribute(node, "top") === "0" || attribute(node, "top") === "false" ? 0 : 1,
           items: attribute(node, "percent") === "1" || attribute(node, "percent") === "true" ? 0 : 1,
           rel_range: 0, count: numeric(attribute(node, "val"), -1) });

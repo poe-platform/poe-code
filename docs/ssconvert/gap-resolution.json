@@ -2453,7 +2453,7 @@
       }
     },
     "xlsxWorksheetRecordAudit": {
-      "status": "source investigated and original regression failures recorded; implementation and delivery pending",
+      "status": "implemented and locally qualified; delivery and native application qualification pending",
       "issue": 3686,
       "sourceRevision": "bce0998afefdbc355585ca324285661a2170ba77",
       "sources": [
@@ -2483,7 +2483,7 @@
         }
       ],
       "findings": [
-        "XLSX import retains the original seven worksheet records alongside normalized PrintInformation and view fields. Export currently diagnoses those raw records while replacing them with partial or hardcoded values; dropping warnings alone would hide real loss.",
+        "XLSX import retains the original seven worksheet records alongside normalized PrintInformation and view fields. The previous exporter diagnosed those raw records while replacing them with partial or hardcoded values; dropping warnings alone would hide real loss.",
         "LibreOffice pagesettings.cxx:140-225 imports margins, copies, first-page numbering, fit dimensions, print resolution, orientation/order, comment/error modes and all six odd/even/first header/footer strings. xepage.cxx:93-133 emits the corresponding settings and omits false usePrinterDefaults because its presence can affect Excel orientation.",
         "worksheetfragment.cxx:669-691 distinguishes character-based default/base column widths from row heights in points; worksheethelper.cxx:745-763 gives explicit default width precedence over base width. Existing view.defaultColumnWidth/defaultRowHeight fields already carry point dimensions for rendering and Gnumeric transport.",
         "worksheetsettings.cxx:88-133 imports codeName, filter state, tab color, outline settings, protection hashes and operation flags. Protection operation defaults differ; replacing the imported flags with a fixed allow/deny set changes behavior.",
@@ -2496,7 +2496,9 @@
         "fixture": "Original in-memory OOXML with schema-ordered worksheet elements; no generated binary fixture committed.",
         "testSha256": "42108c2e72bbfde44afe94005cdac1cdfd98232b202cb7e5deb89a028afe8e2e"
       },
-      "remaining": "Implement record semantics/retention and edit precedence, pass current regressions and neighboring controls, qualify compiled SDK/command and independent OOXML/native consumers, deliver to remote main and verify publication. No format-family or issue closure."
+      "remaining": "Verify remote delivery, publication and native application readback. Unsupported printer relationships and broader format/rendering requirements remain open.",
+      "implementation": "Retain supported native worksheet records and compare normalized edits against the imported baseline before changing attributes or children. Import first/even headers, point dimensions and positive base-width fallback; preserve untouched formatting codes, precision, flags, hashes and raw-only settings. Recompute edited page-break counts. Unknown fields and unattached relationships produce granular loss diagnostics.",
+      "validation": "18 original regressions failed; new controls caught raw-only print resets, stale break counts and two zero-width inconsistencies. All 72 candidate checks and 305 XLSX checks pass. Applied with label fixes: 871 checks in 34 files, maintained package lint including source/test/consumer types, and selected workspace build pass. Four conversions through the actual built SDK/command edit B2 from 7 to 8 without warnings; independent Python ZIP/XML verifies all eight native records in every output (32 comparisons). Command screenshot inspected."
     }
   },
   "cases": [

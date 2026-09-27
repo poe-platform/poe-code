@@ -1,3 +1,4 @@
+pub mod commands;
 pub mod errors;
 pub mod fixtures;
 pub mod fs;
@@ -101,3 +102,5 @@ pub fn current_branch(
 pub fn is_ignored(fs: &MemoryFs, dir: &str, gitdir: Option<&str>, filepath: &str) -> bool {
     GitIgnoreManager::is_ignored(fs, dir, gitdir, filepath)
 }
+
+pub use commands::*;

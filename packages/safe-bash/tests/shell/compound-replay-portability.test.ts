@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { textCommands } from "../../src/commands/text.js";
 import { streamCommands } from "../../src/commands/streams.js";
 import { basicCommands } from "../../src/commands/basic.js";
+import { Shell } from "../../src/shell/index.js";
+import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { setup } from "./helpers.js";
 import { portableTrapExtension } from "../../src/shell/trap.js";
 
@@ -43,13 +46,15 @@ for (const [source, expected] of [
   ['x=$(printf "a\\n" | tr a b); echo "x=$x"', "x=b\n"],
   ['x=$(if true; then echo hi; fi); echo "x=$x"', "x=hi\n"],
   ['trap "echo bye" EXIT; trap -p', "trap -- 'echo bye' EXIT\nbye\n"],
+  ['x=$(printf "b\\na\\nb\\n" | sort -u); echo "$x"', "a\nb\n"],
   ['x=é; eval "echo $x"', "é\n"],
   ['x=$(printf "\ufeffé\\n" | tr x y); echo "$x"', "\ufeffé\n"],
 ] as const) {
   test(`shell runs without global Buffer: ${source}`, async () => {
-    const { shell } = setup(source.startsWith("trap") ? { extensions: [portableTrapExtension()] } : {});
-    for (const command of basicCommands()) shell.register(command);
-    for (const command of streamCommands()) shell.register(command);
+    const shell = new Shell({ fs: new MemoryFileSystem(), ...(source.startsWith("trap") ? { extensions: [portableTrapExtension()] } : {}) });
+    shell.use({ name: "portable-fixture", setup(host) {
+      for (const command of [...basicCommands(), ...streamCommands(), textCommands().find(command => command.name === "sort")!]) host.commands.register(command);
+    } });
     const buffer = globalThis.Buffer;
     try {
       Reflect.deleteProperty(globalThis, "Buffer");

@@ -695,6 +695,7 @@ function assertSource7Discovery(files) {
     "tests/stress/root-exports.test.ts",
     "tests/plugins/optional-runtime.test.ts",
     "tests/plugins/optional-host.test.ts",
+    "tests/shell/compound-replay-portability.test.ts",
     "tests/shell/standard-redirections.test.ts",
     "tests/shell/invoke.test.ts",
     "tests/shell/filesystem-native-signal.test.ts",

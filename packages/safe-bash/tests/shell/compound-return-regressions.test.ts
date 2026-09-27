@@ -23,6 +23,7 @@ cases.push(
   ['nested return stays in inner function', 'inner() { if true; then return 7; fi; echo UNREACHABLE; }; outer() { inner 1; echo inner=$?; return 3; }; outer 1; echo outer=$?'],
   ['bare arithmetic return executes once', 'cnt=0; f() { for ((i=0;i<3;i++)); do cnt=$((cnt+1)); echo step; return; done; }; f; echo cnt=$cnt'],
   ['zero argument helper after mutation', 'cnt=0; calls=0; helper() { calls=$((calls+1)); }; while [ $cnt -lt 1 ]; do cnt=$((cnt+1)); echo before; helper; done; echo "$cnt $calls"'],
+  ['zero argument builtin shadow', 'cnt=0; calls=0; true() { calls=$((calls+1)); }; while [ $cnt -lt 1 ]; do cnt=$((cnt+1)); true; done; echo calls=$calls'],
   ['nested zero argument helper', 'cnt=0; helper() { echo helper; }; inner() { echo before; helper; }; outer() { inner 1; }; while [ $cnt -lt 1 ]; do outer 1; cnt=$((cnt+1)); done'],
 );
 for (const local of ['local a=1', 'local a=1 b=2', 'local -a arr', 'local arr=(1 2)', 'local a+=1', 'local a=$(echo value)', 'local a b=$(echo value)', 'local a=$value', 'local a=1 b=$value']) {
@@ -48,3 +49,16 @@ for (const maxExpansionBytes of [65536, undefined]) {
     });
   }
 }
+
+test("readonly local declarations preserve diagnostics without replaying the body", async () => {
+  const source = 'readonly a=7; cnt=0; f() { echo before; local a=1; echo "local=$? a=$a"; }; while [ $cnt -lt 1 ]; do f 1; cnt=$((cnt+1)); done';
+  const oracle = spawnSync('/bin/bash', ['--noprofile', '--norc', '-c', source], { encoding: 'utf8' });
+  const { shell, commands } = setup();
+  for (const command of [...basicCommands(), ...predicateCommands()]) commands.register(command);
+  try {
+    const result = await shell.exec(source);
+    assert.equal(result.stdout, oracle.stdout);
+    assert.equal(result.exitCode, oracle.status);
+    assert.ok(result.stderr.includes('a: readonly variable'));
+  } finally { await shell.dispose(); }
+});

@@ -8325,13 +8325,13 @@ export class Runtime {
       const w0 = command.words[0]!;
       const w0Plain = w0.plain;
       if (command.words.length === 1) {
-        if (w0Plain === ":" || w0Plain === "true" || w0Plain === "false" || w0Plain === "return") return true;
         // trySyncCommand handles function calls only in its multi-word path.
         if (w0Plain !== undefined && rawState.functions.has(w0Plain)) return false;
+        if (w0Plain === ":" || w0Plain === "true" || w0Plain === "false" || w0Plain === "return") return true;
         const arrayAssign = getArrayAssignment(w0);
         if (arrayAssign) return true;
         const assignment = this.assignment(w0);
-        return Boolean(assignment && assignment.name !== "OPTIND" && assignment.name !== "PIPESTATUS" && !assignment.name.includes("["));
+        return Boolean(assignment && !assignment.value.parts.some(part => part.kind === "substitution") && assignment.name !== "OPTIND" && assignment.name !== "PIPESTATUS" && !assignment.name.includes("["));
       }
       if (command.words.length === 2) {
         if (w0Plain === "return") return true;
@@ -9088,7 +9088,6 @@ export class Runtime {
         const [e0, e1, e2] = command.expressions;
         this.budget.tick();
         rawState.loopDepth++;
-        this._syncReturnDepth++;
         const enableRawBatch = !this._syncArithRawWriteOnly && rawState.locals.length === 0 && this.budget.limits.maxExpansionBytes === Infinity;
         const batchTouched = enableRawBatch ? new Set<string>() : undefined;
         if (enableRawBatch) {
@@ -9115,7 +9114,8 @@ export class Runtime {
             }
             this.syncShellArithmeticNonZero(e2!, rawState, diagnosticLine);
           }
-        } catch {
+        } catch (error) {
+          if (error instanceof Flow) throw error;
           this.signal.throwIfAborted();
           return undefined;
         } finally {
@@ -9133,7 +9133,6 @@ export class Runtime {
             }
           }
           rawState.loopDepth--;
-          this._syncReturnDepth--;
         }
         const statusStr = loopStatus === 0 ? "0" : loopStatus === 1 ? "1" : String(loopStatus);
         if (!existing) {
@@ -9612,6 +9611,7 @@ export class Runtime {
         assignment.name === "OPTIND" ||
         assignment.name === "PIPESTATUS" ||
         assignment.name.includes("[") ||
+        assignment.value.parts.some(part => part.kind === "substitution") ||
         rawState.readonlyVariables?.has(assignment.name) ||
         store?.get(assignment.name)
       ) {
@@ -13132,6 +13132,7 @@ export class Runtime {
           !assignment.append &&
           assignment.name !== "OPTIND" &&
           !assignment.name.includes("[") &&
+          !assignment.value.parts.some(part => part.kind === "substitution") &&
           !state.readonlyVariables?.has(assignment.name) &&
           !state.variableAttributes?.get(assignment.name) &&
           !arrayStore(state)?.get(assignment.name)

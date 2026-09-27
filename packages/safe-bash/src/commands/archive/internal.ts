@@ -1,5 +1,5 @@
 import { PublicDiagnostic } from "../../diagnostics.js";
-import { yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, yieldTurn } from "../../contracts/yield.js";
 import { collectBytes, readBytes, writeBytes, type ByteSource, type CommandContext, type FileStat } from "../../contracts/index.js";
 import type { CommandFamilyLimits } from "../limits.js";
 
@@ -125,15 +125,25 @@ export function sameIdentity(first: FileStat, second: FileStat): boolean {
   return hasIdentity(first) && hasIdentity(second) && first.identityScope === second.identityScope && first.dev === second.dev && first.ino === second.ino;
 }
 
+const fatalUtf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+
 export function text(bytes: Uint8Array): string {
-  try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes); }
+  try { return fatalUtf8Decoder.decode(bytes); }
   catch { return fail("invalid UTF-8 archive name or metadata"); }
 }
 
 export function checkPath(path: string, limits: ArchiveLimits): void {
-  if (!path || path.includes("\0") || Buffer.from(path).toString("utf8") !== path) fail("invalid empty, NUL, or non-Unicode path");
-  if (Buffer.byteLength(path) > limits.maxPathBytes) fail("path byte limit exceeded");
-  if (path.split("/").length > limits.maxDepth + 1) fail("path depth limit exceeded");
+  if (!path) fail("invalid empty, NUL, or non-Unicode path");
+  let nonAscii = false;
+  for (let i = 0; i < path.length; i++) {
+    const c = path.charCodeAt(i);
+    if (c === 0) fail("invalid empty, NUL, or non-Unicode path");
+    if (c >= 0x80) nonAscii = true;
+  }
+  if (nonAscii && Buffer.from(path).toString("utf8") !== path) fail("invalid empty, NUL, or non-Unicode path");
+  const byteLen = nonAscii ? Buffer.byteLength(path) : path.length;
+  if (byteLen > limits.maxPathBytes) fail("path byte limit exceeded");
+  if (limits.maxDepth !== Infinity && path.split("/").length > limits.maxDepth + 1) fail("path depth limit exceeded");
 }
 
 export function display(path: string): string {
@@ -150,6 +160,7 @@ export class Budget {
   members = 0;
   totalBytes = 0;
   textBytes = 0;
+  private lastYield = monotonicNow();
   constructor(readonly context: CommandContext, readonly limits: ArchiveLimits) {}
   async member(size = 0): Promise<void> {
     this.context.signal.throwIfAborted();
@@ -157,7 +168,10 @@ export class Budget {
     if (!Number.isSafeInteger(size) || size < 0 || size > this.limits.maxEntryBytes) fail("entry byte limit exceeded");
     if (size > this.limits.maxTotalBytes - this.totalBytes) fail("total payload byte limit exceeded");
     this.totalBytes += size;
-    if (this.members % 128 === 0) await yieldTurn(this.context.signal);
+    if (this.members % 128 === 0 && (hasYieldCheckpoint(this.context.signal) || monotonicNow() - this.lastYield >= 16)) {
+      await yieldTurn(this.context.signal);
+      this.lastYield = monotonicNow();
+    }
   }
   async output(value: string | Uint8Array, stderr = false): Promise<void> {
     const bytes = typeof value === "string" ? Buffer.from(value, "utf8") : Buffer.from(value);
@@ -170,6 +184,7 @@ export class Budget {
 export async function* bounded(source: ByteSource, maximum: number, signal: AbortSignal, chunkSize: number): ByteSource {
   let size = 0;
   let turns = 0;
+  let lastYield = monotonicNow();
   for await (const chunk of readBytes(source, signal)) {
     if (chunk.length > maximum - size) fail("archive byte limit exceeded");
     size += chunk.length;
@@ -180,7 +195,10 @@ export async function* bounded(source: ByteSource, maximum: number, signal: Abor
       signal.throwIfAborted();
       yield chunk.subarray(offset, Math.min(chunk.length, offset + chunkSize));
     }
-    if (++turns % 128 === 0) await yieldTurn(signal);
+    if (++turns % 128 === 0 && (hasYieldCheckpoint(signal) || monotonicNow() - lastYield >= 16)) {
+      await yieldTurn(signal);
+      lastYield = monotonicNow();
+    }
   }
 }
 

@@ -1,9 +1,11 @@
 import { UsageError } from "./format.js";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
-import { cancelTurn, scheduleTurn, type TurnHandle } from "../../contracts/yield.js";
+import { cancelTurn, hasYieldCheckpoint, monotonicNow, scheduleTurn, type TurnHandle } from "../../contracts/yield.js";
 import { escapeText } from "../../escaping.js";
 import { FsError, writeBytes, type ByteSink, type CommandContext } from "../../contracts/index.js";
 import type { DuLimits } from "./options.js";
+
+const utf8Encoder = new TextEncoder();
 
 export class DuLimitError extends FsError {
   constructor(label: string) { super("EFBIG", { message: `du ${label} limit exceeded` }); }
@@ -15,6 +17,7 @@ export class Budget {
   private metadata = 0;
   private output = 0;
   private operations = 0;
+  private lastYield = monotonicNow();
   private closed = false;
   private completion: Promise<void> | undefined;
   private readonly cancellation = new AbortController();
@@ -103,11 +106,12 @@ export class Budget {
 
   async fs<Result>(operation: () => Promise<Result>): Promise<Result> {
     this.step();
-    if (++this.operations % 64 === 0) {
+    if (++this.operations % 64 === 0 && (hasYieldCheckpoint(this.context.signal) || monotonicNow() - this.lastYield >= 16)) {
       await this.wait(() => new Promise<void>(resolve => {
         const timer = scheduleTurn(() => { this.timers.delete(timer); resolve(); });
         this.timers.add(timer);
       }));
+      this.lastYield = monotonicNow();
     }
     return this.wait(operation);
   }
@@ -117,7 +121,7 @@ export class Budget {
     const size = Buffer.byteLength(text);
     this.check(size, this.limits.maxOutputBytes - this.output, "output", signal);
     this.output += size;
-    const bytes = new TextEncoder().encode(text);
+    const bytes = utf8Encoder.encode(text);
     const ioSignal = signal === this.caller.signal ? this.ioSignal : (this.outputSignal ??= AbortSignal.any([signal, this.cancellation.signal]));
     for (let offset = 0; offset < bytes.length; offset += 16384) {
       this.active(signal);

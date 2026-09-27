@@ -1,5 +1,5 @@
 import { publicDiagnosticMessage } from "../../diagnostics.js";
-import { yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, yieldTurn } from "../../contracts/yield.js";
 import { escapeText } from "../../escaping.js";
 import { FsError, writeBytes, type ByteSink, type CommandContext } from "../../contracts/index.js";
 import type { TreeLimits } from "./options.js";
@@ -47,6 +47,7 @@ export class WalkBudget {
   private output = 0;
   private steps = 0;
   private operations = 0;
+  private lastYield = monotonicNow();
   private nameCharset: Charset | undefined;
   constructor(readonly context: CommandContext, readonly limits: TreeLimits) {}
 
@@ -83,7 +84,10 @@ export class WalkBudget {
   async fs<Result>(operation: () => Promise<Result>): Promise<Result> {
     this.step();
     const { signal } = this.context;
-    if (++this.operations % 64 === 0) await yieldTurn(signal);
+    if (++this.operations % 64 === 0 && (hasYieldCheckpoint(signal) || monotonicNow() - this.lastYield >= 16)) {
+      await yieldTurn(signal);
+      this.lastYield = monotonicNow();
+    }
     signal.throwIfAborted();
     let abort!: () => void;
     const aborted = new Promise<never>((_resolve, reject) => {

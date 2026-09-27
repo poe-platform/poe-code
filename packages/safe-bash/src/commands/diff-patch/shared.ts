@@ -75,8 +75,10 @@ export class Budget {
       this.nextYield = this.work + 4096;
       const now = monotonicNow();
       if (now >= this.nextYieldTime) {
-        this.nextYieldTime = now + 8;
-        return yieldTurn(this.context.signal);
+        this.nextYieldTime = now + 16;
+        return yieldTurn(this.context.signal).then(() => {
+          this.nextYieldTime = monotonicNow() + 16;
+        });
       }
     }
   }

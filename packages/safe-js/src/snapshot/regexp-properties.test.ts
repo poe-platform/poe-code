@@ -6,7 +6,9 @@ import { serialize } from "./serialize.js";
 import { restore } from "./restore.js";
 import { serializeSafeJSSnapshot } from "./dump-format.js";
 import { validateRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
-import { assertSnapshotGraphDepth, MAX_DATA_DEPTH } from "../graph-depth.js";
+import { assertSnapshotGraphDepth } from "../graph-depth.js";
+
+const STRESS_DEPTH = 1_024;
 
 function roundTrip(graph: SandboxObject, format: "snapshot" | "replay" | "clone" | "host"): SandboxObject {
   if (format === "clone") return cloneSandboxValue(graph) as SandboxObject;
@@ -81,7 +83,8 @@ it("accounts for data reachable only through a RegExp guest property", () => {
 it("enforces graph depth across RegExp guest properties", () => {
   const regex = createSandboxRegex("t");
   let nested: SandboxObject = {};
-  for (let index = 0; index <= MAX_DATA_DEPTH; index++) nested = { nested };
+  for (let index = 0; index <= STRESS_DEPTH; index++) nested = { nested };
   getRegexProperties(regex).extra = nested;
-  expect(() => assertSnapshotGraphDepth(regex)).toThrow(expect.objectContaining({ budget: "dataDepth" }));
+  expect(() => assertSnapshotGraphDepth(regex)).not.toThrow();
+  expect(() => assertSnapshotGraphDepth(regex, "$", STRESS_DEPTH)).toThrow(expect.objectContaining({ budget: "dataDepth" }));
 });

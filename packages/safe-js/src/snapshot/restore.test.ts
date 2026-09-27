@@ -24,8 +24,9 @@ import { registerPendingHostCallPolicy } from "./policy.js";
 import { serialize } from "./serialize.js";
 import { createSandboxRegex, isSandboxRegex } from "../interp/values.js";
 import { SnapshotValidationError } from "./validation.js";
-import { MAX_DATA_DEPTH } from "../graph-depth.js";
 import { boxedValue, createSandboxBox, isSandboxBox } from "../interp/boxed.js";
+
+const STRESS_DEPTH = 1_024;
 
 function withObjectPrototypeProperties<T>(
   properties: Record<string, unknown>,
@@ -212,10 +213,10 @@ describe("snapshot restore", () => {
     }
   );
 
-  it("bounds deeply nested data retained through arguments length", () => {
+  it("accepts deeply nested data retained through arguments length", () => {
     const args = createSandboxArguments([]);
     let value = {};
-    for (let depth = 0; depth < MAX_DATA_DEPTH + 1; depth += 1) value = { next: value };
+    for (let depth = 0; depth < STRESS_DEPTH + 1; depth += 1) value = { next: value };
     args.length = value;
     expect(() =>
       serialize({
@@ -226,7 +227,7 @@ describe("snapshot restore", () => {
         pendingPromises: [],
         moduleBindings: {}
       })
-    ).toThrowError(expect.objectContaining({ name: "SnapshotBudgetError", budget: "dataDepth" }));
+    ).not.toThrow();
   });
 
   it("roundtrips arguments identity, properties, iteration, and strict callee access", () => {
@@ -424,7 +425,7 @@ describe("snapshot restore", () => {
     );
   });
 
-  it("rejects excessive nesting and accepts the configured maximum collection size", () => {
+  it("enforces configured nesting and maximum collection size", () => {
     const source = "await task()";
     const base: any = {
       sourceHash: hashSource(source),
@@ -435,9 +436,9 @@ describe("snapshot restore", () => {
       moduleBindings: {}
     };
     let deep: any = 1;
-    for (let index = 0; index < MAX_DATA_DEPTH + 2; index += 1) deep = { value: deep };
+    for (let index = 0; index < STRESS_DEPTH + 2; index += 1) deep = { value: deep };
     base.scopeChain[0].bindings.deep = deep;
-    expect(() => restore(base, { source, budget: new Budget() })).toThrow(SnapshotValidationError);
+    expect(() => restore(base, { source, budget: new Budget({ maxCallDepth: 1000 }) })).toThrow(SnapshotValidationError);
 
     base.scopeChain[0].bindings = { items: [1, 2, 3] };
     expect(() => restore(base, { source, budget: new Budget({ arrayLength: 3 }) })).not.toThrow();

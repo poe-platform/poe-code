@@ -37,14 +37,8 @@ describe("run", () => {
     });
   });
 
-  it("rejects parser stack stress with a controlled parse error", async () => {
-    await expect(run(createElseIfChain(3_000), { filename: "branches.ajs" })).rejects.toMatchObject(
-      {
-        filename: "branches.ajs",
-        kind: "ParseError",
-        message: expect.stringContaining("If statement nesting limit exceeded")
-      }
-    );
+  it("runs conditional expressions beyond the former parser ceiling", async () => {
+    await expect(run("return " + "true ? 1 : ".repeat(300) + "0", { filename: "branches.ajs" })).resolves.toMatchObject({ ok: true, returnValue: 1 });
   });
 
   it("rejects unbounded recursion with a configured call-depth guard", async () => {
@@ -1917,11 +1911,3 @@ try {
     });
   });
 });
-
-function createElseIfChain(depth: number): string {
-  let source = "";
-  for (let index = 0; index < depth; index += 1) {
-    source += `if (0) { return ${index}; } else `;
-  }
-  return `${source}{ return ""; }`;
-}

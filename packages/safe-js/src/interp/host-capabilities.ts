@@ -15,10 +15,10 @@ export type GuestReference = Readonly<Record<string, never>> & {
 export type HostObjectIndexedDefinition = {
   length(): number;
   get(index: number): unknown;
-  maxLength: number;
+  maxLength?: number;
 };
 export type HostObjectDefinition = {
-  expandos?: { maxKeys: number; maxKeyCodeUnits: number; assertActive?: () => void };
+  expandos?: { maxKeys?: number; maxKeyCodeUnits?: number; assertActive?: () => void };
   indexed?: HostObjectIndexedDefinition;
   named?: HostObjectNamedDefinition;
   properties?: Record<string, { get?: () => unknown; set?: (value: unknown) => void }>;
@@ -29,8 +29,8 @@ export type HostObjectNamedDefinition = {
   get(name: string): unknown;
   set?(name: string, value: unknown): void;
   delete?(name: string): boolean;
-  maxKeys: number;
-  maxKeyCodeUnits: number;
+  maxKeys?: number;
+  maxKeyCodeUnits?: number;
   enumerable?: boolean;
 };
 export type HostObjectController = {
@@ -52,13 +52,10 @@ type HostObjectState = {
   guest: SandboxObject;
   properties: Map<string, { get?: () => unknown; set?: (value: unknown) => void }>;
   methods: Map<string, SandboxClosure>;
-  indexed?: HostObjectIndexedDefinition;
-  named?: HostObjectNamedDefinition;
+  indexed?: Required<HostObjectIndexedDefinition>;
+  named?: HostObjectNamedDefinition & { maxKeys: number; maxKeyCodeUnits: number };
   expandos?: { values: SandboxObject; maxKeys: number; maxKeyCodeUnits: number; assertActive?: () => void };
 };
-const MAX_INDEXED_LENGTH = 65_536;
-const MAX_NAMED_KEYS = 65_536;
-const MAX_NAMED_KEY_CODE_UNITS = 1_048_576;
 type GuestCallbackState = { owner: object; closure?: SandboxClosure; assertActive(): void };
 const hostObjects = new WeakMap<object, HostObjectState>();
 const guestObjects = new WeakMap<object, HostObjectState>();
@@ -144,6 +141,13 @@ export function revokeGuestReference(reference: GuestReference, owner: object): 
   state.root = undefined;
 }
 
+function hostObjectLimit(value: unknown, name: string): number {
+  if (value === undefined || value === Infinity) return Infinity;
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 1)
+    throw new RangeError(`${name} must be a positive integer or Infinity.`);
+  return value;
+}
+
 export function createLiveHostObject(
   definition: HostObjectDefinition,
   controller: HostObjectController
@@ -158,10 +162,8 @@ export function createLiveHostObject(
     const data = readDataRecord(input.expandos, "Guest expando definition");
     if (Object.keys(data).some((key) => !["maxKeys", "maxKeyCodeUnits", "assertActive"].includes(key)))
       throw new TypeError("Unknown guest expando field.");
-    for (const [key, maximum] of [["maxKeys", MAX_NAMED_KEYS], ["maxKeyCodeUnits", MAX_NAMED_KEY_CODE_UNITS]] as const) {
-      if (typeof data[key] !== "number" || !Number.isInteger(data[key]) || data[key] < 1 || data[key] > maximum)
-        throw new RangeError(`Guest expando ${key} must be an integer from 1 to ${maximum}.`);
-    }
+    const maxKeys = hostObjectLimit(data.maxKeys, "Guest expando maxKeys");
+    const maxKeyCodeUnits = hostObjectLimit(data.maxKeyCodeUnits, "Guest expando maxKeyCodeUnits");
     if (data.assertActive !== undefined && (
       typeof data.assertActive !== "function" || types.isProxy(data.assertActive) ||
       types.isAsyncFunction(data.assertActive) || types.isGeneratorFunction(data.assertActive)
@@ -170,32 +172,26 @@ export function createLiveHostObject(
     expandos = {
       // Owned writes invalidate descriptor projections; descendants stay live.
       values: createIntrinsicObject(),
-      maxKeys: data.maxKeys as number,
-      maxKeyCodeUnits: data.maxKeyCodeUnits as number,
+      maxKeys,
+      maxKeyCodeUnits,
       assertActive: data.assertActive as (() => void) | undefined
     };
   }
-  let indexed: HostObjectIndexedDefinition | undefined;
+  let indexed: Required<HostObjectIndexedDefinition> | undefined;
   if (input.indexed !== undefined) {
     const data = readDataRecord(input.indexed, "Indexed host capability");
     if (Object.keys(data).some((key) => !["length", "get", "maxLength"].includes(key)))
       throw new TypeError("Unknown indexed host capability field.");
     if (typeof data.length !== "function" || typeof data.get !== "function")
       throw new TypeError("Indexed length and get must be synchronous functions.");
-    if (
-      typeof data.maxLength !== "number" ||
-      !Number.isInteger(data.maxLength) ||
-      data.maxLength < 1 ||
-      data.maxLength > MAX_INDEXED_LENGTH
-    )
-      throw new RangeError(`Indexed maxLength must be an integer from 1 to ${MAX_INDEXED_LENGTH}.`);
+    const maxLength = hostObjectLimit(data.maxLength, "Indexed maxLength");
     indexed = {
       length: data.length as () => number,
       get: data.get as (index: number) => unknown,
-      maxLength: data.maxLength
+      maxLength
     };
   }
-  let named: HostObjectNamedDefinition | undefined;
+  let named: HostObjectState["named"];
   if (input.named !== undefined) {
     const data = readDataRecord(input.named, "Named host capability");
     if (
@@ -213,22 +209,8 @@ export function createLiveHostObject(
       )
         throw new TypeError(`Named ${name} must be a synchronous non-generator function, not a proxy.`);
     }
-    if (
-      typeof data.maxKeys !== "number" ||
-      !Number.isInteger(data.maxKeys) ||
-      data.maxKeys < 1 ||
-      data.maxKeys > MAX_NAMED_KEYS
-    )
-      throw new RangeError(`Named maxKeys must be an integer from 1 to ${MAX_NAMED_KEYS}.`);
-    if (
-      typeof data.maxKeyCodeUnits !== "number" ||
-      !Number.isInteger(data.maxKeyCodeUnits) ||
-      data.maxKeyCodeUnits < 1 ||
-      data.maxKeyCodeUnits > MAX_NAMED_KEY_CODE_UNITS
-    )
-      throw new RangeError(
-        `Named maxKeyCodeUnits must be an integer from 1 to ${MAX_NAMED_KEY_CODE_UNITS}.`
-      );
+    const maxKeys = hostObjectLimit(data.maxKeys, "Named maxKeys");
+    const maxKeyCodeUnits = hostObjectLimit(data.maxKeyCodeUnits, "Named maxKeyCodeUnits");
     if (data.enumerable !== undefined && typeof data.enumerable !== "boolean")
       throw new TypeError("Named enumerable must be a boolean.");
     named = {
@@ -236,8 +218,8 @@ export function createLiveHostObject(
       get: data.get as (name: string) => unknown,
       set: data.set as HostObjectNamedDefinition["set"],
       delete: data.delete as HostObjectNamedDefinition["delete"],
-      maxKeys: data.maxKeys,
-      maxKeyCodeUnits: data.maxKeyCodeUnits,
+      maxKeys,
+      maxKeyCodeUnits,
       enumerable: data.enumerable as boolean | undefined
     };
   }

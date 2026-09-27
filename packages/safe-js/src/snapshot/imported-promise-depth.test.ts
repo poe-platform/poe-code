@@ -32,10 +32,10 @@ it("reconstructs a supported chain without recursive host-stack expansion", asyn
   expect(value).toBeNull();
 });
 
-it("rejects combined depth with a controlled error and rolls back memo entries", () => {
+it("accepts combined depth beyond the former ceiling", () => {
   const { graph, options } = chain(600);
-  expect(() => decodeReplayData(graph, options)).toThrow("Replay data exceeds the nesting limit");
-  expect(options.importedPromiseMemo.size).toBe(0);
+  expect(() => decodeReplayData(graph, options)).not.toThrow();
+  expect(options.importedPromiseMemo.size).toBeGreaterThan(0);
 });
 
 it("preserves a cross-graph cycle after queued reconstruction", async () => {

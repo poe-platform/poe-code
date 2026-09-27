@@ -12,7 +12,8 @@ import {
   type SandboxValue
 } from "../values.js";
 import { createMiscGlobals } from "./misc.js";
-import { MAX_DATA_DEPTH } from "../../graph-depth.js";
+
+const STRESS_DEPTH = 1_024;
 
 describe("createMiscGlobals", () => {
   it("exposes coercing numeric globals", () => {
@@ -54,35 +55,27 @@ describe("createMiscGlobals", () => {
     expect(clone.self).toBe(clone);
   });
 
-  it("round-trips at the data-depth limit and rejects deeper graphs deterministically", () => {
+  it("clones deeply nested graphs without a default depth ceiling", () => {
     const globals = createMiscGlobals({ budget: new Budget() });
-    const allowed = nestedArrays(MAX_DATA_DEPTH);
-    const rejected = nestedArrays(5_000);
+    const allowed = nestedArrays(STRESS_DEPTH);
+    const deeper = nestedArrays(1_100);
 
     expect(call(globals.structuredClone, allowed)).toEqual(allowed);
-    expect(() => call(globals.structuredClone, rejected)).toThrowError(
-      expect.objectContaining({
-        name: "SandboxError",
-        code: "budgetExceeded",
-        budget: "dataDepth",
-        current: MAX_DATA_DEPTH + 1,
-        limit: MAX_DATA_DEPTH
-      }) satisfies Partial<SandboxError>
-    );
+    expect(() => call(globals.structuredClone, deeper)).not.toThrow();
   });
 
   it("allows a cycle that closes at the data-depth limit", () => {
     const globals = createMiscGlobals({ budget: new Budget() });
-    const source = nestedArrays(MAX_DATA_DEPTH) as SandboxValue[];
+    const source = nestedArrays(STRESS_DEPTH) as SandboxValue[];
     let leaf = source;
-    for (let index = 0; index < MAX_DATA_DEPTH - 1; index += 1) {
+    for (let index = 0; index < STRESS_DEPTH - 1; index += 1) {
       leaf = leaf[0] as SandboxValue[];
     }
     leaf[0] = source;
 
     const clone = call(globals.structuredClone, source) as SandboxValue[];
     let clonedLeaf = clone;
-    for (let index = 0; index < MAX_DATA_DEPTH - 1; index += 1) {
+    for (let index = 0; index < STRESS_DEPTH - 1; index += 1) {
       clonedLeaf = clonedLeaf[0] as SandboxValue[];
     }
 

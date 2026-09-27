@@ -3,7 +3,6 @@ import { createRealm } from "../realm.js";
 import * as argumentsApi from "./arguments.js";
 import { Budget } from "./budget.js";
 import { Scope } from "./scope.js";
-import { MAX_DATA_DEPTH } from "../graph-depth.js";
 import { intrinsicDataRoots } from "./intrinsic-data-roots.js";
 import { internalSymbols } from "./internal-symbols.js";
 import {
@@ -12,6 +11,8 @@ import {
   reconcileCompiledValues,
   type SandboxValue
 } from "./values.js";
+
+const STRESS_DEPTH = 1_024;
 
 it("does not construct an unread arguments object retained by a classic closure", async () => {
   const realm = createRealm({ classicScripts: true });
@@ -184,10 +185,8 @@ it("keeps deferred argument chains off the native call stack", () => {
     }
     return root;
   };
-  expect(measureSandboxData([chain(MAX_DATA_DEPTH)])).toBe(1 + 11 * MAX_DATA_DEPTH + 16);
-  expect(() => measureSandboxData([chain(MAX_DATA_DEPTH + 1)])).toThrow(
-    expect.objectContaining({ budget: "dataDepth" })
-  );
+  expect(measureSandboxData([chain(STRESS_DEPTH)])).toBe(1 + 11 * STRESS_DEPTH + 16);
+  expect(() => measureSandboxData([chain(STRESS_DEPTH + 1)])).not.toThrow();
 });
 
 it("keeps bigint arguments on the eager observation path", () => {

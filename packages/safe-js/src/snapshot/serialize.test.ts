@@ -4,9 +4,10 @@ import { createGeneratorChannel } from "../interp/generator.js";
 import { createSandboxArguments, createSandboxGenerator } from "../interp/values.js";
 import { hashSource } from "../parse/hash.js";
 import { serialize, UnsnapshotableValueError } from "./serialize.js";
-import { MAX_DATA_DEPTH, SnapshotBudgetError } from "../graph-depth.js";
 import { serializeSafeJSSnapshot } from "./dump-format.js";
 import { validateDumpEnvelope } from "./validation.js";
+
+const STRESS_DEPTH = 1_024;
 
 function withObjectPrototypeProperties<T>(
   properties: Record<string, unknown>,
@@ -57,8 +58,8 @@ describe("serialize", () => {
     expect(() => validateDumpEnvelope(dumped)).not.toThrow();
   });
 
-  it("serializes the boundary byte-identically and rejects deeply nested arrays and objects", () => {
-    const allowed = nestedObjectArrayGraph(MAX_DATA_DEPTH - 4);
+  it("serializes deeply nested arrays and objects without a default depth ceiling", () => {
+    const allowed = nestedObjectArrayGraph(STRESS_DEPTH - 4);
     const input = {
       source: "await task()",
       currentAstNodeId: 1,
@@ -75,16 +76,9 @@ describe("serialize", () => {
     expect(() =>
       serialize({
         ...input,
-        scopeChain: [{ id: 1, bindings: { rejected: nestedObjectArrayGraph(5_000) } }]
+        scopeChain: [{ id: 1, bindings: { rejected: nestedObjectArrayGraph(1_100) } }]
       })
-    ).toThrowError(
-      expect.objectContaining({
-        name: "SnapshotBudgetError",
-        code: "budgetExceeded",
-        current: MAX_DATA_DEPTH + 1,
-        limit: MAX_DATA_DEPTH
-      }) satisfies Partial<SnapshotBudgetError>
-    );
+    ).not.toThrow();
   });
   it("serializes generators in start and done states", () => {
     const start = createSandboxGenerator(

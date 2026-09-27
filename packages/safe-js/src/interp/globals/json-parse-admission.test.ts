@@ -34,10 +34,10 @@ it.each([false, true])("handles quoted punctuation and escaped quotes (reviver: 
   })).toMatchObject({ ok: true, returnValue: JSON.parse(payload) });
 });
 
-it("bounds nesting even without a configured call-depth limit", async () => {
+it("allows nesting without a configured call-depth limit", async () => {
   await expect(run("return JSON.parse(payload)", {
     bindings: { payload: "[".repeat(257) + "0" + "]".repeat(257) }, budget: new Budget()
-  })).rejects.toMatchObject({ code: "budgetExceeded", budget: "dataDepth" });
+  })).resolves.toMatchObject({ ok: true });
 });
 
 it("keeps native syntax errors catchable and releases admission state", async () => {

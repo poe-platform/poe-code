@@ -24,8 +24,6 @@ export type { ParsedSourceModule, SourceImport, SourceExport } from "./module-sy
 
 const isFrozenPosition = Object.isFrozen;
 
-const MAX_CONDITIONAL_EXPRESSION_DEPTH = 256;
-const MAX_IF_STATEMENT_DEPTH = 2_048;
 const STRICT_BINDING_NAMES = new Set(["eval", "arguments", "implements", "interface", "let", "package", "private", "protected", "public", "static", "yield"]);
 const functionBodyStrictness = new WeakMap<object, boolean>();
 
@@ -1252,7 +1250,7 @@ class Parser {
   }
 
   private parseConditionalExpression(): ParsedExpression {
-    if (this.conditionalExpressionDepth >= MAX_CONDITIONAL_EXPRESSION_DEPTH) {
+    if (this.conditionalExpressionDepth >= (this.compilation?.owner?.budget.limits.maxCallDepth ?? Infinity)) {
       const token = this.currentToken();
       throw new Error(
         `Conditional expression nesting limit exceeded at line ${token.start.line}, column ${token.start.column}.`
@@ -1650,7 +1648,7 @@ class Parser {
     let entered = 0;
     try {
       for (;;) {
-        if (this.ifStatementDepth >= MAX_IF_STATEMENT_DEPTH) {
+        if (this.ifStatementDepth >= (this.compilation?.owner?.budget.limits.maxCallDepth ?? Infinity)) {
           const token = this.currentToken();
           throw new Error(
             `If statement nesting limit exceeded at line ${token.start.line}, column ${token.start.column}.`

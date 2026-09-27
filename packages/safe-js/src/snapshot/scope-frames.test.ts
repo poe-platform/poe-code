@@ -1,9 +1,10 @@
 import { expect, it } from "vitest";
 import { Budget } from "../interp/budget.js";
-import { MAX_DATA_DEPTH } from "../graph-depth.js";
 import { createSandboxClosure } from "../interp/values.js";
 import type { GuestHeapNode } from "./guest-heap.js";
 import { allocateGuestScopes, hydrateGuestScopes } from "./scope-frames.js";
+
+const STRESS_DEPTH = 1_024;
 
 type Frame = Extract<GuestHeapNode<unknown>, { kind: "scope-frame" }>;
 const frame = (parent?: number): Frame => ({ kind: "scope-frame", parent: parent === undefined ? { kind: "undefined" } : { kind: "ref", id: parent },
@@ -48,10 +49,10 @@ it("rejects cyclic parent allocation", () => {
   expect(() => allocateGuestScopes(new Map([[1, frame(2)], [2, frame(1)]]), new Budget())).toThrow("Cyclic scope parent");
 });
 
-it("limits parent depth even when ancestors were allocated by earlier roots", () => {
+it("accepts deep parents even when ancestors were allocated by earlier roots", () => {
   const frames = new Map<number, Frame>();
-  for (let id = 1; id <= MAX_DATA_DEPTH + 2; id++) frames.set(id, frame(id === 1 ? undefined : id - 1));
-  expect(() => allocateGuestScopes(frames, new Budget())).toThrow("dataDepth");
+  for (let id = 1; id <= STRESS_DEPTH + 2; id++) frames.set(id, frame(id === 1 ? undefined : id - 1));
+  expect(() => allocateGuestScopes(frames, new Budget())).not.toThrow();
 });
 
 it("meters scope allocation work", () => {

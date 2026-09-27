@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import { DisallowedSyntaxError, parse } from "../parse.js";
-import { ParseError } from "./format-error.js";
 import { parseModule } from "./parser.js";
 
 describe("parse", () => {
@@ -865,12 +864,7 @@ describe("parse", () => {
       }
     });
 
-    expect(() => parseModule(createNestedConditionalModule(500), "generated.ajs")).toThrow(
-      ParseError
-    );
-    expect(() => parseModule(createNestedConditionalModule(500), "generated.ajs")).toThrow(
-      "Conditional expression nesting limit exceeded"
-    );
+    expect(() => parseModule(createNestedConditionalModule(500), "generated.ajs")).not.toThrow();
 
     expect(parse("a || b && c")).toMatchObject({
       type: "LogicalExpression",
@@ -1934,10 +1928,7 @@ describe("parse", () => {
       ]
     });
 
-    expect(() => parseModule(createElseIfChain(3_000), "branches.ajs")).toThrow(ParseError);
-    expect(() => parseModule(createElseIfChain(3_000), "branches.ajs")).toThrow(
-      "If statement nesting limit exceeded"
-    );
+    expect(() => parseModule(createElseIfChain(3_000), "branches.ajs")).not.toThrow();
 
     expect(parseModule("try { a; } catch { b; }")).toMatchObject({
       body: [

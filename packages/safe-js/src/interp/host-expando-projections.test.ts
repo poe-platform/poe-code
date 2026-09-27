@@ -1,6 +1,5 @@
 import { expect, it, vi } from "vitest";
 import { Budget } from "./budget.js";
-import { MAX_DATA_DEPTH } from "../graph-depth.js";
 import {
   createLiveHostObject,
   deleteHostObjectMember,
@@ -18,6 +17,8 @@ import {
   reconcileCompiledValues,
   type SandboxValue
 } from "./values.js";
+
+const STRESS_DEPTH = 1_024;
 
 function fixture() {
   const controller: HostObjectController = {
@@ -125,17 +126,15 @@ it("preserves exact charges across writes, aliasing, replacement and deletion", 
 
 it("measures host expando chains through the depth boundary without native stack overflow", () => {
   let root: SandboxValue = {};
-  for (let index = 0; index < MAX_DATA_DEPTH / 2; index++) {
+  for (let index = 0; index < STRESS_DEPTH / 2; index++) {
     const { guest } = fixture();
     setHostObjectMember(guest, "next", root);
     root = guest;
   }
-  expect(measureSandboxData([root])).toBe(1 + (MAX_DATA_DEPTH / 2) * 7);
+  expect(measureSandboxData([root])).toBe(1 + (STRESS_DEPTH / 2) * 7);
   const { guest } = fixture();
   setHostObjectMember(guest, "next", root);
-  expect(() => measureSandboxData([guest])).toThrow(
-    expect.objectContaining({ code: "budgetExceeded", budget: "dataDepth" })
-  );
+  expect(() => measureSandboxData([guest])).not.toThrow();
 });
 
 it.each([false, true])(

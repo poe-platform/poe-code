@@ -342,7 +342,7 @@ Supply your own bounded `journal`; this does not add browser console behavior. W
 | `nestedOperation(fn)` | During setup, mark a host operation authorized to run nested source. Requires declared and granted `source:nested`. |
 | `evaluateNested(source)` | Only inside that extension's authorized operation. Completes before the enclosing call returns to guest code, shares scope/budgets, and propagates errors. Parallel nested evaluations and ordinary source reentry are rejected. |
 
-Use `expandos: { maxKeys, maxKeyCodeUnits, assertActive? }` to allow guest assignment, deletion and enumeration of string and symbol fields. `maxKeys` must be 1–65,536; `maxKeyCodeUnits` must be 1–1,048,576 and counts string keys plus symbol descriptions in UTF-16 units. Guest graphs and closures remain subject to the realm's data budget. The optional synchronous `assertActive` hook must return `undefined` and can enforce the publisher's lifetime. Declared members, indexed names and prototype-related names remain protected. Expandos cannot be combined with `named`; arbitrary descriptors and prototype links remain unsupported.
+Use `expandos: { maxKeys, maxKeyCodeUnits, assertActive? }` to allow guest assignment, deletion and enumeration of string and symbol fields. `maxKeys` and `maxKeyCodeUnits` accept positive integer caps or `Infinity` and default to `Infinity`. Key code units count string keys plus symbol descriptions in UTF-16 units. Guest graphs and closures remain subject to the realm's data budget. The optional synchronous `assertActive` hook must return `undefined` and can enforce the publisher's lifetime. Declared members, indexed names and prototype-related names remain protected. Expandos cannot be combined with `named`; arbitrary descriptors and prototype links remain unsupported.
 
 For a timer-shaped `schedule(callback, delay, ...args)`, register `context.retainGuestArguments(schedule, 2)`. The host receives normal callback/delay values and opaque `GuestReference` handles for the remaining arguments. Pass those handles to `context.invokeCallback(callback, { args })` to recover the original guest objects and observe mutations made after scheduling. References also work as callback receivers and host return values, including cycles, closures, primitives and live host objects.
 
@@ -362,7 +362,7 @@ const collection = context.createHostObject({ indexed: {
 } });
 ```
 
-`length()` and `get(index)` must be synchronous. `maxLength` is required: an integer from 1 to 65,536. Every reported length must be a nonnegative integer within that cap and the execution array-length budget. Return existing `HostObject` handles for elements that need live identity; ordinary results use the normal copy boundary.
+`length()` and `get(index)` must be synchronous. `maxLength` is optional and defaults to `Infinity`; configure a positive integer cap when needed. Every reported length must be a nonnegative integer within that cap and the execution array-length budget. Return existing `HostObject` handles for elements that need live identity; ordinary results use the normal copy boundary.
 
 Saved collections observe current host contents. Index reads, `Object.keys`/`values`/`entries`, `Object.hasOwn`, `in`, `for...in`, `for...of`, array/object spread and `Array.from` use the live view. Enumerable keys include current indices and fixed members, but not `length`. `Array.from` preserves element identity and interleaves mapping with reads. Noncanonical and out-of-range indices never call `get`; fixed members cannot reuse `length` or canonical index names. Enumeration and traversal consume execution budgets, without eagerly allocating virtual properties.
 
@@ -385,8 +385,8 @@ const attributesObject = context.createHostObject({ named });
 | `get(name)` | Synchronous value provider, called only for a currently present name. Existing host conversion and identity rules apply. |
 | `set(name, value)` | Optional synchronous setter, including new names. Receives the normally converted host value; assignment returns the original guest RHS. Omit to keep named writes disabled. |
 | `delete(name)` | Optional synchronous deleter returning a boolean. Absent names return `true` without calling it; existing names return its result. Omit to keep deletion disabled. |
-| `maxKeys` | Required positive integer, at most 65,536. |
-| `maxKeyCodeUnits` | Required positive aggregate key-length cap, at most 1,048,576 UTF-16 code units. Execution, array, string and data budgets also apply. |
+| `maxKeys` | Optional positive integer cap; defaults to `Infinity`. |
+| `maxKeyCodeUnits` | Optional positive aggregate key-length cap in UTF-16 code units; defaults to `Infinity`. Execution, array, string and data budgets also apply. |
 | `enumerable` | Defaults to `true`. Set `false` to keep names readable and visible to `in`/`Object.hasOwn`, but omit them from keys/values/entries, object spread and `for...in`. |
 
 Fixed properties/methods take precedence over names. With `indexed`, numeric indices and `length` remain indexed members. Enumeration deduplicates collisions; names removed by an earlier getter are skipped. Named-only objects are not iterable—combine `named` with `indexed` when you need numeric collection access and `for...of`.
@@ -430,7 +430,7 @@ For one-shot use, `run(source, { extensions, grants, ... })` accepts the same re
 | `modules` | Module names mapped to export records or Maps; none by default. |
 | `importSpecifiers` | Optional exact names admitted beyond bare imports in harness execution; every name still requires explicit registration in `modules`. Supply the same allowlist to `restore` or snapshot replay. This does not load native, local, or network modules. |
 | `extensions`, `grants`, `builtinOverrides`, `limits` | Opt into a one-shot extension realm; see the supported options and lifetime rules above. |
-| `budget` | A `Budget` instance. Without one, only the default call-depth limit of 1,000 is configured. |
+| `budget` | A `Budget` instance. Limits default to `Infinity` when omitted. |
 | `signal` | Host `AbortSignal` for cancellation. |
 | `filename` | Diagnostic filename; defaults to `<input>`. |
 | `sourceLocation` | Optional trusted callback mapping one-based guest stack `{ line, column }` positions to `{ filename, line, column }`. Return `undefined` to retain a generated frame. It changes diagnostics only; re-supply it when resuming snapshots. |
@@ -451,13 +451,13 @@ For one-shot use, `run(source, { extensions, grants, ... })` accepts the same re
 | --- | --- |
 | `maxSteps` | Interpreter work counter. |
 | `deadline` | Absolute epoch milliseconds or a `Date`, not a duration. |
-| `maxCallDepth` | Nested interpreter calls. |
+| `maxCallDepth` | Nested interpreter calls, parser nesting, and snapshot validation depth. |
 | `stringLength`, `arrayLength` | Individual string and array lengths. |
 | `regexSourceLength` | Optional regex source cap; positive safe integer, unlimited when omitted. The general `stringLength` limit also applies. |
 | `regexCompileAllocations` | Optional per-regex compilation allocation cap; positive safe integer, unlimited when omitted. Compilation still charges work and retained data against the shared budget. |
 | `dataSize` | Retained sandbox data units, not bytes of process memory. |
 
-`JSON.parse` checks both parse paths before building native objects: input work counts toward steps and deadlines, array lengths and object member counts use `arrayLength`, and nesting uses `maxCallDepth` with an additional ceiling of 256 containers. Parsing requires room for a conservative temporary allocation bound of `16 * text.length + 8` data units alongside existing data; whitespace and duplicate keys count toward this bound.
+`JSON.parse` checks both parse paths before building native objects: input work counts toward steps and deadlines, array lengths and object member counts use `arrayLength`, and nesting uses `maxCallDepth` only when explicitly configured. Parsing requires room for a conservative temporary allocation bound of `16 * text.length + 8` data units alongside existing data; whitespace and duplicate keys count toward this bound.
 
 There are no runtime environment variables to set. `makeEnvModule({ allow, values? })` grants reads of names in `allow`; `values` supplies an explicit string map instead of reading the host's `process.env`. Disallowed reads throw `EnvAccessError`; allowed but unset names return `undefined`. Agent and MCP integrations may require their own credentials.
 
@@ -510,8 +510,8 @@ settlement data remains separately copied, and independent imports stay isolated
 Newly encountered imported Promises that have settled also support completed
 replay, including aliases across separate host outcomes and cyclic fulfillment
 data. Replay uses the original settlement data, not later guest mutations.
-Cross-outcome reconstruction enforces the combined nesting limit without
-recursively expanding the host stack. Newly encountered imported Promises that
+Cross-outcome reconstruction handles deeply nested data without recursively
+expanding the host stack. Newly encountered imported Promises that
 are still pending can be checkpointed for replay. Restoring them requires a
 matching proof from `hostCallResumeProvider`; the original input or host operation
 is not repeated. Aliases share one reconciliation request. Proofs may introduce

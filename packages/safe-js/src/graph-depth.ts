@@ -9,7 +9,7 @@ import { boxedDataProperties, isSandboxBox } from "./interp/boxed.js";
 import { regexGuestProperties } from "./interp/regexp-properties.js";
 import { generatorGuestProperties } from "./interp/generator-properties.js";
 
-export const MAX_DATA_DEPTH = 1_024;
+export const MAX_DATA_DEPTH = Infinity;
 
 export class SnapshotBudgetError extends Error {
   readonly code = "budgetExceeded";
@@ -28,22 +28,24 @@ export class SnapshotBudgetError extends Error {
   }
 }
 
-export function assertSandboxDataDepth(depth: number): void {
-  if (depth > MAX_DATA_DEPTH) {
-    throw new SandboxError({ budget: "dataDepth", current: depth, limit: MAX_DATA_DEPTH });
+export function assertSandboxDataDepth(depth: number, limit = MAX_DATA_DEPTH): void {
+  if (depth > limit) {
+    throw new SandboxError({ budget: "dataDepth", current: depth, limit });
   }
 }
 
-export function assertSnapshotDataDepth(depth: number, path: string): void {
-  if (depth > MAX_DATA_DEPTH) throw new SnapshotBudgetError(path, depth);
+export function assertSnapshotDataDepth(depth: number, path: string, limit = MAX_DATA_DEPTH): void {
+  if (depth > limit) throw new SnapshotBudgetError(path, depth, limit);
 }
 
-export function assertSnapshotGraphDepth(value: unknown, rootPath = "$"): void {
-  walkGraphDepth(value, rootPath, (depth, path) => assertSnapshotDataDepth(depth, path));
+export function assertSnapshotGraphDepth(value: unknown, rootPath = "$", limit = MAX_DATA_DEPTH): void {
+  if (limit === Infinity) return;
+  walkGraphDepth(value, rootPath, (depth, path) => assertSnapshotDataDepth(depth, path, limit));
 }
 
-export function assertSandboxGraphDepth(value: unknown): void {
-  walkGraphDepth(value, "<root>", (depth) => assertSandboxDataDepth(depth));
+export function assertSandboxGraphDepth(value: unknown, limit = MAX_DATA_DEPTH): void {
+  if (limit === Infinity) return;
+  walkGraphDepth(value, "<root>", (depth) => assertSandboxDataDepth(depth, limit));
 }
 
 function walkGraphDepth(

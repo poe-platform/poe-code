@@ -9,7 +9,6 @@ import { createModuleSource, createDynamicSource, createEvalSource, type Dynamic
 import type { ParseResult } from "../parse/parser.js";
 import { ParseError } from "../parse/format-error.js";
 import { DUMP_FORMAT_VERSION, EXECUTION_SEMANTICS, inMemoryRunSnapshots } from "./dump-format.js";
-import { MAX_DATA_DEPTH } from "../graph-depth.js";
 import { validateTypedArrayStorage } from "./typed-array.js";
 import { validateArrayBufferStorage } from "./array-buffer.js";
 import { validateSharedArrayBufferStorage } from "./shared-array-buffer.js";
@@ -24,9 +23,6 @@ import { validateGuestHeapNode, validateGuestHeapGraphs } from "./guest-heap-val
 import { validateGuestFunctionAst } from "./guest-ast-validation.js";
 import { validateTemplateObjects } from "./template-validation.js";
 
-const DEFAULT_MAX_ENTRIES = 100_000;
-const DEFAULT_MAX_STRING_LENGTH = 1_000_000;
-const DEFAULT_MAX_DATA_SIZE = 16_000_000;
 const TAGGED_VALUE_KINDS = new Set([
   "arguments",
   "array",
@@ -68,7 +64,6 @@ export class SnapshotValidationError extends Error {
 }
 
 type ValidationLimits = {
-  maxAggregateEntries: number;
   maxCallDepth: number;
   maxDepth: number;
   maxEntries: number;
@@ -79,7 +74,6 @@ type ValidationLimits = {
 type ValidationState = {
   allowFunctions: boolean;
   allowUndefined: boolean;
-  entries: number;
   dataSize: number;
   limits: ValidationLimits;
   validateTaggedPayloads: boolean;
@@ -93,9 +87,8 @@ export function validateSnapshotData(value: unknown): void {
   validateGenericValue(value, "$", 0, {
     allowFunctions: false,
     allowUndefined: false,
-    entries: 0,
     dataSize: 0,
-    limits: defaultLimits(),
+    limits: limitsFromBudget(),
     validateTaggedPayloads: false,
     dataPropertiesOnly: true,
     dataPrototypes: new WeakSet()
@@ -106,14 +99,13 @@ export function validateDumpEnvelope(
   snapshot: unknown,
   options: { resume?: boolean } = {}
 ): asserts snapshot is Record<string, unknown> {
-  const limits = defaultLimits();
+  const limits = limitsFromBudget();
   const root = requireRecord(snapshot, "$");
   const trusted = inMemoryRunSnapshots.has(root);
   const state: ValidationState = {
     allowHostFunctionState: trusted,
     allowFunctions: trusted,
     allowUndefined: true,
-    entries: 0,
     dataSize: 0,
     limits,
     validateTaggedPayloads: false,
@@ -408,7 +400,6 @@ export function validateInterpreterSnapshot(
   const state: ValidationState = {
     allowFunctions: false,
     allowUndefined: false,
-    entries: 0,
     dataSize: 0,
     limits,
     validateTaggedPayloads: true
@@ -424,9 +415,9 @@ export function validateInterpreterSnapshot(
     if (!(error instanceof SnapshotValidationError) || error.code !== "budgetExceeded") throw error;
     // Preserve semantic field diagnostics for small realm budgets without
     // dropping the wire-budget rejection. Before inspecting those fields,
-    // complete a bounded, callback-free data-safety check.
+    // complete a callback-free data-safety check.
     validateGenericValue(snapshot, "$", 0, {
-      ...dataState, entries: 0, dataSize: 0, limits: defaultLimits(), dataPrototypes: new WeakSet()
+      ...dataState, dataSize: 0, limits: limitsFromBudget(), dataPrototypes: new WeakSet()
     });
     preflightBudgetError = error;
   }
@@ -602,7 +593,7 @@ export function validateSnapshotSourceHash(
   const root = requireRecord(snapshot, "$");
   if (types.isProxy(root)) fail("invalidType", "$", "proxy objects are not snapshot data");
   snapshotDataEntries(root, "$");
-  requireNonEmptyString(root.sourceHash, "$.sourceHash", defaultLimits());
+  requireNonEmptyString(root.sourceHash, "$.sourceHash", limitsFromBudget());
 }
 
 function validateReferences(
@@ -1030,102 +1021,114 @@ function validateGenericValue(
   depth: number,
   state: ValidationState
 ): void {
-  validateSnapshotProxy(value, path, state.dataPropertiesOnly);
-  if (typeof value === "object" && value !== null && hasGuestObjectState(value) &&
-      !(state.allowHostFunctionState && (isSandboxModuleNamespace(value) ||
-        (isSandboxClosure(value) && !isGuestClosure(value))))) {
-    fail("invalidState", path, "guest function properties, prototype links and custom descriptors cannot be restored");
-  }
-  if (depth > state.limits.maxDepth)
-    fail("budgetExceeded", path, `exceeds nesting limit ${state.limits.maxDepth}`);
-  state.entries += 1;
-  if (state.entries > state.limits.maxAggregateEntries)
-    fail(
-      "budgetExceeded",
-      path,
-      `exceeds aggregate entry limit ${state.limits.maxAggregateEntries}`
-    );
-  if (typeof value === "string") {
-    requireString(value, path, state.limits);
-    state.dataSize += value.length;
-  } else if (Array.isArray(value)) {
-    if (value.length > state.limits.maxEntries) fail("budgetExceeded", path, "array is too large");
-    if (state.dataPropertiesOnly) {
-      const entries = snapshotDataEntries(value, path, state.dataPrototypes).filter(([key]) => key !== "length");
-      if (entries.length !== value.length)
-        fail("invalidType", path, "snapshot arrays must be dense");
-      for (const [key, entry] of entries) {
-        const index = Number(key);
-        if (
-          !Number.isInteger(index) ||
-          index < 0 ||
-          index >= value.length ||
-          String(index) !== key
-        ) {
-          fail("invalidType", path, "snapshot arrays cannot have named properties");
-        }
-        validateGenericValue(entry, `${path}[${key}]`, depth + 1, state);
-      }
-    } else {
-      for (const [key, entry] of ownSnapshotDataEntries(value, path, true)) {
-        const index = Number(key);
-        if (Number.isInteger(index) && index >= 0 && index < value.length && String(index) === key)
-          validateGenericValue(entry, `${path}[${index}]`, depth + 1, state);
-      }
+  type Frame = { value: unknown; path: string; depth: number; key?: string } | { exit: object };
+  const pending: Frame[] = [{ value, path, depth }];
+  const ancestors = new WeakSet<object>();
+  while (pending.length > 0) {
+    const frame = pending.pop()!;
+    if ("exit" in frame) {
+      ancestors.delete(frame.exit);
+      continue;
     }
-  } else if (value !== null && typeof value === "object") {
-    const record = value as Record<string, unknown>;
-    if (state.validateTaggedPayloads && isTaggedValueShape(record)) {
-      validateTaggedValue(record, path, state);
-    }
-    const entries = state.dataPropertiesOnly
-      ? snapshotDataEntries(value, path, state.dataPrototypes)
-      : ownSnapshotDataEntries(value, path, true);
-    if (state.dataPropertiesOnly) {
-      // Registered intrinsics carry realm state even when an earlier sibling
-      // is an ordinary runtime closure. Diagnose that state before rejecting
-      // the closure's transport shape; identity lookup never reads input keys.
-      for (const [key, entry] of entries) {
-        if (typeof entry === "object" && entry !== null &&
-            getIntrinsicIdentity(entry) !== undefined && hasGuestObjectState(entry))
-          fail("invalidState", `${path}${formatKey(key)}`, "mutated intrinsics require a serialized snapshot");
-      }
-    }
-    for (const [key, entry] of entries) {
-      const entryPath = `${path}${formatKey(key)}`;
-      requireString(key, entryPath, state.limits);
+    const { value, path, depth, key } = frame;
+    if (key !== undefined) {
+      requireString(key, path, state.limits);
       state.dataSize += key.length;
-      validateGenericValue(entry, entryPath, depth + 1, state);
     }
-  } else if (
-    !["boolean", "number"].includes(typeof value) &&
-    !(state.allowFunctions && typeof value === "function") &&
-    !(state.allowUndefined && value === undefined) &&
-    value !== null
-  ) {
-    fail("invalidType", path, "contains an unsupported value");
+    validateSnapshotProxy(value, path, state.dataPropertiesOnly);
+    if (typeof value === "object" && value !== null && hasGuestObjectState(value) &&
+        !(state.allowHostFunctionState && (isSandboxModuleNamespace(value) ||
+          (isSandboxClosure(value) && !isGuestClosure(value))))) {
+      fail("invalidState", path, "guest function properties, prototype links and custom descriptors cannot be restored");
+    }
+    if (depth > state.limits.maxDepth)
+      fail("budgetExceeded", path, `exceeds nesting limit ${state.limits.maxDepth}`);
+    if (typeof value === "object" && value !== null) {
+      if (ancestors.has(value)) {
+        if (state.dataPropertiesOnly) fail("invalidCycle", path, "snapshot data cannot contain cycles");
+        continue;
+      }
+      ancestors.add(value);
+      pending.push({ exit: value });
+    }
+    if (typeof value === "string") {
+      requireString(value, path, state.limits);
+      state.dataSize += value.length;
+    } else if (Array.isArray(value)) {
+      if (value.length > state.limits.maxEntries) fail("budgetExceeded", path, "array is too large");
+      if (state.dataPropertiesOnly) {
+        const entries = snapshotDataEntries(value, path, state.dataPrototypes).filter(([key]) => key !== "length");
+        if (entries.length !== value.length)
+          fail("invalidType", path, "snapshot arrays must be dense");
+        for (const [key, entry] of entries.reverse()) {
+          const index = Number(key);
+          if (
+            !Number.isInteger(index) ||
+            index < 0 ||
+            index >= value.length ||
+            String(index) !== key
+          ) {
+            fail("invalidType", path, "snapshot arrays cannot have named properties");
+          }
+          pending.push({ value: entry, path: `${path}[${key}]`, depth: depth + 1 });
+        }
+      } else {
+        for (const [key, entry] of ownSnapshotDataEntries(value, path, true).reverse()) {
+          const index = Number(key);
+          if (Number.isInteger(index) && index >= 0 && index < value.length && String(index) === key)
+            pending.push({ value: entry, path: `${path}[${index}]`, depth: depth + 1 });
+        }
+      }
+    } else if (value !== null && typeof value === "object") {
+      const record = value as Record<string, unknown>;
+      if (state.validateTaggedPayloads && isTaggedValueShape(record)) {
+        validateTaggedValue(record, path, state);
+      }
+      const entries = state.dataPropertiesOnly
+        ? snapshotDataEntries(value, path, state.dataPrototypes)
+        : ownSnapshotDataEntries(value, path, true);
+      if (state.dataPropertiesOnly) {
+        // Registered intrinsics carry realm state even when an earlier sibling
+        // is an ordinary runtime closure. Diagnose that state before rejecting
+        // the closure's transport shape; identity lookup never reads input keys.
+        for (const [key, entry] of entries) {
+          if (typeof entry === "object" && entry !== null &&
+              getIntrinsicIdentity(entry) !== undefined && hasGuestObjectState(entry))
+            fail("invalidState", `${path}${formatKey(key)}`, "mutated intrinsics require a serialized snapshot");
+        }
+      }
+      for (const [key, entry] of entries.reverse()) {
+        const entryPath = `${path}${formatKey(key)}`;
+        pending.push({ value: entry, path: entryPath, depth: depth + 1, key });
+      }
+    } else if (
+      !["boolean", "number"].includes(typeof value) &&
+      !(state.allowFunctions && typeof value === "function") &&
+      !(state.allowUndefined && value === undefined) &&
+      value !== null
+    ) {
+      fail("invalidType", path, "contains an unsupported value");
+    }
+    if (state.dataSize > state.limits.maxDataSize)
+      fail("budgetExceeded", path, `exceeds aggregate data limit ${state.limits.maxDataSize}`);
   }
-  if (state.dataSize > state.limits.maxDataSize)
-    fail("budgetExceeded", path, `exceeds aggregate data limit ${state.limits.maxDataSize}`);
 }
 
 // A guest-state fallback must not discard active caller data that occurs after
 // the first value requiring portable serialization. Inspect descriptors without
 // following cycles or consulting caller Proxy traps before conversion begins.
-export function validateRuntimeSnapshotDescriptors(snapshot: object): void {
+export function validateRuntimeSnapshotDescriptors(snapshot: object, budget?: Budget): void {
   const pending = [{ value: snapshot, path: "$", depth: 0 }];
   const seen = new WeakSet<object>();
-  let entries = 0;
+  const limits = limitsFromBudget(budget);
   while (pending.length > 0) {
     const { value, path, depth } = pending.pop()!;
     validateSnapshotProxy(value, path);
     if (seen.has(value)) continue;
     seen.add(value);
-    if (depth > MAX_DATA_DEPTH)
-      fail("budgetExceeded", path, `exceeds nesting limit ${MAX_DATA_DEPTH}`);
+    if (depth > limits.maxDepth)
+      fail("budgetExceeded", path, `exceeds nesting limit ${limits.maxDepth}`);
     for (const [key, entry] of ownSnapshotDataEntries(value, path, true, true)) {
-      if (++entries > DEFAULT_MAX_ENTRIES)
-        fail("budgetExceeded", path, `exceeds aggregate entry limit ${DEFAULT_MAX_ENTRIES}`);
       if (entry !== null && typeof entry === "object")
         pending.push({ value: entry, path: `${path}${formatKey(key)}`, depth: depth + 1 });
     }
@@ -1197,25 +1200,13 @@ function validateScopeCycles(
   }
 }
 
-function limitsFromBudget(budget: Budget): ValidationLimits {
+function limitsFromBudget(budget?: Budget): ValidationLimits {
   return {
-    maxAggregateEntries: DEFAULT_MAX_ENTRIES,
-    maxCallDepth: budget.limits.maxCallDepth ?? Infinity,
-    maxDepth: Math.min(MAX_DATA_DEPTH, budget.limits.maxCallDepth ?? MAX_DATA_DEPTH),
-    maxEntries: budget.limits.arrayLength ?? DEFAULT_MAX_ENTRIES,
-    maxStringLength: budget.limits.stringLength ?? DEFAULT_MAX_STRING_LENGTH,
-    maxDataSize: budget.limits.dataSize ?? DEFAULT_MAX_DATA_SIZE
-  };
-}
-
-function defaultLimits(): ValidationLimits {
-  return {
-    maxAggregateEntries: DEFAULT_MAX_ENTRIES,
-    maxCallDepth: Infinity,
-    maxDepth: MAX_DATA_DEPTH,
-    maxEntries: DEFAULT_MAX_ENTRIES,
-    maxStringLength: DEFAULT_MAX_STRING_LENGTH,
-    maxDataSize: DEFAULT_MAX_DATA_SIZE
+    maxCallDepth: budget?.limits.maxCallDepth ?? Infinity,
+    maxDepth: budget?.limits.maxCallDepth ?? Infinity,
+    maxEntries: budget?.limits.arrayLength ?? Infinity,
+    maxStringLength: budget?.limits.stringLength ?? Infinity,
+    maxDataSize: budget?.limits.dataSize ?? Infinity
   };
 }
 

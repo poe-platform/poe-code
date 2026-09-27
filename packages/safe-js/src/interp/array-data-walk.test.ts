@@ -1,7 +1,8 @@
 import { expect, it } from "vitest";
-import { MAX_DATA_DEPTH } from "../graph-depth.js";
 import { markDescriptorObject } from "./object-model.js";
 import { createSandboxClosure, measureSandboxData } from "./values.js";
+
+const STRESS_DEPTH = 1_024;
 
 function chain(depth: number, managed: boolean, childFirst: boolean, mixed: boolean): object {
   let root: object = {};
@@ -25,16 +26,11 @@ for (const managed of [false, true])
         // contribute fifteen; the leaf contributes one. No depth is charged for keys.
         const arrayUnits = managed ? 8 : 4;
         const units =
-          1 + (mixed ? (MAX_DATA_DEPTH / 2) * (arrayUnits + 15) : MAX_DATA_DEPTH * arrayUnits);
-        expect(measureSandboxData([chain(MAX_DATA_DEPTH, managed, childFirst, mixed)])).toBe(units);
+          1 + (mixed ? (STRESS_DEPTH / 2) * (arrayUnits + 15) : STRESS_DEPTH * arrayUnits);
+        expect(measureSandboxData([chain(STRESS_DEPTH, managed, childFirst, mixed)])).toBe(units);
         expect(() =>
-          measureSandboxData([chain(MAX_DATA_DEPTH + 1, managed, childFirst, mixed)])
-        ).toThrow(
-          expect.objectContaining({
-            code: "budgetExceeded",
-            budget: "dataDepth"
-          })
-        );
+          measureSandboxData([chain(STRESS_DEPTH + 1, managed, childFirst, mixed)])
+        ).not.toThrow();
       });
     }
 

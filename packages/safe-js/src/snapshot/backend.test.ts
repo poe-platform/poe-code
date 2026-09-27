@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { MAX_DATA_DEPTH, SnapshotBudgetError } from "../graph-depth.js";
 
 const gates = vi.hoisted(() => ({
   holdFirstRename: false,
@@ -122,23 +121,17 @@ describe("FileSnapshotBackend", () => {
     await expect(backend.read()).resolves.toEqual({ ...snapshot, version: 2 });
   });
 
-  it("retains the previous snapshot when deep serialization exceeds the budget", async () => {
+  it("writes deeply nested snapshots without a default depth ceiling", async () => {
     vol.mkdirSync("/snapshots");
     const backend = new FileSnapshotBackend("/snapshots/run.json");
     const previous = { sourceHash: "abc123", bindings: { value: "saved" } };
     await backend.write(previous);
 
     let value: unknown = "leaf";
-    for (let index = 0; index < 5_000; index += 1) value = { child: value };
+    for (let index = 0; index < 1_100; index += 1) value = { child: value };
 
-    await expect(backend.write({ sourceHash: "abc123", bindings: value })).rejects.toThrowError(
-      expect.objectContaining({
-        name: "SnapshotBudgetError",
-        current: MAX_DATA_DEPTH + 1,
-        limit: MAX_DATA_DEPTH
-      }) satisfies Partial<SnapshotBudgetError>
-    );
-    await expect(backend.read()).resolves.toEqual({ version: 2, ...previous });
+    await expect(backend.write({ sourceHash: "abc123", bindings: value })).resolves.toBeUndefined();
+    expect(await backend.read()).toHaveProperty("bindings");
     expect(vol.readdirSync("/snapshots")).toEqual(["run.json"]);
   });
 

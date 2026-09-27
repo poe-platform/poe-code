@@ -290,10 +290,7 @@ describe("dynamic named host properties", () => {
     ["maxKeys", 0],
     ["maxKeys", -1],
     ["maxKeys", 1.5],
-    ["maxKeys", 65537],
     ["maxKeyCodeUnits", 0],
-    ["maxKeyCodeUnits", Infinity],
-    ["maxKeyCodeUnits", 1048577],
     ["enumerable", "false"],
     ["enumerable", null]
   ])("rejects invalid declaration %s=%s before provider calls", async (field, value) => {

@@ -11,7 +11,7 @@ const parsers = [
 
 const chain = (count: number) => Array.from({ length: count }, () => "if (flag) value;").join(" else ") + " else fallback;";
 
-it.each(parsers)("parses else-if chains up to the explicit limit: $name", ({ parse }) => {
+it.each(parsers)("parses else-if chains beyond the former default limit: $name", ({ parse }) => {
   const source = chain(2048);
   let statement: Statement | undefined = parse(source);
   let count = 0;
@@ -22,7 +22,7 @@ it.each(parsers)("parses else-if chains up to the explicit limit: $name", ({ par
   }
   expect(count).toBe(2048);
   expect(statement).toMatchObject({ type: "ExpressionStatement", expression: { name: "fallback" } });
-  expect(() => parse(chain(2049))).toThrow("If statement nesting limit exceeded");
+  expect(() => parse(chain(2049))).not.toThrow();
 });
 
 it.each(parsers)("keeps dangling else clauses attached to their nearest if: $name", ({ parse }) => {

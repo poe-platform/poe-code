@@ -2,8 +2,9 @@ import { expect, it } from "vitest";
 import { Budget, createRealm } from "../core.js";
 import { Scope } from "./scope.js";
 import { measureSandboxData } from "./values.js";
-import { MAX_DATA_DEPTH } from "../graph-depth.js";
 import type { SandboxObject } from "./values.js";
+
+const STRESS_DEPTH = 1_024;
 
 it.each(["assignment", "copy"])("invalidates obsolete snapshots immediately on %s", mode => {
   const value = {text: "old guest data"};
@@ -47,14 +48,13 @@ it("observes scope metadata installed after the first accounting snapshot", () =
   expect(measureSandboxData(scope.retainedDataRoots())).toBe(measureSandboxData(scope.retainedValues()));
 });
 
-it("does not add artificial graph depth or weaken the data-depth limit", () => {
+it("measures scope roots beyond the former default depth without adding artificial depth", () => {
   let value: SandboxObject = {};
-  for (let index = 0; index < MAX_DATA_DEPTH; index++) value = {next: value};
+  for (let index = 0; index < STRESS_DEPTH; index++) value = {next: value};
   const scope = new Scope({value});
   expect(measureSandboxData(scope.retainedDataRoots())).toBe(measureSandboxData([value]));
   const tooDeep = new Scope({value: {next: value}});
-  expect(() => measureSandboxData(tooDeep.retainedDataRoots())).toThrow();
-  expect(() => measureSandboxData([{next: value}])).toThrow();
+  expect(measureSandboxData(tooDeep.retainedDataRoots())).toBe(measureSandboxData([{next: value}]));
 });
 
 it("deduplicates aliases but not independent equal primitive bindings", () => {

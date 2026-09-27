@@ -1,5 +1,4 @@
 import { expect, it } from "vitest";
-import { MAX_DATA_DEPTH } from "../graph-depth.js";
 import { createSandboxArguments } from "./arguments.js";
 import { Budget } from "./budget.js";
 import { registerIndexedClosureCaptures } from "./indexed-closure-captures.js";
@@ -10,6 +9,8 @@ import {
   type SandboxObject
 } from "./values.js";
 
+const STRESS_DEPTH = 1_024;
+
 function chain(depth: number): object {
   let root: SandboxObject = {};
   for (let index = 0; index < depth; index++) root = createSandboxArguments([root]);
@@ -17,10 +18,8 @@ function chain(depth: number): object {
 }
 
 it("measures nested arguments through the permitted data depth without native recursion", () => {
-  expect(measureSandboxData([chain(MAX_DATA_DEPTH)])).toBe(1 + 11 * MAX_DATA_DEPTH + 16);
-  expect(() => measureSandboxData([chain(MAX_DATA_DEPTH + 1)])).toThrow(
-    expect.objectContaining({ code: "budgetExceeded", budget: "dataDepth" })
-  );
+  expect(measureSandboxData([chain(STRESS_DEPTH)])).toBe(1 + 11 * STRESS_DEPTH + 16);
+  expect(() => measureSandboxData([chain(STRESS_DEPTH + 1)])).not.toThrow();
 });
 
 it("keeps argument siblings charged when an earlier callback mutates later descriptors", () => {

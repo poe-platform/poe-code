@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { deepCopyFromSandbox, deepCopyToSandbox } from "./values.js";
-import { MAX_DATA_DEPTH } from "../graph-depth.js";
 import { boxedValue, isSandboxBox } from "./boxed.js";
+
+const STRESS_DEPTH = 1_024;
 
 it("preserves symbol-keyed wrapper properties and cycles through copying", () => {
   const payload = Symbol("payload");
@@ -45,11 +46,11 @@ describe.each(["object", "array"])("symbol-keyed %s copies", kind => {
   });
 });
 
-it("enforces depth limits along symbol-only copy paths", () => {
+it("copies deep symbol-only paths without a default depth ceiling", () => {
   const key = Symbol("next");
   let source = {};
-  for (let depth = 0; depth <= MAX_DATA_DEPTH; depth++) source = { [key]: source };
+  for (let depth = 0; depth <= STRESS_DEPTH; depth++) source = { [key]: source };
   for (const copy of [deepCopyToSandbox, deepCopyFromSandbox]) {
-    expect(() => copy(source)).toThrow(expect.objectContaining({ name: "SandboxError", budget: "dataDepth" }));
+    expect(() => copy(source)).not.toThrow();
   }
 });

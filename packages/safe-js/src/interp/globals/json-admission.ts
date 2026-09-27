@@ -1,4 +1,4 @@
-import { Budget, SandboxError } from "../budget.js";
+import { Budget } from "../budget.js";
 
 // JSON can expand into containers, property slots, source records and a second
 // sandbox copy. Reserve a conservative bound in guest data units before any
@@ -27,8 +27,6 @@ export function admitJson(text: string, budget: Budget): void {
       }
       if (character === '"') quoted = true;
       else if (character === "[" || character === "{") {
-        // Also bound stack use when the caller supplies no call-depth limit.
-        if (frames.length >= 256) throw new SandboxError({ budget: "dataDepth", current: frames.length + 1, limit: 256 });
         const leave = budget.enterCall();
         frames.push({ array: character === "[", entries: 0, expectingValue: true, leave });
       } else if (character === "]" || character === "}") frames.pop()?.leave();

@@ -10,7 +10,7 @@ import { getSandboxDataProperty } from "./object-model.js";
 import { isSandboxClosure } from "./values.js";
 import { Budget } from "./budget.js";
 import { validateDumpEnvelope } from "../snapshot/validation.js";
-import { MAX_DATA_DEPTH } from "../graph-depth.js";
+const STRESS_DEPTH = 1_024;
 
 it("accepts untrusted bound-target chains beyond the former depth cap", async () => {
   const source="return Math.abs.bind(null)";
@@ -20,7 +20,7 @@ it("accepts untrusted bound-target chains beyond the former depth cap", async ()
   let target=entry.target;
   let id=Math.max(...Object.keys(saved.heap).map(Number))+1;
   let node=entry;
-  for(let index=0;index<=MAX_DATA_DEPTH;index++){
+  for(let index=0;index<=STRESS_DEPTH;index++){
     node={...entry,target};
     saved.heap[String(id)]=node;
     target={kind:"ref",id:id++};

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Budget } from "../interp/budget.js";
-import { assertSandboxGraphDepth, assertSnapshotGraphDepth, MAX_DATA_DEPTH } from "../graph-depth.js";
+import { assertSandboxGraphDepth, assertSnapshotGraphDepth } from "../graph-depth.js";
 import { getSandboxPrototype, setSandboxPrototype } from "../interp/object-model.js";
 import { collectionIteratorState, createSandboxCollectionIterator, isSandboxCollectionIterator, nextCollectionIterator } from "../interp/collection-iterator.js";
 import { getSandboxIterator } from "../interp/iteration.js";
@@ -8,6 +8,8 @@ import { cloneSandboxValue, createSandboxMap, createSandboxSet, isSandboxMap, ty
 import { decodeReplayData, encodeReplayData } from "./replay-data.js";
 import { restore } from "./restore.js";
 import { serialize, type RuntimeSnapshotValue } from "./serialize.js";
+
+const STRESS_DEPTH = 1_024;
 
 function roundTrip(graph: SandboxObject, format: "snapshot" | "replay" | "clone"): SandboxObject {
   if (format === "clone") return cloneSandboxValue(graph) as SandboxObject;
@@ -103,12 +105,14 @@ describe.each(["snapshot", "replay", "clone"] as const)("collection iterator %s 
 describe("collection iterator graph depth", () => {
   it.each(["map", "set"] as const)("follows hidden %s sources", kind => {
     let value: SandboxValue = undefined;
-    for (let depth = 0; depth <= MAX_DATA_DEPTH / 2; depth += 1) {
+    for (let depth = 0; depth <= STRESS_DEPTH / 2; depth += 1) {
       const source = kind === "map" ? createSandboxMap([["nested", value]]) : createSandboxSet([value]);
       value = createSandboxCollectionIterator(source, "values");
     }
-    expect(() => assertSandboxGraphDepth(value)).toThrowError(expect.objectContaining({ code: "budgetExceeded", budget: "dataDepth" }));
-    expect(() => assertSnapshotGraphDepth(value)).toThrowError(expect.objectContaining({ code: "budgetExceeded", budget: "dataDepth" }));
+    expect(() => assertSandboxGraphDepth(value)).not.toThrow();
+    expect(() => assertSandboxGraphDepth(value, STRESS_DEPTH)).toThrow(expect.objectContaining({ budget: "dataDepth" }));
+    expect(() => assertSnapshotGraphDepth(value)).not.toThrow();
+    expect(() => assertSnapshotGraphDepth(value, "$", STRESS_DEPTH)).toThrow(expect.objectContaining({ budget: "dataDepth" }));
   });
 
   it("accepts bounded cyclic sources", () => {

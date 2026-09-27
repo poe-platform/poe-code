@@ -1,4 +1,4 @@
-import { SandboxError, type Budget } from "./budget.js";
+import { type Budget } from "./budget.js";
 import { createNumberFormatter, numberFormatterOptions, numberFormatterResult } from "./numberformat-backend.js";
 import { objectToPrimitive } from "./string-coercion.js";
 import type { SandboxCallContext, SandboxClosure, SandboxObject, SandboxValue } from "./values.js";
@@ -32,10 +32,6 @@ export async function numberFormatValue(value: SandboxValue, budget: Budget, con
   return Number(primitive);
 }
 
-// Keep a single synchronous formatter call well below a 128 MiB isolate's
-// envelope, including transient native parts, strings and their guest copies.
-const MAX_FORMAT_ALLOCATION = 16 * 1024 * 1024;
-
 export function formatNumberValue(receiver: unknown, method: "format" | "formatToParts" | "formatRange" | "formatRangeToParts", values: Array<number | bigint | string>, budget: Budget): SandboxValue {
   const { native, options } = numberFormatState(receiver);
   // Hex conversion is linear and avoids the expensive decimal conversion we
@@ -59,8 +55,6 @@ export function formatNumberValue(receiver: unknown, method: "format" | "formatT
     // Even scientific output can require a decimal representation internally.
     const bytes = parts * 256 + characters * 2 + magnitudes.reduce((sum, digits) => sum + digits * 16, 0);
     if (method.endsWith("ToParts")) budget.allocateArrayLength(parts);
-    const totalBytes = budget.currentDataSize + bytes;
-    if (totalBytes > MAX_FORMAT_ALLOCATION) throw new SandboxError({ budget: "dataSize", current: totalBytes, limit: MAX_FORMAT_ALLOCATION });
     const reservation = {};
     budget.setRetainedDataUsage(reservation, bytes);
     try { return numberFormatterResult(native, method, values); }

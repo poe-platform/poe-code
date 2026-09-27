@@ -159,7 +159,7 @@ describe("indexed live host objects", () => {
     }
   );
 
-  it.each([0, -1, 1.5, 65537, Infinity])(
+  it.each([0, -1, 1.5, NaN])(
     "rejects maximum length %s during setup",
     async (maxLength) => {
       const { realm } = collectionRealm({

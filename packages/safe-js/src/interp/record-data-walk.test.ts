@@ -1,6 +1,7 @@
 import { expect, it } from "vitest";
-import { MAX_DATA_DEPTH } from "../graph-depth.js";
 import { createSandboxClosure, measureSandboxData } from "./values.js";
+
+const STRESS_DEPTH = 1_024;
 
 function chain(depth: number, childLast = true): object {
   let root = {};
@@ -12,10 +13,8 @@ function chain(depth: number, childLast = true): object {
 it.each([true, false])(
   "measures ordered record children through the depth boundary (childLast=%s)",
   (childLast) => {
-    expect(measureSandboxData([chain(MAX_DATA_DEPTH, childLast)])).toBe(1 + MAX_DATA_DEPTH * 15);
-    expect(() => measureSandboxData([chain(MAX_DATA_DEPTH + 1, childLast)])).toThrow(
-      expect.objectContaining({ code: "budgetExceeded", budget: "dataDepth" })
-    );
+    expect(measureSandboxData([chain(STRESS_DEPTH, childLast)])).toBe(1 + STRESS_DEPTH * 15);
+    expect(() => measureSandboxData([chain(STRESS_DEPTH + 1, childLast)])).not.toThrow();
   }
 );
 

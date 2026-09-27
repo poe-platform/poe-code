@@ -1,8 +1,9 @@
 import { expect, it } from "vitest";
-import { MAX_DATA_DEPTH } from "../graph-depth.js";
 import { Budget } from "./budget.js";
 import { createGuestProxy, guestProxyStates } from "./guest-proxy.js";
 import { createSandboxClosure, measureSandboxData, reconcileCompiledValues, type SandboxObject, type SandboxValue } from "./values.js";
+
+const STRESS_DEPTH = 1_024;
 
 function chain(length: number, edge: "target" | "handler"): SandboxValue {
   const shared: SandboxObject = {};
@@ -13,13 +14,11 @@ function chain(length: number, edge: "target" | "handler"): SandboxValue {
 }
 
 it.each(["target", "handler"] as const)("measures Proxy %s chains through the permitted depth", edge => {
-  expect(measureSandboxData([chain(MAX_DATA_DEPTH, edge)])).toBe(MAX_DATA_DEPTH + 2);
+  expect(measureSandboxData([chain(STRESS_DEPTH, edge)])).toBe(STRESS_DEPTH + 2);
 });
 
-it.each(["target", "handler"] as const)("reports dataDepth for an excessive Proxy %s chain", edge => {
-  expect(() => measureSandboxData([chain(MAX_DATA_DEPTH + 1, edge)])).toThrowError(
-    expect.objectContaining({ code: "budgetExceeded", budget: "dataDepth" })
-  );
+it.each(["target", "handler"] as const)("measures Proxy %s chains beyond the former default depth", edge => {
+  expect(measureSandboxData([chain(STRESS_DEPTH + 1, edge)])).toBe(STRESS_DEPTH + 3);
 });
 
 it.each([false, true])("reads the Proxy handler after target callbacks, including under quotas (held=%s)", held => {

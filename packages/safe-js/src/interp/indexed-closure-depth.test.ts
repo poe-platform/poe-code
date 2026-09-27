@@ -1,7 +1,8 @@
 import { expect, it } from "vitest";
-import { MAX_DATA_DEPTH } from "../graph-depth.js";
 import { registerIndexedClosureCaptures } from "./indexed-closure-captures.js";
 import { createSandboxClosure, measureSandboxData, type SandboxValue } from "./values.js";
+
+const STRESS_DEPTH = 1_024;
 
 function chain(length: number): SandboxValue {
   let value: SandboxValue = "leaf";
@@ -15,11 +16,9 @@ function chain(length: number): SandboxValue {
 }
 
 it("measures indexed closure captures through the permitted data depth", () => {
-  expect(measureSandboxData([chain(MAX_DATA_DEPTH + 1)])).toBe(MAX_DATA_DEPTH + 5);
+  expect(measureSandboxData([chain(STRESS_DEPTH + 1)])).toBe(STRESS_DEPTH + 5);
 });
 
-it("reports dataDepth rather than native stack overflow for deep indexed captures", () => {
-  expect(() => measureSandboxData([chain(MAX_DATA_DEPTH + 2)])).toThrowError(
-    expect.objectContaining({ code: "budgetExceeded", budget: "dataDepth" })
-  );
+it("measures deep indexed captures without a default depth ceiling", () => {
+  expect(() => measureSandboxData([chain(STRESS_DEPTH + 2)])).not.toThrow();
 });

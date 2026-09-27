@@ -38,12 +38,15 @@ it("pre-admits retained bytes even with grouping disabled", async () => {
   expect(native.mock.calls.length).toBe(0);
 });
 
-it("enforces a native allocation ceiling without optional guest limits", async () => {
-  const native = vi.spyOn(Intl.NumberFormat.prototype, "formatToParts");
-  await expect(run("export default value=>new Intl.NumberFormat('en').formatToParts(value)", {
-    entryPointArgs: [BigInt("9".repeat(40000))]
-  })).rejects.toMatchObject({ code: "budgetExceeded", budget: "dataSize" });
-  expect(native.mock.calls.length).toBe(0);
+it("defaults formatter admission to unlimited and still enforces explicit data budgets", () => {
+  const formatter = createSandboxNumberFormat("en", {});
+  const native = vi.spyOn(Intl.NumberFormat.prototype, "formatToParts").mockReturnValue([]);
+  const value = "9".repeat(40000);
+  expect(formatNumberValue(formatter, "formatToParts", [value], new Budget())).toEqual([]);
+  native.mockClear();
+  expect(() => formatNumberValue(formatter, "formatToParts", [value], new Budget({ dataSize: 10000 })))
+    .toThrow(expect.objectContaining({ budget: "dataSize", limit: 10000 }));
+  expect(native).not.toHaveBeenCalled();
 });
 
 it.each([{ useGrouping: false }, { notation: "scientific" }, { notation: "engineering" }])("allows bounded large magnitude output: %j", async options => {

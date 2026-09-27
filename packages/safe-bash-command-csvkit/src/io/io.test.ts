@@ -122,3 +122,13 @@ test("common opener uses Python splitext semantics for leading-dot basenames", a
     expect(f.result()).toEqual({ stdout: "a\nx\n", stderr: "" });
   }
 });
+
+for (const input of ["a\0,b\n", "a\0,b"]) test(`last buffered physical line strips NUL only for named input: ${JSON.stringify(input)}`, async () => {
+  for (const [path, expected] of [["data.csv", "a,b\n"], ["-", "a\0,b\n"]]) {
+    const fixture = setup(input, [path!]);
+    try {
+      expect(await execute("csvcut", fixture.context)).toBe(0);
+      expect(fixture.result()).toEqual({ stdout: expected, stderr: "" });
+    } finally { await Promise.all(fixture.cleanups.map(cleanup => cleanup())); }
+  }
+});

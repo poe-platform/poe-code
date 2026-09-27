@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem, Shell, agentCommands, yesCommands } from "../../src/index.js";
 
-test("Shell executes all 18 new commands end-to-end over VFS", async () => {
+test("Shell executes all 18 new commands end-to-end over VFS", async t => {
   const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands()).use(yesCommands());
+  t.after(() => shell.dispose());
 
   // 1. Identity & platform shims (mentioning Sandbox and VFS-ish/GNU)
   const idOut = await shell.exec("id && whoami && uname -a && hostname && nproc");
@@ -52,6 +53,7 @@ test("Shell executes all 18 new commands end-to-end over VFS", async () => {
     locale charmap
   `);
   assert.equal(utilsRes.exitCode, 0, utilsRes.stderr);
+  assert.equal(utilsRes.stderr, "");
   const lines = utilsRes.stdout.trim().split("\n");
   assert.equal(lines[0], "ping");
   assert.equal(lines[1], "ping");

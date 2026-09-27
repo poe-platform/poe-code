@@ -12,8 +12,14 @@ Stream repeated lines until downstream consumers close the pipe or the configure
 ## Quick Start
 
 ```ts
-import { createMemoryFileSystem, Shell, agentCommands } from "@poe-platform/safe-bash";
+import { createMemoryFileSystem, Shell, agentCommands, yesCommands } from "@poe-platform/safe-bash";
 
-const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
-const res = await shell.exec("yes accept | head -n 3");
+const shell = new Shell({ fs: createMemoryFileSystem() })
+  .use(agentCommands()).use(yesCommands());
+try {
+  const res = await shell.exec("yes accept | head -n 3");
+  console.log(res.stdout);
+} finally {
+  await shell.dispose();
+}
 ```

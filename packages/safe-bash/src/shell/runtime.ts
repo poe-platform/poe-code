@@ -7045,20 +7045,8 @@ export class Runtime {
       return false;
     }
     if (command.kind === "arithmetic") {
-      const expr = command.expression;
-      if (!expr.error) return isSafeSmiProgram(expr) && this.canSyncArithmeticWithoutFault(expr.tree, rawState);
-      const mPosMut = /^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*(=|\+=|-=)\s*\$(?:([1-9])|\{([1-9])\})\s*$/.exec(expr.source);
-      if (mPosMut) {
-        const varName = mPosMut[1]!;
-        const posIdx = Number(mPosMut[3] ?? mPosMut[4]) - 1;
-        const posVal = rawState.positional[posIdx];
-        if ( varName !== "OPTIND" && varName !== "PIPESTATUS" && !arrayStore(rawState)?.get(varName) && !hasActiveVariableAttributes(rawState) && posVal !== undefined && /^-?(?:0|[1-9][0-9]{0,12})$/.test(posVal)) {
-          const curVal = rawState.variables[varName] ?? "0";
-          if (typeof curVal === "string" && (curVal === "" || /^-?(?:0|[1-9][0-9]{0,12})$/.test(curVal))) {
-            return true;
-          }
-        }
-      }
+      // Earlier statements can change operands or shift positional parameters.
+      // A pre-entry state check cannot guarantee execution without fallback.
       return false;
     }
     if (command.kind === "conditional") {
@@ -9134,50 +9122,16 @@ export class Runtime {
         continue;
       }
       if (part.kind === "arithmetic") {
-        if (part.expression.error) {
-          if (byteLocale(rawState.variables) || rawState.depth !== 0 || /[+]{2}|--|<<|>>|[!~?:&,^|=]/.test(part.expression.source)) return false;
-          const cachedExpr = part.expression as { _cachedArithWord?: Word | null; _cachedArithSyntax?: unknown };
-          let expWord = cachedExpr._cachedArithSyntax === rawState.extensions?.syntax ? cachedExpr._cachedArithWord : undefined;
-          if (expWord === undefined) {
-            try {
-              expWord = parseArithmeticExpansion(part.expression.source, this.budget.parsing, false, 0, part.line, rawState.extensions?.syntax);
-            } catch {
-              expWord = null;
-            }
-            cachedExpr._cachedArithWord = expWord;
-            cachedExpr._cachedArithSyntax = rawState.extensions?.syntax;
-          }
-          if (!expWord || !this.isPureSyncValueWord(expWord, rawState)) return false;
-          continue;
-        }
-        if (part.expression.hasSubscript || !isSafeSmiProgram(part.expression)) return false;
+        // Names may acquire recursive expressions or faults earlier in the body.
+        // Admit only expressions whose safety is independent of mutable state.
+        const names = new Set<string>();
+        if (!collectPureReadOnlySmiNames(part.expression, names) || names.size !== 0) return false;
         continue;
       }
       if (part.kind === "substitution") {
-        if (part.script.lists.length !== 1) return false;
-        const list = part.script.lists[0]!;
-        if (list.terminator || list.pipelines.length !== 1) return false;
-        const p = list.pipelines[0]!;
-        if (p.negate || p.commands.length < 1 || p.commands.length > 5) return false;
-        const cmd = p.commands[0]!;
-        if (cmd.kind !== "simple" || cmd.redirects.length > 0 || cmd.words.length === 0) return false;
-        const w0Plain = cmd.words[0]!.plain;
-        if (!w0Plain || (w0Plain !== "printf" && w0Plain !== "echo") || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return false;
-        const def = this.commands.get(w0Plain);
-        if (!def || (w0Plain === "printf" ? def.execute !== printfCommand.execute : !defaultEchoExecutors.has(def.execute))) return false;
-        if (!cmd.words.slice(1).every(w => this.isPureSyncValueWord(w, rawState))) return false;
-        if (p.commands.length >= 2) {
-          if (syncPurePipelineSlotInUse || !this.budget.canSyncPurePipe || customRegisteredRegistries.has(this.commands) || rawState.errexit || rawState.nounset) return false;
-          for (let sIdx = 1; sIdx < p.commands.length; sIdx++) {
-            const sCmd = p.commands[sIdx]!;
-            if (sCmd.kind !== "simple" || sCmd.redirects.length !== 0 || sCmd.words.length === 0) return false;
-            const sName = sCmd.words[0]!.plain;
-            if (!sName || (sName !== "cut" && sName !== "tr" && sName !== "sort" && sName !== "head" && sName !== "tail" && sName !== "wc" && sName !== "sed" && sName !== "uniq" && sName !== "grep" && sName !== "awk")) return false;
-            if (rawState.functions.has(sName) || rawState.extensions?.builtins.has(sName)) return false;
-            if (!sCmd.words.slice(1).every(w => this.isPureSyncValueWord(w, rawState))) return false;
-          }
-        }
-        continue;
+        // Fast substitution can decline expanded formats/flags, output sizes
+        // or executor completion. It is not safe to replay prior body effects.
+        return false;
       }
       return false;
     }

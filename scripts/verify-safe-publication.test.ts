@@ -1,9 +1,15 @@
 import { createHash } from "node:crypto";
+import { execFile } from "node:child_process";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it, vi } from "vitest";
 import { readRegistry, runCommand, verifyCloudflareArtifacts, verifyPublication } from "./verify-safe-publication.mjs";
+
+vi.mock("node:child_process", async importOriginal => {
+  const actual = await importOriginal<typeof import("node:child_process")>();
+  return { ...actual, execFile: vi.fn(actual.execFile) };
+});
 
 const version = "0.1.669";
 const source = "e63cc14f91e17ffdfb004edd8e72d504a7e91353";
@@ -431,6 +437,12 @@ describe("bounded child execution", () => {
   });
 
   it("bounds child output", async () => {
+    vi.mocked(execFile).mockImplementationOnce((...parameters) => {
+      expect(parameters[2]).toMatchObject({ timeout: 1_000, maxBuffer: 1_048_576, killSignal: "SIGKILL" });
+      const callback = parameters[3] as (error: Error, stdout: string) => void;
+      callback(Object.assign(new Error("stdout maxBuffer length exceeded"), { code: "ERR_CHILD_PROCESS_STDIO_MAXBUFFER" }), "");
+      return {} as ReturnType<typeof execFile>;
+    });
     await expect(runCommand("/bin/sh", ["-c", "printf '%2000000s' x"], { timeout: 1_000 })).rejects.toMatchObject({ code: "ERR_CHILD_PROCESS_STDIO_MAXBUFFER" });
   });
 

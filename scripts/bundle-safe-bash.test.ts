@@ -163,10 +163,9 @@ it("runs injected llm providers and binary pipelines through the browser command
 });
 
 it("runs both reference llm transports without Node globals in a browser consumer", async () => {
-  const compiled = await bundlePublicConsumer(`
-    import { Shell, agentCommands, createMemoryFileSystem, toByteSource } from "@poe-platform/safe-bash";
-    import { llmCommands, createOpenAiProvider, createElevenLabsProvider } from "@poe-platform/safe-bash/commands/llm";
-    export async function run() {
+  const source = `
+    const { Shell, agentCommands, createMemoryFileSystem, toByteSource, llmCommands, createOpenAiProvider, createElevenLabsProvider } = browser;
+    async function run() {
       const requests = [];
       let disposed = 0;
       let temperature;
@@ -197,17 +196,15 @@ it("runs both reference llm transports without Node globals in a browser consume
         return { audio, image, requests, disposed, temperature };
       } finally { await shell.dispose(); }
     }
-  `);
+    ({ run });
+  `;
   const sandbox = createContext({
     TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
     AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
-    URL, FormData, Blob, Response, btoa, atob,
-    require(name: string) {
-      if (name !== "@poe-platform/safe-fs/core") throw new Error(name);
-      return filesystem;
-    },
+    URL, FormData, Blob, Response, btoa, atob, browser,
   });
-  const consumer = runInContext(`(function(){ const module = { exports: {} }; ${compiled}; return module.exports; })()`, sandbox);
+  expect(runInContext('typeof Buffer + ":" + typeof process + ":" + typeof require', sandbox)).toBe("undefined:undefined:undefined");
+  const consumer = runInContext(source, sandbox);
   const result = await consumer.run();
   expect(result.audio).toMatchObject({ exitCode: 0, stdout: "/wCA\n", stderr: "" });
   expect(result.image).toMatchObject({ exitCode: 0, stdout: "iVBORw==\n", stderr: "" });
@@ -397,6 +394,7 @@ beforeAll(async () => {
   const sandbox = createContext({
     TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
     AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
+    URL, FormData, Blob, Response, btoa, atob,
   });
   filesystem = runInContext(`(function(){ const module = { exports: {} }; ${filesystemBuild.outputFiles![0]!.text}; return module.exports; })()`, sandbox) as CoreFs;
   sandbox.canonical = filesystem;

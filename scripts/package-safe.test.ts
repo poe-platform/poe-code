@@ -1535,7 +1535,7 @@ it.each(["@poe-code/safe-fs/core", "poe-code/safe-fs/core", "@poe-platform/safe-
 it('ships xmllint and its shared XML engine through the established XML export', async () => {
   const { volume, options } = optionalLeftovers();
   const manifest = structuredClone(bashManifest);
-  const names = ['safe-bash-command-xmllint', 'safe-bash-xml-engine'];
+  const names = ['safe-bash-command-xmllint', 'safe-bash-xml-engine', 'safe-bash-contracts'];
   manifest.poeCode.integration.privateWorkspaces = Object.fromEntries(names.map(name => [name, bashManifest.poeCode.integration.privateWorkspaces[name as keyof typeof bashManifest.poeCode.integration.privateWorkspaces]])) as typeof manifest.poeCode.integration.privateWorkspaces;
   volume.writeFileSync('/repo/packages/safe-bash/package.json', JSON.stringify(manifest));
   for (const name of names) {
@@ -1544,6 +1544,11 @@ it('ships xmllint and its shared XML engine through the established XML export',
     volume.writeFileSync(`/repo/packages/${name}/LICENSE`, 'MIT\n');
   }
   const limits = readFileSync(new URL('../packages/safe-bash-xml-engine/src/limits.ts', import.meta.url), 'utf8');
+  for (const module of ['yield', 'managed-abort']) {
+    const source = readFileSync(new URL(`../packages/safe-bash-contracts/src/${module}.ts`, import.meta.url), 'utf8');
+    volume.writeFileSync(`/repo/packages/safe-bash-contracts/dist/${module}.js`, ts.transpileModule(source,
+      { compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 } }).outputText);
+  }
   volume.writeFileSync('/repo/packages/safe-bash-xml-engine/dist/index.js', 'export * from "./limits.js";');
   volume.writeFileSync('/repo/packages/safe-bash-xml-engine/dist/index.d.ts', 'export interface XmlQueryLimits { readonly maxNodes: number; }');
   volume.writeFileSync('/repo/packages/safe-bash-xml-engine/dist/limits.js', ts.transpileModule(limits, { compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 } }).outputText);
@@ -1556,10 +1561,26 @@ it('ships xmllint and its shared XML engine through the established XML export',
   expect(read('safe-bash/commands/xml/index.js')).toContain('"../../../safe-bash-command-xmllint/index.js"');
   expect(read('safe-bash-command-xmllint/index.js')).toContain('"../safe-bash-xml-engine/limits.js"');
   expect(read('safe-bash-command-xmllint/index.d.ts')).toContain('"../safe-bash-xml-engine/limits.js"');
-  const consumer = await import('data:text/javascript;base64,' + Buffer.from(read('safe-bash-xml-engine/limits.js')).toString('base64'));
+  expect(read('safe-bash-xml-engine/limits.js')).toContain('"../safe-bash-contracts/yield.js"');
+  expect(read('safe-bash-contracts/yield.js')).toContain('"./managed-abort.js"');
+  const bundled = await build({
+    entryPoints: ['/output/safe-bash/dist/safe-bash-xml-engine/limits.js'], bundle: true, write: false, format: 'esm', platform: 'neutral',
+    plugins: [{ name: 'packaged-xml-memory-consumer', setup(builder) {
+      builder.onResolve({ filter: /.*/ }, args => ({ path: path.posix.resolve(args.resolveDir || '/', args.path), namespace: 'packed' }));
+      builder.onLoad({ filter: /.*/, namespace: 'packed' }, args => ({ contents: volume.readFileSync(args.path, 'utf8').toString(), resolveDir: path.posix.dirname(args.path) }));
+    } }],
+  });
+  const consumer = await import('data:text/javascript;base64,' + Buffer.from(bundled.outputFiles[0]!.text).toString('base64'));
   expect(consumer.resolveXmlQueryLimits().maxNodes).toBe(Infinity);
   expect(consumer.resolveXmlQueryLimits({}).maxNodes).toBe(Infinity);
   expect(consumer.resolveXmlQueryLimits({ maxNodes: Infinity }).maxNodes).toBe(Infinity);
   expect(consumer.resolveXmlQueryLimits({ maxNodes: 10_000 }).maxNodes).toBe(10_000);
   expect(() => consumer.resolveXmlQueryLimits({ maxNodes: 0 })).toThrow(RangeError);
+  const controller = new AbortController(), reason = new Error('packaged XML cancelled');
+  const checkpoint = vi.fn(async (signal: AbortSignal) => { expect(signal).toBe(controller.signal); });
+  const budget = new consumer.XmlBudget(consumer.resolveXmlQueryLimits(), controller.signal, checkpoint);
+  await budget.tick(16384);
+  expect(checkpoint).toHaveBeenCalledTimes(1);
+  controller.abort(reason);
+  expect(() => budget.tick()).toThrow(reason);
 });

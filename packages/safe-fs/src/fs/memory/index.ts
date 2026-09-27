@@ -2964,6 +2964,37 @@ export class MemoryRedirectHandle {
     if (!this.append) this.position = pos + len;
   }
 
+  writeImmutableSync(immutableData: Uint8Array, signal?: AbortSignal): void {
+    signal?.throwIfAborted();
+    if (this.closed) throw new FsError("EBADF", { syscall: "write", path: this.path });
+    const len = immutableData.byteLength;
+    if (len === 0) return;
+    const mem = this.fs as unknown as {
+      ledger: MemoryLedger;
+      totalBytes: number;
+      changed: (n: MemoryNode, nw: number) => void;
+    };
+    if (
+      !this.append &&
+      this.position === 0 &&
+      this.node.byteLength === 0 &&
+      this.node.allocation === DUMMY_POOL_ALLOCATION &&
+      mem.ledger.hasInfiniteRetained &&
+      mem.ledger.hasInfiniteFileBytes &&
+      mem.ledger.limits.maxBytes === undefined
+    ) {
+      const now = Date.now === defaultDateNow ? fastWriteCachedNow : Date.now();
+      this.node.byteLength = len;
+      this.node.view = immutableData;
+      this.node.sourceRef = immutableData;
+      this.position = len;
+      mem.totalBytes += len;
+      mem.changed(this.node, now);
+      return;
+    }
+    this.writeRangeSync(immutableData, len, signal);
+  }
+
   writeSync(chunk: Uint8Array, signal?: AbortSignal): void {
     this.writeRangeSync(chunk, chunk.byteLength, signal);
   }

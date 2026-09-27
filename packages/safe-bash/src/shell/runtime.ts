@@ -1515,6 +1515,23 @@ class MemoryRedirectSink implements ByteSink {
     return true;
   }
 
+  writeImmutableSync(immutableData: Uint8Array): boolean {
+    this.signal.throwIfAborted();
+    const len = immutableData.byteLength;
+    const budget = this.budget;
+    if (budget.bytes + len > budget.maxOutputBytesSmi && len > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+    if (len > 0) {
+      try {
+        this.handle.writeImmutableSync(immutableData, this.signal);
+      } catch (error) {
+        this.failedError ??= error;
+        throw error;
+      }
+      budget.bytes += len;
+    }
+    return true;
+  }
+
   writeRangeSync(src: Uint8Array, len: number): boolean {
     this.signal.throwIfAborted();
     const budget = this.budget;
@@ -5300,13 +5317,45 @@ export class Runtime {
   }
 
   tryRunFastConstEchoBatch<T extends { unit: { script: Script; next: number }; nextCached?: T | undefined; locale: boolean; unitsCharged: number }>(
-    firstCachedUnit: T,
+    entryCachedUnit: T,
     sourceLength: number,
     state: State,
     io: IO,
   ): T | undefined {
-    const firstCc = (firstCachedUnit.unit.script as { _fastConstEcho?: { arg0: string; targetPath: string; dirPrefix: string; fileName: string; encoded: Uint8Array; append: boolean } })._fastConstEcho;
-    if (!firstCc || state.noexec) return undefined;
+    if (state.noexec) return undefined;
+    let leadingMkdirUnit: T | undefined;
+    let leadingMkdirPaths: readonly string[] | undefined;
+    let firstCachedUnit = entryCachedUnit;
+    let firstCc = (firstCachedUnit.unit.script as { _fastConstEcho?: { arg0: string; targetPath: string; dirPrefix: string; fileName: string; encoded: Uint8Array; append: boolean } })._fastConstEcho;
+    if (!firstCc) {
+      const nextU = entryCachedUnit.nextCached;
+      if (!nextU || entryCachedUnit.locale !== false || nextU.locale !== false || (entryCachedUnit.unit.script.warnings && entryCachedUnit.unit.script.warnings.length > 0)) return undefined;
+      firstCc = (nextU.unit.script as { _fastConstEcho?: { arg0: string; targetPath: string; dirPrefix: string; fileName: string; encoded: Uint8Array; append: boolean } })._fastConstEcho;
+      if (!firstCc) return undefined;
+      const mScript = entryCachedUnit.unit.script as { _cachedMkdirPPaths?: readonly string[] | null } & Script;
+      let mPaths = mScript._cachedMkdirPPaths;
+      if (mPaths === undefined) {
+        mPaths = null;
+        if (mScript.lists.length === 1 && !mScript.lists[0]!.terminator && mScript.lists[0]!.pipelines.length === 1 && !mScript.lists[0]!.pipelines[0]!.negate && mScript.lists[0]!.pipelines[0]!.commands.length === 1) {
+          const mCmd = mScript.lists[0]!.pipelines[0]!.commands[0]!;
+          if (mCmd.kind === "simple" && mCmd.redirects.length === 0 && mCmd.words.length >= 3 && mCmd.words[0]!.plain === "mkdir" && mCmd.words[1]!.plain === "-p") {
+            const arr: string[] = [];
+            let ok = true;
+            for (let wi = 2; wi < mCmd.words.length; wi++) {
+              const wp = mCmd.words[wi]!.plain;
+              if (!wp || !isCleanAbsolutePath(wp) || wp === "/" || wp === "/dev" || wp.startsWith("/dev/")) { ok = false; break; }
+              arr.push(wp);
+            }
+            if (ok) mPaths = arr;
+          }
+        }
+        mScript._cachedMkdirPPaths = mPaths;
+      }
+      if (!mPaths) return undefined;
+      leadingMkdirUnit = entryCachedUnit;
+      leadingMkdirPaths = mPaths;
+      firstCachedUnit = nextU;
+    }
     if (
       this.middleware.length > 0 ||
       io.terminal !== undefined ||
@@ -5357,7 +5406,33 @@ export class Runtime {
     ) {
       return undefined;
     }
-    const mode = 0o666 & ~(rawState.umask ?? 0o022);
+    const umask = rawState.umask ?? 0o022;
+    let skippedMkdirDeadRm = false;
+    if (leadingMkdirUnit !== undefined && leadingMkdirPaths !== undefined) {
+      if ((umask & 0o300) !== 0 || (this._outputFiles !== undefined && this._outputFiles.size > 0) || hasShellFunction(rawState, "mkdir") || rawState.extensions?.builtins.has("mkdir")) return undefined;
+      const mkdirDef = this.commands.get("mkdir");
+      if (!mkdirDef || !defaultMkdirExecutors.has(mkdirDef.execute)) return undefined;
+      const cachedRm = (firstCc as { _cachedRmTarget?: string | null })._cachedRmTarget;
+      const dirMode = 0o777 & ~umask;
+      try {
+        for (let mi = 0; mi < leadingMkdirPaths.length; mi++) {
+          const mp = leadingMkdirPaths[mi]!;
+          if (cachedRm && mp === cachedRm && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, mp) === undefined) {
+            skippedMkdirDeadRm = true;
+            this.budget.fileSystemOperation();
+            continue;
+          }
+          if (!tryMkdirMemorySync(this.backingFs, mp, true, dirMode, this.commandSignal)) return undefined;
+          this.budget.fileSystemOperation();
+        }
+      } catch {
+        this.signal.throwIfAborted();
+        return undefined;
+      }
+      this.budget.commands++;
+      this.budget.parsing.admit(firstCachedUnit.unitsCharged);
+    }
+    const mode = 0o666 & ~umask;
     try {
       if (!tryWriteMemoryFileInDirSync(this.backingFs, firstCc.dirPrefix, firstCc.fileName, firstCc.encoded, firstCc.append, mode, this.commandSignal)) {
         return undefined;
@@ -5405,7 +5480,7 @@ export class Runtime {
         cachedCc._cachedRmTarget = target;
         cachedCc._cachedScanCount = scanCount;
       }
-      if (target !== null && this.budget.commands + scanCount + 1 <= this.budget.maxCommandsSmi && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, target)?.size === 0) {
+      if (target !== null && this.budget.commands + scanCount + 1 <= this.budget.maxCommandsSmi && (skippedMkdirDeadRm || tryGetMemoryDirectoryEntryNamesSync(this.backingFs, target)?.size === 0)) {
         deadRmTarget = target;
         deadRmTargetLen = target.length;
       }
@@ -5459,12 +5534,14 @@ export class Runtime {
       const rmUnit = cur.nextCached;
       const rmCmd0 = rmUnit.unit.script.lists[0]?.pipelines[0]?.commands[0];
       if (rmDef && defaultRmExecutors.has(rmDef.execute) && rmCmd0 && rmCmd0.kind === "simple" && rmCmd0.words[0]?.plain === "rm" && rmCmd0.words[2]?.plain === deadRmTarget) {
-        let rmOk = false;
-        try {
-          rmOk = tryRmRfMemorySync(this.backingFs, deadRmTarget, this.commandSignal);
-        } catch {
-          this.signal.throwIfAborted();
-          rmOk = false;
+        let rmOk = skippedMkdirDeadRm;
+        if (!rmOk) {
+          try {
+            rmOk = tryRmRfMemorySync(this.backingFs, deadRmTarget, this.commandSignal);
+          } catch {
+            this.signal.throwIfAborted();
+            rmOk = false;
+          }
         }
         if (rmOk) {
           this.budget.parsing.admit(rmUnit.unitsCharged);

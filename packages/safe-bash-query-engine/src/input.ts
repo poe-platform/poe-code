@@ -844,6 +844,10 @@ let lastSpLineCount = 0;
 let lastSpResultCount = 0;
 let lastSpSteps = 0;
 
+export function getLastFastSelectProjectSavedOutBuf(len: number): Uint8Array | undefined {
+  return lastSpOutBufIntact && lastSpSavedOutBuf !== undefined && lastSpSavedOutBuf.byteLength === len ? lastSpSavedOutBuf : undefined;
+}
+
 export function tryProcessFlatSelectProjectChunkSync(
   rawChunk: Uint8Array,
   budget: Budget,

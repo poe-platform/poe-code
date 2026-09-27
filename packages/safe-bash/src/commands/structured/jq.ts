@@ -7,7 +7,7 @@ import { createSyncSingleChunkByteSource } from "../search/requirements.js";
 import { joinPath } from "../../contracts/path.js";
 import { escapeText, writeDiagnostic } from "../../escaping.js";
 import { Budget, copyObject, interruptible, JqHalt, JqError, JqLimitError, object, put, resolveJqLimits, truth, wellFormed, type InputLocation, type JqLimits, type Json, type StructuredCommandsOptions } from "./limits.js";
-import { jsonValues, parseJson, rawValues, stringify, tryProcessFlatJsonChunkSync, tryProcessFlatSelectProjectChunkSync, tryStringifyCompactSync, tryWriteCompactSync, type FlatSchemaPlan, type JsonFormat } from "./input.js";
+import { getLastFastSelectProjectSavedOutBuf, jsonValues, parseJson, rawValues, stringify, tryProcessFlatJsonChunkSync, tryProcessFlatSelectProjectChunkSync, tryStringifyCompactSync, tryWriteCompactSync, type FlatSchemaPlan, type JsonFormat } from "./input.js";
 import { Interpreter } from "./interpreter.js";
 import { moduleProgram, parse, type Ast } from "./parser.js";
 import { sortObjectKeys } from "./values.js";
@@ -168,7 +168,7 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
   let cachedAst = jqAstCache.get(source);
   if (!cachedAst && (limits.maxSourceBytes < source.length * 4 || limits.maxAstDepth < 256 || limits.maxSteps < 1000)) return undefined;
   const syncSink = typeof (context.stdout as { writeSync?: unknown }).writeSync === "function"
-    ? (context.stdout as unknown as { writeSync(chunk: Uint8Array): boolean; writeRangeSync?(src: Uint8Array, len: number): boolean })
+    ? (context.stdout as unknown as { writeSync(chunk: Uint8Array): boolean; writeRangeSync?(src: Uint8Array, len: number): boolean; writeImmutableSync?(data: Uint8Array): boolean })
     : undefined;
   if (!syncSink) return undefined;
   const fastMemFs = (context as {
@@ -254,7 +254,10 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
       sharedFastJqOutPos = 0;
       context.signal.throwIfAborted();
       committing = true;
-      const wrote = typeof syncSink.writeRangeSync === "function"
+      const savedOut = fastPos >= 0 ? getLastFastSelectProjectSavedOutBuf(len) : undefined;
+      const wrote = savedOut !== undefined && typeof syncSink.writeImmutableSync === "function"
+        ? syncSink.writeImmutableSync(savedOut)
+        : typeof syncSink.writeRangeSync === "function"
         ? syncSink.writeRangeSync(outBuf, len)
         : syncSink.writeSync(outBuf.subarray(0, len));
       if (!wrote) return undefined;

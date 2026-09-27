@@ -296,6 +296,7 @@ let sharedSedStdoutBufInUse = false;
 let lastSedPairProgram: readonly Instruction[] | undefined;
 let lastSedPairBatch: unknown;
 let lastSedPairStdoutLen = 0;
+let lastSedPairSavedOutBuf: Uint8Array | undefined;
 let lastSedPairSteps = 0;
 let lastSedPairStdoutIntact = false;
 let sedPairBimodalWarm = 0;
@@ -952,7 +953,7 @@ function tryExecutePairFastSync(
   const expr1 = inst1.pattern;
   if (inst0.replacementGroupCount! > expr0.groupCount || inst1.replacementGroupCount! > expr1.groupCount) return undefined;
   const stdoutSync = typeof (context.stdout as { writeSync?: unknown }).writeSync === "function"
-    ? (context.stdout as unknown as { writeSync(chunk: Uint8Array): boolean; writeRangeSync?(src: Uint8Array, len: number): boolean })
+    ? (context.stdout as unknown as { writeSync(chunk: Uint8Array): boolean; writeRangeSync?(src: Uint8Array, len: number): boolean; writeImmutableSync?(data: Uint8Array): boolean })
     : undefined;
   if (!stdoutSync) return undefined;
   const fastMem = (context as {
@@ -1024,7 +1025,9 @@ function tryExecutePairFastSync(
       (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
       if (lastSedPairStdoutLen > 0) {
         context.signal.throwIfAborted();
-        if (typeof stdoutSync.writeRangeSync === "function") {
+        if (lastSedPairSavedOutBuf !== undefined && typeof stdoutSync.writeImmutableSync === "function") {
+          stdoutSync.writeImmutableSync(lastSedPairSavedOutBuf);
+        } else if (typeof stdoutSync.writeRangeSync === "function") {
           stdoutSync.writeRangeSync(stdoutBuf, lastSedPairStdoutLen);
         } else {
           stdoutSync.writeSync(new Uint8Array(stdoutBuf.buffer, stdoutBuf.byteOffset, lastSedPairStdoutLen));

@@ -53,7 +53,7 @@
           "book.xls",
           "dir/book.xls",
           "https://example.test/a[b].xls",
-          "表] book.xls"
+          "\u8868] book.xls"
         ],
         "outputSha256": [
           "778b0666a30cff97240da6b0a04ecf3b9b7d9d3fdc47d7c8a4dc332f4d732d27",
@@ -794,7 +794,7 @@
           "remaining": "Encrypted-property export, unknown ancillary reexport, additional applicable profiles and native application qualification remain open."
         },
         "exportImplementation": {
-          "change": "Explicit rc4-cryptoapi-<bits>-properties profiles (40–128 by 8) share provider-derived CLI/SDK options. The exporter admits ancillary work before password acquisition, reuses the Workbook key, restarts payload blocks from zero, separately resets header/table block zero, clears both fDocProps bits, omits plaintext SummaryInformation and emits the empty DocumentSummaryInformation placeholder. Cipher buffers and owned containers are cleared on failure/disposal. Workbook-only profiles retain plaintext properties.",
+          "change": "Explicit rc4-cryptoapi-<bits>-properties profiles (40\u2013128 by 8) share provider-derived CLI/SDK options. The exporter admits ancillary work before password acquisition, reuses the Workbook key, restarts payload blocks from zero, separately resets header/table block zero, clears both fDocProps bits, omits plaintext SummaryInformation and emits the empty DocumentSummaryInformation placeholder. Cipher buffers and owned containers are cleared on failure/disposal. Workbook-only profiles retain plaintext properties.",
           "validation": "56 BIFF files / 1270 tests passed; maintained package lint/source/test/consumer types and selected four-workspace build passed. Original OpenSSL 52-byte vector and a 3034-byte container SHA256 verify exact ciphertext and no Workbook-style payload rekeying. Property edits, one password/entropy request, pre-secret resource/name admission and disposal controls pass.",
           "remaining": "Additional profile and native application qualification remain open; broader encryption family is not complete. Workbook-only export still diagnoses unknown ancillary loss.",
           "cli": "Compiled public createEngine/runCommand exported a title and named custom property with one password and entropy request, no diagnostics and no plaintext summary. Independent SheetJS CFB parsing plus OpenSSL decryption matched both plaintext property streams exactly. Encrypted output reopened through the SDK; terminal screenshot inspected. Native application qualification remains separate."
@@ -1187,7 +1187,7 @@
         }
       ],
       "validation": "Ten of fourteen original memory regressions failed. All 317 tests in sixteen Lotus files pass after correction, including WK1/WK2/Windows Works controls, independent range endpoints, conditional column wrapping, signed row boundaries and preserved absolute coordinates. Maintained package lint, source/test/consumer types and selected build pass.",
-      "publicQualification": "Nine compiled public --recalc WK1-to-XLSX conversions and SDK readbacks retain the expected formulas and values with no diagnostics. Four backward references recalculate to 42. A preserved absolute IW8193 reference evaluates to #REF! because the imported sheet has only 256 columns; the initial probe's zero expectation was corrected without changing product bounds. Inputs are 46 bytes; outputs are 4074–4092 bytes and remain in memory.",
+      "publicQualification": "Nine compiled public --recalc WK1-to-XLSX conversions and SDK readbacks retain the expected formulas and values with no diagnostics. Four backward references recalculate to 42. A preserved absolute IW8193 reference evaluates to #REF! because the imported sheet has only 256 columns; the initial probe's zero expectation was corrected without changing product bounds. Inputs are 46 bytes; outputs are 4074\u20134092 bytes and remain in memory.",
       "remaining": "Native Symphony/Works application readback, ambiguous DOS Works profiles, relative-sheet identity, modern range flag packing and wider format qualification remain open. No family is closed."
     },
     "lotusDirectSheetSpans": {
@@ -1388,7 +1388,7 @@
           54,
           59
         ],
-        "finding": "BIFF2 tName is eight bytes including its opcode, versus eleven in BIFF3/4. MemAreaN/MemNoMemN have no appended cell-range list and remain accepted in BIFF5/8 even though no longer generated. Corrected the previous test that followed Gnumeric’s undifferentiated pre-BIFF5 ten-byte NAME payload."
+        "finding": "BIFF2 tName is eight bytes including its opcode, versus eleven in BIFF3/4. MemAreaN/MemNoMemN have no appended cell-range list and remain accepted in BIFF5/8 even though no longer generated. Corrected the previous test that followed Gnumeric\u2019s undifferentiated pre-BIFF5 ten-byte NAME payload."
       },
       "publicValidation": "Compiled SDK and command conversions with explicit recalculation retained values [43,42] through BIFF7 and BIFF8; command CSV output was 43 followed by 42. All five conversions completed without diagnostics. The initial SDK probe omitted recalc and retained its cached zero; corrected probe options passed without another production change. Actual compiled command screenshot inspected."
     },
@@ -1594,8 +1594,8 @@
       "import": "ReadLabelranges converts declared labels into label/data pairs. Row data extends right to the Calc document column limit, or left when the label reaches that limit; column data analogously extends down or up. The importer uses document limits, not the BIFF record field limit. This profile distinction still needs native qualification.",
       "evaluation": "GetRefColRowNames first consults ordered label/data pairs. Automatic ranges use label text/empty cells, formula position and the next declared data range to choose their boundaries. Binary-operator neighbors and beginning/end positions select a scalar; label/intersection neighbors preserve ranges. A missing scalar intersection returns NoRef. Single-cell ranges remain position independent. Axis-relative flags survive the resulting reference.",
       "export": "XclExpLabelranges stores only label ranges, not paired data endpoints. It narrows row labels to the first column for Excel97/2000/XP, then writes the two range lists. This is an observable normalization, not lossless pair preservation.",
-      "currentCode": "Sheet.labelRanges now owns ordered axis/label/data pairs, and Workbook.automaticLabelLookup carries the global setting. BIFF8 reads and writes LABELRANGES/CONTINUE and USESELFS; snapshots validate pairs and resize clips or removes them. Live NLR tokens remain untranslated and four original memory regressions remain failing. FormulaNode still needs durable live-label identity and generic evaluator.scalar still differs from Calc NoRef.",
-      "nextAction": "Complete durable live-label formula identity, context-sensitive scalar/range resolution, contiguous-data-area evaluation and edit/shared/array/name/transport propagation. Verify native profiles and all BIFF variants before family closure. Metadata delivery alone does not complete the task.",
+      "currentCode": "Ordered label metadata and lookup settings are implemented. Live BIFF8 row/column subtypes 02/03/06/07 now import as tagged label anchors, recalculate with Calc-derived scalar/contiguous-region rules and reexport native ELF tokens. Dependencies dirty formulas after edits change data boundaries. Ordinary quoted strings remain strings. Wider subtypes and native/other-format transport remain open.",
+      "nextAction": "Qualify native application behavior; implement BIFF named-expression export, radical/extra-data forms, remaining BIFF profiles and XML/XLSX/ODF identity transport. Investigate source first. No compatibility family is closed by this increment.",
       "metadataImplementation": {
         "profile": "Inferred data endpoints use the BIFF8 sheet grid (65536 rows, 256 columns). This explicitly differs from Calc document maxima. Original overlapping and multi-column label rectangles retain their order and bytes; no Calc row-label narrowing is performed.",
         "settings": "USESELFS defaults disabled. Only BIFF8 workbook-global records enable it, using native nonzero semantics. Missing/disabled settings export through the disabled default; enabled settings emit one USESELFS record.",
@@ -1631,7 +1631,40 @@
         "screenshot": "Actual compiled runCommand output inspected with terminal-png; native application readback unavailable on this host.",
         "qa": "docs/plans/ssconvert-biff-label-ranges-qa.md"
       },
-      "runtimeFinding": "ScColRowNameAuto shrinks the candidate to its start cell, calls GetDataArea(includeOld=true, onlyDown=false), uses only the end result, then restricts to the label axis and prior boundary and excludes the formula cell. GetDataArea expands an occupied rectangle in two dimensions, including diagonal neighbors. One-dimensional scans and used-range bounds do not reproduce this behavior."
+      "runtimeFinding": "ScColRowNameAuto shrinks the candidate to its start cell, calls GetDataArea(includeOld=true, onlyDown=false), uses only the end result, then restricts to the label axis and prior boundary and excludes the formula cell. GetDataArea expands an occupied rectangle in two dimensions, including diagonal neighbors. One-dimensional scans and used-range bounds do not reproduce this behavior.",
+      "liveFormulaImplementation": {
+        "representation": "Canonical ssconvert @row:$A1 / @column.value:A$1 references retain label-cell coordinates, orientation, axis relativity and reference/value class. Scalar selection comes from immediate lexical neighbors; serialization preserves grouping, and copy/move rewriting retains the tag. These are not native Gnumeric strings.",
+        "evaluation": "Ordered declared pairs win; automatic lookup requires a string/empty anchor. Scalar intersection failure is REF. Automatic ranges use bounded sparse two-dimensional contiguous-area expansion, including diagonal cells, followed by the original axis/boundary/formula-cell restriction. Workbook edits and solver cell-at-a-time evaluation share conservative sheet dependencies; static range consumers cannot confuse the label cell with its data.",
+        "transport": "BIFF8 cell and supported group expressions write native ELF tokens. BIFF7, invalid relativity/cross-sheet anchors and BIFF NAME export refuse live labels. Gnumeric and grammar-based XLSX/ODF/SYLK writers refuse them explicitly. Literal strings containing the tag remain exportable. Refusals are interim limitations, not fulfillment of remaining format requirements.",
+        "validation": "Original import/evaluation regressions failed before implementation. Native-token export, grouping, dirty-propagation and export-boundary regressions also failed before their fixes. The broad formula/workbook/BIFF/Gnumeric/XLSX cohort passed 215 files and 20192 tests; the final changed formula test file passed 38 cases, including eight added grouping/group cases. Maintained package lint, source/test/consumer types and selected workspace build pass.",
+        "publicValidation": {
+          "exports": 16,
+          "axes": [
+            "row",
+            "column"
+          ],
+          "classes": [
+            "reference",
+            "value"
+          ],
+          "usages": [
+            "scalar",
+            "SUM"
+          ],
+          "interfaces": [
+            "compiled SDK",
+            "compiled runCommand"
+          ],
+          "independentReader": "SheetJS CFB plus manual FORMULA token/cache decoding",
+          "scalar": 2,
+          "aggregate": 5,
+          "staleInputCache": 999,
+          "xlsxRefusal": "exit 1, explicit live-label diagnostic, no output file"
+        },
+        "visualValidation": "Screenshot of captured actual compiled command diagnostics inspected; consumed captures purged after recording compact results.",
+        "qualification": "Source-derived behavior and independent binary checks only. Native application qualification is not complete.",
+        "qa": "docs/plans/ssconvert-biff-label-ranges-qa.md"
+      }
     },
     "xlsxFormulaTextAudit": {
       "url": "https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.spreadsheet.cellformula?view=openxml-3.0.1",
@@ -1653,7 +1686,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "BIFF7/8 imports and exports preserve external cell/range and global/scoped name identities, including defined expressions and arrays, with separate local/add-in/external namespaces. Import/export never fetch links or execute stored external name definitions; recalculation requires the explicit host. Original-record, namespace-order, codepage, path-length, index-limit, cancellation and budget controls pass; earlier name-index, relative-row, array and memory-area repairs remain. Compiled SDK/Shell profiles pass. Gnumeric 1.12.61 warns on external records; BIFF7 readback also misbinds external cells locally, so application qualification has not passed. Missing local targets now encode deleted references and recalculate as #REF! through cells, spans, names and array/shared formulas; both native BIFF7/8 reexports match with empty stderr. BIFF7 external multi-sheet ranges, wider token/version semantics, metadata preservation and other application/optional profiles remain open."
+      "currentFinding": "BIFF7/8 imports and exports preserve external cell/range and global/scoped name identities, including defined expressions and arrays, with separate local/add-in/external namespaces. Import/export never fetch links or execute stored external name definitions; recalculation requires the explicit host. Original-record, namespace-order, codepage, path-length, index-limit, cancellation and budget controls pass; earlier name-index, relative-row, array and memory-area repairs remain. Compiled SDK/Shell profiles pass. Gnumeric 1.12.61 warns on external records; BIFF7 readback also misbinds external cells locally, so application qualification has not passed. Missing local targets now encode deleted references and recalculate as #REF! through cells, spans, names and array/shared formulas; both native BIFF7/8 reexports match with empty stderr. BIFF7 external multi-sheet ranges, wider token/version semantics, metadata preservation and other application/optional profiles remain open. Live row/column label subtypes 02/03/06/07 now preserve identity during import, recalculation and BIFF8 reexport, including edit dependency propagation. Native NAME export, radical/extra-data subtypes and other-format/native qualification remain open; see biffLiveLabelRangeAudit."
     },
     {
       "id": "encrypted-biff",
@@ -1668,7 +1701,7 @@
     {
       "id": "encrypted-paradox",
       "status": "open",
-      "currentFinding": "On-file-key encrypted imports match native records. Explicit encryption=paradox export now uses a host-supplied 1–256-byte password, native NUL termination, bounded work and cancellation, without entropy or implicit password acquisition. Empty effective passwords are refused; plaintext stays default. All seven compiled SDK profiles and the Shell export reopen in native Gnumeric byte-exact with empty stderr. This is legacy obfuscation with a recoverable key and readable schema, not authenticated password security. Wider profiles, companions and final delivery qualification remain open. Owned decrypted buffers now clear on disposal and cancellation, including concurrent abort/cleanup. Physical block 65535 and the five neighboring retained pxlib vectors pass through the compiled decoder with explicit finite limits; no large fixture retained."
+      "currentFinding": "On-file-key encrypted imports match native records. Explicit encryption=paradox export now uses a host-supplied 1\u2013256-byte password, native NUL termination, bounded work and cancellation, without entropy or implicit password acquisition. Empty effective passwords are refused; plaintext stays default. All seven compiled SDK profiles and the Shell export reopen in native Gnumeric byte-exact with empty stderr. This is legacy obfuscation with a recoverable key and readable schema, not authenticated password security. Wider profiles, companions and final delivery qualification remain open. Owned decrypted buffers now clear on disposal and cancellation, including concurrent abort/cleanup. Physical block 65535 and the five neighboring retained pxlib vectors pass through the compiled decoder with explicit finite limits; no large fixture retained."
     },
     {
       "id": "perl-date",

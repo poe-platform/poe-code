@@ -33,3 +33,24 @@ Keep source inputs, generated workbooks, screenshots and command captures under
 8. Continue the live-label formula task: durable identity, scalar/range behavior,
    two-dimensional contiguous data regions, shared/array/name contexts,
    structural edits and formula transport. Metadata support does not complete it.
+
+9. For live subtypes `02`, `03`, `06`, `07`, inspect the pinned
+   `excform8.cxx`, `compiler.cxx`, `interpr4.cxx` and `table1.cxx` sources before
+   extending behavior. Feed original byte records through the compiled SDK and
+   `runCommand --recalc -T Gnumeric_Excel:excel_biff8`. Use A1="Sales", values
+   2 and 3 beside/below it, a blank gap, then 100, and a formula cache of 999.
+   Require scalar 2 or SUM 5. Independently extract CFB with SheetJS and decode
+   FORMULA: the original six ELF bytes and fresh numeric cache must survive all
+   sixteen axis/class/scalar-or-SUM/SDK-or-command exports.
+10. Check declared-pair precedence, numeric undeclared anchors, scalar REF
+    failures, a diagonal bridge, formula self-exclusion, named and group
+    evaluation, copy/move addressing and changed-data invalidation. Filling the
+    blank gap must dirty the label even with volatile queuing disabled. Verify
+    scalar/range selection survives both serializer modes and unary grouping.
+11. Attempt Gnumeric, XLSX and BIFF7 formula export, plus a BIFF NAME containing a
+    live label. Require explicit refusal; quoted text containing `@row:$A1`
+    remains ordinary text. Inspect actual command diagnostics in a screenshot.
+    These refusals are unfinished transport work, not format qualification.
+12. Continue native application readback, named-expression export, radical and
+    extra-data subtypes, cross-sheet label transport, remaining BIFF profiles,
+    and XML/XLSX/ODF live identity transport before closing the formula family.

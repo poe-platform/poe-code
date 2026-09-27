@@ -1,6 +1,6 @@
 import { SsconvertError } from "../contracts.js";
 import type { FormulaDocument, FormulaNode, ParsePosition, ReferenceEndpoint } from "./ast.js";
-import { serializeReference, quoteFormulaString } from "./serialization.js";
+import { serializeReference, serializeLabelReference, quoteFormulaString } from "./serialization.js";
 
 export function visitFormula(node: FormulaNode, visitor: (node: FormulaNode) => void): void {
   visitor(node);
@@ -57,8 +57,12 @@ export function rewriteReferences(document: FormulaDocument, edit: ReferenceRewr
       // External references still translate during a copy, but are never renamed locally.
       const unchanged = JSON.stringify(first) === JSON.stringify(node.first) && JSON.stringify(last) === JSON.stringify(node.last) &&
         target.row === document.position.row && target.column === document.position.column;
-      if (!unchanged) changes.push({ start: node.start, end: node.end, text: serializeReference(first, last, document.grammar,
-        { ...target, sheet: document.sheetNames?.[target.sheet] ?? target.sheet }) });
+      if (!unchanged) {
+        const position = { ...target, sheet: document.sheetNames?.[target.sheet] ?? target.sheet };
+        changes.push({ start: node.start, end: node.end, text: node.label
+          ? serializeLabelReference({ ...node, first, ...(last ? { last } : {}) }, document.grammar, position)
+          : serializeReference(first, last, document.grammar, position) });
+      }
     } else if (node.kind === "name" && (node.workbook === undefined || node.workbook === "") && node.sheet && edit.sheets?.has(node.sheet)) {
       const text = quoteFormulaString(edit.sheets.get(node.sheet)!, "'", document.grammar) + document.grammar.sheetSeparator + node.name;
       changes.push({ start: node.start, end: node.end, text: document.grammar.bracketReferences ? "[" + text + "]" : text });

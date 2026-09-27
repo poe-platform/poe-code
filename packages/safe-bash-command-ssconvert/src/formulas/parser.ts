@@ -19,7 +19,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
   const rangeSeparator = grammar.rangeSeparator ?? ":";
   for (const value of [position.row, position.column])
     if (!Number.isSafeInteger(value) || value < 0) throw new SsconvertError("invalid-request", "Invalid formula parse position");
-  let offset = 0, depth = 0, nodes = 0;
+  let offset = 0, depth = 0, nodes = 0, hasLabels = false;
   for (const prefix of grammar.prefixes) if (source.startsWith(prefix)) { offset = prefix.length; break; }
   const heights = new WeakMap<FormulaNode, number>();
   const syntax = {};
@@ -216,6 +216,22 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
     if (++depth > 128) throw new SsconvertError("resource-limit", "ssconvert formula depth limit exceeded");
     try {
       const c = source[offset];
+      if (c === "@" && grammar.id === "gnumeric") {
+        // Explicit ssconvert label references avoid the ambiguity of Gnumeric's
+        // ordinary single-quoted strings. The address remains the live anchor.
+        offset++;
+        const axis = source.startsWith("row", offset) ? "row" : source.startsWith("column", offset) ? "column" : undefined;
+        if (!axis) fail("Invalid label reference axis");
+        offset += axis.length;
+        const referenceClass = source.startsWith(".value", offset) ? "value" : "reference";
+        if (referenceClass === "value") offset += 6;
+        if (source[offset++] !== ":") fail("Invalid label reference");
+        const target = referenceOrName();
+        if (target?.kind !== "reference" || target.last || !target.first.row || !target.first.column || target.first.workbook !== undefined)
+          fail("Invalid label reference target");
+        hasLabels = true;
+        return { ...target, start, label: { axis, referenceClass, scalar: false } };
+      }
       if (grammar.bracketReferences) for (const spelling of ["[#REF!]", "[.#REF!]", "[.$#REF!]"]) {
         if (source.startsWith(spelling, offset)) {
           offset += spelling.length;
@@ -420,7 +436,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
       else if (op === ":" && rangeSeparator !== ":") { op = ""; width = 0; }
       if (grammar.hashLogicals && source.startsWith("#AND#", offset)) { op = "∧"; width = 5; }
       if (grammar.hashLogicals && source.startsWith("#OR#", offset)) { op = "∨"; width = 4; }
-      if (grammar.intersection === " " && spaced && referenceLike(left) && (letter(source[offset]) || source[offset] === "$" || source[offset] === "'" || source[offset] === "[" || source[offset] === "(")) { op = "intersection"; width = 0; }
+      if (grammar.intersection === " " && spaced && referenceLike(left) && (letter(source[offset]) || source[offset] === "$" || source[offset] === "'" || source[offset] === "[" || source[offset] === "(" || source[offset] === "@")) { op = "intersection"; width = 0; }
       else if (grammar.intersection && op === grammar.intersection && grammar.intersection !== " ") op = "intersection";
       else if (op === grammar.union) op = "union";
       const precedence = ["=", "==", "<", ">", "<=", ">=", "<>", "!="].includes(op) ? 1 : op === "&" ? 2 : op === "+" || op === "-" ? 3 :
@@ -436,7 +452,26 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
     return left;
   }
   try {
-    const root = expression(0); space(); if (offset !== source.length) fail();
+    let root = expression(0); space(); if (offset !== source.length) fail();
+    if (hasLabels) {
+      // Calc GetRefColRowNames inspects immediate token neighbors, including
+      // explicit parentheses and argument separators, before selecting a scalar.
+      type Neighbor = "binary" | "intersection" | "other";
+      const select = (value: FormulaNode, before: Neighbor, after: Neighbor): FormulaNode => {
+        options.signal?.throwIfAborted();
+        if (value.kind === "reference" && value.label) return { ...value, label: { ...value.label,
+          scalar: before !== "intersection" && after !== "intersection" && (before === "binary" || after === "binary") } };
+        if (value.kind === "parentheses") return { ...value, child: select(value.child, "other", "other") };
+        if (value.kind === "unary") return { ...value, child: select(value.child, value.op === "%" ? before : "other", value.op === "%" ? "other" : after) };
+        if (value.kind === "binary") {
+          const neighbor = value.op === "intersection" ? "intersection" : "binary";
+          return { ...value, left: select(value.left, before, neighbor), right: select(value.right, neighbor, after) };
+        }
+        if (value.kind === "call") return { ...value, args: value.args.map(child => select(child, "other", "other")) };
+        return value;
+      };
+      root = select(root, "binary", "binary");
+    }
     const sheetNames = options.workbook ? Object.freeze(Object.fromEntries(options.workbook.sheets.map(sheet => {
       options.signal?.throwIfAborted();
       return [sheet.id, sheet.name];

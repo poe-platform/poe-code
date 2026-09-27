@@ -90,10 +90,30 @@ export function serializeReference(first: ReferenceEndpoint, last: ReferenceEndp
   return external + span + a + (last && (a !== b || last.sheet === first.sheet) ? ":" + b : "");
 }
 
+export function serializeLabelReference(node: Extract<FormulaNode, { kind: "reference" }>, grammar: FormulaGrammar, position: ParsePosition): string {
+  if (!node.label || grammar.id !== "gnumeric")
+    throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: live label reference in target grammar");
+  const address = serializeReference(node.first, node.last, grammar, position);
+  if (address.endsWith("#REF!")) return "#REF!";
+  return "@" + node.label.axis + (node.label.referenceClass === "value" ? ".value" : "") + ":" + address;
+}
+
 /** Serialize the tree, retaining explicit grouping even across different precedences. */
 export function serializeExpression(document: FormulaDocument, grammar = document.grammar, preserveSource = true, canonical = false,
   options: { readonly relativeSheets?: "preserve" | "fixed" } = {}): string {
   if (preserveSource && grammar === document.grammar && options.relativeSheets !== "fixed") return document.source;
+  const pending = document.source.includes("@") ? [document.root] : [];
+  let labels = false;
+  while (pending.length) {
+    const node = pending.pop()!;
+    if (node.kind === "reference" && node.label) { labels = true; break; }
+    if (node.kind === "unary" || node.kind === "parentheses") pending.push(node.child);
+    else if (node.kind === "binary") pending.push(node.left, node.right);
+    else if (node.kind === "call") for (const child of node.args) pending.push(child);
+    else if (node.kind === "array") for (const row of node.rows) for (const child of row) pending.push(child);
+  }
+  // Extra grouping changes Calc label scalar selection. Preserve the parsed
+  // grouping and associativity when emitting this canonical reference syntax.
   const position = { ...document.position, sheet: document.sheetNames?.[document.position.sheet] ?? document.position.sheet };
   function emit(value: FormulaNode, parentPrecedence = -1): string {
     if (value.kind === "literal" && value.value.kind === "error" && !grammar.quotedErrors && !["#NAME?", "#REF!", "#VALUE!", "#NUM!", "#DIV/0!", "#N/A", "#NULL!"].includes(value.value.value))
@@ -103,7 +123,7 @@ export function serializeExpression(document: FormulaDocument, grammar = documen
         value.value.kind === "error" && grammar.quotedErrors && !["#NAME?", "#REF!", "#VALUE!", "#NUM!", "#DIV/0!", "#N/A", "#NULL!"].includes(value.value.value) ? "#" + quoteFormulaString(value.value.value, '"', grammar) :
         value.value.kind === "boolean" ? (value.value.value ? "TRUE" : "FALSE") + (grammar.booleanFunctions ? "()" : "") : String(value.value.value);
       case "omitted": return "";
-      case "reference": return serializeReference(
+      case "reference": return value.label ? serializeLabelReference(value, grammar, position) : serializeReference(
         options.relativeSheets === "fixed" ? { ...value.first, sheetRelative: false } : value.first,
         options.relativeSheets === "fixed" && value.last ? { ...value.last, sheetRelative: false } : value.last, grammar, position);
       case "name": {
@@ -117,20 +137,20 @@ export function serializeExpression(document: FormulaDocument, grammar = documen
       }
       case "parentheses": return "(" + emit(value.child) + ")";
       case "unary": {
-        if (!canonical) return value.op === "%" ? "(" + emit(value.child) + ")%" : value.op + "(" + emit(value.child) + ")";
+        if (!canonical && !labels) return value.op === "%" ? "(" + emit(value.child) + ")%" : value.op + "(" + emit(value.child) + ")";
         const precedence = value.op === "%" ? 6 : 7;
         const text = value.op === "%" ? emit(value.child, precedence) + "%" : value.op + emit(value.child, precedence);
-        return precedence <= parentPrecedence ? "(" + text + ")" : text;
+        return (labels ? precedence < parentPrecedence : precedence <= parentPrecedence) ? "(" + text + ")" : text;
       }
       case "binary": {
         if (value.op === "intersection" && !grammar.intersection)
           throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: formula intersection in target grammar");
         const operator = value.op === "union" ? grammar.union : value.op === "intersection" ? grammar.intersection : value.op === ":" ? grammar.rangeSeparator ?? ":" : value.op;
-        if (!canonical) return "(" + emit(value.left) + operator + emit(value.right) + ")";
+        if (!canonical && !labels) return "(" + emit(value.left) + operator + emit(value.right) + ")";
         const precedence = ["=", "<>", "<", ">", "<=", ">="].includes(value.op) ? 1 : value.op === "&" ? 2 : ["+", "-"].includes(value.op) ? 3 : ["*", "/"].includes(value.op) ? 4 : value.op === "^" ? 5 : value.op === "union" ? 8 : value.op === "intersection" ? 9 : 10;
         let left = emit(value.left, value.op === "^" ? precedence : precedence - 1);
-        if (value.op === "^" && (left.startsWith("-") || left.startsWith("+"))) left = "(" + left + ")";
-        const text = left + operator + emit(value.right, precedence);
+        if (!labels && value.op === "^" && (left.startsWith("-") || left.startsWith("+"))) left = "(" + left + ")";
+        const text = left + operator + emit(value.right, labels && value.op === "^" && !grammar.leftAssociativePower ? precedence - 1 : precedence);
         return precedence <= parentPrecedence ? "(" + text + ")" : text;
       }
       case "array": return "{" + value.rows.map(row => row.map(child => child.kind === "unary" && child.child.kind === "literal" && child.child.value.kind === "number" ? child.op + String(child.child.value.value) : emit(child)).join(grammar.arrayColumn)).join(grammar.arrayRow) + "}";

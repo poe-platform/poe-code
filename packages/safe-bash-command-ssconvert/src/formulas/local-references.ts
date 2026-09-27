@@ -5,6 +5,8 @@ import type { CalculationRange } from "./dependencies.js";
 
 /** Resolve geometry only. Formula namespaces never acquire host capabilities. */
 export function localReferenceRange(book: Workbook, node: Extract<FormulaNode, { kind: "reference" }>, position: ParsePosition): CalculationRange | undefined {
+  // A live label selects data dynamically; its anchor is not that data range.
+  if (node.label) return undefined;
   const first = node.first, last = node.last ?? first;
   if (first.workbook !== undefined || last.workbook !== undefined) return undefined;
   const resolve = (name?: string) => name === undefined ? book.sheets.find(sheet => sheet.id === position.sheet) :

@@ -6,6 +6,7 @@ import { parseExpression } from "./parser.js";
 import { parseNamedExpression } from "./named-expressions.js";
 import { gnumericGrammar, sylkGrammar } from "./conventions.js";
 import { binary, numeric, numericResult } from "./values.js";
+import { DEFAULT_SHEET_SIZE } from "../workbook.js";
 import type { CellValue } from "../workbook.js";
 
 export interface CalculationRange {
@@ -122,8 +123,20 @@ export function buildDependencyGraph(
       const { node, position, names, depth } = pending.pop()!;
       if (depth > 128) throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded");
       tick();
-      if (node.kind === "call" && ["RAND", "NOW", "TODAY"].includes(node.name)) volatile.add(cell);
-      if (node.kind === "reference") { const value = resolve(node, position); if (value) range(cell, value); }
+      if (node.kind === "call" && ["RAND", "NOW", "TODAY"].includes(node.name) || node.kind === "reference" && node.label) volatile.add(cell);
+      if (node.kind === "reference") {
+        const { label, ...anchor } = node;
+        const value = resolve(anchor, position);
+        if (value && label) {
+          // Any occupied cell can extend an automatic label's data area.
+          // Share this conservative dependency with edit and solver paths;
+          // staticScalar/staticRanges still cannot treat it as a fixed range.
+          for (const sheet of value.sheets) {
+            const size = sheet.size ?? DEFAULT_SHEET_SIZE;
+            range(cell, { sheets: [sheet], firstRow: 0, firstColumn: 0, lastRow: size.rows - 1, lastColumn: size.columns - 1 });
+          }
+        } else if (value) range(cell, value);
+      }
       if (node.kind === "call" && (node.name === "INDIRECT" || node.name === "OFFSET")) for (const value of staticRanges(node, position, names, depth)) range(cell, value);
       if (node.kind === "binary" && node.op === ":") for (const value of staticRanges(node, position, names, depth)) range(cell, value);
       if (node.kind === "name" && (node.workbook === undefined || node.workbook === "")) {

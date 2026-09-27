@@ -8,6 +8,7 @@ import { parseExpression } from "./parser.js";
 import { buildDependencyGraph, type CalculationRange } from "./dependencies.js";
 import { parseNamedExpression } from "./named-expressions.js";
 import { localReferenceRange } from "./local-references.js";
+import { resolveLabelReference } from "./label-references.js";
 import { translateFormulaGroup } from "./workbook.js";
 import { binary, blank, difference, error, numeric, numericResult, product, sum } from "./values.js";
 import { snapshotRecords } from "../workbook/model.js";
@@ -115,6 +116,11 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
       row.map((_: unknown, column: number) => admitted[index * columns + column]!.value)) };
   }
   function reference(node: Extract<FormulaNode, { kind: "reference" }>, position: ParsePosition): Value {
+    if (node.label) {
+      if (activeCell) dynamicCells.add(activeCell);
+      const value = resolveLabelReference(book, node, position, read, tick);
+      trackRange(value); return value;
+    }
     const first = node.first, last = node.last ?? first;
     // External references never initiate host/file/network access.
     if (first.workbook !== undefined || last.workbook !== undefined) return external({ kind: "reference", first,
@@ -177,7 +183,7 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
       if (node.kind === "omitted") return blank;
       if (node.kind === "reference") {
         const value = reference(node, position);
-        return !wantReference && !node.last && node.first.row && node.first.column ? scalar(value, position) : value;
+        return !wantReference && !node.label && !node.last && node.first.row && node.first.column ? scalar(value, position) : value;
       }
       if (node.kind === "parentheses") return evaluate(node.child, position, array, names, wantReference);
       if (node.kind === "array") return { kind: "matrix", rows: node.rows.map(row => row.map(child => scalar(evaluate(child, position, array, names), position))) };

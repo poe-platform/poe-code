@@ -16,7 +16,9 @@ export interface ReferenceEndpoint {
 export type FormulaNode = Span & (
   | { readonly kind: "literal"; readonly value: CellValue }
   | { readonly kind: "omitted" }
-  | { readonly kind: "reference"; readonly first: ReferenceEndpoint; readonly last?: ReferenceEndpoint }
+  | { readonly kind: "reference"; readonly first: ReferenceEndpoint; readonly last?: ReferenceEndpoint;
+      /** A live label anchor, not the data range it currently selects. */
+      readonly label?: { readonly axis: "row" | "column"; readonly referenceClass: "reference" | "value"; readonly scalar: boolean } }
   | { readonly kind: "name"; readonly name: string; readonly sheet?: string;
       /** Empty means the current workbook; without a sheet it selects only global names. */
       readonly workbook?: string }

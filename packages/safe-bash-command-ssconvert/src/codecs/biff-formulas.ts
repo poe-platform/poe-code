@@ -135,6 +135,14 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       // MS-XLS PtgElfLel/PtgElfRadicalLel: deleted natural-language labels.
       // Calc emits ocErrName for both. The quoted/reserved bits do not affect it.
       data.check(offset, 5); offset += 5; push("#NAME?");
+    } else if (token === 0x18 && context.revision === 8 && [2, 3, 6, 7].includes(data.u8(offset))) {
+      data.check(offset, 5);
+      const subtype = data.u8(offset), row = data.u16(offset + 1), column = data.u16(offset + 3) & 255;
+      const axis = subtype === 2 || subtype === 6 ? "row" : "column";
+      let letters = "";
+      for (let n = column + 1; n; n = Math.floor((n - 1) / 26)) letters = String.fromCharCode(65 + (n - 1) % 26) + letters;
+      push("@" + axis + (subtype >= 6 ? ".value" : "") + ":" + (axis === "row" ? "$" : "") + letters + (axis === "column" ? "$" : "") + (row + 1));
+      offset += 5;
     } else if (token === 0x19) {
       const width = context.revision === 2 ? 1 : 2;
       const flags = data.u8(offset), value = width === 1 ? data.u8(offset + 1) : data.u16(offset + 1); offset += 1 + width;

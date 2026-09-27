@@ -4540,7 +4540,7 @@ export class Runtime {
             }
             const rawSub = this._syncArithRawVars![subVar];
             if (typeof rawSub !== "string" || rawSub.length === 0) throw new ArrayFailure("empty var subscript in sync arithmetic");
-            resolvedSub = stateMonitor(st)?.values.get(subVar, rawSub) as string ?? rawSub;
+            resolvedSub = shellValueText(stateMonitor(st)?.values.get(subVar, rawSub) ?? rawSub);
           } else if (/^[a-zA-Z_][a-zA-Z_0-9]*$/.test(resolvedSub)) {
             const st = this._syncArithState!;
             const binding = arrayStore(st)?.get(variable);
@@ -4549,7 +4549,7 @@ export class Runtime {
                 throw new ArrayFailure("complex indexed ident subscript in sync arithmetic");
               }
               const rawSub = this._syncArithRawVars![resolvedSub];
-              resolvedSub = rawSub === undefined || rawSub === "" ? "0" : (stateMonitor(st)?.values.get(resolvedSub, rawSub) as string ?? rawSub);
+              resolvedSub = rawSub === undefined || rawSub === "" ? "0" : shellValueText(stateMonitor(st)?.values.get(resolvedSub, rawSub) ?? rawSub);
             }
           }
           if (resolvedSub.length === 0 || resolvedSub.length > 128 || !/^[a-zA-Z0-9_.\-/:@]+$/.test(resolvedSub)) {
@@ -4613,7 +4613,7 @@ export class Runtime {
           throw new NounsetFailure(`${reference}: unbound variable`, this._syncArithLine);
         }
         if (value !== undefined && stMon && (!this._syncArithRawWriteOnly || !this._syncArithTouched?.has(reference))) {
-          return stMon.values.get(reference, value) as string;
+          return shellValueText(stMon.values.get(reference, value));
         }
         return value;
       },
@@ -10988,7 +10988,7 @@ export class Runtime {
         const name = (part as Extract<WordPart, { kind: "variable" }>).name;
         const raw = rawVars[name];
         if (raw !== undefined) {
-          out += touched.has(name) ? raw : ((monitor.values.get(name, raw) as string | undefined) ?? raw);
+          out += touched.has(name) ? raw : shellValueText(monitor.values.get(name, raw) ?? raw);
         }
       }
     }
@@ -11014,7 +11014,7 @@ export class Runtime {
     if (parts.length === 3 && parts[1]!.kind === "variable" && parts[2]!.kind === "text") {
       const name = parts[1]!.name;
       const raw = rawVars[name];
-      const val = raw !== undefined ? (touched.has(name) ? raw : ((monitor.values.get(name, raw) as string | undefined) ?? raw)) : "";
+      const val = raw !== undefined ? (touched.has(name) ? raw : shellValueText(monitor.values.get(name, raw) ?? raw)) : "";
       const suffix = parts[2]!.value;
       let n = -1;
       if (val.length === 1) {
@@ -11049,7 +11049,7 @@ export class Runtime {
           const name = (part as Extract<WordPart, { kind: "variable" }>).name;
           const raw = rawVars[name];
           if (raw !== undefined) {
-            out += touched.has(name) ? raw : ((monitor.values.get(name, raw) as string | undefined) ?? raw);
+            out += touched.has(name) ? raw : shellValueText(monitor.values.get(name, raw) ?? raw);
           }
         }
       }
@@ -11087,7 +11087,7 @@ export class Runtime {
           const name = (part as Extract<WordPart, { kind: "variable" }>).name;
           const raw = rawVars[name];
           if (raw !== undefined) {
-            str = touched.has(name) ? raw : ((monitor.values.get(name, raw) as string | undefined) ?? raw);
+            str = touched.has(name) ? raw : shellValueText(monitor.values.get(name, raw) ?? raw);
           }
         }
         if (str !== undefined && str.length > 0) {

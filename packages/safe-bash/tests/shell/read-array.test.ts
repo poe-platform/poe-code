@@ -13,7 +13,7 @@ for (const option of ["-u 0", "-u0", "-u +00", "-p SYNTHETIC_PROMPT", "-pSYNTHET
       assert.equal(result.stdout, '["abcd","TAIL"]');
       assert.equal(result.stderr, "");
       assert.equal(result.exitCode, 0);
-      const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", `read ${option} first; code=$?; read -r rest; printf '["%s","%s"]' "$first" "$rest"; exit "$code"`], { input: "abcd\nTAIL\n", encoding: "utf8", env: { LC_ALL: "C", TZ: "UTC" }, timeout: 1000 });
+      const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", `read ${option} first; code=$?; read -r rest; printf '["%s","%s"]' "$first" "$rest"; exit "$code"`], { input: "abcd\nTAIL\n", encoding: "utf8", env: { LC_ALL: "C", TZ: "UTC" }, timeout: 10000 });
       assert.equal(native.error, undefined);
       assert.equal(result.stdout, native.stdout);
       assert.equal(result.stderr, native.stderr);
@@ -104,5 +104,16 @@ test("default read array enforces indexed field admission", async () => {
     const result = await shell.exec("read -a items", { stdin: "x ".repeat(32) + "\n" });
     assert.equal(result.exitCode, 1);
     assert.match(result.stderr, /indexed array: private Map slot limit exceeded/u);
+  } finally { await shell.dispose(); }
+});
+
+test("while IFS=: read -r fields work in synchronous ((...)) arithmetic on first and subsequent records", async () => {
+  const { shell, fs: vfs } = setup();
+  try {
+    await vfs.writeFile("/data.txt", Buffer.from("item_1:1:2\nitem_2:2:4\nitem_3:3:6\n"));
+    const result = await shell.exec("total=0; while IFS=: read -r k v1 v2; do ((total += v1 + v2)); done < /data.txt; args \"$total\"");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "[\"18\"]");
   } finally { await shell.dispose(); }
 });

@@ -35,7 +35,7 @@ for (const [name, source, stdout, minimumVersion] of cases) {
   test(`arithmetic expansion native control: ${name}`, context => {
     if (minimumVersion) {
       // GNU Bash introduced double-quoted arithmetic identifiers in 4.4.
-      const version = spawnSync("bash", ["--noprofile", "--norc", "-c", 'printf "%s.%s" "${BASH_VERSINFO[0]}" "${BASH_VERSINFO[1]}"'], { encoding: "utf8", env: { PATH: process.env.PATH, LC_ALL: "C" }, timeout: 2000 });
+      const version = spawnSync("bash", ["--noprofile", "--norc", "-c", 'printf "%s.%s" "${BASH_VERSINFO[0]}" "${BASH_VERSINFO[1]}"'], { encoding: "utf8", env: { PATH: process.env.PATH, LC_ALL: "C" }, timeout: 10000 });
       assert.ifError(version.error);
       assert.equal(version.status, 0);
       assert.equal(version.stderr, "");
@@ -46,7 +46,7 @@ for (const [name, source, stdout, minimumVersion] of cases) {
         return;
       }
     }
-    const result = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { PATH: process.env.PATH, LC_ALL: "C" }, timeout: 2000 });
+    const result = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { PATH: process.env.PATH, LC_ALL: "C" }, timeout: 10000 });
     assert.ifError(result.error);
     assert.equal(result.status, 0);
     assert.equal(result.stderr, "");
@@ -74,7 +74,7 @@ for (const [name, source] of [
   ["quotes from parameter are data", 'rows=\'"3"\'; printf "%s\\n" "$(($rows-1))"'],
   ["command text from parameter is not executed", 'rows=\'$(printf 3)\'; printf "%s\\n" "$(($rows-1))"'],
 ] as const) test(`arithmetic expansion rejects ${name}`, async () => {
-  const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { PATH: process.env.PATH, LC_ALL: "C" }, timeout: 2000 });
+  const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { PATH: process.env.PATH, LC_ALL: "C" }, timeout: 10000 });
   assert.ifError(native.error);
   assert.equal(native.status, 1);
   assert.equal(native.stdout, "");

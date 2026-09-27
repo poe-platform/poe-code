@@ -1675,9 +1675,15 @@ export class ShellInput implements ByteSource, CommandInput {
           }
           bytes = projected.bytes();
         }
-        const shellValue = shellValueFromBytes(bytes, scope);
-        const shellValueStr = shellValueText(shellValue);
-        const asciiStringValue = typeof shellValue === "string" && shellValueStr.length === bytes.length ? shellValueStr : undefined;
+        let isPureAscii = true;
+        for (let i = 0; i < bytes.length; i++) {
+          if (bytes[i]! >= 128) { isPureAscii = false; break; }
+        }
+        const shellValue = isPureAscii && escapedByteOffsets.length === 0
+          ? Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("latin1")
+          : shellValueFromBytes(bytes, scope);
+        const shellValueStr = typeof shellValue === "string" ? shellValue : shellValueText(shellValue);
+        const asciiStringValue = isPureAscii ? shellValueStr : undefined;
         const escaped = new Set<number>();
         if (escapedByteOffsets.length > 0) {
           let escapeIndex = 0;

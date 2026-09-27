@@ -287,14 +287,30 @@ const syncResolved = Symbol.for("safe-bash.syncResolved");
 const resolvedVoid: Promise<void> = Object.defineProperty(Promise.resolve(), syncResolved, { value: true });
 
 async function sortExpansionStrings(values: string[], work: StringWork, utf8 = false): Promise<void> {
-  const compare = async (left: string, right: string): Promise<number> => {
+  if (values.length <= 1) return;
+  const compareSyncOrAsync = (left: string, right: string): number | Promise<number> => {
     let first = 0, second = 0;
     while (first < left.length && second < right.length) {
       const pending = stringCheckpoint(work);
-      if (pending) await pending;
+      if (pending) {
+        return (async () => {
+          await pending;
+          while (first < left.length && second < right.length) {
+            const a = utf8 ? left.codePointAt(first)! : left.charCodeAt(first);
+            const b = utf8 ? right.codePointAt(second)! : right.charCodeAt(second);
+            const difference = (utf8 && a >= 0xd800 && a <= 0xdfff ? 0xfffd : a)
+              - (utf8 && b >= 0xd800 && b <= 0xdfff ? 0xfffd : b);
+            if (difference) return difference;
+            first += utf8 && a > 0xffff ? 2 : 1;
+            second += utf8 && b > 0xffff ? 2 : 1;
+            const p = stringCheckpoint(work);
+            if (p) await p;
+          }
+          return (left.length - first) - (right.length - second);
+        })();
+      }
       const a = utf8 ? left.codePointAt(first)! : left.charCodeAt(first);
       const b = utf8 ? right.codePointAt(second)! : right.charCodeAt(second);
-      // UTF-8 preserves scalar order; lone surrogates encode as U+FFFD.
       const difference = (utf8 && a >= 0xd800 && a <= 0xdfff ? 0xfffd : a)
         - (utf8 && b >= 0xd800 && b <= 0xdfff ? 0xfffd : b);
       if (difference) return difference;
@@ -306,8 +322,12 @@ async function sortExpansionStrings(values: string[], work: StringWork, utf8 = f
   const sift = async (root: number, end: number): Promise<void> => {
     while (root * 2 + 1 < end) {
       let child = root * 2 + 1;
-      if (child + 1 < end && await compare(values[child]!, values[child + 1]!) < 0) child++;
-      if (await compare(values[root]!, values[child]!) >= 0) return;
+      if (child + 1 < end) {
+        const c = compareSyncOrAsync(values[child]!, values[child + 1]!);
+        if ((typeof c === "number" ? c : await c) < 0) child++;
+      }
+      const r = compareSyncOrAsync(values[root]!, values[child]!);
+      if ((typeof r === "number" ? r : await r) >= 0) return;
       const saved = values[root]!;
       values[root] = values[child]!;
       values[child] = saved;

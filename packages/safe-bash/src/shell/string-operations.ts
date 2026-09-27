@@ -1,5 +1,5 @@
 import type { ValueAllocation } from "../contracts/value.js";
-import { yieldTurn } from "../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../contracts/yield.js";
 
 export interface StringWork {
   remaining: number;
@@ -7,6 +7,7 @@ export interface StringWork {
   exhausted(): never;
   allocation?: ValueAllocation;
   steps?: number;
+  lastYield?: number;
 }
 
 export function stringCheckpoint(work: StringWork, units = 1): Promise<void> | undefined {
@@ -16,7 +17,16 @@ export function stringCheckpoint(work: StringWork, units = 1): Promise<void> | u
   work.steps = (work.steps ?? 0) + units;
   if (work.steps < 128) return undefined;
   work.steps %= 128;
-  return yieldTurn(work.signal);
+  const now = monotonicNow();
+  const lastYield = (work.lastYield ??= now);
+  if (hasYieldCheckpoint(work.signal) || now - lastYield >= 8) {
+    work.lastYield = now;
+    return yieldTurn(work.signal).then(() => {
+      work.lastYield = monotonicNow();
+    });
+  }
+  runYieldCheckpoint(work.signal);
+  return undefined;
 }
 
 export function nextCodePointOffset(value: string, offset: number): number {

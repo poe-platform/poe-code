@@ -1,5 +1,5 @@
 import { FsError, readBytes, type ByteSource } from "safe-bash-contracts";
-import { yieldTurn } from "safe-bash-contracts/yield";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { Diagnostic } from "./args.js";
 
 export function virtualPath(cwd: string, name: string): string {
@@ -56,7 +56,9 @@ export async function* records(source: ByteSource, delimiter: number, limit: num
   let pending = new Uint8Array(Math.min(256, limit));
   let used = 0;
   let scanned = 0;
-  for await (const chunk of source) {
+  let lastYield = monotonicNow();
+  for await (const rawChunk of source) {
+    const chunk = Uint8Array.prototype.slice.call(rawChunk);
     let start = 0;
     while (start < chunk.length) {
       signal.throwIfAborted();
@@ -65,7 +67,7 @@ export async function* records(source: ByteSource, delimiter: number, limit: num
       const needed = used + end - start;
       if (needed > limit) throw new Diagnostic("shuf: maxInputBytes limit exceeded\n");
       if (boundary >= 0 && used === 0) {
-        const rec = Uint8Array.prototype.slice.call(chunk, start, end);
+        const rec = chunk.subarray(start, end);
         start = end;
         yield rec;
       } else {
@@ -82,7 +84,15 @@ export async function* records(source: ByteSource, delimiter: number, limit: num
           used = 0;
         }
       }
-      if (++scanned % 8192 === 0) await yieldTurn(signal);
+      if (++scanned % 8192 === 0) {
+        const now = monotonicNow();
+        if (hasYieldCheckpoint(signal) || now - lastYield >= 16) {
+          await yieldTurn(signal);
+          lastYield = monotonicNow();
+        } else {
+          runYieldCheckpoint(signal);
+        }
+      }
     }
   }
   if (used) {
@@ -92,4 +102,73 @@ export async function* records(source: ByteSource, delimiter: number, limit: num
     last[used] = delimiter;
     yield last;
   }
+}
+
+export async function readAllRecords(
+  source: ByteSource,
+  delimiter: number,
+  maxBytes: number,
+  maxRecords: number,
+  signal: AbortSignal,
+  lines: Uint8Array[]
+): Promise<number> {
+  let pending = new Uint8Array(Math.min(256, maxBytes));
+  let used = 0;
+  let scanned = 0;
+  let totalBytes = 0;
+  let lastYield = monotonicNow();
+  for await (const rawChunk of source) {
+    const chunk = Uint8Array.prototype.slice.call(rawChunk);
+    let start = 0;
+    while (start < chunk.length) {
+      signal.throwIfAborted();
+      const boundary = chunk.indexOf(delimiter, start);
+      const end = boundary < 0 ? chunk.length : boundary + 1;
+      const needed = used + end - start;
+      if (needed > maxBytes) throw new Diagnostic("shuf: maxInputBytes limit exceeded\n");
+      if (boundary >= 0 && used === 0) {
+        totalBytes += end - start;
+        if (totalBytes > maxBytes) throw new Diagnostic("shuf: maxInputBytes limit exceeded\n");
+        if (lines.length >= maxRecords) throw new Diagnostic("shuf: maxSampleSize limit exceeded\n");
+        lines.push(chunk.subarray(start, end));
+        start = end;
+      } else {
+        if (pending.length < needed) {
+          const grown = new Uint8Array(Math.min(maxBytes, Math.max(needed, pending.length * 2)));
+          grown.set(pending.subarray(0, used));
+          pending = grown;
+        }
+        pending.set(chunk.subarray(start, end), used);
+        used = needed;
+        start = end;
+        if (boundary >= 0) {
+          totalBytes += used;
+          if (totalBytes > maxBytes) throw new Diagnostic("shuf: maxInputBytes limit exceeded\n");
+          if (lines.length >= maxRecords) throw new Diagnostic("shuf: maxSampleSize limit exceeded\n");
+          lines.push(pending.slice(0, used));
+          used = 0;
+        }
+      }
+      if (++scanned % 8192 === 0) {
+        const now = monotonicNow();
+        if (hasYieldCheckpoint(signal) || now - lastYield >= 16) {
+          await yieldTurn(signal);
+          lastYield = monotonicNow();
+        } else {
+          runYieldCheckpoint(signal);
+        }
+      }
+    }
+  }
+  if (used) {
+    if (used >= maxBytes) throw new Diagnostic("shuf: maxInputBytes limit exceeded\n");
+    totalBytes += used + 1;
+    if (totalBytes > maxBytes) throw new Diagnostic("shuf: maxInputBytes limit exceeded\n");
+    if (lines.length >= maxRecords) throw new Diagnostic("shuf: maxSampleSize limit exceeded\n");
+    const last = new Uint8Array(used + 1);
+    last.set(pending.subarray(0, used));
+    last[used] = delimiter;
+    lines.push(last);
+  }
+  return totalBytes;
 }

@@ -218,6 +218,19 @@ export async function* stringValue(
   }
 }
 
+export function serializeSimpleSync(node: Node, budget: XmlBudget): string | undefined {
+  if (
+    node.kind === "text" &&
+    node.value.text.length > 0 &&
+    node.value.text.length < 4096 &&
+    !/[&<>"\n\r\t\uD800-\uDFFF]/.test(node.value.text)
+  ) {
+    if (budget.tick(1 + node.value.text.length)) return undefined;
+    return node.value.text;
+  }
+  return undefined;
+}
+
 export async function* serialize(node: Node, budget: XmlBudget): AsyncGenerator<string> {
   if (node.kind === "text" && node.value.text.length > 0 && node.value.text.length < 4096 && !/[&<>"\n\r\t\uD800-\uDFFF]/.test(node.value.text)) {
     { const _p = budget.tick(1 + node.value.text.length); if (_p) await _p; }

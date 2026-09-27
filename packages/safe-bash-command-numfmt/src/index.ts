@@ -4,7 +4,8 @@ import { shellValueByteLength } from "safe-bash-contracts/value";
 import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { PublicDiagnostic, publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 const encoder = new TextEncoder();
-const bufferLimit = 16 * 1024 * 1024;
+const bufferLimit = Infinity;
+const maxSingleChunkBytes = 32 * 1024 * 1024;
 import { RecordBuffer } from "./record-buffer.js";
 
 const unitPrefixes = "KMGTPEZYRQ";
@@ -266,7 +267,7 @@ function integer(value: Binary): bigint {
 function compare(left: Binary, right: Binary): number {
   const lc = left.coefficient, rc = right.coefficient;
   if (lc === 0n && rc === 0n) return 0;
-  if (lc <= 0n && rc >= 0n) return lc < 0n ? -1 : 1;
+  if (lc <= 0n && rc >= 0n) return -1;
   if (lc >= 0n && rc <= 0n) return 1;
   const diffExp = left.exponent - right.exponent;
   if (diffExp === 0) return lc < rc ? -1 : lc > rc ? 1 : 0;
@@ -305,10 +306,15 @@ function round(value: Binary, method: Rounding): Binary {
   if (value.exponent < -1) {
     let rounded = integer(value);
     if (method === "nearest") rounded = integer(add(value, value.coefficient < 0n ? BINARY_HALF_NEG : BINARY_HALF_POS));
-    else if (compare(value, binary(rounded)) !== 0) {
-      if (method === "from-zero") rounded += value.coefficient < 0n ? -1n : 1n;
-      else if (method === "up" && value.coefficient > 0n) rounded++;
-      else if (method === "down" && value.coefficient < 0n) rounded--;
+    else {
+      const mag = value.coefficient < 0n ? -value.coefficient : value.coefficient;
+      const shift = -value.exponent;
+      const hasFraction = shift >= 128 ? mag !== 0n : (mag & ((1n << BigInt(shift)) - 1n)) !== 0n;
+      if (hasFraction) {
+        if (method === "from-zero") rounded += value.coefficient < 0n ? -1n : 1n;
+        else if (method === "up" && value.coefficient > 0n) rounded++;
+        else if (method === "down" && value.coefficient < 0n) rounded--;
+      }
     }
     return binary(rounded);
   }
@@ -378,13 +384,27 @@ function general(value: Binary, uppercase = false): string {
 function blank(character: string | undefined): boolean { return character === " " || character === "\t"; }
 function digit(character: string | undefined): boolean { return character !== undefined && character >= "0" && character <= "9"; }
 
+const nonAsciiPattern = /[\u0080-\uffff]/;
+
 function byteText(bytes: Uint8Array): string {
+  const len = bytes.length;
+  if (len < 64) {
+    let s = "";
+    for (let i = 0; i < len; i++) s += String.fromCharCode(bytes[i]!);
+    return s;
+  }
+  let isAscii = true;
+  for (let i = 0; i < len; i++) {
+    if (bytes[i]! >= 0x80) { isAscii = false; break; }
+  }
+  if (isAscii) return utf8Decoder.decode(bytes);
   let text = "";
-  for (let offset = 0; offset < bytes.length; offset += 4096) text += String.fromCharCode(...bytes.subarray(offset, offset + 4096));
+  for (let offset = 0; offset < len; offset += 4096) text += String.fromCharCode(...bytes.subarray(offset, offset + 4096));
   return text;
 }
 
 function textBytes(text: string): Uint8Array {
+  if (!nonAsciiPattern.test(text)) return encoder.encode(text);
   const bytes = new Uint8Array(text.length);
   for (let offset = 0; offset < text.length; offset++) bytes[offset] = text.charCodeAt(offset);
   return bytes;
@@ -645,7 +665,8 @@ class Converter {
   canTickSync(maxTicks: number): boolean {
     if (this.pollSignal ? this.context.signal.aborted : this.signalAborted) return false;
     if (this.work + maxTicks > 16 * 1024 * 1024) return false;
-    return (this.work % 1024) + maxTicks < 1024;
+    if ((this.work % 1024) + maxTicks < 1024) return true;
+    return this.tickCount >= 1 && !hasYieldCheckpoint(this.context.signal) && monotonicNow() - this.lastYield < 16;
   }
 
   tick(amount = 1): void | Promise<void> {
@@ -890,7 +911,7 @@ class Converter {
     if (this.settings.left) await spaces();
   }
 
-  private trySimpleLineSync(line: string, newline: boolean, backing: Uint8Array): boolean {
+  private trySimpleLineSync(line: string, newline: boolean): false | true | Promise<void> {
     const settings = this.settings;
     if (
       settings.developer ||
@@ -908,6 +929,16 @@ class Converter {
     ) {
       return false;
     }
+    const savedWork = this.work;
+    const savedTickCount = this.tickCount;
+    const savedPadding = settings.padding;
+    const bail = (): false => {
+      this.work = savedWork;
+      this.tickCount = savedTickCount;
+      settings.padding = savedPadding;
+      return false;
+    };
+    const onlyFirstField = settings.fields === undefined || (settings.fields.length === 1 && settings.fields[0]![0] === 1n && settings.fields[0]![1] === 1n);
     let start = 0;
     let field = 0n;
     let lineOut = "";
@@ -921,28 +952,26 @@ class Converter {
         while (end < line.length && !blank(line[end]) && line[end] !== "\n") end++;
       }
       const t = this.tick((settings.fields?.length ?? 0) + 1);
-      if (t) return false;
-      const selected = settings.fields ? settings.fields.some(([low, high]) => low <= field && field <= high) : field === 1n;
+      if (t) return bail();
+      const selected = onlyFirstField ? field === 1n : settings.fields!.some(([low, high]) => low <= field && field <= high);
       const text = line.slice(start, end);
       if (selected) {
         let skipped = 0;
         while (blank(text[skipped])) skipped++;
-        const numPart = text.slice(skipped);
-        if (!numPart || numPart.length > 18) return false;
+        const numPart = skipped === 0 ? text : text.slice(skipped);
+        if (!numPart || numPart.length > 18) return bail();
         let idx = 0;
         const neg = numPart[0] === "-";
         if (neg) idx++;
-        if (idx >= numPart.length) return false;
+        if (idx >= numPart.length) return bail();
         let val = 0n;
         for (; idx < numPart.length; idx++) {
           const c = numPart.charCodeAt(idx) - 48;
-          if (c < 0 || c > 9) return false;
+          if (c < 0 || c > 9) return bail();
           val = val * 10n + BigInt(c);
-          const tk = this.tick();
-          if (tk) return false;
         }
+        if (this.tick(numPart.length - (neg ? 1 : 0))) return bail();
         if (neg) val = -val;
-        backing[end] = 0;
         // Use human() only if it would not need developer output
         const binVal = binary(val);
         let printedValue = binVal;
@@ -951,24 +980,24 @@ class Converter {
         let powerIndex = 0;
         if (settings.to !== "none") {
           while (compare(absolute(printedValue), baseBinary) >= 0 && powerIndex < unitPrefixes.length) {
-            printedValue = divide(printedValue, baseBinary);
+            printedValue = base === 1024 && printedValue.coefficient !== 0n ? { ...printedValue, exponent: printedValue.exponent - 10 } : divide(printedValue, baseBinary);
             powerIndex++;
           }
           const adjustment = settings.precision === undefined ? (compare(absolute(printedValue), BINARY_10) < 0 ? 1 : 0) : Number(settings.precision < BigInt(powerIndex * 3) ? settings.precision : BigInt(powerIndex * 3));
           const factor = power(10, adjustment);
-          printedValue = divide(round(multiply(printedValue, factor), settings.rounding), factor);
+          printedValue = adjustment === 0 ? round(printedValue, settings.rounding) : divide(round(multiply(printedValue, factor), settings.rounding), factor);
           if (compare(absolute(printedValue), baseBinary) >= 0) {
-            printedValue = divide(printedValue, baseBinary);
+            printedValue = base === 1024 && printedValue.coefficient !== 0n ? { ...printedValue, exponent: printedValue.exponent - 10 } : divide(printedValue, baseBinary);
             powerIndex++;
           }
           const outputPrecision = settings.precision === undefined ? (printedValue.coefficient !== 0n && compare(absolute(printedValue), BINARY_10) < 0 && powerIndex > 0 ? 1n : 0n) : BigInt.asIntN(32, settings.precision);
-          if (outputPrecision < 0n || outputPrecision > 126n) return false;
+          if (outputPrecision < 0n || outputPrecision > 126n) return bail();
           let rendered = fixed(printedValue, Number(outputPrecision));
           if (powerIndex) {
             rendered += (settings.unitSeparator ?? "") + (settings.to === "si" && powerIndex === 1 ? "k" : unitPrefixes[powerIndex - 1] ?? "(error)");
             if (settings.to === "iec-i") rendered += "i";
           }
-          if (rendered.length >= 127) return false;
+          if (rendered.length >= 127) return bail();
           const padTarget = this.autoPadding ? (skipped > 0 || field > 1n ? text.length : 0) : Number(settings.padding);
           if (this.autoPadding) settings.padding = BigInt(padTarget);
           const padLen = Math.max(0, padTarget - rendered.length);
@@ -976,9 +1005,9 @@ class Converter {
           lineOut += settings.prefix + padded + settings.postfix;
         } else {
           const outPrec = settings.precision === undefined ? 0 : Number(settings.precision);
-          if (outPrec < 0 || outPrec > 126) return false;
+          if (outPrec < 0 || outPrec > 126) return bail();
           const rendered = fixed(round(printedValue, settings.rounding), outPrec);
-          if (rendered.length >= 128) return false;
+          if (rendered.length >= 128) return bail();
           const padTarget = this.autoPadding ? (skipped > 0 || field > 1n ? text.length : 0) : Number(settings.padding);
           if (this.autoPadding) settings.padding = BigInt(padTarget);
           const padLen = Math.max(0, padTarget - rendered.length);
@@ -989,17 +1018,29 @@ class Converter {
         lineOut += text;
       }
       if (end >= line.length) break;
+      if (onlyFirstField && field === 1n) {
+        if (settings.delimiter !== undefined) {
+          if (this.tick((settings.fields?.length ?? 0) + 1)) return bail();
+          lineOut += line.slice(end);
+          break;
+        } else if (line[end] === " " && !/[\t\n]|  | $/.test(line.slice(end))) {
+          if (this.tick((settings.fields?.length ?? 0) + 1)) return bail();
+          lineOut += line.slice(end);
+          break;
+        }
+      }
       lineOut += settings.delimiter ?? " ";
       start = end + 1;
     }
     if (newline) lineOut += settings.separator;
     const em = this.output.emit(lineOut);
-    return em === undefined;
+    return em ?? true;
   }
 
-  line(line: string, newline: boolean, backing = textBytes(line + "\0")): void | Promise<void> {
-    if (this.trySimpleLineSync(line, newline, backing)) return;
-    return this.lineSlow(line, newline, backing);
+  line(line: string, newline: boolean, backing?: Uint8Array): void | Promise<void> {
+    const simple = this.trySimpleLineSync(line, newline);
+    if (simple !== false) return simple === true ? undefined : simple;
+    return this.lineSlow(line, newline, backing ?? textBytes(line + "\0"));
   }
 
   private async lineSlow(line: string, newline: boolean, backing = textBytes(line + "\0")): Promise<void> {
@@ -1130,11 +1171,6 @@ export function numfmtCommand(): CommandDefinition {
           let readFailure: string | undefined;
           let backing: Uint8Array = new Uint8Array(0);
           const process = (bytes: Uint8Array, terminated: boolean): void | Promise<void> => {
-            const initialized = bytes.length + (terminated ? 2 : 1);
-            if (backing.length < initialized) backing = new Uint8Array(initialized);
-            backing.set(bytes);
-            backing[bytes.length] = terminated ? settings.separator.charCodeAt(0) : 0;
-            if (terminated) backing[bytes.length + 1] = 0;
             const line = byteText(bytes);
             if (settings.header) {
               settings.header--;
@@ -1142,8 +1178,14 @@ export function numfmtCommand(): CommandDefinition {
               const nul = header.indexOf("\0");
               return output.emit(nul < 0 ? header : header.slice(0, nul));
             }
+            const simple = converter["trySimpleLineSync"](line, terminated);
+            if (simple !== false) return simple === true ? undefined : simple;
+            const initialized = bytes.length + (terminated ? 2 : 1);
+            if (backing.length < initialized) backing = new Uint8Array(initialized);
+            backing.set(bytes);
             backing[bytes.length] = 0;
-            return converter.line(line, terminated, backing);
+            if (terminated) backing[bytes.length + 1] = 0;
+            return converter["lineSlow"](line, terminated, backing);
           };
           while (true) {
             { const t = converter.tick(); if (t) await t; }
@@ -1157,7 +1199,7 @@ export function numfmtCommand(): CommandDefinition {
               break;
             }
             if (item.done) break;
-            if (item.value.length > bufferLimit - received) throw new PublicDiagnostic("byte command input limit exceeded");
+            if (item.value.length > maxSingleChunkBytes || item.value.length > bufferLimit - received) throw new PublicDiagnostic("byte command input limit exceeded");
             received += item.value.length;
             if (!item.value.length && ++empty > 4096) throw new PublicDiagnostic("empty input chunk limit exceeded");
             const chunk = new Uint8Array(item.value);

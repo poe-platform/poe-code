@@ -1,4 +1,4 @@
-import { yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { writeBytes, type ByteSink, type CommandContext } from "../../contracts/index.js";
 
 export interface FileLimits {
@@ -35,12 +35,34 @@ export function settings(options: FileCommandsOptions): FileLimits {
 export class FileFailure extends Error {}
 export class FileLimitError extends FileFailure {}
 
+const utf8Encoder = new TextEncoder();
+const printableAsciiNoBackslash = /^[\x20-\x5b\x5d-\x7e]*$/;
+const hostAbortWaiters = new WeakMap<AbortSignal, Set<() => void>>();
+
+function subscribeHostAbort(signal: AbortSignal, fn: () => void): () => void {
+  let waiters = hostAbortWaiters.get(signal);
+  if (!waiters) {
+    waiters = new Set();
+    hostAbortWaiters.set(signal, waiters);
+    signal.addEventListener("abort", () => {
+      const current = Array.from(waiters!);
+      waiters!.clear();
+      for (let i = 0; i < current.length; i++) current[i]!();
+    }, { once: true });
+  }
+  waiters.add(fn);
+  return () => {
+    waiters!.delete(fn);
+  };
+}
+
 export class SharedBudget {
   private inputBytes = 0;
   private outputBytes = 0;
   private steps = 0;
   private failureUnits = 64;
   private untilYield = 128;
+  private lastYield = monotonicNow();
   private readonly controller = new AbortController();
   private timer: ReturnType<typeof setTimeout> | undefined;
   private readonly deadline: number;
@@ -81,7 +103,13 @@ export class SharedBudget {
     this.work(count);
     if (--this.untilYield <= 0) {
       this.untilYield = 128;
-      await yieldTurn();
+      const now = monotonicNow();
+      if (hasYieldCheckpoint(this.signal) || now - this.lastYield >= 16) {
+        await yieldTurn();
+        this.lastYield = monotonicNow();
+      } else {
+        runYieldCheckpoint(this.signal);
+      }
       this.checkTime();
     }
   }
@@ -97,6 +125,10 @@ export class SharedBudget {
     if (metadata) this.check(value.length, this.remainingInputBytes, "input");
     if (render) this.check(value.length, this.limits.maxOutputBytes - this.outputBytes, "output");
     this.work(value.length);
+    if (value.length < 4096 && printableAsciiNoBackslash.test(value)) {
+      if (metadata) this.inputBytes += value.length;
+      return render ? value : "";
+    }
     const pieces: string[] = [];
     let outputBytes = 0;
     let untilYield = 4096;
@@ -131,7 +163,7 @@ export class SharedBudget {
     const size = Buffer.byteLength(text);
     this.check(size, this.limits.maxOutputBytes - this.outputBytes, "output");
     this.outputBytes += size;
-    const bytes = new TextEncoder().encode(text);
+    const bytes = utf8Encoder.encode(text);
     const width = Math.min(16384, this.limits.maxChunkBytes);
     for (let offset = 0; offset < bytes.length; offset += width) {
       await writeBytes(sink, bytes.slice(offset, offset + width), signal);
@@ -154,7 +186,7 @@ export class SharedBudget {
       bounded += character;
     }
     this.outputBytes += size;
-    const bytes = new TextEncoder().encode(bounded);
+    const bytes = utf8Encoder.encode(bounded);
     const width = Math.min(16384, this.limits.maxChunkBytes);
     for (let offset = 0; offset < bytes.length; offset += width) {
       await writeBytes(this.context.stderr, bytes.slice(offset, offset + width), this.signal);
@@ -164,15 +196,14 @@ export class SharedBudget {
   async host<Result>(operation: () => Promise<Result>): Promise<Result> {
     this.checkTime();
     return new Promise<Result>((resolve, reject) => {
-      const onAbort = (): void => { this.signal.removeEventListener("abort", onAbort); reject(this.signal.reason); };
-      this.signal.addEventListener("abort", onAbort, { once: true });
+      const unsubscribe = subscribeHostAbort(this.signal, () => reject(this.signal.reason));
       try {
         Promise.resolve(operation()).then(result => {
-          this.signal.removeEventListener("abort", onAbort);
+          unsubscribe();
           try { this.checkTime(); resolve(result); } catch (error) { reject(error); }
-        }, error => { this.signal.removeEventListener("abort", onAbort); reject(error); });
+        }, error => { unsubscribe(); reject(error); });
       } catch (error) {
-        this.signal.removeEventListener("abort", onAbort);
+        unsubscribe();
         reject(error);
       }
     });

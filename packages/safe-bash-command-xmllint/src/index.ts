@@ -17,7 +17,7 @@ import {
   type XmlQueryLimits
 } from "safe-bash-xml-engine/limits";
 import { parseQuery, type Query } from "safe-bash-xml-engine/query";
-import { evaluate, serialize, stringValue } from "safe-bash-xml-engine/evaluate";
+import { evaluate, serialize, serializeSimpleSync, stringValue } from "safe-bash-xml-engine/evaluate";
 import { serializeDocument, type DocumentMode } from "safe-bash-xml-engine/document";
 
 const sharedEncoder = new TextEncoder();
@@ -207,10 +207,25 @@ async function execute(
       for await (const part of stringValue(nodes[0], budget)) await write(part);
     } else {
       if (!nodes.length) throw new XmlQueryError("XPath set is empty", 11);
+      let pendingText = "";
       for (const node of nodes) {
-        for await (const part of serialize(node, budget)) await write(part);
-        await write("\n");
+        const simple = writesCount >= 2 ? serializeSimpleSync(node, budget) : undefined;
+        if (simple !== undefined) {
+          pendingText += simple + "\n";
+          if (pendingText.length >= 4096) {
+            await write(pendingText);
+            pendingText = "";
+          }
+        } else {
+          if (pendingText.length > 0) {
+            await write(pendingText);
+            pendingText = "";
+          }
+          for await (const part of serialize(node, budget)) await write(part);
+          await write("\n");
+        }
       }
+      if (pendingText.length > 0) await write(pendingText);
       await flushWrite();
       return { exitCode: 0 };
     }

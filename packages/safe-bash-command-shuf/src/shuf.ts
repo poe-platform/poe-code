@@ -3,9 +3,9 @@ import {
   type ByteSource, type CommandContext, type CommandDefinition,
 } from "safe-bash-contracts";
 import { openFileOutput, type FileOutput } from "./filesystem-output.js";
-import { yieldTurn } from "safe-bash-contracts/yield";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { countMax, Diagnostic, fileQuote, parse, quote } from "./args.js";
-import { ownedBytes, records, virtualPath } from "./input.js";
+import { ownedBytes, readAllRecords, records, virtualPath } from "./input.js";
 import { settings, type ShufCommandsOptions } from "./options.js";
 import { RandomIntegers } from "./random.js";
 import { shellValueByteLength } from "safe-bash-contracts/value";
@@ -99,19 +99,15 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
             inputSource = ownedBytes(input, inputSignal);
             inputSignal.throwIfAborted();
             if (closed) throw new Error("shuf input is closed");
-            source = records(inputSource, parsed.delimiter, limits.maxInputBytes, context.signal);
           });
           await openingInput;
           diagnostic = "read error";
           reservoir = !parsed.repeat && parsed.count < countMax && inputSize > 8 * 1024 * 1024;
           if (!reservoir) {
-            for await (const line of source!) {
-              totalBytes += line.length;
-              if (totalBytes > limits.maxInputBytes) throw new Diagnostic("shuf: maxInputBytes limit exceeded\n");
-              if (lines.length >= limits.maxSampleSize) throw new Diagnostic("shuf: maxSampleSize limit exceeded\n");
-              lines.push(line);
-            }
+            totalBytes = await readAllRecords(inputSource!, parsed.delimiter, limits.maxInputBytes, limits.maxSampleSize, context.signal, lines);
             size = BigInt(lines.length);
+          } else {
+            source = records(inputSource!, parsed.delimiter, limits.maxInputBytes, context.signal);
           }
         }
         random = new RandomIntegers(context, parsed.random, limits.maxInputBytes);
@@ -159,13 +155,23 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
         const permutation: bigint[] = [];
         const swaps = new Map<bigint, bigint>();
         diagnostic = parsed.random === undefined ? "getrandom" : `${quote(parsed.random)}: read error`;
+        const useSyncRandom = parsed.random === undefined;
+        let lastYield = monotonicNow();
         if (!parsed.repeat && !streamDirect) {
           for (let index = 0n; index < ahead; index++) {
-            const chosen = index + await random.choose(size - index);
+            const chosen = index + (useSyncRandom ? random.chooseSync(size - index) : await random.choose(size - index));
             permutation.push(swaps.get(chosen) ?? chosen);
             swaps.set(chosen, swaps.get(index) ?? index);
             swaps.delete(index);
-            if (index % 1024n === 1023n) await yieldTurn(context.signal);
+            if (index % 1024n === 1023n) {
+              const now = monotonicNow();
+              if (hasYieldCheckpoint(context.signal) || now - lastYield >= 4) {
+                await yieldTurn(context.signal);
+                lastYield = monotonicNow();
+              } else {
+                runYieldCheckpoint(context.signal);
+              }
+            }
           }
         }
         if (parsed.output !== undefined) {
@@ -176,24 +182,61 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
         }
         if (parsed.repeat && parsed.count > 0n && size === 0n) throw new Diagnostic("shuf: no lines to repeat\n");
         const sink = output?.sink ?? context.stdout;
-        for (let index = 0n; index < ahead; index++) {
-          context.signal.throwIfAborted();
-          diagnostic = parsed.random === undefined ? "getrandom" : `${quote(parsed.random)}: read error`;
-          let chosen: bigint;
-          if (parsed.repeat) {
-            chosen = await random.choose(size);
-          } else if (streamDirect) {
-            const pick = index + await random.choose(size - index);
-            chosen = swaps.get(pick) ?? pick;
-            swaps.set(pick, swaps.get(index) ?? index);
-            swaps.delete(index);
-          } else {
-            chosen = permutation[Number(index)]!;
+        if (!parsed.repeat) {
+          const outBuf = new Uint8Array(16384);
+          let outUsed = 0;
+          const flushOut = async (): Promise<void> => {
+            if (outUsed > 0) {
+              const slice = outBuf.subarray(0, outUsed);
+              outUsed = 0;
+              diagnostic = "write error";
+              await writeBytes(sink, slice, context.signal);
+            }
+          };
+          for (let index = 0n; index < ahead; index++) {
+            context.signal.throwIfAborted();
+            diagnostic = parsed.random === undefined ? "getrandom" : `${quote(parsed.random)}: read error`;
+            let chosen: bigint;
+            if (streamDirect) {
+              const pick = index + (useSyncRandom ? random.chooseSync(size - index) : await random.choose(size - index));
+              chosen = swaps.get(pick) ?? pick;
+              swaps.set(pick, swaps.get(index) ?? index);
+              swaps.delete(index);
+            } else {
+              chosen = permutation[Number(index)]!;
+            }
+            const line = parsed.range ? encoder.encode(`${parsed.range.low + chosen}${parsed.delimiter === 0 ? "\0" : "\n"}`) : lines[Number(chosen)]!;
+            if (line.length >= outBuf.length) {
+              await flushOut();
+              diagnostic = "write error";
+              await writeBytes(sink, line, context.signal);
+            } else {
+              if (outUsed + line.length > outBuf.length) await flushOut();
+              outBuf.set(line, outUsed);
+              outUsed += line.length;
+            }
+            if (index % 256n === 255n) {
+              await flushOut();
+              const now = monotonicNow();
+              if (hasYieldCheckpoint(context.signal) || now - lastYield >= 4) {
+                await yieldTurn(context.signal);
+                lastYield = monotonicNow();
+              } else {
+                runYieldCheckpoint(context.signal);
+              }
+            }
           }
-          const line = parsed.range ? encoder.encode(`${parsed.range.low + chosen}${parsed.delimiter === 0 ? "\0" : "\n"}`) : lines[Number(chosen)]!;
-          diagnostic = "write error";
-          await writeBytes(sink, line, context.signal);
-          if (index % 256n === 255n) await yieldTurn(context.signal);
+          await flushOut();
+        } else {
+          for (let index = 0n; index < ahead; index++) {
+            context.signal.throwIfAborted();
+            diagnostic = parsed.random === undefined ? "getrandom" : `${quote(parsed.random)}: read error`;
+            const chosen = useSyncRandom ? random.chooseSync(size) : await random.choose(size);
+            const line = parsed.range ? encoder.encode(`${parsed.range.low + chosen}${parsed.delimiter === 0 ? "\0" : "\n"}`) : lines[Number(chosen)]!;
+            diagnostic = "write error";
+            await writeBytes(sink, line, context.signal);
+            if (index % 256n === 255n) await yieldTurn(context.signal);
+          }
         }
         if (output) await output.finish();
         context.signal.throwIfAborted();

@@ -1,5 +1,5 @@
 import type { ChildProcess } from "node:child_process";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { runCommand } from "./run-command.js";
 
@@ -17,7 +17,7 @@ const spawnedPids = new Set<number>();
 const spawnedGroups = new Set<number>();
 
 describe("runCommand process cleanup", () => {
-  afterEach(() => {
+  afterAll(() => {
     observation.onSpawn = undefined;
     vi.useRealTimers();
     for (const pid of spawnedGroups) {
@@ -30,36 +30,43 @@ describe("runCommand process cleanup", () => {
     }
   });
 
+  const realSetTimeout = globalThis.setTimeout;
+  const realClearTimeout = globalThis.clearTimeout;
+  let shellPid: number | undefined;
+  let settled = false;
+  let childPid: number;
+  let pending: ReturnType<typeof runCommand>;
+
+  beforeAll(async () => {
+    if (process.platform === "win32") return;
+    let resolveReady!: (pid: number) => void;
+    let rejectReady!: (error: Error) => void;
+    const ready = new Promise<number>((resolve, reject) => { resolveReady = resolve; rejectReady = reject; });
+    observation.onSpawn = child => {
+      shellPid = child.pid;
+      if (shellPid !== undefined) spawnedGroups.add(shellPid);
+      let output = "";
+      child.stdout?.on("data", chunk => {
+        output += String(chunk);
+        if (!output.includes("\n")) return;
+        const pid = Number(output.trim());
+        if (!Number.isInteger(pid) || pid <= 0) { rejectReady(new Error("invalid descendant PID")); return; }
+        spawnedPids.add(pid);
+        resolveReady(pid);
+      });
+      child.once("error", rejectReady);
+      child.once("close", () => rejectReady(new Error("shell exited before descendant readiness")));
+    };
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    pending = runCommand("sh", ["-c", "sleep 30 & printf '%s\n' \"$!\"; wait"], { timeoutMs: 250 });
+    void pending.then(() => { settled = true; });
+    childPid = await ready;
+  }, 30_000);
+
   it.runIf(process.platform !== "win32")(
     "kills shell-spawned descendants before resolving timeouts",
     async () => {
-      const realSetTimeout = globalThis.setTimeout;
-      const realClearTimeout = globalThis.clearTimeout;
-      let shellPid: number | undefined;
-      let settled = false;
-      let resolveReady!: (pid: number) => void;
-      let rejectReady!: (error: Error) => void;
-      const ready = new Promise<number>((resolve, reject) => { resolveReady = resolve; rejectReady = reject; });
-      observation.onSpawn = child => {
-        shellPid = child.pid;
-        if (shellPid !== undefined) spawnedGroups.add(shellPid);
-        let output = "";
-        child.stdout?.on("data", chunk => {
-          output += String(chunk);
-          if (!output.includes("\n")) return;
-          const pid = Number(output.trim());
-          if (!Number.isInteger(pid) || pid <= 0) { rejectReady(new Error("invalid descendant PID")); return; }
-          spawnedPids.add(pid);
-          resolveReady(pid);
-        });
-        child.once("error", rejectReady);
-        child.once("close", () => rejectReady(new Error("shell exited before descendant readiness")));
-      };
-      vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
       try {
-        const pending = runCommand("sh", ["-c", "sleep 30 & printf '%s\n' \"$!\"; wait"], { timeoutMs: 250 });
-        void pending.then(() => { settled = true; });
-        const childPid = await ready;
         expect(isAlive(childPid)).toBe(true);
         vi.advanceTimersByTime(249);
         expect(settled).toBe(false);

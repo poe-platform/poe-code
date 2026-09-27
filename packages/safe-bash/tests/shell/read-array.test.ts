@@ -138,3 +138,18 @@ test("while IFS=, read -r -d \";\" and glob/bracket prefix/suffix trims match ba
     assert.equal(result.stdout, "[\"60\",\"alpha:beta:gamma:\"]");
   } finally { await shell.dispose(); }
 });
+
+test("arithmetic-for echo producer into pipeline with read and awk matches bash", async () => {
+  const { shell } = setup();
+  shell.use(agentCommands());
+  try {
+    const result = await shell.exec(`
+      for ((i=1; i<=50; i++)); do
+        echo "dept_\$((i % 4)):\$((i * 10))"
+      done | awk -F: '{sum[$1]+=$2} END {for (k in sum) print k ":" sum[k]}' | sort
+    `);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "dept_0:3120\ndept_1:3250\ndept_2:3380\ndept_3:3000\n");
+  } finally { await shell.dispose(); }
+});

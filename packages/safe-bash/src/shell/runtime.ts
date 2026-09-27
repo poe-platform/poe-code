@@ -3345,6 +3345,7 @@ type SyncLoopStep = {
   readonly cmd: Extract<Command, { kind: "simple" }>;
   readonly name: string | undefined;
   readonly arrayAssign?: ArrayAssignment | undefined;
+  readonly isStdoutEcho?: boolean | undefined;
   readonly value: Word | undefined;
   readonly targetWord: Word | undefined;
   readonly targetDirPrefix?: string | undefined;
@@ -10120,7 +10121,7 @@ export class Runtime {
     return true;
   }
 
-  private canSyncLoopBody(script: Script, rawState: State): boolean {
+  private canSyncLoopBody(script: Script, rawState: State, io?: IO): boolean {
     if (script.lists.length === 0) return false;
     const store = stateMonitor(rawState)?.store;
     for (let l = 0; l < script.lists.length; l++) {
@@ -10185,6 +10186,32 @@ export class Runtime {
           const lastSlash = targetPart0.value.lastIndexOf("/");
           const parentDir = lastSlash <= 0 ? "/" : targetPart0.value.slice(0, lastSlash);
           if (!tryGetMemoryDirectoryEntryNamesSync(this.backingFs, parentDir)) {
+            return false;
+          }
+          continue;
+        }
+        if (cmd.redirects.length === 0 && cmd.words.length === 2 && cmd.words[0]!.plain === "echo") {
+          const def = this.commands.get("echo");
+          const w1 = cmd.words[1]!;
+          const p0 = w1.parts[0];
+          const fastSinkOk = io && (!io.descriptors || io.descriptors.get(1)?.output === io.stdout) && (
+            (io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) ||
+            (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write) ||
+            (io.stdout instanceof BudgetedPipeStageSink && io.stdout.write === BudgetedPipeStageSink.prototype.write && io.stdout.canWriteSync())
+          );
+          if (
+            !fastSinkOk ||
+            hasShellFunction(rawState, "echo") ||
+            rawState.extensions?.builtins.has("echo") ||
+            !def ||
+            !defaultEchoExecutors.has(def.execute) ||
+            !p0 ||
+            p0.kind !== "text" ||
+            p0.value.length === 0 ||
+            p0.value.startsWith("-") ||
+            !this.isPureSyncValueWord(w1, rawState) ||
+            !w1.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))
+          ) {
             return false;
           }
           continue;
@@ -10365,6 +10392,8 @@ export class Runtime {
             append: r0.operator === ">>",
             line,
           });
+        } else if (cmd.words.length === 2 && w0.plain === "echo") {
+          bodyAssignments.push({ cmd, name: undefined, value: cmd.words[1]!, isStdoutEcho: true, targetWord: undefined, append: false, line });
         } else {
           const arrAssign = getArrayAssignment(w0);
           const assignment = !arrAssign ? this.assignment(w0) : undefined;
@@ -10529,7 +10558,7 @@ export class Runtime {
         if (fastRes !== undefined) return fastRes;
       }
     }
-    if (guestArrays(rawState) || !this.canSyncLoopBody(command.body, rawState)) {
+    if (guestArrays(rawState) || !this.canSyncLoopBody(command.body, rawState, io)) {
       return undefined;
     }
     for (const v of Object.values(rawState.variables)) {
@@ -10649,7 +10678,7 @@ export class Runtime {
         }
       }
       const arithNamesList = [...arithNames];
-      const hasAnyArrayAssign = bodyAssignments.some(s => s.arrayAssign !== undefined);
+      const hasAnyArrayAssign = bodyAssignments.some(s => s.arrayAssign !== undefined || s.isStdoutEcho === true);
       let hasDeferredSteps = false;
       let deferredMask = 0;
       if (!hasAnyArrayAssign) for (let b = 0; b < bodyAssignments.length; b++) {
@@ -11385,6 +11414,20 @@ export class Runtime {
     let lastValueWord: Word | undefined;
     let lastInductionVal: string | undefined;
     let lastArgInductionVal: string | undefined;
+    let stdoutEchoBatch = "";
+    const flushStdoutEchoBatch = (): void => {
+      if (stdoutEchoBatch.length === 0) return;
+      const chunk = Buffer.from(stdoutEchoBatch, "utf8");
+      stdoutEchoBatch = "";
+      if (io.stdout instanceof BudgetedPipeStageSink && io.stdout.canWriteSync()) {
+        if (chunk.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+        io.stdout.writeSync(chunk);
+      } else {
+        const syncFn = syncSinks.get(io.stdout);
+        if (syncFn) syncFn(chunk);
+        else void io.stdout.write(chunk);
+      }
+    };
     this.syncShellArithmeticNonZero(e0, rawState, diagnosticLine);
     let loopTurn = 0;
     while (true) {
@@ -11417,6 +11460,12 @@ export class Runtime {
           this.budget.fileSystemOperation();
           this.budget.bytes += encoded.byteLength;
           lastValueWord = step.value;
+        } else if (step.isStdoutEcho && step.value !== undefined) {
+          const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
+          stdoutEchoBatch += val + "\n";
+          if (stdoutEchoBatch.length >= 8192) flushStdoutEchoBatch();
+          lastArg = val;
+          lastValueWord = undefined;
         } else if (step.arrayAssign !== undefined) {
           this.tryFastArrayAssignmentSync(step.arrayAssign, rawState, io, step.line, undefined, undefined, true);
           lastArg = "";
@@ -11435,6 +11484,7 @@ export class Runtime {
       if (lastValueWord !== undefined) lastArgInductionVal = rawState.variables[inductionName];
       this.syncShellArithmeticNonZero(e2, rawState, diagnosticLine);
     }
+    flushStdoutEchoBatch();
     if (lastValueWord !== undefined) {
       const postInd = rawState.variables[inductionName];
       if (lastArgInductionVal === undefined) delete rawState.variables[inductionName];

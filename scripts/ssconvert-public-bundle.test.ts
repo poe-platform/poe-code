@@ -2,6 +2,7 @@ import { build } from "esbuild";
 import { readFileSync } from "node:fs";
 import { readdir, stat } from "node:fs/promises";
 import { dirname, isAbsolute, relative, resolve } from "node:path";
+import { webcrypto } from "node:crypto";
 import { runInNewContext } from "node:vm";
 import glob from "fast-glob";
 import { beforeAll, expect, it } from "vitest";
@@ -11,6 +12,78 @@ import { resolveSpreadsheetSdkBuilds } from "./bundle-spreadsheets.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const manifest = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
+it("shares raw arguments and frozen cleanup budgets between public contracts and the bundled SDK", async () => {
+  const result = await build({
+    stdin: {
+      contents: `
+        import { createSsconvertCommands } from "poe-code/ssconvert";
+        import { bindFileOutputBudget, createCommandArguments, shellValueFromBytes } from "poe-code/safe-bash/contracts";
+        import { MemoryFileSystem } from "poe-code/safe-fs/core";
+        globalThis.result = (async () => {
+          const observations = [];
+          for (const mode of ["allowed", "limited", "cancelled"]) {
+            const fs = new MemoryFileSystem();
+            const controller = new AbortController();
+            const refusal = new Error("file output limit");
+            const cleanups = [], diagnostics = [];
+            let admitted = 0;
+            const context = { command: "ssconvert", fs, cwd: "/", env: {}, signal: controller.signal,
+              args: ["-I", "Gnumeric_stf:stf_csvtab", "-T", "Gnumeric_stf:stf_csv", "fd://0", "/result.csv"],
+              stdin: [new TextEncoder().encode("Name,Value\\nexample,7\\n")], stdinIsDefault: false,
+              stdout: { async write() {} }, stderr: { async write(bytes) { diagnostics.push(bytes); } },
+              registerCleanup: Object.freeze(cleanup => cleanups.push(cleanup)) };
+            bindFileOutputBudget(context, sink => ({ async write(bytes) {
+              admitted += bytes.length;
+              if (mode === "cancelled") { controller.abort(false); throw false; }
+              if (mode === "limited") throw refusal;
+              await sink.write(bytes);
+            } }));
+            let exitCode, cancelled = false, refused = false;
+            try { exitCode = (await createSsconvertCommands()[0].execute(context)).exitCode; }
+            catch (error) {
+              if (error === false) cancelled = true;
+              else if (error === refusal) refused = true;
+              else throw error;
+            }
+            if (mode === "allowed" && exitCode !== 0)
+              throw new Error(diagnostics.map(bytes => new TextDecoder().decode(bytes)).join(""));
+            await Promise.all(cleanups.map(cleanup => cleanup()));
+            const files = (await fs.readdir("/")).map(entry => entry.name);
+            const output = files.includes("result.csv") ? new TextDecoder().decode(await fs.readFile("/result.csv")) : null;
+            observations.push({ mode, admitted, exitCode, cancelled, refused, files, output });
+          }
+          const diagnostics = [];
+          const raw = new Uint8Array([45, 45, 255]);
+          const carrier = createCommandArguments([shellValueFromBytes(raw)]);
+          raw.fill(0);
+          const result = await createSsconvertCommands()[0].execute({ command: "ssconvert",
+            args: carrier.args, argumentValues: carrier, fs: new MemoryFileSystem(), cwd: "/", env: {},
+            signal: new AbortController().signal, stdin: [], stdinIsDefault: true,
+            stdout: { async write() {} }, stderr: { async write(bytes) { diagnostics.push(...bytes); } } });
+          return { observations, rawExit: result.exitCode, diagnostic: new TextDecoder().decode(new Uint8Array(diagnostics)) };
+        })();`,
+      resolveDir: new URL("../", import.meta.url).pathname,
+    },
+    bundle: true, platform: "browser", format: "iife", write: false,
+    // Workspace-only builds do not publish the root canonical filesystem graph.
+    // Compile its real portable implementation for this VM; packed routes have
+    // their own publication-policy and installed-consumer qualification.
+    alias: { "poe-code/safe-fs/core": new URL("../packages/safe-fs/src/core.ts", import.meta.url).pathname },
+  });
+  const worker: Record<string, unknown> = { TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, AbortController, URL, URLSearchParams, atob, crypto: webcrypto, setTimeout, clearTimeout, queueMicrotask };
+  runInNewContext(result.outputFiles[0]!.text, worker);
+  const actual = await worker.result as { observations: unknown[]; rawExit: number; diagnostic: string };
+  expect(actual.observations).toEqual([
+    { mode: "allowed", admitted: 21, exitCode: 0, cancelled: false, refused: false, files: ["result.csv"], output: "Name,Value\nexample,7\n" },
+    { mode: "limited", admitted: 21, exitCode: undefined, cancelled: false, refused: true, files: [], output: null },
+    { mode: "cancelled", admitted: 21, exitCode: undefined, cancelled: true, refused: false, files: [], output: null },
+  ]);
+  expect(actual.rawExit).toBe(1);
+  expect(actual.diagnostic).toContain("[Invalid UTF-8] Unknown option --\\xff\n");
+});
+
+
+
 let result: Awaited<ReturnType<typeof build>>;
 let packed: Set<string>;
 beforeAll(async () => {

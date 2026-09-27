@@ -3,8 +3,8 @@
 This is a manual QA procedure for `docs/ssconvert/coverage.json`, against the
 SHA-256-pinned Gnumeric 1.12.61 archive. It does not authorize product changes,
 source/asset reuse, native product dependencies, commits, pushes or releases.
-The implementation target remains TypeScript ESM in `packages/ssconvert`, named
-exactly `ssconvert`, exposed through the virtual command in `packages/safe-bash`.
+The implementation target is TypeScript ESM in `packages/safe-bash-command-ssconvert`,
+exposed as the `ssconvert` virtual command through `packages/safe-bash`.
 
 Acquire primary sources and task-owned captures only in `out`. Verify archive
 hashes before extracting. Read root/scoped instructions before any later code
@@ -156,6 +156,22 @@ Independently parse the exported ZIP/XML and verify the four cell values,
 including numeric `7`. Inspect a screenshot of the actual command transcript.
 Keep artifacts in `out`, record compact evidence, then remove the consumed files.
 This verifies compiled default factories; it does not qualify registry artifacts.
+
+## qa-command-package-ownership
+
+Build the root artifact and prepare the scoped libraries. Install each artifact
+outside the checkout with no private workspaces available. Import the singular,
+plural and plugin factories through the public spreadsheet and Shell command
+routes; typecheck the options and limits with strict NodeNext. Execute the CSV
+to XLSX and back procedure above for each route. Check the root browser/Worker
+profile separately. Confirm that raw invalid UTF-8 arguments retain their exact
+diagnostics across imports, and that a frozen invocation cleanup callback still
+binds the file output budget. Test admitted writes, refusal before publication,
+false-valued cancellation and complete temporary-file cleanup. Keep an existing
+destination unchanged on refusal. Verify the packed module graph resolves the
+shared contracts and filesystem runtimes without private npm dependencies.
+Record package sizes and compact receipts; remove consumed installation trees,
+archives and logs from `out`. Registry publication is a separate gate.
 
 ## qa-extension-profile
 

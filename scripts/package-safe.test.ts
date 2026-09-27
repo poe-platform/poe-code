@@ -123,6 +123,49 @@ it("ships the spreadsheet command SDK without a CLI dependency", async () => {
   expect(JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8")).dependencies).not.toHaveProperty("poe-code");
 });
 
+it("maps the standalone spreadsheet contracts facade to the scoped canonical runtime", async () => {
+  const { volume, options } = optionalLeftovers();
+  const manifest = structuredClone(bashManifest);
+  const profile = { version: "0.0.1", dependencies: {}, devDependencies: {} };
+  manifest.poeCode.integration.privateWorkspaces["safe-bash-contracts"] = profile;
+  manifest.poeCode.integration.privateWorkspaces["safe-bash-command-ssconvert"] = profile;
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
+  for (const name of ["safe-bash-contracts", "safe-bash-command-ssconvert"]) {
+    volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
+    volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify({
+      name, ...profile, private: true, type: "module", files: ["dist"],
+      exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+    }));
+  }
+  volume.writeFileSync("/repo/packages/safe-bash-contracts/dist/index.js", "export const sharedBudget = {};");
+  volume.writeFileSync("/repo/packages/safe-bash-contracts/dist/index.d.ts", "export declare const sharedBudget: object;");
+  for (const suffix of ["js", "d.ts"]) {
+    volume.writeFileSync(`/repo/packages/safe-bash-command-ssconvert/dist/index.${suffix}`,
+      'export { sharedBudget } from "poe-code/safe-bash/contracts";');
+    volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/ssconvert/index.${suffix}`,
+      'export * from "safe-bash-command-ssconvert";');
+  }
+  let privateRecipe: BuildOptions | undefined;
+  await packageSafeLibraries({ ...options, outDir: "/output", bundle: async (recipe: BuildOptions) => {
+    if (Object.hasOwn(recipe.entryPoints ?? {}, "safe-bash-command-ssconvert/dist/index")) privateRecipe = recipe;
+    return options.bundle(recipe);
+  } });
+  expect(privateRecipe?.alias?.["poe-code/safe-bash/contracts"]).toBe("safe-bash-contracts");
+  expect(privateRecipe?.external).toContain("safe-bash-contracts");
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const filesystemConsumer = await build({ ...privateRecipe, absWorkingDir: root, entryPoints: undefined,
+    stdin: { contents: 'export { retainFileSystemCleanup } from "poe-code/safe-fs/core";', resolveDir: root },
+    metafile: true, write: false,
+  });
+  expect(Object.keys(filesystemConsumer.metafile!.inputs)).toEqual(["<stdin>"]);
+  expect(Object.values(filesystemConsumer.metafile!.outputs).flatMap(output => output.imports))
+    .toEqual([expect.objectContaining({ path: "@poe-platform/safe-fs/core", external: true })]);
+  for (const suffix of ["js", "d.ts"]) {
+    expect(volume.readFileSync(`/output/safe-bash/dist/safe-bash-command-ssconvert/index.${suffix}`, "utf8"))
+      .toContain('"../safe-bash-contracts/index.js"');
+  }
+});
+
 it("ships an explicitly declared private command SDK with its runtime graph", async () => {
   const { volume, options } = optionalLeftovers();
   const manifest = structuredClone(bashManifest);

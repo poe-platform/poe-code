@@ -2349,7 +2349,7 @@
       "implemented": "createSsconvertCommand() and ssconvertCommands() accept omitted/empty options; built-in codecs, C locale and UTC timezone default without ambient environment or optional authority. Explicit limits and invocation environment are preserved.",
       "evidence": "Two original regressions failed before the fix. All 22 factory/resource/cancellation tests pass; maintained Safe Bash build, root guarded lint and Safe Bash typecheck pass. Compiled CSV-XLSX-CSV checks for omitted/empty options preserve bytes; independent ZIP/XML parsing confirms numeric 7.",
       "qa": "../plans/ssconvert-audit-qa.md#qa-command-factory-defaults",
-      "remaining": "Plural factory and private-package exports/ownership; remote delivery and publication must be verified separately."
+      "remaining": "Defaults are delivered. Standard package ownership and public bundle verification continue under commandPackageOwnership; publication remains separate."
     },
     "glossaryTimestampProfile": {
       "issue": 3863,
@@ -2369,6 +2369,14 @@
       },
       "qualification": "Source-expression header parity only. Eight independently captured winter/summer libc headers, DST boundaries and historical-rule controls; memory conversion fixtures and built public SDK consumers. Does not qualify activation of the complete native glossary plugin. Independent libc comparison matched all 4054 monthly/transition-boundary observations across the admitted interval, including fractional-clock and civil-date rollover controls.",
       "remaining": "Other zones and aliases, instants outside the captured range, exact optional native Python activation, and full native glossary exporter qualification remain open under optional-profiles and format-record-roundtrip."
+    },
+    "commandPackageOwnership": {
+      "issue": 3670,
+      "status": "partial",
+      "implemented": "Singular/plural/plugin factories and options/limits types belong to safe-bash-command-ssconvert; core is a one-line re-export. Node and browser SDK bundles share the Shell contracts facade. Scoped packaging maps contracts and filesystem imports to canonical runtimes.",
+      "evidence": "Factory regression failed before extraction. Focused command, package-policy and browser tests pass. Actual root/scoped packages installed outside the checkout expose all factories and preserve edited numeric B2=8, independently decoded with Python ZIP/XML. Strict NodeNext consumers pass. Installed root/scoped Shell output caps preserve the existing destination and remove staging; raw argv and frozen budgets pass. Installed scoped Worker conversion has no external/Node imports. Transcript screenshot inspected.",
+      "qa": "../plans/ssconvert-audit-qa.md#qa-command-package-ownership",
+      "remaining": "Full maintained test run and final build/delivery/publication remain pending. XLSX reexport emits seven worksheet-record warnings tracked separately in #3686; the format family remains open."
     }
   },
   "cases": [

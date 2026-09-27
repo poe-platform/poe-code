@@ -1,4 +1,5 @@
 export { createEngine, defaultSsconvertLimits } from "./engine.js";
+export type { RuntimeLimits as SsconvertLimits } from "./contracts.js";
 export { readXlsx, probeXlsx, createXlsxWriter } from "./codecs/xlsx.js";
 export { referenceText } from "./cli/reference.js";
 export { exportOptionPairs } from "./cli/export-options.js";

@@ -8,6 +8,7 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
 import { createSsconvertCommand, ssconvertCommands } from "../../src/commands/ssconvert/index.js";
+import * as ssconvertPackage from "safe-bash-command-ssconvert";
 
 const encode = (value: string) => new TextEncoder().encode(value);
 const fixture: Codec = {
@@ -32,6 +33,32 @@ function invocation(args: readonly string[], overrides: Partial<CommandContext> 
     stderr: { async write(bytes) { stderr.push(new Uint8Array(bytes)); } }, ...overrides };
   return { context, stdout, stderr };
 }
+
+test("ssconvert private package owns the singular, plural and plugin factories", async () => {
+  assert.equal(ssconvertPackage.createSsconvertCommand, createSsconvertCommand);
+  assert.equal(ssconvertPackage.ssconvertCommands, ssconvertCommands);
+  const commands = ssconvertPackage.createSsconvertCommands();
+  assert.deepEqual(commands.map(command => command.name), ["ssconvert"]);
+  const call = invocation(["-I", "Gnumeric_stf:stf_csvtab", "-T", "Gnumeric_stf:stf_csv", "fd://0", "fd://1"], {
+    stdin: (async function* () { yield encode("Name,Value\nexample,7\n"); })(), stdinIsDefault: false
+  });
+  assert.equal((await commands[0]!.execute(call.context)).exitCode, 0);
+  assert.deepEqual(call.stderr, []);
+  assert.equal(new TextDecoder().decode(Buffer.concat(call.stdout)), "Name,Value\nexample,7\n");
+});
+
+test("ssconvert shell output refusal retires staging and preserves the existing destination", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input.csv", encode("Name,Value\nexample,7\n"));
+  await fs.writeFile("/keep.csv", encode("keep"));
+  const shell = new Shell({ fs, limits: { maxOutputBytes: 1 } }).use(ssconvertCommands());
+  try {
+    await assert.rejects(shell.exec("ssconvert -I Gnumeric_stf:stf_csvtab -T Gnumeric_stf:stf_csv /input.csv /keep.csv"),
+      error => error instanceof Error && "limit" in error && error.limit === "maxOutputBytes");
+    assert.deepEqual(await fs.readFile("/keep.csv"), encode("keep"));
+    assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), ["input.csv", "keep.csv"]);
+  } finally { await shell.dispose(); }
+});
 
 test("ssconvert factories accept omitted and empty options for built-in conversion", async () => {
   for (const supplied of [undefined, {}]) {

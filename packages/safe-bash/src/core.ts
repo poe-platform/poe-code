@@ -95,7 +95,7 @@ export { createMmdcCommand, mmdcCommands, type MmdcSettings, createMmdcCommands,
 export { createDiff3Command, diff3Commands, type Diff3CommandOptions, createDiff3Commands, type Diff3CommandsOptions } from "./commands/diff3/index.js";
 export { fmtCommands, type FmtCommandOptions, type FmtPluginOptions, createFmtCommands, createFmtCommand, type FmtCommandsOptions } from "./commands/fmt/index.js";
 export { createFoldCommand, foldCommands, type FoldCommandOptions, createFoldCommands, type FoldCommandsOptions } from "./commands/fold/index.js";
-export { createSsconvertCommand, ssconvertCommands, type SsconvertCommandsOptions, createSsconvertCommands } from "./commands/ssconvert/index.js";
+export { createSsconvertCommand, ssconvertCommands, type SsconvertCommandsOptions, type SsconvertLimits, createSsconvertCommands } from "./commands/ssconvert/index.js";
 export * from "./fs/memory/index.js";
 export * from "./fs/webdav/index.js";
 export * from "./fs/readonly/index.js";

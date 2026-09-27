@@ -1400,7 +1400,9 @@
             "docx": "*",
             "safe-bash-command-ssconvert": "*"
           },
-          "devDependencies": {}
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          }
         }
       }
     }

@@ -1,6 +1,6 @@
 import { callableConstructor } from "./callable-constructor.js";
 import { TypeError as ModelTypeError, ValueError } from "./errors.js";
-export class Length {
+class LengthValue {
   readonly emu: number;
   constructor(emu: number) {
     if (typeof emu !== "number") throw new ModelTypeError("Length must be numeric.");
@@ -27,6 +27,9 @@ export class Length {
     return Math.floor(this.emu / 127);
   }
 }
+export type Length = LengthValue;
+export const Length = callableConstructor(LengthValue);
+
 class EmuValue extends Length {}
 class InchesValue extends Length {
   constructor(value: number) {

@@ -538,11 +538,14 @@ describe("poe-agent-plugin-shell", () => {
   });
 
   it("does not wait forever for unresolved shell output notifications", async () => {
-    const cwd = process.cwd();
+    const cwd = "/project";
+    const fs = createFsFromVolume(Volume.fromJSON({ "/project": null })).promises;
+    createShellChild({ stdout: "ready\n", exitCode: 0 });
     const notify = vi.fn(() => new Promise<void>(() => undefined));
     const plugin = shellPlugin({
       cwd,
-      allowedPaths: [cwd]
+      allowedPaths: [cwd],
+      fs
     });
     let timeout: NodeJS.Timeout | undefined;
 

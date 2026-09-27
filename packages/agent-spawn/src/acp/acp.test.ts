@@ -1334,15 +1334,16 @@ describe("acp/spawnStreaming", () => {
     expect(spawnOptions).toMatchObject({ cwd: "/tmp", stdio: ["pipe", "pipe", "pipe"] });
   });
 
-  it("drains a large native output burst promptly without dropping or reordering events", async () => {
-    const count = 512;
+  it("drains a native output burst without dropping or reordering events", async () => {
+    // Cross multiple queue compactions, including a partially filled final batch.
+    // Throughput is measured separately in docs/plans/agent-spawn-streaming-performance-qa.md.
+    const count = 16_385;
     const mock = createMockChildProcess({
       stdoutLines: Array.from({ length: count }, (_, index) =>
         JSON.stringify({ type: "text", sessionID: "burst", part: { text: String(index) } })
       )
     });
     vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
-    const started = performance.now();
     const { events, done } = spawnStreaming({ agentId: "opencode", prompt: "burst", mode: "yolo" });
     let received = 0;
     for await (const event of events) {
@@ -1351,11 +1352,10 @@ describe("acp/spawnStreaming", () => {
     }
     expect((await done).exitCode).toBe(0);
     expect(received).toBe(count);
-    expect(performance.now() - started).toBeLessThan(1_000);
   });
 
-  it("drains an event backlog promptly after its consumer was held", async () => {
-    const count = 1_024;
+  it("drains an event backlog in order after its consumer was held", async () => {
+    const count = 16_385;
     const adapterSpy = vi.spyOn(adapterModule, "getAdapter").mockReturnValue(async function* (lines) {
       for await (const ignoredLine of lines) {
         for (let index = 0; index < count; index++) yield { event: "agent_message", text: String(index) };
@@ -1366,13 +1366,11 @@ describe("acp/spawnStreaming", () => {
       vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
       const { events, done } = spawnStreaming({ agentId: "opencode", prompt: "burst", mode: "yolo" });
       await done;
-      const started = performance.now();
       let received = 0;
       for await (const event of events) {
         if (event.text !== String(received++)) throw new Error("Event backlog lost message order");
       }
       expect(received).toBe(count);
-      expect(performance.now() - started).toBeLessThan(500);
     } finally {
       adapterSpy.mockRestore();
     }

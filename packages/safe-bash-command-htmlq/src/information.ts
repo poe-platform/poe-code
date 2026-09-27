@@ -17,7 +17,7 @@ Options:
   -w, --ignore-whitespace            Skip over text nodes whose text that is solely whitespace
   -p, --pretty                       If to reformat the HTML to be more nicely user-readable
   -r, --remove-nodes <REMOVE_NODES>  Do not output the nodes matching any of these selectors
-  -a, --attribute <ATTRIBUTE>       Output only the contents of the given attributes
+  -a, --attribute <ATTRIBUTE>        Output only the contents of the given attributes
   -h, --help                         Print help
   -V, --version                      Print version
 `;

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import * as poeAgent from "./index.js";
 import type { SessionUpdate } from "@poe-code/agent-spawn";
 import type { AcpSession } from "./agent.js";
 import type { AcpEvent, RunResult } from "./runtime/types.js";

@@ -34,4 +34,7 @@ it("selects the portable collector with opt-in limits using the workerd conditio
     yield new Uint8Array(8);
   })(), { maxMemoryBytes: 16 })`, context) as Uint8Array;
   expect(result.length).toBe(8);
+  await expect(runInContext(`collector.collectBytes((async function* () {
+    yield new Uint8Array(17);
+  })(), { maxBytes: 64, maxMemoryBytes: 32 })`, context)).rejects.toMatchObject({ code: "EFBIG" });
 });

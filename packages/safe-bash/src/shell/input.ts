@@ -1409,6 +1409,7 @@ export class ShellInput implements ByteSource, CommandInput {
 
   tryMapfileRecordSync(delimiter: number, strip: boolean, allocation?: ValueAllocation): { value: ShellValue; present: boolean } | undefined {
     if (this._viewClosed || (this._reads && this._reads.size > 0)) return undefined;
+    if (!allocation && !this.budget.values.hasInfiniteBytes) return undefined;
     const cursor = this._cursor;
     if (!cursor.canTakeRemainderSync()) return undefined;
     if (!cursor.remainder) {
@@ -1425,10 +1426,7 @@ export class ShellInput implements ByteSource, CommandInput {
     if (!rem || rem.length === 0) return undefined;
     const delimIdx = rem.indexOf(delimiter);
     if (delimIdx < 0 || delimIdx + 1 > this.budget.limits.maxOutputBytes) return undefined;
-    cursor.admitBoundedRead();
     const recLen = delimIdx + 1;
-    cursor.position += recLen;
-    cursor.remainder = recLen < rem.length ? rem.subarray(recLen) : undefined;
     const endIdx = strip ? delimIdx : recLen;
     let nulIdx = -1;
     let isAscii = true;
@@ -1441,11 +1439,13 @@ export class ShellInput implements ByteSource, CommandInput {
       if (b >= 128) isAscii = false;
     }
     const finalLen = nulIdx >= 0 ? nulIdx : endIdx;
+    if (!allocation && (!isAscii || finalLen > 512)) return undefined;
+    cursor.admitBoundedRead();
     if (allocation) {
       allocation.reserve(finalLen + 96, 0);
-    } else if (!this.budget.values.hasInfiniteBytes) {
-      return undefined;
     }
+    cursor.position += recLen;
+    cursor.remainder = recLen < rem.length ? rem.subarray(recLen) : undefined;
     const slice = rem.subarray(0, finalLen);
     if (isAscii && finalLen <= 512) {
       let strVal = "";

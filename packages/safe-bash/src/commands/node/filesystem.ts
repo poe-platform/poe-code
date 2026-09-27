@@ -18,8 +18,16 @@ export function nodeReadFile<Budget>(options: NodeSafeJsCommandOptions<Budget>, 
     }
     const done = callback;
     const completion = Promise.resolve().then(() => read(path, encoding)).then(
-      text => { signal.throwIfAborted(); return done(null, text); },
-      error => { signal.throwIfAborted(); return done(error); },
+      async text => {
+        await new Promise<void>(resolve => setImmediate(resolve));
+        signal.throwIfAborted();
+        return done(null, text);
+      },
+      async error => {
+        await new Promise<void>(resolve => setImmediate(resolve));
+        signal.throwIfAborted();
+        return done(error);
+      },
     ).then(() => undefined).catch(fail).finally(() => pending.delete(completion));
     pending.add(completion);
     return undefined;

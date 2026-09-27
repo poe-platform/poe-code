@@ -1,3 +1,4 @@
+import { captureJobScheduler, suspendJob } from "./jobs.js";
 import { resolveSandboxValue } from "./promise.js";
 import { readNativeMap, readNativeSet } from "./native-collections.js";
 import { copyCollectionProperties, getCollectionProperties } from "./collection-properties.js";
@@ -105,6 +106,11 @@ type CallerInjectedFunction = {
 }["bivarianceHack"];
 
 const awaitedHostOperations = new WeakSet<CallerInjectedFunction>();
+const scheduledCallbackOperations = new WeakSet<CallerInjectedFunction>();
+
+export function schedulesHostCallbacks(operation: CallerInjectedFunction): boolean {
+  return scheduledCallbackOperations.has(operation);
+}
 
 const budgetedHostOperations = new WeakMap<CallerInjectedFunction, (args: readonly unknown[], budget: Budget) => unknown>();
 
@@ -146,6 +152,7 @@ export type HostBridgeOptions = {
 };
 
 type HostCallbacks = {
+  schedule?: ReturnType<typeof captureJobScheduler>;
   record?: HostCallRecord;
   journal?: HostCallJournal;
   entries: Map<number, (args: SandboxValue[], token?: string, receiver?: SandboxValue) => Promise<unknown>>;
@@ -169,9 +176,13 @@ export type CallerInjectedBinding =
 export function declareHostOperation<TFunction extends CallerInjectedFunction>(
   operation: TFunction,
   policy: PendingHostCallPolicyMode,
-  options: { onReplay?: (args: readonly unknown[], outcome: HostCallOutcome) => void; awaitResult?: boolean } = {}
+  options: { onReplay?: (args: readonly unknown[], outcome: HostCallOutcome) => void; awaitResult?: boolean; /** Queue exported callbacks after the current guest synchronous prefix. */ callbackScheduling?: "after-prefix" } = {}
 ): TFunction {
+  if (options.callbackScheduling !== undefined && options.callbackScheduling !== "after-prefix") throw new TypeError("Host callbackScheduling must be after-prefix.");
+  if (options.callbackScheduling === "after-prefix" && options.awaitResult === true) throw new TypeError("Queued callbacks cannot be combined with awaitResult.");
   hostOperationPolicies.set(operation, policy);
+  if (options.callbackScheduling === "after-prefix") scheduledCallbackOperations.add(operation);
+  else scheduledCallbackOperations.delete(operation);
   if (options.awaitResult === true) awaitedHostOperations.add(operation);
   else awaitedHostOperations.delete(operation);
   if (options.onReplay !== undefined) hostOperationReplayHandlers.set(operation, options.onReplay);
@@ -225,6 +236,7 @@ function wrapCallerInjectedFunction(
   const bindingName = typeof nativeName === "string" && nativeName.length > 0 ? nativeName : name;
   const callable = value as (...args: readonly unknown[]) => unknown;
   const awaitResult = awaitedHostOperations.has(value) || options.realm?.awaitResult(callable) === true;
+  if (awaitResult && schedulesHostCallbacks(callable)) throw new TypeError("Queued callbacks cannot be combined with awaitResult or nestedOperation.");
 
   return createSandboxClosure({
     ...(isAsyncFunction(callable) && !awaitResult ? { async: true as const } : {}),
@@ -237,6 +249,7 @@ function wrapCallerInjectedFunction(
         if (options.signal?.aborted) throw readAbortReason(options.signal);
         const stackFrames = context?.stack ?? [];
         const callbacks: HostCallbacks = {
+          ...(schedulesHostCallbacks(callable) ? { schedule: captureJobScheduler() } : {}),
           journal: options.hostCalls,
           entries: new Map(),
           hostFunctions: new Map(),
@@ -257,7 +270,8 @@ function wrapCallerInjectedFunction(
               stackFrames,
               options.budget,
               operationLease.owner,
-              callbacks
+              callbacks,
+              options.signal
             ))
         }) as unknown[];
         const captured = options.realm?.captureArguments(callable, args, copyArguments);
@@ -783,21 +797,23 @@ function wrapSandboxClosureForHost(
   stackFrames: readonly string[],
   budget: Budget,
   compileOwner: CompileOwner,
-  callbacks?: HostCallbacks
+  callbacks?: HostCallbacks,
+  signal?: AbortSignal
 ): (...args: readonly unknown[]) => Promise<unknown> {
   const existing = callbacks?.seen.get(closure);
   if (existing !== undefined) return existing;
   const id = (callbacks?.entries.size ?? 0) + 1;
-  const invoke = async (sandboxArgs: SandboxValue[], token?: string, receiver?: SandboxValue) => {
+  const invokeNow = async (sandboxArgs: SandboxValue[], token?: string, receiver?: SandboxValue) => {
     const operation = budget.acquireCompileOwner(false, compileOwner);
     const compilation = new CompileScope(operation.owner);
     let leaveRunning: (() => void) | undefined;
     let leaveCall: (() => void) | undefined;
     const wrapClosure = (nestedClosure: SandboxClosure) =>
-      wrapSandboxClosureForHost(nestedClosure, stackFrames, budget, compileOwner, callbacks);
+      wrapSandboxClosureForHost(nestedClosure, stackFrames, budget, compileOwner, callbacks, signal);
     const onSharedBuffer = callbacks?.journal?.markSharedCallbackExport.bind(callbacks.journal);
 
     try {
+      signal?.throwIfAborted();
       leaveRunning = enterRunningState(closure);
       leaveCall = budget.enterCall();
       let result: ReturnType<SandboxClosure["call"]>;
@@ -816,6 +832,7 @@ function wrapSandboxClosureForHost(
         result = guestProxyStates.has(closure)
           ? await callGuestProxy(closure, sandboxArgs, budget, bridge, receiver)
           : closure.call(sandboxArgs, { compilation, stack: stackFrames, thisValue: receiver });
+        if (callbacks?.schedule !== undefined) result = await result;
       } catch (error) {
         if (isSandboxLikeValue(error)) {
           throw deepCopyFromSandbox(error, {
@@ -828,11 +845,17 @@ function wrapSandboxClosureForHost(
         throw error;
       }
 
-      return await (deepCopyFromSandbox(normalizeClosureResult(result, budget), {
+      const settlement = deepCopyFromSandbox(normalizeClosureResult(result, budget), {
         compilation,
         wrapClosure,
         onSharedBuffer
-      }) as Promise<unknown>);
+      }) as Promise<unknown>;
+      if (callbacks?.schedule !== undefined) {
+        void settlement.catch(() => undefined);
+        if (isSandboxPromise(result) && result.synchronousPrefix !== undefined) await result.synchronousPrefix;
+        return await suspendJob(settlement);
+      }
+      return await settlement;
     } catch (error) {
       if (isFatalBridgeError(error)) promiseReplayContext.getStore()?.fail(error);
       throw error;
@@ -844,6 +867,8 @@ function wrapSandboxClosureForHost(
       if (token !== undefined) promiseReplayContext.getStore()?.completeCallback(token);
     }
   };
+  const invoke = callbacks?.schedule === undefined ? invokeNow
+    : (args: SandboxValue[], token?: string, receiver?: SandboxValue) => callbacks.schedule!(() => invokeNow(args, token, receiver));
   const wrapped = async function (this: unknown, ...args: readonly unknown[]) {
     const operation = budget.acquireCompileOwner(false, compileOwner);
     try {

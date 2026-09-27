@@ -31,5 +31,5 @@ export function nodeReadFile<Budget>(options: NodeSafeJsCommandOptions<Budget>, 
     ).then(() => undefined).catch(fail).finally(() => pending.delete(completion));
     pending.add(completion);
     return undefined;
-  }, "read-side-effect");
+  }, "read-side-effect", { callbackScheduling: "after-prefix" });
 }

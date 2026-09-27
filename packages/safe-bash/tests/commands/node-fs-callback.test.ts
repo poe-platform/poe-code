@@ -49,6 +49,32 @@ for (const moduleName of ["fs", "node:fs"]) {
   });
 }
 
+for (const moduleName of ["fs", "node:fs"]) for (const moduleSyntax of [false, true]) {
+  test(`node keeps ${moduleName} callbacks behind synchronous guest work (module=${moduleSyntax})`, async () => {
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/input", Buffer.from("abc"));
+    const shell = new Shell({ fs }).use(nodeCommands({ runtime }));
+    try {
+      const result = await shell.exec(`node ${moduleSyntax ? "--input-type=module " : ""}-e '
+        ${moduleSyntax ? `import fs from "${moduleName}";` : `const fs = require("${moduleName}");`}
+        let complete;
+        const completion = new Promise(resolve => { complete = resolve; });
+        const returned = fs.readFile("input", "utf8", (error, text) => {
+          console.log("callback", error === null, text);
+          complete();
+        });
+        let count = 0;
+        while (count < 1000) count++;
+        console.log("returned", returned === undefined, count);
+        await completion;
+      '`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "returned true 1000\ncallback true abc\n");
+      assert.equal(result.stderr, "");
+    } finally { await shell.dispose(); }
+  });
+}
+
 test("node drains reads and timers admitted by each other's callbacks", async () => {
   const fs = new MemoryFileSystem();
   await fs.writeFile("/input", Buffer.from("abc"));

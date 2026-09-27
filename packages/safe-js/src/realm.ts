@@ -23,6 +23,7 @@ import {
 } from "./interp/promise-tracker.js";
 import {
   copyHostValueToSandbox,
+  schedulesHostCallbacks,
   wrapCallerInjectedBindings,
   type CallerInjectedBinding,
   type HostBridgeOptions,
@@ -161,6 +162,8 @@ class RealmState {
   readonly pendingWork = new Set<Promise<unknown>>();
   releaseReconciliation?: () => void;
   readonly callbackCache = new WeakMap<SandboxClosure, Callback>();
+  readonly queuedCallbackCache = new WeakMap<SandboxClosure, Callback>();
+  readonly queuedCallbacks = new WeakSet<Callback>();
   readonly hostObjects = new Set<HostObject>();
   readonly guestReferences = new Map<GuestReference, [SandboxValue]>();
   readonly retainedOperations = new WeakMap<
@@ -333,6 +336,7 @@ class RealmState {
   };
 
   captureArguments: RealmBridge["captureArguments"] = (operation, args, copy) => {
+    const queued = schedulesHostCallbacks(operation);
     const from = this.retainedOperations.get(operation)?.from ?? args.length;
     const owned = this.callbackOperations.has(operation) ? new Map<SandboxClosure, Callback>() : undefined;
     const captured: GuestReference[] = [];
@@ -349,10 +353,12 @@ class RealmState {
     try {
       // One copy preserves aliases within this call. Separate calls receive
       // separate revocation handles, even when they capture the same closure.
-      const values = copy(args.slice(0, from), owned === undefined ? undefined : closure => {
+      const values = copy(args.slice(0, from), owned === undefined
+        ? queued ? closure => this.wrapCallback(closure, false, true) : undefined
+        : closure => {
         let callback = owned.get(closure);
         if (callback === undefined) {
-          callback = this.wrapCallback(closure, true);
+          callback = this.wrapCallback(closure, true, queued);
           owned.set(closure, callback);
         }
         return callback;
@@ -634,9 +640,10 @@ class RealmState {
     return object;
   };
 
-  wrapCallback = (closure: SandboxClosure, owned = false): Callback => {
+  wrapCallback = (closure: SandboxClosure, owned = false, queued = false): Callback => {
     this.assertOpen();
-    const existing = owned ? undefined : this.callbackCache.get(closure);
+    const cache = queued ? this.queuedCallbackCache : this.callbackCache;
+    const existing = owned ? undefined : cache.get(closure);
     if (existing !== undefined && this.callbacks.has(existing)) return existing;
     this.checkCollection(this.callbacks.size + 1, this.limits.callbacks, "callback");
     const invokeCallback = this.invokeCallback;
@@ -644,7 +651,8 @@ class RealmState {
       return invokeCallback(callback, { args, thisValue: this });
     };
     this.callbacks.set(callback, closure);
-    if (!owned) this.callbackCache.set(closure, callback);
+    if (!owned) cache.set(closure, callback);
+    if (queued) this.queuedCallbacks.add(callback);
     registerGuestCallback(callback, {
       owner: this,
       closure,
@@ -709,6 +717,10 @@ class RealmState {
     if (scheduled) this.releaseReconciliation ??= this.budget.deferReconciliation();
     const rejectionOwner = scheduled ? this.tracker.startOperation() : undefined;
     const invoke = async () => {
+      if (this.queuedCallbacks.has(callback as Callback)) {
+        this.options.signal?.throwIfAborted();
+        this.controller.signal.throwIfAborted();
+      }
       this.assertOpen();
       readGuestCallback(callback, this);
       const leave = enterRunningState(closure);
@@ -754,7 +766,7 @@ class RealmState {
         withSandboxPromiseRejectionTracker(this.tracker, () =>
           runResources.run(this.resources, () =>
             withCancellationSignal(this.controller.signal, () =>
-              active && this.phase.getStore()?.active
+              !this.queuedCallbacks.has(callback as Callback) && active && this.phase.getStore()?.active
                 ? runAsyncPrefix(invoke, completeSynchronous === undefined && this.phase.getStore()?.extension !== undefined)
                 : this.queue.run(invoke)
             )

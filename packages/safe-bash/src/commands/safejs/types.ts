@@ -42,7 +42,7 @@ export interface SafeJsRuntime<Budget> {
   readonly run: (source: string, options: SafeJsRunOptions<Budget>) => Promise<SafeJsRunResult>;
   readonly createBudget: (options: SafeJsBudgetOptions) => Budget;
   readonly makeFsModule: (options: { adapter: FileSystem } & Pick<FsBridgeOptions, "cwd" | "signal">) => SafeJsModule;
-  readonly declareHostOperation: <Operation extends SafeJsHostFunction>(operation: Operation, policy: "read-side-effect", options?: { readonly awaitResult?: boolean }) => Operation;
+  readonly declareHostOperation: <Operation extends SafeJsHostFunction>(operation: Operation, policy: "read-side-effect", options?: { readonly awaitResult?: boolean; readonly callbackScheduling?: "after-prefix" }) => Operation;
 }
 
 export interface SafeJsCommandLimits {

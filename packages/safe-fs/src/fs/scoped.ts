@@ -6,7 +6,7 @@ import type { ByteSource } from "../contracts/io.js";
 import { finishCleanup } from "../contracts/cleanup.js";
 import { registerEntryView } from "./mount/comparison.js";
 import { getScopedTransportBudget, runScopedTransportBudget, withScopedTransportBudget } from "#safe-fs-platform";
-import { hasRegisteredS3FileSystem } from "../platform/transport-budget.js";
+import { hasRegisteredS3FileSystem, scopeTransportOptions } from "../platform/transport-budget.js";
 import { openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabilities, requireOwnedMutation } from "./capabilities.js";
 import { createStagingCleanup, snapshotStagingCreation } from "./staging-cleanup.js";
 import { inspectStagingBindings, runStagingGuard, snapshotDirectoryAncestry, snapshotStagingResolution } from "./staging-ancestry.js";
@@ -354,10 +354,15 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
         const result: unknown = Reflect.apply(method, original, args);
         return property === "readStream" ? wrapStream(result as ByteSource, args[1] as FsOptions | undefined) : result;
       };
-      const dispatch = (...args: unknown[]): unknown =>
-        hasRegisteredS3FileSystem
-          ? runScopedTransportBudget(admit, () => executeDispatch(args), credit)
-          : executeDispatch(args);
+      const dispatch = (...args: unknown[]): unknown => {
+        if (!hasRegisteredS3FileSystem) return executeDispatch(args);
+        if (operations.has(property as keyof FileSystem)) {
+          const optionIndex = ["compareEntry", "createStagedFile", "utimes"].includes(String(property)) ? 3
+            : ["writeFile", "appendFile", "writeStream", "rename", "copyFile", "link", "symlink", "access", "chmod", "truncate", "resizeFile", "publishFileConditional", "writeFileConditional", "publishStagedFile"].includes(String(property)) ? 2 : 1;
+          args[optionIndex] = scopeTransportOptions((args[optionIndex] ?? {}) as FsOptions, admit, credit);
+        }
+        return runScopedTransportBudget(admit, () => executeDispatch(args), credit);
+      };
       const scoped = property === "prepareStagingResolution"
         ? async (path: string, options: FsOptions = {}) => {
           const controls = resizeOptions({ ...options });

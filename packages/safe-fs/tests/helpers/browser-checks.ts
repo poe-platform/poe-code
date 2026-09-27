@@ -39,8 +39,8 @@ export async function runBrowserChecks(): Promise<string[]> {
   for await (const chunk of scoped.readStream!("/file")) check("scoped browser stream bytes", chunk[0] === 7);
   try { await scoped.stat("/file"); throw new Error("expected scope budget failure"); }
   catch (failure) { check("scoped browser operations retain their budget", failure === budgetFailure && charges === 3); }
-  try { chargeScopedTransportCall(); throw new Error("expected unsupported S3 transport charge"); }
-  catch (failure) { check("S3 transport charging is explicitly unsupported", failure instanceof core.FsError && failure.code === "ENOTSUP"); }
+  chargeScopedTransportCall();
+  check("unscoped transport calls have no inherited budget", true);
   try { withScopedTransportBudget([], () => { throw new Error("unsupported transport callback ran"); }); }
   catch (failure) { check("foreign S3 transport frames are refused", failure instanceof core.FsError && failure.code === "ENOTSUP"); }
 

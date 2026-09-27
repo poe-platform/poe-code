@@ -19,22 +19,84 @@
     }
   },
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
-    "./contracts": { "types": "./dist/contracts/index.d.ts", "import": "./dist/contracts/index.js" },
-    "./xml": { "types": "./dist/xml.d.ts", "import": "./dist/xml.js" },
-    "./core": { "types": "./dist/core.d.ts", "import": "./dist/core.js" },
-    "./testing/atomic": { "types": "./dist/testing/atomic-filesystem.d.ts", "workerd": "./dist/testing/atomic-filesystem.js", "browser": "./dist/testing/atomic-filesystem.js", "import": "./dist/testing/atomic-filesystem.js" },
-    "./testing/object-publication": { "types": "./dist/testing/object-publication.d.ts", "workerd": "./dist/testing/object-publication.js", "browser": "./dist/testing/object-publication.js", "import": "./dist/testing/object-publication.js" },
-    "./node": { "types": "./dist/node/index.d.ts", "import": "./dist/node/index.js" },
-    "./node/filesystem": {"types": {"browser": "./dist/node-unavailable.d.ts", "default": "./dist/node/filesystem.d.ts"}, "browser": null, "import": "./dist/node/filesystem.js"},
-    "./fs/memory": { "types": "./dist/fs/memory/index.d.ts", "import": "./dist/fs/memory/index.js" },
-    "./fs/real": { "types": "./dist/fs/real/index.d.ts", "import": "./dist/fs/real/index.js" },
-    "./fs/s3/http": { "types": "./dist/fs/s3/http/index.d.ts", "import": "./dist/fs/s3/http/index.js" },
-    "./fs/s3": { "types": "./dist/fs/s3/index.d.ts", "import": "./dist/fs/s3/index.js" },
-    "./fs/webdav": { "types": "./dist/fs/webdav/index.d.ts", "import": "./dist/fs/webdav/index.js" },
-    "./fs/readonly": { "types": "./dist/fs/readonly/index.d.ts", "import": "./dist/fs/readonly/index.js" },
-    "./fs/mount": { "types": "./dist/fs/mount/index.d.ts", "import": "./dist/fs/mount/index.js" },
-    "./fs/overlay": { "types": "./dist/fs/overlay/index.d.ts", "import": "./dist/fs/overlay/index.js" },
+    ".": {
+      "types": {
+        "workerd": "./dist/core.d.ts",
+        "browser": "./dist/core.d.ts",
+        "default": "./dist/index.d.ts"
+      },
+      "workerd": "./dist/core.js",
+      "browser": "./dist/core.js",
+      "import": "./dist/index.js"
+    },
+    "./contracts": {
+      "types": "./dist/contracts/index.d.ts",
+      "import": "./dist/contracts/index.js"
+    },
+    "./xml": {
+      "types": "./dist/xml.d.ts",
+      "import": "./dist/xml.js"
+    },
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js"
+    },
+    "./testing/atomic": {
+      "types": "./dist/testing/atomic-filesystem.d.ts",
+      "workerd": "./dist/testing/atomic-filesystem.js",
+      "browser": "./dist/testing/atomic-filesystem.js",
+      "import": "./dist/testing/atomic-filesystem.js"
+    },
+    "./testing/object-publication": {
+      "types": "./dist/testing/object-publication.d.ts",
+      "workerd": "./dist/testing/object-publication.js",
+      "browser": "./dist/testing/object-publication.js",
+      "import": "./dist/testing/object-publication.js"
+    },
+    "./node": {
+      "types": "./dist/node/index.d.ts",
+      "import": "./dist/node/index.js"
+    },
+    "./node/filesystem": {
+      "types": {
+        "browser": "./dist/node-unavailable.d.ts",
+        "default": "./dist/node/filesystem.d.ts"
+      },
+      "browser": null,
+      "import": "./dist/node/filesystem.js"
+    },
+    "./fs/memory": {
+      "types": "./dist/fs/memory/index.d.ts",
+      "import": "./dist/fs/memory/index.js"
+    },
+    "./fs/real": {
+      "types": "./dist/fs/real/index.d.ts",
+      "import": "./dist/fs/real/index.js"
+    },
+    "./fs/s3/http": {
+      "types": "./dist/fs/s3/http/index.d.ts",
+      "import": "./dist/fs/s3/http/index.js"
+    },
+    "./fs/s3": {
+      "types": "./dist/fs/s3/index.d.ts",
+      "import": "./dist/fs/s3/index.js"
+    },
+    "./fs/webdav": {
+      "types": "./dist/fs/webdav/index.d.ts",
+      "import": "./dist/fs/webdav/index.js"
+    },
+    "./fs/readonly": {
+      "types": "./dist/fs/readonly/index.d.ts",
+      "import": "./dist/fs/readonly/index.js"
+    },
+    "./fs/mount": {
+      "types": "./dist/fs/mount/index.d.ts",
+      "import": "./dist/fs/mount/index.js"
+    },
+    "./fs/overlay": {
+      "types": "./dist/fs/overlay/index.d.ts",
+      "import": "./dist/fs/overlay/index.js"
+    },
     "./fs/quota": {
       "types": "./dist/fs/quota/index.d.ts",
       "import": "./dist/fs/quota/index.js"
@@ -48,7 +110,11 @@
       "import": "./dist/contracts/errors.js"
     }
   },
-  "files": ["dist", "README.md", "PROVENANCE.json"],
+  "files": [
+    "dist",
+    "README.md",
+    "PROVENANCE.json"
+  ],
   "devDependencies": {
     "node-api-headers": "1.9.0"
   },

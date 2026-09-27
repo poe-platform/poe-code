@@ -1,4 +1,3 @@
-import { AsyncLocalStorage } from "node:async_hooks";
 import type { FileStat, FileSystem } from "../../contracts/filesystem.js";
 import type { S3HeadOutput, S3ObjectInput } from "./transport.js";
 
@@ -12,25 +11,32 @@ interface HeadProof {
   readonly entry: OwnedS3Entry;
 }
 
-const queries = new AsyncLocalStorage<S3ObjectInput>();
+const queryKey = Symbol("s3-head-query");
+type QueryInput = S3ObjectInput & { readonly [queryKey]?: object };
+const queries = new WeakMap<object, S3ObjectInput>();
 const providerHeads = new WeakMap<S3HeadOutput, HeadProof>();
 const acceptedHeads = new WeakMap<S3HeadOutput, OwnedS3Entry>();
 export function recordMockS3Head(output: S3HeadOutput, input: S3ObjectInput, storage: object): void {
-  const query = queries.getStore();
+  const token = (input as QueryInput)[queryKey];
+  const query = token && queries.get(token);
   if (query && query.Bucket === input.Bucket && query.Key === input.Key) {
     providerHeads.set(output, { query, entry: { storage, key: input.Key } });
   }
 }
 
-export async function queryS3Head(input: S3ObjectInput, action: () => Promise<S3HeadOutput>): Promise<S3HeadOutput> {
-  const query = { ...input };
-  return queries.run(query, async () => {
-    const output = await action();
+export async function queryS3Head(input: S3ObjectInput, action: (query: S3ObjectInput) => Promise<S3HeadOutput>): Promise<S3HeadOutput> {
+  const token = Object.freeze({});
+  const query: QueryInput = { ...input, [queryKey]: token };
+  queries.set(token, query);
+  try {
+    const output = await action(query);
     acceptedHeads.delete(output);
     const proof = providerHeads.get(output);
     if (proof?.query === query) acceptedHeads.set(output, proof.entry);
     return output;
-  });
+  } finally {
+    queries.delete(token);
+  }
 }
 
 export function recordS3Stat(filesystem: FileSystem, path: string, stat: FileStat, metadata: S3HeadOutput | undefined): void {

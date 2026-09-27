@@ -1,4 +1,5 @@
-import { posix } from "node:path";
+import { posixPath as posix } from "../../contracts/portable-path.js";
+import { compareKeys } from "./key-order.js";
 import { FsError, isFsError } from "../../contracts/errors.js";
 import { composeAbortSignals } from "../../contracts/abort.js";
 import type { ErrnoCode } from "../../contracts/errors.js";
@@ -287,7 +288,7 @@ export class S3FileSystem implements FileSystem {
   private async head(key: string, path: string, options: FsOptions): Promise<S3HeadOutput | undefined> {
     try {
       const input = { Bucket: this.bucket, Key: key };
-      return await this.call("headObject", path, options, () => queryS3Head(input, () => this.transport.headObject(input, this.requestOptions(options))));
+      return await this.call("headObject", path, options, () => queryS3Head(input, query => this.transport.headObject(query, this.requestOptions(options))));
     } catch (error) {
       if (isFsError(error, "ENOENT") && serviceCode(error.cause) !== "NoSuchBucket") return undefined;
       throw error;
@@ -575,7 +576,7 @@ export class S3FileSystem implements FileSystem {
       }
       for (const item of page.CommonPrefixes ?? []) add(item.Prefix!.slice(prefix.length, -1), "directory");
     }
-    return [...entries.values()].sort((left, right) => Buffer.compare(Buffer.from(left.name), Buffer.from(right.name)));
+    return [...entries.values()].sort((left, right) => compareKeys(left.name, right.name));
   }
 
   private async tree(path: string, options: FsOptions): Promise<S3ObjectSummary[]> {

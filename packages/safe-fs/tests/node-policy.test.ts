@@ -62,9 +62,9 @@ describe("Node policy preservation", () => {
     const comparison = async () => "unknown" as const;
     registerS3EntryOwner(own.filesystem, path => path, () => true, comparison);
     const output = {};
-    const accepted = await queryS3Head(input, async () => {
+    const accepted = await queryS3Head(input, async query => {
       await Promise.resolve();
-      recordMockS3Head(output, input, storage);
+      recordMockS3Head(output, query, storage);
       return output;
     });
     recordS3Stat(own.filesystem, "/file", own.stat, accepted);
@@ -73,15 +73,15 @@ describe("Node policy preservation", () => {
     expect(getOwnedS3Entry({ ...own, path: "/elsewhere" })).toBeUndefined();
     for (const mode of ["clone", "replay", "cross-query"] as const) {
       const target = { ...own, stat: { ...own.stat } };
-      const result = await queryS3Head(input, async () => {
+      const result = await queryS3Head(input, async query => {
         if (mode === "replay") return output;
         const inner = {};
         if (mode === "clone") {
-          recordMockS3Head(inner, input, storage);
+          recordMockS3Head(inner, query, storage);
           return { ...inner };
         }
-        return queryS3Head(input, async () => {
-          recordMockS3Head(inner, input, storage);
+        return queryS3Head(input, async nested => {
+          recordMockS3Head(inner, nested, storage);
           return inner;
         });
       });
@@ -116,15 +116,15 @@ describe("Node policy preservation", () => {
     registerS3EntryOwner(second.filesystem, path => path, () => true, comparison);
     let resume!: () => void;
     const pause = new Promise<void>(resolve => { resume = resolve; });
-    const pending = queryS3Head(input, async () => {
-      recordMockS3Head(output, input, firstStorage);
+    const pending = queryS3Head(input, async query => {
+      recordMockS3Head(output, query, firstStorage);
       await pause;
       return output;
     });
     try {
-      const observed = await queryS3Head(input, async () => {
+      const observed = await queryS3Head(input, async query => {
         await Promise.resolve();
-        recordMockS3Head(output, input, secondStorage);
+        recordMockS3Head(output, query, secondStorage);
         return output;
       });
       recordS3Stat(second.filesystem, "/file", second.stat, observed);

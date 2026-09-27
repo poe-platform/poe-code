@@ -31,7 +31,7 @@ for (const condition of ["browser", "workerd"]) describe(`${condition}-selected 
     expect(checks).toContain("one constructor graph");
     expect(checks).toContain("discarded-options callback refused");
     expect(checks).toContain("scoped browser operations retain their budget");
-    expect(checks).toContain("S3 transport charging is explicitly unsupported");
+    expect(checks).toContain("unscoped transport calls have no inherited budget");
     expect(checks).toContain("overlay whiteouts and recreated directories never expose lower descendants");
   });
 });

@@ -11,7 +11,7 @@ function utf8ByteLength(value: string): number {
   }
   return bytes;
 }
-import { createHash } from "node:crypto";
+import { compareKeys } from "./key-order.js";
 import { collectBytes } from "../../contracts/io.js";
 import { recordMockS3Head } from "./authority.js";
 import type { S3StreamGetInput, S3StreamGetOutput, S3StreamPutInput } from "./transport.js";
@@ -49,9 +49,6 @@ interface Cursor {
   readonly after: string;
 }
 
-function compareKeys(left: string, right: string): number {
-  return Buffer.compare(Buffer.from(left), Buffer.from(right));
-}
 
 export class MockS3Client implements S3Transport {
   readonly capabilities = Object.freeze({ conditionalPut: true, conditionalCopy: true, conditionalDelete: true, streamingRead: true, streamingWrite: true });
@@ -110,12 +107,12 @@ export class MockS3Client implements S3Transport {
     };
   }
 
-  private store(body: Uint8Array, metadata: Record<string, string> = {}): StoredObject {
+  private async store(body: Uint8Array, metadata: Record<string, string> = {}): Promise<StoredObject> {
     const metadataBytes = Object.entries(metadata).reduce((total, [key, value]) => total + utf8ByteLength(key) + utf8ByteLength(value), 0);
     if (metadataBytes > 2048) throw new S3ServiceError("MetadataTooLarge", 400);
     return {
       body: new Uint8Array(body),
-      etag: `"${createHash("md5").update(body).digest("hex")}"`,
+      etag: `"${Array.from(new Uint8Array(await globalThis.crypto.subtle.digest("SHA-256", new Uint8Array(body))), byte => byte.toString(16).padStart(2, "0")).join("")}"`,
       modified: new Date(this.now()),
       metadata: { ...metadata },
     };
@@ -137,6 +134,7 @@ export class MockS3Client implements S3Transport {
   async putObject(input: S3PutInput, options?: S3RequestOptions): Promise<{ ETag: string }> {
     if (!(input.Body instanceof Uint8Array)) throw new S3ServiceError("InvalidArgument", 400);
     input = { ...input, Body: new Uint8Array(input.Body), ...(input.Metadata ? { Metadata: { ...input.Metadata } } : {}) };
+    const object = await this.store(input.Body, input.Metadata);
     await this.begin("putObject", input, options);
     const bucket = this.bucket(input.Bucket);
     const previous = bucket.get(input.Key);
@@ -145,7 +143,6 @@ export class MockS3Client implements S3Transport {
       || (input.IfMatch !== undefined && previous?.etag !== input.IfMatch)) {
       throw new S3ServiceError("PreconditionFailed", 412);
     }
-    const object = this.store(input.Body, input.Metadata);
     bucket.set(input.Key, object);
     return { ETag: object.etag };
   }
@@ -178,13 +175,14 @@ export class MockS3Client implements S3Transport {
     const snapshot = { ...input, Body: new Uint8Array(), ...(input.Metadata ? { Metadata: { ...input.Metadata } } : {}) };
     await this.begin("putObject", snapshot, options);
     const body = await collectBytes(input.Body, { maxBytes: 5_000_000_000, ...(options?.abortSignal ? { signal: options.abortSignal } : {}) });
+    const object = await this.store(body, snapshot.Metadata);
+    options?.abortSignal?.throwIfAborted();
     const bucket = this.bucket(input.Bucket);
     const previous = bucket.get(input.Key);
     if (input.IfMatch !== undefined && !previous) throw new S3ServiceError("NoSuchKey", 404);
     if ((input.IfNoneMatch === "*" && previous) || (input.IfMatch !== undefined && previous?.etag !== input.IfMatch)) {
       throw new S3ServiceError("PreconditionFailed", 412);
     }
-    const object = this.store(body, snapshot.Metadata);
     bucket.set(input.Key, object);
     return { ETag: object.etag };
   }
@@ -212,13 +210,14 @@ export class MockS3Client implements S3Transport {
     const separator = decoded.indexOf("/");
     if (separator < 1) throw new S3ServiceError("InvalidArgument", 400);
     const source = this.object({ Bucket: decoded.slice(0, separator), Key: decoded.slice(separator + 1) });
-    if (input.CopySourceIfMatch !== undefined && input.CopySourceIfMatch !== source.etag) {
+    const copy = await this.store(source.body, input.MetadataDirective === "REPLACE" ? input.Metadata : source.metadata);
+    options?.abortSignal?.throwIfAborted();
+    if (input.CopySourceIfMatch !== undefined && input.CopySourceIfMatch !== this.object({ Bucket: decoded.slice(0, separator), Key: decoded.slice(separator + 1) }).etag) {
       throw new S3ServiceError("PreconditionFailed", 412);
     }
     const bucket = this.bucket(input.Bucket);
     if (input.IfNoneMatch === "*" && bucket.has(input.Key)) throw new S3ServiceError("PreconditionFailed", 412);
     if (input.IfMatch !== undefined && bucket.get(input.Key)?.etag !== input.IfMatch) throw new S3ServiceError("PreconditionFailed", 412);
-    const copy = this.store(source.body, input.MetadataDirective === "REPLACE" ? input.Metadata : source.metadata);
     bucket.set(input.Key, copy);
     return { CopyObjectResult: { ETag: copy.etag, LastModified: new Date(copy.modified) } };
   }

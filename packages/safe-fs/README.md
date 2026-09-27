@@ -41,10 +41,10 @@ To create new outputs with Safe Bash's `dos2unix`, `unix2dos`, or compression co
 
 | Import | Use |
 | --- | --- |
-| `@poe-platform/safe-fs` | Full Node API; selects the portable core under the `browser` condition. |
+| `@poe-platform/safe-fs` | Full Node API; selects the portable core under the `browser` and `workerd` conditions. |
 | `@poe-platform/safe-fs/core` | Memory, mounts, overlays, read-only, WebDAV, portable bridges, types, and errors. Bundle with the `browser` condition for browsers and Workers. |
 | `@poe-platform/safe-fs/node` | Host filesystem, Node bridge, S3, and configuration helpers; unavailable in browsers. |
-| `@poe-platform/safe-fs/fs/*` | Individual adapters: `memory`, `readonly`, `mount`, `overlay`, `webdav`, `real`, `s3`, and `s3/http`. The last three are Node-only. |
+| `@poe-platform/safe-fs/fs/*` | Individual adapters: `memory`, `readonly`, `mount`, `overlay`, `webdav`, `real`, `s3`, and `s3/http`. S3 and its mock accept an injected transport in browsers and Workers; `s3/http` is Node-only. |
 
 ```ts
 import { createMemoryFileSystem, FsError, type FileSystem } from "@poe-platform/safe-fs/core";
@@ -117,7 +117,7 @@ See the [staging contract](src/contracts/filesystem.md#atomic-owned-staging).
 | --- | --- |
 | `createMemoryFileSystem()` | Isolated, nonpersistent storage with links, permissions, timestamps, and streams; each path resolution admits at most 65,536 cumulative UTF-16 code units across the input and followed symlink targets, rejecting excess with `ENAMETOOLONG` before component allocation |
 | `createRealFileSystem({ root })` | An existing host directory, with virtual paths rooted inside it; Node or qualified Workerd operations |
-| `new S3FileSystem({ transport, bucket, … })` | Bucket/prefix storage through an explicitly supplied transport; Node only |
+| `new S3FileSystem({ transport, bucket, … })` | Bucket/prefix storage through an explicitly supplied transport in Node, browsers, and Workers |
 | `new WebDavFileSystem({ baseUrl, fetch, … })` | A WebDAV namespace through an explicitly supplied Fetch implementation |
 | `createReadOnlyFileSystem(filesystem)` | Rejecting writes through one view of an existing filesystem |
 | `createMountFileSystem({ root, mounts })` | Routing absolute virtual mount paths to different filesystems |
@@ -366,7 +366,7 @@ See the [binding types](src/fs/webdav/webdav.ts) before implementing atomic dire
 - **A read-only view is not an immutable store.** Mount views serialize guest symlink, rename, and removal operations against active path operations. Finish or close read streams before awaiting these namespace changes. Other references can still change the backing filesystem; this coordination applies only to operations through the same mount view. Overlay reads require retained handles and stable object and ancestor identities; unsupported backends or changed read admission fail with `ENOTSUP`. Overlays with two stock MemoryFileSystem layers support race-safe patch publication and confined directory creation/removal. Publication checks both layers, retains logical directory identity across copy-up, and leaves lower bytes intact; wrapped or customized layers remain unsupported. Overlays are not transactions; cancellation and cleanup do not guarantee rollback. Cross-mount rename can fail with `EXDEV`.
 - **Remote storage is not a POSIX disk.** S3 and WebDAV do not provide hardlinks or symlinks. S3 rename is non-atomic and may leave partial copies/deletions; `S3RenameError` reports the phase and affected keys. Strong empty-only removal and conditional writes depend on backend support, not a prior listing.
 - **The bridges are partial Node compatibility layers.** No synchronous/callback API, file handles, watchers, bigint stats, flush/retry support, or `cp` dereference/timestamp-preservation options. Missing optional operations fail rather than being approximated with destructive alternatives.
-- **Browser support is filesystem-only.** The `browser` export condition selects the portable surface: memory, mounts, overlays, read-only, WebDAV, and the codec-based bridge. Real storage, S3, the Node bridge, and the configuration registry are not browser exports. WebDAV still needs server CORS support; no OPFS or directory-handle adapter is included. This does not make the SafeJS runtime browser-compatible.
+- **Browser support is filesystem-only.** The `browser` and `workerd` export conditions select the portable surface: memory, mounts, overlays, read-only, WebDAV, and the codec-based bridge. S3 is available through `fs/s3` with an explicit transport, including its portable mock. Real storage, the Node bridge, and the configuration registry are not browser exports. WebDAV still needs server CORS support; no OPFS or directory-handle adapter is included. This does not make the SafeJS runtime browser-compatible.
 - **Portable temporary names require secure randomness.** Browser overlay staging and portable bridge `mkdtemp` require `crypto.randomUUID` or `crypto.getRandomValues`; without either, they fail with `ENOTSUP` rather than use `Math.random`.
 - **Allocation and identity may be unknown.** Optional `FileStat.allocatedBytes` is provider-reported allocation, not logical length or reclaimable space. Do not infer identity from size, timestamps, or inode numbers across unrelated backends.
 

@@ -33,6 +33,48 @@ function invocation(args: readonly string[], overrides: Partial<CommandContext> 
   return { context, stdout, stderr };
 }
 
+test("ssconvert factories accept omitted and empty options for built-in conversion", async () => {
+  for (const supplied of [undefined, {}]) {
+    const command = supplied === undefined ? createSsconvertCommand() : createSsconvertCommand(supplied);
+    const call = invocation(["-I", "Gnumeric_stf:stf_csvtab", "-T", "Gnumeric_stf:stf_csv", "fd://0", "fd://1"], {
+      stdin: (async function* () { yield encode("Name,Value\nexample,7\n"); })(), stdinIsDefault: false
+    });
+    assert.equal((await command.execute(call.context)).exitCode, 0, new TextDecoder().decode(Buffer.concat(call.stderr)));
+    assert.equal(new TextDecoder().decode(Buffer.concat(call.stdout)), "Name,Value\nexample,7\n");
+    assert.deepEqual(call.stderr, []);
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(
+      supplied === undefined ? ssconvertCommands() : ssconvertCommands(supplied)
+    );
+    try {
+      const result = await shell.exec("ssconvert --help");
+      assert.equal(result.exitCode, 0); assert.match(result.stdout, /Usage:/); assert.equal(result.stderr, "");
+    } finally { await shell.dispose(); }
+  }
+});
+
+test("ssconvert defaults retain explicit limits and invocation environment", async () => {
+  const observed: Array<{ locale: string; timezone: string; env: Readonly<Record<string, string>> }> = [];
+  const codec: Codec = { ...fixture, async read(bytes, context) {
+    observed.push(context.environment);
+    return await fixture.read!(bytes, context);
+  } };
+  const command = createSsconvertCommand({ codecs: [codec], limits: { inputBytes: 8 } });
+  const call = invocation(["-T", "independent", "fd://0", "fd://1"], {
+    env: { EXPORTED: "invocation" }, stdin: (async function* () { yield encode("original"); })(), stdinIsDefault: false
+  });
+  assert.equal((await command.execute(call.context)).exitCode, 0);
+  assert.deepEqual(observed.map(({ locale, timezone, env }) => ({ locale, timezone, env })), [
+    { locale: "C", timezone: "UTC", env: { EXPORTED: "invocation" } }
+  ]);
+  assert.deepEqual(call.stdout, [encode("original")]);
+  const oversized = invocation(["-T", "independent", "fd://0", "fd://1"], {
+    stdin: (async function* () { yield encode("oversized"); })(), stdinIsDefault: false
+  });
+  assert.equal((await command.execute(oversized.context)).exitCode, 1);
+  assert.deepEqual(oversized.stdout, []);
+  assert.equal(observed.length, 1);
+});
+
 test("ssconvert plugin owns descriptor bindings before caller mutation", async () => {
   const descriptors = { 4: { source: [encode("original")] } };
   const io = { descriptors };

@@ -9,13 +9,15 @@ import {
 import { shellValueByteLength } from "../../contracts/value.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
 
-export interface SsconvertCommandsOptions extends Omit<EngineConfig, "filesystem"> {
+export interface SsconvertCommandsOptions extends Omit<EngineConfig, "filesystem" | "codecs" | "environment"> {
+  readonly codecs?: EngineConfig["codecs"];
+  readonly environment?: EngineConfig["environment"];
   readonly io?: Pick<ResourceIOOptions, "descriptors" | "adapters" | "transport">;
   readonly replace?: boolean;
   readonly profile?: import("safe-bash-command-ssconvert").CommandProfile;
 }
 /** Explicit opt-in; the domain engine is the only conversion implementation. */
-export function createSsconvertCommand(options: SsconvertCommandsOptions): CommandDefinition {
+export function createSsconvertCommand(options: SsconvertCommandsOptions = {}): CommandDefinition {
   if (options.replace !== undefined && typeof options.replace !== "boolean")
     throw new TypeError("ssconvert replace must be boolean");
   const binding = {
@@ -39,11 +41,13 @@ export function createSsconvertCommand(options: SsconvertCommandsOptions): Comma
         configurationRoots: Object.freeze({ ...options.profile.configurationRoots })
       })
     }) }),
-    codecs: Object.freeze([...options.codecs]),
+    codecs: Object.freeze([...(options.codecs ?? [])]),
     limits: Object.freeze({ ...defaultSsconvertLimits, ...options.limits }),
     environment: Object.freeze({
+      locale: "C",
+      timezone: "UTC",
       ...options.environment,
-      env: Object.freeze({ ...options.environment.env })
+      env: Object.freeze({ ...options.environment?.env })
     })
   };
   return {
@@ -181,7 +185,7 @@ export function createSsconvertCommand(options: SsconvertCommandsOptions): Comma
     }
   };
 }
-export function ssconvertCommands(options: SsconvertCommandsOptions): VirtualShellPlugin {
+export function ssconvertCommands(options: SsconvertCommandsOptions = {}): VirtualShellPlugin {
   const command = createSsconvertCommand(options),
     replace = options.replace ?? false;
   return {

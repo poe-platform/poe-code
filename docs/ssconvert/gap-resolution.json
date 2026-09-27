@@ -2342,6 +2342,14 @@
         "validation": "Two original regressions returned 60 instead of source-derived 10. 24 axis/owner/data-sheet/dialect combinations pass; complete focused cohort 135 executed tests across four files, with imported fixture tests included. Maintained package lint, product/test/consumer types and selected build pass. Four compiled SDK/command BIFF8-to-CSV conversions return 10 and retain 10/20/30 local data; inputs were seeded through the product writer, output independently parsed with Python. Transcript screenshot inspected.",
         "remaining": "Native application recalculation still unqualified. #3670 command-factory requirements remain open; the report’s requested data-sheet filter is absent from the pinned Calc source."
       }
+    },
+    "commandFactoryDefaults": {
+      "issue": 3670,
+      "status": "partial",
+      "implemented": "createSsconvertCommand() and ssconvertCommands() accept omitted/empty options; built-in codecs, C locale and UTC timezone default without ambient environment or optional authority. Explicit limits and invocation environment are preserved.",
+      "evidence": "Two original regressions failed before the fix. All 22 factory/resource/cancellation tests pass; maintained Safe Bash build, root guarded lint and Safe Bash typecheck pass. Compiled CSV-XLSX-CSV checks for omitted/empty options preserve bytes; independent ZIP/XML parsing confirms numeric 7.",
+      "qa": "../plans/ssconvert-audit-qa.md#qa-command-factory-defaults",
+      "remaining": "Plural factory and private-package exports/ownership; remote delivery and publication must be verified separately."
     }
   },
   "cases": [

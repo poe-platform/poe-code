@@ -135,6 +135,18 @@ formats independently. A listed renderer and a PDF header do not prove a usable
 renderer or correct pages. Justify each nondeterministic field separately; never
 normalize away content, warnings, layout or namespace changes.
 
+## qa-command-factory-defaults
+
+Build the maintained Safe Bash workspace closure. Import the compiled
+`createSsconvertCommand` and `ssconvertCommands` factories, separately omitting
+options and passing `{}`. In a memory filesystem, convert the original CSV
+`Name,Value\nexample,7\n` to XLSX, then explicitly select `Gnumeric_stf:stf_csv`
+when converting back to `fd://1`. Require identical CSV bytes and status zero.
+Independently parse the exported ZIP/XML and verify the four cell values,
+including numeric `7`. Inspect a screenshot of the actual command transcript.
+Keep artifacts in `out`, record compact evidence, then remove the consumed files.
+This verifies compiled default factories; it does not qualify registry artifacts.
+
 ## qa-extension-profile
 
 Capture installed/activated/functional services separately. Include build-disabled

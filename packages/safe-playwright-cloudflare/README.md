@@ -74,8 +74,28 @@ Workerd native files expose placeholder identity, so supply
 `@poe-platform/safe-fs/fs/real` and explicitly choose `"archive"` there.
 Archive capture awaits the trusted provider in a private temporary directory,
 reads the completed file through one retained handle, and always removes the
-directory. It bounds the compressed output bytes; it does not bound the native
-producer's recording memory or provide the live raw-file byte limit.
+directory. Its artifact byte limit bounds the completed compressed output.
+To also bound retention while recording, supply the fourth argument's
+`traceLimits: { maxBytes: 16 * 1024 * 1024, maxFiles: 1024,
+maxArchiveBytes: 16 * 1024 * 1024 }`. All three values must be finite positive
+integers. Omitting `traceLimits` preserves the existing provider behavior.
+`maxBytes` admits raw trace files, queued replacement versions, and retained
+call-stack, request, and page-metadata records. `maxFiles` bounds those retained
+files and records, including individual stack calls, pending requests, and pages; it is not
+only the number of eventual ZIP members. Superseded file versions release their
+reservation after the native write queue drains. `maxArchiveBytes` admits
+compressed chunks and the complete standard trace ZIP before retention or output
+allocation. A recording's first refusal stays visible to subsequent commands;
+normal CLI resource-error disposal still applies.
+
+Each bounded recording owns a fresh native recorder and temporary directory.
+Restart and release drain admitted writes and remove only that recording's
+files and stack sessions. Live call-stack snapshots use the admitted queue at
+command checks instead of queuing a full rewrite for every call. Ordinary browser
+traffic outside tracing has no cumulative quota. These limits bound retained
+trace data, not total Worker memory: native response bodies and request metadata
+can be materialized before trace admission, and serialization and compression
+temporarily hold additional bounded copies. They do not establish an RSS ceiling.
 The host must preserve the request-owned provider/filesystem lifetime through
 production and capture; native `/tmp` is not cross-request storage.
 Portable profile byte, tab, and traversal limits are independently optional and default to unlimited; `Infinity` is also accepted. Explicit positive finite limits remain enforced. Storage structure and provider limits still apply.

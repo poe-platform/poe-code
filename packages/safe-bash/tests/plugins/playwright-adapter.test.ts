@@ -31,6 +31,57 @@ function fixture() {
 
 const request = () => ({ acquisitionId: "a1", session: "default", browser: "chromium" as const, headless: true, signal: new AbortController().signal });
 
+test('lease release drains a cancelled trace check before closing its context', async () => {
+  const f = fixture();
+  const abort = new AbortController();
+  const reason = new Error('cancel trace check');
+  let entered!: () => void;
+  const started = new Promise<void>(resolve => { entered = resolve; });
+  let finish!: () => void;
+  const pending = new Promise<void>(resolve => { finish = resolve; });
+  const adapter = createPlaywrightAdapter({ chromium: { async acquireBrowser() {
+    return { browser: f.browser, async release() { f.calls.push('resource.release'); },
+      async checkTrace(context: PlaywrightContext, options: { readonly signal: AbortSignal }) {
+        assert.equal(context, f.context);
+        assert.equal(options.signal, abort.signal);
+        entered();
+        await pending;
+        f.calls.push('trace.settled');
+      },
+    };
+  } } });
+  const lease = await adapter.acquire(request());
+  try {
+    const checking = lease.checkTrace!(lease.context, { signal: abort.signal });
+    const rejected = assert.rejects(checking, error => error === reason);
+    await started;
+    const released = lease.release();
+    abort.abort(reason);
+    await assert.rejects(lease.checkTrace!(lease.context, { signal: new AbortController().signal }), /lease is closed/);
+    assert.deepEqual(f.calls, ['newContext']);
+    finish();
+    await rejected;
+    await released;
+    assert.deepEqual(f.calls, ['newContext', 'trace.settled', 'context.close', 'resource.release']);
+  } finally { finish(); await lease.release(); }
+});
+
+test('an already cancelled trace check does not invoke the trusted host', async () => {
+  const f = fixture();
+  let checks = 0;
+  const adapter = createPlaywrightAdapter({ chromium: { async acquireBrowser() {
+    return { browser: f.browser, async release() {}, async checkTrace() { checks++; } };
+  } } });
+  const lease = await adapter.acquire(request());
+  const abort = new AbortController();
+  const reason = new Error('trace check was already cancelled');
+  abort.abort(reason);
+  try {
+    await assert.rejects(async () => lease.checkTrace!(lease.context, { signal: abort.signal }), error => error === reason);
+    assert.equal(checks, 0);
+  } finally { await lease.release(); }
+});
+
 test('lease release drains a pending witness resolution and disposes its late handle', async () => {
   const f = fixture();
   let finish!: (handle: PlaywrightElementHandle) => void;

@@ -10,6 +10,7 @@ export class ArchiveProof {
     this.filesystem = new RealFileSystem({ root: '/' });
     const adapter = createCloudflarePlaywrightAdapter(env.BROWSER, undefined, undefined, {
       artifactFileSystem: this.filesystem, traceCapture: 'archive',
+      traceLimits: { maxBytes: 16 * 1024 * 1024, maxFiles: 1024, maxArchiveBytes: 256 * 1024 },
     });
     this.artifacts = [];
     this.output = '';

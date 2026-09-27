@@ -9,7 +9,10 @@ import {
 declare const binding: BrowserWorker;
 declare const loader: WorkerLoader;
 const runtime: BrowserCodeRuntime = { ownerId: 'trusted-host-key', loader };
-const adapter: PlaywrightAdapter = createCloudflarePlaywrightAdapter(binding, undefined, runtime, {maxStorageBytes: 1048576});
+const adapter: PlaywrightAdapter = createCloudflarePlaywrightAdapter(binding, undefined, runtime, {
+  maxStorageBytes: 1048576,
+  traceLimits: {maxBytes: 16 * 1024 * 1024, maxFiles: 1024, maxArchiveBytes: 256 * 1024},
+});
 const limits = {maxBytes: 1048576, maxTabs: 8};
 declare const host: {load(name: string, signal: AbortSignal): Promise<Uint8Array | undefined>; save(name: string, bytes: Uint8Array, signal: AbortSignal): Promise<void>; remove(name: string, signal: AbortSignal): Promise<void>};
 const persistence: PlaywrightSessionPersistence = {

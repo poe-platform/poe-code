@@ -291,6 +291,7 @@ export interface PlaywrightBrowserSource {
     readonly captureArtifact?: PlaywrightArtifactCapture;
     readonly captureDownload?: PlaywrightDownloadCapture;
     readonly captureTrace?: PlaywrightTraceCapture;
+    readonly checkTrace?: PlaywrightTraceCheck;
     readonly executeCode?: PlaywrightCodeExecutor;
     readonly generateActionCode?: PlaywrightActionCodeGenerator;
     readonly captureSnapshotJSON?: PlaywrightSnapshotJSONCapture;
@@ -314,6 +315,8 @@ export type PlaywrightArtifactCapture = (produce: (temporaryPath: string) => Pro
 export type PlaywrightDownloadCapture = (download: PlaywrightDownload, options: { readonly signal: AbortSignal; readonly maxBytes: number }) => Promise<Uint8Array>;
 /** Flush and read bounded original native trace files, including after stop. */
 export type PlaywrightTraceCapture = (context: PlaywrightContext, options: { readonly signal: AbortSignal; readonly maxBytes: number }) => Promise<{ readonly files: readonly { readonly path: string; readonly bytes: Uint8Array }[] }>;
+/** Check context-owned trace work for recording failures without reading an archive. */
+export type PlaywrightTraceCheck = (context: PlaywrightContext, options: { readonly signal: AbortSignal }) => Promise<void>;
 
 export interface PlaywrightCodeExecutionOptions {
   readonly page: PlaywrightPage;
@@ -378,6 +381,7 @@ export interface PlaywrightLease {
   readonly captureArtifact?: PlaywrightArtifactCapture;
   readonly captureDownload?: PlaywrightDownloadCapture;
   readonly captureTrace?: PlaywrightTraceCapture;
+  readonly checkTrace?: PlaywrightTraceCheck;
   readonly executeCode?: PlaywrightCodeExecutor;
   readonly generateActionCode?: PlaywrightActionCodeGenerator;
   readonly captureSnapshotJSON?: PlaywrightSnapshotJSONCapture;
@@ -551,6 +555,19 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
             if (typeof result !== 'string') throw new Error('Invalid generated Playwright action code');
             return result;
           }) as PlaywrightActionCodeGenerator } : {}),
+          ...(resource.checkTrace ? { checkTrace: ((traceContext, checkOptions) => {
+            if (closed || releasing) return Promise.reject(new Error('Playwright lease is closed'));
+            checkOptions.signal.throwIfAborted();
+            const ownedOptions = Object.freeze({ ...checkOptions });
+            const operation = Promise.resolve().then(async () => {
+              ownedOptions.signal.throwIfAborted();
+              await resource.checkTrace!(traceContext, ownedOptions);
+              ownedOptions.signal.throwIfAborted();
+            });
+            captures.add(operation);
+            void operation.finally(() => captures.delete(operation)).catch(() => {});
+            return operation;
+          }) as PlaywrightTraceCheck } : {}),
           ...(resource.captureTrace ? { captureTrace: ((traceContext, captureOptions) => {
             if (closed || releasing) return Promise.reject(new Error('Playwright lease is closed'));
             captureOptions.signal.throwIfAborted();

@@ -24,6 +24,7 @@ import { captureBrowserTrace } from "./browser-trace.js";
 import { acquireCloudflareBrowser } from "./shell-browser-resource.js";
 import { browserProfileRuntime } from './browser-profile-runtime.js';
 import { prepareBrowserScreenshots } from './browser-screenshot.js';
+import { prepareBrowserTraceBudget, validateTraceLimits, type TraceLimits } from './browser-trace-budget.js';
 
 /** Cloudflare owns Chromium; the released CLI owns sessions, refs and artifacts. */
 type BrowserStorageState = Awaited<ReturnType<BrowserContext["storageState"]>>;
@@ -42,12 +43,13 @@ export function createCloudflarePlaywrightAdapter(
 		): Promise<BrowserStorageState | undefined>;
 	},
   runtime?: BrowserCodeRuntime,
-  limits: { maxStorageBytes?: number; artifactFileSystem?: FileSystem; traceCapture?: "live" | "archive" } = {},
+  limits: { maxStorageBytes?: number; artifactFileSystem?: FileSystem; traceCapture?: "live" | "archive"; traceLimits?: TraceLimits } = {},
 ): PlaywrightAdapter {
   if (limits.maxStorageBytes !== undefined && limits.maxStorageBytes !== Infinity && (!Number.isSafeInteger(limits.maxStorageBytes) || limits.maxStorageBytes < 1)) throw new TypeError('Invalid Cloudflare storage byte limit');
 	const maxStorageBytes = limits.maxStorageBytes ?? Infinity;
  const artifactFileSystem = limits.artifactFileSystem;
   if (limits.traceCapture !== undefined && limits.traceCapture !== "live" && limits.traceCapture !== "archive") throw new TypeError("Invalid Cloudflare trace capture mode");
+  const traceLimits = limits.traceLimits === undefined ? undefined : validateTraceLimits(limits.traceLimits);
 	const adapter = createPlaywrightAdapter({
 		chromium: {
 			headed: false,
@@ -57,15 +59,24 @@ export function createCloudflarePlaywrightAdapter(
 					throw new Error("Playwright is unavailable: BROWSER binding missing");
 				const { generateBrowserActionCode } = await import("./browser-codegen.js");
 				const resource = await acquireCloudflareBrowser({ binding, signal });
+				const traces = new Map<object, ReturnType<typeof prepareBrowserTraceBudget>>();
 				return {
 					prepareStorageOrigin: resource.prepareStorageOrigin,
 					executeCode: createBrowserCodeExecutor(resource, runtime),
 					generateActionCode: generateBrowserActionCode,
 					captureSnapshotJSON: captureBrowserSnapshotJSON,
           captureSnapshotReferences: captureBrowserSnapshotReferences,
-					browser: publicBrowser(resource.browser, resource.prepareSnapshots),
+					browser: publicBrowser(resource.browser, resource.prepareSnapshots, context => {
+            if (traceLimits) traces.set(context, prepareBrowserTraceBudget(context, traceLimits));
+          }),
 					captureArtifact: (produce, options) => captureBrowserArtifact(produce, options, artifactFileSystem),
 					...(limits.traceCapture === "archive" ? {} : { captureTrace: (context, options) => captureBrowserTrace(context, options, artifactFileSystem) }),
+          ...(traceLimits ? { checkTrace: async (context: object, options: { readonly signal: AbortSignal }) => {
+            options.signal.throwIfAborted();
+            const trace = traces.get(context);
+            if (!trace) throw new Error("Unowned native browser trace context");
+            await trace.check(options.signal);
+          } } : {}),
 					async captureDownload() {
 						// Cloudflare's download APIs read a Worker-local path, while the
 						// file lives in remote Chromium. CDP exposes no file-byte stream.
@@ -76,7 +87,13 @@ export function createCloudflarePlaywrightAdapter(
 					// The provider validates Buffer payloads; import its constructor explicitly.
 					prepareFileBytes: (bytes: Uint8Array) => Buffer.from(bytes),
 					interrupt: resource.interrupt,
-					release: resource.release,
+					async release() {
+            const results = await Promise.allSettled([...traces.values()].map(trace => trace.release()));
+            const errors: unknown[] = results.flatMap(result => result.status === "rejected" ? [result.reason] : []);
+            try { await resource.release(); } catch (error) { errors.push(error); }
+            if (errors.length === 1) throw errors[0];
+            if (errors.length) throw new AggregateError(errors, "Cloudflare trace and browser cleanup failed");
+          },
 				};
 			},
 		},
@@ -115,7 +132,7 @@ export function createCloudflarePlaywrightAdapter(
 	};
 }
 
-function publicBrowser(browser: Browser, prepareSnapshots: (page: Page) => void) {
+function publicBrowser(browser: Browser, prepareSnapshots: (page: Page) => void, prepareTrace: (context: BrowserContext) => void) {
 	return {
     isConnected: browser.isConnected.bind(browser),
 		on: browser.on.bind(browser),
@@ -127,6 +144,8 @@ function publicBrowser(browser: Browser, prepareSnapshots: (page: Page) => void)
       // The acquired portable lease restores origins through held private targets.
       const { storageState: ignoredStorageState, ...contextOptions } = options ?? {};
       const context = await browser.newContext(contextOptions);
+      try { prepareTrace(context); }
+      catch (error) { await context.close(); throw error; }
       context.on('page', prepareBrowserScreenshots);
       context.on('page', prepareSnapshots);
       for (const page of context.pages()) prepareBrowserScreenshots(page);

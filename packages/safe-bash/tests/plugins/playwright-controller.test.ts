@@ -4,6 +4,7 @@ import { createPlaywrightController } from '../../src/playwright/index.js';
 import type { PlaywrightAdapter, PlaywrightLease, PlaywrightPage, PlaywrightSessionCheckpoint } from '../../src/playwright/index.js';
 import type { SnapshotNode } from '../../src/playwright/adapter.js';
 import { createSnapshotFrame } from '../helpers/playwright-snapshot.js';
+import { PlaywrightResourceLimitError } from '../../src/playwright/resource-limit.js';
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -38,6 +39,33 @@ function fixture(maxSessions = 2, maxArtifactBytes?: number) {
   const run = (args: string[], overrides = {}) => controller.run({ args, env: {}, signal: new AbortController().signal, write: async (text: string) => { events.push(`out:${text}`); }, ...overrides });
   return { controller, adapter, events, leases, run };
 }
+
+test('trace limit failures retire the session when archive capture is unavailable', async () => {
+  const f = fixture();
+  const acquire = f.adapter.acquire.bind(f.adapter);
+  const failure = new PlaywrightResourceLimitError('Trace byte limit exceeded');
+  let failed = false;
+  let checks = 0;
+  const controller = createPlaywrightController({ adapter: { ...f.adapter, async acquire(request) {
+    const lease = await acquire(request);
+    assert.equal(lease.captureTrace, undefined);
+    return { ...lease, async checkTrace(context: PlaywrightLease['context'], options: { readonly signal: AbortSignal }) {
+      assert.equal(context, lease.context);
+      options.signal.throwIfAborted();
+      checks++;
+      if (failed) throw failure;
+    } };
+  } } });
+  const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write() {} });
+  try {
+    await run(['open']);
+    failed = true;
+    await assert.rejects(run(['tab-list']), error => error === failure);
+    assert.ok(checks >= 2);
+    assert.equal(f.leases[0]!.releases, 1);
+  } finally { await controller.dispose(); }
+  assert.equal(f.leases[0]!.releases, 1);
+});
 
 for (const command of ['click', 'check', 'select'] as const) for (const change of ['retained', 'detached', 'navigated'] as const) test(`${command} ability preserves only live snapshot refs: ${change}`, async () => {
   const listeners = new Set<() => void>();

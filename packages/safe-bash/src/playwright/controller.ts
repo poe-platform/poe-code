@@ -727,6 +727,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       return [{ title: 'Events', content: downloads.map(download => `- Downloaded file [${download.filename.split('/').at(-1)}](${download.filename})`).join('\n') }];
     };
     const flushTrace = async (session: Session): Promise<string[]> => {
+      if (session.lease?.checkTrace) await session.lease.checkTrace(session.lease.context, { signal: local.signal });
       if (!session.lease?.captureTrace) return [];
       return flushPlaywrightTrace(session.lease.context, session.lease.captureTrace, {
         signal: local.signal, maxBytes: Math.min(maxArtifactBytes, commandBudget.remaining), writeArtifact,

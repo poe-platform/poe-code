@@ -786,7 +786,7 @@ class LivePresentation implements PresentationModel {
       };
     } else if (
       destination &&
-      (typeof destination.write !== "function" || typeof destination.close !== "function")
+      (typeof destination.write !== "function" || (destination.close !== undefined && typeof destination.close !== "function"))
     ) {
       throw new ModelTypeError("Expected an explicit byte sink.");
     }

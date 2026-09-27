@@ -352,3 +352,11 @@ it("captures completion intent before host callbacks run", async () => {
   );
   expect(close).not.toHaveBeenCalled();
 });
+
+it("writes to sinks without close even when closing is requested", async () => {
+  const write = vi.fn(async (_bytes: Uint8Array) => {});
+  await writeBinary(Uint8Array.of(1, 2), { write }, context, { close: true });
+  expect(write).toHaveBeenCalledWith(Uint8Array.of(1, 2), undefined);
+  await expect(writeBinary(Uint8Array.of(1), { write, close: false } as never, context))
+    .rejects.toMatchObject({ code: "invalid-type" });
+});

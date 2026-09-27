@@ -293,3 +293,14 @@ it("snapshots a class publication capability while retaining its receiver", asyn
   await saving;
   expect(destination.paths).toEqual(["/initial"]);
 });
+
+it("saves to a write-only byte sink and reopens its archive", async () => {
+  const deck = await Presentation();
+  deck.core_properties.title = "Write-only sink";
+  const chunks: Uint8Array[] = [];
+  await deck.save({ async write(bytes) { chunks.push(bytes); } });
+  const bytes = new Uint8Array(chunks.reduce((size, chunk) => size + chunk.length, 0));
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+  expect((await Presentation(bytes)).core_properties.title).toBe("Write-only sink");
+});

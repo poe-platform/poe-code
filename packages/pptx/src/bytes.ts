@@ -137,7 +137,7 @@ export async function writeBinary(
     !(bytes instanceof Uint8Array) ||
     !sink ||
     typeof sink.write !== "function" ||
-    typeof sink.close !== "function"
+    (sink.close !== undefined && typeof sink.close !== "function")
   ) {
     throw new OfficeError("invalid-type", "Expected bytes and an explicit byte sink.", "usage");
   }
@@ -156,7 +156,7 @@ export async function writeBinary(
       await sink.write(owned.slice(offset, offset + limits.chunkBytes), signal);
       checkCancellation(signal, "publish");
     }
-    if (close) await sink.close();
+    if (close) await sink.close?.();
     checkCancellation(signal, "publish");
   } catch {
     checkCancellation(signal, "publish");

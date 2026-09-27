@@ -4,7 +4,7 @@ export interface ByteSource {
 
 export interface ByteSink {
   write(bytes: Uint8Array, signal?: AbortSignal): Promise<void>;
-  close(): Promise<void>;
+  close?(): Promise<void>;
 }
 
 export interface VfsCapability {

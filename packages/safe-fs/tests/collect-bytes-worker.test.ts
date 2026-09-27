@@ -8,8 +8,8 @@ vi.mock("#safe-fs-platform", async importOriginal => {
 import { collectBytes } from "../src/contracts/io.js";
 import { platform as browserPlatform } from "../src/platform/browser.js";
 
-it("uses a fixed 32 MiB budget in browser and Worker bundles", () => {
-  expect(browserPlatform.maxCollectionBytes).toBe(32 * 1024 * 1024);
+it("disables the collection budget by default in browser and Worker bundles", () => {
+  expect(browserPlatform.maxCollectionBytes).toBe(Infinity);
 });
 
 it("accepts just-under-limit input and rejects a larger single allocation", async () => {

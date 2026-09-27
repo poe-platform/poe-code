@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem, type FileSystem } from "@poe-code/safe-fs";
 import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, createCommandArguments, writeText } from "safe-bash-contracts";
-import { createSqlite3Command, createSqlite3Commands } from "./index.js";
+import { createSqlite3Command, createSqlite3Commands, settings } from "./index.js";
 
 test("sqlite3 factories cannot cross runtime registries", async () => {
   const foreign = await import(new URL("../../safe-bash-contracts/src/command.ts?sqlite3-foreign-runtime", import.meta.url).href) as typeof import("safe-bash-contracts");
@@ -389,4 +389,8 @@ test('sqlite3 emits valid JSON for exponential REAL numbers', async () => {
   const result = await runSqlite3(createMemoryFileSystem(), [':memory:', 'SELECT json_array(1e21,1e-20);']);
   assert.equal(result.code, 0, result.stderr);
   assert.deepEqual(JSON.parse(result.stdout), [1e21, 1e-20]);
+});
+
+test("sqlite3 settings disable all resource ceilings by default", () => {
+  assert.deepEqual(settings.limits, { maxInputBytes: Infinity, maxOutputBytes: Infinity, maxRows: Infinity });
 });

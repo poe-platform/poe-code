@@ -3,23 +3,23 @@ import { WebDavFileSystem } from "../src/fs/webdav/webdav.js";
 import { parseXml, XmlResponseLimitError } from "../src/fs/webdav/xml.js";
 import { multistatus, resource, xmlResponse } from "./migration/fs/webdav/mock.js";
 
-function remote(xml: string, maxEntries = 10_000, maxXmlBytes = 2 * 1024 * 1024) {
+function remote(xml: string, maxEntries = 10_000, maxXmlBytes = 2 * 1024 * 1024, maxNodes = Infinity) {
   return new WebDavFileSystem({
-    baseUrl: "https://example.invalid/dav/", maxEntries, maxXmlBytes,
+    baseUrl: "https://example.invalid/dav/", maxEntries, maxXmlBytes, xmlLimits: { maxNodes },
     fetch: async () => xmlResponse(xml),
   });
 }
 
 describe("WebDAV XML allocation admission", () => {
   it("admits ignored elements below the XML structure budgets", async () => {
-    const count = 99_970;
+    const count = 480;
     const xml = multistatus(resource("/dav/", true), "<x/>".repeat(count));
-    const result = remote(xml).stat("/");
+    const result = remote(xml, undefined, undefined, 512).stat("/");
     await expect(result).resolves.toMatchObject({ type: "directory" });
   });
 
   it("rejects ignored elements beyond the XML node budget", async () => {
-    await expect(remote(multistatus(resource("/dav/", true), "<x/>".repeat(99_990))).stat("/"))
+    await expect(remote(multistatus(resource("/dav/", true), "<x/>".repeat(510)), undefined, undefined, 512).stat("/"))
       .rejects.toMatchObject({ code: "EFBIG" });
   });
 

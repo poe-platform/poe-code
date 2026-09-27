@@ -17,7 +17,7 @@ export class ObjectAuthority {
   #tail: Promise<unknown> = Promise.resolve();
   #disposal: Promise<void> | undefined;
 
-  constructor(filesystem: FileSystem | Pick<FileSystem, "objects">, options: { readonly maxHandles: number; readonly maxIoBytes?: number }) {
+  constructor(filesystem: FileSystem | Pick<FileSystem, "objects">, options: { readonly maxHandles?: number; readonly maxIoBytes?: number } = {}) {
     const backend = filesystem.objects;
     // One issued authority keeps its qualified namespace. Bound operations
     // observe live backend state without accepting replacement capabilities.
@@ -31,10 +31,11 @@ export class ObjectAuthority {
         specialFiles: Object.freeze({ ...specialFiles }),
       });
     }
-    this.#maxHandles = options.maxHandles;
-    this.#maxIoBytes = options.maxIoBytes ?? 1048576;
-    if (!Number.isSafeInteger(this.#maxHandles) || this.#maxHandles < 1 ||
-        !Number.isSafeInteger(this.#maxIoBytes) || this.#maxIoBytes < 1) throw new FsError("EINVAL");
+    this.#maxHandles = options.maxHandles ?? Infinity;
+    this.#maxIoBytes = options.maxIoBytes ?? Infinity;
+    for (const limit of [this.#maxHandles, this.#maxIoBytes]) {
+      if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 1)) throw new FsError("EINVAL");
+    }
   }
 
   #run<T>(operation: () => Promise<T>): Promise<T> {

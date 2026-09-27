@@ -9,7 +9,7 @@ export type PlatformComparisonCallback<Callback> = Callback & never;
 
 export const platform = Object.freeze({
   nativeFileSystem: Object.freeze({ open: false, permissions: false, timestamps: false, conditionalChmod: false, trustedOwnedStaging: false, atomicRename: false }),
-  maxCollectionBytes: 32 * 1024 * 1024,
+  maxCollectionBytes: Infinity,
   errno(_code: string): PlatformErrno {
     return undefined;
   },

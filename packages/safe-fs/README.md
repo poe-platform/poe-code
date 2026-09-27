@@ -268,7 +268,7 @@ Every raw filesystem operation accepts an optional `signal`. Additional fields a
 
 `access` takes a separate mode bitmask from `ACCESS_MODES`. `chmod` takes a mode, `utimes` takes millisecond timestamps, and `truncate` takes a byte length (default 0). For conditional chmod, check `capabilitiesFor(path, { conditionalChmod: true })` (or `capabilities`) and require `conditionalChmod: true`; supply `parent`, `expected`, and complete root-to-parent `ancestors` together. An optional mutation-free `commitGuard` must return literal `true` synchronously. Memory validates at its metadata commit; mount and supported Memory overlays preserve wrapper ancestry. Real uses its existing externally isolated host-tree boundary and does not prevent races with other processes. Backend limits still apply. Node-shaped bridge methods translate their own options rather than accepting these raw option objects; see the [bridge signatures](src/bridge/filesystem.ts).
 
-`collectBytes(source, { maxBytes, maxMemoryBytes, signal })` snapshots streamed chunks into one growing buffer. `maxBytes` and `maxMemoryBytes` accept explicit `Infinity`. `maxMemoryBytes` limits owned capacity, the current input's full backing buffer, and overlapping allocations during growth; exhaustion throws `EFBIG`. Browser and Worker bundles additionally share a fixed 32 MiB budget across active collectors, even when byte limits are omitted. The returned view may retain geometric spare capacity. This budget covers collection, not caller-retained results, transport buffering, archive decoding, strings, or the rest of the runtime; use streaming APIs and limit concurrent workloads for larger inputs.
+`collectBytes(source, { maxBytes, maxMemoryBytes, signal })` snapshots streamed chunks into one growing buffer. `maxBytes` and `maxMemoryBytes` accept explicit `Infinity`. `maxMemoryBytes` limits owned capacity, the current input's full backing buffer, and overlapping allocations during growth; exhaustion throws `EFBIG`. Collection limits are disabled by default on Node, browser, and Worker targets. The returned view may retain geometric spare capacity. Configured budgets cover collection, not caller-retained results, transport buffering, archive decoding, strings, or the rest of the runtime; use streaming APIs and limit concurrent workloads for larger inputs.
 
 <details>
 <summary>S3 filesystem and HTTP transport options</summary>
@@ -344,17 +344,18 @@ Each batch lists from the beginning because previous keys have been deleted; it 
 | --- | --- |
 | `headers` | Empty; explicit authentication/custom headers. Protocol-reserved headers are rejected; authorization and cookies require HTTPS. |
 | `requestStreamSupport` | `native` for global Fetch, otherwise false; accepts `native` or a boolean declaration for the injected transport |
-| `maxResponseBytes` | 16 MiB; applies to decoded response bytes |
-| `maxXmlBytes` | 1 MiB before metadata decoding/parsing |
+| `maxResponseBytes` | Unlimited unless configured; applies to decoded response bytes |
+| `maxXmlBytes` | Unlimited unless configured; applies before metadata decoding/parsing |
+| `xmlLimits` | Optional `maxNodes`, `maxContentNodes`, `maxDepth`, and `maxAttributes`; each accepts a positive safe integer or `Infinity`, and is unlimited unless configured |
 | `maxEntries` | Unlimited unless configured |
 | `timeoutMs` | Unlimited unless configured |
 | `overwritePolicy` | `lock`; alternative `etag` uses conditional overwrites |
 | `atomicEmptyDirectory` | Optional trusted binding with the canonical `namespaceUrl` and `removeEmptyDirectory` callback; required for strict empty-only `rmdir` |
 | `compareEntry` | Optional trusted backing-identity callback on Node; unavailable under browser policy |
 
-Known identity Content-Length responses use one result buffer; other responses grow storage up to the configured ceiling and return a view without a final copy. Growth can temporarily retain the old and new buffers (up to three times the response size), plus transport chunks. These per-response defaults leave headroom in Workers; hosts must still budget for metadata parsing, text decoding, transport buffers, and concurrent reads, especially when raising the limits. Use streaming reads for large files.
+Known identity Content-Length responses use one result buffer; other responses grow storage up to the configured ceiling and return a view without a final copy. Growth can temporarily retain the old and new buffers (up to three times the response size), plus transport chunks. Hosts can configure per-response limits to budget for metadata parsing, text decoding, transport buffers, and concurrent reads. Use streaming reads for large files.
 
-WebDAV `maxEntries`, `maxResponseBytes`, `maxXmlBytes`, and per-read `maxBytes` accept explicit `Infinity`. WebDAV metadata parsing limits the document to 100,000 elements, 100,000 content nodes, 100,000 attributes, and 256 levels of nesting, independently of `maxEntries`. Text is bounded by `maxXmlBytes`. Exceeding a structural budget reports `EFBIG`; parsing yields cooperatively so caller cancellation and `timeoutMs` remain active.
+WebDAV `maxEntries`, `maxResponseBytes`, `maxXmlBytes`, and per-read `maxBytes` accept explicit `Infinity`. WebDAV metadata structure limits are disabled by default; configure `xmlLimits` independently of `maxEntries`. Text is bounded by `maxXmlBytes`. Exceeding a structural budget reports `EFBIG`; parsing yields cooperatively so caller cancellation and `timeoutMs` remain active.
 
 See the [binding types](src/fs/webdav/webdav.ts) before implementing atomic directory removal. A recursive WebDAV DELETE does not satisfy that contract.
 

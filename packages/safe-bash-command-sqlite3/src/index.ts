@@ -621,9 +621,9 @@ function splitDotCommandArgs(line: string): string[] {
 export const settings = {
   commandName: "sqlite3",
   limits: {
-    maxInputBytes: 16 * 1024 * 1024,
-    maxOutputBytes: 16 * 1024 * 1024,
-    maxRows: 100000
+    maxInputBytes: Infinity,
+    maxOutputBytes: Infinity,
+    maxRows: Infinity
   } satisfies Sqlite3Limits
 } as const;
 

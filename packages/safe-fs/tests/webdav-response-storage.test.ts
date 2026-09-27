@@ -44,14 +44,14 @@ describe("WebDAV response storage", () => {
     expect(data.buffer.byteLength).toBeLessThanOrEqual(20);
   });
 
-  it("rejects oversized responses with the default ceiling before reading", async () => {
+  it("rejects oversized responses with an explicit ceiling before reading", async () => {
     const response = new Response(new ReadableStream({ start(controller) { controller.close(); } }), { headers: { "Content-Length": String(16 * 1024 * 1024 + 1) } });
-    await expect(remote(response).readFile("/file")).rejects.toMatchObject({ code: "EFBIG" });
+    await expect(remote(response, { maxResponseBytes: 16 * 1024 * 1024 }).readFile("/file")).rejects.toMatchObject({ code: "EFBIG" });
   });
 
-  it("limits metadata before decoding with the default ceiling", async () => {
+  it("limits metadata before decoding with an explicit ceiling", async () => {
     const fs = new WebDavFileSystem({
-      baseUrl: "https://example.invalid/dav/",
+      baseUrl: "https://example.invalid/dav/", maxXmlBytes: 1024 * 1024,
       fetch: async () => new Response("", { status: 207, headers: { "Content-Length": String(1024 * 1024 + 1) } }),
     });
     await expect(fs.stat("/file")).rejects.toMatchObject({ code: "EFBIG" });
@@ -82,4 +82,10 @@ describe("WebDAV response storage", () => {
     await expect(remote(response, { maxResponseBytes: 4 }).readFile("/file")).rejects.toMatchObject({ code: "EFBIG" });
     expect(cancel).toHaveBeenCalled();
   });
+});
+
+it("accepts response bytes above the former default ceiling", async () => {
+  const bytes = new Uint8Array(16 * 1024 * 1024 + 1);
+  const result = await remote(streamed([bytes])).readFile("/file");
+  expect(result.byteLength).toBe(bytes.byteLength);
 });

@@ -15,19 +15,15 @@ it.each([
   "<![CDATA[]]>".repeat(1024),
   "<?pi x?>".repeat(1024),
 ])("bounds non-DAV XML structure independently of response count", async extra => {
-  const parse = xml.parseXmlSteps;
-  // Exercise the real parser with smaller node budgets instead of allocating 100,000-node graphs.
-  const parser = vi.spyOn(xml, "parseXmlSteps").mockImplementation((input, limits = {}) => parse(input, {
-    ...limits, maxNodes: Math.min(limits.maxNodes ?? Infinity, 512),
-    maxContentNodes: Math.min(limits.maxContentNodes ?? Infinity, 512),
-  }));
+  const parser = vi.spyOn(xml, "parseXmlSteps");
   const fs = new WebDavFileSystem({
     baseUrl: "https://example.invalid/dav/", maxEntries: 1, maxXmlBytes: 2 * 1024 * 1024,
+    xmlLimits: { maxNodes: 512, maxContentNodes: 512, maxDepth: 256, maxAttributes: 512 },
     fetch: async () => xmlResponse(multistatus(resource("/dav/", true), extra)),
   });
   await expect(fs.stat("/")).rejects.toMatchObject({ code: "EFBIG" });
   expect(parser).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({
-    maxNodes: 100_000, maxContentNodes: 100_000, maxDepth: 256,
+    maxNodes: 512, maxContentNodes: 512, maxDepth: 256,
   }));
 });
 
@@ -50,4 +46,32 @@ it.each(["cancel", "timeout"])("honors %s while parsing XML", async mode => {
       code: mode === "cancel" ? "ECANCELED" : "ETIMEDOUT",
     });
   } finally { vi.useRealTimers(); }
+});
+
+it("accepts deeply nested metadata with no default XML structure limits", async () => {
+  const fs = new WebDavFileSystem({
+    baseUrl: "https://example.invalid/dav/",
+    fetch: async () => xmlResponse(multistatus(resource("/dav/", true), "<x>".repeat(300) + "</x>".repeat(300))),
+  });
+  await expect(fs.stat("/")).resolves.toMatchObject({ type: "directory" });
+});
+
+it("passes unlimited XML text and structure budgets by default", async () => {
+  const parser = vi.spyOn(xml, "parseXmlSteps");
+  const fs = new WebDavFileSystem({ baseUrl: "https://example.invalid/dav/",
+    fetch: async () => xmlResponse(multistatus(resource("/dav/", true))) });
+  await fs.stat("/");
+  expect(parser).toHaveBeenCalledWith(expect.any(String), { maxTextLength: Infinity });
+});
+
+it("enforces an explicitly configured XML attribute limit", async () => {
+  const fs = new WebDavFileSystem({ baseUrl: "https://example.invalid/dav/", xmlLimits: { maxAttributes: 1 },
+    fetch: async () => xmlResponse(multistatus(resource("/dav/", true), '<x a="1" b="2"/>')) });
+  await expect(fs.stat("/")).rejects.toMatchObject({ code: "EFBIG" });
+});
+
+it("accepts metadata bytes above the former default ceiling", async () => {
+  const fs = new WebDavFileSystem({ baseUrl: "https://example.invalid/dav/",
+    fetch: async () => xmlResponse(multistatus(resource("/dav/", true), "<x>" + "a".repeat(1024 * 1024) + "</x>")) });
+  await expect(fs.stat("/")).resolves.toMatchObject({ type: "directory" });
 });

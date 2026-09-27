@@ -12,7 +12,7 @@ import type {
 import { davChild, davChildren, parseXmlSteps, scalar, XmlResponseLimitError, XmlResourceLimitError } from "./xml.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
-import type { XmlElement } from "./xml.js";
+import type { XmlElement, XmlLimits } from "./xml.js";
 import { assertCallbackAuthorityAllowed, compareEntries, registerEntryAuthority } from "../mount/comparison.js";
 import { compareWebDavResources, ownedResponseIdentifier, recordOwnedResourceStat, registerResourceQuery, resourceIdentifier } from "./resource-id.js";
 
@@ -42,11 +42,13 @@ export interface WebDavFileSystemOptions {
   readonly fetch: WebDavFetch;
   readonly requestStreamSupport?: "native" | boolean;
   readonly headers?: Readonly<Record<string, string>>;
-  /** Response ceiling; defaults to 16 MiB. Hosts must budget for concurrent reads. */
+  /** Response ceiling; unlimited unless configured. */
   readonly maxResponseBytes?: number;
-  /** Metadata response ceiling; defaults to 1 MiB before decoding/parsing. */
+  /** Metadata response ceiling before decoding/parsing; unlimited unless configured. */
   readonly maxXmlBytes?: number;
   readonly maxEntries?: number;
+  /** XML structure ceilings; unlimited unless configured. */
+  readonly xmlLimits?: Pick<XmlLimits, "maxNodes" | "maxContentNodes" | "maxDepth" | "maxAttributes">;
   /** Per-request and aggregate stat/write-preflight walk timeout; unlimited unless configured. */
   readonly timeoutMs?: number;
   readonly overwritePolicy?: "lock" | "etag";
@@ -268,6 +270,7 @@ export class WebDavFileSystem implements FileSystem {
   private readonly maxResponseBytes: number;
   private readonly maxXmlBytes: number;
   private readonly maxEntries: number;
+  private readonly xmlLimits: NonNullable<WebDavFileSystemOptions["xmlLimits"]>;
   private readonly timeoutMs: number | undefined;
   private readonly walkDeadlines = new WeakMap<FsOptions, { deadline?: AbortSignalScope }>();
   private readonly overwritePolicy: "lock" | "etag";
@@ -319,8 +322,10 @@ export class WebDavFileSystem implements FileSystem {
       removeDirectory: this.atomicEmptyDirectory !== undefined,
       streamingAppend: this.requestStreamSupport !== false,
     });
-    this.maxResponseBytes = options.maxResponseBytes === undefined ? 16 * 1024 * 1024 : positive(options.maxResponseBytes, "maxResponseBytes", false, true);
-    this.maxXmlBytes = options.maxXmlBytes === undefined ? 1024 * 1024 : positive(options.maxXmlBytes, "maxXmlBytes", false, true);
+    this.maxResponseBytes = options.maxResponseBytes === undefined ? Infinity : positive(options.maxResponseBytes, "maxResponseBytes", false, true);
+    this.maxXmlBytes = options.maxXmlBytes === undefined ? Infinity : positive(options.maxXmlBytes, "maxXmlBytes", false, true);
+    this.xmlLimits = Object.freeze({ ...options.xmlLimits });
+    for (const [name, value] of Object.entries(this.xmlLimits)) positive(value, name, false, true);
     this.maxEntries = options.maxEntries === undefined ? Infinity : positive(options.maxEntries, "maxEntries", false, true);
     this.timeoutMs = options.timeoutMs === undefined ? undefined : positive(options.timeoutMs, "timeoutMs");
     this.overwritePolicy = options.overwritePolicy ?? "lock";
@@ -568,8 +573,7 @@ export class WebDavFileSystem implements FileSystem {
       ? "utf-16le" : (data[0] === 0xfe && data[1] === 0xff) || (data[0] === 0 && data[1] === 0x3c) ? "utf-16be" : "utf-8";
     const parser = parseXmlSteps(new TextDecoder(encoding, { fatal: true }).decode(data), {
       ...(maxResponses === undefined ? {} : { maxResponses }),
-      maxNodes: 100_000, maxContentNodes: 100_000, maxDepth: 256,
-      maxAttributes: 100_000, maxTextLength: this.maxXmlBytes,
+      ...this.xmlLimits, maxTextLength: this.maxXmlBytes,
     });
     let work = 0;
     try {

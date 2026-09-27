@@ -9,3 +9,9 @@ test("yes command exports standard contract", () => {
   assert.equal(yesCommands().name, "yes-commands");
   assert.equal(settings({ maxRecordBytes: 1024 }).maxRecordBytes, 1024);
 });
+
+test("yes settings disable the record ceiling unless configured", () => {
+  assert.equal(settings().maxRecordBytes, Infinity);
+  assert.equal(settings({ maxRecordBytes: Infinity }).maxRecordBytes, Infinity);
+  assert.equal(settings().chunkBytes, 16384);
+});

@@ -311,3 +311,24 @@ describe("retained object authority", () => {
     await bounded.dispose();
   });
 });
+
+it.each([undefined, {}, { maxHandles: Infinity, maxIoBytes: Infinity }])("disables omitted and explicit infinite authority limits: %j", async options => {
+  const bytes = new Uint8Array(1048577);
+  const read = vi.fn(async () => bytes);
+  const authority = new ObjectAuthority({ objects: { open: async () => ({
+    identity: {}, type: "file", read,
+    stat: async () => ({ type: "file", size: BigInt(bytes.length) }), close: async () => {},
+  }) } }, options);
+  try {
+    const handle = await authority.open(path("/file"));
+    const result = await authority.read(handle.handle, "0", bytes.length);
+    expect(result.byteLength).toBe(bytes.byteLength);
+    expect(result === bytes).toBe(false);
+    expect(read).toHaveBeenCalledWith(0n, bytes.length);
+  } finally { await authority.dispose(); }
+});
+
+it.each([0, -1, NaN, -Infinity, 1.5])("rejects invalid authority limits %s", value => {
+  expect(() => new ObjectAuthority({}, { maxHandles: value })).toThrow(FsError);
+  expect(() => new ObjectAuthority({}, { maxIoBytes: value })).toThrow(FsError);
+});

@@ -173,7 +173,7 @@ export interface YesLimits {
 }
 
 export function settings(options: YesCommandsOptions = {}): YesLimits {
-  const maxRecordBytes = options.maxRecordBytes ?? 16 * 1024 * 1024;
+  const maxRecordBytes = options.maxRecordBytes ?? Infinity;
   const chunkBytes = options.chunkBytes ?? 16 * 1024;
   for (const [name, val] of [["maxRecordBytes", maxRecordBytes], ["chunkBytes", chunkBytes]] as const) {
     if (val !== Infinity && (!Number.isSafeInteger(val) || val < 1)) {

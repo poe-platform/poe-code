@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { Command } from "commander";
 import { CommanderError } from "commander";
+import { log } from "toolcraft-design";
+import { createCliMain } from "./bootstrap.js";
 import {
   OperationCancelledError,
   ReportedError,
@@ -77,7 +79,6 @@ describe("createCliMain", () => {
       optsWithGlobals: () => ({ dryRun: false })
     };
 
-    const { createCliMain } = await import("./bootstrap.js");
     const main = createCliMain(() => fakeProgram as Command);
 
     await expect(main()).rejects.toThrow("exit:1");
@@ -103,8 +104,6 @@ describe("createCliMain", () => {
       parseAsync,
       optsWithGlobals: () => ({ dryRun: false })
     };
-    const { log } = await import("toolcraft-design");
-    const { createCliMain } = await import("./bootstrap.js");
     const main = createCliMain(() => fakeProgram as Command);
 
     await expect(main()).rejects.toThrow("exit:1");
@@ -126,8 +125,6 @@ describe("createCliMain", () => {
       parseAsync,
       optsWithGlobals: () => ({ dryRun: false })
     };
-    const { log } = await import("toolcraft-design");
-    const { createCliMain } = await import("./bootstrap.js");
     const main = createCliMain(() => fakeProgram as Command);
 
     await expect(main()).rejects.toThrow("exit:1");
@@ -168,7 +165,6 @@ describe("createCliMain", () => {
       optsWithGlobals: () => ({ dryRun: false })
     };
 
-    const { createCliMain } = await import("./bootstrap.js");
     const main = createCliMain(() => fakeProgram as Command);
 
     await expect(main()).rejects.toThrow("exit:1");
@@ -205,8 +201,6 @@ describe("createCliMain", () => {
       parseAsync,
       optsWithGlobals: () => ({ dryRun: true })
     };
-    const { log } = await import("toolcraft-design");
-    const { createCliMain } = await import("./bootstrap.js");
     const main = createCliMain(() => fakeProgram as Command);
 
     await expect(main()).rejects.toThrow("exit:1");
@@ -223,8 +217,6 @@ describe("createCliMain", () => {
       parseAsync,
       optsWithGlobals: () => ({ dryRun: false })
     };
-    const { log } = await import("toolcraft-design");
-    const { createCliMain } = await import("./bootstrap.js");
     const main = createCliMain(() => fakeProgram as Command);
 
     await expect(main()).rejects.toThrow("exit:1");
@@ -245,8 +237,6 @@ describe("createCliMain", () => {
       parseAsync,
       optsWithGlobals: () => ({ dryRun: false })
     };
-    const { log } = await import("toolcraft-design");
-    const { createCliMain } = await import("./bootstrap.js");
     const main = createCliMain(() => fakeProgram as Command);
 
     await expect(main()).rejects.toThrow("exit:1");
@@ -270,8 +260,6 @@ describe("createCliMain", () => {
       parseAsync,
       optsWithGlobals: () => ({ dryRun: false })
     };
-    const { log } = await import("toolcraft-design");
-    const { createCliMain } = await import("./bootstrap.js");
     const main = createCliMain(() => fakeProgram as Command);
 
     await expect(main()).rejects.toThrow("exit:1");
@@ -289,8 +277,6 @@ describe("createCliMain", () => {
       parseAsync,
       optsWithGlobals: () => ({ dryRun: false })
     };
-    const { log } = await import("toolcraft-design");
-    const { createCliMain } = await import("./bootstrap.js");
     const main = createCliMain(() => fakeProgram as Command);
 
     await expect(main()).rejects.toThrow("exit:1");
@@ -309,7 +295,6 @@ describe("createCliMain", () => {
       parseAsync,
       optsWithGlobals: () => ({ dryRun: false })
     };
-    const { createCliMain } = await import("./bootstrap.js");
     const main = createCliMain(() => fakeProgram as Command);
 
     await expect(main()).rejects.toThrow("exit:1");
@@ -327,7 +312,6 @@ describe("createCliMain", () => {
       optsWithGlobals: () => ({ dryRun: false })
     };
 
-    const { createCliMain } = await import("./bootstrap.js");
     const main = createCliMain(() => fakeProgram as Command);
 
     await expect(main()).resolves.toBeUndefined();
@@ -347,7 +331,6 @@ describe("createCliMain", () => {
       optsWithGlobals: () => ({ dryRun: false })
     };
 
-    const { createCliMain } = await import("./bootstrap.js");
     const main = createCliMain(() => fakeProgram as Command);
 
     await expect(main()).rejects.toThrow("exit:1");
@@ -375,7 +358,6 @@ describe("createCliMain", () => {
       parseAsync
     };
 
-    const { createCliMain } = await import("./bootstrap.js");
     const main = createCliMain(() => fakeProgram as Command);
 
     await expect(main()).resolves.toBeUndefined();
@@ -393,7 +375,6 @@ describe("createCliMain", () => {
       parseAsync
     };
 
-    const { createCliMain } = await import("./bootstrap.js");
     const main = createCliMain(() => fakeProgram as Command);
 
     await expect(main()).resolves.toBeUndefined();
@@ -413,7 +394,6 @@ describe("createCliMain", () => {
       parseAsync
     };
 
-    const { createCliMain } = await import("./bootstrap.js");
     const main = createCliMain(() => fakeProgram as Command);
 
     await expect(main()).resolves.toBeUndefined();

@@ -201,7 +201,12 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
           await output(context, settings.information === "version" ? "fmt (virtual-bash)\n" : "Usage: fmt [-WIDTH] [OPTION]... [FILE]...\nReformat paragraphs; omitted FILE or '-' reads standard input.\n  -c, --crown-margin       preserve indentation of first two lines\n  -t, --tagged-paragraph   use distinct first and following margins\n  -p, --prefix=STRING      format only lines with this prefix\n  -s, --split-only         split lines without joining\n  -u, --uniform-spacing    one space between words, two after sentences\n  -w, --width=WIDTH        maximum width (default 75)\n  -g, --goal=WIDTH         preferred width (default 93% of width)\n      --help              display this help\n      --version           display virtual command identity\n");
           return { exitCode: 0 };
         }
-        const budget = new InputBudget(limits.inputBytes, limits.retainedBytes - 10120 - settings.prefix.length);
+        // Reserve batching alongside the engine and a normal source fragment.
+        // Small explicit limits retain the unbatched streaming path.
+        const engineBytes = 10120 + settings.prefix.length;
+        const batchBytes = limits.retainedBytes >= Math.max(32768, engineBytes + 16384 + 4096) ? 16384 : 0;
+        const engineLimit = limits.retainedBytes - batchBytes;
+        const budget = new InputBudget(limits.inputBytes, engineLimit - engineBytes);
         let work = 0, outputBytes = 0;
         stdout = createOutputOperation({ signal: local.signal }, context.stdout);
         const outputContext = { ...context, stdout: stdout.output };
@@ -234,18 +239,21 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
             exitCode = 1;
             continue;
           }
-          activeEngine = createFmtEngine(settings, { ...limits, inputBytes: limits.inputBytes, work: limits.work - work, outputBytes: limits.outputBytes - outputBytes }, local.signal);
+          activeEngine = createFmtEngine(settings, { ...limits, retainedBytes: engineLimit, inputBytes: limits.inputBytes, work: limits.work - work, outputBytes: limits.outputBytes - outputBytes }, local.signal);
           const machine = activeEngine.run();
           let step = machine.next();
           let readFailed = false;
           let readError: unknown;
           let received = false;
-          const canBatchOutput = limits.retainedBytes >= 32768;
-          const outBatch = canBatchOutput ? new Uint8Array(16384) : undefined;
+          let outBatch: Uint8Array | undefined;
           let outBatchUsed = 0;
           const flushOutBatch = async (): Promise<void> => {
             if (!outBatchUsed) return;
+            local.signal.throwIfAborted();
             const slice = outBatch!.subarray(0, outBatchUsed);
+            // Transfer the entire backing buffer to the sink. Replacing it only
+            // after this write settles avoids a second live batch allocation.
+            outBatch = undefined;
             outBatchUsed = 0;
             await output(outputContext, slice);
           };
@@ -269,10 +277,11 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
                 step = machine.next(bytes);
               } else {
                 if (step.value) {
-                  if (outBatch) {
-                    if (outBatchUsed + step.value.length > outBatch.length) await flushOutBatch();
-                    if (step.value.length >= outBatch.length) await output(outputContext, step.value);
+                  if (batchBytes) {
+                    if (outBatchUsed + step.value.length > batchBytes) await flushOutBatch();
+                    if (step.value.length >= batchBytes) await output(outputContext, step.value);
                     else {
+                      outBatch ??= new Uint8Array(batchBytes);
                       outBatch.set(step.value, outBatchUsed);
                       outBatchUsed += step.value.length;
                     }

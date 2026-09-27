@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { commandRuntimeIdentity, createCommandArguments, type CommandContext } from 'safe-bash-contracts/command';
 import { fmt, fmtCommand } from './index.js';
+import { FmtError } from './contracts.js';
 import { FsError } from 'safe-bash-contracts/errors';
 
 const encoder = new TextEncoder();
@@ -86,6 +87,72 @@ test('a failing prefix flush preserves both failures and does not retry the sink
   assert.ok(reported instanceof AggregateError);
   assert.match(reported.errors[0].message, /limit exceeded/);
   assert.equal(reported.errors[1], failure);
+});
+test('batched output remains owned by a sink after later writes', async () => {
+  const input = ['a', 'b', 'c'].map(letter => letter.repeat(6000) + '\n').join('');
+  const run = fixture(['-s'], input);
+  const retained: Uint8Array[] = [], snapshots: Uint8Array[] = [];
+  const context = { ...run.context, stdout: { async write(bytes: Uint8Array) {
+    retained.push(bytes);
+    snapshots.push(bytes.slice());
+    await Promise.resolve();
+  } } };
+  assert.equal((await fmt(context)).exitCode, 0);
+  assert.ok(retained.length > 1);
+  assert.ok(retained.every((bytes, index) => bytes.every((byte, offset) => byte === snapshots[index]![offset])), 'earlier sink chunks remain unchanged');
+  assert.deepEqual(retained.flatMap(bytes => [...bytes]), [...encoder.encode(input)]);
+});
+test('finite retention reserves the output batch before admitting a source chunk', async () => {
+  const run = fixture([], 'x'.repeat(7000));
+  assert.equal((await fmt(run.context, { limits: { retainedBytes: 32768 } })).exitCode, 1);
+  assert.match(new TextDecoder().decode(Uint8Array.from(run.stderr)), /source chunk retention limit exceeded/);
+  assert.deepEqual(run.stdout, []);
+  const admitted = fixture([], 'x'.repeat(4096));
+  assert.equal((await fmt(admitted.context, { limits: { retainedBytes: 32768 } })).exitCode, 0);
+  assert.deepEqual(admitted.stdout, [...encoder.encode('x'.repeat(4096) + '\n')]);
+});
+test('VFS allocation admission shares the batch allowance and small limits keep streaming', async () => {
+  const run = fixture(['file'], '');
+  let maximum = Infinity;
+  const context = { ...run.context, fs: { capabilities: { read: true },
+    async readFile(_path: string, options: { maxBytes: number }) {
+      maximum = options.maxBytes;
+      return encoder.encode('one two');
+    },
+  } } as unknown as CommandContext;
+  assert.equal((await fmt(context, { limits: { retainedBytes: 32768 } })).exitCode, 0);
+  assert.ok(maximum + 10120 + 16384 <= 32768, 'source, engine and batch must fit together');
+  const small = fixture([], 'x'.repeat(4096));
+  assert.equal((await fmt(small.context, { limits: { retainedBytes: 16384 } })).exitCode, 0);
+  assert.deepEqual(small.stdout, [...encoder.encode('x'.repeat(4096) + '\n')]);
+});
+test('quota partial publication awaits the sink and does not retry a failed write', async () => {
+  const run = fixture(['-w20'], 'A'.repeat(10001) + ' end');
+  let writes = 0, settled = false;
+  const context = { ...run.context, stdout: { async write() {
+    writes++;
+    await Promise.resolve();
+    settled = true;
+    throw new FmtError('LIMIT', 'sink limit');
+  } } };
+  assert.equal((await fmt(context, { limits: { outputBytes: 1500 } })).exitCode, 1);
+  assert.equal(writes, 1);
+  assert.equal(settled, true);
+  assert.equal(run.returned(), 1);
+});
+test('cancellation while publishing a batch does not retry output or resume input', async () => {
+  const run = fixture([], 'x'.repeat(10001));
+  const controller = new AbortController();
+  const reason = new Error('cancel output');
+  let writes = 0;
+  const context = { ...run.context, signal: controller.signal, stdout: { async write() {
+    writes++;
+    controller.abort(reason);
+    await Promise.resolve();
+  } } };
+  await assert.rejects(fmt(context), error => error === reason);
+  assert.equal(writes, 1);
+  assert.equal(run.returned(), 1);
 });
 test('cleanup closes resource admission without waiting for VFS metadata', async () => {
   const run = fixture(['file'], '');

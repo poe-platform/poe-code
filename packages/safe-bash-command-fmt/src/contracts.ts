@@ -9,7 +9,8 @@ export const fmtBaseline = Object.freeze({
 export interface FmtLimits {
   readonly inputBytes: number;
   readonly outputBytes: number;
-  /** Live engine byte buffers, including prefix; word records are separately bounded to 999. */
+  /** Live engine byte buffers, including prefix; command source and output batches
+   * share this allowance. Word records are separately bounded to 999. */
   readonly retainedBytes: number;
   readonly work: number;
   readonly argumentBytes: number;

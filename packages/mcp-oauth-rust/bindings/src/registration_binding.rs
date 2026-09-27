@@ -1,5 +1,5 @@
+use super::credential_json_binding::CredentialJson;
 use crate::convert::NativeJson;
-use crate::credential_json_binding::CredentialJson;
 use mcp_protocol_rust::json::Value;
 use napi::{Env, ValueType, bindgen_prelude::*};
 use napi_derive::napi;

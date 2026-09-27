@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { EventEmitter } from "node:events";
@@ -239,13 +239,15 @@ async function collectUpdates(
 }
 
 describe("AcpClient integration", () => {
-  it("runs full ACP lifecycle over a mock subprocess through the high-level facade", async () => {
-    const permission = vi.fn(async () => ({ outcome: "selected" as const, optionId: "allow-once" }));
-    const readTextFile = vi.fn(async () => "hello-from-client-fs");
-    const terminalCreate = vi.fn(async () => "term-integration");
-    const terminalRelease = vi.fn(async () => {});
+  const permission = vi.fn(async () => ({ outcome: "selected" as const, optionId: "allow-once" }));
+  const readTextFile = vi.fn(async () => "hello-from-client-fs");
+  const terminalCreate = vi.fn(async () => "term-integration");
+  const terminalRelease = vi.fn(async () => {});
+  let client: AcpClient;
+  let initializeResult: InitializeResponse;
 
-    const client = new AcpClient({
+  beforeAll(async () => {
+    client = new AcpClient({
       command: process.execPath,
       args: ["-e", MOCK_AGENT_SCRIPT],
       spawn: vi.fn((_command, _args, options) => {
@@ -283,48 +285,53 @@ describe("AcpClient integration", () => {
     });
 
     try {
-      const initializeResult = await client.initialize();
-      const session = await client.newSession("/workspace", []);
-      const turn = client.prompt(session.sessionId, [{ type: "text", text: "hello" }]);
-      const updatesPromise = collectUpdates(turn);
-      const promptResult = await turn.response;
-      const updates = await updatesPromise;
-
-      expect(initializeResult.protocolVersion).toBe(1);
-      expect(client.agentCapabilities).toMatchObject({ loadSession: true });
-      expect(client.agentInfo).toEqual({ name: "mock-agent", version: "from-client-env" });
-      expect(promptResult).toEqual({ stopReason: "completed" });
-      expect(updates).toHaveLength(1);
-      expect(updates[0]?.params.update).toEqual({
-        sessionUpdate: "agent_message_chunk",
-        content: {
-          type: "text",
-          text:
-            "permission=selected;file=hello-from-client-fs;terminal=term-integration",
-        },
-      });
-      expect(permission).toHaveBeenCalledTimes(1);
-      expect(readTextFile).toHaveBeenCalledWith({
-        sessionId: "session-integration",
-        path: "/workspace/notes.txt",
-        line: undefined,
-        limit: undefined,
-      });
-      expect(terminalCreate).toHaveBeenCalledWith({
-        sessionId: "session-integration",
-        command: "echo",
-        args: ["integration"],
-        cwd: "/workspace",
-        env: undefined,
-        outputByteLimit: undefined,
-      });
-      expect(terminalRelease).toHaveBeenCalledWith({
-        sessionId: "session-integration",
-        terminalId: "term-integration",
-      });
-    } finally {
+      initializeResult = await client.initialize();
+    } catch (error) {
       await client.dispose();
+      throw error;
     }
+  });
+  afterAll(async () => { await client?.dispose(); });
+
+  it("runs full ACP lifecycle over a mock subprocess through the high-level facade", async () => {
+    const session = await client.newSession("/workspace", []);
+    const turn = client.prompt(session.sessionId, [{ type: "text", text: "hello" }]);
+    const updatesPromise = collectUpdates(turn);
+    const promptResult = await turn.response;
+    const updates = await updatesPromise;
+
+    expect(initializeResult.protocolVersion).toBe(1);
+    expect(client.agentCapabilities).toMatchObject({ loadSession: true });
+    expect(client.agentInfo).toEqual({ name: "mock-agent", version: "from-client-env" });
+    expect(promptResult).toEqual({ stopReason: "completed" });
+    expect(updates).toHaveLength(1);
+    expect(updates[0]?.params.update).toEqual({
+      sessionUpdate: "agent_message_chunk",
+      content: {
+        type: "text",
+        text:
+          "permission=selected;file=hello-from-client-fs;terminal=term-integration",
+      },
+    });
+    expect(permission).toHaveBeenCalledTimes(1);
+    expect(readTextFile).toHaveBeenCalledWith({
+      sessionId: "session-integration",
+      path: "/workspace/notes.txt",
+      line: undefined,
+      limit: undefined,
+    });
+    expect(terminalCreate).toHaveBeenCalledWith({
+      sessionId: "session-integration",
+      command: "echo",
+      args: ["integration"],
+      cwd: "/workspace",
+      env: undefined,
+      outputByteLimit: undefined,
+    });
+    expect(terminalRelease).toHaveBeenCalledWith({
+      sessionId: "session-integration",
+      terminalId: "term-integration",
+    });
   });
 });
 

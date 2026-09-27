@@ -1,4 +1,4 @@
-import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { diagnostic, pathOf } from "../internal.js";
 import { gnuInformation } from "../gnu-information.js";
@@ -40,8 +40,6 @@ export class Session {
   private outputBytes = 0;
   private steps = 0;
   private untilYield = 4096;
-  private yieldCount = 0;
-  private lastYieldMs = monotonicNow();
   private signalAborted = false;
   private readonly pollSignal: boolean;
   private stdin: AsyncIterator<Uint8Array> | undefined;
@@ -71,16 +69,10 @@ export class Session {
     this.untilYield -= count;
     if (this.untilYield <= 0) {
       this.untilYield = 4096;
-      const c = ++this.yieldCount;
       if (hasYieldCheckpoint(this.signal)) return runYieldCheckpoint(this.signal);
-      const now = monotonicNow();
-      if (c === 1 || now - this.lastYieldMs >= 16) {
-        this.lastYieldMs = now;
-        return yieldTurn().then(() => {
-          this.lastYieldMs = monotonicNow();
-          this.signal.throwIfAborted();
-        });
-      }
+      return yieldTurn().then(() => {
+        this.signal.throwIfAborted();
+      });
     }
   }
 

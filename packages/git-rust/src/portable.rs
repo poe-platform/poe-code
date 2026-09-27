@@ -235,7 +235,7 @@ mod abi {
                 ("exitCode", super::Value::Number(128.0)),
                 ("stdout", super::text("")),
                 ("stderr", super::text(e.message)),
-                ("entries", super::Value::Array(Vec::new())),
+                ("entries", super::Value::Null),
             ]))
             .into_bytes()
         });

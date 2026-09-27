@@ -7,7 +7,7 @@ export interface GitHttpRequest { readonly url: string; readonly method: string;
 export interface GitHttpResponse { readonly status: number; readonly headers: Readonly<Record<string,string>>; readonly body: Uint8Array }
 export interface GitCommandsOptions { readonly http?: (request:GitHttpRequest)=>Promise<GitHttpResponse>; readonly limits?: Partial<GitLimits>; readonly replace?: boolean; readonly wasmModule?: WebAssembly.Module }
 interface Entry { path: string; kind: string; mode: number; data: string }
-interface Result { exitCode: number; stdout: string; stdoutBytes?: string | null; stderr: string; entries: Entry[]; request?: {url:string;method:string;headers:Record<string,string>;body:string} | null }
+interface Result { exitCode: number; stdout: string; stdoutBytes?: string | null; stderr: string; entries: Entry[] | null; request?: {url:string;method:string;headers:Record<string,string>;body:string} | null }
 interface GitExports extends WebAssembly.Exports { memory: WebAssembly.Memory; git_alloc(length:number):number; git_free(ptr:number,length:number):void; git_execute(ptr:number,length:number):number; git_output_len():number }
 const encoder=new TextEncoder(), decoder=new TextDecoder();
 function encode(bytes:Uint8Array):string { let s=''; for(const b of bytes) s+=b.toString(16).padStart(2,'0'); return s; }
@@ -104,7 +104,7 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
         if(httpBytes>limits.maxHttpBytes) throw new Error('Git HTTP byte limit exceeded');
         responses.push({...response,body:encode(response.body)});
       }
-      if(result.exitCode===0) {
+      if(result.entries!==null) {
         let size=0;
         if(result.entries.length>limits.maxEntries) throw new Error('Git output entry limit exceeded');
         for(const e of result.entries) size+=encoder.encode(e.path).length+e.data.length/2;

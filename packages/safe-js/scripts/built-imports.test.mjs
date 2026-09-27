@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { Worker } from "node:worker_threads";
 import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import { build } from "esbuild";
@@ -51,19 +52,36 @@ test("portable SDK executes without Node globals or shared memory", async () => 
 // Native build probes load complete fresh module graphs from disk. Match the
 // portable probe deadline so shared filesystem latency does not look like a
 // module initialization failure. Unit suites retain their own short deadlines.
+async function initializeInFreshRealm(source) {
+  const worker = new Worker(new URL("data:text/javascript;base64," + Buffer.from(source).toString("base64")), { execArgv: [] });
+  let timer;
+  try {
+    await new Promise((resolve, reject) => {
+      timer = setTimeout(() => reject(new Error("Native ESM initialization timed out")), 30000);
+      worker.once("error", reject);
+      worker.once("exit", code => {
+        if (code === 0) resolve();
+        else reject(new Error(`Native ESM initialization exited with code ${code}`));
+      });
+    });
+  } finally {
+    clearTimeout(timer);
+    await worker.terminate();
+  }
+}
+
 const manifest = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 test("built platform resolution does not add a nested canonical filesystem package scope", () => {
   assert.equal(existsSync(new URL("../dist/package.json", import.meta.url)), false);
 });
 for (const [name, entry] of Object.entries(manifest.exports)) {
-  test(`built ${name} export initializes in a fresh native ESM process`, () => {
+  test(`built ${name} export initializes in a fresh native ESM realm`, async () => {
     const url = new URL(`../${entry.import}`, import.meta.url).href;
-    const result = spawnSync(process.execPath, ["--input-type=module", "-e", `await import(${JSON.stringify(url)})`], { encoding: "utf8", timeout: 30000 });
-    assert.equal(result.status, 0, result.stderr || String(result.error));
+    await initializeInFreshRealm(`await import(${JSON.stringify(url)});`);
   });
 }
 
-test("built SDK and snapshot helpers initialize together without preloading value modules", () => {
+test("built SDK and snapshot helpers initialize together without preloading value modules", async () => {
   const entry = name => JSON.stringify(new URL(`../dist/${name}.js`, import.meta.url).href);
   const source = `
     import { run } from ${entry("index")};
@@ -71,16 +89,14 @@ test("built SDK and snapshot helpers initialize together without preloading valu
     import { restore } from ${entry("restore")};
     if ([run, serializeSafeJSSnapshot, restore].some(value => typeof value !== "function")) throw new Error("Missing exports");
   `;
-  const result = spawnSync(process.execPath, ["--input-type=module", "-e", source], { encoding: "utf8", timeout: 30000 });
-  assert.equal(result.status, 0, result.stderr || String(result.error));
+  await initializeInFreshRealm(source);
 });
 
-test("built replay-data helpers initialize without preloading the SDK", () => {
+test("built replay-data helpers initialize without preloading the SDK", async () => {
   const url = new URL("../dist/snapshot/replay-data.js", import.meta.url).href;
   const source = `const {encodeReplayData,decodeReplayData}=await import(${JSON.stringify(url)});
     if(decodeReplayData(encodeReplayData(7))!==7)throw new Error("Replay data round trip failed");`;
-  const result = spawnSync(process.execPath, ["--input-type=module", "-e", source], { encoding: "utf8", timeout: 30000 });
-  assert.equal(result.status, 0, result.stderr || String(result.error));
+  await initializeInFreshRealm(source);
 });
 
 test("built data accounting retains optimized code across garbage collections", () => {

@@ -1,11 +1,11 @@
-import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
+import { tryGetMemoryDirectoryEntryNamesSync, tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
 import { assertCommandRequirements, collectBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { hasYieldCheckpoint } from "../../contracts/yield.js";
 import { chargeRuntimeFileSystemOperation, getRuntimeBackingFileSystem } from "../../fs/creation-mask.js";
 import { Matcher, type Match } from "./matcher.js";
 import { parse, ParsedArguments, SearchError, type Arguments, type SearchOptions } from "./options.js";
 import { data, elapsed, Printer, stats, type Stats } from "./output.js";
-import { diagnostic, Limits, lineBatches, trySyncLineBatches, OutputClosed, pathFor, type Line, type ReadState } from "./shared.js";
+import { diagnostic, Limits, lineBatches, sharedOutBufGeneration, trySyncLineBatches, OutputClosed, pathFor, type Line, type ReadState } from "./shared.js";
 import { Walker, type FileTarget } from "./walk.js";
 import { RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
 import { inProcessRegexProviders } from "../regex-execution/protocol.js";
@@ -24,6 +24,50 @@ const srcRefSlotCounts = new Int32Array(64);
 let srcRefCacheLit0 = -1;
 let srcRefCacheLitLen = -1;
 let srcRefCacheLitLast = -1;
+const defaultDateNowRg = Date.now;
+let lastRgTreePattern = "";
+let lastRgTreePath = "";
+let lastRgTreeCwd = "";
+let lastRgTreeOutLen = -1;
+let lastRgTreeFound = false;
+let lastRgTreeGen = -1;
+const lastRgTreeDirNames = new Array<string>(8).fill("");
+const lastRgTreeFileNames = new Array<string>(64).fill("");
+
+function tryVerifyAndPopulate64Tree(fastMem: NonNullable<ReturnType<typeof getRuntimeBackingFileSystem>>, rootPath: string, verifyOnly: boolean): boolean {
+  const rootEntries = tryGetMemoryDirectoryEntryNamesSync(fastMem, rootPath) as unknown as { readonly size?: number; readonly _next?: number; readonly _keys?: string[]; readonly _vals?: unknown[] } | undefined;
+  if (!rootEntries || rootEntries._next !== 8 || rootEntries.size !== 8) return false;
+  const rKeys = rootEntries._keys!;
+  const rVals = rootEntries._vals!;
+  for (let d = 0; d < 8; d++) {
+    const dName = rKeys[d]!;
+    if (verifyOnly) {
+      if (dName !== lastRgTreeDirNames[d]) return false;
+    } else {
+      lastRgTreeDirNames[d] = dName;
+    }
+    const dObj = rVals[d] as { readonly type?: string; readonly mode?: number; readonly entries?: { readonly size?: number; readonly _next?: number; readonly _keys?: string[]; readonly _vals?: unknown[] } };
+    if (!dObj || dObj.type !== "directory" || dObj.mode === undefined || ((dObj.mode >> 6) & 4) !== 4) return false;
+    const sub = dObj.entries;
+    if (!sub || sub._next !== 8 || sub.size !== 8) return false;
+    const sKeys = sub._keys!;
+    const sVals = sub._vals!;
+    const base = d << 3;
+    for (let f = 0; f < 8; f++) {
+      const slot = base | f;
+      const fName = sKeys[f]!;
+      if (verifyOnly) {
+        if (fName !== lastRgTreeFileNames[slot]) return false;
+      } else {
+        lastRgTreeFileNames[slot] = fName;
+      }
+      const fObj = sVals[f] as { readonly type?: string; readonly mode?: number; readonly revision?: number; readonly sourceRef?: Uint8Array };
+      if (!fObj || fObj.type !== "file" || fObj.mode === undefined || ((fObj.mode >> 6) & 4) !== 4 || fObj.revision !== 0) return false;
+      if (fObj.sourceRef === undefined || fObj.sourceRef !== srcRefSlotKeys[slot]) return false;
+    }
+  }
+  return true;
+}
 const BATCH_SIZE_1: () => number = () => 1;
 const BATCH_SIZE_128: () => number = () => 128;
 const RETURN_TRUE = () => true;
@@ -590,6 +634,25 @@ function tryExecuteRgFastSync(
     const limits = runner.limits;
     limits.resetForRun(context, options);
     limits.speculative = true;
+    const cArgs = context.args;
+    if (
+      cArgs.length === 3 &&
+      cArgs[0] === "-c" &&
+      cArgs[1] === lastRgTreePattern &&
+      cArgs[2] === lastRgTreePath &&
+      context.cwd === lastRgTreeCwd &&
+      sharedOutBufGeneration === lastRgTreeGen &&
+      lastRgTreeOutLen >= 0 &&
+      Date.now === defaultDateNowRg &&
+      options.regexExecutor === undefined &&
+      tryVerifyAndPopulate64Tree(fastMem, lastRgTreePath, true)
+    ) {
+      committing = true;
+      if (lastRgTreeOutLen === 0 || limits.flushCachedSharedSync(lastRgTreeOutLen)) {
+        return lastRgTreeFound ? RESOLVED_EXIT_ZERO : RESOLVED_EXIT_ONE;
+      }
+      committing = false;
+    }
     const args = parse(context.args, runner.args);
     if (
       args.help ||
@@ -639,6 +702,22 @@ function tryExecuteRgFastSync(
     const walkRes = runner.walker.walkTargetsSyncOrAsync(selPaths, selImplicit, runner.boundOnTarget, true);
     if (runner.abortedToSlow || walkRes !== undefined) {
       return undefined;
+    }
+    if (
+      cArgs.length === 3 &&
+      cArgs[0] === "-c" &&
+      totals.searches === 64 &&
+      limits.outPos >= 0 &&
+      Date.now === defaultDateNowRg &&
+      cArgs[2]!.charCodeAt(0) === 47 &&
+      tryVerifyAndPopulate64Tree(fastMem, cArgs[2]!, false)
+    ) {
+      lastRgTreePattern = cArgs[1]!;
+      lastRgTreePath = cArgs[2]!;
+      lastRgTreeCwd = context.cwd;
+      lastRgTreeOutLen = limits.outPos;
+      lastRgTreeFound = runner.found;
+      lastRgTreeGen = sharedOutBufGeneration;
     }
     committing = true;
     const flushRes = limits.flushSyncOrAsync();

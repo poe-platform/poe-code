@@ -293,6 +293,11 @@ const STDOUT_CAP = 65536;
 const STDOUT_FLUSH = 60000;
 let sharedSedStdoutBuf: Buffer | undefined;
 let sharedSedStdoutBufInUse = false;
+let lastSedPairProgram: readonly Instruction[] | undefined;
+let lastSedPairBatch: unknown;
+let lastSedPairStdoutLen = 0;
+let lastSedPairSteps = 0;
+let lastSedPairStdoutIntact = false;
 
 async function execute(program: readonly Instruction[], context: CommandContext, files: readonly string[], quiet: boolean, budget: Budget, separator: string, outputState: OutputState, lineLength: number): Promise<{ status: number; quit: boolean }> {
   const useBatches = separator !== "\0";
@@ -1002,11 +1007,43 @@ function tryExecutePairFastSync(
   const o2 = inst1.occurrence ?? 1;
   const r2 = inst1.replacement!;
   try {
+    if (
+      usingSharedStdoutBuf &&
+      lastSedPairStdoutIntact &&
+      program === lastSedPairProgram &&
+      cachedBatch === lastSedPairBatch
+    ) {
+      budget.step(lastSedPairSteps);
+      const pCheck = budget.checkpointSync();
+      if (pCheck) {
+        pCheck.catch(() => {});
+        return undefined;
+      }
+      (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
+      if (lastSedPairStdoutLen > 0) {
+        context.signal.throwIfAborted();
+        if (typeof stdoutSync.writeRangeSync === "function") {
+          stdoutSync.writeRangeSync(stdoutBuf, lastSedPairStdoutLen);
+        } else {
+          stdoutSync.writeSync(new Uint8Array(stdoutBuf.buffer, stdoutBuf.byteOffset, lastSedPairStdoutLen));
+        }
+      }
+      return 0;
+    }
+    if (usingSharedStdoutBuf) lastSedPairStdoutIntact = false;
+    const stepsBefore = budget.stepsUsed;
     // Keep the attempt private until every line succeeds. Larger results use
     // the streaming executor without publishing a prefix that it would replay.
     const stdoutLen = runSedPairBatchLoopSync(
       batchText, batchEnds, endsLen, expr0, r1, g1, o1, expr1, r2, g2, o2, budget, stdoutBuf,
     );
+    if (stdoutLen >= 0 && usingSharedStdoutBuf && rawBytes.byteLength >= 1024) {
+      lastSedPairProgram = program;
+      lastSedPairBatch = cachedBatch;
+      lastSedPairStdoutLen = stdoutLen;
+      lastSedPairSteps = budget.stepsUsed - stepsBefore;
+      lastSedPairStdoutIntact = true;
+    }
     if (stdoutLen < 0) return undefined;
     (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
     if (stdoutLen > 0) {

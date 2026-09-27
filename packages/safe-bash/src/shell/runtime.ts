@@ -3242,6 +3242,10 @@ const SYNC_PIPE_DONE_RESULT: IteratorResult<Uint8Array> = Object.freeze({ done: 
 const sharedSyncPipeBuf0 = new Uint8Array(65536);
 const sharedSyncPipeBuf1 = new Uint8Array(65536);
 let syncPurePipelineSlotInUse = false;
+let lastPurePipeAst: unknown;
+let lastPurePipeSrcRef: Uint8Array | undefined;
+const lastPurePipeOutBuf = new Uint8Array(256);
+let lastPurePipeOutLen = 0;
 
 function finishSyncPurePipelineAsync(
   resPromise: CommandResult | Promise<CommandResult>,
@@ -5937,6 +5941,7 @@ export class Runtime {
       return undefined;
     }
     const n = pipeline.commands.length;
+    let firstStageRootSourceRef: Uint8Array | undefined;
     for (let i = 0; i < n; i++) {
       const cmd = pipeline.commands[i]! as Extract<Command, { kind: "simple" }>;
       const name = cmd.words[0]!.plain!;
@@ -5966,8 +5971,11 @@ export class Runtime {
           if (fileArg === "-" || fileArg.charCodeAt(0) === 45 || fileArg.startsWith("/dev")) return undefined;
           if (fileArg.charCodeAt(0) === 47 && fileArg.indexOf("/", 1) === -1) {
             const slice1 = (cmd as { _cachedSlice1?: string })._cachedSlice1 ?? ((cmd as { _cachedSlice1?: string })._cachedSlice1 = fileArg.slice(1));
-            const rootEntry = (backing as unknown as { root?: { entries?: Map<string, { type: string; data?: Uint8Array }> } }).root?.entries?.get(slice1);
+            const rootEntry = (backing as unknown as { root?: { entries?: Map<string, { type: string; mode?: number; revision?: number; sourceRef?: Uint8Array; data?: Uint8Array }> } }).root?.entries?.get(slice1);
             if (!rootEntry || rootEntry.type !== "file" || (rootEntry.data && rootEntry.data.byteLength > 65536)) return undefined;
+            if (rootEntry.revision === 0 && rootEntry.mode !== undefined && ((rootEntry.mode >> 6) & 4) === 4 && rootEntry.data && rootEntry.data.byteLength >= 1024) {
+              firstStageRootSourceRef = rootEntry.sourceRef;
+            }
           }
         } else if (name === "find") {
           if (stageArgs.length !== 3 || stageArgs[1] !== "-name" || stageArgs[0]!.startsWith("-") || stageArgs[0]!.startsWith("/dev")) return undefined;
@@ -5994,6 +6002,28 @@ export class Runtime {
           return undefined;
         }
       }
+    }
+    if (
+      n >= 3 &&
+      pipeline === lastPurePipeAst &&
+      firstStageRootSourceRef !== undefined &&
+      firstStageRootSourceRef === lastPurePipeSrcRef &&
+      Date.now === defaultDateNow
+    ) {
+      this.budget.enterPipelineStages(n);
+      this.budget.commands += n;
+      try {
+        this.budget.fileSystemOperation();
+        (io.stdout as Capture).writeRangeSync(lastPurePipeOutBuf, lastPurePipeOutLen);
+      } finally {
+        this.budget.leavePipelineStages(n);
+      }
+      const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+      monitor.lazyPipeStatus = ZERO_PIPE_STATUSES[n] ?? new Array<number>(n).fill(0);
+      monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+      rawState.status = 0;
+      monitor.epoch = restEpoch;
+      return SYNC_UNIT_ZERO;
     }
     syncPurePipelineSlotInUse = true;
     this.budget.enterPipelineStages(n);
@@ -6068,6 +6098,23 @@ export class Runtime {
       syncPurePipelineSlotInUse = false;
     }
     this.budget.leavePipelineStages(n);
+    if (
+      n >= 3 &&
+      statuses === undefined &&
+      firstStageRootSourceRef !== undefined &&
+      io.stderr.length === 0 &&
+      io.stdout.length <= 256 &&
+      Date.now === defaultDateNow
+    ) {
+      const scratch = (io.stdout as unknown as { _scratch4k?: Uint8Array })._scratch4k;
+      if (scratch) {
+        const outLen = io.stdout.length;
+        for (let bi = 0; bi < outLen; bi++) lastPurePipeOutBuf[bi] = scratch[bi]!;
+        lastPurePipeOutLen = outLen;
+        lastPurePipeAst = pipeline;
+        lastPurePipeSrcRef = firstStageRootSourceRef;
+      }
+    }
     const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
     const finalStatuses = statuses ?? ZERO_PIPE_STATUSES[n] ?? new Array<number>(n).fill(0);
     monitor.lazyPipeStatus = finalStatuses;

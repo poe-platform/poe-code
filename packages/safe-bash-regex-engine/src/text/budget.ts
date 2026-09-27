@@ -44,7 +44,6 @@ export class Budget {
   private remainingNum: number;
   private unlimited: boolean;
   private signal: AbortSignal;
-  private signalAborted = false;
   private checkpoints = 0;
   private hasExtYield = false;
   private readonly yieldTimes = new Float64Array(1);
@@ -82,12 +81,7 @@ export class Budget {
     this.remainingNum = this.unlimited ? 0 : rem;
     this.remainingSmi = !this.unlimited && rem <= 0x3fffffff ? (rem | 0) : 0x3fffffff;
     this.signal = context.signal;
-    this.signalAborted = context.signal.aborted;
     this.hasExtYield = hasYieldCheckpoint(context.signal);
-    if (!this.hasExtYield && !this.signalAborted && context.signal !== DUMMY_ABORT_SIGNAL) {
-      const sig = context.signal;
-      sig.addEventListener("abort", () => { if (this.signal === sig) this.signalAborted = true; }, { once: true });
-    }
     this.yieldTimes[0] = monotonicNow();
     this.maxBufferBytes = options.maxBufferBytes ?? Infinity;
     if (context.signal.aborted) context.signal.throwIfAborted();
@@ -109,19 +103,14 @@ export class Budget {
     this.remainingNum = this.unlimited ? 0 : rem;
     this.remainingSmi = !this.unlimited && rem <= 0x3fffffff ? (rem | 0) : 0x3fffffff;
     this.signal = context.signal;
-    this.signalAborted = context.signal.aborted;
     this.checkpoints = 0;
     this.hasExtYield = hasYieldCheckpoint(context.signal);
-    if (!this.hasExtYield && !this.signalAborted && context.signal !== DUMMY_ABORT_SIGNAL) {
-      const sig = context.signal;
-      sig.addEventListener("abort", () => { if (this.signal === sig) this.signalAborted = true; }, { once: true });
-    }
     this.yieldTimes[0] = monotonicNow();
     const nextMaxBuf = options.maxBufferBytes ?? Infinity;
     if (this.maxBufferBytes !== nextMaxBuf) this.maxBufferBytes = nextMaxBuf;
   }
   step(count = 1): void {
-    if (this.hasExtYield ? this.signal.aborted : this.signalAborted) this.signal.throwIfAborted();
+    if (this.signal.aborted) this.signal.throwIfAborted();
     const nextSteps = this.stepsUsed + count;
     this.stepsUsed = nextSteps;
     if (this.unlimited) return;
@@ -143,7 +132,7 @@ export class Budget {
     if (p) await p;
   }
   checkpointSync(): Promise<void> | undefined {
-    if (this.hasExtYield ? this.signal.aborted : this.signalAborted) this.signal.throwIfAborted();
+    if (this.signal.aborted) this.signal.throwIfAborted();
     const count = ++this.checkpoints;
     // Neither elapsed work nor a stationary clock may postpone host cancellation.
     if ((count & 255) === 0) {

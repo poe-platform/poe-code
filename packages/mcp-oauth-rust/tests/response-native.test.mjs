@@ -69,10 +69,16 @@ test("public HTTP validation errors retain the reference Error shape", async () 
   }
 });
 
-test("explicit infinite response budgets accept declared and streamed bytes", async () => {
+test("explicit Infinity admits complete response bodies and oversized declared lengths", async () => {
   for (const factory of [native, reference]) {
-    assert.equal(await factory.readBoundedResponseText(new Response("large", { headers: { "Content-Length": "99999999999999999999999999999999999999999" } }), Infinity), "large");
+    const readers = new Set();
+    const body = response([Buffer.from("first"), Buffer.from("🦊last")], { "Content-Length": "9999999999999999999999999999999999999" });
+    assert.equal(await factory.readBoundedResponseText(body.response, Infinity, readers), "first🦊last");
+    assert.equal(readers.size, 0);
+    assert.equal(body.response.body.locked, false);
     assert.equal(await factory.readBoundedResponseText(new Response(null), Infinity), "");
     await assert.rejects(factory.readBoundedResponseText(response([Uint8Array.of(255)]).response, Infinity), TypeError);
+    const abort = new AbortController(), reason = { unlimitedCancelled: true }; abort.abort(reason);
+    await assert.rejects(factory.readBoundedResponseText(new Response("body"), Infinity, readers, abort.signal), error => error === reason);
   }
 });

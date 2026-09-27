@@ -174,6 +174,16 @@ it("allows a retained child to be shared by sibling branches", async () => {
   expect(text.split("shared-value")).toHaveLength(3);
 });
 
+it("preserves deep shared retained records and enforces an explicit depth quota", async () => {
+  let record: ImportedValue = { name: "Attribute", namespace: ns, text: "deep leaf", children: [], attributes: [] };
+  for (let depth = 0; depth < 300; depth++) record = { name: "Attribute", namespace: ns, text: "", children: [record], attributes: [] };
+  const book = { sheets: [], unsupportedRecords: [{ source: "Gnumeric_XmlIO:sax", kind: "Attributes", disposition: "retained" as const,
+    data: { name: "Attributes", namespace: ns, text: "", children: [record, record], attributes: [] } }] };
+  const output = await writeGnumeric(book, [], context({ outputBytes: 1_000_000 }));
+  expect(new TextDecoder().decode(output).split("deep leaf")).toHaveLength(3);
+  await expect(writeGnumeric(book, [], context({ xmlDepth: 32, outputBytes: 1_000_000 }))).rejects.toMatchObject({ code: "resource-limit" });
+});
+
 it("preserves cancellation when an admitted record supplies its text", async () => {
   const controller = new AbortController();
   const node = { name: "Attribute", namespace: ns, get text() { controller.abort(false); return "cancelled"; } };

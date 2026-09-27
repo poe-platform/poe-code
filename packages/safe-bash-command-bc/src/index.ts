@@ -161,7 +161,6 @@ function powDec(base: DecimalValue, exp: DecimalValue, currentScale: number): De
   if (n === 0n) return ONE;
   const neg = n < 0n;
   if (neg) n = -n;
-  if (n > 10000n) throw new Error("exponent exceeds maximum limit (10000)");
   let result: DecimalValue = ONE;
   let cur: DecimalValue = base;
   const workScale = neg ? currentScale : Math.min(base.scale * Number(n), Math.max(currentScale, base.scale));

@@ -5,7 +5,7 @@ import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from 
 import { PublicDiagnostic, publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 const encoder = new TextEncoder();
 const bufferLimit = Infinity;
-const maxSingleChunkBytes = 32 * 1024 * 1024;
+const maxSingleChunkBytes = Infinity;
 import { RecordBuffer } from "./record-buffer.js";
 
 const unitPrefixes = "KMGTPEZYRQ";

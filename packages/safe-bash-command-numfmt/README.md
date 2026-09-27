@@ -1,6 +1,7 @@
 # safe-bash-command-numfmt
 
 Convert numbers between raw integers and human-readable IEC/SI scales.
+Input chunk size is unlimited by default; individual records retain their 1 MiB limit.
 
 Reformat numbers from arguments or tabular streams using `--from`, `--to`, `--padding`, `--format`, `--round`, `--field`, and `--header`.
 

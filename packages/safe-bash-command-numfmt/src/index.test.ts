@@ -55,3 +55,23 @@ test("numfmt scales zero with --to=iec, --to=si, and --to=iec-i without (error)"
     assert.ok(!lines[0].includes("error"));
   }
 });
+
+
+test("numfmt admits input chunks larger than the former 32 MiB ceiling", async () => {
+  const input = new Uint8Array(32 * 1024 * 1024 + 1);
+  input.set(new TextEncoder().encode("1\n"));
+  const stop = new Error("stop after verifying the first output");
+  const errors: Uint8Array[] = [];
+  await assert.rejects(async () => createNumfmtCommand().execute({
+    command: "numfmt", args: createCommandArguments([]).args, cwd: "/", env: {},
+    fs: createMemoryFileSystem(),
+    stdin: { async *[Symbol.asyncIterator]() { yield input; } },
+    stdout: { write: async chunk => {
+      assert.equal(new TextDecoder().decode(chunk), "1\n");
+      throw stop;
+    } },
+    stderr: { write: async chunk => { errors.push(chunk); } },
+    signal: new AbortController().signal,
+  }), error => error === stop);
+  assert.equal(Buffer.concat(errors).toString(), "");
+});

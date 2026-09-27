@@ -29,7 +29,11 @@ test("ASCII scalar awaits its admitted work without charging it again", async ()
   const charges: number[] = [];
   const work: YqOwnedWork = {
     async charge() {},
-    chargeSync(units = 1) { charges.push(units); entered(); return gate; },
+    chargeSync(units = 1) {
+      charges.push(units);
+      if (units === 6) { entered(); return gate; }
+      return undefined;
+    },
     admitInputBytes() {}, admitOutputBytes() {}, admitResult() {}, assertOpen() {},
     async measure() { return 0; }, async stringifyJson() { return ""; },
     reserve() { throw new Error("unexpected reservation"); },
@@ -42,11 +46,11 @@ test("ASCII scalar awaits its admitted work without charging it again", async ()
   await admission;
   await new Promise<void>(resolve => { setImmediate(resolve); });
   try {
-    assert.deepEqual(charges, [6]);
+    assert.deepEqual(charges, [4, 4, 6]);
     assert.equal(ledger.documentNodes, 0);
     assert.deepEqual(values, []);
   } finally { release(); await parsing; }
-  assert.deepEqual(charges, [6]);
+  assert.deepEqual(charges, [4, 4, 6]);
   assert.deepEqual(values, ["word"]);
 });
 
@@ -54,9 +58,11 @@ for (const reason of [false, null]) {
   for (const input of ["x", "\u0001", "# comment"]) test(`final source scan preserves cancellation for ${JSON.stringify(input)}: ${reason}`, async context => {
     const controller = new AbortController();
     const session = createYqQuerySession({ signal: controller.signal });
-    const charge = session.ownedWork.charge.bind(session.ownedWork);
+    const work = session.ownedWork as Required<typeof session.ownedWork>;
+    assert.equal(typeof work.chargeSync, "function");
+    const charge = work.chargeSync.bind(work);
     const charges: number[] = [];
-    context.mock.method(session.ownedWork, "charge", async (units = 1) => {
+    context.mock.method(work, "chargeSync", async (units = 1) => {
       charges.push(units);
       await charge(units);
       controller.abort(reason);
@@ -126,9 +132,11 @@ test("inline balancing gates negative depth on closed quotes and remembers earli
     [[']"open[', 'neverclosed'], 2],
   ] as const) {
     const session = createYqQuerySession({ signal: new AbortController().signal });
-    const charge = session.ownedWork.charge.bind(session.ownedWork);
+    const work = session.ownedWork as Required<typeof session.ownedWork>;
+    assert.equal(typeof work.chargeSync, "function");
+    const charge = work.chargeSync.bind(work);
     const charges: number[] = [];
-    context.mock.method(session.ownedWork, "charge", async (units = 1) => {
+    context.mock.method(work, "chargeSync", async (units = 1) => {
       charges.push(units);
       await charge(units);
     });
@@ -145,9 +153,11 @@ test("inline balancing gates negative depth on closed quotes and remembers earli
 for (const lines of [64, 128, 256, 512]) test(`inline balancing charges linear character work: ${lines} continuations`, async context => {
   const input = ["[", ...Array<string>(lines).fill("x")].join("\n");
   const session = createYqQuerySession({ signal: new AbortController().signal });
-  const charge = session.ownedWork.charge.bind(session.ownedWork);
+  const work = session.ownedWork as Required<typeof session.ownedWork>;
+  assert.equal(typeof work.chargeSync, "function");
+  const charge = work.chargeSync.bind(work);
   const charges: number[] = [];
-  context.mock.method(session.ownedWork, "charge", async (units = 1) => {
+  context.mock.method(work, "chargeSync", async (units = 1) => {
     charges.push(units);
     await charge(units);
   });
@@ -180,13 +190,15 @@ for (const reason of [false, null]) {
   for (const longLine of [false, true]) test(`inline balancing cancels ${longLine ? "within long lines" : "between continuations"}: ${reason}`, async context => {
     const fragments = longLine ? ["[", "x".repeat(2048)] : ["[", ...Array<string>(64).fill("x")];
     const input = fragments.join("\n");
-    const preliminaryUnits = fragments.reduce((total, fragment) => total + fragment.length, 0);
+    const preliminaryUnits = fragments.join("\n").length + fragments.reduce((total, fragment) => total + fragment.length, 0);
     const controller = new AbortController();
     const session = createYqQuerySession({ signal: controller.signal });
-    const charge = session.ownedWork.charge.bind(session.ownedWork);
+    const work = session.ownedWork as Required<typeof session.ownedWork>;
+    assert.equal(typeof work.chargeSync, "function");
+    const charge = work.chargeSync.bind(work);
     let unitsCharged = 0;
     let balancingCheckpoints = 0;
-    context.mock.method(session.ownedWork, "charge", async (units = 1) => {
+    context.mock.method(work, "chargeSync", async (units = 1) => {
       await charge(units);
       unitsCharged += units;
       if (unitsCharged > preliminaryUnits) {
@@ -206,13 +218,15 @@ for (const reason of [false, null]) {
   });
   for (const longLine of [false, true]) test(`inline balancing reaches real work yields ${longLine ? "within long lines" : "between continuations"}: ${reason}`, async context => {
     const fragments = longLine ? ["[", "x".repeat(4096)] : ["[", ...Array<string>(1024).fill("x")];
-    const preliminaryUnits = fragments.reduce((total, fragment) => total + fragment.length, 0);
+    const preliminaryUnits = fragments.join("\n").length + fragments.reduce((total, fragment) => total + fragment.length, 0);
     const controller = new AbortController();
     const session = createYqQuerySession({ signal: controller.signal });
-    const charge = session.ownedWork.charge.bind(session.ownedWork);
+    const work = session.ownedWork as Required<typeof session.ownedWork>;
+    assert.equal(typeof work.chargeSync, "function");
+    const charge = work.chargeSync.bind(work);
     let unitsCharged = 0;
     let balancingYields = 0;
-    context.mock.method(session.ownedWork, "charge", async (units = 1) => {
+    context.mock.method(work, "chargeSync", async (units = 1) => {
       await charge(units);
       unitsCharged += units;
     });

@@ -1096,6 +1096,10 @@ class BlockParser {
             this.composer.work.assertOpen();
             return new FlowParser(content, this.composer, lineNumber).parse();
           }
+          return p.then(() => {
+            this.composer.work.assertOpen();
+            return new FlowParser(content, this.composer, lineNumber).parse();
+          });
         }
       }
     }

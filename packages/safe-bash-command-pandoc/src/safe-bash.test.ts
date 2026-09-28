@@ -21,7 +21,7 @@ it("thin command converts byte stdin using SDK format/options, with no ambient f
 });
 it.each([[], ["-"], ["-o", "-"], ["--yes"]])("converts Markdown stdin to HTML with inferred defaults: %s", async (...args) => {
   const ctx = context(args, "# Orchard\n");
-  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
   expect(text(ctx.stdout)).toBe('<h1 id="orchard">Orchard</h1>\n');
   expect(text(ctx.stderr)).toBe("");
 });
@@ -30,7 +30,7 @@ it("infers file input and HTML output without yes", async () => {
   const ctx = {...context(["/doc.md", "-o", "/doc.html"]),
     readFile: async (path: string) => new Uint8Array(volume.readFileSync(path) as Buffer),
     writeFile: async (path: string, bytes: Uint8Array) => {volume.writeFileSync(path, bytes);}};
-  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
   expect(volume.readFileSync("/doc.html", "utf8")).toBe('<h1 id="orchard">Orchard</h1>\n');
   expect(text(ctx.stdout)).toBe("");
   expect(text(ctx.stderr)).toBe("");

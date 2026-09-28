@@ -18,7 +18,7 @@ before(async () => {
     format: "cjs", target: "es2022",
   });
   const bundle = await build(resolveBrowserShellBuild(root));
-  const emitted = new Map(bundle.outputFiles!.map(output => [output.path, output.text]));
+  const emitted = new Map(bundle.outputFiles!.map(output => [output.path, output.contents]));
   const entry = bundle.outputFiles!.find(output => output.path.endsWith("core.browser.js"))!;
   const compiled = await build({
     entryPoints: [entry.path], bundle: true, platform: "browser", format: "cjs", write: false,
@@ -32,7 +32,9 @@ before(async () => {
             : { errors: [{ text: `Missing emitted browser module: ${filename}` }] };
         });
         builder.onLoad({ filter: /.*/, namespace: "emitted-browser" }, args => ({
-          contents: emitted.get(args.path)!, loader: "js", resolveDir: path.dirname(args.path),
+          contents: args.path.endsWith(".wasm")
+            ? `export default new WebAssembly.Module(Uint8Array.from(${JSON.stringify([...emitted.get(args.path)!])}));`
+            : new TextDecoder().decode(emitted.get(args.path)!), loader: "js", resolveDir: path.dirname(args.path),
         }));
       },
     }],

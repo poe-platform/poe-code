@@ -49,7 +49,7 @@ for (const [source, stdout] of [
   ['arr=(a b c); IFS=:; [[ ${arr[*]} == "a b c" ]] && echo ok; case ${arr[*]} in "a b c") echo ok;; esac', ''],
   ['HOME=/home; arr=(/home/a /home/b); x=${arr[@]#~/}; echo "$x"', 'a b\n'],
   ['HOME=/home; arr=(/home/a /home/b); x=${arr[@]/~/X}; echo "$x"', 'X/a X/b\n'],
-  ['IFS=:; HOME=/home; arr=(/home/a /home/b); x=${arr[*]#~/}; echo "$x"', 'a b\n'],
+  ['IFS=:; HOME=/home; arr=(/home/a /home/b); x=${arr[*]#~/}; echo "$x"', 'a:b\n'],
   ['echo $(printf "😀abc\\n" | cut -c 1-2)', '😀a\n'],
   ['echo $(printf "😀abc" | cut -c 1-1)', '😀\n'],
 ] as const) {

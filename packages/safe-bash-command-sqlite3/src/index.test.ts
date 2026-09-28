@@ -486,3 +486,9 @@ test("sqlite3 CLI preserves mutation scopes and exact integers", async () => {
   assert.equal(result.stderr, "");
   assert.equal(result.stdout, "9007199254740994|1|1\n9007199254740995|9007199254740993\n2\n");
 });
+
+test("sqlite3 JSON output retains exact int64 numeric tokens", async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), ["-json", ":memory:", "SELECT 9007199254740993 AS x, -9223372036854775808 AS y"]);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout.trim(), '[{"x":9007199254740993,"y":-9223372036854775808}]');
+});

@@ -186,3 +186,62 @@ for (const [expr, expected] of [
     assert.deepEqual(new SqliteDatabase().exec(`SELECT ${expr}`)[0]!.rows, [[expected]]);
   });
 }
+
+for (const [sql, expected] of [
+  ["SELECT DISTINCT a FROM t", [[9007199254740993n], [9007199254740994n]]],
+  ["SELECT a, COUNT(*) FROM t GROUP BY a", [[9007199254740993n, 2], [9007199254740994n, 1]]],
+  ["SELECT COUNT(DISTINCT a) FROM t", [[2]]],
+  ["SELECT a FROM t UNION SELECT a FROM t", [[9007199254740993n], [9007199254740994n]]],
+  ["SELECT a FROM t INTERSECT SELECT 9007199254740993", [[9007199254740993n]]],
+  ["SELECT a FROM t EXCEPT SELECT 9007199254740993", [[9007199254740994n]]],
+  ["WITH RECURSIVE c(x) AS (SELECT 9007199254740993 UNION SELECT x FROM c) SELECT x FROM c", [[9007199254740993n]]],
+  ["SELECT a, RANK() OVER (PARTITION BY a ORDER BY a) FROM t", [[9007199254740993n, 1], [9007199254740993n, 1], [9007199254740994n, 1]]],
+  ["SELECT json_array(a), json_object('k', a) FROM t LIMIT 1", [["[9007199254740993]", '{"k":9007199254740993}']]],
+  ["SELECT ABS(-9007199254740993)", [[9007199254740993n]]],
+  ["SELECT 1 << 40, (1 << 40) >> 4, (1 << 40) | 1, (1 << 40) & (1 << 40)", [[1099511627776, 68719476736, 1099511627777, 1099511627776]]],
+  ["SELECT 1 << 63, 1 << 64, -1 >> 64, 8 << -1, 8 >> -1, ~9223372036854775807", [[-9223372036854775808n, 0, -1, 4, 16, -9223372036854775808n]]],
+] as const) {
+  test(`int64 parity: ${sql}`, () => {
+    const db = new SqliteDatabase();
+    db.exec("CREATE TABLE t(a INT); INSERT INTO t VALUES (9007199254740993), (9007199254740993), (9007199254740994)");
+    assert.deepEqual(db.exec(sql)[0]!.rows, expected);
+  });
+}
+
+test("ABS rejects minimum signed integer overflow", () => {
+  assert.throws(() => new SqliteDatabase().exec("SELECT ABS(-9223372036854775808)"), /integer overflow/);
+});
+
+for (const sql of [
+  "INSERT INTO t AS u VALUES (1, 5) ON CONFLICT(a) DO UPDATE SET b = u.b + excluded.b WHERE u.a = 1 RETURNING t.a, t.b",
+  "UPDATE t AS u SET b = u.b + s.y FROM s WHERE u.a = s.x RETURNING t.a, t.b",
+]) {
+  test(`mutation alias parity: ${sql}`, () => {
+    const db = new SqliteDatabase();
+    db.exec("CREATE TABLE t(a INT PRIMARY KEY, b INT); CREATE TABLE s(x INT, y INT); INSERT INTO t VALUES (1, 10); INSERT INTO s VALUES (1, 5)");
+    assert.deepEqual(db.exec(sql)[0]!.rows, [[1, 15]]);
+  });
+}
+
+test("JSON mutation functions preserve supplied int64 values", () => {
+  const db = new SqliteDatabase();
+  assert.deepEqual(db.exec("SELECT json_set('{}', '$.x', 9007199254740993), json_insert('[]', '$[0]', 9007199254740993), json_replace('{\"x\":0}', '$.x', 9007199254740993)")[0]!.rows,
+    [['{"x":9007199254740993}', '[9007199254740993]', '{"x":9007199254740993}']]);
+});
+
+test("UPDATE FROM validates empty sources and updates each matching target once", () => {
+  const db = new SqliteDatabase();
+  db.exec("CREATE TABLE t(a INT, b INT); CREATE TABLE s(x INT, y INT); INSERT INTO t VALUES (1, 10), (2, 20)");
+  assert.throws(() => db.exec("UPDATE t SET b = s.missing FROM s"), /no such column/);
+  assert.throws(() => db.exec("UPDATE t SET y = 1 FROM s"), /no such column/);
+  assert.deepEqual(db.exec("UPDATE t SET b = s.y FROM s RETURNING a")[0]!.rows, []);
+  db.exec("INSERT INTO s VALUES (1, 5), (1, 5)");
+  assert.deepEqual(db.exec("UPDATE t AS u SET b = u.b + s.y FROM s WHERE u.a = s.x RETURNING t.a, t.b")[0]!.rows, [[1, 15]]);
+  assert.deepEqual(db.exec("SELECT * FROM t ORDER BY a")[0]!.rows, [[1, 15], [2, 20]]);
+});
+
+test("set and window keys equate integer and real numbers while distinguishing text", () => {
+  const db = new SqliteDatabase();
+  assert.equal(db.exec("SELECT 1 UNION SELECT 1.0 UNION SELECT '1'")[0]!.rows.length, 2);
+  assert.deepEqual(db.exec("WITH t(a) AS (SELECT 1 UNION ALL SELECT 1.0) SELECT COUNT(DISTINCT a) FROM t")[0]!.rows, [[1]]);
+});

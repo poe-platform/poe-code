@@ -5,6 +5,21 @@ import {
   writeSqliteDatabaseBytes
 } from "./btree.js";
 
+export function serializeSqlJson(value: unknown, preserveRealType = true): string {
+  if (typeof value === "bigint") return value.toString();
+  if (value instanceof Number) {
+    const number = value.valueOf();
+    if (!Number.isFinite(number)) return "null";
+    const text = String(number);
+    return preserveRealType && Number.isInteger(number) && !text.includes("e") ? `${text}.0` : text;
+  }
+  if (Array.isArray(value)) return `[${value.map((item) => serializeSqlJson(item, preserveRealType)).join(",")}]`;
+  if (value !== null && typeof value === "object") {
+    return `{${Object.entries(value).map(([key, item]) => `${JSON.stringify(key)}:${serializeSqlJson(item, preserveRealType)}`).join(",")}}`;
+  }
+  return JSON.stringify(value) ?? "null";
+}
+
 export type { SqlValue };
 
 export interface QueryResultSet {
@@ -1462,9 +1477,9 @@ function jsonValueToSql(v: unknown, unquoteScalar: boolean): SqlValue {
     return v;
   }
   if (typeof v === "string") {
-    return unquoteScalar ? v : JSON.stringify(v);
+    return unquoteScalar ? v : serializeSqlJson(v);
   }
-  return JSON.stringify(v);
+  return serializeSqlJson(v);
 }
 
 function sqlPrintf(format: string, args: SqlValue[]): string {
@@ -2859,6 +2874,13 @@ export class SqliteDatabase {
       throw new Error(`no such table: ${tableName}`);
     }
 
+    let alias: string | undefined;
+    if (tokens[idx]?.value.toUpperCase() === "AS") {
+      alias = tokens[idx + 1]?.value;
+      if (!alias) throw new Error("near AS: syntax error");
+      idx += 2;
+    }
+
     let targetCols = tbl.columns.map((c) => c.name);
     if (tokens[idx]?.value === "(") {
       targetCols = [];
@@ -3028,7 +3050,7 @@ export class SqliteDatabase {
           continue;
         }
         if (upsertSetPairs.length > 0) {
-          const ctx: Record<string, SqlValue> = { ...conflictRow.data };
+          const ctx = this.tableBindings(tbl, conflictRow, alias);
           for (const [k, v] of Object.entries(conflictRow.data)) {
             ctx[`${tbl.name}.${k}`] = v;
           }
@@ -3217,11 +3239,31 @@ export class SqliteDatabase {
     }
 
     const sliceEnd = returningIdx !== -1 ? returningIdx : tokens.length;
-    const { assignments, whereExpr } = this.parseSetAssignments(tokens.slice(idx, sliceEnd));
-
-    const bindings = this.tableBindings(tbl, undefined, alias);
+    let fromIdx = -1;
+    let whereIdx = sliceEnd;
+    let depth = 0;
+    for (let i = idx; i < sliceEnd; i += 1) {
+      const token = tokens[i]!.value.toUpperCase();
+      if (token === "(") depth += 1;
+      else if (token === ")") depth -= 1;
+      else if (depth === 0 && token === "FROM") fromIdx = i;
+      else if (depth === 0 && token === "WHERE") whereIdx = i;
+    }
+    const setTokens = fromIdx === -1 ? tokens.slice(idx, sliceEnd)
+      : [...tokens.slice(idx, fromIdx), ...tokens.slice(whereIdx, sliceEnd)];
+    const { assignments, whereExpr } = this.parseSetAssignments(setTokens);
+    const source = fromIdx === -1 ? { rows: [{}], schema: [] }
+      : this.evaluateFromClause(tokens.slice(fromIdx + 1, whereIdx), positionalParams, _cteScope);
+    const targetBindings = this.tableBindings(tbl, undefined, alias);
+    const bindings = { ...targetBindings };
+    for (const table of source.schema) {
+      for (const column of table.columns) {
+        bindings[column] = null;
+        bindings[`${table.tableAlias}.${column}`] = null;
+      }
+    }
     for (const assignment of assignments) {
-      this.validateColumns({ kind: "column", name: assignment.col }, bindings, positionalParams, _cteScope);
+      this.validateColumns({ kind: "column", name: assignment.col }, targetBindings, positionalParams, _cteScope);
       this.validateColumns(assignment.expr, bindings, positionalParams, _cteScope);
     }
     this.validateColumns(whereExpr, bindings, positionalParams, _cteScope);
@@ -3230,14 +3272,16 @@ export class SqliteDatabase {
     let updated = 0;
     const affectedRows: TableRow[] = [];
 
-    for (const row of tbl.rows) {
-      const ctx = this.tableBindings(tbl, row, alias);
-      if (whereExpr) {
-        const cond = this.evalExpr(whereExpr, ctx, positionalParams, _cteScope);
-        if (!isTruthy(cond)) {
-          continue;
-        }
+    // Materialize matching contexts before writes, including self-joins.
+    const matches = tbl.rows.flatMap((row) => {
+      const target = this.tableBindings(tbl, row, alias);
+      for (const other of source.rows) {
+        const ctx = { ...other, ...target };
+        if (!whereExpr || isTruthy(this.evalExpr(whereExpr, ctx, positionalParams, _cteScope))) return [{ row, ctx }];
       }
+      return [];
+    });
+    for (const { row, ctx } of matches) {
       const oldData = { ...row.data };
       const newData = { ...row.data };
       for (const assign of assignments) {
@@ -3513,7 +3557,7 @@ export class SqliteDatabase {
     const seenKeys = new Set<string>();
     if (!unionAll) {
       for (const r of allRows) {
-        seenKeys.add(JSON.stringify(r));
+        seenKeys.add(serializeSqlJson(r, false));
       }
     }
 
@@ -3527,7 +3571,7 @@ export class SqliteDatabase {
       const nextWorking: SqlValue[][] = [];
       for (const r of nextRes.rows) {
         if (!unionAll) {
-          const k = JSON.stringify(r);
+          const k = serializeSqlJson(r, false);
           if (seenKeys.has(k)) {
             continue;
           }
@@ -3631,11 +3675,11 @@ export class SqliteDatabase {
         const combined = [...acc.rows, ...res.rows];
         acc.rows = this.deduplicateResultRows(combined);
       } else if (seg.op === "INTERSECT") {
-        const rightSet = new Set(res.rows.map((r) => JSON.stringify(r)));
-        acc.rows = this.deduplicateResultRows(acc.rows.filter((r) => rightSet.has(JSON.stringify(r))));
+        const rightSet = new Set(res.rows.map((r) => serializeSqlJson(r, false)));
+        acc.rows = this.deduplicateResultRows(acc.rows.filter((r) => rightSet.has(serializeSqlJson(r, false))));
       } else if (seg.op === "EXCEPT") {
-        const rightSet = new Set(res.rows.map((r) => JSON.stringify(r)));
-        acc.rows = this.deduplicateResultRows(acc.rows.filter((r) => !rightSet.has(JSON.stringify(r))));
+        const rightSet = new Set(res.rows.map((r) => serializeSqlJson(r, false)));
+        acc.rows = this.deduplicateResultRows(acc.rows.filter((r) => !rightSet.has(serializeSqlJson(r, false))));
       }
     }
 
@@ -3654,7 +3698,7 @@ export class SqliteDatabase {
     const out: SqlValue[][] = [];
     const seen = new Set<string>();
     for (const r of rows) {
-      const k = JSON.stringify(r);
+      const k = serializeSqlJson(r, false);
       if (!seen.has(k)) {
         seen.add(k);
         out.push(r);
@@ -3906,7 +3950,7 @@ export class SqliteDatabase {
             }
             return this.evalExpr(ge, row, positionalParams, cteScope);
           });
-          const keyStr = JSON.stringify(keyVals.map((v) => [typeof v, v]));
+          const keyStr = serializeSqlJson(keyVals.map((v) => [typeof v, v]), false);
           const existing = groups.get(keyStr);
           if (existing) {
             existing.group.push(row);
@@ -3969,7 +4013,7 @@ export class SqliteDatabase {
     if (distinct) {
       const seen = new Set<string>();
       finalProjected = projected.filter((p) => {
-        const k = JSON.stringify(p.values);
+        const k = serializeSqlJson(p.values, false);
         if (seen.has(k)) {
           return false;
         }
@@ -4695,7 +4739,7 @@ export class SqliteDatabase {
         const tStr = getTypeStr(val);
         const isContainer = tStr === "array" || tStr === "object";
         const sqlVal: SqlValue = isContainer
-          ? JSON.stringify(val)
+          ? serializeSqlJson(val)
           : val === null
             ? null
             : typeof val === "boolean"
@@ -4884,8 +4928,8 @@ export class SqliteDatabase {
 
     for (let i = 0; i < groupedRows.length; i += 1) {
       const g = groupedRows[i]!;
-      const pKey = JSON.stringify(
-        over.partitionBy.map((pe) => this.evalExprWithAgg(pe, g.representative, g.group, positionalParams, cteScope))
+      const pKey = serializeSqlJson(
+        over.partitionBy.map((pe) => this.evalExprWithAgg(pe, g.representative, g.group, positionalParams, cteScope)), false
       );
       const arr = partitions.get(pKey);
       if (arr) {
@@ -4916,8 +4960,8 @@ export class SqliteDatabase {
 
       const orderPeerKeys = indices.map((idx) => {
         const g = groupedRows[idx]!;
-        return JSON.stringify(
-          over.orderBy.map((ob) => this.evalExprWithAgg(ob.expr, g.representative, g.group, positionalParams, cteScope))
+        return serializeSqlJson(
+          over.orderBy.map((ob) => this.evalExprWithAgg(ob.expr, g.representative, g.group, positionalParams, cteScope)), false
         );
       });
 
@@ -5133,7 +5177,7 @@ export class SqliteDatabase {
         .map((r) => this.evalExpr(expr.args[0]!, r, positionalParams, cteScope))
         .filter((v) => v !== null && v !== undefined);
       if (expr.distinct) {
-        return new Set(vals.map((v) => JSON.stringify(v))).size;
+        return new Set(vals.map((v) => serializeSqlJson(v, false))).size;
       }
       return vals.length;
     }
@@ -5147,7 +5191,7 @@ export class SqliteDatabase {
           obj[toSqlString(k)] = this.sqlValToJsJson(v);
         }
       }
-      return this.serializeJson(obj);
+      return serializeSqlJson(obj);
     }
 
     let vals = filteredGroup.map((r) =>
@@ -5158,7 +5202,7 @@ export class SqliteDatabase {
       if (expr.distinct) {
         const seen = new Set<string>();
         vals = vals.filter((v) => {
-          const k = typeof v === "bigint" ? v.toString() : JSON.stringify(v);
+          const k = serializeSqlJson(v, false);
           if (seen.has(k)) {
             return false;
           }
@@ -5166,7 +5210,7 @@ export class SqliteDatabase {
           return true;
         });
       }
-      return this.serializeJson(vals.map((v) => this.sqlValToJsJson(v)));
+      return serializeSqlJson(vals.map((v) => this.sqlValToJsJson(v)));
     }
 
     const nonNull = vals.filter((v): v is Exclude<SqlValue, null> => v !== null && v !== undefined);
@@ -5174,7 +5218,7 @@ export class SqliteDatabase {
     if (expr.distinct) {
       const seen = new Set<string>();
       activeVals = nonNull.filter((v) => {
-        const k = typeof v === "bigint" ? v.toString() : JSON.stringify(v);
+        const k = serializeSqlJson(v, false);
         if (seen.has(k)) {
           return false;
         }
@@ -5282,19 +5326,6 @@ export class SqliteDatabase {
     for (const child of Object.values(node)) this.validateColumns(child, scope, positionalParams, cteScope);
   }
 
-  private serializeJson(value: unknown): string {
-    if (value instanceof Number) {
-      const number = value.valueOf();
-      if (!Number.isFinite(number)) return "null";
-      const text = String(number);
-      return Number.isInteger(number) && !text.includes("e") ? `${text}.0` : text;
-    }
-    if (Array.isArray(value)) return `[${value.map((item) => this.serializeJson(item)).join(",")}]`;
-    if (value !== null && typeof value === "object") {
-      return `{${Object.entries(value).map(([key, item]) => `${JSON.stringify(key)}:${this.serializeJson(item)}`).join(",")}}`;
-    }
-    return JSON.stringify(value) ?? "null";
-  }
 
   private lookupColInRow(row: Record<string, SqlValue>, table: string | undefined, name: string, doubleQuoted = false): SqlValue {
     if (table) {
@@ -5546,7 +5577,7 @@ export class SqliteDatabase {
       return v;
     }
     if (op === "~") {
-      return ~Math.trunc(toSqlNumber(v));
+      return integerResult(BigInt.asIntN(64, ~integerPrefix(v)));
     }
     return v;
   }
@@ -5598,13 +5629,18 @@ export class SqliteDatabase {
         return new Number(op === "+" ? a + b : op === "-" ? a - b : op === "*" ? a * b : a / b);
       }
       case "<<":
-        return Math.trunc(toSqlNumber(l)) << Math.trunc(toSqlNumber(r));
-      case ">>":
-        return Math.trunc(toSqlNumber(l)) >> Math.trunc(toSqlNumber(r));
+      case ">>": {
+        const value = BigInt.asIntN(64, integerPrefix(l));
+        let count = integerPrefix(r);
+        let left = op === "<<";
+        if (count < 0n) { left = !left; count = -count; }
+        if (count >= 64n) return !left && value < 0n ? -1 : 0;
+        return integerResult(BigInt.asIntN(64, left ? value << count : value >> count));
+      }
       case "&":
-        return Math.trunc(toSqlNumber(l)) & Math.trunc(toSqlNumber(r));
+        return integerResult(BigInt.asIntN(64, integerPrefix(l) & integerPrefix(r)));
       case "|":
-        return Math.trunc(toSqlNumber(l)) | Math.trunc(toSqlNumber(r));
+        return integerResult(BigInt.asIntN(64, integerPrefix(l) | integerPrefix(r)));
       case "=":
       case "==":
         return sqlEquals(l, r, collation) ? 1 : 0;
@@ -5842,6 +5878,10 @@ export class SqliteDatabase {
       case "QUOTE":
         return this.toSqlLiteral(a0);
       case "ABS":
+        if (typeof a0 === "bigint") {
+          if (a0 === INT64_MIN) throw new Error("integer overflow");
+          return integerResult(a0 < 0n ? -a0 : a0);
+        }
         return a0 === null ? null : a0 instanceof Number ? new Number(Math.abs(a0.valueOf())) : Math.abs(toSqlNumber(a0));
       case "ROUND": {
         if (a0 === null) {
@@ -5999,9 +6039,9 @@ export class SqliteDatabase {
         }
       }
       case "JSON_QUOTE":
-        return a0 === null ? "null" : this.serializeJson(this.sqlValToJsJson(a0));
+        return a0 === null ? "null" : serializeSqlJson(this.sqlValToJsJson(a0));
       case "JSON_ARRAY":
-        return this.serializeJson(args.map((x) => this.sqlValToJsJson(x)));
+        return serializeSqlJson(args.map((x) => this.sqlValToJsJson(x)));
       case "JSON_OBJECT": {
         const obj: Record<string, unknown> = {};
         for (let i = 0; i + 1 < args.length; i += 2) {
@@ -6009,7 +6049,7 @@ export class SqliteDatabase {
             obj[toSqlString(args[i]!)] = this.sqlValToJsJson(args[i + 1] ?? null);
           }
         }
-        return this.serializeJson(obj);
+        return serializeSqlJson(obj);
       }
       case "JSON_EXTRACT": {
         if (a0 === null) {
@@ -6086,7 +6126,7 @@ export class SqliteDatabase {
             const v = this.sqlValToJsJson(args[i + 1] ?? null);
             cur = setByJsonPath(cur, p, v, mode);
           }
-          return JSON.stringify(cur);
+          return serializeSqlJson(cur);
         } catch {
           return null;
         }
@@ -6100,7 +6140,7 @@ export class SqliteDatabase {
           for (let i = 1; i < args.length; i += 1) {
             cur = removeByJsonPath(cur, toSqlString(args[i] ?? "$"));
           }
-          return JSON.stringify(cur);
+          return serializeSqlJson(cur);
         } catch {
           return null;
         }

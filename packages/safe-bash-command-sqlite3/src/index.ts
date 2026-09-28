@@ -8,7 +8,7 @@ import {
   type VirtualShellPlugin
 } from "safe-bash-contracts";
 import {
-  SqliteDatabase,
+  SqliteDatabase, serializeSqlJson,
   matchGlob,
   splitSqlStatements,
   toSqlString,
@@ -375,7 +375,7 @@ function formatQueryResult(res: QueryResultSet, state: CliSessionState): string 
         const value = row[index];
         const encoded = value instanceof Number
           ? Number.isFinite(value.valueOf()) ? toSqlString(value) : "null"
-          : JSON.stringify(value instanceof Uint8Array ? toSqlString(value) : typeof value === "bigint" ? Number(value) : value ?? null);
+          : serializeSqlJson(value instanceof Uint8Array ? toSqlString(value) : value ?? null);
         return `${JSON.stringify(column)}:${encoded}`;
       }).join(",") + "}");
       return `[${objects.join(",\n")}]\n`;

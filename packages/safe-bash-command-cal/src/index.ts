@@ -1,3 +1,4 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 import {
   commandRuntimeIdentity,
   writeText,
@@ -261,6 +262,7 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
     name: "cal",
     runtimeIdentity: commandRuntimeIdentity,
     async execute(context: CommandContext): Promise<CommandResult> {
+      context.signal.throwIfAborted();
       const rawArgs = context.args;
       let totalArgBytes = 0;
       for (const a of rawArgs) {
@@ -343,15 +345,20 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
         } else if (arg === "-n" || arg === "--months") {
           const val = rawArgs[++i];
           const n = Number(val);
-          if (!val || !Number.isInteger(n) || n < 1 || n > lim.maxMonths) {
+          if (!val || !Number.isSafeInteger(n) || n < 1 || n > lim.maxMonths) {
             await writeText(context.stderr, `cal: invalid month count '${val ?? ""}'\n`);
             return { exitCode: 1 };
           }
           spanMonths = n;
-        } else if (arg === "-A") {
-          afterMonths = Math.max(0, Number(rawArgs[++i] ?? 0));
-        } else if (arg === "-B") {
-          beforeMonths = Math.max(0, Number(rawArgs[++i] ?? 0));
+        } else if (arg === "-A" || arg === "-B") {
+          const val = rawArgs[++i];
+          const count = Number(val);
+          if (!val || !Number.isSafeInteger(count) || count < 0) {
+            await writeText(context.stderr, `cal: invalid month count '${val ?? ""}'\n`);
+            return { exitCode: 1 };
+          }
+          if (arg === "-A") afterMonths = count;
+          else beforeMonths = count;
         } else if (arg.startsWith("-") && arg.length > 1) {
           for (let j = 1; j < arg.length; j++) {
             const ch = arg[j]!;
@@ -438,22 +445,30 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
         return { exitCode: 1 };
       }
 
+      const count = wholeYear ? 12 : spanMonths;
+      if (!Number.isSafeInteger(count) || count > lim.maxMonths) {
+        await writeText(context.stderr, "cal: month count exceeds size limit\n");
+        return { exitCode: 1 };
+      }
+
       const gridWidth = julian ? 27 : 20;
       const perRow = julian ? 2 : 3;
 
       if (verticalLayout) {
-        const count = wholeYear ? 12 : spanMonths;
         const offset = wholeYear ? 0 : beforeMonths || (spanAround ? Math.floor((spanMonths - 1) / 2) : 0);
         const first = year * 12 + (wholeYear ? 0 : month - 1) - offset;
-        const grids = Array.from({ length: count }, (_, index) => {
+        const grids = [];
+        for (let index = 0; index < count; index++) {
+          await yieldTurn(context.signal);
           const total = first + index;
-          return renderVerticalNcalMonth(Math.floor(total / 12), total % 12 + 1, {
+          grids.push(renderVerticalNcalMonth(Math.floor(total / 12), ((total % 12) + 12) % 12 + 1, {
             mondayFirst, julian, includeYearInHeader: !wholeYear, showWeeks,
-          });
-        });
+          }));
+        }
         const verticalPerRow = wholeYear ? (julian ? 3 : 4) : perRow;
         const lines: string[] = wholeYear ? [centerText(String(year), (julian ? 26 : 22) * verticalPerRow)] : [];
         for (let start = 0; start < grids.length; start += verticalPerRow) {
+          await yieldTurn(context.signal);
           const group = grids.slice(start, start + verticalPerRow);
           for (let line = 0; line < group[0]!.length; line++) {
             lines.push(group.map((grid, index) => {
@@ -471,6 +486,7 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
       if (wholeYear) {
         const lines: string[] = [`${" ".repeat(28)}${year}`];
         for (let startM = 1; startM <= 12; startM += perRow) {
+          await yieldTurn(context.signal);
           const rowMonths = [];
           for (let k = 0; k < perRow && startM + k <= 12; k++) {
             rowMonths.push(renderMonthGrid(year, startM + k, { mondayFirst, julian, includeYearInHeader: false }));
@@ -491,12 +507,12 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
       if (beforeMonths > 0) {
         const totalMonths = startYear * 12 + (startMonth - 1) - beforeMonths;
         startYear = Math.floor(totalMonths / 12);
-        startMonth = (totalMonths % 12) + 1;
+        startMonth = ((totalMonths % 12) + 12) % 12 + 1;
       } else if (spanAround && spanMonths > 1) {
         const offset = Math.floor((spanMonths - 1) / 2);
         const totalMonths = startYear * 12 + (startMonth - 1) - offset;
         startYear = Math.floor(totalMonths / 12);
-        startMonth = (totalMonths % 12) + 1;
+        startMonth = ((totalMonths % 12) + 12) % 12 + 1;
       }
 
       if (spanMonths === 1) {
@@ -514,6 +530,7 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
       let curY = startYear;
       let curM = startMonth;
       for (let idx = 0; idx < spanMonths; idx++) {
+        await yieldTurn(context.signal);
         grids.push(renderMonthGrid(curY, curM, { mondayFirst, julian, includeYearInHeader: true }));
         curM++;
         if (curM > 12) {
@@ -524,6 +541,7 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
 
       const lines: string[] = [];
       for (let r = 0; r < grids.length; r += perRow) {
+        await yieldTurn(context.signal);
         const slice = grids.slice(r, r + perRow);
         lines.push(slice.map(g => g.header.padEnd(gridWidth, " ")).join("  ") + "  ");
         lines.push(slice.map(g => g.dayHeader.padEnd(gridWidth, " ")).join("  ") + "  ");

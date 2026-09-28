@@ -23,3 +23,5 @@ const res = await shell.exec("cal 9 1752");
 ```
 
 Resource limits are disabled (`Infinity`) by default. Pass `limits` to the command factory or plugin to enforce bounds; omitted limits remain disabled.
+
+The `maxMonths` quota applies to the complete rendered span, including `-A`/`-B`, `-3`, and full-year calendars. Multi-month rendering cooperates with cancellation.

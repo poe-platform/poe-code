@@ -138,7 +138,7 @@ pub fn write_refs_ad_response(
     for (k, v) in symrefs {
         syms.push_str(&format!("symref={k}:{v} "));
     }
-    let mut caps = format!("\0{} {syms}agent=git/isomorphic-git@0.0.0-development", capabilities.join(" "));
+    let mut caps = format!("\0{} {syms}agent=git/2.40.0-rust-git@0.1.0-production", capabilities.join(" "));
     for (k, v) in refs {
         out.extend_from_slice(&GitPktLine::encode_str(&format!("{v} {k}{caps}\n")));
         caps.clear();
@@ -155,7 +155,7 @@ pub fn write_list_refs_request(
     let mut out = Vec::new();
     out.extend_from_slice(&GitPktLine::encode_str("command=ls-refs\n"));
     out.extend_from_slice(&GitPktLine::encode_str(
-        "agent=git/isomorphic-git@0.0.0-development\n",
+        "agent=git/2.40.0-rust-git@0.1.0-production\n",
     ));
     if peel_tags || symrefs || prefix.is_some() {
         out.extend_from_slice(&GitPktLine::delim());

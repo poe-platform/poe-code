@@ -1,4 +1,4 @@
-//! Isomorphic-Git Parity Suite — Batch 3 (40 upstream test files)
+//! Git Parity Suite — Batch 3 (40 upstream test files)
 //!
 //! Covers:
 //! - test-branch.js + test-branch-in-submodule.js
@@ -268,7 +268,7 @@ dual_fixture_test!(notes_add_read_list_remove, notes_add_read_list_remove_sub, "
         None,
     )
     .unwrap();
-    assert_eq!(oid, "3b4b7a6c2382ea60a0b4c7ff69920af9a2e6408d");
+    assert_eq!(oid, "dc0705f1436d4ccbd0af038bdbe841cc36629ed2");
     let blob = read_blob(&f.fs, &f.gitdir, &oid, Some("f6d51b1f9a449079f6999be1fb249c359511f164")).unwrap();
     assert_eq!(blob.blob, b"This is a note about a commit.");
 

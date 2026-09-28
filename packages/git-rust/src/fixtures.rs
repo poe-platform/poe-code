@@ -5,7 +5,7 @@ use crate::fs::MemoryFs;
 use crate::utils::zlib::zlib_inflate;
 
 const COMPRESSED_FIXTURES: &[u8] =
-    include_bytes!("../fixtures/isomorphic-git-fixtures.bin.zlib");
+    include_bytes!("../fixtures/git-fixtures.bin.zlib");
 
 #[derive(Debug, Clone)]
 pub enum FixtureEntryKind {

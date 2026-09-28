@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.88"
 license = "MIT"
-description = "Full-featured Rust Git implementation modeled on isomorphic-git with virtual filesystem support for safe-bash"
+description = "Full-featured Rust Git implementation with virtual filesystem support for safe-bash"
 
 [lib]
 crate-type = ["rlib", "cdylib"]

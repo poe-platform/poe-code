@@ -562,7 +562,7 @@ pub fn add_note(
     });
     let new_tree_oid = write_tree(fs, &gdir, &entries)?;
     let commit_obj = CommitObject {
-        message: "Note added by 'isomorphic-git addNote'\n".to_string(),
+        message: "Note added by 'git notes add'\n".to_string(),
         tree: new_tree_oid,
         parent: parent.into_iter().collect(),
         author: author.clone(),
@@ -604,7 +604,7 @@ pub fn remove_note(
     entries.retain(|e| e.path != oid);
     let new_tree_oid = write_tree(fs, &gdir, &entries)?;
     let commit_obj = CommitObject {
-        message: "Note removed by 'isomorphic-git removeNote'\n".to_string(),
+        message: "Note removed by 'git notes remove'\n".to_string(),
         tree: new_tree_oid,
         parent: parent.into_iter().collect(),
         author: author.clone(),

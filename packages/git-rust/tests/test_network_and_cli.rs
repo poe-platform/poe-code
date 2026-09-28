@@ -68,7 +68,7 @@ fn test_get_remote_info_v1_v2_and_list_server_refs() {
     // SCP-like syntax -> UnknownTransportError
     let scp_err = get_remote_info(
         &server,
-        "git@github.com:isomorphic-git/isomorphic-git.git",
+        "git@github.com:git/git.git",
         None,
         false,
         None,

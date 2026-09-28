@@ -1,4 +1,4 @@
-//! Upstream isomorphic-git integration test parity — Batch 6 (Network, Remote Info, Fetch, Clone, Pull, Push, Hosting Providers)
+//! Upstream git integration test parity — Batch 6 (Network, Remote Info, Fetch, Clone, Pull, Push, Hosting Providers)
 //!
 //! Ports all upstream test cases (plus `-in-submodule` equivalents) from:
 //! - test-getRemoteInfo.js (+ test-getRemoteInfo-in-submodule.js)

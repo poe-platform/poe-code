@@ -74,7 +74,7 @@ fn test_init_find_root_and_config_commands() {
         );
         assert_eq!(
             get_config(&fc.fs, &fc.gitdir, "remote.origin.url").map(|v| v.as_str().to_string()),
-            Some("https://github.com/isomorphic-git/isomorphic-git".to_string())
+            Some("https://github.com/git/git".to_string())
         );
 
         let fca = load_fixture("test-config", is_sub);
@@ -230,7 +230,7 @@ fn test_branch_tag_remote_and_note_commands() {
             None,
         )
         .unwrap();
-        assert_eq!(note_commit, "3b4b7a6c2382ea60a0b4c7ff69920af9a2e6408d");
+        assert_eq!(note_commit, "dc0705f1436d4ccbd0af038bdbe841cc36629ed2");
         let note_data = read_note(
             &fn_env.fs,
             &fn_env.gitdir,
@@ -350,6 +350,6 @@ fn test_log_is_descendent_find_merge_base_pack_objects_and_upload_pack() {
     let ad = upload_pack(&fup.fs, &fup.gitdir, true).unwrap().unwrap();
     assert_eq!(
         String::from_utf8_lossy(&ad),
-        "00f15a8905a02e181fe1821068b8c0f48cb6633d5b81 HEAD\0thin-pack side-band side-band-64k shallow deepen-since deepen-not allow-tip-sha1-in-want allow-reachable-sha1-in-want symref=HEAD:refs/heads/master agent=git/isomorphic-git@0.0.0-development\n003f5a8905a02e181fe1821068b8c0f48cb6633d5b81 refs/heads/master\n0000"
+        "00f15a8905a02e181fe1821068b8c0f48cb6633d5b81 HEAD\0thin-pack side-band side-band-64k shallow deepen-since deepen-not allow-tip-sha1-in-want allow-reachable-sha1-in-want symref=HEAD:refs/heads/master agent=git/2.40.0-rust-git@0.1.0-production\n003f5a8905a02e181fe1821068b8c0f48cb6633d5b81 refs/heads/master\n0000"
     );
 }

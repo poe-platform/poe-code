@@ -270,7 +270,7 @@ dual_fixture_test!(find_root_errors_when_not_found, find_root_errors_when_not_fo
 dual_fixture_test!(config_get_and_get_all, config_get_and_get_all_sub, "test-config", |fc| {
     assert_eq!(get_config(&fc.fs, &fc.gitdir, "core.repositoryformatversion").map(|v| v.as_str()), Some("0".into()));
     assert_eq!(get_config(&fc.fs, &fc.gitdir, "core.bare").and_then(|v| v.as_bool()), Some(false));
-    assert_eq!(get_config(&fc.fs, &fc.gitdir, "remote.origin.url").map(|v| v.as_str()), Some("https://github.com/isomorphic-git/isomorphic-git".into()));
+    assert_eq!(get_config(&fc.fs, &fc.gitdir, "remote.origin.url").map(|v| v.as_str()), Some("https://github.com/git/git".into()));
     assert!(!get_config_all(&fc.fs, &fc.gitdir, "remote.origin.fetch").is_empty());
 });
 

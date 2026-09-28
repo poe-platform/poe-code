@@ -165,7 +165,7 @@ impl GitError {
         self
     }
 
-    pub fn is_isomorphic_git_error(&self) -> bool {
+    pub fn is_git_error(&self) -> bool {
         true
     }
 
@@ -318,7 +318,7 @@ impl GitError {
         Self::new(
             ErrorCode::InternalError,
             format!(
-                "An internal error caused this command to fail.\n\nIf you're using an application that depends on isomorphic-git, please report this error to that application's developers.\n\nIf you're a developer and you believe this is a bug in isomorphic-git, please file an issue at https://github.com/isomorphic-git/isomorphic-git/issues with a minimal reproduction, version and environment details, and this error message: {message}"
+                "An internal error caused this command to fail.\n\nIf you're using an application that depends on git-rust, please report this error to that application's developers.\n\nIf you're a developer and you believe this is a bug in git-rust, please file an issue with a minimal reproduction, version and environment details, and this error message: {message}"
             ),
             data,
         )

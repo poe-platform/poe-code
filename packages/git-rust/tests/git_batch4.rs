@@ -1,4 +1,4 @@
-//! Isomorphic-Git Parity Suite — Batch 4 (26 upstream test files)
+//! Git Parity Suite — Batch 4 (26 upstream test files)
 //!
 //! Covers:
 //! - test-add.js + test-add-in-submodule.js

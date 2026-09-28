@@ -48,12 +48,12 @@ fn test_git_error_static_codes_and_constructors() {
     assert!(
         internal
             .message
-            .contains("If you're using an application that depends on isomorphic-git")
+            .contains("If you're using an application that depends on git-rust")
     );
     assert!(
         internal
             .message
-            .contains("If you're a developer and you believe this is a bug in isomorphic-git")
+            .contains("If you're a developer and you believe this is a bug in git")
     );
     assert!(internal.message.contains("Something unexpected happened."));
 }
@@ -88,10 +88,10 @@ fn test_apply_delta_bounded_allocation_throws_without_allocating_header_size() {
 // === test-utils-extractAuthFromUrl.js ===
 #[test]
 fn test_extract_auth_from_url() {
-    let r = extract_auth_from_url("https://github.com/isomorphic-git/isomorphic-git.git");
+    let r = extract_auth_from_url("https://github.com/git/git.git");
     assert_eq!(
         r.url,
-        "https://github.com/isomorphic-git/isomorphic-git.git"
+        "https://github.com/git/git.git"
     );
     assert_eq!(r.auth, ExtractedAuth::default());
 

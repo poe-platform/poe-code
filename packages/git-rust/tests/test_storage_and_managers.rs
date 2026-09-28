@@ -186,21 +186,21 @@ fn test_git_ref_manager_symref_cycle() {
 #[test]
 fn test_git_remote_manager() {
     assert_eq!(
-        GitRemoteManager::get_remote_helper_for("http://github.com/isomorphic-git-isomorphic-git")
+        GitRemoteManager::get_remote_helper_for("http://github.com/git-repo")
             .unwrap()
             .transport,
         "http"
     );
     assert_eq!(
         GitRemoteManager::get_remote_helper_for(
-            "http::https://github.com/isomorphic-git-isomorphic-git"
+            "http::https://github.com/git-repo"
         )
         .unwrap()
         .transport,
         "http"
     );
     assert_eq!(
-        GitRemoteManager::get_remote_helper_for("https://github.com/isomorphic-git-isomorphic-git")
+        GitRemoteManager::get_remote_helper_for("https://github.com/git-repo")
             .unwrap()
             .transport,
         "https"

@@ -948,31 +948,31 @@ dual_test!(normalize_committer_undefined_when_missing, normalize_committer_undef
 // 16. test-utils-extractAuthFromUrl.js (11 tests)
 // ============================================================================
 #[test] fn extract_auth_clean_url() {
-    let r = extract_auth_from_url("https://github.com/isomorphic-git/isomorphic-git.git");
-    assert_eq!(r.url, "https://github.com/isomorphic-git/isomorphic-git.git");
+    let r = extract_auth_from_url("https://github.com/git/git.git");
+    assert_eq!(r.url, "https://github.com/git/git.git");
     assert_eq!(r.auth, ExtractedAuth::default());
 }
 #[test] fn extract_auth_username_only() {
-    let r = extract_auth_from_url("https://username@github.com/isomorphic-git/isomorphic-git.git");
-    assert_eq!(r.url, "https://github.com/isomorphic-git/isomorphic-git.git");
+    let r = extract_auth_from_url("https://username@github.com/git/git.git");
+    assert_eq!(r.url, "https://github.com/git/git.git");
     assert_eq!(r.auth.username.as_deref(), Some("username"));
     assert_eq!(r.auth.password, None);
 }
 #[test] fn extract_auth_username_and_empty_password() {
-    let r = extract_auth_from_url("https://username:@github.com/isomorphic-git/isomorphic-git.git");
-    assert_eq!(r.url, "https://github.com/isomorphic-git/isomorphic-git.git");
+    let r = extract_auth_from_url("https://username:@github.com/git/git.git");
+    assert_eq!(r.url, "https://github.com/git/git.git");
     assert_eq!(r.auth.username.as_deref(), Some("username"));
     assert_eq!(r.auth.password.as_deref(), Some(""));
 }
 #[test] fn extract_auth_empty_username_and_password() {
-    let r = extract_auth_from_url("https://:password@github.com/isomorphic-git/isomorphic-git.git");
-    assert_eq!(r.url, "https://github.com/isomorphic-git/isomorphic-git.git");
+    let r = extract_auth_from_url("https://:password@github.com/git/git.git");
+    assert_eq!(r.url, "https://github.com/git/git.git");
     assert_eq!(r.auth.username.as_deref(), Some(""));
     assert_eq!(r.auth.password.as_deref(), Some("password"));
 }
 #[test] fn extract_auth_username_and_password() {
-    let r = extract_auth_from_url("https://username:password@github.com/isomorphic-git/isomorphic-git.git");
-    assert_eq!(r.url, "https://github.com/isomorphic-git/isomorphic-git.git");
+    let r = extract_auth_from_url("https://username:password@github.com/git/git.git");
+    assert_eq!(r.url, "https://github.com/git/git.git");
     assert_eq!(r.auth.username.as_deref(), Some("username"));
     assert_eq!(r.auth.password.as_deref(), Some("password"));
 }

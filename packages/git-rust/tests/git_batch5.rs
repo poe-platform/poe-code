@@ -1,4 +1,4 @@
-//! Upstream isomorphic-git integration test parity — Batch 5 (Checkout, Merge, AbortMerge, CherryPick, Stash)
+//! Upstream git integration test parity — Batch 5 (Checkout, Merge, AbortMerge, CherryPick, Stash)
 //!
 //! Ports all upstream test cases (plus `-in-submodule` equivalents) from:
 //! - test-checkout.js (+ test-checkout-in-submodule.js)

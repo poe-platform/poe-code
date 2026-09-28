@@ -3859,7 +3859,11 @@ export class Runtime {
     const attributes = state.variableAttributes?.get(name) ?? "";
     if (attributes.includes("i") && origin !== "arithmetic") {
       const evaluate = (input: ShellValue): Promise<bigint> => this.shellArithmetic(prepareArithmetic(shellValueText(input) || "0", this.budget.parsing), state, io);
-      value = String(await evaluate(value) + (previous === undefined ? 0n : await evaluate(previous)));
+      try { value = String(await evaluate(value) + (previous === undefined ? 0n : await evaluate(previous))); }
+      catch (error) {
+        if (error instanceof PublicDiagnostic) throw new ExpansionFailure(error.message);
+        throw error;
+      }
     }
     return this.caseAttributeValue(state, name, value);
   }

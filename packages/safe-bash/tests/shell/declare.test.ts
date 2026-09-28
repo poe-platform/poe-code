@@ -4,6 +4,63 @@ import { setup } from "./helpers.js";
 import { basicCommands } from "../../src/commands/basic.js";
 import { createStandardCommands } from "../../src/commands/index.js";
 
+for (const [source, stdout, exitCode] of [
+  [
+    "declare -i value=08; printf \"unreachable\\n\"",
+    "",
+    1
+  ],
+  [
+    "declare -i value=1/0; printf \"unreachable\\n\"",
+    "",
+    1
+  ],
+  [
+    "f(){ printf \"before\\n\"; local -i value=08; printf \"unreachable\\n\"; }; f; printf \"after\\n\"",
+    "before\n",
+    1
+  ],
+  [
+    "declare -i value=1; value=08; printf \"unreachable\\n\"",
+    "",
+    1
+  ],
+  [
+    "declare -ai value=(1); value[0]=08; printf \"unreachable\\n\"",
+    "",
+    1
+  ],
+  [
+    "(declare -i value=08; printf \"unreachable\\n\"); printf \"after:%s\\n\" \"$?\"",
+    "after:1\n",
+    0
+  ],
+  [
+    "unset OPTIND; declare -i OPTIND=08; printf \"unreachable\\n\"",
+    "",
+    1
+  ]
+] as const) test(`integer assignment failures stop the current shell: ${source}`, async t => {
+  const { shell, commands } = setup();
+  for (const command of basicCommands()) commands.register(command);
+  t.after(() => shell.dispose());
+  const result = await shell.exec(source);
+  assert.equal(result.exitCode, exitCode);
+  assert.equal(result.stdout, stdout);
+  assert.match(result.stderr, /arithmetic syntax error|division by 0/u);
+});
+
+test("explicit integer OPTIND after unset retains octal arithmetic", async t => {
+  const { shell, commands } = setup();
+  for (const command of basicCommands()) commands.register(command);
+  t.after(() => shell.dispose());
+  const result = await shell.exec('unset OPTIND; declare -i OPTIND=010; printf "%s\\n" "$OPTIND"; OPTIND=011; printf "%s\\n" "$OPTIND"');
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "8\n9\n");
+  assert.equal(result.stderr, "");
+});
+
+
 for (const [source, expected] of [
   ['x=hello; declare x+=world; printf %s "$x"', 'helloworld'],
   ['declare -i n=10; declare n+=2+3; printf %s "$n"', '15'],

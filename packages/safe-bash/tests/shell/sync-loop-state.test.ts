@@ -974,3 +974,38 @@ test("Wave 111: trySyncLoop supports awk print arithmetic, jq join/split/trim/to
     await shell.dispose();
   }
 });
+
+test("Wave 112: trySyncLoop supports sed q/=/!neg/nth s///2, grep -E regexes/-Eio/long flags, awk index(), and wc long flags", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  const shell = new Shell({
+    fs: new MemoryFileSystem(),
+    commands: new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands()]),
+  });
+  try {
+    const script = [
+      "txt=$'hdr\\na:b:c\\nd:e:f\\ntrailer'",
+      "cfg=$'# comment\\nhost=db\\nPORT=5432\\ntimeout=30'",
+      "rows=$'alpha_beta 10\\ngamma 20'",
+      "out=\"\"",
+      "for ((i=1; i<=20; i++)); do",
+      "  s1=$(sed '3q' <<< \"$txt\")",
+      "  s2=$(sed '1!d' <<< \"$txt\")",
+      "  s3=$(sed 's/:/=/2' <<< \"a:b:c\")",
+      "  g1=$(grep -E '^[a-zA-Z]+=[0-9]+$' <<< \"$cfg\")",
+      "  g2=$(grep -Eio 'port=[0-9]+' <<< \"$cfg\")",
+      "  g3=$(grep --count --ignore-case 'port' <<< \"$cfg\")",
+      "  a1=$(awk '{print index($1, \"_\"), $2}' <<< \"$rows\")",
+      "  w1=$(wc --lines <<< \"$rows\")",
+      "  w2=$(wc --words <<< \"$rows\")",
+      "  out=\"${s1//$'\\n'/,}|$s2|$s3|${g1//$'\\n'/,}|$g2|$g3|${a1//$'\\n'/,}|$w1|$w2\"",
+      "done",
+      "printf \"%s\\n\" \"$out\"",
+    ].join("\n");
+    const res = await shell.exec(script);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout, "hdr,a:b:c,d:e:f|hdr|a:b=c|PORT=5432,timeout=30|PORT=5432|1|6 10,0 20|2|4\n");
+  } finally {
+    await shell.dispose();
+  }
+});

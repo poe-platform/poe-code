@@ -1,3 +1,4 @@
+import { isFsError } from "safe-bash-contracts/errors";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
@@ -60,8 +61,9 @@ Packaged by Safe-Bash (Sandbox VFS-ish/GNU runtime)
 async function readHostnameFile(context: CommandContext, filePath: string, maxBytes: number): Promise<string> {
   const resolved = filePath.startsWith("/") ? filePath : (context.cwd.endsWith("/") ? context.cwd + filePath : context.cwd + "/" + filePath);
   const bytes = await context.fs.readFile(resolved, { signal: context.signal });
+  context.signal.throwIfAborted();
   if (bytes.byteLength > maxBytes) {
-    throw new Error("hostname file exceeds size limit");
+    throw new RangeError("hostname file exceeds size limit");
   }
   const text = new TextDecoder().decode(bytes);
   for (const line of text.split(/\r?\n/)) {
@@ -73,7 +75,7 @@ async function readHostnameFile(context: CommandContext, filePath: string, maxBy
 
 export function createHostnameCommand(options: HostnameCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
-  let sessionHostname = options.hostname;
+  const sessionHostnames = new WeakMap<CommandContext["fs"], string>();
   return {
     name: "hostname",
     description: "Show or set the Sandbox VFS-ish/GNU hostname",
@@ -218,7 +220,9 @@ export function createHostnameCommand(options: HostnameCommandsOptions = {}): Co
         if (fileSource !== undefined) {
           try {
             newHost = await readHostnameFile(context, fileSource, limits.maxFileBytes);
-          } catch {
+          } catch (error) {
+            context.signal.throwIfAborted();
+            if (!isFsError(error, "ENOENT") && !(error instanceof RangeError)) throw error;
             await writeText(context.stderr, `hostname: cannot open file '${fileSource}'\n`);
             return { exitCode: 1 };
           }
@@ -228,24 +232,30 @@ export function createHostnameCommand(options: HostnameCommandsOptions = {}): Co
           await writeText(context.stderr, "hostname: you must be root to change the host name\n");
           return { exitCode: 1 };
         }
-        sessionHostname = newHost;
         try {
           await context.fs.mkdir("/etc", { recursive: true, signal: context.signal });
           await writeFileOutput(context, new TextEncoder().encode(`${newHost}\n`), data => context.fs.writeFile("/etc/hostname", data, { signal: context.signal }));
-        } catch {
-          // ignore read-only VFS
+        } catch (error) {
+          context.signal.throwIfAborted();
+          if (!isFsError(error, "EROFS") && !isFsError(error, "EACCES") && !isFsError(error, "EPERM")) throw error;
         }
+        sessionHostnames.set(context.fs, newHost);
         return { exitCode: 0 };
       }
 
       let vfsHost = "";
       try {
         vfsHost = await readHostnameFile(context, "/etc/hostname", limits.maxFileBytes);
-      } catch {
-        // ignore missing /etc/hostname
+      } catch (error) {
+        context.signal.throwIfAborted();
+        if (error instanceof RangeError) {
+          await writeText(context.stderr, "hostname: hostname file exceeds size limit\n");
+          return { exitCode: 1 };
+        }
+        if (!isFsError(error, "ENOENT")) throw error;
       }
 
-      const rawHost = context.env.HOSTNAME || vfsHost || sessionHostname || "sandbox";
+      const rawHost = context.env.HOSTNAME || vfsHost || sessionHostnames.get(context.fs) || options.hostname || "sandbox";
       const dotIdx = rawHost.indexOf(".");
       const shortName = dotIdx >= 0 ? rawHost.slice(0, dotIdx) : rawHost;
       const domainName = dotIdx >= 0 ? rawHost.slice(dotIdx + 1) : (options.domain ?? "vfs.local");

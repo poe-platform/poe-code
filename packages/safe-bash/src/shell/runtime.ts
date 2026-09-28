@@ -3423,6 +3423,9 @@ export class Runtime {
       Object.getOwnPropertyNames(this.backingFs).every(name => {
         const method = Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, name)?.value;
         return typeof method !== "function" || Object.getOwnPropertyDescriptor(this.backingFs, name)?.value === method;
+      }) && Object.getOwnPropertyNames(MemoryFileSystem.prototype).every(name => {
+        const method = Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, name)?.value;
+        return typeof method !== "function" || Reflect.get(this.backingFs, name) === method;
       });
     if (this._isMemoryBackingFs) (this.backingFs as { _activeRuntimeBudget?: Budget })._activeRuntimeBudget = budget;
     registerInternalYieldCheckpoint(signal, budget.yieldCheckpoint);

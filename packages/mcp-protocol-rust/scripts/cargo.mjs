@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
-import { accessSync, constants, copyFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { accessSync, constants, copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
@@ -61,19 +62,86 @@ function run(command, args) {
   }
 }
 
+function computeRustInputsState() {
+  const packagesRoot = path.resolve(packageDirectory, "..");
+  const hash = createHash("sha256").update(
+    JSON.stringify({ platform: process.platform, arch: process.arch, abi: process.versions.modules, pkg: path.basename(packageDirectory) })
+  );
+  let maxMtimeMs = 0;
+  const extensions = [".rs", ".toml", ".lock", ".json", ".md", ".ttf", ".base64", ".txt"];
+  const walk = (dir) => {
+    if (!existsSync(dir)) return;
+    for (const entry of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      if (entry.name === "target" || entry.name === "dist" || entry.name === "node_modules" || entry.name === "tests") continue;
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(full);
+      } else if (extensions.some((ext) => entry.name.endsWith(ext))) {
+        const st = statSync(full);
+        if (st.mtimeMs > maxMtimeMs) maxMtimeMs = st.mtimeMs;
+        hash.update(path.relative(packagesRoot, full) + "\0");
+        hash.update(readFileSync(full));
+      }
+    }
+  };
+  if (existsSync(packagesRoot)) {
+    for (const dirName of readdirSync(packagesRoot).sort()) {
+      if (dirName.endsWith("-rust")) walk(path.join(packagesRoot, dirName));
+    }
+    walk(path.join(packagesRoot, "agent-defs", "src"));
+    walk(path.join(packagesRoot, "poe-code-config", "src"));
+  }
+  return { digest: hash.digest("hex"), maxMtimeMs };
+}
+
+function resolveNapiCacheDirectories() {
+  const primary = process.env.POE_CHECK_CACHE_DIR
+    ? path.join(path.dirname(path.resolve(process.env.POE_CHECK_CACHE_DIR)), "napi-artifacts-v1")
+    : path.join(process.env.XDG_CACHE_HOME ?? path.join(os.homedir(), ".cache"), "poe-code", "napi-artifacts-v1");
+  const fallback = path.join(os.tmpdir(), "poe-code", "napi-artifacts-v1");
+  return primary === fallback ? [primary] : [fallback, primary];
+}
+
 if (operation !== "build" || !existsSync(bindingManifest)) {
   for (const args of commands[operation]) run("cargo", args);
 }
 
 if ((operation === "build" || operation === "test") && existsSync(bindingManifest)) {
   const output = path.join(packageDirectory, "dist");
-  const hasPrebuiltBinding =
-    operation === "test" &&
-    existsSync(output) &&
-    readdirSync(output).some((name) => name.endsWith(".node")) &&
-    existsSync(path.join(output, "index.js")) &&
-    existsSync(path.join(output, "index.d.ts"));
-  if (!hasPrebuiltBinding) {
+  const dtsName = existsSync(path.join(packageDirectory, "src/index.d.ts")) ? "native.d.ts" : "index.d.ts";
+  const nodeFile = existsSync(output) ? readdirSync(output).find((name) => name.endsWith(".node")) : undefined;
+  const { digest: rustDigest, maxMtimeMs } = computeRustInputsState();
+  const pkgName = path.basename(packageDirectory);
+  const cacheDirs = resolveNapiCacheDirectories();
+  const cachedEntryDir = cacheDirs
+    .map((base) => path.join(base, `${pkgName}-${rustDigest}`))
+    .find((dir) => existsSync(dir) && existsSync(path.join(dir, dtsName)) && readdirSync(dir).some((name) => name.endsWith(".node")));
+
+  const hasFreshLocalBinding =
+    nodeFile !== undefined &&
+    existsSync(path.join(output, dtsName)) &&
+    (operation === "test" || statSync(path.join(output, nodeFile)).mtimeMs >= maxMtimeMs);
+
+  const saveToNapiCache = (builtNodeName) => {
+    for (const base of [...cacheDirs].reverse()) {
+      try {
+        const dest = path.join(base, `${pkgName}-${rustDigest}`);
+        mkdirSync(dest, { recursive: true });
+        copyFileSync(path.join(output, builtNodeName), path.join(dest, builtNodeName));
+        copyFileSync(path.join(output, dtsName), path.join(dest, dtsName));
+        break;
+      } catch {}
+    }
+  };
+
+  if (cachedEntryDir) {
+    mkdirSync(output, { recursive: true });
+    const cachedNode = readdirSync(cachedEntryDir).find((name) => name.endsWith(".node"));
+    copyFileSync(path.join(cachedEntryDir, cachedNode), path.join(output, cachedNode));
+    copyFileSync(path.join(cachedEntryDir, dtsName), path.join(output, dtsName));
+  } else if (hasFreshLocalBinding) {
+    saveToNapiCache(nodeFile);
+  } else {
     const require = createRequire(import.meta.url);
     const cli = path.join(path.dirname(require.resolve("@napi-rs/cli/package.json")), "dist/cli.js");
     mkdirSync(output, { recursive: true });
@@ -93,18 +161,22 @@ if ((operation === "build" || operation === "test") && existsSync(bindingManifes
       output,
       "--no-js",
       "--dts",
-      existsSync(path.join(packageDirectory, "src/index.d.ts")) ? "native.d.ts" : "index.d.ts",
+      dtsName,
       "--release",
       "--",
       "--locked"
     ]);
-    for (const name of readdirSync(path.join(packageDirectory, "src"))) {
-      if (name.endsWith(".js"))
-        copyFileSync(path.join(packageDirectory, "src", name), path.join(output, name));
+    const builtNode = readdirSync(output).find((name) => name.endsWith(".node"));
+    if (builtNode && existsSync(path.join(output, dtsName))) {
+      saveToNapiCache(builtNode);
     }
-    if (existsSync(path.join(packageDirectory, "src/index.d.ts"))) {
-      copyFileSync(path.join(packageDirectory, "src/index.d.ts"), path.join(output, "index.d.ts"));
-    }
+  }
+  for (const name of readdirSync(path.join(packageDirectory, "src"))) {
+    if (name.endsWith(".js"))
+      copyFileSync(path.join(packageDirectory, "src", name), path.join(output, name));
+  }
+  if (existsSync(path.join(packageDirectory, "src/index.d.ts"))) {
+    copyFileSync(path.join(packageDirectory, "src/index.d.ts"), path.join(output, "index.d.ts"));
   }
   if (operation === "test") {
     const tests = readdirSync(path.join(packageDirectory, "tests"))

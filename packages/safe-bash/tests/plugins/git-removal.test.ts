@@ -2,12 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import * as publicApi from "../../src/index.js";
 
-test("the public source API has no Git command factories or plugin", () => {
-  const removed = ["createGitCommand", "createGitCommands", "gitCommands"];
-  assert.deepEqual(
-    Object.keys(publicApi).filter((name) => removed.includes(name)),
-    []
-  );
+test("the public source API exposes opt-in Git command factories and plugin", () => {
+  for (const name of ["createGitCommand", "createGitCommands", "gitCommands"] as const) {
+    assert.equal(typeof publicApi[name], "function", name);
+  }
 });
 
 test("aggregate options have no Git feature configuration", () => {

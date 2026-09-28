@@ -5237,6 +5237,7 @@ export class Runtime {
         for (let i = 0; i < assignment.entries.length; i++) {
           const entry = assignment.entries[i]!;
           if (entry.append) return false;
+          if (entry.value.parts.some(p => p.kind === "variable" && p.prefixNames === "@") && !this.canSyncArrayMembersWord(entry.value, rawState)) return false;
           if (entry.index === undefined && rawState.braceexpand !== false && this.budget.limits.maxExpansionFields === Infinity && this.budget.limits.maxExpansionBytes === Infinity && entry.value.parts.length === 1 && !entry.value.parts[0]!.quoted && entry.value.parts[0]!.kind === "text" && entry.value.parts[0]!.value.includes("{")) {
             const braceItems = tryFastExpandBraceRange(entry.value, this.budget, undefined);
             if (braceItems && braceItems.length <= 1500) {
@@ -11598,6 +11599,9 @@ export class Runtime {
         // as loop state changes. Decide before the loop produces any effects.
         if (this._syncLoopFnCheckDepth > 0 && (part.substring || getArraySelector(part)?.kind === "element")) return false;
         if (part.prefixNames !== undefined) {
+          // Adjacent text requires multiple fields; scalar loop steps cannot
+          // represent their first/last-field attachment.
+          if (part.prefixNames === "@" && word.parts.some(p => p.kind === "text" && p.value.length > 0)) return false;
           if (
             part.indirect ||
             part.specialParameter ||
@@ -11818,6 +11822,9 @@ export class Runtime {
             }
           }
         }
+        // These evaluators can decline based on runtime input. Loop execution
+        // has no continuation for a declined substitution after earlier effects.
+        if (w0Plain === "tac" || w0Plain === "nl" || w0Plain === "jq" || w0Plain === "tr" || w0Plain === "base64" && cmd.words.length > 1) return false;
         if (w0Plain === "pwd") {
           if (p.commands.length === 1 && (cmd.words.length === 1 || (cmd.words.length === 2 && (cmd.words[1]?.plain === "-L" || cmd.words[1]?.plain === "--logical"))) && !rawState.functions.has("pwd") && !rawState.extensions?.builtins.has("pwd")) continue;
           return false;
@@ -11997,8 +12004,10 @@ export class Runtime {
             } else if (sName === "jq") {
               return false;
             } else if (sName === "base64") {
-              if (sPlainArgs.length > 1 || (sPlainArgs.length === 1 && sPlainArgs[0] !== "-d" && sPlainArgs[0] !== "--decode")) return false;
-            } else if (sName === "rev" || sName === "tac" || sName === "nl") {
+              if (sPlainArgs.length !== 0) return false;
+            } else if (sName === "tac" || sName === "nl") {
+              return false;
+            } else if (sName === "rev") {
               if (sPlainArgs.length !== 0) return false;
             }
           }
@@ -20936,7 +20945,7 @@ export class Runtime {
     }
     if (part.kind === "variable" && part.prefixNames) {
       const ifs = state.variables.IFS ?? " ";
-      const separator = io.nameExpansionContext === "document" || io.nameExpansionContext === "conditional" && part.prefixNames === "@"
+      const separator = io.nameExpansionContext === "document" || part.prefixNames === "@" && (io.nameExpansionContext === "conditional" || ifs.length === 0)
         ? " " : ifs.length ? String.fromCodePoint(ifs.codePointAt(0)!) : "";
       const fragments: string[] = [];
       let bytes = 0;
@@ -21748,7 +21757,7 @@ export class Runtime {
           const pNames = this.collectSyncPrefixNames(part.name, rawState);
           if (pNames === undefined) return undefined;
           const ifs = rawState.variables.IFS ?? " ";
-          const sep = io.nameExpansionContext === "document" || (io.nameExpansionContext === "conditional" && part.prefixNames === "@")
+          const sep = io.nameExpansionContext === "document" || (part.prefixNames === "@" && (io.nameExpansionContext === "conditional" || ifs.length === 0))
             ? " "
             : ifs.length ? String.fromCodePoint(ifs.codePointAt(0)!) : "";
           const joined = pNames.join(sep);
@@ -22924,7 +22933,7 @@ export class Runtime {
     const num = flag !== undefined && flag.includes("n");
     const uniq = flag !== undefined && flag.includes("u");
     const parseNum = (s: string): number => {
-      const m = /^[ \t]*([+-]?(?:\d+(?:\.\d*)?|\.\d+))/.exec(s);
+      const m = /^[ \t]*(-?(?:\d+(?:\.\d*)?|\.\d+))/.exec(s);
       return m ? Number(m[1]!) : 0;
     };
     const sorted = [...rawLines].sort((a, b) => {

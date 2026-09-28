@@ -473,3 +473,16 @@ test("sqlite3 prepares recursive CTE terms inside empty-table subqueries", async
   assert.equal(result.code, 1);
   assert.match(result.stderr, /no such column: no_such_col/);
 });
+
+test("sqlite3 CLI preserves mutation scopes and exact integers", async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [":memory:",
+    "CREATE TABLE t(a INT, b INT); INSERT INTO t VALUES (1, 9007199254740993), (2, 1); " +
+    "DELETE FROM t AS u WHERE u.a = 999; " +
+    "WITH c(v) AS (SELECT 1) UPDATE t AS u SET b = u.b + (SELECT v FROM c) WHERE u.a = 1 RETURNING t.b, _rowid_, oid; " +
+    "SELECT SUM(b), CAST('9007199254740993' AS INTEGER) FROM t; " +
+    "WITH c(v) AS (SELECT 2) DELETE FROM t WHERE a = (SELECT v FROM c) RETURNING t.a;"
+  ]);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "9007199254740994|1|1\n9007199254740995|9007199254740993\n2\n");
+});

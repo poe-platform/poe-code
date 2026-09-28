@@ -84,3 +84,105 @@ test("empty left input preserves uncorrelated RIGHT JOIN TVF rows", () => {
   db.exec("CREATE TABLE t(id INT)");
   assert.deepEqual(db.exec("SELECT t.id, j.value FROM t RIGHT JOIN json_each('[2]') AS j ON 1")[0]!.rows, [[null, 2]]);
 });
+
+for (const alias of ["AS u", "u"]) {
+  test(`mutation aliases preserve predicates and bindings: ${alias}`, () => {
+    const db = new SqliteDatabase();
+    db.exec("CREATE TABLE t(a INT, b INT); INSERT INTO t VALUES (1, 10), (2, 20), (3, 30)");
+    db.exec(`DELETE FROM t ${alias} WHERE u.a = 999`);
+    assert.deepEqual(db.exec("SELECT a FROM t")[0]!.rows, [[1], [2], [3]]);
+    db.exec(`UPDATE t ${alias} SET b = u.b + 1 WHERE u.a = 2`);
+    assert.deepEqual(db.exec("SELECT b FROM t")[0]!.rows, [[10], [21], [30]]);
+    db.exec(`DELETE FROM t ${alias} WHERE u.a = 2`);
+    assert.deepEqual(db.exec("SELECT a FROM t")[0]!.rows, [[1], [3]]);
+  });
+}
+
+for (const sql of [
+  "WITH c(v) AS (SELECT 42) UPDATE t SET a = (SELECT v FROM c) WHERE a = (SELECT v - 41 FROM c) RETURNING a",
+  "WITH c(v) AS (SELECT 1) DELETE FROM t WHERE a = (SELECT v FROM c) RETURNING a + (SELECT v + 40 FROM c)",
+  "WITH c(v) AS (SELECT 41) INSERT INTO t VALUES (1) RETURNING a + (SELECT v FROM c)",
+]) {
+  test(`mutation evaluates CTE scope: ${sql}`, () => {
+    const db = new SqliteDatabase();
+    db.exec("CREATE TABLE t(a INT); INSERT INTO t VALUES (1)");
+    assert.deepEqual(db.exec(sql)[0]!.rows, [[42]]);
+  });
+}
+
+for (const sql of [
+  "INSERT INTO t VALUES (7) RETURNING t.a, rowid, _rowid_, oid, t.rowid, t._rowid_, t.oid",
+  "UPDATE t SET a = 7 RETURNING t.a, rowid, _rowid_, oid, t.rowid, t._rowid_, t.oid",
+  "DELETE FROM t RETURNING t.a, rowid, _rowid_, oid, t.rowid, t._rowid_, t.oid",
+]) {
+  test(`RETURNING binds qualified columns and rowid aliases: ${sql}`, () => {
+    const db = new SqliteDatabase();
+    db.exec("CREATE TABLE t(a INT)");
+    if (!sql.startsWith("INSERT")) db.exec("INSERT INTO t VALUES (7)");
+    assert.deepEqual(db.exec(sql)[0]!.rows, [[7, 1, 1, 1, 1, 1, 1]]);
+  });
+}
+
+for (const [expr, expected] of [
+  ["9007199254740993 + 1", 9007199254740994n],
+  ["9007199254740993 - 1", 9007199254740992n],
+  ["9007199254740993 * 3", 27021597764222979n],
+  ["9007199254740993 / 3", 3002399751580331],
+  ["9007199254740993 % 2", 1],
+  ["-9007199254740993", -9007199254740993n],
+  ["CAST('9007199254740993' AS INTEGER)", 9007199254740993n],
+  ["CAST(9007199254740993 AS INTEGER)", 9007199254740993n],
+  ["CAST('9223372036854775808' AS INTEGER)", 9223372036854775807n],
+  ["CAST('-9223372036854775809' AS INTEGER)", -9223372036854775808n],
+  ["CAST('123e5' AS INTEGER)", 123],
+] as const) {
+  test(`exact integer expression: ${expr}`, () => {
+    assert.deepEqual(new SqliteDatabase().exec(`SELECT ${expr}`)[0]!.rows, [[expected]]);
+  });
+}
+
+test("SUM retains int64 precision and reports integer overflow", () => {
+  const db = new SqliteDatabase();
+  db.exec("CREATE TABLE t(x INT); INSERT INTO t VALUES ('9007199254740993'), (1)");
+  assert.deepEqual(db.exec("SELECT SUM(x) FROM t")[0]!.rows, [[9007199254740994n]]);
+  db.exec("DELETE FROM t; INSERT INTO t VALUES (9223372036854775807), (1)");
+  assert.throws(() => db.exec("SELECT SUM(x) FROM t"), /integer overflow/);
+});
+
+test("integer arithmetic promotes overflow to REAL and handles division by zero", () => {
+  const db = new SqliteDatabase();
+  assert.deepEqual(db.exec("SELECT typeof(9223372036854775807 + 1), typeof(9223372036854775807 * 2), typeof(-9223372036854775808 / -1), 9007199254740993 / 0, 9007199254740993 % 0")[0]!.rows,
+    [["real", "real", "real", null, null]]);
+});
+
+test("RETURNING respects declared rowid alias columns including NULL", () => {
+  const db = new SqliteDatabase();
+  db.exec("CREATE TABLE t(rowid INT, _rowid_ INT, oid INT)");
+  assert.deepEqual(db.exec("INSERT INTO t VALUES (NULL, 7, 8) RETURNING rowid, _rowid_, oid")[0]!.rows, [[null, 7, 8]]);
+});
+
+test("SUM DISTINCT accepts exact int64 values", () => {
+  const db = new SqliteDatabase();
+  db.exec("CREATE TABLE t(x INT); INSERT INTO t VALUES (9007199254740993), (9007199254740993), (1)");
+  assert.deepEqual(db.exec("SELECT SUM(DISTINCT x) FROM t")[0]!.rows, [[9007199254740994n]]);
+});
+
+test("malformed DELETE alias is rejected before removing rows", () => {
+  const db = new SqliteDatabase();
+  db.exec("CREATE TABLE t(a INT); INSERT INTO t VALUES (1)");
+  assert.throws(() => db.exec("DELETE FROM t AS"), /syntax error/);
+  assert.deepEqual(db.exec("SELECT a FROM t")[0]!.rows, [[1]]);
+});
+
+for (const [expr, expected] of [
+  ["'9007199254740993' + 1", 9007199254740994n],
+  ["-9007199254740993 / 2", -4503599627370496],
+  ["-9007199254740993 % 2", -1],
+  ["9007199254740993 + NULL", null],
+  ["typeof(9007199254740993 + 1.0)", "real"],
+  ["typeof('9007199254740993.0' + 1)", "real"],
+] as const) {
+  test(`integer coercion and mixed arithmetic: ${expr}`, () => {
+    assert.deepEqual(new SqliteDatabase().exec(`SELECT ${expr}`)[0]!.rows, [[expected]]);
+  });
+}

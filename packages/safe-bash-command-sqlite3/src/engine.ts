@@ -987,6 +987,52 @@ function toSqlNumber(v: SqlValue): number {
   return 0;
 }
 
+const INT64_MIN = -9223372036854775808n;
+const INT64_MAX = 9223372036854775807n;
+
+function integerResult(value: bigint): SqlValue {
+  if (value < INT64_MIN || value > INT64_MAX) return new Number(Number(value));
+  return Number.isSafeInteger(Number(value)) ? Number(value) : value;
+}
+
+function integerPrefix(value: SqlValue): bigint {
+  if (typeof value === "bigint") return value;
+  if (typeof value === "number" || value instanceof Number) {
+    const number = Math.trunc(Number(value));
+    if (number >= Number(INT64_MAX)) return INT64_MAX;
+    if (number <= Number(INT64_MIN)) return INT64_MIN;
+    return Number.isFinite(number) ? BigInt(number) : 0n;
+  }
+  const text = toSqlString(value).trimStart();
+  let end = text[0] === "+" || text[0] === "-" ? 1 : 0;
+  const start = end;
+  while (end < text.length && "0123456789".includes(text[end]!)) end += 1;
+  return end === start ? 0n : BigInt(text.slice(0, end));
+}
+
+function arithmeticNumber(value: SqlValue): SqlValue {
+  if (typeof value === "bigint" || typeof value === "number" || value instanceof Number) return value;
+  const text = toSqlString(value).trimStart();
+  let end = text[0] === "+" || text[0] === "-" ? 1 : 0;
+  let digits = 0;
+  while (end < text.length && "0123456789".includes(text[end]!)) { end += 1; digits += 1; }
+  let real = false;
+  if (text[end] === ".") {
+    real = true;
+    end += 1;
+    while (end < text.length && "0123456789".includes(text[end]!)) { end += 1; digits += 1; }
+  }
+  if (!digits) return 0;
+  if (text[end] === "e" || text[end] === "E") {
+    let exponentEnd = end + 1;
+    if (text[exponentEnd] === "+" || text[exponentEnd] === "-") exponentEnd += 1;
+    const exponentStart = exponentEnd;
+    while (exponentEnd < text.length && "0123456789".includes(text[exponentEnd]!)) exponentEnd += 1;
+    if (exponentEnd > exponentStart) { end = exponentEnd; real = true; }
+  }
+  return real ? new Number(Number(text.slice(0, end))) : integerResult(BigInt(text.slice(0, end)));
+}
+
 // SQLite derives affinity from the declared type in this precedence order.
 function applyColumnAffinity(value: SqlValue, declaredType: string): SqlValue {
   if (value === null || value instanceof Uint8Array) return value;
@@ -3122,11 +3168,13 @@ export class SqliteDatabase {
     return { assignments, whereExpr };
   }
 
-  private tableBindings(tbl: TableDef): Record<string, SqlValue> {
+  private tableBindings(tbl: TableDef, row?: TableRow, alias?: string): Record<string, SqlValue> {
     const bindings: Record<string, SqlValue> = {};
     for (const column of [...tbl.columns.map((col) => col.name), "rowid", "_rowid_", "oid"]) {
-      bindings[column] = null;
-      bindings[`${tbl.name}.${column}`] = null;
+      const value = row ? (Object.hasOwn(row.data, column) ? row.data[column]! : row.rowid) : null;
+      bindings[column] = value;
+      bindings[`${tbl.name}.${column}`] = value;
+      if (alias) bindings[`${alias}.${column}`] = value;
     }
     return bindings;
   }
@@ -3149,12 +3197,11 @@ export class SqliteDatabase {
     if (!tbl) {
       throw new Error(`no such table: ${tableName}`);
     }
-    if (tokens[idx]?.value.toUpperCase() !== "SET") {
-      idx += 1; // Optional table alias
-    }
-    if (tokens[idx]?.value.toUpperCase() === "SET") {
-      idx += 1;
-    }
+    let alias: string | undefined;
+    if (tokens[idx]?.value.toUpperCase() === "AS") idx += 1;
+    if (tokens[idx]?.value.toUpperCase() !== "SET") alias = tokens[idx++]?.value;
+    if (tokens[idx]?.value.toUpperCase() !== "SET") throw new Error("near UPDATE: syntax error");
+    idx += 1;
 
     let returningIdx = -1;
     let pDepth = 0;
@@ -3172,7 +3219,7 @@ export class SqliteDatabase {
     const sliceEnd = returningIdx !== -1 ? returningIdx : tokens.length;
     const { assignments, whereExpr } = this.parseSetAssignments(tokens.slice(idx, sliceEnd));
 
-    const bindings = this.tableBindings(tbl);
+    const bindings = this.tableBindings(tbl, undefined, alias);
     for (const assignment of assignments) {
       this.validateColumns({ kind: "column", name: assignment.col }, bindings, positionalParams, _cteScope);
       this.validateColumns(assignment.expr, bindings, positionalParams, _cteScope);
@@ -3184,12 +3231,9 @@ export class SqliteDatabase {
     const affectedRows: TableRow[] = [];
 
     for (const row of tbl.rows) {
-      const ctx: Record<string, SqlValue> = { ...row.data, rowid: row.rowid, _rowid_: row.rowid };
-      for (const [k, v] of Object.entries(row.data)) {
-        ctx[`${tbl.name}.${k}`] = v;
-      }
+      const ctx = this.tableBindings(tbl, row, alias);
       if (whereExpr) {
-        const cond = this.evalExpr(whereExpr, ctx, positionalParams);
+        const cond = this.evalExpr(whereExpr, ctx, positionalParams, _cteScope);
         if (!isTruthy(cond)) {
           continue;
         }
@@ -3199,7 +3243,7 @@ export class SqliteDatabase {
       for (const assign of assignments) {
         const realCol = tbl.columns.find((c) => c.name.toLowerCase() === assign.col.toLowerCase());
         const colKey = realCol ? realCol.name : assign.col;
-        newData[colKey] = applyColumnAffinity(this.evalExpr(assign.expr, ctx, positionalParams), realCol?.type ?? "");
+        newData[colKey] = applyColumnAffinity(this.evalExpr(assign.expr, ctx, positionalParams, _cteScope), realCol?.type ?? "");
       }
       for (const col of tbl.columns) {
         if (col.generatedExpr) {
@@ -3246,6 +3290,18 @@ export class SqliteDatabase {
       throw new Error(`no such table: ${tableName}`);
     }
 
+    let alias: string | undefined;
+    if (tokens[idx]?.value.toUpperCase() === "AS") {
+      idx += 1;
+      alias = tokens[idx++]?.value;
+      if (!alias) throw new Error("near AS: syntax error");
+    } else if (tokens[idx] && !["WHERE", "RETURNING"].includes(tokens[idx]!.value.toUpperCase())) {
+      alias = tokens[idx++]!.value;
+    }
+    if (tokens[idx] && !["WHERE", "RETURNING"].includes(tokens[idx]!.value.toUpperCase())) {
+      throw new Error(`near ${tokens[idx]!.value}: syntax error`);
+    }
+
     let returningIdx = -1;
     let pDepth = 0;
     for (let i = idx; i < tokens.length; i += 1) {
@@ -3265,19 +3321,16 @@ export class SqliteDatabase {
       whereExpr = new ExprParser(tokens.slice(idx + 1, sliceEnd)).parseExpression();
     }
 
-    this.validateColumns(whereExpr, this.tableBindings(tbl), positionalParams, _cteScope);
+    this.validateColumns(whereExpr, this.tableBindings(tbl, undefined, alias), positionalParams, _cteScope);
     if (returningIdx !== -1) this.evaluateReturning(tbl, [], tokens.slice(returningIdx + 1), positionalParams, _cteScope);
 
     const kept: TableRow[] = [];
     const deletedRows: TableRow[] = [];
 
     for (const row of tbl.rows) {
-      const ctx: Record<string, SqlValue> = { ...row.data, rowid: row.rowid, _rowid_: row.rowid };
-      for (const [k, v] of Object.entries(row.data)) {
-        ctx[`${tbl.name}.${k}`] = v;
-      }
+      const ctx = this.tableBindings(tbl, row, alias);
       if (whereExpr) {
-        const cond = this.evalExpr(whereExpr, ctx, positionalParams);
+        const cond = this.evalExpr(whereExpr, ctx, positionalParams, _cteScope);
         if (!isTruthy(cond)) {
           kept.push(row);
           continue;
@@ -3323,8 +3376,8 @@ export class SqliteDatabase {
     const bindings = this.tableBindings(tbl);
     for (const expr of exprs) this.validateColumns(expr, bindings, positionalParams, cteScope);
     const outRows: SqlValue[][] = rows.map((r) => {
-      const ctx = { ...r.data, rowid: r.rowid };
-      return exprs.map((e) => this.evalExpr(e, ctx, positionalParams));
+      const ctx = this.tableBindings(tbl, r);
+      return exprs.map((e) => this.evalExpr(e, ctx, positionalParams, cteScope));
     });
     return { columns: outCols, rows: outRows };
   }
@@ -5105,7 +5158,7 @@ export class SqliteDatabase {
       if (expr.distinct) {
         const seen = new Set<string>();
         vals = vals.filter((v) => {
-          const k = JSON.stringify(v);
+          const k = typeof v === "bigint" ? v.toString() : JSON.stringify(v);
           if (seen.has(k)) {
             return false;
           }
@@ -5121,7 +5174,7 @@ export class SqliteDatabase {
     if (expr.distinct) {
       const seen = new Set<string>();
       activeVals = nonNull.filter((v) => {
-        const k = JSON.stringify(v);
+        const k = typeof v === "bigint" ? v.toString() : JSON.stringify(v);
         if (seen.has(k)) {
           return false;
         }
@@ -5134,9 +5187,20 @@ export class SqliteDatabase {
       if (activeVals.length === 0) {
         return null;
       }
-      const sum = activeVals.reduce<number>((total, v) => total + toSqlNumber(v), 0);
-      return activeVals.some((value) => value instanceof Number || !Number.isInteger(toSqlNumber(value)))
-        ? new Number(sum) : sum;
+      let exact = 0n;
+      let realSum: number | undefined;
+      for (const value of activeVals) {
+        const numeric = arithmeticNumber(value);
+        if (realSum !== undefined) {
+          realSum += Number(numeric);
+        } else if (numeric instanceof Number || !Number.isInteger(Number(numeric))) {
+          realSum = Number(exact) + Number(numeric);
+        } else {
+          exact += integerPrefix(numeric);
+          if (exact < INT64_MIN || exact > INT64_MAX) throw new Error("integer overflow");
+        }
+      }
+      return realSum === undefined ? integerResult(exact) : new Number(realSum);
     }
     if (u === "TOTAL") {
       return new Number(activeVals.reduce<number>((sum, v) => sum + toSqlNumber(v), 0.0));
@@ -5476,7 +5540,7 @@ export class SqliteDatabase {
       return null;
     }
     if (op === "-") {
-      return v instanceof Number ? new Number(-v.valueOf()) : -toSqlNumber(v);
+      return typeof v === "bigint" ? integerResult(-v) : v instanceof Number ? new Number(-v.valueOf()) : -toSqlNumber(v);
     }
     if (op === "+") {
       return v;
@@ -5510,33 +5574,28 @@ export class SqliteDatabase {
     if (l === null || r === null) {
       return null;
     }
-    const real = l instanceof Number || r instanceof Number || !Number.isInteger(toSqlNumber(l)) || !Number.isInteger(toSqlNumber(r));
     switch (op) {
       case "||":
         return `${toSqlString(l)}${toSqlString(r)}`;
       case "+":
-        return real ? new Number(toSqlNumber(l) + toSqlNumber(r)) : toSqlNumber(l) + toSqlNumber(r);
       case "-":
-        return real ? new Number(toSqlNumber(l) - toSqlNumber(r)) : toSqlNumber(l) - toSqlNumber(r);
       case "*":
-        return real ? new Number(toSqlNumber(l) * toSqlNumber(r)) : toSqlNumber(l) * toSqlNumber(r);
-      case "/": {
-        const denom = toSqlNumber(r);
-        if (denom === 0) {
-          return null;
-        }
-        const nL = toSqlNumber(l);
-        if (Number.isInteger(nL) && Number.isInteger(denom) && typeof l === "number" && typeof r === "number") {
-          return Math.trunc(nL / denom);
-        }
-        return new Number(nL / denom);
-      }
+      case "/":
       case "%": {
-        const denom = Math.trunc(toSqlNumber(r));
-        if (denom === 0) {
-          return null;
+        const left = arithmeticNumber(l);
+        const right = arithmeticNumber(r);
+        const real = left instanceof Number || right instanceof Number || !Number.isInteger(Number(left)) || !Number.isInteger(Number(right));
+        if ((op === "/" || op === "%") && Number(right) === 0) return null;
+        if (!real || op === "%") {
+          const a = integerPrefix(left);
+          const b = integerPrefix(right);
+          if ((op === "/" || op === "%") && b === 0n) return null;
+          const result = op === "+" ? a + b : op === "-" ? a - b : op === "*" ? a * b : op === "/" ? a / b : a % b;
+          return real ? new Number(Number(result)) : integerResult(result);
         }
-        return real ? new Number(Math.trunc(toSqlNumber(l)) % denom) : Math.trunc(toSqlNumber(l)) % denom;
+        const a = Number(left);
+        const b = Number(right);
+        return new Number(op === "+" ? a + b : op === "-" ? a - b : op === "*" ? a * b : a / b);
       }
       case "<<":
         return Math.trunc(toSqlNumber(l)) << Math.trunc(toSqlNumber(r));
@@ -5581,7 +5640,8 @@ export class SqliteDatabase {
       return null;
     }
     if (targetType.includes("INT")) {
-      return Math.trunc(toSqlNumber(v));
+      const exact = integerPrefix(v);
+      return integerResult(exact < INT64_MIN ? INT64_MIN : exact > INT64_MAX ? INT64_MAX : exact);
     }
     if (targetType.includes("CHAR") || targetType.includes("CLOB") || targetType.includes("TEXT")) {
       return toSqlString(v);

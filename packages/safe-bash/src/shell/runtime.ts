@@ -8870,7 +8870,7 @@ export class Runtime {
       }
       return undefined;
     }
-    if (command.kind === "arithmetic-for" || command.kind === "for" || command.kind === "while" || command.kind === "until") {
+    if (command.kind === "arithmetic-for" || command.kind === "for") {
       if (command.redirects.length === 1) {
         const r0 = command.redirects[0]!;
         const loopMode = 0o666 & ~(rawState.umask ?? 0o022);
@@ -12072,6 +12072,7 @@ export class Runtime {
     return true;
   }
   private extractIntLoopStep( step: {
+      readonly listOperator?: SyncLoopStep["listOperator"];
       readonly cmd: Extract<Command, { kind: "simple" }>;
       readonly name: string | undefined;
       readonly value: Word | undefined;
@@ -12836,7 +12837,7 @@ export class Runtime {
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
         const statusStr = loopStatus === 0 ? "0" : String(loopStatus);
         if (!existing) {
-          monitor.lazyPipeStatus = loopStatus === 0 ? singleStatusZero : [statusStr];
+          monitor.lazyPipeStatus = loopStatus === 0 ? singleStatusZero : [loopStatus];
           monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
         } else {
           this.setSyncPipeStatusCell(existing!, statusStr);
@@ -12858,14 +12859,7 @@ export class Runtime {
       : tryFastExpandBraceRange(command.words[0]!, this.budget, undefined);
     if (!fastLoopWords && !activeValScope && command.words[0]!.parts.length === 1) {
       const p0 = command.words[0]!.parts[0]!;
-      if (p0.kind === "variable" && p0.quoted && !p0.indirect && !p0.prefixNames && !p0.length && !p0.substring && !p0.transform && p0.operator === undefined && getArraySelector(p0)?.kind === "all") {
-        const arrB = store?.get(p0.name);
-        if (arrB && !arrB.associative && arrB.values.size <= 1500 && !monitor.hasOverlay(p0.name)) {
-          const elems: string[] = [];
-          for (const [, cell] of arrB.values) elems.push(shellValueText(cell.text.shellValue));
-          fastLoopWords = elems;
-        }
-      } else if (p0.kind === "substitution" && !p0.quoted && rawState.variables.IFS === undefined && !rawState.noglob && this.isPureSyncValueWord(command.words[0]!, rawState)) {
+      if (p0.kind === "substitution" && !p0.quoted && rawState.variables.IFS === undefined && !rawState.noglob && this.isPureSyncValueWord(command.words[0]!, rawState)) {
         const subText = this.tryFastPureSubstitution(p0, rawState, rawState, io);
         if (typeof subText === "string" && subText.length <= 16384 && /^[0-9 \t\n-]*$/.test(subText)) {
           const splitWords = subText.trim().length === 0 ? [] : subText.trim().split(/[ \t\n]+/);
@@ -21010,7 +21004,7 @@ export class Runtime {
               const nextTotalBytes = this.budget.bytes + outBytes;
               if (nextTotalBytes > this.budget.maxOutputBytesSmi && outBytes > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
               this.budget.bytes = nextTotalBytes;
-              this.budget.tick(w0Plain === "cat" ? 2 : 3);
+              this.budget.tick();
               rawState.substitutionStatus = exitStatus;
               rawState.status = exitStatus;
               return fileRes;

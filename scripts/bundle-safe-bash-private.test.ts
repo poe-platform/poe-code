@@ -171,7 +171,7 @@ it.each([false, true])("preserves private conditional imports for consumers (por
 
 it("retains the host environment warning in portable runtimes with Node compatibility", async () => {
   const options = resolveBrowserShellBuild(import.meta.dirname + "/..");
-  const result = await build({ ...options, entryPoints: undefined, outdir: undefined, inject: [],
+  const result = await build({ ...options, entryPoints: undefined, inject: [],
     stdin: { contents: 'import { warnIfHostProcessEnv } from "./packages/safe-bash/src/shell/env-warning.ts"; export { warnIfHostProcessEnv };', resolveDir: import.meta.dirname + "/.." },
     splitting: false, format: "cjs", sourcemap: false
   });

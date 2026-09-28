@@ -20,7 +20,7 @@ const entries = glob
   .filter(({ name }) => name.startsWith("safe-bash-command-"));
 const commands = await Promise.all(entries.map(async entry => ({
   ...entry,
-  api: await import(resolve(root, entry.file, "../src/index.ts"))
+  api: await import(entry.name)
 })));
 
 const documentEngines: Record<string, { replace?: boolean; engine: { execute(): Promise<{ exitCode: number; stdout: Uint8Array; stderr: Uint8Array }> } }> = Object.fromEntries(

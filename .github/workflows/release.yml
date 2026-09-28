@@ -130,7 +130,7 @@ jobs:
       queue: max
       group: release-${{ github.ref }}
       cancel-in-progress: false
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && needs.validate.outputs.superseded != 'true'
   validate:
     uses: ./.github/workflows/release-validation.yml
     permissions:

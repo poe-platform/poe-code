@@ -5,6 +5,9 @@ on:
       archive-sha256:
         description: Digest of the same-run build archive
         value: ${{ jobs.build.outputs.archive-sha256 }}
+      superseded:
+        description: Whether this push was superseded by a newer commit on origin/main
+        value: ${{ jobs.build.outputs.superseded }}
     inputs:
       build_only:
         type: boolean
@@ -22,6 +25,7 @@ jobs:
       contents: read
     outputs:
       archive-sha256: ${{ steps.archive.outputs.sha256 }}
+      superseded: ${{ steps.queue-check.outputs.superseded }}
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -32,34 +36,54 @@ jobs:
           GIT_CONFIG_COUNT: "1"
           GIT_CONFIG_KEY_0: init.defaultBranch
           GIT_CONFIG_VALUE_0: main
+      - name: Check release queue position
+        id: queue-check
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "push" ] && [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            git fetch origin main --depth=1
+            remote_main=$(git rev-parse origin/main)
+            if [ "$remote_main" != "$GITHUB_SHA" ]; then
+              echo "::notice::Queued validation $GITHUB_SHA superseded by newer commit on origin/main ($remote_main); coalescing into newer queued release."
+              echo "Queued validation $GITHUB_SHA superseded by newer commit on origin/main ($remote_main); coalescing into newer queued release." >> "$GITHUB_STEP_SUMMARY"
+              echo "superseded=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+          echo "superseded=false" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v7.0.0
+        if: steps.queue-check.outputs.superseded != 'true'
         with:
           node-version: 22
           cache: npm
       - run: npm clean-install
+        if: steps.queue-check.outputs.superseded != 'true'
       - name: Restore workspace build cache
+        if: steps.queue-check.outputs.superseded != 'true'
         uses: actions/cache@v6.1.0
         with:
           path: .turbo/ci-cache
           key: ${{ runner.os }}-${{ runner.arch }}-build-v1-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: ${{ runner.os }}-${{ runner.arch }}-build-v1-${{ hashFiles('package-lock.json') }}-
       - name: Build workspace and CLI outputs
+        if: steps.queue-check.outputs.superseded != 'true'
         env:
           POE_CHECK_CACHE_DIR: .turbo/ci-cache/checks-v1
         run: npm run build
       - name: Archive fresh build outputs
+        if: steps.queue-check.outputs.superseded != 'true'
         id: archive
         run: |
           tar -cf "$RUNNER_TEMP/build.tar" dist packages/*/dist packages/safe-js/src/intl-data/dist
           echo "sha256=$(sha256sum "$RUNNER_TEMP/build.tar" | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v7.0.1
+        if: steps.queue-check.outputs.superseded != 'true'
         with:
           name: build-${{ github.sha }}
           path: ${{ runner.temp }}/build.tar
           compression-level: 6
           retention-days: 1
   checks:
-    if: ${{ !inputs.build_only }}
+    if: ${{ !inputs.build_only && needs.build.outputs.superseded != 'true' }}
     needs: build
     runs-on: ubuntu-24.04
     permissions:
@@ -94,7 +118,8 @@ jobs:
         run: npm run smoke -- --prebuilt
       - run: npm run lint:packages
   audit:
-    if: ${{ !inputs.build_only }}
+    if: ${{ !inputs.build_only && needs.build.outputs.superseded != 'true' }}
+    needs: build
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -118,7 +143,7 @@ jobs:
         run: npm run test:stress:lint
         timeout-minutes: 7
   unit:
-    if: ${{ !inputs.build_only }}
+    if: ${{ !inputs.build_only && needs.build.outputs.superseded != 'true' }}
     needs: build
     runs-on: ubuntu-24.04
     permissions:
@@ -176,7 +201,7 @@ jobs:
           TURBO_FORCE: ${{ inputs.cold_cache && 'true' || 'false' }}
         run: npm run test:ci:fresh
   unit-cached:
-    if: ${{ !inputs.build_only }}
+    if: ${{ !inputs.build_only && needs.build.outputs.superseded != 'true' }}
     needs: build
     runs-on: ubuntu-24.04
     permissions:
@@ -227,7 +252,7 @@ jobs:
           TURBO_FORCE: ${{ inputs.cold_cache && 'true' || 'false' }}
         run: npm exec -- turbo run test:ci:cached --filter=// --cache-dir=.turbo/ci-cache --cache=local:rw --output-logs=new-only --summarize
   bash:
-    if: ${{ !inputs.build_only }}
+    if: ${{ !inputs.build_only && needs.build.outputs.superseded != 'true' }}
     needs: build
     runs-on: ubuntu-24.04
     permissions:

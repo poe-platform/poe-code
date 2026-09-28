@@ -7992,6 +7992,25 @@ export class Runtime {
     this.signal.throwIfAborted();
     scope.assertOpen();
     if (io.descriptors && (io.descriptors.get(0)?.closed || io.descriptors.get(1)?.closed || io.descriptors.get(2)?.closed)) return undefined;
+    if (command.kind === "function") {
+      if (pipeline.negate || command.redirects.length > 0 || rawState.readonlyFunctions?.has(command.name) || (rawState.profile === "sh" && (specialBuiltinNames.has(command.name) || rawState.extensions?.builtins.get(command.name)?.special))) {
+        return undefined;
+      }
+      const body = { ...command.body, sourceName: io.scriptName ?? "shell" };
+      const offset = io.diagnosticOffset ?? 0;
+      const bodyLine = io.functionCommandLines?.get(command.body);
+      if (bodyLine !== undefined) body.line = bodyLine - offset;
+      functionDiagnostics.set(body, { offset, ...(bodyLine === undefined ? {} : { lines: io.functionCommandLines! }) });
+      rawState.functions.set(command.name, body);
+      const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+      this.budget.tick();
+      rawState.substitutionStatus = 0;
+      if (rawState.variables._ !== undefined) delete rawState.variables._;
+      rawState.status = 0;
+      monitor.epoch = restEpoch;
+      if (monitor.store) monitor.store.epoch = restEpoch;
+      return 0;
+    }
     if (rawState.readonlyVariables?.has("PIPESTATUS")) return undefined;
     const store = monitor.store;
     let existing = store?.get("PIPESTATUS");
@@ -8024,22 +8043,6 @@ export class Runtime {
     if (existing && !elem0) return undefined;
     const canMutatePipeStatus = !existing || (existing.references === 1 && elem0!.text.references === 1);
     const diagnosticLine = io.diagnosticCommandLines?.get(command) ?? io.substitutionDiagnosticLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0);
-    if (command.kind === "function") {
-      if (pipeline.negate || !canMutatePipeStatus || command.redirects.length > 0 || rawState.readonlyFunctions?.has(command.name) || (rawState.profile === "sh" && (specialBuiltinNames.has(command.name) || rawState.extensions?.builtins.get(command.name)?.special))) {
-        return undefined;
-      }
-      const body = { ...command.body, sourceName: io.scriptName ?? "shell" };
-      const offset = io.diagnosticOffset ?? 0;
-      const bodyLine = io.functionCommandLines?.get(command.body);
-      if (bodyLine !== undefined) body.line = bodyLine - offset;
-      functionDiagnostics.set(body, { offset, ...(bodyLine === undefined ? {} : { lines: io.functionCommandLines! }) });
-      rawState.functions.set(command.name, body);
-      const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
-      this.budget.tick();
-      rawState.substitutionStatus = 0;
-      if (rawState.variables._ !== undefined) delete rawState.variables._;
-      return this.finishSyncPipeStatus(rawState, monitor, store, existing, elem0, scope, 0, restEpoch);
-    }
     if (command.redirects.length === 1) {
       const r0 = command.redirects[0]!;
       if ((r0.descriptor === undefined || r0.descriptor === 1) && !r0.move && !r0.document && (r0.operator === ">" || r0.operator === ">>" || r0.operator === ">|") && r0.target.plain === "/dev/null") {

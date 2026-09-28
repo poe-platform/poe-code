@@ -15,7 +15,8 @@
     "generate:docs": "tsx scripts/generate-docs.ts all",
     "generate:design-docs:markdown": "tsx scripts/generate-docs.ts markdown",
     "generate:design-docs:json": "tsx scripts/generate-docs.ts json",
-    "generate:design-docs:all": "tsx scripts/generate-docs.ts all"
+    "generate:design-docs:all": "tsx scripts/generate-docs.ts all",
+    "test:unit": "cd ../.. && vitest run packages/toolcraft-design"
   },
   "files": [
     "dist",

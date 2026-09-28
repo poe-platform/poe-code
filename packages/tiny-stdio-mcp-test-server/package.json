@@ -17,7 +17,8 @@
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "prepack": "node ../../scripts/set-bin-executable.mjs",
-    "prepublishOnly": "tsc"
+    "prepublishOnly": "tsc",
+    "test:unit": "cd ../.. && vitest run packages/tiny-stdio-mcp-test-server/src"
   },
   "files": [
     "LICENSE",

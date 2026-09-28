@@ -129,7 +129,7 @@ jobs:
       LANG: C.UTF-8
       LC_ALL: C.UTF-8
       TURBO_TELEMETRY_DISABLED: "1"
-      VITEST_MAX_WORKERS: "1"
+      VITEST_MAX_WORKERS: "2"
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -160,9 +160,20 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes zsh
           test -x /bin/zsh
-      - name: Verify OP native tests before the full unit gate
-        run: npm run test:unit --workspace=safe-bash-command-op
+      - name: Identify cache runtime
+        run: node -e 'console.log("POE_CI_RUNTIME=" + JSON.stringify({versions:process.versions,platform:process.platform,arch:process.arch,image:process.env.ImageOS,imageVersion:process.env.ImageVersion}))' >> "$GITHUB_ENV"
+      - name: Restore eligible unit task cache
+        uses: actions/cache@v6.1.0
+        with:
+          path: .turbo/ci-cache
+          key: ${{ runner.os }}-${{ runner.arch }}-unit-fresh-v1-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-unit-fresh-v1-${{ hashFiles('package-lock.json') }}-
+            ${{ runner.os }}-${{ runner.arch }}-unit-v1-${{ hashFiles('package-lock.json') }}-
       - name: Run fresh unit and native checks
+        env:
+          POE_CHECK_CACHE_DIR: .turbo/ci-cache/checks-v1
+          TURBO_FORCE: ${{ inputs.cold_cache && 'true' || 'false' }}
         run: npm run test:ci:fresh
   unit-cached:
     if: ${{ !inputs.build_only }}
@@ -176,7 +187,7 @@ jobs:
       LANG: C.UTF-8
       LC_ALL: C.UTF-8
       TURBO_TELEMETRY_DISABLED: "1"
-      VITEST_MAX_WORKERS: "1"
+      VITEST_MAX_WORKERS: "2"
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -259,5 +270,17 @@ jobs:
           printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/poe-build/build.tar" | sha256sum --check --status
           tar -xf "$RUNNER_TEMP/poe-build/build.tar"
       - uses: ./.github/actions/setup-bash-oracle
+      - name: Identify cache runtime
+        run: node -e 'console.log("POE_CI_RUNTIME=" + JSON.stringify({versions:process.versions,platform:process.platform,arch:process.arch,image:process.env.ImageOS,imageVersion:process.env.ImageVersion}))' >> "$GITHUB_ENV"
+      - name: Restore Bash shard cache
+        uses: actions/cache@v6.1.0
+        with:
+          path: .turbo/ci-cache
+          key: ${{ runner.os }}-${{ runner.arch }}-bash-shard-${{ matrix.shard }}-v1-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-bash-shard-${{ matrix.shard }}-v1-${{ hashFiles('package-lock.json') }}-
       - name: Run balanced Bash shard
-        run: npm run test:unit --workspace=@poe-platform/safe-bash
+        env:
+          POE_CHECK_CACHE_DIR: .turbo/ci-cache/checks-v1
+          TURBO_FORCE: ${{ inputs.cold_cache && 'true' || 'false' }}
+        run: node scripts/run-ci-bash-shard.mjs

@@ -47,7 +47,7 @@
   ],
   "scripts": {
     "build": "node scripts/harfbuzz/verify.mjs && node scripts/generate-providers.mjs && node ../../scripts/guard-package-dist.mjs && tsc && node scripts/bundle.mjs",
-    "test:unit": "node --test scripts/harfbuzz/verify.test.mjs && node scripts/harfbuzz/verify.mjs && node scripts/generate-providers.mjs && cd ../.. && vitest run packages/safe-bash-command-ssconvert/src",
+    "test:unit": "cd ../.. && vitest run packages/safe-bash-command-ssconvert/src",
     "test": "node --test scripts/harfbuzz/verify.test.mjs && node scripts/harfbuzz/verify.mjs && node scripts/generate-providers.mjs && cd ../.. && vitest run packages/safe-bash-command-ssconvert/src",
     "lint": "node scripts/harfbuzz/verify.mjs && node scripts/generate-providers.mjs && eslint src && tsc --noEmit && tsc -p tsconfig.test.json && tsc -p tsconfig.consumer.json"
   },

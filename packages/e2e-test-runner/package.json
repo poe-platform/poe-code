@@ -20,7 +20,8 @@
     }
   },
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.build.json"
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.build.json",
+    "test:unit": "cd ../.. && vitest run packages/e2e-test-runner/src"
   },
   "dependencies": {
     "toolcraft-design": "*",

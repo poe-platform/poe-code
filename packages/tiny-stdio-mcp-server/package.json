@@ -38,7 +38,8 @@
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "prepublishOnly": "tsc",
     "prepack": "node ../../scripts/manage-bundled-workspace-deps.mjs prepare . toolcraft-schema",
-    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . toolcraft-schema"
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . toolcraft-schema",
+    "test:unit": "cd ../.. && vitest run packages/tiny-stdio-mcp-server/src"
   },
   "files": [
     "LICENSE",

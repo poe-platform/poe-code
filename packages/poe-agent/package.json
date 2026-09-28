@@ -17,7 +17,8 @@
   },
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc && node -e \"require('node:fs').copyFileSync('src/SYSTEM_PROMPT.md', 'dist/SYSTEM_PROMPT.md')\"",
-    "test:build-smoke": "npm run build && vitest run --config vitest.build-smoke.config.ts"
+    "test:build-smoke": "npm run build && vitest run --config vitest.build-smoke.config.ts",
+    "test:unit": "cd ../.. && vitest run packages/poe-agent/src"
   },
   "dependencies": {
     "@poe-code/agent-spawn": "*",

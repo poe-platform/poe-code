@@ -12,7 +12,8 @@
     }
   },
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && node scripts/generate-provider-registry.mjs && tsc"
+    "build": "node ../../scripts/guard-package-dist.mjs && node scripts/generate-provider-registry.mjs && tsc",
+    "test:unit": "cd ../.. && vitest run packages/providers/src"
   },
   "dependencies": {
     "@poe-code/agent-defs": "*",

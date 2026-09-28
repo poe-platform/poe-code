@@ -63,6 +63,14 @@ describe("opt-in CI unit groups", () => {
     });
   }
 
+  it("keeps buildStages empty for real repository cached and fresh CI unit partitions", () => {
+    const cached = createWorkspaceTestPlan(process.cwd(), { ciGroup: "cached" });
+    const fresh = createWorkspaceTestPlan(process.cwd(), { ciGroup: "fresh" });
+    expect(cached.buildStages).toEqual([]);
+    expect(fresh.buildStages).toEqual([]);
+    expect(cached.testStages.length).toBeGreaterThanOrEqual(80);
+  });
+
   it("parses only explicit CI groups without forwarded test options", () => {
     expect(parseWorkspaceArguments(["--test-unit", "--ci-group=cached"]).ciGroup).toBe("cached");
     for (const args of [

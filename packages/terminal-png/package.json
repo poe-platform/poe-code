@@ -13,7 +13,8 @@
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.build.json",
     "prepack": "node ../../scripts/set-bin-executable.mjs",
-    "compare": "tsx scripts/compare.ts"
+    "compare": "tsx scripts/compare.ts",
+    "test:unit": "cd ../.. && vitest run packages/terminal-png"
   },
   "files": [
     "LICENSE",

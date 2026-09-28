@@ -79,11 +79,12 @@ jobs:
         if: steps.queue-check.outputs.publish == 'true'
         uses: actions/cache@v4
         with:
-          path: .turbo/ci-cache/checks-v1
-          key: safe-release-checks-v1-${{ runner.os }}-${{ hashFiles('package-lock.json', 'turbo.json') }}-${{ github.sha }}
+          path: .turbo/ci-cache
+          key: safe-release-checks-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json', 'turbo.json') }}-${{ github.sha }}
           restore-keys: |
-            safe-release-checks-v1-${{ runner.os }}-${{ hashFiles('package-lock.json', 'turbo.json') }}-
-            safe-release-checks-v1-${{ runner.os }}-
+            safe-release-checks-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json', 'turbo.json') }}-
+            ${{ runner.os }}-${{ runner.arch }}-build-v1-${{ hashFiles('package-lock.json') }}-
+            safe-release-checks-v2-${{ runner.os }}-${{ runner.arch }}-
       - uses: actions/setup-node@v4
         if: steps.queue-check.outputs.publish == 'true'
         with:

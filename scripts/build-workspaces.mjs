@@ -396,9 +396,11 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
     if (workspace.name === excludeWorkspace && workspace.path !== null) continue;
     if (ciGroup !== undefined && (workspace.name === "@poe-platform/safe-bash" || cacheable.has(workspace.name) !== (ciGroup === "cached"))) continue;
     testStages.push({ id, name: workspace.name, path: workspace.path, event: "test:unit" });
-    for (const dependency of settings.dependsOn ?? []) {
-      if (dependency === "build") buildRoots.add(workspace.name);
-      else for (const edge of plan.edges) if (edge.from === workspace.name) buildRoots.add(edge.to);
+    if (ciGroup === undefined) {
+      for (const dependency of settings.dependsOn ?? []) {
+        if (dependency === "build") buildRoots.add(workspace.name);
+        else for (const edge of plan.edges) if (edge.from === workspace.name) buildRoots.add(edge.to);
+      }
     }
   }
   const selected = selectBuildStages(plan, buildRoots);
@@ -600,7 +602,7 @@ export async function buildWorkspaces(rootDirectory, options = {}) {
   const selected = { ...plan, ...selectBuildStages(plan, affected === undefined ? (workspace === undefined ? plan.workspaces.map(stage => stage.name) : [workspace]) : affectedWorkspaceNames(plan, affected, affectedFiles)) };
   let buildCache;
   if (cache !== false && environment.TURBO_FORCE !== "true" && (cacheStore || (spawn === spawnChild && fileSystem === fs))
-    && selected.stages.some(stage => stage.manifest.scripts.build.split(" ").includes("tsc"))) {
+    && selected.stages.some(stage => stage.manifest.scripts.build.split(" ").includes("tsc") || stage.manifest.scripts.build.includes("cargo.mjs build") || stage.manifest.scripts.build === "node scripts/build.mjs")) {
     const { prepareBuildCache } = await import("./check-cache.mjs");
     buildCache = prepareBuildCache(plan, selected.stages, { cacheStore, cacheFiles, environment, fileSystem });
   }
@@ -648,7 +650,7 @@ export async function testWorkspaces(rootDirectory, options = {}) {
     }
   }
   if (dryRun) return { dryRun: true, plannedTests: plan.testStages.length, plannedBuilds: plan.buildStages.length, testStages: plan.testStages, buildStages: plan.buildStages.map(stage => ({ name: stage.name, path: stage.path, event: stage.event ?? "build" })), ...(plan.selectedWorkspaces === undefined ? {} : { selectedWorkspaces: plan.selectedWorkspaces }), ...(testFiles === undefined ? {} : { testFiles: plan.testFiles }) };
-  const caching = cache !== false && ciGroup !== "fresh" && environment.TURBO_FORCE !== "true" && (cacheStore || (spawn === spawnChild && fileSystem === fs));
+  const caching = cache !== false && environment.TURBO_FORCE !== "true" && (cacheStore || (spawn === spawnChild && fileSystem === fs));
   childEnvironment.POE_CHECK_CACHE = caching ? "1" : "0";
   let buildCache;
   if (caching && plan.buildStages.some(stage => stage.manifest.scripts.build.split(" ").includes("tsc"))) {

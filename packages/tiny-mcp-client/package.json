@@ -11,7 +11,8 @@
   ],
   "scripts": {
     "build": "node scripts/build.mjs",
-    "typecheck:contracts": "node scripts/check-http-headers-type-contract.mjs"
+    "typecheck:contracts": "node scripts/check-http-headers-type-contract.mjs",
+    "test:unit": "cd ../.. && vitest run packages/tiny-mcp-client/src"
   },
   "repository": {
     "type": "git",

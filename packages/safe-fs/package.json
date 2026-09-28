@@ -123,7 +123,8 @@
     "build:portable": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json && node scripts/native-assets.mjs --portable",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "typecheck:tests": "tsc -p tsconfig.tests.json --noEmit",
-    "test:staging-native": "node --import tsx --test tests/integration/real-staging-hardlinks.test.mjs"
+    "test:staging-native": "node --import tsx --test tests/integration/real-staging-hardlinks.test.mjs",
+    "test:unit": "cd ../.. && vitest run packages/safe-fs"
   },
   "repository": {
     "type": "git",

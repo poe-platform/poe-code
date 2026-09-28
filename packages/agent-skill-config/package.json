@@ -13,7 +13,8 @@
     }
   },
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc && node scripts/copy-templates.mjs"
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && node scripts/copy-templates.mjs",
+    "test:unit": "cd ../.. && vitest run packages/agent-skill-config/src"
   },
   "files": [
     "dist"

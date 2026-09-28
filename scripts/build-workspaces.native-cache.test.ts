@@ -6,7 +6,8 @@ vi.mock("node:child_process", async importOriginal => ({
   ...await importOriginal<typeof import("node:child_process")>(),
   execFileSync: vi.fn(() => "GIT_DIR\nGIT_INDEX_FILE\n")
 }));
-import { testWorkspaces } from "./build-workspaces.mjs";
+import { buildWorkspaces, testWorkspaces } from "./build-workspaces.mjs";
+import { runCiBashShard } from "./run-ci-bash-shard.mjs";
 
 function fixture() {
   const files = {
@@ -66,5 +67,60 @@ describe("native Vitest workspace result cache", () => {
     expect(first).toMatchObject({ unitCacheHits: 0, unitCacheMisses: 1 });
     const second = await testWorkspaces("/repo", { ...state, workspaces: ["tsx-native"] });
     expect(second).toMatchObject({ unitCacheHits: 1, unitCacheMisses: 0 });
+  });
+
+  it("caches eligible *-rust cargo.mjs test workspaces and known pretest hook workspaces", async () => {
+    const state = fixture();
+    state.fileSystem.mkdirSync("/repo/packages/sample-rust/src", { recursive: true });
+    state.fileSystem.writeFileSync("/repo/packages/sample-rust/package.json", JSON.stringify({
+      name: "sample-rust",
+      scripts: { "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test" }
+    }), { flag: "w" });
+    state.fileSystem.writeFileSync("/repo/packages/sample-rust/src/lib.rs", "pub fn ok() {}");
+    state.cacheFiles.push("packages/sample-rust/package.json", "packages/sample-rust/src/lib.rs");
+    const first = await testWorkspaces("/repo", { ...state, workspaces: ["sample-rust"] });
+    expect(first).toMatchObject({ unitCacheHits: 0, unitCacheMisses: 1 });
+    const second = await testWorkspaces("/repo", { ...state, workspaces: ["sample-rust"] });
+    expect(second).toMatchObject({ unitCacheHits: 1, unitCacheMisses: 0 });
+  });
+  it("caches *-rust cargo.mjs build outputs in prepareBuildCache", async () => {
+    const state = fixture();
+    state.fileSystem.writeFileSync("/repo/turbo.json", JSON.stringify({ tasks: { build: { dependsOn: ["^build"], outputs: ["dist/**"] }, "test:unit": {} } }));
+    state.fileSystem.mkdirSync("/repo/packages/sample-rust/src", { recursive: true });
+    state.fileSystem.writeFileSync("/repo/packages/sample-rust/package.json", JSON.stringify({
+      name: "sample-rust",
+      scripts: { build: "node ../mcp-protocol-rust/scripts/cargo.mjs build" }
+    }), { flag: "w" });
+    state.fileSystem.writeFileSync("/repo/packages/sample-rust/src/lib.rs", "pub fn ok() {}");
+    state.cacheFiles.push("packages/sample-rust/package.json", "packages/sample-rust/src/lib.rs");
+    const buildSpawn = vi.fn(() => {
+      state.fileSystem.mkdirSync("/repo/packages/sample-rust/dist", { recursive: true });
+      state.fileSystem.writeFileSync("/repo/packages/sample-rust/dist/index.js", "export const ok = true;");
+      const child = new EventEmitter();
+      queueMicrotask(() => child.emit("close", 0, null));
+      return child;
+    });
+    const first = await buildWorkspaces("/repo", { ...state, spawn: buildSpawn, workspace: "sample-rust" });
+    expect(first).toMatchObject({ builds: 1, cacheHits: 0, cacheMisses: 1 });
+    const second = await buildWorkspaces("/repo", { ...state, spawn: buildSpawn, workspace: "sample-rust" });
+    expect(second).toMatchObject({ builds: 1, cacheHits: 1, cacheMisses: 0 });
+    expect(buildSpawn).toHaveBeenCalledTimes(1);
+  });
+
+  it("caches CI Bash shard execution per shard and oracle digest via runCiBashShard", () => {
+    const state = fixture();
+    const spawn = vi.fn(() => ({ status: 0 }));
+    const env = {
+      ...state.environment,
+      SAFE_BASH_TEST_SHARD: "2/4",
+      SAFE_BASH_TEST_CONCURRENCY: "2",
+      SAFE_BASH_TEST_BASH_SHA256: "abc123"
+    };
+    expect(runCiBashShard(process.cwd(), { environment: env, spawn, cacheStore: state.cacheStore })).toBe(0);
+    expect(spawn).toHaveBeenCalledTimes(1);
+    expect(runCiBashShard(process.cwd(), { environment: env, spawn, cacheStore: state.cacheStore })).toBe(0);
+    expect(spawn).toHaveBeenCalledTimes(1);
+    expect(runCiBashShard(process.cwd(), { environment: { ...env, SAFE_BASH_TEST_SHARD: "3/4" }, spawn, cacheStore: state.cacheStore })).toBe(0);
+    expect(spawn).toHaveBeenCalledTimes(2);
   });
 });

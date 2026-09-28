@@ -37,6 +37,17 @@ export function workspaceUnitSelections(root, fileSystem = fs) {
     const scripts = JSON.parse(fileSystem.readFileSync(manifest, "utf8")).scripts ?? {};
     const script = scripts["test:unit"];
     if (typeof script !== "string") continue;
+    if (directory.name.endsWith("-rust") && script.includes("cargo.mjs test") && script.includes("vitest run --config")) {
+      selections.push({
+        path: `packages/${directory.name}`,
+        selectors: [],
+        exclusions: [`packages/${directory.name}/tests/**`],
+        passWithNoTests: false,
+        hasHooks: scripts["pretest:unit"] !== undefined || scripts["posttest:unit"] !== undefined,
+        requiresNativePool: true
+      });
+      continue;
+    }
     const tokens = parse(script, () => undefined);
     if (tokens[0] === "node") {
       const phases = [[]];

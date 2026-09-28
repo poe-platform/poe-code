@@ -100,7 +100,7 @@ export function createTaskFingerprints(plan, {
     if (owner) grouped.get(owner).push(file);
     else if ((event === "build"
       ? ["package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", "turbo.json", "scripts/guard-package-dist.mjs", "scripts/check-cache.mjs", "scripts/build-workspaces.mjs"]
-      : ["package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", "turbo.json", "vitest.config.ts", "vitest.root.config.ts", "tests/setup.ts", "tests/test-env.ts", "scripts/guard-package-dist.mjs", "scripts/check-cache.mjs", "scripts/build-workspaces.mjs", "scripts/test-vitest-workspaces.mjs", "scripts/workspace-test-ownership.mjs", "scripts/run-vitest-batch.mjs", "scripts/vitest-batch-worker.mjs", "scripts/vitest-immediate-reporter.mjs"]
+      : ["package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", "turbo.json", "vitest.config.ts", "vitest.root.config.ts", "tests/setup.ts", "tests/test-env.ts", "scripts/guard-package-dist.mjs", "scripts/check-cache.mjs", "scripts/build-workspaces.mjs", "scripts/test-vitest-workspaces.mjs", "scripts/workspace-test-ownership.mjs", "scripts/run-vitest-batch.mjs", "scripts/vitest-batch-worker.mjs", "scripts/vitest-immediate-reporter.mjs", "packages/mcp-protocol-rust/scripts/cargo.mjs"]
     ).includes(file)) common.update(read(file));
   }
   const importedPackages = (file, visited = new Set(), rootInputs) => {
@@ -216,7 +216,17 @@ export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, enviro
     "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js && esbuild src/portable.ts --bundle --platform=browser --format=esm --target=es2022 --outfile=dist/portable.js",
     "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=browser --format=esm --target=es2022 --external:safe-bash-contracts --external:safe-bash-contracts/* --outfile=dist/index.js",
     "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --external:safe-bash-contracts --external:safe-bash-contracts/* --outfile=dist/index.js",
-    "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --external:safe-bash-contracts --external:safe-bash-contracts/* --external:@poe-code/safe-fs --external:@poe-code/safe-fs/* --outfile=dist/index.js"
+    "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --external:safe-bash-contracts --external:safe-bash-contracts/* --external:@poe-code/safe-fs --external:@poe-code/safe-fs/* --outfile=dist/index.js",
+    "node ../mcp-protocol-rust/scripts/cargo.mjs build",
+    "node scripts/cargo.mjs build",
+    "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs build",
+    "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs build && tsc --project tsconfig.build.json",
+    "node ../../scripts/guard-package-dist.mjs && node scripts/generate-provider-registry.mjs && tsc",
+    "node scripts/generate-inventories.mjs && node ../../scripts/guard-package-dist.mjs && tsc",
+    "node scripts/harfbuzz/verify.mjs && node scripts/generate-providers.mjs && node ../../scripts/guard-package-dist.mjs && tsc && node scripts/bundle.mjs",
+    "node scripts/build.mjs",
+    "node ../../scripts/guard-package-dist.mjs && tsc && node -e \"require('node:fs').copyFileSync('src/SYSTEM_PROMPT.md', 'dist/SYSTEM_PROMPT.md')\"",
+    "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --external:@poe-platform/safe-bash --outfile=dist/index.js && rollup dist/index.d.ts --file dist/index.d.ts --format es --external @poe-platform/safe-bash/contracts --plugin dts={respectExternal:true}"
   ]);
   const eligible = stages.filter(stage => {
     const event = stage.event ?? "build";
@@ -267,10 +277,27 @@ export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, enviro
   };
 }
 
+const knownPretestHooks = new Set([
+  "npm run typecheck:public",
+  "node scripts/numberformat-data.mjs && npm run typecheck:fs"
+]);
+
 export function prepareNativeUnitCache(plan, stages, { cacheStore, cacheFiles, environment, fileSystem = fs }) {
+  const manifests = new Map(plan.workspaces.map(workspace => [workspace.path, workspace.manifest]));
   const selections = new Map(workspaceUnitSelections(plan.root, fileSystem)
-    .filter(selection => selection.requiresNativePool && !selection.hasHooks).map(selection => [selection.path, selection]));
-  const eligible = stages.filter(stage => stage.path !== null && stage.event === "test:unit" && selections.has(stage.path)
+    .filter(selection => {
+      const scripts = manifests.get(selection.path)?.scripts ?? {};
+      return (selection.requiresNativePool && !selection.hasHooks)
+        || (knownPretestHooks.has(scripts["pretest:unit"]) && scripts["posttest:unit"] === undefined);
+    }).map(selection => [selection.path, selection]));
+  const isRustUnitTask = stage => {
+    if (!stage.path?.endsWith("-rust")) return false;
+    const scripts = manifests.get(stage.path)?.scripts ?? {};
+    return typeof scripts["test:unit"] === "string" && scripts["test:unit"].includes("cargo.mjs test")
+      && scripts["pretest:unit"] === undefined && scripts["posttest:unit"] === undefined;
+  };
+  const eligible = stages.filter(stage => stage.path !== null && stage.event === "test:unit"
+    && (selections.has(stage.path) || isRustUnitTask(stage))
     && ({ ...plan.configuration.tasks["test:unit"], ...plan.configuration.tasks[stage.name + "#test:unit"] }).cache !== false);
   if (!eligible.length) return undefined;
   const started = performance.now();

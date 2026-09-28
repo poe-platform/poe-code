@@ -13,7 +13,8 @@
     }
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test:unit": "cd ../.. && vitest run packages/mcp-oauth/src"
   },
   "dependencies": {
     "auth-store": "^0.0.1",

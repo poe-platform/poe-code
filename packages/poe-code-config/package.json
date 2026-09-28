@@ -16,7 +16,8 @@
     }
   },
   "scripts": {
-    "build": "rm -rf dist && tsc"
+    "build": "rm -rf dist && tsc",
+    "test:unit": "cd ../.. && vitest run packages/poe-code-config/src"
   },
   "files": [
     "dist"

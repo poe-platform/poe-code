@@ -7,7 +7,8 @@
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "e2e": "node scripts/e2e-smoke.mjs",
-    "test": "cd ../.. && vitest run packages/agent-eval/src --passWithNoTests"
+    "test": "cd ../.. && vitest run packages/agent-eval/src --passWithNoTests",
+    "test:unit": "cd ../.. && vitest run packages/agent-eval/src"
   },
   "dependencies": {
     "@poe-code/agent-spawn": "*",

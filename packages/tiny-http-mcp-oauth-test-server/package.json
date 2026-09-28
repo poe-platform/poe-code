@@ -17,7 +17,8 @@
   },
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
-    "prepublishOnly": "tsc"
+    "prepublishOnly": "tsc",
+    "test:unit": "cd ../.. && vitest run packages/tiny-http-mcp-oauth-test-server/src"
   },
   "files": [
     "dist"

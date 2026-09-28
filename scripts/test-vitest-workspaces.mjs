@@ -34,7 +34,7 @@ export function sharedVitestStages(plan, fileSystem = fs) {
   return [shared, ...plan.testStages.filter(stage => !compatible.includes(stage))];
 }
 
-export async function runSharedVitest(root, phases, { cacheStore, fingerprints, cache = false, cacheFiles, batchSize = 100, runBatch, testFiles } = {}) {
+export async function runSharedVitest(root, phases, { cacheStore, fingerprints, cache = false, cacheFiles, batchSize = 250, runBatch, testFiles } = {}) {
   assert.ok(Number.isSafeInteger(batchSize) && batchSize > 0, "Invalid Vitest batch size");
   const environment = { TEST: process.env.TEST, VITEST: process.env.VITEST, NODE_ENV: process.env.NODE_ENV };
   const contexts = [];
@@ -212,7 +212,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const { runVitestBatch } = await import("./run-vitest-batch.mjs");
     await runSharedVitest(root, shared.phases, {
       runBatch: runVitestBatch, testFiles: plan.testFiles,
-      cache: process.env.POE_CHECK_CACHE !== "0" && plan.ciGroup !== "fresh" && process.env.TURBO_FORCE !== "true"
+      cache: process.env.POE_CHECK_CACHE !== "0" && process.env.TURBO_FORCE !== "true"
         && (process.env.POE_SNAPSHOT_MODE ?? "playback") === "playback" && (process.env.POE_SNAPSHOT_MISS ?? "error") === "error"
     });
   } catch (error) {

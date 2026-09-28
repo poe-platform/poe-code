@@ -51,34 +51,42 @@ function run(command, args) {
 for (const args of commands[operation]) run("cargo", args);
 
 if ((operation === "build" || operation === "test") && existsSync(bindingManifest)) {
-  const require = createRequire(import.meta.url);
-  const cli = path.join(path.dirname(require.resolve("@napi-rs/cli/package.json")), "dist/cli.js");
   const output = path.join(packageDirectory, "dist");
-  mkdirSync(output, { recursive: true });
-  run(process.execPath, [
-    cli,
-    "build",
-    "--cwd",
-    packageDirectory,
-    "--manifest-path",
-    bindingManifest,
-    "--target-dir",
-    targetDirectory,
-    "--output-dir",
-    output,
-    "--no-js",
-    "--dts",
-    existsSync(path.join(packageDirectory, "src/index.d.ts")) ? "native.d.ts" : "index.d.ts",
-    "--release",
-    "--",
-    "--locked"
-  ]);
-  for (const name of readdirSync(path.join(packageDirectory, "src"))) {
-    if (name.endsWith(".js"))
-      copyFileSync(path.join(packageDirectory, "src", name), path.join(output, name));
-  }
-  if (existsSync(path.join(packageDirectory, "src/index.d.ts"))) {
-    copyFileSync(path.join(packageDirectory, "src/index.d.ts"), path.join(output, "index.d.ts"));
+  const hasPrebuiltBinding =
+    operation === "test" &&
+    existsSync(output) &&
+    readdirSync(output).some((name) => name.endsWith(".node")) &&
+    existsSync(path.join(output, "index.js")) &&
+    existsSync(path.join(output, "index.d.ts"));
+  if (!hasPrebuiltBinding) {
+    const require = createRequire(import.meta.url);
+    const cli = path.join(path.dirname(require.resolve("@napi-rs/cli/package.json")), "dist/cli.js");
+    mkdirSync(output, { recursive: true });
+    run(process.execPath, [
+      cli,
+      "build",
+      "--cwd",
+      packageDirectory,
+      "--manifest-path",
+      bindingManifest,
+      "--target-dir",
+      targetDirectory,
+      "--output-dir",
+      output,
+      "--no-js",
+      "--dts",
+      existsSync(path.join(packageDirectory, "src/index.d.ts")) ? "native.d.ts" : "index.d.ts",
+      "--release",
+      "--",
+      "--locked"
+    ]);
+    for (const name of readdirSync(path.join(packageDirectory, "src"))) {
+      if (name.endsWith(".js"))
+        copyFileSync(path.join(packageDirectory, "src", name), path.join(output, name));
+    }
+    if (existsSync(path.join(packageDirectory, "src/index.d.ts"))) {
+      copyFileSync(path.join(packageDirectory, "src/index.d.ts"), path.join(output, "index.d.ts"));
+    }
   }
   if (operation === "test") {
     const tests = readdirSync(path.join(packageDirectory, "tests"))

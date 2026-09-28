@@ -17,7 +17,8 @@
   },
   "scripts": {
     "build": "tsc && node ./scripts/copy-corpus.mjs",
-    "prepack": "node ../../scripts/set-bin-executable.mjs"
+    "prepack": "node ../../scripts/set-bin-executable.mjs",
+    "test:unit": "cd ../.. && vitest run packages/tokenfill/src"
   },
   "files": [
     "LICENSE",

@@ -17,7 +17,8 @@
     }
   },
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc"
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test:unit": "cd ../.. && vitest run packages/config-mutations/src"
   },
   "files": [
     "dist",

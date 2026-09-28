@@ -14,7 +14,7 @@
   "scripts": {
     "build": "rm -rf dist && tsc",
     "test": "cd ../.. && vitest run --passWithNoTests packages/toolcraft-codemode/src",
-    "test:unit": "cd ../.. && vitest run --passWithNoTests packages/toolcraft-codemode/src",
+    "test:unit": "cd ../.. && vitest run packages/toolcraft-codemode/src",
     "lint": "cd ../.. && eslint packages/toolcraft-codemode/src --ext ts && tsc -p packages/toolcraft-codemode/tsconfig.json --noEmit"
   },
   "files": [

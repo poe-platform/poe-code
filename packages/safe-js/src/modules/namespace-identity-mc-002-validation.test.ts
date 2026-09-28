@@ -1,20 +1,50 @@
 import { createHash } from "node:crypto";
-import { vol } from "memfs";
+import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
+import { build } from "esbuild";
+import { fs, vol } from "memfs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { dump } from "../dump.js";
-import { Budget } from "../interp/budget.js";
-import { restore } from "../restore.js";
-import { run } from "../run.js";
-import { runHarness } from "../runner/run-harness.js";
-import { makeHarnessModule } from "./harness.js";
-import { makeMetricModule } from "./metric.js";
 import type { ModuleExports, ModuleRegistry } from "./registry.js";
 
-vi.mock("node:fs/promises", async () => {
-  const { fs } = await import("memfs");
-  return fs.promises;
+// Run the substantial graph against current source without Vitest's per-import
+// instrumentation in the interpreter's hot path. Compilation stays in memory;
+// every execution and assertion still runs within the normal test deadline.
+const bundled = await build({
+  stdin: {
+    contents: `
+      export { dump } from "../dump.ts";
+      export { Budget } from "../interp/budget.ts";
+      export { restore } from "../restore.ts";
+      export { run } from "../run.ts";
+      export { runHarness } from "../runner/run-harness.ts";
+      export { makeHarnessModule } from "./harness.ts";
+      export { makeMetricModule } from "./metric.ts";
+    `,
+    resolveDir: fileURLToPath(new URL(".", import.meta.url)),
+    loader: "ts"
+  },
+  alias: {
+    "#safe-js-platform": fileURLToPath(new URL("../platform/node.ts", import.meta.url)),
+    "#safe-js-atomic-wait": fileURLToPath(new URL("../platform/atomic-wait-node.ts", import.meta.url))
+  },
+  bundle: true,
+  platform: "node",
+  format: "cjs",
+  write: false
 });
+type Runtime = Pick<typeof import("../index.js"), "dump" | "Budget" | "restore" | "run" | "runHarness">
+  & typeof import("./harness.js") & typeof import("./metric.js");
+const runtime = { exports: {} as Runtime };
+const require = createRequire(import.meta.url);
+new Function("require", "module", "exports", bundled.outputFiles[0]!.text)(
+  (name: string) => name === "node:fs/promises"
+    ? fs.promises
+    : require(name),
+  runtime,
+  runtime.exports
+);
+const { dump, Budget, restore, run, runHarness, makeHarnessModule, makeMetricModule } = runtime.exports;
 
 const originalGraph = `import alphaData from "planA";
 import {tasks as alphaTasks, decorate as labelAlpha} from "planA";

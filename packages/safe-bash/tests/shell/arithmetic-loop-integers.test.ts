@@ -1,9 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { setup } from "./helpers.js";
-import { compilePureSmiProgram, prepareArithmetic, runIntArithForLoop, runIntForLoop, sharedLoopIntRegs } from "../../src/shell/arithmetic.js";
+import { compilePureSmiProgram, intToStr, prepareArithmetic, runIntArithForLoop, runIntForLoop, sharedLoopIntRegs } from "../../src/shell/arithmetic.js";
 import { ParseBudget } from "../../src/shell/parse-budget.js";
 import { ShellLimitError } from "../../src/shell/types.js";
+
+test("integer string cache converts negative one on its first lookup", () => {
+  assert.equal(intToStr(-1), "-1");
+  assert.equal(intToStr(-1), "-1");
+});
 
 for (const header of ["for ((i=0;i<100;i++))", "for i in {1..100}"]) {
   for (const [initial, expression, expected] of [

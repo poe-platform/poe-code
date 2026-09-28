@@ -342,7 +342,8 @@ function smallBigInt(n: number): bigint {
   return n >= 0 && n <= 4096 ? SMALL_BIGINTS[n]! : BigInt(n);
 }
 
-const LARGE_INT_KEYS = new Int32Array(16).fill(-1);
+// Zero is served by SMALL_INT_STRINGS, so an empty large-cache slot cannot match.
+const LARGE_INT_KEYS = new Int32Array(16);
 const LARGE_INT_STRS = new Array<string>(16).fill("");
 
 export function intToStr(n: number): string {

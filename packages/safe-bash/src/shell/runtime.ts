@@ -11897,7 +11897,7 @@ export class Runtime {
             } else if (w0Plain === "jq") {
               if (plainOps.length !== opCount || this.evalSyncJq("null", plainOps) === undefined) return false;
             } else if (w0Plain === "wc") {
-              if (opCount !== 1 || (op0 !== "-l" && op0 !== "-c" && op0 !== "-w")) return false;
+              if (opCount !== 1 || (op0 !== "-l" && op0 !== "-c" && op0 !== "-w" && op0 !== "-m" && op0 !== "-L")) return false;
             } else if (w0Plain === "sort") {
               if (byteLocale(rawState.variables) || opCount > 1 || (opCount === 1 && op0 !== "-r" && op0 !== "-u" && op0 !== "-n" && op0 !== "-rn" && op0 !== "-nr" && op0 !== "-ru" && op0 !== "-ur")) return false;
             } else if (w0Plain === "uniq") {
@@ -11915,10 +11915,24 @@ export class Runtime {
           if (fmtP === undefined || fmtP.startsWith("-") || !/^(?:[^%]|%%|%[-0]*\d*(?:\.\d+)?[sdxXouc]|\\n)*$/.test(fmtP)) return false;
         } else if (w0Plain === "echo") {
           if (cmd.words.length > 1 && (cmd.words[1]!.plain === undefined ? cmd.words[1]!.parts[0]?.kind === "text" && cmd.words[1]!.parts[0]!.value.startsWith("-") : cmd.words[1]!.plain!.startsWith("-"))) return false;
-        } else if (w0Plain === "dirname") {
-          if (cmd.words.length !== 2) return false;
-        } else if (w0Plain === "basename") {
-          if (cmd.words.length !== 2 && cmd.words.length !== 3 && !(cmd.words.length === 4 && cmd.words[1]?.plain === "-s")) return false;
+        } else if (w0Plain === "dirname" || w0Plain === "basename") {
+          const simArgs: string[] = [];
+          let seenDoubleDash = false;
+          for (let wi = 1; wi < cmd.words.length; wi++) {
+            const w = cmd.words[wi]!;
+            const st = w.plain ?? (w.parts.length > 0 && w.parts.every(pt => pt.kind === "text") ? w.parts.map(pt => pt.value).join("") : undefined);
+            if (st !== undefined) {
+              if (st === "--") seenDoubleDash = true;
+              simArgs.push(st);
+            } else {
+              if (!seenDoubleDash && wi === 1 && w.parts.length === 1 && w.parts[0]!.kind === "variable") {
+                const curV = rawState.variables[w.parts[0]!.name];
+                if (curV !== undefined && curV.startsWith("-")) return false;
+              }
+              simArgs.push("x");
+            }
+          }
+          if ((w0Plain === "dirname" ? this.evalSyncDirname(simArgs) : this.evalSyncBasename(simArgs)) === undefined) return false;
         } else if (w0Plain === "seq") {
           const isSeqIntWord = (w: Word): boolean => {
             if (w.plain !== undefined) return /^-?[0-9]{1,7}$/.test(w.plain);
@@ -11966,7 +11980,7 @@ export class Runtime {
             } else if (sName === "uniq") {
               if (sPlainArgs.length > 1 || (sPlainArgs.length === 1 && sPlainArgs[0] !== "-d" && sPlainArgs[0] !== "-u" && sPlainArgs[0] !== "-c")) return false;
             } else if (sName === "wc") {
-              if (sPlainArgs.length !== 1 || (sPlainArgs[0] !== "-l" && sPlainArgs[0] !== "-c" && sPlainArgs[0] !== "-w")) return false;
+              if (sPlainArgs.length !== 1 || (sPlainArgs[0] !== "-l" && sPlainArgs[0] !== "-c" && sPlainArgs[0] !== "-w" && sPlainArgs[0] !== "-m" && sPlainArgs[0] !== "-L")) return false;
             } else if (sName === "head" || sName === "tail") {
               const okHT = sPlainArgs.length === 0 || (sPlainArgs.length === 1 && /^-(?:n|c)?[0-9]{1,5}$/.test(sPlainArgs[0]!)) || (sPlainArgs.length === 2 && (sPlainArgs[0] === "-n" || sPlainArgs[0] === "-c") && /^[0-9]{1,5}$/.test(sPlainArgs[1]!));
               if (!okHT) return false;
@@ -22517,6 +22531,66 @@ export class Runtime {
     }
     return current.map(val => (rawOut && typeof val === "string" ? val : JSON.stringify(val ?? null)));
   }
+  private evalSyncDirname(args: readonly string[]): string | undefined {
+    let idx = 0;
+    if (args[0] === "--") idx = 1;
+    else if (args[0] !== undefined && args[0].startsWith("-") && args[0] !== "-") return undefined;
+    if (idx >= args.length) return undefined;
+    const out: string[] = [];
+    for (let i = idx; i < args.length; i++) {
+      const p = args[i]!;
+      if (p.includes("\0")) return undefined;
+      if (idx === 0 && p.startsWith("-") && p !== "-") return undefined;
+      const parent = dirname(p);
+      let pEnd = parent.length;
+      while (pEnd > 1 && parent[pEnd - 1] === "/") pEnd--;
+      out.push(parent.slice(0, pEnd));
+    }
+    return out.join("\n");
+  }
+
+  private evalSyncBasename(args: readonly string[]): string | undefined {
+    let multiple = false;
+    let suffix: string | undefined;
+    let idx = 0;
+    while (idx < args.length) {
+      const a = args[idx]!;
+      if (a === "--") { idx++; break; }
+      if (!a.startsWith("-") || a === "-") break;
+      if (a === "-a" || a === "--multiple") {
+        multiple = true;
+        idx++;
+      } else if (a === "-s" || a === "-as" || a === "-sa") {
+        multiple = true;
+        if (idx + 1 >= args.length) return undefined;
+        suffix = args[idx + 1]!;
+        idx += 2;
+      } else if (a.startsWith("-s") && a.length > 2) {
+        multiple = true;
+        suffix = a.slice(2);
+        idx++;
+      } else {
+        return undefined;
+      }
+    }
+    const operands = args.slice(idx);
+    if (operands.length === 0) return undefined;
+    if (!multiple && operands.length > 2) return undefined;
+    const effSuffix = multiple ? suffix : operands[1];
+    if (effSuffix !== undefined && effSuffix.includes("\0")) return undefined;
+    const paths = multiple ? operands : [operands[0]!];
+    const out: string[] = [];
+    for (const p of paths) {
+      if (p.includes("\0")) return undefined;
+      let res = /^\/+$/u.test(p) ? "/" : basename(p);
+      if (effSuffix && res !== effSuffix && res.endsWith(effSuffix)) {
+        res = res.slice(0, -effSuffix.length);
+      }
+      out.push(res);
+    }
+    return out.join("\n");
+  }
+
   private parseSyncCutSpec(spec: string): ((len: number) => number[]) | undefined {
     if (!/^(?:[1-9][0-9]{0,4}|[1-9][0-9]{0,4}-[1-9][0-9]{0,4}|[1-9][0-9]{0,4}-|-[1-9][0-9]{0,4})(?:,(?:[1-9][0-9]{0,4}|[1-9][0-9]{0,4}-[1-9][0-9]{0,4}|[1-9][0-9]{0,4}-|-[1-9][0-9]{0,4}))*$/.test(spec)) {
       return undefined;
@@ -23032,7 +23106,7 @@ export class Runtime {
           }
           if (sArgs.length !== 2 || (sArgs[0] !== "-n" && sArgs[0] !== "-c") || !/^[0-9]+$/.test(sArgs[1]!)) return undefined;
         } else if (sName === "wc") {
-          if (sArgs.length !== 1 || (sArgs[0] !== "-l" && sArgs[0] !== "-c" && sArgs[0] !== "-w")) return undefined;
+          if (sArgs.length !== 1 || (sArgs[0] !== "-l" && sArgs[0] !== "-c" && sArgs[0] !== "-w" && sArgs[0] !== "-m" && sArgs[0] !== "-L")) return undefined;
         } else if (sName === "sed") {
           if (this.evalSyncSed([], sArgs) === undefined) return undefined;
         } else if (sName === "rev") {
@@ -23172,6 +23246,15 @@ export class Runtime {
               } else if (stageArgs[0] === "-w") {
                 const trimmed = inStr.trim();
                 outLines = [String(trimmed.length === 0 ? 0 : trimmed.split(/[ \t\n\r\f\v]+/).length)];
+              } else if (stageArgs[0] === "-m") {
+                outLines = [String(Array.from(inStr).length)];
+              } else if (stageArgs[0] === "-L") {
+                let maxL = 0;
+                for (let li = 0; li < rawLines.length; li++) {
+                  const len = Array.from(rawLines[li]!).length;
+                  if (len > maxL) maxL = len;
+                }
+                outLines = [String(maxL)];
               } else {
                 outLines = [String(prevLen)];
               }
@@ -23476,12 +23559,19 @@ export class Runtime {
             } else if (w0Plain === "cut") {
               const cutRes = this.evalSyncCut(rawLines, opArgs, byteLocale(rawState.variables));
               if (cutRes !== undefined) fileRes = cutRes.join("\n");
-            } else if (w0Plain === "wc" && opArgs.length === 1 && (opArgs[0] === "-l" || opArgs[0] === "-c" || opArgs[0] === "-w")) {
+            } else if (w0Plain === "wc" && opArgs.length === 1 && (opArgs[0] === "-l" || opArgs[0] === "-c" || opArgs[0] === "-w" || opArgs[0] === "-m" || opArgs[0] === "-L")) {
               let count = 0;
               if (opArgs[0] === "-l") {
                 for (let k = 0; k < view.byteLength; k++) if (view[k] === 10) count++;
               } else if (opArgs[0] === "-c") {
                 count = view.byteLength;
+              } else if (opArgs[0] === "-m") {
+                count = Array.from(fileStr).length;
+              } else if (opArgs[0] === "-L") {
+                for (let li = 0; li < rawLines.length; li++) {
+                  const len = Array.from(rawLines[li]!).length;
+                  if (len > count) count = len;
+                }
               } else {
                 const trimmed = fileStr.trim();
                 count = trimmed.length === 0 ? 0 : trimmed.split(/\s+/).length;
@@ -23602,38 +23692,15 @@ export class Runtime {
     for (let i = 0; i < cmd.words.length; i++) {
       if (!this.isPureArgWord(cmd.words[i]!, rawState)) return undefined;
     }
-    if (w0Plain === "dirname" && cmd.words.length === 2) {
-      const wVal = this.fastValueWord(cmd.words[1]!, state, io, true, false, false, true, undefined, part.line);
-      if (typeof wVal !== "string" || wVal.startsWith("-") || wVal.includes("\0")) return undefined;
-      const parent = dirname(wVal);
-      let pEnd = parent.length;
-      while (pEnd > 1 && parent[pEnd - 1] === "/") pEnd--;
-      let res = parent.slice(0, pEnd);
-      const byteLength = shellValueByteLength(res) + 1;
-      while (res.endsWith("\n")) res = res.slice(0, -1);
-      const nextBytes = this.budget.bytes + byteLength;
-      if (nextBytes > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
-      this.budget.bytes = nextBytes;
-      this.budget.tick();
-      if (fnPositional !== undefined) this.budget.tick();
-      rawState.substitutionStatus = 0;
-      rawState.status = 0;
-      return res;
-    }
-    if (w0Plain === "basename" && (cmd.words.length === 2 || cmd.words.length === 3 || (cmd.words.length === 4 && cmd.words[1]?.plain === "-s"))) {
-      const isFlagS = cmd.words.length === 4 && cmd.words[1]?.plain === "-s";
-      const pathWord = isFlagS ? cmd.words[3]! : cmd.words[1]!;
-      const suffixWord = isFlagS ? cmd.words[2]! : (cmd.words.length === 3 ? cmd.words[2]! : undefined);
-      const wVal1 = this.fastValueWord(pathWord, state, io, true, false, false, true, undefined, part.line);
-      if (typeof wVal1 !== "string" || wVal1.startsWith("-") || wVal1.includes("\0")) return undefined;
-      let wVal2: string | undefined;
-      if (suffixWord !== undefined) {
-        const v2 = this.fastValueWord(suffixWord, state, io, true, false, false, true, undefined, part.line);
-        if (typeof v2 !== "string" || v2.includes("\0")) return undefined;
-        wVal2 = v2;
+    if (w0Plain === "dirname" || w0Plain === "basename") {
+      const dbArgs: string[] = [];
+      for (let i = 1; i < cmd.words.length; i++) {
+        const v = this.fastValueWord(cmd.words[i]!, state, io, true, false, false, true, undefined, part.line);
+        if (typeof v !== "string") return undefined;
+        dbArgs.push(v);
       }
-      let res = /^\/+$/u.test(wVal1) ? "/" : basename(wVal1);
-      if (wVal2 && res !== wVal2 && res.endsWith(wVal2)) res = res.slice(0, -wVal2.length);
+      let res = w0Plain === "dirname" ? this.evalSyncDirname(dbArgs) : this.evalSyncBasename(dbArgs);
+      if (res === undefined) return undefined;
       const byteLength = shellValueByteLength(res) + 1;
       while (res.endsWith("\n")) res = res.slice(0, -1);
       const nextBytes = this.budget.bytes + byteLength;

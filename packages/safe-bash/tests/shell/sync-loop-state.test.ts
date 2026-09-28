@@ -572,3 +572,31 @@ test("wave 100 sync loop: multi-stage pipeline sort -u, head -c, cut ranges, awk
     await shell.dispose();
   }
 });
+
+test("wave 101 sync loop: basename --/-a/-s, dirname --/multi-arg, and wc -m/-L", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const commands = new CommandRegistry(createStandardCommands());
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands });
+  try {
+    const script = [
+      'p="/a/b/c.ts"',
+      'dash_p="-dir/file.txt"',
+      "s_lines=$'ab\\nabcdef\\nabc'",
+      "for ((i=1; i<=10; i++)); do",
+      '  b1=$(basename -- "$p")',
+      '  b2=$(basename -- "$dash_p" .txt)',
+      '  b3=$(basename -a -s .ts /x/a.ts /y/b.ts)',
+      '  d1=$(dirname -- "$dash_p")',
+      '  d2=$(dirname /x/a /y/b)',
+      '  w1=$(wc -m <<< "$s_lines")',
+      '  w2=$(wc -L <<< "$s_lines")',
+      "done",
+      'printf "%s|%s|%s|%s|%s|%s|%s\\n" "$b1" "$b2" "${b3//$' + "'\\n'" + '/,}" "$d1" "${d2//$' + "'\\n'" + '/,}" "${w1// /}" "${w2// /}"',
+    ].join("\n");
+    const result = await shell.exec(script);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "c.ts|file|a,b|-dir|/x,/y|14|6\n");
+  } finally {
+    await shell.dispose();
+  }
+});

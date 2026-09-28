@@ -22917,7 +22917,6 @@ export class Runtime {
       if (fn === "endswith") return typeof item === "string" ? [item.endsWith(arg)] : undefined;
       if (fn === "contains") {
         if (typeof item === "string") return [item.includes(arg)];
-        if (Array.isArray(item) && item.every(x => typeof x === "string")) return [(item as string[]).some(x => x.includes(arg))];
         return undefined;
       }
     }
@@ -23807,6 +23806,14 @@ export class Runtime {
             const at = aToks[ti]!;
             if (!at.startsWith("$") && at !== "NR" && at !== "NF" && !/^-?[0-9]+(?:\.[0-9]+)?$/.test(at) && !userVars.has(at)) return undefined;
           }
+          // Admission must rule out errors before a loop starts emitting output.
+          // Field and variable divisors can become zero on a later record.
+          for (let ti = 1; ti < aToks.length; ti += 2) {
+            if (aToks[ti] === "/" || aToks[ti] === "%") {
+              const divisor = Number(aToks[ti + 1]);
+              if (!Number.isFinite(divisor) || divisor === 0) return undefined;
+            }
+          }
           parts.push({ kind: "arith", tokens: aToks });
         }
         else if (m[9] !== undefined) parts.push({ kind: "nf_minus", offset: Number(m[9]!) });
@@ -23916,7 +23923,7 @@ export class Runtime {
           for (let oi = 0; oi < addOps.length; oi++) {
             acc = addOps[oi] === "+" ? acc + addVals[oi + 1]! : acc - addVals[oi + 1]!;
           }
-          out += Number.isInteger(acc) ? String(acc) : Number(acc.toPrecision(6)).toString();
+          out += awkValueText(awkNumeric(acc));
         } else if (p.kind === "length") {
           const idx = p.token === "NF" ? fields.length : Number(p.token);
           const s = idx === 0 ? l : (idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "");
@@ -24297,8 +24304,12 @@ export class Runtime {
         while (offset < l.length && (l[offset] === " " || l[offset] === "\t")) offset++;
         while (offset < l.length && l[offset] !== " " && l[offset] !== "\t") offset++;
       }
-      offset += skipChars;
-      const sub = checkChars === Infinity ? l.slice(offset) : l.slice(offset, offset + checkChars);
+      if (skipChars === 0 && checkChars === Infinity) {
+        const sub = l.slice(offset);
+        return ignoreCase ? sub.toLowerCase() : sub;
+      }
+      const chars = Array.from(l.slice(offset));
+      const sub = (checkChars === Infinity ? chars.slice(skipChars) : chars.slice(skipChars, skipChars + checkChars)).join("");
       return ignoreCase ? sub.toLowerCase() : sub;
     };
     const outLines: string[] = [];

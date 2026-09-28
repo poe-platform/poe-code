@@ -2112,6 +2112,7 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
   const onlyRepeated = parsed.flags.has("d");
   const onlyUnique = parsed.flags.has("u");
   const identityKey = skipFields === 0 && skipCharacters === 0 && width === Infinity && !ignoreCase;
+  const uniqDecoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
   const key = (bytes: Uint8Array) => {
     if (identityKey) return bytes;
     let offset = 0;
@@ -2119,8 +2120,16 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
       while (offset < bytes.length && (bytes[offset] === 32 || bytes[offset] === 9)) offset++;
       while (offset < bytes.length && bytes[offset] !== 32 && bytes[offset] !== 9) offset++;
     }
-    offset += skipCharacters;
-    const result = bytes.subarray(offset, width === Infinity ? undefined : offset + width);
+    let result: Uint8Array;
+    try {
+      const chars = Array.from(uniqDecoder.decode(bytes.subarray(offset)));
+      result = encoder.encode((width === Infinity ? chars.slice(skipCharacters) : chars.slice(skipCharacters, skipCharacters + width)).join(""));
+    } catch (error) {
+      if (!(error instanceof TypeError)) throw error;
+      // Invalid UTF-8 records retain byte comparisons without replacement characters.
+      offset += skipCharacters;
+      result = bytes.subarray(offset, width === Infinity ? undefined : offset + width);
+    }
     return ignoreCase ? fold(result) : result;
   };
   const records = (async function* (): ByteSource {

@@ -1,4 +1,4 @@
-import { FsError, outputFailure, type ByteSink, type CommandDefinition } from "safe-bash-contracts";
+import { FsError, outputFailure, type ByteSink, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import { Budget, LineEndingError, sameIdentity, settings, type ConversionOptions, type Direction, type LineEndingCommandsOptions } from "safe-bash-line-ending-engine/internal";
 import { Lifecycle, Reader, Writer } from "safe-bash-line-ending-engine/io";
@@ -223,4 +223,18 @@ function definition(direction: Direction, options: LineEndingCommandsOptions): C
 export function createDos2unixCommand(options: LineEndingCommandsOptions = {}): CommandDefinition { return definition("dos2unix", options); }
 export function createUnix2dosCommand(options: LineEndingCommandsOptions = {}): CommandDefinition { return definition("unix2dos", options); }
 
-export type { LineEndingCommandsOptions, LineEndingLimits } from "safe-bash-line-ending-engine";
+export function createDos2unixCommands(options: LineEndingCommandsOptions = {}): readonly CommandDefinition[] {
+  return [createDos2unixCommand(options), createUnix2dosCommand(options)];
+}
+
+export function dos2unixCommands(options: LineEndingCommandsOptions = {}): VirtualShellPlugin {
+  const commands = createDos2unixCommands(options);
+  return { name: "line-ending-commands", setup(host) {
+    for (const command of commands) host.commands.register(command, { replace: options.replace ?? false });
+  } };
+}
+
+export type {
+  LineEndingCommandsOptions, LineEndingLimits,
+  LineEndingCommandsOptions as Dos2unixCommandsOptions, LineEndingLimits as Dos2unixLimits,
+} from "safe-bash-line-ending-engine";

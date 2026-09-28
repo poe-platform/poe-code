@@ -28,7 +28,9 @@ try {
 | `-k`, `-q`, `-i[FLAGS]` | Preserve dates, suppress diagnostics, inspect files |
 
 The public factories `createDos2unixCommand`, `createUnix2dosCommand` and
-`createLineEndingCommands` also support direct registry composition. These
+`createDos2unixCommands` also support direct registry composition. The collection
+and plugin are available as `createLineEndingCommands` / `lineEndingCommands` and
+`createDos2unixCommands` / `dos2unixCommands`. These
 commands are already included by `agentCommands()`; explicit registration uses
 the same collision policy and requires `replace: true` to replace existing names.
 

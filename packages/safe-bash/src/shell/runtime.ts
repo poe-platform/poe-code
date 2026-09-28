@@ -10638,7 +10638,10 @@ export class Runtime {
         canMutatePipeStatus
       ) {
         if ((command.words[1]?.plain === "-a" || command.words[1]?.plain === "-A")) {
-          if (command.words.length < 3) return undefined;
+          // A later operand can require async expansion after an earlier array
+          // has already changed. Handle multiple operands before any mutation
+          // so fallback cannot replay appends or local binding creation.
+          if (command.words.length !== 3) return undefined;
           const wantAssoc = command.words[1]!.plain === "-A";
           const arrStore = monitor.store ?? requireArrays(rawState);
           const isLocalScope = rawState.locals.length > 0;

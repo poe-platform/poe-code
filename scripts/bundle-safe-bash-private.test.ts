@@ -196,3 +196,14 @@ it("keeps portable private Git factories importable outside Workers", async () =
   const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
   expect(imports.filter(entry => entry.path.endsWith(".wasm"))).toEqual([]);
 });
+
+
+it("keeps Node prebundling out of portable image command artifacts", async () => {
+  const name = "safe-bash-command-sips";
+  const { default: pkg } = await import("../packages/safe-bash-command-sips/package.json", { with: { type: "json" } });
+  const profile = { version: pkg.version, dependencies: pkg.dependencies, devDependencies: pkg.devDependencies, portable: true };
+  const options = resolvePrivateCommandBuild(import.meta.dirname + "/..", { [name]: profile }, [{ dir: name, pkg }], { alias: {}, external: ["safe-bash-contracts", "@poe-code/safe-fs/core", "node:*"], portable: true });
+  const result = await build({ ...options, metafile: true });
+  const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
+  expect(imports.filter(entry => entry.path.startsWith("node:"))).toEqual([]);
+});

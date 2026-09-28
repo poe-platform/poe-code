@@ -9536,6 +9536,7 @@ export class Runtime {
           }
         }
         if (allValidLocal && parsedLocals.length > 0) {
+          if (rawState.locals.length === 0 && parsedLocals.some(item => item.val === undefined && !rawState.variableAttributes?.has(item.name))) return undefined;
           const locals = rawState.locals.length > 0 ? rawState.locals[rawState.locals.length - 1]! : undefined;
           const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
           this.budget.tick();

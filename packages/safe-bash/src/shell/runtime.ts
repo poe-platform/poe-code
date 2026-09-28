@@ -7672,6 +7672,7 @@ export class Runtime {
             break;
           }
         }
+        if (isAttrDecl && command.words.slice(2).some(word => word.plain !== undefined && rawState.variableAttributes?.get(word.plain)?.includes("n"))) return false;
         if (allValidLocal) return true;
       }
       if ( (w0Plain === ":" || w0Plain === "true" || w0Plain === "false") && command.words.length <= 16 && !hasShellFunction(rawState, w0Plain) && !rawState.extensions?.builtins.has(w0Plain) && command.words.slice(1).every(isNoBraceSyncWord)) {
@@ -10323,6 +10324,7 @@ export class Runtime {
             break;
           }
         }
+        if (isAttrDecl && parsedLocals.some(item => rawState.variableAttributes?.get(item.name)?.includes("n"))) return undefined;
         if (isNamerefDecl && allValidLocal) {
           for (let i = 0; i < parsedLocals.length; i++) {
             const it = parsedLocals[i]!;

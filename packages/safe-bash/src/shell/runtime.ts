@@ -17962,9 +17962,10 @@ export class Runtime {
               const ifsVal = monitor?.values.get("IFS", rawVars.IFS ?? " ") ?? rawVars.IFS ?? " ";
               if (validElemOp && typeof ifsVal === "string" && (ifsVal.length === 0 || ifsVal.charCodeAt(0) < 128)) {
                 const sep = (selector.separator as string) === "@" && (!isKeys || ifsVal.length === 0) ? " " : ifsVal.length > 0 ? ifsVal[0]! : "";
+                const parameterLine = part.line ?? overrideDiagnosticLine;
                 const evalSliceInt = (w: Word): number | undefined => {
                   if (w.parts.length === 0) return 0;
-                  const expanded = this.fastValueWord(w, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
+                  const expanded = this.fastValueWord(w, rawState, io, false, false, false, false, undefined, parameterLine);
                   if (typeof expanded !== "string") return undefined;
                   const trimmed = expanded.trim();
                   if (trimmed.length === 0) return 0;
@@ -18145,9 +18146,10 @@ export class Runtime {
           if ( part.length || part.operator !== undefined || this.budget.limits.maxExpansionBytes !== Infinity || rawState.depth + (io.parameterDepth ?? 0) >= 60 || !part.substring.offset.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring)) || (part.substring.length && !part.substring.length.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring))) || ValueScope.prototype.reserve !== defaultValueScopeReserve || String.prototype.codePointAt !== defaultStringCodePointAt || globalThis.Float64Array !== defaultFloat64Array || (!part.substring.offset.parts.length && !part.substring.length)) {
             return undefined;
           }
+          const parameterLine = part.line ?? overrideDiagnosticLine;
           const evalSubInt = (w: Word): number | undefined => {
             if (w.parts.length === 0) return 0;
-            const expanded = this.fastValueWord(w, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
+            const expanded = this.fastValueWord(w, rawState, io, false, false, false, false, undefined, parameterLine);
             if (typeof expanded !== "string") return undefined;
             const trimmed = expanded.trim();
             if (trimmed.length === 0) return 0;
@@ -18204,7 +18206,8 @@ export class Runtime {
         }
         if (part.operator !== undefined) {
           if (this.budget.limits.maxExpansionBytes !== Infinity || rawState.depth + (io.parameterDepth ?? 0) >= 60 || ValueScope.prototype.reserve !== defaultValueScopeReserve || String.prototype.codePointAt !== defaultStringCodePointAt || globalThis.Float64Array !== defaultFloat64Array) return undefined;
-          if ( !rawState.nocasematch && (part.operator === "/" || part.operator === "//" || part.operator === "/#" || part.operator === "/%") && part.alternate && part.alternate.parts.length >= 1 && part.alternate.parts.every(p => p.quoted === part.alternate!.parts[0]!.quoted && ((p.kind === "text" && !p.byteValue) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name)))) && (!part.replacement || part.replacement.parts.length === 0 || part.replacement.parts.every(p => (p.kind === "text" && !p.byteValue) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))))
+          const patternQuoted = part.alternate?.parts[0]?.quoted;
+          if ( !rawState.nocasematch && (part.operator === "/" || part.operator === "//" || part.operator === "/#" || part.operator === "/%") && part.alternate && part.alternate.parts.length >= 1 && part.alternate.parts.every(p => p.quoted === patternQuoted && ((p.kind === "text" && !p.byteValue) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name)))) && (!part.replacement || part.replacement.parts.length === 0 || part.replacement.parts.every(p => (p.kind === "text" && !p.byteValue) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))))
           ) {
             const patQuoted = part.alternate.parts[0]!.quoted;
             const pat = (part.alternate.parts.length === 1 && part.alternate.parts[0]!.kind === "text")
@@ -18260,7 +18263,7 @@ export class Runtime {
             out += replaced;
             continue;
           }
-          if ( (part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") && part.alternate && part.alternate.parts.length >= 1 && part.alternate.parts.every(p => p.quoted === part.alternate!.parts[0]!.quoted && ((p.kind === "text" && !p.byteValue) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))))) {
+          if ( (part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") && part.alternate && part.alternate.parts.length >= 1 && part.alternate.parts.every(p => p.quoted === patternQuoted && ((p.kind === "text" && !p.byteValue) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))))) {
             const patQuoted = part.alternate.parts[0]!.quoted;
             const pat = (part.alternate.parts.length === 1 && part.alternate.parts[0]!.kind === "text")
               ? part.alternate.parts[0]!.value

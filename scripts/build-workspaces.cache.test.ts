@@ -127,12 +127,15 @@ describe("workspace build caching", () => {
       maxDirectoryBytes: 200_000,
       targetDirectoryBytes: 150_000
     });
-    const oldKey = "a".repeat(64);
-    const newKey = "b".repeat(64);
-    cache.write(oldKey, { success: true, payload: "x".repeat(140 * 1024 * 1024) });
-    expect(cache.read(oldKey)?.success).toBe(true);
-    cache.write(newKey, { success: true, payload: "y".repeat(140 * 1024 * 1024) });
+    const coldKey = "a".repeat(64);
+    const warmKey = "b".repeat(64);
+    const newKey = "c".repeat(64);
+    cache.write(coldKey, { success: true, payload: "x".repeat(140 * 1024 * 1024) });
+    cache.write(warmKey, { success: true, payload: "y".repeat(40 * 1024 * 1024) });
+    expect(cache.read(warmKey)?.success).toBe(true);
+    cache.write(newKey, { success: true, payload: "z".repeat(40 * 1024 * 1024) });
     expect(cache.read(newKey)?.success).toBe(true);
-    expect(cache.read(oldKey)).toBeNull();
+    expect(cache.read(warmKey)?.success).toBe(true);
+    expect(cache.read(coldKey)).toBeNull();
   });
 });

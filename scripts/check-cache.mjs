@@ -378,17 +378,27 @@ export function createCheckCache({
   directory = checkCacheDirectory(),
   fileSystem = fs,
   fallbackDirectory = fileSystem === fs ? path.resolve(os.tmpdir(), "poe-code", "checks-v1") : undefined,
-  maxDirectoryBytes = 300 * 1024 * 1024,
-  targetDirectoryBytes = 200 * 1024 * 1024
+  maxDirectoryBytes = 800 * 1024 * 1024,
+  targetDirectoryBytes = 600 * 1024 * 1024
 } = {}) {
   let writableDirectory = directory;
   const filename = (key, baseDirectory = directory) => {
     assert.ok(typeof key === "string" && key.length === 64 && [...key].every(character => "0123456789abcdef".includes(character)), "Invalid cache key");
     return path.join(baseDirectory, key + ".json.gz");
   };
+  let accessCounter = 0;
+  const touchFile = file => {
+    try {
+      const now = new Date(Date.now() + (++accessCounter));
+      fileSystem.utimesSync?.(file, now, now);
+    } catch {}
+  };
   const readFrom = (key, baseDirectory) => {
     try {
-      return JSON.parse(gunzipSync(fileSystem.readFileSync(filename(key, baseDirectory)), { maxOutputLength: 512 * 1024 * 1024 }).toString("utf8"));
+      const file = filename(key, baseDirectory);
+      const parsed = JSON.parse(gunzipSync(fileSystem.readFileSync(file), { maxOutputLength: 512 * 1024 * 1024 }).toString("utf8"));
+      touchFile(file);
+      return parsed;
     } catch (error) {
       if (error.code === "EACCES" || error.code === "EPERM") throw error;
       return null;
@@ -433,7 +443,8 @@ export function createCheckCache({
         }
       }
       fileSystem.renameSync(temporary, destination);
-      if (compressed.length > 1024 * 1024 || maxDirectoryBytes < 300 * 1024 * 1024) {
+      touchFile(destination);
+      if (compressed.length > 1024 * 1024 || maxDirectoryBytes < 800 * 1024 * 1024) {
         pruneDirectory(baseDirectory, path.basename(destination));
       }
     } finally {

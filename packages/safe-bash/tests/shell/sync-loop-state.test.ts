@@ -628,3 +628,34 @@ test("wave 102 sync loop: grep -Eo [0-9]+, multi-expression sed (; and -e -e), n
     await shell.dispose();
   }
 });
+
+test("wave 103 sync loop: printf and printf -v with dynamic %s variables, parameter expansions, %c, and hex/octal escapes", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  const commands = new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands()]);
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands });
+  try {
+    const script = [
+      "s=\"alpha beta\"",
+      "raw=\"user_name:admin_role:42\"",
+      "prefix=\"item\"",
+      "for ((i=0; i<10; i++)); do",
+      "  read -r a b <<< \"$s\"",
+      "  printf -v out \"%s:%s:%d\" \"$a\" \"$b\" \"$i\"",
+      "  u=\"${raw%%:*}\"",
+      "  rest=\"${raw#*:}\"",
+      "  r=\"${rest%:*}\"",
+      "  printf -v msg \"[%04d] %-10s -> %s (%d)\" \"$((i + 1))\" \"$u\" \"${r^^}\" \"${#u}\"",
+      "  p=$(printf \"%s-%03d\" \"$prefix\" \"$i\" | tr a-z A-Z)",
+      "  c=$(printf \"%c\" \"xyz\")",
+      "  h=$(printf \"\\x41\\102\")",
+      "done",
+      "printf \"%s|%s|%s|%s|%s\\n\" \"$out\" \"$msg\" \"$p\" \"$c\" \"$h\"",
+    ].join("\n");
+    const result = await shell.exec(script);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "alpha:beta:9|[0010] user_name  -> ADMIN_ROLE (9)|ITEM-009|x|AB\n");
+  } finally {
+    await shell.dispose();
+  }
+});

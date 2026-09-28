@@ -277,6 +277,44 @@ export function tryFastPrintf(args: readonly string[]): string | undefined {
         if (next === 116) { result += "\t"; offset += 2; continue; }
         if (next === 114) { result += "\r"; offset += 2; continue; }
         if (next === 92) { result += "\\"; offset += 2; continue; }
+        if (next === 97) { result += "\x07"; offset += 2; continue; }
+        if (next === 98) { result += "\b"; offset += 2; continue; }
+        if (next === 102) { result += "\f"; offset += 2; continue; }
+        if (next === 118) { result += "\v"; offset += 2; continue; }
+        if (next === 101 || next === 69) { result += "\x1b"; offset += 2; continue; }
+        if (next === 34) { result += "\""; offset += 2; continue; }
+        if (next === 39) { result += "'"; offset += 2; continue; }
+        if (next >= 48 && next <= 55) {
+          let cur = offset + 1;
+          const end = Math.min(format.length, cur + 3);
+          let val = 0;
+          while (cur < end && format.charCodeAt(cur) >= 48 && format.charCodeAt(cur) <= 55) {
+            val = val * 8 + (format.charCodeAt(cur++) - 48);
+          }
+          const byte = val & 255;
+          if (byte === 0 || byte >= 128) return undefined;
+          result += String.fromCharCode(byte);
+          offset = cur;
+          continue;
+        }
+        if (next === 120) {
+          let cur = offset + 2;
+          const end = Math.min(format.length, cur + 2);
+          let val = 0;
+          let digits = 0;
+          while (cur < end) {
+            const d = format.charCodeAt(cur);
+            const n = d >= 48 && d <= 57 ? d - 48 : d >= 65 && d <= 70 ? d - 55 : d >= 97 && d <= 102 ? d - 87 : -1;
+            if (n < 0) break;
+            val = val * 16 + n;
+            digits++;
+            cur++;
+          }
+          if (digits === 0 || val === 0 || val >= 128) return undefined;
+          result += String.fromCharCode(val);
+          offset = cur;
+          continue;
+        }
         return undefined;
       }
       if (ch !== 37) {
@@ -326,16 +364,44 @@ export function tryFastPrintf(args: readonly string[]): string | undefined {
       if (conv === 115 && !zeroPad) {
         const rawVal = args[argument++] ?? "";
         if (rawVal.includes("\0")) return undefined;
-        // String slicing and padding match byte semantics only for ASCII.
+        let val = rawVal;
+        let valByteLen = rawVal.length;
         if (precision >= 0 || width > 0) {
-          for (let i = 0; i < rawVal.length; i++) if (rawVal.charCodeAt(i) >= 128) return undefined;
+          let isAscii = true;
+          for (let i = 0; i < rawVal.length; i++) {
+            if (rawVal.charCodeAt(i) >= 128) { isAscii = false; break; }
+          }
+          if (isAscii) {
+            if (precision >= 0 && precision < rawVal.length) {
+              val = rawVal.slice(0, precision);
+              valByteLen = val.length;
+            }
+          } else if (precision < 0) {
+            valByteLen = Buffer.byteLength(rawVal, "utf8");
+          } else {
+            return undefined;
+          }
         }
-        const val = precision >= 0 ? rawVal.slice(0, precision) : rawVal;
-        if (width > val.length) {
-          const pad = " ".repeat(width - val.length);
+        if (width > valByteLen) {
+          const pad = " ".repeat(width - valByteLen);
           result += leftAlign ? val + pad : pad + val;
         } else {
           result += val;
+        }
+        offset = cur + 1;
+        continue;
+      }
+      if (conv === 99 && !zeroPad) {
+        const rawVal = args[argument++] ?? "";
+        if (rawVal.length === 0) return undefined;
+        const c0 = rawVal.charCodeAt(0);
+        if (c0 === 0 || c0 >= 128) return undefined;
+        const ch0 = rawVal[0]!;
+        if (width > 1) {
+          const pad = " ".repeat(width - 1);
+          result += leftAlign ? ch0 + pad : pad + ch0;
+        } else {
+          result += ch0;
         }
         offset = cur + 1;
         continue;
@@ -417,6 +483,119 @@ export function tryFastPrintf(args: readonly string[]): string | undefined {
     if (argument <= before) break;
   } while (argument < args.length);
   return result;
+}
+
+
+export type FastPrintfSpecKind = "s" | "s_prec" | "c" | "d" | "u";
+
+export function extractFastPrintfSpecifiers(format: string): readonly FastPrintfSpecKind[] | undefined {
+  if (format.length > 256) return undefined;
+  const specs: FastPrintfSpecKind[] = [];
+  for (let offset = 0; offset < format.length;) {
+    const ch = format.charCodeAt(offset);
+    if (ch === 92) {
+      const next = format.charCodeAt(offset + 1);
+      if (
+        next === 110 || next === 116 || next === 114 || next === 92 ||
+        next === 97 || next === 98 || next === 102 || next === 118 ||
+        next === 101 || next === 69 || next === 34 || next === 39
+      ) {
+        offset += 2;
+        continue;
+      }
+      if (next >= 48 && next <= 55) {
+        let cur = offset + 1;
+        const end = Math.min(format.length, cur + 3);
+        let val = 0;
+        while (cur < end && format.charCodeAt(cur) >= 48 && format.charCodeAt(cur) <= 55) {
+          val = val * 8 + (format.charCodeAt(cur++) - 48);
+        }
+        if ((val & 255) === 0 || (val & 255) >= 128) return undefined;
+        offset = cur;
+        continue;
+      }
+      if (next === 120) {
+        let cur = offset + 2;
+        const end = Math.min(format.length, cur + 2);
+        let val = 0;
+        let digits = 0;
+        while (cur < end) {
+          const d = format.charCodeAt(cur);
+          const n = d >= 48 && d <= 57 ? d - 48 : d >= 65 && d <= 70 ? d - 55 : d >= 97 && d <= 102 ? d - 87 : -1;
+          if (n < 0) break;
+          val = val * 16 + n;
+          digits++;
+          cur++;
+        }
+        if (digits === 0 || val === 0 || val >= 128) return undefined;
+        offset = cur;
+        continue;
+      }
+      return undefined;
+    }
+    if (ch !== 37) {
+      offset++;
+      continue;
+    }
+    const spec = format.charCodeAt(offset + 1);
+    if (spec === 37) {
+      offset += 2;
+      continue;
+    }
+    let cur = offset + 1;
+    let leftAlign = false;
+    let zeroPad = false;
+    while (cur < format.length) {
+      const fc = format.charCodeAt(cur);
+      if (fc === 45) { leftAlign = true; cur++; }
+      else if (fc === 48) { zeroPad = true; cur++; }
+      else break;
+    }
+    if (leftAlign) zeroPad = false;
+    let width = 0;
+    while (cur < format.length) {
+      const dc = format.charCodeAt(cur);
+      if (dc < 48 || dc > 57) break;
+      width = width * 10 + (dc - 48);
+      if (width > 128) return undefined;
+      cur++;
+    }
+    let precision = -1;
+    if (format.charCodeAt(cur) === 46) {
+      cur++;
+      precision = 0;
+      while (cur < format.length) {
+        const dc = format.charCodeAt(cur);
+        if (dc < 48 || dc > 57) break;
+        precision = precision * 10 + (dc - 48);
+        if (precision > 128) return undefined;
+        cur++;
+      }
+    }
+    const conv = format.charCodeAt(cur);
+    if (conv === 115 && !zeroPad) {
+      specs.push(precision < 0 ? "s" : "s_prec");
+      offset = cur + 1;
+      continue;
+    }
+    if (conv === 99 && !zeroPad) {
+      specs.push("c");
+      offset = cur + 1;
+      continue;
+    }
+    if (conv === 100 || conv === 105) {
+      specs.push("d");
+      offset = cur + 1;
+      continue;
+    }
+    if (conv === 120 || conv === 88 || conv === 111 || conv === 117) {
+      specs.push("u");
+      offset = cur + 1;
+      continue;
+    }
+    return undefined;
+  }
+  return specs;
 }
 
 export const printfCommand = define("printf", formatPrintf, 1, 1);

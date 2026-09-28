@@ -72,7 +72,7 @@ import { bindFileOutputBudget, openFileOutput } from "../contracts/filesystem-ou
 import type { CommandFileDescriptor } from "../contracts/filesystem-descriptor.js";
 import { outputFailure } from "../contracts/io.js";
 import { executionCommands } from "../commands/execution.js";
-import { defaultEchoExecutors, formatPrintf, printfCommand, tryFastPrintf } from "../commands/basic.js";
+import { defaultEchoExecutors, extractFastPrintfSpecifiers, formatPrintf, printfCommand, tryFastPrintf } from "../commands/basic.js";
 import { defaultMkdirExecutors, defaultRmExecutors } from "../commands/filesystem.js";
 export const customRegisteredCommands = new WeakSet<object>();
 export const customRegisteredRegistries = new WeakSet<CommandRegistry>();
@@ -11920,9 +11920,7 @@ export class Runtime {
           }
         }
         if (w0Plain === "printf") {
-          const fmtW = cmd.words[1];
-          const fmtP = fmtW?.plain ?? (fmtW?.parts.length === 1 && fmtW.parts[0]!.kind === "text" ? fmtW.parts[0]!.value : undefined);
-          if (fmtP === undefined || fmtP.startsWith("-") || !/^(?:[^%]|%%|%[-0]*\d*(?:\.\d+)?[sdxXouc]|\\n)*$/.test(fmtP)) return false;
+          if (!this.isSyncPrintfCallOk(cmd, 1, rawState, this._activePrintfInductionName)) return false;
         } else if (w0Plain === "echo") {
           if (cmd.words.length > 1 && (cmd.words[1]!.plain === undefined ? cmd.words[1]!.parts[0]?.kind === "text" && cmd.words[1]!.parts[0]!.value.startsWith("-") : cmd.words[1]!.plain!.startsWith("-"))) return false;
         } else if (w0Plain === "dirname" || w0Plain === "basename") {
@@ -11959,22 +11957,7 @@ export class Runtime {
         if (p.commands.length >= 2) {
           if ((w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "seq" && w0Plain !== "cat" && !hasSingleHereStringRedir) || syncPurePipelineSlotInUse || !this.budget.canSyncPurePipe || rawState.errexit || rawState.nounset) return false;
           if (w0Plain === "printf") {
-            const fmtW0 = cmd.words[1];
-            const fmtP0 = fmtW0?.plain ?? (fmtW0?.parts.length === 1 && fmtW0.parts[0]!.kind === "text" ? fmtW0.parts[0]!.value : undefined);
-            // Only conversions whose support is independent of future operands
-            // can bypass literal-call validation.
-            let isStringOnlyPrintf = fmtP0 !== undefined && !fmtP0.startsWith("-");
-            if (fmtP0 !== undefined) for (let i = 0; i < fmtP0.length; i++) {
-              const char = fmtP0[i];
-              if (char === "%") {
-                const conversion = fmtP0[++i];
-                if (conversion !== "s" && conversion !== "%") isStringOnlyPrintf = false;
-              } else if (char === "\\") {
-                const escape = fmtP0[++i];
-                if (escape !== "n" && escape !== "t" && escape !== "r" && escape !== "\\") isStringOnlyPrintf = false;
-              }
-            }
-            if (!isStringOnlyPrintf && !this.isSyncPrintfCallOk(cmd, 1, rawState)) return false;
+            if (!this.isSyncPrintfCallOk(cmd, 1, rawState, this._activePrintfInductionName)) return false;
           }
           for (let sIdx = 1; sIdx < p.commands.length; sIdx++) {
             const sCmd = p.commands[sIdx]!;
@@ -12578,9 +12561,9 @@ export class Runtime {
               ifOk = false;
               break;
             }
-            if (!this.canSyncLoopBody(br.body, rawState, io, true)) { ifOk = false; break; }
+            if (!this.canSyncLoopBody(br.body, rawState, io, true, printfInductionName)) { ifOk = false; break; }
           }
-          if (ifOk && cmd.otherwise && !this.canSyncLoopBody(cmd.otherwise, rawState, io, true)) ifOk = false;
+          if (ifOk && cmd.otherwise && !this.canSyncLoopBody(cmd.otherwise, rawState, io, true, printfInductionName)) ifOk = false;
           if (ifOk) continue;
           return false;
         }
@@ -12592,7 +12575,7 @@ export class Runtime {
             const cl = cmd.clauses[ci]!;
             if (cl.terminator !== ";;" && cl.terminator !== "esac") { caseOk = false; break; }
             if (!cl.patterns.every(pw => pw.plain !== undefined && tryMatchesPatternSync(pw.plain, "", work, false, false) !== undefined)) { caseOk = false; break; }
-            if (!this.canSyncLoopBody(cl.body, rawState, io, true)) { caseOk = false; break; }
+            if (!this.canSyncLoopBody(cl.body, rawState, io, true, printfInductionName)) { caseOk = false; break; }
           }
           if (caseOk) continue;
           return false;
@@ -13299,6 +13282,7 @@ export class Runtime {
     const increment = command.kind === "arithmetic-for" ? command.expressions[2]?.tree : undefined;
     const whileCondCmd = command.kind === "while" && command.condition.lists.length === 1 && command.condition.lists[0]!.pipelines.length === 1 ? command.condition.lists[0]!.pipelines[0]!.commands[0] : undefined;
     const whilePrintfInd = whileCondCmd?.kind === "arithmetic" && !whileCondCmd.expression.error && whileCondCmd.expression.tree?.kind === "binary" && (whileCondCmd.expression.tree.left.kind === "name" ? whileCondCmd.expression.tree.left.name : (whileCondCmd.expression.tree.left.kind === "unary" && whileCondCmd.expression.tree.left.operand.kind === "name" ? whileCondCmd.expression.tree.left.operand.name : undefined));
+    const forPrintfInd = command.kind === "for" && command.words?.length === 1 && /^\{[0-9]{1,4}\.\.[0-9]{1,4}(?:\.\.[1-9][0-9]{0,2})?\}$/.test(command.words[0]!.plain ?? "") ? command.name : undefined;
     const printfInductionName =
       initializer?.kind === "binary" && initializer.operator === "=" && initializer.left.kind === "name" &&
       initializer.right.kind === "literal" && initializer.right.value >= 0n && initializer.right.value <= 2000n &&
@@ -13306,10 +13290,20 @@ export class Runtime {
       condition.left.kind === "name" && condition.left.name === initializer.left.name &&
       condition.right.kind === "literal" && condition.right.value >= 0n && condition.right.value <= 2000n &&
       increment?.kind === "unary" && increment.operator === "++" && increment.operand.kind === "name" && increment.operand.name === initializer.left.name &&
-      this.canSyncPrintfInductionBody(command.body, rawState)
+      this.canSyncPrintfInductionBody(command.body, rawState, initializer.left.name)
         ? initializer.left.name
-        : (whilePrintfInd && this.canSyncPrintfInductionBody(command.body, rawState) ? whilePrintfInd : undefined);
-    if ((guestArrays(rawState) && (guestArrays(rawState)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) || !this.canSyncLoopBody(command.body, rawState, io, false, printfInductionName)) {
+        : (whilePrintfInd && this.canSyncPrintfInductionBody(command.body, rawState, whilePrintfInd)
+          ? whilePrintfInd
+          : (forPrintfInd && this.canSyncPrintfInductionBody(command.body, rawState, forPrintfInd) ? forPrintfInd : undefined));
+    const prevActivePrintfInd = this._activePrintfInductionName;
+    this._activePrintfInductionName = printfInductionName;
+    let bodySyncOk = false;
+    try {
+      bodySyncOk = !(guestArrays(rawState) && (guestArrays(rawState)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) && this.canSyncLoopBody(command.body, rawState, io, false, printfInductionName);
+    } finally {
+      this._activePrintfInductionName = prevActivePrintfInd;
+    }
+    if (!bodySyncOk) {
       (command as { _skipTrySyncLoop?: boolean })._skipTrySyncLoop = true;
       return undefined;
     }
@@ -13482,6 +13476,7 @@ export class Runtime {
         }
         const wordsToScan = step.arrayAssign?.kind === "compound"
           ? step.arrayAssign.entries.map(e => e.value)
+          : step.printfVArgs ? step.printfVArgs
           : step.value ? [step.value] : [];
         for (let wIdx = 0; wIdx < wordsToScan.length; wIdx++) {
           const wVal = wordsToScan[wIdx]!;
@@ -14539,21 +14534,41 @@ export class Runtime {
     }
     return pos <= 128 ? fastRedirectScratchViews[pos]! : fastRedirectScratchBytes.subarray(0, pos);
   }
-  private canSyncPrintfInductionBody(script: Script, rawState: State): boolean {
-    // Arithmetic, parameter operators and functions can mutate the counter
-    // indirectly. Keep this proof to simple commands and isolated substitutions;
-    // the loop plan separately rejects direct assignments to its counter.
+  private _activePrintfInductionName: string | undefined = undefined;
+  private canSyncPrintfInductionBody(script: Script, rawState: State, inductionName?: string): boolean {
     for (const list of script.lists) for (const pipeline of list.pipelines) for (const command of pipeline.commands) {
       if (command.kind === "arithmetic") {
         if (command.redirects.length === 0 && !command.expression.error && !command.expression.hasSubscript && isSafeSmiProgram(command.expression) && command.expression.tree?.kind === "unary" && (command.expression.tree.operator === "++" || command.expression.tree.operator === "--") && command.expression.tree.operand.kind === "name") continue;
         return false;
       }
       if (command.kind !== "simple" || hasShellFunction(rawState, command.words[0]?.plain ?? "") || command.words.some(word => getArrayAssignment(word) !== undefined)) return false;
+      const w0 = command.words[0]?.plain;
+      if (w0 === "declare" || w0 === "typeset" || w0 === "local" || w0 === "export" || w0 === "unset" || w0 === "mapfile" || w0 === "readarray") return false;
+      if (inductionName !== undefined) {
+        if (command.words.some(w => {
+          const p0 = w.parts[0];
+          return p0?.kind === "text" && !p0.quoted && (p0.value.startsWith(inductionName + "=") || p0.value.startsWith(inductionName + "+="));
+        })) return false;
+        if (w0 === "read" && (inductionName === "REPLY" || command.words.slice(1).some(w => w.plain === inductionName || w.plain === "-a" || w.plain === "-ra" || w.plain === "-ar"))) return false;
+        if (w0 === "printf" && command.words[1]?.plain === "-v" && command.words[2]?.plain === inductionName) return false;
+      }
       for (const word of [...command.words, ...command.redirects.map(redirect => redirect.target)]) for (const part of word.parts) {
         if (part.kind === "text") continue;
-        if (part.kind === "variable" && !part.indirect && !part.length && !part.substring && !part.transform && !part.prefixNames && part.operator === undefined && getArraySelector(part) === undefined) continue;
+        if (
+          part.kind === "variable" &&
+          !part.indirect &&
+          !part.substring &&
+          !part.prefixNames &&
+          getArraySelector(part) === undefined &&
+          (
+            part.operator === undefined ||
+            ((part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") &&
+              part.argument !== undefined &&
+              part.argument.parts.every(p => p.kind === "text"))
+          )
+        ) continue;
         if (part.kind === "arithmetic" && !part.expression.error && !part.expression.hasMutation && !part.expression.hasSubscript && isSafeSmiProgram(part.expression) && /^[a-zA-Z0-9_ +*-]+$/.test(part.expression.source)) continue;
-        if (part.kind === "substitution" && this.canSyncPrintfInductionBody(part.script, rawState)) continue;
+        if (part.kind === "substitution" && this.canSyncPrintfInductionBody(part.script, rawState, inductionName)) continue;
         return false;
       }
     }
@@ -14562,40 +14577,64 @@ export class Runtime {
   private isSyncPrintfCallOk(cmd: Extract<Command, { kind: "simple" }>, argStartIdx: number, rawState: State, inductionName?: string): boolean {
     const printfDef = this.commands.get("printf");
     if (hasShellFunction(rawState, "printf") || rawState.extensions?.builtins.has("printf") || printfDef?.execute !== printfCommand.execute) return false;
-    // Runtime operands can leave the fast formatter's subset after earlier
-    // effects. Admit only literals and the arithmetic plan's bounded induction.
-    const args: string[] = [];
+    const effInductionName = inductionName ?? this._activePrintfInductionName;
     const fmtWordIdx = cmd.words[argStartIdx]?.plain === "--" ? argStartIdx + 1 : argStartIdx;
     if (fmtWordIdx >= cmd.words.length) return false;
-    for (let i = argStartIdx; i < cmd.words.length; i++) {
+    const fmtWord = cmd.words[fmtWordIdx]!;
+    if (!this.isPureSyncValueWord(fmtWord, rawState)) return false;
+    let fmtStr = "";
+    for (const part of fmtWord.parts) {
+      if (part.kind !== "text" || (!part.quoted && (part.value.length === 0 || part.value.includes(" ") || part.value.includes("\t") || part.value.includes("\n") || part.value.includes("{") || hasGlobOrEscape(part.value, true)))) return false;
+      fmtStr += part.value;
+    }
+    if (fmtWordIdx === argStartIdx && fmtStr.startsWith("-")) return false;
+    const specs = extractFastPrintfSpecifiers(fmtStr);
+    if (!specs) return false;
+    const args: string[] = [];
+    if (fmtWordIdx > argStartIdx) args.push("--");
+    args.push(fmtStr);
+    for (let i = fmtWordIdx + 1; i < cmd.words.length; i++) {
       const w = cmd.words[i]!;
       if (!this.isPureSyncValueWord(w, rawState)) return false;
+      const argIdx = i - fmtWordIdx - 1;
+      const spec = specs.length > 0 ? specs[argIdx % specs.length]! : "s";
+      const nonSplitting = w.parts.length > 0 && w.parts.every(part =>
+        part.quoted ||
+        (part.kind === "text" && part.value.length > 0 && !part.value.includes(" ") && !part.value.includes("\t") && !part.value.includes("\n") && !part.value.includes("{") && !hasGlobOrEscape(part.value, true))
+      );
+      if (spec === "s" && nonSplitting) {
+        args.push("");
+        continue;
+      }
       const valueParts = w.parts.filter(part => part.kind !== "text" || part.value.length > 0);
       const part = valueParts[0];
-      if (i > fmtWordIdx && valueParts.length === 1 && part?.kind === "variable" && part.name === inductionName && part.quoted && !part.indirect && !part.length && !part.substring && !part.transform && part.operator === undefined && getArraySelector(part) === undefined) {
-        args.push("0");
-        continue;
-      }
-      if (
-        i > fmtWordIdx &&
-        inductionName !== undefined &&
-        valueParts.length === 1 &&
-        part?.kind === "arithmetic" &&
-        part.quoted &&
-        !part.expression.error &&
-        !part.expression.hasMutation &&
-        !part.expression.hasSubscript &&
-        isSafeSmiProgram(part.expression) &&
-        /^[a-zA-Z0-9_ +*-]+$/.test(part.expression.source) &&
-        this.canSyncArithmeticWithoutFault(part.expression.tree, rawState, cmd.line ?? 1)
-      ) {
-        args.push("0");
-        continue;
+      if ((spec === "d" || spec === "u") && valueParts.length === 1 && part?.quoted) {
+        if (part.kind === "variable" && part.name === effInductionName && !part.indirect && !part.length && !part.substring && !part.transform && part.operator === undefined && getArraySelector(part) === undefined) {
+          args.push("0");
+          continue;
+        }
+        if (part.kind === "variable" && part.length && !part.indirect && !part.prefixNames && getArraySelector(part) === undefined) {
+          args.push("0");
+          continue;
+        }
+        if (
+          part.kind === "arithmetic" &&
+          !part.expression.error &&
+          !part.expression.hasMutation &&
+          !part.expression.hasSubscript &&
+          isSafeSmiProgram(part.expression) &&
+          /^[a-zA-Z0-9_ +*-]+$/.test(part.expression.source) &&
+          this.canSyncArithmeticWithoutFault(part.expression.tree, rawState, cmd.line ?? 1) &&
+          (spec === "d" || (effInductionName !== undefined && /^[0-9 +*]+$/.test(part.expression.source.replaceAll(effInductionName, "0"))))
+        ) {
+          args.push("0");
+          continue;
+        }
       }
       let arg = "";
-      for (const part of w.parts) {
-        if (part.kind !== "text" || (!part.quoted && (part.value.length === 0 || part.value.includes(" ") || part.value.includes("\t") || part.value.includes("\n") || part.value.includes("{") || hasGlobOrEscape(part.value, true)))) return false;
-        arg += part.value;
+      for (const p of w.parts) {
+        if (p.kind !== "text" || (!p.quoted && (p.value.length === 0 || p.value.includes(" ") || p.value.includes("\t") || p.value.includes("\n") || p.value.includes("{") || hasGlobOrEscape(p.value, true)))) return false;
+        arg += p.value;
       }
       args.push(arg);
     }

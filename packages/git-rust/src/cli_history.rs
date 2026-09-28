@@ -5,7 +5,48 @@ use crate::{GitError, MemoryFs, expand_oid, resolve_ref};
 use std::collections::{BTreeMap, BTreeSet};
 
 pub(crate) fn resolve(fs: &MemoryFs, gitdir: &str, revision: &str) -> Result<String, GitError> {
-    resolve_ref(fs, gitdir, revision, None).or_else(|_| expand_oid(fs, gitdir, revision))
+    let split = revision.find(['~', '^']).unwrap_or(revision.len());
+    let mut oid = resolve_ref(fs, gitdir, &revision[..split], None)
+        .or_else(|_| expand_oid(fs, gitdir, &revision[..split]))?;
+    let mut suffix = &revision[split..];
+    while !suffix.is_empty() {
+        let operator = suffix.as_bytes()[0];
+        suffix = &suffix[1..];
+        let digits = suffix.bytes().take_while(u8::is_ascii_digit).count();
+        let count = if digits == 0 {
+            1
+        } else {
+            suffix[..digits]
+                .parse::<usize>()
+                .map_err(|_| GitError::not_found(revision))?
+        };
+        suffix = &suffix[digits..];
+        if !suffix.is_empty() && !suffix.starts_with(['~', '^']) {
+            return Err(GitError::not_found(revision));
+        }
+        if operator == b'^' {
+            if count > 0 {
+                oid = crate::read_commit(fs, gitdir, &oid)?
+                    .commit
+                    .parent
+                    .get(count - 1)
+                    .cloned()
+                    .ok_or_else(|| GitError::not_found(revision))?;
+            } else {
+                crate::read_commit(fs, gitdir, &oid)?;
+            }
+        } else {
+            for _ in 0..count {
+                oid = crate::read_commit(fs, gitdir, &oid)?
+                    .commit
+                    .parent
+                    .first()
+                    .cloned()
+                    .ok_or_else(|| GitError::not_found(revision))?;
+            }
+        }
+    }
+    Ok(oid)
 }
 
 pub(crate) fn matches_path(path: &str, paths: &[String]) -> bool {
@@ -13,6 +54,26 @@ pub(crate) fn matches_path(path: &str, paths: &[String]) -> bool {
         || paths
             .iter()
             .any(|p| p == "." || p == path || path.starts_with(&format!("{p}/")))
+}
+
+pub(crate) fn historical_path(fs: &MemoryFs, gitdir: &str, path: &str) -> bool {
+    let paths = [path.to_string()];
+    if crate::list_files(fs, gitdir, None)
+        .unwrap_or_default()
+        .iter()
+        .any(|p| matches_path(p, &paths))
+    {
+        return true;
+    }
+    log(fs, gitdir, Some("HEAD"), None, None, None, false, false)
+        .unwrap_or_default()
+        .iter()
+        .any(|c| {
+            crate::list_files(fs, gitdir, Some(&c.oid))
+                .unwrap_or_default()
+                .iter()
+                .any(|p| matches_path(p, &paths))
+        })
 }
 
 fn touches_paths(
@@ -107,7 +168,9 @@ pub(crate) fn execute(
             return CliResult::err(129, format!("error: unknown option '{arg}'\n"));
         } else if paths.is_empty() && (arg.contains("..") || resolve(fs, gitdir, arg).is_ok()) {
             revision = arg;
-        } else if fs.exists(&crate::utils::join(&[cwd, arg])) {
+        } else if fs.exists(&crate::utils::join(&[cwd, arg]))
+            || historical_path(fs, gitdir, &repository_path(root, cwd, arg))
+        {
             paths.push(repository_path(root, cwd, arg));
         } else {
             return CliResult::err(
@@ -121,47 +184,60 @@ pub(crate) fn execute(
         return CliResult::ok("");
     }
     let result = (|| {
-        let (exclude, tip) = revision
-            .split_once("..")
-            .map(|(a, b)| {
-                (
-                    Some(if a.is_empty() { "HEAD" } else { a }),
-                    if b.is_empty() { "HEAD" } else { b },
-                )
-            })
-            .unwrap_or((None, revision));
-        let excluded: BTreeSet<_> = match exclude {
-            Some(exclude) => log(
+        let history = |rev: &str| {
+            log(
                 fs,
                 gitdir,
-                Some(&resolve(fs, gitdir, exclude)?),
+                Some(&resolve(
+                    fs,
+                    gitdir,
+                    if rev.is_empty() { "HEAD" } else { rev },
+                )?),
                 None,
                 None,
+                None,
+                false,
+                false,
+            )
+        };
+        let mut commits = if let Some((left, right)) = revision.split_once("...") {
+            let a = history(left)?;
+            let b = history(right)?;
+            let a_ids: BTreeSet<_> = a.iter().map(|c| &c.oid).collect();
+            let b_ids: BTreeSet<_> = b.iter().map(|c| &c.oid).collect();
+            let common: BTreeSet<_> = a_ids.intersection(&b_ids).map(|id| (*id).clone()).collect();
+            let mut commits: Vec<_> = a
+                .into_iter()
+                .chain(b)
+                .filter(|c| !common.contains(&c.oid))
+                .collect();
+            commits.sort_by(|a, b| {
+                b.commit
+                    .committer
+                    .timestamp
+                    .cmp(&a.commit.committer.timestamp)
+            });
+            commits
+        } else if let Some((left, right)) = revision.split_once("..") {
+            let excluded: BTreeSet<_> = history(left)?.into_iter().map(|c| c.oid).collect();
+            history(right)?
+                .into_iter()
+                .filter(|c| !excluded.contains(&c.oid))
+                .collect()
+        } else {
+            log(
+                fs,
+                gitdir,
+                Some(&resolve(fs, gitdir, revision)?),
+                None,
+                if paths.is_empty() { depth } else { None },
                 None,
                 false,
                 false,
             )?
-            .into_iter()
-            .map(|c| c.oid)
-            .collect(),
-            None => BTreeSet::new(),
         };
-        let mut commits = log(
-            fs,
-            gitdir,
-            Some(&resolve(fs, gitdir, tip)?),
-            None,
-            if exclude.is_none() && paths.is_empty() {
-                depth
-            } else {
-                None
-            },
-            None,
-            false,
-            false,
-        )?;
         let mut seen = BTreeSet::new();
-        commits.retain(|c| !excluded.contains(&c.oid) && seen.insert(c.oid.clone()));
+        commits.retain(|c| seen.insert(c.oid.clone()));
         let mut selected = Vec::new();
         for c in commits {
             if depth.is_some_and(|n| selected.len() >= n) {

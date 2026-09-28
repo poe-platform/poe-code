@@ -10,9 +10,7 @@ use crate::commands::worktree::{
 use crate::fs::MemoryFs;
 use crate::http::{HttpClient, MockHttpServer};
 use crate::utils::{Author, join};
-use crate::{
-    current_branch, discover_gitdir, expand_oid, list_branches, list_tags, resolve_ref, version,
-};
+use crate::{current_branch, discover_gitdir, list_branches, list_tags, resolve_ref, version};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CliResult {
@@ -265,6 +263,7 @@ pub fn execute_git_cli_with_http(
                                 _ => ' ',
                             };
                             let wt_char = match (stage, workdir) {
+                                (0, 0) => ' ',
                                 (0, 2) => '?',
                                 (_, 0) => 'D',
                                 (s, w) if s != w => 'M',
@@ -384,11 +383,10 @@ pub fn execute_git_cli_with_http(
         }
         "reset" => {
             let separator = sub_args.iter().position(|a| *a == "--");
-            let target = positionals.first().copied().filter(|a| {
-                resolve_ref(fs, &gitdir, a, None)
-                    .or_else(|_| expand_oid(fs, &gitdir, a))
-                    .is_ok()
-            });
+            let target = positionals
+                .first()
+                .copied()
+                .filter(|a| crate::cli_history::resolve(fs, &gitdir, a).is_ok());
             if target.is_none()
                 && !positionals.is_empty()
                 && separator.is_none()
@@ -401,6 +399,9 @@ pub fn execute_git_cli_with_http(
                     format!("fatal: invalid revision '{}'\n", positionals[0]),
                 );
             }
+            let resolved_target =
+                target.and_then(|t| crate::cli_history::resolve(fs, &gitdir, t).ok());
+            let target = resolved_target.as_deref();
             let paths: Vec<String> = if let Some(i) = separator {
                 sub_args[i + 1..]
                     .iter()
@@ -710,9 +711,7 @@ pub fn execute_git_cli_with_http(
                             revisions.push(arg.to_string());
                         } else if sep.is_none()
                             && (fs.exists(&absolute_path(&effective_cwd, arg))
-                                || list_files(fs, &gitdir, None)
-                                    .unwrap_or_default()
-                                    .contains(&path))
+                                || crate::cli_history::historical_path(fs, &gitdir, &path))
                         {
                             paths.push(path);
                         } else {
@@ -781,16 +780,33 @@ pub fn execute_git_cli_with_http(
                     positionals.first().copied().unwrap_or("HEAD"),
                 ),
                 "restore" => {
-                    let source = sub_args
-                        .windows(2)
-                        .find(|w| w[0] == "--source" || w[0] == "-s")
-                        .map(|w| w[1]);
+                    let mut source = None;
+                    let mut paths = Vec::new();
+                    let mut args = sub_args.iter().copied();
+                    let mut separator = false;
+                    while let Some(arg) = args.next() {
+                        if separator {
+                            paths.push(repository_path(&repo_root, &effective_cwd, arg));
+                        } else if arg == "--" {
+                            separator = true;
+                        } else if matches!(arg, "--source" | "-s") {
+                            let Some(value) = args.next().filter(|v| !v.is_empty()) else {
+                                return CliResult::err(129, "error: missing restore source\n");
+                            };
+                            source = Some(value);
+                        } else if let Some(value) = arg
+                            .strip_prefix("--source=")
+                            .or_else(|| arg.strip_prefix("-s"))
+                        {
+                            if value.is_empty() {
+                                return CliResult::err(129, "error: missing restore source\n");
+                            }
+                            source = Some(value);
+                        } else if !arg.starts_with('-') {
+                            paths.push(repository_path(&repo_root, &effective_cwd, arg));
+                        }
+                    }
                     let staged = sub_args.contains(&"--staged") || sub_args.contains(&"-S");
-                    let paths: Vec<_> = positionals
-                        .iter()
-                        .filter(|p| Some(**p) != source)
-                        .map(|p| repository_path(&repo_root, &effective_cwd, p))
-                        .collect();
                     crate::cli_files::restore(
                         fs,
                         &repo_root,
@@ -916,11 +932,23 @@ pub fn execute_git_cli_with_http(
             if create_new && let Err(e) = branch(fs, &gitdir, ref_target, None, true, false) {
                 return CliResult::err(128, format!("fatal: {}\n", e.message));
             }
+            let resolved_target;
+            let checkout_target = if ref_target.contains(['~', '^']) {
+                match crate::cli_history::resolve(fs, &gitdir, ref_target) {
+                    Ok(oid) => {
+                        resolved_target = oid;
+                        &resolved_target
+                    }
+                    Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+                }
+            } else {
+                ref_target
+            };
             match checkout(
                 fs,
                 &repo_root,
                 Some(&gitdir),
-                Some(ref_target),
+                Some(checkout_target),
                 None,
                 None,
                 false,
@@ -1152,9 +1180,7 @@ pub fn execute_git_cli_with_http(
                     _ => CliResult::ok(format!("{}\n", target.trim_start_matches("refs/heads/"))),
                 };
             }
-            match resolve_ref(fs, &gitdir, target, None)
-                .or_else(|_| expand_oid(fs, &gitdir, target))
-            {
+            match crate::cli_history::resolve(fs, &gitdir, target) {
                 Ok(oid) => CliResult::ok(format!(
                     "{}\n",
                     if sub_args.contains(&"--short") {
@@ -1170,8 +1196,7 @@ pub fn execute_git_cli_with_http(
             let Some(&target) = positionals.last() else {
                 return CliResult::err(128, "fatal: missing object\n");
             };
-            let result = resolve_ref(fs, &gitdir, target, None)
-                .or_else(|_| expand_oid(fs, &gitdir, target))
+            let result = crate::cli_history::resolve(fs, &gitdir, target)
                 .and_then(|oid| crate::read_object(fs, &gitdir, &oid, Some("content"), None, None));
             match result {
                 Ok(obj) if sub_args.contains(&"-t") => CliResult::ok(format!("{}\n", obj.obj_type)),
@@ -1328,7 +1353,7 @@ fn reset_repository(
     hard: bool,
     soft: bool,
 ) -> Result<(), crate::GitError> {
-    let oid = resolve_ref(fs, gitdir, target, None).or_else(|_| expand_oid(fs, gitdir, target))?;
+    let oid = crate::cli_history::resolve(fs, gitdir, target)?;
     if hard {
         let tracked = list_files(fs, gitdir, None)?;
         let target_files = list_files(fs, gitdir, Some(&oid))?;

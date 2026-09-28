@@ -1,7 +1,7 @@
 use crate::commands::plumbing::{read_blob, read_commit};
 use crate::commands::worktree::{collect_tree_map, list_files, reset_index};
 use crate::utils::join;
-use crate::{GitError, GitIndexManager, GitRefManager, MemoryFs};
+use crate::{GitError, GitIndexManager, MemoryFs};
 use std::collections::{BTreeMap, BTreeSet};
 
 type Snapshot = BTreeMap<String, (String, Vec<u8>)>;
@@ -42,8 +42,7 @@ fn snapshot(fs: &MemoryFs, root: &str, gitdir: &str, source: &str) -> Result<Sna
     if source == ":empty" {
         return Ok(BTreeMap::new());
     }
-    let oid = GitRefManager::resolve(fs, gitdir, source, None)
-        .or_else(|_| crate::expand_oid(fs, gitdir, source))?;
+    let oid = crate::cli_history::resolve(fs, gitdir, source)?;
     let mut tree = BTreeMap::new();
     collect_tree_map(fs, gitdir, &oid, "", &mut tree)?;
     tree.into_iter()
@@ -399,13 +398,12 @@ fn patch(a: &str, b: &str, context: usize) -> String {
 
 pub fn show(fs: &MemoryFs, root: &str, gitdir: &str, target: &str) -> Result<String, GitError> {
     if let Some((rev, path)) = target.split_once(':') {
-        let oid = GitRefManager::resolve(fs, gitdir, rev, None)?;
+        let oid = crate::cli_history::resolve(fs, gitdir, rev)?;
         return Ok(
             String::from_utf8_lossy(&read_blob(fs, gitdir, &oid, Some(path))?.blob).to_string(),
         );
     }
-    let oid = GitRefManager::resolve(fs, gitdir, target, None)
-        .or_else(|_| crate::expand_oid(fs, gitdir, target))?;
+    let oid = crate::cli_history::resolve(fs, gitdir, target)?;
     let commit = read_commit(fs, gitdir, &oid)?.commit;
     let mut out = format!(
         "commit {oid}\nAuthor: {} <{}>\n\n    {}\n\n",
@@ -441,6 +439,13 @@ pub fn restore(
     staged: bool,
     worktree: bool,
 ) -> Result<(), GitError> {
+    let resolved;
+    let source = if source.starts_with(':') {
+        source
+    } else {
+        resolved = crate::cli_history::resolve(fs, gitdir, source)?;
+        &resolved
+    };
     let tree = snapshot(fs, root, gitdir, source)?;
     let tracked = list_files(fs, gitdir, None)?;
     let names: BTreeSet<_> = tree.keys().cloned().chain(tracked).collect();

@@ -11866,7 +11866,7 @@ export class Runtime {
           w0Plain === "sort" ||
           w0Plain === "uniq" ||
           w0Plain === "tr" ||
-          (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste"));
+          (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt"));
         const def = w0Plain ? (this.commands.get(w0Plain) ?? ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "jq") ? this.getExternalCommand(w0Plain) : undefined)) : undefined;
         if (!w0Plain || (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq" && !isFileCommand) || !def || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return false;
         if ((hasSingleStdinRedir || hasSingleHereStringRedir) && !isFileCommand) return false;
@@ -11930,6 +11930,9 @@ export class Runtime {
               if (plainOps.length !== opCount || this.evalSyncNl([], plainOps) === undefined) return false;
             } else if (w0Plain === "paste") {
               if (plainOps.length !== opCount || this.evalSyncPaste([], plainOps) === undefined) return false;
+            } else if (w0Plain === "numfmt") {
+              const nmCheck = this.extractLoopInvariantJqInput(cmd, hasSingleStdinRedir, hasSingleHereStringRedir, rawState);
+              if (nmCheck === undefined || plainOps.length !== opCount || this.evalSyncNumfmt(nmCheck.split("\n"), plainOps) === undefined) return false;
             }
           }
         }
@@ -11986,7 +11989,7 @@ export class Runtime {
             if (sCmd.kind !== "simple" || sCmd.redirects.length !== 0 || sCmd.words.length === 0) return false;
             const sName = sCmd.words[0]!.plain;
             // Range-aware tr and Buffer-free 76-col base64 are handled in pipeline stages.
-            if (!sName || (sName !== "cut" && sName !== "tr" && sName !== "sort" && sName !== "head" && sName !== "tail" && sName !== "wc" && sName !== "sed" && sName !== "uniq" && sName !== "rev" && sName !== "awk" && sName !== "grep" && sName !== "jq" && sName !== "base64" && sName !== "tac" && sName !== "nl" && sName !== "paste")) return false;
+            if (!sName || (sName !== "cut" && sName !== "tr" && sName !== "sort" && sName !== "head" && sName !== "tail" && sName !== "wc" && sName !== "sed" && sName !== "uniq" && sName !== "rev" && sName !== "awk" && sName !== "grep" && sName !== "jq" && sName !== "base64" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "numfmt")) return false;
             const sDef = this.commands.get(sName) ?? ((sName === "rev" || sName === "tac" || sName === "nl" || sName === "paste" || sName === "jq") ? this.getExternalCommand(sName) : undefined);
             if (!sDef || customRegisteredCommands.has(sDef.execute) || (sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "jq" && !builtInDirectContextExecutors.has(sDef.execute)) ) return false;
             if (rawState.functions.has(sName) || rawState.extensions?.builtins.has(sName)) return false;
@@ -12032,6 +12035,10 @@ export class Runtime {
               if ((w0Plain !== "echo" && !hasSingleHereStringRedir) || this.evalSyncNl([], sPlainArgs) === undefined) return false;
             } else if (sName === "paste") {
               if (this.evalSyncPaste([], sPlainArgs) === undefined) return false;
+            } else if (sName === "numfmt") {
+              if (sIdx !== 1) return false;
+              const nmCheck = this.extractLoopInvariantJqInput(cmd, hasSingleStdinRedir, hasSingleHereStringRedir, rawState);
+              if (nmCheck === undefined || this.evalSyncNumfmt(nmCheck.split("\n"), sPlainArgs) === undefined) return false;
             } else if (sName === "rev") {
               if (sPlainArgs.length !== 0) return false;
             }
@@ -14681,7 +14688,7 @@ export class Runtime {
       }
       return undefined;
     };
-    if (w0 === "jq") {
+    if (w0 === "jq" || w0 === "numfmt") {
       if (hasSingleHereStringRedir) {
         const resolved = resolveInvariantWord(cmd.redirects[0]!.target);
         return resolved !== undefined ? resolved.trim() : undefined;
@@ -22836,6 +22843,13 @@ export class Runtime {
       return cur;
     }
     if (st === ".") return [item];
+    const dotArithM = /^\.\s*([+*\/%-])\s*(-?[0-9]+(?:\.[0-9]+)?)$/.exec(st);
+    if (dotArithM && typeof item === "number") {
+      const op = dotArithM[1]!;
+      const rhs = Number(dotArithM[2]!);
+      if ((op === "/" || op === "%") && rhs === 0) return undefined;
+      return [op === "+" ? item + rhs : op === "-" ? item - rhs : op === "*" ? item * rhs : op === "/" ? item / rhs : item % rhs];
+    }
     if (st === "floor") return typeof item === "number" ? [Math.floor(item)] : undefined;
     if (st === "ceil") return typeof item === "number" ? [Math.ceil(item)] : undefined;
     if (st === "round") return typeof item === "number" ? [Math.round(item)] : undefined;
@@ -22911,7 +22925,32 @@ export class Runtime {
       if (item.every(x => typeof x === "string")) return [[...(item as string[])].sort()];
       return undefined;
     }
-    const byM = /^(sort_by|unique_by|group_by)\(\s*(\.[a-zA-Z_][a-zA-Z0-9_.]*)\s*\)$/.exec(st);
+    if (st === "tojson") return [JSON.stringify(item)];
+    if (st === "fromjson") {
+      if (typeof item !== "string") return undefined;
+      try { return [JSON.parse(item)]; } catch { return undefined; }
+    }
+    const mvM = /^map_values\(\s*(.+)\s*\)$/.exec(st);
+    if (mvM && item && typeof item === "object") {
+      const subExpr = mvM[1]!;
+      if (Array.isArray(item)) {
+        const outArr: unknown[] = [];
+        for (const el of item) {
+          const r = this.evalSyncJqPathOps(el, subExpr);
+          if (!r || r.length !== 1) return undefined;
+          outArr.push(r[0]);
+        }
+        return [outArr];
+      }
+      const outObj: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(item as Record<string, unknown>)) {
+        const r = this.evalSyncJqPathOps(v, subExpr);
+        if (!r || r.length !== 1) return undefined;
+        outObj[k] = r[0];
+      }
+      return [outObj];
+    }
+    const byM = /^(sort_by|unique_by|group_by|min_by|max_by)\(\s*(\.[a-zA-Z_][a-zA-Z0-9_.]*)\s*\)$/.exec(st);
     if (byM && Array.isArray(item)) {
       const fn = byM[1]!;
       const kPath = byM[2]!;
@@ -22930,6 +22969,8 @@ export class Runtime {
         return sa < sb ? -1 : sa > sb ? 1 : 0;
       };
       keyed.sort((a, b) => cmpK(a.k, b.k));
+      if (fn === "min_by") return [keyed.length > 0 ? keyed[0]!.el : null];
+      if (fn === "max_by") return [keyed.length > 0 ? keyed[keyed.length - 1]!.el : null];
       if (fn === "sort_by") return [keyed.map(p => p.el)];
       if (fn === "unique_by") {
         const u: unknown[] = [];
@@ -23627,10 +23668,25 @@ export class Runtime {
     if (errexit || opArgs.length < 1 || opArgs.length > 8) return undefined;
     let mode = "";
     let maxCount = Infinity;
+    let beforeCtx = 0;
+    let afterCtx = 0;
     const rawPatterns: string[] = [];
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
-      if (a === "-e") {
+      if ((a === "-A" || a === "-B" || a === "-C") && i + 1 < opArgs.length && /^[0-9]{1,4}$/.test(opArgs[i + 1]!)) {
+        const n = Number(opArgs[++i]!);
+        if (a === "-A" || a === "-C") afterCtx = n;
+        if (a === "-B" || a === "-C") beforeCtx = n;
+      } else if (/^-[ABC][0-9]{1,4}$/.test(a)) {
+        const n = Number(a.slice(2));
+        if (a[1] === "A" || a[1] === "C") afterCtx = n;
+        if (a[1] === "B" || a[1] === "C") beforeCtx = n;
+      } else if (/^--(?:after-context|before-context|context)=[0-9]{1,4}$/.test(a)) {
+        const eq = a.indexOf("=");
+        const n = Number(a.slice(eq + 1));
+        if (a.startsWith("--after") || a.startsWith("--context")) afterCtx = n;
+        if (a.startsWith("--before") || a.startsWith("--context")) beforeCtx = n;
+      } else if (a === "-e") {
         if (i + 1 >= opArgs.length) return undefined;
         rawPatterns.push(opArgs[++i]!);
       } else if (a.startsWith("-e") && a.length > 2) {
@@ -23672,7 +23728,8 @@ export class Runtime {
     const isExtended = mode.includes("E");
     const isFixed = mode.includes("F");
     const isOnlyMatching = mode.includes("o");
-    if (isCount && (isLineNumber || isOnlyMatching)) return undefined;
+    if (isCount && (isLineNumber || isOnlyMatching || beforeCtx > 0 || afterCtx > 0)) return undefined;
+    if (isOnlyMatching && (beforeCtx > 0 || afterCtx > 0)) return undefined;
     if (isOnlyMatching) {
       if (rawPatterns.length !== 1 || isInvert || isLineRegexp || isWordRegexp || isFixed) return undefined;
       const pat = rawPatterns[0]!;
@@ -23746,6 +23803,7 @@ export class Runtime {
       return false;
     };
     const matched: string[] = [];
+    const matchedIndices: number[] = [];
     for (let li = 0; li < rawLines.length; li++) {
       const l = rawLines[li]!;
       const hay = isCaseInsensitive ? foldCase(l) : l;
@@ -23766,9 +23824,33 @@ export class Runtime {
         if (ok) { hit = true; break; }
       }
       if (isInvert ? !hit : hit) {
+        matchedIndices.push(li);
         matched.push(isLineNumber ? `${li + 1}:${l}` : l);
         if (matched.length >= maxCount) break;
       }
+    }
+    if ((beforeCtx > 0 || afterCtx > 0) && matchedIndices.length > 0) {
+      const matchedSet = new Set(matchedIndices);
+      const outCtx: string[] = [];
+      let prevEnd = -1;
+      for (const mIdx of matchedIndices) {
+        const start = Math.max(0, mIdx - beforeCtx);
+        const end = Math.min(rawLines.length - 1, mIdx + afterCtx);
+        if (prevEnd !== -1 && start > prevEnd + 1) {
+          outCtx.push("--");
+        }
+        const from = prevEnd !== -1 ? Math.max(start, prevEnd + 1) : start;
+        for (let k = from; k <= end; k++) {
+          const lineText = rawLines[k]!;
+          if (isLineNumber) {
+            outCtx.push(`${k + 1}${matchedSet.has(k) ? ":" : "-"}${lineText}`);
+          } else {
+            outCtx.push(lineText);
+          }
+        }
+        prevEnd = Math.max(prevEnd, end);
+      }
+      return { lines: outCtx, status: 0 };
     }
     return {
       lines: isCount ? [String(matched.length)] : matched,
@@ -24384,6 +24466,99 @@ export class Runtime {
     return out;
   }
 
+  private evalSyncNumfmt(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
+    let fromScale: "none" | "iec" | "iec-i" | "si" | "auto" = "none";
+    let toScale: "none" | "iec" | "iec-i" | "si" = "none";
+    let padding = 0;
+    let suffix = "";
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (a.startsWith("--from=")) {
+        const v = a.slice(7);
+        if (v === "none" || v === "iec" || v === "iec-i" || v === "si" || v === "auto") fromScale = v;
+        else return undefined;
+      } else if (a.startsWith("--to=")) {
+        const v = a.slice(5);
+        if (v === "none" || v === "iec" || v === "iec-i" || v === "si") toScale = v;
+        else return undefined;
+      } else if (a.startsWith("--padding=")) {
+        const v = a.slice(10);
+        if (!/^-?[1-9][0-9]{0,2}$/.test(v)) return undefined;
+        padding = Number(v);
+      } else if (a.startsWith("--suffix=")) {
+        suffix = a.slice(9);
+      } else {
+        return undefined;
+      }
+    }
+    const units = "KMGTPEZY";
+    const out: string[] = [];
+    for (let i = 0; i < rawLines.length; i++) {
+      const raw = rawLines[i]!.trim();
+      if (raw.length === 0) { out.push(""); continue; }
+      const m = /^([+-]?(?:\d+(?:\.\d*)?|\.\d+))([KMGTPEZYkmgtpezy]i?)?$/.exec(raw);
+      if (!m) return undefined;
+      let val = Number(m[1]!);
+      const suf = m[2] ?? "";
+      if (suf.length > 0) {
+        if (fromScale === "none") return undefined;
+        const uChar = suf[0]!.toUpperCase();
+        const pIdx = units.indexOf(uChar) + 1;
+        if (pIdx <= 0) return undefined;
+        const hasI = suf.length === 2 && suf[1]!.toLowerCase() === "i";
+        if (fromScale === "iec-i" && !hasI) return undefined;
+        if ((fromScale === "iec" || fromScale === "si") && hasI) return undefined;
+        const fBase = (fromScale === "iec" || fromScale === "iec-i" || (fromScale === "auto" && hasI)) ? 1024 : 1000;
+        val = val * Math.pow(fBase, pIdx);
+      } else if (fromScale === "iec-i") {
+        // plain number ok
+      }
+      val = val >= 0 ? Math.ceil(val - 1e-12) : -Math.ceil(Math.abs(val) - 1e-12);
+      let rendered: string;
+      if (toScale === "none") {
+        rendered = String(Math.trunc(val));
+      } else {
+        const tBase = (toScale === "iec" || toScale === "iec-i") ? 1024 : 1000;
+        let pIdx = 0;
+        let scaled = val;
+        while (Math.abs(scaled) >= tBase && pIdx < units.length) {
+          scaled /= tBase;
+          pIdx++;
+        }
+        if (pIdx === 0) {
+          rendered = String(Math.trunc(scaled));
+        } else {
+          if (Math.abs(scaled) < 10) {
+            scaled = (scaled >= 0 ? Math.ceil(scaled * 10 - 1e-12) : -Math.ceil(Math.abs(scaled) * 10 - 1e-12)) / 10;
+            if (Math.abs(scaled) >= tBase && pIdx < units.length) {
+              scaled /= tBase;
+              pIdx++;
+            }
+          } else {
+            scaled = scaled >= 0 ? Math.ceil(scaled - 1e-12) : -Math.ceil(Math.abs(scaled) - 1e-12);
+            if (Math.abs(scaled) >= tBase && pIdx < units.length) {
+              scaled /= tBase;
+              pIdx++;
+            }
+          }
+          const numText = Math.abs(scaled) < 10 ? scaled.toFixed(1) : scaled.toFixed(0);
+          const uText = (toScale === "si" && pIdx === 1 ? "k" : units[pIdx - 1]!) + (toScale === "iec-i" ? "i" : "");
+          rendered = numText + uText;
+        }
+      }
+      rendered += suffix;
+      if (padding !== 0) {
+        const w = Math.abs(padding);
+        if (rendered.length < w) {
+          const pad = " ".repeat(w - rendered.length);
+          rendered = padding < 0 ? rendered + pad : pad + rendered;
+        }
+      }
+      out.push(rendered);
+    }
+    return out;
+  }
+
   private evalSyncSort(rawLines: readonly string[], opArgs: readonly string[], isByteLocale: boolean): string[] | undefined {
     if (isByteLocale) return undefined;
     let rev = false;
@@ -24864,6 +25039,8 @@ export class Runtime {
           if (this.evalSyncNl([], sArgs) === undefined) return undefined;
         } else if (sName === "paste") {
           if (this.evalSyncPaste([], sArgs) === undefined) return undefined;
+        } else if (sName === "numfmt") {
+          if (this.evalSyncNumfmt([], sArgs) === undefined) return undefined;
         } else {
           return undefined;
         }
@@ -24941,6 +25118,7 @@ export class Runtime {
           const isInlineTac = firstName === "tac";
           const isInlineNl = firstName === "nl";
           const isInlinePaste = firstName === "paste";
+          const isInlineNumfmt = firstName === "numfmt";
           const isInlineSort = firstName === "sort" && !byteLocale(rawState.variables);
           const isInlineUniq = firstName === "uniq";
           const inlineSedMatch = firstName === "sed";
@@ -24961,7 +25139,8 @@ export class Runtime {
             isInlineBase64 ||
             isInlineTac ||
             isInlineNl ||
-            isInlinePaste
+            isInlinePaste ||
+            isInlineNumfmt
           ) {
             const inStr = prevLen === 0 ? "" : sharedSyncPipeDecoder.decode(prevBuf.subarray(0, prevLen));
             const rawLines = inStr.length === 0 ? [] : (inStr.endsWith("\n") ? inStr.slice(0, -1).split("\n") : inStr.split("\n"));
@@ -25054,6 +25233,10 @@ export class Runtime {
               const pasteRes = this.evalSyncPaste(rawLines, stageArgs);
               if (pasteRes === undefined) return undefined;
               outLines = pasteRes;
+            } else if (isInlineNumfmt) {
+              const nmRes = this.evalSyncNumfmt(rawLines, stageArgs);
+              if (nmRes === undefined) return undefined;
+              outLines = nmRes;
             } else if (isInlineBase64) {
               if (stageArgs.length === 0) {
                 const b64Wrapped = this.syncBase64Encode(prevBuf.subarray(0, prevLen));
@@ -25228,7 +25411,7 @@ export class Runtime {
       w0Plain === "sort" ||
       w0Plain === "uniq" ||
       w0Plain === "tr" ||
-      (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste"));
+      (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt"));
     if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste") && Boolean(this.getExternalCommand(w0Plain))))) {
       const allArgs: string[] = [];
       let fOk = true;
@@ -25361,6 +25544,9 @@ export class Runtime {
             } else if (hasSingleHereStringRedir && w0Plain === "paste") {
               const pasteRes = this.evalSyncPaste(rawLines, opArgs);
               if (pasteRes !== undefined) fileRes = renderLines(pasteRes);
+            } else if (hasSingleHereStringRedir && w0Plain === "numfmt") {
+              const nmRes = this.evalSyncNumfmt(rawLines, opArgs);
+              if (nmRes !== undefined) fileRes = renderLines(nmRes);
             }
             if (fileRes !== undefined) {
               // Charge emitted bytes before substitution removes trailing newlines.

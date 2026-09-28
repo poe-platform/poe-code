@@ -1122,3 +1122,51 @@ test("sync loop wave 115: paste -sd/-d cols, jq floor/ceil/round/abs/index/rinde
     await shell.dispose();
   }
 });
+
+test("sync loop wave 116: numfmt --to/--from iec/si, grep -A/-B/-C context lines, and jq min_by/max_by/map_values/tojson", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  const { createStructuredCommands } = await import("../../src/commands/structured/index.js");
+  const { createTableTextCommands } = await import("../../src/commands/table-text/index.js");
+  const shell = new Shell({
+    fs: new MemoryFileSystem(),
+    commands: new CommandRegistry([
+      ...createStandardCommands(),
+      ...createTextProgramCommands(),
+      ...createStructuredCommands(),
+      ...createTableTextCommands(),
+    ]),
+  });
+  try {
+    const script = [
+      "vals=$'512\\n1024\\n1048576\\n1572864'",
+      "sizes=$'10K\\n2M\\n1G'",
+      "log=$'init\\nERR_1\\nretry_1\\nok\\npre_2\\nERR_2\\npost_2'",
+      "j='{\"items\":[{\"k\":2,\"n\":\"b\"},{\"k\":1,\"n\":\"a\"},{\"k\":3,\"n\":\"c\"}],\"counts\":{\"x\":10,\"y\":20}}'",
+      "out=\"\"",
+      "for ((i=1; i<=10; i++)); do",
+      "  n1=$(numfmt --to=iec <<< \"$vals\" | paste -sd \",\")",
+      "  n2=$(echo \"$vals\" | numfmt --to=iec-i | paste -sd \",\")",
+      "  n3=$(numfmt --from=iec <<< \"$sizes\" | paste -sd \",\")",
+      "  n4=$(numfmt --from=si <<< \"$sizes\" | paste -sd \",\")",
+      "  g1=$(grep -A 1 \"ERR\" <<< \"$log\" | paste -sd \",\")",
+      "  g2=$(grep -B 1 \"ERR\" <<< \"$log\" | paste -sd \",\")",
+      "  g3=$(echo \"$log\" | grep -n -C 1 \"ERR_2\" | paste -sd \",\")",
+      "  q1=$(jq -c \".items | min_by(.k)\" <<< \"$j\")",
+      "  q2=$(jq -c \".items | max_by(.k)\" <<< \"$j\")",
+      "  q3=$(jq -c \".counts | map_values(. + 5)\" <<< \"$j\")",
+      "  q4=$(jq -r \".counts | tojson\" <<< \"$j\")",
+      "  out=\"$n1|$n2|$n3|$n4|$g1|$g2|$g3|$q1|$q2|$q3|$q4\"",
+      "done",
+      "printf \"%s\\n\" \"$out\"",
+    ].join("\n");
+    const res = await shell.exec(script);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(
+      res.stdout,
+      "512,1.0K,1.0M,1.5M|512,1.0Ki,1.0Mi,1.5Mi|10240,2097152,1073741824|10000,2000000,1000000000|ERR_1,retry_1,--,ERR_2,post_2|init,ERR_1,--,pre_2,ERR_2|5-pre_2,6:ERR_2,7-post_2|{\"k\":1,\"n\":\"a\"}|{\"k\":3,\"n\":\"c\"}|{\"x\":15,\"y\":25}|{\"x\":10,\"y\":20}\n"
+    );
+  } finally {
+    await shell.dispose();
+  }
+});

@@ -1398,3 +1398,32 @@ dual_fixture_test!(cli_commit_am_multiple_m_file_author_and_add_all, cli_commit_
     assert_eq!(execute_git_cli(&f.fs, &f.dir, &["commit", "-F", "commit-msg.txt"]).exit_code, 0);
     assert!(execute_git_cli(&f.fs, &f.dir, &["log", "-1", "--oneline"]).stdout.contains("chore: commit from file"));
 });
+
+
+dual_fixture_test!(cli_branch_verbose_contains_merged_upstream_and_tag_filters, cli_branch_verbose_contains_merged_upstream_and_tag_filters_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["branch", "-c", "copied-branch"]).exit_code, 0);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["branch", "-u", "origin/test-branch", "test-branch"]).exit_code, 0);
+
+    let r_vv = execute_git_cli(&f.fs, &f.dir, &["branch", "-vv"]);
+    assert_eq!(r_vv.exit_code, 0);
+    assert!(r_vv.stdout.contains("[origin/test-branch]"));
+
+    let r_contains = execute_git_cli(&f.fs, &f.dir, &["branch", "--contains", "HEAD"]);
+    assert_eq!(r_contains.exit_code, 0);
+    assert!(r_contains.stdout.contains("test-branch") && r_contains.stdout.contains("copied-branch"));
+
+    let r_merged = execute_git_cli(&f.fs, &f.dir, &["branch", "--merged", "HEAD"]);
+    assert_eq!(r_merged.exit_code, 0);
+    assert!(r_merged.stdout.contains("copied-branch"));
+
+    execute_git_cli(&f.fs, &f.dir, &["tag", "-a", "v2.0.0", "-m", "Release 2.0", "HEAD"]);
+    let r_tag_l = execute_git_cli(&f.fs, &f.dir, &["tag", "-l", "v2.*"]);
+    assert_eq!(r_tag_l.stdout.trim(), "v2.0.0");
+
+    let r_tag_n = execute_git_cli(&f.fs, &f.dir, &["tag", "-n"]);
+    assert!(r_tag_n.stdout.contains("v2.0.0") && r_tag_n.stdout.contains("Release 2.0"));
+
+    let r_tag_pa = execute_git_cli(&f.fs, &f.dir, &["tag", "--points-at", "HEAD"]);
+    assert_eq!(r_tag_pa.stdout.trim(), "v1.0.0\nv2.0.0");
+});

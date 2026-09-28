@@ -679,18 +679,36 @@ pub fn execute_git_cli_with_http(
             let mut remote = false;
             let mut all = false;
             let mut rename = false;
+            let mut copy_branch = false;
             let mut force = false;
             let mut delete = false;
             let mut show_current = false;
+            let mut verbose = 0u8;
+            let mut list_mode = false;
+            let mut contains_rev: Option<&str> = None;
+            let mut merged_rev: Option<&str> = None;
+            let mut no_merged_rev: Option<&str> = None;
+            let mut set_upstream: Option<&str> = None;
+            let mut unset_upstream = false;
             let mut names = Vec::new();
-            for &arg in sub_args {
+            let mut bi = 0;
+            while bi < sub_args.len() {
+                let arg = sub_args[bi];
                 match arg {
                     "--show-current" => show_current = true,
                     "-a" | "--all" => all = true,
                     "-r" | "--remotes" => remote = true,
+                    "-v" | "--verbose" => verbose = verbose.max(1),
+                    "-vv" => verbose = 2,
+                    "-l" | "--list" => list_mode = true,
                     "-m" | "--move" => rename = true,
                     "-M" => {
                         rename = true;
+                        force = true;
+                    }
+                    "-c" | "--copy" => copy_branch = true,
+                    "-C" => {
+                        copy_branch = true;
                         force = true;
                     }
                     "-d" | "--delete" => delete = true,
@@ -699,13 +717,78 @@ pub fn execute_git_cli_with_http(
                         force = true;
                     }
                     "-f" | "--force" => force = true,
+                    "--unset-upstream" => unset_upstream = true,
+                    "-u" | "--set-upstream-to" if bi + 1 < sub_args.len() => {
+                        bi += 1;
+                        set_upstream = Some(sub_args[bi]);
+                    }
+                    "--contains" if bi + 1 < sub_args.len() => {
+                        bi += 1;
+                        contains_rev = Some(sub_args[bi]);
+                    }
+                    "--merged" => {
+                        if bi + 1 < sub_args.len() && !sub_args[bi + 1].starts_with('-') {
+                            bi += 1;
+                            merged_rev = Some(sub_args[bi]);
+                        } else {
+                            merged_rev = Some("HEAD");
+                        }
+                    }
+                    "--no-merged" => {
+                        if bi + 1 < sub_args.len() && !sub_args[bi + 1].starts_with('-') {
+                            bi += 1;
+                            no_merged_rev = Some(sub_args[bi]);
+                        } else {
+                            no_merged_rev = Some("HEAD");
+                        }
+                    }
+                    _ if arg.starts_with("--set-upstream-to=") => {
+                        set_upstream = arg.strip_prefix("--set-upstream-to=");
+                    }
+                    _ if arg.starts_with("--contains=") => {
+                        contains_rev = arg.strip_prefix("--contains=");
+                    }
+                    _ if arg.starts_with("--merged=") => {
+                        merged_rev = arg.strip_prefix("--merged=");
+                    }
+                    _ if arg.starts_with("--no-merged=") => {
+                        no_merged_rev = arg.strip_prefix("--no-merged=");
+                    }
                     arg if !arg.starts_with('-') => names.push(arg),
                     _ => return CliResult::err(129, format!("error: unknown option '{arg}'\n")),
                 }
+                bi += 1;
             }
             let curr = current_branch(fs, &gitdir, false, false).ok().flatten();
             if show_current {
                 return CliResult::ok(curr.map(|b| format!("{b}\n")).unwrap_or_default());
+            }
+            if let Some(up) = set_upstream {
+                let target_b = names.first().copied().or(curr.as_deref()).unwrap_or("main");
+                let (rem, br) = up.split_once('/').unwrap_or(("origin", up));
+                let _ = set_config(fs, &gitdir, &format!("branch.{target_b}.remote"), Some(rem), false);
+                let _ = set_config(fs, &gitdir, &format!("branch.{target_b}.merge"), Some(&format!("refs/heads/{br}")), false);
+                return CliResult::ok(format!("branch '{target_b}' set up to track '{up}'.\n"));
+            }
+            if unset_upstream {
+                let target_b = names.first().copied().or(curr.as_deref()).unwrap_or("main");
+                let _ = set_config(fs, &gitdir, &format!("branch.{target_b}.remote"), None, false);
+                let _ = set_config(fs, &gitdir, &format!("branch.{target_b}.merge"), None, false);
+                return CliResult::ok("");
+            }
+            if copy_branch {
+                let (old, new) = match names.as_slice() {
+                    [new] if curr.is_some() => (curr.as_deref().unwrap(), *new),
+                    [old, new] => (*old, *new),
+                    _ => return CliResult::err(129, "usage: git branch -c [<old>] <new>\n"),
+                };
+                let Ok(oid) = resolve_ref(fs, &gitdir, &format!("refs/heads/{old}"), None) else {
+                    return CliResult::err(128, format!("fatal: invalid branch '{old}'\n"));
+                };
+                return match branch(fs, &gitdir, new, Some(&oid), false, force) {
+                    Ok(()) => CliResult::ok(""),
+                    Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+                };
             }
             if rename {
                 let (old, new) = match names.as_slice() {
@@ -761,14 +844,70 @@ pub fn execute_git_cli_with_http(
                 }
                 return CliResult::ok(out);
             }
-            if names.is_empty() || all || remote {
+            if names.is_empty() || all || remote || list_mode || contains_rev.is_some() || merged_rev.is_some() || no_merged_rev.is_some() {
                 let mut out = String::new();
+                let contains_oid = contains_rev.and_then(|r| crate::cli_history::resolve(fs, &gitdir, r).ok());
+                let merged_set: Option<std::collections::HashSet<String>> = merged_rev
+                    .and_then(|r| crate::cli_history::resolve(fs, &gitdir, r).ok())
+                    .map(|oid| {
+                        crate::commands::plumbing::log(fs, &gitdir, Some(&oid), None, None, None, false, false)
+                            .unwrap_or_default()
+                            .into_iter()
+                            .map(|c| c.oid)
+                            .collect()
+                    });
+                let no_merged_set: Option<std::collections::HashSet<String>> = no_merged_rev
+                    .and_then(|r| crate::cli_history::resolve(fs, &gitdir, r).ok())
+                    .map(|oid| {
+                        crate::commands::plumbing::log(fs, &gitdir, Some(&oid), None, None, None, false, false)
+                            .unwrap_or_default()
+                            .into_iter()
+                            .map(|c| c.oid)
+                            .collect()
+                    });
                 if !remote || all {
                     for b in list_branches(fs, &gitdir, None) {
-                        out.push_str(&format!(
-                            "{} {b}\n",
-                            if Some(&b) == curr.as_ref() { "*" } else { " " }
-                        ));
+                        if list_mode && !names.is_empty() && !names.iter().any(|pat| {
+                            let p = pat.trim_end_matches('*');
+                            b == *pat || b.starts_with(p)
+                        }) {
+                            continue;
+                        }
+                        let b_oid = resolve_ref(fs, &gitdir, &format!("refs/heads/{b}"), None).unwrap_or_default();
+                        if let Some(ref c_oid) = contains_oid {
+                            let hist = crate::commands::plumbing::log(fs, &gitdir, Some(&b_oid), None, None, None, false, false).unwrap_or_default();
+                            if !hist.iter().any(|c| &c.oid == c_oid) {
+                                continue;
+                            }
+                        }
+                        if let Some(ref m_set) = merged_set
+                            && !m_set.contains(&b_oid)
+                        {
+                            continue;
+                        }
+                        if let Some(ref nm_set) = no_merged_set
+                            && nm_set.contains(&b_oid)
+                        {
+                            continue;
+                        }
+                        let mark = if Some(&b) == curr.as_ref() { "*" } else { " " };
+                        if verbose > 0 {
+                            let short = &b_oid[..7.min(b_oid.len())];
+                            let subj = crate::read_commit(fs, &gitdir, &b_oid)
+                                .map(|c| crate::cli_history::subject(&c.commit.message))
+                                .unwrap_or_default();
+                            if verbose >= 2
+                                && let Some(rem) = get_config(fs, &gitdir, &format!("branch.{b}.remote"))
+                                && let Some(mrg) = get_config(fs, &gitdir, &format!("branch.{b}.merge"))
+                            {
+                                let m_short = mrg.as_str().strip_prefix("refs/heads/").unwrap_or("").to_string();
+                                out.push_str(&format!("{mark} {b} {short} [{}/{m_short}] {subj}\n", rem.as_str()));
+                            } else {
+                                out.push_str(&format!("{mark} {b} {short} {subj}\n"));
+                            }
+                        } else {
+                            out.push_str(&format!("{mark} {b}\n"));
+                        }
                     }
                 }
                 if remote || all {
@@ -1289,11 +1428,60 @@ pub fn execute_git_cli_with_http(
             }
         }
         "tag" => {
-            if sub_args.is_empty() {
+            let list_flag = sub_args.contains(&"-l") || sub_args.contains(&"--list");
+            let show_lines = sub_args.contains(&"-n") || sub_args.contains(&"-n1");
+            let mut points_at: Option<&str> = None;
+            let mut tag_contains: Option<&str> = None;
+            for ti in 0..sub_args.len() {
+                if sub_args[ti] == "--points-at" && ti + 1 < sub_args.len() {
+                    points_at = Some(sub_args[ti + 1]);
+                } else if let Some(pa) = sub_args[ti].strip_prefix("--points-at=") {
+                    points_at = Some(pa);
+                } else if sub_args[ti] == "--contains" && ti + 1 < sub_args.len() {
+                    tag_contains = Some(sub_args[ti + 1]);
+                } else if let Some(tc) = sub_args[ti].strip_prefix("--contains=") {
+                    tag_contains = Some(tc);
+                }
+            }
+            if sub_args.is_empty() || list_flag || show_lines || points_at.is_some() || tag_contains.is_some() {
                 let tags = list_tags(fs, &gitdir);
+                let pat_opt = positionals.last().copied();
+                let pa_oid = points_at.and_then(|r| crate::cli_history::resolve(fs, &gitdir, r).ok());
+                let tc_oid = tag_contains.and_then(|r| crate::cli_history::resolve(fs, &gitdir, r).ok());
                 let mut out = String::new();
                 for t in tags {
-                    out.push_str(&format!("{t}\n"));
+                    if list_flag
+                        && let Some(pat) = pat_opt
+                    {
+                        let prefix = pat.trim_end_matches('*');
+                        if t != pat && !t.starts_with(prefix) {
+                            continue;
+                        }
+                    }
+                    let raw_oid = resolve_ref(fs, &gitdir, &format!("refs/tags/{t}"), None).unwrap_or_default();
+                    let (target_oid, summary) = if let Ok(tag_obj) = crate::commands::plumbing::read_tag(fs, &gitdir, &raw_oid) {
+                        (tag_obj.tag.object, tag_obj.tag.message.lines().next().unwrap_or("").to_string())
+                    } else if let Ok(c) = crate::read_commit(fs, &gitdir, &raw_oid) {
+                        (raw_oid.clone(), crate::cli_history::subject(&c.commit.message))
+                    } else {
+                        (raw_oid.clone(), String::new())
+                    };
+                    if let Some(ref p_id) = pa_oid
+                        && &target_oid != p_id && &raw_oid != p_id
+                    {
+                        continue;
+                    }
+                    if let Some(ref c_id) = tc_oid {
+                        let hist = crate::commands::plumbing::log(fs, &gitdir, Some(&target_oid), None, None, None, false, false).unwrap_or_default();
+                        if !hist.iter().any(|c| &c.oid == c_id) {
+                            continue;
+                        }
+                    }
+                    if show_lines {
+                        out.push_str(&format!("{t:<16}{summary}\n"));
+                    } else {
+                        out.push_str(&format!("{t}\n"));
+                    }
                 }
                 CliResult::ok(out)
             } else if sub_args[0] == "-d" && sub_args.len() > 1 {

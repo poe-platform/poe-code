@@ -128,3 +128,29 @@ test("compound loops execute multi-arg array unset, glob array trims, declare/ty
   assert.equal(res.stderr, "");
   assert.equal(res.stdout, "482:v20:z20:q20\n");
 });
+
+test("local += append clears outer variable unless already local or prefixed, and declare -a/-A compound initializers run synchronously", async () => {
+  const res = await execute(`
+    s="global"
+    f1() { local s+="sub"; echo "f1:$s"; }
+    f2() { local s="loc"; local s+="sub"; echo "f2:$s"; }
+    f3() { s="pref" local s+="sub"; echo "f3:$s"; }
+    f1; echo "after_f1:$s"
+    f2; echo "after_f2:$s"
+    f3; echo "after_f3:$s"
+    acc=0
+    for ((i=1; i<=15; i++)); do
+      declare -a arr=("a$i" "b$i")
+      declare -A map=([k1]="v$i" [k2]="w$i")
+      declare s+="x"
+      (( acc += ${#arr[1]} + ${#map[k2]} + ${#s} ))
+    done
+    echo "acc:$acc:s:$s"
+  `);
+  assert.equal(res.exitCode, 0);
+  assert.equal(res.stderr, "");
+  assert.equal(
+    res.stdout,
+    "f1:sub\nafter_f1:global\nf2:locsub\nafter_f2:global\nf3:prefsub\nafter_f3:global\nacc:312:s:globalxxxxxxxxxxxxxxx\n"
+  );
+});

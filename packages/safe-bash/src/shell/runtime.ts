@@ -7002,7 +7002,7 @@ export class Runtime {
       return undefined;
     }
     const command = pipeline.commands[0]!;
-    if ( (command.kind !== "simple" && command.kind !== "arithmetic" && command.kind !== "conditional" && command.kind !== "arithmetic-for" && command.kind !== "for" && command.kind !== "if" && command.kind !== "case" && command.kind !== "group" && command.kind !== "while" && command.kind !== "until") || command.redirects.length > 1) {
+    if ( (command.kind !== "simple" && command.kind !== "function" && command.kind !== "arithmetic" && command.kind !== "conditional" && command.kind !== "arithmetic-for" && command.kind !== "for" && command.kind !== "if" && command.kind !== "case" && command.kind !== "group" && command.kind !== "while" && command.kind !== "until") || command.redirects.length > 1) {
       (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
       return undefined;
     }
@@ -7075,6 +7075,9 @@ export class Runtime {
         }
       }
       return false;
+    }
+    if (command.kind === "function") {
+      return command.redirects.length === 0 && !rawState.readonlyFunctions?.has(command.name) && !(rawState.profile === "sh" && (specialBuiltinNames.has(command.name) || rawState.extensions?.builtins.get(command.name)?.special));
     }
     if (command.kind === "simple") {
       if (command.words.length === 0) return false;
@@ -7221,13 +7224,30 @@ export class Runtime {
       ) {
         const wantAssoc = command.words[1]!.plain === "-A";
         const st = stateMonitor(rawState)?.store;
-        if (command.words.slice(2).every(w => w.plain !== undefined && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(w.plain!) && !rawState.readonlyVariables?.has(w.plain!) && (!st?.get(w.plain!) || st.get(w.plain!)!.associative === wantAssoc))) return true;
+        if (command.words.slice(2).every(w => {
+          const aa = getArrayAssignment(w);
+          if (aa && aa.kind === "compound") {
+            if (!isShellIdentifier(aa.name) || rawState.readonlyVariables?.has(aa.name) || rawState.exported.has(aa.name) || (st?.get(aa.name) && st.get(aa.name)!.associative !== wantAssoc) || (!st?.get(aa.name) && rawState.variables[aa.name] !== undefined)) return false;
+            return aa.entries.length <= 32 && aa.entries.every(e => {
+              if (wantAssoc) {
+                const kSrc = e.index ? (e.index.source ?? e.index.decimal) : "";
+                return kSrc.length > 0 && !/[$\x60\\"']/.test(kSrc) && isNoBraceSyncAssignWord(e.value);
+              }
+              if (e.index !== undefined) {
+                const kSrc = (e.index.source ?? e.index.decimal).trim();
+                return /^(?:0|[1-9][0-9]{0,8})$/.test(kSrc) && isNoBraceSyncAssignWord(e.value);
+              }
+              return isNoBraceSyncWord(e.value) && e.value.parts.length > 0 && e.value.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)));
+            });
+          }
+          return w.plain !== undefined && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(w.plain!) && !rawState.readonlyVariables?.has(w.plain!) && (!st?.get(w.plain!) || st.get(w.plain!)!.associative === wantAssoc);
+        })) return true;
       }
       if (
         command.words.length >= 2 &&
         command.words.length <= 16 &&
         w0Plain !== undefined &&
-        (w0Plain === "local" ? rawState.locals.length > 0 : (w0Plain === "declare" || w0Plain === "typeset")) &&
+        (w0Plain === "local" ? (rawState.locals.length > 0 || depth > 0) : (w0Plain === "declare" || w0Plain === "typeset")) &&
         !hasShellFunction(rawState, w0Plain) &&
         !rawState.extensions?.builtins.has(w0Plain)
       ) {
@@ -7238,7 +7258,7 @@ export class Runtime {
           const wArg = command.words[idx]!;
           const assignment = !getArrayAssignment(wArg) ? this.assignment(wArg) : undefined;
           if (assignment) {
-            if ( assignment.append || assignment.name === "OPTIND" || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || !isNoBraceSyncAssignWord(assignment.value)) {
+            if ( assignment.name === "OPTIND" || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || !isNoBraceSyncAssignWord(assignment.value)) {
               allValidLocal = false;
               break;
             }
@@ -7724,7 +7744,7 @@ export class Runtime {
     if (store) store.epoch = restEpoch;
     return finalStatus;
   }
-  private executeSyncPipelineBody( pipeline: Pipeline, command: Extract<Command, { kind: "simple" | "arithmetic" | "conditional" | "arithmetic-for" | "for" | "if" | "case" | "group" | "while" | "until" }>, state: State, io: IO, ignored: boolean, ): number | undefined {
+  private executeSyncPipelineBody( pipeline: Pipeline, command: Extract<Command, { kind: "simple" | "function" | "arithmetic" | "conditional" | "arithmetic-for" | "for" | "if" | "case" | "group" | "while" | "until" }>, state: State, io: IO, ignored: boolean, ): number | undefined {
     const scope = io[invocationScope];
     if (scope.hasFailures || this.budget.limits.maxExpansionFields !== Infinity || this.budget.limits.maxExpansionBytes !== Infinity || this.budget.limits.maxParseUnits !== Infinity) return undefined;
     const monitor = stateMonitor(state) ?? stateMonitor(trackState(state, this.budget, scope));
@@ -7755,6 +7775,22 @@ export class Runtime {
     if (existing && (!elem0 || elem0.text.bytes !== 1)) return undefined;
     const canMutatePipeStatus = !existing || (existing.references === 1 && elem0!.text.references === 1);
     const diagnosticLine = io.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0);
+    if (command.kind === "function") {
+      if (pipeline.negate || !canMutatePipeStatus || command.redirects.length > 0 || rawState.readonlyFunctions?.has(command.name) || (rawState.profile === "sh" && (specialBuiltinNames.has(command.name) || rawState.extensions?.builtins.get(command.name)?.special))) {
+        return undefined;
+      }
+      const body = { ...command.body, sourceName: io.scriptName ?? "shell" };
+      const offset = io.diagnosticOffset ?? 0;
+      const bodyLine = io.functionCommandLines?.get(command.body);
+      if (bodyLine !== undefined) body.line = bodyLine - offset;
+      functionDiagnostics.set(body, { offset, ...(bodyLine === undefined ? {} : { lines: io.functionCommandLines! }) });
+      rawState.functions.set(command.name, body);
+      const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+      this.budget.tick();
+      rawState.substitutionStatus = 0;
+      if (rawState.variables._ !== undefined) delete rawState.variables._;
+      return this.finishSyncPipeStatus(rawState, monitor, store, existing, elem0, scope, 0, restEpoch);
+    }
     if (command.redirects.length === 1) {
       const r0 = command.redirects[0]!;
       if ((r0.descriptor === undefined || r0.descriptor === 1) && !r0.move && !r0.document && (r0.operator === ">" || r0.operator === ">>" || r0.operator === ">|") && r0.target.plain === "/dev/null") {
@@ -9405,45 +9441,51 @@ export class Runtime {
           if (rawState.locals.length > 0 || command.words.length < 3) return undefined;
           const wantAssoc = command.words[1]!.plain === "-A";
           const arrStore = monitor.store ?? requireArrays(rawState);
-          const arrNames: string[] = [];
+          const items: Array<{ an: string; aa: ArrayAssignment | undefined }> = [];
           let okLocalArr = true;
           for (let idx = 2; idx < command.words.length; idx++) {
-            const an = command.words[idx]!.plain;
-            if (!an || !isShellIdentifier(an) || rawState.readonlyVariables?.has(an) || rawState.exported.has(an) || rawState.variableAttributes?.get(an) || controlNames.has(an)) { okLocalArr = false; break; }
+            const wArg = command.words[idx]!;
+            const aa = getArrayAssignment(wArg);
+            const an = aa ? aa.name : wArg.plain;
+            if ((aa && aa.kind !== "compound") || !an || !isShellIdentifier(an) || rawState.readonlyVariables?.has(an) || rawState.exported.has(an) || rawState.variableAttributes?.get(an) || controlNames.has(an)) { okLocalArr = false; break; }
             const eb = arrStore.get(an);
             if ((eb && (eb.associative !== wantAssoc || eb.references !== 1 || arrStore.watches.has(an) || monitor.hasOverlay(an))) || (!eb && rawState.variables[an] !== undefined)) { okLocalArr = false; break; }
-            arrNames.push(an);
+            items.push({ an, aa });
           }
-          if (okLocalArr) {
-            for (let idx = 0; idx < arrNames.length; idx++) {
-              const an = arrNames[idx]!;
-              let eb = arrStore.get(an);
-              if (!eb) {
-                const created = IndexedBinding.create(arrStore.owner, wantAssoc);
-                const prepared = arrStore.prepareExistingName(an, shellValueByteLength(an), arrStore.owner, this.signal);
-                if (!prepared) { void created.release(); return undefined; }
-                const initTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
-                arrStore.publish(an, created, initTickets, prepared, false, arrStore.owner);
-                monitor.epoch = initTickets.epoch;
-                eb = created;
+          if (okLocalArr && items.length > 0) {
+            for (let idx = 0; idx < items.length; idx++) {
+              const { an, aa } = items[idx]!;
+              if (aa) {
+                if (!this.tryFastArrayAssignmentSync(aa, state, io, diagnosticLine, undefined, wantAssoc)) return undefined;
+              } else {
+                let eb = arrStore.get(an);
+                if (!eb) {
+                  const created = IndexedBinding.create(arrStore.owner, wantAssoc);
+                  const prepared = arrStore.prepareExistingName(an, shellValueByteLength(an), arrStore.owner, this.signal);
+                  if (!prepared) { void created.release(); return undefined; }
+                  const initTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+                  arrStore.publish(an, created, initTickets, prepared, false, arrStore.owner);
+                  monitor.epoch = initTickets.epoch;
+                  eb = created;
+                }
               }
             }
             this.budget.tick();
             rawState.substitutionStatus = 0;
             if (rawState.variables._ !== undefined) delete rawState.variables._;
-            rawState.lastArgument = arrNames[arrNames.length - 1]!;
+            rawState.lastArgument = items[items.length - 1]!.an;
             rawState.status = 0;
             return 0;
           }
           return undefined;
         }
-        const parsedLocals: Array<{ name: string; val: string | undefined; lastArg: string }> = [];
+        const parsedLocals: Array<{ name: string; val: string | undefined; append: boolean; lastArg: string }> = [];
         let allValidLocal = true;
         for (let idx = 1; idx < command.words.length; idx++) {
           const wArg = command.words[idx]!;
           const assignment = !getArrayAssignment(wArg) ? this.assignment(wArg) : undefined;
           if (assignment) {
-            if ( assignment.append || assignment.name === "OPTIND" || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || rawState.readonlyVariables?.has(assignment.name) || store?.get(assignment.name)) {
+            if ( assignment.name === "OPTIND" || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || rawState.readonlyVariables?.has(assignment.name) || store?.get(assignment.name)) {
               allValidLocal = false;
               break;
             }
@@ -9457,9 +9499,9 @@ export class Runtime {
               allValidLocal = false;
               break;
             }
-            parsedLocals.push({ name: assignment.name, val: fastAssigned, lastArg: `${assignment.name}=${fastAssigned}` });
+            parsedLocals.push({ name: assignment.name, val: fastAssigned, append: assignment.append, lastArg: `${assignment.name}=${fastAssigned}` });
           } else if ( wArg.plain && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(wArg.plain) && wArg.plain !== "OPTIND" && wArg.plain !== "PIPESTATUS" && !rawState.readonlyVariables?.has(wArg.plain) && !store?.get(wArg.plain)) {
-            parsedLocals.push({ name: wArg.plain, val: undefined, lastArg: wArg.plain });
+            parsedLocals.push({ name: wArg.plain, val: undefined, append: false, lastArg: wArg.plain });
           } else {
             allValidLocal = false;
             break;
@@ -9481,19 +9523,26 @@ export class Runtime {
                   : (rawState.variables[item.name] === undefined ? undefined : (monitor.values.get(item.name, rawState.variables[item.name]!) ?? rawState.variables[item.name]));
                 locals.set(item.name, { attributes: undefined, value: typeof curVal === "string" ? curVal : undefined, exported: false, readOnly: false });
               } else locals.set(item.name, saveVariable(state, item.name));
-            }
-            if (item.val !== undefined) {
-              if (this._syncArithRawWriteOnly && this._syncArithTouched) {
-                rawState.variables[item.name] = item.val;
-                this._syncArithTouched.add(item.name);
-              } else monitor.publishStringVariable(item.name, item.val);
-              if (rawState.allexport) monitor.proxy.exported.add(item.name);
-            } else if (isNewLocal) {
               delete rawState.variables[item.name];
               if (this._syncArithRawWriteOnly && this._syncArithTouched) this._syncArithTouched.add(item.name);
               else monitor.values.invalidate(item.name);
             }
-            rawState.lastArgument = item.lastArg;
+            if (item.val !== undefined) {
+              const prevVal = item.append
+                ? (this._syncArithRawWriteOnly && this._syncArithTouched?.has(item.name)
+                  ? (rawState.variables[item.name] ?? "")
+                  : (monitor.values.get(item.name, rawState.variables[item.name] ?? "") ?? rawState.variables[item.name] ?? ""))
+                : "";
+              const finalVal = item.append ? `${prevVal}${item.val}` : item.val;
+              if (this._syncArithRawWriteOnly && this._syncArithTouched) {
+                rawState.variables[item.name] = finalVal;
+                this._syncArithTouched.add(item.name);
+              } else monitor.publishStringVariable(item.name, finalVal);
+              if (rawState.allexport) monitor.proxy.exported.add(item.name);
+              rawState.lastArgument = `${item.name}=${finalVal}`;
+            } else {
+              rawState.lastArgument = item.lastArg;
+            }
           }
           if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
           if (!existing) {
@@ -16020,9 +16069,12 @@ export class Runtime {
           if (guestArrays(state)) await this.prepareVariable(state, name, saved);
           locals!.set(name, saved);
           if (!enabled.has("I")) state.variableAttributes?.delete(name);
-          if (!assignments.has(name) && match[2] === undefined && !enabled.has("I")) {
+          if (!assignments.has(name) && (match[2] === undefined || append) && !enabled.has("I")) {
             if (name === "PIPESTATUS") state.variables[name] = "";
-            else delete state.variables[name];
+            else {
+              delete state.variables[name];
+              stateMonitor(state)?.values.invalidate(name);
+            }
           }
           if (name === "OPTIND") {
             state.getopts ??= cloneGetoptsBinding(state);
@@ -17827,7 +17879,7 @@ export class Runtime {
           if (!w0p || rawState.extensions?.builtins.has(w0p)) {
             if (c.words.length === 1 && !getArrayAssignment(c.words[0]!)) {
               const assign = this.assignment(c.words[0]!);
-              if (assign && !assign.append && localVars.has(assign.name)) continue;
+              if (assign && localVars.has(assign.name)) continue;
             }
             return false;
           }
@@ -17854,7 +17906,7 @@ export class Runtime {
               const wArg = c.words[idx]!;
               const assign = !getArrayAssignment(wArg) ? this.assignment(wArg) : undefined;
               if (assign) {
-                if (assign.append || assign.name.includes("[") || rawState.readonlyVariables?.has(assign.name)) return false;
+                if (assign.name.includes("[") || rawState.readonlyVariables?.has(assign.name)) return false;
                 localVars.add(assign.name);
               } else if (wArg.plain && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(wArg.plain) && !rawState.readonlyVariables?.has(wArg.plain)) localVars.add(wArg.plain); else return false;
             }

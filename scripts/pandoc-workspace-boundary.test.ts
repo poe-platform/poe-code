@@ -3,6 +3,19 @@ import * as core from "../packages/safe-bash/src/core.js";
 import * as node from "../packages/safe-bash/src/index.js";
 import * as command from "../packages/safe-bash/src/commands/pandoc/index.js";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
+import * as engine from "safe-bash-command-pandoc";
+
+it("preserves the conversion SDK on the public Pandoc command entrypoint", async () => {
+  expect(command).toHaveProperty("convert", engine.convert);
+  expect(command).toHaveProperty("createFormatRegistry", engine.createFormatRegistry);
+  expect(command).toHaveProperty("createLuaFilterCapability", engine.createLuaFilterCapability);
+  const result = await command.convert([{ bytes: new TextEncoder().encode("**Bold**") }], {
+    from: "markdown", to: "gfm"
+  }, {});
+  expect(result).toMatchObject({ kind: "text" });
+  if (result.kind !== "text") throw new Error("Expected text conversion");
+  expect(result.text).toContain("**Bold**");
+});
 
 it("exports the same Pandoc factories from both public entrypoints", () => {
   for (const entry of [core, node]) {

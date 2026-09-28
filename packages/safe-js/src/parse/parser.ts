@@ -1258,7 +1258,16 @@ class Parser {
       if (this.conditionalDepths.has(frame.node)) {
         pending.pop();
       } else if (frame.children === undefined) {
-        frame.children = [...compilerElements(frame.node)].filter(
+        // Bodies and parameter defaults have their own nesting budget. Class
+        // heritage and computed keys still execute in the surrounding context.
+        const type = compilerField(frame.node, "type");
+        const children = type === "ArrowFunctionExpression" || type === "FunctionExpression" ||
+          type === "FunctionDeclaration" || type === "StaticBlock"
+          ? []
+          : type === "PropertyDefinition"
+            ? compilerField(frame.node, "computed") ? [compilerField(frame.node, "key")] : []
+            : [...compilerElements(frame.node)];
+        frame.children = children.filter(
           (child): child is object => child !== null && typeof child === "object"
         );
         for (const child of frame.children) {
@@ -4733,10 +4742,14 @@ class Parser {
   private withFunctionContext<T>(functionContext: FunctionParseContext, callback: () => T): T {
     const previousBreakableDepth = this.breakableDepth;
     const previousLoopDepth = this.loopDepth;
+    const previousConditionalExpressionDepth = this.conditionalExpressionDepth;
+    const previousIfStatementDepth = this.ifStatementDepth;
     const previousLabels = this.activeLabels;
     const previousFunctionContext = this.functionContext;
     this.breakableDepth = 0;
     this.loopDepth = 0;
+    this.conditionalExpressionDepth = 0;
+    this.ifStatementDepth = 0;
     this.activeLabels = new Map();
     this.functionContext = functionContext;
     try {
@@ -4744,6 +4757,8 @@ class Parser {
     } finally {
       this.breakableDepth = previousBreakableDepth;
       this.loopDepth = previousLoopDepth;
+      this.conditionalExpressionDepth = previousConditionalExpressionDepth;
+      this.ifStatementDepth = previousIfStatementDepth;
       this.activeLabels = previousLabels;
       this.functionContext = previousFunctionContext;
     }

@@ -653,15 +653,16 @@ pub struct GitIgnoreManager;
 
 impl GitIgnoreManager {
     pub fn is_ignored(fs: &MemoryFs, dir: &str, gitdir: Option<&str>, filepath: &str) -> bool {
-        let gdir = gitdir
+        let raw_gdir = gitdir
             .map(|s| s.to_string())
             .unwrap_or_else(|| join(&[dir, ".git"]));
+        let gdir = discover_gitdir(fs, &raw_gdir);
         let bname = filepath
             .trim_end_matches('/')
             .rsplit('/')
             .next()
             .unwrap_or(filepath);
-        if bname == ".git" {
+        if bname == ".git" || filepath.split('/').any(|seg| seg == ".git") {
             return true;
         }
         if filepath == "." {
@@ -680,9 +681,11 @@ impl GitIgnoreManager {
         }
 
         let mut ignored_status = false;
-        for (gitignore_path, rel_filepath) in pairs {
-            let Some(file_content) = fs.read_str(&gitignore_path) else {
-                continue;
+        for (idx, (gitignore_path, rel_filepath)) in pairs.into_iter().enumerate() {
+            let file_content = match fs.read_str(&gitignore_path) {
+                Some(c) => c,
+                None if idx == 0 && !excludes.is_empty() => String::new(),
+                None => continue,
             };
             let rules = parse_ignore_rules(&format!("{excludes}\n{file_content}"));
 
@@ -912,7 +915,7 @@ impl GitStashManager {
         let entry = GitRefStash::create_stash_reflog_entry(&author, stash_commit, message);
         let filepath = self.ref_logs_stash_path();
         let existing = fs.read_str(&filepath).unwrap_or_default();
-        fs.write_str(&filepath, &format!("{existing}{entry}"));
+        fs.write_str(&filepath, &format!("{entry}{existing}"));
         Ok(())
     }
 

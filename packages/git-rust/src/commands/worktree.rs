@@ -1491,7 +1491,6 @@ pub fn stash(
                 let _ = fs.rm(&join(&[&gdir, "refs/stash"]));
             } else {
                 let next_sha = entries[0].split_whitespace().nth(1).unwrap_or("").to_string();
-                entries.reverse();
                 fs.write_str(&reflog_path, &format!("{}\n", entries.join("\n")));
                 if !next_sha.is_empty() {
                     let _ = stash_mgr.write_stash_ref(fs, &next_sha);

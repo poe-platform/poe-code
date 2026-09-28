@@ -575,13 +575,12 @@ dual_fixture_test!(read_tree_erroneous_filepath_trailing_slash, read_tree_errone
     assert_eq!(read_tree(&f.fs, &f.gitdir, "be1e63da44b26de8877a184359abace1cddcb739", Some("src/")).unwrap_err().code, ErrorCode::InvalidFilepathError);
 });
 dual_fixture_test!(write_tree_entries_sorted_correctly, write_tree_entries_sorted_correctly_sub, "test-writeTree", |f| {
-    use git_rust::models::TreeEntry;
     let entries = vec![
-        TreeEntry { mode: "040000".into(), path: "config".into(), oid: "d564d0bc3dd917926892c55e3706cc116d5b165e".into(), entry_type: "tree".into() },
-        TreeEntry { mode: "100644".into(), path: "config ".into(), oid: "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391".into(), entry_type: "blob".into() },
-        TreeEntry { mode: "100644".into(), path: "config.".into(), oid: "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391".into(), entry_type: "blob".into() },
-        TreeEntry { mode: "100644".into(), path: "config0".into(), oid: "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391".into(), entry_type: "blob".into() },
-        TreeEntry { mode: "100644".into(), path: "config~".into(), oid: "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391".into(), entry_type: "blob".into() },
+        git_rust::models::TreeEntry { mode: "040000".into(), path: "config".into(), oid: "d564d0bc3dd917926892c55e3706cc116d5b165e".into(), entry_type: "tree".into() },
+        git_rust::models::TreeEntry { mode: "100644".into(), path: "config ".into(), oid: "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391".into(), entry_type: "blob".into() },
+        git_rust::models::TreeEntry { mode: "100644".into(), path: "config.".into(), oid: "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391".into(), entry_type: "blob".into() },
+        git_rust::models::TreeEntry { mode: "100644".into(), path: "config0".into(), oid: "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391".into(), entry_type: "blob".into() },
+        git_rust::models::TreeEntry { mode: "100644".into(), path: "config~".into(), oid: "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391".into(), entry_type: "blob".into() },
     ];
     let oid = write_tree(&f.fs, &f.gitdir, &entries).unwrap();
     assert_eq!(oid, "c8a72f5bd8633663210490897b798ddc3ff9ca64");
@@ -609,4 +608,267 @@ dual_fixture_test!(pack_objects_write_and_index_pack_roundtrip, pack_objects_wri
     assert!(f.fs.exists(&join(&[&gdir, &rel_pack])));
     let indexed = git_rust::commands::plumbing::index_pack(&f.fs, &gdir, &f.gitdir, &rel_pack).unwrap();
     assert_eq!(indexed.len(), 4);
+});
+
+// ============================================================================
+// Additional 1-to-1 Object / Ref / Config / Ignore / Packfile Edge Cases
+// ============================================================================
+dual_fixture_test!(resolve_ref_head_symbolic_depth_1, resolve_ref_head_symbolic_depth_1_sub, "test-resolveRef", |f| {
+    let val = resolve_ref(&f.fs, &f.gitdir, "HEAD", Some(1)).unwrap();
+    assert!(val.starts_with("ref: ") || val.len() == 40);
+});
+
+dual_fixture_test!(resolve_ref_full_40_char_sha_passthrough, resolve_ref_full_40_char_sha_passthrough_sub, "test-resolveRef", |f| {
+    let sha = "e10ebb90d03eaacca84de1af0a59b444232da99e";
+    let resolved = resolve_ref(&f.fs, &f.gitdir, sha, None).unwrap();
+    assert_eq!(resolved, sha);
+});
+
+dual_fixture_test!(resolve_ref_short_branch_name, resolve_ref_short_branch_name_sub, "test-resolveRef", |f| {
+    let resolved = resolve_ref(&f.fs, &f.gitdir, "test-branch", None).unwrap();
+    assert_eq!(resolved.len(), 40);
+});
+
+dual_fixture_test!(resolve_ref_short_tag_name, resolve_ref_short_tag_name_sub, "test-resolveRef", |f| {
+    let resolved = resolve_ref(&f.fs, &f.gitdir, "v0.0.1", None).unwrap();
+    assert_eq!(resolved.len(), 40);
+});
+
+dual_fixture_test!(write_ref_refuses_overwrite_without_force, write_ref_refuses_overwrite_without_force_sub, "test-resolveRef", |f| {
+    let sha = "e10ebb90d03eaacca84de1af0a59b444232da99e";
+    write_ref(&f.fs, &f.gitdir, "refs/heads/no-force-test", sha, false, false).unwrap();
+    let err = write_ref(&f.fs, &f.gitdir, "refs/heads/no-force-test", sha, false, false).unwrap_err();
+    assert_eq!(err.code, ErrorCode::AlreadyExistsError);
+});
+
+dual_fixture_test!(write_ref_allows_overwrite_with_force, write_ref_allows_overwrite_with_force_sub, "test-resolveRef", |f| {
+    let sha1 = "e10ebb90d03eaacca84de1af0a59b444232da99e";
+    let sha2 = "0f5f4763c622b2380501894c869a7426f6722d97";
+    write_ref(&f.fs, &f.gitdir, "refs/heads/force-test", sha1, false, false).unwrap();
+    write_ref(&f.fs, &f.gitdir, "refs/heads/force-test", sha2, true, false).unwrap();
+    assert_eq!(resolve_ref(&f.fs, &f.gitdir, "refs/heads/force-test", None).unwrap(), sha2);
+});
+
+dual_fixture_test!(write_ref_symbolic_creates_symref, write_ref_symbolic_creates_symref_sub, "test-resolveRef", |f| {
+    write_ref(&f.fs, &f.gitdir, "HEAD", "refs/heads/test-branch", true, true).unwrap();
+    let sym = resolve_ref(&f.fs, &f.gitdir, "HEAD", Some(1)).unwrap();
+    assert_eq!(sym, "ref: refs/heads/test-branch");
+});
+
+dual_fixture_test!(config_set_append_multiple_values, config_set_append_multiple_values_sub, "test-config", |f| {
+    set_config(&f.fs, &f.gitdir, "remote.origin.fetch", Some("+refs/heads/extra/*:refs/remotes/origin/extra/*"), true).unwrap();
+    let all = get_config_all(&f.fs, &f.gitdir, "remote.origin.fetch");
+    assert!(all.len() >= 2);
+});
+
+dual_fixture_test!(config_set_none_deletes_key, config_set_none_deletes_key_sub, "test-config", |f| {
+    set_config(&f.fs, &f.gitdir, "user.name", None, false).unwrap();
+    assert_eq!(get_config(&f.fs, &f.gitdir, "user.name"), None);
+});
+
+dual_fixture_test!(config_nested_subsection_get_and_set, config_nested_subsection_get_and_set_sub, "test-config", |f| {
+    set_config(&f.fs, &f.gitdir, "branch.feature/sub.remote", Some("upstream"), false).unwrap();
+    assert_eq!(
+        get_config(&f.fs, &f.gitdir, "branch.feature/sub.remote").map(|v| v.as_str()).as_deref(),
+        Some("upstream")
+    );
+});
+
+dual_fixture_test!(is_ignored_dot_git_always_ignored, is_ignored_dot_git_always_ignored_sub, "test-isIgnored", |f| {
+    assert!(is_ignored(&f.fs, &f.dir, Some(&f.gitdir), ".git"));
+    assert!(is_ignored(&f.fs, &f.dir, Some(&f.gitdir), ".git/config"));
+});
+
+dual_fixture_test!(is_ignored_unignored_tracked_or_normal_file, is_ignored_unignored_tracked_or_normal_file_sub, "test-isIgnored", |f| {
+    assert!(!is_ignored(&f.fs, &f.dir, Some(&f.gitdir), "README.md"));
+});
+
+dual_fixture_test!(hash_blob_empty_bytes_matches_canonical_sha, hash_blob_empty_bytes_matches_canonical_sha_sub, "test-empty", |_f| {
+    let res = hash_blob(b"");
+    assert_eq!(res.oid, "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391");
+});
+
+dual_fixture_test!(write_blob_and_read_blob_binary_payload, write_blob_and_read_blob_binary_payload_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    let payload: Vec<u8> = (0u8..=255u8).collect();
+    let oid = write_blob(&f.fs, &f.gitdir, &payload).unwrap();
+    let read_res = read_blob(&f.fs, &f.gitdir, &oid, None).unwrap();
+    assert_eq!(read_res.blob, payload);
+});
+
+dual_fixture_test!(write_tree_sorts_entries_canonically, write_tree_sorts_entries_canonically_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    let blob_oid = write_blob(&f.fs, &f.gitdir, b"x").unwrap();
+    let entries = vec![
+        git_rust::models::TreeEntry {
+            mode: "100644".into(),
+            path: "z.txt".into(),
+            oid: blob_oid.clone(),
+            entry_type: "blob".into(),
+        },
+        git_rust::models::TreeEntry {
+            mode: "100644".into(),
+            path: "a.txt".into(),
+            oid: blob_oid,
+            entry_type: "blob".into(),
+        },
+    ];
+    let tree_oid = write_tree(&f.fs, &f.gitdir, &entries).unwrap();
+    let tree = read_tree(&f.fs, &f.gitdir, &tree_oid, None).unwrap();
+    assert_eq!(tree.tree[0].path, "a.txt");
+    assert_eq!(tree.tree[1].path, "z.txt");
+});
+
+dual_fixture_test!(write_commit_and_read_commit_roundtrip_multiple_parents, write_commit_and_read_commit_roundtrip_multiple_parents_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    let blob_oid = write_blob(&f.fs, &f.gitdir, b"content").unwrap();
+    let tree_oid = write_tree(&f.fs, &f.gitdir, &[git_rust::models::TreeEntry {
+        mode: "100644".into(),
+        path: "f.txt".into(),
+        oid: blob_oid,
+        entry_type: "blob".into(),
+    }]).unwrap();
+    let author = git_rust::utils::Author {
+        name: "Author".into(),
+        email: "a@example.com".into(),
+        timestamp: 1700000000,
+        timezone_offset: 0.0,
+    };
+    let c = git_rust::models::CommitObject {
+        message: "merge commit message\n".into(),
+        tree: tree_oid,
+        parent: vec![
+            "e10ebb90d03eaacca84de1af0a59b444232da99e".into(),
+            "0f5f4763c622b2380501894c869a7426f6722d97".into(),
+        ],
+        author: author.clone(),
+        committer: author,
+        gpgsig: None,
+    };
+    let oid = write_commit(&f.fs, &f.gitdir, &c).unwrap();
+    let parsed = read_commit(&f.fs, &f.gitdir, &oid).unwrap();
+    assert_eq!(parsed.commit.parent.len(), 2);
+    assert_eq!(parsed.commit.message, "merge commit message\n");
+});
+
+// ============================================================================
+// Additional 1-to-1 Object / Tree / Tag / Pack / Config Edge Cases
+// ============================================================================
+dual_fixture_test!(read_object_returns_oid_matching_requested_sha, read_object_returns_oid_matching_requested_sha_sub, "test-readObject", |f| {
+    let sha = "e10ebb90d03eaacca84de1af0a59b444232da99e";
+    let res = read_object(&f.fs, &f.gitdir, sha, Some("content"), None, None).unwrap();
+    assert_eq!(res.oid, sha);
+    assert_eq!(res.obj_type, "commit");
+});
+
+dual_fixture_test!(read_object_tree_parsed_returns_entries, read_object_tree_parsed_returns_entries_sub, "test-checkout", |f| {
+    let sha = "e10ebb90d03eaacca84de1af0a59b444232da99e";
+    let commit = read_commit(&f.fs, &f.gitdir, sha).unwrap();
+    let res = read_object(&f.fs, &f.gitdir, &commit.commit.tree, Some("parsed"), None, None).unwrap();
+    assert_eq!(res.obj_type, "tree");
+});
+
+dual_fixture_test!(write_object_tree_and_read_back, write_object_tree_and_read_back_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    let blob_oid = write_blob(&f.fs, &f.gitdir, b"tree item\n").unwrap();
+    let tree_oid = write_tree(&f.fs, &f.gitdir, &[git_rust::models::TreeEntry {
+        mode: "100644".into(),
+        path: "item.txt".into(),
+        oid: blob_oid,
+        entry_type: "blob".into(),
+    }]).unwrap();
+    let t = read_tree(&f.fs, &f.gitdir, &tree_oid, None).unwrap();
+    assert_eq!(t.tree.len(), 1);
+    assert_eq!(t.tree[0].path, "item.txt");
+});
+
+dual_fixture_test!(write_tag_and_read_tag_preserves_tagger_and_message, write_tag_and_read_tag_preserves_tagger_and_message_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    let blob_oid = write_blob(&f.fs, &f.gitdir, b"tagged blob").unwrap();
+    let tag_obj = git_rust::models::TagObject {
+        object: blob_oid.clone(),
+        object_type: "blob".into(),
+        tag: "v1.2.3".into(),
+        tagger: git_rust::utils::Author {
+            name: "Tagger".into(),
+            email: "tagger@example.com".into(),
+            timestamp: 1700000000,
+            timezone_offset: 0.0,
+        },
+        message: "release v1.2.3\n".into(),
+        gpgsig: None,
+    };
+    let tag_oid = write_tag(&f.fs, &f.gitdir, &tag_obj).unwrap();
+    let parsed = read_tag(&f.fs, &f.gitdir, &tag_oid).unwrap();
+    assert_eq!(parsed.tag.object, blob_oid);
+    assert_eq!(parsed.tag.tag, "v1.2.3");
+    assert_eq!(parsed.tag.message.trim(), "release v1.2.3");
+});
+
+dual_fixture_test!(find_root_from_deeply_nested_subdirectory, find_root_from_deeply_nested_subdirectory_sub, "test-findRoot", |f| {
+    let _ = f.fs.mkdir(&join(&[&f.dir, ".git"]));
+    let deep = join(&[&f.dir, "a/b/c/d/e"]);
+    let _ = f.fs.mkdir(&deep);
+    let root = find_root(&f.fs, &deep).unwrap();
+    assert!(deep.starts_with(&root));
+});
+
+dual_fixture_test!(list_refs_heads_returns_all_local_branches, list_refs_heads_returns_all_local_branches_sub, "test-resolveRef", |f| {
+    let heads = list_refs(&f.fs, &f.gitdir, "refs/heads");
+    assert!(!heads.is_empty());
+});
+
+dual_fixture_test!(list_refs_nonexistent_prefix_returns_empty_vec, list_refs_nonexistent_prefix_returns_empty_vec_sub, "test-resolveRef", |f| {
+    let refs = list_refs(&f.fs, &f.gitdir, "refs/nonexistent-namespace");
+    assert!(refs.is_empty());
+});
+
+dual_fixture_test!(delete_ref_nonexistent_is_idempotent, delete_ref_nonexistent_is_idempotent_sub, "test-resolveRef", |f| {
+    delete_ref(&f.fs, &f.gitdir, "refs/heads/does-not-exist").unwrap();
+});
+
+dual_fixture_test!(is_ignored_nested_gitignore_overrides_parent, is_ignored_nested_gitignore_overrides_parent_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    f.fs.write_str(&join(&[&f.dir, ".gitignore"]), "*.log\n");
+    let _ = f.fs.mkdir(&join(&[&f.dir, "sub"]));
+    f.fs.write_str(&join(&[&f.dir, "sub/.gitignore"]), "!important.log\n");
+    assert!(is_ignored(&f.fs, &f.dir, Some(&f.gitdir), "root.log"));
+    assert!(!is_ignored(&f.fs, &f.dir, Some(&f.gitdir), "sub/important.log"));
+});
+
+dual_fixture_test!(is_ignored_info_exclude_respected, is_ignored_info_exclude_respected_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    let actual_gitdir = git_rust::fs::discover_gitdir(&f.fs, &f.gitdir);
+    f.fs.write_str(&join(&[&actual_gitdir, "info/exclude"]), "*.secret\n");
+    assert!(is_ignored(&f.fs, &f.dir, Some(&f.gitdir), "my.secret"));
+});
+
+dual_fixture_test!(pack_objects_empty_oids_produces_valid_empty_pack, pack_objects_empty_oids_produces_valid_empty_pack_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    let res = pack_objects(&f.fs, &f.gitdir, &[], false).unwrap();
+    let bytes = res.packfile.unwrap();
+    assert_eq!(&bytes[0..4], b"PACK");
+});
+
+dual_fixture_test!(expand_oid_full_40_char_sha_returns_same, expand_oid_full_40_char_sha_returns_same_sub, "test-expandOid", |f| {
+    let full = "e10ebb90d03eaacca84de1af0a59b444232da99e";
+    let expanded = expand_oid(&f.fs, &f.gitdir, full).unwrap();
+    assert_eq!(expanded, full);
+});
+
+dual_fixture_test!(read_blob_from_commit_oid_and_nested_filepath, read_blob_from_commit_oid_and_nested_filepath_sub, "test-checkout", |f| {
+    let head = resolve_ref(&f.fs, &f.gitdir, "test-branch", None).unwrap();
+    let res = read_blob(&f.fs, &f.gitdir, &head, Some("src/index.js")).unwrap();
+    assert!(!res.blob.is_empty());
+});
+
+dual_fixture_test!(read_tree_from_commit_oid_returns_root_tree, read_tree_from_commit_oid_returns_root_tree_sub, "test-checkout", |f| {
+    let head = resolve_ref(&f.fs, &f.gitdir, "test-branch", None).unwrap();
+    let res = read_tree(&f.fs, &f.gitdir, &head, None).unwrap();
+    assert!(!res.tree.is_empty());
+});
+
+dual_fixture_test!(config_boolean_and_numeric_values_preserved_as_strings, config_boolean_and_numeric_values_preserved_as_strings_sub, "test-config", |f| {
+    set_config(&f.fs, &f.gitdir, "core.filemode", Some("false"), false).unwrap();
+    assert_eq!(get_config(&f.fs, &f.gitdir, "core.filemode").map(|v| v.as_str()).as_deref(), Some("false"));
 });

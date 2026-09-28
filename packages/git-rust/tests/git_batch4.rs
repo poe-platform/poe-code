@@ -862,3 +862,197 @@ dual_fixture_test!(submodules_preserved_when_switching_branches, submodules_pres
     let files = list_files(&f.fs, &f.gitdir, None).unwrap();
     assert!(files.contains(&"test.empty".to_string()));
 });
+
+// ============================================================================
+// Additional 1-to-1 Worktree / Status / Index / Commit / CLI Cases
+// ============================================================================
+use git_rust::cli::execute_git_cli;
+
+dual_fixture_test!(cli_status_short_and_porcelain_formats, cli_status_short_and_porcelain_formats_sub, "test-status", |f| {
+    let r_short = execute_git_cli(&f.fs, &f.dir, &["status", "-s"]);
+    assert_eq!(r_short.exit_code, 0);
+    assert!(!r_short.stdout.is_empty());
+
+    let r_porcelain = execute_git_cli(&f.fs, &f.dir, &["status", "--porcelain"]);
+    assert_eq!(r_porcelain.exit_code, 0);
+    assert_eq!(r_short.stdout, r_porcelain.stdout);
+});
+
+dual_fixture_test!(cli_status_long_format_includes_branch_header, cli_status_long_format_includes_branch_header_sub, "test-status", |f| {
+    let r = execute_git_cli(&f.fs, &f.dir, &["status"]);
+    assert_eq!(r.exit_code, 0);
+    assert!(r.stdout.contains("On branch") || r.stdout.contains("HEAD"));
+});
+
+dual_fixture_test!(cli_add_single_file_and_all_flag, cli_add_single_file_and_all_flag_sub, "test-add", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    let r1 = execute_git_cli(&f.fs, &f.dir, &["add", "a.txt"]);
+    assert_eq!(r1.exit_code, 0);
+    assert!(list_files(&f.fs, &f.gitdir, None).unwrap().contains(&"a.txt".to_string()));
+
+    let r2 = execute_git_cli(&f.fs, &f.dir, &["add", "-A"]);
+    assert_eq!(r2.exit_code, 0);
+    assert!(list_files(&f.fs, &f.gitdir, None).unwrap().len() > 1);
+});
+
+dual_fixture_test!(cli_rm_file_and_cached_flag, cli_rm_file_and_cached_flag_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    let r_cached = execute_git_cli(&f.fs, &f.dir, &["rm", "--cached", "README.md"]);
+    assert_eq!(r_cached.exit_code, 0);
+    assert!(f.fs.exists(&join(&[&f.dir, "README.md"])));
+    assert!(!list_files(&f.fs, &f.gitdir, None).unwrap().contains(&"README.md".to_string()));
+});
+
+dual_fixture_test!(cli_rm_removes_worktree_file_by_default, cli_rm_removes_worktree_file_by_default_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    let r = execute_git_cli(&f.fs, &f.dir, &["rm", "README.md"]);
+    assert_eq!(r.exit_code, 0);
+    assert!(!f.fs.exists(&join(&[&f.dir, "README.md"])));
+});
+
+dual_fixture_test!(cli_mv_renames_worktree_and_index_entry, cli_mv_renames_worktree_and_index_entry_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    let r = execute_git_cli(&f.fs, &f.dir, &["mv", "README.md", "README_RENAMED.md"]);
+    assert_eq!(r.exit_code, 0);
+    assert!(!f.fs.exists(&join(&[&f.dir, "README.md"])));
+    assert!(f.fs.exists(&join(&[&f.dir, "README_RENAMED.md"])));
+    let staged = list_files(&f.fs, &f.gitdir, None).unwrap();
+    assert!(staged.contains(&"README_RENAMED.md".to_string()));
+});
+
+dual_fixture_test!(cli_restore_worktree_file_from_index, cli_restore_worktree_file_from_index_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    let orig = f.fs.read_str(&join(&[&f.dir, "README.md"])).unwrap();
+    f.fs.write_str(&join(&[&f.dir, "README.md"]), "corrupted\n");
+    let r = execute_git_cli(&f.fs, &f.dir, &["restore", "README.md"]);
+    assert_eq!(r.exit_code, 0);
+    assert_eq!(f.fs.read_str(&join(&[&f.dir, "README.md"])).unwrap(), orig);
+});
+
+dual_fixture_test!(cli_clean_force_removes_untracked_files, cli_clean_force_removes_untracked_files_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    f.fs.write_str(&join(&[&f.dir, "untracked_temp.txt"]), "temp\n");
+    let r = execute_git_cli(&f.fs, &f.dir, &["clean", "-f"]);
+    assert_eq!(r.exit_code, 0);
+    assert!(!f.fs.exists(&join(&[&f.dir, "untracked_temp.txt"])));
+});
+
+dual_fixture_test!(cli_reset_soft_mixed_and_hard, cli_reset_soft_mixed_and_hard_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    f.fs.write_str(&join(&[&f.dir, "README.md"]), "dirty\n");
+    let r_hard = execute_git_cli(&f.fs, &f.dir, &["reset", "--hard", "HEAD"]);
+    assert_eq!(r_hard.exit_code, 0);
+    assert_ne!(f.fs.read_str(&join(&[&f.dir, "README.md"])).unwrap(), "dirty\n");
+});
+
+dual_fixture_test!(cli_diff_worktree_and_cached, cli_diff_worktree_and_cached_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    f.fs.write_str(&join(&[&f.dir, "README.md"]), "changed line\n");
+    let r_diff = execute_git_cli(&f.fs, &f.dir, &["diff"]);
+    assert_eq!(r_diff.exit_code, 0);
+    assert!(r_diff.stdout.contains("+changed line"));
+
+    execute_git_cli(&f.fs, &f.dir, &["add", "README.md"]);
+    let r_cached = execute_git_cli(&f.fs, &f.dir, &["diff", "--cached"]);
+    assert_eq!(r_cached.exit_code, 0);
+    assert!(r_cached.stdout.contains("+changed line"));
+});
+
+dual_fixture_test!(cli_show_commit_and_blob_content, cli_show_commit_and_blob_content_sub, "test-checkout", |f| {
+    let r_commit = execute_git_cli(&f.fs, &f.dir, &["show", "--no-patch", "test-branch"]);
+    assert_eq!(r_commit.exit_code, 0);
+    assert!(r_commit.stdout.contains("commit "));
+
+    let r_blob = execute_git_cli(&f.fs, &f.dir, &["show", "test-branch:README.md"]);
+    assert_eq!(r_blob.exit_code, 0);
+    assert!(!r_blob.stdout.is_empty());
+});
+
+dual_fixture_test!(cli_branch_create_list_rename_and_delete, cli_branch_create_list_rename_and_delete_sub, "test-branch", |f| {
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["branch", "cli-branch"]).exit_code, 0);
+    let r_list = execute_git_cli(&f.fs, &f.dir, &["branch"]);
+    assert!(r_list.stdout.contains("cli-branch"));
+
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["branch", "-m", "cli-branch", "cli-renamed"]).exit_code, 0);
+    assert!(execute_git_cli(&f.fs, &f.dir, &["branch"]).stdout.contains("cli-renamed"));
+
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["branch", "-D", "cli-renamed"]).exit_code, 0);
+    assert!(!execute_git_cli(&f.fs, &f.dir, &["branch"]).stdout.contains("cli-renamed"));
+});
+
+dual_fixture_test!(cli_tag_lightweight_annotated_and_delete, cli_tag_lightweight_annotated_and_delete_sub, "test-tag", |f| {
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["tag", "v-cli-1"]).exit_code, 0);
+    assert!(execute_git_cli(&f.fs, &f.dir, &["tag"]).stdout.contains("v-cli-1"));
+
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["tag", "-a", "v-cli-2", "-m", "annotated msg"]).exit_code, 0);
+    assert!(execute_git_cli(&f.fs, &f.dir, &["tag"]).stdout.contains("v-cli-2"));
+
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["tag", "-d", "v-cli-1"]).exit_code, 0);
+    assert!(!execute_git_cli(&f.fs, &f.dir, &["tag"]).stdout.contains("v-cli-1"));
+});
+
+dual_fixture_test!(cli_remote_add_verbose_and_remove, cli_remote_add_verbose_and_remove_sub, "test-addRemote", |f| {
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["remote", "add", "upstream", "https://example.com/up.git"]).exit_code, 0);
+    let r_v = execute_git_cli(&f.fs, &f.dir, &["remote", "-v"]);
+    assert!(r_v.stdout.contains("upstream\thttps://example.com/up.git"));
+
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["remote", "remove", "upstream"]).exit_code, 0);
+    assert!(!execute_git_cli(&f.fs, &f.dir, &["remote"]).stdout.contains("upstream"));
+});
+
+dual_fixture_test!(cli_config_set_get_and_unset, cli_config_set_get_and_unset_sub, "test-config", |f| {
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["config", "user.name", "CLI User"]).exit_code, 0);
+    let r_get = execute_git_cli(&f.fs, &f.dir, &["config", "user.name"]);
+    assert_eq!(r_get.stdout.trim(), "CLI User");
+
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["config", "--unset", "user.name"]).exit_code, 0);
+});
+
+dual_fixture_test!(cli_rev_parse_head_short_and_abbrev_ref, cli_rev_parse_head_short_and_abbrev_ref_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    let r_full = execute_git_cli(&f.fs, &f.dir, &["rev-parse", "HEAD"]);
+    assert_eq!(r_full.exit_code, 0);
+    assert_eq!(r_full.stdout.trim().len(), 40);
+
+    let r_short = execute_git_cli(&f.fs, &f.dir, &["rev-parse", "--short", "HEAD"]);
+    assert_eq!(r_short.exit_code, 0);
+    assert!(r_short.stdout.trim().len() >= 7);
+
+    let r_abbrev = execute_git_cli(&f.fs, &f.dir, &["rev-parse", "--abbrev-ref", "HEAD"]);
+    assert_eq!(r_abbrev.exit_code, 0);
+    assert_eq!(r_abbrev.stdout.trim(), "test-branch");
+});
+
+dual_fixture_test!(cli_ls_files_lists_tracked_index_paths, cli_ls_files_lists_tracked_index_paths_sub, "test-listFiles", |f| {
+    let r = execute_git_cli(&f.fs, &f.dir, &["ls-files"]);
+    assert_eq!(r.exit_code, 0);
+    assert!(r.stdout.lines().count() > 5);
+});
+
+dual_fixture_test!(cli_switch_branch_and_create_c_flag, cli_switch_branch_and_create_c_flag_sub, "test-checkout", |f| {
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["switch", "test-branch"]).exit_code, 0);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["switch", "-c", "new-switched-branch"]).exit_code, 0);
+    let r_abbrev = execute_git_cli(&f.fs, &f.dir, &["rev-parse", "--abbrev-ref", "HEAD"]);
+    assert_eq!(r_abbrev.stdout.trim(), "new-switched-branch");
+});
+
+dual_fixture_test!(cli_log_oneline_and_max_count, cli_log_oneline_and_max_count_sub, "test-log", |f| {
+    let r = execute_git_cli(&f.fs, &f.dir, &["log", "--oneline", "-n", "2"]);
+    assert_eq!(r.exit_code, 0);
+    assert_eq!(r.stdout.lines().count(), 2);
+});
+
+dual_fixture_test!(cli_commit_m_and_amend, cli_commit_m_and_amend_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    execute_git_cli(&f.fs, &f.dir, &["config", "user.name", "Committer"]);
+    execute_git_cli(&f.fs, &f.dir, &["config", "user.email", "c@example.com"]);
+    f.fs.write_str(&join(&[&f.dir, "cli_new.txt"]), "new file\n");
+    execute_git_cli(&f.fs, &f.dir, &["add", "cli_new.txt"]);
+    let r1 = execute_git_cli(&f.fs, &f.dir, &["commit", "-m", "first cli commit"]);
+    assert_eq!(r1.exit_code, 0);
+
+    let r2 = execute_git_cli(&f.fs, &f.dir, &["commit", "--amend", "-m", "amended cli commit"]);
+    assert_eq!(r2.exit_code, 0);
+    let log_out = execute_git_cli(&f.fs, &f.dir, &["log", "-n", "1"]).stdout;
+    assert!(log_out.contains("amended cli commit"));
+});

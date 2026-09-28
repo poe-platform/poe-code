@@ -1251,3 +1251,190 @@ dual_fixture_test!(find_merge_base_no_common_ancestor_scenario, find_merge_base_
     .unwrap();
     assert!(res.is_empty());
 });
+
+// ============================================================================
+// Additional 1-to-1 Ref / Branch / Tag / Remote / Note / Log Cases
+// ============================================================================
+dual_fixture_test!(branch_with_full_refs_heads_prefix_rejected_or_normalized, branch_with_full_refs_heads_prefix_rejected_or_normalized_sub, "test-branch", |f| {
+    let err = branch(&f.fs, &f.gitdir, "refs/heads/bad..name", None, false, false).unwrap_err();
+    assert_eq!(err.code, ErrorCode::InvalidRefNameError);
+});
+
+dual_fixture_test!(branch_with_tilde_rejected, branch_with_tilde_rejected_sub, "test-branch", |f| {
+    let err = branch(&f.fs, &f.gitdir, "feature~1", None, false, false).unwrap_err();
+    assert_eq!(err.code, ErrorCode::InvalidRefNameError);
+});
+
+dual_fixture_test!(branch_with_caret_rejected, branch_with_caret_rejected_sub, "test-branch", |f| {
+    let err = branch(&f.fs, &f.gitdir, "feature^2", None, false, false).unwrap_err();
+    assert_eq!(err.code, ErrorCode::InvalidRefNameError);
+});
+
+dual_fixture_test!(branch_with_colon_rejected, branch_with_colon_rejected_sub, "test-branch", |f| {
+    let err = branch(&f.fs, &f.gitdir, "feature:sub", None, false, false).unwrap_err();
+    assert_eq!(err.code, ErrorCode::InvalidRefNameError);
+});
+
+dual_fixture_test!(branch_with_question_mark_rejected, branch_with_question_mark_rejected_sub, "test-branch", |f| {
+    let err = branch(&f.fs, &f.gitdir, "feature?name", None, false, false).unwrap_err();
+    assert_eq!(err.code, ErrorCode::InvalidRefNameError);
+});
+
+dual_fixture_test!(branch_with_asterisk_rejected, branch_with_asterisk_rejected_sub, "test-branch", |f| {
+    let err = branch(&f.fs, &f.gitdir, "feature*name", None, false, false).unwrap_err();
+    assert_eq!(err.code, ErrorCode::InvalidRefNameError);
+});
+
+dual_fixture_test!(branch_with_open_bracket_rejected, branch_with_open_bracket_rejected_sub, "test-branch", |f| {
+    let err = branch(&f.fs, &f.gitdir, "feature[0]", None, false, false).unwrap_err();
+    assert_eq!(err.code, ErrorCode::InvalidRefNameError);
+});
+
+dual_fixture_test!(branch_with_at_brace_rejected, branch_with_at_brace_rejected_sub, "test-branch", |f| {
+    let err = branch(&f.fs, &f.gitdir, "feature@{0}", None, false, false).unwrap_err();
+    assert_eq!(err.code, ErrorCode::InvalidRefNameError);
+});
+
+dual_fixture_test!(branch_hierarchical_slash_name_allowed, branch_hierarchical_slash_name_allowed_sub, "test-branch", |f| {
+    branch(&f.fs, &f.gitdir, "team/feature/sub-1", None, false, false).unwrap();
+    let branches = list_branches(&f.fs, &f.gitdir, None);
+    assert!(branches.contains(&"team/feature/sub-1".to_string()));
+});
+
+dual_fixture_test!(rename_branch_preserves_target_commit_oid, rename_branch_preserves_target_commit_oid_sub, "test-renameBranch", |f| {
+    branch(&f.fs, &f.gitdir, "other-branch", None, false, false).unwrap();
+    let orig = resolve_ref(&f.fs, &f.gitdir, "refs/heads/other-branch", None).unwrap();
+    rename_branch(&f.fs, &f.gitdir, "other-branch", "renamed-other", false).unwrap();
+    assert_eq!(resolve_ref(&f.fs, &f.gitdir, "refs/heads/renamed-other", None).unwrap(), orig);
+});
+
+dual_fixture_test!(rename_branch_invalid_new_ref_errors, rename_branch_invalid_new_ref_errors_sub, "test-renameBranch", |f| {
+    let err = rename_branch(&f.fs, &f.gitdir, "bad..branch", "other-branch", false).unwrap_err();
+    assert_eq!(err.code, ErrorCode::InvalidRefNameError);
+});
+
+dual_fixture_test!(delete_branch_removes_branch_config_section, delete_branch_removes_branch_config_section_sub, "test-deleteBranch", |f| {
+    set_config(&f.fs, &f.gitdir, "branch.test.remote", Some("origin"), false).unwrap();
+    set_config(&f.fs, &f.gitdir, "branch.test.merge", Some("refs/heads/test"), false).unwrap();
+    delete_branch(&f.fs, &f.gitdir, "test").unwrap();
+    assert_eq!(get_config(&f.fs, &f.gitdir, "branch.test.remote"), None);
+});
+
+dual_fixture_test!(current_branch_returns_none_in_unborn_repo, current_branch_returns_none_in_unborn_repo_sub, "test-empty", |f| {
+    let actual_gitdir = git_rust::fs::discover_gitdir(&f.fs, &f.gitdir);
+    f.fs.write_str(&join(&[&actual_gitdir, "HEAD"]), "e10ebb90d03eaacca84de1af0a59b444232da99e\n");
+    assert_eq!(current_branch(&f.fs, &f.gitdir, false, false).unwrap(), None);
+});
+
+dual_fixture_test!(current_branch_test_branch_shortname_and_fullname, current_branch_test_branch_shortname_and_fullname_sub, "test-resolveRef", |f| {
+    write_ref(&f.fs, &f.gitdir, "HEAD", "refs/heads/test-branch", true, true).unwrap();
+    assert_eq!(current_branch(&f.fs, &f.gitdir, false, false).unwrap().as_deref(), Some("test-branch"));
+    assert_eq!(current_branch(&f.fs, &f.gitdir, true, false).unwrap().as_deref(), Some("refs/heads/test-branch"));
+});
+
+dual_fixture_test!(tag_invalid_ref_name_rejected, tag_invalid_ref_name_rejected_sub, "test-tag", |f| {
+    let err = tag(&f.fs, &f.gitdir, "bad..tag", None, false).unwrap_err();
+    assert_eq!(err.code, ErrorCode::InvalidRefNameError);
+});
+
+dual_fixture_test!(tag_hierarchical_release_name_allowed, tag_hierarchical_release_name_allowed_sub, "test-tag", |f| {
+    tag(&f.fs, &f.gitdir, "releases/v2.0.0", None, false).unwrap();
+    let tags = list_tags(&f.fs, &f.gitdir);
+    assert!(tags.contains(&"releases/v2.0.0".to_string()));
+});
+
+dual_fixture_test!(annotated_tag_invalid_name_rejected, annotated_tag_invalid_name_rejected_sub, "test-annotatedTag", |f| {
+    let tagger = Author { name: "T".into(), email: "t@e.com".into(), timestamp: 1600000000, timezone_offset: 0.0 };
+    let err = annotated_tag(&f.fs, &f.gitdir, "bad..tag", Some("msg"), None, Some(tagger), None, false).unwrap_err();
+    assert_eq!(err.code, ErrorCode::InvalidRefNameError);
+});
+
+dual_fixture_test!(annotated_tag_points_to_explicit_object_oid, annotated_tag_points_to_explicit_object_oid_sub, "test-annotatedTag", |f| {
+    let head = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+    let tagger = Author { name: "T".into(), email: "t@e.com".into(), timestamp: 1600000000, timezone_offset: 0.0 };
+    annotated_tag(&f.fs, &f.gitdir, "explicit-obj-tag", Some("tag body\n"), Some(&head), Some(tagger), None, false).unwrap();
+    let tag_oid = resolve_ref(&f.fs, &f.gitdir, "refs/tags/explicit-obj-tag", None).unwrap();
+    let t = read_tag(&f.fs, &f.gitdir, &tag_oid).unwrap();
+    assert_eq!(t.tag.object, head);
+});
+
+dual_fixture_test!(delete_tag_hierarchical_name, delete_tag_hierarchical_name_sub, "test-tag", |f| {
+    tag(&f.fs, &f.gitdir, "rel/v1", None, false).unwrap();
+    delete_tag(&f.fs, &f.gitdir, "rel/v1").unwrap();
+    assert!(!list_tags(&f.fs, &f.gitdir).contains(&"rel/v1".to_string()));
+});
+
+dual_fixture_test!(add_remote_sets_default_fetch_refspec, add_remote_sets_default_fetch_refspec_sub, "test-addRemote", |f| {
+    add_remote(&f.fs, &f.gitdir, "mirror", "https://example.com/mirror.git", false).unwrap();
+    let spec = get_config(&f.fs, &f.gitdir, "remote.mirror.fetch").map(|v| v.as_str());
+    assert_eq!(spec.as_deref(), Some("+refs/heads/*:refs/remotes/mirror/*"));
+});
+
+dual_fixture_test!(add_remote_invalid_name_rejected, add_remote_invalid_name_rejected_sub, "test-addRemote", |f| {
+    let err = add_remote(&f.fs, &f.gitdir, "bad..remote", "https://example.com/r.git", false).unwrap_err();
+    assert_eq!(err.code, ErrorCode::InvalidRefNameError);
+});
+
+dual_fixture_test!(delete_remote_clears_url_and_fetch_config, delete_remote_clears_url_and_fetch_config_sub, "test-deleteRemote", |f| {
+    delete_remote(&f.fs, &f.gitdir, "foo").unwrap();
+    assert_eq!(get_config(&f.fs, &f.gitdir, "remote.foo.url"), None);
+    assert_eq!(get_config(&f.fs, &f.gitdir, "remote.foo.fetch"), None);
+});
+
+dual_fixture_test!(add_note_from_utf8_string_and_read_back, add_note_from_utf8_string_and_read_back_sub, "test-addNote", |f| {
+    let author = Author { name: "N".into(), email: "n@e.com".into(), timestamp: 1600000000, timezone_offset: 0.0 };
+    let target = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+    add_note(&f.fs, &f.gitdir, Some("refs/notes/custom"), &target, b"custom note text", true, author.clone(), Some(author)).unwrap();
+    let note = read_note(&f.fs, &f.gitdir, Some("refs/notes/custom"), &target).unwrap();
+    assert_eq!(note, b"custom note text");
+});
+
+dual_fixture_test!(list_notes_in_custom_namespace_returns_added_note, list_notes_in_custom_namespace_returns_added_note_sub, "test-addNote", |f| {
+    let author = Author { name: "N".into(), email: "n@e.com".into(), timestamp: 1600000000, timezone_offset: 0.0 };
+    let target = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+    add_note(&f.fs, &f.gitdir, Some("refs/notes/reviews"), &target, b"LGTM", true, author.clone(), Some(author)).unwrap();
+    let notes = list_notes(&f.fs, &f.gitdir, Some("refs/notes/reviews")).unwrap();
+    assert_eq!(notes.len(), 1);
+    assert_eq!(notes[0].target, target);
+});
+
+dual_fixture_test!(remove_note_from_temp_namespace, remove_note_from_temp_namespace_sub, "test-addNote", |f| {
+    let author = Author { name: "N".into(), email: "n@e.com".into(), timestamp: 1600000000, timezone_offset: 0.0 };
+    let target = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+    add_note(&f.fs, &f.gitdir, Some("refs/notes/temp"), &target, b"temp", true, author.clone(), Some(author.clone())).unwrap();
+    remove_note(&f.fs, &f.gitdir, Some("refs/notes/temp"), &target, author.clone(), Some(author)).unwrap();
+    assert!(read_note(&f.fs, &f.gitdir, Some("refs/notes/temp"), &target).is_err());
+});
+
+dual_fixture_test!(log_with_depth_zero_returns_empty_or_single, log_with_depth_zero_returns_empty_or_single_sub, "test-log", |f| {
+    let entries = log(&f.fs, &f.gitdir, Some("HEAD"), None, Some(1), None, false, false).unwrap();
+    assert_eq!(entries.len(), 1);
+});
+
+dual_fixture_test!(log_missing_ref_returns_not_found_error, log_missing_ref_returns_not_found_error_sub, "test-log", |f| {
+    let err = log(&f.fs, &f.gitdir, Some("refs/heads/nonexistent"), None, None, None, false, false).unwrap_err();
+    assert_eq!(err.code, ErrorCode::NotFoundError);
+});
+
+dual_fixture_test!(log_by_explicit_commit_sha, log_by_explicit_commit_sha_sub, "test-log", |f| {
+    let head = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+    let entries = log(&f.fs, &f.gitdir, Some(&head), None, Some(2), None, false, false).unwrap();
+    assert_eq!(entries[0].oid, head);
+});
+
+dual_fixture_test!(is_descendent_with_depth_limit_one, is_descendent_with_depth_limit_one_sub, "test-log", |f| {
+    let entries = log(&f.fs, &f.gitdir, Some("HEAD"), None, Some(3), None, false, false).unwrap();
+    assert!(git_rust::commands::plumbing::is_descendent(&f.fs, &f.gitdir, &entries[0].oid, &entries[1].oid, Some(1)).unwrap());
+});
+
+dual_fixture_test!(find_merge_base_identical_commits_returns_self, find_merge_base_identical_commits_returns_self_sub, "test-findMergeBase", |f| {
+    let head = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+    let bases = find_merge_base(&f.fs, &f.gitdir, &[head.clone(), head.clone()]).unwrap();
+    assert_eq!(bases, vec![head]);
+});
+
+dual_fixture_test!(find_merge_base_ancestor_and_descendant_returns_ancestor, find_merge_base_ancestor_and_descendant_returns_ancestor_sub, "test-log", |f| {
+    let entries = log(&f.fs, &f.gitdir, Some("HEAD"), None, Some(3), None, false, false).unwrap();
+    let bases = find_merge_base(&f.fs, &f.gitdir, &[entries[0].oid.clone(), entries[2].oid.clone()]).unwrap();
+    assert_eq!(bases, vec![entries[2].oid.clone()]);
+});

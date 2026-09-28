@@ -530,3 +530,467 @@ dual_fixture_test!(hosting_providers_basic_auth_and_push_pull, hosting_providers
     .unwrap();
     assert!(push_res.ok);
 });
+
+// ============================================================================
+// 10. CLI Subcommands & End-to-End Integration Parity (execute_git_cli)
+// ============================================================================
+use git_rust::cli::execute_git_cli;
+
+dual_fixture_test!(cli_ls_tree_default_and_name_only, cli_ls_tree_default_and_name_only_sub, "test-checkout", |f| {
+    let r1 = execute_git_cli(&f.fs, &f.dir, &["ls-tree", "test-branch"]);
+    assert_eq!(r1.exit_code, 0);
+    assert!(r1.stdout.contains("README.md"));
+
+    let r2 = execute_git_cli(&f.fs, &f.dir, &["ls-tree", "--name-only", "test-branch"]);
+    assert_eq!(r2.exit_code, 0);
+    assert!(r2.stdout.lines().any(|l| l == "README.md"));
+});
+
+dual_fixture_test!(cli_ls_tree_recursive_and_name_only, cli_ls_tree_recursive_and_name_only_sub, "test-checkout", |f| {
+    let r1 = execute_git_cli(&f.fs, &f.dir, &["ls-tree", "-r", "test-branch"]);
+    assert_eq!(r1.exit_code, 0);
+    assert!(r1.stdout.contains("src/"));
+
+    let r2 = execute_git_cli(&f.fs, &f.dir, &["ls-tree", "-r", "--name-only", "test-branch"]);
+    assert_eq!(r2.exit_code, 0);
+    assert!(r2.stdout.lines().any(|l| l.starts_with("src/")));
+});
+
+dual_fixture_test!(cli_show_ref_all_heads_tags_and_hash_only, cli_show_ref_all_heads_tags_and_hash_only_sub, "test-checkout", |f| {
+    let r_all = execute_git_cli(&f.fs, &f.dir, &["show-ref"]);
+    assert_eq!(r_all.exit_code, 0);
+    assert!(r_all.stdout.contains("refs/heads/test-branch"));
+    assert!(r_all.stdout.contains("refs/tags/v1.0.0"));
+
+    let r_heads = execute_git_cli(&f.fs, &f.dir, &["show-ref", "--heads"]);
+    assert_eq!(r_heads.exit_code, 0);
+    assert!(r_heads.stdout.contains("refs/heads/test-branch"));
+    assert!(!r_heads.stdout.contains("refs/tags/v1.0.0"));
+
+    let r_tags = execute_git_cli(&f.fs, &f.dir, &["show-ref", "--tags"]);
+    assert_eq!(r_tags.exit_code, 0);
+    assert!(r_tags.stdout.contains("refs/tags/v1.0.0"));
+
+    let r_hash = execute_git_cli(&f.fs, &f.dir, &["show-ref", "-s", "--heads"]);
+    assert_eq!(r_hash.exit_code, 0);
+    assert!(r_hash.stdout.lines().all(|l| l.len() == 40));
+});
+
+dual_fixture_test!(cli_symbolic_ref_read_short_and_write, cli_symbolic_ref_read_short_and_write_sub, "test-checkout", |f| {
+    let r_write = execute_git_cli(&f.fs, &f.dir, &["symbolic-ref", "HEAD", "refs/heads/test-branch"]);
+    assert_eq!(r_write.exit_code, 0);
+
+    let r_full = execute_git_cli(&f.fs, &f.dir, &["symbolic-ref", "HEAD"]);
+    assert_eq!(r_full.exit_code, 0);
+    assert_eq!(r_full.stdout.trim(), "refs/heads/test-branch");
+
+    let r_short = execute_git_cli(&f.fs, &f.dir, &["symbolic-ref", "--short", "HEAD"]);
+    assert_eq!(r_short.exit_code, 0);
+    assert_eq!(r_short.stdout.trim(), "test-branch");
+});
+
+dual_fixture_test!(cli_update_ref_set_and_delete, cli_update_ref_set_and_delete_sub, "test-checkout", |f| {
+    let r_set = execute_git_cli(&f.fs, &f.dir, &["update-ref", "refs/heads/custom-ref", "test-branch"]);
+    assert_eq!(r_set.exit_code, 0);
+    assert_eq!(
+        resolve_ref(&f.fs, &f.gitdir, "refs/heads/custom-ref", None).unwrap(),
+        resolve_ref(&f.fs, &f.gitdir, "test-branch", None).unwrap()
+    );
+
+    let r_del = execute_git_cli(&f.fs, &f.dir, &["update-ref", "-d", "refs/heads/custom-ref"]);
+    assert_eq!(r_del.exit_code, 0);
+    assert!(resolve_ref(&f.fs, &f.gitdir, "refs/heads/custom-ref", None).is_err());
+});
+
+dual_fixture_test!(cli_rev_list_default_count_max_count_and_reverse, cli_rev_list_default_count_max_count_and_reverse_sub, "test-log", |f| {
+    let r_all = execute_git_cli(&f.fs, &f.dir, &["rev-list", "HEAD"]);
+    assert_eq!(r_all.exit_code, 0);
+    let oids: Vec<&str> = r_all.stdout.lines().collect();
+    assert!(oids.len() >= 2);
+
+    let r_count = execute_git_cli(&f.fs, &f.dir, &["rev-list", "--count", "HEAD"]);
+    assert_eq!(r_count.exit_code, 0);
+    assert_eq!(r_count.stdout.trim().parse::<usize>().unwrap(), oids.len());
+
+    let r_max = execute_git_cli(&f.fs, &f.dir, &["rev-list", "-n", "1", "HEAD"]);
+    assert_eq!(r_max.exit_code, 0);
+    assert_eq!(r_max.stdout.lines().count(), 1);
+
+    let r_rev = execute_git_cli(&f.fs, &f.dir, &["rev-list", "--reverse", "HEAD"]);
+    assert_eq!(r_rev.exit_code, 0);
+    let rev_oids: Vec<&str> = r_rev.stdout.lines().collect();
+    assert_eq!(rev_oids.first(), oids.last());
+});
+
+dual_fixture_test!(cli_merge_base_and_is_ancestor, cli_merge_base_and_is_ancestor_sub, "test-merge", |f| {
+    let r_base = execute_git_cli(&f.fs, &f.dir, &["merge-base", "a", "b"]);
+    assert_eq!(r_base.exit_code, 0);
+    let base_oid = r_base.stdout.trim();
+    assert_eq!(base_oid.len(), 40);
+
+    let r_anc_ok = execute_git_cli(&f.fs, &f.dir, &["merge-base", "--is-ancestor", base_oid, "a"]);
+    assert_eq!(r_anc_ok.exit_code, 0);
+
+    let r_anc_no = execute_git_cli(&f.fs, &f.dir, &["merge-base", "--is-ancestor", "a", "b"]);
+    assert_eq!(r_anc_no.exit_code, 1);
+});
+
+dual_fixture_test!(cli_check_ignore_default_and_quiet, cli_check_ignore_default_and_quiet_sub, "test-isIgnored", |f| {
+    f.fs.write_str(&join(&[&f.dir, ".gitignore"]), "i.txt\n");
+    let r_ignored = execute_git_cli(&f.fs, &f.dir, &["check-ignore", "i.txt"]);
+    assert_eq!(r_ignored.exit_code, 0);
+    assert_eq!(r_ignored.stdout.trim(), "i.txt");
+
+    let r_quiet = execute_git_cli(&f.fs, &f.dir, &["check-ignore", "-q", "i.txt"]);
+    assert_eq!(r_quiet.exit_code, 0);
+    assert!(r_quiet.stdout.is_empty());
+
+    let r_not_ignored = execute_git_cli(&f.fs, &f.dir, &["check-ignore", "README.md"]);
+    assert_eq!(r_not_ignored.exit_code, 1);
+});
+
+dual_fixture_test!(cli_cat_file_type_size_and_pretty_tree, cli_cat_file_type_size_and_pretty_tree_sub, "test-checkout", |f| {
+    let r_type = execute_git_cli(&f.fs, &f.dir, &["cat-file", "-t", "test-branch"]);
+    assert_eq!(r_type.exit_code, 0);
+    assert_eq!(r_type.stdout.trim(), "commit");
+
+    let r_size = execute_git_cli(&f.fs, &f.dir, &["cat-file", "-s", "test-branch"]);
+    assert_eq!(r_size.exit_code, 0);
+    assert!(r_size.stdout.trim().parse::<usize>().unwrap() > 0);
+});
+
+dual_fixture_test!(cli_hash_object_and_write, cli_hash_object_and_write_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    f.fs.write_str(&join(&[&f.dir, "sample.txt"]), "hello world\n");
+    let r_hash = execute_git_cli(&f.fs, &f.dir, &["hash-object", "sample.txt"]);
+    assert_eq!(r_hash.exit_code, 0);
+    assert_eq!(r_hash.stdout.trim(), "3b18e512dba79e4c8300dd08aeb37f8e728b8dad");
+
+    let r_write = execute_git_cli(&f.fs, &f.dir, &["hash-object", "-w", "sample.txt"]);
+    assert_eq!(r_write.exit_code, 0);
+    assert_eq!(r_write.stdout.trim(), "3b18e512dba79e4c8300dd08aeb37f8e728b8dad");
+});
+
+// ============================================================================
+// 11. Additional Remote Info, Server Refs, Fetch, Clone, Pull, Push & CLI Cases
+// ============================================================================
+dual_fixture_test!(get_remote_info_returns_symrefs_and_head_target, get_remote_info_returns_symrefs_and_head_target_sub, "test-dumb-http-server", |_f| {
+    let http = MockHttpServer::new();
+    let info = get_remote_info(&http, "http://localhost/test-dumb-http-server.git", None, false, None).unwrap();
+    assert!(!info.refs.is_empty());
+});
+
+dual_fixture_test!(get_remote_info2_with_cors_proxy_rewrites_url, get_remote_info2_with_cors_proxy_rewrites_url_sub, "test-dumb-http-server", |_f| {
+    let http = MockHttpServer::new();
+    let info = get_remote_info2(
+        &http,
+        "http://localhost/test-dumb-http-server.git",
+        Some("http://localhost"),
+        false,
+        1,
+        None,
+    )
+    .unwrap();
+    assert_eq!(info.protocol_version, 1);
+});
+
+dual_fixture_test!(list_server_refs_tags_prefix_only, list_server_refs_tags_prefix_only_sub, "test-dumb-http-server", |_f| {
+    let http = MockHttpServer::new();
+    let tags = list_server_refs(
+        &http,
+        "http://localhost/test-dumb-http-server.git",
+        None,
+        false,
+        1,
+        Some("refs/tags/"),
+        false,
+        true,
+        None,
+    )
+    .unwrap();
+    assert!(tags.iter().all(|r| r.r#ref.starts_with("refs/tags/")));
+});
+
+dual_fixture_test!(list_server_refs_symrefs_true_populates_head, list_server_refs_symrefs_true_populates_head_sub, "test-dumb-http-server", |_f| {
+    let http = MockHttpServer::new();
+    let refs = list_server_refs(
+        &http,
+        "http://localhost/test-dumb-http-server.git",
+        None,
+        false,
+        1,
+        None,
+        true,
+        false,
+        None,
+    )
+    .unwrap();
+    assert!(refs.iter().any(|r| r.r#ref == "HEAD" || r.r#ref.starts_with("refs/heads/")));
+});
+
+dual_fixture_test!(fetch_uses_remote_config_url_when_url_none, fetch_uses_remote_config_url_when_url_none_sub, "test-fetch", |f| {
+    let http = MockHttpServer::new();
+    set_config(&f.fs, &f.gitdir, "remote.origin.url", Some("http://localhost/test-fetch-server.git"), false).unwrap();
+    let res = fetch(
+        &f.fs,
+        &http,
+        Some(&f.dir),
+        Some(&f.gitdir),
+        None,
+        Some("origin"),
+        Some("master"),
+        true,
+        false,
+        None,
+        false,
+        None,
+        None,
+    )
+    .unwrap();
+    assert!(res.fetch_head.is_some());
+});
+
+dual_fixture_test!(fetch_missing_url_and_remote_returns_missing_parameter_error, fetch_missing_url_and_remote_returns_missing_parameter_error_sub, "test-empty", |f| {
+    let http = MockHttpServer::new();
+    let err = fetch(
+        &f.fs,
+        &http,
+        Some(&f.dir),
+        Some(&f.gitdir),
+        None,
+        Some("nonexistent-remote"),
+        Some("master"),
+        true,
+        false,
+        None,
+        false,
+        None,
+        None,
+    )
+    .unwrap_err();
+    assert_eq!(err.code, ErrorCode::MissingParameterError);
+});
+
+dual_fixture_test!(clone_custom_remote_name_configures_remote, clone_custom_remote_name_configures_remote_sub, "test-empty", |f| {
+    let http = MockHttpServer::new();
+    clone(
+        &f.fs,
+        &http,
+        &f.dir,
+        Some(&f.gitdir),
+        "http://localhost/test-clone.git",
+        None,
+        Some("master"),
+        true,
+        false,
+        false,
+        Some("upstream"),
+        Some(1),
+        None,
+    )
+    .unwrap();
+    assert_eq!(
+        git_rust::commands::plumbing::get_config(&f.fs, &f.gitdir, "remote.upstream.url").map(|v| v.as_str()).as_deref(),
+        Some("http://localhost/test-clone.git")
+    );
+});
+
+dual_fixture_test!(clone_no_tags_skips_tag_refs, clone_no_tags_skips_tag_refs_sub, "test-empty", |f| {
+    let http = MockHttpServer::new();
+    clone(
+        &f.fs,
+        &http,
+        &f.dir,
+        Some(&f.gitdir),
+        "http://localhost/test-clone.git",
+        None,
+        Some("master"),
+        true,
+        false,
+        true,
+        Some("origin"),
+        Some(1),
+        None,
+    )
+    .unwrap();
+    assert_eq!(resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap().len(), 40);
+});
+
+dual_fixture_test!(pull_fast_forward_only_succeeds_on_fast_forward, pull_fast_forward_only_succeeds_on_fast_forward_sub, "test-pull", |f| {
+    let http = MockHttpServer::new();
+    add_remote(&f.fs, &f.gitdir, "origin", "http://localhost/test-pull-server.git", true).unwrap();
+    let author = Author {
+        name: "Mr. Test".to_string(),
+        email: "mrtest@example.com".to_string(),
+        timestamp: 1262356920,
+        timezone_offset: -0.0,
+    };
+    pull(
+        &f.fs,
+        &http,
+        &f.dir,
+        Some(&f.gitdir),
+        Some("master"),
+        Some("http://localhost/test-pull-server.git"),
+        Some("origin"),
+        true,
+        true,
+        true,
+        None,
+        Some(author),
+        None,
+        None,
+    )
+    .unwrap();
+    assert_eq!(resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap().len(), 40);
+});
+
+dual_fixture_test!(push_uses_configured_remote_url_when_url_none, push_uses_configured_remote_url_when_url_none_sub, "test-push", |f| {
+    let http = MockHttpServer::new();
+    let server_fx = make_fixture("test-push-server");
+    http.register_repo("test-push-server", server_fx.fs.clone(), &server_fx.gitdir);
+    set_config(&f.fs, &f.gitdir, "remote.origin.url", Some("http://localhost/test-push-server.git"), false).unwrap();
+
+    let res = push(
+        &f.fs,
+        &http,
+        Some(&f.dir),
+        Some(&f.gitdir),
+        Some("master"),
+        Some("refs/heads/master"),
+        Some("origin"),
+        None,
+        true,
+        false,
+        None,
+        None,
+        None,
+    )
+    .unwrap();
+    assert!(res.ok);
+});
+
+dual_fixture_test!(cli_clone_fetch_pull_and_push_with_http, cli_clone_fetch_pull_and_push_with_http_sub, "test-empty", |f| {
+    let http = MockHttpServer::new();
+    let server_fx = make_fixture("test-push-server");
+    http.register_repo("test-push-server", server_fx.fs.clone(), &server_fx.gitdir);
+
+    let clone_dir = join(&[&f.dir, "cloned"]);
+    let r_clone = git_rust::cli::execute_git_cli_with_http(
+        &f.fs,
+        &f.dir,
+        &["clone", "http://localhost/test-clone.git", "cloned"],
+        &http,
+    );
+    assert_eq!(r_clone.exit_code, 0);
+    assert!(f.fs.exists(&clone_dir));
+});
+
+dual_fixture_test!(cli_version_and_c_directory_flag, cli_version_and_c_directory_flag_sub, "test-checkout", |f| {
+    let r_ver = execute_git_cli(&f.fs, &f.dir, &["--version"]);
+    assert_eq!(r_ver.exit_code, 0);
+    assert!(r_ver.stdout.starts_with("git version "));
+
+    let r_c = execute_git_cli(&f.fs, "/", &["-C", &f.dir, "status", "-s"]);
+    assert_eq!(r_c.exit_code, 0);
+});
+
+dual_fixture_test!(cli_unknown_subcommand_returns_error_exit_code_1, cli_unknown_subcommand_returns_error_exit_code_1_sub, "test-empty", |f| {
+    let r = execute_git_cli(&f.fs, &f.dir, &["not-a-real-subcommand"]);
+    assert_eq!(r.exit_code, 1);
+    assert!(r.stderr.contains("is not a git command"));
+});
+
+dual_fixture_test!(cli_no_arguments_prints_usage_and_exits_1, cli_no_arguments_prints_usage_and_exits_1_sub, "test-empty", |f| {
+    let r = execute_git_cli(&f.fs, &f.dir, &[]);
+    assert_eq!(r.exit_code, 1);
+    assert!(r.stderr.contains("usage: git"));
+});
+
+// ============================================================================
+// 12. Additional CLI & Plumbing Edge Cases (describe, notes, rev-parse, etc.)
+// ============================================================================
+dual_fixture_test!(cli_rev_parse_show_toplevel_and_git_dir, cli_rev_parse_show_toplevel_and_git_dir_sub, "test-checkout", |f| {
+    let r_top = execute_git_cli(&f.fs, &f.dir, &["rev-parse", "--show-toplevel"]);
+    assert_eq!(r_top.exit_code, 0);
+    assert!(!r_top.stdout.trim().is_empty());
+
+    let r_gd = execute_git_cli(&f.fs, &f.dir, &["rev-parse", "--git-dir"]);
+    assert_eq!(r_gd.exit_code, 0);
+    assert!(!r_gd.stdout.trim().is_empty());
+
+    let r_wt = execute_git_cli(&f.fs, &f.dir, &["rev-parse", "--is-inside-work-tree"]);
+    assert_eq!(r_wt.exit_code, 0);
+    assert_eq!(r_wt.stdout.trim(), "true");
+});
+
+dual_fixture_test!(cli_rev_parse_symbolic_full_name, cli_rev_parse_symbolic_full_name_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    let r = execute_git_cli(&f.fs, &f.dir, &["rev-parse", "--symbolic-full-name", "HEAD"]);
+    assert_eq!(r.exit_code, 0);
+    assert_eq!(r.stdout.trim(), "refs/heads/test-branch");
+});
+
+dual_fixture_test!(cli_rev_parse_custom_short_length, cli_rev_parse_custom_short_length_sub, "test-checkout", |f| {
+    let r = execute_git_cli(&f.fs, &f.dir, &["rev-parse", "--short=12", "test-branch"]);
+    assert_eq!(r.exit_code, 0);
+    assert_eq!(r.stdout.trim().len(), 12);
+});
+
+dual_fixture_test!(cli_init_bare_and_initial_branch_flag, cli_init_bare_and_initial_branch_flag_sub, "test-empty", |f| {
+    let sub_repo = join(&[&f.dir, "fresh-cli-init"]);
+    let r = execute_git_cli(&f.fs, &f.dir, &["init", "-b", "main", "fresh-cli-init"]);
+    assert_eq!(r.exit_code, 0);
+    assert!(f.fs.exists(&join(&[&sub_repo, ".git", "HEAD"])));
+});
+
+dual_fixture_test!(cli_checkout_b_creates_and_switches_branch, cli_checkout_b_creates_and_switches_branch_sub, "test-checkout", |f| {
+    let r = execute_git_cli(&f.fs, &f.dir, &["checkout", "-b", "created-via-checkout-b", "test-branch"]);
+    assert_eq!(r.exit_code, 0);
+    let r_sym = execute_git_cli(&f.fs, &f.dir, &["symbolic-ref", "--short", "HEAD"]);
+    assert_eq!(r_sym.stdout.trim(), "created-via-checkout-b");
+});
+
+dual_fixture_test!(cli_checkout_orphan_creates_unborn_branch, cli_checkout_orphan_creates_unborn_branch_sub, "test-checkout", |f| {
+    let r = execute_git_cli(&f.fs, &f.dir, &["checkout", "--orphan", "orphan-branch"]);
+    assert_eq!(r.exit_code, 0);
+    let r_sym = execute_git_cli(&f.fs, &f.dir, &["symbolic-ref", "--short", "HEAD"]);
+    assert_eq!(r_sym.stdout.trim(), "orphan-branch");
+});
+
+dual_fixture_test!(cli_diff_quiet_and_exit_code_flags, cli_diff_quiet_and_exit_code_flags_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["diff", "--quiet"]).exit_code, 0);
+    f.fs.write_str(&join(&[&f.dir, "README.md"]), "modified\n");
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["diff", "--quiet"]).exit_code, 1);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["diff", "--exit-code"]).exit_code, 1);
+});
+
+dual_fixture_test!(cli_diff_name_only_and_name_status, cli_diff_name_only_and_name_status_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    f.fs.write_str(&join(&[&f.dir, "README.md"]), "modified\n");
+    let r_name = execute_git_cli(&f.fs, &f.dir, &["diff", "--name-only"]);
+    assert_eq!(r_name.exit_code, 0);
+    assert_eq!(r_name.stdout.trim(), "README.md");
+
+    let r_status = execute_git_cli(&f.fs, &f.dir, &["diff", "--name-status"]);
+    assert_eq!(r_status.exit_code, 0);
+    assert!(r_status.stdout.contains("M\tREADME.md"));
+});
+
+dual_fixture_test!(cli_reset_soft_keeps_index_and_worktree_changes, cli_reset_soft_keeps_index_and_worktree_changes_sub, "test-log", |f| {
+    let head_before = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+    let r = execute_git_cli(&f.fs, &f.dir, &["reset", "--soft", "HEAD~1"]);
+    assert_eq!(r.exit_code, 0);
+    let head_after = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+    assert_ne!(head_before, head_after);
+});
+
+dual_fixture_test!(cli_restore_staged_unstages_index_entry, cli_restore_staged_unstages_index_entry_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    f.fs.write_str(&join(&[&f.dir, "README.md"]), "staged edit\n");
+    execute_git_cli(&f.fs, &f.dir, &["add", "README.md"]);
+    let r = execute_git_cli(&f.fs, &f.dir, &["restore", "--staged", "README.md"]);
+    assert_eq!(r.exit_code, 0);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["diff", "--cached", "--quiet"]).exit_code, 0);
+});

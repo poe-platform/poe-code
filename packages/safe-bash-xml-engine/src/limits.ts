@@ -1,4 +1,3 @@
-import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 export type XmlCheckpoint = (signal: AbortSignal) => Promise<void>;
 
 export interface XmlQueryLimits {
@@ -58,8 +57,6 @@ export function resolveXmlQueryLimits(options: Partial<XmlQueryLimits> = {}): Xm
 export class XmlBudget {
   private steps = 0;
   private checkpoint = 0;
-  private checkpointCount = 0;
-  private lastYield = monotonicNow();
   private aborted = false;
   private readonly pollSignal: boolean;
   outputBytes = 0;
@@ -82,14 +79,7 @@ export class XmlBudget {
     this.checkpoint += work;
     if (this.checkpoint >= 16384) {
       this.checkpoint = 0;
-      const now = monotonicNow();
-      if ((++this.checkpointCount & 15) === 0 || this.checkpointTurn !== yieldTurn || hasYieldCheckpoint(this.signal) || now - this.lastYield >= 16) {
-        this.lastYield = now;
-        return this.checkpointTurn(this.signal).then(() => {
-          this.lastYield = monotonicNow();
-        });
-      }
-      runYieldCheckpoint(this.signal);
+      return this.checkpointTurn(this.signal);
     }
   }
   results(size: number): void {

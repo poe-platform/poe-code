@@ -1,3 +1,4 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { PdfDocument, decodePng, type PdfRgbColor } from "@poe-code/pdf-ast";
 import {
   createWkhtmltopdfCommand,
@@ -180,10 +181,10 @@ function extractLinks(html: string): { text: string; href: string }[] {
   return links;
 }
 
-function parseHtmlDocument(rawHtml: string, replacements: readonly [string, string][]): {
+async function parseHtmlDocument(rawHtml: string, replacements: readonly [string, string][], signal: AbortSignal): Promise<{
   title: string;
   blocks: HtmlBlock[];
-} {
+}> {
   let html = rawHtml;
   for (const [key, value] of replacements) {
     if (key) html = html.split(key).join(value);
@@ -202,7 +203,10 @@ function parseHtmlDocument(rawHtml: string, replacements: readonly [string, stri
 
   let lastIndex = 0;
   let match: RegExpExecArray | null;
+  let work = 0;
   while ((match = tokenRegex.exec(bodyHtml)) !== null) {
+    signal.throwIfAborted();
+    if (++work % 64 === 0) await yieldTurn(signal);
     const leadingText = stripTags(bodyHtml.slice(lastIndex, match.index));
     if (leadingText) {
       blocks.push({ kind: "paragraph", text: leadingText, links: extractLinks(bodyHtml.slice(lastIndex, match.index)) });
@@ -336,7 +340,7 @@ function parseHtmlDocument(rawHtml: string, replacements: readonly [string, stri
       }
     } else {
       if (/<(h[1-6]|p|pre|ul|ol|dl|table|svg|hr|img|blockquote|div|section|article)\b/i.test(inner)) {
-        const nested = parseHtmlDocument(inner, []);
+        const nested = await parseHtmlDocument(inner, [], signal);
         blocks.push(...nested.blocks);
       } else {
         const text = stripTags(inner);
@@ -396,11 +400,12 @@ function rgbColor(r: number, g: number, b: number, grayscale: boolean): PdfRgbCo
   return { r: lum, g: lum, b: lum };
 }
 
-function layoutObjectPages(
+async function layoutObjectPages(
   blocks: readonly HtmlBlock[],
   box: ReturnType<typeof resolvePageBox>,
-  settings: PageSettings
-): LaidOutPageSpec[] {
+  settings: PageSettings,
+  signal: AbortSignal
+): Promise<LaidOutPageSpec[]> {
   const pages: LaidOutPageSpec[] = [];
   let currentActions: DrawAction[] = [];
   const headerReserve = settings.header.left || settings.header.center || settings.header.right ? 24 : 0;
@@ -422,7 +427,10 @@ function layoutObjectPages(
     }
   };
 
+  let work = 0;
   for (const block of blocks) {
+    signal.throwIfAborted();
+    if (++work % 64 === 0) await yieldTurn(signal);
     if (block.kind === "pagebreak") {
       flushPage();
       continue;
@@ -767,11 +775,11 @@ export function createPdfAstRenderer(): StaticRenderer {
         const obj = job.objects[i]!;
         const htmlBytes = inputs[i] ?? new Uint8Array(0);
         const htmlText = decoder.decode(htmlBytes);
-        const parsed = parseHtmlDocument(htmlText, obj.settings.replacements);
+        const parsed = await parseHtmlDocument(htmlText, obj.settings.replacements, signal);
         if (!inferredDocumentTitle && parsed.title) {
           inferredDocumentTitle = parsed.title;
         }
-        const pages = layoutObjectPages(parsed.blocks, box, obj.settings);
+        const pages = await layoutObjectPages(parsed.blocks, box, obj.settings, signal);
         laidOutPerObject.push(pages);
         objectMeta.push({
           title: parsed.title || inferredDocumentTitle || "Document",
@@ -806,7 +814,7 @@ export function createPdfAstRenderer(): StaticRenderer {
       });
 
       for (const outPage of sequence.pages) {
-        signal.throwIfAborted();
+        await yieldTurn(signal);
         const spec = laidOutPerObject[outPage.objectIndex]![outPage.pageIndex]!;
         const meta = objectMeta[outPage.objectIndex]!;
         const page = doc.addPage({ width: box.width, height: box.height });

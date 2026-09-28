@@ -7882,7 +7882,7 @@ export class Runtime {
           const isPrintfV = command.words[1]?.plain === "-v";
           // Array writes can need asynchronous arithmetic or binding creation as
           // the loop changes state. Reject them before any loop effects occur.
-          if (isPrintfV && (command.words.length < 4 || w2Plain === undefined || !isShellIdentifier(w2Plain) || controlNames.has(w2Plain))) return false;
+          if (isPrintfV && (command.words.length < 4 || w2Plain === undefined || !isShellIdentifier(w2Plain) || controlNames.has(w2Plain) || rawState.variableAttributes?.get(w2Plain))) return false;
           const fmtIdx = isPrintfV ? 3 : 1;
           const fmtWord = command.words[fmtIdx];
           const fmtPlain = fmtWord?.plain ?? (fmtWord?.parts.length === 1 && fmtWord.parts[0]!.kind === "text" ? fmtWord.parts[0]!.value : undefined);
@@ -8041,7 +8041,7 @@ export class Runtime {
       return this.canSyncScriptCompound(command.body, rawState, depth + 1, loopDepth + 1) && this.canSyncLoopScriptsWithoutTransition([command.body], rawState);
     }
     if (command.kind === "for") {
-      if (command.redirects.length !== 0 || this.budget.limits.maxLoopIterations < 1000 || !isShellIdentifier(command.name) || command.name === "OPTIND" || command.name === "PIPESTATUS" || rawState.readonlyVariables?.has(command.name) || stateMonitor(rawState)?.store?.get(command.name)) return false;
+      if (rawState.variableAttributes?.get(command.name) || command.redirects.length !== 0 || this.budget.limits.maxLoopIterations < 1000 || !isShellIdentifier(command.name) || command.name === "OPTIND" || command.name === "PIPESTATUS" || rawState.readonlyVariables?.has(command.name) || stateMonitor(rawState)?.store?.get(command.name)) return false;
       if (command.words) {
         if (command.words.length === 1) {
           const w0 = command.words[0]!;
@@ -8167,10 +8167,10 @@ export class Runtime {
               const isNameref = f1 === "-n";
               const isGlobal = f1 === "-g";
               const isAttrDecl = f1 === "-i" || f1 === "-l" || f1 === "-u";
-              // Integer assignments can require full arithmetic evaluation as
-              // loop values change. Decline before any loop effects are published.
-              if (f1 === "-i") return false;
-              for (let k = (isArrDecl || isNameref || isGlobal || isAttrDecl) ? 2 : 1; k < cEff.words.length; k++) {
+              // An attribute introduced here can change later loop-variable or
+              // printf assignments after the initial eligibility check.
+              if (isAttrDecl) return false;
+              for (let k = (isArrDecl || isNameref || isGlobal) ? 2 : 1; k < cEff.words.length; k++) {
                 const wk = cEff.words[k]!;
                 const aa = getArrayAssignment(wk);
                 if (aa) {
@@ -11577,15 +11577,14 @@ export class Runtime {
         continue;
       }
       if (part.kind === "variable") {
+        // These expansions can require multiple fields or asynchronous quoting
+        // as loop state changes. Decide before the loop produces any effects.
+        if (part.prefixNames !== undefined || part.transform !== undefined) return false;
         if ( !part.indirect && !part.prefixNames && !part.length && !part.substring && !part.transform && part.operator === undefined && getArraySelector(part) === undefined && (part.name === "?" || part.name === "#" || (part.name.length === 1 && part.name >= "1" && part.name <= "9"))) {
           if (rawState.nounset && part.name >= "1" && part.name <= "9" && rawState.positional[part.name.charCodeAt(0) - 49] === undefined) return false;
           continue;
         }
-        if (part.prefixNames !== undefined) {
-          if (part.indirect || part.length || part.substring || part.transform !== undefined || part.operator !== undefined || getArraySelector(part) !== undefined || rawState.nounset || this.budget.limits.maxExpansionFields !== Infinity || this.budget.limits.maxExpansionBytes !== Infinity || !isShellIdentifier(part.name)) return false;
-          continue;
-        }
-        if ( part.specialParameter || (part.transform !== undefined && ((part.transform !== "U" && part.transform !== "L" && part.transform !== "u" && part.transform !== "Q") || part.indirect || part.length || part.substring || part.operator !== undefined || getArraySelector(part) !== undefined || rawState.nounset || this.budget.limits.maxExpansionBytes !== Infinity)) || part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME" || part.name === "DIRSTACK" || !isShellIdentifier(part.name)) {
+        if ( part.specialParameter || part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME" || part.name === "DIRSTACK" || !isShellIdentifier(part.name)) {
           return false;
         }
         if (part.indirect) {
@@ -12047,6 +12046,7 @@ export class Runtime {
       return undefined;
     }
     if (command.kind === "for") {
+      if (rawState.variableAttributes?.get(command.name)) return undefined;
       const cachedPlan = (command as { _cachedForPlan?: {
         fastReady?: boolean;
         intSteps: (IntLoopStep | undefined)[];
@@ -13953,7 +13953,7 @@ export class Runtime {
               const target = shellValueText(value);
               if (!this.variableTarget(target) || target === command.name) throw new ExpansionFailure(`${target}: invalid name reference`);
               await this.writeVariable(state, command.name, value, io, "assignment", false);
-            } else if (canFastAssignLoopVar && !rawLoopState.readonlyVariables?.has(command.name) && !arrayStore(rawLoopState)?.get(command.name)) {
+            } else if (canFastAssignLoopVar && !rawLoopState.variableAttributes?.get(command.name) && !rawLoopState.readonlyVariables?.has(command.name) && !arrayStore(rawLoopState)?.get(command.name)) {
               publishVariable(rawLoopState, command.name, value);
               if (rawLoopState.allexport) state.exported.add(command.name);
             } else await this.assignVariable(state, command.name, value, io);
@@ -18717,7 +18717,7 @@ export class Runtime {
     let out = "";
     for (let i = 0; i < word.parts.length; i++) {
       let resolvedPart = word.parts[i]!;
-      if (resolvedPart.kind === "variable" && rawState.variableAttributes?.get(resolvedPart.name)?.includes("n")) {
+      if (resolvedPart.kind === "variable" && !resolvedPart.prefixNames && rawState.variableAttributes?.get(resolvedPart.name)?.includes("n")) {
         if (resolvedPart.indirect) return undefined;
         const resolvedName = resolveSyncNameref(rawState, resolvedPart.name);
         if (resolvedName === resolvedPart.name) return undefined;
@@ -18859,21 +18859,7 @@ export class Runtime {
           out += transformed;
           continue;
         }
-        if (part.prefixNames !== undefined) {
-          if (split && part.prefixNames === "@" && (part.quoted || rawVars.IFS === "")) return undefined;
-          if (part.indirect || part.specialParameter || part.length || part.substring || part.operator !== undefined || getArraySelector(part) !== undefined || !isShellIdentifier(part.name)) return undefined;
-          const pNames = this.collectSyncPrefixNames(part.name, rawState);
-          if (!pNames) return undefined;
-          const ifs = rawVars.IFS ?? " ";
-          const sep = io.nameExpansionContext === "document" || io.nameExpansionContext === "conditional" && part.prefixNames === "@"
-            ? " " : ifs.length ? String.fromCodePoint(ifs.codePointAt(0)!) : "";
-          const joined = pNames.join(sep);
-          if (split && !part.quoted) {
-            if (joined.length === 0 || joined.includes(" ") || joined.includes("\t") || joined.includes("\n") || (!rawState.noglob && hasGlobOrEscape(joined, !!rawState.extglob))) return undefined;
-          }
-          out += joined;
-          continue;
-        }
+        if (part.prefixNames !== undefined) return undefined;
         if (part.indirect || part.specialParameter) return undefined;
         if (part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME" || part.name === "DIRSTACK") return undefined;
         if (!isShellIdentifier(part.name)) return undefined;

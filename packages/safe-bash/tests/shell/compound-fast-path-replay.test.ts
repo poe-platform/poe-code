@@ -9,6 +9,22 @@ import { basicCommands } from "../../src/commands/basic.js";
 import { streamCommands } from "../../src/commands/streams.js";
 
 const syncAssignmentCases = [
+  ["builtin substitution sees overridden function", 'printf() { builtin printf "CUSTOM:%s" "$1"; }; builtin printf -v out "%s" "$(printf hi)"; builtin echo "out=$out"', "out=CUSTOM:hi\n"],
+  ["command substitution sees overridden function", 'printf() { builtin printf "CUSTOM:%s" "$1"; }; command printf -v out "%s" "$(printf hi)"; builtin echo "out=$out"', "out=CUSTOM:hi\n"],
+  ["builtin helper sees overridden function", 'printf() { builtin printf "CUSTOM:%s" "$1"; }; helper() { printf "$1"; }; builtin printf -v out "%s" "$(helper hi)"; builtin echo "out=$out"', "out=CUSTOM:hi\n"],
+  ["command helper sees overridden function", 'printf() { builtin printf "CUSTOM:%s" "$1"; }; helper() { printf "$1"; }; command printf -v out "%s" "$(helper hi)"; builtin echo "out=$out"', "out=CUSTOM:hi\n"],
+  ["echo -n loop", 'cnt=0; for i in 1 2; do cnt=$((cnt+1)); echo -n x; done; echo " cnt=$cnt"', "xx cnt=2\n"],
+  ["echo -e loop", 'cnt=0; for i in 1 2; do cnt=$((cnt+1)); echo -e x; done; echo "cnt=$cnt"', "x\nx\ncnt=2\n"],
+  ["echo array becomes option", 'cnt=0; for x in hello -n; do arr=("$x" world); cnt=$((cnt+1)); echo "${arr[@]}"; done; echo "cnt=$cnt"', "hello world\nworldcnt=2\n"],
+  ["UTF-8 element slice", 'arr=(ascii élan); cnt=0; for i in 0 1; do cnt=$((cnt+1)); echo "${arr[$i]:0:2}"; done; echo "cnt=$cnt"', "as\nél\ncnt=2\n"],
+  ["scalar element slice", 's=hello; cnt=0; for i in 1 2; do cnt=$((cnt+1)); echo "${s[0]:$i:2}"; done; echo "cnt=$cnt"', "el\nll\ncnt=2\n"],
+  ["negative element slice", 'arr=(first hello); cnt=0; for i in 1 2; do cnt=$((cnt+1)); echo "${arr[-1]:$i:2}"; done; echo "cnt=$cnt"', "el\nll\ncnt=2\n"],
+  ["negative length fails only its command", 'arr=(abcdef ab); cnt=0; for i in 0 1; do cnt=$((cnt+1)); echo "${arr[$i]:1:-2}" 2>/dev/null || true; done; echo "cnt=$cnt"', "bcd\ncnt=2\n"],
+  ["printf UTF-8 element slice", 'arr=(ascii "é🙂Z"); cnt=0; for i in 0 1; do cnt=$((cnt+1)); printf "%s\\n" "${arr[$i]:0:2}"; done; echo "cnt=$cnt"', "as\né🙂\ncnt=2\n"],
+  ["printf scalar element slice", 's=hello; cnt=0; for i in 1 2; do cnt=$((cnt+1)); printf "%s\\n" "${s[0]:$i:2}"; done; echo "cnt=$cnt"', "el\nll\ncnt=2\n"],
+  ["printf sparse negative element slice", 'arr=([2]=first [9]=hello); cnt=0; for i in 1 2; do cnt=$((cnt+1)); printf "%s\\n" "${arr[-1]:$i:2}"; done; echo "cnt=$cnt"', "el\nll\ncnt=2\n"],
+  ["dynamic echo options in while loop", 'cnt=0; opt=-n; while ((cnt<2)); do cnt=$((cnt+1)); echo "$opt" x; done; echo " cnt=$cnt"', "xx cnt=2\n"],
+  ["combined echo options in arithmetic loop", 'cnt=0; for ((i=0;i<2;i++)); do cnt=$((cnt+1)); echo -ne "x\\t"; done; echo "cnt=$cnt"', "x\tx\tcnt=2\n"],
   ["dynamic function and directory arrays", 'f() { for i in 1 2; do local -a fn=("${FUNCNAME[@]}"); local -a ds=("${DIRSTACK[@]}"); echo "i=$i fn=${fn[*]} ds=${ds[*]}"; done; }; f', "i=1 fn=f ds=/tmp\ni=2 fn=f ds=/tmp\n"],
   ["dynamic array keys and slices", 'f() { for i in 1 2; do fn=("${FUNCNAME[@]}"); fk=("${!FUNCNAME[@]}"); fs=("${FUNCNAME[@]:0:1}"); ds=("${DIRSTACK[@]}"); dk=("${!DIRSTACK[@]}"); echo "$i:${fn[*]}:${fk[*]}:${fs[*]}:${ds[*]}:${dk[*]}"; done; }; f', "1:f:0:f:/tmp:0\n2:f:0:f:/tmp:0\n"],
   ["sparse array copy and keys", 'arr=([5000]=tail); for i in 1 2; do echo iter=$i; copy=("${arr[@]}"); keys=("${!arr[@]}"); echo "${copy[*]}:${keys[*]}"; done', "iter=1\ntail:5000\niter=2\ntail:5000\n"],
@@ -37,7 +53,8 @@ for (const [name, source, expected] of syncAssignmentCases) {
       for (const command of basicCommands()) shell.register(command);
       context.after(() => shell.dispose());
       const result = await shell.exec(source);
-      assert.equal(result.stderr, "");
+      if (name === "negative length fails only its command") assert.match(result.stderr, /substring expression < 0/);
+      else assert.equal(result.stderr, "");
       assert.equal(result.exitCode, 0);
       assert.equal(result.stdout, expected);
     });

@@ -1217,6 +1217,7 @@ class DiscardCommandFailure extends CommandFailure {
   constructor(readonly variableName: string, status: number, readonly origin: "assignment" | "declaration") { super(`${variableName}: readonly variable`, status); }
 }
 class ParameterExpansionFailure extends ExpansionFailure {}
+class SubstringRangeFailure extends ExpansionFailure {}
 class NounsetFailure extends ExpansionFailure {
   constructor(message: string, line?: number, readonly status = 1) { super(message, line); }
 }
@@ -7412,15 +7413,12 @@ export class Runtime {
           (p0 === "builtin" ? shellBuiltinNames.has(subPlain) : (shellBuiltinNames.has(subPlain) || this.commands.has(subPlain)))
         ) {
           const rawSt = stateMonitor(state)?.raw ?? state;
-          const savedFn = rawSt.functions.get(subPlain);
-          if (savedFn !== undefined) rawSt.functions.delete(subPlain);
-          try {
-            const unwrappedCmd: Extract<Command, { kind: "simple" }> = { ...command, words: command.words.slice(subIdx) };
-            const unwrappedPipe: Pipeline = { ...pipeline, commands: [unwrappedCmd] };
-            return this.trySyncPipeline(unwrappedPipe, state, io, ignored);
-          } finally {
-            if (savedFn !== undefined) rawSt.functions.set(subPlain, savedFn);
-          }
+          // Dispatch bypasses functions, but argument substitutions must still
+          // see them. Leave overridden commands to the normal prefix dispatcher.
+          if (hasShellFunction(rawSt, subPlain)) return undefined;
+          const unwrappedCmd: Extract<Command, { kind: "simple" }> = { ...command, words: command.words.slice(subIdx) };
+          const unwrappedPipe: Pipeline = { ...pipeline, commands: [unwrappedCmd] };
+          return this.trySyncPipeline(unwrappedPipe, state, io, ignored);
         }
       }
     }
@@ -7492,13 +7490,8 @@ export class Runtime {
           !rawState.extensions?.builtins.has(subPlain) &&
           (w0Plain === "builtin" ? shellBuiltinNames.has(subPlain) : (shellBuiltinNames.has(subPlain) || this.commands.has(subPlain)))
         ) {
-          const savedFn = rawState.functions.get(subPlain);
-          if (savedFn !== undefined) rawState.functions.delete(subPlain);
-          try {
-            return this.canSyncCommandCompound({ ...command, words: command.words.slice(subIdx) }, rawState, depth, loopDepth);
-          } finally {
-            if (savedFn !== undefined) rawState.functions.set(subPlain, savedFn);
-          }
+          if (hasShellFunction(rawState, subPlain)) return false;
+          return this.canSyncCommandCompound({ ...command, words: command.words.slice(subIdx) }, rawState, depth, loopDepth);
         }
       }
       const isNoBraceSyncAssignWord = (w: Word) =>
@@ -7764,7 +7757,12 @@ export class Runtime {
         const echoDef = this.commands.get("echo");
         if (echoDef && defaultEchoExecutors.has(echoDef.execute)) {
           const w1Plain = command.words[1]?.plain;
-          if (w1Plain === undefined || !w1Plain.startsWith("-") || w1Plain === "-n" || w1Plain === "-e" || w1Plain === "-ne" || w1Plain === "-en") {
+          // The synchronous executor only formats echo without options. Prove
+          // the first field cannot become an option before executing a compound.
+          const firstPart = command.words[1]?.parts[0];
+          const safeFirstField = command.words.length === 1 ||
+            (firstPart?.kind === "text" && firstPart.value.length > 0 && !firstPart.value.startsWith("-"));
+          if (safeFirstField && (w1Plain === undefined || !w1Plain.startsWith("-"))) {
             if (command.words.slice(1).every(w => isNoBraceSyncWord(w) || this.canSyncArrayMembersWord(w, rawState))) return true;
           }
         }
@@ -11522,16 +11520,10 @@ export class Runtime {
           }
           if (sel.kind === "element") {
             if (part.substring) {
-              if (
-                part.length ||
-                part.operator !== undefined ||
-                this.budget.limits.maxExpansionBytes !== Infinity ||
-                !part.substring.offset.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring && !p.length)) ||
-                (part.substring.length && !part.substring.length.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring && !p.length)))
-              ) {
-                return false;
-              }
-              continue;
+              // Bindings, indices and character widths can change each
+              // iteration. The limited element slicer may then need fallback;
+              // do not speculate after earlier compound effects have run.
+              return false;
             }
             if (part.operator === undefined) continue;
             if ((part.operator === "-" || part.operator === ":-" || part.operator === "+" || part.operator === ":+") && part.alternate && !part.length) continue;
@@ -14063,7 +14055,7 @@ export class Runtime {
         }
         catch (failure) { this.signal.throwIfAborted(); publicDiagnosticMessage(failure, this.budget.onInternalError); }
       }
-      if (error instanceof ExpansionFailure || error instanceof BraceExpansionFailure) throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
+      if ((error instanceof ExpansionFailure && !(error instanceof SubstringRangeFailure && state.loopDepth > 0)) || error instanceof BraceExpansionFailure) throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
       if (error instanceof FatalCommandFailure) throw completedExit(error.status);
       if (error instanceof DiscardCommandFailure) throw completedExit(error.status, "discard");
       const status = outputTracker.outputStatus ?? (error instanceof CommandFailure ? error.status : 1);
@@ -18419,7 +18411,7 @@ export class Runtime {
     if (expression.length) {
       const length = await arithmetic(expression.length);
       end = length.value < 0n ? size + length.value : offset + length.value;
-      if (end < offset) throw new ExpansionFailure(`${length.source}: substring expression < 0`, line);
+      if (end < offset) throw new SubstringRangeFailure(`${length.source}: substring expression < 0`, line);
       if (end > size) end = size;
     }
     this.signal.throwIfAborted();

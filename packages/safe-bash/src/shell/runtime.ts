@@ -1,3 +1,4 @@
+import { splitSyncJqExpression } from "./sync-jq-expression.js";
 import { wcDisplayWidth } from "../commands/wc-width.js";
 import { bytesToHex, latin1Text } from "../byte-encoding.js";
 const sharedCaptureDecoder = new TextDecoder();
@@ -14622,6 +14623,23 @@ export class Runtime {
     if (this._activeLoopBodyScript && !this.isVarUnmutatedInScript(varName, this._activeLoopBodyScript)) return false;
     return true;
   }
+  private isFileReadOnlyScript(script: Script, rawState: State): boolean {
+    const visit = (value: unknown): boolean => {
+      if (value === null || typeof value !== "object") return true;
+      if (Array.isArray(value)) return value.every(visit);
+      const node = value as Record<string, unknown>;
+      if (typeof node.operator === "string" && "target" in node && !["<", "<<<", "<<", "<<-"].includes(node.operator)) return false;
+      if (node.kind === "simple") {
+        const cmd = value as Extract<Command, { kind: "simple" }>;
+        // Unknown commands (including shell functions) cannot promise read-only I/O.
+        const name = cmd.words[0]?.plain;
+        if (name === undefined && !cmd.words.every(word => this.assignment(word) || getArrayAssignment(word))) return false;
+        if (name !== undefined && (hasShellFunction(rawState, name) || !["jq", "cat", "echo", "printf", "test", "[", ":", "true", "false"].includes(name))) return false;
+      }
+      return Object.values(node).every(visit);
+    };
+    return visit(script);
+  }
   private extractLoopInvariantJqInput(cmd: Extract<Command, { kind: "simple" }>, hasSingleStdinRedir: boolean, hasSingleHereStringRedir: boolean, rawState: State): string | undefined {
     const w0 = cmd.words[0]?.plain;
     const resolveInvariantWord = (w: Word): string | undefined => {
@@ -14642,6 +14660,7 @@ export class Runtime {
         return resolved !== undefined ? resolved.trim() : undefined;
       }
       if (this._fileWrites?.size || this._outputFiles?.size) return undefined;
+      if ([this._activeLoopBodyScript, this._activeLoopCondScript].some(script => script && !this.isFileReadOnlyScript(script, rawState))) return undefined;
       const fPlain = hasSingleStdinRedir ? cmd.redirects[0]!.target.plain : cmd.words[cmd.words.length - 1]?.plain;
       if (!fPlain || fPlain.startsWith("-") || fPlain === "/dev/stdin") return undefined;
       const vCheck = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fPlain), false);
@@ -14654,6 +14673,7 @@ export class Runtime {
         return resolved !== undefined ? resolved.trim() : undefined;
       }
       if (this._fileWrites?.size || this._outputFiles?.size) return undefined;
+      if ([this._activeLoopBodyScript, this._activeLoopCondScript].some(script => script && !this.isFileReadOnlyScript(script, rawState))) return undefined;
       const fPlain = hasSingleStdinRedir ? cmd.redirects[0]!.target.plain : cmd.words[1]?.plain;
       if (!fPlain || fPlain.startsWith("-") || fPlain === "/dev/stdin") return undefined;
       const vCheck = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fPlain), false);
@@ -22736,23 +22756,25 @@ export class Runtime {
 
   private evalSyncJqPathOps(item: unknown, expr: string): unknown[] | undefined {
     let st = expr.trim();
-    while (st.startsWith("(") && st.endsWith(")")) st = st.slice(1, -1).trim();
-    const altIdx = st.indexOf("//");
-    if (altIdx !== -1) {
-      const lhs = st.slice(0, altIdx).trim();
-      const rhs = st.slice(altIdx + 2).trim();
+    let alternatives = splitSyncJqExpression(st, "//");
+    if (!alternatives) return undefined;
+    while (alternatives.wrapped) {
+      st = st.slice(1, -1).trim();
+      alternatives = splitSyncJqExpression(st, "//");
+      if (!alternatives) return undefined;
+    }
+    if (alternatives.parts.length > 1) {
+      const lhs = alternatives.parts[0]!;
+      const rhs = alternatives.parts.slice(1).join("//");
       const lVals = this.evalSyncJqPathOps(item, lhs);
       if (lVals === undefined) return undefined;
+      // Validate both sides before admitting the fast path, even if lhs wins.
+      let rVals = this.evalSyncJqPathOps(item, rhs);
+      if (rVals === undefined) {
+        try { rVals = [JSON.parse(rhs)]; } catch { return undefined; }
+      }
       const truthy = lVals.filter(v => v !== null && v !== undefined && v !== false);
-      if (truthy.length > 0) return truthy;
-      if (rhs.startsWith(".") || rhs === "length" || rhs === "keys" || rhs === "keys[]") {
-        return this.evalSyncJqPathOps(item, rhs);
-      }
-      try {
-        return [JSON.parse(rhs)];
-      } catch {
-        return undefined;
-      }
+      return truthy.length > 0 ? truthy : rVals;
     }
     if (st === ".") return [item];
     if (st === "length") {
@@ -22855,6 +22877,8 @@ export class Runtime {
       } catch {
         return undefined;
       }
+      // The full jq evaluator owns structural equality and jq ordering.
+      if ((typeof lv === "object" && lv !== null) || (typeof rv === "object" && rv !== null)) return undefined;
       const op = selM[2]!;
       let ok = false;
       if (op === "==") ok = lv === rv;
@@ -22951,10 +22975,13 @@ export class Runtime {
       const innerArgs = rawOut || compactOut ? [compactOut ? "-c" : "-r", innerFilter] : [innerFilter];
       const outArrays: unknown[] = [];
       for (const item of current) {
-        const innerStages = innerFilter.split("|").map(s => s.trim());
+        const innerStages = splitSyncJqExpression(innerFilter, "|");
+        if (!innerStages) return undefined;
         let subCur: unknown[] = [item];
-        for (const st of innerStages) {
-          const commaParts = (st.startsWith("select(") || st.startsWith("map(")) ? [st] : st.split(",").map(s => s.trim());
+        for (const st of innerStages.parts) {
+          const commas = splitSyncJqExpression(st, ",");
+          if (!commas) return undefined;
+          const commaParts = commas.parts;
           const next: unknown[] = [];
           for (const it of subCur) {
             for (const part of commaParts) {
@@ -22970,9 +22997,12 @@ export class Runtime {
       void innerArgs;
       return outArrays.map(val => JSON.stringify(val ?? null, null, compactOut ? undefined : 2));
     }
-    const stages = trimmedFilter.split("|").map(s => s.trim());
-    for (const st of stages) {
-      const commaParts = (st.startsWith("select(") || st.startsWith("map(")) ? [st] : st.split(",").map(s => s.trim());
+    const stages = splitSyncJqExpression(filter, "|");
+    if (!stages) return undefined;
+    for (const st of stages.parts) {
+      const commas = splitSyncJqExpression(st, ",");
+      if (!commas) return undefined;
+      const commaParts = commas.parts;
       const next: unknown[] = [];
       for (const item of current) {
         for (const part of commaParts) {

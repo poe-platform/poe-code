@@ -2408,7 +2408,7 @@
       },
       "behavior": "Label and data rectangles retain separate sheets. The evaluator copies the data range and projects the physical label row/column without offset mapping. Optional LabelRange.dataSheet holds a stable ID; omission uses the owner. Import grows each referenced sheet independently; model validation, dependencies, resize and ID remapping retain the relationship, including detached owners. ODF exports the target display name; BIFF8 refuses remote data.",
       "validation": "Original memory regressions reproduced wrong-sheet results, cross-sheet import rejection and lifecycle/data-loss failures. 289 executed tests across 11 focused files passed (shared fixture tests included); maintained package lint, product/test/consumer types and selected workspace build passed. Independently generated Python ODF fixtures passed 16 compiled SDK/command exports across both axes/profiles before/after edits: 32 live formulas, distinct addresses, sums 5/15 and scalar 2. Edit inputs put data first for the native --set active-view contract. Command transcript screenshot inspected.",
-      "remaining": "Native Calc/Gnumeric recalculation remains unqualified. No family closed.",
+      "remaining": "Source-runtime/native Calc qualification passes for the recorded cross-sheet projection/edit profiles. Refreshed compiled/installed composition, wider profiles and remote delivery/publication remain open; no family closed.",
       "automaticCalcBoundaries": {
         "source": "Same pinned compiler.cxx, GetRefColRowNames lines 5867–5885 and 5907–5923: scan the global row/column pair list, with no data-sheet Tab filter. The inferred range stays on the anchor sheet.",
         "implementation": "Automatic Calc/BIFF labels inspect declarations on all workbook sheets. OpenFormula automatic labels retain their separate contiguous-data rules. No dependency on remote cell values is introduced: the boundary uses declaration geometry only.",
@@ -2422,6 +2422,14 @@
         "implementation": "Automatic labels exclude the same-axis formula before expanding aggregates and reject scalar self-references. Adjacent formulas are skipped; later formulas stop the range. Final-grid exclusion cannot clamp back to the formula cell.",
         "validation": "33 original regressions failed; all 39 cases pass. Twenty-four compiled SDK/command exports from independent ODF inputs retain native labels and fresh 30 or #REF! results, verified with Python XML. Applied cohort: 871 checks in 34 files, package lint and selected build pass.",
         "remaining": "Remote delivery, publication and native application readback. No family closed."
+      },
+      "nativeCalc": {
+        "revision": "bce0998afefdbc355585ca324285661a2170ba77",
+        "source": "nameuno.cxx re-fetched and matched its pinned SHA-256; compiler.cxx:5799-5842 copies the declared data sheet/range and projects the physical label axis without offset mapping.",
+        "inputs": "Two independently authored ODF workbooks: separate Labels and O'Brien data sheets, displaced declaration geometry, misleading local/offset values, scalar and SUM formulas. Data is first for the --set active-sheet contract.",
+        "result": "All 16 source SDK/command outputs pass signed Calc 26.8 readback across row/column orientation, strict/extended ODF and before/after a former-blank data edit. Both formula caches are replaced with 999 before native recalculation. SUM becomes 5/15; scalar remains 2. Native output retains both live formula spellings, the exact three sheet names, label/data sheet identities and original declaration geometry.",
+        "scope": "Current source at 25d212f0a1; not refreshed compiled/installed or registry qualification. Source/test/budget contracts are unchanged by this qualification.",
+        "receipts": "out/ssconvert-release-investigation/cross-sheet-label-native-reg51ixh/{source,inputs,source-engine,native,cleanup}.json"
       }
     },
     "commandFactoryDefaults": {

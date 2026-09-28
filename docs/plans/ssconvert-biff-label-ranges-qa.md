@@ -110,3 +110,16 @@ Keep source inputs, generated workbooks, screenshots and command captures under
     to a plain B$1:B5 range. Keep that identity loss distinct from the value
     mismatch. Extend source-derived coverage to operand order, ordinary range
     operands, named/array contexts and copy/move before claiming this case fixed.
+
+18. For ODF labels with data on another sheet, inspect nameuno.cxx's independent
+    label/data range storage and compiler.cxx's projection of the physical label
+    axis onto the data sheet. Use Labels.A1="Sales" with misleading local values,
+    a separate O'Brien sheet and Output formulas SUM('Sales') and 'Sales'+0.
+    Declare column data at C2:C5 but put 2/3 at A2/A5 and 900 at C2; transpose
+    this arrangement for row labels. The declaration offset must not select 900.
+    Put data first and edit former blank A3 or C1 to 10 with --set. Require
+    SUM=5/15 and scalar=2 across both ODF editions and SDK/command routes.
+    Replace both output caches with 999 before fresh Calc readback. Independently
+    decode every output sheet name, live formula and label/data address, including
+    apostrophe escaping, orientation and unchanged displaced declaration geometry.
+    Record source/native proof separately from compiled and installed artifacts.

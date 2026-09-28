@@ -738,13 +738,13 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
         ...(rootManifest.exports["./safe-bash/contracts"] ? {
           "./safe-bash/contracts": {
             types: "./packages/safe-bash-contracts/dist/index.d.ts",
-            import: "./packages/safe-bash-contracts/dist/index.js",
+            import: "./dist/shared/safe-bash-contracts/index.js",
           },
         } : {}),
         ...(rootManifest.exports["./safe-bash/contracts/*"] ? {
           "./safe-bash/contracts/*": {
             types: "./packages/safe-bash-contracts/dist/*.d.ts",
-            import: "./packages/safe-bash-contracts/dist/*.js",
+            import: "./dist/shared/safe-bash-contracts/*.js",
           },
         } : {}),
         ...(rootManifest.exports["./safe-bash/pdf-ast"] ? {

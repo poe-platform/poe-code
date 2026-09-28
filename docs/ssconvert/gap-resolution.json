@@ -2897,11 +2897,11 @@
       "containsRecentCommits": false
     },
     "currentIntegration": {
-      "state": "Normal build and final installed Node/browser/Worker/workerd checks pass at d492e1ddd5; full maintained tests and containing publication remain pending",
+      "state": "Normal build and installed artifact checks pass at d492e1ddd5; full npm test at a25767518 fails and containing publication remains unverified",
       "localHead": "d492e1ddd503d32d4de2ecf90e4eb4f9cbfeb18e",
       "runtime": "Preserved upstream page-break axes, raw bounds and flags, first-page numbering, shared-runtime package imports and portable source exports. Worksheet-setting retention now publishes generated page breaks after settings. Public shared runtimes remain separate from workspace rebuild output; the maintained shared-runtime recipe accepts the explicit publication directory. Native credential conversion retains iterative conversion and cleanup. Upstream unlimited response/deadline implementations remain in place, with native and TypeScript subscription acknowledgement timers disabled for explicit Infinity.",
-      "checks": "At d492e1ddd5, all 474 spreadsheet files / 25,708 tests plus the maintained native-asset hooks pass. All 597 packaging/policy checks pass. Root ESLint passes; changed policy files pass focused lint after the final repair. Normal npm run build completes 179 declared workspace builds, schema generation, TypeScript and bundling. The separate full npm test remains fixed at a25767518c and has completed 9 batches: 2,249 files / 325,068 passing tests; remaining declared tasks are still running. One skipped file/test and five todo tests are excluded from the passing totals.",
-      "remaining": "Complete the full maintained test run and verify a containing registry publication. Later unrelated shell commits are not covered by the d492e1ddd5 artifact qualification. All 19 families retain their remaining semantic/native qualification scope.",
+      "checks": "At d492e1ddd5, all 474 spreadsheet files / 25,708 tests plus the maintained native-asset hooks pass. All 597 packaging/policy checks pass. Root ESLint passes; changed policy files pass focused lint after the final repair. Normal npm run build completes 179 declared workspace builds, schema generation, TypeScript and bundling. The full npm test at a25767518 has now completed with exit 1; all fourteen shared Vitest batches passed, but safe-bash reported eight failures. See fullTest for separate pass/skip/todo accounting and current-main follow-up.",
+      "remaining": "Resolve current full-test failures and rerun the maintained integration gate; verify containing registry publication. Later shell commits and the Lotus sheet-name repair are not covered by the d492e1ddd5 artifact receipt. All 19 families retain remaining semantic/native qualification scope.",
       "installed": {
         "sourceTree": "38b1859c896721f3ddaf11d7233941d1cffb928b",
         "version": "0.0.0-ssconvert-current.d6b6a11148",
@@ -2976,50 +2976,41 @@
       },
       "fullTest": {
         "sourceTree": "a25767518ccad4ba1d616b564385b4fe1bf84472",
-        "status": "running",
-        "completedBatches": [
-          {
-            "files": 250,
-            "tests": 5207
-          },
-          {
-            "files": 250,
-            "tests": 37027
-          },
-          {
-            "files": 250,
-            "tests": 98005
-          },
-          {
-            "files": 250,
-            "tests": 47018
-          },
-          {
-            "files": 250,
-            "tests": 81588
-          },
-          {
-            "files": 250,
-            "tests": 37478
-          },
-          {
-            "files": 250,
-            "tests": 4222
-          },
-          {
-            "files": 249,
-            "tests": 7147,
-            "skippedFiles": 1,
-            "skippedTests": 1
-          },
-          {
-            "files": 250,
-            "tests": 7376,
-            "todoTests": 5
-          }
+        "status": "completed with exit 1",
+        "sharedVitest": {
+          "scheduledFiles": 3290,
+          "passedFiles": 3288,
+          "skippedFiles": 2,
+          "passedTests": 371021,
+          "skippedTests": 2,
+          "todoTests": 5
+        },
+        "otherVitest": {
+          "passedFiles": 410,
+          "passedTests": 8353
+        },
+        "safeBashRunner": {
+          "passedTests": 650
+        },
+        "safeBash": {
+          "tests": 56473,
+          "pass": 55544,
+          "fail": 8,
+          "skipped": 920,
+          "todo": 1
+        },
+        "failures": [
+          "raw-byte base64 loop substitution",
+          "#status from jq array-property failure",
+          "archive root contracts path expectation",
+          "printf -v array results in nested function/loops",
+          "two redirected-loop tilde cases",
+          "redirected-loop substitution crash",
+          "native Bash tilde/IFS timeout"
         ],
-        "sharedFilesScheduled": 3290,
-        "log": "out/ssconvert-release-investigation/current-full-test.log"
+        "currentMainFollowup": "At 5eb0fc5dd4 the four-file shell subset has 201 pass, 4 fail and 2 skip. Redirected-loop regressions pass. Base64/jq remain tracked in #3987; a new UTF-8 tr pipeline budget failure is #3995; the array printf evidence was reported to #3953. Archive validator now requires the canonical dist/shared contracts runtime; its red current-HEAD failure is fixed. The complete archive-controls/parser cohort and focused ESLint pass; see archive-contracts-{red,green}.log. Native timeout requires fresh qualification; no skip is counted as a pass.",
+        "log": "out/ssconvert-release-investigation/current-full-test.log",
+        "summary": "out/ssconvert-release-investigation/full-test-summary.json"
       },
       "repairedArtifacts": {
         "sourceTree": "d492e1ddd503d32d4de2ecf90e4eb4f9cbfeb18e",

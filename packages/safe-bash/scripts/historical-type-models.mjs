@@ -216,7 +216,8 @@ export function checkHistoricalSources(root, { fileSystem = fs, system = ts.sys,
   ]));
   const paths = { ...dependencyPaths };
   const manifest = metadata;
-  for (const [name, profile] of Object.entries(manifest.poeCode?.integration?.privateWorkspaces ?? {})) {
+  for (const name of privateWorkspaces) {
+    const profile = manifest.poeCode.integration.privateWorkspaces[name];
     assertLiteralInputPath(name);
     assert.ok(!name.includes("/"), "private workspace name must be a literal directory");
     assert.equal(manifest.devDependencies?.[name], "*", "private workspace must be an explicit local build dependency");

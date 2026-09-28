@@ -2655,14 +2655,29 @@
     },
     "perlDateEra": {
       "issue": 3871,
-      "status": "open; reserved for another worker",
+      "status": "Implementation delivered; 92 activated Linux date captures match compiled and installed scoped SDK/Shell",
       "source": "https://raw.githubusercontent.com/GNOME/gnumeric/GNUMERIC_1_12_61/plugins/perl-func/perl_func.pl",
       "sourceSha256": "73bfafc72fe65a516eed8708395738a0fbfc11f607321a08bddd456ca572fe71",
-      "finding": "PERL_DATE loses signed year formatting and timezone era before year1:7/36 host-Perl component comparisons differ. Shared NOW/TODAY/UNIX2DATE disagree between UTC and Etc/UTC in6/9 alias controls. Current accepted clock range includes these instants.",
+      "finding": "Issue #3871 is resolved on remote main at 0dadb7915bf6296af124a9cd952017bccb56a798. Signed minimum-width Perl year formatting and Intl astronomical era conversion are implemented. The owner recorded 47 memory regressions, host-Perl component controls and public SDK/command conversion. The former 7/36 component and 6/9 alias mismatches are historical failures, not current failures.",
       "receipts": [
         "out/ssconvert-release-investigation/perl-date-era-repro.json",
         "out/ssconvert-release-investigation/date-era-alias-repro.json"
-      ]
+      ],
+      "nativeBoundaryQualification": {
+        "workflowRevision": "a25767518ccad4ba1d616b564385b4fe1bf84472",
+        "run": "https://github.com/poe-platform/poe-code/actions/runs/36452225518",
+        "status": "92 activated Linux captures match current compiled SDK and Shell; isolated installed qualification pending",
+        "cases": "Two retained baseline controls plus 18 era/calendar/DST/extreme instants in UTC, America/Los_Angeles, Etc/UTC, Europe/Warsaw and Asia/Tokyo (92 captures).",
+        "procedure": "docs/plans/ssconvert-audit-qa.md#qa-perl-date-boundaries",
+        "activation": "Gnumeric_PerlLoader and Gnumeric_PerlFunc both active and loaded; perl_date signature is zero arguments. All captures exit 0 with empty stderr.",
+        "artifactId": 10983988671,
+        "nativeBinarySha256": "1e05f849beba0397bbaae2a504ec65e44fd1d21b1106edd7b54b47db61b828c1",
+        "authentication": "Authenticated workflow revision, recovered input digest and all 19 hook source/binary digests. Gnumeric_PerlFunc and Gnumeric_PerlLoader are active and loaded; all captures exit 0 with empty stderr.",
+        "receipts": [
+          "out/ssconvert-release-investigation/perl-extrema-native.json",
+          "out/ssconvert-release-investigation/perl-extrema-compiled.json"
+        ]
+      }
     },
     "xlsxPageBreakAxes": {
       "status": "validated defect; hey-boss #3892 remains with its assigned worker",
@@ -2687,6 +2702,24 @@
       "receipts": [
         "out/ssconvert-release-investigation/first-page-number-repro.json",
         "out/ssconvert-release-investigation/calc-print-options-source.json"
+      ]
+    },
+    "clockExtrema": {
+      "issue": 3951,
+      "status": "Resolved and verified on remote main; activated Linux SDK/Shell parity passes",
+      "source": "Pinned Gnumeric Perl sample localtime/sprintf expression; valid local civil dates need not fit JavaScript Date TimeClip.",
+      "finding": "The accepted maximum instant in Tokyo and minimum instant in Los Angeles produced 0NaNNaNNaN instead of 2757600913/-2718210419. NOW/TODAY/UNIX2DATE returned NUM errors in the same cases. All 8 independent host Perl controls exit 0.",
+      "repair": "Retain local calendar fields and a numeric wall timestamp; use the Gregorian 400-year cycle to calculate timestamps without materializing an out-of-range Date. Shared serial and calendar consumers use those fields.",
+      "receipt": "out/ssconvert-release-investigation/clock-extreme-repro.json",
+      "remaining": "Broader family and isolated installed/registry qualification remain open; the specific TimeClip defect is resolved.",
+      "commit": "a25767518ccad4ba1d616b564385b4fe1bf84472",
+      "checks": "Two original failing clock-boundary regressions become passing; 51 era/boundary/public SDK-command checks, all 25,696 package tests, package lint/source/test/browser/Node typechecks pass. Root ESLint passes after separately delivered redirect repair.",
+      "nativeRun": "https://github.com/poe-platform/poe-code/actions/runs/36452225518",
+      "native": "Run 36452225518 at a25767518c authenticates 92 captures, including both accepted clock limits in five zones. All exit 0 without diagnostics. Current compiled SDK and Shell match 184 full-CSV byte comparisons, preserve source bytes and leave no temporary files.",
+      "receipts": [
+        "out/ssconvert-release-investigation/clock-extreme-repro.json",
+        "out/ssconvert-release-investigation/perl-extrema-native.json",
+        "out/ssconvert-release-investigation/perl-extrema-compiled.json"
       ]
     }
   },
@@ -2724,7 +2757,7 @@
     {
       "id": "perl-date",
       "status": "open",
-      "currentFinding": "Injected-clock/timezone behavior matches the recorded activated Linux 2024 UTC/Los_Angeles controls. Upstream 0dadb7915b now formats negative years with a sign-aware minimum width and converts Intl BC era years to astronomical years before constructing non-UTC dates. Current-source native activation/readback for those era boundaries, wider date/DST boundaries, lifecycle, installed artifacts and publication remain open."
+      "currentFinding": "Source-derived signed years and astronomical eras are delivered. Issue #3951 additionally removes local Date TimeClip corruption at accepted clock limits. Authenticated activated Linux Gnumeric Perl captures now match current compiled SDK and Shell for 92 cases across five zones, including BCE/year zero, rollover/leap day, DST and both clock extrema. Broader signatures/coercion, locales, arrays/errors, other runtime profiles and installed/registry qualification remain open."
     },
     {
       "id": "perl-sed",
@@ -2816,7 +2849,11 @@
     "verifiedRemoteMain": [
       "da7a6f2b376bb6044ae92e5614f7140a84833bc6",
       "9a50779779f03d936ea39449326863272b2bfdf7",
-      "4e23877cc435df0f1a175d89408fa36acd47699c"
+      "4e23877cc435df0f1a175d89408fa36acd47699c",
+      "00f924d3ac9e8d90b4e00182330d7bd03baee8b8",
+      "acabc3e2b68f8d84c7b3f04af523d135464f2b8e",
+      "f5ff899d4edabc51735e07f7f45cdcfa257e465e",
+      "a25767518ccad4ba1d616b564385b4fe1bf84472"
     ],
     "verifiedPublication": {
       "version": "17.0.35",
@@ -2826,12 +2863,11 @@
       "containsRecentCommits": false
     },
     "currentIntegration": {
-      "state": "Focused integration repairs pass; complete root build, full unit rerun and refreshed installed artifacts remain pending",
-      "onto": "06c2ac7c7ef3d542b133a160483dfc1346371669",
-      "localHead": "12bfd1f6083e935f86512b0e3d0dfec25d154167",
+      "state": "Partial changes delivered; scoped installed Node/browser/Worker checks pass; full tests and root artifact refresh pending",
+      "localHead": "a25767518ccad4ba1d616b564385b4fe1bf84472",
       "runtime": "Preserved upstream page-break axes, raw bounds and flags, first-page numbering, shared-runtime package imports and portable source exports. Worksheet-setting retention now publishes generated page breaks after settings. Public shared runtimes remain separate from workspace rebuild output; the maintained shared-runtime recipe accepts the explicit publication directory. Native credential conversion retains iterative conversion and cleanup. Upstream unlimited response/deadline implementations remain in place, with native and TypeScript subscription acknowledgement timers disabled for explicit Infinity.",
-      "checks": "Full maintained run completed its prerequisite builds, then reported 5199 passing tests and two public browser failures caused by invalid UTF-8 file substitution. Four original byte regressions reproduced the defect; the local repair passed 62 focused checks, 58 browser-bundle checks and 18 authenticated GNU Bash controls. Later upstream 2c10b5bdcc independently routes binary file reads through the byte-preserving path. Rebase retained that correction and dropped the superseded local runtime repair; all 18 retained raw/UTF-8/BOM regressions and 58 public browser-bundle checks pass on the integrated tree. Guarded root ESLint passes. Upstream also contains equivalent source-offset/optional-property and deterministic loop-test repairs, so those duplicate local commits were dropped. Previous full root build attempts failed first on those typing errors, then on a native Cargo metadata parse failure with an adjacent SIGKILL warning. Direct Cargo metadata retry parses successfully; selected native build retry is running. No clean final root-build or full-unit result is claimed.",
-      "remaining": "Deliver the independently checked fixes, finish the native/root build and full maintained tests, refresh actual packed Node/browser/Worker consumers and verify the containing registry publication. All 19 families remain open.",
+      "checks": "At a25767518c, all 473 spreadsheet test files / 25,696 tests and package source/test/browser/Node typechecks pass. Root ESLint passes after f5ff899d4e removes two shadowed redirect branches; 348 compound-loop and 167 byte/substitution controls pass, with four authenticated GNU Bash 5.2.37 controls. The full maintained npm test has rebuilt dependencies and passed its first two 250-file batches (5,207 and 37,027 tests); the remaining declared workspace tasks are still running. Earlier browser raw-file substitution failures are fixed, but no complete final full-run pass is claimed.",
+      "remaining": "Complete the clean root build and full maintained tests, refresh actual packed Node/browser/Worker consumers and verify containing registry publication. All 19 families remain open.",
       "installed": {
         "sourceTree": "38b1859c896721f3ddaf11d7233941d1cffb928b",
         "version": "0.0.0-ssconvert-current.d6b6a11148",
@@ -2869,7 +2905,56 @@
           "receipt": "out/ssconvert-release-investigation/integrated-scalar-native.json"
         }
       },
-      "previousChecks": "Earlier installed results below concern source tree 38b1859c896721f3ddaf11d7233941d1cffb928b and are historical. Rebase receipts record conflict decisions, dropped duplicate test repairs and the unchanged unrelated-edit checksum. Current logs are under out/ssconvert-release-investigation; historical passes do not qualify the current artifacts."
+      "previousChecks": "Earlier installed results below concern source tree 38b1859c896721f3ddaf11d7233941d1cffb928b and are historical. Rebase receipts record conflict decisions, dropped duplicate test repairs and the unchanged unrelated-edit checksum. Current logs are under out/ssconvert-release-investigation; historical passes do not qualify the current artifacts.",
+      "delivery": {
+        "head": "00f924d3ac9e8d90b4e00182330d7bd03baee8b8",
+        "commits": 65,
+        "remoteVerification": "GitHub compare identical at delivery; later remote main contains the batch.",
+        "releaseRun": "https://github.com/poe-platform/poe-code/actions/runs/36449887569",
+        "publication": "Original run completed with a superseded release-stable job; no publication. Follow newer containing runs."
+      },
+      "workspaceInstallation": {
+        "issue": 3948,
+        "finding": "A shared stress-audit node_modules symlink repeatedly redirected workspace links to another checkout, breaking builds. npm ci restored all 180 local workspace links; latest root build started after validating them. Another worker owns installation isolation; no permanent repair claimed."
+      },
+      "rootBuild": {
+        "result": "npm run build passed",
+        "log": "out/ssconvert-release-investigation/current-root-build.log",
+        "scope": "All 180 declared workspaces traversed, 179 builds, followed by root schemas/TypeScript/bundles. Subsequent full-test prerequisites rebuilt the clock and redirect repairs; refresh root bundles before root tarball qualification."
+      },
+      "redirectRepair": {
+        "issue": 3952,
+        "commit": "f5ff899d4edabc51735e07f7f45cdcfa257e465e",
+        "cause": "Duplicate early coalesced/word redirect branches hid the newer guarded echo handling and failed root no-dupe-else-if.",
+        "checks": "348 compound-loop checks, 167 byte/substitution checks and four authenticated GNU Bash 5.2.37 file-output controls pass; root ESLint passes.",
+        "receipt": "out/ssconvert-release-investigation/shadowed-redirect-native.json"
+      },
+      "refreshedScoped": {
+        "sourceTree": "a25767518ccad4ba1d616b564385b4fe1bf84472",
+        "version": "0.0.0-ssconvert-current.a25767518c",
+        "scope": "Real scoped tarballs installed outside checkout, no private workspace links; strict NodeNext browser/Node consumers pass. Direct Node run uses PATH=/usr/bin:/bin.",
+        "result": "SDK/command factories, CSV to XLSX, edited XLSX to CSV, exact 21-byte admission, refusal identity, false cancellation, frozen cleanup registration, raw argument ownership and existing-destination preservation pass. All 92 activated Linux date captures match SDK and Shell.",
+        "browser": "Actual installed exports bundle in 569 inputs with no external imports. HeadlessChrome 154 page and module Worker both pass all conversion/contracts and 184 native date comparisons. Portable Buffer exists; process/require are absent. Only browser console error is favicon 404.",
+        "probeCorrections": "The retained type consumer tried to write an unowned workbook; corrected to read it with the same engine before writeWorkbook. Probe imports were corrected to the public filesystem-output-budget/value/command contract subpaths. These were probe mistakes, not product failures.",
+        "remaining": "Root tarball refresh and containing registry artifacts/publication remain open.",
+        "cleanup": "Chrome and loopback server closed; screenshot inspected then removed. Two consumed native oracle archives and scoped package staging removed (343475488 bytes). Scoped tarballs and the isolated consumer remain only for the pending root installation comparison."
+      },
+      "fullTest": {
+        "sourceTree": "a25767518ccad4ba1d616b564385b4fe1bf84472",
+        "status": "running",
+        "completedBatches": [
+          {
+            "files": 250,
+            "tests": 5207
+          },
+          {
+            "files": 250,
+            "tests": 37027
+          }
+        ],
+        "sharedFilesScheduled": 3290,
+        "log": "out/ssconvert-release-investigation/current-full-test.log"
+      }
     }
   },
   "history": {

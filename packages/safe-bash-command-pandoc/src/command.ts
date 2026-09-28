@@ -121,10 +121,19 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
         if (matchedExt) return matchedExt;
         if (!["python3", "python", "node", "sh", "bash"].some(candidate => hasCommand(candidate))) return undefined;
         try {
-          const head = await context.fs.readFile(pathOf(context, filterPath), {signal: readSignal, maxBytes: 256});
-          const shebangCmd = parseShebangCommand(head);
+          const bound = Math.min(limits.resourceBytes ?? defaultLimits.resourceBytes, maxBytes);
+          const head = await (stdout ?? invocation).acquire(() => context.fs.readFile(pathOf(context, filterPath),
+            Number.isFinite(bound) ? {signal: readSignal, maxBytes: bound} : {signal: readSignal}), () => {});
+          total += head.byteLength;
+          context.inputBudget?.check(total);
+          const shebangCmd = parseShebangCommand(head.subarray(0, 256));
           if (shebangCmd && hasCommand(shebangCmd)) return shebangCmd;
-        } catch {
+        } catch (error) {
+          readSignal.throwIfAborted();
+          if (error instanceof Error && error.name === "AbortError") {
+            await (stdout ?? invocation).abort(error);
+            throw error;
+          }
           return undefined;
         }
         return undefined;

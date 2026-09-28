@@ -435,7 +435,8 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
         // private entrypoints available to the bundled declaration graph too.
         if (workspace) {
           assertPrivateProfile(workspace, workspaceName);
-          for (const target of Object.values(workspace.pkg.exports ?? {})) {
+          for (const [route, target] of Object.entries(workspace.pkg.exports ?? {})) {
+            if (Object.hasOwn(profile.optionalModules ?? {}, route)) continue;
             let relative = target?.types;
             while (relative && typeof relative === "object" && !Array.isArray(relative)) {
               relative = Object.entries(relative).find(([condition]) => condition === "node" || condition === "import" || condition === "default")?.[1];

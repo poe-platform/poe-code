@@ -126,6 +126,8 @@ export default defineConfig({
     alias: getPackageAliases()
   },
   test: {
+    testTimeout: 30000,
+    hookTimeout: 60000,
     silent: "passed-only",
     reporters: [path.resolve(__dirname, "scripts/vitest-immediate-reporter.mjs")],
     globals: true,

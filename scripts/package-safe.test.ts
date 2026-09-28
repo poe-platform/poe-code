@@ -1268,6 +1268,8 @@ describe("explicit optional safe package artifact", () => {
     volume.writeFileSync("/repo/node_modules/yaml/LICENSE", "YAML fixture license");
     volume.mkdirSync("/repo/packages/safe-bash-command-pandoc/dist", { recursive: true });
     volume.writeFileSync("/repo/packages/safe-bash-command-pandoc/dist/defaults.js", 'export { parseDocument } from "yaml";');
+    volume.mkdirSync("/repo/packages/safe-bash-command-yq/dist", { recursive: true });
+    volume.writeFileSync("/repo/packages/safe-bash-command-yq/dist/comments.d.ts", 'import type { CST, Node } from "yaml"; export type { CST, Node };');
     volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", 'export { parseDocument } from "yaml"; export * from "../../safe-bash-command-pandoc/dist/defaults.js";');
     const bundle = vi.fn(async (recipe: BuildOptions) => recipe.outfile?.endsWith("/bundled-yaml/index.js")
       ? build({ ...recipe, absWorkingDir: path.resolve(import.meta.dirname, ".."),

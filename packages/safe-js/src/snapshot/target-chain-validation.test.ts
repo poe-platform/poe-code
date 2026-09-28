@@ -166,3 +166,29 @@ it("validates Proxy flags across bound targets ending at a revoked Proxy", () =>
   heap["3"].constructible = false;
   expect(() => validateDumpEnvelope({ version: 2, sourceHash: "revoked", heap })).toThrow("Inconsistent Proxy callable flags");
 });
+
+
+it.each(["guest-proxy", "bound-function"] as const)("reports the cyclic %s node after a different root kind", kind => {
+  const heap = chain(kind, 2);
+  heap["2"].target = { kind: "ref", id: 2 };
+  heap["1"] = chain(kind === "guest-proxy" ? "bound-function" : "guest-proxy", 2)["2"];
+  heap["1"].target = { kind: "ref", id: 2 };
+  expect(() => validateGuestHeapGraphs(heap)).toThrow(kind === "guest-proxy"
+    ? "Cyclic Proxy target chain." : "Cyclic bound function target.");
+});
+
+it.each(["function(){}", "()=>1", "function*(){}", "async function(){}", "async function*(){}", "({m(){}}).m",
+  "Function('return 1')", "eval('(function(){})')", "(new class { saved = function(){} }).saved"])(
+  "resolves Proxy constructibility from %s for direct and bound targets", async expression => {
+    for (const target of [`(${expression})`, `(${expression}).bind(null).bind(null)`, `new Proxy((${expression}),{}).bind(null)`]) {
+      const source = `Number.prototype.saved=new Proxy(${target},{});await 0;return 1`;
+      const pending = run(source);
+      const snapshot = JSON.parse(await dump(pending));
+      await pending;
+      expect(() => restoreDump(snapshot, { source })).not.toThrow();
+      const proxies = (Object.values(snapshot.heap) as Array<Record<string, unknown>>).filter(node => node.kind === "guest-proxy");
+      for (const proxy of proxies) proxy.constructible = !proxy.constructible;
+      expect(() => restoreDump(snapshot, { source })).toThrow("Inconsistent Proxy callable flags");
+      await expect(run(source, { snapshot })).rejects.toThrow("Inconsistent Proxy callable flags");
+    }
+  });

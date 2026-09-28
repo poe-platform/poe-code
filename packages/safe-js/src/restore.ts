@@ -9,6 +9,7 @@ import { parseExecutableModule, parseModule } from "./parse/parser.js";
 import { ParseError } from "./parse/format-error.js";
 import { createModuleSource, createDynamicSource, createEvalSource, type DynamicSource, type EvalSourceContext } from "./parse/dynamic-source.js";
 import { validateGuestFunctionAst } from "./snapshot/guest-ast-validation.js";
+import { validateGuestHeapGraphs } from "./snapshot/guest-heap-validation.js";
 import { validateTemplateObjects } from "./snapshot/template-validation.js";
 import type { ParseResult } from "./parse.js";
 
@@ -112,17 +113,28 @@ export function restore<TSnapshot extends SafeJSSnapshot>(
         }
         for (const entry of Object.values(node)) pending.push(entry);
       }
+      const functionConstructibility = new Map<string, boolean>();
       for (const [id, value] of closures) {
         const record = value as Record<string, unknown>;
         if (record.kind === "guest-array") continue;
         const nodes = record.dynamicSource === undefined ? functions
           : dynamicSources.get((record.dynamicSource as {id: number}).id)!.nodes;
         const origin = nodes.get(record.astNodeId as number);
-        try { validateGuestFunctionAst(record, origin); }
+        try {
+          validateGuestFunctionAst(record, origin);
+          if (record.kind === "guest-function") {
+            const node = origin as Record<string, unknown>;
+            functionConstructibility.set(id,
+              (node.type === "FunctionDeclaration" || (node.type === "FunctionExpression" && !node.method)) &&
+              !node.async && !node.generator && !(record.environment as Record<string, unknown> | undefined)?.classInitializer);
+          }
+        }
         catch (error) {
           throw new SnapshotValidationError("invalidValue", `$.heap[${JSON.stringify(id)}].astNodeId`, error instanceof Error ? error.message : String(error));
         }
       }
+      try { validateGuestHeapGraphs(snapshot.heap as Record<string, unknown>, functionConstructibility); }
+      catch (error) { throw new SnapshotValidationError("invalidValue", "$.heap", error instanceof Error ? error.message : String(error)); }
       try { validateTemplateObjects(snapshot.heap as Record<string, unknown>, functions.values() as Iterable<ParseResult>, dynamicSources); }
       catch (error) { throw new SnapshotValidationError("invalidValue", "$.heap", String(error)); }
     }

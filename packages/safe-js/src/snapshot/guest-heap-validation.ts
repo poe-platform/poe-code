@@ -1477,7 +1477,10 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
   return true;
 }
 
-export function validateGuestHeapGraphs(heap: Record<string, unknown>): void {
+export function validateGuestHeapGraphs(
+  heap: Record<string, unknown>,
+  functionConstructibility: ReadonlyMap<string, boolean> = new Map()
+): void {
   for (const [kind, edge, message] of [
     ["scope-frame", "parent", "Cyclic guest scope parent graph."],
     ["promise-reaction", "source", "Cyclic promise reaction source graph."]
@@ -1507,11 +1510,13 @@ export function validateGuestHeapGraphs(heap: Record<string, unknown>): void {
     let current = id;
     let flags = finished.get(current);
     while (flags === undefined) {
-      if (path.has(current)) throw new TypeError(root.kind === "guest-proxy"
+      if (path.has(current)) throw new TypeError(record(heap[current]).kind === "guest-proxy"
         ? "Cyclic Proxy target chain." : "Cyclic bound function target.");
       const node = record(heap[current]);
       if ((node.kind !== "guest-proxy" && node.kind !== "bound-function") || node.target === null) {
-        flags = targetFlags(node);
+        flags = node.kind === "guest-function" && functionConstructibility.has(current)
+          ? { callable: true, constructible: functionConstructibility.get(current)! }
+          : targetFlags(node);
         if (flags === undefined) throw new TypeError("Invalid function target.");
         break;
       }

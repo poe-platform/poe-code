@@ -14,6 +14,8 @@ for (const [pipeline, expected] of [
   [String.raw`printf '123\nAbC\n' | grep -En '[[:alpha:]]+'`, "2:AbC"],
   [String.raw`printf '123\nabc\n' | grep -E '[[:digit:]]+|[[:alpha:]]+'`, "123\nabc"],
   [String.raw`printf '123\n[[:digit:]]\n' | grep -F '[[:digit:]]'`, "[[:digit:]]"],
+  [String.raw`printf 'a1b22\n' | grep -Eo '[[:digit:]]+'`, "1\n22"],
+  [String.raw`printf '%s\n' '[[:digit:]]+' '123' | grep -F '[[:digit:]]+'`, "[[:digit:]]+"],
   [String.raw`printf '1e5\n2\nInfinity\n1\nNaN\n' | sort -n`, "Infinity\nNaN\n1\n1e5\n2"],
   [String.raw`printf '1e5\n2\nInfinity\n1\n' | sort -nu`, "Infinity\n1e5\n2"],
   [String.raw`printf '  a   b  \n\ta\tb\t\n' | awk -F ' ' '{print $1, $2}'`, "a b\na b"],
@@ -216,6 +218,7 @@ for (const write of ['arr=new', 'printf -v arr %s new', 'read arr <<< new', 'rea
 
 for (const [pipeline, expected] of [
   [String.raw`echo abc | grep '[[:alpha:]]'`, 'abc'],
+  [String.raw`echo a1b22 | grep -Eo '[[:digit:]]+'`, '1\n22'],
   [String.raw`printf '%s\n' 1e5 20 | sort -n`, '1e5\n20'],
   [String.raw`echo '  foo   bar' | awk -F ' ' '{print $1}'`, 'foo'],
 ] as const) test(`function substitution uses shared evaluator: ${pipeline}`, async context => {

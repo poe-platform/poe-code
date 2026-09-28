@@ -1558,3 +1558,23 @@ test("Wave 85: break/continue in loops, while read with continue, and nested arr
   assert.equal(res.stdout, oracle.stdout);
   await shell.dispose();
 });
+for (const [name, source, expected] of [
+  ["non-stdin file redirect in loop", 'for i in 1 2; do x=$(cat 3</tmp/data); printf "<%s>" "$x"; done', '<><>'],
+  ["non-stdin file redirect in printf assignment", 'printf -v x %s "$(cat 3</tmp/data)"; printf "<%s>" "$x"', '<>'],
+  ["non-stdin file redirect in pipeline", 'for i in 1 2; do x=$(cat 3</tmp/data | cut -c1); printf "<%s>" "$x"; done', '<><>'],
+  ["explicit stdin file redirect", 'for i in 1 2; do x=$(cat 0</tmp/data); printf "<%s>" "$x"; done', '<file><file>'],
+  ["indexed array loop numeric order", 'arr=([9]=tail [2]=head); out=; for x in "${arr[@]}"; do out+="$x,"; done; printf %s "$out"', 'head,tail,'],
+  ["quoted star array loop joins members", 'arr=(head tail); out=; for x in "${arr[*]}"; do out+="$x,"; done; printf %s "$out"', 'head tail,'],
+] as const) {
+  test(`file and array fast paths preserve ${name}`, async context => {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/tmp");
+    await fs.writeFile("/tmp/data", new TextEncoder().encode("file\n"));
+    const shell = new Shell({ fs });
+    for (const command of [...basicCommands(), ...streamCommands(), ...textCommands()]) shell.register(command);
+    context.after(() => shell.dispose());
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+  });
+}

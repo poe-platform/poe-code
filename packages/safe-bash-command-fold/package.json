@@ -10,6 +10,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./family": {
+      "types": "./dist/family.d.ts",
+      "import": "./dist/family.js"
     }
   },
   "files": [
@@ -27,6 +31,9 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "safe-bash-contracts": "*"
+    "safe-bash-contracts": "*",
+    "safe-bash-command-io-engine": "*",
+    "safe-bash-text-stream-engine": "*",
+    "safe-bash-command-fold": "*"
   }
 }

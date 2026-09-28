@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { FsError, toByteSource, type ByteSource, type FileStat, type ReadStreamOptions } from "../../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { classify } from "../../../src/commands/file/classify.js";
+import { classify } from "safe-bash-command-file/classify";
 import { fixtures } from "./fixtures.js";
 import { deferred, proxyFs, run } from "./helpers.js";
 

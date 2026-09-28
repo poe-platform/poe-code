@@ -18,7 +18,7 @@ import { Shell } from "../../src/shell/shell.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import { portableTrapExtension } from "../../src/shell/trap.js";
 import { jobsExtension } from "../../src/shell/extensions/jobs/index.js";
-import { signalName } from "../../src/commands/timeout/signal.js";
+import { signalName } from "safe-bash-command-timeout/signal";
 import type * as Host from "../../src/optional-host.js";
 import type * as Extensions from "../../src/shell/extensions.js";
 import type * as Input from "../../src/shell/input.js";

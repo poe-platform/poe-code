@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parse } from "../../../src/commands/tree/arguments.js";
-import { WalkBudget } from "../../../src/commands/tree/io.js";
-import { settings } from "../../../src/commands/tree/options.js";
-import { matches } from "../../../src/commands/tree/pattern.js";
+import { parse } from "safe-bash-command-tree/arguments";
+import { WalkBudget } from "safe-bash-command-tree/io";
+import { settings } from "safe-bash-command-tree/options";
+import { matches } from "safe-bash-command-tree/pattern";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { shellRun } from "./helpers.js";
 

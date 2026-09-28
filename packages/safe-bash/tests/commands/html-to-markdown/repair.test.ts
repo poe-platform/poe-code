@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { Budget } from "../../../src/commands/html-to-markdown/budget.js";
-import { destination, entities } from "../../../src/commands/html-to-markdown/entities.js";
-import { settings } from "../../../src/commands/html-to-markdown/options.js";
+import { Budget } from "safe-bash-command-html-to-markdown/budget";
+import { destination, entities } from "safe-bash-command-html-to-markdown/entities";
+import { settings } from "safe-bash-command-html-to-markdown/options";
 import { createHtmlToMarkdownCommand } from "../../../src/commands/html-to-markdown/index.js";
-import { normalizeText, trimText } from "../../../src/commands/html-to-markdown/text.js";
+import { normalizeText, trimText } from "safe-bash-command-html-to-markdown/text";
 import { byteChunks, convert } from "./helpers.js";
-import { Parser } from "../../../src/commands/html-to-markdown/parser.js";
+import { Parser } from "safe-bash-command-html-to-markdown/parser";
 
 test("nested table rows preserve the enclosing row and sibling cells", async () => {
   const input = "<table><tr><td>Outer 1</td><td><table><tr><td>Inner</td></tr></table></td><td>Outer 3</td></tr></table>";

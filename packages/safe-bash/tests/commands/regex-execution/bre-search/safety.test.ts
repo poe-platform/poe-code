@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { searchBreSteps } from "../../../../src/commands/expr/bre-engine.js";
+import { searchBreSteps } from "safe-bash-command-expr/bre-engine";
 import { createBoundedRegexProvider } from "../../../../src/commands/regex-execution/bounded-provider.js";
 import { RegexExecutor } from "../../../../src/commands/regex-execution/portable.js";
 import { exprMatchCeilings, validateBreSearchInput, validateBreSearchReply, type BreSearchDescriptor, type BreSearchResult, type ExprMatchLimits } from "../../../../src/commands/regex-execution/protocol.js";

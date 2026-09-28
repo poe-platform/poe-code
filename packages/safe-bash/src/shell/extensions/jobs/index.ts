@@ -1,5 +1,5 @@
 import { commandRuntimeIdentity } from "../../../contracts/command.js";
-import { signalName } from "../../../commands/timeout/signal.js";
+import { signalName } from "safe-bash-command-timeout/signal";
 import { writeText } from "../../../contracts/io.js";
 import { concatShellValues, shellValueBytes, shellValueFromBytes } from "../../../contracts/value.js";
 import type { ShellValue } from "../../../contracts/value.js";

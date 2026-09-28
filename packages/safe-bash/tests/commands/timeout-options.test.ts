@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { Shell, CommandRegistry, agentCommands, createMemoryFileSystem } from "../../src/index.js";
 import { createTimeoutCommand } from "../../src/commands/timeout/index.js";
-import { parseSignal, signalName } from "../../src/commands/timeout/signal.js";
+import { parseSignal, signalName } from "safe-bash-command-timeout/signal";
 import { captureContext, ManualScheduler } from "./timeout-author-20260828/fixtures.js";
 
 test("timeout foreground options preserve file bytes and child status through Shell", async () => {

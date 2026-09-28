@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import type { ByteSource, CommandContext, InvocationCleanup } from "../../../src/contracts/index.js";
-import { RandomIntegers } from "../../../src/commands/shuf/random.js";
+import { RandomIntegers } from "safe-bash-command-shuf/random";
 import { entropy, run } from "./helpers.js";
 
 function deferred<Value>() {

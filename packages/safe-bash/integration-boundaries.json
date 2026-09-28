@@ -1,18 +1,8 @@
 {
   "version": 1,
   "heldSourceFiles": [
-    "src/commands/xan/argv.ts",
-    "src/commands/xan/budget.ts",
-    "src/commands/xan/commands.ts",
-    "src/commands/xan/csv.ts",
-    "src/commands/xan/index.ts",
-    "src/commands/xan/io.ts",
-    "src/commands/xan/options.ts",
-    "src/commands/xan/selector.ts",
-    "src/commands/xan/sort.ts",
-    "src/commands/xan/writer.ts",
-    "src/commands/xan/DESIGN.md",
-    "src/commands/xan/README.md"
+    "src/commands/xan/design-evidence/migrated-source-docs/DESIGN.md",
+    "src/commands/xan/design-evidence/migrated-source-docs/README.md"
   ],
   "heldEvidenceDirectories": [
     "src/commands/xan/design-evidence",

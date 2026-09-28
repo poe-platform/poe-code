@@ -4,7 +4,7 @@ import { build } from "esbuild";
 import { runInNewContext } from "node:vm";
 import { createTimeEnvCommands } from "../../src/commands/time-env/index.js";
 import { createTimeoutCommand } from "../../src/commands/timeout/index.js";
-import { createDeadline, defaultSchedulerBinding } from "../../src/commands/timeout/scheduler.js";
+import { createDeadline, defaultSchedulerBinding } from "safe-bash-command-timeout/scheduler";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { createCommandArguments } from "../../src/contracts/index.js";
 import { shellValueFromBytes } from "../../src/contracts/value.js";

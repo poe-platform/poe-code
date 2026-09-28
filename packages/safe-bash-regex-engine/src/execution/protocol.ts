@@ -1,0 +1,368 @@
+import { PublicDiagnostic } from "safe-bash-contracts/public-diagnostic";
+export interface RegexExecutionOptions {
+  readonly requestTimeoutMs?: number;
+  readonly startupTimeoutMs?: number;
+  readonly maxWorkers?: number;
+  readonly maxQueuedRequests?: number;
+  readonly maxQueuedBytes?: number;
+  readonly idleTimeoutMs?: number;
+  readonly workerOldGenerationMb?: number;
+  readonly workerStackMb?: number;
+}
+
+export const defaults: Required<RegexExecutionOptions> = Object.freeze({
+  requestTimeoutMs: Infinity, startupTimeoutMs: Infinity, maxWorkers: Infinity,
+  maxQueuedRequests: Infinity, maxQueuedBytes: Infinity,
+  idleTimeoutMs: Infinity, workerOldGenerationMb: Infinity, workerStackMb: Infinity,
+});
+
+export type RegexErrorCode = "QUEUE_EXHAUSTED" | "REQUEST_TIMEOUT" | "STARTUP_TIMEOUT" | "WORKER_EXIT" | "WORKER_ERROR" | "PROTOCOL" | "CLOSED" | "MATCH";
+
+export class RegexExecutionError extends PublicDiagnostic {
+  constructor(readonly code: RegexErrorCode, message: string, options?: ErrorOptions) {
+    super(code === "MATCH" ? message : `regex ${code}: ${message}`, options);
+    this.name = "RegexExecutionError";
+  }
+}
+
+export interface GrepDescriptor {
+  readonly kind: "grep";
+  readonly patterns: readonly string[];
+  readonly fixed: boolean;
+  readonly extended: boolean;
+  readonly insensitive: boolean;
+  readonly whole: boolean;
+  readonly word: boolean;
+}
+
+export interface SearchDescriptor {
+  readonly kind: "rg";
+  readonly patterns: readonly string[];
+  readonly fixed: boolean;
+  readonly case: "sensitive" | "insensitive" | "smart";
+  readonly whole: boolean;
+  readonly word: boolean;
+  readonly nullData: boolean;
+}
+
+export interface GlobDescriptor {
+  readonly kind: "glob";
+  readonly patterns: readonly string[];
+  readonly globOptions: readonly { readonly insensitive: boolean; readonly literalUnclosedClass: boolean }[];
+}
+
+export type Descriptor = GrepDescriptor | SearchDescriptor | GlobDescriptor;
+export interface Row { readonly bytes: Uint8Array; readonly all: boolean; readonly terminated: boolean; readonly directory?: boolean; readonly ancestors?: boolean }
+export interface Match { readonly start: number; readonly end: number }
+export const matchRangeLimits = Object.freeze({ perRow: Infinity, perReply: Infinity });
+export const trustedWorkerRequests = new WeakSet<object>();
+export const trustedWorkerReplies = new WeakSet<object>();
+export const inProcessRegexWorkers = new WeakSet<object>();
+export const inProcessRegexProviders = new WeakSet<object>();
+export const trustedInputRows = new WeakSet<readonly Row[]>();
+export const reusableBatchRows = new WeakSet<readonly Row[]>();
+export const reusableTrustedRequest: { id: number; descriptor: Descriptor; rows: readonly Row[] } = {
+  id: 0,
+  descriptor: undefined as unknown as Descriptor,
+  rows: [],
+};
+trustedWorkerRequests.add(reusableTrustedRequest);
+export interface Request { readonly id: number; readonly descriptor: Descriptor; readonly rows: readonly Row[] }
+export type Reply = { readonly id: number; readonly results: readonly Float64Array[]; readonly directMatches?: Match[][] } | { readonly id: number; readonly error: string };
+
+export interface ExprMatchLimits {
+  readonly maxPatternBytes: number;
+  readonly maxSubjectBytes: number;
+  readonly maxNodes: number;
+  readonly maxDepth: number;
+  readonly maxSteps: number;
+  readonly maxStates: number;
+  readonly maxAllocatedUnits: number;
+}
+export const exprMatchCeilings: ExprMatchLimits = Object.freeze({
+  maxPatternBytes: Infinity, maxSubjectBytes: Infinity, maxNodes: Infinity,
+  maxDepth: Infinity, maxSteps: Infinity, maxStates: Infinity, maxAllocatedUnits: Infinity,
+});
+export interface ExprMatchDescriptor {
+  readonly kind: "expr-match";
+  readonly pattern: Uint8Array;
+  readonly profile: "byte" | "utf8-scalar";
+  readonly limits: ExprMatchLimits;
+}
+export interface ExprMatchResult {
+  readonly offsetUnit: "byte";
+  readonly matched: boolean;
+  readonly hasCapture: boolean;
+  readonly overall: Match | null;
+  readonly capture: Match | null;
+  readonly steps: number;
+}
+export interface BreSearchDescriptor {
+  readonly kind: "bre-search";
+  readonly pattern: Uint8Array;
+  readonly profile: "byte" | "utf8-scalar";
+  readonly limits: ExprMatchLimits;
+}
+export interface BreSearchResult {
+  readonly offsetUnit: "byte";
+  readonly matched: boolean;
+  readonly overall: Match | null;
+  readonly steps: number;
+}
+export function breSearchSymbolWidth(bytes: Uint8Array, offset: number): number {
+  const first = bytes[offset]!;
+  const width = first >= 0xc2 && first <= 0xdf ? 2 : first >= 0xe0 && first <= 0xef ? 3 : first >= 0xf0 && first <= 0xf4 ? 4 : 1;
+  if (width > bytes.length - offset) return 1;
+  for (let continuation = 1; continuation < width; continuation++) {
+    const value = bytes[offset + continuation]!;
+    if (value < 0x80 || value > 0xbf || continuation === 1 && (first === 0xe0 && value < 0xa0
+      || first === 0xed && value > 0x9f || first === 0xf0 && value < 0x90 || first === 0xf4 && value > 0x8f)) return 1;
+  }
+  return width;
+}
+export interface BreSearchRequest { readonly id: number; readonly descriptor: BreSearchDescriptor; readonly rows: readonly Row[] }
+export type BreSearchReply = { readonly id: number; readonly operation: "bre-search"; readonly result: BreSearchResult }
+  | { readonly id: number; readonly operation: "bre-search"; readonly error: string; readonly category: "syntax" | "unsupported" | "limit" };
+export interface ExprMatchRequest { readonly id: number; readonly descriptor: ExprMatchDescriptor; readonly rows: readonly Row[] }
+export type ExprMatchReply = { readonly id: number; readonly operation: "expr-match"; readonly result: ExprMatchResult }
+  | { readonly id: number; readonly operation: "expr-match"; readonly error: string; readonly category: "syntax" | "unsupported" | "limit" };
+
+export class ExprMatchError extends Error {
+  constructor(readonly category: "syntax" | "unsupported" | "limit", message: string) { super(message); }
+}
+
+function exactObject(value: unknown, keys: readonly string[]): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    && Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key));
+}
+
+function breSearchRecord(value: unknown, keys: readonly string[]): value is Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value) || Reflect.ownKeys(value).length !== keys.length) return false;
+  return keys.every(key => {
+    const property = Object.getOwnPropertyDescriptor(value, key);
+    return property !== undefined && "value" in property;
+  });
+}
+
+export function validateExprInput(descriptor: ExprMatchDescriptor, rows: readonly Row[], signal: AbortSignal): void {
+  signal.throwIfAborted();
+  const invalid = () => { throw new RegexExecutionError("PROTOCOL", "invalid expr request"); };
+  if (!exactObject(descriptor, ["kind", "pattern", "profile", "limits"]) || descriptor.kind !== "expr-match"
+    || !(descriptor.pattern instanceof Uint8Array) || !["byte", "utf8-scalar"].includes(descriptor.profile)) invalid();
+  const keys = Object.keys(exprMatchCeilings) as (keyof ExprMatchLimits)[];
+  if (!exactObject(descriptor.limits, keys)) invalid();
+  for (const key of keys) {
+    if (descriptor.limits[key] !== Infinity && (!Number.isSafeInteger(descriptor.limits[key]) || descriptor.limits[key] < 1)) invalid();
+  }
+  if (!Array.isArray(rows) || rows.length !== 1) invalid();
+  const row = rows[0]!;
+  if (!exactObject(row, ["bytes", "all", "terminated"]) || !(row.bytes instanceof Uint8Array) || row.all !== false || row.terminated !== false) invalid();
+  if (descriptor.pattern.length > descriptor.limits.maxPatternBytes || row.bytes.length > descriptor.limits.maxSubjectBytes) {
+    throw new ExprMatchError("limit", "regex input bytes limit exceeded");
+  }
+}
+
+export function validateBreSearchInput(descriptor: BreSearchDescriptor, rows: readonly Row[], signal: AbortSignal): void {
+  signal.throwIfAborted();
+  if (!breSearchRecord(descriptor, ["kind", "pattern", "profile", "limits"]) || descriptor.kind !== "bre-search"
+    || !breSearchRecord(descriptor.limits, Object.keys(exprMatchCeilings)) || !Array.isArray(rows)
+    || rows.length !== 1 || Reflect.ownKeys(rows).length !== 2) {
+    throw new RegexExecutionError("PROTOCOL", "invalid BRE search request");
+  }
+  const row = Object.getOwnPropertyDescriptor(rows, "0");
+  if (!row || !("value" in row) || !breSearchRecord(row.value, ["bytes", "all", "terminated"])) {
+    throw new RegexExecutionError("PROTOCOL", "invalid BRE search subject");
+  }
+  validateExprInput({ ...descriptor, kind: "expr-match" }, rows, signal);
+}
+
+export function validateBreSearchRequest(value: unknown): asserts value is BreSearchRequest {
+  if (!breSearchRecord(value, ["id", "descriptor", "rows"]) || !Number.isSafeInteger(value.id) || (value.id as number) < 1) {
+    throw new RegexExecutionError("PROTOCOL", "invalid BRE search request identity");
+  }
+  validateBreSearchInput(value.descriptor as BreSearchDescriptor, value.rows as readonly Row[], new AbortController().signal);
+}
+
+export function validateBreSearchReply(value: unknown, id: number, descriptor: BreSearchDescriptor, subject: Uint8Array, signal: AbortSignal): BreSearchResult {
+  signal.throwIfAborted();
+  const invalid = (): never => { throw new RegexExecutionError("PROTOCOL", "invalid BRE search reply"); };
+  if (!breSearchRecord(value, Object.hasOwn(value ?? {}, "error") ? ["id", "operation", "error", "category"] : ["id", "operation", "result"])) return invalid();
+  const reply = value as Record<string, unknown>;
+  if (reply.id !== id || reply.operation !== "bre-search") return invalid();
+  if ("error" in reply) {
+    if (!breSearchRecord(reply, ["id", "operation", "error", "category"]) || typeof reply.error !== "string"
+      || reply.error.length > 512 || !["syntax", "unsupported", "limit"].includes(reply.category as string)) return invalid();
+    throw new ExprMatchError(reply.category as "syntax" | "unsupported" | "limit", reply.error);
+  }
+  if (!breSearchRecord(reply, ["id", "operation", "result"])) return invalid();
+  const result = reply.result;
+  if (!breSearchRecord(result, ["offsetUnit", "matched", "overall", "steps"]) || result.offsetUnit !== "byte"
+    || typeof result.matched !== "boolean" || !Number.isSafeInteger(result.steps)
+    || (result.steps as number) < 1 || (result.steps as number) > descriptor.limits.maxSteps) return invalid();
+  let overall: Match | null = null;
+  if (result.overall !== null) {
+    if (!breSearchRecord(result.overall, ["start", "end"])) return invalid();
+    const { start, end } = result.overall;
+    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || (start as number) < 0
+      || (end as number) < (start as number) || (end as number) > subject.length) return invalid();
+    if (descriptor.profile === "utf8-scalar") {
+      for (const offset of [start as number, end as number]) {
+        for (let previous = Math.max(0, offset - 3); previous < offset; previous++) {
+          if (previous + breSearchSymbolWidth(subject, previous) > offset) return invalid();
+        }
+      }
+    }
+    overall = { start: start as number, end: end as number };
+  }
+  if (result.matched !== (overall !== null)) return invalid();
+  return { offsetUnit: "byte", matched: result.matched, overall, steps: result.steps as number };
+}
+
+export function validateExprRequest(value: unknown): asserts value is ExprMatchRequest {
+  if (!exactObject(value, ["id", "descriptor", "rows"]) || !Number.isSafeInteger(value.id) || (value.id as number) < 1) {
+    throw new RegexExecutionError("PROTOCOL", "invalid expr request identity");
+  }
+  validateExprInput(value.descriptor as ExprMatchDescriptor, value.rows as readonly Row[], new AbortController().signal);
+}
+
+export function validateExprReply(value: unknown, id: number, descriptor: ExprMatchDescriptor, subject: Uint8Array, signal: AbortSignal): ExprMatchResult {
+  signal.throwIfAborted();
+  const invalid = (): never => { throw new RegexExecutionError("PROTOCOL", "invalid expr reply"); };
+  if (!value || typeof value !== "object") return invalid();
+  const reply = value as Record<string, unknown>;
+  if (reply.id !== id || reply.operation !== "expr-match") return invalid();
+  if ("error" in reply) {
+    if (!exactObject(reply, ["id", "operation", "error", "category"]) || typeof reply.error !== "string"
+      || reply.error.length > 512 || !["syntax", "unsupported", "limit"].includes(reply.category as string)) return invalid();
+    throw new ExprMatchError(reply.category as "syntax" | "unsupported" | "limit", reply.error);
+  }
+  if (!exactObject(reply, ["id", "operation", "result"])) return invalid();
+  const result = reply.result;
+  if (!exactObject(result, ["offsetUnit", "matched", "hasCapture", "overall", "capture", "steps"])
+    || result.offsetUnit !== "byte" || typeof result.matched !== "boolean" || typeof result.hasCapture !== "boolean"
+    || !Number.isSafeInteger(result.steps) || (result.steps as number) < 1 || (result.steps as number) > descriptor.limits.maxSteps) return invalid();
+  const span = (value: unknown): Match | null => {
+    if (value === null) return null;
+    if (!exactObject(value, ["start", "end"]) || !Number.isSafeInteger(value.start) || !Number.isSafeInteger(value.end)) return invalid();
+    const start = value.start as number, end = value.end as number;
+    if (start < 0 || end < start || end > subject.length) return invalid();
+    if (descriptor.profile === "utf8-scalar") {
+      for (const offset of [start, end]) if (offset < subject.length && subject[offset]! >= 0x80 && subject[offset]! <= 0xbf) return invalid();
+    }
+    return { start, end };
+  };
+  const overall = span(result.overall), capture = span(result.capture);
+  if (result.matched !== (overall !== null) || overall && overall.start !== 0
+    || capture && (!result.hasCapture || !overall || capture.start < overall.start || capture.end > overall.end)) return invalid();
+  return { offsetUnit: "byte", matched: result.matched, hasCapture: result.hasCapture, overall, capture, steps: result.steps as number };
+}
+
+export function policy(options: RegexExecutionOptions): Required<RegexExecutionOptions> {
+  const result = { ...defaults, ...options };
+  for (const key of Object.keys(defaults) as (keyof RegexExecutionOptions)[]) {
+    const minimum = key === "maxQueuedRequests" || key === "maxQueuedBytes" ? 0 : 1;
+    if (!Object.hasOwn(options, key)) continue;
+    if (result[key] !== Infinity && (!Number.isSafeInteger(result[key]) || result[key] < minimum)) throw new RangeError(`regex ${key} must be a safe integer >= ${minimum} or Infinity`);
+  }
+  for (const key of ["requestTimeoutMs", "startupTimeoutMs", "idleTimeoutMs"] as const) {
+    if (result[key] !== Infinity && result[key] > 2147483647) throw new RangeError(`regex ${key} exceeds the Node timer range`);
+  }
+  return Object.freeze(result);
+}
+
+export function inputBytes(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal): number {
+  let total = 128 + (descriptor.kind === "glob" ? descriptor.globOptions.length * 32 : 0);
+  for (const pattern of descriptor.patterns) {
+    signal.throwIfAborted();
+    total += 16 + pattern.length * 2;
+    if (!Number.isSafeInteger(total)) throw new RegexExecutionError("QUEUE_EXHAUSTED", "input accounting overflow");
+  }
+  for (const row of rows) {
+    signal.throwIfAborted();
+    total += 32 + row.bytes.byteLength;
+    if (!Number.isSafeInteger(total)) throw new RegexExecutionError("QUEUE_EXHAUSTED", "input accounting overflow");
+  }
+  return total;
+}
+
+const emptyMatches: Match[] = [];
+
+export function validateReply(value: unknown, id: number, rows: readonly Row[], signal: AbortSignal): Match[][] {
+  signal.throwIfAborted();
+  const reply = value as Partial<Reply> | undefined;
+  if (!reply || typeof reply !== "object" || reply.id !== id) throw new RegexExecutionError("PROTOCOL", "invalid reply identity");
+  if ("error" in reply) {
+    if (typeof reply.error !== "string") throw new RegexExecutionError("PROTOCOL", "invalid error reply");
+    throw new RegexExecutionError("MATCH", reply.error);
+  }
+  if (trustedWorkerReplies.has(reply) && "directMatches" in reply && reply.directMatches !== undefined && reply.directMatches.length === rows.length) {
+    return reply.directMatches;
+  }
+  if (!("results" in reply) || !Array.isArray(reply.results) || reply.results.length !== rows.length) throw new RegexExecutionError("PROTOCOL", "invalid reply rows");
+  if (trustedWorkerReplies.has(reply)) {
+    const resultCount = reply.results.length;
+    const results: Match[][] = new Array(resultCount);
+    let total = 0;
+    for (let index = 0; index < resultCount; index++) {
+      const ranges = reply.results[index]!;
+      const length = ranges.length;
+      if (length === 0) {
+        results[index] = emptyMatches;
+        continue;
+      }
+      const count = length >> 1;
+      if (count > matchRangeLimits.perRow || count > matchRangeLimits.perReply - total) {
+        throw new RegexExecutionError("PROTOCOL", "match range limit exceeded");
+      }
+      total += count;
+      const result: Match[] = new Array(count);
+      for (let offset = 0, out = 0; offset < length; offset += 2, out++) {
+        result[out] = { start: ranges[offset]!, end: ranges[offset + 1]! };
+      }
+      results[index] = result;
+    }
+    return results;
+  }
+  let total = 0;
+  const resultCount = reply.results.length;
+  const lengths: number[] = new Array(resultCount);
+  for (let index = 0; index < resultCount; index++) {
+    signal.throwIfAborted();
+    const ranges: unknown = reply.results[index];
+    const row = rows[index]!;
+    if (!(ranges instanceof Float64Array)) throw new RegexExecutionError("PROTOCOL", "invalid match ranges");
+    const length = ranges.length;
+    if (length % 2 || length > 2 * (row.bytes.length + 1)) throw new RegexExecutionError("PROTOCOL", "invalid match ranges");
+    if (!row.all && length > 2) throw new RegexExecutionError("PROTOCOL", "unexpected multiple matches");
+    const count = length / 2;
+    if (count > matchRangeLimits.perRow || count > matchRangeLimits.perReply - total) throw new RegexExecutionError("PROTOCOL", "match range limit exceeded");
+    total += count;
+    lengths[index] = length;
+  }
+  const results: Match[][] = new Array(resultCount);
+  for (let index = 0; index < resultCount; index++) {
+    signal.throwIfAborted();
+    const ranges = reply.results[index]!;
+    const length = lengths[index]!;
+    if (ranges.length !== length) throw new RegexExecutionError("PROTOCOL", "match ranges changed after admission");
+    if (length === 0) {
+      results[index] = emptyMatches;
+      continue;
+    }
+    const result: Match[] = [];
+    const row = rows[index]!;
+    for (let offset = 0; offset < length; offset += 2) {
+      signal.throwIfAborted();
+      const start = ranges[offset]!;
+      const end = ranges[offset + 1]!;
+      if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || end < start || end > row.bytes.length || start < (result.at(-1)?.start ?? 0)) throw new RegexExecutionError("PROTOCOL", "invalid match bounds");
+      result.push({ start, end });
+    }
+    results[index] = result;
+  }
+  for (let index = 0; index < resultCount; index++) {
+    signal.throwIfAborted();
+    if (reply.results[index]!.length !== lengths[index]) throw new RegexExecutionError("PROTOCOL", "match ranges changed after admission");
+  }
+  return results;
+}

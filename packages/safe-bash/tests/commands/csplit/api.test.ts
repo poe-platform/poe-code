@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import * as entry from "../../../src/commands/csplit/index.js";
-import { createCsplitCommandWithExecutor, evalSyncCsplit } from "../../../src/commands/csplit/command.js";
+import { createCsplitCommandWithExecutor, evalSyncCsplit } from "safe-bash-command-csplit/command";
 import { RegexExecutor } from "../../../src/commands/regex-execution/portable.js";
 import { createBoundedRegexProvider } from "../../../src/commands/regex-execution/bounded-provider.js";
 import { evaluateCommandSupport } from "../../../src/contracts/command-requirements.js";

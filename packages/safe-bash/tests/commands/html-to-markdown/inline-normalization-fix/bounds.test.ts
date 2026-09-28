@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { Budget } from "../../../../src/commands/html-to-markdown/budget.js";
-import { settings } from "../../../../src/commands/html-to-markdown/options.js";
-import { Parser } from "../../../../src/commands/html-to-markdown/parser.js";
-import { Renderer } from "../../../../src/commands/html-to-markdown/render.js";
+import { Budget } from "safe-bash-command-html-to-markdown/budget";
+import { settings } from "safe-bash-command-html-to-markdown/options";
+import { Parser } from "safe-bash-command-html-to-markdown/parser";
+import { Renderer } from "safe-bash-command-html-to-markdown/render";
 import { convert } from "../helpers.js";
 
 const empties = "<b><span><em></em></span></b><a></a><code></code>";

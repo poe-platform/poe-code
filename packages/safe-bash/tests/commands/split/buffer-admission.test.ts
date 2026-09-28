@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { settings } from "../../../src/commands/split/options.js";
+import { settings } from "safe-bash-command-split/options";
 import { chunks, files, run } from "./helpers.js";
 
 test("split omits the buffer quota even when another quota is supplied", async () => {

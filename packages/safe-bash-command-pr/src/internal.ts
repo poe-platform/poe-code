@@ -1,0 +1,203 @@
+import { getCommandArguments, type CommandContext } from "safe-bash-contracts";
+import { shellValueByteLength, shellValueBytes } from "safe-bash-contracts/value";
+import { hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
+import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
+
+export interface PrLimits {
+  readonly maxArguments: number;
+  readonly maxArgumentBytes: number;
+  readonly maxFiles: number;
+  readonly maxColumns: number;
+  readonly maxPageLines: number;
+  readonly maxPageWidth: number;
+  readonly maxPages: number;
+  readonly maxInputBytes: number;
+  readonly maxBufferedBytes: number;
+  readonly maxLineBytes: number;
+  readonly maxLines: number;
+  readonly maxOutputBytes: number;
+  readonly maxDiagnosticBytes: number;
+  readonly maxWork: number;
+  readonly maxEmptyChunks: number;
+}
+
+export interface PrCommandsOptions {
+  readonly replace?: boolean;
+  readonly clock?: () => number;
+  readonly limits?: Partial<PrLimits>;
+}
+
+export function settings(options: PrCommandsOptions): PrLimits {
+  const limits: PrLimits = {
+    maxArguments: Infinity, maxArgumentBytes: Infinity, maxFiles: Infinity, maxColumns: Infinity,
+    maxPageLines: Infinity, maxPageWidth: Infinity, maxPages: Infinity,
+    maxInputBytes: Infinity, maxBufferedBytes: Infinity,
+    maxLineBytes: Infinity, maxLines: Infinity, maxOutputBytes: Infinity,
+    maxDiagnosticBytes: Infinity, maxWork: Infinity, maxEmptyChunks: Infinity, ...options.limits,
+  };
+  for (const [name, value] of Object.entries(limits)) {
+    if ((value !== Infinity && !Number.isSafeInteger(value)) || value < 1) throw new RangeError(`Invalid pr limit: ${name}`);
+  }
+  if (options.clock !== undefined && typeof options.clock !== "function") throw new TypeError("pr clock must be a function");
+  return Object.freeze(limits);
+}
+
+export class PrError extends PublicDiagnostic {
+  constructor(message: string, readonly usage = false) { super(message); }
+}
+
+export class PrReadError extends PrError {}
+
+export function raw(value: Uint8Array): string {
+  let text = "";
+  for (const byte of value) text += String.fromCharCode(byte);
+  return text;
+}
+
+export function bytes(value: string): Uint8Array {
+  const len = value.length;
+  const out = new Uint8Array(len);
+  for (let i = 0; i < len; i++) out[i] = value.charCodeAt(i);
+  return out;
+}
+
+export function pathText(value: string): string {
+  try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes(value)); }
+  catch { throw new PrError("filesystem paths must be valid UTF-8"); }
+}
+
+export function quote(value: string): string {
+  const escapes: Readonly<Record<string, string>> = { "\x07": "\\a", "\b": "\\b", "\f": "\\f", "\n": "\\n", "\r": "\\r", "\t": "\\t", "\v": "\\v", "\\": "\\\\", "'": "\\'" };
+  let result = "'";
+  for (const character of value) {
+    const code = character.charCodeAt(0);
+    result += escapes[character] ?? (code >= 32 && code < 127 ? character : `\\${code.toString(8).padStart(3, "0")}`);
+  }
+  return `${result}'`;
+}
+
+export function fileQuote(value: string): string {
+  let safe = value.length > 0, escaped = false;
+  for (const character of value) {
+    const code = character.charCodeAt(0);
+    if (!(character >= "a" && character <= "z" || character >= "A" && character <= "Z" || character >= "0" && character <= "9" || "_./-".includes(character))) safe = false;
+    if (code < 32 || code >= 127) escaped = true;
+  }
+  if (safe) return value;
+  if (!escaped) {
+    if (value.includes("'") && !["$", "`", "\\", '"'].some(character => value.includes(character))) return `"${value}"`;
+    return `'${value.split("'").join("'\\''")}'`;
+  }
+  let result = "'", inEscape = false;
+  for (const character of value) {
+    const code = character.charCodeAt(0);
+    if (code < 32 || code >= 127) {
+      if (!inEscape) { result += "'$'"; inEscape = true; }
+      result += quote(character).slice(1, -1);
+    } else {
+      if (inEscape) { result += "''"; inEscape = false; }
+      result += character === "'" ? "'\\''" : character;
+    }
+  }
+  return `${result}'`;
+}
+
+export class Budget {
+  private work = 0;
+  private checkpoint = 0;
+  private lastYield = monotonicNow();
+  private retained = 0;
+  private input = 0;
+  private lines = 0;
+  private pages = 0;
+  private output = 0;
+  private diagnostics = 0;
+  private signalAborted: boolean;
+  private readonly pollSignal: boolean;
+  constructor(readonly context: CommandContext, readonly limits: PrLimits, readonly signal: AbortSignal) {
+    inheritYieldCheckpoint(context.signal, signal);
+    this.signalAborted = signal.aborted;
+    this.pollSignal = Object.prototype.hasOwnProperty.call(signal, "aborted");
+    if (!this.signalAborted && !this.pollSignal) {
+      signal.addEventListener("abort", () => { this.signalAborted = true; }, { once: true });
+    }
+  }
+  assertSignalOpen(): void {
+    if (this.pollSignal ? this.signal.aborted : this.signalAborted) this.signal.throwIfAborted();
+  }
+  check(value: number, maximum: number, label: string): void {
+    if (value > maximum || value < 0 || ((value | 0) !== value && !Number.isSafeInteger(value))) throw new PrError(`${label} limit exceeded`);
+  }
+  charge(amount = 1): void {
+    this.assertSignalOpen();
+    this.work += amount;
+    this.check(this.work, this.limits.maxWork, "work");
+  }
+  checkpointWork(): void | Promise<void> {
+    this.assertSignalOpen();
+    if (this.work - this.checkpoint < 4096) return;
+    this.checkpoint = this.work;
+    if (!hasYieldCheckpoint(this.signal) && monotonicNow() - this.lastYield < 25) {
+      runYieldCheckpoint(this.signal);
+      this.assertSignalOpen();
+      return;
+    }
+    return yieldTurn(this.signal).then(() => {
+      this.lastYield = monotonicNow();
+      this.assertSignalOpen();
+    });
+  }
+  retain(amount: number): void {
+    this.check(this.retained + amount, this.limits.maxBufferedBytes, "buffered bytes");
+    this.retained += amount;
+  }
+  admitString(length: number): void {
+    this.assertSignalOpen();
+    this.check(length, this.limits.maxWork - this.work, "work");
+    this.check(this.retained + length * 2, this.limits.maxBufferedBytes, "buffered bytes");
+  }
+  inputBytes(amount: number): void {
+    this.input += amount;
+    this.check(this.input, this.limits.maxInputBytes, "input bytes");
+  }
+  line(): void { this.check(++this.lines, this.limits.maxLines, "input lines"); }
+  page(): void { this.check(++this.pages, this.limits.maxPages, "pages"); this.charge(); }
+  admitOutput(amount: number): void {
+    this.assertSignalOpen();
+    this.check(this.output + amount, this.limits.maxOutputBytes, "output bytes");
+  }
+  emitted(amount: number, diagnostic: boolean): void {
+    if (diagnostic) {
+      this.diagnostics += amount;
+      this.check(this.diagnostics, this.limits.maxDiagnosticBytes, "diagnostic bytes");
+    } else {
+      this.output += amount;
+      this.check(this.output, this.limits.maxOutputBytes, "output bytes");
+    }
+    if (!diagnostic) this.charge(amount);
+  }
+  arguments(): string[] {
+    this.check(this.context.args.length, this.limits.maxArguments, "argument count");
+    let total = 0;
+    for (const argument of this.context.args) {
+      total += argument.length;
+      this.check(total, this.limits.maxArgumentBytes, "argument bytes");
+      for (let offset = 0; offset < argument.length; offset++) {
+        const unit = argument.charCodeAt(offset);
+        if (unit >= 0xd800 && unit <= 0xdbff) {
+          const next = argument.charCodeAt(++offset);
+          if (!(next >= 0xdc00 && next <= 0xdfff)) throw new PrError("arguments must contain well-formed Unicode");
+        } else if (unit >= 0xdc00 && unit <= 0xdfff) throw new PrError("arguments must contain well-formed Unicode");
+      }
+    }
+    total = 0;
+    return getCommandArguments(this.context).values.map(argument => {
+      total += shellValueByteLength(argument);
+      this.check(total, this.limits.maxArgumentBytes, "argument bytes");
+      const value = shellValueBytes(argument);
+      this.charge(value.length);
+      if (value.includes(0)) throw new PrError("NUL is not supported in arguments");
+      return raw(value);
+    });
+  }
+}

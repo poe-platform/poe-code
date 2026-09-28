@@ -1,0 +1,82 @@
+{
+  "name": "safe-bash-search-engine",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./alias-options": {
+      "types": "./dist/alias-options.d.ts",
+      "import": "./dist/alias-options.js"
+    },
+    "./ergonomic-regex": {
+      "types": "./dist/ergonomic-regex.d.ts",
+      "import": "./dist/ergonomic-regex.js"
+    },
+    "./file-types": {
+      "types": "./dist/file-types.d.ts",
+      "import": "./dist/file-types.js"
+    },
+    "./glob": {
+      "types": "./dist/glob.d.ts",
+      "import": "./dist/glob.js"
+    },
+    "./grep-files": {
+      "types": "./dist/grep-files.d.ts",
+      "import": "./dist/grep-files.js"
+    },
+    "./grep": {
+      "types": "./dist/grep.d.ts",
+      "import": "./dist/grep.js"
+    },
+    "./index": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./matcher": {
+      "types": "./dist/matcher.d.ts",
+      "import": "./dist/matcher.js"
+    },
+    "./options": {
+      "types": "./dist/options.d.ts",
+      "import": "./dist/options.js"
+    },
+    "./output": {
+      "types": "./dist/output.d.ts",
+      "import": "./dist/output.js"
+    },
+    "./shared": {
+      "types": "./dist/shared.d.ts",
+      "import": "./dist/shared.js"
+    },
+    "./walk": {
+      "types": "./dist/walk.d.ts",
+      "import": "./dist/walk.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "safe-bash-contracts": "*",
+    "@poe-code/safe-fs": "*",
+    "safe-bash-byte-engine": "*",
+    "safe-bash-regex-engine": "*",
+    "safe-bash-command-io-engine": "*"
+  }
+}

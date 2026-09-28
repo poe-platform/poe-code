@@ -619,16 +619,23 @@ export function lintExclusions(root, boundaries, fileSystem = fs) {
   };
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const root = fileURLToPath(new URL("../", import.meta.url));
-  const boundaries = loadBoundaries(root);
-  const build = JSON.parse(readRegularInput(root, "tsconfig.build.json", 300000));
-  const heldCode = boundaries.heldSourceFiles.filter(path => path.endsWith(".ts"));
-  assert.deepEqual(build.exclude.filter(path => path.startsWith("src/commands/xan/")), heldCode);
-  const heldDirectory = "src/commands/xan";
-  const paths = fs.readdirSync(join(root, heldDirectory), { withFileTypes: true }).flatMap(entry => {
-    assert.ok(!entry.isDirectory() || boundaries.heldEvidenceDirectories.includes(`${heldDirectory}/${entry.name}`), `unclassified held source directory: ${entry.name}`);
-    return [".ts", ".tsx", ".mts", ".cts", ".js", ".mjs", ".cjs"].some(extension => entry.name.endsWith(extension)) ? [`${heldDirectory}/${entry.name}`] : [];
+export function verifyHeldSourceInventory(root, boundaries, build, fileSystem = fs) {
+ const heldCode = boundaries.heldSourceFiles.filter(path => path.endsWith(".ts"));
+ const directories = [...new Set(heldCode.map(path => path.slice(0, path.lastIndexOf("/"))))];
+ for (const directory of directories) {
+  const expected = heldCode.filter(path => path.startsWith(directory + "/"));
+  assert.deepEqual(build.exclude.filter(path => path.startsWith(directory + "/")), expected);
+  const paths = fileSystem.readdirSync(join(root, directory), { withFileTypes: true }).flatMap(entry => {
+   assert.ok(!entry.isDirectory() || boundaries.heldEvidenceDirectories.includes(directory + "/" + entry.name), `unclassified held source directory: ${entry.name}`);
+   return [".ts", ".tsx", ".mts", ".cts", ".js", ".mjs", ".cjs"].some(extension => entry.name.endsWith(extension)) ? [directory + "/" + entry.name] : [];
   });
-  assert.deepEqual(paths.sort(), [...heldCode].sort(), "held source inventory changed; classify paths before reading contents");
+  assert.deepEqual(paths.sort(), [...expected].sort(), "held source inventory changed; classify paths before reading contents");
+ }
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+ const root = fileURLToPath(new URL("../", import.meta.url));
+ const boundaries = loadBoundaries(root);
+ const build = JSON.parse(readRegularInput(root, "tsconfig.build.json", 300000));
+ verifyHeldSourceInventory(root, boundaries, build);
 }

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createWhichCommand, type WhichLimits } from "../../../src/commands/which/index.js";
-import { settings } from "../../../src/commands/which/options.js";
+import { settings } from "safe-bash-command-which/options";
 import { FsError } from "../../../src/contracts/index.js";
 import { controlled, context, run } from "./helpers.js";
 

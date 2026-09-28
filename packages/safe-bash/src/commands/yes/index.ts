@@ -1,1 +1,1 @@
-export * from "../../yes.js";
+export * from "safe-bash-command-yes";

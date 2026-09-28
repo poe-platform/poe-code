@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { matchExprSteps } from "../../../src/commands/expr/bre-engine.js";
+import { matchExprSteps } from "safe-bash-command-expr/bre-engine";
 import { matchExpr } from "../../../src/commands/expr/bre-worker.js";
 import { exprMatchCeilings, type ExprMatchDescriptor, type ExprMatchResult } from "../../../src/commands/regex-execution/protocol.js";
 

@@ -3,7 +3,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 import { createContext, runInContext } from "node:vm";
-import { parseDuration } from "../../src/commands/timeout/duration.js";
+import { parseDuration } from "safe-bash-command-timeout/duration";
 import { Shell, CommandRegistry, agentCommands, createAgentCommands, createMemoryFileSystem } from "../../src/index.js";
 
 for (const option of ["-v", "--verbose"]) {

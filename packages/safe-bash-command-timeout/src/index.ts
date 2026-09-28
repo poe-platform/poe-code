@@ -1,0 +1,388 @@
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "safe-bash-command-io-engine/internal";
+import { FsError, getCommandArguments, writeBytes, type CommandContext, type CommandDefinition, type CommandInvoker, type VirtualShellPlugin } from "safe-bash-contracts";
+import { shellValueByteLength } from "safe-bash-contracts/value";
+import { parseDuration } from "./duration.js";
+import { parseSignal } from "./signal.js";
+import { createDeadline, defaultSchedulerBinding, type SchedulerBinding } from "./scheduler.js";
+
+export interface TimeoutScheduler {
+  now(): number;
+  setTimeout(callback: () => void, milliseconds: number): unknown;
+  clearTimeout(handle: unknown): void;
+}
+
+export interface TimeoutLimits {
+  readonly maxArguments: number;
+  readonly maxArgumentBytes: number;
+  /** Bytes emitted by timeout itself; child output uses the child's budgets. */
+  readonly maxOutputBytes: number;
+}
+
+export interface TimeoutCommandOptions {
+  readonly limits?: Partial<TimeoutLimits> | undefined;
+  /** Trusted host binding responsible for signalling, hard escalation and child cleanup. */
+  readonly killAfterPolicy?: KillAfterPolicy | undefined;
+  readonly invoke?: CommandInvoker | undefined;
+  readonly scheduler?: TimeoutScheduler | undefined;
+  readonly maxTimerMilliseconds?: number | undefined;
+}
+
+export type KillAfterPolicy = (
+  context: CommandContext,
+  command: string,
+  args: readonly string[],
+  options: NonNullable<Parameters<CommandInvoker>[2]>,
+  policy: Readonly<{ durationMilliseconds: number; killAfterMilliseconds: number; signalNumber: number; preserveStatus: boolean; foreground?: true; verbose?: true }>,
+) => Promise<{ readonly exitCode: number }>;
+
+export interface TimeoutCommandsOptions extends TimeoutCommandOptions {
+  readonly replace?: boolean | undefined;
+}
+
+interface Settings {
+  readonly defaultExecutor: boolean;
+  readonly limits: TimeoutLimits;
+  readonly killAfterPolicy: KillAfterPolicy | undefined;
+  readonly invoke: CommandInvoker | undefined;
+  readonly scheduler: SchedulerBinding;
+  readonly maxTimerMilliseconds: number;
+  readonly replace: boolean;
+}
+
+const encoder = new TextEncoder();
+const records = Object.freeze({
+  missingDuration: encoder.encode("timeout: missing duration\n"),
+  invalidDuration: encoder.encode("timeout: invalid duration\n"),
+  durationOverflow: encoder.encode("timeout: duration exceeds supported range\n"),
+  missingCommand: encoder.encode("timeout: missing command\n"),
+  invalidOption: encoder.encode("timeout: invalid option\n"),
+  invalidSignal: encoder.encode("timeout: invalid signal\n"),
+  invokeUnavailable: encoder.encode("timeout: command invocation is unavailable\n"),
+  escalationUnavailable: encoder.encode("timeout: hard escalation is unavailable on this host\n"),
+  timerSetupFailed: encoder.encode("timeout: timer setup failed\n"),
+  help: encoder.encode("Usage: timeout [OPTION] DURATION COMMAND [ARG]...\nRun a virtual-bash command with a cooperative time limit.\n"),
+  version: encoder.encode("timeout (virtual-bash cooperative profile)\n"),
+});
+
+function optionsObject(value: unknown): Record<PropertyKey, unknown> | undefined {
+  if (value === undefined) return undefined;
+  if (value === null || typeof value !== "object" || Array.isArray(value)) throw new TypeError("Timeout options must be an object");
+  return value as Record<PropertyKey, unknown>;
+}
+
+function settings(value: unknown, includeReplace: boolean): Settings {
+  const options = optionsObject(value);
+  const configuredLimits = optionsObject(options?.limits);
+  const limits: TimeoutLimits = {
+    maxArguments: Infinity, maxArgumentBytes: Infinity, maxOutputBytes: Infinity, ...configuredLimits,
+  };
+  for (const [name, limit] of Object.entries(limits)) {
+    if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 1)) throw new RangeError(`Invalid timeout limit: ${name}`);
+  }
+  const killAfterPolicy = options?.killAfterPolicy;
+  if (killAfterPolicy !== undefined && typeof killAfterPolicy !== "function") throw new TypeError("Timeout killAfterPolicy must be a function");
+  const invokeValue = options?.invoke;
+  if (invokeValue !== undefined && typeof invokeValue !== "function") throw new TypeError("Timeout invoke must be a function");
+  const invoke = invokeValue as CommandInvoker | undefined;
+  const scheduler = options?.scheduler;
+  let binding = defaultSchedulerBinding;
+  if (scheduler !== undefined) {
+    if (scheduler === null || typeof scheduler !== "object" || Array.isArray(scheduler)) throw new TypeError("Timeout scheduler must be an object");
+    const provider = scheduler as Record<PropertyKey, unknown>;
+    const now = provider.now;
+    const setTimeout = provider.setTimeout;
+    const clearTimeout = provider.clearTimeout;
+    if (typeof now !== "function" || typeof setTimeout !== "function" || typeof clearTimeout !== "function") {
+      throw new TypeError("Timeout scheduler methods must be functions");
+    }
+    binding = {
+      receiver: scheduler,
+      now: now as TimeoutScheduler["now"],
+      setTimeout: setTimeout as TimeoutScheduler["setTimeout"],
+      clearTimeout: clearTimeout as TimeoutScheduler["clearTimeout"],
+    };
+  }
+  const maximum = options?.maxTimerMilliseconds;
+  if (maximum !== undefined && typeof maximum !== "number") throw new TypeError("Timeout maxTimerMilliseconds must be a number");
+  if (maximum !== undefined && maximum !== Infinity && (!Number.isInteger(maximum) || maximum < 1 || maximum > 2147483647)) {
+    throw new RangeError("Timeout maxTimerMilliseconds must be an integer from 1 through 2147483647 or Infinity");
+  }
+  let replace = false;
+  if (includeReplace) {
+    const configured = options?.replace;
+    if (configured !== undefined && typeof configured !== "boolean") throw new TypeError("Timeout replace must be a boolean");
+    replace = configured ?? false;
+  }
+  const defaultExecutor = configuredLimits === undefined && killAfterPolicy === undefined && invoke === undefined && scheduler === undefined && maximum === undefined;
+  return { defaultExecutor, limits, invoke, killAfterPolicy: killAfterPolicy as KillAfterPolicy | undefined, scheduler: binding, maxTimerMilliseconds: maximum ?? 2147483647, replace };
+}
+
+async function status(configuration: Settings, context: CommandContext, bytes: Uint8Array, exitCode: number, stdout = false): Promise<{ exitCode: number }> {
+  if (bytes.length > configuration.limits.maxOutputBytes) throw new FsError("EFBIG", { message: "timeout output limit exceeded" });
+  await writeBytes(stdout ? context.stdout : context.stderr, bytes, context.signal);
+  return { exitCode };
+}
+
+function childInvoker(context: CommandContext, fallback: CommandInvoker | undefined): { readonly invoke: CommandInvoker; readonly receiver: unknown } | undefined {
+  if ("invoke" in context) {
+    const invoke = context.invoke;
+    return typeof invoke === "function" ? { invoke, receiver: context } : undefined;
+  }
+  return fallback === undefined ? undefined : { invoke: fallback, receiver: undefined };
+}
+
+function definition(configuration: Settings): CommandDefinition {
+  return Object.freeze({
+    name: "timeout",
+    description: "Run a virtual command with a cooperative time limit",
+    async execute(context: CommandContext) {
+      context.signal.throwIfAborted();
+      const originalArgs = context.args;
+      if (originalArgs.length > configuration.limits.maxArguments) throw new FsError("EFBIG", { message: "timeout argument count limit exceeded" });
+      const suppliedValues = "argumentValues" in context ? context.argumentValues : undefined;
+      const ownedArguments = suppliedValues === undefined ? undefined : getCommandArguments(context);
+      let argumentBytes = 0;
+      for (const argument of ownedArguments?.values ?? originalArgs) {
+        argumentBytes += shellValueByteLength(argument);
+        if (argumentBytes > configuration.limits.maxArgumentBytes) throw new FsError("EFBIG", { message: "timeout argument limit exceeded" });
+      }
+      let offset = 0;
+      let preserveStatus = false;
+      let verbose = false;
+      let foreground = false;
+      let signalNumber = 15;
+      let killAfterMilliseconds: number | undefined;
+      while (offset < originalArgs.length) {
+        const token = originalArgs[offset]!;
+        if (token === "--") {
+          offset++;
+          break;
+        }
+        if (token === "--help") return status(configuration, context, records.help, 0, true);
+        if (token === "--version") return status(configuration, context, records.version, 0, true);
+        if (token === "-" || !token.startsWith("-")) break;
+        if (token === "--verbose") { verbose = true; offset++; continue; }
+        if (token === "--foreground") { foreground = true; offset++; continue; }
+        if (token === "--preserve-status") { preserveStatus = true; offset++; continue; }
+        if (token === "--kill-after" || token.startsWith("--kill-after=")) {
+          const duration = token === "--kill-after" ? originalArgs[++offset] : token.slice(13);
+          if (duration === undefined) return status(configuration, context, records.missingDuration, 125);
+          const killAfter = parseDuration(duration);
+          if (killAfter.kind === "invalid") return status(configuration, context, records.invalidDuration, 125);
+          if (killAfter.kind === "overflow") return status(configuration, context, records.durationOverflow, 125);
+          killAfterMilliseconds = killAfter.milliseconds;
+          offset++;
+          continue;
+        }
+        if (token === "--signal" || token.startsWith("--signal=")) {
+          const signalToken = token === "--signal" ? originalArgs[++offset] : token.slice(9);
+          if (signalToken === undefined) return status(configuration, context, records.invalidSignal, 125);
+          const parsedSignal = parseSignal(signalToken);
+          if (parsedSignal === undefined) return status(configuration, context, records.invalidSignal, 125);
+          signalNumber = parsedSignal;
+          offset++;
+          continue;
+        }
+        if (!token.startsWith("--")) {
+          let position = 1;
+          while (position < token.length) {
+            const flag = token[position]!;
+            if (flag === "v") { verbose = true; position++; continue; }
+            if (flag === "f") { foreground = true; position++; continue; }
+            if (flag === "p") { preserveStatus = true; position++; continue; }
+            if (flag === "k") {
+              const duration = token.slice(position + 1) || originalArgs[++offset];
+              if (duration === undefined) return status(configuration, context, records.missingDuration, 125);
+              const killAfter = parseDuration(duration);
+              if (killAfter.kind === "invalid") return status(configuration, context, records.invalidDuration, 125);
+              if (killAfter.kind === "overflow") return status(configuration, context, records.durationOverflow, 125);
+              killAfterMilliseconds = killAfter.milliseconds;
+              break;
+            }
+            if (flag === "s") {
+              const signalToken = token.slice(position + 1) || originalArgs[++offset];
+              if (signalToken === undefined) return status(configuration, context, records.invalidSignal, 125);
+              const parsedSignal = parseSignal(signalToken);
+              if (parsedSignal === undefined) return status(configuration, context, records.invalidSignal, 125);
+              signalNumber = parsedSignal;
+              break;
+            }
+            return status(configuration, context, records.invalidOption, 125);
+          }
+          offset++;
+          continue;
+        }
+        return status(configuration, context, records.invalidOption, 125);
+      }
+      const durationToken = originalArgs[offset];
+      if (durationToken === undefined) return status(configuration, context, records.missingDuration, 125);
+      const parsed = parseDuration(durationToken);
+      if (parsed.kind === "invalid") return status(configuration, context, records.invalidDuration, 125);
+      if (parsed.kind === "overflow") return status(configuration, context, records.durationOverflow, 125);
+      const command = originalArgs[offset + 1];
+      if (command === undefined) return status(configuration, context, records.missingCommand, 125);
+      const argumentValues = ownedArguments?.slice(offset + 2);
+      const args = argumentValues?.args ?? Object.freeze(originalArgs.slice(offset + 2));
+      const streams = {
+        ...(argumentValues === undefined ? {} : { argumentValues }),
+        stdin: context.stdin,
+        ...(context.stdinIsDefault === undefined ? {} : { stdinIsDefault: context.stdinIsDefault }),
+        stdout: context.stdout,
+        stderr: context.stderr,
+      };
+      const killAfterPolicy = configuration.killAfterPolicy ?? context.capabilities?.timeoutKillAfterPolicy as KillAfterPolicy | undefined;
+      if (killAfterMilliseconds !== undefined && killAfterMilliseconds !== 0 && parsed.milliseconds !== 0 && parsed.milliseconds !== Infinity) {
+        context.signal.throwIfAborted();
+        if (typeof killAfterPolicy !== "function") return status(configuration, context, records.escalationUnavailable, 125);
+        let result: { readonly exitCode: number };
+        try {
+          result = await killAfterPolicy(context, command, args, { signal: context.signal, ...streams }, Object.freeze({
+            durationMilliseconds: parsed.milliseconds, killAfterMilliseconds, signalNumber, preserveStatus,
+            ...(foreground ? { foreground: true as const } : {}),
+            ...(verbose ? { verbose: true as const } : {}),
+          }));
+        } catch (error) {
+          context.signal.throwIfAborted();
+          throw error;
+        }
+        context.signal.throwIfAborted();
+        return result;
+      }
+      const selected = childInvoker(context, configuration.invoke);
+      if (parsed.milliseconds === 0 || parsed.milliseconds === Infinity) {
+        if (selected === undefined) return status(configuration, context, records.invokeUnavailable, 125);
+        context.signal.throwIfAborted();
+        let result: { readonly exitCode: number };
+        try {
+          result = await Reflect.apply(selected.invoke, selected.receiver, [command, args, { signal: context.signal, ...streams }]);
+        } catch (error) {
+          context.signal.throwIfAborted();
+          throw error;
+        }
+        context.signal.throwIfAborted();
+        return result;
+      }
+
+      if (selected === undefined) return status(configuration, context, records.invokeUnavailable, 125);
+
+      context.signal.throwIfAborted();
+      const deadline = createDeadline(configuration.scheduler, parsed.milliseconds, configuration.maxTimerMilliseconds, signalNumber !== 0);
+      context.registerCleanup?.(deadline.retire);
+      try { deadline.start(); }
+      catch {
+        let retirementFailed = false;
+        let retirementFailure: unknown;
+        try { await deadline.retire(); }
+        catch (error) {
+          retirementFailed = true;
+          retirementFailure = error;
+        }
+        context.signal.throwIfAborted();
+        if (retirementFailed) throw retirementFailure;
+        return status(configuration, context, records.timerSetupFailed, 125);
+      }
+
+      let returned = false;
+      let result: { readonly exitCode: number } | undefined;
+      let invocationFailure: unknown;
+      try {
+        result = await Reflect.apply(selected.invoke, selected.receiver, [command, args, { signal: AbortSignal.any([context.signal, deadline.signal]), ...streams }]);
+        returned = true;
+      } catch (error) {
+        invocationFailure = error;
+      }
+      let retirementFailed = false;
+      let retirementFailure: unknown;
+      try { await deadline.retire(); }
+      catch (error) {
+        retirementFailed = true;
+        retirementFailure = error;
+      }
+      context.signal.throwIfAborted();
+      if (!returned && invocationFailure !== deadline.deadlineReason && invocationFailure !== deadline.timerFailureReason) throw invocationFailure;
+      if (retirementFailed) throw retirementFailure;
+      if (verbose && deadline.expired) {
+        await status(configuration, context, encoder.encode(`timeout: cooperative deadline expired for command ‘${command}’\n`), 0);
+      }
+      if (!returned && invocationFailure === deadline.deadlineReason) return { exitCode: signalNumber === 9 || preserveStatus ? 128 + signalNumber : 124 };
+      if (deadline.signal.aborted && deadline.signal.reason === deadline.timerFailureReason) return status(configuration, context, records.timerSetupFailed, 125);
+      if (deadline.expired && (!preserveStatus || signalNumber === 9)) return { exitCode: signalNumber === 9 ? 137 : 124 };
+      return result!;
+    },
+  });
+}
+
+export function createTimeoutCommand(options?: TimeoutCommandOptions): CommandDefinition {
+  const configuration = settings(options, false);
+  const def = definition(configuration);
+  if (configuration.defaultExecutor) builtInDirectContextExecutors.add(def.execute);
+  return def;
+}
+
+export function createTimeoutCommands(options?: TimeoutCommandsOptions): readonly CommandDefinition[] {
+  const configuration = settings(options, true);
+  const def = definition(configuration);
+  if (configuration.defaultExecutor) builtInDirectContextExecutors.add(def.execute);
+  return Object.freeze([def]);
+}
+
+export function evalSyncTimeout(args: readonly string[]): string | undefined {
+  if (args.length === 1) {
+    if (args[0] === "--version") return "timeout (virtual-bash cooperative profile)\n";
+    if (args[0] === "--help") return "Usage: timeout [OPTION] DURATION COMMAND [ARG]...\nRun a virtual-bash command with a cooperative time limit.\n";
+  }
+  let i = 0;
+  while (i < args.length) {
+    const a = args[i]!;
+    if (a === "--") { i++; break; }
+    if (a === "--preserve-status" || a === "--foreground" || a === "-v" || a === "--verbose") { i++; continue; }
+    if (a === "-s" || a === "--signal" || a === "-k" || a === "--kill-after") {
+      return undefined;
+    }
+    if (a.startsWith("--signal=") || a.startsWith("--kill-after=") || (a.startsWith("-s") && a.length > 2) || (a.startsWith("-k") && a.length > 2)) {
+      return undefined;
+    }
+    if (a.startsWith("-")) return undefined;
+    break;
+  }
+  if (i >= args.length) return undefined;
+  const durStr = args[i]!;
+  const parsed = parseDuration(durStr);
+  if (parsed.kind !== "value" || parsed.milliseconds <= 0) return undefined;
+  i++;
+  if (i >= args.length) return undefined;
+  const subCmd = args[i]!;
+  const subArgs = args.slice(i + 1);
+  if (subCmd === "echo") {
+    let noNewline = false;
+    let start = 0;
+    if (subArgs[0] === "-n") {
+      if (subArgs[1]?.startsWith("-")) return undefined;
+      noNewline = true; start = 1;
+    }
+    else if (subArgs[0]?.startsWith("-")) return undefined;
+    return subArgs.slice(start).join(" ") + (noNewline ? "" : "\n");
+  }
+  if (subCmd === "true") return "";
+  if (subCmd === "printf" && subArgs.length >= 1 && (subArgs[0] === "%s" || subArgs[0] === "%s\n")) {
+    const sep = subArgs[0] === "%s\n" ? "\n" : "";
+    return subArgs.slice(1).map(x => x + sep).join("");
+  }
+  return undefined;
+}
+
+export function timeoutCommands(options?: TimeoutCommandsOptions): VirtualShellPlugin {
+  const configuration = settings(options, true);
+  const commands = Object.freeze([definition(configuration)]);
+  return {
+    name: "timeout-commands",
+    setup(host) {
+      if (!configuration.replace) for (const command of commands) {
+        if (host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`);
+      }
+      for (const command of commands) host.commands.register(command, { replace: configuration.replace });
+    },
+  };
+}
+
+syncCommandEvaluators.evalSyncTimeout = evalSyncTimeout;

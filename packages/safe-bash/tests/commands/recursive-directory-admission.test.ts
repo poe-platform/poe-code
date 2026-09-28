@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createTreeCommand } from "../../src/commands/tree/tree.js";
-import { createDuCommand } from "../../src/commands/du/du.js";
+import { createTreeCommand } from "safe-bash-command-tree/tree";
+import { createDuCommand } from "safe-bash-command-du/du";
 import { createSearchCommands } from "../../src/commands/search/index.js";
 import { createChmodCommand } from "../../src/commands/metadata/chmod.js";
 import { createDiffPatchCommands } from "../../src/commands/diff-patch/index.js";

@@ -1,39 +1,10 @@
 import { registerDefaultExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
-import { grepCommands } from "../grep.js";
-import type { RegexExecutionOptions } from "../regex-execution/protocol.js";
-import type { BoundedRegexProvider } from "../regex-execution/provider.js";
-
-export interface GrepAliasOptions {
-  readonly regex?: RegexExecutionOptions;
-  readonly regexExecutor?: BoundedRegexProvider;
-  readonly replace?: boolean;
-}
-
-import { alias, createGrepAliases } from "./aliases.js";
-
-export function createGrepAliasCommands(options: GrepAliasOptions = {}): readonly CommandDefinition[] {
-  const grep = grepCommands({ ...options.regex, ...(options.regexExecutor === undefined ? {} : { regexExecutor: options.regexExecutor }) })[0]!;
-  return registerDefaultExecutors(createGrepAliases(grep), options);
-}
-
-export function egrepCommand(options: GrepAliasOptions = {}): CommandDefinition {
-  return alias("egrep", grepCommands({ ...options.regex, ...(options.regexExecutor === undefined ? {} : { regexExecutor: options.regexExecutor }) })[0]!);
-}
-
-export function fgrepCommand(options: GrepAliasOptions = {}): CommandDefinition {
-  return alias("fgrep", grepCommands({ ...options.regex, ...(options.regexExecutor === undefined ? {} : { regexExecutor: options.regexExecutor }) })[0]!);
-}
-
-export function grepAliasCommands(options: GrepAliasOptions = {}): VirtualShellPlugin {
-  return {
-    name: "grep-alias-commands",
-    setup(host) {
-      const definitions = createGrepAliasCommands(options);
-      if (!options.replace) for (const definition of definitions) {
-        if (host.commands.has(definition.name)) throw new Error(`Command already registered: ${definition.name}`);
-      }
-      for (const definition of definitions) host.commands.register(definition, { replace: options.replace ?? false });
-    },
-  };
-}
+import { createEgrepCommand } from "../egrep/index.js";
+import { createFgrepCommand } from "../fgrep/index.js";
+import type { GrepAliasOptions } from "safe-bash-search-engine/alias-options";
+export type { GrepAliasOptions } from "safe-bash-search-engine/alias-options";
+export { createEgrepCommand as egrepCommand } from "../egrep/index.js";
+export { createFgrepCommand as fgrepCommand } from "../fgrep/index.js";
+export function createGrepAliasCommands(options: GrepAliasOptions = {}): readonly CommandDefinition[] { return [createEgrepCommand(options), createFgrepCommand(options)]; }
+export function grepAliasCommands(options: GrepAliasOptions = {}): VirtualShellPlugin { const commands = createGrepAliasCommands(options); return {name: "grep-alias-commands", setup(host) { if (!options.replace) for (const command of commands) if (host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`); for(const command of commands) host.commands.register(command,{replace:options.replace??false}); } }; }

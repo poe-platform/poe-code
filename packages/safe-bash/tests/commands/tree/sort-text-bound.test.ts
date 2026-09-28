@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { FsError } from "../../../src/contracts/index.js";
-import { WalkBudget } from "../../../src/commands/tree/io.js";
-import { settings, type TreeLimits } from "../../../src/commands/tree/options.js";
+import { WalkBudget } from "safe-bash-command-tree/io";
+import { settings, type TreeLimits } from "safe-bash-command-tree/options";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { createMountFileSystem } from "../../../src/fs/mount/index.js";
 import { run, shellRun, wrapped } from "./helpers.js";

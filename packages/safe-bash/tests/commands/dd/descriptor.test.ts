@@ -4,7 +4,7 @@ import { createMemoryFileSystem, FsError, type FileSystem } from "poe-code/safe-
 import { createCommandArguments, commandRuntimeIdentity } from "../../../src/contracts/command.js";
 import { shellValueFromBytes } from "../../../src/contracts/value.js";
 import { createDdCommand, ddCommands } from "../../../src/commands/dd/index.js";
-import { openDdFile, type DdFileHandle } from "../../../src/commands/dd/io.js";
+import { openDdFile, type DdFileHandle } from "safe-bash-command-dd/io";
 import { Shell, ShellLimitError } from "../../../src/shell/index.js";
 import { bytes, run } from "./helpers.js";
 

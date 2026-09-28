@@ -3,7 +3,7 @@ import test from "node:test";
 import type { TextEncoder as NodeTextEncoder } from "node:util";
 import { FsError, toByteSource, type CommandContext } from "../../../src/contracts/index.js";
 import { fileCommands, type FileLimits } from "../../../src/commands/file/index.js";
-import { SharedBudget } from "../../../src/commands/file/shared.js";
+import { SharedBudget } from "safe-bash-command-file/shared";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/shell.js";
 import { proxyFs, run } from "./helpers.js";

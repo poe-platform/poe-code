@@ -4,7 +4,7 @@ import test from "node:test";
 import { Shell } from "../../../src/shell/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { createHtmlToMarkdownCommand, createHtmlToMarkdownCommands, htmlToMarkdownCommands } from "../../../src/commands/html-to-markdown/index.js";
-import { Inputs } from "../../../src/commands/html-to-markdown/input.js";
+import { Inputs } from "safe-bash-command-html-to-markdown/input";
 import { standardCommands } from "../../../src/commands/index.js";
 import { networkCommands } from "../../../src/commands/network/index.js";
 import { FsError, type ByteSource, type CommandContext } from "../../../src/contracts/index.js";

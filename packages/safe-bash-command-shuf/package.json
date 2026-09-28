@@ -10,6 +10,46 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./args": {
+      "types": "./dist/args.d.ts",
+      "import": "./dist/args.js"
+    },
+    "./creation-mask": {
+      "types": "./dist/creation-mask.d.ts",
+      "import": "./dist/creation-mask.js"
+    },
+    "./filesystem-descriptor": {
+      "types": "./dist/filesystem-descriptor.d.ts",
+      "import": "./dist/filesystem-descriptor.js"
+    },
+    "./filesystem-output": {
+      "types": "./dist/filesystem-output.d.ts",
+      "import": "./dist/filesystem-output.js"
+    },
+    "./index": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./input": {
+      "types": "./dist/input.d.ts",
+      "import": "./dist/input.js"
+    },
+    "./options": {
+      "types": "./dist/options.d.ts",
+      "import": "./dist/options.js"
+    },
+    "./random": {
+      "types": "./dist/random.d.ts",
+      "import": "./dist/random.js"
+    },
+    "./shuf": {
+      "types": "./dist/shuf.d.ts",
+      "import": "./dist/shuf.js"
+    },
+    "./usage": {
+      "types": "./dist/usage.d.ts",
+      "import": "./dist/usage.js"
     }
   },
   "files": [

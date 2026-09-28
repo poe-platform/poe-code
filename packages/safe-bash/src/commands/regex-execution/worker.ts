@@ -1,7 +1,7 @@
 import { PublicDiagnostic } from "../../public-diagnostic.js";
 import { parentPort } from "node:worker_threads";
 import { compile } from "./matching.js";
-import { matchExpr, searchBre } from "../expr/bre-worker.js";
+import { matchExpr, searchBre } from "./bre-worker.js";
 import { ExprMatchError, matchRangeLimits, validateExprRequest, validateBreSearchRequest, type BreSearchRequest, type BreSearchReply, type ExprMatchRequest, type ExprMatchReply, type Request, type Reply } from "./protocol.js";
 
 if (!parentPort) throw new Error("regex worker requires a parent port");

@@ -1,0 +1,244 @@
+import { latin1Text } from "safe-bash-byte-engine";
+import { bytesFrom, concatBytes, filledBytes, equalBytes } from "safe-bash-byte-engine";
+import { getCommandArguments, type CommandDefinition } from "safe-bash-contracts";
+import { integer, options, UsageError, value } from "safe-bash-command-io-engine/internal";
+import { Pattern } from "safe-bash-regex-engine/text/regex";
+import { Budget } from "safe-bash-command-io-engine/commands/text-programs/shared";
+import { command, forEachRecord, type Session, type StreamFormatLimits } from "safe-bash-text-stream-engine/stream-format/shared";
+
+type Style = "a" | "t" | "n" | Pattern;
+
+class PatternBudget extends Budget {
+  constructor(readonly session: Session) {
+    super({ ...session.context, signal: session.signal }, { maxSteps: session.limits.maxSteps, maxBufferBytes: session.limits.maxRecordBytes });
+  }
+  override step(count = 1): void { this.session.charge(count); }
+}
+
+function style(text: string): Style {
+  if (text === "a" || text === "t" || text === "n") return text;
+  if (text.startsWith("p")) return new Pattern(latin1Text(bytesFrom(text.slice(1))), false);
+  throw new UsageError(`invalid numbering style: '${text}'`);
+}
+
+function signed(text: string): bigint {
+  if (!/^[+-]?\d+$/u.test(text.trim())) throw new UsageError(`invalid line number: '${text}'`);
+  const number = BigInt(text);
+  if (number < -(1n << 63n) || number >= 1n << 63n) throw new UsageError(`line number out of range: '${text}'`);
+  return number;
+}
+
+export function createNlWithSettings(limits: StreamFormatLimits): CommandDefinition {
+  return command("nl", limits, async session => {
+    const arguments_ = getCommandArguments(session.context);
+    let separator = bytesFrom("\t");
+    const parsed = options(session.context.args, "h:b:f:v:i:pl:s:w:n:d:", {
+      "header-numbering": "h", "body-numbering": "b", "footer-numbering": "f",
+      "starting-line-number": "v", "line-increment": "i", "no-renumber": "p",
+      "join-blank-lines": "l", "number-separator": "s", "number-width": "w",
+      "number-format": "n", "section-delimiter": "d",
+    }, false, undefined, (key, index, offset) => {
+      if (key === "s") separator = bytesFrom(arguments_.bytes(index)!.subarray(offset));
+    });
+    const header = style(value(parsed, "h") ?? "n"), body = style(value(parsed, "b") ?? "t"), footer = style(value(parsed, "f") ?? "n");
+    const start = signed(value(parsed, "v") ?? "1"), increment = signed(value(parsed, "i") ?? "1");
+    const join = Math.max(1, integer(value(parsed, "l") ?? "1")), width = integer(value(parsed, "w") ?? "6", 1);
+    const format = value(parsed, "n") ?? "rn";
+    if (!["ln", "rn", "rz"].includes(format)) throw new UsageError(`invalid line numbering format: '${format}'`);
+    session.check(width + separator.length, limits.maxRecordBytes, "number field");
+    session.admitOutput(width + separator.length);
+    const defaultDelimiter = bytesFrom("\\:");
+    let delimiter: Uint8Array = defaultDelimiter;
+    for (const argument of parsed.values.get("d") ?? []) {
+      const next = bytesFrom(argument);
+      if (next.length === 1 || next.length === 2) {
+        defaultDelimiter.set(next, 0);
+        delimiter = defaultDelimiter;
+      } else {
+        delimiter = next;
+      }
+    }
+    const delimiters = [1, 2, 3].map(count => concatBytes(Array.from({ length: count }, () => delimiter)));
+    const dLen = delimiter.length;
+    const d0 = dLen > 0 ? delimiter[0]! : -1;
+    const budget = new PatternBudget(session);
+    async function padding(size: number, byte = 32): Promise<void> {
+      while (size > 0) {
+        const count = Math.min(size, 16384, limits.maxChunkBytes);
+        await session.output(filledBytes(count, byte));
+        size -= count;
+      }
+    }
+    const canBatch = limits.maxOutputBytes === Infinity && limits.maxChunkBytes >= 16384;
+    const outBuf = new Uint8Array(16384);
+    let outUsed = 0;
+    let flushedFirst = false;
+    const flushOut = async (): Promise<void> => {
+      if (outUsed > 0) {
+        flushedFirst = true;
+        const chunk = outBuf.slice(0, outUsed);
+        outUsed = 0;
+        await session.output(chunk);
+      }
+    };
+    let current: Style = body, number = start, blanks = 0;
+    await session.files(session.names(parsed.operands), async source => {
+      await forEachRecord(source, session, (record): void | Promise<void> => {
+        let section = -1;
+        if (
+          dLen > 0 &&
+          record[0] === d0 &&
+          (record.length === dLen || record.length === dLen * 2 || record.length === dLen * 3)
+        ) {
+          const bytes = bytesFrom(record.buffer, record.byteOffset, record.byteLength);
+          section = delimiters.findIndex(candidate => equalBytes(candidate, bytes));
+        }
+        if (section >= 0) {
+          current = section === 0 ? footer : section === 1 ? body : header;
+          if (!parsed.flags.has("p")) number = start;
+          if (canBatch) {
+            if (outUsed + 1 <= outBuf.length && flushedFirst && outUsed + 1 < 8192) {
+              outBuf[outUsed++] = 10;
+              return;
+            }
+            return (async () => {
+              if (outUsed + 1 > outBuf.length) await flushOut();
+              outBuf[outUsed++] = 10;
+              if (!flushedFirst || outUsed >= 8192) await flushOut();
+            })();
+          } else {
+            return session.text("\n");
+          }
+        }
+        if (current !== "a" && current !== "t" && current !== "n") {
+          const patternStyle = current;
+          return (async () => {
+            const numbered = (await patternStyle.find(latin1Text(bytesFrom(record.buffer, record.byteOffset, record.byteLength)), budget)) !== undefined;
+            await emitRecord(record, numbered);
+          })();
+        }
+        let numbered: boolean;
+        if (current === "a") {
+          numbered = record.length > 0 || ++blanks === join || join === 1;
+          if (numbered) blanks = 0;
+        } else if (current === "t") numbered = record.length > 0;
+        else numbered = false;
+        if (canBatch) {
+          if (numbered) {
+            if (number < -(1n << 63n) || number >= 1n << 63n) throw new UsageError("line number overflow");
+            const label = number.toString();
+            const pad = Math.max(0, width - label.length);
+            const totalLen = label.length + pad + separator.length + record.length + 1;
+            if (totalLen <= outBuf.length && outUsed + totalLen <= outBuf.length) {
+              session.admitOutput(totalLen);
+              if (format === "ln") {
+                for (let i = 0; i < label.length; i++) outBuf[outUsed++] = label.charCodeAt(i);
+                outBuf.fill(32, outUsed, outUsed + pad);
+                outUsed += pad;
+              } else if (format === "rz" && number < 0n) {
+                outBuf[outUsed++] = 45;
+                outBuf.fill(48, outUsed, outUsed + pad);
+                outUsed += pad;
+                for (let i = 1; i < label.length; i++) outBuf[outUsed++] = label.charCodeAt(i);
+              } else {
+                outBuf.fill(format === "rz" ? 48 : 32, outUsed, outUsed + pad);
+                outUsed += pad;
+                for (let i = 0; i < label.length; i++) outBuf[outUsed++] = label.charCodeAt(i);
+              }
+              outBuf.set(separator, outUsed);
+              outUsed += separator.length;
+              outBuf.set(record, outUsed);
+              outUsed += record.length;
+              outBuf[outUsed++] = 10;
+              number += increment;
+              if (!flushedFirst || outUsed >= 8192) return flushOut();
+              return;
+            }
+          } else {
+            const padLen = width + separator.length;
+            const totalLen = padLen + record.length + 1;
+            if (totalLen <= outBuf.length && outUsed + totalLen <= outBuf.length) {
+              session.admitOutput(totalLen);
+              outBuf.fill(32, outUsed, outUsed + padLen);
+              outUsed += padLen;
+              outBuf.set(record, outUsed);
+              outUsed += record.length;
+              outBuf[outUsed++] = 10;
+              if (!flushedFirst || outUsed >= 8192) return flushOut();
+              return;
+            }
+          }
+        }
+        return emitRecord(record, numbered);
+      });
+      await flushOut();
+      async function emitRecord(record: Uint8Array, numbered: boolean): Promise<void> {
+        if (numbered) {
+          if (number < -(1n << 63n) || number >= 1n << 63n) throw new UsageError("line number overflow");
+          const label = number.toString();
+          const pad = Math.max(0, width - label.length);
+          const totalLen = label.length + pad + separator.length + record.length + 1;
+          session.admitOutput(totalLen);
+          if (canBatch && totalLen <= outBuf.length) {
+            if (outUsed + totalLen > outBuf.length) await flushOut();
+            if (format === "ln") {
+              for (let i = 0; i < label.length; i++) outBuf[outUsed++] = label.charCodeAt(i);
+              outBuf.fill(32, outUsed, outUsed + pad);
+              outUsed += pad;
+            } else if (format === "rz" && number < 0n) {
+              outBuf[outUsed++] = 45;
+              outBuf.fill(48, outUsed, outUsed + pad);
+              outUsed += pad;
+              for (let i = 1; i < label.length; i++) outBuf[outUsed++] = label.charCodeAt(i);
+            } else {
+              outBuf.fill(format === "rz" ? 48 : 32, outUsed, outUsed + pad);
+              outUsed += pad;
+              for (let i = 0; i < label.length; i++) outBuf[outUsed++] = label.charCodeAt(i);
+            }
+            outBuf.set(separator, outUsed);
+            outUsed += separator.length;
+            outBuf.set(record, outUsed);
+            outUsed += record.length;
+            outBuf[outUsed++] = 10;
+            if (!flushedFirst || outUsed >= 8192) await flushOut();
+          } else {
+            if (outUsed > 0) await flushOut();
+            if (format === "ln") {
+              await session.text(label);
+              await padding(pad);
+            } else if (format === "rz" && number < 0n) {
+              await session.text("-");
+              await padding(pad, 48);
+              await session.text(label.slice(1));
+            } else {
+              await padding(pad, format === "rz" ? 48 : 32);
+              await session.text(label);
+            }
+            await session.output(separator);
+            await session.output(new Uint8Array(record));
+            await session.text("\n");
+          }
+          number += increment;
+        } else {
+          const padLen = width + separator.length;
+          const totalLen = padLen + record.length + 1;
+          session.admitOutput(totalLen);
+          if (canBatch && totalLen <= outBuf.length) {
+            if (outUsed + totalLen > outBuf.length) await flushOut();
+            outBuf.fill(32, outUsed, outUsed + padLen);
+            outUsed += padLen;
+            outBuf.set(record, outUsed);
+            outUsed += record.length;
+            outBuf[outUsed++] = 10;
+            if (!flushedFirst || outUsed >= 8192) await flushOut();
+          } else {
+            if (outUsed > 0) await flushOut();
+            await padding(padLen);
+            await session.output(new Uint8Array(record));
+            await session.text("\n");
+          }
+        }
+      }
+    });
+  });
+}

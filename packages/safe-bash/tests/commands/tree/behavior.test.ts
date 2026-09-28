@@ -6,7 +6,7 @@ import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";
 import { standardCommands } from "../../../src/commands/index.js";
 import { run, seed, shellRun, wrapped } from "./helpers.js";
-import { compareVersions } from "../../../src/commands/tree/sort.js";
+import { compareVersions } from "safe-bash-command-tree/sort";
 
 test("standalone API, replacement preflight, snapshot options and positive integer limits", () => {
   assert.equal(createTreeCommand().name, "tree");

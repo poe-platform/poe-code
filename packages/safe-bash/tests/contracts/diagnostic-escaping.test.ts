@@ -4,8 +4,8 @@ import { createOutputOperation, FsError, toByteSource, type CommandContext } fro
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { diagnostic } from "../../src/commands/internal.js";
 import { deferred } from "../commands/column/helpers.js";
-import { diagnostics as columnDiagnostics } from "../../src/commands/column/internal.js";
-import { diagnostic as patchDiagnostic, PatchError } from "../../src/commands/apply-patch/shared.js";
+import { diagnostics as columnDiagnostics } from "safe-bash-command-column/internal";
+import { diagnostic as patchDiagnostic, PatchError } from "safe-bash-command-apply-patch/shared";
 import { escapeText } from "../../src/escaping.js";
 import { createHtmlToMarkdownCommand } from "../../src/commands/html-to-markdown/index.js";
 import { jqCommand } from "../../src/commands/structured/jq.js";

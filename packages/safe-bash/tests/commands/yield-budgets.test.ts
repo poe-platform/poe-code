@@ -4,10 +4,10 @@ import type { CommandContext } from "../../src/contracts/index.js";
 import { registerInternalYieldCheckpoint, registerYieldCheckpoint } from "../../src/contracts/yield.js";
 import { Session, settings as streamSettings } from "../../src/commands/stream-format/shared.js";
 import { Budget as TableBudget, settings as tableSettings } from "../../src/commands/table-text/internal.js";
-import { ColumnBudget } from "../../src/commands/column/internal.js";
-import { settings as columnSettings } from "../../src/commands/column/options.js";
-import { Budget as HexBudget, settings as hexSettings } from "../../src/commands/hexdump/internal.js";
-import { Budget as PrBudget, settings as prSettings } from "../../src/commands/pr/internal.js";
+import { ColumnBudget } from "safe-bash-command-column/internal";
+import { settings as columnSettings } from "safe-bash-command-column/options";
+import { Budget as HexBudget, settings as hexSettings } from "safe-bash-command-hexdump/internal";
+import { Budget as PrBudget, settings as prSettings } from "safe-bash-command-pr/internal";
 import { Budget as EndingBudget, settings as endingSettings } from "../../src/commands/line-endings/internal.js";
 import { Session as InspectionSession, settings as inspectionSettings } from "../../src/commands/stream-inspection/shared.js";
 

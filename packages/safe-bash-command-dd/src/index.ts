@@ -1,3 +1,4 @@
+import { registerDefaultExecutor } from "safe-bash-command-io-engine/internal";
 import type { CommandDefinition } from "safe-bash-contracts/command";
 import { commandRuntimeIdentity, getCommandArguments } from "safe-bash-contracts/command";
 import { shellValueByteLength } from "safe-bash-contracts/value";
@@ -459,7 +460,7 @@ export function createDdCommand(options: DdCommandsOptions = {}): CommandDefinit
 }
 
 export function createDdCommands(options: DdCommandsOptions = {}): readonly CommandDefinition[] {
-  return [createDdCommand(options)];
+  return [registerDefaultExecutor(createDdCommand(options), options)];
 }
 
 export function ddCommands(options: DdCommandsOptions = {}): VirtualShellPlugin {

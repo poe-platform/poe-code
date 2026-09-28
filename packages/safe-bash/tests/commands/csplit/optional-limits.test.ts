@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { settings, type CsplitLimits } from "../../../src/commands/csplit/internal.js";
-import { Budget } from "../../../src/commands/csplit/internal.js";
-import { parseOptions, suffixFormatter } from "../../../src/commands/csplit/options.js";
+import { settings, type CsplitLimits } from "safe-bash-command-csplit/internal";
+import { Budget } from "safe-bash-command-csplit/internal";
+import { parseOptions, suffixFormatter } from "safe-bash-command-csplit/options";
 import { createCsplitCommand } from "../../../src/commands/csplit/index.js";
 import { toByteSource } from "../../../src/contracts/index.js";
 import { createMemoryFileSystem } from "poe-code/safe-fs";

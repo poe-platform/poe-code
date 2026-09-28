@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { settings } from "../../src/commands/shuf/options.js";
+import { settings } from "safe-bash-command-shuf/options";
 
 test("accepts omitted shuf options with unlimited defaults", () => {
   assert.deepEqual(settings(), { maxInputBytes: Infinity, maxSampleSize: Infinity });

@@ -1,3 +1,6 @@
+import { createTouchCommand } from "./touch/index.js";
+import { createReadlinkCommand } from "./readlink/index.js";
+import { createRealpathCommand } from "./realpath/index.js";
 import { bindConditionalMutation, tryGetMemoryDirectoryEntryNamesSync } from "@poe-code/safe-fs/core";
 import {
   basename, dirname, FsError, isPathWithin, joinPath, normalizePath, relativePath,
@@ -615,62 +618,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       return eachOperand(context, parsed.operands, operand => createDirectory(operand, false));
       })();
     }),
-    define("touch", async context => {
-      const parsed = options(context.args, "cafhmr:d:t:", TOUCH_LONG_OPTIONS);
-      const selection = value(parsed, "time");
-      if (selection !== undefined) {
-        if (["atime", "access", "use"].includes(selection)) parsed.flags.add("a");
-        else if (["mtime", "modify"].includes(selection)) parsed.flags.add("m");
-        else throw new UsageError(`invalid argument '${selection}' for '--time'`);
-      }
-      requireOperands(parsed.operands);
-      const follow = !parsed.flags.has("h");
-      const inspectTarget = async (path: string) => {
-        const stat = await maybeStat(context, path, follow);
-        if (!follow && stat?.type === "symlink") {
-          throw new FsError("ENOTSUP", { syscall: "touch", path, message: "symlink timestamps are unavailable" });
-        }
-        return stat;
-      };
-      const reference = value(parsed, "r");
-      const date = value(parsed, "d"), timestamp = value(parsed, "t");
-      if (timestamp !== undefined && (date !== undefined || reference !== undefined)) {
-        throw new PublicDiagnostic("cannot specify times from more than one source");
-      }
-      const now = Date.now();
-      const explicit = reference !== undefined || date !== undefined || timestamp !== undefined;
-      const base = reference === undefined ? { atimeMs: now, mtimeMs: now }
-        : await context.fs[follow ? "stat" : "lstat"](pathOf(context, reference), { signal: context.signal });
-      const times = date === undefined && timestamp === undefined ? base
-        : touchTimes(date, timestamp, context.env.TZ ?? "UTC", base);
-      await preflightOperands(context, parsed.operands, async operand => {
-        const path = pathOf(context, operand);
-        const existing = await inspectTarget(path);
-        const modes = existing ? ["existing"] : parsed.flags.has("c") ? ["no-create"]
-          : explicit ? ["create", "existing"] : ["create"];
-        const target = !existing && follow && !parsed.flags.has("c") ? await touchTarget(context, path) : path;
-        await admitFilesystemModes(context, "touch", modes, [target]);
-      });
-      return eachOperand(context, parsed.operands, async operand => {
-        let path = pathOf(context, operand);
-        let existing = await inspectTarget(path);
-        if (!existing) {
-          if (parsed.flags.has("c")) return;
-          if (follow) path = await touchTarget(context, path);
-          await admitFilesystemModes(context, "touch", explicit ? ["create", "existing"] : ["create"], [path]);
-          if (explicit) needCapability(context, "utimes");
-          await context.fs.writeFile(path, new Uint8Array(), { flag: "wx", signal: context.signal });
-          if (!explicit) return;
-          existing = await context.fs.stat(path, { signal: context.signal });
-        }
-        needCapability(context, "utimes");
-        await admitFilesystemModes(context, "touch", ["existing"], [path]);
-        const accessOnly = parsed.flags.has("a") && !parsed.flags.has("m");
-        const modifyOnly = parsed.flags.has("m") && !parsed.flags.has("a");
-        await context.fs.utimes!(path, modifyOnly ? existing.atimeMs : times.atimeMs,
-          accessOnly ? existing.mtimeMs : times.mtimeMs, { signal: context.signal });
-      });
-    }),
+    createTouchCommand(),
     define("cp", async context => {
       const parsed = copyOptions(context);
       if ((parsed.values.get("t")?.length ?? 0) > 1) throw new UsageError("multiple target directories specified");
@@ -1217,133 +1165,8 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         return { exitCode: declined ? 1 : result.exitCode };
       } finally { await answers.return(undefined); }
     }),
-    define("readlink", async context => {
-      const canonicalOptions: Record<string, string> = { canonicalize: "f", "canonicalize-existing": "e", "canonicalize-missing": "m" };
-      let verboseMode = "default" as "default" | "verbose" | "quiet";
-      const parsed = options(context.args, "femnzvqs", { ...canonicalOptions, zero: "z", "no-newline": "n", verbose: "v", quiet: "q", silent: "s" }, false, undefined, undefined, key => {
-        if (key === "v") verboseMode = "verbose";
-        else if (key === "q" || key === "s") verboseMode = "quiet";
-      });
-      requireOperands(parsed.operands);
-      if (parsed.flags.has("n") && parsed.operands.length > 1 && verboseMode !== "quiet") {
-        await diagnostic(context, new PublicDiagnostic("ignoring --no-newline with multiple arguments"));
-      }
-      let mode = "link";
-      for (const argument of context.args) {
-        if (argument === "--") break;
-        const flags = argument.startsWith("--") ? canonicalOptions[argument.slice(2)] ?? ""
-          : argument.startsWith("-") ? argument.slice(1) : "";
-        for (const flag of flags) if (flag === "f" || flag === "e" || flag === "m") mode = flag;
-      }
-      const operandContext = verboseMode === "quiet"
-        ? { ...context, stderr: { async write() {} } }
-        : verboseMode === "default"
-        ? { ...context, stderr: { async write(bytes: Uint8Array) {
-            const text = new TextDecoder().decode(bytes);
-            if (!text.includes("EINVAL") && !text.includes("ENOENT")) await context.stderr.write(bytes);
-          } } }
-        : context;
-      return eachOperand(operandContext, parsed.operands, async operand => {
-        const path = pathOf(context, operand);
-        await admitFilesystemModes(context, "readlink", [mode === "link" ? "link" : "canonical"], [path]);
-        let result: string;
-        if (mode === "m") result = await canonicalizeReadlinkMissing(context, path);
-        else if (mode === "e") result = await context.fs.realpath(path, { signal: context.signal });
-        else if (mode === "f") result = await canonicalizeExistingParent(context, path);
-        else {
-          needCapability(context, "readlink");
-          result = await context.fs.readlink!(path, { signal: context.signal });
-        }
-        await output(context, result + (parsed.flags.has("n") && parsed.operands.length === 1 ? "" : parsed.flags.has("z") ? "\0" : "\n"));
-      });
-    }),
-    define("realpath", async context => {
-      const args: string[] = [];
-      const relative = new Map<string, string>();
-      let ended = false;
-      for (let index = 0; index < context.args.length; index++) {
-        const argument = context.args[index]!;
-        if (argument === "--") ended = true;
-        const key = argument.split("=", 1)[0]!;
-        if (!ended && (key === "--relative-to" || key === "--relative-base")) {
-          const equals = argument.indexOf("=");
-          const directory = equals < 0 ? context.args[++index] : argument.slice(equals + 1);
-          if (directory === undefined) throw new UsageError(`option '${key}' requires an argument`);
-          relative.set(key, directory);
-        } else args.push(argument);
-      }
-      let mode = "E";
-      let traversal = "P";
-      let strip = false;
-      const parsed = options(args, "EemszLPq", {
-        canonicalize: "E", "canonicalize-existing": "e", "canonicalize-missing": "m",
-        logical: "L", physical: "P", quiet: "q", strip: "s", "no-symlinks": "s", zero: "z",
-      }, false, undefined, undefined, key => {
-        if (key === "E" || key === "e" || key === "m") mode = key;
-        if (key === "L") traversal = "L";
-        if (key === "P") { traversal = "P"; strip = false; }
-        if (key === "s") strip = true;
-      });
-      requireOperands(parsed.operands);
-      const canonical = async (operand: string): Promise<string> => {
-        let path = pathOf(context, operand);
-        if (strip || traversal === "L") {
-          context.signal.throwIfAborted();
-          const lexical = normalizePath(path);
-          if (mode !== "m") {
-            let prefix = "/";
-            const components = path.split("/");
-            for (let index = 1; index < components.length; index++) {
-              const component = components[index]!;
-              if (!component || component === "." && index < components.length - 1) continue;
-              if (component === ".." || component === ".") {
-                const parent = await context.fs.stat(prefix, { signal: context.signal });
-                if (parent.type !== "directory") throw new FsError("ENOTDIR", { path: prefix });
-              }
-              prefix = normalizePath(component, prefix);
-              if (mode === "e" || index < components.length - 1) {
-                const stat = mode === "e" ? await context.fs.stat(prefix, { signal: context.signal }) : await maybeStat(context, prefix);
-                if (index < components.length - 1 && stat !== undefined && stat.type !== "directory") throw new FsError("ENOTDIR", { path: prefix });
-              }
-            }
-            if (mode === "e") await context.fs.stat(lexical, { signal: context.signal });
-          }
-          if (strip) return lexical;
-          path = lexical;
-        }
-        await admitFilesystemModes(context, "realpath", ["canonical"], [path], mode === "m");
-        if (mode === "m") {
-          try { await maybeStat(context, path, false, true); }
-          catch (error) {
-            context.signal.throwIfAborted();
-            if (codeOf(error) !== "ELOOP") throw error;
-            return canonicalizeReadlinkMissing(context, path);
-          }
-        }
-        return mode === "m" ? await canonicalMissing(context, path, "realpath")
-          : mode === "e" ? await context.fs.realpath(path, { signal: context.signal })
-          : await canonicalizeExistingParent(context, path);
-      };
-      const baseOperand = relative.get("--relative-base");
-      const toOperand = relative.get("--relative-to") ?? baseOperand;
-      let base: string | undefined;
-      let to: string | undefined;
-      try {
-        base = baseOperand === undefined ? undefined : await canonical(baseOperand);
-        to = toOperand === undefined ? undefined : await canonical(toOperand);
-      } catch (error) {
-        context.signal.throwIfAborted();
-        if (!parsed.flags.has("q")) await diagnostic(context, error);
-        return { exitCode: 1 };
-      }
-      const operandContext = parsed.flags.has("q") ? { ...context, stderr: { async write() {} } } : context;
-      return eachOperand(operandContext, parsed.operands, async operand => {
-        const resolved = await canonical(operand);
-        const display = to !== undefined && (base === undefined || isPathWithin(base, to) && isPathWithin(base, resolved))
-          ? relativePath(to, resolved) || "." : resolved;
-        await output(context, display + (parsed.flags.has("z") ? "\0" : "\n"));
-      });
-    }),
+    createReadlinkCommand(),
+    createRealpathCommand(),
     define("ls", async context => {
       let hidden: "none" | "all" | "almost-all" = "none";
       let sort: "name" | "time" | "size" | "none" | "extension" | "version" = "name";

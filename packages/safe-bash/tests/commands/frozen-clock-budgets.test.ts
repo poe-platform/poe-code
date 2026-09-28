@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { CommandContext } from "../../src/contracts/index.js";
-import { Budget as FactorBudget, settings as factorSettings } from "../../src/commands/factor/internal.js";
-import { Budget as CsplitBudget, settings as csplitSettings } from "../../src/commands/csplit/internal.js";
+import { Budget as FactorBudget, settings as factorSettings } from "safe-bash-command-factor/internal";
+import { Budget as CsplitBudget, settings as csplitSettings } from "safe-bash-command-csplit/internal";
 import { Limits as SearchBudget } from "../../src/commands/search/shared.js";
 import { ArrayLedger } from "../../src/shell/arrays/ledger.js";
 import { EreLedger } from "../../../safe-bash-regex-engine/src/ere/limits.js";

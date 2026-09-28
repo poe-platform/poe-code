@@ -1,6 +1,6 @@
 import { settings, type ArchiveLimits } from "./archive/internal.js";
-import { settings as htmlSettings, type HtmlToMarkdownLimits } from "./html-to-markdown/options.js";
-import { settings as splitSettings, type SplitLimits } from "./split/options.js";
+import { settings as htmlSettings, type HtmlToMarkdownLimits } from "safe-bash-command-html-to-markdown/options";
+import { settings as splitSettings, type SplitLimits } from "safe-bash-command-split/options";
 
 /** Invocation ceilings; command registration may impose tighter limits. */
 export interface CommandFamilyLimits {

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { type TestContext } from "node:test";
-import { Budget } from "../../../src/commands/expr/internal.js";
+import { Budget } from "safe-bash-command-expr/internal";
 import { exprCommands, type ExprCommandsOptions, type ExprLimits } from "../../../src/commands/expr/index.js";
 import { RegexSession } from "../../../src/commands/regex-execution/client.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";

@@ -10,6 +10,38 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./conversions": {
+      "types": "./dist/conversions.d.ts",
+      "import": "./dist/conversions.js"
+    },
+    "./creation-mask": {
+      "types": "./dist/creation-mask.d.ts",
+      "import": "./dist/creation-mask.js"
+    },
+    "./filesystem-descriptor": {
+      "types": "./dist/filesystem-descriptor.d.ts",
+      "import": "./dist/filesystem-descriptor.js"
+    },
+    "./filesystem-output": {
+      "types": "./dist/filesystem-output.d.ts",
+      "import": "./dist/filesystem-output.js"
+    },
+    "./index": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./io": {
+      "types": "./dist/io.d.ts",
+      "import": "./dist/io.js"
+    },
+    "./options": {
+      "types": "./dist/options.d.ts",
+      "import": "./dist/options.js"
+    },
+    "./report": {
+      "types": "./dist/report.d.ts",
+      "import": "./dist/report.js"
     }
   },
   "files": [

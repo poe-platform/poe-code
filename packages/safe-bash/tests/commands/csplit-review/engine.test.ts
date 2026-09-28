@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { searchBreSteps } from "../../../src/commands/expr/bre-engine.js";
+import { searchBreSteps } from "safe-bash-command-expr/bre-engine";
 import { exprMatchCeilings, type BreSearchDescriptor, type BreSearchResult } from "../../../src/commands/regex-execution/protocol.js";
 import { nativeCases } from "./native-cases.js";
 import { finiteCases } from "./finite-cases.js";

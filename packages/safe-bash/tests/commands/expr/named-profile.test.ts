@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import test, { after, type TestContext } from "node:test";
 import { syncBuiltinESMExports } from "node:module";
 import threads, { type WorkerOptions } from "node:worker_threads";
-import { Budget, ExprError, screenMatch, settings } from "../../../src/commands/expr/internal.js";
+import { Budget, ExprError, screenMatch, settings } from "safe-bash-command-expr/internal";
 import { exprCommands, type ExprCommandsOptions } from "../../../src/commands/expr/index.js";
 import { RegexSession } from "../../../src/commands/regex-execution/client.js";
 import { type ExprMatchDescriptor } from "../../../src/commands/regex-execution/protocol.js";

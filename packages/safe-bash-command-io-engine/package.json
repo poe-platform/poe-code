@@ -1,0 +1,107 @@
+{
+  "name": "safe-bash-command-io-engine",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./byte-encoding": {
+      "types": "./dist/byte-encoding.d.ts",
+      "import": "./dist/byte-encoding.js"
+    },
+    "./commands/archive/internal": {
+      "types": "./dist/commands/archive/internal.d.ts",
+      "import": "./dist/commands/archive/internal.js"
+    },
+    "./commands/canonicalize-existing-parent": {
+      "types": "./dist/commands/canonicalize-existing-parent.d.ts",
+      "import": "./dist/commands/canonicalize-existing-parent.js"
+    },
+    "./commands/env-split": {
+      "types": "./dist/commands/env-split.d.ts",
+      "import": "./dist/commands/env-split.js"
+    },
+    "./commands/filesystem-requirements": {
+      "types": "./dist/commands/filesystem-requirements.d.ts",
+      "import": "./dist/commands/filesystem-requirements.js"
+    },
+    "./commands/grep-aliases/aliases": {
+      "types": "./dist/commands/grep-aliases/aliases.d.ts",
+      "import": "./dist/commands/grep-aliases/aliases.js"
+    },
+    "./commands/readlink-missing": {
+      "types": "./dist/commands/readlink-missing.d.ts",
+      "import": "./dist/commands/readlink-missing.js"
+    },
+    "./commands/search/requirements": {
+      "types": "./dist/commands/search/requirements.d.ts",
+      "import": "./dist/commands/search/requirements.js"
+    },
+    "./commands/text-programs/shared": {
+      "types": "./dist/commands/text-programs/shared.d.ts",
+      "import": "./dist/commands/text-programs/shared.js"
+    },
+    "./commands/touch-target": {
+      "types": "./dist/commands/touch-target.d.ts",
+      "import": "./dist/commands/touch-target.js"
+    },
+    "./commands/touch-times": {
+      "types": "./dist/commands/touch-times.d.ts",
+      "import": "./dist/commands/touch-times.js"
+    },
+    "./gnu-information": {
+      "types": "./dist/gnu-information.d.ts",
+      "import": "./dist/gnu-information.js"
+    },
+    "./index": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./internal": {
+      "types": "./dist/internal.d.ts",
+      "import": "./dist/internal.js"
+    },
+    "./portable-requirements": {
+      "types": "./dist/portable-requirements.d.ts",
+      "import": "./dist/portable-requirements.js"
+    },
+    "./record-buffer": {
+      "types": "./dist/record-buffer.d.ts",
+      "import": "./dist/record-buffer.js"
+    },
+    "./shell/pattern": {
+      "types": "./dist/shell/pattern.d.ts",
+      "import": "./dist/shell/pattern.js"
+    },
+    "./shell/string-operations": {
+      "types": "./dist/shell/string-operations.d.ts",
+      "import": "./dist/shell/string-operations.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "safe-bash-contracts": "*",
+    "@poe-code/safe-fs": "*",
+    "safe-bash-query-engine": "*",
+    "safe-bash-byte-engine": "*",
+    "safe-bash-calendar-engine": "*",
+    "safe-bash-regex-engine": "*"
+  }
+}

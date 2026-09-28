@@ -11,6 +11,14 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./ascii": {
+      "types": "./dist/ascii.d.ts",
+      "import": "./dist/ascii.js"
+    },
+    "./bre-engine": {
+      "types": "./dist/bre-engine.d.ts",
+      "import": "./dist/bre-engine.js"
+    },
     "./ere/errors": {
       "types": "./dist/ere/errors.d.ts",
       "import": "./dist/ere/errors.js"
@@ -31,13 +39,41 @@
       "types": "./dist/ere/types.d.ts",
       "import": "./dist/ere/types.js"
     },
-    "./ascii": {
-      "types": "./dist/ascii.d.ts",
-      "import": "./dist/ascii.js"
+    "./execution/bounded-glob": {
+      "types": "./dist/execution/bounded-glob.d.ts",
+      "import": "./dist/execution/bounded-glob.js"
     },
-    "./utf8": {
-      "types": "./dist/utf8.d.ts",
-      "import": "./dist/utf8.js"
+    "./execution/bounded-provider": {
+      "types": "./dist/execution/bounded-provider.d.ts",
+      "import": "./dist/execution/bounded-provider.js"
+    },
+    "./execution/portable": {
+      "types": "./dist/execution/portable.d.ts",
+      "import": "./dist/execution/portable.js"
+    },
+    "./execution/protocol": {
+      "types": "./dist/execution/protocol.d.ts",
+      "import": "./dist/execution/protocol.js"
+    },
+    "./execution/provider": {
+      "types": "./dist/execution/provider.d.ts",
+      "import": "./dist/execution/provider.js"
+    },
+    "./glob": {
+      "types": "./dist/glob.d.ts",
+      "import": "./dist/glob.js"
+    },
+    "./index": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./text/budget": {
+      "types": "./dist/text/budget.d.ts",
+      "import": "./dist/text/budget.js"
+    },
+    "./text/regex-syntax": {
+      "types": "./dist/text/regex-syntax.d.ts",
+      "import": "./dist/text/regex-syntax.js"
     },
     "./text/regex": {
       "types": "./dist/text/regex.d.ts",
@@ -47,13 +83,13 @@
       "types": "./dist/text/replacement-buffer.d.ts",
       "import": "./dist/text/replacement-buffer.js"
     },
-    "./text/budget": {
-      "types": "./dist/text/budget.d.ts",
-      "import": "./dist/text/budget.js"
+    "./text/rust-syntax": {
+      "types": "./dist/text/rust-syntax.d.ts",
+      "import": "./dist/text/rust-syntax.js"
     },
-    "./glob": {
-      "types": "./dist/glob.d.ts",
-      "import": "./dist/glob.js"
+    "./utf8": {
+      "types": "./dist/utf8.d.ts",
+      "import": "./dist/utf8.js"
     }
   },
   "files": [

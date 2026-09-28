@@ -1,4 +1,4 @@
-import { classify } from "../file/classify.js";
+import { classify } from "safe-bash-command-file/classify";
 
 const extensions: Readonly<Record<string, string>> = {
   png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp",

@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createFsFromVolume, Volume } from "memfs";
 import { FsError, createMemoryFileSystem } from "poe-code/safe-fs";
-import type { DdFileHandle, DdFileOpener, DdFileRequest } from "../../../src/commands/dd/io.js";
-import { openDdFile } from "../../../src/commands/dd/io.js";
+import type { DdFileHandle, DdFileOpener, DdFileRequest } from "safe-bash-command-dd/io";
+import { openDdFile } from "safe-bash-command-dd/io";
 import { bytes, run } from "./helpers.js";
 
 function fixture(initial: Record<string, string>) {

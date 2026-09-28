@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { settings as archive } from "../../src/commands/archive/internal.js";
-import { settings as split } from "../../src/commands/split/options.js";
-import { settings as hexdump } from "../../src/commands/hexdump/internal.js";
+import { settings as split } from "safe-bash-command-split/options";
+import { settings as hexdump } from "safe-bash-command-hexdump/internal";
 import { settings as lineEndings } from "../../src/commands/line-endings/internal.js";
-import { settings as iconv } from "../../src/commands/iconv/internal.js";
-import { settings as applyPatch } from "../../src/commands/apply-patch/options.js";
-import { limitsFor as cmp } from "../../src/commands/cmp/options.js";
-import { settings as shuf } from "../../src/commands/shuf/options.js";
+import { settings as iconv } from "safe-bash-command-iconv/internal";
+import { settings as applyPatch } from "safe-bash-command-apply-patch/options";
+import { limitsFor as cmp } from "safe-bash-command-cmp/options";
+import { settings as shuf } from "safe-bash-command-shuf/options";
 
 for (const [family, resolve] of [
   ["archive", archive], ["split", split], ["hexdump", hexdump],

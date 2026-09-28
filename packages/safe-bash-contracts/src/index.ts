@@ -10,3 +10,4 @@ export * from "./command-requirements.js";
 export * from "./process.js";
 export { writeFileOutput, bindFileOutputBudget, assertCountedFileOutput, writeFileOutputCounted } from "./filesystem-output-budget.js";
 export type { CountedFileWrite, FileOutputContext } from "./filesystem-output-budget.js";
+export * from "./path.js";

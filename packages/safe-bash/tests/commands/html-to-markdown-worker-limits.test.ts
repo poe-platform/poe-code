@@ -5,9 +5,9 @@ import { htmlToMarkdownCommands } from "../../src/commands/html-to-markdown/inde
 import { agentCommands } from "../../src/plugins/index.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { convert } from "./html-to-markdown/helpers.js";
-import { Budget } from "../../src/commands/html-to-markdown/budget.js";
-import { Parser } from "../../src/commands/html-to-markdown/parser.js";
-import { settings } from "../../src/commands/html-to-markdown/options.js";
+import { Budget } from "safe-bash-command-html-to-markdown/budget";
+import { Parser } from "safe-bash-command-html-to-markdown/parser";
+import { settings } from "safe-bash-command-html-to-markdown/options";
 
 for (const plugin of [htmlToMarkdownCommands, agentCommands]) {
   test(`Worker ${plugin.name} bounds large zero-output trees despite a small output cap`, async t => {

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { setImmediate as tick } from "node:timers/promises";
-import { Budget, ExprError, type ExprLimits } from "../../../src/commands/expr/internal.js";
+import { Budget, ExprError, type ExprLimits } from "safe-bash-command-expr/internal";
 import { RegexExecutor, RegexExecutionError, RegexSession } from "../../../src/commands/regex-execution/portable.js";
 import { createBoundedRegexProvider } from "../../../src/commands/regex-execution/bounded-provider.js";
 import type { InvocationCleanup } from "../../../src/contracts/command.js";

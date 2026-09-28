@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { FsError } from "../../../../src/contracts/index.js";
-import { ColumnBudget } from "../../../../src/commands/column/internal.js";
-import { settings } from "../../../../src/commands/column/options.js";
-import { tableOutput } from "../../../../src/commands/column/table.js";
+import { ColumnBudget } from "safe-bash-command-column/internal";
+import { settings } from "safe-bash-command-column/options";
+import { tableOutput } from "safe-bash-command-column/table";
 import { deferred, run } from "../helpers.js";
 
 test("entire absent suffix is admitted before any padding is published", async () => {

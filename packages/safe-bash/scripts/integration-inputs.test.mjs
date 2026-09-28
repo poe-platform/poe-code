@@ -2916,7 +2916,7 @@ test("repository boundaries preserve unaccepted YQ as active source tests", () =
   const current = loadBoundaries(root);
   const build = JSON.parse(readFileSync(new URL("../tsconfig.build.json", import.meta.url), "utf8"));
   assert.deepEqual(current.heldSourceFiles.filter(path => path.endsWith(".ts")), build.exclude.filter(path => path.startsWith("src/commands/xan/")));
-  assert.deepEqual(current.heldSourceFiles.filter(path => path.endsWith(".md")), ["src/commands/xan/DESIGN.md", "src/commands/xan/README.md"]);
+  assert.deepEqual(current.heldSourceFiles.filter(path => path.endsWith(".md")), ["src/commands/xan/design-evidence/migrated-source-docs/DESIGN.md", "src/commands/xan/design-evidence/migrated-source-docs/README.md"]);
   assert.equal(current.fixtureDirectories.length, 6);
   const selected = discoverTests(root, current);
   assert.ok(selected.includes("tests/commands/yq-author-20260828/yq.test.ts"));
@@ -4057,4 +4057,16 @@ test("runner exact file selection uses authenticated discovery and retains seria
     assert.throws(() => runTests("/package", selection.map(file => "--test-file=" + file), () => { assert.fail("invalid selection must not spawn"); }, fileSystem), /selection/);
   }
   assert.throws(() => runTests("/package", ["--test-file=" + files[0]], () => { assert.fail("selection must not alter shards"); }, fileSystem, { shardIndex: 0, shardCount: 4, concurrency: 1 }), /selection/);
+});
+
+test("held source inventories follow declared owners and reject unclassified code", async () => {
+  const inputs = await import("./integration-inputs.mjs");
+  const volume = Volume.fromJSON({ "/repo/src/commands/held/a.ts": "export {};" });
+  const memory = createFsFromVolume(volume);
+  const boundaries = { heldSourceFiles: ["src/commands/held/a.ts"], heldEvidenceDirectories: [] };
+  const build = { exclude: ["src/commands/held/a.ts"] };
+  assert.doesNotThrow(() => inputs.verifyHeldSourceInventory("/repo", boundaries, build, memory));
+  memory.writeFileSync("/repo/src/commands/held/b.ts", "export {};");
+  assert.throws(() => inputs.verifyHeldSourceInventory("/repo", boundaries, build, memory), /held source inventory changed/);
+  assert.doesNotThrow(() => inputs.verifyHeldSourceInventory("/repo", { heldSourceFiles: [], heldEvidenceDirectories: [] }, { exclude: [] }, memory));
 });

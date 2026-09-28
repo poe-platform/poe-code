@@ -6,9 +6,9 @@ import type { ShellOptions } from "../shell/types.js";
 import { agentWorkerRecipes, hostDispatchCommands } from "../plugins/worker-recipes.js";
 import type { WorkerMessage, WorkerModule } from "./protocol.js";
 import { filesystemOptionsIndex } from "./protocol.js";
-import { createDeadline, defaultSchedulerBinding, type Deadline } from "../commands/timeout/scheduler.js";
+import { createDeadline, defaultSchedulerBinding, type Deadline } from "safe-bash-command-timeout/scheduler";
 import { workerRuntimeContexts, shellDescriptorAdmissions } from "./runtime-context.js";
-import { signalName } from "../commands/timeout/signal.js";
+import { signalName } from "safe-bash-command-timeout/signal";
 export type { WorkerModule } from "./protocol.js";
 
 export interface WorkerShellOptions extends ShellOptions {

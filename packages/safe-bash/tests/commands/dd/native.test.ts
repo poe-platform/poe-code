@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import { isAbsolute } from "node:path";
 import test, { after, before } from "node:test";
 import { bytes, run } from "./helpers.js";
-import { transferReport } from "../../../src/commands/dd/report.js";
+import { transferReport } from "safe-bash-command-dd/report";
 
 const oracle = process.env.DD_ORACLE;
 const expectedHash = process.env.DD_ORACLE_SHA256;

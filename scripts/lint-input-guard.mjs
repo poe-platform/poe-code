@@ -11,7 +11,7 @@ import { assertAdmittedInputPath, assertLiteralInputPath, isHeldInputPath } from
 
 export const LIMITS = Object.freeze({ fileBytes: 16777216, configurationBytes: 268435456, subjectBytes: 268435456, subjects: 24000, metadataOperations: 8000000, directories: 50000, entries: 250000, directoryEntries: 30000, receiptBytes: 131072 });
 export const BOUNDARY_RECEIPTS = Object.freeze({ path: 'packages/safe-bash/integration-lint-audit/boundary-leaf-receipts.json', bytes: 29399, sha256: '80463efffa0b8939e69fd1e52ea36c0a13982ff417ef844eb8830173072e9423' });
-export const BOUNDARY_POLICY = Object.freeze({ path: 'packages/safe-bash/integration-boundaries.json', bytes: 2534, sha256: 'e06233940cee80600574ff75b1fda7b6c885205822495771d37a9b5e48b51429' });
+export const BOUNDARY_POLICY = Object.freeze({ path: 'packages/safe-bash/integration-boundaries.json', bytes: 2275, sha256: '74fec8c645563db60a48b6a17b422cb5e00a90bdb7a2d796a33e9e4e5e5e22e9' });
 const require = createRequire(import.meta.url);
 const eslintRequire = createRequire(require.resolve('eslint/package.json'));
 const { ConfigArray } = eslintRequire('@eslint/config-array');

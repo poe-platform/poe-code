@@ -1,0 +1,161 @@
+import { utf8ByteLength } from "safe-bash-byte-engine";
+import { blockSize, UsageError, type Format } from "./format.js";
+import type { Budget } from "./budget.js";
+
+export interface Arguments {
+  readonly operands: readonly string[];
+  readonly all: boolean;
+  readonly summarize: boolean;
+  readonly total: boolean;
+  readonly apparent: boolean;
+  readonly countLinks: boolean;
+  readonly nullOutput: boolean;
+  readonly depth: number;
+  readonly format: Format;
+  readonly help: boolean;
+  readonly inodes: boolean;
+  readonly exclusions: readonly string[];
+  readonly excludeFiles: readonly string[];
+  readonly dereference: "none" | "args" | "all";
+  readonly separate: boolean;
+  readonly oneFileSystem: boolean;
+  readonly threshold: number;
+}
+
+export function parse(budget: Budget): Arguments {
+  const { args, env } = budget.context;
+  budget.check(args.length, budget.limits.maxArguments, "argument count");
+  let bytes = 0;
+  for (const argument of args) {
+    budget.check(argument.length, budget.limits.maxArgumentBytes - bytes, "argument bytes");
+    bytes += utf8ByteLength(argument);
+    budget.check(bytes, budget.limits.maxArgumentBytes, "argument bytes");
+    budget.step(argument.length + 1);
+    if (argument.includes("\0")) throw new UsageError("NUL in argument");
+  }
+  const operands: string[] = [];
+  const exclusions: string[] = [], excludeFiles: string[] = [];
+  let inodes = false, separate = false, oneFileSystem = false, threshold = 0;
+  let dereference: Arguments["dereference"] = "none";
+  let all = false, summarize = false, total = false, apparent = false, countLinks = false, nullOutput = false, help = false;
+  let depth: number | undefined;
+  let format: Format | undefined;
+  let options = true;
+  const valueOption = (flag: string, value: string): void => {
+    if (flag === "exclude") { exclusions.push(value); return; }
+    if (flag === "X" || flag === "exclude-from") { excludeFiles.push(value); return; }
+    if (flag === "t" || flag === "threshold") {
+      const negative = value.startsWith("-");
+      const positive = value.startsWith("+");
+      const size = negative || positive ? value.slice(1) : value;
+      if (size.startsWith("+") || size.startsWith("-")) throw new UsageError(`invalid --threshold argument '${value}'`);
+      const parsed = blockSize(size, true);
+      if (parsed.human || negative && parsed.unit === 0n) throw new UsageError(`invalid --threshold argument '${value}'`);
+      threshold = Number(parsed.unit) * (negative ? -1 : 1);
+      return;
+    }
+    if (flag === "B" || flag === "block-size") { format = blockSize(value); return; }
+    if (!/^\d+$/u.test(value) || !Number.isSafeInteger(Number(value))) throw new UsageError(`invalid maximum depth '${value}'`);
+    depth = Number(value);
+  };
+  const flagOption = (flag: string): void => {
+    switch (flag) {
+      case "a": case "all": all = true; break;
+      case "s": case "summarize": summarize = true; break;
+      case "c": case "total": total = true; break;
+      case "h": case "human-readable": format = blockSize("human-readable"); break;
+      case "si": format = blockSize("si"); break;
+      case "k": format = blockSize("1024"); break;
+      case "m": format = blockSize("1048576"); break;
+      case "b": case "bytes": apparent = true; format = blockSize("1"); break;
+      case "apparent-size": apparent = true; break;
+      case "l": case "count-links": countLinks = true; break;
+      case "0": case "null": nullOutput = true; break;
+      case "help": help = true; break;
+      case "inodes": inodes = true; break;
+      case "D": case "H": case "dereference-args": dereference = "args"; break;
+      case "L": case "dereference": dereference = "all"; break;
+      case "P": case "no-dereference": dereference = "none"; break;
+      case "S": case "separate-dirs": separate = true; break;
+      case "x": case "one-file-system": oneFileSystem = true; break;
+      default: throw new UsageError(`unrecognized option '${flag.length === 1 ? "-" : "--"}${flag}'`);
+    }
+  };
+  for (let index = 0; index < args.length; index++) {
+    const argument = args[index]!;
+    if (options && argument === "--") { options = false; continue; }
+    if (!options || argument === "-" || !argument.startsWith("-")) { operands.push(argument); continue; }
+    if (argument.startsWith("--")) {
+      const equals = argument.indexOf("=");
+      const flag = argument.slice(2, equals < 0 ? undefined : equals);
+      if (["block-size", "max-depth", "exclude", "exclude-from", "threshold"].includes(flag)) {
+        const value = equals >= 0 ? argument.slice(equals + 1) : args[++index];
+        if (value === undefined) throw new UsageError(`option '--${flag}' requires an argument`);
+        valueOption(flag, value);
+      } else {
+        if (equals >= 0) throw new UsageError(`option '--${flag}' does not accept an argument`);
+        flagOption(flag);
+      }
+    } else {
+      for (let offset = 1; offset < argument.length; offset++) {
+        const flag = argument[offset]!;
+        if (["B", "d", "X", "t"].includes(flag)) {
+          const value = argument.slice(offset + 1) || args[++index];
+          if (value === undefined) throw new UsageError(`option '-${flag}' requires an argument`);
+          valueOption(flag, value);
+          break;
+        }
+        flagOption(flag);
+      }
+    }
+  }
+  if (all && summarize) throw new UsageError("cannot combine --all and --summarize");
+  if (summarize && depth !== undefined && depth !== 0) throw new UsageError("--summarize conflicts with --max-depth");
+  if (!format) {
+    let selected: string | undefined;
+    for (const name of ["DU_BLOCK_SIZE", "BLOCK_SIZE", "BLOCKSIZE"]) {
+      if (Object.hasOwn(env, name)) { selected = env[name]; break; }
+    }
+    if (selected !== undefined) {
+      budget.check(selected.length, budget.limits.maxArgumentBytes - bytes, "environment bytes");
+      budget.check(utf8ByteLength(selected), budget.limits.maxArgumentBytes - bytes, "environment bytes");
+      budget.step(selected.length + 1);
+      try { format = blockSize(selected); }
+      catch (error) {
+        if (!(error instanceof UsageError)) throw error;
+        format = blockSize(Object.hasOwn(env, "POSIXLY_CORRECT") ? "512" : "1024");
+      }
+    } else format = blockSize(Object.hasOwn(env, "POSIXLY_CORRECT") ? "512" : "1024");
+  }
+  if (operands.length === 0) operands.push(".");
+  for (const operand of operands) budget.text(operand);
+  return { operands, all, summarize, total, apparent, countLinks, nullOutput, depth: summarize ? 0 : depth ?? Number.MAX_SAFE_INTEGER, format, help, inodes, exclusions, excludeFiles, dereference, separate, oneFileSystem, threshold };
+}
+
+export const helpText = `Usage: du [OPTION]... [--] [FILE]...
+Report provider allocation; unknown allocation is an error, never logical size.
+  -a, --all                 report files as well as directories
+  -s, --summarize           report each operand only
+  -c, --total               report a complete grand total
+  -h, --human-readable      upward-rounded base-1024 units
+      --si                 upward-rounded base-1000 units
+  -k / -m                  report 1024 / 1048576 byte units
+  -B, --block-size=SIZE     positive integer with optional K/M/G/T/P suffix
+  -b, --bytes               apparent size in bytes
+      --apparent-size      file/link lengths, zero directory contribution
+  -d, --max-depth=N         reporting depth only; traversal still bounded
+  -l, --count-links         count every non-directory alias
+  -0, --null                terminate records with NUL instead of newline
+      --inodes             count entries instead of bytes
+      --exclude=PATTERN    exclude matching paths
+  -X, --exclude-from=FILE   read newline-separated exclusion patterns
+  -D, -H, --dereference-args follow operand symlinks
+  -L, --dereference         follow all symlinks
+  -P, --no-dereference      count symlinks themselves (default)
+  -S, --separate-dirs       omit subdirectory usage from directory rows
+  -t, --threshold=SIZE      report sizes >= SIZE, or <= abs(negative SIZE)
+  -x, --one-file-system     skip directories on other devices
+No mutation calls by this command; content reads only for exclusion files.
+Incomplete totals are suppressed. Unknown identities count independently.
+Traversal and output limits apply; adapters may have their own side effects.
+`;

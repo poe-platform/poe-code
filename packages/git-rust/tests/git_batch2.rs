@@ -591,7 +591,8 @@ dual_fixture_test!(read_object_wrapped_and_from_packfile_formats, read_object_wr
     let packed_content = read_object(&f.fs, &f.gitdir, "0b8faa11b353db846b40eb064dfb299816542a46", Some("content"), None, None).unwrap();
     assert_eq!(packed_content.format, "content");
     let packed_wrapped = read_object(&f.fs, &f.gitdir, "0b8faa11b353db846b40eb064dfb299816542a46", Some("wrapped"), None, None).unwrap();
-    assert_eq!(packed_wrapped.format, "content");
+    assert_eq!(packed_wrapped.format, "wrapped");
+    assert_eq!(git_rust::models::GitObject::unwrap(&packed_wrapped.object).unwrap().object, packed_content.object);
     let with_fp = read_object(&f.fs, &f.gitdir, "be1e63da44b26de8877a184359abace1cddcb739", Some("parsed"), Some("cli.js"), Some("utf8")).unwrap();
     assert_eq!(with_fp.oid, "4551a1856279dde6ae9d65862a1dff59a5f199d8");
 });

@@ -217,21 +217,29 @@ pub fn _read_object(
         }
 
     if result.is_none() {
-        if let Some(packed) = read_object_packed(fs, gitdir, oid)? {
-            return Ok(packed);
-        }
-        return Err(GitError::not_found(oid));
+        result = read_object_packed(fs, gitdir, oid)?;
     }
 
-    let mut res = result.unwrap();
-    if format == "deflated" {
+    let mut res = result.ok_or_else(|| GitError::not_found(oid))?;
+    if res.format == format {
         return Ok(res);
     }
 
-    if res.format == "deflated" {
+    if res.format == "content" {
+        res.object = GitObject::wrap(&res.obj_type, &res.object);
+        res.format = "wrapped".to_string();
+        res.obj_type = "wrapped".to_string();
+    } else if res.format == "deflated" {
         res.object = zlib_inflate(&res.object)?;
         res.format = "wrapped".to_string();
         res.obj_type = "wrapped".to_string();
+    }
+
+    if format == "deflated" {
+        res.object = zlib_deflate(&res.object);
+        res.format = "deflated".to_string();
+        res.obj_type = "deflated".to_string();
+        return Ok(res);
     }
 
     if format == "wrapped" {

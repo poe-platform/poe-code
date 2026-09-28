@@ -182,3 +182,28 @@ for (const command of ["read -a", "mapfile -t", "readarray -t"]) {
     }
   });
 }
+
+for (const promotion of ["arr=(x y)", "arr[1]=y", 'read -a arr <<< "x y"', 'mapfile -t arr <<< "x y"', 'readarray -t arr <<< "x y"']) {
+  for (const initial of ["arr=scalar", "unset arr"]) {
+    test(`plain local restores ${initial} after ${promotion}`, async () => {
+      const inspect = 'printf "<%s|%s|%s|%s>\\n" "$arr" "${arr[*]}" "${#arr[@]}" "${!arr*}"';
+      const outer = initial === "arr=scalar" ? "<scalar|scalar|1|arr>\n" : "<||0|>\n";
+      for (const bounded of [false, true]) {
+        for (const body of [promotion, `: | cat; ${promotion}`, `${promotion}; return 7`]) {
+          const definition = `f() { local arr; ${body}; };`;
+          for (const [call, expected] of [
+            ["f", outer],
+            ["for _ in 1 2; do f; done", outer],
+            [`g() { local arr=middle; f; ${inspect}; }; g`, `<middle|middle|1|arr>\n${outer}`],
+          ]) {
+            const source = `${initial}; ${definition} ${call}; ${inspect}`;
+            const result = await run(source, bounded);
+            assert.equal(result.exitCode, 0, source);
+            assert.equal(result.stderr, "", source);
+            assert.equal(result.stdout, expected, `bounded=${bounded}, script=${source}`);
+          }
+        }
+      }
+    });
+  }
+}

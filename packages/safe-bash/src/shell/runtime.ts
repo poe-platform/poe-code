@@ -7678,6 +7678,7 @@ export class Runtime {
         // A preceding local may hide the global by the time this command runs.
         if (isGlobalDecl) return false;
         const isAttrDecl = (flagPlain === "-i" || flagPlain === "-l" || flagPlain === "-u") && command.words.length >= 3;
+        if (isAttrDecl && (rawState.locals.length > 0 || depth > 0)) return false;
         let allValidLocal = true;
         for (let idx = (isNamerefDecl || isGlobalDecl || isAttrDecl) ? 2 : 1; idx < command.words.length; idx++) {
           const wArg = command.words[idx]!;
@@ -9305,7 +9306,7 @@ export class Runtime {
             const isSubTarget = openBr > 0 && targetSpec.endsWith("]") && targetSpec.length > openBr + 2;
             const rawTargetVar = isSubTarget ? targetSpec.slice(0, openBr) : targetSpec;
             const targetVar = isShellIdentifier(rawTargetVar) ? resolveSyncNameref(rawState, rawTargetVar) : "";
-            if (targetVar && isShellIdentifier(targetVar) && targetVar !== "OPTIND" && targetVar !== "PIPESTATUS" && targetVar !== "_" && !rawState.readonlyVariables?.has(targetVar) && !monitor.hasOverlay(targetVar) && (isSubTarget || !store?.get(targetVar))) {
+            if (targetVar && isShellIdentifier(targetVar) && targetVar !== "OPTIND" && targetVar !== "PIPESTATUS" && targetVar !== "_" && !rawState.readonlyVariables?.has(targetVar) && !rawState.variableAttributes?.get(targetVar) && !(isSubTarget && store?.get(targetVar)?.associative) && !monitor.hasOverlay(targetVar) && (isSubTarget || !store?.get(targetVar))) {
               fastSubScratchArgs.length = 0;
               let allStrings = true;
               try {
@@ -10333,6 +10334,7 @@ export class Runtime {
         const isNamerefDecl = flagPlain === "-n" && rawState.locals.length > 0 && command.words.length >= 3;
         const isGlobalDecl = flagPlain === "-g" && (w0Plain === "declare" || w0Plain === "typeset") && command.words.length >= 3;
         const isAttrDecl = (flagPlain === "-i" || flagPlain === "-l" || flagPlain === "-u") && command.words.length >= 3;
+        if (isAttrDecl && rawState.locals.length > 0) return undefined;
         const declAttr = isAttrDecl ? flagPlain!.slice(1) : undefined;
         const parsedLocals: Array<{ name: string; val: string | undefined; append: boolean; lastArg: string }> = [];
         let allValidLocal = true;

@@ -2896,6 +2896,26 @@ type SyncLoopStep = {
   readonly append: boolean;
   readonly line: number;
   coalesceNext?: boolean;};
+// Arbitrary writes to arithmetic references need the general evaluator.
+function syncStepsMayWriteName(steps: readonly SyncLoopStep[], name: string): boolean {
+  return steps.some(step =>
+    step.name === name || step.arithStmt !== undefined || (step.printfVArgs !== undefined && step.cmd.words[1]?.plain === "-v") ||
+    (step.readHereString && (step.readHereString.varNames.includes(name) || (step.readHereString.isBareReply && name === "REPLY"))) || step.unsetVars?.includes(name) ||
+    step.ifBranches?.some(branch => branch.cond !== undefined || syncStepsMayWriteName(branch.steps, name)) ||
+    (step.elseSteps && syncStepsMayWriteName(step.elseSteps, name)) ||
+    step.caseClauses?.some(clause => syncStepsMayWriteName(clause.steps, name)) ||
+    (step.fnCall && (step.fnCall.locals.some(local => local.name === name) || syncStepsMayWriteName(step.fnCall.steps, name))) ||
+    (step.nestedLoop && (step.nestedLoop.loopCmd.kind !== "for" || step.nestedLoop.loopCmd.name === name || syncStepsMayWriteName(step.nestedLoop.steps, name)))
+  );
+}
+function arithmeticReadsOtherName(node: ArithmeticProgram["tree"], inductionName: string): boolean {
+  if (!node) return false;
+  if (node.kind === "name") return node.name !== inductionName;
+  if (node.kind === "unary") return arithmeticReadsOtherName(node.operand, inductionName);
+  if (node.kind === "binary") return arithmeticReadsOtherName(node.left, inductionName) || arithmeticReadsOtherName(node.right, inductionName);
+  if (node.kind === "conditional") return arithmeticReadsOtherName(node.condition, inductionName) || arithmeticReadsOtherName(node.yes, inductionName) || arithmeticReadsOtherName(node.no, inductionName);
+  return false;
+}
 const intLoopStepCache = new WeakMap<Command, IntLoopStep | null>();
 const sharedSyncLoopTouched = new Set<string>();
 const sharedSyncLoopArithNames = new Set<string>();
@@ -12709,6 +12729,7 @@ export class Runtime {
             if (
               nInd &&
               ne0 && ne1 && ne2 &&
+              ![ne0, ne1, ne2].some(expression => arithmeticReadsOtherName(expression.tree, nInd)) &&
               !ne0.error && !ne0.hasSubscript && isSafeSmiProgram(ne0) &&
               !ne1.error && !ne1.hasSubscript && isSafeSmiProgram(ne1) &&
               !ne2.error && !ne2.hasSubscript && isSafeSmiProgram(ne2) &&
@@ -13754,13 +13775,7 @@ export class Runtime {
           if (refName === inductionName) continue;
           const initial = rawState.variables[refName];
           if (initial !== undefined && initial !== "" && !/^-?[0-9]+$/.test(initial)) return undefined;
-          for (let b = 0; b < bodyAssignments.length; b++) {
-            const step = bodyAssignments[b]!;
-            if ( step.name === refName && !intSteps[b] && (!step.value || !step.value.parts.some(p => p.kind === "arithmetic") || step.value.parts.some(p => p.kind !== "arithmetic" && (p.kind !== "text" || p.value !== "")))) {
-              const isArrDefaultZero = step.value?.parts.length === 1 && step.value.parts[0]!.kind === "variable" && getArraySelector(step.value.parts[0]!)?.kind === "element" && step.value.parts[0]!.operator === ":-" && step.value.parts[0]!.alternate?.plain === "0";
-              if (!isArrDefaultZero) return undefined;
-            }
-          }
+          if (syncStepsMayWriteName(bodyAssignments, refName)) return undefined;
         }
       }
       monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets);

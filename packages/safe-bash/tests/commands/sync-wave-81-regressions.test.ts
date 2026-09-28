@@ -36,3 +36,33 @@ for (const [name, source, expected] of cases) test(name, async () => {
     assert.equal(result.exitCode, 0);
   } finally { await shell.dispose(); }
 });
+
+const wave86Cases = [
+  ['literal numeric variable bound', 'N=3; S=1; for ((i=0;i<N;i+=S)); do echo "$i"; done'],
+  ['options stop after operand', String.raw`flag=-e; for ((i=0;i<2;i++)); do echo -n value "$flag" "a\nb"; done`],
+  ['bare read bound', 'a=(2); REPLY=2; for ((i=0;i<REPLY;i++)); do read -r <<< a; echo "iter:$i"; done'],
+  ['else bound', 'a=(2); N=2; for ((i=0;i<N;i++)); do if ((i!=0)); then :; else N=a; fi; echo "iter:$i"; done'],
+  ['quoted escape options', String.raw`for ((i=0;i<2;i++)); do echo "-e" "a\nb"; echo "-ne" "c\nd:"; done`],
+  ['expanded options after -n', String.raw`flag=-e; for ((i=0;i<2;i++)); do echo -n "$flag" "a\nb:"; done`],
+  ['quoted option prefix', String.raw`flag=e; for ((i=0;i<2;i++)); do echo -E "-$flag" "a\nb"; done`],
+  ...['a', 'a[0 + 0 + 0]'].flatMap(reference => [
+    ['if bound', `a=(2); N=2; for ((i=0;i<N;i++)); do if ((i==0)); then N="${reference}"; fi; echo "iter:$i"; done`],
+    ['case stride', `a=(1); S=1; for ((i=0;i<2;i+=S)); do case $i in 0) S="${reference}";; esac; echo "iter:$i"; done`],
+    ['read bound', `a=(2); N=2; for ((i=0;i<N;i++)); do read -r N <<< "${reference}"; echo "iter:$i"; done`],
+    ['function bound', `a=(2); N=2; f() { N="${reference}"; }; for ((i=0;i<N;i++)); do f; echo "iter:$i"; done`],
+    ['nested writes bound', `a=(2); N=2; for ((i=0;i<N;i++)); do for j in 1; do N="${reference}"; done; echo "iter:$i"; done`],
+    ['nested variable bound', `a=(2); N=2; for outer in 1 2; do for ((i=0;i<N;i++)); do if ((i==0)); then N="${reference}"; fi; echo "iter:$i"; done; done`],
+  ]),
+] as const;
+for (const [name, source] of wave86Cases) test(`wave 86: ${name}: ${source}`, async () => {
+  const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+  assert.equal(native.status, 0, native.stderr);
+  const shell = new Shell({ fs: new MemoryFileSystem() });
+  for (const command of basicCommands()) shell.commands.register(command);
+  try {
+    const result = await shell.exec(source);
+    assert.equal(result.stdout, native.stdout);
+    assert.equal(result.stderr, native.stderr);
+    assert.equal(result.exitCode, native.status);
+  } finally { await shell.dispose(); }
+});

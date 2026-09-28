@@ -20,7 +20,7 @@ test("public shuf coalesces output and preserves every record", async () => {
   assert.deepEqual(Buffer.concat(chunks).toString().trimEnd().split("\n").sort(), input.trimEnd().split("\n").sort());
 });
 
-test("public shuf avoids unconditional scheduler turns", async t => {
+test("public shuf yields at repeated work quanta with a frozen clock", async t => {
   let turns = 0;
   const immediate = globalThis.setImmediate;
   t.mock.method(performance, "now", () => 0);
@@ -31,7 +31,7 @@ test("public shuf avoids unconditional scheduler turns", async t => {
     stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} },
   });
   assert.equal(result.exitCode, 0);
-  assert.equal(turns, 0);
+  assert.ok(turns >= 2, `shuf scheduled ${turns} turns`);
 });
 
 

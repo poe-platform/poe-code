@@ -154,7 +154,11 @@ pub fn read_blob(
     } else {
         oid.to_string()
     };
+    let mut visited = BTreeSet::new();
     loop {
+        if !visited.insert(resolved_oid.clone()) {
+            return Err(GitError::internal(&format!("Tag cycle while reading blob {oid}")));
+        }
         let res = _read_object(fs, &gdir, &resolved_oid, "content")?;
         if res.obj_type == "tag" {
             resolved_oid = GitAnnotatedTag::from_bytes(&res.object).parse().object;

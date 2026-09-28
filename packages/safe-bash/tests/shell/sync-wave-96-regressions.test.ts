@@ -13,7 +13,7 @@ for (const [name, source, expected] of [
   ...["-N 5 -n 2", "-N5 -n2", "-n 2 -N 3", "-n2 -N3"].flatMap(options => [false, true].map(loop => [
     `read option order ${options}, loop=${loop}`,
     `s=$'a\\nb'; ${loop ? 'for ((i=0;i<10;i++)); do' : ''} read -r ${options} a <<< "$s"; ${loop ? 'done;' : ''} printf '<%s>\\n' "$a"`,
-    options.startsWith("-N") ? "<a>\n" : "<a\nb>\n",
+    options.startsWith("-N") ? "<a\n>\n" : "<a\nb>\n",
   ])),
   ...[false, true].map(loop => [
     `associative tilde keys, loop=${loop}`,

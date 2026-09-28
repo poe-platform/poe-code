@@ -12412,7 +12412,7 @@ export class Runtime {
           argIdx += 2;
         } else if (p === "-n" || p === "-rn" || p === "-nr" || p === "-N" || p === "-rN" || p === "-Nr") {
           if (p.includes("r")) rawMode = true;
-          exactChars = p.includes("N");
+          exactChars ||= p.includes("N");
           const nPlain = cmd.words[argIdx + 1]?.plain;
           if (!nPlain || !/^[1-9][0-9]{0,5}$/.test(nPlain) || byteLocale(rawState.variables)) return undefined;
           maxChars = Number(nPlain);
@@ -12420,7 +12420,7 @@ export class Runtime {
         } else if ((p.startsWith("-n") || p.startsWith("-rn") || p.startsWith("-N") || p.startsWith("-rN")) && /^[1-9][0-9]{0,5}$/.test(p.slice(p.startsWith("-r") ? 3 : 2))) {
           if (byteLocale(rawState.variables)) return undefined;
           if (p.startsWith("-r")) rawMode = true;
-          exactChars = p.includes("N");
+          exactChars ||= p.includes("N");
           maxChars = Number(p.slice(p.startsWith("-r") ? 3 : 2));
           argIdx++;
         } else if (p === "-ra" || p === "-ar" || p === "-a") {

@@ -2839,6 +2839,18 @@
       "fixtureCorrections": "Initial modern probes mixed record-24 numbers with .123 formulas and omitted native sheet declarations; internal readback yielded #REF!. Corrected .123 uses numeric record 39 and explicit record 35 before formulas. WK3 0x1002 is refused by the internal filter. These attempts are not passes.",
       "receipts": "out/ssconvert-lotus-current/{sheet-name-sources,names-native-proof,names-public-proof,public-native-proof}.json; sheet-names-{red,green,lint,build}.log",
       "remaining": "Other encodings/default-selection APIs, ambiguous flag packing in Lotus-authored inputs, native copy modes, other Lotus metadata, installed registry artifacts and containing publication. No family closure."
+    },
+    "engineFactoryDefaults": {
+      "issue": 2460,
+      "status": "SDK omitted/partial options repaired; English locale aliases remain open",
+      "implementation": "Public EngineOptions allows omitted codecs and partial environment. createEngine() defaults built-in codecs, C locale, UTC timezone and empty injected env; existing cwd precedence, explicit capabilities, limits and environment snapshots remain intact. Command option types accept the same partial environment.",
+      "validation": "Seven original tests failed before repair; 47 focused engine/cwd/budget tests pass. Maintained package lint and source/test/Node/browser consumer types pass; selected build passes. Three compiled SDK CSV-to-XLSX conversions with omitted/empty/partial options read back exact values without diagnostics. README examples and public type consumer updated.",
+      "remaining": "Issue #2460 remains open for en_US/en_US.UTF-8/en_US.utf8 runtime locale acceptance. glibc 2.41 SUPPORTED declares en_US as ISO-8859-1 and en_US.UTF-8 as UTF-8; these must not be treated as identical converter charsets. Full release/registry qualification remains open under #1748.",
+      "source": {
+        "url": "https://raw.githubusercontent.com/bminor/glibc/glibc-2.41/localedata/SUPPORTED",
+        "sha256": "92b5030fd20f64c6fec5430d9d89b65801df104878b208df6742479fdd5f6c05"
+      },
+      "receipt": "out/ssconvert-hyperlink-lifecycle/engine-defaults-proof.json"
     }
   },
   "cases": [

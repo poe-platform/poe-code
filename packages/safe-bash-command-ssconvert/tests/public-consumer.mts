@@ -1,8 +1,12 @@
 import { createEngine, readXlsx, createXlsxWriter, referenceText, exportOptionPairs, resolveVfsCwd, createPythonSampleFunctions, recalculateWorkbook,
-  type Workbook, type CapabilityContext, type ConversionRequest, type EngineConfig, type WorkingDirectoryFileSystem, type PythonUnicodeVersion, type FormulaCapability } from "safe-bash-command-ssconvert";
+  type Workbook, type CapabilityContext, type ConversionRequest, type EngineConfig, type EngineOptions, type WorkingDirectoryFileSystem, type PythonUnicodeVersion, type FormulaCapability } from "safe-bash-command-ssconvert";
 import { readXlsx as rootReadXlsx, createPythonSampleFunctions as rootPythonFunctions, createSsconvertCommand, createSsconvertCommands, ssconvertCommands, type SsconvertCommandsOptions, type SsconvertLimits, type LabelRange } from "poe-code/ssconvert";
 const commandLimits: Partial<SsconvertLimits> = { inputBytes: 1000000, outputBytes: 1000000 };
 const commandOptions: SsconvertCommandsOptions = { limits: commandLimits };
+const partialOptions: EngineOptions = { environment: { env: {} }, limits: { inputBytes: 1000 } };
+await createEngine().dispose();
+await createEngine(partialOptions).dispose();
+createSsconvertCommand({ environment: { cwd: "/", env: {} } });
 if (createSsconvertCommand(commandOptions).name !== "ssconvert" || createSsconvertCommands().length !== 1 || ssconvertCommands().name !== "ssconvert-commands")
   throw new Error("Public command factory consumer failed");
 const context: CapabilityContext = { signal: new AbortController().signal, own() {},

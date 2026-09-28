@@ -4,7 +4,7 @@ import { createResourceIO, type ResourceIOOptions } from "./io/index.js";
 import { createVfsOutput } from "./io/publication.js";
 import { resolveVfsCwd } from "./io/cwd.js";
 import { runCommand } from "./cli.js";
-import type { EngineConfig } from "./contracts.js";
+import type { EngineConfig, EngineOptions } from "./contracts.js";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import {
   createOutputOperation,
@@ -17,7 +17,7 @@ import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
 
 export interface SsconvertCommandsOptions extends Omit<EngineConfig, "filesystem" | "codecs" | "environment"> {
   readonly codecs?: EngineConfig["codecs"];
-  readonly environment?: EngineConfig["environment"];
+  readonly environment?: EngineOptions["environment"];
   readonly io?: Pick<ResourceIOOptions, "descriptors" | "adapters" | "transport">;
   readonly replace?: boolean;
   readonly profile?: import("./cli.js").CommandProfile;

@@ -166,6 +166,10 @@ export interface EngineConfig {
       context: CapabilityContext): Promise<Workbook | undefined>;
   };
 }
+/** Public construction options; omitted environment fields use portable defaults. */
+export interface EngineOptions extends Partial<Omit<EngineConfig, "environment">> {
+  readonly environment?: Partial<Environment>;
+}
 export type Input =
   | { readonly kind: "stream"; readonly source: ByteSource; readonly filename?: string }
   | { readonly kind: "resource"; readonly uri: string };

@@ -5,7 +5,7 @@ import { serializeClipboard } from "./conversion/clipboard.js";
 import { runtimeEnvironment } from "./locale/runtime.js";
 import {
   SsconvertError,
-  type EngineConfig,
+  type EngineOptions,
   type Engine,
   type CapabilityContext,
   type Cleanup,
@@ -69,7 +69,7 @@ function bounded(value: number, maximum: number, name: string) {
 }
 
 /** No host work occurs until an operation supplies cancellation and explicit I/O. */
-export function createEngine(supplied: EngineConfig): Engine {
+export function createEngine(supplied: EngineOptions = {}): Engine {
   const config = {
     ...supplied,
     ...(supplied.entropy === undefined ? {} : { entropy: Object.freeze({ read: supplied.entropy.read.bind(supplied.entropy) }) }),
@@ -77,16 +77,19 @@ export function createEngine(supplied: EngineConfig): Engine {
     ...(supplied.fonts === undefined ? {} : { fonts: Object.freeze({ resolve: supplied.fonts.resolve.bind(supplied.fonts) }) }),
     ...(supplied.password === undefined ? {} : { password: Object.freeze({ read: supplied.password.read.bind(supplied.password) }) }),
     ...(supplied.runtimeFunctions === undefined ? {} : { runtimeFunctions: snapshotRuntimeFunctions(supplied.runtimeFunctions) }),
+    codecs: supplied.codecs ?? [],
     limits: Object.freeze({ ...defaultSsconvertLimits, ...supplied.limits }),
     environment: Object.freeze({
       ...supplied.environment,
-      cwd: supplied.filesystem?.cwd ?? supplied.environment.cwd ?? supplied.environment.env.PWD ?? "/",
-      env: Object.freeze({ ...supplied.environment.env })
+      locale: supplied.environment?.locale ?? "C",
+      timezone: supplied.environment?.timezone ?? "UTC",
+      cwd: supplied.filesystem?.cwd ?? supplied.environment?.cwd ?? supplied.environment?.env?.PWD ?? "/",
+      env: Object.freeze({ ...supplied.environment?.env })
     })
   };
   if (config.datasource && Object.hasOwn(config.runtimeFunctions ?? {}, "ATL_LAST"))
     throw new TypeError("Conflicting ssconvert datasource runtime function: ATL_LAST");
-  if ((supplied.filesystem?.cwd !== undefined || supplied.environment.cwd !== undefined) &&
+  if ((supplied.filesystem?.cwd !== undefined || supplied.environment?.cwd !== undefined) &&
       (!config.environment.cwd.startsWith("/") || config.environment.cwd.includes("\0")))
     throw new TypeError("ssconvert cwd must be an absolute VFS path");
   for (const name of ["inputBytes", "outputBytes", "cells", "sheets", "operations"] as const) {

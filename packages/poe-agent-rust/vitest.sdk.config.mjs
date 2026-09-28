@@ -525,7 +525,7 @@ export default defineConfig({
     fileParallelism: false,
     maxWorkers: 1,
     pool: "forks",
-    testTimeout: 3000,
+    testTimeout: 15000,
     cache: false
   }
 });

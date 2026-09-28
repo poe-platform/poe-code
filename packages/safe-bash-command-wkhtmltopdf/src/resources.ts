@@ -26,7 +26,7 @@ export interface ResourceLease {
  */
 export type ResourceOpen = (reference: string, signal: AbortSignal) => Promise<ResourceLease>;
 export interface ResourceOptions {
-  readonly limits: ResourceLimits;
+  readonly limits?: Partial<ResourceLimits>;
   readonly signal: AbortSignal;
   readonly vfs?: ResourceOpen;
   readonly fonts?: ResourceOpen;
@@ -48,7 +48,13 @@ const copyBytes = Uint8Array.prototype.set;
 
 /** One bounded invocation. Returned byte arrays are caller-owned, never borrowed. */
 export async function withResources<T>(options: ResourceOptions, run: (resources: Resources) => Promise<T>): Promise<T> {
-  const limits = { ...options.limits };
+  const limits = {
+    maxInputBytes: options.limits?.maxInputBytes ?? Infinity,
+    maxDecodedBytes: options.limits?.maxDecodedBytes ?? Infinity,
+    maxRetainedBytes: options.limits?.maxRetainedBytes ?? Infinity,
+    maxWork: options.limits?.maxWork ?? Infinity,
+    maxResources: options.limits?.maxResources ?? Infinity,
+  };
   for (const key of ["maxInputBytes", "maxDecodedBytes", "maxRetainedBytes", "maxWork", "maxResources"] as const) {
     if (limits[key] !== Infinity && (!Number.isSafeInteger(limits[key]) || limits[key] < 1)) {
       throw new WkhtmltopdfError("INVALID_VALUE", "Resource limits must be positive safe integers");

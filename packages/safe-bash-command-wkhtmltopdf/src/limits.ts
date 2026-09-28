@@ -7,7 +7,7 @@ export interface ParseLimits {
   readonly maxWork: number;
 }
 export interface ParseOptions {
-  readonly limits: ParseLimits;
+  readonly limits?: Partial<ParseLimits>;
   readonly signal?: AbortSignal;
   /** Deliberate safe CLI deviation from the unqualified ASCII-zero sentinel. */
   readonly endOfOptions?: boolean;
@@ -25,10 +25,10 @@ export class ParseBudget {
   constructor(private readonly options: ParseOptions) {
     this.checkCancellation();
     this.limits = {
-      maxArguments: options.limits?.maxArguments,
-      maxTextBytes: options.limits?.maxTextBytes,
-      maxObjects: options.limits?.maxObjects,
-      maxWork: options.limits?.maxWork,
+      maxArguments: options.limits?.maxArguments ?? Infinity,
+      maxTextBytes: options.limits?.maxTextBytes ?? Infinity,
+      maxObjects: options.limits?.maxObjects ?? Infinity,
+      maxWork: options.limits?.maxWork ?? Infinity,
     };
     for (const value of Object.values(this.limits)) {
       if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) {

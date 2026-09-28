@@ -131,10 +131,10 @@ test("arguments, UTF-8 bytes, work and object budgets fail at admission", () => 
   assert.throws(() => tokenizeBatchLine("a b", { limits: { ...limits, maxArguments: 1 } }), { code: "LIMIT_EXCEEDED" });
 });
 
-test("runtime callers cannot omit a required limit and bypass accounting", () => {
+test("runtime callers can omit individual limits while retaining the others", () => {
   for (const name of Object.keys(limits)) {
     const missing: Record<string, number> = { ...limits };
     delete missing[name];
-    assert.throws(() => parseInvocation(["a", "out"], { limits: missing as unknown as ParseLimits }), { code: "INVALID_VALUE" });
+    assert.equal(parseInvocation(["a", "out"], { limits: missing as unknown as ParseLimits }).objects.length, 1);
   }
 });

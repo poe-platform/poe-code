@@ -26,18 +26,6 @@ const mutations: Array<[string, (snapshot: SafeJSSnapshot) => void]> = [
     }
   ],
   [
-    "oversized string",
-    (snapshot) => {
-      snapshot.extra = "x".repeat(1_000_001);
-    }
-  ],
-  [
-    "oversized key",
-    (snapshot) => {
-      snapshot["x".repeat(1_000_001)] = 0;
-    }
-  ],
-  [
     "oversized sparse array",
     (snapshot) => {
       snapshot.extra = Array(100_001);
@@ -81,6 +69,24 @@ it.each(mutations)(
     expect(effect).not.toHaveBeenCalled();
   }
 );
+
+it.each(["string", "key"])("accepts large %s metadata without repeating host effects", async kind => {
+  const effect = vi.fn(() => 1);
+  const original = await run(source, { bindings: { effect } });
+  const snapshot = JSON.parse(await dump(original)) as SafeJSSnapshot;
+  const text = "x".repeat(1_000_001);
+  if (kind === "string") snapshot.extra = text;
+  else snapshot[text] = 0;
+  effect.mockClear();
+  expect(() => restore(snapshot, { source })).not.toThrow();
+  const inspection = inspectSnapshotMigration(snapshot, { source });
+  expect(() => migrateSnapshot(snapshot, {
+    source, targetSource: "return import.meta.migration;", state: 7,
+    reconciliation: { checkpointDigest: inspection.checkpointDigest, quiescent: true, calls: [] }
+  })).not.toThrow();
+  expect(await run(source, { snapshot, bindings: { effect } })).toMatchObject({ ok: true, returnValue: 7 });
+  expect(effect).not.toHaveBeenCalled();
+});
 
 it.each(["getter", "promiseReplay getter", "proxy"])(
   "rejects a %s without executing its traps at data boundaries",

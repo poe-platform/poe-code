@@ -21279,7 +21279,9 @@ export class Runtime {
         const opArgs = (hasSingleStdinRedir || hasSingleHereStringRedir) ? allArgs : allArgs.slice(0, -1);
         if (hasSingleHereStringRedir || (!fileArg.startsWith("-") && fileArg !== "/dev/stdin")) {
           const view = hasSingleHereStringRedir ? fastSharedTextEncoder.encode(hereStrVal!) : this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fileArg));
-          if (view && view.byteLength <= 16384 && !view.includes(0)) {
+          // The text shortcut must not decode arbitrary file bytes or strip a BOM.
+          // Non-ASCII file inputs use normal execution, which owns their raw ShellValue.
+          if (view && view.byteLength <= 16384 && !view.includes(0) && (hasSingleHereStringRedir || view.every(byte => byte < 128))) {
             const fileStr = hasSingleHereStringRedir ? hereStrVal! : sharedSyncPipeDecoder.decode(view);
             const rawLines = fileStr.endsWith("\n") ? fileStr.slice(0, -1).split("\n") : (fileStr.length === 0 ? [] : fileStr.split("\n"));
             let fileRes: string | undefined;

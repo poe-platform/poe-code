@@ -66,6 +66,11 @@ A provider may define an optional `spawn(context, options)` conversation functio
 
 ## Testing
 
+### Isolated checkout dependencies
+
+- For stress audits and Git worktrees, use `npm run install:isolated -- --ignore-scripts` (omit `--ignore-scripts` when lifecycle hooks are required). This detaches a root `node_modules` symlink before running `npm ci`, leaving the shared target and checkout artifacts intact.
+- Never run `npm install` or `npm ci` through a `node_modules` symlink to another checkout. Install dependencies independently in each checkout. npm lifecycle hooks run too late to prevent workspace link mutations.
+
 ### Manual pre-push checks
 
 - Before pushing, manually run the lint and test commands appropriate to the changed scope.

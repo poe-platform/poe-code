@@ -299,7 +299,8 @@
     "test:stress:lint": "vitest run --config vitest.lint-stress.config.ts",
     "posttest": "npm run test:stress:lint",
     "test:ci:fresh": "node scripts/build-workspaces.mjs --test-unit --ci-group=fresh --concurrency=4",
-    "test:ci:cached": "node scripts/build-workspaces.mjs --test-unit --ci-group=cached"
+    "test:ci:cached": "node scripts/build-workspaces.mjs --test-unit --ci-group=cached",
+    "install:isolated": "node scripts/install-isolated.mjs"
   },
   "bin": {
     "poe": "dist/bin.cjs",

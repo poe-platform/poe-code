@@ -8,6 +8,7 @@ use crate::utils::{compare_strings, from_hex, normalize_mode, shasum_bytes, to_h
 pub struct CacheEntryFlags {
     pub assume_valid: bool,
     pub extended: bool,
+    pub skip_worktree: bool,
     pub stage: u8,
     pub name_length: u16,
 }
@@ -107,9 +108,11 @@ impl GitIndex {
             let size = read_u32(pos + 36);
             let oid = to_hex(&buffer[pos + 40..pos + 60]);
             let raw_flags = u16::from_be_bytes([buffer[pos + 60], buffer[pos + 61]]);
-            let flags = parse_cache_entry_flags(raw_flags);
+            let mut flags = parse_cache_entry_flags(raw_flags);
             pos += 62;
             if version == 3 && flags.extended {
+                if pos + 2 > body_end { return Err(GitError::internal("Truncated extended index flags")); }
+                flags.skip_worktree = (u16::from_be_bytes([buffer[pos], buffer[pos + 1]]) & 0x4000) != 0;
                 pos += 2;
             }
             let nul_rel = buffer[pos..]
@@ -254,6 +257,7 @@ impl GitIndex {
             flags: CacheEntryFlags {
                 assume_valid: false,
                 extended: false,
+                skip_worktree: false,
                 stage,
                 name_length: name_len,
             },
@@ -265,6 +269,15 @@ impl GitIndex {
         }
         self.add_entry(entry);
         self.dirty = true;
+    }
+
+    pub fn set_skip_worktree(&mut self, filepath: &str, skip: bool) {
+        if let Some(entry) = self.entries.get_mut(filepath) {
+            entry.flags.skip_worktree = skip;
+            entry.flags.extended = skip;
+            if let Some(Some(stage)) = entry.stages.first_mut() { stage.flags = entry.flags.clone(); }
+            self.dirty = true;
+        }
     }
 
     pub fn delete(&mut self, filepath: &str) {
@@ -296,7 +309,8 @@ impl GitIndex {
         let flat = self.entries_flat();
         let mut out = Vec::with_capacity(12 + flat.len() * 72 + 20);
         out.extend_from_slice(b"DIRC");
-        out.extend_from_slice(&2u32.to_be_bytes());
+        let version: u32 = if flat.iter().any(|e| e.flags.extended) { 3 } else { 2 };
+        out.extend_from_slice(&version.to_be_bytes());
         out.extend_from_slice(&(flat.len() as u32).to_be_bytes());
 
         for entry in flat {
@@ -327,6 +341,10 @@ impl GitIndex {
                 ..entry.flags
             });
             out.extend_from_slice(&raw_flags.to_be_bytes());
+            if entry.flags.extended {
+                let extended: u16 = if entry.flags.skip_worktree { 0x4000 } else { 0 };
+                out.extend_from_slice(&extended.to_be_bytes());
+            }
             out.extend_from_slice(path_bytes);
 
             let entry_len = out.len() - entry_start;
@@ -347,6 +365,7 @@ fn parse_cache_entry_flags(flags: u16) -> CacheEntryFlags {
     CacheEntryFlags {
         assume_valid: (flags & 0x8000) != 0,
         extended: (flags & 0x4000) != 0,
+        skip_worktree: false,
         stage: ((flags & 0x3000) >> 12) as u8,
         name_length: flags & 0x0fff,
     }

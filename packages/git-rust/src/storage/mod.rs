@@ -67,7 +67,7 @@ pub fn load_pack_indexes(
             continue;
         };
         let get_ext = |ext_oid: &str| -> Result<UnwrappedObject, GitError> {
-            let r = _read_object(fs, gitdir, ext_oid, "content")?;
+            let r = read_object_raw(fs, gitdir, ext_oid, "content")?;
             Ok(UnwrappedObject {
                 object_type: r.obj_type,
                 object: r.object,
@@ -137,7 +137,7 @@ pub fn read_object_packed(
                 .ok_or_else(|| GitError::not_found(&path))?
         };
         let external = |ext_oid: &str| -> Result<UnwrappedObject, GitError> {
-            let object = _read_object(fs, gitdir, ext_oid, "content")?;
+            let object = read_object_raw(fs, gitdir, ext_oid, "content")?;
             Ok(UnwrappedObject {
                 object_type: object.obj_type,
                 object: object.object,
@@ -156,7 +156,38 @@ pub fn read_object_packed(
     Ok(None)
 }
 
-pub fn _read_object(
+thread_local! {
+    static REPLACE_ENABLED: std::cell::Cell<bool> = const { std::cell::Cell::new(true) };
+}
+
+pub(crate) struct ReplacementScope(bool);
+impl ReplacementScope {
+    pub(crate) fn new(enabled: bool) -> Self {
+        Self(REPLACE_ENABLED.with(|v| v.replace(enabled)))
+    }
+}
+impl Drop for ReplacementScope {
+    fn drop(&mut self) { REPLACE_ENABLED.with(|v| v.set(self.0)); }
+}
+
+pub fn _read_object(fs: &MemoryFs, gitdir: &str, oid: &str, format: &str) -> Result<ReadObjectResult, GitError> {
+    let mut target = oid.to_string();
+    if REPLACE_ENABLED.with(|v| v.get()) {
+        let gdir = discover_gitdir(fs, gitdir);
+        let mut seen = BTreeSet::new();
+        while let Ok(next) = crate::resolve_ref(fs, &gdir, &format!("refs/replace/{target}"), None) {
+            if !seen.insert(target.clone()) {
+                return Err(GitError::internal("replacement object cycle"));
+            }
+            target = next;
+        }
+    }
+    let mut result = read_object_raw(fs, gitdir, &target, format)?;
+    result.oid = oid.to_string();
+    Ok(result)
+}
+
+fn read_object_raw(
     fs: &MemoryFs,
     raw_gitdir: &str,
     oid: &str,

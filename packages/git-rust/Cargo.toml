@@ -11,4 +11,6 @@ crate-type = ["rlib", "cdylib"]
 path = "src/lib.rs"
 
 [dependencies]
+glob = "0.3.4"
 mcp-protocol-rust = { path = "../mcp-protocol-rust" }
+regex = "1.13.1"

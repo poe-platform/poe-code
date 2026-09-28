@@ -1295,7 +1295,7 @@ dual_fixture_test!(cli_cherry_range_diff_sparse_checkout_and_replace, cli_cherry
     execute_git_cli(&f.fs, &f.dir, &["commit", "-m", "unique cherry commit"]);
 
     let r_cherry = execute_git_cli(&f.fs, &f.dir, &["cherry", "-v", "HEAD~1", "HEAD"]);
-    assert_eq!(r_cherry.exit_code, 0);
+    assert_eq!(r_cherry.exit_code, 0, "{}", r_cherry.stderr);
     assert!(r_cherry.stdout.contains("+ ") && r_cherry.stdout.contains("unique cherry commit"));
 
     let r_rd = execute_git_cli(&f.fs, &f.dir, &["range-diff", "HEAD~1..HEAD", "HEAD~1..HEAD"]);

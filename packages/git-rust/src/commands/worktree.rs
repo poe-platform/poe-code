@@ -201,6 +201,9 @@ pub fn status_matrix(
             .collect())
     })?;
 
+    let skipped: BTreeSet<String> = GitIndexManager::acquire(fs, &gdir, |index| {
+        Ok(index.entries().into_iter().filter(|e| e.flags.skip_worktree).map(|e| e.path).collect())
+    })?;
     let prefix = format!("{dir}/");
     let mut all_paths: BTreeSet<String> = BTreeSet::new();
     for k in head_map.keys() {
@@ -238,7 +241,8 @@ pub fn status_matrix(
 
         let h_oid = head_map.get(&path).map(|e| e.oid.clone());
         let i_oid = index_map.get(&path).cloned();
-        let w_oid = compute_workdir_oid(fs, dir, &gdir, &path).map(|(oid, _)| oid);
+        let w_oid = compute_workdir_oid(fs, dir, &gdir, &path).map(|(oid, _)| oid)
+            .or_else(|| if skipped.contains(&path) { i_oid.clone() } else { None });
 
         let h_val = if h_oid.is_some() { 1 } else { 0 };
         let w_val = match (&h_oid, &w_oid, &i_oid) {

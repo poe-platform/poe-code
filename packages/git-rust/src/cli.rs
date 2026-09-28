@@ -67,6 +67,7 @@ pub fn execute_git_cli_with_http(
     args: &[&str],
     http: &dyn HttpClient,
 ) -> CliResult {
+    let _replacement_scope = crate::storage::ReplacementScope::new(!args.contains(&"--no-replace-objects"));
     let mut filtered: Vec<&str> = Vec::new();
     let mut effective_cwd = cwd.to_string();
     let mut explicit_gitdir: Option<String> = None;
@@ -98,6 +99,10 @@ pub fn execute_git_cli_with_http(
         }
         if filtered.is_empty() && let Some(w) = args[idx].strip_prefix("--work-tree=") {
             effective_cwd = w.to_string();
+            idx += 1;
+            continue;
+        }
+        if filtered.is_empty() && args[idx] == "--no-replace-objects" {
             idx += 1;
             continue;
         }
@@ -3837,7 +3842,7 @@ pub fn execute_git_cli_with_http(
         "for-each-ref" => {
             let mut fmt_str: Option<&str> = None;
             let mut max_count: Option<usize> = None;
-            let mut sort_desc = false;
+            let mut sort_keys = Vec::new();
             let mut patterns: Vec<&str> = Vec::new();
             let mut i = 0;
             while i < sub_args.len() {
@@ -3858,8 +3863,13 @@ pub fn execute_git_cli_with_http(
                     i += 1;
                     continue;
                 }
+                if sub_args[i] == "--sort" && i + 1 < sub_args.len() {
+                    sort_keys.push(sub_args[i + 1]);
+                    i += 2;
+                    continue;
+                }
                 if let Some(s) = sub_args[i].strip_prefix("--sort=") {
-                    sort_desc = s.starts_with('-');
+                    sort_keys.push(s);
                     i += 1;
                     continue;
                 }
@@ -3869,20 +3879,18 @@ pub fn execute_git_cli_with_http(
                 i += 1;
             }
             let mut all_refs: Vec<String> = Vec::new();
-            for prefix in ["refs/heads", "refs/tags", "refs/remotes"] {
-                for r in crate::list_refs(fs, &gitdir, prefix) {
-                    all_refs.push(format!("{prefix}/{r}"));
-                }
+            for r in crate::list_refs(fs, &gitdir, "refs") {
+                all_refs.push(format!("refs/{r}"));
             }
             all_refs.sort();
             all_refs.dedup();
-            if sort_desc {
-                all_refs.reverse();
+            if let Err(e) = crate::cli_refs::sort_refs(fs, &gitdir, &mut all_refs, &sort_keys) {
+                return CliResult::err(128, format!("fatal: {}\n", e.message));
             }
             let mut out = String::new();
             let mut emitted = 0usize;
             for full_ref in all_refs {
-                if !patterns.is_empty() && !patterns.iter().any(|p| full_ref == *p || full_ref.starts_with(&format!("{p}/"))) {
+                if !patterns.is_empty() && !patterns.iter().any(|p| full_ref == *p || full_ref.starts_with(&format!("{p}/")) || glob::Pattern::new(p).is_ok_and(|pattern| pattern.matches_with(&full_ref, glob::MatchOptions { require_literal_separator: true, ..Default::default() }))) {
                     continue;
                 }
                 let Ok(oid) = resolve_ref(fs, &gitdir, &full_ref, None) else {
@@ -3893,7 +3901,8 @@ pub fn execute_git_cli_with_http(
                 } else if let Ok(c) = crate::read_commit(fs, &gitdir, &oid) {
                     ("commit", crate::cli_history::subject(&c.commit.message))
                 } else {
-                    ("commit", String::new())
+                    let Ok(object) = crate::_read_object(fs, &gitdir, &oid, "content") else { continue; };
+                    (match object.obj_type.as_str() { "blob" => "blob", "tree" => "tree", _ => "unknown" }, String::new())
                 };
                 let short_ref = full_ref
                     .strip_prefix("refs/heads/")
@@ -3923,119 +3932,16 @@ pub fn execute_git_cli_with_http(
             }
             CliResult::ok(out)
         }
-        "cherry" => {
-            let verbose = sub_args.contains(&"-v");
-            let upstream = positionals.first().copied().unwrap_or("HEAD~1");
-            let head = positionals.get(1).copied().unwrap_or("HEAD");
-            let head_commits = crate::commands::plumbing::log(fs, &gitdir, Some(head), None, None, None, false, false).unwrap_or_default();
-            let up_commits = crate::commands::plumbing::log(fs, &gitdir, Some(upstream), None, None, None, false, false).unwrap_or_default();
-            let up_oid_set: std::collections::HashSet<String> = up_commits.iter().map(|c| c.oid.clone()).collect();
-            let up_subj_set: std::collections::HashSet<String> = up_commits
-                .iter()
-                .map(|c| crate::cli_history::subject(&c.commit.message))
-                .collect();
-            let mut branch_only: Vec<_> = head_commits.into_iter().take_while(|c| !up_oid_set.contains(&c.oid)).collect();
-            branch_only.reverse();
-            let mut out = String::new();
-            for c in branch_only {
-                let subj = crate::cli_history::subject(&c.commit.message);
-                let sign = if up_subj_set.contains(&subj) { '-' } else { '+' };
-                if verbose {
-                    out.push_str(&format!("{sign} {} {subj}\n", c.oid));
-                } else {
-                    out.push_str(&format!("{sign} {}\n", c.oid));
-                }
+        "cherry" | "range-diff" => {
+            match crate::cli_patch::compare(fs, &repo_root, &gitdir, subcmd, sub_args) {
+                Ok(out) => CliResult::ok(out),
+                Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
             }
-            CliResult::ok(out)
-        }
-        "range-diff" => {
-            let r1 = positionals.first().copied().unwrap_or("HEAD~1..HEAD");
-            let r2 = positionals.get(1).copied().unwrap_or(r1);
-            let parse_rng = |rng: &str| -> Vec<crate::commands::plumbing::ReadCommitResult> {
-                if let Some((l, r)) = rng.split_once("..") {
-                    let all_r = crate::commands::plumbing::log(fs, &gitdir, Some(r), None, None, None, false, false).unwrap_or_default();
-                    let all_l = crate::commands::plumbing::log(fs, &gitdir, Some(l), None, None, None, false, false).unwrap_or_default();
-                    let l_set: std::collections::HashSet<String> = all_l.into_iter().map(|c| c.oid).collect();
-                    let mut list: Vec<_> = all_r.into_iter().take_while(|c| !l_set.contains(&c.oid)).collect();
-                    list.reverse();
-                    list
-                } else {
-                    crate::commands::plumbing::log(fs, &gitdir, Some(rng), None, Some(1), None, false, false).unwrap_or_default()
-                }
-            };
-            let left_list = parse_rng(r1);
-            let right_list = parse_rng(r2);
-            let max_len = left_list.len().max(right_list.len());
-            let mut out = String::new();
-            for idx in 0..max_len {
-                match (left_list.get(idx), right_list.get(idx)) {
-                    (Some(lc), Some(rc)) => {
-                        let l_subj = crate::cli_history::subject(&lc.commit.message);
-                        let r_subj = crate::cli_history::subject(&rc.commit.message);
-                        let rel = if l_subj == r_subj { '=' } else { '!' };
-                        out.push_str(&format!(
-                            "{}:  {} {} {}:  {} {}\n",
-                            idx + 1,
-                            &lc.oid[..7.min(lc.oid.len())],
-                            rel,
-                            idx + 1,
-                            &rc.oid[..7.min(rc.oid.len())],
-                            r_subj
-                        ));
-                    }
-                    (Some(lc), None) => {
-                        out.push_str(&format!(
-                            "{}:  {} < -:  ------- {}\n",
-                            idx + 1,
-                            &lc.oid[..7.min(lc.oid.len())],
-                            crate::cli_history::subject(&lc.commit.message)
-                        ));
-                    }
-                    (None, Some(rc)) => {
-                        out.push_str(&format!(
-                            "-:  ------- > {}:  {} {}\n",
-                            idx + 1,
-                            &rc.oid[..7.min(rc.oid.len())],
-                            crate::cli_history::subject(&rc.commit.message)
-                        ));
-                    }
-                    (None, None) => {}
-                }
-            }
-            CliResult::ok(out)
         }
         "sparse-checkout" => {
-            let action = positionals.first().copied().unwrap_or("list");
-            let sparse_file = join(&[&gitdir, "info/sparse-checkout"]);
-            let _ = fs.mkdir(&join(&[&gitdir, "info"]));
-            match action {
-                "init" => {
-                    let _ = set_config(fs, &gitdir, "core.sparseCheckout", Some("true"), false);
-                    if !fs.exists(&sparse_file) {
-                        fs.write_str(&sparse_file, "/*\n!/*/\n");
-                    }
-                    CliResult::ok("")
-                }
-                "set" => {
-                    let _ = set_config(fs, &gitdir, "core.sparseCheckout", Some("true"), false);
-                    let dirs: Vec<&str> = positionals.iter().skip(1).copied().collect();
-                    let body = dirs.into_iter().map(|d| format!("{d}\n")).collect::<String>();
-                    fs.write_str(&sparse_file, &body);
-                    CliResult::ok("")
-                }
-                "add" => {
-                    let existing = fs.read_str(&sparse_file).unwrap_or_default();
-                    let extra: String = positionals.iter().skip(1).map(|d| format!("{d}\n")).collect();
-                    fs.write_str(&sparse_file, &format!("{existing}{extra}"));
-                    CliResult::ok("")
-                }
-                "list" => CliResult::ok(fs.read_str(&sparse_file).unwrap_or_default()),
-                "disable" => {
-                    let _ = set_config(fs, &gitdir, "core.sparseCheckout", Some("false"), false);
-                    let _ = fs.rm(&sparse_file);
-                    CliResult::ok("")
-                }
-                _ => CliResult::err(128, format!("fatal: unknown sparse-checkout subcommand '{action}'\n")),
+            match crate::commands::sparse::execute(fs, &repo_root, &gitdir, sub_args) {
+                Ok(out) => CliResult::ok(out),
+                Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
             }
         }
         "replace" => {

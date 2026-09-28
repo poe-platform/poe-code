@@ -702,7 +702,9 @@ pub fn log(
     let mut last_commit: Option<ReadCommitResult> = None;
     let mut is_ok = false;
 
+    let mut visited = BTreeSet::new();
     while let Some(commit) = tips.pop() {
+        if !visited.insert(commit.oid.clone()) { continue; }
         if let Some(since_ts) = since_timestamp
             && commit.commit.committer.timestamp <= since_ts {
                 break;

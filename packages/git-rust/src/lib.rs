@@ -4,6 +4,8 @@ pub mod commands;
 pub mod cli;
 mod cli_files;
 mod cli_history;
+mod cli_patch;
+mod cli_refs;
 pub mod portable;
 pub mod errors;
 pub mod fixtures;

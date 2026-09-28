@@ -335,8 +335,10 @@ pub(crate) fn execute(
     let mut patch = None;
     let mut paths = Vec::new();
     let mut separator = false;
-    let mut author_filter: Option<&str> = None;
-    let mut grep_filter: Option<&str> = None;
+    let mut author_filters = Vec::new();
+    let mut grep_filters = Vec::new();
+    let mut all_match = false;
+    let mut fixed_strings = false;
     let mut grep_ignore_case = false;
     let mut no_merges = false;
     let mut merges_only = false;
@@ -388,15 +390,21 @@ pub(crate) fn execute(
         } else if arg == "--reverse" {
             reverse = true;
         } else if let Some(val) = arg.strip_prefix("--author=") {
-            author_filter = Some(val);
+            author_filters.push(val);
         } else if arg == "--author" && i + 1 < args.len() {
             i += 1;
-            author_filter = Some(args[i]);
+            author_filters.push(args[i]);
         } else if let Some(val) = arg.strip_prefix("--grep=") {
-            grep_filter = Some(val);
+            grep_filters.push(val);
         } else if arg == "--grep" && i + 1 < args.len() {
             i += 1;
-            grep_filter = Some(args[i]);
+            grep_filters.push(args[i]);
+        } else if arg == "--all-match" {
+            all_match = true;
+        } else if matches!(arg, "-F" | "--fixed-strings") {
+            fixed_strings = true;
+        } else if matches!(arg, "-E" | "--extended-regexp" | "--basic-regexp") {
+            // Accept Git's regex modes. The engine supports alternation and anchors.
         } else if matches!(arg, "-i" | "--regexp-ignore-case") {
             grep_ignore_case = true;
         } else if arg == "--no-merges" {
@@ -473,82 +481,67 @@ pub(crate) fn execute(
         };
     }
     let result = (|| {
-        let history = |rev: &str| {
-            log(
-                fs,
-                gitdir,
-                Some(&resolve(
-                    fs,
-                    gitdir,
-                    if rev.is_empty() { "HEAD" } else { rev },
-                )?),
-                None,
-                None,
-                None,
-                false,
-                false,
-            )
+        let compile = |patterns: &[&str]| -> Result<Vec<regex::Regex>, GitError> {
+            patterns.iter().map(|p| {
+                let pattern = if fixed_strings { regex::escape(p) } else { p.to_string() };
+                regex::RegexBuilder::new(&pattern).case_insensitive(grep_ignore_case).multi_line(true).build()
+                    .map_err(|e| GitError::internal(&format!("invalid pattern: {e}")))
+            }).collect()
         };
-        let mut commits = if let Some((left, right)) = revision.split_once("...") {
-            let a = history(left)?;
-            let b = history(right)?;
-            let a_ids: BTreeSet<_> = a.iter().map(|c| &c.oid).collect();
-            let b_ids: BTreeSet<_> = b.iter().map(|c| &c.oid).collect();
-            let common: BTreeSet<_> = a_ids.intersection(&b_ids).map(|id| (*id).clone()).collect();
-            let mut commits: Vec<_> = a
-                .into_iter()
-                .chain(b)
-                .filter(|c| !common.contains(&c.oid))
-                .collect();
-            commits.sort_by(|a, b| {
-                b.commit
-                    .committer
-                    .timestamp
-                    .cmp(&a.commit.committer.timestamp)
-            });
-            commits
-        } else if let Some((left, right)) = revision.split_once("..") {
-            let excluded: BTreeSet<_> = history(left)?.into_iter().map(|c| c.oid).collect();
-            history(right)?
-                .into_iter()
-                .filter(|c| !excluded.contains(&c.oid))
-                .collect()
-        } else if all_refs {
-            let mut combined = Vec::new();
-            for prefix in ["refs/heads", "refs/tags", "refs/remotes"] {
-                for r in crate::list_refs(fs, gitdir, prefix) {
-                    if let Ok(list) = log(fs, gitdir, Some(&format!("{prefix}/{r}")), None, None, None, false, false) {
-                        combined.extend(list);
-                    }
+        let authors = compile(&author_filters)?;
+        let greps = compile(&grep_filters)?;
+        let history = |rev: &str| -> Result<Vec<ReadCommitResult>, GitError> {
+            let oid = resolve(fs, gitdir, if rev.is_empty() { "HEAD" } else { rev })?;
+            if first_parent {
+                let shallow = crate::GitShallowManager::read(fs, gitdir);
+                let mut list = Vec::new();
+                let mut cur = Some(oid);
+                let mut seen = BTreeSet::new();
+                while let Some(oid) = cur {
+                    if !seen.insert(oid.clone()) { break; }
+                    let c = crate::read_commit(fs, gitdir, &oid)?;
+                    cur = if shallow.contains(&oid) { None } else { c.commit.parent.first().cloned() };
+                    list.push(c);
                 }
+                Ok(list)
+            } else {
+                log(fs, gitdir, Some(&oid), None, None, None, false, false)
             }
-            if let Ok(list) = log(fs, gitdir, Some("HEAD"), None, None, None, false, false) {
-                combined.extend(list);
-            }
-            combined.sort_by_key(|b| std::cmp::Reverse(b.commit.committer.timestamp));
-            combined
-        } else if first_parent {
-            let mut list = Vec::new();
-            let mut cur_oid = Some(resolve(fs, gitdir, revision)?);
-            while let Some(oid) = cur_oid {
-                let Ok(c) = crate::read_commit(fs, gitdir, &oid) else { break };
-                cur_oid = c.commit.parent.first().cloned();
-                list.push(c);
-            }
-            list
-        } else {
-            let follow_path = if follow && paths.len() == 1 { Some(paths[0].as_str()) } else { None };
-            log(
-                fs,
-                gitdir,
-                Some(&resolve(fs, gitdir, revision)?),
-                follow_path,
-                None,
-                None,
-                false,
-                follow && follow_path.is_some(),
-            )?
         };
+        let ancestors = |rev: &str| -> Result<BTreeSet<String>, GitError> {
+            Ok(log(fs, gitdir, Some(&resolve(fs, gitdir, if rev.is_empty() { "HEAD" } else { rev })?), None, None, None, false, false)?.into_iter().map(|c| c.oid).collect())
+        };
+        let mut excluded = BTreeSet::new();
+        let mut tips = Vec::new();
+        if let Some((left, right)) = revision.split_once("...") {
+            let a = ancestors(left)?;
+            let b = ancestors(right)?;
+            excluded.extend(a.intersection(&b).cloned());
+            tips.extend([left, right]);
+        } else if let Some((left, right)) = revision.split_once("..") {
+            excluded = ancestors(left)?;
+            tips.push(right);
+        } else {
+            tips.push(revision);
+        }
+        let mut commits = Vec::new();
+        if all_refs {
+            for r in crate::list_refs(fs, gitdir, "refs") {
+                if let Ok(list) = history(&format!("refs/{r}")) { commits.extend(list); }
+            }
+        }
+        for tip in tips {
+            if !first_parent && !all_refs && !revision.contains("..") {
+                let follow_path = if follow && paths.len() == 1 { Some(paths[0].as_str()) } else { None };
+                commits.extend(log(fs, gitdir, Some(&resolve(fs, gitdir, tip)?), follow_path, None, None, false, follow && follow_path.is_some())?);
+            } else {
+                commits.extend(history(tip)?);
+            }
+        }
+        commits.retain(|c| !excluded.contains(&c.oid));
+        if all_refs || revision.contains("...") {
+            commits.sort_by_key(|c| std::cmp::Reverse(c.commit.committer.timestamp));
+        }
         let mut seen = BTreeSet::new();
         commits.retain(|c| seen.insert(c.oid.clone()));
         let mut selected = Vec::new();
@@ -563,26 +556,10 @@ pub(crate) fn execute(
             if merges_only && c.commit.parent.len() <= 1 {
                 continue;
             }
-            if let Some(af) = author_filter {
-                let hay = format!("{} <{}>", c.commit.author.name, c.commit.author.email);
-                let ok = if grep_ignore_case {
-                    hay.to_lowercase().contains(&af.to_lowercase())
-                } else {
-                    hay.contains(af)
-                };
-                if !ok {
-                    continue;
-                }
-            }
-            if let Some(gf) = grep_filter {
-                let ok = if grep_ignore_case {
-                    c.commit.message.to_lowercase().contains(&gf.to_lowercase())
-                } else {
-                    c.commit.message.contains(gf)
-                };
-                if !ok {
-                    continue;
-                }
+            if !authors.is_empty() && !authors.iter().any(|r| r.is_match(&format!("{} <{}>", c.commit.author.name, c.commit.author.email))) { continue; }
+            if !greps.is_empty() {
+                let matched = if all_match { greps.iter().all(|r| r.is_match(&c.commit.message)) } else { greps.iter().any(|r| r.is_match(&c.commit.message)) };
+                if !matched { continue; }
             }
             let path_ok = (follow && paths.len() == 1) || paths.is_empty() || touches_paths(fs, gitdir, &c, &paths)?;
             if path_ok {

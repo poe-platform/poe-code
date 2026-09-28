@@ -11,6 +11,11 @@
       "default": "./dist/native/fs-seek/loader.mjs"
     },
     "#safe-js-platform": {
+      "types": {
+        "workerd": "./dist/platform/workerd.d.ts",
+        "browser": "./dist/platform/workerd.d.ts",
+        "default": "./dist/platform/node.d.ts"
+      },
       "workerd": "./dist/platform/workerd.js",
       "browser": "./dist/platform/workerd.js",
       "default": "./dist/platform/node.js"

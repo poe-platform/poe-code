@@ -143,6 +143,7 @@ export async function prepareFileInput(
   let ended = false;
   let buffer: InputBufferLease | undefined;
   let size = 0;
+  let descriptorPosition: number | undefined;
   let pendingReads = 0;
   let work: Promise<void> = Promise.resolve();
   let admitted!: () => void;
@@ -240,11 +241,12 @@ export async function prepareFileInput(
           const bytes = buffer.bytes!;
           const remaining = budget.limits.maxInputBytes - size;
           const chunk = bytes.subarray(0, Math.min(maximum, remaining >= bytes.length ? bytes.length : remaining + 1));
-          const length = await descriptor!.read(chunk, null, { signal: readSignal });
+          const length = await descriptor!.read(chunk, descriptorPosition ?? null, { signal: readSignal });
           check();
           if (!Number.isSafeInteger(length) || length < 0 || length > chunk.length) throw new FsError("EIO", { syscall: "read", path });
           if (length > budget.limits.maxInputBytes - size) throw new FsError("EFBIG", { syscall: "read", path });
           size += length;
+          if (descriptorPosition !== undefined) descriptorPosition += length;
           const done = length === 0;
           ended = done && provenance !== "regular";
           return done ? { done: true, value: undefined } : { done: false, value: chunk.subarray(0, length) };
@@ -267,17 +269,20 @@ export async function prepareFileInput(
     };
     admitted();
     const seek = legacySource?.seek;
+    const positioned = provenance === "regular" && descriptor?.capabilities.positionedRead;
     return Object.freeze({ source, close, options: Object.freeze({
       provenance, eof: provenance === "regular" ? "retryable" : "terminal",
       ...(descriptor ? { descriptor } : {}), ...(stat ? { stat } : {}),
       readChunk: source.next.bind(source),
-      ...(seek ? { async seek(position: number, callerSignal: AbortSignal) {
+      ...(seek || positioned ? { async seek(position: number, callerSignal: AbortSignal) {
         callerSignal.throwIfAborted();
         check();
         await work;
         check();
         callerSignal.throwIfAborted();
-        await seek.call(legacySource, position, callerSignal);
+        if (!Number.isSafeInteger(position) || position < 0) throw new RangeError("Input position must be a nonnegative safe integer");
+        if (positioned) descriptorPosition = position;
+        else await seek!.call(legacySource, position, callerSignal);
         check();
         ended = false;
       } } : {}),
@@ -1445,8 +1450,6 @@ export class ShellInput implements ByteSource, CommandInput {
     if (allocation) {
       allocation.reserve(finalLen + 96, 0);
     }
-    cursor.position += recLen;
-    cursor.remainder = recLen < rem.length ? rem.subarray(recLen) : undefined;
     const slice = rem.subarray(0, finalLen);
     let value: ShellValue;
     if (isAscii && finalLen <= 512) {

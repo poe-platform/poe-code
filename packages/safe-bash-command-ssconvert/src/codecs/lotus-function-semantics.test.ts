@@ -210,3 +210,26 @@ for (const [version, named] of [[0x404, false], [0x1000, false], [0x1002, true]]
       .toEqual({ kind: "number", value: item.value });
   });
 }
+
+for (const [version, named] of [[0x404, false], [0x1000, false], [0x1002, true]] as const) {
+  it.each([0, 1, -1])(`converts four-argument INDEX offsets (version ${version}, named ${named}, sheet %i)`, async sheet => {
+    // #3478 requires row/column conversion when the optional zero-based sheet
+    // offset is present too. A single-sheet area admits only offset zero.
+    const modern = version >= 0x1000;
+    const number = (value: number) => [5, ...word(modern ? Math.abs(value) * 2 : Math.abs(value)),
+      ...(value < 0 ? [modern ? 14 : 8] : [])];
+    const range = modern ? [2, 0, ...word(1), 0, 0, ...word(2), 0, 1]
+      : [2, ...word(0), ...word(1), ...word(1), ...word(2)];
+    const name = Array.from("@<<@123>>INDEX(", c => c.charCodeAt(0));
+    const tokens = [...range, ...number(1), ...number(0), ...number(sheet),
+      ...(named ? [0x7a, 4, ...word(name.length), ...name] : [98, 4]), 3];
+    const initial = formulaFixture(version, tokens);
+    const cells = [[1, 0, 1], [1, 1, 10], [2, 0, 2], [2, 1, 20]].flatMap(([row, col, value]) => modern
+      ? record(24, [...word(row!), 0, col!, ...word(value! * 2)])
+      : record(13, [0, ...word(col!), ...word(row!), ...word(value!)]));
+    const book = await readLotus(Uint8Array.from([...initial.subarray(0, -4), ...cells, ...record(1)]), context);
+    expect(book.sheets[0]!.cells[0]!.formula).toBe(`=INDEX($A$2:$B$3,(0+1),(1+1),(${sheet < 0 ? "-(1)" : sheet}+1))`);
+    expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual(sheet === 0
+      ? { kind: "number", value: 10 } : { kind: "error", value: "#REF!" });
+  });
+}

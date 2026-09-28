@@ -966,7 +966,7 @@
       }
     },
     "lotusLookupSemantics": {
-      "status": "implemented for direct/named three-argument INDEX, HLOOKUP and VLOOKUP",
+      "status": "implemented direct/named three-argument lookup and four-argument INDEX offset conversion; multi-sheet INDEX remains open",
       "source": {
         "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/lotus/lotform.cxx",
         "sha256": "1a6b859a76fe0ac7d7485b0b298996125a19ecfc4b170fcbeccd9ca0a00b2794",
@@ -975,7 +975,16 @@
       },
       "validation": "Nine original regressions failed. All 239 tests in thirteen Lotus files, maintained package lint/types and selected build pass.",
       "publicReadback": "Compiled command --recalc XLSX and SDK readback preserve INDEX/VLOOKUP/HLOOKUP results 10/20/20 and translated formulas across BOF 0x0404 direct, 0x1000 direct and 0x1002 named. Inputs 163/183/240 bytes, outputs 4159/4147/4147 bytes; exit 0, empty stderr. Fixtures remain in memory.",
-      "remaining": "Other arities, named aliases, relative sheets, range flag packing, Works semantics and independent application qualification remain open."
+      "remaining": "Other arities, named aliases, relative sheets, range flag packing, Works semantics and independent application qualification remain open.",
+      "fourArguments": {
+        "issue": 3478,
+        "implementation": "Apply row/column swap and zero-based increments when INDEX has four operands, including incrementing its sheet offset. Single-sheet ranges accept offset zero.",
+        "sourceScope": "Pinned LibreOffice DoFunc lines 90-98 swaps the last two stack operands, without a separate optional-sheet branch. Gnumeric declares variable INDEX arity but forwards its arguments unchanged. The requested four-argument convention is implemented explicitly rather than copied from either incomplete path.",
+        "validation": "Nine original failures now pass. 460 tests in 22 Lotus files, package lint/types and selected build pass.",
+        "publicQualification": "12 compiled SDK/command outputs across both XLSX editions independently preserve 36 formulas and values: offset 0 selects 10, offsets 1/-1 return #REF!.",
+        "nativeQualification": "Six Calc readbacks preserve all formulas and match 12 valid/positive-out-of-range results. Six negative-offset cases yield #VALUE! in Calc versus #REF! in the current Gnumeric-style evaluator; this difference is unresolved, not passing qualification.",
+        "remaining": "A fourth argument on a multi-sheet range still needs selection semantics and transport qualification. #3478 stays open."
+      }
     },
     "lotusNamedAddinAudit": {
       "status": "implemented missing named aliases; all 47 source-recognized names now resolve",

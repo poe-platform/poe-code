@@ -334,10 +334,11 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
             if (operands.length > 1) operands[1] = `(${operands[1]}+1)`;
             break;
           case "INDEX":
-            if (operands.length === 3) {
+            if (operands.length === 3 || operands.length === 4) {
               const [, column, row] = operands;
               operands[1] = `(${row}+1)`;
               operands[2] = `(${column}+1)`;
+              if (operands.length === 4) operands[3] = `(${operands[3]}+1)`;
             }
             break;
           case "STRING": operands.push("TRUE()"); break;

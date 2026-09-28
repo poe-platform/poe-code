@@ -11212,6 +11212,7 @@ export class Runtime {
             if (part.alternate && part.alternate.parts.length > 0) return false;
           } else if (part.operator === "-" || part.operator === ":-" || part.operator === "+" || part.operator === ":+") {
             if (!part.alternate || !part.alternate.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring && p.prefixNames !== "@"))) return false;
+            if (!this.isPureSyncValueWord(part.alternate, rawState, allowAt)) return false;
           } else if (part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") {
             if (!part.alternate || part.alternate.parts.length === 0) return false;
             const q0 = part.alternate.parts[0]!.quoted;
@@ -17487,6 +17488,9 @@ export class Runtime {
     }
     if (part.kind === "variable" && !part.indirect && !part.prefixNames && !part.specialParameter && state.variableAttributes?.get(part.name)?.includes("n")) {
       const target = this.variableTarget(this.referenceName(state, part.name))!;
+      if (target.subscript !== undefined && getArraySelector(part) !== undefined) {
+        throw new ExpansionFailure(`${part.name}: bad substitution`, io.diagnosticLine ?? part.line);
+      }
       const resolved = { ...part, name: target.name };
       copyArraySelector(part, resolved);
       if (target.subscript === "@" || target.subscript === "*") {
@@ -18284,6 +18288,8 @@ export class Runtime {
         }
         out += part.value;
       } else if (part.kind === "variable") {
+        // Default operands containing name lists need the field-preserving evaluator.
+        if (split && part.alternate?.parts.some(entry => entry.kind === "variable" && entry.prefixNames === "@")) return undefined;
         if (split && !part.quoted && (rawVars.IFS !== undefined && rawVars.IFS !== " \t\n")) return undefined;
         if ( !part.indirect && !part.prefixNames && !part.length && !part.substring && !part.transform && part.operator === undefined && getArraySelector(part) === undefined && (part.name === "?" || part.name === "#" || (part.name.length === 1 && part.name >= "1" && part.name <= "9"))) {
           let val: ShellValue | undefined;

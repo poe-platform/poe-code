@@ -1370,7 +1370,7 @@ pub fn execute_git_cli_with_http(
             };
             if sub_args.contains(&"--abbrev-ref") {
                 return match current_branch(fs, &gitdir, false, false) {
-                    Ok(branch) if target == "HEAD" => CliResult::ok(format!(
+                    Ok(branch) if target == "HEAD" || target == "@" => CliResult::ok(format!(
                         "{}\n",
                         branch.unwrap_or_else(|| "HEAD".to_string())
                     )),

@@ -34,3 +34,13 @@ fn read_commit_and_log_peel_arbitrarily_nested_tags() {
         );
     }
 }
+
+#[test]
+fn abbrev_ref_head_shorthand_tracks_branch_and_detached_head() {
+    let fs = repo();
+    assert_eq!(ok(&fs, &["rev-parse", "--abbrev-ref", "@"]), "main\n");
+    ok(&fs, &["checkout", "-b", "feature"]);
+    assert_eq!(ok(&fs, &["rev-parse", "--abbrev-ref", "@"]), "feature\n");
+    ok(&fs, &["checkout", "--detach", "HEAD"]);
+    assert_eq!(ok(&fs, &["rev-parse", "--abbrev-ref", "@"]), "HEAD\n");
+}

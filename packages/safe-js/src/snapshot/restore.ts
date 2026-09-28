@@ -901,6 +901,20 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
     throw new Error(`Snapshot references unknown heap value ${id}.`);
   }
 
+  if (serialized.kind === "bound-function" && isSerializedReferenceValue(serialized.target) &&
+      !state.heapValueById.has(serialized.target.id)) {
+    // Restore the deepest target first, so forward binds use constant call depth.
+    const targets: number[] = [];
+    let targetId = serialized.target.id;
+    while (!state.heapValueById.has(targetId)) {
+      targets.push(targetId);
+      const target = state.heap[String(targetId)];
+      if (target?.kind !== "bound-function" || !isSerializedReferenceValue(target.target)) break;
+      targetId = target.target.id;
+    }
+    for (let index = targets.length - 1; index >= 0; index--) restoreHeapValue(targets[index]!, state);
+  }
+
   if (serialized.kind === "guest-proxy") {
     const value = createGuestProxyCarrier(serialized.callable, serialized.constructible);
     state.heapValueById.set(id, value);

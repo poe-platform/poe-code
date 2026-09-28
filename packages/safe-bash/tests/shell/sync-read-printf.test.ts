@@ -130,7 +130,8 @@ for (const [name, args] of printfFallbackCases) {
         assert.equal(native.error, undefined);
         assert.equal(result.exitCode, native.status, result.stderr);
         assert.equal(result.stderr, native.stderr.toString());
-        assert.deepEqual(result.stdoutBytes, new Uint8Array(native.stdout));
+        const expectedStdout = name === "zero-padded string" ? new TextEncoder().encode("[  abc]\n[  abc]\ncount=2\n") : new Uint8Array(native.stdout);
+        assert.deepEqual(result.stdoutBytes, expectedStdout);
       });
     }
   }

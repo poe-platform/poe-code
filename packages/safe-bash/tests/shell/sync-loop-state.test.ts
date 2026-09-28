@@ -176,3 +176,55 @@ for (const loop of ['for ((j=0;j<2;j++))', 'for j in {0..1}', 'for ((j=0;j<1;j++
     });
   }
 }
+
+for (const [label, source] of [
+  [
+    "while getopts standard options and positional args",
+    "set -- -a alpha -b -c -a beta -- tail1 tail2; OPTIND=1; out=; while getopts \"a:bc\" opt; do case \"$opt\" in a) out+=\"A:$OPTARG;\" ;; b) out+=\"B;\" ;; c) out+=\"C;\" ;; esac; done; shift $((OPTIND - 1)); printf '%s|%s|%s|%s\\n' \"$out\" \"$OPTIND\" \"$opt\" \"$*\"",
+  ],
+  [
+    "while getopts silent mode unknown option and missing argument",
+    "set -- -a ok -x -a; OPTIND=1; out=; while getopts \":a:bc\" opt \"$@\"; do out+=\"$opt:${OPTARG-unset};\"; done; printf '%s|%s|%s\\n' \"$out\" \"$OPTIND\" \"$opt\"",
+  ],
+  [
+    "while getopts explicit arguments list and break",
+    "OPTIND=1; out=; while getopts \"a:bc\" opt -b -a stop -c; do out+=\"$opt:${OPTARG-none};\"; if [[ \"$opt\" == a ]]; then break; fi; done; printf '%s|%s|%s\\n' \"$out\" \"$OPTIND\" \"$opt\"",
+  ],
+
+  [
+    "compound array assignment and reset inside sync loop",
+    "out=; for i in 1 2 3; do arr=(\"x_$i\" \"y_$i\"); arr+=(\"z_$i\"); out+=\"${arr[0]},${arr[1]},${arr[2]},${#arr[@]};\"; arr=(); out+=\"${#arr[@]};\"; done; printf '%s\\n' \"$out\"",
+  ],
+  [
+    "printf -- leading-dash format in stdout, -v, and substitution for-loop",
+    "i=outer; sub=$(for i in 1 2 3; do printf -- \"-%s:%d\\n\" \"item\" \"$i\"; done); out=; for k in 1 2; do printf -v v -- \"--k=%02d\" \"$k\"; out+=\"$v;\"; done; printf '%s|%s|%s\\n' \"$i\" \"${sub//$'\\n'/,}\" \"$out\"",
+  ],
+] as const) {
+  test(`wave 90 sync loop parity: ${label}`, async () => {
+    const bash = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+    assert.equal(bash.status, 0, bash.stderr);
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });
+    try {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, bash.status, result.stderr);
+      assert.equal(result.stderr, bash.stderr);
+      assert.equal(result.stdout, bash.stdout);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("wave 90 sync loop parity: mapfile -t and readarray -t here-string inside sync loop", async () => {
+  const source = "nl=$'\\n'; out=; for i in 1 2 3; do mapfile -t arr <<< \"r${i}_0${nl}r${i}_1${nl}r${i}_2\"; readarray -t <<< \"m${i}_a${nl}m${i}_b\"; out+=\"${arr[0]}:${arr[2]}:${#arr[@]}:${MAPFILE[1]}:${#MAPFILE[@]};\"; done; printf '%s\\n' \"$out\"";
+  const fastShell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });
+  const refShell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()), limits: { maxExpansionBytes: 65536 } });
+  try {
+    const [fastRes, refRes] = await Promise.all([fastShell.exec(source), refShell.exec(source)]);
+    assert.equal(fastRes.exitCode, 0, fastRes.stderr);
+    assert.equal(fastRes.stderr, "");
+    assert.equal(fastRes.stdout, "r1_0:r1_2:3:m1_b:2;r2_0:r2_2:3:m2_b:2;r3_0:r3_2:3:m3_b:2;\n");
+    assert.equal(fastRes.stdout, refRes.stdout);
+  } finally {
+    await fastShell.dispose();
+    await refShell.dispose();
+  }
+});

@@ -29,6 +29,13 @@ for (const whitespace of ["\\r", "\\v", "\\f"]) {
 for (const initial of ["x=before", "unset x", "export x=before"]) {
   cases.push([`zero iterations preserve ${initial}`, `${initial}; empty=; set -a; for x in $empty; do :; done; set +a; echo "\${x-unset}"; export -p`]);
 }
+for (const whitespace of ["\\r", "\\v", "\\f"]) {
+  cases.push([`nested for $v preserves ${whitespace}`, `v=$'${whitespace}foo${whitespace} \\tbar${whitespace}\\n'; out=; for i in 1 2; do for w in $v; do out="$out[$w]"; done; done; printf '%s' "$out"`]);
+  cases.push([`set -- $v preserves ${whitespace}`, `v=$'${whitespace}foo${whitespace} \\tbar${whitespace}\\n'; set -- $v; printf '[%s][%s]' "$1" "$2"`]);
+}
+for (const initial of ["x=before", "unset x", "export x=before"]) {
+  cases.push([`nested zero iterations preserve ${initial}`, `${initial}; empty=; set -a; for i in 1 2; do for x in $empty; do :; done; done; set +a; echo "\${x-unset}"; export -p`]);
+}
 
 for (const [name, source] of cases) test(name, async () => {
   // Compare only the named variable's export attribute; unrelated inherited

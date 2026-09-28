@@ -313,3 +313,23 @@ for (const args of [
     }
   }
 }
+test("Wave 90: while getopts, mapfile -t <<<, arr=(...), printf --, and $(for ...) in trySyncLoop", async () => {
+  const registry = new CommandRegistry();
+  for (const cmd of createStandardCommands()) registry.register(cmd);
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: registry });
+  try {
+    const r1 = await shell.exec(
+      "set -- $(for i in {1..40}; do printf -- \"-a val%d -b \" \"$i\"; done); cnt=0; last=; while getopts \"a:bc\" opt; do case \"$opt\" in a) last=\"$OPTARG\"; ((cnt++)) ;; b) ((cnt++)) ;; esac; done; echo \"$cnt:$last:$OPTIND\""
+    );
+    assert.equal(r1.exitCode, 0, r1.stderr);
+    assert.equal(r1.stdout, "80:val40:121\n");
+
+    const r2 = await shell.exec(
+      "nl=$'\\n'; for i in {1..20}; do mapfile -t lines <<< \"L1_${i}${nl}L2_${i}${nl}L3_${i}\"; arr=(\"A_$i\" \"B_$i\"); done; echo \"${lines[0]}:${lines[2]}:${#lines[@]}:${arr[0]}:${arr[1]}:${#arr[@]}\""
+    );
+    assert.equal(r2.exitCode, 0, r2.stderr);
+    assert.equal(r2.stdout, "L1_20:L3_20:3:A_20:B_20:2\n");
+  } finally {
+    await shell.dispose();
+  }
+});

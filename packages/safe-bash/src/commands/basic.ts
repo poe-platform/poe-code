@@ -260,11 +260,13 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
 }
 
 export function tryFastPrintf(args: readonly string[]): string | undefined {
-  if (args.length === 0) return undefined;
-  const format = args[0]!;
-  if (format.startsWith("-") || format.length > 256) return undefined;
+  const hasDoubleDash = args[0] === "--";
+  const fmtIdx = hasDoubleDash ? 1 : 0;
+  if (args.length <= fmtIdx) return undefined;
+  const format = args[fmtIdx]!;
+  if ((!hasDoubleDash && format.startsWith("-")) || format.length > 256) return undefined;
   let result = "";
-  let argument = 1;
+  let argument = fmtIdx + 1;
   do {
     const before = argument;
     for (let offset = 0; offset < format.length;) {

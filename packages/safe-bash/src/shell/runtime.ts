@@ -11948,6 +11948,9 @@ export class Runtime {
     const vars: string[] = [];
     for (let i = startIdx; i < cmd.words.length; i++) {
       const vn = cmd.words[i]!.plain;
+      // Plain unset can remove a function once its variable is absent, including
+      // on a later iteration. Let the full builtin handle that distinction.
+      if (vn && startIdx === 1 && hasShellFunction(rawState, vn)) return undefined;
       if (!vn || vn.startsWith("-") || !isShellIdentifier(vn) || controlNames.has(vn) || vn === "OPTIND" || rawState.readonlyVariables?.has(vn) || rawState.variableAttributes?.get(vn) || store?.get(vn) || stateMonitor(rawState)?.hasOverlay(vn) || rawState.locals.some(f => f.has(vn))) {
         return undefined;
       }
@@ -13620,7 +13623,7 @@ export class Runtime {
             if (rawVal.charCodeAt(j) >= 128) { asciiOk = false; break; }
           }
           if (asciiOk) {
-            const splitWords = rawVal.trim().length === 0 ? [] : rawVal.trim().split(/[ \t\n]+/);
+            const splitWords = rawVal.split(/[ \t\n]+/).filter(word => word.length > 0);
             if (splitWords.length <= 1500) fastLoopWords = splitWords;
           }
         }
@@ -13632,7 +13635,7 @@ export class Runtime {
             if (subText.charCodeAt(j) >= 128) { asciiOk = false; break; }
           }
           if (asciiOk) {
-            const splitWords = subText.trim().length === 0 ? [] : subText.trim().split(/[ \t\n]+/);
+            const splitWords = subText.split(/[ \t\n]+/).filter(word => word.length > 0);
             if (splitWords.length <= 1500) fastLoopWords = splitWords;
           }
         }
@@ -13779,7 +13782,7 @@ export class Runtime {
         }
       }
       if (!canUseIntRegisters) {
-        touched.add(command.name);
+        if (fastLoopWords.length > 0) touched.add(command.name);
         this.budget.parsing.restore(intBudgetSnapshot);
         regNames.length = 0;
         const fb = this.runSyncForFallback( command.name, fastLoopWords, bodyAssignments, rawState, io, monitor, touched, mode, );
@@ -13801,12 +13804,6 @@ export class Runtime {
             monitor.publishStringVariable(varName, finalVal);
             if (rawState.allexport) monitor.proxy.exported.add(varName);
           }
-        }
-      } else if (touched.size === 1) {
-        const finalVal = rawState.variables[command.name];
-        if (finalVal !== undefined) {
-          monitor.publishStringVariable(command.name, finalVal);
-          if (rawState.allexport) monitor.proxy.exported.add(command.name);
         }
       } else {
         for (const varName of touched) {
@@ -14179,6 +14176,7 @@ export class Runtime {
           for (let ui = 0; ui < step.unsetVars.length; ui++) {
             const uvn = step.unsetVars[ui]!;
             delete rawState.variables[uvn];
+            monitor.proxy.exported.delete(uvn);
             touched.add(uvn);
           }
           lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
@@ -14713,6 +14711,7 @@ export class Runtime {
         for (let ui = 0; ui < step.unsetVars.length; ui++) {
           const uvn = step.unsetVars[ui]!;
           delete rawState.variables[uvn];
+          monitor.proxy.exported.delete(uvn);
           touched.add(uvn);
         }
         lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
@@ -14880,6 +14879,7 @@ export class Runtime {
           for (let ui = 0; ui < step.unsetVars.length; ui++) {
             const uvn = step.unsetVars[ui]!;
             delete rawState.variables[uvn];
+            monitor.proxy.exported.delete(uvn);
             touched.add(uvn);
           }
           lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
@@ -19820,7 +19820,11 @@ export class Runtime {
       for (let argument = offset; argument < args.length; argument++) {
         if ((argument - offset) % 128 === 0) { this.budget.cpuCheckpoint(); await yieldTurn(this.signal); }
         let name = args[argument]!;
-        if (functions) {
+        const fallbackFunction = !variables && dereference && hasShellFunction(state, name)
+          && !Object.hasOwn(state.variables, name) && !arrayStore(state)?.get(name)
+          && !state.exported.has(name) && !state.variableAttributes?.has(name)
+          && !state.readonlyVariables?.has(name) && !state.locals.some(frame => frame.has(name));
+        if (functions || fallbackFunction) {
           if (state.readonlyFunctions?.has(name)) {
             await this.diagnostic(context, `unset: ${name}: cannot unset: readonly function`);
             status = 1;

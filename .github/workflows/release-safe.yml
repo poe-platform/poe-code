@@ -81,8 +81,9 @@ jobs:
           fi
           echo "publish=true" >> "$GITHUB_OUTPUT"
       - name: Restore check cache
+        id: check-cache
         if: steps.queue-check.outputs.publish == 'true'
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: .turbo/ci-cache
           key: safe-release-checks-v2-${{ runner.os }}-${{ runner.arch }}-${{
@@ -158,6 +159,12 @@ jobs:
         if: steps.queue-check.outputs.publish == 'true'
       - run: npm run lint:packages
         if: steps.queue-check.outputs.publish == 'true'
+      - name: Save check cache
+        if: always() && steps.queue-check.outputs.publish == 'true' && steps.check-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .turbo/ci-cache
+          key: ${{ steps.check-cache.outputs.cache-primary-key }}
       - name: Prepare scoped artifacts
         if: steps.queue-check.outputs.publish == 'true'
         env:

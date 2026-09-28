@@ -58,8 +58,9 @@ jobs:
       - run: npm clean-install
         if: steps.queue-check.outputs.superseded != 'true'
       - name: Restore workspace build cache
+        id: build-cache
         if: steps.queue-check.outputs.superseded != 'true'
-        uses: actions/cache@v6.1.0
+        uses: actions/cache/restore@v6.1.0
         with:
           path: .turbo/ci-cache
           key: ${{ runner.os }}-${{ runner.arch }}-build-v1-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -69,6 +70,12 @@ jobs:
         env:
           POE_CHECK_CACHE_DIR: .turbo/ci-cache/checks-v1
         run: npm run build
+      - name: Save workspace build cache
+        if: always() && steps.queue-check.outputs.superseded != 'true' && steps.build-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: .turbo/ci-cache
+          key: ${{ steps.build-cache.outputs.cache-primary-key }}
       - name: Re-check release queue position after build
         if: steps.queue-check.outputs.superseded != 'true'
         id: post-build-queue-check
@@ -204,7 +211,8 @@ jobs:
       - name: Identify cache runtime
         run: node -e 'console.log("POE_CI_RUNTIME=" + JSON.stringify({versions:process.versions,platform:process.platform,arch:process.arch,image:process.env.ImageOS,imageVersion:process.env.ImageVersion}))' >> "$GITHUB_ENV"
       - name: Restore eligible unit task cache
-        uses: actions/cache@v6.1.0
+        id: unit-fresh-cache
+        uses: actions/cache/restore@v6.1.0
         with:
           path: .turbo/ci-cache
           key: ${{ runner.os }}-${{ runner.arch }}-unit-fresh-v1-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -216,6 +224,12 @@ jobs:
           POE_CHECK_CACHE_DIR: .turbo/ci-cache/checks-v1
           TURBO_FORCE: ${{ inputs.cold_cache && 'true' || 'false' }}
         run: npm run test:ci:fresh
+      - name: Save eligible unit task cache
+        if: always() && steps.unit-fresh-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: .turbo/ci-cache
+          key: ${{ steps.unit-fresh-cache.outputs.cache-primary-key }}
   unit-cached:
     if: ${{ !inputs.build_only && needs.build.outputs.superseded != 'true' }}
     needs: build
@@ -258,7 +272,8 @@ jobs:
       - name: Identify cache runtime
         run: node -e 'console.log("POE_CI_RUNTIME=" + JSON.stringify({versions:process.versions,platform:process.platform,arch:process.arch,image:process.env.ImageOS,imageVersion:process.env.ImageVersion}))' >> "$GITHUB_ENV"
       - name: Restore eligible unit task cache
-        uses: actions/cache@v6.1.0
+        id: unit-cache
+        uses: actions/cache/restore@v6.1.0
         with:
           path: .turbo/ci-cache
           key: ${{ runner.os }}-${{ runner.arch }}-unit-v1-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -268,6 +283,12 @@ jobs:
           POE_CHECK_CACHE_DIR: .turbo/ci-cache/checks-v1
           TURBO_FORCE: ${{ inputs.cold_cache && 'true' || 'false' }}
         run: npm exec -- turbo run test:ci:cached --filter=// --cache-dir=.turbo/ci-cache --cache=local:rw --output-logs=new-only --summarize
+      - name: Save eligible unit task cache
+        if: always() && steps.unit-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: .turbo/ci-cache
+          key: ${{ steps.unit-cache.outputs.cache-primary-key }}
   bash:
     if: ${{ !inputs.build_only && needs.build.outputs.superseded != 'true' }}
     needs: build
@@ -316,7 +337,8 @@ jobs:
       - name: Identify cache runtime
         run: node -e 'console.log("POE_CI_RUNTIME=" + JSON.stringify({versions:process.versions,platform:process.platform,arch:process.arch,image:process.env.ImageOS,imageVersion:process.env.ImageVersion}))' >> "$GITHUB_ENV"
       - name: Restore Bash shard cache
-        uses: actions/cache@v6.1.0
+        id: bash-cache
+        uses: actions/cache/restore@v6.1.0
         with:
           path: .turbo/ci-cache
           key: ${{ runner.os }}-${{ runner.arch }}-bash-shard-${{ matrix.shard }}-v1-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -327,3 +349,9 @@ jobs:
           POE_CHECK_CACHE_DIR: .turbo/ci-cache/checks-v1
           TURBO_FORCE: ${{ inputs.cold_cache && 'true' || 'false' }}
         run: node scripts/run-ci-bash-shard.mjs
+      - name: Save Bash shard cache
+        if: always() && steps.bash-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: .turbo/ci-cache
+          key: ${{ steps.bash-cache.outputs.cache-primary-key }}

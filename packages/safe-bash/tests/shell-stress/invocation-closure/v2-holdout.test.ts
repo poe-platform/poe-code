@@ -16,7 +16,8 @@ async function probe(id: string, originalHost = false, batch?: Batch, context?: 
   const env: Record<string, string> = { PATH: "unused", HOME: "/nonexistent", LC_ALL: "C", LANG: "C", TZ: "UTC" };
   if (process.env.INVOCATION_TRACE) env.INVOCATION_TRACE = process.env.INVOCATION_TRACE;
   const args = batch ? [`${owned}/v2-batch-child.ts`, "--batch", ...batch.ids] : [`${owned}/${originalHost ? "probe" : "v2-probe"}.ts`, id];
-  const pending = batch?.pending ?? boundedProcess(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", "--import", "./tests/shell-stress/invocation-modes/trace.mjs", ...args], { cwd: process.cwd(), env });
+  const trace = env.INVOCATION_TRACE ? ["--import", "./tests/shell-stress/invocation-modes/trace.mjs"] : [];
+  const pending = batch?.pending ?? boundedProcess(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", ...trace, ...args], { cwd: process.cwd(), env });
   if (batch) batch.pending = pending;
   const child = await pending;
   if (batch) context?.diagnostic(JSON.stringify({ id, sourceScope: "batch", batchIds: batch.ids,

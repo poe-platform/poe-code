@@ -14,6 +14,7 @@ const cases = [
   ["literal associative at key", 'declare -A map; map[foo]=bar; map[@]=""', "map[@]", 0],
   ["absent associative at key", 'declare -A map; map[foo]=bar', "map[@]", 1],
   ["literal associative star key", 'declare -A map; map[*]=""', "map[*]", 0],
+  ["absent associative star key", 'declare -A map; map[foo]=bar', "map[*]", 1],
   ["bare associative binding", 'declare -A map; map[foo]=bar', "map", 1],
   ["associative zero key", 'declare -A map; map[foo]=bar; map[0]=""', "map", 0],
   ["indexed zero", "arr=(a b)", "arr[0]", 0],

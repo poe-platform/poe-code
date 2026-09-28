@@ -4252,23 +4252,45 @@ export class Runtime {
     return state.variables[name];
   }
   private async variablePresent(state: State, name: string, io: IO): Promise<boolean> {
+    const simple = this.tryVariablePresentSync(state, name);
+    if (simple !== undefined) return simple;
     name = this.referenceName(state, name);
     const bracket = name.indexOf("[");
     const base = bracket < 0 ? name : name.slice(0, bracket);
-    const validName = base.length > 0 && [...base].every((character, index) =>
-      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_".includes(character)
-      || index > 0 && "0123456789".includes(character));
-    if (!validName || bracket >= 0 && !name.endsWith("]")) return false;
     const resolved = this.referenceName(state, base);
     const binding = arrayStore(state)?.get(resolved);
-    if (bracket < 0) return this.variable(state, base) !== undefined;
     const selector = name.slice(bracket + 1, -1);
-    if (!binding?.associative && (selector === "@" || selector === "*")) return binding ? binding.values.size > 0 : this.variable(state, base) !== undefined;
-    const store = arrayStore(state);
-    if (!store) return selector === "0" && this.variable(state, base) !== undefined;
-    const index = await this.arrayIndex(binding, { decimal: selector, source: selector }, state, io, store.owner);
+    const entries = this.presenceArrayEntries(state, resolved);
+    const store = requireArrays(state);
+    const index = await this.arrayIndex(binding, { decimal: selector, source: selector }, state, io, store.owner, false, entries ? entries.length - 1 : binding?.maximum ?? (this.variable(state, base) === undefined ? -1 : 0));
+    if (entries) return index !== undefined && entries[index] !== undefined;
     return index !== undefined && (binding ? binding.getValue(index) !== undefined
       : index === 0 && this.variable(state, base) !== undefined);
+  }
+  private presenceArrayEntries(state: State, name: string): readonly string[] | undefined {
+    if (name === "DIRSTACK") return [state.cwd, ...state.directoryStack?.entries ?? []];
+    if (name === "FUNCNAME" && state.variables.FUNCNAME === undefined && !arrayStore(state)?.get(name)) return state.functionNames ?? [];
+    return undefined;
+  }
+  private tryVariablePresentSync(state: State, name: string): boolean | undefined {
+    name = this.referenceName(state, name);
+    const bracket = name.indexOf("[");
+    const base = bracket < 0 ? name : name.slice(0, bracket);
+    if (!isShellIdentifier(base) || bracket >= 0 && !name.endsWith("]")) return false;
+    const resolved = this.referenceName(state, base);
+    const binding = arrayStore(state)?.get(resolved);
+    const entries = this.presenceArrayEntries(state, resolved);
+    if (bracket < 0) return entries ? entries[0] !== undefined : this.variable(state, base) !== undefined;
+    const selector = name.slice(bracket + 1, -1);
+    if (selector === "@" || selector === "*") return entries ? entries.length > 0 : binding ? binding.values.size > 0 : this.variable(state, base) !== undefined;
+    if (binding?.associative) {
+      if (selector.length === 0 || selector.length > 4096 || [...selector].some(character => "$`\\\"'".includes(character))) return undefined;
+      const key = binding.keys.get(fastStringHexIdentity(selector));
+      return key !== undefined && binding.getValue(key.index) !== undefined;
+    }
+    if (selector.length === 0 || selector.length > 9 || [...selector].some(character => !"0123456789".includes(character)) || selector.length > 1 && selector[0] === "0") return undefined;
+    const index = Number(selector);
+    return entries ? entries[index] !== undefined : binding ? binding.getValue(index) !== undefined : index === 0 && this.variable(state, base) !== undefined;
   }
   private requireParameter(value: string | undefined, name: string, state: State, io: IO, line?: number): void {
     if (value === undefined && state.nounset) throw new NounsetFailure(`${name}: unbound variable`, io.diagnosticLine ?? line);
@@ -7598,31 +7620,8 @@ export class Runtime {
       if (expr.operator === "-n") return val.length > 0 ? 0 : 1;
       if (expr.operator === "-z") return val.length === 0 ? 0 : 1;
       if (expr.operator === "-v") {
-        const bracket = val.indexOf("[");
-        if (bracket < 0) {
-          if (!isShellIdentifier(val)) return 1;
-          const b = store?.get(val);
-          if (b) return b.get(b.associative ? b.keys.get("30")?.index ?? -1 : 0) !== undefined ? 0 : 1;
-          return this.variable(rawState, val) !== undefined ? 0 : 1;
-        }
-        if (!val.endsWith("]")) return 1;
-        const base = val.slice(0, bracket);
-        if (!isShellIdentifier(base)) return 1;
-        const sub = val.slice(bracket + 1, -1);
-        const b = store?.get(base);
-        if (!b?.associative && (sub === "@" || sub === "*")) {
-          return (b ? b.values.size > 0 : this.variable(rawState, base) !== undefined) ? 0 : 1;
-        }
-        if (b?.associative) {
-          if (sub.length === 0 || sub.length > 4096 || /[$\x60\\"']/.test(sub)) return undefined;
-          const ek = b.keys.get(fastStringHexIdentity(sub));
-          return (ek !== undefined && b.getValue(ek.index) !== undefined) ? 0 : 1;
-        }
-        if (/^(?:0|[1-9][0-9]{0,8})$/.test(sub)) {
-          const idx = Number(sub);
-          return (b ? b.getValue(idx) !== undefined : idx === 0 && this.variable(rawState, base) !== undefined) ? 0 : 1;
-        }
-        return undefined;
+        const present = this.tryVariablePresentSync(rawState, val);
+        return present === undefined ? undefined : present ? 0 : 1;
       }
       if (syncConditionalFileUnaryOps.has(expr.operator)) {
         const fileRes = this.tryEvalFastMemoryFileUnary(expr.operator, val, rawState);

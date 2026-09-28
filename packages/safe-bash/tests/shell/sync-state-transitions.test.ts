@@ -154,3 +154,50 @@ test("local += append clears outer variable unless already local or prefixed, an
     "f1:sub\nafter_f1:global\nf2:locsub\nafter_f2:global\nf3:prefsub\nafter_f3:global\nacc:282:s:globalxxxxxxxxxxxxxxx\n"
   );
 });
+
+for (const redirect of ["", " 2>/dev/null"]) {
+  for (const [label, prefix, name, expected] of [
+    ["lazy pipeline status", "true | false", "PIPESTATUS[1]", 0],
+    ["missing pipeline status", "true | false", "PIPESTATUS[2]", 1],
+    ["pipeline arithmetic selector", "true | false", "PIPESTATUS[1+0]", 0],
+    ["directory stack", "true", "DIRSTACK", 0],
+    ["directory stack zero", "true", "DIRSTACK[0]", 0],
+    ["directory stack members", "true", "DIRSTACK[@]", 0],
+    ["missing directory stack", "true", "DIRSTACK[1]", 1],
+    ["directory arithmetic selector", "true", "DIRSTACK[1-1]", 0],
+    ["directory relative selector", "true", "DIRSTACK[-1]", 0],
+    ["associative members at", "declare -A a=([k]=v)", "a[@]", 0],
+    ["associative members star", "declare -A a=([k]=v)", "a[*]", 0],
+    ["empty associative members", "declare -A a=()", "a[@]", 1],
+    ["empty associative star", "declare -A a=()", "a[*]", 1],
+    ["associative zero", "declare -A a=([0]='')", "a", 0],
+    ["associative missing zero", "declare -A a=([k]=v)", "a", 1],
+    ["indexed sparse members", "a=([3]='')", "a[@]", 0],
+    ["indexed missing zero", "a=([3]=v)", "a", 1],
+    ["scalar zero", "a=''", "a[0]", 0],
+    ["scalar missing element", "a=v", "a[1]", 1],
+    ["unset members", "unset a", "a[@]", 1],
+    ["function outside function", "true", "FUNCNAME[0]", 1],
+  ] as const) {
+    test(`variable presence: ${label}${redirect}`, async () => {
+      const result = await execute(`${prefix}; [[ -v ${name} ]]${redirect}; echo $?`);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, `${expected}\n`);
+    });
+  }
+  test(`variable presence: nested function${redirect}`, async () => {
+    const result = await execute(`g() { f() { [[ -v FUNCNAME[1] ]]${redirect}; echo $?; }; f; }; g`);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "0\n");
+  });
+  test(`variable presence: nested function arithmetic${redirect}`, async () => {
+    const result = await execute(`g() { f() { [[ -v FUNCNAME[1+0] ]]${redirect}; echo $?; }; f; }; g`);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "0\n");
+  });
+  test(`variable presence: directory stack follows pushd and popd${redirect}`, async () => {
+    const result = await execute(`echo "\${DIRSTACK[0]}"; pushd / >/dev/null; [[ -v DIRSTACK[1] ]]${redirect}; echo $?; popd >/dev/null; [[ -v DIRSTACK[1] ]]${redirect}; echo $?`);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "/\n0\n1\n");
+  });
+}

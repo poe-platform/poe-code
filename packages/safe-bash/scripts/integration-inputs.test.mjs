@@ -23,6 +23,11 @@ test("host page binding regressions remain in active discovery", () => {
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/plugins/playwright-session-page-binding.test.ts"));
 });
 
+test("variable presence and sync state regressions remain in active discovery", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/sync-state-transitions.test.ts"));
+});
+
 test("compound fast-path replay regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/compound-fast-path-replay.test.ts"));

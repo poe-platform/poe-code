@@ -13892,7 +13892,7 @@ export class Runtime {
     tryWriteMemoryFileSync(this.backingFs, targetVal, encoded, append, mode, this.commandSignal);
   }
   private runSyncArithForFallback( e0: ArithmeticProgram, e1: ArithmeticProgram, e2: ArithmeticProgram, inductionName: string, hasDeferredSteps: boolean, deferredMask: number, bodyAssignments: readonly SyncLoopStep[], rawState: State, io: IO, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, mode: number, diagnosticLine: number, ): { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string; lastInductionVal: string | undefined } {
-    rawState.status = 0;
+    let enteredBody = false;
     let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
     let lastArg = rawState.lastArgument ?? "";
     let lastInductionVal: string | undefined;
@@ -13922,6 +13922,7 @@ export class Runtime {
       this.budget.loop();
       if ((++loopTurn & 127) === 0) runYieldCheckpoint(this.signal);
       if (!this.syncShellArithmeticNonZero(e1, rawState, diagnosticLine)) break;
+      enteredBody = true;
       if (hasDeferredSteps) lastInductionVal = rawState.variables[inductionName];
       for (let b = 0; b < bodyAssignments.length; b++) {
         const step = bodyAssignments[b]!;
@@ -14082,6 +14083,7 @@ export class Runtime {
     }
     flushStdoutEchoBatch();
     this.flushSyncStdoutBatch(io);
+    if (!enteredBody) rawState.status = 0;
     return { lastCmd, lastArg, lastInductionVal };
   }
   private _syncLoopFnCheckDepth = 0;

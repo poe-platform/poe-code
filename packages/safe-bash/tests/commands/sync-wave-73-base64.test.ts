@@ -9,6 +9,7 @@ import { createStreamFormatCommands } from "../../src/commands/stream-format/ind
 import { CommandRegistry } from "../../src/contracts/index.js";
 
 const cases = [
+  { name: "base64 decode preserves non-UTF8 pipeline bytes", source: 'for i in {1..2}; do x=$(printf //4= | base64 -d | base64); echo "$x"; done', expected: "//4=\n//4=\n" },
   { name: "base64 encodes raw non-UTF8 bytes", source: String.raw`for i in {1..2}; do x=$(printf '\377\376' | base64); echo "$x"; done`, expected: "//4=\n//4=\n" },
   { name: "base64 decode", source: 'for i in {1..2}; do x=$(printf aGk= | base64 -d); echo "$x"; done', expected: "hi\nhi\n" },
 ];

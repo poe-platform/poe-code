@@ -228,6 +228,8 @@ function stageBuildOutputPatterns(stage, configuredOutputs = ["dist/**"]) {
   }
   if (buildScript.includes("scripts/build-browser-run-code-guest.ts")) {
     patterns.add("src/browser-run-code-guest.generated.js");
+    patterns.add("src/browser-codegen.generated.js");
+    patterns.add("src/browser-screenshot.generated.js");
   }
   if (buildScript.includes("scripts/build-wasm.mjs")) {
     patterns.add("src/wasm.generated.ts");
@@ -247,6 +249,20 @@ function normalizeCachedBuildOutputs(patterns, outputs) {
       .map(entry => ({ ...entry, path: entry.path.slice("dist/".length) }));
     if (mirrored.length > 0) {
       normalized = [...normalized, ...mirrored];
+    }
+  }
+  for (const generatedName of [
+    "browser-run-code-guest.generated.js",
+    "browser-codegen.generated.js",
+    "browser-screenshot.generated.js"
+  ]) {
+    const srcPath = `src/${generatedName}`;
+    const distPath = `dist/${generatedName}`;
+    if (patterns.includes(srcPath) && !normalized.some(entry => entry.path === srcPath)) {
+      const distEntry = normalized.find(entry => entry.path === distPath);
+      if (distEntry) {
+        normalized = [...normalized, { ...distEntry, path: srcPath }];
+      }
     }
   }
   for (const pattern of patterns.slice(1)) {

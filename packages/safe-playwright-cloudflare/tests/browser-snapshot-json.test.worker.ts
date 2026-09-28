@@ -181,6 +181,12 @@ export default {
 				await page.setContent(
 					'<iframe srcdoc="<button>Child</button>"></iframe>'.repeat(128),
 				);
+				await (page as unknown as Page).waitForFunction(
+					() =>
+						Array.from(document.querySelectorAll("iframe")).every(
+							frame => frame.contentDocument?.querySelector("button") !== null,
+						),
+				);
 				const tree = await lease.captureSnapshotJSON!(page, {
 					signal: new AbortController().signal,
 					timeoutMs: 15000,

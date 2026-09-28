@@ -57,15 +57,17 @@ export async function assertRunCodeTimeouts(f: {
 	assert.match(changed.inheritedNavigation, /Timeout 70ms exceeded/);
 	await f.run(`async page => {
    page.setDefaultTimeout(undefined); page.setDefaultNavigationTimeout(undefined);
-   page.context().setDefaultTimeout(25); page.context().setDefaultNavigationTimeout(35);
+   page.context().setDefaultTimeout(125); page.context().setDefaultNavigationTimeout(135);
  }`);
 	await assert.rejects(
 		f.page.getByRole("button", { name: "Missing" }).click(),
-		/Timeout 25ms exceeded/,
+		/Timeout 125ms exceeded/,
 	);
 	await assert.rejects(
 		f.page.waitForURL("https://missing.invalid"),
-		/Timeout 35ms exceeded/,
+		/Timeout 135ms exceeded/,
 	);
+	f.context.setDefaultTimeout(5000);
+	f.context.setDefaultNavigationTimeout(5000);
 	assert.equal(await f.run("async page => page.title()"), "");
 }

@@ -375,3 +375,52 @@ for (const [label, source] of [
     } finally { await shell.dispose(); }
   });
 }
+
+for (const [label, source] of [
+  [
+    "read -r -n and -rn with delimiter and IFS splitting in sync loop",
+    "s=\"ab cd:ef\"; out=\"\"; for ((i=0; i<10; i++)); do read -r -n 4 a b <<< \"$s\"; read -rn 3 c <<< \"$s\"; out+=\"$a|$b|$c,\"; done; printf \"%s\\n\" \"$out\"",
+  ],
+  [
+    "sparse indexed compound array assignment arr=([2]=... [5]=...) in sync loop",
+    "for ((i=1; i<=10; i++)); do arr=([2]=\"$i\" [5]=\"$((i*3))\"); done; printf \"%s|%s|%s\\n\" \"${arr[2]}\" \"${arr[5]}\" \"${!arr[*]}\"",
+  ],
+] as const) {
+  test(`wave 96 sync loop parity: ${label}`, async () => {
+    const bash = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+    assert.equal(bash.status, 0, bash.stderr);
+    const { createStandardCommands } = await import("../../src/commands/index.js");
+    const commands = new CommandRegistry(createStandardCommands());
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands });
+    try {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, bash.status, result.stderr);
+      assert.equal(result.stderr, bash.stderr);
+      assert.equal(result.stdout, bash.stdout);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("wave 96 sync loop: read -r -N exact chars, ${var@U}/${var@L}/${var@u}, and associative compound map=([a]=... [b]=...)", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const commands = new CommandRegistry(createStandardCommands());
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands });
+  try {
+    const script = [
+      "s=$'ab\\ncd'",
+      "declare -A map",
+      "for ((i=1; i<=10; i++)); do",
+      "  read -r -N 4 a b <<< \"$s\"",
+      "  w=\"helloWorld$i\"",
+      "  u=\"${w@U}\"; l=\"${w@L}\"; c=\"${w@u}\"",
+      "  map=([a]=\"$u\" [b]=\"$l\" [c]=\"$c\")",
+      "done",
+      "printf \"%s|%s|%s|%s|%s\\n\" \"${a//$'\\n'/NL}\" \"$b\" \"${map[a]}\" \"${map[b]}\" \"${map[c]}\"",
+    ].join("\n");
+    const result = await shell.exec(script);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "abNLc||HELLOWORLD10|helloworld10|HelloWorld10\n");
+  } finally {
+    await shell.dispose();
+  }
+});

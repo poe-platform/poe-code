@@ -2802,6 +2802,8 @@ type SyncLoopStep = {
     readonly arrayTarget?: string | undefined;
     readonly isMapfile?: boolean | undefined;
     readonly delimChar?: string | undefined;
+    readonly maxChars?: number | undefined;
+    readonly exactChars?: boolean | undefined;
     readonly isBareReply: boolean;
     readonly inputWord: Word;
   } | undefined;
@@ -11593,7 +11595,30 @@ export class Runtime {
         // These expansions can require multiple fields or asynchronous quoting
         // as loop state changes. Decide before the loop produces any effects.
         if (this._syncLoopFnCheckDepth > 0 && (part.substring || getArraySelector(part)?.kind === "element")) return false;
-        if (part.prefixNames !== undefined || part.transform !== undefined) return false;
+        if (part.prefixNames !== undefined) return false;
+        if (part.transform !== undefined) {
+          if (
+            (part.transform !== "U" && part.transform !== "L" && part.transform !== "u") ||
+            part.indirect ||
+            part.specialParameter ||
+            part.length ||
+            part.substring ||
+            part.operator !== undefined ||
+            getArraySelector(part) !== undefined ||
+            this.budget.limits.maxExpansionBytes !== Infinity ||
+            !isShellIdentifier(part.name) ||
+            stateMonitor(rawState)?.store?.get(part.name) ||
+            part.name === "PIPESTATUS" ||
+            part.name === "LINENO" ||
+            part.name === "_" ||
+            part.name === "FUNCNAME" ||
+            part.name === "DIRSTACK" ||
+            (rawState.nounset && rawState.variables[part.name] === undefined)
+          ) {
+            return false;
+          }
+          continue;
+        }
         if ( !part.indirect && !part.prefixNames && !part.length && !part.substring && !part.transform && part.operator === undefined && getArraySelector(part) === undefined && (part.name === "?" || part.name === "#" || (part.name.length === 1 && part.name >= "1" && part.name <= "9"))) {
           if (rawState.nounset && part.name >= "1" && part.name <= "9" && rawState.positional[part.name.charCodeAt(0) - 49] === undefined) return false;
           continue;
@@ -12299,6 +12324,8 @@ export class Runtime {
     let rawMode = false;
     let arrayTarget: string | undefined;
     let delimChar: string | undefined;
+    let maxChars: number | undefined;
+    let exactChars: boolean | undefined;
     if (isMapfile) {
       rawMode = true;
       arrayTarget = cmd.words[2]?.plain ?? "MAPFILE";
@@ -12320,6 +12347,19 @@ export class Runtime {
           if (dPlain === undefined || dPlain.length !== 1 || dPlain.charCodeAt(0) === 0 || dPlain.charCodeAt(0) >= 128) return undefined;
           delimChar = dPlain;
           argIdx += 2;
+        } else if (p === "-n" || p === "-rn" || p === "-nr" || p === "-N" || p === "-rN" || p === "-Nr") {
+          if (p.includes("r")) rawMode = true;
+          if (p.includes("N")) exactChars = true;
+          const nPlain = cmd.words[argIdx + 1]?.plain;
+          if (!nPlain || !/^[1-9][0-9]{0,5}$/.test(nPlain) || byteLocale(rawState.variables)) return undefined;
+          maxChars = Number(nPlain);
+          argIdx += 2;
+        } else if ((p.startsWith("-n") || p.startsWith("-rn") || p.startsWith("-N") || p.startsWith("-rN")) && /^[1-9][0-9]{0,5}$/.test(p.slice(p.startsWith("-r") ? 3 : 2))) {
+          if (byteLocale(rawState.variables)) return undefined;
+          if (p.startsWith("-r")) rawMode = true;
+          if (p.includes("N")) exactChars = true;
+          maxChars = Number(p.slice(p.startsWith("-r") ? 3 : 2));
+          argIdx++;
         } else if (p === "-ra" || p === "-ar" || p === "-a") {
           if (p.includes("r")) rawMode = true;
           if (argIdx + 1 >= cmd.words.length || !cmd.words[argIdx + 1]!.plain) return undefined;
@@ -12333,7 +12373,7 @@ export class Runtime {
           return undefined;
         }
       }
-      if (!rawMode || (delimChar !== undefined && arrayTarget !== undefined)) return undefined;
+      if (!rawMode || ((delimChar !== undefined || maxChars !== undefined) && arrayTarget !== undefined)) return undefined;
     }
     const monitor = stateMonitor(rawState);
     const store = monitor?.store;
@@ -12393,7 +12433,7 @@ export class Runtime {
       if (rawState.readonlyVariables?.has("REPLY") || rawState.variableAttributes?.get("REPLY") || store?.get("REPLY") || monitor?.hasOverlay("REPLY")) return undefined;
       varNames.push("REPLY");
     }
-    return { ifsWord, varNames, isBareReply, inputWord: r0.target, ...(delimChar !== undefined ? { delimChar } : {}) };
+    return { ifsWord, varNames, isBareReply, inputWord: r0.target, ...(delimChar !== undefined ? { delimChar } : {}), ...(maxChars !== undefined ? { maxChars } : {}), ...(exactChars !== undefined ? { exactChars } : {}) };
   }
   private scriptTouchesVar(script: Script, varName: string): boolean {
     for (const list of script.lists) {
@@ -12772,11 +12812,30 @@ export class Runtime {
           if ( !curArr || curArr.references !== 1 || activeArrStore?.watches.has(arrAssign.name) || rawState.readonlyVariables?.has(arrAssign.name) || rawState.exported.has(arrAssign.name) || controlNames.has(arrAssign.name)) {
             return false;
           }
-          if (arrAssign.kind === "compound" && !curArr.associative && arrAssign.entries.length <= 16 && arrAssign.entries.every(e => !e.index && !e.append)) {
+          if (arrAssign.kind === "compound" && arrAssign.entries.length <= 16 && arrAssign.entries.every(e => !e.append)) {
             const canSplitStdIfs = (rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n") && !rawState.noglob && this.budget.limits.maxExpansionFields === Infinity && this.budget.limits.maxExpansionBytes === Infinity;
             let allEntriesOk = true;
             for (let ei = 0; ei < arrAssign.entries.length; ei++) {
-              const ev = arrAssign.entries[ei]!.value;
+              const entry = arrAssign.entries[ei]!;
+              const ev = entry.value;
+              if (curArr.associative) {
+                const kSrc = entry.index ? (entry.index.source ?? entry.index.decimal) : "";
+                if (kSrc.length === 0 || kSrc.length > 4096 || /[$\x60\\"']/.test(kSrc) || !this.isPureSyncValueWord(ev, rawState)) {
+                  allEntriesOk = false;
+                  break;
+                }
+                continue;
+              }
+              if (entry.index !== undefined) {
+                const kSrc = (entry.index.source ?? entry.index.decimal).trim();
+                const original = compoundEntryWords.get(entry);
+                const hasBraceInOriginal = rawState.braceexpand !== false && Boolean(original?.parts.some(p => p.kind === "text" && !p.quoted && p.value.includes("{")));
+                if (!/^(?:0|[1-9][0-9]{0,8})$/.test(kSrc) || hasBraceInOriginal || (rawState.braceexpand !== false && ev.parts.some(p => !p.quoted && p.kind === "text" && p.value.includes("{"))) || !this.isPureSyncValueWord(ev, rawState)) {
+                  allEntriesOk = false;
+                  break;
+                }
+                continue;
+              }
               const isSingleUnquotedSplit = canSplitStdIfs && ev.parts.length === 1 && !ev.parts[0]!.quoted && (ev.parts[0]!.kind === "variable" || ev.parts[0]!.kind === "substitution");
               if (!this.isPureSyncValueWord(ev, rawState) || (!isSingleUnquotedSplit && !ev.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true))))) {
                 allEntriesOk = false;
@@ -13443,9 +13502,13 @@ export class Runtime {
           intSteps[b] = intStep;
           continue;
         }
-        if (step.value) {
-          for (let i = 0; i < step.value.parts.length; i++) {
-            const part = step.value.parts[i]!;
+        const wordsToScan = step.arrayAssign?.kind === "compound"
+          ? step.arrayAssign.entries.map(e => e.value)
+          : step.value ? [step.value] : [];
+        for (let wIdx = 0; wIdx < wordsToScan.length; wIdx++) {
+          const wVal = wordsToScan[wIdx]!;
+          for (let i = 0; i < wVal.parts.length; i++) {
+            const part = wVal.parts[i]!;
             if (part.kind === "text" || part.kind === "variable") continue;
             if (part.kind === "arithmetic") {
               if (part.expression.error) {
@@ -14564,6 +14627,44 @@ export class Runtime {
     if (!p0 || p0.kind !== "text" || p0.value.length === 0 || p0.value.startsWith("-")) return false;
     return w.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.indirect && !p.prefixNames && !p.length && !p.substring && p.operator === undefined && getArraySelector(p) === undefined));
   }
+  private execSyncReadHereStringStep(
+    rs: NonNullable<SyncLoopStep["readHereString"]>,
+    step: SyncLoopStep,
+    rawState: State,
+    io: IO,
+    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
+    touched: Set<string>,
+  ): string {
+    const rawInput = this.fastValueWord(rs.inputWord, rawState, io, false, false, false, false, 0, step.line) as string;
+    const delim = rs.delimChar ?? "\n";
+    let lineStr: string;
+    let status = 0;
+    if (rs.maxChars !== undefined) {
+      const fullInput = rawInput + "\n";
+      if (rs.exactChars) {
+        lineStr = fullInput.length > rs.maxChars ? fullInput.slice(0, rs.maxChars) : fullInput;
+        status = fullInput.length >= rs.maxChars ? 0 : 1;
+      } else {
+        const nlIdx = fullInput.indexOf(delim);
+        const untilDelim = nlIdx === -1 ? fullInput : fullInput.slice(0, nlIdx);
+        lineStr = untilDelim.length > rs.maxChars ? untilDelim.slice(0, rs.maxChars) : untilDelim;
+        status = (nlIdx !== -1 || fullInput.length >= rs.maxChars) ? 0 : 1;
+      }
+    } else {
+      const fullInput = delim === "\n" ? rawInput : rawInput + "\n";
+      const nlIdx = rs.isMapfile ? -1 : fullInput.indexOf(delim);
+      lineStr = nlIdx === -1 ? fullInput : fullInput.slice(0, nlIdx);
+      status = (!rs.isMapfile && delim !== "\n" && nlIdx === -1) ? 1 : 0;
+    }
+    const ifsStr = rs.exactChars
+      ? ""
+      : rs.ifsWord !== undefined
+        ? (this.fastValueWord(rs.ifsWord, rawState, io, false, false, false, false, 0, step.line) as string)
+        : (rawState.variables.IFS ?? " \t\n");
+    this.splitSyncReadLine(lineStr, ifsStr, rs.varNames, rs.isBareReply, rawState, touched, rs.arrayTarget, monitor, rs.isMapfile);
+    rawState.status = status;
+    return step.cmd.words[step.cmd.words.length - 1]!.plain!;
+  }
   private splitSyncReadLine(lineStr: string, ifsStr: string, varNames: readonly string[], isBareReply: boolean, rawState: State, touched: Set<string>, arrayTarget?: string, monitor?: NonNullable<ReturnType<typeof stateMonitor>>, isMapfile = false): void {
     if (arrayTarget !== undefined && monitor !== undefined) {
       const arrStore = monitor.store ?? requireArrays(rawState);
@@ -14851,16 +14952,7 @@ export class Runtime {
           continue;
         }
         if (step.readHereString !== undefined) {
-          const rs = step.readHereString;
-          const rawInput = this.fastValueWord(rs.inputWord, rawState, io, false, false, false, false, 0, step.line) as string;
-          const delim = rs.delimChar ?? "\n";
-          const fullInput = delim === "\n" ? rawInput : rawInput + "\n";
-          const nlIdx = rs.isMapfile ? -1 : fullInput.indexOf(delim);
-          const lineStr = nlIdx === -1 ? fullInput : fullInput.slice(0, nlIdx);
-          const ifsStr = rs.ifsWord !== undefined ? (this.fastValueWord(rs.ifsWord, rawState, io, false, false, false, false, 0, step.line) as string) : (rawState.variables.IFS ?? " \t\n");
-          this.splitSyncReadLine(lineStr, ifsStr, rs.varNames, rs.isBareReply, rawState, touched, rs.arrayTarget, monitor, rs.isMapfile);
-          lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
-          rawState.status = (!rs.isMapfile && delim !== "\n" && nlIdx === -1) ? 1 : 0;
+          lastArg = this.execSyncReadHereStringStep(step.readHereString, step, rawState, io, monitor, touched);
           continue;
         }
         if (deferredMask & (1 << b)) {
@@ -15385,16 +15477,7 @@ export class Runtime {
         continue;
       }
       if (step.readHereString !== undefined) {
-        const rs = step.readHereString;
-        const rawInput = this.fastValueWord(rs.inputWord, rawState, io, false, false, false, false, 0, step.line) as string;
-        const delim = rs.delimChar ?? "\n";
-        const fullInput = delim === "\n" ? rawInput : rawInput + "\n";
-        const nlIdx = rs.isMapfile ? -1 : fullInput.indexOf(delim);
-        const lineStr = nlIdx === -1 ? fullInput : fullInput.slice(0, nlIdx);
-        const ifsStr = rs.ifsWord !== undefined ? (this.fastValueWord(rs.ifsWord, rawState, io, false, false, false, false, 0, step.line) as string) : (rawState.variables.IFS ?? " \t\n");
-        this.splitSyncReadLine(lineStr, ifsStr, rs.varNames, rs.isBareReply, rawState, touched, rs.arrayTarget, monitor, rs.isMapfile);
-        lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
-        rawState.status = (!rs.isMapfile && delim !== "\n" && nlIdx === -1) ? 1 : 0;
+        lastArg = this.execSyncReadHereStringStep(step.readHereString, step, rawState, io, monitor, touched);
         onUpdate({ lastCmd, lastArg });
         continue;
       }
@@ -15547,16 +15630,7 @@ export class Runtime {
           continue;
         }
         if (step.readHereString !== undefined) {
-          const rs = step.readHereString;
-          const rawInput = this.fastValueWord(rs.inputWord, rawState, io, false, false, false, false, 0, step.line) as string;
-          const delim = rs.delimChar ?? "\n";
-          const fullInput = delim === "\n" ? rawInput : rawInput + "\n";
-          const nlIdx = rs.isMapfile ? -1 : fullInput.indexOf(delim);
-          const lineStr = nlIdx === -1 ? fullInput : fullInput.slice(0, nlIdx);
-          const ifsStr = rs.ifsWord !== undefined ? (this.fastValueWord(rs.ifsWord, rawState, io, false, false, false, false, 0, step.line) as string) : (rawState.variables.IFS ?? " \t\n");
-          this.splitSyncReadLine(lineStr, ifsStr, rs.varNames, rs.isBareReply, rawState, touched, rs.arrayTarget, monitor, rs.isMapfile);
-          lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
-          rawState.status = (!rs.isMapfile && delim !== "\n" && nlIdx === -1) ? 1 : 0;
+          lastArg = this.execSyncReadHereStringStep(step.readHereString, step, rawState, io, monitor, touched);
           continue;
         }
         if (step.coalesceNext) {
@@ -21683,16 +21757,18 @@ export class Runtime {
             }
             transformed = "'" + (val.includes("'") ? val.split("'").join("'\\''") : val) + "'";
           } else {
-            for (let k = 0; k < val.length; k++) {
-              if (val.charCodeAt(k) >= 128) return undefined;
+            if (part.transform === "U") {
+              transformed = val.toUpperCase();
+            } else if (part.transform === "L") {
+              transformed = val.toLowerCase();
+            } else if (val.length === 0) {
+              transformed = "";
+            } else if (val.charCodeAt(0) < 128) {
+              transformed = val[0]!.toUpperCase() + val.slice(1);
+            } else {
+              const first = [...val][0]!;
+              transformed = first.toUpperCase() + val.slice(first.length);
             }
-            transformed = part.transform === "U"
-              ? val.toUpperCase()
-              : part.transform === "L"
-                ? val.toLowerCase()
-                : val.length === 0
-                  ? ""
-                  : val[0]!.toUpperCase() + val.slice(1);
           }
           if (split && !part.quoted) {
             if (transformed.length === 0 || transformed.includes(" ") || transformed.includes("\t") || transformed.includes("\n") || (!rawState.noglob && hasGlobOrEscape(transformed, !!rawState.extglob))) return undefined;

@@ -1,3 +1,4 @@
+import { utf8ByteLength } from "./bytes.js";
 import { object, objectKeyIterator, objectSize, put, type Json } from "safe-bash-query-engine/limits";
 import { Decimal, numberText } from "safe-bash-query-engine/numbers";
 import type { YqOwnedWork } from "safe-bash-query-engine/query-core";
@@ -138,7 +139,7 @@ class TomlParser {
     let part = "";
     let bytes = 0;
     const append = (value: string): void => {
-      bytes += Buffer.byteLength(value);
+      bytes += utf8ByteLength(value);
       this.ledger.admitScalar(bytes);
       part += value;
       if (part.length >= 256) { parts.push(part); part = ""; }

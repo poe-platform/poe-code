@@ -1,13 +1,9 @@
+import { utf8ByteLength } from "./bytes.js";
 import { object, objectKeys, put, wellFormed, type Json } from "safe-bash-query-engine/limits";
 import { Decimal, isNumber, numberText } from "safe-bash-query-engine/numbers";
 import type { YqOwnedWork } from "safe-bash-query-engine/query-core";
 import { aliasFailure, copyAlias, YqLedger, yqCaps } from "./accounting.js";
 import { YqError, limit, type YqCode } from "./errors.js";
-
-const encoder = new TextEncoder();
-function utf8Bytes(text: string): number {
-  return typeof Buffer === "undefined" ? encoder.encode(text).byteLength : Buffer.byteLength(text);
-}
 
 type ScalarStyle = "plain" | "single" | "double" | "literal" | "folded";
 
@@ -79,15 +75,15 @@ function compactStringBytes(text: string): number {
     const point = character.codePointAt(0)!;
     if (point === 0x22 || point === 0x5c || point === 0x08 || point === 0x0c || point === 0x0a || point === 0x0d || point === 0x09) bytes += 2;
     else if (point < 0x20) bytes += 6;
-    else bytes += utf8Bytes(character);
+    else bytes += utf8ByteLength(character);
   }
   return bytes;
 }
 
 function compactScalarBytes(value: Json): number {
   if (typeof value === "string") return compactStringBytes(value);
-  if (isNumber(value)) return utf8Bytes(numberText(value));
-  return utf8Bytes(JSON.stringify(value));
+  if (isNumber(value)) return utf8ByteLength(numberText(value));
+  return utf8ByteLength(JSON.stringify(value));
 }
 
 function indentation(line: string): number {
@@ -839,7 +835,7 @@ class Composer {
     { const _p = this.work.chargeSync ? this.work.chargeSync(1) : this.work.charge(1); if (_p) await _p; }
     this.work.assertOpen();
     this.ledger.admitNode();
-    const bytes = utf8Bytes(text);
+    const bytes = utf8ByteLength(text);
     if (!admitted) this.ledger.admitScalar(bytes);
     let codePoints = 0;
     for (const unused of text) {
@@ -1241,7 +1237,7 @@ async function* documents(text: string, work: YqOwnedWork, maxSourceLines: numbe
     const rawLine = text.slice(start, hadBreak ? index : index + 1);
     if (character === "\r" && text[index + 1] === "\n") index++;
     start = index + 1;
-    const original: SourceLine = { text: rawLine, number: lineOffset + count, rawBytes: utf8Bytes(rawLine) + (hadBreak ? 1 : 0), hadBreak };
+    const original: SourceLine = { text: rawLine, number: lineOffset + count, rawBytes: utf8ByteLength(rawLine) + (hadBreak ? 1 : 0), hadBreak };
     let line = original;
     if (line.number === 1 && line.text.startsWith("\ufeff")) line = { ...line, text: line.text.slice(1) };
     if (ended && line.text.startsWith("\ufeff")) line = { ...line, text: line.text.slice(1) };

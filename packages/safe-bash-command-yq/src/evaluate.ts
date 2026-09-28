@@ -1,3 +1,4 @@
+import { utf8ByteLength, utf8Encoder, compareBytes } from "./bytes.js";
 import type { Node, Pair, YAMLMap, YAMLSeq } from "yaml";
 import type { Expression } from "./expression.js";
 import { cloneNode, decodeDocuments, dereference, nodeTag, replace, scalar, truth, type Candidate, type YamlModule } from "./nodes.js";
@@ -41,8 +42,8 @@ export class Evaluator {
 
   async match(first: string, pattern: string): Promise<boolean> {
     { const t = this.work.tick(first.length + pattern.length); if (t) await t; }
-    const name = Buffer.from(first);
-    const glob = Buffer.from(pattern);
+    const name = utf8Encoder.encode(first);
+    const glob = utf8Encoder.encode(pattern);
     let nameIndex = 0;
     let patternIndex = 0;
     let restartPattern = 0;
@@ -152,7 +153,7 @@ export class Evaluator {
           const leftText = yaml.isScalar(leftNode) ? scalarText(leftNode, yaml) : "";
           const rightText = yaml.isScalar(rightNode) ? scalarText(rightNode, yaml) : "";
           { const t = this.work.tick(leftText.length + rightText.length); if (t) await t; }
-          const compared = Buffer.compare(Buffer.from(leftText), Buffer.from(rightText));
+          const compared = compareBytes(utf8Encoder.encode(leftText), utf8Encoder.encode(rightText));
           if (compared) return compared;
         }
       }
@@ -210,7 +211,7 @@ export class Evaluator {
       const offset = now.getTimezoneOffset();
       const local = new Date(now.getTime() - offset * 60_000).toISOString().slice(0, -1);
       const zone = offset === 0 ? "Z" : `${offset < 0 ? "+" : "-"}${String(Math.floor(Math.abs(offset) / 60)).padStart(2, "0")}:${String(Math.abs(offset) % 60).padStart(2, "0")}`;
-      await this.work.write(Buffer.from(`time=${local}${zone} level=WARN msg="--yaml-fix-merge-anchor-to-spec is false; causing merge anchors to override the existing values which isn't to the yaml spec. This flag will default to true in late 2025. See https://mikefarah.gitbook.io/yq/operators/traverse-read for more details."\n`), true);
+      await this.work.write(utf8Encoder.encode(`time=${local}${zone} level=WARN msg="--yaml-fix-merge-anchor-to-spec is false; causing merge anchors to override the existing values which isn't to the yaml spec. This flag will default to true in late 2025. See https://mikefarah.gitbook.io/yq/operators/traverse-read for more details."\n`), true);
     }
   }
 
@@ -692,7 +693,7 @@ export class Evaluator {
         }
         const upper = characters.join("");
         const node = await cloneNode(base.node, yaml, this.work);
-        if (Buffer.byteLength(upper) > this.work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
+        if (utf8ByteLength(upper) > this.work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
         if (yaml.isScalar(node)) { node.value = upper; node.source = upper; }
         output.push(this.child(node, input)); continue;
       }
@@ -763,7 +764,7 @@ export class Evaluator {
               const before = ledger.usage.work;
               try {
                 const program = await compileEre(pattern, ledger, this.work.signal);
-                const subject = await prepareUtf8EreSubject(Buffer.from(text), ledger, this.work.signal, true);
+                const subject = await prepareUtf8EreSubject(utf8Encoder.encode(text), ledger, this.work.signal, true);
                 const matched = await subject(program)(0);
                 output.push(this.child(scalar(yaml, this.work, matched !== undefined), input));
               } catch (error) {
@@ -787,7 +788,7 @@ export class Evaluator {
         if (yaml.isScalar(base.node) && nodeTag(base.node, yaml) !== "!!null") {
           const text = scalarText(base.node, yaml);
           { const t = this.work.tick(text.length); if (t) await t; }
-          length = Buffer.byteLength(text);
+          length = utf8ByteLength(text);
         }
         result = BigInt(length);
       }

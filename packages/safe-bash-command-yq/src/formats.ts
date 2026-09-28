@@ -1,3 +1,4 @@
+import { utf8ByteLength, utf8Encoder, encodeBase64 } from "./bytes.js";
 import { parseXmlSteps, type XmlElement } from "@poe-code/safe-fs/core";
 import { decodeDocuments, type Candidate, type NativeDocument, type YamlModule } from "./nodes.js";
 import { encodeNative } from "./native-encoder.js";
@@ -68,7 +69,7 @@ async function properties(text: string, work: NativeWork): Promise<Value> {
 async function table(text: string, delimiter: string, yaml: YamlModule, work: NativeWork): Promise<Value> {
   const rows: string[][] = [];
   let row: string[] = [], field = "", quoted = false, closed = false;
-  const cell = () => { if (Buffer.byteLength(field) > work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes"); row.push(field); field = ""; closed = false; };
+  const cell = () => { if (utf8ByteLength(field) > work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes"); row.push(field); field = ""; closed = false; };
   for (let index = 0; index < text.length; index++) {
     { const t = work.tick(); if (t) await t; }
     const char = text[index]!;
@@ -115,14 +116,14 @@ async function xmlValue(element: XmlElement, work: NativeWork, depth = 0): Promi
 
 export async function decodeFormat(text: string, filename: string, fileIndex: number, format: MikeFormat, yaml: YamlModule, work: NativeWork, accept: (document: NativeDocument) => Promise<void>): Promise<void> {
   if (format === "yaml" || format === "json") { await decodeDocuments(text, filename, fileIndex, format, yaml, work, accept); return; }
-  if (Buffer.byteLength(text) > work.limits.maxDocumentBytes) throw new MikeError("yq limit exceeded: maxDocumentBytes");
+  if (utf8ByteLength(text) > work.limits.maxDocumentBytes) throw new MikeError("yq limit exceeded: maxDocumentBytes");
   let value: Value;
   try {
     if (format === "csv" || format === "tsv") value = await table(text, format === "csv" ? "," : "\t", yaml, work);
     else if (format === "base64") {
       const clean = text.split("\n").join("").split("\r").join("");
-      const data = Buffer.from(clean, "base64");
-      if (data.toString("base64") !== clean) throw new MikeError("invalid base64 input");
+      const data = Uint8Array.from(atob(clean), character => character.charCodeAt(0));
+      if (encodeBase64(data) !== clean) throw new MikeError("invalid base64 input");
       value = new TextDecoder("utf-8", { fatal: true }).decode(data);
     } else if (format === "uri") value = decodeURIComponent(text.split("+").join(" "));
     else if (format === "xml") {
@@ -131,7 +132,7 @@ export async function decodeFormat(text: string, filename: string, fileIndex: nu
       while (!step.done) { { const t = work.tick(step.value); if (t) await t; } step = parser.next(); }
       value = { [step.value.name]: await xmlValue(step.value, work) };
     } else if (format === "toml") {
-      const parsed = await parseTomlDocument(text, { charge: async units => { const t = work.tick(units); if (t) await t; }, assertOpen: () => work.assertOpen() }, new YqLedger(), Buffer.byteLength(text));
+      const parsed = await parseTomlDocument(text, { charge: async units => { const t = work.tick(units); if (t) await t; }, assertOpen: () => work.assertOpen() }, new YqLedger(), utf8ByteLength(text));
       const convert = (item: unknown): Value => {
         if (item instanceof Decimal) return Number(numberText(item));
         if (Array.isArray(item)) return item.map(convert);
@@ -163,11 +164,11 @@ export async function encodeFormat(candidate: Candidate, format: MikeFormat, yam
   const value = JSON.parse(encoded) as Value;
   const chunks: string[] = [];
   let size = 0;
-  const append = (text: string) => { const bytes = Buffer.byteLength(text); if (bytes > work.limits.maxOutputBytes - size) throw new MikeError("yq limit exceeded: maxOutputBytes"); size += bytes; chunks.push(text); };
+  const append = (text: string) => { const bytes = utf8ByteLength(text); if (bytes > work.limits.maxOutputBytes - size) throw new MikeError("yq limit exceeded: maxOutputBytes"); size += bytes; chunks.push(text); };
   const primitive = (item: Value) => item === null ? "" : typeof item === "object" ? JSON.stringify(item) : String(item);
   if (format === "base64" || format === "uri") {
     if (typeof value !== "string") throw new MikeError(`${format} encoding requires a string`);
-    append(format === "base64" ? Buffer.from(value).toString("base64") : encodeURIComponent(value).split("%20").join("+").split("!").join("%21").split("'").join("%27").split("(").join("%28").split(")").join("%29").split("*").join("%2A"));
+    append(format === "base64" ? encodeBase64(utf8Encoder.encode(value)) : encodeURIComponent(value).split("%20").join("+").split("!").join("%21").split("'").join("%27").split("(").join("%28").split(")").join("%29").split("*").join("%2A"));
   } else if (format === "csv" || format === "tsv") {
     if (!Array.isArray(value)) throw new MikeError("CSV/TSV encoding requires an array");
     const delimiter = format === "csv" ? "," : "\t";

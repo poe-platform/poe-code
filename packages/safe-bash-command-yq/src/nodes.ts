@@ -1,3 +1,4 @@
+import { utf8ByteLength, utf8Encoder } from "./bytes.js";
 import type { Document, Node, Pair, YAMLMap, YAMLSeq } from "yaml";
 import { MikeError, type NativeWork } from "./native-work.js";
 import { recordHeadComments } from "./comments.js";
@@ -27,7 +28,7 @@ export async function loadYaml(): Promise<YamlModule> {
 
 export function scalar(yaml: YamlModule, work: NativeWork, value: unknown, float = false): Node {
   work.node();
-  if (typeof value === "string" && Buffer.byteLength(value) > work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
+  if (typeof value === "string" && utf8ByteLength(value) > work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
   const node = new yaml.Scalar(value);
   if (float) node.minFractionDigits = 0;
   return node;
@@ -77,7 +78,7 @@ export async function inspectNode(node: Node, yaml: YamlModule, work: NativeWork
     { const t = work.tick(); if (t) await t; }
     if (allocate) work.node();
     if (yaml.isScalar(current.node)) {
-      if (typeof current.node.value === "string" && Buffer.byteLength(current.node.value) > work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
+      if (typeof current.node.value === "string" && utf8ByteLength(current.node.value) > work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
     } else if (yaml.isMap(current.node)) {
       for (const pair of current.node.items) {
         if (yaml.isNode(pair.key)) pending.push({ node: pair.key, depth: current.depth + 1 });
@@ -178,7 +179,7 @@ async function admitCst(token: unknown, work: NativeWork): Promise<void> {
     if (typeof item.source === "string") {
       if (item.source.length > maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
       if (checkDocBytes) {
-        bytes += Buffer.byteLength(item.source);
+        bytes += utf8ByteLength(item.source);
         if (bytes > maxDocBytes) throw new MikeError("yq limit exceeded: maxDocumentBytes");
       }
     }
@@ -208,8 +209,8 @@ async function decodeJsonDocument(source: string, filename: string, yaml: YamlMo
       if (!escaped && character === '"') {
         let value: string;
         try { value = JSON.parse(source.slice(start, offset)) as string; } catch { return fail(); }
-        if (Buffer.byteLength(value) > work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
-        return Buffer.from(value).toString("utf8");
+        if (utf8ByteLength(value) > work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
+        return new TextDecoder().decode(utf8Encoder.encode(value));
       }
       if (!escaped && character === "\\") escaped = true;
       else escaped = false;
@@ -288,7 +289,7 @@ async function adaptQuotedIndent(text: string, filename: string, yaml: YamlModul
   const additions: { offset: number; length: number }[] = [];
   const failures = new Map<number, string>();
   if (!text.includes('"') && !text.includes("'")) return { text, insertions: [], failures };
-  let size = Buffer.byteLength(text);
+  let size = utf8ByteLength(text);
   let sourceOffset = 0;
   let quotedUntil = 0;
   const lexer = new yaml.Lexer();
@@ -458,7 +459,7 @@ export async function decodeDocuments(text: string, filename: string, fileIndex:
       const source = text.slice(start, end).trim();
       start = end;
       if (!source) return;
-      if (Buffer.byteLength(source) > work.limits.maxDocumentBytes) throw new MikeError("yq limit exceeded: maxDocumentBytes");
+      if (utf8ByteLength(source) > work.limits.maxDocumentBytes) throw new MikeError("yq limit exceeded: maxDocumentBytes");
       const doc = await decodeJsonDocument(source, filename, yaml, work);
       await accept(doc);
     };
@@ -483,7 +484,7 @@ export async function decodeDocuments(text: string, filename: string, fileIndex:
       if (end - offset > work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
       const line = input.slice(offset, end);
       if (/^(?:---|\.\.\.)(?:[ \t\r\n]|$)/u.test(line)) documentBytes = 0;
-      documentBytes += Buffer.byteLength(line);
+      documentBytes += utf8ByteLength(line);
       if (documentBytes > work.limits.maxDocumentBytes) throw new MikeError("yq limit exceeded: maxDocumentBytes");
       { const t = work.tick(line.length + 1); if (t) await t; }
       offset = end;
@@ -508,7 +509,7 @@ export async function decodeDocuments(text: string, filename: string, fileIndex:
     await work.tick(Math.min(4096, text.length - offset) + 1);
     const incomplete = offset + 4096 < text.length;
     for (const lexeme of lexer.lex(text.slice(offset, offset + 4096), incomplete)) {
-      if (Buffer.byteLength(lexeme) > work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
+      if (utf8ByteLength(lexeme) > work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
       { const t = work.tick(); if (t) await t; }
       work.depth(parser.stack.length);
       for (const item of parser.next(lexeme)) await token(item);

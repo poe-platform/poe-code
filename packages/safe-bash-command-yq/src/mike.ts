@@ -1,3 +1,4 @@
+import { utf8ByteLength, utf8Encoder } from "./bytes.js";
 import { decodeFormat, encodeFormat } from "./formats.js";
 import { commandRuntimeIdentity, FsError, type CommandContext, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
 import { mikeCommandMode, mikeFormat, mikeHelp, mikeUsage, mikeEvalHelp, mikeAllHelp, parseMikeArguments } from "./arguments.js";
@@ -27,8 +28,8 @@ async function encodeNodeInfo(candidate: Candidate, yaml: YamlModule, work: Nati
 
 async function writeVerbose(message: string, work: NativeWork): Promise<void> {
   const text = `time=${new Date().toISOString()} level=DEBUG source=safe-bash/yq msg=${JSON.stringify(message)}\n`;
-  work.output(Buffer.byteLength(text));
-  await work.write(Buffer.from(text), true);
+  work.output(utf8ByteLength(text));
+  await work.write(utf8Encoder.encode(text), true);
 }
 
 export interface MikeYqOptions {
@@ -48,8 +49,8 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
     work.capturePositions = options.verbose || options.debugNodeInfo;
     if (options.help || options.version) {
       const text = options.help ? commandMode === "eval-all" ? mikeAllHelp : commandMode === "eval" ? mikeEvalHelp : mikeHelp : "yq (safe-bash; bounded Mike Farah v4.53.3 profile)\n";
-      work.output(Buffer.byteLength(text));
-      await work.write(Buffer.from(text));
+      work.output(utf8ByteLength(text));
+      await work.write(utf8Encoder.encode(text));
       return { exitCode: 0 };
     }
     const readText = async (filename: string): Promise<string> => {
@@ -112,7 +113,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
         let text = separator + encoded;
         const frontMatterBody = frontMatterBodies.get(candidate.document.fileIndex);
         if (frontMatterBody !== undefined && options.frontMatter === "process") text = `${text}---\n${frontMatterBody}`;
-        work.output(Buffer.byteLength(text));
+        work.output(utf8ByteLength(text));
         if (splitProgram) {
           const names = await evaluator.run(splitProgram, [candidate]);
           if (names.length !== 1 || !yaml.isScalar(names[0]!.node) || typeof names[0]!.node.value !== "string") throw new MikeError("split expression must return a string");
@@ -120,14 +121,14 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
           const parent = path.slice(0, path.lastIndexOf("/")) || "/";
           await work.track(context.fs.mkdir(parent, { recursive: true, signal: work.signal }));
           work.assertOpen();
-          const data = Buffer.from(text);
+          const data = utf8Encoder.encode(text);
           await work.track(writeFileOutputCounted({ signal: work.signal, ...(context.registerCleanup ? { registerCleanup: context.registerCleanup } : {}) }, data, async () => {
             await context.fs.writeFile(path, data, { flag: "w", signal: work.signal });
             return data.length;
           }));
           work.assertOpen();
         } else if (options.inplace) results.push(text);
-        else await work.write(Buffer.from(text));
+        else await work.write(utf8Encoder.encode(text));
         qualified ||= truth(candidate.node, yaml);
         previous = origin;
       }
@@ -184,7 +185,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
       if (options.all) await print(await evaluator.run(program, all));
     }
     if (options.exitStatus && !qualified) throw new MikeError("no matches found");
-    if (options.inplace) await publishInPlace(original!, Buffer.from(results.join("")), work);
+    if (options.inplace) await publishInPlace(original!, utf8Encoder.encode(results.join("")), work);
     return { exitCode: 0 };
   } catch (error) {
     context.signal.throwIfAborted();
@@ -193,11 +194,11 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
       const selected = commandMode === "eval-all" ? mikeAllHelp : commandMode === "eval" ? mikeEvalHelp : undefined;
       const usage = selected ? selected.slice(selected.indexOf("Usage:")) + "\n" : mikeUsage;
       const message = `Error: ${error.message}\n${error.usage ? usage : ""}`;
-      await work.write(Buffer.from(message), true);
+      await work.write(utf8Encoder.encode(message), true);
       return { exitCode: 1 };
     }
     if (error instanceof FsError) {
-      await work.write(Buffer.from(Buffer.byteLength(error.message) < 65520 ? `Error: ${error.message}\n` : "Error: yq diagnostic exceeds safety limit\n"), true);
+      await work.write(utf8Encoder.encode(utf8ByteLength(error.message) < 65520 ? `Error: ${error.message}\n` : "Error: yq diagnostic exceeds safety limit\n"), true);
       return { exitCode: 1 };
     }
     throw error;

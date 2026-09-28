@@ -1,3 +1,4 @@
+import { utf8ByteLength } from "./bytes.js";
 import { object, objectKeys, put, type Json } from "safe-bash-query-engine/limits";
 import { Decimal, numberText } from "safe-bash-query-engine/numbers";
 import type { YqOwnedWork } from "safe-bash-query-engine/query-core";
@@ -150,7 +151,7 @@ async function payload(work: YqOwnedWork, text: string): Promise<number> {
   let bytes = 0;
   for (const character of text) {
     codePoints++;
-    bytes += Buffer.byteLength(character);
+    bytes += utf8ByteLength(character);
     if (codePoints === 256) {
       await work.charge(codePoints);
       work.assertOpen();
@@ -175,7 +176,7 @@ function jsonStringBytes(text: string): number {
     const point = character.codePointAt(0)!;
     if (point === 0x22 || point === 0x5c || point === 0x08 || point === 0x0c || point === 0x0a || point === 0x0d || point === 0x09) bytes += 2;
     else if (point < 0x20) bytes += 6;
-    else bytes += Buffer.byteLength(character);
+    else bytes += utf8ByteLength(character);
   }
   return bytes;
 }
@@ -196,13 +197,13 @@ export async function estimateAlias(value: Json, work: YqOwnedWork, limits: Read
     if (maxDepth > yqCaps.maxDepth) throw limit("LIMIT_MAX_DEPTH");
     const current = item.value;
     if (current === null || typeof current === "boolean") {
-      compactBytes = addProjection(compactBytes, Buffer.byteLength(JSON.stringify(current)));
+      compactBytes = addProjection(compactBytes, utf8ByteLength(JSON.stringify(current)));
     } else if (typeof current === "number" || current instanceof Decimal) {
       const text = numberText(current);
       const units = await payload(work, text);
       work.assertOpen();
       ordinaryUnits = addProjection(ordinaryUnits, units);
-      compactBytes = addProjection(compactBytes, Buffer.byteLength(text));
+      compactBytes = addProjection(compactBytes, utf8ByteLength(text));
     } else if (typeof current === "string") {
       const units = await payload(work, current);
       work.assertOpen();
@@ -229,7 +230,7 @@ export async function estimateAlias(value: Json, work: YqOwnedWork, limits: Read
 }
 
 async function consumePayload(work: YqOwnedWork, reservation: ReturnType<YqOwnedWork["reserve"]>, text: string): Promise<void> {
-  const bytes = Buffer.byteLength(text);
+  const bytes = utf8ByteLength(text);
   const units = bytes === 0 ? 0 : Math.ceil(bytes / 1024);
   for (let unit = 0; unit < units; unit++) {
     await reservation.beforeUnit();

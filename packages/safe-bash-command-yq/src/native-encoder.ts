@@ -1,3 +1,4 @@
+import { utf8ByteLength } from "./bytes.js";
 import type { Node } from "yaml";
 import { cloneNode, dereference, inspectNode, type Candidate, type YamlModule } from "./nodes.js";
 import { mikeLimits, MikeError, type NativeWork } from "./native-work.js";
@@ -11,7 +12,7 @@ export async function encodeNative(candidate: Candidate, options: EncodeOptions,
   const chunks: string[] = [];
   let bytes = 0;
   const append = (text: string) => {
-    const incoming = Buffer.byteLength(text);
+    const incoming = utf8ByteLength(text);
     if (incoming > work.limits.maxOutputBytes - bytes) throw new MikeError("yq limit exceeded: maxOutputBytes");
     bytes += incoming; chunks.push(text);
   };
@@ -77,8 +78,8 @@ export async function encodeNative(candidate: Candidate, options: EncodeOptions,
   while (pending.length) {
     const { node, depth } = pending.pop()!;
     { const t = work.tick(); if (t) await t; }
-    projected += 32 + depth * Math.max(options.indent, 2) + 6 * Buffer.byteLength(node.comment ?? "") + 6 * Buffer.byteLength(node.commentBefore ?? "");
-    if (yaml.isScalar(node)) projected += 6 * Buffer.byteLength(String(node.value));
+    projected += 32 + depth * Math.max(options.indent, 2) + 6 * utf8ByteLength(node.comment ?? "") + 6 * utf8ByteLength(node.commentBefore ?? "");
+    if (yaml.isScalar(node)) projected += 6 * utf8ByteLength(String(node.value));
     else if (yaml.isMap(node)) for (const pair of node.items) {
       if (yaml.isScalar(pair.key) && pair.key.value === "<<" && pair.key.type === "PLAIN") pair.key.tag = "tag:yaml.org,2002:merge";
       pending.push({ node: pair.key as Node, depth: depth + 1 }, { node: pair.value as Node, depth: depth + 1 });

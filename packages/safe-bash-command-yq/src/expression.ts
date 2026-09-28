@@ -1,3 +1,4 @@
+import { utf8ByteLength } from "./bytes.js";
 import { MikeError } from "./native-work.js";
 
 export type Expression =
@@ -17,7 +18,7 @@ const priorities: Readonly<Record<string, number>> = { "|": 1, ",": 2, "=": 3, "
 const functions = new Set(["path", "select", "map", "has", "length", "keys", "tag", "type", "kind", "style", "head_comment", "anchor", "alias", "documentIndex", "document_index", "di", "fileIndex", "file_index", "fi", "filename", "env", "strenv", "del", "explode", "not", "sort", "sort_by", "reverse", "to_entries", "from_entries", "with_entries", "pick", "upcase", "downcase", "test", "split"]);
 
 export function compileExpression(source: string, security: { readonly disableEnvOps?: boolean; readonly disableFileOps?: boolean; readonly maxExpressionBytes?: number; readonly maxExpressionDepth?: number } = {}): Expression {
-  if (Buffer.byteLength(source) > (security.maxExpressionBytes ?? Infinity)) throw new MikeError("yq limit exceeded: expression bytes");
+  if (utf8ByteLength(source) > (security.maxExpressionBytes ?? Infinity)) throw new MikeError("yq limit exceeded: expression bytes");
   const tokens: Token[] = [];
   let offset = 0;
   while (offset < source.length) {

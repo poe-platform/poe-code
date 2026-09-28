@@ -1,3 +1,4 @@
+import { utf8ByteLength } from "./bytes.js";
 import { JqLimitError, objectKeys, wellFormed, type Json } from "safe-bash-query-engine/limits";
 import { Decimal, numberText } from "safe-bash-query-engine/numbers";
 import type { YqOwnedWork } from "safe-bash-query-engine/query-core";
@@ -13,7 +14,7 @@ class Fragments {
   ) {}
 
   async append(fragment: string): Promise<void> {
-    const bytes = Buffer.byteLength(fragment);
+    const bytes = utf8ByteLength(fragment);
     if (bytes > this.maxBytes - this.bytes) throw new JqLimitError("maxOutputBytes");
     if (bytes > 0) { const _p = this.work.chargeSync ? this.work.chargeSync(Math.ceil(bytes / 1024)) : this.work.charge(Math.ceil(bytes / 1024)); if (_p) await _p; }
     this.work.assertOpen();
@@ -29,7 +30,7 @@ class Fragments {
   }
 
   async appendReserved(fragment: string, bytes: number): Promise<void> {
-    if (Buffer.byteLength(fragment) !== bytes) throw new Error("escaped fragment projection mismatch");
+    if (utf8ByteLength(fragment) !== bytes) throw new Error("escaped fragment projection mismatch");
     if (bytes > 0) { const _p = this.work.chargeSync ? this.work.chargeSync(Math.ceil(bytes / 1024)) : this.work.charge(Math.ceil(bytes / 1024)); if (_p) await _p; }
     this.work.assertOpen();
     this.parts.push(fragment);
@@ -197,7 +198,7 @@ export async function encodeRaw(text: string, work: YqOwnedWork, maxBytes: numbe
   let bytes = 0;
   let codePoints = 0;
   for (const character of text) {
-    const incoming = Buffer.byteLength(character);
+    const incoming = utf8ByteLength(character);
     if (incoming > maxBytes - bytes) throw new JqLimitError("maxOutputBytes");
     bytes += incoming;
     codePoints++;

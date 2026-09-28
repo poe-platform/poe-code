@@ -1,3 +1,4 @@
+import { utf8ByteLength, utf8Encoder } from "./bytes.js";
 import { escapeText } from "safe-bash-query-engine/escaping";
 import { pathOf } from "safe-bash-query-engine/path";
 import {
@@ -216,7 +217,7 @@ function preflightArguments(context: CommandContext): void {
   let bytes = 0;
   for (const argument of args) {
     if (!wellFormed(argument)) throw cli("CLI_INVALID_UNICODE");
-    const incoming = Buffer.byteLength(argument);
+    const incoming = utf8ByteLength(argument);
     if (incoming > yqCaps.maxArgvUtf8Bytes - bytes) throw cli("CLI_ARGV_BYTES_LIMIT");
     bytes += incoming;
   }
@@ -316,7 +317,7 @@ function parseArguments(args: readonly string[], inputFormat: "yaml" | "toml"): 
     if (file === "-") {
       if (stdinSeen) throw cli("CLI_DUPLICATE_STDIN");
       stdinSeen = true;
-    } else if (Buffer.byteLength(file) > yqCaps.maxVfsOperandPathBytes) throw cli("CLI_VFS_OPERAND_LIMIT");
+    } else if (utf8ByteLength(file) > yqCaps.maxVfsOperandPathBytes) throw cli("CLI_VFS_OPERAND_LIMIT");
   }
   return { inputFormat, format, explicitJson, compact, raw, filter, files };
 }
@@ -328,7 +329,7 @@ function displayedSource(source: string): string {
   let truncated = false;
   for (const character of source) {
     const encoded = escapeText(JSON.stringify(character).slice(1, -1), "diagnostic");
-    const incoming = Buffer.byteLength(encoded);
+    const incoming = utf8ByteLength(encoded);
     if (incoming > yqCaps.maxDisplayedFilenameBytes - bytes) {
       truncated = true;
       break;
@@ -337,7 +338,7 @@ function displayedSource(source: string): string {
     bytes += incoming;
   }
   if (truncated) {
-    while (parts.length > 1 && Buffer.byteLength(parts.join("")) + 4 > yqCaps.maxDisplayedFilenameBytes) parts.pop();
+    while (parts.length > 1 && utf8ByteLength(parts.join("")) + 4 > yqCaps.maxDisplayedFilenameBytes) parts.pop();
     parts.push("...");
   }
   parts.push('"');
@@ -533,8 +534,8 @@ async function runCommand(context: CommandContext, owner: InvocationOwner, input
     return stderr;
   };
   const emitDiagnostic = async (error: YqError): Promise<void> => {
-    const preferred = Buffer.from(diagnostic(error));
-    const fallback = Buffer.from(diagnosticFallback);
+    const preferred = utf8Encoder.encode(diagnostic(error));
+    const fallback = utf8Encoder.encode(diagnosticFallback);
     const selected = ledger.canAdmitDiagnostic(preferred.byteLength) ? preferred : ledger.canAdmitDiagnostic(fallback.byteLength) ? fallback : undefined;
     if (!selected) return;
     ledger.admitDiagnostic(selected.byteLength);
@@ -548,13 +549,13 @@ async function runCommand(context: CommandContext, owner: InvocationOwner, input
       throw cli("CLI_INFO_COMBINATION");
     }
     if (info) {
-      const bytes = Buffer.from(info === "help" ? help : version);
+      const bytes = utf8Encoder.encode(info === "help" ? help : version);
       ledger.admitStdout(bytes.byteLength);
       await writeOperation(stdoutOperation(), bytes, owner, context.signal);
       return { exitCode: 0 };
     }
     const options = parseArguments(context.args, inputFormat);
-    if (Buffer.byteLength(options.filter) > yqCaps.maxQuerySourceBytes) throw new YqError("limit", "LIMIT_MAX_QUERY_SOURCE_BYTES", 5);
+    if (utf8ByteLength(options.filter) > yqCaps.maxQuerySourceBytes) throw new YqError("limit", "LIMIT_MAX_QUERY_SOURCE_BYTES", 5);
     owner.register(async () => session?.close());
     session = createYqQuerySession({ signal: context.signal, limits });
     try { session.compileOnce(options.filter); }
@@ -591,7 +592,7 @@ async function runCommand(context: CommandContext, owner: InvocationOwner, input
         }
         owner.assertOpen(context.signal);
         const iterator = session.run(document);
-        const outBatch = Buffer.allocUnsafe(16384);
+        const outBatch = new Uint8Array(16384);
         let outBatchUsed = 0;
         const flushOutBatch = async (): Promise<void> => {
           if (outBatchUsed > 0) {
@@ -625,7 +626,7 @@ async function runCommand(context: CommandContext, owner: InvocationOwner, input
             owner.assertOpen(context.signal);
             session.ownedWork.admitResult();
             const separator = emitted === 0 || options.format === "json" ? "" : "---\n";
-            const suffixBytes = Buffer.byteLength(separator) + 1;
+            const suffixBytes = utf8ByteLength(separator) + 1;
             const remaining = yqCaps.stdoutCapBytes - ledger.stdoutBytes;
             if (suffixBytes > remaining) {
               await flushOutBatch();
@@ -648,7 +649,7 @@ async function runCommand(context: CommandContext, owner: InvocationOwner, input
               throw failure;
             }
             owner.assertOpen(context.signal);
-            const encodedBytes = Buffer.byteLength(encoded);
+            const encodedBytes = utf8ByteLength(encoded);
             const outputBytes = encodedBytes + suffixBytes;
             try {
               ledger.admitStdout(outputBytes);
@@ -660,17 +661,17 @@ async function runCommand(context: CommandContext, owner: InvocationOwner, input
             owner.assertOpen(context.signal);
             if (emitted < 2 || outputBytes >= 8192) {
               await flushOutBatch();
-              const output = Buffer.allocUnsafe(outputBytes);
+              const output = new Uint8Array(outputBytes);
               let offset = 0;
-              if (separator !== "") offset += output.write(separator, offset, "utf8");
-              offset += output.write(encoded, offset, "utf8");
+              if (separator !== "") offset += utf8Encoder.encodeInto(separator, output.subarray(offset)).written;
+              offset += utf8Encoder.encodeInto(encoded, output.subarray(offset)).written;
               output[offset] = 0x0a;
               owner.assertOpen(context.signal);
               await writeOperation(stdoutOperation(), output, owner, context.signal);
             } else {
               if (outBatchUsed + outputBytes > outBatch.byteLength) await flushOutBatch();
-              if (separator !== "") outBatchUsed += outBatch.write(separator, outBatchUsed, "utf8");
-              outBatchUsed += outBatch.write(encoded, outBatchUsed, "utf8");
+              if (separator !== "") outBatchUsed += utf8Encoder.encodeInto(separator, outBatch.subarray(outBatchUsed)).written;
+              outBatchUsed += utf8Encoder.encodeInto(encoded, outBatch.subarray(outBatchUsed)).written;
               outBatch[outBatchUsed++] = 0x0a;
             }
             emitted++;

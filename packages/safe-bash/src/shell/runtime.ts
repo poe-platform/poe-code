@@ -11597,10 +11597,26 @@ export class Runtime {
         // These expansions can require multiple fields or asynchronous quoting
         // as loop state changes. Decide before the loop produces any effects.
         if (this._syncLoopFnCheckDepth > 0 && (part.substring || getArraySelector(part)?.kind === "element")) return false;
-        if (part.prefixNames !== undefined) return false;
+        if (part.prefixNames !== undefined) {
+          if (
+            part.indirect ||
+            part.specialParameter ||
+            part.length ||
+            part.substring ||
+            part.transform !== undefined ||
+            part.operator !== undefined ||
+            getArraySelector(part) !== undefined ||
+            this.budget.limits.maxExpansionFields !== Infinity ||
+            this.budget.limits.maxExpansionBytes !== Infinity ||
+            !isShellIdentifier(part.name)
+          ) {
+            return false;
+          }
+          continue;
+        }
         if (part.transform !== undefined) {
           if (
-            (part.transform !== "U" && part.transform !== "L" && part.transform !== "u") ||
+            (part.transform !== "U" && part.transform !== "L" && part.transform !== "u" && (part.transform !== "Q" || byteLocale(rawState.variables))) ||
             part.indirect ||
             part.specialParameter ||
             part.length ||
@@ -11846,10 +11862,10 @@ export class Runtime {
           w0Plain === "uniq" ||
           w0Plain === "tr" ||
           (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl"));
-        if (!w0Plain || (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq" && !isFileCommand) || !this.commands.has(w0Plain) || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return false;
+        const def = w0Plain ? (this.commands.get(w0Plain) ?? ((w0Plain === "rev" || w0Plain === "tac") ? this.getExternalCommand(w0Plain) : undefined)) : undefined;
+        if (!w0Plain || (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq" && !isFileCommand) || !def || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return false;
         if ((hasSingleStdinRedir || hasSingleHereStringRedir) && !isFileCommand) return false;
-        const def = this.commands.get(w0Plain);
-        if (!def || (w0Plain === "printf" ? def.execute !== printfCommand.execute : w0Plain === "echo" ? !defaultEchoExecutors.has(def.execute) : w0Plain === "seq" ? (!builtInDirectContextExecutors.has(def.execute) && (customRegisteredCommands.has(def.execute) || customRegisteredRegistries.has(this.commands))) : !builtInDirectContextExecutors.has(def.execute))) return false;
+        if (w0Plain === "printf" ? def.execute !== printfCommand.execute : w0Plain === "echo" ? !defaultEchoExecutors.has(def.execute) : (w0Plain === "seq" || w0Plain === "rev" || w0Plain === "tac") ? (!builtInDirectContextExecutors.has(def.execute) && (customRegisteredCommands.has(def.execute) || customRegisteredRegistries.has(this.commands))) : !builtInDirectContextExecutors.has(def.execute)) return false;
         if (!cmd.words.slice(1).every(w => this.isPureSyncValueWord(w, rawState))) return false;
         if (isFileCommand) {
           if (w0Plain === "tr" && !hasSingleStdinRedir && !hasSingleHereStringRedir) return false;
@@ -11860,16 +11876,33 @@ export class Runtime {
             const vCheck = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fPlain), false);
             if (!vCheck || vCheck.byteLength > 16384 || vCheck.includes(0)) return false;
           }
-          const opCount = (hasSingleStdinRedir || hasSingleHereStringRedir) ? cmd.words.length - 1 : cmd.words.length - 2;
+          const opWords = (hasSingleStdinRedir || hasSingleHereStringRedir) ? cmd.words.slice(1) : cmd.words.slice(1, -1);
+          const opCount = opWords.length;
+          const op0 = opWords[0]?.plain;
+          const op1 = opWords[1]?.plain;
           if (w0Plain === "cat" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl") {
             if (opCount !== 0) return false;
           } else {
             if (p.commands.length !== 1 && !hasSingleHereStringRedir) return false;
-            if ((w0Plain === "head" || w0Plain === "tail") && opCount > 2) return false;
+            if (w0Plain === "head" || w0Plain === "tail") {
+              const validHT =
+                opCount === 0 ||
+                (opCount === 1 && op0 !== undefined && /^-(?:n|c)?[0-9]{1,5}$/.test(op0)) ||
+                (opCount === 2 && (op0 === "-n" || op0 === "-c") && op1 !== undefined && /^[0-9]{1,5}$/.test(op1));
+              if (!validHT) return false;
+            }
             if ((w0Plain === "jq" || w0Plain === "awk" || w0Plain === "grep" || w0Plain === "sed") && (opCount < 1 || opCount > 3)) return false;
             if (w0Plain === "cut" && (opCount < 1 || opCount > 4)) return false;
-            if (w0Plain === "wc" && opCount !== 1) return false;
-            if ((w0Plain === "sort" || w0Plain === "uniq" || w0Plain === "base64") && (opCount > 1 || (w0Plain === "sort" && byteLocale(rawState.variables)))) return false;
+            if (w0Plain === "wc" && (opCount !== 1 || (op0 !== "-l" && op0 !== "-c" && op0 !== "-w"))) return false;
+            if (w0Plain === "sort") {
+              if (byteLocale(rawState.variables) || opCount > 1 || (opCount === 1 && op0 !== "-r" && op0 !== "-u" && op0 !== "-n" && op0 !== "-rn" && op0 !== "-nr" && op0 !== "-ru" && op0 !== "-ur")) return false;
+            }
+            if (w0Plain === "uniq") {
+              if (opCount > 1 || (opCount === 1 && op0 !== "-d" && op0 !== "-u" && op0 !== "-c")) return false;
+            }
+            if (w0Plain === "base64") {
+              if (opCount > 1 || (opCount === 1 && op0 !== "-d" && op0 !== "--decode")) return false;
+            }
             if (w0Plain === "tr" && opCount !== 2) return false;
           }
         }
@@ -21713,11 +21746,8 @@ export class Runtime {
           if (typeof val !== "string") return undefined;
           let transformed: string;
           if (part.transform === "Q") {
-            for (let k = 0; k < val.length; k++) {
-              const c = val.charCodeAt(k);
-              if (c < 32 || c >= 127) return undefined;
-            }
-            transformed = "'" + (val.includes("'") ? val.split("'").join("'\\''") : val) + "'";
+            if (byteLocale(rawState.variables)) return undefined;
+            transformed = this.formatSyncTransformQ(val);
           } else {
             if (part.transform === "U") {
               transformed = val.toUpperCase();
@@ -21738,7 +21768,35 @@ export class Runtime {
           out += transformed;
           continue;
         }
-        if (part.prefixNames !== undefined) return undefined;
+        if (part.prefixNames !== undefined) {
+          if (
+            (split && !(part.quoted && part.prefixNames === "*")) ||
+            part.indirect ||
+            part.specialParameter ||
+            part.length ||
+            part.substring ||
+            part.transform !== undefined ||
+            part.operator !== undefined ||
+            getArraySelector(part) !== undefined ||
+            this.budget.limits.maxExpansionFields !== Infinity ||
+            this.budget.limits.maxExpansionBytes !== Infinity ||
+            !isShellIdentifier(part.name)
+          ) {
+            return undefined;
+          }
+          const pNames = this.collectSyncPrefixNames(part.name, rawState);
+          if (pNames === undefined) return undefined;
+          const ifs = rawState.variables.IFS ?? " ";
+          const sep = io.nameExpansionContext === "document" || (io.nameExpansionContext === "conditional" && part.prefixNames === "@")
+            ? " "
+            : ifs.length ? String.fromCodePoint(ifs.codePointAt(0)!) : "";
+          const joined = pNames.join(sep);
+          if (split && !part.quoted) {
+            if (joined.length === 0 || joined.includes(" ") || joined.includes("\t") || joined.includes("\n")) return undefined;
+          }
+          out += joined;
+          continue;
+        }
         if (part.indirect || part.specialParameter) return undefined;
         if (part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME" || part.name === "DIRSTACK") return undefined;
         if (!isShellIdentifier(part.name)) return undefined;
@@ -22352,6 +22410,66 @@ export class Runtime {
     }
     return out;
   }
+  private formatSyncTransformQ(val: string): string {
+    let ansi = false;
+    for (let i = 0; i < val.length; i++) {
+      const c = val.charCodeAt(i);
+      if (c < 32 || c === 127) {
+        ansi = true;
+        break;
+      }
+      if (c >= 128) {
+        const cp = val.codePointAt(i)!;
+        if (/[\p{Cc}\p{Cf}\p{Cn}]/u.test(String.fromCodePoint(cp))) {
+          ansi = true;
+          break;
+        }
+        if (cp > 0xffff) i++;
+      }
+    }
+    if (!ansi) {
+      return "'" + (val.includes("'") ? val.split("'").join("'\\''") : val) + "'";
+    }
+    const escMap: Record<number, string> = { 7: "\\a", 8: "\\b", 9: "\\t", 10: "\\n", 11: "\\v", 12: "\\f", 13: "\\r", 27: "\\E" };
+    let out = "$'";
+    for (const ch of val) {
+      const cp = ch.codePointAt(0)!;
+      if (escMap[cp] !== undefined) out += escMap[cp]!;
+      else if (cp === 39) out += "\\'";
+      else if (cp === 92) out += "\\\\";
+      else if ((cp >= 32 && cp < 127) || (cp >= 128 && !/[\p{Cc}\p{Cf}\p{Cn}]/u.test(ch))) out += ch;
+      else {
+        const bytes = fastSharedTextEncoder.encode(ch);
+        for (let bi = 0; bi < bytes.length; bi++) out += "\\" + bytes[bi]!.toString(8).padStart(3, "0");
+      }
+    }
+    return out + "'";
+  }
+
+  private sortSyncLines(rawLines: readonly string[], flag: string | undefined): string[] {
+    const rev = flag !== undefined && flag.includes("r");
+    const num = flag !== undefined && flag.includes("n");
+    const uniq = flag !== undefined && flag.includes("u");
+    const parseNum = (s: string): number => {
+      const m = /^[ \t]*([+-]?(?:\d+(?:\.\d*)?|\.\d+))/.exec(s);
+      return m ? Number(m[1]!) : 0;
+    };
+    const sorted = [...rawLines].sort((a, b) => {
+      if (num) {
+        const na = parseNum(a);
+        const nb = parseNum(b);
+        if (na !== nb) return rev ? nb - na : na - nb;
+      }
+      return a < b ? (rev ? 1 : -1) : a > b ? (rev ? -1 : 1) : 0;
+    });
+    if (!uniq) return sorted;
+    const dedup: string[] = [];
+    for (let i = 0; i < sorted.length; i++) {
+      if (i === 0 || sorted[i] !== sorted[i - 1]) dedup.push(sorted[i]!);
+    }
+    return dedup;
+  }
+
   private translateSyncTr(input: string, set1Spec: string, set2Spec: string): string | undefined {
     if (set1Spec === "a-z" && set2Spec === "A-Z") return input.toUpperCase();
     if (set1Spec === "A-Z" && set2Spec === "a-z") return input.toLowerCase();
@@ -22558,14 +22676,17 @@ export class Runtime {
         } else if (sName === "uniq") {
           if (sArgs.length > 1 || (sArgs.length === 1 && sArgs[0] !== "-c" && sArgs[0] !== "-d" && sArgs[0] !== "-u" && sArgs[0] !== "-i")) return undefined;
         } else if (sName === "sort") {
-          if (sArgs.length > 1 || (sArgs.length === 1 && sArgs[0] !== "-r")) return undefined;
+          if (sArgs.length > 1 || (sArgs.length === 1 && sArgs[0] !== "-r" && sArgs[0] !== "-u" && sArgs[0] !== "-n" && sArgs[0] !== "-rn" && sArgs[0] !== "-nr" && sArgs[0] !== "-ru" && sArgs[0] !== "-ur")) return undefined;
         } else if (sName === "head" || sName === "tail") {
-          if (sArgs.length === 1 && /^-(?:n)?[0-9]+$/.test(sArgs[0]!)) {
-            const numStr = sArgs[0]!.startsWith("-n") ? sArgs[0]!.slice(2) : sArgs[0]!.slice(1);
+          if (sArgs.length === 0) {
+            sArgs.push("-n", "10");
+          } else if (sArgs.length === 1 && /^-(?:n|c)?[0-9]+$/.test(sArgs[0]!)) {
+            const flag = sArgs[0]!.startsWith("-c") ? "-c" : "-n";
+            const numStr = (sArgs[0]!.startsWith("-n") || sArgs[0]!.startsWith("-c")) ? sArgs[0]!.slice(2) : sArgs[0]!.slice(1);
             sArgs.length = 0;
-            sArgs.push("-n", numStr);
+            sArgs.push(flag, numStr);
           }
-          if (sArgs.length !== 2 || sArgs[0] !== "-n" || !/^[0-9]+$/.test(sArgs[1]!)) return undefined;
+          if (sArgs.length !== 2 || (sArgs[0] !== "-n" && sArgs[0] !== "-c") || !/^[0-9]+$/.test(sArgs[1]!)) return undefined;
         } else if (sName === "wc") {
           if (sArgs.length !== 1 || (sArgs[0] !== "-l" && sArgs[0] !== "-c" && sArgs[0] !== "-w")) return undefined;
         } else if (sName === "sed") {
@@ -22678,7 +22799,7 @@ export class Runtime {
           const isInlineBase64 = firstName === "base64";
           const isInlineTac = firstName === "tac";
           const isInlineNl = firstName === "nl";
-          const isInlineSort = firstName === "sort" && !byteLocale(rawState.variables) && (stageArgs.length === 0 || (stageArgs.length === 1 && stageArgs[0] === "-r"));
+          const isInlineSort = firstName === "sort" && !byteLocale(rawState.variables) && (stageArgs.length === 0 || (stageArgs.length === 1 && (stageArgs[0] === "-r" || stageArgs[0] === "-u" || stageArgs[0] === "-n" || stageArgs[0] === "-rn" || stageArgs[0] === "-nr" || stageArgs[0] === "-ru" || stageArgs[0] === "-ur")));
           const isInlineUniq = firstName === "uniq" && (stageArgs.length === 0 || (stageArgs.length === 1 && (stageArgs[0] === "-d" || stageArgs[0] === "-u" || stageArgs[0] === "-c")));
           const inlineSedMatch = firstName === "sed"
             ? /^s\/([a-zA-Z0-9_ :;,-]+)\/([a-zA-Z0-9_ :;,./-]*)\/(g?)$/.exec(
@@ -22708,11 +22829,21 @@ export class Runtime {
             let outLines: string[] = [];
             if (firstName === "rev") {
               outLines = rawLines.map(l => Array.from(l).reverse().join(""));
-            } else if (firstName === "head") {
-              outLines = rawLines.slice(0, Number(stageArgs[1]!));
-            } else if (firstName === "tail") {
-              const nTail = Number(stageArgs[1]!);
-              outLines = nTail === 0 ? [] : rawLines.slice(-nTail);
+            } else if (firstName === "head" || firstName === "tail") {
+              const count = Number(stageArgs[1]!);
+              if (stageArgs[0] === "-c") {
+                const sub = firstName === "head"
+                  ? prevBuf.subarray(0, Math.min(prevLen, count))
+                  : (count === 0 ? prevBuf.subarray(0, 0) : prevBuf.subarray(Math.max(0, prevLen - count), prevLen));
+                const nextTotalBytes = this.budget.bytes + sub.byteLength;
+                if (nextTotalBytes > this.budget.maxOutputBytesSmi && sub.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+                this.budget.bytes = nextTotalBytes;
+                nextBuf.set(sub, 0);
+                prevBuf = nextBuf;
+                prevLen = sub.byteLength;
+                continue;
+              }
+              outLines = firstName === "head" ? rawLines.slice(0, count) : (count === 0 ? [] : rawLines.slice(-count));
             } else if (firstName === "cut" && stageArgs[0] === "-c") {
               const [cStart, cEnd] = stageArgs[1]!.split("-").map(Number);
               outLines = rawLines.map(l => Array.from(l).slice(cStart! - 1, cEnd!).join(""));
@@ -22784,8 +22915,7 @@ export class Runtime {
               prevLen = written;
               continue;
             } else if (isInlineSort) {
-              const revSort = stageArgs[0] === "-r";
-              outLines = [...rawLines].sort((a, b) => (a < b ? (revSort ? 1 : -1) : a > b ? (revSort ? -1 : 1) : 0));
+              outLines = this.sortSyncLines(rawLines, stageArgs[0]);
             } else if (isInlineUniq) {
               const mode = stageArgs[0];
               outLines = [];
@@ -23118,7 +23248,7 @@ export class Runtime {
       w0Plain === "uniq" ||
       w0Plain === "tr" ||
       (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl"));
-    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && this.commands.has(w0Plain)) {
+    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "rev" || w0Plain === "tac") && Boolean(this.getExternalCommand(w0Plain))))) {
       const allArgs: string[] = [];
       let fOk = true;
       for (let i = 1; i < cmd.words.length; i++) {
@@ -23154,12 +23284,20 @@ export class Runtime {
               fileRes = fileStr;
             } else if ((w0Plain === "head" || w0Plain === "tail") && opArgs.length <= 2) {
               let count: number | undefined = opArgs.length === 0 ? 10 : undefined;
+              let byteCount: number | undefined;
               if (opArgs.length === 1 && opArgs[0]!.startsWith("-n") && /^[0-9]{1,5}$/.test(opArgs[0]!.slice(2))) count = Number(opArgs[0]!.slice(2));
+              else if (opArgs.length === 1 && opArgs[0]!.startsWith("-c") && /^[0-9]{1,5}$/.test(opArgs[0]!.slice(2))) byteCount = Number(opArgs[0]!.slice(2));
               else if (opArgs.length === 1 && /^-[0-9]{1,5}$/.test(opArgs[0]!)) count = Number(opArgs[0]!.slice(1));
               else if (opArgs.length === 2 && opArgs[0] === "-n" && /^[0-9]{1,5}$/.test(opArgs[1]!)) count = Number(opArgs[1]!);
+              else if (opArgs.length === 2 && opArgs[0] === "-c" && /^[0-9]{1,5}$/.test(opArgs[1]!)) byteCount = Number(opArgs[1]!);
               if (count !== undefined) {
                 const sliced = w0Plain === "head" ? rawLines.slice(0, count) : (count === 0 ? [] : rawLines.slice(-count));
                 fileRes = sliced.join("\n");
+              } else if (byteCount !== undefined) {
+                const slicedBytes = w0Plain === "head"
+                  ? view.subarray(0, Math.min(view.byteLength, byteCount))
+                  : (byteCount === 0 ? view.subarray(0, 0) : view.subarray(Math.max(0, view.byteLength - byteCount), view.byteLength));
+                fileRes = sharedSyncPipeDecoder.decode(slicedBytes);
               }
             } else if (w0Plain === "jq" && (opArgs.length === 1 || opArgs.length === 2)) {
               const rawMode = opArgs.length === 2 && (opArgs[0] === "-r" || opArgs[0] === "--raw-output");
@@ -23269,9 +23407,8 @@ export class Runtime {
                 count = trimmed.length === 0 ? 0 : trimmed.split(/\s+/).length;
               }
               fileRes = (hasSingleStdinRedir || hasSingleHereStringRedir) ? String(count) : `${count} ${fileArg}`;
-            } else if (w0Plain === "sort" && !byteLocale(rawState.variables) && (opArgs.length === 0 || (opArgs.length === 1 && opArgs[0] === "-r"))) {
-              const revSort = opArgs[0] === "-r";
-              fileRes = [...rawLines].sort((a, b) => (a < b ? (revSort ? 1 : -1) : a > b ? (revSort ? -1 : 1) : 0)).join("\n");
+            } else if (w0Plain === "sort" && !byteLocale(rawState.variables) && (opArgs.length === 0 || (opArgs.length === 1 && (opArgs[0] === "-r" || opArgs[0] === "-u" || opArgs[0] === "-n" || opArgs[0] === "-rn" || opArgs[0] === "-nr" || opArgs[0] === "-ru" || opArgs[0] === "-ur")))) {
+              fileRes = this.sortSyncLines(rawLines, opArgs[0]).join("\n");
             } else if (w0Plain === "uniq" && (opArgs.length === 0 || (opArgs.length === 1 && (opArgs[0] === "-d" || opArgs[0] === "-u" || opArgs[0] === "-c")))) {
               const mode = opArgs[0];
               const outLines: string[] = [];

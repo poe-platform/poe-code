@@ -424,3 +424,51 @@ test("wave 96 sync loop: read -r -N exact chars, ${var@U}/${var@L}/${var@u}, and
     await shell.dispose();
   }
 });
+
+for (const [label, source] of [
+  [
+    "$(sort -u), $(sort -n), $(sort -rn), $(head -c N), and $(tail -c N) in sync loop",
+    "printf -v s \"10\\n2\\n10\\n1\"; out=\"\"; for ((i=1; i<=10; i++)); do u=$(sort -u <<< \"$s\"); n=$(sort -n <<< \"$s\"); rn=$(sort -rn <<< \"$s\"); h=$(head -c 3 <<< \"abcdef\"); t=$(tail -c 4 <<< \"abcdef\"); out+=\"$u|$n|$rn|$h|$t;\"; done; printf \"%s\\n\" \"$out\"",
+  ],
+  [
+    "${!prefix*} variable name expansion and $(rev <<< $s) in sync loop",
+    "pfx_b=1; pfx_a=2; pfx_c=3; s=\"abcdef\"; out=\"\"; for ((i=1; i<=10; i++)); do k=\"${!pfx_*}\"; r=$(rev <<< \"$s\"); out+=\"$k|$r;\"; done; printf \"%s\\n\" \"$out\"",
+  ],
+] as const) {
+  test(`wave 97 sync loop parity: ${label}`, async () => {
+    const bash = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+    assert.equal(bash.status, 0, bash.stderr);
+    const { createStandardCommands } = await import("../../src/commands/index.js");
+    const { createStreamFormatCommands } = await import("../../src/commands/stream-format/index.js");
+    const commands = new CommandRegistry([...createStandardCommands(), ...createStreamFormatCommands()]);
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands });
+    try {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, bash.status, result.stderr);
+      assert.equal(result.stderr, bash.stderr);
+      assert.equal(result.stdout, bash.stdout);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("wave 97 sync loop: ${var@Q} quoting transform with spaces, quotes, and control chars", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const commands = new CommandRegistry(createStandardCommands());
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands });
+  try {
+    const script = [
+      "s1=\"hello world\"",
+      "s2=\"it's\"",
+      "s3=$'line1\\nline2\\t!'",
+      "for ((i=1; i<=10; i++)); do",
+      "  q1=\"${s1@Q}\"; q2=\"${s2@Q}\"; q3=\"${s3@Q}\"",
+      "done",
+      "printf \"%s|%s|%s\\n\" \"$q1\" \"$q2\" \"$q3\"",
+    ].join("\n");
+    const result = await shell.exec(script);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "'hello world'|'it'\\''s'|$'line1\\nline2\\t!'\n");
+  } finally {
+    await shell.dispose();
+  }
+});

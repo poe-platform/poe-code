@@ -13513,7 +13513,7 @@ export class Runtime {
       const condCmd = cp.commands[0]!;
       let whileArithProg: ArithmeticProgram | undefined;
       let whileCondExpr: ConditionalExpression | undefined;
-      let whileReadSpec: { ifsAssign: ReturnType<Runtime["assignment"]>; varNames: string[]; isBareReply: boolean; readCmd: Extract<Command, { kind: "simple" }>; delimChar?: string } | undefined;
+      let whileReadSpec: { ifsAssign: ReturnType<Runtime["assignment"]>; varNames: string[]; isBareReply: boolean; readCmd: Extract<Command, { kind: "simple" }>; delimChar?: string | undefined } | undefined;
       let whileGetoptsSpec: { optstring: string; optVar: string; scanArgs: readonly string[]; getoptsCmd: Extract<Command, { kind: "simple" }>; cmdLastArg: string } | undefined;
       if (syncReadInputText !== undefined) {
         if (command.kind !== "while" || condCmd.kind !== "simple" || condCmd.redirects.length !== 0 || condCmd.words.length === 0) return undefined;

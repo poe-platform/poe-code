@@ -13326,6 +13326,7 @@ export class Runtime {
             const condNonZero = whileCondExpr !== undefined
               ? (this.tryEvalConditionalSync(whileCondExpr, rawState, monitor, store, io, condLine) ?? 1) === 0
               : this.syncShellArithmeticNonZero(whileArithProg!, rawState, condLine);
+            if (condCmd.kind === "simple") { lastCmd = condCmd; lastArg = "]"; }
             if (condNonZero !== (command.kind === "while")) break;
             ++iterCount;
             this.budget.loop();
@@ -13892,9 +13893,7 @@ export class Runtime {
     rawState.status = 0;
     let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
     let lastArg = rawState.lastArgument ?? "";
-    let lastValueWord: Word | undefined;
     let lastInductionVal: string | undefined;
-    let lastArgInductionVal: string | undefined;
     let stdoutEchoBatch = "";
     const flushStdoutEchoBatch = (): void => {
       if (stdoutEchoBatch.length === 0) return;
@@ -13929,7 +13928,6 @@ export class Runtime {
         this.budget.tick();
         if (step.loopAction !== undefined) {
           lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
-          lastValueWord = undefined;
           rawState.status = 0;
           this._syncLoopAction = step.loopAction;
           break;
@@ -13953,13 +13951,11 @@ export class Runtime {
           const ifsStr = rs.ifsWord !== undefined ? (this.fastValueWord(rs.ifsWord, rawState, io, false, false, false, false, 0, step.line) as string) : (rawState.variables.IFS ?? " \t\n");
           this.splitSyncReadLine(lineStr, ifsStr, rs.varNames, rs.isBareReply, rawState, touched);
           lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
-          lastValueWord = undefined;
           rawState.status = 0;
           continue;
         }
         if (deferredMask & (1 << b)) {
           lastArg = "";
-          lastValueWord = undefined;
           rawState.status = 0;
           continue;
         }
@@ -13972,14 +13968,14 @@ export class Runtime {
           this.budget.fileSystemOperation();
           this.budget.bytes += encoded.byteLength;
           lastCmd = nextStep.cmd;
-          lastValueWord = nextStep.value;
+          lastArg = this.evalSyncRedirectWord(nextStep.value!, rawState, io) ?? "";
         } else if (step.targetWord !== undefined && step.value !== undefined) {
           if (this.isSimpleRedirectEchoWord(step.value)) {
             const encoded = this.encodeSyncRedirectWordsToScratch(step.value, undefined, rawState, io);
             this.writeSyncRedirectStep(step, encoded, step.append, mode, rawState, io);
             this.budget.fileSystemOperation();
             this.budget.bytes += encoded.byteLength;
-            lastValueWord = step.value;
+            lastArg = this.evalSyncRedirectWord(step.value, rawState, io) ?? "";
           } else {
             const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
             const encoded = fastSharedTextEncoder.encode(this.formatSyncEchoLine(val));
@@ -13987,7 +13983,6 @@ export class Runtime {
             this.budget.fileSystemOperation();
             this.budget.bytes += encoded.byteLength;
             lastArg = val;
-            lastValueWord = undefined;
           }
         } else if (step.targetWord !== undefined && step.printfVArgs !== undefined) {
           const { formatted, lastArg: pLastArg } = this.evalSyncPrintfStep(step.printfVArgs, rawState, io, step.line, step.cmd.words[0]?.plain === "echo");
@@ -13996,46 +13991,41 @@ export class Runtime {
           this.budget.fileSystemOperation();
           this.budget.bytes += encoded.byteLength;
           lastArg = pLastArg;
-          lastValueWord = undefined;
         } else if (step.isStdoutEcho && step.value !== undefined) {
           const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
           this.writeSyncStdoutText(this.formatSyncEchoLine(val), io);
           lastArg = val;
-          lastValueWord = undefined;
         } else if (step.isStdoutEcho && step.printfVArgs !== undefined) {
           const { formatted, lastArg: pLastArg } = this.evalSyncPrintfStep(step.printfVArgs, rawState, io, step.line, step.cmd.words[0]?.plain === "echo");
           this.writeSyncStdoutText(formatted, io);
           lastArg = pLastArg;
-          lastValueWord = undefined;
         } else if (step.arrayAssign !== undefined) {
           this.tryFastArrayAssignmentSync(step.arrayAssign, rawState, io, step.line, undefined, undefined, true);
           lastArg = "";
-          lastValueWord = undefined;
         } else if (step.caseClauses !== undefined) {
           flushStdoutEchoBatch();
-          this.execSyncCaseStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
+          this.execSyncCaseStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
           if (this._syncLoopAction !== undefined) break;
           continue;
         } else if (step.ifBranches !== undefined) {
           flushStdoutEchoBatch();
-          this.execSyncIfStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
+          this.execSyncIfStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
           if (this._syncLoopAction !== undefined) break;
           continue;
         } else if (step.condStmt !== undefined) {
           const cStatus = this.tryEvalConditionalSync(step.condStmt, rawState, monitor, arrayStore(rawState), io, step.line) ?? 1;
           if (step.cmd.kind === "simple") {
             lastArg = "]";
-            lastValueWord = undefined;
           }
           rawState.status = cStatus;
           continue;
         } else if (step.nestedLoop !== undefined) {
           flushStdoutEchoBatch();
-          this.execSyncNestedLoopStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
+          this.execSyncNestedLoopStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
           continue;
         } else if (step.fnCall !== undefined) {
           flushStdoutEchoBatch();
-          this.execSyncFnStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
+          this.execSyncFnStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
           continue;
         } else if (step.arithStmt !== undefined) {
           const nonZero = this.evalSyncLoopArithStmt(step.arithStmt, rawState, io, touched, step.line);
@@ -14046,7 +14036,6 @@ export class Runtime {
           rawState.variables[step.name] = formatted;
           touched.add(step.name);
           lastArg = pLastArg;
-          lastValueWord = undefined;
         } else if (step.isDiscardDevNull && step.discardWords !== undefined) {
           this.budget.fileSystemOperation();
           const dw = step.discardWords;
@@ -14069,7 +14058,6 @@ export class Runtime {
           }
           this.budget.bytes += outChars;
           lastArg = step.discardSuffix !== undefined ? evalLast : (dw.length > 0 ? evalLast : cmdName);
-          lastValueWord = undefined;
         } else if (step.name !== undefined && step.value !== undefined) {
           const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
           if (step.append) {
@@ -14079,15 +14067,11 @@ export class Runtime {
           } else rawState.variables[step.name] = val;
           touched.add(step.name);
           lastArg = "";
-          lastValueWord = undefined;
-
         } else {
           lastArg = step.cmd.words[0]!.plain!;
-          lastValueWord = undefined;
         }
         rawState.status = 0;
       }
-      if (lastValueWord !== undefined) lastArgInductionVal = rawState.variables[inductionName];
       if (this._syncLoopAction !== undefined) {
         const act = this._syncLoopAction;
         this._syncLoopAction = undefined;
@@ -14097,14 +14081,6 @@ export class Runtime {
     }
     flushStdoutEchoBatch();
     this.flushSyncStdoutBatch(io);
-    if (lastValueWord !== undefined) {
-      const postInd = rawState.variables[inductionName];
-      if (lastArgInductionVal === undefined) delete rawState.variables[inductionName];
-      else rawState.variables[inductionName] = lastArgInductionVal;
-      lastArg = this.evalSyncRedirectWord(lastValueWord, rawState, io) ?? "";
-      if (postInd === undefined) delete rawState.variables[inductionName];
-      else rawState.variables[inductionName] = postInd;
-    }
     return { lastCmd, lastArg, lastInductionVal };
   }
   private _syncLoopFnCheckDepth = 0;
@@ -14369,6 +14345,7 @@ export class Runtime {
           const condOk = nl.condExpr !== undefined
             ? (this.tryEvalConditionalSync(nl.condExpr, rawState, monitor, arrayStore(rawState), io, nl.condLine) ?? 1) === 0
             : this.syncShellArithmeticNonZero(nl.condArith!, rawState, nl.condLine);
+          if (nl.condCmd?.kind === "simple") { innerLastCmd = nl.condCmd; innerLastArg = "]"; }
           if (condOk !== (lc.kind === "while")) break;
           this.budget.loop();
           if ((++turn & 127) === 0) runYieldCheckpoint(this.signal);
@@ -14606,7 +14583,6 @@ export class Runtime {
   private runSyncForFallback( varName: string, fastLoopWords: readonly string[], bodyAssignments: readonly SyncLoopStep[], rawState: State, io: IO, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, mode: number, ): { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string } {
     let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
     let lastArg = rawState.lastArgument ?? "";
-    let lastValueWord: Word | undefined;
     let loopTurn = 0;
     for (let idx = 0; idx < fastLoopWords.length; idx++) {
       this.budget.loop();
@@ -14619,7 +14595,6 @@ export class Runtime {
         this.budget.tick();
         if (step.loopAction !== undefined) {
           lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
-          lastValueWord = undefined;
           rawState.status = 0;
           this._syncLoopAction = step.loopAction;
           break;
@@ -14643,7 +14618,6 @@ export class Runtime {
           const ifsStr = rs.ifsWord !== undefined ? (this.fastValueWord(rs.ifsWord, rawState, io, false, false, false, false, 0, step.line) as string) : (rawState.variables.IFS ?? " \t\n");
           this.splitSyncReadLine(lineStr, ifsStr, rs.varNames, rs.isBareReply, rawState, touched);
           lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
-          lastValueWord = undefined;
           rawState.status = 0;
           continue;
         }
@@ -14656,14 +14630,14 @@ export class Runtime {
           this.budget.fileSystemOperation();
           this.budget.bytes += encoded.byteLength;
           lastCmd = nextStep.cmd;
-          lastValueWord = nextStep.value;
+          lastArg = this.evalSyncRedirectWord(nextStep.value!, rawState, io) ?? "";
         } else if (step.targetWord !== undefined && step.value !== undefined) {
           if (this.isSimpleRedirectEchoWord(step.value)) {
             const encoded = this.encodeSyncRedirectWordsToScratch(step.value, undefined, rawState, io);
             this.writeSyncRedirectStep(step, encoded, step.append, mode, rawState, io);
             this.budget.fileSystemOperation();
             this.budget.bytes += encoded.byteLength;
-            lastValueWord = step.value;
+            lastArg = this.evalSyncRedirectWord(step.value, rawState, io) ?? "";
           } else {
             const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
             const encoded = fastSharedTextEncoder.encode(this.formatSyncEchoLine(val));
@@ -14671,7 +14645,6 @@ export class Runtime {
             this.budget.fileSystemOperation();
             this.budget.bytes += encoded.byteLength;
             lastArg = val;
-            lastValueWord = undefined;
           }
         } else if (step.targetWord !== undefined && step.printfVArgs !== undefined) {
           const { formatted, lastArg: pLastArg } = this.evalSyncPrintfStep(step.printfVArgs, rawState, io, step.line, step.cmd.words[0]?.plain === "echo");
@@ -14680,33 +14653,30 @@ export class Runtime {
           this.budget.fileSystemOperation();
           this.budget.bytes += encoded.byteLength;
           lastArg = pLastArg;
-          lastValueWord = undefined;
         } else if (step.nestedLoop !== undefined) {
-          this.execSyncNestedLoopStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
+          this.execSyncNestedLoopStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
           continue;
         } else if (step.fnCall !== undefined) {
-          this.execSyncFnStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
+          this.execSyncFnStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
           continue;
         } else if (step.caseClauses !== undefined) {
-          this.execSyncCaseStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
+          this.execSyncCaseStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
           if (this._syncLoopAction !== undefined) break;
           continue;
         } else if (step.ifBranches !== undefined) {
-          this.execSyncIfStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
+          this.execSyncIfStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
           if (this._syncLoopAction !== undefined) break;
           continue;
         } else if (step.condStmt !== undefined) {
           const cStatus = this.tryEvalConditionalSync(step.condStmt, rawState, monitor, arrayStore(rawState), io, step.line) ?? 1;
           if (step.cmd.kind === "simple") {
             lastArg = "]";
-            lastValueWord = undefined;
           }
           rawState.status = cStatus;
           continue;
         } else if (step.arrayAssign !== undefined) {
           this.tryFastArrayAssignmentSync(step.arrayAssign, rawState, io, step.line, undefined, undefined, true);
           lastArg = "";
-          lastValueWord = undefined;
         } else if (step.arithStmt !== undefined) {
           const nonZero = this.evalSyncLoopArithStmt(step.arithStmt, rawState, io, touched, step.line);
           rawState.status = nonZero ? 0 : 1;
@@ -14721,7 +14691,6 @@ export class Runtime {
           rawState.variables[step.name] = formatted;
           touched.add(step.name);
           lastArg = pArgs[pArgs.length - 1]!;
-          lastValueWord = undefined;
         } else if (step.isDiscardDevNull && step.discardWords !== undefined) {
           this.budget.fileSystemOperation();
           const dw = step.discardWords;
@@ -14744,7 +14713,6 @@ export class Runtime {
           }
           this.budget.bytes += outChars;
           lastArg = step.discardSuffix !== undefined ? evalLast : (dw.length > 0 ? evalLast : cmdName);
-          lastValueWord = undefined;
         } else if (step.name !== undefined && step.value !== undefined) {
           const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
           if (step.append) {
@@ -14754,20 +14722,16 @@ export class Runtime {
           } else rawState.variables[step.name] = val;
           touched.add(step.name);
           lastArg = "";
-          lastValueWord = undefined;
         } else if (step.isStdoutEcho && step.value !== undefined) {
           const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
           this.writeSyncStdoutText(this.formatSyncEchoLine(val), io);
           lastArg = val;
-          lastValueWord = undefined;
         } else if (step.isStdoutEcho && step.printfVArgs !== undefined) {
           const { formatted, lastArg: pLastArg } = this.evalSyncPrintfStep(step.printfVArgs, rawState, io, step.line, step.cmd.words[0]?.plain === "echo");
           this.writeSyncStdoutText(formatted, io);
           lastArg = pLastArg;
-          lastValueWord = undefined;
         } else {
           lastArg = step.cmd.words[0]!.plain!;
-          lastValueWord = undefined;
         }
         rawState.status = 0;
       }
@@ -14778,7 +14742,6 @@ export class Runtime {
       }
     }
     this.flushSyncStdoutBatch(io);
-    if (lastValueWord !== undefined) lastArg = this.evalSyncRedirectWord(lastValueWord, rawState, io) ?? "";
     return { lastCmd, lastArg };
   }
   async script(script: Script, state: State, io: IO, startListIndex = 0, startPipelineIndex = 0, skipFirstSync = false): Promise<number> {

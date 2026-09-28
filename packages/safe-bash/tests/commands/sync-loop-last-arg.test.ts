@@ -44,3 +44,61 @@ for (const header of ['for i in 1 2', 'for ((i=1;i<=2;i++))']) {
     } finally { await shell.dispose(); }
   });
 }
+
+const issue3957Bodies = [
+  '((i == 0)) && echo "redir_$i" >/f',
+  '((i == 0)) && { echo "redir_$i" >/f; }',
+  'echo "$v" >/f; ((v++))',
+  'echo first >/f; echo "$v" >/f; ((v++))',
+  'echo "before_$i" >/f; for y in "${empty[@]}"; do echo never; done',
+  'echo "before_$i" >/f; for ((j=0;j<0;j++)); do echo never; done',
+  'echo "before_$i" >/f; while [[ $i -lt 0 ]]; do echo never; done',
+  'echo "before_$i" >/f; until (( 1 )); do echo never; done',
+  'echo "before_$i" >/f; while [ "$i" -lt 0 ]; do echo never; done',
+  'echo "before_$i" >/f; until [ "$i" -ge 0 ]; do echo never; done',
+  'j=0; while [ "$j" -lt 2 ]; do echo "body_$j" >/f; ((j++)); done',
+  'j=0; until [ "$j" -ge 2 ]; do echo "body_$j" >/f; ((j++)); done',
+  'j="run"; while [ "$j" != "done" ]; do echo "body_$j" >/f; j="done"; done',
+  'j="run"; until [ "$j" = "done" ]; do echo "body_$j" >/f; j="done"; done',
+  'echo "before_$i" >/f; while [ "$i" = "never" ]; do echo never; done',
+  'echo "before_$i" >/f; until [ "$i" != "never" ]; do echo never; done',
+];
+for (const header of ['for i in 0 1', 'for ((i=0;i<2;i++))']) {
+  for (const body of issue3957Bodies) test(`3957 ${header}: ${body}`, async () => {
+    const source = `v=0; empty=(); echo seed >/f; ${header}; do ${body}; done; printf '[%s]\\n' "$_"`;
+    const oracle = spawnSync('/bin/bash', ['--noprofile', '--norc', '-c', source.replaceAll('>/f', '>/dev/null')], { encoding: 'utf8' });
+    assert.equal(oracle.status, 0);
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createStandardCommands()) });
+    try {
+      const result = await shell.exec(source);
+      assert.equal(result.stderr, oracle.stderr);
+      assert.equal(result.exitCode, oracle.status);
+      assert.equal(result.stdout, oracle.stdout);
+    } finally { await shell.dispose(); }
+  });
+}
+for (const header of ['while [ "$j" -lt 2 ]', 'until [ "$j" -ge 2 ]', 'while [ "$j" -lt 0 ]', 'until [ "$j" -ge 0 ]']) {
+  test(`3957 outer ${header}`, async () => {
+    const source = `j=0; echo seed >/f; ${header}; do echo "body_$j" >/f; ((j++)); done; printf '[%s]\\n' "$_"`;
+    const oracle = spawnSync('/bin/bash', ['--noprofile', '--norc', '-c', source.replaceAll('>/f', '>/dev/null')], { encoding: 'utf8' });
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createStandardCommands()) });
+    try {
+      const result = await shell.exec(source);
+      assert.equal(result.stderr, oracle.stderr);
+      assert.equal(result.exitCode, oracle.status);
+      assert.equal(result.stdout, oracle.stdout);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test('3957 outer string bracket condition', async () => {
+  const source = 'j="run"; while [ "$j" != "done" ]; do echo "body_$j" >/f; j="done"; done; printf "[%s]\\n" "$_"';
+  const oracle = spawnSync('/bin/bash', ['--noprofile', '--norc', '-c', source.replaceAll('>/f', '>/dev/null')], { encoding: 'utf8' });
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createStandardCommands()) });
+  try {
+    const result = await shell.exec(source);
+    assert.equal(result.stderr, oracle.stderr);
+    assert.equal(result.exitCode, oracle.status);
+    assert.equal(result.stdout, oracle.stdout);
+  } finally { await shell.dispose(); }
+});

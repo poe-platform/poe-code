@@ -33,8 +33,10 @@ const onSnapshot: PlaywrightSnapshotHook = async <TSnapshot,>(request: Playwrigh
   const status: number | undefined = navigation?.status;
   const headers: Readonly<Record<string, string>> | undefined = request.navigation?.headers;
   const format: 'yaml' | 'json' = request.format;
+  const content: string | undefined = await request.page.content?.();
+  await request.page.frames?.()[0]?.locator('input[type="checkbox"]').click?.({ timeout: 1000 });
   request.signal.throwIfAborted();
-  void status; void headers; void format;
+  void status; void headers; void format; void content;
   return request.recapture();
 };
 createPlaywrightCli({adapter, persistence, onSnapshot, namedSessionAttachment: true, limits: {maxSessions: 2, maxTabs: 8}});

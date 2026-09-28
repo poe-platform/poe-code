@@ -74,6 +74,7 @@ export interface PlaywrightFrame {
   evaluate?<Result, Argument>(callback: (argument: Argument) => Result, argument: Argument): Promise<Result>;
   evaluateHandle?(callback: (input: FrameSnapshotInput) => FrameSnapshotCapsule, input: FrameSnapshotInput): Promise<PlaywrightSnapshotHandle>;
   locator(selector: string): {
+    click?(options?: PlaywrightActionOptions): Promise<void>;
     elementHandles?: () => Promise<PlaywrightElementHandle[]>;
     evaluate?: (callback: (node: SnapshotNode) => string) => Promise<string>;
   };
@@ -112,6 +113,7 @@ export interface PlaywrightPage {
   goForward?(options?: { timeout?: number }): Promise<unknown>;
   reload?(options?: { timeout?: number }): Promise<unknown>;
   title?(): Promise<string>;
+  content?(): Promise<string>;
   hideHighlight?(): Promise<void>;
   waitForTimeout?(milliseconds: number): Promise<void>;
   setViewportSize?(size: { width: number; height: number }): Promise<void>;

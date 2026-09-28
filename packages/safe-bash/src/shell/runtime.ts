@@ -12213,20 +12213,12 @@ export class Runtime {
     if (words === undefined) return true;
     if (words.length === 0 || words.length > 64) return false;
     if (words.length === 1 && this.isQuotedAtWord(words[0]!)) return true;
-    const store = stateMonitor(rawState)?.store;
+    // Unquoted expansions need splitting and globbing against the state at
+    // execution time. The loop body can change IFS or the expansion value.
     if (words.length === 1) {
       const w0 = words[0]!;
       if (rawState.braceexpand !== false && tryFastExpandBraceRange(w0, this.budget, undefined) !== undefined) return true;
       if (io !== undefined && this.tryExpandSyncArrayMembersWord(w0, rawState, io, line) !== undefined) return true;
-      const p0 = w0.parts.length === 1 ? w0.parts[0] : (w0.parts.length === 2 && w0.parts[0]!.kind === "text" && w0.parts[0]!.value === "" ? w0.parts[1] : undefined);
-      if (p0 && (rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n") && !rawState.noglob) {
-        if (p0.kind === "variable" && !p0.quoted && !p0.indirect && !p0.prefixNames && !p0.length && !p0.transform && getArraySelector(p0) === undefined && isShellIdentifier(p0.name) && !store?.get(p0.name) && !stateMonitor(rawState)?.hasOverlay(p0.name) && (p0.operator === undefined && !p0.substring || this.isPureSyncValueWord(w0, rawState))) {
-          return true;
-        }
-        if (p0.kind === "substitution" && !p0.quoted && this.isPureSyncValueWord(w0, rawState)) {
-          return true;
-        }
-      }
     }
     const stdIfs = (rawState.variables.IFS ?? " \t\n") === " \t\n";
     for (let i = 0; i < words.length; i++) {
@@ -12814,7 +12806,6 @@ export class Runtime {
             return false;
           }
           if (arrAssign.kind === "compound" && arrAssign.entries.length <= 16 && arrAssign.entries.every(e => !e.append)) {
-            const canSplitStdIfs = (rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n") && !rawState.noglob && this.budget.limits.maxExpansionFields === Infinity && this.budget.limits.maxExpansionBytes === Infinity;
             let allEntriesOk = true;
             for (let ei = 0; ei < arrAssign.entries.length; ei++) {
               const entry = arrAssign.entries[ei]!;
@@ -12837,8 +12828,7 @@ export class Runtime {
                 }
                 continue;
               }
-              const isSingleUnquotedSplit = canSplitStdIfs && ev.parts.length === 1 && !ev.parts[0]!.quoted && (ev.parts[0]!.kind === "variable" || ev.parts[0]!.kind === "substitution");
-              if (!this.isPureSyncValueWord(ev, rawState) || (!isSingleUnquotedSplit && !ev.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true))))) {
+              if (!this.isPureSyncValueWord(ev, rawState) || (!ev.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true))))) {
                 allEntriesOk = false;
                 break;
               }
@@ -14218,8 +14208,8 @@ export class Runtime {
       } else if (p0.kind === "variable" && !p0.quoted && !p0.indirect && !p0.prefixNames && !p0.length && !p0.transform && getArraySelector(p0) === undefined && (rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n") && !rawState.noglob && !store?.get(p0.name) && !monitor.hasOverlay(p0.name) && ((p0.operator === undefined && !p0.substring) || this.isPureSyncValueWord(command.words[0]!, rawState))) {
         const rawVal = (p0.operator === undefined && !p0.substring)
           ? (rawState.variables[p0.name] ?? "")
-          : (this.fastValueWord(command.words[0]!, rawState, io, false, false, false, false, 0, diagnosticLine) as string ?? "");
-        if (rawVal.length <= 32768 && !/[*?[\]\\]/.test(rawVal)) {
+          : this.fastValueWord(command.words[0]!, rawState, io, false, false, false, false, 0, diagnosticLine);
+        if (typeof rawVal === "string" && rawVal.length <= 32768 && !/[*?[\]\\]/.test(rawVal)) {
           let asciiOk = true;
           for (let j = 0; j < rawVal.length; j++) {
             if (rawVal.charCodeAt(j) >= 128) { asciiOk = false; break; }
@@ -22383,7 +22373,7 @@ export class Runtime {
     return out;
   }
   private expandSyncTrCharArray(spec: string): string[] | undefined {
-    if (spec.length === 0 || spec.includes("[:") || spec.includes("[=")) return undefined;
+    if (spec.length === 0 || spec.includes("[")) return undefined;
     const out: string[] = [];
     for (let i = 0; i < spec.length; i++) {
       if (spec[i] === "\\") {

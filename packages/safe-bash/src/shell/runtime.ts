@@ -12167,9 +12167,17 @@ export class Runtime {
       }
       const arithNamesList = [...arithNames];
       const hasAnyArrayAssign = bodyAssignments.some(s => s.arrayAssign !== undefined || s.isStdoutEcho === true || s.value?.parts.some(p => p.kind === "substitution" || (p.kind === "variable" && p.indirect)));
+      // Complex expansions can read or write names inside selectors, defaults,
+      // patterns and substring expressions. Keep every assignment in iteration
+      // order unless the shallow dependency checks below can see all reads.
+      const hasNestedParamDependencies = bodyAssignments.some(step =>
+        [step.value, step.targetWord].some(word => word?.parts.some(part =>
+          part.kind === "variable" && (part.indirect || part.substring !== undefined || part.operator !== undefined || getArraySelector(part) !== undefined)
+        ))
+      );
       let hasDeferredSteps = false;
       let deferredMask = 0;
-      if (!hasAnyArrayAssign) for (let b = 0; b < bodyAssignments.length; b++) {
+      if (!hasAnyArrayAssign && !hasNestedParamDependencies) for (let b = 0; b < bodyAssignments.length; b++) {
         const step = bodyAssignments[b]!;
         if ( !step.append && step.targetWord === undefined && step.name !== undefined && step.value !== undefined && step.name !== inductionName && !arithNames.has(step.name) && !paramReadNames.has(step.name) && step.value.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.indirect && !p.length && !p.substring && p.operator === undefined && getArraySelector(p) === undefined))) {
           let readAnywhere = false;

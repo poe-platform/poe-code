@@ -81,3 +81,58 @@ test("getopts respects quoted positional transformation", async () => {
     assert.equal(result.stdout, "1:?::1\n");
   } finally { await shell.dispose(); }
 });
+
+const deferredExpansionCases = [
+  ["associative subscript", 'declare -A map=([k0]=alpha [k1]=beta); v=unused', 'k="k$j"', '${map[$k]}', 'alpha,beta,'],
+  ["indexed subscript", 'arr=(alpha beta)', 'k="$j"', '${arr[$k]}', 'alpha,beta,'],
+  ["default", 'v=""', 'k="item$j"', '${v:-$k}', 'item0,item1,'],
+  ["assign default", 'v=""', 'k="item$j"; v=""', '${v:=$k}', 'item0,item1,'],
+  ["alternate", 'v=set', 'k="item$j"', '${v:+$k}', 'item0,item1,'],
+  ["replacement", 'v=a-b', 'k="x$j"', '${v/-/$k}', 'ax0b,ax1b,'],
+  ["pattern", 'v=k0-k1', 'k="k$j"', '${v/$k/X}', 'X-k1,k0-X,'],
+  ["prefix", 'v=k0-k1', 'k="k$j"', '${v#$k}', '-k1,k0-k1,'],
+  ["suffix", 'v=k0-k1', 'k="k$j"', '${v%$k}', 'k0-k1,k0-,'],
+  ["substring offset", 'v=abc', 'k="$j"', '${v:$k:1}', 'a,b,'],
+  ["substring length", 'v=abc', 'k="$j"', '${v:0:$k}', ',a,'],
+  ["nested default", 'v=""; missing=""', 'k="item$j"', '${v:-${missing:-$k}}', 'item0,item1,'],
+] as const;
+
+for (const [name, setup, assignment, expansion, expected] of deferredExpansionCases) {
+  test(`arithmetic loops retain dependencies in ${name}`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });
+    try {
+      const source = `${setup}; acc=""; for ((j=0;j<2;j++)); do ${assignment}; m=${expansion}; acc="\${acc}\${m},"; done; echo "$acc"`;
+      // macOS ships Bash 3, which has no associative arrays. Keep that case's
+      // explicit expected bytes; compare the remaining syntax with host Bash.
+      if (name !== "associative subscript") {
+        const bash = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+        assert.equal(bash.status, 0, bash.stderr);
+        assert.equal(bash.stdout, `${expected}\n`);
+      }
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, `${expected}\n`);
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const [name, source, expected] of [
+  ["read before assignment", 'v=""; k=old; acc=""; for ((j=0;j<2;j++)); do m=${v:-$k}; k="item$j"; acc="${acc}${m},"; done; echo "$acc|$k|$m"', 'old,item0,|item1|item0\n'],
+  ["later overwrite", 'v=""; acc=""; for ((j=0;j<2;j++)); do k="item$j"; m=${v:-$k}; k=last; acc="${acc}${m},"; done; echo "$acc|$k|$m"', 'item0,item1,|last|item1\n'],
+  ["expanded assignment target", 'v=""; arr=(); for ((j=0;j<2;j++)); do k="$j"; arr[${v:-$k}]="item$j"; done; echo "${arr[0]}|${arr[1]}|$k"', 'item0|item1|1\n'],
+  ["zero iterations", 'v=""; k=old; m=old; for ((j=0;j<0;j++)); do k="item$j"; m=${v:-$k}; done; echo "$k|$m"', 'old|old\n'],
+] as const) {
+  test(`arithmetic loop dependency ordering: ${name}`, async () => {
+    const bash = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+    assert.equal(bash.status, 0, bash.stderr);
+    assert.equal(bash.stdout, expected);
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });
+    try {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, expected);
+    } finally { await shell.dispose(); }
+  });
+}

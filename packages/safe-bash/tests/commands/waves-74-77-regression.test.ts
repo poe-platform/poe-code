@@ -64,3 +64,50 @@ test('substitution reads respect filesystem budget', async () => {
     await assert.rejects(shell.exec('echo value > /f; for ((i=1;i<=50;i++)); do v=$(cat /f); done'), /maxFileSystemOperations/);
   } finally { await shell.dispose(); }
 });
+
+import { spawnSync } from "node:child_process";
+
+test("Wave 86: variable-bound, stride, countdown arithmetic-for, echo -n/multi-arg, and read <<< in trySyncLoop", async () => {
+  const source = `
+    mkdir -p /tmp
+    n=25
+    sum1=0
+    for ((i = 0; i < n; i++)); do
+      ((sum1 += i))
+    done
+    sum2=0
+    for ((j = 0; j < 30; j += 3)); do
+      ((sum2 += j))
+    done
+    sum3=0
+    for ((k = 12; k > 0; k--)); do
+      ((sum3 += k))
+    done
+    echo -n "S:$sum1:$sum2:$sum3:$i:$j:$k|"
+    for ((m = 0; m < 4; m++)); do
+      echo -n "$m,"
+      echo "$m" "$((m * 10))" "$((m * 100))" >> /tmp/w86_echo.txt
+    done
+    echo ""
+    items=("alpha:10:x" "beta:20:y" "gamma:30:z")
+    rsum=0
+    for item in "\${items[@]}"; do
+      IFS=: read -r rk rv rrest <<< "$item"
+      ((rsum += rv))
+      echo "$rk=$rv($_)" >> /tmp/w86_echo.txt
+    done
+    echo "R:$rsum:$rk:$rv:$rrest"
+    cat /tmp/w86_echo.txt
+    rm -f /tmp/w86_echo.txt
+  `;
+  const oracle = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+  assert.equal(oracle.status, 0, oracle.stderr);
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...createStandardCommands(), ...createByteCommands(), ...createStreamFormatCommands()]) });
+  try {
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, oracle.stdout);
+  } finally {
+    await shell.dispose();
+  }
+});

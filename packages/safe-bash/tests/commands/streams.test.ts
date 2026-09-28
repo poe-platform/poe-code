@@ -410,6 +410,43 @@ test("head and tail support byte/line counts, origin counts, omission and unterm
   assert.equal((await run("head", ["-n", "nope"], { stdin })).exitCode, 2);
 });
 
+test("tail preserves piped input and the stdin remainder after read", async t => {
+  const shell = new Shell({ fs: await fixture({ lines: "first\nsecond\nthird\n" }) }).use(agentCommands());
+  t.after(() => shell.dispose());
+  for (const args of ["", "-n 1", "-n1"]) {
+    const result = await shell.exec(`printf 'a\\nb\\n' | tail ${args}`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, args ? "b\n" : "a\nb\n");
+  }
+  const result = await shell.exec("{ read -r first; tail -n 5; } < /work/lines");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "second\nthird\n");
+});
+
+for (const pendingSecond of [false, true]) {
+  test(`tail preserves synchronously read bytes with ${pendingSecond ? "pending" : "synchronous"} continuation`, async () => {
+    const borrowed = Buffer.alloc(2);
+    let index = 0;
+    const read = () => {
+      if (index === 2) {
+        borrowed.fill(0);
+        return { done: true as const, value: undefined };
+      }
+      borrowed.set([97 + index++, 10]);
+      return { done: false as const, value: borrowed };
+    };
+    const iterator = {
+      tryNextSync: () => pendingSecond && index === 1 ? undefined : read(),
+      next: async () => read(),
+    };
+    const result = await run("tail", ["-n", "2"], {
+      commands: streamCommands(), stdin: { [Symbol.asyncIterator]: () => iterator },
+    });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "a\nb\n");
+  });
+}
+
 test("head and tail select NUL-delimited records without decoding bytes", async () => {
   const input = Buffer.from([255, 10, 0, 0, 128, 10, 0, 195, 169]);
   const fs = await fixture({ input, minimal: "a\0b\0" });

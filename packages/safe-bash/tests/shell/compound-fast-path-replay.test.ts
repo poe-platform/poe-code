@@ -49,6 +49,8 @@ const syncAssignmentCases = [
   ["global indexed declaration behind array shadow", 'x=(global tail); f() { local -a x=(local); declare -ga x+=(added); echo "${x[*]}"; }; f; echo "${x[*]}"', "local\nglobal tail added\n"],
   ["global integer declaration retains global attributes", 'declare -i x=10; f() { local x=local; declare -g x+=2; echo "$x"; }; f; echo "$x"', "local\n12\n"],
   ["plain local shadows outer nameref", 'x=10; inner() { local ref=99; echo "$ref"; }; outer() { local -n ref=x; inner; ref=500; echo "$x:$ref"; }; for i in 1 2; do echo iter=$i; outer; done', "iter=1\n99\n500:500\niter=2\n99\n500:500\n"],
+  ["sparse indexed for words retain numeric order and empty elements", 'arr=([9]=tail [2]="first value" [5]=""); n=0; for x in "${arr[@]}"; do n=$((n+1)); printf "<%s>" "$x"; done; printf " count=%s\\n" "$n"', "<first value><><tail> count=3\n"],
+  ["quoted star for words retain one joined field", 'arr=([9]=tail [2]="first value" [5]=""); IFS=:; n=0; for x in "${arr[*]}"; do n=$((n+1)); printf "<%s>" "$x"; done; printf " count=%s\\n" "$n"', "<first value::tail> count=1\n"],
 ] as const;
 
 for (const [name, source, expected] of syncAssignmentCases) {
@@ -67,6 +69,16 @@ for (const [name, source, expected] of syncAssignmentCases) {
     });
   }
 }
+
+test("array for loop preserves byte-valued elements", async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of basicCommands()) shell.register(command);
+  context.after(() => shell.dispose());
+  const result = await shell.exec("arr=([3]=$'\\377' [1]=A); n=0; for item in \"${arr[@]}\"; do n=$((n+1)); printf '%s' \"$item\"; done");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.deepEqual(result.stdoutBytes, Uint8Array.of(65, 255));
+});
 
 for (const match of [
   '[[ $s == "$pfx"* ]]',

@@ -1,5 +1,6 @@
 import { splitSyncJqExpression } from "./sync-jq-expression.js";
 import { wcDisplayWidth } from "../commands/wc-width.js";
+import { text as awkValueText } from "../commands/text-programs/awk-values.js";
 import { bytesToHex, latin1Text } from "../byte-encoding.js";
 const sharedCaptureDecoder = new TextDecoder();
 const cachedCaptureAsciiBytes = new Uint8Array(4096);
@@ -23187,7 +23188,7 @@ export class Runtime {
     return out;
   }
 
-  private evalSyncSed(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
+  private evalSyncSed(rawLines: readonly string[], opArgs: readonly string[]): { lines: string[]; lastInputIndex: number } | undefined {
     let quiet = false;
     let isExtended = false;
     const rawExprs: string[] = [];
@@ -23322,6 +23323,7 @@ export class Runtime {
     }
     const out: string[] = [];
     const total = rawLines.length;
+    let lastInputIndex = -1;
     for (let i = 0; i < total; i++) {
       let l = rawLines[i]!;
       const idx1 = i + 1;
@@ -23335,6 +23337,7 @@ export class Runtime {
         }
         if (st.kind === "p") {
           out.push(l);
+          lastInputIndex = i;
           continue;
         }
         if (st.kind === "y") {
@@ -23356,9 +23359,12 @@ export class Runtime {
         });
         if (matchedOnce && st.printOnMatch) out.push(l);
       }
-      if (!deleted && !quiet) out.push(l);
+      if (!deleted && !quiet) {
+        out.push(l);
+        lastInputIndex = i;
+      }
     }
-    return out;
+    return { lines: out, lastInputIndex };
   }
 
   private evalSyncGrep(rawLines: readonly string[], opArgs: readonly string[], errexit: boolean): { lines: string[]; status: number } | undefined {
@@ -23550,6 +23556,7 @@ export class Runtime {
     const sumEndM = /^\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*(\+=|-=)\s*(?:\$([0-9]+|NF)|(-?[0-9]+(?:\.[0-9]+)?))\s*;?\s*\}\s*END\s*\{\s*print\s+\1\s*;?\s*\}$/.exec(progRest);
     if (sumEndM) {
       const varName = sumEndM[1]!;
+      if (["NR", "NF", "FNR", "OFS", "FS", "ORS", "RS", "OFMT", "CONVFMT", "ARGC", "ARGIND", "FILENAME", "RSTART", "RLENGTH", "SUBSEP", "IGNORECASE", "FIELDWIDTHS", "FPAT", "BINMODE", "TEXTDOMAIN"].includes(varName)) return undefined;
       if (initVarName !== undefined && initVarName !== varName) return undefined;
       const op = sumEndM[2]!;
       const fTok = sumEndM[3];
@@ -23573,7 +23580,7 @@ export class Runtime {
         acc = op === "+=" ? acc + delta : acc - delta;
         touched = true;
       }
-      return [touched ? String(acc) : ""];
+      return [touched ? awkValueText({ kind: "number", number: acc }) : ""];
     }
     if (initVarName !== undefined) return undefined;
     let rowPred: ((l: string, fields: readonly string[], nr: number) => boolean) | undefined;
@@ -24235,6 +24242,7 @@ export class Runtime {
             const inStr = prevLen === 0 ? "" : sharedSyncPipeDecoder.decode(prevBuf.subarray(0, prevLen));
             const rawLines = inStr.length === 0 ? [] : (inStr.endsWith("\n") ? inStr.slice(0, -1).split("\n") : inStr.split("\n"));
             let outLines: string[] = [];
+            let sedTerminated = false;
             if (firstName === "rev") {
               outLines = rawLines.map(l => Array.from(l).reverse().join(""));
             } else if (firstName === "head" || firstName === "tail") {
@@ -24308,7 +24316,8 @@ export class Runtime {
             } else if (inlineSedMatch) {
               const sedRes = this.evalSyncSed(rawLines, stageArgs);
               if (sedRes === undefined) return undefined;
-              outLines = sedRes;
+              outLines = sedRes.lines;
+              sedTerminated = sedRes.lastInputIndex < rawLines.length - 1;
             } else if (isInlineAwk) {
               const awkRes = this.evalSyncAwk(rawLines, stageArgs);
               if (awkRes === undefined) return undefined;
@@ -24355,7 +24364,7 @@ export class Runtime {
             }
             // These filters preserve the terminator of the final selected input line.
             const preservesTerminator = firstName === "head" || firstName === "tail" || firstName === "rev" || firstName === "sed";
-            const terminated = !preservesTerminator || inStr.endsWith("\n") || firstName === "head" && outLines.length < rawLines.length;
+            const terminated = sedTerminated || !preservesTerminator || inStr.endsWith("\n") || firstName === "head" && outLines.length < rawLines.length;
             const outStr = outLines.length > 0 ? outLines.join("\n") + (terminated ? "\n" : "") : "";
             const outByteLen = shellValueByteLength(outStr);
             if (outByteLen > nextBuf.byteLength) return undefined;
@@ -24590,7 +24599,7 @@ export class Runtime {
               }
             } else if (w0Plain === "sed") {
               const sedRes = this.evalSyncSed(rawLines, opArgs);
-              if (sedRes !== undefined) fileRes = renderLines(sedRes);
+              if (sedRes !== undefined) fileRes = renderLines(sedRes.lines);
             } else if (w0Plain === "cut") {
               const cutRes = this.evalSyncCut(rawLines, opArgs, byteLocale(rawState.variables));
               if (cutRes !== undefined) fileRes = renderLines(cutRes);

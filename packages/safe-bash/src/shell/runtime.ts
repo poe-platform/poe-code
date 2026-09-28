@@ -8088,8 +8088,9 @@ export class Runtime {
     }
     if (command.kind === "case") {
       if (rawState.nocasematch || rawState.extglob || !this.isPureSyncValueWord(command.subject, rawState)) return false;
-      // Fallthrough bodies can change later patterns after the admission check.
-      if (command.clauses.some(c => c.terminator === ";&" || c.terminator === ";;&") && command.clauses.some(c => c.patterns.some(pw => pw.plain === undefined))) return false;
+      // A later fallthrough body can suspend after earlier clauses changed state.
+      // Until this path has clause-aware resume state, execute it asynchronously.
+      if (command.clauses.some(c => c.terminator === ";&" || c.terminator === ";;&")) return false;
       for (let i = 0; i < command.clauses.length; i++) {
         const c = command.clauses[i]!;
         if (c.terminator !== ";;" && c.terminator !== ";&" && c.terminator !== ";;&" && c.terminator !== "esac") return false;
@@ -9052,55 +9053,7 @@ export class Runtime {
       }
       if (typeof fastSubject !== "string") return undefined;
       const work = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
-      if (command.clauses.some(c => c.terminator === ";&" || c.terminator === ";;&")) {
-        if (command.clauses.some(c => c.patterns.some(pw => pw.plain === undefined))) return undefined;
-        if (this._syncReturnDepth === 0 && !this.canSyncCommandCompound(command, rawState, 0, rawState.loopDepth)) return undefined;
-        for (let cIdx = 0; cIdx < command.clauses.length; cIdx++) {
-          const clause = command.clauses[cIdx]!;
-          for (let pIdx = 0; pIdx < clause.patterns.length; pIdx++) {
-            const pw = clause.patterns[pIdx]!;
-            const pStr = pw.plain ?? this.tryBuildSyncPatternWord(pw, rawState, io, diagnosticLine);
-            if (pStr === undefined || tryMatchesPatternSync(pStr, fastSubject, work, false, false) === undefined) return undefined;
-          }
-        }
-        this.budget.tick();
-        rawState.substitutionStatus = 0;
-        let status = 0;
-        let fallthrough = false;
-        this._syncReturnDepth++;
-        try {
-          for (let cIdx = 0; cIdx < command.clauses.length; cIdx++) {
-            const clause = command.clauses[cIdx]!;
-            let matched = fallthrough;
-            if (!matched) {
-              for (let pIdx = 0; pIdx < clause.patterns.length; pIdx++) {
-                const pw = clause.patterns[pIdx]!;
-                const pStr = pw.plain ?? this.tryBuildSyncPatternWord(pw, rawState, io, diagnosticLine);
-                if (pStr === undefined) return undefined;
-                const m = tryMatchesPatternSync(pStr, fastSubject, work, false, false);
-                if (m === undefined) return undefined;
-                if (m) { matched = true; break; }
-              }
-            }
-            if (!matched) continue;
-            if (clause.body.lists.length > 0) {
-              const bodyRes = this.trySyncScript(clause.body, state, io, ignored);
-              if (typeof bodyRes !== "number") return undefined;
-              status = bodyRes;
-              if (this._syncPendingReturnStatus !== undefined) {
-                rawState.status = status;
-                return status;
-              }
-            }
-            if (clause.terminator === ";;" || clause.terminator === "esac") break;
-            fallthrough = clause.terminator === ";&";
-          }
-        } finally {
-          this._syncReturnDepth--;
-        }
-        rawState.status = status;
-        return status;
-      }
+      if (command.clauses.some(c => c.terminator === ";&" || c.terminator === ";;&")) return undefined;
       let matchedClauseIndex = -1;
       for (let cIdx = 0; cIdx < command.clauses.length; cIdx++) {
         const clause = command.clauses[cIdx]!;

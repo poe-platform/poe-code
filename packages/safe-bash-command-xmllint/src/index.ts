@@ -1,5 +1,6 @@
 import { builtInDirectContextExecutors } from "safe-bash-io-engine/internal";
 import type { XmlAttribute, XmlContent, XmlElement } from "@poe-code/safe-fs/core";
+import { createXqCommand } from "safe-bash-command-xq";
 import { readXmlInput, type XmlCommandRuntime } from "safe-bash-xml-engine/io";
 import { parseXmlSteps, XmlLimitError } from "@poe-code/safe-fs/core";
 import {
@@ -603,3 +604,21 @@ export function evalSyncXmllint(
   return contexts.map(serializeXmlNodeSync).join("\n") + "\n";
 }
 
+export function createXmlCommands(options: XmlCommandsOptions = {}): readonly CommandDefinition[] {
+  return [createXqCommand(options), createXmllintCommand(options)];
+}
+
+export function xmlCommands(options: XmlCommandsOptions = {}): VirtualShellPlugin {
+  const commands = createXmlCommands(options);
+  return {
+    name: "xml-commands",
+    setup(host) {
+      if (!options.replace) {
+        for (const command of commands) {
+          if (host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`);
+        }
+      }
+      for (const command of commands) host.commands.register(command, { replace: options.replace ?? false });
+    }
+  };
+}

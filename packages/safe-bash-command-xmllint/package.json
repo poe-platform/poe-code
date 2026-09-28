@@ -1,21 +1,27 @@
 {
-  "name": "safe-bash-command-xmllint",
-  "version": "0.0.1",
-  "private": true,
-  "license": "MIT",
   "type": "module",
-  "main": "dist/index.js",
+  "private": true,
+  "version": "0.0.1",
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "license": "MIT",
   "types": "dist/index.d.ts",
+  "devDependencies": {
+    "safe-bash-contracts": "*",
+    "safe-bash-io-engine": "*",
+    "@poe-code/safe-fs": "*",
+    "safe-bash-xml-engine": "*",
+    "safe-bash-command-xq": "*"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
   },
-  "files": [
-    "dist",
-    "LICENSE"
-  ],
+  "name": "safe-bash-command-xmllint",
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
@@ -23,11 +29,6 @@
     "test": "node --import tsx --test src/*.test.ts",
     "test:unit": "node --import tsx --test src/*.test.ts"
   },
-  "dependencies": {},
-  "devDependencies": {
-    "safe-bash-contracts": "*",
-    "safe-bash-xml-engine": "*",
-    "@poe-code/safe-fs": "*",
-    "safe-bash-io-engine": "*"
-  }
+  "main": "dist/index.js",
+  "dependencies": {}
 }

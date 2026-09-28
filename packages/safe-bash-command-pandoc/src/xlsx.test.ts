@@ -1,9 +1,10 @@
-import { expect, it } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 import { utils, write } from "@e965/xlsx";
-import "safe-bash-command-ssconvert";
+import * as ssconvert from "safe-bash-command-ssconvert";
 import { convert, readDocument } from "./index.js";
 
 const context = { yield: async () => {} };
+afterEach(() => vi.restoreAllMocks());
 function spreadsheet(rows: (string | number)[][], name = "Quarterly report", formulas = false): Uint8Array {
   const workbook = utils.book_new();
   const sheet = utils.aoa_to_sheet(rows);
@@ -48,4 +49,21 @@ it("calculates uncached formulas and their dependencies before conversion", asyn
   const result = await convert([{ bytes }], { from: "xlsx", to: "html" }, context);
   expect(result).toMatchObject({ kind: "text", text: expect.stringContaining("<td>7</td>") });
   expect(result).toMatchObject({ kind: "text", text: expect.stringContaining("<td>21</td>") });
+});
+
+it("projects asynchronous recalculation limits through the reader error boundary", async () => {
+  vi.spyOn(ssconvert, "recalculateWorkbook").mockRejectedValueOnce(new ssconvert.SsconvertError("resource-limit", "Formula work exhausted"));
+  await expect(readDocument({ bytes: spreadsheet([["Value"], [5]]) }, { from: "xlsx" }, context))
+    .rejects.toMatchObject({ code: "E_LIMIT", message: "Formula work exhausted" });
+});
+
+it("reports cancellation during asynchronous recalculation when the reason is false", async () => {
+  const controller = new AbortController();
+  vi.spyOn(ssconvert, "recalculateWorkbook").mockImplementationOnce(async () => {
+    controller.abort(false);
+    throw false;
+  });
+  await expect(readDocument({ bytes: spreadsheet([["Value"], [5]]) }, { from: "xlsx" }, { ...context, signal: controller.signal }))
+    .rejects.toMatchObject({ code: "E_CANCELLED", operation: "read" });
+  expect(controller.signal.reason).toBe(false);
 });

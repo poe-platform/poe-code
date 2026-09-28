@@ -1007,7 +1007,12 @@
         "validation": "12 original runtime-copy failures and 6 original XLSX export failures now pass. Full maintained package tests: 485 files / 26048 Vitest tests plus 7 HarfBuzz node tests. Package lint, source/test/consumer types and selected workspace build pass.",
         "publicQualification": "18 compiled outputs: SDK/command conversions and copied formulas across both XLSX editions. Source annotations read back exactly and recalculate selected values. All 12 independent Calc 26.8.0.3 readbacks preserve live formulas and expected values, including a collapsed span returning #REF!.",
         "remaining": "Native XLSX formulas use fixed sheet areas; relative copying remains available through ssconvert source annotations, not native Excel/Calc copy semantics. Computed span export, ODF/Gnumeric/BIFF transport and negative-offset error qualification remain open. No issue/family closure.",
-        "delivery": "58562411b5c24dccd575409ffd79d2917f535706; verified on remote main. Release publication remains unverified."
+        "delivery": "58562411b5c24dccd575409ffd79d2917f535706; verified on remote main. Release publication remains unverified.",
+        "transportInvestigation": {
+          "gnumeric": "Pinned gnumeric_index evaluates syntactic SET without reference flags (lines 1647, 1663-1673), so the XLSX reference-area representation cannot be reused unchanged. gnumeric_choose evaluates only the selected operand with PERMIT_NON_SCALAR (1132-1159); this is a candidate requiring native bounds/reference qualification, not an implemented exporter.",
+          "odf": "Current ODF transport preserves the original relative reference directly. Calc ScIndex rejects a cross-sheet double reference, so native calculation needs a different representation. Replacing the relative span with fixed areas would lose standard ODF copy semantics; no such regression was introduced.",
+          "availability": "No ssconvert or docker executable is available on this host; the documented colima oracle cannot currently be invoked. Pinned source and Calc 26.8.0.3 remain available."
+        }
       }
     },
     "lotusNamedAddinAudit": {

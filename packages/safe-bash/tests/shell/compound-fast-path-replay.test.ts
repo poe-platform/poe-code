@@ -1341,3 +1341,59 @@ test("trySyncLoop accelerates while [[ ... ]], POSIX [ ... ] / test ... conditio
     await shell.dispose();
   }
 });
+
+test("matches bash for Wave 81 array slice/keys for-loops, unquoted $var for-loops, and shell function calls in trySyncLoop", async () => {
+  const shell = new Shell({
+    fs: createMemoryFileSystem(),
+    limits: {
+      maxCommands: 60_000,
+      maxLoopIterations: 60_000,
+      maxFileSystemOperations: 50_000,
+    },
+  });
+  for (const command of [...basicCommands(), ...streamCommands(), ...textCommands()]) shell.commands.register(command);
+  const script = [
+    "items=\"$(printf \"%d \" {1..600})\"",
+    "sum1=0",
+    "for x in $items; do",
+    "  ((sum1 += x))",
+    "done",
+    "arr=({1..600})",
+    "sum2=0",
+    "for x in \"${arr[@]:50:500}\"; do",
+    "  ((sum2 += x))",
+    "done",
+    "sum3=0",
+    "for k in \"${!arr[@]}\"; do",
+    "  ((sum3 += arr[k]))",
+    "done",
+    "step() {",
+    "  local v=\"$1\"",
+    "  if ((v % 2 == 0)); then",
+    "    ((sum4 += v * 3))",
+    "  else",
+    "    ((sum4 += v))",
+    "  fi",
+    "}",
+    "v=outer_keep",
+    "sum4=0",
+    "for ((i = 1; i <= 600; i++)); do",
+    "  step \"$i\"",
+    "done",
+    "add_item() {",
+    "  ((sum5 += \$1 * 2))",
+    "}",
+    "sum5=0",
+    "for ((i = 1; i <= 600; i++)); do",
+    "  add_item \"$i\"",
+    "done",
+    "echo \"$sum1:$sum2:$sum3:$sum4:$sum5:$v\"",
+  ].join("\n");
+  const res = await shell.exec(script);
+  assert.equal(res.exitCode, 0);
+  const bashRes = spawnSync("bash", ["-c", script], { encoding: "utf8" });
+  if (bashRes.status === 0) {
+    assert.equal(res.stdout, bashRes.stdout);
+  }
+  assert.equal(res.stdout, "180300:150250:180300:360900:360600:outer_keep\n");
+});

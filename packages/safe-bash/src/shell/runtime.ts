@@ -2791,6 +2791,7 @@ type SyncLoopStep = {
   readonly ifBranches?: readonly { condCmd: Extract<Command, { kind: "simple" | "arithmetic" | "conditional" }>; cond?: ArithmeticProgram | undefined; condExpr?: ConditionalExpression | undefined; condLine: number; steps: readonly SyncLoopStep[] }[] | undefined;
   readonly caseSubject?: Word | undefined;
   readonly caseClauses?: readonly { patterns: readonly string[]; steps: readonly SyncLoopStep[] }[] | undefined;
+  readonly fnCall?: { readonly name: string; readonly argWords: readonly Word[]; readonly locals: readonly { readonly name: string; readonly valueWord?: Word | undefined; readonly isFirstInCmd: boolean }[]; readonly steps: readonly SyncLoopStep[] } | undefined;
   readonly elseSteps?: readonly SyncLoopStep[] | undefined;
   readonly value: Word | undefined;
   readonly targetWord: Word | undefined;
@@ -5149,6 +5150,16 @@ export class Runtime {
         for (let i = 0; i < assignment.entries.length; i++) {
           const entry = assignment.entries[i]!;
           if (entry.append) return false;
+          if (entry.index === undefined && rawState.braceexpand !== false && this.budget.limits.maxExpansionFields === Infinity && this.budget.limits.maxExpansionBytes === Infinity && entry.value.parts.length === 1 && !entry.value.parts[0]!.quoted && entry.value.parts[0]!.kind === "text" && entry.value.parts[0]!.value.includes("{")) {
+            const braceItems = tryFastExpandBraceRange(entry.value, this.budget, undefined);
+            if (braceItems && braceItems.length <= 1500) {
+              for (let bIdx = 0; bIdx < braceItems.length; bIdx++) {
+                const bVal = braceItems[bIdx]!;
+                items.push({ explicitIdx: undefined, val: bVal, bLen: bVal.length });
+              }
+              continue;
+            }
+          }
           if (rawState.braceexpand !== false && entry.value.parts.some(p => !p.quoted && p.kind === "text" && p.value.includes("{"))) return false;
           let explicitIdx: number | undefined;
           if (entry.index !== undefined) {
@@ -11893,14 +11904,18 @@ export class Runtime {
           return checkLeaf(c.expression);
         };
         if (cmd.kind === "arithmetic") {
-          if (
-            cmd.redirects.length === 0 &&
-            !cmd.expression.error &&
-            isSafeSmiProgram(cmd.expression) &&
-            !cmd.expression.hasSubscript &&
-            this.canSyncArithmeticWithoutFault(cmd.expression.tree, rawState, cmd.line ?? 1)
-          ) {
-            continue;
+          if (cmd.redirects.length === 0) {
+            if (
+              !cmd.expression.error &&
+              isSafeSmiProgram(cmd.expression) &&
+              (!cmd.expression.hasSubscript || this.canSyncReadOnlyArraySubscripts(cmd.expression.tree, rawState)) &&
+              this.canSyncArithmeticWithoutFault(cmd.expression.tree, rawState, cmd.line ?? 1)
+            ) {
+              continue;
+            }
+            if (cmd.expression.error && this.canSyncErrorArithmeticStmt(cmd.expression, rawState)) {
+              continue;
+            }
           }
           return false;
         }
@@ -12046,6 +12061,9 @@ export class Runtime {
             continue;
           }
           return false;
+        }
+        if (cmd.redirects.length === 0 && cmd.words.length >= 1 && cmd.words.length <= 16 && this.extractSyncLoopFnSpec(cmd, rawState, io) !== undefined) {
+          continue;
         }
         if (cmd.redirects.length !== 0 || cmd.words.length !== 1) return false;
         const w0 = cmd.words[0]!;
@@ -12248,6 +12266,29 @@ export class Runtime {
             });
             continue;
           }
+          if (rawCmd.kind === "simple" && rawCmd.redirects.length === 0 && rawCmd.words.length >= 1 && rawCmd.words.length <= 16) {
+            const fnSpec = this.extractSyncLoopFnSpec(rawCmd, ({ functions: this._lastSyncLoopRawState?.functions ?? new Map(), variables: this._lastSyncLoopRawState?.variables ?? {}, locals: [] } as unknown as State), io);
+            if (fnSpec) {
+              const subFn = fnSpec.restScript.lists.length > 0 ? buildScript(fnSpec.restScript) : { steps: [], redirectCount: 0 };
+              redirectCount += subFn.redirectCount;
+              bodyAssignments.push({
+                cmd: rawCmd,
+                listOperator,
+                name: undefined,
+                value: undefined,
+                fnCall: {
+                  name: fnSpec.name,
+                  argWords: rawCmd.words.slice(1),
+                  locals: fnSpec.locals,
+                  steps: subFn.steps,
+                },
+                targetWord: undefined,
+                append: false,
+                line,
+              });
+              continue;
+            }
+          }
           const bracketExpr = this.extractPosixBracketCondExpr(rawCmd, ({ functions: new Map(), variables: {} } as unknown as State), false);
           if (bracketExpr !== undefined) {
             bodyAssignments.push({
@@ -12398,7 +12439,14 @@ export class Runtime {
   private trySyncLoop( command: Extract<Command, { kind: "arithmetic-for" | "for" | "while" | "until" }>, pipeline: Pipeline, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, store: ReturnType<typeof arrayStore>, existing: ReturnType<NonNullable<ReturnType<typeof arrayStore>>["get"]>, elem0: { text: { shellValue: ShellValue } } | undefined, canMutatePipeStatus: boolean, io: IO, diagnosticLine: number, allowRedirect = false, ): number | undefined {
     // Substitution callers also need to refuse before effects when status
     // publication requires array admission. Cleanup cannot start async fallback.
-    if (store && !existing) return undefined;
+    if (store && !existing) {
+      if (this.budget.limits.maxExpansionFields !== Infinity || this.budget.limits.maxExpansionBytes !== Infinity || monitor.internalOwner().ledger.checkpoint(this.signal, 0) || publishPipelineStatus(rawState, singleStatusZero, this.signal, io[invocationScope])) {
+        return undefined;
+      }
+      existing = store.get("PIPESTATUS");
+      elem0 = existing?.values.get(0);
+      if (!existing || !elem0) return undefined;
+    }
     if ( (!allowRedirect && command.redirects.length !== 0) || pipeline.negate || !canMutatePipeStatus || rawState.errexit || rawState.nounset || rawState.readonlyVariables?.size || rawState.extensions?.checkpoints.length || hasYieldCheckpoint(this.signal)) {
       return undefined;
     }
@@ -12419,6 +12467,7 @@ export class Runtime {
       }
     }
     if ((command as { _skipTrySyncLoop?: boolean })._skipTrySyncLoop) return undefined;
+    this._lastSyncLoopRawState = rawState;
     if ((guestArrays(rawState) && (guestArrays(rawState)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) || !this.canSyncLoopBody(command.body, rawState, io)) {
       (command as { _skipTrySyncLoop?: boolean })._skipTrySyncLoop = true;
       return undefined;
@@ -12497,6 +12546,10 @@ export class Runtime {
         const stepMutatesInduction = (st: SyncLoopStep): boolean => {
           if (st.name === inductionName) return true;
           if (st.arithStmt?.hasMutation && arithTreeMutatesVar(st.arithStmt.tree, inductionName)) return true;
+          if (st.arithStmt?.error && new RegExp("\\b" + inductionName + "\\b").test(st.arithStmt.source)) return true;
+          if (st.fnCall) {
+            if (!st.fnCall.locals.some(l => l.name === inductionName) && st.fnCall.steps.some(stepMutatesInduction)) return true;
+          }
           if (st.ifBranches) {
             for (const br of st.ifBranches) {
               if (br.cond?.hasMutation && arithTreeMutatesVar(br.cond.tree, inductionName)) return true;
@@ -12552,7 +12605,7 @@ export class Runtime {
         }
       }
       const arithNamesList = [...arithNames];
-      const hasAnyArrayAssign = bodyAssignments.some(s => s.listOperator !== undefined || s.arrayAssign !== undefined || s.isStdoutEcho === true || s.printfVArgs !== undefined || s.isDiscardDevNull === true || s.arithStmt !== undefined || s.condStmt !== undefined || s.ifBranches !== undefined || s.caseClauses !== undefined || s.value?.parts.some(p => p.kind === "substitution" || (p.kind === "variable" && p.indirect)));
+      const hasAnyArrayAssign = bodyAssignments.some(s => s.listOperator !== undefined || s.arrayAssign !== undefined || s.isStdoutEcho === true || s.printfVArgs !== undefined || s.isDiscardDevNull === true || s.arithStmt !== undefined || s.condStmt !== undefined || s.ifBranches !== undefined || s.caseClauses !== undefined || s.fnCall !== undefined || s.value?.parts.some(p => p.kind === "substitution" || (p.kind === "variable" && p.indirect)));
       // Complex expansions can read or write names inside selectors, defaults,
       // patterns and substring expressions. Keep every assignment in iteration
       // order unless the shallow dependency checks below can see all reads.
@@ -12864,19 +12917,50 @@ export class Runtime {
     let fastLoopWords = activeValScope
       ? this.expandBraceRangeWithScope(command.words[0]!, activeValScope)
       : tryFastExpandBraceRange(command.words[0]!, this.budget, undefined);
-    if (!fastLoopWords && !activeValScope && command.words[0]!.parts.length === 1) {
-      const p0 = command.words[0]!.parts[0]!;
-      if (p0.kind === "substitution" && !p0.quoted && rawState.variables.IFS === undefined && !rawState.noglob && this.isPureSyncValueWord(command.words[0]!, rawState)) {
+    const isStaticBraceWords = Boolean(fastLoopWords);
+    const w0For = command.words[0]!;
+    const p0 = w0For.parts.length === 1 ? w0For.parts[0] : (w0For.parts.length === 2 && w0For.parts[0]!.kind === "text" && w0For.parts[0]!.value === "" ? w0For.parts[1] : undefined);
+    if (!fastLoopWords && !activeValScope && p0) {
+      const arrMembers = this.tryExpandSyncArrayMembersWord(command.words[0]!, rawState, io, diagnosticLine);
+      if (arrMembers && arrMembers.length <= 1500 && !monitor.hasOverlay(p0.kind === "variable" ? p0.name : "")) {
+        let asciiOk = true;
+        for (let i = 0; i < arrMembers.length; i++) {
+          const w = arrMembers[i]!;
+          for (let j = 0; j < w.length; j++) {
+            if (w.charCodeAt(j) >= 128) { asciiOk = false; break; }
+          }
+          if (!asciiOk) break;
+        }
+        if (asciiOk) fastLoopWords = arrMembers;
+      } else if (p0.kind === "variable" && !p0.quoted && !p0.indirect && !p0.prefixNames && !p0.length && !p0.substring && !p0.transform && p0.operator === undefined && getArraySelector(p0) === undefined && rawState.variables.IFS === undefined && !rawState.noglob && !store?.get(p0.name) && !monitor.hasOverlay(p0.name)) {
+        const rawVal = rawState.variables[p0.name] ?? "";
+        if (rawVal.length <= 32768 && !/[*?[\]\\]/.test(rawVal)) {
+          let asciiOk = true;
+          for (let j = 0; j < rawVal.length; j++) {
+            if (rawVal.charCodeAt(j) >= 128) { asciiOk = false; break; }
+          }
+          if (asciiOk) {
+            const splitWords = rawVal.trim().length === 0 ? [] : rawVal.trim().split(/[ \t\n]+/);
+            if (splitWords.length <= 1500) fastLoopWords = splitWords;
+          }
+        }
+      } else if (p0.kind === "substitution" && !p0.quoted && rawState.variables.IFS === undefined && !rawState.noglob && this.isPureSyncValueWord(command.words[0]!, rawState)) {
         const subText = this.tryFastPureSubstitution(p0, rawState, rawState, io);
-        if (typeof subText === "string" && subText.length <= 16384 && /^[0-9 \t\n-]*$/.test(subText)) {
-          const splitWords = subText.trim().length === 0 ? [] : subText.trim().split(/[ \t\n]+/);
-          if (splitWords.length <= 1500) fastLoopWords = splitWords;
+        if (typeof subText === "string" && subText.length <= 32768 && !/[*?[\]\\]/.test(subText)) {
+          let asciiOk = true;
+          for (let j = 0; j < subText.length; j++) {
+            if (subText.charCodeAt(j) >= 128) { asciiOk = false; break; }
+          }
+          if (asciiOk) {
+            const splitWords = subText.trim().length === 0 ? [] : subText.trim().split(/[ \t\n]+/);
+            if (splitWords.length <= 1500) fastLoopWords = splitWords;
+          }
         }
       }
     }
     const braceReservation = activeValScope ? this._lastBraceReservation : undefined;
     if (activeValScope) this._lastBraceReservation = undefined;
-    if ( !fastLoopWords || fastLoopWords.length > 1500 || fastLoopWords.length * bodyAssignments.length > 1600 || (this.budget.commands + fastLoopWords.length * 4) >= this.budget.limits.maxCommands || (this.budget.iterations + fastLoopWords.length) >= this.budget.limits.maxLoopIterations || (redirectCount > 0 && (this.budget.fileSystemOperations + fastLoopWords.length * redirectCount) >= this.budget.limits.maxFileSystemOperations)) {
+    if ( !fastLoopWords || fastLoopWords.length > 1500 || fastLoopWords.length * bodyAssignments.length > 24000 || (this.budget.commands + fastLoopWords.length * 4) >= this.budget.limits.maxCommands || (this.budget.iterations + fastLoopWords.length) >= this.budget.limits.maxLoopIterations || (redirectCount > 0 && (this.budget.fileSystemOperations + fastLoopWords.length * redirectCount) >= this.budget.limits.maxFileSystemOperations)) {
       braceReservation?.release();
       return undefined;
     }
@@ -12943,7 +13027,7 @@ export class Runtime {
           }
         }
       }
-      const fastReady = regOk && allIntStepsReady && !hasSubIntStep && redirectCount === 0 && !activeValScope && fastLoopWords.length <= 1500 && fastLoopWords.length * bodyAssignments.length <= 1600;
+      const fastReady = isStaticBraceWords && regOk && allIntStepsReady && !hasSubIntStep && redirectCount === 0 && !activeValScope && fastLoopWords.length <= 1500 && fastLoopWords.length * bodyAssignments.length <= 1600;
       forPlan = {
         intSteps, allIntStepsReady, hasSubIntStep, arithNamesList, touchedIntNamesList, fastReady, regNames, fastLoopWords, bodyStepCount: bodyAssignments.length, lastCmd: bodyAssignments[bodyAssignments.length - 1]?.cmd, };
       (command as { _cachedForPlan?: CachedForPlan })._cachedForPlan = forPlan;
@@ -13277,8 +13361,11 @@ export class Runtime {
           lastValueWord = undefined;
           rawState.status = cStatus;
           continue;
+        } else if (step.fnCall !== undefined) {
+          this.execSyncFnStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
+          continue;
         } else if (step.arithStmt !== undefined) {
-          const nonZero = this.syncShellArithmeticNonZero(step.arithStmt, rawState, step.line);
+          const nonZero = this.evalSyncLoopArithStmt(step.arithStmt, rawState, io, touched, step.line);
           lastArg = "";
           lastValueWord = undefined;
           rawState.status = nonZero ? 0 : 1;
@@ -13346,6 +13433,202 @@ export class Runtime {
       else rawState.variables[inductionName] = postInd;
     }
     return { lastCmd, lastArg, lastInductionVal };
+  }
+  private _syncLoopFnCheckDepth = 0;
+  private _lastSyncLoopRawState: State | undefined = undefined;
+  private canSyncReadOnlyArraySubscripts(tree: ArithmeticProgram["tree"], rawState: State): boolean {
+    if (!tree) return false;
+    const store = arrayStore(rawState);
+    if (!store) return false;
+    const check = (node: NonNullable<ArithmeticProgram["tree"]>): boolean => {
+      switch (node.kind) {
+        case "literal":
+          return true;
+        case "name": {
+          if (node.subscript === undefined) return true;
+          const b = store.get(node.name);
+          if (!b || b.values.size > 2000 || !/^(?:0|[1-9][0-9]{0,6}|\$?[a-zA-Z_][a-zA-Z0-9_]*)$/.test(node.subscript)) return false;
+          for (const [, slot] of b.values) {
+            const sv = slot.text.shellValue;
+            if (typeof sv !== "string" || !/^-?(?:0|[1-9][0-9]{0,12})$/.test(sv)) return false;
+          }
+          return true;
+        }
+        case "unary":
+          if ((node.operator === "++" || node.operator === "--") && node.operand.kind === "name" && node.operand.subscript !== undefined) return false;
+          return check(node.operand);
+        case "binary":
+          if (node.operator.endsWith("=") && node.operator !== "==" && node.operator !== "!=" && node.operator !== "<=" && node.operator !== ">=" && node.left.kind === "name" && node.left.subscript !== undefined) return false;
+          return check(node.left) && check(node.right);
+        case "conditional":
+          return check(node.condition) && check(node.yes) && check(node.no);
+      }
+    };
+    return check(tree);
+  }
+  private canSyncErrorArithmeticStmt(expr: ArithmeticProgram, rawState: State): boolean {
+    if (expr.source.includes("/") || expr.source.includes("%") || expr.source.includes("<<") || expr.source.includes(">>") || expr.source.includes("**") || expr.source.includes("[")) return false;
+    try {
+      const cachedExpr = expr as { _cachedArithWord?: Word | null; _cachedArithSyntax?: unknown };
+      let expWord = cachedExpr._cachedArithWord;
+      if (!expWord) {
+        expWord = parseArithmeticExpansion(expr.source, this.budget.parsing, false, 0, undefined, rawState.extensions?.syntax);
+        cachedExpr._cachedArithWord = expWord;
+        cachedExpr._cachedArithSyntax = rawState.extensions?.syntax;
+      }
+      if (!this.isPureSyncValueWord(expWord, rawState)) return false;
+      const store = arrayStore(rawState);
+      const stripped = expr.source.replace(/\$(?:[1-9]|\{[a-zA-Z0-9_]+\}|[a-zA-Z_][a-zA-Z0-9_]*)/g, "0");
+      const bareIds = stripped.match(/[a-zA-Z_][a-zA-Z0-9_]*/g);
+      if (bareIds) {
+        for (let i = 0; i < bareIds.length; i++) {
+          const id = bareIds[i]!;
+          if (controlNames.has(id) || id === "OPTIND" || rawState.readonlyVariables?.has(id) || rawState.variableAttributes?.get(id) || store?.get(id)) return false;
+        }
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  private evalSyncLoopArithStmt(expr: ArithmeticProgram, rawState: State, io: IO, touched: Set<string>, line: number): boolean {
+    if (!expr.error) return this.syncShellArithmeticNonZero(expr, rawState, line);
+    const cachedExpr = expr as { _cachedArithWord?: Word | null };
+    const expWord = cachedExpr._cachedArithWord ?? parseArithmeticExpansion(expr.source, this.budget.parsing, false, 0, undefined, rawState.extensions?.syntax);
+    cachedExpr._cachedArithWord = expWord;
+    const fastSrc = this.fastValueWord(expWord, rawState, io, false, false, true, false, 0, line) as string;
+    const scalarMutMatch = fastSrc.length <= 64 ? SIMPLE_SCALAR_MUT_RE.exec(fastSrc) : null;
+    if (scalarMutMatch) {
+      const varName = resolveSyncNameref(rawState, scalarMutMatch[1]!);
+      const binOp = scalarMutMatch[2]!;
+      const rhs1 = Number(scalarMutMatch[3]!);
+      const rhsOp = scalarMutMatch[4];
+      const rhs2 = scalarMutMatch[5] !== undefined ? Number(scalarMutMatch[5]) : 0;
+      const rhsNum = rhsOp === "+" ? rhs1 + rhs2 : rhsOp === "-" ? rhs1 - rhs2 : rhsOp === "*" ? rhs1 * rhs2 : rhs1;
+      const curVal = rawState.variables[varName] ?? "0";
+      if (curVal === "" || /^-?(?:0|[1-9][0-9]{0,12})$/.test(curVal)) {
+        const curNum = curVal === "" ? 0 : Number(curVal);
+        const nextNum = binOp === "=" ? rhsNum : binOp === "+=" ? curNum + rhsNum : curNum - rhsNum;
+        if (Number.isSafeInteger(nextNum)) {
+          this.budget.parsing.admit(4);
+          rawState.variables[varName] = intToStr(nextNum);
+          touched.add(varName);
+          return nextNum !== 0;
+        }
+      }
+    }
+    const dynProg = prepareArithmetic(fastSrc, this.budget.parsing);
+    return this.syncShellArithmeticNonZero(dynProg, rawState, line);
+  }
+  private extractSyncLoopFnSpec(cmd: Extract<Command, { kind: "simple" }>, rawState: State, io: IO | undefined): { name: string; locals: { name: string; valueWord?: Word | undefined; isFirstInCmd: boolean }[]; restScript: Script } | undefined {
+    if (this._syncLoopFnCheckDepth > 0 || (rawState.locals && rawState.locals.length > 0)) return undefined;
+    const w0Plain = cmd.words[0]!.plain;
+    if (!w0Plain || !rawState.functions?.has(w0Plain) || this.firstInternalDiscovery(w0Plain, rawState, false) !== "function" || rawState.extensions?.builtins.has(w0Plain)) return undefined;
+    for (let i = 1; i < cmd.words.length; i++) {
+      const w = cmd.words[i]!;
+      if (!this.isPureSyncValueWord(w, rawState) || !w.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))) {
+        return undefined;
+      }
+    }
+    const fnBody = rawState.functions.get(w0Plain)!;
+    if (fnBody.kind !== "group" || fnBody.redirects.length !== 0 || fnBody.body.lists.length === 0) return undefined;
+    const store = arrayStore(rawState);
+    const monitor = stateMonitor(rawState);
+    const locals: { name: string; valueWord?: Word | undefined; isFirstInCmd: boolean }[] = [];
+    let localListIdx = 0;
+    const savedPos = rawState.positional;
+    rawState.positional = ["0", "0", "0", "0", "0", "0", "0", "0", "0"];
+    this._syncLoopFnCheckDepth++;
+    try {
+      while (localListIdx < fnBody.body.lists.length) {
+        const list = fnBody.body.lists[localListIdx]!;
+        if (list.terminator || list.pipelines.length !== 1 || list.pipelines[0]!.negate || list.pipelines[0]!.commands.length !== 1) break;
+        const lc = list.pipelines[0]!.commands[0]!;
+        if (lc.kind !== "simple" || lc.redirects.length !== 0 || lc.words[0]?.plain !== "local") break;
+        if (rawState.functions.has("local") || rawState.extensions?.builtins.has("local") || lc.words.length < 2) return undefined;
+        for (let wi = 1; wi < lc.words.length; wi++) {
+          const lw = lc.words[wi]!;
+          if (lw.plain?.startsWith("-") || getArrayAssignment(lw)) return undefined;
+          const p0 = lw.parts[0];
+          if (p0?.kind === "text" && p0.value.includes("=")) {
+            const eqIdx = p0.value.indexOf("=");
+            const lName = p0.value.slice(0, eqIdx);
+            if (!isShellIdentifier(lName) || controlNames.has(lName) || lName === "OPTIND" || store?.get(lName) || rawState.readonlyVariables?.has(lName) || rawState.variableAttributes?.get(lName) || monitor?.hasOverlay(lName)) return undefined;
+            const prefixText = p0.value.slice(eqIdx + 1);
+            const valParts = prefixText.length > 0 ? [{ ...p0, value: prefixText }, ...lw.parts.slice(1)] : lw.parts.slice(1);
+            const valWord: Word = { parts: valParts.length > 0 ? valParts : [{ kind: "text", value: "", quoted: true }], plain: lw.parts.length === 1 && p0.quoted ? prefixText : undefined };
+            if (!this.isPureSyncValueWord(valWord, rawState)) return undefined;
+            locals.push({ name: lName, valueWord: valWord, isFirstInCmd: wi === 1 });
+          } else if (lw.plain !== undefined && isShellIdentifier(lw.plain)) {
+            const lName = lw.plain;
+            if (controlNames.has(lName) || lName === "OPTIND" || store?.get(lName) || rawState.readonlyVariables?.has(lName) || rawState.variableAttributes?.get(lName) || monitor?.hasOverlay(lName)) return undefined;
+            locals.push({ name: lName, valueWord: undefined, isFirstInCmd: wi === 1 });
+          } else {
+            return undefined;
+          }
+        }
+        localListIdx++;
+      }
+      const restLists = fnBody.body.lists.slice(localListIdx);
+      const restScript: Script = { lists: restLists };
+      if (restLists.length > 0 && !this.canSyncLoopBody(restScript, rawState, io)) return undefined;
+      return { name: w0Plain, locals, restScript };
+    } finally {
+      this._syncLoopFnCheckDepth--;
+      rawState.positional = savedPos;
+    }
+  }
+  private execSyncFnStep(
+    step: SyncLoopStep,
+    rawState: State,
+    io: IO,
+    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
+    touched: Set<string>,
+    mode: number,
+    onUpdate: (v: { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string }) => void,
+  ): void {
+    const fnCall = step.fnCall!;
+    const fnArgs: string[] = [];
+    for (let i = 0; i < fnCall.argWords.length; i++) {
+      fnArgs.push(this.fastValueWord(fnCall.argWords[i]!, rawState, io, false, false, false, false, 0, step.line) as string);
+    }
+    const prevPos = rawState.positional;
+    const prevFastSubPos = this._fastSubPositional;
+    rawState.positional = fnArgs;
+    this._fastSubPositional = fnArgs;
+    const savedLocals = new Array<{ name: string; val: string | undefined; wasTouched: boolean }>(fnCall.locals.length);
+    try {
+      for (let i = 0; i < fnCall.locals.length; i++) {
+        const loc = fnCall.locals[i]!;
+        if (loc.isFirstInCmd) this.budget.tick();
+        savedLocals[i] = { name: loc.name, val: rawState.variables[loc.name], wasTouched: touched.has(loc.name) };
+        if (loc.valueWord !== undefined) {
+          rawState.variables[loc.name] = this.fastValueWord(loc.valueWord, rawState, io, false, false, false, false, 0, step.line) as string;
+          touched.add(loc.name);
+        } else {
+          delete rawState.variables[loc.name];
+        }
+      }
+      if (fnCall.steps.length > 0) {
+        this.execSyncLoopSteps(fnCall.steps, rawState, io, monitor, touched, mode, onUpdate);
+      } else {
+        rawState.status = 0;
+        onUpdate({ lastCmd: step.cmd, lastArg: fnArgs.length > 0 ? fnArgs[fnArgs.length - 1]! : fnCall.name });
+      }
+    } finally {
+      for (let i = fnCall.locals.length - 1; i >= 0; i--) {
+        const saved = savedLocals[i]!;
+        if (saved.val !== undefined) {
+          rawState.variables[saved.name] = saved.val;
+          if (!saved.wasTouched) touched.delete(saved.name);
+        } else {
+          delete rawState.variables[saved.name];
+          if (!saved.wasTouched) touched.delete(saved.name);
+        }
+      }
+      rawState.positional = prevPos;
+      this._fastSubPositional = prevFastSubPos;
+    }
   }
   private execSyncCaseStep(
     step: SyncLoopStep,
@@ -13424,7 +13707,11 @@ export class Runtime {
       if (step.listOperator !== undefined && ((step.listOperator === "&&" && rawState.status !== 0) || (step.listOperator === "||" && rawState.status === 0))) continue;
       lastCmd = step.cmd;
       this.budget.tick();
-      if (step.caseClauses !== undefined) {
+      if (step.fnCall !== undefined) {
+        this.execSyncFnStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
+        onUpdate({ lastCmd, lastArg });
+        continue;
+      } else if (step.caseClauses !== undefined) {
         this.execSyncCaseStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
         onUpdate({ lastCmd, lastArg });
         continue;
@@ -13439,7 +13726,7 @@ export class Runtime {
         onUpdate({ lastCmd, lastArg });
         continue;
       } else if (step.arithStmt !== undefined) {
-        const nonZero = this.syncShellArithmeticNonZero(step.arithStmt, rawState, step.line);
+        const nonZero = this.evalSyncLoopArithStmt(step.arithStmt, rawState, io, touched, step.line);
         lastArg = "";
         rawState.status = nonZero ? 0 : 1;
         onUpdate({ lastCmd, lastArg });
@@ -13512,6 +13799,12 @@ export class Runtime {
           this.budget.fileSystemOperation();
           this.budget.bytes += encoded.byteLength;
           lastValueWord = step.value;
+        } else if (step.fnCall !== undefined) {
+          this.execSyncFnStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
+          continue;
+        } else if (step.caseClauses !== undefined) {
+          this.execSyncCaseStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
+          continue;
         } else if (step.ifBranches !== undefined) {
           this.execSyncIfStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
           continue;
@@ -13526,7 +13819,7 @@ export class Runtime {
           lastArg = "";
           lastValueWord = undefined;
         } else if (step.arithStmt !== undefined) {
-          const nonZero = this.syncShellArithmeticNonZero(step.arithStmt, rawState, step.line);
+          const nonZero = this.evalSyncLoopArithStmt(step.arithStmt, rawState, io, touched, step.line);
           lastArg = "";
           lastValueWord = undefined;
           rawState.status = nonZero ? 0 : 1;

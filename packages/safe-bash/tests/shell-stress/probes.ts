@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { setTimeout as delay } from "node:timers/promises";
-import { CommandRegistry, createStandardCommands, MemoryFileSystem, pipeBytes, Shell, ShellLimitError } from "../../src/index.js";
+import { CommandRegistry } from "../../src/contracts/command.js";
+import { pipeBytes } from "../../src/contracts/io.js";
+import { createStandardCommands } from "../../src/commands/index.js";
+import { MemoryFileSystem } from "../../src/fs/memory/index.js";
+import { Shell } from "../../src/shell/node.js";
+import { ShellLimitError } from "../../src/shell/types.js";
 import type { ByteSource, ShellLimits } from "../../src/index.js";
 
 export const probeNames = [

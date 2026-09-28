@@ -12199,7 +12199,7 @@ export class Runtime {
           }
           if (arrAssign.kind === "element" && !curArr.associative) {
             const subSrc = (arrAssign.index.source ?? arrAssign.index.decimal).trim();
-            if (subSrc.length > 0 && subSrc.length <= 64 && /^[$a-zA-Z0-9_ +*-]+$/.test(subSrc) && !subSrc.includes("/") && !subSrc.includes("%") && !subSrc.includes("=") && !subSrc.includes("+\+") && !subSrc.includes("--") && this.isPureSyncValueWord(arrAssign.value, rawState)) {
+            if (subSrc.length > 0 && subSrc.length <= 64 && /^[$a-zA-Z0-9_ +*-]+$/.test(subSrc) && !subSrc.includes("/") && !subSrc.includes("%") && !subSrc.includes("=") && !subSrc.includes("++") && !subSrc.includes("--") && this.isPureSyncValueWord(arrAssign.value, rawState)) {
               continue;
             }
             return false;

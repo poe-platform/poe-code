@@ -1311,3 +1311,37 @@ dual_fixture_test!(cli_cherry_range_diff_sparse_checkout_and_replace, cli_cherry
     assert!(!execute_git_cli(&f.fs, &f.dir, &["replace", "-l"]).stdout.trim().is_empty());
     assert_eq!(execute_git_cli(&f.fs, &f.dir, &["replace", "-d", "HEAD~1"]).exit_code, 0);
 });
+
+
+dual_fixture_test!(cli_log_author_grep_skip_no_merges_first_parent_all_and_follow, cli_log_author_grep_skip_no_merges_first_parent_all_and_follow_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    execute_git_cli(&f.fs, &f.dir, &["config", "user.name", "Special Author"]);
+    execute_git_cli(&f.fs, &f.dir, &["config", "user.email", "special@example.com"]);
+
+    f.fs.write_str(&join(&[&f.dir, "orig-name.txt"]), "track me across rename\n");
+    execute_git_cli(&f.fs, &f.dir, &["add", "orig-name.txt"]);
+    execute_git_cli(&f.fs, &f.dir, &["commit", "-m", "feat: introduce tracked file"]);
+
+    execute_git_cli(&f.fs, &f.dir, &["mv", "orig-name.txt", "renamed-name.txt"]);
+    execute_git_cli(&f.fs, &f.dir, &["commit", "-m", "refactor: rename tracked file"]);
+
+    let r_author = execute_git_cli(&f.fs, &f.dir, &["log", "--author=special@example.com", "--oneline"]);
+    assert_eq!(r_author.exit_code, 0);
+    assert_eq!(r_author.stdout.lines().count(), 2);
+
+    let r_grep = execute_git_cli(&f.fs, &f.dir, &["log", "--grep=INTRODUCE", "-i", "--oneline"]);
+    assert_eq!(r_grep.exit_code, 0);
+    assert_eq!(r_grep.stdout.lines().count(), 1);
+
+    let r_skip = execute_git_cli(&f.fs, &f.dir, &["log", "--author=Special", "--skip=1", "-n", "1", "--oneline"]);
+    assert_eq!(r_skip.exit_code, 0);
+    assert!(r_skip.stdout.contains("introduce tracked file"));
+
+    let r_follow = execute_git_cli(&f.fs, &f.dir, &["log", "--follow", "--oneline", "renamed-name.txt"]);
+    assert_eq!(r_follow.exit_code, 0);
+    assert_eq!(r_follow.stdout.lines().count(), 2);
+
+    let r_all = execute_git_cli(&f.fs, &f.dir, &["log", "--all", "--no-merges", "--first-parent", "-n", "3", "--oneline"]);
+    assert_eq!(r_all.exit_code, 0);
+    assert!(!r_all.stdout.trim().is_empty());
+});

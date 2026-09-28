@@ -330,6 +330,15 @@ pub(crate) fn execute(
     let mut patch = None;
     let mut paths = Vec::new();
     let mut separator = false;
+    let mut author_filter: Option<&str> = None;
+    let mut grep_filter: Option<&str> = None;
+    let mut grep_ignore_case = false;
+    let mut no_merges = false;
+    let mut merges_only = false;
+    let mut first_parent = false;
+    let mut all_refs = false;
+    let mut skip_count = 0usize;
+    let mut follow = false;
     let mut i = 0;
     while i < args.len() {
         let arg = args[i];
@@ -373,6 +382,33 @@ pub(crate) fn execute(
             depth = Some(count);
         } else if arg == "--reverse" {
             reverse = true;
+        } else if let Some(val) = arg.strip_prefix("--author=") {
+            author_filter = Some(val);
+        } else if arg == "--author" && i + 1 < args.len() {
+            i += 1;
+            author_filter = Some(args[i]);
+        } else if let Some(val) = arg.strip_prefix("--grep=") {
+            grep_filter = Some(val);
+        } else if arg == "--grep" && i + 1 < args.len() {
+            i += 1;
+            grep_filter = Some(args[i]);
+        } else if matches!(arg, "-i" | "--regexp-ignore-case") {
+            grep_ignore_case = true;
+        } else if arg == "--no-merges" {
+            no_merges = true;
+        } else if arg == "--merges" {
+            merges_only = true;
+        } else if arg == "--first-parent" {
+            first_parent = true;
+        } else if arg == "--all" {
+            all_refs = true;
+        } else if arg == "--follow" {
+            follow = true;
+        } else if let Some(val) = arg.strip_prefix("--skip=") {
+            skip_count = val.parse::<usize>().unwrap_or(0);
+        } else if arg == "--skip" && i + 1 < args.len() {
+            i += 1;
+            skip_count = args[i].parse::<usize>().unwrap_or(0);
         } else if arg == "--abbrev-commit" {
             output.abbrev = true;
         } else if matches!(arg, "-s" | "--no-patch") {
@@ -472,26 +508,84 @@ pub(crate) fn execute(
                 .into_iter()
                 .filter(|c| !excluded.contains(&c.oid))
                 .collect()
+        } else if all_refs {
+            let mut combined = Vec::new();
+            for prefix in ["refs/heads", "refs/tags", "refs/remotes"] {
+                for r in crate::list_refs(fs, gitdir, prefix) {
+                    if let Ok(list) = log(fs, gitdir, Some(&format!("{prefix}/{r}")), None, None, None, false, false) {
+                        combined.extend(list);
+                    }
+                }
+            }
+            if let Ok(list) = log(fs, gitdir, Some("HEAD"), None, None, None, false, false) {
+                combined.extend(list);
+            }
+            combined.sort_by_key(|b| std::cmp::Reverse(b.commit.committer.timestamp));
+            combined
+        } else if first_parent {
+            let mut list = Vec::new();
+            let mut cur_oid = Some(resolve(fs, gitdir, revision)?);
+            while let Some(oid) = cur_oid {
+                let Ok(c) = crate::read_commit(fs, gitdir, &oid) else { break };
+                cur_oid = c.commit.parent.first().cloned();
+                list.push(c);
+            }
+            list
         } else {
+            let follow_path = if follow && paths.len() == 1 { Some(paths[0].as_str()) } else { None };
             log(
                 fs,
                 gitdir,
                 Some(&resolve(fs, gitdir, revision)?),
+                follow_path,
                 None,
-                if paths.is_empty() { depth } else { None },
                 None,
                 false,
-                false,
+                follow && follow_path.is_some(),
             )?
         };
         let mut seen = BTreeSet::new();
         commits.retain(|c| seen.insert(c.oid.clone()));
         let mut selected = Vec::new();
+        let mut matched_so_far = 0usize;
         for c in commits {
             if depth.is_some_and(|n| selected.len() >= n) {
                 break;
             }
-            if paths.is_empty() || touches_paths(fs, gitdir, &c, &paths)? {
+            if no_merges && c.commit.parent.len() > 1 {
+                continue;
+            }
+            if merges_only && c.commit.parent.len() <= 1 {
+                continue;
+            }
+            if let Some(af) = author_filter {
+                let hay = format!("{} <{}>", c.commit.author.name, c.commit.author.email);
+                let ok = if grep_ignore_case {
+                    hay.to_lowercase().contains(&af.to_lowercase())
+                } else {
+                    hay.contains(af)
+                };
+                if !ok {
+                    continue;
+                }
+            }
+            if let Some(gf) = grep_filter {
+                let ok = if grep_ignore_case {
+                    c.commit.message.to_lowercase().contains(&gf.to_lowercase())
+                } else {
+                    c.commit.message.contains(gf)
+                };
+                if !ok {
+                    continue;
+                }
+            }
+            let path_ok = (follow && paths.len() == 1) || paths.is_empty() || touches_paths(fs, gitdir, &c, &paths)?;
+            if path_ok {
+                if matched_so_far < skip_count {
+                    matched_so_far += 1;
+                    continue;
+                }
+                matched_so_far += 1;
                 selected.push(c);
             }
         }

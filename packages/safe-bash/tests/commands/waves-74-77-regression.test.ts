@@ -111,3 +111,43 @@ test("Wave 86: variable-bound, stride, countdown arithmetic-for, echo -n/multi-a
     await shell.dispose();
   }
 });
+
+test("Wave 87: unquoted $(seq)/$(cat) for-loops, [[ =~ ]] + BASH_REMATCH[1], and unset in trySyncLoop", async () => {
+  const source = `
+    mkdir -p /tmp
+    sum1=0
+    for i in \$(seq 1 30); do
+      ((sum1 += i))
+    done
+    sum2=0
+    for j in \$(seq 2 3 40); do
+      ((sum2 += j))
+    done
+    printf "%s\\n" 10 20 30 40 50 > /tmp/w87_nums.txt
+    sum3=0
+    for x in \$(cat /tmp/w87_nums.txt); do
+      ((sum3 += x))
+    done
+    rm -f /tmp/w87_nums.txt
+    rmatch_sum=0
+    for ((k = 0; k < 15; k++)); do
+      w="key_\$((k * 4))"
+      if [[ \$w =~ ^key_([0-9]+)\$ ]]; then
+        ((rmatch_sum += BASH_REMATCH[1]))
+      fi
+      tmp="val_\$k"
+      unset tmp
+    done
+    echo "W87:\$sum1:\$sum2:\$sum3:\$rmatch_sum:\${tmp:-UNSET}:\${BASH_REMATCH[1]}"
+  `;
+  const oracle = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+  assert.equal(oracle.status, 0, oracle.stderr);
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...createStandardCommands(), ...createByteCommands(), ...createStreamFormatCommands()]) });
+  try {
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, oracle.stdout);
+  } finally {
+    await shell.dispose();
+  }
+});

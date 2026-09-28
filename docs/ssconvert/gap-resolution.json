@@ -2796,9 +2796,17 @@
       "arrayStarReference": {
         "source": "https://ftp.gnu.org/gnu/bash/bash-5.2.37.tar.gz",
         "sha256": "9599b22ecd1d5787ad7d3b7bf0c59f312b3396d1e281175dd1f8a4014da621ff",
-        "finding": "subst.c:7458-7464 forces quoted array-all expansion on assignment RHS; arrayfunc.c:1549-1556 uses string_list_dollar_star for star, joining with IFS. The earlier local space-join repair followed historical macOS Bash 3.2. Incoming ff8b0c2f79 correctly targets GNU Bash 5.2.37. Reconcile both default and bounded paths against that source on rebase; do not preserve the historical fast-path change as current parity.",
-        "remaining": "Modern scalar/key joining remains tracked in #3779 and integration #3360. No runtime correction or modern-native execution is claimed here.",
-        "receipt": "out/ssconvert-release-investigation/bash-array-star-source/source.json"
+        "finding": "GNU Bash 5.2.37 uses IFS for plain and modified array-star scalar joins. Modified array-at joins depend on quoting, assignment flags, operator class and empty IFS (subst.c:2948-3090,4396-4430,5829-5860,8839-8870,9264-9285). Native execution also corrects the older tilde-pattern fixture from a b to a:b. The earlier macOS Bash 3.2-based local change is superseded.",
+        "remaining": "Temporary assignments leak into redirection expansion (#3859); broader key requirements (#3779), final rebased tests/types/bundles, public consumers and delivery/publication remain open under #3360.",
+        "receipt": "out/ssconvert-release-investigation/bash-modern-joining-source.json",
+        "implementation": "Default and bounded paths now use GNU-style joins, including pattern removal, replacement, case modification, transforms and subranges. Modifier joining uses the existing raw-byte/locale-aware IFS resolver. Key expansion remains distinct.",
+        "checks": "Initial plain-join cohort exposed eight failures; expanded modifier regressions exposed nineteen before the final repair. All 55 focused controls and 171 neighboring checks pass; guarded ESLint has zero errors/warnings. Package typecheck found unrelated incoming fixture errors; final integrated types remain required.",
+        "native": {
+          "version": "GNU bash 5.2.37(1)-release, aarch64-apple-darwin25.4.0",
+          "executableSha256": "0fdb39fe709ebb401d4c5407b603b5166d80fb6a1f7cb74ca6aff6fc4bb85838",
+          "result": "132 of 136 comparisons match. Four temporary-assignment/redirection failures remain in #3859; the comparison does not claim a fully passing native cohort. Additional raw-IFS modifier control matches native and passes both canonical profiles.",
+          "receipt": "out/ssconvert-release-investigation/bash-modern-joining-native-final.json"
+        }
       }
     }
   },

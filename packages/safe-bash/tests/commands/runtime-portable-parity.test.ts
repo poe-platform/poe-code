@@ -93,6 +93,42 @@ for (const expression of ['"${a[*]}"', '"${!a[@]}"']) test(`read prefix preserve
   }
 });
 
+for (const bounded of [false, true]) {
+  for (const [ifs, expected] of [[":", "a:b:c"], ["", "abc"], ["|:", "a|b|c"]] as const) {
+    test(`plain array star scalar joining: IFS=${JSON.stringify(ifs)}, bounded=${bounded}`, async () => {
+      const result = await run(`arr=(a b c); IFS='${ifs}'; x=\${arr[*]}; printf '<%s>' "$x"; [[ \${arr[*]} == "$x" ]] && printf yes; case \${arr[*]} in "$x") printf yes;; esac`, bounded);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, `<${expected}>yesyes`);
+    });
+  }
+  for (const [operand, expected] of [
+    ['${arr[*]#p}', 'ax:bx:cx'],
+    ['${arr[*]%x}', 'pa:pb:pc'],
+    ['${arr[*]/p/X}', 'Xax:Xbx:Xcx'],
+    ['${arr[*]^^}', 'PAX:PBX:PCX'],
+    ['${arr[*]:1:2}', 'pbx:pcx'],
+    ['${arr[@]#p}', 'ax:bx:cx'],
+    ['${arr[@]/p/X}', 'Xax Xbx Xcx'],
+    ['"${arr[@]/p/X}"', 'Xax:Xbx:Xcx'],
+    ['"${arr[@]:1:2}"', 'pbx:pcx'],
+    ['${arr[@]@U}', 'PAX:PBX:PCX'],
+  ] as const) {
+    test(`modified array scalar joining: ${operand}, bounded=${bounded}`, async () => {
+      const result = await run(`arr=(pax pbx pcx); IFS=:; x=${operand}; printf '<%s>' "$x"`, bounded);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, `<${expected}>`);
+    });
+  }
+  test(`modified array joining preserves raw IFS and empty members, bounded=${bounded}`, async () => {
+    const result = await run("LC_ALL=C; arr=($'\\xff' '' b); IFS=$'\\xfe'; x=${arr[*]#q}; printf '%s' \"$x\"", bounded);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.deepEqual([...result.stdoutBytes], [255, 254, 254, 98]);
+  });
+}
+
 for (const stage of ['head -n 1', 'tail -n 1', 'rev']) {
   for (const [flag, count] of [['-c', '3'], ['-l', '0']] as const) {
     test(`${stage} preserves an unterminated line before wc ${flag}`, async () => {

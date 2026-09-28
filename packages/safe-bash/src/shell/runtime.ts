@@ -19155,7 +19155,9 @@ export class Runtime {
       const selector = getArraySelector(part);
       if (selector?.kind === "members" || part.name === "@" || part.name === "*") {
         const members = selector ? await this.arrayMembers(part.name, state, io, part.keys) : this.positionalValues(state);
-        const separator = !split && (selector?.kind === "members" ? selector.separator === "@" : part.name === "@") ? " " : this.ifsSeparator(state, io);
+        // GNU Bash passes assignment flags for replacement/case operators, but not pattern removal or transforms.
+        const space = selector?.kind === "members" ? selector.separator === "@" && (state.variables.IFS === "" || !split && !part.quoted && !part.transform && !["#", "##", "%", "%%"].includes(part.operator ?? "")) : !split && part.name === "@";
+        const separator = space ? " " : this.ifsSeparator(state, io);
         const fragments: ShellValue[] = [];
         let bytes = 0;
         for (const member of members) {
@@ -19496,7 +19498,7 @@ export class Runtime {
       }
       if (part.length) return String(binding?.values.size ?? (part.name === "FUNCNAME" && state.variables.FUNCNAME === undefined ? state.functionNames?.length ?? 0 : state.variables[part.name] === undefined ? 0 : 1));
       const values = await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring);
-      const space = (selector.kind === "keys" || part.keys === true) ? Boolean(hereDocument || (selector.separator === "@" ? !part.quoted && !split || state.variables.IFS === "" : !part.quoted && split && state.variables.IFS === "")) : (!split && selector.separator === "@");
+      const space = (selector.kind === "keys" || part.keys === true) ? Boolean(hereDocument || (selector.separator === "@" ? !part.quoted && !split || state.variables.IFS === "" : !part.quoted && split && state.variables.IFS === "")) : (!split && selector.separator === "@" && (!part.substring || !part.quoted || state.variables.IFS === ""));
       return this.arrayJoin(store.owner, values, space ? " " : this.ifsSeparator(state, io));
     }
     if (part.substring && (part.name === "@" || part.name === "*")) {

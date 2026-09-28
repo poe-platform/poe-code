@@ -77,7 +77,8 @@ for (const clustered of [false, true]) {
     for (const count of [16, 32, 64, 128, 256]) {
       argument = clustered ? `-${"a".repeat(count)}` : "-a";
       const args = clustered ? [argument] : Array.from({ length: count }, () => argument);
-      const { shell } = setup();
+      // Exercise owned-input admission; unlimited execution may use the sync scanner.
+      const { shell } = setup({ limits: { maxExpansionBytes: 4096 } });
       charCodes = 0;
       argumentBytes = 0;
       argumentReads = 0;
@@ -192,7 +193,7 @@ test("positional cache releases its reservation on replacement and owner close",
     }
     return result;
   });
-  const { shell } = setup();
+  const { shell } = setup({ limits: { maxExpansionBytes: 4096 } });
   try {
     const result = await shell.exec('set -- -ab; getopts ab opt; getopts ab opt; set -- -cd; OPTIND=1; getopts cd opt; getopts cd opt');
     assert.equal(result.exitCode, 0, result.stderr);
@@ -302,7 +303,7 @@ for (const [name, source, expected] of [
 
 for (const malformed of [false, true]) {
   test(`tracked same-array positional ${malformed ? "malformation" : "replacement"} invalidates validation`, async context => {
-    const { shell } = setup();
+    const { shell } = setup({ limits: { maxExpansionBytes: 4096 } });
     const builtin = Runtime.prototype.builtin;
     let calls = 0;
     let original: GetoptsState | undefined;

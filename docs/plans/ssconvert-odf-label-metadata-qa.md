@@ -222,6 +222,15 @@ string transport as native recalculation qualification.
     and remove generated packages. Native application recalculation remains a
     separate qualification.
 
+    Refresh native qualification through the compiled public entry as well as
+    source execution. Replace only formula caches/display paragraphs with 999;
+    preserve the OpenFormula namespace even when no XML element uses its prefix.
+    Require Calc to recompute both profiles/routes before and after edits. For
+    the row case place the numeric scalar at B2, inside B:E; retain A2 as a
+    separate out-of-range control returning #REF!. Independently read native
+    XLSX sheet relationships and values. Verify an original input in Calc, keep
+    compact hashes/observations, then remove workbooks and native profiles.
+
 18. Audit Calc's automatic-boundary loops separately from explicit data binding:
     the pinned global pair list has no data-sheet filter. Put an automatic A1
     label and values 10/20/30 on Local, and a declared label/data pair on Remote

@@ -2442,7 +2442,7 @@
       },
       "behavior": "Label and data rectangles retain separate sheets. The evaluator copies the data range and projects the physical label row/column without offset mapping. Optional LabelRange.dataSheet holds a stable ID; omission uses the owner. Import grows each referenced sheet independently; model validation, dependencies, resize and ID remapping retain the relationship, including detached owners. ODF exports the target display name; BIFF8 refuses remote data.",
       "validation": "Original memory regressions reproduced wrong-sheet results, cross-sheet import rejection and lifecycle/data-loss failures. 289 executed tests across 11 focused files passed (shared fixture tests included); maintained package lint, product/test/consumer types and selected workspace build passed. Independently generated Python ODF fixtures passed 16 compiled SDK/command exports across both axes/profiles before/after edits: 32 live formulas, distinct addresses, sums 5/15 and scalar 2. Edit inputs put data first for the native --set active-view contract. Command transcript screenshot inspected.",
-      "remaining": "Source-runtime/native Calc qualification passes for the recorded cross-sheet projection/edit profiles. Refreshed compiled/installed composition, wider profiles and remote delivery/publication remain open; no family closed.",
+      "remaining": "Recorded aligned and displaced cross-sheet row/column profiles pass current compiled SDK/command native Calc qualification. Installed/registry composition, wider profiles and containing publication remain open; no family closed.",
       "automaticCalcBoundaries": {
         "source": "Same pinned compiler.cxx, GetRefColRowNames lines 5867–5885 and 5907–5923: scan the global row/column pair list, with no data-sheet Tab filter. The inferred range stays on the anchor sheet.",
         "implementation": "Automatic Calc/BIFF labels inspect declarations on all workbook sheets. OpenFormula automatic labels retain their separate contiguous-data rules. No dependency on remote cell values is introduced: the boundary uses declaration geometry only.",
@@ -2463,7 +2463,15 @@
         "inputs": "Two independently authored ODF workbooks: separate Labels and O'Brien data sheets, displaced declaration geometry, misleading local/offset values, scalar and SUM formulas. Data is first for the --set active-sheet contract.",
         "result": "All 16 source SDK/command outputs pass signed Calc 26.8 readback across row/column orientation, strict/extended ODF and before/after a former-blank data edit. Both formula caches are replaced with 999 before native recalculation. SUM becomes 5/15; scalar remains 2. Native output retains both live formula spellings, the exact three sheet names, label/data sheet identities and original declaration geometry.",
         "scope": "Current source at 25d212f0a1; not refreshed compiled/installed or registry qualification. Source/test/budget contracts are unchanged by this qualification.",
-        "receipts": "out/ssconvert-release-investigation/cross-sheet-label-native-reg51ixh/{source,inputs,source-engine,native,cleanup}.json"
+        "receipts": "out/ssconvert-release-investigation/cross-sheet-label-native-reg51ixh/{source,inputs,source-engine,native,cleanup}.json",
+        "compiledRefresh": {
+          "revision": "38f170e415",
+          "runtime": "LibreOffice 26.8.0.3",
+          "result": "32 compiled SDK/command strict/extended ODF exports pass independent native recalculation after formula caches are replaced with 999: eight aligned-column, sixteen displaced row/column numeric cases, and eight out-of-range row-scalar controls. Sums are 5 before and 15 after edits; numeric scalars remain 2; out-of-range scalars become #REF!. Separate Labels and data sheets, quoted O'Brien, misleading local/offset values and live formulas survive. Native input control independently returns 5/2. Inputs remain unchanged; exports emit no diagnostics.",
+          "scope": "Workspace compiled public entry, not installed registry artifacts. Source implementation unchanged. Native headless readback only; no new GUI/navigation observation.",
+          "receipts": "out/ssconvert-odf-native-label-current/{native-proof,displaced-native-proof,row-numeric-native-proof,cleanup}.json",
+          "probeCorrections": "Initial package manifest, repeated-cell selector, quoted address spelling and formula-only namespace retention were corrected before qualification. Initial row scalar outside the declared interval is retained as an independently confirmed #REF! control."
+        }
       }
     },
     "commandFactoryDefaults": {

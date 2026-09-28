@@ -172,7 +172,8 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
     await context.diagnostic?.({ code: "lotus", severity: "warning", message: `${formatA1(row, column)}: stack underflow` }); return "#REF!";
   };
   const ref = (r: number, c: number, rr: boolean, cr: boolean) => {
-    if (r < 0 || c < 0) return "#REF!";
+    const rows = modern || legacyReferenceLayout === undefined ? 65536 : legacyReferenceLayout === "wk1" ? 2048 : 16384;
+    if (r < 0 || r >= rows || c < 0 || c >= 256) return "#REF!";
     const a = formatA1(r, c); let i = 0; while (a[i]! >= "A" && a[i]! <= "Z") i++;
     return (cr ? "" : "$") + a.slice(0, i) + (rr ? "" : "$") + a.slice(i);
   };
@@ -182,13 +183,13 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
       // libwps WKS4Spreadsheet::readCell: signed 14-bit rows for both;
       // Windows Works uses signed 15-bit columns, DOS Symphony wraps low bytes.
       const axis = (raw: number, origin: number, bits: number) => {
-        if (!(raw & 0x8000)) return raw;
+        if (!(raw & 0x8000)) return raw & ((1 << bits) - 1);
         const shift = 32 - bits, boundary = 2 ** (bits - 1);
         let delta = raw << shift >> shift;
         if (delta + origin >= boundary) delta -= boundary;
         return origin + delta;
       };
-      let targetColumn = c;
+      let targetColumn = c & 0xff;
       if (legacyReferenceLayout === "symphony" && cr) {
         let delta = c & 0xff;
         if ((delta & 0x80) && delta + column >= 0x100) delta -= 0x100;

@@ -18,12 +18,14 @@ function input(tokens: number[], row = 1, column = 1): Uint8Array {
 // libwps 0.4.14 WKS4Parser::checkHeader selects DOS Symphony for BOF 0x0405.
 // WKS4Spreadsheet::readCell conditionally wraps its low-byte column offsets;
 // its rows use signed 14-bit offsets and fold positive targets at 8192.
+// Requested #3470/#3529 bounds and absolute masks supersede libwps
+// raw absolute coordinates and its unbounded positive targets.
 it.each([
   [0xffff, 0xbfff, "=A1"],
   [0xffff, 0, "=A$1"],
   [0, 0xbfff, "=$A1"],
   [0x8000, 0x8001, "=B3"],
-  [256, 8192, "=$IW$8193"],
+  [256, 8192, "=$A$8193"],
 ])("imports Symphony reference %i/%i", async (column, row, expected) => {
   const book = await readLotus(input([1, ...word(column), ...word(row)]), context);
   expect(book.sheets[0]!.cells[1]!.formula).toBe(expected);
@@ -35,7 +37,7 @@ it.each([
   [127, 0xff80, "=IV$1"],
   [128, 0xff80, "=A$1"],
   [255, 0xff81, "=DY$1"],
-  [255, 0x8001, "=IW$1"],
+  [255, 0x8001, "=#REF!"],
 ])("wraps Symphony column %i with offset %i only when the source condition holds", async (origin, encoded, expected) => {
   const book = await readLotus(input([1, ...word(encoded), ...word(0)], 1, origin), context);
   expect(book.sheets[0]!.cells[1]!.formula).toBe(expected);

@@ -466,6 +466,7 @@ export function decodeReplayData(
     if (options.memo !== undefined && options.memo.nodes !== nodes)
       throw new TypeError("Replay memo belongs to a different graph.");
     const restored = new Map<number, SandboxValue>(options.memo?.values);
+    const allocatingStorage = new Set<number>();
     const initializeValues = work.initialize;
     const captureImportedSettlements = work.capture;
     const detachBuffers = work.detach;
@@ -550,6 +551,7 @@ export function decodeReplayData(
       }
       const id = Number(atom.id);
       if (restored.has(id)) return restored.get(id);
+      if (allocatingStorage.has(id)) throw new TypeError("Cyclic replay backing storage reference.");
       const node = record(nodes[id]);
       const kind = own(node, "kind");
       if (
@@ -954,9 +956,11 @@ export function decodeReplayData(
       }
       if (kind === "arraybuffer" || kind === "sharedarraybuffer" || kind === "dataview") {
         if (typeof node.extensible !== "boolean") throw new TypeError("Invalid ArrayBuffer extensibility.");
+        allocatingStorage.add(id);
         const result = kind === "dataview" ? decodeDataViewStorage(node, child, compilation.owner?.budget)
           : kind === "sharedarraybuffer" ? decodeSharedArrayBufferStorage(node, child, sharedStorageBudget)
           : decodeArrayBufferStorage(node, child, compilation.owner?.budget, detachBuffers);
+        allocatingStorage.delete(id);
         restored.set(id, result);
         initializeValues.push(() => {
           defineProperties(result, record(own(node, "properties")), child, node.symbolEntries);
@@ -967,7 +971,9 @@ export function decodeReplayData(
       if (kind === "float32array" || kind === "typedarray") {
         if (typeof node.extensible !== "boolean")
           throw new TypeError("Invalid Float32Array extensibility.");
+        allocatingStorage.add(id);
         const result = decodeTypedArrayStorage(node, child, compilation.owner?.budget);
+        allocatingStorage.delete(id);
         restored.set(id, result);
         defineProperties(result, record(own(node, "properties")), child);
         if (!node.extensible) Object.preventExtensions(result);

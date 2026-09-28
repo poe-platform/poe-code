@@ -13,6 +13,8 @@ import {writeFileOutput} from "safe-bash-contracts/filesystem-output-budget";
 import {compareObservedEntries, compareCopyIdentity} from "safe-bash-contracts/filesystem-identity";
 import {pathOf} from "safe-bash-contracts/path";
 
+export type {Limits as PandocLimits} from "./types.js";
+
 export interface PandocCommandsOptions {
   readonly limits?: ConversionContext["limits"];
   readonly filters?: ConversionContext["filters"];

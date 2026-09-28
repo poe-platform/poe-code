@@ -1466,3 +1466,47 @@ test("sync loop Wave 83: printf stdout/redirect, echo arithmetic/variables, and 
   assert.equal(res.exitCode, 0);
   assert.equal(res.stdout, "50\n50\n50\nalpha\n\nomega\n");
 });
+
+test("Wave 84: nested loops, while read < file / <<< here-string, indexed array element assignment, and multi-entry append in trySyncLoop match /bin/bash", async () => {
+  const memFs = createMemoryFileSystem();
+  await memFs.mkdir("/tmp", { recursive: true });
+  const shell = new Shell({
+    fs: memFs,
+    limits: { maxCommands: 100_000, maxLoopIterations: 100_000, maxFileSystemOperations: 100_000 },
+  });
+  for (const command of [...basicCommands(), ...streamCommands(), ...textCommands(), ...predicateCommands()]) {
+    shell.commands.register(command, { replace: true });
+  }
+  const script = [
+    'arr=()',
+    'for ((i = 0; i < 40; i++)); do',
+    '  arr[$i]="val_$i"',
+    '  arr+=("extra_$i" "pair_$((i * 2))")',
+    'done',
+    'for ((i = 0; i < 12; i++)); do',
+    '  for ((j = 0; j < 8; j++)); do',
+    '    printf "%02d:%02d\n" "$i" "$j"',
+    '  done',
+    'done > /tmp/w84_grid.txt',
+    'sum=0; count=0',
+    'while IFS=: read -r r c; do',
+    '  ((sum += 10#$r + 10#$c))',
+    '  ((count++))',
+    'done < /tmp/w84_grid.txt',
+    'while IFS=: read -r r c; do',
+    '  printf "%s=%s\n" "$r" "$c"',
+    'done < /tmp/w84_grid.txt > /tmp/w84_mapped.txt',
+    'hsData=$(printf "10:20\n30:40\n50:60")',
+    'hsSum=0',
+    'while IFS=: read -r a b; do',
+    '  ((hsSum += a + b))',
+    'done <<< "$hsData"',
+    'pipeLines=$(while IFS=: read -r a b; do printf "%s+%s\n" "$a" "$b"; done <<< "$hsData" | wc -l)',
+    'printf "%d|%s|%s|%d|%d|%d|%d|%s|%s\n" "${#arr[@]}" "${arr[0]}" "${arr[39]}" "$count" "$sum" "$hsSum" "$pipeLines" "$(head -n 1 /tmp/w84_mapped.txt)" "$(tail -n 1 /tmp/w84_mapped.txt)"',
+  ].join("\n");
+  const res = await shell.exec(script);
+  const oracle = spawnSync("/bin/bash", ["-c", script], { encoding: "utf8" });
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(res.stdout, oracle.stdout);
+  await shell.dispose();
+});

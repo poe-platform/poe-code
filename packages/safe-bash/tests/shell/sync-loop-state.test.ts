@@ -1041,3 +1041,40 @@ test("Wave 113: trySyncLoop supports sort -h/-M/-d/long flags, nl -ba/-n/-w/-s/-
     await shell.dispose();
   }
 });
+
+test("sync loop wave 114: jq flatten/sort/sort_by/unique_by/group_by/any/all/not, sed i/a/c, and awk printf", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  const { createStructuredCommands } = await import("../../src/commands/structured/index.js");
+  const shell = new Shell({
+    fs: new MemoryFileSystem(),
+    commands: new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands(), ...createStructuredCommands()]),
+  });
+  try {
+    const script = [
+      "out=\"\"",
+      "for ((i=1; i<=10; i++)); do",
+      "  jf=$(echo \"[[1,[2,3]],[4]]\" | jq -c \"flatten\")",
+      "  js=$(echo \"[3,1,2]\" | jq -c \"sort\")",
+      "  jsb=$(echo \"[{\\\"k\\\":2,\\\"v\\\":\\\"b\\\"},{\\\"k\\\":1,\\\"v\\\":\\\"a\\\"}]\" | jq -c \"sort_by(.k)\")",
+      "  jub=$(echo \"[{\\\"k\\\":1,\\\"v\\\":1},{\\\"k\\\":1,\\\"v\\\":2},{\\\"k\\\":2,\\\"v\\\":3}]\" | jq -c \"unique_by(.k)\")",
+      "  jgb=$(echo \"[{\\\"k\\\":1,\\\"v\\\":1},{\\\"k\\\":1,\\\"v\\\":2},{\\\"k\\\":2,\\\"v\\\":3}]\" | jq -c \"group_by(.k) | length\")",
+      "  jbool=$(echo \"[false,true,false]\" | jq -r \"any\"):$(echo \"[true,true]\" | jq -r \"all\"):$(echo \"false\" | jq -r \"not\")",
+      "  si=$(printf \"alpha\\nbeta\\n\" | sed '1i\\HDR' | tr \"\\n\" \",\")",
+      "  sa=$(printf \"alpha\\nbeta\\n\" | sed '$a\\FTR' | tr \"\\n\" \",\")",
+      "  sc=$(printf \"OLD_LINE\\nKEEP\\n\" | sed '/^OLD/c\\NEW_LINE' | tr \"\\n\" \",\")",
+      "  ap=$(printf \"alice 7 3.14159\\nbob 42 2.71828\\n\" | awk '{ printf \"%-6s %04d %.2f\\n\", $1, $2, $3 }' | tr \"\\n\" \"|\")",
+      "  out=\"$jf|$js|$jsb|$jub|$jgb|$jbool|$si|$sa|$sc|$ap\"",
+      "done",
+      "printf \"%s\\n\" \"$out\"",
+    ].join("\n");
+    const res = await shell.exec(script);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(
+      res.stdout,
+      "[1,2,3,4]|[1,2,3]|[{\"k\":1,\"v\":\"a\"},{\"k\":2,\"v\":\"b\"}]|[{\"k\":1,\"v\":1},{\"k\":2,\"v\":3}]|2|true:true:true|HDR,alpha,beta,|alpha,beta,FTR,|NEW_LINE,KEEP,|alice  0007 3.14|bob    0042 2.72|\n"
+    );
+  } finally {
+    await shell.dispose();
+  }
+});

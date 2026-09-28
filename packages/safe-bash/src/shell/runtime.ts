@@ -2443,7 +2443,7 @@ interface InvokeOutcomeRecord {
 const syncAwkArithAtom = `(?:\\$(?:[0-9]+|NF)|NR|NF|-?[0-9]+(?:\\.[0-9]+)?|[a-zA-Z_][a-zA-Z0-9_]*)`;
 const syncAwkArithPat = `(?:${syncAwkArithAtom}(?:\\s*[+*\\/%-]\\s*${syncAwkArithAtom})+)`;
 const syncAwkItemPat = `(?:(?:toupper|tolower)\\(\\$(?:[0-9]+|NF)\\)|substr\\(\\$(?:[0-9]+|NF)\\s*,\\s*[0-9]+(?:\\s*,\\s*[0-9]+)?\\)|index\\(\\$(?:[0-9]+|NF)\\s*,\\s*"[^"$\\\\]*"\\)|${syncAwkArithPat}|\\$(?:[0-9]+|NF)|\\$\\(NF\\s*-\\s*[0-9]+\\)|length(?:\\(\\$(?:[0-9]+|NF)\\))?|NR|NF|[a-zA-Z_][a-zA-Z0-9_]*|"[^"$\\\\]*")`;
-const syncAwkPrintRe = new RegExp(`^\\{\\s*(?:(g?sub)\\(\\s*\\/(\\^?[a-zA-Z0-9_ :;,=-]+\\$?)\\/\\s*,\\s*"([^"\\\\]*)"(?:\\s*,\\s*\\$([0-9]+|NF))?\\s*\\)\\s*;\\s*)?print(?:\\s+(${syncAwkItemPat}(?:\\s*,?\\s*${syncAwkItemPat})*))?\\s*;?\\s*\\}\\s*$`);
+const syncAwkPrintRe = new RegExp(`^\\{\\s*(?:(g?sub)\\(\\s*\\/(\\^?[a-zA-Z0-9_ :;,=-]+\\$?)\\/\\s*,\\s*"([^"\\\\]*)"(?:\\s*,\\s*\\$([0-9]+|NF))?\\s*\\)\\s*;\\s*)?(?:print(?:\\s+(${syncAwkItemPat}(?:\\s*,?\\s*${syncAwkItemPat})*))?|printf\\s+"([^"$\\\\]*(?:\\\\[nt\\\\"][^"$\\\\]*)*)"\\s*,\\s*(${syncAwkItemPat}(?:\\s*,\\s*${syncAwkItemPat})*))\\s*;?\\s*\\}\\s*$`);
 const syncAwkTokenRe = new RegExp(`(toupper|tolower)\\(\\$([0-9]+|NF)\\)|substr\\(\\$([0-9]+|NF)\\s*,\\s*([0-9]+)(?:\\s*,\\s*([0-9]+))?\\)|index\\(\\$([0-9]+|NF)\\s*,\\s*"([^"$\\\\]*)"\\)|(${syncAwkArithPat})|\\$\\(NF\\s*-\\s*([0-9]+)\\)|\\$([0-9]+|NF)|length(?:\\(\\$([0-9]+|NF)\\))?|(NR|NF)|"([^"$\\\\]*)"|([a-zA-Z_][a-zA-Z0-9_]*)|(,)`, "g");
 
 export class RuntimeCancellationState {
@@ -22836,6 +22836,58 @@ export class Runtime {
     if (st === "values") {
       return item === null || item === undefined ? [] : [item];
     }
+    if (st === "empty") return [];
+    if (st === "not") return [!(item !== false && item !== null && item !== undefined)];
+    if (st === "any") return Array.isArray(item) ? [item.some(x => x !== false && x !== null && x !== undefined)] : undefined;
+    if (st === "all") return Array.isArray(item) ? [item.every(x => x !== false && x !== null && x !== undefined)] : undefined;
+    if (st === "keys_unsorted") {
+      if (Array.isArray(item)) return [item.map((_, idx) => idx)];
+      if (item && typeof item === "object") return [Object.keys(item)];
+      return undefined;
+    }
+    if (st === "flatten") return Array.isArray(item) ? [item.flat(Infinity)] : undefined;
+    const flatM = /^flatten\(\s*([0-9]{1,2})\s*\)$/.exec(st);
+    if (flatM) return Array.isArray(item) ? [item.flat(Number(flatM[1]!))] : undefined;
+    if (st === "sort") {
+      if (!Array.isArray(item)) return undefined;
+      if (item.every(x => typeof x === "number")) return [[...(item as number[])].sort((a, b) => a - b)];
+      if (item.every(x => typeof x === "string")) return [[...(item as string[])].sort()];
+      return undefined;
+    }
+    const byM = /^(sort_by|unique_by|group_by)\(\s*(\.[a-zA-Z_][a-zA-Z0-9_.]*)\s*\)$/.exec(st);
+    if (byM && Array.isArray(item)) {
+      const fn = byM[1]!;
+      const kPath = byM[2]!;
+      const keyed: Array<{ el: unknown; k: string | number | boolean | null }> = [];
+      for (const el of item) {
+        const kv = this.evalSyncJqPathOps(el, kPath);
+        if (!kv || kv.length !== 1) return undefined;
+        const k0 = kv[0];
+        if (typeof k0 !== "string" && typeof k0 !== "number" && typeof k0 !== "boolean" && k0 !== null) return undefined;
+        keyed.push({ el, k: k0 });
+      }
+      const cmpK = (a: string | number | boolean | null, b: string | number | boolean | null): number => {
+        if (typeof a === "number" && typeof b === "number") return a - b;
+        const sa = String(a);
+        const sb = String(b);
+        return sa < sb ? -1 : sa > sb ? 1 : 0;
+      };
+      keyed.sort((a, b) => cmpK(a.k, b.k));
+      if (fn === "sort_by") return [keyed.map(p => p.el)];
+      if (fn === "unique_by") {
+        const u: unknown[] = [];
+        for (let i = 0; i < keyed.length; i++) {
+          if (i === 0 || cmpK(keyed[i]!.k, keyed[i - 1]!.k) !== 0) u.push(keyed[i]!.el);
+        }
+        return [u];
+      }
+      const groups: unknown[][] = [];
+      for (let i = 0; i < keyed.length; i++) {
+        if (i === 0 || cmpK(keyed[i]!.k, keyed[i - 1]!.k) !== 0) groups.push([keyed[i]!.el]);
+        else groups[groups.length - 1]!.push(keyed[i]!.el);
+      }
+      return [groups];
+    }
     if (st === "first") {
       return Array.isArray(item) ? [item.length > 0 ? item[0] : null] : undefined;
     }
@@ -23297,6 +23349,9 @@ export class Runtime {
       | { kind: "p" }
       | { kind: "q" }
       | { kind: "=" }
+      | { kind: "i"; text: string }
+      | { kind: "a"; text: string }
+      | { kind: "c"; text: string }
       | { kind: "y"; map: Map<string, string> }
       | { kind: "s"; re: RegExp; rep: string; printOnMatch: boolean; nth: number });
     const steps: SedStep[] = [];
@@ -23345,6 +23400,11 @@ export class Runtime {
       }
       if (rest === "=") {
         steps.push({ addr, negated, kind: "=" });
+        continue;
+      }
+      const iacM = /^([iac])(?:\\|[ \t]+)(.+)$/.exec(rest);
+      if (iacM && !iacM[2]!.includes("\n")) {
+        steps.push({ addr, negated, kind: iacM[1] as "i" | "a" | "c", text: iacM[2]! });
         continue;
       }
       if (rest.startsWith("y") && rest.length >= 4) {
@@ -23419,6 +23479,7 @@ export class Runtime {
       const idx1 = i + 1;
       let deleted = false;
       let quitNow = false;
+      const appends: string[] = [];
       for (let si = 0; si < steps.length; si++) {
         const st = steps[si]!;
         const addrMatched = st.addr ? st.addr(l, idx1, total) : true;
@@ -23436,6 +23497,21 @@ export class Runtime {
           out.push(String(idx1));
           lastInputIndex = i;
           continue;
+        }
+        if (st.kind === "i") {
+          out.push(st.text);
+          lastInputIndex = i;
+          continue;
+        }
+        if (st.kind === "a") {
+          appends.push(st.text);
+          continue;
+        }
+        if (st.kind === "c") {
+          out.push(st.text);
+          lastInputIndex = i;
+          deleted = true;
+          break;
         }
         if (st.kind === "q") {
           if (!quiet) {
@@ -23474,9 +23550,16 @@ export class Runtime {
         });
         if (matchedOnce && st.printOnMatch) out.push(l);
       }
-      if (quitNow) break;
+      if (quitNow) {
+        for (const ap of appends) { out.push(ap); lastInputIndex = i; }
+        break;
+      }
       if (!deleted && !quiet) {
         out.push(l);
+        lastInputIndex = i;
+      }
+      for (const ap of appends) {
+        out.push(ap);
         lastInputIndex = i;
       }
     }
@@ -23769,7 +23852,15 @@ export class Runtime {
     const subPat = awkM[2];
     const subRep = awkM[3] ?? "";
     const subTarget = awkM[4] ?? "0";
-    const exprBody = awkM[5]?.trim();
+    const rawPrintfFmt = awkM[6];
+    let printfFmt: string | undefined;
+    if (rawPrintfFmt !== undefined) {
+      const unesc = rawPrintfFmt.replace(/\\([nt\\"])/g, (_, c: string) => c === "n" ? "\n" : c === "t" ? "\t" : c);
+      if (!unesc.endsWith("\n") || unesc.slice(0, -1).includes("\n")) return undefined;
+      if (/%(?!-?0?(?:[1-9][0-9]{0,2})?(?:\.[0-9]{1,2})?[sdxXf%])/.test(unesc)) return undefined;
+      printfFmt = unesc.slice(0, -1);
+    }
+    const exprBody = (awkM[5] ?? awkM[7])?.trim();
     let subRe: RegExp | undefined;
     if (subFn && subPat !== undefined) {
       const aS = subPat.startsWith("^");
@@ -23826,7 +23917,7 @@ export class Runtime {
           if (uv === undefined) return undefined;
           parts.push({ kind: "lit", text: uv });
         }
-        else if (m[15] !== undefined) parts.push({ kind: "lit", text: ofs });
+        else if (m[15] !== undefined) { if (printfFmt === undefined) parts.push({ kind: "lit", text: ofs }); }
       }
     }
     const outLines: string[] = [];
@@ -23855,8 +23946,10 @@ export class Runtime {
         outLines.push(l);
         continue;
       }
+      const printfArgs: string[] | undefined = printfFmt !== undefined ? [] : undefined;
       let out = "";
       for (let pi = 0; pi < parts.length; pi++) {
+        const prevLen = out.length;
         const p = parts[pi]!;
         if (p.kind === "lit") out += p.text;
         else if (p.kind === "var") out += String(p.name === "NR" ? li + 1 : fields.length);
@@ -23933,10 +24026,37 @@ export class Runtime {
           const idx = p.token === "NF" ? fields.length : Number(p.token);
           out += idx === 0 ? l : (idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "");
         }
+        if (printfArgs !== undefined) printfArgs.push(out.slice(prevLen));
       }
-      outLines.push(out);
+      outLines.push(printfFmt !== undefined ? this.formatSyncAwkPrintf(printfFmt, printfArgs!) : out);
     }
     return outLines;
+  }
+
+  private formatSyncAwkPrintf(fmt: string, args: readonly string[]): string {
+    let ai = 0;
+    return fmt.replace(/%(-)?(0)?([1-9][0-9]{0,2})?(?:\.([0-9]{1,2}))?([sdxXf%])/g, (_m, left, zero, widthStr, precStr, spec) => {
+      if (spec === "%") return "%";
+      const raw = args[ai++] ?? "";
+      let s: string;
+      if (spec === "s") {
+        s = precStr !== undefined ? raw.slice(0, Number(precStr)) : raw;
+      } else {
+        const n = Number(/^[ \t]*([+-]?(?:\d+(?:\.\d*)?|\.\d+))/.exec(raw)?.[1] ?? 0);
+        if (spec === "d") s = String(Math.trunc(n));
+        else if (spec === "x") s = Math.max(0, Math.trunc(n)).toString(16);
+        else if (spec === "X") s = Math.max(0, Math.trunc(n)).toString(16).toUpperCase();
+        else s = n.toFixed(precStr !== undefined ? Number(precStr) : 6);
+      }
+      const w = widthStr !== undefined ? Number(widthStr) : 0;
+      if (s.length >= w) return s;
+      const padLen = w - s.length;
+      if (left) return s + " ".repeat(padLen);
+      if (zero && spec !== "s") {
+        return s.startsWith("-") ? "-" + "0".repeat(padLen) + s.slice(1) : "0".repeat(padLen) + s;
+      }
+      return " ".repeat(padLen) + s;
+    });
   }
 
   private formatSyncTransformQ(val: string): string {

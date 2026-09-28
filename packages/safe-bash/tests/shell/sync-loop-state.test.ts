@@ -325,3 +325,28 @@ for (const [label, source] of [
     } finally { await shell.dispose(); }
   });
 }
+
+for (const [label, source] of [
+  [
+    "for x in ${s//:/ } and arr=( ${s//:/ } ) unquoted parameter expansion splitting in sync loop",
+    "s=\"a:b:c:d\"; cnt=0; sum=0; for ((i=1; i<=10; i++)); do for x in ${s//:/ }; do ((cnt++)); done; arr=( ${s//:/ } ); sum=$((sum + ${#arr[@]})); done; top=0; for y in ${s//:/ }; do ((top++)); done; printf \"%d|%d|%s|%d\\n\" \"$cnt\" \"$sum\" \"${arr[2]}\" \"$top\"",
+  ],
+  [
+    "$(echo $s | tr : space) and $(tr : _ <<< $s) character set translation in sync loop",
+    "s=\"a:b:c\"; for ((i=1; i<=10; i++)); do p1=$(echo \"$s\" | tr : \" \"); p2=$(tr : _ <<< \"$s\"); done; printf \"%s|%s\\n\" \"$p1\" \"$p2\"",
+  ],
+] as const) {
+  test(`wave 94 sync loop parity: ${label}`, async () => {
+    const bash = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+    assert.equal(bash.status, 0, bash.stderr);
+    const { createStandardCommands } = await import("../../src/commands/index.js");
+    const commands = new CommandRegistry(createStandardCommands());
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands });
+    try {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, bash.status, result.stderr);
+      assert.equal(result.stderr, bash.stderr);
+      assert.equal(result.stdout, bash.stdout);
+    } finally { await shell.dispose(); }
+  });
+}

@@ -5258,6 +5258,33 @@ export class Runtime {
               }
               continue;
             }
+            if (
+              entry.value.parts.length === 1 &&
+              !entry.value.parts[0]!.quoted &&
+              (entry.value.parts[0]!.kind === "variable" || entry.value.parts[0]!.kind === "substitution") &&
+              (rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n") &&
+              !rawState.noglob &&
+              this.budget.limits.maxExpansionFields === Infinity &&
+              this.budget.limits.maxExpansionBytes === Infinity
+            ) {
+              let unsplit: ShellValue | undefined;
+              try {
+                unsplit = this.fastValueWord(entry.value, rawState, io, false, false, false, false, undefined, diagnosticLine);
+              } catch {
+                return false;
+              }
+              if (typeof unsplit !== "string" || hasGlobOrEscape(unsplit, !!rawState.extglob)) return false;
+              const cw = entry.value as { _cachedSplitSrc?: string; _cachedSplitWords?: readonly string[] };
+              const splitWords = (cw._cachedSplitSrc === unsplit && cw._cachedSplitWords !== undefined)
+                ? cw._cachedSplitWords
+                : (cw._cachedSplitSrc = unsplit, cw._cachedSplitWords = unsplit.split(/[ \t\n]+/).filter(w => w.length > 0));
+              if (splitWords.length > 1500) return false;
+              for (let swIdx = 0; swIdx < splitWords.length; swIdx++) {
+                const sw = splitWords[swIdx]!;
+                items.push({ explicitIdx: undefined, val: sw, bLen: shellValueByteLength(sw) });
+              }
+              continue;
+            }
             if ( entry.value.parts.length === 0 || !entry.value.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))) {
               return false;
             }
@@ -11790,7 +11817,7 @@ export class Runtime {
           w0Plain === "sort" ||
           w0Plain === "tr" ||
           (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl"));
-        if (!w0Plain || (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq" && !isFileCommand) || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return false;
+        if (!w0Plain || (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq" && !isFileCommand) || !this.commands.has(w0Plain) || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return false;
         if ((hasSingleStdinRedir || hasSingleHereStringRedir) && !isFileCommand) return false;
         const def = this.commands.get(w0Plain);
         if (!def || (w0Plain === "printf" ? def.execute !== printfCommand.execute : w0Plain === "echo" ? !defaultEchoExecutors.has(def.execute) : w0Plain === "seq" ? (!builtInDirectContextExecutors.has(def.execute) && (customRegisteredCommands.has(def.execute) || customRegisteredRegistries.has(this.commands))) : !builtInDirectContextExecutors.has(def.execute))) return false;
@@ -12064,7 +12091,7 @@ export class Runtime {
       if (io !== undefined && this.tryExpandSyncArrayMembersWord(w0, rawState, io, line) !== undefined) return true;
       const p0 = w0.parts.length === 1 ? w0.parts[0] : (w0.parts.length === 2 && w0.parts[0]!.kind === "text" && w0.parts[0]!.value === "" ? w0.parts[1] : undefined);
       if (p0 && (rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n") && !rawState.noglob) {
-        if (p0.kind === "variable" && !p0.quoted && !p0.indirect && !p0.prefixNames && !p0.length && !p0.substring && !p0.transform && p0.operator === undefined && getArraySelector(p0) === undefined && isShellIdentifier(p0.name) && !store?.get(p0.name) && !stateMonitor(rawState)?.hasOverlay(p0.name)) {
+        if (p0.kind === "variable" && !p0.quoted && !p0.indirect && !p0.prefixNames && !p0.length && !p0.transform && getArraySelector(p0) === undefined && isShellIdentifier(p0.name) && !store?.get(p0.name) && !stateMonitor(rawState)?.hasOverlay(p0.name) && (p0.operator === undefined && !p0.substring || this.isPureSyncValueWord(w0, rawState))) {
           return true;
         }
         if (p0.kind === "substitution" && !p0.quoted && this.isPureSyncValueWord(w0, rawState)) {
@@ -12100,9 +12127,10 @@ export class Runtime {
       if (arrMembers !== undefined) return arrMembers;
       const p0 = w0.parts.length === 1 ? w0.parts[0] : (w0.parts.length === 2 && w0.parts[0]!.kind === "text" && w0.parts[0]!.value === "" ? w0.parts[1] : undefined);
       if (p0 && !p0.quoted && (rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n") && !rawState.noglob) {
-        if (p0.kind === "variable" && !p0.indirect && !p0.prefixNames && !p0.length && !p0.substring && !p0.transform && p0.operator === undefined && getArraySelector(p0) === undefined) {
-          const curRaw = rawState.variables[p0.name];
-          const rawVal = curRaw === undefined ? "" : (touched.has(p0.name) ? curRaw : (monitor.values.get(p0.name, curRaw) ?? curRaw));
+        if (p0.kind === "variable" && !p0.indirect && !p0.prefixNames && !p0.length && !p0.transform && getArraySelector(p0) === undefined) {
+          const rawVal = (p0.operator === undefined && !p0.substring)
+            ? (rawState.variables[p0.name] === undefined ? "" : (touched.has(p0.name) ? rawState.variables[p0.name] : (monitor.values.get(p0.name, rawState.variables[p0.name]!) ?? rawState.variables[p0.name])))
+            : this.fastValueWord(w0, rawState, io, false, false, false, false, 0, line);
           if (typeof rawVal === "string") {
             const cw = w0 as { _cachedSplitSrc?: string; _cachedSplitWords?: readonly string[] };
             if (cw._cachedSplitSrc === rawVal && cw._cachedSplitWords !== undefined) return cw._cachedSplitWords;
@@ -12676,10 +12704,12 @@ export class Runtime {
             return false;
           }
           if (arrAssign.kind === "compound" && !curArr.associative && arrAssign.entries.length <= 16 && arrAssign.entries.every(e => !e.index && !e.append)) {
+            const canSplitStdIfs = (rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n") && !rawState.noglob && this.budget.limits.maxExpansionFields === Infinity && this.budget.limits.maxExpansionBytes === Infinity;
             let allEntriesOk = true;
             for (let ei = 0; ei < arrAssign.entries.length; ei++) {
               const ev = arrAssign.entries[ei]!.value;
-              if (!this.isPureSyncValueWord(ev, rawState) || !ev.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))) {
+              const isSingleUnquotedSplit = canSplitStdIfs && ev.parts.length === 1 && !ev.parts[0]!.quoted && (ev.parts[0]!.kind === "variable" || ev.parts[0]!.kind === "substitution");
+              if (!this.isPureSyncValueWord(ev, rawState) || (!isSingleUnquotedSplit && !ev.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true))))) {
                 allEntriesOk = false;
                 break;
               }
@@ -14064,8 +14094,10 @@ export class Runtime {
           if (!asciiOk) break;
         }
         if (asciiOk) fastLoopWords = arrMembers;
-      } else if (p0.kind === "variable" && !p0.quoted && !p0.indirect && !p0.prefixNames && !p0.length && !p0.substring && !p0.transform && p0.operator === undefined && getArraySelector(p0) === undefined && (rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n") && !rawState.noglob && !store?.get(p0.name) && !monitor.hasOverlay(p0.name)) {
-        const rawVal = rawState.variables[p0.name] ?? "";
+      } else if (p0.kind === "variable" && !p0.quoted && !p0.indirect && !p0.prefixNames && !p0.length && !p0.transform && getArraySelector(p0) === undefined && (rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n") && !rawState.noglob && !store?.get(p0.name) && !monitor.hasOverlay(p0.name) && ((p0.operator === undefined && !p0.substring) || this.isPureSyncValueWord(command.words[0]!, rawState))) {
+        const rawVal = (p0.operator === undefined && !p0.substring)
+          ? (rawState.variables[p0.name] ?? "")
+          : (this.fastValueWord(command.words[0]!, rawState, io, false, false, false, false, 0, diagnosticLine) as string ?? "");
         if (rawVal.length <= 32768 && !/[*?[\]\\]/.test(rawVal)) {
           let asciiOk = true;
           for (let j = 0; j < rawVal.length; j++) {
@@ -22203,6 +22235,52 @@ export class Runtime {
     if (out.length * 3 > maxBytesSmi && shellValueByteLength(out) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
     return out;
   }
+  private expandSyncTrCharArray(spec: string): string[] | undefined {
+    if (spec.length === 0 || spec.includes("[:") || spec.includes("[=")) return undefined;
+    const out: string[] = [];
+    for (let i = 0; i < spec.length; i++) {
+      if (spec[i] === "\\") {
+        if (i + 1 >= spec.length) return undefined;
+        const next = spec[++i]!;
+        if (next === "n") out.push("\n");
+        else if (next === "t") out.push("\t");
+        else if (next === "r") out.push("\r");
+        else if (next === "\\") out.push("\\");
+        else return undefined;
+        continue;
+      }
+      if (i + 2 < spec.length && spec[i + 1] === "-" && spec[i + 2] !== "\\") {
+        const start = spec.charCodeAt(i);
+        const end = spec.charCodeAt(i + 2);
+        if (start <= end && end - start <= 256) {
+          for (let c = start; c <= end; c++) out.push(String.fromCharCode(c));
+          i += 2;
+          continue;
+        }
+        return undefined;
+      }
+      out.push(spec[i]!);
+    }
+    return out;
+  }
+  private translateSyncTr(input: string, set1Spec: string, set2Spec: string): string | undefined {
+    if (set1Spec === "a-z" && set2Spec === "A-Z") return input.toUpperCase();
+    if (set1Spec === "A-Z" && set2Spec === "a-z") return input.toLowerCase();
+    const s1 = this.expandSyncTrCharArray(set1Spec);
+    const s2 = this.expandSyncTrCharArray(set2Spec);
+    if (!s1 || !s2 || s1.length === 0 || s2.length === 0) return undefined;
+    if (s1.length === 1 && s2.length === 1) return input.split(s1[0]!).join(s2[0]!);
+    const map = new Map<string, string>();
+    for (let i = 0; i < s1.length; i++) {
+      map.set(s1[i]!, s2[Math.min(i, s2.length - 1)]!);
+    }
+    let out = "";
+    for (let i = 0; i < input.length; i++) {
+      const ch = input[i]!;
+      out += map.get(ch) ?? ch;
+    }
+    return out;
+  }
   private expandSyncTrCharSet(spec: string): Set<string> {
     const out = new Set<string>();
     for (let i = 0; i < spec.length; i++) {
@@ -22502,7 +22580,8 @@ export class Runtime {
             (stageArgs[0] === "a-z" && stageArgs[1] === "A-Z") ||
             (stageArgs[0] === "A-Z" && stageArgs[1] === "a-z") ||
             (stageArgs[0] === "-d" && /^[a-zA-Z0-9_ :;,./-]+$/.test(stageArgs[1]!)) ||
-            (stageArgs[0] === "-s" && stageArgs[1]!.length === 1)
+            (stageArgs[0] === "-s" && stageArgs[1]!.length === 1) ||
+            (!stageArgs[0]!.startsWith("-") && !stageArgs[1]!.startsWith("-") && this.expandSyncTrCharArray(stageArgs[0]!) !== undefined && this.expandSyncTrCharArray(stageArgs[1]!) !== undefined)
           );
           const isInlineAwk = firstName === "awk";
           const isInlineGrep = firstName === "grep";
@@ -22601,6 +22680,10 @@ export class Runtime {
                   if (!delSet.has(ch)) out += ch;
                 }
                 transformed = out;
+              } else {
+                const trRes = this.translateSyncTr(inStr, stageArgs[0]!, stageArgs[1]!);
+                if (trRes === undefined) return undefined;
+                transformed = trRes;
               }
               const outByteLen = transformed.length * 3 > 127 ? shellValueByteLength(transformed) : transformed.length;
               if (outByteLen > nextBuf.byteLength) return undefined;
@@ -23120,6 +23203,8 @@ export class Runtime {
                   else { out += ch; prevSq = false; }
                 }
                 fileRes = out;
+              } else if (!opArgs[0]!.startsWith("-") && !opArgs[1]!.startsWith("-")) {
+                fileRes = this.translateSyncTr(fileStr, opArgs[0]!, opArgs[1]!);
               }
             } else if (hasSingleHereStringRedir && w0Plain === "base64" && (opArgs.length === 0 || (opArgs.length === 1 && (opArgs[0] === "-d" || opArgs[0] === "--decode")))) {
               if (opArgs.length === 0) fileRes = this.syncBase64Encode(view);

@@ -12,6 +12,7 @@ import { resolveSpreadsheetSdkBuilds } from "./bundle-spreadsheets.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const manifest = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
+const artifacts = new Map<string, string>();
 it.each([
   ["public", "poe-code/ssconvert", "poe-code/safe-bash/contracts", "poe-code/safe-fs/core"],
   ["workspace", "safe-bash-command-ssconvert", "safe-bash-contracts", "@poe-code/safe-fs/core"]
@@ -72,6 +73,16 @@ it.each([
     // The VM compiles the same canonical portable filesystem source because a
     // workspace SafeJS rebuild can remove that root-generated filesystem entry.
     alias: { [filesystem]: new URL("../packages/safe-fs/src/core.ts", import.meta.url).pathname },
+    plugins: [{ name: "in-memory-publication", setup(builder) {
+      builder.onResolve({ filter: /.*/ }, args => {
+        const exported = args.path.startsWith("poe-code/") ? manifest.exports["./" + args.path.slice("poe-code/".length)]?.import : undefined;
+        const target = exported ? resolve(root, exported) : resolve(artifacts.has(args.importer) ? dirname(args.importer) : args.resolveDir, args.path);
+        return artifacts.has(target) ? { path: target } : undefined;
+      });
+      builder.onLoad({ filter: /\.js$/ }, args => artifacts.has(args.path)
+        ? { contents: artifacts.get(args.path), loader: "js", resolveDir: root }
+        : undefined);
+    } }],
   });
   const worker: Record<string, unknown> = { TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, AbortController, AbortSignal, URL, URLSearchParams, atob, crypto: webcrypto, setTimeout, clearTimeout, queueMicrotask };
   runInNewContext(result.outputFiles[0]!.text, worker);
@@ -103,7 +114,6 @@ beforeAll(async () => {
   const options = resolveSpreadsheetSdkBuilds(root, { ...graph, absWorkingDir: root }, manifest)
     .find(options => options.outfile === entryPoint)!;
   expect(options).toBeDefined();
-  const artifacts = new Map<string, string>();
   for (const recipe of [...resolveSharedRuntimeBuilds(workspaceGraph, canonicalFs, shared), options]) {
     const published = await build({ ...recipe, write: false });
     for (const output of published.outputFiles!) artifacts.set(output.path, output.text);

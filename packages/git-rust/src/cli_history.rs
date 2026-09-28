@@ -216,6 +216,11 @@ pub(crate) fn render_history(
             if output.no_patch || (output.skip_merge_diff && c.commit.parent.len() > 1) {
                 break;
             }
+            // Show's default combined output omits clean merge patches and names.
+            // Diffstat still compares against the first parent, as in Git.
+            if c.commit.parent.len() > 1 && !matches!(mode, crate::cli_files::DiffMode::Stat) {
+                continue;
+            }
             let options = crate::cli_files::DiffOptions {
                 mode: *mode,
                 ..Default::default()
@@ -241,7 +246,8 @@ pub(crate) fn render_history(
                 let oneline = matches!(output.format, "oneline" | "%h %s")
                     || output.format.starts_with("format:");
                 if mode_index == 0
-                    && !oneline
+                    && c.commit.parent.len() < 2
+                    && !matches!(output.format, "oneline" | "%h %s")
                     && matches!(mode, crate::cli_files::DiffMode::Stat)
                     && output
                         .modes
@@ -557,6 +563,27 @@ pub(crate) fn iso_date(author: &crate::utils::Author) -> String {
         offset.abs() / 60,
         offset.abs() % 60
     )
+}
+
+pub(crate) fn body(message: &str) -> &str {
+    let mut lines = message.split_inclusive('\n');
+    // Ignore leading blank lines and consume the entire subject paragraph.
+    for line in lines.by_ref().skip_while(|line| line.trim().is_empty()) {
+        if line.trim().is_empty() {
+            break;
+        }
+    }
+    let mut offset = message.len();
+    for line in lines {
+        offset -= line.len();
+    }
+    let remainder = &message[offset..];
+    let blanks = remainder
+        .split_inclusive('\n')
+        .take_while(|line| line.trim().is_empty())
+        .map(str::len)
+        .sum::<usize>();
+    &remainder[blanks..]
 }
 
 pub(crate) fn subject(message: &str) -> String {

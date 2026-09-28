@@ -1761,13 +1761,7 @@ pub(crate) fn format_commit(
             Some('T') => out.push_str(&c.commit.tree),
             Some('t') => out.push_str(&c.commit.tree[..7]),
             Some('B') => out.push_str(&c.commit.message),
-            Some('b') => out.push_str(
-                c.commit
-                    .message
-                    .split_once("\n\n")
-                    .map(|(_, b)| b)
-                    .unwrap_or(""),
-            ),
+            Some('b') => out.push_str(crate::cli_history::body(&c.commit.message)),
             Some(selector @ ('a' | 'c')) => {
                 let who = if selector == 'a' {
                     &c.commit.author

@@ -21060,7 +21060,8 @@ export class Runtime {
               let cur: unknown = parsedObj;
               for (let ki = 0; ki < keys.length; ki++) {
                 if (cur === null || cur === undefined || typeof cur !== "object") { cur = undefined; break; }
-                cur = (cur as Record<string, unknown>)[keys[ki]!];
+                if (Array.isArray(cur)) return undefined;
+                cur = Object.hasOwn(cur, keys[ki]!) ? (cur as Record<string, unknown>)[keys[ki]!] : undefined;
               }
               if (cur !== null && cur !== undefined && typeof cur === "object") return undefined;
               if (rawOut) {

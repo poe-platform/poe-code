@@ -11,6 +11,14 @@ const cases = [
   'HOME=/home/user; p=/home/user/bin; f() { printf "%s|%s\\n" "${p#~/}" "${p/~/X}"; }; f; f',
   'HOME=/home/user; p="~/bin"; printf "%s|%s\\n" "${p#"~/"}" "${p/"~"/X}"',
   'HOME=/home/user; p=X; printf "%s|%s|%s|%s\\n" ${p/X/~} ${p/X/"~"} ${p/#X/~/bin} ${p/%X/~/bin}',
+  ...['/', '//', '/#', '/%'].flatMap(operator => [
+    `HOME=/home/user; p=X; r="~"; printf '<%s>\\n' "\${p${operator}X/$r}"`,
+    `HOME=/home/user; p=X; r="~"; printf '<%s>\\n' \${p${operator}X/$r}`,
+    `HOME=/home/user; p=X; printf '<%s>\\n' "\${p${operator}X/~}"`,
+    `HOME=/home/user; p=X; printf '<%s>\\n' \${p${operator}X/"~"}`,
+  ]),
+  'HOME=/home/user; p=/home/user/X; r="~"; printf "<%s>\\n" "${p/~/$r}"',
+  'HOME=/home/user; p=/home/user/X; printf "<%s>\\n" "${p/~/~}"',
   ...['#', '##', '%', '%%', '/', '//', '/#', '/%'].map(operator =>
     `HOME=/home/user; p=/home/user; a=(/home/user /home/user); printf '%s|%s\\n' "\${p${operator}~${operator.startsWith('/') ? '/X' : ''}}" "\${a[*]${operator}~${operator.startsWith('/') ? '/X' : ''}}"`,
   ),

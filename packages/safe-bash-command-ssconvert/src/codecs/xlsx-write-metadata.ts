@@ -14,7 +14,6 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
   styles: ReturnType<typeof createXlsxStyles>, charge: (amount?: number) => void) {
   const records = (sheet.unsupportedRecords ?? []).map(record => ({ record, node: metadataNode(record.data, charge) }));
   const settings = await writeXlsxSheetSettings(sheet, records, xml, context, namespace, charge);
-  const child = (node: MetadataNode | undefined, name: string) => node?.children.find(node => node.name === name);
   const pi = records.find(r => r.record.kind === "PrintInformation")?.node;
   let print = settings.print;
   let filters = "", rules = "";
@@ -224,7 +223,7 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
       await context.diagnostic?.({ code: "xlsx-write-loss", severity: "warning", message: `XLSX writer does not export sheet '${sheet.name}' style '${node.name}'` });
     }
   }
-  return { filters, rules, parts, ...settings };
+  return { filters, rules, parts, ...settings, print };
 }
 export function writeXlsxProperties(book: Workbook, xml: ElementWriter) {
   const vt = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";

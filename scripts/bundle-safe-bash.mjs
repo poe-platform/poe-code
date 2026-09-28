@@ -121,11 +121,8 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [] } 
     "safe-bash-contracts": path.join(rootDir, "packages/safe-bash-contracts/src"),
     "safe-bash-command-op": path.join(rootDir, "packages/safe-bash-command-op/src/index.ts"),
     // Pandoc prepares its portable third-party adapters in the workspace build.
-    "safe-bash-command-pandoc": path.join(rootDir, "packages/safe-bash-command-pandoc/dist/index.js"),
-    "safe-bash-command-pandoc/lua-filters": path.join(rootDir, "packages/safe-bash-command-pandoc/dist/lua-filters.js"),
-    "safe-bash-command-pandoc/citeproc-filters": path.join(rootDir, "packages/safe-bash-command-pandoc/dist/citeproc-filters.js"),
+    "safe-bash-command-pandoc": path.join(rootDir, "packages/safe-bash-command-pandoc/dist"),
     "@poe-code/safe-fs": "poe-code/safe-fs",
-    "@poe-code/safe-fs/xml": path.join(rootDir, "packages/safe-fs/dist/xml.js"),
     "@poe-code/safe-fs/contracts/errors": "poe-code/safe-fs/core",
     "@poe-code/safe-fs/contracts/object": "poe-code/safe-fs/core",
     "@poe-code/safe-fs/xml": "poe-code/safe-fs/core",

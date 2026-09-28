@@ -16,7 +16,7 @@ beforeAll(async () => {
     ...options, entryPoints: undefined, splitting: false, sourcemap: false,
     format: "cjs", logLevel: "silent",
     stdin: {
-      contents: 'export { createLuaFilterCapability } from "safe-bash-command-pandoc/lua-filters";',
+      contents: 'export { createLuaFilterCapability } from "safe-bash-command-pandoc/lua-filters"; export { createPandocCommand } from "safe-bash-command-pandoc/command";',
       resolveDir: path.join(root, "packages/safe-bash")
     }
   });
@@ -27,14 +27,16 @@ it("uses prepared Pandoc adapters in the standalone browser shell build", async 
   expect([...new Set(imports.map(entry => entry.path))]).toEqual(["poe-code/safe-fs/core"]);
   const module = { exports: {} as {
     createLuaFilterCapability: (load: () => Promise<Uint8Array>) => FilterCapability;
+    createPandocCommand: () => { name: string };
   } };
   runInNewContext(result.outputFiles![0]!.text, {
-    module, Uint8Array, TextEncoder, TextDecoder,
+    module, Uint8Array, TextEncoder, TextDecoder, AbortController, AbortSignal,
     require(name: string) {
       expect(name).toBe("poe-code/safe-fs/core");
       return filesystem;
     }
   });
+  expect(module.exports.createPandocCommand().name).toBe("pandoc");
   const filter = module.exports.createLuaFilterCapability(async () => new TextEncoder().encode(
     'function Str(el) el.text = string.upper(el.text); return el end'
   ));

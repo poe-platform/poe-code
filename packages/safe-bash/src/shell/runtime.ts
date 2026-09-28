@@ -10753,6 +10753,7 @@ export class Runtime {
       this._syncArithRawWriteOnly = true;
       this._syncArithTouched = touched;
       let usedFastIntPath = false;
+      let pipelineStatusDeferred = false;
       try {
         let lastInductionVal: string | undefined;
         const intBudgetSnapshot = this.budget.parsing.snapshot();
@@ -10889,7 +10890,7 @@ export class Runtime {
           rawState.lastArgument = lastArg;
           if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
           if (!existing) {
-            if (store) { if (publishPipelineStatus(rawState, singleStatusZero, this.signal, io[invocationScope])) return undefined; } else {
+            if (store) { pipelineStatusDeferred = !!publishPipelineStatus(rawState, singleStatusZero, this.signal, io[invocationScope]); } else {
               monitor.lazyPipeStatus = singleStatusZero;
               monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
             }
@@ -10899,6 +10900,7 @@ export class Runtime {
           }
         }
       }
+      if (pipelineStatusDeferred) return undefined;
       rawState.status = 0;
       const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
       monitor.epoch = restEpoch;

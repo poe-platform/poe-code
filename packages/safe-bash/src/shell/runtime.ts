@@ -13310,7 +13310,7 @@ export class Runtime {
     this._activePrintfInductionName = printfInductionName;
     this._activeLoopBodyScript = command.body;
     this._activeLoopCondScript = command.kind === "while" ? command.condition : undefined;
-    this._activeLoopVarName = command.kind === "for" ? command.name : (printfInductionName ?? whilePrintfInd);
+    this._activeLoopVarName = command.kind === "for" ? command.name : (printfInductionName ?? (whilePrintfInd || undefined));
     let bodySyncOk = false;
     try {
       bodySyncOk = !(guestArrays(rawState) && (guestArrays(rawState)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) && this.canSyncLoopBody(command.body, rawState, io, false, printfInductionName);

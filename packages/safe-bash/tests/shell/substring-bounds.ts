@@ -1,12 +1,11 @@
 import assert from "node:assert/strict";
 import { CommandRegistry, FsError, pipeBytes, writeBytes } from "../../src/contracts/index.js";
-import { createStandardCommands } from "../../src/commands/index.js";
+import { basicCommands } from "../../src/commands/basic.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell, ShellLimitError } from "../../src/shell/index.js";
-import { quote } from "./invocation-closure-native.js";
 
 const fs = new MemoryFileSystem();
-const commands = new CommandRegistry(createStandardCommands());
+const commands = new CommandRegistry(basicCommands());
 const shell = new Shell({ fs, commands });
 let checks = 0;
 async function limited(source: string, options: Parameters<Shell["exec"]>[1], name: string) {
@@ -27,7 +26,7 @@ commands.register({ name: "num", async execute(context) { digits++; await writeB
 await limited(': "${V:$(num):1}"', { env: { V: "abc" }, limits: { maxExpansionBytes: 8 } }, "maxExpansionBytes");
 assert.equal(digits, 1);
 const code = 'V="é🙂Z"; : "${V:1:1}"';
-const evaluated = `eval ${quote(code)}`;
+const evaluated = `eval '${code}'`;
 const sourceBytes = Buffer.byteLength(evaluated) + Buffer.byteLength(code);
 assert.equal((await shell.exec(evaluated, { env: { LC_ALL: "en_US.UTF-8" }, limits: { maxSourceBytes: sourceBytes } })).exitCode, 0);
 await limited(evaluated, { limits: { maxSourceBytes: sourceBytes - 1 } }, "maxSourceBytes");

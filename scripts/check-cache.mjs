@@ -393,7 +393,7 @@ export function createCheckCache({
     try {
       const now = new Date(Date.now() + (++accessCounter));
       fileSystem.utimesSync?.(file, now, now);
-    } catch {}
+    } catch (error) { void error; }
   };
   const readFrom = (key, baseDirectory) => {
     try {

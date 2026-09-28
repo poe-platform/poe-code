@@ -130,7 +130,7 @@ if ((operation === "build" || operation === "test") && existsSync(bindingManifes
         copyFileSync(path.join(output, builtNodeName), path.join(dest, builtNodeName));
         copyFileSync(path.join(output, dtsName), path.join(dest, dtsName));
         break;
-      } catch {}
+      } catch (error) { void error; }
     }
   };
 

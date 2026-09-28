@@ -14007,7 +14007,7 @@ export class Runtime {
     line: number,
   ): string {
     const locals = (decl.kind === "local" || decl.kind === "declare") && rawState.locals.length > 0 ? rawState.locals[rawState.locals.length - 1]! : undefined;
-    let lastArg = decl.kind;
+    let lastArg: string = decl.kind;
     for (let i = 0; i < decl.items.length; i++) {
       const item = decl.items[i]!;
       const isNewLocal = locals ? !locals.has(item.name) : false;

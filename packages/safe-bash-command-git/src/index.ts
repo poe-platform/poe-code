@@ -8,7 +8,7 @@ export interface GitHttpResponse { readonly status: number; readonly headers: Re
 export interface GitCommandsOptions { readonly http?: (request:GitHttpRequest)=>Promise<GitHttpResponse>; readonly limits?: Partial<GitLimits>; readonly replace?: boolean; readonly wasmModule?: object }
 interface Entry { path: string; kind: string; mode: number; data: string }
 interface Result { exitCode: number; stdout: string; stdoutBytes?: string | null; stderr: string; entries: Entry[] | null; request?: {url:string;method:string;headers:Record<string,string>;body:string} | null }
-interface GitExports extends WebAssembly.Exports { memory: WebAssembly.Memory; git_alloc(length:number):number; git_free(ptr:number,length:number):void; git_execute(ptr:number,length:number):number; git_output_len():number }
+interface GitExports { memory: { readonly buffer: ArrayBufferLike }; git_alloc(length:number):number; git_free(ptr:number,length:number):void; git_execute(ptr:number,length:number):number; git_output_len():number }
 const encoder=new TextEncoder(), decoder=new TextDecoder();
 function encode(bytes:Uint8Array):string { let s=''; for(const b of bytes) s+=b.toString(16).padStart(2,'0'); return s; }
 function decode(hex:string):Uint8Array { const bytes=new Uint8Array(hex.length/2); for(let i=0;i<bytes.length;i++) bytes[i]=Number.parseInt(hex.slice(i*2,i*2+2),16); return bytes; }
@@ -86,7 +86,8 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
       for(const chunk of chunks) { stdin.set(chunk,offset); offset+=chunk.length; }
       const before=await snapshot(context.fs,limits,context.signal);
       const module=options.wasmModule ?? gitModule();
-      const exports=new WebAssembly.Instance(module).exports as GitExports;
+      const wasm=(globalThis as unknown as {WebAssembly:{Instance:new(mod:object)=>{exports:GitExports}}}).WebAssembly;
+      const exports=new wasm.Instance(module).exports;
       const responses: {status:number;headers:Readonly<Record<string,string>>;body:string}[]=[];
       let httpBytes=0;
       let result:Result;

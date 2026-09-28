@@ -11960,7 +11960,7 @@ export class Runtime {
           if (w0Plain === "printf") {
             const fmtW0 = cmd.words[1];
             const fmtP0 = fmtW0?.plain ?? (fmtW0?.parts.length === 1 && fmtW0.parts[0]!.kind === "text" ? fmtW0.parts[0]!.value : undefined);
-            const isStringOnlyPrintf = fmtP0 !== undefined && !fmtP0.startsWith("-") && /^(?:[^%]|%%|%[-0]*\d*(?:\.\d+)?s|\\n)*$/.test(fmtP0);
+            const isStringOnlyPrintf = fmtP0 !== undefined && !fmtP0.startsWith("-") && /^(?:[^%\\]|%%|%[-0]*\d*(?:\.\d+)?s|\\n)*$/.test(fmtP0);
             if (!isStringOnlyPrintf && !this.isSyncPrintfCallOk(cmd, 1, rawState)) return false;
           }
           for (let sIdx = 1; sIdx < p.commands.length; sIdx++) {
@@ -22510,7 +22510,7 @@ export class Runtime {
         for (const item of current) {
           if (op.kind === "prop") {
             if (item === null || item === undefined) next.push(null);
-            else if (typeof item === "object" && !Array.isArray(item)) next.push((item as Record<string, unknown>)[op.key] ?? null);
+            else if (typeof item === "object" && !Array.isArray(item)) next.push(Object.hasOwn(item, op.key) ? (item as Record<string, unknown>)[op.key] ?? null : null);
             else return undefined;
           } else if (op.kind === "index") {
             if (item === null || item === undefined) next.push(null);

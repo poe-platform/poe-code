@@ -1056,50 +1056,48 @@ pub fn execute_git_cli_with_http(
                     Ok(()) => CliResult::ok(""),
                     Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
                 }
-            } else if sub_args[0] == "-a" && sub_args.len() > 1 {
-                let name = sub_args[1];
-                let msg = sub_args
-                    .windows(2)
-                    .find(|w| w[0] == "-m")
-                    .map(|w| w[1])
-                    .unwrap_or(name);
-                let mut revision = None;
-                let mut args = sub_args[2..].iter();
+            } else {
+                let mut names = Vec::new();
+                let mut messages = Vec::new();
+                let mut annotated = false;
+                let mut force = false;
+                let mut args = sub_args.iter().copied();
                 while let Some(arg) = args.next() {
-                    if *arg == "-m" {
-                        args.next();
-                    } else if !arg.starts_with('-') {
-                        revision = Some(*arg);
+                    match arg {
+                        "-a" | "--annotate" => annotated = true,
+                        "-f" | "--force" => force = true,
+                        "-m" | "--message" => {
+                            let Some(message) = args.next() else {
+                                return CliResult::err(129, "error: missing tag message\n");
+                            };
+                            messages.push(message);
+                            annotated = true;
+                        }
+                        "--" => {
+                            names.extend(args);
+                            break;
+                        }
+                        arg if arg.starts_with("--message=") || arg.starts_with("-m") => {
+                            let message = arg.strip_prefix("--message=").unwrap_or(&arg[2..]);
+                            messages.push(message);
+                            annotated = true;
+                        }
+                        arg if arg.starts_with('-') => {
+                            return CliResult::err(
+                                129,
+                                format!("error: unknown tag option '{arg}'\n"),
+                            );
+                        }
+                        arg => names.push(arg),
                     }
                 }
-                let object = match revision
-                    .map(|rev| crate::cli_history::resolve(fs, &gitdir, rev))
-                    .transpose()
-                {
-                    Ok(oid) => oid,
-                    Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
-                };
-                let tagger = Author {
-                    name: "Git User".to_string(),
-                    email: "user@example.com".to_string(),
-                    timestamp: 1502484200,
-                    timezone_offset: 0.0,
-                };
-                match annotated_tag(
-                    fs,
-                    &gitdir,
-                    name,
-                    Some(msg),
-                    object.as_deref(),
-                    Some(tagger),
-                    None,
-                    false,
-                ) {
-                    Ok(()) => CliResult::ok(""),
-                    Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+                if names.is_empty() || names.len() > 2 {
+                    return CliResult::err(
+                        129,
+                        "usage: git tag [-a] [-m <message>] <name> [<commit>]\n",
+                    );
                 }
-            } else {
-                let object = match sub_args
+                let object = match names
                     .get(1)
                     .map(|rev| crate::cli_history::resolve(fs, &gitdir, rev))
                     .transpose()
@@ -1107,12 +1105,38 @@ pub fn execute_git_cli_with_http(
                     Ok(oid) => oid,
                     Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
                 };
-                match tag(fs, &gitdir, sub_args[0], object.as_deref(), false) {
+                let result = if annotated {
+                    let message = if messages.is_empty() {
+                        names[0].to_string()
+                    } else {
+                        messages.join("\n\n")
+                    };
+                    let tagger = Author {
+                        name: "Git User".to_string(),
+                        email: "user@example.com".to_string(),
+                        timestamp: 1502484200,
+                        timezone_offset: 0.0,
+                    };
+                    annotated_tag(
+                        fs,
+                        &gitdir,
+                        names[0],
+                        Some(&message),
+                        object.as_deref(),
+                        Some(tagger),
+                        None,
+                        force,
+                    )
+                } else {
+                    tag(fs, &gitdir, names[0], object.as_deref(), force)
+                };
+                match result {
                     Ok(()) => CliResult::ok(""),
                     Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
                 }
             }
         }
+
         "merge" => {
             if sub_args.contains(&"--abort") {
                 return match abort_merge(fs, &repo_root, Some(&gitdir), None) {

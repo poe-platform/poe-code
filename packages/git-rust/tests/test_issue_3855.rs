@@ -59,3 +59,22 @@ fn checkout_and_switch_reset_branches_at_start_point() {
     );
     assert_eq!(ok(&fs, &["rev-parse", "main"]), head);
 }
+#[test]
+fn tag_message_options_do_not_become_tag_names() {
+    for args in [
+        vec!["tag", "-a", "-m", "message", "v1", "HEAD~1"],
+        vec!["tag", "-m", "message", "v1", "HEAD~1"],
+        vec!["tag", "v1", "HEAD~1", "-m", "message", "-a"],
+    ] {
+        let fs = repo();
+        let old = ok(&fs, &["rev-parse", "HEAD~1"]);
+        ok(&fs, &args);
+        assert_eq!(ok(&fs, &["tag"]), "v1\n");
+        assert_eq!(ok(&fs, &["cat-file", "-t", "v1"]), "tag\n");
+        assert_eq!(ok(&fs, &["rev-parse", "v1^{}"]), old);
+        assert!(ok(&fs, &["cat-file", "-p", "v1"]).contains("message"));
+    }
+    let fs = repo();
+    assert_ne!(run(&fs, &["tag", "-m"]).exit_code, 0);
+    assert_eq!(ok(&fs, &["tag"]), "");
+}

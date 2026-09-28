@@ -49,7 +49,7 @@ it("imports a forward data-sheet declaration and evaluates native quoted label s
 it.each(["strict", "extended"] as const)("exports %s label/data sheet names and round-trips their identities", async profile => {
   const bytes = await createOdfWriter(profile)(book(), [], context);
   const xml = (await unpackOdf(bytes)).parts.get("content.xml")!;
-  expect(xml).toContain('table:data-cell-range-address="$\'O\'\'Brien\'.C2:.C5"');
+  expect(xml).toContain('table:data-cell-range-address="$\'O\'\'Brien\'.$C$2:.$C$5"');
   const reopened = await readOdf(bytes, context);
   expect(reopened.sheets[0]!.labelRanges![0]!.dataSheet).toBe(reopened.sheets[1]!.id);
   expect(results(recalculateWorkbook(reopened, context, true))).toEqual([{ kind: "number", value: 5 }, { kind: "number", value: 2 }]);

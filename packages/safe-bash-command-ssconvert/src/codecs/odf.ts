@@ -977,8 +977,9 @@ export function createOdfWriter(profile: "strict" | "extended") {
       if (pair.axis !== "row" && pair.axis !== "column") throw new SsconvertError("invalid-request", "Invalid OpenDocument label orientation");
       const dataSheet = pair.dataSheet === undefined ? sheet : labelSheets.get(pair.dataSheet);
       if (!dataSheet) throw new SsconvertError("unsupported-feature", "OpenDocument label data sheet is not exported");
-      const address = (r: Range, name: string) => "$" + quoteFormulaString(name, "'", odfGrammar) + "." + formatA1(r.startRow, r.startColumn) +
-        ":." + formatA1(r.endRow, r.endColumn);
+      const absolute = (row: number, column: number) => "$" + formatA1(0, column).slice(0, -1) + "$" + (row + 1);
+      const address = (r: Range, name: string) => "$" + quoteFormulaString(name, "'", odfGrammar) + "." + absolute(r.startRow, r.startColumn) +
+        ":." + absolute(r.endRow, r.endColumn);
       labelRanges += e("table:label-range", { "table:label-cell-range-address": address(pair.labels, sheet.name),
         "table:data-cell-range-address": address(pair.data, dataSheet.name), "table:orientation": pair.axis });
     }

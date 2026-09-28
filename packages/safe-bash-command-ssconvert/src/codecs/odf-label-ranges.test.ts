@@ -36,6 +36,15 @@ it("imports ordered native ODF label/data declarations without allocating the co
   expect(book.unsupportedRecords?.some(r => r.kind === "label-ranges")).toBe(false);
 });
 
+it.each(["o''brien", "O''BRIEN"])("binds label declarations to sheet display names ignoring case: %s", async spelling => {
+  const labels = declarations.replaceAll("O''Brien", spelling)
+    .replace(":.$B$3", () => ":$'O''Brien'.$B$3");
+  const book = await readOdf(await source("", labels), context);
+  expect(book.sheets[0]!.name).toBe("O'Brien");
+  expect(book.sheets[0]!.labelRanges).toEqual(pairs);
+  expect(book.sheets[1]!.labelRanges).toBeUndefined();
+});
+
 it.each([[undefined, true], ["true", true], ["false", false]] as const)(
   "imports automatic label lookup %s", async (value, expected) => {
     const settings = value === undefined ? "" : `<table:calculation-settings table:automatic-find-labels="${value}"/>`;
@@ -57,6 +66,8 @@ it.each(["strict", "extended"] as const)("exports %s native metadata from workbo
   expect(xml.split("<table:label-range ")).toHaveLength(4);
   expect(xml).toContain("O''Brien");
   expect(xml).not.toContain("stable-id");
+  expect(xml).toContain(".$A$1:.$B$3");
+  expect(xml).toContain(".$D$1:.$I$3");
   const reopened = await readOdf(bytes, context);
   expect(reopened.sheets[0]!.labelRanges).toEqual(pairs);
   expect(reopened.automaticLabelLookup).toBe(true);

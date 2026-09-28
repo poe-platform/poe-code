@@ -2890,6 +2890,16 @@
       "native": "Calc 26.8.0.3 preserves all eight outputs and two independently authored original controls. Disabled status is omitted on native export and compared using its source-defined default; exact counts/tolerance and cell values pass. Headless only; no rendering claim.",
       "receipts": "out/ssconvert-root-build-YJeeDE/out/ssconvert-odf-settings/{iteration-source,compiled-proof,native-proof,cleanup}.json",
       "remaining": "Issue 3633 style stream identity/duplicates and label addressing remain open; broader calculation and format qualification and publication stay under 1748."
+    },
+    "odfLabelAddressing": {
+      "issue": 3633,
+      "sourceRevision": "LibreOffice bce0998afefdbc355585ca324285661a2170ba77",
+      "source": "xmlimprt.cxx:1230-1248 resolves deferred label/data ranges; document.cxx:253-278 uses uppercase sheet-name matching. xmlexprt.cxx:4200-4221 and rangeutl.hxx:209-217 export ranges with VALID|TAB_3D, without requiring absolute markers.",
+      "implementation": "Resolve both label-range endpoints using the existing Unicode sheet-name fold and preserve display spelling/stable IDs. Export requested explicit absolute row/column coordinates; unlike the original report, this is not claimed to be Calc default wire spelling.",
+      "validation": "Two valid case-binding regressions and two absolute-output regressions fail before their fixes; 160 focused tests plus package lint/source/test/consumer types and selected build pass. A first malformed case fixture used replacement-string suffix interpolation; corrected before validating the case failures.",
+      "compiledNative": "Eight compiled SDK/command outputs across both editions retain distinct Labels/O'Brien identities and absolute declarations with no diagnostics/input mutation. Independent original plus eight outputs, all with stale 999 caches, recalculate in Calc 26.8.0.3 to 5 or 15 after editing the former gap. Native retains live SUM and exact range geometry while omitting dollar markers and repeating endpoint sheet names.",
+      "receipts": "out/ssconvert-root-build-YJeeDE/out/ssconvert-odf-settings/{label-sources,label-compiled-proof,label-native-proof,label-cleanup}.json",
+      "remaining": "Issue 3633 automatic-style part migration and duplicate styles remain open; full Unicode/native label profiles, installed registry composition and publication stay under 1748."
     }
   },
   "cases": [

@@ -3,6 +3,7 @@ import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import { DEFAULT_SHEET_SIZE, MAX_SHEET_SIZE, type LabelRange, type Range, type Sheet } from "../workbook.js";
 import { parseExpression } from "../formulas/parser.js";
 import { odfGrammar } from "../formulas/conventions.js";
+import { foldSheetName } from "../workbook/case-fold.js";
 
 const tableNamespaces = ["urn:oasis:names:tc:opendocument:xmlns:table:1.0", "http://openoffice.org/2000/table"];
 
@@ -10,7 +11,7 @@ const tableNamespaces = ["urn:oasis:names:tc:opendocument:xmlns:table:1.0", "htt
  * See Calc xmllabri.cxx and ScXMLExport::WriteLabelRanges. */
 export function readOdfLabelRanges(parent: XmlElement, sheets: readonly Sheet[], context: CapabilityContext,
   charge: (amount?: number) => void): readonly Sheet[] {
-  const byName = new Map(sheets.map(sheet => { charge(); return [sheet.name, sheet] as const; }));
+  const byName = new Map(sheets.map(sheet => { charge(1 + sheet.name.length); return [foldSheetName(sheet.name), sheet] as const; }));
   const ranges = new Map<string, LabelRange[]>();
   const sizes = new Map<string, { rows: number; columns: number }>(sheets.map(sheet => {
     charge(); return [sheet.id, { ...(sheet.size ?? DEFAULT_SHEET_SIZE) }];
@@ -33,8 +34,9 @@ export function readOdfLabelRanges(parent: XmlElement, sheets: readonly Sheet[],
       maximumNodes: context.limits.workbookNodes ?? Infinity });
     if (!parsed.ok || parsed.document.root.kind !== "reference") return invalid();
     const first = parsed.document.root.first, last = parsed.document.root.last ?? first;
-    const sheet = first.sheet === undefined ? undefined : byName.get(first.sheet);
-    if (!sheet || first.workbook !== undefined || last.workbook !== undefined || last.sheet && last.sheet !== first.sheet ||
+    const sheet = first.sheet === undefined ? undefined : byName.get(foldSheetName(first.sheet));
+    const lastSheet = last.sheet === undefined ? sheet : byName.get(foldSheetName(last.sheet));
+    if (!sheet || first.workbook !== undefined || last.workbook !== undefined || lastSheet !== sheet ||
       !first.row || !first.column || !last.row || !last.column) return invalid();
     const range = { startRow: first.row.value, endRow: last.row.value, startColumn: first.column.value, endColumn: last.column.value };
     if (Object.values(range).some(value => !Number.isSafeInteger(value) || value < 0) ||

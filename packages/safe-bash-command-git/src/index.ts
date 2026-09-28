@@ -5,7 +5,7 @@ import { gitModule } from '#git-wasm';
 export interface GitLimits { readonly maxEntries: number; readonly maxBytes: number; readonly maxDepth: number; readonly maxHttpRequests: number; readonly maxHttpBytes: number }
 export interface GitHttpRequest { readonly url: string; readonly method: string; readonly headers: Readonly<Record<string,string>>; readonly body: Uint8Array; readonly signal: AbortSignal }
 export interface GitHttpResponse { readonly status: number; readonly headers: Readonly<Record<string,string>>; readonly body: Uint8Array }
-export interface GitCommandsOptions { readonly http?: (request:GitHttpRequest)=>Promise<GitHttpResponse>; readonly limits?: Partial<GitLimits>; readonly replace?: boolean; readonly wasmModule?: WebAssembly.Module }
+export interface GitCommandsOptions { readonly http?: (request:GitHttpRequest)=>Promise<GitHttpResponse>; readonly limits?: Partial<GitLimits>; readonly replace?: boolean; readonly wasmModule?: object }
 interface Entry { path: string; kind: string; mode: number; data: string }
 interface Result { exitCode: number; stdout: string; stdoutBytes?: string | null; stderr: string; entries: Entry[] | null; request?: {url:string;method:string;headers:Record<string,string>;body:string} | null }
 interface GitExports extends WebAssembly.Exports { memory: WebAssembly.Memory; git_alloc(length:number):number; git_free(ptr:number,length:number):void; git_execute(ptr:number,length:number):number; git_output_len():number }

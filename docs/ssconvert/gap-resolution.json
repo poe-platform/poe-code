@@ -2868,6 +2868,28 @@
         "qualification": "Locale definitions are source-qualified against glibc 2.41. No new native glibc execution is claimed; broader context-sensitive transliteration and unsupported locale profiles remain separate.",
         "receipts": "out/ssconvert-hyperlink-lifecycle/english-{sources,exports,proof,cleanup}.json"
       }
+    },
+    "odfCalculationSettings": {
+      "issue": 3633,
+      "source": {
+        "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/xml/XMLCalculationSettingsContext.cxx",
+        "sha256": "ffbca3e9c52f53a1f5d448d97b8ae6736868972eb79dca70a4b155ef79f739c1",
+        "excerpts": [
+          {
+            "startLine": 38,
+            "text": "    fIterationEpsilon(0.001),\n    nIterationCount(100),\n    nYear2000(1930),\n    eSearchType(utl::SearchParam::SearchType::Regexp),\n    bIsIterationEnabled(false),\n    bCalcAsShown(false),\n    bIgnoreCase(false),\n    bLookUpLabels(true),"
+          },
+          {
+            "startLine": 174,
+            "text": "    if ( !rAttrList.is() )\n        return;\n\n    for (auto &aIter : *rAttrList)\n    {\n        switch (aIter.getToken())\n        {\n        case XML_ELEMENT( TABLE, XML_STATUS ):\n            if (IsXMLToken(aIter, XML_ENABLE))\n                pCalcSet->SetIterationStatus(true);\n            break;\n        case XML_ELEMENT( TABLE, XML_STEPS ):\n            pCalcSet->SetIterationCount(aIter.toInt32());\n            break;\n        case XML_ELEMENT( TABLE, XML_MAXIMUM_DIFFERENCE ):\n            pCalcSet->SetIterationEpsilon( aIter.toDouble() );\n            break;\n        }\n    }"
+          }
+        ]
+      },
+      "implementation": "Import table:steps instead of replacing it with 100. Preserve enabled and disabled counts, zero and explicit limits; reject negative, fractional and unsafe counts. Absent or foreign-namespace steps retain the default.",
+      "validation": "Nine failing original memory cases precede the fix; 86 focused checks, package lint/source/test/consumer types and selected build pass. Eight compiled SDK/command exports across both ODF profiles preserve counts 25/7 with A1 edited to 8, zero diagnostics and unchanged inputs.",
+      "native": "Calc 26.8.0.3 preserves all eight outputs and two independently authored original controls. Disabled status is omitted on native export and compared using its source-defined default; exact counts/tolerance and cell values pass. Headless only; no rendering claim.",
+      "receipts": "out/ssconvert-root-build-YJeeDE/out/ssconvert-odf-settings/{iteration-source,compiled-proof,native-proof,cleanup}.json",
+      "remaining": "Issue 3633 style stream identity/duplicates and label addressing remain open; broader calculation and format qualification and publication stay under 1748."
     }
   },
   "cases": [

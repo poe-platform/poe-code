@@ -558,11 +558,13 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
     if (calculation) unsupportedRecords.push(record(calculation));
     if (!sheets.length) invalid("no sheets");
     const iteration = children(calculation, "iteration")[0];
+    const iterationMaximum = Number(attr(iteration, "steps") ?? "100");
+    if (!Number.isSafeInteger(iterationMaximum) || iterationMaximum < 0) invalid("invalid iteration count");
     const lookup = attr(calculation, "automatic-find-labels");
     if (lookup !== undefined && !["true", "false"].includes(lookup)) invalid("invalid automatic label lookup setting");
     const book: Workbook = { sheets: readOdfLabelRanges(spreadsheet, sheets, context, pkg.charge), names, dateSystem,
       automaticLabelLookup: lookup !== "false", calculationMode: "automatic", unsupportedRecords,
-      ...(iteration ? { iteration: { enabled: attr(iteration, "status") === "enable", maximum: 100,
+      ...(iteration ? { iteration: { enabled: attr(iteration, "status") === "enable", maximum: iterationMaximum,
         tolerance: Number(attr(iteration, "maximum-difference") ?? "0.001") } } : {}) };
     for (const sheet of book.sheets) cellIndexes.set(sheet.id, new Map(sheet.cells.map((cell, index) => {
       pkg.charge(); return [`${cell.row}:${cell.column}`, index];

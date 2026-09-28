@@ -122,13 +122,12 @@ describe("Gnumeric main GOption grammar", () => {
 
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
-import { describe, it } from "vitest";
 import { verifyArtifact } from "../scripts/harfbuzz/verify.mjs";
 
 const repository = new URL("../../../", import.meta.url);
 const manifest = JSON.parse(readFileSync(new URL("../scripts/harfbuzz/sources.json", import.meta.url), "utf8"));
 const source = readFileSync(new URL("./rendering/print/harfbuzz/data.ts", import.meta.url), "utf8");
-const files = new Map(manifest.inputs.map((input: { path: string }) => [input.path, readFileSync(new URL(input.path, repository))]));
+const files = new Map<string, Uint8Array>(manifest.inputs.map((input: { path: string }) => [input.path, readFileSync(new URL(input.path, repository))]));
 const verify = (changes = {}) => verifyArtifact({ source, manifest, files, ...changes });
 
 describe("harfbuzz artifact and provider registry verification", () => {

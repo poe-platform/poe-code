@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { chunks, run } from './helpers.js';
+import { chunks, run } from '../tests/helpers.js';
 
 test('forced LZMA format encodes real legacy streams across XZ aliases', async () => {
   const plain = Buffer.from('legacy format\0\xff'.repeat(30));

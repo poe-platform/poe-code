@@ -27,7 +27,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js && esbuild src/portable.ts --bundle --platform=browser --format=esm --target=es2022 --outfile=dist/portable.js && esbuild src/index.ts --bundle --platform=browser --conditions=workerd --format=esm --target=es2022 --outfile=dist/index.browser.js && tsc -p tsconfig.browser.json",
+    "build": "node ../../scripts/guard-package-dist.mjs && rm -rf dist && tsc && esbuild src/index.ts --bundle --platform=browser --conditions=workerd --format=esm --target=es2022 --outfile=dist/index.js && esbuild src/portable.ts --bundle --platform=browser --format=esm --target=es2022 --outfile=dist/portable.js && esbuild src/index.ts --bundle --platform=browser --conditions=workerd --format=esm --target=es2022 --outfile=dist/index.browser.js && tsc -p tsconfig.browser.json",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json && tsc -p tsconfig.browser.json --emitDeclarationOnly false --noEmit",
     "lint": "eslint src && npm run typecheck",
     "test": "cd ../.. && vitest run packages/image-ast",
@@ -45,18 +45,6 @@
         "./image-ast": ".",
         "./sharp": "."
       }
-    }
-  },
-  "imports": {
-    "#image-ast-streams": {
-      "types": {
-        "workerd": "./dist/browser/streams/web.d.ts",
-        "browser": "./dist/browser/streams/web.d.ts",
-        "default": "./dist/streams/node.d.ts"
-      },
-      "workerd": "./dist/streams/web.js",
-      "browser": "./dist/streams/web.js",
-      "default": "./dist/streams/node.js"
     }
   }
 }

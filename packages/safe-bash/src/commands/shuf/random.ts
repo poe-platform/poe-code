@@ -1,4 +1,3 @@
-import { randomFillSync } from "node:crypto";
 import type { CommandContext } from "../../contracts/index.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { Diagnostic, quote, wordMax } from "./args.js";
@@ -66,7 +65,7 @@ export class RandomIntegers {
         if (next.value.byteLength > this.maxBytes) throw new Diagnostic("shuf: maxInputBytes limit exceeded\n");
         this.bytes = new Uint8Array(next.value);
       } else {
-        this.bytes = randomFillSync(new Uint8Array(4096));
+        this.bytes = globalThis.crypto.getRandomValues(new Uint8Array(4096));
       }
       this.offset = 0;
       this.signal.throwIfAborted();
@@ -82,7 +81,7 @@ export class RandomIntegers {
       if (this.closed) throw new Error("shuf random source is closed");
       while (this.maximum < target) {
         if (this.offset === this.bytes.length) {
-          this.bytes = randomFillSync(this.bytes.length === 4096 ? this.bytes : new Uint8Array(4096));
+          this.bytes = globalThis.crypto.getRandomValues(this.bytes.length === 4096 ? this.bytes : new Uint8Array(4096));
           this.offset = 0;
         }
         this.value = ((this.value << 8n) + BigInt(this.bytes[this.offset++]!)) & wordMax;

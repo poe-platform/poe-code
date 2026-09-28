@@ -3,7 +3,7 @@ import {
   toByteSource, type ByteSource, type CommandContext,
 } from "safe-bash-contracts";
 import { createMemoryFileSystem } from "@poe-code/safe-fs/core";
-import { createXzCommands } from "./command.js";
+import { createXzCommands } from "../src/command.js";
 
 export const binary = Uint8Array.from({ length: 256 }, (_, index) => index);
 export const emptyMember = Buffer.from("1f8b080000000000000303000000000000000000", "hex");

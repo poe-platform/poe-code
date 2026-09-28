@@ -69,9 +69,11 @@
     },
     "./node/filesystem": {
       "types": {
+        "workerd": "./dist/node-unavailable.d.ts",
         "browser": "./dist/node-unavailable.d.ts",
         "default": "./dist/node/filesystem.d.ts"
       },
+      "workerd": null,
       "browser": null,
       "import": "./dist/node/filesystem.js"
     },

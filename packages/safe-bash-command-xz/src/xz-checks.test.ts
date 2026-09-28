@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { chunks, run } from './helpers.js';
+import { chunks, run } from '../tests/helpers.js';
 
 for (const [check, id] of [['none', 0], ['crc32', 1], ['crc64', 4], ['sha256', 10]] as const) {
   test(`XZ encodes ${check} and aliases decode it`, async () => {

@@ -60,25 +60,31 @@
     },
     "./contracts": {
       "types": {
+        "workerd": "./dist/contracts/index.d.ts",
         "browser": "./dist/contracts/index.d.ts",
         "default": "./dist/contracts/node.d.ts"
       },
+      "workerd": "./dist/contracts/index.js",
       "browser": "./dist/contracts/index.js",
       "import": "./dist/contracts/node.js"
     },
     "./contracts/index": {
       "types": {
+        "workerd": "./dist/contracts/index.d.ts",
         "browser": "./dist/contracts/index.d.ts",
         "default": "./dist/contracts/node.d.ts"
       },
+      "workerd": "./dist/contracts/index.js",
       "browser": "./dist/contracts/index.js",
       "import": "./dist/contracts/node.js"
     },
     "./contracts/path": {
       "types": {
+        "workerd": "./dist/contracts/path.d.ts",
         "browser": "./dist/contracts/path.d.ts",
         "default": "./dist/contracts/node-path.d.ts"
       },
+      "workerd": "./dist/contracts/path.js",
       "browser": "./dist/contracts/path.js",
       "import": "./dist/contracts/node-path.js"
     },
@@ -88,9 +94,9 @@
     },
     "./commands/op": {
       "types": "./dist/commands/op/index.d.ts",
-      "import": "./dist/commands/op/index.js",
       "workerd": "./dist/commands/op/index.browser.js",
-      "browser": "./dist/commands/op/index.browser.js"
+      "browser": "./dist/commands/op/index.browser.js",
+      "import": "./dist/commands/op/index.js"
     },
     "./commands/network": {
       "types": {
@@ -266,6 +272,7 @@
     },
     "./node": {
       "types": "./dist/node.d.ts",
+      "workerd": null,
       "browser": null,
       "import": "./dist/node.js"
     },
@@ -301,6 +308,7 @@
     },
     "./commands/docx": {
       "types": "./dist/commands/docx/index.d.ts",
+      "workerd": "./dist/commands/docx/index.browser.js",
       "browser": "./dist/commands/docx/index.browser.js",
       "import": "./dist/commands/docx/index.js"
     },
@@ -310,21 +318,25 @@
     },
     "./commands/python": {
       "types": "./dist/commands/python/index.d.ts",
+      "workerd": "./dist/commands/python/index.browser.js",
       "browser": "./dist/commands/python/index.browser.js",
       "import": "./dist/commands/python/index.js"
     },
     "./commands/python/worker": {
       "types": "./dist/commands/python/worker.d.ts",
+      "workerd": "./dist/commands/python/worker.browser.js",
       "browser": "./dist/commands/python/worker.browser.js",
       "import": "./dist/commands/python/worker.js"
     },
     "./commands/python/node": {
       "types": "./dist/commands/python/node.d.ts",
+      "workerd": null,
       "browser": null,
       "import": "./dist/commands/python/node.js"
     },
     "./commands/python/docker": {
       "types": "./dist/commands/python/docker.d.ts",
+      "workerd": null,
       "browser": null,
       "import": "./dist/commands/python/docker.js"
     },
@@ -334,6 +346,7 @@
     },
     "./commands/playwright": {
       "types": "./dist/commands/playwright/index.d.ts",
+      "workerd": "./dist/commands/playwright/index.js",
       "browser": "./dist/commands/playwright/index.js",
       "import": "./dist/commands/playwright/index.js"
     },
@@ -395,6 +408,7 @@
     },
     "./playwright": {
       "types": "./dist/commands/playwright/index.d.ts",
+      "workerd": "./dist/commands/playwright/index.js",
       "browser": "./dist/commands/playwright/index.js",
       "import": "./dist/commands/playwright/index.js"
     },

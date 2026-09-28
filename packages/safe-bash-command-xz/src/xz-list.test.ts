@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { chunks, run } from './helpers.js';
+import { chunks, run } from '../tests/helpers.js';
 import { humanListing } from './xz-list.js';
 import { parseOptions } from './options.js';
 

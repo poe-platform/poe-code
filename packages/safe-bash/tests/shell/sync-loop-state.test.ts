@@ -764,3 +764,43 @@ test("Wave 106: trySyncLoop supports awk BEGIN{OFS}/END accumulators, sed multi-
     await shell.dispose();
   }
 });
+
+for (const [label, source, expected] of [
+  ["literal Unicode reads and scalar length", 'for ((i=0;i<3;i++)); do read -r -n 2 a <<< "😀x"; read -r -N 1 b <<< "😀x"; s="😀x"; len="${#s}"; done; printf "%s|%s|%s|%s\\n" "$a" "$b" "${#a}" "$len"', "😀x|😀|2|2\n"],
+  ["loop-assigned Unicode array lengths", 'declare -a arr; for ((i=0;i<3;i++)); do arr=([0]="😀x"); s="${arr[0]}"; len="${#s}"; alen="${#arr[0]}"; done; printf "%s|%s|%s\\n" "$s" "$len" "$alen"', "😀x|2|2\n"],
+  ["Unicode read delimiter and exact EOF", 'for ((i=0;i<3;i++)); do read -r -n 3 a <<< "é😀"; read -r -N 4 b <<< "é😀"; status=$?; done; printf "%s|%s|%s\\n" "$a" "${#b}" "$status"', "é😀|3|1\n"],
+] as const) {
+  test(`sync loop preserves ${label}`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });
+    try {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, expected);
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const locale of ["C", "C.UTF-8"]) {
+  for (const loop of [
+    "for ((i=0;i<3;i++)); do BODY; done",
+    "for i in 0 1 2; do BODY; done",
+    "i=0; while ((i<3)); do BODY; ((i++)); done",
+    "i=0; until ((i>=3)); do BODY; ((i++)); done",
+  ]) {
+    test(`loop-local Unicode agrees with Bash in ${locale}: ${loop}`, async () => {
+      const body = 's="é😀x"; arr=([0]="$s"); len="${#s}"; alen="${#arr[0]}"';
+      const source = 'declare -a arr; ' + loop.replace("BODY", body) + '; printf "%s|%s\\n" "$len" "$alen"';
+      const env = { ...process.env, LC_ALL: locale };
+      const bash = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { env, encoding: "utf8" });
+      assert.equal(bash.status, 0, bash.stderr);
+      const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()), env: { LC_ALL: locale } });
+      try {
+        const result = await shell.exec(source);
+        assert.equal(result.exitCode, bash.status, result.stderr);
+        assert.equal(result.stderr, bash.stderr);
+        assert.equal(result.stdout, bash.stdout);
+      } finally { await shell.dispose(); }
+    });
+  }
+}

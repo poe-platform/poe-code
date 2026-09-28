@@ -14787,6 +14787,15 @@ export class Runtime {
     if (!p0 || p0.kind !== "text" || p0.value.length === 0 || p0.value.startsWith("-")) return false;
     return w.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.indirect && !p.prefixNames && !p.length && !p.substring && p.operator === undefined && getArraySelector(p) === undefined));
   }
+  private syncStringLength(value: string, byteCount: boolean): number {
+    let length = 0;
+    for (let offset = 0; offset < value.length;) {
+      const point = value.codePointAt(offset)!;
+      length += byteCount ? (point <= 0x7f ? 1 : point <= 0x7ff ? 2 : point <= 0xffff ? 3 : 4) : 1;
+      offset += point > 0xffff ? 2 : 1;
+    }
+    return length;
+  }
   private execSyncReadHereStringStep(
     rs: NonNullable<SyncLoopStep["readHereString"]>,
     step: SyncLoopStep,
@@ -14801,15 +14810,16 @@ export class Runtime {
     let status = 0;
     if (rs.maxChars !== undefined) {
       const fullInput = rawInput + "\n";
-      if (rs.exactChars) {
-        lineStr = fullInput.length > rs.maxChars ? fullInput.slice(0, rs.maxChars) : fullInput;
-        status = fullInput.length >= rs.maxChars ? 0 : 1;
-      } else {
-        const nlIdx = fullInput.indexOf(delim);
-        const untilDelim = nlIdx === -1 ? fullInput : fullInput.slice(0, nlIdx);
-        lineStr = untilDelim.length > rs.maxChars ? untilDelim.slice(0, rs.maxChars) : untilDelim;
-        status = (nlIdx !== -1 || fullInput.length >= rs.maxChars) ? 0 : 1;
+      const nlIdx = rs.exactChars ? -1 : fullInput.indexOf(delim);
+      const end = nlIdx === -1 ? fullInput.length : nlIdx;
+      let position = 0;
+      let count = 0;
+      while (position < end && count < rs.maxChars) {
+        position = nextCodePointOffset(fullInput, position);
+        count++;
       }
+      lineStr = fullInput.slice(0, position);
+      status = (count >= rs.maxChars || nlIdx !== -1) ? 0 : 1;
     } else {
       const fullInput = delim === "\n" ? rawInput : rawInput + "\n";
       const nlIdx = rs.isMapfile ? -1 : fullInput.indexOf(delim);
@@ -22188,10 +22198,7 @@ export class Runtime {
             if (part.length) {
               if (part.operator !== undefined) return undefined;
               const s = elemVal ?? "";
-              for (let k = 0; k < s.length; k++) {
-                if (s.charCodeAt(k) >= 128) return undefined;
-              }
-              out += String(s.length);
+              out += String(this.syncStringLength(s, byteLocale(rawVars)));
               continue;
             }
             let resolvedElem: string;
@@ -22303,10 +22310,7 @@ export class Runtime {
           this.requireParameter(raw, part.name, state, io, part.line ?? overrideDiagnosticLine);
           const val = raw === undefined ? "" : (this._syncArithRawWriteOnly && this._syncArithTouched?.has(part.name) ? raw : (monitor?.values.get(part.name, raw) ?? raw));
           if (typeof val !== "string") return undefined;
-          for (let k = 0; k < val.length; k++) {
-            if (val.charCodeAt(k) >= 128) return undefined;
-          }
-          out += String(val.length);
+          out += String(this.syncStringLength(val, byteLocale(rawVars)));
           continue;
         }
         if (part.operator !== undefined) {

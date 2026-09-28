@@ -79,7 +79,10 @@ returning `Promise<boolean>`. It selects an existing public page by object ident
 through the command queue, invalidates previous snapshot refs, and checkpoints
 the selected page. The session must already be live when called and retain
 the same session, context, and page when selection runs; stale or unavailable
-identities return `false`. It never allocates, restores, or revives a session.
+identities return `false`. With persistence enabled, an open dialog or file chooser
+on any context page also returns `false`, preserving the prior live selection
+without dismissing the modal. Retry after the modal is resolved or its page closes.
+It never allocates, restores, or revives a session.
 Cancellation preserves its reason and leaves a healthy session open; it cannot
 undo a selection already applied. Ordinary initialization, snapshot cleanup, and
 persistence errors retain their retirement/checkpoint behavior, including an

@@ -42,7 +42,7 @@ function browser() {
     context, onClosed(listener) { closed.add(listener); return () => { closed.delete(listener); }; },
     async release() { calls.push('release'); for (const listener of closed) listener(); },
   };
-  return { context, lease, pages, tabs, calls };
+  return { context, lease, pages, tabs, calls, events };
 }
 
 function fixture() {
@@ -57,10 +57,10 @@ function fixture() {
     },
   });
   assert.equal(typeof controller.selectSessionPage, 'function');
-  const run = async (args: string[]) => {
+  const run = async (args: string[], overrides: { readArtifact?: (path: string) => Promise<Uint8Array> } = {}) => {
     let output = '';
     await controller.run({ args: ['-s=owned', ...args], env: {}, signal: new AbortController().signal,
-      async write(text) { output += text; }, async writeArtifact() {},
+      async write(text) { output += text; }, async writeArtifact() {}, ...overrides,
     });
     return output;
   };
@@ -412,4 +412,106 @@ test('CLI exposes live identity selection and successful activity renews idle ex
     assert.equal(cli.inspectSessions()[0]?.selectedPage, native.pages[1]);
     assert.equal(cli.inspectSessions()[0]?.expiresAt, 1190);
   } finally { await cli.dispose(); }
+});
+
+for (const kind of ['dialog', 'filechooser'] as const) for (const index of [0, 1, 2]) {
+  test(`persisted selection refuses ${kind} on page ${index} and recovers after closure`, async () => {
+    const f = fixture();
+    try {
+      await adopt(f.controller, f.native);
+      await f.run(['press', 'Enter']);
+      const first = f.native.pages[0]!;
+      const target = f.native.pages[1]!;
+      const modalPage = f.native.pages[index]!;
+      const dismiss = () => { assert.fail('selection must not dismiss a user modal'); };
+      if (kind === 'dialog') f.native.events.emit('dialog', { page: () => modalPage, dismiss, accept: dismiss });
+      else f.native.tabs[index]!.events.emit('filechooser', { setFiles: dismiss });
+      const count = f.checkpoints.length;
+      const request = { name: 'owned', context: f.native.context, page: target };
+      assert.equal(await f.controller.selectSessionPage(request), false);
+      assert.equal(f.controller.inspectSessions()[0]?.selectedPage, first);
+      assert.equal(f.checkpoints.at(-1)?.selectedPage, first);
+      assert.equal(f.checkpoints.length, count);
+      assert.equal(f.native.calls.includes('release'), false);
+      const abort = new AbortController();
+      abort.abort(false);
+      await assert.rejects(f.controller.selectSessionPage({ ...request, signal: abort.signal }), reason => reason === false);
+      // A native page closure clears the modal without acting on the user's dialog.
+      await modalPage.close();
+      const retryPage = index === 1 ? f.native.pages.at(-1)! : target;
+      assert.equal(await f.controller.selectSessionPage({ ...request, page: retryPage }), true);
+      assert.equal(f.checkpoints.at(-1)?.selectedPage, retryPage);
+      await f.run(['press', 'Enter']);
+      assert.equal(f.native.calls.at(-1), retryPage === target ? 'second:press' : 'third:press');
+    } finally { await f.controller.dispose(); }
+  });
+}
+
+for (const stage of ['initialization', 'publication'] as const) for (const kind of ['dialog', 'filechooser'] as const) {
+  test(`selection refuses a ${kind} arriving during ${stage}`, async () => {
+    const f = fixture();
+    const target = f.native.pages[1]!;
+    const emit = () => {
+      if (kind === 'dialog') f.native.events.emit('dialog', { page: () => target });
+      else f.native.tabs[1]!.events.emit('filechooser', {});
+    };
+    try {
+      if (stage === 'initialization') {
+        const lease = { ...f.native.lease, async executeCode(options: { page?: PlaywrightPage }) { if (options.page === target) emit(); } };
+        await f.controller.restoreSession({ name: 'owned',
+          configuration: { initPages: [{ filename: 'init.js', source: 'export default () => {}' }] },
+          async acquire() { return { lease, selectedPage: f.native.pages[0]! }; },
+        });
+      } else {
+        await adopt(f.controller, f.native);
+        // Listener installation happens after the selected identity is published.
+        f.native.tabs[1]!.events.once('newListener', emit);
+      }
+      assert.equal(await f.controller.selectSessionPage({ name: 'owned', context: f.native.context, page: target }), false);
+      assert.equal(f.controller.inspectSessions()[0]?.selectedPage, f.native.pages[0]);
+      assert.deepEqual(f.checkpoints, []);
+      assert.equal(f.native.calls.includes('release'), false);
+      await target.close();
+      assert.equal(await f.controller.selectSessionPage({ name: 'owned', context: f.native.context, page: f.native.pages.at(-1)! }), true);
+    } finally { await f.controller.dispose(); }
+  });
+}
+
+test('resolving a selected-page dialog allows durable selection and subsequent agent commands', async () => {
+  const f = fixture();
+  let dismissals = 0;
+  try {
+    await adopt(f.controller, f.native);
+    const first = f.native.pages[0]!;
+    f.native.events.emit('dialog', { page: () => first, async dismiss() { dismissals++; } });
+    const request = { name: 'owned', context: f.native.context, page: f.native.pages[1]! };
+    assert.equal(await f.controller.selectSessionPage(request), false);
+    assert.equal(dismissals, 0);
+    await f.run(['dialog-dismiss']);
+    assert.equal(dismissals, 1);
+    assert.equal(await f.controller.selectSessionPage(request), true);
+    assert.equal(f.checkpoints.at(-1)?.selectedPage, request.page);
+    await f.run(['press', 'Enter']);
+    assert.equal(f.native.calls.at(-1), 'second:press');
+  } finally { await f.controller.dispose(); }
+});
+
+test('resolving a selected-page file chooser allows durable selection without closing the browser', async () => {
+  const f = fixture();
+  let uploads = 0;
+  try {
+    const lease = { ...f.native.lease, prepareFileBytes: (bytes: Uint8Array) => bytes };
+    await f.controller.restoreSession({ name: 'owned', async acquire() { return { lease, selectedPage: f.native.pages[0]! }; } });
+    f.native.tabs[0]!.events.emit('filechooser', { isMultiple: () => true, async setFiles() { uploads++; } });
+    const request = { name: 'owned', context: f.native.context, page: f.native.pages[1]! };
+    assert.equal(await f.controller.selectSessionPage(request), false);
+    assert.equal(uploads, 0);
+    await f.run(['upload', '/fixture.txt'], { async readArtifact() { return new Uint8Array([65]); } });
+    assert.equal(uploads, 1);
+    assert.equal(await f.controller.selectSessionPage(request), true);
+    assert.equal(f.checkpoints.at(-1)?.selectedPage, request.page);
+    await f.run(['press', 'Enter']);
+    assert.equal(f.native.calls.at(-1), 'second:press');
+    assert.equal(f.native.calls.includes('release'), false);
+  } finally { await f.controller.dispose(); }
 });

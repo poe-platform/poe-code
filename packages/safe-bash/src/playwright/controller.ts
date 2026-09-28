@@ -49,6 +49,8 @@ export interface PlaywrightSessionRenewOptions {
   readonly context: PlaywrightContext;
 }
 export interface PlaywrightSessionSelectOptions extends PlaywrightSessionRenewOptions {
+  /** With persistence enabled, selection returns false while any context page
+   * has a dialog or file chooser open. Retry after the modal is resolved. */
   readonly page: PlaywrightPage;
   readonly signal?: AbortSignal;
 }
@@ -435,34 +437,51 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     if (!available()) return false;
     const signal = callerSignal ? AbortSignal.any([callerSignal, lifetime.signal]) : lifetime.signal;
     const unavailable = new Error('Selected live Playwright session or page is no longer available');
+    const modalBlocked = new Error('Live selection cannot be persisted while a modal is open');
     const check = () => {
       callerSignal?.throwIfAborted();
       signal.throwIfAborted();
       if (!available()) throw unavailable;
     };
+    const checkSelection = () => {
+      check();
+      if (options.persistence && context.pages().some(page => getPlaywrightModal(page))) throw modalBlocked;
+    };
     const operation = enqueue(name, async () => {
       let paused = false;
       let completed = false;
+      const previousPage = session.page;
       try {
-        check();
+        checkSelection();
         if (session.idleTimeoutMs) {
           paused = true;
           session.idlePaused = true;
           clearTimeout(session.expiryTimer);
         }
-        await selectPage(session, page, check);
-        check();
+        await selectPage(session, page, checkSelection);
+        checkSelection();
         session.pages = [...context.pages()];
         await checkpoint(session, signal, true, false);
         check();
         completed = true;
         return true;
       } catch (error) {
+        let failure = error;
+        if (failure === modalBlocked && !signal.aborted) {
+          try {
+            // A modal can arrive after selectPage publishes but before its await
+            // resumes. Restore the prior live selection without touching the modal.
+            if (session.page !== previousPage && previousPage && context.pages().includes(previousPage)) {
+              await selectPage(session, previousPage, check);
+            }
+            return false;
+          } catch (rollbackError) { failure = rollbackError; }
+        }
         const cancelled = callerSignal?.aborted || signal.aborted;
-        const reason = callerSignal?.aborted ? callerSignal.reason : signal.aborted ? signal.reason : error;
-        if (error === unavailable && !cancelled) return false;
-        if (!cancelled && error instanceof PlaywrightStorageReadError) throw new PlaywrightCheckpointError(error);
-        if (!cancelled || session.failure || error instanceof SnapshotCleanupError) {
+        const reason = callerSignal?.aborted ? callerSignal.reason : signal.aborted ? signal.reason : failure;
+        if (failure === unavailable && !cancelled) return false;
+        if (!cancelled && failure instanceof PlaywrightStorageReadError) throw new PlaywrightCheckpointError(failure);
+        if (!cancelled || session.failure || failure instanceof SnapshotCleanupError) {
           try { await release(session); }
           catch (cleanup) { throw new AggregateError([reason, cleanup], 'Playwright selection and retirement failed'); }
         }

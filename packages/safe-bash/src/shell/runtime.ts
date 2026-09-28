@@ -7615,7 +7615,7 @@ export class Runtime {
               if (
                 isNoBraceSyncWord(wl) &&
                 wl.parts.length > 0 &&
-                wl.parts.every(p => p.quoted || (p.kind === "text" && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !p.value.includes("/") && !p.value.includes("%") && !p.value.includes("<<") && !p.value.includes(">>") && !p.value.includes("**") && (rawState.noglob || !hasGlobOrEscape(p.value, !!rawState.extglob))))
+                wl.parts.every(p => (p.kind !== "text" || (!p.value.includes("/") && !p.value.includes("%") && !p.value.includes("<<") && !p.value.includes(">>") && !p.value.includes("**"))) && (p.quoted || (p.kind === "text" && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && (rawState.noglob || !hasGlobOrEscape(p.value, !!rawState.extglob)))))
               ) {
                 continue;
               }
@@ -7963,6 +7963,8 @@ export class Runtime {
     }
     if (command.kind === "case") {
       if (rawState.nocasematch || rawState.extglob || !this.isPureSyncValueWord(command.subject, rawState)) return false;
+      // Fallthrough bodies can change later patterns after the admission check.
+      if (command.clauses.some(c => c.terminator === ";&" || c.terminator === ";;&") && command.clauses.some(c => c.patterns.some(pw => pw.plain === undefined))) return false;
       for (let i = 0; i < command.clauses.length; i++) {
         const c = command.clauses[i]!;
         if (c.terminator !== ";;" && c.terminator !== ";&" && c.terminator !== ";;&" && c.terminator !== "esac") return false;
@@ -9097,6 +9099,7 @@ export class Runtime {
       if (typeof fastSubject !== "string") return undefined;
       const work = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
       if (command.clauses.some(c => c.terminator === ";&" || c.terminator === ";;&")) {
+        if (command.clauses.some(c => c.patterns.some(pw => pw.plain === undefined))) return undefined;
         if (this._syncReturnDepth === 0 && !this.canSyncCommandCompound(command, rawState, 0, rawState.loopDepth)) return undefined;
         for (let cIdx = 0; cIdx < command.clauses.length; cIdx++) {
           const clause = command.clauses[cIdx]!;
@@ -9860,7 +9863,7 @@ export class Runtime {
               letOk = false;
               break;
             }
-            if (li > letStart && (argStr.includes("/") || argStr.includes("%") || argStr.includes("<<") || argStr.includes(">>") || argStr.includes("**"))) {
+            if (argStr.includes("/") || argStr.includes("%") || argStr.includes("<<") || argStr.includes(">>") || argStr.includes("**")) {
               letOk = false;
               break;
             }
@@ -11487,8 +11490,9 @@ export class Runtime {
           return false;
         }
         if (part.indirect) {
-          if (this.budget.limits.maxExpansionBytes !== Infinity || part.length || part.substring || part.operator !== undefined || getArraySelector(part) !== undefined || rawState.nounset) return false;
-          continue;
+          // The target can change to an unsupported expansion during a compound
+          // command. A late fallback would replay effects already performed.
+          return false;
         }
         const sel = getArraySelector(part);
         if (sel !== undefined) {
@@ -18663,6 +18667,8 @@ export class Runtime {
             }
             const targetRaw = rawVars[refName];
             targetVal = targetRaw === undefined ? "" : (this._syncArithRawWriteOnly && this._syncArithTouched?.has(refName) ? targetRaw : (monitor?.values.get(refName, targetRaw) ?? targetRaw));
+          } else if (refName === "0") {
+            targetVal = rawState.arg0 ?? "virtual-bash";
           } else if (/^[1-9][0-9]*$/.test(refName)) {
             const posIdx = Number(refName) - 1;
             const activePos = this._fastSubPositional ?? rawState.positional;
@@ -18670,7 +18676,7 @@ export class Runtime {
           } else {
             const br = refName.indexOf("[");
             if (br > 0 && refName.endsWith("]")) {
-              const arrName = refName.slice(0, br);
+              const arrName = resolveSyncNameref(rawState, refName.slice(0, br));
               const sub = refName.slice(br + 1, -1);
               if (
                 isShellIdentifier(arrName) &&
@@ -18691,7 +18697,7 @@ export class Runtime {
                     targetVal = kEntry !== undefined ? (binding.values.get(kEntry.index)?.text.shellValue ?? "") : "";
                   }
                 } else if (binding) {
-                  const idx = resolveSimpleArithOperand(sub, rawState, monitor, activeArrayStore);
+                  const idx = evalSyncIntAttrExpr(sub, rawState, monitor, activeArrayStore, this._syncArithRawWriteOnly ? this._syncArithTouched : undefined);
                   if (idx !== undefined) {
                     let actualIdx = idx;
                     if (actualIdx < 0) {
@@ -18699,14 +18705,14 @@ export class Runtime {
                       for (const k of binding.values.keys()) if (k > maxIdx) maxIdx = k;
                       actualIdx = maxIdx >= 0 ? maxIdx + 1 + actualIdx : -1;
                     }
-                    if (actualIdx >= 0) targetVal = binding.values.get(actualIdx)?.text.shellValue ?? "";
+                    targetVal = actualIdx >= 0 ? binding.values.get(actualIdx)?.text.shellValue ?? "" : "";
                   }
                 } else {
-                  const idx = resolveSimpleArithOperand(sub, rawState, monitor, activeArrayStore);
-                  if (idx === 0) {
+                  const idx = evalSyncIntAttrExpr(sub, rawState, monitor, activeArrayStore, this._syncArithRawWriteOnly ? this._syncArithTouched : undefined);
+                  if (idx === 0 || idx === -1) {
                     const targetRaw = rawVars[arrName];
                     targetVal = targetRaw === undefined ? "" : (this._syncArithRawWriteOnly && this._syncArithTouched?.has(arrName) ? targetRaw : (monitor?.values.get(arrName, targetRaw) ?? targetRaw));
-                  } else if (idx !== undefined && idx > 0) {
+                  } else if (idx !== undefined) {
                     targetVal = "";
                   }
                 }

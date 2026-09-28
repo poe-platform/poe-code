@@ -59,3 +59,75 @@ fn show_annotated_tags_displays_metadata_and_peeled_commit_oid() {
     assert_eq!(ok(&fs, &["show", "light"]), ok(&fs, &["show", "v1^{}"]));
 }
 
+#[test]
+fn branch_option_consumes_its_name_regardless_of_position() {
+    for (command, flag) in [
+        ("checkout", "-b"),
+        ("checkout", "-B"),
+        ("switch", "-c"),
+        ("switch", "-C"),
+    ] {
+        for before in [true, false] {
+            let fs = repo();
+            let main = ok(&fs, &["rev-parse", "main"]);
+            let start = ok(&fs, &["rev-parse", "v1^{}"]);
+            if flag == "-B" || flag == "-C" {
+                ok(&fs, &["branch", "feat"]);
+            }
+            let args = if before {
+                vec![command, "v1", flag, "feat"]
+            } else {
+                vec![command, flag, "feat", "v1"]
+            };
+            ok(&fs, &args);
+            assert_eq!(ok(&fs, &["branch", "--show-current"]), "feat\n");
+            assert_eq!(ok(&fs, &["rev-parse", "feat"]), start);
+            assert_eq!(ok(&fs, &["rev-parse", "main"]), main);
+            assert_eq!(fs.read_str("/repo/f.txt").unwrap(), "v1\n");
+        }
+    }
+}
+
+#[test]
+fn missing_branch_option_value_does_not_modify_refs() {
+    for (command, flag) in [
+        ("checkout", "-b"),
+        ("checkout", "-B"),
+        ("switch", "-c"),
+        ("switch", "-C"),
+    ] {
+        let fs = repo();
+        let main = ok(&fs, &["rev-parse", "main"]);
+        assert_ne!(
+            execute_git_cli(&fs, "/repo", &[command, "main", flag]).exit_code,
+            0
+        );
+        assert_eq!(ok(&fs, &["rev-parse", "main"]), main);
+    }
+}
+
+#[test]
+fn checkout_orphan_consumes_branch_name_after_start_point() {
+    for before in [true, false] {
+        let fs = repo();
+        let main = ok(&fs, &["rev-parse", "main"]);
+        let args = if before {
+            vec!["checkout", "v1", "--orphan", "fresh"]
+        } else {
+            vec!["checkout", "--orphan", "fresh", "v1"]
+        };
+        ok(&fs, &args);
+        assert_eq!(ok(&fs, &["branch", "--show-current"]), "fresh\n");
+        assert_ne!(
+            execute_git_cli(&fs, "/repo", &["rev-parse", "HEAD"]).exit_code,
+            0
+        );
+        assert_eq!(fs.read_str("/repo/f.txt").unwrap(), "v1\n");
+        ok(&fs, &["commit", "-m", "root"]);
+        assert_ne!(
+            execute_git_cli(&fs, "/repo", &["rev-parse", "HEAD^"]).exit_code,
+            0
+        );
+        assert_eq!(ok(&fs, &["rev-parse", "main"]), main);
+    }
+}

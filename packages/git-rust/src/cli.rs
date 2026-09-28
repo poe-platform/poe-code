@@ -924,13 +924,37 @@ pub fn execute_git_cli_with_http(
                     Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
                 };
             }
-            let positionals: Vec<_> = sub_args
-                .iter()
-                .copied()
-                .filter(|arg| !arg.starts_with('-'))
-                .collect();
-            let reset_branch = sub_args.contains(&"-B") || sub_args.contains(&"-C");
-            let create_new = reset_branch || sub_args.contains(&"-b") || sub_args.contains(&"-c");
+            let mut positionals = Vec::new();
+            let mut branch_name = None;
+            let mut reset_branch = false;
+            let mut orphan = false;
+            let mut args = sub_args.iter().copied();
+            while let Some(arg) = args.next() {
+                if matches!(arg, "-b" | "-B" | "-c" | "-C")
+                    || (subcmd == "checkout" && arg == "--orphan")
+                {
+                    let Some(name) = args.next().filter(|name| !name.starts_with('-')) else {
+                        return CliResult::err(
+                            129,
+                            format!("error: option '{arg}' requires a branch name\n"),
+                        );
+                    };
+                    if branch_name.replace(name).is_some() {
+                        return CliResult::err(129, "error: multiple branch creation options\n");
+                    }
+                    reset_branch = matches!(arg, "-B" | "-C");
+                    orphan = arg == "--orphan";
+                } else if !arg.starts_with('-') {
+                    positionals.push(arg);
+                }
+            }
+            let create_new = branch_name.is_some();
+            if let Some(name) = branch_name {
+                if positionals.len() > 1 {
+                    return CliResult::err(129, "error: too many start-point arguments\n");
+                }
+                positionals.insert(0, name);
+            }
             if subcmd == "checkout" && !create_new && !positionals.is_empty() {
                 let source = crate::cli_history::resolve(fs, &gitdir, positionals[0]).ok();
                 let path_args = if source.is_some() {
@@ -1047,17 +1071,27 @@ pub fn execute_git_cli_with_http(
                 true,
             ) {
                 Ok(()) => {
-                    if create_new
-                        && let Err(e) = branch(
-                            fs,
-                            &gitdir,
-                            ref_target,
-                            start.as_deref(),
-                            true,
-                            reset_branch,
-                        )
-                    {
-                        return CliResult::err(128, format!("fatal: {}\n", e.message));
+                    if create_new {
+                        let result = if orphan {
+                            crate::GitRefManager::write_symbolic_ref(
+                                fs,
+                                &gitdir,
+                                "HEAD",
+                                &format!("refs/heads/{ref_target}"),
+                            )
+                        } else {
+                            branch(
+                                fs,
+                                &gitdir,
+                                ref_target,
+                                start.as_deref(),
+                                true,
+                                reset_branch,
+                            )
+                        };
+                        if let Err(e) = result {
+                            return CliResult::err(128, format!("fatal: {}\n", e.message));
+                        }
                     }
                     CliResult::ok(format!("Switched to branch '{ref_target}'\n"))
                 }

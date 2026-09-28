@@ -1,7 +1,5 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import crypto from "node:crypto";
-import { syncBuiltinESMExports } from "node:module";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { CommandRegistry, createCommandArguments, FsError, type ByteSource, type CommandContext } from "../../../src/contracts/index.js";
 import { shellValueFromBytes } from "../../../src/contracts/value.js";
@@ -236,12 +234,13 @@ test("VFS symlink/parent components are not lexically erased", async () => {
 
 test("secure system entropy is used and its failure is propagated", async context => {
   const failure = new Error("secure entropy unavailable");
-  const mock = context.mock.method(crypto, "randomFillSync", () => { throw failure; });
-  syncBuiltinESMExports();
+  const mock = context.mock.method(globalThis.crypto, "getRandomValues", () => { throw failure; });
   try {
     await assert.rejects(run(["-i0-9", "-n1"]), error => error === failure);
     assert.equal(mock.mock.callCount(), 1);
-  } finally { mock.mock.restore(); syncBuiltinESMExports(); }
+    assert.equal(mock.mock.calls[0]!.this, globalThis.crypto);
+    assert.ok(mock.mock.calls[0]!.arguments[0] instanceof Uint8Array);
+  } finally { mock.mock.restore(); }
 });
 
 test("GNU broken output pipe terminates repeat with status 141 and no diagnostic", async context => {

@@ -11850,7 +11850,7 @@ export class Runtime {
           w0Plain === "uniq" ||
           w0Plain === "tr" ||
           (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl"));
-        const def = w0Plain ? (this.commands.get(w0Plain) ?? ((w0Plain === "rev" || w0Plain === "tac") ? this.getExternalCommand(w0Plain) : undefined)) : undefined;
+        const def = w0Plain ? (this.commands.get(w0Plain) ?? ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl") ? this.getExternalCommand(w0Plain) : undefined)) : undefined;
         if (!w0Plain || (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq" && !isFileCommand) || !def || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return false;
         if ((hasSingleStdinRedir || hasSingleHereStringRedir) && !isFileCommand) return false;
         if (w0Plain === "printf" ? def.execute !== printfCommand.execute : w0Plain === "echo" ? !defaultEchoExecutors.has(def.execute) : (w0Plain === "seq" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl") ? (!builtInDirectContextExecutors.has(def.execute) && customRegisteredCommands.has(def.execute)) : !builtInDirectContextExecutors.has(def.execute)) return false;
@@ -22688,6 +22688,10 @@ export class Runtime {
   }
 
   private evalSyncSed(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
+    if (opArgs.length === 4 && opArgs[0] === "-e" && opArgs[2] === "-e") {
+      const r1 = this.evalSyncSed(rawLines, [opArgs[1]!]);
+      return r1 === undefined ? undefined : this.evalSyncSed(r1, [opArgs[3]!]);
+    }
     let quiet = false;
     let expr: string | undefined;
     if (opArgs.length === 1 && !opArgs[0]!.startsWith("-")) {
@@ -22702,6 +22706,18 @@ export class Runtime {
       expr = opArgs[2]!;
     }
     if (!expr) return undefined;
+    if (!quiet && expr.includes(";") && !expr.startsWith("s;")) {
+      const subExprs = expr.split(";").map(s => s.trim()).filter(Boolean);
+      if (subExprs.length >= 2 && subExprs.length <= 4) {
+        let cur: readonly string[] = rawLines;
+        for (const se of subExprs) {
+          const next = this.evalSyncSed(cur, [se]);
+          if (next === undefined) return undefined;
+          cur = next;
+        }
+        return [...cur];
+      }
+    }
     const addrCmdM = /^(?:([1-9][0-9]{0,4}|\$)(?:,([1-9][0-9]{0,4}|\$))?|\/(\^?[a-zA-Z0-9_ :;,.-]+\$?)\/)([dp])$/.exec(expr);
     if (addrCmdM) {
       const cmdChar = addrCmdM[4]!;
@@ -22760,6 +22776,25 @@ export class Runtime {
     const mode = opArgs.length === 2 ? opArgs[0]! : "";
     const pat = opArgs[opArgs.length - 1]!;
     if (pat.startsWith("-")) return undefined;
+    if (opArgs.length === 2 && mode === "-o" || mode === "-Eo" || mode === "-oE") {
+      const isExt = mode.includes("E");
+      let re: RegExp | undefined;
+      if (isExt && (pat === "[0-9]+" || pat === "[a-z]+" || pat === "[A-Z]+" || pat === "[a-zA-Z]+" || pat === "[a-zA-Z0-9_]+")) {
+        re = new RegExp(pat, "g");
+      } else {
+        const branches = isExt ? pat.split("|") : [pat];
+        if (branches.every(b => b.length > 0 && /^[a-zA-Z0-9_ :;,/-]+$/.test(b))) {
+          re = new RegExp(branches.join("|"), "g");
+        }
+      }
+      if (!re) return undefined;
+      const out: string[] = [];
+      for (let li = 0; li < rawLines.length; li++) {
+        const matches = rawLines[li]!.match(re);
+        if (matches) for (let mi = 0; mi < matches.length; mi++) out.push(matches[mi]!);
+      }
+      return { lines: out, status: out.length > 0 ? 0 : 1 };
+    }
     if (opArgs.length === 2 && mode !== "-v" && mode !== "-i" && mode !== "-c" && mode !== "-F" && mode !== "-E" && mode !== "-Ei" && mode !== "-iE" && mode !== "-Ev" && mode !== "-vE") {
       return undefined;
     }
@@ -22909,8 +22944,12 @@ export class Runtime {
   }
 
   private translateSyncTr(input: string, set1Spec: string, set2Spec: string): string | undefined {
-    if (set1Spec === "a-z" && set2Spec === "A-Z") return input.toUpperCase();
-    if (set1Spec === "A-Z" && set2Spec === "a-z") return input.toLowerCase();
+    if ((set1Spec === "a-z" || set1Spec === "[:lower:]") && (set2Spec === "A-Z" || set2Spec === "[:upper:]")) {
+      return input.replace(/[a-z]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 32));
+    }
+    if ((set1Spec === "A-Z" || set1Spec === "[:upper:]") && (set2Spec === "a-z" || set2Spec === "[:lower:]")) {
+      return input.replace(/[A-Z]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 32));
+    }
     const s1 = this.expandSyncTrCharArray(set1Spec);
     const s2 = this.expandSyncTrCharArray(set2Spec);
     if (!s1 || !s2 || s1.length === 0 || s2.length === 0) return undefined;
@@ -23490,7 +23529,7 @@ export class Runtime {
       w0Plain === "uniq" ||
       w0Plain === "tr" ||
       (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl"));
-    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "rev" || w0Plain === "tac") && Boolean(this.getExternalCommand(w0Plain))))) {
+    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl") && Boolean(this.getExternalCommand(w0Plain))))) {
       const allArgs: string[] = [];
       let fOk = true;
       for (let i = 1; i < cmd.words.length; i++) {

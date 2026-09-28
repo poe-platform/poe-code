@@ -600,3 +600,31 @@ test("wave 101 sync loop: basename --/-a/-s, dirname --/multi-arg, and wc -m/-L"
     await shell.dispose();
   }
 });
+
+test("wave 102 sync loop: grep -Eo [0-9]+, multi-expression sed (; and -e -e), nl <<< here-string, and ASCII tr preservation", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  const commands = new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands()]);
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands });
+  try {
+    const script = [
+      's_num="id=42,cnt=7"',
+      's_sed="a-c-a"',
+      "s_nl=$'alpha\\nbeta'",
+      's_utf="héllo"',
+      "for ((i=1; i<=10; i++)); do",
+      '  g1=$(grep -Eo "[0-9]+" <<< "$s_num")',
+      '  d1=$(sed "s/a/b/g; s/c/d/g" <<< "$s_sed")',
+      '  d2=$(sed -e "s/a/b/g" -e "s/c/d/g" <<< "$s_sed")',
+      '  n1=$(nl <<< "$s_nl")',
+      '  t1=$(tr a-z A-Z <<< "$s_utf")',
+      "done",
+      'printf "%s|%s|%s|%s|%s\\n" "${g1//$' + "'\\n'" + '/,}" "$d1" "$d2" "${n1//$' + "'\\n'" + '/,}" "$t1"',
+    ].join("\n");
+    const result = await shell.exec(script);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "42,7|b-d-b|b-d-b|     1\talpha,     2\tbeta|HéLLO\n");
+  } finally {
+    await shell.dispose();
+  }
+});

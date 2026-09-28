@@ -106,8 +106,12 @@ Portable profile byte, tab, and traversal limits are independently optional and 
 The trusted storage control channel has no default frame-byte, pending-command,
 pending-byte, subscription, late-reply, or command-time limit. Individual control
 budgets remain available, and outgoing budget refusals leave the channel usable.
-Configured deadlines share one timer; exact late-reply identities remain tracked.
+Configured deadlines share one timer and advance even when the Worker clock stays
+stationary; exact late-reply identities remain tracked.
 Unknown target creation outcomes and invalid native replies still fail closed.
+Private browser transport client, target, session, graph, queue, byte, and timeout
+budgets also default to unlimited and accept explicit `Infinity`. Positive finite
+limits opt into individual budgets; unlimited deadlines schedule no timers.
 
 ```ts
 import {

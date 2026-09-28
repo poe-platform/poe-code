@@ -235,3 +235,51 @@ test("JavaScript null limits remain invalid while undefined fields are omitted",
 	unlimited.reply(0);
 	expect(await pending).toEqual({});
 });
+
+test("selected deadlines expire under a stationary worker clock", async () => {
+  vi.spyOn(performance, "now").mockReturnValue(0);
+  const { control, socket } = fixture({ commandTimeoutMs: 5 });
+  let error: unknown;
+  const outcome = control.send("Runtime.evaluate").catch(value => { error = value; });
+  await vi.advanceTimersByTimeAsync(5);
+  expect(String(error)).toContain("timed out");
+  expect(vi.getTimerCount()).toBe(0);
+  socket.reply(0);
+  await outcome;
+});
+
+test("stationary-clock deadlines preserve staggered command ages across timer chunks", async () => {
+  vi.spyOn(performance, "now").mockReturnValue(0);
+  const { control, socket } = fixture({ commandTimeoutMs: 2147483647 + 5 });
+  const first = control.send("Runtime.evaluate").catch(value => value);
+  await vi.advanceTimersByTimeAsync(2147483647);
+  let secondError: unknown;
+  const second = control.send("Browser.getVersion").catch(value => { secondError = value; });
+  await vi.advanceTimersByTimeAsync(5);
+  expect(String(await first)).toContain("timed out");
+  expect(secondError).toBeUndefined();
+  await vi.advanceTimersByTimeAsync(2147483647);
+  expect(String(secondError)).toContain("timed out");
+  expect(vi.getTimerCount()).toBe(0);
+  socket.reply(0);
+  socket.reply(1);
+  await second;
+});
+
+test("a worker clock catching up after a timer chunk does not count elapsed time twice", async () => {
+  let observed = 0;
+  vi.spyOn(performance, "now").mockImplementation(() => observed);
+  const { control, socket } = fixture({ commandTimeoutMs: 2147483647 + 5 });
+  const first = control.send("Runtime.evaluate").catch(value => value);
+  await vi.advanceTimersByTimeAsync(2147483647);
+  let secondError: unknown;
+  const second = control.send("Browser.getVersion").catch(value => { secondError = value; });
+  observed = 2147483647 + 5;
+  await vi.advanceTimersByTimeAsync(5);
+  expect(String(await first)).toContain("timed out");
+  await vi.advanceTimersByTimeAsync(1);
+  expect(secondError).toBeUndefined();
+  socket.reply(0);
+  socket.reply(1);
+  await second;
+});

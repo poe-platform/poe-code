@@ -6,6 +6,7 @@ export interface PlaywrightCDPTransport {
   onclose?: ((reason?: string) => void) | undefined;
 }
 
+/** Omitted limits and Infinity are unlimited; positive finite values opt into budgets. */
 export interface PlaywrightPrivateTargetTransportLimits {
   maxMessageBytes?: number;
   maxGraphNodes?: number;
@@ -57,7 +58,7 @@ interface Command {
 interface Creation {
   active: boolean;
   failed: boolean;
-  timer: ReturnType<typeof setTimeout>;
+  timer: ReturnType<typeof setTimeout> | undefined;
 }
 
 function record(value: unknown): value is Record<string, unknown> {
@@ -79,8 +80,8 @@ const admittedGraphs = new WeakMap<object, GraphStats>();
 function preflightProtocolJson(
   text: string,
   maxBytes: number,
-  maxNodes = 100_000,
-  maxDepth = 64,
+  maxNodes = Infinity,
+  maxDepth = Infinity,
   byteErrorMessage = 'CDP message byte limit exceeded',
 ): GraphStats {
   let bytes = 0;
@@ -174,8 +175,8 @@ export function admitPlaywrightProtocolFrame(
   options: { maxBytes?: number; maxGraphNodes?: number; maxGraphDepth?: number } = {},
 ): Record<string, unknown> {
   const maxBytes = options.maxBytes ?? Infinity;
-  const maxGraphNodes = options.maxGraphNodes ?? 100_000;
-  const maxGraphDepth = options.maxGraphDepth ?? 64;
+  const maxGraphNodes = options.maxGraphNodes ?? Infinity;
+  const maxGraphDepth = options.maxGraphDepth ?? Infinity;
   if (typeof data !== 'string') throw new Error('Private browser frame limit or type violation');
   const stats = preflightProtocolJson(
     data,
@@ -195,28 +196,25 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
   transport: PlaywrightCDPTransport;
   beginCreation(): PlaywrightPrivateTargetCreation;
 } {
+  for (const [name, value] of Object.entries(options)) {
+    if (value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) || value <= 0 || (name.endsWith('TimeoutMs') && value > 2147483647))) {
+      throw new TypeError(`Invalid private transport limit: ${name}`);
+    }
+  }
   const limits = {
-    maxGraphNodes: 100_000,
-    maxGraphDepth: 64,
-    maxQueuedCommands: 16384,
-    maxBufferedMessages: 512,
-    maxPrivateTargets: 256,
-    maxPrivateSessions: 1024,
-    creationTimeoutMs: 2000,
-    commandTimeoutMs: 10000,
-    ...options,
+    maxGraphNodes: options.maxGraphNodes ?? Infinity,
+    maxGraphDepth: options.maxGraphDepth ?? Infinity,
+    maxQueuedCommands: options.maxQueuedCommands ?? Infinity,
+    maxBufferedMessages: options.maxBufferedMessages ?? Infinity,
+    maxPrivateTargets: options.maxPrivateTargets ?? Infinity,
+    maxPrivateSessions: options.maxPrivateSessions ?? Infinity,
+    creationTimeoutMs: options.creationTimeoutMs ?? Infinity,
+    commandTimeoutMs: options.commandTimeoutMs ?? Infinity,
     maxMessageBytes: options.maxMessageBytes ?? Infinity,
     maxPendingBytes: options.maxPendingBytes ?? Infinity,
     maxBufferedBytes: options.maxBufferedBytes ?? Infinity,
     maxPendingCommands: options.maxPendingCommands ?? Infinity,
   };
-  for (const [name, value] of Object.entries(limits)) {
-    if (['maxPendingCommands', 'maxMessageBytes', 'maxPendingBytes', 'maxBufferedBytes'].includes(name) && (options as Record<string, unknown>)[name] === undefined) continue;
-    if (!Number.isSafeInteger(value) || value <= 0 || (name.endsWith('TimeoutMs') && value > 2147483647)) {
-      throw new TypeError(`Invalid private transport limit: ${name}`);
-    }
-  }
-  const encoder = new TextEncoder();
   const targets = new Set<string>();
   const sessions = new Map<string, string>();
   const retiredTargets = new Set<string>();
@@ -238,6 +236,7 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
   let timedCommandId: number | undefined;
 
   function scheduleCommandDeadline(): void {
+    if (!Number.isFinite(limits.commandTimeoutMs)) return;
     // Uniform deadlines and monotonic insertion order keep the oldest command
     // first, even when replies arrive out of order. Only that command needs a timer.
     const first = pending.entries().next().value;
@@ -548,7 +547,9 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
       if (creation) throw new Error('Target creation already in progress');
       if (targets.size >= limits.maxPrivateTargets) throw new Error('Private target identity capacity exceeded');
       const entry: Creation = { active: true, failed: false,
-        timer: setTimeout(() => retire(new Error('Native target creation identity timed out')), limits.creationTimeoutMs) };
+        timer: Number.isFinite(limits.creationTimeoutMs)
+          ? setTimeout(() => retire(new Error('Native target creation identity timed out')), limits.creationTimeoutMs)
+          : undefined };
       creation = entry;
       return {
         commit(targetId) { finish(entry, true, targetId); },

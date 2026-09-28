@@ -58,21 +58,15 @@ function protocolObject(
 export function createBrowserPrivateTransport(
 	options: BrowserPrivateTransportOptions = {},
 ) {
-	const { maxClients = 8, ...guardOptions } = options;
-	const maxTargets = options.maxPrivateTargets ?? 256;
+	const { maxClients = Infinity, ...guardOptions } = options;
+	const maxTargets = options.maxPrivateTargets ?? Infinity;
 	const maxBytes = options.maxMessageBytes ?? Infinity;
-	const creationTimeoutMs = options.creationTimeoutMs ?? 10000;
-	for (const [name, value] of Object.entries({
-		...guardOptions,
-		maxClients,
-		maxTargets,
-		...(options.maxMessageBytes === undefined ? {} : { maxBytes }),
-		creationTimeoutMs,
-	})) {
+	const creationTimeoutMs = options.creationTimeoutMs ?? Infinity;
+	for (const [name, value] of Object.entries(options)) {
 		if (
-			!Number.isSafeInteger(value) ||
+			value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) ||
 			value <= 0 ||
-			(name.endsWith("TimeoutMs") && value > 2147483647)
+			(name.endsWith("TimeoutMs") && value > 2147483647))
 		)
 			throw new TypeError(`Invalid private browser limit: ${name}`);
 	}
@@ -305,7 +299,8 @@ export function createBrowserPrivateTransport(
 			active: true,
 			tokens: new Map(),
 			destroyed: new Set(),
-			deadline: AbortSignal.timeout(creationTimeoutMs),
+			deadline: Number.isFinite(creationTimeoutMs)
+				? AbortSignal.timeout(creationTimeoutMs) : new AbortController().signal,
 			expire: () =>
 				fail(new Error("Private target creation identity timed out")),
 		};

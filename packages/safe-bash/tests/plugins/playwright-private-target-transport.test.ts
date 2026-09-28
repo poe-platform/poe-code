@@ -7,7 +7,7 @@ type Message = { id?: number; method?: string; sessionId?: string; params?: Reco
 test('20001 pending commands share one deadline timer and all replies complete', context => {
   context.mock.timers.enable({ apis: ['setTimeout'] });
   const timers = context.mock.method(globalThis, 'setTimeout');
-  const state = fixture({ maxPendingCommands: 20001 });
+  const state = fixture({ maxPendingCommands: 20001, commandTimeoutMs: 10000 });
   try {
     for (let id = 1; id <= 20001; id++) state.transport.send({ id, method: 'Runtime.enable' });
     assert.equal(timers.mock.callCount(), 1);
@@ -263,7 +263,7 @@ for (const [name, limits, messages] of [
 test('handle enumeration bursts wait for native capacity without closing the browser', context => {
   context.mock.timers.enable({ apis: ['setTimeout'] });
   const timers = context.mock.method(globalThis, 'setTimeout');
-  const state = fixture({ maxPendingCommands: 1024 });
+  const state = fixture({ maxPendingCommands: 1024, commandTimeoutMs: 10000 });
   try {
     for (let id = 1; id <= 2001; id++) state.transport.send({ id, method: 'Runtime.getProperties', sessionId: 'public' });
     assert.equal(state.sent.length, 1024);
@@ -563,7 +563,7 @@ test('send failure retires and preserves the synchronous failure', () => {
 });
 
 test('invalid limits and identities fail before unsupported admission', () => {
-  for (const value of [0, -1, NaN, Infinity, 1.5]) {
+  for (const value of [0, -1, NaN, -Infinity, 1.5]) {
     assert.throws(() => fixture({ maxBufferedBytes: value }), /limit/i);
     assert.throws(() => fixture({ maxPendingCommands: value }), /limit/i);
   }
@@ -757,7 +757,7 @@ test('preflights dense 5 MiB protocol JSON graphs before JSON.parse and reuses a
       parseCalled = true;
       return originalParse(...args);
     }) as typeof JSON.parse;
-    assert.throws(() => admitPlaywrightProtocolFrame(denseFrame), /graph node limit exceeded/);
+    assert.throws(() => admitPlaywrightProtocolFrame(denseFrame, { maxGraphNodes: 100_000 }), /graph node limit exceeded/);
     assert.equal(parseCalled, false);
   } finally {
     JSON.parse = originalParse;

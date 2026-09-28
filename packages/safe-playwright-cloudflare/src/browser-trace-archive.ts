@@ -48,7 +48,7 @@ export async function writeTraceArchive(options: {
   const zipLimits: ZipLimits = {
     maxArchiveBytes: limits.maxArchiveBytes, maxEntryBytes: limits.maxBytes,
     maxTotalBytes: limits.maxBytes, maxMembers: limits.maxFiles,
-    maxPathBytes: 65535, maxDepth: 32, maxPaxBytes: 65535, maxTextBytes: 65535,
+    maxPathBytes: Infinity, maxDepth: Infinity, maxPaxBytes: Infinity, maxTextBytes: Infinity,
     chunkSize: 65536,
   };
   const entries: ZipEntry[] = [];

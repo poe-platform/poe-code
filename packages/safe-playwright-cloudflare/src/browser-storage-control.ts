@@ -120,6 +120,12 @@ export function createBrowserStorageControl(options: {
 	let timer: ReturnType<typeof setTimeout> | undefined;
 	let timedCommandId: number | undefined;
 
+	let clock = performance.now();
+	function now() {
+		clock = Math.max(clock, performance.now());
+		return clock;
+	}
+
 	function scheduleDeadline() {
 		if (!Number.isFinite(limits.commandTimeoutMs) || closed) return;
 		// One clock follows the oldest command; all commands share the selected timeout.
@@ -130,15 +136,19 @@ export function createBrowserStorageControl(options: {
 		timedCommandId = first?.[0];
 		if (!first) return;
 		const [id, command] = first;
-		const remaining = limits.commandTimeoutMs - (performance.now() - command.started);
+		const previous = now();
+		const remaining = limits.commandTimeoutMs - (previous - command.started);
+		const step = Math.min(Math.max(0, remaining), 2147483647);
 		timer = setTimeout(() => {
 			timer = undefined;
 			timedCommandId = undefined;
-			if (performance.now() - command.started >= limits.commandTimeoutMs)
+			// Timer completion advances the logical clock even when workerd freezes performance.now().
+			clock = Math.max(now(), previous + step);
+			if (clock - command.started >= limits.commandTimeoutMs)
 				expireCommand(id, command.method);
 			// Long deadlines are chunked to avoid the native timer's signed-int overflow.
 			scheduleDeadline();
-		}, Math.min(Math.max(0, remaining), 2147483647));
+		}, step);
 	}
 
 	function notifyDetached(reason: Error) {
@@ -301,7 +311,7 @@ export function createBrowserStorageControl(options: {
 				bytes,
 				sessionId,
 				method,
-				started: performance.now(),
+				started: now(),
 			});
 			pendingBytes += bytes;
 			scheduleDeadline();

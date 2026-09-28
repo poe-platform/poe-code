@@ -12159,13 +12159,11 @@ export class Runtime {
     if (w0Plain !== "local" && w0Plain !== "declare" && w0Plain !== "typeset" && w0Plain !== "export") return undefined;
     if (hasShellFunction(rawState, w0Plain) || rawState.extensions?.builtins.has(w0Plain) || hasActiveVariableAttributes(rawState)) return undefined;
     if (w0Plain === "local" && rawState.locals.length === 0) return undefined;
-    let startIdx = 1;
-    let attr: "u" | "l" | "i" | undefined;
+    const startIdx = 1;
     const w1Plain = cmd.words[1]?.plain;
     if (w0Plain !== "export" && (w1Plain === "-u" || w1Plain === "-l" || w1Plain === "-i")) {
-      if (cmd.words.length < 3) return undefined;
-      attr = w1Plain.slice(1) as "u" | "l" | "i";
-      startIdx = 2;
+      // Attribute changes invalidate the assumptions used to plan later loop steps.
+      return undefined;
     }
     const store = stateMonitor(rawState)?.store;
     const items: { readonly name: string; readonly value?: Word | undefined; readonly append: boolean }[] = [];
@@ -12203,7 +12201,7 @@ export class Runtime {
         return undefined;
       }
     }
-    return { kind: w0Plain === "export" ? "export" : w0Plain === "local" ? "local" : "declare", attr, items };
+    return { kind: w0Plain === "export" ? "export" : w0Plain === "local" ? "local" : "declare", items };
   }
   private isQuotedAtWord(w: Word): boolean {
     const p0 = w.parts.length === 1 ? w.parts[0] : (w.parts.length === 2 && w.parts[0]!.kind === "text" && w.parts[0]!.value === "" ? w.parts[1] : undefined);

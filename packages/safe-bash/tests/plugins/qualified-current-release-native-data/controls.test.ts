@@ -157,12 +157,6 @@ function approvedCompilerConfiguration(): CompilerConfiguration {
         "poe-code/safe-bash": [
           "./dist/index.d.ts"
         ],
-        "poe-code/safe-bash/contracts": [
-          "../safe-bash-contracts/src/index.ts"
-        ],
-        "poe-code/safe-bash/contracts/*": [
-          "../safe-bash-contracts/src/*.ts"
-        ],
         "virtual-bash": [
           "./dist/index.d.ts"
         ],
@@ -298,7 +292,7 @@ test("source census rejects unknown held members, aliases and escaping paths rat
   assert.equal(fixture.reads.some(path => path.includes("/xan/")), false);
 });
 
-test("source census refuses symlink or special inputs and enforces the aggregate byte budget before reads", () => {
+test("source census refuses special inputs and enforces per-file and aggregate byte budgets before reads", () => {
   const fixture = sourceCensusFixture();
   for (const [path, stat] of [
     ["/candidate/src/commands", { isDirectory: () => false, isFile: () => false, size: 0 }],
@@ -317,9 +311,30 @@ test("source census refuses symlink or special inputs and enforces the aggregate
   }), /source census exceeds its explicit input budget/);
   assert.ok(!fixture.reads.includes("/candidate/src/current.ts"));
 
+  for (const [path, maximum] of [
+    ["/candidate/src/current.ts", 1024 * 1024],
+    ["/candidate/src/shell/runtime.ts", 2 * 1024 * 1024],
+    ["/candidate/src/shell/runtime-extra.ts", 1024 * 1024],
+  ] as const) {
+    const boundaryFixture = sourceCensusFixture();
+    boundaryFixture.files.set(path, Buffer.alloc(maximum));
+    const boundary = collectSourceInputs("/candidate", boundaryFixture.fileSystem);
+    assert.equal(boundary.files.get(path.slice("/candidate/".length))!.length, maximum);
+    boundaryFixture.reads.length = 0;
+    assert.throws(() => collectSourceInputs("/candidate", {
+      ...boundaryFixture.fileSystem,
+      lstatSync: candidate => candidate === path
+        ? { isDirectory: () => false, isFile: () => true, size: maximum + 1 }
+        : boundaryFixture.fileSystem.lstatSync(candidate),
+    }), /unadmitted type-input file or size/);
+    assert.ok(!boundaryFixture.reads.includes(path));
+  }
+
   const precedingBytes = fixture.files.get("/candidate/src/commands/xan-neighbor/current.ts")!.length
     + fixture.files.get("/candidate/src/commands/yq/index.ts")!.length;
-  fixture.files.set("/candidate/src/current.ts", Buffer.alloc(64 * 1024 * 1024 - precedingBytes));
+  const chunk = Buffer.alloc(1024 * 1024);
+  for (let index = 0; index < 63; index++) fixture.files.set(`/candidate/src/aggregate-${index}.ts`, chunk);
+  fixture.files.set("/candidate/src/current.ts", Buffer.alloc(1024 * 1024 - precedingBytes));
   const captured = collectSourceInputs("/candidate", fixture.fileSystem);
   assert.equal([...captured.files.values()].reduce((total, bytes) => total + bytes.length, 0), 64 * 1024 * 1024);
   fixture.files.set("/candidate/src/z-overflow.ts", Buffer.from("x"));

@@ -707,13 +707,13 @@ test("Wave 105: trySyncLoop supports jq // fallback, comma outputs, select(...),
       "line=\"u:v:w:x\"",
       "out=\"\"",
       "for ((i=1; i<=20; i++)); do",
-      "  h=\$(jq -r \".host, (.port // 5432)\" <<< \"\$json\")",
-      "  act=\$(jq -r \".items[] | select(.active == true) | .id\" <<< \"\$json\")",
-      "  t=\$(tr -cd \"0-9_\" <<< \"\$raw\")",
-      "  c=\$(cut -d: -f1,3,4 --output-delimiter=\"|\" <<< \"\$line\")",
-      "  out=\"\$h/\$act/\$t/\$c\"",
+      "  h=$(jq -r \".host, (.port // 5432)\" <<< \"$json\")",
+      "  act=$(jq -r \".items[] | select(.active == true) | .id\" <<< \"$json\")",
+      "  t=$(tr -cd \"0-9_\" <<< \"$raw\")",
+      "  c=$(cut -d: -f1,3,4 --output-delimiter=\"|\" <<< \"$line\")",
+      "  out=\"$h/$act/$t/$c\"",
       "done",
-      "printf \"%s\\n\" \"\$out\"",
+      "printf \"%s\\n\" \"$out\"",
     ].join("\n");
     const res = await shell.exec(script);
     assert.equal(res.exitCode, 0, res.stderr);
@@ -721,8 +721,8 @@ test("Wave 105: trySyncLoop supports jq // fallback, comma outputs, select(...),
 
     const mutatedErr = await shell.exec([
       "for payload in '{\"a\":1}' 'not-json'; do",
-      "  val=\$(jq -r \".a\" <<< \"\$payload\")",
-      "  printf \"%d:%s\\n\" \"\$?\" \"\$val\"",
+      "  val=$(jq -r \".a\" <<< \"$payload\")",
+      "  printf \"%d:%s\\n\" \"$?\" \"$val\"",
       "done",
     ].join("\n"));
     assert.equal(mutatedErr.stdout, "0:1\n5:\n");

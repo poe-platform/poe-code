@@ -99,6 +99,24 @@ export function createTaskFingerprints(plan, {
     inputFiles.add(file);
     const owner = ownerOf(file);
     if (owner) grouped.get(owner).push(file);
+    else if (file === "package.json") {
+      try {
+        const parsed = JSON.parse(fileSystem.readFileSync(path.join(plan.root, file), "utf8"));
+        common.update(createHash("sha256").update(JSON.stringify({
+          type: parsed.type,
+          workspaces: parsed.workspaces,
+          dependencies: parsed.dependencies,
+          devDependencies: parsed.devDependencies,
+          optionalDependencies: parsed.optionalDependencies,
+          peerDependencies: parsed.peerDependencies,
+          overrides: parsed.overrides,
+          engines: parsed.engines,
+          packageManager: parsed.packageManager
+        })).digest("hex"));
+      } catch {
+        common.update(read(file));
+      }
+    }
     else if ((event === "build"
       ? ["package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", "turbo.json", "scripts/guard-package-dist.mjs", "scripts/check-cache.mjs", "scripts/build-workspaces.mjs"]
       : ["package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", "turbo.json", "vitest.config.ts", "vitest.root.config.ts", "tests/setup.ts", "tests/test-env.ts", "scripts/guard-package-dist.mjs", "scripts/check-cache.mjs", "scripts/build-workspaces.mjs", "scripts/test-vitest-workspaces.mjs", "scripts/workspace-test-ownership.mjs", "scripts/run-vitest-batch.mjs", "scripts/vitest-batch-worker.mjs", "scripts/vitest-immediate-reporter.mjs", "packages/mcp-protocol-rust/scripts/cargo.mjs"]

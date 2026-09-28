@@ -236,4 +236,37 @@ describe("content-addressed check cache", () => {
     sharedCache.write("b".repeat(64), { success: true, durationMs: 34 });
     expect(sharedCache.read("b".repeat(64))).toEqual({ success: true, durationMs: 34 });
   });
+
+  it("keeps workspace fingerprints stable across root package.json exports/files changes while invalidating on dependency changes", () => {
+    const state = fixture();
+    state.fileSystem.writeFileSync("/repo/package.json", JSON.stringify({
+      name: "poe-code",
+      type: "module",
+      workspaces: ["packages/*"],
+      exports: { ".": "./dist/index.js" },
+      files: ["dist"],
+      dependencies: { semver: "^7.0.0" }
+    }));
+    const files = [...state.files, "package.json"];
+    const key = () => createTaskFingerprints(state.plan, { files, fileSystem: state.fileSystem, environment: {}, runtime: "node-test", event: "build" }).get("alpha");
+    const before = key();
+    state.fileSystem.writeFileSync("/repo/package.json", JSON.stringify({
+      name: "poe-code",
+      type: "module",
+      workspaces: ["packages/*"],
+      exports: { ".": "./dist/index.js", "./extra": "./dist/extra.js" },
+      files: ["dist", "!**/*.js.map"],
+      dependencies: { semver: "^7.0.0" }
+    }));
+    expect(key()).toBe(before);
+    state.fileSystem.writeFileSync("/repo/package.json", JSON.stringify({
+      name: "poe-code",
+      type: "module",
+      workspaces: ["packages/*"],
+      exports: { ".": "./dist/index.js", "./extra": "./dist/extra.js" },
+      files: ["dist", "!**/*.js.map"],
+      dependencies: { semver: "^7.6.0" }
+    }));
+    expect(key()).not.toBe(before);
+  });
 });

@@ -39,3 +39,16 @@ it("omits disposable debug maps while retaining local artifacts", async () => {
   }
 });
 
+it("retains declarations needed by private runtime imports", async () => {
+  const { volume, options } = packagingFixture();
+  const filename = "/repo/packages/safe-js/package.json";
+  const manifest = JSON.parse(volume.readFileSync(filename, "utf8").toString());
+  manifest.imports = { "#platform": { default: "./dist/platform/node.js" } };
+  volume.writeFileSync(filename, JSON.stringify(manifest));
+  volume.mkdirSync("/repo/packages/safe-js/dist/platform", { recursive: true });
+  volume.writeFileSync("/repo/packages/safe-js/dist/platform/node.js", "export {};\n");
+  volume.writeFileSync("/repo/packages/safe-js/dist/platform/node.d.ts", "export interface Context { value: string }\n");
+  volume.writeFileSync("/repo/packages/safe-js/dist/index.d.ts", 'export type { Context } from "#platform";\n');
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  expect(volume.readFileSync("/output/safe-js/dist/safe-js/platform/node.d.ts", "utf8")).toBe("export interface Context { value: string }\n");
+});

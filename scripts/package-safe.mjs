@@ -507,6 +507,10 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
         bundled.set(license, await files.readFile(path.join(yamlRoot, "LICENSE")));
         pending.push(license);
       }
+      const declaration = filename.endsWith(".js") ? filename.slice(0, -3) + ".d.ts"
+        : filename.endsWith(".mjs") ? filename.slice(0, -4) + ".d.mts"
+        : filename.endsWith(".cjs") ? filename.slice(0, -4) + ".d.cts" : undefined;
+      if (declaration && !excluded(declaration) && await exists(declaration)) pending.push(declaration);
       const destination = path.join(directory, artifactPath(rootDir, filename));
       let contents = bundled.has(filename) ? Buffer.from(bundled.get(filename)) : await files.readFile(filename);
       if (filename.endsWith(".js") || filename.endsWith(".mjs") || filename.endsWith(".ts")) {

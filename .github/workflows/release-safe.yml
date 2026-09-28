@@ -84,7 +84,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .turbo/ci-cache
-          key: safe-release-checks-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json', 'turbo.json') }}-${{ github.sha }}
+          key: safe-release-checks-v2-${{ runner.os }}-${{ runner.arch }}-${{
+            hashFiles('package-lock.json', 'turbo.json') }}-${{ github.sha }}
           restore-keys: |
             safe-release-checks-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json', 'turbo.json') }}-
             ${{ runner.os }}-${{ runner.arch }}-build-v1-${{ hashFiles('package-lock.json') }}-
@@ -146,7 +147,13 @@ jobs:
       - name: Verify Cloudflare Worker transport and resource lifecycle
         if: steps.queue-check.outputs.publish == 'true'
         run: npm run test:workers --workspace=@poe-code/safe-playwright-cloudflare
-      - run: npx vitest run scripts/package-safe.test.ts scripts/root-optional-package.test.ts scripts/safe-bash-optional-build.test.ts scripts/safe-bash-optional-lifecycle.test.ts scripts/verify-safe-publication.test.ts scripts/safe-command-publication.test.ts scripts/bundle-safe-bash-private.test.ts
+      - run: npx vitest run scripts/package-debug-maps.test.ts
+          scripts/package-safe.test.ts scripts/root-optional-package.test.ts
+          scripts/safe-bash-optional-build.test.ts
+          scripts/safe-bash-optional-lifecycle.test.ts
+          scripts/verify-safe-publication.test.ts
+          scripts/safe-command-publication.test.ts
+          scripts/bundle-safe-bash-private.test.ts
         if: steps.queue-check.outputs.publish == 'true'
       - run: npm run lint:packages
         if: steps.queue-check.outputs.publish == 'true'
@@ -154,7 +161,8 @@ jobs:
         if: steps.queue-check.outputs.publish == 'true'
         env:
           VERSION: ${{ steps.version.outputs.next }}
-        run: node scripts/package-safe.mjs --out-dir "$RUNNER_TEMP/safe-npm" --version "$VERSION"
+        run: node scripts/package-safe.mjs --out-dir "$RUNNER_TEMP/safe-npm" --version
+          "$VERSION"
       - name: Verify installed tarballs
         if: steps.queue-check.outputs.publish == 'true'
         shell: bash

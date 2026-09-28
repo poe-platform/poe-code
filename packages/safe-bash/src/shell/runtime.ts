@@ -8908,6 +8908,9 @@ export class Runtime {
           }
         }
         if ((rIn ? 1 : 0) + (rOut ? 1 : 0) !== command.redirects.length) return undefined;
+        // File input must observe ordered opens and truncation, not a snapshot
+        // taken before the output redirect is applied.
+        if (rIn?.operator === "<" && rOut) return undefined;
         let syncReadInputText: string | undefined;
         let chargedReadFsOp = false;
         if (rIn) {
@@ -8979,7 +8982,7 @@ export class Runtime {
         }
         if ((guestArrays(rawState) && (guestArrays(rawState)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) || !this.canSyncLoopBody(command.body, rawState, loopIO)) return undefined;
         const { steps: checkSteps, redirectCount: innerRedirs } = this.buildSyncLoopBody(command, rawState, loopIO);
-        if ((rOut && innerRedirs > 0) || checkSteps.length === 0) return undefined;
+        if (((rOut || rIn?.operator === "<") && innerRedirs > 0) || checkSteps.length === 0) return undefined;
         if (rOut && !isDevNull) {
           try {
             if (!tryWriteMemoryFileSync(this.backingFs, resolvedPath, new Uint8Array(0), rOut.operator === ">>", loopMode, this.commandSignal)) return undefined;
@@ -13087,7 +13090,7 @@ export class Runtime {
           this.budget.parsing.restore(intBudgetSnapshot);
           regNames.length = 0;
           const fb = this.runSyncArithForFallback( e0, e1, e2, inductionName, hasDeferredSteps, deferredMask, bodyAssignments, rawState, io, monitor, touched, mode, diagnosticLine, );
-          loopStatus = fb.lastCmd ? rawState.status : 0;
+          loopStatus = rawState.status;
           lastCmd = fb.lastCmd;
           lastArg = fb.lastArg;
           lastInductionVal = fb.lastInductionVal;
@@ -13235,9 +13238,6 @@ export class Runtime {
       let iterCount = 0;
       try {
         if (whileReadSpec !== undefined && syncReadInputText !== undefined) {
-          const fixedIfs = whileReadSpec.ifsAssign !== undefined
-            ? (this.fastValueWord(whileReadSpec.ifsAssign.value, rawState, io, false, false, false, false, 0, condLine) as string)
-            : undefined;
           const varNames = whileReadSpec.varNames;
           const varCount = varNames.length;
           const isBareReply = whileReadSpec.isBareReply;
@@ -13282,6 +13282,9 @@ export class Runtime {
           let cursor = 0;
           while (true) {
             this.budget.tick();
+            const readIfs = whileReadSpec.ifsAssign !== undefined
+              ? (this.fastValueWord(whileReadSpec.ifsAssign.value, rawState, io, false, false, false, false, 0, condLine) as string)
+              : (rawState.variables.IFS ?? " \t\n");
             if (cursor >= textLen) {
               for (let vIdx = 0; vIdx < varCount; vIdx++) {
                 const vn = varNames[vIdx]!;
@@ -13296,19 +13299,20 @@ export class Runtime {
             if (nlIdx === -1) {
               const partialLine = syncReadInputText.slice(cursor);
               cursor = textLen;
-              splitSyncReadLine(partialLine, fixedIfs !== undefined ? fixedIfs : (rawState.variables.IFS ?? " \t\n"));
+              splitSyncReadLine(partialLine, readIfs);
               lastCmd = rCmd;
               lastArg = rLastArg;
               break;
             }
             const lineStr = syncReadInputText.slice(cursor, nlIdx);
             cursor = nlIdx + 1;
-            splitSyncReadLine(lineStr, fixedIfs !== undefined ? fixedIfs : (rawState.variables.IFS ?? " \t\n"));
+            splitSyncReadLine(lineStr, readIfs);
             rawState.status = 0;
             ++iterCount;
             this.budget.loop();
             if ((iterCount & 127) === 0) runYieldCheckpoint(this.signal);
-            this.execSyncLoopSteps(bodyAssignments, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; loopStatus = rawState.status; });
+            this.execSyncLoopSteps(bodyAssignments, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
+            loopStatus = rawState.status;
             if (this._syncLoopAction !== undefined) {
               const act = this._syncLoopAction;
               this._syncLoopAction = undefined;
@@ -13325,7 +13329,8 @@ export class Runtime {
             ++iterCount;
             this.budget.loop();
             if ((iterCount & 127) === 0) runYieldCheckpoint(this.signal);
-            this.execSyncLoopSteps(bodyAssignments, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; loopStatus = rawState.status; });
+            this.execSyncLoopSteps(bodyAssignments, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
+            loopStatus = rawState.status;
             if (this._syncLoopAction !== undefined) {
               const act = this._syncLoopAction;
               this._syncLoopAction = undefined;
@@ -13883,6 +13888,7 @@ export class Runtime {
     tryWriteMemoryFileSync(this.backingFs, targetVal, encoded, append, mode, this.commandSignal);
   }
   private runSyncArithForFallback( e0: ArithmeticProgram, e1: ArithmeticProgram, e2: ArithmeticProgram, inductionName: string, hasDeferredSteps: boolean, deferredMask: number, bodyAssignments: readonly SyncLoopStep[], rawState: State, io: IO, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, mode: number, diagnosticLine: number, ): { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string; lastInductionVal: string | undefined } {
+    rawState.status = 0;
     let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
     let lastArg = rawState.lastArgument ?? "";
     let lastValueWord: Word | undefined;
@@ -14317,7 +14323,6 @@ export class Runtime {
     const updateInner = (v: { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string }): void => {
       innerLastCmd = v.lastCmd;
       innerLastArg = v.lastArg;
-      innerStatus = rawState.status;
     };
     rawState.loopDepth++;
     try {
@@ -14332,6 +14337,7 @@ export class Runtime {
           this.budget.loop();
           if ((++turn & 127) === 0) runYieldCheckpoint(this.signal);
           this.execSyncLoopSteps(nl.steps, rawState, io, monitor, touched, mode, updateInner);
+          innerStatus = rawState.status;
           if (this._syncLoopAction !== undefined) {
             const act = this._syncLoopAction;
             this._syncLoopAction = undefined;
@@ -14348,6 +14354,7 @@ export class Runtime {
           if ((++turn & 127) === 0) runYieldCheckpoint(this.signal);
           rawState.variables[lc.name] = words[i]!;
           this.execSyncLoopSteps(nl.steps, rawState, io, monitor, touched, mode, updateInner);
+          innerStatus = rawState.status;
           if (this._syncLoopAction !== undefined) {
             const act = this._syncLoopAction;
             this._syncLoopAction = undefined;
@@ -14365,6 +14372,7 @@ export class Runtime {
           this.budget.loop();
           if ((++turn & 127) === 0) runYieldCheckpoint(this.signal);
           this.execSyncLoopSteps(nl.steps, rawState, io, monitor, touched, mode, updateInner);
+          innerStatus = rawState.status;
           if (this._syncLoopAction !== undefined) {
             const act = this._syncLoopAction;
             this._syncLoopAction = undefined;
@@ -14376,7 +14384,7 @@ export class Runtime {
       rawState.loopDepth--;
     }
     rawState.status = innerStatus;
-    onUpdate({ lastCmd: innerLastCmd, lastArg: innerLastArg });
+    if (innerLastCmd) onUpdate({ lastCmd: innerLastCmd, lastArg: innerLastArg });
   }
   private execSyncCaseStep(
     step: SyncLoopStep,

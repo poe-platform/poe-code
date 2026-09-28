@@ -1,4 +1,4 @@
-import { command, CommandFailure, emit, type Settings } from "./shared.js";
+import { command, CommandFailure, defaultSleepScheduler, emit, type Settings } from "./shared.js";
 
 function duration(arguments_: readonly string[]): number {
   if (!arguments_.length) throw new CommandFailure("missing operand");
@@ -99,7 +99,11 @@ function delay(milliseconds: number, signal: AbortSignal, configuration: Setting
         if (!Number.isFinite(now) || Math.abs(now) > Number.MAX_SAFE_INTEGER || (previous !== undefined && now < previous)) {
           throw new RangeError("sleep scheduler must supply finite monotonic milliseconds");
         }
-        if (previous !== undefined) remaining -= Math.max(step, now - previous);
+        if (previous !== undefined) {
+          // Host timers may wake early. Injected clocks can instead be coarse
+          // or frozen, so retain their scheduled-interval progress contract.
+          remaining -= scheduler === defaultSleepScheduler ? now - previous : Math.max(step, now - previous);
+        }
         previous = now;
         if (remaining <= 0) { finish(false); return; }
         step = Math.min(2147483647, configuration.maxTimerMilliseconds, Math.max(1, Math.ceil(remaining)));

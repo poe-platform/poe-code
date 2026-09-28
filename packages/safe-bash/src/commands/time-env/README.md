@@ -30,7 +30,9 @@ Options are readonly: `replace`, `clock: () => number` (Unix milliseconds),
 `setTimeout(callback, milliseconds): unknown` and `clearTimeout(handle): void`.
 Callbacks must be asynchronously scheduled; injected host hooks are trusted,
 not sandboxed or universally preemptible. Default sleep uses `performance.now`
-and ordinary cancellable Node timers, not the injectable wall clock.
+and cancellable host timers, rechecking elapsed time after early wakeups.
+Injected schedulers credit at least the scheduled interval on each callback,
+so coarse or frozen clock samples still make progress.
 
 Invocation limits are disabled by default (`Infinity`). Set individual `limits`
 for argument count/bytes, stdout bytes, environment properties, or format width

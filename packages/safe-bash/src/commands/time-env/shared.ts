@@ -7,6 +7,12 @@ export interface SleepScheduler {
   clearTimeout(handle: unknown): void;
 }
 
+export const defaultSleepScheduler: SleepScheduler = {
+  now: () => performance.now(),
+  setTimeout: (callback, milliseconds) => setTimeout(callback, milliseconds),
+  clearTimeout: handle => clearTimeout(handle as ReturnType<typeof setTimeout>),
+};
+
 export interface TimeEnvLimits {
   readonly maxArguments: number;
   readonly maxArgumentBytes: number;
@@ -42,11 +48,7 @@ export function settings(options: TimeEnvCommandsOptions): Settings {
   if (maxTimerMilliseconds !== Infinity && (!Number.isInteger(maxTimerMilliseconds) || maxTimerMilliseconds < 1 || maxTimerMilliseconds > 2147483647)) {
     throw new RangeError("maxTimerMilliseconds must be between 1 and 2147483647 or Infinity");
   }
-  const scheduler: SleepScheduler = options.scheduler ?? {
-    now: () => performance.now(),
-    setTimeout: (callback, milliseconds) => setTimeout(callback, milliseconds),
-    clearTimeout: handle => clearTimeout(handle as ReturnType<typeof setTimeout>),
-  };
+  const scheduler = options.scheduler ?? defaultSleepScheduler;
   if (typeof scheduler.now !== "function" || typeof scheduler.setTimeout !== "function" || typeof scheduler.clearTimeout !== "function") {
     throw new TypeError("Invalid sleep scheduler");
   }

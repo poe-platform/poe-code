@@ -115,3 +115,32 @@ test("sleep default scheduler waits against monotonic elapsed time", async () =>
   assert.ok(performance.now() - started >= 15);
   assert.equal(result.exitCode, 0); assert.equal(result.stdout, ""); assert.equal(result.stderr, "");
 });
+
+for (const cancel of [false, true]) test(`sleep default scheduler rechecks early timer wakeups, cancel=${cancel}`, async context => {
+  let now = 0;
+  context.mock.method(performance, "now", () => now);
+  context.mock.timers.enable({ apis: ["setTimeout"] });
+  const controller = new AbortController(), reason = new Error("cancel rearmed sleep");
+  context.after(() => controller.abort(reason));
+  let settled = false;
+  const execution = run("sleep", [".015"], {}, { signal: controller.signal });
+  void execution.then(() => { settled = true; }, () => { settled = true; });
+
+  now = 14;
+  context.mock.timers.tick(15);
+  await new Promise<void>(resolve => setImmediate(resolve));
+  assert.equal(settled, false, "15 ms sleep finished after only 14 monotonic milliseconds");
+
+  if (cancel) {
+    controller.abort(reason);
+    await assert.rejects(execution, error => error === reason);
+  } else {
+    now = 15;
+    context.mock.timers.tick(1);
+    const result = await execution;
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+  }
+  assert.equal(getEventListeners(controller.signal, "abort").length, 0);
+});

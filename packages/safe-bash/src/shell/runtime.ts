@@ -9642,7 +9642,7 @@ export class Runtime {
           } catch {
             scanArgs = undefined;
           }
-          if (typeof optstring === "string" && scanArgs !== undefined) {
+          if (typeof optstring === "string" && (!optstring.startsWith("-") || optstring === "-") && scanArgs !== undefined) {
             rawState.getopts ??= cloneGetoptsBinding(rawState);
             const res = scanGetoptsSync(rawState.getopts.cursor, optstring, scanArgs);
             if (res !== undefined) {
@@ -11933,6 +11933,7 @@ export class Runtime {
         }
         if (p.commands.length >= 2) {
           if ((w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "seq" && w0Plain !== "cat" && !hasSingleHereStringRedir) || syncPurePipelineSlotInUse || !this.budget.canSyncPurePipe || rawState.errexit || rawState.nounset) return false;
+          if (w0Plain === "printf" && !this.isSyncPrintfCallOk(cmd, 1, rawState)) return false;
           for (let sIdx = 1; sIdx < p.commands.length; sIdx++) {
             const sCmd = p.commands[sIdx]!;
             if (sCmd.kind !== "simple" || sCmd.redirects.length !== 0 || sCmd.words.length === 0) return false;
@@ -11985,8 +11986,9 @@ export class Runtime {
               if (!grepOk) return false;
             }
             if (sName === "jq") {
-              const jqFilter = sPlainArgs.length === 1 ? sPlainArgs[0] : (sPlainArgs.length === 2 && (sPlainArgs[0] === "-r" || sPlainArgs[0] === "--raw-output") ? sPlainArgs[1] : undefined);
-              if (!jqFilter || !/^\.[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*$/.test(jqFilter)) return false;
+              // JSON types are runtime inputs: the speculative evaluator may
+              // refuse array indexing and must leave diagnostics to jq.
+              return false;
             }
             if (sName === "base64") {
               if (sPlainArgs.length > 1 || (sPlainArgs.length === 1 && sPlainArgs[0] !== "-d" && sPlainArgs[0] !== "--decode")) return false;
@@ -16679,7 +16681,7 @@ export class Runtime {
         try {
           status = await evaluateConditional(command.expression, {
             fs: this.fs, cwd: state.cwd, signal: this.signal, predicateIdentity: io.capabilities?.predicateIdentity, reference: name => state.variableAttributes?.get(name)?.includes("n") ?? false, locale: state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C", characterLocale: state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C", ignoreCase: !!state.nocasematch, extglob: true, work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation }, expand: async (word, pattern = false) => {
-              const fast = !pattern ? this.fastValueWord(word, state, io, false, false, false, false) : undefined;
+              const fast = !pattern ? this.fastValueWord(word, state, { ...io, nameExpansionContext: "conditional" }, false, false, false, false) : undefined;
               if (typeof fast === "string") return fast;
               return (await this.word(word, state, { ...io, nameExpansionContext: "conditional" }, false, pattern, false, pattern)).join("");
             }, arithmetic: value => this.arithmeticValue(prepareArithmetic(value || "0", this.budget.parsing), state, io), regex: (subject, pattern) => this.ere(subject, pattern, state, { ...io, nameExpansionContext: "conditional" }), option: name => name === "allexport" ? !!state.allexport : name === "braceexpand" ? state.braceexpand !== false : name === "noexec" ? !!state.noexec : name === "noglob" ? !!state.noglob : name === "noclobber" ? !!state.noclobber : name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : state.extensions?.options.get(name)?.enabled ?? false, present: name => this.variablePresent(state, name, io), });

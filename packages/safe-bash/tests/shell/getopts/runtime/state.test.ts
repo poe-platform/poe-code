@@ -11,6 +11,18 @@ interface FrozenCase {
   fixtures?: string[];
 }
 
+for (const delimiter of ["--", '"--"', '"$delimiter"']) {
+  test(`getopts recognizes expanded leading delimiter ${delimiter}`, async () => {
+    const { shell } = runtimeSetup();
+    try {
+      const result = await shell.exec(`delimiter=--; getopts ${delimiter} a opt -a; say "$?:$opt:$OPTIND"`);
+      assert.equal(result.stdout, "0:a:2\n");
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    } finally { await shell.dispose(); }
+  });
+}
+
 const frozen: { scripts: FrozenCase[] } = await import(new URL("../../getopts-independent-20260827/stage2/corpus.mjs", import.meta.url).href);
 
 for (const item of frozen.scripts.filter(item => ["N01", "N02", "N03", "N06", "N07", "N08", "N09", "N10", "N11", "N16"].includes(item.id))) {

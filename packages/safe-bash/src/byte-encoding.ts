@@ -7,6 +7,7 @@ export function bytesToHex(bytes: Uint8Array): string {
 }
 
 export function latin1Bytes(text: string): Uint8Array {
+  if (typeof globalThis.Buffer === "function") return globalThis.Buffer.from(text, "latin1");
   const bytes = new Uint8Array(text.length);
   for (let index = 0; index < text.length; index++) bytes[index] = text.charCodeAt(index) & 255;
   return bytes;

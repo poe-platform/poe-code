@@ -60,9 +60,9 @@ for (const reason of ["caller", "timeout"] as const) {
       await response.body?.cancel();
       body = new ReadableStream<Uint8Array>({
         pull() {
-          trigger ??= delay(reason === "caller" ? 5 : 60).then(() => {
-            if (reason === "caller") controller.abort();
-          });
+          trigger ??= reason === "caller"
+            ? Promise.resolve().then(() => { controller.abort(); })
+            : delay(60);
         },
         cancel() { cancelled = true; },
       }, { highWaterMark: 0 });

@@ -9,7 +9,7 @@ it("imports Lotus selection and viewport without synthesizing cells", async () =
   expect(book.sheets[0]?.view).toEqual({ selection: "D10", initialTopLeft: "C8" });
   expect(book.sheets[0]?.cells).toEqual([]);
 });
-it("accepts source-ignored named-sheet and text-style records", async () => {
+it("tolerates empty sheet-name and ignored text-style records", async () => {
   const book = await readLotus(file(record(0x23), record(0x1b, [0xa1, 15, ...Array<number>(22).fill(0)]), record(20, [0, 0, 0, 0])), context);
   expect(book.sheets[0]?.cells[0]?.value).toEqual({ kind: "error", value: "#VALUE!" });
 });

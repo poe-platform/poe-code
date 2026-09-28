@@ -432,6 +432,18 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
       continue;
     }
     if (id === 1) { if (modern) break; active = -1; continue; }
+    if (version >= 0x1003 && version <= 0x1005 && id === 0x23) {
+      consumeOperation();
+      if (length < 5) await warn(`Record with type 0x23 has wrong length ${length}.`);
+      else {
+        // LibreOffice OP_SheetName123: two ignored bytes, a sheet index and
+        // a bounded C string. libwps defaults this record to Windows Western.
+        const nameBytes = data.bytes.subarray(4), zero = nameBytes.indexOf(0);
+        const name = new TextDecoder("windows-1252").decode(zero < 0 ? nameBytes : nameBytes.subarray(0, zero));
+        if (name) sheet(data.u16(2)).name = name;
+      }
+      continue;
+    }
     if (id === (modern ? 9 : 11)) {
       consumeOperation();
       if (length < (modern ? 26 : 24)) { await warn(`Record with type 0x${id.toString(16)} has wrong length ${length}.`); continue; }

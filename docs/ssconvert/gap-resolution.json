@@ -2721,6 +2721,33 @@
         "out/ssconvert-release-investigation/perl-extrema-native.json",
         "out/ssconvert-release-investigation/perl-extrema-compiled.json"
       ]
+    },
+    "lotusModernSheetNames": {
+      "status": "implemented record 0x23 for versions 0x1003/0x1004/0x1005; broader profiles remain open",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/lotus/op.cxx",
+          "sha256": "f8260a63ce8409fdd2101ba1228b9b3aa48b6667c785dd921a0a1d06e43fcd70",
+          "lines": "583-608"
+        },
+        {
+          "url": "https://sources.debian.org/data/main/libw/libwps/0.4.14-2/src/lib/LotusSpreadsheet.cpp",
+          "sha256": "fcfe58ee8430ce43222e76c01aa4f436731722c5b171d801698a9a0a2496a6e5",
+          "lines": "1821-1879"
+        },
+        {
+          "url": "https://sources.debian.org/data/main/libw/libwps/0.4.14-2/src/lib/Lotus.cpp",
+          "sha256": "0c277ded100908c4a40fef2fa62fdb3ac72fe69c81a1e845ba94f60644cc4e7e",
+          "lines": "108-114"
+        }
+      ],
+      "finding": "LibreOffice OP_SheetName123 and libwps readSheetName read a bounded NUL-terminated name after two ignored bytes and the sheet index. The importer previously ignored this record. It now preserves indexed names, late formula/name binding and Windows-1252 text (libwps default), without truncating the index to eight bits. Empty replacements retain the existing name; malformed headers warn and every record consumes an operation.",
+      "validation": "Nine original memory regressions failed before the repair; one corrected unchanged-profile control passed. All 96 tests in five focused Lotus files, maintained package lint/source/test/consumer types and the five-build workspace closure pass.",
+      "public": "Compiled SDK and command independently convert a 1982-byte .123 to 6675-byte XLSX, retaining three names and 64 formula results of 23 with no diagnostics. Command input and destination-only listing are preserved after cleanup. Calc 26.8.0.3 reopens the public XLSX with all three names and 64 values intact.",
+      "native": "Explicit Calc Lotus:ANSI reads First's, Café and Last € exactly and independently recalculates all 64 six-bit direct-range combinations from stale cache 999 to 23. Exact emitted formulas match the three-bit endpoint layout. Default internal Lotus uses IBM_437 (docsh.cxx:1280-1296); ANSI selects Windows-1252 (global.cxx:590-617). Automatic/libwps routing uses the conflicting four-bit layout and the initial cross-sheet probes return #NAME?. This is not an automatic-filter or Lotus-authored qualification.",
+      "fixtureCorrections": "Initial modern probes mixed record-24 numbers with .123 formulas and omitted native sheet declarations; internal readback yielded #REF!. Corrected .123 uses numeric record 39 and explicit record 35 before formulas. WK3 0x1002 is refused by the internal filter. These attempts are not passes.",
+      "receipts": "out/ssconvert-lotus-current/{sheet-name-sources,names-native-proof,names-public-proof,public-native-proof}.json; sheet-names-{red,green,lint,build}.log",
+      "remaining": "Other encodings/default-selection APIs, ambiguous flag packing in Lotus-authored inputs, native copy modes, other Lotus metadata, installed registry artifacts and containing publication. No family closure."
     }
   },
   "cases": [
@@ -2732,7 +2759,7 @@
     {
       "id": "lotus-named-formula-references",
       "status": "open",
-      "currentFinding": "Implemented source-qualified WK1/WK3 names, namespace lifecycle, WK1/WK2, Windows Works and DOS Symphony offsets, WK3 admission, numeric record widths and single-rounding extended values and direct cross-sheet range endpoints. Qualified financial/date/position/lookup semantics and all 47 LibreOffice-recognized add-ins resolve. LMBCS Unicode, four national double-byte groups and C0/C1 controls follow ICU source. All 327 tests in seventeen Lotus files and package lint/types/build pass; public SDK/command observations remain scoped by the source records. BIFF NUL and shared/inline XLSX string preservation are now implemented. Ambiguous DOS Works profiles, modern range flag packing, wider sheet-relative profiles, wider charsets/formatting/domains and native applications remain open. CSV now preserves NUL on import/export with documented native differences; raw-NUL XLSX formula refusal remains a distinct export gap. Containing publication is pending. Modern direct references now retain per-endpoint sheet relativity through standard OpenFormula storage and XML/XLSX annotations; 24,436 package checks and six compiled roundtrips pass. BIFF export and native copy-mode qualification remain open."
+      "currentFinding": "Implemented source-qualified WK1/WK3 names, namespace lifecycle, WK1/WK2, Windows Works and DOS Symphony offsets, WK3 admission, numeric record widths and single-rounding extended values and direct cross-sheet range endpoints. Qualified financial/date/position/lookup semantics and all 47 LibreOffice-recognized add-ins resolve. LMBCS Unicode, four national double-byte groups and C0/C1 controls follow ICU source. All 327 tests in seventeen Lotus files and package lint/types/build pass; public SDK/command observations remain scoped by the source records. BIFF NUL and shared/inline XLSX string preservation are now implemented. Ambiguous DOS Works profiles, modern range flag packing, wider sheet-relative profiles, wider charsets/formatting/domains and native applications remain open. CSV now preserves NUL on import/export with documented native differences; raw-NUL XLSX formula refusal remains a distinct export gap. Containing publication is pending. Modern direct references now retain per-endpoint sheet relativity through standard OpenFormula storage and XML/XLSX annotations; 24,436 package checks and six compiled roundtrips pass. BIFF export and native copy-mode qualification remain open. Modern .123 indexed sheet names (0x23) now retain Windows-1252 spelling and late bindings; compiled SDK/command and explicit Calc Lotus:ANSI checks pass. See lotusModernSheetNames for qualified flags and failed automatic/default profiles."
     },
     {
       "id": "biff-external-and-token-formulas",

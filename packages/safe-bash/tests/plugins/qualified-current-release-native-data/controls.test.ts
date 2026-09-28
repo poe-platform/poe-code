@@ -157,6 +157,12 @@ function approvedCompilerConfiguration(): CompilerConfiguration {
         "poe-code/safe-bash": [
           "./dist/index.d.ts"
         ],
+        "poe-code/safe-bash/contracts": [
+          "../safe-bash-contracts/src/index.ts"
+        ],
+        "poe-code/safe-bash/contracts/*": [
+          "../safe-bash-contracts/src/*.ts"
+        ],
         "virtual-bash": [
           "./dist/index.d.ts"
         ],
@@ -292,17 +298,34 @@ test("source census rejects unknown held members, aliases and escaping paths rat
   assert.equal(fixture.reads.some(path => path.includes("/xan/")), false);
 });
 
-test("source census refuses symlink or special inputs and oversized files before content reads", () => {
+test("source census refuses symlink or special inputs and enforces the aggregate byte budget before reads", () => {
   const fixture = sourceCensusFixture();
   for (const [path, stat] of [
     ["/candidate/src/commands", { isDirectory: () => false, isFile: () => false, size: 0 }],
     ["/candidate/src/current.ts", { isDirectory: () => false, isFile: () => false, size: 0 }],
-    ["/candidate/src/current.ts", { isDirectory: () => false, isFile: () => true, size: 1048577 }],
   ] as const) {
     fixture.reads.length = 0;
     assert.throws(() => collectSourceInputs("/candidate", { ...fixture.fileSystem, lstatSync: candidate => candidate === path ? stat : fixture.fileSystem.lstatSync(candidate) }), /regular file|unadmitted type-input/);
     assert.ok(!fixture.reads.includes(path));
   }
+  fixture.reads.length = 0;
+  assert.throws(() => collectSourceInputs("/candidate", {
+    ...fixture.fileSystem,
+    lstatSync: path => path === "/candidate/src/current.ts"
+      ? { isDirectory: () => false, isFile: () => true, size: 64 * 1024 * 1024 + 1 }
+      : fixture.fileSystem.lstatSync(path),
+  }), /source census exceeds its explicit input budget/);
+  assert.ok(!fixture.reads.includes("/candidate/src/current.ts"));
+
+  const precedingBytes = fixture.files.get("/candidate/src/commands/xan-neighbor/current.ts")!.length
+    + fixture.files.get("/candidate/src/commands/yq/index.ts")!.length;
+  fixture.files.set("/candidate/src/current.ts", Buffer.alloc(64 * 1024 * 1024 - precedingBytes));
+  const captured = collectSourceInputs("/candidate", fixture.fileSystem);
+  assert.equal([...captured.files.values()].reduce((total, bytes) => total + bytes.length, 0), 64 * 1024 * 1024);
+  fixture.files.set("/candidate/src/z-overflow.ts", Buffer.from("x"));
+  fixture.reads.length = 0;
+  assert.throws(() => collectSourceInputs("/candidate", fixture.fileSystem), /source census exceeds its explicit input budget/);
+  assert.ok(!fixture.reads.includes("/candidate/src/z-overflow.ts"));
 });
 
 test("source census authenticates ownership before source reads and reproduces an admitted-only snapshot", () => {

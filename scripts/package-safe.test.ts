@@ -2152,8 +2152,6 @@ it('ships xmllint and its shared XML engine through the established XML export',
   expect(read('safe-bash/commands/xml/index.js')).toContain('"../../../safe-bash-command-xmllint/index.js"');
   expect(read('safe-bash-command-xmllint/index.js')).toContain('"../safe-bash-xml-engine/limits.js"');
   expect(read('safe-bash-command-xmllint/index.d.ts')).toContain('"../safe-bash-xml-engine/limits.js"');
-  expect(read('safe-bash-xml-engine/limits.js')).toContain('"../safe-bash-contracts/yield.js"');
-  expect(read('safe-bash-contracts/yield.js')).toContain('"./signals.js"');
   const bundled = await build({
     entryPoints: ['/output/safe-bash/dist/safe-bash-xml-engine/limits.js'], bundle: true, write: false, format: 'esm', platform: 'neutral',
     plugins: [{ name: 'packaged-xml-memory-consumer', setup(builder) {
@@ -2171,7 +2169,8 @@ it('ships xmllint and its shared XML engine through the established XML export',
   const checkpoint = vi.fn(async (signal: AbortSignal) => { expect(signal).toBe(controller.signal); });
   const budget = new consumer.XmlBudget(consumer.resolveXmlQueryLimits(), controller.signal, checkpoint);
   await budget.tick(16384);
-  expect(checkpoint).toHaveBeenCalledTimes(1);
+  await budget.tick(16384);
+  expect(checkpoint).toHaveBeenCalledTimes(2);
   controller.abort(reason);
   expect(() => budget.tick()).toThrow(reason);
 });

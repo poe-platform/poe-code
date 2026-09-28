@@ -2724,7 +2724,7 @@
     {
       "id": "perl-date",
       "status": "open",
-      "currentFinding": "Injected-clock/timezone behavior matches the recorded activated Linux2024 UTC/Los_Angeles controls. Source review now proves negative-year formatting and non-UTC era loss before year1 (#3871); these are unresolved within the accepted clock range. Wider date/DST boundaries, lifecycle, installed artifacts and publication remain open."
+      "currentFinding": "Injected-clock/timezone behavior matches the recorded activated Linux 2024 UTC/Los_Angeles controls. Upstream 0dadb7915b now formats negative years with a sign-aware minimum width and converts Intl BC era years to astronomical years before constructing non-UTC dates. Current-source native activation/readback for those era boundaries, wider date/DST boundaries, lifecycle, installed artifacts and publication remain open."
     },
     {
       "id": "perl-sed",
@@ -2764,7 +2764,7 @@
     {
       "id": "format-record-roundtrip",
       "status": "open",
-      "glossaryTimestampFinding": "Issue #3863 records source-derived glossary timestamp parity for four explicit TZif profiles (1970\u20132037); wider timezone/date profiles and native glossary plugin activation/format qualification remain open.",
+      "glossaryTimestampFinding": "Issue #3863 records source-derived glossary timestamp parity for four explicit TZif profiles (1970–2037); wider timezone/date profiles and native glossary plugin activation/format qualification remain open.",
       "currentFinding": "All 48 directional services have implementation owners; public listings expose 20 importers and 27 exporters. Registration is not semantic completion. Version/subformat/record preservation and independent roundtrip closure remain open. XLSX formula string caches encode/decode ST_Xstring and preserve empty cached results without forced recalculation; the 139-test cohort and 32 compiled SDK/command observations passed. Comment author/text escapes and VML type references are repaired; rich comment metadata and native rendering remain open. At 89dd9aa4ba, rich cell font names use rFont with XString decoding/encoding, rather than treating numeric family classification as a typeface. LibreOffice bce0998a stylesbuffer.cxx:605-617 establishes this correction; it intentionally replaces the old Gnumeric-family-handler expectation. Seven failing-before checks become 111 passing focused checks, with package and root lint passing. Current compiled/native font qualification and raw-NUL formula text remain open.",
       "richFontEvidence": {
         "source": "out/ssconvert-xlsx-metadata/rich-font-source.json",
@@ -2826,12 +2826,12 @@
       "containsRecentCommits": false
     },
     "currentIntegration": {
-      "state": "root build, lint and focused checks pass; native MCP unlimited-setting repair committed; rebase and full gate pending",
-      "onto": "10ad01b78ef58d0199d3789f7b90f7ccff338cd7",
-      "localHead": "ba0a09c85109c14ec8fcf54106a47d7fe1facaaf",
-      "runtime": "Public runtime separation and source-qualified scalar joining survive rebase. Retained incoming parameterLine capture and compiler narrowing repairs; skipped only our duplicate narrowing commit. Lifecycle artifact tests now use the existing in-memory filesystem with explicit rename-failure injection, retaining all assertions and timeouts.",
-      "checks": "At ba0a09c851 the normal root build, guarded root ESLint, workflow lint and fresh root types pass. Focused shell checks pass 589 with 18 explicit native skips; the exact authenticated GNU profile separately passes 54/54 with zero skips. Agent-eval passes 404 tests after its fixture repair. Full maintained npm test ended with two failures in tiny-mcp-client-rust: explicit Infinity HTTP response bytes and default request deadline are rejected. Repair is tracked in #3901. Safe Bash typecheck completed with one TS2345 tuple error; upstream ef82d607eb repairs that exact declaration. All 26 current consumer groups passed and typecheck staging cleanup completed. No full-unit success or integrated upstream repair is claimed. Repair b96c872f1b adds explicit-unlimited HTTP/SSE and deadline behavior, including subscription acknowledgement timers. Seven focused Rust regressions failed before repair; final Rust reference suite passes 437 tests, native checks and types pass, TypeScript suite passes 753 tests, and Rust/repository lint pass. Full integrated gate must be rerun.",
-      "remaining": "Integrate pinned incoming deltas and the existing tuple repair, rerun the maintained gate using shared cache, verify refreshed installed artifacts, then push and verify remote main and containing publication. All 19 families remain open.",
+      "state": "Rebased source and focused conflict repairs pass; current full integration run and remote delivery remain pending",
+      "onto": "fafc76998de1ff9dd2599f70ac7f3861b8418508",
+      "localHead": "d4837e20f6",
+      "runtime": "Preserved upstream page-break axes, raw bounds and flags, first-page numbering, shared-runtime package imports and portable source exports. Worksheet-setting retention now publishes generated page breaks after settings. Public shared runtimes remain separate from workspace rebuild output; the maintained shared-runtime recipe accepts the explicit publication directory. Native credential conversion retains iterative conversion and cleanup. Upstream unlimited response/deadline implementations remain in place, with native and TypeScript subscription acknowledgement timers disabled for explicit Infinity.",
+      "checks": "At 3c4c67091f: 129 worksheet/page-break/PDF-number tests and 384 native revision tests pass (513 total); 44 CLI/artifact tests pass; ssconvert source/test/browser/Node consumer types and guarded root ESLint pass. All three upstream portable Buffer tests pass with zero skips. Rebase exposed and repaired a discarded page-break return value, duplicate fixture declaration, duplicate CLI imports and missing artifact-verifier declaration. Sixteen unnecessary fixture escapes were removed with all 829 parsed literal values preserved. The pre-rebase selected build and all 26 Safe Bash consumer groups passed. Current npm test stopped on a missing newly declared workspace link; npm ci restored links without lockfile changes, and the next run reached Safe Bash before failing TS2367 on the nonexistent array selector kind all. The repaired path uses the existing quoted-member helper, with distinct star behavior, raw-byte fallback and empty-loop preservation. Its selected build passes; 480 focused checks pass with 18 explicit native-profile skips, and four new controls separately match authenticated GNU Bash 5.2.37. Full integrated tests still need a complete run.",
+      "remaining": "Complete the live maintained full test run, refresh compiled and installed consumers, integrate later remote changes without losing validated fixes, push to main, verify remote ancestry and monitor containing publication. All 19 families remain open.",
       "installed": {
         "sourceTree": "38b1859c896721f3ddaf11d7233941d1cffb928b",
         "version": "0.0.0-ssconvert-current.d6b6a11148",
@@ -2869,7 +2869,7 @@
           "receipt": "out/ssconvert-release-investigation/integrated-scalar-native.json"
         }
       },
-      "previousChecks": "Earlier installed results retained here concern source tree 38b1859c896721f3ddaf11d7233941d1cffb928b. They are historical and do not qualify current artifacts. Rebase receipts retain the two conflict decisions and preservation of unrelated edits."
+      "previousChecks": "Earlier installed results below concern source tree 38b1859c896721f3ddaf11d7233941d1cffb928b and are historical. Rebase receipts record conflict decisions, dropped duplicate test repairs and the unchanged unrelated-edit checksum. Current logs are under out/ssconvert-release-investigation; historical passes do not qualify the current artifacts."
     }
   },
   "history": {

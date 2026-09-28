@@ -1801,6 +1801,11 @@ pub fn execute_git_cli_with_http(
             }
         }
         "cherry-pick" => {
+            if sub_args.contains(&"--abort") || sub_args.contains(&"--quit") || sub_args.contains(&"--continue") || sub_args.contains(&"--skip") {
+                let _ = fs.rm(&join(&[&gitdir, "CHERRY_PICK_HEAD"]));
+                return CliResult::ok("");
+            }
+            let append_origin = sub_args.contains(&"-x");
             let revisions: Vec<_> = sub_args
                 .iter()
                 .copied()
@@ -1841,9 +1846,31 @@ pub fn execute_git_cli_with_http(
                     None,
                     Some(committer.clone()),
                 ) {
-                    Ok(oid) => {
+                    Ok(new_oid) => {
                         if !no_commit {
-                            out.push_str(&format!("[{}]\n", &oid[..7]));
+                            if append_origin
+                                && let Ok(c_obj) = crate::read_commit(fs, &gitdir, &new_oid)
+                            {
+                                let msg_with_x = format!(
+                                    "{}\n\n(cherry picked from commit {oid})",
+                                    c_obj.commit.message.trim_end_matches('\n')
+                                );
+                                let _ = commit(
+                                    fs,
+                                    &gitdir,
+                                    Some(&msg_with_x),
+                                    Some(c_obj.commit.author),
+                                    Some(committer.clone()),
+                                    true,
+                                    false,
+                                    false,
+                                    false,
+                                    None,
+                                    None,
+                                    None,
+                                );
+                            }
+                            out.push_str(&format!("[{}]\n", &new_oid[..7]));
                         }
                     }
                     Err(e) => return CliResult::err(1, format!("error: {}\n", e.message)),
@@ -4861,7 +4888,17 @@ pub fn execute_git_cli_with_http(
                 "Author: {author_name}\nEmail: {author_email}\nSubject: {subject}\nDate: {date_str}\n"
             ))
         }
-        other => CliResult::err(1, format!("git: '{other}' is not a git command.\n")),
+        other => {
+            if let Some(alias_val) = get_config(fs, &gitdir, &format!("alias.{other}")) {
+                let alias_str = alias_val.as_str().to_string();
+                let mut expanded: Vec<&str> = alias_str.split_whitespace().collect();
+                expanded.extend_from_slice(sub_args);
+                if !expanded.is_empty() && expanded[0] != other {
+                    return execute_git_cli_with_http(fs, &effective_cwd, &expanded, http);
+                }
+            }
+            CliResult::err(1, format!("git: '{other}' is not a git command.\n"))
+        }
     }
 }
 

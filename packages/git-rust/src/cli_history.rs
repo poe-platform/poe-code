@@ -238,6 +238,7 @@ pub(crate) struct HistoryOutput<'a> {
     pub modes: Vec<crate::cli_files::DiffMode>,
     pub no_patch: bool,
     pub skip_merge_diff: bool,
+    pub graph: bool,
 }
 
 pub(crate) fn render_history(
@@ -256,11 +257,22 @@ pub(crate) fn render_history(
         {
             out.push('\n');
         }
-        out.push_str(&render(
+        let rendered = render(
             std::slice::from_ref(c),
             output.format,
             output.abbrev,
-        ));
+        );
+        if output.graph {
+            for (li, line) in rendered.lines().enumerate() {
+                if li == 0 {
+                    out.push_str(&format!("* {line}\n"));
+                } else {
+                    out.push_str(&format!("| {line}\n"));
+                }
+            }
+        } else {
+            out.push_str(&rendered);
+        }
         for (mode_index, mode) in output.modes.iter().enumerate() {
             if output.no_patch || (output.skip_merge_diff && c.commit.parent.len() > 1) {
                 break;
@@ -330,6 +342,7 @@ pub(crate) fn execute(
         modes: Vec::new(),
         no_patch: false,
         skip_merge_diff: !show,
+        graph: false,
     };
     let mut reverse = false;
     let mut patch = None;
@@ -422,6 +435,8 @@ pub(crate) fn execute(
         } else if arg == "--skip" && i + 1 < args.len() {
             i += 1;
             skip_count = args[i].parse::<usize>().unwrap_or(0);
+        } else if arg == "--graph" {
+            output.graph = true;
         } else if arg == "--abbrev-commit" {
             output.abbrev = true;
         } else if matches!(arg, "-s" | "--no-patch") {
@@ -431,19 +446,21 @@ pub(crate) fn execute(
         } else if matches!(arg, "-p" | "--patch") {
             patch = Some(true);
             output.no_patch = false;
-        } else if matches!(arg, "--name-only" | "--name-status" | "--stat") {
-            if output.no_patch && arg != "--stat" {
+        } else if matches!(arg, "--name-only" | "--name-status" | "--stat" | "--shortstat" | "--numstat") {
+            if output.no_patch && !matches!(arg, "--stat" | "--shortstat" | "--numstat") {
                 return CliResult::err(
                     128,
                     "fatal: options '--name-only', '--name-status', '--check', and '-s' cannot be used together\n",
                 );
             }
-            if arg == "--stat" {
+            if matches!(arg, "--stat" | "--shortstat" | "--numstat") {
                 output.no_patch = false;
             }
             output.modes.push(match arg {
                 "--name-only" => crate::cli_files::DiffMode::Names,
                 "--name-status" => crate::cli_files::DiffMode::Status,
+                "--shortstat" => crate::cli_files::DiffMode::ShortStat,
+                "--numstat" => crate::cli_files::DiffMode::NumStat,
                 _ => crate::cli_files::DiffMode::Stat,
             });
         } else if arg.starts_with('-') {

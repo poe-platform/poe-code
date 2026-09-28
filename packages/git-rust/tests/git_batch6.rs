@@ -1674,3 +1674,33 @@ dual_fixture_test!(cli_global_c_config_no_pager_stage_patch_id_and_mailinfo, cli
     assert!(r_mi.stdout.contains("Author: Inline Bot") && r_mi.stdout.contains("Subject: feat: inline author"));
     assert!(f.fs.exists(&join(&[&f.dir, "patch.out"])));
 });
+
+
+dual_fixture_test!(cli_alias_expansion_log_graph_shortstat_and_cherry_pick_x, cli_alias_expansion_log_graph_shortstat_and_cherry_pick_x_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+
+    // 1. Git alias.<name> expansion
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["config", "alias.st", "status -sb"]).exit_code, 0);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["config", "alias.lg", "log --graph --oneline -1"]).exit_code, 0);
+    let r_st = execute_git_cli(&f.fs, &f.dir, &["st"]);
+    assert_eq!(r_st.exit_code, 0);
+    assert!(r_st.stdout.contains("## test-branch"));
+
+    // 2. git log --graph and --shortstat
+    let r_lg = execute_git_cli(&f.fs, &f.dir, &["lg"]);
+    assert_eq!(r_lg.exit_code, 0);
+    assert!(r_lg.stdout.starts_with("* "));
+
+    // 3. cherry-pick -x
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "-b", "cp-src"]);
+    f.fs.write_str(&join(&[&f.dir, "cp-x.txt"]), "cherry-pick -x content\n");
+    execute_git_cli(&f.fs, &f.dir, &["add", "cp-x.txt"]);
+    execute_git_cli(&f.fs, &f.dir, &["commit", "-m", "feat: add cp-x"]);
+    let src_oid = execute_git_cli(&f.fs, &f.dir, &["rev-parse", "HEAD"]).stdout.trim().to_string();
+
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["cherry-pick", "-x", &src_oid]).exit_code, 0);
+    let r_cp_log = execute_git_cli(&f.fs, &f.dir, &["log", "-1", "--shortstat"]);
+    assert!(r_cp_log.stdout.contains(&format!("(cherry picked from commit {src_oid})")));
+    assert!(r_cp_log.stdout.contains("1 file changed"));
+});

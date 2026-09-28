@@ -4451,6 +4451,7 @@ export class Runtime {
     name = this.referenceName(state, name);
     if (!arrayStore(state)?.get(name)) { await this.writeVariable(state, name, value, io, origin); return; }
     await this.arrayZero(state, name, io, async () => value);
+    if (state.allexport) state.exported.add(name);
   }
   async prepareVariable(state: State, name: string, saved: SavedVariable, scalarLegacy = false): Promise<void> {
     const store = requireArrays(state);
@@ -9146,6 +9147,7 @@ export class Runtime {
       }
       if (existingArrAssign) {
         if (!this.tryFastArraySubscriptWriteSync(rawState, targetAssignName, "0", fastAssigned)) return undefined;
+        if (rawState.allexport) rawState.exported.add(targetAssignName);
         const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
         this.budget.tick();
         if (!hasSubPart) rawState.substitutionStatus = 0;
@@ -10990,6 +10992,7 @@ export class Runtime {
                   return undefined;
                 }
               }
+              if (isPlainTargetId && isArrayTarget && rawState.allexport) rawState.exported.add(arrName!);
               const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
               this.budget.tick();
               rawState.substitutionStatus = 0;
@@ -14146,6 +14149,7 @@ export class Runtime {
             const fields = await this.valueWord(assignment.value, state, io, false, false, false, false, undefined, false, false, 0);
             return this.arrayJoin(requireArrays(state).owner, fields, "");
           }, assignment.append);
+          if (state.allexport) state.exported.add(assignment.name);
           continue;
         }
         const fastAssigned = this.fastValueWord(assignment.value, state, io, false, false, false, false, 0);

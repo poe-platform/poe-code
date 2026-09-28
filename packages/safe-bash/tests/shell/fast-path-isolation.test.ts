@@ -170,3 +170,15 @@ for (const header of ['while ((i<1000))', 'for ((i=0;i<1000;))']) {
     assert.equal(result.stdout, '1000\n');
   });
 }
+for (const write of ['arr=new', 'printf -v arr %s new', 'read arr <<< new', 'read arr <<< ""']) for (const middleware of [false, true]) {
+  test(`allexport promotes an existing array after ${write} (middleware=${middleware})`, async context => {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+    context.after(() => shell.dispose());
+    if (middleware) shell.use((_invocation, next) => next());
+    const result = await shell.exec(`arr=(x y); set -a; { ${write}; }; declare -p arr`);
+    assert.equal(result.stderr, '');
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, `declare -ax arr=([0]="${write.endsWith('""') ? '' : 'new'}" [1]="y")\n`);
+  });
+}
+

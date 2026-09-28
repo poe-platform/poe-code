@@ -1170,3 +1170,29 @@ test("sync loop wave 116: numfmt --to/--from iec/si, grep -A/-B/-C context lines
     await shell.dispose();
   }
 });
+
+for (const length of [512, 513, 600, 4096]) {
+  test(`loop pattern matches preserve Bash results for ${length}-character subjects`, async () => {
+    const source = `s=${"x".repeat(length)}; for i in 1 2; do
+      case "$s" in foo) echo wrong;; *) echo "MATCH:$i";; esac
+      if [[ $s == * ]]; then echo "EQ:$i"; fi
+      if [[ $s != foo ]]; then echo "NE:$i"; fi
+      if [[ $s == foo ]]; then echo wrong; fi
+      if [[ $s != * ]]; then echo wrong; fi
+      case "$s" in x*) echo "PREFIX:$i";; esac
+      case "$s" in *x) echo "SUFFIX:$i";; esac
+      case "$s" in *x*) echo "CONTAINS:$i";; esac
+      if [[ $s == ?* ]]; then echo "ANY:$i"; fi
+      if [[ $s == [x]* ]]; then echo "CLASS:$i"; fi
+    done`;
+    const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+    assert.equal(native.status, 0, native.stderr);
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });
+    try {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, native.status, result.stderr);
+      assert.equal(result.stderr, native.stderr);
+      assert.equal(result.stdout, native.stdout);
+    } finally { await shell.dispose(); }
+  });
+}

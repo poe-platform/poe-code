@@ -332,7 +332,7 @@ function getCompiledSyncPatternRegex(pattern: string): RegExp | null {
 }
 
 export function tryMatchesPatternSync(pattern: string, value: string, work: StringWork, ignoreCase = false, extglob = false): boolean | undefined {
-  if (Array.from !== defaultArrayFrom || ignoreCase || pattern.length >= 128 || value.length > 512) return undefined;
+  if (Array.from !== defaultArrayFrom || ignoreCase || pattern.length >= 128) return undefined;
   let hasBracketOrQmark = false;
   for (let i = 0; i < pattern.length; i++) {
     const c = pattern.charCodeAt(i);

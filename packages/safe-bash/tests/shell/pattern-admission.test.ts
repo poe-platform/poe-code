@@ -4,6 +4,19 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/shell.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import { ValueArena } from "../../src/shell/value-state.js";
+import { tryMatchesPatternSync } from "../../src/shell/pattern.js";
+
+test("long synchronous pattern matches charge and enforce the string work budget", () => {
+  const value = "x".repeat(600);
+  const work = {
+    remaining: 602,
+    signal: new AbortController().signal,
+    exhausted(): never { throw new Error("budget exhausted"); },
+  };
+  assert.equal(tryMatchesPatternSync("*", value, work), true);
+  assert.equal(work.remaining, 0);
+  assert.throws(() => tryMatchesPatternSync("*", value, work), { message: "budget exhausted" });
+});
 
 function memory() {
   return new MemoryFileSystem({ maxFileBytes: 65536, maxRetainedBytes: 262144, maxMetadataUnits: 128 });

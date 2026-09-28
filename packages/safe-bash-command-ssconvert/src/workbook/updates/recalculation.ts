@@ -41,7 +41,7 @@ export function dirtyWorkbook(book: Workbook, changes: readonly CellRange[], con
       if (change.sheet === sheet.id && change.startRow <= range.lastRow && change.endRow >= range.firstRow &&
         change.startColumn <= range.lastColumn && change.endColumn >= range.firstColumn) dirty.add(cell);
     }
-  });
+  }, context.limits.formulaDependencyDepth);
   const queue = [...dirty];
   for (let index = 0; index < queue.length; index++) for (const dependent of graph.dependents.get(queue[index]!) ?? []) {
     tick();

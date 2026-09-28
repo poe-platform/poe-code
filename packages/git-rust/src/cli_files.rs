@@ -397,13 +397,10 @@ fn patch(a: &str, b: &str, context: usize) -> String {
 }
 
 pub fn show(fs: &MemoryFs, root: &str, gitdir: &str, target: &str) -> Result<String, GitError> {
-    if let Some((rev, path)) = target.split_once(':') {
-        let oid = crate::cli_history::resolve(fs, gitdir, rev)?;
-        return Ok(
-            String::from_utf8_lossy(&read_blob(fs, gitdir, &oid, Some(path))?.blob).to_string(),
-        );
-    }
     let oid = crate::cli_history::resolve(fs, gitdir, target)?;
+    if target.contains(':') {
+        return Ok(String::from_utf8_lossy(&read_blob(fs, gitdir, &oid, None)?.blob).to_string());
+    }
     let commit = read_commit(fs, gitdir, &oid)?.commit;
     let mut out = format!(
         "commit {oid}\nAuthor: {} <{}>\n\n    {}\n\n",

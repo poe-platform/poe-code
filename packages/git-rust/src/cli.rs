@@ -592,7 +592,15 @@ pub fn execute_git_cli_with_http(
                 }
                 CliResult::ok(out)
             } else if names.len() <= 2 {
-                match branch(fs, &gitdir, names[0], names.get(1).copied(), false, force) {
+                let object = match names
+                    .get(1)
+                    .map(|rev| crate::cli_history::resolve(fs, &gitdir, rev))
+                    .transpose()
+                {
+                    Ok(oid) => oid,
+                    Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+                };
+                match branch(fs, &gitdir, names[0], object.as_deref(), false, force) {
                     Ok(()) => CliResult::ok(""),
                     Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
                 }
@@ -911,25 +919,54 @@ pub fn execute_git_cli_with_http(
                     Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
                 };
             }
-            let mut create_new = false;
-            let mut force = false;
-            let mut target = None;
-            let mut i = 0;
-            while i < sub_args.len() {
-                match sub_args[i] {
-                    "-b" | "-c" => create_new = true,
-                    "-f" | "--force" => force = true,
-                    arg if !arg.starts_with('-') && target.is_none() => {
-                        target = Some(arg);
-                    }
-                    _ => {}
-                }
-                i += 1;
+            let positionals: Vec<_> = sub_args
+                .iter()
+                .copied()
+                .filter(|arg| !arg.starts_with('-'))
+                .collect();
+            if subcmd == "checkout"
+                && !sub_args.contains(&"-b")
+                && positionals
+                    .first()
+                    .is_some_and(|arg| crate::cli_history::resolve(fs, &gitdir, arg).is_err())
+                && positionals.iter().all(|arg| {
+                    let path = repository_path(&repo_root, &effective_cwd, arg);
+                    crate::list_files(fs, &gitdir, None)
+                        .unwrap_or_default()
+                        .iter()
+                        .any(|tracked| {
+                            crate::cli_history::matches_path(tracked, std::slice::from_ref(&path))
+                        })
+                })
+            {
+                let paths: Vec<_> = positionals
+                    .iter()
+                    .map(|arg| repository_path(&repo_root, &effective_cwd, arg))
+                    .collect();
+                return match crate::cli_files::restore(
+                    fs, &repo_root, &gitdir, &paths, ":index", false, true,
+                ) {
+                    Ok(()) => CliResult::ok(""),
+                    Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+                };
             }
-            let Some(ref_target) = target else {
+            let create_new = sub_args.contains(&"-b") || sub_args.contains(&"-c");
+            let force = sub_args.contains(&"-f") || sub_args.contains(&"--force");
+            let Some(&ref_target) = positionals.first() else {
                 return CliResult::err(128, "fatal: missing branch or commit argument\n");
             };
-            if create_new && let Err(e) = branch(fs, &gitdir, ref_target, None, true, false) {
+            let start = match positionals
+                .get(1)
+                .filter(|_| create_new)
+                .map(|rev| crate::cli_history::resolve(fs, &gitdir, rev))
+                .transpose()
+            {
+                Ok(oid) => oid,
+                Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+            };
+            if create_new
+                && let Err(e) = branch(fs, &gitdir, ref_target, start.as_deref(), false, false)
+            {
                 return CliResult::err(128, format!("fatal: {}\n", e.message));
             }
             let resolved_target;
@@ -981,6 +1018,22 @@ pub fn execute_git_cli_with_http(
                     .find(|w| w[0] == "-m")
                     .map(|w| w[1])
                     .unwrap_or(name);
+                let mut revision = None;
+                let mut args = sub_args[2..].iter();
+                while let Some(arg) = args.next() {
+                    if *arg == "-m" {
+                        args.next();
+                    } else if !arg.starts_with('-') {
+                        revision = Some(*arg);
+                    }
+                }
+                let object = match revision
+                    .map(|rev| crate::cli_history::resolve(fs, &gitdir, rev))
+                    .transpose()
+                {
+                    Ok(oid) => oid,
+                    Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+                };
                 let tagger = Author {
                     name: "Git User".to_string(),
                     email: "user@example.com".to_string(),
@@ -992,7 +1045,7 @@ pub fn execute_git_cli_with_http(
                     &gitdir,
                     name,
                     Some(msg),
-                    None,
+                    object.as_deref(),
                     Some(tagger),
                     None,
                     false,
@@ -1001,7 +1054,15 @@ pub fn execute_git_cli_with_http(
                     Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
                 }
             } else {
-                match tag(fs, &gitdir, sub_args[0], sub_args.get(1).copied(), false) {
+                let object = match sub_args
+                    .get(1)
+                    .map(|rev| crate::cli_history::resolve(fs, &gitdir, rev))
+                    .transpose()
+                {
+                    Ok(oid) => oid,
+                    Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+                };
+                match tag(fs, &gitdir, sub_args[0], object.as_deref(), false) {
                     Ok(()) => CliResult::ok(""),
                     Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
                 }
@@ -1017,6 +1078,10 @@ pub fn execute_git_cli_with_http(
             let Some(&theirs) = sub_args.iter().find(|a| !a.starts_with('-')) else {
                 return CliResult::err(128, "fatal: No commit specified\n");
             };
+            let theirs = match crate::cli_history::resolve(fs, &gitdir, theirs) {
+                Ok(oid) => oid,
+                Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+            };
             let author = Author {
                 name: "Git User".to_string(),
                 email: "user@example.com".to_string(),
@@ -1028,7 +1093,7 @@ pub fn execute_git_cli_with_http(
                 Some(&repo_root),
                 &gitdir,
                 None,
-                theirs,
+                &theirs,
                 true,
                 sub_args.contains(&"--ff-only"),
                 false,
@@ -1063,6 +1128,10 @@ pub fn execute_git_cli_with_http(
             let Some(&theirs) = sub_args.iter().find(|a| !a.starts_with('-')) else {
                 return CliResult::err(128, "fatal: No commit specified\n");
             };
+            let theirs = match crate::cli_history::resolve(fs, &gitdir, theirs) {
+                Ok(oid) => oid,
+                Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+            };
             let author = Author {
                 name: "Git User".to_string(),
                 email: "user@example.com".to_string(),
@@ -1073,7 +1142,7 @@ pub fn execute_git_cli_with_http(
                 fs,
                 Some(&repo_root),
                 &gitdir,
-                theirs,
+                &theirs,
                 false,
                 false,
                 false,

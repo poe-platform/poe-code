@@ -127,3 +127,95 @@ fn symmetric_ranges_and_deleted_paths() {
     assert_eq!(run(&fs, &["rev-parse", "HEAD^2"]).trim(), second);
     assert_eq!(run(&fs, &["rev-parse", "HEAD~2"]).trim(), first);
 }
+
+#[test]
+fn branch_creation_start_points() {
+    for (command, flag) in [("checkout", "-b"), ("switch", "-c")] {
+        let (fs, first, _) = history();
+        run(&fs, &[command, flag, "older", "HEAD~1"]);
+        assert_eq!(run(&fs, &["rev-parse", "HEAD"]).trim(), first);
+        assert_eq!(fs.read("/repo/a.txt").unwrap(), b"one\n");
+        assert!(run(&fs, &["branch"]).contains("* older"));
+    }
+}
+
+#[test]
+fn ancestry_in_remaining_commands() {
+    for rev in ["HEAD~1", "HEAD^", "HEAD^{commit}~1"] {
+        let (fs, first, second) = history();
+        run(&fs, &["branch", "older", rev]);
+        run(&fs, &["tag", "old", rev]);
+        assert_eq!(run(&fs, &["rev-parse", "older"]).trim(), first);
+        assert_eq!(run(&fs, &["rev-parse", "old"]).trim(), first);
+        run(&fs, &["branch", "feature"]);
+        run(&fs, &["checkout", "feature"]);
+        fs.write("/repo/tip.txt", b"tip\n");
+        run(&fs, &["add", "."]);
+        run(&fs, &["commit", "-m", "tip"]);
+        run(&fs, &["checkout", "master"]);
+        run(&fs, &["reset", "--hard", &first]);
+        run(&fs, &["merge", "feature~1"]);
+        assert_eq!(run(&fs, &["rev-parse", "HEAD"]).trim(), second);
+        run(&fs, &["reset", "--hard", &first]);
+        run(&fs, &["cherry-pick", "feature^"]);
+        assert_eq!(fs.read("/repo/a.txt").unwrap(), b"changed\n");
+    }
+}
+
+#[test]
+fn checkout_paths_without_separator() {
+    let (fs, _, second) = history();
+    fs.write("/repo/a.txt", b"staged\n");
+    run(&fs, &["add", "a.txt"]);
+    for path in ["a.txt", "."] {
+        fs.write("/repo/a.txt", b"dirty\n");
+        run(&fs, &["checkout", path]);
+        assert_eq!(fs.read("/repo/a.txt").unwrap(), b"staged\n");
+        assert_eq!(run(&fs, &["rev-parse", "HEAD"]).trim(), second);
+    }
+}
+
+#[test]
+fn index_and_tree_revision_objects() {
+    let (fs, first, second) = history();
+    fs.write("/repo/a.txt", b"staged\n");
+    run(&fs, &["add", "a.txt"]);
+    fs.write("/repo/a.txt", b"dirty\n");
+    for rev in [":a.txt", ":0:a.txt"] {
+        assert_eq!(run(&fs, &["show", rev]), "staged\n");
+    }
+    for rev in ["HEAD^{}", "HEAD^{commit}"] {
+        assert_eq!(run(&fs, &["rev-parse", rev]).trim(), second);
+    }
+    run(&fs, &["tag", "-a", "annotated", "-m", "tag"]);
+    assert_eq!(run(&fs, &["rev-parse", "annotated^{}"]).trim(), second);
+    assert_eq!(
+        run(&fs, &["rev-parse", "annotated^{commit}^"]).trim(),
+        first
+    );
+    let blob = run(&fs, &["hash-object", "a.txt"]);
+    assert_eq!(
+        run(&fs, &["rev-parse", ":a.txt"]).trim(),
+        run(&fs, &["rev-parse", ":0:a.txt"]).trim()
+    );
+    assert_ne!(run(&fs, &["rev-parse", "HEAD:a.txt"]), blob);
+    assert_eq!(
+        run(&fs, &["rev-parse", "HEAD^{tree}"]),
+        run(&fs, &["rev-parse", "HEAD:"])
+    );
+    assert_ne!(
+        execute_git_cli(&fs, "/repo", &["show", ":1:a.txt"]).exit_code,
+        0
+    );
+    assert_ne!(
+        execute_git_cli(&fs, "/repo", &["rev-parse", "HEAD^{blob}"]).exit_code,
+        0
+    );
+}
+
+#[test]
+fn annotated_tag_start_point() {
+    let (fs, first, _) = history();
+    run(&fs, &["tag", "-a", "older", "HEAD^", "-m", "message"]);
+    assert_eq!(run(&fs, &["rev-parse", "older^{commit}"]).trim(), first);
+}

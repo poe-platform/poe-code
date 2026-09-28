@@ -11496,6 +11496,7 @@ export class Runtime {
       if (part.kind === "variable") {
         // These expansions can require multiple fields or asynchronous quoting
         // as loop state changes. Decide before the loop produces any effects.
+        if (this._syncLoopFnCheckDepth > 0 && (part.substring || getArraySelector(part)?.kind === "element")) return false;
         if (part.prefixNames !== undefined || part.transform !== undefined) return false;
         if ( !part.indirect && !part.prefixNames && !part.length && !part.substring && !part.transform && part.operator === undefined && getArraySelector(part) === undefined && (part.name === "?" || part.name === "#" || (part.name.length === 1 && part.name >= "1" && part.name <= "9"))) {
           if (rawState.nounset && part.name >= "1" && part.name <= "9" && rawState.positional[part.name.charCodeAt(0) - 49] === undefined) return false;
@@ -11621,6 +11622,8 @@ export class Runtime {
         continue;
       }
       if (part.kind === "substitution") {
+        // Inline function steps have no continuation for a declined expansion.
+        if (this._syncLoopFnCheckDepth > 0) return false;
         if (part.script.lists.length !== 1) return false;
         const list = part.script.lists[0]!;
         if (list.terminator || list.pipelines.length !== 1) return false;
@@ -12071,6 +12074,7 @@ export class Runtime {
         if ((w0Plain === ":" || w0Plain === "true") && !rawState.functions.has(w0Plain) && !rawState.extensions?.builtins.has(w0Plain)) continue;
         const arrAssign = getArrayAssignment(w0);
         if (arrAssign) {
+          if (this._syncLoopFnCheckDepth > 0) return false;
           if (hasUnpreparedLocals(rawState)) return false;
           const curArr = store?.get(arrAssign.name);
           if ( !curArr || curArr.references !== 1 || store!.watches.has(arrAssign.name) || rawState.readonlyVariables?.has(arrAssign.name) || rawState.exported.has(arrAssign.name) || controlNames.has(arrAssign.name)) {
@@ -13566,12 +13570,6 @@ export class Runtime {
     if (this._syncLoopFnCheckDepth > 0 || (rawState.locals && rawState.locals.length > 0)) return undefined;
     const w0Plain = cmd.words[0]!.plain;
     if (!w0Plain || !rawState.functions?.has(w0Plain) || this.firstInternalDiscovery(w0Plain, rawState, false) !== "function" || rawState.extensions?.builtins.has(w0Plain)) return undefined;
-    for (let i = 1; i < cmd.words.length; i++) {
-      const w = cmd.words[i]!;
-      if (!this.isPureSyncValueWord(w, rawState) || !w.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))) {
-        return undefined;
-      }
-    }
     const fnBody = rawState.functions.get(w0Plain)!;
     if (fnBody.kind !== "group" || fnBody.redirects.length !== 0 || fnBody.body.lists.length === 0) return undefined;
     const store = arrayStore(rawState);
@@ -13579,9 +13577,15 @@ export class Runtime {
     const locals: { name: string; valueWord?: Word | undefined; isFirstInCmd: boolean }[] = [];
     let localListIdx = 0;
     const savedPos = rawState.positional;
-    rawState.positional = ["0", "0", "0", "0", "0", "0", "0", "0", "0"];
     this._syncLoopFnCheckDepth++;
     try {
+      for (let i = 1; i < cmd.words.length; i++) {
+        const w = cmd.words[i]!;
+        if (!this.isPureSyncValueWord(w, rawState) || !w.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))) {
+          return undefined;
+        }
+      }
+      rawState.positional = ["0", "0", "0", "0", "0", "0", "0", "0", "0"];
       while (localListIdx < fnBody.body.lists.length) {
         const list = fnBody.body.lists[localListIdx]!;
         if (list.terminator || list.pipelines.length !== 1 || list.pipelines[0]!.negate || list.pipelines[0]!.commands.length !== 1) break;

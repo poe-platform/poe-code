@@ -130,13 +130,41 @@ for (const [header, setup] of [
       echo "global:$1:$2:$lv:\${FUNCNAME[*]}"
       f again
       echo "final:$1:$2:$lv:\${FUNCNAME[*]}"
+      printf 'value:%s\\n' "$x"
     `);
     const indices = header.startsWith('for i') ? ['1', '2'] : header.startsWith('for ((') ? ['0', '1'] : [''];
     assert.equal(result.stderr, '');
     assert.equal(result.exitCode, 0);
     assert.equal(result.stdout, indices.map(i => `iter:${i}\npre:argA:local\npost:argA:local\ntail:${i}\n`).join('') +
-      'global:topA:topB::\npre:again:local\npost:again:local\nfinal:topA:topB::\n');
+      'global:topA:topB::\npre:again:local\npost:again:local\nfinal:topA:topB::\n' +
+      'value:' + ' '.repeat(8999) + 'a\n');
   });
+}
+
+for (const header of ['for i in 1 2', 'for ((i=0;i<2;i++))']) {
+  for (const [name, body, args] of [
+    ['assignment', 'x=$(echo "$big" | grep a)', ''],
+    ['local initializer', 'local value=$(echo "$big" | grep a); x=$value', ''],
+    ['argument', 'x=$1', '"$(echo "$big" | grep a)"'],
+    ['array alternate', 'x="${missing[0]:-$(echo "$big" | grep a)}"', ''],
+    ['substring index', 'x="${big:0:${lengths[$(echo 0)]}}"', ''],
+    ['associative assignment index', 'values[$(echo key)]=$big; x=${values[key]}', ''],
+  ]) {
+    test(`inline function ${name} preserves expansion and executes once: ${header}`, async context => {
+      const big = ' '.repeat(8999) + 'a';
+      const shell = new Shell({ fs: new MemoryFileSystem(), env: { big } }).use(standardCommands());
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`
+        seen=0; lengths=(9000); declare -A values
+        f() { ${body}; ((seen+=1)); }
+        ${header}; do f ${args}; done
+        printf '%s:%s:%s\\n' "$seen" "${'${#x}'}" "$x"
+      `);
+      assert.equal(result.stderr, '');
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, `2:9000:${big}\n`);
+    });
+  }
 }
 
 for (const [name, source] of [
@@ -203,4 +231,3 @@ for (const wrap of [(body: string) => `{ ${body}; }`, (body: string) => `f() { $
     assert.match(result.stderr, /grep:/);
   });
 }
-

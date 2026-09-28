@@ -9650,6 +9650,7 @@ export class Runtime {
               activeStore!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
             }
             rawState.status = exitStatus;
+            if (exitStatus !== 0 && !ignored && rawState.errexit) throw new Flow("exit", exitStatus);
             return exitStatus;
           }
         }

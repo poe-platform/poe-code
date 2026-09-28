@@ -11941,6 +11941,7 @@ export class Runtime {
       const w = cmd.words[i]!;
       const p0 = w.parts[0];
       if (!p0 || !this.isPureSyncValueWord(w, rawState)) return false;
+      if (p0.kind === "text" && !p0.quoted && p0.value.startsWith("~")) return false;
       if (inOptions) {
         if (w.plain !== undefined && /^-[nE]+$/.test(w.plain)) continue;
         if ((w.plain !== undefined && w.plain.startsWith("-")) || (p0.kind === "text" && !p0.quoted && p0.value.startsWith("-")) || (p0.kind === "variable" && i === 1 && cmd.words.length > 2)) {
@@ -12190,8 +12191,7 @@ export class Runtime {
           const lastSlash = targetPart0.value.lastIndexOf("/");
           const parentDir = lastSlash <= 0 ? "/" : targetPart0.value.slice(0, lastSlash);
           if (!tryGetMemoryDirectoryEntryNamesSync(this.backingFs, parentDir)) return false;
-          const stdIfs = (rawState.variables.IFS ?? " \t\n") === " \t\n";
-          if (w0Plain === "echo" && this.isSyncEchoCallOk(cmd, rawState)) {
+          if (w0Plain === "echo" && this.isSyncEchoCallOk(cmd, rawState) && !cmd.words.some(w => w.parts.some(p => p.kind === "substitution"))) {
             continue;
           }
           if (w0Plain === "printf" && cmd.words.length >= 2 && cmd.words[1]!.plain !== "-v" && this.isSyncPrintfCallOk(cmd, 1, rawState)) {

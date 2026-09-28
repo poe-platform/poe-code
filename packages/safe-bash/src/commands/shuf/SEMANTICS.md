@@ -196,7 +196,7 @@ can change deterministic output with the same entropy file.
 The integer selector retains unused entropy, uses rejection of the incomplete
 modulo interval, and reproduces the pinned 64-bit unsigned wrap behavior. It
 does not use floating-point scaling or `Math.random`. Without an explicit
-source, Node's `crypto.randomFillSync` supplies secure bytes. A system entropy
+source, the runtime's `crypto.getRandomValues` supplies secure bytes. A system entropy
 failure propagates; it never selects an insecure fallback. GNU's default
 ISAAC buffering is not reproduced: default-random runs share uniform sampling
 semantics, not a reproducible byte sequence. Explicit random-source tests check

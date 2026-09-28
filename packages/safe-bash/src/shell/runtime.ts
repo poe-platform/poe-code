@@ -11893,7 +11893,7 @@ export class Runtime {
             } else if (w0Plain === "awk") {
               if (plainOps.length !== opCount || this.evalSyncAwk([], plainOps) === undefined) return false;
             } else if (w0Plain === "jq") {
-              if (plainOps.length !== opCount || (opCount !== 1 && !(opCount === 2 && (op0 === "-r" || op0 === "--raw-output"))) || !/^\.[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*$/.test(plainOps[plainOps.length - 1]!)) return false;
+              if (plainOps.length !== opCount || this.evalSyncJq("null", plainOps) === undefined) return false;
             } else if (w0Plain === "wc") {
               if (opCount !== 1 || (op0 !== "-l" && op0 !== "-c" && op0 !== "-w")) return false;
             } else if (w0Plain === "sort") {
@@ -11903,7 +11903,7 @@ export class Runtime {
             } else if (w0Plain === "base64") {
               if (opCount > 1 || (opCount === 1 && op0 !== "-d" && op0 !== "--decode")) return false;
             } else if (w0Plain === "tr") {
-              if (opCount !== 2) return false;
+              if (plainOps.length !== opCount || this.evalSyncTr("", plainOps) === undefined) return false;
             }
           }
         }
@@ -22368,9 +22368,31 @@ export class Runtime {
     return out;
   }
   private expandSyncTrCharArray(spec: string): string[] | undefined {
-    if (spec.length === 0 || spec.includes("[")) return undefined;
+    if (spec.length === 0) return undefined;
+    const posixClasses: Record<string, string> = {
+      "[:lower:]": "abcdefghijklmnopqrstuvwxyz",
+      "[:upper:]": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      "[:digit:]": "0123456789",
+      "[:alpha:]": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+      "[:alnum:]": "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+      "[:space:]": "\t\n\v\f\r ",
+      "[:blank:]": "\t ",
+      "[:xdigit:]": "0123456789ABCDEFabcdef",
+      "[:punct:]": "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~",
+    };
     const out: string[] = [];
     for (let i = 0; i < spec.length; i++) {
+      if (spec[i] === "[" && spec[i + 1] === ":") {
+        const close = spec.indexOf(":]", i + 2);
+        if (close === -1) return undefined;
+        const cls = spec.slice(i, close + 2);
+        const exp = posixClasses[cls];
+        if (!exp) return undefined;
+        for (let k = 0; k < exp.length; k++) out.push(exp[k]!);
+        i = close + 1;
+        continue;
+      }
+      if (spec[i] === "[") return undefined;
       if (spec[i] === "\\") {
         if (i + 1 >= spec.length) return undefined;
         const next = spec[++i]!;
@@ -22394,6 +22416,144 @@ export class Runtime {
       out.push(spec[i]!);
     }
     return out;
+  }
+
+  private evalSyncTr(input: string, opArgs: readonly string[]): string | undefined {
+    if (opArgs.length === 2 && !opArgs[0]!.startsWith("-") && !opArgs[1]!.startsWith("-")) {
+      return this.translateSyncTr(input, opArgs[0]!, opArgs[1]!);
+    }
+    if (opArgs.length === 2 && opArgs[0] === "-d" && !opArgs[1]!.startsWith("-")) {
+      const arr = this.expandSyncTrCharArray(opArgs[1]!);
+      if (!arr) return undefined;
+      const delSet = new Set(arr);
+      let out = "";
+      for (let i = 0; i < input.length; i++) {
+        const ch = input[i]!;
+        if (!delSet.has(ch)) out += ch;
+      }
+      return out;
+    }
+    if (opArgs.length === 2 && opArgs[0] === "-s" && !opArgs[1]!.startsWith("-")) {
+      const arr = this.expandSyncTrCharArray(opArgs[1]!);
+      if (!arr) return undefined;
+      const sqSet = new Set(arr);
+      let out = "";
+      let prev = "";
+      for (let i = 0; i < input.length; i++) {
+        const ch = input[i]!;
+        if (sqSet.has(ch) && ch === prev) continue;
+        out += ch;
+        prev = ch;
+      }
+      return out;
+    }
+    if (opArgs.length === 3 && (opArgs[0] === "-s" || opArgs[0] === "-ds" || opArgs[0] === "-sd") && !opArgs[1]!.startsWith("-") && !opArgs[2]!.startsWith("-")) {
+      const stage1 = opArgs[0] === "-s"
+        ? this.translateSyncTr(input, opArgs[1]!, opArgs[2]!)
+        : this.evalSyncTr(input, ["-d", opArgs[1]!]);
+      if (stage1 === undefined) return undefined;
+      return this.evalSyncTr(stage1, ["-s", opArgs[2]!]);
+    }
+    return undefined;
+  }
+
+  private evalSyncJq(input: string, opArgs: readonly string[]): string[] | undefined {
+    let rawOut = false;
+    let filter: string | undefined;
+    if (opArgs.length === 1 && !opArgs[0]!.startsWith("-")) {
+      filter = opArgs[0]!;
+    } else if (opArgs.length === 2 && (opArgs[0] === "-r" || opArgs[0] === "--raw-output" || opArgs[0] === "-c" || opArgs[0] === "--compact-output" || opArgs[0] === "-rc" || opArgs[0] === "-cr")) {
+      rawOut = opArgs[0]!.includes("r");
+      filter = opArgs[1]!;
+    }
+    if (!filter) return undefined;
+    const stages = filter.split("|").map(s => s.trim());
+    const compiledStages: Array<Array<{ kind: "prop"; key: string } | { kind: "index"; idx: number } | { kind: "iter" } | { kind: "length" } | { kind: "keys" }>> = [];
+    for (const st of stages) {
+      if (st === ".") {
+        compiledStages.push([]);
+        continue;
+      }
+      if (st === "length") {
+        compiledStages.push([{ kind: "length" }]);
+        continue;
+      }
+      if (st === "keys") {
+        compiledStages.push([{ kind: "keys" }]);
+        continue;
+      }
+      if (st === "keys[]") {
+        compiledStages.push([{ kind: "keys" }, { kind: "iter" }]);
+        continue;
+      }
+      if (!st.startsWith(".")) return undefined;
+      let rest = st.slice(1);
+      const ops: Array<{ kind: "prop"; key: string } | { kind: "index"; idx: number } | { kind: "iter" } | { kind: "length" } | { kind: "keys" }> = [];
+      while (rest.length > 0) {
+        if (rest.startsWith(".")) rest = rest.slice(1);
+        const propM = /^([a-zA-Z_][a-zA-Z0-9_]*)/.exec(rest);
+        if (propM) {
+          ops.push({ kind: "prop", key: propM[1]! });
+          rest = rest.slice(propM[1]!.length);
+          continue;
+        }
+        if (rest.startsWith("[]")) {
+          ops.push({ kind: "iter" });
+          rest = rest.slice(2);
+          continue;
+        }
+        const idxM = /^\[(-?[0-9]+)\]/.exec(rest);
+        if (idxM) {
+          ops.push({ kind: "index", idx: Number(idxM[1]!) });
+          rest = rest.slice(idxM[0]!.length);
+          continue;
+        }
+        return undefined;
+      }
+      compiledStages.push(ops);
+    }
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(input);
+    } catch {
+      return undefined;
+    }
+    let current: unknown[] = [parsed];
+    for (const ops of compiledStages) {
+      for (const op of ops) {
+        const next: unknown[] = [];
+        for (const item of current) {
+          if (op.kind === "prop") {
+            if (item === null || item === undefined) next.push(null);
+            else if (typeof item === "object" && !Array.isArray(item)) next.push((item as Record<string, unknown>)[op.key] ?? null);
+            else return undefined;
+          } else if (op.kind === "index") {
+            if (item === null || item === undefined) next.push(null);
+            else if (Array.isArray(item)) {
+              const i = op.idx < 0 ? item.length + op.idx : op.idx;
+              next.push(i >= 0 && i < item.length ? item[i] : null);
+            } else return undefined;
+          } else if (op.kind === "iter") {
+            if (Array.isArray(item)) {
+              for (const el of item) next.push(el);
+            } else if (item && typeof item === "object") {
+              for (const k of Object.keys(item)) next.push((item as Record<string, unknown>)[k]);
+            } else return undefined;
+          } else if (op.kind === "length") {
+            if (item === null || item === undefined) next.push(0);
+            else if (typeof item === "string" || Array.isArray(item)) next.push(item.length);
+            else if (typeof item === "object") next.push(Object.keys(item).length);
+            else return undefined;
+          } else if (op.kind === "keys") {
+            if (Array.isArray(item)) next.push(item.map((_, idx) => idx));
+            else if (item && typeof item === "object") next.push(Object.keys(item).sort());
+            else return undefined;
+          }
+        }
+        current = next;
+      }
+    }
+    return current.map(val => (rawOut && typeof val === "string" ? val : JSON.stringify(val ?? null)));
   }
   private parseSyncCutSpec(spec: string): ((len: number) => number[]) | undefined {
     if (!/^(?:[1-9][0-9]{0,4}|[1-9][0-9]{0,4}-[1-9][0-9]{0,4}|[1-9][0-9]{0,4}-|-[1-9][0-9]{0,4})(?:,(?:[1-9][0-9]{0,4}|[1-9][0-9]{0,4}-[1-9][0-9]{0,4}|[1-9][0-9]{0,4}-|-[1-9][0-9]{0,4}))*$/.test(spec)) {
@@ -22435,15 +22595,24 @@ export class Runtime {
 
   private evalSyncCut(rawLines: readonly string[], opArgs: readonly string[], byteLocaleMode: boolean): string[] | undefined {
     const norm: string[] = [];
+    let suppressNoDelim = false;
     for (let ci = 0; ci < opArgs.length; ci++) {
       const ca = opArgs[ci]!;
-      if ((ca === "-d" || ca === "-f" || ca === "-c") && ci + 1 < opArgs.length) {
+      if (ca === "-s" || ca === "--only-delimited") {
+        suppressNoDelim = true;
+      } else if (ca.startsWith("-sd") || ca.startsWith("-ds")) {
+        suppressNoDelim = true;
+        const rest = ca.slice(3);
+        if (rest.length > 0) norm.push("-d" + rest);
+        else if (ci + 1 < opArgs.length) norm.push("-d" + opArgs[++ci]!);
+        else return undefined;
+      } else if ((ca === "-d" || ca === "-f" || ca === "-c") && ci + 1 < opArgs.length) {
         norm.push(ca + opArgs[++ci]!);
       } else {
         norm.push(ca);
       }
     }
-    if (norm.length === 1 && norm[0]!.startsWith("-c")) {
+    if (!suppressNoDelim && norm.length === 1 && norm[0]!.startsWith("-c")) {
       if (byteLocaleMode) return undefined;
       const picker = this.parseSyncCutSpec(norm[0]!.slice(2));
       if (!picker) return undefined;
@@ -22453,22 +22622,82 @@ export class Runtime {
         return idxs.map(i => chars[i]!).join("");
       });
     }
-    const delim = norm.length === 2 && norm[0]!.length === 3 && norm[0]!.startsWith("-d") ? norm[0]![2]! : (norm.length === 1 ? "\t" : undefined);
-    const fArg = norm.length === 2 ? norm[1] : norm[0];
-    if (delim === undefined || !fArg || !fArg.startsWith("-f")) return undefined;
+    let delim = "\t";
+    let fArg: string | undefined;
+    if (norm.length === 1 && norm[0]!.startsWith("-f")) {
+      fArg = norm[0]!;
+    } else if (norm.length === 2) {
+      const dCandidate = norm[0]!.startsWith("-d") ? norm[0]! : (norm[1]!.startsWith("-d") ? norm[1]! : undefined);
+      const fCandidate = norm[0]!.startsWith("-f") ? norm[0]! : (norm[1]!.startsWith("-f") ? norm[1]! : undefined);
+      if (dCandidate && dCandidate.length === 3 && fCandidate) {
+        delim = dCandidate[2]!;
+        fArg = fCandidate;
+      }
+    }
+    if (!fArg || !fArg.startsWith("-f")) return undefined;
     const picker = this.parseSyncCutSpec(fArg.slice(2));
     if (!picker) return undefined;
-    return rawLines.map(l => {
-      if (!l.includes(delim)) return l;
+    const out: string[] = [];
+    for (let li = 0; li < rawLines.length; li++) {
+      const l = rawLines[li]!;
+      if (!l.includes(delim)) {
+        if (!suppressNoDelim) out.push(l);
+        continue;
+      }
       const parts = l.split(delim);
       const idxs = picker(parts.length);
-      return idxs.map(i => parts[i]!).join(delim);
-    });
+      out.push(idxs.map(i => parts[i]!).join(delim));
+    }
+    return out;
   }
 
   private evalSyncSed(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
-    if (opArgs.length !== 1 && !(opArgs.length === 2 && opArgs[0] === "-e")) return undefined;
-    const expr = opArgs[opArgs.length - 1]!;
+    let quiet = false;
+    let expr: string | undefined;
+    if (opArgs.length === 1 && !opArgs[0]!.startsWith("-")) {
+      expr = opArgs[0]!;
+    } else if (opArgs.length === 2 && opArgs[0] === "-e") {
+      expr = opArgs[1]!;
+    } else if (opArgs.length === 2 && opArgs[0] === "-n") {
+      quiet = true;
+      expr = opArgs[1]!;
+    } else if (opArgs.length === 3 && ((opArgs[0] === "-n" && opArgs[1] === "-e") || (opArgs[0] === "-e" && opArgs[1] === "-n"))) {
+      quiet = true;
+      expr = opArgs[2]!;
+    }
+    if (!expr) return undefined;
+    const addrCmdM = /^(?:([1-9][0-9]{0,4}|\$)(?:,([1-9][0-9]{0,4}|\$))?|\/(\^?[a-zA-Z0-9_ :;,.-]+\$?)\/)([dp])$/.exec(expr);
+    if (addrCmdM) {
+      const cmdChar = addrCmdM[4]!;
+      if ((quiet && cmdChar !== "p") || (!quiet && cmdChar !== "d")) return undefined;
+      const startSpec = addrCmdM[1];
+      const endSpec = addrCmdM[2];
+      const patSpec = addrCmdM[3];
+      const matchLine = (l: string, idx1: number, total: number): boolean => {
+        if (patSpec !== undefined) {
+          const aStart = patSpec.startsWith("^");
+          const c1 = aStart ? patSpec.slice(1) : patSpec;
+          const aEnd = c1.endsWith("$");
+          const core = aEnd ? c1.slice(0, -1) : c1;
+          if (aStart && aEnd) return l === core;
+          if (aStart) return l.startsWith(core);
+          if (aEnd) return l.endsWith(core);
+          return l.includes(core);
+        }
+        const sNum = startSpec === "$" ? total : Number(startSpec!);
+        if (endSpec === undefined) return idx1 === sNum;
+        const eNum = endSpec === "$" ? total : Number(endSpec);
+        return idx1 >= sNum && idx1 <= eNum;
+      };
+      const out: string[] = [];
+      for (let i = 0; i < rawLines.length; i++) {
+        const hit = matchLine(rawLines[i]!, i + 1, rawLines.length);
+        if (cmdChar === "p" && hit) out.push(rawLines[i]!);
+        else if (cmdChar === "d" && !hit) out.push(rawLines[i]!);
+      }
+      return out;
+    }
+    if (quiet) return undefined;
     if (!expr.startsWith("s") || expr.length < 4) return undefined;
     const delim = expr[1]!;
     if (!"/#|:@,;%!".includes(delim)) return undefined;
@@ -22825,9 +23054,7 @@ export class Runtime {
         if (sName === "cut") {
           if (this.evalSyncCut([], sArgs, byteLocale(rawState.variables)) === undefined) return undefined;
         } else if (sName === "tr") {
-          const validTr2 = sArgs.length === 2 && ((!sArgs[0]!.startsWith("-") && !sArgs[1]!.startsWith("-")) || ((sArgs[0] === "-d" || sArgs[0] === "-s") && !sArgs[1]!.startsWith("-")));
-          const validTr3 = sArgs.length === 3 && (sArgs[0] === "-ds" || sArgs[0] === "-sd" || sArgs[0] === "-s") && !sArgs[1]!.startsWith("-") && !sArgs[2]!.startsWith("-");
-          if (!validTr2 && !validTr3) return undefined;
+          if (this.evalSyncTr("", sArgs) === undefined) return undefined;
         } else if (sName === "uniq") {
           if (sArgs.length > 1 || (sArgs.length === 1 && sArgs[0] !== "-c" && sArgs[0] !== "-d" && sArgs[0] !== "-u" && sArgs[0] !== "-i")) return undefined;
         } else if (sName === "sort") {
@@ -22853,8 +23080,7 @@ export class Runtime {
         } else if (sName === "grep") {
           if (this.evalSyncGrep([], sArgs, Boolean(rawState.errexit)) === undefined) return undefined;
         } else if (sName === "jq") {
-          const jqFilter = sArgs.length === 1 ? sArgs[0] : (sArgs.length === 2 && (sArgs[0] === "-r" || sArgs[0] === "--raw-output") ? sArgs[1] : undefined);
-          if (!jqFilter || !/^\.[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*$/.test(jqFilter)) return undefined;
+          if (this.evalSyncJq("null", sArgs) === undefined) return undefined;
         } else if (sName === "base64") {
           if (sArgs.length > 1 || (sArgs.length === 1 && sArgs[0] !== "-d" && sArgs[0] !== "--decode")) return undefined;
         } else if (sName === "tac" || sName === "nl") {
@@ -22928,13 +23154,7 @@ export class Runtime {
           const stageArgs = stageArgsList[sIdx]!;
           const nextBuf = (index & 1) === 0 ? sharedSyncPipeBuf0 : sharedSyncPipeBuf1;
           const isInlineCutField = firstName === "cut";
-          const isInlineTr = firstName === "tr" && stageArgs.length === 2 && (
-            (stageArgs[0] === "a-z" && stageArgs[1] === "A-Z") ||
-            (stageArgs[0] === "A-Z" && stageArgs[1] === "a-z") ||
-            (stageArgs[0] === "-d" && /^[a-zA-Z0-9_ :;,./-]+$/.test(stageArgs[1]!)) ||
-            (stageArgs[0] === "-s" && stageArgs[1]!.length === 1) ||
-            (!stageArgs[0]!.startsWith("-") && !stageArgs[1]!.startsWith("-") && this.expandSyncTrCharArray(stageArgs[0]!) !== undefined && this.expandSyncTrCharArray(stageArgs[1]!) !== undefined)
-          );
+          const isInlineTr = firstName === "tr";
           const isInlineAwk = firstName === "awk";
           const isInlineGrep = firstName === "grep";
           const isInlineJq = firstName === "jq";
@@ -22998,38 +23218,8 @@ export class Runtime {
               if (cutRes === undefined) return undefined;
               outLines = cutRes;
             } else if (isInlineTr) {
-              let transformed = inStr;
-              if (stageArgs[0] === "a-z" && stageArgs[1] === "A-Z") {
-                transformed = inStr.replace(/[a-z]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 32));
-              } else if (stageArgs[0] === "A-Z" && stageArgs[1] === "a-z") {
-                transformed = inStr.replace(/[A-Z]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 32));
-              } else if (stageArgs[0] === "-s") {
-                const sq = stageArgs[1]!;
-                let out = "";
-                let prevSq = false;
-                for (let ci = 0; ci < inStr.length; ci++) {
-                  const ch = inStr[ci]!;
-                  if (ch === sq) {
-                    if (!prevSq) { out += ch; prevSq = true; }
-                  } else {
-                    out += ch;
-                    prevSq = false;
-                  }
-                }
-                transformed = out;
-              } else if (stageArgs[0] === "-d") {
-                const delSet = this.expandSyncTrCharSet(stageArgs[1]!);
-                let out = "";
-                for (let ci = 0; ci < inStr.length; ci++) {
-                  const ch = inStr[ci]!;
-                  if (!delSet.has(ch)) out += ch;
-                }
-                transformed = out;
-              } else {
-                const trRes = this.translateSyncTr(inStr, stageArgs[0]!, stageArgs[1]!);
-                if (trRes === undefined) return undefined;
-                transformed = trRes;
-              }
+              const transformed = this.evalSyncTr(inStr, stageArgs);
+              if (transformed === undefined) return undefined;
               const outByteLen = shellValueByteLength(transformed);
               if (outByteLen > nextBuf.byteLength) return undefined;
               const nextTotalBytes = this.budget.bytes + outByteLen;
@@ -23098,37 +23288,9 @@ export class Runtime {
                 continue;
               }
             } else if (isInlineJq) {
-              const rawOut = stageArgs.length === 2;
-              const filter = stageArgs[stageArgs.length - 1]!;
-              const trimmedJson = inStr.trim();
-              if (!trimmedJson.startsWith("{") || trimmedJson.includes("\n")) return undefined;
-              let parsedObj: unknown;
-              try {
-                parsedObj = JSON.parse(trimmedJson);
-              } catch {
-                return undefined;
-              }
-              if (!parsedObj || typeof parsedObj !== "object" || Array.isArray(parsedObj)) return undefined;
-              const keys = filter.slice(1).split(".");
-              let cur: unknown = parsedObj;
-              for (let ki = 0; ki < keys.length; ki++) {
-                if (cur === null || cur === undefined || typeof cur !== "object") { cur = undefined; break; }
-                if (Array.isArray(cur)) return undefined;
-                cur = Object.hasOwn(cur, keys[ki]!) ? (cur as Record<string, unknown>)[keys[ki]!] : undefined;
-              }
-              if (cur !== null && cur !== undefined && typeof cur === "object") return undefined;
-              if (rawOut) {
-                if (typeof cur === "string") {
-                  if (cur.includes("\n")) return undefined;
-                  outLines = [cur];
-                } else if (typeof cur === "number" || typeof cur === "boolean") {
-                  outLines = [String(cur)];
-                } else {
-                  outLines = ["null"];
-                }
-              } else {
-                outLines = [JSON.stringify(cur ?? null)];
-              }
+              const jqRes = this.evalSyncJq(inStr.trim(), stageArgs);
+              if (jqRes === undefined) return undefined;
+              outLines = jqRes;
             }
             // These filters preserve the terminator of the final selected input line.
             const preservesTerminator = firstName === "head" || firstName === "tail" || firstName === "rev" || firstName === "sed";
@@ -23334,27 +23496,9 @@ export class Runtime {
                   : (byteCount === 0 ? view.subarray(0, 0) : view.subarray(Math.max(0, view.byteLength - byteCount), view.byteLength));
                 fileRes = sharedSyncPipeDecoder.decode(slicedBytes);
               }
-            } else if (w0Plain === "jq" && (opArgs.length === 1 || opArgs.length === 2)) {
-              const rawMode = opArgs.length === 2 && (opArgs[0] === "-r" || opArgs[0] === "--raw-output");
-              const jqFilter = opArgs.length === 1 ? opArgs[0]! : (rawMode ? opArgs[1]! : "");
-              if (/^\.[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*$/.test(jqFilter)) {
-                try {
-                  let cur: unknown = JSON.parse(fileStr.trim());
-                  const keys = jqFilter.slice(1).split(".");
-                  let validJq = true;
-                  for (const k of keys) {
-                    if (cur !== null && typeof cur === "object" && !Array.isArray(cur)) {
-                      cur = (cur as Record<string, unknown>)[k];
-                    } else {
-                      validJq = false;
-                      break;
-                    }
-                  }
-                  if (validJq && cur !== undefined && (cur === null || typeof cur === "string" || typeof cur === "number" || typeof cur === "boolean")) {
-                    fileRes = cur === null ? "null" : typeof cur === "string" ? (rawMode ? cur : JSON.stringify(cur)) : String(cur);
-                  }
-                } catch {}
-              }
+            } else if (w0Plain === "jq") {
+              const jqRes = this.evalSyncJq(fileStr.trim(), opArgs);
+              if (jqRes !== undefined) fileRes = jqRes.join("\n");
             } else if (w0Plain === "awk") {
               const awkRes = this.evalSyncAwk(rawLines, opArgs);
               if (awkRes !== undefined) fileRes = awkRes.join("\n");
@@ -23397,30 +23541,8 @@ export class Runtime {
                 uIdx = uEnd;
               }
               fileRes = outLines.join("\n");
-            } else if (w0Plain === "tr" && (hasSingleStdinRedir || hasSingleHereStringRedir) && opArgs.length === 2) {
-              if (opArgs[0] === "a-z" && opArgs[1] === "A-Z") fileRes = fileStr.toUpperCase();
-              else if (opArgs[0] === "A-Z" && opArgs[1] === "a-z") fileRes = fileStr.toLowerCase();
-              else if (opArgs[0] === "-d" && /^[a-zA-Z0-9_ :;,./-]+$/.test(opArgs[1]!)) {
-                const delSet = this.expandSyncTrCharSet(opArgs[1]!);
-                let out = "";
-                for (let ci = 0; ci < fileStr.length; ci++) {
-                  const ch = fileStr[ci]!;
-                  if (!delSet.has(ch)) out += ch;
-                }
-                fileRes = out;
-              } else if (opArgs[0] === "-s" && opArgs[1]!.length === 1) {
-                const sq = opArgs[1]!;
-                let out = "";
-                let prevSq = false;
-                for (let ci = 0; ci < fileStr.length; ci++) {
-                  const ch = fileStr[ci]!;
-                  if (ch === sq) { if (!prevSq) { out += ch; prevSq = true; } }
-                  else { out += ch; prevSq = false; }
-                }
-                fileRes = out;
-              } else if (!opArgs[0]!.startsWith("-") && !opArgs[1]!.startsWith("-")) {
-                fileRes = this.translateSyncTr(fileStr, opArgs[0]!, opArgs[1]!);
-              }
+            } else if (w0Plain === "tr" && (hasSingleStdinRedir || hasSingleHereStringRedir)) {
+              fileRes = this.evalSyncTr(fileStr, opArgs);
             } else if (hasSingleHereStringRedir && w0Plain === "base64" && (opArgs.length === 0 || (opArgs.length === 1 && (opArgs[0] === "-d" || opArgs[0] === "--decode")))) {
               if (opArgs.length === 0) fileRes = this.syncBase64Encode(view);
               else fileRes = sharedSyncPipeDecoder.decode(this.syncBase64DecodeBytes(fileStr));

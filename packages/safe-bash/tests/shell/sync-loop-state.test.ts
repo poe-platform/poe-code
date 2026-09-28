@@ -506,3 +506,37 @@ test("wave 98 sync loop: cut ranges, sed custom delimiters/anchors, grep -E alte
     await shell.dispose();
   }
 });
+
+test("wave 99 sync loop: POSIX tr classes, jq array/iter/length/keys filters, sed d/-n p, and cut -s", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  const { createStructuredCommands } = await import("../../src/commands/structured/index.js");
+  const commands = new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands(), ...createStructuredCommands()]);
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands });
+  try {
+    const script = [
+      'j=\'{"items":[{"name":"alpha"},{"name":"beta"}]}\'',
+      "s_lines=$'hdr\\nrow1\\nrow2'",
+      's_tr="hello_world 123"',
+      "s_cut=$'no_delim\\na:b:c'",
+      "for ((i=1; i<=10; i++)); do",
+      '  j1=$(jq -r ".items[1].name" <<< "$j")',
+      '  j2=$(jq -r ".items[].name" <<< "$j")',
+      '  j3=$(jq -r ".items | length" <<< "$j")',
+      '  j4=$(jq -r "keys[]" <<< "$j")',
+      '  d1=$(sed "1d" <<< "$s_lines")',
+      '  d2=$(sed -n "2p" <<< "$s_lines")',
+      '  t1=$(tr "[:lower:]" "[:upper:]" <<< "$s_tr")',
+      '  t2=$(tr -d "[:space:]" <<< "$s_tr")',
+      '  t3=$(tr -d "[:digit:]" <<< "$s_tr")',
+      '  c1=$(cut -s -d: -f2 <<< "$s_cut")',
+      "done",
+      'printf "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\\n" "$j1" "${j2//$' + "'\\n'" + '/,}" "$j3" "$j4" "${d1//$' + "'\\n'" + '/,}" "$d2" "$t1" "$t2" "$t3" "$c1"',
+    ].join("\n");
+    const result = await shell.exec(script);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "beta|alpha,beta|2|items|row1,row2|row1|HELLO_WORLD 123|hello_world123|hello_world |b\n");
+  } finally {
+    await shell.dispose();
+  }
+});

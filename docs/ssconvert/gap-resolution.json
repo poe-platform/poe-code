@@ -2449,6 +2449,18 @@
         "validation": "Six original metadata cases and four parser cases failed before repair. 273 tests across 12 focused ODF/formula/legacy files pass; package lint, source/test/consumer types and selected workspace build pass. Six compiled SDK/command conversions independently decoded with Python: 54 target observations, distinct sheet values and edited display text retained, zero diagnostics, input unchanged. Command transcript screenshot inspected.",
         "scope": "Repairs the reported import/parser/export identity requirements. Actual native navigation, wider format qualification, installed registry artifacts and containing publication remain separate open requirements.",
         "receipts": "out/ssconvert-absolute-hyperlinks/{sources,input,independent-proof,cleanup}.json"
+      },
+      "fragmentEscapes": {
+        "issue": 3688,
+        "source": {
+          "revision": "bce0998afefdbc355585ca324285661a2170ba77",
+          "urlobj": "tools/source/fsys/urlobj.cxx:3490-3537,4551-4662, SHA256 629c4aeacd5b1621c510da27cd48732c5b1853c4a2222752648dd86bac60288d",
+          "uri": "sal/rtl/uri.cxx:562-614, SHA256 61ddf498b5c28485ea4ff09faa2c6031200e134aaa80db30bce5337d4f5089bf"
+        },
+        "implementation": "Decode percent escapes one UTF-8 character at a time like Calc WithCharset: literal percent signs survive, invalid octets remain uppercase escapes, valid neighbors continue decoding and decoded percents are not decoded twice. Exported and retained native local-name marks escape hash/question-mark fragment characters while preserving target identity and case. External URL payloads stay passive.",
+        "validation": "Thirteen original fragment cases and two retained-native-mark cases failed before their fixes. Final five-file cohort: 147 tests pass; maintained package lint/types and selected build pass. Ten compiled SDK/command exports independently yield 60 correct targets across Gnumeric, strict/extended retained ODF and regenerated labels. No diagnostics; input bytes unchanged; command transcript screenshot inspected.",
+        "remaining": "Issue #3688 remains open for hyperlink rename/remap and current command-export/default verification. Native navigation and registry/publication qualification remain open under #1748.",
+        "receipts": "out/ssconvert-hyperlink-lifecycle/{sources,fragment-input,fragment-proof,fragment-cleanup}.json"
       }
     },
     "odfCrossSheetLabelRanges": {

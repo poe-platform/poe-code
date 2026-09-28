@@ -261,3 +261,13 @@ string transport as native recalculation qualification.
     diagnostics, no input changes and unprefixed exported sheet syntax. Use the
     stable imported sheet ID for SDK updates. Inspect the command transcript
     screenshot; keep native navigation qualification separate and purge outputs.
+
+20. Inspect Calc `INetURLObject::getUTF32` and `decode(WithCharset)` before
+    changing fragment escapes. Check literal `%`, mixed valid/invalid escapes,
+    Unicode scalars, malformed/overlong/surrogate UTF-8 and a percent encoded
+    exactly once. Import legacy qualified local-name marks and native marks,
+    then export retained and edited labels through compiled SDK and command in
+    both ODF profiles and Gnumeric XML. Independently compare all targets;
+    escape `#`/`?` within the fragment and preserve external URLs. Retained
+    native marks keep their name/sheet case while their escaping is normalized.
+    Keep rename/remap and native click-through navigation as separate checks.

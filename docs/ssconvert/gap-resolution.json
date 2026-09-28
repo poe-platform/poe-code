@@ -2587,7 +2587,7 @@
       }
     },
     "xlsxWorksheetRecordAudit": {
-      "status": "implemented and locally qualified; delivery and native application qualification pending",
+      "status": "implemented, delivered to remote main and qualified against independent OOXML and native Calc controls",
       "issue": 3686,
       "sourceRevision": "bce0998afefdbc355585ca324285661a2170ba77",
       "sources": [
@@ -2630,11 +2630,11 @@
         "fixture": "Original in-memory OOXML with schema-ordered worksheet elements; no generated binary fixture committed.",
         "testSha256": "42108c2e72bbfde44afe94005cdac1cdfd98232b202cb7e5deb89a028afe8e2e"
       },
-      "remaining": "Verify remote delivery, publication and native application readback. Unsupported printer relationships and broader format/rendering requirements remain open.",
+      "remaining": "Containing registry publication, unsupported printer relationships and broader format/rendering requirements remain open; native Calc itself normalizes or drops some original settings.",
       "implementation": "Retain supported native worksheet records and compare normalized edits against the imported baseline before changing attributes or children. Import first/even headers, point dimensions and positive base-width fallback; preserve untouched formatting codes, precision, flags, hashes and raw-only settings. Recompute edited page-break counts. Unknown fields and unattached relationships produce granular loss diagnostics.",
       "validation": "18 original regressions failed; new controls caught raw-only print resets, stale break counts and two zero-width inconsistencies. All 72 candidate checks and 305 XLSX checks pass. Applied with label fixes: 871 checks in 34 files, maintained package lint including source/test/consumer types, and selected workspace build pass. Four conversions through the actual built SDK/command edit B2 from 7 to 8 without warnings; independent Python ZIP/XML verifies all eight native records in every output (32 comparisons). Command screenshot inspected.",
       "fallbackWidth": {
-        "status": "implemented and locally qualified; full integration, native application and delivery gates remain open",
+        "status": "implemented and delivered; pristine native Calc readback confirms corrected width units",
         "source": {
           "revision": "325ef79a19580959afaee9cf01cb8ea15f0177b0",
           "url": "https://raw.githubusercontent.com/GNOME/gnumeric/325ef79a19580959afaee9cf01cb8ea15f0177b0/plugins/excel/xlsx-write.c",
@@ -2646,7 +2646,7 @@
         "implementation": "Use character units for fresh defaults. Keep absent or zero raw defaults distinct from the normalized fallback so unedited records survive, while explicit model widths still update the native declaration.",
         "validation": "Maintained regressions: two initial failures and 80 passing controls; after the correction all 104 checks in three files pass. Package lint, source/test/consumer types and selected maintained build pass. An isolated 20-case matrix covers both editions, implicit and explicit widths, raw absence/zero/native widths and positive base-width fallback.",
         "compiledValidation": "Four conversions from the maintained build cover both XLSX editions through the codec and command API, with empty command diagnostics. Independent Python ZIP/XML inspection parses all 36 XML members and verifies equal default/explicit widths and unchanged cell values. Eight additional isolated-candidate archives and 72 XML members pass raw-record controls.",
-        "remaining": "Native application readback, installed-release qualification, remote delivery and containing publication remain open; no family closure."
+        "remaining": "Containing registry publication and wider installed/rendering profiles remain open; native width rounding is recorded in currentQualification."
       },
       "headerFooterStrings": {
         "status": "implemented and locally qualified; remote, publication and native application gates pending",
@@ -2712,6 +2712,17 @@
         "implementation": "Declare _x0000_t202 to match the existing #_x0000_t202 references.",
         "validation": "Both XLSX editions fail the parsed declaration/reference check before the fix; all 22 tests in the comment-string and writer-metadata files pass after it. Package lint and source/test/consumer type checks pass. Current declared root/scoped public exports pass eight codec/command conversions across both editions; independent ZIP/XML inspection verifies 96 XML members, exact escaped author/text and every generated shape reference. Consumed output archives were removed.",
         "remaining": "This corrects the broken identifier only. Full comment geometry and rich metadata retention are not established. The command still reports loss of raw legacyDrawing/xml/comments records. Native rendering, installed release, remote delivery and publication remain unverified."
+      },
+      "currentQualification": {
+        "candidate": "60d78b36367d57c233f15fc7f90c7b0817bc69b7",
+        "deliveredRepairs": [
+          "c40f1a6b4e",
+          "7af9ace427"
+        ],
+        "validation": "Fresh 98 maintained XLSX settings/metadata tests pass. Original compiled command CSV-to-XLSX-to-edited-XLSX-to-CSV reproduction has zero diagnostics and exact B2=8. Four compiled SDK/command exports across both editions retain all seven independently authored nondefault records byte-semantically (28 parsed comparisons) and leave input bytes unchanged.",
+        "native": "Official Calc 26.8.0.3 bce0998afefdbc355585ca324285661a2170ba77 reads the independent source control and all four product outputs. All 28 normalized native record projections match; source B2 remains 7 and output B2 remains 8. Pristine default width stays near 9.14 characters through Calc rather than inflating to 48 characters.",
+        "limits": "Calc rounds widths/margins and normalizes or loses some codeName/tabColor/protection/print fields even on the original control. Native equivalence does not claim those fields survive Calc unchanged; exact product OOXML preservation is separately proven. Headless readback is not GUI navigation. Native stderr includes Fontconfig cache warnings.",
+        "receipts": "out/ssconvert-xlsx-settings-current/{input,exports,independent-proof,native-proof,self-generated,cleanup}.json"
       }
     },
     "nativeLibreOfficeProfile": {

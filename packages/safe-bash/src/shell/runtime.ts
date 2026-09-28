@@ -23107,19 +23107,21 @@ export class Runtime {
         if (rest.length > 0) norm.push("-d" + rest);
         else if (ci + 1 < opArgs.length) norm.push("-d" + opArgs[++ci]!);
         else return undefined;
-      } else if ((ca === "-d" || ca === "-f" || ca === "-c") && ci + 1 < opArgs.length) {
+      } else if ((ca === "-d" || ca === "-f" || ca === "-c" || ca === "-b") && ci + 1 < opArgs.length) {
         norm.push(ca + opArgs[++ci]!);
       } else {
         norm.push(ca);
       }
     }
-    if (!suppressNoDelim && outDelim === undefined && norm.length === 1 && norm[0]!.startsWith("-c")) {
-      if (byteLocaleMode) return undefined;
+    if (!suppressNoDelim && outDelim === undefined && norm.length === 1 && (norm[0]!.startsWith("-c") || norm[0]!.startsWith("-b"))) {
+      const isByteMode = norm[0]!.startsWith("-b");
+      if (!isByteMode && byteLocaleMode) return undefined;
+      if (isByteMode && rawLines.some(l => { for (let i = 0; i < l.length; i++) if (l.charCodeAt(i) >= 128) return true; return false; })) return undefined;
       const basePicker = this.parseSyncCutSpec(norm[0]!.slice(2));
       if (!basePicker) return undefined;
       const picker = isComplement ? (len: number) => { const s = new Set(basePicker(len)); const r: number[] = []; for (let i = 0; i < len; i++) if (!s.has(i)) r.push(i); return r; } : basePicker;
       return rawLines.map(l => {
-        const chars = Array.from(l);
+        const chars = isByteMode ? l.split("") : Array.from(l);
         const idxs = picker(chars.length);
         return idxs.map(i => chars[i]!).join("");
       });
@@ -23157,10 +23159,13 @@ export class Runtime {
 
   private evalSyncSed(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
     let quiet = false;
+    let isExtended = false;
     const rawExprs: string[] = [];
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
-      if (a === "-n") quiet = true;
+      if (a === "-n" || a === "--quiet" || a === "--silent") quiet = true;
+      else if (a === "-E" || a === "-r" || a === "--regexp-extended") isExtended = true;
+      else if (a === "-En" || a === "-nE" || a === "-rn" || a === "-nr") { quiet = true; isExtended = true; }
       else if (a === "-e") {
         if (i + 1 >= opArgs.length) return undefined;
         rawExprs.push(opArgs[++i]!);
@@ -23188,7 +23193,7 @@ export class Runtime {
       | { kind: "d" }
       | { kind: "p" }
       | { kind: "y"; map: Map<string, string> }
-      | { kind: "s"; re: RegExp; rep: string });
+      | { kind: "s"; re: RegExp; rep: string; printOnMatch: boolean });
     const steps: SedStep[] = [];
     for (const rawE of subExprs) {
       let rest = rawE;
@@ -23248,9 +23253,10 @@ export class Runtime {
         const parts = rest.slice(2).split(delim);
         if (parts.length !== 3) return undefined;
         const [pat, rep, flags] = parts as [string, string, string];
-        if (!/^[giI]*$/.test(flags) || /[\\\n]/.test(rep)) return undefined;
+        if (!/^[giIp]*$/.test(flags) || /\n|\\(?![1-9])/.test(rep)) return undefined;
         const global = flags.includes("g");
         const ignoreCase = flags.includes("i") || flags.includes("I");
+        const printOnMatch = flags.includes("p");
         const anchorStart = pat.startsWith("^");
         const core1 = anchorStart ? pat.slice(1) : pat;
         const anchorEnd = core1.endsWith("$");
@@ -23258,6 +23264,7 @@ export class Runtime {
         if (core.length === 0 && !anchorStart && !anchorEnd) return undefined;
         let reSrc: string | undefined;
         if (/^[a-zA-Z0-9_ :;,=-]*$/.test(core)) {
+          if (/\\[1-9]/.test(rep)) return undefined;
           reSrc = core.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         } else if (
           core === "[ \t]*" || core === "[ \t]+" || core === "[ \\t]*" || core === "[ \\t]+" ||
@@ -23265,11 +23272,20 @@ export class Runtime {
           core === "[0-9]+" || core === "[0-9]*" ||
           core === "[a-zA-Z]+" || core === "[a-zA-Z0-9_]+"
         ) {
+          if (/\\[1-9]/.test(rep)) return undefined;
           reSrc = core.replace("[[:space:]]", "[ \\t\\r\\n\\v\\f]");
+        } else if (isExtended && /^[a-zA-Z0-9_ :;,=.+*?|()^\-[\]]+$/.test(core) && !/\([^)]*[+*][^)]*\)[+*?]/.test(core)) {
+          try {
+            const expanded = core.replace(/\[:space:\]/g, " \\t\\r\\n\\v\\f");
+            void new RegExp(expanded);
+            reSrc = expanded;
+          } catch {
+            reSrc = undefined;
+          }
         }
         if (reSrc === undefined) return undefined;
         const fullRe = new RegExp((anchorStart ? "^" : "") + reSrc + (anchorEnd ? "$" : ""), (global ? "g" : "") + (ignoreCase ? "i" : ""));
-        steps.push({ addr, kind: "s", re: fullRe, rep });
+        steps.push({ addr, kind: "s", re: fullRe, rep, printOnMatch });
         continue;
       }
       return undefined;
@@ -23295,7 +23311,20 @@ export class Runtime {
           l = Array.from(l).map(c => st.map.get(c) ?? c).join("");
           continue;
         }
-        l = l.replace(st.re, matched => st.rep.includes("&") ? st.rep.split("&").join(matched) : st.rep);
+        let matchedOnce = false;
+        l = l.replace(st.re, (matched: string, ...groups: unknown[]) => {
+          matchedOnce = true;
+          let r = st.rep;
+          if (r.includes("&")) r = r.split("&").join(matched);
+          if (r.includes("\\")) {
+            r = r.replace(/\\([1-9])/g, (_, d: string) => {
+              const g = groups[Number(d) - 1];
+              return typeof g === "string" ? g : "";
+            });
+          }
+          return r;
+        });
+        if (matchedOnce && st.printOnMatch) out.push(l);
       }
       if (!deleted && !quiet) out.push(l);
     }
@@ -23559,9 +23588,22 @@ export class Runtime {
       }
     }
     const itemPat = `(?:(?:toupper|tolower)\\(\\$(?:[0-9]+|NF)\\)|substr\\(\\$(?:[0-9]+|NF)\\s*,\\s*[0-9]+(?:\\s*,\\s*[0-9]+)?\\)|\\$(?:[0-9]+|NF)|\\$\\(NF\\s*-\\s*[0-9]+\\)|length(?:\\(\\$(?:[0-9]+|NF)\\))?|NR|NF|[a-zA-Z_][a-zA-Z0-9_]*|"[^"$\\\\]*")`;
-    const awkM = new RegExp(`^\\{\\s*print(?:\\s+(${itemPat}(?:\\s*,?\\s*${itemPat})*))?\\s*;?\\s*\\}\\s*$`).exec(progRest);
+    const awkM = new RegExp(`^\\{\\s*(?:(g?sub)\\(\\s*\\/(\\^?[a-zA-Z0-9_ :;,=-]+\\$?)\\/\\s*,\\s*"([^"\\\\]*)"(?:\\s*,\\s*\\$([0-9]+|NF))?\\s*\\)\\s*;\\s*)?print(?:\\s+(${itemPat}(?:\\s*,?\\s*${itemPat})*))?\\s*;?\\s*\\}\\s*$`).exec(progRest);
     if (!awkM) return undefined;
-    const exprBody = awkM[1]?.trim();
+    const subFn = awkM[1] as "sub" | "gsub" | undefined;
+    const subPat = awkM[2];
+    const subRep = awkM[3] ?? "";
+    const subTarget = awkM[4] ?? "0";
+    const exprBody = awkM[5]?.trim();
+    let subRe: RegExp | undefined;
+    if (subFn && subPat !== undefined) {
+      const aS = subPat.startsWith("^");
+      const c1 = aS ? subPat.slice(1) : subPat;
+      const aE = c1.endsWith("$");
+      const core = aE ? c1.slice(0, -1) : c1;
+      const esc = core.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      subRe = new RegExp((aS ? "^" : "") + esc + (aE ? "$" : ""), subFn === "gsub" ? "g" : "");
+    }
     const parts: Array<
       | { kind: "field"; token: string }
       | { kind: "nf_minus"; offset: number }
@@ -23594,11 +23636,26 @@ export class Runtime {
     }
     const outLines: string[] = [];
     for (let li = 0; li < rawLines.length; li++) {
-      const l = rawLines[li]!;
-      const fields = awkSep === undefined || awkSep === " "
+      let l = rawLines[li]!;
+      let fields = awkSep === undefined || awkSep === " "
         ? l.split(/[ \t]+/).filter(Boolean)
         : (l.length === 0 ? [] : l.split(awkSep));
       if (rowPred && !rowPred(l, fields, li + 1)) continue;
+      if (subRe) {
+        if (subTarget === "0") {
+          l = l.replace(subRe, subRep);
+          fields = awkSep === undefined || awkSep === " "
+            ? l.split(/[ \t]+/).filter(Boolean)
+            : (l.length === 0 ? [] : l.split(awkSep));
+        } else {
+          const tIdx = subTarget === "NF" ? fields.length : Number(subTarget);
+          if (tIdx >= 1 && tIdx <= fields.length) {
+            fields = [...fields];
+            fields[tIdx - 1] = fields[tIdx - 1]!.replace(subRe, subRep);
+            l = fields.join(ofs);
+          }
+        }
+      }
       if (parts.length === 1 && parts[0]!.kind === "field" && parts[0]!.token === "0") {
         outLines.push(l);
         continue;
@@ -23685,21 +23742,60 @@ export class Runtime {
     }
     return Math.max(maximum, columns);
   }
+  private compareSyncVersion(a: string, b: string): number {
+    let ia = 0;
+    let ib = 0;
+    while (ia < a.length || ib < b.length) {
+      while ((ia < a.length && !(a[ia]! >= "0" && a[ia]! <= "9")) || (ib < b.length && !(b[ib]! >= "0" && b[ib]! <= "9"))) {
+        const ca = ia < a.length ? a[ia] : undefined;
+        const cb = ib < b.length ? b[ib] : undefined;
+        const da = ca !== undefined && ca >= "0" && ca <= "9";
+        const db = cb !== undefined && cb >= "0" && cb <= "9";
+        if (da && db) break;
+        if (ca !== cb) {
+          if (ca === undefined) return -1;
+          if (cb === undefined) return 1;
+          if (da) return 1;
+          if (db) return -1;
+          return ca < cb ? -1 : 1;
+        }
+        ia++;
+        ib++;
+      }
+      let sa = ia;
+      while (ia < a.length && a[ia]! >= "0" && a[ia]! <= "9") ia++;
+      let sb = ib;
+      while (ib < b.length && b[ib]! >= "0" && b[ib]! <= "9") ib++;
+      if (sa < ia || sb < ib) {
+        const na = BigInt(sa < ia ? a.slice(sa, ia) : "0");
+        const nb = BigInt(sb < ib ? b.slice(sb, ib) : "0");
+        if (na !== nb) return na < nb ? -1 : 1;
+      }
+    }
+    return 0;
+  }
+
   private evalSyncSort(rawLines: readonly string[], opArgs: readonly string[], isByteLocale: boolean): string[] | undefined {
     if (isByteLocale) return undefined;
     let rev = false;
     let num = false;
     let uniq = false;
     let fold = false;
+    let blanks = false;
+    let stable = false;
+    let ver = false;
     let sep: string | undefined;
     let keySpec: string | undefined;
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
-      if (/^-[runf]+$/.test(a)) {
+      if (/^-[runfbsV]+$/.test(a)) {
         if (a.includes("r")) rev = true;
         if (a.includes("n")) num = true;
         if (a.includes("u")) uniq = true;
         if (a.includes("f")) fold = true;
+        if (a.includes("b")) blanks = true;
+        if (a.includes("s")) stable = true;
+        if (a.includes("V")) ver = true;
       } else if (a === "-t" && i + 1 < opArgs.length && opArgs[i + 1]!.length === 1) {
         sep = opArgs[++i]!;
       } else if (a.startsWith("-t") && a.length === 3) {
@@ -23719,8 +23815,10 @@ export class Runtime {
     let keyNum = num;
     let keyRev = rev;
     let keyFold = fold;
+    let keyBlanks = blanks;
+    let keyVer = ver;
     if (keySpec !== undefined) {
-      const km = /^([1-9][0-9]{0,2})(?:,([1-9][0-9]{0,2}))?([nrf]*)$/.exec(keySpec);
+      const km = /^([1-9][0-9]{0,2})(?:,([1-9][0-9]{0,2}))?([nrbfV]*)$/.exec(keySpec);
       if (!km) return undefined;
       startField = Number(km[1]!);
       endField = km[2] !== undefined ? Number(km[2]!) : undefined;
@@ -23729,15 +23827,18 @@ export class Runtime {
       if (kf.includes("n")) keyNum = true;
       if (kf.includes("r")) keyRev = true;
       if (kf.includes("f")) keyFold = true;
+      if (kf.includes("b")) keyBlanks = true;
+      if (kf.includes("V")) keyVer = true;
     }
     const extractKey = (l: string): string => {
-      const raw = keySpec === undefined
+      let raw = keySpec === undefined
         ? l
         : (() => {
             const fields = sep !== undefined ? l.split(sep) : l.trimStart().split(/\s+/);
             const slice = endField !== undefined ? fields.slice(startField - 1, endField) : fields.slice(startField - 1);
             return slice.join(sep ?? " ");
           })();
+      if (keyBlanks) raw = raw.replace(/^[ \t]+/, "");
       return keyFold ? raw.toUpperCase() : raw;
     };
     const parseNum = (s: string): number => {
@@ -23751,10 +23852,13 @@ export class Runtime {
         const na = parseNum(ka);
         const nb = parseNum(kb);
         if (na !== nb) return keyRev ? nb - na : na - nb;
+      } else if (keyVer) {
+        const vc = this.compareSyncVersion(ka, kb);
+        if (vc !== 0) return keyRev ? -vc : vc;
       } else if (ka !== kb) {
         return ka < kb ? (keyRev ? 1 : -1) : (keyRev ? -1 : 1);
       }
-      if (uniq) return 0;
+      if (uniq || stable) return 0;
       const fa = fold ? a.toUpperCase() : a;
       const fb = fold ? b.toUpperCase() : b;
       if (fa !== fb) return fa < fb ? (rev ? 1 : -1) : (rev ? -1 : 1);
@@ -23768,7 +23872,7 @@ export class Runtime {
       } else {
         const ka = extractKey(sorted[i]!);
         const kb = extractKey(sorted[i - 1]!);
-        const same = keyNum ? parseNum(ka) === parseNum(kb) : ka === kb;
+        const same = keyNum ? parseNum(ka) === parseNum(kb) : keyVer ? this.compareSyncVersion(ka, kb) === 0 : ka === kb;
         if (!same) dedup.push(sorted[i]!);
       }
     }

@@ -907,3 +907,36 @@ test("Wave 109: trySyncLoop supports tr octal escapes and -t, awk toupper/tolowe
     await shell.dispose();
   }
 });
+
+test("Wave 110: trySyncLoop supports sed -En capture groups and s///p, cut -b, sort -V/-b/-s, and awk sub/gsub", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  const shell = new Shell({
+    fs: new MemoryFileSystem(),
+    commands: new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands()]),
+  });
+  try {
+    const script = [
+      "cfg=$\x27# comment\\nhost=db\\nport=5432\\ntimeout=30\x27",
+      "line=\"abcdef_12345\"",
+      "vers=$\x27v1.10\\nv1.2\\nv1.1\x27",
+      "blanks=$\x27   b\\n a\\n  c\x27",
+      "row=\"foo-bar-baz 100\"",
+      "out=\"\"",
+      "for ((i=1; i<=20; i++)); do",
+      "  sp=$(sed -En \x27s/^([a-z]+)=([0-9]+)$/\\2:\\1/p\x27 <<< \"$cfg\")",
+      "  cb=$(cut -b 1-4,8-10 <<< \"$line\")",
+      "  sv=$(sort -V <<< \"$vers\")",
+      "  sbs=$(sort -b -s <<< \"$blanks\")",
+      "  ag=$(awk \x27{gsub(/-/, \"_\", $1); print $1, $2}\x27 <<< \"$row\")",
+      "  out=\"${sp//$\x27\\n\x27/,}|$cb|${sv//$\x27\\n\x27/,}|${sbs//$\x27\\n\x27/,}|$ag\"",
+      "done",
+      "printf \"%s\\n\" \"$out\"",
+    ].join("\n");
+    const res = await shell.exec(script);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout, "5432:port,30:timeout|abcd123|v1.1,v1.2,v1.10| a,   b,  c|foo_bar_baz 100\n");
+  } finally {
+    await shell.dispose();
+  }
+});

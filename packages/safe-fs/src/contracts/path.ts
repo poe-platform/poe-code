@@ -1,4 +1,4 @@
-import { posix } from "#safe-fs-platform";
+import { posix } from "#safe-fs-platform-path";
 export {
   assertPathWithin, isPathWithin, normalizePath, relativePath, resolvePath, validatePath
 } from "./virtual-path.js";

@@ -1,5 +1,4 @@
 import { AsyncLocalStorage } from "node:async_hooks";
-export { posix } from "node:path";
 import { randomUUID } from "node:crypto";
 import * as util from "node:util";
 import { constants } from "node:os";

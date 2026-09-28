@@ -1,5 +1,4 @@
 import { FsError } from "../contracts/errors.js";
-export { posixPath as posix } from "../contracts/portable-path.js";
 import type { FsOptions } from "../contracts/filesystem.js";
 import type { ScopedTransportBudgetFrame } from "./transport-budget.js";
 import { chargeTransportOptions } from "./transport-budget.js";

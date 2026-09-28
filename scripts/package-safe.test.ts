@@ -859,10 +859,11 @@ it("resolves packaged real filesystem declarations for Workers while retaining b
   volume.writeFileSync("/repo/packages/safe-fs/package.json", JSON.stringify({ name: "@poe-code/safe-fs", exports }));
   for (const target of [...Object.values(exports).flatMap(value => Object.values(value)),
     "./dist/node-unavailable.d.ts", "./dist/node-host.d.ts", "./dist/node-host.js",
-    "./dist/platform/node.d.ts", "./dist/platform/node.js", "./dist/platform/browser.d.ts", "./dist/platform/browser.js"]) {
+    "./dist/platform/node.d.ts", "./dist/platform/node.js", "./dist/platform/browser.d.ts", "./dist/platform/browser.js",
+    "./dist/platform/node-path.d.ts", "./dist/platform/node-path.js", "./dist/platform/browser-path.d.ts", "./dist/platform/browser-path.js"]) {
     const filename = "/repo/packages/safe-fs/" + target.slice(2);
     volume.mkdirSync(path.dirname(filename), { recursive: true });
-    volume.writeFileSync(filename, target.includes("/fs/real/") ? 'import "#safe-fs-platform"; export {};\n' : "export {};\n");
+    volume.writeFileSync(filename, target.includes("/fs/real/") ? 'import "#safe-fs-platform"; import "#safe-fs-platform-path"; export {};\n' : "export {};\n");
   }
   await packageSafeLibraries({ ...options, outDir: "/output" });
   const manifest = JSON.parse(volume.readFileSync("/output/safe-fs/package.json", "utf8").toString());
@@ -903,6 +904,12 @@ it("resolves packaged real filesystem declarations for Workers while retaining b
     expect(platform(conditions)).toBe("/consumer/node_modules/@poe-platform/safe-fs/dist/safe-fs/platform/browser.d.ts");
   }
   expect(platform([])).toBe("/consumer/node_modules/@poe-platform/safe-fs/dist/safe-fs/platform/node.d.ts");
+  for (const [conditions, profile] of [[[], "node"], [["browser"], "browser"], [["workerd"], "browser"]] as const) {
+    const pathPolicy = ts.resolveModuleName("#safe-fs-platform-path", "/consumer/node_modules/@poe-platform/safe-fs/dist/safe-fs/fs/real/index.d.ts", {
+      module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler, customConditions: [...conditions],
+    }, host).resolvedModule?.resolvedFileName;
+    expect(pathPolicy).toBe(`/consumer/node_modules/@poe-platform/safe-fs/dist/safe-fs/platform/${profile}-path.d.ts`);
+  }
 });
 
 it("packages core jobs with one canonical public facade", async () => {

@@ -16,6 +16,16 @@
       "workerd": "./src/platform/browser.ts",
       "browser": "./src/platform/browser.ts",
       "default": "./src/platform/node.ts"
+    },
+    "#safe-fs-platform-path": {
+      "types": {
+        "workerd": "./src/platform/browser-path.ts",
+        "browser": "./src/platform/browser-path.ts",
+        "default": "./src/platform/node-path.ts"
+      },
+      "workerd": "./dist/platform/browser-path.js",
+      "browser": "./dist/platform/browser-path.js",
+      "default": "./dist/platform/node-path.js"
     }
   },
   "exports": {

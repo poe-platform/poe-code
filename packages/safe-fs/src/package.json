@@ -11,6 +11,11 @@
       "workerd": "./platform/browser.js",
       "browser": "./platform/browser.js",
       "default": "./platform/node.js"
+    },
+    "#safe-fs-platform-path": {
+      "workerd": "./platform/browser-path.js",
+      "browser": "./platform/browser-path.js",
+      "default": "./platform/node-path.js"
     }
   }
 }

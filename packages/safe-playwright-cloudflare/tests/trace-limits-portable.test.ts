@@ -9,3 +9,8 @@ test("trace limits default individually to Infinity and accept explicit Infinity
 test.each([0, -1, NaN, -Infinity, 1.5])("rejects invalid trace limit %s", maxBytes => {
   expect(() => validateTraceLimits({ maxBytes })).toThrow(TypeError);
 });
+
+test("an omitted trace quota defaults to Infinity while null remains invalid", () => {
+  expect(validateTraceLimits({ maxBytes: undefined }).maxBytes).toBe(Infinity);
+  expect(() => validateTraceLimits({ maxBytes: null as never })).toThrow(TypeError);
+});

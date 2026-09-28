@@ -20993,7 +20993,7 @@ export class Runtime {
                 for (let ti = 0; ti < toks.length; ti++) {
                   const tk = toks[ti]!;
                   if (tk === "0") vals.push(l);
-                  else if (tk === "NF") vals.push(fields.length > 0 ? fields[fields.length - 1]! : "");
+                  else if (tk === "NF") vals.push(fields.length > 0 ? fields[fields.length - 1]! : l);
                   else {
                     const idx = Number(tk);
                     vals.push(idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "");
@@ -21308,6 +21308,7 @@ export class Runtime {
                     const vals = toks.map(tk => {
                       if (tk === "0") return l;
                       const idx = tk === "NF" ? fields.length : Number(tk);
+                      if (idx === 0) return l;
                       return idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "";
                     });
                     outLines.push(vals.join(" "));

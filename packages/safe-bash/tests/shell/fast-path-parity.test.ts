@@ -6,8 +6,8 @@ import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { createStandardCommands } from "../../src/commands/index.js";
 import { createTextProgramCommands } from "../../src/commands/text-programs/index.js";
 
-function createShell() {
-  const shell = new Shell({ fs: createMemoryFileSystem(), env: { LC_ALL: "C" } });
+function createShell(fs = createMemoryFileSystem()) {
+  const shell = new Shell({ fs, env: { LC_ALL: "C" } });
   for (const command of [...createStandardCommands(), ...createTextProgramCommands()]) {
     shell.commands.register(command, { replace: true });
   }
@@ -34,6 +34,10 @@ const cases = [
   `x=$(printf "apple\\nbanana\\ncherry\\n" | grep -F $'apple\\ncherry'); printf "%s|%s\\n" "$x" "$?"`,
   `x=$(printf "  a   b\\n" | awk -F" " '{print $1}'); printf "%s\\n" "$x"`,
   `x=$(printf "   \\nx y\\n" | awk '{print $NF}'); printf "[%s]\\n" "$x"`,
+  ...["", '-F" "'].flatMap(separator => [
+    `x=$(printf " \\t \\nx y\\n" | awk ${separator} '{print $NF, $1}'); printf "[%s]\\n" "$x"`,
+    `x=$(awk ${separator} '{print $NF, $1}' <(printf " \\t \\nx y\\n")); printf "[%s]\\n" "$x"`,
+  ]),
   ...['"héllo:world"', "$'1:2\\n3:4'", "$'a\\\\:b'"].map(value => `count=0; x=${value}; f() { if true; then count=$((count + 1)); IFS=: read a b <<< "$x"; fi; }; f; f; printf "%s|%s|%s\\n" "$count" "$a" "$b"`),
   'count=0; x="héllo:world"; f() { if true; then count=$((count + 1)); IFS=: read -r a b <<< "$x"; fi; }; f; f; printf "%s|%s|%s\\n" "$count" "$a" "$b"',
   'count=0; x=ascii; f() { if true; then count=$((count + 1)); x="héllo:world"; IFS=: read -r a b <<< "$x"; fi; }; f; f; printf "%s|%s|%s\\n" "$count" "$a" "$b"',
@@ -49,6 +53,21 @@ const cases = [
   'while break; do echo wrong; done; echo done',
   'arr=(a); count=0; for ((i=0;i<3;i++)); do count=$((count+1)); done; printf "%s|%s\\n" "$count" "${PIPESTATUS[*]}"',
 ];
+
+for (const separator of ["", '-F" "']) test(`awk file substitution retains zero-field records with ${separator || "default FS"}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", new TextEncoder().encode(" \t \nx y\n"));
+  const shell = createShell(fs);
+  try {
+    const result = await shell.exec(`x=$(awk ${separator} '{print $NF, $1}' /input); printf "[%s]\\n" "$x"`);
+    assert.equal(result.stdout, "[ \t  \ny x]\n");
+    assert.deepEqual(result.stdoutBytes, new TextEncoder().encode("[ \t  \ny x]\n"));
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally {
+    await shell.dispose();
+  }
+});
 
 for (const source of cases) test(`fast-path Bash parity: ${source}`, async () => {
   const bash = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { PATH: "/usr/bin:/bin", LC_ALL: "C" } });

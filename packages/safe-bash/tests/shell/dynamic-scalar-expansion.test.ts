@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { spawnSync } from "node:child_process";
 import { basicCommands } from "../../src/commands/basic.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/shell.js";
@@ -11,7 +12,7 @@ for (const maxExpansionBytes of [undefined, 65536]) {
     const shell = new Shell({ fs, cwd: "/tmp", limits: maxExpansionBytes === undefined ? {} : { maxExpansionBytes } });
     for (const command of basicCommands()) shell.register(command);
     context.after(() => shell.dispose());
-    const result = await shell.exec(`
+    const source = `
       echo "<\${!DIR*}>" "<\${!DIR@}>"
       echo "<$DIRSTACK>" "<\${DIRSTACK}>"
       x=$DIRSTACK; echo "<$x>"
@@ -22,7 +23,11 @@ for (const maxExpansionBytes of [undefined, 65536]) {
       x=$DIRSTACK; echo "<$x>" "<\${!d}>" "<\${DIRSTACK[*]}>"
       popd >/dev/null; echo "<$DIRSTACK>"
       [[ $DIRSTACK == /tmp ]] && echo conditional
-    `);
+    `;
+    const result = await shell.exec(source);
+    const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", `cd /tmp; ${source}`], { encoding: "utf8", timeout: 2000 });
+    assert.equal(native.status, 0, native.stderr);
+    assert.equal(result.stdout, native.stdout);
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stderr, "");
     assert.equal(result.stdout, "<DIRSTACK> <DIRSTACK>\n</tmp> </tmp>\n</tmp>\n</tmp>\n<DIRSTACK> <DIRSTACK>\n<FUNCNAME> <FUNCNAME> <f>\n</>\n</> </> </ /tmp>\n</tmp>\nconditional\n");

@@ -386,13 +386,16 @@ export function fastSafeInt(text: string | undefined, budget: ParseBudget): numb
 function canEvalSafeSmiTree(node: Arithmetic, depth = 0): boolean {
   if (depth > 32) return false;
   if (node.kind === "literal") return node.value >= -94906265n && node.value <= 94906265n;
-  if (node.kind === "name") return node.subscript === undefined || /^[0-9]{1,7}$/.test(node.subscript) || /^\$?[a-zA-Z_][a-zA-Z_0-9]*$/.test(node.subscript);
+  if (node.kind === "name") return node.subscript === undefined || /^[0-9]{1,7}$/.test(node.subscript) || /^\$?[a-zA-Z_][a-zA-Z_0-9]*$/.test(node.subscript) || /^\s*[a-zA-Z_][a-zA-Z_0-9]*\s*(?:[-+*]\s*(?:0|[1-9][0-9]{0,6})|[/%]\s*[1-9][0-9]{0,6})\s*$/.test(node.subscript);
   if (node.kind === "unary") {
     if (node.operator === "+" || node.operator === "-" || node.operator === "!") return canEvalSafeSmiTree(node.operand, depth + 1);
     if (node.operator === "++" || node.operator === "--") return node.operand.kind === "name" && canEvalSafeSmiTree(node.operand, depth + 1) && depth === 0;
     return false;
   }
   if (node.kind === "binary") {
+    if (node.operator === "," && depth === 0) {
+      return canEvalSafeSmiTree(node.left, 0) && canEvalSafeSmiTree(node.right, 0);
+    }
     if ((node.operator === "=" || node.operator === "+=" || node.operator === "-=" || node.operator === "*=") && depth === 0) {
       return node.left.kind === "name" && canEvalSafeSmiTree(node.left, depth + 1) && canEvalSafeSmiTree(node.right, depth + 1);
     }
@@ -438,6 +441,11 @@ function evalSafeSmi(node: Arithmetic, refs: ArithmeticReferences, budget: Parse
     return undefined;
   }
   if (node.kind === "binary") {
+    if (node.operator === ",") {
+      const l = evalSafeSmi(node.left, refs, budget);
+      if (l === undefined) return undefined;
+      return evalSafeSmi(node.right, refs, budget);
+    }
     if (node.operator === "=") {
       const r = evalSafeSmi(node.right, refs, budget);
       if (r === undefined || r < -94906265 || r > 94906265) return undefined;

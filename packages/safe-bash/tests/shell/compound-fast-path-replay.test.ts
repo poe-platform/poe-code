@@ -203,3 +203,62 @@ test("compound array fallback does not replay a loop", async context => {
   assert.equal(result.stderr, "");
   assert.equal(result.exitCode, 0);
 });
+
+test("function-scoped local -a / local -A, outer array subscript mutation with local vars, and whole-array unset in loops", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of basicCommands()) shell.commands.register(command);
+  for (const command of textCommands()) shell.commands.register(command);
+  try {
+    const result = await shell.exec(
+      [
+        'arr="outer_val"',
+        'fn_idx() { local -a arr=(x "$1" z); arr+=("w"); arr[1]="p_$1"; REPLY="${arr[1]}:${#arr[@]}:${arr[3]}"; }',
+        'for ((i=0;i<60;i++)); do fn_idx "$i"; done',
+        'echo "idx:$arr|$REPLY"',
+        'fn_assoc() { local -A map=([a]="$1" [b]="two"); map[c]="three_$1"; REPLY="${map[a]}:${map[c]}:${#map[@]}"; }',
+        'for ((i=0;i<60;i++)); do fn_assoc "$i"; done',
+        'echo "assoc:${#map[@]}|$REPLY"',
+        'g=(0 1 2 3)',
+        'fn_mut() { local k=$(( $1 * 2 )); g[$1]="$k"; }',
+        'for ((i=0;i<60;i++)); do fn_mut "$(( i % 4 ))"; done',
+        'echo "mut:${g[*]}"',
+        'for ((i=0;i<60;i++)); do tmp=(a b c d); unset "tmp[1]"; tmp+=("$i"); unset tmp; done',
+        'echo "unset:${#tmp[@]}"'
+      ].join("\n")
+    );
+    assert.equal(result.stdout, "idx:outer_val|p_59:4:w\nassoc:0|59:three_59:3\nmut:0 2 4 6\nunset:0\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally {
+    await shell.dispose();
+  }
+});
+
+test("comma arithmetic in while loops, associative key iteration arithmetic, modulo subscript mutation, and regex BASH_REMATCH in loops", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of basicCommands()) shell.commands.register(command);
+  for (const command of textCommands()) shell.commands.register(command);
+  try {
+    const result = await shell.exec(
+      [
+        'fn_while() { local n=5 sum=0; while (( n > 0 )); do (( sum += n, n-- )); done; REPLY="$sum"; }',
+        'for ((i=0;i<60;i++)); do fn_while; done',
+        'echo "while:$REPLY"',
+        'declare -A map=([x]=10 [y]=20 [z]=30); sum=0',
+        'for ((i=0;i<60;i++)); do for k in "${!map[@]}"; do (( sum += map[$k] )); done; done',
+        'echo "map:$sum"',
+        'arr=(0 0 0 0)',
+        'for ((i=0;i<60;i++)); do (( arr[i % 4] += i )); done',
+        'echo "arr:${arr[*]}"',
+        'c=0',
+        'for ((i=0;i<60;i++)); do s="item_${i}_ok"; if [[ "$s" =~ ^item_([0-9]+)_ok$ ]]; then (( c += BASH_REMATCH[1] )); fi; done',
+        'echo "re:$c"'
+      ].join("\n")
+    );
+    assert.equal(result.stdout, "while:15\nmap:3600\narr:420 435 450 465\nre:1770\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally {
+    await shell.dispose();
+  }
+});

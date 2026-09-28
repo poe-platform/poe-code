@@ -3870,6 +3870,13 @@ export class Runtime {
               const rawSub = this._syncArithRawVars![resolvedSub];
               resolvedSub = rawSub === undefined || rawSub === "" ? "0" : shellValueText(stateMonitor(st)?.values.get(resolvedSub, rawSub) ?? rawSub);
             }
+          } else {
+            const st = this._syncArithState!;
+            const binding = arrayStore(st)?.get(variable);
+            if (!binding || !binding.associative) {
+              const subStr = tryEvalSimpleExpandedArith(resolvedSub, st, stateMonitor(st), arrayStore(st), this._syncArithRawWriteOnly ? this._syncArithTouched : undefined);
+              if (subStr !== undefined && !subStr.startsWith("-")) resolvedSub = subStr;
+            }
           }
           if (resolvedSub.length === 0 || resolvedSub.length > 128 || !/^[a-zA-Z0-9_.\-/:@]+$/.test(resolvedSub)) throw new ArrayFailure("complex subscript in sync arithmetic");
           return `[idx]${variable}:${resolvedSub}`;
@@ -4006,9 +4013,23 @@ export class Runtime {
     switch (tree.kind) {
       case "literal": return true;
       case "name": {
-        if (tree.subscript !== undefined || tree.name === "OPTIND" || tree.name === "PIPESTATUS" || arrayStore(state)?.get(tree.name)) return false;
+        if (tree.name === "OPTIND" || tree.name === "PIPESTATUS") return false;
         const monitor = stateMonitor(state);
         if (monitor?.hasOverlay(tree.name) || monitor?.store?.watches.has(tree.name)) return false;
+        if (tree.subscript !== undefined) {
+          if (state.nounset || hasUnpreparedLocal(state, tree.name)) return false;
+          const binding = arrayStore(state)?.get(tree.name);
+          if (!binding) return false;
+          if (binding.associative) {
+            if (/^\$[a-zA-Z_][a-zA-Z_0-9]*$/.test(tree.subscript)) {
+              const sv = tree.subscript.slice(1);
+              return !arrayStore(state)?.get(sv) && !monitor?.hasOverlay(sv);
+            }
+            return /^[a-zA-Z0-9_.\-/:@]+$/.test(tree.subscript);
+          }
+          return /^(?:0|[1-9][0-9]{0,6})$/.test(tree.subscript) || /^\$?[a-zA-Z_][a-zA-Z_0-9]*$/.test(tree.subscript) || /^\s*[a-zA-Z_][a-zA-Z_0-9]*\s*(?:[-+*]\s*(?:0|[1-9][0-9]{0,6})|[/%]\s*[1-9][0-9]{0,6})\s*$/.test(tree.subscript);
+        }
+        if (arrayStore(state)?.get(tree.name)) return false;
         const value = state.variables[tree.name]
           ?? (tree.name === "LINENO" ? String(line ?? 1)
             : tree.name === "_" ? state.lastArgument ?? ""
@@ -4656,7 +4677,7 @@ export class Runtime {
       return false;
     }
     // Cold activation belongs to normal command handling, which maps array refusals.
-    const store = monitor?.store ?? (monitor && !(this.budget as { _arraySession?: { hasActiveLedger?: boolean } })._arraySession?.hasActiveLedger ? requireArrays(rawState) : undefined);
+    const store = monitor?.store ?? (monitor && (this.budget.limits.maxExpansionBytes === Infinity && this.budget.limits.maxExpansionFields === Infinity) ? requireArrays(rawState) : undefined);
     let current = store?.get(name);
     if ( !monitor || !store || store.watches.has(name) || monitor.hasOverlay(name) || (current && (current.references !== 1 || (associative !== undefined && current.associative !== associative))) || (!current && rawState.variables[name] !== undefined)) {
       return false;
@@ -7138,7 +7159,7 @@ export class Runtime {
           const fnBody = rawState.functions.get(w0Plain)!;
           return fnBody.kind === "group" && fnBody.redirects.length === 0 && this.canSyncScriptCompound(fnBody.body, rawState, depth + 1);
         }
-        const st = stateMonitor(rawState)?.store ?? (stateMonitor(rawState) && !(this.budget as { _arraySession?: { hasActiveLedger?: boolean } })._arraySession?.hasActiveLedger ? requireArrays(rawState) : undefined);
+        const st = stateMonitor(rawState)?.store ?? (stateMonitor(rawState) && (this.budget.limits.maxExpansionBytes === Infinity && this.budget.limits.maxExpansionFields === Infinity) ? requireArrays(rawState) : undefined);
         const arrayAssign = getArrayAssignment(w0);
         if (arrayAssign) {
           if (!st) return false;
@@ -7343,7 +7364,28 @@ export class Runtime {
       const checkCondNoFile = (e: ConditionalExpression): boolean => {
         if (e.kind === "nonempty") return this.isPureSyncValueWord(e.operand, rawState);
         if (e.kind === "unary") return (e.operator === "-n" || e.operator === "-z" || e.operator === "-v") && this.isPureSyncValueWord(e.operand, rawState);
-        if (e.kind === "binary") return this.isPureSyncValueWord(e.left, rawState) && (e.operator === "==" || e.operator === "=" || e.operator === "!=" ? this.canSyncPatternWordParts(e.right, rawState) : this.isPureSyncValueWord(e.right, rawState));
+        if (e.kind === "binary") {
+          if (e.operator === "=~") {
+            if (!this.isPureSyncValueWord(e.left, rawState) || !this.extractSimpleErePattern(e.right) || rawState.readonlyVariables?.has("BASH_REMATCH") || rawState.exported.has("BASH_REMATCH") || hasUnpreparedLocal(rawState, "BASH_REMATCH")) return false;
+            const mon = stateMonitor(rawState);
+            if (!mon || (this.budget.limits.maxExpansionBytes !== Infinity || this.budget.limits.maxExpansionFields !== Infinity) || mon.hasOverlay("BASH_REMATCH")) return false;
+            const st = mon.store ?? requireArrays(rawState);
+            if (st.watches.has("BASH_REMATCH")) return false;
+            let rem = st.get("BASH_REMATCH");
+            if (!rem) {
+              if (rawState.variables.BASH_REMATCH !== undefined) return false;
+              const created = IndexedBinding.create(st.owner, false);
+              const prepared = st.prepareExistingName("BASH_REMATCH", 12, st.owner, this.signal);
+              if (!prepared) { void created.release(); return false; }
+              const initTickets = st.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+              st.publish("BASH_REMATCH", created, initTickets, prepared, false, st.owner);
+              mon.epoch = initTickets.epoch;
+              rem = created;
+            }
+            return !rem.associative && rem.references === 1;
+          }
+          return this.isPureSyncValueWord(e.left, rawState) && (e.operator === "==" || e.operator === "=" || e.operator === "!=" ? this.canSyncPatternWordParts(e.right, rawState) : this.isPureSyncValueWord(e.right, rawState));
+        }
         if (e.kind === "not") return checkCondNoFile(e.operand);
         if (e.kind === "and" || e.kind === "or") return checkCondNoFile(e.left) && checkCondNoFile(e.right);
         return false;};
@@ -7776,7 +7818,7 @@ export class Runtime {
     if (store && !existing) {
       const initTarget = pipelineStatusTarget(rawState);
       if (
-        !(this.budget as { _arraySession?: { hasActiveLedger?: boolean } })._arraySession?.hasActiveLedger &&
+        (this.budget.limits.maxExpansionBytes === Infinity && this.budget.limits.maxExpansionFields === Infinity) &&
         (initTarget === "indexed" || initTarget === "absent") &&
         !store.watches.has("PIPESTATUS") &&
         !monitor.hasOverlay("PIPESTATUS") &&
@@ -8024,7 +8066,13 @@ export class Runtime {
         }
         const dynProg = prepareArithmetic(fastSrc, this.budget.parsing);
         if (!dynProg.error && isSafeSmiProgram(dynProg) && this.canSyncArithmeticWithoutFault(dynProg.tree, rawState, diagnosticLine)) {
-          const nonZero = this.syncShellArithmeticNonZero(dynProg, rawState, diagnosticLine);
+          let nonZero: boolean;
+          try {
+            nonZero = this.syncShellArithmeticNonZero(dynProg, rawState, diagnosticLine);
+          } catch (err) {
+            if (err instanceof ArrayFailure) return undefined;
+            throw err;
+          }
           if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
           const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
           this.budget.tick();
@@ -8035,7 +8083,13 @@ export class Runtime {
         }
       }
       if (!expr.error && isSafeSmiProgram(expr) && this.canSyncArithmeticWithoutFault(expr.tree, rawState, diagnosticLine)) {
-        const nonZero = this.syncShellArithmeticNonZero(expr, rawState, diagnosticLine);
+        let nonZero: boolean;
+        try {
+          nonZero = this.syncShellArithmeticNonZero(expr, rawState, diagnosticLine);
+        } catch (err) {
+          if (err instanceof ArrayFailure) return undefined;
+          throw err;
+        }
         if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
         const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
         this.budget.tick();

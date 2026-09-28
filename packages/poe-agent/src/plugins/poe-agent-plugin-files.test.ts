@@ -1,7 +1,33 @@
-import { promisify } from "node:util";
 import { Volume, createFsFromVolume } from "memfs";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import filesPlugin, { spec as filesPluginSpec } from "./poe-agent-plugin-files.js";
 import type { ToolContext } from "../runtime/types.js";
+
+const { execFilePromisifiedMock } = vi.hoisted(() => ({
+  execFilePromisifiedMock: vi.fn(
+    async (_file: string, _args: string[], options?: { signal?: AbortSignal }) => {
+      if (options?.signal?.aborted) {
+        const error = new Error("The operation was aborted");
+        error.name = "AbortError";
+        throw error;
+      }
+
+      return {
+        stdout: "src/app.ts:1:const value = 1;\n",
+        stderr: "",
+      };
+    },
+  ),
+}));
+
+vi.mock("node:child_process", async () => {
+  const { promisify } = await import("node:util");
+  return {
+    execFile: Object.assign(vi.fn(), {
+      [promisify.custom]: execFilePromisifiedMock,
+    }),
+  };
+});
 
 function createToolContext(signal: AbortSignal): ToolContext {
   return {
@@ -49,35 +75,11 @@ async function callTool(tools: TestTool[] | undefined, name: string, args: unkno
 }
 
 describe("poe-agent-plugin-files", () => {
-  afterEach(() => {
-    vi.resetModules();
-    vi.doUnmock("node:child_process");
+  beforeEach(() => {
+    execFilePromisifiedMock.mockClear();
   });
 
   it("passes the tool signal to ripgrep", async () => {
-    const execFilePromisifiedMock = vi.fn(
-      async (_file: string, _args: string[], options?: { signal?: AbortSignal }) => {
-        if (options?.signal?.aborted) {
-          const error = new Error("The operation was aborted");
-          error.name = "AbortError";
-          throw error;
-        }
-
-        return {
-          stdout: "src/app.ts:1:const value = 1;\n",
-          stderr: "",
-        };
-      },
-    );
-    const execFileMock = Object.assign(vi.fn(), {
-      [promisify.custom]: execFilePromisifiedMock,
-    });
-
-    vi.doMock("node:child_process", () => ({
-      execFile: execFileMock,
-    }));
-
-    const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
     const fs = createFsFromVolume(
       Volume.fromJSON(
         {
@@ -111,9 +113,20 @@ describe("poe-agent-plugin-files", () => {
     );
   });
 
-  it("validates config options with its plugin spec", async () => {
-    const { spec: filesPluginSpec } = await import("./poe-agent-plugin-files.js");
+  it("keeps ripgrep isolated across tests", async () => {
+    expect(execFilePromisifiedMock).not.toHaveBeenCalled();
+    const fs = createFsFromVolume(
+      Volume.fromJSON({ "/workspace/project/src/app.ts": "const value = 1;\n" }, "/"),
+    ).promises;
+    const plugin = filesPlugin({ cwd: "/workspace/project", fs });
 
+    await expect(callTool(plugin.tools, "grep", { pattern: "value", path: "src" })).resolves.toBe(
+      "src/app.ts:1:const value = 1;",
+    );
+    expect(execFilePromisifiedMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("validates config options with its plugin spec", () => {
     expect(
       filesPluginSpec.parseOptions({
         cwd: "/workspace/project",
@@ -132,9 +145,7 @@ describe("poe-agent-plugin-files", () => {
     );
   });
 
-  it("rejects empty allowed path entries during construction", async () => {
-    const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
-
+  it("rejects empty allowed path entries during construction", () => {
     expect(() => filesPlugin({ cwd: "/workspace/project", allowedPaths: [""] })).toThrow(
       "allowedPaths[0] must not be empty",
     );
@@ -144,7 +155,6 @@ describe("poe-agent-plugin-files", () => {
   });
 
   it("supports line-based read_file offset and limit", async () => {
-    const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
     const fs = createFsFromVolume(
       Volume.fromJSON(
         {
@@ -176,7 +186,6 @@ describe("poe-agent-plugin-files", () => {
   });
 
   it("supports edit_file replace_all and overwrite", async () => {
-    const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
     const fs = createFsFromVolume(
       Volume.fromJSON(
         {
@@ -228,7 +237,6 @@ describe("poe-agent-plugin-files", () => {
   });
 
   it("does not overwrite a file concurrently created during create", async () => {
-    const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
     const filePath = "/workspace/project/src/new.ts";
     const base = createFsFromVolume(Volume.fromJSON({}, "/")).promises;
     let insertConcurrentFile = true;
@@ -255,7 +263,6 @@ describe("poe-agent-plugin-files", () => {
   });
 
   it("removes a partially written file when create persistence fails", async () => {
-    const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
     const filePath = "/workspace/project/src/new.ts";
     const base = createFsFromVolume(Volume.fromJSON({}, "/")).promises;
     const fs = {
@@ -286,7 +293,6 @@ describe("poe-agent-plugin-files", () => {
   });
 
   it("preserves prior content when a str_replace persistence write fails", async () => {
-    const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
     const filePath = "/workspace/project/src/app.ts";
     const originalContent = "export const value = 'old';\n";
     const nextContent = "export const value = 'new';\n";
@@ -326,7 +332,6 @@ describe("poe-agent-plugin-files", () => {
   });
 
   it("cleans failed atomic edit temps that only inherit existing-path codes", async () => {
-    const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
     const filePath = "/workspace/project/src/app.ts";
     const originalContent = "export const value = 'old';\n";
     const nextContent = "export const value = 'new';\n";
@@ -373,7 +378,6 @@ describe("poe-agent-plugin-files", () => {
   });
 
   it("does not remove a colliding atomic edit temp symlink", async () => {
-    const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
     const filePath = "/workspace/project/src/app.ts";
     const outsidePath = "/workspace/outside.tmp";
     const originalContent = "export const value = 'old';\n";
@@ -421,7 +425,6 @@ describe("poe-agent-plugin-files", () => {
   });
 
   it("rejects reads and writes through symlinked allowed descendants", async () => {
-    const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
     const volume = Volume.fromJSON({
       "/workspace/outside/secret.txt": "outside secret\n"
     }, "/");
@@ -444,7 +447,6 @@ describe("poe-agent-plugin-files", () => {
   });
 
   it("returns image tool results for image files", async () => {
-    const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
     const volume = Volume.fromJSON({}, "/");
     volume.mkdirSync("/workspace/project", { recursive: true });
     volume.writeFileSync("/workspace/project/diagram.png", Buffer.from("png-binary"));
@@ -463,7 +465,6 @@ describe("poe-agent-plugin-files", () => {
   });
 
   it("returns glob matches sorted by modified time descending", async () => {
-    const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
     const volume = Volume.fromJSON(
       {
         "/workspace/project/src/alpha.ts": "export const alpha = 1;\n",

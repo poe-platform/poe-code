@@ -437,7 +437,7 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
     if (at + length > bytes.length) { await warn("Truncated record.  File is probably corrupted.\n"); length = 0; }
     const data = new Binary(b.slice(at, length)); at += length;
     if (id === 0) {
-      if (modern) { if (length >= 18) group = data.u8(16); } else { active = sheets.length; sheet(active); }
+      if (modern) { if (version >= 0x1002 && length >= 18) group = data.u8(16); } else { active = sheets.length; sheet(active); }
       continue;
     }
     if (id === 1) { if (modern) break; active = -1; continue; }

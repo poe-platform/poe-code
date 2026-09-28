@@ -44,3 +44,32 @@ it.each([[5, 26], [4, 25]])("refuses unqualified WK3 BOF subtype %i and length %
   expect(probeLotus(bytes, context)).toBe(false);
   await expect(readLotus(bytes, context)).rejects.toThrow("Unsupported WK3 header");
 });
+
+it.each([
+  [0x1000, 0, [67, 97, 102, 0x82], "Café"],
+  [0x1000, 0x10, [67, 97, 102, 0x82], "Café"],
+  [0x1000, 0xff, [67, 97, 102, 0x82], "Café"],
+  [0x1002, 1, [67, 97, 102, 0x82], "Café"],
+  [0x1002, 0x10, [0x93, 0xfa], "日"]
+] as const)("decodes names, labels and formula strings for version %i / header byte %i", async (version, byte, text, expected) => {
+  // ImportLotus::Bof skips byte 16 for WK3; it cannot override LMBCS group 1.
+  const header = [...word(version), ...word(4), ...Array<number>(22).fill(0)]; header[16] = byte;
+  const bytes = Uint8Array.from([
+    ...record(0, header),
+    ...record(9, [0, 0, ...text, ...Array<number>(16 - text.length).fill(0), ...Array<number>(8).fill(0)]),
+    ...record(22, [0, 0, 0, 0, 39, ...text, 0]),
+    ...record(25, [0, 0, 0, 1, ...Array<number>(10).fill(0), 6, ...text, 0, 3]),
+    ...record(26, [0, 0, 0, 1, ...text, 0]),
+    ...record(26, [0, 0, 0, 2, ...text, 0]),
+    ...record(25, [0, 0, 0, 3, ...Array<number>(10).fill(0), 7, ...text, 0, 3]),
+    ...record(1)
+  ]);
+  const original = bytes.slice(), diagnostics: string[] = [];
+  const book = await readLotus(bytes, { ...context, async diagnostic(d) { diagnostics.push(d.message); } });
+  expect(diagnostics).toEqual([]);
+  expect(book.names?.map(name => name.name)).toEqual([expected]);
+  expect(book.sheets[0]!.cells[1]).toMatchObject({ formula: `="${expected}"`, cachedResult: { kind: "string", value: expected } });
+  expect(recalculateWorkbook(book, context, true).sheets[0]!.cells.map(cell => cell.value)).toEqual(
+    Array.from({ length: 4 }, () => ({ kind: "string", value: expected })));
+  expect(bytes).toEqual(original);
+});

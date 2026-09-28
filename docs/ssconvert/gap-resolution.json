@@ -952,7 +952,16 @@
       ],
       "validation": "Four admission/decoding assertions failed before correction. All 167 tests in twelve Lotus files pass; maintained package lint/types and selected build pass. Wrong subtype/length remain refused.",
       "publicReadback": "A 133-byte in-memory WK3 fixture autodetects through the compiled SDK and converts through the public --recalc command to 4087-byte XLSX. Readback preserves values 7/8/8 and both =(A1+1) formulas; exit 0, empty stderr.",
-      "remaining": "Wider WK3 formatting, charset and companion records, relative sheets, range flag packing and independent application qualification remain open. No Lotus family closure."
+      "remaining": "Wider WK3 formatting, charset and companion records, relative sheets, range flag packing and independent application qualification remain open. No Lotus family closure.",
+      "defaultCharset": {
+        "issue": 3473,
+        "source": "LibreOffice bce0998a lotimpop.cxx:57-86 reads the WK3 BOF save count/major/minor identifiers then skips byte 16. It is not an LMBCS group selector for the 0x1000/subtype-4/26-byte profile.",
+        "implementation": "Only modern versions >=0x1002 read the existing group selector. WK3 retains default group 1 even when reserved byte 16 is nonzero. Cell labels, formula literals/caches and names share the preserved group.",
+        "validation": "Three original memory cases (reserved byte 0/16/255) fail before repair; modern group 1 and Japanese group 16 controls pass. All 360 tests in 19 Lotus files, package lint/source/test/consumer types and selected build pass. Twelve compiled SDK/command XLSX exports across both editions preserve original Cafe-with-accent name, four string values and literal/reference formulas without diagnostics or input mutation.",
+        "native": "Independent OOXML inspection and all twelve Calc 26.8.0.3 XLSX readbacks preserve Café in the name and all four cells, plus both live formulas. This is product-output interoperability, not a native WK3 input-decoding qualification.",
+        "receipts": "out/ssconvert-root-build-YJeeDE/out/ssconvert-odf-settings/{wk3-group-source,wk3-compiled-proof,wk3-native-proof,wk3-cleanup}.json",
+        "remaining": "Wider WK3 charsets/records and original native-format qualification remain under 1748; no Lotus family or publication closure."
+      }
     },
     "lotusLookupSemantics": {
       "status": "implemented for direct/named three-argument INDEX, HLOOKUP and VLOOKUP",
